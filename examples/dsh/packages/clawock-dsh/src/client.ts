@@ -137,14 +137,17 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.today': '今天 {time}', 'balance.reset.tomorrow': '明天 {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': '任务', 'queue.panelTitle': '派发任务队列', 'queue.panelHeading': '派发队列',
-    'queue.refresh': '刷新任务队列', 'queue.slots': '槽 {used}/{max}', 'queue.slotsHeading': '运行槽', 'queue.slotsCount': '{used}/{max}',
-    'queue.queued': '排队 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.retryWait': '等重试 {n}', 'queue.idle': '没有在跑的任务',
+    'queue.refresh': '刷新任务队列', 'queue.running': '在跑 {n}', 'queue.slotsHeading': '运行槽 · 按 agent',
+    'queue.lane': '{agent} {used}/{max}', 'queue.laneNoMax': '{agent} {used}', 'queue.legacyLane': '过渡期共享槽 {used}',
+    'queue.lanesTitle': '运行槽按 agent 分:每个 agent 只用自己的槽,互不挤占;排队看各自那一格',
+    'queue.queued': '排队 {n}', 'queue.memoryWait': '等内存 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.retryWait': '等重试 {n}', 'queue.idle': '没有在跑的任务',
     'queue.readFailed': '任务队列读取失败:{message}', 'queue.staleWith': '刷新失败,显示最近一次: {message}',
-    'queue.state.running': '运行中 · 槽 {slot}', 'queue.state.starting': '启动中',
-    'queue.wait.lock': '等 {agent} 锁', 'queue.wait.slot': '等运行槽', 'queue.wait.memory': '等内存',
+    'queue.state.running': '运行中', 'queue.state.runningSlot': '运行中 · 槽 {slot}',
+    'queue.state.runningLegacy': '运行中 · 旧共享槽 {slot}', 'queue.state.starting': '启动中',
+    'queue.wait.lock': '等 {agent} 锁', 'queue.wait.slot': '等 {agent} 运行槽', 'queue.wait.memory': '等内存',
     'queue.wait.quota': '等额度 · {time} 续跑', 'queue.wait.quotaNoTime': '等额度',
     'queue.wait.retry': '重试等待 · {time}', 'queue.wait.retryNoTime': '重试等待',
-    'queue.meta': '{agent} · {model}', 'queue.run': '已跑 {elapsed} · 第 {attempts} 次',
+    'queue.meta': '{agent} · {model}', 'queue.run': '已跑 {elapsed} · 第 {attempts} 次', 'queue.stalls': '卡死 {n}',
     'queue.waitHeading': '排队 / 等待', 'queue.noneRunning': '没有占用运行槽的任务', 'queue.noneWaiting': '没有排队或等待的任务',
     'queue.recentHeading': '最近结束',
     'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}', 'queue.roundsHeading': '最近几轮',
@@ -156,6 +159,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.back': '返回队列', 'queue.d.open': '查看任务详情', 'queue.d.live': '进行中', 'queue.d.ended': '已结束',
     'queue.d.agent': 'Agent', 'queue.d.model': '模型', 'queue.d.started': '开始', 'queue.d.elapsed': '已运行',
     'queue.d.took': '用时', 'queue.d.endedAt': '结束', 'queue.d.resumes': '续跑', 'queue.d.attempts': '尝试次数',
+    'queue.d.stalls': '判卡死', 'queue.d.stallsValue': '{n} 次(静默无进展,已自动重试)',
     'queue.d.latest': '最近事件', 'queue.d.id': '任务 ID', 'queue.d.summary': '结果摘要', 'queue.d.noSummary': '没有留下结果摘要',
   },
   en: {
@@ -214,14 +218,17 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.today': 'today {time}', 'balance.reset.tomorrow': 'tomorrow {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': 'Tasks', 'queue.panelTitle': 'Dispatch task queue', 'queue.panelHeading': 'Dispatch queue',
-    'queue.refresh': 'Refresh the task queue', 'queue.slots': 'slots {used}/{max}', 'queue.slotsHeading': 'Run slots', 'queue.slotsCount': '{used}/{max}',
-    'queue.queued': '{n} queued', 'queue.quotaWait': '{n} waiting on quota', 'queue.retryWait': '{n} waiting to retry', 'queue.idle': 'No task running',
+    'queue.refresh': 'Refresh the task queue', 'queue.running': '{n} running', 'queue.slotsHeading': 'Run slots · per agent',
+    'queue.lane': '{agent} {used}/{max}', 'queue.laneNoMax': '{agent} {used}', 'queue.legacyLane': 'old shared slots {used}',
+    'queue.lanesTitle': 'Run slots are per agent: each agent only uses its own, so a queue is about that agent alone',
+    'queue.queued': '{n} queued', 'queue.memoryWait': '{n} waiting on memory', 'queue.quotaWait': '{n} waiting on quota', 'queue.retryWait': '{n} waiting to retry', 'queue.idle': 'No task running',
     'queue.readFailed': 'Task queue read failed: {message}', 'queue.staleWith': 'Refresh failed, showing the last read: {message}',
-    'queue.state.running': 'running · slot {slot}', 'queue.state.starting': 'starting',
-    'queue.wait.lock': 'waiting for the {agent} lock', 'queue.wait.slot': 'waiting for a run slot', 'queue.wait.memory': 'waiting for memory',
+    'queue.state.running': 'running', 'queue.state.runningSlot': 'running · slot {slot}',
+    'queue.state.runningLegacy': 'running · old shared slot {slot}', 'queue.state.starting': 'starting',
+    'queue.wait.lock': 'waiting for the {agent} lock', 'queue.wait.slot': 'waiting for a {agent} run slot', 'queue.wait.memory': 'waiting for memory',
     'queue.wait.quota': 'quota wait · resumes {time}', 'queue.wait.quotaNoTime': 'quota wait',
     'queue.wait.retry': 'retry wait · {time}', 'queue.wait.retryNoTime': 'retry wait',
-    'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}',
+    'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}', 'queue.stalls': '{n} stalled',
     'queue.waitHeading': 'Queued / waiting', 'queue.noneRunning': 'No task holds a slot', 'queue.noneWaiting': 'Nothing queued or waiting',
     'queue.recentHeading': 'Recently ended',
     'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}', 'queue.roundsHeading': 'Recent rounds',
@@ -233,6 +240,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.back': 'Back to the queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
     'queue.d.agent': 'Agent', 'queue.d.model': 'Model', 'queue.d.started': 'Started', 'queue.d.elapsed': 'Running for',
     'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
+    'queue.d.stalls': 'Stalled', 'queue.d.stallsValue': '{n} (silent with no progress, retried automatically)',
     'queue.d.latest': 'Latest event', 'queue.d.id': 'Task ID', 'queue.d.summary': 'Closing report', 'queue.d.noSummary': 'No closing report was left',
   },
 }
@@ -1421,9 +1429,53 @@ export type TaskQueueSidebarActionProps = TaskQueueInjected & {
   t: Translate
 }
 
-/** A live task queued for something another task holds (the backlog patrol yields to). */
+/** A live task queued for something another task of its agent holds (the backlog patrol yields to). */
 const queuedFor = (task: DispatchTask): boolean =>
-  task.waiting === 'lock' || task.waiting === 'slot' || task.waiting === 'memory'
+  task.waiting === 'lock' || task.waiting === 'slot'
+
+/**
+ * Which run slot a live task holds. Slots are per agent since 2026-09-25
+ * (`claude-1`); a runner started before that still holds one of the old
+ * shared slots (`1`, `2`) until it ends — those count apart, never against an
+ * agent. Anything else is shown verbatim under the task's own agent.
+ */
+export function _slotOf(task: DispatchTask): { agent: string; slot: string; legacy: boolean } | null {
+  if (task.slot === '') return null
+  const lane = /^([a-z][a-z0-9]*)-(\d+)$/.exec(task.slot)
+  if (lane) return { agent: lane[1]!, slot: lane[2]!, legacy: false }
+  return /^\d+$/.test(task.slot)
+    ? { agent: '', slot: task.slot, legacy: true }
+    : { agent: task.agent, slot: task.slot, legacy: false }
+}
+
+type SlotLane = { agent: string; used: number; max: number | null; tone: BalanceTone }
+
+/**
+ * Each agent's run slots — limits.env order, then any agent seen holding one
+ * that limits.env does not name — plus the old shared slots still held
+ * (`legacy`). A full lane with a task of that agent queued is amber: that is
+ * the queue's reason at a glance. A host older than slotLimits sends none:
+ * the lanes then come from the held slots alone, without a maximum.
+ */
+export function _slotLanes(result: TaskQueueResult): { lanes: SlotLane[]; legacy: number } {
+  const held = result.active.map(_slotOf).filter((slot): slot is NonNullable<ReturnType<typeof _slotOf>> => slot !== null)
+  const limits = new Map((result.slotLimits ?? []).map((limit) => [limit.agent, limit.max] as const))
+  for (const slot of held) if (!slot.legacy && !limits.has(slot.agent)) limits.set(slot.agent, -1)
+  const lanes = [...limits].map(([agent, limit]) => {
+    const used = held.filter((slot) => !slot.legacy && slot.agent === agent).length
+    const max = limit >= 0 ? limit : null
+    const queued = result.active.some((task) => task.agent === agent && queuedFor(task))
+    const tone: BalanceTone = max !== null && used >= max && queued ? 'stale' : used > 0 ? 'ok' : 'none'
+    return { agent, used, max, tone }
+  })
+  return { lanes, legacy: held.filter((slot) => slot.legacy).length }
+}
+
+function laneText(t: Translate, lane: SlotLane): string {
+  return lane.max === null
+    ? t('queue.laneNoMax', { agent: lane.agent, used: lane.used })
+    : t('queue.lane', { agent: lane.agent, used: lane.used, max: lane.max })
+}
 
 function durationOf(t: Translate, ms: number): string {
   const mins = Math.max(0, Math.floor(ms / 60000))
@@ -1446,15 +1498,17 @@ export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date
     : t(key, { time: resetStampOf(t, { resetAt: '', resetAtMs: ms }, now) })
   switch (task.waiting) {
     case 'lock': return { tone: 'stale', text: t('queue.wait.lock', { agent: task.agent }) }
-    case 'slot': return { tone: 'stale', text: t('queue.wait.slot') }
+    case 'slot': return { tone: 'stale', text: t('queue.wait.slot', { agent: task.agent }) }
     case 'memory': return { tone: 'stale', text: t('queue.wait.memory') }
     case 'quota': return { tone: 'none', text: at('queue.wait.quota', task.wakeAtMs) }
     case 'retry': return { tone: 'none', text: at('queue.wait.retry', task.wakeAtMs) }
     default: break
   }
-  return task.slot !== ''
-    ? { tone: 'ok', text: t('queue.state.running', { slot: task.slot }) }
-    : { tone: 'none', text: t('queue.state.starting') }
+  const slot = _slotOf(task)
+  if (slot === null) return { tone: 'none', text: t('queue.state.starting') }
+  // One slot per agent: the row's agent line already says whose it is.
+  if (slot.legacy) return { tone: 'ok', text: t('queue.state.runningLegacy', { slot: slot.slot }) }
+  return { tone: 'ok', text: slot.slot === '1' ? t('queue.state.running') : t('queue.state.runningSlot', { slot: slot.slot }) }
 }
 
 /** An ended task's status words: the runner's state, then the agent's own STATUS. */
@@ -1478,24 +1532,38 @@ function patrolPhraseOf(result: TaskQueueResult, t: Translate, now: number): str
   return t('queue.patrol.' + patrol.phase)
 }
 
-/** The chip's headline: dot tone, slots value, and the one-line "who waits" sub-reading. */
+/**
+ * The chip's headline: dot tone, how many tasks run, and the one-line "who
+ * waits" sub-reading. No n/max: slots are per agent, so a free slot of one
+ * agent is no room for another's task — the per-agent lanes are in the title
+ * and at the top of the panel.
+ */
 export function _queueHeadline(result: TaskQueueResult, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string; busy: boolean; title: string } {
   const queued = result.active.filter(queuedFor).length
+  // Only patrol admission waits for memory: a reason of its own, not a queue behind a task.
+  const memory = result.active.filter((task) => task.waiting === 'memory').length
   const quota = result.active.filter((task) => task.waiting === 'quota').length
   // A retry back-off holds nothing either, but it is still a live task waiting (#1772).
   const retry = result.active.filter((task) => task.waiting === 'retry').length
   const parts = [
     queued > 0 ? t('queue.queued', { n: queued }) : null,
+    memory > 0 ? t('queue.memoryWait', { n: memory }) : null,
     quota > 0 ? t('queue.quotaWait', { n: quota }) : null,
     retry > 0 ? t('queue.retryWait', { n: retry }) : null,
     patrolPhraseOf(result, t, now),
   ].filter((part): part is string => part !== null)
-  const value = t('queue.slots', { used: result.running, max: result.maxRunning })
+  const value = t('queue.running', { n: result.running })
+  const { lanes, legacy } = _slotLanes(result)
+  const slots = [...lanes.map((lane) => laneText(t, lane)), legacy > 0 ? t('queue.legacyLane', { used: legacy }) : null]
+    .filter((part): part is string => part !== null).join(' · ')
   const tone: BalanceTone = result.status === 'stale' || result.status === 'failed'
     ? 'stale'
     : result.active.length > 0 ? 'ok' : 'none'
   const idle = result.active.length === 0 ? t('queue.idle') + ' · ' : ''
-  return { tone, value, sub: parts.join(' · '), busy: queued > 0, title: t('queue.name') + ' · ' + value + ' · ' + idle + parts.join(' · ') }
+  return {
+    tone, value, sub: parts.join(' · '), busy: queued > 0,
+    title: [t('queue.name'), value, slots, idle + parts.join(' · ')].filter((part) => part !== '').join(' · '),
+  }
 }
 
 /** Cached-first read, the mount fetch and the poll, like useProviderBalances in miniature. */
@@ -1618,8 +1686,12 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
     num: t('queue.run', {
       attempts: task.attempts,
       elapsed: task.startedAtMs === null ? '—' : durationOf(t, now - task.startedAtMs),
-    }),
+    }) + (task.stalls ? ' · ' + t('queue.stalls', { n: task.stalls }) : ''),
   })
+  const { lanes, legacy } = _slotLanes(result)
+  const lane = (key: string, tone: BalanceTone, text: string): React.ReactElement =>
+    h('span', { className: cx('tq-lane'), key, 'data-tq-lane': key },
+      h('span', { className: cx('bp-dot'), 'data-balance-state': tone }), text)
   const holding = result.active.filter((task) => task.slot !== '')
   const waiting = result.active.filter((task) => task.slot === '')
   const rows = (key: string, tasks: DispatchTask[], empty: string, view: (task: DispatchTask) => TaskRowView) => tasks.length === 0
@@ -1630,7 +1702,12 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
     problem !== null && problem !== ''
       ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
       : null,
-    renderQueueSection('slots', t('queue.slotsHeading'), t('queue.slotsCount', { used: result.running, max: result.maxRunning })),
+    renderQueueSection('slots', t('queue.slotsHeading'), String(holding.length)),
+    lanes.length + legacy === 0 ? null : h('div', {
+      className: cx('tq-lanes'), key: 'lanes', role: 'group', 'aria-label': t('queue.lanesTitle'), title: t('queue.lanesTitle'),
+    },
+      lanes.map((row) => lane(row.agent, row.tone, laneText(t, row))),
+      legacy > 0 ? lane('legacy', 'ok', t('queue.legacyLane', { used: legacy })) : null),
     rows('holding', holding, t('queue.noneRunning'), liveView),
     renderQueueSection('waiting', t('queue.waitHeading'), String(waiting.length)),
     rows('waiting', waiting, t('queue.noneWaiting'), liveView),
@@ -1698,6 +1775,7 @@ function renderTaskDetail(
     live ? ['queue.d.resumes', stamp(task.wakeAtMs)] : ['queue.d.endedAt', task.updatedAtMs === null ? null
       : stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs)],
     ['queue.d.attempts', String(task.attempts)],
+    ['queue.d.stalls', task.stalls ? t('queue.d.stallsValue', { n: task.stalls }) : null],
     // Falsy checks: a host older than these fields sends none of them.
     live && task.lastEvent ? ['queue.d.latest', task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs))] : ['', null],
     ['queue.d.id', task.id, true],

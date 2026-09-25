@@ -14,7 +14,8 @@ import { execFile } from "node:child_process";
 *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
 *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
 *                                        `<ts> <event>` lines, `final | <text>` (the agent's closing lines)
-*   <limitsPath>                         `MAX_RUNNING=<n>`, shared with both
+*   <limitsPath>                         `MAX_RUNNING_<AGENT>=<n>` (each agent's own slots) and
+*                                        their display-only sum `MAX_RUNNING`, shared with both
 *   <patrolDir>/current-round, rounds.tsv
 *   agent-dispatch-<id>.service          active = the task is still alive
 *   clawock-patrol.service + its journal the supervisor's own last words
@@ -178,6 +179,7 @@ function readTask(logDir, id, alive) {
 		waiting,
 		slot: alive ? result.SLOT ?? "" : "",
 		attempts: Number.parseInt(result.ATTEMPTS ?? "0", 10) || 0,
+		stalls: Number.parseInt(result.STALLS ?? "0", 10) || 0,
 		outcome: result.OUTCOME ?? "",
 		startedAtMs: localStampMs(result.STARTED ?? meta.CREATED),
 		updatedAtMs: localStampMs(result.UPDATED),
@@ -188,9 +190,20 @@ function readTask(logDir, id, alive) {
 		lastEventAtMs: event.atMs
 	};
 }
-function readMaxRunning(path) {
-	const value = Number.parseInt(readEnvFile(path).MAX_RUNNING ?? "", 10);
-	return Number.isFinite(value) && value > 0 ? value : 0;
+function readLimits(path) {
+	const env = readEnvFile(path);
+	const count = (raw) => {
+		const value = Number.parseInt(raw ?? "", 10);
+		return Number.isFinite(value) && value > 0 ? value : 0;
+	};
+	const slotLimits = Object.keys(env).filter((key) => /^MAX_RUNNING_[A-Z0-9]+$/.test(key)).map((key) => ({
+		agent: key.slice(12).toLowerCase(),
+		max: count(env[key])
+	}));
+	return {
+		maxRunning: count(env.MAX_RUNNING),
+		slotLimits
+	};
 }
 function readRounds(patrolDir, limit) {
 	let text;
@@ -270,6 +283,7 @@ async function readTaskQueue(config, deps) {
 		available: false,
 		asOf,
 		maxRunning: 0,
+		slotLimits: [],
 		running: 0,
 		active: [],
 		recent: [],
@@ -299,7 +313,7 @@ async function readTaskQueue(config, deps) {
 	return {
 		available: true,
 		asOf,
-		maxRunning: readMaxRunning(config.limitsPath),
+		...readLimits(config.limitsPath),
 		running: active.filter((task) => task.slot !== "").length,
 		active,
 		recent: ended,
@@ -325,6 +339,7 @@ function createTaskQueueService(config = {}, deps = systemDeps) {
 		available: false,
 		asOf: "",
 		maxRunning: 0,
+		slotLimits: [],
 		running: 0,
 		active: [],
 		recent: [],

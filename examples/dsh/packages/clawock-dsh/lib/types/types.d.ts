@@ -257,9 +257,19 @@ export interface DispatchTask {
     state: string;
     /** What a live task waits for: 'lock' | 'slot' | 'quota' | 'retry' | 'memory' | ''. Always '' once ended. */
     waiting: string;
-    /** Run slot the live attempt holds, '' when none. */
+    /**
+     * Run slot the live attempt holds, '' when none: `<agent>-<n>` (slots are per
+     * agent since 2026-09-25), or a bare `<n>` from a runner started before that,
+     * which still holds one of the old shared slots until it ends.
+     */
     slot: string;
     attempts: number;
+    /**
+     * Attempts the runner stopped as stalled (silent, no tool at work) and retried.
+     * Optional on the wire, like slotLimits: a client bundle installed without a
+     * dsh restart still talks to the previous host, which sends neither.
+     */
+    stalls?: number;
     /** The agent's own STATUS line: 'DONE' | 'PARTIAL' | 'BLOCKED' | ''. */
     outcome: string;
     startedAtMs: number | null;
@@ -299,6 +309,12 @@ export interface PatrolStatus {
     /** Newest first, at most three. */
     rounds: PatrolRound[];
 }
+/** How many run slots one agent has (limits.env `MAX_RUNNING_<AGENT>`). */
+export interface AgentSlotLimit {
+    /** 'claude' | 'codex' | 'opencode', lower case. */
+    agent: string;
+    max: number;
+}
 /** The task-queue chip's answer. In-band like BalancesResult: taskQueue() never throws. */
 export interface TaskQueueResult {
     /** False on a host without the dispatcher: the chip renders nothing. */
@@ -309,8 +325,13 @@ export interface TaskQueueResult {
     asOf: string;
     /** Suggested client poll interval in ms. */
     refreshMs: number;
-    /** limits.env MAX_RUNNING (0 when unreadable). */
+    /**
+     * limits.env MAX_RUNNING (0 when unreadable): only the sum of the per-agent
+     * slots, not a pool any task can take; kept for older clients.
+     */
     maxRunning: number;
+    /** limits.env MAX_RUNNING_<AGENT>, in file order: each agent's own run slots. */
+    slotLimits?: AgentSlotLimit[];
     /** Live tasks that report holding a run slot. */
     running: number;
     /** Live tasks, oldest first. */

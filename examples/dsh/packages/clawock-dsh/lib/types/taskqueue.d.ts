@@ -8,7 +8,8 @@
  *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
  *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
  *                                        `<ts> <event>` lines, `final | <text>` (the agent's closing lines)
- *   <limitsPath>                         `MAX_RUNNING=<n>`, shared with both
+ *   <limitsPath>                         `MAX_RUNNING_<AGENT>=<n>` (each agent's own slots) and
+ *                                        their display-only sum `MAX_RUNNING`, shared with both
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
  *   clawock-patrol.service + its journal the supervisor's own last words

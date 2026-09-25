@@ -230,6 +230,7 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'waiting': z.string(),
   'slot': z.string(),
   'attempts': z.number(),
+  'stalls': z.number().optional(),
   'outcome': z.string(),
   'startedAtMs': z.union([z.number(), z.literal(null)]),
   'updatedAtMs': z.union([z.number(), z.literal(null)]),
@@ -246,6 +247,10 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'asOf': z.string(),
   'refreshMs': z.number(),
   'maxRunning': z.number(),
+  'slotLimits': z.array(z.object({
+  'agent': z.string(),
+  'max': z.number(),
+})).optional(),
   'running': z.number(),
   'active': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
   'recent': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
