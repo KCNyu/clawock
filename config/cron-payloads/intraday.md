@@ -9,7 +9,9 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
 
 `delivery_mode=review_candidate`：只有软候选首次出现，模型决定这档值不值得叫醒。若不值得，只向 prose 文件写精确字面值 `SILENT`，调用带 `--text-file` 的 postflight；不写 sidecar，postflight 留审计并静默。若值得，按 full_delta 写判断与 sidecar。
 
-`semantic_unchanged=true` 的 full_delta（每档必发开关打开时的无变化档）：如实写一行「本档无实质变化」加继续观察/下一触发，不要为凑字数编异动或把旧信号说成新的。
+语义未变的 full_delta（每档必发开关打开时的无变化档，context 里 `semantic_unchanged` 为 true）：如实写「本档无实质变化」加继续观察/下一触发，不要为凑字数编异动或把旧信号说成新的。
+
+正文是给 kcn 看的交易语言：context 的字段名与枚举值（任何带下划线的英文标识，如语义未变标记、risk_rule、near_breakout，以及 verdict=wait 这类“键=值”）一律不写进正文，翻译成中文说法；postflight 会把它标成卡片顶部的校验警告。
 
 `delivery_mode=full_delta` 或 review_candidate 选择说话时：只写 `▎我的看法` 下 1–3 行判断，优先回答「本档什么条件变了、现在看/等/做什么、下一触发点是什么」。不要复述数据块/持仓表/旧 STOP/旧计划/旧新闻；不计算涨跌差、倍数、金额和股数。数字必须原样照抄 context 的完整字面值；禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略。结合完整 `plan_context`、`watch_levels`、`peer_scan`、`source_signals_detail`、各来源失败状态，再引用 `semantic_delta`、`plan_triggers`、一手事件及异动；`quote_coverage` 不完整就明确说行情未证实完整刷新，不对缺失行情下动作判断。一级源降级只能说“未取到”，不能说“没有消息”。持仓策略按 `holding_policies`、`strategy_conflicts`、`strategy_checks` 与 `strategy_escalations`；旧 risk_rule 减仓计划若与当前策略冲突，只说明冲突与待核对状态，不重复旧砍仓建议：无限子弹流不重复风险提醒，不写砍仓/减仓建议；只在 `raw_wechat_block` 本档新出现 P0 行时问一次是否继续。`strategy_checks` 给出每条阈值的 observed_pct/status/source；`strategy_escalations` 只列触发项，用于核对本轮证据，不把仍在持续的 P0 当成新事件；只有 `strategy_checks.status=clear` 才能说对应 P0 未触发；`unavailable` 必须说证据未取到，不能用单日涨跌推断五交易日。
 

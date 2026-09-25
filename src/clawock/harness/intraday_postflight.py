@@ -49,6 +49,7 @@ from clawock.harness.validation import (
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
+    check_identifier_leak,
     check_numeric_claims,
     check_pipeline_self_reference,
     mentions_ticker,
@@ -241,7 +242,8 @@ def validate(text, ctx, model_text):
     - critical (`CRITICAL_KEYWORDS`, hard length): the report fails outright;
     - escalating: counted against `warn_max` — the alert-slot rules (anomaly and
       signal tickers must be named in prose) live here, because naming what
-      fired is what an alert slot is for;
+      fired is what an alert slot is for, and so do context field names in the
+      prose (an identifier is never trading language);
     - advisory (`ADVISORY_MARK`): shown, never counted — secondary reads such as
       plan triggers and add-side verdicts, numeric provenance, pipeline jargon.
 
@@ -342,6 +344,9 @@ def validate(text, ctx, model_text):
 
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
+    # 字段名/枚举值 —— escalating，见 check_identifier_leak (2026-09-25 14:33
+    # 「semantic_unchanged」原样印进正文、上面那条词表没拦住)
+    issues.extend(check_identifier_leak(checked))
 
     for ticker, policy in (ctx.get('holding_policies') or {}).items():
         if not policy.get('forbid_reduce_advice'):

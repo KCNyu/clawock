@@ -135,6 +135,31 @@ def check_pipeline_self_reference(text, label='散文'):
         return []
     return [f'{label}出现内部管线术语（{", ".join(found)}）—— 读者看不到管线，'
             f'改写成交易语言 {ADVISORY_MARK}']
+
+
+# A context field or enum name printed in the judgment. The pipeline-term list
+# above names words; it cannot name every key, and 2026-09-25 HK 14:33 shipped
+# 「本档无实质变化（semantic_unchanged）」 with a clean pass because
+# `semantic_unchanged` was on no list. A snake_case identifier (or a `key=value`
+# pair: 2026-09-24 US 「CRCL verdict=wait」) is never trading language, so the
+# shape is the rule rather than a vocabulary. Escalating, unlike the word list:
+# an identifier is unambiguous, and a card that shows one must say so on top.
+_IDENTIFIER = re.compile(
+    r'(?<![A-Za-z0-9_./-])([A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+)(?![A-Za-z0-9_])')
+_KEY_VALUE = re.compile(r'(?<![A-Za-z0-9_])([a-z][a-z0-9_]*)\s*=\s*[A-Za-z0-9_]')
+
+
+def check_identifier_leak(text, label='判断段'):
+    """One escalating issue listing every field/enum identifier in `text`."""
+    found = []
+    for pattern in (_IDENTIFIER, _KEY_VALUE):
+        for match in pattern.finditer(text or ''):
+            if match.group(1) not in found:
+                found.append(match.group(1))
+    if not found:
+        return []
+    return [f'{label}出现字段名/内部标识（{", ".join(found[:4])}）—— 读者看不到 context，'
+            f'改写成交易语言']
 # SCOPE, stated plainly: this catches magnitudes that appear NOWHERE in the
 # context. It cannot catch a real number attached to the wrong thing — the same
 # report's "07226 + 03033 各 1000 股" quotes a share count that genuinely exists
