@@ -7,6 +7,7 @@ from pathlib import Path
 from clawock.harness import intraday_preflight as pre
 from clawock.harness import intraday_postflight as post
 from clawock.decision import intraday_policy as policy
+from clawock.harness import validation as val
 
 
 def test_mode7_named_context_fields_reach_model():
@@ -329,3 +330,27 @@ def test_an_unchanged_slot_may_say_so_in_one_line_but_not_invent_a_move():
     changed = {**ctx, 'semantic_unchanged': False}
     assert any('太敷衍' in i for i in post.validate(
         post.assemble_message(changed, honest), changed, honest))
+
+
+def test_a_context_field_name_in_the_judgment_is_flagged_on_top():
+    """Regression: 2026-09-25 HK 14:33 delivered 「本档无实质变化（semantic_unchanged）」
+    with status pass — the pipeline-term word list did not know the key. The
+    rule is the identifier shape, and it escalates (a banner), not a footnote."""
+    ctx = {'market': 'hk', 'should_alert': False, 'semantic_unchanged': True,
+           'raw_wechat_block': '🇭🇰 港股盯盘'}
+    leaked = ('▎我的看法\n本档无实质变化（semantic_unchanged），无新硬催化。'
+              '07226 现价 2.80 距 3.0 未触发；下一触发：恒科 4,300 / 07226 3.0。')
+    issues = post.validate(post.assemble_message(ctx, leaked), ctx, leaked)
+    flagged = [i for i in issues if '字段名' in i]
+    assert flagged and 'semantic_unchanged' in flagged[0]
+    assert not val.is_advisory(flagged[0])
+    assert post.categorize(issues) == 'warn'
+    # 2026-09-24 US: a key=value pair is the same leak.
+    kv = '▎我的看法\nCRCL verdict=wait，技术未接近突破。' + '其余票按原计划等待。' * 4
+    assert any('verdict' in i for i in post.validate(post.assemble_message(ctx, kv), ctx, kv)
+               if '字段名' in i)
+    clean = leaked.replace('（semantic_unchanged）', '')
+    assert not any('字段名' in i for i in post.validate(
+        post.assemble_message(ctx, clean), ctx, clean))
+    # Tickers, indicators and codes are not identifiers.
+    assert val.check_identifier_leak('07226 跌破 MA20，RSI 28，T+0 追高，SPCX/SPCH 同跌') == []

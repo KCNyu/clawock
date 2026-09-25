@@ -486,3 +486,29 @@ def test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly(
     # The same slot with the switch off is the audited silence it was.
     (tmp_path / 'config' / 'intraday-delivery.json').write_text('{"always_full": false}')
     assert run(copy.deepcopy(current))["delivery_mode"] == "no_change"
+
+
+def test_the_model_packet_keeps_reason_lines_the_card_folded(monkeypatch, tmp_path):
+    """Regression (#1862 → #1863): folding a signal already delivered today
+    also removed its reason lines, and the only copy was the card — the model
+    lost '价格高于MA20 +25.7%'. Read what the model is actually handed (the
+    printed `--judgment-packet`), not the file on disk."""
+    current, _ = _wire_preflight(monkeypatch, tmp_path)
+    block = '\n'.join(['🇺🇸 美股盯盘 | 08/13 13:33 ET', '',
+                       '| SPCH | 10 | 6 | 7 | +1% | +2% | +3 |', '',
+                       '⚠️ 信号', '  ▼ STOP-LOSS RKLX | 今日+10.9% 浮-60.8%',
+                       '     · 价格高于MA20 +25.7%', '', '📉 亏损持仓 1/2'])
+    monkeypatch.setattr(preflight, "run_analyze", lambda _m: (0, block, ""))
+    previous = copy.deepcopy(current)
+    previous["breaches_seen"] = [{"ticker": "RKLX", "kind": "signal", "level": "STOP"}]
+    path = gate.delivered_state_path(tmp_path, "us")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"state": previous}))
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+    packet = json.loads(out.getvalue())
+
+    assert '今日已报、仍在' in packet["raw_wechat_block"]
+    assert '价格高于MA20 +25.7%' not in packet["raw_wechat_block"]
+    assert '价格高于MA20 +25.7%' in packet["analyzer_block"]
