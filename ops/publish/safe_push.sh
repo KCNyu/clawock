@@ -116,6 +116,24 @@ if ! git var GIT_COMMITTER_IDENT >/dev/null 2>&1; then
   fi
 fi
 
+# `pull --rebase` with rebase.autoStash exits 0 even when re-applying the stash
+# conflicts: the commits rebased cleanly, but the working tree is left with
+# unmerged paths full of conflict markers and git keeps the stash entry. Every
+# reader of that file then parses markers (portfolio.json included), and the
+# next committer's `git add` can commit them. Put just those paths back to the
+# committed version; the uncommitted edits stay in the stash git kept.
+settle_autostash_conflict() {
+  local conflicted
+  conflicted="$(git diff --name-only --diff-filter=U 2>/dev/null || true)"
+  [ -z "$conflicted" ] && return 0
+  echo "  ⚠ autostash replay conflicted on: $(echo "$conflicted" | tr '\n' ' ')"
+  echo "$conflicted" | while IFS= read -r f; do
+    git checkout HEAD -- "$f" 2>/dev/null || true   # also clears the unmerged entry
+  done
+  echo "  restored those paths to HEAD; the uncommitted edits are parked in" \
+       "$(git rev-parse -q --verify refs/stash 2>/dev/null || echo 'the stash') (git stash list)"
+}
+
 for i in $(seq 1 $MAX_RETRIES); do
   if git push "$REMOTE" "$BRANCH"; then
     echo "✓ pushed on attempt $i"
@@ -126,6 +144,7 @@ for i in $(seq 1 $MAX_RETRIES); do
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
   git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
   if "${REPLAY_ID[@]}" git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
+    settle_autostash_conflict
     echo "  rebase clean, will retry push"
     sleep $((i * 3))
   else
@@ -157,6 +176,7 @@ for i in $(seq 1 $MAX_RETRIES); do
       GIT_EDITOR=true "${REPLAY_ID[@]}" git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
     done
     if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
+      settle_autostash_conflict
       echo "  rebase auto-resolved (generated files only), will retry push"
       sleep $((i * 3))
       continue
