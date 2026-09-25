@@ -1182,6 +1182,8 @@
     missed:      ["bad",     "没跑"],
     running:     ["live",    "进行中"],
     upcoming:    ["pending", "待跑"],
+    closed:      ["idle",    "休市跳过"],
+    quiet:       ["ok",      "无变化·静默"],
     unmonitored: ["idle",    "账本看不到"],
     unknown:     ["stale",   "状态未知"],
   };
@@ -1249,6 +1251,7 @@
     const states = slots.map(dhSlotState);
     if (j.unmonitored || states.includes("unmonitored")) return { tone: "idle", label: "账本看不到", why: DH_UNMONITORED };
     if (states.includes("unknown")) return { tone: "stale", label: "状态未知", why: "账本里没有可判定的结果" };
+    if (states.length && states.every(s => s === "closed")) return { tone: "idle", label: "休市跳过", why: "" };
     if (states.includes("running")) return { tone: "live", label: "运行中", why: "" };
     if (states.length && states.every(s => s === "upcoming")) return { tone: "pending", label: "待跑", why: "" };
     return { tone: "ok", label: "正常", why: "" };

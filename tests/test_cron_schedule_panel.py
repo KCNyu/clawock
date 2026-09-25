@@ -248,3 +248,26 @@ def test_ok_and_upcoming_slots_carry_no_note():
 
     for cell in result['jobs'][0]['slots']:
         assert 'note' not in cell, cell
+
+
+def test_a_holiday_skip_and_a_quiet_slot_have_their_own_states():
+    at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)
+    result = timetable(_contract(), [
+        _record('2026-09-03T10:03:00+08:00', 'skipped'),
+        _record('2026-09-03T10:33:00+08:00', 'no_change'),
+    ], now=at)
+    assert _states(result)[:2] == ['closed', 'quiet']
+
+
+def test_the_page_names_every_state_the_projection_emits():
+    """#1854: the projection wrote `closed`, the page knew nine states and
+    printed 状态未知 for it. Both bundles carry their own DH_SLOT copy."""
+    import re
+    from pathlib import Path
+    from clawock.publish.cron_schedule import PANEL_STATES
+    root = Path(__file__).resolve().parents[1]
+    for bundle in ('dashboard.render.js', 'dashboard.hero.js'):
+        js = (root / 'site/assets/js' / bundle).read_text()
+        table = re.search(r'const DH_SLOT = \{(.*?)\};', js, re.S).group(1)
+        keys = set(re.findall(r'^\s*(\w+):', table, re.M))
+        assert PANEL_STATES <= keys, (bundle, sorted(PANEL_STATES - keys))
