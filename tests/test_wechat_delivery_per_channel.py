@@ -248,6 +248,27 @@ def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log)
     assert any(e['action'] == 'wechat-miss-alert' for e in _events(isolated_watchdog_log))
 
 
+def test_a_repeated_wechat_miss_alerts_once_a_day_per_tag(tmp_path, isolated_watchdog_log):
+    """2026-09-25: ret=-2 on every intraday slot put a 微信未送达 alert on
+    Telegram after every card. Later misses the same day are logged, not sent."""
+    calls, senders = _senders(wechat_ok=False)
+    for slot in ('1000', '1030', '1100'):
+        marker_path = _write(tmp_path / f'intraday-sent-hk-{slot}.json', {'ts': _now_ms(), **INCIDENT})
+        common.wechat_backstop('intraday', 'intraday-hk', 'card',
+                               json.loads(marker_path.read_text()), marker_path,
+                               tmp_path / f'watchdog-intraday-hk-{slot}-wechat.done',
+                               False, **senders)
+    assert len(calls['wechat']) == 3, 'each slot still gets its one WeChat retry'
+    assert len(calls['telegram']) == 1
+    actions = [e['action'] for e in _events(isolated_watchdog_log)]
+    assert actions.count('wechat-miss-alert-suppressed') == 2
+    # another tag keeps its own first alert
+    marker_path = _write(tmp_path / 'report-sent.json', {'ts': _now_ms(), **INCIDENT})
+    common.wechat_backstop('report', 'report-hk-mid', 'card', json.loads(marker_path.read_text()),
+                           marker_path, tmp_path / 'watchdog-report.done', False, **senders)
+    assert len(calls['telegram']) == 2
+
+
 @pytest.mark.parametrize('marker', [
     None,
     {'sent_ok': True, 'tg_ok': True},
