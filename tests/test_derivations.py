@@ -283,6 +283,20 @@ class TestRecomputeAggregates:
         assert us["today_total_change"] == 14.0            # 10 + 4
         assert C["current_value"] == 0                     # closed holding sanitized
 
+    def test_an_empty_book_agrees_with_the_quote_writers_and_converges(self):
+        """#1856: us_quotes/hk_analysis write 0 on a zero-cost book; recompute
+        wrote None, so every fetch/reconcile round flipped the field."""
+        from types import SimpleNamespace
+        from clawock.publish.dashboard import leg_totals
+        d = {"portfolios": {"us_stocks": {
+            "holdings": [], "total_current_value": 0, "total_cost": 0,
+            "total_pnl": 0, "total_pnl_percent": 0, "today_total_change": 0}}}
+        assert "total_pnl_percent" not in ra.recompute(d, dry_run=True)
+        ra.recompute(d, dry_run=False)
+        us = d["portfolios"]["us_stocks"]
+        assert us["total_pnl_percent"] == 0
+        assert leg_totals(SimpleNamespace(currency="USD"), us)["pnl_pct"] == 0
+
     def test_closed_holding_clears_all_stale_mark_to_market_fields(self):
         d = self._book()
         closed = d["portfolios"]["us_stocks"]["holdings"][-1]

@@ -188,7 +188,10 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             'total_current_value': _r(sum_cv),
             'total_cost': _r(sum_cost),
             'total_pnl': _r(sum_cv - sum_cost),
-            'total_pnl_percent': (round((sum_cv - sum_cost) / sum_cost * 100, pct_nd) if sum_cost else None),
+            # 0, not None, on a zero-cost book: the quote writers (us_quotes,
+            # hk_analysis) write 0, and a None here flip-flopped with them every
+            # fetch/reconcile round and leaked past `.get(key, 0)` readers (#1856).
+            'total_pnl_percent': (round((sum_cv - sum_cost) / sum_cost * 100, pct_nd) if sum_cost else 0),
             'today_total_change': _r(sum_tc),
         }
         for k, v in want.items():
