@@ -555,8 +555,16 @@ def main():
              'run_at': run_at})
         return 0
 
+    # A marker for THIS slot whose Telegram cosend failed still proves postflight
+    # ran on a generated report; under prose mode `summary` never holds the
+    # block, so without this a transient Telegram error was filed as 「LLM 未完成」
+    # instead of mirrored below as the cosend failure it is (#1868).
+    generated_this_slot = marker_matches_slot(
+        marker, expected_job, expected_slot, raw_block_first, now_ms,
+        ctx_id=context.get('context_id'),
+        ctx_generated_at=context.get('generated_at'))
     block_present = bool(raw_block_first and raw_block_first in summary)
-    delivered_clean = block_present
+    delivered_clean = block_present or generated_this_slot
     if not delivered_clean:
         deliver_fallback(
             raw_block, tag, '未完成', args, watchdog_now, flag,
@@ -578,8 +586,12 @@ def main():
     # postflight cosend never ran / failed / stale-or-mismatched marker ⇒ Telegram
     # is not confirmed for this report → mirror it now.
     report = last_report_text(session_id, raw_block_first) if raw_block_first else None
-    if not report:
+    if not report and block_present:
         report = summary  # fallback: run-record summary (usually holds the full block)
+    if not report:
+        # Prose mode: `summary` is meta-prose, not the report — rebuild the data
+        # block from the context rather than mirror analysis without its table.
+        report = deterministic_fallback(raw_block, tag, '报告文本不在会话里')
 
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')

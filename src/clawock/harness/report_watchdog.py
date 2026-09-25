@@ -323,7 +323,14 @@ def main():
     # "never generated" would fire the deterministic fallback and drop a report kcn
     # could have received in full (2026-07-24 review). Either source counts.
     report = last_report_text(session_id, raw_block_first)
-    block_present = (raw_block_first in summary) or bool(report)
+    # A marker for THIS slot with a failed Telegram cosend is proof of generation
+    # too — `delivered_this_slot` above only accepts tg_ok=true, and a transient
+    # Telegram error was otherwise filed as 「LLM 未完成」 on every prose run (#1868).
+    # The delivery backstop below mirrors it as the cosend failure it is.
+    generated_this_slot = marker_matches_slot(
+        marker, ctx_id, raw_block_first, now_ms,
+        ctx_generated_at=ctx.get('generated_at'))[0]
+    block_present = (raw_block_first in summary) or bool(report) or generated_this_slot
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:

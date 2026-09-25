@@ -341,6 +341,8 @@ def test_wave_nodes_execute_exactly_once_and_respect_edges(tmp_path, monkeypatch
     assert tl.start['t0_review_node'] >= tl.end['t0_node']
     # determinism edge: regime FINISHES before benchmark STARTS (#916 §1.2)
     assert tl.start['benchmark_node'] >= tl.end['regime_node']
+    # regime reads QQQ/SPY closes from the bar store daily-bars refreshes (#1893)
+    assert tl.start['regime_node'] >= tl.end['daily_bars_node']
     # settle reads the canonical bar store, so bars finish first
     assert tl.start['_decision_metrics'] >= tl.end['daily_bars_node']
 

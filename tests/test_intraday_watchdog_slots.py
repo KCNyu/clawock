@@ -395,6 +395,30 @@ def test_a_marker_that_failed_telegram_still_gets_mirrored(
     assert events[-1]['reason'] == 'postflight cosend failed'
 
 
+def test_a_prose_run_whose_telegram_cosend_failed_is_mirrored_not_called_unfinished(
+        tmp_path, monkeypatch):
+    """Prose `summary` never holds the block; the slot's own marker proves the
+    report was generated, so a Telegram error is a cosend failure, not 「LLM 未完成」 (#1868)."""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='▎我的看法\n\n今天恒指 +1.59%,是一波 beta 修复。',
+               delivery={'messageToolSentTo': None})
+    marker = {'ts': int(datetime(2026, 7, 29, 10, 34, tzinfo=HKT).timestamp() * 1000),
+              'tg_ok': False, 'first_line': HEADING, 'job': '盘中盯盘', 'slot': SLOT}
+
+    watchdog, sends, heartbeats, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=marker)
+
+    assert watchdog.main() == 0
+    assert len(sends) == 1
+    assert '未完成' not in sends[0]
+    assert HEADING in sends[0], 'the data block, not the meta-prose summary'
+    assert '▎我的看法' not in sends[0]
+    assert events[-1]['action'] == 'mirror-telegram'
+    assert events[-1]['reason'] == 'postflight cosend failed'
+    assert heartbeats[-1][1]['watchdog_state'] == 'telegram_mirror'
+
+
 def _mid_send_claim(watchdog, tmp_path, started_at):
     claim = watchdog.delivery_receipts.claim_path(
         tmp_path / 'memory' / '.tmp', 'intraday', market='hk')

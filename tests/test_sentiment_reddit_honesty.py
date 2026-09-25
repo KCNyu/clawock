@@ -226,6 +226,20 @@ def test_the_brief_prints_a_dash_not_a_zero_for_a_count_it_does_not_have():
     assert 'mentions' not in render(None) and brief_render.MISSING in render(None)
 
 
+def test_the_brief_prints_the_move_the_preflight_actually_wrote():
+    """The producer writes {px_pct, n_sessions}; reading `pct_5d` printed — (#1892)."""
+    from clawock.harness import brief_render
+
+    def render(move):
+        return brief_render.sentiment_section(
+            {'sentiment': {'tickers': [{'ticker': '07226', 'recent_move': move,
+                                        'news_top': []}]}}, {})
+
+    assert '近 5 日 +2.3%' in render({'px_pct': 2.3, 'n_sessions': 5})
+    assert '近 3 日 -1.0%' in render({'px_pct': -1.0, 'n_sessions': 3})
+    assert f'近 5 日 {brief_render.MISSING}' in render(None)
+
+
 def test_the_retry_backoff_is_reachable_by_a_test_that_patches_this_module(monkeypatch):
     """A `sleep=time.sleep` default is captured at import, not at call.
 

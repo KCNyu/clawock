@@ -153,3 +153,6 @@ def test_written_deterministic_projection_releases_existing_publish_route(
     assert 'reason' not in gate
     assert next(state for _, stage, state, _ in stages
                 if stage == 'postflight') == 'success'
+    # The preflight filed its own stage with its diagnostics; a present context
+    # must not be rewritten to {success, context_present} here (#1875).
+    assert [stage for _, stage, _, _ in stages].count('preflight') == 0

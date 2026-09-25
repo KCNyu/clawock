@@ -802,10 +802,13 @@ def sentiment_section(context, judgment):
             for item in (row.get("news_top") or [])[:3])
         mentions = (f"Reddit 7d {row['reddit_mentions_7d']} mentions"
                     if row.get("reddit_mentions_7d") is not None else MISSING)
-        move = (pct((row.get("recent_move") or {}).get("pct_5d"))
-                if isinstance(row.get("recent_move"), dict) else MISSING)
+        # brief_preflight._recent_price_moves writes {px_pct, n_sessions} (#963);
+        # this read `pct_5d` and printed 近 5 日 — every day (#1892).
+        recent = row.get("recent_move") if isinstance(row.get("recent_move"), dict) else {}
+        move = pct(recent.get("px_pct"), 1)
+        sessions = recent.get("n_sessions") if isinstance(recent.get("n_sessions"), int) else 5
         rows.append({
-            "title": f"**{ticker}** · 近 5 日 {move}",
+            "title": f"**{ticker}** · 近 {sessions} 日 {move}",
             "meta": [mentions],
             "fields": [("新闻", _inline(keywords) if keywords else MISSING),
                        ("信号判断", text((judgments.get(ticker) or {}).get("sentiment_read")))],
