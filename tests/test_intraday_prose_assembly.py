@@ -46,7 +46,8 @@ MANGLED_ROW = '| RKLX  |    10 |  49.69 |  17.07 |  +4.6% | -65.6% |     -326 |'
 
 PROSE = ('▎我的看法\n'
          'SKHY 存储链 risk-off 未止，杠杆放大伤口；RKLX 反弹到区间顶部不是加仓信号，'
-         '继续按计划减。CRCL 跌破 MA50 后先观察，不追。\n')
+         '继续按计划减。CRCL 跌破 MA50 后先观察，不追。\n'
+         '下一触发：RKLX 站上 17.07；CRCL 守住 64.13\n')
 
 
 def _load(name):
@@ -101,7 +102,9 @@ def test_the_same_slot_that_failed_on_a_space_now_passes(pf):
     prose_issues = pf.validate(body, _ctx(), PROSE)
 
     assert pf.categorize(prose_issues) == 'pass', prose_issues
-    assert PROSE.strip() in body
+    # The 下一触发 line is its own block above the judgment; both arrive whole.
+    trigger, judgment = pf.split_next_trigger(PROSE)
+    assert judgment.strip() in body and body.index(trigger) < body.index(judgment.strip())
     # The mangled row cannot reach the message: it is not an input any more.
     assert MANGLED_ROW not in body
 
