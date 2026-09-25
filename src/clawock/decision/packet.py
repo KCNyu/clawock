@@ -961,6 +961,26 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     }
 
 
+def _peer_rules_state(rule_activation: dict) -> tuple[bool, bool]:
+    """(active, usable_for_decisions) of the peer family.
+
+    `peer_residual` publishes `rule_activation` keyed by rule
+    (`leader_continuation`, `laggard_avoidance`, `mean_reversion`, each with
+    its own `active`). Reading a top-level `active` from that dict was always
+    False, so the peer family stayed "warming" forever and cold start could
+    never retire (cloud review F15; the tests fed an invented flat shape). The
+    family is active when any rule is — that rule can fire. A flat legacy
+    shape is still honoured.
+    """
+    rule_activation = rule_activation or {}
+    if "active" in rule_activation or "usable_for_decisions" in rule_activation:
+        return (bool(rule_activation.get("active")),
+                bool(rule_activation.get("usable_for_decisions")))
+    rules = [row for row in rule_activation.values() if isinstance(row, dict)]
+    return (any(bool(row.get("active")) for row in rules),
+            any(bool(row.get("usable_for_decisions")) for row in rules))
+
+
 def add_alpha_activation(context: dict) -> dict:
     """Where each add-side evidence family is in its warm-up, from its own counters.
 
@@ -993,8 +1013,8 @@ def add_alpha_activation(context: dict) -> dict:
             "blockers": list(factor_act.get("blockers") or []),
         },
         "price_relative_peer": {
-            "active": bool(peer_act.get("active")),
-            "usable_for_decisions": bool(peer_act.get("usable_for_decisions")),
+            "active": _peer_rules_state(peer_act)[0],
+            "usable_for_decisions": _peer_rules_state(peer_act)[1],
             "blockers": sorted({
                 blocker
                 for rule in peer_act.values() if isinstance(rule, dict)
@@ -1204,10 +1224,9 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})
                         .get("usable_for_decisions")
                     ),
-                    "peer": bool(
-                        ((context.get("peer_residual") or {}).get("rule_activation") or {})
-                        .get("active")
-                    ),
+                    "peer": _peer_rules_state(
+                        (context.get("peer_residual") or {}).get("rule_activation") or {}
+                    )[0],
                 },
             },
             "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
