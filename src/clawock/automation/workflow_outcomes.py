@@ -327,6 +327,8 @@ def _derive_final(record):
         status, reason = "skipped", "market/session closed"
     elif watchdog == "success":
         status, reason = "recovered", "watchdog delivered a usable product"
+    elif primary == "not_required" and postflight in {"success", "warning"}:
+        status, reason = "no_change", "healthy unchanged slot; silence recorded, no send owed"
     elif primary == "success":
         degraded = (
             llm == "failed"
@@ -529,6 +531,21 @@ def record_from_heartbeat(event):
                    "wechat_ok": wechat_ok,
                    "telegram_ok": telegram_ok},
             )
+    elif state == "no_change":
+        # A healthy unchanged slot is silent by contract (#1843): postflight
+        # writes this heartbeat only after the data plane, the semantic cursor
+        # and the exact-slot marker all landed. Nothing was owed to a channel,
+        # so an absent send is `not_required`, never a failed delivery — and
+        # without this branch the slot sat at `pending` until receipt
+        # reconciliation filed the quiet marker as a failed send.
+        data_plane_ok = event.get("data_plane_status") in {None, "published", "current"}
+        record_stage(job, "llm",
+                     "success" if event.get("reasoning_invoked") else "not_required",
+                     slot=slot, **details)
+        record_stage(job, "postflight", "success" if data_plane_ok else "warning",
+                     slot=slot, **details)
+        record_stage(job, "primary_delivery", "not_required", slot=slot,
+                     **{**details, "reason": "healthy semantic no_change"})
     elif state == "watchdog_backstop":
         record_stage(job, "watchdog_delivery", "success", slot=slot, **details)
     elif state in {"watchdog_failed", "watchdog_rejected"}:
@@ -739,6 +756,18 @@ def reconcile_delivery_receipts():
                         (job, None, tuple(str(slot)[:10].split("-")))
                     )
                 if receipt is None:
+                    continue
+                if receipt.get("delivery_state") == "no_change":
+                    # The quiet marker proves an intentional silence, not a
+                    # send that failed; its null channel flags must not be
+                    # filed as `failed` when the heartbeat bridge missed it.
+                    record["stages"]["primary_delivery"] = _stage(
+                        "not_required", at=_now().isoformat(),
+                        reason="healthy semantic no_change",
+                        source="delivery_receipt",
+                    )
+                    record["final_product"] = _derive_final(record)
+                    filled += 1
                     continue
                 delivered = _receipt_delivered(receipt)
                 # The receipt carries the per-channel facts (#771): write them

@@ -106,7 +106,13 @@ remains eligible for its normal fallback. The
 `always_full` switch in `config/intraday-delivery.json` can still force every
 slot's full card. Portfolio `strategy` selects declarative exception values in
 `config/intraday-strategy-policies.json`; the harness has no ticker-specific
-investment branch. A future maximum silent-streak heartbeat would need its own
+investment branch. Escalation rules name a `subject` (`holding`, or its registry
+`signal_symbol` as `underlying`) rather than a ticker, so every holding that
+selects a strategy is checked against its own instruments. The silent outcome is
+filed in the workflow-outcome ledger as final `no_change` with
+`primary_delivery=not_required`, not as a pending or failed send. The analyzer's
+generic headline feed stays out of the card but reaches the model as
+`headline_feed`. A future maximum silent-streak heartbeat would need its own
 config and an auditable cursor; none is enabled by default.
 
 ## Context contract
