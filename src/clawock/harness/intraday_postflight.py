@@ -201,6 +201,101 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
         return False
 
 
+# Card block 11 (docs/architecture/intraday-agent.md §4): the model's next
+# trigger, pulled out of the judgment into one structured, checkable line that
+# sits above ▎我的看法. It used to be the last clause of a paragraph
+# (「…下一触发：恒科 4,300 / 07226 3.0 / 02208 8.84（已破，待收线对账）」,
+# 2026-09-25 14:33), where nothing could check it and kcn had to find it.
+NEXT_TRIGGER = '下一触发：'
+_NEXT_TRIGGER_LINE = re.compile(r'^[ \t]*下一触发[ \t]*[:：][ \t]*(\S.*?)[ \t]*$', re.MULTILINE)
+_NEXT_TRIGGER_ITEM = re.compile(r'[；;]|\s/\s')
+_TRIGGER_NUMBER = re.compile(r'(?<![A-Za-z0-9.])(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?')
+_TABLE_TICKER = re.compile(r'^\|\s*([A-Z0-9]{2,6})\s*\|', re.MULTILINE)
+# Names a trigger may be about besides the tickers the context carries.
+TRIGGER_INDEX_NAMES = ('恒指', '恒生指数', '恒科', '恒生科技', 'HSI', 'HSTECH', '纳指',
+                       '纳斯达克', '标普', 'SPX', 'NDX', 'VIX', '组合', '账户')
+
+
+def split_next_trigger(prose):
+    """`(line, prose_without_it)`; `line` is None when the prose has none."""
+    text = prose or ''
+    match = _NEXT_TRIGGER_LINE.search(text)
+    if not match:
+        return None, text
+    rest = (text[:match.start()] + text[match.end():]).strip('\n')
+    return NEXT_TRIGGER + match.group(1), re.sub(r'\n{3,}', '\n\n', rest)
+
+
+def _context_tickers(ctx):
+    names = {row.get('ticker') for row in (ctx.get('full_holdings') or [])}
+    names |= {row.get('ticker') for row in (ctx.get('anomalies') or [])}
+    names |= {row.get('ticker') for row in
+              ((ctx.get('add_side_reads') or {}).get('rows') or [])}
+    names |= {row.get('label') for row in
+              ((ctx.get('opportunity_radar') or {}).get('rows') or [])}
+    names |= set((ctx.get('holding_policies') or {}))
+    for block in (ctx.get('raw_wechat_block'), ctx.get('analyzer_block')):
+        names |= set(_TABLE_TICKER.findall(block or ''))
+    return {str(name) for name in names if name and name != '代码'}
+
+
+def _context_numbers(ctx):
+    """Every number the context states, as JSON values or inside its text."""
+    seen = set()
+
+    def walk(value):
+        if isinstance(value, bool):
+            return
+        if isinstance(value, (int, float)):
+            seen.add(round(abs(float(value)), 4))
+        elif isinstance(value, str):
+            for whole, frac in _TRIGGER_NUMBER.findall(value):
+                seen.add(round(float((whole + frac).replace(',', '')), 4))
+        elif isinstance(value, dict):
+            for item in value.values():
+                walk(item)
+        elif isinstance(value, list):
+            for item in value:
+                walk(item)
+    walk(ctx)
+    return seen
+
+
+def check_next_trigger(prose, ctx):
+    """One escalating issue when the 下一触发 line is missing or unverifiable.
+
+    Structured means each item (split on ；/ ` / `) names a subject — a ticker
+    in the context or an index — and quotes a level the context contains,
+    literally. A line that reads authoritative must be checkable; one issue
+    for the whole line so a single bad line counts once.
+    """
+    line, _ = split_next_trigger(prose)
+    if line is None:
+        inline = '下一触发' in (prose or '')
+        return [('「下一触发」没有单独成行' if inline else '缺「下一触发」行')
+                + '（单独一行：下一触发：<标的> <条件><价位>；…）']
+    tickers, known = _context_tickers(ctx), _context_numbers(ctx)
+    problems = []
+    for item in [part.strip() for part in _NEXT_TRIGGER_ITEM.split(line[len(NEXT_TRIGGER):])
+                 if part.strip()]:
+        bare = item
+        for ticker in sorted(tickers, key=len, reverse=True):
+            bare = bare.replace(ticker, ' ')
+        if not any(mentions_ticker(item, ticker) for ticker in tickers) and not any(
+                name in item for name in TRIGGER_INDEX_NAMES):
+            problems.append(f'无标的「{item[:16]}」')
+        numbers = [whole + frac for whole, frac in _TRIGGER_NUMBER.findall(bare)]
+        if not numbers:
+            problems.append(f'无价位「{item[:16]}」')
+        missing = [raw for raw in numbers
+                   if round(float(raw.replace(',', '')), 4) not in known]
+        if missing:
+            problems.append(f"价位不在 context：{'、'.join(missing[:3])}")
+    if not problems:
+        return []
+    return ['「下一触发」无法核对（' + '；'.join(problems[:3]) + '）']
+
+
 def assemble_message(ctx, prose):
     """Build the delivered check-in from harness-owned data + model-owned prose.
 
@@ -222,7 +317,11 @@ def assemble_message(ctx, prose):
     # Layout contract (intraday_preflight): the data block comes first and the
     # judgment follows the table and the rest of the block (kcn 2026-09-25,
     # after #1863 had moved it above the table: 「表格位置怎么倒置了？」).
-    parts = [(ctx.get('raw_wechat_block') or '').strip(), (prose or '').strip()]
+    # Block 11 before block 12: the structured 下一触发 line leaves the
+    # judgment and sits directly above ▎我的看法.
+    trigger, judgment = split_next_trigger(prose)
+    parts = [(ctx.get('raw_wechat_block') or '').strip(), trigger or '',
+             (judgment or '').strip()]
     return '\n\n'.join(p for p in parts if p)
 
 
@@ -253,12 +352,16 @@ def validate(text, ctx, model_text):
     """
     issues = []
     checked = model_text
+    # The 下一触发 line is its own block; the judgment's floor is measured
+    # without it.
+    _, judgment = split_next_trigger(checked)
 
     if REQUIRED_SECTION not in checked:
         issues.append(f'缺段标记 "{REQUIRED_SECTION}"')
     else:
         # 我的看法 段必须 ≥ 60 字（否则就是敷衍 1 句结案）
-        section_body = checked.split(REQUIRED_SECTION, 1)[1].strip()
+        section_body = (judgment.split(REQUIRED_SECTION, 1)[1].strip()
+                        if REQUIRED_SECTION in judgment else '')
         # cut to next section (▎XXX) or end
         next_marker = section_body.find('\n▎')
         if next_marker > 0:
@@ -341,6 +444,9 @@ def validate(text, ctx, model_text):
 
     # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
     issues.extend(check_numeric_claims(checked, ctx))
+
+    # 下一触发 —— escalating，见 check_next_trigger
+    issues.extend(check_next_trigger(checked, ctx))
 
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))

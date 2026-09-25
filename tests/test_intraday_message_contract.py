@@ -387,3 +387,39 @@ def test_add_side_line_copies_every_verdict_and_sits_before_the_judgment():
     assert pre.append_add_side_section(_card(), {'rows': []}) == _card()
     # ⚠️ stays the signal header alone.
     assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
+
+TRIGGER_CTX = {'market': 'hk', 'should_alert': False, 'semantic_unchanged': True,
+               'raw_wechat_block': '🇭🇰 港股盯盘\n\n| 07226 |  6200 |   4.36 |   2.80 |',
+               'watch_levels': {'hstech_breakdown': 4300, '07226_trim_trigger': 3.0}}
+
+
+def _trigger_issues(prose, ctx=TRIGGER_CTX):
+    return [i for i in post.validate(post.assemble_message(ctx, prose), ctx, prose)
+            if '下一触发' in i]
+
+
+def test_next_trigger_is_its_own_checked_block_above_the_judgment():
+    """Card block 11. 2026-09-25 14:33 ended its paragraph with
+    「下一触发：恒科 4,300 / 07226 3.0 / 02208 8.84」 — unchecked, and kcn had to
+    find it. Now: its own line, lifted above ▎我的看法, every item naming a
+    subject and quoting a level the context holds."""
+    prose = ('▎我的看法\n本档无实质变化，恒科贴近破位线，07226 杠杆放大。\n'
+             '下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）')
+    assert _trigger_issues(prose) == []
+    lines = post.assemble_message(TRIGGER_CTX, prose).splitlines()
+    trigger = lines.index('下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）')
+    assert trigger < lines.index('▎我的看法') and lines[trigger - 1] == ''
+    assert lines[-1] == '本档无实质变化，恒科贴近破位线，07226 杠杆放大。'
+    # The real 14:33 shape: inline at the end of a paragraph.
+    inline = '▎我的看法\n本档无实质变化。下一触发：恒科 4,300 / 07226 3.0'
+    assert any('没有单独成行' in i for i in _trigger_issues(inline))
+    assert any('缺「下一触发」行' in i for i in _trigger_issues('▎我的看法\n本档无实质变化。'))
+    # A level the context does not hold, or an item with no subject, is named.
+    made_up = '▎我的看法\n本档无实质变化。\n下一触发：07226 站上 3.2；等反弹 4,300'
+    flagged = _trigger_issues(made_up)
+    assert len(flagged) == 1 and '3.2' in flagged[0] and '无标的' in flagged[0]
+    assert not val.is_advisory(flagged[0])
+    # The 60-char floor is measured on the judgment, not the trigger line.
+    ctx = {**TRIGGER_CTX, 'semantic_unchanged': False}
+    short = '▎我的看法\n07226 跟随恒科。\n下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）'
+    assert any('太敷衍' in i for i in post.validate(post.assemble_message(ctx, short), ctx, short))
