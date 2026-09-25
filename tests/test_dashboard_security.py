@@ -83,6 +83,11 @@ def test_fed_press_external_text_is_escaped_and_https_only():
     assert "escapeHtml(p.date)" in macro
     assert "escapeHtml((p.title || '').substring(0, 130))" in macro
     assert "/^https:\\/\\//i.test(p.url || '')" in macro
+    # #1855: the F&G rating is CNN's API text, relayed verbatim by macro.py.
+    # Every read of it in the card must be inside escapeHtml(...).
+    reads = [m.start() for m in re.finditer(r"fear_greed\.rating", macro)]
+    assert reads and all(macro[max(0, i - 40):i].rstrip().endswith("escapeHtml(m.")
+                         for i in reads), "raw fear_greed.rating reaches innerHTML"
     assert '${p.url}' not in macro
     assert '${p.title' not in macro
     assert '${p.date}' not in macro
