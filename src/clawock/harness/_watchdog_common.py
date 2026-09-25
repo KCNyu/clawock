@@ -849,7 +849,8 @@ def _gh_run_failure_detail(run, max_len=300):
 
 
 def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
-                    wechat=None, telegram=None, resolve=None, telegram_done=False):
+                    wechat=None, telegram=None, resolve=None, telegram_done=False,
+                    telegram_message=None):
     """Send one report to the channels the delivery policy names for its kind.
 
     Returns `(wechat_ok, wechat_out, telegram_ok)`. The three postflights each
@@ -867,6 +868,10 @@ def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
     only WeChat failed (see `delivered_channels`). The re-run owes WeChat alone;
     co-sending again would put a second copy in Telegram, so the Telegram leg
     reports the recorded success instead of sending.
+
+    `telegram_message`: the Telegram rendering when it differs from WeChat's
+    (the intraday card bolds rows for WeChat only; Telegram keeps the plain
+    table). Defaults to `message`.
     """
     from clawock.automation.delivery_receipts import CHANNELS
     policy = CHANNELS[kind]
@@ -884,8 +889,9 @@ def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
         telegram_ok = True
     elif 'telegram' in policy:
         # Same call shape the postflights always used: `dry_run` only when set.
-        telegram_ok, _ = (telegram(message, tag, dry_run=True) if dry_run
-                          else telegram(message, tag))
+        plain = message if telegram_message is None else telegram_message
+        telegram_ok, _ = (telegram(plain, tag, dry_run=True) if dry_run
+                          else telegram(plain, tag))
     return wechat_ok, wechat_out, telegram_ok
 
 

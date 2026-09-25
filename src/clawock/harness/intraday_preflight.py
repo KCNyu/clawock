@@ -1368,6 +1368,7 @@ def main(argv=None):
     }
     unchanged = can_silence(silence_context)
     soft_review = can_silence(silence_context, allow_soft_review=True) and not unchanged
+    card_marks = {'new': [], 'stale': []}
     if unchanged:
         raw_block = render_unchanged_receipt(
             args.market, stdout.strip(), coverage, active_information_ctx)
@@ -1403,12 +1404,19 @@ def main(argv=None):
                                 f"{row['holding']} 策略是否继续？")
         seen_before = {json.dumps(row, sort_keys=True, ensure_ascii=False)
                        for row in old_breaches}
+        fresh_tickers = {row['ticker'] for row in semantic_state['breaches']
+                         if row.get('kind') in ('move', 'plan_trigger', 'strategy_escalation')
+                         and json.dumps(row, sort_keys=True, ensure_ascii=False)
+                         not in seen_before}
+        # The ↑ line's kinds, for postflight: WeChat bolds the `new` rows.
+        card_marks = {
+            'new': sorted(t for t in fresh_tickers
+                          if t not in (coverage.get('unrefreshed') or [])),
+            'stale': list(coverage.get('unrefreshed') or []),
+        }
         raw_block = mark_card_changes(
             raw_block,
-            fresh_tickers={row['ticker'] for row in semantic_state['breaches']
-                           if row.get('kind') in ('move', 'plan_trigger', 'strategy_escalation')
-                           and json.dumps(row, sort_keys=True, ensure_ascii=False)
-                           not in seen_before},
+            fresh_tickers=fresh_tickers,
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
                           if row.get('kind') == 'signal'})
@@ -1433,6 +1441,9 @@ def main(argv=None):
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
+        # Rows the ↑ line names (`new` move/trigger, `stale` quote); WeChat
+        # bolds the `new` rows, Telegram keeps the plain table.
+        'card_marks': card_marks,
         'delivery_mode': delivery_mode,
         # Auditable: a full block on a slot the delta called unchanged is the
         # toggle at work, not the delta misfiring.

@@ -325,6 +325,41 @@ def assemble_message(ctx, prose):
     return '\n\n'.join(p for p in parts if p)
 
 
+WECHAT_BOLD = '**'
+
+
+def _bold_cell(cell):
+    body = cell.strip()
+    if not body:
+        return cell
+    lead, trail = cell[:len(cell) - len(cell.lstrip())], cell[len(cell.rstrip()):]
+    return f'{lead}{WECHAT_BOLD}{body}{WECHAT_BOLD}{trail}'
+
+
+def render_for_channel(message, ctx, channel):
+    """The card as one channel shows it (contract §4, channels).
+
+    WeChat renders markdown bold inside a table, so the rows the `↑` line
+    names as new move/trigger (`card_marks.new`) are bolded cell by cell there.
+    Telegram shows the table as a fixed-width block where `**` would be
+    literal and break the alignment, so it always gets the plain card. Bold is
+    the only difference: with `**` removed the two payloads are equal, and a
+    table cell's text never changes.
+    """
+    rows = set(((ctx or {}).get('card_marks') or {}).get('new') or [])
+    if channel != 'wechat' or not rows:
+        return message
+    out = []
+    for line in message.splitlines():
+        stripped = line.strip()
+        cells = line.split('|')
+        if (stripped.startswith('|') and stripped.endswith('|') and len(cells) > 2
+                and cells[1].strip() in rows):
+            line = '|'.join([cells[0], *[_bold_cell(c) for c in cells[1:-1]], cells[-1]])
+        out.append(line)
+    return '\n'.join(out)
+
+
 def validate(text, ctx, model_text):
     """Validate the delivered check-in.
 
@@ -724,7 +759,9 @@ def main(argv=None):
     if status == 'pass' or not escalating:
         banner = ''
     elif status == 'warn':
-        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
+        # 🟠, not ⚠️: on this card ⚠️ only ever heads the analyzer's signal
+        # block (contract §4, one symbol per meaning).
+        banner = (f'🟠 校验警告 ({len(escalating)}): '
                   + '; '.join(escalating[:2])
                   + '\n\n')
     else:
@@ -825,9 +862,11 @@ def main(argv=None):
                 # it's the sole backstop intraday_watchdog uses (no WeChat resend), so
                 # it needs to know if TG already got this.
                 wechat_sent, send_out, tg_ok = send_per_policy(
-                    'intraday', message, tag=f'intraday-{args.market}', market=args.market,
+                    'intraday', render_for_channel(message, ctx, 'wechat'),
+                    tag=f'intraday-{args.market}', market=args.market,
                     wechat=send_wechat, telegram=cosend_telegram,
-                    resolve=resolve_wechat_target, telegram_done=telegram_done)
+                    resolve=resolve_wechat_target, telegram_done=telegram_done,
+                    telegram_message=render_for_channel(message, ctx, 'telegram'))
                 delivered_this_run = bool(wechat_sent or tg_ok)
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
