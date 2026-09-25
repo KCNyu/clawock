@@ -54,6 +54,7 @@ MAX_MOVERS = 4
 MAX_INTERRUPT_ITEMS = 3
 MAX_CONTEXT_ITEMS = 1
 MAX_FLASHES = 3
+FLASH_SCAN = 50
 INTERRUPT_TITLE_CHARS = 160
 TITLE_CHARS = 90
 WINDOW_MINUTES = 240
@@ -165,7 +166,9 @@ def _market_flashes(names, *, now, window):
     try:
         from clawock.market_data import eastmoney_news as fetch_em_news  # noqa: PLC0415
 
-        rows = fetch_em_news.em_fast_news(limit=20) or []
+        # One request either way; 50 covers roughly the last hour, which an
+        # index fund's theme match needs (20 was ~20 minutes at night).
+        rows = fetch_em_news.em_fast_news(limit=FLASH_SCAN) or []
     except Exception as exc:  # noqa: BLE001 — supporting colour, never fatal
         return [], f"em flash unavailable: {type(exc).__name__}"
     out = []
@@ -256,9 +259,38 @@ def probe_targets(ticker: str, market: str) -> dict:
         return {"issuer": ticker, "via": None, "kind": "issuer"}
     if resolved["kind"] == "index_fund":
         return {"issuer": None, "via": resolved["tracks"], "kind": "index_fund",
-                "chain": resolved["chain"]}
+                "chain": resolved["chain"],
+                "theme_terms": theme_terms(ticker, resolved["tracks"])}
     return {"issuer": resolved["issuer"], "via": ticker, "kind": "look_through",
             "chain": resolved["chain"]}
+
+
+# What a market flash calls an index. An index fund has no issuer to probe, but
+# its underlying index and theme are in the news every day; asking by issuer
+# returned `index_fund_no_issuer` and nothing else for 07226 (2026-09-25).
+INDEX_ALIASES = {
+    "HSTECH": ("恒生科技", "恒科"),
+    "HSI": ("恒生指数", "恒指"),
+    "HSCEI": ("国企指数",),
+    "NDX": ("纳斯达克100", "纳指"),
+    "SPX": ("标普500",),
+}
+
+
+def theme_terms(ticker, tracks):
+    """Words a flash uses for this fund's index and theme: the index aliases
+    plus the registry sector without its ETF suffix. Never raises."""
+    terms = list(INDEX_ALIASES.get(str(tracks or ""), ()))
+    try:
+        from clawock import instruments as instrument_registry  # noqa: PLC0415
+
+        sector = str((instrument_registry.get(str(ticker)) or {}).get("sector") or "")
+    except Exception:  # noqa: BLE001
+        sector = ""
+    sector = re.sub(r"\s*ETF$", "", sector).strip()
+    if sector and sector not in terms:
+        terms.append(sector)
+    return terms
 
 
 def _parse_halt_time(halt_date, halt_time):
@@ -408,9 +440,25 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
         entry["target"] = target
         results[ticker] = entry
 
+    themes = {ticker: (entry.get("target") or {}).get("theme_terms") or []
+              for ticker, entry in results.items()
+              if entry.get("status") == "index_fund_no_issuer"}
     flashes, flash_note = _market_flashes(
-        [name for name in names.values() if name], now=now, window=window_minutes
+        [name for name in names.values() if name]
+        + [term for terms in themes.values() for term in terms],
+        now=now, window=window_minutes,
     )
+    # An index fund's evidence is its index and theme: flashes naming them are
+    # attached as supporting context. The status stays `index_fund_no_issuer`
+    # (still true: nobody files for it); the items say what the market said.
+    for ticker, terms in themes.items():
+        matched = [
+            {**flash, "signal": CONTEXT, "triage_rule": "index_theme"}
+            for flash in flashes if set(flash.get("matched") or []) & set(terms)
+        ]
+        if matched:
+            results[ticker]["items"] = matched[:MAX_FLASHES]
+        results[ticker]["theme_terms"] = terms
     halt_symbols = []
     if market == "us":
         # A halt is a low-probability event for large caps, so this is not worth a
