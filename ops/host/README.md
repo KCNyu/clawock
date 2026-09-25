@@ -65,7 +65,20 @@ Transition: runners from before 2026-09-25 shared `slot-1.lock`/`slot-2.lock`
 among all agents, and a task started then may run for up to 72h. While both are
 held, a new round waits, and a task waiting for a slot preempts a round that
 holds one of them itself (its `SLOT=` is a bare number). Remove `LEGACY_SLOTS`
-after 2026-09-29. Rounds are dispatched with
+(and the dsh chip's "old shared slots" bucket) after 2026-09-29, once no old
+runner is left. The date alone does not prove that: an old runner asleep on quota
+holds no slot (`SLOT=''`) and takes a shared one when it wakes. It is safe when
+every active `agent-dispatch-*` unit's last start header in its `run.log` reads
+`agent_slots=` (old runners print `max_running=`) and neither `slot-1.lock` nor
+`slot-2.lock` is held (`flock -n <lock> true` succeeds):
+
+    for u in $(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain | awk '{print $1}'); do
+      id=${u#agent-dispatch-}; id=${id%.service}
+      grep -E '^(agent_slots|max_running)=' /root/logs/agent-dispatch/$id/run.log | tail -1 | grep -q '^agent_slots=' || echo "old runner: $id"
+    done
+    for i in 1 2; do flock -n /root/logs/agent-dispatch/slot-$i.lock true || echo "slot-$i held"; done
+
+No output means none is left. Rounds are dispatched with
 `AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for
 them; the supervisor still identifies its own round by `current-round`, never
 by name.

@@ -1843,6 +1843,25 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   color:var(--text)
 }
+/* Per-agent run slots under the slots heading: claude 1/1 · codex 0/1 ·
+   opencode 1/1 (+ the old shared slots while a pre-2026-09-25 runner holds
+   one). Each agent has its own slots, so one line n/sum would read as room
+   there is not. Wraps rather than overflowing a phone-width panel. */
+.pbc .tq-lanes {
+  display:flex;
+  flex-wrap:wrap;
+  gap:2px 12px;
+  padding:2px 0 4px;
+  font:500 var(--fs-xs)/1.4 var(--font);
+  font-variant-numeric:tabular-nums;
+  color:var(--cap)
+}
+.pbc .tq-lane {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap
+}
 .pbc .tq-rows {
   display:flex;
   flex-direction:column

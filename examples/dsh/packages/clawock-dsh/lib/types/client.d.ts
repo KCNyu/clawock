@@ -293,12 +293,45 @@ export type TaskQueueSidebarActionProps = TaskQueueInjected & {
     wide: boolean;
     t: Translate;
 };
+/**
+ * Which run slot a live task holds. Slots are per agent since 2026-09-25
+ * (`claude-1`); a runner started before that still holds one of the old
+ * shared slots (`1`, `2`) until it ends — those count apart, never against an
+ * agent. Anything else is shown verbatim under the task's own agent.
+ */
+export declare function _slotOf(task: DispatchTask): {
+    agent: string;
+    slot: string;
+    legacy: boolean;
+} | null;
+type SlotLane = {
+    agent: string;
+    used: number;
+    max: number | null;
+    tone: BalanceTone;
+};
+/**
+ * Each agent's run slots — limits.env order, then any agent seen holding one
+ * that limits.env does not name — plus the old shared slots still held
+ * (`legacy`). A full lane with a task of that agent queued is amber: that is
+ * the queue's reason at a glance. A host older than slotLimits sends none:
+ * the lanes then come from the held slots alone, without a maximum.
+ */
+export declare function _slotLanes(result: TaskQueueResult): {
+    lanes: SlotLane[];
+    legacy: number;
+};
 /** One live task's status phrase: what it holds or what it waits for. */
 export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number): {
     tone: BalanceTone;
     text: string;
 };
-/** The chip's headline: dot tone, slots value, and the one-line "who waits" sub-reading. */
+/**
+ * The chip's headline: dot tone, how many tasks run, and the one-line "who
+ * waits" sub-reading. No n/max: slots are per agent, so a free slot of one
+ * agent is no room for another's task — the per-agent lanes are in the title
+ * and at the top of the panel.
+ */
 export declare function _queueHeadline(result: TaskQueueResult, t: Translate, now?: number): {
     tone: BalanceTone;
     value: string;

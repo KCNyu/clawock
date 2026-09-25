@@ -8,7 +8,8 @@
  *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
  *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
  *                                        `<ts> <event>` lines, `final | <text>` (the agent's closing lines)
- *   <limitsPath>                         `MAX_RUNNING=<n>`, shared with both
+ *   <limitsPath>                         `MAX_RUNNING_<AGENT>=<n>` (each agent's own slots) and
+ *                                        their display-only sum `MAX_RUNNING`, shared with both
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
  *   clawock-patrol.service + its journal the supervisor's own last words
@@ -24,7 +25,7 @@ import { execFile } from 'node:child_process'
 import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, readdirSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { DispatchTask, PatrolRound, PatrolStatus, TaskQueueResult } from './types.ts'
+import type { AgentSlotLimit, DispatchTask, PatrolRound, PatrolStatus, TaskQueueResult } from './types.ts'
 import { expandHome } from './balance.ts'
 
 export const DEFAULT_DISPATCH_LOG_DIR = join(homedir(), 'logs', 'agent-dispatch')
@@ -180,6 +181,7 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     waiting,
     slot: alive ? (result.SLOT ?? '') : '',
     attempts: Number.parseInt(result.ATTEMPTS ?? '0', 10) || 0,
+    stalls: Number.parseInt(result.STALLS ?? '0', 10) || 0,
     outcome: result.OUTCOME ?? '',
     startedAtMs: localStampMs(result.STARTED ?? meta.CREATED),
     updatedAtMs: localStampMs(result.UPDATED),
@@ -191,9 +193,15 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
   }
 }
 
-function readMaxRunning(path: string): number {
-  const value = Number.parseInt(readEnvFile(path).MAX_RUNNING ?? '', 10)
-  return Number.isFinite(value) && value > 0 ? value : 0
+function readLimits(path: string): { maxRunning: number; slotLimits: AgentSlotLimit[] } {
+  const env = readEnvFile(path)
+  const count = (raw: string | undefined): number => {
+    const value = Number.parseInt(raw ?? '', 10)
+    return Number.isFinite(value) && value > 0 ? value : 0
+  }
+  const slotLimits = Object.keys(env).filter((key) => /^MAX_RUNNING_[A-Z0-9]+$/.test(key))
+    .map((key) => ({ agent: key.slice('MAX_RUNNING_'.length).toLowerCase(), max: count(env[key]) }))
+  return { maxRunning: count(env.MAX_RUNNING), slotLimits }
 }
 
 function readRounds(patrolDir: string, limit: number): PatrolRound[] {
@@ -236,7 +244,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
-    return { available: false, asOf, maxRunning: 0, running: 0, active: [], recent: [], patrol: empty }
+    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
   }
   const [activeIds, service, log] = await Promise.all([deps.activeTaskIds(), deps.patrolService(), deps.patrolLog()])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
@@ -260,7 +268,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   return {
     available: true,
     asOf,
-    maxRunning: readMaxRunning(config.limitsPath),
+    ...readLimits(config.limitsPath),
     running: active.filter((task) => task.slot !== '').length,
     active,
     recent: ended,
@@ -283,7 +291,7 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
   let fetchedAt = 0
   let inFlight: Promise<TaskQueueResult> | null = null
   const answer = (status: TaskQueueResult['status'], message: string | null): TaskQueueResult => ({
-    available: false, asOf: '', maxRunning: 0, running: 0, active: [], recent: [],
+    available: false, asOf: '', maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [],
     patrol: { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] },
     ...(last ?? {}),
     status,

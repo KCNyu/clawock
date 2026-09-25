@@ -2710,7 +2710,7 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
     if (log) fs.writeFileSync(path.join(logDir, id, "run.log"), log);
   };
   task("holder-20260923-010000", "AGENT=claude\nNAME=holder\nMODEL=claude-opus-5-5\n",
-    "STATE=running\nATTEMPTS=2\nWAITING=''\nSLOT=1\nMODEL_USED=claude-opus-5-5\nSTARTED=2026-09-23\\ 01:00:00\n",
+    "STATE=running\nATTEMPTS=2\nSTALLS=1\nWAITING=''\nSLOT=claude-1\nMODEL_USED=claude-opus-5-5\nSTARTED=2026-09-23\\ 01:00:00\n",
     "==== 2026-09-23 01:00:00 holder start ====\n2026-09-23 01:00:00 got run slot 1\n---- 2026-09-23 01:05:00 attempt 2/3 (append) cap=21600s session=s\n     | working\n");
   task("waiter-20260923-011000", "AGENT=claude\nNAME=waiter\n", "STATE=queued\nATTEMPTS=0\nWAITING=lock\nSLOT=''\nSTARTED=2026-09-23\\ 01:10:00\n");
   task("sleeper-20260923-012000", "AGENT=codex\nNAME=sleeper\nCREATED=2026-09-23\\ 01:20:00\n", "STATE=running\nATTEMPTS=1\nWAITING=quota\nSLOT=''\n",
@@ -2723,7 +2723,7 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
     "final | - merged: PR #1767\nfinal | \nfinal | STATUS: DONE\nquota | 5h 48%\n");
   task("patrol-render-20260923-000200", "AGENT=opencode\nNAME=patrol-render\n", "STATE=cancelled\nUPDATED=2026-09-23\\ 02:40:41\n");
   const limits = path.join(root, "limits.env");
-  fs.writeFileSync(limits, "# shared\nMAX_RUNNING=2\n");
+  fs.writeFileSync(limits, "# per agent\nMAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\nMAX_RUNNING=3\n");
   fs.writeFileSync(path.join(patrolDir, "rounds.tsv"),
     "2026-09-23 02:30:07\tR137\tlogic\tpatrol-logic-x\tpreempted:cancelled\t3778s\n2026-09-23 03:55:00\tR139\tautomation\tpatrol-automation-x\tpreempted:cancelled\t4090s\n");
   const deps = (log, service = "active") => ({
@@ -2735,13 +2735,16 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   const r = await tq.createTaskQueueService(config, deps(["2026-09-23 03:55:00 next round in 300s"])).get(true);
   assert.equal(r.available, true);
   assert.equal(r.status, "fresh");
-  assert.equal(r.maxRunning, 2, "the slot count comes from limits.env, not a constant");
+  assert.equal(r.maxRunning, 3, "the slot count comes from limits.env, not a constant");
+  assert.deepEqual(r.slotLimits, [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
+    "each agent's own slots, in file order");
   assert.equal(r.running, 1);
   assert.deepEqual(r.active.map((t) => [t.name, t.waiting, t.slot]),
-    [["holder", "", "1"], ["waiter", "lock", ""], ["sleeper", "quota", ""]],
+    [["holder", "", "claude-1"], ["waiter", "lock", ""], ["sleeper", "quota", ""]],
     "live tasks oldest first; an active unit without a task dir is skipped");
   assert.equal(r.active[0].model, "claude-opus-5-5");
   assert.equal(r.active[0].attempts, 2);
+  assert.deepEqual(r.active.map((t) => t.stalls), [1, 0, 0], "STALLS from result.env, 0 when absent");
   assert.equal(r.active[0].startedAtMs, new Date(2026, 8, 23, 1, 0, 0).getTime(), "%q-escaped stamps parse");
   assert.equal(r.active[2].wakeAtMs, new Date(2026, 8, 23, 3, 40, 0).getTime(), "quota wake time from the run log");
   assert.equal(r.active[0].lastEvent, "attempt 2/3 (append) cap=21600s session=s", "a live task's latest stamped runner event");
@@ -2785,10 +2788,11 @@ test("client: the task queue sits above the balance and shows who waits for what
   });
   const now = Date.now();
   const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 2, running: 2,
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 2,
+    slotLimits: [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
     active: [
-      { id: "a-1", name: "patrol-source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "1",
-        attempts: 2, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
+      { id: "a-1", name: "patrol-source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "claude-1",
+        attempts: 2, stalls: 1, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
       { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
         attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
       { id: "patrol-recent-1", name: "patrol-recent", agent: "opencode", model: "opencode/x", state: "running", waiting: "", slot: "2",
@@ -2854,7 +2858,10 @@ test("client: the task queue sits above the balance and shows who waits for what
   const trigger = find(foot, (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0];
   assert.equal(trigger.props["data-balance-state"], "ok");
   assert.match(texts(trigger), /任务/);
-  assert.match(texts(trigger), /槽 2\/2/);
+  assert.match(texts(trigger), /在跑 2/);
+  assert.doesNotMatch(texts(trigger), /\d\/\d/, "no n/sum: slots are per agent, a free one is no room for another agent");
+  assert.match(trigger.props.title, /claude 1\/1 · codex 0\/1 · opencode 0\/1 · 过渡期共享槽 1/,
+    "the per-agent lanes and the old shared slot a pre-2026-09-25 runner still holds");
   assert.match(texts(trigger), /排队 1/);
   assert.match(texts(trigger), /巡检让路中/, "patrol giving way is visible on the row itself");
   const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
@@ -2866,12 +2873,18 @@ test("client: the task queue sits above the balance and shows who waits for what
   const popover = find(open, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0];
   assert.equal(popover.props["data-open"], "true");
   // Sections in the order the questions come: slots held → queued/waiting → ended → patrol.
-  assert.match(texts(popover), /运行槽 2\/2 .*排队 \/ 等待 1 .*最近结束 1 .*巡检/);
+  assert.match(texts(popover), /运行槽 · 按 agent 2 .*claude 1\/1 .*codex 0\/1 .*opencode 0\/1 .*过渡期共享槽 1 .*排队 \/ 等待 1 .*最近结束 1 .*巡检/);
+  const lanes = find(popover, (p) => p["data-tq-lane"] !== undefined);
+  assert.deepEqual(lanes.map((l) => [l.props["data-tq-lane"], find(l, (p) => p["data-balance-state"] !== undefined)[0].props["data-balance-state"]]),
+    [["claude", "stale"], ["codex", "none"], ["opencode", "none"], ["legacy", "ok"]],
+    "claude's one slot is full and a claude task queues for it: that lane is the queue's reason");
   const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
   assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
     [["a-1", ""], ["patrol-recent-1", ""], ["b-1", "lock"], ["c-1", ""]]);
-  assert.match(texts(rows[0]), /运行中 · 槽 1/);
-  assert.match(texts(rows[0]), /已跑 1 小时 5 分 · 第 2 次/);
+  assert.match(texts(rows[0]), /运行中/);
+  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the agent line already says whose");
+  assert.match(texts(rows[0]), /已跑 1 小时 5 分 · 第 2 次 · 卡死 1/, "stalled attempts ride on the numbers");
+  assert.match(texts(rows[1]), /运行中 · 旧共享槽 2/, "a bare slot number is an old runner's shared slot");
   assert.match(texts(rows[2]), /等 claude 锁/);
   assert.match(texts(rows[3]), /ok \/ DONE/);
   assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
@@ -2887,6 +2900,7 @@ test("client: the task queue sits above the balance and shows who waits for what
     "the layer lives inside the open popover — no second surface");
   assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
   assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent claude 模型 claude-opus-5-5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
+  assert.doesNotMatch(texts(detail), /判卡死/, "no stall row when there was none");
   // Back returns to the list; so does Escape (tested through the same back function).
   find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   layered = render();
@@ -2947,4 +2961,14 @@ test("client: a task backing off to retry is counted on the queue headline, like
   assert.match(zh.sub, /等重试 1/, `retry wait missing from the headline: ${zh.sub}`);
   assert.match(zh.title, /等重试 1/);
   assert.match(api._queueHeadline(result, translatorFor(api, "en"), now).sub, /1 waiting to retry/);
+
+  // Patrol admission waiting for memory is its own reason, not a queue behind a task.
+  const memory = api._queueHeadline({ ...result, active: [{ ...live("patrol-x", "memory"), agent: "opencode" }] }, translatorFor(api), now);
+  assert.match(memory.sub, /等内存 1/);
+  assert.doesNotMatch(memory.sub, /排队/);
+  assert.equal(memory.busy, false);
+  // A host older than slotLimits: lanes from the held slots alone, no maximum, nothing broken.
+  const old = api._queueHeadline({ ...result, running: 2,
+    active: [{ ...live("a", ""), slot: "claude-1" }, { ...live("b", ""), agent: "codex", slot: "1" }] }, translatorFor(api), now);
+  assert.match(old.title, /在跑 2 · claude 1 · 过渡期共享槽 1/);
 });
