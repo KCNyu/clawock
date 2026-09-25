@@ -26,5 +26,8 @@ cd "$WS_ROOT" || exit 1
 # shellcheck source=ops/publish/publish_identity.sh
 . "$WS_ROOT/ops/publish/publish_identity.sh"
 
-exec python3 "$WS_ROOT/ops/publish/publish_data_branch.py" \
+# Not `exec`: that replaces this shell, and with it the EXIT trap
+# publish_identity.sh registered to wipe an Actions deploy key from the
+# runner's temp directory (#1880). `set -e` still exits with its status.
+python3 "$WS_ROOT/ops/publish/publish_data_branch.py" \
   --deploy --remote "${PUBLISH_REMOTE:-origin}"

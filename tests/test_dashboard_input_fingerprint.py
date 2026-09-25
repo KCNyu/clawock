@@ -262,3 +262,18 @@ def test_a_real_tmp_sidecar_still_moves_the_fingerprint(tmp_path):
         assert not name.startswith(PRESERVE_ABSENT_PREFIX)
         (tmp / name).write_text('{"v": 1}')
         assert dashboard_input_fingerprint(ws) != before, f'{name} must move it'
+
+
+def test_inputs_read_outside_the_data_plane_move_the_fingerprint(tmp_path):
+    """#1877: the weekly crawl summary, the add-shape study cards and the cron
+    contract are embedded by the build, and each alone left the fingerprint
+    unchanged — `--skip-if-unchanged` then republished the old cards."""
+    ws = _desk(tmp_path)
+    (ws / 'config').mkdir()
+    (ws / 'memory' / 'backtests').mkdir()
+    for rel in ('assets/data/crawl_visibility_summary.json',
+                'config/cron-schedules.json',
+                'memory/backtests/add_shapes-2026-09-20.json'):
+        before = dashboard_input_fingerprint(ws)
+        (ws / rel).write_text('{"v": 1}')
+        assert dashboard_input_fingerprint(ws) != before, f'{rel} did not move the fingerprint'

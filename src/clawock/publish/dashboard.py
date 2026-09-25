@@ -3744,6 +3744,9 @@ _FINGERPRINT_EXTRA_DATA_PLANE = (
     # the same run that then rebuilds the dashboard, so a fingerprint that
     # could not see it would let --skip-if-unchanged publish yesterday's trend.
     GUARDRAIL_HISTORY_NAME,
+    # Weekly data-health card; read through `load_json`, which the recorded-read
+    # gate in tests cannot see (#1877).
+    'crawl_visibility_summary.json',
 )
 
 FINGERPRINT_FILES = (
@@ -3751,6 +3754,8 @@ FINGERPRINT_FILES = (
     'memory/decisions.jsonl',
     'memory/fx-rates.jsonl',
     '.cache/fx_rate.json',
+    # The Overview timetable (`compute_cron_schedule` → `load_contract`) (#1877).
+    'config/cron-schedules.json',
 ) + tuple(sorted(
     f'assets/data/{name}'
     for name in set(_FRESHNESS_POLICY) | set(_FINGERPRINT_EXTRA_DATA_PLANE)
@@ -3801,17 +3806,21 @@ def dashboard_input_fingerprint(ws: Path) -> str:
                 h.update(f'{rel}/{name}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
             except OSError:
                 pass
-    try:
-        plans = sorted(glob.glob(str(ws / 'memory' / '*-plan.json')))
-    except OSError:
-        plans = []
-    h.update(f'plans:count={len(plans)}\n'.encode())
-    for p in plans:
+    # Plans, and the add-shape study cards the Add Campaign evidence card reads
+    # (`memory/backtests/add_shapes-*.json`, #1877).
+    for label, pattern in (('plan', ('memory', '*-plan.json')),
+                           ('add_shapes', ('memory', 'backtests', 'add_shapes-*.json'))):
         try:
-            st = os.stat(p)
-            h.update(f'plan:{os.path.basename(p)}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
+            found = sorted(glob.glob(str(ws.joinpath(*pattern))))
         except OSError:
-            pass
+            found = []
+        h.update(f'{label}s:count={len(found)}\n'.encode())
+        for p in found:
+            try:
+                st = os.stat(p)
+                h.update(f'{label}:{os.path.basename(p)}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
+            except OSError:
+                pass
     return h.hexdigest()
 
 

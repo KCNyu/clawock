@@ -134,6 +134,25 @@ def test_a_checkout_that_is_not_the_live_workspace_gets_no_publish_identity(tmp_
         f"{probe.stdout!r}")
 
 
+def test_publish_generation_wipes_the_actions_key_and_keeps_the_exit_status(tmp_path):
+    """`exec python3` replaced the shell and dropped publish_identity.sh's EXIT
+    trap, so the materialised deploy key outlived every Actions publish (#1880)."""
+    stub = tmp_path / "bin"
+    stub.mkdir()
+    (stub / "python3").write_text("#!/bin/sh\nexit 3\n")
+    (stub / "python3").chmod(0o755)
+    keys = tmp_path / "tmp"
+    keys.mkdir()
+    env = {**os.environ, "PATH": f"{stub}:{os.environ['PATH']}", "TMPDIR": str(keys),
+           "CLAWOCK_PUBLISH_SSH_KEY": "not-a-real-key"}
+    run = subprocess.run(
+        ["bash", str(ROOT / "ops" / "publish" / "publish_generation.sh")],
+        env=env, capture_output=True, text=True, timeout=30)
+
+    assert run.returncode == 3, run.stderr
+    assert list(keys.iterdir()) == [], "the deploy key was left in the temp directory"
+
+
 def test_no_workflow_pushes_to_master_around_safe_push():
     """master's ruleset bypasses exactly one actor — the deploy key.
 
