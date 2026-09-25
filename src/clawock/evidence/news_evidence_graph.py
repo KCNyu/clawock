@@ -217,10 +217,10 @@ def _word_pattern(words):
     is not in 'beaten', 'raise' is not in 'praise' — which turned a successful
     launch mission into a negative hard event. Plural and past-tense endings
     ('misses', 'upgrades', 'awarded') still count, as they did when this was a
-    substring test. CJK has no word boundaries, so those terms keep matching as
-    substrings."""
+    substring test, and so do '-ing' forms ('missing', 'beating', 'defaulting').
+    CJK has no word boundaries, so those terms keep matching as substrings."""
     return re.compile('|'.join(
-        rf'(?<![a-z]){re.escape(word)}(?:s|es|d|ed)?(?![a-z])' if word.isascii()
+        rf'(?<![a-z]){re.escape(word)}(?:s|es|d|ed|ing)?(?![a-z])' if word.isascii()
         else re.escape(word)
         for word in sorted(words, key=len, reverse=True)))
 

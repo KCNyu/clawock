@@ -674,6 +674,8 @@ def test_stock_connect_membership_gets_a_type_and_a_direction():
     ('Broker upgrades the stock to buy', 'positive'),
     ('Unit awarded Army contract', 'positive'),
     ('Automaker recalled 40,000 cars', 'negative'),
+    ('Chipmaker missing estimates again', 'negative'),
+    ('Retailer beating expectations', 'positive'),
     # CJK keeps substring matching
     ('大股东减持公告', 'negative'),
 ])
