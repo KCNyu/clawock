@@ -84,6 +84,9 @@ implementation but no user's portfolio or generated state.
 
 ## Intraday decision and delivery boundary
 
+The full contract — context layering, card blocks, workflow ownership,
+objective and compliance gates — is [`intraday-agent.md`](intraday-agent.md).
+
 The preflight gives the model its complete decision context. It includes every
 open plan (including zero-share watch decisions), watch levels, all held-name
 peer scans, source status, setup and T+0 reads, prior semantic state, a compact
