@@ -9,7 +9,8 @@ named none of the three lanes.
 These tests pin the three rules the join encodes, each of which is a rule the desk
 already wrote down somewhere else:
 
-1. discipline outranks opportunity (an open `risk_rule` action ⇒ `reject`);
+1. discipline outranks opportunity (an open `risk_rule` action downgrades to
+   `wait`, a live thesis red line ⇒ `reject`);
 2. only a primary `interrupt` filing can promote to `candidate`;
 3. everything else is `wait`, carrying the level that would settle it.
 
@@ -101,18 +102,24 @@ def test_a_primary_filing_without_the_technical_state_still_waits():
     assert _row(out, "02208")["verdict"] == "wait"
 
 
-def test_an_unfinished_risk_rule_action_rejects_regardless_of_how_good_it_looks():
-    """Discipline outranks opportunity — even with a primary catalyst on the tape."""
+def test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks():
+    """Discipline outranks opportunity — even with a primary catalyst on the tape.
+
+    kcn 2026-09-25 changed how: an unfinished risk_rule action downgrades the
+    read to wait and says why (「降级 + 说明理由」), it no longer rejects —
+    the old `reject` made the add lane reject-only whenever a trim was open.
+    A candidate still cannot survive it."""
     out = add_side.read_rows(
         anomalies=[{"ticker": "02208", "move_pct": 6.4, "severity": "high"}],
         radar=RADAR, mover_news=PRIMARY,
         plan_context={"open": [{"ticker": "02208", "action": "cut", "shares": 1200,
                                 "driven_by": "risk_rule"}]})
     row = _row(out, "02208")
-    assert row["verdict"] == "reject"
+    assert row["verdict"] == "wait" and row["discipline_downgraded"] is True
+    assert out["candidate_count"] == 0 and out["discipline_downgraded_count"] == 1
     # Plain words: the card prints this sentence (add-side line).
-    assert "清仓" in row["why"] and "1200" in row["why"]
-    assert "纪律" in row["needs"]
+    assert "清仓" in row["why"] and "1200" in row["why"] and "降级" in row["why"]
+    assert row["needs"].startswith("先把纪律动作走完")
 
 
 def test_a_live_thesis_red_line_rejects_too():
@@ -224,6 +231,7 @@ def test_the_live_context_shape_still_feeds_it():
     # caller: the same rows mean something different once the close is settled,
     # and the wording has to say which one it is.
     assert set(out) == {"rows", "candidate_count", "wait_count", "reject_count",
+                        "discipline_downgraded_count",
                         "policy", "confirmed_at_close"}
     assert out["confirmed_at_close"] is False, "the intraday slot never has the close"
     assert all(r["verdict"] in add_side.VERDICTS for r in out["rows"])
@@ -304,16 +312,16 @@ def test_no_level_anywhere_keeps_the_generic_sentence():
     assert "prior_20d_high" not in row["evidence"]
 
 
-def test_discipline_still_owns_the_needs_line_of_a_reject():
-    """A level must not overwrite 「先把纪律动作走完」 — reject is not a price question."""
+def test_discipline_still_owns_the_needs_line_of_a_downgraded_read():
+    """A level must not overwrite 「先把纪律动作走完」: it leads, the level follows."""
     out = add_side.read_rows(
         anomalies=[{"ticker": "02208", "move_pct": -3.0, "severity": "medium"}],
         radar={"rows": []}, levels=LEVELS,
         plan_context={"open": [{"ticker": "02208", "action": "cut", "shares": 6200,
                                 "driven_by": "risk_rule"}]})
     row = _row(out, "02208")
-    assert row["verdict"] == "reject"
-    assert row["needs"] == "先把纪律动作走完,再谈加仓"
+    assert row["verdict"] == "wait"
+    assert row["needs"].startswith("先把纪律动作走完,再谈加仓(之后:")
 
 
 def test_the_radar_publishes_the_levels_the_fallback_needs():
@@ -572,3 +580,57 @@ def test_a_name_above_its_level_is_asked_to_hold_it_not_to_reach_it():
                        "pct_from_high": 0.84, "zscore20": 2.51}]}
     row = _row(add_side.read_rows(radar=radar), "RKLB")
     assert row["needs"].startswith("回踩守住 73.57") and "站上" not in row["needs"]
+
+
+INFO_POSITIVE = {"tickers": {"02208": [
+    {"grade": "authoritative", "direction": "positive", "title": "金风科技中标 3GW 风电项目",
+     "cite": "《金风科技中标 3GW 风电项目》（news_evidence_graph，截至 09-25 08:04 HKT，开盘前旧闻）"}]}}
+PULLBACK_LEVELS = {"02208": {"prior_20d_high": 11.72, "close": 10.9, "pct_from_high": -7.0,
+                             "prior_5d_low": 10.6}}
+
+
+def test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate():
+    """kcn 2026-09-25: 「未必跌就不能加」. Below the 20-day high, above the prior
+    5-day low, with news the graph marks positive → candidate, carrying the
+    invalidation level, the configured size cap and the evidence grade."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "02208", "move_pct": -3.4, "severity": "medium"}],
+        radar={"rows": []}, levels=PULLBACK_LEVELS, information=INFO_POSITIVE,
+        policy={"exploration_tranche_pct": 0.025})
+    row = _row(out, "02208")
+    assert row["verdict"] == "candidate" and row["kind"] == "pullback"
+    assert row["invalidation"] == 10.6 and row["needs"].startswith("跌破 10.6 失效")
+    assert row["size_cap"] == "上限探索档 2.5%(add-alpha-policy)"
+    assert row["evidence_grade"] == "authoritative"
+    assert row["sources"][0]["cite"].startswith("《金风科技中标")
+    assert row["authorization"] is None
+
+
+def test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged():
+    base = dict(anomalies=[{"ticker": "02208", "move_pct": -3.4, "severity": "medium"}],
+                radar={"rows": []}, policy={"exploration_tranche_pct": 0.025})
+    # No supporting news: a fall alone is still a wait.
+    assert _row(add_side.read_rows(levels=PULLBACK_LEVELS, **base), "02208")["verdict"] == "wait"
+    # Below the 5-day low: the pullback is a breakdown.
+    broken = {"02208": {**PULLBACK_LEVELS["02208"], "close": 10.5}}
+    assert _row(add_side.read_rows(levels=broken, information=INFO_POSITIVE, **base),
+                "02208")["verdict"] == "wait"
+    # Unknown direction is colour, not support.
+    unknown = {"tickers": {"02208": [{**INFO_POSITIVE["tickers"]["02208"][0],
+                                      "direction": "unknown"}]}}
+    assert _row(add_side.read_rows(levels=PULLBACK_LEVELS, information=unknown, **base),
+                "02208")["verdict"] == "wait"
+    # A leveraged product on soft news stays wait and says what is missing.
+    soft = {"tickers": {"02208": [{**INFO_POSITIVE["tickers"]["02208"][0], "grade": "soft"}]}}
+    row = _row(add_side.read_rows(levels=PULLBACK_LEVELS, information=soft,
+                                  leveraged={"02208"}, **base), "02208")
+    assert row["verdict"] == "wait" and "杠杆产品需一手/权威证据" in row["why"]
+    # Soft positive news on a plain holding can promote (kcn), graded soft.
+    row = _row(add_side.read_rows(levels=PULLBACK_LEVELS, information=soft, **base), "02208")
+    assert row["verdict"] == "candidate" and row["evidence_grade"] == "soft"
+    # And discipline still downgrades it.
+    row = _row(add_side.read_rows(levels=PULLBACK_LEVELS, information=INFO_POSITIVE,
+                                  plan_context={"open": [{"ticker": "02208", "action": "trim_on_rebound",
+                                                          "shares": 200, "driven_by": "risk_rule"}]},
+                                  **base), "02208")
+    assert row["verdict"] == "wait" and "回踩候选降级" in row["why"]

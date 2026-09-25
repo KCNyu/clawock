@@ -54,14 +54,18 @@ def test_the_intraday_wording_still_says_the_close_is_pending():
 
 
 def test_an_unexecuted_discipline_action_still_blocks_the_add():
-    """The rule that made the sell-only stream self-reinforcing, kept on purpose."""
+    """The rule that made the sell-only stream self-reinforcing, kept on purpose.
+
+    Since kcn 2026-09-25 it blocks by downgrading (wait, with the reason), not
+    by rejecting; a candidate still cannot come out of it."""
     radar = add_side.daily_radar({"CRCL": _signals(103.23, 96.40, z=0.9)},
                                  near_pct=NEAR, no_chase_z=NOCHASE)
     plan = {"open": [{"ticker": "CRCL", "driven_by": "risk_rule",
                       "action": "cut", "shares": 300}]}
     reads = add_side.read_rows(radar=radar, levels=radar["levels"],
                                plan_context=plan, close_confirmed=True)
-    assert reads["rows"][0]["verdict"] == "reject"
+    assert reads["rows"][0]["verdict"] == "wait" and reads["candidate_count"] == 0
+    assert reads["discipline_downgraded_count"] == 1
     assert "纪律动作未了结" in reads["rows"][0]["why"]
 
 
