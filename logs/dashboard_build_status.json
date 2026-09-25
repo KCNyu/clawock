@@ -1,18 +1,18 @@
 {
-  "checked_at": "2026-09-25T07:04:59Z",
+  "checked_at": "2026-09-25T07:35:56Z",
   "ok": true,
   "build_ok": true,
   "publish_ok": true,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-09-25.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (57,439 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (145,384 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $3442\n  HK: 7 holdings, 5 active, value HK$64357\n  Snapshots: 90 embedded / 98 on disk\n  Plans: 5 embedded / 93 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8427 (Frankfurter)\ndecision_map: 927 decisions · 34 signals · 18 tickers · 181431 bytes (recent_decisions_only)\n\n  ✓ data-plane: published 8 outputs as 842ed96d0ac7 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock",
+  "tail": "  brief-context source: brief-context-2026-09-25.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (57,232 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (145,288 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $3442\n  HK: 7 holdings, 5 active, value HK$64401\n  Snapshots: 90 embedded / 98 on disk\n  Plans: 5 embedded / 93 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8427 (Frankfurter)\ndecision_map: 927 decisions · 34 signals · 18 tickers · 181431 bytes (recent_decisions_only)\n\n  ✓ data-plane: published 8 outputs as 8b8d03b1d96f → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock",
   "timings_s": {
-    "prepare_inputs": 0.865,
-    "fetch_data_plane": 0.779,
-    "workflow_outcomes": 0.285,
-    "dashboard_build": 2.039,
-    "decision_map": 3.102,
-    "publish_generation": 10.708,
+    "prepare_inputs": 1.064,
+    "fetch_data_plane": 0.843,
+    "workflow_outcomes": 0.893,
+    "dashboard_build": 2.201,
+    "decision_map": 3.055,
+    "publish_generation": 10.762,
     "skipped": false
   }
 }
