@@ -636,3 +636,26 @@ def test_an_escalating_warning_does_not_borrow_the_signal_symbol(run_main, sent)
     assert out['status'] == 'warn'
     first = sent['messages'][0].splitlines()[0]
     assert first.startswith('🟠 校验警告') and '⚠️' not in first
+
+
+def test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers(
+    run_main, sent, pf
+):
+    """Contract §7: field names leaked into 14 of 17 judgments on 2026-09-24/25
+    and a banner only labels them on kcn's card. For fixable classes the
+    model gets the findings back once, nothing is sent; the second call
+    delivers whatever it gets (with its banner). A clean report is never held."""
+    leaked = PROSE.replace('继续按计划减。', '继续按 risk_rule 计划减。')
+    rc, out = run_main(leaked, context_id='abc123def456')
+    assert rc == 0 and out['status'] == 'revise' and sent['messages'] == []
+    assert any('risk_rule' in issue for issue in out['issues'])
+    # Same generation, second call: delivered, banner on top.
+    rc, out = run_main(leaked, context_id='abc123def456')
+    assert out['status'] == 'warn' and out['wechat_sent'] is True
+    assert sent['messages'][0].startswith('🟠 校验警告')
+    # A revised, clean report on a new generation is not held.
+    sent['messages'].clear()
+    pf.delivery_receipts.receipt_path(pf.TMP, 'intraday', market='us').unlink()
+    rc, out = run_main(PROSE, context_id='abc123def457',
+                       ctx=_ctx(context_id='abc123def457'))
+    assert out['status'] == 'pass' and len(sent['messages']) == 1

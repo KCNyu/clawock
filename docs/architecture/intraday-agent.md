@@ -191,6 +191,7 @@ written down.
 | `analyzer_block` stays in the model's view | gate | `test_the_model_packet_keeps_reason_lines_the_card_folded` | #1862 once removed it |
 | alert slot names its movers and signal tickers | gate (escalating) | `intraday_postflight.validate` | naming what fired is what the slot is for |
 | no field names / enum values in prose | gate (escalating) | `check_identifier_leak` | 2026-09-25 14:33 `semantic_unchanged`; an identifier is never trading language |
+| fixable findings (identifiers, `下一触发`, stale headline without time) are handed back **once** before sending | gate (revise-once) | `REVISABLE` in postflight; `test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers` | a banner only labels the breach on kcn's card; one rewrite removes it, and the second call always delivers so the slot is never lost |
 | pipeline words (`harness`, `packet`) | prompt + advisory | `check_pipeline_self_reference` | the sentence is usually a correct read in the wrong words; failing it would cost the analysis |
 | numbers come from the context | advisory | `check_numeric_claims` | cannot tell a real number attached to the wrong thing |
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
@@ -217,4 +218,7 @@ as live.
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
 | Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887) |
-| add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | this PR |
+| add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | live (#1888) |
+| F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
+| F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
+| revise-once gate | this PR |
