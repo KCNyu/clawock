@@ -39,9 +39,12 @@ MAX_RUNNING="${AGENT_DISPATCH_MAX_RUNNING:-$MAX_RUNNING}"
 ROUND_GAP="${PATROL_ROUND_GAP:-600}"        # pause after a finished round
 ROUND_DEADLINE_H="${PATROL_ROUND_HOURS:-3}"  # whole round incl. retries
 ATTEMPT_TIMEOUT="${PATROL_ATTEMPT_TIMEOUT:-5400}"
+PREEMPT_GRACE="${PATROL_PREEMPT_GRACE:-300}"  # wrap-up time a preempted round gets; 0 = cancel at once
+[[ $PREEMPT_GRACE =~ ^[0-9]+$ ]] || PREEMPT_GRACE=300
 mkdir -p "$STATE/drafts" "$STATE/filed"
 
 log() { echo "$(date '+%F %T') $*"; }
+now() { date +%s; }
 notify() {
   # shellcheck disable=SC1091
   ( . /root/tools/agent-dispatch/notify.env
@@ -116,6 +119,39 @@ others_need_slot() {
     memory_pressure_reason
   fi
   return 0
+}
+
+# Demand the round itself stands in the way of, so a wrap-up grace would make it wait:
+# a slot waiter while every slot is taken, or an opencode task queued behind the lock
+# this opencode round holds. A task queued behind another agent's lock is not one: its
+# holder's slot frees together with that lock. Rechecked at every poll of the grace.
+round_blocks_someone() {
+  local unit id d own
+  own=$(current_round)
+  for unit in $(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain 2>/dev/null | awk '{print $1}'); do
+    id=${unit#agent-dispatch-}; id=${id%.service}
+    [ -n "$own" ] && [ "$id" = "$own" ] && continue
+    d=$TASKS/$id
+    if grep -qs '^WAITING=slot' "$d/result.env" && [ "$(slot_held_count)" -ge "$MAX_RUNNING" ]; then
+      echo "$id is waiting for a run slot and all $MAX_RUNNING are busy"; return
+    fi
+    if [ "$(task_agent "$d")" = opencode ] && grep -qsE '^(WAITING=lock|STATE=queued)' "$d/result.env"; then
+      echo "$id is queued behind the round's opencode lock"; return
+    fi
+  done
+}
+
+round_session() { ( SESSION=""; . "$TASKS/$1/result.env" 2>/dev/null; printf '%s' "$SESSION" ); }
+
+# Appended to a round that has to give way: land what it has before the hard cancel.
+wrapup_note() {  # <round no>
+  cat <<NOTE
+【巡检让路】有人工任务在排队，本轮要提前收尾：${PREEMPT_GRACE}s 内没结束会被直接取消，取消后会话不可续，没落地的发现全部丢失。
+现在停止新的调查，只做下面三件事：
+1. 已经对照 closed-lessons 反证仍成立的候选：按 $TOOL/issue-format.md 写成 $STATE/drafts/R$1-<slug>.md，运行 $TOOL/file_issue.sh <草稿> 提报。闸的规则和每轮上限照旧，证据不够的不要提。
+2. 按收尾要求重写 $STATE/ledger.md（整份不超过 60 行）：「已覆盖」只写实际查完的；没查完的线索和证据不够的放进「候选」，写清缺什么证据；recent 轮留出未检查的提交。
+3. 用中文简短报告本轮结论，最后一行输出 \`STATUS: PARTIAL\`，然后结束。
+NOTE
 }
 
 prepare_worktree() {
@@ -207,16 +243,33 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     log "round R$n ($axis) dispatched as $rid"
   fi
 
+  # Give way gracefully when that costs nobody: tell the round to file what it has confirmed
+  # and rewrite the ledger, and cancel it only if it is still running PREEMPT_GRACE seconds
+  # later (a hard cancel kept nothing but already-filed issues). Cancel at once when the
+  # round blocks someone, or has no session: then no step has run, there is nothing to
+  # land, and an append could not reach the attempt anyway. The marker survives a
+  # supervisor restart, so an adopted round is not told twice.
+  local demand blocker yield_at=""
   reason=""
+  [ "$(cut -d' ' -f1 "$STATE/yielding" 2>/dev/null)" = "$rid" ] && yield_at=$(cut -d' ' -f2 "$STATE/yielding")
+  [[ $yield_at =~ ^-?[0-9]+$ ]] || yield_at=""
   while round_active "$rid" || [ ! -r "$TASKS/$rid/result.env" ]; do
     sleep 30
     if ! round_active "$rid" && [ -r "$TASKS/$rid/result.env" ]; then break; fi
-    reason=$(others_need_slot monitor)
-    if [ -n "$reason" ]; then
-      log "preempting $rid: $reason"
-      "$DISPATCH" cancel "$rid" >/dev/null 2>&1
-      break
+    demand=$(others_need_slot monitor)
+    [ -n "$demand" ] || continue
+    blocker=$(round_blocks_someone)
+    if [ -z "$yield_at" ] && [ -z "$blocker" ] && [ "$PREEMPT_GRACE" -gt 0 ] && [ -n "$(round_session "$rid")" ] \
+       && wrapup_note "$n" | "$DISPATCH" append "$rid" >/dev/null 2>&1; then
+      yield_at=$(now); echo "$rid $yield_at" >"$STATE/yielding"
+      log "asking $rid to wrap up within ${PREEMPT_GRACE}s: $demand"
+      continue
     fi
+    if [ -n "$yield_at" ] && [ -z "$blocker" ] && [ $(( $(now) - yield_at )) -lt "$PREEMPT_GRACE" ]; then continue; fi
+    reason=${blocker:-$demand}
+    log "preempting $rid${yield_at:+ after a $(( $(now) - yield_at ))s wrap-up grace}: $reason"
+    "$DISPATCH" cancel "$rid" >/dev/null 2>&1
+    break
   done
   # Keep the completed round available for adoption if the GitHub audit fails.
   # Retrying must neither reset the worktree nor dispatch another worker.
@@ -225,11 +278,13 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     log "issue audit failed for $rid; bypass status unknown; will retry"
     return 1
   fi
-  ROUND_ID=""; rm -f "$STATE/current-round"
+  ROUND_ID=""; rm -f "$STATE/current-round" "$STATE/yielding"
   # (subshell: result.env's STATE must not clobber this script's STATE directory)
   state=$( STATE="" OUTCOME=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "${STATE:-unknown}${OUTCOME:+/$OUTCOME}" )
-  printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${reason:+preempted:}$state" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
-  log "round R$n ($axis) ended: ${reason:+preempted, }$state"
+  local how=""
+  if [ -n "$reason" ]; then how=preempted; elif [ -n "$yield_at" ]; then how=yielded; fi
+  printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${how:+$how:}$state" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
+  log "round R$n ($axis) ended: ${how:+$how, }$state"
 
   if [ -n "$bad" ]; then
     log "UNGATED issues: $bad"
@@ -239,7 +294,8 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
   [ -z "$reason" ] || return 1
   case "$state" in
     ok*|partial*|unverified*)
-      [ "$axis" = recent ] && [ "$state" = ok/DONE ] && date -d "@$start" '+%F %T' >"$STATE/recent-since"
+      # A round cut short never finished its review, whatever its last line claims.
+      [ "$axis" = recent ] && [ "$state" = ok/DONE ] && [ -z "$yield_at" ] && date -d "@$start" '+%F %T' >"$STATE/recent-since"
       return 0 ;;
   esac
   return 1
@@ -308,6 +364,7 @@ case "${1:-}" in
   status)
     echo "service: $(systemctl is-active "$UNIT" 2>/dev/null) / $(systemctl is-enabled "$UNIT" 2>/dev/null)"
     rid=$(current_round); echo "current round: ${rid:-none}"
+    [ -s "$STATE/yielding" ] && echo "wrapping up since $(date -d "@$(cut -d' ' -f2 "$STATE/yielding")" '+%F %T') to give way"
     [ -n "$rid" ] && "$DISPATCH" status "$rid" | grep -E '^(STATE|ATTEMPTS|SESSION|WAITING)=|^unit:'
     echo "--- last rounds"; tail -n 8 "$STATE/rounds.tsv" 2>/dev/null
     echo "--- issues filed in the last 24h: $(awk -v t=$(( $(date +%s) - 86400 )) -F'\t' '$1 > t' "$STATE/filed/created.tsv" 2>/dev/null | wc -l)"

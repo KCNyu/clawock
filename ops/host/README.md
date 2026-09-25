@@ -47,8 +47,8 @@ install overwrites it, so never install by hand without that `cp` first, and
 do not treat an older copy as a known-good version.
 
 Priority: manual dispatched work outranks patrol, and a round is the lowest
-priority work on the host. `others_need_slot` blocks a new round, and cancels
-the running one (recorded as `preempted:cancelled` in `rounds.tsv`), when any
+priority work on the host. `others_need_slot` blocks a new round, and preempts
+the running one, when any
 task other than the round named in `current-round` publishes `WAITING=slot`
 (queued for a run slot) or `WAITING=lock` (queued behind its agent's lock —
 the runner asks for a slot only after that lock, so this is the earlier half of
@@ -63,6 +63,31 @@ pressure only gate admission of a new round. Rounds are dispatched with
 `AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for
 them; the supervisor still identifies its own round by `current-round`, never
 by name.
+
+Preemption is graceful when that costs the queued task nothing. The monitor
+(every 30s) first appends a wrap-up instruction to the round (`dispatch.sh
+append`): file the candidates it has already confirmed through the gate
+(`issue-format.md` drafts + `file_issue.sh`), rewrite `ledger.md`, answer
+`STATUS: PARTIAL`. It then waits up to `PATROL_PREEMPT_GRACE` seconds (default
+300; `0` restores the immediate cancel). A round that ends within the grace is
+closed like any other round (bypass audit, `rounds.tsv` as `yielded:<state>`, no
+backoff), except that a `recent` round never advances the review cursor; one
+still running is cancelled (`preempted:cancelled`). There is no grace, and the
+round is cancelled at once, when:
+
+- the round blocks someone: a task waits for a run slot while all `MAX_RUNNING`
+  are held, or an opencode task is queued behind the opencode lock the round
+  holds. This is rechecked every poll and ends a grace already running. A task
+  queued on another agent's lock (`WAITING=lock`) is not blocked by the round:
+  the holder's slot frees together with that lock;
+- the round has no session yet (`SESSION` empty in its `result.env`): no step has
+  run, so there is nothing to land, and the runner cannot interrupt the attempt
+  to deliver an append;
+- `PATROL_PREEMPT_GRACE=0`.
+
+`/root/logs/clawock-patrol/yielding` records the round and the grace's start, so
+a supervisor restart during the grace does not append the instruction twice;
+`patrol.sh status` shows it.
 
 `PATROL_DISPATCH_DIR` can point tests at fixture policy/helpers; production uses
 `/root/tools/agent-dispatch`. Run the focused supervisor coverage with
