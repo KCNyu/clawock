@@ -386,6 +386,9 @@ def _thesis_view(context: dict, ticker: str) -> dict:
     }
 
 
+EXPLORATION_TIERS = ("exploration", "exploration_cold_start")
+
+
 def _execution_view(holding: dict, leg: str, capital: float, cash: float,
                     technical: dict, thesis: dict, leveraged: bool,
                     authority_tier: str = "none",
@@ -433,7 +436,10 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     sizing_multiplier = float(overlay.get("sizing_multiplier") or 1.0)
     desired = int(shares * tranche_pct * sizing_multiplier)
     rounded = ((desired // lot) * lot if lot else 0)
-    if authority_tier == "exploration":
+    # Both exploration tiers are budgeted (cloud review F17): the cold-start
+    # half-slice used to fall through to the validated branch below and get
+    # max(lot, rounded) — the least validated tier sized the most loosely.
+    if authority_tier in EXPLORATION_TIERS:
         unit_value = price * lot if price and lot else None
         exploration_budget = max(0.0, capital * exploration_max_book_pct)
         # 2.5% is the target step; the 3% market-book cap is the hard execution
