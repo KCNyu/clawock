@@ -317,6 +317,30 @@ def check_stale_citation(prose, ctx):
     return [f"引用开盘前旧闻未标时间（{'、'.join(dict.fromkeys(found))}）—— 照抄条目的 cite"]
 
 
+# Issue classes the model can fix in one rewrite (contract §7). Kept to the
+# unambiguous ones: an identifier, the missing/unverifiable 下一触发 line, a
+# stale headline without its time.
+REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻')
+
+
+def claim_revise(market, context_id, issues):
+    """True once per context: records that this generation was sent back."""
+    path = TMP / f'intraday-revise-{market}.json'
+    try:
+        prior = json.loads(path.read_text())
+    except (OSError, ValueError):
+        prior = {}
+    if not context_id or prior.get('context_id') == context_id:
+        return False
+    try:
+        safe_write_text(str(path), json.dumps({
+            'context_id': context_id, 'issues': issues,
+            'at': datetime.now().isoformat(timespec='seconds')}, ensure_ascii=False))
+    except OSError:
+        return False
+    return True
+
+
 def assemble_message(ctx, prose):
     """Build the delivered check-in from harness-owned data + model-owned prose.
 
@@ -755,6 +779,29 @@ def main(argv=None):
               if stale_generation
               else ([] if receipt_only else validate(text, ctx, model_text)))
     status = 'fail' if stale_generation else categorize(issues)
+
+    # ── Revise once (contract §7) ───────────────────────────────────────────
+    # A rule the model keeps breaking becomes a gate, and a gate that only
+    # prints a banner leaves the breach on kcn's card: field names leaked into
+    # 14 of 17 judgments on 2026-09-24/25. For the classes the model can fix
+    # itself, postflight hands the findings back once, sends nothing, and the
+    # model rewrites and calls again; the second call always delivers (with
+    # its banner if still broken). Never on a slot already delivered, never
+    # twice for one context.
+    revisable = [issue for issue in split_advisory(issues)[0]
+                 if any(key in issue for key in REVISABLE)]
+    this_slot_marker = delivery_receipts.receipt_path(TMP, 'intraday', market=args.market)
+    if (revisable and not receipt_only and not stale_generation
+            and not already_delivered(this_slot_marker, within_ms=20 * 60 * 1000,
+                                      slot=(ctx.get('heartbeat') or {}).get('slot'))
+            and claim_revise(args.market, ctx.get('context_id'), revisable)):
+        print(json.dumps({
+            'status': 'revise', 'market': args.market, 'issues': revisable,
+            'wechat_sent': None, 'telegram_sent': None,
+            'instruction': ('按 issues 改写 prose 文件（只改被指出的地方），再用同一条 postflight '
+                            '命令调用一次；只要求改这一次，第二次无论结果都会投递。不要重跑 preflight。'),
+        }, ensure_ascii=False, indent=2))
+        return 0
 
     # Step 2.5 sidecar liveness (warn-only, stderr — NOT in the WeChat report):
     # the dashboard status banner went dark 06-04→06-10 when a payload rewrite
