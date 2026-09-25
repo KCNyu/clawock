@@ -576,7 +576,7 @@ def append_active_information_section(block, active, *, event_ids=None):
         suffix = f"，另{len(existing) - 6}条" if len(existing) > 6 else ''
         lines.append(f"  ↳ 仍有效：{'、'.join(summaries)}{suffix}（详因沿用，不重复展开）")
     if degraded:
-        lines.append(f"  ⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
+        lines.append(f"  ⛔ 一级源降级：{','.join(degraded)}（不是无消息）")
     if partial:
         lines.append(
             f"  △ SEC直连降级、镜像已检查：{','.join(partial)}"
@@ -691,7 +691,7 @@ def render_unchanged_receipt(market, block, coverage, active):
     degraded = (active or {}).get('degraded_issuers') or []
     partial = (active or {}).get('partially_degraded_issuers') or []
     if degraded:
-        lines.append(f"⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
+        lines.append(f"⛔ 一级源降级：{','.join(degraded)}（不是无消息）")
     if partial:
         lines.append(f"△ 一级源部分降级、镜像已检查：{','.join(partial)}")
     return '\n'.join(lines)
@@ -735,8 +735,85 @@ def prepend_coverage_warning(block, coverage):
     if not missing:
         return block
     lines = block.splitlines()
-    warning = '⚠️ 行情未证实完整刷新：' + '、'.join(missing)
+    warning = DEGRADED + '行情未证实完整刷新：' + '、'.join(missing) + '（表中标 ?，沿用上一笔）'
     return '\n'.join([*lines[:2], warning, *lines[2:]])
+
+
+#: Card vocabulary. A reader has to tell four states apart at a glance:
+#: new/changed (`*` on the row, named in the 变化 line), unchanged (no mark,
+#: repeated signals folded into one line), and degraded data (`?` on the row,
+#: a ⛔ line) — never the same ⚠️ the analyzer uses for its signal header.
+#: ASCII row marks, not bold: Telegram renders the table as a code block,
+#: where `**` would print literally, and a wide emoji would break alignment.
+DEGRADED = '⛔ 数据降级：'
+NEW_MARK, STALE_MARK = '*', '?'
+MARK_LEGEND = {NEW_MARK: '* 本档新异动/触发', STALE_MARK: '? 行情未证实刷新'}
+
+
+def _mark_ticker_cell(line, mark):
+    cells = line.split('|')
+    cell = cells[1]
+    ticker = cell.strip()
+    start = cell.index(ticker) + len(ticker)
+    marked = cell[:start] + mark + cell[start:]
+    # Give back one padding space so the table keeps its column width.
+    cells[1] = marked[:-1] if marked.endswith(' ') and len(marked) > len(cell) else marked
+    return '|'.join(cells)
+
+
+def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
+    """Mark what changed on the card; fold what was already said today.
+
+    Card-only: the model reads `signals_detail`, `source_signals_detail`,
+    `full_holdings` and `quote_coverage` whole. `fresh_tickers` are holdings
+    with a move/trigger breach first seen this session; `seen_signals` are
+    `(level, ticker)` signal identities delivered earlier this session.
+    """
+    stale = set(unrefreshed or [])
+    fresh = set(fresh_tickers or []) - stale
+    out, marked, folded = [], set(), []
+    in_signals = skip_reasons = False
+    last_table_row = None
+    for line in block.splitlines():
+        stripped = line.strip()
+        if stripped.startswith('|') and stripped.endswith('|'):
+            ticker = stripped.strip('|').split('|')[0].strip()
+            mark = STALE_MARK if ticker in stale else NEW_MARK if ticker in fresh else ''
+            if mark:
+                line = _mark_ticker_cell(line, mark)
+                marked.add(mark)
+            out.append(line)
+            last_table_row = len(out)
+            continue
+        if stripped == '⚠️ 信号':
+            in_signals = True
+            out.append(line)
+            continue
+        if in_signals:
+            if not stripped or stripped.startswith(('📉', '📰', '🕯️', '🎯', '🛰️')):
+                in_signals = False
+                if folded:
+                    out.append('  · 今日已报、仍在：' + '、'.join(folded))
+                    folded = []
+            else:
+                if skip_reasons and stripped.startswith('·'):
+                    continue
+                skip_reasons = False
+                level, ticker = read_signal_line(stripped)
+                if level and (level, ticker) in seen_signals:
+                    word = stripped.split()[1] if stripped.split()[0] in ('✋', '▼', '△', '▲') else level
+                    folded.append(f'{word} {ticker}')
+                    skip_reasons = True
+                    continue
+        out.append(line)
+    if folded:
+        out.append('  · 今日已报、仍在：' + '、'.join(folded))
+    if marked and last_table_row is not None:
+        # A blank line first: GFM reads a pipe-less line right under a table
+        # as one more row.
+        legend = '　'.join(MARK_LEGEND[m] for m in (NEW_MARK, STALE_MARK) if m in marked)
+        out[last_table_row:last_table_row] = ['', '标记：' + legend]
+    return '\n'.join(out)
 
 
 def _split_generic_news(block):
@@ -1235,17 +1312,28 @@ def main(argv=None):
                 lines.insert(1, f"P0：{row['ticker']} {window} {row['move_pct']:+.1f}%，"
                                 f"{row['holding']} 策略是否继续？")
                 raw_block = '\n'.join(lines)
+        seen_before = {json.dumps(row, sort_keys=True, ensure_ascii=False)
+                       for row in old_breaches}
+        raw_block = mark_card_changes(
+            raw_block,
+            fresh_tickers={row['ticker'] for row in semantic_state['breaches']
+                           if row.get('kind') in ('move', 'plan_trigger', 'strategy_escalation')
+                           and json.dumps(row, sort_keys=True, ensure_ascii=False)
+                           not in seen_before},
+            unrefreshed=coverage.get('unrefreshed'),
+            seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
+                          if row.get('kind') == 'signal'})
         raw_block = prepend_delta_lead(
             raw_block, semantic_delta, current=semantic_state,
             previous=prior_state)
         raw_block = prepend_coverage_warning(raw_block, coverage)
         if policy_evidence_errors:
             lines = raw_block.splitlines()
-            lines.insert(2, '⚠️ 策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2]))
+            lines.insert(2, DEGRADED + '策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2]))
             raw_block = '\n'.join(lines)
         if t0_setups.get('error'):
             lines = raw_block.splitlines()
-            lines.insert(2, f"⚠️ T+0 牌面未取到：{t0_setups['error']}")
+            lines.insert(2, f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}")
             raw_block = '\n'.join(lines)
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)

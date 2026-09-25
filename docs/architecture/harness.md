@@ -94,6 +94,17 @@ candidate matters, how primary evidence changes the thesis, and how plans and
 strategy metadata constrain an action. Brief WeChat copy is a separate output
 constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 
+A full card tells four states apart without prose: a holding with a move or
+trigger first seen this session carries `*` in the table and is named on the
+变化 line; a holding whose quote was not verified this run carries `?`, with a
+`⛔ 数据降级` line (source and evidence failures use the same marker, never the
+analyzer's ⚠️ signal header); unchanged rows carry nothing, and signals already
+delivered this session fold into one `今日已报、仍在` line. Marks are ASCII
+because Telegram renders the table as a code block, where bold would print
+literally. Advisory checker findings keep their own line at the foot of the
+card. All of this is copy only: the model still reads the full
+`signals_detail`, `source_signals_detail`, `full_holdings` and `quote_coverage`.
+
 The shared HK/US delta compares stable condition identities, including the
 first appearance of a soft candidate or a breach that trading day, plan status and
 source health. Breaches compare as the session's seen set, so a ticker flickering

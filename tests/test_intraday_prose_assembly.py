@@ -234,6 +234,18 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
+def test_an_advisory_finding_is_the_last_line_not_the_first(run_main, sent):
+    """2026-09-25 11:33: the card opened with 'ℹ️ 校验提示…' above the title,
+    which on a clean slot read as an error. It stays visible, at the foot."""
+    prose = PROSE + 'RKLX 深套 -36% 的旧账不在本档新增。\n'
+    rc, out = run_main(prose, context_id='abc123def456')
+    assert rc == 0 and out['status'] == 'warn'
+    body = sent['messages'][0]
+    assert body.startswith('🇺🇸 美股盯盘 | 07/27 12:30 ET')
+    assert body.splitlines()[-1].startswith('ℹ️ 校验提示（不影响投递）')
+    assert '-36%' in body.splitlines()[-1]
+
+
 def test_healthy_no_change_is_audited_without_delivery(run_main, sent, tmp_path):
     ctx = _ctx(raw_wechat_block='🇺🇸 美股盯盘\n✓ 本轮无新条件',
                delivery_mode='no_change', semantic_unchanged=True,
