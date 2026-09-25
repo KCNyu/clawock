@@ -110,7 +110,8 @@ def test_an_unfinished_risk_rule_action_rejects_regardless_of_how_good_it_looks(
                                 "driven_by": "risk_rule"}]})
     row = _row(out, "02208")
     assert row["verdict"] == "reject"
-    assert "cut" in row["why"] and "1200" in row["why"]
+    # Plain words: the card prints this sentence (add-side line).
+    assert "清仓" in row["why"] and "1200" in row["why"]
     assert "纪律" in row["needs"]
 
 

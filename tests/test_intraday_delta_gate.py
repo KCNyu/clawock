@@ -512,3 +512,19 @@ def test_the_model_packet_keeps_reason_lines_the_card_folded(monkeypatch, tmp_pa
     assert '今日已报、仍在' in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' not in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' in packet["analyzer_block"]
+
+
+def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_path):
+    """Through the real main(): a mover produces an add-side row, and the card
+    carries the same ticker and verdict the model's `add_side_reads` has."""
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    monkeypatch.setattr(preflight, "parse_anomalies", lambda _s: [
+        {"ticker": "SPCH", "move_pct": -4.1, "severity": "medium"}])
+    ctx = run(copy.deepcopy(current))
+
+    rows = ctx["add_side_reads"]["rows"]
+    assert [row["ticker"] for row in rows] == ["SPCH"]
+    lines = ctx["raw_wechat_block"].splitlines()
+    head = lines.index(preflight.ADD_SIDE_HEADER)
+    word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
+    assert lines[head + 1].startswith(f"  · SPCH {word}：")

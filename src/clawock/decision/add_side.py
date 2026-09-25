@@ -43,6 +43,14 @@ from __future__ import annotations
 
 VERDICTS = ("candidate", "wait", "reject")
 
+# How a plan action reads to kcn. Same words as the intraday card's plan
+# trigger section (intraday_preflight.ACTION_CN); kept here so the decision
+# layer does not import the harness.
+ACTION_WORDS = {
+    "trim_on_rebound": "反弹减仓", "cut": "清仓", "add_only_on_trigger": "触发加仓",
+    "add_on_breakout": "突破加仓", "hold_and_watch": "持有观察",
+}
+
 # Marks a radar row reached through a proxy label (an index standing in for the
 # tradable product). Private to this module: it never reaches a row's evidence,
 # which carries `proxy_label` instead.
@@ -257,8 +265,11 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         if breach or risk_action:
             verdict = "reject"
             if risk_action:
-                why = (f"纪律动作未了结:{risk_action.get('action')} "
-                       f"{risk_action.get('shares')} 股(driven_by=risk_rule)")
+                # Plain words: this sentence is printed on the card's add-side
+                # line, and an identifier there reads as the pipeline showing.
+                action = risk_action.get('action')
+                why = (f"纪律动作未了结:{ACTION_WORDS.get(action, action)} "
+                       f"{risk_action.get('shares')} 股(风控规则)")
             else:
                 why = f"thesis 红线在触发状态:{breach}"
             needs = "先把纪律动作走完,再谈加仓"

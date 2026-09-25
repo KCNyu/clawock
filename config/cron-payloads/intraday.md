@@ -15,6 +15,8 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
 
 `delivery_mode=full_delta` 或 review_candidate 选择说话时：只写 `▎我的看法` 下 1–3 行判断，优先回答「本档什么条件变了、现在看/等/做什么、下一触发点是什么」。不要复述数据块/持仓表/旧 STOP/旧计划/旧新闻；不计算涨跌差、倍数、金额和股数。数字必须原样照抄 context 的完整字面值；禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略。结合完整 `plan_context`、`watch_levels`、`peer_scan`、`source_signals_detail`、各来源失败状态，再引用 `semantic_delta`、`plan_triggers`、一手事件及异动；`quote_coverage` 不完整就明确说行情未证实完整刷新，不对缺失行情下动作判断。一级源降级只能说“未取到”，不能说“没有消息”。持仓策略按 `holding_policies`、`strategy_conflicts`、`strategy_checks` 与 `strategy_escalations`；旧 risk_rule 减仓计划若与当前策略冲突，只说明冲突与待核对状态，不重复旧砍仓建议：无限子弹流不重复风险提醒，不写砍仓/减仓建议；只在 `raw_wechat_block` 本档新出现 P0 行时问一次是否继续。`strategy_checks` 给出每条阈值的 observed_pct/status/source；`strategy_escalations` 只列触发项，用于核对本轮证据，不把仍在持续的 P0 当成新事件；只有 `strategy_checks.status=clear` 才能说对应 P0 未触发；`unavailable` 必须说证据未取到，不能用单日涨跌推断五交易日。
 
+卡片已由 harness 印出「🛰️ 加仓侧」行（逐票照抄 `add_side_reads` 的三态），正文不复述三态本身；你对某票加仓的判断与它不同（例如情绪/消息面支持或反对）时，在判断里写出处和还缺什么证据。
+
 字段 `add_side_reads.rows[].evidence.proxy_label` 表示 20 日高/位来自代理标的：07226 的代理为恒科指数，SPCH 的代理为 SPCX；不得把代理价位当成杠杆产品自身价格。`peer_scan` 已由 preflight 提供全持仓板块全景，直接读它；不要另读 `peer-map.json`，不要另调 `clawock fetch-peers`。缺项需标明，不能用缓存价补。
 
 候选生成不等于议程决定：`full_holdings` 含全持仓现价、日涨跌、报价新鲜度和计划触发线距离；`soft_candidates`、`opportunity_radar`、`early_trend_candidates`、`provisional_setups`、`t0_setups`、`semantic_state` 都是供你比较边缘机会和历史变化的材料；没有硬阈值命中也要看候选是否值得说。`known_catalysts` 衔接晨报，`active_information_candidates` 留一手来源与失败状态；`headline_feed` 是分析器截断的标题流（卡片不再展示、无新旧闸），只作背景线索，不当一手催化。`raw_wechat_block` 是给 kcn 的卡片（已报信号会折叠）；`analyzer_block` 是分析器原样输出，信号理由等细节以它为准。
