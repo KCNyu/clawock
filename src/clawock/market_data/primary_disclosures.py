@@ -16,14 +16,15 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from clawock.market_data import tencent_news
 from clawock.safe_io import safe_write_json
 from clawock.sessions import ET, HKT
 
 
 PER_REQUEST_TIMEOUT_S = 5
 SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
-TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
-TENCENT_FILINGS_TYPE = 0
+TENCENT_NEWS = tencent_news.URL
+TENCENT_FILINGS_TYPE = tencent_news.FILINGS
 NASDAQ_FILINGS = "https://api.nasdaq.com/api/company/{issuer}/sec-filings"
 FINNHUB_FILINGS = "https://finnhub.io/api/v1/stock/filings"
 # HKEXnews "latest listed company information", newest first, 500 rows a file,
@@ -57,11 +58,7 @@ def _age_minutes(when: datetime, now: datetime) -> int:
     return int((now - when).total_seconds() // 60)
 
 
-def _parse_tencent_time(value):
-    try:
-        return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S").replace(tzinfo=HKT)
-    except (TypeError, ValueError):
-        return None
+_parse_tencent_time = tencent_news.parse_time
 
 
 def _parse_finnhub_time(value):
@@ -98,18 +95,9 @@ def tencent_symbol(issuer: str, market: str) -> str | None:
 def fetch_exchange(symbol, *, now, window_minutes, http=None):
     """Fetch normalized exchange/regulator announcements for one issuer."""
     http = http or _http_json
-    payload = http(
-        f"{TENCENT_NEWS}?{urllib.parse.urlencode({'symbol': symbol, 'n': 8, 'page': 1, 'type': TENCENT_FILINGS_TYPE})}"
-    )
-    rows = ((payload or {}).get("data") or {}).get("data") or []
     items = []
-    for row in rows:
-        when = _parse_tencent_time(row.get("time"))
-        if when is None:
-            continue
-        age = _age_minutes(when, now)
-        if age < 0 or age > window_minutes:
-            continue
+    for when, age, row in tencent_news.recent_rows(
+            symbol, TENCENT_FILINGS_TYPE, now=now, window_minutes=window_minutes, http=http):
         title = re.sub(r"\s+", " ", str(row.get("title") or "")).strip()
         items.append({
             "published_at": when.isoformat(),

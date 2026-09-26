@@ -40,8 +40,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock.market_data import primary_disclosures
-from clawock.sessions import ET, HKT
+from clawock.market_data import primary_disclosures, tencent_news
+from clawock.sessions import ET
 
 WS = workspace_root()
 
@@ -61,10 +61,10 @@ WINDOW_MINUTES = 240
 PER_REQUEST_TIMEOUT_S = 5
 TOTAL_BUDGET_S = 20
 UA = "Mozilla/5.0 (clawock intraday catalyst probe)"
-TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
+TENCENT_NEWS = tencent_news.URL
 # Tencent type=1 is broker research and media. Primary exchange/regulator
 # collection lives behind primary_disclosures instead of this consumer.
-TENCENT_NEWS_TYPE = 1
+TENCENT_NEWS_TYPE = tencent_news.NEWS
 PRIMARY = "primary"
 SUPPORTING = "supporting"
 TRIAGE_FILE = WS / "config" / "filing-triage.json"
@@ -99,11 +99,7 @@ def _age_minutes(when: datetime, now: datetime) -> int:
     return int((now - when).total_seconds() // 60)
 
 
-def _parse_tencent_time(value):
-    try:
-        return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S").replace(tzinfo=HKT)
-    except (TypeError, ValueError):
-        return None
+_parse_tencent_time = tencent_news.parse_time
 
 
 def tencent_symbol(ticker: str, market: str) -> str | None:
@@ -112,18 +108,9 @@ def tencent_symbol(ticker: str, market: str) -> str | None:
 
 
 def _tencent_items(symbol, feed_type, tier, source_class, *, now, window, http):
-    payload = http(
-        f"{TENCENT_NEWS}?{urllib.parse.urlencode({'symbol': symbol, 'n': 8, 'page': 1, 'type': feed_type})}"
-    )
-    rows = ((payload or {}).get("data") or {}).get("data") or []
     items = []
-    for row in rows:
-        when = _parse_tencent_time(row.get("time"))
-        if when is None:
-            continue
-        age = _age_minutes(when, now)
-        if age < 0 or age > window:
-            continue
+    for when, age, row in tencent_news.recent_rows(
+            symbol, feed_type, now=now, window_minutes=window, http=http):
         items.append({
             "published_at": when.isoformat(),
             "age_minutes": age,

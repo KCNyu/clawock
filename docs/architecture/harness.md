@@ -179,7 +179,7 @@ reaches its model.
 
 | Layer | Owns | Where |
 |---|---|---|
-| source adapter | one request through the `http` seam, parse to raw rows | `market_data/primary_disclosures.py` (HKEXnews, EDGAR full-text search), `market_data/live_news.py` (Google News — URL/parser shared with `sentiment.py` —, Yahoo Finance RSS, 同花顺 7×24), `market_data/eastmoney_news.py` (东财 7×24, its own throttled gateway) |
+| source adapter | one request through the `http` seam, parse to raw rows | `market_data/tencent_news.py` (Tencent per-symbol search: type 0 announcements for `primary_disclosures.fetch_exchange`, type 1 media for `mover_evidence`; request, HKT time and window in one place), `market_data/primary_disclosures.py` (HKEXnews, EDGAR full-text search), `market_data/live_news.py` (Google News — URL/parser shared with `sentiment.py` —, Yahoo Finance RSS, 同花顺 7×24), `market_data/eastmoney_news.py` (东财 7×24, its own throttled gateway) |
 | normalisation | publisher's own time, grade from the source's class, filing noise dropped by `config/filing-triage.json`, a `cite` that says which side of the caller's `fresh_since` the item is on; output `{source, grade, title, published_at \| filed_date, url, publisher, signal, stale, cite}` and per source `{status, as_of, stale, requests, cached, items}` | `live_sources.normalize` / `collect` |
 | trimming | bounded per-ticker rows for a core packet; the whole list for a reference layer | `live_sources.summarize` (caller picks `per_ticker`) |
 | budgets | per-request timeout, per-source timeout, wall-clock budget, per-source concurrency, per-source request budget, cache TTL — all in `Limits`, passed by the caller | `live_sources.Limits` |
