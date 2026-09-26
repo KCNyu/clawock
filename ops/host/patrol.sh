@@ -52,9 +52,16 @@ mkdir -p "$STATE/drafts" "$STATE/filed"
 log() { echo "$(date '+%F %T') $*"; }
 now() { date +%s; }
 notify() {
+  # Telegram only (kcn 2026-09-26). A supervisor alert is the one message class that must not
+  # depend on a warm conversation: WeChat answers a cold-session send with `ret=-2 prepare
+  # failed`, the round carries on, and the alert is silently lost. Dispatch tasks keep the dual
+  # send (`weixin,telegram` in dispatch.sh) — this file and gate_issue.py moved to Telegram,
+  # both reading the same notify.env. A missing TELEGRAM_TARGET fails in the log, never skips
+  # quietly.
   # shellcheck disable=SC1091
   ( . /root/tools/agent-dispatch/notify.env
-    timeout 60 openclaw message send --channel "$NOTIFY_CHANNEL" --target "$NOTIFY_TARGET" -m "$1" >/dev/null 2>&1 ) \
+    timeout 60 openclaw message send --channel "${TELEGRAM_CHANNEL:-telegram}" \
+      --target "$TELEGRAM_TARGET" -m "$1" >/dev/null 2>&1 ) \
     || log "notify failed"
 }
 current_round() { cat "$STATE/current-round" 2>/dev/null; }
