@@ -121,6 +121,21 @@ The runner looks one poll after it (re-)enters the queue, so tasks that enter to
 fails, a manual task takes the lock when it is free (the old behaviour) and a patrol round
 still never takes it while a manual task of its agent is registered.
 
+### Tasks of an older runner (legacy)
+
+A task started before `RUNNER_API=2` neither registers in `.queue/` nor writes `QUEUED_AT`,
+and it waits in a blocking `flock -w` that the kernel satisfies as soon as the lock frees.
+It is never shown as an empty queue or a nameless holder (kcn 2026-09-26): `list` finds it
+through its live unit and its `run.log` — `waiting for <agent> lock` without `lock held` is
+a waiter (its `QUEUED_AT` is that line's time), `lock held` is the holder (old runners keep
+the lock through quota waits too). Such rows carry `legacy: true`; legacy waiters come
+first, in arrival order, and cannot be reordered (they would take the lock first anyway), so
+a new-runner task's `top` places it right behind them. `head` returns the legacy waiter
+when there is one, with a `note` saying why; an empty `head` always comes with a `note` —
+"nobody waits and the lock is free" or "nobody waits; the lock is held by …" — so an empty
+answer cannot hide a queue. A held lock whose holder cannot be named is reported as
+`held: true, id: null, legacy: true` with a note, never as free.
+
 ### Quota waits release the lock
 
 A task that hits a quota limit sleeps until the reset **without** its agent lock (before
