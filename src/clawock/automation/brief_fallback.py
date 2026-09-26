@@ -377,7 +377,10 @@ def main():
     if prepared['payload'].get('generation_id'):
         plan['context_generation_id'] = prepared['payload']['generation_id']
     plan = decision_v2.normalize_authored_plan(plan)
-    errors = decision_v2.validate_plan(plan)
+    # The filename is what binds the plan to its date (#1915): `or today` only
+    # fills a missing date, and a model-written wrong one would otherwise land
+    # as memory/<today>-plan.json and derive every id from the wrong day.
+    errors = decision_v2.validate_plan(plan, f'memory/{today}-plan.json')
     if errors:
         raise SystemExit('plan.json v2 validation failed: ' + '; '.join(errors))
     # The markdown half was never checked (#1262): a reply that carried a valid

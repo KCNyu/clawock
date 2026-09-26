@@ -226,6 +226,22 @@ def test_market_units_require_unit_specific_context_provenance(hc):
     assert "2.3x" in issue[0] and hc.ADVISORY_MARK in issue[0]
 
 
+@pytest.mark.parametrize("prose, claim", [
+    ("组合出现9.9pp背离。", "9.9pp"),
+    ("波动2sigma事件。", "2σ"),
+    ("07226 再加100shares调整。", "100"),
+])
+def test_an_ascii_unit_written_against_chinese_is_still_checked(hc, prose, claim):
+    """#1903: `\b` never fires between an ASCII unit and a CJK character (both
+    are word characters), so `9.9pp背离` escaped while `9.9pp 背离` did not."""
+    issue = hc.check_numeric_claims(prose, {})
+    assert len(issue) == 1 and claim in issue[0]
+
+
+def test_an_ascii_word_that_merely_starts_with_the_unit_is_not_a_unit(hc):
+    assert hc.check_numeric_claims("3ppx 与 2sigmas 不是单位。", {}) == []
+
+
 def test_range_pos_is_percent_specific_context(hc):
     ctx = {"t0_setups": {"rows": {"SKHY": {"range_pos": 86.5}}}}
 
