@@ -2,6 +2,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -262,6 +264,35 @@ def test_a_send_claim_declined_process_never_files_the_primary_verdict(
     record = outcomes.load_ledger()["records"][0]
     assert record["stages"]["llm"]["status"] == "success"
     assert record["stages"]["primary_delivery"]["status"] == "unknown"
+
+
+@pytest.mark.parametrize("holder_last", [True, False])
+def test_the_claim_holders_failed_send_is_filed_even_after_a_declined_write(
+    tmp_path, monkeypatch, holder_last
+):
+    """#1916: both processes write the same slot through cron_heartbeat, whose
+    merge kept every earlier non-None field. The declined process's flag rode
+    into the holder's write, so the holder's failed send was filed as
+    `unknown`. The reverse order must still leave the verdict to the holder
+    (#1006)."""
+    from clawock.automation import cron_heartbeat
+
+    workspace = _isolate(tmp_path, monkeypatch)
+    local = workspace / "memory" / ".tmp" / "cron-heartbeats.json"
+    monkeypatch.setattr(cron_heartbeat, "WS", workspace)
+    monkeypatch.setattr(cron_heartbeat, "LOCAL_PATH", local)
+    monkeypatch.setattr(cron_heartbeat, "PUBLIC_PATH",
+                        workspace / "assets" / "data" / "cron-heartbeats.json")
+    slot = "2026-07-24T10:30:00+08:00"
+    common = dict(job_name="盘中盯盘", slot=slot, at=FROZEN_NOW,
+                  postflight_status="pass", telegram_sent=False)
+    declined = dict(wechat_sent=False, send_claim_declined=True)
+    holder = dict(wechat_sent=False, send_claim_declined=None)
+    for fields in ((declined, holder) if holder_last else (holder, declined)):
+        cron_heartbeat.record("hk", "completed", **common, **fields)
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "failed"
 
 
 def test_a_declined_flag_does_not_suppress_a_confirmed_delivery(

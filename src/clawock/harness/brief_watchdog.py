@@ -45,6 +45,8 @@ one, so that mode cannot judge a total miss and must stay quiet about it.
                    no longer reset. A run still in flight is still left alone.
   --check-missing  09:05 — miss detector: the landing window has closed, so no brief now
                    means no brief today. Alerts AND fires the off-host GHA fallback.
+                   A brief that landed but has no delivery receipt is mirrored to
+                   Telegram like the 08:36 pass does (#1899).
 
 Why --check-missing had to be added: on 2026-07-16 the 08:00 cron was killed by a hard
 reboot at 09:11 (the box thrashes itself to death under this cron) and NOTHING said so
@@ -524,9 +526,18 @@ def main():
         issues = inspect_brief_artifacts(today)
         if issues:
             return alert_brief_missing(today, args.dry_run, issues)
-        log({'tag': tag, 'action': 'ok',
-             'reason': '09:05 brief and non-empty valid plan both present'})
-        return 0
+        # Landed is not delivered (#1899): a postflight that wrote the plan and
+        # then died before sending leaves both artifacts on disk and no receipt,
+        # and 09:05 is the last brief check of the day. The receipt name carries
+        # today's date, so any channel it confirms is this brief's delivery.
+        marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+            WS / 'memory' / '.tmp', 'brief', date=today))
+        if delivery_receipts.delivered(marker):
+            log({'tag': tag, 'action': 'ok',
+                 'reason': '09:05 brief, non-empty valid plan and delivery receipt present'})
+            return 0
+        # No channel confirms it: the card on disk is today's brief, so mirror
+        # it through the same deduped path the 08:36 pass uses below.
 
     # No brief on disk. There is no card to mirror either way — what differs is whether
     # we can yet call it a miss. At 08:30 we are inside the landing window (08:13-08:49
