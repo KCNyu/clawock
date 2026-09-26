@@ -13,6 +13,7 @@ backtester.  It is intentionally not an HFT strategy:
 """
 from __future__ import annotations
 
+from clawock.decision import add_policy
 from clawock.safe_io import to_number as _number
 import hashlib
 import json
@@ -386,23 +387,10 @@ def confirmation_setup(
         "entry_type": "price_above",
         "entry_price": levels["entry_price"],
         "invalidation_price": levels["invalidation_price"],
-        "max_tranches": (
-            policy["validated_max_tranches"] if tier == "validated"
-            else 1 if tier == "exploration_cold_start"
-            else policy["exploration_max_tranches"]
-        ),
-        "tranche_pct_of_position": (
-            policy["validated_tranche_pct"] if tier == "validated"
-            # Half the exploration slice. The families are least validated
-            # exactly while they are warming up, so the one period that relaxes
-            # the count is the one that must not relax the size.
-            else policy["cold_start_tranche_pct"] if tier == "exploration_cold_start"
-            else policy["exploration_tranche_pct"]
-        ),
+        # Per-tier size from the one table (`add_policy.tier_terms`), so the
+        # packet and the add-side reads quote the same numbers.
+        **add_policy.tier_terms(policy, tier),
         "authority_tier": tier,
-        "target_tranche_level": (
-            0.125 if tier == "exploration_cold_start"
-            else 0.25 if tier == "exploration" else 1.0),
         "authority_sources": list(authority.get("sources") or []),
         "evidence_families": list(authority.get("evidence_families") or []),
         "signal_date": signal_date,

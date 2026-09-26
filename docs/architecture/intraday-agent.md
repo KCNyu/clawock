@@ -155,12 +155,17 @@ The watchdog's backstop resend is the plain card on both channels.
   supporting evidence (a primary interrupt, or an information item the evidence
   graph marks `positive` — unknown direction is colour, not support), the price
   below its 20-day high but above the prior 5-day low; it carries that 5-day low
-  as its invalidation and `exploration_tranche_pct` from
-  `config/add-alpha-policy.json` as its size cap. A daily-reset leveraged
+  as its invalidation and the exploration tranche from
+  `add_policy.tier_terms` (the number the brief packet sizes with) as its size
+  cap. A daily-reset leveraged
   product needs more than soft evidence. Only-a-breakout is not the rule either.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
   still `reject`.
+- **One implementation**: the slot and the brief build the radar with the same
+  `add_side.radar` and read it with the same `add_side.read_rows`; they differ
+  only through `add_policy.ENTRY_PROFILES` (owner table and parameters:
+  `docs/architecture/harness.md` § Add-side strategy).
 - **Bounds**: none of the three states is an order. The harness invents no
   threshold and does not rewrite the model's judgment; it supplies material and
   checks sources. Numbers that change money, thresholds or sizing are PRs left
@@ -256,8 +261,9 @@ as live.
 | Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887) |
 | add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | live (#1888) |
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
-| F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
+| F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
+| one add-side implementation for brief and slot (`add_policy`, `add_side.radar`; `test_both_readers_build_the_same_radar_from_the_same_signals`, `test_the_entries_differ_only_in_how_sure_the_close_is`) | live (#1953) |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |

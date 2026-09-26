@@ -46,7 +46,7 @@ from clawock.evidence import research_surface
 from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
-from clawock.decision import add_side, early_trend, intraday_policy
+from clawock.decision import add_policy, add_side, early_trend, intraday_policy
 from clawock.evidence import anomaly_search, intraday_information
 from clawock.instruments import is_leveraged_holding
 from clawock.harness.report_preflight import parse_hk_indices
@@ -368,7 +368,6 @@ def append_early_trend_section(block, candidates, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
-OPPORTUNITY_NEAR_PCT = 5.0
 
 
 def collect_opportunity_radar(market):
@@ -388,28 +387,16 @@ def collect_opportunity_radar(market):
         return {'rows': [],
                 'errors': [{'label': None,
                             'error': f'{type(exc).__name__}: {exc}'[:200]}]}
-    rows = []
-    # #759: every name whose 20-day level is computable, in play or not. The
-    # radar's own rows must keep carrying only the in-play states (they drive the
-    # rendered section and the reinvest pairing), but a name 12% below its high
-    # still has a level, and an add-side `wait` needs it to say what would settle
-    # the question. Computed in this same pass — no extra fetch, no new threshold.
-    levels = {}
+    # #759: every name whose 20-day level is computable, in play or not, gets a
+    # level (an add-side `wait` needs it to say what would settle the question);
+    # only in-play states become rows. Both are built by `add_side.radar`, the
+    # same builder the brief uses over settled bars — this slot only differs in
+    # that its bars end in the live print (`add_policy.ENTRY_PROFILES`).
     run_date = datetime.now(trading_calendar.HKT).date()
-    # #621: thresholds come from add-alpha-policy.json like every other lane
-    # (early_no_chase_zscore / opportunity_near_pct), so radar and early-trend
-    # cannot drift apart when the config changes.
-    try:
-        radar_policy = _load_json(WS / 'config' / 'add-alpha-policy.json')
-        # #649: explicit None checks, never `X or DEFAULT` — a config value of
-        # 0 (e.g. `early_no_chase_zscore: 0` = z≥0 永不追高) is legal and must
-        # not be swallowed into the default.
-        raw_near = radar_policy.get("opportunity_near_pct")
-        raw_z = radar_policy.get("early_no_chase_zscore")
-        near_pct = float(raw_near) if raw_near is not None else OPPORTUNITY_NEAR_PCT
-        no_chase_z = float(raw_z) if raw_z is not None else 2.0
-    except (TypeError, ValueError):
-        near_pct, no_chase_z = OPPORTUNITY_NEAR_PCT, 2.0
+    # #621/#649: thresholds from add-alpha-policy.json through the one reader,
+    # so radar, brief and early-trend cannot drift apart when the config changes.
+    params = add_policy.read_params(_load_json(WS / 'config' / 'add-alpha-policy.json'))
+    signals_by_label, holdings_of = {}, {}
     for detail in universe:
         label = detail.get('label')
         try:
@@ -422,47 +409,13 @@ def collect_opportunity_radar(market):
                 sig = quant_signals.compute_short_history_signals(bars)
         except Exception:  # noqa: BLE001
             continue
-        if not sig:
+        if not sig or not label or label in signals_by_label:
             continue
-        close = sig.get('close')
-        prior = sig.get('prior_20d_high')
-        z = sig.get('zscore20')
-        if close is None or prior is None or prior <= 0:
-            continue
-        pct_from_high = (close / prior - 1) * 100
-        # Keyed by the label alone, never by `source_holdings`: the universe
-        # carries proxy indices or underlyings for leveraged holdings, and a
-        # proxy's 20-day high is in a different price scale entirely. Telling a
-        # 3.5 HKD warrant to 「站上 4948.5」(恒科指数点位) is worse than saying
-        # nothing. A radar row may carry a proxy because the row names the index
-        # it is about; a bare level has no such label, so it stays home.
-        if label:
-            levels.setdefault(label, {'prior_20d_high': prior, 'close': close,
-                                      'pct_from_high': round(pct_from_high, 2),
-                                      # The pullback read's invalidation (#contract §5).
-                                      'prior_5d_low': sig.get('prior_5d_low')})
-        # One definition, two readers (#819): `add_side.classify_level` is also
-        # what the daily brief's close-confirmed radar calls, so a slot and a
-        # brief cannot disagree about where the same name sits.
-        classified = add_side.classify_level(close, prior, z,
-                                             near_pct=near_pct,
-                                             no_chase_z=no_chase_z)
-        if classified is None:
-            continue
-        state, state_zh = classified
-        rows.append({
-            'label': label,
-            'setup_id': f"opportunity:{state}",
-            'state': state,
-            'state_zh': state_zh,
-            'holdings': list(detail.get('source_holdings') or [label]),
-            'close': close,
-            'prior_20d_high': prior,
-            'pct_from_high': round(pct_from_high, 2),
-            'zscore20': z,
-        })
-    rows.sort(key=lambda row: row['pct_from_high'], reverse=True)
-    result = {'rows': rows, 'levels': levels}
+        signals_by_label[label] = sig
+        holdings_of[label] = list(detail.get('source_holdings') or [label])
+    built = add_side.radar(signals_by_label, holdings_of=holdings_of,
+                           confirmed_at_close=False, **params)
+    result = {'rows': built['rows'], 'levels': built['levels']}
     if errors:
         result['errors'] = errors
     return result

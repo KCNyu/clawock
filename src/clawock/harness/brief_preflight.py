@@ -55,7 +55,7 @@ from clawock.safe_io import safe_write_text
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
-from clawock.decision import add_side
+from clawock.decision import add_policy, add_side
 from clawock.decision import signals as bar_signals
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
@@ -73,6 +73,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 from clawock.automation import workflow_outcomes  # noqa: E402
 from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.instruments import get as get_instrument  # noqa: E402
+from clawock.instruments import is_leveraged_holding  # noqa: E402
 from clawock.instruments import compute_lookthrough_exposure  # noqa: E402
 
 
@@ -178,9 +179,9 @@ def _opportunity_reads(open_decisions):
         policy = json.loads((WS / 'config' / 'add-alpha-policy.json').read_text())
     except Exception:  # noqa: BLE001 — a missing policy must not red the brief
         policy = {}
-    raw_near, raw_z = policy.get('opportunity_near_pct'), policy.get('early_no_chase_zscore')
-    near_pct = float(raw_near) if raw_near is not None else 5.0
-    no_chase_z = float(raw_z) if raw_z is not None else 2.0
+    params = add_policy.read_params(policy)
+    near_pct, no_chase_z = params['near_pct'], params['no_chase_z']
+    profile = add_policy.entry_profile('brief')
 
     signals_by_label, unreadable = {}, []
     bars_dir = WS / 'memory' / 'bars'
@@ -198,9 +199,22 @@ def _opportunity_reads(open_decisions):
         except Exception as exc:  # noqa: BLE001 — one bad file is not a red cron
             unreadable.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:160]})
 
-    radar = add_side.daily_radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z)
+    # Same read-through as the intraday universe: a leveraged product whose
+    # underlying has bars is read through the underlying, not its own 2x chart,
+    # so a slot and the brief classify the same holding off the same series.
+    signal_symbol_of = {label: (get_instrument(label) or {}).get('signal_symbol')
+                        for label in signals_by_label if is_leveraged_holding({'ticker': label})}
+    holdings_of, through = add_side.read_through(signals_by_label, signal_symbol_of)
+    radar = add_side.radar({k: v for k, v in signals_by_label.items() if k not in through},
+                           holdings_of=holdings_of,
+                           confirmed_at_close=profile['close_confirmed'], **params)
     reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
-                               plan_context=open_decisions, close_confirmed=True)
+                               plan_context=open_decisions,
+                               close_confirmed=profile['close_confirmed'],
+                               # Same gates as the slot: the leveraged sleeve and the
+                               # policy's size-cap quote. No information lane here
+                               # (ENTRY_PROFILES['brief']['information_lane']).
+                               leveraged=set(signal_symbol_of), policy=policy)
     rows = reads['rows']
 
     # A silent zero is what produced 「为什么只有卖出」— say which of the three

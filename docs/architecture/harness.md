@@ -82,6 +82,36 @@ The live workflow phase commands dispatch directly to package-owned lifecycle
 modules selected by a declarative profile. The wheel contains the complete
 implementation but no user's portfolio or generated state.
 
+## Add-side strategy: one owner, three entries
+
+The add side (evidence tiers, triggers, tranche sizing) has one implementation.
+The policy **data** is `config/add-alpha-policy.json`; the **code** is pure
+functions under `src/clawock/decision/` that read no file, clock or network —
+each caller loads the policy and the context it already holds and passes them in.
+
+| Piece | Owner | Consumers |
+|---|---|---|
+| defaults for omitted keys, entry profiles, per-tier size, tranche sizing | `decision/add_policy.py` (`READ_DEFAULTS`, `ENTRY_PROFILES`, `read_params`, `tier_terms`, `tranche_plan`) | brief packet, brief opportunity read, intraday add-side read |
+| evidence families and authority tier | `decision/add_alpha.py` (`classify_authority`, `confirmation_setup`) | brief packet; `evaluate-add-alpha` walk-forward |
+| opportunity radar and the three-state reads | `decision/add_side.py` (`radar`, `read_through`, `read_rows`) | `brief_preflight._opportunity_reads` (entry `brief`), `intraday_preflight` (entry `intraday`) |
+| setup detection over bars | `decision/signals.py` (`compute_signals`) | quant refresh, both radars, `evaluate-add-shapes` |
+
+Entries differ only through `add_policy.ENTRY_PROFILES` and their inputs, never
+through a harness branch or a second threshold:
+
+| Parameter | `brief` | `intraday` |
+|---|---|---|
+| `close_confirmed` (wording of a breakout read) | `True` — settled bars | `False` — live print, close pending |
+| price series | `memory/bars`, leveraged products read through their registry `signal_symbol` when it has bars (`add_side.read_through`) | the slot's cached bars for `signals.universe_details` (same read-through) |
+| `information_lane` (graded news into `read_rows`) | no — the brief writes the morning files; its decision path uses the evidence graph via `classify_authority` | yes — `information.summary` |
+| `anomalies` / `mover_news` | no | yes |
+| `leveraged`, `policy` | from the registry / the policy file | same |
+
+A threshold only one entry should apply belongs in the policy file as a key, not
+in a caller. Parity is pinned by behaviour, not by searching source:
+`test_both_readers_build_the_same_radar_from_the_same_signals` and
+`test_the_entries_differ_only_in_how_sure_the_close_is`.
+
 ## Intraday decision and delivery boundary
 
 The full contract — context layering, card blocks, workflow ownership,
