@@ -236,6 +236,10 @@ def test_a_second_cancel_while_the_first_is_settling_does_not_stop_twice(q):
     code, out = q.run("cancel", "slow-task")
     assert code == 0 and out["pending"] is True
     assert not q.calls.exists() or "stop" not in q.calls.read_text()
+    # The runner has written its terminal state but the unit is still winding down.
+    (d / "result.env").write_text("STATE=cancelled\nATTEMPTS=1\n")
+    code, out = q.run("cancel", "slow-task")
+    assert code == 0 and out["pending"] is False and out["message"] == "already cancelled"
 
 
 def test_systemctl_refusal_is_a_visible_failure(q):

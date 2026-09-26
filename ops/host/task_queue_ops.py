@@ -406,8 +406,11 @@ def cmd_cancel(args) -> dict:
             was = "sleeping"
         marker = d / "cancel-requested"
         if marker.exists() and time.time() - marker.stat().st_mtime < 30:
-            return {"ok": True, "id": args.id, "state": state, "pending": True, "was": was, "session": session,
-                    "resume": resume_hint(meta, session), "message": "cancel already requested"}
+            # A repeat while the unit winds down: no second stop, and the answer says whether the
+            # first one has already landed (the runner writes its terminal state before it exits).
+            return {"ok": True, "id": args.id, "state": state, "pending": state not in TERMINAL, "was": was,
+                    "session": session, "resume": resume_hint(meta, session),
+                    "message": "already cancelled" if state in TERMINAL else "cancel already requested"}
         marker.write_text(time.strftime("%Y-%m-%d %H:%M:%S") + f" {args.source}\n")
         try:
             r = subprocess.run([SYSTEMCTL, "stop", "--no-block", f"agent-dispatch-{args.id}.service"],
