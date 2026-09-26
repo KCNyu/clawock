@@ -25,6 +25,16 @@ task_queue_ops.py [--json] [--source ui|cli|runner] <action> ...
   list               per agent: lock holder, queue in order, quota hint; host file hashes
   head <agent>       the task id that takes <agent>'s lock next ("" when nobody waits)
   cancel <id>        stop a task
+  priority <id> <n|top|up|down|reset>
+                     reorder a waiting task within its agent's queue
+  model <id> <model|keep|default> [<effort|keep|default>]
+                     the model/effort of the task's next attempt
+  choices <id>       what `model` accepts for this task, and whether it may change now
+  retry <id>         continue an ended (failed/cancelled/timed-out) task's session as a new task
+  append <id> [--queue] [--text T]
+                     add an instruction (stdin) to a live task, same session (dispatch.sh append)
+  log <id> [--lines N]   the end of run.log, redacted
+  result <id>        the latest final report (read-result.py)
 ```
 
 Exit codes: `0` ok · `2` usage (bad id, bad value) · `3` refused (task ended, action not
@@ -48,6 +58,47 @@ non-blocking lock on `<task>/.ops.lock`; a second write while one is in flight a
   wait; the session is kept), `running` (the current step's unsaved progress is lost).
   `session` and `resume` give the command that continues the session.
 
+### priority
+
+Only a live task of the current runner (`RUNNER_API=2` in its `result.env`) that is
+waiting for its agent lock, or asleep on a quota/retry wait (the value then applies when
+it re-queues). Refused (`3`): ended tasks, tasks of an older runner (it would ignore the
+value), patrol rounds, and a task already running. `top` sets one above every other
+reorderable waiter; `up`/`down` swap with the neighbour and renumber the reorderable
+waiters so exactly that swap happens (every task whose value changed gets its own
+`audit.log` line naming the move); `reset` removes it; an integer sets it (−99..99). A
+protected task (below) is not reordered, and nothing can be moved in front of it: that
+answers `ok` with `changed: false` and says why. The answer carries the new order.
+
+### model / effort
+
+Written to the task's `override.env` (`MODEL=`, `EFFORT=`) and read by the runner before
+**every** attempt, so it applies to the next attempt — the attempt running now keeps its
+model. Precedence: an explicit override > the fallback pool > the dispatched default (an
+override model becomes the pool's head; failures after it rotate through the rest of the
+pool like the ordinary fallback switch). `default` clears a value; `keep` leaves it.
+Legal values come from each agent's own source, never a list kept here:
+
+| Agent | Models | Effort flag and values |
+|---|---|---|
+| claude | the task's own, dispatch.sh's default, those this host has dispatched, the aliases in `claude --help` | `--effort`, the list printed by `claude --help` |
+| codex | the task's own, dispatch.sh's default, the visible models in `~/.codex/models_cache.json` | `model_reasoning_effort`, that model's `supported_reasoning_levels` |
+| opencode | the task's own, the pool file `opencode-fallback-models` | `--variant`: none (the free pool has no variants) |
+
+Changing the model of a session on resume was checked for claude (`--resume` with another
+`--model` continues the same conversation, 2026-09-26) and is what opencode's fallback
+does every patrol round (`-s` on the next pool model). It is **not** verified for codex
+(its weekly quota was out), so a codex task can change model/effort only before it has a
+session.
+
+### retry, append, log, result
+
+`retry` runs `dispatch.sh append <id>` with a fixed "continue from the real state" text on
+an ended task that recorded a session and did not finish `ok/DONE`; without a session it
+answers `3` (dispatch it again). `append` delivers to a live task only (the chip's
+"wrap up" button sends a fixed wrap-up instruction with `--queue`); ended tasks go through
+`retry`. `log` and `result` are read-only and redact tokens the way the runner does.
+
 ### Queue order
 
 Each agent has its own lock, so each agent has its own queue; orders never mix across
@@ -65,6 +116,37 @@ agents. Among the tasks waiting for one agent's lock:
 runner registers a waiting task as `.queue/<agent>/<id>` (`PID=`, `QUEUED_AT=`) in its lock
 directory and removes the entry when it takes the lock or ends; an entry whose PID is gone
 does not count. The lock holder writes `.queue/<agent>.holder` (`ID=`, `PID=`, `SINCE=`).
+The runner looks one poll after it (re-)enters the queue, so tasks that enter together
+(at a quota reset) are all registered before one is picked; if the entry is missing or
+fails, a manual task takes the lock when it is free (the old behaviour) and a patrol round
+still never takes it while a manual task of its agent is registered.
+
+### Quota waits release the lock
+
+A task that hits a quota limit sleeps until the reset **without** its agent lock (before
+2026-09-26 it kept it: a claude task asleep on its 5-hour reset held `claude.lock` for four
+hours while three tasks queued). It keeps its session lock (`session-<id>.lock`, taken as
+soon as the session is known), so no second task can resume the same session meanwhile,
+and it writes `.queue/<agent>.quota` (`UNTIL=`, `BY=`). A task that takes the lock while
+that hint is in the future releases it again and waits for the same reset (plus two polls)
+without spending an attempt, a quota resume or a notification — the limits are per
+account. At the reset the sleeper re-queues with its original `QUEUED_AT`; the first
+attempt that gets through deletes the hint.
+
+## Runner fields the chip reads
+
+`result.env`, besides `STATE/RC/OUTCOME/SESSION/ATTEMPTS/WAITING/SLOT/MODEL_USED/…`:
+
+| Field | Meaning |
+|---|---|
+| `QUEUED_AT` | epoch the task first waited for its agent lock (queue order; kept across quota waits) |
+| `WAKE_AT` | epoch a quota/retry wait ends (empty otherwise) |
+| `EFFORT_USED` | the effort of the latest attempt (`MODEL_USED` is its model) |
+| `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` | the legs (`weixin`, `telegram`, or an unknown name) of the latest notification that were delivered / failed, and when |
+| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; absent before |
+
+`override.env` holds `PRIORITY`, `MODEL`, `EFFORT` (written only by the ops entry);
+`audit.log` one line per write.
 
 ## Version skew
 

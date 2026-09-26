@@ -50,14 +50,45 @@ case "$1" in
 esac
 """)
     systemctl.chmod(0o755)
+    # dispatch.sh owns append/continue; the fake records what it was asked and what it read.
+    (tools / "dispatch.sh").write_text(f"""#!/bin/bash
+printf '%s\\n' "$*" >>"{tmp_path}/dispatch.calls"; cat >>"{tmp_path}/dispatch.stdin"
+[ -n "${{DISPATCH_FAILS:-}}" ] && {{ echo "refused: nope" >&2; exit 2; }}
+[ "$1" = append ] && echo "task $2 has ended; continuing session as a new task" && echo "dispatched $2-retry-20260926-000000"
+exit 0
+""")
+    (tools / "dispatch.sh").chmod(0o755)
+    (tools / "opencode-fallback-models").write_text("# pool\nopencode/free-a\nopencode/free-b  # comment\n")
+    codex_home = tmp_path / "codex"
+    codex_home.mkdir()
+    (codex_home / "models_cache.json").write_text(json.dumps({"models": [
+        {"slug": "gpt-6-sol", "visibility": "list", "supported_reasoning_levels": [{"effort": "low"}, {"effort": "medium"}]},
+        {"slug": "gpt-hidden", "visibility": "hide", "supported_reasoning_levels": [{"effort": "low"}]}]}))
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    (bindir / "claude").write_text("""#!/bin/sh
+cat <<'EOF'
+  --effort <level>                      Effort level for the current session
+                                        (low, medium, high, xhigh, max)
+  --model <model>                       Model for the current session. Provide
+                                        an alias for the latest model (e.g.
+                                        'fable', 'opus', or 'sonnet') or a
+                                        model's full name (e.g.
+                                        'claude-fable-5').
+  -n, --name <name>                     Set a display name
+EOF
+""")
+    (bindir / "claude").chmod(0o755)
     env = dict(os.environ, AGENT_DISPATCH_TASKS_DIR=str(tasks), AGENT_DISPATCH_LOCKDIR=str(locks),
-               AGENT_DISPATCH_DIR=str(tools), AGENT_DISPATCH_SYSTEMCTL=str(systemctl))
+               AGENT_DISPATCH_DIR=str(tools), AGENT_DISPATCH_SYSTEMCTL=str(systemctl), CODEX_HOME=str(codex_home),
+               PATH=f"{bindir}:{os.environ['PATH']}")
     env.pop("AGENT_DISPATCH_FAIR_WAIT_SEC", None)
 
     class Q:
         def __init__(self):
             self.tasks, self.locks, self.tools, self.env = tasks, locks, tools, env
             self.calls = calls
+            self.root = tmp_path
 
         def task(self, tid, agent="claude", result="STATE=running\n", active=True, session=""):
             d = tasks / tid
@@ -77,9 +108,15 @@ esac
                 (tasks / tid).mkdir(exist_ok=True)
                 (tasks / tid / "override.env").write_text(f"PRIORITY={priority}\n")
 
-        def run(self, *args, extra_env=None):
+        def waiter(self, tid, agent="claude", queued_at=None, priority=None, extra=""):
+            """A live task of the current runner, registered as waiting for its agent lock."""
+            self.task(tid, agent=agent, result=f"STATE=running\nWAITING=lock\nATTEMPTS=0\nRUNNER_API=2\n{extra}")
+            self.queue(tid, agent=agent, queued_at=queued_at, priority=priority)
+            return tasks / tid
+
+        def run(self, *args, extra_env=None, stdin=None):
             r = subprocess.run([sys.executable, str(OPS), "--json", *args], env=dict(env, **(extra_env or {})),
-                               capture_output=True, text=True, timeout=30)
+                               capture_output=True, text=True, timeout=30, input=stdin)
             return r.returncode, json.loads(r.stdout)
 
         def order(self, agent="claude"):
@@ -154,7 +191,8 @@ def test_list_reports_the_holder_the_quota_hint_and_host_file_hashes(q):
     assert out["agents"]["claude"]["quota"] == {"until": now + 3600, "by": "holder-task"}
     assert out["agents"]["codex"]["holder"]["held"] is False
     assert out["runner"]["api"] == 2 and out["host_files"]["run-agent.sh"]
-    assert out["host_files"]["dispatch.sh"] is None
+    assert set(out["host_files"]) == {"run-agent.sh", "dispatch.sh", "limits.env", "opencode-fallback-models"}
+    assert all(out["host_files"].values())
 
 
 @pytest.mark.parametrize("tid, code", [("../etc", 2), ("Bad_ID", 2), ("no-such-task", 4)])
@@ -235,3 +273,165 @@ def test_installer_saves_installs_checks_and_rolls_back(tmp_path):
     assert "already installed" in run().stdout
     assert run("--rollback").returncode == 0
     assert (dest / "task_queue_ops.py").read_text() == "print('old')\n"
+
+
+# ---- priority --------------------------------------------------------------------------------
+
+def test_top_puts_a_task_first_and_records_who_did_it(q):
+    now = int(time.time())
+    for i, tid in enumerate(["a-task", "b-task", "c-task"]):
+        q.waiter(tid, queued_at=now - 300 + i)
+    code, out = q.run("--source", "ui", "priority", "c-task", "top")
+    assert code == 0 and out["queue"] == ["c-task", "a-task", "b-task"] and out["position"] == 1
+    assert (q.tasks / "c-task" / "override.env").read_text() == "PRIORITY=1\n"
+    assert "source=ui\taction=priority\tpriority 0->1" in (q.tasks / "c-task" / "audit.log").read_text()
+    assert q.run("head", "claude")[1]["head"] == "c-task"
+
+
+def test_up_and_down_move_exactly_one_place(q):
+    now = int(time.time())
+    for i, tid in enumerate(["a-task", "b-task", "c-task"]):
+        q.waiter(tid, queued_at=now - 300 + i)
+    assert q.run("priority", "c-task", "up")[1]["queue"] == ["a-task", "c-task", "b-task"]
+    assert q.run("priority", "a-task", "down")[1]["queue"] == ["c-task", "a-task", "b-task"]
+    # A reordered neighbour gets its own audit line naming the move.
+    assert "(reorder: a-task down)" in (q.tasks / "c-task" / "audit.log").read_text()
+    # At the edge it is a no-op, not an error.
+    code, out = q.run("priority", "c-task", "up")
+    assert code == 0 and out["changed"] is False and "already first" in out["message"]
+
+
+def test_reset_and_absolute_values(q):
+    now = int(time.time())
+    q.waiter("a-task", queued_at=now - 300)
+    q.waiter("b-task", queued_at=now - 200)
+    assert q.run("priority", "b-task", "5")[1]["queue"] == ["b-task", "a-task"]
+    assert q.run("priority", "b-task", "reset")[1]["queue"] == ["a-task", "b-task"]
+    assert not (q.tasks / "b-task" / "override.env").read_text().strip()
+    code, out = q.run("priority", "b-task", "sideways")
+    assert code == 2
+
+
+def test_priority_refusals_are_explicit(q):
+    now = int(time.time())
+    q.task("ended-task", result="STATE=ok\nRUNNER_API=2\n", active=False)
+    assert q.run("priority", "ended-task", "top")[0] == 3
+    q.task("old-runner-task", result="STATE=running\nWAITING=lock\n")
+    code, out = q.run("priority", "old-runner-task", "top")
+    assert code == 3 and "older runner" in out["error"]
+    q.waiter("patrol-docs-20260926-000000", agent="opencode", queued_at=now)
+    code, out = q.run("priority", "patrol-docs-20260926-000000", "top")
+    assert code == 3 and "patrol rounds always go last" in out["error"]
+    q.task("running-task", result="STATE=running\nSLOT=claude-1\nATTEMPTS=1\nRUNNER_API=2\n")
+    code, out = q.run("priority", "running-task", "top")
+    assert code == 3 and "already running" in out["error"]
+
+
+def test_a_protected_task_is_not_reordered(q):
+    now = int(time.time())
+    q.waiter("old-task", queued_at=now - 5 * 3600)
+    q.waiter("new-task", queued_at=now - 10)
+    code, out = q.run("priority", "new-task", "top")
+    assert code == 0 and out["queue"] == ["old-task", "new-task"]
+    code, out = q.run("priority", "old-task", "down")
+    assert code == 0 and out["changed"] is False and "fair wait" in out["message"]
+
+
+def test_priority_of_a_task_asleep_on_quota_is_kept_for_its_return(q):
+    q.task("sleeping-task", result=f"STATE=running\nWAITING=quota\nATTEMPTS=1\nRUNNER_API=2\nQUEUED_AT={int(time.time()) - 60}\n")
+    code, out = q.run("priority", "sleeping-task", "3")
+    assert code == 0 and "PRIORITY=3" in (q.tasks / "sleeping-task" / "override.env").read_text()
+
+
+# ---- model / effort ------------------------------------------------------------------------
+
+def test_choices_come_from_each_agents_own_sources(q):
+    q.task("c-task", result="STATE=running\nRUNNER_API=2\n")
+    code, out = q.run("choices", "c-task")
+    assert code == 0 and out["allowed"] is True and out["effort_flag"] == "--effort"
+    assert {"m", "fable", "opus", "sonnet", "claude-fable-5"} <= set(out["models"])
+    assert out["efforts"]["opus"] == ["low", "medium", "high", "xhigh", "max"]
+    q.task("x-task", agent="codex", result="STATE=running\nRUNNER_API=2\n")
+    out = q.run("choices", "x-task")[1]
+    assert "gpt-6-sol" in out["models"] and "gpt-hidden" not in out["models"]
+    assert out["efforts"]["gpt-6-sol"] == ["low", "medium"] and out["effort_flag"] == "model_reasoning_effort"
+    q.task("o-task", agent="opencode", result="STATE=running\nRUNNER_API=2\n")
+    out = q.run("choices", "o-task")[1]
+    assert out["models"] == ["m", "opencode/free-a", "opencode/free-b"] and out["efforts"]["opencode/free-a"] == []
+
+
+def test_model_change_is_validated_written_and_audited(q):
+    d = q.task("c-task", result="STATE=running\nSLOT=claude-1\nRUNNER_API=2\n")
+    code, out = q.run("--source", "ui", "model", "c-task", "sonnet", "max")
+    assert code == 0 and out["applies"] == "next_attempt" and out["running"] is True
+    assert out["model_next"] == "sonnet" and out["effort_next"] == "max"
+    assert (d / "override.env").read_text() == "MODEL=sonnet\nEFFORT=max\n"
+    assert "source=ui\taction=model\tmodel -->sonnet effort -->max" in (d / "audit.log").read_text()
+    assert q.run("model", "c-task", "gpt-6-sol")[0] == 2
+    assert q.run("model", "c-task", "keep", "ultra")[0] == 2
+    code, out = q.run("model", "c-task", "default", "default")
+    assert code == 0 and out["model_next"] == "m" and not (d / "override.env").read_text().strip()
+
+
+def test_codex_model_changes_only_before_there_is_a_session(q):
+    q.task("x-new", agent="codex", result="STATE=running\nWAITING=lock\nRUNNER_API=2\n")
+    assert q.run("model", "x-new", "gpt-6-sol", "low")[0] == 0
+    assert q.run("model", "x-new", "keep", "high")[0] == 2   # not an effort gpt-6-sol accepts
+    q.task("x-resumed", agent="codex", result="STATE=running\nRUNNER_API=2\n", session="thread-1")
+    code, out = q.run("model", "x-resumed", "gpt-6-sol")
+    assert code == 3 and "unverified" in out["error"]
+    assert q.run("choices", "x-resumed")[1]["allowed"] is False
+
+
+def test_opencode_takes_pool_models_and_no_effort(q):
+    q.task("o-task", agent="opencode", result="STATE=running\nRUNNER_API=2\n", session="ses_1")
+    assert q.run("model", "o-task", "opencode/free-b")[0] == 0
+    code, out = q.run("model", "o-task", "keep", "high")
+    assert code == 2 and "takes no effort" in out["error"]
+
+
+def test_model_change_refused_for_ended_or_old_runner_tasks(q):
+    q.task("ended", result="STATE=failed\nRUNNER_API=2\n", active=False)
+    assert q.run("model", "ended", "sonnet")[0] == 3
+    q.task("old", result="STATE=running\n")
+    assert q.run("model", "old", "sonnet")[0] == 3
+
+
+# ---- retry / append / log ------------------------------------------------------------------
+
+def test_retry_continues_an_ended_session_through_dispatch(q):
+    d = q.task("failed-task", result="STATE=failed\n", active=False, session="s-1")
+    code, out = q.run("--source", "ui", "retry", "failed-task")
+    assert code == 0 and out["new_id"] == "failed-task-retry-20260926-000000"
+    assert (q.root / "dispatch.calls").read_text() == "append failed-task\n"
+    assert "重试" in (q.root / "dispatch.stdin").read_text()
+    assert "action=retry\trc=0 new=failed-task-retry" in (d / "audit.log").read_text()
+
+
+def test_retry_refusals(q):
+    q.task("live", result="STATE=running\n", session="s")
+    assert q.run("retry", "live")[0] == 3
+    q.task("no-session", result="STATE=failed\n", active=False)
+    assert q.run("retry", "no-session")[0] == 3
+    q.task("done", result="STATE=ok\nOUTCOME=DONE\n", active=False, session="s")
+    assert q.run("retry", "done")[0] == 3
+    q.task("broken", result="STATE=failed\n", active=False, session="s")
+    code, out = q.run("retry", "broken", extra_env={"DISPATCH_FAILS": "1"})
+    assert code == 5 and "refused: nope" in out["error"]
+
+
+def test_append_goes_to_a_live_task_only(q):
+    q.task("live", result="STATE=running\n")
+    code, out = q.run("append", "live", "--queue", stdin="体面收尾\n")
+    assert code == 0 and out["mode"] == "queue"
+    assert (q.root / "dispatch.calls").read_text() == "append live --queue\n"
+    assert q.run("append", "live", stdin="  \n")[0] == 2
+    q.task("gone", result="STATE=ok\n", active=False)
+    assert q.run("append", "gone", stdin="more\n")[0] == 3
+
+
+def test_log_tail_is_redacted(q):
+    d = q.task("t", result="STATE=running\n")
+    (d / "run.log").write_text("".join(f"line {i}\n" for i in range(100)) + "token=abc123secret ghp_aaaaaaaaaaaaaaaaaaaa\n")
+    code, out = q.run("log", "t", "--lines", "3")
+    assert out["lines"] == ["line 98", "line 99", "token=<redacted> <redacted>"]
