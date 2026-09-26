@@ -101,7 +101,9 @@ def test_the_gate_runs_before_the_slot_is_judged():
     from clawock.harness import intraday_watchdog
 
     source = inspect.getsource(intraday_watchdog.main)
-    defer = source.index('attempt_still_running(context, last)')
+    # The wait is `wait_out_inflight` (shared with report_watchdog), which
+    # evaluates `attempt_still_running` before it judges.
+    defer = source.index('wait_out_inflight(')
     for later in ("if looped:", "marker_covers_slot(", "delivered_clean"):
         assert defer < source.index(later), (
             f'the in-flight check must precede {later!r}, or the slot can still '

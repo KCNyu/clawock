@@ -451,6 +451,57 @@ def attempt_still_running(context, last_run):
     return started > finished
 
 
+def wait_out_inflight(context, last, *, refresh, budget_s, poll_s, tag,
+                      lead=None, trail=None, sleep=None):
+    """Hold the slot open while a newer attempt is still running. Returns
+    `(context, last, waited_s)`.
+
+    WAIT, DON'T DEFER (#988 report, #1532 intraday). A watchdog pass is the
+    verdict for its slot. Returning with a `defer` left a retry chain that then
+    died with no report, no backstop and one log line. So poll until the attempt
+    finishes (then judge on ITS run and context) or until `budget_s` runs out
+    (then judge anyway, see `log_after_wait`). Callers run their marker gate
+    after this, so an attempt that lands during the wait counts as delivered and
+    is not sent a second time.
+
+    One loop for both watchdogs. The two copies could drift apart the way
+    `attempt_still_running` once did. `refresh(context, last)` returns the
+    entry's fresh `(context, last)` after each poll. `lead` / `trail` are the
+    entry's own log fields, before and after the shared ones.
+    """
+    lead, trail = lead or {}, trail or {}
+    sleep = sleep or time.sleep  # resolved per call, so a patched time.sleep is seen
+    waited = 0
+    while attempt_still_running(context, last) and waited < budget_s:
+        log({'tag': tag, 'action': 'wait-inflight',
+             'reason': 'a newer attempt is still running — preflight context '
+                       'postdates the newest finished run',
+             **lead,
+             'context_generated_at': context.get('generated_at'),
+             'last_finished_ms': last.get('ts'),
+             'waited_s': waited, 'budget_s': budget_s,
+             **trail})
+        sleep(min(poll_s, budget_s - waited))
+        waited += poll_s
+        context, last = refresh(context, last)
+    return context, last, waited
+
+
+def log_after_wait(context, last, *, waited, budget_s, tag, run_at, lead=None):
+    """The line that always follows a wait: the verdict below is real, never a defer."""
+    still_running = attempt_still_running(context, last)
+    log({'tag': tag,
+         # Never `defer` again: this line always precedes a real verdict.
+         'action': 'proceed-after-wait' if still_running else 'attempt-finished',
+         'reason': ('in-flight budget exhausted — judging on the evidence '
+                    'that exists' if still_running else
+                    'the in-flight attempt finished; judging on its run'),
+         **(lead or {}),
+         'waited_s': waited, 'budget_s': budget_s,
+         'context_generated_at': context.get('generated_at'),
+         'last_finished_ms': last.get('ts'), 'run_at': run_at})
+
+
 def rerun_cron_job(job_id, dry_run=False):
     """Queue one more run of an on-host cron job. Returns (ok, tail).
 

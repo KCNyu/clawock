@@ -51,7 +51,6 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
-import time
 from datetime import datetime
 
 from clawock.automation import delivery_receipts
@@ -59,7 +58,8 @@ from clawock.sessions import hkt_today
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, telegram_target,
-    same_generation_window, attempt_still_running,
+    same_generation_window, wait_out_inflight, log_after_wait,
+    attempt_still_running,  # noqa: F401  re-export; tests learned the rule here
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason,
 )
@@ -231,20 +231,14 @@ def main():
     # run record and context), or until the budget runs out (then judge anyway
     # and say so). The marker gate below still runs first either way, so an
     # attempt that lands during the wait is recognised as delivered, not doubled.
-    waited = 0
-    while attempt_still_running(ctx, last) and waited < inflight_wait_s:
-        log({'tag': tag, 'action': 'wait-inflight',
-             'reason': 'a newer attempt is still running — preflight context '
-                       'postdates the newest finished run',
-             'context_generated_at': ctx.get('generated_at'),
-             'last_finished_ms': last.get('ts'),
-             'waited_s': waited, 'budget_s': inflight_wait_s,
-             'run_at': run_at})
-        time.sleep(min(INFLIGHT_POLL_S, inflight_wait_s - waited))
-        waited += INFLIGHT_POLL_S
+    def refresh(_ctx, _last):
+        nonlocal runs_today
         runs_today = today_runs(job_id) or runs_today
-        last = runs_today[-1]
-        ctx = _read_json(ctx_path)
+        return _read_json(ctx_path), runs_today[-1]
+
+    ctx, last, waited = wait_out_inflight(
+        ctx, last, refresh=refresh, budget_s=inflight_wait_s,
+        poll_s=INFLIGHT_POLL_S, tag=tag, trail={'run_at': run_at})
     if waited:
         # Whatever the wait produced, the slot's facts moved: re-derive every
         # field taken from `last` or `ctx` above before judging on them.
@@ -262,16 +256,8 @@ def main():
             log({'tag': tag, 'action': 'skip',
                  'reason': 'no preflight raw_wechat_block after wait'})
             return 0
-        still_running = attempt_still_running(ctx, last)
-        log({'tag': tag,
-             # Never `defer` again: this line always precedes a real verdict.
-             'action': 'proceed-after-wait' if still_running else 'attempt-finished',
-             'reason': ('in-flight budget exhausted — judging on the evidence '
-                        'that exists' if still_running else
-                        'the in-flight attempt finished; judging on its run'),
-             'waited_s': waited, 'budget_s': inflight_wait_s,
-             'context_generated_at': ctx.get('generated_at'),
-             'last_finished_ms': last.get('ts'), 'run_at': run_at})
+        log_after_wait(ctx, last, waited=waited, budget_s=inflight_wait_s,
+                       tag=tag, run_at=run_at)
 
     ctx_id = ctx.get('context_id')
 
