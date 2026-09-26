@@ -46,6 +46,8 @@ one here. News reaches the rows through the graph's own `positive` direction.
 """
 from __future__ import annotations
 
+from clawock.decision import add_policy
+
 VERDICTS = ("candidate", "wait", "reject")
 
 # How a plan action reads to kcn. Same words as the intraday card's plan
@@ -100,34 +102,47 @@ def classify_level(close, prior_20d_high, zscore20, *, near_pct, no_chase_z):
     return None
 
 
-def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
-    """`{rows, levels}` from settled daily bars — the radar, one day later.
+def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
+          confirmed_at_close=True):
+    """`{rows, levels}` for every label with a computable 20-day level.
 
-    The intraday radar reads a live print and says so; this one reads the close
-    the market actually printed, which is the quantity #819 measured. It exists
-    because the daily brief — the only process that writes decisions — had no
-    opportunity input at all: between 2026-07-20 and 2026-09-05 the bar store
-    held 48 close-confirmed breakouts across 18 names and the ledger recorded
-    zero add decisions, because the breakout was computed in the intraday slot,
-    which cannot write one.
+    The one builder of the opportunity radar, used by both entries
+    (`add_policy.ENTRY_PROFILES`): the daily brief passes signals computed over
+    settled bars (`confirmed_at_close=True`, the quantity #819 measured); the
+    intraday slot passes signals computed over bars that end in the live print
+    (`confirmed_at_close=False`). It used to be written twice — once here and
+    once inline in `intraday_preflight` — which is exactly the shape that lets
+    a brief and a slot disagree about the same name.
 
-    `signals_by_label` maps a label to the output of `signals.compute_signals`,
-    so every number here is copied from that one computation. No fetch, no
-    threshold of its own: both come from `config/add-alpha-policy.json` through
-    the caller, the same file the intraday radar reads.
+    `signals_by_label` maps a label to the output of
+    `signals.compute_signals` (or its short-history view), so every number here
+    is copied from that one computation. `holdings_of` maps a label to the
+    holdings it stands for (an index proxy such as HSTECH → 07226); a label
+    without an entry stands for itself. No fetch, no threshold of its own: both
+    thresholds come from `add_policy.read_params`.
+
+    Why the brief needs it at all: between 2026-07-20 and 2026-09-05 the bar
+    store held 48 close-confirmed breakouts across 18 names and the ledger
+    recorded zero add decisions, because the breakout was computed only in the
+    intraday slot, which cannot write one.
     """
     rows, levels = [], {}
     for label, sig in sorted((signals_by_label or {}).items()):
         if not sig:
             continue
         close, prior = sig.get("close"), sig.get("prior_20d_high")
+        if close is None or prior is None or prior <= 0:
+            continue
+        pct_from_high = round((close / prior - 1) * 100, 2)
+        # Keyed by the label alone, never by the holdings it stands for: a
+        # proxy's 20-day high is in a different price scale entirely (#761).
+        levels.setdefault(label, {
+            "prior_20d_high": prior, "close": close,
+            "pct_from_high": pct_from_high,
+            # The pullback read's invalidation (contract §5).
+            "prior_5d_low": sig.get("prior_5d_low")})
         state = classify_level(close, prior, sig.get("zscore20"),
                                near_pct=near_pct, no_chase_z=no_chase_z)
-        if close is not None and prior:
-            levels.setdefault(label, {
-                "prior_20d_high": prior, "close": close,
-                "pct_from_high": round((close / prior - 1) * 100, 2),
-                "prior_5d_low": sig.get("prior_5d_low")})
         if state is None:
             continue
         rows.append({
@@ -138,11 +153,39 @@ def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
             "holdings": list((holdings_of or {}).get(label) or [label]),
             "close": close,
             "prior_20d_high": prior,
-            "pct_from_high": round((close / prior - 1) * 100, 2),
+            "pct_from_high": pct_from_high,
             "zscore20": sig.get("zscore20"),
         })
     rows.sort(key=lambda row: row["pct_from_high"], reverse=True)
-    return {"rows": rows, "levels": levels, "confirmed_at_close": True}
+    return {"rows": rows, "levels": levels,
+            "confirmed_at_close": bool(confirmed_at_close)}
+
+
+def read_through(labels, signal_symbol_of):
+    """`holdings_of` for `radar`: which labels a product is read through.
+
+    A daily-reset leveraged product is read through its registry
+    `signal_symbol` (RKLX through RKLB, SPCH through SPCX) — the rule
+    `signals.universe_details` already applies to the intraday universe. When
+    the underlying has no series of its own among `labels`, the product keeps
+    its own chart. Returns `(holdings_of, read_through)` where `read_through`
+    is the set of product labels that are represented by their underlying and
+    must not also produce a row of their own.
+    """
+    labels = set(labels or ())
+    holdings_of, through = {}, set()
+    for product, underlying in sorted((signal_symbol_of or {}).items()):
+        if (product in labels and underlying and underlying != product
+                and underlying in labels):
+            holdings_of.setdefault(underlying, [underlying]).append(product)
+            through.add(product)
+    return holdings_of, through
+
+
+def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
+    """The brief entry's radar: `radar` over settled bars."""
+    return radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z,
+                 holdings_of=holdings_of, confirmed_at_close=True)
 
 
 def _radar_index(radar):
@@ -275,12 +318,10 @@ def _support(ticker, mover_news, information):
 
 
 def _size_cap(policy):
-    """The exploration tranche the desk already configured, quoted — never a
-    number of this module's own."""
-    pct = (policy or {}).get("exploration_tranche_pct")
-    if not isinstance(pct, (int, float)):
-        return None
-    return f"上限探索档 {round(pct * 100, 4):g}%(add-alpha-policy)"
+    """The exploration tranche the desk configured, quoted from the same
+    `add_policy.tier_terms` the packet sizes with — never a number of this
+    module's own."""
+    return add_policy.size_cap_text(policy)
 
 
 def _open_risk_action(plan_context, ticker):

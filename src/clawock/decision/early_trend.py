@@ -7,6 +7,7 @@ price-relative family; information remains independent.  Only a non-leveraged,
 non-overheated name with both families receives a tiny exploration setup.
 """
 from __future__ import annotations
+from clawock.decision import add_policy
 from clawock.safe_io import to_number as _number
 
 
@@ -184,7 +185,6 @@ def exploration_setup(technical: dict, candidate: dict, policy: dict,
     # #666: explicit None checks, never `X or DEFAULT` — a config value of 0
     # (e.g. `exploration_tranche_pct: 0` = 禁用探索档) is legal and must not
     # be swallowed into the default.
-    raw_tranche_pct = policy.get("exploration_tranche_pct")
     raw_confirmation_sessions = policy.get("confirmation_window_sessions")
     return {
         "setup_id": "early_trend_confirmation",
@@ -194,9 +194,8 @@ def exploration_setup(technical: dict, candidate: dict, policy: dict,
         "entry_price": round(entry, 4),
         "invalidation_price": round(invalidation, 4),
         "max_tranches": 1,
-        "tranche_pct_of_position": (
-            float(raw_tranche_pct) if raw_tranche_pct is not None else 0.025
-        ),
+        "tranche_pct_of_position": add_policy.tier_terms(
+            policy, "exploration")["tranche_pct_of_position"],
         "valid_for_sessions": (
             int(raw_confirmation_sessions)
             if raw_confirmation_sessions is not None else 5

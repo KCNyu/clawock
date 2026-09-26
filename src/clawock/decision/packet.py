@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.decision import add_alpha, early_trend
+from clawock.decision import add_alpha, add_policy, early_trend
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
@@ -386,7 +386,7 @@ def _thesis_view(context: dict, ticker: str) -> dict:
     }
 
 
-EXPLORATION_TIERS = ("exploration", "exploration_cold_start")
+EXPLORATION_TIERS = add_policy.EXPLORATION_TIERS
 
 
 def _execution_view(holding: dict, leg: str, capital: float, cash: float,
@@ -412,49 +412,23 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     if lot is not None and lot <= 0:
         lot = None
 
-    target_max_pct = 60.0
-    target_fraction = target_max_pct / 100
-    # Solve (position + add) / (invested_book + add) <= target. Cash is an
-    # affordability bound, not denominator camouflage.
-    room_value = max(
-        0.0,
-        (target_fraction * capital - (current_value or 0))
-        / (1 - target_fraction),
-    )
-    max_value = min(max(cash, 0.0), room_value)
-    position_room_shares = (
-        int(max_value // (price * lot)) * lot
-        if price and lot else 0
-    )
     setup_pcts = [
         row.get("tranche_pct_of_position")
         for row in technical.get("setups") or []
         if row.get("tranche_pct_of_position")
     ]
-    tranche_pct = min(setup_pcts) if setup_pcts else 0.05
     overlay = overlay or {}
-    sizing_multiplier = float(overlay.get("sizing_multiplier") or 1.0)
-    desired = int(shares * tranche_pct * sizing_multiplier)
-    rounded = ((desired // lot) * lot if lot else 0)
-    # Both exploration tiers are budgeted (cloud review F17): the cold-start
-    # half-slice used to fall through to the validated branch below and get
-    # max(lot, rounded) — the least validated tier sized the most loosely.
-    if authority_tier in EXPLORATION_TIERS:
-        unit_value = price * lot if price and lot else None
-        exploration_budget = max(0.0, capital * exploration_max_book_pct)
-        # 2.5% is the target step; the 3% market-book cap is the hard execution
-        # envelope. One indivisible broker unit may bridge that small gap, but
-        # an expensive HK board lot may not masquerade as a tiny experiment.
-        suggested = (
-            rounded if rounded > 0
-            else lot if unit_value and unit_value <= exploration_budget
-            else 0
-        )
-    else:
-        # Existing validated/basic campaigns retain one market unit as their
-        # minimum executable size, subject to cash and concentration room.
-        suggested = max(lot, rounded) if lot else 0
-    suggested = min(suggested, position_room_shares)
+    plan = add_policy.tranche_plan(
+        tier=authority_tier, price=price, lot=lot, shares=shares,
+        current_value=current_value, capital=capital, cash=cash,
+        setup_pcts=setup_pcts,
+        sizing_multiplier=float(overlay.get("sizing_multiplier") or 1.0),
+        exploration_max_book_pct=exploration_max_book_pct,
+    )
+    target_max_pct = plan["target_max_pct"]
+    position_room_shares = plan["position_room_shares"]
+    desired = plan["desired_shares"]
+    suggested = plan["suggested_shares"]
     max_tranche_shares = suggested
 
     # The canonical thesis registry is a KILL SWITCH, not a licence. Only the
@@ -507,9 +481,7 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "max_add_shares": max_tranche_shares,
         "position_room_shares": position_room_shares,
         "max_add_value": round(max_tranche_shares * price, 2) if price else 0,
-        "exploration_budget_value": round(
-            max(0.0, capital * exploration_max_book_pct), 2
-        ),
+        "exploration_budget_value": plan["exploration_budget_value"],
         "position_room_value": (
             round(position_room_shares * price, 2) if price else 0
         ),
@@ -1224,7 +1196,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             # must not be swallowed into the 0.03 default.
             exploration_max_book_pct=(
                 float(raw_exploration_book)
-                if raw_exploration_book is not None else 0.03
+                if raw_exploration_book is not None
+                else add_policy.READ_DEFAULTS["exploration_max_book_pct"]
             ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,

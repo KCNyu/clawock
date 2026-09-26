@@ -82,24 +82,70 @@ def test_the_no_chase_filter_is_what_separates_a_breakout_from_a_chase(z, state)
     assert radar["rows"][0]["state"] == state
 
 
-def test_both_readers_classify_a_level_through_the_same_function():
+def test_both_readers_build_the_same_radar_from_the_same_signals(tmp_path, monkeypatch):
     """The intraday slot and the brief must not disagree about the same name.
 
-    Not a parity test over outputs — a parity test over the *definition*: there
-    is one classifier and both callers reach it. A second copy of these four
-    comparisons is how a slot and a brief end up telling kcn different things
-    about CRCL on the same afternoon.
+    Behavioural parity, not a source search: hand the intraday collector a
+    universe whose bars resolve to fixed signals, hand the brief's builder the
+    same signals, and the rows and levels must be identical. A second copy of
+    the comparisons is how a slot and a brief end up telling kcn different
+    things about CRCL on the same afternoon.
     """
-    import inspect
+    from clawock.harness import intraday_preflight as P
 
-    from clawock.harness import intraday_preflight
+    sigs = {
+        "BO": {"close": 110.0, "prior_20d_high": 100.0, "zscore20": 1.0, "prior_5d_low": 101.0},
+        "WB": {"close": 110.0, "prior_20d_high": 100.0, "zscore20": 2.5, "prior_5d_low": 99.0},
+        "NEAR": {"close": 98.0, "prior_20d_high": 100.0, "zscore20": 0.5, "prior_5d_low": 95.0},
+        "FAR": {"close": 80.0, "prior_20d_high": 100.0, "zscore20": -1.0, "prior_5d_low": 79.0},
+    }
+    holdings = {"BO": ["BO", "BO2X"], "WB": ["WB"], "NEAR": ["NEAR"], "FAR": ["FAR"]}
+    monkeypatch.setattr(P, "WS", tmp_path)
+    monkeypatch.setattr(P.quant_signals, "universe_details", lambda errors=None: [
+        {"label": label, "code": label, "region": "HK", "source_holdings": holdings[label]}
+        for label in sigs])
+    monkeypatch.setattr(P, "_fetch_bars_cached", lambda code, cnt: code)
+    monkeypatch.setattr(P.quant_signals, "compute_signals", lambda code: sigs[code])
 
-    source = inspect.getsource(intraday_preflight.collect_opportunity_radar)
-    assert "add_side.classify_level" in source, (
-        "the intraday radar grew its own copy of the breakout comparison")
-    assert "'breakout'" not in source and '"breakout"' not in source, (
-        "the state literals are back in the radar; they belong to "
-        "add_side.classify_level, which the brief also calls")
+    slot = P.collect_opportunity_radar("hk")
+    brief = add_side.radar(sigs, holdings_of=holdings, near_pct=NEAR, no_chase_z=NOCHASE,
+                           confirmed_at_close=True)
+
+    assert slot["rows"] == brief["rows"]
+    assert slot["levels"] == brief["levels"]
+    assert [row["state"] for row in slot["rows"]] == ["breakout", "wait_rebreak", "near_breakout"]
+
+
+def test_the_entries_differ_only_in_how_sure_the_close_is():
+    """Same radar, same plans, same policy: identical verdicts from both entries.
+
+    `add_policy.ENTRY_PROFILES` is the only place the two entries are allowed to
+    differ; for `read_rows` that is `close_confirmed`, which changes wording and
+    nothing else.
+    """
+    from clawock.decision import add_policy
+
+    radar = add_side.radar({"CRCL": _signals(110.0, 100.0, z=1.0),
+                            "RKLB": _signals(97.0, 100.0, z=0.2)},
+                           holdings_of={"RKLB": ["RKLB", "RKLX"]},
+                           near_pct=NEAR, no_chase_z=NOCHASE)
+    policy = json.loads(open("config/add-alpha-policy.json").read())
+    out = {}
+    for entry in ("brief", "intraday"):
+        profile = add_policy.entry_profile(entry)
+        out[entry] = add_side.read_rows(
+            radar=radar, levels=radar["levels"], plan_context={"open": []},
+            close_confirmed=profile["close_confirmed"], leveraged={"RKLX"},
+            policy=policy)
+
+    def verdicts(read):
+        return [(r["ticker"], r["verdict"], r["kind"], r["needs"], r["evidence"])
+                for r in read["rows"]]
+
+    assert verdicts(out["brief"]) == verdicts(out["intraday"])
+    assert out["brief"]["confirmed_at_close"] and not out["intraday"]["confirmed_at_close"]
+    assert "收盘确认" in out["brief"]["rows"][0]["why"]
+    assert "收盘未确认" in out["intraday"]["rows"][0]["why"]
 
 
 def test_the_brief_context_carries_the_add_side_and_explains_an_empty_one(tmp_path, monkeypatch):
