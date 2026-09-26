@@ -175,7 +175,7 @@ _CURRENCY = r'(?:HK\$|US\$|RMB|\$|¥|港元|美元|港币)'
 # unverifiable number "00100,12pp".
 _DIGITS = r'(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)'
 _NUM = rf'-?{_DIGITS}(?:\.\d+)?'
-_SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?\b)')
+_SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?(?![A-Za-z0-9_]))')
 _CURRENCY_CLAIM = re.compile(
     rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
 )
@@ -195,12 +195,12 @@ _RANGE = re.compile(rf'({_NUM})\s*(?:~|～|—|–|到|至)\s*({_NUM})\s*%')
 _UNIT_NUM = rf'[+-]?{_DIGITS}(?:\.\d+)?'
 _UNIT_CLAIMS = {
     'percent': re.compile(rf'({_UNIT_NUM})\s*[%％]'),
-    'pp': re.compile(rf'({_UNIT_NUM})\s*(?:pp\b|个百分点|百分点)', re.IGNORECASE),
+    'pp': re.compile(rf'({_UNIT_NUM})\s*(?:pp(?![A-Za-z0-9_])|个百分点|百分点)', re.IGNORECASE),
     # `×` followed by another number is a multiplication the prose wrote out,
     # not a multiple it claims: "300×$9.79 ≈ $2,940" was reported as "300x".
     'multiple': re.compile(
         rf'({_UNIT_NUM})\s*(?:[xX×](?![A-Za-z])(?!\s*(?:HK\$|US\$|\$|¥)?\s*\d)|倍)'),
-    'sigma': re.compile(rf'({_UNIT_NUM})\s*(?:σ|sigma\b)', re.IGNORECASE),
+    'sigma': re.compile(rf'({_UNIT_NUM})\s*(?:σ|sigma(?![A-Za-z0-9_]))', re.IGNORECASE),
 }
 _UNIT_LABELS = {'percent': '%', 'pp': 'pp', 'multiple': 'x', 'sigma': 'σ'}
 _UNIT_KEY_HINTS = {
@@ -436,7 +436,7 @@ def _shown_product_results(text, known_quantities):
 # arithmetic with them. Only the nearest few numbers qualify, so a long
 # sentence of figures cannot vouch for an arbitrary one.
 _OPERAND = re.compile(
-    rf'(?<![A-Za-z0-9_./])({_UNIT_NUM})(?![\d/])\s*([%％]|pp\b|个百分点|百分点)?',
+    rf'(?<![A-Za-z0-9_./])({_UNIT_NUM})(?![\d/])\s*([%％]|pp(?![A-Za-z0-9_])|个百分点|百分点)?',
     re.IGNORECASE)
 # A letter touching the number makes it a label ("5d", "M3"); a unit after a
 # space still counts ("6200 股", "20 日线"), but a word does not ("HK$533 vs").

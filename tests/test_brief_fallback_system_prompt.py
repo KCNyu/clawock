@@ -84,3 +84,34 @@ def test_main_passes_the_untruncated_prompt_to_chat(tmp_path, monkeypatch):
     system = captured['system']
     assert "## Operating mode (this workspace)" in system
     assert "禁止敷衍词" in system
+
+
+def test_a_plan_dated_another_day_is_refused_before_anything_is_written(
+        tmp_path, monkeypatch):
+    """#1915: the fallback kept the model's `date` and validated without the
+    filename, so a plan dated 09-20 was written as today's plan.json."""
+    today = '2026-09-26'
+    ws = tmp_path
+    (ws / 'memory' / '.tmp').mkdir(parents=True)
+    (ws / 'skills' / 'daily-deep-brief').mkdir(parents=True)
+    (ws / 'SOUL.md').write_text(SOUL_TEXT, encoding='utf-8')
+    (ws / 'BOOTSTRAP.md').write_text(BOOTSTRAP_TEXT, encoding='utf-8')
+    (ws / 'skills' / 'daily-deep-brief' / 'SKILL.md').write_text(
+        '# skill\n', encoding='utf-8')
+    context = {'portfolio': {'portfolios': {'hk_stocks': {}, 'us_stocks': {}}}}
+    (ws / 'memory' / '.tmp' / f'brief-context-{today}.json').write_text(
+        json.dumps(context), encoding='utf-8')
+    decision = {'ticker': 'AAA', 'strategy_id': 'core_position',
+                'action': 'hold_and_watch', 'condition': {'type': 'open'},
+                'confidence': 0.6, 'driven_by': 'technical'}
+    monkeypatch.setenv('TODAY', today)
+    monkeypatch.chdir(ws)
+    monkeypatch.setattr(brief_fallback, 'chat', lambda **_kw: (
+        'prose\n```json\n'
+        + json.dumps({'schema_version': 2, 'date': '2026-09-20',
+                      'decisions': [decision]})
+        + '\n```'))
+
+    with pytest.raises(SystemExit, match='must match filename'):
+        brief_fallback.main()
+    assert not (ws / 'memory' / f'{today}-plan.json').exists()
