@@ -538,7 +538,22 @@ def attach_reinvest_candidates(plan_ctx, opportunity_radar, signals_detail=None)
     return {**(plan_ctx or {}), 'reinvest_candidates': candidates}
 
 
-def append_active_information_section(block, active, *, event_ids=None):
+def partial_unchanged(active, state, prior):
+    """Whether the SEC-mirror list equals the last delivered one this session.
+
+    The mirror line appeared on 9 of the last 11 US sessions, 2–6 slots a day;
+    printed every slot it dilutes the ⛔ that matters (kcn 2026-09-25). A first
+    slot of the session, or any change in the list, still prints it whole.
+    """
+    partial = sorted((active or {}).get('partially_degraded_issuers') or [])
+    prior = prior if isinstance(prior, dict) else {}
+    if not partial or prior.get('session') != (state or {}).get('session'):
+        return False
+    return sorted(((prior.get('primary_source_health') or {}).get('partial')) or []) == partial
+
+
+def append_active_information_section(block, active, *, event_ids=None,
+                                      partial_unchanged=False):
     """Render changed primary events plus compact context for existing ones.
 
     A setup or risk delta still produces a full message.  In that case an
@@ -580,7 +595,13 @@ def append_active_information_section(block, active, *, event_ids=None):
         lines.append(f"  ↳ 仍有效：{'、'.join(summaries)}{suffix}（详因沿用，不重复展开）")
     if degraded:
         lines.append(f"  ⛔ 一级源降级：{','.join(degraded)}（不是无消息）")
-    if partial:
+    if partial and partial_unchanged:
+        # Same list as the last delivered card: one sentence, no △ line.
+        quiet = not any(row.get('issuer') in partial for row in all_rows)
+        lines.append(f"  · {'、'.join(partial)}：" + (
+            '无新披露（SEC 直连降级已由镜像兜住；名单未变，不再逐档印）' if quiet
+            else 'SEC 直连降级已由镜像兜住（名单未变，不再逐档印）'))
+    elif partial:
         lines.append(
             f"  △ SEC直连降级、镜像已检查：{','.join(partial)}"
         )
@@ -1593,6 +1614,8 @@ def main(argv=None):
         raw_block = append_active_information_section(
             raw_block, active_information_ctx,
             event_ids=set(semantic_delta['changed_event_ids']),
+            partial_unchanged=partial_unchanged(
+                active_information_ctx, semantic_state, prior_state),
         )
         raw_block = append_plan_trigger_section(raw_block, plan_triggers)
         raw_block = intraday_policy.strip_suppressed_signal_lines(
