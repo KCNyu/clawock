@@ -1552,15 +1552,15 @@
   },
   "market_context": {},
   "gold_dca": {
-    "start_date": "2026-01-22",
-    "daily_amount": 200,
-    "currency": "CNY",
     "units_held": 4854.55,
     "fund_name": "华安黄金ETF联接C",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
+    "daily_amount": 200,
+    "principal_invested": 17299.0,
+    "currency": "CNY",
+    "start_date": "2026-01-22",
     "reconciled_date": "2026-06-09",
     "fund_code": "000217",
-    "principal_invested": 17299.0,
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "nav": 3.1128,
     "nav_date": "2026-09-24",
     "nav_change_pct": -0.87,
@@ -2184,7 +2184,7 @@
         3.1128
       ]
     ],
-    "last_updated": "2026-09-25T15:50:31.853843Z",
+    "last_updated": "2026-09-26T15:50:22.488797Z",
     "domestic_gold": {
       "symbol": "Au99.99",
       "price_cny_g": 926.01,
@@ -2195,23 +2195,23 @@
       "change_pct": -0.86,
       "weighted_avg_cny_g": 926.58,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-09-25T15:50:27.776795Z",
+      "fetched_at": "2026-09-26T15:50:18.158519Z",
       "breakeven_cny_g": 991.13,
       "breakeven_upside_pct": 7.03,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 4271.88,
-      "xau_change_pct": -0.04,
+      "xau_usd": 4285.12,
+      "xau_change_pct": 0.27,
       "xau_high": 4315.6,
       "xau_low": 4254.41,
       "xau_prev_close": 4273.76,
-      "xau_date": "2026-09-25",
+      "xau_date": "2026-09-26",
       "usdcny": 6.7132,
-      "oz_equiv": 1.059,
-      "grams_equiv": 32.9,
+      "oz_equiv": 1.056,
+      "grams_equiv": 32.8,
       "intl_value_usd": 4522.97,
-      "fund_breakeven_usd_oz": 4572.29,
+      "fund_breakeven_usd_oz": 4586.46,
       "fund_breakeven_upside_pct": 7.03,
       "compare_series": [
         [
@@ -2671,38 +2671,38 @@
         "grams_held": 29.0,
         "avg_cost_usd_oz": 4419.57,
         "avg_cost_cny_g": 964.52,
-        "spot_usd_oz": 4271.88,
-        "breakeven_upside_pct": 3.46,
-        "current_value_cny": 26766.27,
-        "pnl_abs": -1233.73,
-        "pnl_pct": -4.41,
+        "spot_usd_oz": 4285.12,
+        "breakeven_upside_pct": 3.14,
+        "current_value_cny": 26849.23,
+        "pnl_abs": -1150.77,
+        "pnl_pct": -4.11,
         "days": 140,
-        "daily_grams": 0.217,
+        "daily_grams": 0.216,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4400.37,
-            "breakeven_upside_pct": 3.01
+            "avg_cost_usd_oz": 4402.13,
+            "breakeven_upside_pct": 2.73
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4385.58,
-            "breakeven_upside_pct": 2.66
+            "avg_cost_usd_oz": 4388.7,
+            "breakeven_upside_pct": 2.42
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4373.85,
-            "breakeven_upside_pct": 2.39
+            "avg_cost_usd_oz": 4378.04,
+            "breakeven_upside_pct": 2.17
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4349.75,
-            "breakeven_upside_pct": 1.82
+            "avg_cost_usd_oz": 4356.11,
+            "breakeven_upside_pct": 1.66
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4323.37,
-            "breakeven_upside_pct": 1.21
+            "avg_cost_usd_oz": 4332.09,
+            "breakeven_upside_pct": 1.1
           }
         ]
       },
@@ -3309,7 +3309,7 @@
         ],
         [
           "2026-09-25",
-          4277.12
+          4285.12
         ]
       ],
       "fx_hist_source": {
@@ -3911,7 +3911,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-09-25T15:50:31.854548Z"
+      "last_updated": "2026-09-26T15:50:22.489475Z"
     }
   }
 }
