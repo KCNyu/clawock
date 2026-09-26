@@ -347,7 +347,11 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
 
-    data = fetch_hstech()
+    # A non-positive close is a bad tick, not a price (#1492). `compute` drops
+    # them, but the latest close and the history below read this series too:
+    # one 0 inside the momentum window raised ZeroDivisionError before the
+    # write, and a 0 as the last bar classified as trend-off (#1906).
+    data = [(d, c) for d, c in (fetch_hstech() or []) if c is not None and c > 0]
     if not data:
         # merge-not-overwrite: never clobber a good prior file on a transient empty fetch
         if OUT_FILE.exists():
@@ -407,6 +411,8 @@ def main(argv=None):
     # series this workspace holds, so the 200DMA answer arrives on its own the
     # session the history is long enough instead of never (#US-trend).
     us_dates, us_closes = load_spy_series()
+    us_valid = [(d, c) for d, c in zip(us_dates, us_closes) if c is not None and c > 0]
+    us_dates, us_closes = [d for d, _ in us_valid], [c for _, c in us_valid]
     us_label = _US_PROXY_LABEL or 'none'
     us_note = ('trend_on=200日线；US 用 %s，共 %d 根' % (us_label, len(us_closes))
                + ('（≥200，已可判趋势）' if len(us_closes) >= MA_WINDOW

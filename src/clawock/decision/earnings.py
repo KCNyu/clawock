@@ -531,9 +531,12 @@ def compute_quality(doc: dict) -> dict:
             guidance_result = _unavailable("guidance range or actual result missing")
         else:
             tolerance = THRESHOLDS["guidance_tolerance_pct"] / Decimal("100")
-            if actual < low * (Decimal("1") - tolerance):
+            # The band always widens outward. `low * (1 - tol)` moved a
+            # negative bound (loss-making EPS guidance) inward, so an actual
+            # inside the published range was judged a miss (#1907).
+            if actual < low - abs(low) * tolerance:
                 verdict, flag = "miss", {"guidance_miss"}
-            elif actual > high * (Decimal("1") + tolerance):
+            elif actual > high + abs(high) * tolerance:
                 verdict, flag = "beat", set()
             else:
                 verdict, flag = "inline", set()

@@ -175,6 +175,22 @@ def test_dilution_and_guidance_miss_are_flagged(us):
     assert "guidance_miss" in quality["anomaly_flags"]
 
 
+@pytest.mark.parametrize("actual, verdict", [
+    ("-0.995", "inline"),   # inside [-1.00, -0.50]; the old band shrank to [-0.99, -0.51]
+    ("-0.497", "inline"),   # above the range, within 1% of the -0.50 bound
+    ("-1.02", "miss"),
+    ("-0.49", "beat"),
+])
+def test_a_negative_guidance_range_tolerates_outward_like_a_positive_one(us, actual, verdict):
+    """#1907: the tolerance was multiplied into the bound, which moves a
+    negative bound inward, so a loss-maker's in-range EPS was a guidance miss."""
+    us["guidance"].update({"metric": "diluted EPS", "guided_low": "-1.00",
+                           "guided_high": "-0.50", "actual": actual})
+    guidance = er.compute_quality(us)["guidance"]
+    assert guidance["verdict"] == verdict
+    assert ("guidance_miss" in guidance["flags"]) == (verdict == "miss")
+
+
 # --- source grade gates footnote claims ---------------------------------------
 
 def test_missing_first_party_document_lowers_grade_and_disables_footnotes(hk):

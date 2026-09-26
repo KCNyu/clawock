@@ -472,17 +472,29 @@ def dedup_items(items):
 
 
 def load_holdings():
-    """Held tickers + names (+ leveraged-ETF underlying hint) for LLM matching."""
+    """Held tickers + names (+ leveraged-ETF underlying hint) for LLM matching.
+
+    `underlying` is the issuer a leveraged single-stock ETF looks through to
+    (RKLX → RKLB). The prompt tells the model to match on it, and main() must
+    verify against the same set, or the model's correct `held: ["RKLB"]` is
+    filed as a new idea (#1917).
+    """
+    from clawock.instruments import look_through
+
     p = json.load(open(os.path.join(WS_ROOT, 'portfolio.json'), encoding='utf-8'))
     held = []
     for region in ('us_stocks', 'hk_stocks'):
         for h in p['portfolios'].get(region, {}).get('holdings', []):
             if h.get('shares', 0) > 0:
-                held.append({
+                row = {
                     'ticker': h['ticker'],
                     'name':   h.get('name', ''),
                     'region': 'US' if region == 'us_stocks' else 'HK',
-                })
+                }
+                resolved = look_through(h['ticker'])
+                if resolved['kind'] == 'look_through':
+                    row['underlying'] = resolved['issuer']
+                held.append(row)
     return held
 
 
@@ -535,7 +547,10 @@ def llm_filter(candidates, held):
         return {}
     from clawock.automation.llm import chat
     from clawock.automation.output_validate import coerce_scored_items
-    held_lines = '\n'.join(f"  - {h['ticker']} ({h['name']}, {h['region']})" for h in held)
+    held_lines = '\n'.join(
+        f"  - {h['ticker']} ({h['name']}, {h['region']})"
+        + (f" → 正股 {h['underlying']}" if h.get('underlying') else '')
+        for h in held)
     cand_lines = '\n'.join(
         f"[{i}] ({c['author']}) {c['text']}" for i, c in enumerate(candidates)
     )
@@ -647,7 +662,8 @@ def main():
         candidates.extend(raw[spec['key']][:spec['cap']])
     candidates = dedup_items(candidates)[:MAX_CANDIDATES]
     held = load_holdings()
-    held_tickers = {h['ticker'] for h in held}
+    held_tickers = ({h['ticker'] for h in held}
+                    | {h['underlying'] for h in held if h.get('underlying')})
     scored = llm_filter(candidates, held)
 
     # Filter failed (MiniMax 429 / timeout / bad JSON) with candidates in hand.
