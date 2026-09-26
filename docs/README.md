@@ -19,6 +19,8 @@ belongs here.
   external runtime and the parity contract the adapter must keep.
 - [`runtime-protocol.md`](architecture/runtime-protocol.md) — how any external
   agent runtime invokes clawock.
+- [`task-queue.md`](architecture/task-queue.md) — the agent-dispatch queue behind
+  the dsh task chip: who owns which layer, the versioned ops entry, queue order.
 
 ## Product surfaces
 
