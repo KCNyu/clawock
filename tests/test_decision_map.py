@@ -8,6 +8,7 @@ publish **coverage and snapshot age**, because a source that could see 12% of th
 decisions is not a source with a weak effect.
 """
 import json
+from datetime import date, timedelta
 
 import pytest
 
@@ -25,6 +26,11 @@ def _decision(decision_id, ticker, plan_date, action='cut', leg='us', **extra):
     }
     row.update(extra)
     return row
+
+
+def _eve(plan_date):
+    """The last snapshot a pre-open decision on `plan_date` could have seen."""
+    return (date.fromisoformat(plan_date) - timedelta(days=1)).isoformat()
 
 
 def test_a_snapshot_published_after_the_decision_is_never_used():
@@ -63,6 +69,33 @@ def test_the_nearest_eligible_snapshot_wins_per_signal():
     joined = dm.at_snapshot(_decision('d1', 'AAA', '2026-06-20'), snapshots, {})
     assert joined['values'] == {'quant.rsi14': 40.0, 'news.signed_score': 1.0}
     assert joined['ages'] == {'quant.rsi14': 1, 'news.signed_score': 2}
+
+
+def test_a_same_day_snapshot_is_not_what_a_pre_open_decision_saw():
+    """#1911: snapshots are named for their session and carry its close; a
+    plan written at 08:00 HKT on that date could not have seen them, yet
+    `as_of <= plan_date` joined them at age 0."""
+    snapshots = {'2026-06-15': {'AAA': {'factor.momentum': 0.10}},
+                 '2026-06-16': {'AAA': {'factor.momentum': 0.90}}}
+    joined = dm.at_snapshot(_decision('d1', 'AAA', '2026-06-16'), snapshots,
+                            {'us': ['2026-06-15', '2026-06-16']})
+    assert joined == {'values': {'factor.momentum': 0.10},
+                      'ages': {'factor.momentum': 1}}
+
+
+def test_a_record_shaped_row_lands_on_its_own_ticker(monkeypatch):
+    """#1910: `clawock record` writes `subject.ticker` / `decided_at` and no
+    top-level ticker or plan_date, so it was filed under '' — the page's
+    未具名 row — and joined no snapshot."""
+    record = {'decision_id': 'dec-rec', 'action': 'hold',
+              'subject': {'ticker': '00100', 'market': 'HK', 'currency': 'HKD'},
+              'decided_at': '2026-06-16T20:15:00+08:00',
+              'evaluation': {}}
+    payload = _payload(monkeypatch, [record],
+                       {'2026-06-15': {'00100': {'quant.rsi14': 41.0}}})
+    assert list(payload['ticker_timelines']) == ['00100']
+    assert _decoded(payload, 'ticker', 0) == '00100'
+    assert payload['kpi']['decisions_with_any_signal'] == 1
 
 
 #: A panel result shaped like `panel_scores` returns, so `build` does not have
@@ -115,13 +148,14 @@ def test_coverage_is_published_per_signal(monkeypatch):
     payload = _payload(monkeypatch, decisions, snapshots)
     card = payload['info_source_cards'][0]
     assert card['signal'] == 'quant.rsi14'
-    # Two snapshots, ten decisions, a five-session age bound: the 06-02 snapshot
-    # stays eligible through 06-07, so seven decisions join and three do not.
-    # Coverage is the number a reader acts on and it is 70%, not 20% — which is
-    # exactly why the age bound is published beside it.
-    assert card['decisions_joined'] == 7
-    assert card['decision_coverage_pct'] == 70.0
-    assert card['median_snapshot_age_sessions'] == 2
+    # Two snapshots, ten decisions, a five-session age bound: 06-01 sees no
+    # snapshot (its own session's is not yet written, #1911), 06-02 sees 06-01,
+    # and the 06-02 snapshot stays eligible through 06-07 — six join, four do
+    # not. Coverage is the number a reader acts on and it is 60%, not 20% —
+    # which is exactly why the age bound is published beside it.
+    assert card['decisions_joined'] == 6
+    assert card['decision_coverage_pct'] == 60.0
+    assert card['median_snapshot_age_sessions'] == 2.5
     assert card['max_snapshot_age_sessions'] == 5
 
 
@@ -129,7 +163,7 @@ def test_the_payload_is_columnar_and_the_snapshot_rows_line_up(monkeypatch):
     """Repeating 33 signal names in 741 entries was 80% of the payload."""
     decisions = [_decision(f'd{index}', 'AAA', f'2026-06-{index + 1:02d}')
                  for index in range(5)]
-    snapshots = {f'2026-06-{index + 1:02d}': {'AAA': {'quant.rsi14': float(index)}}
+    snapshots = {_eve(f'2026-06-{index + 1:02d}'): {'AAA': {'quant.rsi14': float(index)}}
                  for index in range(5)}
     payload = _payload(monkeypatch, decisions, snapshots)
     columns = payload['decisions']
@@ -156,7 +190,7 @@ def test_the_matrix_is_the_board_and_is_not_published_twice(monkeypatch):
     pointer had no reader either.
     """
     payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
-                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}}})
+                       {'2026-05-31': {'AAA': {'quant.rsi14': 50.0}}})
     assert 'decision_signal_matrix' not in payload
     card = payload['info_source_cards'][0]
     assert set(card['by_action']) <= set(payload['actions'])
@@ -217,7 +251,7 @@ def test_the_cards_republish_the_panel_instead_of_recomputing_it(monkeypatch):
     say which was wrong.
     """
     payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
-                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}}})
+                       {'2026-05-31': {'AAA': {'quant.rsi14': 50.0}}})
     card = next(c for c in payload['info_source_cards']
                 if c['signal'] == 'quant.rsi14')
     for horizon in dm.HORIZONS:
@@ -251,7 +285,7 @@ def test_no_rank_correlation_is_computed_in_this_module():
 
 def test_a_signal_the_panel_never_scored_reads_as_absent_not_as_zero(monkeypatch):
     payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
-                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0,
+                       {'2026-05-31': {'AAA': {'quant.rsi14': 50.0,
                                                'news.hard_catalyst': 1.0}}})
     absent = next(c for c in payload['info_source_cards']
                   if c['signal'] == 'news.hard_catalyst')
@@ -276,8 +310,8 @@ def test_the_kpi_numbers_are_echoed_so_the_banner_can_be_checked(monkeypatch):
         _decision('d2', 'BBB', '2026-06-02'),
         _decision('d3', 'BBB', '2026-06-20'),
     ]
-    snapshots = {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}},
-                 '2026-06-02': {'AAA': {'quant.rsi14': 51.0}}}
+    snapshots = {'2026-05-31': {'AAA': {'quant.rsi14': 50.0}},
+                 '2026-06-01': {'AAA': {'quant.rsi14': 51.0}}}
     payload = _payload(monkeypatch, decisions, snapshots)
     kpi = payload['kpi']
     assert kpi['decisions'] == 4
@@ -384,7 +418,7 @@ def test_a_kind_counts_a_decision_once_however_many_of_its_signals_joined(monkey
     """
     decisions = [_decision(f'd{index}', 'AAA', f'2026-06-{index + 1:02d}')
                  for index in range(4)]
-    snapshots = {f'2026-06-{index + 1:02d}':
+    snapshots = {_eve(f'2026-06-{index + 1:02d}'):
                  {'AAA': {'quant.rsi14': 50.0, 'quant.trend': 1.0}}
                  for index in range(4)}
     payload = _payload(monkeypatch, decisions, snapshots)

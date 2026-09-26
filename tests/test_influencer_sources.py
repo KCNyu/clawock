@@ -236,6 +236,37 @@ def test_routine_ark_rebalancing_is_capped_below_the_news(tmp_path, monkeypatch)
     assert by_ticker[('CRCL',)] == 82          # 撞持仓：不封顶
 
 
+def test_a_leveraged_etf_holding_counts_its_underlying_as_held(tmp_path, monkeypatch):
+    """#1917: the prompt tells the model to match RKLX as RKLB; the code then
+    verified `held` against raw tickers only, so the model's correct answer
+    became a new idea and the 撞持仓 hit was lost."""
+    (tmp_path / 'portfolio.json').write_text(json.dumps({'portfolios': {
+        'us_stocks': {'holdings': [{'ticker': 'RKLX', 'name': 'RKLB 2x', 'shares': 10}]},
+        'hk_stocks': {'holdings': []},
+    }}), encoding='utf-8')
+    monkeypatch.setattr(inf, 'WS_ROOT', str(tmp_path))
+    monkeypatch.setattr(inf, 'OUT_FILE', str(tmp_path / 'influencer.json'))
+    _quiet_sources(monkeypatch, ['Rocket Lab wins a launch contract'])
+    seen = {}
+
+    def fake_filter(candidates, held):
+        seen['held'] = held
+        return {i: {'tickers': ['RKLB'], 'held': ['RKLB'], 'new_ideas': [],
+                    'sectors': [], 'sector_holdings': [], 'stance': 'bullish',
+                    'relevance': 80, 'summary_cn': 'x'}
+                for i, _c in enumerate(candidates)}
+
+    monkeypatch.setattr(inf, 'llm_filter', fake_filter)
+    inf.main()
+    payload = json.loads((tmp_path / 'influencer.json').read_text(encoding='utf-8'))
+
+    assert seen['held'] == [{'ticker': 'RKLX', 'name': 'RKLB 2x', 'region': 'US',
+                             'underlying': 'RKLB'}]
+    assert payload['items']
+    for item in payload['items']:
+        assert item['held'] == ['RKLB'] and item['new_ideas'] == []
+
+
 def test_ark_origin_gets_its_own_non_primary_source_tier():
     """ARK daily trades are a genuine primary record, but promoting them into
     the evidence graph's PRIMARY_SOURCE_TYPES would let them satisfy the

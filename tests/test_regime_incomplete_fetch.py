@@ -82,3 +82,19 @@ def test_compute_all_non_positive_closes_returns_none(monkeypatch):
     """Degenerate case: nothing survives the non-positive filter."""
     ma, vol = regime.compute([0.0, -1.0, 0.0])
     assert (ma, vol) == (None, None)
+
+
+@pytest.mark.parametrize("where", ["inside_momentum_window", "latest_bar"])
+def test_main_survives_a_zero_tick_the_way_compute_does(offline_dial, monkeypatch, where):
+    """#1906: #1492 fixed `compute` only. `main` still read the raw series for
+    the latest close and `build_regime_history`: a 0 inside the momentum
+    window raised ZeroDivisionError before lev_regime.json was written, and a
+    0 as the last bar classified a healthy trend as 趋势OFF ×0.5."""
+    clean = [100.0 + i for i in range(regime.MA_WINDOW + 25)]
+    bars = (clean[:-5] + [0.0] + clean[-5:] if where == "inside_momentum_window"
+            else clean + [0.0])
+    payload = _run(monkeypatch, bars)
+    assert payload["trend_on"] is True and payload["lev_cap_mult"] == 1.0
+    assert payload["close"] == clean[-1]
+    assert payload["as_of"] == f"2026-01-{len(clean) if where == 'latest_bar' else len(bars):02d}"
+    assert payload["regime_history"]["hk"]

@@ -20,8 +20,8 @@ The number that has to be published with it
 2026-07-24 is not "the factors at decision time"; it is next month's data. The
 registered histories start at different dates — quant on 06-11, factor and peer
 on 07-24, news on 07-26 — and the ledger starts before all of them. So the join
-is one-sided by construction: a snapshot may only be used when its `as_of` is at
-or before the plan date and within `MAX_SNAPSHOT_AGE_SESSIONS` of it, and every
+is one-sided by construction: a snapshot may only be used when its `as_of` is
+before the plan date and within `MAX_SNAPSHOT_AGE_SESSIONS` of it, and every
 row carries the age that was used.
 
 Without that, the drawer would show a full row of signal values for every
@@ -153,19 +153,34 @@ def _age_in_sessions(sessions, earlier: str, later: str) -> int | None:
         return None
 
 
+def _subject(decision) -> tuple[str, str]:
+    """(ticker, date) of a ledger row, plan-shaped or `clawock record`-shaped.
+
+    `clawock record` writes `subject.ticker` / `decided_at` and no top-level
+    `ticker` / `plan_date`; reading only the latter filed those rows under an
+    empty ticker (#1910). Same fallback as the dashboard's trace join.
+    """
+    ticker = decision.get('ticker') or (decision.get('subject') or {}).get('ticker')
+    day = decision.get('plan_date') or decision.get('decided_at') or ''
+    return str(ticker or ''), str(day)[:10]
+
+
 def at_snapshot(decision, snapshots, sessions_by_leg) -> dict:
     """The signals as of this decision's plan date, with the age that was used.
 
-    One-sided and bounded: a snapshot is eligible only when its `as_of` is at or
-    before the plan date. Taking the nearest snapshot in either direction would
-    let a decision be explained by data published after it, which is the exact
-    look-ahead the rest of this repository spends its effort refusing.
+    One-sided and bounded: a snapshot is eligible only when its `as_of` is
+    strictly before the plan date. Taking the nearest snapshot in either
+    direction would let a decision be explained by data published after it,
+    which is the exact look-ahead the rest of this repository spends its effort
+    refusing — and a same-day snapshot is one: it is named for its session and
+    carries that session's close, which a plan written at 08:00 HKT could not
+    see (#1911).
     """
-    ticker = str(decision.get('ticker') or '')
-    plan_date = str(decision.get('plan_date') or '')[:10]
-    leg = str(decision.get('leg') or '').lower()
+    ticker, plan_date = _subject(decision)
+    leg = str(decision.get('leg') or (decision.get('subject') or {}).get('market')
+              or '').lower()
     sessions = sessions_by_leg.get(leg) or []
-    eligible = sorted(as_of for as_of in snapshots if as_of <= plan_date)
+    eligible = sorted(as_of for as_of in snapshots if as_of < plan_date)
     values, ages = {}, {}
     for as_of in reversed(eligible):
         row = (snapshots.get(as_of) or {}).get(ticker)
@@ -307,14 +322,15 @@ def build(ledger_rows=None, data_dir: Path | None = None,
         # was most of a megabyte of key strings. The values are columnar against
         # `signal_order` below for the same reason.
         # One integer, not a dict of five. The per-source split repeated the
-        # source names in every one of 741 entries and, measured, the ages are 0
-        # for almost every joined value — the per-card median and maximum are
-        # where that distribution belongs.
+        # source names in every one of 741 entries and the ages are nearly
+        # constant across a decision's joined values — the per-card median and
+        # maximum are where that distribution belongs.
         oldest = max(joined['ages'].values(), default=None)
+        ticker, plan_date = _subject(decision)
         entry = {
             'decision_id': decision_id,
-            'ticker': str(decision.get('ticker') or ''),
-            'plan_date': str(decision.get('plan_date') or '')[:10],
+            'ticker': ticker,
+            'plan_date': plan_date,
             'action': action,
             'driven_by': decision.get('driven_by'),
             'strategy_id': decision.get('strategy_id'),
