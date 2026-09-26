@@ -1089,6 +1089,41 @@ def mark_send_started(claim_path):
         print(f'warn: send claim update failed: {e}', file=sys.stderr)
 
 
+def send_under_claim(claim_path, send, write_receipt, *, receipt_label='marker'):
+    """The send transaction once this process holds the slot's claim. One
+    implementation for brief, report and intraday.
+
+    The order is the contract, and each step is a past incident:
+    flip the claim to mid-send BEFORE sending (#508 — a process killed during
+    the send must read as "may already have reached WeChat"), send, file the
+    receipt, and release the claim only if the receipt landed (#1743 — a send
+    whose receipt could not be written keeps its claim, so a retry declines
+    instead of delivering twice). The three postflights each carried this
+    sequence; #1743 had to be fixed in all three.
+
+    `claim_path=None` means no claim is held: a dry run, or report's one-shot
+    upgrade, which is its own O_EXCL lock. Send and receipt still run. There
+    is nothing to flip or release.
+
+    `send()` performs the entry's channel sends and returns their result.
+    `write_receipt(result)` writes the receipt and returns True. It returns
+    False when it writes none on purpose (a dry run sent nothing, so it must
+    not leave a marker claiming delivery). An exception is a failed write: it
+    is warned about and the claim is kept. Returns `(result, marker_written)`.
+    """
+    if claim_path is not None:
+        mark_send_started(claim_path)
+    result = send()
+    marker_written = False
+    try:
+        marker_written = bool(write_receipt(result))
+    except Exception as e:
+        print(f'warn: {receipt_label} write failed: {e}', file=sys.stderr)
+    if claim_path is not None:
+        release_claim(claim_path, marker_written=marker_written)
+    return result, marker_written
+
+
 def last_report_text(session_id, first_line):
     """The actual announced intraday report — the last assistant text block in
     the cron session transcript that contains the data block's first line. We
