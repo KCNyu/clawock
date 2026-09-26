@@ -2213,6 +2213,21 @@ body[data-ds-dark-theme] .pbc .bp {
   display:block;
   margin-top:10px
 }
+/* The menu material only reads if the blur happens. Asked for less transparency, or on an
+   engine that cannot blur, the panel turns solid (the host's layer colour) so the sidebar never
+   shows through the rows. */
+@media (prefers-reduced-transparency: reduce) {
+  .pbc.pbf.tqf .bp::before {
+    background:var(--dsw-alias-bg-layer-1);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none
+  }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .pbc.pbf.tqf .bp::before {
+    background:var(--dsw-alias-bg-layer-1)
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .pbc .tq-layer {
     animation:none
