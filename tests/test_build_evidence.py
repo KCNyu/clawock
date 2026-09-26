@@ -131,6 +131,25 @@ def test_a_failed_verdict_is_stated_as_a_failure_to_reject(tmp_path, monkeypatch
     assert "未能拒绝原假设，不是证伪" in section["reading"]
 
 
+def test_a_card_whose_permutation_did_not_run_is_undecided_not_a_crash(
+        tmp_path, monkeypatch):
+    """#1926: `permutation_test` returns None p values under 30 sessions, and
+    `f"{None:.3f}"` took the whole evidence artifact down with it."""
+    monkeypatch.setattr(ev, "CARDS", tmp_path)
+    (tmp_path / "regime_dial_validation-20260802-bbbbbbbb.json").write_text(json.dumps({
+        "run_id": "regime_dial_validation-20260802-bbbbbbbb",
+        "inputs": [{"bars": 20}],
+        "metrics": {"permutation": {"p_value_drawdown": None, "p_value_return": None,
+                                    "reason": "need at least 30 aligned sessions"}},
+    }))
+
+    section = ev.dial_section()
+
+    assert section["verdict"] == ev.VERDICT["undecided"]
+    assert dict(section["rows"])["置换检验 p 值（回撤 / 收益）"] == "n/a / n/a"
+    assert "need at least 30 aligned sessions" in section["reading"]
+
+
 def test_regenerating_the_page_is_idempotent():
     assert ev.build() == ev.build()
 

@@ -217,7 +217,10 @@ def main() -> int:
     try:
         receipt = GitHubDispatchDeployer(REPOSITORY).request(
             reason=f"data-plane {result.receipt[:12]}")
-    except (subprocess.CalledProcessError, OSError) as exc:
+    except (subprocess.SubprocessError, OSError) as exc:
+        # SubprocessError, not CalledProcessError: the request's own 120s
+        # timeout raises TimeoutExpired, a sibling, and escaping here skipped
+        # the record below (#1929).
         # Loud, and non-zero. A generation that reached the branch but never
         # reached the site is the failure this whole seam exists to make
         # visible: nothing else in the system notices a site frozen on an old

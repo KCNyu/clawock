@@ -149,6 +149,29 @@ def test_a_publish_that_could_not_ask_for_a_deploy_is_not_success(workspace, tmp
         "the publish itself succeeded and must still be reported")
 
 
+def test_a_dispatch_that_timed_out_is_recorded_like_a_refused_one(
+        workspace, tmp_path, monkeypatch):
+    """#1929: the request's own timeout raises TimeoutExpired, which is not a
+    CalledProcessError, so it escaped the handler and the failure was never
+    recorded — the one class that does not repair itself on the next tick."""
+    import publish_data_branch as publisher
+
+    def hung(self, reason=""):
+        raise subprocess.TimeoutExpired(["gh", "api"], 120)
+
+    noted = []
+    monkeypatch.setattr(publisher.GitHubDispatchDeployer, "request", hung)
+    monkeypatch.setattr(publisher, "note_failure",
+                        lambda kind, reason: noted.append(kind))
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(workspace))
+    monkeypatch.chdir(workspace)
+    monkeypatch.setattr(sys, "argv", ["publish_data_branch.py", "--root", str(workspace),
+                                      "--remote", "origin", "--deploy"])
+
+    assert publisher.main() == 1
+    assert noted == ["data_plane_deploy_not_requested"]
+
+
 def test_an_unchanged_generation_asks_for_nothing(workspace, tmp_path):
     """72 ticks a day, and most change nothing. Asking every time would rebuild
     and redeploy the site for a generation it already serves."""

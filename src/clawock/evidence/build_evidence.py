@@ -107,6 +107,11 @@ def _pct(value, digits=1):
     return None if value is None else f'{float(value) * 100:.{digits}f}%'
 
 
+def _p(value):
+    """A p value, or n/a: `permutation_test` returns None under 30 sessions."""
+    return 'n/a' if value is None else f'{float(value):.3f}'
+
+
 def dial_section() -> dict | None:
     """The leverage dial: the strongest claim we had, and what it survived."""
     card = _latest_card('regime_dial_validation')
@@ -125,7 +130,7 @@ def dial_section() -> dict | None:
          f"{_pct(ins.get('dial_max_drawdown'))} vs {_pct(ins.get('hold_max_drawdown'))}"
          f"，即 {float(ins.get('drawdown_improvement', 0)) * 100:+.1f}pp"),
         ('置换检验 p 值（回撤 / 收益）',
-         f"{p_dd:.3f} / {perm.get('p_value_return'):.3f}"),
+         f"{_p(p_dd)} / {_p(perm.get('p_value_return'))}"),
         ('随机重排的中位改善',
          f"{_pct(perm.get('null_drawdown_improvement_median'))}"),
         ('样本外 walk-forward',
@@ -141,7 +146,12 @@ def dial_section() -> dict | None:
         'verdict': VERDICT['failed'] if (p_dd is not None and p_dd > 0.10)
         else VERDICT['undecided'],
         'rows': rows,
+        # A card whose permutation could not run (#1926) says so rather than
+        # crashing the whole artifact on a None p value.
         'reading': (
+            f"置换检验没有跑成（{perm.get('reason') or '缺 p 值'}），这张卡没有可读的"
+            f"显著性。刻度盘保留未改；不能拿另一个策略的数字当它的证据。"
+            if p_dd is None else
             f"观测到的改善比**随机重排同一条敞口路径的中位数还差**"
             f"（{_pct(perm.get('null_drawdown_improvement_median'))}）。"
             f"p = {p_dd:.3f} 是**未能拒绝原假设，不是证伪**——一个指数、一次崩盘，"

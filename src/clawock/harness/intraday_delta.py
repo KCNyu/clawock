@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from clawock.workspace import workspace_root
@@ -287,9 +287,12 @@ def _regime_state(market):
 def snapshot(market, *, at=None, fetcher=fetch_peers.fetch_all):
     at = at or datetime.now(timezone.utc)
     at = at if at.tzinfo else at.replace(tzinfo=timezone.utc)
-    local = at.astimezone(HKT)
     job, slot = cron_heartbeat.slot_for(market, at)
-    closed = trading_calendar.closed_reason(market, local.date())
+    # The market's own session date, not the HKT one: HKT Saturday 02:00 is
+    # Friday's US session, and HKT Monday 02:00 is a US Sunday (#1927).
+    session_date = market_session_date(market, at)
+    closed = trading_calendar.closed_reason(
+        market, date.fromisoformat(session_date))
     holdings = _active_holdings(market)
     requests = [
         {"ticker": holding["ticker"], "region": market}
@@ -320,7 +323,7 @@ def snapshot(market, *, at=None, fetcher=fetch_peers.fetch_all):
         "market": market,
         "job": job,
         "slot": slot,
-        "session": f"{market}:{local.date().isoformat()}",
+        "session": f"{market}:{session_date}",
         "market_closed": bool(closed),
         "closed_reason": closed,
         "condition_hash": condition_hash,

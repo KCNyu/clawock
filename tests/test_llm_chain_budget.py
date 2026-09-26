@@ -184,6 +184,38 @@ def test_rate_limit_429_sleeps_then_succeeds(monkeypatch):
     assert sleeps == [5]
 
 
+def test_a_reply_with_only_a_thinking_block_is_a_failed_attempt_not_an_answer(
+        monkeypatch):
+    """#1923: with no text block the thinking block was returned as the
+    answer, and the downstream section checks are substrings reasoning can
+    contain. It is a failed attempt now; the retry ladder decides."""
+    calls = []
+
+    class S:
+        def post(self, url, **kw):
+            calls.append(url)
+
+            class R:
+                status_code = 200
+
+                def json(self):
+                    return {"content": [{"type": "thinking",
+                                         "thinking": "## 摘要 let me think"}],
+                            "stop_reason": "max_tokens"}
+            return R()
+
+    monkeypatch.setattr(llm, "_SESSION", S())
+    monkeypatch.setattr(llm.time, "sleep", lambda s: None)
+
+    with pytest.raises(RuntimeError, match="no text block"):
+        llm._call_provider(
+            label="primary", base_url="https://p.example", api_key="k",
+            model="m", messages=[{"role": "user", "content": "hi"}],
+            max_tokens=8, timeout=30, temperature=0.5,
+            json_response=False, thinking=None)
+    assert len(calls) == llm.MAX_RETRIES
+
+
 def test_budget_exhausted_before_any_attempt_names_the_cause(monkeypatch):
     """When the budget dies before attempt #1 can run, the error says so
     instead of pretending MAX_RETRIES attempts happened."""
