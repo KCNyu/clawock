@@ -225,7 +225,7 @@ as live.
 | revise-once gate | live (#1891) |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
-| `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#PR_C) |
+| `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10
