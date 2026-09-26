@@ -399,6 +399,26 @@ def test_one_us_share_can_collect_exploration_inside_the_hard_book_cap():
     assert execution["max_add_value"] == 100
 
 
+def test_a_cold_start_slice_is_budgeted_like_exploration_not_sized_like_validated():
+    """Cloud review F17: `exploration_cold_start` fell into the validated
+    branch, `max(lot, rounded)`, so a unit the exploration budget refuses was
+    still suggested — the least validated tier sized the most loosely."""
+    def view(tier):
+        return packet_mod._execution_view(
+            {"shares": 2, "current_price": 400, "current_value": 800},
+            "US", 10_000, 1_000,
+            {"setups": [{"tranche_pct_of_position": 0.0125}]},
+            {"state": "unknown"}, False,
+            authority_tier=tier, exploration_max_book_pct=0.03,
+        )
+
+    # One 400 unit is above the 300 budget (3% of 10,000): neither exploration
+    # tier may suggest it; validated keeps its one-unit minimum.
+    assert view("exploration")["max_add_shares"] == 0
+    assert view("exploration_cold_start")["max_add_shares"] == 0
+    assert view("validated")["max_add_shares"] == 1
+
+
 def test_packet_is_deterministic_and_manifest_hash_bound(tmp_path):
     context = _context()
     generation = brief_context.compute_generation_id(context)
