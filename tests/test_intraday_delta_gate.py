@@ -2,6 +2,7 @@ import json
 import copy
 import io
 import subprocess
+import threading
 from contextlib import redirect_stdout
 from datetime import datetime
 from pathlib import Path
@@ -310,6 +311,45 @@ def test_preflight_main_selects_receipt_for_equal_delivered_state(
     assert ctx["delivery_mode"] == "no_change"
     assert "本轮无新的加仓/减仓条件" in ctx["raw_wechat_block"]
     assert "一级源降级：BAD" not in ctx["raw_wechat_block"]
+
+
+def test_network_lanes_wait_side_by_side_and_land_where_they_did(
+    monkeypatch, tmp_path
+):
+    # Issuer filings and the peer scan each only need the analyzer's output;
+    # serially their waits added up after the analyzer (~7 s + ~3 s a slot).
+    # The barrier opens only if both are in flight at once, and each result
+    # still reaches the context through its original field.
+    _current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    together = threading.Barrier(2, timeout=5)
+    scan = preflight.active_information.scan_workspace
+
+    def _scan(*a, **k):
+        together.wait()
+        return scan(*a, **k)
+
+    def _peers(_m):
+        together.wait()
+        return {"SPCH": {"theme": "space"}}
+    monkeypatch.setattr(preflight.active_information, "scan_workspace", _scan)
+    monkeypatch.setattr(preflight, "collect_peers", _peers)
+
+    ctx = run(None)
+
+    assert ctx["peer_scan"] == {"SPCH": {"theme": "space"}}
+    assert ctx["active_information_candidates"]["candidates"][0]["event_id"] == "filing-1"
+
+
+def test_a_failing_filing_lane_still_degrades_in_place(monkeypatch, tmp_path):
+    _current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+
+    def _boom(*_a, **_k):
+        raise TimeoutError("sec down")
+    monkeypatch.setattr(preflight.active_information, "scan_workspace", _boom)
+
+    ctx = run(None)
+
+    assert ctx["active_information_candidates"]["error"] == "TimeoutError: sec down"
 
 
 def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path):
