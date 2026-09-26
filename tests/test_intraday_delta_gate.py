@@ -333,7 +333,24 @@ def test_preflight_main_selects_full_delta_and_preserves_primary_context(
     assert "CRCL[等待]" in ctx["raw_wechat_block"]
     assert "8-K awaiting detail" not in ctx["raw_wechat_block"]
     assert "一级源降级：BAD" in ctx["raw_wechat_block"]
-    assert "镜像已检查：CRCL" in ctx["raw_wechat_block"]
+    # The mirror list equals the last delivered card's: one sentence, still named.
+    assert ("  · CRCL：SEC 直连降级已由镜像兜住（名单未变，不再逐档印）"
+            in ctx["raw_wechat_block"].splitlines())
+    assert "△ SEC直连降级" not in ctx["raw_wechat_block"]
+
+
+def test_the_sec_mirror_line_prints_only_when_its_list_changes(monkeypatch, tmp_path):
+    """kcn 2026-09-25: the △ line was on 9 of 11 US sessions, 2–6 slots a day.
+    A changed list (or the session's first slot) prints it whole."""
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    previous = copy.deepcopy(current)
+    previous["primary_source_health"]["partial"] = []
+    ctx = run(previous)
+    assert "  △ SEC直连降级、镜像已检查：CRCL" in ctx["raw_wechat_block"].splitlines()
+    assert "名单未变" not in ctx["raw_wechat_block"]
+    other_day = copy.deepcopy(current)
+    other_day["session"] = "us:2026-08-12"
+    assert "△ SEC直连降级、镜像已检查：CRCL" in run(other_day)["raw_wechat_block"]
 
 
 def test_preflight_main_expands_a_changed_primary_event(monkeypatch, tmp_path):

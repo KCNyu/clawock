@@ -124,7 +124,7 @@ empty.
 | 6 | holdings table | positions | never; **bytes never change** | analyzer |
 | 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
 | 8 | `⚠️ 信号` | signals new today; ones already sent fold into `今日已报、仍在：…` | no signals | analyzer + harness fold |
-| 9 | candidates | setups, trend, radar, primary information, plan triggers | none | harness |
+| 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
 | 10 | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap | harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
@@ -223,6 +223,7 @@ as live.
 | F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
 | revise-once gate | live (#1891) |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
+| SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#PR_B) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10

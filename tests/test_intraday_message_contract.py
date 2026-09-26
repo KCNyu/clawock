@@ -536,3 +536,17 @@ def test_a_clipped_add_side_line_never_cuts_a_number():
         # whatever number survives is a whole number from the source
         for number in re.findall(r'\d+(?:\.\d+)?', head):
             assert re.search(rf'(?<![\d.]){re.escape(number)}(?![\d.])', text), (limit, clipped)
+
+
+def test_an_unchanged_sec_mirror_list_is_one_sentence():
+    active = {'candidates': [], 'partially_degraded_issuers': ['RKLB']}
+    state = {'session': 'us:2026-09-25'}
+    prior = {'session': 'us:2026-09-25', 'primary_source_health': {'partial': ['RKLB']}}
+    assert pre.partial_unchanged(active, state, prior)
+    folded = pre.append_active_information_section('x', active, partial_unchanged=True)
+    assert folded.splitlines()[-1] == \
+        '  · RKLB：无新披露（SEC 直连降级已由镜像兜住；名单未变，不再逐档印）'
+    assert not pre.partial_unchanged(active, state, {**prior, 'session': 'us:2026-09-24'})
+    assert not pre.partial_unchanged(
+        active, state, {**prior, 'primary_source_health': {'partial': ['CRCL']}})
+    assert not pre.partial_unchanged({'partially_degraded_issuers': []}, state, prior)
