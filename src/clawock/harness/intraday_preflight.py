@@ -1451,6 +1451,17 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
+    # Tier 2 information (contract §6) needs the book, not the analyzer's
+    # output: started here, its requests wait alongside the quote refresh and
+    # are joined where the information lane is read. Bounded by its own
+    # wall-clock budget; a failure is a ⛔ line, never a failed slot.
+    live_pool = ThreadPoolExecutor(max_workers=1)
+    live_lane = live_pool.submit(
+        intraday_information.collect_live, WS, args.market, now=now,
+        session=intraday_delta.market_session_date(args.market, now),
+        cache_path=TMP / f'intraday-live-news-{args.market}.json')
+    live_pool.shutdown(wait=False)
+
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
@@ -1618,7 +1629,8 @@ def main(argv=None):
     prices = {row['ticker']: row['price'] for row in
               _harness_common.parse_holdings_rows(stdout) if row.get('price') is not None}
     # Information lane (contract §6): the morning files, read not refetched,
-    # each item labelled with its time; plus one market-level 7x24 fetch.
+    # each item labelled with its time; the market-level 7x24 fetch and the
+    # tier 2 live feeds, both from the lane started before the analyzer.
     # Keyed by holding and by the issuer a fund looks through to (RKLX → RKLB).
     info_tickers = [row['ticker'] for row in full_holdings if row.get('ticker')]
     for ticker in list(info_tickers):
@@ -1626,7 +1638,13 @@ def main(argv=None):
         if issuer and issuer not in info_tickers:
             info_tickers.append(issuer)
     try:
-        information = intraday_information.collect(WS, args.market, info_tickers)
+        live_information = live_lane.result()
+    except Exception as exc:  # noqa: BLE001 — collect_live never raises; belt and braces
+        live_information = {'sources': {}, 'tickers': {}, 'flashes': [], 'requests': [],
+                            'raw': {}, 'degraded': [f'实时资讯（{type(exc).__name__}）']}
+    try:
+        information = intraday_information.collect(
+            WS, args.market, info_tickers, now=now, live=live_information)
     except Exception as exc:  # noqa: BLE001 — a colour lane must never red a slot
         information = {'summary': {}, 'full': {},
                        'degraded': [f'资讯汇总（{type(exc).__name__}）']}

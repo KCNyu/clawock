@@ -378,33 +378,47 @@ def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None, between=Non
     return sum(1 for row in rows if row['reddit_mentions_7d'])
 
 
+def google_news_url(query, hl='en-US', gl='US', ceid=None):
+    """The Google News RSS search URL. `ceid` defaults to `<gl>:<language>`;
+    Google redirects that for Chinese editions (`CN:zh` → `CN:zh-Hans`), so a
+    caller on a time budget names it."""
+    ceid = ceid or f'{gl}:{hl.split("-")[0]}'
+    return f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={ceid}'
+
+
+def parse_google_news(text, limit=8):
+    """Headlines from one Google News RSS answer (raises on a non-feed body)."""
+    root = ET.fromstring(text)
+    items = []
+    for it in root.findall('.//item')[:limit]:
+        title = (it.findtext('title') or '').strip()
+        pub   = (it.findtext('pubDate') or '').strip()
+        src   = ''
+        src_el = it.find('source')
+        if src_el is not None:
+            src = (src_el.text or '').strip()
+        link = (it.findtext('link') or '').strip()
+        # Strip " - source" suffix in title
+        if ' - ' in title:
+            title = title.rsplit(' - ', 1)[0]
+        items.append({
+            'title': title,
+            'source': src,
+            'published': pub,
+            'url': link,
+        })
+    return items
+
+
 def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
     """Returns up to `limit` recent headlines from Google News RSS."""
     try:
-        url = f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={gl}:{hl.split("-")[0]}'
+        url = google_news_url(query, hl=hl, gl=gl)
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         if r.status_code != 200:
             return ([], 'failed') if return_status else []
         SOURCE_STATUS['google_news'] = 'ok'
-        root = ET.fromstring(r.text)
-        items = []
-        for it in root.findall('.//item')[:limit]:
-            title = (it.findtext('title') or '').strip()
-            pub   = (it.findtext('pubDate') or '').strip()
-            src   = ''
-            src_el = it.find('source')
-            if src_el is not None:
-                src = (src_el.text or '').strip()
-            link = (it.findtext('link') or '').strip()
-            # Strip " - source" suffix in title
-            if ' - ' in title:
-                title = title.rsplit(' - ', 1)[0]
-            items.append({
-                'title': title,
-                'source': src,
-                'published': pub,
-                'url': link,
-            })
+        items = parse_google_news(r.text, limit)
         if return_status:
             return items, ('ok' if items else 'success_empty')
         return items

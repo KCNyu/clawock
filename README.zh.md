@@ -21,7 +21,7 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
 
-| **<!-- CW_M:days -->130<!-- /CW_M:days -->** | **<!-- CW_M:rows -->917<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** | **43** | **5** | **0** |
+| **<!-- CW_M:days -->130<!-- /CW_M:days -->** | **<!-- CW_M:rows -->917<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
 
@@ -31,7 +31,7 @@
 
 每个交易日,clawock 把市场里的原始信息一路加工成可以打分的决策:
 
-- **收集**:8 层、43 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
+- **收集**:8 层、44 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
 - **算因子**:量化因子、横截面排名、同业残差、趋势 × 波动率的杠杆刻度盘,全部由 Python 确定性计算。
 - **回测**:因子的聚类 bootstrap 区间要避开 50% 才准影响决策;横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在仪表盘的 [Reflect 视图](https://kcnyu.github.io/clawock/#reflect)。
 - **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
@@ -57,7 +57,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 正经版:LLM 从不自己抓数据,也不自己结算。Python 留存完整上下文供审计;盘前深度简报给模型的是同一代次的清单、固定核心和按需读取的特性 bundle,风控细节独立成包。模型读选中的文件,写带证据、带反方的分析。剩下全是代码的事。
 
-![clawock 信息流 —— 8 层 43 个模块经 Python preflight 按需组装;完整上下文供审计,盘前简报模型读取同一代次的核心与选定 bundle;postflight 校验结算后发布](site/assets/information-flow.svg)
+![clawock 信息流 —— 8 层 44 个模块经 Python preflight 按需组装;完整上下文供审计,盘前简报模型读取同一代次的核心与选定 bundle;postflight 校验结算后发布](site/assets/information-flow.svg)
 
 ```
 数据源
@@ -70,7 +70,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 ## 信息层
 
-仓库编录了 **8 层、43 个抓取与计算模块**,港股美股双语覆盖:
+仓库编录了 **8 层、44 个抓取与计算模块**,港股美股双语覆盖:
 
 <details>
 <summary><b>全部 8 层,逐行展开</b> —— 模块数与主要来源</summary>
@@ -82,7 +82,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 | 1 · 行情 | 7 | 腾讯 · Yahoo · 东财 · Polygon |
 | 2 · 基本面/申报 | 3 | SEC EDGAR · 东财 datacenter · 港交所 |
 | 3 · 资金面 | 1 | 东财 push2his |
-| 4 · 消息面与催化剂(双语) | 5 | 东财 · Finnhub · Google News · 交易所公告 |
+| 4 · 消息面与催化剂(双语) | 6 | 东财 · Finnhub · Google News · Yahoo · 同花顺 · 交易所公告 |
 | 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
 | 6 · 量化与风险 | 9 | 对价格历史做确定性计算 |
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
@@ -90,7 +90,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 覆盖是双语的,但不对称,而且不对称的地方在研究广度不在基础面。行情、基本面、消息面、资金守恒都有真实的港股分支;两项研究广度能力没有:同业发现在美股侧自动抓取、在港股侧读人工策展的 peer-map([`peer_discovery.py`](src/clawock/market_data/peer_discovery.py) —— 机制已实测可用,闸仍关着,等 peer-residual 规则对着更宽的同业域重新登记之后再开),停牌在美股侧是结构化 feed、在港股侧只是一条要人工判读的公告([`mover_evidence.py`](src/clawock/market_data/mover_evidence.py))。即:港股基础覆盖对齐,港股研究广度落后美股。
 
-抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。43 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
+抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。44 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 
 </details>
 
@@ -129,8 +129,8 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 | | 盘前深度简报 | 开 / 午 / 收报告 | 盘中盯盘 |
 |---|---|---|---|
 | **什么时候** | 工作日 08:03 HKT | 港 09:30·12:00·13:30·16:00,美开收 | 开市每 30 分钟 |
-| **块数** | 40 | 17 | 47 |
-| **核心内容** | 持仓真值、风控、量化信号、**收盘确认的加仓面**、新闻/催化剂、论点登记册、历史复盘、当日计划 | 新鲜行情、异动催化探针、待成交决策、**计划触发线是否已破** | 行情、信号计数、T+0 牌面、异动标记、盘中重跑的入场 setup、**计划触发线是否已破**(算术判定并印进块里,不指望模型自己看出来) |
+| **块数** | 41 | 18 | 47 |
+| **核心内容** | 持仓真值、风控、量化信号、**收盘确认的加仓面**、新闻/催化剂(含上次收盘以来的实时公告与新闻)、论点登记册、历史复盘、当日计划 | 新鲜行情、异动催化探针、全持仓实时公告与新闻、待成交决策、**计划触发线是否已破** | 行情、信号计数、T+0 牌面、异动标记、每档全持仓实时公告/新闻/7×24、盘中重跑的入场 setup、**计划触发线是否已破**(算术判定并印进块里,不指望模型自己看出来) |
 
 块数 = 每个频次产出的 context 顶层块数,CI(`tests/test_readme_parity.py`)对着 preflight 自己的 context dict 数——标识包身份的信封键(`context_id` / `generation_id`)不计数,所以实际产物会多一个键。
 

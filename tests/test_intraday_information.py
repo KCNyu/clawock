@@ -90,3 +90,66 @@ def test_quoting_a_stale_headline_without_its_time_is_flagged():
     assert flagged and not flagged[0].endswith('(advisory)')
     labelled = base + 'Rocket Lab wins launch contract（截至 09-25 17:35 HKT）仍是背景。\n'
     assert not [i for i in post.validate(labelled, ctx, labelled) if '旧闻' in i]
+
+
+# ── Tier 2: live sources folded into the lane (contract §6) ─────────────────
+
+HK_NOW = datetime(2026, 9, 28, 11, 33, tzinfo=HKT)  # HK session opened 09:30
+
+
+def _hk_targets(ticker):
+    if ticker in ('03032', '07226'):
+        return {'kind': 'index_fund', 'issuer': None, 'theme_terms': ['恒生科技', '恒科']}
+    return {'kind': 'issuer', 'issuer': ticker}
+
+
+HK_FETCHERS = {
+    'hkexnews': lambda codes: [
+        {'issuer': '02208', 'title': '內幕消息（公告及通告 - [內幕消息]）',
+         'published_at': '2026-09-28T11:02:00+08:00'}],
+    'google_news': lambda query, language: [
+        {'title': f'{query} live', 'published_at': '2026-09-28T10:40:00+08:00',
+         'publisher': 'Reuters'},
+        {'title': f'{query} overnight', 'published_at': '2026-09-28T06:10:00+08:00'}],
+    'ths_724': lambda: [{'title': '恒指午间收跌', 'published_at': '2026-09-28T11:30:00+08:00'}],
+    'em_724': lambda: [{'title': '恒生科技指数跌2%', 'date': '2026-09-28 11:20'}],
+}
+
+
+def test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_time(tmp_path):
+    live = info.collect_live(tmp_path, 'hk', now=HK_NOW, session='2026-09-28',
+                             tickers=['00100', '02208', '03032', '07226'],
+                             targets=_hk_targets,
+                             names={'00100': 'MINIMAX-W', '02208': '金风科技'},
+                             fetchers=HK_FETCHERS)
+    out = info.collect(_workspace(tmp_path), 'hk', ['00100', '02208', '03032', '07226'],
+                       now=HK_NOW, live=live)
+    summary = out['summary']
+    rows = summary['live']['02208']
+    assert rows[0]['cite'] == ('《內幕消息（公告及通告 - [內幕消息]）》'
+                               '（HKEXnews披露易，09-28 11:02 HKT 发布，盘中实时）')
+    assert [r['stale'] for r in rows] == [False, False, True]
+    assert summary['live']['07226'] == summary['live']['03032']
+    # Morning rows stay where they were, with their morning labels.
+    assert summary['tickers']['00100'][0]['cite'].endswith('开盘前旧闻）')
+    # A pre-open live headline is held to the same quoting rule as the morning files.
+    assert '金风科技 when:1d overnight' in info.stale_titles(summary)
+    assert '金风科技 when:1d live' not in info.stale_titles(summary)
+    # 同花顺 adds what 东财 did not say; 东财 7×24 came from the same lane.
+    assert [f['title'] for f in summary['market_flashes']] == ['恒指午间收跌', '恒生科技指数跌2%']
+    assert summary['sources']['em_724_live'] == {'status': 'ok', 'requests': 1}
+    assert summary['sources']['hkexnews']['status'] == 'ok'
+    assert summary['sources']['hkexnews']['tier'] == 2
+    assert out['full']['live']['tickers']['02208'][0]['source'] == 'hkexnews'
+    assert out['degraded'] == []
+
+
+def test_a_live_source_that_did_not_answer_is_on_the_lanes_degraded_list(tmp_path):
+    def down(query, language):
+        raise TimeoutError('read timed out')
+    live = info.collect_live(tmp_path, 'hk', now=HK_NOW, session='2026-09-28',
+                             tickers=['02208'], targets=_hk_targets, names={'02208': '金风科技'},
+                             fetchers={**HK_FETCHERS, 'google_news': down})
+    out = info.collect(_workspace(tmp_path), 'hk', ['02208'], now=HK_NOW, live=live)
+    assert out['degraded'] == ['Google新闻（TimeoutError）']
+    assert out['summary']['sources']['google_news']['status'] == 'failed'

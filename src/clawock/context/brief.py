@@ -84,6 +84,7 @@ BUNDLE_FIELDS = {
     "evidence": (
         "catalysts",
         "news_evidence_graph",
+        "live_information",
     ),
     "market": (
         "macro",

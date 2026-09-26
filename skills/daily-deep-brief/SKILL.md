@@ -131,7 +131,9 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
   --arg ticker=00100 --arg section=technical
 ```
 
-可选 section：`facts|technical|thesis|execution|quant|sentiment|history|information|evidence|risk|status|constraints`。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
+可选 section：`facts|technical|thesis|execution|quant|sentiment|history|information|evidence|risk|status|constraints`。
+
+**实时消息面**：summary 每票的 `live` 是 preflight 刚抓的实时公告/新闻（HKEXnews、SEC 全文检索、Google 新闻、Yahoo，上次收盘以来）前两条 cite，全部条目在 `--section information` 的 `information.live`；引用照抄 cite（含发布时间与「上次收盘后」/「上次收盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」）。summary 顶层 `live_information.<hk|us>.degraded` 非空＝该源没取到，简报里写「X 未取到」，不许写成没有消息。实时条目是消息面证据，不是加仓授权。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
 
 > **为什么走 `clawock tool`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的。协议实现随 `clawock` wheel 安装；workspace 只提供本次生成的数据，不再提供可执行 Python 源码。输出含 `_meta.generation_id` 代次钉扎。
 

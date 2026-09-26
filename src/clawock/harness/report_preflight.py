@@ -50,12 +50,13 @@ import argparse
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
-from clawock.evidence import research_surface
+from clawock.evidence import live_sources, research_surface
 from clawock.market_data import mover_evidence as mover_news
 from clawock.market_data import peer_scan
 
@@ -258,6 +259,27 @@ def collect_peers(market):
         return {}
 
 
+#: The live sources a report reads (docs/architecture/harness.md § Live
+#: information sources) — the brief's set: per-name filings and news. The
+#: market-level 7×24 feeds are the intraday slot's instrument.
+REPORT_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss')
+
+
+def live_information(market, *, now=None):
+    """This leg's live news and disclosures, bounded, labelled against the
+    session open. The same harness-neutral call the brief and the intraday
+    slot make; never raises. A source that did not answer is in `degraded`."""
+    try:
+        tickers = live_sources.book_tickers(WS, market)
+    except Exception as exc:  # noqa: BLE001 — no book: say so
+        return {'as_of': None, 'sources': {}, 'summary': {},
+                'degraded': [f'实时资讯（{type(exc).__name__}）']}
+    result = live_sources.collect(market, tickers, now=now, sources=REPORT_LIVE_SOURCES)
+    return {'as_of': result.get('as_of'), 'sources': result.get('sources') or {},
+            'degraded': result.get('degraded') or [],
+            'summary': live_sources.summarize(result.get('tickers'), per_ticker=4)}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -316,6 +338,11 @@ def main(argv=None):
         announce_context_path(out_path)
         return 1
 
+    # Live news/disclosures wait alongside the peer scan and the mover probe.
+    live_pool = ThreadPoolExecutor(max_workers=1)
+    live_lane = live_pool.submit(live_information, args.market)
+    live_pool.shutdown(wait=False)
+
     signals = parse_signals(stdout)
     anomalies = parse_anomalies(stdout)
     indices = parse_hk_indices(stdout) if args.market == 'hk' else None
@@ -357,6 +384,12 @@ def main(argv=None):
          if row.get('price') is not None},
     )
 
+    try:
+        live_ctx = live_lane.result()
+    except Exception as exc:  # noqa: BLE001 — never raises; belt and braces
+        live_ctx = {'as_of': None, 'sources': {}, 'summary': {},
+                    'degraded': [f'实时资讯（{type(exc).__name__}）']}
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -376,6 +409,9 @@ def main(argv=None):
         'plan_triggers':      plan_triggers,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
+        # Live filings and news per holding (cite carries each item's own
+        # time); `degraded` names a source that did not answer.
+        'live_information':   live_ctx,
         # 语义分档，不是数数（kcn 2026-08-26：「根据合适的语意来告警，不要做
         # 硬匹配」）：ALERT 是渲染端最严重的一行（当日 -8%），它单独一条就压
         # 过两条 STOP/TRIM，所以它自己就要一段风险提示。

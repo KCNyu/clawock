@@ -75,6 +75,8 @@ DEFAULT_PLAN = {
     'filings': (0, '{"key_financials": {"Revenues": {}}}'),
     'daily-bars': (0, '3 bars added, 0 revised'),
     'catalysts': (0, '{"summary": {}}'),
+    # The live-sources node's answer: both books read, nothing degraded.
+    'live-sources': (0, '{"hk": {"degraded": []}, "us": {"degraded": []}}'),
 }
 
 SIDE_CARS = ('macro.json', 'sentiment.json', 'influencer_feed.json', 'em_news.json')
@@ -390,6 +392,7 @@ def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, 
         'catalysts': (1, 'cat down'),
         'news-evidence': (1, 'graph down'),
         'benchmark': (1, ''),
+        'live-sources': DEFAULT_PLAN['live-sources'],
     }
     # Two opposite delay profiles scramble completion order within each wave;
     # the context issues must come out in NODE_ORDER both times (#916).
@@ -439,3 +442,24 @@ def _stagger_delays():
         'news-evidence': 0.10, 'benchmark': 0.05,
         't0-review': 0.06, 'evidence': 0.05,
     }
+
+
+def test_a_live_source_gap_is_carried_to_the_model_not_raised_as_a_failed_preflight(
+    tmp_path, monkeypatch
+):
+    """Any preflight issue exits the brief preflight 1, which the cron reads
+    as a failed tool; a news feed that timed out is not that. It rides in
+    `live_information` (and the packet's source health) instead. The command
+    itself failing is still an issue."""
+    answer = {'us': {'degraded': ['Google新闻（TimeoutError）'], 'summary': {}},
+              'hk': {'degraded': [], 'summary': {}}}
+    run = run_stubbed_preflight(tmp_path, monkeypatch, plan={
+        **DEFAULT_PLAN, 'live-sources': (0, json.dumps(answer, ensure_ascii=False))})
+    assert run.exit_code == 0 and run.issues == []
+    assert run.context['live_information']['us']['degraded'] == ['Google新闻（TimeoutError）']
+    spawned = [argv for kind, command, argv in run.recorder.calls if command == 'live-sources']
+    assert len(spawned) == 1 and 'hkexnews,sec_fulltext,google_news,yahoo_rss' in spawned[0]
+
+    broken = run_stubbed_preflight(tmp_path, monkeypatch, plan={
+        **DEFAULT_PLAN, 'live-sources': (1, '')})
+    assert broken.issues == ['live sources failed']

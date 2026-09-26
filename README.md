@@ -21,7 +21,7 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
-| **<!-- CW_M:days -->130<!-- /CW_M:days -->** | **<!-- CW_M:rows -->917<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** | **43** | **5** | **0** |
+| **<!-- CW_M:days -->130<!-- /CW_M:days -->** | **<!-- CW_M:rows -->917<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
@@ -31,7 +31,7 @@
 
 Every trading day, clawock turns raw market information into decisions that get graded:
 
-- **Collect.** 43 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
+- **Collect.** 44 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
 - **Compute factors.** Quant factors, cross-sectional ranks, peer residuals and a trend × volatility leverage dial, all computed deterministically in Python.
 - **Backtest.** A factor's clustered bootstrap interval has to clear 50% before it may influence a decision; the cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published in the [Reflect view](https://kcnyu.github.io/clawock/#reflect).
 - **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
@@ -96,11 +96,11 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **43 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **44 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
-![clawock information flow — eight layers and 43 modules feed a deterministic Python preflight; the complete context is kept for audit while the daily brief reads a generation-bound core and selected bundles; Python validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
+![clawock information flow — eight layers and 44 modules feed a deterministic Python preflight; the complete context is kept for audit while the daily brief reads a generation-bound core and selected bundles; Python validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
 
 <details>
 <summary><b>All 8 layers, row by row</b> — modules and primary sources</summary>
@@ -112,13 +112,13 @@ Coverage is bilingual, but it is not symmetric, and the asymmetry is in research
 | 1 · Market | 7 | Tencent · Yahoo · Eastmoney · Polygon |
 | 2 · Fundamentals & filings | 3 | SEC EDGAR · Eastmoney datacenter · HKEX |
 | 3 · Capital flow | 1 | Eastmoney push2his |
-| 4 · News & catalysts (bilingual) | 5 | Eastmoney · Finnhub · Google News · exchange filings |
+| 4 · News & catalysts (bilingual) | 6 | Eastmoney · Finnhub · Google News · Yahoo · 10jqka · exchange filings |
 | 5 · Macro & sentiment | 3 | Yahoo · Reddit · CNN · social feeds |
 | 6 · Quant & risk | 9 | deterministic math over price history |
 | 7 · Book & FX integrity | 6 | Frankfurter · the reconciliation ledger · local invariants |
 | 8 · Backtest & calibration | 9 | local snapshots + canonical bars |
 
-The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
+The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR (including its full-text search), HKEXnews, Finnhub, Nasdaq, Eastmoney, 10jqka, Polygon, Alpha Vantage, Reddit, Google News, and Yahoo Finance RSS — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
 
 </details>
 
@@ -150,11 +150,11 @@ is a daily artifact and would be stale by construction.
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:03 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 40 | 17 | 47 |
+| **Blocks** | 41 | 18 | 47 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups, the close-confirmed opportunity radar (which names closed above their prior 20-day high, and why an empty add side is empty) | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags, entry setups and early-trend candidates re-run on the open bar, price-surface opportunity radar |
-| **News and events** | evidence graph, Chinese-language company news, catalyst calendar, macro, Reddit and social feeds | catalyst probe on flagged names | catalyst probe on flagged names |
+| **News and events** | evidence graph, Chinese-language company news, catalyst calendar, macro, Reddit and social feeds, live filings and news since the last close (HKEXnews, EDGAR full-text, Google News, Yahoo) | catalyst probe on flagged names, live filings and news for every holding | catalyst probe on flagged names, live filings, news and 7×24 flashes for every holding every slot |
 | **Research state** | thesis registry, research work queue (reviews due, overdue promises, ungated positions) | thesis and red lines for flagged names | thesis and red lines for flagged names |
 | **History** | retrospective, decision metrics, reflections, data-integrity report | — | heartbeat slot state |
 | **Today's plan** | writes it | the morning's still-open decisions for this leg, and which of their trigger prices the current quote already satisfies | the morning's still-open decisions for this leg, and which of their trigger prices the current quote already satisfies — checked arithmetically and printed in the block, not left for the model to notice |

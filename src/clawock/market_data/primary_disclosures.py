@@ -26,6 +26,13 @@ TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
 TENCENT_FILINGS_TYPE = 0
 NASDAQ_FILINGS = "https://api.nasdaq.com/api/company/{issuer}/sec-filings"
 FINNHUB_FILINGS = "https://finnhub.io/api/v1/stock/filings"
+# HKEXnews "latest listed company information", newest first, 500 rows a file,
+# every SEHK issuer in one document: one request answers the whole HK book.
+HKEXNEWS_LATEST = "https://www1.hkexnews.hk/ncms/json/eds/lcisehk7relsdc_{page}.json"
+HKEXNEWS_BASE = "https://www1.hkexnews.hk"
+# EDGAR full-text search: a different host from data.sec.gov, several CIKs in
+# one query. Date-only (`file_date`), so it never claims a minute.
+SEC_FULLTEXT = "https://efts.sec.gov/LATEST/search-index"
 # Finnhub stamps `acceptedDate` in US market time, not UTC. Measured against the
 # same filings from data.sec.gov on 2026-08-19: RKLB 8-K reads
 # `2026-08-13T11:10:48Z` at SEC and `2026-08-13 07:10:48` at Finnhub — exactly
@@ -241,6 +248,136 @@ def fetch_nasdaq_filings(issuer, *, now, window_minutes, http=None):
             "form": form or None,
             "filing_items": None,
         })
+    return items, None
+
+
+# The HKEXnews feed is in traditional characters; the triage rules
+# (config/filing-triage.json) are simplified. Only the characters those rules
+# use are mapped — enough to classify, not a general converter.
+_HK_TRADITIONAL = str.maketrans(
+    "報證變動營業見書師務關於預內須佈發認購項轉換債舊後約併權資產暫買賣復績經審會議東別辭",
+    "报证变动营业见书师务关于预内须布发认购项转换债旧后约并权资产暂买卖复绩经审会议东别辞",
+)
+
+
+def hk_simplified(text) -> str:
+    """HKEXnews wording in the characters the HK triage rules are written in."""
+    return str(text or "").translate(_HK_TRADITIONAL)
+
+
+def _parse_hkex_time(value):
+    try:
+        return datetime.strptime(str(value).strip(), "%d/%m/%Y %H:%M").replace(tzinfo=HKT)
+    except (TypeError, ValueError):
+        return None
+
+
+def fetch_hkexnews_latest(codes, *, now, window_minutes, http=None, max_pages=3):
+    """HKEXnews announcements for `codes` (`00100` form), newest first.
+
+    One document lists every SEHK issuer's latest 500 announcements, so the
+    whole book costs one request; a second page is read only when the first
+    ended still inside the window (a results-season afternoon). Returns
+    `(items, note, requests)`; an empty feed is a note — HKEX never publishes
+    an empty list, so empty means not fetched.
+    """
+    http = http or _http_json
+    wanted = {str(code).zfill(5) for code in codes if code}
+    items, requests = [], 0
+    for page in range(1, max_pages + 1):
+        payload = http(HKEXNEWS_LATEST.format(page=page),
+                       headers={"Referer": f"{HKEXNEWS_BASE}/"})
+        requests += 1
+        rows = (payload or {}).get("newsInfoLst") or []
+        if not rows:
+            return items, ("empty feed" if page == 1 else None), requests
+        oldest = None
+        for row in rows:
+            when = _parse_hkex_time(row.get("relTime"))
+            if when is None:
+                continue
+            oldest = when
+            age = _age_minutes(when, now)
+            if age < 0 or age > window_minutes:
+                continue
+            for stock in row.get("stock") or []:
+                code = str(stock.get("sc") or "").zfill(5)
+                if code not in wanted:
+                    continue
+                category = re.sub(r"\s+", " ", str(row.get("lTxt") or "")).strip()
+                title = re.sub(r"\s+", " ", str(row.get("title") or "")).strip()
+                items.append({
+                    "issuer": code,
+                    "published_at": when.isoformat(),
+                    "age_minutes": age,
+                    "title": category if category.startswith(title) else f"{title}（{category}）",
+                    "category": category,
+                    "source_class": "hkexnews_filing",
+                    "evidence_tier": "primary",
+                    "source_url": (HKEXNEWS_BASE + row["webPath"]) if row.get("webPath") else None,
+                })
+        pages = int((payload or {}).get("maxNumOfFile") or 1)
+        if page >= pages or oldest is None or _age_minutes(oldest, now) > window_minutes:
+            break
+    return items, None, requests
+
+
+def fetch_sec_fulltext(issuers, *, now, lookback_days=1, http=None):
+    """EDGAR full-text search for every issuer's filings in one request.
+
+    `issuers` are tickers; each is mapped to its CIK through the same cached
+    ticker map `fetch_sec` uses. Rows carry the filing date only
+    (`time_precision: date`) — EDGAR's search index does not publish the
+    acceptance time, and a minute is never invented for them. It answers from
+    efts.sec.gov, so it still lists the day's filings when data.sec.gov (the
+    direct path) is refusing. Returns `(items, note)`.
+    """
+    from clawock.market_data import filings as fetch_us_filings  # noqa: PLC0415
+
+    http = http or _http_json
+    ciks = {}
+    for issuer in issuers:
+        cik = fetch_us_filings.lookup_cik(str(issuer))
+        if cik:
+            ciks[str(issuer).upper()] = re.sub(r"\D", "", str(cik)).zfill(10)
+    if not ciks:
+        return [], "no CIK for " + ",".join(str(i) for i in issuers)
+    today = now.astimezone(ET).date()
+    start = today.fromordinal(today.toordinal() - lookback_days)
+    query = urllib.parse.urlencode({
+        "q": "", "dateRange": "custom", "startdt": start.isoformat(),
+        "enddt": today.isoformat(), "ciks": ",".join(sorted(set(ciks.values()))),
+    })
+    payload = http(f"{SEC_FULLTEXT}?{query}",
+                   headers={"User-Agent": fetch_us_filings._load_user_agent()})
+    items = []
+    for hit in ((payload or {}).get("hits") or {}).get("hits") or []:
+        source = hit.get("_source") or {}
+        adsh = str(source.get("adsh") or "")
+        document = str(hit.get("_id") or "").split(":", 1)[-1]
+        form = str(source.get("form") or source.get("file_type") or "").strip()
+        described = str(source.get("file_description") or "").strip()
+        filed_items = [str(i) for i in source.get("items") or []]
+        title = form if not described or described.upper() == form.upper() else f"{form} {described}"
+        if filed_items:
+            title += f"（items {', '.join(filed_items)}）"
+        for issuer, cik in ciks.items():
+            if cik not in (source.get("ciks") or []):
+                continue
+            items.append({
+                "issuer": issuer,
+                "published_at": None,
+                "filed_date": source.get("file_date"),
+                "time_precision": "date",
+                "title": title,
+                "source_class": "sec_fulltext",
+                "evidence_tier": "primary",
+                "source_url": (f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/"
+                               f"{adsh.replace('-', '')}/{document}") if adsh and document else None,
+                "accession": adsh or None,
+                "form": form or None,
+                "filing_items": ",".join(filed_items) or None,
+            })
     return items, None
 
 

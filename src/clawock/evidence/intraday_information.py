@@ -1,4 +1,4 @@
-"""The intraday information lane, tier 0 and one free market-level fetch.
+"""The intraday information lane: tiers 0–2 of docs/architecture/intraday-agent.md §6.
 
 docs/architecture/intraday-agent.md §6. Six files the morning jobs already
 write (Eastmoney company news and 7x24, the US digest, sentiment attention,
@@ -13,6 +13,15 @@ The one request this adds is Eastmoney's market-level 7x24 list, once per slot.
 `mover_evidence` only keeps flashes naming a mover, so on a quiet slot the lane
 was empty by construction.
 
+Tier 2 (`collect_live`) reads the live free sources every slot — HKEXnews,
+EDGAR full-text search, Google News, Yahoo Finance RSS, 同花顺 7×24 — because
+kcn wants as much live news as there is (2026-09-26), not only where the other
+tiers leave a gap. Fetching, normalising and budgets are
+`clawock.evidence.live_sources` (shared with the brief); this module only picks
+the intraday limits and labels (`盘中实时` / `开盘前旧闻` against the session
+open) and folds the answer into the lane. A source that did not answer is named
+on the ⛔ line like the morning files.
+
 Output: `summary` for the core packet (bounded per source), `full` for the
 reference layer, `degraded` naming sources that could not be read — which the
 card states on a ⛔ line (not fetched is not "no news").
@@ -20,10 +29,13 @@ card states on a ⛔ line (not fetched is not "no news").
 from __future__ import annotations
 
 import json
-from datetime import datetime, time as dtime, timezone
+from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 
-from clawock.sessions import ET, HKT
+from clawock.evidence import live_sources
+from clawock.evidence.live_sources import parse_time as _parse_time, session_open
+from clawock.sessions import HKT
 
 MAX_ITEMS_PER_TICKER = 3
 MAX_MARKET_ITEMS = 5
@@ -49,27 +61,6 @@ def _read(path):
     except (OSError, ValueError) as exc:
         return None, f'unreadable: {type(exc).__name__}'
     return (value, None) if isinstance(value, dict) else (None, 'unreadable: not an object')
-
-
-def _parse_time(value):
-    if value in (None, ''):
-        return None
-    if isinstance(value, (int, float)):
-        return datetime.fromtimestamp(value, timezone.utc)
-    text = str(value).replace('Z', '+00:00')
-    try:
-        parsed = datetime.fromisoformat(text)
-    except ValueError:
-        return None
-    # Producers without an offset (us_news_digest) write host time, HKT.
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=HKT)
-
-
-def session_open(market, now):
-    """When the current session opened (09:30 local), as an aware datetime."""
-    zone = ET if market == 'us' else HKT
-    local = now.astimezone(zone)
-    return datetime.combine(local.date(), dtime(9, 30), tzinfo=zone)
 
 
 def freshness(written_at, market, now):
@@ -101,8 +92,49 @@ def _cite(title, source, fresh):
     return f"《{str(title)[:60]}》（{source}，{label}）"
 
 
-def collect(workspace, market, tickers, *, now=None, fast_news=None):
-    """`{summary, full, degraded}` for this leg's `tickers`. Never raises."""
+# ── Tier 2: live free sources (contract §6; harness-neutral in live_sources) ──
+
+#: The intraday slot's limits: the defaults in `live_sources.Limits` are these
+#: numbers (6 s a request, 10 s for 同花顺, 12 s for the whole lane, 20-minute
+#: TTL so a re-run of the slot reuses and the next slot asks again).
+INTRADAY_LIMITS = live_sources.Limits()
+MAX_LIVE_PER_TICKER = 4
+MAX_EXTRA_FLASH_ITEMS = 4
+
+
+def collect_live(workspace, market, *, now=None, session=None, cache_path=None,
+                 tickers=None, targets=None, names=None, fetchers=None, http=None,
+                 limits=INTRADAY_LIMITS):
+    """Tier 2 for this leg's book, labelled against the session open. Never raises.
+
+    Needs the book, not the analyzer — the preflight starts it before the
+    analyzer so its waits overlap the quote refresh. Includes tier 1's 东财
+    7×24 request (`raw['em_724']`), so that one waits alongside too.
+    """
+    try:
+        if tickers is None:
+            tickers = live_sources.book_tickers(workspace, market)
+    except Exception as exc:  # noqa: BLE001 — no book: say so
+        return {'sources': {}, 'tickers': {}, 'flashes': [], 'requests': [], 'raw': {},
+                'degraded': [f'实时资讯（{type(exc).__name__}）']}
+    return live_sources.collect(
+        market, tickers, targets=targets, names=names, now=now, http=http,
+        limits=limits, labels=live_sources.INTRADAY_LABELS, cache_path=cache_path,
+        session=session, fetchers=fetchers)
+
+
+def _near_duplicate(title, others):
+    key = live_sources._title_key(title)
+    return any(SequenceMatcher(None, key, live_sources._title_key(o)).ratio() >= 0.6
+               for o in others)
+
+
+def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
+    """`{summary, full, degraded}` for this leg's `tickers`. Never raises.
+
+    `live` is `collect_live`'s answer (tier 2, started earlier); without it the
+    lane is tiers 0–1 exactly as before.
+    """
     now = now or datetime.now(timezone.utc)
     tickers = [str(t) for t in tickers or [] if t]
     ws = Path(workspace)
@@ -195,14 +227,21 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None):
         market_view['fear_greed'] = {k: macro['fear_greed'].get(k) for k in ('score', 'rating')}
 
     # Tier 1: market-level 7x24, one free request, not filtered by movers.
+    # Fetched inside the tier 2 lane when there is one (same request, earlier).
     flashes, flash_status = [], 'ok'
-    try:
-        if fast_news is None:
-            from clawock.market_data import eastmoney_news  # noqa: PLC0415
-            fast_news = eastmoney_news.em_fast_news
-        rows = fast_news(limit=20) or []
-    except Exception as exc:  # noqa: BLE001 — colour, never fatal
-        rows, flash_status = [], f'failed: {type(exc).__name__}'
+    em_live = ((live or {}).get('raw') or {}).get('em_724') if fast_news is None else None
+    if em_live is not None:
+        rows = em_live.get('rows') or []
+        if em_live.get('status') != 'ok':
+            flash_status = f"failed: {em_live.get('status')}"
+    else:
+        try:
+            if fast_news is None:
+                from clawock.market_data import eastmoney_news  # noqa: PLC0415
+                fast_news = eastmoney_news.em_fast_news
+            rows = fast_news(limit=20) or []
+        except Exception as exc:  # noqa: BLE001 — colour, never fatal
+            rows, flash_status = [], f'failed: {type(exc).__name__}'
     if not rows and flash_status == 'ok':
         # The endpoint answers [] on its own failures; a live 7x24 list is
         # never empty, so empty is reported as not fetched.
@@ -220,12 +259,41 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None):
     if flash_status != 'ok':
         degraded.append(f'东财7×24（{flash_status}）')
 
+    # Tier 2: live per-ticker rows and a second 7x24 feed. Kept apart from the
+    # morning rows (`tickers`), so a live item can never inherit a morning
+    # file's time and a morning item can never pass as live.
+    live_rows = None
+    if live is not None:
+        live_rows = {t: rows for t, rows in (live.get('tickers') or {}).items()
+                     if t in per_ticker}
+        sources.update({name: {**row, 'tier': 2}
+                        for name, row in (live.get('sources') or {}).items()})
+        degraded.extend(live.get('degraded') or [])
+        extra = []
+        for item in live.get('flashes') or []:
+            when = _parse_time(item.get('published_at'))
+            if (when is None or (now - when).total_seconds() / 60 > FLASH_WINDOW_MINUTES
+                    or _near_duplicate(item['title'], [x['title'] for x in flashes])):
+                continue
+            extra.append({'title': item['title'],
+                          'time': when.astimezone(HKT).strftime('%Y-%m-%d %H:%M'),
+                          'source': item['source'], 'cite': item['cite']})
+        flashes = sorted([*flashes, *extra[:MAX_EXTRA_FLASH_ITEMS]],
+                         key=lambda f: str(f.get('time') or ''), reverse=True)
+
     summary = {
         'sources': sources,
         'tickers': per_ticker,
         'attention': attention,
         'market': market_view,
         'market_flashes': flashes,
+        **({'live': live_sources.summarize(live_rows, per_ticker=MAX_LIVE_PER_TICKER),
+            'live_rule': (
+            '实时源（HKEXnews/SEC全文检索/Google新闻/Yahoo财经/同花顺）每条带发布方自己的时间：'
+            '「盘中实时」=本时段开盘后发布，「开盘前旧闻」照样要带时间引用，'
+            'SEC全文检索只有提交日（「时刻未知」，不许说成刚刚）。'
+            '没列出的票=本档实时源没有它的条目；源没取到的写在 ⛔ 行。')}
+           if live_rows is not None else {}),
         'morning_flashes': [
             {'title': i.get('title'), 'cite': _cite(i.get('title'), 'em_news 7×24',
                                                      sources.get('em_news') or {})}
@@ -239,6 +307,10 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None):
         'graph_market_events': [e for e in graph.get('events') or []
                                 if e.get('ticker') == 'MARKET'],
         'em_market_724': em.get('market_724') or [], 'market_flashes_raw': rows}
+    if live_rows is not None:
+        full['live'] = {'tickers': live_rows, 'flashes': live.get('flashes') or [],
+                        'requests': live.get('requests') or [],
+                        'elapsed_s': live.get('elapsed_s'), 'as_of': live.get('as_of')}
     return {'summary': summary, 'full': full, 'degraded': degraded}
 
 
@@ -246,7 +318,8 @@ def stale_titles(summary):
     """Title fragments of stale items, for the postflight label check."""
     out = []
     sources = (summary or {}).get('sources') or {}
-    for rows in ((summary or {}).get('tickers') or {}).values():
+    for rows in [*((summary or {}).get('tickers') or {}).values(),
+                 *((summary or {}).get('live') or {}).values()]:
         for row in rows:
             cite = row.get('cite') or ''
             if '开盘前旧闻' in cite and row.get('title'):

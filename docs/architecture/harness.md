@@ -139,6 +139,49 @@ generic headline feed stays out of the card but reaches the model as
 `headline_feed`. A future maximum silent-streak heartbeat would need its own
 config and an auditable cursor; none is enabled by default.
 
+## Live information sources
+
+Live free news and disclosures are a harness-neutral module, not a feature of
+one lifecycle (kcn 2026-09-26: every entry that writes a judgment should be able
+to use them, in any combination). `clawock.evidence.live_sources` owns the
+logic; each harness only chooses sources, limits and labels and decides what
+reaches its model.
+
+| Layer | Owns | Where |
+|---|---|---|
+| source adapter | one request through the `http` seam, parse to raw rows | `market_data/primary_disclosures.py` (HKEXnews, EDGAR full-text search), `market_data/live_news.py` (Google News — URL/parser shared with `sentiment.py` —, Yahoo Finance RSS, 同花顺 7×24), `market_data/eastmoney_news.py` (东财 7×24, its own throttled gateway) |
+| normalisation | publisher's own time, grade from the source's class, filing noise dropped by `config/filing-triage.json`, a `cite` that says which side of the caller's `fresh_since` the item is on; output `{source, grade, title, published_at \| filed_date, url, publisher, signal, stale, cite}` and per source `{status, as_of, stale, requests, cached, items}` | `live_sources.normalize` / `collect` |
+| trimming | bounded per-ticker rows for a core packet; the whole list for a reference layer | `live_sources.summarize` (caller picks `per_ticker`) |
+| budgets | per-request timeout, per-source timeout, wall-clock budget, per-source concurrency, per-source request budget, cache TTL — all in `Limits`, passed by the caller | `live_sources.Limits` |
+
+Interface: `collect(market, tickers, *, targets, names, window_minutes, now,
+http, sources, limits, fresh_since, labels, cache_path, session)`. It never
+raises and never waits past `limits.budget_s`; a source that fails or times out
+is named in `degraded` (not fetched is never "no news"). `clawock live-sources`
+is the same call as a subprocess for a preflight that runs each collector as
+its own process.
+
+| Entry | How it calls | Sources | Freshness label | What reaches the model | A failed source |
+|---|---|---|---|---|---|
+| intraday slot | in-process, started before the analyzer, cache per session (`memory/.tmp/intraday-live-news-<m>.json`, TTL 20 min) | all six | `盘中实时` / `开盘前旧闻` against the session open | `information.live` (4 rows a name), 同花顺 flashes merged into `market_flashes`; everything in reference `information_full.live` | `⛔ 资讯源未取到：…（不是无消息）` on the card + `information.sources` |
+| brief | `clawock live-sources --market both --fresh-since last_close` as a WAVE1 node | HKEXnews, SEC full-text, Google News, Yahoo RSS | `上次收盘后` / `上次收盘前旧闻` against each market's last close | context `live_information` (bundle `evidence`); packet `information.live` per name, summary `live` (two cites) and `live_information` (source health) | in `live_information.<m>.degraded` and the packet's source health — **not** a preflight issue (an issue exits the preflight 1, which the cron reads as a failed tool); the command itself failing is an issue |
+| report | in-process after the analyzer, alongside the peer scan and mover probe | as the brief | against the session open | context `live_information` (`summary`, `sources`, `degraded`) | `live_information.degraded` |
+
+Why the brief and the report leave out the two 7×24 feeds: the brief's em-news
+node already writes Eastmoney's 7×24 into `em_news.json` in the same run, and a
+market-level flash scroll is what an open session watches — per-name filings and
+news are what a pre-open or phase report writes about. That is the criterion
+for a market-level feed: an entry takes it only if it has no 7×24 product of its
+own and is read while the market trades.
+
+Adding a source: an adapter in `market_data` (one request, raw rows, raises on
+a non-answer); one `Source` row in `live_sources.SOURCES` (label, grade,
+markets, scope) and its planning rule in `live_sources.plan`; its request budget
+and, if slow, its timeout in `Limits`; a row in the source table of
+[`intraday-agent.md`](intraday-agent.md) §6; and here, the entries that take it.
+A source is added to an entry by naming it in that entry's source tuple
+(`BRIEF_LIVE_SOURCES`, `REPORT_LIVE_SOURCES`; intraday takes all).
+
 ## Context contract
 
 OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat
