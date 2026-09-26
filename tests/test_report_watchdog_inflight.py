@@ -65,7 +65,9 @@ def test_the_gate_runs_before_any_branch_that_sends():
     from clawock.harness import report_watchdog
 
     source = inspect.getsource(report_watchdog.main)
-    defer = source.index('attempt_still_running(ctx, last)')
+    # The wait is `wait_out_inflight` (shared with intraday_watchdog), which
+    # evaluates `attempt_still_running` before it judges.
+    defer = source.index('wait_out_inflight(')
     for later in ('slot_delivered(', "if not block_present or looped:",
                   "'循环'"):
         assert defer < source.index(later), (

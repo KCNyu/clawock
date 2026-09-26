@@ -77,7 +77,6 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
-import time
 from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
@@ -88,7 +87,8 @@ from ._watchdog_common import (
     # The in-flight gate lives beside the other shared run-record helpers; the
     # re-export below keeps `intraday_watchdog.attempt_still_running` importable
     # for the tests and callers that learned the rule here first.
-    attempt_still_running,
+    attempt_still_running,  # noqa: F401  re-export
+    wait_out_inflight, log_after_wait,
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason,
 )
@@ -396,22 +396,19 @@ def main():
     # (#988): poll until the attempt finishes, or judge anyway when the budget
     # runs out. The marker gate below still runs first, so an attempt that lands
     # during the wait is recognised as delivered, not doubled.
-    waited = 0
-    while attempt_still_running(context, last) and waited < inflight_wait_s:
-        log({'tag': tag, 'action': 'wait-inflight',
-             'reason': 'a newer attempt is still running — preflight context '
-                       'postdates the newest finished run',
-             'expected_job': expected_job, 'expected_slot': expected_slot,
-             'context_generated_at': context.get('generated_at'),
-             'last_finished_ms': last.get('ts'),
-             'waited_s': waited, 'budget_s': inflight_wait_s})
-        time.sleep(min(INFLIGHT_POLL_S, inflight_wait_s - waited))
-        waited += INFLIGHT_POLL_S
+    slot_fields = {'expected_job': expected_job, 'expected_slot': expected_slot}
+
+    def refresh(context, last):
         last = run_for_slot(today_runs(job_id) or [], args.market,
                             expected_job, expected_slot) or last
         # A context that no longer names this slot is not evidence about it;
         # keep the one this slot wrote and judge on that.
         context = context_for_slot(ctx_path, expected_job, expected_slot) or context
+        return context, last
+
+    context, last, waited = wait_out_inflight(
+        context, last, refresh=refresh, budget_s=inflight_wait_s,
+        poll_s=INFLIGHT_POLL_S, tag=tag, lead=slot_fields)
     if waited:
         # The slot's facts moved: re-derive every field taken from `last` before
         # judging on them. The dedupe flag is per slot, so it is only re-read.
@@ -422,17 +419,8 @@ def main():
             log({'tag': tag, 'action': 'skip',
                  'reason': 'already handled this slot (dedupe flag, after wait)'})
             return 0
-        still_running = attempt_still_running(context, last)
-        log({'tag': tag,
-             # Never `defer` again: this line always precedes a real verdict.
-             'action': 'proceed-after-wait' if still_running else 'attempt-finished',
-             'reason': ('in-flight budget exhausted — judging on the evidence '
-                        'that exists' if still_running else
-                        'the in-flight attempt finished; judging on its run'),
-             'expected_job': expected_job, 'expected_slot': expected_slot,
-             'waited_s': waited, 'budget_s': inflight_wait_s,
-             'context_generated_at': context.get('generated_at'),
-             'last_finished_ms': last.get('ts'), 'run_at': run_at})
+        log_after_wait(context, last, waited=waited, budget_s=inflight_wait_s,
+                       tag=tag, run_at=run_at, lead=slot_fields)
 
     # A healthy semantic repeat is an intentional silent slot. Postflight
     # records a slot-bound marker only after the dashboard publish succeeds;
