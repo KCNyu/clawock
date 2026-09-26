@@ -14,6 +14,15 @@ Two consumers, one rule each place:
       list                          per-agent lock holder, queue order, quota hint
       head <agent>                  the task id that takes <agent>'s lock next ('' when none)
       cancel <id>                   stop a task (idempotent for one already cancelled)
+      priority <id> <n|top|up|down|reset>
+                                    reorder a waiting task within its agent's queue
+      model <id> <model|keep|default> [<effort|keep|default>]
+                                    the model/effort the task's NEXT attempt uses
+      choices <id>                  what `model` accepts for this task, from the agent's own sources
+      retry <id>                    continue an ended task's session as a new task
+      append <id> [--queue]         add instructions (stdin) to a task, same session
+      log <id> [--lines N]          the end of the task's run.log, redacted
+      result <id>                   the latest final report (read-result.py)
 
 Exit codes: 0 ok · 2 usage · 3 refused (task ended, not allowed) · 4 unknown task ·
 5 host failure (systemctl, a write) · 6 busy (another write on the same task is in flight).
@@ -35,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import functools
 import hashlib
 import json
 import os
@@ -44,7 +54,12 @@ import sys
 import time
 from pathlib import Path
 
-API = 1
+API = 2
+MIN_RUNNER_API = 2  # the runner that reads override.env and takes the lock in queue order
+PRIORITY_RANGE = (-99, 99)
+VALUE_RE = re.compile(r"^[A-Za-z0-9._/:@-]{1,120}$")
+REDACT = [(re.compile(r"(token|api[_-]?key|secret|password)=[^\s&\"]+", re.I), r"\1=<redacted>"),
+          (re.compile(r"(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}"), "<redacted>")]
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,80}$")
 AGENTS = ("claude", "codex", "opencode")
 TERMINAL = {"ok", "partial", "unverified", "failed", "blocked", "timeout", "quota", "cancelled"}
@@ -265,7 +280,8 @@ def cmd_list(_args) -> dict:
         "api": API,
         "fair_wait_sec": fair_wait_sec(),
         "runner": {"api": api, "sha": file_sha(runner)},
-        "host_files": {name: file_sha(TOOLS_DIR / name) for name in ("run-agent.sh", "dispatch.sh", "limits.env")},
+        "host_files": {name: file_sha(TOOLS_DIR / name) for name in ("run-agent.sh", "dispatch.sh", "limits.env",
+                                                                   "opencode-fallback-models")},
         "agents": agents,
     }
 
@@ -334,6 +350,335 @@ def cmd_cancel(args) -> dict:
                             + (f"; continue with: {resume_hint(meta, session)}" if session else ""))}
 
 
+# ---- override.env: priority, model, effort ------------------------------------------------
+# Plain KEY=VALUE lines, values restricted to VALUE_RE (the runner re-checks them), written
+# atomically. meta.env stays the record of what was dispatched; this file is what changed since.
+
+def read_override(d: Path) -> dict[str, str]:
+    return {k: v for k, v in read_env(d / "override.env").items() if k in ("PRIORITY", "MODEL", "EFFORT")}
+
+
+def write_override(d: Path, values: dict[str, str]) -> None:
+    body = "".join(f"{k}={v}\n" for k, v in values.items() if v != "")
+    tmp = d / ".override.env.tmp"
+    tmp.write_text(body)
+    os.replace(tmp, d / "override.env")
+
+
+def live_task(d: Path, task_id: str, action: str) -> tuple[dict, dict]:
+    """meta and result of a task a steering action may touch; refuses ended/old-runner tasks."""
+    meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
+    if not unit_active(task_id):
+        raise OpsError(3, f"task {task_id} has already ended (state={result.get('STATE') or 'unknown'}); {action} no longer applies",
+                       state=result.get("STATE", ""))
+    if to_int(result.get("RUNNER_API"), 1) < MIN_RUNNER_API:
+        raise OpsError(3, f"task {task_id} was started by an older runner that ignores {action}; "
+                          "it keeps its current order and model until it ends")
+    return meta, result
+
+
+def cmd_priority(args) -> dict:
+    d = task_dir(args.id)
+    with TaskLock(d):
+        meta, result = live_task(d, args.id, "priority")
+        agent = meta.get("AGENT", "")
+        if args.id.startswith("patrol-"):
+            raise OpsError(3, "patrol rounds always go last; their priority cannot be changed")
+        if result.get("SLOT") or (to_int(result.get("ATTEMPTS")) > 0 and result.get("WAITING") in ("", "slot")):
+            raise OpsError(3, f"task {args.id} is already running; priority only orders tasks waiting for the {agent} lock")
+        rows = queue_entries(agent)
+        me = next((r for r in rows if r["id"] == args.id), None)
+        if me is None:
+            # Asleep on quota/retry: not in the queue now; the value applies when it re-queues.
+            me = {"id": args.id, "priority": to_int(read_override(d).get("PRIORITY")), "patrol": False,
+                  "protected": False, "queued_at": to_int(result.get("QUEUED_AT"), int(time.time()))}
+            rows = rows + [me]
+        if me["protected"] and args.value != "reset":
+            return {"ok": True, "id": args.id, "changed": False, "queue": [r["id"] for r in queue_entries(agent)],
+                    "message": f"{args.id} has waited past the fair wait: it already goes before every unprotected task, in arrival order"}
+        movable = [r for r in rows if not r["patrol"] and not r["protected"]]
+        movable.sort(key=lambda r: (-r["priority"], r["queued_at"], r["id"]))
+        new: dict[str, int] = {}
+        value = args.value
+        if value == "top":
+            others = [r["priority"] for r in movable if r["id"] != args.id]
+            new[args.id] = max([0, *others]) + 1 if others else max(me["priority"], 0)
+        elif value in ("up", "down"):
+            ids = [r["id"] for r in movable]
+            i = ids.index(args.id)
+            j = i - 1 if value == "up" else i + 1
+            if j < 0 or j >= len(ids):
+                return {"ok": True, "id": args.id, "changed": False, "queue": [r["id"] for r in queue_entries(agent)],
+                        "message": f"{args.id} is already {'first' if value == 'up' else 'last'} among the tasks that can be reordered"}
+            ids[i], ids[j] = ids[j], ids[i]
+            # Renumber the reorderable waiters so exactly this swap happens (a new arrival, priority 0,
+            # still lands behind all of them).
+            for k, tid in enumerate(ids):
+                new[tid] = len(ids) - 1 - k
+        elif value == "reset":
+            new[args.id] = 0
+        else:
+            if not re.fullmatch(r"-?\d{1,2}", value):
+                raise OpsError(2, f"priority takes an integer {PRIORITY_RANGE[0]}..{PRIORITY_RANGE[1]}, top, up, down or reset (got {value!r})")
+            new[args.id] = int(value)
+        changed = []
+        for tid, prio in new.items():
+            td = TASKS_DIR / tid
+            ov = read_override(td)
+            old = to_int(ov.get("PRIORITY"))
+            if old == prio and (prio != 0 or "PRIORITY" not in ov):
+                continue
+            ov["PRIORITY"] = "" if prio == 0 else str(prio)
+            write_override(td, ov)
+            detail = f"priority {old}->{prio}" + ("" if tid == args.id else f" (reorder: {args.id} {value})")
+            audit(td, args.source, "priority", detail)
+            changed.append({"id": tid, "from": old, "to": prio})
+        order = [r["id"] for r in queue_entries(agent)]
+        return {"ok": True, "id": args.id, "changed": bool(changed), "changes": changed, "queue": order,
+                "position": order.index(args.id) + 1 if args.id in order else None,
+                "message": f"{agent} queue: " + " > ".join(order) if order else "saved; applies when the task queues again"}
+
+
+@functools.lru_cache(maxsize=1)
+def claude_help() -> str:
+    try:
+        return subprocess.run(["claude", "--help"], capture_output=True, text=True, timeout=15).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def claude_efforts() -> list[str]:
+    text = claude_help()
+    m = re.search(r"--effort <level>[^(]*\(([a-z, ]+)\)", text)
+    return [e.strip() for e in m[1].split(",")] if m else []
+
+
+def claude_aliases() -> list[str]:
+    text = claude_help()
+    m = re.search(r"--model <model>(.*?)\n\s+-", text, re.S)
+    return re.findall(r"'([a-z0-9.-]+)'", m[1]) if m else []
+
+
+def dispatch_default(agent: str) -> str:
+    try:
+        text = (TOOLS_DIR / "dispatch.sh").read_text()
+    except OSError:
+        return ""
+    m = re.search(rf"^\s*{agent}\) MODEL=\$\{{MODEL:-([^}}]+)\}}", text, re.M)
+    return m[1] if m else ""
+
+
+def models_seen(agent: str, limit: int = 400) -> list[str]:
+    """Models this host's tasks of <agent> were dispatched with or ran on (newest dirs first)."""
+    seen: list[str] = []
+    try:
+        dirs = sorted((p for p in TASKS_DIR.iterdir() if p.is_dir()), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
+    except OSError:
+        return seen
+    for p in dirs:
+        meta = read_env(p / "meta.env")
+        if meta.get("AGENT") != agent:
+            continue
+        for m in (meta.get("MODEL", ""), read_env(p / "result.env").get("MODEL_USED", "")):
+            if m and VALUE_RE.match(m) and m not in seen:
+                seen.append(m)
+    return seen
+
+
+def codex_models() -> dict[str, list[str]]:
+    home = Path(os.environ.get("CODEX_HOME", "/root/.codex"))
+    try:
+        data = json.loads((home / "models_cache.json").read_text())
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for m in data.get("models", []) if isinstance(data, dict) else []:
+        if m.get("slug") and m.get("visibility", "list") == "list":
+            out[m["slug"]] = [e.get("effort") for e in m.get("supported_reasoning_levels", []) if e.get("effort")]
+    return out
+
+
+def pool_models() -> list[str]:
+    try:
+        lines = (TOOLS_DIR / "opencode-fallback-models").read_text().splitlines()
+    except OSError:
+        return []
+    return [w for line in lines for w in line.split("#", 1)[0].split()]
+
+
+def task_choices(meta: dict, result: dict) -> dict:
+    """What `model` accepts for this task. Every list comes from the agent's own source of truth:
+    claude --help (efforts, aliases), codex's models_cache.json (models and their efforts), the
+    opencode pool file; plus the task's own models and those this host has dispatched before."""
+    agent = meta.get("AGENT", "")
+    own = [m for m in (meta.get("MODEL", ""), *meta.get("FALLBACK_MODELS", "").split(",")) if m]
+    if agent == "claude":
+        models = list(dict.fromkeys([*own, dispatch_default("claude"), *models_seen("claude"), *claude_aliases()]))
+        efforts = {m: claude_efforts() for m in models if m}
+        flag = "--effort"
+    elif agent == "codex":
+        cache = codex_models()
+        models = list(dict.fromkeys([*own, dispatch_default("codex"), *cache]))
+        efforts = {m: cache.get(m, []) for m in models if m}
+        flag = "model_reasoning_effort"
+    else:
+        models = list(dict.fromkeys([*own, *pool_models()]))
+        efforts = {m: [] for m in models if m}   # the free pool has no variants; --variant stays unset
+        flag = "--variant"
+    return {"agent": agent, "models": [m for m in models if m], "efforts": efforts, "effort_flag": flag}
+
+
+def cmd_choices(args) -> dict:
+    d = task_dir(args.id)
+    meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
+    ov = read_override(d)
+    out = {"ok": True, "id": args.id, **task_choices(meta, result),
+           "requested": {"model": ov.get("MODEL") or meta.get("MODEL", ""), "effort": ov.get("EFFORT") or meta.get("EFFORT", "")},
+           "used": {"model": result.get("MODEL_USED", ""), "effort": result.get("EFFORT_USED", "")},
+           "override": ov}
+    try:
+        live_task(d, args.id, "a model change")
+        refusal = model_refusal(meta, result)
+    except OpsError as e:
+        refusal = e.message
+    out["allowed"] = refusal is None
+    out["reason"] = refusal or ""
+    return out
+
+
+def model_refusal(meta: dict, result: dict) -> str | None:
+    if meta.get("ID", "").startswith("patrol-"):
+        return "patrol rounds pick their models from the pool file"
+    if meta.get("AGENT") == "codex" and result.get("SESSION"):
+        # Not verified: codex's weekly quota was out when this was built (2026-09-26). claude
+        # (`--resume` with another --model, checked) and opencode (-s on the next pool model, the
+        # fallback path of every patrol round) are.
+        return "switching a codex session's model on resume is unverified; only a codex task that has not started can change it"
+    return None
+
+
+def cmd_model(args) -> dict:
+    d = task_dir(args.id)
+    with TaskLock(d):
+        meta, result = live_task(d, args.id, "a model change")
+        refusal = model_refusal(meta, result)
+        if refusal:
+            raise OpsError(3, refusal)
+        choices = task_choices(meta, result)
+        ov = read_override(d)
+        before = dict(ov)
+        if args.model == "default":
+            ov["MODEL"] = ""
+        elif args.model != "keep":
+            if args.model not in choices["models"]:
+                raise OpsError(2, f"{args.model!r} is not a {choices['agent']} model this host knows: {', '.join(choices['models'])}")
+            ov["MODEL"] = "" if args.model == meta.get("MODEL") else args.model
+        model_next = ov.get("MODEL") or meta.get("MODEL", "")
+        if args.effort == "default":
+            ov["EFFORT"] = ""
+        elif args.effort not in ("keep", None):
+            allowed = choices["efforts"].get(model_next, [])
+            if args.effort not in allowed:
+                raise OpsError(2, f"{args.effort!r} is not an effort {model_next} accepts ({choices['effort_flag']}: "
+                                  f"{', '.join(allowed) or 'none — this model takes no effort setting'})")
+            ov["EFFORT"] = "" if args.effort == meta.get("EFFORT") else args.effort
+        effort_next = ov.get("EFFORT") or meta.get("EFFORT", "")
+        if ov == before:
+            return {"ok": True, "id": args.id, "changed": False, "model_next": model_next, "effort_next": effort_next,
+                    "message": "nothing to change"}
+        write_override(d, ov)
+        audit(d, args.source, "model", f"model {before.get('MODEL') or '-'}->{ov.get('MODEL') or '-'} "
+                                         f"effort {before.get('EFFORT') or '-'}->{ov.get('EFFORT') or '-'}")
+        running = bool(result.get("SLOT"))
+        return {"ok": True, "id": args.id, "changed": True, "applies": "next_attempt", "running": running,
+                "model_next": model_next, "effort_next": effort_next,
+                "message": (f"next attempt: {model_next}{'/' + effort_next if effort_next else ''}"
+                            + ("; the attempt running now keeps its model" if running else ""))}
+
+
+# ---- session actions (through dispatch.sh, which owns them) ----------------------------------
+
+def dispatch(argv: list[str], stdin: str | None = None) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run([str(TOOLS_DIR / "dispatch.sh"), *argv], input=stdin, capture_output=True,
+                              text=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise OpsError(5, f"dispatch.sh failed: {e}")
+
+
+CONTINUE_TEXT = ("重试：上一轮没有做完（失败、超时或被取消）。先检查当前真实状态（git/PR/CI/文件），复用已有产物，"
+                 "不要重复已完成的步骤，继续完成原任务。结束时按原要求输出 STATUS 行。")
+
+
+def cmd_retry(args) -> dict:
+    d = task_dir(args.id)
+    with TaskLock(d):
+        result = read_env(d / "result.env")
+        if unit_active(args.id):
+            raise OpsError(3, f"task {args.id} is still running; append to it instead of retrying")
+        state = result.get("STATE", "")
+        if state == "ok" and result.get("OUTCOME") in ("DONE", ""):
+            raise OpsError(3, f"task {args.id} finished (state=ok); append a new instruction instead of retrying")
+        if not result.get("SESSION"):
+            raise OpsError(3, f"task {args.id} ended without a session to continue; dispatch it again")
+        r = dispatch(["append", args.id], CONTINUE_TEXT)
+        m = re.search(r"^dispatched (\S+)", r.stdout, re.M)
+        audit(d, args.source, "retry", f"rc={r.returncode} new={m[1] if m else '-'}")
+        if r.returncode != 0:
+            raise OpsError(5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
+        return {"ok": True, "id": args.id, "new_id": m[1] if m else "", "session": result.get("SESSION", ""),
+                "message": f"continuing session {result.get('SESSION')} as {m[1] if m else 'a new task'}"}
+
+
+def cmd_append(args) -> dict:
+    d = task_dir(args.id)
+    text = sys.stdin.read() if args.text is None else args.text
+    if not text.strip():
+        raise OpsError(2, "empty instruction")
+    if len(text) > 20000:
+        raise OpsError(2, "instruction longer than 20000 characters")
+    with TaskLock(d):
+        live = unit_active(args.id)
+        if not live:
+            raise OpsError(3, f"task {args.id} has already ended; use retry (or dispatch.sh append) to continue its session")
+        r = dispatch(["append", args.id, *(["--queue"] if args.queue else [])], text)
+        audit(d, args.source, "append", f"mode={'queue' if args.queue else 'now'} chars={len(text)} rc={r.returncode}")
+        if r.returncode != 0:
+            raise OpsError(5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
+        return {"ok": True, "id": args.id, "mode": "queue" if args.queue else "now", "message": r.stdout.strip()}
+
+
+def redact(text: str) -> str:
+    for pattern, repl in REDACT:
+        text = pattern.sub(repl, text)
+    return text
+
+
+def cmd_log(args) -> dict:
+    d = task_dir(args.id)
+    n = max(1, min(args.lines, 400))
+    try:
+        with open(d / "run.log", "rb") as f:
+            f.seek(0, 2)
+            f.seek(max(0, f.tell() - 262144))
+            lines = f.read().decode("utf-8", "replace").splitlines()[-n:]
+    except OSError:
+        lines = []
+    return {"ok": True, "id": args.id, "lines": [redact(line) for line in lines]}
+
+
+def cmd_result(args) -> dict:
+    task_dir(args.id)
+    try:
+        r = subprocess.run([sys.executable, str(TOOLS_DIR / "read-result.py"), args.id], capture_output=True,
+                           text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise OpsError(5, f"read-result.py failed: {e}")
+    if r.returncode != 0:
+        raise OpsError(3, (r.stderr or r.stdout).strip() or "no final report yet")
+    return {"ok": True, "id": args.id, "report": redact(r.stdout.strip())}
+
+
 # ---- entry --------------------------------------------------------------------------------
 
 def parser() -> argparse.ArgumentParser:
@@ -349,6 +694,28 @@ def parser() -> argparse.ArgumentParser:
     c = sub.add_parser("cancel")
     c.add_argument("id")
     c.set_defaults(fn=cmd_cancel)
+    pr = sub.add_parser("priority")
+    pr.add_argument("id")
+    pr.add_argument("value")
+    pr.set_defaults(fn=cmd_priority)
+    m = sub.add_parser("model")
+    m.add_argument("id")
+    m.add_argument("model")
+    m.add_argument("effort", nargs="?", default="keep")
+    m.set_defaults(fn=cmd_model)
+    for name, fn in (("choices", cmd_choices), ("retry", cmd_retry), ("result", cmd_result)):
+        a = sub.add_parser(name)
+        a.add_argument("id")
+        a.set_defaults(fn=fn)
+    ap = sub.add_parser("append")
+    ap.add_argument("id")
+    ap.add_argument("--queue", action="store_true", help="deliver when the current attempt ends")
+    ap.add_argument("--text", help="the instruction (default: stdin)")
+    ap.set_defaults(fn=cmd_append)
+    lg = sub.add_parser("log")
+    lg.add_argument("id")
+    lg.add_argument("--lines", type=int, default=60)
+    lg.set_defaults(fn=cmd_log)
     return p
 
 
@@ -367,6 +734,10 @@ def human(action: str, out: dict) -> str:
                 tag = "patrol" if r["patrol"] else ("protected" if r["protected"] else f"p{r['priority']}")
                 lines.append(f"  {r['position']}. {r['id']}  {tag}  waited {r['waited_sec'] // 60}m")
         return "\n".join(lines)
+    if action == "log":
+        return "\n".join(out["lines"])
+    if action == "result":
+        return out["report"]
     return out.get("message") or json.dumps(out, ensure_ascii=False)
 
 
