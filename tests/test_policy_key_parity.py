@@ -79,7 +79,9 @@ def test_early_trend_and_radar_policy_keys_all_present_in_config():
     a hardcoded default and editing the config does nothing."""
     sources = {
         "early_trend.py": (ROOT / "src" / "clawock" / "decision" / "early_trend.py"),
-        "intraday_preflight.py": (ROOT / "src" / "clawock" / "harness" / "intraday_preflight.py"),
+        # The radar thresholds are read by `add_policy`, the one reader both
+        # the brief and the intraday slot go through.
+        "add_policy.py": (ROOT / "src" / "clawock" / "decision" / "add_policy.py"),
         # #640/#643: the watch-list 5d gate and the short-history window are
         # config consumers too — their keys must exist or edits do nothing.
         "watch_list.py": (ROOT / "src" / "clawock" / "decision" / "watch_list.py"),
@@ -98,8 +100,10 @@ def test_early_trend_and_radar_policy_keys_all_present_in_config():
     present.add("markets")
     for market, sub in (config.get("markets") or {}).items():
         present |= _flat_keys(sub)
+    from clawock.decision import add_policy
+    used |= set(add_policy.READ_DEFAULTS)
     missing = used - present
     assert not missing, (
-        "early_trend/intraday_preflight/watch_list/signals policy keys missing "
+        "early_trend/add_policy/watch_list/signals policy keys missing "
         f"from add-alpha-policy.json: {sorted(missing)} — editing the config "
         "cannot change them")
