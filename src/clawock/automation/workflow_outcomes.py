@@ -349,13 +349,13 @@ def _derive_final(record):
             if degraded
             else "primary delivery succeeded"
         )
+    elif primary == "failed" and watchdog == "failed":
+        # Ahead of artifact_only (#1921): that state means delivery is not yet
+        # confirmed, and here both routes to the reader confirmed a failure.
+        status, reason = "failed", "primary and watchdog delivery both failed"
     elif postflight in {"success", "warning"}:
         status, reason = "artifact_only", "usable artifact exists; delivery unconfirmed"
-    elif (
-        preflight == "failed"
-        or postflight == "failed"
-        or (primary == "failed" and watchdog == "failed")
-    ):
+    elif preflight == "failed" or postflight == "failed":
         status, reason = "failed", "no successful product recovery stage"
     else:
         status, reason = "pending", "terminal product evidence not recorded yet"
