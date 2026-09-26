@@ -71,6 +71,23 @@ def test_snapshot_has_prices_condition_hash_and_exact_slot(monkeypatch, tmp_path
     )
 
 
+def test_the_us_snapshot_judges_closure_on_the_us_session_date(monkeypatch, tmp_path):
+    """#1927: closure was read off the HKT date, so HKT Saturday 02:00 (US
+    Friday, trading) read 周末休市 and HKT Monday 02:00 (US Sunday) read open."""
+    _portfolio(tmp_path / "portfolio.json")
+    monkeypatch.setattr(gate, "WS", tmp_path)
+    monkeypatch.setattr(gate, "PORTFOLIO", tmp_path / "portfolio.json")
+    hkt = ZoneInfo("Asia/Hong_Kong")
+
+    friday = gate.snapshot("us", at=datetime(2026, 8, 15, 2, 0, tzinfo=hkt),
+                           fetcher=lambda _requests, **_kwargs: {})
+    sunday = gate.snapshot("us", at=datetime(2026, 8, 17, 2, 0, tzinfo=hkt),
+                           fetcher=lambda _requests, **_kwargs: {})
+
+    assert friday["market_closed"] is False and friday["session"] == "us:2026-08-14"
+    assert sunday["closed_reason"] == "周末休市" and sunday["session"] == "us:2026-08-16"
+
+
 def test_no_change_heartbeat_is_terminal(monkeypatch, tmp_path):
     monkeypatch.setattr(cron_heartbeat, "LOCAL_PATH", tmp_path / "local.json")
     monkeypatch.setattr(cron_heartbeat, "PUBLIC_PATH", tmp_path / "public.json")

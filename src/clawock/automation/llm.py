@@ -259,13 +259,18 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         blocks = data.get('content', []) or []
         text = ''.join(b.get('text', '') for b in blocks
                        if b.get('type') == 'text')
-        if not text:  # last resort: some endpoints surface only thinking
-            text = ''.join(b.get('thinking', '') for b in blocks
-                           if b.get('type') == 'thinking')
         usage = data.get('usage', {}) or {}
         print(f'  {label}: {usage.get("input_tokens","?")} in / '
               f'{usage.get("output_tokens","?")} out '
               f'(stop={data.get("stop_reason","?")})', file=sys.stderr)
+        if not text:
+            # A thinking block is the model's reasoning, not its answer — a
+            # reply that ran out of tokens before any text is exactly this
+            # shape. It used to be returned as the answer, and the section
+            # checks downstream are substring checks reasoning can pass
+            # (#1923). No answer is a failed attempt; the retry ladder decides.
+            raise _HTTPErr(f'no text block in the reply '
+                           f'(stop={data.get("stop_reason","?")})')
         cleaned = _clean(text)
         return _extract_json(cleaned) if json_response else cleaned
 

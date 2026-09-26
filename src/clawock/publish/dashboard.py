@@ -3595,6 +3595,13 @@ def compute_workflow_outcomes():
         return None
 
 
+def _cron_timetable(ws: Path, now=None):
+    from clawock.publish.cron_schedule import timetable  # noqa: PLC0415
+    from clawock.scheduling import load_contract  # noqa: PLC0415
+    payload = load_json(ws / 'assets' / 'data' / 'workflow-outcomes.json')
+    return timetable(load_contract(), (payload or {}).get('records', []), now=now)
+
+
 def compute_cron_schedule():
     """Today's cron timetable for the schedule panel, or None if unavailable.
 
@@ -3603,10 +3610,7 @@ def compute_cron_schedule():
     input here does.
     """
     try:
-        from clawock.publish.cron_schedule import timetable  # noqa: PLC0415
-        from clawock.scheduling import load_contract  # noqa: PLC0415
-        payload = load_json(WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json')
-        return timetable(load_contract(), (payload or {}).get('records', []))
+        return _cron_timetable(WS_ROOT)
     except Exception as e:
         print(f'  warn: cron schedule panel failed: {e}', file=sys.stderr)
         return None
@@ -3781,8 +3785,18 @@ FINGERPRINT_CACHE = '.cache/dashboard-input.json'
 FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 
 
-def dashboard_input_fingerprint(ws: Path) -> str:
+def dashboard_input_fingerprint(ws: Path, now=None) -> str:
     h = hashlib.sha1()
+    # The one part of the build that moves with the clock alone: a slot turns
+    # upcoming → running → missed with no input file changing, and a cron that
+    # never fired is exactly the case where nothing writes (#1928). Its states,
+    # not the time, so an unchanged tick still skips.
+    try:
+        schedule = _cron_timetable(ws, now=now)
+    except Exception:
+        schedule = None
+    h.update(('cron_schedule:' + json.dumps(schedule, sort_keys=True, default=str)
+              + '\n').encode())
     for rel in FINGERPRINT_FILES:
         p = ws / rel
         try:

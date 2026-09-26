@@ -277,3 +277,31 @@ def test_inputs_read_outside_the_data_plane_move_the_fingerprint(tmp_path):
         before = dashboard_input_fingerprint(ws)
         (ws / rel).write_text('{"v": 1}')
         assert dashboard_input_fingerprint(ws) != before, f'{rel} did not move the fingerprint'
+
+
+def test_a_slot_going_missed_moves_the_fingerprint_and_an_idle_minute_does_not(
+        tmp_path, monkeypatch):
+    """#1928: the timetable's slot states change with the clock alone. A cron
+    that never fired writes nothing, so a stat-only fingerprint kept serving
+    `running` for a slot that had long been `missed`."""
+    import json
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from clawock import scheduling
+
+    ws = _desk(tmp_path)
+    (ws / 'assets' / 'data' / 'workflow-outcomes.json').write_text(json.dumps({
+        'records': [{'job': 'other', 'slot': '2026-09-03T09:33:00+08:00',
+                     'final_product': {'status': 'success'}}]}))
+    monkeypatch.setattr(scheduling, 'load_contract', lambda *a, **k: {'jobs': [{
+        'name': '盘中盯盘', 'harness': 'intraday --hk',
+        'schedule': {'expr': '3 10 * * 1-5', 'tz': 'Asia/Shanghai'}}]})
+    hkt = ZoneInfo('Asia/Hong_Kong')
+
+    running = dashboard_input_fingerprint(ws, now=datetime(2026, 9, 3, 10, 10, tzinfo=hkt))
+    still = dashboard_input_fingerprint(ws, now=datetime(2026, 9, 3, 10, 11, tzinfo=hkt))
+    missed = dashboard_input_fingerprint(ws, now=datetime(2026, 9, 3, 11, 30, tzinfo=hkt))
+
+    assert running == still
+    assert missed != running
