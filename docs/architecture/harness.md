@@ -212,6 +212,102 @@ and, if slow, its timeout in `Limits`; a row in the source table of
 A source is added to an entry by naming it in that entry's source tuple
 (`BRIEF_LIVE_SOURCES`, `REPORT_LIVE_SOURCES`; intraday takes all).
 
+## Capabilities: one owner, any entry
+
+Every capability below has one implementation. An entry — `brief`, `report`,
+`intraday`, or a new one — composes the ones it needs and passes what differs
+as arguments. It never copies a capability, and it never imports a sibling
+entry's module to reach one (kcn 2026-09-26). Entry modules
+(`harness/{brief,report,intraday}_*`) are glue: they choose inputs,
+parameters and what reaches their model.
+
+| Capability | Owner | Consumers | What an entry passes |
+|---|---|---|---|
+| analyzer run and its stdout (holdings table, signals, ≥3% movers) | `market_data/{hk,us}_analysis` via `_harness_common.run_analyze`; parsers `_harness_common.parse_signal_lines` / `parse_holdings_anomalies` / `parse_holdings_rows` | report, intraday | market |
+| peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
+| daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
+| live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
+| Tencent per-symbol news/announcements | `market_data/tencent_news` | `primary_disclosures` (type 0), `mover_evidence` (type 1) | symbol, feed type, window, `http` |
+| mover evidence | `market_data/mover_evidence.probe` | report, intraday | tickers, market |
+| add side | § Add-side strategy | brief, intraday | `add_policy.ENTRY_PROFILES[entry]` |
+| open plans and their triggers | `decision/plans` (`open_decisions_context`, `triggered_conditions`) | brief, report, intraday | leg, today, quotes |
+| decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
+| placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |
+| brief card | `harness/brief_card.build_brief_card` (card file → plan fallback, harness-owned candidate section, `brief_url`) | brief postflight (primary send), brief watchdog (backstop), `brief_render` (link) | date, packet |
+| send transaction | `_watchdog_common.send_under_claim` (mark mid-send → send → receipt → release only if the receipt landed); claim/receipt names in `automation/delivery_receipts` | brief, report, intraday postflights | claim path (None = no claim), send, receipt writer |
+| per-channel send policy | `_watchdog_common.send_per_policy` | every postflight | kind, message, per-channel renders |
+| watchdog in-flight wait | `_watchdog_common.wait_out_inflight` / `log_after_wait` over `attempt_still_running` | report, intraday watchdogs | refresh, budget, poll, log fields |
+| regeneration window | `_watchdog_common.same_generation_window` | report, intraday watchdogs | `window_s`, `backward_s` |
+| workflow outcomes | `automation/workflow_outcomes` | brief and report pre/postflights, watchdogs (`_watchdog_common`), cron heartbeat, dashboard | job, slot, stage |
+| schedule contract | `scheduling.load_contract` (cron timeouts against watchdog judgement times) | ops, watchdogs, tests | — |
+
+Parameters (windows, freshness, budgets, concurrency, timeouts, TTLs) are
+module constants or a dataclass the caller passes (`live_sources.Limits`).
+Per-profile values are declarative config under `config/`. None of them is a
+literal inside one entry's `main`.
+
+### Adding a capability: where it must be registered
+
+1. Code in `src/clawock/<plane>/`. Network and file IO goes in a
+   `market_data` adapter. Rules in `decision` / `evidence` take their inputs
+   as arguments. An entry module holds only glue.
+2. Parameters go in a module constant, a caller-passed dataclass, or `config/`,
+   as above.
+3. A row in the table above: owner, consumers, what an entry passes.
+4. The plane's own registry, where one exists:
+   - a live source: § Live information sources;
+   - an add-side key: `config/add-alpha-policy.json` and
+     `add_policy.READ_DEFAULTS`;
+   - an intraday card block or context field:
+     [`intraday-agent.md`](intraday-agent.md) status table, the
+     `compose_card` block list, `context/intraday_layers.py`;
+   - a brief context field: `context/brief.py` `CORE_FIELDS` (budget-checked);
+   - anything that prints the brief time:
+     `test_every_artifact_that_prints_the_brief_time_reads_the_constant`.
+5. A send goes through `send_under_claim` with a `delivery_receipts` name. A
+   watchdog holds an in-flight slot with `wait_out_inflight`.
+6. Tests: one behaviour test per consumer entry. When two entries share a
+   capability, add a parity test fed the same input (see
+   `test_both_readers_build_the_same_radar_from_the_same_signals`,
+   `test_forbidden_phrases`, `test_tencent_news`).
+
+### Known forks still open
+
+Recorded so nobody copies from them. Each needs either a file another
+change is holding, or a behaviour decision; a refactor cannot settle it
+alone.
+
+- `intraday_preflight` imports `parse_hk_indices` from `report_preflight`, and
+  both preflights carry a `collect_peers` wrapper. They differ only in the
+  failure value (`{}` vs `{'_error': …}`). Both belong in `_harness_common`.
+- `intraday_postflight` imports `can_silence` from `intraday_preflight`.
+- `brief_preflight._fetch_hk_results_notices` builds its own Tencent
+  announcement request (type 0, `n=20`) instead of going through
+  `market_data/tencent_news`.
+- `BRIEF_LIVE_SOURCES` and `REPORT_LIVE_SOURCES` are the same tuple, declared
+  in each entry.
+- `brief_preflight` nodes carry their subprocess timeouts as literals inside
+  each `_node_*`. A per-node table next to `NODE_ORDER` would let
+  `scheduling.load_contract` check them against the cron timeout.
+- Tencent daily-kline readers: `decision/signals.fetch_bars`,
+  `decision/regime.fetch_hstech` / `fetch_us`, `market_data/benchmarks`,
+  `market_data/peer_quotes.tencent_closes`, `portfolio/risk`,
+  `market_data/bars.fetch_tencent`. They differ in behaviour, not just in
+  spelling:
+  - a non-object symbol node raises in some and reads as empty in others;
+  - `portfolio/risk` prefers `day` over `qfqday` on the forward-adjusted
+    endpoint;
+  - transport, timeout and retry differ.
+
+  Merging them means choosing one behaviour.
+- Watchdog slot identity: `report_watchdog.marker_matches_slot` has no
+  future-skew bound; `intraday_watchdog`'s rejects a marker dated more than
+  `MARKER_FUTURE_SKEW_MS` ahead. The freshness and regeneration windows
+  differ on purpose (hours-apart phases vs 30-minute slots).
+- `decisions.jsonl` readers: `ledger.load_decisions` raises on a corrupt
+  line, `plans._load_ledger` skips it, and `publish/decision_map.build`
+  parses inline and raises on a missing file.
+
 ## Context contract
 
 OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat
