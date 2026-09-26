@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
 
@@ -156,6 +156,29 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.stopped': '巡检已停', 'queue.patrol.unknown': '巡检状态未知',
     'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
     'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
+    'queue.wait.lockAt': '等 {agent} 锁 · 第 {n} 位', 'queue.state.cancelling': '取消中',
+    'queue.attempt': '第 {n} 次', 'queue.slotCount': '槽 {used}/{max}', 'queue.groupIdle': '没有任务',
+    'queue.fallback': 'fallback', 'queue.legacy': '旧 runner', 'queue.patrolTag': '巡检',
+    'queue.legacyTitle': '旧 runner 启动：无排队字段，不能调整顺序或模型；按到达顺序先拿锁',
+    'queue.holderOther': '锁被 {id} 占着', 'queue.holderUnnamed': '锁被旧 runner 的任务占着（它不报 id）',
+    'queue.holderLegacy': '持锁任务由旧 runner 启动（无排队字段）', 'queue.quotaHint': '额度用尽，{time} 恢复（{by} 触发）；其余任务等到那时再排',
+    'queue.ops.missing': 'ops 入口不可用，操作已停用：{error}', 'queue.ops.skew': 'ops 入口与仓库不一致（主机 {host} / 仓库 {repo}），运行 ops/host/install_task_queue_ops.sh',
+    'queue.ops.version': 'ops {v}', 'queue.ops.footer': 'ops {v} · runner api {runner}',
+    'queue.ch.weixin': '微信', 'queue.ch.telegram': 'Telegram', 'queue.notify.sent': '{ch} 已送达', 'queue.notify.failed': '{ch} 失败', 'queue.notify.planned': '{ch} 结束时通知',
+    'queue.d.slot': '槽位', 'queue.d.place': '排队', 'queue.d.placeValue': '{agent} 队列第 {n} 位', 'queue.d.protected': '已等满公平窗口，不会被插队',
+    'queue.d.priorityValue': '优先级 {n}', 'queue.d.queued': '开始排队', 'queue.d.notify': '通知', 'queue.d.notifyNone': '不通知',
+    'queue.d.runner': 'Runner', 'queue.d.session': '会话', 'queue.d.fallbackFrom': '请求 {model}，已切换', 'queue.d.effortDefault': '默认',
+    'queue.a.group': '操作', 'queue.a.top': '置顶', 'queue.a.up': '上移', 'queue.a.upOf': '上移 {name}', 'queue.a.down': '下移', 'queue.a.model': '换模型',
+    'queue.a.wrapup': '体面收尾', 'queue.a.wrapupTitle': '排队一条收尾指令：做完当前一步后提交已完成的部分并输出 STATUS',
+    'queue.a.cancel': '取消', 'queue.a.cancelConfirm': '确认取消', 'queue.a.retry': '重试', 'queue.a.log': '日志', 'queue.a.save': '保存', 'queue.a.close': '关闭',
+    'queue.a.modelHint': '下一次尝试生效；正在跑的这一步不受影响。',
+    'queue.a.cancelQueued': '它还没开始：取消没有损失。再点一次确认。',
+    'queue.a.cancelSleeping': '它在等额度/重试：取消后不再续跑，会话保留可 resume。再点一次确认。',
+    'queue.a.cancelRunning': '它正在跑：本轮进度会丢；会话 {session} 可用 --resume 续。再点一次确认。',
+    'queue.r.failed': '没成功：{message}', 'queue.r.cancelledQueued': '已取消（尚未开始，无损失）',
+    'queue.r.cancelledRunning': '已停止，本轮进度已丢；续跑：{resume}', 'queue.r.cancelledNoSession': '已停止（还没有会话可续）',
+    'queue.r.priority': '现在排第 {n} 位（共 {total}）', 'queue.r.model': '下一次尝试：{model} · {effort}',
+    'queue.r.retry': '已作为新任务续跑：{id}', 'queue.r.wrapup': '收尾指令已排队：当前一步结束后送达',
     'queue.back': '返回队列', 'queue.d.open': '查看任务详情', 'queue.d.live': '进行中', 'queue.d.ended': '已结束',
     'queue.d.agent': 'Agent', 'queue.d.model': '模型', 'queue.d.started': '开始', 'queue.d.elapsed': '已运行',
     'queue.d.took': '用时', 'queue.d.endedAt': '结束', 'queue.d.resumes': '续跑', 'queue.d.attempts': '尝试次数',
@@ -237,6 +260,29 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
+    'queue.wait.lockAt': 'waiting for the {agent} lock · #{n}', 'queue.state.cancelling': 'cancelling',
+    'queue.attempt': 'attempt {n}', 'queue.slotCount': 'slot {used}/{max}', 'queue.groupIdle': 'No tasks',
+    'queue.fallback': 'fallback', 'queue.legacy': 'older runner', 'queue.patrolTag': 'patrol',
+    'queue.legacyTitle': 'Started by an older runner: no queue fields, order and model cannot change; takes the lock in arrival order',
+    'queue.holderOther': 'The lock is held by {id}', 'queue.holderUnnamed': 'The lock is held by an older-runner task that does not say which',
+    'queue.holderLegacy': 'The holder was started by an older runner (no queue fields)', 'queue.quotaHint': 'Quota is out until {time} ({by} hit it); the others wait for it',
+    'queue.ops.missing': 'The ops entry is unavailable, actions are off: {error}', 'queue.ops.skew': 'The ops entry differs from the repository (host {host} / repo {repo}): run ops/host/install_task_queue_ops.sh',
+    'queue.ops.version': 'ops {v}', 'queue.ops.footer': 'ops {v} · runner api {runner}',
+    'queue.ch.weixin': 'WeChat', 'queue.ch.telegram': 'Telegram', 'queue.notify.sent': '{ch} delivered', 'queue.notify.failed': '{ch} failed', 'queue.notify.planned': '{ch} on finish',
+    'queue.d.slot': 'Slot', 'queue.d.place': 'Queue', 'queue.d.placeValue': '#{n} in the {agent} queue', 'queue.d.protected': 'past the fair wait, cannot be overtaken',
+    'queue.d.priorityValue': 'priority {n}', 'queue.d.queued': 'Queued', 'queue.d.notify': 'Notify', 'queue.d.notifyNone': 'none',
+    'queue.d.runner': 'Runner', 'queue.d.session': 'Session', 'queue.d.fallbackFrom': 'asked for {model}, switched', 'queue.d.effortDefault': 'default',
+    'queue.a.group': 'Actions', 'queue.a.top': 'To top', 'queue.a.up': 'Move up', 'queue.a.upOf': 'Move {name} up', 'queue.a.down': 'Move down', 'queue.a.model': 'Model',
+    'queue.a.wrapup': 'Wrap up', 'queue.a.wrapupTitle': 'Queue a wrap-up instruction: after the current step, land what is done and report STATUS',
+    'queue.a.cancel': 'Cancel', 'queue.a.cancelConfirm': 'Confirm cancel', 'queue.a.retry': 'Retry', 'queue.a.log': 'Log', 'queue.a.save': 'Save', 'queue.a.close': 'Close',
+    'queue.a.modelHint': 'Applies to the next attempt; the step running now keeps its model.',
+    'queue.a.cancelQueued': 'It has not started: cancelling costs nothing. Tap again to confirm.',
+    'queue.a.cancelSleeping': 'It waits for quota or a retry: it will not resume; the session stays resumable. Tap again to confirm.',
+    'queue.a.cancelRunning': 'It is running: this step\'s progress is lost; session {session} can be resumed. Tap again to confirm.',
+    'queue.r.failed': 'Did not work: {message}', 'queue.r.cancelledQueued': 'Cancelled (had not started, nothing lost)',
+    'queue.r.cancelledRunning': 'Stopped, this step\'s progress is lost; resume: {resume}', 'queue.r.cancelledNoSession': 'Stopped (no session yet)',
+    'queue.r.priority': 'Now #{n} of {total}', 'queue.r.model': 'Next attempt: {model} · {effort}',
+    'queue.r.retry': 'Continuing as a new task: {id}', 'queue.r.wrapup': 'Wrap-up queued: delivered when the current step ends',
     'queue.back': 'Back to the queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
     'queue.d.agent': 'Agent', 'queue.d.model': 'Model', 'queue.d.started': 'Started', 'queue.d.elapsed': 'Running for',
     'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
@@ -1409,7 +1455,9 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
 }
 
 // ---------------------------------------------------------------------------
-// Dispatch task queue: the foot row above the balance, same chip language.
+// Dispatch task queue: the foot row above the balance, drawn like the host's
+// own foot occupant (ui-cordis: a 42px badge row with a trailing count, a
+// fixed menu-material panel with a 44px header and caption-sized groups).
 // ---------------------------------------------------------------------------
 
 /** Foot-action id of the task-queue surface (a stable DOM contract for probes). */
@@ -1421,6 +1469,11 @@ export interface TaskQueueInjected {
   cachedTaskQueue: () => TaskQueueResult | null
   /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
   fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>
+  /**
+   * One write (or on-demand read) through the host's versioned ops entry.
+   * Optional: without it the panel is read-only.
+   */
+  runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>
 }
 
 export type TaskQueueSidebarActionProps = TaskQueueInjected & {
@@ -1491,22 +1544,31 @@ function agoOf(t: Translate, ms: number): string {
   return t('queue.ago.days', { d: Math.floor(mins / 1440) })
 }
 
-/** One live task's status phrase: what it holds or what it waits for. */
+/**
+ * One live task's status phrase and its tone. One colour, one meaning:
+ * 'ok' (the host's business blue) = holding its agent's lock and running,
+ * 'stale' (the host's warn) = waiting for something (the lock, a slot,
+ * memory, a quota reset, a retry), 'none' = neither yet (starting).
+ */
 export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date.now()): { tone: BalanceTone; text: string } {
   const at = (key: string, ms: number | null): string => ms === null
     ? t(key + 'NoTime')
     : t(key, { time: resetStampOf(t, { resetAt: '', resetAtMs: ms }, now) })
+  if (task.cancelling) return { tone: 'none', text: t('queue.state.cancelling') }
   switch (task.waiting) {
-    case 'lock': return { tone: 'stale', text: t('queue.wait.lock', { agent: task.agent }) }
+    case 'lock': return {
+      tone: 'stale',
+      text: task.position ? t('queue.wait.lockAt', { agent: task.agent, n: task.position }) : t('queue.wait.lock', { agent: task.agent }),
+    }
     case 'slot': return { tone: 'stale', text: t('queue.wait.slot', { agent: task.agent }) }
     case 'memory': return { tone: 'stale', text: t('queue.wait.memory') }
-    case 'quota': return { tone: 'none', text: at('queue.wait.quota', task.wakeAtMs) }
-    case 'retry': return { tone: 'none', text: at('queue.wait.retry', task.wakeAtMs) }
+    case 'quota': return { tone: 'stale', text: at('queue.wait.quota', task.wakeAtMs) }
+    case 'retry': return { tone: 'stale', text: at('queue.wait.retry', task.wakeAtMs) }
     default: break
   }
   const slot = _slotOf(task)
   if (slot === null) return { tone: 'none', text: t('queue.state.starting') }
-  // One slot per agent: the row's agent line already says whose it is.
+  // One slot per agent: the group header already says whose it is.
   if (slot.legacy) return { tone: 'ok', text: t('queue.state.runningLegacy', { slot: slot.slot }) }
   return { tone: 'ok', text: slot.slot === '1' ? t('queue.state.running') : t('queue.state.runningSlot', { slot: slot.slot }) }
 }
@@ -1516,11 +1578,13 @@ function endedText(task: DispatchTask): string {
   return task.state + (task.outcome !== '' ? ' / ' + task.outcome : '')
 }
 
-/** An ended task's dot: done green, not-done amber, failed red, stopped grey. */
+/**
+ * An ended task's tone. Done is not blue (blue means running now) and not a
+ * dot at all: ended rows speak in words. Not-done amber, failed red.
+ */
 function endedTone(task: DispatchTask): BalanceTone {
-  if (task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === '')) return 'ok'
   if (task.state === 'failed') return 'low'
-  if (task.state === 'ok' || task.state === 'partial' || task.state === 'unverified') return 'stale'
+  if (task.state === 'partial' || task.state === 'unverified' || (task.state === 'ok' && task.outcome !== '' && task.outcome !== 'DONE')) return 'stale'
   return 'none'
 }
 
@@ -1532,11 +1596,22 @@ function patrolPhraseOf(result: TaskQueueResult, t: Translate, now: number): str
   return t('queue.patrol.' + patrol.phase)
 }
 
+/** The ops entry answered, and its installed copy is the repository's. '' when fine, else why not. */
+function opsProblem(result: TaskQueueResult, t: Translate): string {
+  const ops = result.ops
+  if (ops === undefined) return ''
+  if (!ops.available) return t('queue.ops.missing', { error: ops.error })
+  if (ops.repoVersion !== '' && ops.version !== ops.repoVersion) return t('queue.ops.skew', { host: ops.version, repo: ops.repoVersion })
+  return ''
+}
+
 /**
- * The chip's headline: dot tone, how many tasks run, and the one-line "who
- * waits" sub-reading. No n/max: slots are per agent, so a free slot of one
- * agent is no room for another's task — the per-agent lanes are in the title
- * and at the top of the panel.
+ * The chip's headline, the host badge's two parts: the label, and a count
+ * (running · queued) at the trailing edge. No n/max: slots are per agent, so a
+ * free slot of one agent is no room for another's task — the per-agent lanes
+ * are in the title and on each group of the panel. The glyph badge carries
+ * the one tone that matters most: red when the read failed, amber when a task
+ * waits, blue when something runs.
  */
 export function _queueHeadline(result: TaskQueueResult, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string; busy: boolean; title: string } {
   const queued = result.active.filter(queuedFor).length
@@ -1545,24 +1620,28 @@ export function _queueHeadline(result: TaskQueueResult, t: Translate, now: numbe
   const quota = result.active.filter((task) => task.waiting === 'quota').length
   // A retry back-off holds nothing either, but it is still a live task waiting (#1772).
   const retry = result.active.filter((task) => task.waiting === 'retry').length
-  const parts = [
+  // Every kind of wait is counted on the row itself (a retry back-off hidden from it was #1772);
+  // the patrol phase is context, so it lives in the title and the panel.
+  const waits = [
     queued > 0 ? t('queue.queued', { n: queued }) : null,
     memory > 0 ? t('queue.memoryWait', { n: memory }) : null,
     quota > 0 ? t('queue.quotaWait', { n: quota }) : null,
     retry > 0 ? t('queue.retryWait', { n: retry }) : null,
-    patrolPhraseOf(result, t, now),
   ].filter((part): part is string => part !== null)
-  const value = t('queue.running', { n: result.running })
+  const parts = [...waits, patrolPhraseOf(result, t, now)]
+  const value = result.active.length === 0 ? t('queue.idle') : t('queue.running', { n: result.running })
   const { lanes, legacy } = _slotLanes(result)
   const slots = [...lanes.map((lane) => laneText(t, lane)), legacy > 0 ? t('queue.legacyLane', { used: legacy }) : null]
     .filter((part): part is string => part !== null).join(' · ')
+  const waiting = queued + memory + quota + retry
   const tone: BalanceTone = result.status === 'stale' || result.status === 'failed'
-    ? 'stale'
-    : result.active.length > 0 ? 'ok' : 'none'
-  const idle = result.active.length === 0 ? t('queue.idle') + ' · ' : ''
+    ? 'low'
+    : waiting > 0 ? 'stale' : result.running > 0 ? 'ok' : 'none'
+  const ops = result.ops?.available ? t('queue.ops.version', { v: result.ops.version }) : ''
   return {
-    tone, value, sub: parts.join(' · '), busy: queued > 0,
-    title: [t('queue.name'), value, slots, idle + parts.join(' · ')].filter((part) => part !== '').join(' · '),
+    tone, value, sub: waits.join(' · '), busy: queued > 0,
+    title: [t('queue.name'), value, slots, parts.join(' · '), opsProblem(result, t) || ops]
+      .filter((part) => part !== '').join(' · '),
   }
 }
 
@@ -1615,126 +1694,262 @@ function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): 
     renderFootStatusBadge(tone))
 }
 
-/** What a task row shows: status on the right of the name, facts left and numbers right below. */
-type TaskRowView = { tone: BalanceTone; text: string; meta: string; num: string }
+// ---- The four layers: executor, model, slot, notification ------------------
+
+/** Executor names as their makers write them. */
+const AGENT_LABELS: Record<string, string> = { claude: 'Claude Code', codex: 'Codex', opencode: 'OpenCode' }
+export const _agentLabel = (agent: string): string => AGENT_LABELS[agent] ?? agent
 
 /**
- * One task: dot · name (ellipsis) · status, then agent/model under the name
- * and the numbers under the status, so every row lines up on the same three
- * columns. A click opens the task's detail layer over the list.
+ * The executor layer: a 14px outline glyph in the host's icon stroke, one
+ * shape per CLI (a spark for Claude Code, a hexagon for Codex, a bracketed
+ * square for OpenCode). Outline, monochrome, label ink — so it never competes
+ * with the filled model tile beside it, and it is never a status colour.
  */
-function renderTaskRow(task: DispatchTask, view: TaskRowView, openDetail: (id: string) => void, t: Translate): React.ReactElement {
-  return h('button', {
-    type: 'button',
-    key: task.id,
-    className: cx('bp-row', 'tq-row'),
-    'data-tq-task': task.id,
-    'data-tq-waiting': task.waiting,
-    'aria-label': [task.name, view.text, view.meta, view.num, t('queue.d.open')].join(' · '),
-    title: task.name,
-    onClick: () => { openDetail(task.id) },
-  },
-    h('span', { className: cx('bp-dot'), 'data-balance-state': view.tone }),
-    h('span', { className: cx('tq-name') }, task.name),
-    h('span', { className: cx('tq-v'), 'data-balance-state': view.tone }, view.text),
-    h('span', { className: cx('tq-meta') }, view.meta),
-    h('span', { className: cx('tq-num') }, view.num),
-    h('span', { className: cx('tq-chev'), 'aria-hidden': 'true' }))
-}
-
-/** A section heading: title left, its count right-aligned. */
-function renderQueueSection(key: string, title: string, count: string | null): React.ReactElement {
-  return h('div', { className: cx('tq-sec'), key: key + '-head' },
-    h('span', { className: cx('bp-title') }, title),
-    count === null ? null : h('span', { className: cx('tq-count') }, count))
-}
-
-/** Patrol's dot: running green, giving way amber, otherwise quiet grey. */
-function patrolTone(phase: string): BalanceTone {
-  if (phase === 'running') return 'ok'
-  if (phase === 'yielding') return 'stale'
-  return 'none'
+function renderAgentGlyph(agent: string): React.ReactElement {
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
+  const shape = agent === 'claude'
+    ? h('path', { ...stroke, d: 'M7 1.8V12.2M1.8 7H12.2M3.3 3.3L10.7 10.7M10.7 3.3L3.3 10.7' })
+    : agent === 'codex'
+      ? h('path', { ...stroke, d: 'M7 1.5L11.8 4.25V9.75L7 12.5L2.2 9.75V4.25Z' })
+      : agent === 'opencode'
+        ? h('path', { ...stroke, d: 'M5 2H2.5V12H5M9 2H11.5V12H9' })
+        : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
+  return h('svg', {
+    className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true', 'data-tq-agent': agent,
+  }, shape)
 }
 
 /**
- * The panel, in the order the questions come: who holds a run slot → who is
- * queued and for what (lock / slot / memory / quota with its wake time) →
- * what just ended → what patrol is doing and its last rounds.
+ * The model layer, read off the model id itself (never a hand-kept model
+ * list): `claude-opus-5-5` → Opus 5.5 · `claude-haiku-4-5-20251001` → Haiku
+ * 4.5 · `gpt-6-sol` → GPT-6 Sol · `opencode/nemotron-3-ultra-free` →
+ * Nemotron 3 Ultra. The mark is two letters of the family, drawn as a filled
+ * tile: a letterform stand-in, since no brand artwork may ship offline.
  */
-function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, openDetail: (id: string) => void): Array<React.ReactElement | null> {
-  const { data, refresh } = state
-  const result = data.result
-  const head = h('div', { className: cx('bp-head'), key: 'head' },
-    h('span', { className: cx('bp-title') }, t('queue.panelHeading')),
+export function _modelView(id: string): { label: string; mark: string; family: string } {
+  if (id === '') return { label: '—', mark: '', family: '' }
+  const bare = id.includes('/') ? id.slice(id.lastIndexOf('/') + 1) : id
+  const title = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1)
+  const claude = /^claude-([a-z]+)(?:-(\d+))?(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(bare)
+  if (claude) {
+    const version = [claude[2], claude[3]].filter(Boolean).join('.')
+    return { label: title(claude[1]!) + (version ? ' ' + version : ''), mark: title(claude[1]!).slice(0, 2), family: 'claude' }
+  }
+  const gpt = /^gpt-([\d.]+)(?:-([a-z]+))?$/.exec(bare)
+  if (gpt) return { label: 'GPT-' + gpt[1] + (gpt[2] ? ' ' + title(gpt[2]) : ''), mark: 'G' + gpt[1]!.charAt(0), family: 'gpt' }
+  if (/^[a-z]+$/.test(bare) && !id.includes('/')) return { label: title(bare), mark: title(bare).slice(0, 2), family: bare }
+  const words = bare.replace(/-(free|contributor)(?=-|$)/g, '').split('-').filter((word) => word !== '')
+  const label = words.map((word) => /^[a-z]/.test(word) ? title(word) : word).join(' ')
+  return { label, mark: title(words[0] ?? bare).slice(0, 2), family: words[0] ?? bare }
+}
+
+function renderModelMark(id: string): React.ReactElement | null {
+  const view = _modelView(id)
+  if (view.mark === '') return null
+  return h('span', { className: cx('tq-model-mark'), 'data-tq-model': view.family, 'aria-hidden': 'true' }, view.mark)
+}
+
+/** "Opus 5.5 · high", with the model the task will run on while it waits and the one it ran on after. */
+function modelLine(task: DispatchTask, _live: boolean): { model: string; effort: string; fallback: boolean } {
+  const requested = task.modelRequested ?? task.model
+  // MODEL_USED is written before the first attempt too (the default), so it only says what ran
+  // once an attempt has: a task cancelled while queued never "switched" anything.
+  const ran = task.attempts > 0 && (task.modelUsed ?? '') !== ''
+  const used = ran ? task.modelUsed ?? '' : ''
+  const model = ran ? used : requested || task.model
+  const effort = (ran ? task.effortUsed : '') || task.effortRequested || ''
+  return { model, effort, fallback: ran && requested !== '' && used !== requested }
+}
+
+/**
+ * The notification layer: WeChat and Telegram as 12px glyphs. Planned =
+ * caption ink, delivered = secondary ink, failed = error red with a slash
+ * (the one hue is not the only cue). From result.env receipts, never logs.
+ */
+function renderNotifyIcons(task: DispatchTask, t: Translate): React.ReactElement | null {
+  const channels = [...new Set([...(task.notify ?? []), ...(task.notified ?? []), ...(task.notifyFailed ?? [])])]
+  if (channels.length === 0) return null
+  return h('span', { className: cx('tq-notify'), role: 'img', 'aria-label': channels.map((ch) => t('queue.notify.' + notifyState(task, ch), { ch: t('queue.ch.' + ch) })).join(' · ') },
+    channels.map((ch) => h('svg', {
+      key: ch, className: cx('tq-notify-glyph'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true',
+      'data-tq-notify': ch, 'data-state': notifyState(task, ch),
+    },
+    ch === 'telegram'
+      ? h('path', { d: 'M1.5 5.6L10.5 2L8.9 10L6.1 7.9L4.8 9.3L4.7 7L8.4 3.9L3.9 6.5Z', fill: 'currentColor' })
+      : ch === 'weixin'
+        ? h('path', { d: 'M4.6 2C2.6 2 1 3.3 1 5c0 .9.5 1.7 1.2 2.3L1.9 8.6l1.5-.8c.4.1.8.2 1.2.2h.2A2.8 2.8 0 0 1 7.6 5.3c.5 0 .9.1 1.3.2C8.6 3.5 6.8 2 4.6 2ZM7.6 6.1c-1.5 0-2.7 1-2.7 2.2s1.2 2.2 2.7 2.2c.3 0 .6 0 .9-.1l1.2.6-.3-1c.6-.4 1-1 1-1.7 0-1.2-1.2-2.2-2.8-2.2Z', fill: 'currentColor' })
+        : h('circle', { cx: 6, cy: 6, r: 3, fill: 'currentColor' }),
+    notifyState(task, ch) === 'failed' ? h('path', { d: 'M1.5 10.5L10.5 1.5', stroke: 'currentColor', strokeWidth: 1.2 }) : null)))
+}
+
+function notifyState(task: DispatchTask, ch: string): 'sent' | 'failed' | 'planned' {
+  if ((task.notifyFailed ?? []).includes(ch)) return 'failed'
+  if ((task.notified ?? []).includes(ch)) return 'sent'
+  return 'planned'
+}
+
+// ---- Rows ---------------------------------------------------------------------
+
+type TaskRowView = { tone: BalanceTone; text: string; dot: boolean }
+
+/**
+ * One task: dot · name · status on the first line, model tile + "Opus 5.5 ·
+ * high" · attempts on the second, notification glyphs trailing. The whole row
+ * opens the detail layer; a waiting task of the current runner also carries a
+ * move-up button beside it (a sibling, never a button inside a button).
+ */
+function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: Translate, now: number,
+  handlers: { open: (id: string) => void; moveUp?: (task: DispatchTask) => void; busy: boolean }): React.ReactElement {
+  const m = modelLine(task, live)
+  const model = _modelView(m.model).label + (m.effort ? ' · ' + m.effort : '')
+  const num = live
+    ? [task.attempts > 0 ? t('queue.attempt', { n: task.attempts }) : null,
+      task.startedAtMs === null ? null : durationOf(t, now - (task.queuedAtMs ?? task.startedAtMs)),
+      task.stalls ? t('queue.stalls', { n: task.stalls }) : null].filter(Boolean).join(' · ')
+    : task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)
+  return h('div', { className: cx('tq-item'), key: task.id, 'data-tq-item': task.id },
     h('button', {
       type: 'button',
-      className: cx('bal-rf', data.loading && 'spin'),
+      className: cx('tq-row'),
+      'data-tq-task': task.id,
+      'data-tq-waiting': task.waiting,
+      'aria-label': [task.name, view.text, model, num, t('queue.d.open')].filter(Boolean).join(' · '),
+      title: task.name,
+      onClick: () => { handlers.open(task.id) },
+    },
+      view.dot ? h('span', { className: cx('tq-dot'), 'data-balance-state': view.tone }) : h('span', { className: cx('tq-dot-none') }),
+      h('span', { className: cx('tq-name') }, task.name),
+      h('span', { className: cx('tq-v'), 'data-balance-state': view.tone }, view.text),
+      h('span', { className: cx('tq-meta') },
+        renderModelMark(m.model),
+        h('span', { className: cx('tq-meta-text') }, model),
+        m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.fallback')) : null,
+        task.legacy && live ? h('span', { className: cx('tq-tag'), title: t('queue.legacyTitle') }, t('queue.legacy')) : null,
+        task.patrol ? h('span', { className: cx('tq-tag') }, t('queue.patrolTag')) : null),
+      h('span', { className: cx('tq-num') }, num, renderNotifyIcons(task, t))),
+    handlers.moveUp === undefined ? null : h('button', {
+      type: 'button',
+      className: cx('tq-icon-btn'),
+      'data-tq-up': task.id,
+      disabled: handlers.busy,
+      'aria-label': t('queue.a.upOf', { name: task.name }),
+      title: t('queue.a.up'),
+      onClick: () => { handlers.moveUp?.(task) },
+    }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+      h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
+}
+
+/** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
+const reorderable = (task: DispatchTask): boolean =>
+  task.waiting === 'lock' && !task.legacy && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2
+
+type QueueUi = {
+  open: (id: string) => void
+  act: (action: string, task: DispatchTask, arg?: string) => void
+  busy: string | null
+  writable: boolean
+}
+
+/** Live tasks of one agent in the order they hold / will take its lock. */
+function groupOrder(tasks: DispatchTask[], queue: AgentQueue | undefined): DispatchTask[] {
+  const rank = (task: DispatchTask): number => {
+    if (task.slot !== '' || (queue?.holder === task.id)) return 0
+    const at = queue?.order.indexOf(task.id) ?? -1
+    return at >= 0 ? 1 + at : 1000
+  }
+  return [...tasks].sort((a, b) => rank(a) - rank(b) || (a.queuedAtMs ?? a.startedAtMs ?? 0) - (b.queuedAtMs ?? b.startedAtMs ?? 0))
+}
+
+/**
+ * The panel body, answering in order: per executor, who holds its lock and
+ * who queues behind it (with why, and in what order) → what just ended →
+ * patrol → the ops entry's version. Orders never mix across executors: each
+ * agent has its own lock, so each group is its own queue.
+ */
+function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, ui: QueueUi,
+  notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
+  const { data, refresh } = state
+  const result = data.result
+  const head = h('div', { className: cx('tq-head'), key: 'head' },
+    h('span', { className: cx('tq-title') }, t('queue.panelHeading')),
+    h('button', {
+      type: 'button',
+      className: cx('tq-icon-btn', data.loading && 'spin'),
       'data-refresh': 'true',
       'aria-label': t('queue.refresh'),
       title: t('queue.refresh'),
       onClick: refresh,
-    }, '↻'))
+    }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+      h('path', { d: 'M11.5 7A4.5 4.5 0 1 1 10 3.6M11.5 1.8V4.4H8.9', stroke: 'currentColor', strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
   if (result === null) {
-    return [head, h('div', { className: cx('bp-empty'), key: 'empty', role: 'status' },
+    return [head, h('div', { className: cx('tq-note'), key: 'empty', role: 'status' },
       data.error !== null ? t('queue.readFailed', { message: data.error }) : t('balance.reading'))]
   }
   const problem = data.error ?? (result.status === 'stale' || result.status === 'failed' ? result.message : null)
   const patrol = result.patrol
-  const liveView = (task: DispatchTask): TaskRowView => ({
-    ..._taskStatus(task, t, now),
-    meta: t('queue.meta', { agent: task.agent, model: task.model || '—' }),
-    num: t('queue.run', {
-      attempts: task.attempts,
-      elapsed: task.startedAtMs === null ? '—' : durationOf(t, now - task.startedAtMs),
-    }) + (task.stalls ? ' · ' + t('queue.stalls', { n: task.stalls }) : ''),
-  })
   const { lanes, legacy } = _slotLanes(result)
-  const lane = (key: string, tone: BalanceTone, text: string): React.ReactElement =>
-    h('span', { className: cx('tq-lane'), key, 'data-tq-lane': key },
-      h('span', { className: cx('bp-dot'), 'data-balance-state': tone }), text)
-  const holding = result.active.filter((task) => task.slot !== '')
-  const waiting = result.active.filter((task) => task.slot === '')
-  const rows = (key: string, tasks: DispatchTask[], empty: string, view: (task: DispatchTask) => TaskRowView) => tasks.length === 0
-    ? h('div', { className: cx('bp-sub', 'tq-empty'), key }, empty)
-    : h('div', { className: cx('tq-rows'), key }, tasks.map((task) => renderTaskRow(task, view(task), openDetail, t)))
-  // The head stays put; everything under it scrolls when the panel meets the viewport top.
+  const queues = new Map((result.queues ?? []).map((queue) => [queue.agent, queue] as const))
+  const agents = [...new Set([...lanes.map((lane) => lane.agent), ...result.active.map((task) => task.agent)])]
+  const groups = agents.map((agent) => {
+    const tasks = result.active.filter((task) => task.agent === agent)
+    const queue = queues.get(agent)
+    const lane = lanes.find((row) => row.agent === agent)
+    const notes: string[] = []
+    if (queue?.held && tasks.every((task) => task.id !== queue.holder)) {
+      notes.push(queue.holder !== '' ? t('queue.holderOther', { id: queue.holder }) : t('queue.holderUnnamed'))
+    } else if (queue?.holderLegacy && queue.holder !== '') notes.push(t('queue.holderLegacy'))
+    if (queue?.quotaUntilMs) {
+      notes.push(t('queue.quotaHint', { time: resetStampOf(t, { resetAt: '', resetAtMs: queue.quotaUntilMs }, now), by: queue.quotaBy }))
+    }
+    return h('section', { className: cx('tq-group'), key: 'g-' + agent, 'data-tq-group': agent, 'aria-label': _agentLabel(agent) },
+      h('div', { className: cx('tq-group-head') },
+        renderAgentGlyph(agent),
+        h('span', { className: cx('tq-group-name') }, _agentLabel(agent)),
+        lane === undefined ? null : h('span', { className: cx('tq-lane'), 'data-tq-lane': agent, title: t('queue.lanesTitle') },
+          h('span', { className: cx('tq-dot'), 'data-balance-state': lane.tone }),
+          t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }))),
+      notes.map((note, i) => h('div', { className: cx('tq-note'), key: 'n' + i }, note)),
+      tasks.length === 0
+        ? h('div', { className: cx('tq-empty') }, t('queue.groupIdle'))
+        : groupOrder(tasks, queue).map((task) => renderTaskRow(task, { ..._taskStatus(task, t, now), dot: true }, true, t, now, {
+          open: ui.open,
+          moveUp: ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? (row) => { ui.act('priority', row, 'up') } : undefined,
+          busy: ui.busy !== null,
+        })))
+  })
+  const ops = result.ops
+  const skew = opsProblem(result, t)
   return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
+    notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
     problem !== null && problem !== ''
-      ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
+      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
       : null,
-    renderQueueSection('slots', t('queue.slotsHeading'), String(holding.length)),
-    lanes.length + legacy === 0 ? null : h('div', {
-      className: cx('tq-lanes'), key: 'lanes', role: 'group', 'aria-label': t('queue.lanesTitle'), title: t('queue.lanesTitle'),
-    },
-      lanes.map((row) => lane(row.agent, row.tone, laneText(t, row))),
-      legacy > 0 ? lane('legacy', 'ok', t('queue.legacyLane', { used: legacy })) : null),
-    rows('holding', holding, t('queue.noneRunning'), liveView),
-    renderQueueSection('waiting', t('queue.waitHeading'), String(waiting.length)),
-    rows('waiting', waiting, t('queue.noneWaiting'), liveView),
-    result.recent.length === 0 ? null : renderQueueSection('recent', t('queue.recentHeading'), String(result.recent.length)),
-    result.recent.length === 0 ? null : rows('recent', result.recent, '', (task) => ({
-      tone: endedTone(task),
-      text: endedText(task),
-      meta: task.agent,
-      num: task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs),
-    })),
-    renderQueueSection('patrol', t('queue.patrolHeading'), null),
-    h('div', { className: cx('tq-patrol'), key: 'patrol', 'data-tq-patrol': patrol.phase },
-      h('span', { className: cx('bp-dot'), 'data-balance-state': patrolTone(patrol.phase) }),
-      h('span', { className: cx('tq-name') }, patrolPhraseOf(result, t, now)),
-      patrol.round !== '' ? h('span', { className: cx('tq-meta'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
-      patrol.detail !== '' ? h('span', { className: cx('tq-meta', 'tq-wrap') }, patrol.detail) : null),
-    patrol.rounds.length === 0 ? null : h('div', { className: cx('bp-sub', 'tq-caption'), key: 'rounds-head' }, t('queue.roundsHeading')),
-    patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds'), key: 'rounds' },
-      patrol.rounds.flatMap((round) => {
-        const key = 'round-' + round.endedAt + round.round
-        return [
-          h('span', { className: cx('tq-round-id'), key: key + '-id' }, round.round),
-          h('span', { className: cx('tq-round-axis'), key: key + '-axis' }, round.axis),
-          h('span', { className: cx('tq-round-result'), key: key + '-result' }, round.result),
-          h('span', { className: cx('tq-num'), key: key + '-took' }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
-        ]
-      })),
+    legacy > 0 ? h('div', { className: cx('tq-note'), key: 'legacy', 'data-tq-lane': 'legacy' },
+      h('span', { className: cx('tq-dot'), 'data-balance-state': 'ok' }), t('queue.legacyLane', { used: legacy })) : null,
+    ...groups,
+    result.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
+      h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.recentHeading'))),
+      result.recent.map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
+        { open: ui.open, busy: false }))),
+    h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
+      h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.patrolHeading'))),
+      h('div', { className: cx('tq-patrol'), 'data-tq-patrol': patrol.phase },
+        h('span', { className: cx('tq-name') }, patrolPhraseOf(result, t, now)),
+        patrol.round !== '' ? h('span', { className: cx('tq-meta-text'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
+        patrol.detail !== '' ? h('span', { className: cx('tq-meta-text', 'tq-wrap') }, patrol.detail) : null),
+      patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds') },
+        patrol.rounds.flatMap((round) => {
+          const key = 'round-' + round.endedAt + round.round
+          return [
+            h('span', { className: cx('tq-round-id'), key: key + '-id' }, round.round),
+            h('span', { className: cx('tq-round-axis'), key: key + '-axis' }, round.axis),
+            h('span', { className: cx('tq-round-result'), key: key + '-result' }, round.result),
+            h('span', { className: cx('tq-num'), key: key + '-took' }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
+          ]
+        }))),
+    ops === undefined ? null : h('div', { className: cx('tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
+      skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
   ])]
 }
 
@@ -1746,28 +1961,56 @@ function findTask(result: TaskQueueResult, id: string): { task: DispatchTask; li
   return ended === undefined ? null : { task: ended, live: false }
 }
 
+type ModelPicker = { models: string[]; efforts: Record<string, string[]>; flag: string; model: string; effort: string; allowed: boolean; reason: string }
+
+type DetailUi = QueueUi & {
+  confirm: string | null
+  askConfirm: (key: string | null) => void
+  picker: ModelPicker | null
+  openPicker: (task: DispatchTask) => void
+  setPicker: (picker: ModelPicker | null) => void
+  log: string[] | null
+  loadLog: (task: DispatchTask) => void
+}
+
+/** A pill in the detail's action bar (the host's transition buttons: hairline, fully rounded). */
+function actionPill(key: string, label: string, onClick: () => void, opts: { danger?: boolean; disabled?: boolean; title?: string } = {}): React.ReactElement {
+  return h('button', {
+    type: 'button', key, className: cx('tq-pill', opts.danger && 'tq-danger'), 'data-tq-action': key,
+    disabled: opts.disabled === true, title: opts.title, onClick,
+  }, label)
+}
+
 /**
  * The detail layer one task row opens, laid over the list inside the same
- * popover: back · live/ended on top, then the name, its status in the row's
- * tone, a label/value grid (agent, model, when it started, how long, attempts,
- * what the runner last logged or when it ended) and, for an ended task, the
- * agent's closing report. The id sits last in mono — it is what the dispatch
- * commands take.
+ * popover: back · live/ended on top, the name and its status, the four layers
+ * as label/value rows (executor, model, slot/queue place, notification), then
+ * the actions this task allows right now. Dangerous ones confirm in place and
+ * say what they cost: cancelling a queued task is free; a running one loses
+ * the step in flight (its session can be resumed); a model change applies to
+ * the next attempt.
  */
-function renderTaskDetail(
-  found: { task: DispatchTask; live: boolean },
-  t: Translate,
-  now: number,
-  back: () => void,
-  backRef: { current: HTMLButtonElement | null },
-): React.ReactElement {
+function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number, back: () => void,
+  backRef: { current: HTMLButtonElement | null }, ui: DetailUi, notice: { ok: boolean; text: string } | null): React.ReactElement {
   const { task, live } = found
   const status = live ? _taskStatus(task, t, now) : { tone: endedTone(task), text: endedText(task) }
-  const stamp = (ms: number | null): string | null => ms === null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
+  const stamp = (ms: number | null | undefined): string | null => ms == null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   const took = task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
-  const fields: Array<[key: string, value: string | null, mono?: boolean]> = [
-    ['queue.d.agent', task.agent || null],
-    ['queue.d.model', task.model || null],
+  const m = modelLine(task, live)
+  const requested = task.modelRequested ?? ''
+  const slot = _slotOf(task)
+  const place = live && task.waiting === 'lock' && task.position
+    ? t('queue.d.placeValue', { n: task.position, agent: task.agent }) + (task.protected ? ' · ' + t('queue.d.protected') : '')
+      + (task.priority ? ' · ' + t('queue.d.priorityValue', { n: task.priority }) : '')
+    : null
+  const fields: Array<[key: string, value: unknown, mono?: boolean]> = [
+    ['queue.d.agent', h('span', { className: cx('tq-inline') }, renderAgentGlyph(task.agent), _agentLabel(task.agent))],
+    ['queue.d.model', m.model === '' ? null : h('span', { className: cx('tq-inline') }, renderModelMark(m.model),
+      _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''),
+      m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.d.fallbackFrom', { model: _modelView(requested).label })) : null)],
+    ['queue.d.slot', slot === null ? null : slot.legacy ? t('queue.legacyLane', { used: slot.slot }) : `${slot.agent}-${slot.slot}`],
+    ['queue.d.place', place],
+    ['queue.d.queued', stamp(task.queuedAtMs)],
     ['queue.d.started', stamp(task.startedAtMs)],
     live
       ? ['queue.d.elapsed', task.startedAtMs === null ? null : durationOf(t, now - task.startedAtMs)]
@@ -1776,12 +2019,44 @@ function renderTaskDetail(
       : stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs)],
     ['queue.d.attempts', String(task.attempts)],
     ['queue.d.stalls', task.stalls ? t('queue.d.stallsValue', { n: task.stalls }) : null],
+    ['queue.d.notify', (task.notify ?? []).length + (task.notified ?? []).length + (task.notifyFailed ?? []).length === 0
+      ? t('queue.d.notifyNone')
+      : h('span', { className: cx('tq-inline') }, renderNotifyIcons(task, t),
+        [...new Set([...(task.notify ?? []), ...(task.notified ?? []), ...(task.notifyFailed ?? [])])]
+          .map((ch) => t('queue.notify.' + notifyState(task, ch), { ch: t('queue.ch.' + ch) })).join(' · '))],
+    ['queue.d.runner', task.legacy ? t('queue.legacyTitle') : null],
     // Falsy checks: a host older than these fields sends none of them.
     live && task.lastEvent ? ['queue.d.latest', task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs))] : ['', null],
+    ['queue.d.session', task.session || null, true],
     ['queue.d.id', task.id, true],
   ]
+  const busy = ui.busy !== null
+  const running = live && (slot !== null || (task.attempts > 0 && task.waiting !== 'lock'))
+  const actions: React.ReactElement[] = []
+  if (ui.writable && live && !task.cancelling) {
+    if (reorderable(task)) {
+      actions.push(actionPill('top', t('queue.a.top'), () => { ui.act('priority', task, 'top') }, { disabled: busy || task.position === 1 }))
+      actions.push(actionPill('up', t('queue.a.up'), () => { ui.act('priority', task, 'up') }, { disabled: busy || task.position === 1 }))
+      actions.push(actionPill('down', t('queue.a.down'), () => { ui.act('priority', task, 'down') }, { disabled: busy }))
+    }
+    if (!task.legacy && !task.patrol) actions.push(actionPill('model', t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy }))
+    if (running && task.session) actions.push(actionPill('wrapup', t('queue.a.wrapup'), () => { ui.act('wrapup', task) }, { disabled: busy, title: t('queue.a.wrapupTitle') }))
+    actions.push(actionPill('cancel', ui.confirm === 'cancel:' + task.id ? t('queue.a.cancelConfirm') : t('queue.a.cancel'), () => {
+      if (ui.confirm === 'cancel:' + task.id) { ui.askConfirm(null); ui.act('cancel', task) } else ui.askConfirm('cancel:' + task.id)
+    }, { danger: true, disabled: busy }))
+  }
+  if (ui.writable && !live && task.session && !(task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === ''))) {
+    actions.push(actionPill('retry', t('queue.a.retry'), () => { ui.act('retry', task) }, { disabled: busy }))
+  }
+  if (ui.writable) actions.push(actionPill('log', t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: busy }))
+  const confirmText = ui.confirm === 'cancel:' + task.id
+    ? running
+      ? t('queue.a.cancelRunning', { session: task.session || '—' })
+      : task.waiting === 'quota' || task.waiting === 'retry' ? t('queue.a.cancelSleeping') : t('queue.a.cancelQueued')
+    : null
+  const picker = ui.picker
   return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
-    h('div', { className: cx('bp-head', 'tq-d-head') },
+    h('div', { className: cx('tq-head', 'tq-d-head') },
       h('button', {
         type: 'button',
         className: cx('tq-back'),
@@ -1791,35 +2066,95 @@ function renderTaskDetail(
         ref: backRef,
         onClick: back,
       }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('queue.panelHeading')),
-      h('span', { className: cx('bp-title') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
+      h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
     h('div', { className: cx('tq-scroll') },
+      notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), role: 'status' }, notice.text),
       h('div', { className: cx('tq-d-title') },
-        h('span', { className: cx('bp-dot'), 'data-balance-state': status.tone }),
+        live ? h('span', { className: cx('tq-dot'), 'data-balance-state': status.tone }) : null,
         h('span', { className: cx('tq-d-name') }, task.name)),
       h('div', { className: cx('tq-d-status'), 'data-balance-state': status.tone }, status.text),
+      actions.length === 0 ? null : h('div', { className: cx('tq-actions'), role: 'group', 'aria-label': t('queue.a.group') }, actions),
+      confirmText === null ? null : h('div', { className: cx('tq-note', 'tq-warn'), role: 'alert', 'data-tq-confirm': task.id }, confirmText),
+      picker === null ? null : h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
+        picker.allowed
+          ? [
+            h('label', { className: cx('tq-field'), key: 'm' }, h('span', null, t('queue.d.model')),
+              h('select', {
+                value: picker.model,
+                onChange: (event: { target: { value: string } }) => {
+                  const model = event.target.value
+                  const efforts = picker.efforts[model] ?? []
+                  ui.setPicker({ ...picker, model, effort: efforts.includes(picker.effort) ? picker.effort : '' })
+                },
+              }, picker.models.map((model) => h('option', { key: model, value: model }, _modelView(model).label + ' (' + model + ')')))),
+            h('label', { className: cx('tq-field'), key: 'e' }, h('span', null, picker.flag),
+              h('select', {
+                value: picker.effort,
+                disabled: (picker.efforts[picker.model] ?? []).length === 0,
+                onChange: (event: { target: { value: string } }) => { ui.setPicker({ ...picker, effort: event.target.value }) },
+              }, [h('option', { key: '', value: '' }, t('queue.d.effortDefault')),
+                ...(picker.efforts[picker.model] ?? []).map((effort) => h('option', { key: effort, value: effort }, effort))])),
+            h('div', { className: cx('tq-actions'), key: 'save' },
+              actionPill('save', t('queue.a.save'), () => {
+                ui.setPicker(null)
+                ui.act('model', task, picker.model + '|' + (picker.effort === '' ? 'default' : picker.effort))
+              }, { disabled: busy }),
+              actionPill('close', t('queue.a.close'), () => { ui.setPicker(null) })),
+            h('div', { className: cx('tq-caption'), key: 'hint' }, t('queue.a.modelHint')),
+          ]
+          : h('div', { className: cx('tq-note') }, picker.reason)),
       h('div', { className: cx('tq-d-grid') },
         fields.filter(([, value]) => value !== null).flatMap(([key, value, mono]) => [
           h('span', { className: cx('tq-d-k'), key: key + '-k' }, t(key)),
           h('span', { className: cx('tq-d-v', mono === true && 'tq-mono'), key: key + '-v' }, value),
         ])),
-      live ? null : h('div', { className: cx('bp-sub', 'tq-caption') }, t('queue.d.summary')),
+      ui.log === null ? null : h('pre', { className: cx('tq-log'), 'data-tq-log': task.id }, ui.log.join('\n')),
+      live ? null : h('div', { className: cx('tq-caption') }, t('queue.d.summary')),
       live ? null : task.summary
         ? h('div', { className: cx('tq-d-summary') }, task.summary)
-        : h('div', { className: cx('bp-sub', 'tq-empty') }, t('queue.d.noSummary'))))
+        : h('div', { className: cx('tq-empty') }, t('queue.d.noSummary'))))
 }
+
+/** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
+export function _describeAction(result: QueueActionResult, t: Translate): string {
+  let detail: Record<string, unknown> = {}
+  try { detail = JSON.parse(result.detail || '{}') as Record<string, unknown> } catch { detail = {} }
+  if (!result.ok) return t('queue.r.failed', { message: result.message || String(result.code) })
+  switch (result.action) {
+    case 'cancel':
+      if (detail.was === 'queued') return t('queue.r.cancelledQueued')
+      return detail.session ? t('queue.r.cancelledRunning', { resume: String(detail.resume ?? '') }) : t('queue.r.cancelledNoSession')
+    case 'priority': {
+      const queue = Array.isArray(detail.queue) ? detail.queue as string[] : []
+      return detail.changed === false ? String(detail.message ?? '') : t('queue.r.priority', { n: String(detail.position ?? '—'), total: queue.length })
+    }
+    case 'model': return t('queue.r.model', { model: String(detail.model_next ?? ''), effort: String(detail.effort_next || '—') })
+    case 'retry': return t('queue.r.retry', { id: String(detail.new_id ?? '') })
+    case 'wrapup': return t('queue.r.wrapup')
+    default: return result.message
+  }
+}
+
+/** How long an in-place confirmation waits for its second tap. */
+const CONFIRM_MS = 5000
 
 /**
  * The sidebar-foot task-queue row, directly above the balance row: live
- * dispatch tasks and what each waits for, recent endings, and whether patrol
- * is running, giving way or between rounds. Same foot geometry, tones, glyph
- * badge, popover and refresh button as the balance; renders nothing on a
- * host without the dispatcher (or before its first answer).
+ * dispatch tasks grouped by executor, what each waits for and in which place,
+ * recent endings, patrol, and the actions each task allows. Same foot
+ * geometry as the host's own badge; renders nothing on a host without the
+ * dispatcher (or before its first answer).
  */
 export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null {
   const t = props.t
   const state = useTaskQueue(props)
   // Which task's detail layer is up (by id, so each poll shows its fresh copy).
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
+  const [confirm, setConfirm] = useState<string | null>(null)
+  const [picker, setPicker] = useState<ModelPicker | null>(null)
+  const [log, setLog] = useState<string[] | null>(null)
   // The last copy seen, so a task that ages out of both lists keeps its layer.
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
@@ -1827,6 +2162,7 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
     if (detailId === null) return false
     const id = detailId
     setDetailId(null)
+    setPicker(null); setLog(null); setConfirm(null)
     // Hand focus back to the row that opened the layer (the list was inert).
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
@@ -1839,15 +2175,62 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
   const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
   const instanceId = useId()
   // Reopening the popover always lands on the list.
-  useEffect(() => { if (!open) setDetailId(null) }, [open])
+  useEffect(() => { if (!open) { setDetailId(null); setNotice(null); setConfirm(null) } }, [open])
   // Keyboard focus follows the layer: the row that opened it is now inert.
   useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
+  // An unanswered confirmation lapses, so a stray second tap later is not a cancel.
+  useEffect(() => {
+    if (confirm === null) return undefined
+    const timer = setTimeout(() => { setConfirm(null) }, CONFIRM_MS)
+    return () => clearTimeout(timer)
+  }, [confirm])
+  const run = props.runQueueAction
+  const act = (action: string, task: DispatchTask, arg = ''): void => {
+    if (run === undefined || busy !== null) return
+    setBusy(action + ':' + task.id)
+    setNotice(null)
+    run(action, task.id, arg).then((result) => {
+      setBusy(null)
+      setNotice({ ok: result.ok, text: _describeAction(result, t) })
+      state.refresh()
+    }, (err: unknown) => {
+      setBusy(null)
+      setNotice({ ok: false, text: t('queue.r.failed', { message: err instanceof Error ? err.message : String(err) }) })
+    })
+  }
+  const openPicker = (task: DispatchTask): void => {
+    if (run === undefined) return
+    setLog(null)
+    run('choices', task.id, '').then((result) => {
+      let detail: { models?: string[]; efforts?: Record<string, string[]>; effort_flag?: string; allowed?: boolean; reason?: string; requested?: { model?: string; effort?: string } } = {}
+      try { detail = JSON.parse(result.detail || '{}') as typeof detail } catch { detail = {} }
+      setPicker({
+        models: detail.models ?? [], efforts: detail.efforts ?? {}, flag: detail.effort_flag ?? 'effort',
+        model: detail.requested?.model ?? task.modelRequested ?? task.model, effort: detail.requested?.effort ?? '',
+        allowed: result.ok && detail.allowed === true, reason: result.ok ? detail.reason ?? '' : result.message,
+      })
+    }, () => { setPicker(null) })
+  }
+  const loadLog = (task: DispatchTask): void => {
+    if (run === undefined) return
+    setPicker(null)
+    run('log', task.id, '').then((result) => {
+      let lines: string[] = []
+      try { lines = (JSON.parse(result.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
+      setLog(result.ok ? lines : [result.message])
+    }, () => { setLog(null) })
+  }
   const result = state.data.result
   if (result === null || !result.available) return null
   const now = Date.now()
   const headline = _queueHeadline(result, t, now)
   const found = detailId === null ? null : findTask(result, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
   lastSeen.current = found
+  const writable = run !== undefined && result.ops?.available === true
+  const ui: DetailUi = {
+    open: (id) => { setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null) },
+    act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
+  }
   return h('div', { className: cx('pbc', 'pbf', 'tqf', !props.wide && 'rail'), ref: rootRef },
     h('button', {
       type: 'button',
@@ -1867,8 +2250,8 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
       ? h('span', { className: cx('bchip-item'), 'data-balance-state': headline.tone },
         h('span', { className: cx('bal-lead') }, renderQueueGlyph(headline.tone, 16, instanceId)),
         h('span', { className: cx('bchip-name') }, t('queue.name')),
-        h('span', { className: cx('bchip-v'), 'data-used-level': headline.busy ? 'mid' : undefined }, headline.value),
-        h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, headline.sub))
+        h('span', { className: cx('tq-count'), 'data-used-level': headline.busy ? 'mid' : undefined },
+          headline.value + (headline.sub !== '' ? ' · ' + headline.sub : '')))
       : h('span', { className: cx('bal-lead'), 'data-balance-state': headline.tone },
         renderQueueGlyph(headline.tone, 18, instanceId))),
     h('div', panelAttrs(open, t('queue.panelTitle'), {
@@ -1879,9 +2262,9 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
     }),
     // While a task is open the list stays mounted but inert and out of the box (see .tq-list[inert]).
     h('div', { className: cx('tq-list'), key: 'list', inert: found !== null ? '' : undefined, 'aria-hidden': found !== null ? 'true' : undefined },
-      renderQueuePanelBody(state, t, now, (id) => { setDetailId(id) })),
+      renderQueuePanelBody(state, t, now, ui, found === null ? notice : null)),
     found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
-      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef))))
+      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice))))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -2235,6 +2618,10 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
           cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
           return cachedTaskQueue
         },
+        // A host installed before queueAction existed has no such method: stay read-only.
+        runQueueAction: typeof studioRemote.queueAction === 'function'
+          ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
+          : undefined,
       }),
     }, TaskQueueSidebarAction))
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({

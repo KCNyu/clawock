@@ -9,10 +9,12 @@
  * is `$CLAWOCK_WORKSPACE` when set, otherwise the dsh process cwd.
  */
 
+import { join } from 'node:path'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
-  BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TaskQueueResult, TracesResult,
+  BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, QueueActionResult, RunDetailResult, TaskQueueResult,
+  TracesResult,
 } from './types.ts'
 import {
   createBalanceService,
@@ -23,7 +25,7 @@ import {
   type BalanceService,
 } from './balance.ts'
 import { getRun, listRuns } from './scan.ts'
-import { createTaskQueueService, type TaskQueueService } from './taskqueue.ts'
+import { createQueueActionRunner, createTaskQueueService, type QueueActionRunner, type TaskQueueService } from './taskqueue.ts'
 import { readLedger, readPlans, readPortfolio, readTraces } from './ledger.ts'
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from './freshness.ts'
 
@@ -79,6 +81,13 @@ export interface ClawockStudioConfig {
   taskQueueRefreshMs?: number
   /** How many recently ended tasks the chip lists (default 5). */
   taskQueueRecent?: number
+  /**
+   * The versioned queue ops entry every chip write goes through (default
+   * ~/tools/agent-dispatch/task_queue_ops.py, installed by
+   * ops/host/install_task_queue_ops.sh). Its hash is compared with the
+   * workspace's ops/host/task_queue_ops.py so skew shows on the chip.
+   */
+  taskQueueOpsPath?: string
 }
 
 /**
@@ -152,6 +161,9 @@ export class ClawockStudioGateway extends TypertRemoteService {
 
   /** The task chip's reader, lazily built and instance-scoped like the balance services. */
   private taskQueueService: TaskQueueService | null = null
+
+  /** The task chip's write door (the ops entry), built with the reader. */
+  private queueActionRunner: QueueActionRunner | null = null
 
   /**
    * The row config, owned by the instance. cordis constructs a class plugin as
@@ -253,16 +265,40 @@ export class ClawockStudioGateway extends TypertRemoteService {
    */
   @Remote
   async taskQueue(force: boolean): Promise<TaskQueueResult> {
-    if (this.taskQueueService === null) {
-      this.taskQueueService = createTaskQueueService({
+    return this.queueServices().reader.get(force)
+  }
+
+  /**
+   * One write from the task chip — cancel, priority, model, retry, wrapup —
+   * or a read the chip needs on demand (choices, log). Runs the versioned
+   * ops entry with `--source ui` (it validates, serialises per task, audits
+   * in the task directory); a double click shares one run. In-band like
+   * taskQueue(): never throws, a refusal is `{ ok: false, code, message }`.
+   * @param action - one of cancel | priority | model | choices | retry | wrapup | log.
+   * @param id - the task id; anything that is not one is refused before any process runs.
+   * @param arg - priority: top | up | down | reset | n; model: "<model>|<effort>" ('keep'/'default'); else ''.
+   */
+  @Remote
+  async queueAction(action: string, id: string, arg: string): Promise<QueueActionResult> {
+    return this.queueServices().act(action, id, arg)
+  }
+
+  private queueServices(): { reader: TaskQueueService; act: QueueActionRunner } {
+    if (this.taskQueueService === null || this.queueActionRunner === null) {
+      const config = {
         logDir: this.config.dispatchLogDir,
         limitsPath: this.config.dispatchLimitsPath,
         patrolDir: this.config.patrolStateDir,
         refreshMs: this.config.taskQueueRefreshMs,
         recent: this.config.taskQueueRecent,
-      })
+        opsPath: this.config.taskQueueOpsPath,
+        repoOpsPath: join(workspaceOf(), 'ops', 'host', 'task_queue_ops.py'),
+      }
+      const reader = createTaskQueueService(config)
+      this.taskQueueService = reader
+      this.queueActionRunner = createQueueActionRunner(config, undefined, () => { reader.invalidate() })
     }
-    return this.taskQueueService.get(force)
+    return { reader: this.taskQueueService, act: this.queueActionRunner }
   }
 }
 

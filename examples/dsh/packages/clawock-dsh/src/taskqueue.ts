@@ -13,6 +13,13 @@
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
  *   clawock-patrol.service + its journal the supervisor's own last words
+ *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT set from the chip (read only here)
+ *   task_queue_ops.py --json list        per-agent lock holder and queue order
+ *
+ * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
+ * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
+ * installed next to the runner): this module never runs systemctl stop,
+ * flock or edits a task directory. `runQueueAction` is that one door.
  *
  * The chip only exists on a host that runs the dispatcher: without `logDir`
  * the answer is `available: false` and the client renders nothing, so the
@@ -22,15 +29,19 @@
  */
 
 import { execFile } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, readdirSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { AgentSlotLimit, DispatchTask, PatrolRound, PatrolStatus, TaskQueueResult } from './types.ts'
+import type {
+  AgentQueue, AgentSlotLimit, DispatchTask, OpsStatus, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult,
+} from './types.ts'
 import { expandHome } from './balance.ts'
 
 export const DEFAULT_DISPATCH_LOG_DIR = join(homedir(), 'logs', 'agent-dispatch')
 export const DEFAULT_DISPATCH_LIMITS_PATH = join(homedir(), 'tools', 'agent-dispatch', 'limits.env')
 export const DEFAULT_PATROL_STATE_DIR = join(homedir(), 'logs', 'clawock-patrol')
+export const DEFAULT_TASK_QUEUE_OPS_PATH = join(homedir(), 'tools', 'agent-dispatch', 'task_queue_ops.py')
 export const DEFAULT_TASK_QUEUE_REFRESH_MS = 15000
 export const DEFAULT_TASK_QUEUE_RECENT = 5
 /** Host-side cache: every open tab polls, the files are read once per window. */
@@ -48,6 +59,10 @@ export interface TaskQueueConfig {
   patrolDir?: string
   refreshMs?: number
   recent?: number
+  /** The installed ops entry (default ~/tools/agent-dispatch/task_queue_ops.py). */
+  opsPath?: string
+  /** The repository's copy of it, hashed to show a merged-but-not-installed entry ('' = skip). */
+  repoOpsPath?: string
 }
 
 /** The host commands, injectable so tests run without systemd. */
@@ -58,6 +73,20 @@ export interface TaskQueueDeps {
   patrolService(): Promise<string>
   /** The supervisor's most recent journal lines, oldest first, timestamps kept. */
   patrolLog(): Promise<string[]>
+  /** Run the ops entry: `python3 <opsPath> --json …`. Optional: tests without it get no queue order. */
+  runOps?(opsPath: string, args: string[], timeoutMs: number): Promise<OpsRun>
+}
+
+/** One run of the ops entry. `code` is its exit status (-1: it did not run or timed out). */
+export interface OpsRun { code: number; stdout: string; stderr: string }
+
+function runOpsProcess(opsPath: string, args: string[], timeoutMs: number): Promise<OpsRun> {
+  return new Promise((resolve) => {
+    execFile('python3', [opsPath, '--json', ...args], { timeout: timeoutMs, maxBuffer: 4 << 20 }, (error, stdout, stderr) => {
+      const code = error === null ? 0 : typeof (error as { code?: unknown }).code === 'number' ? (error as { code: number }).code : -1
+      resolve({ code, stdout: String(stdout ?? ''), stderr: String(stderr ?? '') })
+    })
+  })
 }
 
 function run(command: string, args: string[]): Promise<string> {
@@ -80,6 +109,7 @@ export const systemDeps: TaskQueueDeps = {
     const out = await run('journalctl', ['-u', PATROL_UNIT, '-n', '12', '-o', 'cat', '--no-pager'])
     return out.split('\n').filter((line) => line.trim() !== '')
   },
+  runOps: runOpsProcess,
 }
 
 /** One `printf %q` value: '' / $'…' / backslash escapes. */
@@ -163,14 +193,29 @@ export function lastLogEvent(log: string): { text: string; atMs: number | null }
   return { text: '', atMs: null }
 }
 
+/** `weixin,telegram` → ['weixin', 'telegram']; 'none' and blanks dropped, each once. */
+export function channelList(raw: string | undefined): string[] {
+  return [...new Set((raw ?? '').split(',').map((part) => part.trim().toLowerCase()).filter((part) => part !== '' && part !== 'none'))]
+}
+
+const epochMs = (raw: string | undefined): number | null => {
+  const value = Number.parseInt(raw ?? '', 10)
+  return Number.isFinite(value) && value > 0 ? value * 1000 : null
+}
+
 function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
   const dir = join(logDir, id)
   const meta = readEnvFile(join(dir, 'meta.env'))
   const result = readEnvFile(join(dir, 'result.env'))
+  const override = readEnvFile(join(dir, 'override.env'))
   const waiting = alive ? (result.WAITING ?? '') : ''
   const log = logTail(dir)
   // A live task shows where it is now; an ended one shows how it closed.
   const event = alive ? lastLogEvent(log) : { text: '', atMs: null }
+  let cancelling = false
+  if (alive) {
+    try { cancelling = Date.now() - statSync(join(dir, 'cancel-requested')).mtimeMs < 60000 } catch { /* none */ }
+  }
   return {
     id,
     name: meta.NAME ?? id,
@@ -185,11 +230,27 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     outcome: result.OUTCOME ?? '',
     startedAtMs: localStampMs(result.STARTED ?? meta.CREATED),
     updatedAtMs: localStampMs(result.UPDATED),
-    wakeAtMs: alive && (waiting === 'quota' || waiting === 'retry') ? wakeAt(log) : null,
+    wakeAtMs: alive && (waiting === 'quota' || waiting === 'retry') ? epochMs(result.WAKE_AT) ?? wakeAt(log) : null,
     patrol: id.startsWith('patrol-'),
     summary: alive ? '' : finalSummary(log),
     lastEvent: event.text,
     lastEventAtMs: event.atMs,
+    queuedAtMs: epochMs(result.QUEUED_AT),
+    position: null,
+    priority: Number.parseInt(override.PRIORITY ?? '0', 10) || 0,
+    protected: false,
+    modelRequested: override.MODEL || meta.MODEL || '',
+    modelUsed: result.MODEL_USED ?? '',
+    effortRequested: override.EFFORT || meta.EFFORT || '',
+    effortUsed: result.EFFORT_USED ?? '',
+    notify: channelList(meta.NOTIFY),
+    notified: channelList(result.NOTIFIED),
+    notifyFailed: channelList(result.NOTIFY_FAILED),
+    notifyAtMs: localStampMs(result.NOTIFY_AT),
+    runnerApi: Number.parseInt(result.RUNNER_API ?? '1', 10) || 1,
+    legacy: (Number.parseInt(result.RUNNER_API ?? '1', 10) || 1) < 2,
+    session: result.SESSION ?? '',
+    cancelling,
   }
 }
 
@@ -240,16 +301,76 @@ export function patrolPhase(service: string, round: string, roundAlive: boolean,
 /** One full read. Throws only when the dispatch log directory itself is unreadable. */
 type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs'>
 
+/** sha256 of a file, 12 hex — the same hash the ops entry reports as its ops_version. */
+export function fileVersion(path: string): string {
+  if (path === '') return ''
+  try { return createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 12) } catch { return '' }
+}
+
+type OpsList = {
+  ops_version?: string; api?: number; fair_wait_sec?: number; runner?: { api?: number | null }
+  agents?: Record<string, {
+    holder?: { held?: boolean; id?: string | null; legacy?: boolean; note?: string }
+    queue?: Array<{ id: string; position: number; priority: number; protected: boolean; legacy?: boolean; queued_at?: number }>
+    quota?: { until: number; by: string } | null
+  }>
+}
+
+/** The ops entry's `list`, or why it could not be read. */
+async function readOps(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): Promise<{ ops: OpsStatus; list: OpsList | null }> {
+  const base: OpsStatus = {
+    available: false, version: '', repoVersion: fileVersion(config.repoOpsPath), api: 0, runnerApi: 0, fairWaitSec: 0, error: '',
+  }
+  if (deps.runOps === undefined) return { ops: { ...base, error: 'no ops runner' }, list: null }
+  if (!existsSync(config.opsPath)) return { ops: { ...base, error: `ops entry not installed at ${config.opsPath}` }, list: null }
+  const r = await deps.runOps(config.opsPath, ['list'], COMMAND_TIMEOUT_MS)
+  let list: OpsList | null = null
+  try { list = JSON.parse(r.stdout) as OpsList } catch { list = null }
+  if (r.code !== 0 || list === null) {
+    return { ops: { ...base, error: (r.stderr || r.stdout).trim().slice(-300) || `ops list exited ${r.code}` }, list: null }
+  }
+  return {
+    ops: {
+      ...base, available: true, version: list.ops_version ?? '', api: list.api ?? 0,
+      runnerApi: list.runner?.api ?? 0, fairWaitSec: list.fair_wait_sec ?? 0,
+    },
+    list,
+  }
+}
+
 export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): Promise<QueueRead> {
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
     return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
   }
-  const [activeIds, service, log] = await Promise.all([deps.activeTaskIds(), deps.patrolService(), deps.patrolLog()])
+  const [activeIds, service, log, opsRead] = await Promise.all([
+    deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
+  ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
-  const active = [...alive].map((id) => readTask(config.logDir, id, true))
-    .sort((a, b) => (a.startedAtMs ?? Number.MAX_SAFE_INTEGER) - (b.startedAtMs ?? Number.MAX_SAFE_INTEGER))
+  // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was
+  // written to later sorted after one that queued later, 2026-09-26); runners from before it
+  // fall back to their start stamp.
+  const since = (task: DispatchTask): number => task.queuedAtMs ?? task.startedAtMs ?? Number.MAX_SAFE_INTEGER
+  const active = [...alive].map((id) => readTask(config.logDir, id, true)).sort((a, b) => since(a) - since(b))
+  const queues: AgentQueue[] = []
+  for (const [agent, group] of Object.entries(opsRead.list?.agents ?? {})) {
+    const order = (group.queue ?? []).map((row) => row.id)
+    for (const row of group.queue ?? []) {
+      const task = active.find((candidate) => candidate.id === row.id)
+      if (task !== undefined) {
+        Object.assign(task, { position: row.position, protected: row.protected, priority: row.priority, legacy: row.legacy === true })
+        // An older runner writes no QUEUED_AT; the ops entry dates its wait from run.log.
+        if (task.queuedAtMs == null && typeof row.queued_at === 'number') task.queuedAtMs = row.queued_at * 1000
+      }
+    }
+    queues.push({
+      agent, held: group.holder?.held === true, holder: group.holder?.id ?? '', order,
+      holderLegacy: group.holder?.legacy === true, holderNote: group.holder?.note ?? '',
+      quotaUntilMs: group.quota ? group.quota.until * 1000 : null, quotaBy: group.quota?.by ?? '',
+    })
+  }
+  active.sort((a, b) => since(a) - since(b))
   // Newest first by the runner's own UPDATED stamp (file mtime only preselects, so a hand
   // edit to an old result.env cannot float it up); patrol rounds have their own section.
   const ended = readdirSync(config.logDir, { withFileTypes: true })
@@ -273,10 +394,16 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     active,
     recent: ended,
     patrol: { ...patrolPhase(service, round, alive.has(round), log), rounds: readRounds(config.patrolDir, 3) },
+    queues,
+    ops: opsRead.ops,
   }
 }
 
-export type TaskQueueService = { get(force: boolean): Promise<TaskQueueResult> }
+export type TaskQueueService = {
+  get(force: boolean): Promise<TaskQueueResult>
+  /** Forget the cached read: the next get() reads the files again (after a write). */
+  invalidate(): void
+}
 
 /** TTL cache + in-flight join + stale-on-failure, the balance services' cadence shell in miniature. */
 export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQueueDeps = systemDeps): TaskQueueService {
@@ -286,6 +413,8 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
     patrolDir: expandHome(config.patrolDir ?? DEFAULT_PATROL_STATE_DIR),
     refreshMs: config.refreshMs ?? DEFAULT_TASK_QUEUE_REFRESH_MS,
     recent: config.recent ?? DEFAULT_TASK_QUEUE_RECENT,
+    opsPath: expandHome(config.opsPath ?? DEFAULT_TASK_QUEUE_OPS_PATH),
+    repoOpsPath: config.repoOpsPath ?? '',
   }
   let last: QueueRead | null = null
   let fetchedAt = 0
@@ -315,6 +444,7 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
     }
   }
   return {
+    invalidate(): void { fetchedAt = 0 },
     async get(force: boolean): Promise<TaskQueueResult> {
       if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) {
         return lastError !== null ? answer('stale', lastError) : answer('cached', null)
@@ -323,5 +453,86 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
       inFlight = exec()
       try { return await inFlight } finally { inFlight = null }
     },
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Writes: one door, the versioned ops entry.
+// ---------------------------------------------------------------------------
+
+/** The actions the chip may run, and how each maps onto the ops entry's arguments. */
+export const QUEUE_ACTIONS = ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log'] as const
+export type QueueAction = typeof QUEUE_ACTIONS[number]
+
+const TASK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/
+const PRIORITY_ARG = /^(top|up|down|reset|-?\d{1,2})$/
+const MODEL_TOKEN = /^[A-Za-z0-9._/:@-]{1,120}$/
+/** Queued, not interrupting: the task finishes its current step, then lands what it has. */
+export const WRAPUP_TEXT = '请体面收尾：不要再开新的工作。把已经完成的部分提交/推送（按原任务的流程），' +
+  '写清楚做了什么、没做什么和下一步，然后输出 STATUS 行（没做完就是 STATUS: PARTIAL）。'
+
+/** The ops arguments for one chip action, or why the input is refused before anything runs. */
+export function opsArgsFor(action: string, id: string, arg: string): string[] | string {
+  if (!(QUEUE_ACTIONS as readonly string[]).includes(action)) return `unknown action ${JSON.stringify(action)}`
+  if (!TASK_ID.test(id)) return `not a task id: ${JSON.stringify(id)}`
+  switch (action as QueueAction) {
+    case 'priority':
+      return PRIORITY_ARG.test(arg) ? ['priority', id, arg] : `priority takes top, up, down, reset or an integer (got ${JSON.stringify(arg)})`
+    case 'model': {
+      const [model = '', effort = 'keep'] = arg.split('|')
+      if (!MODEL_TOKEN.test(model) || !MODEL_TOKEN.test(effort)) return `model takes "<model|keep|default>|<effort|keep|default>" (got ${JSON.stringify(arg)})`
+      return ['model', id, model, effort]
+    }
+    case 'wrapup': return ['append', id, '--queue', '--text', WRAPUP_TEXT]
+    case 'log': return ['log', id, '--lines', '80']
+    default: return [action, id]
+  }
+}
+
+const ACTION_TIMEOUT_MS = 30000
+/** A second identical write inside this window returns the first one's answer (a double click). */
+const REPEAT_WINDOW_MS = 2000
+
+export type QueueActionRunner = (action: string, id: string, arg: string) => Promise<QueueActionResult>
+
+/**
+ * The chip's write path: validate, then run the ops entry with --source ui.
+ * Identical calls in flight share one run, and a repeat within 2 s gets the
+ * same answer, so a double click can never cancel or reorder twice (the ops
+ * entry also serialises writes per task and treats a repeat cancel as a no-op).
+ * Never throws: every failure is an in-band `{ ok: false, code, message }`.
+ */
+export function createQueueActionRunner(config: TaskQueueConfig = {}, deps: Pick<TaskQueueDeps, 'runOps'> = systemDeps,
+  onWrite: () => void = () => {}): QueueActionRunner {
+  const opsPath = expandHome(config.opsPath ?? DEFAULT_TASK_QUEUE_OPS_PATH)
+  const inFlight = new Map<string, Promise<QueueActionResult>>()
+  const recent = new Map<string, { at: number; result: QueueActionResult }>()
+  const exec = async (action: string, id: string, args: string[]): Promise<QueueActionResult> => {
+    const fail = (code: number, message: string): QueueActionResult => ({ ok: false, code, action, id, message, detail: '' })
+    if (deps.runOps === undefined) return fail(-1, 'no ops runner')
+    if (!existsSync(opsPath)) return fail(-1, `ops entry not installed at ${opsPath} (ops/host/install_task_queue_ops.sh)`)
+    const r = await deps.runOps(opsPath, ['--source', 'ui', ...args], ACTION_TIMEOUT_MS)
+    type Answer = { ok?: boolean; error?: string; message?: string }
+    const answer = ((): Answer | null => { try { return JSON.parse(r.stdout) as Answer } catch { return null } })()
+    if (answer === null) return fail(r.code === 0 ? -1 : r.code, (r.stderr || r.stdout).trim().slice(-300) || `ops entry exited ${r.code}`)
+    const ok = r.code === 0 && answer.ok === true
+    return { ok, code: r.code, action, id, message: (ok ? answer.message : answer.error ?? answer.message) ?? '', detail: r.stdout.trim() }
+  }
+  return async (action, id, arg) => {
+    const args = opsArgsFor(action, id, arg)
+    if (typeof args === 'string') return { ok: false, code: 2, action, id, message: args, detail: '' }
+    const key = [action, id, arg].join('\u0000')
+    const read = action === 'choices' || action === 'log'
+    const last = recent.get(key)
+    if (!read && last !== undefined && Date.now() - last.at < REPEAT_WINDOW_MS) return last.result
+    const pending = inFlight.get(key)
+    if (pending !== undefined) return pending
+    const job = exec(action, id, args).then((result) => {
+      if (!read) { recent.set(key, { at: Date.now(), result }); onWrite() }
+      return result
+    }).finally(() => { inFlight.delete(key) })
+    inFlight.set(key, job)
+    return job
   }
 }

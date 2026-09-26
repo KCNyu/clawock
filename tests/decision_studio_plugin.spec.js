@@ -405,10 +405,15 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     },
     remote: {
       $mount: async (descriptors) => {
-        assert.equal(descriptors.descriptors.length, 8);
+        // Nine: the eight read methods plus queueAction, the task chip's one write door.
+        assert.equal(descriptors.descriptors.length, 9);
         const queueDesc = descriptors.descriptors.find((d) => d.method === "taskQueue");
         assert.ok(queueDesc, "taskQueue descriptor present (hand-carried wire, see build.mjs)");
         assert.equal(queueDesc.parameters.length, 1, "taskQueue(force) must declare its argument");
+        const actionDesc = descriptors.descriptors.find((d) => d.method === "queueAction");
+        assert.ok(actionDesc, "queueAction descriptor present (hand-carried wire, see build.mjs)");
+        assert.deepEqual(actionDesc.parameters.map((p) => p.name), ["action", "id", "arg"],
+          "queueAction(action, id, arg) must declare all three arguments");
         // gateway invoke() validates args against descriptor.parameters.length —
         // get(runId) must declare its argument or every call would throw.
         const getDesc = descriptors.descriptors.find((d) => d.method === "get");
@@ -1096,7 +1101,14 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "phone filters and folds need finger-sized targets");
   assert.match(css, /--canvas:var\(--dsw-static-neutral-bluish-75/,
     "Decision Mind canvas must use the host's neutral scale");
-  assert.doesNotMatch(css, /--glow-[123]:|radial-gradient\(|#f0f2f7|--dsw-alias-state-business-primary/i,
+  // The host's business blue is brand paint for the material (canvas, glows) — never there —
+  // but it is also the host's state token for "running" (kcn 2026-09-26: healthy/running uses
+  // --dsw-alias-state-business-primary, not a plugin-made green). It may appear exactly once:
+  // as the task chip's --tq-run role, which no material rule reads.
+  const runRole = css.match(/--tq-run:var\(--dsw-alias-state-business-primary\)/g) ?? [];
+  assert.equal(runRole.length, 1, "the task chip names business blue once, as its running role");
+  assert.doesNotMatch(css.replace(/--tq-run:var\(--dsw-alias-state-business-primary\)/, ""),
+    /--glow-[123]:|radial-gradient\(|#f0f2f7|--dsw-alias-state-business-primary/i,
     "plugin-owned blue canvas, blue-violet glow pools and brand paint must stay out of the material");
   for (const token of ["glass-fill-card", "glass-fill-header", "glass-fill-chip",
     "glass-fill-popover", "glass-saturate", "glass-rim", "glass-border"]) {
@@ -2004,7 +2016,7 @@ test("typert: every shipped codec meets DSH 0.1.7's create() contract", async ()
   for (const rel of ["lib/typert.host.js", "lib/typert.remote-client.js"]) {
     const face = await import(pathToFileURL(path.join(PLUGIN, rel)).href);
     const invocations = face.TYPERT?.invocations ?? face.TYPERT_REMOTE.descriptors;
-    assert.equal(invocations.length, 8, rel);
+    assert.equal(invocations.length, 9, rel);
     for (const invocation of invocations) {
       for (const codec of [...invocation.parameters.map((parameter) => parameter.codec), invocation.result]) {
         assert.equal(typeof codec.create, "function", `${rel}: ${invocation.id}`);
@@ -2870,15 +2882,20 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.equal(render(), null, "nothing renders before the first answer");
   await tick(); await tick();
   const foot = render();
+  // The fixture is an OLD host's answer (no queue fields, no ops, no queueAction): it must still
+  // render, read-only. The new host's answer is exercised further down.
   const trigger = find(foot, (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0];
-  assert.equal(trigger.props["data-balance-state"], "ok");
+  // One tone, one meaning: a task is waiting (b-1 queues for the claude lock), so the badge is
+  // amber; blue only when everything live is running (2026-09-26, "too many green dots").
+  assert.equal(trigger.props["data-balance-state"], "stale");
   assert.match(texts(trigger), /任务/);
-  assert.match(texts(trigger), /在跑 2/);
+  assert.match(texts(trigger), /在跑 2 · 排队 1/, "the host badge's trailing count: running · waiting");
   assert.doesNotMatch(texts(trigger), /\d\/\d/, "no n/sum: slots are per agent, a free one is no room for another agent");
   assert.match(trigger.props.title, /claude 1\/1 · codex 0\/1 · opencode 0\/1 · 过渡期共享槽 1/,
     "the per-agent lanes and the old shared slot a pre-2026-09-25 runner still holds");
-  assert.match(texts(trigger), /排队 1/);
-  assert.match(texts(trigger), /巡检让路中/, "patrol giving way is visible on the row itself");
+  // The patrol phase moved from the row to its title and the panel: the host badge carries a
+  // label and a count only, and the row ran out of room for it on a 260px sidebar.
+  assert.match(trigger.props.title, /巡检让路中/, "patrol giving way is still one hover away");
   const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
     "every rendered class resolves through the stylesheet");
@@ -2887,35 +2904,40 @@ test("client: the task queue sits above the balance and shows who waits for what
   const open = render();
   const popover = find(open, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0];
   assert.equal(popover.props["data-open"], "true");
-  // Sections in the order the questions come: slots held → queued/waiting → ended → patrol.
-  assert.match(texts(popover), /运行槽 · 按 agent 2 .*claude 1\/1 .*codex 0\/1 .*opencode 0\/1 .*过渡期共享槽 1 .*排队 \/ 等待 1 .*最近结束 1 .*巡检/);
+  // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
+  assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
+    ["claude", "codex", "opencode", "recent", "patrol"]);
+  assert.match(texts(popover), /过渡期共享槽 1 .*Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*没有任务 .*OpenCode .*槽 0\/1 .*最近结束 .*巡检/);
   const lanes = find(popover, (p) => p["data-tq-lane"] !== undefined);
   assert.deepEqual(lanes.map((l) => [l.props["data-tq-lane"], find(l, (p) => p["data-balance-state"] !== undefined)[0].props["data-balance-state"]]),
-    [["claude", "stale"], ["codex", "none"], ["opencode", "none"], ["legacy", "ok"]],
+    [["legacy", "ok"], ["claude", "stale"], ["codex", "none"], ["opencode", "none"]],
     "claude's one slot is full and a claude task queues for it: that lane is the queue's reason");
   const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
   assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
-    [["a-1", ""], ["patrol-recent-1", ""], ["b-1", "lock"], ["c-1", ""]]);
+    [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]], "the holder first, then its queue, per agent");
   assert.match(texts(rows[0]), /运行中/);
-  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the agent line already says whose");
-  assert.match(texts(rows[0]), /已跑 1 小时 5 分 · 第 2 次 · 卡死 1/, "stalled attempts ride on the numbers");
-  assert.match(texts(rows[1]), /运行中 · 旧共享槽 2/, "a bare slot number is an old runner's shared slot");
-  assert.match(texts(rows[2]), /等 claude 锁/);
+  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group header already says whose");
+  assert.match(texts(rows[0]), /Op Opus 5\.5 .*第 2 次 · 1 小时 5 分 · 卡死 1/, "model tile + short name; stalled attempts ride on the numbers");
+  assert.match(texts(rows[2]), /运行中 · 旧共享槽 2/, "a bare slot number is an old runner's shared slot");
+  assert.match(texts(rows[1]), /等 claude 锁/);
   assert.match(texts(rows[3]), /ok \/ DONE/);
+  assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
   assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
+  assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
   assert.equal(find(popover, (p) => p["data-tq-detail"] !== undefined).length, 0, "no layer until a task is picked");
-  rows[2].props.onClick();
+  rows[1].props.onClick();
   let layered = render();
   const detail = find(layered, (p) => p["data-tq-detail"] !== undefined)[0];
   assert.equal(detail.props["data-tq-detail"], "b-1");
   assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0].props["data-open"], "true",
     "the layer lives inside the open popover — no second surface");
   assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
-  assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent claude 模型 claude-opus-5-5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
+  assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent .*Claude Code 模型 .*Opus 5\.5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
   assert.doesNotMatch(texts(detail), /判卡死/, "no stall row when there was none");
+  assert.equal(find(detail, (p) => p["data-tq-action"] !== undefined).length, 0, "no actions without the host's write door");
   // Back returns to the list; so does Escape (tested through the same back function).
   find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   layered = render();
@@ -2986,4 +3008,197 @@ test("client: a task backing off to retry is counted on the queue headline, like
   const old = api._queueHeadline({ ...result, running: 2,
     active: [{ ...live("a", ""), slot: "claude-1" }, { ...live("b", ""), agent: "codex", slot: "1" }] }, translatorFor(api), now);
   assert.match(old.title, /在跑 2 · claude 1 · 过渡期共享槽 1/);
+});
+
+test("task queue host: the ops entry orders each agent's queue, flags older-runner tasks and is the only write door", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-queue-ops-"));
+  const logDir = path.join(root, "tasks");
+  const task = (id, meta, result, override = "") => {
+    fs.mkdirSync(path.join(logDir, id), { recursive: true });
+    fs.writeFileSync(path.join(logDir, id, "meta.env"), meta);
+    fs.writeFileSync(path.join(logDir, id, "result.env"), result);
+    if (override) fs.writeFileSync(path.join(logDir, id, "override.env"), override);
+  };
+  task("old-run", "AGENT=claude\nNAME=old-run\nMODEL=claude-opus-5-5\n", "STATE=running\nSLOT=claude-1\nATTEMPTS=1\nSTARTED=2026-09-26\\ 15:06:36\n");
+  task("new-wait", "AGENT=claude\nNAME=new-wait\nMODEL=claude-opus-5-5\nEFFORT=high\nNOTIFY=weixin,telegram\n",
+    "STATE=running\nWAITING=lock\nATTEMPTS=0\nRUNNER_API=2\nQUEUED_AT=1790422408\nSTARTED=2026-09-26\\ 19:33:28\n",
+    "MODEL=claude-haiku-4-5-20251001\nPRIORITY=2\n");
+  task("done", "AGENT=codex\nNAME=done\nNOTIFY=weixin,telegram\n",
+    "STATE=ok\nOUTCOME=DONE\nNOTIFIED=telegram\nNOTIFY_FAILED=weixin\nNOTIFY_AT=2026-09-26\\ 20:00:00\nRUNNER_API=2\nUPDATED=2026-09-26\\ 20:00:00\n");
+  const opsPath = path.join(root, "task_queue_ops.py");
+  const repoOps = path.join(root, "repo_task_queue_ops.py");
+  fs.writeFileSync(opsPath, "installed\n");
+  fs.writeFileSync(repoOps, "installed\n");
+  const list = {
+    ok: true, ops_version: tq.fileVersion(opsPath), api: 2, fair_wait_sec: 14400, runner: { api: 2 },
+    agents: {
+      claude: { holder: { held: true, id: "old-run", legacy: true, note: "held by old-run" }, quota: null,
+        queue: [{ id: "old-wait", position: 1, priority: 0, protected: false, legacy: true, queued_at: 1790410000 },
+          { id: "new-wait", position: 2, priority: 2, protected: false, legacy: false, queued_at: 1790422408 }] },
+      codex: { holder: { held: false, id: null }, queue: [], quota: { until: 1790430000, by: "x" } },
+    },
+  };
+  const calls = [];
+  const runOps = async (_path, args) => {
+    calls.push(args);
+    if (args[0] === "list") return { code: 0, stdout: JSON.stringify(list), stderr: "" };
+    if (args.includes("cancel")) return { code: 0, stdout: JSON.stringify({ ok: true, was: "queued", state: "cancelled", message: "cancelled before it started" }), stderr: "" };
+    return { code: 3, stdout: JSON.stringify({ ok: false, code: 3, error: "refused: older runner" }), stderr: "" };
+  };
+  const deps = { activeTaskIds: async () => ["old-run", "new-wait"], patrolService: async () => "active", patrolLog: async () => [], runOps };
+  const config = { logDir, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath, repoOpsPath: repoOps };
+  const r = await tq.createTaskQueueService(config, deps).get(true);
+  const wait = r.active.find((t) => t.id === "new-wait");
+  assert.equal(wait.position, 2, "the queue place comes from the ops entry");
+  assert.equal(wait.priority, 2);
+  assert.equal(wait.queuedAtMs, 1790422408000, "QUEUED_AT, not the directory's mtime");
+  assert.equal(wait.modelRequested, "claude-haiku-4-5-20251001", "the override is what the next attempt uses");
+  assert.equal(wait.effortRequested, "high");
+  assert.deepEqual(wait.notify, ["weixin", "telegram"]);
+  assert.equal(wait.legacy, false);
+  assert.equal(r.active.find((t) => t.id === "old-run").legacy, true, "no RUNNER_API: an older runner's task, flagged");
+  const done = r.recent.find((t) => t.id === "done");
+  assert.deepEqual([done.notified, done.notifyFailed], [["telegram"], ["weixin"]], "receipts from result.env, not the log");
+  const claude = r.queues.find((q) => q.agent === "claude");
+  assert.deepEqual([claude.holder, claude.holderLegacy, claude.order], ["old-run", true, ["old-wait", "new-wait"]]);
+  assert.equal(r.queues.find((q) => q.agent === "codex").quotaUntilMs, 1790430000000);
+  assert.deepEqual([r.ops.available, r.ops.version === r.ops.repoVersion], [true, true]);
+  fs.writeFileSync(repoOps, "merged, not installed\n");
+  const skewed = await tq.createTaskQueueService(config, deps).get(true);
+  assert.notEqual(skewed.ops.version, skewed.ops.repoVersion, "a merged-but-not-installed entry shows as skew");
+
+  // Writes: validated before any process runs; a double click is one run; a write invalidates the read.
+  let invalidated = 0;
+  const act = tq.createQueueActionRunner({ opsPath }, { runOps }, () => { invalidated += 1 });
+  calls.length = 0;
+  for (const [action, id, arg] of [["rm", "x", ""], ["cancel", "../etc", ""], ["priority", "new-wait", "first"], ["model", "new-wait", "a b|high"]]) {
+    const refused = await act(action, id, arg);
+    assert.equal(refused.ok, false);
+    assert.equal(refused.code, 2, `${action} ${id} ${arg}`);
+  }
+  assert.equal(calls.length, 0, "nothing invalid reaches the ops entry");
+  const [one, two] = await Promise.all([act("cancel", "new-wait", ""), act("cancel", "new-wait", "")]);
+  assert.equal(one, two, "a double click shares one run");
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0], ["--source", "ui", "cancel", "new-wait"]);
+  assert.equal((await act("cancel", "new-wait", "")).ok, true);
+  assert.equal(calls.length, 1, "a repeat inside the window returns the first answer");
+  assert.equal(invalidated, 1);
+  const refused = await act("priority", "old-run", "top");
+  assert.deepEqual([refused.ok, refused.code, refused.message], [false, 3, "refused: older runner"], "a refusal is in-band, with the entry's words");
+  const wrap = tq.opsArgsFor("wrapup", "new-wait", "");
+  assert.deepEqual(wrap.slice(0, 4), ["append", "new-wait", "--queue", "--text"], "wrap-up is a queued append, never an interrupt");
+  const missing = await tq.createQueueActionRunner({ opsPath: path.join(root, "absent.py") }, { runOps })("cancel", "new-wait", "");
+  assert.match(missing.message, /not installed/);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("client: the queue can be steered in place — move up, two-step cancel, model for the next attempt", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const now = Date.now();
+  const live = (id, extra) => ({ id, name: id, agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "",
+    attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
+    lastEventAtMs: null, runnerApi: 2, legacy: false, modelRequested: "claude-opus-5-5", effortRequested: "high",
+    notify: ["weixin", "telegram"], notified: [], notifyFailed: [], session: "", ...extra });
+  const QUEUE = {
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
+    slotLimits: [{ agent: "claude", max: 1 }],
+    active: [
+      live("holder", { slot: "claude-1", attempts: 1, session: "s-1", modelUsed: "claude-sonnet-5", effortUsed: "high" }),
+      live("first", { waiting: "lock", position: 1 }),
+      live("second", { waiting: "lock", position: 2, notifyFailed: ["weixin"] }),
+    ],
+    recent: [],
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    queues: [{ agent: "claude", held: true, holder: "holder", order: ["first", "second"], quotaUntilMs: null, quotaBy: "" }],
+    ops: { available: true, version: "abc123abc123", repoVersion: "def456def456", api: 2, runnerApi: 2, fairWaitSec: 14400, error: "" },
+  };
+  const calls = [];
+  const runQueueAction = async (action, id, arg) => {
+    calls.push([action, id, arg]);
+    if (action === "choices") {
+      return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, allowed: true, reason: "",
+        models: ["claude-opus-5-5", "sonnet"], efforts: { "claude-opus-5-5": ["low", "high"], sonnet: ["low", "high"] },
+        effort_flag: "--effort", requested: { model: "claude-opus-5-5", effort: "high" } }) };
+    }
+    const detail = action === "priority" ? { ok: true, changed: true, position: 1, queue: ["second", "first"] }
+      : action === "model" ? { ok: true, model_next: "sonnet", effort_next: "low" }
+        : { ok: true, was: "running", session: "s-1", resume: "cd /root && claude --resume s-1" };
+    return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify(detail) };
+  };
+  const t = translatorFor(api);
+  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction };
+  const render = () => { reactStub._resetCursor(); return api.TaskQueueSidebarAction(props); };
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+  find(render(), (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0].props.onClick();
+  let tree = render();
+  // Move up: only a reorderable waiter that is not already first.
+  const ups = find(tree, (p) => p["data-tq-up"] !== undefined);
+  assert.deepEqual(ups.map((b) => b.props["data-tq-up"]), ["second"]);
+  assert.match(texts(tree), /Sonnet 5 · high/, "a running task shows the model it actually runs on");
+  assert.match(texts(tree), /等 claude 锁 · 第 2 位/);
+  assert.match(texts(tree), /ops 入口与仓库不一致（主机 abc123abc123 \/ 仓库 def456def456）/, "version skew is visible");
+  const failedLeg = find(tree, (p) => p["data-tq-notify"] === "weixin" && p["data-state"] === "failed");
+  assert.equal(failedLeg.length, 1, "a failed notification leg is marked on its row");
+  ups[0].props.onClick();
+  await tick(); await tick();
+  assert.deepEqual(calls.at(-1), ["priority", "second", "up"]);
+  assert.match(texts(render()), /现在排第 1 位（共 2）/, "the answer says where it landed");
+
+  // Cancel a running task: the first tap only explains what it costs; the second one cancels.
+  find(render(), (p) => p["data-tq-task"] === "holder")[0].props.onClick();
+  tree = render();
+  const cancel = () => find(render(), (p) => p["data-tq-action"] === "cancel")[0];
+  assert.ok(find(tree, (p) => p["data-tq-action"] === "wrapup").length === 1, "a running task with a session can be wrapped up");
+  assert.equal(find(tree, (p) => p["data-tq-action"] === "top").length, 0, "a running task is not reordered");
+  const before = calls.length;
+  cancel().props.onClick();
+  assert.equal(calls.length, before, "one tap never cancels");
+  assert.match(texts(render()), /它正在跑：本轮进度会丢；会话 s-1 可用 --resume 续/);
+  assert.match(texts(cancel()), /确认取消/);
+  cancel().props.onClick();
+  await tick(); await tick();
+  assert.deepEqual(calls.at(-1), ["cancel", "holder", ""]);
+  assert.match(texts(render()), /已停止，本轮进度已丢；续跑：cd \/root && claude --resume s-1/, "the session to resume is reported");
+
+  // Model: offered from the entry's own choices, saved for the next attempt.
+  find(render(), (p) => p["data-tq-action"] === "model")[0].props.onClick();
+  await tick(); await tick();
+  const picker = find(render(), (p) => p["data-tq-picker"] !== undefined)[0];
+  assert.match(texts(picker), /Opus 5\.5 \(claude-opus-5-5\) .*Sonnet \(sonnet\) .*下一次尝试生效/);
+  find(picker, (p) => typeof p.onChange === "function")[0].props.onChange({ target: { value: "sonnet" } });
+  find(render(), (p) => typeof p.onChange === "function")[1].props.onChange({ target: { value: "low" } });
+  find(render(), (p) => p["data-tq-action"] === "save")[0].props.onClick();
+  await tick(); await tick();
+  assert.deepEqual(calls.at(-1), ["model", "holder", "sonnet|low"]);
+  assert.match(texts(render()), /下一次尝试：sonnet · low/);
+  disposeReactEffects();
 });
