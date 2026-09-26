@@ -808,7 +808,7 @@ from .brief_card import brief_url, build_brief_card  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels,
-    claim_send, mark_send_started, release_claim, log, send_per_policy,
+    claim_send, log, send_per_policy, send_under_claim,
 )
 from clawock.harness import brief_render  # noqa: E402
 
@@ -1393,15 +1393,15 @@ def main(argv=None):
             wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
             claim_declined = True
         else:
-            if not args.dry_run:
-                mark_send_started(claim_path)
             # WeChat, then Telegram (cold-proof — WeChat can't confirm real delivery), per
             # the delivery policy. The Telegram result is recorded: it's the sole backstop
             # brief_watchdog uses (no WeChat resend), so it needs to know if TG got this card.
-            wechat_sent, send_out, tg_ok = send_per_policy(
-                'brief', message, tag='brief', dry_run=args.dry_run,
-                wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
-                telegram_done=telegram_done)
+            def send():
+                return send_per_policy(
+                    'brief', message, tag='brief', dry_run=args.dry_run,
+                    wechat=send_wechat, telegram=cosend_telegram,
+                    resolve=resolve_wechat_target, telegram_done=telegram_done)
+
             # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
             # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
             # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
@@ -1411,26 +1411,26 @@ def main(argv=None):
             # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
             # kcn got nothing. A declined claim is the same shape: it sent nothing, so it
             # must not leave a marker either.
-            marker_written = False
-            if args.dry_run:
-                print('dry-run: skipping brief-sent marker write', file=sys.stderr)
-            else:
-                try:
-                    brief_marker.parent.mkdir(parents=True, exist_ok=True)
-                    safe_write_text(str(brief_marker), json.dumps(
-                        delivery_receipts.build_receipt(
-                            ts=int(datetime.now().timestamp() * 1000),
-                            sent_ok=wechat_sent, tg_ok=tg_ok, out=send_out,
-                            first_line=first_line),
-                        ensure_ascii=False))
-                    marker_written = True
-                except Exception as e:
-                    print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
-            # The marker owns idempotency from here — but only if it exists.
-            # Released without one, a retry would send this brief again (#1743).
-            # A dry run took no claim, so there is nothing to release.
-            if not args.dry_run:
-                release_claim(claim_path, marker_written=marker_written)
+            def write_receipt(sent):
+                if args.dry_run:
+                    print('dry-run: skipping brief-sent marker write', file=sys.stderr)
+                    return False
+                wechat_ok, out, telegram_ok = sent
+                brief_marker.parent.mkdir(parents=True, exist_ok=True)
+                safe_write_text(str(brief_marker), json.dumps(
+                    delivery_receipts.build_receipt(
+                        ts=int(datetime.now().timestamp() * 1000),
+                        sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
+                        first_line=first_line),
+                    ensure_ascii=False))
+                return True
+
+            # The marker owns idempotency from here — but only if it exists
+            # (#1743, `send_under_claim`). A dry run took no claim, so it
+            # passes none and nothing is flipped or released.
+            (wechat_sent, send_out, tg_ok), _ = send_under_claim(
+                None if args.dry_run else claim_path, send, write_receipt,
+                receipt_label='brief-sent marker')
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)

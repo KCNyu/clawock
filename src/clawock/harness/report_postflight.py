@@ -100,7 +100,7 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels,
-    claim_send, mark_send_started, release_claim, log, send_per_policy,
+    claim_send, log, send_per_policy, send_under_claim,
 )
 
 
@@ -204,24 +204,24 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     message = (wechat_prefix + text).strip()
     body_lines = text.strip().splitlines()
     sent_first = body_lines[0].strip() if body_lines else ''
-    # Flip the claim to "in flight" BEFORE the send, so a process killed between
-    # here and the marker write (the 2026-08-13 duplicate, #508) is readable as
-    # "may already have reached WeChat" by whoever claims next.
-    if claim_path is not None:
-        mark_send_started(claim_path)
+    # The claim is flipped to "in flight" before the send (#508) and released
+    # only once the marker below has landed (#1743) — `send_under_claim`.
     # WeChat, then Telegram, per the delivery policy. Telegram is never gated on
     # WeChat — WeChat can't confirm real delivery (cold drop returns sent_ok=true).
     # Its result is recorded too: it's the cold-proof channel and the ONLY backstop
     # report_watchdog uses (no WeChat resend), so the watchdog needs to know
     # whether THIS report already reached Telegram.
-    sent_ok, out, tg_ok = send_per_policy(
-        'report', message, tag=f'{market}-{phase}', market=market,
-        wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
-        telegram_done=telegram_done)
+    def send():
+        return send_per_policy(
+            'report', message, tag=f'{market}-{phase}', market=market,
+            wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
+            telegram_done=telegram_done)
+
     marker = delivery_receipts.receipt_path(TMP, 'report', market=market, phase=phase,
                                             date=date)
-    marker_written = False
-    try:
+
+    def write_receipt(result):
+        sent_ok, out, tg_ok = result
         safe_write_text(str(marker), json.dumps(delivery_receipts.build_receipt(
             ts=int(datetime.now().timestamp() * 1000),
             sent_ok=sent_ok,
@@ -246,16 +246,10 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             market=market,
             phase=phase,
         ), ensure_ascii=False))
-        marker_written = True
-    except Exception as e:
-        print(f'warn: report send marker write failed: {e}', file=sys.stderr)
-    # The marker now owns the idempotency question, so the claim has nothing
-    # left to arbitrate — provided the marker is actually there. Released
-    # without one, a retry of this phase would send it again (#1743). Releasing
-    # on success keeps "a claim exists" meaning "a sender died holding it, or
-    # could not file its receipt".
-    if claim_path is not None:
-        release_claim(claim_path, marker_written=marker_written)
+        return True
+
+    (sent_ok, out, _tg_ok), _ = send_under_claim(
+        claim_path, send, write_receipt, receipt_label='report send marker')
     if not sent_ok:
         print(f'warn: WeChat send failed (watchdog will retry): {(out or "")[:200]}', file=sys.stderr)
     return sent_ok, out

@@ -357,17 +357,90 @@ def test_releasing_requires_saying_whether_the_marker_landed():
     assert marker.default is inspect.Parameter.empty
 
 
-def test_every_postflight_ties_its_release_to_its_marker_write():
-    """Three call sites, one rule — and the rule is only worth having while all
-    three follow it. Counting them is what keeps this from passing by
-    discovering nothing (#453)."""
+# ── D. one transaction, three entries ───────────────────────────────────────
+#
+# The claim → send → receipt → release sequence used to be written out in each
+# postflight, and #1743 had to be fixed three times. It is `send_under_claim`
+# now. The tests below pin its order and its handover by behaviour. The last one
+# replaces the old per-file check that each `release_claim` call named
+# `marker_written`. That check only made sense while three copies existed;
+# with one copy, the rule to keep is "nobody runs the sequence by hand".
+
+def _held_claim(c, tmp_path):
+    claim = tmp_path / 'slot.claim'
+    won, _ = c.claim_send(claim, now_ms=NOW_MS)
+    assert won
+    return claim
+
+
+def test_the_claim_reads_mid_send_while_the_channels_are_called(tmp_path):
+    c = _common()
+    claim = _held_claim(c, tmp_path)
+    seen = {}
+
+    def send():
+        seen['claim'] = json.loads(claim.read_text())
+        return True, 'ok', True
+
+    c.send_under_claim(claim, send, lambda _r: True)
+
+    assert seen['claim']['send_started_at'] is not None
+
+
+def test_a_filed_receipt_releases_the_claim(tmp_path):
+    c = _common()
+    claim = _held_claim(c, tmp_path)
+
+    result, marker_written = c.send_under_claim(
+        claim, lambda: (False, 'wechat down', False), lambda _r: True)
+
+    assert result == (False, 'wechat down', False) and marker_written is True
+    assert not claim.exists(), 'a failed send with a receipt must not mute the next slot'
+
+
+def test_a_receipt_that_cannot_be_written_keeps_the_claim_and_turns_the_retry_away(tmp_path):
+    c = _common()
+    claim = _held_claim(c, tmp_path)
+
+    def write_receipt(_result):
+        raise OSError('read-only file system')
+
+    _, marker_written = c.send_under_claim(claim, lambda: (True, 'ok', True), write_receipt)
+
+    assert marker_written is False and claim.exists()
+    won, reason = c.claim_send(claim, now_ms=NOW_MS + 60_000)
+    assert (won, reason) == (False, 'in-flight')  # this process still holds it
+
+
+def test_a_receipt_withheld_on_purpose_is_not_a_filed_one(tmp_path):
+    c = _common()
+    claim = _held_claim(c, tmp_path)
+
+    _, marker_written = c.send_under_claim(claim, lambda: (True, '', True), lambda _r: False)
+
+    assert marker_written is False and claim.exists()
+
+
+def test_no_claim_held_means_nothing_is_flipped_or_released(tmp_path):
+    """Dry run and report's one-shot upgrade: send and receipt still run."""
+    c = _common()
+    calls = []
+
+    result, marker_written = c.send_under_claim(
+        None, lambda: calls.append('send') or (True, '', True),
+        lambda _r: calls.append('receipt') or True)
+
+    assert calls == ['send', 'receipt'] and marker_written is True
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_every_postflight_sends_through_the_one_transaction():
+    """Counted, so this cannot pass by finding nothing (#453)."""
     import re
 
     postflights = ['brief_postflight.py', 'intraday_postflight.py', 'report_postflight.py']
     for name in postflights:
         source = (ROOT / 'src' / 'clawock' / 'harness' / name).read_text(encoding='utf-8')
-        calls = re.findall(r'release_claim\(([^)]*)\)', source)
-        assert calls, f'{name}: no release_claim call found'
-        for call in calls:
-            assert 'marker_written=marker_written' in call, (
-                f'{name}: release_claim({call}) does not follow its marker write')
+        assert re.search(r'send_under_claim\(', source), f'{name}: sends outside send_under_claim'
+        by_hand = re.findall(r'\b(release_claim|mark_send_started)\(', source)
+        assert not by_hand, f'{name}: runs the claim sequence by hand: {by_hand}'

@@ -71,7 +71,7 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels,
-    claim_send, mark_send_started, release_claim, log, send_per_policy,
+    claim_send, log, send_per_policy, send_under_claim,
 )
 
 from clawock.workspace import workspace_root
@@ -926,42 +926,42 @@ def main(argv=None):
                 wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
                 send_claim_declined = True
             else:
-                mark_send_started(claim_path)
                 # WeChat, then Telegram (cold-proof — WeChat can't confirm real
                 # delivery), per the delivery policy. The Telegram result is recorded:
                 # it's the sole backstop intraday_watchdog uses (no WeChat resend), so
                 # it needs to know if TG already got this.
-                wechat_sent, send_out, tg_ok = send_per_policy(
-                    'intraday', render_for_channel(message, ctx, 'wechat'),
-                    tag=f'intraday-{args.market}', market=args.market,
-                    wechat=send_wechat, telegram=cosend_telegram,
-                    resolve=resolve_wechat_target, telegram_done=telegram_done,
-                    telegram_message=render_for_channel(message, ctx, 'telegram'))
-                delivered_this_run = bool(wechat_sent or tg_ok)
+                def send():
+                    return send_per_policy(
+                        'intraday', render_for_channel(message, ctx, 'wechat'),
+                        tag=f'intraday-{args.market}', market=args.market,
+                        wechat=send_wechat, telegram=cosend_telegram,
+                        resolve=resolve_wechat_target, telegram_done=telegram_done,
+                        telegram_message=render_for_channel(message, ctx, 'telegram'))
+
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
                 # slot was handled while nothing went out (#508).
-                marker_written = False
-                try:
+                def write_receipt(sent):
+                    wechat_ok, out, telegram_ok = sent
                     safe_write_text(str(marker), json.dumps(delivery_marker_payload(
                         ctx,
                         ts=int(datetime.now().timestamp() * 1000),
-                        sent_ok=wechat_sent,
-                        tg_ok=tg_ok,
+                        sent_ok=wechat_ok,
+                        tg_ok=telegram_ok,
                         first_line=block_first,
                         market=args.market,
-                        out=send_out,
+                        out=out,
                         delivery_state='failed' if status == 'fail' else 'delivered',
                     ), ensure_ascii=False))
-                    marker_written = True
-                except Exception as e:
-                    print(f'warn: marker write failed: {e}', file=sys.stderr)
-                # The marker owns idempotency from here — but only if it exists.
-                # Released without one, openclaw's retry would send this slot a
-                # second time (#1743). Keeping it costs nothing a later slot
-                # needs: since #1742 the claim carries this slot, so it refuses
-                # a re-send of THIS slot and no other.
-                release_claim(claim_path, marker_written=marker_written)
+                    return True
+
+                # The marker owns idempotency from here — but only if it exists
+                # (#1743, `send_under_claim`). Keeping the claim when it does not
+                # costs nothing a later slot needs: since #1742 the claim carries
+                # this slot, so it refuses a re-send of THIS slot and no other.
+                (wechat_sent, send_out, tg_ok), _ = send_under_claim(
+                    claim_path, send, write_receipt, receipt_label='marker')
+                delivered_this_run = bool(wechat_sent or tg_ok)
                 if not wechat_sent:
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)
