@@ -127,7 +127,8 @@ def verification_window_days(
 ) -> int:
     """Calendar span before an unresolved execution is permanent.
 
-    Multi-session adds are converted from their own leg's trading calendar.
+    Multi-session adds are converted from their own leg's trading calendar and
+    close the calendar day after their last session.
     The fallback remains deliberately conservative for legacy callers that do
     not carry a leg/condition yet.
     """
@@ -146,11 +147,15 @@ def verification_window_days(
                 sessions = next_sessions(market_leg, start, remaining) if remaining else []
                 end = sessions[-1] if sessions else start
                 if end:
-                    return max(
-                        1,
-                        (date.fromisoformat(end)
-                         - date.fromisoformat(plan_date)).days,
-                    )
+                    # +1: the window closes the calendar day AFTER the last
+                    # session, which is when that session's fill is on the
+                    # book. A US session ends ~04:00 HKT the next day, so a
+                    # window ending on the session's own date could never see
+                    # a last-session fill and filed it `not_followed` for good
+                    # (#1914). A single-session add already got this day via
+                    # max(1, 0); a multi-session one did not.
+                    return (date.fromisoformat(end)
+                            - date.fromisoformat(plan_date)).days + 1
             except (TypeError, ValueError):
                 pass
         # Legacy add rows did not persist the session window or leg.

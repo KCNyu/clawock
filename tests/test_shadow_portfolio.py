@@ -152,6 +152,32 @@ def test_swap_uses_only_sale_proceeds_and_derives_target_shares():
     assert state["inventory"] == {"AAA": 0, "BBB": 4}
 
 
+def test_a_swap_leg_without_a_fill_price_is_counted_not_dropped():
+    """#1908: the swap branch `continue`d past an unpriced buy leg, so the leg
+    left both numerator and denominator and a half-executed swap reported
+    full coverage."""
+    portfolio = _portfolio(
+        us_cash=1000,
+        us_holdings=[_holding("AAA", 10), _holding("BBB", 0)],
+    )
+    decisions = [
+        _decision("swap-sell", "AAA", "cut", 10, group="swap-1"),
+        _decision("swap-buy", "BBB", "add_on_breakout", 10, price=None, group="swap-1"),
+    ]
+    bar_loader, bar_map_loader = _loaders(_flat_bars(["AAA"], dates=(DAY_1,), close=10))
+
+    result = shadow.simulate_leg(
+        portfolio, decisions, "US", bar_loader=bar_loader,
+        bar_map_loader=bar_map_loader, matched={},
+    )
+
+    event = result["events"][0]
+    assert [(leg["ticker"], leg["status"]) for leg in event["legs"]] == [
+        ("AAA", "filled"), ("BBB", "skipped_no_fill_price")]
+    assert event["status"] == "partial"
+    assert result["counts"]["fill_types"]["skipped:skipped_no_fill_price"] == 1
+
+
 def test_paired_swap_is_serialized_as_one_group_not_two_successes():
     portfolio = _portfolio(
         us_cash=1000,
