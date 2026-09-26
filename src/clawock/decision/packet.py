@@ -1783,9 +1783,65 @@ def _catalyst_evidence_issues(tag: str, decision: dict, row: dict) -> list[str]:
     return []
 
 
+SWAP_SELL_ACTIONS = ("cut", "trim_on_rebound")
+
+
+def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
+                     decisions: list[dict]) -> list[str] | None:
+    """Judge an add on a swap target against its mandate, or None if it is not one.
+
+    `_constraints` opens `add_only_on_trigger` on a swap target without a
+    setup or add budget (#1084); judging that leg by the setup and
+    `max_add_shares` it was never meant to have refused it again here (#1905).
+    What the rule does bound, it is held to: the one named ticker, a sell of
+    the mandate's source in the same `decision_group_id` (the field the ledger
+    pairs swaps on), and no more than the mandate's `max_value`.
+    """
+    sources = {
+        str(item.get("from_ticker"))
+        for item in mandate.get("all_mandates") or [mandate]
+    }
+    group = decision.get("decision_group_id")
+    paired = bool(group) and any(
+        other is not decision
+        and str(other.get("ticker") or "") in sources
+        and other.get("action") in SWAP_SELL_ACTIONS
+        and other.get("decision_group_id") == group
+        for other in decisions
+    )
+    if not paired:
+        if decision.get("technical_setup_id"):
+            return None  # an ordinary setup add on this name; judged as one
+        return [
+            f"{tag}: swap buy leg must share decision_group_id with a "
+            f"{'/'.join(SWAP_SELL_ACTIONS)} of {'/'.join(sorted(sources))}"
+        ]
+    issues = []
+    shares = _number((decision.get("size") or {}).get("shares"), 0)
+    lot = _number((row.get("constraints") or {}).get("lot_size"), 0)
+    if shares is None or shares <= 0 or int(shares) != shares:
+        issues.append(f"{tag}: swap buy leg requires positive integer size.shares")
+        return issues
+    if lot and int(shares) % int(lot) != 0:
+        issues.append(
+            f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}")
+    max_value = _number(mandate.get("max_value"), 2)
+    price = (_number((decision.get("condition") or {}).get("price"), 4)
+             or _number((row.get("facts") or {}).get("current_price"), 4))
+    if max_value is not None:
+        if not price:
+            issues.append(f"{tag}: swap buy leg has no price to hold to max_value")
+        elif shares * price > max_value:
+            issues.append(
+                f"{tag}: swap buy leg {shares:g} x {price:g} exceeds mandate "
+                f"max_value {max_value:g} {mandate.get('currency') or ''}".rstrip())
+    return issues
+
+
 def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
     issues = []
     rows = packet.get("tickers") or {}
+    decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
     for index, decision in enumerate(plan.get("decisions") or []):
         ticker = str(decision.get("ticker") or "")
         tag = f"decision[{index}] {ticker}"
@@ -1810,7 +1866,14 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
             and shares > max_sell
         ):
             issues.append(f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}")
-        if action in {"add_only_on_trigger", "add_on_breakout"}:
+        swap_issues = (
+            _swap_leg_issues(tag, decision, row, constraints["swap_mandate"], decisions)
+            if action == "add_only_on_trigger" and constraints.get("swap_mandate")
+            else None
+        )
+        if swap_issues is not None:
+            issues.extend(swap_issues)
+        elif action in {"add_only_on_trigger", "add_on_breakout"}:
             max_add = _number(constraints.get("max_add_shares"), 0) or 0
             lot = _number(constraints.get("lot_size"), 0)
             if shares is None or shares <= 0:

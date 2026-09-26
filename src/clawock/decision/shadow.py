@@ -465,6 +465,20 @@ def _execute_buy(
     }
 
 
+def _unfilled_leg(row: dict) -> dict:
+    """The record of a leg that had no fill price; it still counts as skipped."""
+    return {
+        "ticker": row.get("ticker"),
+        "direction": "sell" if row.get("action") in SELL_ACTIONS else "buy",
+        "requested_shares": _shares((row.get("size") or {}).get("shares")),
+        "filled_shares": 0,
+        "status": "skipped_no_fill_price",
+        "fill_type": "missing",
+        "fill_model": "none",
+        **_leg_provenance(row),
+    }
+
+
 def _execute_swap_group(
     state: dict,
     rows: list[dict],
@@ -477,16 +491,20 @@ def _execute_swap_group(
     cash_before = state["cash"]
     sell_rows = [row for row in rows if row.get("action") in SELL_ACTIONS]
     buy_rows = [row for row in rows if row.get("action") in BUY_ACTIONS]
+    # A leg without a fill price is recorded as skipped, exactly as outside a
+    # swap. Dropping it took it out of fill_rate's denominator, so a swap whose
+    # buy half never executed reported full coverage (#1908).
     for decision in sell_rows:
         fill = fills.get(decision.get("decision_id"))
-        if fill:
-            legs.append(_execute_sell(
-                state, decision, fill, portfolio, leg_config=leg_config))
+        legs.append(_execute_sell(
+            state, decision, fill, portfolio, leg_config=leg_config)
+            if fill else _unfilled_leg(decision))
     proceeds = max(0.0, state["cash"] - cash_before)
     remaining = proceeds
     for index, decision in enumerate(buy_rows):
         fill = fills.get(decision.get("decision_id"))
         if not fill:
+            legs.append(_unfilled_leg(decision))
             continue
         # One target receives all proceeds. Multiple targets divide the still
         # available swap pot evenly; they never borrow the pre-existing cash.
@@ -816,18 +834,7 @@ def simulate_leg(
                 for row in rows:
                     fill = fills.get(row.get("decision_id"))
                     if not fill:
-                        legs.append({
-                            "ticker": row.get("ticker"),
-                            "direction": (
-                                "sell" if row.get("action") in SELL_ACTIONS else "buy"
-                            ),
-                            "requested_shares": _shares((row.get("size") or {}).get("shares")),
-                            "filled_shares": 0,
-                            "status": "skipped_no_fill_price",
-                            "fill_type": "missing",
-                            "fill_model": "none",
-                            **_leg_provenance(row),
-                        })
+                        legs.append(_unfilled_leg(row))
                         continue
                     if row.get("action") in SELL_ACTIONS:
                         legs.append(_execute_sell(

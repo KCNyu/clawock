@@ -108,6 +108,50 @@ def test_the_critical_mandate_wins_when_a_target_carries_several():
     assert len(view["all_mandates"]) == 2, "the others must stay visible"
 
 
+# ── The validator must accept the leg _constraints opened (#1905) ─────────────
+
+def _swap_packet(max_value=20001.2, lot=500, price=4.5):
+    mandates = packet._swap_mandates(_risks(**{"07226": [_hard_stop("03033", max_value)]}))
+    target = _constraints([], mandates["03033"])
+    target["lot_size"] = lot
+    source = _constraints([_hard_stop("03033", max_value)], {})
+    source["max_sell_shares"] = 6200
+    return {"tickers": {
+        "03033": {"constraints": target, "technical": {"setups": []},
+                  "facts": {"current_price": price}},
+        "07226": {"constraints": source, "technical": {"setups": []}, "facts": {}},
+    }}
+
+
+def _legs(*, shares=4000, group="2026-09-28:swap-07226", buy_group=None, price=4.5):
+    return {"decisions": [
+        {"ticker": "07226", "action": "cut", "size": {"shares": 6200},
+         "decision_group_id": group},
+        {"ticker": "03033", "action": "add_only_on_trigger",
+         "size": {"shares": shares},
+         "condition": {"type": "limit", "price": price, "valid_for_sessions": 1},
+         "decision_group_id": group if buy_group is None else buy_group},
+    ]}
+
+
+def test_the_buy_leg_the_constraints_opened_is_accepted_by_the_validator():
+    """#1084 opened the action; the validator still demanded a setup and
+    `max_add_shares` (0 here), so the plan carrying the leg was rejected."""
+    assert packet.validate_plan_constraints(_legs(), _swap_packet()) == []
+
+
+def test_the_buy_leg_is_still_held_to_what_the_rule_bounds():
+    unpaired = packet.validate_plan_constraints(
+        _legs(buy_group="2026-09-28:03033"), _swap_packet())
+    assert len(unpaired) == 1 and "decision_group_id" in unpaired[0]
+
+    too_big = packet.validate_plan_constraints(_legs(shares=5000), _swap_packet())
+    assert len(too_big) == 1 and "max_value" in too_big[0]  # 22,500 > 20,001.2
+
+    odd_lot = packet.validate_plan_constraints(_legs(shares=4100), _swap_packet())
+    assert len(odd_lot) == 1 and "board-lot" in odd_lot[0]
+
+
 # ── The layer the timing gate waits on has never filled (#1075) ──────────────
 
 def test_the_thesis_gate_is_a_kill_switch_and_says_so(monkeypatch, tmp_path):

@@ -997,15 +997,47 @@ class ExecutionCoverageTests(unittest.TestCase):
 
     def test_add_verification_counts_the_own_legs_sessions_across_a_long_holiday(self):
         # HK LNY: the five-session campaign starting 2026-02-13 ends on 02-24,
-        # not at the old fixed nine-calendar-day cutoff on 02-22.
-        # old fixed nine-calendar-day cutoff on 02-22.
+        # not at the old fixed nine-calendar-day cutoff on 02-22. The window
+        # closes the day after (02-25): 11 closed it on the last session's own
+        # date, the #1914 miss.
         self.assertEqual(
             dv2.verification_window_days(
                 "add_only_on_trigger", plan_date="2026-02-13", leg="HK",
                 valid_for_sessions=5,
             ),
-            11,
+            12,
         )
+
+    def test_a_last_session_fill_is_inside_the_window_and_the_next_week_is_not(self):
+        """#1914: a US add valid Wed/Thu/Fri (2026-09-23..25) closed on Friday
+        HKT, before the Friday US session (Sat ~04:00 HKT) had even ended, so
+        its fill could only be read as `not_followed`. The window now reaches
+        Saturday — and stops there: a buy the following week is not this
+        plan's fill."""
+        from clawock.harness import brief_preflight
+
+        window = dv2.verification_window_days(
+            "add_only_on_trigger", plan_date="2026-09-23", leg="US",
+            valid_for_sessions=3)
+        self.assertEqual(window, 3)
+
+        row = {"plan_date": "2026-09-23", "ticker": "AAA",
+               "bucket": "add_only_on_trigger", "leg": "US",
+               "condition": {"valid_for_sessions": 3}}
+        booked = {"2026-09-22": 10}
+
+        def shares(_ticker, day):
+            return next((n for d, n in sorted(booked.items(), reverse=True)
+                         if d <= day), None)
+
+        with mock.patch.object(brief_preflight, "_shares_at_date", side_effect=shares), \
+                mock.patch.object(brief_preflight.trading_calendar, "hkt_today",
+                                  return_value=date(2026, 10, 5)):
+            booked["2026-09-26"] = 20          # Friday's US fill, booked Saturday HKT
+            self.assertEqual(brief_preflight._detect_followed(row), "true")
+            del booked["2026-09-26"]
+            booked["2026-09-29"] = 20          # an unrelated buy the next week
+            self.assertEqual(brief_preflight._detect_followed(row), "false")
 
 
 if __name__ == "__main__":

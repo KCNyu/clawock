@@ -359,8 +359,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   技术 setup。目标票的 `constraints.swap_mandate` 就是那份授权(`from_ticker` / `breach_id` /
   `max_value` / `currency`);此时它的 `allowed_actions` 会含 `add_only_on_trigger`,直接用,
   别因为它没有 setup 就退回 hold。三条硬约束:①只能买 mandate 指名的那一只 ②金额不超
-  `max_value` ③**两条腿必须共享同一个 `transaction_group_id`**,否则 decision_audit 会把买腿
-  当成裸买、对着错的基准结算。目标票自己也在 breach 时 mandate 为 `null`——那就是不许换过去。
+  `max_value` ③**两条腿必须共享同一个 `decision_group_id`**(ledger 只按这个字段配对换仓;
+  写成别的字段名会在归一化时丢掉),否则 postflight 拒收买腿、decision_audit 也会把它当成裸买。目标票自己也在 breach 时 mandate 为 `null`——那就是不许换过去。
 - **目标已清仓的处方也要写出来**:packet 顶层 `swap_mandates` 列出全部处方,含 `target_held:false`
   的(例:RKLX→RKLB,RKLB 6/13 已清)。它们在 `tickers` 里没有行,但**必须在本段点名**——
   一条看不见的处方,没人能有意否决它。
