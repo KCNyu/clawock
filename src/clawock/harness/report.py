@@ -13,16 +13,17 @@ from __future__ import annotations
 
 
 from clawock.harness.validation import (
+    FORBIDDEN_PHRASES,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
     check_numeric_claims,
     check_pipeline_self_reference,
+    is_hard_char_limit,
     mentions_ticker,
     validate_forbidden_phrases,
 )
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
-FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
 
 def _unusable_context(ctx):
     """Reason string if the context can't back a report, else None.
@@ -114,12 +115,7 @@ def validate(body, ctx, model_text):
 CRITICAL_KEYWORDS = ['缺段标记', '敷衍词']
 
 
-def _is_hard_char_limit(issue):
-    """Hard char limit (e.g. '字 > 3500 上限') is critical; soft is not."""
-    return '字 >' in issue and '上限' in issue and '软上限' not in issue
-
-
 def categorize(issues):
     return categorize_issues(
-        issues, CRITICAL_KEYWORDS, warn_max=3, extra_critical=_is_hard_char_limit,
+        issues, CRITICAL_KEYWORDS, warn_max=3, extra_critical=is_hard_char_limit,
     )

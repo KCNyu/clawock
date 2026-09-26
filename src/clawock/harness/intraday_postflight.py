@@ -46,12 +46,14 @@ from pathlib import Path
 
 from clawock.harness.validation import (
     ADVISORY_MARK,
+    FORBIDDEN_PHRASES,
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
     check_pipeline_self_reference,
+    is_hard_char_limit,
     mentions_ticker,
     postflight_exit_code,
     product_status,
@@ -92,9 +94,9 @@ from clawock.harness.intraday_preflight import can_silence  # noqa: E402
 REPORT_MAX_AGE_MIN = 20
 
 REQUIRED_SECTION = '▎我的看法'
-# One table with report/brief: this file used to carry its own copy, which
-# never gained '数据缺失（占位）' and let that placeholder ship intraday (#1776).
-from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402
+# FORBIDDEN_PHRASES is the one table in `validation`: this file used to carry
+# its own copy, which never gained '数据缺失（占位）' and let that placeholder
+# ship intraday (#1776).
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词',
                      '表格行未 verbatim', '策略冲突', '策略证据不足']
 JUDGMENT_SOFT_LIMIT = 600
@@ -586,9 +588,6 @@ def validate(text, ctx, model_text):
 
 
 def categorize(issues):
-    def is_hard_char_limit(issue):
-        return '字 >' in issue and '上限' in issue and '软上限' not in issue
-
     return categorize_issues(
         issues, CRITICAL_KEYWORDS, warn_max=2, extra_critical=is_hard_char_limit,
     )

@@ -91,6 +91,14 @@ def _contains_phrase(text, phrase):
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 
+# Placeholder prose. One table for every entry that ships model text — brief,
+# report and intraday all hold `敷衍词` critical, so a copy of this list inside
+# one entry is how intraday once refused fewer words than report (#1776). It
+# lived in `harness/report.py` until the brief and intraday postflights stopped
+# importing a sibling entry to reach it.
+FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
+
+
 def validate_forbidden_phrases(text, phrases, label='报告'):
     """Return one issue per forbidden phrase found in text."""
     return [f'{label}含敷衍词 "{p}"' for p in phrases if _contains_phrase(text, p)]
@@ -714,3 +722,13 @@ def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=No
 # Widen them if a real report ever legitimately reaches one; do not turn them
 # back into a target.
 REPORT_CHAR_LIMITS = {'soft': 5_000, 'hard': 6_000}
+
+
+def is_hard_char_limit(issue):
+    """The hard length ceiling above is critical; the soft one is not.
+
+    Compound, so it cannot be a `critical_substrings` entry: both limit issues
+    say `字 >` and `上限`, and only the soft one says `软上限`. Report and
+    intraday pass it to `categorize_issues` as `extra_critical`.
+    """
+    return '字 >' in issue and '上限' in issue and '软上限' not in issue
