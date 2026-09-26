@@ -13,6 +13,7 @@ import pytest
 
 from clawock.config.profiles import load_profile
 from clawock.harness import _watchdog_common as common
+from clawock.harness import brief_card
 from clawock.providers.openclaw import CronRead
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -113,11 +114,11 @@ def test_a_disabled_wechat_target_is_never_looked_up(tmp_path, monkeypatch):
 
 def test_the_brief_link_follows_the_workspace_pages_contract(tmp_path, monkeypatch):
     _workspace(tmp_path, monkeypatch, {}, site_url="https://desk.example/site/")
-    assert common.brief_url("2026-09-19") == (
+    assert brief_card.brief_url("2026-09-19") == (
         "https://desk.example/site/memory/2026-09-19-pre-open.html")
 
     (tmp_path / "config/pages-public.json").unlink()
-    assert common.brief_url("2026-09-19") == "memory/2026-09-19-pre-open.html"
+    assert brief_card.brief_url("2026-09-19") == "memory/2026-09-19-pre-open.html"
 
 
 @pytest.mark.parametrize("target, message", [

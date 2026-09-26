@@ -804,9 +804,9 @@ from ._harness_common import (  # noqa: E402
     push_with_rebase_retry,
     rebuild_dashboard,
 )
+from .brief_card import brief_url, build_brief_card  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
-    brief_url,
-    resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
+    resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels,
     claim_send, mark_send_started, release_claim, log, send_per_policy,
 )

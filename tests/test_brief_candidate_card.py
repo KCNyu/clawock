@@ -1,7 +1,7 @@
 """The compact brief cannot hide deterministic early-positioning hints."""
 import json
 
-from clawock.harness import _watchdog_common as common
+from clawock.harness import brief_card as common
 
 
 TODAY = "2026-08-13"
