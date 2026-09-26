@@ -23,6 +23,16 @@ _CHECKOUT = WS
 # Shared by the host harness rebuild and publish_dashboard.sh crontab so the two
 # never build/write the generated files concurrently.
 DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
+# The publisher holds that lock for its whole tick, network publish included
+# (~16s measured 2026-09-25; one slow pre-push/retry is ~60s more), while the
+# build itself takes ~2s. Waiting used to share the build's 30s timeout, so a
+# slow tick was recorded as a failed build (#1904). The wait is bounded on its
+# own: past it the tick is stuck in its retry ladder, and waiting longer would
+# eat the intraday run's 900s budget, which must also fit this path's own
+# publish. flock exits with EX_TEMPFAIL when the wait runs out.
+DASHBOARD_LOCK_WAIT_SECONDS = 90
+DASHBOARD_BUILD_TIMEOUT_SECONDS = 30
+DASHBOARD_LOCK_BUSY_EXIT = 75
 
 # Where rebuild_dashboard records its last outcome so the daily cron health
 # check can surface silent build failures / degradations (kcn doesn't want
@@ -221,7 +231,8 @@ def sync_gha_data_files(ws=None):
         return False, str(e)
 
 
-def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None):
+def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None,
+                            lock_busy=False):
     """Persist build *and* publication outcomes to the dashboard status file.
 
     Why: report_postflight / brief_postflight call rebuild_dashboard() and discard
@@ -257,6 +268,9 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None)
             # failed. Keeping that distinct from a rejected push makes the next
             # operator action unambiguous.
             'publish_ok': None if publish_ok is None else bool(publish_ok),
+            # The build never ran: the publisher still held the lock when the
+            # wait ran out. Not a build failure, and named apart from one.
+            'lock_busy': bool(lock_busy),
             'warn_count': warn_count,
             'repair_count': repair_count,
             # Git hooks and remote rules print the useful cause *before* their
@@ -285,7 +299,11 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None)
         path = ws / DASHBOARD_BUILD_STATUS
         path.parent.mkdir(parents=True, exist_ok=True)
         safe_write_json(str(path), status)
-        if not build_ok:
+        if lock_busy:
+            print(f'🟠 dashboard build SKIPPED — the publisher held '
+                  f'{DASHBOARD_PUBLISH_LOCK} past {DASHBOARD_LOCK_WAIT_SECONDS}s; '
+                  f'recorded to {DASHBOARD_BUILD_STATUS}', file=sys.stderr)
+        elif not build_ok:
             print(f'🔴 dashboard build FAILED — recorded to {DASHBOARD_BUILD_STATUS}; '
                   f'local outputs were not refreshed. tail: {(output or "")[-500:]}',
                   file=sys.stderr)
@@ -375,13 +393,19 @@ def rebuild_dashboard(ws=None):
             # the fingerprint could not see the data plane until this change,
             # and this path calls `sync_gha_data_files` immediately before the
             # build precisely because a scan may just have rewritten it.
-            ['flock', DASHBOARD_PUBLISH_LOCK,
+            ['flock', '-w', str(DASHBOARD_LOCK_WAIT_SECONDS),
+             '-E', str(DASHBOARD_LOCK_BUSY_EXIT), DASHBOARD_PUBLISH_LOCK,
              sys.executable, '-m', 'clawock', 'dashboard-build',
              '--previous', str(previous / 'assets' / 'data' / 'dashboard.json'),
              '--skip-if-unchanged'],
-            capture_output=True, text=True, timeout=30, cwd=str(ws),
+            capture_output=True, text=True, cwd=str(ws),
+            timeout=DASHBOARD_LOCK_WAIT_SECONDS + DASHBOARD_BUILD_TIMEOUT_SECONDS,
         )
         timings['dashboard_build'] = round(time.monotonic() - _t0, 3)
+        if r.returncode == DASHBOARD_LOCK_BUSY_EXIT:
+            full = r.stdout + r.stderr
+            _record_dashboard_build(False, None, full, ws, timings, lock_busy=True)
+            return False, full[-2000:]
         build_ok = r.returncode == 0
         publish_ok = None
         full = r.stdout + r.stderr
@@ -482,6 +506,8 @@ def dashboard_publication_state(ws=None):
         status = json.loads((ws / DASHBOARD_BUILD_STATUS).read_text())
     except Exception:
         return 'unavailable'
+    if status.get('lock_busy') is True:
+        return 'lock_busy'
     if status.get('build_ok', status.get('ok')) is not True:
         return 'rebuild_failed'
     if status.get('publish_ok', status.get('ok')) is not True:

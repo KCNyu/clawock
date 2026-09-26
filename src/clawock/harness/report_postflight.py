@@ -320,6 +320,8 @@ def classify_data_plane(commit_ok, commit_msg):
         return 'publish_failed'
     if 'dashboard=rebuild_failed' in commit_msg:
         return 'rebuild_failed'
+    if 'dashboard=lock_busy' in commit_msg:
+        return 'lock_busy'
     if 'dashboard=unavailable' in commit_msg:
         return 'unavailable'
     if 'push failed' in commit_msg:

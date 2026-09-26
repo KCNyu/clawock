@@ -121,6 +121,56 @@ def test_0905_accepts_brief_and_nonempty_v2_plan(tmp_path, monkeypatch):
     assert watchdog.inspect_brief_artifacts(TODAY) == []
 
 
+def _wire_0905_with_artifacts(monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    _write_brief(tmp_path)
+    _write_plan(tmp_path, [{"action": "hold_and_watch"}])
+    messages, events = [], []
+    monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(TODAY))
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "CARD")
+    monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
+    monkeypatch.setattr(
+        watchdog, "send_telegram",
+        lambda _target, message, _dry: (messages.append(message), (True, "ok"))[1],
+    )
+    monkeypatch.setattr(watchdog, "dispatch_brief_fallback",
+                        lambda _dry: pytest.fail("a landed brief needs no vendor rewrite"))
+    monkeypatch.setattr(watchdog, "log", events.append)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--check-missing"])
+    return messages, events
+
+
+def test_0905_a_landed_brief_nobody_sent_is_mirrored_not_called_ok(tmp_path, monkeypatch):
+    """#1899: postflight wrote pre-open.md and plan.json, then died before
+    sending. 09:05 is the day's last brief check; it used to log `ok` on the
+    artifacts alone, so the brief was silently never delivered."""
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+
+    assert watchdog.main() == 0
+    assert not any(e.get("action") == "ok" for e in events)
+    assert events[-1]["action"] == "mirror-telegram"
+    assert events[-1]["fail_reason"] == "postflight marker missing"
+    assert len(messages) == 1 and messages[0].endswith("CARD")
+
+
+def test_0905_a_delivered_brief_is_not_mirrored_again(tmp_path, monkeypatch):
+    """The other direction: today's receipt from an 08:20 send is 45 minutes
+    old at 09:05 — past the 08:36 pass's freshness window — and must still read
+    as delivered, not as a reason for a second copy."""
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+    marker = watchdog.delivery_receipts.receipt_path(
+        tmp_path / "memory" / ".tmp", "brief", date=TODAY)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(json.dumps(watchdog.delivery_receipts.build_receipt(
+        ts=1, sent_ok=True, tg_ok=True)))
+
+    assert watchdog.main() == 0
+    assert messages == []
+    assert events[-1]["action"] == "ok"
+
+
 def test_missing_alert_dispatches_only_once_after_success(tmp_path, monkeypatch):
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     calls = {"dispatch": 0, "send": 0}

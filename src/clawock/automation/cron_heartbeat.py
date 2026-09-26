@@ -24,6 +24,8 @@ PUBLIC_PATH = WS / "assets" / "data" / "cron-heartbeats.json"
 HKT = workflow_outcomes.HKT
 SCHEMA_VERSION = 1
 KEEP_HOURS = 72
+# Fields that describe the writing process, not the slot (see record()).
+WRITER_SCOPED_KEYS = ("send_claim_declined",)
 
 
 def _now(at: datetime | None = None) -> datetime:
@@ -161,6 +163,13 @@ def record(market: str, state: str, *, at: datetime | None = None,
             else:
                 events.append(event)
         current = current or {"job": job_name, "market": market, "slot": slot}
+        # Diagnostics survive a later write that omits them; a statement about
+        # the process that wrote them must not. A claim-declined writer's flag
+        # carried into the claim holder's own write made the outcome bridge
+        # treat the holder as a non-witness too, so a real failed send stayed
+        # `unknown` (#1916).
+        for key in WRITER_SCOPED_KEYS:
+            current.pop(key, None)
         current.update({"state": state, "updated_at": now.isoformat()})
         for key, value in details.items():
             if value is not None:
