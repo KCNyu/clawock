@@ -151,3 +151,20 @@ def test_declining_to_help_is_a_warning_not_a_silence():
     text = WORKFLOW.read_text(encoding="utf-8")
     late = text.split('elif [ "$HOUR" -ge 10 ]', 1)[1].split("else", 1)[0]
     assert "::warning::" in late
+
+
+def test_the_backstop_has_a_concurrency_lane_of_its_own(workflow):
+    """#1913: in the shared `data-write` group a newer queued writer cancels
+    the one pending run, so the 09:05 dispatch could vanish behind the scans."""
+    group = workflow["concurrency"]["group"]
+    shared = []
+    for path in WORKFLOW.parent.glob("*.yml"):
+        if path == WORKFLOW:
+            continue
+        other = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        lanes = [other.get("concurrency")] + [
+            job.get("concurrency") for job in (other.get("jobs") or {}).values()]
+        if any(isinstance(lane, dict) and lane.get("group") == group for lane in lanes):
+            shared.append(path.name)
+    assert shared == []
+    assert workflow["concurrency"]["cancel-in-progress"] is False

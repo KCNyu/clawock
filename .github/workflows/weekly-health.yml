@@ -39,6 +39,12 @@ jobs:
         # is how this step spent its life four phases behind (#1317).
         run: python3 ops/ci/argparse_probe.py
 
+      - name: Public data probes import
+        # Kept out of the step below on purpose: its continue-on-error is for
+        # the network, and it swallowed a ModuleNotFoundError on a module #425
+        # had moved into the package, every week, green (#1912).
+        run: python3 -c "from clawock.market_data.hk_analysis import fetch_hk_quotes"
+
       - name: Public data sources reachable
         continue-on-error: true
         run: |
@@ -46,10 +52,9 @@ jobs:
           clawock fx --json
           # Sample HK quote (Tencent fallback) — skip if all 3 routes down (network policy)
           python3 -c "
-          import sys
-          from analyze_hk_stocks import fetch_hk_quotes
+          from clawock.market_data.hk_analysis import fetch_hk_quotes
           q = fetch_hk_quotes(['00700'])
-          print('HK 00700 quote:', q.get('00700', {}).get('price'))
+          print('HK 00700 quote:', q.get('00700', {}).get('c'))
           "
 
       - name: Scheduled workflow health

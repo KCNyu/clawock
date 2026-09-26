@@ -100,6 +100,23 @@ def test_readability_advisory_detail_does_not_degrade_a_delivered_product(
     assert outcomes.summarize(hours=100000)["counts"] == {"success": 1}
 
 
+def test_an_artifact_both_delivery_routes_failed_to_send_is_failed(tmp_path, monkeypatch):
+    """#1921: `artifact_only` means delivery is unconfirmed. A slot whose
+    postflight succeeded but whose primary AND watchdog sends both failed is
+    confirmed undelivered, and used to be filed as `artifact_only`."""
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:00:00+08:00"
+    job = "盘中盯盘"
+    for stage in ("preflight", "llm", "postflight"):
+        outcomes.record_stage(job, stage, "success", slot=slot)
+    record = outcomes.record_stage(job, "primary_delivery", "failed", slot=slot)
+    # The watchdog has not had its turn: still only unconfirmed.
+    assert record["final_product"]["status"] == "artifact_only"
+
+    record = outcomes.record_stage(job, "watchdog_delivery", "failed", slot=slot)
+    assert record["final_product"]["status"] == "failed"
+
+
 def test_watchdog_recovery_does_not_erase_failed_primary_delivery(tmp_path, monkeypatch):
     _isolate(tmp_path, monkeypatch)
     slot = "2026-07-24T10:00:00+08:00"

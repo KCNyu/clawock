@@ -66,8 +66,16 @@ on:
         default: 'false'
         type: boolean
 
+# Its own lane, not `data-write` (#1913). GitHub keeps one pending run per
+# group and a newer queued run cancels it, so behind ten scan/archive writers a
+# 09:05 dispatch could be displaced without a trace — on exactly the day the
+# primary brief failed. Serializing with them only avoided push races, and the
+# push here is `safe_push.sh`'s rebase-retry, which already races the host's
+# own all-day commits. The three legs and the dispatch still serialize with
+# each other; a newer one displacing an older pending one runs the same
+# idempotent check.
 concurrency:
-  group: data-write
+  group: brief-fallback
   cancel-in-progress: false
 
 jobs:
