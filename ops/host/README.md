@@ -12,6 +12,22 @@ bash ops/host/check_crons.sh --timeline
 python3 ops/host/cron_health_check.py
 ```
 
+## Task queue ops entry
+
+`task_queue_ops.py` is the versioned entry point for the agent-dispatch queue: the
+runner asks it who takes an agent lock next, and the dsh task chip runs every write
+(cancel, …) through it. Contract, exit codes and queue order:
+`docs/architecture/task-queue.md`. It is installed next to the host-local runner, and
+merging does not install it:
+
+```bash
+ops/host/install_task_queue_ops.sh           # saves task_queue_ops.py.before-update, installs atomically, cmp
+ops/host/install_task_queue_ops.sh --check   # does the installed copy match this checkout?
+ops/host/install_task_queue_ops.sh --rollback
+```
+
+Focused coverage: `python3 -m pytest -q tests/test_task_queue_ops.py`.
+
 ## Patrol supervisor
 
 `patrol.sh` is the versioned source for this host's existing
