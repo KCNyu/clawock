@@ -744,10 +744,76 @@ def prepend_delta_lead(block, delta, *, current, previous):
                       *lines[1:]])
 
 
-def coverage_warning(coverage):
+def carry_quote_gap(coverage, previous, *, session, slot_time):
+    """Stamp since when the same unverified names have been carried.
+
+    `previous` is the last slot's written context (`-latest.json`, read before
+    this slot overwrites it). The same names in the same session keep the
+    earlier start, so a gap that lasts an evening reads as one fact with a
+    start time instead of the same line reprinted every 30 minutes (kcn
+    2026-09-25 preview). Contexts written before this field fall back to that
+    slot's own time.
+    """
+    missing = sorted(coverage.get('unrefreshed') or [])
+    if not missing:
+        return coverage
+    previous = previous if isinstance(previous, dict) else {}
+    prior = previous.get('quote_coverage') or {}
+    same = ((previous.get('semantic_state') or {}).get('session') == session
+            and sorted(prior.get('unrefreshed') or []) == missing)
+    since = (prior.get('unrefreshed_since') or previous.get('time')) if same else None
+    return {**coverage, 'unrefreshed_since': since or slot_time,
+            'unrefreshed_carried': bool(since)}
+
+
+EVIDENCE_REASONS = (
+    ('quote not freshly verified', '行情未证实刷新'),
+    ('daily move unavailable', '今日涨跌缺失'),
+    ('five-session bars unavailable or stale', '五日K线缺失或过期'),
+    ('invalid five-session bars', '五日K线无效'),
+    ('price or universe code unavailable', '价格或代码缺失'),
+    ('not in instrument registry', '标的未登记'),
+)
+
+
+def evidence_gaps(errors, checks):
+    """`policy_evidence_errors` per holding, in card words.
+
+    Each error is `<ticker>: <reason>`; the ticker may be a rule's underlying,
+    so `strategy_checks` maps it back to the holding whose add-side row it
+    belongs on. Unknown reasons are kept verbatim rather than dropped.
+    """
+    owner = {row.get('ticker'): row.get('holding') for row in checks or []
+             if row.get('ticker')}
+    gaps = {}
+    for error in errors or []:
+        ticker, _, reason = str(error).partition(': ')
+        word = next((cn for en, cn in EVIDENCE_REASONS if reason.startswith(en)), reason)
+        holding = owner.get(ticker) or ticker
+        label = word if holding == ticker else f'{ticker} {word}'
+        gaps.setdefault(holding, [])
+        if label not in gaps[holding]:
+            gaps[holding].append(label)
+    return gaps
+
+
+def coverage_warning(coverage, gaps=None):
+    """Block 4's quote line: the only ⛔ that bears on the whole table.
+
+    One line, not three (kcn 2026-09-25): the names, since when they are
+    carried, and — as a bare pointer — holdings whose strategy evidence is
+    incomplete; the reason for those sits on their 🛰️ row.
+    """
     missing = coverage.get('unrefreshed') or []
-    return (DEGRADED + '行情未证实完整刷新：' + '、'.join(missing) + '（沿用上一笔）'
-            if missing else None)
+    parts = []
+    if missing:
+        since = coverage.get('unrefreshed_since')
+        carried = f"，自 {since} 起" if coverage.get('unrefreshed_carried') and since else ''
+        parts.append('、'.join(missing) + f' 行情未证实（沿用上一笔{carried}）')
+    if gaps:
+        parts.append('、'.join(gaps) + ' 策略升级证据未取全'
+                     + ('' if missing else '（原因见 🛰️ 加仓侧）'))
+    return DEGRADED + ' · '.join(parts) if parts else None
 
 
 def prepend_coverage_warning(block, coverage):
@@ -767,17 +833,20 @@ def prepend_coverage_warning(block, coverage):
 #   1 title          analyzer's first line — the watchdog's slot anchor
 #   2 P0 line        only when a strategy escalation newly fired
 #   3 变化 line      why this slot woke: components + first-seen tickers
-#   4 ⛔ lines       data faults (quote, strategy evidence, T+0), each once
+#   4 ⛔ lines       data faults, each once: unverified quotes (with since
+#                    when, `carry_quote_gap`) plus a pointer to holdings whose
+#                    strategy evidence is incomplete; T+0, information, search
 #   5 index + 📊     analyzer's market strip and book line
 #   6 table          analyzer's holdings table, byte for byte
-#   7 ↑ pointer      one line naming the rows to look at (new / unverified);
-#                    only the kinds present; omitted when there is none
+#   7 ↑ pointer      one line naming the rows with a new move/trigger;
+#                    omitted when there is none (unverified rows are block 4's)
 #   8 ⚠️ 信号        signals new today in full; ones already delivered this
 #                    session fold into one 「今日已报、仍在」 line
 #   9 candidates     setups / trend / radar / primary info / plan triggers
 #  9b 🛰️ 加仓侧      `add_side_reads` per ticker: verdict copied, why/needs
 #                    clipped, at most MAX_ADD_SIDE_ROWS (#755; the model's
-#                    prose no longer has to carry it to reach kcn)
+#                    prose no longer has to carry it to reach kcn); a holding
+#                    with incomplete strategy evidence gets its reason here
 #  10 ▎我的看法      model judgment — postflight appends it after the whole
 #                    data block, below the table (kcn 2026-09-25: #1863 had
 #                    put it above the table and kcn read that as the table
@@ -793,7 +862,9 @@ def prepend_coverage_warning(block, coverage):
 # context (analyzer_block, signals_detail, full_holdings, …) regardless.
 DEGRADED = '⛔ 数据降级：'
 POINTER = '↑ '
-POINTER_KINDS = (('new', '新异动/触发'), ('stale', '行情未证实'))
+# Unverified quotes are said once, in block 4 with their start time; the
+# pointer no longer repeats them (kcn 2026-09-25: one fact, one line).
+POINTER_KINDS = (('new', '新异动/触发'),)
 
 
 def compose_card(block, *, p0_lines, lead, degraded):
@@ -811,6 +882,7 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
     Never edits a table line. `fresh_tickers` are holdings with a
     move/trigger breach first seen this session; `seen_signals` are
     `(level, ticker)` signal identities delivered earlier this session.
+    `unrefreshed` only keeps a stale row out of `new`: block 4 names it.
     """
     stale = [t for t in (unrefreshed or [])]
     fresh = [t for t in sorted(fresh_tickers or []) if t not in stale]
@@ -848,7 +920,7 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
         out.append('  · 今日已报、仍在：' + '、'.join(folded))
     named = dict(POINTER_KINDS)
     parts = [f"{named[kind]} {'、'.join(rows)}"
-             for kind, rows in (('new', fresh), ('stale', stale)) if rows]
+             for kind, rows in (('new', fresh),) if rows]
     if parts and last_table_row is not None:
         # A blank line first: GFM reads a pipe-less line right under a table
         # as one more row.
@@ -875,7 +947,10 @@ def _clip(text, limit):
     return cut.rstrip('(（:：,，;； ') + '…'
 
 
-def append_add_side_section(block, reads):
+EVIDENCE_WAIT_WORD = '观望'
+
+
+def append_add_side_section(block, reads, gaps=None):
     """Card block 10: the add-side read per ticker, rendered by the harness.
 
     `add_side_reads` was only in the model's context, and on 2026-08-17 a +6.4%
@@ -884,9 +959,15 @@ def append_add_side_section(block, reads):
     three-state read reaches kcn whatever the prose says, and the model cannot
     restate a verdict it does not write. Ticker and verdict are copied row by
     row; only `why`/`needs` are clipped, at a fixed length.
+
+    `gaps` (`evidence_gaps`) is strategy evidence this slot could not
+    complete. It only concerns those holdings, so it sits with them: under
+    their row, or as a 观望 row of its own — not a fourth verdict, just
+    「本档不给尺寸」 (kcn 2026-09-25 preview; the ⛔ line keeps a pointer).
     """
     rows = (reads or {}).get('rows') or []
-    if not rows:
+    gaps = dict(gaps or {})
+    if not rows and not gaps:
         return block
     lines = ['', ADD_SIDE_HEADER]
     for row in rows[:MAX_ADD_SIDE_ROWS]:
@@ -895,6 +976,14 @@ def append_add_side_section(block, reads):
         if row.get('needs'):
             text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
         lines.append(text)
+        if row.get('ticker') in gaps:
+            lines.append(f"    ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
+    listed = {row.get('ticker') for row in rows}
+    for ticker, reasons in gaps.items():
+        # A ticker whose own row is past the cap has a verdict; don't relabel it.
+        word = '' if ticker in listed else f' {EVIDENCE_WAIT_WORD}'
+        lines.append(f"  · {ticker}{word}：策略升级证据未取全"
+                     f"（{'；'.join(reasons)}）→ 本档不给尺寸")
     if len(rows) > MAX_ADD_SIDE_ROWS:
         lines.append(f'  …另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
     return block + '\n' + '\n'.join(lines)
@@ -1458,6 +1547,11 @@ def main(argv=None):
          for row in [*old_breaches, *semantic_state['breaches']]}.values(),
         key=lambda row: json.dumps(row, sort_keys=True))
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
+    # Since when the same names have been unverified: the previous slot's
+    # context, read before this slot overwrites `-latest.json`.
+    coverage = carry_quote_gap(
+        coverage, _load_json(TMP / f'intraday-context-{args.market}-latest.json'),
+        session=semantic_state.get('session'), slot_time=now.strftime('%H:%M'))
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
     # would compare against a months-old state and send one bogus full slot.
@@ -1504,7 +1598,8 @@ def main(argv=None):
         raw_block = intraday_policy.strip_suppressed_signal_lines(
             raw_block, holding_policies)
         # After the policy strip: that pass reads '·' lines as signal reasons.
-        raw_block = append_add_side_section(raw_block, add_side_reads)
+        gaps = evidence_gaps(policy_evidence_errors, strategy_checks)
+        raw_block = append_add_side_section(raw_block, add_side_reads, gaps)
         prior_escalations = {(row.get('ticker'), row.get('level'))
                              for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
@@ -1521,7 +1616,8 @@ def main(argv=None):
                          if row.get('kind') in ('move', 'plan_trigger', 'strategy_escalation')
                          and json.dumps(row, sort_keys=True, ensure_ascii=False)
                          not in seen_before}
-        # The ↑ line's kinds, for postflight: WeChat bolds the `new` rows.
+        # For postflight: WeChat bolds the `new` rows (the ↑ line); `stale`
+        # is the ⛔ line's names, kept for audit.
         card_marks = {
             'new': sorted(t for t in fresh_tickers
                           if t not in (coverage.get('unrefreshed') or [])),
@@ -1537,9 +1633,7 @@ def main(argv=None):
             raw_block, p0_lines=p0_lines,
             lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state),
             degraded=[
-                coverage_warning(coverage),
-                (DEGRADED + '策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2])
-                 if policy_evidence_errors else None),
+                coverage_warning(coverage, gaps),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
                  if t0_setups.get('error') else None),
                 (DEGRADED + '资讯源未取到：' + '、'.join(information['degraded'])
@@ -1559,8 +1653,8 @@ def main(argv=None):
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
-        # Rows the ↑ line names (`new` move/trigger, `stale` quote); WeChat
-        # bolds the `new` rows, Telegram keeps the plain table.
+        # `new` move/trigger rows (the ↑ line; WeChat bolds them, Telegram
+        # keeps the plain table) and `stale` quote rows (named by ⛔).
         'card_marks': card_marks,
         'delivery_mode': delivery_mode,
         # Auditable: a full block on a slot the delta called unchanged is the

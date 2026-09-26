@@ -467,12 +467,46 @@ def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path)
     lines = ctx["raw_wechat_block"].splitlines()
     start = lines.index(table[0])
     assert lines[start:start + len(table)] == table
-    assert "↑ 新异动/触发 SPCH　行情未证实 RKLX" in lines
+    # The pointer names new rows; the unverified one is said once, in ⛔.
+    assert "↑ 新异动/触发 SPCH" in lines
+    assert [line for line in lines if "行情未证实" in line] == [
+        "⛔ 数据降级：RKLX 行情未证实（沿用上一笔）"]
     # The same kinds reach postflight, which bolds the `new` rows for WeChat.
     assert ctx["card_marks"] == {"new": ["SPCH"], "stale": ["RKLX"]}
     assert lines[1].startswith("变化：") and lines[2].startswith("⛔ 数据降级：")
     # The model keeps the analyzer's output whole, whatever the card folds.
     assert ctx["analyzer_block"] == block
+
+    # The next slot with the same gap says since when, not the same line again;
+    # the table is still untouched.
+    again = run(copy.deepcopy(current))["raw_wechat_block"].splitlines()
+    assert "⛔ 数据降级：RKLX 行情未证实（沿用上一笔，自 01:33 起）" in again
+    assert again[again.index(table[0]):again.index(table[0]) + len(table)] == table
+
+
+def test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner(
+    monkeypatch, tmp_path
+):
+    """kcn 2026-09-25 preview: evidence that only concerns SPCH goes on SPCH's
+    add-side row; block 4 keeps a bare pointer so the slot is still marked
+    degraded (never silent)."""
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+
+    def escalations(*_a, errors=None, checks=None, **_k):
+        errors.append("SPCH: quote not freshly verified")
+        checks.append({"holding": "SPCH", "ticker": "SPCH", "status": "unavailable"})
+        return []
+
+    monkeypatch.setattr(preflight.intraday_policy, "escalations", escalations)
+    ctx = run(copy.deepcopy(current))
+
+    lines = ctx["raw_wechat_block"].splitlines()
+    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 🛰️ 加仓侧）"
+    assert "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
+    assert lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
+        "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
+    assert ctx["delivery_mode"] == "full_delta"
+    assert ctx["policy_evidence_errors"] == ["SPCH: quote not freshly verified"]
 
 
 def test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly(
