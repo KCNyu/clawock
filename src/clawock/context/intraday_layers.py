@@ -17,5 +17,5 @@ REFERENCE_ENTRIES = {
     'provisional_setups': '未收盘入场形态（若收在此位则成立）',
     'prior_semantic_state': '上次送达时的语义状态（对比基准）',
     'headline_feed': '分析器标题流（截断、无新旧闸，只作背景）',
-    'information_full': '资讯全量：每只票的图谱事件/东财/美股摘要全文、情绪、宏观、7×24 原文',
+    'information_full': '资讯全量：每只票的图谱事件/东财/美股摘要全文、情绪、宏观、7×24 原文、实时源（live）全部条目与请求记录',
 }

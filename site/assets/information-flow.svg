@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="1075" viewBox="0 0 640 1075" role="img" aria-labelledby="title desc">
-  <title id="title">clawock information flow — 8 layers, 43 modules, one certified context</title>
-  <desc id="desc">Eight information layers with 43 fetch and compute modules feed a deterministic Python preflight. The full context is kept for audit; the daily brief model reads a generation-bound core and selected bundles. Python postflight validates and settles before publication.</desc>
+  <title id="title">clawock information flow — 8 layers, 44 modules, one certified context</title>
+  <desc id="desc">Eight information layers with 44 fetch and compute modules feed a deterministic Python preflight. The full context is kept for audit; the daily brief model reads a generation-bound core and selected bundles. Python postflight validates and settles before publication.</desc>
   <defs>
     <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#fcfcfd"/>
@@ -33,7 +33,7 @@
 
   <g class="sans">
     <text x="26" y="34" class="kicker blue">INFORMATION FLOW</text>
-    <text x="26" y="66" class="title ink">8 layers · 43 modules, one</text>
+    <text x="26" y="66" class="title ink">8 layers · 44 modules, one</text>
     <text x="26" y="92" class="title ink">certified context</text>
     <text x="26" y="116" class="sub muted">Each run assembles only what that session can</text>
     <text x="26" y="136" class="sub muted">use — the model reads files, never fetches.</text>

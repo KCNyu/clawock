@@ -78,7 +78,7 @@ named call away — not truncation.
 | `semantic_state` (seen sets), `semantic_delta`, `semantic_unchanged` | what was already delivered today, what changed since |
 | `anomalies`, `signal_count`, `signals_detail` | this slot's moves and signals |
 | `soft_candidates`, `add_side_reads` | edge candidates; add-side three-state reads (§5) |
-| `information` | the information lane summary (§6): per source `as_of`, stale flag, top items |
+| `information` | the information lane summary (§6): per source `as_of`, stale flag, top items; `live` — tier 2 rows per holding with the publisher's own time |
 | source health | `quote_coverage`, source errors, degraded issuers |
 
 ### Reference layer (addressable, same generation)
@@ -171,12 +171,46 @@ The watchdog's backstop resend is the plain card on both channels.
 | Tier | Path | Covers | Requests per slot | Freshness | Failure |
 |---|---|---|---|---|---|
 | 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json`, `factor-snapshots/sentiment/<date>.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | written ~08:00 HKT; each item carries `as_of`; `stale` when written before the current session opened | missing/unreadable file → `⛔` line |
-| 1 | existing free fetchers: `mover_evidence` (Tencent, SEC, exchange, Nasdaq halts), Eastmoney 7×24 flashes | mover catalysts; market-level flashes | a handful, movers only | live | per-ticker `degraded`, never "no news" |
-| 2 | free public endpoints (HKEXnews, SEC full-text, Google News RSS, Yahoo RSS, Reddit JSON) | only where tiers 0–1 leave a stated gap | 0 by default | live | rate-limited, cached, timed out |
+| 1 | existing free fetchers: `mover_evidence` (Tencent, SEC, exchange, Nasdaq halts), Eastmoney 7×24 flashes | mover catalysts; market-level flashes | a handful, movers only (7×24: 1, fetched inside the tier 2 lane) | live | per-ticker `degraded`, never "no news" |
+| 2 | live free sources through `clawock.evidence.live_sources` (table below): HKEXnews, SEC EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24 | every slot, every holding (kcn 2026-09-26: 实时越多越好 — not gated on a gap) | HK 6, US 9 for the current book (per issuer/theme, table below) | each item carries its publisher's time: `盘中实时` after the session open, `开盘前旧闻` before it | per source on the ⛔ line (`资讯源未取到：Google新闻（1/3 超时）…（不是无消息）`) and in `information.sources` |
 | 3 | Tavily (`skills/tavily-search`, `--bucket intraday`) | an anomaly's cause | only when `anomalies` is non-empty, once per ticker per session | live | `unavailable`/quota → `⛔ 源降级`, never "no news" |
 
 Tavily's `intraday` bucket is 120 credits a month; one query every slot would
 be ~400, so it is trigger-only and cached per ticker per session.
+
+**Tier 2 sources.** The module is harness-neutral (the brief and the report
+call the same `collect`; ownership, interface and how to add a source are in
+[`harness.md`](harness.md#live-information-sources)). The intraday slot starts
+it before the analyzer — it needs only the book — so its waits overlap the quote
+refresh, and joins it where the information lane is read. Limits (intraday):
+6 s a request (同花顺 10 s), 12 s for the whole lane, ≤4 concurrent requests a
+source, cache per session with a 20-minute TTL (a re-run of the slot reuses its
+answers; the next slot asks again; items a feed stops listing stay for the
+session). Queries are per issuer and per index theme, not per holding: RKLX
+asks for RKLB, three HSTECH funds share one theme query, and an index fund gets
+no filing or per-symbol lookup (the HK Finnhub lesson: 15 serial requests a slot,
+no item in 81 contexts).
+
+| Source | Endpoint | Requests a slot | Budget | Freshness | Failure | Sample (2026-09-26) |
+|---|---|---|---|---|---|---|
+| HKEXnews 披露易 (HK) | `www1.hkexnews.hk/ncms/json/eds/lcisehk7relsdc_<n>.json` — newest 500 announcements of every SEHK issuer | 1 (a 2nd/3rd page only if page 1 ends inside the window) | 3 | `relTime` HKT, minute; routine returns dropped by the HK triage rules | `HKEXnews披露易（…）`; an empty feed is a failure (HKEX never publishes an empty list) | 02208 `2026中期報告（財務報表/環境、社會及管治資料 - [中期/半年度報告]）`, 22/09 16:33 HKT |
+| SEC EDGAR full-text search (US) | `efts.sec.gov/LATEST/search-index?ciks=<all issuers>&dateRange=custom` — a different host from data.sec.gov, so it still lists the day's filings when SEC direct is degraded | 1 for the whole book | 1 | filing **date** only: `今日提交、时刻未知` (never a minute), earlier days `开盘前旧闻`; Form 3/4/5, 144, 13G dropped | `SEC全文检索（…）` | CRCL `8-K（items 5.02, 7.01）`, filed 2026-09-25 |
+| Google News RSS | `news.google.com/rss/search?q=<issuer> stock when:1d` (US, `US:en`); `<中文名> when:1d` / `<index theme> when:1d` (HK, `CN:zh-Hans`) | 1 per issuer/theme (HK 3, US 3) | 8 | `pubDate`, publisher named in the cite | `Google新闻（n/m …）` | 00100 `MINIMAX-W（00100.HK）：9月25日南向资金减持14.37万股`（搜狐网, 09-26 04:16 HKT） |
+| Yahoo Finance RSS (US) | `feeds.finance.yahoo.com/rss/2.0/headline?s=<issuer>` | 1 per issuer (US 3) | 6 | `pubDate` | `Yahoo财经（…）`; a throttle page is a failure, not an empty feed | RKLB `MISSION SUCCESS: Rocket Lab Launches 97th Electron Mission`, 09-26 09:43 HKT |
+| 同花顺 7×24 | `news.10jqka.com.cn/tapp/news/push/stock/` | 1 | 1 | `ctime`; merged into `market_flashes` only when 东财 did not say it (≥0.6 title similarity is a duplicate) | `同花顺7×24（…）` | `滴滴与杭州余杭达成战略合作，探索落地自动驾驶产业应用`（人民财讯, 09-26 13:24 HKT） |
+| 东财 7×24 (tier 1) | `newsapi.eastmoney.com/kuaixun/…` via the Eastmoney gateway | 1 | 1 | `showtime` | `东财7×24（…）` as before | — |
+
+Not wired: **Reddit** — its public JSON is 403 (`market_data/sentiment.py`);
+the working `search.rss` answered once and then 429 five seconds later
+(2026-09-26), the morning scan measured 1/10 answered on a paced sweep, it is
+retail chatter rather than news (its 7-day counts already reach the lane as
+`attention`), and `docs/legal/third-party-data.md` records that unauthenticated
+public access is not a substitute for a compliant Reddit Data API setup —
+adding 18 unauthenticated calls a day goes the wrong way. **Yahoo for HK**
+symbols — `2208.HK` answered with 2025 headlines and the HSTECH ETFs with
+nothing. **财联社电报** — `cls.cn/nodeapi/telegraphList` answers 404 and the
+current endpoint needs a signed query; the host took 3–10 s to connect.
+Paid sources are out.
 
 ## 7. Compliance design: gate or prompt
 
@@ -199,7 +233,8 @@ written down.
 | `下一触发` numbers and names exist in the context | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
 | stale information is labelled | gate (escalating) | every item carries its `cite` with `截至`; `check_stale_citation` flags a stale title quoted without it (`test_quoting_a_stale_headline_without_its_time_is_flagged`) | a 08:10 headline at 23:00 must not read as live |
-| an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`) | not fetched ≠ no news |
+| an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
+| a live item is labelled with its own time | gate | tier 2 cite: publisher time + `盘中实时`/`开盘前旧闻`; a pre-open live title falls under `check_stale_citation` like the morning files | a headline fetched at 14:00 may have been written at 06:00 |
 
 Compliance is measured on a fixed sample (HK 11:33 / 14:03 / 14:33, US 02:33,
 one overnight slot) per violation class: block contract, unnamed mover, missing
@@ -226,6 +261,7 @@ as live.
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |
+| information lane tier 2: live free sources every slot, started before the analyzer, bounded (`test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_gaps`, `test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_time`, `test_nothing_waits_past_the_budget`); the same module feeds the brief and the report (`test_intraday_brief_and_report_all_go_through_the_one_collect`) | live (this PR) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10

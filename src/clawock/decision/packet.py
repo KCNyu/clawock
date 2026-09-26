@@ -1037,6 +1037,32 @@ def add_alpha_activation(context: dict) -> dict:
     return {"families": families, "warming_up": warming, "cold_start": bool(warming)}
 
 
+def _live_rows(context: dict, ticker: str) -> list:
+    """This ticker's live headlines/disclosures (`clawock live-sources`, run by
+    the brief preflight): the bounded summary rows, each with its own cite."""
+    live = context.get("live_information") or {}
+    for market in ("hk", "us"):
+        rows = ((live.get(market) or {}).get("summary") or {}).get(ticker)
+        if rows:
+            return rows
+    return []
+
+
+def _live_health(context: dict) -> dict:
+    """Per market: when the live sources were read, each source's status and
+    what did not answer — so a gap reads as a gap, never as "no news"."""
+    live = context.get("live_information") or {}
+    return {
+        market: {
+            "as_of": (live.get(market) or {}).get("as_of"),
+            "sources": {name: row.get("status") for name, row in
+                        ((live.get(market) or {}).get("sources") or {}).items()},
+            "degraded": list((live.get(market) or {}).get("degraded") or []),
+        }
+        for market in ("hk", "us") if market in live
+    }
+
+
 def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     generation_id = generation_id or context.get("generation_id")
     if not generation_id:
@@ -1241,7 +1267,12 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             # `classify_authority` and `_information_sizing_overlay` above were
             # given, and stripping it earlier would quietly withdraw the add
             # authority those two grant.
-            "information": _without_cold_components(information_view),
+            "information": {
+                **_without_cold_components(information_view),
+                # Added after authority and sizing were read from the view:
+                # live items inform the judgment, they do not grant an add.
+                "live": _live_rows(context, ticker),
+            },
             "evidence": matching_events,
             "risk": ticker_risks,
             "status": _status(technical, ticker_risks),
@@ -1353,6 +1384,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             },
         },
         "tickers": tickers,
+        "live_information": _live_health(context),
         "judgment_contract": {
             "schema_version": JUDGMENT_SCHEMA_VERSION,
             "verdicts": sorted(VERDICTS),
@@ -1575,11 +1607,15 @@ def summary_view(packet: dict) -> dict:
                 # calls the model's 唯一常驻输入, so a field added to
                 # `compile_packet` and not to this projection reaches nobody.
                 "history": row.get("history"),
+                # Two live cites per name (full rows: `--section information`).
+                "live": [item.get("cite") for item in
+                         ((row.get("information") or {}).get("live") or [])[:2]],
                 "risk_count": len(row.get("risk") or []),
                 "constraints": row.get("constraints"),
             }
             for row in packet.get("tickers", {}).values()
         ],
+        "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
     }
 

@@ -1640,8 +1640,8 @@ def main(argv=None):
     try:
         live_information = live_lane.result()
     except Exception as exc:  # noqa: BLE001 — collect_live never raises; belt and braces
-        live_information = {'requests': [], 'entries': {}, 'plan': [], 'em_724': None,
-                            'degraded': [f'实时资讯（{type(exc).__name__}）']}
+        live_information = {'sources': {}, 'tickers': {}, 'flashes': [], 'requests': [],
+                            'raw': {}, 'degraded': [f'实时资讯（{type(exc).__name__}）']}
     try:
         information = intraday_information.collect(
             WS, args.market, info_tickers, now=now, live=live_information)

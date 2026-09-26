@@ -1467,6 +1467,42 @@ def em_news_node():
     return None, issues
 
 
+#: Live sources the brief reads — the same harness-neutral module the intraday
+#: slot calls (`clawock.evidence.live_sources`; docs/architecture/harness.md
+#: § Live information sources). The two 7×24 feeds are left out: em-news
+#: (WAVE1, this run) already writes Eastmoney's 7×24 into em_news.json, and a
+#: market flash scroll is what an open session needs, not a pre-open read.
+BRIEF_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss')
+
+
+def live_sources_node():
+    # [10b7] Live news and disclosures since each market's last close: one
+    # bounded `clawock live-sources` call for both books. A source that did not
+    # answer is carried in `live_information.<market>.degraded` and reaches the
+    # model through the packet — it is not a preflight issue, because an issue
+    # exits this preflight 1 and the cron reads that as a failed tool. Only the
+    # command itself failing is an issue.
+    issues = []
+    live = {}
+    try:
+        result = subprocess.run(
+            clawock_argv('live-sources', '--market', 'both',
+                         '--sources', ','.join(BRIEF_LIVE_SOURCES),
+                         '--fresh-since', 'last_close', '--json'),
+            cwd=WS, capture_output=True, text=True, timeout=90)
+        if result.returncode != 0:
+            issues.append('live sources failed')
+        else:
+            live = json.loads(result.stdout)
+            for market, answer in sorted(live.items()):
+                for line in answer.get('degraded') or []:
+                    print(f'   ⚠ 实时资讯源未取到（{market.upper()}）：{line}')
+    except Exception as e:
+        print(f'   ⚠ live sources step failed: {e}')
+        issues.append(f'live sources exception: {type(e).__name__}')
+    return live, issues
+
+
 def catalysts_node():
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
     issues = []
@@ -1602,6 +1638,7 @@ NODE_ORDER = [
     'cross_factor_node', 'evidence_node', 'peer_residual_node',
     't0_node', 't0_review_node', 'em_news_node',
     'catalysts_node', 'benchmark_node', 'news_evidence_node',
+    'live_sources_node',
 ]
 
 
@@ -1786,6 +1823,7 @@ def main(argv=None):
         'quant_node': quant_node,
         'em_news_node': em_news_node,
         'catalysts_node': catalysts_node,
+        'live_sources_node': live_sources_node,
         'peer_residual_node': lambda: peer_residual_node(portfolio),
     }))
     fx = w1['fx_rate']
@@ -1793,6 +1831,7 @@ def main(argv=None):
     risk = w1['portfolio_risk_node']
     quant_signals = w1['quant_node']
     catalysts = w1['catalysts_node']
+    live_information = w1['live_sources_node']
     peer_residual_ctx = w1['peer_residual_node']
 
     # Book totals (FX-aware) — moved here from the old [5] block: fx now
@@ -2033,6 +2072,9 @@ def main(argv=None):
         'risk_metrics':  risk,
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
+        # Live news/disclosures since the last close, per market (bundle
+        # `evidence`); the packet carries each name's rows and source health.
+        'live_information': live_information,
         'thesis_registry': thesis_registry_ctx,
         'open_decisions': open_decisions,
         # The add side. Sits next to open_decisions deliberately: the discipline

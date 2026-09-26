@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.harness import intraday_delta as gate  # noqa: E402
+from clawock.evidence import live_sources  # noqa: E402
 from clawock.harness import intraday_preflight as preflight  # noqa: E402
 
 COLLECT = preflight.intraday_information.collect
@@ -302,8 +303,8 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
                         lambda *_a, **_k: {"summary": {}, "full": {}, "degraded": []})
     # Tier 2 fetches live feeds; never from a test.
     monkeypatch.setattr(preflight.intraday_information, "collect_live",
-                        lambda *_a, **_k: {"requests": [], "entries": {}, "plan": [],
-                                           "em_724": None, "degraded": []})
+                        lambda *_a, **_k: {"sources": {}, "tickers": {}, "flashes": [],
+                                           "requests": [], "raw": {}, "degraded": []})
     current = gate.semantic_state(
         "us", "2026-08-13", signals_detail=signals, anomalies=[],
         setups=setups, plans={"open": []}, active_information=active,
@@ -376,16 +377,16 @@ def test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_g
     monkeypatch.setattr(preflight, "run_analyze",
                         lambda m: (together.wait(), analyze(m))[1])
     published = datetime(2026, 8, 14, 1, 3, tzinfo=ZoneInfo("Asia/Hong_Kong"))  # 13:03 ET
-    live = {
-        "requests": [{"source": "google_news", "key": "SPCX stock", "status": "ok", "items": 1},
-                     {"source": "yahoo_rss", "key": "SPCX", "status": "timeout", "items": 0}],
-        "entries": {"google_news:SPCX stock": {"status": "ok", "items": [
+    now = datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+
+    def _yahoo(_symbol):
+        raise TimeoutError("read timed out")
+    live = live_sources.collect(
+        "us", ["SPCH"], targets=lambda _t: {"kind": "look_through", "issuer": "SPCX"},
+        names={}, now=now, sources=("google_news", "yahoo_rss", "em_724"),
+        fetchers={"google_news": lambda _q, _l: [
             {"title": "SpaceX wins contract", "published_at": published.isoformat(),
-             "publisher": "Reuters"}]}},
-        "plan": [{"source": "google_news", "key": "SPCX stock", "entry": "google_news:SPCX stock",
-                  "tickers": ["SPCH", "SPCX"]}],
-        "em_724": {"rows": [], "status": "ok"}, "as_of": published.isoformat(),
-        "degraded": ["Yahoo财经（超时）"]}
+             "publisher": "Reuters"}], "yahoo_rss": _yahoo, "em_724": lambda: []})
 
     def _live(*_a, **_k):
         together.wait()
@@ -402,11 +403,11 @@ def test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_g
 
     banner = [line for line in packet["raw_wechat_block"].splitlines()
               if line.startswith("⛔ 数据降级：资讯源未取到")]
-    assert banner and "Yahoo财经（超时）" in banner[0] and banner[0].endswith("（不是无消息）")
+    assert banner and "Yahoo财经（TimeoutError）" in banner[0] and banner[0].endswith("（不是无消息）")
     rows = packet["information"]["live"]["SPCH"]
     assert rows[0]["title"] == "SpaceX wins contract"
     assert rows[0]["cite"].endswith("（Google新闻·Reuters，08-14 01:03 HKT 发布，盘中实时）")
-    assert packet["information"]["sources"]["yahoo_rss"]["status"] == "timeout"
+    assert packet["information"]["sources"]["yahoo_rss"]["status"] == "failed"
 
 
 def test_a_failing_filing_lane_still_degrades_in_place(monkeypatch, tmp_path):

@@ -1,4 +1,4 @@
-"""Tier 2 source parsers (docs/architecture/intraday-agent.md §6), network stubbed.
+"""Live source adapters (docs/architecture/intraday-agent.md §6), network stubbed.
 
 Shapes are the ones the live endpoints returned on 2026-09-26: HKEXnews'
 all-issuer JSON (traditional characters, `relTime` in HKT), EDGAR full-text
@@ -8,7 +8,6 @@ from datetime import datetime
 
 import pytest
 
-from clawock.evidence import intraday_information as info
 from clawock.market_data import filings, live_news, primary_disclosures as pd
 from clawock.sessions import HKT
 
@@ -24,9 +23,7 @@ def _row(code, when, title, category, path='/listedco/x.pdf'):
             'stock': [{'sc': code, 'sn': 'x'}]}
 
 
-def test_one_hkexnews_request_serves_the_whole_book_and_triage_reads_its_characters(
-    monkeypatch
-):
+def test_one_hkexnews_request_serves_the_whole_book():
     feed = _hkex([
         _row('02208', '28/09/2026 11:02', '內幕消息', '公告及通告 - [內幕消息]'),
         _row('02208', '28/09/2026 10:15', '翌日披露報表', '翌日披露報表 - [股份購回]'),
@@ -46,14 +43,6 @@ def test_one_hkexnews_request_serves_the_whole_book_and_triage_reads_its_charact
     assert items[0]['published_at'] == '2026-09-28T11:02:00+08:00'
     assert items[0]['source_url'] == 'https://www1.hkexnews.hk/listedco/x.pdf'
 
-    # Through the lane's own fetcher: the daily return is triaged as noise
-    # (its rule is written in simplified characters), the inside information kept.
-    monkeypatch.setattr(pd, '_http_json', http)
-    suppressed = []
-    kept = info._default_fetchers(1)['hkexnews'](['02208'], NOW, suppressed)
-    assert [(k['title'], k['signal']) for k in kept] == [
-        ('內幕消息（公告及通告 - [內幕消息]）', 'interrupt')]
-    assert suppressed == ['翌日披露報表 - [股份購回]']
 
 
 def test_hkexnews_reads_a_second_page_only_when_the_first_ends_inside_the_window():
@@ -112,27 +101,30 @@ YAHOO = """<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>
 
 
 def test_feed_parsers_keep_the_publishers_time_and_refuse_a_throttle_page():
-    rows = live_news.yahoo_headlines('RKLB', http_text=lambda *_a, **_k: YAHOO)
+    rows = live_news.yahoo_headlines('RKLB', http=lambda *_a, **_k: YAHOO)
     assert rows == [{'title': 'MISSION SUCCESS: Rocket Lab Launches 97th Electron Mission',
                      'published_at': '2026-09-26T01:43:00+00:00',
                      'url': 'https://finance.yahoo.com/x', 'publisher': None}]
     with pytest.raises(live_news.SourceError):
-        live_news.yahoo_headlines('RKLB', http_text=lambda *_a, **_k: 'Edge: Too Many Requests')
+        live_news.yahoo_headlines('RKLB', http=lambda *_a, **_k: 'Edge: Too Many Requests')
 
     ths = ('{"code":"200","data":{"list":[{"title":"滴滴与杭州余杭达成战略合作",'
            '"ctime":"1790400263","url":"https://news.10jqka.com.cn/x","source":"人民财讯"}]}}')
-    assert live_news.ths_flashes(http_text=lambda *_a, **_k: ths) == [
+    assert live_news.ths_flashes(http=lambda *_a, **_k: ths) == [
         {'title': '滴滴与杭州余杭达成战略合作', 'published_at': '2026-09-26T13:24:23+08:00',
          'url': 'https://news.10jqka.com.cn/x', 'publisher': '人民财讯'}]
     with pytest.raises(live_news.SourceError):
-        live_news.ths_flashes(http_text=lambda *_a, **_k: '{"code":"-1"}')
+        live_news.ths_flashes(http=lambda *_a, **_k: '{"code":"-1"}')
 
-    def google(query, **kwargs):
-        assert kwargs['ceid'] == 'CN:zh-Hans' and kwargs['timeout'] == 3
-        return [{'title': '金风科技中标', 'published': 'Fri, 25 Sep 2026 09:24:21 GMT',
-                 'source': '中金在线', 'url': 'u'}], 'ok'
-    assert live_news.google_news('金风科技 when:1d', language='zh', timeout=3, fetch=google) == [
+    feed = ('<rss><channel><item><title>金风科技中标 - 中金在线</title><link>u</link>'
+            '<pubDate>Fri, 25 Sep 2026 09:24:21 GMT</pubDate><source>中金在线</source></item>'
+            '</channel></rss>')
+
+    def google(url, *, timeout):
+        assert 'ceid=CN:zh-Hans' in url and timeout == 3
+        return feed
+    assert live_news.google_news('金风科技 when:1d', language='zh', timeout=3, http=google) == [
         {'title': '金风科技中标', 'published_at': '2026-09-25T09:24:21+00:00',
          'url': 'u', 'publisher': '中金在线'}]
     with pytest.raises(live_news.SourceError):
-        live_news.google_news('x', language='en', fetch=lambda *_a, **_k: ([], 'failed'))
+        live_news.google_news('x', language='en', http=lambda *_a, **_k: 'Too Many Requests')

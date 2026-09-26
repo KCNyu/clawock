@@ -1181,3 +1181,33 @@ def test_the_budget_report_warns_before_it_refuses():
 
     # Same shape, near the ceiling: near_budget must lead over_budget.
     assert packet_mod.SUMMARY_BUDGET_WARN_RATIO < 1.0
+
+
+def test_live_items_reach_the_brief_packet_and_a_gap_reads_as_a_gap():
+    """The brief reads the same live sources as the intraday slot
+    (`clawock live-sources`, docs/architecture/harness.md § Live information
+    sources): each name's rows in `information.live`, two cites in the
+    resident summary, and per-market source health — a source that did not
+    answer is named there, not dropped. Live items inform; they grant no add."""
+    context = _context()
+    cite = "《Circle 8-K》（SEC全文检索，2026-07-28 提交，今日提交、时刻未知）"
+    context["live_information"] = {"us": {
+        "as_of": "07-28 08:02 HKT",
+        "sources": {"sec_fulltext": {"status": "ok"}, "google_news": {"status": "failed"}},
+        "degraded": ["Google新闻（TimeoutError）"],
+        "summary": {"LEVX": [{"grade": "primary", "source": "sec_fulltext",
+                              "title": "Circle 8-K", "stale": None, "cite": cite}]}}}
+    plain = _compiled()
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+
+    row = packet["tickers"]["LEVX"]
+    assert row["information"]["live"][0]["cite"] == cite
+    assert {k: v for k, v in row["information"].items() if k != "live"} == \
+        {k: v for k, v in plain["tickers"]["LEVX"]["information"].items() if k != "live"}
+    assert row["constraints"] == plain["tickers"]["LEVX"]["constraints"]
+    summary = packet_mod.summary_view(packet)
+    assert summary["tickers"][0]["live"] == [cite]
+    assert summary["live_information"] == {"us": {
+        "as_of": "07-28 08:02 HKT",
+        "sources": {"sec_fulltext": "ok", "google_news": "failed"},
+        "degraded": ["Google新闻（TimeoutError）"]}}
