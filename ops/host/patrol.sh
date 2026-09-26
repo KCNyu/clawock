@@ -34,12 +34,9 @@ UNIT=clawock-patrol
 # Same file the runner reads, so "how many slots exist" cannot drift between them.
 . "$DISPATCH_DIR/limits.env"
 # Run slots are per agent (slot-<agent>-<n>.lock, kcn 2026-09-25): a round only ever holds an
-# opencode slot, so claude/codex work never waits for one. Runners from before that shared
-# slot-1..2 among all agents; a task started then may run up to 72h, and while one does its
-# slot contention is still real. LEGACY_SLOTS keeps it visible; drop it after 2026-09-29.
+# opencode slot, so claude/codex work never waits for one.
 ROUND_AGENT=opencode
 AGENT_SLOTS="${AGENT_DISPATCH_MAX_RUNNING_OPENCODE:-${MAX_RUNNING_OPENCODE:-1}}"
-LEGACY_SLOTS=2
 . "$DISPATCH_DIR/resource-pressure.sh"
 # Area order: $TOOL/rotation (read every round, so edits apply without a restart).
 ROUND_GAP="${PATROL_ROUND_GAP:-600}"        # pause after a finished round
@@ -69,7 +66,7 @@ round_active() { [ -n "${1:-}" ] && [ "$(systemctl is-active "agent-dispatch-$1.
 
 # Demand preempts patrol; capacity only gates admission. Counting all locks during a round
 # counts patrol itself and cancels useful work when nobody is waiting. Always probe actual
-# locks: SLOT reports can be stale or absent in older runners.
+# locks: a SLOT report can be stale (a runner killed mid-attempt never clears it).
 slots_held() {  # <lock name prefix> <count>: how many of those slot locks are held now
   local i held=0
   for i in $(seq "$2"); do
@@ -80,24 +77,12 @@ slots_held() {  # <lock name prefix> <count>: how many of those slot locks are h
   echo "$held"
 }
 own_slots_busy() { [ "$(slots_held "slot-$ROUND_AGENT-" "$AGENT_SLOTS")" -ge "$AGENT_SLOTS" ]; }
-# With no round running (admission) the next round's runner may still be an old one; a running
-# round stands in the way of a shared-slot waiter only if it holds a shared slot itself.
-legacy_slots_busy() {
-  local own slot
-  own=$(current_round)
-  if [ -n "$own" ]; then
-    slot=$( SLOT=""; . "$TASKS/$own/result.env" 2>/dev/null; printf '%s' "$SLOT" )
-    [[ $slot =~ ^[0-9]+$ ]] || return 1
-  fi
-  [ "$(slots_held slot- "$LEGACY_SLOTS")" -ge "$LEGACY_SLOTS" ]
-}
 
 task_agent() { sed -n 's/^AGENT=//p' "$1/meta.env" 2>/dev/null | head -1; }
 
 # Only work the round can stand in the way of is demand: an opencode task (in practice a manual
-# one) queued for the opencode lock or slot, or a task of an old runner queued for the shared
-# slots while they are all busy. A claude/codex task queued for its own lock or slot waits for
-# its own agent; giving way would not start it any sooner (kcn 2026-09-25).
+# one) queued for the opencode lock or slot. A claude/codex task queued for its own lock or slot
+# waits for its own agent; giving way would not start it any sooner (kcn 2026-09-25).
 others_need_slot() {
   local unit id d mode=${1:-admission} own units parked=" " agent
   # Skip only this supervisor's own round, named by the authoritative current-round
@@ -124,7 +109,6 @@ others_need_slot() {
     agent=$(task_agent "$d")
     if grep -qs '^WAITING=slot' "$d/result.env"; then
       if [ "$agent" = "$ROUND_AGENT" ]; then echo "$id is waiting for an $ROUND_AGENT run slot"; return; fi
-      if legacy_slots_busy; then echo "$id is waiting for a run slot and all $LEGACY_SLOTS shared slots are busy"; return; fi
       continue
     fi
     [ "$agent" = "$ROUND_AGENT" ] || continue
@@ -137,22 +121,22 @@ others_need_slot() {
       case "$parked" in *" $agent "*) continue ;; esac
       echo "$id is waiting for its agent lock"; return
     fi
-    # Runners from before the WAITING=lock marker show only the queued state.
+    # A runner writes STATE=queued before it registers and publishes WAITING=lock: the task is
+    # already queued behind the lock for those few seconds.
     if grep -qs '^STATE=queued' "$d/result.env"; then
       echo "$id is waiting for the opencode lock"; return
     fi
   done
   if [ "$mode" = admission ]; then
     if own_slots_busy; then echo "the $ROUND_AGENT run slot is busy"; return; fi
-    if legacy_slots_busy; then echo "all $LEGACY_SLOTS shared run slots are busy"; return; fi
     memory_pressure_reason
   fi
   return 0
 }
 
 # Demand the round itself stands in the way of, so a wrap-up grace would make it wait:
-# an opencode task queued behind the lock or slot this round holds, or an old runner's task
-# waiting while every shared slot is taken. Rechecked at every poll of the grace.
+# an opencode task queued behind the lock or slot this round holds. Rechecked at every poll
+# of the grace.
 round_blocks_someone() {
   local unit id d own agent
   own=$(current_round)
@@ -161,13 +145,8 @@ round_blocks_someone() {
     [ -n "$own" ] && [ "$id" = "$own" ] && continue
     d=$TASKS/$id
     agent=$(task_agent "$d")
-    if grep -qs '^WAITING=slot' "$d/result.env"; then
-      if [ "$agent" = "$ROUND_AGENT" ] && own_slots_busy; then
-        echo "$id is waiting for an $ROUND_AGENT run slot and all $AGENT_SLOTS are busy"; return
-      fi
-      if legacy_slots_busy; then
-        echo "$id is waiting for a run slot and all $LEGACY_SLOTS shared slots are busy"; return
-      fi
+    if [ "$agent" = "$ROUND_AGENT" ] && grep -qs '^WAITING=slot' "$d/result.env" && own_slots_busy; then
+      echo "$id is waiting for an $ROUND_AGENT run slot and all $AGENT_SLOTS are busy"; return
     fi
     if [ "$agent" = "$ROUND_AGENT" ] && grep -qsE '^(WAITING=lock|STATE=queued)' "$d/result.env"; then
       echo "$id is queued behind the round's opencode lock"; return

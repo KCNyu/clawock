@@ -242,7 +242,6 @@ function readTask(logDir, id, alive) {
 		notifyFailed: channelList(result.NOTIFY_FAILED),
 		notifyAtMs: localStampMs(result.NOTIFY_AT),
 		runnerApi: Number.parseInt(result.RUNNER_API ?? "1", 10) || 1,
-		legacy: (Number.parseInt(result.RUNNER_API ?? "1", 10) || 1) < 2,
 		session: result.SESSION ?? "",
 		cancelling
 	};
@@ -420,22 +419,17 @@ async function readTaskQueue(config, deps) {
 		const order = (group.queue ?? []).map((row) => row.id);
 		for (const row of group.queue ?? []) {
 			const task = active.find((candidate) => candidate.id === row.id);
-			if (task !== void 0) {
-				Object.assign(task, {
-					position: row.position,
-					protected: row.protected,
-					priority: row.priority,
-					legacy: row.legacy === true
-				});
-				if (task.queuedAtMs == null && typeof row.queued_at === "number") task.queuedAtMs = row.queued_at * 1e3;
-			}
+			if (task !== void 0) Object.assign(task, {
+				position: row.position,
+				protected: row.protected,
+				priority: row.priority
+			});
 		}
 		queues.push({
 			agent,
 			held: group.holder?.held === true,
 			holder: group.holder?.id ?? "",
 			order,
-			holderLegacy: group.holder?.legacy === true,
 			holderNote: group.holder?.note ?? "",
 			quotaUntilMs: group.quota ? group.quota.until * 1e3 : null,
 			quotaBy: group.quota?.by ?? ""

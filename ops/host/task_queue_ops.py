@@ -40,13 +40,11 @@ wakes from a quota wait re-queues with its original QUEUED_AT.
 The runner registers a waiting task as <lock-dir>/.queue/<agent>/<id> (PID=, QUEUED_AT=) and
 removes the file when it gets the lock or ends; an entry whose PID is gone is ignored.
 
-Legacy tasks (kcn 2026-09-26): a task whose runner predates RUNNER_API=2 neither registers nor
-writes QUEUED_AT, and it waits in a blocking `flock -w` the kernel will satisfy the moment the
-lock frees. It is still part of the queue, never silently dropped: its live unit and run.log say
-whether it waits (`waiting for <agent> lock` without `lock held`, its QUEUED_AT is that line's
-time) or holds the lock (`lock held`; old runners also keep it through quota waits). Legacy
-waiters are listed first, in arrival order, flagged `legacy`, and cannot be reordered — they will
-take the lock before any new-runner task whatever its priority, so any other order would be a lie.
+A live task without RUNNER_API>=2 in its result.env (a runner from before 2026-09-26, or one
+started by hand) takes no part in this order. It is never silently dropped (kcn 2026-09-26):
+`list` names it under its agent's `unqueued`, `head --json` says so in its note, and a lock held
+without a live holder file is reported as held by an unnamed task, never as free. The run.log
+parsing that used to place such tasks was removed on 2026-09-27, once none was left.
 """
 from __future__ import annotations
 
@@ -210,46 +208,18 @@ def active_ids() -> frozenset[str]:
                      if u.startswith("agent-dispatch-") and u.endswith(".service"))
 
 
-def log_head(d: Path, limit: int = 65536) -> str:
-    """The start of a run.log: the runner's header, lock wait and `lock held` lines live there."""
-    try:
-        with open(d / "run.log", "rb") as f:
-            return f.read(limit).decode("utf-8", "replace")
-    except OSError:
-        return ""
-
-
-def stamp_epoch(stamp: str) -> int | None:
-    try:
-        return int(time.mktime(time.strptime(stamp, "%Y-%m-%d %H:%M:%S")))
-    except (TypeError, ValueError):
-        return None
-
-
-def legacy_tasks(agent: str) -> list[dict]:
-    """Live tasks of <agent> run by a runner older than RUNNER_API 2, and what each is doing
-    with the agent lock: 'waiting', 'holding' or '' (neither: starting, ending, patrol memory wait)."""
+def unqueued_tasks(agent: str) -> list[dict]:
+    """Live tasks of <agent> this entry cannot order: no RUNNER_API>=2 in result.env, so no
+    registration, QUEUED_AT or override.env is honoured. Named, never dropped."""
     rows = []
     for tid in sorted(active_ids()):
         d = TASKS_DIR / tid
         if not ID_RE.match(tid) or read_env(d / "meta.env").get("AGENT") != agent:
             continue
-        result = read_env(d / "result.env")
-        if to_int(result.get("RUNNER_API"), 1) >= MIN_RUNNER_API:
-            continue
-        head = log_head(d)
-        wait = re.search(rf"^(\d{{4}}-\d\d-\d\d \d\d:\d\d:\d\d) waiting for {agent} lock", head, re.M)
-        held = re.search(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d lock held$", head, re.M)
-        if held:
-            doing = "holding"
-        elif wait or result.get("WAITING") == "lock" or (result.get("STATE") == "queued" and not result.get("SLOT")):
-            doing = "waiting"
-        else:
-            doing = ""
-        since = stamp_epoch(wait[1]) if wait else None
-        since = since or stamp_epoch(result.get("STARTED", "")) or stamp_epoch(read_env(d / "meta.env").get("CREATED", ""))
-        held_since = stamp_epoch(held[0][:19]) if held else None
-        rows.append({"id": tid, "doing": doing, "queued_at": since, "held_since": held_since})
+        api = read_env(d / "result.env").get("RUNNER_API", "")
+        if to_int(api, 0) < MIN_RUNNER_API:
+            rows.append({"id": tid, "reason": f"RUNNER_API={api or 'missing'}: not started by the current runner, "
+                                               "so it takes no part in this queue's order"})
     return rows
 
 
@@ -259,12 +229,6 @@ def queue_entries(agent: str) -> list[dict]:
     now = int(time.time())
     fair = fair_wait_sec()
     rows = []
-    for legacy in legacy_tasks(agent):
-        if legacy["doing"] != "waiting":
-            continue
-        queued_at = legacy["queued_at"] or now
-        rows.append({"id": legacy["id"], "queued_at": queued_at, "priority": 0, "patrol": legacy["id"].startswith("patrol-"),
-                     "protected": False, "legacy": True, "waited_sec": max(0, now - queued_at)})
     try:
         names = sorted(os.listdir(qdir))
     except OSError:
@@ -281,8 +245,8 @@ def queue_entries(agent: str) -> list[dict]:
         waited = max(0, now - queued_at)
         protected = (not patrol) and fair > 0 and waited >= fair
         rows.append({"id": name, "queued_at": queued_at, "priority": priority, "patrol": patrol,
-                     "protected": protected, "legacy": False, "waited_sec": waited})
-    rows.sort(key=lambda r: (r["patrol"], not r["legacy"], not r["protected"],
+                     "protected": protected, "waited_sec": waited})
+    rows.sort(key=lambda r: (r["patrol"], not r["protected"],
                              0 if r["protected"] else -r["priority"], r["queued_at"], r["id"]))
     for i, r in enumerate(rows):
         r["position"] = i + 1
@@ -291,11 +255,11 @@ def queue_entries(agent: str) -> list[dict]:
 
 def lock_holder(agent: str) -> dict:
     """Who holds <agent>'s lock: the runner's holder file when its PID lives; else, when the lock
-    is held, the live legacy task whose run.log says `lock held`; else an explicit unknown."""
+    is held anyway, an explicit unnamed holder (never reported as free)."""
     h = read_env(LOCK_DIR / ".queue" / f"{agent}.holder")
     if h.get("ID") and pid_alive(to_int(h.get("PID"))):
-        return {"held": True, "id": h["ID"], "since": to_int(h.get("SINCE"), 0) or None, "legacy": False, "note": ""}
-    free = {"held": False, "id": None, "since": None, "legacy": False, "note": ""}
+        return {"held": True, "id": h["ID"], "since": to_int(h.get("SINCE"), 0) or None, "note": ""}
+    free = {"held": False, "id": None, "since": None, "note": ""}
     lock = LOCK_DIR / f"{agent}.lock"
     if not lock.exists():
         return free
@@ -308,13 +272,8 @@ def lock_holder(agent: str) -> dict:
         pass
     finally:
         os.close(fd)
-    holders = [t for t in legacy_tasks(agent) if t["doing"] == "holding"]
-    if holders:
-        t = max(holders, key=lambda t: t["held_since"] or 0)
-        return {"held": True, "id": t["id"], "since": t["held_since"], "legacy": True,
-                "note": f"held by {t['id']}, started by an older runner (no queue fields)"}
-    return {"held": True, "id": None, "since": None, "legacy": True,
-            "note": "held by a task of an older runner that does not say which (or one taking it right now)"}
+    return {"held": True, "id": None, "since": None,
+            "note": "held, but no live holder file names the task (one taking it right now, or not started by the current runner)"}
 
 
 def quota_hint(agent: str) -> dict | None:
@@ -334,15 +293,14 @@ def cmd_head(args) -> dict:
     if args.agent not in AGENTS:
         raise OpsError(2, f"unknown agent {args.agent!r}")
     rows = queue_entries(args.agent)
+    unqueued = [r["id"] for r in unqueued_tasks(args.agent)]
+    skipped = f"; not ordered (no RUNNER_API 2): {', '.join(unqueued)}" if unqueued else ""
     if rows:
-        head = rows[0]
-        note = (f"{head['id']} was started by an older runner: it takes the lock first, in arrival order"
-                if head["legacy"] else "")
-        return {"ok": True, "agent": args.agent, "head": head["id"], "legacy": head["legacy"], "note": note}
+        return {"ok": True, "agent": args.agent, "head": rows[0]["id"], "unqueued": unqueued, "note": skipped.lstrip("; ")}
     holder = lock_holder(args.agent)
-    note = ("nobody waits; the lock is " + (f"held by {holder['id']}" if holder["id"] else "held by an unnamed older-runner task")
+    note = ("nobody waits; the lock is " + (f"held by {holder['id']}" if holder["id"] else "held by an unnamed task")
             if holder["held"] else "nobody waits and the lock is free")
-    return {"ok": True, "agent": args.agent, "head": "", "legacy": False, "note": note}
+    return {"ok": True, "agent": args.agent, "head": "", "unqueued": unqueued, "note": note + skipped}
 
 
 def cmd_list(_args) -> dict:
@@ -357,7 +315,8 @@ def cmd_list(_args) -> dict:
     tasks = {}
     for agent in AGENTS:
         rows = queue_entries(agent)
-        agents[agent] = {"holder": lock_holder(agent), "queue": rows, "quota": quota_hint(agent)}
+        agents[agent] = {"holder": lock_holder(agent), "queue": rows, "quota": quota_hint(agent),
+                         "unqueued": unqueued_tasks(agent)}
         for r in rows:
             tasks[r["id"]] = r
     return {
@@ -455,13 +414,14 @@ def write_override(d: Path, values: dict[str, str]) -> None:
 
 
 def live_task(d: Path, task_id: str, action: str) -> tuple[dict, dict]:
-    """meta and result of a task a steering action may touch; refuses ended/old-runner tasks."""
+    """meta and result of a task a steering action may touch; refuses ended tasks and tasks without
+    RUNNER_API 2 (their runner would ignore override.env and the queue order)."""
     meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
     if not unit_active(task_id):
         raise OpsError(3, f"task {task_id} has already ended (state={result.get('STATE') or 'unknown'}); {action} no longer applies",
                        state=result.get("STATE", ""))
     if to_int(result.get("RUNNER_API"), 1) < MIN_RUNNER_API:
-        raise OpsError(3, f"task {task_id} was started by an older runner that ignores {action}; "
+        raise OpsError(3, f"task {task_id} has no RUNNER_API 2 in its result.env: its runner ignores {action}; "
                           "it keeps its current order and model until it ends")
     return meta, result
 
@@ -480,13 +440,12 @@ def cmd_priority(args) -> dict:
         if me is None:
             # Asleep on quota/retry: not in the queue now; the value applies when it re-queues.
             me = {"id": args.id, "priority": to_int(read_override(d).get("PRIORITY")), "patrol": False,
-                  "protected": False, "legacy": False, "queued_at": to_int(result.get("QUEUED_AT"), int(time.time()))}
+                  "protected": False, "queued_at": to_int(result.get("QUEUED_AT"), int(time.time()))}
             rows = rows + [me]
         if me["protected"] and args.value != "reset":
             return {"ok": True, "id": args.id, "changed": False, "queue": [r["id"] for r in queue_entries(agent)],
                     "message": f"{args.id} has waited past the fair wait: it already goes before every unprotected task, in arrival order"}
-        # Older-runner waiters take the lock first whatever their neighbours' priority: not reorderable.
-        movable = [r for r in rows if not r["patrol"] and not r["protected"] and not r.get("legacy")]
+        movable = [r for r in rows if not r["patrol"] and not r["protected"]]
         movable.sort(key=lambda r: (-r["priority"], r["queued_at"], r["id"]))
         new: dict[str, int] = {}
         value = args.value
@@ -819,13 +778,13 @@ def human(action: str, out: dict) -> str:
         lines = [f"ops {out['ops_version']} · runner api {out['runner']['api']} · fair wait {out['fair_wait_sec']}s"]
         for agent, g in out["agents"].items():
             holder = g["holder"]
-            who = (holder["id"] + (" (older runner, no queue fields)" if holder.get("legacy") else "")) if holder["id"] \
-                else ("held by an unnamed older-runner task" if holder["held"] else "free")
+            who = holder["id"] if holder["id"] else ("held by an unnamed task" if holder["held"] else "free")
             lines.append(f"{agent}: lock {who}" + (f" · quota until {time.strftime('%m-%d %H:%M', time.localtime(g['quota']['until']))} ({g['quota']['by']})" if g["quota"] else ""))
             for r in g["queue"]:
-                tag = "patrol" if r["patrol"] else ("older runner, cannot reorder" if r.get("legacy")
-                                                    else "protected" if r["protected"] else f"p{r['priority']}")
+                tag = "patrol" if r["patrol"] else "protected" if r["protected"] else f"p{r['priority']}"
                 lines.append(f"  {r['position']}. {r['id']}  {tag}  waited {r['waited_sec'] // 60}m")
+            for r in g["unqueued"]:
+                lines.append(f"  !  {r['id']}  not ordered: {r['reason']}")
         return "\n".join(lines)
     if action == "log":
         return "\n".join(out["lines"])
