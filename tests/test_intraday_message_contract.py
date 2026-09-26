@@ -550,3 +550,49 @@ def test_an_unchanged_sec_mirror_list_is_one_sentence():
     assert not pre.partial_unchanged(
         active, state, {**prior, 'primary_source_health': {'partial': ['CRCL']}})
     assert not pre.partial_unchanged({'partially_degraded_issuers': []}, state, prior)
+
+
+def test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap():
+    """kcn 2026-09-25 preview: the T+0 map (`t0_setups.rows.<t>.leveraged`),
+    the underlying's move from the table, the index strip or this slot's bars,
+    and the gap in pp — written so the validator's derived-figure rule accepts
+    it, and stated as missing when no reading exists."""
+    holdings = [{'ticker': '07226', 'pct_1d': -2.8}, {'ticker': '00100', 'pct_1d': -1.6}]
+    t0 = {'rows': {'07226': {'leveraged': '2x HSTECH'}, '00100': {'leveraged': None},
+                   'RKLX': {'leveraged': '2x RKLB'}}}
+    hk = pre.leverage_legs('hk', holdings, t0, '  恒指 24,477 ▼1.15%  恒科 4,304 ▼1.31%',
+                           {}, bars=lambda *_a: [], session_date='2026-09-25')
+    assert [(r['ticker'], r['underlying_pct'], r['source'], r['gap_pp']) for r in hk] == [
+        ('07226', -1.31, 'index_strip', -0.18)]
+    line = pre.append_leverage_line(ANALYZER, hk).splitlines()
+    assert '🔗 杠杆腿 vs 标的：07226 2x HSTECH（恒科 -1.31% → 2x 应 -2.62%，实测 -2.8%，差 -0.18pp）' \
+        in line
+    # Right under the table, the table itself untouched.
+    start = line.index(TABLE[0])
+    assert line[start:start + len(TABLE)] == TABLE
+    assert line[start + len(TABLE):start + len(TABLE) + 2] == ['', line[start + len(TABLE) + 1]]
+    assert line[start + len(TABLE) + 1].startswith('🔗')
+    text = next(x for x in line if x.startswith('🔗'))
+    at = text.index('-0.18pp')
+    assert val._derived_in_sentence(text, at, 'pp', '-0.18')
+
+    us = [{'ticker': 'RKLX', 'pct_1d': -1.4}, {'ticker': 'SPCX', 'pct_1d': -1.0},
+          {'ticker': 'SPCH', 'pct_1d': -2.3}]
+    t0['rows']['SPCH'] = {'leveraged': '2x SPCX'}
+    bars = [{'date': '2026-09-24', 'close': 73.61}, {'date': '2026-09-25', 'close': 73.95}]
+    legs = pre.leverage_legs('us', us, t0, '', {}, bars=lambda code, _n: bars,
+                             session_date='2026-09-25', codes={'RKLB': 'usRKLB.OQ'})
+    assert [(r['ticker'], r['underlying_pct'], r['source'], r['gap_pp']) for r in legs] == [
+        ('RKLX', 0.46, 'slot_daily_bar', -2.32), ('SPCH', -1.0, 'holdings_table', -0.3)]
+    # No bar dated this session: the reading is missing and nothing is computed.
+    stale = pre.leverage_legs('us', us, t0, '', {'levels': {'RKLB': {
+        'close': 73.13, 'pct_from_high': -3.09}}}, bars=lambda code, _n: bars,
+        session_date='2026-09-28', codes={'RKLB': 'usRKLB.OQ'})
+    assert stale[0]['gap_pp'] is None and stale[0]['missing']
+    shown = pre.append_leverage_line('| a |', stale, ['SPCH']).splitlines()
+    assert shown[2] == ('🔗 杠杆腿 vs 标的：RKLX 2x RKLB（RKLB 今日涨跌本档未取到，不算差值，'
+                        '现价 73.13，距前高 -3.1%）｜SPCH 2x SPCX（标的 -1.0% → 2x 应 -2.0%，'
+                        '实测 -2.3%，差 -0.30pp）')
+    assert shown[3] == '   ↳ 行情未证实：SPCH（见上方 ⛔ 行，差值仅作参考）'
+    assert val._derived_in_sentence(shown[2], shown[2].index('-0.30pp'), 'pp', '-0.30')
+    assert pre.append_leverage_line('x', []) == 'x'

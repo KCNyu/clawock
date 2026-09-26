@@ -104,7 +104,8 @@ P0 line only when one newly fired, the 变化 line, `⛔ 数据降级` lines
 (unverified quotes said once, with since when the same names have been
 carried), then the analyzer's market strip, book line and holdings table
 **byte for byte**, one `↑` pointer line naming the rows with a new
-move/trigger, the signal block with signals already
+move/trigger, the `🔗` line setting each held leveraged leg against its
+underlying's move and the gap in pp, the signal block with signals already
 delivered this session folded into one `今日已报、仍在` line, the candidate
 sections, the model's `▎我的看法` after the whole data block, and advisory
 checker findings last. `⛔` is only data

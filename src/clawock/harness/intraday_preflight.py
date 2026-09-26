@@ -48,6 +48,7 @@ from clawock.decision import active_information
 from clawock.decision import add_side, early_trend, intraday_policy
 from clawock.evidence import anomaly_search, intraday_information
 from clawock.instruments import is_leveraged_holding
+from clawock.harness.report_preflight import parse_hk_indices
 
 WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
@@ -861,6 +862,8 @@ def prepend_coverage_warning(block, coverage):
 #   6 table          analyzer's holdings table, byte for byte
 #   7 ↑ pointer      one line naming the rows with a new move/trigger;
 #                    omitted when there is none (unverified rows are block 4's)
+#  7b 🔗 leverage    held leveraged legs vs their underlying and the gap in
+#                    pp (`leverage_legs`); omitted with no leveraged holding
 #   8 ⚠️ 信号        signals new today in full; ones already delivered this
 #                    session fold into one 「今日已报、仍在」 line
 #   9 candidates     setups / trend / radar / primary info / plan triggers
@@ -1008,6 +1011,115 @@ def append_add_side_section(block, reads, gaps=None):
     if len(rows) > MAX_ADD_SIDE_ROWS:
         lines.append(f'  …另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
     return block + '\n' + '\n'.join(lines)
+
+
+# ── 🔗 leveraged leg vs its underlying (kcn 2026-09-25 preview) ─────────────
+#
+# The map is the one the T+0 card already carries (`t0_setups.rows.<t>.leveraged`,
+# built from the instrument registry: RKLX=2x RKLB, SPCH=2x SPCX, 07226=2x
+# HSTECH); nothing here keeps a second one. The underlying's day move comes
+# from what this slot already has, in this order: the holdings table (a held
+# underlying), the analyzer's index strip (恒指/恒科), or today's bar in the
+# daily bars the radar fetched this slot for the same universe (a non-held
+# underlying such as RKLB; `_fetch_bars_cached`, so no extra request). If none
+# answers, the line says so and computes nothing.
+#
+# The gap is written the way `validation._derived_in_sentence` checks shown
+# work (the pp difference of two figures earlier in the same sentence): the
+# underlying's move, the multiple times it, the leg's move, then 差 in pp — so a
+# judgment that repeats the line is verified, not flagged as invented.
+LEVERAGE_HEADER = '🔗 杠杆腿 vs 标的：'
+INDEX_STRIP = {'HSTECH': ('hstech_pct', '恒科'), 'HSI': ('hsi_pct', '恒指')}
+
+
+def _today_move_from_bars(bars, session_date):
+    """Percent move of the bar dated `session_date` vs the bar before it."""
+    rows = [bar for bar in bars or [] if bar.get('date')]
+    if not session_date or len(rows) < 2 or rows[-1]['date'] != session_date:
+        return None
+    prev, last = rows[-2].get('close'), rows[-1].get('close')
+    if not prev or last is None:
+        return None
+    return round((last / prev - 1) * 100, 2)
+
+
+def leverage_legs(market, full_holdings, t0_setups, stdout, radar, *, bars,
+                  session_date, codes=None):
+    """One row per held leveraged leg: its move, the underlying's, the gap."""
+    moves = {row.get('ticker'): row.get('pct_1d') for row in full_holdings or []}
+    t0_rows = (t0_setups or {}).get('rows') or {}
+    indices = parse_hk_indices(stdout or '') if market == 'hk' else None
+    levels = (radar or {}).get('levels') or {}
+    legs = []
+    for ticker, leg_pct in moves.items():
+        match = re.fullmatch(r'\s*(\d+(?:\.\d+)?)x\s+(\S+)\s*',
+                             str((t0_rows.get(ticker) or {}).get('leveraged') or ''))
+        if not match or not isinstance(leg_pct, (int, float)):
+            continue
+        multiple, underlying = float(match.group(1)), match.group(2)
+        row = {'ticker': ticker, 'multiple': multiple, 'underlying': underlying,
+               'leg_pct': leg_pct, 'underlying_pct': None, 'source': None,
+               'expected_pct': None, 'gap_pp': None}
+        if isinstance(moves.get(underlying), (int, float)):
+            row.update(underlying_pct=moves[underlying], source='holdings_table', decimals=1)
+        elif underlying in INDEX_STRIP and indices:
+            row.update(underlying_pct=indices[INDEX_STRIP[underlying][0]],
+                       source='index_strip', decimals=2, label=INDEX_STRIP[underlying][1])
+        elif (codes or {}).get(underlying):
+            try:
+                pct = _today_move_from_bars(bars(codes[underlying], 400), session_date)
+            except Exception:  # noqa: BLE001 — a missing reading is stated, not raised
+                pct = None
+            if pct is not None:
+                row.update(underlying_pct=pct, source='slot_daily_bar', decimals=2)
+        if row['underlying_pct'] is None:
+            level = levels.get(underlying) or {}
+            row['missing'] = 'underlying day move not in this slot'
+            row['close'], row['pct_from_high'] = level.get('close'), level.get('pct_from_high')
+        else:
+            digits = row['decimals']
+            row['expected_pct'] = round(multiple * row['underlying_pct'], digits)
+            row['gap_pp'] = round(leg_pct - row['expected_pct'], 2)
+        legs.append(row)
+    return legs
+
+
+def append_leverage_line(block, legs, unrefreshed=None):
+    """Put the 🔗 line right under the holdings table (after the ↑ pointer)."""
+    if not legs:
+        return block
+    parts = []
+    for row in legs:
+        mult = f"{row['multiple']:g}x"
+        head = f"{row['ticker']} {mult} {row['underlying']}"
+        if row.get('gap_pp') is None:
+            bits = [f"{row['underlying']} 今日涨跌本档未取到，不算差值"]
+            if row.get('close') is not None:
+                bits.append(f"现价 {row['close']:g}")
+            if row.get('pct_from_high') is not None:
+                bits.append(f"距前高 {row['pct_from_high']:+.1f}%")
+            parts.append(f"{head}（{'，'.join(bits)}）")
+            continue
+        digits = row['decimals']
+        name = row.get('label') or '标的'
+        parts.append(
+            f"{head}（{name} {row['underlying_pct']:+.{digits}f}% → {mult} 应 "
+            f"{row['expected_pct']:+.{digits}f}%，实测 {row['leg_pct']:+.1f}%，"
+            f"差 {row['gap_pp']:+.2f}pp）")
+    lines = ['', LEVERAGE_HEADER + '｜'.join(parts)]
+    stale = [t for row in legs for t in (row['ticker'], row['underlying'])
+             if t in (unrefreshed or [])]
+    if stale:
+        lines.append(f"   ↳ 行情未证实：{'、'.join(dict.fromkeys(stale))}"
+                     '（见上方 ⛔ 行，差值仅作参考）')
+    out = block.splitlines()
+    last = max((i for i, line in enumerate(out)
+                if line.strip().startswith('|') and line.strip().endswith('|')),
+               default=None)
+    if last is None:
+        return block + '\n' + '\n'.join(lines)
+    out[last + 1:last + 1] = lines
+    return '\n'.join(out)
 
 
 def _split_generic_news(block):
@@ -1509,6 +1621,16 @@ def main(argv=None):
     except Exception as exc:
         universe = []
         active_information_ctx['policy_evidence_error'] = f'{type(exc).__name__}: {exc}'[:200]
+    # 🔗 line: held leveraged legs against their underlying (T+0 map, this
+    # slot's readings; the bars are the radar's, already cached).
+    try:
+        leverage = leverage_legs(
+            args.market, full_holdings, t0_setups, stdout, opportunity_radar,
+            bars=_fetch_bars_cached,
+            session_date=intraday_delta.market_session_date(args.market, now),
+            codes={row.get('label'): row.get('code') for row in universe})
+    except Exception:  # noqa: BLE001 — a derived line must never red a slot
+        leverage = []
     policy_evidence_errors = []
     strategy_checks = []
     policy_escalations = intraday_policy.escalations(
@@ -1646,6 +1768,8 @@ def main(argv=None):
                           if t not in (coverage.get('unrefreshed') or [])),
             'stale': list(coverage.get('unrefreshed') or []),
         }
+        raw_block = append_leverage_line(
+            raw_block, leverage, coverage.get('unrefreshed'))
         raw_block = mark_card_changes(
             raw_block,
             fresh_tickers=fresh_tickers,
@@ -1696,6 +1820,10 @@ def main(argv=None):
         # the headline feed; the judgment must still see all of it.
         'analyzer_block': stdout.strip(),
         'soft_candidates': soft_candidates,
+        # The 🔗 line's rows: leg move, underlying move and its source
+        # (holdings_table / index_strip / slot_daily_bar), 2x-expected, gap pp;
+        # `missing` when the underlying's move was not in this slot.
+        'leverage_legs': leverage,
         # Information lane summary (core) and the whole of it (reference).
         'information': information['summary'],
         'information_full': information['full'],

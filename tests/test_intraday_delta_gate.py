@@ -628,3 +628,23 @@ def test_a_search_that_did_not_answer_is_on_the_card(monkeypatch, tmp_path):
     packet = json.loads(out.getvalue())
     assert "⛔ 数据降级：异动检索：SPCH（未取到）（不是无消息）" in packet["raw_wechat_block"].splitlines()
     assert packet["anomaly_search"]["SPCH"]["status"] == "unavailable"
+
+
+def test_preflight_prints_the_leverage_line_from_the_t0_map(monkeypatch, tmp_path):
+    """Through the real main(): the leveraged map comes from t0_setups, the
+    held underlying's move from the table; the table bytes stay the same and
+    the model gets the same rows."""
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    table = ['| SPCX  |     1 | 147.50 | 146.53 |  -1.0% |  -0.7% |      -1 |',
+             '| SPCH  |   300 |  12.06 |   9.50 |  -2.3% | -21.2% |    -768 |']
+    block = '\n'.join(['🇺🇸 美股盯盘 | 09/25 11:04 ET', '', *table, '', '📉 亏损持仓 1/2'])
+    monkeypatch.setattr(preflight, "run_analyze", lambda _m: (0, block, ""))
+    (tmp_path / 'assets/data/t0_setups.json').write_text(json.dumps(
+        {"rows": {"SPCH": {"leveraged": "2x SPCX"}, "SPCX": {}}}))
+    ctx = run(copy.deepcopy(current))
+    lines = ctx["raw_wechat_block"].splitlines()
+    assert lines[lines.index(table[0]):lines.index(table[0]) + 2] == table
+    assert ("🔗 杠杆腿 vs 标的：SPCH 2x SPCX（标的 -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp）"
+            in lines)
+    assert ctx["leverage_legs"][0]["gap_pp"] == -0.3
+    assert ctx["analyzer_block"] == block

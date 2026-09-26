@@ -123,6 +123,7 @@ empty.
 | 5 | index strip + `📊` | market and book | never | analyzer |
 | 6 | holdings table | positions | never; **bytes never change** | analyzer |
 | 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
+| 7b | `🔗 杠杆腿 vs 标的：…` | is it the underlying moving or the leverage: each held leg (map = `t0_setups.rows.<t>.leveraged`) with its underlying's move — from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request) — the multiple times it, the leg's move and 差 in pp, written in the validator's derived-figure form; `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs` | no leveraged holding | harness |
 | 8 | `⚠️ 信号` | signals new today; ones already sent fold into `今日已报、仍在：…` | no signals | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
 | 10 | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap | harness |
@@ -224,6 +225,7 @@ as live.
 | revise-once gate | live (#1891) |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
+| `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#PR_C) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10
