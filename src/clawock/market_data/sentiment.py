@@ -378,11 +378,17 @@ def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None, between=Non
     return sum(1 for row in rows if row['reddit_mentions_7d'])
 
 
-def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
-    """Returns up to `limit` recent headlines from Google News RSS."""
+def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False,
+                      timeout=TIMEOUT, ceid=None):
+    """Returns up to `limit` recent headlines from Google News RSS.
+
+    `ceid` defaults to `<gl>:<language>`; Google redirects that for Chinese
+    editions (`CN:zh` → `CN:zh-Hans`), so a caller on a time budget names it.
+    """
     try:
-        url = f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={gl}:{hl.split("-")[0]}'
-        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        ceid = ceid or f'{gl}:{hl.split("-")[0]}'
+        url = f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={ceid}'
+        r = requests.get(url, headers=HEADERS, timeout=timeout)
         if r.status_code != 200:
             return ([], 'failed') if return_status else []
         SOURCE_STATUS['google_news'] = 'ok'
