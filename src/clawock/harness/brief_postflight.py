@@ -787,6 +787,7 @@ def categorize(issues):
 
 
 from clawock.harness.validation import (
+    FORBIDDEN_PHRASES,  # one table for all three entries
     advisory_prefix,
     categorize_issues,
     check_md_table_column_consistency,
@@ -797,7 +798,6 @@ from clawock.harness.validation import (
     split_advisory,
     validate_forbidden_phrases,
 )
-from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402  one shared table
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
     git_cmd as _git,
