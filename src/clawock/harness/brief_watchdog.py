@@ -28,7 +28,7 @@ that says WeChat *failed* is not the ambiguous stale marker the rule above is
 about, so it gets one WeChat retry, and a Telegram alert if that fails too
 (`_watchdog_common.wechat_backstop`). The Telegram backstop below is unchanged.
 
-Card content comes from _watchdog_common.build_brief_card (LLM card file → plan.json
+Card content comes from brief_card.build_brief_card (LLM card file → plan.json
 fallback), the same builder postflight uses. Dedupe flag prevents double-sends.
 
 TWO MODES (2026-07-16). The delivery backstop above answers "card exists but did it
@@ -65,8 +65,9 @@ from clawock.automation import delivery_receipts
 from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_text
 
+from .brief_card import build_brief_card
 from ._watchdog_common import (
-    WS, HKT, log, build_brief_card, send_telegram, telegram_target,
+    WS, HKT, log, send_telegram, telegram_target,
     send_wechat, resolve_wechat_target, wechat_backstop,
     dispatch_brief_fallback, await_brief_fallback_outcome,
     brief_cron_job_state, cron_run_ended_in_failure,

@@ -1186,7 +1186,7 @@ def main(argv=None):
     # 00:00 and 08:00 HKT would otherwise overwrite yesterday's published brief
     # (#1709: ledger, plans and postflight all anchor to the HK calendar day).
     date = args.date or _cal.hkt_today().isoformat()
-    from clawock.harness._watchdog_common import brief_url
+    from clawock.harness.brief_card import brief_url
 
     issues, body = render_from_workspace(
         workspace, date,
