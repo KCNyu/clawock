@@ -24,6 +24,7 @@ from clawock.market_data.us_quotes import (
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
 from clawock.instruments import get as get_instrument
+from clawock.market_data import fanout
 from clawock.portfolio.books import region_book
 from clawock.sessions import ET, HKT, hkt_today
 
@@ -497,11 +498,11 @@ def run_analysis(fetch: bool = True, include_news: bool = True, argv=None):
     active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
 
     _say("[ 2/3 ] 拉取技术指标 (Polygon RSI-14 / MA)...")
-    tech_cache: Dict[str, Dict] = {}
-    for h in active:
-        ticker = h['ticker']
-        tech   = get_technicals(ticker, keys)
-        tech_cache[ticker] = tech
+    tickers = [h['ticker'] for h in active]
+    # Per-ticker requests with 12–25 s timeouts: overlap the waits (fanout).
+    tech_cache: Dict[str, Dict] = dict(zip(tickers, fanout.each(get_technicals, tickers, keys)))
+    for ticker in tickers:
+        tech = tech_cache[ticker]
         if not wechat:
             rsi_s = f"{tech['rsi14']:.0f}" if tech.get('rsi14') else 'n/a'
             sys.stdout.write(f"  {ticker}: RSI={rsi_s}({tech.get('src','?')})  ")
@@ -511,10 +512,12 @@ def run_analysis(fetch: bool = True, include_news: bool = True, argv=None):
 
     _say(f"[ 3/3 ] {'拉取新闻 (Finnhub 7天)...' if not no_news else '跳过新闻'}")
     analyses = []
+    news_by_ticker = (dict(zip(tickers, fanout.each(get_news, tickers, keys.get('FINNHUB_API_KEY', ''))))
+                      if not no_news else {})
     for h in active:
         ticker     = h['ticker']
         tech       = tech_cache[ticker]
-        news_items = get_news(ticker, keys.get('FINNHUB_API_KEY', '')) if not no_news else []
+        news_items = news_by_ticker.get(ticker, [])
         signal, reasons = generate_signal(h, tech, news_items)
         analyses.append({
             'holding': h,

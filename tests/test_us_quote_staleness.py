@@ -256,6 +256,60 @@ class TestProviderRace:
         assert out["PLTU"]["source"].startswith("Nasdaq")
         assert called == []          # no wasted downstream calls
 
+    def test_a_tier_waits_for_its_slowest_ticker_not_the_sum(self, monkeypatch):
+        # Live slots whose quotes fell through Finnhub spent 50–120 s here, one
+        # 12–25 s timeout per ticker per provider. The barrier only opens if all
+        # three Finnhub calls are in flight together; the precedence rule is
+        # untouched (Finnhub still beats the rangeless Nasdaq print per ticker).
+        self._silence(monkeypatch)
+        monkeypatch.setattr(F, "get_nasdaq_quote",
+                            lambda t: {"c": 1.0, "pc": None, "h": None, "l": None,
+                                       "o": None, "dp": 0.0, "source": "Nasdaq API (etf)"})
+        together = threading.Barrier(3, timeout=5)
+
+        def _finnhub(t, k):
+            together.wait()
+            return {"c": 2.0, "pc": 1.5, "h": 2.1, "l": 1.9, "o": 2.0,
+                    "dp": 33.3, "source": f"Finnhub {t}"}
+        monkeypatch.setattr(F, "get_finnhub_quote", _finnhub)
+        out = F.fetch_us_quotes(["A", "B", "C"], {"FINNHUB_API_KEY": "x"})
+        assert list(out) == ["A", "B", "C"]
+        assert [q["source"] for q in out.values()] == ["Finnhub A", "Finnhub B", "Finnhub C"]
+
+
+class TestEastmoneyAltPrefix:
+    def test_an_unanswered_batch_is_not_asked_again_under_other_prefixes(
+            self, monkeypatch):
+        labels = []
+
+        def _em(url, **kwargs):
+            labels.append(kwargs.get("label"))
+            return None                      # push2 502s: retries exhausted
+        monkeypatch.setattr(F, "em_get", _em)
+        assert F.get_eastmoney_batch(["CRCL", "RKLX"]) == {}
+        assert labels == ["US quote batch"]
+
+    def test_a_ticker_missing_from_an_answer_still_gets_the_other_prefix(
+            self, monkeypatch):
+        labels = []
+
+        class _Resp:
+            def __init__(self, diff):
+                self._diff = diff
+
+            def json(self):
+                return {"data": {"diff": self._diff}}
+
+        def _em(url, **kwargs):
+            labels.append(kwargs.get("label"))
+            if kwargs.get("label") == "US quote batch":
+                return _Resp([{"f12": "CRCL", "f2": 90.0, "f18": 93.0}])
+            return _Resp([{"f12": "RKLX", "f2": 19.0, "f18": 19.3}])
+        monkeypatch.setattr(F, "em_get", _em)
+        out = F.get_eastmoney_batch(["CRCL", "RKLX"])
+        assert labels == ["US quote batch", "US quote alt-prefix batch"]
+        assert out["RKLX"]["source"] == "Eastmoney (alt-prefix)"
+
 
 # ── 3. one grouped request instead of a rate-limited per-ticker loop ─────────
 class TestPolygonGrouped:

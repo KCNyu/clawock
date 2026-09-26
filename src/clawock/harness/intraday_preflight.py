@@ -33,6 +33,7 @@ import json
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -1474,6 +1475,29 @@ def main(argv=None):
     signals, signals_detail = intraday_policy.actionable_signals(
         source_signals, source_signals_detail, holding_policies)
     anomalies = parse_anomalies(stdout)
+    movers = [a['ticker'] for a in anomalies]
+
+    # Four network lanes need nothing but the analyzer's output and each other's
+    # absence: issuer filings (~7 s, 20 s budget), mover evidence (20 s budget),
+    # one Tavily search per new mover (25 s each) and the peer scan (~3 s).
+    # Started here and joined where each result was always read, so every
+    # value, fallback and alert reason lands exactly where it did when they ran
+    # one after another; only their waits overlap with each other and with the
+    # local steps in between (weekend sandbox US run: 7.6 s after the analyzer
+    # → 4.3 s).
+    lanes = ThreadPoolExecutor(max_workers=4)
+    active_information_lane = lanes.submit(
+        active_information.scan_workspace, WS, args.market)
+    # Mover-scoped, bounded by a wall-clock budget, and fails soft — a news
+    # endpoint must never slow or red a reporting cron.
+    mover_news_lane = lanes.submit(mover_news.probe, movers, market=args.market)
+    def _search_movers():
+        return anomaly_search.search_anomalies(
+            WS, args.market, intraday_delta.market_session_date(args.market, now),
+            anomalies, names=mover_news.holding_names(movers),
+            targets={t: mover_news.probe_targets(t, args.market) for t in movers})
+    anomaly_search_lane = lanes.submit(_search_movers) if anomalies else None
+    peer_lane = lanes.submit(collect_peers, args.market)
 
     # T+0 牌面评级 — analyze_*_stocks 刚刷过价，此处用实时区间位算追高检测。
     # 零额外请求（T0_INTRADAY 默认关）。失败不阻断盯盘。
@@ -1501,7 +1525,7 @@ def main(argv=None):
     # anomaly.  This is the active counterpart to mover_news below, which still
     # answers the separate question "what explains an already-large move?".
     try:
-        active_information_ctx = active_information.scan_workspace(WS, args.market)
+        active_information_ctx = active_information_lane.result()
     except Exception as exc:  # noqa: BLE001 — a filing source must not red a slot
         active_information_ctx = {
             'schema_version': 1, 'market': args.market, 'candidates': [],
@@ -1516,27 +1540,17 @@ def main(argv=None):
     # Thesis/red-line state for the names this slot already flagged. Local JSON
     # only, scoped to movers, and attribution context — never an action trigger
     # on its own (the catalyst gate still decides that).
-    mover_thesis = research_surface.movers_thesis_context(
-        [a['ticker'] for a in anomalies]
-    )
+    mover_thesis = research_surface.movers_thesis_context(movers)
 
-    # What was actually published behind those moves. Mover-scoped, bounded
-    # by a wall-clock budget, and fails soft — a news endpoint must never
-    # slow or red a reporting cron.
-    mover_news_ctx = mover_news.probe(
-        [a['ticker'] for a in anomalies], market=args.market,
-    )
+    # What was actually published behind those moves (lane started above).
+    mover_news_ctx = mover_news_lane.result()
 
     # Tier 3 (contract §6): one web search per mover per session, only when
     # something moved; the cache serves every later slot of the same session.
     anomaly_search_ctx = {}
-    if anomalies:
-        movers = [a['ticker'] for a in anomalies]
+    if anomaly_search_lane is not None:
         try:
-            anomaly_search_ctx = anomaly_search.search_anomalies(
-                WS, args.market, intraday_delta.market_session_date(args.market, now),
-                anomalies, names=mover_news.holding_names(movers),
-                targets={t: mover_news.probe_targets(t, args.market) for t in movers})
+            anomaly_search_ctx = anomaly_search_lane.result()
         except Exception as exc:  # noqa: BLE001 — enrichment never reds a slot
             anomaly_search_ctx = {t: {'status': 'unavailable', 'items': [],
                                       'reason': type(exc).__name__} for t in movers}
@@ -1699,7 +1713,8 @@ def main(argv=None):
     # delivered-state cursor has to keep advancing, or flipping the toggle back
     # would compare against a months-old state and send one bogus full slot.
     always_full = always_full_intraday()
-    peer_context = collect_peers(args.market)
+    peer_context = peer_lane.result()
+    lanes.shutdown()
     silence_context = {
         'semantic_unchanged': bool(prior_state) and not semantic_delta['changed'],
         'semantic_delta': semantic_delta,

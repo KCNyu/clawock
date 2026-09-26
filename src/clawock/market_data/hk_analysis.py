@@ -17,13 +17,14 @@ Usage:
 
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 
 import requests
 
 from clawock.credentials import load_api_keys as _load_api_keys
-from clawock.market_data import integrity as bar_checks
+from clawock.market_data import fanout, integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS
@@ -183,15 +184,11 @@ def _fetch_yfinance(code: str) -> Optional[Dict]:
         return None
 
 
-def fetch_hk_quotes(codes: List[str]) -> Dict[str, Dict]:
-    """Fetch HK stock prices: Tencent (primary) → Eastmoney HK (independent cross-check) →
-    stooq → yfinance. When BOTH Tencent and Eastmoney succeed for the same code, cross-check
-    c/pc and warn if divergence > 1% — this is the trip-wire for stale-data drift.
-    """
-    results: Dict[str, Dict] = {}
+def _fetch_tencent_hk(codes: List[str]) -> Dict[str, Dict]:
+    """Tencent gtimg: one batch, then a per-code retry with the other prefix."""
+    tencent: Dict[str, Dict] = {}
 
     # Tier 1: Tencent gtimg batch
-    tencent: Dict[str, Dict] = {}
     query_codes = [f'r_hk{c}' for c in codes]
     url = f"https://qt.gtimg.cn/q={','.join(query_codes)}"
     try:
@@ -210,21 +207,39 @@ def fetch_hk_quotes(codes: List[str]) -> Dict[str, Dict]:
     except Exception as e:
         print(f"  ⚠️  Tencent batch failed: {e}")
 
-    # Tier 1b: Tencent single-code retry (different prefix)
-    for code in [c for c in codes if c not in tencent]:
+    # Tier 1b: Tencent single-code retry (different prefix), codes side by side
+    def _single(code):
         for prefix in ('r_hk', 'hk'):
             try:
                 r = SESSION.get(f"https://qt.gtimg.cn/q={prefix}{code}", timeout=TIMEOUT)
                 r.encoding = 'gbk'
                 parsed = _parse_gtimg(r.text)
                 if parsed and parsed['c'] > 0:
-                    tencent[code] = parsed
-                    break
+                    return parsed
             except Exception:
                 continue
+        return None
 
-    # Tier 2: Eastmoney HK batch — runs alongside Tencent so we can cross-check
-    eastmoney = _fetch_eastmoney_hk(codes)
+    retry = [c for c in codes if c not in tencent]
+    for code, parsed in zip(retry, fanout.each(_single, retry)):
+        if parsed:
+            tencent[code] = parsed
+    return tencent
+
+
+def fetch_hk_quotes(codes: List[str]) -> Dict[str, Dict]:
+    """Fetch HK stock prices: Tencent (primary) → Eastmoney HK (independent cross-check) →
+    stooq → yfinance. When BOTH Tencent and Eastmoney succeed for the same code, cross-check
+    c/pc and warn if divergence > 1% — this is the trip-wire for stale-data drift.
+    """
+    results: Dict[str, Dict] = {}
+
+    # Tier 2: Eastmoney HK batch — asked for every code whatever Tencent says
+    # (it is the cross-check), so it waits alongside Tier 1 instead of after it.
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        em_future = pool.submit(_fetch_eastmoney_hk, codes)
+        tencent = _fetch_tencent_hk(codes)
+        eastmoney = em_future.result()
 
     # Cross-check + merge: prefer Tencent when both succeed; record divergence
     for code in codes:
@@ -255,8 +270,8 @@ def fetch_hk_quotes(codes: List[str]) -> Dict[str, Dict]:
             print(f"  [fallback] {code} via Eastmoney HK (Tencent missed)")
 
     # Tier 3: stooq (only for codes still missing — established HK codes only)
-    for code in [c for c in codes if c not in results]:
-        parsed = _fetch_stooq(code)
+    stooq_codes = [c for c in codes if c not in results]
+    for code, parsed in zip(stooq_codes, fanout.each(_fetch_stooq, stooq_codes)):
         if parsed:
             parsed['_src'] = 'stooq'
             results[code] = parsed
@@ -819,8 +834,9 @@ def main(argv=None) -> int:
         if finnhub_key:
             if not wechat:
                 print("  [新闻] Finnhub 7天新闻...")
-            for code in active_codes:
-                articles = get_finnhub_news(code, finnhub_key)
+            # Up to three symbol spellings × 12 s per code: codes side by side.
+            fetched = fanout.each(get_finnhub_news, active_codes, finnhub_key)
+            for code, articles in zip(active_codes, fetched):
                 news_map[code] = articles
                 if not wechat:
                     print(f"    {code}: {len(articles)} 条")

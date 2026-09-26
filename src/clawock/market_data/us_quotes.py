@@ -28,7 +28,7 @@ from typing import Dict, List, Optional
 import requests
 
 from clawock.credentials import load_api_keys as _load_api_keys
-from clawock.market_data import integrity as bar_checks
+from clawock.market_data import fanout, integrity as bar_checks
 from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
@@ -286,11 +286,13 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
     }
     headers = {'Referer': 'https://quote.eastmoney.com/'}
     results: Dict[str, Dict] = {}
+    answered = False
     try:
         r = em_get(url, params=params, headers=headers, timeout=TIMEOUT,
                    label='US quote batch')
         if r is None:
             raise RuntimeError('shared Eastmoney client exhausted retries')
+        answered = True
         for item in r.json().get('data', {}).get('diff', []):
             ticker = item.get('f12')
             current = item.get('f2')
@@ -314,9 +316,13 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
     except Exception as e:
         print(f"  ⚠️  Eastmoney batch failed: {e}")
 
-    # Retry tickers with swapped exchange prefix (105↔106)
+    # Retry tickers with swapped exchange prefix (105↔106). Only when the batch
+    # answered and left a ticker out: that is what a wrong prefix looks like.
+    # When push2 itself did not answer (from this host it mostly returns 502),
+    # a second batch to the same endpoint only repeats em_get's retries — ~6 s
+    # on a fast 502, ~40 s when it times out — before Finnhub is asked anyway.
     missing = [t for t in tickers if t not in results]
-    if missing:
+    if missing and answered:
         swapped = []
         for t in missing:
             original = EASTMONEY_PREFIX.get(t, '105')
@@ -834,10 +840,16 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
               f"incomplete (no {'/'.join(missing)}) — trying a richer provider")
         return False
 
+    def _each(fetch, *args):
+        """Ask one provider for every ticker still open, side by side, then
+        offer the answers in ticker order (see `fanout`)."""
+        asked = list(remaining)
+        for t, quote in zip(asked, fanout.each(fetch, asked, *args)):
+            _offer(t, quote)
+
     # 1. Nasdaq API (per-ticker, handles stocks + ETFs without prefix guessing)
     print("  [1] Nasdaq API...")
-    for t in list(remaining):
-        _offer(t, get_nasdaq_quote(t))
+    _each(get_nasdaq_quote)
     if not remaining:
         return results
 
@@ -852,19 +864,18 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
 
     # 3. Finnhub
     print(f"  [3] Finnhub for: {', '.join(remaining)}")
-    for t in list(remaining):
-        _offer(t, get_finnhub_quote(t, keys.get('FINNHUB_API_KEY', '')))
+    _each(get_finnhub_quote, keys.get('FINNHUB_API_KEY', ''))
     if not remaining:
         return results
 
     # 4. Yahoo Finance v8 API
     print(f"  [4] Yahoo v8 for: {', '.join(remaining)}")
-    for t in list(remaining):
-        _offer(t, get_yahoo_v8_quote(t))
+    _each(get_yahoo_v8_quote)
     if not remaining:
         return results
 
-    # 5. yfinance library
+    # 5. yfinance library — kept one at a time: the library shares process-wide
+    #    session/cache state that it does not promise to be thread-safe.
     print(f"  [5] yfinance for: {', '.join(remaining)}")
     for t in list(remaining):
         _offer(t, get_yfinance_quote(t))
@@ -873,8 +884,7 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
 
     # 6. Alpha Vantage (slow, rate-limited at 25 calls/day on free tier)
     print(f"  [6] Alpha Vantage for: {', '.join(remaining)}")
-    for t in list(remaining):
-        _offer(t, get_alpha_vantage_quote(t, keys.get('ALPHA_VANTAGE_API_KEY', '')))
+    _each(get_alpha_vantage_quote, keys.get('ALPHA_VANTAGE_API_KEY', ''))
     if not remaining:
         return results
 
@@ -887,8 +897,7 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
     # when nothing else answered; it now arrives at step 8 labelled, so the
     # range accumulator and the stale-quote guard can both see what it is.
     print(f"  [7] Polygon for: {', '.join(remaining)}")
-    for t in list(remaining):
-        _offer(t, get_polygon_quote(t, keys.get('POLYGON_API_KEY', '')))
+    _each(get_polygon_quote, keys.get('POLYGON_API_KEY', ''))
 
     # 8. fall back to the best quote we had to reject — a price without a range
     #    still beats no price, but it must be labelled so the caller does not
