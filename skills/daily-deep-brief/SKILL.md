@@ -90,7 +90,8 @@ clawock brief preflight
 
 当 packet 某票出现 `technical.setups` 并考虑加仓时，先读
 [`references/technical-playbooks.md`](references/technical-playbooks.md)。只允许使用该
-reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirmation`；
+reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirmation` /
+`left_scale_in`；
 具体触发、失效、手数和上限仍以本次 packet 为准。`alpha_confirmation` 不是
 第四种技术 alpha：量化横截面/同业残差负责 price-relative 选名，新闻 surprise
 或 attention acceleration 提供独立的 point-in-time information family，技术价位

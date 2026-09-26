@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.decision import add_alpha, add_policy, early_trend
+from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
@@ -320,6 +320,47 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
     }
 
 
+def _left_side(row: dict, technical: dict, thesis: dict, authority: dict,
+               policy: dict, *, ticker: str, market: str, leveraged: bool,
+               usage: dict) -> tuple[dict | None, dict | None]:
+    """The left-side scale-in setup for one holding, and why it was held back.
+
+    `left_side.scale_in_setup` owns the price rule; the gates here are the ones
+    that separate a sentiment sell-off from value destruction, and they are
+    read off state the packet already computed: the canonical thesis must be
+    `intact` (`left_side.requires_thesis`), the evidence graph must not read
+    negative, and peers must not flag the name as a persistent laggard. A
+    stale or unusable technical row is no evidence of weakness.
+    """
+    terms = (policy or {}).get("left_side") or {}
+    if not terms.get("enabled") or not technical.get("usable"):
+        return None, None
+    levels = left_side.ladder(row, policy)
+    if levels is None:
+        return None, None
+    gate = None
+    if leveraged and terms.get("leveraged", "exclude") == "exclude":
+        gate = "leveraged_excluded"
+    elif (terms.get("requires_thesis") == "intact"
+          and (thesis.get("state") or "unknown") != "intact"):
+        gate = "thesis_not_intact"
+    elif {"negative_information", "peer_laggard_avoidance"} & set(
+            authority.get("blockers") or []):
+        gate = "negative_information_or_laggard"
+    if gate:
+        return None, {"fired": True, "blocked": gate, "depth_atr": levels["depth_atr"]}
+    probe = left_side.scale_in_setup(
+        row, policy, ticker=ticker, market=market, leveraged=leveraged,
+        as_of=technical.get("as_of"))
+    if probe is None:
+        return None, None
+    setup = left_side.scale_in_setup(
+        row, policy, ticker=ticker, market=market, leveraged=leveraged,
+        used_tranches=int(usage.get(probe["campaign_id"]) or 0),
+        as_of=technical.get("as_of"))
+    return setup, {"fired": True, "depth_atr": levels["depth_atr"]}
+
+
 def _apply_setup_usage(technical: dict, usage: dict) -> dict:
     for setup in technical.get("setups") or []:
         used = int(usage.get(setup.get("campaign_id")) or 0)
@@ -394,7 +435,8 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
                     authority_tier: str = "none",
                     exploration_max_book_pct: float = 0.03,
                     overlay: dict | None = None,
-                    open_add: bool = False) -> dict:
+                    open_add: bool = False,
+                    policy: dict | None = None) -> dict:
     price = _number(holding.get("current_price"), 4)
     shares = int(_number(holding.get("shares"), 0) or 0)
     current_value = _number(holding.get("current_value"), 2)
@@ -418,12 +460,25 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         if row.get("tranche_pct_of_position")
     ]
     overlay = overlay or {}
+    # The widest distance to an invalidation among the setups on offer: the
+    # tranche's loss at its stop is bounded against the worst of them.
+    distances = [
+        price - _number(row.get("invalidation_price"), 4)
+        for row in technical.get("setups") or []
+        if price and _number(row.get("invalidation_price"), 4) is not None
+        and _number(row.get("invalidation_price"), 4) < price
+    ]
     plan = add_policy.tranche_plan(
         tier=authority_tier, price=price, lot=lot, shares=shares,
         current_value=current_value, capital=capital, cash=cash,
         setup_pcts=setup_pcts,
         sizing_multiplier=float(overlay.get("sizing_multiplier") or 1.0),
         exploration_max_book_pct=exploration_max_book_pct,
+        policy=policy,
+        setup_tiers=[row.get("authority_tier") or add_policy.TECHNICAL
+                     for row in technical.get("setups") or []] or [authority_tier],
+        stop_distance=max(distances) if distances else None,
+        leveraged=leveraged,
     )
     target_max_pct = plan["target_max_pct"]
     position_room_shares = plan["position_room_shares"]
@@ -462,7 +517,10 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         blockers.append("no_approved_setup")
     if not price:
         blockers.append("price_missing")
-    if max_tranche_shares <= 0:
+    book_sizing = plan.get("sizing_basis") == "book_risk"
+    if max_tranche_shares <= 0 and not (book_sizing and not technical.get("setups")):
+        # Under book/risk sizing a name with no setup has no invalidation to
+        # size against; `no_approved_setup` already says why nothing is sized.
         blockers.append(
             "tranche_below_market_unit"
             if position_room_shares > 0 and desired < (lot or 1)
@@ -482,6 +540,12 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "position_room_shares": position_room_shares,
         "max_add_value": round(max_tranche_shares * price, 2) if price else 0,
         "exploration_budget_value": plan["exploration_budget_value"],
+        # Book/risk sizing facts, only when they say something (packet budget).
+        **({key: plan[key] for key in (
+            "sizing_basis", "tranche_book_pct", "risk_cap_value", "unit_bridged",
+            "risk_unbounded", "cash_shortfall_value")
+            if plan.get(key) not in (None, False)}
+           if book_sizing and technical.get("setups") else {}),
         "position_room_value": (
             round(position_room_shares * price, 2) if price else 0
         ),
@@ -1187,6 +1251,13 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         if early_setup is not None:
             technical["setups"].append(early_setup)
             technical = _apply_setup_usage(technical, ticker_usage)
+        left_setup, left_gate = _left_side(
+            quant_rows.get(source_ticker) or {}, technical, thesis, alpha_authority,
+            add_policy, ticker=ticker, market=leg, leveraged=leveraged,
+            usage=ticker_usage)
+        if left_setup is not None:
+            technical["setups"].append(left_setup)
+            technical = _apply_setup_usage(technical, ticker_usage)
         raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
@@ -1201,6 +1272,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
+            policy=add_policy,
         )
         tickers[ticker] = {
             "ticker": ticker,
@@ -1224,6 +1296,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "peer_residual": peer_view,
                 "add_authority": alpha_authority,
                 "early_trend": early_candidate,
+                # Only when the weakness condition fired: which gate held it.
+                **({"left_side": left_gate} if left_gate else {}),
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})

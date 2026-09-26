@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "registered_at": "2026-08-13",
   "minimum_evidence_families": 2,
   "minimum_information_score": 0.08,
@@ -43,5 +43,32 @@
       "minimum_peer_count": 3
     }
   },
-  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one 2.5% tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence."
+  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence. Tranches are sized as a share of the market book with a per-tranche loss cap at the invalidation (sizing). The left-side family scales in below the prior 20-day high only above MA200, never on a leveraged product, and only while the thesis is intact.",
+  "left_side": {
+    "enabled": true,
+    "permission": "close_above_ma200",
+    "min_depth_atr": 2.0,
+    "ladder_atr": 1.0,
+    "max_tranches": 3,
+    "stop_atr_below_first": 3.0,
+    "valid_for_sessions": 1,
+    "evaluation_sessions": 20,
+    "leveraged": "exclude",
+    "requires_thesis": "intact",
+    "rationale": "kcn 2026-09-26 偏左侧。同一 run card：只在 MA200 上方、非杠杆时，每 campaign 均值与无条件基线相当（IS 3.99% vs 4.98%，OOS 2.18% vs 1.54%），但按投入资金计低于基线（IS 3.21% vs 4.85%，OOS 0.64% vs 1.70%）——越跌越买把资金集中在亏的那几次；杠杆两段都亏，排除（不是半尺寸）；不设 MA200 的深跌（#819 口径）OOS 回撤 -14.9%。证据只到「不输随机、但不如右侧」，所以这档是花小钱买证据：每档 0.25% book × 最多 3 档（间隔 1 ATR，首档在前 20 日高下 2 ATR），盘中跌破首档下 3 ATR 或收盘跌破 MA200 失效，thesis 必须 intact，负面信息/同业持续落后挡住，按 20 个交易日评价（右侧确认窗口是 5）。若只要提示不要尺寸，把 enabled 改 false。等 kcn 拍。"
+  },
+  "sizing": {
+    "basis": "book_risk",
+    "tranche_book_pct": {
+      "technical": 0.02,
+      "exploration_cold_start": 0.005,
+      "exploration": 0.01,
+      "validated": 0.03,
+      "left_scale_in": 0.0025
+    },
+    "max_tranche_risk_book_pct": 0.005,
+    "unit_bridge_max_book_pct": 0.05,
+    "cash_is_hard_cap": false,
+    "rationale": "2026-09-26 kcn「加仓太保守、资金可转入」。尺寸从「当前持仓的百分比」改为「该市场持仓市值(book)的百分比」，另有每档失效位亏损上限：小仓位不再永远加不动，风险按亏损而非名义额约束。数值出处 clawock evaluate-add-shapes --campaigns --source tencent（28 票，2023-07..2026-09，IS<2025-07-01≤OOS，run card add_campaigns-20260926-e87731b6）：technical 2%≈现行 10% 持仓（本簿 4–5 只、每只 20–25%）的量级，改成锚定 book；exploration 1%、冷启动 0.5%（仍是探索的一半，kcn 09-05）约为现行 2 倍；validated 3%×2 档；左侧 0.25%/档。按此尺寸回放：组合回撤 IS -11.3% / OOS -6.2%，单名最差 -1.4%，单个 campaign 最差 -1.3%（均为该市场 book 的百分比）。四分之一凯利/并发(7–10)给出每 campaign 1.6–5.4% book，validated 3% 在区间内。每档失效位亏损 ≤0.5% book（Turtle 1% 的一半）；一单位大于目标时，只要名义 ≤5% book 且失效位亏损仍 ≤0.5% book 就允许（SPCX 一股≈4.3%），无失效位则不桥接。杠杆单名按 guardrail 35% 集中度而不是 60%。现金只报缺口不封顶。等 kcn 拍。"
+  }
 }

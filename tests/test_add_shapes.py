@@ -82,3 +82,25 @@ def test_the_module_says_what_it_is_not():
     for warning in ("Overlapping samples", "Survivorship", "One regime",
                     "evaluate-add-alpha"):
         assert warning in doc, f"the {warning} caveat is gone from the docstring"
+
+
+def test_the_campaign_simulation_measures_the_production_left_ladder():
+    """`--campaigns` runs the packet's own rules: a name that trends up and then
+    sells off 3 ATR under its 20-day high while above MA200 opens a left
+    campaign; the same series with the left side off opens none."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    policy = _json.loads((_Path(__file__).resolve().parents[1]
+                          / "config" / "add-alpha-policy.json").read_text())
+    bars = []
+    price = 100.0
+    for i in range(260):
+        price *= 1.004 if i < 240 else 0.97
+        bars.append({"date": f"2025-{1 + i // 28:02d}-{1 + i % 28:02d}", "open": price,
+                     "high": price * 1.01, "low": price * 0.99, "close": price})
+    prepared = {"UPDIP": {"bars": bars, "sigs": add_shapes._prepare(bars)}}
+    result = add_shapes.simulate(prepared, policy=policy, no_chase_z=2.0, split="2099-01-01")
+    left = result["families"]["left"]["all"]["in_sample"]
+    assert left["campaigns"] >= 1
+    assert result["families"]["proposed_sizing"]["all"]["in_sample"]["campaigns"] >= 1

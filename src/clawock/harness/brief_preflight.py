@@ -207,7 +207,8 @@ def _opportunity_reads(open_decisions):
     holdings_of, through = add_side.read_through(signals_by_label, signal_symbol_of)
     radar = add_side.radar({k: v for k, v in signals_by_label.items() if k not in through},
                            holdings_of=holdings_of,
-                           confirmed_at_close=profile['close_confirmed'], **params)
+                           confirmed_at_close=profile['close_confirmed'], policy=policy,
+                           **params)
     reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
                                plan_context=open_decisions,
                                close_confirmed=profile['close_confirmed'],

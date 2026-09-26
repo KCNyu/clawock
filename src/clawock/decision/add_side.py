@@ -46,7 +46,7 @@ one here. News reaches the rows through the graph's own `positive` direction.
 """
 from __future__ import annotations
 
-from clawock.decision import add_policy
+from clawock.decision import add_policy, left_side
 
 VERDICTS = ("candidate", "wait", "reject")
 
@@ -103,7 +103,7 @@ def classify_level(close, prior_20d_high, zscore20, *, near_pct, no_chase_z):
 
 
 def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
-          confirmed_at_close=True):
+          confirmed_at_close=True, policy=None):
     """`{rows, levels}` for every label with a computable 20-day level.
 
     The one builder of the opportunity radar, used by both entries
@@ -137,10 +137,18 @@ def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
         # Keyed by the label alone, never by the holdings it stands for: a
         # proxy's 20-day high is in a different price scale entirely (#761).
         levels.setdefault(label, {
+            "holdings": list((holdings_of or {}).get(label) or [label]),
             "prior_20d_high": prior, "close": close,
             "pct_from_high": pct_from_high,
             # The pullback read's invalidation (contract §5).
             "prior_5d_low": sig.get("prior_5d_low")})
+        # Left-side ladder (`left_side.ladder`, the packet's own rule): the
+        # first rung and its invalidation, so both entries can name it.
+        left = left_side.ladder(sig, policy) if policy else None
+        if left:
+            levels[label].update({"left_rung": left["rungs"][0],
+                                  "left_invalidation": left["invalidation_price"],
+                                  "left_trend_floor": left["trend_floor"]})
         state = classify_level(close, prior, sig.get("zscore20"),
                                near_pct=near_pct, no_chase_z=no_chase_z)
         if state is None:
@@ -182,10 +190,11 @@ def read_through(labels, signal_symbol_of):
     return holdings_of, through
 
 
-def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
+def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
+                policy=None):
     """The brief entry's radar: `radar` over settled bars."""
     return radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z,
-                 holdings_of=holdings_of, confirmed_at_close=True)
+                 holdings_of=holdings_of, confirmed_at_close=True, policy=policy)
 
 
 def _radar_index(radar):
@@ -442,6 +451,20 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             # level can never read as an approach.
             needs = (_needs_level(level) if level
                      else "等一手催化或技术面进入突破区")
+            own = (levels or {}).get(ticker) or {}
+            if own.get("left_rung") is not None and ticker not in set(leveraged or ()):
+                # Left side (kcn 2026-09-26): weakness inside an unbroken
+                # trend. It stays `wait` — its measured edge is baseline-level,
+                # and whether it gets a size is the packet's call (thesis must
+                # be intact). The rung and its invalidation are the ask.
+                kind = "left_scale_in"
+                floor = own.get("left_trend_floor")
+                needs = (f"左侧分批:挂 ≤{own['left_rung']} 首档,盘中破 "
+                         f"{own['left_invalidation']}"
+                         + (f" 或收盘破 MA200 {floor}" if floor else "")
+                         + " 失效;尺寸以简报决策包为准")
+                extra = {**extra, "invalidation": own["left_invalidation"]}
+                evidence = {**evidence, "left_rung": own["left_rung"]}
             if level and evidence.get("prior_20d_high") is None:
                 # The number quoted in `needs` has to be pointable-at in the
                 # packet, not only inside a sentence (数字只能引用 context).
@@ -529,6 +552,19 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             "zscore20": radar_row.get("zscore20"),
             "pct_from_high": radar_row.get("pct_from_high"),
             "prior_20d_high": radar_row.get("prior_20d_high"),
+        })
+
+    for label, level in sorted((levels or {}).items()):
+        # Left-side weakness has no radar row (it is far under the high), so it
+        # gets its own pass — only for a label that reads its own chart, never
+        # for a proxy standing in for a leveraged product.
+        if (level.get("left_rung") is None or label in seen
+                or label not in (level.get("holdings") or [label])):
+            continue
+        add(label, ["left_weakness"], {
+            "close": level.get("close"),
+            "prior_20d_high": level.get("prior_20d_high"),
+            "pct_from_high": level.get("pct_from_high"),
         })
 
     order = {"candidate": 0, "reject": 1, "wait": 2}
