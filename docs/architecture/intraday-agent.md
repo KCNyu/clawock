@@ -119,13 +119,13 @@ empty.
 | 1 | title | which market, which slot | never | analyzer |
 | 2 | `P0：…` | did a strategy escalation newly fire | no new escalation (no separate top "conclusion" line) | harness |
 | 3 | `变化：…` | why this slot differs from the last delivered one | never; unchanged slots say `变化：无（与上次送达相比…）` | harness |
-| 4 | `⛔ 数据降级：…` | can I trust this card's data | all sources healthy | harness |
+| 4 | `⛔ 数据降级：…` | can I trust this card's data: unverified quotes once, with `（沿用上一笔，自 HH:MM 起）` while the same names carry over in the session (`carry_quote_gap`); holdings with incomplete strategy evidence only as a pointer; T+0 / information / search faults | all sources healthy | harness |
 | 5 | index strip + `📊` | market and book | never | analyzer |
 | 6 | holdings table | positions | never; **bytes never change** | analyzer |
-| 7 | `↑ …` | which rows to look at (new move/trigger, unverified quote) | no such row; only kinds present | harness |
+| 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
 | 8 | `⚠️ 信号` | signals new today; ones already sent fold into `今日已报、仍在：…` | no signals | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers | none | harness |
-| 10 | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs | `add_side_reads.rows` empty | harness |
+| 10 | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap | harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
 | 13 | `ℹ️ 校验提示` | advisory checker findings | none | harness |
@@ -222,6 +222,7 @@ as live.
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
 | revise-once gate | live (#1891) |
+| one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | this PR |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10

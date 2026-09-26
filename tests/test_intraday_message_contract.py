@@ -55,8 +55,48 @@ def test_full_card_discloses_unverified_quote_coverage():
         '🇺🇸 美股盯盘\n变化：本交易日首档\n\n| 代码 | 现价 |',
         {'unrefreshed': ['SPCH', 'SPCX']},
     )
-    assert block.splitlines()[2] == '⛔ 数据降级：行情未证实完整刷新：SPCH、SPCX（沿用上一笔）'
+    assert block.splitlines()[2] == '⛔ 数据降级：SPCH、SPCX 行情未证实（沿用上一笔）'
     assert '| 代码 |' in block
+
+
+def test_an_unverified_gap_says_since_when_instead_of_repeating():
+    """kcn 2026-09-25 preview: the same names in the same session carry the
+    first slot's time; a changed set or a new session starts over."""
+    prev = {'time': '22:33', 'semantic_state': {'session': 'us:2026-09-25'},
+            'quote_coverage': {'unrefreshed': ['RKLX', 'CRCL', 'SPCH']}}
+    now = {'unrefreshed': ['CRCL', 'RKLX', 'SPCH']}
+    carried = pre.carry_quote_gap(now, prev, session='us:2026-09-25', slot_time='23:03')
+    assert pre.coverage_warning(carried) == \
+        '⛔ 数据降级：CRCL、RKLX、SPCH 行情未证实（沿用上一笔，自 22:33 起）'
+    # Carried again: the start stays where it was.
+    later = pre.carry_quote_gap(now, {**prev, 'time': '23:03', 'quote_coverage': carried},
+                                session='us:2026-09-25', slot_time='23:33')
+    assert later['unrefreshed_since'] == '22:33'
+    for other in (pre.carry_quote_gap({'unrefreshed': ['CRCL']}, prev,
+                                      session='us:2026-09-25', slot_time='23:03'),
+                  pre.carry_quote_gap(now, prev, session='us:2026-09-26', slot_time='22:03')):
+        assert '自' not in pre.coverage_warning(other)
+    assert pre.carry_quote_gap({'unrefreshed': []}, prev, session='us:2026-09-25',
+                               slot_time='23:03') == {'unrefreshed': []}
+    # A holding's missing strategy evidence rides the same line as a pointer.
+    assert pre.coverage_warning(carried, {'SPCH': ['行情未证实刷新']}).endswith(
+        '（沿用上一笔，自 22:33 起） · SPCH 策略升级证据未取全')
+
+
+def test_strategy_evidence_gaps_land_on_their_add_side_row():
+    gaps = pre.evidence_gaps(
+        ['SPCH: quote not freshly verified', 'SPCX: daily move unavailable'],
+        [{'holding': 'SPCH', 'ticker': 'SPCH'}, {'holding': 'SPCH', 'ticker': 'SPCX'}])
+    assert gaps == {'SPCH': ['行情未证实刷新', 'SPCX 今日涨跌缺失']}
+    reads = {'rows': [{'ticker': 'RKLX', 'verdict': 'wait', 'why': '窗口内无一手公告'}]}
+    lines = pre.append_add_side_section('x', reads, gaps).splitlines()
+    assert lines[-1] == ('  · SPCH 观望：策略升级证据未取全（行情未证实刷新；SPCX 今日涨跌缺失）'
+                         '→ 本档不给尺寸')
+    # A holding with its own row keeps its verdict; the gap goes under it.
+    on_row = pre.append_add_side_section(
+        'x', reads, {'RKLX': ['行情未证实刷新']}).splitlines()
+    assert on_row[-2].startswith('  · RKLX 等待：')
+    assert on_row[-1] == '    ↳ 策略升级证据未取全（行情未证实刷新）'
 
 
 def test_generic_headline_feed_is_not_repeated_in_intraday_card():
@@ -117,12 +157,14 @@ def test_card_layout_contract():
              at('📊'), start, at('↑ '), at('⚠️ 信号'), at('📉'), at('▎我的看法')]
     assert order == sorted(order) and lines[0].startswith('🇭🇰 港股盯盘')
     # 3. One pointer, after a blank line, naming only the kinds present.
+    # An unverified row is named once, in ⛔ — not again next to the table.
     pointers = [line for line in lines if line.startswith('↑ ')]
-    assert pointers == ['↑ 新异动/触发 07226　行情未证实 03032']
+    assert pointers == ['↑ 新异动/触发 07226']
     assert lines[at('↑ ') - 1] == ''
-    only_new = _card(stale=()).splitlines()
-    assert [line for line in only_new if line.startswith('↑ ')] == ['↑ 新异动/触发 07226']
+    assert [line for line in lines if '03032' in line and not line.startswith('|')] == [
+        '⛔ 数据降级：03032 行情未证实（沿用上一笔）']
     assert not any(line.startswith('↑ ') for line in _card(fresh=(), stale=()).splitlines())
+    assert not any(line.startswith('↑ ') for line in _card(fresh=()).splitlines())
     # 4. ⛔ is only data health; ⚠️ only heads the analyzer's signal block.
     assert all(line.startswith('⛔') for line in lines if '数据降级' in line)
     assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
