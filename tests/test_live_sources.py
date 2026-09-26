@@ -5,6 +5,7 @@ normalisation, budgets, cache. No network: every answer is a stub.
 import json
 import threading
 from datetime import datetime
+from urllib.parse import urlparse
 
 from clawock.evidence import live_sources as live
 from clawock.market_data import filings
@@ -25,6 +26,10 @@ GOOGLE = """<rss><channel>
 </channel></rss>"""
 
 
+def _host(url):
+    return urlparse(url).hostname
+
+
 def _targets(ticker):
     if ticker in ('03032', '07226'):
         return {'kind': 'index_fund', 'issuer': None, 'theme_terms': ['恒生科技', '恒科']}
@@ -36,9 +41,9 @@ def _targets(ticker):
 def _http(asked):
     def http(url, *, headers=None, timeout):
         asked.append(url)
-        if 'hkexnews' in url:
+        if _host(url) == 'www1.hkexnews.hk':
             return json.dumps(HKEX)
-        if 'news.google.com' in url:
+        if _host(url) == 'news.google.com':
             return GOOGLE
         raise AssertionError(url)
     return http
@@ -51,7 +56,7 @@ def test_one_http_seam_serves_every_adapter_and_items_come_out_normalised():
                        sources=('hkexnews', 'google_news'))
     # One filing request for the book, one Google query per issuer and one per
     # index theme — three HSTECH funds do not ask three times.
-    assert len(asked) == 3 and sum('hkexnews' in u for u in asked) == 1
+    assert len(asked) == 3 and sum(_host(u) == 'www1.hkexnews.hk' for u in asked) == 1
     rows = out['tickers']['02208']
     # Daily returns are routine noise (triage rules are simplified; HKEX is not).
     assert [r['title'] for r in rows] == [
@@ -102,7 +107,7 @@ def test_an_edgar_filing_with_no_minute_is_neither_fresh_nor_old(monkeypatch):
 
 def test_a_source_that_did_not_answer_is_named_and_the_rest_still_land():
     def http(url, *, headers=None, timeout):
-        if 'hkexnews' in url:
+        if _host(url) == 'www1.hkexnews.hk':
             raise TimeoutError('read timed out')
         return GOOGLE
     out = live.collect('hk', ['02208', '00100'], targets=_targets,
@@ -119,7 +124,7 @@ def test_nothing_waits_past_the_budget():
     release = threading.Event()
 
     def http(url, *, headers=None, timeout):
-        if 'hkexnews' in url:
+        if _host(url) == 'www1.hkexnews.hk':
             release.wait(5)
         return GOOGLE
     try:
@@ -145,7 +150,7 @@ def test_a_rerun_inside_the_ttl_reuses_and_keeps_what_the_session_saw(tmp_path):
         asked.append(url)
         return json.dumps({'maxNumOfFile': 1, 'newsInfoLst': [
             {'relTime': '28/09/2026 12:00', 'title': 'x', 'lTxt': 'x', 'stock': [{'sc': '00001'}]}]}) \
-            if 'hkexnews' in url else '<rss><channel></channel></rss>'
+            if _host(url) == 'www1.hkexnews.hk' else '<rss><channel></channel></rss>'
     later = live.collect('hk', ['02208'], now=NOW.replace(hour=12, minute=3), http=quiet,
                          **kwargs)
     assert len(asked) == 4  # the next slot asks again
