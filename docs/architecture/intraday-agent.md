@@ -222,7 +222,7 @@ as live.
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
 | revise-once gate | live (#1891) |
-| one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | this PR |
+| one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10
