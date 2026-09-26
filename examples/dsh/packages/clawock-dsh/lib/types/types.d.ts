@@ -283,6 +283,79 @@ export interface DispatchTask {
     /** A live task's latest run-log event, timestamp stripped; '' once ended. */
     lastEvent: string;
     lastEventAtMs: number | null;
+    /** When the runner first waited for its agent lock (result.env QUEUED_AT); the queue's order. */
+    queuedAtMs?: number | null;
+    /** 1-based place in its agent's queue (task_queue_ops.py order); null when not waiting for the lock. */
+    position?: number | null;
+    /** override.env PRIORITY (0 when unset). */
+    priority?: number;
+    /** Waited past the fair wait: nothing can be placed ahead of it any more. */
+    protected?: boolean;
+    /** Started by a runner older than RUNNER_API 2: no QUEUED_AT, priority or model override; the
+     *  ops entry places it by its run.log instead, first in its queue, not reorderable. */
+    legacy?: boolean;
+    /** What the next attempt will use: override.env MODEL, else meta.env MODEL. */
+    modelRequested?: string;
+    /** What the latest attempt ran on (result.env MODEL_USED); '' before the first attempt. */
+    modelUsed?: string;
+    /** override.env EFFORT, else meta.env EFFORT ('' = the agent's own default / no variant). */
+    effortRequested?: string;
+    /** The latest attempt's effort (result.env EFFORT_USED). */
+    effortUsed?: string;
+    /** meta.env NOTIFY, split: the channels this task tells when it ends ('none' → []). */
+    notify?: string[];
+    /** The legs of the latest notification that were delivered / failed (result.env NOTIFIED / NOTIFY_FAILED). */
+    notified?: string[];
+    notifyFailed?: string[];
+    notifyAtMs?: number | null;
+    /** result.env RUNNER_API: 2 honours the queue order and override.env; 1 (older runner) does not. */
+    runnerApi?: number;
+    /** The session id ('' before one exists): what `--resume` continues after a cancel. */
+    session?: string;
+    /** A cancel was requested less than a minute ago and the unit has not stopped yet. */
+    cancelling?: boolean;
+}
+/** One agent's lock and queue, from task_queue_ops.py `list`. */
+export interface AgentQueue {
+    agent: string;
+    /** The lock is held (by `holder`, or by an older runner that does not say who: holder ''). */
+    held: boolean;
+    holder: string;
+    /** The holder runs an older runner (no queue fields), or could not be named at all. */
+    holderLegacy?: boolean;
+    /** The ops entry's explanation for the holder ('' when plain). */
+    holderNote?: string;
+    /** Waiting task ids in the order they will take the lock. */
+    order: string[];
+    /** A quota wait of this agent (the account is out) until this time, hit by `quotaBy`. */
+    quotaUntilMs: number | null;
+    quotaBy: string;
+}
+/** The versioned ops entry the chip's actions go through. */
+export interface OpsStatus {
+    /** The entry answered `list`. */
+    available: boolean;
+    /** Its ops_version (hash of the installed file), '' when unavailable. */
+    version: string;
+    /** The same hash of the repository's copy in the workspace ('' when not found). */
+    repoVersion: string;
+    api: number;
+    /** run-agent.sh's RUNNER_API (2 = queue + override aware). */
+    runnerApi: number;
+    fairWaitSec: number;
+    /** Why it is unavailable. */
+    error: string;
+}
+/** One write through the ops entry (queueAction). In-band: never throws. */
+export interface QueueActionResult {
+    ok: boolean;
+    /** The entry's exit code: 0 ok, 2 bad input, 3 refused, 4 unknown task, 5 host failure, 6 busy; -1 not run. */
+    code: number;
+    action: string;
+    id: string;
+    message: string;
+    /** The entry's full JSON answer (choices, log lines, cancel details), '' when none. */
+    detail: string;
 }
 /** One finished patrol round, from rounds.tsv. */
 export interface PatrolRound {
@@ -334,9 +407,12 @@ export interface TaskQueueResult {
     slotLimits?: AgentSlotLimit[];
     /** Live tasks that report holding a run slot. */
     running: number;
-    /** Live tasks, oldest first. */
+    /** Live tasks, by QUEUED_AT (when they first waited), oldest first. */
     active: DispatchTask[];
     /** Most recently ended non-patrol tasks, newest first. */
     recent: DispatchTask[];
     patrol: PatrolStatus;
+    /** Per agent: lock holder, queue order, quota wait (optional on the wire, see DispatchTask). */
+    queues?: AgentQueue[];
+    ops?: OpsStatus;
 }

@@ -1,8 +1,9 @@
 import { createBalanceService, createClaudeService, createCodexService, createMinimaxService } from "./balance.js";
 import { getRun, listRuns } from "./scan.js";
-import { createTaskQueueService } from "./taskqueue.js";
+import { createQueueActionRunner, createTaskQueueService } from "./taskqueue.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
+import { join } from "node:path";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
 //#region src/index.ts
 /**
@@ -112,6 +113,7 @@ let ClawockStudioGateway = (() => {
 	let _traces_decorators;
 	let _balance_decorators;
 	let _taskQueue_decorators;
+	let _queueAction_decorators;
 	return class ClawockStudioGateway extends _classSuper {
 		static {
 			const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -123,6 +125,7 @@ let ClawockStudioGateway = (() => {
 			_traces_decorators = [Remote];
 			_balance_decorators = [Remote];
 			_taskQueue_decorators = [Remote];
+			_queueAction_decorators = [Remote];
 			__esDecorate(this, null, _list_decorators, {
 				kind: "method",
 				name: "list",
@@ -211,6 +214,17 @@ let ClawockStudioGateway = (() => {
 				},
 				metadata: _metadata
 			}, null, _instanceExtraInitializers);
+			__esDecorate(this, null, _queueAction_decorators, {
+				kind: "method",
+				name: "queueAction",
+				static: false,
+				private: false,
+				access: {
+					has: (obj) => "queueAction" in obj,
+					get: (obj) => obj.queueAction
+				},
+				metadata: _metadata
+			}, null, _instanceExtraInitializers);
 			if (_metadata) Object.defineProperty(this, Symbol.metadata, {
 				enumerable: true,
 				configurable: true,
@@ -240,6 +254,8 @@ let ClawockStudioGateway = (() => {
 		balanceServices = null;
 		/** The task chip's reader, lazily built and instance-scoped like the balance services. */
 		taskQueueService = null;
+		/** The task chip's write door (the ops entry), built with the reader. */
+		queueActionRunner = null;
 		/**
 		* The row config, owned by the instance. cordis constructs a class plugin as
 		* `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -327,14 +343,42 @@ let ClawockStudioGateway = (() => {
 		* @param force - bypass the short host cache (the manual refresh button).
 		*/
 		async taskQueue(force) {
-			if (this.taskQueueService === null) this.taskQueueService = createTaskQueueService({
-				logDir: this.config.dispatchLogDir,
-				limitsPath: this.config.dispatchLimitsPath,
-				patrolDir: this.config.patrolStateDir,
-				refreshMs: this.config.taskQueueRefreshMs,
-				recent: this.config.taskQueueRecent
-			});
-			return this.taskQueueService.get(force);
+			return this.queueServices().reader.get(force);
+		}
+		/**
+		* One write from the task chip — cancel, priority, model, retry, wrapup —
+		* or a read the chip needs on demand (choices, log). Runs the versioned
+		* ops entry with `--source ui` (it validates, serialises per task, audits
+		* in the task directory); a double click shares one run. In-band like
+		* taskQueue(): never throws, a refusal is `{ ok: false, code, message }`.
+		* @param action - one of cancel | priority | model | choices | retry | wrapup | log.
+		* @param id - the task id; anything that is not one is refused before any process runs.
+		* @param arg - priority: top | up | down | reset | n; model: "<model>|<effort>" ('keep'/'default'); else ''.
+		*/
+		async queueAction(action, id, arg) {
+			return this.queueServices().act(action, id, arg);
+		}
+		queueServices() {
+			if (this.taskQueueService === null || this.queueActionRunner === null) {
+				const config = {
+					logDir: this.config.dispatchLogDir,
+					limitsPath: this.config.dispatchLimitsPath,
+					patrolDir: this.config.patrolStateDir,
+					refreshMs: this.config.taskQueueRefreshMs,
+					recent: this.config.taskQueueRecent,
+					opsPath: this.config.taskQueueOpsPath,
+					repoOpsPath: join(workspaceOf(), "ops", "host", "task_queue_ops.py")
+				};
+				const reader = createTaskQueueService(config);
+				this.taskQueueService = reader;
+				this.queueActionRunner = createQueueActionRunner(config, void 0, () => {
+					reader.invalidate();
+				});
+			}
+			return {
+				reader: this.taskQueueService,
+				act: this.queueActionRunner
+			};
 		}
 	};
 })();

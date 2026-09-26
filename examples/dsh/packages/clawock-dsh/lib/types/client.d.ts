@@ -25,7 +25,7 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
+import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
 /** Dictionary namespace declared by every registration in this bundle. */
 export declare const LOCALE_NS = "clawock";
 /**
@@ -287,6 +287,11 @@ export interface TaskQueueInjected {
     cachedTaskQueue: () => TaskQueueResult | null;
     /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
     fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>;
+    /**
+     * One write (or on-demand read) through the host's versioned ops entry.
+     * Optional: without it the panel is read-only.
+     */
+    runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>;
 }
 export type TaskQueueSidebarActionProps = TaskQueueInjected & {
     /** Sidebar column state: false is the 56px rail (glyph only). */
@@ -321,16 +326,23 @@ export declare function _slotLanes(result: TaskQueueResult): {
     lanes: SlotLane[];
     legacy: number;
 };
-/** One live task's status phrase: what it holds or what it waits for. */
+/**
+ * One live task's status phrase and its tone. One colour, one meaning:
+ * 'ok' (the host's business blue) = holding its agent's lock and running,
+ * 'stale' (the host's warn) = waiting for something (the lock, a slot,
+ * memory, a quota reset, a retry), 'none' = neither yet (starting).
+ */
 export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number): {
     tone: BalanceTone;
     text: string;
 };
 /**
- * The chip's headline: dot tone, how many tasks run, and the one-line "who
- * waits" sub-reading. No n/max: slots are per agent, so a free slot of one
- * agent is no room for another's task — the per-agent lanes are in the title
- * and at the top of the panel.
+ * The chip's headline, the host badge's two parts: the label, and a count
+ * (running · queued) at the trailing edge. No n/max: slots are per agent, so a
+ * free slot of one agent is no room for another's task — the per-agent lanes
+ * are in the title and on each group of the panel. The glyph badge carries
+ * the one tone that matters most: red when the read failed, amber when a task
+ * waits, blue when something runs.
  */
 export declare function _queueHeadline(result: TaskQueueResult, t: Translate, now?: number): {
     tone: BalanceTone;
@@ -339,12 +351,27 @@ export declare function _queueHeadline(result: TaskQueueResult, t: Translate, no
     busy: boolean;
     title: string;
 };
+export declare const _agentLabel: (agent: string) => string;
+/**
+ * The model layer, read off the model id itself (never a hand-kept model
+ * list): `claude-opus-5-5` → Opus 5.5 · `claude-haiku-4-5-20251001` → Haiku
+ * 4.5 · `gpt-6-sol` → GPT-6 Sol · `opencode/nemotron-3-ultra-free` →
+ * Nemotron 3 Ultra. The mark is two letters of the family, drawn as a filled
+ * tile: a letterform stand-in, since no brand artwork may ship offline.
+ */
+export declare function _modelView(id: string): {
+    label: string;
+    mark: string;
+    family: string;
+};
+/** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
+export declare function _describeAction(result: QueueActionResult, t: Translate): string;
 /**
  * The sidebar-foot task-queue row, directly above the balance row: live
- * dispatch tasks and what each waits for, recent endings, and whether patrol
- * is running, giving way or between rounds. Same foot geometry, tones, glyph
- * badge, popover and refresh button as the balance; renders nothing on a
- * host without the dispatcher (or before its first answer).
+ * dispatch tasks grouped by executor, what each waits for and in which place,
+ * recent endings, patrol, and the actions each task allows. Same foot
+ * geometry as the host's own badge; renders nothing on a host without the
+ * dispatcher (or before its first answer).
  */
 export declare function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;

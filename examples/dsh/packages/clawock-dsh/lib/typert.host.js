@@ -37,6 +37,17 @@ const clawock_dsh_clawockStudio_balance_result$schema = z.object({
 })),
   'refreshMs': z.number(),
 })
+const clawock_dsh_clawockStudio_queueAction_parameter_0$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_parameter_1$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_parameter_2$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_result$schema = z.object({
+  'ok': z.boolean(),
+  'code': z.number(),
+  'action': z.string(),
+  'id': z.string(),
+  'message': z.string(),
+  'detail': z.string(),
+})
 const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
 const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'id': z.string(),
@@ -56,6 +67,22 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'summary': z.string(),
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
+  'queuedAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'position': z.union([z.number(), z.literal(null)]).optional(),
+  'priority': z.number().optional(),
+  'protected': z.boolean().optional(),
+  'legacy': z.boolean().optional(),
+  'modelRequested': z.string().optional(),
+  'modelUsed': z.string().optional(),
+  'effortRequested': z.string().optional(),
+  'effortUsed': z.string().optional(),
+  'notify': z.array(z.string()).optional(),
+  'notified': z.array(z.string()).optional(),
+  'notifyFailed': z.array(z.string()).optional(),
+  'notifyAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'runnerApi': z.number().optional(),
+  'session': z.string().optional(),
+  'cancelling': z.boolean().optional(),
 })
 const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'available': z.boolean(),
@@ -85,6 +112,25 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'seconds': z.union([z.number(), z.literal(null)]),
 })),
 }),
+  'queues': z.array(z.object({
+  'agent': z.string(),
+  'held': z.boolean(),
+  'holder': z.string(),
+  'holderLegacy': z.boolean().optional(),
+  'holderNote': z.string().optional(),
+  'order': z.array(z.string()),
+  'quotaUntilMs': z.union([z.number(), z.literal(null)]),
+  'quotaBy': z.string(),
+})).optional(),
+  'ops': z.object({
+  'available': z.boolean(),
+  'version': z.string(),
+  'repoVersion': z.string(),
+  'api': z.number(),
+  'runnerApi': z.number(),
+  'fairWaitSec': z.number(),
+  'error': z.string(),
+}).optional(),
 })
 const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()
 const clawock_dsh_clawockStudio_get_result$schema = z.object({
@@ -254,6 +300,51 @@ export const TYPERT = {
         create: () => clawock_dsh_clawockStudio_taskQueue_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":254,"column":3},
+    },
+    {
+      id: 'clawock-dsh#clawockStudio/queueAction',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'queueAction',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'action',
+          wire: 'action',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/queueAction:action',
+            create: () => clawock_dsh_clawockStudio_queueAction_parameter_0$schema,
+          },
+        },
+        {
+          name: 'id',
+          wire: 'id',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/queueAction:id',
+            create: () => clawock_dsh_clawockStudio_queueAction_parameter_1$schema,
+          },
+        },
+        {
+          name: 'arg',
+          wire: 'arg',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/queueAction:arg',
+            create: () => clawock_dsh_clawockStudio_queueAction_parameter_2$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#QueueActionResult',
+        create: () => clawock_dsh_clawockStudio_queueAction_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":281,"column":3},
     },
     {
       id: 'clawock-dsh#clawockStudio/get',

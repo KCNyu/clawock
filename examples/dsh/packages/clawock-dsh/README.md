@@ -165,39 +165,38 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 ### 余额上方的派发任务队列
 
 装了 agent-dispatch 的主机上(`~/logs/agent-dispatch` 存在),余额那一行**正上方**
-多一行「任务」:头条是在跑的任务数 `在跑 n` + 排队数、等内存数、等额度数、等重试数和
-巡检状态(运行中 / 让路中 / 某时开下一轮 / 已停)。运行槽**按 agent 分**(2026-09-25 起;
-`~/tools/agent-dispatch/limits.env` 的 `MAX_RUNNING_<AGENT>`,不写死),一个 agent 空着的槽
-不能给别的 agent 用,所以头条不写 `n/总数`(`MAX_RUNNING` 只是三者之和);每个 agent 的
-占用在悬停提示和面板第一段里。点开是同款毛玻璃面板,手动 ↻ 强制重读,
-按提问顺序分四段(段名左、计数右):
+多一行「任务」,画法照宿主自己的底部徽章(ui-cordis):字形 + 名字,行尾一个 12px 计数
+`在跑 n · 排队 n · 等额度 n · 等重试 n`。字形角标一色一义:蓝(宿主 `business`)= 有任务在跑,
+琥珀 = 有任务在等,红 = 读取失败;巡检状态、每个 agent 的槽位与 ops 版本在悬停提示里。
+运行槽**按 agent 分**(`limits.env` 的 `MAX_RUNNING_<AGENT>`),所以不写 `n/总数`。
 
-- 运行槽 · 按 agent:先是一条 `claude 1/1 · codex 0/1 · opencode 1/1`(满了且有同 agent
-  任务在排队的那一格变黄,一眼看出卡在谁身上),再是占着槽的任务
-  (`agent-dispatch-<id>.service` active 且有 SLOT)。`SLOT` 是 `<agent>-<n>`;
-  09-25 前启动的 runner 仍写裸数字 `1`/`2`,那是旧的全体共享槽,单独算作「过渡期共享槽」,
-  不记到任何 agent 头上(过渡结束的判据见 `ops/host/README.md`);
-- 排队 / 等待:没拿到槽的活任务和它在等什么(等 claude 锁 / 等 claude 运行槽 /
-  等内存(只有巡检准入会等)/ 等额度·某时续跑);
-- 最近结束的 5 个非巡检任务:状态 / 模型自报 STATUS 与结束于多久前;
-- 巡检:`clawock-patrol` 的状态、在跑的轮次、它 journal 里最后一句话,和
-  `rounds.tsv` 最近三轮(轮次 · 方向 · 结果 · 耗时 对齐成一张表;
-  `preempted:cancelled` 是给人工任务让路,不是故障)。
+点开是宿主菜单材质的面板(`--dsw-specific-menu` + `--dsw-menu-backdrop-filter`,
+`--dsw-elevation-prominent`,12px 圆角,44px 头),**按执行器分组**——每个 agent 一把锁,
+所以每组就是一条独立的队列,顺序只在组内:
 
-任务行固定三列:点 · 名字 · 状态,下一行 agent·模型 在名字下、已跑时长·第几次
-(或结束于多久前)右对齐在状态下;runner 判过静默卡死(`result.env` 的 `STALLS=`)时
-后面再跟 `卡死 n`,说明第几次里有几次是被自动中止重试的。名字过长截断,行尾一个 › 表示可点开。
+- 组头:执行器字形(Claude Code / Codex / OpenCode)+ `槽 1/1`(满了且组内有人排队变琥珀);
+  锁被组外或旧 runner 的任务占着、或该 agent 额度用尽(「额度用尽,23:20 恢复(x 触发)」)时各一行说明;
+- 行:持锁的在前,其后按 `task_queue_ops.py` 的真实拿锁顺序(`等 claude 锁 · 第 2 位`)。
+  第二行是模型层——两字母字块 + 短名 `Opus 5.5 · high`(排队的显示将要用的,在跑的显示实际
+  `MODEL_USED`,不一致时标 fallback),右侧尝试次数/时长/卡死次数和通知回执图标
+  (微信 / Telegram:待发灰、已送达深灰、失败红加斜杠,来自 `result.env` 的 `NOTIFIED` /
+  `NOTIFY_FAILED`)。旧 runner 启动的任务标「旧 runner」,不能调序或换模型;
+- 最近结束(只用文字,不打点)、巡检、面板底部的 ops 入口版本(与仓库那份不一致时变红并给装机命令)。
 
-点一行在同一个面板里推入该任务的详情层(‹ 返回队列;Esc 先退回列表、再关面板;
-点面板外直接全关):全名、状态、Agent、模型、开始时刻、已运行 / 用时、结束时刻、
-尝试次数、判卡死次数(有才显示)、任务 ID;进行中的任务另有 run.log 最近一条事件(如 `got run slot 1`、
-`attempt 2/3 (append)`),已结束的任务附模型收尾报告的末几行(run.log 的
-`final |` 行,去掉空行和 STATUS 行)。面板从芯片往上开,高度封顶到视口顶部,
-段名下的列表在面板内滚动;手机(≤520px)上面板与余额面板同宽(300px)、行距收紧。
+可调序的排队行右侧有「↑」;点行推入详情层(‹ 返回;Esc 先退回列表):四层信息
+(执行器、模型、槽位/排队位置/优先级、通知)、会话 id、任务 ID,以及此刻允许的操作——
+置顶 / 上移 / 下移、换模型(模型与 effort 选项来自 ops 入口 `choices`,即各 agent 自己的来源;
+下一次尝试生效)、体面收尾(排队一条收尾指令)、取消(原地二次确认,先说清代价:排队中无损失;
+在跑的丢本轮进度,并给出 `--resume` 会话)、重试(已结束且有会话)、日志尾部。
+
+所有写操作都走 host 的 `queueAction(action, id, arg)` → 版本化入口 `task_queue_ops.py`
+(`--source ui`,逐任务串行、写审计行);插件自己不跑 `systemctl` / `flock`、不改任务目录。
+宿主侧对同一操作的连点合并为一次(2s 内重复直接返回上一次结果)。新 host 半边没装时
+(只换了 client)面板只读。契约见 `docs/architecture/task-queue.md`。
 
 全是本机文件加 `systemctl`/`journalctl`,不走网络;宿主侧 5s 缓存、客户端
 15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
-`dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent`。
+`dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent` / `taskQueueOpsPath`。
 宿主把侧栏底部动作排成一行(`.footerActions` 横向 flex),而且 list slot 的每一项
 都包在一个 `display:contents` 的 `[data-slot]` 容器里——本行是那格的**孙子**。
 样式表用 `:has(> [data-slot] > .tqf)` 越过这层容器把那一格改成竖排,任务行才

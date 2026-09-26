@@ -91,6 +91,7 @@ await patchTypertAlignment()
 await patchTypertSide()
 await patchTypertBalance()
 await patchTypertTaskQueue()
+await patchTypertQueueAction()
 await patchTypertVerdictKind()
 await patchTypertCodecFactories()
 await run(['--config', 'tsdown.client.config.mjs'])
@@ -239,6 +240,22 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'summary': z.string(),
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
+  'queuedAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'position': z.union([z.number(), z.literal(null)]).optional(),
+  'priority': z.number().optional(),
+  'protected': z.boolean().optional(),
+  'legacy': z.boolean().optional(),
+  'modelRequested': z.string().optional(),
+  'modelUsed': z.string().optional(),
+  'effortRequested': z.string().optional(),
+  'effortUsed': z.string().optional(),
+  'notify': z.array(z.string()).optional(),
+  'notified': z.array(z.string()).optional(),
+  'notifyFailed': z.array(z.string()).optional(),
+  'notifyAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'runnerApi': z.number().optional(),
+  'session': z.string().optional(),
+  'cancelling': z.boolean().optional(),
 })
 const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'available': z.boolean(),
@@ -268,6 +285,25 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'seconds': z.union([z.number(), z.literal(null)]),
 })),
 }),
+  'queues': z.array(z.object({
+  'agent': z.string(),
+  'held': z.boolean(),
+  'holder': z.string(),
+  'holderLegacy': z.boolean().optional(),
+  'holderNote': z.string().optional(),
+  'order': z.array(z.string()),
+  'quotaUntilMs': z.union([z.number(), z.literal(null)]),
+  'quotaBy': z.string(),
+})).optional(),
+  'ops': z.object({
+  'available': z.boolean(),
+  'version': z.string(),
+  'repoVersion': z.string(),
+  'api': z.number(),
+  'runnerApi': z.number(),
+  'fairWaitSec': z.number(),
+  'error': z.string(),
+}).optional(),
 })
 `
   const invocation = `    {
@@ -318,6 +354,73 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
     source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +clawockStudio.taskQueue`)
+  }
+}
+
+
+/**
+ * The task chip's write door, hand-carried like taskQueue above. Three string
+ * parameters; the answer is flat (the ops entry's full JSON rides in `detail`),
+ * so later ops fields reach the client without another schema change.
+ */
+async function patchTypertQueueAction() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const invocationMarker = `id: 'clawock-dsh#clawockStudio/queueAction',`
+  // Before the taskQueue block, not after it: patchTypertTaskQueue rewrites everything from its
+  // own head to the get anchor, and would drop these schemas while the invocation stayed.
+  const schemaAnchor = 'const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()'
+  const invocationAnchor = `    {
+      id: 'clawock-dsh#clawockStudio/get',`
+  const schemas = `const clawock_dsh_clawockStudio_queueAction_parameter_0$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_parameter_1$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_parameter_2$schema = z.string()
+const clawock_dsh_clawockStudio_queueAction_result$schema = z.object({
+  'ok': z.boolean(),
+  'code': z.number(),
+  'action': z.string(),
+  'id': z.string(),
+  'message': z.string(),
+  'detail': z.string(),
+})
+`
+  const param = (i, name) => `        {
+          name: '${name}',
+          wire: '${name}',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/queueAction:${name}',
+            schema: clawock_dsh_clawockStudio_queueAction_parameter_${i}$schema,
+          },
+        },
+`
+  const invocation = `    {
+      id: 'clawock-dsh#clawockStudio/queueAction',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'queueAction',
+      invocation: { kind: 'direct' },
+      parameters: [
+${param(0, 'action')}${param(1, 'id')}${param(2, 'arg')}      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#QueueActionResult',
+        schema: clawock_dsh_clawockStudio_queueAction_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":281,"column":3},
+    },
+`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(invocationMarker)) continue
+    if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
+      throw new Error(`patchTypertQueueAction: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(schemaAnchor, `${schemas}${schemaAnchor}`)
+    source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +clawockStudio.queueAction`)
   }
 }
 

@@ -10,7 +10,7 @@
  */
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
 import type { Context } from '@deepseek-ai/cordis';
-import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TaskQueueResult, TracesResult } from './types.ts';
+import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, QueueActionResult, RunDetailResult, TaskQueueResult, TracesResult } from './types.ts';
 /**
  * Row-level config the profile patch may set (see cordis.patch.yml).
  */
@@ -61,6 +61,13 @@ export interface ClawockStudioConfig {
     taskQueueRefreshMs?: number;
     /** How many recently ended tasks the chip lists (default 5). */
     taskQueueRecent?: number;
+    /**
+     * The versioned queue ops entry every chip write goes through (default
+     * ~/tools/agent-dispatch/task_queue_ops.py, installed by
+     * ops/host/install_task_queue_ops.sh). Its hash is compared with the
+     * workspace's ops/host/task_queue_ops.py so skew shows on the chip.
+     */
+    taskQueueOpsPath?: string;
 }
 export declare class ClawockStudioGateway extends TypertRemoteService {
     static inject: readonly ['credentials'];
@@ -85,6 +92,8 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
     private balanceServices;
     /** The task chip's reader, lazily built and instance-scoped like the balance services. */
     private taskQueueService;
+    /** The task chip's write door (the ops entry), built with the reader. */
+    private queueActionRunner;
     /**
      * The row config, owned by the instance. cordis constructs a class plugin as
      * `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -132,6 +141,18 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * @param force - bypass the short host cache (the manual refresh button).
      */
     taskQueue(force: boolean): Promise<TaskQueueResult>;
+    /**
+     * One write from the task chip — cancel, priority, model, retry, wrapup —
+     * or a read the chip needs on demand (choices, log). Runs the versioned
+     * ops entry with `--source ui` (it validates, serialises per task, audits
+     * in the task directory); a double click shares one run. In-band like
+     * taskQueue(): never throws, a refusal is `{ ok: false, code, message }`.
+     * @param action - one of cancel | priority | model | choices | retry | wrapup | log.
+     * @param id - the task id; anything that is not one is refused before any process runs.
+     * @param arg - priority: top | up | down | reset | n; model: "<model>|<effort>" ('keep'/'default'); else ''.
+     */
+    queueAction(action: string, id: string, arg: string): Promise<QueueActionResult>;
+    private queueServices;
 }
 /**
  * Services the profile mixes into this plugin's context (the function-
