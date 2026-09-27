@@ -284,8 +284,8 @@ type SlotLane = {
     tone: BalanceTone;
 };
 /**
- * Each agent's run slots — limits.env order, then any agent seen holding one
- * that limits.env does not name. A full lane with a task of that agent queued
+ * Each agent's run slots, in the panel's order (providers.ts), limits.env's
+ * agents and any agent seen holding one that limits.env does not name. A full lane with a task of that agent queued
  * is amber: that is the queue's reason at a glance. A host older than
  * slotLimits sends none: the lanes then come from the held slots alone,
  * without a maximum.
@@ -321,14 +321,14 @@ export declare function _queueHeadline(result: TaskQueueResult, t: Translate, no
 export declare const _agentLabel: (agent: string) => string;
 /**
  * The model layer, read off the model id itself (never a hand-kept model
- * list): `claude-opus-5-5` → Opus 5.5 · `claude-haiku-4-5-20251001` → Haiku
- * 4.5 · `gpt-6-sol` → GPT-6 Sol · `opencode/nemotron-3-ultra-free` →
- * Nemotron 3 Ultra. The mark is two letters of the family, drawn as a filled
- * tile: a letterform stand-in, since no brand artwork may ship offline.
+ * list), as its maker names it in full: `claude-opus-5-5` → Claude Opus 5.5 ·
+ * `claude-haiku-4-5-20251001` → Claude Haiku 4.5 · `gpt-6-sol` → GPT-6 Sol ·
+ * `opencode/nemotron-3-ultra-free` → Nemotron 3 Ultra. No letter tile in
+ * front (kcn, 2026-09-27: the two-letter stand-in was noise); the room goes
+ * to the whole name.
  */
 export declare function _modelView(id: string): {
     label: string;
-    mark: string;
     family: string;
 };
 /** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
@@ -341,11 +341,13 @@ export type PanelSource = {
     agent: string | null;
 };
 /**
- * The order rule, written once: every joined row that has a dispatch agent,
- * in PROVIDER_JOIN order (claude, codex, opencode), then an agent the queue
- * reports that no row names, then every other provider in the balance
- * answer's order (= BALANCE_PROVIDERS). Agent rows need a dispatcher (C3 ②:
- * without one only providers render); a provider row needs its provider.
+ * The panel's sources in providers.ts's order (sourceRank: the paid,
+ * exclusive allowances first, the free pool last, anything without a row
+ * among the paid ones). A joined row with a dispatch agent renders with its
+ * queue; an agent the queue reports that no row names gets a line of its own;
+ * a provider without an agent renders when the balance answer has it. Agent
+ * rows need a dispatcher (C3 ②: without one only providers render); a
+ * provider row needs its provider.
  */
 export declare function _panelSources(providers: BalancesResult['providers'], queue: TaskQueueResult | null): PanelSource[];
 /** Where the free pool is: the model the latest opencode task used, and the next one in file order. */

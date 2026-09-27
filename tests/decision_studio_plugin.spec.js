@@ -2241,9 +2241,10 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.deepEqual(find(popover(foot), (p) => p["data-pp-group"] !== undefined).map((g) => g.props["data-pp-group"]), ["deepseek", "minimax"]);
   assert.deepEqual(find(popover(foot), (p) => p["data-pb-role"] === "panel").map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
   const ds = find(popover(foot), (p) => p["data-pp-group"] === "deepseek")[0];
-  assert.match(texts(ds), /DeepSeek\s+· 本机 API 账户 ¥110 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount and its split, no bar (⑤)");
+  assert.match(texts(ds), /DeepSeek 本机 API 账户 ¥110 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount and its split, no bar (⑤)");
+  assert.equal(find(ds, (p) => p["data-pp-provider"] === "deepseek").length, 1, "the source uses its whale glyph");
   assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
-  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax\s+· Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
+  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
 
   // One refresh forces both halves once, keeps the panel open and paints the low reading.
   find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
@@ -2914,13 +2915,18 @@ test("client: one provider cell carries the queue under each agent's provider an
     [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]], "the holder first, then its queue, per agent");
   assert.match(texts(rows[0]), /运行中/);
   assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group header already says whose");
-  assert.match(texts(rows[0]), /Op Opus 5\.5 .*第 2 次 · 1 小时 5 分 · 卡死 1/, "model tile + short name; stalled attempts ride on the numbers");
+  assert.match(texts(rows[0]), /Claude Opus 5\.5 .*第 2 次 · 1 小时 5 分 · 卡死 1/, "full model name and useful retry, duration and stall numbers");
+  assert.equal(find(rows[0], (p) => p.className && /_tq-model-mark/.test(p.className)).length, 0, "no two-letter model tile");
   assert.match(texts(rows[2]), /运行中/, "slot-opencode-1: running in its own agent's slot");
   assert.match(texts(rows[1]), /等 claude 锁/);
   assert.match(texts(rows[3]), /ok \/ DONE/);
   assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
+  assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
+  for (const row of rows) assert.ok(find(row, (p) => p.className && /_tq-sub/.test(p.className)).length >= 2,
+    "live and ended tasks share the secondary text class");
   assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
+  assert.ok(find(popover, (p) => p.className && /_tq-round(?!s)/.test(p.className)).length > 0, "patrol rounds are grouped by row");
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
@@ -3227,12 +3233,12 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.equal(api._taskStatus(sleeping, t, now, []).text, "等到 今天 23:22（窗口重置时刻未读到）", "never one clock standing in for the other");
   assert.match(api._taskStatus(sleeping, t, now).text, /等额度 · 今天 23:22 续跑/, "no provider windows known: the runner's own clock only");
 
-  // The order rule, once: agents (join-table order), an unknown agent, then providers in answer order.
+  // Scarce paid sources first, unknown costs next, then the interchangeable free pool.
   const prov = (id, label) => ({ provider: id, label, result: DS_ROW_OK.result });
   const queue = { available: true, active: [{ agent: "gemini" }], slotLimits: [{ agent: "claude", max: 1 }] };
   assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("minimax", "MiniMax"), prov("claude", "Claude"), prov("codex", "Codex"), prov("zeta", "Zeta")], queue)
     .map((src) => [src.key, src.agent]),
-  [["claude", "claude"], ["codex", "codex"], ["opencode", "opencode"], ["gemini", "gemini"], ["deepseek", null], ["minimax", null], ["zeta", null]]);
+  [["claude", "claude"], ["codex", "codex"], ["deepseek", null], ["minimax", null], ["gemini", "gemini"], ["zeta", null], ["opencode", "opencode"]]);
   assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("claude", "Claude")], { available: false, active: [] })
     .map((src) => [src.key, src.agent]), [["claude", null], ["deepseek", null]], "② no dispatcher: providers only, no empty queues");
 
@@ -3313,7 +3319,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   };
   await tick(); await tick();
   const foldedKeys = find(render(), (p) => p["data-pp-row"] !== undefined).map((n) => n.props["data-pp-row"]);
-  assert.deepEqual(foldedKeys, ["claude", "codex", "opencode", "deepseek"], "every joined agent on a dispatcher host (codex idle), then providers");
+  assert.deepEqual(foldedKeys, ["claude", "codex", "deepseek", "opencode"], "paid sources precede the free pool");
   find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
   let tree = render();
   const claude = find(tree, (p) => p["data-pp-group"] === "claude")[0];

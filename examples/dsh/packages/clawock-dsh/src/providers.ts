@@ -5,12 +5,13 @@
  * bundle read the same rows.
  *
  * Adding a provider stays one row in index.ts's BALANCE_PROVIDERS (its
- * service): a provider without a row here still renders, after the agents,
- * under its own label. A row here only adds what the balance answer cannot
- * say by itself — the agent whose queue hangs under it, and the plan caption.
- * An agent with no provider (opencode's free pool) is a row with
- * `provider: null`. The chip names nothing else: order and captions come
- * from here and from BALANCE_PROVIDERS' order.
+ * service): a provider without a row here still renders, under its own
+ * label, among the paid rows (see sourceRank). A row here only adds what the
+ * balance answer cannot say by itself — the agent whose queue hangs under it,
+ * the plan caption, and its place in the order. An agent with no provider
+ * (opencode's free pool) is a row with `provider: null`. The chip names
+ * nothing else: every order the panel shows (the folded lines, the groups,
+ * the lanes, what just ended) comes from here.
  */
 
 export interface ProviderJoin {
@@ -20,18 +21,51 @@ export interface ProviderJoin {
   agent: string | null
   /** What the allowance is: 'windows' (5h + week quota), 'money' (a balance), 'pool' (free rotation, no windows). */
   kind: 'windows' | 'money' | 'pool'
+  /**
+   * What spending it costs: 'paid' (a subscription's windows or a balance —
+   * scarce, each one its own) or 'free' (a pool of free models that stand in
+   * for one another). The order's one criterion; not how capable the agent is.
+   */
+  tier: 'paid' | 'free'
   /** Dictionary key of the caption under the group title ("Anthropic subscription", …). */
   plan: string
   /** Dictionary key of the short source label a row without an agent shows in its last column. */
   source?: string
 }
 
-/** Rows with an agent first, in the order the panel lists them; the rest follow BALANCE_PROVIDERS. */
+/**
+ * Rows in the order the panel lists them (kcn, 2026-09-27): the paid,
+ * exclusive allowances first — the two subscriptions, then the balance and
+ * the token plan — and the free pool last. opencode sits low not because it
+ * is weaker but because it is free and interchangeable: its models replace
+ * one another inside the pool, so it is one line for the whole pool, never a
+ * line per model.
+ */
 export const PROVIDER_JOIN: readonly ProviderJoin[] = [
-  { provider: 'claude', agent: 'claude', kind: 'windows', plan: 'panel.plan.anthropic' },
-  { provider: 'codex', agent: 'codex', kind: 'windows', plan: 'panel.plan.chatgpt' },
-  { provider: null, agent: 'opencode', kind: 'pool', plan: 'panel.plan.freePool' },
-  { provider: 'deepseek', agent: null, kind: 'money', plan: 'panel.plan.deepseek', source: 'panel.source.hostApi' },
+  { provider: 'claude', agent: 'claude', kind: 'windows', tier: 'paid', plan: 'panel.plan.anthropic' },
+  { provider: 'codex', agent: 'codex', kind: 'windows', tier: 'paid', plan: 'panel.plan.chatgpt' },
+  { provider: 'deepseek', agent: null, kind: 'money', tier: 'paid', plan: 'panel.plan.deepseek', source: 'panel.source.hostApi' },
   // The key is read from ~/.openclaw/openclaw.json (models.providers.minimax) when no seam has one.
-  { provider: 'minimax', agent: null, kind: 'windows', plan: 'panel.plan.minimax', source: 'panel.source.openclaw' },
+  { provider: 'minimax', agent: null, kind: 'windows', tier: 'paid', plan: 'panel.plan.minimax', source: 'panel.source.openclaw' },
+  { provider: null, agent: 'opencode', kind: 'pool', tier: 'free', plan: 'panel.plan.freePool' },
 ]
+
+/**
+ * A source's place: its row's index, times two. A provider or agent without a
+ * row costs an unknown amount, so it is treated as scarce: after the known
+ * paid rows, before the free ones (the odd slot between them).
+ */
+export function sourceRank(key: { provider?: string | null; agent?: string | null }): number {
+  const at = PROVIDER_JOIN.findIndex((join) =>
+    (key.provider != null && join.provider === key.provider) || (key.agent != null && join.agent === key.agent))
+  if (at >= 0) return at * 2
+  const free = PROVIDER_JOIN.findIndex((join) => join.tier === 'free')
+  return (free < 0 ? PROVIDER_JOIN.length : free) * 2 - 1
+}
+
+/** Items that belong to an agent (tasks, slot lanes) in the panel's order; stable, so newest-first stays newest-first within an agent. */
+export function byAgentRank<T extends { agent: string }>(items: readonly T[]): T[] {
+  return items.map((item, at) => ({ item, at, rank: sourceRank({ agent: item.agent }) }))
+    .sort((a, b) => a.rank - b.rank || a.at - b.at)
+    .map(({ item }) => item)
+}

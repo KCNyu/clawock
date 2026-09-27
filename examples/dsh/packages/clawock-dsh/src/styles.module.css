@@ -1783,7 +1783,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-caption {
   font:var(--dsw-font-xxs-12);
-  color:var(--tq-cap)
+  color:var(--tq-ink-3)
 }
 .pbc .tq-scroll {
   flex:1 1 auto;
@@ -1812,7 +1812,22 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-group-name {
   flex:1 1 auto;
-  min-width:0
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.pbc .tq-sub {
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-weight:400;
+  letter-spacing:0;
+  color:var(--tq-ink-3)
 }
 .pbc .tq-agent-glyph {
   flex:none;
@@ -1822,6 +1837,8 @@ body[data-ds-dark-theme] .pbc .bp {
   display:inline-flex;
   align-items:center;
   gap:5px;
+  flex:0 1 auto;
+  max-width:48%;
   font-variant-numeric:tabular-nums;
   letter-spacing:0
 }
@@ -1846,7 +1863,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-row {
   display:grid;
-  grid-template-columns:6px minmax(0, 1fr) auto;
+  grid-template-columns:6px minmax(0, 1fr);
   column-gap:8px;
   row-gap:2px;
   align-items:center;
@@ -1861,8 +1878,17 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   color:inherit;
   cursor:pointer;
-  transition:background-color var(--tq-fast) var(--tq-ease)
+  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
+.pbc .tq-line {
+  grid-column:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0
+}
+.pbc .tq-line > :first-child { min-width:0 }
 .pbc .tq-row:active {
   background:var(--tq-fill-press)
 }
@@ -1877,60 +1903,37 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink)
 }
 .pbc .tq-v {
-  justify-self:end;
-  font:var(--dsw-font-xxxs-11);
-  line-height:20px;
-  white-space:nowrap;
-  color:var(--tq-ink-3)
+  flex:none;
+  max-width:56%;
+  text-align:right
 }
 .pbc .tq-v[data-balance-state="ok"] { color:var(--tq-run) }
 .pbc .tq-v[data-balance-state="stale"] { color:var(--tq-wait-text) }
 .pbc .tq-v[data-balance-state="low"] { color:var(--tq-bad) }
 .pbc .tq-meta {
-  grid-column:2;
   display:flex;
   align-items:center;
   gap:5px;
-  min-width:0;
-  font:var(--dsw-font-xxs-12);
-  color:var(--tq-ink-3)
+  flex:1 1 auto;
+  min-width:0
 }
 .pbc .tq-num {
-  justify-self:end;
   display:inline-flex;
   align-items:center;
   gap:6px;
-  font:var(--dsw-font-xxs-12);
+  flex:0 1 auto;
+  max-width:60%;
+  min-width:0;
   font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-  color:var(--tq-cap)
-}
-/* The model layer: a filled 16×14 letter tile, lighter than the executor's
-   outline glyph and never a status colour. */
-.pbc .tq-model-mark {
-  flex:none;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:16px;
-  height:14px;
-  padding:0 2px;
-  box-sizing:border-box;
-  border-radius:var(--tq-radius-xs);
-  background:var(--tq-fill-inset);
-  font:var(--dsw-font-xxxs-strong-11);
-  font-size:var(--fs-micro);
-  line-height:14px;
-  letter-spacing:0;
-  color:var(--tq-ink-2)
+  white-space:nowrap
 }
 .pbc .tq-tag {
   flex:none;
-  padding:0 5px;
+  padding:0 4px;
   border:.5px solid var(--tq-pill-border);
   border-radius:999px;
-  font:var(--dsw-font-xxxs-11);
-  line-height:14px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 /* The notification layer: 12px glyphs; delivered ink, failed red + slash. */
@@ -2023,59 +2026,66 @@ body[data-ds-dark-theme] .pbc .bp {
   align-items:center;
   gap:6px;
   margin:4px 0;
-  font:var(--dsw-font-xxs-12);
-  color:var(--tq-ink-3)
+  min-width:0
 }
 .pbc .tq-note.tq-ok { color:var(--tq-ink-2) }
 .pbc .tq-note.tq-bad { color:var(--tq-bad) }
 .pbc .tq-note.tq-warn { color:var(--tq-wait-text) }
 .pbc .tq-empty {
   padding:4px 0 6px;
-  font:var(--dsw-font-xxs-12);
-  color:var(--tq-cap)
+  color:var(--tq-ink-3)
 }
-.pbc .tq-patrol {
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  padding:2px 0 4px
-}
-.pbc .tq-wrap {
+.pbc .tq-sub.tq-wrap {
+  max-width:none;
+  overflow:visible;
+  text-overflow:clip;
   white-space:normal;
   overflow-wrap:anywhere
 }
-.pbc .tq-patrol .tq-meta-text {
-  font:var(--dsw-font-xxs-12);
-  color:var(--tq-ink-3)
-}
-/* Last rounds: id · axis · result · took, one grid so every column lines up. */
+/* Each round is one five-column row; the same columns line up across rounds. */
 .pbc .tq-rounds {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:4px 0
+}
+.pbc .tq-round {
   display:grid;
-  grid-template-columns:auto minmax(0, 1fr) auto auto;
-  column-gap:10px;
-  row-gap:2px;
-  padding:2px 0 4px;
-  font:var(--dsw-font-xxs-12);
-  color:var(--tq-ink-3)
+  grid-template-columns:minmax(32px, .7fr) minmax(36px, 1.4fr) minmax(42px, 1fr) auto auto;
+  align-items:center;
+  column-gap:6px;
+  min-width:0
+}
+.pbc .tq-round > * { min-width:0 }
+.pbc .tq-round-num {
+  font-variant-numeric:tabular-nums;
+  text-align:right
 }
 .pbc .tq-round-id {
   font-family:var(--tq-mono);
-  font-variant-numeric:tabular-nums;
-  color:var(--tq-ink-2)
+  font-variant-numeric:tabular-nums
 }
-.pbc :is(.tq-round-axis, .tq-round-result) {
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap
+@media (max-width: 520px) {
+  .pbc .tq-round {
+    grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr) auto;
+    row-gap:0
+  }
+  .pbc .tq-round-id { grid-column:1; grid-row:1 }
+  .pbc .tq-round-axis {
+    grid-column:1;
+    grid-row:2;
+    white-space:normal;
+    overflow-wrap:anywhere
+  }
+  .pbc .tq-round > :nth-child(3) { grid-column:2; grid-row:1 }
+  .pbc .tq-round > :nth-child(4) { grid-column:2; grid-row:2 }
+  .pbc .tq-round > :nth-child(5) { grid-column:3; grid-row:1 }
 }
 .pbc .tq-foot {
   margin-top:8px;
   padding-top:6px;
   border-top:.5px solid var(--tq-hairline);
-  font:var(--dsw-font-xxxs-11);
-  line-height:16px;
-  color:var(--tq-cap)
+  color:var(--tq-ink-3)
 }
 .pbc .tq-foot.tq-bad { color:var(--tq-bad) }
 /* Detail. */
@@ -2139,7 +2149,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-d-k {
   white-space:nowrap;
-  color:var(--tq-cap)
+  color:var(--tq-ink-3)
 }
 .pbc .tq-d-v {
   min-width:0;
@@ -2303,7 +2313,7 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   color:var(--tq-ink);
   cursor:pointer;
-  transition:background-color var(--tq-fast) var(--tq-ease)
+  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
 .pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
 .pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
@@ -2352,9 +2362,9 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-bad) }
 /* The open panel: a group per source; its plan caption, then the allowance, then the queue. */
 .pbc .pp-plan {
-  font:var(--dsw-font-xxxs-11);
-  letter-spacing:0;
-  color:var(--tq-cap)
+  flex:0 1 auto;
+  min-width:0;
+  max-width:42%
 }
 .pbc .pp-allowance { margin:2px 0 4px }
 .pbc .pp-money {
@@ -2386,7 +2396,7 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   color:var(--tq-ink-2);
   cursor:pointer;
-  transition:background-color var(--tq-fast) var(--tq-ease)
+  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
 .pbc .tq-file:active { background:var(--tq-fill-press) }
 .pbc .tq-file-name {
