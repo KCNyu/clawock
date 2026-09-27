@@ -1,0 +1,30 @@
+{
+  "purpose": "Backtest candidate only; never loaded by brief or intraday",
+  "left_side": {
+    "enabled": false,
+    "permission": "close_above_ma200",
+    "min_depth_atr": 2.0,
+    "ladder_atr": 1.0,
+    "max_tranches": 3,
+    "stop_atr_below_first": 3.0,
+    "valid_for_sessions": 1,
+    "evaluation_sessions": 20,
+    "leveraged": "exclude",
+    "requires_thesis": "intact",
+    "rationale": "Research candidate only. Initial run had 27 input names, 21 with IS history and one split. OOS mean 2.18%, 90% month-block interval -0.17% to 5.08%; return per unit deployed 0.64% versus baseline 1.70%. Rolling walk-forward and execution/gate replay required before activation."
+  },
+  "sizing": {
+    "basis": "book_risk",
+    "tranche_book_pct": {
+      "technical": 0.02,
+      "exploration_cold_start": 0.005,
+      "exploration": 0.01,
+      "validated": 0.03,
+      "left_scale_in": 0.0025
+    },
+    "max_tranche_risk_book_pct": 0.005,
+    "unit_bridge_max_book_pct": 0.05,
+    "cash_is_hard_cap": false,
+    "rationale": "Research candidate only. Prior +18.43% book/-6.22% drawdown used linear fixed-unit scaling, without actual lots, concentration, cash bridge, thesis or information gates. Replay required before activation."
+  }
+}
