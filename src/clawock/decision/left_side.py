@@ -67,7 +67,7 @@ TIER = "left_scale_in"
 POLICY_FILE = "config/left-side-policy.json"
 HISTORY = "assets/data/left_side_history.jsonl"
 # Which gate held a fired ladder back, in the order the packet checks them.
-GATES = ("leveraged_excluded", "thesis_not_intact", "negative_information",
+GATES = ("leveraged_excluded", "thesis_unrecorded", "thesis_not_intact", "negative_information",
          "peer_laggard")
 
 
@@ -214,7 +214,8 @@ def observe(row: dict, policy: dict, *, leveraged: bool, thesis_state: str | Non
         gate = "leveraged_excluded"
     elif (terms.get("requires_thesis") == "intact"
           and (thesis_state or "unknown") != "intact"):
-        gate = "thesis_not_intact"
+        gate = ("thesis_unrecorded" if (thesis_state or "unknown") == "unknown"
+                else "thesis_not_intact")
     elif "negative_information" in blockers:
         gate = "negative_information"
     elif "peer_laggard_avoidance" in blockers:

@@ -124,7 +124,7 @@ rejections on #2005/#1968 are withdrawn). What follows is the shape it runs in.
 print a `wait` row with `kind: left_scale_in`, the first rung and the
 invalidation (`test_both_entries_read_the_left_ladder_as_an_unsized_wait`); the
 brief packet records `quant.left_side` — rungs, invalidation, MA200 floor and the
-first gate that would hold it back (`leveraged_excluded`, `thesis_not_intact`,
+first gate that would hold it back (`leveraged_excluded`, `thesis_unrecorded`, `thesis_not_intact`,
 `negative_information`, `peer_laggard`, or none) — and never adds it to
 `technical.setups`, so it cannot size or authorise
 (`test_left_side_is_observed_and_recorded_never_sized`). Every brief appends one

@@ -582,7 +582,9 @@ def reconcile_raw_execution():
     try:
         jobs_result = openclaw.read_jobs("sqlite")
         jobs = jobs_result.entries
-        if jobs_result.source != "sqlite" or not jobs:
+        if jobs_result.source != "sqlite":
+            raise OSError("cron jobs SQLite unavailable")
+        if not jobs:
             return False
         job_ids = {job.get("name"): job.get("id") for job in jobs}
         ledger = load_ledger()
@@ -593,7 +595,10 @@ def reconcile_raw_execution():
             if not job_id:
                 continue
             if job_id not in run_cache:
-                run_cache[job_id] = openclaw.read_runs(job_id, "sqlite").entries
+                runs_result = openclaw.read_runs(job_id, "sqlite")
+                if runs_result.source != "sqlite":
+                    raise OSError("cron runs SQLite unavailable")
+                run_cache[job_id] = runs_result.entries
             matched = _match_run(record, run_cache[job_id])
             if not matched:
                 continue

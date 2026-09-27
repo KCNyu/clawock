@@ -929,6 +929,15 @@ def test_a_failed_reconcile_says_which_detector_it_disabled(tmp_path, monkeypatc
     assert "false-red" in detail, detail
 
 
+def test_unreadable_cron_store_marks_raw_reconcile_degraded(tmp_path, monkeypatch):
+    workspace = _isolate(tmp_path, monkeypatch)
+    monkeypatch.setattr(outcomes.openclaw, "read_jobs",
+                        lambda _src: outcomes.openclaw.CronRead([], "empty"))
+    assert outcomes.reconcile_raw_execution() is False
+    assert any(row["kind"] == "raw_execution_reconcile_skipped"
+               for row in _degradations(workspace))
+
+
 def test_a_repeated_degradation_counts_rather_than_floods(tmp_path, monkeypatch):
     """Twenty identical rows would push the real ones out of the window."""
     _isolate(tmp_path, monkeypatch)

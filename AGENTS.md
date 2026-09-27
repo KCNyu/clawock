@@ -39,7 +39,7 @@ git config core.hooksPath .githooks
 - portfolio.json valid JSON + required structure
 - memory/*-plan.json schema (bucket enum, trigger_type enum, confidence ∈ [0,1])
 - the dashboard write set rebuilds when portfolio.json is staged, but is no longer
-  staged with it: since #319 those four payloads live on the `data-plane` branch and
+  staged with it: since #319 the dashboard payloads live on the `data-plane` branch and
   `git add` on a now-ignored path fails the commit rather than skipping
 - paranoid scan for leaked API keys (`sk-…`, `tp-…`, `FINNHUB_API_KEY=`, etc.)
 

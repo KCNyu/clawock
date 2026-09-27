@@ -3,7 +3,8 @@
 Build the portable dashboard projection from a configured clawock workspace.
 
 Outputs: assets/data/overview.json, assets/data/dashboard.json,
-         assets/data/decision_audit.json, assets/data/shadow_portfolio.json
+         assets/data/decision_audit.json, assets/data/shadow_portfolio.json,
+         assets/data/decision_trail.json
 
 Run ``clawock dashboard-build`` after each portfolio mutation.
 """
@@ -3811,8 +3812,9 @@ def dashboard_input_fingerprint(ws: Path, now=None, *, previous_source=None,
     if previous_source is not None:
         previous = Path(previous_source)
         try:
-            st = previous.stat()
-            marker = f'{previous}:{st.st_mtime_ns}:{st.st_size}'
+            # Fetching the previous generation replaces its inode on every
+            # tick, even when its bytes are identical.
+            marker = f'{previous}:{hashlib.sha1(previous.read_bytes()).hexdigest()}'
         except OSError:
             marker = f'{previous}:missing'
         h.update(f'previous:{marker}\n'.encode())

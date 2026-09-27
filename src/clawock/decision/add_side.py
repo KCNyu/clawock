@@ -47,6 +47,7 @@ one here. News reaches the rows through the graph's own `positive` direction.
 from __future__ import annotations
 
 from clawock.decision import add_policy, left_side
+from clawock.instruments import INSTRUMENTS
 
 VERDICTS = ("candidate", "wait", "reject")
 
@@ -147,7 +148,9 @@ def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
         # Left side (observe mode): the packet's own ladder, so both entries
         # name the same first rung and invalidation.
         left = left_side.ladder(sig, left_policy) if left_policy else None
-        if left:
+        if left and not any(t in INSTRUMENTS and
+                            INSTRUMENTS[t].get("leverage_multiple", 1) > 1
+                            for t in levels[label]["holdings"]):
             levels[label].update({"left_rung": left["rungs"][0],
                                   "left_invalidation": left["invalidation_price"],
                                   "left_trend_floor": left["trend_floor"],
@@ -566,6 +569,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         # gets its own pass — only for a label that reads its own chart, never
         # for a proxy standing in for a leveraged product.
         if (level.get("left_rung") is None or label in seen
+                or label in set(leveraged or ())
                 or label not in (level.get("holdings") or [label])):
             continue
         add(label, ["left_weakness"], {

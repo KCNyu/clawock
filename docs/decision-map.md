@@ -60,9 +60,9 @@ recent 300.
 `_harness_common`, on the same cadence, and `brief_postflight` stages the output.
 
 It is deliberately **not** part of the dashboard's generation.
-`clawock.publish.outputs` owns a four-file write set that is swapped in
-atomically; a fifth file whose failure is survivable does not belong inside a
-contract whose whole point is that all four land or none do. The map is a
+`clawock.publish.outputs` owns a five-file write set that is swapped in
+atomically; a sixth file whose failure is survivable does not belong inside a
+contract whose whole point is that all five land or none do. The map is a
 read-only view — a broken one costs a page, not a number — so its return code is
 recorded and never gates the publish. This is a deliberate deviation from the
 PRD (#1191), which asked for it to be part of `dashboard-build`.

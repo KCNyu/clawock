@@ -85,7 +85,7 @@ def test_each_gate_is_named_in_the_order_the_packet_checks_it():
     assert passed["gate"] is None and passed["authorization"] is None
     assert passed["rungs"] == left_side.ladder(_row(), LIVE)["rungs"]
     for kwargs, gate in ((dict(leveraged=True, thesis_state="broken"), "leveraged_excluded"),
-                         (dict(thesis_state="unknown"), "thesis_not_intact"),
+                         (dict(thesis_state="unknown"), "thesis_unrecorded"),
                          (dict(thesis_state="weakening"), "thesis_not_intact"),
                          (dict(blockers=["negative_information", "peer_laggard_avoidance"]),
                           "negative_information"),
@@ -125,6 +125,21 @@ def test_both_entries_read_the_left_ladder_as_an_unsized_wait():
     assert row["authorization"] is None and "size_cap" not in row
     assert row["why"].startswith("左侧观察(不给尺寸)")
     assert row["needs"].startswith(f"首档 ≤{levels['rungs'][0]}")
+
+
+def test_held_leveraged_product_has_no_left_ladder_or_weakness_row():
+    from clawock.decision import add_policy, add_side
+
+    policy = json.loads((Path(__file__).resolve().parents[1] / "config" /
+                         "add-alpha-policy.json").read_text())
+    sig = {**_row(), "prior_5d_low": 70.0}
+    radar = add_side.radar({"07226": sig}, holdings_of={"07226": ["07226"]},
+                           left_policy=LIVE, **add_policy.read_params(policy))
+    assert "left_rung" not in radar["levels"]["07226"]
+    rows = add_side.read_rows(radar=radar, levels=radar["levels"],
+                              plan_context={"open": []}, leveraged={"07226"},
+                              policy=policy)["rows"]
+    assert not any("left_weakness" in row["triggers"] for row in rows)
 
 
 def test_a_quiet_day_is_a_recorded_zero_and_a_rerun_replaces_it(tmp_path):

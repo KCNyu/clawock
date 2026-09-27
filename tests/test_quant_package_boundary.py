@@ -23,6 +23,23 @@ def test_all_five_modules_ship_from_the_package_and_scripts_are_retired():
         assert not (ROOT / "scripts" / "data" / Path(module.__file__).name).exists()
 
 
+def test_t0_held_leverage_reads_lookthrough_quant_row(tmp_path, monkeypatch):
+    portfolio = tmp_path / "portfolio.json"
+    _write_portfolio(portfolio, {"hk": {"holdings": [{
+        "ticker": "07226", "shares": 1, "current_price": 9.0,
+        "day_low": 8.0, "day_high": 10.0, "prev_close": 8.5,
+    }]}})
+    quant_path = tmp_path / "quant.json"
+    quant_path.write_text(json.dumps({"rows": {"HSTECH": {
+        "status": "fresh", "atr14_pct": 1.0, "rsi14": 72,
+    }}}))
+    monkeypatch.setattr(t0, "PORTFOLIO", portfolio)
+    monkeypatch.setattr(t0, "QUANT", quant_path)
+    row = t0.compute()["rows"]["07226"]
+    assert row["rsi14"] == 72
+    assert row["atr14_pct"] == 1.0
+
+
 def test_quant_and_regime_discover_holdings_without_kcnyu_book_keys(
         tmp_path, monkeypatch):
     portfolio = tmp_path / "portfolio.json"

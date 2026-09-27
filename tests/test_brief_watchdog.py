@@ -10,6 +10,19 @@ ROOT = Path(__file__).resolve().parents[1]
 from clawock.harness import brief_watchdog as watchdog  # noqa: E402
 
 
+def test_missing_brief_alert_does_not_count_as_product_recovery(monkeypatch):
+    from clawock.harness import _watchdog_common
+    from clawock.automation import workflow_outcomes
+
+    recorded = []
+    monkeypatch.setattr(workflow_outcomes, "record_stage",
+                        lambda *args, **kwargs: recorded.append((args, kwargs)))
+    _watchdog_common._record_watchdog_outcome({
+        "tag": "brief", "action": "alert-brief-missing", "sent_ok": True,
+    })
+    assert recorded[0][0] == ("盘前深度简报", "watchdog_delivery", "failed")
+
+
 TODAY = "2026-07-17"
 
 

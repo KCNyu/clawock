@@ -197,7 +197,8 @@ def compute(intraday=False):
             # know the market is open.
             do_intraday = intraday and market_closed.get(market) is False
             cur = _num(h.get('current_price'))
-            qrow = quant.get(t, {})
+            signal_symbol = (INSTRUMENTS.get(t) or {}).get('signal_symbol') or t
+            qrow = quant.get(signal_symbol, {})
             if qrow.get('status') not in (None, 'fresh'):
                 qrow = {}
             if market and market not in session_date:
