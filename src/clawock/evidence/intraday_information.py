@@ -72,7 +72,7 @@ def freshness(written_at, market, now):
         'as_of': local.strftime('%m-%d %H:%M HKT'),
         'age_hours': round((now - written_at).total_seconds() / 3600, 1),
         # Before this session opened, or unprovable: never shown as live.
-        'stale': written_at < session_open(market, now),
+        'stale': written_at > now or written_at < session_open(market, now),
     }
 
 
@@ -158,6 +158,7 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
                         / f'{snap_date}.json')
     if error:
         sources['sentiment_snapshot'] = {'status': error}
+        degraded.append(f'sentiment_snapshot（{error}）')
     else:
         sources['sentiment_snapshot'] = {
             'status': 'ok', **freshness(_parse_time(snap.get('generated_at')), market, now)}

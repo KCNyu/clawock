@@ -6,19 +6,28 @@ factor-snapshots/ gives the factor-research layer a point-in-time record
 workflows, so any backtest reading them after the fact sees TODAY's file,
 not the one the day's decisions actually saw — the classic look-ahead trap.
 Each daily scan now archives a verbatim byte copy under
-assets/data/factor-snapshots/<name>/<UTC-date>.json before the overwrite
+assets/data/factor-snapshots/<name>/<HKT-date>.json before the overwrite
 cycle continues; research reads the dated row, never the live file.
 
 Verbatim bytes, not a re-serialization: the snapshot must be exactly what
 the producer wrote, so later schema evolution cannot retroactively rewrite
 history. Idempotent per (name, date): an identical re-run (workflow retry)
-is a no-op; genuinely different content on the same UTC date wins as the
+is a no-op; genuinely different content on the same HKT date wins as the
 final version of that day.
 """
 import argparse
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from zoneinfo import ZoneInfo
+
+HKT = ZoneInfo('Asia/Hong_Kong')
+
+
+def serving_date(now=None) -> str:
+    """The HKT decision day served by this scan."""
+    return (now or datetime.now(timezone.utc)).astimezone(HKT).date().isoformat()
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_ROOT = _REPO_ROOT / 'assets' / 'data' / 'factor-snapshots'
@@ -58,7 +67,7 @@ def main(argv=None) -> int:
 
     source = Path(args.source)
     bucket = args.bucket or source.stem
-    run_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    run_date = serving_date()
     action = snapshot(source, bucket, run_date)
     # A missing source is a real defect upstream — fail loudly so the job
     # does not green-light a night with no archived data.

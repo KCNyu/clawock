@@ -6,6 +6,7 @@ file instead of what a past day actually looked like. The snapshotter archives
 a byte-exact copy per UTC date before the overwrite cycle continues.
 """
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +24,11 @@ def _load():
 
 
 snap = _load()
+
+
+def test_snapshot_key_uses_the_hkt_day_served_by_the_scan():
+    before_midnight_utc = datetime(2026, 9, 24, 21, 30, tzinfo=timezone.utc)
+    assert snap.serving_date(before_midnight_utc) == "2026-09-25"
 
 
 def _write_source(tmp_path, body):

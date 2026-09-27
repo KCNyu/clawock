@@ -68,6 +68,13 @@ def test_session_asof_without_a_dated_active_holding_is_none():
     }, 2026) is None
 
 
+def test_session_asof_uses_the_snapshot_day_across_new_year():
+    holding = {"holdings": [{"shares": 1,
+                             "data_source": "Tencent Dec 31 16:00 HKT"}]}
+    assert dashboard._session_asof(holding, "2026-01-02") == "2025-12-31"
+    assert dashboard._session_asof(holding, "2026-12-31") == "2026-12-31"
+
+
 def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     data_dir = tmp_path / "assets" / "data"
     data_dir.mkdir(parents=True)

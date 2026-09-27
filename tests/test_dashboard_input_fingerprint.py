@@ -27,6 +27,20 @@ def test_fingerprint_is_stable_for_an_unchanged_desk(tmp_path):
     assert dashboard_input_fingerprint(ws) == dashboard_input_fingerprint(ws)
 
 
+def test_fingerprint_includes_previous_payload_and_output_destination(tmp_path):
+    ws = _desk(tmp_path)
+    previous = ws / "previous.json"
+    previous.write_text('{"day": 1}')
+    default = dashboard_input_fingerprint(ws)
+    restored = dashboard_input_fingerprint(ws, previous_source=previous)
+    assert restored != default
+    previous.write_text('{"day": 2, "changed": true}')
+    assert dashboard_input_fingerprint(ws, previous_source=previous) != restored
+    assert dashboard_input_fingerprint(ws, output_paths={"dashboard": ws / "a"}) != default
+    assert dashboard_input_fingerprint(ws, output_paths={"dashboard": ws / "a"}) != (
+        dashboard_input_fingerprint(ws, output_paths={"dashboard": ws / "b"}))
+
+
 def test_fingerprint_moves_on_every_input_class(tmp_path):
     ws = _desk(tmp_path)
     before = dashboard_input_fingerprint(ws)

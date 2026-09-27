@@ -142,6 +142,10 @@ def test_recompute_reproduces_the_published_counts(ledger):
 
     assert scorecard_verify.recompute_headline(block, ledger)["ok"]
 
+    later = [*ledger, decision("2026-07-05", ticker="DDD")]
+    assert scorecard_verify.recompute_headline(block, later)["ok"], (
+        "a later ledger row is outside the published slice")
+
     dropped = [row for row in ledger if row["ticker"] != "BBB"]
     assert not scorecard_verify.recompute_headline(block, dropped)["ok"]
 

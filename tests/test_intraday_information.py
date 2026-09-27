@@ -41,6 +41,12 @@ def _workspace(tmp_path, *, drop=()):
     for name, doc in files.items():
         if name not in drop:
             (data / name).write_text(json.dumps(doc, ensure_ascii=False))
+    if 'sentiment_snapshot' not in drop:
+        snapshot = data / 'factor-snapshots' / 'sentiment'
+        snapshot.mkdir(parents=True)
+        for day in ('2026-09-25', '2026-09-28'):
+            (snapshot / f'{day}.json').write_text(json.dumps({
+                'generated_at': f'{day}T05:30:00+08:00'}))
     return tmp_path
 
 
@@ -75,6 +81,14 @@ def test_an_unreadable_source_is_named_not_silent(tmp_path):
     out = info.collect(_workspace(tmp_path, drop=('news_evidence_graph.json',)), 'us',
                        ['RKLB'], now=NOW, fast_news=lambda limit: [])
     assert out['degraded'] == ['news_evidence_graph（missing）', '东财7×24（empty_or_failed）']
+
+
+def test_missing_snapshot_is_degraded_and_future_snapshot_is_not_fresh(tmp_path):
+    missing = info.collect(_workspace(tmp_path, drop=('sentiment_snapshot',)), 'us',
+                           [], now=NOW, fast_news=lambda limit: [])
+    assert 'sentiment_snapshot（missing）' in missing['degraded']
+    future = datetime(2026, 9, 26, 7, 57, tzinfo=HKT)
+    assert info.freshness(future, 'us', NOW)['stale'] is True
 
 
 

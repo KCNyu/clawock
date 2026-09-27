@@ -176,9 +176,10 @@ def read_state(runs=None, runner=_sh, now=None, use_cache=True) -> State:
         return State("unknown", reason="gh could not be asked")
     # Newest first. An unfinished run is not a verdict — walk to the first one
     # that reached a conclusion.
-    finished = [r for r in runs if (r or {}).get("status") == "completed"]
+    finished = [r for r in runs if (r or {}).get("status") == "completed"
+                and (r or {}).get("conclusion") in {"success", "failure", "timed_out"}]
     if not finished:
-        return State("unknown", reason="no finished run on master in the last "
+        return State("unknown", reason="no conclusive run on master in the last "
                                        f"{SCAN_LIMIT}")
     latest = finished[0]
     sha = str(latest.get("headSha") or "")

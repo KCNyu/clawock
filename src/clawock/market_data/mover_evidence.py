@@ -127,7 +127,9 @@ def _sec_items(ticker, *, now, window, http):
     events, note = primary_disclosures.fetch_sec(
         ticker, now=now, window_minutes=window, http=http,
     )
-    return [_as_mover_item(event) for event in events], note
+    return [_as_mover_item(event) for event in events
+            if isinstance(event.get("age_minutes"), (int, float))
+            and 0 <= event["age_minutes"] <= window], note
 
 
 def _as_mover_item(event):
