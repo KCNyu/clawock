@@ -28,6 +28,26 @@ ops/host/install_task_queue_ops.sh --rollback
 
 Focused coverage: `python3 -m pytest -q tests/test_task_queue_ops.py`.
 
+## Agent-dispatch runner
+
+`agent-dispatch/` is the versioned source of `/root/tools/agent-dispatch/` (the runner
+`run-agent.sh`, the CLI `dispatch.sh`, their helpers, the review template and the runner's own
+tests), mirrored path for path. It is a separate install target from the ops entry above:
+
+```bash
+ops/host/install_agent_dispatch.sh            # per file: .before-update, install by rename, cmp
+ops/host/install_agent_dispatch.sh --check    # does every installed file match this checkout?
+ops/host/install_agent_dispatch.sh --rollback # undo the last install that changed something
+```
+
+`refresh_live.sh` runs it after a fast-forward that moved `ops/host/agent-dispatch/` (merging
+alone installs nothing). Running tasks keep the file they opened; no unit is restarted.
+`limits.env` and `notify.env` stay on the host and are never written by the installer. Why,
+and what else stays: `docs/architecture/task-queue.md` § What stays on the host. The suite
+runs in CI (`dispatch-runner.yml`, groups and timings in its header), and on the host against a
+staged copy:
+`AGENT_DISPATCH_RUNNER=<copy>/run-agent.sh DISPATCH_TEST_CASES=<groups> bash <copy>/tests/run-tests.sh`.
+
 ## Patrol supervisor
 
 `patrol.sh` is the versioned source for this host's existing

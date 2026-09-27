@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Fake `claude -p --output-format json` for run-agent.sh fault-injection tests.
+# Behaviour is chosen by $FAKE_DIR/claude.mode:
+#   quota-then-ok : 1st call -> quota error with a reset ~2 min ahead; later calls -> success
+#   hang          : never finishes (for deadline tests)
+#   ok-no-status  : clean success whose result has no STATUS line
+#   hang-then-ok  : 1st call never finishes (to be interrupted by an append); later calls succeed
+#   slow-ok       : every call sleeps $FAKE_DIR/claude.slow seconds (default 8), then succeeds
+#   usage-ok      : writes one assistant message with usage to the transcript (twice, like the
+#                   real CLI's per-content-block lines), then succeeds
+#   slow-transcript: every call appends a transcript line every 3s, 8 times, then succeeds (like
+#                   the real CLI, nothing reaches stdout before the final JSON)
+# The session is the --session-id / --resume argument when given, like the real CLI.
+# Every call appends a transcript line under $CLAUDE_CONFIG_DIR/projects/-root/ labeled the way
+# `claude -p` labels it, plus the same key escaped inside message text.
+set -u
+FAKE_DIR=${FAKE_DIR:?}
+mode=$(cat "$FAKE_DIR/claude.mode")
+n=$(( $(cat "$FAKE_DIR/claude.calls" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$FAKE_DIR/claude.calls"
+printf 'call %s argv:' "$n" >>"$FAKE_DIR/claude.argv"; printf ' [%s]' "$@" >>"$FAKE_DIR/claude.argv"; echo >>"$FAKE_DIR/claude.argv"
+echo "call $n task id: ${AGENT_DISPATCH_TASK_ID:-}" >>"$FAKE_DIR/claude.argv"
+echo "$$" >>"$FAKE_DIR/claude.pids"
+sid=11111111-2222-3333-4444-555555555555
+prev=""
+for a in "$@"; do case "$prev" in --session-id|--resume) sid=$a ;; esac; prev=$a; done
+tdir=${CLAUDE_CONFIG_DIR:?}/projects/-root; mkdir -p "$tdir"
+printf '{"type":"user","entrypoint":"sdk-cli","sessionId":"%s","message":{"content":"quoted {\\"entrypoint\\":\\"sdk-cli\\"} stays"}}\n' "$sid" >>"$tdir/$sid.jsonl"
+chmod 600 "$tdir/$sid.jsonl"
+case "$mode" in
+  hang) exec sleep 3600 ;;
+  hang-then-ok)
+    [ "$n" = 1 ] && exec sleep 3600
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"picked up the appended instruction\\nSTATUS: DONE","session_id":"%s"}\n' "$sid"
+    ;;
+  slow-transcript)
+    for _ in $(seq 8); do
+      sleep 3
+      printf '{"type":"assistant","sessionId":"%s","message":{"content":"working"}}\n' "$sid" >>"$tdir/$sid.jsonl"
+    done
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"call %s done\\nSTATUS: DONE","session_id":"%s"}\n' "$n" "$sid"
+    ;;
+  slow-ok)
+    sleep "$(cat "$FAKE_DIR/claude.slow" 2>/dev/null || echo 8)"
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"call %s done\\nSTATUS: DONE","session_id":"%s"}\n' "$n" "$sid"
+    ;;
+  usage-ok)
+    for _ in 1 2; do
+      printf '{"type":"assistant","timestamp":"%s","sessionId":"%s","message":{"id":"msg_%s","model":"claude-opus-5-5","usage":{"input_tokens":10,"cache_creation_input_tokens":1000,"cache_read_input_tokens":100000,"output_tokens":500}}}\n' \
+        "$(date -u +%FT%T.000Z)" "$sid" "$n" >>"$tdir/$sid.jsonl"
+    done
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"counted\\nSTATUS: DONE","session_id":"%s"}\n' "$sid"
+    ;;
+  ok-no-status)
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"做完了但忘了 STATUS 行，结尾很长的中文结果","session_id":"%s"}\n' "$sid"
+    ;;
+  quota-then-ok)
+    if [ "$n" = 1 ]; then
+      reset=$(TZ=Asia/Shanghai date -d '+2 min' '+%-I:%M%P')
+      printf '{"type":"result","subtype":"success","is_error":true,"result":"You'"'"'ve hit your session limit · resets %s (Asia/Shanghai)","session_id":"%s"}\n' "$reset" "$sid"
+      exit 1
+    fi
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"resumed fine\\nSTATUS: DONE","session_id":"%s"}\n' "$sid"
+    ;;
+esac

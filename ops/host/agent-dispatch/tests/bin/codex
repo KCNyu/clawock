@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Fake `codex exec --json` / `codex exec resume --json` for run-agent.sh fault-injection tests.
+# Emits the JSONL event shapes of codex 0.154.0 (thread.started, item.completed, error,
+# turn.failed, turn.completed). Behaviour is chosen by $FAKE_DIR/codex.mode:
+#   quota-then-ok : 1st call -> rollout says the 5h window resets in 30s ($FAKE_RESET_SEC) while the error message
+#                   names a time days away (only the rollout lets the task resume in the test
+#                   deadline); later calls -> success
+#   no-credits    : every call -> workspace out-of-credits error, no reset time
+#   idle-wait     : runs one command that uses no CPU for $FAKE_WAIT s (gh pr checks --watch)
+#   hang-cmd      : 1st call -> starts a command that never ends; later calls -> success
+set -u
+FAKE_DIR=${FAKE_DIR:?}
+CODEX_HOME=${CODEX_HOME:?}
+mode=$(cat "$FAKE_DIR/codex.mode")
+n=$(( $(cat "$FAKE_DIR/codex.calls" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$FAKE_DIR/codex.calls"
+printf 'call %s argv:' "$n" >>"$FAKE_DIR/codex.argv"; printf ' [%s]' "$@" >>"$FAKE_DIR/codex.argv"; echo >>"$FAKE_DIR/codex.argv"
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "-o" ] && out=$a; prev=$a; done
+# FAKE_CODEX_SID_PER_TASK=1: a session id of the task's own (two tasks of one test must not share
+# a session, or the runner's session lock rightly refuses the second).
+sid=99999999-8888-7777-6666-555555555555
+if [ -n "${FAKE_CODEX_SID_PER_TASK:-}" ]; then
+  h=$(printf '%s' "${AGENT_DISPATCH_TASK_ID:-}" | md5sum | cut -c1-32)
+  sid="${h:0:8}-${h:8:4}-${h:12:4}-${h:16:4}-${h:20:12}"
+fi
+
+echo '{"type":"thread.started","thread_id":"'"$sid"'"}'
+echo '{"type":"turn.started"}'
+# Tool output mentioning limits must not be read as a quota stop.
+echo '{"type":"item.completed","item":{"type":"command_execution","aggregated_output":"grep: usage limit reached, out of credits, rate limit"}}'
+
+fail() {
+  local m; m=$(printf '%s' "$1" | python3 -c 'import json, sys; print(json.dumps(sys.stdin.read()))')
+  echo "{\"type\":\"error\",\"message\":$m}"
+  echo "{\"type\":\"turn.failed\",\"error\":{\"message\":$m}}"
+  exit 1
+}
+notice() {  # non-fatal top-level error event
+  local m; m=$(printf '%s' "$1" | python3 -c 'import json, sys; print(json.dumps(sys.stdin.read()))')
+  echo "{\"type\":\"error\",\"message\":$m}"
+}
+cmd() {  # <started|completed> <command>: codex's events around a shell command it runs
+  local st=in_progress ec=null; [ "$1" = completed ] && st=completed ec=0
+  echo "{\"type\":\"item.$1\",\"item\":{\"id\":\"item_7\",\"type\":\"command_execution\",\"command\":\"$2\",\"aggregated_output\":\"\",\"exit_code\":$ec,\"status\":\"$st\"}}"
+}
+case "$mode" in
+  idle-wait)
+    sleep 4   # the model's turn
+    cmd started "sleep ${FAKE_WAIT:-16}"; sleep "${FAKE_WAIT:-16}"; cmd completed "sleep ${FAKE_WAIT:-16}"
+    ;;
+  hang-cmd)
+    if [ "$n" = 1 ]; then sleep 4; cmd started "sleep 3597"; sleep 3597; fi
+    ;;
+  quota-then-ok)
+    if [ "$n" = 1 ]; then
+      # Real rollout shape (0.154.0): exact resets_at per window; the newest sample can be all null.
+      rd=$CODEX_HOME/sessions/2026/09/15; mkdir -p "$rd"
+      rf=$rd/rollout-2026-09-15T00-00-00-$sid.jsonl
+      printf '{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"limit_id":"codex","primary":{"used_percent":100.0,"window_minutes":300,"resets_at":%s},"secondary":{"used_percent":80.0,"window_minutes":10080,"resets_at":%s}}}}\n' \
+        "$(( $(date +%s) + ${FAKE_RESET_SEC:-30} ))" "$(( $(date +%s) + 5 * 86400 ))" >>"$rf"
+      printf '{"type":"event_msg","payload":{"type":"token_count","rate_limits":{"limit_id":"premium","primary":null,"secondary":null}}}\n' >>"$rf"
+      fail "You've hit your usage limit. Upgrade to Pro or try again at $(TZ=Asia/Shanghai date -d '+10 days' '+%b %-d, %Y %-I:%M %p')."
+    fi
+    ;;
+  no-credits) fail "Your workspace is out of credits. Add credits to continue." ;;
+  notice-then-ok) notice "Reconnecting... 1/5 (stream disconnected before completion)" ;;
+  quota-notice-then-other-failure)
+    notice "Approaching usage limit reached for this window"
+    fail "stream disconnected before completion: connection reset"
+    ;;
+esac
+[ -n "$out" ] && printf 'codex resumed fine\nSTATUS: DONE\n' >"$out"
+echo '{"type":"turn.completed","usage":{"input_tokens":1,"output_tokens":1}}'
+exit 0

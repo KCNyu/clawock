@@ -1,0 +1,107 @@
+name: dispatch-runner
+
+# The agent-dispatch runner's own fault-injection suite (ops/host/agent-dispatch/tests), run
+# where it used to run only by hand: on the 2-core host that also serves the desk.
+#
+# Its own workflow, on purpose, not a job in ci.yml: it is not a required check, so filtering
+# the trigger by path is safe here (a path-filtered *required* check waits forever, which is why
+# ci.yml gates steps instead), and a PR that does not touch the runner starts nothing at all.
+# The trigger paths are the files the suite executes: the runner and its helpers, the queue
+# entry it asks who goes next (task_queue_ops.py), the two installers that stage them, and
+# patrol.sh, whose limits.env reading test_limits.py drives.
+on:
+  pull_request:
+    paths:
+      - 'ops/host/agent-dispatch/**'
+      - 'ops/host/task_queue_ops.py'
+      - 'ops/host/model_prices.json'
+      - 'ops/host/install_agent_dispatch.sh'
+      - 'ops/host/install_task_queue_ops.sh'
+      - 'ops/host/patrol.sh'
+      - '.github/workflows/dispatch-runner.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'ops/host/agent-dispatch/**'
+      - 'ops/host/task_queue_ops.py'
+      - 'ops/host/model_prices.json'
+      - 'ops/host/install_agent_dispatch.sh'
+      - 'ops/host/install_task_queue_ops.sh'
+      - 'ops/host/patrol.sh'
+      - '.github/workflows/dispatch-runner.yml'
+  workflow_dispatch:
+    inputs:
+      slow:
+        description: 'Also run the stall and quota groups (about 3.5 and 4.5 minutes of real waiting)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # One leg per group of tests/run-tests.sh, in parallel. Measured on the first run of this
+  # workflow (PR #2054, wall time per leg including checkout and staging): names 7s, unit 14s,
+  # notify 32s, core 61s, queue 81s, slots 93s, deadline 101s, budget 158s — so a runner PR
+  # waits no longer than validate does. None of them needs systemd or a real agent CLI (fake
+  # CLIs in tests/bin, private locks and task dirs), which is why notify and slots are in.
+  #
+  # Not in the default set: stall (198s) and quota (256s). They are the longest and almost all
+  # of it is real waiting — stall timers running out, a quota "reset" minutes away — so they
+  # would make every runner PR the slowest run in the repository for tests that change only
+  # when the stall/quota logic does. Run them on demand here (workflow_dispatch, slow=true)
+  # rather than on the 2-core host; the host run (DISPATCH_TEST_CASES=stall,quota) stays valid.
+  # The timeout is per leg and covers the slowest measured leg with room; nothing in the suite
+  # was shortened or loosened to fit it.
+  runner:
+    name: dispatch-runner (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        group: ${{ fromJSON(inputs.slow && '["unit","names","notify","core","queue","slots","deadline","budget","stall","quota"]' || '["unit","names","notify","core","queue","slots","deadline","budget"]') }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # The runner hard-codes its install path (it sources /root/tools/agent-dispatch/limits.env
+      # and resource-pressure.sh, the tests call /root/tools/agent-dispatch/dispatch.sh) and runs
+      # as root on the host, so stage it exactly there, through the same installers the host
+      # uses, and run it as root. limits.env is host policy and is not versioned: this is a CI
+      # fixture carrying the values the suite asserts (one run slot per agent).
+      - name: Stage the runner at its host path
+        run: |
+          set -euo pipefail
+          sudo mkdir -p /root/tools/agent-dispatch /root/logs/agent-dispatch
+          sudo tee /root/tools/agent-dispatch/limits.env >/dev/null <<'EOF'
+          MAX_RUNNING_CLAUDE=1
+          MAX_RUNNING_CODEX=1
+          MAX_RUNNING_OPENCODE=1
+          MAX_RUNNING=3
+          PATROL_MIN_AVAILABLE_KB=196608
+          PATROL_MAX_MEMORY_FULL_AVG60=10
+          QUEUE_FAIR_WAIT_SEC=14400
+          EOF
+          sudo bash ops/host/install_task_queue_ops.sh
+          sudo bash ops/host/install_agent_dispatch.sh
+          sudo bash ops/host/install_agent_dispatch.sh --check
+
+      # test_limits.py drives patrol.sh's reading of limits.env; on the host it reads the
+      # installed supervisor, here the repository's copy (PATROL_SCRIPT is its override).
+      - name: Runner unit tests (limits, read-result)
+        if: matrix.group == 'unit'
+        run: |
+          sudo env "PATH=$PATH" PATROL_SCRIPT="$PWD/ops/host/patrol.sh" \
+            python3 -m unittest discover -s /root/tools/agent-dispatch/tests -p 'test_*.py' -v
+
+      - name: Fault-injection group ${{ matrix.group }}
+        if: matrix.group != 'unit'
+        env:
+          GROUP: ${{ matrix.group }}
+        run: |
+          sudo env "PATH=$PATH" PATROL_SCRIPT="$PWD/ops/host/patrol.sh" DISPATCH_TEST_CASES="$GROUP" \
+            bash /root/tools/agent-dispatch/tests/run-tests.sh

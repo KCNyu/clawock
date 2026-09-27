@@ -105,8 +105,9 @@ documentation:
 9. Apply the merge to this host with `ops/host/refresh_live.sh` — **merging is what
    makes a fix live here; a release is for people who are not this host.** 本机不用为
    每个修复发版。The install is editable, so a fast-forward is usually the whole job;
-   the script re-runs the launcher installer only when `pyproject.toml` moved and the
-   DSH plugin installer only when `examples/dsh/packages/clawock-dsh/` moved, then
+   the script re-runs the launcher installer only when `pyproject.toml` moved, the
+   DSH plugin installer only when `examples/dsh/packages/clawock-dsh/` moved and the
+   agent-dispatch runner installer only when `ops/host/agent-dispatch/` moved, then
    verifies what is actually serving. Rule and evidence:
    `docs/operations/release.md` § Running the latest code on this host.
 

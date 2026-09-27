@@ -453,6 +453,16 @@ HOST_OWNED_SHELL = {
            "repository for its separate read-only review worktree; this is "
            "the versioned source of the existing host-local supervisor, "
            "not part of the portable package"),
+    "ops/host/agent-dispatch/tests/run-tests.sh": (
+        11, "the runner's fault-injection suite reads what its fake `openclaw` "
+            "CLI recorded ($FAKE_DIR/openclaw.messages, .sends, .sleep, .fail); "
+            "those are fixture files in a temp dir, not the runtime's paths"),
+    "ops/host/agent-dispatch/tests/bin/openclaw": (
+        4, "the fake `openclaw` CLI the notification leg is tested against: it "
+           "writes the same $FAKE_DIR/openclaw.* fixture files and nothing else"),
+    "ops/host/install_agent_dispatch.sh": (
+        1, "its manifest lists the fake CLI tests/bin/openclaw by name; the "
+           "installer never reads or writes the runtime's files"),
     "ops/growth/nostr_publish.js": (
         1, "locates nostr-tools inside the installed OpenClaw Nostr plugin "
            "instead of vendoring a duplicate dependency; NOSTR_TOOLS_PATH "

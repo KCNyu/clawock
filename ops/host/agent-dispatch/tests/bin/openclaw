@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Fake `openclaw message send ... -m <msg>` for run-agent.sh tests: appends each message to
+# $FAKE_DIR/openclaw.messages, after sleeping $FAKE_DIR/openclaw.sleep seconds if that file exists.
+# Each send also appends "<channel> <target>" to $FAKE_DIR/openclaw.sends; a channel listed in
+# $FAKE_DIR/openclaw.fail (one per line) fails like WeChat's `ret=-2 prepare failed`, exit 1.
+set -u
+FAKE_DIR=${FAKE_DIR:?}
+sleep "$(cat "$FAKE_DIR/openclaw.sleep" 2>/dev/null || echo 0)"
+prev="" channel="" target=""
+for a in "$@"; do
+  case "$prev" in
+    -m) printf '%s\n----\n' "$a" >>"$FAKE_DIR/openclaw.messages" ;;
+    --channel) channel=$a ;;
+    --target) target=$a ;;
+  esac
+  prev=$a
+done
+echo "$channel $target" >>"$FAKE_DIR/openclaw.sends"
+if grep -qsx -- "$channel" "$FAKE_DIR/openclaw.fail"; then echo "ret=-2 prepare failed" >&2; exit 1; fi
+exit 0

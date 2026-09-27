@@ -14,8 +14,14 @@
 #   2. the DSH plugin — pnpm installs a *copy* of the packed package, so
 #      `examples/dsh/packages/clawock-dsh` changes reach the desk only through
 #      `install_dsh_plugin.sh` (see its header for why it packs a tarball).
+#   3. the agent-dispatch runner — it runs from /root/tools/agent-dispatch, a
+#      copy, so `ops/host/agent-dispatch/` changes reach it only through
+#      `install_agent_dispatch.sh` (atomic per file, `.before-update`, cmp;
+#      running tasks keep the file they opened). The queue ops entry next to it
+#      (`install_task_queue_ops.sh`) is still installed by hand: the dsh chip
+#      shows its installed-vs-checkout hash (docs/architecture/task-queue.md).
 #
-# Neither needs npm publish or a PyPI release: publishing is for people who are
+# None needs npm publish or a PyPI release: publishing is for people who are
 # not this host. See docs/operations/release.md § Running the latest code here.
 #
 # Usage:
@@ -48,14 +54,17 @@ fi
 changed="$(git diff --name-only "HEAD...$REMOTE/$BRANCH")"
 needs_venv=0
 needs_plugin=0
+needs_runner=0
 grep -qx 'pyproject.toml' <<<"$changed" && needs_venv=1
 grep -q '^examples/dsh/packages/clawock-dsh/' <<<"$changed" && needs_plugin=1
+grep -qE '^ops/host/(agent-dispatch/|install_agent_dispatch\.sh$)' <<<"$changed" && needs_runner=1
 
 echo "behind $REMOTE/$BRANCH by $behind commit(s):"
 git --no-pager log --oneline "$range" | sed 's/^/  /'
 [ "$needs_venv" = "1" ] && echo "  → pyproject.toml moved: the venv needs install_clawock_launcher.sh"
 [ "$needs_plugin" = "1" ] && echo "  → clawock-dsh moved: the desk needs install_dsh_plugin.sh --restart"
-if [ "$needs_venv" = "0" ] && [ "$needs_plugin" = "0" ]; then
+[ "$needs_runner" = "1" ] && echo "  → agent-dispatch runner moved: /root/tools/agent-dispatch needs install_agent_dispatch.sh"
+if [ "$needs_venv" = "0" ] && [ "$needs_plugin" = "0" ] && [ "$needs_runner" = "0" ]; then
   echo "  → python only: the editable install picks it up on fast-forward"
 fi
 
@@ -104,6 +113,14 @@ if [ "$needs_plugin" = "1" ]; then
     bash ops/host/install_dsh_plugin.sh --restart
   else
     echo "dsh CLI not on PATH — skipped the plugin install" >&2
+  fi
+fi
+if [ "$needs_runner" = "1" ]; then
+  if [ -d "${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}" ]; then
+    bash ops/host/install_agent_dispatch.sh
+    bash ops/host/install_agent_dispatch.sh --check
+  else
+    echo "no agent-dispatch installation on this host — skipped the runner install" >&2
   fi
 fi
 
