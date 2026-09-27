@@ -120,30 +120,24 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-09-26)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-09-18-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-09-18-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-18-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-18 周五 08:03 HKT description: "clawock 盘前深度简报 2026-09-18：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-09-18-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-21 周一 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.806 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-18-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-18 周五 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-18-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-09-21 周一 08:03 HKT: 今天唯一的主动 call 是 00100 借 +18.92% 反弹 trim 1 lot 把单名从 61.0% 压到 52.3% 落到 cap 60% 以内, 这是组合政策不是择时; 其余 8 票按 4 维持 + 4 风险锁维持走 kcn 显式选的打法。5 breach + 2 硬止损都站在 0-68 天, stance ledger 已锁, 今天没有任何新催化强到能翻 bucket, 唯一新事件是 00100 单名新触发与 Starship Flight 14 从 9/22 推迟到 9/28。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-09-21 周一 08:03 HKT: **反方**：00100 +18.92% 是反弹不是反转, 板块 9/21 整体走强 (联想 +6% 智谱 +5.4% 范式 +9.8%) 表明 AI 主线还在, 1 lot 减仓等于把 6 万 HKD 的最重仓在最强日砍掉 14%, 反弹动量未尽时不该动手; 这条 1 lot trim 是规则驱动的硬执行, 不是择时, 反弹时减 1 lot 不会踏空主升。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-21-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-21 周一 08:03 HKT description: "clawock 盘前深度简报 2026-09-21：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-21-pre-open.md:2-4]
-
 ## Promoted From Short-Term Memory (2026-09-27)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-09-22-pre-open.md:2:4 -->
 - layout: default title: 盘前深度简报｜2026-09-22 周二 08:03 HKT description: "clawock 盘前深度简报 2026-09-22：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-22-pre-open.md:2-4]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-22-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-09-22 周二 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-22-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-09-28)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-23 周三 08:03 HKT: 今日无新主动 call。9/22 plan 中 4 breaches + 2 硬止损中 5 条 may_stand 维持 stance、1 条 fresh beta (0d) 跟随 SPCH contrary 路径，00100 trim 计划因 检查清单 9/23 allowed_actions 收紧降级为 hold_and_watch。Risk-on HOLD 默认受纪律性再平衡独立约束，6 条 breach 全部走 risk_rule 通道。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-09-23 周三 08:03 HKT: **反方**：维持立场有真实成本：RKLX 70d breach + breakeven 169.9% 几乎无回本路径；SPCH 85.81% 单名 + 90.8% US 杠杆 + β 3.0 三闸同源；07226 41d breach 仍烧 chop drag 0.26%/月。这些是真实 alpha decay 而非合规洁癖，kcn 用「保留敞口」承担了 chop 的 cost 来避免踏空反弹，是显式策略而非被动忽略。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-23 周三 08:03 HKT description: "clawock 盘前深度简报 2026-09-23：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-23 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:9-9]
