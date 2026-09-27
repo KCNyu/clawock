@@ -72,6 +72,8 @@ jobs:
           sudo bash ops/host/install_agent_dispatch.sh
           sudo bash ops/host/install_agent_dispatch.sh --check
 
+      # test_limits.py drives patrol.sh's reading of limits.env; on the host it reads the
+      # installed supervisor, here the repository's copy (PATROL_SCRIPT is its override).
       - name: Runner unit tests (limits, read-result)
         if: matrix.group == 'unit'
         run: |
@@ -83,5 +85,5 @@ jobs:
         env:
           GROUP: ${{ matrix.group }}
         run: |
-          sudo env "PATH=$PATH" DISPATCH_TEST_CASES="$GROUP" \
+          sudo env "PATH=$PATH" PATROL_SCRIPT="$PWD/ops/host/patrol.sh" DISPATCH_TEST_CASES="$GROUP" \
             bash /root/tools/agent-dispatch/tests/run-tests.sh
