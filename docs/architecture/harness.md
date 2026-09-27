@@ -93,6 +93,7 @@ each caller loads the policy and the context it already holds and passes them in
 |---|---|---|
 | defaults for omitted keys, entry profiles, per-tier size, tranche sizing (`sizing.basis`: `book_risk` = share of the market book with a loss cap at the invalidation; absent = legacy share of the position) | `decision/add_policy.py` (`READ_DEFAULTS`, `ENTRY_PROFILES`, `read_params`, `tier_terms`, `tranche_plan`) | brief packet, brief opportunity read, intraday add-side read |
 | evidence families and authority tier | `decision/add_alpha.py` (`classify_authority`, `confirmation_setup`) | brief packet; `evaluate-add-alpha` walk-forward |
+| left-side scale-in ladder (rungs under the 20-day high, MA200 permission, invalidation) | `decision/left_side.py` (`ladder`, `scale_in_setup`); gates in `packet._left_side` | brief packet (tier `left_scale_in`); `add_side.radar` for both reads; `evaluate-add-shapes --campaigns` |
 | opportunity radar and the three-state reads | `decision/add_side.py` (`radar`, `read_through`, `read_rows`) | `brief_preflight._opportunity_reads` (entry `brief`), `intraday_preflight` (entry `intraday`) |
 | setup detection over bars | `decision/signals.py` (`compute_signals`) | quant refresh, both radars, `evaluate-add-shapes` |
 

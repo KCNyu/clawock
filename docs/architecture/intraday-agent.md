@@ -162,6 +162,10 @@ The watchdog's backstop resend is the plain card on both channels.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
   still `reject`.
+- **Left side**: weakness at least 2 ATR under the prior 20-day high while
+  the close is above MA200, on a non-leveraged name, reads as `wait` with
+  `kind: left_scale_in` and names its first rung and invalidation. A size
+  requires the packet's thesis-intact and information gates.
 - **One implementation**: the slot and the brief build the radar with the same
   `add_side.radar` and read it with the same `add_side.read_rows`; they differ
   only through `add_policy.ENTRY_PROFILES` (owner table and parameters:
@@ -264,6 +268,7 @@ as live.
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
 | one add-side implementation for brief and slot (`add_policy`, `add_side.radar`; `test_both_readers_build_the_same_radar_from_the_same_signals`, `test_the_entries_differ_only_in_how_sure_the_close_is`) | live (#1953) |
+| left-side read (`kind: left_scale_in`, `test_both_entries_read_the_left_ladder_as_a_wait_with_its_rung`) and book/risk sizing | proposed for kcn approval |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |

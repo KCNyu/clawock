@@ -214,7 +214,8 @@ def _opportunity_reads(open_decisions, portfolio):
                     holdings_of[member] = [member]
     selected = {label: signals_by_label[label] for label in holdings_of}
     radar = add_side.radar(selected, holdings_of=holdings_of,
-                           confirmed_at_close=profile['close_confirmed'], **params)
+                           confirmed_at_close=profile['close_confirmed'], policy=policy,
+                           **params)
     reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
                                plan_context=open_decisions,
                                close_confirmed=profile['close_confirmed'],

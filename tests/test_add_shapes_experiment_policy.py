@@ -9,10 +9,10 @@ POLICY = json.loads((Path(__file__).resolve().parents[1] / "config" /
                      "add-shapes-experiment.json").read_text())
 
 
-def test_left_side_is_not_live_and_experiment_is_disabled():
+def test_experiment_remains_disabled():
     live = json.loads((Path(__file__).resolve().parents[1] / "config" /
                        "add-alpha-policy.json").read_text())
-    assert "left_side" not in live
+    assert live["left_side"]["enabled"] is True
     assert POLICY["left_side"]["enabled"] is False
 
 

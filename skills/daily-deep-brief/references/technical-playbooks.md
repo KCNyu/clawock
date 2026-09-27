@@ -17,15 +17,27 @@
 
 1. `trend_pullback`：多头趋势成立，当日触及并收复 MA20，收阳且高于前收。第一次加一小批，失效线为 MA50/ATR/吊灯线中更严格的有效线；最多两批。
 2. `confirmed_breakout`：收盘突破此前 20 日高，1 个月动量为正且吊灯止损未破。第一次只加小批；跌回 MA20/吊灯线即失效；最多两批。
-3. `oversold_reclaim`：前一日 RSI≤35 且 20 日 z≤−1，次日收复前一日高点。它是唯一允许降低均价的 setup，只加一批 5%，跌破此前 5 日低点失效。
+3. `oversold_reclaim`：前一日 RSI≤35 且 20 日 z≤−1，次日收复前一日高点。只加一批，跌破此前 5 日低点失效；手数由 packet 给出。
 
 `alpha_confirmation` 只能由 packet 生成，模型不能自己创建。它先要求两个独立
 family：factor/peer residual 合并为 `price_relative`，新闻方向 surprise 或相对自身
 历史的 attention acceleration 为 `point_in_time_information`；随后技术层只在未来
 1–5 个本地交易日等突破确认，跳空按开盘成交，同日同时触发 entry 与 invalidation
-按失效处理。warming-up exploration 每 ticker/policy 只采一批 2.5%；不足一股/一手
-时，只有该最小单位仍低于市场账 3% 硬上限才可补成一单位，否则输出零。validated
+按失效处理。warming-up exploration 每 ticker/policy 只采一批；不足一股/一手
+时，是否可补一单位由 packet 的名义额与失效位亏损双闸决定。validated
 才能多批，杠杆 ETF 不允许 exploration。
+
+`left_scale_in`（左侧分批，kcn 2026-09-26）同样只能由 packet 生成：收盘低于前 20 日高
+足够多个 ATR、仍在 MA200 上方、非杠杆、thesis `intact`、无负面信息/同业持续落后时，
+packet 给出 `price_below` 的下一档挂单价（`entry_price`）、全部档位（`rungs`）和失效价；
+收盘跌破 MA200（`trend_floor`）同样视为失效。它是唯一允许「越跌越买」的 setup，
+但档数上限、档间距和尺寸都以 packet 为准，不得在档位外追加；`quant.left_side.blocked`
+写明被哪条闸挡住时，按 blocked 原因写观望，不得改写成加仓。
+
+尺寸：`add-alpha-policy.json` 带 `sizing.basis=book_risk` 时，packet 的
+`execution.max_add_shares` 已按「该市场持仓市值的百分比 + 失效位亏损上限」算好；
+`unit_bridged=true` 表示一单位大于目标但亏损仍在上限内；`cash_shortfall_value`
+只是提示需要转入资金，不是阻断。手数一律照抄 packet，不自己按持仓比例重算。
 
 `亏损`、`比成本低`、`今天翻红`、`利好新闻`都不是 setup。不得把它们单独包装成摊低成本。
 

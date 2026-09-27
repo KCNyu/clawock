@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.decision import add_alpha, add_policy, early_trend
+from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
@@ -318,6 +318,47 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
         "setups": setups,
         "usable": bool(row) and fresh,
     }
+
+
+def _left_side(row: dict, technical: dict, thesis: dict, authority: dict,
+               policy: dict, *, ticker: str, market: str, leveraged: bool,
+               usage: dict) -> tuple[dict | None, dict | None]:
+    """The left-side scale-in setup for one holding, and why it was held back.
+
+    `left_side.scale_in_setup` owns the price rule; the gates here are the ones
+    that separate a sentiment sell-off from value destruction, and they are
+    read off state the packet already computed: the canonical thesis must be
+    `intact` (`left_side.requires_thesis`), the evidence graph must not read
+    negative, and peers must not flag the name as a persistent laggard. A
+    stale or unusable technical row is no evidence of weakness.
+    """
+    terms = (policy or {}).get("left_side") or {}
+    if not terms.get("enabled") or not technical.get("usable"):
+        return None, None
+    levels = left_side.ladder(row, policy)
+    if levels is None:
+        return None, None
+    gate = None
+    if leveraged and terms.get("leveraged", "exclude") == "exclude":
+        gate = "leveraged_excluded"
+    elif (terms.get("requires_thesis") == "intact"
+          and (thesis.get("state") or "unknown") != "intact"):
+        gate = "thesis_not_intact"
+    elif {"negative_information", "peer_laggard_avoidance"} & set(
+            authority.get("blockers") or []):
+        gate = "negative_information_or_laggard"
+    if gate:
+        return None, {"fired": True, "blocked": gate, "depth_atr": levels["depth_atr"]}
+    probe = left_side.scale_in_setup(
+        row, policy, ticker=ticker, market=market, leveraged=leveraged,
+        as_of=technical.get("as_of"))
+    if probe is None:
+        return None, None
+    setup = left_side.scale_in_setup(
+        row, policy, ticker=ticker, market=market, leveraged=leveraged,
+        used_tranches=int(usage.get(probe["campaign_id"]) or 0),
+        as_of=technical.get("as_of"))
+    return setup, {"fired": True, "depth_atr": levels["depth_atr"]}
 
 
 def _apply_setup_usage(technical: dict, usage: dict) -> dict:
@@ -1210,6 +1251,13 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         if early_setup is not None:
             technical["setups"].append(early_setup)
             technical = _apply_setup_usage(technical, ticker_usage)
+        left_setup, left_gate = _left_side(
+            quant_rows.get(source_ticker) or {}, technical, thesis, alpha_authority,
+            add_policy, ticker=ticker, market=leg, leveraged=leveraged,
+            usage=ticker_usage)
+        if left_setup is not None:
+            technical["setups"].append(left_setup)
+            technical = _apply_setup_usage(technical, ticker_usage)
         raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
@@ -1248,6 +1296,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "peer_residual": peer_view,
                 "add_authority": alpha_authority,
                 "early_trend": early_candidate,
+                # Only when the weakness condition fired: which gate held it.
+                **({"left_side": left_gate} if left_gate else {}),
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})

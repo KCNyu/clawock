@@ -395,7 +395,8 @@ def collect_opportunity_radar(market):
     run_date = datetime.now(trading_calendar.HKT).date()
     # #621/#649: thresholds from add-alpha-policy.json through the one reader,
     # so radar, brief and early-trend cannot drift apart when the config changes.
-    params = add_policy.read_params(_load_json(WS / 'config' / 'add-alpha-policy.json'))
+    radar_policy = _load_json(WS / 'config' / 'add-alpha-policy.json')
+    params = add_policy.read_params(radar_policy)
     signals_by_label, holdings_of = {}, {}
     for detail in universe:
         label = detail.get('label')
@@ -414,7 +415,7 @@ def collect_opportunity_radar(market):
         signals_by_label[label] = sig
         holdings_of[label] = list(detail.get('source_holdings') or [label])
     built = add_side.radar(signals_by_label, holdings_of=holdings_of,
-                           confirmed_at_close=False, **params)
+                           confirmed_at_close=False, policy=radar_policy, **params)
     result = {'rows': built['rows'], 'levels': built['levels']}
     if errors:
         result['errors'] = errors

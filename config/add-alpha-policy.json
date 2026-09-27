@@ -43,7 +43,20 @@
       "minimum_peer_count": 3
     }
   },
-  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence. Tranches are sized as a share of the market book with a per-tranche loss cap at the invalidation (sizing).",
+  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence. Tranches are sized as a share of the market book with a per-tranche loss cap at the invalidation (sizing). The left-side family scales in below the prior 20-day high only above MA200, never on a leveraged product, and only while the thesis is intact.",
+  "left_side": {
+    "enabled": true,
+    "permission": "close_above_ma200",
+    "min_depth_atr": 2.0,
+    "ladder_atr": 1.0,
+    "max_tranches": 3,
+    "stop_atr_below_first": 3.0,
+    "valid_for_sessions": 1,
+    "evaluation_sessions": 20,
+    "leveraged": "exclude",
+    "requires_thesis": "intact",
+    "rationale": "Candidate for kcn approval. 27 eligible Tencent names; 21 had IS history. Single-split OOS mean 2.18% with 90% month-block interval -0.17% to 5.08%; per deployed unit 0.64% versus baseline 1.70%. Five expanding-history, three-month OOS windows had left mean returns 7.89%, -0.80%, -4.10%, 6.10%, 0.86%; two negative windows. Historical lot and thesis/information-gate replay remains missing."
+  },
   "sizing": {
     "basis": "book_risk",
     "tranche_book_pct": {
