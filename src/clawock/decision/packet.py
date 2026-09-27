@@ -394,7 +394,8 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
                     authority_tier: str = "none",
                     exploration_max_book_pct: float = 0.03,
                     overlay: dict | None = None,
-                    open_add: bool = False) -> dict:
+                    open_add: bool = False,
+                    policy: dict | None = None) -> dict:
     price = _number(holding.get("current_price"), 4)
     shares = int(_number(holding.get("shares"), 0) or 0)
     current_value = _number(holding.get("current_value"), 2)
@@ -418,12 +419,25 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         if row.get("tranche_pct_of_position")
     ]
     overlay = overlay or {}
+    # The widest distance to an invalidation among the setups on offer: the
+    # tranche's loss at its stop is bounded against the worst of them.
+    distances = [
+        price - _number(row.get("invalidation_price"), 4)
+        for row in technical.get("setups") or []
+        if price and _number(row.get("invalidation_price"), 4) is not None
+        and _number(row.get("invalidation_price"), 4) < price
+    ]
     plan = add_policy.tranche_plan(
         tier=authority_tier, price=price, lot=lot, shares=shares,
         current_value=current_value, capital=capital, cash=cash,
         setup_pcts=setup_pcts,
         sizing_multiplier=float(overlay.get("sizing_multiplier") or 1.0),
         exploration_max_book_pct=exploration_max_book_pct,
+        policy=policy,
+        setup_tiers=[row.get("authority_tier") or add_policy.TECHNICAL
+                     for row in technical.get("setups") or []] or [authority_tier],
+        stop_distance=max(distances) if distances else None,
+        leveraged=leveraged,
     )
     target_max_pct = plan["target_max_pct"]
     position_room_shares = plan["position_room_shares"]
@@ -462,7 +476,10 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         blockers.append("no_approved_setup")
     if not price:
         blockers.append("price_missing")
-    if max_tranche_shares <= 0:
+    book_sizing = plan.get("sizing_basis") == "book_risk"
+    if max_tranche_shares <= 0 and not (book_sizing and not technical.get("setups")):
+        # Under book/risk sizing a name with no setup has no invalidation to
+        # size against; `no_approved_setup` already says why nothing is sized.
         blockers.append(
             "tranche_below_market_unit"
             if position_room_shares > 0 and desired < (lot or 1)
@@ -482,6 +499,12 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "position_room_shares": position_room_shares,
         "max_add_value": round(max_tranche_shares * price, 2) if price else 0,
         "exploration_budget_value": plan["exploration_budget_value"],
+        # Book/risk sizing facts, only when they say something (packet budget).
+        **({key: plan[key] for key in (
+            "sizing_basis", "tranche_book_pct", "risk_cap_value", "unit_bridged",
+            "risk_unbounded", "cash_shortfall_value")
+            if plan.get(key) not in (None, False)}
+           if book_sizing and technical.get("setups") else {}),
         "position_room_value": (
             round(position_room_shares * price, 2) if price else 0
         ),
@@ -1201,6 +1224,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
+            policy=add_policy,
         )
         tickers[ticker] = {
             "ticker": ticker,

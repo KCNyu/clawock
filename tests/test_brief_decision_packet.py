@@ -148,8 +148,21 @@ def _context():
     }
 
 
-def _compiled():
+def _legacy_add_policy():
+    """The live policy without its `sizing` block: tranches as a share of the
+    position (the pre-2026-09-26 rule). Fixtures below with 1,000-HKD books were
+    written against that rule; the book/risk rule is pinned separately
+    (`test_book_risk_sizing_*`)."""
+    policy = json.loads(
+        (ROOT / "config" / "add-alpha-policy.json").read_text(encoding="utf-8"))
+    policy.pop("sizing", None)
+    return policy
+
+
+def _compiled(legacy_sizing=True):
     context = _context()
+    if legacy_sizing:
+        context["add_alpha_policy"] = _legacy_add_policy()
     generation = brief_context.compute_generation_id(context)
     return packet_mod.compile_packet(context, generation)
 
@@ -372,8 +385,7 @@ def test_exploration_max_book_pct_zero_means_zero_exploration_budget():
     """#666: `exploration_max_book_pct: 0` (0 = 封死探索敞口) is legal config;
     `X or DEFAULT` would silently swallow it into 0.03."""
     context = _exploration_context()
-    add_policy = json.loads(
-        (ROOT / "config" / "add-alpha-policy.json").read_text(encoding="utf-8"))
+    add_policy = _legacy_add_policy()
     add_policy["exploration_max_book_pct"] = 0
     context["add_alpha_policy"] = add_policy
 
@@ -911,6 +923,7 @@ def test_completed_tranches_exhaust_setup_authority():
 
 def test_add_room_solves_the_post_trade_60_percent_boundary():
     context = _context()
+    context["add_alpha_policy"] = _legacy_add_policy()
     hk_book = context["portfolio"]["portfolios"]["hk_stocks"]
     hk_book["cash_hkd"] = 10_000
     hk_book["holdings"][0].update(
@@ -1197,7 +1210,7 @@ def test_live_items_reach_the_brief_packet_and_a_gap_reads_as_a_gap():
         "degraded": ["Google新闻（TimeoutError）"],
         "summary": {"LEVX": [{"grade": "primary", "source": "sec_fulltext",
                               "title": "Circle 8-K", "stale": None, "cite": cite}]}}}
-    plain = _compiled()
+    plain = _compiled(legacy_sizing=False)
     packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
 
     row = packet["tickers"]["LEVX"]
@@ -1211,3 +1224,36 @@ def test_live_items_reach_the_brief_packet_and_a_gap_reads_as_a_gap():
         "as_of": "07-28 08:02 HKT",
         "sources": {"sec_fulltext": "ok", "google_news": "failed"},
         "degraded": ["Google新闻（TimeoutError）"]}}
+
+
+def test_book_risk_sizing_scales_with_the_book_not_the_position():
+    """kcn 2026-09-26 「加仓太保守」: with `sizing.basis = book_risk` a tranche
+    is a share of the market book, capped by its loss at the widest setup
+    invalidation, and cash is reported rather than capping it."""
+    context = _context()
+    policy = json.loads(
+        (ROOT / "config" / "add-alpha-policy.json").read_text(encoding="utf-8"))
+    context["add_alpha_policy"] = policy
+    hk_book = context["portfolio"]["portfolios"]["hk_stocks"]
+    hk_book["cash_hkd"] = 0
+    for holding in hk_book["holdings"][:2]:
+        holding.update(shares=1000, current_price=10, current_value=10_000, lot_size=20)
+    hk_book["holdings"].append({
+        "ticker": "03032", "name": "filler", "shares": 8000, "current_price": 10,
+        "current_value": 80_000, "lot_size": 100})
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context))
+    execution = packet["tickers"]["00100"]["execution"]
+
+    sizing = policy["sizing"]
+    book = 100_000
+    assert execution["sizing_basis"] == "book_risk"
+    assert execution["risk_cap_value"] == book * sizing["max_tranche_risk_book_pct"]
+    setups = packet["tickers"]["00100"]["technical"]["setups"]
+    widest = max(10 - s["invalidation_price"] for s in setups)
+    by_risk = int(book * sizing["max_tranche_risk_book_pct"] // (widest * 20)) * 20
+    by_target = int(book * sizing["tranche_book_pct"]["technical"] // (10 * 20)) * 20
+    assert execution["max_add_shares"] == min(by_risk, by_target) > 0
+    # No cash on the leg: the add is still sized, and the shortfall is stated.
+    assert execution["cash_shortfall_value"] == execution["max_add_shares"] * 10

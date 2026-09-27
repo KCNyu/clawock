@@ -43,9 +43,17 @@ def test_every_tier_size_is_read_from_the_policy_file():
         add_policy.tier_terms(POLICY, "none")
 
 
+LEGACY = {key: value for key, value in POLICY.items() if key != "sizing"}
+
+
 def test_the_read_lane_quotes_the_size_the_packet_uses():
-    pct = add_policy.tier_terms(POLICY, "exploration")["tranche_pct_of_position"]
+    sizing = POLICY["sizing"]
     assert add_policy.size_cap_text(POLICY) == (
+        f"上限探索档 {round(sizing['tranche_book_pct']['exploration'] * 100, 4):g}% 市值、"
+        f"失效位亏损 ≤{round(sizing['max_tranche_risk_book_pct'] * 100, 4):g}% 市值"
+        "(add-alpha-policy)")
+    pct = add_policy.tier_terms(LEGACY, "exploration")["tranche_pct_of_position"]
+    assert add_policy.size_cap_text(LEGACY) == (
         f"上限探索档 {round(pct * 100, 4):g}%(add-alpha-policy)")
 
 
@@ -62,13 +70,13 @@ def test_exploration_one_unit_rule_uses_the_market_book_cap():
     plan = add_policy.tranche_plan(
         tier="exploration_cold_start", price=148.03, lot=1, shares=1,
         current_value=148.03, capital=3455.57, cash=461.63, setup_pcts=[0.0125],
-        exploration_max_book_pct=0.03)
+        exploration_max_book_pct=0.03, policy=LEGACY)
     assert plan["suggested_shares"] == 0
     assert plan["exploration_budget_value"] == 103.67
     # A cheaper unit inside the cap is bridged to one share.
     plan = add_policy.tranche_plan(
         tier="exploration", price=19.18, lot=1, shares=10, current_value=191.8,
-        capital=3455.57, cash=461.63, setup_pcts=[0.025])
+        capital=3455.57, cash=461.63, setup_pcts=[0.025], policy=LEGACY)
     assert plan["suggested_shares"] == 1
 
 
@@ -94,3 +102,70 @@ def test_a_leveraged_product_is_read_through_its_underlying_when_it_has_bars():
     assert holdings_of == {"RKLB": ["RKLX"], "SPCX": ["SPCH"]}
     # HSTECH has no series here, so 07226 keeps its own chart.
     assert through == {"RKLX", "SPCH"}
+
+
+def _book_plan(**overrides):
+    args = dict(tier="exploration_cold_start", price=148.03, lot=1, shares=1,
+                current_value=148.03, capital=3455.57, cash=461.63, setup_pcts=[],
+                policy=POLICY, setup_tiers=["exploration_cold_start"],
+                stop_distance=148.03 * 0.08)
+    args.update(overrides)
+    return add_policy.tranche_plan(**args)
+
+
+def test_one_unit_is_allowed_when_its_loss_at_the_stop_fits_the_risk_cap():
+    """SPCX without the F17 zero: the target (0.5% of $3,455) is below one
+    $148 share, but one share is under the 5% bridge and loses ~$11.8 at an 8%
+    invalidation, inside the 0.5% ($17.3) per-tranche risk cap."""
+    plan = _book_plan()
+    assert plan["suggested_shares"] == 1
+    assert plan["unit_bridged"] is True
+    assert plan["risk_cap_value"] == round(3455.57 * POLICY["sizing"]["max_tranche_risk_book_pct"], 2)
+
+
+def test_a_unit_whose_stop_is_too_far_is_still_refused():
+    # 15% to the invalidation: one share loses ~$22 > the $17.3 cap.
+    assert _book_plan(stop_distance=148.03 * 0.15)["suggested_shares"] == 0
+    # No invalidation at all: the loss is unbounded, nothing is bridged.
+    plan = _book_plan(stop_distance=None)
+    assert plan["suggested_shares"] == 0 and plan["risk_unbounded"] is True
+
+
+def test_a_tranche_is_a_share_of_the_book_not_of_the_position():
+    """HK 03033: 1% of a 64,568 HKD book is ~646 HKD, below one 200-share lot
+    (854 HKD), which bridges; validated sizes whole lots by target."""
+    common = dict(price=4.272, lot=200, shares=1000, current_value=4272.0,
+                  capital=64568.4, cash=12781.0, stop_distance=4.272 * 0.06)
+    assert _book_plan(tier="exploration", setup_tiers=["exploration"], **common)[
+        "suggested_shares"] == 200
+    validated = _book_plan(tier="validated", setup_tiers=["validated"], **common)
+    pct = POLICY["sizing"]["tranche_book_pct"]["validated"]
+    assert validated["suggested_shares"] == int(64568.4 * pct // (4.272 * 200)) * 200 > 0
+    assert "unit_bridged" not in validated
+
+
+def test_cash_is_reported_not_a_cap_and_concentration_still_is():
+    plan = _book_plan(tier="validated", setup_tiers=["validated"], price=10.0, lot=100,
+                      current_value=10000.0, capital=100000.0, cash=0.0,
+                      stop_distance=0.5)
+    expected = int(100000 * POLICY["sizing"]["tranche_book_pct"]["validated"] // 1000) * 100
+    assert plan["suggested_shares"] == expected > 0
+    assert plan["cash_shortfall_value"] == expected * 10.0
+    full = _book_plan(tier="validated", setup_tiers=["validated"], price=10.0, lot=100,
+                      current_value=60000.0, capital=100000.0, cash=50000.0,
+                      stop_distance=0.5)
+    assert full["suggested_shares"] == 0
+
+
+def test_a_leveraged_name_sizes_against_the_guardrails_35_percent_cap():
+    common = dict(tier="validated", setup_tiers=["validated"], price=10.0, lot=100,
+                  capital=100000.0, cash=50000.0, stop_distance=0.5)
+    assert _book_plan(current_value=36000.0, leveraged=True, **common)["suggested_shares"] == 0
+    assert _book_plan(current_value=36000.0, leveraged=False, **common)["suggested_shares"] > 0
+
+
+def test_the_smallest_tier_present_sets_the_size():
+    plan = _book_plan(tier="validated", setup_tiers=["validated", "left_scale_in"],
+                      price=10.0, lot=1, current_value=1000.0, capital=100000.0,
+                      cash=50000.0, stop_distance=0.5)
+    assert plan["tranche_book_pct"] == POLICY["sizing"]["tranche_book_pct"]["left_scale_in"]
