@@ -2133,7 +2133,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   disposeReactEffects();
 });
 
-test("client: the sidebar-foot balance opens a popover that stays open while you pin and refresh", async () => {
+test("client: the sidebar-foot provider cell lists every provider, opens on its group and stays open while you refresh", async () => {
   const loaded = await loadClient();
   const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
@@ -2144,11 +2144,14 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   const LOW_DS = JSON.parse(JSON.stringify(DS_ROW_OK));
   LOW_DS.result.low = true;
   let forced = 0;
+  let queueForced = 0;
   const remoteFace = {
     balance: async (force) => {
       if (force) forced += 1;
       return { ok: true, value: { providers: [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
     },
+    // A host without the dispatcher (C3 ②): provider lines only, no empty queue.
+    taskQueue: async (force) => { if (force) queueForced += 1; return { ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } } }; },
   };
   const selected = [];
   const ctx = {
@@ -2167,8 +2170,8 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   };
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
-  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action", "sidebar.footer.action"],
-    "Decision Mind stays a conversation tab; the task queue and the balance are foot actions — no `main` panel, no header chip");
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action"],
+    "Decision Mind stays a conversation tab; balance + queue are ONE foot action — no `main` panel, no header chip");
   const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
   assert.equal(action.definition.name, "sidebar.footer.action");
 
@@ -2200,69 +2203,59 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
     })(tree);
     return out.join(" ");
   };
-  const trigger = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
+  const lines = (tree) => find(tree, (p) => p["data-pp-row"] !== undefined);
   const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
+  const rail = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL && p["aria-haspopup"] === "dialog")[0];
 
-  // Closed: the foot headlines the first provider with its tone and names it.
+  // Folded: one line per provider, in BALANCE_PROVIDERS order after the (absent) agents, each
+  // naming itself first, its reading, and — without an agent — where its key lives.
   render();
   await tick(); await tick(); await tick();
   let foot = render();
-  assert.equal(trigger(foot).props["data-balance-state"], "ok");
-  assert.equal(trigger(foot).props["aria-expanded"], false);
-  assert.match(texts(trigger(foot)), /DeepSeek/);
-  assert.match(texts(trigger(foot)), /¥110/);
+  assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
+  assert.match(texts(lines(foot)[0]), /DeepSeek ¥110 API 账户/);
+  assert.match(texts(lines(foot)[1]), /MiniMax 24% ↻ 21:00 OpenClaw/, "the reset is the headline window's, one clock");
+  assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
+  assert.equal(lines(foot)[0].props["aria-expanded"], false);
   assert.equal(popover(foot).props["data-open"], "false");
-  // Closed means out of interaction, not merely transparent: `opacity:0` +
-  // `pointer-events:none` still leaves every row button and the refresh control
-  // in the tab order, so `inert` is what keeps keyboard users off the five
-  // invisible controls a closed panel would otherwise contribute.
-  // `''`, not `true`: the host ships React 18, where a boolean `inert` is
-  // dropped silently — the first version of this fix therefore rendered
-  // nothing and changed nothing (measured live 2026-09-19).
+  // Closed means out of interaction, not merely transparent (React 18: `inert=""`, never `true`).
   assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
-  const railTrigger = trigger(render(false));
-  assert.equal(railTrigger.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
-  const railClasses = find(railTrigger, (p) => typeof p.className === "string")
-    .flatMap((node) => node.props.className.split(" "));
+  const railTrigger = rail(render(false));
+  assert.match(railTrigger.props.title, /DeepSeek ¥110/, "the rail keeps every reading in its title");
+  assert.match(railTrigger.props["aria-label"], /MiniMax 24%/, "and reads it out");
+  const railClasses = find(railTrigger, (p) => typeof p.className === "string").flatMap((node) => node.props.className.split(" "));
   assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
   assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
-  assert.ok(railClasses.some((token) => token.endsWith("_bal-badge")), "the rail renders the status badge class");
   const statusBadge = (tree) => find(tree, (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
-  assert.equal(statusBadge(railTrigger).type, "circle", "ok uses a round badge, independent of its green hue");
-  assert.deepEqual(
-    railClasses.filter((token) => token !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(token)),
-    [],
-    "every rendered rail class must resolve through the stylesheet",
-  );
+  assert.equal(statusBadge(railTrigger), undefined, "nothing to act on: the rail stays neutral, no badge");
+  assert.deepEqual(railClasses.filter((token) => token !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(token)), [],
+    "every rendered rail class must resolve through the stylesheet");
 
-  // Open: the popover is part of the foot's own tree, next to its trigger.
-  trigger(render()).props.onClick();
+  // Open on MiniMax's line: the popover is part of the cell's own tree, one group per provider.
+  lines(render())[1].props.onClick({ currentTarget: null });
   foot = render();
-  assert.equal(trigger(foot).props["aria-expanded"], true);
+  assert.equal(lines(foot)[1].props["aria-expanded"], true);
+  assert.equal(lines(foot)[1].props["data-active"], "", "the line that opened it stays marked");
   assert.equal(popover(foot).props["data-open"], "true");
   assert.equal(popover(foot).props.inert, undefined, "an open popover must be interactive");
-  const rows = find(popover(foot), (p) => p["data-pb-role"] === "panel");
-  assert.deepEqual(rows.map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
+  assert.deepEqual(find(popover(foot), (p) => p["data-pp-group"] !== undefined).map((g) => g.props["data-pp-group"]), ["deepseek", "minimax"]);
+  assert.deepEqual(find(popover(foot), (p) => p["data-pb-role"] === "panel").map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
+  const ds = find(popover(foot), (p) => p["data-pp-group"] === "deepseek")[0];
+  assert.match(texts(ds), /DeepSeek\s+· 本机 API 账户 ¥110 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount and its split, no bar (⑤)");
+  assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
+  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax\s+· Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
 
-  // Pinning a row re-headlines the trigger and leaves the popover open.
-  rows[1].props.onClick();
-  foot = render();
-  assert.equal(store._get().selected, "minimax", "a row click pins the headline provider");
-  assert.equal(trigger(foot).props["data-pb-provider"], "minimax", "the foot row follows the pin");
-  assert.equal(popover(foot).props["data-open"], "true", "pinning must not close the popover");
-
-  // A forced refresh keeps it open and paints the low dot at once.
-  store.actions.select("deepseek");
+  // One refresh forces both halves once, keeps the panel open and paints the low reading.
   find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick(); await tick();
   foot = render();
-  assert.equal(forced, 1, "one forced fetch");
-  assert.equal(trigger(foot).props["data-balance-state"], "low", "the low red dot shows right after the refresh");
-  assert.equal(statusBadge(trigger(foot)).type, "rect", "low uses a rounded square, independent of its red hue");
+  assert.deepEqual([forced, queueForced], [1, 1], "one forced fetch per half");
+  assert.equal(lines(foot)[0].props["data-balance-state"], "low", "the low reading shows right after the refresh");
+  assert.equal(statusBadge(rail(render(false))).type, "rect", "low: a square badge, independent of its hue");
   assert.equal(popover(foot).props["data-open"], "true", "refreshing must not close the popover");
 
-  // Only the trigger (or an outside pointer / Escape, browser-only) closes it.
-  trigger(foot).props.onClick();
+  // The line (or an outside pointer / Escape, browser-only) closes it.
+  lines(foot)[0].props.onClick({ currentTarget: null });
   assert.equal(popover(render()).props["data-open"], "false");
   assert.deepEqual(selected, [], "the foot never navigates the main column");
   disposeReactEffects();
@@ -2286,6 +2279,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
       if (answer === "error") return { ok: false, error: { code: "INTERNAL", message: "boom" } };
       return { ok: true, value: { providers: [DS_ROW_OK], refreshMs: 60000 } };
     },
+    taskQueue: async () => ({ ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } } }),
   };
   const ctx = {
     effect() {},
@@ -2329,8 +2323,9 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
     })(tree);
     return out.join(" ");
   };
-  const trigger = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
   const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
+  const rail = () => { reactStub._resetCursor(); const tree = action.Component({ wide: false, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face }); return find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0]; };
+  const line = (tree) => find(tree, (p) => p["data-pp-row"] !== undefined)[0];
   const refresh = async () => {
     find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
     await tick(); await tick(); await tick();
@@ -2344,11 +2339,11 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   let foot = render();
   assert.match(texts(popover(foot)), /余额读取失败:transport disconnected/);
   assert.doesNotMatch(texts(popover(foot)), /正在读取/);
-  assert.equal(trigger(foot).props["data-balance-state"], "stale");
-  const staleBadge = find(trigger(foot), (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
+  assert.equal(rail().props["data-balance-state"], "stale");
+  const staleBadge = find(rail(), (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
   assert.equal(staleBadge.type, "circle");
   assert.equal(staleBadge.props.r, 2.05, "stale keeps the smaller hollow badge geometry");
-  assert.match(trigger(foot).props.title, /余额读取失败/);
+  assert.match(texts(line(foot)), /余额读取失败/, "the folded cell says so too, not a blank line");
 
   // A remote error envelope is a failure too.
   answer = "error";
@@ -2358,7 +2353,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   // Recovered: rows back, the failure line gone.
   answer = "ok";
   foot = await refresh();
-  assert.equal(trigger(foot).props["data-balance-state"], "ok");
+  assert.equal(line(foot).props["data-balance-state"], "ok");
   assert.doesNotMatch(texts(popover(foot)), /失败/);
 
   // Warm, then a refresh fails: the last numbers stay, labelled as the last ones.
@@ -2805,7 +2800,7 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test("client: the task queue sits above the balance and shows who waits for what", async () => {
+test("client: one provider cell carries the queue under each agent's provider and shows who waits for what", async () => {
   const loaded = await loadClient();
   const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
@@ -2850,13 +2845,17 @@ test("client: the task queue sits above the balance and shows who waits for what
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
   const feet = ctx.slots._regs.filter((r) => r.definition.name === "sidebar.footer.action");
-  assert.deepEqual(feet.map((r) => r.definition.id), ["dispatch-queue", "provider-balance"],
-    "registered first, so it renders above the balance");
-  assert.ok(feet[0].definition.order < (feet[1].definition.order ?? 0), "and ordered first");
+  // 2026-09-27: the balance and the queue are ONE cell. `provider-balance` is the container;
+  // `dispatch-queue` is retired (it was a second cell stacked above, ordered -1).
+  assert.deepEqual(feet.map((r) => r.definition.id), ["provider-balance"], "one foot cell, the provider panel");
 
   const face = feet[0].definition.inject();
   const t = translatorFor(api);
-  const render = (wide = true) => { reactStub._resetCursor(); return feet[0].Component({ wide, t, ...face }); };
+  const store = makeBalanceStoreStub();
+  const render = (wide = true) => {
+    reactStub._resetCursor();
+    return feet[0].Component({ wide, t, useStore: store.useStore, actions: store.actions, ...face });
+  };
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const find = (tree, pred) => {
     const out = [];
@@ -2879,30 +2878,28 @@ test("client: the task queue sits above the balance and shows who waits for what
     })(tree);
     return out.join(" ");
   };
-  assert.equal(render(), null, "nothing renders before the first answer");
+  assert.equal(find(render(), (p) => p["data-pp-row"] === "claude").length, 0, "no agent line before the queue answers");
   await tick(); await tick();
   const foot = render();
   // The fixture is an OLD host's answer (no queue fields, no ops, no queueAction): it must still
   // render, read-only. The new host's answer is exercised further down.
-  const trigger = find(foot, (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0];
-  // One tone, one meaning: a task is waiting (b-1 queues for the claude lock), so the badge is
-  // amber; blue only when everything live is running (2026-09-26, "too many green dots").
-  assert.equal(trigger.props["data-balance-state"], "stale");
-  assert.match(texts(trigger), /任务/);
-  assert.match(texts(trigger), /在跑 2 · 排队 1/, "the host badge's trailing count: running · waiting");
-  assert.doesNotMatch(texts(trigger), /\d\/\d/, "no n/sum: slots are per agent, a free one is no room for another agent");
-  assert.match(trigger.props.title, /claude 1\/1 · codex 0\/1 · opencode 1\/1 · /, "the per-agent lanes, nothing else");
-  assert.doesNotMatch(trigger.props.title, /共享槽/, "the old shared-slot bucket is gone (2026-09-27, no pre-2026-09-25 runner left)");
-  // The patrol phase moved from the row to its title and the panel: the host badge carries a
-  // label and a count only, and the row ran out of room for it on a 260px sidebar.
-  assert.match(trigger.props.title, /巡检让路中/, "patrol giving way is still one hover away");
+  const lines = find(foot, (p) => p["data-pp-row"] !== undefined);
+  // Folded: one line per source, agents first (no balance providers answered here, C3 ②'s mirror).
+  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "opencode"]);
+  // One tone, one meaning: b-1 queues for the claude lock, so claude's last column is amber.
+  const last = (key) => find(lines.find((l) => l.props["data-pp-row"] === key), (p) => typeof p.className === "string" && p.className.endsWith("_pp-last"))[0];
+  assert.match(texts(last("claude")), /跑 1 · 排 1/);
+  assert.equal(last("claude").props["data-balance-state"], "stale");
+  assert.match(texts(last("codex")), /闲/);
+  assert.match(texts(last("opencode")), /跑 1/);
+  assert.match(lines[0].props["aria-label"], /^Claude Code .*跑 1 · 排 1 .*打开 Claude Code 的额度与队列/, "each line reads out whole");
   const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
     "every rendered class resolves through the stylesheet");
 
-  trigger.props.onClick();
+  lines[0].props.onClick({ currentTarget: null });
   const open = render();
-  const popover = find(open, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0];
+  const popover = find(open, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
   assert.equal(popover.props["data-open"], "true");
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
@@ -2932,17 +2929,19 @@ test("client: the task queue sits above the balance and shows who waits for what
   let layered = render();
   const detail = find(layered, (p) => p["data-tq-detail"] !== undefined)[0];
   assert.equal(detail.props["data-tq-detail"], "b-1");
-  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0].props["data-open"], "true",
+  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0].props["data-open"], "true",
     "the layer lives inside the open popover — no second surface");
   assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
   assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent .*Claude Code 模型 .*Opus 5\.5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
   assert.doesNotMatch(texts(detail), /判卡死/, "no stall row when there was none");
-  assert.equal(find(detail, (p) => p["data-tq-action"] !== undefined).length, 0, "no actions without the host's write door");
+  // Without the host's write door only the read-only brief entry remains (it opens dsh's own preview).
+  assert.deepEqual(find(detail, (p) => p["data-tq-action"] !== undefined).map((n) => n.props["data-tq-action"]), ["brief"],
+    "no write actions without the host's write door");
   // Back returns to the list; so does Escape (tested through the same back function).
   find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   layered = render();
   assert.equal(find(layered, (p) => p["data-tq-detail"] !== undefined).length, 0, "back closes the layer");
-  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0].props["data-open"], "true",
+  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0].props["data-open"], "true",
     "and leaves the popover open on the list");
   // An ended task shows how it closed: took, ended, and the agent's closing report.
   answer = { ...QUEUE, recent: [{ ...QUEUE.recent[0], summary: "- merged: PR #1767\n- CI green" }] };
@@ -2969,11 +2968,12 @@ test("client: the task queue sits above the balance and shows who waits for what
   await tick(); await tick();
   assert.equal(forced, forcedBefore + 1, "the refresh button forces one host read");
 
-  // A host without the dispatcher answers available:false and the row disappears.
+  // A host without the dispatcher answers available:false: the agent lines go, nothing blank
+  // is left behind (C3 ②) — the providers (none here) are what remains.
   answer = { ...QUEUE, available: false, active: [], recent: [] };
   find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick();
-  assert.equal(render(), null);
+  assert.equal(find(render(), (p) => p["data-pp-row"] !== undefined && p["data-pp-row"] !== "").length, 0);
   disposeReactEffects();
 });
 
@@ -3135,8 +3135,12 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
     return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify(detail) };
   };
   const t = translatorFor(api);
-  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction };
-  const render = () => { reactStub._resetCursor(); return api.TaskQueueSidebarAction(props); };
+  const store = makeBalanceStoreStub();
+  const opened = [];
+  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction,
+    ...balanceProps(), useStore: store.useStore, actions: store.actions,
+    openFile: (path) => { opened.push(path); return { ok: true }; } };
+  const render = () => { reactStub._resetCursor(); return api.ProviderPanelSidebarAction(props); };
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const find = (tree, pred) => {
     const out = [];
@@ -3159,7 +3163,7 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
     })(tree);
     return out.join(" ");
   };
-  find(render(), (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0].props.onClick();
+  find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
   let tree = render();
   // Move up: only a reorderable waiter that is not already first.
   const ups = find(tree, (p) => p["data-tq-up"] !== undefined);
@@ -3202,4 +3206,171 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
   assert.deepEqual(calls.at(-1), ["model", "holder", "sonnet|low"]);
   assert.match(texts(render()), /下一次尝试：sonnet · low/);
   disposeReactEffects();
+});
+
+test("client: the provider panel keeps both clocks, the pool position, stale readings, cost, the brief and the budgets", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const t = translatorFor(api);
+  const now = new Date(2026, 8, 26, 22, 0, 0).getTime();
+  const at = (h, m) => new Date(2026, 8, 26, h, m, 0).getTime();
+  // ③ the runner's wake and the window's reset are two facts, both shown.
+  const sleeping = { id: "s", name: "s", agent: "claude", model: "m", state: "running", waiting: "quota", slot: "", attempts: 1, outcome: "",
+    startedAtMs: now, updatedAtMs: now, wakeAtMs: at(23, 22), patrol: false };
+  assert.equal(api._taskStatus(sleeping, t, now, [{ resetAtMs: at(23, 19) }, { resetAtMs: at(23, 19) + 86400000 * 2 }]).text,
+    "等到 今天 23:22（窗口 今天 23:19 +3m 缓冲）");
+  assert.equal(api._taskStatus(sleeping, t, now, []).text, "等到 今天 23:22（窗口重置时刻未读到）", "never one clock standing in for the other");
+  assert.match(api._taskStatus(sleeping, t, now).text, /等额度 · 今天 23:22 续跑/, "no provider windows known: the runner's own clock only");
+
+  // The order rule, once: agents (join-table order), an unknown agent, then providers in answer order.
+  const prov = (id, label) => ({ provider: id, label, result: DS_ROW_OK.result });
+  const queue = { available: true, active: [{ agent: "gemini" }], slotLimits: [{ agent: "claude", max: 1 }] };
+  assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("minimax", "MiniMax"), prov("claude", "Claude"), prov("codex", "Codex"), prov("zeta", "Zeta")], queue)
+    .map((src) => [src.key, src.agent]),
+  [["claude", "claude"], ["codex", "codex"], ["opencode", "opencode"], ["gemini", "gemini"], ["deepseek", null], ["minimax", null], ["zeta", null]]);
+  assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("claude", "Claude")], { available: false, active: [] })
+    .map((src) => [src.key, src.agent]), [["claude", null], ["deepseek", null]], "② no dispatcher: providers only, no empty queues");
+
+  // ④ the pool: the position comes from MODEL_USED, else the file order says so.
+  const pooled = (tasks) => ({ opencodePool: ["opencode/a-free", "opencode/b-free", "opencode/c-free"], active: tasks, recent: [] });
+  assert.deepEqual(api._poolPosition(pooled([{ agent: "opencode", modelUsed: "opencode/b-free", attempts: 1 }])),
+    { current: "opencode/b-free", next: "opencode/c-free", fromOrder: false });
+  assert.deepEqual(api._poolPosition(pooled([])), { current: "opencode/a-free", next: "opencode/b-free", fromOrder: true });
+  assert.equal(api._poolPosition({ active: [], recent: [] }), null, "no pool file, no task: nothing invented");
+
+  // Cost: an estimate, free, or a dash — never a guess.
+  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "3.12" }), { short: "$3.12", kind: "usd" });
+  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "free" }), { short: "free", kind: "free" });
+  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "" }), { short: "—", kind: "unpriced" });
+  assert.equal(api._costOf({ costUsd: "" }), null, "nothing recorded: no cost cell");
+  assert.equal(api._fmtTokens(83123861), "83.1M");
+  assert.equal(api._absoluteFileAddress("/root/logs/agent-dispatch/x y/prompt.md"),
+    "dsh-resource://file/absolute/root/logs/agent-dispatch/x%20y/prompt.md");
+
+  // The panel itself: ① a stale provider keeps its last reading and says when it was taken.
+  const STALE_CL = JSON.parse(JSON.stringify(CL_ROW_OK));
+  Object.assign(STALE_CL.result, { status: "stale", message: "429 Too Many Requests" });
+  const task = (id, extra) => ({ id, name: id, agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "",
+    attempts: 1, outcome: "", startedAtMs: Date.now() - 60000, updatedAtMs: Date.now(), wakeAtMs: null, patrol: false, summary: "",
+    lastEvent: "", lastEventAtMs: null, runnerApi: 3, modelRequested: "claude-opus-5-5", effortRequested: "high", session: "s-1", ...extra });
+  const QUEUE = {
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
+    slotLimits: [{ agent: "claude", max: 1 }, { agent: "opencode", max: 1 }], opencodePool: ["opencode/a-free", "opencode/b-free"],
+    active: [task("new-run", { slot: "claude-1", maxAttempts: 3, quotaResumes: 3, quotaResumesUsed: 0, deadlineAtMs: Date.now() + 3600000,
+      tokensIn: 10, tokensCacheW: 1000, tokensCacheR: 100000, tokensOut: 500, tokensTotal: 101510, costUsd: "0.04" }),
+    task("old-wait", { waiting: "lock", position: 1, runnerApi: 2, attempts: 0 })],
+    recent: [task("done", { state: "ok", outcome: "DONE", tokensTotal: 5, costUsd: "free", agent: "opencode" })],
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    queues: [{ agent: "claude", held: true, holder: "new-run", order: ["old-wait"], quotaUntilMs: null, quotaBy: "" }],
+    ops: { available: true, version: "v", repoVersion: "v", api: 3, runnerApi: 3, fairWaitSec: 14400, error: "" },
+  };
+  const calls = [];
+  let hostKnows = false;
+  const runQueueAction = async (action, id, arg) => {
+    calls.push([action, id, arg]);
+    if (action === "brief") {
+      return hostKnows
+        ? { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, path: "/tasks/" + id + "/prompt.md", brief_bytes: 70000, truncated: true,
+          appends: [{ file: "20260927-010000-1-queue.md", path: "/tasks/" + id + "/inbox/delivered/20260927-010000-1-queue.md", stamp: "2026-09-27 01:00:00", delivered: true, bytes: 12 },
+            { file: "20260927-020000-2-now.md", path: "/tasks/" + id + "/inbox/20260927-020000-2-now.md", stamp: "2026-09-27 02:00:00", delivered: false, bytes: 13 }] }) }
+        : { ok: false, code: 2, action, id, message: 'unknown action "brief"', detail: "" };
+    }
+    return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, changed: true, message: "deadline moved" }) };
+  };
+  const opened = [];
+  let preview = { ok: true };
+  const store = makeBalanceStoreStub();
+  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction,
+    cachedBalances: () => ({ providers: [STALE_CL, DS_ROW_OK], refreshMs: 60000 }), fetchBalances: async () => ({ providers: [STALE_CL, DS_ROW_OK], refreshMs: 60000 }),
+    useStore: store.useStore, actions: store.actions, openFile: (path) => { opened.push(path); return preview; } };
+  const render = () => { reactStub._resetCursor(); return api.ProviderPanelSidebarAction(props); };
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+  await tick(); await tick();
+  const foldedKeys = find(render(), (p) => p["data-pp-row"] !== undefined).map((n) => n.props["data-pp-row"]);
+  assert.deepEqual(foldedKeys, ["claude", "codex", "opencode", "deepseek"], "every joined agent on a dispatcher host (codex idle), then providers");
+  find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
+  let tree = render();
+  const claude = find(tree, (p) => p["data-pp-group"] === "claude")[0];
+  assert.match(texts(claude), /刷新失败（429 Too Many Requests），显示 .* 的读数/, "① the failure and the time of the reading still shown");
+  assert.match(texts(claude), /会话 36%/, "① the last good windows are kept, not dropped");
+  assert.match(texts(claude), /new-run .*\$0\.04/, "the row carries its cost");
+  assert.match(texts(find(tree, (p) => p["data-pp-group"] === "opencode")[0]), /池 A → 下一个 B（表序）/, "④ pool position, labelled as file order");
+  assert.equal(find(tree, (p) => p["data-pp-group"] === "opencode" && /\d+%/.test(texts(find(tree, (q) => q["data-pp-group"] === "opencode")[0]))).length, 0,
+    "④ no percentage for the free pool");
+
+  // Detail of a runner-api-3 task: the enforced deadline and budgets, tokens and cost.
+  find(tree, (p) => p["data-tq-task"] === "new-run")[0].props.onClick();
+  tree = render();
+  assert.match(texts(tree), /截止 .*预算 重试 1\/3 · 额度续跑 0\/3 .*花费 \$0\.04 · 按 API 价估算，非实际扣费 · 截至上一次尝试结束 .*Tokens 共 102k · 输入 10 · 缓存写 1\.0k · 缓存读 100k · 输出 500/);
+  // Budgets confirm in place and say what they cost; the second tap goes through the ops entry.
+  const pill = (key) => find(render(), (p) => p["data-tq-action"] === key)[0];
+  pill("resumes").props.onClick();
+  assert.equal(calls.length, 0, "one tap never writes");
+  assert.match(texts(render()), /多给一次额度续跑：每次都会重放会话上下文，有成本（缓存读）。它在跑：本次尝试的时限不变，下一次尝试起生效。/);
+  assert.match(texts(pill("resumes")), /确认 续跑 \+1/);
+  pill("resumes").props.onClick();
+  await tick(); await tick();
+  assert.deepEqual(calls.at(-1), ["resumes", "new-run", "4"]);
+  pill("deadline").props.onClick(); pill("deadline").props.onClick();
+  await tick(); await tick();
+  assert.deepEqual(calls.at(-1), ["deadline", "new-run", "+2h"]);
+
+  // The brief opens in dsh's own preview; an older host half cannot list the appends and says so.
+  pill("brief").props.onClick();
+  await tick(); await tick();
+  assert.equal(opened.at(-1), "/root/logs/agent-dispatch/new-run/prompt.md");
+  assert.match(texts(render()), /追加列表要等插件 host 半边更新（需重启 dsh）/);
+  hostKnows = true;
+  pill("brief").props.onClick();
+  await tick(); await tick();
+  tree = render();
+  assert.equal(opened.at(-1), "/tasks/new-run/prompt.md");
+  const files = find(tree, (p) => p["data-tq-file"] !== undefined);
+  assert.deepEqual(files.map((f) => f.props["data-tq-file"]), ["/tasks/new-run/prompt.md",
+    "/tasks/new-run/inbox/delivered/20260927-010000-1-queue.md", "/tasks/new-run/inbox/20260927-020000-2-now.md"]);
+  assert.match(texts(tree), /原文 68 KB.*追加 2026-09-27 01:00:00 已投递 .*追加 2026-09-27 02:00:00 待投递/);
+  files[2].props.onClick();
+  assert.equal(opened.at(-1), "/tasks/new-run/inbox/20260927-020000-2-now.md", "an append opens its own file");
+  preview = { ok: false, reason: "no-session" };
+  files[0].props.onClick();
+  assert.match(texts(render()), /右侧预览要在会话里打开：先进入任意会话，再点一次。文件：\/tasks\/new-run\/prompt\.md/, "no silent failure");
+
+  // An api-2 task: the budget pills are off and the reason is printed, not hover-only.
+  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  find(render(), (p) => p["data-tq-task"] === "old-wait")[0].props.onClick();
+  tree = render();
+  assert.equal(pill("deadline").props.disabled, true);
+  assert.match(texts(tree), /这个任务的 runner 是 api 2/);
+  disposeReactEffects();
+
+  // Touch: every new pressable is a 44px target under a coarse pointer; hover lives only behind a fine one.
+  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
+  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
 });

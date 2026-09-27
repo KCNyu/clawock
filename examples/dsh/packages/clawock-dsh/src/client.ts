@@ -180,7 +180,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.r.cancelledRunning': '已停止，本轮进度已丢；续跑：{resume}', 'queue.r.cancelledNoSession': '已停止（还没有会话可续）',
     'queue.r.priority': '现在排第 {n} 位（共 {total}）', 'queue.r.model': '下一次尝试：{model} · {effort}',
     'queue.r.retry': '已作为新任务续跑：{id}', 'queue.r.wrapup': '收尾指令已排队：当前一步结束后送达',
-    'queue.back': '返回队列', 'queue.d.open': '查看任务详情', 'queue.d.live': '进行中', 'queue.d.ended': '已结束',
+    'queue.back': '返回额度与队列', 'queue.d.open': '查看任务详情', 'queue.d.live': '进行中', 'queue.d.ended': '已结束',
     'queue.d.agent': 'Agent', 'queue.d.model': '模型', 'queue.d.started': '开始', 'queue.d.elapsed': '已运行',
     'queue.d.took': '用时', 'queue.d.endedAt': '结束', 'queue.d.resumes': '续跑', 'queue.d.attempts': '尝试次数',
     'queue.d.stalls': '判卡死', 'queue.d.stallsValue': '{n} 次(静默无进展,已自动重试)',
@@ -191,7 +191,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.source.hostApi': 'API 账户', 'panel.source.openclaw': 'OpenClaw',
     'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
     'panel.q.idle': '闲', 'panel.q.run': '跑 {n}', 'panel.q.queued': '排 {n}', 'panel.q.quota': '睡额度 {n}', 'panel.q.wait': '等 {n}',
-    'panel.staleAt': '{message} · 显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
+    'panel.staleAt': '刷新失败（{message}），显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
     'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
     'queue.wait.quotaBoth': '等到 {time}（窗口 {reset} +{pad}m 缓冲）', 'queue.wait.quotaNoWindow': '等到 {time}（窗口重置时刻未读到）',
     'queue.d.cost': '花费', 'queue.d.costValue': '${usd} · 按 API 价估算，非实际扣费', 'queue.d.costFree': '免费（opencode 免费池）',
@@ -310,7 +310,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.r.cancelledRunning': 'Stopped, this step\'s progress is lost; resume: {resume}', 'queue.r.cancelledNoSession': 'Stopped (no session yet)',
     'queue.r.priority': 'Now #{n} of {total}', 'queue.r.model': 'Next attempt: {model} · {effort}',
     'queue.r.retry': 'Continuing as a new task: {id}', 'queue.r.wrapup': 'Wrap-up queued: delivered when the current step ends',
-    'queue.back': 'Back to the queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
+    'queue.back': 'Back to quota and queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
     'queue.d.agent': 'Agent', 'queue.d.model': 'Model', 'queue.d.started': 'Started', 'queue.d.elapsed': 'Running for',
     'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
     'queue.d.stalls': 'Stalled', 'queue.d.stallsValue': '{n} (silent with no progress, retried automatically)',
@@ -321,7 +321,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.source.hostApi': 'API account', 'panel.source.openclaw': 'OpenClaw',
     'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
     'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting',
-    'panel.staleAt': '{message} · showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
+    'panel.staleAt': 'Refresh failed ({message}); showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
     'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
     'queue.wait.quotaBoth': 'until {time} (window {reset} + {pad}m margin)', 'queue.wait.quotaNoWindow': 'until {time} (window reset not read)',
     'queue.d.cost': 'Cost', 'queue.d.costValue': '${usd} · estimated at API prices, not billed', 'queue.d.costFree': 'free (opencode free pool)',
@@ -1463,9 +1463,6 @@ function useFootPopover(back?: () => boolean) {
 // fixed menu-material panel with a 44px header and caption-sized groups).
 // ---------------------------------------------------------------------------
 
-/** Foot-action id of the task-queue surface (a stable DOM contract for probes). */
-export const TASK_QUEUE_PANEL = 'clawock-task-queue'
-
 /** What the task chip's `inject` factory hands the component. */
 export interface TaskQueueInjected {
   /** The last answer this registration fetched, or null cold. */
@@ -2000,7 +1997,7 @@ function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, 
   const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN
   const balanceNote = row === undefined || row.note === null ? null
     : row.result.status === 'stale' && Number.isFinite(snapshotAt)
-      ? t('panel.staleAt', { message: row.note, time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
+      ? t('panel.staleAt', { message: row.result.message ?? '—', time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
       : row.note
   const pool = source.join?.kind === 'pool' ? _poolPosition(result) : null
   const planKey = source.join?.plan
@@ -2071,7 +2068,7 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
     balanceProblem !== null
       ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'berr', role: 'status' },
         balanceState.rows.length === 0 ? t('balance.readFailed', { message: balanceProblem }) : t('balance.staleWith', { message: balanceProblem })) : null,
-    sources.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
+    sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
       h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.recentHeading'))),
@@ -2281,7 +2278,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
         title: t('queue.back'),
         ref: backRef,
         onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('queue.panelHeading')),
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('panel.title')),
       h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
     h('div', { className: cx('tq-scroll') },
       notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), role: 'status' }, notice.text),

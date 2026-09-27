@@ -25,6 +25,7 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
+import { type ProviderJoin } from './providers.ts';
 import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
 /** Dictionary namespace declared by every registration in this bundle. */
 export declare const LOCALE_NS = "clawock";
@@ -254,33 +255,6 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export declare const BALANCE_PANEL = "clawock-provider-balance";
-/** The foot button's owner share plus its inject face. */
-export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
-    /** Sidebar column state: false is the 56px rail (dot only). */
-    wide: boolean;
-    /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
-    t: Translate;
-};
-/**
- * The sidebar-foot home of the balance chip: always mounted, independent of
- * any session. It headlines the same one provider (pinned or first row) with
- * the same dot/tier/stale colours and polls on the same cadence.
- *
- * The provider list opens as a trigger-owned popover, the interaction the
- * host's own foot occupant uses (ui-cordis `CordisPanel`): the row toggles it,
- * it is `position:fixed` above the row so the clipped sidebar column cannot
- * cut it, and only a pointerdown outside the row+popover root or Escape
- * dismisses it (ui-primitives `useDismissOnOutsidePointer`, heard in the
- * capture phase — see the effect). It used to select
- * a keyed `main` panel instead, which swapped the whole conversation column
- * for a mostly empty page — one click and the chat you were reading was gone
- * (and on a phone the panel opened squeezed beside the still-open drawer).
- * Pinning a row and the manual refresh happen inside the root, so they can
- * never close it.
- */
-export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
-/** Foot-action id of the task-queue surface (a stable DOM contract for probes). */
-export declare const TASK_QUEUE_PANEL = "clawock-task-queue";
 /** What the task chip's `inject` factory hands the component. */
 export interface TaskQueueInjected {
     /** The last answer this registration fetched, or null cold. */
@@ -293,11 +267,6 @@ export interface TaskQueueInjected {
      */
     runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>;
 }
-export type TaskQueueSidebarActionProps = TaskQueueInjected & {
-    /** Sidebar column state: false is the 56px rail (glyph only). */
-    wide: boolean;
-    t: Translate;
-};
 /**
  * Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
  * Anything else is shown verbatim under the task's own agent. (The shared
@@ -328,7 +297,9 @@ export declare function _slotLanes(result: TaskQueueResult): SlotLane[];
  * 'stale' (the host's warn) = waiting for something (the lock, a slot,
  * memory, a quota reset, a retry), 'none' = neither yet (starting).
  */
-export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number): {
+export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number, windows?: ReadonlyArray<{
+    resetAtMs?: number | null;
+}>): {
     tone: BalanceTone;
     text: string;
 };
@@ -360,16 +331,66 @@ export declare function _modelView(id: string): {
     mark: string;
     family: string;
 };
+/** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
+export type PanelSource = {
+    /** Stable key: the provider id, else the agent id. */
+    key: string;
+    label: string;
+    join: ProviderJoin | null;
+    provider: BalancesResult['providers'][number] | null;
+    agent: string | null;
+};
+/**
+ * The order rule, written once: every joined row that has a dispatch agent,
+ * in PROVIDER_JOIN order (claude, codex, opencode), then an agent the queue
+ * reports that no row names, then every other provider in the balance
+ * answer's order (= BALANCE_PROVIDERS). Agent rows need a dispatcher (C3 ②:
+ * without one only providers render); a provider row needs its provider.
+ */
+export declare function _panelSources(providers: BalancesResult['providers'], queue: TaskQueueResult | null): PanelSource[];
+/** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
+export declare function _poolPosition(result: TaskQueueResult | null): {
+    current: string;
+    next: string;
+    fromOrder: boolean;
+} | null;
+/** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
+export type OpenFile = (path: string) => {
+    ok: true;
+} | {
+    ok: false;
+    reason: 'no-service' | 'no-session' | 'error';
+    message?: string;
+};
+/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
+export declare function _fmtTokens(n: number): string;
+/** The cost cell: an API-price estimate, 'free', or '—' when the model is unpriced; null when nothing was recorded. */
+export declare function _costOf(task: DispatchTask): {
+    short: string;
+    kind: 'usd' | 'free' | 'unpriced';
+} | null;
+/** The file-preview address of an absolute path (dsh-util-workspace-path's absolute scope). */
+export declare function _absoluteFileAddress(path: string): string;
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
+export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
+    /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
+    wide: boolean;
+    t: Translate;
+    /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
+    openFile?: OpenFile;
+};
 /**
- * The sidebar-foot task-queue row, directly above the balance row: live
- * dispatch tasks grouped by executor, what each waits for and in which place,
- * recent endings, patrol, and the actions each task allows. Same foot
- * geometry as the host's own badge; renders nothing on a host without the
- * dispatcher (or before its first answer).
+ * The sidebar-foot provider panel (2026-09-27): the balance chip and the
+ * dispatch queue as ONE cell, `provider-balance`. Folded, it is one line per
+ * source — provider or agent name first, its reading and reset, then who
+ * burns that allowance (the agent's queue) or where its key comes from. Any
+ * line opens the panel on that source's group: the allowance (windows with
+ * their resets, or money), then the queue that allowance feeds. The rail
+ * keeps one glyph whose badge warns when a window is at its threshold or a
+ * task sleeps on quota. Both halves keep their own read and cadence.
  */
-export declare function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null;
+export declare function ProviderPanelSidebarAction(props: ProviderPanelProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /**
  * `layout` is listed even though the plugin only *probes* it, and that is not
