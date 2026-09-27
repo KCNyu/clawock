@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import { PROVIDER_JOIN, type ProviderJoin } from './providers.ts'
+import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
 import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
@@ -155,8 +155,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.running': '巡检运行中', 'queue.patrol.yielding': '巡检让路中',
     'queue.patrol.waiting': '巡检等待下一轮', 'queue.patrol.waitingUntil': '巡检 {time} 开下一轮',
     'queue.patrol.stopped': '巡检已停', 'queue.patrol.unknown': '巡检状态未知',
+    'queue.patrolState.running': '运行中', 'queue.patrolState.yielding': '让路中', 'queue.patrolState.waiting': '等下一轮',
+    'queue.patrolState.waitingUntil': '{time} 开下一轮', 'queue.patrolState.stopped': '已停', 'queue.patrolState.unknown': '状态未知',
     'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
-    'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
+    'queue.ago.now': '刚刚', 'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
     'queue.wait.lockAt': '等 {agent} 锁 · 第 {n} 位', 'queue.state.cancelling': '取消中',
     'queue.attempt': '第 {n} 次', 'queue.slotCount': '槽 {used}/{max}', 'queue.groupIdle': '没有任务',
     'queue.fallback': 'fallback', 'queue.patrolTag': '巡检',
@@ -189,7 +191,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.plan.anthropic': 'Anthropic 订阅', 'panel.plan.chatgpt': 'ChatGPT 订阅', 'panel.plan.freePool': '无 provider · 免费池',
     'panel.plan.deepseek': '本机 API 账户', 'panel.plan.minimax': 'Token Plan · 源：OpenClaw 配置',
     'panel.source.hostApi': 'API 账户', 'panel.source.openclaw': 'OpenClaw',
-    'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
+    'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolSize': '池内 {n} 个', 'panel.poolSwap': '{n} 个免费模型同档互替', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
     'panel.q.idle': '闲', 'panel.q.run': '跑 {n}', 'panel.q.queued': '排 {n}', 'panel.q.quota': '睡额度 {n}', 'panel.q.wait': '等 {n}',
     'panel.staleAt': '刷新失败（{message}），显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
     'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
@@ -285,8 +287,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
+    'queue.patrolState.running': 'running', 'queue.patrolState.yielding': 'giving way', 'queue.patrolState.waiting': 'between rounds',
+    'queue.patrolState.waitingUntil': 'next round {time}', 'queue.patrolState.stopped': 'stopped', 'queue.patrolState.unknown': 'state unknown',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
-    'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
+    'queue.ago.now': 'just now', 'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
     'queue.wait.lockAt': 'waiting for the {agent} lock · #{n}', 'queue.state.cancelling': 'cancelling',
     'queue.attempt': 'attempt {n}', 'queue.slotCount': 'slot {used}/{max}', 'queue.groupIdle': 'No tasks',
     'queue.fallback': 'fallback', 'queue.patrolTag': 'patrol',
@@ -319,7 +323,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.plan.anthropic': 'Anthropic subscription', 'panel.plan.chatgpt': 'ChatGPT subscription', 'panel.plan.freePool': 'No provider · free pool',
     'panel.plan.deepseek': 'This host\'s API account', 'panel.plan.minimax': 'Token Plan · key from the OpenClaw config',
     'panel.source.hostApi': 'API account', 'panel.source.openclaw': 'OpenClaw',
-    'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
+    'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolSize': '{n} in pool', 'panel.poolSwap': '{n} free models, each a stand-in for the next', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
     'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting',
     'panel.staleAt': 'Refresh failed ({message}); showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
     'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
@@ -1495,8 +1499,8 @@ export function _slotOf(task: DispatchTask): { agent: string; slot: string } | n
 type SlotLane = { agent: string; used: number; max: number | null; tone: BalanceTone }
 
 /**
- * Each agent's run slots — limits.env order, then any agent seen holding one
- * that limits.env does not name. A full lane with a task of that agent queued
+ * Each agent's run slots, in the panel's order (providers.ts), limits.env's
+ * agents and any agent seen holding one that limits.env does not name. A full lane with a task of that agent queued
  * is amber: that is the queue's reason at a glance. A host older than
  * slotLimits sends none: the lanes then come from the held slots alone,
  * without a maximum.
@@ -1505,7 +1509,7 @@ export function _slotLanes(result: TaskQueueResult): SlotLane[] {
   const held = result.active.map(_slotOf).filter((slot): slot is NonNullable<ReturnType<typeof _slotOf>> => slot !== null)
   const limits = new Map((result.slotLimits ?? []).map((limit) => [limit.agent, limit.max] as const))
   for (const slot of held) if (!limits.has(slot.agent)) limits.set(slot.agent, -1)
-  return [...limits].map(([agent, limit]) => {
+  return byAgentRank([...limits].map(([agent, limit]) => ({ agent, limit }))).map(({ agent, limit }) => {
     const used = held.filter((slot) => slot.agent === agent).length
     const max = limit >= 0 ? limit : null
     const queued = result.active.some((task) => task.agent === agent && queuedFor(task))
@@ -1529,6 +1533,7 @@ function durationOf(t: Translate, ms: number): string {
 
 function agoOf(t: Translate, ms: number): string {
   const mins = Math.max(0, Math.floor(ms / 60000))
+  if (mins < 1) return t('queue.ago.now')
   if (mins < 60) return t('queue.ago.minutes', { m: mins })
   if (mins < 48 * 60) return t('queue.ago.hours', { h: Math.floor(mins / 60) })
   return t('queue.ago.days', { d: Math.floor(mins / 1440) })
@@ -1713,7 +1718,7 @@ export const _agentLabel = (agent: string): string => AGENT_LABELS[agent] ?? age
  * square for OpenCode). Outline, monochrome, label ink — so it never competes
  * with the filled model tile beside it, and it is never a status colour.
  */
-function renderAgentGlyph(agent: string): React.ReactElement {
+function renderAgentGlyph(agent: string, size = 14): React.ReactElement {
   const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
   const shape = agent === 'claude'
     ? h('path', { ...stroke, d: 'M7 1.8V12.2M1.8 7H12.2M3.3 3.3L10.7 10.7M10.7 3.3L3.3 10.7' })
@@ -1723,38 +1728,33 @@ function renderAgentGlyph(agent: string): React.ReactElement {
         ? h('path', { ...stroke, d: 'M5 2H2.5V12H5M9 2H11.5V12H9' })
         : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
   return h('svg', {
-    className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true', 'data-tq-agent': agent,
+    className: cx('tq-agent-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true', 'data-tq-agent': agent,
   }, shape)
 }
 
 /**
  * The model layer, read off the model id itself (never a hand-kept model
- * list): `claude-opus-5-5` → Opus 5.5 · `claude-haiku-4-5-20251001` → Haiku
- * 4.5 · `gpt-6-sol` → GPT-6 Sol · `opencode/nemotron-3-ultra-free` →
- * Nemotron 3 Ultra. The mark is two letters of the family, drawn as a filled
- * tile: a letterform stand-in, since no brand artwork may ship offline.
+ * list), as its maker names it in full: `claude-opus-5-5` → Claude Opus 5.5 ·
+ * `claude-haiku-4-5-20251001` → Claude Haiku 4.5 · `gpt-6-sol` → GPT-6 Sol ·
+ * `opencode/nemotron-3-ultra-free` → Nemotron 3 Ultra. No letter tile in
+ * front (kcn, 2026-09-27: the two-letter stand-in was noise); the room goes
+ * to the whole name.
  */
-export function _modelView(id: string): { label: string; mark: string; family: string } {
-  if (id === '') return { label: '—', mark: '', family: '' }
+export function _modelView(id: string): { label: string; family: string } {
+  if (id === '') return { label: '—', family: '' }
   const bare = id.includes('/') ? id.slice(id.lastIndexOf('/') + 1) : id
   const title = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1)
   const claude = /^claude-([a-z]+)(?:-(\d+))?(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(bare)
   if (claude) {
     const version = [claude[2], claude[3]].filter(Boolean).join('.')
-    return { label: title(claude[1]!) + (version ? ' ' + version : ''), mark: title(claude[1]!).slice(0, 2), family: 'claude' }
+    return { label: 'Claude ' + title(claude[1]!) + (version ? ' ' + version : ''), family: 'claude' }
   }
   const gpt = /^gpt-([\d.]+)(?:-([a-z]+))?$/.exec(bare)
-  if (gpt) return { label: 'GPT-' + gpt[1] + (gpt[2] ? ' ' + title(gpt[2]) : ''), mark: 'G' + gpt[1]!.charAt(0), family: 'gpt' }
-  if (/^[a-z]+$/.test(bare) && !id.includes('/')) return { label: title(bare), mark: title(bare).slice(0, 2), family: bare }
+  if (gpt) return { label: 'GPT-' + gpt[1] + (gpt[2] ? ' ' + title(gpt[2]) : ''), family: 'gpt' }
+  if (/^[a-z]+$/.test(bare) && !id.includes('/')) return { label: title(bare), family: bare }
   const words = bare.replace(/-(free|contributor)(?=-|$)/g, '').split('-').filter((word) => word !== '')
   const label = words.map((word) => /^[a-z]/.test(word) ? title(word) : word).join(' ')
-  return { label, mark: title(words[0] ?? bare).slice(0, 2), family: words[0] ?? bare }
-}
-
-function renderModelMark(id: string): React.ReactElement | null {
-  const view = _modelView(id)
-  if (view.mark === '') return null
-  return h('span', { className: cx('tq-model-mark'), 'data-tq-model': view.family, 'aria-hidden': 'true' }, view.mark)
+  return { label, family: words[0] ?? bare }
 }
 
 /** "Opus 5.5 · high", with the model the task will run on while it waits and the one it ran on after. */
@@ -1801,40 +1801,50 @@ function notifyState(task: DispatchTask, ch: string): 'sent' | 'failed' | 'plann
 type TaskRowView = { tone: BalanceTone; text: string; dot: boolean }
 
 /**
- * One task: dot · name · status on the first line, model tile + "Opus 5.5 ·
- * high" · attempts on the second, notification glyphs trailing. The whole row
- * opens the detail layer; a waiting task of the current runner also carries a
- * move-up button beside it (a sibling, never a button inside a button).
+ * One task, two lines that each keep their own room: dot · name · status,
+ * then the model's full name · effort (· fallback / patrol) and the numbers
+ * with the notification glyphs. Secondary text is the panel's one grey voice
+ * (tq-sub): single line, ellipsis, the whole text in the row's title. The
+ * numbers say what is not the default — a retry, not "attempt 1". An ended
+ * row, outside any agent group, leads its model with the executor glyph.
+ * The whole row opens the detail layer; a waiting task of the current runner
+ * also carries a move-up button beside it (a sibling, never a button inside a
+ * button).
  */
 function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: Translate, now: number,
   handlers: { open: (id: string) => void; moveUp?: (task: DispatchTask) => void; busy: boolean }): React.ReactElement {
   const m = modelLine(task, live)
   const model = _modelView(m.model).label + (m.effort ? ' · ' + m.effort : '')
   const cost = _costOf(task)
-  const num = (live
-    ? [task.attempts > 0 ? t('queue.attempt', { n: task.attempts }) : null,
-      task.startedAtMs === null ? null : durationOf(t, now - (task.queuedAtMs ?? task.startedAtMs)),
-      task.stalls ? t('queue.stalls', { n: task.stalls }) : null].filter(Boolean).join(' · ')
-    : task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)) + (cost === null ? '' : ' · ' + cost.short)
+  const num = [
+    ...(live
+      ? [task.attempts > 1 ? t('queue.attempt', { n: task.attempts }) : null,
+        task.startedAtMs === null ? null : durationOf(t, now - (task.queuedAtMs ?? task.startedAtMs)),
+        task.stalls ? t('queue.stalls', { n: task.stalls }) : null]
+      : [task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)]),
+    cost === null ? null : cost.short,
+  ].filter(Boolean).join(' · ')
   return h('div', { className: cx('tq-item'), key: task.id, 'data-tq-item': task.id },
     h('button', {
       type: 'button',
       className: cx('tq-row'),
       'data-tq-task': task.id,
       'data-tq-waiting': task.waiting,
-      'aria-label': [task.name, view.text, model, num, t('queue.d.open')].filter(Boolean).join(' · '),
-      title: task.name,
+      'aria-label': [task.name, view.text, live ? '' : _agentLabel(task.agent), model, num, t('queue.d.open')].filter(Boolean).join(' · '),
+      title: [task.name, view.text, model, num].filter(Boolean).join(' · '),
       onClick: () => { handlers.open(task.id) },
     },
       view.dot ? h('span', { className: cx('tq-dot'), 'data-balance-state': view.tone }) : h('span', { className: cx('tq-dot-none') }),
-      h('span', { className: cx('tq-name') }, task.name),
-      h('span', { className: cx('tq-v'), 'data-balance-state': view.tone }, view.text),
-      h('span', { className: cx('tq-meta') },
-        renderModelMark(m.model),
-        h('span', { className: cx('tq-meta-text') }, model),
-        m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.fallback')) : null,
-        task.patrol ? h('span', { className: cx('tq-tag') }, t('queue.patrolTag')) : null),
-      h('span', { className: cx('tq-num') }, num, renderNotifyIcons(task, t))),
+      h('span', { className: cx('tq-line') },
+        h('span', { className: cx('tq-name') }, task.name),
+        h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': view.tone }, view.text)),
+      h('span', { className: cx('tq-line') },
+        h('span', { className: cx('tq-meta') },
+          live ? null : renderAgentGlyph(task.agent, 12),
+          h('span', { className: cx('tq-sub', 'tq-meta-text') }, model),
+          m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.fallback')) : null,
+          task.patrol ? h('span', { className: cx('tq-tag') }, t('queue.patrolTag')) : null),
+        h('span', { className: cx('tq-num') }, h('span', { className: cx('tq-sub') }, num), renderNotifyIcons(task, t)))),
     handlers.moveUp === undefined ? null : h('button', {
       type: 'button',
       className: cx('tq-icon-btn'),
@@ -1881,11 +1891,13 @@ export type PanelSource = {
 }
 
 /**
- * The order rule, written once: every joined row that has a dispatch agent,
- * in PROVIDER_JOIN order (claude, codex, opencode), then an agent the queue
- * reports that no row names, then every other provider in the balance
- * answer's order (= BALANCE_PROVIDERS). Agent rows need a dispatcher (C3 ②:
- * without one only providers render); a provider row needs its provider.
+ * The panel's sources in providers.ts's order (sourceRank: the paid,
+ * exclusive allowances first, the free pool last, anything without a row
+ * among the paid ones). A joined row with a dispatch agent renders with its
+ * queue; an agent the queue reports that no row names gets a line of its own;
+ * a provider without an agent renders when the balance answer has it. Agent
+ * rows need a dispatcher (C3 ②: without one only providers render); a
+ * provider row needs its provider.
  */
 export function _panelSources(providers: BalancesResult['providers'], queue: TaskQueueResult | null): PanelSource[] {
   const dispatcher = queue !== null && queue.available
@@ -1893,13 +1905,11 @@ export function _panelSources(providers: BalancesResult['providers'], queue: Tas
   const out: PanelSource[] = []
   const placed = new Set<string>()
   for (const join of PROVIDER_JOIN) {
-    if (join.agent === null) continue
     const provider = join.provider === null ? null : byId.get(join.provider) ?? null
-    if (provider === null && !dispatcher) continue
-    const key = join.provider ?? join.agent
-    out.push({ key, label: provider?.label ?? _agentLabel(join.agent), join, provider, agent: dispatcher ? join.agent : null })
+    if (join.agent === null ? provider === null : provider === null && !dispatcher) continue
+    const key = join.provider ?? join.agent!
+    out.push({ key, label: provider?.label ?? _agentLabel(join.agent ?? key), join, provider, agent: dispatcher ? join.agent : null })
     placed.add(key)
-    if (join.provider !== null) placed.add(join.provider)
   }
   if (dispatcher) {
     const agents = [...new Set([...(queue!.slotLimits ?? []).map((l) => l.agent), ...queue!.active.map((t) => t.agent)])]
@@ -1911,9 +1921,11 @@ export function _panelSources(providers: BalancesResult['providers'], queue: Tas
   }
   for (const provider of providers) {
     if (placed.has(provider.provider)) continue
-    out.push({ key: provider.provider, label: provider.label, join: PROVIDER_JOIN.find((j) => j.provider === provider.provider) ?? null, provider, agent: null })
+    out.push({ key: provider.provider, label: provider.label, join: null, provider, agent: null })
   }
-  return out
+  return out.map((source, at) => ({ source, at, rank: sourceRank({ provider: source.provider?.provider ?? source.join?.provider, agent: source.agent ?? source.join?.agent }) }))
+    .sort((a, b) => a.rank - b.rank || a.at - b.at)
+    .map(({ source }) => source)
 }
 
 /** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
@@ -1952,33 +1964,46 @@ function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; shor
 }
 
 /**
- * The provider identity layer for a row with no agent glyph: 14px outline,
- * the executor glyphs' stroke and size. A letterform-free stand-in (no brand
- * artwork ships offline): DeepSeek a coin (money), MiniMax a wave, anything
- * else a plain ring.
+ * Brand marks the host itself ships, drawn in the glyph ink: DeepSeek's whale
+ * is dsh's own logo (the same path its sidebar header draws), so the plugin
+ * carries no artwork the host does not already show.
+ */
+const DEEPSEEK_WHALE = 'M22.9168 1.43018C22.6713 1.31018 22.5658 1.53918 22.4223 1.65519C22.3733 1.69269 22.3318 1.74169 22.2903 1.78669C21.9317 2.1697 21.5127 2.42121 20.9657 2.39121C20.1657 2.34621 19.4827 2.59771 18.8787 3.20973C18.7502 2.45521 18.3236 2.0047 17.6746 1.71569C17.3351 1.56568 16.9916 1.41518 16.7536 1.08867C16.5876 0.856163 16.5421 0.597155 16.4591 0.341647C16.4061 0.187643 16.3536 0.0301382 16.1761 0.00363739C15.9836 -0.0263635 15.9081 0.135141 15.8326 0.270145C15.5306 0.822162 15.4136 1.43018 15.4251 2.0462C15.4516 3.43174 16.0366 4.53527 17.1991 5.3203C17.3311 5.4103 17.3651 5.5003 17.3236 5.63181C17.2441 5.90231 17.1501 6.16482 17.0671 6.43533C17.0141 6.60784 16.9351 6.64584 16.7501 6.57033C16.1121 6.30383 15.5611 5.90931 15.074 5.4328C14.2475 4.63328 13.5 3.75075 12.568 3.05973C12.349 2.89822 12.13 2.74822 11.9034 2.60522C10.9524 1.68169 12.028 0.923165 12.277 0.833162C12.5375 0.739159 12.3675 0.41615 11.5259 0.42015C10.6844 0.42365 9.91439 0.705658 8.93286 1.08117C8.78935 1.13767 8.63835 1.17867 8.48384 1.21267C7.59332 1.04367 6.66829 1.00617 5.70226 1.11517C3.88321 1.31768 2.43016 2.1777 1.36213 3.64575C0.0790928 5.4103 -0.222916 7.41536 0.146595 9.50642C0.535106 11.7105 1.66014 13.535 3.38869 14.9616C5.18125 16.4406 7.24581 17.1657 9.60138 17.0266C11.0319 16.9441 12.6245 16.7526 14.421 15.2321C14.874 15.4576 15.3496 15.5476 16.1381 15.6151C16.7456 15.6716 17.3306 15.5851 17.7836 15.4911C18.4931 15.3411 18.4441 14.6841 18.1876 14.5636C16.1081 13.595 16.5646 13.9891 16.1496 13.67C17.2061 12.42 18.8202 10.1979 19.3182 7.17235C19.3672 6.83834 19.4297 6.36783 19.4222 6.09732C19.4182 5.93231 19.4562 5.86831 19.6447 5.84931C20.1657 5.78931 20.6712 5.64681 21.1357 5.3913C22.4833 4.65528 23.0268 3.44624 23.1548 1.9972C23.1738 1.77569 23.1508 1.54668 22.9168 1.43018ZM11.1749 14.4736C9.15936 12.889 8.18184 12.3675 7.77832 12.39C7.40081 12.4125 7.46881 12.8445 7.55182 13.126C7.63882 13.404 7.75182 13.5955 7.91033 13.8396C8.01983 14.0011 8.09533 14.2411 7.80083 14.4216C7.15181 14.8231 6.02327 14.2866 5.97027 14.2601C4.65673 13.4865 3.5587 12.4655 2.78467 11.069C2.03715 9.72493 1.60314 8.28289 1.53164 6.74384C1.51264 6.37233 1.62214 6.24082 1.99215 6.17332C2.47916 6.08332 2.98118 6.06432 3.46769 6.13582C5.52476 6.43633 7.27581 7.35586 8.74385 8.8129C9.58188 9.64243 10.2159 10.634 10.8689 11.6025C11.5634 12.631 12.3105 13.611 13.262 14.4146C13.598 14.6961 13.866 14.9101 14.1225 15.0681C13.349 15.1546 12.058 15.1731 11.1749 14.4746L11.1749 14.4736ZM12.141 8.25988C12.141 8.09488 12.273 7.96338 12.439 7.96338C12.4765 7.96338 12.5105 7.97088 12.541 7.98188C12.5825 7.99688 12.6205 8.01938 12.6505 8.05338C12.7035 8.10588 12.7335 8.18088 12.7335 8.25988C12.7335 8.42489 12.6015 8.55639 12.4355 8.55639C12.2695 8.55639 12.141 8.42489 12.141 8.25988ZM15.1415 9.79893C14.949 9.87793 14.7565 9.94544 14.5715 9.95294C14.2845 9.96794 13.9715 9.85143 13.8015 9.70893C13.5375 9.48742 13.3485 9.36342 13.2695 8.97691C13.2355 8.8119 13.2545 8.55639 13.2845 8.40989C13.3525 8.09438 13.277 7.89187 13.0545 7.70787C12.8735 7.55786 12.643 7.51636 12.39 7.51636C12.2955 7.51636 12.209 7.47486 12.1445 7.44136C12.039 7.38886 11.9519 7.25735 12.035 7.09585C12.0615 7.04335 12.19 6.91584 12.22 6.89334C12.5635 6.69784 12.9595 6.76184 13.326 6.90834C13.6655 7.04735 13.9225 7.30236 14.292 7.66287C14.6695 8.09838 14.7375 8.21838 14.9525 8.54539C15.1225 8.8009 15.277 9.06341 15.3831 9.36392C15.4471 9.55142 15.3641 9.70493 15.1415 9.79893Z'
+
+/**
+ * The provider identity layer for a row with no agent glyph: 14px, the
+ * executor glyphs' ink. DeepSeek is its whale; the rest keep a letterform-free
+ * outline — MiniMax a wave, anything else a plain ring.
  */
 function renderSourceGlyph(source: PanelSource): React.ReactElement {
   if (source.agent !== null || source.join?.agent) return renderAgentGlyph(source.agent ?? source.join!.agent!)
+  if (source.key === 'deepseek') {
+    return h('svg', {
+      className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 -3.06 23.16 23.16', 'aria-hidden': 'true', 'data-pp-provider': source.key,
+    }, h('path', { d: DEEPSEEK_WHALE, fill: 'currentColor' }))
+  }
   const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
-  const kind = source.join?.kind
-  const shape = kind === 'money'
-    ? [h('circle', { ...stroke, key: 'c', cx: 7, cy: 7, r: 5.2 }), h('path', { ...stroke, key: 'p', d: 'M5 4.8L7 7.2L9 4.8M7 7.2V9.8M5.4 8H8.6' })]
-    : kind === 'windows'
-      ? h('path', { ...stroke, d: 'M1.8 9.5L4 4.5L7 9.5L10 4.5L12.2 9.5' })
-      : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
+  const shape = source.join?.kind === 'windows'
+    ? h('path', { ...stroke, d: 'M1.8 9.5L4 4.5L7 9.5L10 4.5L12.2 9.5' })
+    : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
   return h('svg', {
     className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true', 'data-pp-provider': source.key,
   }, shape)
 }
 
-/** The folded reading of a provider: headline value, its window's reset (resetStampOf, the one clock), tone. */
+/**
+ * The folded reading of a provider: headline value, then its aside — a
+ * window's reset (↻, resetStampOf, the one clock) or, for the free pool, how
+ * many models stand in for one another there (⇄) — and the tone.
+ */
 function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: TaskQueueResult | null, t: Translate): {
   value: string; reset: string | null; tone: BalanceTone; level: UsedLevel | null; title: string
 } {
-  if (row !== undefined) return { value: row.view.value, reset: row.view.reset, tone: row.view.tone, level: row.view.level, title: row.view.title }
+  if (row !== undefined) return { value: row.view.value, reset: row.view.reset === null ? null : '↻ ' + row.view.reset, tone: row.view.tone, level: row.view.level, title: row.view.title }
   if (source.join?.kind === 'pool') {
     const pos = _poolPosition(queue)
-    return { value: pos === null ? '—' : _modelView(pos.current).label, reset: null, tone: 'none', level: null,
+    const size = queue?.opencodePool?.length ?? 0
+    return { value: pos === null ? '—' : _modelView(pos.current).label, reset: size > 1 ? '⇄ ' + t('panel.poolSize', { n: size }) : null, tone: 'none', level: null,
       title: pos === null ? t('panel.poolUnread') : t('panel.pool', { current: pos.current, next: pos.next || '—' }) + (pos.fromOrder ? t('panel.poolOrder') : '') }
   }
   return { value: '—', reset: null, tone: 'none', level: null, title: '' }
@@ -1987,6 +2012,81 @@ function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: 
 type PanelUi = DetailUi & {
   /** Rows by provider id with their display projection (the balance channel). */
   rows: Map<string, BalanceRow>
+}
+
+/**
+ * A section's title line, one shape for every section of the panel (the
+ * provider groups, what just ended, patrol): 14px glyph · name · caption in
+ * the secondary voice (it gives way first) … the trailing state.
+ */
+function renderGroupHead(glyph: React.ReactElement, name: string, caption: string | null, trailing: React.ReactElement | null): React.ReactElement {
+  return h('div', { className: cx('tq-group-head') },
+    glyph,
+    h('span', { className: cx('tq-group-name') }, name),
+    caption === null ? null : h('span', { className: cx('tq-sub', 'pp-plan'), title: caption }, caption),
+    trailing)
+}
+
+/** Section glyphs in the executor glyphs' 14px outline: a clock turning back (just ended), a shield (patrol). */
+function renderSectionGlyph(kind: 'recent' | 'patrol'): React.ReactElement {
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
+  return h('svg', { className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+    kind === 'recent'
+      ? h('path', { ...stroke, d: 'M2.6 7.6A4.5 4.5 0 1 0 3.9 3.8M3.6 1.6V4.1H6.1M7 4.6V7.2L8.7 8.3' })
+      : h('path', { ...stroke, d: 'M7 1.8L11.4 3.4V6.9C11.4 9.5 9.6 11.4 7 12.2C4.4 11.4 2.6 9.5 2.6 6.9V3.4ZM5 7L6.4 8.4L9.1 5.7' }))
+}
+
+/** The patrol phase's tone, one colour one meaning: running blue, giving way amber, between rounds quiet, stopped red. */
+const PATROL_TONE: Record<string, BalanceTone> = { running: 'ok', yielding: 'stale', waiting: 'none', stopped: 'low', unknown: 'none' }
+
+/** The phase as the patrol section's trailing state (the heading already says "patrol"). */
+function patrolStateOf(result: TaskQueueResult, t: Translate, now: number): string {
+  const patrol = result.patrol
+  if (patrol.phase === 'waiting' && patrol.untilMs !== null) {
+    return t('queue.patrolState.waitingUntil', { time: resetStampOf(t, { resetAt: '', resetAtMs: patrol.untilMs }, now) })
+  }
+  return t('queue.patrolState.' + patrol.phase)
+}
+
+/** A finished round's tone, read like an ended task's: failed red, anything short of ok/DONE amber, done quiet. */
+function roundTone(result: string): BalanceTone {
+  if (/fail/i.test(result)) return 'low'
+  return /^ok(\/DONE)?$/.test(result) ? 'none' : 'stale'
+}
+
+/** rounds.tsv's local "YYYY-MM-DD HH:MM:SS" as epoch ms, null when it is not one. */
+function localStampMs(stamp: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(stamp.trim())
+  return m ? new Date(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!, +(m[6] ?? 0)).getTime() : null
+}
+
+/**
+ * Patrol: the phase on the heading line; the supervisor's last words (the
+ * current round's id only when those words do not already name it — the
+ * round's own row sits in its agent's group); then the last rounds on one
+ * grid — id · axis · result (toned) · took · ended.
+ */
+function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number): React.ReactElement {
+  const patrol = result.patrol
+  const tone = PATROL_TONE[patrol.phase] ?? 'none'
+  const roundLine = patrol.round !== '' && !patrol.detail.includes(patrol.round)
+  return h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
+    renderGroupHead(renderSectionGlyph('patrol'), t('queue.patrolHeading'), null,
+      h('span', { className: cx('tq-sub', 'tq-lane', 'tq-v'), 'data-tq-patrol': patrol.phase, 'data-balance-state': tone, title: patrolPhraseOf(result, t, now) },
+        h('span', { className: cx('tq-dot'), 'data-balance-state': tone }),
+        patrolStateOf(result, t, now))),
+    roundLine ? h('div', { className: cx('tq-sub', 'tq-note'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
+    patrol.detail !== '' ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), title: patrol.detail }, patrol.detail) : null,
+    patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds'), role: 'table', 'aria-label': t('queue.roundsHeading') },
+      patrol.rounds.map((round) => {
+        const ended = localStampMs(round.endedAt)
+        return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, role: 'row', title: round.endedAt },
+          h('span', { className: cx('tq-sub', 'tq-round-id') }, round.round),
+          h('span', { className: cx('tq-sub', 'tq-round-axis') }, round.axis),
+          h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result) }, round.result),
+          h('span', { className: cx('tq-sub', 'tq-round-num') }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
+          h('span', { className: cx('tq-sub', 'tq-round-num') }, ended === null ? '—' : agoOf(t, now - ended)))
+      })))
 }
 
 /** One provider group of the open panel: identity and plan, the allowance, then the queue it feeds. */
@@ -2013,26 +2113,25 @@ function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, 
     className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': agent ?? undefined,
     'aria-label': source.label, tabIndex: -1,
   },
-    h('div', { className: cx('tq-group-head') },
-      renderSourceGlyph(source),
-      h('span', { className: cx('tq-group-name') }, source.label,
-        planKey === undefined ? null : h('span', { className: cx('pp-plan') }, ' · ' + t(planKey))),
-      lane === undefined ? null : h('span', { className: cx('tq-lane'), 'data-tq-lane': lane.agent, title: t('queue.lanesTitle') },
+    renderGroupHead(renderSourceGlyph(source), source.label, planKey === undefined ? null : t(planKey),
+      lane === undefined ? null : h('span', { className: cx('tq-sub', 'tq-lane'), 'data-tq-lane': lane.agent, title: t('queue.lanesTitle') },
         h('span', { className: cx('tq-dot'), 'data-balance-state': lane.tone }),
         t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }))),
     row === undefined ? null : h('div', { className: cx('pp-allowance'), 'data-pb-provider': row.provider, 'data-pb-role': 'panel', 'data-balance-state': row.view.tone },
       // Money has no bar (⑤): the amount, then its granted / topped-up split from renderRowDetail.
       row.result.snapshot !== null && row.result.snapshot.unit !== 'pct'
         ? h('div', { className: cx('pp-money'), 'data-balance-state': row.view.tone }, row.view.value) : null,
-      balanceNote === null ? null : h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
+      balanceNote === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
       renderRowDetail(row, t, now)),
-    source.join?.kind === 'pool' ? h('div', { className: cx('tq-note'), 'data-pp-pool': pool === null ? 'unread' : pool.fromOrder ? 'order' : 'used' },
+    // The free pool is one line for all its models: where the rotation is, and how many stand in for one another.
+    source.join?.kind === 'pool' ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), 'data-pp-pool': pool === null ? 'unread' : pool.fromOrder ? 'order' : 'used' },
       pool === null ? t('panel.poolUnread')
-        : t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : '')) : null,
+        : t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : '')
+          + ((result?.opencodePool?.length ?? 0) > 1 ? ' · ' + t('panel.poolSwap', { n: result!.opencodePool!.length }) : '')) : null,
     agent === null ? null : [
-      ...notes.map((note, i) => h('div', { className: cx('tq-note'), key: 'n' + i }, note)),
+      ...notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), key: 'n' + i }, note)),
       tasks.length === 0
-        ? h('div', { className: cx('tq-empty'), key: 'idle' }, t('queue.groupIdle'))
+        ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'idle' }, t('queue.groupIdle'))
         : groupOrder(tasks, queue).map((task) => renderTaskRow(task, { ..._taskStatus(task, t, now, ui.windowsOf(task.agent)), dot: true }, true, t, now, {
           open: ui.open,
           moveUp: ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? (r) => { ui.act('priority', r, 'up') } : undefined,
@@ -2070,35 +2169,21 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
   const skew = dispatcher ? opsProblem(result!, t) : ''
   const patrol = dispatcher ? result!.patrol : null
   return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
-    notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
+    notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
     queueProblem !== null && queueProblem !== ''
-      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'qerr', role: 'status' }, t('queue.staleWith', { message: queueProblem })) : null,
+      ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'qerr', role: 'status' }, t('queue.staleWith', { message: queueProblem })) : null,
     balanceProblem !== null
-      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'berr', role: 'status' },
+      ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'berr', role: 'status' },
         balanceState.rows.length === 0 ? t('balance.readFailed', { message: balanceProblem }) : t('balance.staleWith', { message: balanceProblem })) : null,
-    sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
+    sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
+    // What just ended, in the groups' order (providers.ts), newest first within an agent.
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
-      h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.recentHeading'))),
-      result!.recent.map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
+      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null, null),
+      byAgentRank(result!.recent).map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
         { open: ui.open, busy: false }))),
-    patrol === null ? null : h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
-      h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.patrolHeading'))),
-      h('div', { className: cx('tq-patrol'), 'data-tq-patrol': patrol.phase },
-        h('span', { className: cx('tq-name') }, patrolPhraseOf(result!, t, now)),
-        patrol.round !== '' ? h('span', { className: cx('tq-meta-text'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
-        patrol.detail !== '' ? h('span', { className: cx('tq-meta-text', 'tq-wrap') }, patrol.detail) : null),
-      patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds') },
-        patrol.rounds.flatMap((round) => {
-          const key = 'round-' + round.endedAt + round.round
-          return [
-            h('span', { className: cx('tq-round-id'), key: key + '-id' }, round.round),
-            h('span', { className: cx('tq-round-axis'), key: key + '-axis' }, round.axis),
-            h('span', { className: cx('tq-round-result'), key: key + '-result' }, round.result),
-            h('span', { className: cx('tq-num'), key: key + '-took' }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
-          ]
-        }))),
-    ops === undefined ? null : h('div', { className: cx('tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
+    patrol === null ? null : renderPatrolSection(result!, t, now),
+    ops === undefined ? null : h('div', { className: cx('tq-sub', 'tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
       skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
   ])]
 }
@@ -2202,7 +2287,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     : null
   const fields: Array<[key: string, value: unknown, mono?: boolean]> = [
     ['queue.d.agent', h('span', { className: cx('tq-inline') }, renderAgentGlyph(task.agent), _agentLabel(task.agent))],
-    ['queue.d.model', m.model === '' ? null : h('span', { className: cx('tq-inline') }, renderModelMark(m.model),
+    ['queue.d.model', m.model === '' ? null : h('span', { className: cx('tq-inline') },
       _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''),
       m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.d.fallbackFrom', { model: _modelView(requested).label })) : null)],
     ['queue.d.slot', slot === null ? null : `${slot.agent}-${slot.slot}`],
@@ -2547,7 +2632,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
     || lines.some((line) => line.reading.tone === 'stale')
   const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
-  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset === null ? '' : '↻ ' + line.reading.reset, line.last.text]
+  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset ?? '', line.last.text]
     .filter((part) => part !== '').join(' ')).join(' · ')
   const toggle = (key: string | null, opener: HTMLElement | null): void => {
     openerRef.current = opener
@@ -2563,7 +2648,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             type: 'button', className: cx('pp-row', 'pp-empty'), 'data-pp-row': '', 'aria-expanded': open, 'aria-haspopup': 'dialog',
             'data-active': open ? '' : undefined,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
-          }, h('span', { className: cx('pp-name') }, t('panel.title')), h('span', { className: cx('pp-last') }, balanceState.empty.title))
+          }, h('span', { className: cx('pp-name') }, t('panel.title')), h('span', { className: cx('tq-sub', 'pp-last') }, balanceState.empty.title))
           : lines.map(({ source, reading, last }) => h('button', {
             type: 'button',
             key: source.key,
@@ -2575,7 +2660,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             'data-active': open && focusKey === source.key ? '' : undefined,
             'aria-expanded': open,
             'aria-haspopup': 'dialog',
-            'aria-label': [source.label, reading.value, reading.reset === null ? '' : '↻ ' + reading.reset, last.text, t('panel.openGroup', { name: source.label })]
+            'aria-label': [source.label, reading.value, reading.reset ?? '', last.text, t('panel.openGroup', { name: source.label })]
               .filter((part) => part !== '').join(' · '),
             title: reading.title,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
@@ -2584,8 +2669,8 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             h('span', { className: cx('pp-name') }, source.label),
             h('span', { className: cx('pp-reading') },
               h('span', { className: cx('pp-v'), 'data-balance-state': reading.tone, 'data-used-level': reading.level ?? undefined }, reading.value),
-              reading.reset === null ? null : h('span', { className: cx('pp-reset') }, '↻ ' + reading.reset)),
-            h('span', { className: cx('pp-last'), 'data-balance-state': last.tone, 'aria-hidden': 'true' }, last.short))))
+              reading.reset === null ? null : h('span', { className: cx('pp-reset') }, reading.reset)),
+            h('span', { className: cx('tq-sub', 'pp-last'), 'data-balance-state': last.tone, 'aria-hidden': 'true' }, last.short))))
       : h('button', {
         type: 'button',
         className: cx('bchip', 'pp-rail'),
