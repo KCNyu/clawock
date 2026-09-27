@@ -213,7 +213,11 @@ def slice_reference(value, *, ticker=None, since=None):
                 out[key] = [row for row in item if hit(row)]
             elif isinstance(item, dict) and ticker is not None and ticker in item:
                 out[key] = {ticker: item[ticker]}
-            elif ticker is None:
+            elif isinstance(item, dict) and key == 'live':
+                nested = slice_reference(item, ticker=ticker, since=since)
+                if nested:
+                    out[key] = nested
+            elif key == 'macro' or ticker is None:
                 out[key] = item
         return out
     return value

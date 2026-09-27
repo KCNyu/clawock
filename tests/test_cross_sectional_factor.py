@@ -86,6 +86,19 @@ def test_quality_snapshot_uses_filing_date_and_never_future_information():
     assert snapshot["raw_score"] == pytest.approx(0.211111)
 
 
+def test_total_revenue_outranks_contract_revenue_for_same_period():
+    facts = {"facts": {"us-gaap": {
+        "RevenueFromContractWithCustomerExcludingAssessedTax": {
+            "units": {"USD": [_fact(75_207_000, "2026-08-05", end="2026-06-30", form="10-Q")]}},
+        "Revenues": {"units": {"USD": [
+            _fact(1_395_448_000, "2026-08-05", end="2026-06-30", form="10-Q")]}},
+        "OperatingIncomeLoss": {"units": {"USD": [
+            _fact(79_361_000, "2026-08-05", end="2026-06-30", form="10-Q")]}},
+    }}}
+    snapshot = factor.quality_snapshot(facts, "2026-09-27")
+    assert snapshot["metrics"]["operating_margin"] == pytest.approx(0.056871, abs=1e-6)
+
+
 def test_rank_snapshot_is_centered_within_sector_not_across_sector_beta():
     config = _small_config()
     fetched = {

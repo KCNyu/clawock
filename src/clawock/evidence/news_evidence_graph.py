@@ -810,6 +810,7 @@ def _peer_row(peer_payload, event):
 
 def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
     holdings = _portfolio_holdings(portfolio)
+    proxies = _load(FACTOR_CONFIG).get('leveraged_proxies') or []
     factor_rows = factor_payload.get('live_rankings') or {}
     activations = peer_payload.get('rule_activation') or {}
     for event in events:
@@ -818,6 +819,19 @@ def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
             or holdings.get(event['ticker'])
             or {}
         )
+        proxy = next((row for row in proxies
+                      if row.get('ticker') == holding.get('ticker')
+                      and row.get('underlying') == event['ticker']
+                      and isinstance(row.get('leverage'), (int, float))
+                      and row['leverage'] > 0), None)
+        if not holding:
+            proxy = next((row for row in proxies
+                          if row.get('underlying') == event['ticker']
+                          and row.get('ticker') in holdings
+                          and isinstance(row.get('leverage'), (int, float))
+                          and row['leverage'] > 0), None)
+            if proxy:
+                holding = holdings[proxy['ticker']]
         price_pct = holding.get('today_change_pct')
         expected_sign = (
             1 if event['impact_direction'] == 'positive'
@@ -832,10 +846,7 @@ def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
         median_dollar_volume = factor_row.get('liquidity')
         # A leveraged product's tape may confirm direction, but its volume is
         # not comparable with the underlying's median dollar volume.
-        same_instrument = (
-            event['reported_ticker'] == event['ticker']
-            or holding.get('ticker') == event['ticker']
-        )
+        same_instrument = holding.get('ticker') == event['ticker']
         current_volume = holding.get('volume') if same_instrument else None
         current_price = (
             holding.get('current_price') if same_instrument else None
@@ -866,6 +877,7 @@ def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
         peer_usable = bool(peer_observed and usable_peer_rules)
         event['confirmation'] = {
             'price_change_pct': price_pct,
+            'price_proxy_ticker': proxy['ticker'] if proxy else None,
             'price_aligned': price_aligned,
             'volume_ratio_vs_20d_median': (
                 round(volume_ratio, 4) if volume_ratio is not None else None

@@ -184,8 +184,8 @@ def _concept_entries(facts, concept, as_of):
 def quality_snapshot(facts, as_of):
     """Return profitability known by ``as_of``; filing date prevents look-ahead."""
     concepts = {
-        'revenue': ('RevenueFromContractWithCustomerExcludingAssessedTax',
-                    'Revenues', 'SalesRevenueNet'),
+        'revenue': ('Revenues', 'SalesRevenueNet',
+                    'RevenueFromContractWithCustomerExcludingAssessedTax'),
         'gross_profit': ('GrossProfit',),
         'operating_income': ('OperatingIncomeLoss',),
         'net_income': ('NetIncomeLoss', 'ProfitLoss'),
@@ -194,9 +194,11 @@ def quality_snapshot(facts, as_of):
     values = {}
     for label, candidates in concepts.items():
         rows = []
-        for concept in candidates:
-            rows.extend(_concept_entries(facts, concept, as_of))
-        rows.sort(key=lambda row: (row['end'], row['filed']), reverse=True)
+        for priority, concept in enumerate(candidates):
+            rows.extend({**row, '_concept_priority': priority}
+                        for row in _concept_entries(facts, concept, as_of))
+        rows.sort(key=lambda row: (row['end'], -row['_concept_priority'], row['filed']),
+                  reverse=True)
         values[label] = rows
     revenue_rows = values['revenue']
     if not revenue_rows:
