@@ -97,6 +97,12 @@ reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirma
 只安排未来 1–5 个本地交易日的执行。Bull/Bear 可反证、否决或降档，不能凭措辞
 创造 authority、提高 tier 或改股数。
 
+`quant.left_side` 是左侧分批的**观察档**（kcn 2026-09-27，`mode: observe`）：它不在
+`technical.setups` 里、没有 authority，不得据此写 add 决策、`tactical_entry` 或股数。
+加仓侧可以写一行「左侧观察：首档 `rungs[0]`、失效 `invalidation_price` / MA200
+`trend_floor`」，`gate` 非空时写明被哪条闸挡住（`thesis_not_intact` / `negative_information`
+/ `peer_laggard` / `leveraged_excluded`）；数字照抄，不自己推后两档。
+
 **证据族现在有三个(#1086)**：`price_relative`(因子/同业残差)、
 `point_in_time_information`(一手披露)、**`technical_breakout`**(收盘站上前 20 日高
 且 z < `early_no_chase_zscore`)。第三族是 #856 回测里**唯一四周期全绿**的形态

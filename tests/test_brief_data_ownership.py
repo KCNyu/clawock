@@ -66,7 +66,8 @@ def test_preflight_writes_are_committed():
     # Paths preflight (or a script it runs) writes, taken from the source itself.
     written = set(re.findall(r"WS / 'assets' / 'data' / '([^']+)'", PREFLIGHT))
     written |= {'catalysts.json', 't0_setups.json', 't0_setups_history.jsonl',
-                'quant_signals.json', 'quant_signals_history.jsonl', 'em_news.json'}
+                'quant_signals.json', 'quant_signals_history.jsonl', 'em_news.json',
+                'left_side_history.jsonl'}
     unowned = sorted(f for f in written
                      if f not in GHA_OWNED and f'assets/data/{f}' not in staged)
     assert not unowned, (

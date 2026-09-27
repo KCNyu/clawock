@@ -94,6 +94,7 @@ each caller loads the policy and the context it already holds and passes them in
 | defaults for omitted keys, entry profiles, per-tier size, tranche sizing | `decision/add_policy.py` (`READ_DEFAULTS`, `ENTRY_PROFILES`, `read_params`, `tier_terms`, `tranche_plan`) | brief packet, brief opportunity read, intraday add-side read |
 | evidence families and authority tier | `decision/add_alpha.py` (`classify_authority`, `confirmation_setup`) | brief packet; `evaluate-add-alpha` walk-forward |
 | opportunity radar and the three-state reads | `decision/add_side.py` (`radar`, `read_through`, `read_rows`) | `brief_preflight._opportunity_reads` (entry `brief`), `intraday_preflight` (entry `intraday`) |
+| left-side scale-in ladder (rungs under the 20-day high, MA200 permission, invalidation) and its gates, **observe mode** | `decision/left_side.py` (`ladder`, `observe`, `record_history`); rule data `config/left-side-policy.json` | both radars (`left_policy`), brief packet `quant.left_side`, `assets/data/left_side_history.jsonl`, `evaluate-add-shapes --campaigns` |
 | setup detection over bars | `decision/signals.py` (`compute_signals`) | quant refresh, both radars, `evaluate-add-shapes` |
 
 Entries differ only through `add_policy.ENTRY_PROFILES` and their inputs, never
@@ -111,6 +112,81 @@ A threshold only one entry should apply belongs in the policy file as a key, not
 in a caller. Parity is pinned by behaviour, not by searching source:
 `test_both_readers_build_the_same_radar_from_the_same_signals` and
 `test_the_entries_differ_only_in_how_sure_the_close_is`.
+
+### Left side (observe mode)
+
+kcn 2026-09-26 「我个人偏左侧交易…不能只有右侧确认」, and 2026-09-27 「还是要加上，
+只是看怎么用，不可能只有单边右侧交易是好的」: the direction is settled (the 09-27
+rejections on #2005/#1968 are withdrawn). What follows is the shape it runs in.
+
+**Live form: `mode: observe`.** When a held, non-leveraged name closes at least
+`min_depth_atr` ATRs under its prior 20-day high while above MA200, both entries
+print a `wait` row with `kind: left_scale_in`, the first rung and the
+invalidation (`test_both_entries_read_the_left_ladder_as_an_unsized_wait`); the
+brief packet records `quant.left_side` — rungs, invalidation, MA200 floor and the
+first gate that would hold it back (`leveraged_excluded`, `thesis_not_intact`,
+`negative_information`, `peer_laggard`, or none) — and never adds it to
+`technical.setups`, so it cannot size or authorise
+(`test_left_side_is_observed_and_recorded_never_sized`). Every brief appends one
+row per date to `assets/data/left_side_history.jsonl`, a quiet day included.
+kcn may trade the printed ladder at kcn's own discretion; the system gives no size.
+
+Why this shape and not a sized one (run card `add_campaigns-20260927-12aa143a`,
+27 Tencent names, split 2025-07-01, non-leveraged OOS; the card now carries
+`left_vs_right`):
+
+| Measure | Value | Reading |
+|---|---|---|
+| left alone, per unit deployed | 0.64% vs always-in baseline 1.70% | no timing edge from price alone |
+| daily P&L correlation left↔right | 0.57 (IS 0.60; monthly 0.77) | same trades, not a hedge |
+| left's beta on right / alpha after beta | 0.78 / −0.72% of book a year at a 1% unit | more of the right side, slightly worse |
+| Sharpe hurdle `corr × Sharpe(right)` vs Sharpe(left) | 0.62 vs 0.42 (IS 1.33 vs 1.28) | adding left lowers risk-adjusted return |
+| right + left at weight 0 / 0.25 / 0.5 / 1 | Sharpe 1.08 / 1.00 / 0.91 / 0.79; drawdown −1.79 / −2.47 / −3.30 / −5.45% | P&L rises only by taking more risk |
+| months right lost (7)¹ | left lost too, −5.87% of book | amplifies right's bad months |
+| per rung, unit return to exit¹ | IS 3.6 / 3.9 / 0.19%, OOS 1.56 / 0.23 / −0.69% | the third rung is the weakest in both halves |
+| five 3-month walk-forward folds, left mean¹ | 7.89 / −0.80 / −4.10 / 6.10 / 0.86% | regime-dependent |
+
+¹ One-off analysis on the same series, not in the card; every other row is in
+the card (`families`, `left_vs_right`) and reruns with
+`clawock evaluate-add-shapes --campaigns --source tencent`.
+
+The combined family's OOS interval turning positive (+0.05% lower bound, 401 vs
+172 campaigns) is more campaigns pooled into one mean, not diversification. The
+`proposed_sizing` row is a linear rescale of fixed units and is not a tradeable
+forecast. The one plausible source of an edge the price test cannot see is the
+packet's thesis / information / peer gates, which have no point-in-time history
+before 2026-07/08; they can only be measured forward, which is what the history
+file is for.
+
+Forms not taken, and what each costs:
+
+- *Joint budget with the right side, allocated by marginal contribution* — the
+  allocation this evidence gives left is zero; taking it would be the rejection
+  again under another name.
+- *Separate small sized family now* — adds right-side beta with negative alpha
+  and unreplayed gates; small size bounds the loss but not the fact that it is
+  unsupported.
+- *Narrow gate opened live, gate measured afterwards* — the gate is the
+  hypothesis; sizing before it has a sample commits money to the hypothesis.
+- Cost of `observe`: no system-sized left trade until the sample exists, and
+  kcn's own left trades are outside the ledger's campaign ids.
+
+Still rejected, not reopened: the MA200-free deep dip (`left_no_ma200`, OOS
+drawdown −14.93% of book), the left rule on daily-reset leveraged products
+(negative in both halves), and right-side pyramiding (marginal unit no better
+than random entry).
+
+**Pending kcn decision** (recommended values, not applied): switch
+`left_side.mode` to `authorize` once `left_side_history.jsonl` holds at least 20
+gate-passed ladders whose first rung filled, their 20-session mean return per
+unit is above the always-in baseline over the same dates, and gate-passed beats
+gate-blocked; then authorise **rung 1 only** (rungs 2–3 stay printed, not sized),
+non-leveraged, at 0.25% of the market book per campaign inside the existing
+`exploration_max_book_pct`, not in addition to it. Each number in that sentence —
+the 20, the rung count, the 0.25% and the shared cap — is kcn's to set. The
+left terms live in `config/left-side-policy.json`, not in
+`add-alpha-policy.json`, because that file's hash is the exploration campaign id;
+editing it would reset every one-tranche-per-policy count.
 
 ## Intraday decision and delivery boundary
 

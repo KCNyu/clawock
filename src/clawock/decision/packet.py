@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.decision import add_alpha, add_policy, early_trend
+from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
@@ -581,6 +581,13 @@ def _add_alpha_policy(context: dict) -> dict:
     return json.loads(ADD_ALPHA_POLICY.read_text(encoding="utf-8"))
 
 
+def _left_side_policy(context: dict) -> dict:
+    supplied = context.get("left_side_policy")
+    if isinstance(supplied, dict) and supplied:
+        return copy.deepcopy(supplied)
+    return left_side.load_policy()
+
+
 def _information_sizing_overlay(info: dict, factor: dict, peer: dict,
                                 policy: dict) -> dict:
     multiplier = 1.0
@@ -1055,6 +1062,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     events = (context.get("news_evidence_graph") or {}).get("events") or []
     evidence_graph = context.get("news_evidence_graph") or {}
     add_policy = _add_alpha_policy(context)
+    left_policy = _left_side_policy(context)
     alpha_activation = add_alpha_activation(context)
     proxies = _proxy_map(context)
     holdings = list(_active_holdings(context))
@@ -1187,6 +1195,15 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         if early_setup is not None:
             technical["setups"].append(early_setup)
             technical = _apply_setup_usage(technical, ticker_usage)
+        # Left side, observe mode (kcn 2026-09-27; evidence in `left_side`):
+        # which gate would hold the ladder back, recorded for the forward
+        # sample. It never joins `technical.setups`, so nothing here can size
+        # or authorise an add. A stale bar row is no evidence of weakness.
+        left_view = (left_side.observe(
+            quant_rows.get(source_ticker) or {}, left_policy, leveraged=leveraged,
+            thesis_state=thesis.get("state"),
+            blockers=alpha_authority.get("blockers") or [])
+            if technical.get("usable") else None)
         raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
@@ -1224,6 +1241,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "peer_residual": peer_view,
                 "add_authority": alpha_authority,
                 "early_trend": early_candidate,
+                **({"left_side": left_view} if left_view else {}),
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})

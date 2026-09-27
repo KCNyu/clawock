@@ -91,8 +91,9 @@ def test_the_campaign_simulation_measures_the_production_left_ladder():
     import json as _json
     from pathlib import Path as _Path
 
-    policy = _json.loads((_Path(__file__).resolve().parents[1]
-                          / "config" / "add-shapes-experiment.json").read_text())
+    config = _Path(__file__).resolve().parents[1] / "config"
+    policy = {**_json.loads((config / "add-shapes-experiment.json").read_text()),
+              **_json.loads((config / "left-side-policy.json").read_text())}
     bars = []
     price = 100.0
     for i in range(260):
@@ -121,3 +122,23 @@ def test_campaign_card_records_the_effective_candidate_and_eligible_count(monkey
     assert seen["params"]["input_names"] == len(seen["inputs"]) == 1
     assert seen["params"]["left_side"]["enabled"] is True
     assert seen["params"]["sizing"]["basis"] == "book_risk"
+
+
+def test_marginal_names_a_sleeve_that_only_adds_more_of_the_same():
+    """A left sleeve that is the right one at half size plus noise: high
+    correlation, beta near 0.5, Sharpe below the hurdle, Sharpe falls as it grows."""
+    import random
+
+    rng = random.Random(3)
+    right, left = {}, {}
+    for i in range(300):
+        day = f"2025-{1 + i // 28:02d}-{1 + i % 28:02d}"
+        right[day] = 0.001 + rng.gauss(0, 0.004)
+        left[day] = 0.5 * right[day] - 0.0003 + rng.gauss(0, 0.002)
+    cell = add_shapes._marginal(right, left)
+    assert cell["corr_daily"] > 0.6
+    assert 0.4 < cell["left_beta_on_right"] < 0.6
+    assert cell["sharpe_left"] < cell["sharpe_hurdle"]
+    weights = cell["right_plus_left_at_weight"]
+    assert cell["right_alone"]["sharpe"] > weights["0.25"]["sharpe"] > weights["1.0"]["sharpe"]
+    assert add_shapes._marginal({"2025-01-01": 0.01}, {}) == {"sessions": 1}

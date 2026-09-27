@@ -1,18 +1,5 @@
 {
-  "purpose": "Backtest candidate only; never loaded by brief or intraday",
-  "left_side": {
-    "enabled": false,
-    "permission": "close_above_ma200",
-    "min_depth_atr": 2.0,
-    "ladder_atr": 1.0,
-    "max_tranches": 3,
-    "stop_atr_below_first": 3.0,
-    "valid_for_sessions": 1,
-    "evaluation_sessions": 20,
-    "leveraged": "exclude",
-    "requires_thesis": "intact",
-    "rationale": "Research candidate only. Initial run had 27 input names, 21 with IS history and one split. OOS mean 2.18%, 90% month-block interval -0.17% to 5.08%; return per unit deployed 0.64% versus baseline 1.70%. Rolling walk-forward and execution/gate replay required before activation."
-  },
+  "purpose": "Backtest sizing candidate only; never loaded by brief or intraday. The left-side rule itself lives in config/left-side-policy.json.",
   "sizing": {
     "basis": "book_risk",
     "tranche_book_pct": {

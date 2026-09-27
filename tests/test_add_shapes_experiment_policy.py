@@ -19,8 +19,10 @@ def test_legacy_plan_is_identical_with_or_without_disabled_candidate():
     args = dict(tier="exploration_cold_start", price=148.03, lot=1, shares=1,
                 current_value=148.03, capital=3455.57, cash=461.63,
                 setup_pcts=[0.0125])
+    left = json.loads((Path(__file__).resolve().parents[1] / "config" /
+                       "left-side-policy.json").read_text())["left_side"]
     assert add_policy.tranche_plan(**args) == add_policy.tranche_plan(
-        **args, policy={"left_side": {**POLICY["left_side"], "enabled": False}})
+        **args, policy={"left_side": {**left, "enabled": False}})
 
 
 def test_candidate_unit_bridge_obeys_loss_and_notional_caps():

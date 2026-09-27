@@ -162,6 +162,16 @@ The watchdog's backstop resend is the plain card on both channels.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
   still `reject`.
+- **Left side, observe mode (kcn 2026-09-26/27)**: a held, non-leveraged name
+  that closes at least 2 ATR under its prior 20-day high while above MA200
+  reads as `wait` with `kind: left_scale_in`; `why` starts with
+  「左侧观察(不给尺寸)」 and `needs` names the first rung and the invalidation
+  (intraday stop, or a close under MA200). It never becomes `candidate` and
+  carries no `size_cap`: the price rule alone did not beat holding and only
+  added right-side beta, so no size exists until the forward sample does. The
+  thesis / information / peer gates are the brief packet's (`quant.left_side`).
+  Shape, evidence and the pending kcn decision: `docs/architecture/harness.md`
+  § Left side (observe mode).
 - **One implementation**: the slot and the brief build the radar with the same
   `add_side.radar` and read it with the same `add_side.read_rows`; they differ
   only through `add_policy.ENTRY_PROFILES` (owner table and parameters:
@@ -264,6 +274,7 @@ as live.
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
 | one add-side implementation for brief and slot (`add_policy`, `add_side.radar`; `test_both_readers_build_the_same_radar_from_the_same_signals`, `test_the_entries_differ_only_in_how_sure_the_close_is`) | live (#1953) |
+| left-side read, observe mode (`kind: left_scale_in`, `wait`, no size; `test_both_entries_read_the_left_ladder_as_an_unsized_wait`, `test_left_side_is_observed_and_recorded_never_sized`) | live (observe); sizing pending kcn |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |

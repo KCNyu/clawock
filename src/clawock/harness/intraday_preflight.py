@@ -46,7 +46,7 @@ from clawock.evidence import research_surface
 from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
-from clawock.decision import add_policy, add_side, early_trend, intraday_policy
+from clawock.decision import add_policy, add_side, early_trend, intraday_policy, left_side
 from clawock.evidence import anomaly_search, intraday_information
 from clawock.instruments import is_leveraged_holding
 from clawock.harness.report_preflight import parse_hk_indices
@@ -414,7 +414,8 @@ def collect_opportunity_radar(market):
         signals_by_label[label] = sig
         holdings_of[label] = list(detail.get('source_holdings') or [label])
     built = add_side.radar(signals_by_label, holdings_of=holdings_of,
-                           confirmed_at_close=False, **params)
+                           confirmed_at_close=False,
+                           left_policy=left_side.load_policy(), **params)
     result = {'rows': built['rows'], 'levels': built['levels']}
     if errors:
         result['errors'] = errors

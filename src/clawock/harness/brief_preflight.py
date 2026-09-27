@@ -55,7 +55,7 @@ from clawock.safe_io import safe_write_text
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
-from clawock.decision import add_policy, add_side
+from clawock.decision import add_policy, add_side, left_side
 from clawock.decision import signals as bar_signals
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
@@ -214,7 +214,8 @@ def _opportunity_reads(open_decisions, portfolio):
                     holdings_of[member] = [member]
     selected = {label: signals_by_label[label] for label in holdings_of}
     radar = add_side.radar(selected, holdings_of=holdings_of,
-                           confirmed_at_close=profile['close_confirmed'], **params)
+                           confirmed_at_close=profile['close_confirmed'],
+                           left_policy=left_side.load_policy(), **params)
     reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
                                plan_context=open_decisions,
                                close_confirmed=profile['close_confirmed'],
@@ -2157,6 +2158,14 @@ def main(argv=None):
             reason='context_budget', detail=str(exc),
         )
         return 2
+
+    # Left side, observe mode: the forward sample a sized form would be judged
+    # on (`left_side.record_history`). One row per brief date, zero rows included.
+    # A failed write is a warning, never a red brief.
+    try:
+        left_side.record_history(decision_packet)
+    except Exception as exc:  # noqa: BLE001
+        print(f'   ⚠ left_side_history not written: {type(exc).__name__}: {exc}'[:200])
 
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')

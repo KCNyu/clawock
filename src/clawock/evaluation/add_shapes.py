@@ -68,6 +68,7 @@ WS = workspace_root()
 BARS_DIR = WS / "memory" / "bars"
 POLICY_FILE = WS / "config" / "add-alpha-policy.json"
 CAMPAIGN_POLICY_FILE = WS / "config" / "add-shapes-experiment.json"
+LEFT_POLICY_FILE = WS / "config" / "left-side-policy.json"
 
 HORIZONS = (1, 5, 20)
 #: Shapes are defined against the same 20-day level the add side uses, so this
@@ -404,6 +405,59 @@ def _month_block_ci(campaigns: list[dict], *, draws: int = 2000, seed: int = 7):
     return [round(100 * means[int(0.05 * draws)], 2), round(100 * means[int(0.95 * draws)], 2)]
 
 
+def _marginal(right: dict, left: dict) -> dict:
+    """Does the left sleeve add to the right one, or only more of it?
+
+    Daily P&L of the two non-leveraged families over the same sessions (a
+    session either family did not trade is a zero). Adding a sleeve raises the
+    Sharpe ratio only when its own exceeds ``corr × Sharpe(right)``
+    (``sharpe_hurdle``); ``alpha_ann_pct`` is left's annualised P&L after its
+    beta on right, in % of book per unit. Weights are the left sleeve's size
+    relative to right's.
+    """
+    days = sorted(set(right) | set(left))
+    r = [right.get(day, 0.0) for day in days]
+    l = [left.get(day, 0.0) for day in days]
+    if len(days) < 20 or not statistics.pstdev(r) or not statistics.pstdev(l):
+        return {"sessions": len(days)}
+
+    def sharpe(xs):
+        sd = statistics.pstdev(xs)
+        return statistics.mean(xs) / sd * 252 ** 0.5 if sd else None
+
+    def drawdown(xs):
+        total = peak = worst = 0.0
+        for x in xs:
+            total += x
+            peak = max(peak, total)
+            worst = min(worst, total - peak)
+        return worst
+
+    mr, ml = statistics.mean(r), statistics.mean(l)
+    cov = sum((a - mr) * (b - ml) for a, b in zip(r, l)) / len(days)
+    corr = cov / (statistics.pstdev(r) * statistics.pstdev(l))
+    beta = cov / statistics.pvariance(r)
+    combined = {}
+    for weight in (0.25, 0.5, 1.0):
+        xs = [a + weight * b for a, b in zip(r, l)]
+        combined[str(weight)] = {"sharpe": round(sharpe(xs), 2),
+                                 "total_pnl_pct_of_book": round(100 * sum(xs), 2),
+                                 "max_drawdown_pct_of_book": round(100 * drawdown(xs), 2)}
+    return {
+        "sessions": len(days),
+        "corr_daily": round(corr, 3),
+        "left_beta_on_right": round(beta, 3),
+        "left_alpha_ann_pct": round(100 * 252 * (ml - beta * mr), 2),
+        "sharpe_right": round(sharpe(r), 2),
+        "sharpe_left": round(sharpe(l), 2),
+        "sharpe_hurdle": round(corr * sharpe(r), 2),
+        "right_alone": {"sharpe": round(sharpe(r), 2),
+                        "total_pnl_pct_of_book": round(100 * sum(r), 2),
+                        "max_drawdown_pct_of_book": round(100 * drawdown(r), 2)},
+        "right_plus_left_at_weight": combined,
+    }
+
+
 def simulate(prepared: dict, *, policy: dict, no_chase_z: float,
              split: str = SPLIT_DATE, unit: float = 0.01) -> dict:
     """Pre-registered family comparison, in-sample vs out-of-sample."""
@@ -470,6 +524,17 @@ def simulate(prepared: dict, *, policy: dict, no_chase_z: float,
                 if campaigns:
                     cell["mean_return_ci90_pct"] = _month_block_ci(campaigns)
                 seat.setdefault(slice_name, {})[period_name] = cell
+    # The left sleeve's marginal value over the right one (non-leveraged, the
+    # only slice the left rule may trade).
+    result["left_vs_right"] = {}
+    for period_name, (lo, hi) in periods.items():
+        daily = {"right": {}, "left": {}}
+        for (fam_name, name), (_, pnl) in runs.items():
+            if fam_name in daily and name not in leveraged:
+                for day, value in pnl.items():
+                    if lo <= day < hi:
+                        daily[fam_name][day] = daily[fam_name].get(day, 0.0) + value
+        result["left_vs_right"][period_name] = _marginal(daily["right"], daily["left"])
     return result
 
 
@@ -486,6 +551,11 @@ def render_campaigns(result: dict) -> str:
             for period, cell in periods.items():
                 lines.append(f"{fam:26s} {slice_name:14s} {period:14s} "
                              + " ".join(str(cell.get(k)) for k in keys))
+    for period, cell in (result.get("left_vs_right") or {}).items():
+        lines.append(f"left vs right (non-leveraged) {period}: " + " ".join(
+            f"{k}={cell.get(k)}" for k in ("corr_daily", "left_beta_on_right",
+                                           "left_alpha_ann_pct", "sharpe_right",
+                                           "sharpe_left", "sharpe_hurdle")))
     return "\n".join(lines)
 
 
@@ -567,10 +637,13 @@ def main(argv=None) -> int:
 def _main_campaigns(args, policy, no_chase_z, bars_by_name, started) -> int:
     # Candidate terms are kept outside the live add policy. Running this
     # evaluator must not enable a strategy or alter a published size.
+    from clawock.decision import left_side
+
     candidate = json.loads(CAMPAIGN_POLICY_FILE.read_text(encoding="utf-8"))
-    policy = {**policy, **candidate}
-    # The experiment file is disabled for production. `simulate` explicitly
-    # measures the enabled candidate, so record that effective rule in the card.
+    # The left rule is the live one (observe mode); the sizing is the candidate.
+    policy = {**policy, **candidate, **left_side.load_policy(LEFT_POLICY_FILE)}
+    # Live runs the left rule in observe mode only. `simulate` explicitly
+    # measures it as if it traded, so record that effective rule in the card.
     effective_left = {**(policy.get("left_side") or {}), "enabled": True}
     series = _tencent_series() if args.source == "tencent" else bars_by_name
     prepared = {name: {"bars": bars, "sigs": _prepare(bars)}
@@ -592,7 +665,8 @@ def _main_campaigns(args, policy, no_chase_z, bars_by_name, started) -> int:
                     for name, entry in sorted(prepared.items())],
             metrics=result,
             code_files=[__file__],
-            config_files=[str(POLICY_FILE), str(CAMPAIGN_POLICY_FILE)],
+            config_files=[str(POLICY_FILE), str(CAMPAIGN_POLICY_FILE),
+                          str(LEFT_POLICY_FILE)],
             notes=[
                 "Campaign returns are measured at the evaluation window; production does "
                 "not sell an add at the window, it judges it there.",

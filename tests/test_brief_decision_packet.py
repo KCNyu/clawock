@@ -1211,3 +1211,47 @@ def test_live_items_reach_the_brief_packet_and_a_gap_reads_as_a_gap():
         "as_of": "07-28 08:02 HKT",
         "sources": {"sec_fulltext": "ok", "google_news": "failed"},
         "degraded": ["Google新闻（TimeoutError）"]}}
+
+
+def _left_context(thesis_state="intact"):
+    context = _context()
+    # 2.78 ATR under the 20-day high, above MA200: the left ladder fires.
+    weak = {"close": 90.0, "prior_20d_high": 100.0, "atr14_pct": 4.0, "ma200": 80.0}
+    context["quant_signals"]["rows"]["00100"].update(weak)
+    context["quant_signals"]["rows"]["BASE"].update(weak)
+    context["thesis_registry"]["theses"]["00100"]["state"] = thesis_state
+    return context
+
+
+def test_left_side_is_observed_and_recorded_never_sized():
+    """Observe mode (kcn 2026-09-27): the packet names the ladder and the gate
+    that would hold it, and the execution view is byte-for-byte what it is with
+    the left side off — no setup, no size, no authority."""
+    from clawock.decision import left_side
+
+    def compile_with(context, policy):
+        context = copy.deepcopy(context)
+        if policy is not None:
+            context["left_side_policy"] = policy
+        return packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+
+    live = left_side.load_policy()
+    off = {"left_side": {**live["left_side"], "enabled": False}}
+    packet = compile_with(_left_context(), live)
+    row = packet["tickers"]["00100"]
+    view = row["quant"]["left_side"]
+    assert view["mode"] == "observe" and view["gate"] is None
+    assert view["authorization"] is None
+    assert not any(s.get("setup_id") == "left_scale_in"
+                   for s in row["technical"].get("setups") or [])
+    baseline = compile_with(_left_context(), off)["tickers"]["00100"]
+    assert "left_side" not in baseline["quant"]
+    assert row["execution"] == baseline["execution"]
+    assert row["technical"] == baseline["technical"]
+    # The leveraged product read through BASE is excluded, and says so.
+    assert packet["tickers"]["LEVX"]["quant"]["left_side"]["gate"] == "leveraged_excluded"
+    broken = compile_with(_left_context("broken"), live)["tickers"]["00100"]
+    assert broken["quant"]["left_side"]["gate"] == "thesis_not_intact"
+    recorded = left_side.history_row(packet)
+    assert set(recorded["rows"]) == {"00100", "LEVX"}
+    assert recorded["generation_id"] == packet["_meta"]["generation_id"]
