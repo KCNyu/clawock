@@ -20,6 +20,11 @@ group, and report the composition alongside the total so the next person can see
 which number moved. No circuit-breaker here — deciding what to cut requires
 knowing where the tokens go, and this is the instrument that answers that.
 
+2026-09-27: the MiniMax hops moved from `MiniMax-M3` to
+`MiniMax-M3.1-Flash-Preview`, so the `(provider, model)` groups restart empty.
+Expect "no baseline" on the MiniMax rows until the new id has its own trailing
+runs; read that first day's totals as data, not as a regression.
+
 Read-only. Never raises on a missing or unreadable run store: this feeds the daily
 health review, and an audit that could red the review would be worse than no
 audit (kcn does not want per-cron alerts — see feedback_no_individual_cron_alerts).

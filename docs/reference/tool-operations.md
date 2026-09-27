@@ -22,7 +22,7 @@
 | `sentiment-scan.yml` | 周日–四 21:30 + 21:55 UTC | `assets/data/sentiment.json` + `factor-snapshots/sentiment/` | 05:30 HKT 盘前 Reddit + Google News 扫描；21:55 为抗漂移第二档 |
 | `macro-scan.yml` | 周日–四 21:45 + 21:55 UTC | `assets/data/macro.json` + `factor-snapshots/macro/` | 05:45 HKT 盘前宏观扫描；21:55 为抗漂移第二档 |
 | `brief-fallback.yml` | 工作日 00:25/00:47/01:09 UTC + 周三 04:23 彩排；host watchdog 09:05 HKT dispatch | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
-| `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax M3 周复盘（无回退模型） |
+| `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax-M3.1-Flash-Preview 周复盘（无回退模型） |
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达（Trump 原帖 / Musk 报道 / ARK 日度调仓 / Serenity / 段永平·洪灏·Burry·Pelosi 报道，8 源） |
 | `cron-health.yml` | 周一–六 09:17 UTC (17:17 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
@@ -30,7 +30,7 @@
 | `repo-traffic.yml` | 周二/六 03:38 UTC | `assets/data/repo-traffic.json` + `schedule-drift.json` | Measurement Capture；漂移按 `config/schedule-punctuality.json` 由 cron-health 判 |
 | `seo-visibility.yml` | 周一 06:30 UTC | `assets/data/crawl_visibility*.json` | 每周爬虫/搜索可见度采样 |
 
-**远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax M3 为主；远端**只有 MiniMax 一个 provider**——2026-09-13 起移除了 opencode-go DeepSeek V4 Flash 回退（钱包早已清零，回退腿只会再报一次 401），链上不挂任何按量付费模型。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 `MINIMAX_API_KEY`，仓库不落 key。
+**远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax-M3.1-Flash-Preview 为主；远端**只有 MiniMax 一个 provider**——2026-09-13 起移除了 opencode-go DeepSeek V4 Flash 回退（钱包早已清零，回退腿只会再报一次 401），链上不挂任何按量付费模型。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 `MINIMAX_API_KEY`，仓库不落 key。
 
 **数据扫描 GH Action 不写 `assets/data/dashboard.json`**，只写各自 sidecar；dashboard
 只由 harness postflight（含远端 brief fallback 复用同一 postflight）和 host 上加锁的

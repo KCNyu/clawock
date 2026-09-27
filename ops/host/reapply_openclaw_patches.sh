@@ -54,7 +54,7 @@ PATCH_MARKERS=(
 PATCH_LABELS=(
   "single-thread local embeddings"
   "60s memory_search deadline"
-  "MiniMax-M3 priority admission"
+  "MiniMax-M3.x priority admission"
   "MiniMax 60s response-header deadline"
   "MiniMax response-header deadline value"
 )

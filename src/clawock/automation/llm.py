@@ -47,7 +47,7 @@ import requests
 _SESSION = requests.Session()
 
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
-MINIMAX_MODEL = 'MiniMax-M3'
+MINIMAX_MODEL = 'MiniMax-M3.1-Flash-Preview'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
 ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call

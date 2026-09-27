@@ -31,7 +31,7 @@ In priority order, and the order decides conflicts:
    directions ("跌不等于不能加").
 5. **Readable card**: fixed block order, one meaning per symbol, repeats folded.
 
-Token count is not a constraint (MiniMax M3, 1M window; a slot uses 2–5% of
+Token count is not a constraint (MiniMax-M3.1-Flash-Preview, 1M window; a slot uses 2–5% of
 it). Compliance is: a rule the model keeps breaking becomes a gate (§7).
 
 ## 2. Workflow and ownership
