@@ -63,6 +63,21 @@ def test_code_and_tests_stay_gated():
         assert pattern in push_paths(WORKFLOW_PATH)
 
 
+def test_tracked_instruction_and_public_document_surfaces_run_ci():
+    """New skill and document files must not silently bypass their contract tests."""
+    roots = {"docs", "skills"}
+    root_docs = {"AGENTS.md", "BOOTSTRAP.md", "CHANGELOG.md", "CLAUDE.md",
+                 "DREAMS.md", "HEARTBEAT.md", "IDENTITY.md", "INVESTMENT_SOP.md",
+                 "MEMORY.md", "README.md", "README.zh.md", "SOUL.md", "TOOLS.md",
+                 "USER.md"}
+    names = [name for name in _tracked() if name.split("/", 1)[0] in roots
+             or name in root_docs]
+    assert names
+    triggers = [p.replace("**", "*") for p in push_paths(WORKFLOW_PATH)]
+    assert all(push_scope.classify([name])["code"]
+               and any(fnmatch(name, p) for p in triggers) for name in names)
+
+
 def test_no_push_path_matches_nothing_in_the_checkout():
     # A path that matches no file is not a gate. #399 moved the dashboard under
     # `site/` and left `assets/css/**`, `assets/js/**` and `index.html` behind:

@@ -17,28 +17,25 @@ class _Store:
         self.dashboard = dashboard
 
     def _git_blob(self, ref, name):
+        assert ref == "pinned-generation-commit"
         assert name == "assets/data/dashboard.json"
         return json.dumps(self.dashboard)
 
 
-def _missing(*names):
-    return FileNotFoundError(f"origin/data-plane does not carry {list(names)}")
-
-
 def test_a_pre_split_generation_may_lack_the_new_sidecar():
     store = _Store({"decision_traces": [], "decision_trace_scope": {}, "plan_timeline": []})
-    assert fetch_data_plane.pre_split_members(store, _missing(TRAIL)) == [TRAIL]
+    assert fetch_data_plane.pre_split_members(store, [TRAIL], "pinned-generation-commit") == [TRAIL]
 
 
 def test_a_post_split_generation_without_it_is_still_partial():
     store = _Store({"generated_at": "x"})
-    assert fetch_data_plane.pre_split_members(store, _missing(TRAIL)) == []
+    assert fetch_data_plane.pre_split_members(store, [TRAIL], "pinned-generation-commit") == []
 
 
 def test_other_missing_members_are_never_excused():
     store = _Store({"decision_traces": [], "decision_trace_scope": {}, "plan_timeline": []})
     assert fetch_data_plane.pre_split_members(
-        store, _missing(TRAIL, "assets/data/overview.json")) == []
+        store, [TRAIL, "assets/data/overview.json"], "pinned-generation-commit") == []
 
 
 def test_a_pre_split_generation_is_materialised_in_the_post_split_shape(tmp_path):

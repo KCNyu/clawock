@@ -4,7 +4,7 @@
 # their sidecar files (macro/sentiment/influencer/…); index.html fetches those
 # directly, so this publisher does not embed them. This crontab-run publisher
 # rebuilds portfolio-derived dashboard data and publishes the whole generation —
-# four payloads plus the heartbeat and workflow-outcome sidecars — to the orphan
+# five payloads plus the heartbeat and workflow-outcome sidecars — to the orphan
 # data branch. It no longer commits anything to `master` (#325).
 #
 # Concurrency: holds /tmp/dashboard_publish.lock (the same lock the host harness
@@ -73,8 +73,8 @@ fi
 # 72x/day before the gate). A changed desk builds exactly as before.
 /root/.local/bin/clawock dashboard-build --previous "$PREVIOUS_DIR/assets/data/dashboard.json" --skip-if-unchanged
 
-# build_dashboard writes four public files. The shared ownership helper compares
-# all four against the last published generation, strips build-clock metadata,
+# build_dashboard writes five public files. The shared ownership helper compares
+# all five against the last published generation, strips build-clock metadata,
 # and restores clock-only rewrites — so a rebuild that changed nothing but
 # `generated_at` is not republished, and does not trigger a site deploy for a
 # generation the site already serves.
@@ -90,7 +90,7 @@ fi
 # The same generation, also published to the orphan data branch, and the site
 # deploy asked for explicitly. Dual write while the migration is in flight:
 # `master` stays the served source until the outputs stop being tracked, which
-# makes this verifiable the only way that matters — the branch's four files must
+# makes this verifiable the only way that matters — the branch's five files must
 # be byte-identical to the ones this tick commits to `master`.
 #
 # Runs on EVERY path, deliberately NOT gated on the local semantic diff. The
@@ -116,7 +116,7 @@ publish_data_plane() {
 
 # Nothing to commit any more. The scheduled publisher's entire commit pathspec
 # was `cron-heartbeats.json` + `workflow-outcomes.json`, and both went to the
-# data branch with the four payloads (#325) — so this publisher stops writing to
+# data branch with the five payloads (#325) — so this publisher stops writing to
 # `master` altogether.
 #
 # The `git diff --quiet` checks that used to gate the commit are gone with it:

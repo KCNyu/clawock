@@ -37,6 +37,13 @@ on:
       - 'site/assets/css/**'
       - 'site/assets/js/**'
       - 'site/index.html'
+      - 'site/_config.yml'
+      - 'site/llms.txt'
+      - 'site/faq.md'
+      - 'site/robots.txt'
+      - 'site/briefs.md'
+      - 'site/manifest.webmanifest'
+      - 'site/README.md'
       # The shared page layout and the decision-map page. #1209 put both in
       # the classifier's ui lane but not here, so a master push touching only
       # them started no run at all (#1568).
@@ -53,6 +60,10 @@ on:
       # The portable-workflow job executes these shell entrypoints. A change
       # to one must test the same script on master, not wait for a release tag.
       - 'examples/cli/**'
+      - 'examples/profiles/**'
+      - 'examples/claude-code/**'
+      - 'examples/codex/**'
+      - 'examples/README.md'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # The decision ledger: three validate-job gates read it and nothing else
@@ -71,9 +82,23 @@ on:
       # read by the suite, and naming them one by one already left new schemas
       # ungated — a config-only PR then skipped the tests that guard them.
       - 'config/**'
-      - 'docs/operations/cron-schedules.md'
+      - 'docs/**'
       - '.github/workflows/**'
-      - 'skills/tavily-search/**'
+      - 'skills/**'
+      - 'AGENTS.md'
+      - 'BOOTSTRAP.md'
+      - 'CHANGELOG.md'
+      - 'CLAUDE.md'
+      - 'DREAMS.md'
+      - 'HEARTBEAT.md'
+      - 'IDENTITY.md'
+      - 'INVESTMENT_SOP.md'
+      - 'MEMORY.md'
+      - 'README.md'
+      - 'README.zh.md'
+      - 'SOUL.md'
+      - 'TOOLS.md'
+      - 'USER.md'
   pull_request:
   # Weekly full-matrix backstop (inherited from codeql.yml's schedule): a
   # scheduled event has no diffable range, so the detector answers "everything
@@ -248,9 +273,9 @@ jobs:
           echo "PR file policy OK: ${#files[@]} changed paths"
 
       - name: Detect code changes
-        # Scope the heavy Python steps to what a PR actually touches. This job
-        # (and the required `validate` context) always runs; a docs/markdown-only
-        # PR just skips the expensive steps and still reports green in seconds.
+        # Scope the heavy Python steps to files covered by repository contracts.
+        # Documentation and skills are inputs to those tests, so they light the
+        # code lane too. This job and the required `validate` context always run.
         # We must NOT path-filter the pull_request trigger itself: a required
         # check that is filtered out never reports and blocks the PR forever —
         # the same trap that keeps `lint` unfiltered on PRs. Skipped *steps*
@@ -567,20 +592,6 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           set -euo pipefail
-          cat > "${RUNNER_TEMP:-/tmp}/strip_volatile.py" <<'PY'
-          import json, sys
-          VOLATILE = {"generated_at", "generation_id", "as_of", "age_hours"}
-          def strip(node):
-              if isinstance(node, dict):
-                  return {k: strip(v) for k, v in node.items()
-                          if k not in VOLATILE}
-              if isinstance(node, list):
-                  return [strip(v) for v in node]
-              return node
-          with open(sys.argv[1]) as f:
-              print(json.dumps(strip(json.load(f)), sort_keys=True))
-          PY
-          strip="${RUNNER_TEMP:-/tmp}/strip_volatile.py"
           tmp="$(mktemp -d)"
           # The write set comes from the contract, not from a copy of it (#1449).
           # Spelling the five names here meant a sixth output would be built,
@@ -589,11 +600,11 @@ jobs:
           names="$(python3 -c "import json;print(' '.join(p.rsplit('/',1)[-1][:-5] for p in json.load(open('config/dashboard-outputs.json'))['outputs']))")"
           echo "determinism check covers: $names"
           for name in $names; do
-            python3 "$strip" "assets/data/$name.json" > "$tmp/$name.first"
+            python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" > "$tmp/$name.first"
           done
           clawock dashboard-build > /dev/null
           for name in $names; do
-            if ! python3 "$strip" "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
+            if ! python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
               echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
               exit 1
             fi

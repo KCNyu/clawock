@@ -570,7 +570,7 @@ def build_decision_audit_payload(decisions, portfolio):
     ``episode_backtest`` is rendered only on Reflect, whose existing
     ``decision_audit.json`` dependency is already fetched before that tab
     paints. Keeping it here avoids taxing every other tab while preserving one
-    logical dashboard build and the existing four-output publication contract.
+    logical dashboard build and the existing five-output publication contract.
     """
     payload = decision_v2.build_audit_sidecar(
         decisions, portfolio, include_records=False
@@ -3648,12 +3648,12 @@ def parse_args(argv=None):
 
 
 def resolve_output_paths(out_dir=None):
-    """The four files one generation lands in, keyed by payload name.
+    """The five dashboard files one generation lands in, keyed by payload name.
 
     Precedence: an explicit `--out-dir` beats the per-file environment redirects,
     which beat the published locations. Explicit beats ambient — a caller that
     named a directory should not have an inherited env var silently move one of
-    the four files out of it and split the generation across two places.
+    the five files out of it and split the generation across two places.
 
     The env vars stay because they are what system_check's buildability gate and
     the Actions validation jobs already use. `--out-dir` is the form a caller
@@ -3985,7 +3985,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     Separating this out is what makes the projection testable against a
     synthetic workspace, and it is the precondition for the later slices: a
     renderer can only consume a projection directory if a projection is a value
-    rather than a side effect of writing four files.
+    rather than a side effect of writing five files.
 
     `previous_source` is the opt-in payload from slice 2 — a path, read here, and
     named in `dashboard.build_status.previous_payload`. `shadow_previous` is the
@@ -4536,7 +4536,7 @@ def main(argv=None):
         print(f'FATAL: {e}', file=sys.stderr)
         return 1
 
-    # All four are compiled from the same in-memory generation and enter the
+    # All five are compiled from the same in-memory generation and enter the
     # shared publication pathspec together, so they are published as one write
     # set: every file is staged on disk before any of them is swapped in. A
     # failure part-way now publishes nothing instead of two new files beside two

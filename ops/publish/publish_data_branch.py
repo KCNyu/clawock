@@ -41,8 +41,8 @@ from clawock.publish.outputs import output_paths  # noqa: E402
 # updated only the writer would serve a stale generation with every gate green.
 DATA_BRANCH = "data-plane"
 
-# The generation is six files, not four. `cron-heartbeats.json` and
-# `workflow-outcomes.json` are written by the same tick as the four payloads and
+# The required generation is seven files: five declared dashboard outputs plus
+# `cron-heartbeats.json` and `workflow-outcomes.json`, written by the same tick.
 # were the ONLY two entries left in the publisher's commit pathspec — which is
 # why moving the four barely changed the commit count (#325). Nothing in the
 # browser fetches them; `build_dashboard` embeds their content into the payload.

@@ -55,12 +55,8 @@ def _lanes(**overrides):
 SCENARIOS = [
     pytest.param(
         ["docs/operations/release.md", "README.md"],
-        # analysable is moot here: the trigger gate means ci.yml never starts,
-        # and the classifier only answers for ranges it is handed. It stays
-        # True because README/docs are outside the automation-data set —
-        # faithful to the ignore-list semantics this replaced.
-        _lanes(analysable=True), False,
-        id="docs-only PR or push: six contexts report, nothing heavy runs"),
+        _lanes(code=True, analysable=True), True,
+        id="docs-only PR or push: contract tests run"),
     pytest.param(
         ["portfolio.json"],
         _lanes(code=True, analysable=False), True,

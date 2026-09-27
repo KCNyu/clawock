@@ -397,7 +397,7 @@ class GitBranchStore:
                 time.sleep(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS)
         return PublishResult(commit, changed=True)
 
-    def fetch(self, into: Path | str, *, names=None) -> list[str]:
+    def fetch(self, into: Path | str, *, names=None, allow_missing=None) -> list[str]:
         """Materialise the stored generation into a directory.
 
         The read side of the same seam. Two callers need it and neither wants a
@@ -411,8 +411,11 @@ class GitBranchStore:
 
         `names` asserts what the caller expects to be there. A member the branch
         does not carry raises rather than being skipped: silently materialising
-        three of four files is how a page ends up serving one payload from this
+        an incomplete set is how a page ends up serving one payload from this
         generation and another from whatever was on disk.
+
+        `allow_missing` may excuse a known pre-split member after checking its
+        parent against this same pinned commit. All other missing members fail.
         """
         with self._fetched_commit() as commit:
             listed = self._git("ls-tree", "-r", "--name-only", commit).split("\n")
@@ -420,8 +423,11 @@ class GitBranchStore:
             wanted = list(names) if names is not None else listed
             missing = [name for name in wanted if name not in listed]
             if missing:
-                raise FileNotFoundError(
-                    f"{self.remote}/{self.branch} does not carry {missing}")
+                excused = allow_missing(commit, missing) if allow_missing else []
+                if set(excused) != set(missing):
+                    raise FileNotFoundError(
+                        f"{self.remote}/{self.branch} does not carry {missing}")
+                wanted = [name for name in wanted if name not in missing]
             into = Path(into)
             write_generation({
                 str(into / name): self._git_blob(commit, name) for name in wanted
