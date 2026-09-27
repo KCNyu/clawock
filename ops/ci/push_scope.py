@@ -70,7 +70,6 @@ CODE_GLOBS = [
     "examples/profiles/*",
     "examples/claude-code/*",
     "examples/codex/*",
-    "examples/openclaw/*",
     "examples/README.md",
     "site/_config.yml",
     "site/llms.txt",

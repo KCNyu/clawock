@@ -63,7 +63,6 @@ on:
       - 'examples/profiles/**'
       - 'examples/claude-code/**'
       - 'examples/codex/**'
-      - 'examples/openclaw/**'
       - 'examples/README.md'
       - 'portfolio.json'
       - 'memory/**-plan.json'
