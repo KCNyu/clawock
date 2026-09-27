@@ -1489,6 +1489,15 @@ def em_news_node():
 BRIEF_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss')
 
 
+def _brief_live_projection(live_information):
+    """Keep only the live facts the decision packet reads from brief context."""
+    return {
+        market: {key: value for key, value in (answer or {}).items()
+                 if key in ('as_of', 'sources', 'degraded', 'summary')}
+        for market, answer in (live_information or {}).items()
+    }
+
+
 def live_sources_node():
     # [10b7] Live news and disclosures since each market's last close: one
     # bounded `clawock live-sources` call for both books. A source that did not
@@ -2086,9 +2095,9 @@ def main(argv=None):
         'risk_metrics':  risk,
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
-        # Live news/disclosures since the last close, per market (bundle
-        # `evidence`); the packet carries each name's rows and source health.
-        'live_information': live_information,
+        # The packet reads only summary rows and source health. Raw ticker and
+        # request rows can exceed the 96 KiB evidence-bundle budget (#1954).
+        'live_information': _brief_live_projection(live_information),
         'thesis_registry': thesis_registry_ctx,
         'open_decisions': open_decisions,
         # The add side. Sits next to open_decisions deliberately: the discipline
