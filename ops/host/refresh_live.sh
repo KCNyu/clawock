@@ -46,8 +46,29 @@ git fetch -q "$REMOTE" "$BRANCH"
 range="HEAD..$REMOTE/$BRANCH"
 behind="$(git rev-list --count "$range")"
 
+# The runner is compared by content, not by what this fetch brought: cron's own pushes
+# fast-forward this checkout too, so a runner change can arrive without passing through the
+# range below, and "at origin/master" would then leave the host on the old runner.
+RUNNER_DIR="${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}"
+runner_differs() {
+  [ -d "$RUNNER_DIR" ] && [ -f ops/host/install_agent_dispatch.sh ] &&
+    ! bash ops/host/install_agent_dispatch.sh --check >/dev/null 2>&1
+}
+install_runner() {
+  bash ops/host/install_agent_dispatch.sh
+  bash ops/host/install_agent_dispatch.sh --check
+}
+
 if [ "$behind" = "0" ]; then
   echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
+  if runner_differs; then
+    echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
+    if [ "$check_only" = "1" ]; then
+      echo "(--check: nothing written)"
+      exit 1
+    fi
+    install_runner
+  fi
   exit 0
 fi
 
@@ -64,6 +85,8 @@ git --no-pager log --oneline "$range" | sed 's/^/  /'
 [ "$needs_venv" = "1" ] && echo "  → pyproject.toml moved: the venv needs install_clawock_launcher.sh"
 [ "$needs_plugin" = "1" ] && echo "  → clawock-dsh moved: the desk needs install_dsh_plugin.sh --restart"
 [ "$needs_runner" = "1" ] && echo "  → agent-dispatch runner moved: /root/tools/agent-dispatch needs install_agent_dispatch.sh"
+[ "$needs_runner" = "0" ] && runner_differs &&
+  echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
 if [ "$needs_venv" = "0" ] && [ "$needs_plugin" = "0" ] && [ "$needs_runner" = "0" ]; then
   echo "  → python only: the editable install picks it up on fast-forward"
 fi
@@ -115,13 +138,10 @@ if [ "$needs_plugin" = "1" ]; then
     echo "dsh CLI not on PATH — skipped the plugin install" >&2
   fi
 fi
-if [ "$needs_runner" = "1" ]; then
-  if [ -d "${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}" ]; then
-    bash ops/host/install_agent_dispatch.sh
-    bash ops/host/install_agent_dispatch.sh --check
-  else
-    echo "no agent-dispatch installation on this host — skipped the runner install" >&2
-  fi
+if [ "$needs_runner" = "1" ] && [ ! -d "$RUNNER_DIR" ]; then
+  echo "no agent-dispatch installation on this host — skipped the runner install" >&2
+elif [ "$needs_runner" = "1" ] || runner_differs; then
+  install_runner
 fi
 
 # Say what is live now rather than assuming the steps above took: an install

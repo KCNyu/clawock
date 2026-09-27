@@ -119,6 +119,45 @@ def test_a_python_move_does_not_touch_the_runner(desk):
     assert "install_agent_dispatch.sh" not in _check(checkout).stdout
 
 
+def _with_runner(upstream, checkout):
+    """Give the desk the real runner source and installer, as master has them."""
+    import shutil
+    for rel in ("ops/host/install_agent_dispatch.sh", "ops/host/agent-dispatch"):
+        src, dest = ROOT / rel, upstream / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        (shutil.copytree if src.is_dir() else shutil.copy2)(src, dest)
+    _git(upstream, "add", "-A")
+    _git(upstream, "commit", "-qm", "runner")
+    _git(checkout, "pull", "-q", "origin", "master")
+
+
+def test_a_runner_the_checkout_already_has_is_still_installed(desk, tmp_path):
+    """Cron's pushes fast-forward the desk too, so "at origin/master" is no proof the
+    installed runner matches: it is compared by content, whatever the fetch brought."""
+    upstream, checkout = desk
+    _with_runner(upstream, checkout)
+    installed = tmp_path / "agent-dispatch"
+    installed.mkdir()
+    (installed / "limits.env").write_text(
+        "MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\n"
+        "PATROL_MIN_AVAILABLE_KB=1\nPATROL_MAX_MEMORY_FULL_AVG60=10\nQUEUE_FAIR_WAIT_SEC=1\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout), "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_DIR": str(installed)}
+    run = lambda *a: subprocess.run(["bash", str(SCRIPT), *a], capture_output=True, text=True,
+                                    env=env)
+    done = run("--check")
+    assert done.returncode == 1, done.stdout + done.stderr
+    assert "is at origin/master" in done.stdout and "needs installing" in done.stdout
+    assert not (installed / "run-agent.sh").exists(), "--check must not install"
+
+    done = run()
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert (installed / "run-agent.sh").read_bytes() == \
+        (ROOT / "ops/host/agent-dispatch/run-agent.sh").read_bytes()
+    done = run("--check")
+    assert done.returncode == 0 and "needs installing" not in done.stdout
+
+
 def test_check_writes_nothing(desk):
     """The half that makes `--check` usable from a cron or a review."""
     upstream, checkout = desk

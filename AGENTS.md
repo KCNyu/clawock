@@ -107,7 +107,7 @@ documentation:
    每个修复发版。The install is editable, so a fast-forward is usually the whole job;
    the script re-runs the launcher installer only when `pyproject.toml` moved, the
    DSH plugin installer only when `examples/dsh/packages/clawock-dsh/` moved and the
-   agent-dispatch runner installer only when `ops/host/agent-dispatch/` moved, then
+   agent-dispatch runner installer only when the installed runner differs from the checkout, then
    verifies what is actually serving. Rule and evidence:
    `docs/operations/release.md` § Running the latest code on this host.
 
