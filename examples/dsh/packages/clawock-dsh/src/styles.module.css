@@ -361,8 +361,7 @@ body[data-ds-dark-theme] .dmt {
   cursor:pointer;
   border-radius:8px;
   padding:3px 6px;
-  margin-left:-6px;
-  transition:none
+  margin-left:-6px
 }
 .dmt .day.fold:active {
   background:var(--tint-mid)
@@ -425,8 +424,7 @@ body[data-ds-dark-theme] .dmt {
   align-items:center;
   gap:0 10px;
   padding:9px 0;
-  cursor:pointer;
-  transition:none
+  cursor:pointer
 }
 .dmt .cell+.cell {
   border-top:1px solid var(--border)
@@ -612,8 +610,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/10;
   justify-self:end;
   color:var(--cap);
-  font-size:var(--fs-micro);
-  transition:none
+  font-size:var(--fs-micro)
 }
 .dmt .cell.open .chev {
   transform:rotate(180deg)
@@ -877,43 +874,29 @@ body[data-ds-dark-theme] .dmt {
 @keyframes clawock-shimmer {
   to { transform:translateX(100%) }
 }
-/* Entrance: each day header and its group rise once when they mount (first
-   load, filter switch, fold toggle) — the list re-reading as one motion is
-   what tells you the filter actually did something. Uniform timing on
-   purpose: per-card stagger across many days reads as gimmick, not craft. */
-.dmt .day,
-.dmt .group {
-  animation:clawock-rise .28s cubic-bezier(.22,1,.36,1) both
-}
-@keyframes clawock-rise {
-  from { opacity:0; transform:translateY(8px) }
-  to { opacity:1; transform:none }
-}
+/* Filters and day folds are frequent, keyboard-reachable navigation. Their
+   result is immediate; repeating an entrance would delay scanning the rows. */
 .dmt .skel-bar.w40 {
   width:40%
 }
 .dmt .skel-bar.w20 {
   width:20%
 }
-/* Reduced motion: keep the opacity/colour transitions that aid
-   comprehension, drop the hover nudge, day/group entrances and skeleton
-   sweep. Frequent chevron/detail swaps are already immediate. */
+/* Reduced motion keeps colour feedback while dropping the skeleton sweep.
+   Frequent chevron/detail swaps and filter results are already immediate. */
 @media (prefers-reduced-motion: reduce) {
-  .dmt .chev {
-    transition:none
-  }
   .dmt .detail {
     transition:opacity .15s ease
   }
   .dmt .ft,
   .dmt .trace-more {
-    transition:background .12s,color .12s,border-color .12s
+    transition:background .12s,color .12s,border-color .12s,transform 0s
+  }
+  .dmt .ft:active,
+  .dmt .trace-more:active {
+    transform:none
   }
   .dmt .skel-bar::after {
-    animation:none
-  }
-  .dmt .day,
-  .dmt .group {
     animation:none
   }
 }
@@ -1468,7 +1451,7 @@ body[data-ds-dark-theme] .pbc .bp {
    immediate so the panel still answers the tap. */
 @media (prefers-reduced-motion: reduce) {
   .pbc .bchip, .pbc .bal-rf {
-    transition:background .12s,color .12s
+    transition:background .12s,color .12s,transform 0s
   }
   .pbc .bp {
     transition:none

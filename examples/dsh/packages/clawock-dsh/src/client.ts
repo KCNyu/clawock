@@ -2523,6 +2523,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   // A late reply must never paint a different task's picker, log or brief.
   const detailRequest = useRef(0)
   const activeDetail = useRef<string | null>(null)
+  useEffect(() => () => { detailRequest.current += 1; activeDetail.current = null }, [])
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
   // The control that opened the panel: focus returns to it when the panel closes.
