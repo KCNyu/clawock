@@ -205,6 +205,20 @@ def test_a_working_filter_reports_ok(tmp_path, monkeypatch):
     assert not any(it.get('retained_from_previous') for it in payload['items'])
 
 
+def test_all_invalid_relevance_is_a_failed_filter(tmp_path, monkeypatch):
+    out = tmp_path / 'influencer.json'
+    monkeypatch.setattr(inf, 'OUT_FILE', str(out))
+    monkeypatch.setattr(inf, 'load_holdings', lambda: [])
+    _quiet_sources(monkeypatch, ['headline'])
+    monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {
+        i: {'relevance': None} for i, _ in enumerate(candidates)
+    })
+    inf.main()
+    payload = json.loads(out.read_text(encoding='utf-8'))
+    assert payload['llm_filter_status'] == 'failed_kept_previous'
+    assert payload['llm_filtered'] is False
+
+
 def test_routine_ark_rebalancing_is_capped_below_the_news(tmp_path, monkeypatch):
     """Measured on GHA run 34704653236: the model scored every 0.01-0.09% ARK
     rebalance 78-82, so eight dust trades sat on top of the whole card. The cap

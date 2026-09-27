@@ -238,7 +238,9 @@ def _opportunity_reads(open_decisions, portfolio):
         # The most informative zero of the three: the breakout DID happen and
         # the no-chase filter demoted it. Naming the names and the z is what
         # lets kcn argue with the threshold instead of with the silence.
-        names = '、'.join(f"{r['label']} z={r['zscore20']}" for r in over[:4])
+        names = '、'.join(
+            f"{'/'.join(holdings_of.get(r['label'], [r['label']]))} z={r['zscore20']}"
+            for r in over[:4])
         why_none = (f'{len(over)} 只已收盘站上前 20 日高，但 z≥{no_chase_z:g} 判为追高'
                     f'（policy: 等回踩不破再谈）：{names}')
     elif reads.get('discipline_downgraded_count') or reads['reject_count']:
@@ -251,7 +253,9 @@ def _opportunity_reads(open_decisions, portfolio):
         nearest = sorted(((v.get('pct_from_high'), k)
                           for k, v in (radar.get('levels') or {}).items()
                           if v.get('pct_from_high') is not None), reverse=True)[:3]
-        near_txt = '、'.join(f'{k} {p:+.1f}%' for p, k in nearest) or '无可比价位'
+        near_txt = '、'.join(
+            f"{'/'.join(holdings_of.get(k, [k]))} {p:+.1f}%" for p, k in nearest
+        ) or '无可比价位'
         why_none = (f'全部持仓收盘未站上前 20 日高，最接近的三只：{near_txt}'
                     f'（突破是唯一有回测边缘的加仓形态，#819）')
 
