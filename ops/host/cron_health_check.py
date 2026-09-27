@@ -853,6 +853,7 @@ def main():
         'dashboard_build': dash,
         'scheduled_publisher': publisher,
         'publish_backlog': backlog,
+        'degradations': (outcomes_ledger or {}).get('degradations') or [],
         'token_usage': token_reports,
         'has_missing': has_missing,
         'has_warn': has_warn,
@@ -873,6 +874,8 @@ def main():
         print(f"  {pub_icon} {'scheduled publisher':25s}  {publisher['detail']}")
         print(f"  {DASHBOARD_STATE_ICONS[backlog['state']]} "
               f"{'publish backlog':25s}  {backlog['detail']}")
+        for row in summary['degradations']:
+            print(f"  ⚠ {'ledger degradation':25s}  {row.get('kind')}: {row.get('count')} 次")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")
         if has_missing:

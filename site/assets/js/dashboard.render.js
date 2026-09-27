@@ -644,6 +644,8 @@
     if (!bs) { el.style.display = 'none'; return; }
     const wf = safe(DATA, 'workflow_outcomes') || {};
     const wfCounts = wf.counts || {};
+    const degradations = wf.degradations || [];
+    const degradationCount = degradations.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
     el.style.display = '';
     const ig = bs.integrity || {};
     const stale = bs.stale_files || [];
@@ -654,13 +656,14 @@
       dot = 'bad'; label = `成品流程 ${wfCounts.failed} FAILED`;
     }
     else if (ig.error_count > 0) { dot = 'bad'; label = `体检 ${ig.error_count} ERROR`; }
-    else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly) {
+    else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly || degradationCount) {
       dot = 'warn';
       const bits = [];
       if (stale.length) bits.push(`${stale.length} 文件 stale`);
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
       if (recovered) bits.push(`${recovered} 成品恢复/降级`);
       if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
+      if (degradationCount) bits.push(`${degradationCount} 次降级记录`);
       label = bits.join(' · ');
     } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
     if (wf.raw_error_but_product_usable) {
@@ -682,6 +685,7 @@
       else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
     });
     (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '[ERROR]' : '[WARN]'} ${t.code}: ${stripEmoji(t.msg)}`));
+    degradations.forEach(row => lines.push(`[降级] ${row.kind}: ${row.count} 次`));
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
         lines.push(`${m.toUpperCase()}: 行情会话 ${quoteSessionLabel(v)}${v.closed_today ? ' (休市)' : ''}`));
@@ -1881,9 +1885,14 @@
     if (!wrap) return;
     const d = safe(DATA, 'influencer_feed') || {};
     const items = d.items || [];
+    const failedSources = Object.entries(d.source_status || {})
+      .filter(([, status]) => status === 'failed')
+      .map(([key]) => (d.sources || {})[key] || key);
     if (!items.length) {
       if (sumEl) sumEl.innerHTML = '';
-      wrap.innerHTML = '<div class="empty-state">No influence signals (48h).</div>';
+      wrap.innerHTML = `<div class="empty-state">${failedSources.length
+        ? `⚠️ 来源失败：${escapeHtml(failedSources.join('、'))}`
+        : 'No influence signals (48h).'}</div>`;
       return;
     }
     const c = d.counts || {};
@@ -1898,7 +1907,8 @@
     if (roster && authors.length) roster.textContent = authors.join(' · ');
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
-      asOf.textContent = `${(authors.length ? authors : ['多源']).join(' · ')} · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`;
+      asOf.textContent = `${(authors.length ? authors : ['多源']).join(' · ')} · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`
+        + (failedSources.length ? ` · ⚠️ 来源失败：${failedSources.join('、')}` : '');
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
@@ -2443,7 +2453,7 @@
       const blanks = Array.from({ length: pad }, () => `<div class="bh-c is-empty"></div>`).join("");
       const heat = c.diffs.map(d => {
         // gamma 提亮弱值：线性 alpha 会让 ±1% 的格子近乎全白，读起来像窟窿
-        const a = Math.pow(Math.min(Math.abs(d) / full, 1), 0.62) * 0.78 + 0.05;
+      const a = Math.pow(Math.min(Math.abs(d) / full, 1), 0.62) * 0.13 + 0.05;
         const rgb = d >= 0 ? "var(--heat-up)" : "var(--heat-down)";
         return `<div class="bh-c" style="background:color-mix(in srgb, ${rgb} ${(a * 100).toFixed(0)}%, transparent)"`
           + ` title="${escapeHtml(c.ticker)} ${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(2)}%">${d.toFixed(1)}</div>`;
