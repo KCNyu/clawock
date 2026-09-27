@@ -91,6 +91,20 @@ def _numbers_in(node, acc: list) -> list:
     return acc
 
 
+def _pvalues_in(node, acc: list) -> list:
+    """Only measured p-value leaves, never drawdowns or grid parameters."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if re.search(r'p[_-]?value|pval', str(key), re.I):
+                _numbers_in(value, acc)
+            elif isinstance(value, (dict, list)):
+                _pvalues_in(value, acc)
+    elif isinstance(node, list):
+        for value in node:
+            _pvalues_in(value, acc)
+    return acc
+
+
 def load_allowlist(path: Path | None = None) -> dict:
     path = Path(path or ALLOWLIST)
     if not path.exists():
@@ -107,21 +121,25 @@ def scan_text(text: str, *, source: str) -> list[dict]:
             continue
         values = []
         for raw, unit in PERCENT.findall(line):
-            values.append(float(raw) / 100.0)
+            values.append((float(raw) / 100.0, 'percent'))
         for raw in PVALUE.findall(line):
-            values.append(float(raw))
-        for value in values:
+            values.append((float(raw), 'pvalue'))
+        for value, kind in values:
             claims.append({
-                'source': source, 'line': lineno, 'value': value,
+                'source': source, 'line': lineno, 'value': value, 'kind': kind,
                 'text': line.strip()[:120], 'cited': cited,
             })
     return claims
 
 
-def _matches_card(value: float, cards: list[dict]) -> bool:
+def _matches_card(value: float, cards: list[dict], kind='percent') -> bool:
     for card in cards:
-        for number in _numbers_in(card.get('metrics'), []):
-            if abs(abs(number) - abs(value)) <= TOLERANCE:
+        numbers = (_pvalues_in(card.get('metrics'), []) if kind == 'pvalue'
+                   else _numbers_in(card.get('metrics'), []))
+        for number in numbers:
+            difference = (abs(number - value) if kind == 'pvalue'
+                          else abs(abs(number) - abs(value)))
+            if difference <= TOLERANCE:
                 return True
     return False
 
@@ -160,7 +178,7 @@ def check(root: Path | None = None, cards_dir: Path | None = None,
                     f"{rel}:{claim['line']}: claims {claim['value']:+.4f} but the "
                     f"file cites no run card — {claim['text']}")
                 continue
-            if not _matches_card(claim['value'], cited_cards):
+            if not _matches_card(claim['value'], cited_cards, claim['kind']):
                 problems.append(
                     f"{rel}:{claim['line']}: claims {claim['value']:+.4f}, which "
                     f"no cited run card contains — {claim['text']}")
