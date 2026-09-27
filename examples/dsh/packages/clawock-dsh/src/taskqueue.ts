@@ -13,7 +13,8 @@
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
  *   clawock-patrol.service + its journal the supervisor's own last words
- *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT set from the chip (read only here)
+ *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
+ *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
@@ -203,6 +204,13 @@ const epochMs = (raw: string | undefined): number | null => {
   return Number.isFinite(value) && value > 0 ? value * 1000 : null
 }
 
+/** A result.env count: null when the runner did not write it (older runner, no session record yet). */
+const countOf = (raw: string | undefined): number | null => {
+  if (raw === undefined || raw === '') return null
+  const value = Number.parseInt(raw, 10)
+  return Number.isFinite(value) && value >= 0 ? value : null
+}
+
 function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
   const dir = join(logDir, id)
   const meta = readEnvFile(join(dir, 'meta.env'))
@@ -249,6 +257,18 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     notifyAtMs: localStampMs(result.NOTIFY_AT),
     runnerApi: Number.parseInt(result.RUNNER_API ?? '1', 10) || 1,
     session: result.SESSION ?? '',
+    // Runner api 3: what the runner uses now (task_queue_ops.py deadline/attempts/resumes), and
+    // the usage as of the last finished attempt. Absent from an older runner's result.env.
+    deadlineAtMs: epochMs(result.DEADLINE_EPOCH) ?? epochMs(meta.DEADLINE_EPOCH),
+    maxAttempts: countOf(result.MAX_ATTEMPTS),
+    quotaResumes: countOf(result.QUOTA_RESUMES),
+    quotaResumesUsed: countOf(result.QUOTA_RESUMES_USED),
+    tokensIn: countOf(result.TOKENS_IN),
+    tokensCacheW: countOf(result.TOKENS_CACHE_W),
+    tokensCacheR: countOf(result.TOKENS_CACHE_R),
+    tokensOut: countOf(result.TOKENS_OUT),
+    tokensTotal: countOf(result.TOKENS_TOTAL),
+    costUsd: result.COST_USD ?? '',
     cancelling,
   }
 }
@@ -262,6 +282,13 @@ function readLimits(path: string): { maxRunning: number; slotLimits: AgentSlotLi
   const slotLimits = Object.keys(env).filter((key) => /^MAX_RUNNING_[A-Z0-9]+$/.test(key))
     .map((key) => ({ agent: key.slice('MAX_RUNNING_'.length).toLowerCase(), max: count(env[key]) }))
   return { maxRunning: count(env.MAX_RUNNING), slotLimits }
+}
+
+/** The free opencode pool (one model per word, `#` comments), in the order the runner rotates. */
+function readPool(limitsPath: string): string[] {
+  let text: string
+  try { text = readFileSync(join(limitsPath, '..', 'opencode-fallback-models'), 'utf8') } catch { return [] }
+  return text.split('\n').flatMap((line) => (line.split('#')[0] ?? '').split(/\s+/)).filter((word) => word !== '')
 }
 
 function readRounds(patrolDir: string, limit: number): PatrolRound[] {
@@ -385,6 +412,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     available: true,
     asOf,
     ...readLimits(config.limitsPath),
+    opencodePool: readPool(config.limitsPath),
     running: active.filter((task) => task.slot !== '').length,
     active,
     recent: ended,
@@ -457,12 +485,17 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
 // ---------------------------------------------------------------------------
 
 /** The actions the chip may run, and how each maps onto the ops entry's arguments. */
-export const QUEUE_ACTIONS = ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log'] as const
+export const QUEUE_ACTIONS = ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log',
+  'brief', 'usage', 'deadline', 'attempts', 'resumes'] as const
+/** The actions that only read: never deduplicated as a double click, never invalidate the queue read. */
+const READ_ACTIONS: readonly string[] = ['choices', 'log', 'brief', 'usage']
 export type QueueAction = typeof QUEUE_ACTIONS[number]
 
 const TASK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/
 const PRIORITY_ARG = /^(top|up|down|reset|-?\d{1,2})$/
 const MODEL_TOKEN = /^[A-Za-z0-9._/:@-]{1,120}$/
+const DEADLINE_ARG = /^(\+\d{1,3}[hm]|\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?|reset)$/
+const COUNT_ARG = /^(\d{1,2}|reset)$/
 /** Queued, not interrupting: the task finishes its current step, then lands what it has. */
 export const WRAPUP_TEXT = '请体面收尾：不要再开新的工作。把已经完成的部分提交/推送（按原任务的流程），' +
   '写清楚做了什么、没做什么和下一步，然后输出 STATUS 行（没做完就是 STATUS: PARTIAL）。'
@@ -481,6 +514,11 @@ export function opsArgsFor(action: string, id: string, arg: string): string[] | 
     }
     case 'wrapup': return ['append', id, '--queue', '--text', WRAPUP_TEXT]
     case 'log': return ['log', id, '--lines', '80']
+    case 'deadline':
+      return DEADLINE_ARG.test(arg) ? ['deadline', id, arg] : `deadline takes +Nh, +Nm, "YYYY-MM-DD HH:MM" or reset (got ${JSON.stringify(arg)})`
+    case 'attempts':
+    case 'resumes':
+      return COUNT_ARG.test(arg) ? [action, id, arg] : `${action} takes an integer or reset (got ${JSON.stringify(arg)})`
     default: return [action, id]
   }
 }
@@ -518,7 +556,7 @@ export function createQueueActionRunner(config: TaskQueueConfig = {}, deps: Pick
     const args = opsArgsFor(action, id, arg)
     if (typeof args === 'string') return { ok: false, code: 2, action, id, message: args, detail: '' }
     const key = [action, id, arg].join('\u0000')
-    const read = action === 'choices' || action === 'log'
+    const read = READ_ACTIONS.includes(action)
     const last = recent.get(key)
     if (!read && last !== undefined && Date.now() - last.at < REPEAT_WINDOW_MS) return last.result
     const pending = inFlight.get(key)

@@ -31,6 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
+import { PROVIDER_JOIN, type ProviderJoin } from './providers.ts'
 import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
@@ -184,6 +185,32 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.d.took': '用时', 'queue.d.endedAt': '结束', 'queue.d.resumes': '续跑', 'queue.d.attempts': '尝试次数',
     'queue.d.stalls': '判卡死', 'queue.d.stallsValue': '{n} 次(静默无进展,已自动重试)',
     'queue.d.latest': '最近事件', 'queue.d.id': '任务 ID', 'queue.d.summary': '结果摘要', 'queue.d.noSummary': '没有留下结果摘要',
+    'panel.title': '额度 · 队列', 'panel.aria': '各 provider 的额度与派发队列', 'panel.refresh': '刷新额度与队列',
+    'panel.plan.anthropic': 'Anthropic 订阅', 'panel.plan.chatgpt': 'ChatGPT 订阅', 'panel.plan.freePool': '无 provider · 免费池',
+    'panel.plan.deepseek': '本机 API 账户', 'panel.plan.minimax': 'Token Plan · 源：OpenClaw 配置',
+    'panel.source.hostApi': 'API 账户', 'panel.source.openclaw': 'OpenClaw',
+    'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
+    'panel.q.idle': '闲', 'panel.q.run': '跑 {n}', 'panel.q.queued': '排 {n}', 'panel.q.quota': '睡额度 {n}', 'panel.q.wait': '等 {n}',
+    'panel.staleAt': '{message} · 显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
+    'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
+    'queue.wait.quotaBoth': '等到 {time}（窗口 {reset} +{pad}m 缓冲）', 'queue.wait.quotaNoWindow': '等到 {time}（窗口重置时刻未读到）',
+    'queue.d.cost': '花费', 'queue.d.costValue': '${usd} · 按 API 价估算，非实际扣费', 'queue.d.costFree': '免费（opencode 免费池）',
+    'queue.d.costUnpriced': '—（该模型没有价目，不估）', 'queue.d.costLive': '截至上一次尝试结束',
+    'queue.d.tokens': 'Tokens', 'queue.d.tokensValue': '共 {total} · 输入 {in} · 缓存写 {w} · 缓存读 {r} · 输出 {out}',
+    'queue.d.deadline': '截止', 'queue.d.budget': '预算', 'queue.d.budgetValue': '重试 {used}/{max} · 额度续跑 {rused}/{rmax}',
+    'queue.a.confirmLabel': '确认 {label}', 'queue.a.brief': '任务书', 'queue.a.briefTitle': '在右侧文件预览打开 prompt.md（只读）',
+    'queue.a.deadline': '截止 +2h', 'queue.a.attempts': '重试 +1', 'queue.a.resumes': '续跑 +1',
+    'queue.a.deadlineConfirm': '延长 deadline 2 小时：该任务占用队列的时间变长（上限：派发 + 72h）。{when} 再点一次确认。',
+    'queue.a.attemptsConfirm': '多给一次失败/卡死重试：再失败会多跑一轮。{when} 再点一次确认。',
+    'queue.a.resumesConfirm': '多给一次额度续跑：每次都会重放会话上下文，有成本（缓存读）。{when} 再点一次确认。',
+    'queue.a.whenNow': '它在排队/等待：几秒内生效。', 'queue.a.whenNext': '它在跑：本次尝试的时限不变，下一次尝试起生效。',
+    'queue.a.budgetOld': '这个任务的 runner 是 api {api}：deadline 与重试预算在启动时定死，改了不会生效（api 3 起的任务才支持）。',
+    'queue.brief.heading': '任务书与追加', 'queue.brief.prompt': '任务书 prompt.md · {kb} KB', 'queue.brief.append': '追加 {stamp}',
+    'queue.brief.delivered': '已投递', 'queue.brief.pending': '待投递', 'queue.brief.big': '原文 {kb} KB（预览里是完整文件；ops 读数已截断到 64 KB）',
+    'queue.brief.noSession': '右侧预览要在会话里打开：先进入任意会话，再点一次。文件：{path}', 'queue.brief.noService': '这个 dsh 没有文件预览栏。文件：{path}',
+    'queue.brief.failed': '预览打不开：{message}。文件：{path}', 'queue.brief.opened': '已在右侧预览打开 {file}',
+    'queue.brief.needsHost': '追加列表要等插件 host 半边更新（需重启 dsh）；任务书本身可以打开。', 'queue.brief.none': '没有追加', 'queue.brief.readOnly': '只读：要改请用 dispatch.sh append（运行中加 --queue）',
+    'queue.r.needsHost': '主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。',
   },
   en: {
     'action.buy': 'Buy', 'action.add': 'Add', 'action.trim': 'Trim', 'action.sell': 'Sell',
@@ -288,6 +315,32 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
     'queue.d.stalls': 'Stalled', 'queue.d.stallsValue': '{n} (silent with no progress, retried automatically)',
     'queue.d.latest': 'Latest event', 'queue.d.id': 'Task ID', 'queue.d.summary': 'Closing report', 'queue.d.noSummary': 'No closing report was left',
+    'panel.title': 'Quota · queue', 'panel.aria': 'Each provider\'s quota and the dispatch queue', 'panel.refresh': 'Refresh quotas and the queue',
+    'panel.plan.anthropic': 'Anthropic subscription', 'panel.plan.chatgpt': 'ChatGPT subscription', 'panel.plan.freePool': 'No provider · free pool',
+    'panel.plan.deepseek': 'This host\'s API account', 'panel.plan.minimax': 'Token Plan · key from the OpenClaw config',
+    'panel.source.hostApi': 'API account', 'panel.source.openclaw': 'OpenClaw',
+    'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
+    'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting',
+    'panel.staleAt': '{message} · showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
+    'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
+    'queue.wait.quotaBoth': 'until {time} (window {reset} + {pad}m margin)', 'queue.wait.quotaNoWindow': 'until {time} (window reset not read)',
+    'queue.d.cost': 'Cost', 'queue.d.costValue': '${usd} · estimated at API prices, not billed', 'queue.d.costFree': 'free (opencode free pool)',
+    'queue.d.costUnpriced': '— (no price for this model, not estimated)', 'queue.d.costLive': 'as of the last finished attempt',
+    'queue.d.tokens': 'Tokens', 'queue.d.tokensValue': '{total} total · in {in} · cache write {w} · cache read {r} · out {out}',
+    'queue.d.deadline': 'Deadline', 'queue.d.budget': 'Budget', 'queue.d.budgetValue': 'retries {used}/{max} · quota resumes {rused}/{rmax}',
+    'queue.a.confirmLabel': 'Confirm {label}', 'queue.a.brief': 'Brief', 'queue.a.briefTitle': 'Open prompt.md in the file preview (read-only)',
+    'queue.a.deadline': 'Deadline +2h', 'queue.a.attempts': 'Retry +1', 'queue.a.resumes': 'Resume +1',
+    'queue.a.deadlineConfirm': 'Two more hours: the task holds its place in the queue longer (ceiling: dispatch + 72h). {when} Tap again to confirm.',
+    'queue.a.attemptsConfirm': 'One more retry after a failure or stall: another failure runs one more round. {when} Tap again to confirm.',
+    'queue.a.resumesConfirm': 'One more quota resume: each replays the session\'s context, which costs cache reads. {when} Tap again to confirm.',
+    'queue.a.whenNow': 'It is queued or waiting: applies within seconds.', 'queue.a.whenNext': 'It is running: this attempt keeps its time cap; applies from the next attempt.',
+    'queue.a.budgetOld': 'This task\'s runner is api {api}: its deadline and retry budgets were fixed at start, a change would not apply (tasks from api 3 on accept it).',
+    'queue.brief.heading': 'Brief and appends', 'queue.brief.prompt': 'Brief prompt.md · {kb} KB', 'queue.brief.append': 'Append {stamp}',
+    'queue.brief.delivered': 'delivered', 'queue.brief.pending': 'pending', 'queue.brief.big': '{kb} KB (the preview shows the whole file; the ops read is capped at 64 KB)',
+    'queue.brief.noSession': 'The preview opens inside a conversation: open any conversation, then tap again. File: {path}', 'queue.brief.noService': 'This dsh has no file preview. File: {path}',
+    'queue.brief.failed': 'The preview did not open: {message}. File: {path}', 'queue.brief.opened': 'Opened {file} in the preview',
+    'queue.brief.needsHost': 'The appends list needs the updated host half (a dsh restart); the brief itself opens now.', 'queue.brief.none': 'No appends', 'queue.brief.readOnly': 'Read-only: change it with dispatch.sh append (--queue while it runs)',
+    'queue.r.needsHost': 'The plugin\'s host half on this host is older: this action works after a dsh restart.',
   },
 }
 
@@ -1101,8 +1154,21 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
 
   useEffect(() => {
     const intervalMs = Math.max(60000, data.result?.refreshMs ?? 60000)
-    const timer = setInterval(() => { runBalances(false) }, intervalMs)
-    return () => clearInterval(timer)
+    // Hidden tabs do not poll; on return the host's per-provider TTL decides whether a fetch
+    // happens at all (non-forced), so coming back never refreshes every provider at once.
+    const visible = (): boolean => typeof document === 'undefined' || document.visibilityState === 'visible'
+    let hiddenSince = 0
+    const timer = setInterval(() => { if (visible()) runBalances(false) }, intervalMs)
+    const onVisibility = (): void => {
+      if (!visible()) { hiddenSince = Date.now(); return }
+      if (hiddenSince !== 0 && Date.now() - hiddenSince >= intervalMs) runBalances(false)
+      hiddenSince = 0
+    }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      clearInterval(timer)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [data.result?.refreshMs, pollKey])
 
   const now = Date.now()
@@ -1295,14 +1361,6 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export const BALANCE_PANEL = 'clawock-provider-balance'
 
-/** The foot button's owner share plus its inject face. */
-export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
-  /** Sidebar column state: false is the 56px rail (dot only). */
-  wide: boolean
-  /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
-  t: Translate
-}
-
 /** The prop contract both balance surfaces' popover panel renders (see `panelAttrs`). */
 type PanelAttrs = {
   className: string
@@ -1399,61 +1457,6 @@ function useFootPopover(back?: () => boolean) {
   return { open, setOpen, anchor, place, rootRef }
 }
 
-/**
- * The sidebar-foot home of the balance chip: always mounted, independent of
- * any session. It headlines the same one provider (pinned or first row) with
- * the same dot/tier/stale colours and polls on the same cadence.
- *
- * The provider list opens as a trigger-owned popover, the interaction the
- * host's own foot occupant uses (ui-cordis `CordisPanel`): the row toggles it,
- * it is `position:fixed` above the row so the clipped sidebar column cannot
- * cut it, and only a pointerdown outside the row+popover root or Escape
- * dismisses it (ui-primitives `useDismissOnOutsidePointer`, heard in the
- * capture phase — see the effect). It used to select
- * a keyed `main` panel instead, which swapped the whole conversation column
- * for a mostly empty page — one click and the chat you were reading was gone
- * (and on a phone the panel opened squeezed beside the still-open drawer).
- * Pinning a row and the manual refresh happen inside the root, so they can
- * never close it.
- */
-export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement {
-  const t = props.t
-  const state = useProviderBalances(props, BALANCE_PANEL)
-  const { rows, primary } = state
-  const { open, setOpen, anchor, place, rootRef } = useFootPopover()
-  const instanceId = useId()
-
-  const summary = primary !== undefined
-    ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? t('balance.otherProviders') : '')
-    : state.empty.title
-  return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail'), ref: rootRef },
-    h('button', {
-      type: 'button',
-      className: cx('bchip'),
-      'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone,
-      'data-pb-provider': primary !== undefined ? primary.provider : '',
-      'data-clawock-action': BALANCE_PANEL,
-      'data-active': open ? '' : undefined,
-      'aria-expanded': open,
-      'aria-haspopup': 'dialog',
-      'aria-label': t('balance.panelTitle'),
-      title: summary,
-      onClick: () => {
-        // Anchor from the row's live rect at the moment it opens (the rail and
-        // the wide column put it in different places).
-        if (!open) place()
-        setOpen(!open)
-      },
-    }, props.wide
-      ? renderBalanceHeadline(primary, true, true, state.empty.tone, instanceId)
-      : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone },
-        renderBalanceGlyph(primary !== undefined ? primary.view.tone : state.empty.tone, 18, instanceId))),
-    h('div', panelAttrs(open, t('balance.panelTitle'), {
-      'data-clawock-popover': BALANCE_PANEL,
-      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
-    }), renderBalancePanelBody(state, t)))
-}
-
 // ---------------------------------------------------------------------------
 // Dispatch task queue: the foot row above the balance, drawn like the host's
 // own foot occupant (ui-cordis: a 42px badge row with a trailing count, a
@@ -1474,12 +1477,6 @@ export interface TaskQueueInjected {
    * Optional: without it the panel is read-only.
    */
   runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>
-}
-
-export type TaskQueueSidebarActionProps = TaskQueueInjected & {
-  /** Sidebar column state: false is the 56px rail (glyph only). */
-  wide: boolean
-  t: Translate
 }
 
 /** A live task queued for something another task of its agent holds (the backlog patrol yields to). */
@@ -1546,10 +1543,12 @@ function agoOf(t: Translate, ms: number): string {
  * 'stale' (the host's warn) = waiting for something (the lock, a slot,
  * memory, a quota reset, a retry), 'none' = neither yet (starting).
  */
-export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date.now()): { tone: BalanceTone; text: string } {
+export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date.now(),
+  windows?: ReadonlyArray<{ resetAtMs?: number | null }>): { tone: BalanceTone; text: string } {
+  const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   const at = (key: string, ms: number | null): string => ms === null
     ? t(key + 'NoTime')
-    : t(key, { time: resetStampOf(t, { resetAt: '', resetAtMs: ms }, now) })
+    : t(key, { time: stamp(ms) })
   if (task.cancelling) return { tone: 'none', text: t('queue.state.cancelling') }
   switch (task.waiting) {
     case 'lock': return {
@@ -1558,7 +1557,17 @@ export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date
     }
     case 'slot': return { tone: 'stale', text: t('queue.wait.slot', { agent: task.agent }) }
     case 'memory': return { tone: 'stale', text: t('queue.wait.memory') }
-    case 'quota': return { tone: 'stale', text: at('queue.wait.quota', task.wakeAtMs) }
+    case 'quota': {
+      // Two facts, both shown (never one standing in for the other): when the runner wakes, and
+      // the provider window's reset it waits for — the one that resets last at or before the wake.
+      if (task.wakeAtMs === null || windows === undefined) return { tone: 'stale', text: at('queue.wait.quota', task.wakeAtMs) }
+      const wake = task.wakeAtMs
+      const resets = windows.map((w) => w.resetAtMs ?? null)
+        .filter((ms): ms is number => ms !== null && ms <= wake + 60000 && wake - ms < 6 * 3600000)
+      if (resets.length === 0) return { tone: 'stale', text: t('queue.wait.quotaNoWindow', { time: stamp(wake) }) }
+      const reset = Math.max(...resets)
+      return { tone: 'stale', text: t('queue.wait.quotaBoth', { time: stamp(wake), reset: stamp(reset), pad: Math.max(0, Math.round((wake - reset) / 60000)) }) }
+    }
     case 'retry': return { tone: 'stale', text: at('queue.wait.retry', task.wakeAtMs) }
     default: break
   }
@@ -1659,8 +1668,16 @@ function useTaskQueue(props: TaskQueueInjected & { t: Translate }) {
     return () => { mountedRef.current = false }
   }, [])
   useEffect(() => {
-    const timer = setInterval(() => { read(false) }, Math.max(5000, data.result?.refreshMs ?? 15000))
-    return () => clearInterval(timer)
+    // Not visible, not polled (C12): a hidden tab skips its ticks, and coming back reads once
+    // through the host's 5s TTL instead of catching up on every tick it missed.
+    const visible = (): boolean => typeof document === 'undefined' || document.visibilityState === 'visible'
+    const timer = setInterval(() => { if (visible()) read(false) }, Math.max(5000, data.result?.refreshMs ?? 15000))
+    const onVisible = (): void => { if (visible()) read(false) }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(timer)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [data.result?.refreshMs])
   const refresh = (): void => {
     setData((current) => ({ ...current, loading: true }))
@@ -1796,11 +1813,12 @@ function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: 
   handlers: { open: (id: string) => void; moveUp?: (task: DispatchTask) => void; busy: boolean }): React.ReactElement {
   const m = modelLine(task, live)
   const model = _modelView(m.model).label + (m.effort ? ' · ' + m.effort : '')
-  const num = live
+  const cost = _costOf(task)
+  const num = (live
     ? [task.attempts > 0 ? t('queue.attempt', { n: task.attempts }) : null,
       task.startedAtMs === null ? null : durationOf(t, now - (task.queuedAtMs ?? task.startedAtMs)),
       task.stalls ? t('queue.stalls', { n: task.stalls }) : null].filter(Boolean).join(' · ')
-    : task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)
+    : task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)) + (cost === null ? '' : ' · ' + cost.short)
   return h('div', { className: cx('tq-item'), key: task.id, 'data-tq-item': task.id },
     h('button', {
       type: 'button',
@@ -1853,79 +1871,216 @@ function groupOrder(tasks: DispatchTask[], queue: AgentQueue | undefined): Dispa
   return [...tasks].sort((a, b) => rank(a) - rank(b) || (a.queuedAtMs ?? a.startedAtMs ?? 0) - (b.queuedAtMs ?? b.startedAtMs ?? 0))
 }
 
+// ---- The provider panel (2026-09-27): quota and queue as one cell -------------------------
+
+/** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
+export type PanelSource = {
+  /** Stable key: the provider id, else the agent id. */
+  key: string
+  label: string
+  join: ProviderJoin | null
+  provider: BalancesResult['providers'][number] | null
+  agent: string | null
+}
+
 /**
- * The panel body, answering in order: per executor, who holds its lock and
- * who queues behind it (with why, and in what order) → what just ended →
- * patrol → the ops entry's version. Orders never mix across executors: each
- * agent has its own lock, so each group is its own queue.
+ * The order rule, written once: every joined row that has a dispatch agent,
+ * in PROVIDER_JOIN order (claude, codex, opencode), then an agent the queue
+ * reports that no row names, then every other provider in the balance
+ * answer's order (= BALANCE_PROVIDERS). Agent rows need a dispatcher (C3 ②:
+ * without one only providers render); a provider row needs its provider.
  */
-function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, ui: QueueUi,
-  notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
-  const { data, refresh } = state
-  const result = data.result
+export function _panelSources(providers: BalancesResult['providers'], queue: TaskQueueResult | null): PanelSource[] {
+  const dispatcher = queue !== null && queue.available
+  const byId = new Map(providers.map((row) => [row.provider, row] as const))
+  const out: PanelSource[] = []
+  const placed = new Set<string>()
+  for (const join of PROVIDER_JOIN) {
+    if (join.agent === null) continue
+    const provider = join.provider === null ? null : byId.get(join.provider) ?? null
+    if (provider === null && !dispatcher) continue
+    const key = join.provider ?? join.agent
+    out.push({ key, label: provider?.label ?? _agentLabel(join.agent), join, provider, agent: dispatcher ? join.agent : null })
+    placed.add(key)
+    if (join.provider !== null) placed.add(join.provider)
+  }
+  if (dispatcher) {
+    const agents = [...new Set([...(queue!.slotLimits ?? []).map((l) => l.agent), ...queue!.active.map((t) => t.agent)])]
+    for (const agent of agents) {
+      if (agent === '' || placed.has(agent) || PROVIDER_JOIN.some((j) => j.agent === agent)) continue
+      out.push({ key: agent, label: _agentLabel(agent), join: null, provider: null, agent })
+      placed.add(agent)
+    }
+  }
+  for (const provider of providers) {
+    if (placed.has(provider.provider)) continue
+    out.push({ key: provider.provider, label: provider.label, join: PROVIDER_JOIN.find((j) => j.provider === provider.provider) ?? null, provider, agent: null })
+  }
+  return out
+}
+
+/** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
+export function _poolPosition(result: TaskQueueResult | null): { current: string; next: string; fromOrder: boolean } | null {
+  const pool = result?.opencodePool ?? []
+  const tasks = [...(result?.active ?? []), ...(result?.recent ?? [])].filter((task) => task.agent === 'opencode')
+  const latest = tasks.find((task) => (task.modelUsed ?? '') !== '' && task.attempts > 0)
+  const used = latest?.modelUsed ?? ''
+  if (pool.length === 0) return used === '' ? null : { current: used, next: '', fromOrder: false }
+  const at = pool.indexOf(used)
+  if (at < 0) return { current: pool[0]!, next: pool[1] ?? pool[0]!, fromOrder: true }
+  return { current: used, next: pool[(at + 1) % pool.length]!, fromOrder: false }
+}
+
+/** A queue's last column on the folded row: what is running, queued, asleep on quota — or idle. */
+function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; tone: BalanceTone } {
+  const run = tasks.filter((task) => task.slot !== '').length
+  const queued = tasks.filter(queuedFor).length
+  const quota = tasks.filter((task) => task.waiting === 'quota').length
+  const other = tasks.filter((task) => task.waiting === 'retry' || task.waiting === 'memory').length
+  const parts = [
+    quota > 0 ? t('panel.q.quota', { n: quota }) : null,
+    run > 0 ? t('panel.q.run', { n: run }) : null,
+    queued > 0 ? t('panel.q.queued', { n: queued }) : null,
+    other > 0 ? t('panel.q.wait', { n: other }) : null,
+  ].filter((part): part is string => part !== null)
+  return { text: parts.length === 0 ? t('panel.q.idle') : parts.join(' · '), tone: quota + queued + other > 0 ? 'stale' : run > 0 ? 'ok' : 'none' }
+}
+
+/**
+ * The provider identity layer for a row with no agent glyph: 14px outline,
+ * the executor glyphs' stroke and size. A letterform-free stand-in (no brand
+ * artwork ships offline): DeepSeek a coin (money), MiniMax a wave, anything
+ * else a plain ring.
+ */
+function renderSourceGlyph(source: PanelSource): React.ReactElement {
+  if (source.agent !== null || source.join?.agent) return renderAgentGlyph(source.agent ?? source.join!.agent!)
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
+  const kind = source.join?.kind
+  const shape = kind === 'money'
+    ? [h('circle', { ...stroke, key: 'c', cx: 7, cy: 7, r: 5.2 }), h('path', { ...stroke, key: 'p', d: 'M5 4.8L7 7.2L9 4.8M7 7.2V9.8M5.4 8H8.6' })]
+    : kind === 'windows'
+      ? h('path', { ...stroke, d: 'M1.8 9.5L4 4.5L7 9.5L10 4.5L12.2 9.5' })
+      : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
+  return h('svg', {
+    className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true', 'data-pp-provider': source.key,
+  }, shape)
+}
+
+/** The folded reading of a provider: headline value, its window's reset (resetStampOf, the one clock), tone. */
+function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: TaskQueueResult | null, t: Translate): {
+  value: string; reset: string | null; tone: BalanceTone; level: UsedLevel | null; title: string
+} {
+  if (row !== undefined) return { value: row.view.value, reset: row.view.reset, tone: row.view.tone, level: row.view.level, title: row.view.title }
+  if (source.join?.kind === 'pool') {
+    const pos = _poolPosition(queue)
+    return { value: pos === null ? '—' : _modelView(pos.current).label, reset: null, tone: 'none', level: null,
+      title: pos === null ? t('panel.poolUnread') : t('panel.pool', { current: pos.current, next: pos.next || '—' }) + (pos.fromOrder ? t('panel.poolOrder') : '') }
+  }
+  return { value: '—', reset: null, tone: 'none', level: null, title: '' }
+}
+
+type PanelUi = DetailUi & {
+  /** Rows by provider id with their display projection (the balance channel). */
+  rows: Map<string, BalanceRow>
+}
+
+/** One provider group of the open panel: identity and plan, the allowance, then the queue it feeds. */
+function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, t: Translate, now: number, ui: PanelUi): React.ReactElement {
+  const row = source.provider === null ? undefined : ui.rows.get(source.provider.provider)
+  const agent = source.agent
+  const tasks = agent === null || result === null ? [] : result.active.filter((task) => task.agent === agent)
+  const queue = agent === null ? undefined : (result?.queues ?? []).find((q) => q.agent === agent)
+  const lane = agent === null || result === null ? undefined : _slotLanes(result).find((l) => l.agent === agent)
+  const notes: string[] = []
+  if (queue?.held && tasks.every((task) => task.id !== queue.holder)) {
+    notes.push(queue.holder !== '' ? t('queue.holderOther', { id: queue.holder }) : t('queue.holderUnnamed'))
+  }
+  if (queue?.quotaUntilMs) notes.push(t('queue.quotaHint', { time: resetStampOf(t, { resetAt: '', resetAtMs: queue.quotaUntilMs }, now), by: queue.quotaBy }))
+  // Abnormal balance rows say so with the last good reading and when it was taken (① stale).
+  const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN
+  const balanceNote = row === undefined || row.note === null ? null
+    : row.result.status === 'stale' && Number.isFinite(snapshotAt)
+      ? t('panel.staleAt', { message: row.note, time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
+      : row.note
+  const pool = source.join?.kind === 'pool' ? _poolPosition(result) : null
+  const planKey = source.join?.plan
+  return h('section', {
+    className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': agent ?? undefined,
+    'aria-label': source.label, tabIndex: -1,
+  },
+    h('div', { className: cx('tq-group-head') },
+      renderSourceGlyph(source),
+      h('span', { className: cx('tq-group-name') }, source.label,
+        planKey === undefined ? null : h('span', { className: cx('pp-plan') }, ' · ' + t(planKey))),
+      lane === undefined ? null : h('span', { className: cx('tq-lane'), 'data-tq-lane': lane.agent, title: t('queue.lanesTitle') },
+        h('span', { className: cx('tq-dot'), 'data-balance-state': lane.tone }),
+        t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }))),
+    row === undefined ? null : h('div', { className: cx('pp-allowance'), 'data-pb-provider': row.provider, 'data-pb-role': 'panel', 'data-balance-state': row.view.tone },
+      // Money has no bar (⑤): the amount, then its granted / topped-up split from renderRowDetail.
+      row.result.snapshot !== null && row.result.snapshot.unit !== 'pct'
+        ? h('div', { className: cx('pp-money'), 'data-balance-state': row.view.tone }, row.view.value) : null,
+      balanceNote === null ? null : h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
+      renderRowDetail(row, t, now)),
+    source.join?.kind === 'pool' ? h('div', { className: cx('tq-note'), 'data-pp-pool': pool === null ? 'unread' : pool.fromOrder ? 'order' : 'used' },
+      pool === null ? t('panel.poolUnread')
+        : t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : '')) : null,
+    agent === null ? null : [
+      ...notes.map((note, i) => h('div', { className: cx('tq-note'), key: 'n' + i }, note)),
+      tasks.length === 0
+        ? h('div', { className: cx('tq-empty'), key: 'idle' }, t('queue.groupIdle'))
+        : groupOrder(tasks, queue).map((task) => renderTaskRow(task, { ..._taskStatus(task, t, now, ui.windowsOf(task.agent)), dot: true }, true, t, now, {
+          open: ui.open,
+          moveUp: ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? (r) => { ui.act('priority', r, 'up') } : undefined,
+          busy: ui.busy !== null,
+        })),
+    ])
+}
+
+/**
+ * The open panel: title + one refresh for both halves, then a group per
+ * source in _panelSources order, then what just ended, patrol, and the ops
+ * entry's version. Each half keeps its own read: a failed balance read never
+ * hides the queue, and a host without the dispatcher shows providers only.
+ */
+function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<typeof useTaskQueue>, balanceState: ReturnType<typeof useProviderBalances>,
+  t: Translate, now: number, ui: PanelUi, notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
+  const result = queueState.data.result
+  const loading = queueState.data.loading || balanceState.data.loading
   const head = h('div', { className: cx('tq-head'), key: 'head' },
-    h('span', { className: cx('tq-title') }, t('queue.panelHeading')),
+    h('span', { className: cx('tq-title') }, t('panel.title')),
     h('button', {
       type: 'button',
-      className: cx('tq-icon-btn', data.loading && 'spin'),
+      className: cx('tq-icon-btn', loading && 'spin'),
       'data-refresh': 'true',
-      'aria-label': t('queue.refresh'),
-      title: t('queue.refresh'),
-      onClick: refresh,
+      'aria-label': t('panel.refresh'),
+      'aria-busy': loading ? 'true' : undefined,
+      title: t('panel.refresh'),
+      onClick: () => { queueState.refresh(); balanceState.refresh() },
     }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
       h('path', { d: 'M11.5 7A4.5 4.5 0 1 1 10 3.6M11.5 1.8V4.4H8.9', stroke: 'currentColor', strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
-  if (result === null) {
-    return [head, h('div', { className: cx('tq-note'), key: 'empty', role: 'status' },
-      data.error !== null ? t('queue.readFailed', { message: data.error }) : t('balance.reading'))]
-  }
-  const problem = data.error ?? (result.status === 'stale' || result.status === 'failed' ? result.message : null)
-  const patrol = result.patrol
-  const lanes = _slotLanes(result)
-  const queues = new Map((result.queues ?? []).map((queue) => [queue.agent, queue] as const))
-  const agents = [...new Set([...lanes.map((lane) => lane.agent), ...result.active.map((task) => task.agent)])]
-  const groups = agents.map((agent) => {
-    const tasks = result.active.filter((task) => task.agent === agent)
-    const queue = queues.get(agent)
-    const lane = lanes.find((row) => row.agent === agent)
-    const notes: string[] = []
-    if (queue?.held && tasks.every((task) => task.id !== queue.holder)) {
-      notes.push(queue.holder !== '' ? t('queue.holderOther', { id: queue.holder }) : t('queue.holderUnnamed'))
-    }
-    if (queue?.quotaUntilMs) {
-      notes.push(t('queue.quotaHint', { time: resetStampOf(t, { resetAt: '', resetAtMs: queue.quotaUntilMs }, now), by: queue.quotaBy }))
-    }
-    return h('section', { className: cx('tq-group'), key: 'g-' + agent, 'data-tq-group': agent, 'aria-label': _agentLabel(agent) },
-      h('div', { className: cx('tq-group-head') },
-        renderAgentGlyph(agent),
-        h('span', { className: cx('tq-group-name') }, _agentLabel(agent)),
-        lane === undefined ? null : h('span', { className: cx('tq-lane'), 'data-tq-lane': agent, title: t('queue.lanesTitle') },
-          h('span', { className: cx('tq-dot'), 'data-balance-state': lane.tone }),
-          t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }))),
-      notes.map((note, i) => h('div', { className: cx('tq-note'), key: 'n' + i }, note)),
-      tasks.length === 0
-        ? h('div', { className: cx('tq-empty') }, t('queue.groupIdle'))
-        : groupOrder(tasks, queue).map((task) => renderTaskRow(task, { ..._taskStatus(task, t, now), dot: true }, true, t, now, {
-          open: ui.open,
-          moveUp: ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? (row) => { ui.act('priority', row, 'up') } : undefined,
-          busy: ui.busy !== null,
-        })))
-  })
-  const ops = result.ops
-  const skew = opsProblem(result, t)
+  const queueProblem = queueState.data.error ?? (result !== null && (result.status === 'stale' || result.status === 'failed') ? result.message : null)
+  const balanceProblem = balanceState.data.error
+  const dispatcher = result !== null && result.available
+  const ops = dispatcher ? result!.ops : undefined
+  const skew = dispatcher ? opsProblem(result!, t) : ''
+  const patrol = dispatcher ? result!.patrol : null
   return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
     notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
-    problem !== null && problem !== ''
-      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
-      : null,
-    ...groups,
-    result.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
+    queueProblem !== null && queueProblem !== ''
+      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'qerr', role: 'status' }, t('queue.staleWith', { message: queueProblem })) : null,
+    balanceProblem !== null
+      ? h('div', { className: cx('tq-note', 'tq-bad'), key: 'berr', role: 'status' },
+        balanceState.rows.length === 0 ? t('balance.readFailed', { message: balanceProblem }) : t('balance.staleWith', { message: balanceProblem })) : null,
+    sources.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
+    ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
+    !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
       h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.recentHeading'))),
-      result.recent.map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
+      result!.recent.map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
         { open: ui.open, busy: false }))),
-    h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
+    patrol === null ? null : h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
       h('div', { className: cx('tq-group-head') }, h('span', { className: cx('tq-group-name') }, t('queue.patrolHeading'))),
       h('div', { className: cx('tq-patrol'), 'data-tq-patrol': patrol.phase },
-        h('span', { className: cx('tq-name') }, patrolPhraseOf(result, t, now)),
+        h('span', { className: cx('tq-name') }, patrolPhraseOf(result!, t, now)),
         patrol.round !== '' ? h('span', { className: cx('tq-meta-text'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
         patrol.detail !== '' ? h('span', { className: cx('tq-meta-text', 'tq-wrap') }, patrol.detail) : null),
       patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds') },
@@ -1953,6 +2108,20 @@ function findTask(result: TaskQueueResult, id: string): { task: DispatchTask; li
 
 type ModelPicker = { models: string[]; efforts: Record<string, string[]>; flag: string; model: string; effort: string; allowed: boolean; reason: string }
 
+/** What `brief <id>` answered, for the detail layer's list of files (null until asked). */
+type BriefView = {
+  id: string
+  path: string
+  bytes: number
+  truncated: boolean
+  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; bytes: number }>
+  /** The host half predates `brief` (a dsh restart is pending): only prompt.md can be listed. */
+  needsHost: boolean
+}
+
+/** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
+export type OpenFile = (path: string) => { ok: true } | { ok: false; reason: 'no-service' | 'no-session' | 'error'; message?: string }
+
 type DetailUi = QueueUi & {
   confirm: string | null
   askConfirm: (key: string | null) => void
@@ -1961,6 +2130,32 @@ type DetailUi = QueueUi & {
   setPicker: (picker: ModelPicker | null) => void
   log: string[] | null
   loadLog: (task: DispatchTask) => void
+  brief: BriefView | null
+  openBrief: (task: DispatchTask) => void
+  openPath: (path: string) => void
+  /** The provider windows of an agent (the quota wait names the reset it waits for). */
+  windowsOf: (agent: string) => ReadonlyArray<{ resetAtMs?: number | null }> | undefined
+}
+
+/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
+export function _fmtTokens(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + 'k'
+  return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + 'M'
+}
+
+/** The cost cell: an API-price estimate, 'free', or '—' when the model is unpriced; null when nothing was recorded. */
+export function _costOf(task: DispatchTask): { short: string; kind: 'usd' | 'free' | 'unpriced' } | null {
+  if (task.tokensTotal == null) return null
+  const cost = task.costUsd ?? ''
+  if (cost === 'free') return { short: 'free', kind: 'free' }
+  if (/^\d+(\.\d+)?$/.test(cost)) return { short: '$' + cost, kind: 'usd' }
+  return { short: '—', kind: 'unpriced' }
+}
+
+/** The file-preview address of an absolute path (dsh-util-workspace-path's absolute scope). */
+export function _absoluteFileAddress(path: string): string {
+  return 'dsh-resource://file/absolute/' + path.replace(/^\/+/, '').split('/').map((part) => encodeURIComponent(part).replace(/%3A/gi, ':')).join('/')
 }
 
 /** A pill in the detail's action bar (the host's transition buttons: hairline, fully rounded). */
@@ -1983,7 +2178,8 @@ function actionPill(key: string, label: string, onClick: () => void, opts: { dan
 function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number, back: () => void,
   backRef: { current: HTMLButtonElement | null }, ui: DetailUi, notice: { ok: boolean; text: string } | null): React.ReactElement {
   const { task, live } = found
-  const status = live ? _taskStatus(task, t, now) : { tone: endedTone(task), text: endedText(task) }
+  const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: endedText(task) }
+  const cost = _costOf(task)
   const stamp = (ms: number | null | undefined): string | null => ms == null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   const took = task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
   const m = modelLine(task, live)
@@ -2009,6 +2205,15 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       : stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs)],
     ['queue.d.attempts', String(task.attempts)],
     ['queue.d.stalls', task.stalls ? t('queue.d.stallsValue', { n: task.stalls }) : null],
+    // What the runner enforces now (api 3), not the dispatch record.
+    ['queue.d.deadline', live && task.deadlineAtMs ? stamp(task.deadlineAtMs) : null],
+    ['queue.d.budget', task.maxAttempts == null ? null : t('queue.d.budgetValue', {
+      used: task.attempts, max: task.maxAttempts, rused: task.quotaResumesUsed ?? 0, rmax: task.quotaResumes ?? '—' })],
+    ['queue.d.cost', cost === null ? null : (cost.kind === 'usd' ? t('queue.d.costValue', { usd: (task.costUsd ?? '') })
+      : cost.kind === 'free' ? t('queue.d.costFree') : t('queue.d.costUnpriced')) + (live ? ' · ' + t('queue.d.costLive') : '')],
+    ['queue.d.tokens', task.tokensTotal == null ? null : t('queue.d.tokensValue', {
+      total: _fmtTokens(task.tokensTotal), in: _fmtTokens(task.tokensIn ?? 0), w: _fmtTokens(task.tokensCacheW ?? 0),
+      r: _fmtTokens(task.tokensCacheR ?? 0), out: _fmtTokens(task.tokensOut ?? 0) })],
     ['queue.d.notify', (task.notify ?? []).length + (task.notified ?? []).length + (task.notifyFailed ?? []).length === 0
       ? t('queue.d.notifyNone')
       : h('span', { className: cx('tq-inline') }, renderNotifyIcons(task, t),
@@ -2031,6 +2236,19 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     }
     if ((task.runnerApi ?? 2) >= 2 && !task.patrol) actions.push(actionPill('model', t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy }))
     if (running && task.session) actions.push(actionPill('wrapup', t('queue.a.wrapup'), () => { ui.act('wrapup', task) }, { disabled: busy, title: t('queue.a.wrapupTitle') }))
+    if (!task.patrol) {
+      // Budgets (runner api 3): each confirms in place and says what it costs; an older runner
+      // gets the pills disabled with the reason printed below (no hover-only explanation).
+      const old = (task.runnerApi ?? 1) < 3
+      const budget = (action: string, label: string, arg: string): void => {
+        actions.push(actionPill(action, ui.confirm === action + ':' + task.id ? t('queue.a.confirmLabel', { label }) : label, () => {
+          if (ui.confirm === action + ':' + task.id) { ui.askConfirm(null); ui.act(action, task, arg) } else ui.askConfirm(action + ':' + task.id)
+        }, { disabled: busy || old }))
+      }
+      budget('deadline', t('queue.a.deadline'), '+2h')
+      budget('attempts', t('queue.a.attempts'), String((task.maxAttempts ?? 3) + 1))
+      budget('resumes', t('queue.a.resumes'), String((task.quotaResumes ?? 3) + 1))
+    }
     actions.push(actionPill('cancel', ui.confirm === 'cancel:' + task.id ? t('queue.a.cancelConfirm') : t('queue.a.cancel'), () => {
       if (ui.confirm === 'cancel:' + task.id) { ui.askConfirm(null); ui.act('cancel', task) } else ui.askConfirm('cancel:' + task.id)
     }, { danger: true, disabled: busy }))
@@ -2039,11 +2257,19 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     actions.push(actionPill('retry', t('queue.a.retry'), () => { ui.act('retry', task) }, { disabled: busy }))
   }
   if (ui.writable) actions.push(actionPill('log', t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: busy }))
+  // The brief opens in dsh's own file preview: read-only, no writes, so no ops entry needed.
+  actions.unshift(actionPill('brief', t('queue.a.brief'), () => { ui.openBrief(task) }, { title: t('queue.a.briefTitle') }))
+  const when = running ? t('queue.a.whenNext') : t('queue.a.whenNow')
   const confirmText = ui.confirm === 'cancel:' + task.id
     ? running
       ? t('queue.a.cancelRunning', { session: task.session || '—' })
       : task.waiting === 'quota' || task.waiting === 'retry' ? t('queue.a.cancelSleeping') : t('queue.a.cancelQueued')
-    : null
+    : ui.confirm === 'deadline:' + task.id ? t('queue.a.deadlineConfirm', { when })
+      : ui.confirm === 'attempts:' + task.id ? t('queue.a.attemptsConfirm', { when })
+        : ui.confirm === 'resumes:' + task.id ? t('queue.a.resumesConfirm', { when }) : null
+  const budgetOld = ui.writable && live && !task.patrol && (task.runnerApi ?? 1) < 3
+  const brief = ui.brief !== null && ui.brief.id === task.id ? ui.brief : null
+  const kb = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
   const picker = ui.picker
   return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
     h('div', { className: cx('tq-head', 'tq-d-head') },
@@ -2064,7 +2290,21 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
         h('span', { className: cx('tq-d-name') }, task.name)),
       h('div', { className: cx('tq-d-status'), 'data-balance-state': status.tone }, status.text),
       actions.length === 0 ? null : h('div', { className: cx('tq-actions'), role: 'group', 'aria-label': t('queue.a.group') }, actions),
+      budgetOld ? h('div', { className: cx('tq-note') }, t('queue.a.budgetOld', { api: task.runnerApi ?? 1 })) : null,
       confirmText === null ? null : h('div', { className: cx('tq-note', 'tq-warn'), role: 'alert', 'data-tq-confirm': task.id }, confirmText),
+      brief === null ? null : h('div', { className: cx('tq-brief'), 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
+        h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
+        h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
+          h('span', { className: cx('tq-file-name') }, t('queue.brief.prompt', { kb: kb(brief.bytes) })),
+          brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kb(brief.bytes) })) : null),
+        brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
+          : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
+            : brief.appends.map((a) => h('button', {
+              type: 'button', key: a.file, className: cx('tq-file'), 'data-tq-file': a.path, onClick: () => { ui.openPath(a.path) },
+            },
+              h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { stamp: a.stamp || a.file })),
+              h('span', { className: cx('tq-tag'), 'data-tq-delivered': a.delivered ? 'true' : 'false' },
+                t(a.delivered ? 'queue.brief.delivered' : 'queue.brief.pending'))))),
       picker === null ? null : h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
         picker.allowed
           ? [
@@ -2128,65 +2368,116 @@ export function _describeAction(result: QueueActionResult, t: Translate): string
 /** How long an in-place confirmation waits for its second tap. */
 const CONFIRM_MS = 5000
 
+export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
+  /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
+  wide: boolean
+  t: Translate
+  /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
+  openFile?: OpenFile
+}
+
+/** Where the runner keeps task directories on this host when the ops entry cannot say (older host half). */
+const FALLBACK_TASK_DIR = '/root/logs/agent-dispatch'
+
 /**
- * The sidebar-foot task-queue row, directly above the balance row: live
- * dispatch tasks grouped by executor, what each waits for and in which place,
- * recent endings, patrol, and the actions each task allows. Same foot
- * geometry as the host's own badge; renders nothing on a host without the
- * dispatcher (or before its first answer).
+ * The sidebar-foot provider panel (2026-09-27): the balance chip and the
+ * dispatch queue as ONE cell, `provider-balance`. Folded, it is one line per
+ * source — provider or agent name first, its reading and reset, then who
+ * burns that allowance (the agent's queue) or where its key comes from. Any
+ * line opens the panel on that source's group: the allowance (windows with
+ * their resets, or money), then the queue that allowance feeds. The rail
+ * keeps one glyph whose badge warns when a window is at its threshold or a
+ * task sleeps on quota. Both halves keep their own read and cadence.
  */
-export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null {
+export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.ReactElement {
   const t = props.t
-  const state = useTaskQueue(props)
-  // Which task's detail layer is up (by id, so each poll shows its fresh copy).
+  const balanceState = useProviderBalances(props, BALANCE_PANEL)
+  const queueState = useTaskQueue(props)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirm, setConfirm] = useState<string | null>(null)
   const [picker, setPicker] = useState<ModelPicker | null>(null)
   const [log, setLog] = useState<string[] | null>(null)
-  // The last copy seen, so a task that ages out of both lists keeps its layer.
+  const [brief, setBrief] = useState<BriefView | null>(null)
+  const [focusKey, setFocusKey] = useState<string | null>(null)
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
+  // The control that opened the panel: focus returns to it when the panel closes.
+  const openerRef = useRef<HTMLElement | null>(null)
   const closeDetail = (): boolean => {
     if (detailId === null) return false
     const id = detailId
     setDetailId(null)
-    setPicker(null); setLog(null); setConfirm(null)
-    // Hand focus back to the row that opened the layer (the list was inert).
+    setPicker(null); setLog(null); setConfirm(null); setBrief(null)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
-        const row = rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')
-        row?.focus({ preventScroll: false })
+        rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')?.focus({ preventScroll: false })
       })
     }
     return true
   }
   const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
   const instanceId = useId()
-  // Reopening the popover always lands on the list.
-  useEffect(() => { if (!open) { setDetailId(null); setNotice(null); setConfirm(null) } }, [open])
-  // Keyboard focus follows the layer: the row that opened it is now inert.
+  useEffect(() => {
+    if (open) return
+    setDetailId(null); setNotice(null); setConfirm(null); setBrief(null)
+    // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
+    // instead of letting it fall to <body>.
+    if (typeof document !== 'undefined' && rootRef.current !== null && openerRef.current !== null
+      && (document.activeElement === document.body || rootRef.current.contains(document.activeElement))) {
+      openerRef.current.focus({ preventScroll: true })
+    }
+  }, [open])
+  // Opening on a line lands on that source's group (and scrolls it into view).
+  useEffect(() => {
+    if (!open || focusKey === null || typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') return
+    window.requestAnimationFrame(() => {
+      rootRef.current?.querySelector<HTMLElement>('[data-pp-group="' + CSS.escape(focusKey) + '"]')?.focus({ preventScroll: false })
+    })
+  }, [open, focusKey])
   useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
-  // An unanswered confirmation lapses, so a stray second tap later is not a cancel.
   useEffect(() => {
     if (confirm === null) return undefined
     const timer = setTimeout(() => { setConfirm(null) }, CONFIRM_MS)
     return () => clearTimeout(timer)
   }, [confirm])
   const run = props.runQueueAction
+  const needsHost = (result: QueueActionResult): boolean => !result.ok && /unknown action/.test(result.message)
   const act = (action: string, task: DispatchTask, arg = ''): void => {
     if (run === undefined || busy !== null) return
     setBusy(action + ':' + task.id)
     setNotice(null)
     run(action, task.id, arg).then((result) => {
       setBusy(null)
-      setNotice({ ok: result.ok, text: _describeAction(result, t) })
-      state.refresh()
+      setNotice({ ok: result.ok, text: needsHost(result) ? t('queue.r.needsHost') : _describeAction(result, t) })
+      queueState.refresh()
     }, (err: unknown) => {
       setBusy(null)
       setNotice({ ok: false, text: t('queue.r.failed', { message: err instanceof Error ? err.message : String(err) }) })
     })
+  }
+  const openPath = (path: string): void => {
+    const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
+    const file = path.slice(path.lastIndexOf('/') + 1)
+    setNotice(opened.ok ? { ok: true, text: t('queue.brief.opened', { file }) }
+      : { ok: false, text: opened.reason === 'no-session' ? t('queue.brief.noSession', { path })
+        : opened.reason === 'no-service' ? t('queue.brief.noService', { path })
+          : t('queue.brief.failed', { message: opened.message ?? '', path }) })
+  }
+  const openBrief = (task: DispatchTask): void => {
+    const fallback = FALLBACK_TASK_DIR + '/' + task.id + '/prompt.md'
+    if (run === undefined) { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return }
+    run('brief', task.id, '').then((result) => {
+      type Answer = { path?: string; brief_bytes?: number; truncated?: boolean; appends?: BriefView['appends'] }
+      let detail: Answer = {}
+      try { detail = JSON.parse(result.detail || '{}') as Answer } catch { detail = {} }
+      const view: BriefView = result.ok
+        ? { id: task.id, path: detail.path ?? fallback, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false }
+        : { id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }
+      setBrief(view)
+      openPath(view.path)
+    }, () => { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback) })
   }
   const openPicker = (task: DispatchTask): void => {
     if (run === undefined) return
@@ -2210,49 +2501,98 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
       setLog(result.ok ? lines : [result.message])
     }, () => { setLog(null) })
   }
-  const result = state.data.result
-  if (result === null || !result.available) return null
+
   const now = Date.now()
-  const headline = _queueHeadline(result, t, now)
-  const found = detailId === null ? null : findTask(result, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
-  lastSeen.current = found
-  const writable = run !== undefined && result.ops?.available === true
-  const ui: DetailUi = {
-    open: (id) => { setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null) },
-    act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
+  const result = queueState.data.result
+  const dispatcher = result !== null && result.available
+  const rows = new Map(balanceState.rows.map((row) => [row.provider, row] as const))
+  const sources = _panelSources(balanceState.data.result?.providers ?? [], result)
+  const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => {
+    const join = PROVIDER_JOIN.find((j) => j.agent === agent)
+    const row = join?.provider ? rows.get(join.provider) : undefined
+    return row?.result.snapshot?.windows
   }
-  return h('div', { className: cx('pbc', 'pbf', 'tqf', !props.wide && 'rail'), ref: rootRef },
-    h('button', {
-      type: 'button',
-      className: cx('bchip'),
-      'data-balance-state': headline.tone,
-      'data-clawock-action': TASK_QUEUE_PANEL,
-      'data-active': open ? '' : undefined,
-      'aria-expanded': open,
-      'aria-haspopup': 'dialog',
-      'aria-label': t('queue.panelTitle'),
-      title: headline.title,
-      onClick: () => {
-        if (!open) place()
-        setOpen(!open)
-      },
-    }, props.wide
-      ? h('span', { className: cx('bchip-item'), 'data-balance-state': headline.tone },
-        h('span', { className: cx('bal-lead') }, renderQueueGlyph(headline.tone, 16, instanceId)),
-        h('span', { className: cx('bchip-name') }, t('queue.name')),
-        h('span', { className: cx('tq-count'), 'data-used-level': headline.busy ? 'mid' : undefined },
-          headline.value + (headline.sub !== '' ? ' · ' + headline.sub : '')))
-      : h('span', { className: cx('bal-lead'), 'data-balance-state': headline.tone },
-        renderQueueGlyph(headline.tone, 18, instanceId))),
-    h('div', panelAttrs(open, t('queue.panelTitle'), {
-      'data-clawock-popover': TASK_QUEUE_PANEL,
-      ...(anchor === null ? {} : {
-        style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' },
-      }),
+  const found = !dispatcher || detailId === null ? null : findTask(result!, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
+  lastSeen.current = found
+  const writable = run !== undefined && dispatcher && result!.ops?.available === true
+  const ui: PanelUi = {
+    open: (id) => { setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null) },
+    act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
+    brief, openBrief, openPath, windowsOf, rows,
+  }
+  // One line per source (C1): name · reading · reset, then who burns it or where its key lives.
+  const lines = sources.map((source) => {
+    const row = source.provider === null ? undefined : rows.get(source.provider.provider)
+    const reading = sourceReading(source, row, result, t)
+    const tasks = source.agent === null || !dispatcher ? [] : result!.active.filter((task) => task.agent === source.agent)
+    const last = source.agent !== null ? queueSummary(t, tasks)
+      : { text: source.join?.source ? t(source.join.source) : '', tone: 'none' as BalanceTone }
+    return { source, reading, last }
+  })
+  // The rail badge: amber square when a window is at its threshold or a task sleeps on quota;
+  // hollow ring when a read failed; nothing when there is nothing to act on (neutral).
+  const warn = lines.some((line) => line.reading.tone === 'low' || line.reading.level === 'low')
+    || (dispatcher && result!.active.some((task) => task.waiting === 'quota'))
+  const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
+    || lines.some((line) => line.reading.tone === 'stale')
+  const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
+  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset === null ? '' : '↻ ' + line.reading.reset, line.last.text]
+    .filter((part) => part !== '').join(' ')).join(' · ')
+  const toggle = (key: string | null, opener: HTMLElement | null): void => {
+    openerRef.current = opener
+    setFocusKey(key)
+    if (!open) place()
+    setOpen(!open)
+  }
+  return h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', !props.wide && 'rail'), ref: rootRef, 'data-pp-warn': warn ? 'true' : undefined },
+    props.wide
+      ? h('div', { className: cx('pp-rows'), role: 'group', 'aria-label': t('panel.aria'), 'data-clawock-action': BALANCE_PANEL },
+        lines.length === 0
+          ? h('button', {
+            type: 'button', className: cx('pp-row', 'pp-empty'), 'data-pp-row': '', 'aria-expanded': open, 'aria-haspopup': 'dialog',
+            'data-active': open ? '' : undefined,
+            onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
+          }, h('span', { className: cx('pp-name') }, t('panel.title')), h('span', { className: cx('pp-last') }, balanceState.empty.title))
+          : lines.map(({ source, reading, last }) => h('button', {
+            type: 'button',
+            key: source.key,
+            className: cx('pp-row'),
+            'data-pp-row': source.key,
+            'data-pb-provider': source.provider?.provider,
+            'data-pb-role': source.provider === null ? undefined : 'chip',
+            'data-balance-state': reading.tone,
+            'data-active': open && focusKey === source.key ? '' : undefined,
+            'aria-expanded': open,
+            'aria-haspopup': 'dialog',
+            'aria-label': [source.label, reading.value, reading.reset === null ? '' : '↻ ' + reading.reset, last.text, t('panel.openGroup', { name: source.label })]
+              .filter((part) => part !== '').join(' · '),
+            title: reading.title,
+            onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
+          },
+            renderSourceGlyph(source),
+            h('span', { className: cx('pp-name') }, source.label),
+            h('span', { className: cx('pp-reading') },
+              h('span', { className: cx('pp-v'), 'data-balance-state': reading.tone, 'data-used-level': reading.level ?? undefined }, reading.value),
+              reading.reset === null ? null : h('span', { className: cx('pp-reset') }, '↻ ' + reading.reset)),
+            h('span', { className: cx('pp-last'), 'data-balance-state': last.tone }, last.text))))
+      : h('button', {
+        type: 'button',
+        className: cx('bchip', 'pp-rail'),
+        'data-clawock-action': BALANCE_PANEL,
+        'data-balance-state': railTone,
+        'data-active': open ? '' : undefined,
+        'aria-expanded': open,
+        'aria-haspopup': 'dialog',
+        'aria-label': t('panel.railTitle', { summary: (warn ? t('panel.warn') + ' · ' : '') + summary }),
+        title: t('panel.railTitle', { summary }),
+        onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
+      }, h('span', { className: cx('bal-lead'), 'data-balance-state': railTone }, renderBalanceGlyph(railTone, 18, instanceId))),
+    h('div', panelAttrs(open, t('panel.aria'), {
+      'data-clawock-popover': BALANCE_PANEL,
+      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' } }),
     }),
-    // While a task is open the list stays mounted but inert and out of the box (see .tq-list[inert]).
     h('div', { className: cx('tq-list'), key: 'list', inert: found !== null ? '' : undefined, 'aria-hidden': found !== null ? 'true' : undefined },
-      renderQueuePanelBody(state, t, now, ui, found === null ? notice : null)),
+      renderProviderPanelBody(sources, queueState, balanceState, t, now, ui, found === null ? notice : null)),
     found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
       renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice))))
 }
@@ -2593,16 +2933,30 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
   }, DecisionMind))
   const balancesStore = createBalanceStore()
   if (typeof layout?.selectPanel === 'function') {
-    // The dispatch queue sits directly above the balance: registered first and
-    // ordered first; the foot's own row layout is turned into a column by the
-    // stylesheet (see .tqf), so the two read as one stack.
+    // One foot cell, `provider-balance` (2026-09-27): the balance and the dispatch queue it pays for.
+    // `dispatch-queue` is retired; both reads keep their own cadence inside the cell.
     let cachedTaskQueue: TaskQueueResult | null = null
+    // dsh's own file preview (the right sidebar). Looked up at click time — long after apply, so the
+    // service exists when there is one — and never injected: a host without it keeps the panel.
+    const openFile: OpenFile = (path) => {
+      const sidebar = ctx.get('sidebarRight') as { openResource?: (address: string, options?: unknown) => void; mounted?: { getSnapshot(): unknown } } | undefined
+      if (sidebar === undefined || typeof sidebar.openResource !== 'function') return { ok: false, reason: 'no-service' }
+      // Global panels (settings, …) have no right sidebar: it opens inside a conversation only.
+      if (sidebar.mounted !== undefined && sidebar.mounted.getSnapshot() === undefined) return { ok: false, reason: 'no-session' }
+      try {
+        sidebar.openResource(_absoluteFileAddress(path))
+        return { ok: true }
+      } catch (err) {
+        return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
+      }
+    }
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
       name: 'sidebar.footer.action',
-      id: 'dispatch-queue',
-      order: -1,
+      id: 'provider-balance',
+      store: balancesStore,
       locale: LOCALE_NS,
-      inject: (): TaskQueueInjected => ({
+      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile } => ({
+        ...balancesInjected(),
         cachedTaskQueue: () => cachedTaskQueue,
         fetchTaskQueue: async (force) => {
           cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
@@ -2612,15 +2966,9 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         runQueueAction: typeof studioRemote.queueAction === 'function'
           ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
           : undefined,
+        openFile,
       }),
-    }, TaskQueueSidebarAction))
-    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
-      name: 'sidebar.footer.action',
-      id: 'provider-balance',
-      store: balancesStore,
-      locale: LOCALE_NS,
-      inject: balancesInjected,
-    }, ProviderBalanceSidebarAction))
+    }, ProviderPanelSidebarAction))
   } else {
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
       name: 'conversation.session.header.utilities',
