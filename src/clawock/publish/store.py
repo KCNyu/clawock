@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Mapping, Protocol
 from uuid import uuid4
 
+from clawock.publish.deploy import DEPLOY_REQUEST_TIMEOUT_SECONDS
+
 
 # Published artifacts are read by a web server, a Jekyll container and anyone
 # who checks the repository out. Explicit rather than umask-derived so a
@@ -200,6 +202,7 @@ PUBLISH_BUDGET_SECONDS = (
     PUBLISH_NETWORK_CALLS * GIT_CALL_TIMEOUT_SECONDS
     + sum(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS
           for attempt in range(1, PUSH_ATTEMPTS))
+    + DEPLOY_REQUEST_TIMEOUT_SECONDS
 )
 
 

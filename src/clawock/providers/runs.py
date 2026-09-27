@@ -120,11 +120,14 @@ class GitHubRuns:
         return subprocess.run(cmd, capture_output=True, text=True,
                               timeout=self.timeout).stdout
 
-    def history(self, job: str, limit: int = 20) -> list[Run]:
-        raw = self._runner([
+    def history(self, job: str, limit: int = 20, event: str | None = None) -> list[Run]:
+        command = [
             "gh", "run", "list", "--workflow", job, "--limit", str(limit),
             "--json", "conclusion,createdAt,event,databaseId",
-        ])
+        ]
+        if event:
+            command.extend(["--event", event])
+        raw = self._runner(command)
         try:
             entries = json.loads(raw or "[]")
         except json.JSONDecodeError:
