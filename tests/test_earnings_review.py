@@ -63,6 +63,14 @@ def test_non_gaap_period_cannot_be_compared_against_gaap(us):
     assert any("mixed basis cannot be compared" in error for error in errors)
 
 
+def test_non_object_comparable_period_is_reported_and_other_rows_survive(us):
+    us["comparables"][0]["period"] = "not-a-period"
+    errors = []
+    rows = er._validate_comparables(us, errors)
+    assert any("comparables[0].period" in error for error in errors)
+    assert len(rows) == len(us["comparables"]) - 1
+
+
 def test_currency_and_unit_switches_are_errors_not_footnotes(us):
     us["comparables"][0]["currency"] = "HKD"
     us["comparables"][2]["unit"] = "thousand"

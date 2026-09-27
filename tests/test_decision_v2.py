@@ -18,6 +18,14 @@ def test_decision_engine_is_owned_by_the_product_package():
     assert not (ROOT / "scripts" / "data" / "decision_v2.py").exists()
 
 
+def test_malformed_legacy_horizon_falls_back_to_one_session():
+    row = dv2.legacy_action_to_decision({
+        "ticker": "AAA", "action": "cut", "size": {"shares": 1},
+        "horizon_sessions": "abc", "confidence": 0.8,
+    }, "2026-09-26")
+    assert row["horizon_sessions"] == 1
+
+
 def test_technical_add_trace_fields_survive_normalization_and_validate():
     row = dv2.legacy_action_to_decision({
         "ticker": "AAA", "strategy_id": "tactical_entry",
