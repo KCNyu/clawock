@@ -1630,6 +1630,30 @@ def check_trading_calendar_horizon(r):
         r.add('trading calendar', OK, f'{horizon} · both markets')
 
 
+def check_macro_calendar_horizon(r):
+    """A missing official event table must never read as a quiet macro week."""
+    from clawock.market_data import calendar as events
+
+    latest = {
+        'FOMC': max(row['end'] for row in events.FOMC_2026 + events.FOMC_2027),
+        'CPI': max(events.CPI_2026),
+        'PCE': max(events.PCE_2026),
+        'GDP': max(row['date'] for row in events.GDP_2026),
+    }
+    today = date.today()
+    expired = [name for name, end in latest.items() if end < today.isoformat()]
+    missing_next = [name for name, end in latest.items()
+                    if int(end[:4]) < today.year + 1]
+    if expired:
+        r.add('macro calendar', CRITICAL,
+              f"official date tables expired: {', '.join(expired)}; update from BLS/BEA/Fed")
+    elif missing_next and today.month >= 10:
+        r.add('macro calendar', WARNING,
+              f"no {today.year + 1} dates for {', '.join(missing_next)}; update from BLS/BEA/Fed")
+    else:
+        r.add('macro calendar', OK, 'published event tables within horizon')
+
+
 def _memory_index_backlog():
     """(missing, stale, indexed) — what openclaw embeds vs what its index holds.
 
@@ -2011,6 +2035,7 @@ def main():
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
+        check_macro_calendar_horizon,
         check_memory_index,
         check_memory_curation,
         check_benchmark_freshness,

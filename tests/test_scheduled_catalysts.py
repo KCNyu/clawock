@@ -10,11 +10,34 @@ Both failure modes below are silent by nature — a wrong date reads exactly lik
 a right one — which is what earns them a test.
 """
 import json
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.market_data import calendar as fetch_catalysts
+
+
+def test_catalyst_fetch_keeps_past_earnings_for_review_without_listing_them_as_upcoming(monkeypatch):
+    monkeypatch.setattr(fetch_catalysts, 'hkt_today', lambda: date(2026, 7, 26))
+    calls = []
+
+    def earnings(start, end):
+        calls.append((start, end))
+        return ([{'ticker': 'USTEST', 'date': '2026-07-23'},
+                 {'ticker': 'USTEST', 'date': '2026-07-29'}], {}, ['USTEST'])
+
+    monkeypatch.setattr(fetch_catalysts, 'fetch_earnings', earnings)
+    monkeypatch.setattr(fetch_catalysts, 'scheduled_in_window', lambda *_: ([], None))
+    result = fetch_catalysts.build_catalysts(14)
+    assert calls == [('2026-07-12', '2026-08-09')]
+    assert [row['date'] for row in result['recent_earnings']] == ['2026-07-23']
+    assert [row['date'] for row in result['earnings']] == ['2026-07-29']
+
+
+def test_2027_fomc_decision_is_present():
+    rows = fetch_catalysts.fomc_in_window('2027-01-20', '2027-01-31')
+    assert [row['date'] for row in rows] == ['2027-01-27']
 
 
 def test_summary_prints_string_and_nested_errors(capsys):
