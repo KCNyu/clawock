@@ -2986,8 +2986,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   const receipts = find(render(), (p) => p["data-tq-task"]?.startsWith("closed-"));
   assert.deepEqual(receipts.map((row) => row.props["data-tq-task"]), ["closed-a", "closed-b", "closed-c"],
     "ended tasks keep the host's newest-first order across agents");
-  assert.match(texts(receipts[0]), /执行完成 任务：部分完成 .*等待 7 分/);
-  assert.match(texts(receipts[1]), /执行失败 任务：自报完成 .*等待未记录/);
+  assert.match(texts(receipts[0]), /执行完成 任务：部分完成 .*首次排队 7 分/);
+  assert.match(texts(receipts[1]), /执行失败 任务：自报完成 .*排队耗时未记录/);
   assert.match(texts(receipts[2]), /执行受阻 任务：受阻/);
   assert.ok(find(render(), (p) => p.className && /_tq-disclosure/.test(p.className) && p.open === undefined).length >= 1,
     "the third receipt starts folded and can be opened without a layout animation");
