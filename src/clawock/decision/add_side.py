@@ -177,7 +177,7 @@ def read_through(labels, signal_symbol_of):
     for product, underlying in sorted((signal_symbol_of or {}).items()):
         if (product in labels and underlying and underlying != product
                 and underlying in labels):
-            holdings_of.setdefault(underlying, [underlying]).append(product)
+            holdings_of.setdefault(underlying, []).append(product)
             through.add(product)
     return holdings_of, through
 
