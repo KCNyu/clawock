@@ -524,6 +524,8 @@
     if (!bs) { el.style.display = 'none'; return; }
     const wf = safe(DATA, 'workflow_outcomes') || {};
     const wfCounts = wf.counts || {};
+    const degradations = wf.degradations || [];
+    const degradationCount = degradations.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
     el.style.display = '';
     const ig = bs.integrity || {};
     const stale = bs.stale_files || [];
@@ -534,13 +536,14 @@
       dot = 'bad'; label = `成品流程 ${wfCounts.failed} FAILED`;
     }
     else if (ig.error_count > 0) { dot = 'bad'; label = `体检 ${ig.error_count} ERROR`; }
-    else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly) {
+    else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly || degradationCount) {
       dot = 'warn';
       const bits = [];
       if (stale.length) bits.push(`${stale.length} 文件 stale`);
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
       if (recovered) bits.push(`${recovered} 成品恢复/降级`);
       if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
+      if (degradationCount) bits.push(`${degradationCount} 次降级记录`);
       label = bits.join(' · ');
     } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
     if (wf.raw_error_but_product_usable) {
@@ -562,6 +565,7 @@
       else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
     });
     (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '[ERROR]' : '[WARN]'} ${t.code}: ${stripEmoji(t.msg)}`));
+    degradations.forEach(row => lines.push(`[降级] ${row.kind}: ${row.count} 次`));
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
         lines.push(`${m.toUpperCase()}: 行情会话 ${quoteSessionLabel(v)}${v.closed_today ? ' (休市)' : ''}`));
