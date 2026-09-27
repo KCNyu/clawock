@@ -30,6 +30,11 @@ on:
       - 'ops/host/patrol.sh'
       - '.github/workflows/dispatch-runner.yml'
   workflow_dispatch:
+    inputs:
+      slow:
+        description: 'Also run the stall and quota groups (about 3.5 and 4.5 minutes of real waiting)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -39,14 +44,27 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # One leg per group of tests/run-tests.sh, in parallel. Measured on the first run of this
+  # workflow (PR #2054, wall time per leg including checkout and staging): names 7s, unit 14s,
+  # notify 32s, core 61s, queue 81s, slots 93s, deadline 101s, budget 158s — so a runner PR
+  # waits no longer than validate does. None of them needs systemd or a real agent CLI (fake
+  # CLIs in tests/bin, private locks and task dirs), which is why notify and slots are in.
+  #
+  # Not in the default set: stall (198s) and quota (256s). They are the longest and almost all
+  # of it is real waiting — stall timers running out, a quota "reset" minutes away — so they
+  # would make every runner PR the slowest run in the repository for tests that change only
+  # when the stall/quota logic does. Run them on demand here (workflow_dispatch, slow=true)
+  # rather than on the 2-core host; the host run (DISPATCH_TEST_CASES=stall,quota) stays valid.
+  # The timeout is per leg and covers the slowest measured leg with room; nothing in the suite
+  # was shortened or loosened to fit it.
   runner:
     name: dispatch-runner (${{ matrix.group }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     strategy:
       fail-fast: false
       matrix:
-        group: [unit, core, queue, names, budget, deadline, notify, slots, stall, quota]
+        group: ${{ fromJSON(inputs.slow && '["unit","names","notify","core","queue","slots","deadline","budget","stall","quota"]' || '["unit","names","notify","core","queue","slots","deadline","budget"]') }}
     steps:
       - uses: actions/checkout@v7
 
