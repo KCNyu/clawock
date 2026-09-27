@@ -98,6 +98,27 @@ def test_same_fixture_reduces_always_loaded_input_and_preserves_action_fields(tm
     ) == []
 
 
+def test_live_news_projection_fits_evidence_budget_and_keeps_packet_facts(tmp_path):
+    from clawock.harness import brief_preflight
+    from clawock.decision import packet
+
+    live = {'us': {
+        'as_of': '2026-09-26T08:00:00+08:00',
+        'sources': {'sec_fulltext': {'status': 'ok'}},
+        'degraded': [],
+        'summary': {'MSFT': [{'cite': 'SEC filing', 'title': 'New filing'}]},
+        'tickers': {'MSFT': [{'body': 'R' * 100_000}]},
+        'requests': [{'url': 'unused'}],
+    }}
+    source = _fixture()
+    source['live_information'] = brief_preflight._brief_live_projection(live)
+    assert 'tickers' not in source['live_information']['us']
+    assert packet._live_rows(source, 'MSFT')[0]['cite'] == 'SEC filing'
+    assert packet._live_health(source)['us']['sources'] == {'sec_fulltext': 'ok'}
+    _, manifest = brief_context.write_run_bundle(source, tmp_path / 'brief.json')
+    assert manifest['bundles']['evidence']['bytes'] <= brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+
+
 def test_new_optional_feature_cannot_grow_the_always_loaded_core(tmp_path):
     baseline = _fixture()
     baseline.pop("new_feature_surface")
