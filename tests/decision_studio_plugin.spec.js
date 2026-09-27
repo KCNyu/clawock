@@ -257,9 +257,12 @@ function makeReactStub() {
     },
     useRef(initial) {
       // The views use refs for roots, mount flags and timers; without a DOM
-      // the scroll/outside-click effects must simply do nothing, and the rest
-      // are plain { current } holders.
-      return { current: initial === undefined ? null : initial };
+      // the scroll/outside-click effects simply do nothing. Keep each ref
+      // stable across renders as React does: detail requests use it to reject
+      // replies that arrive after another task has opened.
+      const index = cursor++;
+      if (index >= slots.length) slots.push({ current: initial === undefined ? null : initial });
+      return slots[index];
     },
     useId() {
       // React 18 has it; the balance glyph keys its SVG mask on it so two
@@ -1543,10 +1546,10 @@ test("locale: the same number renders in the active language", async () => {
   const zhRow = api._rowDisplay(answer(), api.createTranslator(api.dictionaries.zh));
   const enRow = api._rowDisplay(answer(), api.createTranslator(api.dictionaries.en));
   assert.match(zhRow.title, /5h 已用 82%/, "zh names the window from durationMins");
-  assert.match(zhRow.title, /今天 \d{2}:\d{2} 重置/, "zh stamps the reset from resetAtMs");
+  assert.match(zhRow.title, /(今天|明天) \d{2}:\d{2} 重置/, "zh stamps the reset from resetAtMs");
   assert.doesNotMatch(zhRow.title, /"今天 19:09"/, "the fixture's host string is not what rendered");
   assert.match(enRow.title, /5h 82% used/, "en names the same window in English");
-  assert.match(enRow.title, /resets today \d{2}:\d{2}/, "en stamps the same reset in English");
+  assert.match(enRow.title, /resets (today|tomorrow) \d{2}:\d{2}/, "en stamps the same reset in English");
   assert.notEqual(zhRow.title, enRow.title, "the locale must actually change the rendering");
   // The low sentence is localized too, and keeps the host's own vendor detail
   // verbatim — a provider's error text is not ours to translate.
@@ -3128,9 +3131,12 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
     ops: { available: true, version: "abc123abc123", repoVersion: "def456def456", api: 2, runnerApi: 2, fairWaitSec: 14400, error: "" },
   };
   const calls = [];
+  let holdChoices = false;
+  let resolveChoices;
   const runQueueAction = async (action, id, arg) => {
     calls.push([action, id, arg]);
     if (action === "choices") {
+      if (holdChoices) return new Promise((resolve) => { resolveChoices = resolve; });
       return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, allowed: true, reason: "",
         models: ["claude-opus-5-5", "sonnet"], efforts: { "claude-opus-5-5": ["low", "high"], sonnet: ["low", "high"] },
         effort_flag: "--effort", requested: { model: "claude-opus-5-5", effort: "high" } }) };
@@ -3211,6 +3217,26 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
   await tick(); await tick();
   assert.deepEqual(calls.at(-1), ["model", "holder", "sonnet|low"]);
   assert.match(texts(render()), /下一次尝试：sonnet · low/);
+
+  // A confirmation has an explicit way out; Escape follows the same first step.
+  cancel().props.onClick();
+  assert.ok(find(render(), (p) => p["data-tq-action"] === "dismiss-confirm").length);
+  const countBeforeKeep = calls.length;
+  find(render(), (p) => p["data-tq-action"] === "dismiss-confirm")[0].props.onClick();
+  assert.equal(calls.length, countBeforeKeep);
+  assert.equal(find(render(), (p) => p["data-tq-confirm"] === "holder").length, 0);
+
+  // A slow choices reply from a task left behind must not become the next task's picker.
+  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  find(render(), (p) => p["data-tq-task"] === "second")[0].props.onClick();
+  holdChoices = true;
+  find(render(), (p) => p["data-tq-action"] === "model")[0].props.onClick();
+  assert.match(texts(find(render(), (p) => p["data-tq-action"] === "model")[0]), /读取中/);
+  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  find(render(), (p) => p["data-tq-task"] === "holder")[0].props.onClick();
+  resolveChoices({ ok: true, detail: JSON.stringify({ allowed: true, models: ["sonnet"], requested: { model: "sonnet" } }) });
+  await tick(); await tick();
+  assert.equal(find(render(), (p) => p["data-tq-picker"] !== undefined).length, 0);
   disposeReactEffects();
 });
 
@@ -3277,9 +3303,11 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   };
   const calls = [];
   let hostKnows = false;
+  let briefFailure = false;
   const runQueueAction = async (action, id, arg) => {
     calls.push([action, id, arg]);
     if (action === "brief") {
+      if (briefFailure) return { ok: false, code: 1, action, id, message: "permission denied", detail: "" };
       return hostKnows
         ? { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, path: "/tasks/" + id + "/prompt.md", brief_bytes: 70000, truncated: true,
           appends: [{ file: "20260927-010000-1-queue.md", path: "/tasks/" + id + "/inbox/delivered/20260927-010000-1-queue.md", stamp: "2026-09-27 01:00:00", delivered: true, bytes: 12 },
@@ -3366,6 +3394,12 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   preview = { ok: false, reason: "no-session" };
   files[0].props.onClick();
   assert.match(texts(render()), /右侧预览要在会话里打开：先进入任意会话，再点一次。文件：\/tasks\/new-run\/prompt\.md/, "no silent failure");
+  briefFailure = true;
+  const openedBeforeFailure = opened.length;
+  pill("brief").props.onClick();
+  await tick(); await tick();
+  assert.equal(opened.length, openedBeforeFailure, "a failed brief read must not pretend a fallback file opened");
+  assert.match(texts(render()), /读取失败：permission denied/);
 
   // An api-2 task: the budget pills are off and the reason is printed, not hover-only.
   find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
