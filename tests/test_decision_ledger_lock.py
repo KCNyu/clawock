@@ -67,3 +67,11 @@ def test_ledger_lock_is_reentrant_in_one_process(tmp_path):
             {"decisions": [{"decision_id": "d3"}]}, path)
     assert (inserted, updated) == (1, 0)
     assert len(decision_v2.load_decisions(path)) == 3
+def test_shared_temp_lock_does_not_leave_memory_artifacts(tmp_path):
+    from clawock.safe_io import temp_dir_lock
+
+    path = tmp_path / 'memory' / 'risk_breaches.json'
+    path.parent.mkdir()
+    with temp_dir_lock(path, 'risk'):
+        pass
+    assert list(path.parent.iterdir()) == []

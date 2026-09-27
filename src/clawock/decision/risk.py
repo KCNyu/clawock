@@ -17,7 +17,7 @@ from pathlib import Path
 
 from clawock.instruments import get as get_instrument
 from clawock.instruments import one_x_swap_map
-from clawock.safe_io import file_lock, safe_write_json
+from clawock.safe_io import temp_dir_lock, safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -412,7 +412,7 @@ def reconcile_guardrail(
             history_path=history_path,
             write=False,
         )
-    with file_lock(str(path)):
+    with temp_dir_lock(path, 'risk'):
         return _reconcile_guardrail_unlocked(
             guardrail,
             portfolio,
@@ -672,7 +672,7 @@ def _record_stances_unlocked(
 
 def record_stances(path: Path, plan_date: str, decisions: list[dict]) -> list[dict]:
     """File today's stance while serializing the full read-modify-write."""
-    with file_lock(str(path)):
+    with temp_dir_lock(path, 'risk'):
         return _record_stances_unlocked(path, plan_date, decisions)
 
 
@@ -931,7 +931,7 @@ def validate_exposure_increases(
 
 
 def _mutate_record(path: Path, breach_id: str, mutate) -> dict:
-    with file_lock(str(path)):
+    with temp_dir_lock(path, 'risk'):
         ledger = load_ledger(path)
         record = next(
             (row for row in ledger["records"]

@@ -37,13 +37,14 @@ const outputs = [
   );
   try {
     for (const [name, size] of outputs) {
+      const maskable = name === 'icon-maskable-512.png';
       const context = await browser.newContext({
         viewport: { width: size, height: size },
         deviceScaleFactor: 1,
       });
       const page = await context.newPage();
       await page.setContent(
-        `<style>*{box-sizing:border-box}html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden}svg{display:block;width:${size}px;height:${size}px}</style>${svg}`,
+        `<style>*{box-sizing:border-box}html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;${maskable ? 'background:#E6EBEF' : ''}}svg{display:block;width:${size}px;height:${size}px}</style>${svg}`,
       );
       await page.screenshot({
         path: path.join(ROOT, 'site/assets/icons', name),

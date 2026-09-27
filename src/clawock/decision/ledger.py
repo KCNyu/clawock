@@ -43,7 +43,7 @@ from clawock.decision.actions import (
     STRATEGY_FRAMES,
 )
 from clawock import scorecard_provenance
-from clawock.safe_io import file_lock, jsonl_line
+from clawock.safe_io import temp_dir_lock, jsonl_line
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -79,9 +79,7 @@ def ledger_lock(path: Path = LEDGER):
     # and a stray `decisions.jsonl.lock` beside the ledger would be one more file
     # for `git add memory/` and the #816 write guard to trip over. Every writer
     # runs on the same host, so a temp-dir path keyed by the ledger serializes them.
-    lock_dir = Path(tempfile.gettempdir()) / "clawock-ledger-locks"
-    lock_dir.mkdir(parents=True, exist_ok=True)
-    with file_lock(str(lock_dir / hashlib.sha1(key.encode()).hexdigest()[:16])):
+    with temp_dir_lock(key, 'ledger'):
         _LEDGER_LOCK_DEPTH[key] = 1
         try:
             yield
