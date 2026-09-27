@@ -3,6 +3,8 @@ import struct
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from PIL import Image
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,7 +62,10 @@ def test_maskable_icon_is_opaque_and_distinct_from_the_any_icon():
     icons = ROOT / 'site/assets/icons'
     maskable = (icons / 'icon-maskable-512.png').read_bytes()
     assert maskable != (icons / 'icon-512.png').read_bytes()
-    assert maskable[25] == 2  # PNG IHDR truecolor: no transparent alpha channel
+    with Image.open(icons / 'icon-maskable-512.png') as image:
+        rgba = image.convert('RGBA')
+        for corner in ((0, 0), (0, 511), (511, 0), (511, 511)):
+            assert rgba.getpixel(corner)[3] == 255
     assert 'background:#E6EBEF' in (ROOT / 'site/tools/build_brand_assets.js').read_text()
 
 

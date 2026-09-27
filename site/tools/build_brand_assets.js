@@ -48,7 +48,7 @@ const outputs = [
       );
       await page.screenshot({
         path: path.join(ROOT, 'site/assets/icons', name),
-        omitBackground: true,
+        omitBackground: !maskable,
       });
       await context.close();
       console.log(`rendered ${name} (${size}x${size})`);
