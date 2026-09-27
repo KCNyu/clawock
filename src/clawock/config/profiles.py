@@ -1,6 +1,6 @@
 """Declarative user/runtime profiles for the complete clawock product.
 
-A profile selects values, resources, policies and presentation.  It never
+A profile selects markets, resources, workflows and delivery. It never
 loads Python from an instance namespace: lifecycle and strategy code belongs to
 the root ``clawock`` distribution.
 """
@@ -22,7 +22,7 @@ PROFILE_NAME = "profile.json"
 _ID = re.compile(r"^[a-z][a-z0-9_-]*$")
 _TOP_LEVEL = frozenset({
     "schema_version", "id", "locale", "timezone", "markets", "workflows",
-    "resources", "policies", "delivery",
+    "resources", "delivery",
 })
 _MARKET_FIELDS = frozenset({"timezone", "label", "analysis_command", "skill"})
 _WORKFLOW_FIELDS = frozenset({"enabled", "markets", "policy"})
@@ -68,7 +68,6 @@ class Profile:
     markets: Mapping[str, MarketProfile]
     workflows: Mapping[str, WorkflowProfile]
     resources: Mapping[str, str]
-    policies: Mapping[str, Any]
     delivery_provider: str
     delivery_targets: Mapping[str, DeliveryTarget]
     path: Path
@@ -216,7 +215,6 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         key: _relative_path(value, f"resources.{key}")
         for key, value in raw_resources.items()
     }
-    policies = _object(data.get("policies"), "policies")
 
     delivery = _object(data.get("delivery"), "delivery")
     _known_fields(delivery, _DELIVERY_FIELDS, "delivery")
@@ -257,7 +255,6 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         profile_id=profile_id, locale=locale, timezone=timezone,
         markets=MappingProxyType(markets), workflows=MappingProxyType(workflows),
         resources=MappingProxyType(resources),
-        policies=MappingProxyType(dict(policies)),
         delivery_provider=provider,
         delivery_targets=MappingProxyType(targets), path=path, workspace=root,
     )
@@ -288,7 +285,6 @@ def describe_profile(profile: Profile) -> dict:
             for key, value in profile.workflows.items()
         },
         "resources": dict(profile.resources),
-        "policies": dict(profile.policies),
         "delivery": {
             "provider": profile.delivery_provider,
             "targets": {

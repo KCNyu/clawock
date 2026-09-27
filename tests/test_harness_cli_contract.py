@@ -78,7 +78,6 @@ def test_profile_selects_phase_and_scopes_runtime_environment(monkeypatch, tmp_p
             "enabled": True, "markets": ["paper"]
         }},
         "resources": {"schedule_contract": "config/schedule.json"},
-        "policies": {},
         "delivery": {"provider": "filesystem", "targets": {}},
     }))
     monkeypatch.setattr(runner, "import_module", lambda name: Module)
