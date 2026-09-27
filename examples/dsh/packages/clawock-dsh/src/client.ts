@@ -32,7 +32,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 import * as React from 'react'
 import styles from './styles.module.css'
 import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
-import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, PatrolRound, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
 
@@ -153,6 +153,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.meta': '{agent} · {model}', 'queue.run': '已跑 {elapsed} · 第 {attempts} 次', 'queue.stalls': '卡死 {n}',
     'queue.waitHeading': '排队 / 等待', 'queue.noneRunning': '没有占用运行槽的任务', 'queue.noneWaiting': '没有排队或等待的任务',
     'queue.recentHeading': '最近结束',
+    'queue.moreEnded': '另 {n} 条结束记录', 'queue.waited': '等待 {time}', 'queue.d.waited': '等待', 'queue.waitUnknown': '等待未记录',
+    'queue.execution.ok': '执行完成', 'queue.execution.failed': '执行失败', 'queue.execution.cancelled': '已取消',
+    'queue.execution.timeout': '已超时', 'queue.execution.blocked': '执行受阻', 'queue.execution.quota': '额度中止',
+    'queue.execution.queued': '未启动', 'queue.execution.unknown': '结果未明',
+    'queue.report.DONE': '任务：完成', 'queue.report.claimedDone': '任务：自报完成', 'queue.report.PARTIAL': '任务：部分完成',
+    'queue.report.BLOCKED': '任务：受阻', 'queue.report.unknown': '任务：未报告',
+    'queue.statusLegend': '前项是 runner 对执行过程的判决；“任务”是模型最终报告。执行完成但任务部分完成或受阻，表示机器运行正常、工作尚未做完。',
+    'queue.lastRound': '上一轮', 'queue.olderRounds': '更早的 {n} 轮', 'queue.supervisorLog': '监督器记录',
+    'queue.patrol.waitSlot': '等空闲运行槽', 'queue.patrol.giveWay': '让手工任务先行',
     'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}', 'queue.roundsHeading': '最近几轮',
     'queue.patrol.running': '巡检运行中', 'queue.patrol.yielding': '巡检让路中',
     'queue.patrol.waiting': '巡检等待下一轮', 'queue.patrol.waitingUntil': '巡检 {time} 开下一轮',
@@ -291,6 +300,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}', 'queue.stalls': '{n} stalled',
     'queue.waitHeading': 'Queued / waiting', 'queue.noneRunning': 'No task holds a slot', 'queue.noneWaiting': 'Nothing queued or waiting',
     'queue.recentHeading': 'Recently ended',
+    'queue.moreEnded': '{n} more ended tasks', 'queue.waited': 'waited {time}', 'queue.d.waited': 'Wait', 'queue.waitUnknown': 'wait not recorded',
+    'queue.execution.ok': 'Execution complete', 'queue.execution.failed': 'Execution failed', 'queue.execution.cancelled': 'Cancelled',
+    'queue.execution.timeout': 'Timed out', 'queue.execution.blocked': 'Execution blocked', 'queue.execution.quota': 'Stopped on quota',
+    'queue.execution.queued': 'Never started', 'queue.execution.unknown': 'Result unknown',
+    'queue.report.DONE': 'Task: complete', 'queue.report.claimedDone': 'Task: reports complete', 'queue.report.PARTIAL': 'Task: partial',
+    'queue.report.BLOCKED': 'Task: blocked', 'queue.report.unknown': 'Task: no report',
+    'queue.statusLegend': 'The first status is the runner’s execution verdict. “Task” is the model’s final report. Execution can complete while the task remains partial or blocked.',
+    'queue.lastRound': 'Last round', 'queue.olderRounds': '{n} earlier rounds', 'queue.supervisorLog': 'Supervisor log',
+    'queue.patrol.waitSlot': 'Waiting for a free run slot', 'queue.patrol.giveWay': 'Giving way to manual tasks',
     'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}', 'queue.roundsHeading': 'Recent rounds',
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
@@ -1594,9 +1612,17 @@ export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date
   return { tone: 'ok', text: slot.slot === '1' ? t('queue.state.running') : t('queue.state.runningSlot', { slot: slot.slot }) }
 }
 
-/** An ended task's status words: the runner's state, then the agent's own STATUS. */
-function endedText(task: DispatchTask): string {
-  return task.state + (task.outcome !== '' ? ' / ' + task.outcome : '')
+/** Keep the runner's execution verdict and the model's report in separate, named slots. */
+function executionText(state: string, t: Translate): string {
+  const key = ({ ok: 'ok', partial: 'ok', unverified: 'ok', failed: 'failed', cancelled: 'cancelled',
+    timeout: 'timeout', blocked: 'blocked', quota: 'quota', queued: 'queued' } as Record<string, string>)[state] ?? 'unknown'
+  return t('queue.execution.' + key)
+}
+
+function reportText(outcome: string, t: Translate, executionState = 'ok'): string {
+  if (outcome === 'DONE' && !['ok', 'partial', 'unverified'].includes(executionState)) return t('queue.report.claimedDone')
+  const key = ['DONE', 'PARTIAL', 'BLOCKED'].includes(outcome) ? outcome : 'unknown'
+  return t('queue.report.' + key)
 }
 
 /**
@@ -1604,8 +1630,9 @@ function endedText(task: DispatchTask): string {
  * dot at all: ended rows speak in words. Not-done amber, failed red.
  */
 function endedTone(task: DispatchTask): BalanceTone {
-  if (task.state === 'failed') return 'low'
-  if (task.state === 'partial' || task.state === 'unverified' || (task.state === 'ok' && task.outcome !== '' && task.outcome !== 'DONE')) return 'stale'
+  if (task.state === 'failed' || task.state === 'timeout') return 'low'
+  if (['partial', 'unverified', 'blocked', 'quota'].includes(task.state)
+    || (task.state === 'ok' && task.outcome !== 'DONE') || task.outcome === 'BLOCKED') return 'stale'
   return 'none'
 }
 
@@ -1729,16 +1756,17 @@ export const _agentLabel = (agent: string): string => AGENT_LABELS[agent] ?? age
 
 /**
  * The executor layer: a 14px outline glyph in the host's icon stroke, one
- * shape per CLI (a spark for Claude Code, a hexagon for Codex, a bracketed
- * square for OpenCode). Outline, monochrome, label ink — so it never competes
- * with the filled model tile beside it, and it is never a status colour.
+ * shape per CLI. All three are plugin-drawn pictograms, not vendor marks:
+ * Claude a spark, Codex a terminal prompt, OpenCode brackets. The Codex
+ * prompt identifies the coding CLI without pretending a generic hexagon is
+ * OpenAI artwork. Monochrome label ink keeps these separate from status.
  */
 function renderAgentGlyph(agent: string, size = 14): React.ReactElement {
   const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
   const shape = agent === 'claude'
     ? h('path', { ...stroke, d: 'M7 1.8V12.2M1.8 7H12.2M3.3 3.3L10.7 10.7M10.7 3.3L3.3 10.7' })
     : agent === 'codex'
-      ? h('path', { ...stroke, d: 'M7 1.5L11.8 4.25V9.75L7 12.5L2.2 9.75V4.25Z' })
+      ? h('path', { ...stroke, d: 'M2.5 3.5L6.3 7L2.5 10.5M7.5 10.5H11.5' })
       : agent === 'opencode'
         ? h('path', { ...stroke, d: 'M5 2H2.5V12H5M9 2H11.5V12H9' })
         : h('circle', { ...stroke, cx: 7, cy: 7, r: 5 })
@@ -1870,6 +1898,32 @@ function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: 
       onClick: () => { handlers.moveUp?.(task) },
     }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
       h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
+}
+
+/** Ended work is a short receipt: execution verdict, model report, then time and cost. */
+function renderEndedRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): React.ReactElement {
+  const execution = executionText(task.state, t)
+  const report = reportText(task.outcome, t, task.state)
+  const took = task.startedAtMs === null || task.updatedAtMs === null ? null
+    : durationOf(t, task.updatedAtMs - task.startedAtMs)
+  const wait = task.waitMs == null ? t('queue.waitUnknown') : t('queue.waited', { time: durationOf(t, task.waitMs) })
+  const ended = task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)
+  const model = modelLine(task, false)
+  const cost = _costOf(task)
+  const facts = [wait, took === null ? null : t('queue.d.took') + ' ' + took, cost?.short].filter(Boolean).join(' · ')
+  return h('div', { className: cx('tq-item', 'tq-ended'), key: task.id, 'data-tq-item': task.id },
+    h('button', { type: 'button', className: cx('tq-row', 'tq-ended-row'), 'data-tq-task': task.id,
+      'data-tq-waiting': '', 'aria-label': [task.name, execution, report, ended, facts, t('queue.d.open')].join(' · '),
+      title: [task.name, execution, report, ended, facts].join(' · '), onClick: () => { open(task.id) } },
+    h('span', { className: cx('tq-ended-glyph') }, renderAgentGlyph(task.agent, 12)),
+    h('span', { className: cx('tq-line') },
+      h('span', { className: cx('tq-name') }, task.name),
+      h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': endedTone(task) }, execution)),
+    h('span', { className: cx('tq-line') },
+      h('span', { className: cx('tq-sub', 'tq-report'), title: t('queue.statusLegend') }, report),
+      h('span', { className: cx('tq-sub', 'tq-num') }, ended)),
+    h('span', { className: cx('tq-sub', 'tq-ended-facts') }, facts,
+      model.model ? ' · ' + _modelView(model.model).label : '')))
 }
 
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
@@ -2063,7 +2117,7 @@ function patrolStateOf(result: TaskQueueResult, t: Translate, now: number): stri
   return t('queue.patrolState.' + patrol.phase)
 }
 
-/** A finished round's tone, read like an ended task's: failed red, anything short of ok/DONE amber, done quiet. */
+/** A finished round's tone, read like an ended task's. */
 function roundTone(result: string): BalanceTone {
   if (/fail/i.test(result)) return 'low'
   return /^ok(\/DONE)?$/.test(result) ? 'none' : 'stale'
@@ -2084,26 +2138,46 @@ function localStampMs(stamp: string): number | null {
 function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number): React.ReactElement {
   const patrol = result.patrol
   const tone = PATROL_TONE[patrol.phase] ?? 'none'
-  const roundLine = patrol.round !== '' && !patrol.detail.includes(patrol.round)
+  const current = result.active.find((task) => task.id === patrol.round)
+  const axis = /round \S+ \(([^)]+)\)/.exec(patrol.detail)?.[1] ?? ''
+  const activity = patrol.phase === 'running' && patrol.round !== ''
+    ? [axis, patrol.round, current?.startedAtMs == null ? null : durationOf(t, now - current.startedAtMs)].filter(Boolean).join(' · ')
+    : patrol.phase === 'yielding'
+      ? /all \d+ run slots? (?:are )?busy/i.test(patrol.detail) ? t('queue.patrol.waitSlot') : t('queue.patrol.giveWay')
+      : ''
+  const rounds = patrol.rounds ?? []
+  const roundRow = (round: PatrolRound): React.ReactElement => {
+    const ended = localStampMs(round.endedAt)
+    const took = round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)
+    const when = ended === null ? '—' : round.endedAt.slice(5, 16)
+    const parts = round.result.split('/')
+    const status = round.result.startsWith('preempted:') || round.result.startsWith('yielded:')
+      ? t('queue.patrol.giveWay')
+      : executionText(parts[0] ?? '', t)
+    const report = parts[1] ? reportText(parts[1], t, parts[0]) : null
+    return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, title: [round.round, round.axis, round.result, took, round.endedAt].join(' · ') },
+      h('span', { className: cx('tq-round-main') },
+        h('span', { className: cx('tq-round-id', 'tq-sub') }, round.round),
+        h('span', { className: cx('tq-sub', 'tq-round-axis') }, round.axis),
+        h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result) }, status)),
+      h('span', { className: cx('tq-round-meta', 'tq-sub') },
+        report ? report + ' · ' : '', took, ' · ', when))
+  }
   return h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderGroupHead(renderSectionGlyph('patrol'), t('queue.patrolHeading'), null,
       h('span', { className: cx('tq-sub', 'tq-lane', 'tq-v'), 'data-tq-patrol': patrol.phase, 'data-balance-state': tone, title: patrolPhraseOf(result, t, now) },
         h('span', { className: cx('tq-dot'), 'data-balance-state': tone }),
         patrolStateOf(result, t, now))),
-    roundLine ? h('div', { className: cx('tq-sub', 'tq-note'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
-    patrol.detail !== '' ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), title: patrol.detail }, patrol.detail) : null,
-    patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds'), role: 'table', 'aria-label': t('queue.roundsHeading') },
-      patrol.rounds.map((round) => {
-        const ended = localStampMs(round.endedAt)
-        const took = round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)
-        const ago = ended === null ? '—' : agoOf(t, now - ended)
-        return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, role: 'row', title: [round.round, round.axis, round.result, took, round.endedAt].join(' · ') },
-          h('span', { className: cx('tq-sub', 'tq-round-id'), role: 'cell' }, round.round),
-          h('span', { className: cx('tq-sub', 'tq-round-axis'), role: 'cell' }, round.axis),
-          h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result), role: 'cell' }, round.result),
-          h('span', { className: cx('tq-sub', 'tq-round-num'), role: 'cell' }, took),
-          h('span', { className: cx('tq-sub', 'tq-round-num'), role: 'cell' }, ago))
-      })))
+    activity ? h('div', { className: cx('tq-sub', 'tq-patrol-activity'), title: activity }, activity) : null,
+    rounds.length === 0 ? null : h('div', { className: cx('tq-rounds') },
+      h('div', { className: cx('tq-sub', 'tq-round-caption') }, t('queue.lastRound')),
+      roundRow(rounds[0]!),
+      rounds.length <= 1 ? null : h('details', { className: cx('tq-disclosure') },
+        h('summary', null, t('queue.olderRounds', { n: rounds.length - 1 })),
+        rounds.slice(1).map(roundRow))),
+    patrol.detail === '' ? null : h('details', { className: cx('tq-disclosure') },
+      h('summary', null, t('queue.supervisorLog')),
+      h('div', { className: cx('tq-sub', 'tq-wrap') }, patrol.detail)))
 }
 
 /** One provider group of the open panel: identity and plan, the allowance, then the queue it feeds. */
@@ -2200,11 +2274,14 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
     sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' },
       balanceState.data.result === null ? t('balance.reading') : t('panel.noSources')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
-    // What just ended, in the groups' order (providers.ts), newest first within an agent.
+    // Ended work is a time ordered receipt, separate from the live agent queues.
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
-      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null, null),
-      byAgentRank(result!.recent).map((task) => renderTaskRow(task, { tone: endedTone(task), text: endedText(task), dot: false }, false, t, now,
-        { open: ui.open, busy: false }))),
+      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null,
+        h('span', { className: cx('tq-sub', 'tq-lane'), title: t('queue.statusLegend') }, result!.recent.length)),
+      result!.recent.slice(0, 2).map((task) => renderEndedRow(task, t, now, ui.open)),
+      result!.recent.length <= 2 ? null : h('details', { className: cx('tq-disclosure') },
+        h('summary', null, t('queue.moreEnded', { n: result!.recent.length - 2 })),
+        result!.recent.slice(2).map((task) => renderEndedRow(task, t, now, ui.open)))),
     patrol === null ? null : renderPatrolSection(result!, t, now),
     ops === undefined ? null : h('div', { className: cx('tq-sub', 'tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
       skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
@@ -2298,7 +2375,7 @@ function actionPill(key: string, label: string, onClick: () => void, opts: { dan
 function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number, back: () => void,
   backRef: { current: HTMLButtonElement | null }, ui: DetailUi, notice: { ok: boolean; text: string } | null): React.ReactElement {
   const { task, live } = found
-  const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: endedText(task) }
+  const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: executionText(task.state, t) }
   const cost = _costOf(task)
   const stamp = (ms: number | null | undefined): string | null => ms == null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   const took = task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
@@ -2318,6 +2395,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     ['queue.d.place', place],
     ['queue.d.queued', stamp(task.queuedAtMs)],
     ['queue.d.started', stamp(task.startedAtMs)],
+    live ? ['', null] : ['queue.d.waited', task.waitMs == null ? t('queue.waitUnknown') : durationOf(t, task.waitMs)],
     live
       ? ['queue.d.elapsed', task.startedAtMs === null ? null : durationOf(t, now - task.startedAtMs)]
       : ['queue.d.took', took],
@@ -2411,6 +2489,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
         live ? h('span', { className: cx('tq-dot'), 'data-balance-state': status.tone }) : null,
         h('span', { className: cx('tq-d-name') }, task.name)),
       h('div', { className: cx('tq-d-status'), 'data-balance-state': status.tone }, status.text),
+      live ? null : h('div', { className: cx('tq-sub', 'tq-detail-report'), title: t('queue.statusLegend') }, reportText(task.outcome, t, task.state)),
       actions.length === 0 ? null : h('div', { className: cx('tq-actions'), role: 'group', 'aria-label': t('queue.a.group') }, actions),
       budgetOld ? h('div', { className: cx('tq-note') }, t('queue.a.budgetOld', { api: task.runnerApi ?? 1 })) : null,
       confirmText === null ? null : h('div', { className: cx('tq-note', 'tq-warn'), role: 'alert', 'data-tq-confirm': task.id }, confirmText),

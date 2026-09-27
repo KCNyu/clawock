@@ -281,6 +281,8 @@ export interface DispatchTask {
     lastEventAtMs: number | null;
     /** When the runner first waited for its agent lock (result.env QUEUED_AT); the queue's order. */
     queuedAtMs?: number | null;
+    /** Ended task: first run-slot acquisition minus QUEUED_AT, when both were recorded; null if unknown. Older hosts omit it. */
+    waitMs?: number | null;
     /** 1-based place in its agent's queue (task_queue_ops.py order); null when not waiting for the lock. */
     position?: number | null;
     /** override.env PRIORITY (0 when unset). */

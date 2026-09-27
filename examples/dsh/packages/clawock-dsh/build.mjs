@@ -241,6 +241,7 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
   'queuedAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'waitMs': z.union([z.number(), z.literal(null)]).optional(),
   'position': z.union([z.number(), z.literal(null)]).optional(),
   'priority': z.number().optional(),
   'protected': z.boolean().optional(),

@@ -2738,8 +2738,9 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   // Ended: a WAITING value an interrupted runner left behind is not a wait.
   task("cancelled-20260923-000000", "AGENT=claude\nNAME=cancelled\n",
     "STATE=cancelled\nWAITING=lock\nUPDATED=2026-09-23\\ 02:32:23\n");
-  task("done-20260923-000100", "AGENT=codex\nNAME=done\n", "STATE=ok\nOUTCOME=DONE\nUPDATED=2026-09-23\\ 02:47:16\n",
-    "final | an earlier attempt\n---- 2026-09-23 02:47:16 attempt 2 (task) rc=0 kind=ok\n     | x\n" +
+  const queuedAt = Math.floor(new Date(2026, 8, 23, 2, 0, 0).getTime() / 1000);
+  task("done-20260923-000100", "AGENT=codex\nNAME=done\n", `STATE=ok\nOUTCOME=DONE\nQUEUED_AT=${queuedAt}\nUPDATED=2026-09-23\\ 02:47:16\n`,
+    "2026-09-23 02:04:00 got run slot codex-1\nfinal | an earlier attempt\n---- 2026-09-23 02:47:16 attempt 2 (task) rc=0 kind=ok\n     | x\n" +
     "final | - merged: PR #1767\nfinal | \nfinal | STATUS: DONE\nquota | 5h 48%\n");
   task("patrol-render-20260923-000200", "AGENT=opencode\nNAME=patrol-render\n", "STATE=cancelled\nUPDATED=2026-09-23\\ 02:40:41\n");
   const limits = path.join(root, "limits.env");
@@ -2773,6 +2774,8 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(r.recent[0].summary, "- merged: PR #1767",
     "the last attempt's final lines only; blanks and the STATUS line dropped");
   assert.equal(r.recent[0].lastEvent, "", "an ended task has no 'latest event'");
+  assert.equal(r.recent[0].waitMs, 4 * 60000, "wait is first slot acquisition minus QUEUED_AT");
+  assert.equal(r.recent[1].waitMs, null, "an older runner log cannot yield a trustworthy wait duration");
   assert.equal(r.recent[1].summary, "", "no run log, no report");
   assert.deepEqual(r.recent.map((t) => [t.name, t.state, t.waiting]), [["done", "ok", ""], ["cancelled", "cancelled", ""]],
     "ended tasks newest first by UPDATED, patrol rounds excluded, stale WAITING dropped");
@@ -2931,12 +2934,12 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(find(rows[0], (p) => p.className && /_tq-model-mark/.test(p.className)).length, 0, "no two-letter model tile");
   assert.match(texts(rows[2]), /运行中/, "slot-opencode-1: running in its own agent's slot");
   assert.match(texts(rows[1]), /等 claude 锁/);
-  assert.match(texts(rows[3]), /ok \/ DONE/);
+  assert.match(texts(rows[3]), /执行完成 .*任务：完成/);
   assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
   assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
   for (const row of rows) assert.ok(find(row, (p) => p.className && /_tq-sub/.test(p.className)).length >= 2,
     "live and ended tasks share the secondary text class");
-  assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
+  assert.match(texts(popover), /上一轮 R139 automation .*让手工任务先行 .*1 小时 8 分/, "last round is a readable supervisor receipt");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
   assert.ok(find(popover, (p) => p.className && /_tq-round(?!s)/.test(p.className)).length > 0, "patrol rounds are grouped by row");
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
@@ -2967,12 +2970,27 @@ test("client: one provider cell carries the queue under each agent's provider an
   await tick(); await tick();
   find(render(), (p) => p["data-tq-task"] === "c-1")[0].props.onClick();
   const ended = find(render(), (p) => p["data-tq-detail"] === "c-1")[0];
-  assert.match(texts(ended), /已结束 .*merge-pr1767 ok \/ DONE .*用时 30 分 .*结束 .*30 分钟前 .*结果摘要 - merged: PR #1767\n- CI green/);
+  assert.match(texts(ended), /已结束 .*merge-pr1767 执行完成 任务：完成 .*用时 30 分 .*结束 .*30 分钟前 .*结果摘要 - merged: PR #1767\n- CI green/);
   assert.doesNotMatch(texts(ended), /最近事件/, "an ended task has no latest event row");
   const panelClasses = find(render(), (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(panelClasses.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
     "every class the open panel and its detail layer render resolves through the stylesheet");
   find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  answer = { ...QUEUE, recent: [
+    { ...QUEUE.recent[0], id: "closed-a", state: "ok", outcome: "PARTIAL", waitMs: 7 * 60000 },
+    { ...QUEUE.recent[0], id: "closed-b", state: "failed", outcome: "DONE", waitMs: null },
+    { ...QUEUE.recent[0], id: "closed-c", state: "blocked", outcome: "BLOCKED" },
+  ] };
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  const receipts = find(render(), (p) => p["data-tq-task"]?.startsWith("closed-"));
+  assert.deepEqual(receipts.map((row) => row.props["data-tq-task"]), ["closed-a", "closed-b", "closed-c"],
+    "ended tasks keep the host's newest-first order across agents");
+  assert.match(texts(receipts[0]), /执行完成 任务：部分完成 .*等待 7 分/);
+  assert.match(texts(receipts[1]), /执行失败 任务：自报完成 .*等待未记录/);
+  assert.match(texts(receipts[2]), /执行受阻 任务：受阻/);
+  assert.ok(find(render(), (p) => p.className && /_tq-disclosure/.test(p.className) && p.open === undefined).length >= 1,
+    "the third receipt starts folded and can be opened without a layout animation");
   answer = QUEUE;
 
   // The host renders list-slot items inside a `display:contents` [data-slot]
