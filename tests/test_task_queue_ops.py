@@ -188,7 +188,7 @@ def test_list_reports_the_holder_the_quota_hint_and_host_file_hashes(q):
     (q.locks / ".queue" / "claude.quota").write_text(f"UNTIL={now + 3600}\nBY=holder-task\n")
     (q.locks / ".queue" / "codex.holder").write_text(f"ID=gone\nPID={dead_pid()}\n")
     code, out = q.run("list")
-    assert out["agents"]["claude"]["holder"] == {"held": True, "id": "holder-task", "since": now, "legacy": False, "note": ""}
+    assert out["agents"]["claude"]["holder"] == {"held": True, "id": "holder-task", "since": now, "note": ""}
     assert out["agents"]["claude"]["quota"] == {"until": now + 3600, "by": "holder-task"}
     assert out["agents"]["codex"]["holder"]["held"] is False
     assert out["runner"]["api"] == 2 and out["host_files"]["run-agent.sh"]
@@ -323,7 +323,7 @@ def test_priority_refusals_are_explicit(q):
     assert q.run("priority", "ended-task", "top")[0] == 3
     q.task("old-runner-task", result="STATE=running\nWAITING=lock\n")
     code, out = q.run("priority", "old-runner-task", "top")
-    assert code == 3 and "older runner" in out["error"]
+    assert code == 3 and "no RUNNER_API 2" in out["error"]
     q.waiter("patrol-docs-20260926-000000", agent="opencode", queued_at=now)
     code, out = q.run("priority", "patrol-docs-20260926-000000", "top")
     assert code == 3 and "patrol rounds always go last" in out["error"]
@@ -442,34 +442,26 @@ def test_log_tail_is_redacted(q):
     assert out["lines"] == ["line 98", "line 99", "token=<redacted> <redacted>"]
 
 
-# ---- legacy: tasks of a runner from before RUNNER_API 2 --------------------------------------
+# ---- tasks without RUNNER_API 2: named, never ordered, never hidden ---------------------------
+# The run.log parsing that placed pre-2026-09-26 runners in the queue was removed on 2026-09-27
+# (no such task was left); what stays is that list/head never pretend such a task is not there.
 
-def legacy(q, tid, log, result="STATE=queued\nWAITING=lock\n", agent="claude"):
-    d = q.task(tid, agent=agent, result=result)
-    (d / "run.log").write_text(log)
-    return d
-
-
-def test_legacy_waiters_and_holder_are_listed_never_dropped(q):
-    legacy(q, "old-holder", "==== start ====\n2026-09-26 15:06:36 waiting for claude lock (budget 85730s)\n"
-           "2026-09-26 18:28:30 lock held\n", result="STATE=running\nSLOT=claude-1\nATTEMPTS=1\n")
-    legacy(q, "old-waiter-b", "2026-09-26 15:16:56 waiting for claude lock (budget 1s)\n")
-    legacy(q, "old-waiter-a", "2026-09-26 15:16:20 waiting for claude lock (budget 1s)\n")
-    import fcntl
-    lock = q.locks / "claude.lock"
-    fd = os.open(lock, os.O_CREAT | os.O_RDWR)
-    fcntl.flock(fd, fcntl.LOCK_EX)
-    try:
-        code, out = q.run("list")
-        head = q.run("head", "claude")[1]
-    finally:
-        os.close(fd)
+def test_a_task_without_runner_api_is_named_as_unqueued_not_dropped(q):
+    q.task("old-waiter", result="STATE=queued\nWAITING=lock\n")
+    q.task("other-agent", agent="codex", result="STATE=queued\n")
+    q.waiter("new-a")
+    code, out = q.run("list")
     g = out["agents"]["claude"]
-    assert g["holder"]["held"] is True and g["holder"]["id"] == "old-holder" and g["holder"]["legacy"] is True
-    assert [(r["id"], r["legacy"]) for r in g["queue"]] == [("old-waiter-a", True), ("old-waiter-b", True)]
-    assert g["queue"][0]["queued_at"] == int(time.mktime(time.strptime("2026-09-26 15:16:20", "%Y-%m-%d %H:%M:%S")))
-    # head is never empty while an older-runner task queues, and says why it goes first.
-    assert head["head"] == "old-waiter-a" and head["legacy"] is True and "older runner" in head["note"]
+    assert [r["id"] for r in g["queue"]] == ["new-a"]
+    assert [r["id"] for r in g["unqueued"]] == ["old-waiter"] and "RUNNER_API=missing" in g["unqueued"][0]["reason"]
+    assert [r["id"] for r in out["agents"]["codex"]["unqueued"]] == ["other-agent"]
+    head = q.run("head", "claude")[1]
+    assert head["head"] == "new-a" and head["unqueued"] == ["old-waiter"] and "old-waiter" in head["note"]
+    # The bare-id text answer the runner reads is unchanged.
+    text = subprocess.run([sys.executable, str(OPS), "head", "claude"], env=q.env, capture_output=True, text=True, timeout=30)
+    assert text.stdout == "new-a\n"
+    code, out = q.run("priority", "old-waiter", "top")
+    assert code == 3 and "RUNNER_API" in out["error"]
 
 
 def test_an_unnamed_holder_is_said_so_not_shown_free(q):
@@ -481,20 +473,6 @@ def test_an_unnamed_holder_is_said_so_not_shown_free(q):
         head = q.run("head", "claude")[1]
     finally:
         os.close(fd)
-    assert out["held"] is True and out["id"] is None and "older runner" in out["note"]
-    assert head["head"] == "" and "held by an unnamed older-runner task" in head["note"]
+    assert out["held"] is True and out["id"] is None and "no live holder file" in out["note"]
+    assert head["head"] == "" and "held by an unnamed task" in head["note"]
     assert "nobody waits and the lock is free" in q.run("head", "codex")[1]["note"]
-
-
-def test_new_runner_tasks_queue_behind_legacy_ones_and_cannot_jump_them(q):
-    now = int(time.time())
-    legacy(q, "old-waiter", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(now - 600)) + " waiting for claude lock (budget 1s)\n")
-    q.waiter("new-a", queued_at=now - 100)
-    q.waiter("new-b", queued_at=now - 50)
-    assert q.order() == ["old-waiter", "new-a", "new-b"]
-    code, out = q.run("priority", "new-b", "top")
-    assert code == 0 and out["queue"] == ["old-waiter", "new-b", "new-a"]
-    code, out = q.run("priority", "old-waiter", "top")
-    assert code == 3 and "older runner" in out["error"]
-    code, out = q.run("priority", "new-b", "up")
-    assert code == 0 and out["changed"] is False

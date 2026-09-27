@@ -278,11 +278,7 @@ export interface DispatchTask {
   state: string
   /** What a live task waits for: 'lock' | 'slot' | 'quota' | 'retry' | 'memory' | ''. Always '' once ended. */
   waiting: string
-  /**
-   * Run slot the live attempt holds, '' when none: `<agent>-<n>` (slots are per
-   * agent since 2026-09-25), or a bare `<n>` from a runner started before that,
-   * which still holds one of the old shared slots until it ends.
-   */
+  /** Run slot the live attempt holds, '' when none: `<agent>-<n>` (slots are per agent). */
   slot: string
   attempts: number
   /**
@@ -314,9 +310,6 @@ export interface DispatchTask {
   priority?: number
   /** Waited past the fair wait: nothing can be placed ahead of it any more. */
   protected?: boolean
-  /** Started by a runner older than RUNNER_API 2: no QUEUED_AT, priority or model override; the
-   *  ops entry places it by its run.log instead, first in its queue, not reorderable. */
-  legacy?: boolean
   /** What the next attempt will use: override.env MODEL, else meta.env MODEL. */
   modelRequested?: string
   /** What the latest attempt ran on (result.env MODEL_USED); '' before the first attempt. */
@@ -342,11 +335,9 @@ export interface DispatchTask {
 /** One agent's lock and queue, from task_queue_ops.py `list`. */
 export interface AgentQueue {
   agent: string
-  /** The lock is held (by `holder`, or by an older runner that does not say who: holder ''). */
+  /** The lock is held (by `holder`, or by a process no live holder file names: holder ''). */
   held: boolean
   holder: string
-  /** The holder runs an older runner (no queue fields), or could not be named at all. */
-  holderLegacy?: boolean
   /** The ops entry's explanation for the holder ('' when plain). */
   holderNote?: string
   /** Waiting task ids in the order they will take the lock. */

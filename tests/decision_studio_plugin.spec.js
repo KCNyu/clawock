@@ -2822,7 +2822,7 @@ test("client: the task queue sits above the balance and shows who waits for what
         attempts: 2, stalls: 1, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
       { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
         attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
-      { id: "patrol-recent-1", name: "patrol-recent", agent: "opencode", model: "opencode/x", state: "running", waiting: "", slot: "2",
+      { id: "patrol-recent-1", name: "patrol-recent", agent: "opencode", model: "opencode/x", state: "running", waiting: "", slot: "opencode-1",
         attempts: 1, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: true },
     ],
     recent: [{ id: "c-1", name: "merge-pr1767", agent: "codex", model: "gpt", state: "ok", waiting: "", slot: "", attempts: 1,
@@ -2891,8 +2891,8 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.match(texts(trigger), /任务/);
   assert.match(texts(trigger), /在跑 2 · 排队 1/, "the host badge's trailing count: running · waiting");
   assert.doesNotMatch(texts(trigger), /\d\/\d/, "no n/sum: slots are per agent, a free one is no room for another agent");
-  assert.match(trigger.props.title, /claude 1\/1 · codex 0\/1 · opencode 0\/1 · 过渡期共享槽 1/,
-    "the per-agent lanes and the old shared slot a pre-2026-09-25 runner still holds");
+  assert.match(trigger.props.title, /claude 1\/1 · codex 0\/1 · opencode 1\/1 · /, "the per-agent lanes, nothing else");
+  assert.doesNotMatch(trigger.props.title, /共享槽/, "the old shared-slot bucket is gone (2026-09-27, no pre-2026-09-25 runner left)");
   // The patrol phase moved from the row to its title and the panel: the host badge carries a
   // label and a count only, and the row ran out of room for it on a 260px sidebar.
   assert.match(trigger.props.title, /巡检让路中/, "patrol giving way is still one hover away");
@@ -2907,10 +2907,10 @@ test("client: the task queue sits above the balance and shows who waits for what
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
     ["claude", "codex", "opencode", "recent", "patrol"]);
-  assert.match(texts(popover), /过渡期共享槽 1 .*Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*没有任务 .*OpenCode .*槽 0\/1 .*最近结束 .*巡检/);
+  assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*没有任务 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
   const lanes = find(popover, (p) => p["data-tq-lane"] !== undefined);
   assert.deepEqual(lanes.map((l) => [l.props["data-tq-lane"], find(l, (p) => p["data-balance-state"] !== undefined)[0].props["data-balance-state"]]),
-    [["legacy", "ok"], ["claude", "stale"], ["codex", "none"], ["opencode", "none"]],
+    [["claude", "stale"], ["codex", "none"], ["opencode", "ok"]],
     "claude's one slot is full and a claude task queues for it: that lane is the queue's reason");
   const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
   assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
@@ -2918,7 +2918,7 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.match(texts(rows[0]), /运行中/);
   assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group header already says whose");
   assert.match(texts(rows[0]), /Op Opus 5\.5 .*第 2 次 · 1 小时 5 分 · 卡死 1/, "model tile + short name; stalled attempts ride on the numbers");
-  assert.match(texts(rows[2]), /运行中 · 旧共享槽 2/, "a bare slot number is an old runner's shared slot");
+  assert.match(texts(rows[2]), /运行中/, "slot-opencode-1: running in its own agent's slot");
   assert.match(texts(rows[1]), /等 claude 锁/);
   assert.match(texts(rows[3]), /ok \/ DONE/);
   assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
@@ -3006,11 +3006,11 @@ test("client: a task backing off to retry is counted on the queue headline, like
   assert.equal(memory.busy, false);
   // A host older than slotLimits: lanes from the held slots alone, no maximum, nothing broken.
   const old = api._queueHeadline({ ...result, running: 2,
-    active: [{ ...live("a", ""), slot: "claude-1" }, { ...live("b", ""), agent: "codex", slot: "1" }] }, translatorFor(api), now);
-  assert.match(old.title, /在跑 2 · claude 1 · 过渡期共享槽 1/);
+    active: [{ ...live("a", ""), slot: "claude-1" }, { ...live("b", ""), agent: "codex", slot: "codex-1" }] }, translatorFor(api), now);
+  assert.match(old.title, /在跑 2 · claude 1 · codex 1/);
 });
 
-test("task queue host: the ops entry orders each agent's queue, flags older-runner tasks and is the only write door", async () => {
+test("task queue host: the ops entry orders each agent's queue and is the only write door", async () => {
   const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-queue-ops-"));
   const logDir = path.join(root, "tasks");
@@ -3033,9 +3033,9 @@ test("task queue host: the ops entry orders each agent's queue, flags older-runn
   const list = {
     ok: true, ops_version: tq.fileVersion(opsPath), api: 2, fair_wait_sec: 14400, runner: { api: 2 },
     agents: {
-      claude: { holder: { held: true, id: "old-run", legacy: true, note: "held by old-run" }, quota: null,
-        queue: [{ id: "old-wait", position: 1, priority: 0, protected: false, legacy: true, queued_at: 1790410000 },
-          { id: "new-wait", position: 2, priority: 2, protected: false, legacy: false, queued_at: 1790422408 }] },
+      claude: { holder: { held: true, id: "old-run", note: "" }, quota: null,
+        queue: [{ id: "old-wait", position: 1, priority: 0, protected: true, queued_at: 1790410000 },
+          { id: "new-wait", position: 2, priority: 2, protected: false, queued_at: 1790422408 }] },
       codex: { holder: { held: false, id: null }, queue: [], quota: { until: 1790430000, by: "x" } },
     },
   };
@@ -3044,7 +3044,7 @@ test("task queue host: the ops entry orders each agent's queue, flags older-runn
     calls.push(args);
     if (args[0] === "list") return { code: 0, stdout: JSON.stringify(list), stderr: "" };
     if (args.includes("cancel")) return { code: 0, stdout: JSON.stringify({ ok: true, was: "queued", state: "cancelled", message: "cancelled before it started" }), stderr: "" };
-    return { code: 3, stdout: JSON.stringify({ ok: false, code: 3, error: "refused: older runner" }), stderr: "" };
+    return { code: 3, stdout: JSON.stringify({ ok: false, code: 3, error: "refused: no RUNNER_API 2" }), stderr: "" };
   };
   const deps = { activeTaskIds: async () => ["old-run", "new-wait"], patrolService: async () => "active", patrolLog: async () => [], runOps };
   const config = { logDir, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath, repoOpsPath: repoOps };
@@ -3056,12 +3056,13 @@ test("task queue host: the ops entry orders each agent's queue, flags older-runn
   assert.equal(wait.modelRequested, "claude-haiku-4-5-20251001", "the override is what the next attempt uses");
   assert.equal(wait.effortRequested, "high");
   assert.deepEqual(wait.notify, ["weixin", "telegram"]);
-  assert.equal(wait.legacy, false);
-  assert.equal(r.active.find((t) => t.id === "old-run").legacy, true, "no RUNNER_API: an older runner's task, flagged");
+  assert.equal(wait.runnerApi, 2);
+  assert.equal(r.active.find((t) => t.id === "old-run").runnerApi, 1, "no RUNNER_API: said so, never a queue place");
+  assert.equal(r.active.find((t) => t.id === "old-run").position, null);
   const done = r.recent.find((t) => t.id === "done");
   assert.deepEqual([done.notified, done.notifyFailed], [["telegram"], ["weixin"]], "receipts from result.env, not the log");
   const claude = r.queues.find((q) => q.agent === "claude");
-  assert.deepEqual([claude.holder, claude.holderLegacy, claude.order], ["old-run", true, ["old-wait", "new-wait"]]);
+  assert.deepEqual([claude.holder, claude.order], ["old-run", ["old-wait", "new-wait"]]);
   assert.equal(r.queues.find((q) => q.agent === "codex").quotaUntilMs, 1790430000000);
   assert.deepEqual([r.ops.available, r.ops.version === r.ops.repoVersion], [true, true]);
   fs.writeFileSync(repoOps, "merged, not installed\n");
@@ -3086,7 +3087,7 @@ test("task queue host: the ops entry orders each agent's queue, flags older-runn
   assert.equal(calls.length, 1, "a repeat inside the window returns the first answer");
   assert.equal(invalidated, 1);
   const refused = await act("priority", "old-run", "top");
-  assert.deepEqual([refused.ok, refused.code, refused.message], [false, 3, "refused: older runner"], "a refusal is in-band, with the entry's words");
+  assert.deepEqual([refused.ok, refused.code, refused.message], [false, 3, "refused: no RUNNER_API 2"], "a refusal is in-band, with the entry's words");
   const wrap = tq.opsArgsFor("wrapup", "new-wait", "");
   assert.deepEqual(wrap.slice(0, 4), ["append", "new-wait", "--queue", "--text"], "wrap-up is a queued append, never an interrupt");
   const missing = await tq.createQueueActionRunner({ opsPath: path.join(root, "absent.py") }, { runOps })("cancel", "new-wait", "");
@@ -3105,7 +3106,7 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
   const now = Date.now();
   const live = (id, extra) => ({ id, name: id, agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "",
     attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
-    lastEventAtMs: null, runnerApi: 2, legacy: false, modelRequested: "claude-opus-5-5", effortRequested: "high",
+    lastEventAtMs: null, runnerApi: 2, modelRequested: "claude-opus-5-5", effortRequested: "high",
     notify: ["weixin", "telegram"], notified: [], notifyFailed: [], session: "", ...extra });
   const QUEUE = {
     available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,

@@ -22,7 +22,8 @@ anything under `/root/tools/`; `refresh_live.sh` leaves it alone on purpose.
 ```
 task_queue_ops.py [--json] [--source ui|cli|runner] <action> ...
   version            {"ops_version": <sha256 of the file, 12 hex>, "api": N}
-  list               per agent: lock holder, queue in order, quota hint; host file hashes
+  list               per agent: lock holder, queue in order, quota hint, tasks it cannot order
+                     (`unqueued`); host file hashes
   head <agent>       the task id that takes <agent>'s lock next ("" when nobody waits)
   cancel <id>        stop a task
   priority <id> <n|top|up|down|reset>
@@ -62,8 +63,8 @@ non-blocking lock on `<task>/.ops.lock`; a second write while one is in flight a
 
 Only a live task of the current runner (`RUNNER_API=2` in its `result.env`) that is
 waiting for its agent lock, or asleep on a quota/retry wait (the value then applies when
-it re-queues). Refused (`3`): ended tasks, tasks of an older runner (it would ignore the
-value), patrol rounds, and a task already running. `top` sets one above every other
+it re-queues). Refused (`3`): ended tasks, tasks without `RUNNER_API=2` (their runner would
+ignore the value), patrol rounds, and a task already running. `top` sets one above every other
 reorderable waiter; `up`/`down` swap with the neighbour and renumber the reorderable
 waiters so exactly that swap happens (every task whose value changed gets its own
 `audit.log` line naming the move); `reset` removes it; an integer sets it (−99..99). A
@@ -121,20 +122,21 @@ The runner looks one poll after it (re-)enters the queue, so tasks that enter to
 fails, a manual task takes the lock when it is free (the old behaviour) and a patrol round
 still never takes it while a manual task of its agent is registered.
 
-### Tasks of an older runner (legacy)
+### Tasks without RUNNER_API 2
 
-A task started before `RUNNER_API=2` neither registers in `.queue/` nor writes `QUEUED_AT`,
-and it waits in a blocking `flock -w` that the kernel satisfies as soon as the lock frees.
-It is never shown as an empty queue or a nameless holder (kcn 2026-09-26): `list` finds it
-through its live unit and its `run.log` — `waiting for <agent> lock` without `lock held` is
-a waiter (its `QUEUED_AT` is that line's time), `lock held` is the holder (old runners keep
-the lock through quota waits too). Such rows carry `legacy: true`; legacy waiters come
-first, in arrival order, and cannot be reordered (they would take the lock first anyway), so
-a new-runner task's `top` places it right behind them. `head` returns the legacy waiter
-when there is one, with a `note` saying why; an empty `head` always comes with a `note` —
-"nobody waits and the lock is free" or "nobody waits; the lock is held by …" — so an empty
-answer cannot hide a queue. A held lock whose holder cannot be named is reported as
-`held: true, id: null, legacy: true` with a note, never as free.
+Only a task whose `result.env` says `RUNNER_API=2` registers in `.queue/`, writes
+`QUEUED_AT` and honours `override.env`. A live task without it (a runner from before
+2026-09-26, or one started by hand) is never shown as an empty queue (kcn 2026-09-26):
+`list` names it under its agent's `unqueued` with the reason, `head --json` adds it to its
+`note` (the bare-id text answer the runner reads is unchanged), and `priority`/`model`
+refuse it (`3`). A held lock without a live holder file is reported as
+`held: true, id: null` with a note, never as free.
+
+Until 2026-09-27 the entry also parsed such tasks' `run.log` (`waiting for <agent> lock`,
+`lock held`) to place them first in their queue, flagged `legacy`. That branch was removed
+once no older runner was left (`list` showed no legacy row and every live `result.env`
+had `QUEUED_AT` and `RUNNER_API`); the `legacy`/`holderLegacy` fields are gone from the
+chip's wire too.
 
 ### Quota waits release the lock
 

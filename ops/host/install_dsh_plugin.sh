@@ -35,7 +35,6 @@ PKG="$ROOT/examples/dsh/packages/clawock-dsh"
 PROFILE="${DSH_PROFILE:-web}"
 PROFILE_DIR="$HOME/.dsh/profiles/$PROFILE"
 SKILLS="${DSH_SKILLS_DIR:-$HOME/.dsh/skills}"
-LEGACY_DIR="$HOME/.dsh/plugins/clawock-dsh"
 # Where the installed tarballs live. The profile manifest keeps the spec
 # (`file:<path>`), so it has to outlive this script — a temp-dir path leaves the
 # profile referencing something that no longer exists the next time anything
@@ -162,15 +161,6 @@ Promise.all(targets.map(([, file]) => import(pathToFileURL(file).href)))
   .then(() => console.log("  ok: " + targets.map(([n]) => n).join(", ")))
   .catch((err) => { console.error("  FAILED: " + err.message); process.exit(1); });
 ' )
-
-# The pre-#731 layout: a hand-copied source directory the profile pointed at
-# with `file:`. Now that the profile installs a tarball, that directory is dead
-# weight — and a second copy of the plugin is exactly the kind of ambiguity
-# that made the last incident hard to read. It is regenerable from the repo.
-if [ -d "$LEGACY_DIR" ]; then
-  echo "removing the legacy hand-copied install at $LEGACY_DIR"
-  rm -rf "$LEGACY_DIR"
-fi
 
 # Keep only the artifact the profile currently points at.
 find "$ARTIFACT_DIR" -maxdepth 1 -name 'clawock-dsh-*.tgz' ! -name "$(basename "$ARTIFACT")" -delete

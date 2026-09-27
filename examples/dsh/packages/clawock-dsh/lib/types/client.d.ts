@@ -299,15 +299,14 @@ export type TaskQueueSidebarActionProps = TaskQueueInjected & {
     t: Translate;
 };
 /**
- * Which run slot a live task holds. Slots are per agent since 2026-09-25
- * (`claude-1`); a runner started before that still holds one of the old
- * shared slots (`1`, `2`) until it ends — those count apart, never against an
- * agent. Anything else is shown verbatim under the task's own agent.
+ * Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
+ * Anything else is shown verbatim under the task's own agent. (The shared
+ * `slot-1..2` of the runners from before 2026-09-25, a bare number, had a
+ * bucket of its own until 2026-09-27, when none was left.)
  */
 export declare function _slotOf(task: DispatchTask): {
     agent: string;
     slot: string;
-    legacy: boolean;
 } | null;
 type SlotLane = {
     agent: string;
@@ -317,15 +316,12 @@ type SlotLane = {
 };
 /**
  * Each agent's run slots — limits.env order, then any agent seen holding one
- * that limits.env does not name — plus the old shared slots still held
- * (`legacy`). A full lane with a task of that agent queued is amber: that is
- * the queue's reason at a glance. A host older than slotLimits sends none:
- * the lanes then come from the held slots alone, without a maximum.
+ * that limits.env does not name. A full lane with a task of that agent queued
+ * is amber: that is the queue's reason at a glance. A host older than
+ * slotLimits sends none: the lanes then come from the held slots alone,
+ * without a maximum.
  */
-export declare function _slotLanes(result: TaskQueueResult): {
-    lanes: SlotLane[];
-    legacy: number;
-};
+export declare function _slotLanes(result: TaskQueueResult): SlotLane[];
 /**
  * One live task's status phrase and its tone. One colour, one meaning:
  * 'ok' (the host's business blue) = holding its agent's lock and running,

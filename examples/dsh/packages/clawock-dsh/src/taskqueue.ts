@@ -248,7 +248,6 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     notifyFailed: channelList(result.NOTIFY_FAILED),
     notifyAtMs: localStampMs(result.NOTIFY_AT),
     runnerApi: Number.parseInt(result.RUNNER_API ?? '1', 10) || 1,
-    legacy: (Number.parseInt(result.RUNNER_API ?? '1', 10) || 1) < 2,
     session: result.SESSION ?? '',
     cancelling,
   }
@@ -310,8 +309,8 @@ export function fileVersion(path: string): string {
 type OpsList = {
   ops_version?: string; api?: number; fair_wait_sec?: number; runner?: { api?: number | null }
   agents?: Record<string, {
-    holder?: { held?: boolean; id?: string | null; legacy?: boolean; note?: string }
-    queue?: Array<{ id: string; position: number; priority: number; protected: boolean; legacy?: boolean; queued_at?: number }>
+    holder?: { held?: boolean; id?: string | null; note?: string }
+    queue?: Array<{ id: string; position: number; priority: number; protected: boolean; queued_at?: number }>
     quota?: { until: number; by: string } | null
   }>
 }
@@ -349,8 +348,8 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
   // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was
-  // written to later sorted after one that queued later, 2026-09-26); runners from before it
-  // fall back to their start stamp.
+  // written to later sorted after one that queued later, 2026-09-26); a task that has not
+  // queued yet (starting, or a patrol round waiting for memory) falls back to its start stamp.
   const since = (task: DispatchTask): number => task.queuedAtMs ?? task.startedAtMs ?? Number.MAX_SAFE_INTEGER
   const active = [...alive].map((id) => readTask(config.logDir, id, true)).sort((a, b) => since(a) - since(b))
   const queues: AgentQueue[] = []
@@ -358,15 +357,11 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     const order = (group.queue ?? []).map((row) => row.id)
     for (const row of group.queue ?? []) {
       const task = active.find((candidate) => candidate.id === row.id)
-      if (task !== undefined) {
-        Object.assign(task, { position: row.position, protected: row.protected, priority: row.priority, legacy: row.legacy === true })
-        // An older runner writes no QUEUED_AT; the ops entry dates its wait from run.log.
-        if (task.queuedAtMs == null && typeof row.queued_at === 'number') task.queuedAtMs = row.queued_at * 1000
-      }
+      if (task !== undefined) Object.assign(task, { position: row.position, protected: row.protected, priority: row.priority })
     }
     queues.push({
       agent, held: group.holder?.held === true, holder: group.holder?.id ?? '', order,
-      holderLegacy: group.holder?.legacy === true, holderNote: group.holder?.note ?? '',
+      holderNote: group.holder?.note ?? '',
       quotaUntilMs: group.quota ? group.quota.until * 1000 : null, quotaBy: group.quota?.by ?? '',
     })
   }

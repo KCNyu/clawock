@@ -77,24 +77,11 @@ holder wakes. `WAITING=quota`/`retry`/`memory` hold nothing and do not preempt.
 Capacity (the opencode slots all held) and memory pressure only gate admission of
 a new round.
 
-Transition: runners from before 2026-09-25 shared `slot-1.lock`/`slot-2.lock`
-among all agents, and a task started then may run for up to 72h. While both are
-held, a new round waits, and a task waiting for a slot preempts a round that
-holds one of them itself (its `SLOT=` is a bare number). Remove `LEGACY_SLOTS`
-(and the dsh chip's "old shared slots" bucket) after 2026-09-29, once no old
-runner is left. The date alone does not prove that: an old runner asleep on quota
-holds no slot (`SLOT=''`) and takes a shared one when it wakes. It is safe when
-every active `agent-dispatch-*` unit's last start header in its `run.log` reads
-`agent_slots=` (old runners print `max_running=`) and neither `slot-1.lock` nor
-`slot-2.lock` is held (`flock -n <lock> true` succeeds):
-
-    for u in $(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain | awk '{print $1}'); do
-      id=${u#agent-dispatch-}; id=${id%.service}
-      grep -E '^(agent_slots|max_running)=' /root/logs/agent-dispatch/$id/run.log | tail -1 | grep -q '^agent_slots=' || echo "old runner: $id"
-    done
-    for i in 1 2; do flock -n /root/logs/agent-dispatch/slot-$i.lock true || echo "slot-$i held"; done
-
-No output means none is left. Rounds are dispatched with
+Runners from before 2026-09-25 shared `slot-1.lock`/`slot-2.lock` among all agents;
+the supervisor's `LEGACY_SLOTS` handling for them (and the dsh chip's "old shared
+slots" bucket) was removed on 2026-09-27, after checking that no such runner was
+left (every active unit's `run.log` header read `agent_slots=`, neither shared lock
+was held). Rounds are dispatched with
 `AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for
 them; the supervisor still identifies its own round by `current-round`, never
 by name.
@@ -111,8 +98,7 @@ still running is cancelled (`preempted:cancelled`). There is no grace, and the
 round is cancelled at once, when:
 
 - the round blocks someone: an opencode task waits for an opencode slot while
-  all are held, an old runner's task waits while both shared slots are held (see
-  Transition), or an opencode task is queued behind the opencode lock the round
+  all are held, or an opencode task is queued behind the opencode lock the round
   holds. This is rechecked every poll and ends a grace already running. With
   per-agent slots almost all demand is of this kind, so the grace path is a
   safety valve that rarely runs;

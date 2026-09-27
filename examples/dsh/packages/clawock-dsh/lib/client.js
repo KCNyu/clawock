@@ -5628,7 +5628,6 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = object({
 	"position": union([number(), literal(null)]).optional(),
 	"priority": number().optional(),
 	"protected": boolean().optional(),
-	"legacy": boolean().optional(),
 	"modelRequested": string().optional(),
 	"modelUsed": string().optional(),
 	"effortRequested": string().optional(),
@@ -5684,7 +5683,6 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = object({
 		"agent": string(),
 		"held": boolean(),
 		"holder": string(),
-		"holderLegacy": boolean().optional(),
 		"holderNote": string().optional(),
 		"order": array(string()),
 		"quotaUntilMs": union([number(), literal(null)]),
@@ -6451,7 +6449,6 @@ const dictionaries = {
 		"queue.slotsHeading": "运行槽 · 按 agent",
 		"queue.lane": "{agent} {used}/{max}",
 		"queue.laneNoMax": "{agent} {used}",
-		"queue.legacyLane": "过渡期共享槽 {used}",
 		"queue.lanesTitle": "运行槽按 agent 分:每个 agent 只用自己的槽,互不挤占;排队看各自那一格",
 		"queue.queued": "排队 {n}",
 		"queue.memoryWait": "等内存 {n}",
@@ -6462,7 +6459,6 @@ const dictionaries = {
 		"queue.staleWith": "刷新失败,显示最近一次: {message}",
 		"queue.state.running": "运行中",
 		"queue.state.runningSlot": "运行中 · 槽 {slot}",
-		"queue.state.runningLegacy": "运行中 · 旧共享槽 {slot}",
 		"queue.state.starting": "启动中",
 		"queue.wait.lock": "等 {agent} 锁",
 		"queue.wait.slot": "等 {agent} 运行槽",
@@ -6498,12 +6494,10 @@ const dictionaries = {
 		"queue.slotCount": "槽 {used}/{max}",
 		"queue.groupIdle": "没有任务",
 		"queue.fallback": "fallback",
-		"queue.legacy": "旧 runner",
 		"queue.patrolTag": "巡检",
-		"queue.legacyTitle": "旧 runner 启动：无排队字段，不能调整顺序或模型；按到达顺序先拿锁",
+		"queue.noRunnerApi": "无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型",
 		"queue.holderOther": "锁被 {id} 占着",
-		"queue.holderUnnamed": "锁被旧 runner 的任务占着（它不报 id）",
-		"queue.holderLegacy": "持锁任务由旧 runner 启动（无排队字段）",
+		"queue.holderUnnamed": "锁被占着，但没有登记持有者（刚好在拿锁，或不是当前 runner 起的任务）",
 		"queue.quotaHint": "额度用尽，{time} 恢复（{by} 触发）；其余任务等到那时再排",
 		"queue.ops.missing": "ops 入口不可用，操作已停用：{error}",
 		"queue.ops.skew": "ops 入口与仓库不一致（主机 {host} / 仓库 {repo}），运行 ops/host/install_task_queue_ops.sh",
@@ -6697,7 +6691,6 @@ const dictionaries = {
 		"queue.slotsHeading": "Run slots · per agent",
 		"queue.lane": "{agent} {used}/{max}",
 		"queue.laneNoMax": "{agent} {used}",
-		"queue.legacyLane": "old shared slots {used}",
 		"queue.lanesTitle": "Run slots are per agent: each agent only uses its own, so a queue is about that agent alone",
 		"queue.queued": "{n} queued",
 		"queue.memoryWait": "{n} waiting on memory",
@@ -6708,7 +6701,6 @@ const dictionaries = {
 		"queue.staleWith": "Refresh failed, showing the last read: {message}",
 		"queue.state.running": "running",
 		"queue.state.runningSlot": "running · slot {slot}",
-		"queue.state.runningLegacy": "running · old shared slot {slot}",
 		"queue.state.starting": "starting",
 		"queue.wait.lock": "waiting for the {agent} lock",
 		"queue.wait.slot": "waiting for a {agent} run slot",
@@ -6744,12 +6736,10 @@ const dictionaries = {
 		"queue.slotCount": "slot {used}/{max}",
 		"queue.groupIdle": "No tasks",
 		"queue.fallback": "fallback",
-		"queue.legacy": "older runner",
 		"queue.patrolTag": "patrol",
-		"queue.legacyTitle": "Started by an older runner: no queue fields, order and model cannot change; takes the lock in arrival order",
+		"queue.noRunnerApi": "No RUNNER_API 2: not in the queue order; its order and model cannot change",
 		"queue.holderOther": "The lock is held by {id}",
-		"queue.holderUnnamed": "The lock is held by an older-runner task that does not say which",
-		"queue.holderLegacy": "The holder was started by an older runner (no queue fields)",
+		"queue.holderUnnamed": "The lock is held, but no holder is registered (one taking it right now, or a task the current runner did not start)",
 		"queue.quotaHint": "Quota is out until {time} ({by} hit it); the others wait for it",
 		"queue.ops.missing": "The ops entry is unavailable, actions are off: {error}",
 		"queue.ops.skew": "The ops entry differs from the repository (host {host} / repo {repo}): run ops/host/install_task_queue_ops.sh",
@@ -7734,54 +7724,44 @@ const TASK_QUEUE_PANEL = "clawock-task-queue";
 /** A live task queued for something another task of its agent holds (the backlog patrol yields to). */
 const queuedFor = (task) => task.waiting === "lock" || task.waiting === "slot";
 /**
-* Which run slot a live task holds. Slots are per agent since 2026-09-25
-* (`claude-1`); a runner started before that still holds one of the old
-* shared slots (`1`, `2`) until it ends — those count apart, never against an
-* agent. Anything else is shown verbatim under the task's own agent.
+* Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
+* Anything else is shown verbatim under the task's own agent. (The shared
+* `slot-1..2` of the runners from before 2026-09-25, a bare number, had a
+* bucket of its own until 2026-09-27, when none was left.)
 */
 function _slotOf(task) {
 	if (task.slot === "") return null;
 	const lane = /^([a-z][a-z0-9]*)-(\d+)$/.exec(task.slot);
-	if (lane) return {
+	return lane ? {
 		agent: lane[1],
-		slot: lane[2],
-		legacy: false
-	};
-	return /^\d+$/.test(task.slot) ? {
-		agent: "",
-		slot: task.slot,
-		legacy: true
+		slot: lane[2]
 	} : {
 		agent: task.agent,
-		slot: task.slot,
-		legacy: false
+		slot: task.slot
 	};
 }
 /**
 * Each agent's run slots — limits.env order, then any agent seen holding one
-* that limits.env does not name — plus the old shared slots still held
-* (`legacy`). A full lane with a task of that agent queued is amber: that is
-* the queue's reason at a glance. A host older than slotLimits sends none:
-* the lanes then come from the held slots alone, without a maximum.
+* that limits.env does not name. A full lane with a task of that agent queued
+* is amber: that is the queue's reason at a glance. A host older than
+* slotLimits sends none: the lanes then come from the held slots alone,
+* without a maximum.
 */
 function _slotLanes(result) {
 	const held = result.active.map(_slotOf).filter((slot) => slot !== null);
 	const limits = new Map((result.slotLimits ?? []).map((limit) => [limit.agent, limit.max]));
-	for (const slot of held) if (!slot.legacy && !limits.has(slot.agent)) limits.set(slot.agent, -1);
-	return {
-		lanes: [...limits].map(([agent, limit]) => {
-			const used = held.filter((slot) => !slot.legacy && slot.agent === agent).length;
-			const max = limit >= 0 ? limit : null;
-			const queued = result.active.some((task) => task.agent === agent && queuedFor(task));
-			return {
-				agent,
-				used,
-				max,
-				tone: max !== null && used >= max && queued ? "stale" : used > 0 ? "ok" : "none"
-			};
-		}),
-		legacy: held.filter((slot) => slot.legacy).length
-	};
+	for (const slot of held) if (!limits.has(slot.agent)) limits.set(slot.agent, -1);
+	return [...limits].map(([agent, limit]) => {
+		const used = held.filter((slot) => slot.agent === agent).length;
+		const max = limit >= 0 ? limit : null;
+		const queued = result.active.some((task) => task.agent === agent && queuedFor(task));
+		return {
+			agent,
+			used,
+			max,
+			tone: max !== null && used >= max && queued ? "stale" : used > 0 ? "ok" : "none"
+		};
+	});
 }
 function laneText(t, lane) {
 	return lane.max === null ? t("queue.laneNoMax", {
@@ -7851,10 +7831,6 @@ function _taskStatus(task, t, now = Date.now()) {
 		tone: "none",
 		text: t("queue.state.starting")
 	};
-	if (slot.legacy) return {
-		tone: "ok",
-		text: t("queue.state.runningLegacy", { slot: slot.slot })
-	};
 	return {
 		tone: "ok",
 		text: slot.slot === "1" ? t("queue.state.running") : t("queue.state.runningSlot", { slot: slot.slot })
@@ -7913,8 +7889,7 @@ function _queueHeadline(result, t, now = Date.now()) {
 	].filter((part) => part !== null);
 	const parts = [...waits, patrolPhraseOf(result, t, now)];
 	const value = result.active.length === 0 ? t("queue.idle") : t("queue.running", { n: result.running });
-	const { lanes, legacy } = _slotLanes(result);
-	const slots = [...lanes.map((lane) => laneText(t, lane)), legacy > 0 ? t("queue.legacyLane", { used: legacy }) : null].filter((part) => part !== null).join(" · ");
+	const slots = _slotLanes(result).map((lane) => laneText(t, lane)).join(" · ");
 	const waiting = queued + memory + quota + retry;
 	const tone = result.status === "stale" || result.status === "failed" ? "low" : waiting > 0 ? "stale" : result.running > 0 ? "ok" : "none";
 	const ops = result.ops?.available ? t("queue.ops.version", { v: result.ops.version }) : "";
@@ -8212,10 +8187,7 @@ function renderTaskRow(task, view, live, t, now, handlers) {
 	}) : h("span", { className: cx("tq-dot-none") }), h("span", { className: cx("tq-name") }, task.name), h("span", {
 		className: cx("tq-v"),
 		"data-balance-state": view.tone
-	}, view.text), h("span", { className: cx("tq-meta") }, renderModelMark(m.model), h("span", { className: cx("tq-meta-text") }, model), m.fallback ? h("span", { className: cx("tq-tag") }, t("queue.fallback")) : null, task.legacy && live ? h("span", {
-		className: cx("tq-tag"),
-		title: t("queue.legacyTitle")
-	}, t("queue.legacy")) : null, task.patrol ? h("span", { className: cx("tq-tag") }, t("queue.patrolTag")) : null), h("span", { className: cx("tq-num") }, num, renderNotifyIcons(task, t))), handlers.moveUp === void 0 ? null : h("button", {
+	}, view.text), h("span", { className: cx("tq-meta") }, renderModelMark(m.model), h("span", { className: cx("tq-meta-text") }, model), m.fallback ? h("span", { className: cx("tq-tag") }, t("queue.fallback")) : null, task.patrol ? h("span", { className: cx("tq-tag") }, t("queue.patrolTag")) : null), h("span", { className: cx("tq-num") }, num, renderNotifyIcons(task, t))), handlers.moveUp === void 0 ? null : h("button", {
 		type: "button",
 		className: cx("tq-icon-btn"),
 		"data-tq-up": task.id,
@@ -8240,7 +8212,7 @@ function renderTaskRow(task, view, live, t, now, handlers) {
 	}))));
 }
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
-const reorderable = (task) => task.waiting === "lock" && !task.legacy && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2;
+const reorderable = (task) => task.waiting === "lock" && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2;
 /** Live tasks of one agent in the order they hold / will take its lock. */
 function groupOrder(tasks, queue) {
 	const rank = (task) => {
@@ -8289,7 +8261,7 @@ function renderQueuePanelBody(state, t, now, ui, notice) {
 	}, data.error !== null ? t("queue.readFailed", { message: data.error }) : t("balance.reading"))];
 	const problem = data.error ?? (result.status === "stale" || result.status === "failed" ? result.message : null);
 	const patrol = result.patrol;
-	const { lanes, legacy } = _slotLanes(result);
+	const lanes = _slotLanes(result);
 	const queues = new Map((result.queues ?? []).map((queue) => [queue.agent, queue]));
 	const groups = [.../* @__PURE__ */ new Set([...lanes.map((lane) => lane.agent), ...result.active.map((task) => task.agent)])].map((agent) => {
 		const tasks = result.active.filter((task) => task.agent === agent);
@@ -8297,7 +8269,6 @@ function renderQueuePanelBody(state, t, now, ui, notice) {
 		const lane = lanes.find((row) => row.agent === agent);
 		const notes = [];
 		if (queue?.held && tasks.every((task) => task.id !== queue.holder)) notes.push(queue.holder !== "" ? t("queue.holderOther", { id: queue.holder }) : t("queue.holderUnnamed"));
-		else if (queue?.holderLegacy && queue.holder !== "") notes.push(t("queue.holderLegacy"));
 		if (queue?.quotaUntilMs) notes.push(t("queue.quotaHint", {
 			time: resetStampOf(t, {
 				resetAt: "",
@@ -8350,14 +8321,6 @@ function renderQueuePanelBody(state, t, now, ui, notice) {
 			key: "error",
 			role: "status"
 		}, t("queue.staleWith", { message: problem })) : null,
-		legacy > 0 ? h("div", {
-			className: cx("tq-note"),
-			key: "legacy",
-			"data-tq-lane": "legacy"
-		}, h("span", {
-			className: cx("tq-dot"),
-			"data-balance-state": "ok"
-		}), t("queue.legacyLane", { used: legacy })) : null,
 		...groups,
 		result.recent.length === 0 ? null : h("section", {
 			className: cx("tq-group"),
@@ -8467,7 +8430,7 @@ function renderTaskDetail(found, t, now, back, backRef, ui, notice) {
 	const fields = [
 		["queue.d.agent", h("span", { className: cx("tq-inline") }, renderAgentGlyph(task.agent), _agentLabel(task.agent))],
 		["queue.d.model", m.model === "" ? null : h("span", { className: cx("tq-inline") }, renderModelMark(m.model), _modelView(m.model).label + (m.effort ? " · " + m.effort : ""), m.fallback ? h("span", { className: cx("tq-tag") }, t("queue.d.fallbackFrom", { model: _modelView(requested).label })) : null)],
-		["queue.d.slot", slot === null ? null : slot.legacy ? t("queue.legacyLane", { used: slot.slot }) : `${slot.agent}-${slot.slot}`],
+		["queue.d.slot", slot === null ? null : `${slot.agent}-${slot.slot}`],
 		["queue.d.place", place],
 		["queue.d.queued", stamp(task.queuedAtMs)],
 		["queue.d.started", stamp(task.startedAtMs)],
@@ -8480,7 +8443,7 @@ function renderTaskDetail(found, t, now, back, backRef, ui, notice) {
 			...task.notified ?? [],
 			...task.notifyFailed ?? []
 		])].map((ch) => t("queue.notify." + notifyState(task, ch), { ch: t("queue.ch." + ch) })).join(" · "))],
-		["queue.d.runner", task.legacy ? t("queue.legacyTitle") : null],
+		["queue.d.runner", live && (task.runnerApi ?? 2) < 2 ? t("queue.noRunnerApi") : null],
 		live && task.lastEvent ? ["queue.d.latest", task.lastEvent + (task.lastEventAtMs == null ? "" : " · " + stamp(task.lastEventAtMs))] : ["", null],
 		[
 			"queue.d.session",
@@ -8508,7 +8471,7 @@ function renderTaskDetail(found, t, now, back, backRef, ui, notice) {
 				ui.act("priority", task, "down");
 			}, { disabled: busy }));
 		}
-		if (!task.legacy && !task.patrol) actions.push(actionPill("model", t("queue.a.model"), () => {
+		if ((task.runnerApi ?? 2) >= 2 && !task.patrol) actions.push(actionPill("model", t("queue.a.model"), () => {
 			ui.openPicker(task);
 		}, { disabled: busy }));
 		if (running && task.session) actions.push(actionPill("wrapup", t("queue.a.wrapup"), () => {
