@@ -241,7 +241,8 @@ def _validate_comparables(doc, errors):
             end_dates.append(end_date)
     if end_dates != sorted(end_dates):
         errors.append("comparables must be ordered oldest first by period.end_date")
-    if rows and doc.get("period", {}).get("label") != rows[-1]["label"]:
+    artifact_period = doc.get("period")
+    if rows and isinstance(artifact_period, dict) and artifact_period.get("label") != rows[-1]["label"]:
         errors.append("the last comparable must be the artifact's reporting period")
     return rows
 
@@ -763,7 +764,8 @@ def main(argv=None) -> int:
         if errors:
             result = {"status": "fail", "errors": errors}
         else:
-            period_end = (current.get("period") or {}).get("end_date")
+            current_period = current.get("period")
+            period_end = current_period.get("end_date") if isinstance(current_period, dict) else None
             merged, merge_errors = roll_forward_commitments(
                 previous.get("management_commitments", []),
                 current.get("management_commitments", []),

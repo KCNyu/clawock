@@ -25,6 +25,8 @@ import json
 import subprocess
 from typing import Protocol
 
+DEPLOY_REQUEST_TIMEOUT_SECONDS = 120
+
 
 class SiteDeployer(Protocol):
     """Makes the stored generation visible, or knows there is nothing to do."""
@@ -90,6 +92,6 @@ class GitHubDispatchDeployer:
             input=json.dumps(body), check=True, capture_output=True, text=True,
             # A hung dispatch request must surface as a failed deploy, not an
             # endless wait (#848).
-            timeout=120,
+            timeout=DEPLOY_REQUEST_TIMEOUT_SECONDS,
         )
         return f"{self.event_type} → {self.repository}"

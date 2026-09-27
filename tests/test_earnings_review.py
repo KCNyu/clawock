@@ -45,6 +45,13 @@ def test_us_and_hk_fixtures_pass_the_same_schema_and_gate(path):
     assert gate["source_availability"]["grade"] == "A"
 
 
+@pytest.mark.parametrize("bad_period", ["FY2026Q1", 3])
+def test_artifact_period_shape_returns_errors_instead_of_raising(us, bad_period):
+    us["period"] = bad_period
+    errors = er.validate_artifact(us, now=NOW)
+    assert "period must be an object" in errors
+
+
 def test_schema_document_and_validator_agree_on_required_fields():
     schema = json.loads(er.SCHEMA_FILE.read_text())
     assert set(schema["required"]) == set(er.ARTIFACT_FIELDS)

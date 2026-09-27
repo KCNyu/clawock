@@ -55,6 +55,24 @@ def test_a_workflow_that_quietly_stopped_firing_is_caught():
     assert row["overdue_hours"] > 24
 
 
+def test_push_runs_and_empty_history_are_not_schedule_evidence():
+    for runs in ([run("success", 0.1, event="push")], []):
+        row = wh.assess("ci.yml", ["41 3 * * 6"], runs, NOW)
+        assert row["status"] == "attention"
+        assert row["last_run"] is None
+
+
+def test_fetch_runs_requests_only_schedule_events():
+    commands = []
+
+    def runner(command):
+        commands.append(command)
+        return "[]"
+
+    assert wh.fetch_runs("ci.yml", runner=runner) == []
+    assert commands[0][commands[0].index("--event") + 1] == "schedule"
+
+
 def test_a_weekly_workflow_is_not_called_overdue_the_day_before_it_runs():
     row = wh.assess("screenshot-refresh.yml", ["0 22 * * 0"], [run("success", 6.5)], NOW)
     assert row["status"] == "ok"

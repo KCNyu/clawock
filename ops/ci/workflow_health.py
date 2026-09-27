@@ -95,7 +95,7 @@ def _expand_dow(dow: str) -> list[int]:
 
 def fetch_runs(workflow: str, limit: int = 20, runner=None) -> list[Run]:
     """Production caller for the GitHub run-history provider (#362)."""
-    return GitHubRuns(runner=runner).history(workflow, limit=limit)
+    return GitHubRuns(runner=runner).history(workflow, limit=limit, event="schedule")
 
 
 def _run_field(run, normalized: str, legacy: str):
@@ -124,7 +124,7 @@ def _display_status(run):
 
 
 def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetime) -> dict:
-    scheduled = [r for r in runs if _run_field(r, "trigger", "event") == "schedule"] or runs
+    scheduled = [r for r in runs if _run_field(r, "trigger", "event") == "schedule"]
     window_start = now - timedelta(days=LOOKBACK_DAYS)
 
     def parsed(run):
@@ -152,7 +152,7 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
         if age > interval * MISSED_CADENCE_FACTOR:
             overdue_hours = round(age, 1)
     status = "ok"
-    if streak >= 2 or overdue_hours is not None:
+    if not scheduled or streak >= 2 or overdue_hours is not None:
         status = "attention"
     elif failures:
         status = "noted"

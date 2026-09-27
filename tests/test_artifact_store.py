@@ -416,9 +416,12 @@ def test_the_outer_publish_budget_can_actually_hold_the_retry_ladder():
     """
     from clawock.harness import _harness_common
     from clawock.publish import store as store_module
+    from clawock.publish.deploy import DEPLOY_REQUEST_TIMEOUT_SECONDS
 
     budget = store_module.PUBLISH_BUDGET_SECONDS
     assert budget > store_module.GIT_CALL_TIMEOUT_SECONDS * store_module.PUSH_ATTEMPTS
+    assert budget >= (store_module.PUBLISH_NETWORK_CALLS * store_module.GIT_CALL_TIMEOUT_SECONDS
+                      + DEPLOY_REQUEST_TIMEOUT_SECONDS)
     # …and the harness caller must use it rather than restate a number.
     source = Path(_harness_common.__file__).read_text()
     assert "timeout=publish_store.PUBLISH_BUDGET_SECONDS" in source
