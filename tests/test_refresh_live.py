@@ -102,6 +102,23 @@ def test_a_plugin_move_names_the_plugin_reinstall(desk):
     assert "install_clawock_launcher.sh" not in done.stdout
 
 
+def test_a_runner_move_names_the_runner_install(desk):
+    upstream, checkout = desk
+    (upstream / "ops" / "host" / "agent-dispatch").mkdir(parents=True)
+    _advance(upstream, "ops/host/agent-dispatch/run-agent.sh", "#!/usr/bin/env bash\n")
+    done = _check(checkout)
+    assert done.returncode == 1
+    assert "install_agent_dispatch.sh" in done.stdout
+    assert "install_dsh_plugin.sh" not in done.stdout
+    assert "editable install picks it up" not in done.stdout
+
+
+def test_a_python_move_does_not_touch_the_runner(desk):
+    upstream, checkout = desk
+    _advance(upstream, "src/thing.py", "x = 3\n")
+    assert "install_agent_dispatch.sh" not in _check(checkout).stdout
+
+
 def test_check_writes_nothing(desk):
     """The half that makes `--check` usable from a cron or a review."""
     upstream, checkout = desk
