@@ -152,15 +152,15 @@ portfolio.json.bak
 # (#314). Still written into the worktree by every build; ignored so no committer
 # can put a generation back into repository history by accident, and so
 # `git status` stays quiet on a machine that builds them. 71% of the commits on
-# master were these four files.
+# master were the dashboard output files.
 /assets/data/overview.json
 /assets/data/dashboard.json
 /assets/data/decision_audit.json
 /assets/data/shadow_portfolio.json
 /assets/data/decision_trail.json
-# Written by the same tick as the four above and published with them (#325).
+# Written by the same tick as the five above and published with them (#325).
 # They were the publisher's entire commit pathspec, which is why moving only the
-# four barely changed the commit count.
+# dashboard outputs barely changed the commit count.
 /assets/data/cron-heartbeats.json
 /assets/data/workflow-outcomes.json
 # The last published generation, materialised for `--previous` and for the

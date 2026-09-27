@@ -34,6 +34,8 @@ def test_fingerprint_includes_previous_payload_and_output_destination(tmp_path):
     default = dashboard_input_fingerprint(ws)
     restored = dashboard_input_fingerprint(ws, previous_source=previous)
     assert restored != default
+    previous.write_text('{"day": 1}')
+    assert dashboard_input_fingerprint(ws, previous_source=previous) == restored
     previous.write_text('{"day": 2, "changed": true}')
     assert dashboard_input_fingerprint(ws, previous_source=previous) != restored
     assert dashboard_input_fingerprint(ws, output_paths={"dashboard": ws / "a"}) != default

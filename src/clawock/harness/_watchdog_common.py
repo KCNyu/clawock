@@ -136,8 +136,11 @@ def _record_watchdog_outcome(event):
     action = event.get('action')
     if action == 'ok':
         status = 'not_required'
-    elif action in {'mirror-telegram', 'deterministic-fallback', 'alert-brief-missing'}:
+    elif action in {'mirror-telegram', 'deterministic-fallback'}:
         status = 'success' if event.get('sent_ok') else 'failed'
+    elif action == 'alert-brief-missing':
+        # An alert reports the missing product; it is not a product recovery.
+        status = 'failed'
     else:
         return
     workflow_outcomes.record_stage(

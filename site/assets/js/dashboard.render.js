@@ -1493,11 +1493,11 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed ? "bad" : (soft ? "warn" : "ok"), state: failed ? "需处理" : (soft ? "观察" : "正常"),
+        tone: failed ? "bad" : (soft || !slotTotal ? "warn" : "ok"), state: failed ? "需处理" : (soft || !slotTotal ? "观察" : "正常"),
         value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
         note: failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
-          : (pending ? `${pending} 档进行中` : "全部按时送达") },
+          : (pending ? `${pending} 档进行中` : (slotTotal ? "全部按时送达" : "窗口内没有成品投递记录")) },
       { key: "cron", label: "定时任务 · 今天", static: true,
         tone: cronTone, state: scheduleStale ? "过期" : cronTone === "bad" ? "需处理" : cronTone === "warn" ? "观察" : "正常",
         value: jobs.length ? `${landed}/${Math.max(due, landed)}` : DASH, unit: "落地",
@@ -2376,7 +2376,7 @@
       }
     }
     if (e.conv) risk.push(kv("仓位 × 信心",
-      `${e.conv.weight_pct}% · conf ${Math.round((e.conv.avg_confidence || 0) * 100)}%`,
+      `${e.conv.weight_pct}% · ${e.conv.avg_confidence == null ? "conf —" : `conf ${Math.round(e.conv.avg_confidence * 100)}%`}`,
       e.conv.quadrant === "high_risk" ? "neg" : ""));
     if (e.peer && e.peer.divergence_pp != null) risk.push(kv(
       `同行 vs ${escapeHtml(e.peer.best_peer_name || e.peer.best_peer || "")}`,
