@@ -361,8 +361,7 @@ body[data-ds-dark-theme] .dmt {
   cursor:pointer;
   border-radius:8px;
   padding:3px 6px;
-  margin-left:-6px;
-  transition:background .12s
+  margin-left:-6px
 }
 .dmt .day.fold:active {
   background:var(--tint-mid)
@@ -425,8 +424,7 @@ body[data-ds-dark-theme] .dmt {
   align-items:center;
   gap:0 10px;
   padding:9px 0;
-  cursor:pointer;
-  transition:background .12s
+  cursor:pointer
 }
 .dmt .cell+.cell {
   border-top:1px solid var(--border)
@@ -612,8 +610,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/10;
   justify-self:end;
   color:var(--cap);
-  font-size:var(--fs-micro);
-  transition:transform .15s
+  font-size:var(--fs-micro)
 }
 .dmt .cell.open .chev {
   transform:rotate(180deg)
@@ -623,7 +620,6 @@ body[data-ds-dark-theme] .dmt {
   display:grid;
   grid-template-rows:0fr;
   opacity:0;
-  transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s ease;
   overflow:hidden
 }
 .dmt .cell.open .detail {
@@ -878,45 +874,29 @@ body[data-ds-dark-theme] .dmt {
 @keyframes clawock-shimmer {
   to { transform:translateX(100%) }
 }
-/* Entrance: each day header and its group rise once when they mount (first
-   load, filter switch, fold toggle) — the list re-reading as one motion is
-   what tells you the filter actually did something. Uniform timing on
-   purpose: per-card stagger across many days reads as gimmick, not craft. */
-.dmt .day,
-.dmt .group {
-  animation:clawock-rise .28s cubic-bezier(.22,1,.36,1) both
-}
-@keyframes clawock-rise {
-  from { opacity:0; transform:translateY(8px) }
-  to { opacity:1; transform:none }
-}
+/* Filters and day folds are frequent, keyboard-reachable navigation. Their
+   result is immediate; repeating an entrance would delay scanning the rows. */
 .dmt .skel-bar.w40 {
   width:40%
 }
 .dmt .skel-bar.w20 {
   width:20%
 }
-/* Reduced motion: keep the opacity/colour transitions that aid
-   comprehension, drop the movement — chevron rotation, the hover nudge, the
-   0fr height animation (content still opens, it just snaps), day/group
-   entrances and the skeleton sweep. Mirrors the host's own handling
-   (AppFrame etc.). */
+/* Reduced motion keeps colour feedback while dropping the skeleton sweep.
+   Frequent chevron/detail swaps and filter results are already immediate. */
 @media (prefers-reduced-motion: reduce) {
-  .dmt .chev {
-    transition:none
-  }
   .dmt .detail {
     transition:opacity .15s ease
   }
   .dmt .ft,
   .dmt .trace-more {
-    transition:background .12s,color .12s,border-color .12s
+    transition:background .12s,color .12s,border-color .12s,transform 0s
+  }
+  .dmt .ft:active,
+  .dmt .trace-more:active {
+    transform:none
   }
   .dmt .skel-bar::after {
-    animation:none
-  }
-  .dmt .day,
-  .dmt .group {
     animation:none
   }
 }
@@ -1471,7 +1451,7 @@ body[data-ds-dark-theme] .pbc .bp {
    immediate so the panel still answers the tap. */
 @media (prefers-reduced-motion: reduce) {
   .pbc .bchip, .pbc .bal-rf {
-    transition:background .12s,color .12s
+    transition:background .12s,color .12s,transform 0s
   }
   .pbc .bp {
     transition:none
@@ -1753,18 +1733,10 @@ body[data-ds-dark-theme] .pbc .bp {
   flex:1 1 auto;
   min-height:0
 }
-/* Task detail: a layer pushed over the list inside the same panel, not a
-   second surface. It enters from the trailing edge the way a pushed view
-   does (spatial consistency with "back" on the leading edge), 200ms, the
-   host's ease; reduced motion keeps only the swap. */
+/* Task detail is frequent navigation. Keep the swap immediate so a keyboard
+   user can open, inspect and back out without waiting on a one-way entrance. */
 .pbc .tq-list[inert] {
   display:none
-}
-.pbc .tq-layer {
-  animation:clawock-layer-in .2s var(--tq-ease)
-}
-@keyframes clawock-layer-in {
-  from { opacity:0; transform:translateX(12px) }
 }
 .pbc .tq-head {
   box-sizing:border-box;
@@ -1783,6 +1755,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-caption {
   font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-scroll {
@@ -2026,13 +1999,17 @@ body[data-ds-dark-theme] .pbc .bp {
   align-items:center;
   gap:6px;
   margin:4px 0;
-  min-width:0
+  min-width:0;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px
 }
 .pbc .tq-note.tq-ok { color:var(--tq-ink-2) }
 .pbc .tq-note.tq-bad { color:var(--tq-bad) }
 .pbc .tq-note.tq-warn { color:var(--tq-wait-text) }
 .pbc .tq-empty {
   padding:4px 0 6px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-sub.tq-wrap {
@@ -2085,6 +2062,8 @@ body[data-ds-dark-theme] .pbc .bp {
   margin-top:8px;
   padding-top:6px;
   border-top:.5px solid var(--tq-hairline);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-foot.tq-bad { color:var(--tq-bad) }
@@ -2239,9 +2218,6 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pbc .tq-layer {
-    animation:none
-  }
   .pbc .tq-icon-btn.spin svg {
     animation:none
   }
@@ -2415,3 +2391,16 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc.ppf .pp-empty { grid-template-columns:minmax(0, max-content) minmax(0, 1fr) }
 .pbc.ppf .pp-empty .pp-last { max-width:none }
 .pbc.pbf.ppf .pp-rail { flex:none }
+/* On a phone the panel overlaps the composer and conversation. The host's
+   menu tint alone lets large text show through small status/action copy;
+   keep its blur, but give this layer the host's nearly solid surface. */
+@media (max-width: 520px) {
+  .pbc.pbf.tqf .bp::before {
+    background:color-mix(in srgb, var(--dsw-alias-bg-layer-1) 96%, var(--dsw-specific-menu))
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .pbc.pbf.tqf .bp::before {
+    background:var(--dsw-alias-bg-layer-1)
+  }
+}

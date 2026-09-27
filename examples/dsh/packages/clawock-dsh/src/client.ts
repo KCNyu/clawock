@@ -129,6 +129,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.panelTitle': '各模型服务余额', 'balance.panelHeading': 'API 余额',
     'balance.refreshAll': '刷新全部余额', 'balance.refreshNow': '立即刷新',
     'balance.readFailed': '余额读取失败:{message}', 'balance.reading': '正在读取各服务余额…',
+    'balance.noProviders': '没有可用的余额来源',
     'balance.otherProviders': '(点击查看其他服务)',
     'balance.unknownError': '未知错误',
     'balance.windowNote': '{label} 已用 {percent}%',
@@ -178,6 +179,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.a.cancelQueued': '它还没开始：取消没有损失。再点一次确认。',
     'queue.a.cancelSleeping': '它在等额度/重试：取消后不再续跑，会话保留可 resume。再点一次确认。',
     'queue.a.cancelRunning': '它正在跑：本轮进度会丢；会话 {session} 可用 --resume 续。再点一次确认。',
+    'queue.a.dismissConfirm': '保留原状', 'queue.a.reading': '读取中…',
+    'queue.a.readFailed': '读取失败：{message}',
     'queue.r.failed': '没成功：{message}', 'queue.r.cancelledQueued': '已取消（尚未开始，无损失）',
     'queue.r.cancelledRunning': '已停止，本轮进度已丢；续跑：{resume}', 'queue.r.cancelledNoSession': '已停止（还没有会话可续）',
     'queue.r.priority': '现在排第 {n} 位（共 {total}）', 'queue.r.model': '下一次尝试：{model} · {effort}',
@@ -195,6 +198,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.q.idle': '闲', 'panel.q.run': '跑 {n}', 'panel.q.queued': '排 {n}', 'panel.q.quota': '睡额度 {n}', 'panel.q.wait': '等 {n}',
     'panel.staleAt': '刷新失败（{message}），显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
     'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
+    'panel.queueLoading': '正在读取派发队列…', 'panel.queueUnavailable': '此主机没有派发队列；额度仍可查看。',
+    'panel.noSources': '没有可显示的额度或派发来源。',
     'queue.wait.quotaBoth': '等到 {time}（窗口 {reset} +{pad}m 缓冲）', 'queue.wait.quotaNoWindow': '等到 {time}（窗口重置时刻未读到）',
     'queue.d.cost': '花费', 'queue.d.costValue': '${usd} · 按 API 价估算，非实际扣费', 'queue.d.costFree': '免费（opencode 免费池）',
     'queue.d.costUnpriced': '—（该模型没有价目，不估）', 'queue.d.costLive': '截至上一次尝试结束',
@@ -261,6 +266,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.panelTitle': 'Model service balances', 'balance.panelHeading': 'API balance',
     'balance.refreshAll': 'Refresh all balances', 'balance.refreshNow': 'Refresh now',
     'balance.readFailed': 'Balance read failed: {message}', 'balance.reading': 'Reading balances…',
+    'balance.noProviders': 'No balance source is available',
     'balance.otherProviders': '(click for other services)',
     'balance.unknownError': 'unknown error',
     'balance.windowNote': '{label} {percent}% used',
@@ -310,6 +316,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.a.cancelQueued': 'It has not started: cancelling costs nothing. Tap again to confirm.',
     'queue.a.cancelSleeping': 'It waits for quota or a retry: it will not resume; the session stays resumable. Tap again to confirm.',
     'queue.a.cancelRunning': 'It is running: this step\'s progress is lost; session {session} can be resumed. Tap again to confirm.',
+    'queue.a.dismissConfirm': 'Keep unchanged', 'queue.a.reading': 'Loading…',
+    'queue.a.readFailed': 'Read failed: {message}',
     'queue.r.failed': 'Did not work: {message}', 'queue.r.cancelledQueued': 'Cancelled (had not started, nothing lost)',
     'queue.r.cancelledRunning': 'Stopped, this step\'s progress is lost; resume: {resume}', 'queue.r.cancelledNoSession': 'Stopped (no session yet)',
     'queue.r.priority': 'Now #{n} of {total}', 'queue.r.model': 'Next attempt: {model} · {effort}',
@@ -327,6 +335,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting',
     'panel.staleAt': 'Refresh failed ({message}); showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
     'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
+    'panel.queueLoading': 'Reading the dispatch queue…', 'panel.queueUnavailable': 'This host has no dispatch queue; quotas are still available.',
+    'panel.noSources': 'No quota or dispatch source is available.',
     'queue.wait.quotaBoth': 'until {time} (window {reset} + {pad}m margin)', 'queue.wait.quotaNoWindow': 'until {time} (window reset not read)',
     'queue.d.cost': 'Cost', 'queue.d.costValue': '${usd} · estimated at API prices, not billed', 'queue.d.costFree': 'free (opencode free pool)',
     'queue.d.costUnpriced': '— (no price for this model, not estimated)', 'queue.d.costLive': 'as of the last finished attempt',
@@ -1192,7 +1202,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
   const failed = rows.length === 0 && data.error !== null && !data.loading
   const empty = failed
     ? { tone: 'stale' as BalanceTone, title: props.t('balance.readFailed', { message: data.error }) }
-    : { tone: 'none' as BalanceTone, title: props.t('balance.loading') }
+    : { tone: 'none' as BalanceTone, title: props.t(data.result === null ? 'balance.loading' : 'balance.noProviders') }
   return { data, rows, primary, select, flash, refresh, empty }
 }
 
@@ -2173,11 +2183,17 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
   return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
     notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
     queueProblem !== null && queueProblem !== ''
-      ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'qerr', role: 'status' }, t('queue.staleWith', { message: queueProblem })) : null,
+      ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'qerr', role: 'status' },
+        t(result === null ? 'queue.readFailed' : 'queue.staleWith', { message: queueProblem })) : null,
+    queueProblem === null && result === null
+      ? h('div', { className: cx('tq-sub', 'tq-note'), key: 'qloading', role: 'status' }, t('panel.queueLoading')) : null,
+    queueProblem === null && result !== null && !result.available
+      ? h('div', { className: cx('tq-sub', 'tq-note'), key: 'qunavailable', role: 'status' }, t('panel.queueUnavailable')) : null,
     balanceProblem !== null
       ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'berr', role: 'status' },
         balanceState.rows.length === 0 ? t('balance.readFailed', { message: balanceProblem }) : t('balance.staleWith', { message: balanceProblem })) : null,
-    sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' }, t('balance.reading')) : null,
+    sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' },
+      balanceState.data.result === null ? t('balance.reading') : t('panel.noSources')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
     // What just ended, in the groups' order (providers.ts), newest first within an agent.
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
@@ -2223,6 +2239,7 @@ type DetailUi = QueueUi & {
   log: string[] | null
   loadLog: (task: DispatchTask) => void
   brief: BriefView | null
+  readPending: string | null
   openBrief: (task: DispatchTask) => void
   openPath: (path: string) => void
   /** The provider windows of an agent (the quota wait names the reset it waits for). */
@@ -2324,6 +2341,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     ['queue.d.id', task.id, true],
   ]
   const busy = ui.busy !== null
+  const reading = ui.readPending !== null
   const running = live && (slot !== null || (task.attempts > 0 && task.waiting !== 'lock'))
   const actions: React.ReactElement[] = []
   if (ui.writable && live && !task.cancelling) {
@@ -2332,7 +2350,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       actions.push(actionPill('up', t('queue.a.up'), () => { ui.act('priority', task, 'up') }, { disabled: busy || task.position === 1 }))
       actions.push(actionPill('down', t('queue.a.down'), () => { ui.act('priority', task, 'down') }, { disabled: busy }))
     }
-    if ((task.runnerApi ?? 2) >= 2 && !task.patrol) actions.push(actionPill('model', t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy }))
+    if ((task.runnerApi ?? 2) >= 2 && !task.patrol) actions.push(actionPill('model', ui.readPending === 'choices' ? t('queue.a.reading') : t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy || reading }))
     if (running && task.session) actions.push(actionPill('wrapup', t('queue.a.wrapup'), () => { ui.act('wrapup', task) }, { disabled: busy, title: t('queue.a.wrapupTitle') }))
     if (!task.patrol) {
       // Budgets (runner api 3): each confirms in place and says what it costs; an older runner
@@ -2354,9 +2372,9 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
   if (ui.writable && !live && task.session && !(task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === ''))) {
     actions.push(actionPill('retry', t('queue.a.retry'), () => { ui.act('retry', task) }, { disabled: busy }))
   }
-  if (ui.writable) actions.push(actionPill('log', t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: busy }))
+  if (ui.writable) actions.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
   // The brief opens in dsh's own file preview: read-only, no writes, so no ops entry needed.
-  actions.unshift(actionPill('brief', t('queue.a.brief'), () => { ui.openBrief(task) }, { title: t('queue.a.briefTitle') }))
+  actions.unshift(actionPill('brief', ui.readPending === 'brief' ? t('queue.a.reading') : t('queue.a.brief'), () => { ui.openBrief(task) }, { disabled: reading, title: t('queue.a.briefTitle') }))
   const when = running ? t('queue.a.whenNext') : t('queue.a.whenNow')
   const confirmText = ui.confirm === 'cancel:' + task.id
     ? running
@@ -2365,6 +2383,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     : ui.confirm === 'deadline:' + task.id ? t('queue.a.deadlineConfirm', { when })
       : ui.confirm === 'attempts:' + task.id ? t('queue.a.attemptsConfirm', { when })
         : ui.confirm === 'resumes:' + task.id ? t('queue.a.resumesConfirm', { when }) : null
+  if (confirmText !== null) actions.push(actionPill('dismiss-confirm', t('queue.a.dismissConfirm'), () => { ui.askConfirm(null) }))
   const budgetOld = ui.writable && live && !task.patrol && (task.runnerApi ?? 1) < 3
   const brief = ui.brief !== null && ui.brief.id === task.id ? ui.brief : null
   const kb = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
@@ -2382,7 +2401,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('panel.title')),
       h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
     h('div', { className: cx('tq-scroll') },
-      notice === null ? null : h('div', { className: cx('tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), role: 'status' }, notice.text),
+      notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), role: 'status' }, notice.text),
       h('div', { className: cx('tq-d-title') },
         live ? h('span', { className: cx('tq-dot'), 'data-balance-state': status.tone }) : null,
         h('span', { className: cx('tq-d-name') }, task.name)),
@@ -2498,16 +2517,25 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const [picker, setPicker] = useState<ModelPicker | null>(null)
   const [log, setLog] = useState<string[] | null>(null)
   const [brief, setBrief] = useState<BriefView | null>(null)
+  const [readPending, setReadPending] = useState<string | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
+  // Every detail request belongs to the task that was open when it began.
+  // A late reply must never paint a different task's picker, log or brief.
+  const detailRequest = useRef(0)
+  const activeDetail = useRef<string | null>(null)
+  useEffect(() => () => { detailRequest.current += 1; activeDetail.current = null }, [])
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
   // The control that opened the panel: focus returns to it when the panel closes.
   const openerRef = useRef<HTMLElement | null>(null)
   const closeDetail = (): boolean => {
+    if (confirm !== null) { setConfirm(null); return true }
     if (detailId === null) return false
     const id = detailId
+    detailRequest.current += 1
+    activeDetail.current = null
     setDetailId(null)
-    setPicker(null); setLog(null); setConfirm(null); setBrief(null)
+    setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
         rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')?.focus({ preventScroll: false })
@@ -2519,7 +2547,10 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const instanceId = useId()
   useEffect(() => {
     if (open) return
+    detailRequest.current += 1
+    activeDetail.current = null
     setDetailId(null); setNotice(null); setConfirm(null); setBrief(null)
+    setPicker(null); setLog(null); setReadPending(null)
     // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
     // instead of letting it fall to <body>.
     if (typeof document !== 'undefined' && rootRef.current !== null && openerRef.current !== null
@@ -2565,22 +2596,41 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   }
   const openBrief = (task: DispatchTask): void => {
     const fallback = FALLBACK_TASK_DIR + '/' + task.id + '/prompt.md'
+    setConfirm(null)
     if (run === undefined) { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return }
+    const request = detailRequest.current
+    setReadPending('brief')
     run('brief', task.id, '').then((result) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
       type Answer = { path?: string; brief_bytes?: number; truncated?: boolean; appends?: BriefView['appends'] }
       let detail: Answer = {}
       try { detail = JSON.parse(result.detail || '{}') as Answer } catch { detail = {} }
+      if (!result.ok && !needsHost(result)) {
+        setNotice({ ok: false, text: t('queue.a.readFailed', { message: result.message }) })
+        return
+      }
       const view: BriefView = result.ok
         ? { id: task.id, path: detail.path ?? fallback, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false }
         : { id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }
       setBrief(view)
       openPath(view.path)
-    }, () => { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback) })
+    }, (err: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
+    })
   }
   const openPicker = (task: DispatchTask): void => {
     if (run === undefined) return
+    setConfirm(null)
+    const request = detailRequest.current
     setLog(null)
+    setPicker(null)
+    setReadPending('choices')
     run('choices', task.id, '').then((result) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
       let detail: { models?: string[]; efforts?: Record<string, string[]>; effort_flag?: string; allowed?: boolean; reason?: string; requested?: { model?: string; effort?: string } } = {}
       try { detail = JSON.parse(result.detail || '{}') as typeof detail } catch { detail = {} }
       setPicker({
@@ -2588,16 +2638,29 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
         model: detail.requested?.model ?? task.modelRequested ?? task.model, effort: detail.requested?.effort ?? '',
         allowed: result.ok && detail.allowed === true, reason: result.ok ? detail.reason ?? '' : result.message,
       })
-    }, () => { setPicker(null) })
+    }, (err: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
+    })
   }
   const loadLog = (task: DispatchTask): void => {
     if (run === undefined) return
+    setConfirm(null)
+    const request = detailRequest.current
     setPicker(null)
+    setReadPending('log')
     run('log', task.id, '').then((result) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
       let lines: string[] = []
       try { lines = (JSON.parse(result.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
       setLog(result.ok ? lines : [result.message])
-    }, () => { setLog(null) })
+    }, (err: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
+    })
   }
 
   const now = Date.now()
@@ -2614,9 +2677,9 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   lastSeen.current = found
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
-    open: (id) => { setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null) },
+    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null) },
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
-    brief, openBrief, openPath, windowsOf, rows,
+    brief, readPending, openBrief, openPath, windowsOf, rows,
   }
   // One line per source (C1): name · reading · reset, then who burns it or where its key lives.
   const lines = sources.map((source) => {
