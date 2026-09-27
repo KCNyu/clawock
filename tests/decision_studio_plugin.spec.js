@@ -3423,3 +3423,53 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
 });
+
+// #1955: the queue and provider panel wrote their waiting/failed WORDS in the host's state
+// tokens, which are dot and icon paint — the waiting amber (--dsw-alias-state-warn-label) was
+// 2.65:1 as 11px text on the panel, 2.39:1 hovered. Words now take the local semantic
+// colours; this pins both halves: every state-coloured text rule reads a text role, and the
+// colours those roles resolve to clear AA on the panel the host paints, hovered and pressed.
+test("queue and provider panel: state-coloured words clear 4.5:1, dots keep the host paint (#1955)", () => {
+  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  assert.match(css, /--tq-text-warn:var\(--warn\)/);
+  assert.match(css, /--tq-text-bad:var\(--bad\)/);
+  assert.doesNotMatch(css, /--dsw-alias-state-warn-label/, "the host's warn label paint is not a text colour here");
+  const rule = (sel) => css.match(new RegExp(`_${sel}\\{([^}]*)\\}`))?.[1] ?? "";
+  for (const [sel, role] of [
+    ["tq-v\\[data-balance-state=stale\\]", "warn"], ["tq-v\\[data-balance-state=low\\]", "bad"],
+    ["tq-d-status\\[data-balance-state=stale\\]", "warn"], ["tq-d-status\\[data-balance-state=low\\]", "bad"],
+    ["tq-note\\.[A-Za-z0-9_-]+_tq-warn", "warn"], ["tq-note\\.[A-Za-z0-9_-]+_tq-bad", "bad"],
+    ["tq-foot\\.[A-Za-z0-9_-]+_tq-bad", "bad"], ["tq-pill\\.[A-Za-z0-9_-]+_tq-danger", "bad"],
+    ["pp-v\\[data-used-level=mid\\]", "warn"], ["pp-v\\[data-balance-state=stale\\]", "warn"],
+    ["pp-last\\[data-balance-state=stale\\]", "warn"], ["pp-money\\[data-balance-state=low\\]", "bad"],
+  ]) {
+    assert.match(rule(sel), new RegExp(`color:var\\(--tq-text-${role}\\)`), `${sel} must be written in --tq-text-${role}`);
+  }
+  // The dots stay host paint (kcn 2026-09-26: one colour, one meaning).
+  assert.match(rule("tq-dot\\[data-balance-state=stale\\]"), /background:var\(--tq-wait\)/);
+
+  // WCAG 2 contrast. The beds are the host's own panel colour as measured on @deepseek-ai/dsh
+  // 0.1.7-rc.2 (--dsw-specific-menu 58% over the sidebar fill: light #f8f9fa, dark #2d2e31) and
+  // its hover/active fills (#2631480f / #2631481a) laid over the light one.
+  const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  const lum = (c) => hex(c).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+    .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const over = (rgba, bed) => {
+    const a = parseInt(rgba.slice(7, 9), 16) / 255;
+    return "#" + hex(rgba).map((v, i) => Math.round(v * a + hex(bed)[i] * (1 - a)).toString(16).padStart(2, "0")).join("");
+  };
+  const local = (body, name) => body.match(new RegExp(`--${name}:(#[0-9a-f]{6})`, "i"))?.[1];
+  const light = css.match(/\}\.[A-Za-z0-9_-]+_pbc\{([^}]*--warn:[^}]*)\}/)?.[1];
+  const dark = css.match(/\[data-ds-dark-theme\] \.[A-Za-z0-9_-]+_pbc\{([^}]*)\}/)?.[1];
+  assert.ok(light && dark, "the panel's local semantic colours must be found, light and dark");
+  const beds = { light: ["#f8f9fa", over("#2631480f", "#f8f9fa"), over("#2631481a", "#f8f9fa")], dark: ["#2d2e31"] };
+  for (const [theme, body] of [["light", light], ["dark", dark]]) {
+    for (const name of ["warn", "bad"]) {
+      for (const bed of beds[theme]) {
+        const r = ratio(local(body, name), bed);
+        assert.ok(r >= 4.5, `${theme} --${name} ${local(body, name)} on ${bed}: ${r.toFixed(2)}:1 < 4.5:1`);
+      }
+    }
+  }
+});
