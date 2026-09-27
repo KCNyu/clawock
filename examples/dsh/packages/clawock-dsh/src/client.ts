@@ -2080,12 +2080,14 @@ function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number)
     patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds'), role: 'table', 'aria-label': t('queue.roundsHeading') },
       patrol.rounds.map((round) => {
         const ended = localStampMs(round.endedAt)
-        return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, role: 'row', title: round.endedAt },
-          h('span', { className: cx('tq-sub', 'tq-round-id') }, round.round),
-          h('span', { className: cx('tq-sub', 'tq-round-axis') }, round.axis),
-          h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result) }, round.result),
-          h('span', { className: cx('tq-sub', 'tq-round-num') }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
-          h('span', { className: cx('tq-sub', 'tq-round-num') }, ended === null ? '—' : agoOf(t, now - ended)))
+        const took = round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)
+        const ago = ended === null ? '—' : agoOf(t, now - ended)
+        return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, role: 'row', title: [round.round, round.axis, round.result, took, round.endedAt].join(' · ') },
+          h('span', { className: cx('tq-sub', 'tq-round-id'), role: 'cell' }, round.round),
+          h('span', { className: cx('tq-sub', 'tq-round-axis'), role: 'cell' }, round.axis),
+          h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result), role: 'cell' }, round.result),
+          h('span', { className: cx('tq-sub', 'tq-round-num'), role: 'cell' }, took),
+          h('span', { className: cx('tq-sub', 'tq-round-num'), role: 'cell' }, ago))
       })))
 }
 
