@@ -17,6 +17,23 @@ ROOT = Path(__file__).resolve().parents[1]
 from clawock.market_data import calendar as fetch_catalysts
 
 
+def test_summary_prints_string_and_nested_errors(capsys):
+    out = {
+        'earnings': [], 'fomc': [], 'macro_events': [],
+        'summary': {'highest_impact_within_7d': None},
+        'error': {
+            'scheduled_events': 'TimeoutError: source unavailable',
+            'earnings': {'MSFT': 'rate limited'},
+            'fatal': 'RuntimeError: unavailable',
+        },
+    }
+    fetch_catalysts.print_summary(out)
+    printed = capsys.readouterr().out
+    assert 'scheduled_events: TimeoutError: source unavailable' in printed
+    assert 'earnings/MSFT: rate limited' in printed
+    assert 'fatal: RuntimeError: unavailable' in printed
+
+
 def _store(tmp_path, events):
     path = tmp_path / 'scheduled_catalysts.json'
     path.write_text(json.dumps({'events': events}), encoding='utf-8')

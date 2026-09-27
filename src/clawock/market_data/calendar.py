@@ -413,8 +413,10 @@ def build_catalysts(days):
 
 
 def print_summary(out):
-    print(f'=== catalysts ({out["window_start"]} to {out["window_end"]}) ===')
-    print(f'Earnings queried: {", ".join(out["earnings_queried"])}')
+    start = out.get('window_start', 'unknown')
+    end = out.get('window_end', 'unknown')
+    print(f'=== catalysts ({start} to {end}) ===')
+    print(f'Earnings queried: {", ".join(out.get("earnings_queried") or [])}')
     print(f'Earnings hits:    {len(out["earnings"])}')
     for e in out['earnings']:
         eps = e.get('eps_estimate')
@@ -432,8 +434,11 @@ def print_summary(out):
     if 'error' in out:
         print('\nErrors:')
         for section, errs in out['error'].items():
-            for k, v in errs.items():
-                print(f'  {section}/{k}: {v}')
+            if isinstance(errs, dict):
+                for k, v in errs.items():
+                    print(f'  {section}/{k}: {v}')
+            else:
+                print(f'  {section}: {errs}')
 
 
 def main(argv=None):
