@@ -896,10 +896,8 @@ body[data-ds-dark-theme] .dmt {
   width:20%
 }
 /* Reduced motion: keep the opacity/colour transitions that aid
-   comprehension, drop the movement — chevron rotation, the hover nudge, the
-   0fr height animation (content still opens, it just snaps), day/group
-   entrances and the skeleton sweep. Mirrors the host's own handling
-   (AppFrame etc.). */
+   comprehension, drop the hover nudge, day/group entrances and skeleton
+   sweep. Frequent chevron/detail swaps are already immediate. */
 @media (prefers-reduced-motion: reduce) {
   .dmt .chev {
     transition:none
@@ -2410,3 +2408,16 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc.ppf .pp-empty { grid-template-columns:minmax(0, max-content) minmax(0, 1fr) }
 .pbc.ppf .pp-empty .pp-last { max-width:none }
 .pbc.pbf.ppf .pp-rail { flex:none }
+/* On a phone the panel overlaps the composer and conversation. The host's
+   menu tint alone lets large text show through small status/action copy;
+   keep its blur, but give this layer the host's nearly solid surface. */
+@media (max-width: 520px) {
+  .pbc.pbf.tqf .bp::before {
+    background:color-mix(in srgb, var(--dsw-alias-bg-layer-1) 96%, var(--dsw-specific-menu))
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .pbc.pbf.tqf .bp::before {
+    background:var(--dsw-alias-bg-layer-1)
+  }
+}
