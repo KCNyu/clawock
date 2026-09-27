@@ -88,13 +88,11 @@ on:
 permissions:
   contents: read
 
-# A superseded PR run is worth nothing: the only result anybody reads is the one
-# for the tip of the branch. On master the opposite holds — every green there is
-# part of the ledger, so those runs are never cancelled. Deliberately NOT the
-# `cancel-in-progress: false` that pages.yml uses; that one exists so a burst of
-# deploys cannot lose a generation, which is the opposite requirement.
+# Superseded PR runs share a group and are cancelled. Master pushes each get a
+# unique group: cancel-in-progress=false protects only a running job, while a
+# newer push replaces a pending job in the same group (#1967).
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
