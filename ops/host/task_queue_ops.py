@@ -23,6 +23,12 @@ Two consumers, one rule each place:
       append <id> [--queue]         add instructions (stdin) to a task, same session
       log <id> [--lines N]          the end of the task's run.log, redacted
       result <id>                   the latest final report (read-result.py)
+      usage <id>                    tokens the task used and their API-price estimate (KEY=VALUE for the runner)
+      brief <id>                    the task's brief (prompt.md) and its appends, capped (read-only)
+      deadline <id> <+Nh|+Nm|YYYY-MM-DD HH:MM|reset>
+                                    move the whole task's deadline (runner api 3)
+      attempts <id> <n|reset>       the retry budget MAX_ATTEMPTS (runner api 3)
+      resumes <id> <n|reset>        the quota-resume budget QUOTA_RESUMES (runner api 3)
 
 Exit codes: 0 ok · 2 usage · 3 refused (task ended, not allowed) · 4 unknown task ·
 5 host failure (systemctl, a write) · 6 busy (another write on the same task is in flight).
@@ -60,8 +66,13 @@ import sys
 import time
 from pathlib import Path
 
-API = 2
+API = 3
 MIN_RUNNER_API = 2  # the runner that reads override.env and takes the lock in queue order
+BUDGET_RUNNER_API = 3  # the runner that rereads DEADLINE_EPOCH/MAX_ATTEMPTS/QUOTA_RESUMES from override.env
+MIN_RUN_SEC, KILL_MARGIN = 600, 70  # run-agent.sh: no attempt starts with less than MIN_RUN_SEC + KILL_MARGIN left
+DEADLINE_CAP_SEC = 72 * 3600  # dispatch.sh: a deadline is at most 72h after dispatch; extending keeps that ceiling
+MAX_ATTEMPTS_CAP, QUOTA_RESUMES_CAP = 10, 6
+BRIEF_MAX_BYTES, APPENDS_MAX_BYTES = 48 * 1024, 16 * 1024  # `brief` answers at most 64 KB of text
 PRIORITY_RANGE = (-99, 99)
 VALUE_RE = re.compile(r"^[A-Za-z0-9._/:@-]{1,120}$")
 REDACT = [(re.compile(r"(token|api[_-]?key|secret|password)=[^\s&\"]+", re.I), r"\1=<redacted>"),
@@ -76,6 +87,9 @@ TOOLS_DIR = Path(os.environ.get("AGENT_DISPATCH_DIR", "/root/tools/agent-dispatc
 TASKS_DIR = Path(os.environ.get("AGENT_DISPATCH_TASKS_DIR", "/root/logs/agent-dispatch"))
 LOCK_DIR = Path(os.environ.get("AGENT_DISPATCH_LOCKDIR", "/root/logs/agent-dispatch"))
 SYSTEMCTL = os.environ.get("AGENT_DISPATCH_SYSTEMCTL", "systemctl")
+CLAUDE_HOME = Path(os.environ.get("CLAUDE_CONFIG_DIR", "/root/.claude"))
+OPENCODE_DB = Path(os.environ.get("AGENT_DISPATCH_OPENCODE_DB", "/root/.local/share/opencode/opencode.db"))
+PRICES = Path(os.environ.get("AGENT_DISPATCH_PRICES", str(Path(__file__).resolve().with_name("model_prices.json"))))
 
 
 class OpsError(Exception):
@@ -402,8 +416,11 @@ def cmd_cancel(args) -> dict:
 # Plain KEY=VALUE lines, values restricted to VALUE_RE (the runner re-checks them), written
 # atomically. meta.env stays the record of what was dispatched; this file is what changed since.
 
+OVERRIDE_KEYS = ("PRIORITY", "MODEL", "EFFORT", "DEADLINE_EPOCH", "MAX_ATTEMPTS", "QUOTA_RESUMES")
+
+
 def read_override(d: Path) -> dict[str, str]:
-    return {k: v for k, v in read_env(d / "override.env").items() if k in ("PRIORITY", "MODEL", "EFFORT")}
+    return {k: v for k, v in read_env(d / "override.env").items() if k in OVERRIDE_KEYS}
 
 
 def write_override(d: Path, values: dict[str, str]) -> None:
@@ -728,6 +745,349 @@ def cmd_result(args) -> dict:
     return {"ok": True, "id": args.id, "report": redact(r.stdout.strip())}
 
 
+
+# ---- usage: tokens and an API-price estimate ------------------------------------------------
+# Every figure comes from the agent's own session record; nothing is guessed. Messages are counted
+# from the task's dispatch time (a retried task resumes an older session: its earlier turns belong
+# to the earlier task). claude repeats one API message's usage on every content-block line, so
+# lines are deduplicated by message id; codex writes a cumulative total per process.
+
+def stamp_epoch(stamp: str) -> int | None:
+    try:
+        return int(time.mktime(time.strptime(stamp, "%Y-%m-%d %H:%M:%S")))
+    except (TypeError, ValueError):
+        return None
+
+
+def iso_epoch(stamp: str) -> float | None:
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(stamp.replace("Z", "+00:00")).timestamp()
+    except (TypeError, ValueError):
+        return None
+
+
+def task_session(d: Path, result: dict) -> str:
+    """result.env SESSION, else the newest attempt*.json session_id (tasks from before SESSION was kept)."""
+    if result.get("SESSION"):
+        return result["SESSION"]
+    for f in sorted(d.glob("attempt*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        try:
+            m = re.search(r'"session_id"\s*:\s*"([^"]+)"', f.read_text(errors="replace")[:4096])
+        except OSError:
+            continue
+        if m:
+            return m[1]
+    return ""
+
+
+def _bucket() -> dict[str, int]:
+    return {"in": 0, "cache_w5m": 0, "cache_w1h": 0, "cache_r": 0, "out": 0}
+
+
+def claude_usage(session: str, since: float) -> dict[str, dict[str, int]] | None:
+    files = sorted(CLAUDE_HOME.glob(f"projects/*/{session}.jsonl"))
+    if not files:
+        return None
+    last: dict[str, tuple[str, dict]] = {}
+    for f in files:
+        with open(f, errors="replace") as fh:
+            for line in fh:
+                if '"usage"' not in line or '"assistant"' not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                m = d.get("message") or {}
+                if d.get("type") != "assistant" or not isinstance(m.get("usage"), dict):
+                    continue
+                at = iso_epoch(d.get("timestamp", ""))
+                if at is not None and at < since:
+                    continue
+                last[m.get("id") or f"{f}:{len(last)}"] = (m.get("model") or "", m["usage"])
+    out: dict[str, dict[str, int]] = {}
+    for model, u in last.values():
+        b = out.setdefault(model, _bucket())
+        split = u.get("cache_creation") or {}
+        w1h = int(split.get("ephemeral_1h_input_tokens") or 0)
+        b["in"] += int(u.get("input_tokens") or 0)
+        b["cache_w1h"] += w1h
+        b["cache_w5m"] += max(0, int(u.get("cache_creation_input_tokens") or 0) - w1h)
+        b["cache_r"] += int(u.get("cache_read_input_tokens") or 0)
+        b["out"] += int(u.get("output_tokens") or 0)
+    return out
+
+
+def codex_usage(session: str, since: float, model: str) -> dict[str, dict[str, int]] | None:
+    home = Path(os.environ.get("CODEX_HOME", "/root/.codex"))
+    files = sorted(home.glob(f"sessions/**/rollout-*-{session}.jsonl"))
+    if not files:
+        return None
+    b = _bucket()
+    keys = ("input_tokens", "cached_input_tokens", "cache_write_input_tokens", "output_tokens")
+    for f in files:
+        prev = dict.fromkeys(keys, 0)
+        with open(f, errors="replace") as fh:
+            for line in fh:
+                if '"token_count"' not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                total = (((d.get("payload") or {}).get("info") or {}).get("total_token_usage")) or None
+                if not total:
+                    continue
+                cur = {k: int(total.get(k) or 0) for k in keys}
+                # A new process (resume) restarts its cumulative total; a repeat of the same total adds nothing.
+                delta = cur if cur["input_tokens"] < prev["input_tokens"] else {k: cur[k] - prev[k] for k in keys}
+                prev = cur
+                at = iso_epoch(d.get("timestamp", ""))
+                if at is not None and at < since:
+                    continue
+                b["cache_r"] += delta["cached_input_tokens"]
+                b["cache_w5m"] += delta["cache_write_input_tokens"]
+                b["in"] += max(0, delta["input_tokens"] - delta["cached_input_tokens"] - delta["cache_write_input_tokens"])
+                b["out"] += delta["output_tokens"]
+    return {model: b}
+
+
+def opencode_usage(session: str, since: float) -> tuple[dict[str, dict[str, int]], float] | None:
+    import sqlite3
+    if not OPENCODE_DB.exists():
+        return None
+    try:
+        con = sqlite3.connect(f"file:{OPENCODE_DB}?mode=ro", uri=True, timeout=5)
+        try:
+            rows = con.execute("SELECT data FROM message WHERE session_id = ? AND time_created >= ?",
+                               (session, int(since * 1000))).fetchall()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return None
+    out: dict[str, dict[str, int]] = {}
+    cost = 0.0
+    for (raw,) in rows:
+        try:
+            m = json.loads(raw)
+        except ValueError:
+            continue
+        if m.get("role") != "assistant" or not isinstance(m.get("tokens"), dict):
+            continue
+        t = m["tokens"]
+        model = (m.get("providerID") + "/" if m.get("providerID") else "") + (m.get("modelID") or "")
+        b = out.setdefault(model, _bucket())
+        cache = t.get("cache") or {}
+        b["in"] += int(t.get("input") or 0)
+        b["out"] += int(t.get("output") or 0) + int(t.get("reasoning") or 0)
+        b["cache_r"] += int(cache.get("read") or 0)
+        b["cache_w5m"] += int(cache.get("write") or 0)
+        cost += float(m.get("cost") or 0)
+    return out, cost
+
+
+@functools.lru_cache(maxsize=1)
+def prices() -> dict:
+    try:
+        return json.loads(PRICES.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def price_of(model: str) -> dict | None:
+    table = prices().get("models") or {}
+    bare = re.sub(r"\[.*\]$", "", model.rsplit("/", 1)[-1])
+    return table.get(bare) or table.get(re.sub(r"-\d{8}$", "", bare))
+
+
+def estimate_usd(per_model: dict[str, dict[str, int]]) -> str:
+    """The API-price estimate, '' when any model that used tokens has no price row."""
+    mult = prices().get("cache") or {}
+    total = 0.0
+    for model, b in per_model.items():
+        if not any(b.values()):
+            continue
+        p = price_of(model)
+        if p is None:
+            return ""
+        read = p.get("cache_read", p["in"] * mult.get("read", 0.1))
+        total += (b["in"] * p["in"] + b["cache_w5m"] * p["in"] * mult.get("write_5m", 1.25)
+                  + b["cache_w1h"] * p["in"] * mult.get("write_1h", 2.0) + b["cache_r"] * read + b["out"] * p["out"]) / 1e6
+    return f"{total:.2f}"
+
+
+def task_usage(d: Path) -> dict:
+    meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
+    agent = meta.get("AGENT", "")
+    session = task_session(d, result)
+    since = stamp_epoch(meta.get("CREATED", "")) or 0
+    base = {"agent": agent, "session": session, "tokens": None, "cost_usd": "", "cost_kind": "unknown",
+            "models": [], "prices_as_of": prices().get("as_of", ""), "reason": ""}
+    if not session:
+        return {**base, "reason": "no session recorded yet"}
+    per_model, cost_kind, cost = None, "unknown", ""
+    if agent == "claude":
+        per_model = claude_usage(session, since)
+    elif agent == "codex":
+        per_model = codex_usage(session, since, result.get("MODEL_USED") or meta.get("MODEL", ""))
+    elif agent == "opencode":
+        found = opencode_usage(session, since)
+        if found is not None:
+            per_model, reported = found
+            pool = set(pool_models())
+            if reported > 0:
+                cost, cost_kind = f"{reported:.2f}", "reported"
+            elif per_model and all(m in pool or m.endswith("-free") for m in per_model):
+                cost, cost_kind = "free", "free"
+    if per_model is None:
+        return {**base, "reason": f"no {agent} session record found for {session}"}
+    b = _bucket()
+    for v in per_model.values():
+        for k in b:
+            b[k] += v[k]
+    if agent != "opencode":
+        cost = estimate_usd(per_model)
+        cost_kind = "estimate" if cost else "unpriced"
+    tokens = {"in": b["in"], "cache_w": b["cache_w5m"] + b["cache_w1h"], "cache_r": b["cache_r"], "out": b["out"]}
+    tokens["total"] = sum(tokens.values())
+    return {**base, "tokens": tokens, "cost_usd": cost, "cost_kind": cost_kind, "models": sorted(per_model)}
+
+
+def cmd_usage(args) -> dict:
+    return {"ok": True, "id": args.id, **task_usage(task_dir(args.id))}
+
+
+def usage_env(out: dict) -> str:
+    """KEY=VALUE lines the runner copies into result.env; empty values when nothing was found."""
+    t = out.get("tokens") or {}
+    pairs = [("TOKENS_IN", t.get("in")), ("TOKENS_CACHE_W", t.get("cache_w")), ("TOKENS_CACHE_R", t.get("cache_r")),
+             ("TOKENS_OUT", t.get("out")), ("TOKENS_TOTAL", t.get("total")), ("COST_USD", out.get("cost_usd"))]
+    return "\n".join(f"{k}={'' if v is None else v}" for k, v in pairs)
+
+
+# ---- brief: the task's instructions, read-only --------------------------------------------
+
+def capped(path: Path, limit: int) -> tuple[str, int, bool]:
+    try:
+        size = path.stat().st_size
+        with open(path, "rb") as f:
+            raw = f.read(limit + 1)
+    except OSError:
+        return "", 0, False
+    cut = len(raw) > limit
+    return raw[:limit].decode("utf-8", "ignore"), size, cut
+
+
+def cmd_brief(args) -> dict:
+    d = task_dir(args.id)
+    meta = read_env(d / "meta.env")
+    text, size, cut = capped(d / "prompt.md", BRIEF_MAX_BYTES)
+    appends, budget = [], APPENDS_MAX_BYTES
+    entries = [(f, False) for f in (d / "inbox").glob("*.md")] + [(f, True) for f in (d / "inbox" / "delivered").glob("*.md")]
+    for f, delivered in sorted(entries, key=lambda e: e[0].name):
+        m = re.match(r"^(\d{8})-(\d{6})", f.name)
+        stamp = f"{m[1][:4]}-{m[1][4:6]}-{m[1][6:]} {m[2][:2]}:{m[2][2:4]}:{m[2][4:]}" if m else ""
+        body, n, over = capped(f, max(0, budget))
+        budget -= len(body.encode())
+        appends.append({"file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "bytes": n,
+                        "text": body, "truncated": over})
+    return {"ok": True, "id": args.id, "name": meta.get("NAME", args.id), "agent": meta.get("AGENT", ""),
+            "model": meta.get("MODEL", ""), "path": str(d / "prompt.md"), "brief": text, "brief_bytes": size,
+            "truncated": cut, "limit_bytes": BRIEF_MAX_BYTES + APPENDS_MAX_BYTES, "appends": appends}
+
+
+# ---- budgets: deadline, retries, quota resumes (runner api 3) --------------------------------
+# Written to override.env like the model: the runner rereads DEADLINE_EPOCH, MAX_ATTEMPTS and
+# QUOTA_RESUMES at every poll of its lock wait and before every attempt. meta.env (read once at
+# start) stays the record of what was dispatched. A task whose runner predates api 3 read its
+# deadline once and armed its outer timeout from it, so it is refused rather than half-applied.
+
+def budget_view(meta: dict, result: dict, ov: dict) -> dict:
+    """The value in force: a saved override (the runner takes it within one poll, or at its next attempt),
+    else what the runner published in result.env, else the dispatch record."""
+    def pick(key: str, default: int) -> int:
+        return to_int(ov.get(key) or result.get(key) or meta.get(key), default)
+    return {"deadline_epoch": pick("DEADLINE_EPOCH", 0), "max_attempts": pick("MAX_ATTEMPTS", 3),
+            "quota_resumes": pick("QUOTA_RESUMES", 3), "attempts": to_int(result.get("ATTEMPTS")),
+            "quota_resumes_used": to_int(result.get("QUOTA_RESUMES_USED")),
+            "ceiling_epoch": (stamp_epoch(meta.get("CREATED", "")) or 0) + DEADLINE_CAP_SEC,
+            "dispatched": {"deadline_epoch": to_int(meta.get("DEADLINE_EPOCH")), "max_attempts": to_int(meta.get("MAX_ATTEMPTS"), 3),
+                           "quota_resumes": to_int(meta.get("QUOTA_RESUMES"), 3)}}
+
+
+def budget_task(d: Path, task_id: str, action: str) -> tuple[dict, dict, dict]:
+    meta, result = live_task(d, task_id, action)
+    if to_int(result.get("RUNNER_API"), 1) < BUDGET_RUNNER_API:
+        raise OpsError(3, f"task {task_id} runs on runner api {result.get('RUNNER_API') or 1}: it read its deadline and "
+                          f"retry budgets once at start (and armed its outer timeout from the deadline), so {action} "
+                          "would not apply; tasks started after runner api 3 was installed accept it")
+    return meta, result, read_override(d)
+
+
+def applies(result: dict) -> tuple[str, str]:
+    running = bool(result.get("SLOT")) or (to_int(result.get("ATTEMPTS")) > 0 and result.get("WAITING") in ("", "slot"))
+    if running:
+        return "next_attempt", "the attempt running now keeps its time cap; the change applies to the next attempt and every wait"
+    return "now", "the runner rereads it within one queue poll (a few seconds)"
+
+
+def save_budget(d: Path, args, ov: dict, key: str, value: str, dispatched: str, detail: str, result: dict) -> dict:
+    before = ov.get(key, "")
+    ov[key] = "" if value == dispatched else value
+    if ov.get(key, "") == before:
+        return {"ok": True, "id": args.id, "changed": False, "message": "nothing to change"}
+    write_override(d, ov)
+    audit(d, args.source, args.action, detail)
+    when, why = applies(result)
+    return {"ok": True, "id": args.id, "changed": True, "applies": when, "message": f"{detail}; {why}"}
+
+
+def cmd_deadline(args) -> dict:
+    d = task_dir(args.id)
+    with TaskLock(d):
+        meta, result, ov = budget_task(d, args.id, "a deadline change")
+        view = budget_view(meta, result, ov)
+        now, cur = int(time.time()), view["deadline_epoch"]
+        when = args.when.strip()
+        if when == "reset":
+            new = view["dispatched"]["deadline_epoch"]
+        elif (m := re.fullmatch(r"\+(\d{1,3})([hm])", when)):
+            new = cur + int(m[1]) * (3600 if m[2] == "h" else 60)
+        else:
+            new = stamp_epoch(when if len(when) > 16 else when + ":00") or -1
+            if new < 0:
+                raise OpsError(2, f"deadline takes +Nh, +Nm, 'YYYY-MM-DD HH:MM[:SS]' or reset (got {when!r})")
+        floor = now + MIN_RUN_SEC + KILL_MARGIN
+        fmt = lambda e: time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(e))  # noqa: E731
+        if cur <= now and new < cur:
+            raise OpsError(3, f"the deadline {fmt(cur)} has already passed; it cannot be moved earlier")
+        if new < floor:
+            raise OpsError(2, f"{fmt(new)} is too soon: a deadline must leave at least {MIN_RUN_SEC + KILL_MARGIN}s "
+                              f"(MIN_RUN_SEC + KILL_MARGIN), so no earlier than {fmt(floor)}")
+        if new > view["ceiling_epoch"]:
+            raise OpsError(2, f"{fmt(new)} is past this task's ceiling {fmt(view['ceiling_epoch'])} (dispatch + 72h)")
+        return save_budget(d, args, ov, "DEADLINE_EPOCH", str(new), str(view["dispatched"]["deadline_epoch"]),
+                           f"deadline {fmt(cur)}->{fmt(new)}", result) | {"deadline_epoch": new}
+
+
+def cmd_count_budget(args) -> dict:
+    key, cap, used_key, lo = (("MAX_ATTEMPTS", MAX_ATTEMPTS_CAP, "attempts", 1) if args.action == "attempts"
+                              else ("QUOTA_RESUMES", QUOTA_RESUMES_CAP, "quota_resumes_used", 0))
+    d = task_dir(args.id)
+    with TaskLock(d):
+        meta, result, ov = budget_task(d, args.id, f"a {args.action} change")
+        view = budget_view(meta, result, ov)
+        dispatched = view["dispatched"]["max_attempts" if args.action == "attempts" else "quota_resumes"]
+        value = dispatched if args.value == "reset" else to_int(args.value, -1)
+        if not re.fullmatch(r"\d{1,2}|reset", args.value) or not lo <= value <= cap:
+            raise OpsError(2, f"{args.action} takes an integer {lo}..{cap} or reset (got {args.value!r})")
+        if value < view[used_key]:
+            raise OpsError(3, f"{view[used_key]} already used; {args.action} cannot go below that")
+        cur = view["max_attempts" if args.action == "attempts" else "quota_resumes"]
+        return save_budget(d, args, ov, key, str(value), str(dispatched), f"{args.action} {cur}->{value}", result) \
+            | {key.lower(): value}
+
 # ---- entry --------------------------------------------------------------------------------
 
 def parser() -> argparse.ArgumentParser:
@@ -752,7 +1112,8 @@ def parser() -> argparse.ArgumentParser:
     m.add_argument("model")
     m.add_argument("effort", nargs="?", default="keep")
     m.set_defaults(fn=cmd_model)
-    for name, fn in (("choices", cmd_choices), ("retry", cmd_retry), ("result", cmd_result)):
+    for name, fn in (("choices", cmd_choices), ("retry", cmd_retry), ("result", cmd_result), ("usage", cmd_usage),
+                     ("brief", cmd_brief)):
         a = sub.add_parser(name)
         a.add_argument("id")
         a.set_defaults(fn=fn)
@@ -761,6 +1122,15 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--queue", action="store_true", help="deliver when the current attempt ends")
     ap.add_argument("--text", help="the instruction (default: stdin)")
     ap.set_defaults(fn=cmd_append)
+    dl = sub.add_parser("deadline")
+    dl.add_argument("id")
+    dl.add_argument("when")
+    dl.set_defaults(fn=cmd_deadline)
+    for name in ("attempts", "resumes"):
+        b = sub.add_parser(name)
+        b.add_argument("id")
+        b.add_argument("value")
+        b.set_defaults(fn=cmd_count_budget)
     lg = sub.add_parser("log")
     lg.add_argument("id")
     lg.add_argument("--lines", type=int, default=60)
@@ -790,6 +1160,11 @@ def human(action: str, out: dict) -> str:
         return "\n".join(out["lines"])
     if action == "result":
         return out["report"]
+    if action == "usage":
+        return usage_env(out)
+    if action == "brief":
+        return out["brief"] + "".join(f"\n\n--- append {a['stamp']} ({'delivered' if a['delivered'] else 'pending'})\n{a['text']}"
+                                      for a in out["appends"])
     return out.get("message") or json.dumps(out, ensure_ascii=False)
 
 

@@ -274,6 +274,9 @@ def test_installer_saves_installs_checks_and_rolls_back(tmp_path):
     assert (dest / "task_queue_ops.py").read_bytes() == OPS.read_bytes()
     assert (dest / "task_queue_ops.py.before-update").read_text() == "print('old')\n"
     assert os.access(dest / "task_queue_ops.py", os.X_OK)
+    # The price table the `usage` action reads travels with it (first install: nothing to save).
+    assert (dest / "model_prices.json").read_bytes() == (ROOT / "ops/host/model_prices.json").read_bytes()
+    assert not (dest / "model_prices.json.before-update").exists()
     assert run("--check").returncode == 0
     assert "already installed" in run().stdout
     assert run("--rollback").returncode == 0
@@ -476,3 +479,139 @@ def test_an_unnamed_holder_is_said_so_not_shown_free(q):
     assert out["held"] is True and out["id"] is None and "no live holder file" in out["note"]
     assert head["head"] == "" and "held by an unnamed task" in head["note"]
     assert "nobody waits and the lock is free" in q.run("head", "codex")[1]["note"]
+
+
+# ---- usage: tokens from the agent's own session record, priced from model_prices.json -------
+
+def _claude_line(mid, model, stamp, usage):
+    return json.dumps({"type": "assistant", "timestamp": stamp,
+                       "message": {"id": mid, "model": model, "usage": usage}}) + "\n"
+
+
+def test_usage_counts_each_claude_message_once_from_dispatch_on_and_prices_it(q, tmp_path):
+    d = q.task("u-claude", session="sess-1", result="STATE=ok\n")
+    (d / "meta.env").write_text("ID=u-claude\nAGENT=claude\nCREATED=2026-09-27\\ 00:00:00\n")
+    proj = tmp_path / "claude" / "projects" / "-root"
+    proj.mkdir(parents=True)
+    u1 = {"input_tokens": 10, "cache_creation_input_tokens": 1000, "cache_read_input_tokens": 100000, "output_tokens": 500,
+          "cache_creation": {"ephemeral_1h_input_tokens": 1000, "ephemeral_5m_input_tokens": 0}}
+    u0 = {"input_tokens": 999999, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0, "output_tokens": 0}
+    (proj / "sess-1.jsonl").write_text(
+        _claude_line("m0", "claude-opus-5-5", "2026-09-26T10:00:00Z", u0)      # an earlier task's turn: not ours
+        + _claude_line("m1", "claude-opus-5-5", "2026-09-27T01:00:00Z", u1)    # one API message ...
+        + _claude_line("m1", "claude-opus-5-5", "2026-09-27T01:00:00Z", u1)    # ... repeated per content block
+        + '{"type":"user","message":{"content":"x"}}\n')
+    code, out = q.run("usage", "u-claude", extra_env={"CLAUDE_CONFIG_DIR": str(tmp_path / "claude")})
+    assert code == 0, out
+    assert out["tokens"] == {"in": 10, "cache_w": 1000, "cache_r": 100000, "out": 500, "total": 101510}
+    # opus-5-5: 10*4 + 1000*4*2 (1h write) + 100000*0.20 + 500*20, per million
+    assert out["cost_usd"] == f"{(40 + 8000 + 20000 + 10000) / 1e6:.2f}" and out["cost_kind"] == "estimate"
+    env = subprocess.run([sys.executable, str(OPS), "usage", "u-claude"], capture_output=True, text=True,
+                         env=dict(q.env, CLAUDE_CONFIG_DIR=str(tmp_path / "claude"))).stdout
+    assert env.splitlines() == ["TOKENS_IN=10", "TOKENS_CACHE_W=1000", "TOKENS_CACHE_R=100000", "TOKENS_OUT=500",
+                                "TOKENS_TOTAL=101510", "COST_USD=0.04"]
+
+
+def test_usage_of_an_unpriced_codex_model_keeps_tokens_and_leaves_the_amount_empty(q):
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6-sol\n")
+    day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
+    day.mkdir(parents=True)
+    ev = lambda i, c, o: json.dumps({"timestamp": "2026-09-27T01:00:00Z", "type": "event_msg", "payload": {  # noqa: E731
+        "type": "token_count", "info": {"total_token_usage": {"input_tokens": i, "cached_input_tokens": c, "output_tokens": o}}}}) + "\n"
+    # cumulative totals, a repeated sample, then a resumed process starting again from zero
+    (day / "rollout-2026-09-27T01-00-00-019-abc.jsonl").write_text(ev(100, 60, 10) + ev(100, 60, 10) + ev(300, 200, 30) + ev(50, 0, 5))
+    code, out = q.run("usage", "u-codex")
+    assert out["tokens"] == {"in": 150, "cache_w": 0, "cache_r": 200, "out": 35, "total": 385}
+    assert (out["cost_usd"], out["cost_kind"], out["models"]) == ("", "unpriced", ["gpt-6-sol"])
+
+
+def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):
+    import sqlite3
+    q.task("u-oc", agent="opencode", session="ses_1", result="STATE=ok\n")
+    db = tmp_path / "opencode.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE message (id text, session_id text, time_created integer, time_updated integer, data text)")
+    msg = {"role": "assistant", "providerID": "opencode", "modelID": "free-a", "cost": 0,
+           "tokens": {"input": 7, "output": 3, "reasoning": 2, "cache": {"read": 90, "write": 0}}}
+    con.execute("INSERT INTO message VALUES ('m', 'ses_1', 1, 1, ?)", (json.dumps(msg),))
+    con.commit(); con.close()
+    code, out = q.run("usage", "u-oc", extra_env={"AGENT_DISPATCH_OPENCODE_DB": str(db)})
+    assert out["tokens"] == {"in": 7, "cache_w": 0, "cache_r": 90, "out": 5, "total": 102}
+    assert (out["cost_usd"], out["cost_kind"]) == ("free", "free")
+
+
+def test_usage_without_a_session_record_is_empty_not_invented(q, tmp_path):
+    q.task("u-none", result="STATE=queued\n")
+    code, out = q.run("usage", "u-none")
+    assert code == 0 and out["tokens"] is None and out["cost_usd"] == "" and "no session" in out["reason"]
+    q.task("u-gone", session="missing", result="STATE=ok\n")
+    out = q.run("usage", "u-gone", extra_env={"CLAUDE_CONFIG_DIR": str(tmp_path / "nothing")})[1]
+    assert out["tokens"] is None and "no claude session record" in out["reason"]
+
+
+# ---- brief: read-only, capped ------------------------------------------------------------------
+
+def test_brief_returns_the_prompt_and_appends_in_time_order_capped(q):
+    d = q.task("b-task", result="STATE=running\n")
+    (d / "prompt.md").write_text("# Task\n" + "x" * (60 * 1024))
+    (d / "inbox" / "delivered").mkdir(parents=True)
+    (d / "inbox" / "delivered" / "20260927-010000-11-queue.md").write_text("first append")
+    (d / "inbox" / "20260927-020000-12-now.md").write_text("second append")
+    code, out = q.run("brief", "b-task")
+    assert code == 0
+    assert out["truncated"] is True and out["brief_bytes"] == len("# Task\n") + 60 * 1024
+    assert len(out["brief"].encode()) == 48 * 1024 and out["brief"].startswith("# Task")
+    assert [(a["stamp"], a["delivered"], a["text"]) for a in out["appends"]] == [
+        ("2026-09-27 01:00:00", True, "first append"), ("2026-09-27 02:00:00", False, "second append")]
+    assert out["path"].endswith("/b-task/prompt.md") and out["appends"][1]["path"].endswith("/inbox/20260927-020000-12-now.md")
+
+
+# ---- budgets: deadline / attempts / resumes through override.env (runner api 3) ----------------
+
+def _budget_task(q, tid="t3", api=3, extra=""):
+    now = int(time.time())
+    d = q.task(tid, result=f"STATE=running\nWAITING=lock\nATTEMPTS=1\nQUOTA_RESUMES_USED=1\nRUNNER_API={api}\n"
+                           f"DEADLINE_EPOCH={now + 3600}\n{extra}")
+    created = time.strftime("%Y-%m-%d\\ %H:%M:%S", time.localtime(now - 600))
+    (d / "meta.env").write_text(f"ID={tid}\nAGENT=claude\nCREATED={created}\nDEADLINE_EPOCH={now + 3600}\n"
+                                "QUOTA_RESUMES=3\nMODEL=m\n")
+    return d, now
+
+
+def test_deadline_moves_through_override_env_with_audit_and_bounds(q):
+    d, now = _budget_task(q)
+    code, out = q.run("deadline", "t3", "+2h")
+    assert code == 0 and out["changed"] is True and out["applies"] == "now"
+    assert f"DEADLINE_EPOCH={now + 3 * 3600}" in (d / "override.env").read_text()
+    assert "action=deadline" in (d / "audit.log").read_text()
+    code, out = q.run("deadline", "t3", "+100h")
+    assert code == 2 and "dispatch + 72h" in out["error"]
+    too_soon = time.strftime("%Y-%m-%d %H:%M", time.localtime(now + 120))
+    code, out = q.run("deadline", "t3", too_soon)
+    assert code == 2 and "too soon" in out["error"]
+    assert q.run("deadline", "t3", "tomorrow")[0] == 2
+    code, out = q.run("deadline", "t3", "reset")
+    assert code == 0 and "DEADLINE_EPOCH" not in (d / "override.env").read_text()
+
+
+def test_a_running_task_gets_the_budget_change_at_its_next_attempt(q):
+    _budget_task(q, extra="SLOT=claude-1\n")
+    code, out = q.run("attempts", "t3", "5")
+    assert code == 0 and out["applies"] == "next_attempt" and "next attempt" in out["message"]
+
+
+def test_budget_changes_refuse_an_older_runner_an_ended_task_and_values_below_what_is_used(q):
+    _budget_task(q, tid="t2", api=2)
+    code, out = q.run("deadline", "t2", "+1h")
+    assert code == 3 and "runner api 2" in out["error"]
+    q.task("done", result="STATE=ok\nRUNNER_API=3\n", active=False)
+    assert q.run("attempts", "done", "4")[0] == 3
+    d, _ = _budget_task(q)
+    assert q.run("attempts", "t3", "0")[0] == 2
+    assert q.run("attempts", "t3", "11")[0] == 2
+    code, out = q.run("resumes", "t3", "0")
+    assert code == 3 and "already used" in out["error"]
+    code, out = q.run("resumes", "t3", "5")
+    assert code == 0 and "QUOTA_RESUMES=5" in (d / "override.env").read_text()
+    code, out = q.run("resumes", "t3", "reset")
+    assert code == 0 and "QUOTA_RESUMES" not in (d / "override.env").read_text()
