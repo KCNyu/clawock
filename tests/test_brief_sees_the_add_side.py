@@ -183,7 +183,9 @@ def test_the_brief_context_carries_the_add_side_and_explains_an_empty_one(tmp_pa
     (bars / "SLEEPY.json").write_text(json.dumps({"ticker": "SLEEPY", "bars": day_rows}))
     monkeypatch.setattr(brief_preflight, "WS", tmp_path)
 
-    read = brief_preflight._opportunity_reads({"open": []})
+    monkeypatch.setattr(brief_preflight.bar_signals, "universe_details",
+                        lambda portfolio=None: [{"label": "SLEEPY", "source_holdings": ["SLEEPY"]}])
+    read = brief_preflight._opportunity_reads({"open": []}, {})
 
     assert read["counts"] == {"candidate": 0, "wait": 0, "reject": 0}
     assert read["why_no_candidate"], "a zero add side with no stated reason is the bug"
@@ -213,10 +215,33 @@ def test_a_breakout_in_the_bar_store_reaches_the_brief_context(tmp_path, monkeyp
     (bars / "BREAK.json").write_text(json.dumps({"ticker": "BREAK", "bars": rows}))
     monkeypatch.setattr(brief_preflight, "WS", tmp_path)
 
-    read = brief_preflight._opportunity_reads({"open": []})
+    monkeypatch.setattr(brief_preflight.bar_signals, "universe_details",
+                        lambda portfolio=None: [{"label": "BREAK", "source_holdings": ["BREAK"]}])
+    read = brief_preflight._opportunity_reads({"open": []}, {})
 
     assert read["counts"]["candidate"] == 1, (
         "the brief cannot see a breakout its own bar store holds — this is the "
         "48-breakouts-zero-adds failure, reproduced")
     assert read["why_no_candidate"] is None
     assert read["rows"][0]["ticker"] == "BREAK"
+
+
+def test_brief_emits_held_underlying_and_product_but_no_registry_only_names(tmp_path, monkeypatch):
+    from clawock.harness import brief_preflight
+
+    bars = tmp_path / "memory" / "bars"
+    bars.mkdir(parents=True)
+    for ticker in ("SPCX", "SPCH", "RKLB", "RKLX", "QQQ", "TQQQ"):
+        (bars / f"{ticker}.json").write_text(json.dumps({
+            "ticker": ticker,
+            "bars": {"2026-09-25": {"open": 10, "high": 11, "low": 9, "close": 10}},
+        }))
+    monkeypatch.setattr(brief_preflight, "WS", tmp_path)
+    monkeypatch.setattr(brief_preflight.bar_signals, "compute_signals",
+                        lambda rows: _signals(103.0, 100.0))
+    portfolio = {"portfolios": {"us_stocks": {"holdings": [
+        {"ticker": "SPCX", "shares": 1}, {"ticker": "SPCH", "shares": 300},
+        {"ticker": "RKLX", "shares": 10},
+    ]}}}
+    read = brief_preflight._opportunity_reads({"open": []}, portfolio)
+    assert {row["ticker"] for row in read["rows"]} == {"SPCX", "SPCH", "RKLX"}
