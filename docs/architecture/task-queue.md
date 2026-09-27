@@ -345,7 +345,7 @@ What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.lo
   is slow to start on this host: a `--dry-run` of the same command, which sends nothing, took
   13 s alone and 25 s with both legs starting together. So a real send can take longer than
   30 s. Neither the configuration nor the network was the cause. The quota-wait notice has
-  had 60 s since #PRNUM; a cancel notice keeps 30 s, the most the unit's stop budget
+  had 60 s since #2057; a cancel notice keeps 30 s, the most the unit's stop budget
   (`on_signal`) leaves, so on a busy host a cancel can still go unannounced on Telegram.
 
 ## Version skew
