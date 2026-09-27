@@ -327,8 +327,8 @@ And everything under `/root/logs/agent-dispatch/` (task dirs, `run.log`, `result
 At the end of a task, and when it starts a quota wait, the runner sends one message per leg of
 the task's `NOTIFY` list (`weixin`, `telegram`, both by default, `none` for patrol rounds).
 Each leg is `openclaw message send --channel … --target …` with the targets from `notify.env`.
-The legs run in parallel, each once, with a time limit: 60 s for the end-of-task notice,
-30 s for the quota-wait notice and on the cancel path (bounded by the unit's stop budget).
+The legs run in parallel, each once, with a time limit: 60 s for the end-of-task and the
+quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 Delivery is **best-effort**. A failed leg never changes the task's state, is not retried,
 and raises no alarm. It is one `notify: send failed (<leg>)` line in `run.log`, and
 `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` in `result.env`, which the chip shows as the
@@ -345,7 +345,9 @@ What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.lo
   notices (three quota-wait notices, one cancel), each after exactly the 30 s limit. The CLI
   is slow to start on this host: a `--dry-run` of the same command, which sends nothing, took
   13 s alone and 25 s with both legs starting together. So a real send can take longer than
-  30 s. Neither the configuration nor the network was the cause.
+  30 s. Neither the configuration nor the network was the cause. The quota-wait notice has
+  had 60 s since #2057; a cancel notice keeps 30 s, the most the unit's stop budget
+  (`on_signal`) leaves, so on a busy host a cancel can still go unannounced on Telegram.
 
 ## Version skew
 
