@@ -307,6 +307,21 @@ export interface DispatchTask {
     session?: string;
     /** A cancel was requested less than a minute ago and the unit has not stopped yet. */
     cancelling?: boolean;
+    /** The deadline the runner enforces now (result.env DEADLINE_EPOCH, else meta.env). */
+    deadlineAtMs?: number | null;
+    /** The retry budget the runner uses now (result.env MAX_ATTEMPTS). */
+    maxAttempts?: number | null;
+    /** The quota-resume budget the runner uses now, and how many are spent. */
+    quotaResumes?: number | null;
+    quotaResumesUsed?: number | null;
+    /** Tokens as of the last finished attempt (task_queue_ops.py usage, kept in result.env). */
+    tokensIn?: number | null;
+    tokensCacheW?: number | null;
+    tokensCacheR?: number | null;
+    tokensOut?: number | null;
+    tokensTotal?: number | null;
+    /** API-price estimate in USD ("3.12"), 'free', or '' when the model has no price or nothing was found. */
+    costUsd?: string;
 }
 /** One agent's lock and queue, from task_queue_ops.py `list`. */
 export interface AgentQueue {
@@ -396,6 +411,8 @@ export interface TaskQueueResult {
     maxRunning: number;
     /** limits.env MAX_RUNNING_<AGENT>, in file order: each agent's own run slots. */
     slotLimits?: AgentSlotLimit[];
+    /** opencode-fallback-models beside limits.env: the free pool in rotation order ([] when unreadable). */
+    opencodePool?: string[];
     /** Live tasks that report holding a run slot. */
     running: number;
     /** Live tasks, by QUEUED_AT (when they first waited), oldest first. */

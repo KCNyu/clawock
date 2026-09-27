@@ -346,14 +346,16 @@ let ClawockStudioGateway = (() => {
 			return this.queueServices().reader.get(force);
 		}
 		/**
-		* One write from the task chip — cancel, priority, model, retry, wrapup —
-		* or a read the chip needs on demand (choices, log). Runs the versioned
+		* One write from the task chip — cancel, priority, model, retry, wrapup,
+		* deadline, attempts, resumes — or a read the chip needs on demand (choices,
+		* log, brief, usage). Runs the versioned
 		* ops entry with `--source ui` (it validates, serialises per task, audits
 		* in the task directory); a double click shares one run. In-band like
 		* taskQueue(): never throws, a refusal is `{ ok: false, code, message }`.
-		* @param action - one of cancel | priority | model | choices | retry | wrapup | log.
+		* @param action - one of cancel | priority | model | choices | retry | wrapup | log | brief | usage | deadline | attempts | resumes.
 		* @param id - the task id; anything that is not one is refused before any process runs.
-		* @param arg - priority: top | up | down | reset | n; model: "<model>|<effort>" ('keep'/'default'); else ''.
+		* @param arg - priority: top | up | down | reset | n; model: "<model>|<effort>" ('keep'/'default');
+		*   deadline: +Nh | +Nm | "YYYY-MM-DD HH:MM" | reset; attempts/resumes: n | reset; else ''.
 		*/
 		async queueAction(action, id, arg) {
 			return this.queueServices().act(action, id, arg);

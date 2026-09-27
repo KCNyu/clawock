@@ -13,7 +13,8 @@
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
  *   clawock-patrol.service + its journal the supervisor's own last words
- *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT set from the chip (read only here)
+ *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
+ *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
@@ -101,7 +102,7 @@ export type TaskQueueService = {
 /** TTL cache + in-flight join + stale-on-failure, the balance services' cadence shell in miniature. */
 export declare function createTaskQueueService(config?: TaskQueueConfig, deps?: TaskQueueDeps): TaskQueueService;
 /** The actions the chip may run, and how each maps onto the ops entry's arguments. */
-export declare const QUEUE_ACTIONS: readonly ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log'];
+export declare const QUEUE_ACTIONS: readonly ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log', 'brief', 'usage', 'deadline', 'attempts', 'resumes'];
 export type QueueAction = typeof QUEUE_ACTIONS[number];
 /** Queued, not interrupting: the task finishes its current step, then lands what it has. */
 export declare const WRAPUP_TEXT: string;

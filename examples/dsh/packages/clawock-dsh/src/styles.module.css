@@ -2262,3 +2262,146 @@ body[data-ds-dark-theme] .pbc .bp {
     width:min(320px, calc(100vw - 24px))
   }
 }
+/* Provider panel (2026-09-27): the balance and the queue as one foot cell. Folded, one 28px
+   line per source on one grid — glyph · name · reading + reset · who burns it — so the five
+   resets and the five queue states line up as columns (apple-design: grouping & mapping;
+   the reading sits beside the name it belongs to). The lines are the host panel's rows
+   (8px inset, --tq-radius, hover wash only on a fine pointer, press = the press fill, no
+   scale: a full-width row that shrinks reads as a jump, the fill is the feedback). Nothing
+   here animates: the values are re-read every 15-60s and read many times a day (emil:
+   frequent → no motion); the popover and the detail layer keep their existing transitions. */
+.pbc.pbf.ppf {
+  display:block;
+  height:auto;
+  margin:8px 0 0
+}
+.pbc.pbf.ppf.rail {
+  display:flex;
+  width:36px;
+  height:36px;
+  margin:0
+}
+.pbc.ppf .pp-rows {
+  display:flex;
+  flex-direction:column;
+  margin:0 -2px
+}
+.pbc.ppf .pp-row {
+  display:grid;
+  grid-template-columns:14px minmax(0, max-content) minmax(0, 1fr) minmax(0, max-content);
+  column-gap:6px;
+  align-items:center;
+  box-sizing:border-box;
+  width:100%;
+  min-height:28px;
+  padding:0 8px;
+  border:0;
+  border-radius:var(--tq-radius);
+  background:transparent;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  text-align:left;
+  color:var(--tq-ink);
+  cursor:pointer;
+  transition:background-color var(--tq-fast) var(--tq-ease)
+}
+.pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
+.pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
+.pbc.ppf .pp-row:focus-visible,
+.pbc.ppf .pp-group:focus-visible,
+.pbc .tq-file:focus-visible {
+  outline:var(--tq-focus-ring);
+  outline-offset:-2px
+}
+.pbc.ppf .pp-group:focus { outline:none }
+.pbc.ppf .pp-group:focus-visible { border-radius:var(--tq-radius-sm) }
+@media (hover: hover) and (pointer: fine) {
+  .pbc.ppf .pp-row:hover,
+  .pbc .tq-file:hover { background:var(--tq-fill-hover) }
+}
+.pbc.ppf .pp-name {
+  max-width:72px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:var(--dsw-font-xs-strong-13);
+  line-height:16px
+}
+.pbc.ppf :is(.pp-reading, .pp-last) {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums
+}
+.pbc.ppf .pp-reading { color:var(--tq-ink-2) }
+.pbc.ppf .pp-v { color:var(--tq-ink) }
+.pbc.ppf .pp-v[data-used-level="mid"] { color:var(--tq-wait-text) }
+.pbc.ppf .pp-v[data-used-level="low"],
+.pbc.ppf .pp-v[data-balance-state="low"] { color:var(--tq-bad) }
+.pbc.ppf .pp-v[data-balance-state="stale"] { color:var(--tq-wait-text) }
+.pbc.ppf .pp-reset { margin-left:6px; color:var(--tq-ink-3) }
+.pbc.ppf .pp-last {
+  justify-self:end;
+  color:var(--tq-ink-3)
+}
+.pbc.ppf .pp-last[data-balance-state="ok"] { color:var(--tq-run) }
+.pbc.ppf .pp-last[data-balance-state="stale"] { color:var(--tq-wait-text) }
+/* The rail: one 36px glyph; the badge says warn (amber square) or a failed read (red ring). */
+.pbc.ppf .bal-badge[data-balance-state="low"] { fill:var(--tq-wait) }
+.pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-bad) }
+/* The open panel: a group per source; its plan caption, then the allowance, then the queue. */
+.pbc .pp-plan {
+  font:var(--dsw-font-xxxs-11);
+  letter-spacing:0;
+  color:var(--tq-cap)
+}
+.pbc .pp-allowance { margin:2px 0 4px }
+.pbc .pp-money {
+  font:var(--dsw-font-s-strong-14);
+  font-variant-numeric:tabular-nums;
+  color:var(--tq-ink)
+}
+.pbc .pp-money[data-balance-state="low"] { color:var(--tq-bad) }
+/* Brief: files that open in dsh's own preview, read-only. */
+.pbc .tq-brief {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  margin-top:8px
+}
+.pbc .tq-file {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:28px;
+  margin:0 -8px;
+  padding:4px 8px;
+  border:0;
+  border-radius:var(--tq-radius);
+  background:transparent;
+  font:var(--dsw-font-xxs-12);
+  text-align:left;
+  color:var(--tq-ink-2);
+  cursor:pointer;
+  transition:background-color var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-file:active { background:var(--tq-fill-press) }
+.pbc .tq-file-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-decoration:underline;
+  text-underline-offset:2px
+}
+.pbc .tq-tag[data-tq-delivered="false"] { border-color:var(--tq-wait); color:var(--tq-wait-text) }
+/* Fingers: every line and file row is a 44px target; the glyph and type keep their size. */
+@media (pointer: coarse) {
+  .pbc.ppf .pp-row, .pbc .tq-file { min-height:44px }
+}
+.pbc.ppf .pp-empty { grid-template-columns:minmax(0, max-content) minmax(0, 1fr) }
+.pbc.ppf .pp-empty .pp-last { max-width:none }
+.pbc.pbf.ppf .pp-rail { flex:none }

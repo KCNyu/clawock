@@ -105,16 +105,24 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 
 面板是只读 Remote,不改任何文件;结算仍归 clawock 自己的机制。
 
-### 侧边栏左下角的多 Provider 余额
+### 侧边栏左下角的 provider 面板（额度 · 队列）
 
-web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟随当前会话
-(没开会话也在)——头条显示**一个** provider 的读数(provider 名 + 数字;默认
-第一行;在面板里点任意一行即钉选为头条,选择存在注册 store 里,重挂不丢),
-带双窗口的 provider(MiniMax 5h+周、Claude 会话+本周)在头条直接附**周限额副
-读数**(侧栏放不下时省略号截断,悬停 title 有全文);侧栏收起时只剩一枚状态点。
-点它在这一行正上方弹出**余额面板**(对话留在原处不被替换;钉选、刷新不会关掉它,再点这一行、按 Esc 或点面板外面才收起),看全部 provider 明细(每窗口一行文字读数 + 发丝进度条;条的
-填充色按用量档位走:低=绿、≥60% 黄、≥80% 红,阈值由 lowPct 派生)与手动
-刷新。
+web GUI **左侧栏底部、Settings 正上方**常驻一个 cell（`provider-balance`，2026-09-27 起
+余额与派发队列合成一个，原先上方的 `dispatch-queue` 已退休），不跟随当前会话。折叠态**每个
+来源一行**：第一列是 provider / agent 名字，接着是读数与它那个窗口的重置时刻（与展开态同一个
+时钟函数），最后一列是「谁在吃这份额度」——有派发 agent 的显示队列（跑 / 排 / 睡额度 / 闲），
+没有 agent 的显示 key 来源（DeepSeek = 本机 API 账户，MiniMax = OpenClaw 配置）。顺序只写在
+`src/providers.ts` 的 join 表（有 agent 的 claude、codex、opencode 在前），其余 provider 按
+`BALANCE_PROVIDERS` 表序；新增 provider 仍只改那张表。侧栏收起（56px rail）时只剩一枚图标：
+有窗口到阈值或有任务在睡额度 → 琥珀方角标，读数失败 → 红色空心环，否则不带角标。
+
+点任意一行在 cell 正上方弹出面板并落在该来源的分组：额度（每窗口一行读数 + 发丝进度条 + 重置；
+DeepSeek 是钱，显示 ¥ 与赠金 / 充值拆分，不画条）在上，它喂的那条队列在下（在跑、排队、等待
+原因、runner 的「等到」与窗口重置两个时刻并列）。点任务进详情层：槽位、模型与 effort、尝试 /
+停滞、实际生效的 deadline 与重试预算、花费（按 API 价估算，非实际扣费）、通知回执，以及
+「任务书」（在 dsh 自带的右侧文件预览里打开 `prompt.md` 与各条追加，只读）和既有的写操作
+（全部经 `ops/host/task_queue_ops.py`）。取数失败的 provider 保留上一次好读数并写明读数时间；
+没有派发器的主机只显示 provider 行。
 
 挂载点是 DSH 公开的 `sidebar.footer.action`(侧栏底部 Settings 旁的动作座位),
 弹出层照抄宿主自己同座位的 Cordis 面板:固定定位锚在这一行上方、点外面/Esc 关闭。
