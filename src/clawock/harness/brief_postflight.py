@@ -787,9 +787,11 @@ def categorize(issues):
 
 
 from clawock.harness.validation import (
+    ADVISORY_MARK,
     FORBIDDEN_PHRASES,  # one table for all three entries
     advisory_prefix,
     categorize_issues,
+    check_identifier_leak,
     check_md_table_column_consistency,
     check_pipeline_self_reference,
     mentions_ticker,
@@ -1133,7 +1135,10 @@ def _plan_self_reference_issues(plan):
                 node = node.get(key) if isinstance(node, dict) else None
             if isinstance(node, str):
                 texts.append(node)
-    return check_pipeline_self_reference('\n'.join(texts), label='plan 理由/触发条件')
+    prose = '\n'.join(texts)
+    return (check_pipeline_self_reference(prose, label='plan 理由/触发条件')
+            + [f'{issue} {ADVISORY_MARK}' for issue in
+               check_identifier_leak(prose, label='plan 理由/触发条件')])
 
 
 def main(argv=None):

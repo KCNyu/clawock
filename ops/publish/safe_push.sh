@@ -59,29 +59,44 @@ fi
 # `|| true` on both: under `set -e` a failing command substitution aborts the
 # whole script, which would turn any git hiccup into "push silently skipped".
 REPO_TOP="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
-  PORTFOLIO_TOUCHED="$(git diff --name-only FETCH_HEAD..HEAD -- portfolio.json 2>/dev/null || true)"
-else
-  # Cannot tell what is new; assume the money file is in scope rather than skip.
-  PORTFOLIO_TOUCHED="portfolio.json"
-fi
-if [ -n "$PORTFOLIO_TOUCHED" ]; then
+portfolio_touched() {
+  # Compare each side with their merge base. A straight FETCH_HEAD..HEAD diff
+  # can hide a portfolio change on the remote side of a divergent history.
+  local ours theirs
+  ours="$(git diff --name-only FETCH_HEAD...HEAD -- portfolio.json 2>/dev/null)" || {
+    echo portfolio.json; return;
+  }
+  theirs="$(git diff --name-only HEAD...FETCH_HEAD -- portfolio.json 2>/dev/null)" || {
+    echo portfolio.json; return;
+  }
+  [ -z "$ours$theirs" ] || echo portfolio.json
+}
+
+check_money_if_needed() {
+  [ -n "$PORTFOLIO_TOUCHED" ] || return 0
   echo "▸ portfolio.json is in this push — running money-conservation check…"
-  RC=0
-  run_money_check "${REPO_TOP:-$PWD}" || RC=$?
-  if [ "$RC" = 127 ]; then
+  local rc=0
+  run_money_check "${REPO_TOP:-$PWD}" || rc=$?
+  if [ "$rc" = 127 ]; then
     echo "✗ REFUSING TO PUSH — portfolio.json is in this push but the"
     echo "  package-owned money-conservation checker is unavailable: clawock"
     echo "  It is neither on PATH nor importable from ${REPO_TOP:-$PWD}/src."
     echo "  The book cannot be verified from here."
     exit 4
-  elif [ "$RC" != 0 ]; then
+  elif [ "$rc" != 0 ]; then
     echo "✗ REFUSING TO PUSH — portfolio.json does not reconcile."
     echo "  Cash, positions and P&L must balance before the money file is published."
     echo "  Fix the ledger (see the findings above) and re-commit."
     exit 4
   fi
+}
+if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
+  PORTFOLIO_TOUCHED="$(portfolio_touched)"
+else
+  # Cannot tell what is new; assume the money file is in scope rather than skip.
+  PORTFOLIO_TOUCHED="portfolio.json"
 fi
+check_money_if_needed
 
 # ── Replay identity (2026-09-06) ─────────────────────────────────────────────
 # `pull --rebase` REWRITES commits, so it needs a committer identity — and the
@@ -142,9 +157,14 @@ for i in $(seq 1 $MAX_RETRIES); do
   echo "push failed attempt $i, trying rebase (autostash)…"
 
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
-  git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
+  if git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+    PORTFOLIO_TOUCHED="$(portfolio_touched)"
+  else
+    PORTFOLIO_TOUCHED="portfolio.json"
+  fi
   if "${REPLAY_ID[@]}" git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
     settle_autostash_conflict
+    check_money_if_needed
     echo "  rebase clean, will retry push"
     sleep $((i * 3))
   else
@@ -177,6 +197,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     done
     if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
       settle_autostash_conflict
+      check_money_if_needed
       echo "  rebase auto-resolved (generated files only), will retry push"
       sleep $((i * 3))
       continue

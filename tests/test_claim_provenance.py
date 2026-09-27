@@ -51,6 +51,18 @@ def test_the_same_claim_passes_when_the_card_agrees(tmp_path):
     assert _check(root) == []
 
 
+def test_p_value_requires_a_p_value_metric_not_a_nearby_drawdown(tmp_path):
+    prose = '"""Evidence: run card fixture-20260802-abcdef12.\np = 0.92 for drawdown\n"""\n'
+    root = _workspace(tmp_path, prose,
+                      {"regime": {"max_drawdown": -0.916061,
+                                  "vol_cap": 0.4}})
+    assert _check(root)
+    card = root / "memory" / "backtests" / "fixture-20260802-abcdef12.json"
+    card.write_text(json.dumps({"run_id": "fixture-20260802-abcdef12",
+                                "metrics": {"permutation": {"p_value_drawdown": 0.92454}}}))
+    assert _check(root) == []
+
+
 def test_citing_a_card_that_does_not_exist_fails(tmp_path):
     root = _workspace(
         tmp_path,
