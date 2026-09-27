@@ -235,3 +235,32 @@ def test_trade_side_matches_the_plugins_bucketing(plugin_source):
 
     for action in sorted(plugin_add | plugin_reduce | {"hold", "hold_and_watch", ""}):
         assert plugin_side(action) == dashboard._trade_side(action), action
+
+
+def test_every_documented_driven_by_value_has_a_word_on_both_trace_cards():
+    """#2030: both trace cards translated only the v0 mind-record words, so the v2 plan-row
+    words they pair with (catalyst — required by the brief's catalyst gate — macro, peer,
+    influencer) fell through to the raw code on the site and in the DSH panel alike."""
+    root = Path(__file__).resolve().parents[1]
+    row = re.search(r"^\| `driven_by` \|(.*)$", (root / "docs" / "decision-mind-ledger.md")
+                    .read_text(encoding="utf-8"), re.M)
+    assert row, "the driven_by row is gone from docs/decision-mind-ledger.md"
+    documented = set(re.findall(r"\b[a-z_]+\b", row[1]))
+    assert {"technical", "catalyst", "risk_rule", "fundamental"} <= documented
+
+    site = (root / "site" / "assets" / "js" / "dashboard.render.js").read_text(encoding="utf-8")
+    site_drv = dict(re.findall(r'(\w+):"([^"]+)"', re.search(r"const DRV = \{(.*?)\};", site, re.S)[1]))
+    client = (PLUGIN_LEDGER.parent / "client.ts").read_text(encoding="utf-8")
+    plugin_drv = dict(re.findall(r"(\w+): '(driver\.\w+)'",
+                                 re.search(r"const DRV: Record<string, string> = \{(.*?)\n\}", client, re.S)[1]))
+    zh = client[client.index("  zh: {"):client.index("  en: {")]
+    en = client[client.index("  en: {"):]
+    words = dict(re.findall(r"'(driver\.\w+)': '([^']+)'", zh))
+
+    assert sorted(documented - set(site_drv)) == [], "site trace card DRV"
+    assert sorted(documented - set(plugin_drv)) == [], "plugin trace card DRV"
+    # Same word on both cards; every key has its zh and en entry (the zh one is the site's word).
+    for code in documented:
+        assert words.get(plugin_drv[code]) == site_drv[code], code
+    for key in plugin_drv.values():
+        assert f"'{key}':" in en, f"{key} has no en word"

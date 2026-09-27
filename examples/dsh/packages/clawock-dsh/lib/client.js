@@ -6436,6 +6436,10 @@ const dictionaries = {
 		"driver.sentiment": "情绪面",
 		"driver.mixed": "混合",
 		"driver.risk_rule": "风控规则",
+		"driver.catalyst": "催化",
+		"driver.influencer": "影响力",
+		"driver.macro": "宏观",
+		"driver.peer": "同行",
 		"exe.followed": "遵守了计划",
 		"exe.not_followed": "没按计划",
 		"exe.unknown": "未标注",
@@ -6754,6 +6758,10 @@ const dictionaries = {
 		"driver.sentiment": "Sentiment",
 		"driver.mixed": "Mixed",
 		"driver.risk_rule": "Risk rule",
+		"driver.catalyst": "Catalyst",
+		"driver.influencer": "Influencer",
+		"driver.macro": "Macro",
+		"driver.peer": "Peer",
 		"exe.followed": "Followed the plan",
 		"exe.not_followed": "Did not follow",
 		"exe.unknown": "Unmarked",
@@ -7178,7 +7186,11 @@ const DRV = {
 	fundamental: "driver.fundamental",
 	sentiment: "driver.sentiment",
 	mixed: "driver.mixed",
-	risk_rule: "driver.risk_rule"
+	risk_rule: "driver.risk_rule",
+	catalyst: "driver.catalyst",
+	influencer: "driver.influencer",
+	macro: "driver.macro",
+	peer: "driver.peer"
 };
 /**
 * The ledger's `execution.status`, in words.

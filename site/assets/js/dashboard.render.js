@@ -4567,7 +4567,8 @@
     if (!list.length) { if (card) card.style.display = "none"; return; }
     if (card) card.style.display = "";
     const ACT = {buy:"买入",add:"加仓",trim:"减仓",sell:"卖出",cut:"割肉",hold:"持有",hold_and_watch:"持有",trim_on_rebound:"反弹减仓",t_only:"仅T+0",add_only_on_trigger:"触发加仓",reject:"不加",watch:"观望",abstain:"弃权"};
-    const DRV = {technical:"技术面",fundamental:"基本面",sentiment:"情绪面",mixed:"混合",risk_rule:"风控规则"};
+    const DRV = {technical:"技术面",fundamental:"基本面",sentiment:"情绪面",mixed:"混合",risk_rule:"风控规则",
+                 catalyst:"催化",influencer:"影响力",macro:"宏观",peer:"同行"};
     const EXE = {followed:["已遵守","ok"],not_followed:["未执行","skip"],unknown:["未知","na"]};
     const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
     const esc = escapeHtml;
