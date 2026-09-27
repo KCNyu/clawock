@@ -673,7 +673,9 @@ def main():
     # inside the lookback window stay up, marked as retained, and nothing unscored
     # is ever published; when there is nothing scored to keep, the feed is empty
     # and says why (kcn 2026-09-13).
-    filter_failed = bool(candidates) and not scored
+    filter_failed = bool(candidates) and (
+        not scored or all(row.get('relevance') is None for row in scored.values())
+    )
     items = []
     if filter_failed:
         for prior in prev_items:
@@ -777,7 +779,7 @@ def main():
         # 与 source_status 同一组 key：加源时两边一起变，前端/校验按 key 对得上。
         'sources': {spec['key']: spec['desc'] for spec in sources},
         'source_status': source_status,
-        'llm_filtered':  bool(scored),
+        'llm_filtered':  bool(scored) and not filter_failed,
         # 'ok' | 'failed_kept_previous' (no unscored item published) | 'no_candidates'
         'llm_filter_status': ('failed_kept_previous' if filter_failed
                               else 'ok' if scored else 'no_candidates'),

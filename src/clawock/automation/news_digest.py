@@ -15,7 +15,7 @@ Env: MINIMAX_API_KEY required; FINNHUB_API_KEY optional.
 """
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -171,7 +171,7 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
         for ticker, items in raw.items()
     }
     out = {
-        'generated_at': datetime.now().isoformat(),
+        'generated_at': datetime.now(timezone.utc).isoformat(),
         'lookback_hours': 48,
         'tickers': tickers,
         # which held fund each issuer is being read for (PLTR is in the list

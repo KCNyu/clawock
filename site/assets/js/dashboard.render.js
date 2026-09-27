@@ -2769,9 +2769,9 @@
       return sign + fmtMoney(Math.abs(value), currency);
     };
     const curves = (sidecar && sidecar.curves) || {};
-    const skippedMarks = Object.values(curves).flatMap(
-      book => safe(book, "mark_coverage", "skipped_dates") || []
-    );
+    const skippedMarks = [...new Set(Object.values(curves).flatMap(
+      book => (safe(book, "mark_coverage", "skipped_dates") || []).map(row => row.date)
+    ).filter(Boolean))];
     if (coverageNote) {
       coverageNote.textContent = skippedMarks.length
         ? `⚠️ ${skippedMarks.length} 个市场交易日缺行情未计价`

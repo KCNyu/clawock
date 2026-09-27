@@ -344,10 +344,10 @@ def compile_overview_projection(dashboard):
         'cron_schedule': dashboard.get('cron_schedule'),
         'risk_guardrail': {
             **_fields(guardrail, (
-                'computed', 'error', 'breach_count', 'directive',
+                'computed', 'error', 'breach_count', 'directive', 'reentry_rule',
             )),
             'breaches': [
-                _fields(row, ('type', 'severity', 'detail'))
+                _fields(row, ('type', 'severity', 'detail', 'action'))
                 for row in guardrail.get('breaches') or [] if isinstance(row, dict)
             ],
             'hard_stop_watch': [
