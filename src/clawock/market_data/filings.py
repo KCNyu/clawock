@@ -229,14 +229,19 @@ def get_company_facts(ticker: str) -> Optional[Dict]:
 
 
 def _latest_value(facts: Dict, concept: str, periods: int = 4) -> List[Dict]:
-    """Extract the latest `periods` USD values for a concept; returns list of {value, end, fp, form}."""
+    """Extract period values, preferring the single-quarter 10-Q duration."""
     section = facts.get('facts', {}).get('us-gaap', {}).get(concept)
     if not section:
         return []
     # Prefer USD; if missing, take whatever single unit is there
     units = section.get('units', {})
     chosen = units.get('USD') or units.get('USD/shares') or next(iter(units.values()), [])
-    sorted_entries = sorted(chosen, key=lambda x: x.get('end', ''), reverse=True)
+    sorted_entries = sorted(
+        chosen,
+        key=lambda x: (x.get('end', ''), x.get('filed', ''),
+                       x.get('start', '') if x.get('form') == '10-Q' else ''),
+        reverse=True,
+    )
     seen = set()
     out: List[Dict] = []
     for e in sorted_entries:
@@ -247,6 +252,7 @@ def _latest_value(facts: Dict, concept: str, periods: int = 4) -> List[Dict]:
         out.append({
             'value':  e.get('val'),
             'end':    e.get('end'),
+            'start':  e.get('start'),
             'fp':     e.get('fp'),         # FY / Q1 / Q2 / Q3
             'form':   e.get('form'),       # 10-K / 10-Q
             'filed':  e.get('filed'),

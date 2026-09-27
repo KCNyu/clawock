@@ -57,6 +57,18 @@ def _confirmed(events, *, price_change=-3.0, peer=None):
     return graph.gate_events(POLICY, events)
 
 
+def test_underlying_event_uses_held_leveraged_proxy_price_without_proxy_volume():
+    event = {'ticker': 'RKLB', 'reported_ticker': 'RKLB',
+             'impact_direction': 'positive'}
+    portfolio = {'portfolios': {'us_stocks': {'holdings': [
+        {'ticker': 'RKLX', 'shares': 1, 'today_change_pct': 9.35,
+         'volume': 1_000_000, 'current_price': 20}]}}}
+    graph.apply_confirmation(POLICY, [event], portfolio, {}, {})
+    assert event['confirmation']['price_change_pct'] == pytest.approx(9.35)
+    assert event['confirmation']['price_proxy_ticker'] == 'RKLX'
+    assert event['confirmation']['volume_ratio_vs_20d_median'] is None
+
+
 def test_normalize_timestamp_and_event_id_include_event_time():
     timestamp = graph.normalize_timestamp('Sun, 26 Jul 2026 08:30:00 GMT')
     assert timestamp == {

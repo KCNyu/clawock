@@ -8,6 +8,18 @@ import json
 from clawock.market_data import filings
 
 
+def test_latest_quarterly_fact_prefers_single_quarter_over_ytd():
+    facts = {'facts': {'us-gaap': {'Revenues': {'units': {'USD': [
+        {'start': '2026-01-01', 'end': '2026-06-30', 'val': 1_395_448_000,
+         'fp': 'Q2', 'form': '10-Q', 'filed': '2026-08-05'},
+        {'start': '2026-04-01', 'end': '2026-06-30', 'val': 701_315_000,
+         'fp': 'Q2', 'form': '10-Q', 'filed': '2026-08-05'},
+    ]}}}}}
+    rows = filings._latest_value(facts, 'Revenues')
+    assert rows[0]['value'] == 701_315_000
+    assert rows[0]['start'] == '2026-04-01'
+
+
 def test_multiple_tickers_share_one_process_and_one_throttle(monkeypatch, capsys):
     seen = []
     monkeypatch.setattr(filings, 'get_key_financials',

@@ -537,6 +537,21 @@ def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_
                       entry='analyzer_block')
 
 
+def test_information_full_ticker_slice_keeps_live_rows_and_macro():
+    from clawock.tools.context_tools import slice_reference
+
+    full = {
+        'tickers': {'00100': [{'title': 'morning'}], '02208': []},
+        'live': {'tickers': {'00100': [{'title': 'live'}], '02208': []},
+                 'flashes': []},
+        'macro': {'rates': 'unchanged'},
+    }
+    selected = slice_reference(full, ticker='00100')
+    assert selected['tickers'] == {'00100': [{'title': 'morning'}]}
+    assert selected['live']['tickers'] == {'00100': [{'title': 'live'}]}
+    assert selected['macro'] == {'rates': 'unchanged'}
+
+
 def test_a_clipped_add_side_line_never_cuts_a_number():
     """「…RKLB 回踩守住 73.5…」 for 73.57 reads as another price."""
     text = '先把纪律动作走完,再谈加仓(之后:RKLB 回踩守住 73.57(现高于前高 0.84%))'
