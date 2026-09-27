@@ -89,6 +89,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'action.watch': '观望', 'action.abstain': '弃权',
     'driver.technical': '技术面', 'driver.fundamental': '基本面', 'driver.sentiment': '情绪面',
     'driver.mixed': '混合', 'driver.risk_rule': '风控规则',
+    'driver.catalyst': '催化', 'driver.influencer': '影响力', 'driver.macro': '宏观', 'driver.peer': '同行',
     'exe.followed': '遵守了计划', 'exe.not_followed': '没按计划', 'exe.unknown': '未标注',
     'align.same': '与计划同向', 'align.opposite': '与计划反向', 'align.other': '计划未指向买卖',
     'emo.fomo': '追高冲动', 'emo.revenge': '报复性', 'emo.averaging_down': '摊薄冲动',
@@ -226,6 +227,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'action.watch': 'Watch', 'action.abstain': 'Abstain',
     'driver.technical': 'Technical', 'driver.fundamental': 'Fundamental', 'driver.sentiment': 'Sentiment',
     'driver.mixed': 'Mixed', 'driver.risk_rule': 'Risk rule',
+    'driver.catalyst': 'Catalyst', 'driver.influencer': 'Influencer', 'driver.macro': 'Macro', 'driver.peer': 'Peer',
     'exe.followed': 'Followed the plan', 'exe.not_followed': 'Did not follow', 'exe.unknown': 'Unmarked',
     'align.same': 'Same side as plan', 'align.opposite': 'Against the plan', 'align.other': 'Plan was not a trade',
     'emo.fomo': 'FOMO', 'emo.revenge': 'Revenge', 'emo.averaging_down': 'Averaging down',
@@ -522,6 +524,9 @@ const ACT: Record<string, string> = {
 const DRV: Record<string, string> = {
   technical: 'driver.technical', fundamental: 'driver.fundamental', sentiment: 'driver.sentiment',
   mixed: 'driver.mixed', risk_rule: 'driver.risk_rule',
+  // The v2 plan-row words (docs/decision-mind-ledger.md), which is what the trace pairs with:
+  // catalyst is the one the brief's catalyst gate requires on every active call (#2030).
+  catalyst: 'driver.catalyst', influencer: 'driver.influencer', macro: 'driver.macro', peer: 'driver.peer',
 }
 /**
  * The ledger's `execution.status`, in words.
