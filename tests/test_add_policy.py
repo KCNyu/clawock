@@ -91,6 +91,6 @@ def test_a_leveraged_product_is_read_through_its_underlying_when_it_has_bars():
     holdings_of, through = add_side.read_through(
         ["RKLB", "RKLX", "SPCX", "SPCH", "07226"],
         {"RKLX": "RKLB", "SPCH": "SPCX", "07226": "HSTECH"})
-    assert holdings_of == {"RKLB": ["RKLB", "RKLX"], "SPCX": ["SPCX", "SPCH"]}
+    assert holdings_of == {"RKLB": ["RKLX"], "SPCX": ["SPCH"]}
     # HSTECH has no series here, so 07226 keeps its own chart.
     assert through == {"RKLX", "SPCH"}

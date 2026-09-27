@@ -148,6 +148,21 @@ def test_the_entries_differ_only_in_how_sure_the_close_is():
     assert "收盘未确认" in out["intraday"]["rows"][0]["why"]
 
 
+def test_read_through_emits_only_real_holdings_in_both_entries():
+    signals = {"RKLB": _signals(103.0, 100.0),
+               "RKLX": _signals(20.0, 19.0)}
+    holdings_of, through = add_side.read_through(signals, {"RKLX": "RKLB"})
+    brief = add_side.radar({k: v for k, v in signals.items() if k not in through},
+                           holdings_of=holdings_of, near_pct=NEAR, no_chase_z=NOCHASE)
+    slot = add_side.radar({"RKLB": signals["RKLB"]},
+                          holdings_of={"RKLB": ["RKLX"]},
+                          near_pct=NEAR, no_chase_z=NOCHASE)
+    for radar, confirmed in ((brief, True), (slot, False)):
+        rows = add_side.read_rows(radar=radar, levels=radar["levels"],
+                                  close_confirmed=confirmed)["rows"]
+        assert [row["ticker"] for row in rows] == ["RKLX"]
+
+
 def test_the_brief_context_carries_the_add_side_and_explains_an_empty_one(tmp_path, monkeypatch):
     """An empty add side must be an answer, not an absence.
 
