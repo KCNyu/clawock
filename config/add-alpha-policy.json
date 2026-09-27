@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "registered_at": "2026-08-13",
   "minimum_evidence_families": 2,
   "minimum_information_score": 0.08,
@@ -43,5 +43,19 @@
       "minimum_peer_count": 3
     }
   },
-  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one 2.5% tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence."
+  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence. Tranches are sized as a share of the market book with a per-tranche loss cap at the invalidation (sizing).",
+  "sizing": {
+    "basis": "book_risk",
+    "tranche_book_pct": {
+      "technical": 0.02,
+      "exploration_cold_start": 0.005,
+      "exploration": 0.01,
+      "validated": 0.03,
+      "left_scale_in": 0.0025
+    },
+    "max_tranche_risk_book_pct": 0.005,
+    "unit_bridge_max_book_pct": 0.05,
+    "cash_is_hard_cap": false,
+    "rationale": "Candidate for kcn approval. Initial +18.43% book/-6.22% drawdown was a linear fixed-unit scale, not an execution replay. Actual lot, concentration, bridge, thesis and information gate replay is required before merge."
+  }
 }

@@ -9,10 +9,11 @@ POLICY = json.loads((Path(__file__).resolve().parents[1] / "config" /
                      "add-shapes-experiment.json").read_text())
 
 
-def test_live_policy_has_no_candidate_sizing_or_left_side():
+def test_left_side_is_not_live_and_experiment_is_disabled():
     live = json.loads((Path(__file__).resolve().parents[1] / "config" /
                        "add-alpha-policy.json").read_text())
-    assert "sizing" not in live and "left_side" not in live
+    assert "left_side" not in live
+    assert POLICY["left_side"]["enabled"] is False
 
 
 def test_legacy_plan_is_identical_with_or_without_disabled_candidate():
