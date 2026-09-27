@@ -153,7 +153,7 @@ def _action_track_record():
             'by_action': tally}
 
 
-def _opportunity_reads(open_decisions):
+def _opportunity_reads(open_decisions, portfolio):
     """The add side of the book, read off the settled daily bars.
 
     WHY THIS EXISTS. Until 2026-09-05 the brief context carried 34 fields and
@@ -199,14 +199,21 @@ def _opportunity_reads(open_decisions):
         except Exception as exc:  # noqa: BLE001 — one bad file is not a red cron
             unreadable.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:160]})
 
-    # Same read-through as the intraday universe: a leveraged product whose
-    # underlying has bars is read through the underlying, not its own 2x chart,
-    # so a slot and the brief classify the same holding off the same series.
-    signal_symbol_of = {label: (get_instrument(label) or {}).get('signal_symbol')
-                        for label in signals_by_label if is_leveraged_holding({'ticker': label})}
-    holdings_of, through = add_side.read_through(signals_by_label, signal_symbol_of)
-    radar = add_side.radar({k: v for k, v in signals_by_label.items() if k not in through},
-                           holdings_of=holdings_of,
+    # Both entries derive row identity from actual holdings. The bar store is a
+    # registry-wide cache and cannot decide whether an underlying is held.
+    # If a proxy has no settled series, keep a held product's own chart.
+    holdings_of = {}
+    for detail in bar_signals.universe_details(portfolio=portfolio):
+        label = detail['label']
+        members = list(detail.get('source_holdings') or [])
+        if label in signals_by_label:
+            holdings_of[label] = members
+        else:
+            for member in members:
+                if member in signals_by_label:
+                    holdings_of[member] = [member]
+    selected = {label: signals_by_label[label] for label in holdings_of}
+    radar = add_side.radar(selected, holdings_of=holdings_of,
                            confirmed_at_close=profile['close_confirmed'], **params)
     reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
                                plan_context=open_decisions,
@@ -214,7 +221,10 @@ def _opportunity_reads(open_decisions):
                                # Same gates as the slot: the leveraged sleeve and the
                                # policy's size-cap quote. No information lane here
                                # (ENTRY_PROFILES['brief']['information_lane']).
-                               leveraged=set(signal_symbol_of), policy=policy)
+                               leveraged={member for members in holdings_of.values()
+                                          for member in members
+                                          if is_leveraged_holding({'ticker': member})},
+                               policy=policy)
     rows = reads['rows']
 
     # A silent zero is what produced 「为什么只有卖出」— say which of the three
@@ -2059,7 +2069,7 @@ def main(argv=None):
     )
 
     open_decisions = decision_plans.open_decisions_context(today=today)
-    opportunity = _opportunity_reads(open_decisions)
+    opportunity = _opportunity_reads(open_decisions, portfolio)
     track_record = _action_track_record()
     _c = opportunity['counts']
     print(f"   🎯 加仓面: candidate {_c['candidate']} / wait {_c['wait']} / reject {_c['reject']}"

@@ -384,7 +384,7 @@ def is_short_history_candidate(detail, run_date):
     return (run_date - listing).days <= _policy_short_history_max_age_days()
 
 
-def universe_details(errors=None):
+def universe_details(errors=None, portfolio=None):
     """活跃持仓 → 去重后的 signal rows，保留每行覆盖的真实持仓。
 
     杠杆产品使用 registry 的 signal_symbol 折到标的/1x proxy；venue 后缀
@@ -396,7 +396,7 @@ def universe_details(errors=None):
     the per-row fail-soft doctrine of #136. Rows carry the registry
     `listing_date` so short-history gating (#608) works for every consumer.
     """
-    port = load_json_cached(PORTFOLIO)
+    port = portfolio if isinstance(portfolio, dict) else load_json_cached(PORTFOLIO)
     by_code = {}
     for book in (port.get('portfolios') or {}).values():
         if not isinstance(book, dict):
