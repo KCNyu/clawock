@@ -142,8 +142,31 @@ def test_an_uncontested_push_still_takes_the_short_path(repos):
 
 def test_nothing_to_commit_is_not_a_failure(repos):
     origin, runner, _rival = repos
+    _write_scan(runner, "2026-08-31", '{"scan": "unchanged"}\n')
+    _git(runner, "add", "assets/data/sentiment.json", "assets/data/factor-snapshots/sentiment")
+    _git(runner, "commit", "-m", "seed scan")
 
     done = _run_script(runner)
 
     assert done.returncode == 0, done.stdout + done.stderr
     assert "no change" in done.stdout
+
+
+def test_git_add_failure_is_not_reported_as_no_change(repos, tmp_path):
+    _origin, runner, _rival = repos
+    _write_scan(runner, "2026-08-31", '{"scan": "ours"}\n')
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    git = bin_dir / "git"
+    git.write_text(
+        '#!/bin/sh\n'
+        'if [ "$1" = add ]; then echo "simulated index lock" >&2; exit 73; fi\n'
+        'exec /usr/bin/git "$@"\n', encoding="utf-8")
+    git.chmod(0o755)
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}")
+    done = subprocess.run(
+        ["bash", str(SCRIPT), "sentiment: scan", "assets/data/sentiment.json"],
+        cwd=runner, capture_output=True, text=True, env=env)
+    assert done.returncode != 0
+    assert "git add failed" in done.stderr
+    assert "no change" not in done.stdout

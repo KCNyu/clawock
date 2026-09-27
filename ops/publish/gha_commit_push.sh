@@ -38,16 +38,22 @@ BOT_ID=(-c "user.name=github-actions[bot]"
         -c "user.email=41898282+github-actions[bot]@users.noreply.github.com")
 
 commit_once() {
-  git add -- "${DATA_FILES[@]}"
+  git add -- "${DATA_FILES[@]}" || { echo "git add failed" >&2; return 2; }
   if git diff --cached --quiet; then
     echo "no change"
     return 1
   fi
   # NOTE: intentionally does NOT rebuild/stage dashboard.json — see header.
-  git "${BOT_ID[@]}" commit -m "$MSG"
+  git "${BOT_ID[@]}" commit -m "$MSG" || return 2
 }
 
-commit_once || exit 0
+if commit_once; then
+  :
+else
+  status=$?
+  [ "$status" -eq 1 ] && exit 0  # only an unchanged sidecar is success
+  exit "$status"
+fi
 
 if bash "$SAFE_PUSH"; then
   exit 0
@@ -86,5 +92,11 @@ for f in "${DATA_FILES[@]}"; do
     cp -a "$STASH_DIR/$f" "$f"
   fi
 done
-commit_once || exit 0   # origin already carries identical data → done
+if commit_once; then
+  :
+else
+  status=$?
+  [ "$status" -eq 1 ] && exit 0  # origin already carries identical data
+  exit "$status"
+fi
 bash "$SAFE_PUSH"
