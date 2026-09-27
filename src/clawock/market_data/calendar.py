@@ -91,6 +91,18 @@ FOMC_2026 = [
     {'start': '2026-12-08', 'end': '2026-12-09'},
 ]
 
+# 2027 tentative meetings, same Federal Reserve calendar (decision on second day).
+FOMC_2027 = [
+    {'start': '2027-01-26', 'end': '2027-01-27'},
+    {'start': '2027-03-16', 'end': '2027-03-17'},
+    {'start': '2027-04-27', 'end': '2027-04-28'},
+    {'start': '2027-06-08', 'end': '2027-06-09'},
+    {'start': '2027-07-27', 'end': '2027-07-28'},
+    {'start': '2027-09-14', 'end': '2027-09-15'},
+    {'start': '2027-10-26', 'end': '2027-10-27'},
+    {'start': '2027-12-07', 'end': '2027-12-08'},
+]
+
 # BLS CPI release schedule 2026 (typically 13-15 of each month, 8:30 ET)
 # Source: bls.gov/schedule/news_release/cpi.htm
 CPI_2026 = [
@@ -198,7 +210,7 @@ def fetch_earnings(window_start, window_end):
 def fomc_in_window(window_start, window_end):
     """Return FOMC entries whose 2nd-day rate decision falls in window."""
     out = []
-    for m in FOMC_2026:
+    for m in FOMC_2026 + FOMC_2027:
         end = m['end']
         if window_start <= end <= window_end:
             out.append({
@@ -368,10 +380,13 @@ def build_catalysts(days):
     today = hkt_today().isoformat()
     today_dt = datetime.strptime(today, '%Y-%m-%d').date()
     end_iso = (today_dt + timedelta(days=days)).isoformat()
+    review_start = (today_dt - timedelta(days=days)).isoformat()
 
     errors = {}
 
-    earnings, e_errors, queried = fetch_earnings(today, end_iso)
+    earnings_all, e_errors, queried = fetch_earnings(review_start, end_iso)
+    earnings = [row for row in earnings_all if (row.get('date') or '') >= today]
+    recent_earnings = [row for row in earnings_all if (row.get('date') or '') < today]
     if e_errors:
         errors['earnings'] = e_errors
 
@@ -395,6 +410,7 @@ def build_catalysts(days):
         'window_end':         end_iso,
         'earnings_queried':   queried,
         'earnings':           earnings,
+        'recent_earnings':    recent_earnings,
         'fomc':               fomc,
         'macro_events':       macro,
         'scheduled_events':   scheduled,

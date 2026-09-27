@@ -21,6 +21,16 @@ NOW = datetime(2026, 7, 26, tzinfo=timezone.utc)
 TODAY = NOW.date()
 
 
+def test_due_reviews_consume_recent_earnings_not_only_upcoming_events():
+    event = {'ticker': 'USTEST', 'date': '2026-07-23', 'hour': 'bmo'}
+    positions = [{'ticker': 'USTEST'}]
+    due = rs.earnings_reviews_due(
+        positions, {'lookback_window_days': 14, 'recent_earnings': [event]},
+        {}, TODAY, now=NOW,
+    )
+    assert [row['ticker'] for row in due] == ['USTEST']
+
+
 def portfolio(ticker="USTEST", first_buy="2026-08-01", shares=10):
     return {
         "portfolios": {

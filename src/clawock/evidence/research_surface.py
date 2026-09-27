@@ -238,7 +238,7 @@ def earnings_reviews_due(
     via = {issuer: ticker for ticker, issuer in issuers.items() if issuer != ticker}
     window = review_window_days(catalysts)
     due = []
-    for event in (catalysts or {}).get("earnings") or []:
+    for event in ((catalysts or {}).get("recent_earnings") or []) + ((catalysts or {}).get("earnings") or []):
         ticker = event.get("ticker")
         reported = _parse_date(event.get("date"))
         if ticker not in held or reported is None:
