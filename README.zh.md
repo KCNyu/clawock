@@ -376,7 +376,7 @@ dsh plugin --profile web add clawock-dsh
 
 ![KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环](site/assets/architecture.svg)
 
-- 仪表盘六个产物验证后整体发布到[数据面](docs/architecture/data-plane.md):Pages 提供静态壳与冷启动快照,后续轮询读取 `data-plane` 分支;前端直接读扫描旁路文件(sidecar)
+- 仪表盘七个必需产物验证后整体发布到[数据面](docs/architecture/data-plane.md),第八个证据文件在可用时单独发布:Pages 提供静态壳与冷启动快照,后续轮询读取 `data-plane` 分支;前端直接读扫描旁路文件(sidecar)
 - `master` 写者走 `ops/publish/safe_push.sh`:rebase 重试、真冲突中止,冲突标记在 push hook 被拒;仪表盘代次走独立的数据面发布器
 - `portfolio.json` 是唯一真源:advisory 文件锁 + 原子替换,pre-push hook 拦下账目不平的 push
 - 模型选择属于外部 runtime;跟踪的排程契约把 MiniMax-M3.1-Flash-Preview 列为主模型、GPT-6 Luna 列为简报/报告/盘中任务的兜底之一;仓库不存供应商密钥

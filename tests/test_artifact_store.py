@@ -160,6 +160,23 @@ def test_store_reads_leave_the_callers_fetch_head_untouched(repo, tmp_path):
     assert not _git(repo, "for-each-ref", "refs/clawock/fetch/")
 
 
+def test_missing_member_is_checked_against_the_same_pinned_generation(repo, tmp_path):
+    store = GitBranchStore(repo, "data-plane")
+    store.publish(GENERATION)
+    missing = "assets/data/decision_trail.json"
+    observed = []
+
+    def allow(commit, absent):
+        observed.append((absent, store._git_blob(commit, "assets/data/dashboard.json")))
+        return absent if observed[-1][1] == GENERATION["assets/data/dashboard.json"] else []
+
+    written = store.fetch(tmp_path / "materialised", names=[*GENERATION, missing],
+                          allow_missing=allow)
+    assert written == list(GENERATION)
+    assert observed == [([missing], GENERATION["assets/data/dashboard.json"])]
+    assert not _git(repo, "for-each-ref", "refs/clawock/fetch/")
+
+
 @pytest.mark.parametrize("operation", ["fetch", "publish"])
 def test_other_fetch_cannot_replace_the_snapshot_before_it_is_pinned(
         repo, tmp_path, monkeypatch, operation):

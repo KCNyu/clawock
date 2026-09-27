@@ -371,7 +371,7 @@
   let FULL_DASHBOARD = null;
   let FULL_DASHBOARD_INFLIGHT = null;
 
-  // These six outputs are published to the `data-plane` branch (#314) and only
+  // Seven required outputs and one optional evidence file reach `data-plane` and only
   // reach this origin through a Pages deployment. Measured 2026-08-06: the
   // deployment reports success within seconds but its content becomes visible
   // ~14 minutes later, and a deployment created while another is still

@@ -5,10 +5,11 @@ The public dashboard has two delivery surfaces with different jobs:
 - GitHub Pages serves the static HTML, CSS, JavaScript, and the cold-start copy
   of the JSON payloads. Its workflow follows GitHub's supported Pages model:
   build a site, upload a Pages artifact, then deploy it with `deploy-pages`.
-- The browser's later polls read the current six-file generation from the
+- The browser's later polls read the current seven required generation files from the
   `data-plane` branch through `raw.githubusercontent.com`. The branch is an
   orphan snapshot: it is replaced rather than appended, because it is state and
-  not an audit log.
+  not an audit log. An eighth file, `evidence.json`, is published when available
+  on its own cadence.
 
 ## Status: a GitHub-only compatibility layer
 
@@ -29,7 +30,7 @@ Treat that as an operational trade, not product architecture:
 - `FilesystemStore` remains clawock's default artifact store. A foreign install
   never pushes to this repository.
 - `GitBranchStore` and the raw URL are instance adapters owned by KCNyu/clawock.
-- A data-plane push is independent of `master`'s ledger gate. The six payloads
+- A data-plane push is independent of `master`'s ledger gate. The seven required payloads
   carry generation IDs and are validated as one set before publication.
 - The static Pages artifact remains the cold-start fallback, so a raw-content
   outage degrades to an older but internally complete screen instead of blanking
@@ -38,7 +39,7 @@ Treat that as an operational trade, not product architecture:
 ## Long-term target
 
 If the dashboard needs a freshness guarantee tighter than GitHub's caches and
-Pages propagation, move only the six JSON objects to an object store/static data
+Pages propagation, move the seven required JSON objects and optional evidence file to an object store/static data
 service with atomic generation promotion, explicit cache headers, CORS, and
 health telemetry. Keep Pages for the static shell. GitHub Actions artifacts are
 build/deployment inputs with retention, not a public runtime API, so replacing
@@ -47,7 +48,7 @@ plane.
 
 Selection criteria for a replacement are deliberately provider-neutral:
 
-1. publish all six objects, then atomically move one manifest/current pointer;
+1. publish all seven required objects, then atomically move one manifest/current pointer;
 2. reject an older generation overwriting a newer one;
 3. set and observe cache TTL rather than inherit an undocumented raw-content
    cache;

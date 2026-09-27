@@ -55,7 +55,7 @@ def note_failure(reason: str) -> None:
         pass
 
 
-def pre_split_members(store, error) -> list[str]:
+def pre_split_members(store, missing, commit) -> list[str]:
     """Outputs the published generation may lack because it was built before them.
 
     A new output split out of an existing one (`split_from` in
@@ -65,8 +65,7 @@ def pre_split_members(store, error) -> list[str]:
     the split it is on: if the parent file still carries the sections, it predates
     the split and the missing member is expected. Anything else stays a failure.
     """
-    missing = [name for name in DATA_PLANE_FILES if name in str(error)]
-    if not missing:
+    if not missing or any(name not in DATA_PLANE_FILES for name in missing):
         return []
     try:
         outputs = json.loads((ROOT / "config" / "dashboard-outputs.json")
@@ -76,7 +75,7 @@ def pre_split_members(store, error) -> list[str]:
     for name in missing:
         split = (outputs.get(name) or {}).get("split_from") or {}
         try:
-            parent = json.loads(store._git_blob("FETCH_HEAD", split["file"]))
+            parent = json.loads(store._git_blob(commit, split["file"]))
         except Exception:
             return []
         if not all(key in parent for key in split.get("keys") or ["\0"]):
@@ -122,17 +121,16 @@ def main() -> int:
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
     names = list(DATA_PLANE_FILES)
     try:
-        try:
-            written = store.fetch(args.into or args.repo, names=names)
-        except FileNotFoundError as exc:
-            excused = pre_split_members(store, exc)
-            if not excused:
-                raise
+        excused = []
+        def allow_missing(commit, missing):
+            excused.extend(pre_split_members(store, missing, commit))
+            return excused
+        written = store.fetch(args.into or args.repo, names=names,
+                              allow_missing=allow_missing)
+        if excused:
             print(f"· data-plane: the published generation predates {excused} "
-                  "(its parent still carries the sections) — fetching the rest and "
+                  "(its parent still carries the sections) — materialising the rest and "
                   "deriving them from it")
-            written = store.fetch(args.into or args.repo,
-                                  names=[n for n in names if n not in excused])
             written += materialize_split_members(Path(args.into or args.repo), excused)
     except subprocess.TimeoutExpired as exc:
         # Same sibling-not-subclass trap as publish_data_branch: a hung remote
