@@ -216,6 +216,8 @@ def _validate_comparables(doc, errors):
         ):
             continue
         end_date = _validate_period(item.get("period"), f"{prefix}.period", errors)
+        if not isinstance(item.get("period"), dict):
+            continue
         label = (item.get("period") or {}).get("label")
         if label in seen_labels:
             errors.append(f"{prefix}.period.label must be unique")

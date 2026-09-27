@@ -429,7 +429,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         # A model-authored value is replaced before validation and ledger upsert.
         "signal_provenance": action.get("signal_provenance"),
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
-        "horizon_sessions": int(action.get("horizon_sessions") or 1),
+        "horizon_sessions": _int(action.get("horizon_sessions")) or 1,
         "override": action.get("override") or {
             "status": "none", "reason": "", "expires_on": None, "revisit_condition": ""
         },
