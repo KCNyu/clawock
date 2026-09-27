@@ -88,7 +88,9 @@ PLAN_LEAK = {'decisions': [{
 def test_brief_plan_text_that_later_reports_carry_is_checked():
     pf = importlib.import_module('clawock.harness.brief_postflight')
     issues = pf._plan_self_reference_issues(PLAN_LEAK)
-    assert len(issues) == 1 and 'packet' in issues[0] and val.is_advisory(issues[0])
+    assert len(issues) == 2
+    assert 'packet' in issues[0] and 'hold_and_watch' in issues[1]
+    assert all(val.is_advisory(issue) for issue in issues)
     # Page-only debate text is not carried downstream and stays unchecked.
     assert pf._plan_self_reference_issues({'decisions': [
         {'rationale': '风控只允许持有观察', 'debate': {'judge': 'packet 边界内'}}]}) == []
