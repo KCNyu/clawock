@@ -452,7 +452,7 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 <br>
 
 **Models.** Model selection belongs to the external runtime, not clawock. The
-tracked schedule contract lists MiniMax-M3 as primary and GPT-6 Luna among the
+tracked schedule contract lists MiniMax-M3.1-Flash-Preview as primary and GPT-6 Luna among the
 fallbacks for brief, report, and intraday jobs; the live OpenClaw instance can
 change its routing independently. Provider credentials stay outside this public
 repository. No provider key is stored here.
