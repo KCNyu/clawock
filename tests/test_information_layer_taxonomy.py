@@ -42,6 +42,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "config" / "information-layers.json").read_text())
 EN = (ROOT / "README.md").read_text()
 ZH = (ROOT / "README.zh.md").read_text()
+FAQ = (ROOT / "site" / "faq.md").read_text()
 
 PUBLIC = "clawock"
 SCRIPTS = "standalone"
@@ -223,6 +224,8 @@ def test_the_headline_totals_come_from_the_config():
          r"\*\*(\d+) fetch and compute modules across (\d+) layers\*\*", "ml"),
         (ZH, "README.zh.md",
          r"\*\*(\d+) 层、(\d+) 个抓取与计算模块\*\*", "lm"),
+        (FAQ, "site/faq.md",
+         r"(\d+) fetch and compute modules across (\d+) layers", "ml"),
     ):
         headline = re.search(pattern, markdown)
         assert headline, f"{name}: the information-layer headline changed shape"
