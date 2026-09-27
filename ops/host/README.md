@@ -40,7 +40,8 @@ ops/host/install_agent_dispatch.sh --check    # does every installed file match 
 ops/host/install_agent_dispatch.sh --rollback # undo the last install that changed something
 ```
 
-`refresh_live.sh` runs it after a fast-forward that moved `ops/host/agent-dispatch/` (merging
+`refresh_live.sh` runs it whenever the installed copy fails `--check`, even when the checkout
+was already current (cron's pushes fast-forward it too; merging
 alone installs nothing). Running tasks keep the file they opened; no unit is restarted.
 `limits.env` and `notify.env` stay on the host and are never written by the installer. Why,
 and what else stays: `docs/architecture/task-queue.md` § What stays on the host. The suite
