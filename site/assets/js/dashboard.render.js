@@ -4571,6 +4571,7 @@
     const EXE = {followed:["已遵守","ok"],not_followed:["未执行","skip"],unknown:["未知","na"]};
     const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
     const esc = escapeHtml;
+    const realizedMoney = (t) => `${t.realizedPnl >= 0 ? "+" : "−"}${fmtMoney(Math.abs(t.realizedPnl), t.currency)}`;
 
     // T+1 tone ships with the data so this chip cannot colour a move the words
     // call 持平: the ±1% dead zone lives once, in build_decision_traces. `tone`
@@ -4641,9 +4642,8 @@
     // amount; an open one only has the whole position's floating percent, which
     // is not this fill's result and must not be labelled as if it were.
     function pnlNode(t) {
-      const sym = t.currency === "HKD" ? "HK$" : "$";
       if (t.realizedPnl != null) {
-        const v = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym;
+        const v = realizedMoney(t);
         return {n: "本笔已实现", v, c: t.realizedPnl >= 0 ? "pos" : "neg"};
       }
       if (t.holdPnl != null) {
@@ -4728,7 +4728,7 @@
             // percent belongs to the whole position. The 持仓 prefix is what
             // keeps the second one from reading as "this trade lost 28%".
             const pnl = t.realizedPnl != null
-              ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
+              ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${realizedMoney(t)}</span>`
               : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}"><span class="tr-pnl-k">持仓</span>${fmtPct(t.holdPnl, 1)}</span>` : "");
             const t1tag = t.t1
               ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
