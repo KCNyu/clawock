@@ -27,6 +27,12 @@ family：factor/peer residual 合并为 `price_relative`，新闻方向 surprise
 时，只有该最小单位仍低于市场账 3% 硬上限才可补成一单位，否则输出零。validated
 才能多批，杠杆 ETF 不允许 exploration。
 
+`left_scale_in`（左侧分批，kcn 2026-09-26/27）现在是**观察档，不是 setup**：收盘低于前
+20 日高 ≥2 ATR、仍在 MA200 上方的非杠杆持仓，packet 在 `quant.left_side` 给出档位、失效价、
+MA200 底线和闸门状态，但不进 `technical.setups`、不给股数。原因是价格规则本身不跑赢一直
+持有、并入右侧只增加同一批风险（证据与待 kcn 拍板的开闸条件见
+`docs/architecture/harness.md` § Left side (observe mode)）。不得把它写成摊低成本的授权。
+
 `亏损`、`比成本低`、`今天翻红`、`利好新闻`都不是 setup。不得把它们单独包装成摊低成本。
 
 ## 分批与集中

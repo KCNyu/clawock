@@ -924,6 +924,11 @@ def record_risk_stances(today, workspace=None):
         return []
 
 
+
+def _existing(*paths):
+    """The paths that exist under the workspace (for an optional `git add`)."""
+    return [path for path in paths if (WS / path).exists()]
+
 def maybe_commit(status, today, dry_run=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
@@ -1002,7 +1007,11 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/t0_setup_review.json',
                             'assets/data/brief_projection.json',
                             'logs/dashboard_build_status.json',
-                            'assets/data/evidence.json')
+                            'assets/data/evidence.json',
+                            # Left-side forward sample (observe mode). Staged only
+                            # once preflight has written it: an unmatched pathspec
+                            # fails the whole add, and the commit with it.
+                            *_existing('assets/data/left_side_history.jsonl'))
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 

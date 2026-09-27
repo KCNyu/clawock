@@ -46,7 +46,7 @@ one here. News reaches the rows through the graph's own `positive` direction.
 """
 from __future__ import annotations
 
-from clawock.decision import add_policy
+from clawock.decision import add_policy, left_side
 
 VERDICTS = ("candidate", "wait", "reject")
 
@@ -103,7 +103,7 @@ def classify_level(close, prior_20d_high, zscore20, *, near_pct, no_chase_z):
 
 
 def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
-          confirmed_at_close=True):
+          confirmed_at_close=True, left_policy=None):
     """`{rows, levels}` for every label with a computable 20-day level.
 
     The one builder of the opportunity radar, used by both entries
@@ -112,7 +112,9 @@ def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
     intraday slot passes signals computed over bars that end in the live print
     (`confirmed_at_close=False`). It used to be written twice — once here and
     once inline in `intraday_preflight` — which is exactly the shape that lets
-    a brief and a slot disagree about the same name.
+    a brief and a slot disagree about the same name. `left_policy`
+    (`left_side.load_policy()`) adds the left-side ladder's first rung and
+    invalidation to each label's level.
 
     `signals_by_label` maps a label to the output of
     `signals.compute_signals` (or its short-history view), so every number here
@@ -137,10 +139,19 @@ def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
         # Keyed by the label alone, never by the holdings it stands for: a
         # proxy's 20-day high is in a different price scale entirely (#761).
         levels.setdefault(label, {
+            "holdings": list((holdings_of or {}).get(label) or [label]),
             "prior_20d_high": prior, "close": close,
             "pct_from_high": pct_from_high,
             # The pullback read's invalidation (contract §5).
             "prior_5d_low": sig.get("prior_5d_low")})
+        # Left side (observe mode): the packet's own ladder, so both entries
+        # name the same first rung and invalidation.
+        left = left_side.ladder(sig, left_policy) if left_policy else None
+        if left:
+            levels[label].update({"left_rung": left["rungs"][0],
+                                  "left_invalidation": left["invalidation_price"],
+                                  "left_trend_floor": left["trend_floor"],
+                                  "left_depth_atr": left["depth_atr"]})
         state = classify_level(close, prior, sig.get("zscore20"),
                                near_pct=near_pct, no_chase_z=no_chase_z)
         if state is None:
@@ -182,10 +193,12 @@ def read_through(labels, signal_symbol_of):
     return holdings_of, through
 
 
-def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
+def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
+                left_policy=None):
     """The brief entry's radar: `radar` over settled bars."""
     return radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z,
-                 holdings_of=holdings_of, confirmed_at_close=True)
+                 holdings_of=holdings_of, confirmed_at_close=True,
+                 left_policy=left_policy)
 
 
 def _radar_index(radar):
@@ -442,6 +455,23 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             # level can never read as an approach.
             needs = (_needs_level(level) if level
                      else "等一手催化或技术面进入突破区")
+            own = (levels or {}).get(ticker) or {}
+            if own.get("left_rung") is not None and ticker not in set(leveraged or ()):
+                # Left side, observe mode (kcn 2026-09-27; `left_side`): the
+                # ladder is printed so it can be seen and measured, never sized.
+                # Its price rule alone carried no edge over holding and no
+                # diversification over the right side; the thesis/information
+                # gates are the packet's and are recorded there.
+                kind = "left_scale_in"
+                floor = own.get("left_trend_floor")
+                # Card block 10 clips why/needs at ~40 chars: the words that
+                # must survive («观察», «不给尺寸», the rung) come first.
+                why = (f"左侧观察(不给尺寸):低于前 20 日高 {own.get('left_depth_atr')} ATR"
+                       + (",在 MA200 上方" if floor else "") + f";{why}")
+                needs = (f"首档 ≤{own['left_rung']};盘中破 {own['left_invalidation']}"
+                         + (f" 或收盘破 MA200 {floor}" if floor else "") + " 失效")
+                extra = {**extra, "invalidation": own["left_invalidation"]}
+                evidence = {**evidence, "left_rung": own["left_rung"]}
             if level and evidence.get("prior_20d_high") is None:
                 # The number quoted in `needs` has to be pointable-at in the
                 # packet, not only inside a sentence (数字只能引用 context).
@@ -531,6 +561,19 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             "prior_20d_high": radar_row.get("prior_20d_high"),
         })
 
+    for label, level in sorted((levels or {}).items()):
+        # Left-side weakness has no radar row (it is far under the high), so it
+        # gets its own pass — only for a label that reads its own chart, never
+        # for a proxy standing in for a leveraged product.
+        if (level.get("left_rung") is None or label in seen
+                or label not in (level.get("holdings") or [label])):
+            continue
+        add(label, ["left_weakness"], {
+            "close": level.get("close"),
+            "prior_20d_high": level.get("prior_20d_high"),
+            "pct_from_high": level.get("pct_from_high"),
+        })
+
     order = {"candidate": 0, "reject": 1, "wait": 2}
     rows.sort(key=lambda r: (order[r["verdict"]],
                              -abs(r["evidence"].get("move_pct") or 0)))
@@ -546,6 +589,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                     "技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,")
                    + "一手公告升级措辞;回踩中(低于 20 日高、守在 5 日低上)有正向消息支持"
                      "也可 candidate,跌破 5 日低即失效,仓位不超探索档;证据分级 一手>权威>软消息/情绪,"
-                     "杠杆产品只凭软消息不升级;thesis 红线触发 reject,纪律动作未了结降级为 wait 并写明。"
+                     "杠杆产品只凭软消息不升级;thesis 红线触发 reject,纪律动作未了结降级为 wait 并写明;"
+                     "左侧(低于 20 日高 ≥2 ATR、MA200 上方、非杠杆)只作观察 wait,给首档与失效位、不给尺寸。"
                      "三态都不是下单授权。"),
     }

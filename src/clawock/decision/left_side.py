@@ -19,6 +19,28 @@ IS < 2025-07-01 ≤ OOS, one split):
 * the same rule on daily-reset leveraged products — negative in both halves:
   excluded, not half-sized (the 2x decay is what a 20-session wait pays).
 
+What decided its live form (kcn 2026-09-27: 「还是要加上，只是看怎么用」 — the
+direction is settled; the question was the shape). Same run, non-leveraged,
+daily P&L of the left family against the right family (`right`):
+
+* correlation 0.57 OOS (0.60 IS), monthly 0.77; left's beta on right 0.78 and
+  its annualised alpha after that beta -0.72% of book per 1% unit. Adding a
+  sleeve improves Sharpe only if its Sharpe exceeds corr × Sharpe(right)
+  (0.62 OOS); left's is 0.42. Every weight tried (0.25/0.5/1) lowered the
+  combined Sharpe (the run card's ``left_vs_right``). The combined family's
+  positive CI lower bound is more campaigns pooled, not diversification;
+* a one-off look per rung: the third rung is the weakest in both halves (unit
+  return to exit IS 3.6/3.9/0.19%, OOS 1.56/0.23/-0.69%).
+
+The price rule alone therefore has no edge to size, and the one thing that
+could give it one — the thesis/information/peer gates the packet applies — has
+no history to replay. So the live form is ``mode: observe``: both entries
+print the ladder, the packet records which gate held it (`observe`), and the
+brief appends that to `assets/data/left_side_history.jsonl`, which is the
+forward sample a sized form would have to be judged on. ``scale_in_setup``
+refuses to produce an authorising setup until the policy says ``authorize``,
+which is kcn's call along with the size.
+
 So the family is narrow on purpose. Weakness is measured in ATRs below the
 prior 20-day high, so a 2x-volatile name needs a 2x-deeper fall; the trend
 permission is price above MA200; a thesis that is not ``intact`` or a negative
@@ -27,7 +49,8 @@ thesis breaking is value destruction, not sentiment.
 
 Rungs are anchored to the prior 20-day high and ATR, both known at the signal
 close, so the ladder is a pure function of today's row plus how many rungs the
-ledger says were already filled — no hidden state. Everything here is pure.
+ledger says were already filled — no hidden state. Everything here is pure
+except the two file edges, `load_policy` and `record_history`.
 """
 from __future__ import annotations
 
@@ -35,9 +58,28 @@ import hashlib
 import json
 
 from clawock.safe_io import to_number as _number
+from clawock.workspace import workspace_root
 
 SETUP_ID = "left_scale_in"
 TIER = "left_scale_in"
+# Relative to the workspace, resolved per call: a run against another
+# workspace (CLAWOCK_WORKSPACE) must not read or write this checkout's files.
+POLICY_FILE = "config/left-side-policy.json"
+HISTORY = "assets/data/left_side_history.jsonl"
+# Which gate held a fired ladder back, in the order the packet checks them.
+GATES = ("leveraged_excluded", "thesis_not_intact", "negative_information",
+         "peer_laggard")
+
+
+def load_policy(path=None) -> dict:
+    """`{"left_side": {...}}` from the one owner file; `{}` when unreadable
+    (no ladder is then placed anywhere, which is the safe failure)."""
+    try:
+        doc = json.loads((path or workspace_root() / POLICY_FILE).read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {"left_side": doc.get("left_side") or {}}
 
 
 def _terms(policy: dict) -> dict | None:
@@ -110,6 +152,9 @@ def scale_in_setup(
     terms = _terms(policy)
     if terms is None or (leveraged and terms.get("leveraged", "exclude") == "exclude"):
         return None
+    # `observe` (the live mode) never produces a setup the packet could size.
+    if terms.get("mode", "observe") != "authorize":
+        return None
     levels = ladder(row, policy)
     if levels is None:
         return None
@@ -145,3 +190,72 @@ def scale_in_setup(
             + " 即失效"
         ),
     }
+
+
+def observe(row: dict, policy: dict, *, leveraged: bool, thesis_state: str | None,
+            blockers=()) -> dict | None:
+    """What the ladder says for one holding and which gate would hold it back.
+
+    None when the price condition did not fire. Otherwise the rungs, the
+    invalidation, the MA200 floor and ``gate``: the first of `GATES` that
+    applies (None = every gate passed). ``blockers`` are the packet's
+    add-authority blockers; only the negative-information and persistent-peer-
+    laggard ones are read here. Never sizes, never authorises.
+    """
+    terms = _terms(policy)
+    if terms is None:
+        return None
+    levels = ladder(row, policy)
+    if levels is None:
+        return None
+    blockers = set(blockers or ())
+    gate = None
+    if leveraged and terms.get("leveraged", "exclude") == "exclude":
+        gate = "leveraged_excluded"
+    elif (terms.get("requires_thesis") == "intact"
+          and (thesis_state or "unknown") != "intact"):
+        gate = "thesis_not_intact"
+    elif "negative_information" in blockers:
+        gate = "negative_information"
+    elif "peer_laggard_avoidance" in blockers:
+        gate = "peer_laggard"
+    return {
+        "mode": terms.get("mode", "observe"),
+        "gate": gate,
+        "rungs": levels["rungs"],
+        "invalidation_price": levels["invalidation_price"],
+        "trend_floor": levels["trend_floor"],
+        "depth_atr": levels["depth_atr"],
+        "close": _number(row.get("close")),
+        "authorization": None,
+    }
+
+
+def history_row(packet: dict) -> dict:
+    """One `left_side_history.jsonl` row: every holding whose ladder fired in
+    this packet, with the gate that held it. Written every brief day, fired or
+    not, so a quiet day is a recorded zero rather than a gap."""
+    fired = {
+        ticker: {"leg": row.get("leg"), **obs}
+        for ticker, row in sorted(((packet or {}).get("tickers") or {}).items())
+        if (obs := (row.get("quant") or {}).get("left_side"))
+    }
+    return {
+        "as_of": str((packet or {}).get("date") or "")[:10],
+        "generation_id": ((packet or {}).get("_meta") or {}).get("generation_id"),
+        "rows": fired,
+    }
+
+
+def record_history(packet: dict, path=None) -> dict:
+    """Replace today's row in the forward sample (one row per brief date)."""
+    from clawock import history_store
+
+    row = history_row(packet)
+    if not row["as_of"]:
+        return row
+    target = path or workspace_root() / HISTORY
+    kept = [old for old in history_store.load_series(target)
+            if str(old.get("as_of") or "")[:10] != row["as_of"]]
+    history_store.write_series(target, kept + [row])
+    return row

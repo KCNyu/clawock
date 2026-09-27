@@ -52,9 +52,9 @@ market_data provider DTO -> decision strategy -> package lifecycle -> runtime/pr
 - Skills explain how to consume the structured result. They must not redefine
   thresholds, sizing or state transitions already owned by Python policy.
 
-The add side is the worked example: `config/add-alpha-policy.json` is profile
-data, `decision/add_policy.py` / `add_alpha.py` / `add_side.py` are the pure
-strategy, and the brief and intraday lifecycles are two entries that differ only
+The add side is the worked example: `config/add-alpha-policy.json` and
+`config/left-side-policy.json` are profile data, `decision/add_policy.py` /
+`add_alpha.py` / `left_side.py` / `add_side.py` are the pure strategy, and the brief and intraday lifecycles are two entries that differ only
 through `add_policy.ENTRY_PROFILES` (owner table:
 [`harness.md` § Add-side strategy](../architecture/harness.md#add-side-strategy-one-owner-three-entries)).
 
