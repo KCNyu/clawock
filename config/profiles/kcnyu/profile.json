@@ -39,32 +39,6 @@
     "instruments": "config/instruments.json",
     "schedule_contract": "config/cron-schedules.json"
   },
-  "policies": {
-    "intraday": {
-      "max_setup_lines": 6,
-      "quote_fresh_minutes": 5,
-      "delivered_state_schema": 1,
-      "primary_disclosure_cache_seconds": 300
-    },
-    "report": {
-      "prose_max_age_minutes": 30,
-      "market_rules": {
-        "hk": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说实时价获取失败",
-        "us": "杠杆 ETF 不直接读取其自身 SEC EDGAR，使用 underlying 走势"
-      },
-      "phase_labels": {
-        "hk.open": "港股开盘（09:30 HKT）",
-        "hk.mid": "港股午盘（12:00 HKT）",
-        "hk.pm": "港股午后（13:30 HKT）",
-        "hk.close": "港股收盘（16:00 HKT）",
-        "us.open": "美股开盘（09:30 ET）",
-        "us.close": "美股收盘（16:00 ET）"
-      }
-    },
-    "brief": {
-      "markets_must_both_be_closed_to_skip": true
-    }
-  },
   "delivery": {
     "provider": "openclaw",
     "targets": {

@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": [
     "schema_version", "id", "locale", "timezone", "markets",
-    "workflows", "resources", "policies", "delivery"
+    "workflows", "resources", "delivery"
   ],
   "properties": {
     "schema_version": {"const": 1},
@@ -51,7 +51,6 @@
       "minProperties": 1,
       "additionalProperties": {"type": "string", "minLength": 1}
     },
-    "policies": {"type": "object"},
     "delivery": {
       "type": "object",
       "additionalProperties": false,

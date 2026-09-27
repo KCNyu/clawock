@@ -38,7 +38,7 @@ market_data provider DTO -> decision strategy -> package lifecycle -> runtime/pr
   scope, instrument look-through, signal state, risk/exploration contract and
   its bounded state. It accepts a generic workspace/book and explicit policy;
   it does not know KCNyu, OpenClaw, a delivery target or prose layout.
-- A profile supplies declarative markets, policies, schedules,
+- A profile supplies declarative markets, schedules,
   resources and delivery selection. Phase wiring, rendering, watchdog behavior
   and reusable policy stay in `src/clawock/`; host and repository side effects
   stay in `ops/`.

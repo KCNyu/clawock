@@ -23,12 +23,6 @@
     "instruments": "config/instruments.json",
     "schedule_contract": "config/schedule.json"
   },
-  "policies": {
-    "intraday": {
-      "max_setup_lines": 3,
-      "quote_fresh_minutes": 10
-    }
-  },
   "delivery": {
     "provider": "filesystem",
     "targets": {
