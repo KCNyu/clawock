@@ -26,7 +26,8 @@
       #   codexLowPct: 20                              # red dot when a quota window <= this remaining %
       #   codexRefreshMs: 300000                       # app-server poll/cache cadence (default 5 min)
       #   dispatchLogDir: '~/logs/agent-dispatch'      # task chip data; the chip hides without it
-      #   dispatchLimitsPath: '~/tools/agent-dispatch/limits.env'  # MAX_RUNNING for the slot count
+      #   dispatchLimitsPath: '~/tools/agent-dispatch/limits.env'  # per-agent slots: MAX_RUNNING_<AGENT> (MAX_RUNNING is only their sum, for old chips)
       #   patrolStateDir: '~/logs/clawock-patrol'      # current-round, rounds.tsv
       #   taskQueueRefreshMs: 15000                    # suggested task-chip poll interval
       #   taskQueueRecent: 5                           # recently ended tasks listed
+      #   taskQueueOpsPath: '~/tools/agent-dispatch/task_queue_ops.py'  # the chip's only write path (ops/host/install_task_queue_ops.sh); missing = the panel is read-only

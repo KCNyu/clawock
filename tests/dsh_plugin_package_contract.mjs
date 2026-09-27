@@ -168,6 +168,28 @@ test('the README names every optional ClawockStudioConfig key', () => {
 })
 
 /**
+ * #1990: the shipped cordis.patch.yml is the other copy of that list (README
+ * points profile authors at it) and was in no gate: #1951 added
+ * taskQueueOpsPath — the key that decides whether the chip can write at all —
+ * and #1895 moved the slot counts to MAX_RUNNING_<AGENT>, and neither touched
+ * the file. Same shape as the README gate: the interface is the list.
+ */
+test('cordis.patch.yml names every optional ClawockStudioConfig key', () => {
+  const src = readFileSync(join(PLUGIN, 'src', 'index.ts'), 'utf8')
+  const body = src.match(/export interface ClawockStudioConfig \{([\s\S]*?)\n\}/)?.[1]
+  assert.ok(body, 'ClawockStudioConfig not found in src/index.ts')
+  const keys = [...body.matchAll(/^\s*(\w+)\?:/gm)].map((m) => m[1])
+  assert.ok(keys.length >= 10, `only ${keys.length} keys parsed from ClawockStudioConfig`)
+
+  const patch = readFileSync(join(PLUGIN, 'cordis.patch.yml'), 'utf8')
+  const listed = new Set([...patch.matchAll(/^\s*#\s+(\w+):/gm)].map((m) => m[1]))
+  const missing = keys.filter((key) => !listed.has(key))
+  assert.deepEqual(missing, [], `cordis.patch.yml's config block is missing ${missing.join(', ')}`)
+  assert.ok(!/MAX_RUNNING for the slot count/.test(patch),
+    'dispatchLimitsPath still documents the single slot count replaced by MAX_RUNNING_<AGENT>')
+})
+
+/**
  * #1587: the shipped skill's decision-contract.md says "See
  * `assets/decision.example.json`" and "Copy `assets/outcome.example.json`" —
  * the start of the evaluate flow — but the plugin's skill only carried
