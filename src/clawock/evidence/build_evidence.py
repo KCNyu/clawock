@@ -359,7 +359,7 @@ def add_alpha_section() -> dict | None:
         'rows': rows,
         'reading': (
             "价格相对强弱与点时信息必须共同出现；技术位只安排已经获准的 tranche。"
-            "当前 run card 是 current-universe / legacy-news replay，且前瞻信息日期仍为 0，"
+            f"当前 run card 是 current-universe / legacy-news replay，前瞻信息日期为 {coverage.get('prospective_information_dates', 0)}，"
             "所以只用于收集与诊断，**不是 validated alpha**。旧账本里的 "
             "`add_only_on_trigger` 是 mixed/legacy 样本，不计作这套 campaign 的成绩。"),
         'source': f"run card `{card.get('run_id')}`",

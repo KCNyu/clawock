@@ -372,6 +372,9 @@ def test_an_unchanged_slot_may_say_so_in_one_line_but_not_invent_a_move():
     honest = '▎我的看法\n本档无实质变化，继续观察 07226，下一触发 3.0。'
     issues = post.validate(post.assemble_message(ctx, honest), ctx, honest)
     assert not any('太敷衍' in i or '新异动' in i for i in issues), issues
+    natural = '▎我的看法\n本档没有实质性变化，继续观察 07226。'
+    issues = post.validate(post.assemble_message(ctx, natural), ctx, natural)
+    assert not any('太敷衍' in i for i in issues), issues
     vague = '▎我的看法\n继续观察 07226，下一触发 3.0。'
     assert any('太敷衍' in i for i in post.validate(
         post.assemble_message(ctx, vague), ctx, vague))
@@ -382,6 +385,14 @@ def test_an_unchanged_slot_may_say_so_in_one_line_but_not_invent_a_move():
     changed = {**ctx, 'semantic_unchanged': False}
     assert any('太敷衍' in i for i in post.validate(
         post.assemble_message(changed, honest), changed, honest))
+
+
+def test_stale_headline_time_in_next_sentence_is_accepted(monkeypatch):
+    monkeypatch.setattr(post.intraday_information, 'stale_titles',
+                        lambda _information: ['某公司发布重大公告'])
+    ctx = {'information': {}}
+    assert post.check_stale_citation('某公司发布重大公告。截至10:00，内容是业绩预增。', ctx) == []
+    assert post.check_stale_citation('某公司发布重大公告。业绩预增。', ctx)
 
 
 def test_a_context_field_name_in_the_judgment_is_flagged_on_top():

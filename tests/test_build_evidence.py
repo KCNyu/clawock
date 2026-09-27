@@ -173,7 +173,7 @@ def test_add_campaign_is_separate_and_zero_samples_stay_collecting(
                 }},
                 "coverage": {"factor_dates": 11, "information_dates": 12,
                              "overlap_dates": 10,
-                             "prospective_information_dates": 0,
+                             "prospective_information_dates": 1,
                              "authority_classifications": {
                                  "none": 186, "exploration": 6, "validated": 0,
                              }},
@@ -185,6 +185,7 @@ def test_add_campaign_is_separate_and_zero_samples_stay_collecting(
 
     assert section["verdict"] == ev.VERDICT["undecided"]
     assert "不是 validated alpha" in section["reading"]
+    assert "前瞻信息日期为 1" in section["reading"]
     assert "mixed/legacy" in section["reading"]
     assert any("collecting · n=0" in value for _, value in section["rows"])
     assert not any("0.0%" in value for _, value in section["rows"] if "n=0" in value)

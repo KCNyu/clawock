@@ -13,6 +13,7 @@ import subprocess
 from pathlib import Path
 
 from clawock.publish import write_generation  # noqa: F401
+from clawock.safe_io import safe_write_text
 from clawock.workspace import workspace_root
 
 ROOT = workspace_root()
@@ -141,8 +142,8 @@ class DirectoryBaseline:
         return json.loads(self._file(path).read_text(encoding="utf-8"))
 
     def restore(self, root: Path, path: str) -> None:
-        (Path(root) / path).write_text(
-            self._file(path).read_text(encoding="utf-8"), encoding="utf-8")
+        safe_write_text(str(Path(root) / path),
+                        self._file(path).read_text(encoding="utf-8"))
 
 
 def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True,

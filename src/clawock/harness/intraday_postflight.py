@@ -310,9 +310,11 @@ def check_stale_citation(prose, ctx):
     titles = [t for t in intraday_information.stale_titles(ctx.get('information'))
               if len(t) >= 8]
     found = []
-    for sentence in re.split(r'[。；\n]', prose or ''):
+    sentences = re.split(r'[。；\n]', prose or '')
+    for index, sentence in enumerate(sentences):
+        context = sentence + (sentences[index + 1] if index + 1 < len(sentences) else '')
         for title in titles:
-            if title[:8] in sentence and not re.search(r'截至|旧闻|早盘前|开盘前', sentence):
+            if title[:8] in sentence and not re.search(r'截至|旧闻|早盘前|开盘前', context):
                 found.append(title[:12])
     if not found:
         return []
@@ -453,7 +455,7 @@ def validate(text, ctx, model_text):
         # 变化，下一触发 X". The 60-char floor would push it into padding or an
         # invented move, so a short body passes only when it says no change.
         honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
-            r'无实质变化|没有实质变化|无新变化|没有新变化|无变化', section_body)
+            r'无实质性?变化|没有实质性?变化|无新变化|没有新变化|无变化', section_body)
         if len(section_body) < 60 and not honest_quiet:
             issues.append(
                 f'"{REQUIRED_SECTION}" 段仅 {len(section_body)} 字，太敷衍 '
