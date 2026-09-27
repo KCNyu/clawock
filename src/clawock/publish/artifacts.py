@@ -592,6 +592,8 @@ DEFAULT_SCREENSHOTS = (
     # it ships in three READMEs, and the cheapest thing this gate can hold is
     # that the committed file still exists and still decodes.
     ('site/assets/dsh-decision-mind.png', 100_000, 1_200, 600),
+    # Same kind: the dispatch queue panel, from site/tools/shoot_dsh_queue.js.
+    ('site/assets/dsh-dispatch-queue.png', 30_000, 600, 500),
 )
 
 

@@ -219,6 +219,8 @@ clawock's agent-dispatch, the sidebar panel also shows that host's task queue an
 steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
+![The sidebar provider panel on a live host: each agent's quota windows above its queue, one task running (Claude), one waiting for Codex's quota to reset, with its notification receipts / 真实主机上的侧栏 provider 面板:每个 agent 的额度窗口在上、它喂的队列在下,一个任务在跑(Claude),一个等 Codex 额度重置,带通知回执](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png)
+
 ### English
 
 **What it is.** agent-dispatch runs headless Claude Code, Codex and OpenCode tasks, each in
@@ -296,10 +298,13 @@ not change the task, is not retried and raises no alarm. It shows up as
 `notify: send failed (<channel>)` in `run.log`, in `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT`
 in `result.env`, and as a red receipt icon in the chip. A missing notification only means
 nobody was told; read `result.env` before assuming the task failed. As of 2026-09-28:
-Telegram delivers end-of-task notices; its misses were short-deadline notices (quota wait,
-cancel) running past their time limit on this host. WeChat has a known token problem: its
-per-conversation token lapses, and every WeChat send fails until it is renewed. It
-failed from 09-26 until the evening of 09-27, has delivered since, and can lapse again.
+Telegram delivers. Its misses on 09-26/27 were 30-second notices running past their limit,
+because `openclaw message send` takes 13–25 s just to start on this host. The quota-wait notice
+has had 60 s since clawock#2057. A cancel notice keeps 30 s, the most the unit's stop budget
+leaves, so a cancel can still go unannounced on a busy host. WeChat has a known token problem:
+its per-conversation token lapses, and every WeChat send fails until it is renewed. It failed
+from 09-26 until the evening of 09-27, has delivered since, and can lapse again. It is not
+fixed.
 
 **Honest boundaries.**
 
@@ -380,9 +385,11 @@ claude 会在每个 content block 行上重复同一条消息的 usage)、codex 
 默认两条都发)经 `openclaw message send` 并行各发一次。投递是**尽力而为**:某条失败不改变任务状态、
 不重试、不告警,只体现在 `run.log` 的 `notify: send failed (<通道>)`、`result.env` 的
 `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT`,以及芯片里红色的回执图标。没收到推送只说明没人被
-告知,先看 `result.env`,别据此认定任务失败。截至 2026-09-28:Telegram 的任务结束通知都送达了,
-失败的是时限短的通知(等额度、取消)在本机超过了时限;微信是**已知的 token 问题**——每个会话的
-token 会失效,失效期间每条微信都失败:09-26 到 09-27 晚上一直失败,之后恢复,可能再次失效。
+告知,先看 `result.env`,别据此认定任务失败。截至 2026-09-28:Telegram 正常送达;09-26/27 的几次
+失败都是 30 秒时限的通知超时——本机上 `openclaw message send` 光启动就要 13–25 秒。等额度通知自
+clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩这么多),主机忙时取消可能没推送。
+微信是**已知的 token 问题**,没有修:每个会话的 token 会失效,失效期间每条微信都失败——09-26 到
+09-27 晚上一直失败,之后恢复,可能再次失效。
 
 **诚实的边界。**
 
@@ -450,4 +457,5 @@ npm publish                                   # 发布当前版本
 把当前 checkout 装进 self-hosted DSH(开发/自部署):
 `ops/host/install_dsh_plugin.sh --restart`。README 截图一条命令:
 `node site/tools/shoot_dsh_plugin.js` + `clawock validate-sidecar screenshots`;
+派发队列那张:`node site/tools/shoot_dsh_queue.js`(WebKit,只取 agent 分组,面板背后的会话列表先隐藏);
 决策卡示例图:`node site/tools/shoot_decision_card.js`。
