@@ -139,9 +139,12 @@ finished attempt.
 
 `brief` answers `prompt.md` (the brief as dispatched, with its dispatch contract) and every append:
 `inbox/*.md` not delivered yet, `inbox/delivered/*.md` delivered, in file-name (time) order. The
-answer is capped — the brief at 48 KB, the appends at 16 KB together — and says so
-(`truncated: true`, the file's real `brief_bytes`), with each file's path so a reader can open
-the whole file. Nothing edits a brief: change a queued task's `prompt.md` before it starts, or
+answer is capped — the brief at 48 KB, the appends at 16 KB together — and says so, with each
+file's path so a reader can open the whole file. In JSON: `truncated` (prompt.md was cut; its real
+size is `brief_bytes`), each append's own `truncated` and `bytes`, and `appends_truncated` /
+`dropped_bytes` for the whole answer. In the default text answer, each cut file's header carries
+`[truncated: <real> -> <shown> bytes; full text: <path>]`, and a last line gives the bytes not
+shown. Before #1988 the text answer dropped them without a word, exit 0. Nothing edits a brief: change a queued task's `prompt.md` before it starts, or
 `dispatch.sh append` (`--queue` while it runs).
 
 ### deadline, attempts, resumes — the task's budgets

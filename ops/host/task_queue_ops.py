@@ -24,7 +24,7 @@ Two consumers, one rule each place:
       log <id> [--lines N]          the end of the task's run.log, redacted
       result <id>                   the latest final report (read-result.py)
       usage <id>                    tokens the task used and their API-price estimate (KEY=VALUE for the runner)
-      brief <id>                    the task's brief (prompt.md) and its appends, capped (read-only)
+      brief <id>                    the task's brief (prompt.md) and its appends, capped (read-only); a cut says so
       deadline <id> <+Nh|+Nm|YYYY-MM-DD HH:MM|reset>
                                     move the whole task's deadline (runner api 3)
       attempts <id> <n|reset>       the retry budget MAX_ATTEMPTS (runner api 3)
@@ -992,9 +992,14 @@ def cmd_brief(args) -> dict:
         budget -= len(body.encode())
         appends.append({"file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "bytes": n,
                         "text": body, "truncated": over})
+    # `truncated` stays prompt.md's own flag (the chip labels it with brief_bytes); the appends say
+    # so each, and together in appends_truncated / dropped_bytes (#1988: the text answer used to
+    # drop them without a word).
+    dropped = size - len(text.encode()) + sum(a["bytes"] - len(a["text"].encode()) for a in appends)
     return {"ok": True, "id": args.id, "name": meta.get("NAME", args.id), "agent": meta.get("AGENT", ""),
             "model": meta.get("MODEL", ""), "path": str(d / "prompt.md"), "brief": text, "brief_bytes": size,
-            "truncated": cut, "limit_bytes": BRIEF_MAX_BYTES + APPENDS_MAX_BYTES, "appends": appends}
+            "truncated": cut, "appends_truncated": any(a["truncated"] for a in appends),
+            "dropped_bytes": dropped, "limit_bytes": BRIEF_MAX_BYTES + APPENDS_MAX_BYTES, "appends": appends}
 
 
 # ---- budgets: deadline, retries, quota resumes (runner api 3) --------------------------------
@@ -1163,8 +1168,18 @@ def human(action: str, out: dict) -> str:
     if action == "usage":
         return usage_env(out)
     if action == "brief":
-        return out["brief"] + "".join(f"\n\n--- append {a['stamp']} ({'delivered' if a['delivered'] else 'pending'})\n{a['text']}"
-                                      for a in out["appends"])
+        def cut(item_bytes: int, shown: str, path: str) -> str:
+            return f" [truncated: {item_bytes} -> {len(shown.encode())} bytes; full text: {path}]"
+        parts = [out["brief"]]
+        if out["truncated"]:
+            parts.append("\n---" + cut(out["brief_bytes"], out["brief"], out["path"]))
+        for a in out["appends"]:
+            head = f"\n\n--- append {a['stamp']} ({'delivered' if a['delivered'] else 'pending'})"
+            parts.append(head + (cut(a["bytes"], a["text"], a["path"]) if a["truncated"] else "") + "\n" + a["text"])
+        if out.get("dropped_bytes"):
+            parts.append(f"\n\n--- {out['dropped_bytes']} bytes not shown (caps: prompt {BRIEF_MAX_BYTES // 1024} KB, "
+                         f"appends {APPENDS_MAX_BYTES // 1024} KB together); read the files named above in full")
+        return "".join(parts)
     return out.get("message") or json.dumps(out, ensure_ascii=False)
 
 

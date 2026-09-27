@@ -566,6 +566,38 @@ def test_brief_returns_the_prompt_and_appends_in_time_order_capped(q):
     assert out["path"].endswith("/b-task/prompt.md") and out["appends"][1]["path"].endswith("/inbox/20260927-020000-12-now.md")
 
 
+def test_brief_text_answer_says_what_it_cut(q):
+    """#1988: past the 16 KB append budget the text answer used to end mid-sentence and print
+    later appends as empty headers, exit 0, with no word of a cut anywhere."""
+    d = q.task("c-task", result="STATE=running\n")
+    (d / "prompt.md").write_text("# Task\nshort brief")
+    (d / "inbox" / "delivered").mkdir(parents=True)
+    for i, ch in enumerate("xyz", 1):
+        (d / "inbox" / "delivered" / f"20260927-0{i}0000-{i}-queue.md").write_text(ch * 9000)
+    code, out = q.run("brief", "c-task")
+    assert code == 0
+    # prompt.md was not cut: the flag the chip labels with brief_bytes keeps meaning that.
+    assert out["truncated"] is False and out["appends_truncated"] is True
+    assert [a["truncated"] for a in out["appends"]] == [False, True, True]
+    assert out["dropped_bytes"] == 27000 - 16 * 1024
+
+    r = subprocess.run([sys.executable, str(OPS), "brief", "c-task"], env=q.env, capture_output=True,
+                       text=True, timeout=30)
+    assert r.returncode == 0
+    second, third = out["appends"][1], out["appends"][2]
+    assert f"[truncated: 9000 -> {16 * 1024 - 9000} bytes; full text: {second['path']}]" in r.stdout
+    assert f"[truncated: 9000 -> 0 bytes; full text: {third['path']}]" in r.stdout
+    assert r.stdout.rstrip().endswith("read the files named above in full")
+    assert f"--- {27000 - 16 * 1024} bytes not shown" in r.stdout
+
+    # Nothing cut, nothing said.
+    d2 = q.task("d-task", result="STATE=running\n")
+    (d2 / "prompt.md").write_text("# Task\nall here")
+    r = subprocess.run([sys.executable, str(OPS), "brief", "d-task"], env=q.env, capture_output=True,
+                       text=True, timeout=30)
+    assert r.stdout == "# Task\nall here" + "\n" and "truncated" not in r.stdout
+
+
 # ---- budgets: deadline / attempts / resumes through override.env (runner api 3) ----------------
 
 def _budget_task(q, tid="t3", api=3, extra=""):
