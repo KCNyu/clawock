@@ -23,17 +23,14 @@ Usage:
   clawock t0              # 评级，不抓分钟数据
   clawock t0 --intraday   # 同 T0_INTRADAY=1：开盘时补 VWAP/ORB
 """
-import hashlib
 import json
 import os
 import sys
-import tempfile
 from datetime import datetime
-from pathlib import Path
 
 from clawock import sessions as tc
 from clawock.instruments import INSTRUMENTS
-from clawock.safe_io import file_lock, safe_write_json, safe_write_text
+from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -257,10 +254,7 @@ def _history_lock(path):
     on this host, so a temp-dir path keyed by the history file serializes them
     just as well.
     """
-    lock_dir = Path(tempfile.gettempdir()) / 'clawock-t0-locks'
-    lock_dir.mkdir(parents=True, exist_ok=True)
-    key = hashlib.sha1(os.path.abspath(str(path)).encode()).hexdigest()[:16]
-    return file_lock(str(lock_dir / key))
+    return temp_dir_lock(path, 't0')
 
 
 def persist_history(data):

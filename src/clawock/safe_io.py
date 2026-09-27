@@ -17,6 +17,7 @@ side.
 import contextlib
 import copy
 import fcntl
+import hashlib
 import json
 import math
 import os
@@ -24,6 +25,7 @@ import sys
 import tempfile
 from typing import Any
 from datetime import datetime
+from pathlib import Path
 
 
 @contextlib.contextmanager
@@ -47,6 +49,16 @@ def file_lock(path: str):
             fcntl.flock(lf, fcntl.LOCK_UN)
         finally:
             lf.close()
+
+
+def temp_dir_lock(path, namespace: str):
+    """Use the shared lock primitive without placing `.lock` in published data."""
+    if not namespace.isalnum():
+        raise ValueError('lock namespace must be alphanumeric')
+    lock_dir = Path(tempfile.gettempdir()) / f'clawock-{namespace}-locks'
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha1(os.path.abspath(str(path)).encode()).hexdigest()[:16]
+    return file_lock(str(lock_dir / digest))
 
 
 def mutate_json(path: str, mutate_fn, default=None):

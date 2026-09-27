@@ -56,6 +56,14 @@ def test_raster_derivatives_have_exact_declared_sizes():
         assert _png_size(ROOT / "site/assets/icons" / filename) == size
 
 
+def test_maskable_icon_is_opaque_and_distinct_from_the_any_icon():
+    icons = ROOT / 'site/assets/icons'
+    maskable = (icons / 'icon-maskable-512.png').read_bytes()
+    assert maskable != (icons / 'icon-512.png').read_bytes()
+    assert maskable[25] == 2  # PNG IHDR truecolor: no transparent alpha channel
+    assert 'background:#E6EBEF' in (ROOT / 'site/tools/build_brand_assets.js').read_text()
+
+
 def test_all_public_shells_use_the_vector_mark():
     index = (ROOT / "site/index.html").read_text()
     layout = (ROOT / "site/_layouts/default.html").read_text()
