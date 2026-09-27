@@ -48,7 +48,8 @@ def recompute_headline(provenance: dict, decisions) -> dict:
 
     window = provenance.get('window') or {}
     metrics = ledger_module.compute_metrics(
-        list(decisions),
+        prov.slice_rows(list(decisions), window.get('cutoff'),
+                        window.get('last_plan_date')),
         window_days=window.get('days') or 30,
         cutoff=window.get('cutoff'),
     )

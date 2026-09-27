@@ -2706,7 +2706,9 @@ def decision_delta(decisions: list[dict]) -> dict:
         old = prev_by_key.get((d.get("ticker"), d.get("strategy_id")))
         if not old:
             new.append(compact)
-        elif old.get("action") != d.get("action") or old.get("condition") != d.get("condition"):
+        elif (old.get("action") != d.get("action")
+              or any((old.get("condition") or {}).get(key) != (d.get("condition") or {}).get(key)
+                     for key in ("type", "price", "valid_for_sessions"))):
             compact["from_action"] = old.get("action")
             changed.append(compact)
     triggered = [{"ticker": d.get("ticker"), "strategy_id": d.get("strategy_id"), "action": d.get("action")}

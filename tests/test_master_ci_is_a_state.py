@@ -84,6 +84,13 @@ def test_a_green_master_says_so(monkeypatch):
     assert "3a81d86b" in state.summary()
 
 
+@pytest.mark.parametrize("nonverdict", ["cancelled", "skipped", "neutral"])
+def test_nonverdict_run_does_not_turn_master_red(monkeypatch, nonverdict):
+    state = _state(monkeypatch, [_run(nonverdict), _run("success", sha="abc12345")])
+    assert state.state == "green" and state.sha == "abc12345"
+    assert _state(monkeypatch, [_run(nonverdict)]).state == "unknown"
+
+
 def test_the_incident_shape_carries_both_numbers(monkeypatch):
     """2026-09-09/10, exactly. The hours and the stack are what turn "master is
     red" into something somebody acts on."""

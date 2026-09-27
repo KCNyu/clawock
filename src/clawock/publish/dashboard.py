@@ -961,7 +961,7 @@ _MONTHS = {m: i for i, m in enumerate(
 _ASOF_RE = re.compile(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})(?:,\s*(\d{4}))?')
 
 
-def _session_asof(region_pf, fallback_year):
+def _session_asof(region_pf, snapshot_date):
     """The market-session date (YYYY-MM-DD) a snapshot's prices belong to, parsed
     from an ACTIVE holding's data_source (exited names carry stale dates).
 
@@ -974,7 +974,21 @@ def _session_asof(region_pf, fallback_year):
             continue
         m = _ASOF_RE.search(h.get('data_source') or '')
         if m:
-            mon, day, yr = _MONTHS[m.group(1)], int(m.group(2)), int(m.group(3) or fallback_year)
+            mon, day = _MONTHS[m.group(1)], int(m.group(2))
+            raw_date = str(snapshot_date)
+            yr = int(m.group(3) or raw_date[:4])
+            if not m.group(3) and len(raw_date) >= 10:
+                anchor = date.fromisoformat(raw_date[:10])
+                candidates = []
+                for candidate_year in (yr - 1, yr, yr + 1):
+                    try:
+                        candidate = date(candidate_year, mon, day)
+                    except ValueError:
+                        continue
+                    if candidate <= anchor:
+                        candidates.append(candidate)
+                if candidates:
+                    yr = max(candidates).year
             return f'{yr:04d}-{mon:02d}-{day:02d}'
     return None
 
@@ -1600,7 +1614,7 @@ def load_snapshots():
         # Market-session dates (≠ filename date) so daily P&L can collapse a US
         # session that straddles two HK-dated snapshots instead of double-counting.
         for leg in legs:
-            row[f'{leg.key}_asof'] = _session_asof(books[leg.key], date[:4])
+            row[f'{leg.key}_asof'] = _session_asof(books[leg.key], date)
         results.append(row)
     return results
 
@@ -3785,8 +3799,24 @@ FINGERPRINT_CACHE = '.cache/dashboard-input.json'
 FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 
 
-def dashboard_input_fingerprint(ws: Path, now=None) -> str:
+def dashboard_input_fingerprint(ws: Path, now=None, *, previous_source=None,
+                                output_paths=None) -> str:
     h = hashlib.sha1()
+    # Build options are inputs too: the same workspace can restore an older
+    # card or write to a different generation directory.
+    h.update(('outputs:' + json.dumps(
+        {name: str(path) for name, path in sorted((output_paths or {}).items())},
+        sort_keys=True) + '\n').encode())
+    if previous_source is not None:
+        previous = Path(previous_source)
+        try:
+            st = previous.stat()
+            marker = f'{previous}:{st.st_mtime_ns}:{st.st_size}'
+        except OSError:
+            marker = f'{previous}:missing'
+        h.update(f'previous:{marker}\n'.encode())
+    else:
+        h.update(b'previous:none\n')
     # The one part of the build that moves with the clock alone: a slot turns
     # upcoming → running → missed with no input file changing, and a cron that
     # never fired is exactly the case where nothing writes (#1928). Its states,
@@ -4503,21 +4533,22 @@ def main(argv=None):
     # the working tree perpetually dirty. A redirected build still reads whatever
     # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
+    previous_source = resolve_previous_source(args)
+    paths = resolve_output_paths(args.out_dir)
     # Input fingerprint gate (#846): the 20-minute publisher runs ~72x/day, and
     # the harness postflights ~23 more — most of them against an unchanged desk.
     # The fingerprint is stat-level, so computing it is µs; the build it skips
     # is ~12MB of JSON parsing plus a full settlement pass.
     gate_fingerprint: str | None = None
     if args.skip_if_unchanged:
-        gate_fingerprint = dashboard_input_fingerprint(WS_ROOT)
+        gate_fingerprint = dashboard_input_fingerprint(
+            WS_ROOT, previous_source=previous_source, output_paths=paths)
         if _read_fingerprint_cache(WS_ROOT) == gate_fingerprint:
             print('dashboard-build: inputs unchanged — skipping rebuild (#846)')
             return 0
-    previous_source = resolve_previous_source(args)
     # The five outputs are one logical generation (clawock.publish.outputs owns that
     # contract). Their paths are resolved together, here, so that the projection
     # never learns where it is going to land.
-    paths = resolve_output_paths(args.out_dir)
     out_file, overview_file = paths['dashboard'], paths['overview']
     audit_file, shadow_file = paths['audit'], paths['shadow']
     trail_file = paths['trail']

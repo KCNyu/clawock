@@ -193,6 +193,18 @@ def test_sec_cik_is_not_double_prefixed(monkeypatch):
     assert "CIKCIK" not in seen["url"]
 
 
+def test_sec_filing_outside_probe_window_is_not_a_fresh_catalyst(monkeypatch):
+    rows = [
+        {"title": "8-K old", "age_minutes": 1440},
+        {"title": "8-K current", "age_minutes": 30},
+    ]
+    monkeypatch.setattr(mn.primary_disclosures, "fetch_sec",
+                        lambda *args, **kwargs: (rows, None))
+    items, note = mn._sec_items("NVDA", now=NOW, window=240, http=None)
+    assert note is None
+    assert [item["title"] for item in items] == ["8-K current"]
+
+
 # --- silence and failure are stated ------------------------------------------
 
 def test_no_items_reads_no_recent_filing_rather_than_an_empty_block():
