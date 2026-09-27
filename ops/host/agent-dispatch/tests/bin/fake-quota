@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Stand-in for quota.mjs: the real one would hit the Claude usage API / spawn `codex app-server`.
+echo "$1" >>"$FAKE_DIR/quota.calls"
+echo "额度：5h 剩 80%（今天 21:00 重置） · 周 剩 60%（9/20 周日 20:00 重置）"

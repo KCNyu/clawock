@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Fake `opencode run --format json` for run-agent.sh tests, emitting the event shapes of opencode
+# 1.18 (step_start, text, step_finish, error; every event carries sessionID). Like the real CLI it
+# exits 0 even when the model call failed. Behaviour is chosen by $FAKE_DIR/opencode.mode:
+#   error-then-ok : 1st call -> a rate-limit error event, exit 0; later calls -> success
+#   queue         : every call sleeps 6s, then succeeds (for appends queued behind a running attempt)
+#   bad-model     : calls with -m equal to $FAKE_DIR/opencode.badmodel fail, others succeed
+#   silent-then-ok: 1st call prints nothing for $FAKE_SILENT seconds (default 120), then succeeds;
+#                   later calls succeed at once (a free model retrying a rate limit inside the run)
+#   silent-mid    : 1st call prints a step, then nothing for an hour; later calls succeed
+#   slow-steady   : every call prints one event every $FAKE_STEP s (default 3), $FAKE_STEPS times
+#                   (default 8), then succeeds (slow but making progress)
+#   tool-long     : every call prints a step, starts a working tool (CPU and short child processes)
+#                   for $FAKE_TOOL s (default 25), prints a parallel tool's result 2s later, then
+#                   stays silent until the long tool ends, then succeeds
+#   bg-idle       : 1st call leaves an idle process in the background, prints one event, then
+#                   hangs (a dev server left running, then a stuck model call); later calls succeed
+set -u
+FAKE_DIR=${FAKE_DIR:?}
+mode=$(cat "$FAKE_DIR/opencode.mode")
+n=$(( $(cat "$FAKE_DIR/opencode.calls" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$FAKE_DIR/opencode.calls"
+printf 'call %s argv:' "$n" >>"$FAKE_DIR/opencode.argv"; printf ' [%s]' "$@" >>"$FAKE_DIR/opencode.argv"; echo >>"$FAKE_DIR/opencode.argv"
+echo "$$" >>"$FAKE_DIR/opencode.pids"
+sid=ses_fake0001
+model=""; prev=""
+for a in "$@"; do [ "$prev" = -m ] && model=$a; prev=$a; done
+echo "call $n model: $model" >>"$FAKE_DIR/opencode.argv"
+prev=""
+for a in "$@"; do [ "$prev" = -s ] && sid=$a; prev=$a; done
+# Like the real CLI, the part repeats the sessionID on the same line.
+ev() { printf '{"type":"%s","timestamp":1,"sessionID":"%s"%s}\n' "$1" "$sid" "${2/\"part\":\{/\"part\":{\"sessionID\":\"$sid\",}"; }
+if [ "$mode" = silent-then-ok ] && [ "$n" = 1 ]; then sleep "${FAKE_SILENT:-120}"; fi
+ev step_start ',"part":{"type":"step-start","messageID":"msg_1"}'
+case "$mode" in
+  silent-mid) [ "$n" = 1 ] && sleep 3600 ;;
+  slow-steady)
+    for i in $(seq "${FAKE_STEPS:-8}"); do
+      sleep "${FAKE_STEP:-3}"
+      ev text ',"part":{"type":"text","messageID":"msg_s'"$i"'","text":"step '"$i"'"}'
+    done ;;
+  tool-long)
+    sleep 4   # the model's turn
+    bash -c 'end=$((SECONDS + $1)); while [ $SECONDS -lt $end ]; do head -c 200000 /dev/urandom | cksum >/dev/null; sleep 0.5; done' _ "${FAKE_TOOL:-25}" &
+    tool=$!
+    sleep 2
+    ev text ',"part":{"type":"text","messageID":"msg_t","text":"a parallel tool finished first"}'
+    wait "$tool"
+    ev tool_use ',"part":{"type":"tool","messageID":"msg_t","tool":"bash","state":{"status":"completed"}}' ;;
+  bg-idle)
+    if [ "$n" = 1 ]; then
+      sleep 4
+      sleep 3599 &
+      ev text ',"part":{"type":"text","messageID":"msg_b","text":"started the dev server"}'
+      sleep 3600
+    fi ;;
+  bg-busy)   # a job left running in the background that never stops using CPU
+    if [ "$n" = 1 ]; then
+      sleep 4
+      bash -c 'while :; do head -c 200000 /dev/urandom | cksum >/dev/null; sleep 0.5; done' busyjob-3598 &
+      ev text ',"part":{"type":"text","messageID":"msg_b","text":"started a busy job"}'
+      sleep 3598
+    fi ;;
+  error-then-ok)
+    if [ "$n" = 1 ]; then
+      ev error ',"error":{"name":"APIError","data":{"message":"Rate limit exceeded. Please try again later."}}'
+      exit 0
+    fi ;;
+  queue) sleep "${FAKE_SLEEP:-6}" ;;
+  bad-model)   # the model named in opencode.badmodel always fails
+    if [ "$model" = "$(cat "$FAKE_DIR/opencode.badmodel")" ]; then
+      ev error ',"error":{"name":"APIError","data":{"message":"Rate limit exceeded. Please try again later."}}'
+      exit 0
+    fi ;;
+esac
+ev text ',"part":{"type":"text","messageID":"msg_1","text":"thinking out loud"}'
+ev text ',"part":{"type":"text","messageID":"msg_2","text":"opencode call '"$n"' done\nSTATUS: DONE"}'
+ev step_finish ',"part":{"type":"step-finish","messageID":"msg_2","reason":"stop"}'
+exit 0
