@@ -51,12 +51,18 @@ def test_the_weekly_full_matrix_backstop_survived_the_merge():
     assert "cron: '41 3 * * 6'" in TEXT
 
 
-def test_prs_are_never_cancelled_and_master_never_is():
+def test_pr_runs_share_a_group_but_each_master_push_has_its_own():
     assert (
-        "group: ${{ github.workflow }}-${{ github.ref }}" in TEXT
-        and "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in TEXT
-    ), ("superseded PR runs are worthless and get cancelled; master runs are "
-        "part of the ledger and never are")
+        "group: ${{ github.workflow }}-${{ github.event_name }}-"
+        "${{ github.event_name == 'pull_request' && github.ref || github.sha }}"
+    ) in TEXT
+    assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in TEXT
+    def group(event, ref, sha):
+        return f"CI-{event}-{ref if event == 'pull_request' else sha}"
+    assert group('push', 'refs/heads/master', 'a' * 40) != group(
+        'push', 'refs/heads/master', 'b' * 40)
+    assert group('pull_request', 'refs/pull/1/merge', 'a' * 40) == group(
+        'pull_request', 'refs/pull/1/merge', 'b' * 40)
 
 
 def _job(name):
@@ -240,4 +246,3 @@ def test_the_coverage_gate_measures_the_whole_package_not_a_list():
         "these modules are outside every --cov= target, so no floor covers them "
         f"and the published percentage does not describe them: {missing[:8]}"
         f"{'…' if len(missing) > 8 else ''}")
-
