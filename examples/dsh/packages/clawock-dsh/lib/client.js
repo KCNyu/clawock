@@ -6526,6 +6526,7 @@ const dictionaries = {
 		"balance.refreshNow": "立即刷新",
 		"balance.readFailed": "余额读取失败:{message}",
 		"balance.reading": "正在读取各服务余额…",
+		"balance.noProviders": "没有可用的余额来源",
 		"balance.otherProviders": "(点击查看其他服务)",
 		"balance.unknownError": "未知错误",
 		"balance.windowNote": "{label} 已用 {percent}%",
@@ -6843,6 +6844,7 @@ const dictionaries = {
 		"balance.refreshNow": "Refresh now",
 		"balance.readFailed": "Balance read failed: {message}",
 		"balance.reading": "Reading balances…",
+		"balance.noProviders": "No balance source is available",
 		"balance.otherProviders": "(click for other services)",
 		"balance.unknownError": "unknown error",
 		"balance.windowNote": "{label} {percent}% used",
@@ -7661,7 +7663,7 @@ function useProviderBalances(props, pollKey) {
 			title: props.t("balance.readFailed", { message: data.error })
 		} : {
 			tone: "none",
-			title: props.t("balance.loading")
+			title: props.t(data.result === null ? "balance.loading" : "balance.noProviders")
 		}
 	};
 }
@@ -9381,6 +9383,7 @@ function ProviderPanelSidebarAction(props) {
 	};
 	const openBrief = (task) => {
 		const fallback = "/root/logs/agent-dispatch/" + task.id + "/prompt.md";
+		setConfirm(null);
 		if (run === void 0) {
 			setBrief({
 				id: task.id,
@@ -9439,6 +9442,7 @@ function ProviderPanelSidebarAction(props) {
 	};
 	const openPicker = (task) => {
 		if (run === void 0) return;
+		setConfirm(null);
 		const request = detailRequest.current;
 		setLog(null);
 		setPicker(null);
@@ -9472,6 +9476,7 @@ function ProviderPanelSidebarAction(props) {
 	};
 	const loadLog = (task) => {
 		if (run === void 0) return;
+		setConfirm(null);
 		const request = detailRequest.current;
 		setPicker(null);
 		setReadPending("log");

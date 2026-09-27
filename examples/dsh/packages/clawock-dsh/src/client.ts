@@ -129,6 +129,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.panelTitle': '各模型服务余额', 'balance.panelHeading': 'API 余额',
     'balance.refreshAll': '刷新全部余额', 'balance.refreshNow': '立即刷新',
     'balance.readFailed': '余额读取失败:{message}', 'balance.reading': '正在读取各服务余额…',
+    'balance.noProviders': '没有可用的余额来源',
     'balance.otherProviders': '(点击查看其他服务)',
     'balance.unknownError': '未知错误',
     'balance.windowNote': '{label} 已用 {percent}%',
@@ -265,6 +266,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.panelTitle': 'Model service balances', 'balance.panelHeading': 'API balance',
     'balance.refreshAll': 'Refresh all balances', 'balance.refreshNow': 'Refresh now',
     'balance.readFailed': 'Balance read failed: {message}', 'balance.reading': 'Reading balances…',
+    'balance.noProviders': 'No balance source is available',
     'balance.otherProviders': '(click for other services)',
     'balance.unknownError': 'unknown error',
     'balance.windowNote': '{label} {percent}% used',
@@ -1200,7 +1202,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
   const failed = rows.length === 0 && data.error !== null && !data.loading
   const empty = failed
     ? { tone: 'stale' as BalanceTone, title: props.t('balance.readFailed', { message: data.error }) }
-    : { tone: 'none' as BalanceTone, title: props.t('balance.loading') }
+    : { tone: 'none' as BalanceTone, title: props.t(data.result === null ? 'balance.loading' : 'balance.noProviders') }
   return { data, rows, primary, select, flash, refresh, empty }
 }
 
@@ -2593,6 +2595,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   }
   const openBrief = (task: DispatchTask): void => {
     const fallback = FALLBACK_TASK_DIR + '/' + task.id + '/prompt.md'
+    setConfirm(null)
     if (run === undefined) { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return }
     const request = detailRequest.current
     setReadPending('brief')
@@ -2619,6 +2622,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   }
   const openPicker = (task: DispatchTask): void => {
     if (run === undefined) return
+    setConfirm(null)
     const request = detailRequest.current
     setLog(null)
     setPicker(null)
@@ -2641,6 +2645,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   }
   const loadLog = (task: DispatchTask): void => {
     if (run === undefined) return
+    setConfirm(null)
     const request = detailRequest.current
     setPicker(null)
     setReadPending('log')

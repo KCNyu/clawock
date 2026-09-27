@@ -2148,10 +2148,11 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   LOW_DS.result.low = true;
   let forced = 0;
   let queueForced = 0;
+  let emptyBalance = false;
   const remoteFace = {
     balance: async (force) => {
       if (force) forced += 1;
-      return { ok: true, value: { providers: [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
+      return { ok: true, value: { providers: emptyBalance ? [] : [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
     },
     // A host without the dispatcher (C3 ②): provider lines only, no empty queue.
     taskQueue: async (force) => { if (force) queueForced += 1; return { ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } } }; },
@@ -2221,6 +2222,7 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
   assert.equal(lines(foot)[0].props["aria-expanded"], false);
   assert.equal(popover(foot).props["data-open"], "false");
+  assert.match(texts(popover(foot)), /此主机没有派发队列；额度仍可查看/, "a missing dispatcher is named rather than silently omitted");
   // Closed means out of interaction, not merely transparent (React 18: `inert=""`, never `true`).
   assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
   const railTrigger = rail(render(false));
@@ -2257,6 +2259,13 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.equal(lines(foot)[0].props["data-balance-state"], "low", "the low reading shows right after the refresh");
   assert.equal(statusBadge(rail(render(false))).type, "rect", "low: a square badge, independent of its hue");
   assert.equal(popover(foot).props["data-open"], "true", "refreshing must not close the popover");
+
+  emptyBalance = true;
+  find(popover(foot), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick(); await tick();
+  foot = render();
+  assert.match(texts(lines(foot)[0]), /没有可用的余额来源/, "a completed empty read must not claim it is still loading");
+  assert.match(texts(popover(foot)), /没有可显示的额度或派发来源/);
 
   // The line (or an outside pointer / Escape, browser-only) closes it.
   lines(foot)[0].props.onClick({ currentTarget: null });
