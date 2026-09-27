@@ -1038,9 +1038,14 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   write_result
   if [ "$AKIND" = quota ]; then
     # A silent quota wait looked like a hang and got review-merge-1514-1515 cancelled (2026-09-15).
+    # 60s like the end-of-task notice. It used to be 30s, and `openclaw message send` takes
+    # 13-25s just to start on this host (both legs at once), so Telegram missed three of these
+    # notices on 2026-09-26/27, each exactly at the limit. Nothing else bounds this wait (the
+    # cancel path's 30s is bounded by the stop budget; this is not that path); the agent lock
+    # is released right after it.
     notify "⏳ 委派任务 $NAME（$AGENT）额度用尽，$(date -d "@$wake" '+%m-%d %H:%M') 自动在同一会话续跑（第 $QUOTA_RESUMES_USED/$QUOTA_RESUMES 次，会重放历史上下文，缓存读取也有成本）。任务没卡住，不用取消。$(quota_line)
 id：$ID
-日志：$DIR/run.log" 30
+日志：$DIR/run.log" 60
     # The wait releases the agent lock (kcn 2026-09-26: a claude task asleep on its 5h reset held
     # claude.lock for 4 hours while three others queued). The session lock stays, so nothing else
     # can resume this session meanwhile. The hint tells the next task of this agent that the
