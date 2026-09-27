@@ -71,7 +71,7 @@ HEARTBEAT_SNAP_MINUTES = 15
 # tests can index the real map rather than restate it.
 DASHBOARD_STATE_ICONS = {
     'ok': '✓', 'repaired': '🔧', 'degraded': '⚠', 'stale': '⚠',
-    'failed': '✗', 'absent': '·',
+    'failed': '✗', 'absent': '·', 'yielded': '·',
     # A reading that is real but too old to describe now. '·', not '⚠': see
     # `publish_backlog` for why an unknown is not an alarm here.
     'stale-measurement': '·',
@@ -565,7 +565,7 @@ def check_dashboard_build():
     """Read logs/dashboard_build_status.json (written by _harness_common.rebuild_dashboard).
 
     Returns a dict with keys: state
-    ('ok'|'repaired'|'degraded'|'stale'|'failed'|'absent'), detail, ok,
+    ('ok'|'repaired'|'degraded'|'stale'|'failed'|'absent'|'yielded'), detail, ok,
     warn_count, repair_count, age_hours. A failed build or publish means the
     public generation may be frozen while commits keep flowing — the silent-freeze
     case this guards against.
@@ -585,6 +585,11 @@ def check_dashboard_build():
         age_hours = round((datetime.now(timezone.utc) - ts).total_seconds() / 3600, 1)
     except Exception:
         pass
+    if st.get('lock_busy') is True:
+        return {'state': 'yielded',
+                'detail': 'dashboard build yielded to publisher lock holder',
+                'ok': True, 'warn_count': st.get('warn_count', 0),
+                'repair_count': st.get('repair_count', 0), 'age_hours': age_hours}
     if not st.get('ok'):
         build_ok = st.get('build_ok')
         publish_ok = st.get('publish_ok')

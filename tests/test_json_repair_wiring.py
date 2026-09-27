@@ -240,6 +240,21 @@ def _status_file(tmp_path, monkeypatch, **fields):
     monkeypatch.setattr(cron_health_check, 'WS', tmp_path)
 
 
+def test_lock_contention_yields_while_a_real_build_failure_stays_red(tmp_path, monkeypatch):
+    _status_file(tmp_path, monkeypatch, ok=False, build_ok=False,
+                 publish_ok=None, lock_busy=True)
+    yielded = cron_health_check.check_dashboard_build()
+    assert yielded['state'] == 'yielded'
+    assert yielded['ok'] is True
+    assert cron_health_check.DASHBOARD_STATE_ICONS[yielded['state']] == '·'
+
+    _status_file(tmp_path, monkeypatch, ok=False, build_ok=False,
+                 publish_ok=None, lock_busy=False)
+    failed = cron_health_check.check_dashboard_build()
+    assert failed['state'] == 'failed'
+    assert failed['ok'] is False
+
+
 def test_repairs_get_their_own_state_not_a_degradation(tmp_path, monkeypatch):
     _status_file(tmp_path, monkeypatch, repair_count=2)
 
