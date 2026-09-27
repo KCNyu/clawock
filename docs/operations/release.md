@@ -20,13 +20,14 @@ ops/host/refresh_live.sh           # fast-forward, then reinstall only what move
 ops/host/refresh_live.sh --check   # what is pending; writes nothing, exit 1 if behind
 ```
 
-What it decides, and why the two exceptions exist:
+What it decides, and why the three exceptions exist:
 
 | what moved in the merge | what the desk needs | why |
 |---|---|---|
 | anything under `src/clawock/` | nothing beyond the fast-forward | the install is editable |
 | `pyproject.toml` | `ops/host/install_clawock_launcher.sh` | pip recorded the dependency set and the `[project.scripts]` entry points at install time; a new console script does not exist until it is re-run |
 | `examples/dsh/packages/clawock-dsh/**` | `ops/host/install_dsh_plugin.sh --restart` | pnpm installed a packed copy, not a link (#709) — no npm publish involved |
+| `ops/host/agent-dispatch/**`, `ops/host/install_agent_dispatch.sh` | `ops/host/install_agent_dispatch.sh` (then `--check`) | the runner executes from a copy in `/root/tools/agent-dispatch/`; each file is replaced by rename, so running tasks are not disturbed and nothing is restarted |
 
 Do not read `clawock --version` as the answer to "what is running here". On an
 editable install that number is the one pip recorded, and it says so itself once
