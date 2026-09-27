@@ -189,6 +189,25 @@ function lastLogEvent(log) {
 		atMs: null
 	};
 }
+/** Only the file's beginning can establish the FIRST slot; a tail may contain a later retry. */
+function firstRunSlotMs(dir) {
+	let fd;
+	try {
+		fd = openSync(join(dir, "run.log"), "r");
+	} catch {
+		return null;
+	}
+	try {
+		const buffer = Buffer.alloc(Math.min(fstatSync(fd).size, 65536));
+		readSync(fd, buffer, 0, buffer.length, 0);
+		const first = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) got run slot /m.exec(buffer.toString("utf8"));
+		return first === null ? null : localStampMs(first[1]);
+	} catch {
+		return null;
+	} finally {
+		closeSync(fd);
+	}
+}
 /** `weixin,telegram` → ['weixin', 'telegram']; 'none' and blanks dropped, each once. */
 function channelList(raw) {
 	return [...new Set((raw ?? "").split(",").map((part) => part.trim().toLowerCase()).filter((part) => part !== "" && part !== "none"))];
@@ -210,6 +229,8 @@ function readTask(logDir, id, alive) {
 	const override = readEnvFile(join(dir, "override.env"));
 	const waiting = alive ? result.WAITING ?? "" : "";
 	const log = logTail(dir);
+	const queuedAtMs = epochMs(result.QUEUED_AT);
+	const firstSlotMs = alive ? null : firstRunSlotMs(dir);
 	const event = alive ? lastLogEvent(log) : {
 		text: "",
 		atMs: null
@@ -236,7 +257,8 @@ function readTask(logDir, id, alive) {
 		summary: alive ? "" : finalSummary(log),
 		lastEvent: event.text,
 		lastEventAtMs: event.atMs,
-		queuedAtMs: epochMs(result.QUEUED_AT),
+		queuedAtMs,
+		waitMs: !alive && queuedAtMs !== null && firstSlotMs !== null && firstSlotMs >= queuedAtMs ? firstSlotMs - queuedAtMs : null,
 		position: null,
 		priority: Number.parseInt(override.PRIORITY ?? "0", 10) || 0,
 		protected: false,

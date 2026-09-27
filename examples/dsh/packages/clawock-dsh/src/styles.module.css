@@ -2025,44 +2025,45 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:normal;
   overflow-wrap:anywhere
 }
-/* Each round is one five-column row; the same columns line up across rounds. */
+/* Ended work is a receipt, visually separate from the live dot-led queue. */
+.pbc .tq-ended { margin-bottom:2px }
+.pbc .tq-ended-row { grid-template-columns:14px minmax(0, 1fr); row-gap:3px }
+.pbc .tq-ended-glyph { display:flex; align-items:center; grid-row:1 / 4; color:var(--tq-ink-2) }
+.pbc .tq-ended-facts { grid-column:2; font-variant-numeric:tabular-nums }
+.pbc .tq-report { color:var(--tq-ink-2) }
+.pbc .tq-detail-report { margin-top:2px; color:var(--tq-ink-2) }
+.pbc .tq-disclosure { margin:3px 0 4px 14px; font:var(--dsw-font-xxs-12); line-height:16px; color:var(--tq-ink-3) }
+.pbc .tq-disclosure > summary { display:list-item; min-height:28px; padding:5px 2px; cursor:pointer; list-style-position:inside }
+.pbc .tq-disclosure > summary:focus-visible { outline:var(--tq-focus-ring); outline-offset:-2px }
+.pbc .tq-patrol-activity { margin:3px 0 6px 20px; font-variant-numeric:tabular-nums }
+.pbc .tq-round-caption { margin:5px 0 2px 20px }
 .pbc .tq-rounds {
   display:flex;
   flex-direction:column;
-  gap:2px;
-  padding:4px 0
+  padding:2px 0
 }
 .pbc .tq-round {
-  display:grid;
-  grid-template-columns:minmax(32px, .7fr) minmax(36px, 1.4fr) minmax(42px, 1fr) auto auto;
-  align-items:center;
-  column-gap:6px;
-  min-width:0
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+  padding:3px 0 3px 20px
 }
-.pbc .tq-round > * { min-width:0 }
-.pbc .tq-round-num {
-  font-variant-numeric:tabular-nums;
-  text-align:right
-}
+.pbc .tq-round-main { display:flex; align-items:center; gap:8px; min-width:0 }
+.pbc .tq-round-main > :nth-child(2) { flex:1 1 auto }
+.pbc .tq-round-axis { min-width:0 }
+.pbc .tq-round-meta { padding-left:40px; font-variant-numeric:tabular-nums }
 .pbc .tq-round-id {
   font-family:var(--tq-mono);
   font-variant-numeric:tabular-nums
 }
 @media (max-width: 520px) {
-  .pbc .tq-round {
-    grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr) auto;
-    row-gap:0
-  }
-  .pbc .tq-round-id { grid-column:1; grid-row:1 }
-  .pbc .tq-round-axis {
-    grid-column:1;
-    grid-row:2;
-    white-space:normal;
-    overflow-wrap:anywhere
-  }
-  .pbc .tq-round > :nth-child(3) { grid-column:2; grid-row:1 }
-  .pbc .tq-round > :nth-child(4) { grid-column:2; grid-row:2 }
-  .pbc .tq-round > :nth-child(5) { grid-column:3; grid-row:1 }
+  .pbc .tq-round-main { flex-wrap:wrap; gap:3px 7px }
+  .pbc .tq-round-main > :nth-child(2) { flex:1 1 45% }
+  .pbc .tq-round-meta { padding-left:0 }
+}
+@media (pointer: coarse) {
+  .pbc .tq-disclosure > summary { min-height:44px; box-sizing:border-box; padding:14px 2px }
 }
 .pbc .tq-foot {
   margin-top:8px;
