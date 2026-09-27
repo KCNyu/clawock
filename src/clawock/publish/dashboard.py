@@ -333,6 +333,7 @@ def compile_overview_projection(dashboard):
                 # …and "which ones". Both lists are window-wide and capped;
                 # `recent` cannot answer this because it is a tail, not a set.
                 'wechat_dropped_slots', 'degraded_slots',
+                'degradations',
             )),
             'recent': compact_recent,
         },

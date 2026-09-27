@@ -596,6 +596,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 从 `context.influencer` 抓数。这是 Trump 原帖 + Musk/段永平/洪灏/Burry/Pelosi 的港美媒体报道(二手代理) + ARK(Cathie Wood) 日度调仓(一手成交) + Serenity(AI/半导体供应链选股，Substack 公开帖)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
 
+若 `source_status` 有 `failed`，在本段注明失败来源（用 `sources` 查名称）；不能把抓取失败写成该作者没有动向。
+
 格式：
 
 ```

@@ -144,6 +144,14 @@ def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_p
     assert "stages" not in card["recent"][0]
 
 
+def test_overview_keeps_degradation_ledger_visible():
+    from clawock.publish.dashboard import compile_overview_projection
+
+    rows = [{'kind': 'sector_scan_missing', 'count': 8}]
+    overview = compile_overview_projection({'workflow_outcomes': {'degradations': rows}})
+    assert overview['workflow_outcomes']['degradations'] == rows
+
+
 def test_the_overview_projection_carries_channel_truth_to_its_reader():
     """微信掉投在 summarizer 里可数（#771/#772）却从没进过 payload。
 

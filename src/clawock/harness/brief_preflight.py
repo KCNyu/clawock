@@ -1124,6 +1124,8 @@ def load_influencer_feed(issues):
             'as_of':     d.get('generated_at'),
             'age_hours': round(age, 1),
             'counts':    d.get('counts', {}),
+            'source_status': d.get('source_status', {}),
+            'sources': d.get('sources', {}),
             'held_hits': [_trim(x) for x in d.get('held_hits', [])][:6],
             'new_ideas': [_trim(x) for x in d.get('new_ideas', [])][:6],
             'sector_hits': [_trim(x) for x in d.get('sector_hits', [])][:4],
