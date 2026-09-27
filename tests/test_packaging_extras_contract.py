@@ -108,8 +108,10 @@ def test_every_extras_selector_named_in_the_repo_resolves_to_a_real_extra():
     offenders: dict[str, list[str]] = {}
     for path in tracked:
         text = path.read_text(encoding="utf-8", errors="ignore")
-        # `?.[x]` is JavaScript optional chaining in a heredoc, not an extra.
-        for match in re.finditer(r"(?<![\w?])\.\[([A-Za-z0-9_.,-]+)\]", text):
+        # `?.[x]` is JavaScript optional chaining in a heredoc, not an extra, and
+        # `\.[0-9]` is an escaped dot in a regex (the dispatch runner's
+        # `[0-9]+\.[0-9]{2}`), not a pip selector either.
+        for match in re.finditer(r"(?<![\w?\\])\.\[([A-Za-z0-9_.,-]+)\]", text):
             # `.[market,test]` is one selector naming two extras (devcontainer).
             for name in match.group(1).split(","):
                 name = name.strip()
