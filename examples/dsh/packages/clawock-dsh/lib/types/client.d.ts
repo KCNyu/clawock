@@ -369,8 +369,13 @@ export declare function _costOf(task: DispatchTask): {
     short: string;
     kind: 'usd' | 'free' | 'unpriced';
 } | null;
-/** The file-preview address of an absolute path (dsh-util-workspace-path's absolute scope). */
-export declare function _absoluteFileAddress(path: string): string;
+/**
+ * The file-preview address of a path read through one session — dsh-util-workspace-path's
+ * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
+ * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
+ * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
+ */
+export declare function _sessionFileAddress(sessionId: string, path: string): string;
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
 export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {

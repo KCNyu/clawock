@@ -2288,7 +2288,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc.ppf .pp-row {
   display:grid;
-  grid-template-columns:14px minmax(0, max-content) minmax(0, 1fr) auto;
+  grid-template-columns:14px minmax(0, max-content) minmax(0, 1fr) minmax(0, max-content);
   column-gap:6px;
   align-items:center;
   box-sizing:border-box;
@@ -2343,7 +2343,6 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc.ppf .pp-reset { margin-left:6px; color:var(--tq-ink-3) }
 .pbc.ppf .pp-last {
   justify-self:end;
-  max-width:96px;
   color:var(--tq-ink-3)
 }
 .pbc.ppf .pp-last[data-balance-state="ok"] { color:var(--tq-run) }
@@ -2402,7 +2401,6 @@ body[data-ds-dark-theme] .pbc .bp {
 /* Fingers: every line and file row is a 44px target; the glyph and type keep their size. */
 @media (pointer: coarse) {
   .pbc.ppf .pp-row, .pbc .tq-file { min-height:44px }
-  .pbc.ppf .pp-last { max-width:120px }
 }
 .pbc.ppf .pp-empty { grid-template-columns:minmax(0, max-content) minmax(0, 1fr) }
 .pbc.ppf .pp-empty .pp-last { max-width:none }

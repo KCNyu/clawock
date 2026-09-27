@@ -2888,10 +2888,10 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "opencode"]);
   // One tone, one meaning: b-1 queues for the claude lock, so claude's last column is amber.
   const last = (key) => find(lines.find((l) => l.props["data-pp-row"] === key), (p) => typeof p.className === "string" && p.className.endsWith("_pp-last"))[0];
-  assert.match(texts(last("claude")), /跑 1 · 排 1/);
+  assert.equal(texts(last("claude")), "▶1 ≡1", "folded: a shape per state and its count, the words in the label");
   assert.equal(last("claude").props["data-balance-state"], "stale");
   assert.match(texts(last("codex")), /闲/);
-  assert.match(texts(last("opencode")), /跑 1/);
+  assert.equal(texts(last("opencode")), "▶1");
   assert.match(lines[0].props["aria-label"], /^Claude Code .*跑 1 · 排 1 .*打开 Claude Code 的额度与队列/, "each line reads out whole");
   const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
@@ -3249,8 +3249,8 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "" }), { short: "—", kind: "unpriced" });
   assert.equal(api._costOf({ costUsd: "" }), null, "nothing recorded: no cost cell");
   assert.equal(api._fmtTokens(83123861), "83.1M");
-  assert.equal(api._absoluteFileAddress("/root/logs/agent-dispatch/x y/prompt.md"),
-    "dsh-resource://file/absolute/root/logs/agent-dispatch/x%20y/prompt.md");
+  assert.equal(api._sessionFileAddress("s1", "/root/logs/agent-dispatch/x y/prompt.md"),
+    "dsh-resource://file/session/s1//root/logs/agent-dispatch/x%20y/prompt.md", "dsh-util-workspace-path's session grammar");
 
   // The panel itself: ① a stale provider keeps its last reading and says when it was taken.
   const STALE_CL = JSON.parse(JSON.stringify(CL_ROW_OK));

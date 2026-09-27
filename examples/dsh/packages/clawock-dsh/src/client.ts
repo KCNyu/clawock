@@ -1929,7 +1929,7 @@ export function _poolPosition(result: TaskQueueResult | null): { current: string
 }
 
 /** A queue's last column on the folded row: what is running, queued, asleep on quota — or idle. */
-function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; tone: BalanceTone } {
+function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; short: string; tone: BalanceTone } {
   const run = tasks.filter((task) => task.slot !== '').length
   const queued = tasks.filter(queuedFor).length
   const quota = tasks.filter((task) => task.waiting === 'quota').length
@@ -1940,7 +1940,15 @@ function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; tone
     queued > 0 ? t('panel.q.queued', { n: queued }) : null,
     other > 0 ? t('panel.q.wait', { n: other }) : null,
   ].filter((part): part is string => part !== null)
-  return { text: parts.length === 0 ? t('panel.q.idle') : parts.join(' · '), tone: quota + queued + other > 0 ? 'stale' : run > 0 ? 'ok' : 'none' }
+  // The folded line's form: a shape per state plus its count (never colour alone), so a 260px
+  // column keeps both the reset clock and the counts; the words stay in the label and the panel.
+  const marks = [quota > 0 ? '⏸' + quota : null, run > 0 ? '▶' + run : null, queued > 0 ? '≡' + queued : null, other > 0 ? '…' + other : null]
+    .filter((part): part is string => part !== null)
+  return {
+    text: parts.length === 0 ? t('panel.q.idle') : parts.join(' · '),
+    short: marks.length === 0 ? t('panel.q.idle') : marks.join(' '),
+    tone: quota + queued + other > 0 ? 'stale' : run > 0 ? 'ok' : 'none',
+  }
 }
 
 /**
@@ -2150,9 +2158,15 @@ export function _costOf(task: DispatchTask): { short: string; kind: 'usd' | 'fre
   return { short: '—', kind: 'unpriced' }
 }
 
-/** The file-preview address of an absolute path (dsh-util-workspace-path's absolute scope). */
-export function _absoluteFileAddress(path: string): string {
-  return 'dsh-resource://file/absolute/' + path.replace(/^\/+/, '').split('/').map((part) => encodeURIComponent(part).replace(/%3A/gi, ':')).join('/')
+/**
+ * The file-preview address of a path read through one session — dsh-util-workspace-path's
+ * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
+ * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
+ * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
+ */
+export function _sessionFileAddress(sessionId: string, path: string): string {
+  const seg = (part: string): string => encodeURIComponent(part).replace(/%3A/gi, ':')
+  return 'dsh-resource://file/session/' + seg(sessionId) + '/' + path.split('/').map(seg).join('/')
 }
 
 /** A pill in the detail's action bar (the host's transition buttons: hairline, fully rounded). */
@@ -2292,7 +2306,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       brief === null ? null : h('div', { className: cx('tq-brief'), 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
         h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
         h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
-          h('span', { className: cx('tq-file-name') }, t('queue.brief.prompt', { kb: kb(brief.bytes) })),
+          h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kb(brief.bytes) })),
           brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kb(brief.bytes) })) : null),
         brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
           : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
@@ -2523,7 +2537,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     const reading = sourceReading(source, row, result, t)
     const tasks = source.agent === null || !dispatcher ? [] : result!.active.filter((task) => task.agent === source.agent)
     const last = source.agent !== null ? queueSummary(t, tasks)
-      : { text: source.join?.source ? t(source.join.source) : '', tone: 'none' as BalanceTone }
+      : { text: source.join?.source ? t(source.join.source) : '', short: source.join?.source ? t(source.join.source) : '', tone: 'none' as BalanceTone }
     return { source, reading, last }
   })
   // The rail badge: amber square when a window is at its threshold or a task sleeps on quota;
@@ -2571,7 +2585,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             h('span', { className: cx('pp-reading') },
               h('span', { className: cx('pp-v'), 'data-balance-state': reading.tone, 'data-used-level': reading.level ?? undefined }, reading.value),
               reading.reset === null ? null : h('span', { className: cx('pp-reset') }, '↻ ' + reading.reset)),
-            h('span', { className: cx('pp-last'), 'data-balance-state': last.tone }, last.text))))
+            h('span', { className: cx('pp-last'), 'data-balance-state': last.tone, 'aria-hidden': 'true' }, last.short))))
       : h('button', {
         type: 'button',
         className: cx('bchip', 'pp-rail'),
@@ -2939,9 +2953,10 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       const sidebar = ctx.get('sidebarRight') as { openResource?: (address: string, options?: unknown) => void; mounted?: { getSnapshot(): unknown } } | undefined
       if (sidebar === undefined || typeof sidebar.openResource !== 'function') return { ok: false, reason: 'no-service' }
       // Global panels (settings, …) have no right sidebar: it opens inside a conversation only.
-      if (sidebar.mounted !== undefined && sidebar.mounted.getSnapshot() === undefined) return { ok: false, reason: 'no-session' }
+      const session = sidebar.mounted?.getSnapshot()
+      if (typeof session !== 'string' || session === '') return { ok: false, reason: 'no-session' }
       try {
-        sidebar.openResource(_absoluteFileAddress(path))
+        sidebar.openResource(_sessionFileAddress(session, path))
         return { ok: true }
       } catch (err) {
         return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
