@@ -104,3 +104,20 @@ def test_the_campaign_simulation_measures_the_production_left_ladder():
     left = result["families"]["left"]["all"]["in_sample"]
     assert left["campaigns"] >= 1
     assert result["families"]["proposed_sizing"]["all"]["in_sample"]["campaigns"] >= 1
+
+
+def test_campaign_card_records_the_effective_candidate_and_eligible_count(monkeypatch):
+    from argparse import Namespace
+
+    seen = {}
+    monkeypatch.setattr(add_shapes, "_prepare", lambda bars: [None] * len(bars))
+    monkeypatch.setattr(add_shapes, "simulate", lambda *args, **kwargs: {"families": {}})
+    monkeypatch.setattr(add_shapes.run_card, "record",
+                        lambda *args, **kwargs: seen.update(kwargs) or "card")
+    bars = [{"date": "2026-01-01", "close": 1.0}] * add_shapes.MIN_BARS
+    args = Namespace(source="store", split="2025-07-01", json=True, no_card=False)
+    live = {"left_side": {"enabled": False}}
+    assert add_shapes._main_campaigns(args, live, 2.0, {"OK": bars, "SHORT": bars[:2]}, 0) == 0
+    assert seen["params"]["input_names"] == len(seen["inputs"]) == 1
+    assert seen["params"]["left_side"]["enabled"] is True
+    assert seen["params"]["sizing"]["basis"] == "book_risk"

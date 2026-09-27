@@ -569,6 +569,9 @@ def _main_campaigns(args, policy, no_chase_z, bars_by_name, started) -> int:
     # evaluator must not enable a strategy or alter a published size.
     candidate = json.loads(CAMPAIGN_POLICY_FILE.read_text(encoding="utf-8"))
     policy = {**policy, **candidate}
+    # The experiment file is disabled for production. `simulate` explicitly
+    # measures the enabled candidate, so record that effective rule in the card.
+    effective_left = {**(policy.get("left_side") or {}), "enabled": True}
     series = _tencent_series() if args.source == "tencent" else bars_by_name
     prepared = {name: {"bars": bars, "sigs": _prepare(bars)}
                 for name, bars in series.items() if len(bars) >= MIN_BARS}
@@ -578,9 +581,10 @@ def _main_campaigns(args, policy, no_chase_z, bars_by_name, started) -> int:
     if not args.no_card:
         card = run_card.record(
             "add_campaigns",
-            params={"split": args.split, "source": args.source, "unit_pct_of_book": 1.0,
+            params={"split": args.split, "source": args.source,
+                    "input_names": len(prepared), "unit_pct_of_book": 1.0,
                     "right_window": 20, "no_chase_z": no_chase_z,
-                    "left_side": policy.get("left_side"),
+                    "left_side": effective_left, "sizing": policy.get("sizing"),
                     "parameter_fit": "none; policy-file values, split fixed before the run"},
             inputs=[{"symbol": name, "source": args.source, "first": entry["bars"][0]["date"],
                      "last": entry["bars"][-1]["date"], "bars": len(entry["bars"]),
