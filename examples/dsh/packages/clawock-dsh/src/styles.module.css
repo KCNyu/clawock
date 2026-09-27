@@ -362,7 +362,7 @@ body[data-ds-dark-theme] .dmt {
   border-radius:8px;
   padding:3px 6px;
   margin-left:-6px;
-  transition:background .12s
+  transition:none
 }
 .dmt .day.fold:active {
   background:var(--tint-mid)
@@ -426,7 +426,7 @@ body[data-ds-dark-theme] .dmt {
   gap:0 10px;
   padding:9px 0;
   cursor:pointer;
-  transition:background .12s
+  transition:none
 }
 .dmt .cell+.cell {
   border-top:1px solid var(--border)
@@ -613,7 +613,7 @@ body[data-ds-dark-theme] .dmt {
   justify-self:end;
   color:var(--cap);
   font-size:var(--fs-micro);
-  transition:transform .15s
+  transition:none
 }
 .dmt .cell.open .chev {
   transform:rotate(180deg)
@@ -623,7 +623,6 @@ body[data-ds-dark-theme] .dmt {
   display:grid;
   grid-template-rows:0fr;
   opacity:0;
-  transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s ease;
   overflow:hidden
 }
 .dmt .cell.open .detail {
@@ -1753,18 +1752,10 @@ body[data-ds-dark-theme] .pbc .bp {
   flex:1 1 auto;
   min-height:0
 }
-/* Task detail: a layer pushed over the list inside the same panel, not a
-   second surface. It enters from the trailing edge the way a pushed view
-   does (spatial consistency with "back" on the leading edge), 200ms, the
-   host's ease; reduced motion keeps only the swap. */
+/* Task detail is frequent navigation. Keep the swap immediate so a keyboard
+   user can open, inspect and back out without waiting on a one-way entrance. */
 .pbc .tq-list[inert] {
   display:none
-}
-.pbc .tq-layer {
-  animation:clawock-layer-in .2s var(--tq-ease)
-}
-@keyframes clawock-layer-in {
-  from { opacity:0; transform:translateX(12px) }
 }
 .pbc .tq-head {
   box-sizing:border-box;
@@ -1783,6 +1774,7 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-caption {
   font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-scroll {
@@ -2026,13 +2018,17 @@ body[data-ds-dark-theme] .pbc .bp {
   align-items:center;
   gap:6px;
   margin:4px 0;
-  min-width:0
+  min-width:0;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px
 }
 .pbc .tq-note.tq-ok { color:var(--tq-ink-2) }
 .pbc .tq-note.tq-bad { color:var(--tq-bad) }
 .pbc .tq-note.tq-warn { color:var(--tq-wait-text) }
 .pbc .tq-empty {
   padding:4px 0 6px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-sub.tq-wrap {
@@ -2085,6 +2081,8 @@ body[data-ds-dark-theme] .pbc .bp {
   margin-top:8px;
   padding-top:6px;
   border-top:.5px solid var(--tq-hairline);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
   color:var(--tq-ink-3)
 }
 .pbc .tq-foot.tq-bad { color:var(--tq-bad) }
@@ -2239,9 +2237,6 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pbc .tq-layer {
-    animation:none
-  }
   .pbc .tq-icon-btn.spin svg {
     animation:none
   }
