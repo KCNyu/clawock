@@ -35,7 +35,7 @@ them commercially.
   requirements. Public JSON availability is not a substitute for a compliant
   Data API setup.
 - **Live information sources** (`clawock.evidence.live_sources`: HKEXnews,
-  EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24):
+  EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24, 东财 7×24):
   each caller passes a per-source request budget, per-source concurrency cap,
   timeouts and a cache TTL; the intraday slot makes one HKEXnews and one EDGAR
   request per 30-minute slot for the whole book and one feed request per issuer.
