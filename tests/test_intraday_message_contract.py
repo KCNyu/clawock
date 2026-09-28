@@ -488,6 +488,24 @@ def test_next_trigger_is_its_own_checked_block_above_the_judgment():
     assert any('太敷衍' in i for i in post.validate(post.assemble_message(ctx, short), ctx, short))
 
 
+def test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw():
+    """#2077: only the first 下一触发 line used to be lifted and checked; a
+    second one stayed in the judgment and went out with a level the context
+    does not hold while the gate said pass."""
+    prose = ('▎我的看法\n本档无实质变化，恒科贴近破位线，07226 杠杆放大。\n'
+             '下一触发：恒科 跌破 4,300\n'
+             '下一触发：07226 站上 9.99 立即清仓')
+    flagged = _trigger_issues(prose)
+    assert len(flagged) == 1 and '9.99' in flagged[0]
+    lines = post.assemble_message(TRIGGER_CTX, prose).splitlines()
+    assert [line for line in lines if line.startswith('下一触发')] == [
+        '下一触发：恒科 跌破 4,300；07226 站上 9.99 立即清仓']
+    assert lines[-1] == '本档无实质变化，恒科贴近破位线，07226 杠杆放大。'
+    # Two checkable lines merge into one line and stay clean.
+    good = prose.replace('9.99 立即清仓', '3.0（减仓线）')
+    assert _trigger_issues(good) == []
+
+
 def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_path):
     """Contract §3 invariants: an entry moved out of the core packet is listed
     in its index and fetched by name, pinned to the same context_id, with the

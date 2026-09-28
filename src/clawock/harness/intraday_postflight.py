@@ -220,13 +220,18 @@ TRIGGER_INDEX_NAMES = ('恒指', '恒生指数', '恒科', '恒生科技', 'HSI'
 
 
 def split_next_trigger(prose):
-    """`(line, prose_without_it)`; `line` is None when the prose has none."""
+    """`(line, prose_without_it)`; `line` is None when the prose has none.
+
+    Every 下一触发 line is pulled out and merged into one (items joined by ；),
+    so each item goes through check_next_trigger. Taking only the first let a
+    second line reach the card unchecked (#2077)."""
     text = prose or ''
-    match = _NEXT_TRIGGER_LINE.search(text)
-    if not match:
+    matches = list(_NEXT_TRIGGER_LINE.finditer(text))
+    if not matches:
         return None, text
-    rest = (text[:match.start()] + text[match.end():]).strip('\n')
-    return NEXT_TRIGGER + match.group(1), re.sub(r'\n{3,}', '\n\n', rest)
+    rest = _NEXT_TRIGGER_LINE.sub('', text).strip('\n')
+    line = NEXT_TRIGGER + '；'.join(match.group(1) for match in matches)
+    return line, re.sub(r'\n{3,}', '\n\n', rest)
 
 
 def _context_tickers(ctx):
