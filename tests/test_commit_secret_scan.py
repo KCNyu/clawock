@@ -75,7 +75,8 @@ def test_the_report_never_contains_the_value():
     finding, = scan.scan_diff(_patch("TOOLS.md", f"- **Polygon.io**: {KEY40}"))
     described = finding.describe()
     assert KEY40 not in described
-    assert "TOOLS.md" in described and "Polygon.io" in described and "len=40" in described
+    assert (finding.path, finding.name) == ("TOOLS.md", "Polygon.io")
+    assert described.startswith(f"{'a' * 9} TOOLS.md: ") and "len=40" in described
 
 
 def test_a_real_commit_range_is_scanned_end_to_end(tmp_path):
