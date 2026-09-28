@@ -112,16 +112,19 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 
 web GUI **左侧栏底部、Settings 正上方**常驻一个 cell（`provider-balance`，2026-09-27 起
 余额与派发队列合成一个，原先上方的 `dispatch-queue` 已退休），不跟随当前会话。折叠态**每个
-来源一行**：第一列是 provider / agent 名字，接着是读数与它那个窗口的重置时刻（与展开态同一个
-时钟函数），最后一列是「谁在吃这份额度」——有派发 agent 的显示队列（跑 / 排 / 睡额度 / 闲），
-没有 agent 的显示 key 来源（DeepSeek = 本机 API 账户，MiniMax = OpenClaw 配置）。顺序只写在
+来源一行**，只放四样：字形 · 名字 · 额度读数（已使用 % / 余额 / 免费池写「免费」）· 一枚状态
+芯片。芯片只说这一队最需要看的一件事——等额度 > 排队 > 其他等待 > 运行，带数量；闲着或没有
+队列的 provider 不画芯片。五行共用一套列（subgrid），读数与芯片上下对齐。重置时刻、plan、
+key 来源、池内位置不常驻：它们在面板里该来源的分组上，也仍在这一行的读屏文本与 title 里。
+（2026-09-28 之前最后一列是 ▶ ≡ ⏸ 形状+数字，是 260px 塞不下时钟与计数时的权宜，已撤掉。）顺序只写在
 `src/providers.ts` 的 join 表（有 agent 的 claude、codex、opencode 在前），其余 provider 按
 `BALANCE_PROVIDERS` 表序；新增 provider 仍只改那张表。侧栏收起（56px rail）时只剩一枚图标：
 有窗口到阈值或有任务在睡额度 → 琥珀方角标，读数失败 → 红色空心环，否则不带角标。
 
-点任意一行在 cell 正上方弹出面板并落在该来源的分组：额度（每窗口一行读数 + 发丝进度条 + 重置；
-DeepSeek 是钱，显示 ¥ 与赠金 / 充值拆分，不画条）在上，它喂的那条队列在下（在跑、排队、等待
-原因、runner 的「等到」与窗口重置两个时刻并列）。点任务进详情层：槽位、模型与 effort、尝试 /
+点任意一行在 cell 正上方弹出面板并落在该来源的分组：组头就是折叠态那一行（同一字形、名字、
+读数与芯片），其下是 plan · 槽位 · 池等事实芯片，然后是额度（每窗口一行读数 + 发丝进度条 + 重置；
+DeepSeek 是钱，显示赠金 / 充值拆分，不画条），最后是它喂的那条队列（状态芯片是短词——运行中 /
+排队 #2 / 等额度…，完整原因与 runner 的「等到」、窗口重置两个时刻在芯片的 title 与详情层）。点任务进详情层：槽位、模型与 effort、尝试 /
 停滞、实际生效的 deadline 与重试预算、花费（按 API 价估算，非实际扣费）、通知回执，以及
 「任务书」（在 dsh 自带的右侧文件预览里打开 `prompt.md` 与各条追加，只读）和既有的写操作
 （全部经 `ops/host/task_queue_ops.py`）。取数失败的 provider 保留上一次好读数并写明读数时间；
@@ -182,29 +185,50 @@ DeepSeek 是钱，显示 ¥ 与赠金 / 充值拆分，不画条）在上，它�
 
 点开是宿主菜单材质的面板(`--dsw-specific-menu` + `--dsw-menu-backdrop-filter`,
 `--dsw-elevation-prominent`,12px 圆角,44px 头),**按执行器分组**——每个 agent 一把锁,
-所以每组就是一条独立的队列,顺序只在组内:
+所以每组就是一条独立的队列,顺序只在组内。
 
-- 组头:执行器字形(Claude Code / Codex / OpenCode)+ `槽 1/1`(满了且组内有人排队变琥珀);
-  锁被组外的任务占着、或该 agent 额度用尽(「额度用尽,23:20 恢复(x 触发)」)时各一行说明;
-- 行:持锁的在前,其后按 `task_queue_ops.py` 的真实拿锁顺序(`等 claude 锁 · 第 2 位`)。
-  第二行是模型层——完整模型名 `Claude Opus 5.5 · high`(排队的显示将要用的,在跑的显示实际
-  `MODEL_USED`,不一致时标 fallback),右侧尝试次数/时长/卡死次数和通知回执图标
+**一套行栅格**(`src/client.ts` 的 `ROW_KINDS` / `FACT_ORDER`,列宽只写在 `styles.module.css`
+的 `--tq-grid`,spec 钉住):折叠行、组头、在跑任务、最近结束、巡检轮次全是同四列——
+
+| 列 | 宽 | 放什么 |
+| :-- | :-- | :-- |
+| lead | 14px | 身份字形;只在与所在组头不同的行才画(组内任务、巡检轮次留空,最近结束跨 agent 所以画执行器) |
+| main | 1fr | 名字:组头粗体,组内条目常规 |
+| value | auto | 额度读数(只有来源行有),右对齐等宽数字 |
+| state | auto | **一枚**状态芯片,颜色走角色:蓝=在跑,琥珀=没做完或在等,红=失败,中性=无判决的事实,虚线=没记录 |
+
+其下可选一行事实芯片,顺序只有一张表:plan · 槽位 · 池 · 收尾 · 让路原因 · 为谁 · 轮次 · 任务报告 ·
+时间 · 用时 · 尝试 · 估算费用 · 模型(各类行只取自己那几格,没有的值跳过,不换位)。组头下的额度、
+说明与折叠控件都从名字那条边(`--tq-main-inset`)开始;行距一律 6px 上下、两行之间 4px、首行 20px。
+
+| 行 | lead | state | 事实(顺序) |
+| :-- | :-- | :-- | :-- |
+| 来源(折叠行 = 面板组头) | provider/agent 字形 | 队列状态 | plan · 槽位 · 池 |
+| 在跑/排队任务 | — | 运行中 / 排队 #n / 等额度… | 续跑时刻 · 已跑或已等 · 尝试/卡死 · 费用 · 模型 |
+| 最近结束 | 执行器字形 | 执行判决 | 任务报告 · 多久前 · 用时 · 费用 · 模型 |
+| 巡检轮次 | — | 执行判决 / 让路 | 任务报告 · 多久前 · 用时 |
+| 分节头(最近结束、巡检) | 分节字形 | 巡检阶段 | 收尾 · 让路原因 · 为谁 · 轮次 · 已跑 · 模型 |
+
+- 组头:槽位芯片 `槽 1/1`(满了且组内有人排队变琥珀);锁被组外的任务占着、或该 agent 额度用尽
+  (「额度用尽,23:20 恢复(x 触发)」)时各一行说明;闲着的组只有组头,不再写「没有任务」;
+- 行:持锁的在前,其后按 `task_queue_ops.py` 的真实拿锁顺序(芯片 `排队 #2`,title 是
+  `等 claude 锁 · 第 2 位`)。模型芯片是完整模型名 `Claude Opus 5.5 · high`(排队的显示将要用的,
+  在跑的显示实际 `MODEL_USED`,不一致时另有 fallback 芯片),后面是通知回执图标
   (微信 / Telegram:待发灰、已送达深灰、失败红加斜杠,来自 `result.env` 的 `NOTIFIED` /
   `NOTIFY_FAILED`)。没发布 `RUNNER_API=2` 的任务不在排队顺序里:列表行不加标记,点开详情写
   「无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型」;
-- 「最近结束」与「巡检」是**同一种记录**:执行器字形 · 名字 … 执行判决芯片,下一行是同一组
-  状态芯片,顺序固定为 任务报告 · 结束时间 · 用时 · 首次排队 · 估算费用 · 模型(没有的值跳过,
-  不换位)。执行判决(执行完成/失败/取消/超时/受阻/额度中止/未启动/未明)与模型最终报告
+- 「最近结束」与「巡检轮次」是同一种行:执行判决芯片在 state 列,任务报告领头事实行。
+  首次排队不常驻,在详情层。执行判决(执行完成/失败/取消/超时/受阻/额度中止/未启动/未明)与模型最终报告
   (任务:完成/部分完成/受阻/未报告)各占一枚芯片、各自着色,执行失败但模型报完成写
   「任务：自报完成」,不把两个轴压成一个结果。芯片用角色色:琥珀=没做完或在等,红=失败,
   蓝=正在跑,中性底=不带判决的事实;没记录的值是虚线框(唯一还用次要灰字的地方)。
-  `waitMs` 是 host 从 `QUEUED_AT` 到 `run.log` 第一条 `got run slot` 派生的可选字段;
+  详情层的首次排队 `waitMs` 是 host 从 `QUEUED_AT` 到 `run.log` 第一条 `got run slot` 派生的可选字段;
   旧 host、旧 runner 或截断的日志没有该字段时显示「排队耗时未记录」,绝不把总用时冒充等待。
 - **谁常驻、谁折叠只有一条规则**(`src/client.ts` 的 `RESIDENT_ROUNDS` 注释,spec 钉住):
   不同的工作常驻,重复与原始来源才折叠。host 已按 `taskQueueRecent` 截断,所以每条结束任务都常驻;
   巡检轮次是同一轮换在重复,只留最新一轮,更早的轮次与 journal 原始末行进折叠。折叠控件是
   胶囊按钮(发丝边、会转的箭头、按压与焦点环、触屏 44px 热区),打开不做高度动画。
-- 巡检组头是当前阶段;其下的芯片说它在跑哪一轮(轮次 · 轴、已跑、模型)或为什么让路——
+- 巡检分节头的状态芯片是当前阶段;它的事实芯片说在跑哪一轮(轮次 · 轴、已跑、模型)或为什么让路——
   让路原因只认 supervisor 真写得出的那几种(`ops/host/patrol.sh` 与
   `ops/host/agent-dispatch/resource-pressure.sh`):手工任务在等锁/槽 →「让手工任务先行」并带上
   那个任务的 id;本 agent 的运行槽都被占 →「等空闲运行槽」;内存余量/压力 →「内存不足，暂缓」;
@@ -244,7 +268,7 @@ clawock's agent-dispatch, the sidebar panel also shows that host's task queue an
 steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: each agent's quota windows above its queue (a Claude task running, one waiting for the Claude lock), the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks as records with status chips, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板:各 agent 的额度窗口与队列、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、以芯片呈现状态的最近结束记录、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one grid (glyph, name, reading, one status chip, then fact chips): each agent's quota windows above its queue, the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套栅格(字形、名字、读数、一枚状态芯片,再一行事实芯片):各 agent 的额度窗口与队列、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、最近结束、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
 
 ### English
 

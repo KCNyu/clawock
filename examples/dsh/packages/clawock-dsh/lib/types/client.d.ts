@@ -331,6 +331,60 @@ export declare function _modelView(id: string): {
     label: string;
     family: string;
 };
+/**
+ * A chip's tone. One colour, one meaning: 'run' = running now (the host's
+ * business blue), 'warn' = not done or waiting, 'bad' = failed, 'plain' = a
+ * fact that carries no verdict, 'quiet' = a value that was not recorded
+ * (outlined, no fill: it is the one secondary voice left).
+ */
+type ChipTone = 'plain' | 'run' | 'warn' | 'bad' | 'quiet';
+/**
+ * THE row grid (2026-09-28, kcn: 「整体布局比较乱，归整统一」). Every line of
+ * this cell — a folded source line in the sidebar, a source group's head in
+ * the panel, a section head, a live task, an ended task, a patrol round — is
+ * the same four columns (styles.module.css `--tq-grid`):
+ *
+ *   lead   14px  identity glyph, drawn only where it differs from the group
+ *                head's: a live task sits under its agent's head and a round
+ *                under patrol's, so they leave it empty; ended tasks are listed
+ *                across agents, so each carries its executor
+ *   main   1fr   the name — a head in the strong weight, an item in the regular
+ *   value  auto  the allowance reading, right-aligned figures (source lines only)
+ *   state  auto  ONE status chip; its tone is the role, never a grey level
+ *
+ * then an optional facts line under main…state: chips in FACT_ORDER. A fact a
+ * row has no value for is skipped, never re-ordered, so a fact sits in the
+ * same place on every row that has it. ROW_KINDS says what each kind fills;
+ * the renderer draws only that, and the spec checks every kind against both.
+ * Nothing else is resident: whatever a kind leaves out is in the detail layer
+ * (a task's first queue wait, a window's reset and bar, a source's plan).
+ */
+export declare const FACT_ORDER: readonly ['plan', 'slots', 'pool', 'wrap', 'reason', 'for', 'round', 'report', 'when', 'took', 'tries', 'cost', 'model'];
+export type FactSlot = typeof FACT_ORDER[number];
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
+export declare const ROW_KINDS: Record<RowKind, {
+    lead: boolean;
+    value: boolean;
+    facts: readonly FactSlot[];
+}>;
+type SlotChip = {
+    text: string;
+    tone: ChipTone;
+    title?: string;
+    mono?: boolean;
+};
+/**
+ * A live task's state chip: the short word (the group head already names the
+ * agent), its tone, and the whole phrase (_taskStatus: which lock, the wake
+ * and the window it waits for) as the chip's title. A wake time is the 'when'
+ * fact, where an ended task keeps when it ended.
+ */
+export declare function _taskState(task: DispatchTask, t: Translate, now?: number, windows?: ReadonlyArray<{
+    resetAtMs?: number | null;
+}>): {
+    chip: SlotChip;
+    when: string | null;
+};
 /** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
 export type PanelSource = {
     /** Stable key: the provider id, else the agent id. */
@@ -356,6 +410,17 @@ export declare function _poolPosition(result: TaskQueueResult | null): {
     next: string;
     fromOrder: boolean;
 } | null;
+/**
+ * A queue's state chip, the same on the folded line and on its group's head:
+ * the ONE state that most needs the reader, with its count — asleep on quota,
+ * then queued behind the lock or a slot, then another wait, then running. A
+ * wait outranks running because a queue implies its holder runs. Idle is no
+ * chip at all. `text` is every count (the line's aria-label and title).
+ */
+export declare function _queueState(t: Translate, tasks: DispatchTask[]): {
+    text: string;
+    chip: SlotChip | null;
+};
 /**
  * Why the supervisor gives way, read off its journal line. The patterns are
  * the reasons the supervisor can actually write — `others_need_slot` and

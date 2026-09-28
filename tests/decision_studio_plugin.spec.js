@@ -2212,13 +2212,15 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   const rail = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL && p["aria-haspopup"] === "dialog")[0];
 
   // Folded: one line per provider, in BALANCE_PROVIDERS order after the (absent) agents, each
-  // naming itself first, its reading, and — without an agent — where its key lives.
+  // naming itself first, then its reading. A provider without a queue has no state chip: where
+  // its key lives is the plan on its group, the reset is on its window bars and in the label.
   render();
   await tick(); await tick(); await tick();
   let foot = render();
   assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
-  assert.match(texts(lines(foot)[0]), /DeepSeek ¥110 API 账户/);
-  assert.match(texts(lines(foot)[1]), /MiniMax 24% ↻ 21:00 OpenClaw/, "the reset is the headline window's, one clock");
+  assert.equal(texts(lines(foot)[0]), "DeepSeek ¥110");
+  assert.equal(texts(lines(foot)[1]), "MiniMax 24%", "resident: name and reading, nothing that needs a legend");
+  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 24% · ↻ 21:00 · /, "the headline window's reset is still read out");
   assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
   assert.equal(lines(foot)[0].props["aria-expanded"], false);
   assert.equal(popover(foot).props["data-open"], "false");
@@ -2246,10 +2248,10 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.deepEqual(find(popover(foot), (p) => p["data-pp-group"] !== undefined).map((g) => g.props["data-pp-group"]), ["deepseek", "minimax"]);
   assert.deepEqual(find(popover(foot), (p) => p["data-pb-role"] === "panel").map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
   const ds = find(popover(foot), (p) => p["data-pp-group"] === "deepseek")[0];
-  assert.match(texts(ds), /DeepSeek 本机 API 账户 ¥110 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount and its split, no bar (⑤)");
+  assert.match(texts(ds), /DeepSeek ¥110 本机 API 账户 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount on the head, its split under it, no bar (⑤)");
   assert.equal(find(ds, (p) => p["data-pp-provider"] === "deepseek").length, 1, "the source uses its whale glyph");
   assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
-  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
+  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax 24% Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
 
   // One refresh forces both halves once, keeps the panel open and paints the low reading.
   find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
@@ -2903,13 +2905,17 @@ test("client: one provider cell carries the queue under each agent's provider an
   const lines = find(foot, (p) => p["data-pp-row"] !== undefined);
   // Folded: one line per source, agents first (no balance providers answered here, C3 ②'s mirror).
   assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "opencode"]);
-  // One tone, one meaning: b-1 queues for the claude lock, so claude's last column is amber.
-  const last = (key) => find(lines.find((l) => l.props["data-pp-row"] === key), (p) => typeof p.className === "string" && p.className.endsWith("_pp-last"))[0];
-  assert.equal(texts(last("claude")), "▶1 ≡1", "folded: a shape per state and its count, the words in the label");
-  assert.equal(last("claude").props["data-balance-state"], "stale");
-  assert.match(texts(last("codex")), /闲/);
-  assert.equal(texts(last("opencode")), "▶1");
-  assert.match(lines[0].props["aria-label"], /^Claude Code .*跑 1 · 排 1 .*打开 Claude Code 的额度与队列/, "each line reads out whole");
+  // The state column is ONE chip: the state that most needs the reader. b-1 queues for the claude
+  // lock (its holder runs), so claude's chip is the amber queue; an idle agent has no chip at all.
+  // No shapes that need a legend (the ▶ ≡ ⏸ column was the 260px stopgap this replaced).
+  const state = (key) => find(lines.find((l) => l.props["data-pp-row"] === key), (p) => p["data-tq-chip"] === "status")[0];
+  assert.equal(texts(state("claude")), "排队 1");
+  assert.equal(state("claude").props["data-tone"], "warn");
+  assert.equal(state("codex"), undefined, "idle: no chip, no grey word");
+  assert.equal(texts(state("opencode")), "运行 1");
+  assert.equal(state("opencode").props["data-tone"], "run");
+  assert.doesNotMatch(texts(lines), /[▶≡⏸…]/);
+  assert.match(lines[0].props["aria-label"], /^Claude Code .*排队 1 · 运行 1 .*打开 Claude Code 的额度与队列/, "each line still reads out every count");
   const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
     "every rendered class resolves through the stylesheet");
@@ -2921,40 +2927,78 @@ test("client: one provider cell carries the queue under each agent's provider an
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
     ["claude", "codex", "opencode", "recent", "patrol"]);
-  assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*没有任务 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
-  const lanes = find(popover, (p) => p["data-tq-lane"] !== undefined);
-  assert.deepEqual(lanes.map((l) => [l.props["data-tq-lane"], find(l, (p) => p["data-balance-state"] !== undefined)[0].props["data-balance-state"]]),
-    [["claude", "stale"], ["codex", "none"], ["opencode", "ok"]],
-    "claude's one slot is full and a claude task queues for it: that lane is the queue's reason");
+  assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
+  assert.doesNotMatch(texts(popover), /没有任务/, "an idle group is its head alone, not a grey sentence");
+  // A group's head IS its folded line (glyph · name · value · the same state chip), plus its facts.
+  const heads = find(popover, (p) => p["data-pp-head"] !== undefined);
+  for (const head of heads) {
+    const line = lines.find((l) => l.props["data-pp-row"] === head.props["data-pp-head"]);
+    const firstLine = (node) => (node.children || []).filter((c) => c && !/_tq-chips$/.test(c.props.className || "")).map(texts).join(" ");
+    assert.equal(firstLine(head), firstLine(line), `${head.props["data-pp-head"]}: the head repeats its folded line`);
+  }
+  const slotsOf = (agent) => find(heads.find((h) => h.props["data-pp-head"] === agent), (p) => p["data-tq-chip"] === "slots")[0];
+  assert.deepEqual(["claude", "codex", "opencode"].map((a) => slotsOf(a).props["data-tone"]), ["warn", "plain", "plain"],
+    "claude's one slot is full and a claude task queues for it: that slot count is the queue's reason");
   const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
   assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
     [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]], "the holder first, then its queue, per agent");
-  assert.match(texts(rows[0]), /运行中/);
-  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group header already says whose");
-  assert.match(texts(rows[0]), /Claude Opus 5\.5 .*第 2 次 · 1 小时 5 分 · 卡死 1/, "full model name and useful retry, duration and stall numbers");
+  const chip = (node, slot) => find(node, (p) => p["data-tq-chip"] === slot)[0];
+  assert.equal(texts(chip(rows[0], "status")), "运行中");
+  assert.equal(chip(rows[0], "status").props["data-tone"], "run");
+  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group head already says whose");
+  assert.match(texts(rows[0]), /已跑 1 小时 5 分 第 2 次 · 卡死 1 Claude Opus 5\.5/, "duration, useful retry and stall numbers, the full model name");
+  assert.equal(chip(rows[0], "tries").props["data-tone"], "warn", "a stall is a warning, not a plain count");
   assert.equal(find(rows[0], (p) => p.className && /_tq-model-mark/.test(p.className)).length, 0, "no two-letter model tile");
-  assert.match(texts(rows[2]), /运行中/, "slot-opencode-1: running in its own agent's slot");
-  assert.match(texts(rows[1]), /等 claude 锁/);
+  assert.equal(texts(chip(rows[2], "status")), "运行中", "slot-opencode-1: running in its own agent's slot");
+  // The state chip is the short word; the whole phrase (whose lock) is its title.
+  assert.equal(texts(chip(rows[1], "status")), "排队");
+  assert.match(chip(rows[1], "status").props.title, /等 claude 锁/);
+  assert.equal(chip(rows[1], "status").props["data-tone"], "warn");
   assert.match(texts(rows[3]), /执行完成 .*任务：完成/);
-  assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
+  assert.equal(find(rows, (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "no row speaks through a dot: states are chips");
   assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
-  for (const row of rows.slice(0, 3)) assert.ok(find(row, (p) => p.className && /_tq-sub/.test(p.className)).length >= 2,
-    "live tasks keep their two secondary lines");
-  // An ended task and a patrol round are ONE record shape: a status chip, then the slot chips.
+  assert.equal(find(rows[0], (p) => p["data-tq-agent"] !== undefined).length, 0, "a live row leaves the lead to its group head");
+  // Every row is on the one grid: its facts are chips in FACT_ORDER, and only the ones its kind lists.
   const chipSlots = (node) => find(node, (p) => p["data-tq-chip"] !== undefined).map((c) => c.props["data-tq-chip"]);
-  assert.deepEqual(chipSlots(rows[3]), ["status", "report", "ended", "took", "wait", "model"],
-    "an ended task's facts are chips in the record slot order, not a grey sentence");
-  assert.equal(find(rows[3], (p) => p["data-tq-chip"] === "wait")[0].props["data-tone"], "quiet", "an unrecorded wait says so, outlined");
+  assert.deepEqual(chipSlots(rows[3]), ["status", "report", "when", "took", "model"],
+    "an ended task: verdict, then report · when · took · model (the first queue wait is in its detail layer)");
+  assert.deepEqual(chipSlots(rows[0]), ["status", "took", "tries", "model"]);
   const round = find(popover, (p) => p["data-tq-round"] === "R139")[0];
-  assert.deepEqual(chipSlots(round), ["status", "ended", "took"], "a round fills the same slots, in the same order");
+  assert.deepEqual(chipSlots(round), ["status", "when", "took"], "a round fills the same slots, in the same order");
   assert.equal(find(round, (p) => p["data-tq-chip"] === "status")[0].props["data-tone"], "warn");
   assert.match(texts(round), /R139 · automation 让路取消 .*用时 1 小时 8 分/, "the last round is a readable record");
   assert.equal(round.type, "div", "a round opens nothing, so it is not a button");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
-  const status = find(popover, (p) => p["data-tq-patrol-status"] !== undefined)[0];
+  const status = find(popover, (p) => p["data-tq-patrol"] !== undefined)[0];
   assert.deepEqual(find(status, (p) => p["data-tq-chip"] !== undefined).map((c) => [c.props["data-tq-chip"], texts(c)]),
-    [["reason", "让手工任务先行"], ["for", "b-1"], ["elapsed", "已跑 1 分"], ["model", "X"]],
-    "why the patrol gives way, and to whom, as chips (the supervisor's own line is the reason's title)");
+    [["status", "让路中"], ["reason", "让手工任务先行"], ["for", "b-1"], ["took", "已跑 1 分"], ["model", "X"]],
+    "the patrol head: its phase as the state chip, then why it gives way and to whom as its facts");
+  // THE row grid (client.ts ROW_KINDS / FACT_ORDER): every row of the cell, folded or open, is
+  // lead · name · value · state then the facts, and a kind draws only what ROW_KINDS gives it.
+  const { ROW_KINDS, FACT_ORDER } = api;
+  for (const [kind, spec] of Object.entries(ROW_KINDS)) {
+    const at = spec.facts.map((slot) => FACT_ORDER.indexOf(slot));
+    assert.ok(at.every((i, n) => i >= 0 && (n === 0 || i > at[n - 1])), `${kind}: its facts are a run of FACT_ORDER, in order`);
+  }
+  const gridRows = [...lines, ...find(popover, (p) => p["data-tq-row"] !== undefined)];
+  assert.deepEqual([...new Set(gridRows.map((r) => r.props["data-tq-row"]))].sort(), Object.keys(ROW_KINDS).sort(),
+    "this fixture renders every row kind");
+  const cellName = (node) => /_(tq-[a-z]+)$/.exec(node.props.className || "")?.[1];
+  for (const row of gridRows) {
+    const kind = row.props["data-tq-row"];
+    const spec = ROW_KINDS[kind];
+    const cells = (row.children || []).filter((c) => c && typeof c === "object");
+    const order = cells.map((c) => c.props["data-tq-chip"] === "status" ? "state" : ({ "tq-lead": "lead", "tq-name": "main", "tq-value": "value", "tq-chips": "facts" })[cellName(c)]);
+    assert.ok(order.every(Boolean), `${kind}: nothing but grid cells (${cells.map(cellName)})`);
+    const columns = ["lead", "main", "value", "state", "facts"];
+    assert.deepEqual(order, columns.filter((c) => order.includes(c)), `${kind}: cells in column order`);
+    assert.deepEqual(order.slice(0, 2), ["lead", "main"], `${kind}: the lead column is always there, so every name starts on one edge`);
+    assert.equal(order.includes("value"), spec.value && order.includes("value"), `${kind}: a value only where the kind has one`);
+    if (!spec.lead) assert.equal((cells[0].children || []).filter(Boolean).length, 0, `${kind}: its lead is its group head's, left empty`);
+    const facts = find(cells.find((c) => cellName(c) === "tq-chips") ?? null, (p) => p["data-tq-chip"] !== undefined).map((c) => c.props["data-tq-chip"]);
+    assert.ok(facts.every((slot) => spec.facts.includes(slot)), `${kind}: only its own facts (${facts})`);
+    assert.deepEqual(facts, [...facts].sort((a, b) => FACT_ORDER.indexOf(a) - FACT_ORDER.indexOf(b)), `${kind}: facts in FACT_ORDER`);
+  }
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
@@ -2999,9 +3043,16 @@ test("client: one provider cell carries the queue under each agent's provider an
   const receipts = find(render(), (p) => p["data-tq-task"]?.startsWith("closed-"));
   assert.deepEqual(receipts.map((row) => row.props["data-tq-task"]), ["closed-a", "closed-b", "closed-c"],
     "ended tasks keep the host's newest-first order across agents");
-  assert.match(texts(receipts[0]), /执行完成 任务：部分完成 .*首次排队 7 分/);
-  assert.match(texts(receipts[1]), /执行失败 任务：自报完成 .*排队耗时未记录/);
+  assert.match(texts(receipts[0]), /执行完成 任务：部分完成/);
+  assert.match(texts(receipts[1]), /执行失败 任务：自报完成/);
   assert.match(texts(receipts[2]), /执行受阻 任务：受阻/);
+  // The first queue wait is not resident (ROW_KINDS.ended): it is one tap away, recorded or not.
+  assert.doesNotMatch(texts(receipts), /首次排队|排队耗时未记录/);
+  for (const [id, said] of [["closed-a", /首次排队 7 分/], ["closed-b", /排队耗时未记录/]]) {
+    find(render(), (p) => p["data-tq-task"] === id)[0].props.onClick();
+    assert.match(texts(find(render(), (p) => p["data-tq-detail"] === id)[0]), said);
+    find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  }
   const tone = (row, slot) => find(row, (p) => p["data-tq-chip"] === slot)[0].props["data-tone"];
   assert.deepEqual(receipts.map((row) => [tone(row, "status"), tone(row, "report")]), [["plain", "warn"], ["bad", "warn"], ["warn", "warn"]],
     "each axis carries its own tone: the runner's verdict, then the model's report");
@@ -3301,7 +3352,10 @@ test("client: the queue can be steered in place — move up, two-step cancel, mo
   const ups = find(tree, (p) => p["data-tq-up"] !== undefined);
   assert.deepEqual(ups.map((b) => b.props["data-tq-up"]), ["second"]);
   assert.match(texts(tree), /Sonnet 5 · high/, "a running task shows the model it actually runs on");
-  assert.match(texts(tree), /等 claude 锁 · 第 2 位/);
+  const second = find(tree, (p) => p["data-tq-task"] === "second")[0];
+  const secondState = find(second, (p) => p["data-tq-chip"] === "status")[0];
+  assert.equal(texts(secondState), "排队 #2", "the chip says the place in line");
+  assert.equal(secondState.props.title, "等 claude 锁 · 第 2 位", "and its title the whole phrase");
   assert.match(texts(tree), /ops 入口与仓库不一致（主机 abc123abc123 \/ 仓库 def456def456）/, "version skew is visible");
   const failedLeg = find(tree, (p) => p["data-tq-notify"] === "weixin" && p["data-state"] === "failed");
   assert.equal(failedLeg.length, 1, "a failed notification leg is marked on its row");
@@ -3547,7 +3601,32 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(rule("tq-fold-summary"), /transition:[^;]*transform/, "its own transition still names transform");
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-summary:after\{inset:-9px -8px\}/);
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary\):active\{transform:none\}/);
+});
+
+// 2026-09-28: one grid for the whole cell. The columns are written once (--tq-grid); the folded
+// lines share them as a subgrid (values and chips line up down the sidebar), every panel row
+// places the same four cells in the same columns, and whatever sits under a head starts on the
+// name's edge (--tq-main-inset) — the before state had three left edges and per-line columns.
+test("provider panel: every row takes its columns from the one grid", () => {
+  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  const rules = (sel) => [...css.matchAll(new RegExp(`${sel}(?:,[^{}]*)?\\{([^}]*)\\}`, "g"))].map((m) => m[1]).join(";");
+  assert.equal((css.match(/--tq-grid:/g) ?? []).length, 1, "the columns are defined once");
+  assert.match(css, /--tq-grid:var\(--tq-lead\) minmax\(0(px)?, ?1fr\) auto auto/);
+  assert.match(css, /--tq-main-inset:calc\(var\(--tq-lead\) \+ var\(--tq-gap\)\)/);
+  assert.match(rules("\\[data-tq-row\\]"), /grid-template-columns:var\(--tq-grid\)/, "panel rows and folded lines alike");
+  assert.match(rules("\\[data-tq-row\\]"), /align-items:baseline/, "the first line shares one baseline");
+  assert.match(rules("_pp-row"), /grid-template-columns:subgrid/, "folded lines share the list's columns");
+  assert.match(rules("_pp-row"), /grid-column:1\/-1/);
+  assert.match(rules("_pp-rows"), /grid-template-columns:calc\(var\(--tq-lead\) \+ 8px\) minmax/, "the lead track carries the line's inset");
+  for (const [sel, col] of [["_tq-lead", "1"], ["_tq-name", "2"], ["_tq-value", "3"], ["\\]>\\.[A-Za-z0-9_-]+_tq-chip\\[data-tq-chip=status\\]", "4"]]) {
+    assert.match(rules(sel), new RegExp(`grid-column:${col}(;|$)`), `${sel} sits in column ${col}`);
+  }
+  // The facts line: row 2, from the name's column to the end (the minifier writes it as grid-area).
+  assert.match(rules("\\]>\\.[A-Za-z0-9_-]+_tq-chips"), /grid-area:2\/2\/auto\/-1/);
+  for (const sel of ["_tq-inset", "_tq-fold"]) assert.match(rules(sel), /var\(--tq-main-inset\)/, `${sel} starts on the name's edge`);
+  assert.doesNotMatch(css, /_(tq-record|tq-line|tq-meta|tq-num|tq-group-head|pp-reading|pp-reset|pp-money)[{ ,.:[]/, "no per-row-type layout is left");
 });
 
 // #1955: the queue and provider panel wrote their waiting/failed WORDS in the host's state
@@ -3560,14 +3639,15 @@ test("queue and provider panel: state-coloured words clear 4.5:1, dots keep the 
   assert.match(css, /--tq-text-warn:var\(--warn\)/);
   assert.match(css, /--tq-text-bad:var\(--bad\)/);
   assert.doesNotMatch(css, /--dsw-alias-state-warn-label/, "the host's warn label paint is not a text colour here");
-  const rule = (sel) => css.match(new RegExp(`_${sel}\\{([^}]*)\\}`))?.[1] ?? "";
+  // The minifier folds rules with the same body into one selector list: a selector may lead one.
+  const rule = (sel) => css.match(new RegExp(`_${sel}(?:,[^{}]*)?\\{([^}]*)\\}`))?.[1] ?? "";
   for (const [sel, role] of [
-    ["tq-v\\[data-balance-state=stale\\]", "warn"], ["tq-v\\[data-balance-state=low\\]", "bad"],
+    ["tq-value\\[data-balance-state=stale\\]", "warn"], ["tq-value\\[data-balance-state=low\\]", "bad"],
+    ["tq-value\\[data-used-level=mid\\]", "warn"], ["tq-value\\[data-used-level=low\\]", "bad"],
+    ["tq-chip\\[data-tone=warn\\]", "warn"], ["tq-chip\\[data-tone=bad\\]", "bad"],
     ["tq-d-status\\[data-balance-state=stale\\]", "warn"], ["tq-d-status\\[data-balance-state=low\\]", "bad"],
     ["tq-note\\.[A-Za-z0-9_-]+_tq-warn", "warn"], ["tq-note\\.[A-Za-z0-9_-]+_tq-bad", "bad"],
     ["tq-foot\\.[A-Za-z0-9_-]+_tq-bad", "bad"], ["tq-pill\\.[A-Za-z0-9_-]+_tq-danger", "bad"],
-    ["pp-v\\[data-used-level=mid\\]", "warn"], ["pp-v\\[data-balance-state=stale\\]", "warn"],
-    ["pp-last\\[data-balance-state=stale\\]", "warn"], ["pp-money\\[data-balance-state=low\\]", "bad"],
   ]) {
     assert.match(rule(sel), new RegExp(`color:var\\(--tq-text-${role}\\)`), `${sel} must be written in --tq-text-${role}`);
   }
