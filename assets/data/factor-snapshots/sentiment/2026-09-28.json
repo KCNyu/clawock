@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T23:52:40.530188+00:00",
+  "generated_at": "2026-09-28T00:01:58.746263+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -56,7 +56,7 @@
         },
         {
           "title": "Circle Internet Group falls as investors digest recent deal economics and potential dilution",
-          "source": "quiverquant.com",
+          "source": "Quiver Quantitative",
           "published": "Fri, 25 Sep 2026 14:49:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOSDUwWndnQ01KejhISG5DM2N1WjZqdGpwOGxsZG93bDFtTklxTEhMc2N5TWdNeDdMcHBLT2ZTZzJYWWtTYWNRSTktOENDZTdRQVZhZ0J5YUotUU85ZkQ2UnlVamk1MlhpR2JYamNvYUt5MTRER2ZpSlhZcU1hTTlfS3Fkekx3c2JLS0xmVlRDMnNJdTFkYTFZUzdkeGxvWVNRLW5UUFlMbjlaRGZydkFYQUYxR1dLT3RpbFU4UGlubzJCYUE?oc=5"
         },
@@ -160,14 +160,14 @@
           "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNbFhrR1JQNGEwcFM5S1Fmelp1clJtSk5nSE5Ta0o4ckFhT0p1MWVfWXZucHNfa2p4Qi0zRXJEWm9KblM2clhIMmw4V3pZVnRjZHNOZjFpdllUendxZkhPUmVQV0hMQ0s4ZzhPS1N2ZDZGbzJuQkU5RmdGclNoeFVka1ln?oc=5"
         },
         {
-          "title": "Why Did SpaceX Stock Fall 4% Days Before Starship's Biggest Flight?",
+          "title": "SPCX Stock Climbs Premarket As Musk Teases 3 Nvidia Chip Waves — Google Books SpaceX Ride For Orbital AI Test",
           "source": "Yahoo Finance",
-          "published": "Thu, 24 Sep 2026 12:06:14 GMT",
-          "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxObWRqM0YzWGtVQ25kNk9FU1VwaUJzdGpnNHk4Q2FzMUo4alFPanY1eW1wN0pOeHNEcmthWl9OWFBUQUN1RTQtUU1WZGdnSmJ2a2x3Z002d3EzTG9salV2QlZOY1NndUNOYi02bkNZU0xSVTlvVlhpM2N4blEtamtuRjRkWW4tSFJKLWFrcC0xTVJCVTUz?oc=5"
+          "published": "Fri, 25 Sep 2026 08:04:10 GMT",
+          "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOaEtRUXdJb1VVcVdjUEF3ZWJtd19mRlBieXZtcndYTUM4akR6SndPMTNueXVXdlZiSkFieWpQSmMzU01tMHBJVlRDWWpqaHoyRGVwdzlKamNjTElFdVN2YXlKQlJCbHFiZDZmNWYyVmlCd1Z0dEFHSlFWbVdGbHEzOFJOTUdZMVpYcVlfWW9YRC1PZFZFeFRYdkNlM2U?oc=5"
         },
         {
           "title": "SpaceX Stock-Split Watch: Here's When It Should Happen",
-          "source": "fool.com",
+          "source": "The Motley Fool",
           "published": "Fri, 25 Sep 2026 00:05:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNeUxqdWRQc2VSTVBDUlhBR1hQSnFJTktVOThWbDR0Si15LXlQNmEwMWxNdm5vS00xbjMzLTY5RVZ5MzVVa0w1Zl84QmUwblF5Q2xTbUZHSlp3N3JjZDFrN2kxLTVid0tEX2N6NFJMMnk3N3R4bHZTSkFRb2gxamxXZHY1LU8?oc=5"
         },
@@ -237,16 +237,16 @@
           "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9LY1FkX2hvMTE2bDlNUGd4TllLSE41eU9qckpTczQ2TjlhNUl1UXlWTXNFbFNFSWxaNFhnaFhSV2x1T0NmMkUzMnhDRDZqT0ZxSjZLZXl0OG13UQ?oc=5"
         },
         {
-          "title": "Ten SpaceX ETFs Launch as SPCX Hits Market",
-          "source": "ETF Database",
-          "published": "Mon, 15 Jun 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE0wY0trcC1GRkIzV3R5bnZNUzFSMDNGN1VuamxtR1k1YmJpeDRkcnNtS0JkWURSeWtsU1BNYTQwRk5yLXZra1JkcUNFNlQtaEFmdXE0RjRJdm1WX0RHamtiMTlRM0hNUE1EcWhuS2Zyd1NUak9HOTBOSw?oc=5"
-        },
-        {
           "title": "(SPCH) Movement as an Input in Quant Signal Sets",
           "source": "Stock Traders Daily",
           "published": "Fri, 18 Sep 2026 04:34:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOWVE2TzNmWkV1cGpmNldaZHhpYVB3dy0xZ2FQd25HNVFXd0hwS25EX1N6aUpBQ3dEMUFiZVBGcTNhQ05vWXNCV01uZVppbVBJb05kRlBNbVFZYXFTMW1Ra1pVLXE4bzhhekFVSzhZZUQzVGhHTk92eTVmOV9QNDFIUkdwbWZrWklKdHJOMm1IVVZYcjdHdEtyd3NoVUVrQUxTeExURHdGS3VFU1ZNcHViODZILVZ6WlZfdjNKekYzS2JjOXlCU1E?oc=5"
+        },
+        {
+          "title": "Ten SpaceX ETFs Launch as SPCX Hits Market",
+          "source": "ETF Database",
+          "published": "Mon, 15 Jun 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE0wY0trcC1GRkIzV3R5bnZNUzFSMDNGN1VuamxtR1k1YmJpeDRkcnNtS0JkWURSeWtsU1BNYTQwRk5yLXZra1JkcUNFNlQtaEFmdXE0RjRJdm1WX0RHamtiMTlRM0hNUE1EcWhuS2Zyd1NUak9HOTBOSw?oc=5"
         },
         {
           "title": "SPCH Sep 2026 13.500 call (SPCH260925C00013500) Stock Historical Prices & Data - Yahoo Finance",
@@ -271,7 +271,7 @@
       "google_news_en": [
         {
           "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
-          "source": "longbridge.com",
+          "source": "Longbridge",
           "published": "Thu, 24 Sep 2026 02:42:39 GMT",
           "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
         },
@@ -309,7 +309,7 @@
         },
         {
           "title": "0100.HK 港股報價| MINIMAX-W | MINIMAX-W | 香港即時股票股價",
-          "source": "etnet.com.hk",
+          "source": "etnet 經濟通",
           "published": "Sun, 29 Mar 2026 00:58:52 GMT",
           "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFB4N1dscVBoc29Ub0FwWldMaGZJdS1fMGxYVURSSzUyRVZ2SF9xRXhCYk82N3I0RUZUcFBPWmdwWUF0YWo4OEFGTGxBWHpRQkhPenZoWm1pT2l2R3ptZ05qYm5XMG5qOHFFQnJhODJoMVc5Xy1nM0E?oc=5"
         },
@@ -385,7 +385,7 @@
         },
         {
           "title": "歐盟宣佈對中國清潔能源巨頭金風科技展開反補貼深入調查",
-          "source": "DW.com",
+          "source": "dw.com",
           "published": "Tue, 03 Feb 2026 08:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMihwNBVV95cUxPZzg2YURBNW9BLUduTUpQTkdTLWZScVJMaHhFUHA0eWM5Q0xXZFplOU9LV3ZLczFsbFJteHVxc2U0emhiQnQ4eEdYN18xdi1SYlJpejFqMV9kcVlzellzTWt0WmRNNjM2REp6Qk4zVzdEb0VRSlBNbmpRclJ0VDJ3ZGJpcHFTcURiUlRQOGR1bmE2Wkxmcm5DZXFkcVNQc0p5Z2xTdE9EQW9UTFQ3cjV2UnM1SDFZOEV3Qlp2ZlhDZGtNdk1uU0k4QS1YYUhjXzMwang0MkZVaktrdHZsZ2N0cV84OFpVYWJ0aUs3Uk15cmtpa3R2aVIwRlNCRUJCVHlJc0xhdXduSDgtWUZxWlpRZEpuZk8xWWtEdFVMeUhJaUNLblV5QXlVb3MwVGtrbkh6RDRtdEZ3Q09TSjlOUFVUZ3Q5RkZvZ0RrY01pUC1nSkVlbG9iY2o1OVR1ZURGUExQWXFqdVdTaWhYcmNma0Z5S1ZCUU1acW85akcycFV2NEhGdzJOWWVN0gGHA0FVX3lxTFA1VVlXSlZzUXJhbjhJS1hkOUJBUklWZmtNTmwzYkowcVF1UGxtck1kcnViYVJVTkc3TndGVEZ1eXdSVGhSSUpNeG8wMXRjcU02YXRWNmJpSEVyZ3hySGpCX0hnaE16S0FhdTlsNzNmR0IzY0NmYjNvV2NHVnZGcERFV2twOWx5cjYxVGhnNVhfbkx0S0pEVVhKMGdxOE5tWm5zN3hSS3BOZUM5NUQzemNSM0tuYkxySDM0a2laMFY1OEFPaFlNRjhqMzhENG5uN2hickJvM0pMVXFsejNwQXBQWHVmQjRFWUtMT1lOS0p3clpZaE93MnJ2OGxab0FZdFh3VHRCUl9DdnZidUlZODdITmVNZHF4ZlFGUUFjaS1UcjM5OHRTa05QNDRJdmVSUFNWeW80VDRTeGtQaUxiS0hJU3NIVUtnUGd3bjVrSWlJMEFqRjY0WlMzajMzVWNMbUcxU0wxSUJfZ253MFRTOUd0bUFOaVBBTlY5dUI2YkJjWWpNYnNZNFk?oc=5"
         },
@@ -430,7 +430,7 @@
         },
         {
           "title": "Hang Seng TECH Index ETF (3032.HK) stock price, news, quote and history",
-          "source": "Yahoo Finance UK",
+          "source": "uk.finance.yahoo.com",
           "published": "Mon, 18 Jun 2018 07:39:27 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9LZllEUnRkNWxFODN1NlpIbG1JWFhYdzQ5MTRwUGgwLTY0ZWdubGZ3NTFaQ19HR1pLR0FuMmlaZ0F4YUNyR2dITmx6Z19UQmxRWk15a0VB?oc=5"
         },
@@ -480,7 +480,7 @@
         },
         {
           "title": "港股4月開啟反彈！恒生科技ETF易方達(513010)本月累計上升4.69%，自去年10月以來合計淨流入超170億元",
-          "source": "sl886.com",
+          "source": "SL886 財經網",
           "published": "Wed, 15 Apr 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiR0FVX3lxTE90UUVlV0FKVTlacmJGZW8xV2FqX1duTC0zYjZZaDJMeFBTOEVvS0RZdTMycHRDSEtSLVZvSzg5RGhyZDhjekxJ?oc=5"
         }
@@ -584,7 +584,7 @@
         },
         {
           "title": "CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
-          "source": "Yahoo Finance UK",
+          "source": "uk.finance.yahoo.com",
           "published": "Wed, 21 Feb 2018 09:51:20 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE84ODdhd18yMEwzV2VQa2dIdVp2RV9vS3h4M2FvTlo3NDVrdmRETzFKbkZWR1hDeXNSRnhoR0pxVFhYdFZzU093UWZJXy12cjRJdDVHT2JB?oc=5"
         },
