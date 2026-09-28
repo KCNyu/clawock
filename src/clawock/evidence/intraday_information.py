@@ -84,12 +84,13 @@ def graph_grade(event):
     return 'soft'
 
 
-def _cite(title, source, published_at, source_fresh, market, now):
+def _cite(title, source, published_at, source_fresh, market, now, time_precision=None):
     """Cite the item's own clock; file time is only provenance when it has none."""
     raw = str(published_at or '')
     parsed = _parse_time(published_at)
-    if parsed and len(raw) == 10 and raw[4] == '-' and raw[7] == '-':
-        label = f"发布日期 {raw[5:]}（时刻未知），开盘前旧闻"
+    if parsed and (time_precision == 'date' or
+                   (len(raw) == 10 and raw[4] == '-' and raw[7] == '-')):
+        label = f"发布日期 {parsed.astimezone(HKT):%m-%d}（时刻未知），开盘前旧闻"
     elif parsed:
         item = freshness(parsed, market, now)
         label = f"截至 {item['as_of']}"
@@ -186,6 +187,7 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
             'grade': graph_grade(event), 'direction': event.get('impact_direction'),
             'title': event.get('title'),
             'published_at': ((event.get('publication_time') or {}).get('iso')),
+            'time_precision': ((event.get('publication_time') or {}).get('precision')),
             'url': event.get('source_url'),
         }
         full_ticker[ticker].append(row)
@@ -218,7 +220,8 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
         per_ticker[ticker] = [
             {**{k: r[k] for k in ('grade', 'direction', 'title', 'published_at') if r.get(k)},
              'cite': _cite(r.get('title'), r['source'], r.get('published_at'),
-                           sources.get(r['source']) or {}, market, now)}
+                           sources.get(r['source']) or {}, market, now,
+                           r.get('time_precision'))}
             for r in rows[:MAX_ITEMS_PER_TICKER]]
 
     attention = {}

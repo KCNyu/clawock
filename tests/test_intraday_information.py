@@ -88,6 +88,24 @@ def test_a_morning_item_uses_its_own_date_not_the_file_write_time(tmp_path):
     assert '09-25 08:03' not in cite
 
 
+def test_graph_date_precision_never_claims_a_publication_minute(tmp_path):
+    root = _workspace(tmp_path)
+    path = root / 'assets/data/news_evidence_graph.json'
+    doc = json.loads(path.read_text())
+    doc['events'] = [
+        {'ticker': 'RKLB', 'title': 'Dated filing', 'source_type': 'sec_filing',
+         'publication_time': {'iso': '2026-09-25T00:00:00+00:00', 'precision': 'date'}},
+        {'ticker': 'RKLB', 'title': 'Timed release', 'source_type': 'sec_filing',
+         'publication_time': {'iso': '2026-09-25T14:30:00+00:00', 'precision': 'minute'}},
+    ]
+    path.write_text(json.dumps(doc))
+    out = info.collect(root, 'us', ['RKLB'], now=NOW, fast_news=lambda limit: [])
+    cites = {row['title']: row['cite'] for row in out['summary']['tickers']['RKLB']}
+    assert '发布日期 09-25（时刻未知）' in cites['Dated filing']
+    assert '08:00 HKT' not in cites['Dated filing']
+    assert '截至 09-25 22:30 HKT' in cites['Timed release']
+
+
 def test_an_unreadable_source_is_named_not_silent(tmp_path):
     out = info.collect(_workspace(tmp_path, drop=('news_evidence_graph.json',)), 'us',
                        ['RKLB'], now=NOW, fast_news=lambda limit: [])
