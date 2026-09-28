@@ -124,3 +124,21 @@ def test_pre_push_allows_good_identity_range(tmp_path):
     # no checker + no portfolio.json in the fixture → the rest of the hook
     # takes the permissive path; the identity gate must not block it
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_pre_push_rejects_bad_identity_even_when_good_identity_sorts_last(tmp_path):
+    repo = _repo(tmp_path)
+    _commit(repo, GOOD_EMAILS[0])
+    seed = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    for filename, email, name in (("bad.txt", BAD_EMAILS[2], "Aaron"),
+                                  ("good.txt", GOOD_EMAILS[-1], "Zed-bot")):
+        (repo / filename).write_text("x\n")
+        _git(repo, "add", filename)
+        _commit(repo, email, name=name, no_verify=True)
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    result = subprocess.run(
+        ["bash", str(repo / "hooks" / "pre-push")], cwd=repo,
+        capture_output=True, text=True,
+        input=f"refs/heads/master {head} refs/heads/master {seed}\n")
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "unrecognized identity" in result.stdout

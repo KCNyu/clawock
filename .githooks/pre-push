@@ -36,8 +36,10 @@ PUSHED_IDENTS="$(printf '%s\n' "$UPDATES" | \
     git log --format='%an <%ae>|%cn <%ce>' "$rsha..$lsha" 2>/dev/null
   done)"
 if [ -n "$PUSHED_IDENTS" ]; then
-  if ! printf '%s\n' "$PUSHED_IDENTS" | tr '|' '\n' | sort -u | \
-      while read -r ident; do check_identities "$ident"; done; then
+  # Check all identities in one call: a while loop in an if pipeline reports
+  # only its final iteration's status and can allow an earlier bad identity.
+  mapfile -t identities < <(printf '%s\n' "$PUSHED_IDENTS" | tr '|' '\n' | sort -u)
+  if ! check_identities "${identities[@]}"; then
     echo "🚫 push blocked — a pushed commit carries an unrecognized identity"
     echo "   fix: git commit --amend --author='KCNyu <shengyu.li.evgeny@gmail.com>'"
     echo "   Override (rare): git push --no-verify"
