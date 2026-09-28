@@ -2151,7 +2151,7 @@ async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
 // 这块牌三层：判词 + 四个领域读数 → 定时任务监测板 → 选中后就地展开的明细。
 // payload 由用例自己造（形状固定，不随当日数据时灵时不灵），量的是浏览器
 // 真排出来的东西。
-function dataHealthFixture(json, { stale = false } = {}) {
+function dataHealthFixture(json, { stale = false, outcomes = null } = {}) {
   json.build_status = json.build_status || {};
   json.build_status.integrity = { error_count: 0, warn_count: 1, top: [
     { level: "WARN", code: "quote.us_stale", msg: "SKHY 报价 3 小时未更新" }] };
@@ -2166,6 +2166,7 @@ function dataHealthFixture(json, { stale = false } = {}) {
       { job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00" },
     ],
   };
+  if (outcomes) json.workflow_outcomes = outcomes;
   const hkt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong" }).format(new Date());
   json.cron_schedule = { date: stale ? "2026-09-20" : hkt, jobs: [
     { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
@@ -2216,6 +2217,31 @@ function dataHealthEdges() {
       && getComputedStyle(el).textOverflow !== "ellipsis"
       && getComputedStyle(el).webkitLineClamp === "none").map(el => el.className).slice(0, 5),
   };
+}
+
+// #2056：artifact_only（产物在、投递未确认）曾整类掉出分母，1 成功 + 2 未确认
+// 印成「1/1 送达 · 全部按时送达 · 正常」，同页页脚却是黄点。
+async function testUnconfirmedDeliveryIsNotAllDelivered(browser, base) {
+  const { context, page } = await openDataHealth(browser, base, 1280, { outcomes: {
+    window_hours: 36,
+    counts: { success: 1, artifact_only: 2, no_change: 4, skipped: 1 },
+    degraded_slots: [
+      { job: "盘中盯盘", slot: "2026-09-27T10:30:00+08:00", status: "artifact_only" },
+      { job: "盘中盯盘", slot: "2026-09-27T11:30:00+08:00", status: "artifact_only" }],
+  } });
+  const cell = await page.evaluate(() => {
+    const el = document.querySelector('#dh-cells .dh-cell[data-key="delivery"]');
+    const text = sel => el.querySelector(sel).textContent.replace(/\s+/g, " ").trim();
+    return { tone: el.dataset.tone, value: text(".dh-cell-value"), note: text(".dh-cell-note") };
+  });
+  assert.equal(cell.value, "1/3送达", "unconfirmed slots belong in the denominator; no_change/skipped do not");
+  assert.equal(cell.tone, "warn");
+  assert.ok(!cell.note.includes("全部按时送达"), cell.note);
+  assert.ok(cell.note.includes("盘中盯盘") && cell.note.includes("投递未确认"), cell.note);
+  await page.locator('#dh-cells .dh-cell[data-key="delivery"]').click();
+  const panel = await page.locator("#dh-panel-delivery").textContent();
+  assert.ok(panel.includes("仅存档"), "the named rows list the unconfirmed slots");
+  await context.close();
 }
 
 async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
@@ -3327,6 +3353,7 @@ async function main() {
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
+    await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
     await run("testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh", () => testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base));
     await run("testAnOldScheduleIsOneWatchItemNotOnePerJob", () => testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base));
     await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
