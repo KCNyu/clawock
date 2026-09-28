@@ -58,9 +58,23 @@ install_runner() {
   bash ops/host/install_agent_dispatch.sh
   bash ops/host/install_agent_dispatch.sh --check
 }
+# The queue ops entry the runner and the desk's queue actions call is the installed copy in
+# the same directory, not this checkout (ops/ is outside the editable install). Installing it
+# stays a manual step (install_task_queue_ops.sh says why), so this script only names it —
+# and never calls such a merge "python only" (#2067).
+ops_differs() {
+  [ -d "$RUNNER_DIR" ] && [ -f ops/host/install_task_queue_ops.sh ] &&
+    ! bash ops/host/install_task_queue_ops.sh --check >/dev/null 2>&1
+}
+OPS_MANUAL="run ops/host/install_task_queue_ops.sh (manual; refresh_live does not install it)"
 
 if [ "$behind" = "0" ]; then
   echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
+  ops_stale=0
+  if ops_differs; then
+    ops_stale=1
+    echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
+  fi
   if runner_differs; then
     echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
     if [ "$check_only" = "1" ]; then
@@ -69,6 +83,7 @@ if [ "$behind" = "0" ]; then
     fi
     install_runner
   fi
+  [ "$check_only" = "1" ] && [ "$ops_stale" = "1" ] && exit 1
   exit 0
 fi
 
@@ -79,15 +94,26 @@ needs_runner=0
 grep -qx 'pyproject.toml' <<<"$changed" && needs_venv=1
 grep -q '^examples/dsh/packages/clawock-dsh/' <<<"$changed" && needs_plugin=1
 grep -qE '^ops/host/(agent-dispatch/|install_agent_dispatch\.sh$)' <<<"$changed" && needs_runner=1
+needs_ops=0
+grep -qE '^ops/host/(task_queue_ops\.py|model_prices\.json|install_task_queue_ops\.sh)$' <<<"$changed" && needs_ops=1
 
 echo "behind $REMOTE/$BRANCH by $behind commit(s):"
 git --no-pager log --oneline "$range" | sed 's/^/  /'
 [ "$needs_venv" = "1" ] && echo "  → pyproject.toml moved: the venv needs install_clawock_launcher.sh"
 [ "$needs_plugin" = "1" ] && echo "  → clawock-dsh moved: the desk needs install_dsh_plugin.sh --restart"
 [ "$needs_runner" = "1" ] && echo "  → agent-dispatch runner moved: /root/tools/agent-dispatch needs install_agent_dispatch.sh"
-[ "$needs_runner" = "0" ] && runner_differs &&
+pending=$((needs_venv + needs_plugin + needs_runner + needs_ops))
+if [ "$needs_runner" = "0" ] && runner_differs; then
   echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
-if [ "$needs_venv" = "0" ] && [ "$needs_plugin" = "0" ] && [ "$needs_runner" = "0" ]; then
+  pending=$((pending + 1))
+fi
+[ "$needs_ops" = "1" ] && echo "  → queue ops entry moved: $OPS_MANUAL"
+if [ "$needs_ops" = "0" ] && ops_differs; then
+  echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
+  pending=$((pending + 1))
+fi
+# Only when nothing above is owed: "python only" next to an install line is a contradiction.
+if [ "$pending" = "0" ]; then
   echo "  → python only: the editable install picks it up on fast-forward"
 fi
 
@@ -142,6 +168,9 @@ if [ "$needs_runner" = "1" ] && [ ! -d "$RUNNER_DIR" ]; then
   echo "no agent-dispatch installation on this host — skipped the runner install" >&2
 elif [ "$needs_runner" = "1" ] || runner_differs; then
   install_runner
+fi
+if ops_differs; then
+  echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
 fi
 
 # Say what is live now rather than assuming the steps above took: an install

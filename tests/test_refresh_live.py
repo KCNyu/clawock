@@ -209,3 +209,48 @@ def test_an_autostash_conflict_is_reported_not_called_a_fast_forward(desk):
 
     assert result.returncode == 1, result.stdout + result.stderr
     assert "re-applying local edits conflicted in: src/thing.py" in result.stderr
+
+
+def _with_queue_ops(upstream, checkout):
+    import shutil
+    for rel in ("ops/host/install_task_queue_ops.sh", "ops/host/task_queue_ops.py",
+                "ops/host/model_prices.json"):
+        dest = upstream / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / rel, dest)
+    _git(upstream, "add", "-A")
+    _git(upstream, "commit", "-qm", "queue ops")
+    _git(checkout, "pull", "-q", "origin", "master")
+
+
+def test_a_queue_ops_move_is_named_and_never_called_python_only(desk, tmp_path):
+    """#2067: task_queue_ops.py is called from its installed copy, which the
+    editable install never touches; a merge moving it read "python only"."""
+    upstream, checkout = desk
+    _with_queue_ops(upstream, checkout)
+    installed = tmp_path / "agent-dispatch"
+    installed.mkdir()
+    for f in ("task_queue_ops.py", "model_prices.json"):
+        (installed / f).write_bytes((checkout / "ops" / "host" / f).read_bytes())
+    _advance(upstream, "ops/host/model_prices.json", "{}\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout), "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_DIR": str(installed)}
+    done = subprocess.run(["bash", str(SCRIPT), "--check"], capture_output=True, text=True, env=env)
+    assert done.returncode == 1
+    assert "install_task_queue_ops.sh" in done.stdout
+    assert "editable install picks it up" not in done.stdout
+
+
+def test_a_stale_install_the_range_did_not_bring_is_named_too(desk, tmp_path):
+    """The #2055 shape: an install that differs while the range is plain Python
+    must not be followed by "python only"."""
+    upstream, checkout = desk
+    _with_queue_ops(upstream, checkout)
+    installed = tmp_path / "agent-dispatch"
+    installed.mkdir()
+    _advance(upstream, "src/thing.py", "x = 9\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout), "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_DIR": str(installed)}
+    done = subprocess.run(["bash", str(SCRIPT), "--check"], capture_output=True, text=True, env=env)
+    assert "install_task_queue_ops.sh" in done.stdout
+    assert "editable install picks it up" not in done.stdout
