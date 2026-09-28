@@ -120,6 +120,23 @@ def build_receipt(*, ts, sent_ok, tg_ok, out="", **fields) -> dict:
             **fields, "out": (out or "")[-200:]}
 
 
+def failed_wechat_body(sent_ok, message) -> dict:
+    """Receipt field carrying the exact WeChat payload when WeChat failed.
+
+    The watchdog's WeChat backstop re-sends it. Without it the backstop could
+    only look in the session transcript — which in prose mode holds a postflight
+    status line, never the report — and so always re-sent the bare data block
+    under 「报告文本不在会话里」 while the validated report sat on disk (#2050).
+    Recorded only on failure, so a normal receipt stays small."""
+    return {} if sent_ok or not (message or "").strip() else {"wechat_body": message}
+
+
+def recorded_wechat_body(receipt) -> str | None:
+    """The WeChat payload a failed send recorded (see failed_wechat_body)."""
+    body = receipt.get("wechat_body") if isinstance(receipt, dict) else None
+    return body if isinstance(body, str) and body.strip() else None
+
+
 def read_receipt(path) -> dict | None:
     """The receipt at `path`, or None when it is absent or unreadable."""
     try:

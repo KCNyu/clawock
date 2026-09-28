@@ -245,6 +245,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             context_generated_at=context_generated_at,
             market=market,
             phase=phase,
+            **delivery_receipts.failed_wechat_body(sent_ok, message),
         ), ensure_ascii=False))
         return True
 

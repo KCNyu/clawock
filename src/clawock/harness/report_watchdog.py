@@ -276,11 +276,13 @@ def main():
     if (isinstance(marker, dict) and marker.get('sent_ok') is False
             and marker_matches_slot(marker, ctx_id, raw_block_first, now_ms,
                                     ctx_generated_at=ctx.get('generated_at'))[0]):
-        wechat_body = None
-        if transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
+        # The payload postflight tried to send comes first (#2050): in prose
+        # mode the transcript never holds the report.
+        wechat_body = delivery_receipts.recorded_wechat_body(marker)
+        if not wechat_body and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
             wechat_body = last_report_text(session_id, raw_block_first)
         if not wechat_body:
-            wechat_body = deterministic_fallback(raw_block, tag, '报告文本不在会话里')
+            wechat_body = deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里')
         wechat_backstop(
             'report', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'report',

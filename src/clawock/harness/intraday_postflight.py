@@ -596,7 +596,7 @@ def categorize(issues):
 
 
 def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
-                            delivery_state='delivered'):
+                            delivery_state='delivered', wechat_message=None):
     """Build the watchdog marker with the preflight slot as its identity.
 
     `delivery_state` distinguishes a full report from the fail-closed data block
@@ -622,6 +622,7 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
         context_id=ctx.get('context_id'),
         context_generated_at=ctx.get('generated_at'),
         delivery_state=delivery_state,
+        **delivery_receipts.failed_wechat_body(sent_ok, wechat_message),
     )
 
 
@@ -932,9 +933,11 @@ def main(argv=None):
                 # delivery), per the delivery policy. The Telegram result is recorded:
                 # it's the sole backstop intraday_watchdog uses (no WeChat resend), so
                 # it needs to know if TG already got this.
+                wechat_message = render_for_channel(message, ctx, 'wechat')
+
                 def send():
                     return send_per_policy(
-                        'intraday', render_for_channel(message, ctx, 'wechat'),
+                        'intraday', wechat_message,
                         tag=f'intraday-{args.market}', market=args.market,
                         wechat=send_wechat, telegram=cosend_telegram,
                         resolve=resolve_wechat_target, telegram_done=telegram_done,
@@ -954,6 +957,7 @@ def main(argv=None):
                         market=args.market,
                         out=out,
                         delivery_state='failed' if status == 'fail' else 'delivered',
+                        wechat_message=wechat_message,
                     ), ensure_ascii=False))
                     return True
 

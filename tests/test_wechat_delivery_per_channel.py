@@ -27,6 +27,7 @@ there too. Pinned here:
      marker keeps the 2026-07-09 no-WeChat-resend rule.
 """
 import json
+import sys
 from datetime import datetime, timedelta
 
 import pytest
@@ -389,3 +390,59 @@ def test_intraday_watchdog_identity_no_longer_requires_telegram():
     assert intraday_watchdog.marker_matches_slot(marker, *args, ctx_id='abc') is True
     assert intraday_watchdog.marker_matches_slot(
         marker, '盘中盯盘', '2026-09-17T11:00:00+08:00', 'x', _now_ms(), ctx_id='abc') is False
+
+
+# ── E. the backstop re-sends the report itself, not the bare data block (#2050) ─
+
+def test_a_failed_wechat_send_records_the_payload_it_tried(tmp_path, monkeypatch):
+    from clawock.harness import report_postflight as postflight
+
+    monkeypatch.setattr(postflight, 'TMP', tmp_path)
+    monkeypatch.setattr(postflight, 'resolve_wechat_target',
+                        lambda market: ('openclaw-weixin', 'kcn', 'acct'))
+    monkeypatch.setattr(postflight, 'cosend_telegram', lambda *a, **kw: (True, 'sent'))
+    outcomes = iter([(False, 'ret=-2 errmsg=prepare failed'), (True, 'sent')])
+    monkeypatch.setattr(postflight, 'send_wechat', lambda *a, **kw: next(outcomes))
+    marker = tmp_path / 'report-sent-hk-close-2026-09-27.json'
+
+    postflight.deliver_wechat('hk', 'close', '2026-09-27', '🟢 ', 'title\n▎情绪面\n正文')
+    assert json.loads(marker.read_text())['wechat_body'] == '🟢 title\n▎情绪面\n正文'
+
+    postflight.deliver_wechat('hk', 'close', '2026-09-27', '🟢 ', 'title\n▎情绪面\n正文',
+                              telegram_done=True)
+    assert 'wechat_body' not in json.loads(marker.read_text()), 'a landed send stays small'
+
+
+def test_report_watchdog_backstop_sends_the_recorded_report(
+        tmp_path, monkeypatch, isolated_workflow_ledger):
+    """Prose mode: the transcript holds a postflight status line, so the old
+    body source always came back empty and WeChat got the data block under
+    「报告文本不在会话里」 while the validated report was on disk."""
+    from clawock.harness import report_watchdog as watchdog
+
+    today = datetime.now(watchdog.HKT).strftime('%Y-%m-%d')
+    tmp = tmp_path / 'memory' / '.tmp'
+    block = '🇭🇰 港股收盘 | 16:10\n\n| 00100 | -8.1% |'
+    _write(tmp / f'report-context-hk-close-{today}.json', {
+        'status': 'ok', 'market': 'hk', 'phase': 'close', 'raw_wechat_block': block,
+        'context_id': 'ctx-1', 'generated_at': datetime.now(watchdog.HKT).isoformat()})
+    report = f'🌙 港股收盘报告\n\n{block}\n\n▎情绪面\n00100 领跌。'
+    _write(tmp / f'report-sent-hk-close-{today}.json', {
+        'ts': _now_ms(), 'sent_ok': False, 'tg_ok': True, 'first_line': '🌙 港股收盘报告',
+        'context_id': 'ctx-1', 'market': 'hk', 'phase': 'close', 'wechat_body': report,
+        'out': 'ret=-2 errmsg=prepare failed'})
+    calls, senders = _senders()
+    monkeypatch.setattr(watchdog, 'WS', tmp_path)
+    monkeypatch.setattr(watchdog, 'find_job_id', lambda name: 'job-hk')
+    monkeypatch.setattr(watchdog, 'today_runs',
+                        lambda job_id: [{'runAtMs': _now_ms(), 'sessionId': 's', 'summary': ''}])
+    monkeypatch.setattr(watchdog, 'wait_out_inflight',
+                        lambda ctx, last, **kw: (ctx, last, False))
+    monkeypatch.setattr(watchdog, 'send_wechat', senders['wechat'])
+    monkeypatch.setattr(watchdog, 'send_telegram', senders['telegram'])
+    monkeypatch.setattr(watchdog, 'resolve_wechat_target', senders['resolve'])
+    monkeypatch.setattr(sys, 'argv', ['report_watchdog.py', '--market', 'hk', '--phase',
+                                      'close', '--job-name', '港股收盘报告'])
+
+    assert watchdog.main() == 0
+    assert calls['wechat'] == [report]
