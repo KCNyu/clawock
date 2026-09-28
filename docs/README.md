@@ -28,6 +28,8 @@ belongs here.
   to read coverage and snapshot age, the payload, and where it runs.
 - [`decision-mind-ledger.md`](decision-mind-ledger.md) — the decision-mind
   ledger schema written by `clawock record`.
+- [`influencer-radar.md`](influencer-radar.md) — the eight watched sources, how
+  hits are linked to holdings, and a worked hit/miss example (moved out of the READMEs).
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
   visual rules and the tests that enforce them.

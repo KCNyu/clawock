@@ -29,6 +29,11 @@
 
 </div>
 
+```bash
+pip install clawock                        # the decision workflow + CLI (Python ≥ 3.11)
+dsh plugin --profile web add clawock-dsh   # optional: the DeepSeek Harness panel
+```
+
 Every trading day, clawock turns raw market information into decisions that get graded:
 
 - **Collect.** 44 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
@@ -37,7 +42,19 @@ Every trading day, clawock turns raw market information into decisions that get 
 - **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
 - **Settle.** Python settles every decision against real prices. The model never touches its own score, and every result lands on the public scorecard.
 
-The whole pipeline plugs into the agent you already use: Claude Code, Codex, OpenClaw, DeepSeek Harness, or your own → [install and the full loop](#run-it-on-your-own-book)
+The whole pipeline plugs into the agent you already use — each logo opens that harness's runnable example, and [the full loop](#run-it-on-your-own-book) is below:
+
+<div align="center">
+<table>
+<tr>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/codex/AGENTS.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/openclaw/SKILL.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/cli/run.sh"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>Your own / CLI</b></a></td>
+</tr>
+</table>
+</div>
 
 ---
 
@@ -50,28 +67,21 @@ that is the record: real positions, a growing decision history, and a public
 scorecard the model has no say in — not a get-rich bot, and not a
 copy-trading service.
 
-clawock is the part of that desk pulled out to be reusable. Your runtime keeps
-the model call, the conversation, memory, tools, permissions and credentials.
-clawock adds the decision contract on top: certified evidence, a required
-opposing case, checked money and FX arithmetic, and outcomes linked back to the
-decision that caused them. It is files and a CLI, so switching harness leaves
-the contract unchanged.
-[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) runs the
-same decision from a pure CLI, an OpenClaw skill, a Claude Code instruction, a
-Codex AGENTS.md, and a DeepSeek Harness agent.
+clawock is the part of that desk pulled out to be reusable: certified evidence,
+a required opposing case, checked money and FX arithmetic, and outcomes linked
+back to the decision that caused them. Your runtime keeps the model call, chat,
+memory, tools, permissions and credentials.
 
-To try it without installing anything locally, open a Codespace and run
-`examples/cli/minimal-run/run.sh`: a clean virtualenv, no credentials, no
-broker, and the same script CI runs against every published wheel.
+To try it without installing anything, open a Codespace and run
+`examples/cli/minimal-run/run.sh` — a clean virtualenv, no credentials, no
+broker, the same script CI runs against every published wheel.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/KCNyu/clawock)
 
 ### What makes it different
 
-- **A workflow plugin, not another agent or harness.** The runtime keeps its model, chat, memory, skills engine, tool loop and permissions; clawock owns only the decision contract, so it moves between runtimes unchanged.
-- **The loop continues after the answer.** Evidence, the opposing case, thesis,
-  decision, execution, and observed outcome share one lineage. Measured results
-  can propose bounded parameter changes, but never silently rewrite strategy.
+- **A workflow plugin, not another agent.** clawock owns only the decision contract — files and a CLI — so it moves between the runtimes above unchanged.
+- **The loop continues after the answer.** Evidence, the opposing case, thesis, decision, execution, and observed outcome share one lineage. Measured results can propose bounded parameter changes, but never silently rewrite strategy.
 - **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold. Each published headline names the ledger slice, window and commit it was computed from, and `clawock scorecard-provenance --check` recomputes it from `memory/decisions.jsonl` — a re-graded row inside a published window shows up as a mismatch.
 - **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
 - **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
@@ -82,21 +92,18 @@ For the canonical EN/ZH rendering of every project term — composite, regime, D
 
 ## How it works
 
-The product boundary is simple: the external agent reads and reasons; clawock
-owns the portable decision workflow and the deterministic truth around it.
+The external agent reads and reasons; clawock owns the portable decision
+workflow and the deterministic truth around it.
 
 ![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg)
 
-The KCNyu deployment then applies that product boundary to one live portfolio.
-This second diagram is the deployed KCNyu desk, not the reusable package boundary.
+The second diagram is the deployed KCNyu desk — that boundary applied to one live portfolio.
 
 ![KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg)
 
-Every trading day the system pulls fresh prices, FX, volatility, earnings and macro context plus news and social sentiment; hands that normalized context to a multi-agent debate; applies deterministic risk, schema, and ledger gates in Python; delivers a brief to WeChat; and updates the public dashboard.
-
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **44 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+The widest part of the system is data collection: **44 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage**. Each run consumes only the subset relevant to its market and session — collection stays broad, the decision layer stays constrained.
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
@@ -124,23 +131,7 @@ The fetch layer degrades gracefully: every live Eastmoney call routes through **
 
 ### What each run actually receives
 
-Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on. For the daily deep brief, the complete context remains an audit record; a manifest, fixed core and separately loadable feature bundles give the model a smaller, generation-bound view. Risk detail has its own bundle, so it can be read when needed without crowding the always-loaded core. The model reads those files rather than fetching for itself.
-
-```
-sources
-  ──► preflight (Python, deterministic)
-  ──► full audit context + model-facing core / bundles (daily brief)
-  ──► LLM reads selected context → prose
-  ──► postflight (Python)
-  ──► publish
-```
-
-Pre-open gets the most: full position truth, risk, signals, the evidence
-graph, research state, and it writes the day's plan. The open/midday/close
-runs travel light — a fresh quote, risk only when signals demand it. Intraday
-check-ins (every 30 minutes a market is open) sit in between: more signal
-detail, but no research production and no evidence-graph rebuild, because that
-is a daily artifact and would be stale by construction.
+No run gets everything: each job's preflight assembles only the blocks it can act on, and the model reads those files rather than fetching for itself (the flow diagram above). For the daily brief the complete context stays an audit record while the model reads a generation-bound core plus loadable bundles. Pre-open gets the most and writes the day's plan; open/midday/close reports travel light; intraday check-ins (every 30 minutes a market is open) sit in between, with no research production and no evidence-graph rebuild.
 
 <details>
 <summary><b>The full block breakdown</b> — row by row, by cadence</summary>
@@ -167,30 +158,12 @@ The catalyst probe is the narrow, time-sensitive one: it fires **only for names 
 
 ### Influencer radar
 
-The system scans **eight sources across US and HK** twice every trading day over
-a rolling 48-hour lookback window: **Trump** (Truth Social, first-party), **Musk**
-(news aggregation), **Cathie Wood / ARK Invest** (their published daily trades —
-ticker, direction, share count, ETF weight), **Serenity** (public Substack posts),
-and four media-proxied figures with no fetchable first-party feed — **段永平**,
-**洪灏** (HK media), **Michael Burry** and **Pelosi** (congressional disclosures).
-An LLM then
-filters the noise and links what's left to actual holdings and sectors: stance
-(endorse / oppose), relevance, and a plain-language summary. Who said what,
-and whether it touches your book, is already sitting in the pre-open brief —
-nobody has to go scroll social media for it.
-
-Each source carries its own candidate budget, so no single loud feed (Trump can
-post dozens of times a day) can crowd the others out of the LLM batch. What each
-source is and how fresh it is (a first-party post, a news proxy, a disclosed
-trade from 30–45 days ago) is kept per item and shown in the dashboard card.
-
-A concrete example: in the scan of 2026-08-17 21:54 UTC, five Musk/SpaceX
-posts all matched real holdings (held_hits=5, the SPCH/SPCX cluster), and the
-next morning's brief carried it verbatim — 撞持仓 (5 条全中 SPCH/SPCX). The
-scan the following day's brief quotes (2026-08-18 21:52 UTC) found 1 post and
-**zero holding hits** — an empty result is published as an empty result, not
-skipped. Both entries can be checked against the published briefs of those
-two days. Misses go in the brief exactly as often as they happen.
+Twice every trading day, eight public sources — Trump, Musk, Cathie Wood / ARK,
+Serenity, 段永平, 洪灏, Michael Burry, Pelosi — are scanned over a 48-hour window,
+filtered by an LLM and linked to actual holdings, so the pre-open brief already
+says who said what and whether it touches the book; misses are published as
+misses. Sources, per-source budgets and a worked hit/miss example:
+[docs/influencer-radar.md](https://github.com/KCNyu/clawock/blob/master/docs/influencer-radar.md).
 
 ## How it decides
 
@@ -198,22 +171,9 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 - **Several strategies, graded separately.** `core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, and `tactical_entry` can coexist on the same name, because a long-term thesis and an intraday trade can legitimately disagree. Each is graded in its own episode.
 - **Attribution-first.** Every decision is tagged by its dominant driver, and that driver's edge is measured *dynamically* from the record — no hit rate is hard-coded into the logic.
-
-### Low-frequency add campaigns
-
-Adding to a position needs two independent evidence families to agree:
-price-relative (factor rank plus curated-peer residual), point-in-time news
-(reliable positive surprise or accelerating attention), or a confirmed
-un-overheated 20-day breakout — not one moving average mistaken for alpha.
-Any two families authorise a capped exploration slice; validated authority
-still requires decision-usable evidence on both the price and the information
-side, so a price pattern can never promote a leveraged name. Negative
-information or peer-laggard evidence blocks it outright, sizing stays capped
-and tranche-based (a warming policy earns a small exploration slice, not
-validated authority), and a small rank wobble can't churn permission off and
-on.
 - **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
 - **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
+- **Adds need two independent evidence families.** Price-relative (factor rank plus curated-peer residual), point-in-time news, or a confirmed un-overheated 20-day breakout — any two authorise a capped exploration slice; validated authority needs both a price and an information side, so a price pattern can never promote a leveraged name, and negative information blocks the add outright.
 
 ## The debate
 
@@ -221,10 +181,8 @@ The daily deep brief runs a structured **multi-agent debate**, adapted from [Tra
 
 ![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg)
 
-- **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
-- **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
-- **Devil's advocate.** The Bear researcher is assigned to name and attack the session's strongest consensus view — never the weakest — so a lopsided bull tape cannot go unchallenged by cherry-picking, and the attack it lands is written down.
-- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner; the first-mover voice rotates every four trading days so the framing cannot calcify. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
+- **Bull vs Bear, on the record.** Two researchers must **genuinely disagree on at least one position** and write it down, so unanimity reads as a flag, not evidence. The Bear is the devil's advocate: it attacks the session's *strongest* consensus view, never the weakest.
+- **Risk voices + a Judge.** Aggressive, Conservative and Neutral argue their corner; the first mover rotates every four trading days so the framing cannot calcify. The Judge names the strategy frame behind each decision and writes `plan.json`, which enters the next session's grading.
 
 ## The public scorecard
 
@@ -265,9 +223,7 @@ A layer has to clear a stated bar before it is allowed to influence a decision, 
 - **The cross-sectional layer** is pre-registered. Only snapshots recorded after registration count toward activation, so a retrospective result can never switch it on.
 - **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment. The dial is a **risk-budget control, not a timing signal**: its durable claim is less exposure in hostile regimes, while calling turns is exactly the part that cannot be distinguished from chance.
 
-Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated in Reflect rather than left out of it. A failure to reject is not a refutation, and the view says which one it is.
-
-Two properties keep this from decaying into copy. The Reflect evidence section is **generated from the artifacts**, so it cannot quietly drift from them. And any backtest figure quoted in the repository has to cite a run card that still contains it — a stale citation points at real evidence that no longer says what the claim says, which reads as credible and is wrong. CI fails on both.
+Results are published whether or not they flatter the system: on the sample available the dial's timing cannot be distinguished from chance, and Reflect says so — and says whether that is a failure to reject or a refutation. The Reflect evidence section is **generated from the artifacts**, and any backtest figure quoted in the repository must cite a run card that still contains it; CI fails on either drift.
 
 [**Evidence and refutation**](https://kcnyu.github.io/clawock/#reflect)
 
@@ -317,34 +273,9 @@ Hong Kong times run on HKT; US session times follow ET and their cron expression
 
 ## Run it on your own book
 
-The package lifecycle is no longer welded to this account's directory. It is
-published to PyPI through GitHub trusted publishing — no API token, and the
-release job proves a clean environment can install the exact artifact and finish
-a run before it uploads:
-
-```bash
-python -m pip install clawock
-clawock workflow install investment-decision --workspace ./my-decision
-clawock init ./my-decision --workflow investment-decision
-clawock run prepare --workspace ./my-decision
-```
-
-You need Python ≥ 3.11 and an agent that can read a file and write
-`decision.json` — any harness works, and the model call stays entirely in your
-runtime. The emitted request is for the external agent to consume. The agent
-writes `decision.json`; `clawock run publish` validates it and emits the
-correlated generation receipt. The packaged example can smoke the lifecycle
-without a model (`bash examples/cli/minimal-run/run.sh`), and
+From an empty directory to a published decision — the same block
 [`examples/cli/workflow-run/run.sh`](https://github.com/KCNyu/clawock/blob/master/examples/cli/workflow-run/run.sh)
-runs the four commands above verbatim on every pull request — clean virtualenv,
-emptied environment, wheel only — publishing a real `decision.json` taken from
-the pack the wheel installs, and checking that a decision with its opposing case
-removed is still *refused* in a directory that has never seen this repository.
-[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) shows the
-same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
-and a DeepSeek Harness agent — the harness never touches the contract.
-
-The whole loop, from an empty directory to a published decision:
+runs on every pull request against the wheel alone (clean virtualenv, emptied environment):
 
 ```bash
 pip install clawock
@@ -356,6 +287,9 @@ clawock run prepare > .clawock/work/request.json
 clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
 ```
 
+You need Python ≥ 3.11 and an agent that can read a file and write
+`decision.json`; the model call stays entirely in your runtime. No model at hand?
+`bash examples/cli/minimal-run/run.sh` smokes the whole lifecycle without one.
 Drop the opposing evidence from `decision.json` and `publish` refuses it (exit code 1):
 
 ```json
@@ -371,53 +305,68 @@ Drop the opposing evidence from `decision.json` and `publish` refuses it (exit c
 
 ### Same contract, whatever the harness looks like
 
-Two harnesses, two completely different interfaces, one `decision.json` on
-each side. Claude Code stays a terminal loop — prepare, read, write, publish:
+Every harness drives the same three steps — prepare, write `decision.json`,
+publish — through its own interface. **Claude Code** is a terminal loop; this
+is a real run of the [`examples/claude-code`](https://github.com/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md) instruction:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code running the investment-decision workflow end to end: clawock init, clawock run prepare, Claude writing decision.json, clawock run publish returning status: published" width="820"></p>
 
-DeepSeek Harness gets a native panel instead — one command installs the skill
-plus a conversation-view tab:
+**OpenClaw** runs it unattended. This desk's scheduler holds one job per
+brief, session report and intraday check-in; each prompt is
+`clawock … preflight` → the model writes → `clawock … postflight`:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="OpenClaw's live cron list on the desk host: nine clawock jobs (pre-open brief, HK and US session reports, intraday check-ins) with their cron expressions, the clawock preflight → postflight lifecycle each one runs, last status ok and run time" width="820"></p>
+
+<sub>Rendered from the host's real <code>openclaw cron list --json</code> by <code>site/tools/shoot_openclaw_cron.js</code>; job ids, delivery targets and prompts are left out.</sub>
+
+**Codex** reads the same steps from [`examples/codex/AGENTS.md`](https://github.com/KCNyu/clawock/blob/master/examples/codex/AGENTS.md);
+**DeepSeek Harness** gets a native panel (next section). Whichever harness a
+conversation runs in, its verdict lands through one command —
+`clawock record --source <harness>` (bear case and invalidation conditions
+mandatory) — so nobody edits `decisions.jsonl` by hand.
+
+The package owns lifecycle, strategies, scheduling, watchdogs, context assembly,
+validation and CLI; it does not reimplement an agent loop. `clawock doctor` and
+`clawock context audit` name the capabilities a foreign workspace is missing
+instead of pretending it is ready to run this live desk.
+
+## The DeepSeek Harness plugin
+
+One command installs the investment-decision skill plus two native surfaces in
+the dsh web GUI — [npm](https://www.npmjs.com/package/clawock-dsh) ·
+[package README](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md):
 
 ```bash
 dsh plugin --profile web add clawock-dsh
 ```
 
-The **Decision Mind** tab is one view, not three tabs: the spine is your real
-fills (`portfolio.json` trades), each row carries the soft-paired decision
-(±3 days from `decisions.jsonl`) as the "why", and the T+1 verdict comes from
-the canonical `memory/bars/` close inside the T+1 window (never a snapshot
-price) — 卖飞/卖对 on reduces, 涨/跌 on adds, 持平 in the dead zone. Click a
-fill and the trace unfolds — plan → real fill (stated 与计划同向/反向, with
-`execution.status` preserved only as the plan's own 账本自评 label) → T+1 →
-P&L (本笔已实现 and 该持仓当前浮动 never share one label) — with the
-rationale and note in semantic colors, plus an emotion-pressure field on the
-small number of records that logged one so far. Fills with no plan say so
-explicitly, instead of making one up. Currency is never mixed: USD and HKD
-stay apart and only combine through the desk's published FX rate. The same
-trace data powers the public dashboard's Reflect card, but the two sides are
-separate implementations pinned together by `tests/test_decision_trace_parity.py`:
+**Decision Mind** — every real fill beside the plan written at the time. The
+spine is `portfolio.json` trades; each row carries the soft-paired decision
+(±3 days from `decisions.jsonl`) and a T+1 verdict from the canonical
+`memory/bars/` close — 卖飞/卖对 on reduces, 涨/跌 on adds. Click a fill and it
+unfolds into plan → real fill → T+1 → P&L. Fills with no plan say so; USD and
+HKD never mix. The public dashboard's Reflect card renders the same traces from
+a separate implementation, pinned together by `tests/test_decision_trace_parity.py`.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind plugin — decision traces: real fills with soft-paired decisions and T+1 verdicts, expandable to a plan → execution → result timeline" width="860"></p>
 
-Conversation verdicts land in the same ledger through one command from any
-harness: `clawock record --source <harness>` (bear case and invalidation
-conditions mandatory, emotion pressure self-reported). Nobody edits
-`decisions.jsonl` by hand — one ledger, one record command, every harness
-calls it.
+<table>
+<tr>
+<td width="46%" valign="top"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="360" alt="The whole sidebar provider panel on a live host: Claude and Codex subscription quota windows (5h and week, with reset times) above each agent's running task, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks with delivery receipts and cost, patrol rounds, and the ops footer / 真实主机上的整块侧栏 provider 面板:Claude 与 Codex 订阅额度窗口(5 小时与周,带重置时间)在各自运行中的任务上方,DeepSeek 与 MiniMax 余额,OpenCode 免费池,最近结束的任务(送达回执与费用),巡检轮次,以及 ops 页脚"></td>
+<td valign="top">
 
-For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
-and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
-missing capabilities instead of pretending every foreign workspace is ready to
-run this live desk.
+**Provider panel — quota, balances and the task queue in one cell.** The
+sidebar's folded rows (bottom-left in the shot above) open into this panel:
 
-The package owns lifecycle implementation, strategies, scheduling, watchdogs,
-generation-pinned artifacts, context assembly, validation and CLI. It does not
-reimplement an agent loop: OpenClaw is the unattended runtime used by this desk
-today, while another runner can consume the same context/tool contracts. The
-`kcnyu` profile and workspace declare this desk's books, resources and schedules;
-`doctor` and `context audit` state those capabilities instead of pretending every
-foreign workspace is production-ready.
+- **Quota windows** for the Claude and Codex subscriptions — 5-hour and weekly use, with reset times.
+- **Balances** for DeepSeek and MiniMax; the OpenCode free pool and its next model.
+- **The dispatch queue** on a host that runs clawock's agent-dispatch: each agent's running and queued tasks with model, start, duration and cost.
+- **Recently ended** tasks with WeChat/Telegram delivery receipts, and **patrol** rounds.
+- Click a row for its detail layer — retry, re-prioritise, switch model or cancel, all through the versioned ops entry ([task-queue.md](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md)); the footer turns red when merged ops code is not installed.
+
+</td>
+</tr>
+</table>
 
 ## Explore the system
 
@@ -440,9 +389,7 @@ foreign workspace is production-ready.
 | Review a reported quarter and hold management to account | [`earnings-review`](https://github.com/KCNyu/clawock/blob/master/skills/earnings-review/SKILL.md) | First-party filings/HKEX announcements, structured XBRL or Eastmoney verification, provenance gate | Reusable; artifacts live in `memory/earnings/` |
 | Decide whether a new name is worth researching | [`entry-gate`](https://github.com/KCNyu/clawock/blob/master/skills/entry-gate/SKILL.md) | Workspace quote pipelines, instrument registry, evidence source grading, deterministic hard vetoes | Reusable; artifacts live in `memory/entry-gates/` |
 
-These surfaces chain in one direction — entry gate, then first-party earnings evidence, then the canonical thesis and its evidence-only drift, then the existing decision, risk and settlement loop. Each step writes a versioned artifact the next one reads, so a later stage can never quietly re-derive an earlier one from prose.
-
-These are workspace-native research routes, not standalone one-command products. They expect clawock's scripts, data contracts, and memory/SOP files; the published portfolio and its operating history remain specific to this deployment.
+They chain one way — entry gate → first-party earnings evidence → canonical thesis → the decision, risk and settlement loop — each step writing a versioned artifact the next reads. They are workspace-native routes that expect clawock's scripts, data contracts and memory/SOP files, not standalone one-command products.
 
 Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https://openclaw.com) cron daemon, a static Jekyll + GitHub Pages frontend, and Python. Market, news, macro, and sentiment come from documented public sources with multi-source fallback; see [third-party data and service terms](https://github.com/KCNyu/clawock/blob/master/docs/legal/third-party-data.md) before reusing any fetched content.
 

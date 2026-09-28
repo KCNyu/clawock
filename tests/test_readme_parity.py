@@ -37,12 +37,12 @@ EN_H2 = [
     "What this is", "How it works", "The information layer", "How it decides",
     "The debate", "The public scorecard", "What we tested, and what failed",
     "What the code enforces", "Daily rhythm", "Run it on your own book",
-    "Explore the system", "Scope, disclaimer, and license",
+    "The DeepSeek Harness plugin", "Explore the system", "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
     "这是什么", "怎么跑的", "信息层", "怎么做决策", "辩论", "公开战绩",
     "测了什么，什么没通过", "代码强制执行的规矩", "每日节奏",
-    "在你自己的账本上跑", "逛一逛这套系统", "范围、免责与许可",
+    "在你自己的账本上跑", "DeepSeek Harness 插件", "逛一逛这套系统", "范围、免责与许可",
 ]
 
 
@@ -266,3 +266,38 @@ def test_no_live_numbers_in_evergreen_copy():
         for pat in patterns:
             m = re.search(pat, md, re.IGNORECASE)
             assert not m, f"live number in evergreen copy ({name}): {m.group(0)!r}"
+
+
+def test_the_weekly_metrics_placeholders_survive_a_rewrite():
+    """`ops/growth/refresh_readme_metrics.py` rewrites the CW_M placeholders in
+    place every Sunday. A README edit that drops one does not fail anything:
+    the job just stops updating that number, and the figure left in its place
+    goes stale in silence. A key the script does not compute is the other way
+    round: it raises KeyError and the weekly job goes red.
+
+    So both are pinned: each README keeps the keys it has, and every key it
+    uses is one the script produces. Dropping a number on purpose means
+    editing the set below in the same change.
+    """
+    source = (ROOT / "ops/growth/refresh_readme_metrics.py").read_text(encoding="utf-8")
+    block = re.search(r"\n    values = \{\n(.*?)\n    \}", source, re.S)
+    assert block, "refresh_readme_metrics.py no longer builds a `values` dict"
+    produced = set(re.findall(r'^        "(\w+)":', block.group(1), re.M))
+    assert produced, "no keys read from the refresh script: this test would pass vacuously"
+
+    expected = {
+        "README.md": {"days", "rows", "settled", "return_pct"},
+        "README.zh.md": {
+            "as_of", "days", "rows", "settled", "return_pct", "active_pct",
+            "active_n", "hold_pct", "hold_n", "hi_pct", "hi_n", "active_ci",
+            "hi_ci", "followed", "not_followed", "unknown",
+        },
+    }
+    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+        opened = re.findall(r"<!-- CW_M:(\w+) -->", md)
+        closed = re.findall(r"<!-- /CW_M:(\w+) -->", md)
+        assert sorted(opened) == sorted(closed), f"{name}: an unpaired CW_M placeholder"
+        assert set(opened) == expected[name], (
+            f"{name}: placeholders {sorted(set(opened))} != {sorted(expected[name])}")
+        assert set(opened) <= produced, (
+            f"{name}: {sorted(set(opened) - produced)} are not computed by the refresh script")

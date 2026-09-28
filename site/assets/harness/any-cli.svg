@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Any CLI">
+<!-- Generic terminal prompt glyph drawn for clawock (MIT). Used to name the harness a README example runs on. -->
+<title>Any CLI</title>
+<rect x="1" y="1" width="94" height="94" rx="22" fill="#ffffff" stroke="#d8dde3" stroke-width="2"/>
+<path d="M26 34 L42 48 L26 62" fill="none" stroke="#252b35" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 62 H70" stroke="#252b35" stroke-width="7" stroke-linecap="round"/>
+</svg>

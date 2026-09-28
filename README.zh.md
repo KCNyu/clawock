@@ -29,6 +29,11 @@
 
 </div>
 
+```bash
+pip install clawock                        # 决策工作流 + CLI(Python ≥ 3.11)
+dsh plugin --profile web add clawock-dsh   # 可选:DeepSeek Harness 面板
+```
+
 每个交易日,clawock 把市场里的原始信息一路加工成可以打分的决策:
 
 - **收集**:8 层、44 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
@@ -37,7 +42,19 @@
 - **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
 - **结算**:Python 用真实行情逐条结算,模型碰不到自己的分数,结果全部进公开战绩。
 
-整条流水线可以装进你正在用的 Agent:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的 → [安装与完整流程](#在你自己的账本上跑)
+整条流水线可以装进你正在用的 Agent——点 logo 打开对应 harness 的可运行示例,[完整流程](#在你自己的账本上跑)在下面:
+
+<div align="center">
+<table>
+<tr>
+<td align="center" valign="top" width="120"><a href="examples/claude-code/CLAUDE.md"><img src="site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/codex/AGENTS.md"><img src="site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/openclaw/SKILL.md"><img src="site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/dsh/README.md"><img src="site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/cli/run.sh"><img src="site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>自己的 / 纯 CLI</b></a></td>
+</tr>
+</table>
+</div>
 
 ---
 
@@ -45,7 +62,7 @@
 
 clawock 起步是一个账户,不是一个包。多 Agent 投研台在一个分港股、美股两本账的真实券商账户上辩论证据、提出交易,下单仍由账户主人自己来。留下来的是记录:真实持仓、不断增长的决策历史,以及模型无权插手的公开记分。它不是暴富机器人,也不是跟单服务。
 
-clawock 是从这个投研台里拆出来、可以复用的那部分。模型调用、对话、记忆、工具、权限和凭证都留在你的运行时里;clawock 在上面加一份决策契约:带指纹的证据、必填的反方、核对过的资金与汇率算术,以及把结果连回当初那条决策。它就是文件加 CLI,换 harness 契约不变。[`examples/`](examples/README.md) 用纯 CLI、OpenClaw skill、Claude Code、Codex 和 DeepSeek Harness 各跑了一遍同一条决策。
+clawock 是从这个投研台里拆出来、可以复用的那部分。模型调用、对话、记忆、工具、权限和凭证都留在你的运行时里;clawock 在上面加一份决策契约:带指纹的证据、必填的反方、核对过的资金与汇率算术,以及把结果连回当初那条决策。它就是文件加 CLI,换上面任何一个 harness 契约都不变。
 
 真实投研台每个交易日盘前读取 8 层信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策,Python 独立结算。账目都能从命令复算:`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。
 
@@ -58,15 +75,6 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 正经版:LLM 从不自己抓数据,也不自己结算。Python 留存完整上下文供审计;盘前深度简报给模型的是同一代次的清单、固定核心和按需读取的特性 bundle,风控细节独立成包。模型读选中的文件,写带证据、带反方的分析。剩下全是代码的事。
 
 ![clawock 信息流 —— 8 层 44 个模块经 Python preflight 按需组装;完整上下文供审计,盘前简报模型读取同一代次的核心与选定 bundle;postflight 校验结算后发布](site/assets/information-flow.svg)
-
-```
-数据源
-  ──► preflight(Python,确定性)
-  ──► 完整审计上下文 + 盘前模型核心 / bundle
-  ──► LLM 读选中的文件写分析
-  ──► postflight(Python 校验)
-  ──► 发布
-```
 
 ## 信息层
 
@@ -96,9 +104,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 ### 热点捕获:影响者雷达
 
-系统每个交易日扫描两次(周一至五 UTC 12:50、周日至四 UTC 21:40;滚动回看 48 小时)**特朗普(Truth Social 一手源)、马斯克(新闻聚合)**等影响者的公开动态,LLM 过滤后自动关联持仓与板块:标出立场(endorse / oppose)、相关度,并生成中文摘要。谁说了什么、和你的持仓有没有关系,盘前简报里直接可见——不用自己刷社交媒体。
-
-例:UTC 2026-08-17 21:54 那次扫描,马斯克 SpaceX 相关的 5 条动态全部命中 SPCH/SPCX 持仓(held_hits=5),简报原样记下「撞持仓 (5 条全中 SPCH/SPCX)」;**次日简报引用的 UTC 2026-08-18 21:52 扫描只有 1 条动态、零持仓命中(held_hits=0),照实记空**——命中或落空都进简报,这里展示的是一次命中。两段都能从 8-18、8-19 两天的 pre-open 简报原文复核。
+每个交易日两次,扫描特朗普、马斯克、Cathie Wood / ARK、Serenity、段永平、洪灏、Michael Burry、Pelosi 八个公开来源(滚动 48 小时),LLM 过滤后关联到真实持仓:谁说了什么、碰没碰你的仓,盘前简报里直接可见;落空也照实记空。来源、各源配额与一次命中/落空的实例见 [docs/influencer-radar.md](docs/influencer-radar.md)。
 
 ## 怎么做决策
 
@@ -185,8 +191,6 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 <!-- CW_M:rows -->936<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->513<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->373<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->50<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
 
-命中率 = 模型判断的方向对不对(按基准行情结算);账户收益 = 实盘执行结果。两回事,都公开。
-
 ## 测了什么，什么没通过
 
 诚实到数字层面:主动建议 <!-- CW_M:active_pct -->51%<!-- /CW_M:active_pct --> 命中率,样本 <!-- CW_M:active_n -->53<!-- /CW_M:active_n --> 条,95% 置信区间约 <!-- CW_M:active_ci -->38%–64%<!-- /CW_M:active_ci -->;高信心组 <!-- CW_M:hi_pct -->53%<!-- /CW_M:hi_pct -->,样本 <!-- CW_M:hi_n -->15<!-- /CW_M:hi_n --> 条,区间约 <!-- CW_M:hi_ci -->28%–78%<!-- /CW_M:hi_ci -->——**点估计均跨过 50%,但 95% 置信区间包含 50%,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
@@ -240,24 +244,13 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 ## 在你自己的账本上跑
 
-**甩给 AI(默认):** 把本仓库地址丢给你的 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness 都行),约 60 秒就能验证一条完整决策(真实决策另需你自己的模型 API):
+**甩给 AI(默认):** 把本仓库地址丢给你的 Agent(上面任何一个都行),约 60 秒就能验证一条完整决策(真实决策另需你自己的模型 API):
 
 1. `python -m pip install clawock`
-2. 跑 `bash examples/cli/minimal-run/run.sh` 验证一条完整决策(无模型,无需任何 API 密钥)
+2. 跑 `bash examples/cli/minimal-run/run.sh` 验证一条完整决策(无模型,无需任何 API 密钥);跑完你会看到 `isolated run published <run_id>`,也就是第一张被 Python 校验过的决策回执
 3. 走真实决策时按 [`examples/dsh/packages/clawock-dsh/skills/investment-decision/SKILL.md`](examples/dsh/packages/clawock-dsh/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
 
-**或者手动:** Python ≥ 3.11,然后:
-
-```bash
-python -m pip install clawock
-clawock workflow install investment-decision --workspace ./my-decision
-clawock init ./my-decision --workflow investment-decision
-clawock run prepare --workspace ./my-decision
-```
-
-`run prepare` 产出一份带指纹的请求文件,你的 Agent 写出 `decision.json`,`run publish` 校验(证据、反方、资金与汇率对账)并给出生成回执。
-
-从空目录到一条已发布决策的完整闭环:
+**或者手动**(Python ≥ 3.11)。从空目录到一条已发布决策——[`examples/cli/workflow-run/run.sh`](examples/cli/workflow-run/run.sh) 每个 PR 都在干净虚拟环境里只装 wheel 原样跑这一段:
 
 ```bash
 pip install clawock
@@ -269,7 +262,7 @@ clawock run prepare > .clawock/work/request.json
 clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
 ```
 
-把 `decision.json` 里的反方证据删掉,`publish` 会直接拒收(退出码 1):
+`run prepare` 产出一份带指纹的请求文件,你的 Agent 写出 `decision.json`,`run publish` 校验(证据、反方、资金与汇率对账)并给出生成回执。把 `decision.json` 里的反方证据删掉,`publish` 会直接拒收(退出码 1):
 
 ```json
 {
@@ -282,51 +275,50 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 }
 ```
 
-**一条命令看完整闭环**(无模型、无需任何 API 密钥,跑完你会看到):
-
-```
-$ bash examples/cli/minimal-run/run.sh
-==> installing into a clean virtualenv
-==> clawock init
-initialized clawock workspace: .../book
-==> clawock run prepare
-==> clawock run publish
-==> checking the receipt
-isolated run published 9c07e83a19b046b089f443829eb9a06e
-```
-
-跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/`](examples/README.md) 五种跑法同一条契约。
-
 ### 同一份契约,换个 harness 长得完全不一样
 
-两个 harness、两种完全不同的界面,两边跑出来都是同一份 `decision.json`。
-Claude Code 是终端里的一个循环——prepare、读、写、publish:
+每个 harness 走的都是同样三步——prepare、写 `decision.json`、publish——只是界面各不相同。**Claude Code** 是终端里的一个循环,下图是 [`examples/claude-code`](examples/claude-code/CLAUDE.md) 指令的一次真实运行:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code 跑通 investment-decision 全流程:clawock init、clawock run prepare、Claude 写 decision.json、clawock run publish 返回 status: published" width="820"></p>
 
-DeepSeek Harness 则是原生面板:一条命令装插件(skill + 会话面板,已发布 npm):
+**OpenClaw** 无人值守地跑。本投研台的调度器里每份简报、每场播报、每档盘中都是一个任务,每个 prompt 都是 `clawock … preflight` → 模型写 → `clawock … postflight`:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="投研台主机上 OpenClaw 的真实 cron 列表:九个 clawock 任务(盘前简报、港美股场次报告、盘中盯盘),各自的 cron 表达式、所跑的 clawock preflight → postflight 生命周期、上次状态 ok 与耗时" width="820"></p>
+
+<sub>由 <code>site/tools/shoot_openclaw_cron.js</code> 从主机真实的 <code>openclaw cron list --json</code> 渲染;任务 id、投递目标与 prompt 不出图。</sub>
+
+**Codex** 从 [`examples/codex/AGENTS.md`](examples/codex/AGENTS.md) 读同样的三步;**DeepSeek Harness** 有原生面板(见下一节)。不管对话在哪个 harness 里,判定都走同一条命令落账——`clawock record --source <harness>`(bear 与失效条件强制、情绪自认)——没有人手改 `decisions.jsonl`。
+
+**装完你得到三件事:** ① 每天 08:03 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟上线以来的实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
+
+## DeepSeek Harness 插件
+
+一条命令装好 investment-decision skill 和 dsh 网页端的两个原生面板——[npm](https://www.npmjs.com/package/clawock-dsh) · [包 README](examples/dsh/packages/clawock-dsh/README.md):
 
 ```bash
 dsh plugin --profile web add clawock-dsh
 ```
 
-**Decision Mind** tab 只有一个视图:主轴是真实成交(`portfolio.json` trades),
-每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`)作为「当时为什么」,
-卖出单用 T+1 窗口内的规范逐日行情收盘价判定卖飞/卖对,不用快照价。点开一条成交,展开成
-**计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)和备注用语义色
-左边框分层;情绪压力字段也在,但目前只有极少数记录填过,不是每条都有。
-没有决策的成交显式标注「无关联决策记录」——不假装有判断。
-币种绝不混加:USD/HKD 分开,只经桌面发布的汇率折算。
-同一份轨迹数据也渲染在公开 dashboard 的 Reflect 卡片——插件和网页
-同一个数据契约:
+**Decision Mind**——每一笔真实成交,旁边摆着当时写下的计划。主轴是 `portfolio.json` 的成交,每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`),卖出用 T+1 窗口内 `memory/bars/` 的规范收盘价判定卖飞/卖对,加仓判涨/跌。点开一条展开成**计划 → 执行 → T+1 → 盈亏**;没有计划的成交明说没有;USD/HKD 绝不混加。公开 dashboard 的 Reflect 卡片用另一套实现渲染同一份轨迹,由 `tests/test_decision_trace_parity.py` 钉在一起。
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind 插件——决策轨迹:真实成交挂接软配对决策与 T+1 判定,展开为 计划→执行→结果 时间线" width="860"></p>
 
-对话判定落账:任何 harness 都走同一条命令
-`clawock record --source <harness>`(bear 与失效条件强制、情绪自认)。
-没有人手改 `decisions.jsonl` —— 一个账本、一条命令、每个 harness 自己调。
+<table>
+<tr>
+<td width="46%" valign="top"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="360" alt="The whole sidebar provider panel on a live host: Claude and Codex subscription quota windows (5h and week, with reset times) above each agent's running task, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks with delivery receipts and cost, patrol rounds, and the ops footer / 真实主机上的整块侧栏 provider 面板:Claude 与 Codex 订阅额度窗口(5 小时与周,带重置时间)在各自运行中的任务上方,DeepSeek 与 MiniMax 余额,OpenCode 免费池,最近结束的任务(送达回执与费用),巡检轮次,以及 ops 页脚"></td>
+<td valign="top">
 
-**装完你得到三件事:** ① 每天 08:03 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟上线以来的实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
+**Provider 面板——额度、余额和任务队列在同一格。** 侧栏底部的折叠行(上图左下角)点开就是这块面板:
+
+- Claude 与 Codex 订阅的**额度窗口**——5 小时与每周用量,带重置时间。
+- DeepSeek 与 MiniMax 的**余额**;OpenCode 免费池和下一个模型。
+- 在跑着 clawock agent-dispatch 的主机上显示**派发队列**:各 agent 运行中与排队的任务,带模型、开始时刻、用时与费用。
+- **最近结束**的任务带微信/Telegram 送达回执,以及**巡检**轮次。
+- 点一行打开详情层——重试、调优先级、换模型或取消,全部经版本化的 ops 入口([task-queue.md](docs/architecture/task-queue.md));已合并但未装机时页脚变红。
+
+</td>
+</tr>
+</table>
 
 ## 逛一逛这套系统
 
