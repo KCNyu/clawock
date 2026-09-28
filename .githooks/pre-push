@@ -68,6 +68,30 @@ if [ ! -f "$WS/ops/system_check.py" ]; then
   exit 0
 fi
 
+# CI intentionally skips pure runtime-data pushes. Scan every commit in the
+# master update here too, before the bot publishes it; this host installs the
+# hook and safe_push.sh uses an ordinary git push. A scanner error blocks the
+# push just like a credential finding.
+if [ -n "$UPDATES" ]; then
+  SECRET_SCANNER="$WS/ops/ci/commit_secret_scan.py"
+  if [ ! -f "$SECRET_SCANNER" ]; then
+    echo "🚫 push blocked — commit secret scanner is missing"
+    exit 1
+  fi
+  PUSHED_RANGES="$(printf '%s\n' "$UPDATES" | awk '$3 == "refs/heads/master" { print $2, $4 }')"
+  while read -r lsha rsha; do
+    [ -n "$lsha" ] || continue
+    if [ "$rsha" = "0000000000000000000000000000000000000000" ]; then
+      echo "🚫 push blocked — no base for master credential scan"
+      exit 1
+    fi
+    if ! python3 "$SECRET_SCANNER" --range "$rsha..$lsha"; then
+      echo "🚫 push blocked — master update failed credential scan"
+      exit 1
+    fi
+  done <<< "$PUSHED_RANGES"
+fi
+
 echo "▸ running clawock system_check.py before push…"
 # NOTE: `set -e` above means a non-zero exit here would abort the hook BEFORE we
 # inspect RC — which is exactly what we must NOT do for RC=2 (warnings, allow).
