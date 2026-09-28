@@ -2005,7 +2005,7 @@
     if (d.digest_markdown) {
       md = d.digest_markdown
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^#{2,3} (.+)$/gm, '<h3>$1</h3>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/^- (.+)$/gm, '<li>$1</li>');
       md = md.replace(/(<li>.*?<\/li>(\n<li>.*?<\/li>)*)/gs, '<ul>$1</ul>');
