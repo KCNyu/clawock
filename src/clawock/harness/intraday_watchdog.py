@@ -479,8 +479,11 @@ def main():
                 marker, expected_job, expected_slot, raw_block_first, now_ms,
                 ctx_id=context.get('context_id'),
                 ctx_generated_at=context.get('generated_at'))):
-        wechat_body = (last_report_text(session_id, raw_block_first)
-                       or deterministic_fallback(raw_block, tag, '报告文本不在会话里'))
+        # The payload postflight tried to send comes first (#2050): in prose
+        # mode the transcript never holds the report.
+        wechat_body = (delivery_receipts.recorded_wechat_body(marker)
+                       or last_report_text(session_id, raw_block_first)
+                       or deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里'))
         wechat_backstop(
             'intraday', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'intraday',
