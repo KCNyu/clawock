@@ -270,6 +270,7 @@ jobs:
             printf '::error::Forbidden PR path: %s\n' "${bad[@]}"
             exit 1
           fi
+          echo "PR file policy OK: ${#files[@]} changed paths"
 
       # #2033: the added lines of every commit this event brings, Markdown
       # included — the pre-commit hook skips *.md and never runs here, and the
@@ -292,7 +293,6 @@ jobs:
           else
             python3 ops/ci/commit_secret_scan.py --commit HEAD
           fi
-          echo "PR file policy OK: ${#files[@]} changed paths"
 
       - name: Detect code changes
         # Scope the heavy Python steps to files covered by repository contracts.
