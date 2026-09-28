@@ -66,7 +66,9 @@ def test_morning_files_are_read_labelled_and_never_shown_as_live(tmp_path):
     assert summary['sources']['us_news_digest']['stale'] is True
     rows = summary['tickers']['RKLB']
     assert [row['grade'] for row in rows] == ['primary', 'soft', 'soft']
-    assert all('截至' in row['cite'] and '开盘前旧闻' in row['cite'] for row in rows)
+    assert all('开盘前旧闻' in row['cite'] for row in rows)
+    assert '条目时间未知' in rows[0]['cite']  # graph event lacks publication_time
+    assert '截至' in rows[1]['cite'] and '17:35' not in rows[1]['cite']
     # A fund reads its issuer's digest (held_via), labelled the same way.
     assert summary['tickers']['RKLX'][0]['title'] == 'Rocket Lab wins launch contract'
     assert summary['attention']['RKLB'] == {'reddit_mentions_7d': 4, 'reddit_status': None,
@@ -75,6 +77,15 @@ def test_morning_files_are_read_labelled_and_never_shown_as_live(tmp_path):
     assert [f['title'] for f in summary['market_flashes']] == ['美股三大指数高开']
     assert summary['sources']['em_724_live'] == {'status': 'ok', 'requests': 1}
     assert 'information' not in out['full'] and out['full']['tickers']['RKLB']
+
+
+def test_a_morning_item_uses_its_own_date_not_the_file_write_time(tmp_path):
+    out = info.collect(_workspace(tmp_path), 'hk', ['00100'],
+                       now=datetime(2026, 9, 28, 11, 33, tzinfo=HKT),
+                       fast_news=lambda limit: [])
+    cite = out['summary']['tickers']['00100'][0]['cite']
+    assert '发布日期 09-23（时刻未知）' in cite
+    assert '09-25 08:03' not in cite
 
 
 def test_an_unreadable_source_is_named_not_silent(tmp_path):
