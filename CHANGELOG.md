@@ -13,6 +13,91 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.3.0] — 2026-09-29
+
+A minor bump: a new public command, new intraday harness surfaces and a new
+DSH plugin panel. Nothing was removed and no dependency changed. The DSH plugin
+ships on the same version. **Restart DeepSeek Harness after upgrading
+`clawock-dsh`**: the panel adds host methods, and the host half of a plugin
+loads only at start, so a new client stays paired with the old host until then.
+
+### Added
+
+- **`clawock live-sources` ([#1935]).** Free live news and disclosures
+  (HKEXnews, EDGAR full-text search, Google News, Yahoo RSS, 同花顺 and 东财
+  7×24) for any harness. It is budgeted and timed, and each item is labelled
+  with its publication time.
+- **Intraday harness: a core packet plus an addressable reference layer
+  ([#1882]).** `intraday preflight --judgment-packet` prints only the
+  judgment-relevant fields; the rest is fetched on demand with
+  `clawock tool intraday_reference`. There is also an information lane with
+  timestamped items ([#1885]) and one web search per mover per session
+  ([#1887]).
+- **Add-side reads ([#1872], [#1888], [#1953]).** The brief and the intraday
+  card share one implementation. Evidence is graded, pullback candidates are
+  allowed, and discipline downgrades a read. Left-side scale-in runs in
+  observe mode: its rows carry no size ([#2040]).
+- **`clawock-dsh`: one provider panel ([#2037]).** Claude and Codex quota
+  windows, the DeepSeek and MiniMax balances and the OpenCode free pool sit in
+  one sidebar cell. On a host that runs clawock's agent-dispatch, the panel
+  also shows the task queue, which can be steered from the chip ([#1951]).
+  Each row opens a detail layer ([#1775], [#2136]), and every row shares one
+  grid with role-coloured status chips ([#2129]).
+- **`clawock-dsh`: localized client ([#1660])**, with `LICENSE` and
+  `SECURITY.md` shipped in the package ([#1524]).
+
+### Changed
+
+- **`clawock-dsh`: the balance lives in the sidebar foot and opens as a
+  popover ([#1529], [#1533])**, instead of replacing the main column.
+- **Every intraday slot sends a card ([#1865]).** A slot with no change says
+  so in one line, rather than staying silent.
+- **The README (the PyPI project page) was rebuilt around what a first-time
+  reader needs ([#2150]).** It adds a two-line install at the top, a linked
+  logo wall of the supported harnesses, real OpenClaw and DSH captures, and a
+  plugin section.
+
+### Fixed
+
+- **The Finnhub key is sent as a header ([#1845])**, so a provider error
+  message can no longer echo it into a published artifact.
+- **Model prose is escaped in the published brief ([#2111]).**
+- **HK quote timestamps are parsed for the staleness gate ([#2117]).**
+- **Writes to the decision ledger can be read back by a strict parser
+  ([#1739])**, and portfolio reconciliation is serialized against quote
+  writes ([#1812]).
+- **`clawock-dsh` loads on hosts that ship React 18 ([#1655]).** It also keeps
+  malformed share counts out of the traces wire ([#1824]), and state chips in
+  the sidebar are no longer clipped ([#2138]).
+
+[#1524]: https://github.com/KCNyu/clawock/pull/1524
+[#1529]: https://github.com/KCNyu/clawock/pull/1529
+[#1533]: https://github.com/KCNyu/clawock/pull/1533
+[#1655]: https://github.com/KCNyu/clawock/pull/1655
+[#1660]: https://github.com/KCNyu/clawock/pull/1660
+[#1739]: https://github.com/KCNyu/clawock/pull/1739
+[#1775]: https://github.com/KCNyu/clawock/pull/1775
+[#1812]: https://github.com/KCNyu/clawock/pull/1812
+[#1824]: https://github.com/KCNyu/clawock/pull/1824
+[#1845]: https://github.com/KCNyu/clawock/pull/1845
+[#1865]: https://github.com/KCNyu/clawock/pull/1865
+[#1872]: https://github.com/KCNyu/clawock/pull/1872
+[#1882]: https://github.com/KCNyu/clawock/pull/1882
+[#1885]: https://github.com/KCNyu/clawock/pull/1885
+[#1887]: https://github.com/KCNyu/clawock/pull/1887
+[#1888]: https://github.com/KCNyu/clawock/pull/1888
+[#1935]: https://github.com/KCNyu/clawock/pull/1935
+[#1951]: https://github.com/KCNyu/clawock/pull/1951
+[#1953]: https://github.com/KCNyu/clawock/pull/1953
+[#2037]: https://github.com/KCNyu/clawock/pull/2037
+[#2040]: https://github.com/KCNyu/clawock/pull/2040
+[#2111]: https://github.com/KCNyu/clawock/pull/2111
+[#2117]: https://github.com/KCNyu/clawock/pull/2117
+[#2129]: https://github.com/KCNyu/clawock/pull/2129
+[#2136]: https://github.com/KCNyu/clawock/pull/2136
+[#2138]: https://github.com/KCNyu/clawock/pull/2138
+[#2150]: https://github.com/KCNyu/clawock/pull/2150
+
 ## [0.2.0] — 2026-09-14
 
 A minor bump rather than 0.1.10: `numpy` and `scipy` became required
