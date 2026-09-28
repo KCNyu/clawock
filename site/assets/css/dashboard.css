@@ -1377,11 +1377,14 @@
     border-left: 3px solid var(--negative);
   }
   .risk-alert.medium { border-left-color: var(--warning); }
+  .risk-alert.low { border-left-color: var(--neutral); }
+  .risk-alert .red { color: var(--negative); }
   .risk-alert .icon {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--negative); flex: none; margin-top: 4px;
   }
   .risk-alert.medium .icon { background: var(--warning); }
+  .risk-alert.low .icon { background: var(--neutral); }
 
   /* 硬闸的两个时间维度 (#1252)：整卡的走势 + 每条的在闸时长。
      两者的数据 guardrail_history.jsonl 从 2026-07-15 起每份简报写一行，一直在
