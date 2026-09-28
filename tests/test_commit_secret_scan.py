@@ -103,3 +103,42 @@ def test_a_real_commit_range_is_scanned_end_to_end(tmp_path):
         ["python3", str(ROOT / "ops" / "ci" / "commit_secret_scan.py"), "--range", "HEAD~1..HEAD~1"],
         cwd=tmp_path, capture_output=True, text=True)
     assert clean.returncode == 0
+
+
+def test_master_pre_push_scans_a_pure_data_commit(tmp_path):
+    """Pure data does not start CI, so the host hook must stop a bad push."""
+    import shutil
+
+    def git(*args):
+        return subprocess.run(["git", *args], cwd=tmp_path, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    git("init", "-q")
+    git("config", "user.name", "KCNyu")
+    git("config", "user.email", "shengyu.li.evgeny@gmail.com")
+    (tmp_path / ".githooks").mkdir()
+    (tmp_path / "ops/ci").mkdir(parents=True)
+    (tmp_path / "ops/publish").mkdir()
+    for name in ("pre-push", "_identity_check.sh"):
+        shutil.copy2(ROOT / ".githooks" / name, tmp_path / ".githooks" / name)
+    shutil.copy2(ROOT / "ops/ci/commit_secret_scan.py",
+                 tmp_path / "ops/ci/commit_secret_scan.py")
+    (tmp_path / "ops/system_check.py").write_text("import sys\nsys.exit(0)\n")
+    (tmp_path / "ops/publish/money_checker.sh").write_text(
+        "run_money_check() { return 0; }\n")
+    (tmp_path / "README.md").write_text("seed\n")
+    git("add", "README.md")
+    git("commit", "-qm", "seed")
+    base = git("rev-parse", "HEAD")
+    (tmp_path / "assets/data").mkdir(parents=True)
+    (tmp_path / "assets/data/note.md").write_text(f"- **Finnhub**: {KEY40}\n")
+    git("add", "assets/data/note.md")
+    git("commit", "-qm", "runtime data")
+    head = git("rev-parse", "HEAD")
+    result = subprocess.run(
+        ["bash", str(tmp_path / ".githooks/pre-push")], cwd=tmp_path,
+        capture_output=True, text=True,
+        input=f"refs/heads/master {head} refs/heads/master {base}\n")
+    assert result.returncode != 0
+    assert "master update failed credential scan" in result.stdout
+    assert KEY40 not in result.stdout + result.stderr
