@@ -76,7 +76,7 @@ named call away — not truncation.
 | `plan_context`, `plan_triggers`, `watch_levels` | open plans including 0-share watch decisions; triggers this slot's prices meet; the brief's watch lines |
 | `holding_policies`, `strategy_*` | per-holding strategy exceptions, checks and escalations |
 | `semantic_state` (seen sets), `semantic_delta`, `semantic_unchanged` | what was already delivered today, what changed since |
-| `anomalies`, `signal_count`, `signals_detail` | this slot's moves and signals |
+| `anomalies`, `signal_count` | this slot's moves and signal count; `analyzer_block` above retains the signal reason lines. Full `signals_detail` is available in the reference layer |
 | `soft_candidates`, `add_side_reads` | edge candidates; add-side three-state reads (§5) |
 | `information` | the information lane summary (§6): per source `as_of`, stale flag, top items; `live` — tier 2 rows per holding with the publisher's own time |
 | source health | `quote_coverage`, source errors, degraded issuers |
@@ -263,6 +263,7 @@ as live.
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
+| `signals_detail` belongs only to the reference layer; signal reasons remain in core `analyzer_block` | live (#2107) |
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |

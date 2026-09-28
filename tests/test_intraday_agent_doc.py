@@ -24,3 +24,13 @@ def test_every_gate_the_contract_names_exists():
     source = _source()
     missing = sorted(n for n in names if not re.search(rf'\bdef {n}\b', source))
     assert not missing, f'contract cites gates that do not exist: {missing}'
+
+
+def test_reference_signal_detail_is_not_claimed_as_a_core_field():
+    doc = DOC.read_text(encoding='utf-8')
+    core = doc.split('### Core packet', 1)[1].split('### Reference layer', 1)[0]
+    assert not any('`signals_detail`' in row.split('|', 2)[1]
+                   for row in core.splitlines() if row.startswith('|'))
+    reference = doc.split('### Reference layer', 1)[1].split('### Invariants', 1)[0]
+    assert '`signals_detail`' in reference
+    assert '`analyzer_block`' in core
