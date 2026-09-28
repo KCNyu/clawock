@@ -244,6 +244,8 @@ def test_no_live_numbers_in_evergreen_copy():
         r"真实账户收益\s*[−-]?\d",   # prose P&L, not the bracketed template
         r"账本在此:\s*\d+",          # frozen ledger row count in prose
         r"别拿\s*\d+",               # frozen figure in a rule-of-thumb sentence
+        # Chinese prose can restate a live hit rate without a % sign (#2102).
+        r"每\s*[零一二三四五六七八九十百两\d]+\s*次.{0,20}对\s*[零一二三四五六七八九十百两\d]+\s*次(?:半)?",
     ]
     # #670: site/llms.txt and site/faq.md have no CW_M refresh placeholders, so
     # any hard-coded live figure there is stale the day after it lands. Ban the
