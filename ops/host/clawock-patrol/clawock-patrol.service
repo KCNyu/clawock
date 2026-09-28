@@ -1,0 +1,18 @@
+[Unit]
+Description=clawock-patrol: round-the-clock opencode review of KCNyu/clawock (gated issues only)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=/root
+WorkingDirectory=/root
+ExecStart=/root/tools/clawock-patrol/patrol.sh run
+Restart=always
+RestartSec=120
+# Supervisor stop preserves independent dispatched rounds for adoption.
+TimeoutStopSec=150
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

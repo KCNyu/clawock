@@ -53,10 +53,23 @@ staged copy:
 
 `patrol.sh` is the versioned source for this host's existing
 `/root/tools/clawock-patrol/patrol.sh`. The `clawock-patrol.service` systemd
-service runs its `run` command, independently of cron. Its rotation, prompts,
-issue gate and service unit remain under `/root/tools/clawock-patrol/`; dispatch
-policy and helpers remain under `/root/tools/agent-dispatch/`. This script is
-an update to an existing installation, not a standalone patrol installer.
+service runs its `run` command, independently of cron. Dispatch policy and
+helpers remain under `/root/tools/agent-dispatch/`. This script is an update to
+an existing installation, not a standalone patrol installer.
+
+What each round reads — `round-prompt.md`, the lessons and hunting-pattern
+lists, `axes.tsv`/`rotation`/`surfaces.json`, the filing gate `gate_issue.py`
+with its helpers, and the service unit — is versioned in
+`ops/host/clawock-patrol/`, which mirrors `/root/tools/clawock-patrol/` path for
+path (its `README.md` says who reads which file when). It is installed by
+`ops/host/install_patrol_assets.sh` (atomic per file, `.before-update`, `cmp`;
+`--check`, `--rollback` undoes only the last install), and `refresh_live.sh`
+runs it whenever `--check` fails. Nothing restarts: every round rereads them. A
+changed unit file still needs `systemctl daemon-reload` and a restart by hand.
+Only kcn's standing instructions (`steer.md`, written by `patrol.sh steer`) and
+the state under `/root/logs/clawock-patrol/` stay on the host: the first is a
+live operator note, the second is run state. Prompt and gate changes go through
+a PR like any other code, so the lessons they encode can be reviewed.
 
 After review and merge, compare the installed supervisor with the reviewed
 source (check for intervening host edits), save the installed file for rollback,

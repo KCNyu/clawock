@@ -20,6 +20,11 @@
 #      running tasks keep the file they opened). The queue ops entry next to it
 #      (`install_task_queue_ops.sh`) is still installed by hand: the dsh chip
 #      shows its installed-vs-checkout hash (docs/architecture/task-queue.md).
+#   4. the patrol's round assets — prompts, lessons, axes and the filing gate are
+#      read from /root/tools/clawock-patrol, a copy, so `ops/host/clawock-patrol/`
+#      changes reach it only through `install_patrol_assets.sh` (same shape as
+#      the runner's installer; nothing restarts, every round rereads them). The
+#      supervisor `patrol.sh` itself stays a manual install (ops/host/README.md).
 #
 # None needs npm publish or a PyPI release: publishing is for people who are
 # not this host. See docs/operations/release.md § Running the latest code here.
@@ -67,6 +72,17 @@ ops_differs() {
     ! bash ops/host/install_task_queue_ops.sh --check >/dev/null 2>&1
 }
 OPS_MANUAL="run ops/host/install_task_queue_ops.sh (manual; refresh_live does not install it)"
+# Patrol assets, compared by content like the runner and for the same reason.
+PATROL_DIR="${PATROL_TOOL_DIR:-/root/tools/clawock-patrol}"
+patrol_differs() {
+  [ -d "$PATROL_DIR" ] && [ -f ops/host/install_patrol_assets.sh ] &&
+    ! bash ops/host/install_patrol_assets.sh --check >/dev/null 2>&1
+}
+install_patrol() {
+  bash ops/host/install_patrol_assets.sh
+  bash ops/host/install_patrol_assets.sh --check
+}
+PATROL_STALE="the installed patrol assets fail install_patrol_assets.sh --check: they need installing"
 
 if [ "$behind" = "0" ]; then
   echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
@@ -75,15 +91,23 @@ if [ "$behind" = "0" ]; then
     ops_stale=1
     echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
   fi
+  runner_stale=0
   if runner_differs; then
+    runner_stale=1
     echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
-    if [ "$check_only" = "1" ]; then
-      echo "(--check: nothing written)"
-      exit 1
-    fi
-    install_runner
   fi
-  [ "$check_only" = "1" ] && [ "$ops_stale" = "1" ] && exit 1
+  patrol_stale=0
+  if patrol_differs; then
+    patrol_stale=1
+    echo "  → $PATROL_STALE"
+  fi
+  if [ "$check_only" = "1" ]; then
+    [ $((runner_stale + patrol_stale)) -gt 0 ] && { echo "(--check: nothing written)"; exit 1; }
+    [ "$ops_stale" = "1" ] && exit 1
+    exit 0
+  fi
+  [ "$runner_stale" = "1" ] && install_runner
+  [ "$patrol_stale" = "1" ] && install_patrol
   exit 0
 fi
 
@@ -94,6 +118,8 @@ needs_runner=0
 grep -qx 'pyproject.toml' <<<"$changed" && needs_venv=1
 grep -q '^examples/dsh/packages/clawock-dsh/' <<<"$changed" && needs_plugin=1
 grep -qE '^ops/host/(agent-dispatch/|install_agent_dispatch\.sh$)' <<<"$changed" && needs_runner=1
+needs_patrol=0
+grep -qE '^ops/host/(clawock-patrol/|install_patrol_assets\.sh$)' <<<"$changed" && needs_patrol=1
 needs_ops=0
 grep -qE '^ops/host/(task_queue_ops\.py|model_prices\.json|install_task_queue_ops\.sh)$' <<<"$changed" && needs_ops=1
 
@@ -102,7 +128,11 @@ git --no-pager log --oneline "$range" | sed 's/^/  /'
 [ "$needs_venv" = "1" ] && echo "  → pyproject.toml moved: the venv needs install_clawock_launcher.sh"
 [ "$needs_plugin" = "1" ] && echo "  → clawock-dsh moved: the desk needs install_dsh_plugin.sh --restart"
 [ "$needs_runner" = "1" ] && echo "  → agent-dispatch runner moved: /root/tools/agent-dispatch needs install_agent_dispatch.sh"
-pending=$((needs_venv + needs_plugin + needs_runner + needs_ops))
+if [ "$needs_patrol" = "1" ] || patrol_differs; then
+  needs_patrol=1
+  echo "  → patrol assets moved or differ: /root/tools/clawock-patrol needs install_patrol_assets.sh"
+fi
+pending=$((needs_venv + needs_plugin + needs_runner + needs_ops + needs_patrol))
 if [ "$needs_runner" = "0" ] && runner_differs; then
   echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
   pending=$((pending + 1))
@@ -168,6 +198,11 @@ if [ "$needs_runner" = "1" ] && [ ! -d "$RUNNER_DIR" ]; then
   echo "no agent-dispatch installation on this host — skipped the runner install" >&2
 elif [ "$needs_runner" = "1" ] || runner_differs; then
   install_runner
+fi
+if [ "$needs_patrol" = "1" ] && [ ! -d "$PATROL_DIR" ]; then
+  echo "no clawock-patrol installation on this host — skipped the patrol assets install" >&2
+elif [ "$needs_patrol" = "1" ] || patrol_differs; then
+  install_patrol
 fi
 if ops_differs; then
   echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
