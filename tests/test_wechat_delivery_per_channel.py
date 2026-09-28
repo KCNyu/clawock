@@ -26,6 +26,7 @@ there too. Pinned here:
   D. none of that reaches past the slot: an ambiguous (missing/stale/other-day)
      marker keeps the 2026-07-09 no-WeChat-resend rule.
 """
+import hashlib
 import json
 import sys
 from datetime import datetime, timedelta
@@ -233,6 +234,10 @@ def test_backstop_retries_wechat_once_and_records_it(tmp_path, isolated_watchdog
     assert rewritten['wechat_backstop']['ok'] is True
     assert common.already_delivered(marker_path) is True
     assert [e['action'] for e in _events(isolated_watchdog_log)][0] == 'wechat-backstop'
+    event = _events(isolated_watchdog_log)[0]
+    assert event['body_chars'] == 4
+    assert event['body_sha256'] == hashlib.sha256(b'card').hexdigest()
+    assert event['body_source'] == 'unspecified'
 
 
 def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log):

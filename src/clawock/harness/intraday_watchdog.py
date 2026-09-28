@@ -481,16 +481,21 @@ def main():
                 ctx_generated_at=context.get('generated_at'))):
         # The payload postflight tried to send comes first (#2050): in prose
         # mode the transcript never holds the report.
-        wechat_body = (delivery_receipts.recorded_wechat_body(marker)
-                       or last_report_text(session_id, raw_block_first)
-                       or deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里'))
+        receipt_body = delivery_receipts.recorded_wechat_body(marker)
+        transcript_body = (None if receipt_body else
+                           last_report_text(session_id, raw_block_first))
+        wechat_body = (receipt_body or transcript_body or
+                       deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里'))
+        body_source = ('receipt' if receipt_body else
+                       'transcript' if transcript_body else 'deterministic_fallback')
         wechat_backstop(
             'intraday', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'intraday',
                                            market=args.market),
             WS / 'memory' / '.tmp' / f'watchdog-{tag}-{slot_key}-wechat.done',
             args.dry_run, market=args.market, wechat=send_wechat,
-            telegram=send_telegram, resolve=resolve_wechat_target)
+            telegram=send_telegram, resolve=resolve_wechat_target,
+            body_source=body_source)
 
     # --- Delivery evidence gate: the postflight marker decides -----------------
     # ORDER MATTERS (2026-07-29): this used to sit BELOW the generation gate, so a

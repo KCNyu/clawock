@@ -17,6 +17,7 @@ session transcript. transcript_loop_score detects that directly and cleanly
 (observed: looped run score≈7 on a 97KB assistant blob; clean run score≈2 on 3KB).
 """
 import json
+import hashlib
 import os
 import re
 import subprocess
@@ -871,7 +872,8 @@ def already_delivered(marker_path, within_ms=None, slot=None):
 
 
 def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
-                    market=None, wechat=None, telegram=None, resolve=None):
+                    market=None, wechat=None, telegram=None, resolve=None,
+                    body_source=None):
     """Retry WeChat ONCE for a slot whose postflight WeChat send confirmably failed.
 
     The watchdogs stopped re-sending WeChat on 2026-07-09 (kcn's call) because a
@@ -937,7 +939,11 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
         ok, out = False, str(e)[:300]
     first_failure = (marker.get('out') or '')[-200:]
     entry = {'tag': tag, 'action': 'wechat-backstop', 'dry_run': bool(dry_run),
-             'sent_ok': bool(ok), 'postflight_wechat_detail': first_failure}
+             'sent_ok': bool(ok), 'postflight_wechat_detail': first_failure,
+             'slot': marker.get('slot'), 'context_id': marker.get('context_id'),
+             'body_source': body_source or 'unspecified',
+             'body_chars': len(message),
+             'body_sha256': hashlib.sha256(message.encode('utf-8')).hexdigest()}
     if not ok:
         entry['detail'] = (out or 'no output from the transport')[-300:]
     log(entry)
