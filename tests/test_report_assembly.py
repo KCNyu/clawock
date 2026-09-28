@@ -575,3 +575,19 @@ def test_marker_state_defaults_to_delivered_for_pre_field_markers(pf, sent):
                                 'first_line': 'x'}))
     assert pf._marker_state(path) == 'delivered'
     assert pf._marker_state(sent['tmp'] / 'nope.json') is None
+
+
+def test_section_markers_named_inside_a_sentence_do_not_count(pf):
+    """#2049: 「本报告不含 ▎情绪面、▎技术面、▎操作建议、▎风险提示 四段」 used to
+    satisfy all four required sections because the check was a bare substring
+    over the whole prose. A marker must open its own line."""
+    ctx = _ctx(needs_risk_section=True)
+    naming = ('今日 CRCL 收跌 -5.5%，盘面平淡。本报告不含 ▎情绪面、▎技术面、▎操作建议、'
+              '▎风险提示 四段——暂无法归因，明日开盘前再复核；已持仓不动。')
+    issues = pf.validate(pf.assemble_message(ctx, naming), ctx, naming)
+    assert sum('缺段标记' in i for i in issues) == 3
+    assert any('▎风险提示' in i for i in issues)
+    assert pf.categorize(issues) == 'fail'
+    # The real layout (markers on their own lines) is unaffected.
+    proper = PROSE + '\n▎风险提示\n杠杆腿波动放大。\n'
+    assert pf.validate(pf.assemble_message(ctx, proper), ctx, proper) == []

@@ -53,10 +53,12 @@ from clawock.harness.validation import (
     check_identifier_leak,
     check_numeric_claims,
     check_pipeline_self_reference,
+    has_section_marker,
     is_hard_char_limit,
     mentions_ticker,
     postflight_exit_code,
     product_status,
+    section_marker_end,
     split_advisory,
     validate_forbidden_phrases,
 )
@@ -328,8 +330,8 @@ def check_stale_citation(prose, ctx):
 
 # Issue classes the model can fix in one rewrite (contract §7). Kept to the
 # unambiguous ones: an identifier, the missing/unverifiable 下一触发 line, a
-# stale headline without its time.
-REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻')
+# stale headline without its time, a ▎我的看法 marker that does not open a line.
+REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺段标记')
 
 
 def claim_revise(market, context_id, issues):
@@ -445,12 +447,13 @@ def validate(text, ctx, model_text):
     # without it.
     _, judgment = split_next_trigger(checked)
 
-    if REQUIRED_SECTION not in checked:
+    # The marker must open a line; named inside a sentence it is prose (#2049).
+    if not has_section_marker(checked, REQUIRED_SECTION):
         issues.append(f'缺段标记 "{REQUIRED_SECTION}"')
     else:
         # 我的看法 段必须 ≥ 60 字（否则就是敷衍 1 句结案）
-        section_body = (judgment.split(REQUIRED_SECTION, 1)[1].strip()
-                        if REQUIRED_SECTION in judgment else '')
+        start = section_marker_end(judgment, REQUIRED_SECTION)
+        section_body = judgment[start:].strip() if start >= 0 else ''
         # cut to next section (▎XXX) or end
         next_marker = section_body.find('\n▎')
         if next_marker > 0:

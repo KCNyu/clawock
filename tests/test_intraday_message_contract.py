@@ -640,3 +640,21 @@ def test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap():
     assert shown[3] == '   ↳ 行情未证实：SPCH（见上方 ⛔ 行，差值仅作参考）'
     assert val._derived_in_sentence(shown[2], shown[2].index('-0.30pp'), 'pp', '-0.30')
     assert pre.append_leverage_line('x', []) == 'x'
+
+
+def test_the_judgment_marker_named_inside_a_sentence_is_missing_and_revisable():
+    """#2049: 「这一档我不写 ▎我的看法 段：…」 passed as the section, and the
+    60-char floor counted the rest of the prose as its body."""
+    ctx = {**TRIGGER_CTX, 'semantic_unchanged': False}
+    prose = ('07226 跟随恒科走弱，这一档我不写 ▎我的看法 段：恒科贴近破位线，杠杆腿波动放大，'
+             '等收盘再看是否需要调整，其余持仓维持原判断不动，00100 与 02208 本档没有新的异动，'
+             '仍按晨间计划执行。\n'
+             '下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）')
+    issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
+    assert f'缺段标记 "{post.REQUIRED_SECTION}"' in issues
+    assert post.categorize(issues) == 'fail'
+    assert any(key in f'缺段标记 "{post.REQUIRED_SECTION}"' for key in post.REVISABLE)
+    # Own-line marker, body measured from after it: unchanged behaviour.
+    good = '▎我的看法\n' + prose.split('段：', 1)[1]
+    assert not any('缺段标记' in i or '太敷衍' in i
+                   for i in post.validate(post.assemble_message(ctx, good), ctx, good))

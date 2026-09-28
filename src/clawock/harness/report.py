@@ -18,6 +18,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_numeric_claims,
     check_pipeline_self_reference,
+    has_section_marker,
     is_hard_char_limit,
     mentions_ticker,
     validate_forbidden_phrases,
@@ -76,12 +77,13 @@ def validate(body, ctx, model_text):
     checked = model_text
 
     # 1. 必有三段标记（模型文本）
+    # 标记须自成一行开头，句中点名不算（#2049）
     for sec in REQUIRED_SECTIONS:
-        if sec not in checked:
+        if not has_section_marker(checked, sec):
             issues.append(f'缺段标记 "{sec}"')
 
     # 2. 风险提示段（若 preflight 标了 needs；模型文本）
-    if ctx.get('needs_risk_section') and '▎风险提示' not in checked:
+    if ctx.get('needs_risk_section') and not has_section_marker(checked, '▎风险提示'):
         issues.append('preflight 标 needs_risk_section=true 但未见 "▎风险提示" 段')
 
     # 3. 长度 —— 按投递全文 (per-market)
