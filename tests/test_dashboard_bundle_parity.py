@@ -27,7 +27,6 @@ ALLOWED_DIVERGENT = {
     "computeWatchRows",
     "refreshTab",
     "render",
-    "renderHonesty",
     "renderRiskGuardrail",
     "renderTab",
     "renderTodayHighlights",
