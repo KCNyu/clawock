@@ -124,8 +124,11 @@ The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*
 messages from the task's dispatch time (`meta.env CREATED`) on count, because a retried task
 resumes an older session. The price per model is `ops/host/model_prices.json` (source and date in
 the file, installed next to the entry): the amount is **what the tokens would cost at API list
-prices**, an estimate — claude and codex run on subscriptions here. A model without a row (codex's
-`gpt-*` so far) keeps its tokens and has no amount (`—` on the chip), never a guessed one; an
+prices**, an estimate — claude and codex run on subscriptions here, and no subscription price is
+in the table. claude rows come from Anthropic's API price table; codex's `gpt-*` rows (2026-09-28)
+from OpenAI's API pricing page (`sources.openai` in the file: URL, date, standard short-context
+tier; its cached-input rate is `cache_read`). A model without a row keeps its tokens and has no
+amount (`—` on the chip), never a guessed one; an
 opencode task is `free` when opencode reports cost 0 and every model is in the free pool file or
 ends in `-free`. Checked on a real task: the estimate for `add-side-aggression-20260926-151620`
 ($14.02) equals the `total_cost_usd` claude itself reported for that session.
