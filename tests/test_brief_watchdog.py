@@ -184,6 +184,28 @@ def test_0905_a_delivered_brief_is_not_mirrored_again(tmp_path, monkeypatch):
     assert events[-1]["action"] == "ok"
 
 
+@pytest.mark.parametrize('wechat_ok', [True, False])
+def test_0836_old_receipt_never_duplicates_telegram_and_still_checks_wechat(
+    tmp_path, monkeypatch, wechat_ok
+):
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+    monkeypatch.setattr(sys, 'argv', ['brief_watchdog.py'])
+    marker = watchdog.delivery_receipts.receipt_path(
+        tmp_path / 'memory' / '.tmp', 'brief', date=TODAY)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(json.dumps(watchdog.delivery_receipts.build_receipt(
+        ts=1, sent_ok=wechat_ok, tg_ok=True, out='ret=-2 prepare failed')))
+    retried = []
+    monkeypatch.setattr(watchdog, 'wechat_backstop',
+                        lambda *args, **kwargs: retried.append(args))
+
+    assert watchdog.main() == 0
+    assert messages == []
+    assert len(retried) == 1
+    assert retried[0][3]['sent_ok'] is wechat_ok
+    assert events[-1]['action'] == 'ok'
+
+
 def test_missing_alert_dispatches_only_once_after_success(tmp_path, monkeypatch):
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     calls = {"dispatch": 0, "send": 0}
