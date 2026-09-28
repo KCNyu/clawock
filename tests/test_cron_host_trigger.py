@@ -123,14 +123,28 @@ def test_the_health_check_still_owes_a_host_triggered_job_its_slots(monkeypatch)
     sys.modules.setdefault("cron_health_check_under_test", module)
     spec.loader.exec_module(module)
 
-    class Listing:
-        entries = [{"name": "港股午后快报", "id": "job-1", "enabled": False,
-                    "schedule": {"expr": "33 13 * * 1-5", "tz": "Asia/Shanghai"}}]
-
-    monkeypatch.setattr(module.openclaw, "read_jobs", lambda: Listing())
+    live = [{"name": "港股午后快报", "id": "job-1", "enabled": False,
+             "schedule": {"expr": "33 13 * * 1-5", "tz": "Asia/Shanghai"}}]
+    monkeypatch.setattr(module.openclaw, "read_jobs",
+                        lambda: module.openclaw.CronRead(live, "cli"))
     monkeypatch.setattr(scheduling, "load_contract", lambda *a, **k: {"jobs": [_job()]})
     jobs = module.load_runtime_jobs()
     assert jobs[0]["enabled"] is True and jobs[0]["schedule"]["expr"] == "33 13 * * 1-5"
+
+    # #2074: a contract that cannot be read used to hand back the live flags,
+    # where this job is disabled — its slots left the report and it exited 0.
+    def unreadable(*a, **k):
+        raise FileNotFoundError("config/cron-schedules.json")
+
+    monkeypatch.setattr(scheduling, "load_contract", unreadable)
+    with pytest.raises(FileNotFoundError):
+        module.load_runtime_jobs()
+    # And the pre-6.1 fossil is not the live schedule, as for the sibling readers.
+    monkeypatch.setattr(scheduling, "load_contract", lambda *a, **k: {"jobs": [_job()]})
+    monkeypatch.setattr(module.openclaw, "read_jobs",
+                        lambda: module.openclaw.CronRead(live, "fossil"))
+    with pytest.raises(RuntimeError, match="fossil"):
+        module.load_runtime_jobs()
 
 
 def test_the_live_contract_trial_is_one_hk_job():
