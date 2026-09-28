@@ -33,8 +33,11 @@ def _strip(s):
     return re.sub(r'<[^>]+>', '', str(s or '')).strip()
 
 
-def em_stock_news(keyword, limit=3):
-    """Holding-level Chinese news via Eastmoney search (dated, catalyst-grade)."""
+def em_stock_news(keyword, limit=3, failures=None):
+    """Holding-level Chinese news via Eastmoney search (dated, catalyst-grade).
+
+    A source that did not answer appends to `failures` (when given), so an
+    empty result can be told apart from "no news" (#2081)."""
     param = {'uid': '', 'keyword': keyword, 'type': ['cmsArticleWebOld'],
              'pageIndex': 1, 'pageSize': limit,
              'preTag': '', 'postTag': ''}
@@ -43,6 +46,8 @@ def em_stock_news(keyword, limit=3):
     try:
         r = em_get(url, headers={'User-Agent': UA}, timeout=TIMEOUT, label='em-search')
         if r is None:
+            if failures is not None:
+                failures.append(f'em-search({keyword}): no response')
             return []
         t = r.text
         m = re.search(r'\((\{.*\})\)\s*;?\s*$', t, re.S)
@@ -58,15 +63,19 @@ def em_stock_news(keyword, limit=3):
         return out
     except Exception as e:
         print(f'  warn: em_stock_news({keyword}) failed: {e}', file=sys.stderr)
+        if failures is not None:
+            failures.append(f'em-search({keyword}): {type(e).__name__}')
         return []
 
 
-def em_fast_news(limit=6):
-    """Market 7x24 快讯 — macro/sector context."""
+def em_fast_news(limit=6, failures=None):
+    """Market 7x24 快讯 — macro/sector context. Failures as in em_stock_news."""
     url = f'https://newsapi.eastmoney.com/kuaixun/v1/getlist_102_ajaxResult_{limit}_1_.html'
     try:
         r = em_get(url, headers={'User-Agent': UA}, timeout=TIMEOUT, label='em-724')
         if r is None:
+            if failures is not None:
+                failures.append('em-724: no response')
             return []
         t = r.text
         m = re.search(r'=\s*(\{.*\})\s*;?\s*$', t, re.S)
@@ -81,6 +90,8 @@ def em_fast_news(limit=6):
         return out
     except Exception as e:
         print(f'  warn: em_fast_news failed: {e}', file=sys.stderr)
+        if failures is not None:
+            failures.append(f'em-724: {type(e).__name__}')
         return []
 
 
@@ -126,10 +137,10 @@ def active_hk_names(portfolio_path: Path, registry_path: Path):
 def fetch_workspace(workspace: Path, output: Path | None = None):
     workspace = workspace.expanduser().resolve()
     output = output or workspace / 'assets' / 'data' / 'em_news.json'
-    by_ticker = {}
+    by_ticker, failures = {}, []
     for ticker, name in active_hk_names(
             workspace / 'portfolio.json', workspace / 'config' / 'instruments.json'):
-        items = em_stock_news(name)
+        items = em_stock_news(name, failures=failures)
         if items:
             by_ticker[ticker] = {'name': name, 'items': items}
         # 限速已由 em_get 统一处理(串行 >=1s + 抖动),无需再手 sleep
@@ -137,7 +148,10 @@ def fetch_workspace(workspace: Path, output: Path | None = None):
         'generated_at': datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds'),
         'source': 'eastmoney (Chinese-language info layer)',
         'holdings_news': by_ticker,
-        'market_724': em_fast_news(),
+        'market_724': em_fast_news(failures=failures),
+        # Sources that did not answer this run: a fresh generated_at over empty
+        # lists is otherwise indistinguishable from a quiet news day (#2081).
+        'degraded': failures,
     }
     safe_write_json(str(output), out)
     n = sum(len(v['items']) for v in by_ticker.values())
