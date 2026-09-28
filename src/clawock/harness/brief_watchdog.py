@@ -76,7 +76,6 @@ from ._watchdog_common import (
     wechat_gap_reason,
 )
 
-MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
 MISSING_STATE_VERSION = 1
 NOTIFICATION_ATTEMPTS_PER_RUN = 2
 MAX_ONHOST_RERUNS = 2  # 08:30 first re-run; 09:05 second chance before off-host fallback (#550)
@@ -550,32 +549,27 @@ def main():
     # Trust the postflight send-marker, not the poisoned run-record `delivered`.
     marker_path = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
     marker = delivery_receipts.read_receipt(marker_path)
-    now_ms = int(datetime.now(HKT).timestamp() * 1000)
-    fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
-
     # WeChat is judged on its own (2026-09-17): Telegram having the card says
-    # nothing about WeChat. Only today's fresh marker is evidence about this card,
-    # and only its explicit `sent_ok=false` triggers the one retry.
-    if marker and fresh:
+    # nothing about WeChat. The receipt path includes today's date, so its age
+    # cannot turn a confirmed delivery into a missing delivery (#2121).
+    if marker:
         wechat_backstop('brief', tag, build_brief_card(today), marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
                         args.dry_run, wechat=send_wechat, telegram=send_telegram,
                         resolve=resolve_wechat_target)
-    # TG is covered iff postflight's cosend confirmably delivered today's card to
-    # Telegram (fresh marker, tg_ok=true). No WeChat resend — Telegram is the backstop.
-    if marker and marker.get('tg_ok') and fresh:
+    # TG is covered iff postflight's cosend confirmed today's card to Telegram.
+    if marker and marker.get('tg_ok'):
         log({'tag': tag, 'action': 'ok',
              'reason': 'postflight cosend already delivered Telegram today — no backstop'})
         return 0
 
-    # Postflight cosend failed / never ran / stale marker ⇒ mirror the card to Telegram.
+    # Postflight cosend failed or never ran ⇒ mirror the card to Telegram.
     flag = WS / 'memory' / '.tmp' / f'watchdog-brief-{today}.done'
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already mirrored (dedupe flag present)'})
         return 0
 
     reason = ('postflight marker missing' if not marker
-              else 'marker stale' if not fresh
               else 'postflight cosend failed (tg_ok=false)')
 
     message = build_brief_card(today)

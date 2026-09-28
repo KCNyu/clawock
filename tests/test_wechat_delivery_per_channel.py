@@ -354,8 +354,8 @@ def test_brief_watchdog_alerts_when_the_wechat_retry_fails(
 
 
 @pytest.mark.parametrize('case', ['stale', 'other-day'])
-def test_brief_watchdog_never_replays_an_old_marker(tmp_path, monkeypatch, case):
-    """D: a stale marker, or a failed marker from an earlier day, is not this card."""
+def test_brief_watchdog_uses_the_receipt_date_not_its_age(tmp_path, monkeypatch, case):
+    """Today's dated receipt remains this card; yesterday's cannot match."""
     watchdog, today, calls = _wire_brief_watchdog(monkeypatch, tmp_path)
     tmp = tmp_path / 'memory' / '.tmp'
     if case == 'stale':
@@ -366,7 +366,9 @@ def test_brief_watchdog_never_replays_an_old_marker(tmp_path, monkeypatch, case)
 
     assert watchdog.main() == 0
 
-    assert calls['wechat'] == [], 'only a fresh marker for today may trigger a WeChat retry'
+    assert len(calls['wechat']) == (1 if case == 'stale' else 0)
+    if case == 'stale':
+        assert calls['telegram'] == [], 'a confirmed Telegram send is not repeated'
 
 
 # ── The same slot shape on report / intraday watchdogs ──────────────────────
