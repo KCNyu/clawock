@@ -89,3 +89,16 @@ def test_the_allowlist_exempts_a_figure_quoted_in_order_to_correct_it(
     }))
 
     assert _check(root) == []
+
+
+def test_a_p_value_line_with_no_other_quantity_word_is_checked(tmp_path):
+    """#2075: `p = 0.04` (space after `=`) never matched QUANTITY, so a line
+    whose only claim is a p-value was never compared with its card."""
+    card = {"permutation": {"p_value_drawdown": 0.92454}}
+    made_up = '"""Evidence: run card fixture-20260802-abcdef12.\np = 0.04 is a failure to reject.\n"""\n'
+    assert _check(_workspace(tmp_path / "a", made_up, card))
+    honest = made_up.replace("0.04", "0.92")
+    assert _check(_workspace(tmp_path / "b", honest, card)) == []
+    # A parameter such as `vol_cap=0.50` next to a quantity word is not a p-value.
+    param = '"""Evidence: run card fixture-20260802-abcdef12.\np = 0.92; vol_cap=0.50\n"""\n'
+    assert _check(_workspace(tmp_path / "c", param, card)) == []

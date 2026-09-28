@@ -41,12 +41,15 @@ CARDS_DIR = WS / 'memory' / 'backtests'
 ALLOWLIST = WS / 'config' / 'claim-allowlist.json'
 SURFACES_CONFIG = WS / 'config' / 'claim-provenance.json'
 
+# `p =` sits outside the trailing \b: after `=` a word boundary needs a word
+# character, so `p = 0.92` (space after the sign) never matched and a p-value
+# line with no other quantity word was never checked (#2075).
 QUANTITY = re.compile(
-    r'\b(maxDD|max_drawdown|drawdown|CAGR|totRet|total_return|improvement|'
-    r'p\s*[=＝]|p-value)\b', re.I)
-# -95%, +3.9pp, 0.92 after "p ="
+    r'\b(?:(?:maxDD|max_drawdown|drawdown|CAGR|totRet|total_return|improvement|'
+    r'p-value)\b|p\s*[=＝])', re.I)
+# -95%, +3.9pp, 0.92 after "p =" — a standalone `p`, not the tail of `vol_cap=0.50`.
 PERCENT = re.compile(r'([+-]?\d+(?:\.\d+)?)\s*(%|pp)')
-PVALUE = re.compile(r'p\s*[=＝]\s*([01](?:\.\d+)?)', re.I)
+PVALUE = re.compile(r'\bp\s*[=＝]\s*([01](?:\.\d+)?)', re.I)
 RUN_ID = re.compile(r'\b([a-z_]+-\d{8}-[0-9a-f]{8})\b')
 
 TOLERANCE = 0.006   # 0.6pp — prose rounds to one decimal
