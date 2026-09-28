@@ -939,9 +939,15 @@ def load_em_news(issues):
                 for tk, v in (d.get('holdings_news') or {}).items()}
         mkt = [{'date': i.get('date'), 'title': i.get('title')}
                for i in (d.get('market_724') or [])[:5]]
-        return {'holdings_news': hold, 'market_724': mkt,
-                'generated_at': d.get('generated_at'),
-                'age_hours': round(age, 1) if age is not None else None}
+        out = {'holdings_news': hold, 'market_724': mkt,
+               'generated_at': d.get('generated_at'),
+               'age_hours': round(age, 1) if age is not None else None}
+        if d.get('degraded'):
+            # Which sources did not answer — for the model to say the layer is
+            # thin today, not a preflight issue (same doctrine as live sources).
+            out['degraded'] = list(d['degraded'])[:8]
+            print(f"   ⚠ em_news: {len(d['degraded'])} 个中文消息源未取到")
+        return out
     except Exception as e:
         issues.append(f'em_news.json 解析失败: {e}')
         return {}
