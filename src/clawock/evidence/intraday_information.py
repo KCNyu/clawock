@@ -4,10 +4,9 @@ docs/architecture/intraday-agent.md §6. Six files the morning jobs already
 write (Eastmoney company news and 7x24, the US digest, sentiment attention,
 macro, the graded news evidence graph, the sentiment factor snapshot) were read
 by the brief and by no intraday slot: the model judged "情绪面/消息面" with
-nothing but the mover probe. They are read here, never refetched — the brief's
-rule — and every item carries the time its file was written plus `stale` when
-that was before the current session opened: a 08:10 file quoted at 23:00 ET is
-eight hours old and must say so.
+nothing but the mover probe. They are read here, never refetched. Source health
+uses file write time; each item's cite uses its own publication time (or says
+that time is unknown) so an old item in a newly written file cannot look live.
 
 The one request this adds is Eastmoney's market-level 7x24 list, once per slot.
 `mover_evidence` only keeps flashes naming a mover, so on a quiet slot the lane
@@ -85,9 +84,20 @@ def graph_grade(event):
     return 'soft'
 
 
-def _cite(title, source, fresh):
-    label = f"截至 {fresh['as_of']}" if fresh.get('as_of') else '时间未知'
-    if fresh.get('stale'):
+def _cite(title, source, published_at, source_fresh, market, now):
+    """Cite the item's own clock; file time is only provenance when it has none."""
+    raw = str(published_at or '')
+    parsed = _parse_time(published_at)
+    if parsed and len(raw) == 10 and raw[4] == '-' and raw[7] == '-':
+        label = f"发布日期 {raw[5:]}（时刻未知），开盘前旧闻"
+    elif parsed:
+        item = freshness(parsed, market, now)
+        label = f"截至 {item['as_of']}"
+        if item['stale']:
+            label += '，开盘前旧闻'
+    else:
+        written = source_fresh.get('as_of')
+        label = '条目时间未知' + (f'（文件写于 {written}）' if written else '')
         label += '，开盘前旧闻'
     return f"《{str(title)[:60]}》（{source}，{label}）"
 
@@ -207,7 +217,8 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
         rows.sort(key=lambda r: order.get(r['grade'], 3))
         per_ticker[ticker] = [
             {**{k: r[k] for k in ('grade', 'direction', 'title', 'published_at') if r.get(k)},
-             'cite': _cite(r.get('title'), r['source'], sources.get(r['source']) or {})}
+             'cite': _cite(r.get('title'), r['source'], r.get('published_at'),
+                           sources.get(r['source']) or {}, market, now)}
             for r in rows[:MAX_ITEMS_PER_TICKER]]
 
     attention = {}
@@ -295,11 +306,12 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
             'SEC全文检索只有提交日（「时刻未知」，不许说成刚刚）。'
             '没列出的票=本档实时源没有它的条目；源没取到的写在 ⛔ 行。')}
            if live_rows is not None else {}),
-        'morning_flashes': [
-            {'title': i.get('title'), 'cite': _cite(i.get('title'), 'em_news 7×24',
-                                                     sources.get('em_news') or {})}
-            for i in (em.get('market_724') or [])[:MAX_MARKET_ITEMS]],
-        'rule': ('引用任何一条都照抄它的 cite（含「截至」时间）；stale=true 的是开盘前写的，'
+            'morning_flashes': [
+                {'title': i.get('title'), 'cite': _cite(i.get('title'), 'em_news 7×24',
+                                                       i.get('date') or i.get('showtime'),
+                                                       sources.get('em_news') or {}, market, now)}
+                for i in (em.get('market_724') or [])[:MAX_MARKET_ITEMS]],
+            'rule': ('引用任何一条都照抄它的 cite（条目自己的发布时间或时间缺口）；标为开盘前旧闻的条目，'
                  '不许说成盘中/最新消息。grade: primary 一手披露 > authoritative 权威 > soft 软消息/情绪。'),
     }
     full = {'tickers': full_ticker, 'sentiment': [

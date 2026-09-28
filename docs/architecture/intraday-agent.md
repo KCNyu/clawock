@@ -185,7 +185,7 @@ The watchdog's backstop resend is the plain card on both channels.
 
 | Tier | Path | Covers | Requests per slot | Freshness | Failure |
 |---|---|---|---|---|---|
-| 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json`, `factor-snapshots/sentiment/<HKT-date>.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | written ~08:00 HKT; each item carries `as_of`; `stale` when written before the current session opened or in the future | missing/unreadable file → `⛔` line |
+| 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json`, `factor-snapshots/sentiment/<HKT-date>.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | source health uses file write time; each headline's cite uses its own publication time; date-only or missing time is labelled unknown and old | missing/unreadable file → `⛔` line |
 | 1 | existing free fetchers: `mover_evidence` (Tencent, SEC, exchange, Nasdaq halts), Eastmoney 7×24 flashes | mover catalysts; market-level flashes | a handful, movers only (7×24: 1, fetched inside the tier 2 lane) | live | per-ticker `degraded`, never "no news" |
 | 2 | live free sources through `clawock.evidence.live_sources` (table below): HKEXnews, SEC EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24 | every slot, every holding (kcn 2026-09-26: 实时越多越好 — not gated on a gap) | HK 6, US 9 for the current book (per issuer/theme, table below) | each item carries its publisher's time: `盘中实时` after the session open, `开盘前旧闻` before it | per source on the ⛔ line (`资讯源未取到：Google新闻（1/3 超时）…（不是无消息）`) and in `information.sources` |
 | 3 | Tavily (`skills/tavily-search`, `--bucket intraday`) | an anomaly's cause | only when `anomalies` is non-empty, once per ticker per session | live | `unavailable`/quota → `⛔ 源降级`, never "no news" |
@@ -280,6 +280,7 @@ as live.
 | SEC-mirror line only on a changed list (`test_the_sec_mirror_line_prints_only_when_its_list_changes`) | live (#1901) |
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |
 | information lane tier 2: live free sources every slot, started before the analyzer, bounded (`test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_gaps`, `test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_time`, `test_nothing_waits_past_the_budget`); the same module feeds the brief and the report (`test_intraday_brief_and_report_all_go_through_the_one_collect`) | live (#1935) |
+| tier 0 cites carry each item's own publication time, or explicitly mark missing precision (`test_a_morning_item_uses_its_own_date_not_the_file_write_time`) | live (#2103) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10
