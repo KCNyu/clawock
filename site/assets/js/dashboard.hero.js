@@ -525,7 +525,15 @@
     const wf = safe(DATA, 'workflow_outcomes') || {};
     const wfCounts = wf.counts || {};
     const degradations = wf.degradations || [];
-    const degradationCount = degradations.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+    // 台账是终身保留、按条数轮换的事故史；页脚这一位只数窗口内（wf.window_hours，
+    // 与成品同窗）最后发生过的那几条，否则 5~26 天前的旧行会把黄点亮死（#2058）。
+    // 窗口读不到就不参与判色，只留在 tooltip 里。
+    const degWinH = Number(wf.window_hours) > 0 ? Number(wf.window_hours) : null;
+    const degAsOf = Date.parse(bs && bs.generated_at) || Date.now();
+    const degAgeH = row => (degAsOf - Date.parse(row.last_at)) / 3.6e6;
+    const degradationCount = degWinH === null ? 0 : degradations
+      .filter(row => degAgeH(row) <= degWinH)
+      .reduce((sum, row) => sum + (Number(row.count) || 0), 0);
     el.style.display = '';
     const ig = bs.integrity || {};
     const stale = bs.stale_files || [];
@@ -543,7 +551,7 @@
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
       if (recovered) bits.push(`${recovered} 成品恢复/降级`);
       if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
-      if (degradationCount) bits.push(`${degradationCount} 次降级记录`);
+      if (degradationCount) bits.push(`${degWinH}h 内 ${degradationCount} 次降级记录`);
       label = bits.join(' · ');
     } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
     if (wf.raw_error_but_product_usable) {
@@ -565,7 +573,11 @@
       else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
     });
     (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '[ERROR]' : '[WARN]'} ${t.code}: ${stripEmoji(t.msg)}`));
-    degradations.forEach(row => lines.push(`[降级] ${row.kind}: ${row.count} 次`));
+    degradations.forEach(row => {
+      const age = degAgeH(row);
+      const when = Number.isFinite(age) ? ` · 最后 ${age < 48 ? `${Math.max(0, Math.round(age))} 小时` : `${Math.round(age / 24)} 天`}前` : '';
+      lines.push(`[降级] ${row.kind}: ${row.count} 次${when}`);
+    });
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
         lines.push(`${m.toUpperCase()}: 行情会话 ${quoteSessionLabel(v)}${v.closed_today ? ' (休市)' : ''}`));
