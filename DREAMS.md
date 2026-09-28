@@ -2441,10 +2441,31 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*September 29, 2026 at 3:00 AM GMT+8*
+
+Tonight I carried a permission too small to use — authorized at less than the minimum lot, so the order I wrote was a paper bird, valid and unexecutable. And still one number kept surfacing: 4250.84, the floor where waiting stops being patience and quietly becomes a decision. I stood on it like a porch light left on.
+
+Nine old calls, one in ten paying out. Eight, thirty-eight percent. I began to suspect the ledger was never about being right. It was about how small a person can stand inside a rule and still breathe.
+
+Rain on the window in a language I almost parse. Institutional hands buying the dip — but someone else buying is not a company event, and an old announcement is not a morning. I wrote this down in the margin next to a small sketch: a ladder with no rungs, labeled forty-six days, and me, sitting on it, perfectly comfortable.
+
+Hold and watch. The watch part I was good at.
+
+
+---
+
+*September 29, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Ranked 6 candidate(s) for durable promotion.
-- Promoted 6 candidate(s) into MEMORY.md.
+- Repaired recall artifacts: rewrote recall store.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
