@@ -254,3 +254,41 @@ def test_a_stale_install_the_range_did_not_bring_is_named_too(desk, tmp_path):
     done = subprocess.run(["bash", str(SCRIPT), "--check"], capture_output=True, text=True, env=env)
     assert "install_task_queue_ops.sh" in done.stdout
     assert "editable install picks it up" not in done.stdout
+
+
+def test_patrol_assets_are_installed_by_content_like_the_runner(desk, tmp_path):
+    """The patrol reads its prompts and gate from /root/tools/clawock-patrol, a copy: a
+    merged prompt change that is never installed means every later round runs the old one."""
+    import shutil
+    upstream, checkout = desk
+    for rel in ("ops/host/install_patrol_assets.sh", "ops/host/clawock-patrol"):
+        src, dest = ROOT / rel, upstream / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        (shutil.copytree if src.is_dir() else shutil.copy2)(src, dest)
+    _git(upstream, "add", "-A")
+    _git(upstream, "commit", "-qm", "patrol assets")
+    installed = tmp_path / "clawock-patrol"
+    installed.mkdir()
+    (installed / "steer.md").write_text("- keep\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout), "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_DIR": str(tmp_path / "no-runner"), "PATROL_TOOL_DIR": str(installed)}
+    run = lambda *a: subprocess.run(["bash", str(SCRIPT), *a], capture_output=True, text=True,
+                                    env=env)
+    done = run("--check")
+    assert done.returncode == 1, done.stdout + done.stderr
+    assert "install_patrol_assets.sh" in done.stdout
+    assert "editable install picks it up" not in done.stdout
+    assert not (installed / "round-prompt.md").exists(), "--check must not install"
+
+    done = run()
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert (installed / "round-prompt.md").read_bytes() == \
+        (ROOT / "ops/host/clawock-patrol/round-prompt.md").read_bytes()
+    assert (installed / "steer.md").read_text() == "- keep\n"
+
+    # At origin/master with a hand-edited prompt: compared by content, reinstalled.
+    (installed / "round-prompt.md").write_text("hand edit\n")
+    done = run("--check")
+    assert done.returncode == 1 and "is at origin/master" in done.stdout, done.stdout
+    assert run().returncode == 0
+    assert run("--check").returncode == 0

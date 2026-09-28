@@ -1,0 +1,81 @@
+{
+  "surfaces": {
+    "面板": {
+      "who": "kcn 或访客在浏览器里打开的仪表盘（含 overview 首屏与 social card 抓的那一屏）",
+      "patterns": [
+        "site/index.html",
+        "site/_layouts/*",
+        "site/assets/js/*",
+        "site/assets/css/*",
+        "site/assets/icons/*",
+        "site/manifest.webmanifest",
+        "assets/data/dashboard.json",
+        "assets/data/overview.json"
+      ]
+    },
+    "简报": {
+      "who": "每天 08:00 HKT 投到 Telegram / 微信的那份 markdown，以及它的卡片",
+      "patterns": [
+        "memory/*-pre-open.md",
+        "memory/.tmp/brief-*",
+        "memory/*-plan.json",
+        "assets/data/brief_projection.json",
+        "src/clawock/harness/brief_render.py"
+      ]
+    },
+    "决策台账": {
+      "who": "台账本身与它在面板上的三个投影（decision map / audit / trace）",
+      "patterns": [
+        "memory/decisions.jsonl",
+        "assets/data/decision_map.json",
+        "assets/data/decision_audit.json",
+        "assets/data/shadow_portfolio.json"
+      ]
+    },
+    "DSH 插件": {
+      "who": "dsh 聊天界面里的 clawock 卡片",
+      "patterns": [
+        "examples/dsh/packages/clawock-dsh/src/*",
+        "examples/dsh/packages/clawock-dsh/lib/*"
+      ]
+    },
+    "decimap": {
+      "who": "decimap 独立页",
+      "patterns": [
+        "site/decimap/*"
+      ]
+    },
+    "站点静态页": {
+      "who": "首页之外的对外页面与 README 上的数字",
+      "patterns": [
+        "site/briefs.md",
+        "site/faq.md",
+        "site/llms.txt",
+        "site/README.md",
+        "site/robots.txt",
+        "README.md",
+        "assets/data/readme_metrics.json"
+      ]
+    },
+    "投递": {
+      "who": "简报有没有真的到达（送达标记 / 重投 / 重复投递）",
+      "patterns": [
+        "src/clawock/harness/_watchdog_common.py",
+        "src/clawock/harness/brief_postflight.py",
+        "src/clawock/harness/intraday_postflight.py",
+        "src/clawock/harness/report_postflight.py",
+        "src/clawock/harness/brief_watchdog.py"
+      ]
+    },
+    "CLI": {
+      "who": "用 pip/npm 装 clawock 的人在终端里跑的命令、它的输出和报错",
+      "patterns": [
+        "src/clawock/cli.py",
+        "src/clawock/workflows/*",
+        "pyproject.toml",
+        "docs/reference/*"
+      ]
+    }
+  },
+  "infra_label": "无（基础设施）"
+}
