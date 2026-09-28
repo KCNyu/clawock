@@ -175,7 +175,11 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
     'queue.ago.now': '刚刚', 'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
     'queue.wait.lockAt': '等 {agent} 锁 · 第 {n} 位', 'queue.state.cancelling': '取消中',
-    'queue.attempt': '第 {n} 次', 'queue.slotCount': '槽 {used}/{max}', 'queue.groupIdle': '没有任务',
+    'queue.attempt': '第 {n} 次', 'queue.slotCount': '槽 {used}/{max}',
+    'queue.tag.running': '运行中', 'queue.tag.runningSlot': '运行中 · 槽 {slot}', 'queue.tag.starting': '启动中', 'queue.tag.cancelling': '取消中',
+    'queue.tag.queued': '排队', 'queue.tag.queuedAt': '排队 #{n}', 'queue.tag.slot': '等运行槽', 'queue.tag.memory': '等内存',
+    'queue.tag.quota': '等额度', 'queue.tag.retry': '重试等待',
+    'queue.fact.wakes': '{time} 续跑', 'queue.chip.waiting': '已等 {time}',
     'queue.fallback': 'fallback', 'queue.patrolTag': '巡检',
     'queue.noRunnerApi': '无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型',
     'queue.holderOther': '锁被 {id} 占着', 'queue.holderUnnamed': '锁被占着，但没有登记持有者（刚好在拿锁，或不是当前 runner 起的任务）',
@@ -207,9 +211,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.title': '额度 · 队列', 'panel.aria': '各 provider 的额度与派发队列', 'panel.refresh': '刷新额度与队列',
     'panel.plan.anthropic': 'Anthropic 订阅', 'panel.plan.chatgpt': 'ChatGPT 订阅', 'panel.plan.freePool': '无 provider · 免费池',
     'panel.plan.deepseek': '本机 API 账户', 'panel.plan.minimax': 'Token Plan · 源：OpenClaw 配置',
-    'panel.source.hostApi': 'API 账户', 'panel.source.openclaw': 'OpenClaw',
     'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolSize': '池内 {n} 个', 'panel.poolSwap': '{n} 个免费模型同档互替', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
-    'panel.q.idle': '闲', 'panel.q.run': '跑 {n}', 'panel.q.queued': '排 {n}', 'panel.q.quota': '睡额度 {n}', 'panel.q.wait': '等 {n}',
+    'panel.q.idle': '闲', 'panel.q.run': '运行 {n}', 'panel.q.queued': '排队 {n}', 'panel.q.quota': '等额度 {n}', 'panel.q.wait': '等待 {n}', 'panel.free': '免费',
     'panel.staleAt': '刷新失败（{message}），显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
     'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
     'panel.queueLoading': '正在读取派发队列…', 'panel.queueUnavailable': '此主机没有派发队列；额度仍可查看。',
@@ -327,7 +330,11 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.now': 'just now', 'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
     'queue.wait.lockAt': 'waiting for the {agent} lock · #{n}', 'queue.state.cancelling': 'cancelling',
-    'queue.attempt': 'attempt {n}', 'queue.slotCount': 'slot {used}/{max}', 'queue.groupIdle': 'No tasks',
+    'queue.attempt': 'attempt {n}', 'queue.slotCount': 'slot {used}/{max}',
+    'queue.tag.running': 'running', 'queue.tag.runningSlot': 'running · slot {slot}', 'queue.tag.starting': 'starting', 'queue.tag.cancelling': 'cancelling',
+    'queue.tag.queued': 'queued', 'queue.tag.queuedAt': 'queued #{n}', 'queue.tag.slot': 'waiting for a slot', 'queue.tag.memory': 'waiting for memory',
+    'queue.tag.quota': 'quota wait', 'queue.tag.retry': 'retry wait',
+    'queue.fact.wakes': 'resumes {time}', 'queue.chip.waiting': 'waiting {time}',
     'queue.fallback': 'fallback', 'queue.patrolTag': 'patrol',
     'queue.noRunnerApi': 'No RUNNER_API 2: not in the queue order; its order and model cannot change',
     'queue.holderOther': 'The lock is held by {id}', 'queue.holderUnnamed': 'The lock is held, but no holder is registered (one taking it right now, or a task the current runner did not start)',
@@ -359,9 +366,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.title': 'Quota · queue', 'panel.aria': 'Each provider\'s quota and the dispatch queue', 'panel.refresh': 'Refresh quotas and the queue',
     'panel.plan.anthropic': 'Anthropic subscription', 'panel.plan.chatgpt': 'ChatGPT subscription', 'panel.plan.freePool': 'No provider · free pool',
     'panel.plan.deepseek': 'This host\'s API account', 'panel.plan.minimax': 'Token Plan · key from the OpenClaw config',
-    'panel.source.hostApi': 'API account', 'panel.source.openclaw': 'OpenClaw',
     'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolSize': '{n} in pool', 'panel.poolSwap': '{n} free models, each a stand-in for the next', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
-    'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting',
+    'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting', 'panel.free': 'free',
     'panel.staleAt': 'Refresh failed ({message}); showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
     'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
     'panel.queueLoading': 'Reading the dispatch queue…', 'panel.queueUnavailable': 'This host has no dispatch queue; quotas are still available.',
@@ -1849,74 +1855,13 @@ function notifyState(task: DispatchTask, ch: string): 'sent' | 'failed' | 'plann
   return 'planned'
 }
 
-// ---- Rows ---------------------------------------------------------------------
-
-type TaskRowView = { tone: BalanceTone; text: string; dot: boolean }
+// ---- Rows: one grid for every line of the cell -----------------------------------
 
 /**
- * One task, two lines that each keep their own room: dot · name · status,
- * then the model's full name · effort (· fallback / patrol) and the numbers
- * with the notification glyphs. Secondary text is the panel's one grey voice
- * (tq-sub): single line, ellipsis, the whole text in the row's title. The
- * numbers say what is not the default — a retry, not "attempt 1". An ended
- * row, outside any agent group, leads its model with the executor glyph.
- * The whole row opens the detail layer; a waiting task of the current runner
- * also carries a move-up button beside it (a sibling, never a button inside a
- * button).
- */
-function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: Translate, now: number,
-  handlers: { open: (id: string) => void; moveUp?: (task: DispatchTask) => void; busy: boolean }): React.ReactElement {
-  const m = modelLine(task, live)
-  const model = _modelView(m.model).label + (m.effort ? ' · ' + m.effort : '')
-  const cost = _costOf(task)
-  const num = [
-    ...(live
-      ? [task.attempts > 1 ? t('queue.attempt', { n: task.attempts }) : null,
-        task.startedAtMs === null ? null : durationOf(t, now - (task.queuedAtMs ?? task.startedAtMs)),
-        task.stalls ? t('queue.stalls', { n: task.stalls }) : null]
-      : [task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)]),
-    cost === null ? null : cost.short,
-  ].filter(Boolean).join(' · ')
-  return h('div', { className: cx('tq-item'), key: task.id, 'data-tq-item': task.id },
-    h('button', {
-      type: 'button',
-      className: cx('tq-row'),
-      'data-tq-task': task.id,
-      'data-tq-waiting': task.waiting,
-      'aria-label': [task.name, view.text, live ? '' : _agentLabel(task.agent), model, num, t('queue.d.open')].filter(Boolean).join(' · '),
-      title: [task.name, view.text, model, num].filter(Boolean).join(' · '),
-      onClick: () => { handlers.open(task.id) },
-    },
-      view.dot ? h('span', { className: cx('tq-dot'), 'data-balance-state': view.tone }) : h('span', { className: cx('tq-dot-none') }),
-      h('span', { className: cx('tq-line') },
-        h('span', { className: cx('tq-name') }, task.name),
-        h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': view.tone }, view.text)),
-      h('span', { className: cx('tq-line') },
-        h('span', { className: cx('tq-meta') },
-          live ? null : renderAgentGlyph(task.agent, 12),
-          h('span', { className: cx('tq-sub', 'tq-meta-text') }, model),
-          m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.fallback')) : null,
-          task.patrol ? h('span', { className: cx('tq-tag') }, t('queue.patrolTag')) : null),
-        h('span', { className: cx('tq-num') }, h('span', { className: cx('tq-sub') }, num), renderNotifyIcons(task, t)))),
-    handlers.moveUp === undefined ? null : h('button', {
-      type: 'button',
-      className: cx('tq-icon-btn'),
-      'data-tq-up': task.id,
-      disabled: handlers.busy,
-      'aria-label': t('queue.a.upOf', { name: task.name }),
-      title: t('queue.a.up'),
-      onClick: () => { handlers.moveUp?.(task) },
-    }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-      h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
-}
-
-// ---- Records: what just ended, one shape for ended tasks and patrol rounds -------
-
-/**
- * A chip's tone. One colour, one meaning, as on the live rows: 'run' = running
- * now (the host's business blue), 'warn' = not done or waiting, 'bad' = failed,
- * 'plain' = a fact that carries no verdict, 'quiet' = a value that was not
- * recorded (outlined, no fill: it is the one secondary voice left).
+ * A chip's tone. One colour, one meaning: 'run' = running now (the host's
+ * business blue), 'warn' = not done or waiting, 'bad' = failed, 'plain' = a
+ * fact that carries no verdict, 'quiet' = a value that was not recorded
+ * (outlined, no fill: it is the one secondary voice left).
  */
 type ChipTone = 'plain' | 'run' | 'warn' | 'bad' | 'quiet'
 
@@ -1926,6 +1871,9 @@ function renderChip(text: string, tone: ChipTone, opts: { key?: string; slot?: s
     'data-tone': tone, 'data-tq-chip': opts.slot, title: opts.title ?? text,
   }, text)
 }
+
+/** A BalanceTone (the dots, the rail badge) as the chip role it means. */
+const CHIP_TONE: Record<BalanceTone, ChipTone> = { ok: 'run', stale: 'warn', low: 'bad', none: 'plain' }
 
 /** The execution axis alone: the runner's verdict on the process, not on the work. */
 function executionTone(state: string): ChipTone {
@@ -1941,69 +1889,164 @@ function reportTone(outcome: string, state: string): ChipTone {
 }
 
 /**
- * The status slots of a record, in the order both sections render them. A slot
- * a record has no value for is skipped, never re-ordered: an ended task and a
- * patrol round line up chip for chip.
+ * THE row grid (2026-09-28, kcn: 「整体布局比较乱，归整统一」). Every line of
+ * this cell — a folded source line in the sidebar, a source group's head in
+ * the panel, a section head, a live task, an ended task, a patrol round — is
+ * the same four columns (styles.module.css `--tq-grid`):
+ *
+ *   lead   14px  identity glyph, drawn only where it differs from the group
+ *                head's: a live task sits under its agent's head and a round
+ *                under patrol's, so they leave it empty; ended tasks are listed
+ *                across agents, so each carries its executor
+ *   main   1fr   the name — a head in the strong weight, an item in the regular
+ *   value  auto  the allowance reading, right-aligned figures (source lines only)
+ *   state  auto  ONE status chip; its tone is the role, never a grey level
+ *
+ * then an optional facts line under main…state: chips in FACT_ORDER. A fact a
+ * row has no value for is skipped, never re-ordered, so a fact sits in the
+ * same place on every row that has it. ROW_KINDS says what each kind fills;
+ * the renderer draws only that, and the spec checks every kind against both.
+ * Nothing else is resident: whatever a kind leaves out is in the detail layer
+ * (a task's first queue wait, a window's reset and bar, a source's plan).
  */
-const RECORD_SLOTS = ['report', 'ended', 'took', 'wait', 'cost', 'model'] as const
-type RecordSlot = typeof RECORD_SLOTS[number]
-type SlotChip = { text: string; tone: ChipTone; title?: string }
+export const FACT_ORDER = ['plan', 'slots', 'pool', 'wrap', 'reason', 'for', 'round', 'report', 'when', 'took', 'tries', 'cost', 'model'] as const
+export type FactSlot = typeof FACT_ORDER[number]
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round'
 
-type RecordView = {
+export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: readonly FactSlot[] }> = {
+  // A provider/agent: the sidebar's folded line, and the same line heading its group in the panel.
+  source: { lead: true, value: true, facts: ['plan', 'slots', 'pool'] },
+  // A section of the panel (what just ended, patrol): patrol's live status rides as its facts.
+  head: { lead: true, value: false, facts: ['wrap', 'reason', 'for', 'round', 'took', 'model'] },
+  task: { lead: false, value: false, facts: ['when', 'took', 'tries', 'cost', 'model'] },
+  ended: { lead: true, value: false, facts: ['report', 'when', 'took', 'cost', 'model'] },
+  round: { lead: false, value: false, facts: ['report', 'when', 'took'] },
+}
+
+type SlotChip = { text: string; tone: ChipTone; title?: string; mono?: boolean }
+
+type RowView = {
+  kind: RowKind
   key: string
-  glyph: React.ReactElement
+  lead?: React.ReactElement | null
   name: string
-  status: SlotChip
-  slots: Partial<Record<RecordSlot, SlotChip | null>>
-  /** Marks that belong to the record but are not a slot (fallback model, receipts). */
+  value?: { text: string; tone: BalanceTone; level: UsedLevel | null } | null
+  state: SlotChip | null
+  facts: Partial<Record<FactSlot, SlotChip | null>>
+  /** Marks that belong to the row but are not a fact (fallback, patrol, receipts), after the facts. */
   extra?: Array<React.ReactElement | null>
-  /** Opens the detail layer; a record without one is read-only and is not a button. */
+  /** Opens the detail layer; a row without one is not a button. */
   open?: () => void
-  attrs: Record<string, string>
+  attrs?: Record<string, string | undefined>
+}
+
+/** A row's cells in grid order, and the sentence it reads as. */
+function rowCells(view: RowView): { cells: React.ReactElement[]; said: string } {
+  const kind = ROW_KINDS[view.kind]
+  const slots = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null)
+  const facts = slots.map((slot) => { const chip = view.facts[slot]!; return renderChip(chip.text, chip.tone, { slot, title: chip.title, mono: chip.mono }) })
+  const extra = (view.extra ?? []).filter((mark): mark is React.ReactElement => mark !== null)
+  const value = kind.value && view.value != null ? view.value : null
+  const cells = [
+    h('span', { className: cx('tq-lead'), key: 'lead', 'aria-hidden': 'true' }, kind.lead ? view.lead ?? null : null),
+    h('span', { className: cx('tq-name'), key: 'name' }, view.name),
+    value === null ? null : h('span', {
+      className: cx('tq-value'), key: 'value', 'data-balance-state': value.tone, 'data-used-level': value.level ?? undefined,
+    }, value.text),
+    view.state === null ? null : renderChip(view.state.text, view.state.tone, { slot: 'status', title: view.state.title }),
+    facts.length + extra.length === 0 ? null : h('span', { className: cx('tq-chips'), key: 'facts' }, ...facts, ...extra),
+  ].filter((cell): cell is React.ReactElement => cell !== null)
+  const said = [view.name, value?.text, view.state?.text, ...slots.map((slot) => view.facts[slot]!.text)]
+    .filter((part) => part != null && part !== '').join(' · ')
+  return { cells, said }
 }
 
 /**
- * One record, the same two lines in both sections: glyph · name … execution
- * status as a chip, then the slot chips (they wrap, never ellipsize a value).
+ * One row of the panel on the grid above: a button when it opens the detail
+ * layer, else a read-only group (a head is neither: its section is labelled).
+ * `after` is a sibling beside the row (the move-up button) — never a button
+ * inside a button.
  */
-function renderRecord(view: RecordView, t: Translate): React.ReactElement {
-  const chips = RECORD_SLOTS.flatMap((slot) => {
-    const chip = view.slots[slot]
-    return chip == null ? [] : [renderChip(chip.text, chip.tone, { slot, title: chip.title })]
-  })
-  const said = [view.name, view.status.text, ...RECORD_SLOTS.map((slot) => view.slots[slot]?.text)].filter(Boolean).join(' · ')
-  const body = [
-    h('span', { className: cx('tq-record-glyph'), key: 'glyph' }, view.glyph),
-    h('span', { className: cx('tq-line'), key: 'line' },
-      h('span', { className: cx('tq-name') }, view.name),
-      renderChip(view.status.text, view.status.tone, { slot: 'status', title: view.status.title })),
-    h('span', { className: cx('tq-chips'), key: 'chips' }, ...chips, ...(view.extra ?? [])),
-  ]
+function renderRow(view: RowView, t: Translate, after: React.ReactElement | null = null): React.ReactElement {
+  const { cells, said } = rowCells(view)
+  const head = view.kind === 'source' || view.kind === 'head'
+  const common = { className: cx('tq-row', view.open === undefined && 'tq-static'), 'data-tq-row': view.kind, ...(view.attrs ?? {}) }
   return h('div', { className: cx('tq-item'), key: view.key, 'data-tq-item': view.key },
     view.open === undefined
-      ? h('div', { className: cx('tq-record'), role: 'group', 'aria-label': said, ...view.attrs }, ...body)
-      : h('button', {
-        type: 'button', className: cx('tq-row', 'tq-record'), 'aria-label': said + ' · ' + t('queue.d.open'), title: said,
-        onClick: view.open, ...view.attrs,
-      }, ...body))
+      ? h('div', head ? common : { ...common, role: 'group', 'aria-label': said }, ...cells)
+      : h('button', { ...common, type: 'button', 'aria-label': said + ' · ' + t('queue.d.open'), title: said, onClick: view.open }, ...cells),
+    after)
 }
 
-/** An ended task as a record: the runner's verdict, the model's report, then when, how long, what it cost. */
-function taskRecord(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): RecordView {
+/**
+ * A live task's state chip: the short word (the group head already names the
+ * agent), its tone, and the whole phrase (_taskStatus: which lock, the wake
+ * and the window it waits for) as the chip's title. A wake time is the 'when'
+ * fact, where an ended task keeps when it ended.
+ */
+export function _taskState(task: DispatchTask, t: Translate, now: number = Date.now(),
+  windows?: ReadonlyArray<{ resetAtMs?: number | null }>): { chip: SlotChip; when: string | null } {
+  const status = _taskStatus(task, t, now, windows)
+  const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
+  const when = (task.waiting === 'quota' || task.waiting === 'retry') && task.wakeAtMs !== null ? t('queue.fact.wakes', { time: stamp(task.wakeAtMs) }) : null
+  const slot = _slotOf(task)
+  const word = task.cancelling ? 'cancelling'
+    : task.waiting === 'lock' ? (task.position ? 'queuedAt' : 'queued')
+      : task.waiting === 'slot' ? 'slot' : task.waiting === 'memory' ? 'memory'
+        : task.waiting === 'quota' ? 'quota' : task.waiting === 'retry' ? 'retry'
+          : slot === null ? 'starting' : slot.slot === '1' ? 'running' : 'runningSlot'
+  return { chip: { text: t('queue.tag.' + word, { n: task.position ?? 0, slot: slot?.slot ?? '' }), tone: CHIP_TONE[status.tone], title: status.text }, when }
+}
+
+/** A live task as a row: state chip, then when it wakes, how long, tries, cost, model. */
+function taskRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void,
+  windows?: ReadonlyArray<{ resetAtMs?: number | null }>): RowView {
+  const m = modelLine(task, true)
+  const cost = _costOf(task)
+  const state = _taskState(task, t, now, windows)
+  const since = task.queuedAtMs ?? task.startedAtMs
+  const tries = [task.attempts > 1 ? t('queue.attempt', { n: task.attempts }) : null, task.stalls ? t('queue.stalls', { n: task.stalls }) : null]
+    .filter((part): part is string => part !== null)
+  return {
+    kind: 'task',
+    key: task.id,
+    name: task.name,
+    state: state.chip,
+    facts: {
+      when: state.when === null ? null : { text: state.when, tone: 'plain' },
+      took: since == null ? null
+        : { text: t(_slotOf(task) === null ? 'queue.chip.waiting' : 'queue.chip.elapsed', { time: durationOf(t, now - since) }), tone: 'plain' },
+      tries: tries.length === 0 ? null : { text: tries.join(' · '), tone: task.stalls ? 'warn' : 'plain' },
+      cost: cost === null ? null : cost.kind === 'unpriced' ? { text: t('queue.chip.unpriced'), tone: 'quiet', title: t('queue.chip.cost') }
+        : { text: cost.short, tone: 'plain', title: t('queue.chip.cost') },
+      model: m.model === '' ? null : { text: _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''), tone: 'plain', title: m.model },
+    },
+    extra: [
+      m.fallback ? renderChip(t('queue.fallback'), 'warn', { key: 'fallback' }) : null,
+      task.patrol ? renderChip(t('queue.patrolTag'), 'plain', { key: 'patrol' }) : null,
+      renderNotifyIcons(task, t),
+    ],
+    open: () => { open(task.id) },
+    attrs: { 'data-tq-task': task.id, 'data-tq-waiting': task.waiting },
+  }
+}
+
+/** An ended task as a row: the runner's verdict, the model's report, then when, how long, what it cost. */
+function endedRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): RowView {
   const m = modelLine(task, false)
   const cost = _costOf(task)
   const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   return {
+    kind: 'ended',
     key: task.id,
-    glyph: renderAgentGlyph(task.agent, 12),
+    lead: renderAgentGlyph(task.agent, 12),
     name: task.name,
-    status: { text: executionText(task.state, t), tone: executionTone(task.state), title: t('queue.statusLegend') },
-    slots: {
+    state: { text: executionText(task.state, t), tone: executionTone(task.state), title: t('queue.statusLegend') },
+    facts: {
       report: { text: reportText(task.outcome, t, task.state), tone: reportTone(task.outcome, task.state), title: t('queue.statusLegend') },
-      ended: task.updatedAtMs === null ? null : { text: agoOf(t, now - task.updatedAtMs), tone: 'plain', title: t('queue.d.endedAt') + ' ' + stamp(task.updatedAtMs) },
+      when: task.updatedAtMs === null ? null : { text: agoOf(t, now - task.updatedAtMs), tone: 'plain', title: t('queue.d.endedAt') + ' ' + stamp(task.updatedAtMs) },
       took: task.startedAtMs === null || task.updatedAtMs === null ? null
         : { text: t('queue.chip.took', { time: durationOf(t, task.updatedAtMs - task.startedAtMs) }), tone: 'plain' },
-      wait: task.waitMs == null ? { text: t('queue.waitUnknown'), tone: 'quiet' } : { text: t('queue.waited', { time: durationOf(t, task.waitMs) }), tone: 'plain' },
       cost: cost === null ? null : cost.kind === 'unpriced' ? { text: t('queue.chip.unpriced'), tone: 'quiet', title: t('queue.chip.cost') }
         : { text: cost.short, tone: 'plain', title: t('queue.chip.cost') },
       model: m.model === '' ? null : { text: _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''), tone: 'plain', title: m.model },
@@ -2014,21 +2057,21 @@ function taskRecord(task: DispatchTask, t: Translate, now: number, open: (id: st
   }
 }
 
-/** A finished patrol round as a record (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
-function roundRecord(round: PatrolRound, t: Translate, now: number): RecordView {
+/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+function roundRow(round: PatrolRound, t: Translate, now: number): RowView {
   const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? ''
   const [state = '', outcome = ''] = round.result.slice(how === '' ? 0 : how.length + 1).split('/')
   const ended = localStampMs(round.endedAt)
   return {
+    kind: 'round',
     key: 'round-' + round.endedAt + round.round,
-    glyph: renderSectionGlyph('patrol', 12),
     name: round.axis === '' ? round.round : t('queue.round.name', { round: round.round, axis: round.axis }),
-    status: how === 'preempted' ? { text: t('queue.round.preempted'), tone: 'warn', title: round.result }
+    state: how === 'preempted' ? { text: t('queue.round.preempted'), tone: 'warn', title: round.result }
       : how === 'yielded' ? { text: t('queue.round.yielded'), tone: 'plain', title: round.result }
         : { text: executionText(state, t), tone: executionTone(state), title: round.result },
-    slots: {
+    facts: {
       report: outcome === '' ? null : { text: reportText(outcome, t, state), tone: reportTone(outcome, state), title: t('queue.statusLegend') },
-      ended: ended === null ? null : { text: agoOf(t, now - ended), tone: 'plain', title: t('queue.d.endedAt') + ' ' + round.endedAt },
+      when: ended === null ? null : { text: agoOf(t, now - ended), tone: 'plain', title: t('queue.d.endedAt') + ' ' + round.endedAt },
       took: round.seconds === null ? null : { text: t('queue.chip.took', { time: durationOf(t, round.seconds * 1000) }), tone: 'plain' },
     },
     attrs: { 'data-tq-round': round.round },
@@ -2147,27 +2190,25 @@ export function _poolPosition(result: TaskQueueResult | null): { current: string
   return { current: used, next: pool[(at + 1) % pool.length]!, fromOrder: false }
 }
 
-/** A queue's last column on the folded row: what is running, queued, asleep on quota — or idle. */
-function queueSummary(t: Translate, tasks: DispatchTask[]): { text: string; short: string; tone: BalanceTone } {
+/**
+ * A queue's state chip, the same on the folded line and on its group's head:
+ * the ONE state that most needs the reader, with its count — asleep on quota,
+ * then queued behind the lock or a slot, then another wait, then running. A
+ * wait outranks running because a queue implies its holder runs. Idle is no
+ * chip at all. `text` is every count (the line's aria-label and title).
+ */
+export function _queueState(t: Translate, tasks: DispatchTask[]): { text: string; chip: SlotChip | null } {
   const run = tasks.filter((task) => task.slot !== '').length
   const queued = tasks.filter(queuedFor).length
   const quota = tasks.filter((task) => task.waiting === 'quota').length
   const other = tasks.filter((task) => task.waiting === 'retry' || task.waiting === 'memory').length
-  const parts = [
-    quota > 0 ? t('panel.q.quota', { n: quota }) : null,
-    run > 0 ? t('panel.q.run', { n: run }) : null,
-    queued > 0 ? t('panel.q.queued', { n: queued }) : null,
-    other > 0 ? t('panel.q.wait', { n: other }) : null,
-  ].filter((part): part is string => part !== null)
-  // The folded line's form: a shape per state plus its count (never colour alone), so a 260px
-  // column keeps both the reset clock and the counts; the words stay in the label and the panel.
-  const marks = [quota > 0 ? '⏸' + quota : null, run > 0 ? '▶' + run : null, queued > 0 ? '≡' + queued : null, other > 0 ? '…' + other : null]
-    .filter((part): part is string => part !== null)
-  return {
-    text: parts.length === 0 ? t('panel.q.idle') : parts.join(' · '),
-    short: marks.length === 0 ? t('panel.q.idle') : marks.join(' '),
-    tone: quota + queued + other > 0 ? 'stale' : run > 0 ? 'ok' : 'none',
-  }
+  const parts: Array<[string, number, ChipTone]> = [
+    ['panel.q.quota', quota, 'warn'], ['panel.q.queued', queued, 'warn'], ['panel.q.wait', other, 'warn'], ['panel.q.run', run, 'run'],
+  ]
+  const present = parts.filter(([, n]) => n > 0)
+  const text = present.length === 0 ? t('panel.q.idle') : present.map(([key, n]) => t(key, { n })).join(' · ')
+  const top = present[0]
+  return { text, chip: top === undefined ? null : { text: t(top[0], { n: top[1] }), tone: top[2], title: text } }
 }
 
 /**
@@ -2199,9 +2240,11 @@ function renderSourceGlyph(source: PanelSource): React.ReactElement {
 }
 
 /**
- * The folded reading of a provider: headline value, then its aside — a
- * window's reset (↻, resetStampOf, the one clock) or, for the free pool, how
- * many models stand in for one another there (⇄) — and the tone.
+ * A source's value column: the allowance headline (used % of the first
+ * window, or the balance) and its tone; for the free pool, "free" — where
+ * the rotation stands is a fact of its group. `reset` (the headline window's,
+ * resetStampOf) is read out in the line's label; the clocks themselves are
+ * drawn once, on the group's window bars.
  */
 function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: TaskQueueResult | null, t: Translate): {
   value: string; reset: string | null; tone: BalanceTone; level: UsedLevel | null; title: string
@@ -2210,8 +2253,9 @@ function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: 
   if (source.join?.kind === 'pool') {
     const pos = _poolPosition(queue)
     const size = queue?.opencodePool?.length ?? 0
-    return { value: pos === null ? '—' : _modelView(pos.current).label, reset: size > 1 ? '⇄ ' + t('panel.poolSize', { n: size }) : null, tone: 'none', level: null,
-      title: pos === null ? t('panel.poolUnread') : t('panel.pool', { current: pos.current, next: pos.next || '—' }) + (pos.fromOrder ? t('panel.poolOrder') : '') }
+    return { value: t('panel.free'), reset: null, tone: 'none', level: null,
+      title: (pos === null ? t('panel.poolUnread') : t('panel.pool', { current: pos.current, next: pos.next || '—' }) + (pos.fromOrder ? t('panel.poolOrder') : ''))
+        + (size > 1 ? ' · ' + t('panel.poolSwap', { n: size }) : '') }
   }
   return { value: '—', reset: null, tone: 'none', level: null, title: '' }
 }
@@ -2219,19 +2263,6 @@ function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: 
 type PanelUi = DetailUi & {
   /** Rows by provider id with their display projection (the balance channel). */
   rows: Map<string, BalanceRow>
-}
-
-/**
- * A section's title line, one shape for every section of the panel (the
- * provider groups, what just ended, patrol): 14px glyph · name · caption in
- * the secondary voice (it gives way first) … the trailing state.
- */
-function renderGroupHead(glyph: React.ReactElement, name: string, caption: string | null, trailing: React.ReactElement | null): React.ReactElement {
-  return h('div', { className: cx('tq-group-head') },
-    glyph,
-    h('span', { className: cx('tq-group-name') }, name),
-    caption === null ? null : h('span', { className: cx('tq-sub', 'pp-plan'), title: caption }, caption),
-    trailing)
 }
 
 /** Section glyphs in the executor glyphs' 14px outline: a clock turning back (just ended), a shield (patrol). */
@@ -2284,62 +2315,97 @@ export function _patrolReason(detail: string): { kind: 'manual' | 'slot' | 'memo
   return { kind, task: manual?.[1] ?? '', wrapUp: wrap !== null }
 }
 
-/** The supervisor's live status as chips: what it runs now, or why it gives way. */
-function patrolStatusChips(result: TaskQueueResult, t: Translate, now: number): React.ReactElement[] {
+/** The supervisor's live status as the patrol head's facts: what it runs now, or why it gives way. */
+function patrolFacts(result: TaskQueueResult, t: Translate, now: number): RowView['facts'] {
   const patrol = result.patrol
   const reason = _patrolReason(patrol.detail)
   const current = result.active.find((task) => task.id === patrol.round)
   const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail)
   const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? ''
-  const chips: Array<React.ReactElement | null> = []
+  const facts: RowView['facts'] = {}
   if (patrol.phase === 'yielding' || reason.wrapUp) {
     const why = reason.kind === 'manual' ? t('queue.patrol.giveWay') : reason.kind === 'slot' ? t('queue.patrol.waitSlot')
       : reason.kind === 'memory' ? t('queue.patrol.memory') : reason.kind === 'memoryUnread' ? t('queue.patrol.memoryUnread')
         : t('queue.patrol.otherReason')
-    chips.push(reason.wrapUp ? renderChip(t('queue.patrol.wrapUp'), 'warn', { slot: 'wrap' }) : null,
-      renderChip(why, 'warn', { slot: 'reason', title: patrol.detail }),
-      reason.task === '' ? null : renderChip(reason.task, 'plain', { slot: 'for', mono: true, title: t('queue.patrol.forTask', { id: reason.task }) }))
+    if (reason.wrapUp) facts.wrap = { text: t('queue.patrol.wrapUp'), tone: 'warn' }
+    facts.reason = { text: why, tone: 'warn', title: patrol.detail }
+    if (reason.task !== '') facts.for = { text: reason.task, tone: 'plain', mono: true, title: t('queue.patrol.forTask', { id: reason.task }) }
   }
   if (patrol.phase === 'running' || (patrol.phase === 'yielding' && current !== undefined)) {
     const m = current === undefined ? null : modelLine(current, true)
-    chips.push(
-      dispatched || axis ? renderChip(dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, 'plain', { slot: 'round', title: patrol.round }) : null,
-      current?.startedAtMs == null ? null : renderChip(t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }), 'plain', { slot: 'elapsed' }),
-      m === null || m.model === '' ? null : renderChip(_modelView(m.model).label, 'plain', { slot: 'model', title: m.model }))
+    if (dispatched || axis) facts.round = { text: dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, tone: 'plain', title: patrol.round }
+    if (current?.startedAtMs != null) facts.took = { text: t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }), tone: 'plain' }
+    if (m !== null && m.model !== '') facts.model = { text: _modelView(m.model).label, tone: 'plain', title: m.model }
   }
-  return chips.filter((chip): chip is React.ReactElement => chip !== null)
+  return facts
 }
 
 /**
- * Patrol: the phase on the heading line, its live status as chips, the newest
- * round as a record, then — folded, by the one rule above — the earlier
- * rounds and the raw journal line.
+ * Patrol: a head row (the phase as its state chip, the live status as its
+ * facts), the newest round, then — folded, by the one rule above — the
+ * earlier rounds and the raw journal line.
  */
 function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number): React.ReactElement {
   const patrol = result.patrol
   const tone = PATROL_TONE[patrol.phase] ?? 'none'
-  const rounds = (patrol.rounds ?? []).map((round) => roundRecord(round, t, now))
-  const status = patrolStatusChips(result, t, now)
+  const rounds = (patrol.rounds ?? []).map((round) => roundRow(round, t, now))
   return h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
-    renderGroupHead(renderSectionGlyph('patrol'), t('queue.patrolHeading'), null,
-      h('span', { className: cx('tq-sub', 'tq-lane', 'tq-v'), 'data-tq-patrol': patrol.phase, 'data-balance-state': tone, title: patrolPhraseOf(result, t, now) },
-        h('span', { className: cx('tq-dot'), 'data-balance-state': tone }),
-        patrolStateOf(result, t, now))),
-    status.length === 0 ? null : h('div', { className: cx('tq-chips', 'tq-status-chips'), 'data-tq-patrol-status': patrol.phase }, ...status),
-    ...rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRecord(round, t)),
+    renderRow({
+      kind: 'head', key: 'head-patrol', lead: renderSectionGlyph('patrol'), name: t('queue.patrolHeading'),
+      state: { text: patrolStateOf(result, t, now), tone: CHIP_TONE[tone], title: patrolPhraseOf(result, t, now) },
+      facts: patrolFacts(result, t, now),
+      attrs: { 'data-tq-patrol': patrol.phase },
+    }, t),
+    ...rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRow(round, t)),
     rounds.length <= RESIDENT_ROUNDS ? null
-      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), rounds.slice(RESIDENT_ROUNDS).map((round) => renderRecord(round, t))),
+      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), rounds.slice(RESIDENT_ROUNDS).map((round) => renderRow(round, t))),
     patrol.detail === '' ? null : renderFold('journal', t('queue.supervisorLog'),
       [h('div', { className: cx('tq-log'), key: 'log' }, patrol.detail)]))
 }
 
-/** One provider group of the open panel: identity and plan, the allowance, then the queue it feeds. */
+/**
+ * A source as a row: the sidebar's folded line and its group's head in the
+ * panel are this one view (the same glyph, name, value and state chip in the
+ * same columns), so the line a reader taps is the line the panel opens on.
+ * The panel adds the head's facts: the plan, the run slots, the pool.
+ */
+function sourceView(source: PanelSource, row: BalanceRow | undefined, result: TaskQueueResult | null, t: Translate): RowView & { reading: ReturnType<typeof sourceReading>; queue: ReturnType<typeof _queueState> | null } {
+  const reading = sourceReading(source, row, result, t)
+  const queue = source.agent === null || result === null || !result.available ? null
+    : _queueState(t, result.active.filter((task) => task.agent === source.agent))
+  const lane = source.agent === null || result === null || !result.available ? undefined : _slotLanes(result).find((l) => l.agent === source.agent)
+  const pool = source.join?.kind === 'pool' ? _poolPosition(result) : null
+  const poolSize = result?.opencodePool?.length ?? 0
+  return {
+    kind: 'source',
+    key: source.key,
+    lead: renderSourceGlyph(source),
+    name: source.label,
+    value: { text: reading.value, tone: reading.tone, level: reading.level },
+    state: queue?.chip ?? null,
+    facts: {
+      plan: source.join?.plan === undefined ? null : { text: t(source.join.plan), tone: 'plain' },
+      slots: lane === undefined ? null
+        : { text: t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }), tone: lane.tone === 'stale' ? 'warn' : 'plain', title: t('queue.lanesTitle') },
+      // The free pool is one source for all its models: where the rotation is, and how many stand in for one another.
+      pool: source.join?.kind !== 'pool' ? null : pool === null ? { text: t('panel.poolUnread'), tone: 'quiet' }
+        : {
+          text: t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : ''),
+          tone: 'plain', title: reading.title,
+        },
+    },
+    extra: poolSize > 1 && source.join?.kind === 'pool' ? [renderChip(t('panel.poolSize', { n: poolSize }), 'plain', { key: 'pool-size', title: t('panel.poolSwap', { n: poolSize }) })] : [],
+    reading,
+    queue,
+  }
+}
+
+/** One provider group of the open panel: its source row, the allowance, then the queue it feeds. */
 function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, t: Translate, now: number, ui: PanelUi): React.ReactElement {
   const row = source.provider === null ? undefined : ui.rows.get(source.provider.provider)
   const agent = source.agent
   const tasks = agent === null || result === null ? [] : result.active.filter((task) => task.agent === agent)
   const queue = agent === null ? undefined : (result?.queues ?? []).find((q) => q.agent === agent)
-  const lane = agent === null || result === null ? undefined : _slotLanes(result).find((l) => l.agent === agent)
   const notes: string[] = []
   if (queue?.held && tasks.every((task) => task.id !== queue.holder)) {
     notes.push(queue.holder !== '' ? t('queue.holderOther', { id: queue.holder }) : t('queue.holderUnnamed'))
@@ -2351,37 +2417,30 @@ function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, 
     : row.result.status === 'stale' && Number.isFinite(snapshotAt)
       ? t('panel.staleAt', { message: row.result.message ?? '—', time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
       : row.note
-  const pool = source.join?.kind === 'pool' ? _poolPosition(result) : null
-  const planKey = source.join?.plan
+  const head = sourceView(source, row, result, t)
+  // The allowance and the notes start on the name's edge (--tq-main-inset): under the head, not beside it.
+  const detail = row === undefined ? null : renderRowDetail(row, t, now)
   return h('section', {
     className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': agent ?? undefined,
     'aria-label': source.label, tabIndex: -1,
   },
-    renderGroupHead(renderSourceGlyph(source), source.label, planKey === undefined ? null : t(planKey),
-      lane === undefined ? null : h('span', { className: cx('tq-sub', 'tq-lane'), 'data-tq-lane': lane.agent, title: t('queue.lanesTitle') },
-        h('span', { className: cx('tq-dot'), 'data-balance-state': lane.tone }),
-        t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }))),
-    row === undefined ? null : h('div', { className: cx('pp-allowance'), 'data-pb-provider': row.provider, 'data-pb-role': 'panel', 'data-balance-state': row.view.tone },
-      // Money has no bar (⑤): the amount, then its granted / topped-up split from renderRowDetail.
-      row.result.snapshot !== null && row.result.snapshot.unit !== 'pct'
-        ? h('div', { className: cx('pp-money'), 'data-balance-state': row.view.tone }, row.view.value) : null,
-      balanceNote === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
-      renderRowDetail(row, t, now)),
-    // The free pool is one line for all its models: where the rotation is, and how many stand in for one another.
-    source.join?.kind === 'pool' ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), 'data-pp-pool': pool === null ? 'unread' : pool.fromOrder ? 'order' : 'used' },
-      pool === null ? t('panel.poolUnread')
-        : t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : '')
-          + ((result?.opencodePool?.length ?? 0) > 1 ? ' · ' + t('panel.poolSwap', { n: result!.opencodePool!.length }) : '')) : null,
-    agent === null ? null : [
-      ...notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note'), key: 'n' + i }, note)),
-      tasks.length === 0
-        ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'idle' }, t('queue.groupIdle'))
-        : groupOrder(tasks, queue).map((task) => renderTaskRow(task, { ..._taskStatus(task, t, now, ui.windowsOf(task.agent)), dot: true }, true, t, now, {
-          open: ui.open,
-          moveUp: ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? (r) => { ui.act('priority', r, 'up') } : undefined,
-          busy: ui.busy !== null,
-        })),
-    ])
+    renderRow({ ...head, key: 'head-' + source.key, attrs: { 'data-pp-head': source.key } }, t),
+    balanceNote === null && detail === null ? null
+      : h('div', { className: cx('pp-allowance', 'tq-inset'), 'data-pb-provider': row!.provider, 'data-pb-role': 'panel', 'data-balance-state': row!.view.tone },
+        balanceNote === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'bp-note', row!.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
+        detail),
+    ...notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-inset'), key: 'n' + i }, note)),
+    ...groupOrder(tasks, queue).map((task) => renderRow(taskRow(task, t, now, ui.open, ui.windowsOf(task.agent)), t,
+      ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? h('button', {
+        type: 'button',
+        className: cx('tq-icon-btn'),
+        'data-tq-up': task.id,
+        disabled: ui.busy !== null,
+        'aria-label': t('queue.a.upOf', { name: task.name }),
+        title: t('queue.a.up'),
+        onClick: () => { ui.act('priority', task, 'up') },
+      }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+        h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))) : null)))
 }
 
 /**
@@ -2430,8 +2489,8 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
     // Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS).
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
-      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null, null),
-      ...result!.recent.map((task) => renderRecord(taskRecord(task, t, now, ui.open), t))),
+      renderRow({ kind: 'head', key: 'head-recent', lead: renderSectionGlyph('recent'), name: t('queue.recentHeading'), state: null, facts: {} }, t),
+      ...result!.recent.map((task) => renderRow(endedRow(task, t, now, ui.open), t))),
     patrol === null ? null : renderPatrolSection(result!, t, now),
     ops === undefined ? null : h('div', { className: cx('tq-sub', 'tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
       skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
@@ -2921,14 +2980,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
     brief, readPending, openBrief, openPath, windowsOf, rows,
   }
-  // One line per source (C1): name · reading · reset, then who burns it or where its key lives.
+  // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
   const lines = sources.map((source) => {
     const row = source.provider === null ? undefined : rows.get(source.provider.provider)
-    const reading = sourceReading(source, row, result, t)
-    const tasks = source.agent === null || !dispatcher ? [] : result!.active.filter((task) => task.agent === source.agent)
-    const last = source.agent !== null ? queueSummary(t, tasks)
-      : { text: source.join?.source ? t(source.join.source) : '', short: source.join?.source ? t(source.join.source) : '', tone: 'none' as BalanceTone }
-    return { source, reading, last }
+    const view = sourceView(source, row, result, t)
+    return { source, view, reading: view.reading, text: view.queue?.text ?? '' }
   })
   // The rail badge: amber square when a window is at its threshold or a task sleeps on quota;
   // hollow ring when a read failed; nothing when there is nothing to act on (neutral).
@@ -2937,7 +2993,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
     || lines.some((line) => line.reading.tone === 'stale')
   const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
-  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset ?? '', line.last.text]
+  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset ?? '', line.text]
     .filter((part) => part !== '').join(' ')).join(' · ')
   const toggle = (key: string | null, opener: HTMLElement | null): void => {
     openerRef.current = opener
@@ -2954,10 +3010,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             'data-active': open ? '' : undefined,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
           }, h('span', { className: cx('pp-name') }, t('panel.title')), h('span', { className: cx('tq-sub', 'pp-last') }, balanceState.empty.title))
-          : lines.map(({ source, reading, last }) => h('button', {
+          : lines.map(({ source, view, reading, text }) => h('button', {
             type: 'button',
             key: source.key,
             className: cx('pp-row'),
+            'data-tq-row': 'source',
             'data-pp-row': source.key,
             'data-pb-provider': source.provider?.provider,
             'data-pb-role': source.provider === null ? undefined : 'chip',
@@ -2965,17 +3022,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             'data-active': open && focusKey === source.key ? '' : undefined,
             'aria-expanded': open,
             'aria-haspopup': 'dialog',
-            'aria-label': [source.label, reading.value, reading.reset ?? '', last.text, t('panel.openGroup', { name: source.label })]
+            'aria-label': [source.label, reading.value, reading.reset ?? '', text, t('panel.openGroup', { name: source.label })]
               .filter((part) => part !== '').join(' · '),
             title: reading.title,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
-          },
-            renderSourceGlyph(source),
-            h('span', { className: cx('pp-name') }, source.label),
-            h('span', { className: cx('pp-reading') },
-              h('span', { className: cx('pp-v'), 'data-balance-state': reading.tone, 'data-used-level': reading.level ?? undefined }, reading.value),
-              reading.reset === null ? null : h('span', { className: cx('pp-reset') }, reading.reset)),
-            h('span', { className: cx('tq-sub', 'pp-last'), 'data-balance-state': last.tone, 'aria-hidden': 'true' }, last.short))))
+          }, ...rowCells({ ...view, facts: {}, extra: [] }).cells)))
       : h('button', {
         type: 'button',
         className: cx('bchip', 'pp-rail'),

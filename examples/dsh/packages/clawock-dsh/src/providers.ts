@@ -8,7 +8,7 @@
  * service): a provider without a row here still renders, under its own
  * label, among the paid rows (see sourceRank). A row here only adds what the
  * balance answer cannot say by itself — the agent whose queue hangs under it,
- * the plan caption, and its place in the order. An agent with no provider
+ * the plan, and its place in the order. An agent with no provider
  * (opencode's free pool) is a row with `provider: null`. The chip names
  * nothing else: every order the panel shows (the folded lines, the groups,
  * the lanes, what just ended) comes from here.
@@ -27,10 +27,8 @@ export interface ProviderJoin {
    * for one another). The order's one criterion; not how capable the agent is.
    */
   tier: 'paid' | 'free'
-  /** Dictionary key of the caption under the group title ("Anthropic subscription", …). */
+  /** Dictionary key of the plan ("Anthropic subscription", …), the first fact of the source's group head. */
   plan: string
-  /** Dictionary key of the short source label a row without an agent shows in its last column. */
-  source?: string
 }
 
 /**
@@ -44,9 +42,9 @@ export interface ProviderJoin {
 export const PROVIDER_JOIN: readonly ProviderJoin[] = [
   { provider: 'claude', agent: 'claude', kind: 'windows', tier: 'paid', plan: 'panel.plan.anthropic' },
   { provider: 'codex', agent: 'codex', kind: 'windows', tier: 'paid', plan: 'panel.plan.chatgpt' },
-  { provider: 'deepseek', agent: null, kind: 'money', tier: 'paid', plan: 'panel.plan.deepseek', source: 'panel.source.hostApi' },
+  { provider: 'deepseek', agent: null, kind: 'money', tier: 'paid', plan: 'panel.plan.deepseek' },
   // The key is read from ~/.openclaw/openclaw.json (models.providers.minimax) when no seam has one.
-  { provider: 'minimax', agent: null, kind: 'windows', tier: 'paid', plan: 'panel.plan.minimax', source: 'panel.source.openclaw' },
+  { provider: 'minimax', agent: null, kind: 'windows', tier: 'paid', plan: 'panel.plan.minimax' },
   { provider: null, agent: 'opencode', kind: 'pool', tier: 'free', plan: 'panel.plan.freePool' },
 ]
 
