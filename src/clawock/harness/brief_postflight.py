@@ -1088,13 +1088,18 @@ def _judgment_gap_issues(judgment_path, decision_packet):
     still renders (the renderer reads what is there) but is dropped from the
     Pages projection. Those are different losses and the operator should not
     have to guess which one happened.
+
+    An unparseable file (a truncated write) is worse than both: the renderer
+    cannot load it, writes nothing and leaves yesterday's pre-open.md on disk,
+    which validate_markdown then passes. So its wording carries `解析失败`, the
+    same critical keyword as the plan side, and the brief fails closed (#2078).
     """
     try:
         overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
     except FileNotFoundError:
         return ['judgment 缺失：报告的辩论段（Tier 2/3、板块、大盘、校准）会是空的']
     except (OSError, ValueError) as exc:
-        return [f'judgment 无法解析（{exc}）：报告的辩论段会是空的']
+        return [f'judgment 解析失败（{exc}）：简报无法重新渲染，pre-open.md 会保留上一次的内容']
     if decision_packet is None:
         return []
     overlay_issues = brief_decision_packet.validate_judgment_overlay(
