@@ -269,12 +269,12 @@
         + `<span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
         + `<span class="hl-mv-bar"><i class="${pct >= 0 ? "up" : "down"}"`
         + ` style="width:${w.toFixed(1)}%"></i></span>`
-        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div>`;
+        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct)}</span></div>`;
     };
     const moversHead = moversHeadLabel(DATA);
     const moversRow = movers.length
       ? `<div class="hl-movers" role="img" aria-label="${moversHead}前 ${movers.length}：`
-        + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct, 1)}`).join("、")
+        + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct)}`).join("、")
         + `"><div class="hl-mv-head">${moversHead}</div>${movers.map(mvRow).join("")}</div>`
       : "";
     // chip 与异动条各自落到自己的挂载点：≥1024 时它们是牌上左右两栏，

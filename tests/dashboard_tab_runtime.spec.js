@@ -2384,6 +2384,11 @@ async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
     const aria = await page.locator(".hl-movers").getAttribute("aria-label");
     assert(aria && aria.startsWith(expected),
       `${label}: the screen-reader label still says something else: ${aria}`);
+    // #2076: one today_change_pct, one string — the strip printed 4.4 as
+    // "+4.4%" while the Drill movers card and the book printed "+4.40%".
+    assert.deepEqual(await page.locator(".hl-mv-p").allInnerTexts(), ["+8.14%", "+4.40%"],
+      `${label}: the movers strip must use the site's one percentage format`);
+    assert(aria.includes("07226 +4.40%"), `${label}: ${aria}`);
 
     assert.deepEqual(state.failures, []);
     assert.deepEqual(state.errors, []);
