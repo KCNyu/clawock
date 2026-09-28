@@ -12,25 +12,33 @@
  *   node site/tools/shoot_dsh_queue.js      # → site/assets/dsh-dispatch-queue.png
  *   clawock validate-sidecar screenshots    # same gate CI runs
  *
- * The repository is public and the panel shows this host's live queue, so the
- * frame is cut to the agent groups at the top (their quota windows and tasks)
- * and stops before the first provider that has no agent, which is where the
- * account balances start. The panel is glass: whatever sits behind it (the
- * session list, i.e. private chat titles) shows through, so everything but the
- * panel is hidden before the shot — the panel itself is untouched. Look at the
- * picture before committing it: every task name in it is published.
+ * The frame is the WHOLE panel (2026-09-28, kcn: the README shots must not be
+ * half a panel): every provider group, what just ended, patrol and the ops
+ * footer, uncropped. The viewport is tall enough that the panel never scrolls
+ * inside itself, and the script refuses to write a frame when it would.
+ * The panel is glass: whatever sits behind it (the session list, i.e. private
+ * chat titles) shows through, so everything but the panel is hidden before the
+ * shot — the panel itself is untouched. The repository is public and the panel
+ * shows this host's live queue and balances: look at the picture before
+ * committing it, every task name in it is published.
  *
  * Env: DSH_URL (default: the newest token URL in `journalctl -u dsh`),
- *      PLAYWRIGHT_CORE (module path), OUT, WIDTH/HEIGHT/DSF, THEME (light|dark).
+ *      PLAYWRIGHT_CORE (module path), OUT, WIDTH/HEIGHT/DSF, THEME (light|dark),
+ *      BUNDLE (a built lib/client.js to serve in place of the installed one — the
+ *      branch's client on the live host half, before it is installed; see
+ *      dsh_bundle.js).
  */
 const { execFileSync } = require('child_process');
 const path = require('path');
+const { serveBundle } = require('./dsh_bundle.js');
 
 const { webkit } = require(process.env.PLAYWRIGHT_CORE || 'playwright-core');
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = process.env.OUT || path.join(ROOT, 'site/assets/dsh-dispatch-queue.png');
 const WIDTH = Number(process.env.WIDTH || 1280);
-const HEIGHT = Number(process.env.HEIGHT || 900);
+// Tall on purpose: the panel's max height is the room above its row, and a
+// frame of a panel that scrolls inside itself is half a panel.
+const HEIGHT = Number(process.env.HEIGHT || 2400);
 const DSF = Number(process.env.DSF || 2);
 
 function dshUrl() {
@@ -49,6 +57,7 @@ async function main() {
     colorScheme: process.env.THEME === 'dark' ? 'dark' : 'light',
   });
   const page = await context.newPage();
+  await serveBundle(page);
   // /plugins/events is an SSE stream, so the network never goes idle: wait on the DOM.
   await page.goto(dshUrl(), { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.locator('[data-pp-row]').first().waitFor({ timeout: 30000 });
@@ -63,14 +72,18 @@ async function main() {
     + ' { visibility: visible !important }' });
   await page.waitForTimeout(800);
 
+  // No hover wash or focus ring nobody asked for.
+  await page.mouse.move(WIDTH - 2, 2);
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
   const clip = await panel.evaluate((p) => {
+    const scroll = p.querySelector('[class*="tq-scroll"]');
+    if (scroll && scroll.scrollHeight > scroll.clientHeight + 1) {
+      throw new Error(`the panel scrolls (${scroll.scrollHeight} > ${scroll.clientHeight}px): raise HEIGHT`);
+    }
     const box = p.getBoundingClientRect();
-    // The first group that is a provider without an agent (a balance) ends the frame.
-    const stop = [...p.querySelectorAll('[data-pp-group]')].find((g) => !g.hasAttribute('data-tq-group'));
-    const bottom = stop ? stop.getBoundingClientRect().top : box.bottom;
     const pad = 10;
     return { x: Math.max(0, box.left - pad), y: Math.max(0, box.top - pad),
-      width: box.width + 2 * pad, height: bottom - box.top + pad };
+      width: box.width + 2 * pad, height: box.height + 2 * pad };
   });
   await page.screenshot({ path: OUT, clip });
   console.log(`wrote ${OUT} (${Math.round(clip.width * DSF)}x${Math.round(clip.height * DSF)})`);

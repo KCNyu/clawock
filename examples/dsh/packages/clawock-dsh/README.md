@@ -185,21 +185,31 @@ DeepSeek 是钱，显示 ¥ 与赠金 / 充值拆分，不画条）在上，它�
 所以每组就是一条独立的队列,顺序只在组内:
 
 - 组头:执行器字形(Claude Code / Codex / OpenCode)+ `槽 1/1`(满了且组内有人排队变琥珀);
-  锁被组外或旧 runner 的任务占着、或该 agent 额度用尽(「额度用尽,23:20 恢复(x 触发)」)时各一行说明;
+  锁被组外的任务占着、或该 agent 额度用尽(「额度用尽,23:20 恢复(x 触发)」)时各一行说明;
 - 行:持锁的在前,其后按 `task_queue_ops.py` 的真实拿锁顺序(`等 claude 锁 · 第 2 位`)。
   第二行是模型层——完整模型名 `Claude Opus 5.5 · high`(排队的显示将要用的,在跑的显示实际
   `MODEL_USED`,不一致时标 fallback),右侧尝试次数/时长/卡死次数和通知回执图标
   (微信 / Telegram:待发灰、已送达深灰、失败红加斜杠,来自 `result.env` 的 `NOTIFIED` /
-  `NOTIFY_FAILED`)。旧 runner 启动的任务标「旧 runner」,不能调序或换模型;
-- 最近结束按 `UPDATED` 新到旧，默认露出 2 条，余下最多 `taskQueueRecent - 2` 条即时展开。
-  每条先写 runner 的执行判决（执行完成/失败/取消/超时/受阻/额度中止/未启动/未明），
-  再写模型最终报告（任务：完成/部分完成/受阻/未报告）；例如执行失败但模型报完成会写
-  「任务：自报完成」，不把两个轴压成一个结果。其后是结束时间、首次排队耗时、总用时、估算费用和模型。
-  `waitMs` 是 host 从 `QUEUED_AT` 到 `run.log` 第一条 `got run slot` 派生的可选字段；
-  旧 host、旧 runner 或截断的日志没有该字段时显示「等待未记录」，绝不把总用时冒充等待。
-- 巡检是常驻低优先级 supervisor：组头显示当前阶段，下一行给正在做的轮次/让路原因，
-  上一轮单独显示结果、时长和结束时间；更早轮次与原始 journal 末行即时展开。
-  它不作为可操作的手工任务列表重复一遍，轮次的真实 agent task 仍留在运行中队列。
+  `NOTIFY_FAILED`)。没发布 `RUNNER_API=2` 的任务不在排队顺序里:列表行不加标记,点开详情写
+  「无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型」;
+- 「最近结束」与「巡检」是**同一种记录**:执行器字形 · 名字 … 执行判决芯片,下一行是同一组
+  状态芯片,顺序固定为 任务报告 · 结束时间 · 用时 · 首次排队 · 估算费用 · 模型(没有的值跳过,
+  不换位)。执行判决(执行完成/失败/取消/超时/受阻/额度中止/未启动/未明)与模型最终报告
+  (任务:完成/部分完成/受阻/未报告)各占一枚芯片、各自着色,执行失败但模型报完成写
+  「任务：自报完成」,不把两个轴压成一个结果。芯片用角色色:琥珀=没做完或在等,红=失败,
+  蓝=正在跑,中性底=不带判决的事实;没记录的值是虚线框(唯一还用次要灰字的地方)。
+  `waitMs` 是 host 从 `QUEUED_AT` 到 `run.log` 第一条 `got run slot` 派生的可选字段;
+  旧 host、旧 runner 或截断的日志没有该字段时显示「排队耗时未记录」,绝不把总用时冒充等待。
+- **谁常驻、谁折叠只有一条规则**(`src/client.ts` 的 `RESIDENT_ROUNDS` 注释,spec 钉住):
+  不同的工作常驻,重复与原始来源才折叠。host 已按 `taskQueueRecent` 截断,所以每条结束任务都常驻;
+  巡检轮次是同一轮换在重复,只留最新一轮,更早的轮次与 journal 原始末行进折叠。折叠控件是
+  胶囊按钮(发丝边、会转的箭头、按压与焦点环、触屏 44px 热区),打开不做高度动画。
+- 巡检组头是当前阶段;其下的芯片说它在跑哪一轮(轮次 · 轴、已跑、模型)或为什么让路——
+  让路原因只认 supervisor 真写得出的那几种(`ops/host/patrol.sh` 与
+  `ops/host/agent-dispatch/resource-pressure.sh`):手工任务在等锁/槽 →「让手工任务先行」并带上
+  那个任务的 id;本 agent 的运行槽都被占 →「等空闲运行槽」;内存余量/压力 →「内存不足，暂缓」;
+  读不到内存 →「读不到内存，暂缓」;宽限收尾期间另有「收尾后让路」。它不作为可操作的手工任务
+  列表重复一遍,轮次的真实 agent task 仍留在运行中队列。
 - 面板底部保留 ops 入口版本；与仓库那份不一致时变红并给装机命令。旧版 ops `list`
   不需新增字段，现有降级和 skew 提示保持原样。
 
@@ -214,7 +224,8 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 在跑的丢本轮进度,并给出 `--resume` 会话)、重试(已结束且有会话)、日志尾部。
 
 所有写操作都走 host 的 `queueAction(action, id, arg)` → 版本化入口 `task_queue_ops.py`
-(`--source ui`,逐任务串行、写审计行);插件自己不跑 `systemctl` / `flock`、不改任务目录。
+(`--source ui`,逐任务串行、写审计行)。插件自己只**只读地**跑 `systemctl list-units` / `is-active`
+与 `journalctl -u clawock-patrol -n 12`(随队列读取),从不 `systemctl stop`/restart、不 flock、不改任务目录。
 宿主侧对同一操作的连点合并为一次(2s 内重复直接返回上一次结果)。新 host 半边没装时
 (只换了 client)面板只读。契约见 `docs/architecture/task-queue.md`。
 
@@ -233,7 +244,7 @@ clawock's agent-dispatch, the sidebar panel also shows that host's task queue an
 steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
-![The sidebar provider panel on a live host: each agent's quota windows above its queue, one task running (Claude), one waiting for Codex's quota to reset, with its notification receipts / 真实主机上的侧栏 provider 面板:每个 agent 的额度窗口在上、它喂的队列在下,一个任务在跑(Claude),一个等 Codex 额度重置,带通知回执](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png)
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: each agent's quota windows above its queue (a Claude task running, one waiting for the Claude lock), the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks as records with status chips, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板:各 agent 的额度窗口与队列、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、以芯片呈现状态的最近结束记录、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
 
 ### English
 
@@ -243,7 +254,7 @@ started it. The chip is one view of a control plane with three parties:
 
 | Party | Where | Role |
 | :--- | :--- | :--- |
-| dsh chip | this package: `src/taskqueue.ts` (host half), `src/client.ts` | reads the queue; sends every write through the ops entry; never runs `systemctl` or `flock` itself and never edits a task directory |
+| dsh chip | this package: `src/taskqueue.ts` (host half), `src/client.ts` | reads the queue; sends every write through the ops entry. Its own commands are read-only: `systemctl list-units` / `is-active` and `journalctl -u clawock-patrol -n 12` on each queue read. It never stops or restarts a unit, never takes `flock` and never edits a task directory |
 | ops entry | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py), installed to `/root/tools/agent-dispatch/` | the only code that writes to a task on the UI's behalf, and the only place the queue order is decided. Every write appends one line to the task's `audit.log`: who (`source=ui\|cli`), what changed, and the entry's `ops_version` (the sha256 of the file). The chip compares the installed `ops_version` with the repository's copy and turns red when they differ: merged but not installed |
 | runner | [`ops/host/agent-dispatch/`](https://github.com/KCNyu/clawock/tree/master/ops/host/agent-dispatch) (`run-agent.sh`, `dispatch.sh`), installed to `/root/tools/agent-dispatch/` | runs one task: waits for its agent's lock in queue order, takes a run slot, runs attempts, sleeps through quota limits, applies appends and budget changes, writes `result.env`, sends the notification |
 
@@ -343,7 +354,7 @@ fixed.
 
 | 一方 | 在哪 | 职责 |
 | :--- | :--- | :--- |
-| dsh 芯片 | 本包 `src/taskqueue.ts`(host 半边)、`src/client.ts` | 读队列;所有写操作都交给 ops 入口;自己不跑 `systemctl` / `flock`,不改任务目录 |
+| dsh 芯片 | 本包 `src/taskqueue.ts`(host 半边)、`src/client.ts` | 读队列;所有写操作都交给 ops 入口。它自己跑的命令都是只读的:每次读队列跑 `systemctl list-units` / `is-active` 与 `journalctl -u clawock-patrol -n 12`;从不停/重启 unit、不 flock、不改任务目录 |
 | ops 入口 | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py),装到 `/root/tools/agent-dispatch/` | 代表 UI 写任务的**唯一入口**,也是队列顺序唯一的决定处。每次写都在任务的 `audit.log` 追加一行:谁(`source=ui\|cli`)、改了什么、执行它的 `ops_version`(文件 sha256)。芯片把已装的 `ops_version` 与仓库那份比对,不一致变红——已合并、未装机 |
 | runner | [`ops/host/agent-dispatch/`](https://github.com/KCNyu/clawock/tree/master/ops/host/agent-dispatch)(`run-agent.sh`、`dispatch.sh`),装到 `/root/tools/agent-dispatch/` | 跑一个任务:按队列顺序等本 agent 的锁、拿运行槽、逐次尝试、额度用尽时睡到重置、投递追加指令与预算改动、写 `result.env`、发通知 |
 
@@ -471,5 +482,6 @@ npm publish                                   # 发布当前版本
 把当前 checkout 装进 self-hosted DSH(开发/自部署):
 `ops/host/install_dsh_plugin.sh --restart`。README 截图一条命令:
 `node site/tools/shoot_dsh_plugin.js` + `clawock validate-sidecar screenshots`;
-派发队列那张:`node site/tools/shoot_dsh_queue.js`(WebKit,只取 agent 分组,面板背后的会话列表先隐藏);
+派发队列那张:`node site/tools/shoot_dsh_queue.js`(WebKit,整块面板不裁切,面板背后的会话列表先隐藏;
+未装机的分支可加 `BUNDLE=examples/dsh/packages/clawock-dsh/lib/client.js` 预览同一 host 半边上的新 client);
 决策卡示例图:`node site/tools/shoot_decision_card.js`。

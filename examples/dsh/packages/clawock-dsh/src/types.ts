@@ -456,4 +456,6 @@ export interface TaskQueueResult {
   /** Per agent: lock holder, queue order, quota wait (optional on the wire, see DispatchTask). */
   queues?: AgentQueue[]
   ops?: OpsStatus
+  /** The host's dispatch directory (config `dispatchLogDir`): where task briefs live when the ops entry cannot say. */
+  logDir?: string
 }

@@ -512,7 +512,8 @@ async function readTaskQueue(config, deps) {
 			rounds: readRounds(config.patrolDir, 3)
 		},
 		queues,
-		ops: opsRead.ops
+		ops: opsRead.ops,
+		logDir: config.logDir
 	};
 }
 /** TTL cache + in-flight join + stale-on-failure, the balance services' cadence shell in miniature. */

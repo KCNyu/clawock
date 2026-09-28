@@ -2787,7 +2787,8 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   const phase = (log, service, round = "", alive = false) => tq.patrolPhase(service, round, alive, log).phase;
   assert.equal(phase(["2026-09-23 03:54:58 preempting patrol-a: x is waiting for its agent lock"], "active", "patrol-a", true), "yielding",
     "a round being cancelled for a user task reads as giving way");
-  assert.equal(phase(["2026-09-23 02:45:42 waiting: all 2 run slots are busy"], "active"), "yielding");
+  // A line the supervisor really writes (others_need_slot admission), not an invented one (#2071).
+  assert.equal(phase(["2026-09-23 02:45:42 waiting: the opencode run slot is busy"], "active"), "yielding");
   assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "active", "patrol-b", true), "running");
   assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "inactive", "patrol-b", true), "stopped");
 
@@ -2937,11 +2938,23 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(rows[3]), /执行完成 .*任务：完成/);
   assert.equal(find(rows[3], (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "ended rows speak in words, no dot");
   assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
-  for (const row of rows) assert.ok(find(row, (p) => p.className && /_tq-sub/.test(p.className)).length >= 2,
-    "live and ended tasks share the secondary text class");
-  assert.match(texts(popover), /上一轮 R139 automation .*让手工任务先行 .*1 小时 8 分/, "last round is a readable supervisor receipt");
+  for (const row of rows.slice(0, 3)) assert.ok(find(row, (p) => p.className && /_tq-sub/.test(p.className)).length >= 2,
+    "live tasks keep their two secondary lines");
+  // An ended task and a patrol round are ONE record shape: a status chip, then the slot chips.
+  const chipSlots = (node) => find(node, (p) => p["data-tq-chip"] !== undefined).map((c) => c.props["data-tq-chip"]);
+  assert.deepEqual(chipSlots(rows[3]), ["status", "report", "ended", "took", "wait", "model"],
+    "an ended task's facts are chips in the record slot order, not a grey sentence");
+  assert.equal(find(rows[3], (p) => p["data-tq-chip"] === "wait")[0].props["data-tone"], "quiet", "an unrecorded wait says so, outlined");
+  const round = find(popover, (p) => p["data-tq-round"] === "R139")[0];
+  assert.deepEqual(chipSlots(round), ["status", "ended", "took"], "a round fills the same slots, in the same order");
+  assert.equal(find(round, (p) => p["data-tq-chip"] === "status")[0].props["data-tone"], "warn");
+  assert.match(texts(round), /R139 · automation 让路取消 .*用时 1 小时 8 分/, "the last round is a readable record");
+  assert.equal(round.type, "div", "a round opens nothing, so it is not a button");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
-  assert.ok(find(popover, (p) => p.className && /_tq-round(?!s)/.test(p.className)).length > 0, "patrol rounds are grouped by row");
+  const status = find(popover, (p) => p["data-tq-patrol-status"] !== undefined)[0];
+  assert.deepEqual(find(status, (p) => p["data-tq-chip"] !== undefined).map((c) => [c.props["data-tq-chip"], texts(c)]),
+    [["reason", "让手工任务先行"], ["for", "b-1"], ["elapsed", "已跑 1 分"], ["model", "X"]],
+    "why the patrol gives way, and to whom, as chips (the supervisor's own line is the reason's title)");
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
@@ -2989,8 +3002,44 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(receipts[0]), /执行完成 任务：部分完成 .*首次排队 7 分/);
   assert.match(texts(receipts[1]), /执行失败 任务：自报完成 .*排队耗时未记录/);
   assert.match(texts(receipts[2]), /执行受阻 任务：受阻/);
-  assert.ok(find(render(), (p) => p.className && /_tq-disclosure/.test(p.className) && p.open === undefined).length >= 1,
-    "the third receipt starts folded and can be opened without a layout animation");
+  const tone = (row, slot) => find(row, (p) => p["data-tq-chip"] === slot)[0].props["data-tone"];
+  assert.deepEqual(receipts.map((row) => [tone(row, "status"), tone(row, "report")]), [["plain", "warn"], ["bad", "warn"], ["warn", "warn"]],
+    "each axis carries its own tone: the runner's verdict, then the model's report");
+
+  // ONE disclosure rule for both sections (client.ts, above RESIDENT_ROUNDS): distinct work is
+  // resident, repetition and raw source fold. Five ended tasks are five pieces of work — none
+  // folds; three patrol rounds are one rotation — the newest stays, two fold, and the journal
+  // line (the raw source of the status chips) folds.
+  const endedTask = (i) => ({ ...QUEUE.recent[0], id: "e-" + i, name: "ended-" + i, updatedAtMs: now - (i + 1) * 60000 });
+  const rounds = [0, 1, 2].map((i) => ({ endedAt: `2026-09-23 0${5 - i}:00:00`, round: "R" + (140 - i), axis: "logic", result: "ok/DONE", seconds: 600 }));
+  answer = { ...QUEUE, recent: [0, 1, 2, 3, 4].map(endedTask), patrol: { ...QUEUE.patrol, rounds } };
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  const panel = render();
+  const section = (key) => find(panel, (p) => p["data-tq-group"] === key)[0];
+  const folds = (node) => find(node, (p) => p["data-tq-fold"] !== undefined);
+  assert.equal(find(section("recent"), (p) => p["data-tq-task"] !== undefined).length, 5, "every ended task the host sends is on screen");
+  assert.equal(folds(section("recent")).length, 0, "no ended task hides behind a fold");
+  const patrolFolds = folds(section("patrol"));
+  assert.deepEqual(patrolFolds.map((f) => f.props["data-tq-fold"]), ["rounds", "journal"]);
+  assert.deepEqual(find(patrolFolds[0], (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), ["R139", "R138"],
+    "the earlier rounds fold");
+  assert.equal(find(section("patrol"), (p) => p["data-tq-round"] === "R140").length, 1);
+  assert.equal(find(patrolFolds[0], (p) => p["data-tq-round"] === "R140").length, 0, "the newest round stays resident");
+  assert.match(texts(patrolFolds[1]), /preempting patrol-recent-1: b-1 is waiting for its agent lock/, "the raw journal line is kept, folded");
+  for (const fold of patrolFolds) {
+    const summary = fold.children.find((c) => c && c.type === "summary");
+    assert.ok(summary && /_tq-fold-summary/.test(summary.props.className), "a fold opens from its own summary control");
+  }
+
+  // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
+  // not "showing the last read" — the same judgement the balance half makes on its rows.
+  answer = { available: false, status: "failed", message: "EACCES: permission denied", asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], slotLimits: [], queues: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } };
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  assert.match(texts(render()), /任务队列读取失败:EACCES: permission denied/);
+  assert.doesNotMatch(texts(render()), /显示最近一次/, "nothing was read, so nothing 'last' is shown");
   answer = QUEUE;
 
   // The host renders list-slot items inside a `display:contents` [data-slot]
@@ -3011,6 +3060,50 @@ test("client: one provider cell carries the queue under each agent's provider an
   await tick(); await tick();
   assert.equal(find(render(), (p) => p["data-pp-row"] !== undefined && p["data-pp-row"] !== "").length, 0);
   disposeReactEffects();
+});
+
+// #2071: the give-way label was matched against a sentence the supervisor never writes. The
+// reasons below are instantiated from the templates as they stand in the two files that write
+// them (the test fails if a template changes), in each of the log shapes patrol.sh writes.
+test("patrol: every give-way reason the supervisor can write gets its true label (#2071)", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const repo = path.join(__dirname, "..");
+  const patrol = fs.readFileSync(path.join(repo, "ops/host/patrol.sh"), "utf8");
+  const pressure = fs.readFileSync(path.join(repo, "ops/host/agent-dispatch/resource-pressure.sh"), "utf8");
+  const REASONS = [
+    [patrol, '"$id is waiting for an $ROUND_AGENT run slot"', "t-1 is waiting for an opencode run slot", "manual", "t-1"],
+    [patrol, '"$id is waiting for its agent lock"', "t-2 is waiting for its agent lock", "manual", "t-2"],
+    [patrol, '"$id is waiting for the opencode lock"', "t-3 is waiting for the opencode lock", "manual", "t-3"],
+    [patrol, '"the $ROUND_AGENT run slot is busy"', "the opencode run slot is busy", "slot", ""],
+    [patrol, '"$id is waiting for an $ROUND_AGENT run slot and all $AGENT_SLOTS are busy"', "t-4 is waiting for an opencode run slot and all 1 are busy", "manual", "t-4"],
+    [patrol, `"$id is queued behind the round's opencode lock"`, "t-5 is queued behind the round's opencode lock", "manual", "t-5"],
+    [pressure, "'memory telemetry unavailable; defer patrol'", "memory telemetry unavailable; defer patrol", "memoryUnread", ""],
+    [pressure, '"memory headroom low: ${available} KiB available (< $PATROL_MIN_AVAILABLE_KB)"', "memory headroom low: 131072 KiB available (< 196608)", "memory", ""],
+    [pressure, '"memory pressure: full avg60=$full (>= $PATROL_MAX_MEMORY_FULL_AVG60)"', "memory pressure: full avg60=12.3 (>= 10)", "memory", ""],
+  ];
+  for (const [src, template] of REASONS) assert.ok(src.includes(template), "the supervisor no longer writes: " + template);
+  for (const shape of ['log "waiting: $reason"', 'log "preempting $rid${yield_at:+ after a $(( $(now) - yield_at ))s wrap-up grace}: $reason"',
+    'log "asking $rid to wrap up within ${PREEMPT_GRACE}s: $demand"']) assert.ok(patrol.includes(shape), "log shape changed: " + shape);
+  for (const [, , reason, kind, task] of REASONS) {
+    for (const line of [`waiting: ${reason}`, `preempting patrol-a-20260928-010000: ${reason}`,
+      `preempting patrol-a-20260928-010000 after a 42s wrap-up grace: ${reason}`]) {
+      assert.deepEqual(api._patrolReason(line), { kind, task, wrapUp: false }, line);
+    }
+    assert.deepEqual(api._patrolReason(`asking patrol-a-20260928-010000 to wrap up within 300s: ${reason}`), { kind, task, wrapUp: true });
+  }
+  // The sentence #2066 was accepted on is not a reason anyone writes: it gets no invented label.
+  assert.equal(api._patrolReason("waiting: all 2 run slots are busy").kind, "other");
+  // Each kind reads differently, in both languages.
+  for (const lang of ["zh", "en"]) {
+    const d = api.dictionaries[lang];
+    const labels = ["giveWay", "waitSlot", "memory", "memoryUnread", "otherReason"].map((k) => d["queue.patrol." + k]);
+    assert.equal(new Set(labels).size, labels.length, lang + ": one label per reason kind");
+  }
 });
 
 test("client: a task backing off to retry is counted on the queue headline, like one waiting on quota", async () => {
@@ -3327,6 +3420,8 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
     patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
     queues: [{ agent: "claude", held: true, holder: "new-run", order: ["old-wait"], quotaUntilMs: null, quotaBy: "" }],
     ops: { available: true, version: "v", repoVersion: "v", api: 3, runnerApi: 3, fairWaitSec: 14400, error: "" },
+    // The host's own dispatch directory, any account's home (#2065: never a literal /root).
+    logDir: "/home/someone/logs/agent-dispatch/",
   };
   const calls = [];
   let hostKnows = false;
@@ -3405,7 +3500,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   // The brief opens in dsh's own preview; an older host half cannot list the appends and says so.
   pill("brief").props.onClick();
   await tick(); await tick();
-  assert.equal(opened.at(-1), "/root/logs/agent-dispatch/new-run/prompt.md");
+  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/new-run/prompt.md", "the fallback is the host's logDir, not /root");
   assert.match(texts(render()), /追加列表要等插件 host 半边更新（需重启 dsh）/);
   hostKnows = true;
   pill("brief").props.onClick();
@@ -3440,6 +3535,19 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
   assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
+  // The fold control is a control, not a line of grey text: its own resting shape, a turning
+  // chevron, the panel's focus ring, press feedback (off under reduced motion), a fine-pointer-
+  // only hover and a 44px finger target (26px pill + 9px above and below).
+  const rule = (sel) => css.match(new RegExp(`_${sel}\\{([^}]*)\\}`))?.[1] ?? "";
+  assert.match(rule("tq-fold-summary"), /border:\.5px solid var\(--tq-pill-border\)/);
+  assert.match(rule("tq-fold-summary"), /list-style:none/);
+  assert.match(css, /_tq-fold\[open\]>\.[A-Za-z0-9_-]+_tq-fold-summary \.[A-Za-z0-9_-]+_tq-fold-chev\{transform:rotate\(90deg\)\}/);
+  assert.match(rule("tq-fold-summary:focus-visible"), /outline:var\(--tq-focus-ring\)/);
+  assert.match(rule("tq-fold-summary:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
+  assert.match(rule("tq-fold-summary"), /transition:[^;]*transform/, "its own transition still names transform");
+  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-summary:after\{inset:-9px -8px\}/);
+  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary\):active\{transform:none\}/);
 });
 
 // #1955: the queue and provider panel wrote their waiting/failed WORDS in the host's state
@@ -3489,5 +3597,17 @@ test("queue and provider panel: state-coloured words clear 4.5:1, dots keep the 
         assert.ok(r >= 4.5, `${theme} --${name} ${local(body, name)} on ${bed}: ${r.toFixed(2)}:1 < 4.5:1`);
       }
     }
+  }
+  // Verdict chips write those words on their own opaque soft fill: each pair owes 4.5:1 too.
+  assert.match(css, /--tq-chip-warn-fill:var\(--warn-soft\)/);
+  assert.match(css, /--tq-chip-bad-fill:var\(--bad-soft\)/);
+  for (const [theme, body] of [["light", light], ["dark", dark]]) {
+    for (const name of ["warn", "bad"]) {
+      const r = ratio(local(body, name), local(body, name + "-soft"));
+      assert.ok(r >= 4.5, `${theme} --${name} on --${name}-soft: ${r.toFixed(2)}:1 < 4.5:1`);
+    }
+  }
+  for (const [tone, role] of [["warn", "warn"], ["bad", "bad"]]) {
+    assert.match(rule(`tq-chip\\[data-tone=${tone}\\]`), new RegExp(`color:var\\(--tq-text-${role}\\)`));
   }
 });

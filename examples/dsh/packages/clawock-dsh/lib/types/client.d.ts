@@ -356,6 +356,23 @@ export declare function _poolPosition(result: TaskQueueResult | null): {
     next: string;
     fromOrder: boolean;
 } | null;
+/**
+ * Why the supervisor gives way, read off its journal line. The patterns are
+ * the reasons the supervisor can actually write — `others_need_slot` and
+ * `round_blocks_someone` in ops/host/patrol.sh, `memory_pressure_reason` in
+ * ops/host/agent-dispatch/resource-pressure.sh — and the spec instantiates
+ * every one of those templates from the files themselves (#2071):
+ *   manual = a manual task waits for the lock or a slot the patrol would use
+ *            (the id is that task, shown so the reader knows whom it waits for);
+ *   slot   = the patrol's own admission: its agent's run slots are all taken;
+ *   memory = admission deferred on memory headroom, pressure or telemetry.
+ * `asking <round> to wrap up …: <demand>` is the grace before a preemption.
+ */
+export declare function _patrolReason(detail: string): {
+    kind: 'manual' | 'slot' | 'memory' | 'memoryUnread' | 'other';
+    task: string;
+    wrapUp: boolean;
+};
 /** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
 export type OpenFile = (path: string) => {
     ok: true;
