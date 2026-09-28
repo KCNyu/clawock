@@ -17,7 +17,7 @@ from pathlib import Path
 
 from clawock import sessions
 from clawock.automation.llm import chat
-from clawock.automation.output_validate import validate_sections
+from clawock.automation.output_validate import escape_raw_html, validate_sections
 from clawock.decision import ledger as decision_v2
 from clawock.safe_io import safe_write_json, safe_write_text
 
@@ -357,7 +357,7 @@ def main():
     md_with_fm = (
         f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (off-host fallback)\n"
         f'description: "{desc}"\n---\n\n'
-        + md_part.strip()
+        + escape_raw_html(md_part.strip())
     )
 
     # VALIDATE BEFORE WRITING ANYTHING (2026-07-16). This used to write pre-open.md
