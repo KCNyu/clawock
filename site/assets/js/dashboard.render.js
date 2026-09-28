@@ -58,7 +58,9 @@
       return toks.length ? toks.join(" ") : "触发位";
     };
 
-    const rows = Object.entries(wl).map(([key, val]) => {
+    // A level the plan left empty has nothing to watch; printed, it read 「null」
+    // (the sparse-payload spec caught it once #2134 put the levels back).
+    const rows = Object.entries(wl).filter(([, val]) => val != null).map(([key, val]) => {
       const r = resolve(key);
       const who = r.who || key.split(/[_\-]/)[0].toUpperCase();
       const toks = key.toLowerCase().split(/[_\-]/).filter(t => !r.strip.includes(t) && t !== "hkd" && t !== "usd");
