@@ -1130,6 +1130,15 @@ def _card_self_reference_issues(judgment_path):
     return check_pipeline_self_reference(assessment, label='微信卡核心结论')
 
 
+# The per-ticker judgment prose `brief_render` prints on the page (#2139: the
+# first version of this gate read only the portfolio-level prose, so every
+# field below reached the page and the card unchecked). Verdict/disposition
+# are the contract's enums, not prose. tests/test_brief_plan_leak.py renders a
+# row with every field marked and holds this list equal to what shows up.
+JUDGMENT_ROW_PROSE = ('fundamentals', 'sentiment_read', 'cross_market',
+                      'rationale', 'falsifier', 'peer_read')
+
+
 def _judgment_identifier_issues(judgment_path):
     """Flag internal field names in model prose that the brief publishes."""
     try:
@@ -1149,6 +1158,9 @@ def _judgment_identifier_issues(judgment_path):
                 texts.append(value)
             elif isinstance(value, list):
                 texts.extend(item for item in value if isinstance(item, str))
+    for row in overlay.get('ticker_judgments') or []:
+        if isinstance(row, dict):
+            texts.extend(row.get(key) for key in JUDGMENT_ROW_PROSE)
     prose = '\n'.join(value for value in texts if isinstance(value, str))
     return [f'{issue} {ADVISORY_MARK}' for issue in
             check_identifier_leak(prose, label='简报判断正文')]
