@@ -187,10 +187,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.ops.missing': 'ops 入口不可用，操作已停用：{error}', 'queue.ops.skew': 'ops 入口与仓库不一致（主机 {host} / 仓库 {repo}），运行 ops/host/install_task_queue_ops.sh',
     'queue.ops.version': 'ops {v}', 'queue.ops.footer': 'ops {v} · runner api {runner}',
     'queue.ch.weixin': '微信', 'queue.ch.telegram': 'Telegram', 'queue.notify.sent': '{ch} 已送达', 'queue.notify.failed': '{ch} 失败', 'queue.notify.planned': '{ch} 结束时通知',
-    'queue.d.slot': '槽位', 'queue.d.place': '排队', 'queue.d.placeValue': '{agent} 队列第 {n} 位', 'queue.d.protected': '已等满公平窗口，不会被插队',
+    'queue.d.place': '排队', 'queue.d.placeValue': '{agent} 队列第 {n} 位', 'queue.d.protected': '已等满公平窗口，不会被插队',
     'queue.d.priorityValue': '优先级 {n}', 'queue.d.queued': '开始排队', 'queue.d.notify': '通知', 'queue.d.notifyNone': '不通知',
     'queue.d.runner': 'Runner', 'queue.d.session': '会话', 'queue.d.fallbackFrom': '请求 {model}，已切换', 'queue.d.effortDefault': '默认',
-    'queue.a.group': '操作', 'queue.a.top': '置顶', 'queue.a.up': '上移', 'queue.a.upOf': '上移 {name}', 'queue.a.down': '下移', 'queue.a.model': '换模型',
+    'queue.a.top': '置顶', 'queue.a.up': '上移', 'queue.a.upOf': '上移 {name}', 'queue.a.down': '下移', 'queue.a.model': '换模型',
     'queue.a.wrapup': '体面收尾', 'queue.a.wrapupTitle': '排队一条收尾指令：做完当前一步后提交已完成的部分并输出 STATUS',
     'queue.a.cancel': '取消', 'queue.a.cancelConfirm': '确认取消', 'queue.a.retry': '重试', 'queue.a.log': '日志', 'queue.a.save': '保存', 'queue.a.close': '关闭',
     'queue.a.modelHint': '下一次尝试生效；正在跑的这一步不受影响。',
@@ -224,10 +224,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.queueLoading': '正在读取派发队列…', 'panel.queueUnavailable': '此主机没有派发队列；额度仍可查看。',
     'panel.noSources': '没有可显示的额度或派发来源。',
     'queue.wait.quotaBoth': '等到 {time}（窗口 {reset} +{pad}m 缓冲）', 'queue.wait.quotaNoWindow': '等到 {time}（窗口重置时刻未读到）',
-    'queue.d.cost': '花费', 'queue.d.costValue': '${usd} · 按 API 价估算，非实际扣费', 'queue.d.costFree': '免费（opencode 免费池）',
+    'queue.d.cost': '花费', 'queue.d.costFree': '免费（opencode 免费池）',
     'queue.d.costUnpriced': '—（该模型没有价目，不估）', 'queue.d.costLive': '截至上一次尝试结束',
-    'queue.d.tokens': 'Tokens', 'queue.d.tokensValue': '共 {total} · 输入 {in} · 缓存写 {w} · 缓存读 {r} · 输出 {out}',
-    'queue.d.deadline': '截止', 'queue.d.budget': '预算', 'queue.d.budgetValue': '重试 {used}/{max} · 额度续跑 {rused}/{rmax}',
+    'queue.d.tokens': 'Tokens',
+    'queue.d.deadline': '截止',
     'queue.a.confirmLabel': '确认 {label}', 'queue.a.brief': '任务书', 'queue.a.briefTitle': '在右侧文件预览打开 prompt.md（只读）',
     'queue.a.deadline': '截止 +2h', 'queue.a.attempts': '重试 +1', 'queue.a.resumes': '续跑 +1',
     'queue.a.deadlineConfirm': '延长 deadline 2 小时：该任务占用队列的时间变长（上限：派发 + 72h）。{when} 再点一次确认。',
@@ -240,6 +240,13 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.brief.noSession': '右侧预览要在会话里打开：先进入任意会话，再点一次。文件：{path}', 'queue.brief.noService': '这个 dsh 没有文件预览栏。文件：{path}',
     'queue.brief.noDir': '插件 host 半边是旧版，没有告诉任务目录在哪；重启 dsh 后才能打开任务书。',
     'queue.brief.failed': '预览打不开：{message}。文件：{path}', 'queue.brief.opened': '已在右侧预览打开 {file}',
+    'queue.d.sec.run': '运行设置', 'queue.d.sec.allowance': '额度', 'queue.d.sec.time': '时间', 'queue.d.sec.usage': '用量',
+    'queue.d.sec.end': '结束任务', 'queue.d.sec.again': '再跑一次', 'queue.d.sec.raw': '原始记录',
+    'queue.d.region': '{name} 的详情', 'queue.a.viewGroup': '查看（只读）', 'queue.a.confirm': '确认',
+    'queue.d.notRecorded': '未记录', 'queue.d.retries': '重试', 'queue.d.quotaResumes': '额度续跑', 'queue.d.usedOf': '已用 {used} / {max}',
+    'queue.d.slotOf': '槽 {slot} / {max}', 'queue.d.slotValue': '槽 {slot}', 'queue.d.source': '额度来源', 'queue.d.windows': '窗口',
+    'queue.d.pool': '免费池', 'queue.d.quotaOut': '额度用尽', 'queue.d.costFreeShort': '免费', 'queue.d.costEstimate': '按 API 价估算，非实际扣费',
+    'queue.d.tokensTotal': '共 {total}', 'queue.d.tokensSplit': '输入 {in} · 缓存写 {w} · 缓存读 {r} · 输出 {out}',
     'queue.brief.needsHost': '追加列表要等插件 host 半边更新（需重启 dsh）；任务书本身可以打开。', 'queue.brief.none': '没有追加', 'queue.brief.readOnly': '只读：要改请用 dispatch.sh append（运行中加 --queue）',
     'queue.r.needsHost': '主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。',
   },
@@ -314,7 +321,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}', 'queue.stalls': '{n} stalled',
     'queue.waitHeading': 'Queued / waiting', 'queue.noneRunning': 'No task holds a slot', 'queue.noneWaiting': 'Nothing queued or waiting',
     'queue.recentHeading': 'Recently ended',
-    'queue.waited': 'first queue wait {time}', 'queue.d.waited': 'First queue wait', 'queue.waitUnknown': 'queue wait not recorded',
+    'queue.waited': 'first queue wait {time}', 'queue.d.waited': 'Queue wait', 'queue.waitUnknown': 'queue wait not recorded',
     'queue.execution.ok': 'Execution complete', 'queue.execution.failed': 'Execution failed', 'queue.execution.cancelled': 'Cancelled',
     'queue.execution.timeout': 'Timed out', 'queue.execution.blocked': 'Execution blocked', 'queue.execution.quota': 'Stopped on quota',
     'queue.execution.queued': 'Never started', 'queue.execution.unknown': 'Result unknown',
@@ -348,10 +355,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.ops.missing': 'The ops entry is unavailable, actions are off: {error}', 'queue.ops.skew': 'The ops entry differs from the repository (host {host} / repo {repo}): run ops/host/install_task_queue_ops.sh',
     'queue.ops.version': 'ops {v}', 'queue.ops.footer': 'ops {v} · runner api {runner}',
     'queue.ch.weixin': 'WeChat', 'queue.ch.telegram': 'Telegram', 'queue.notify.sent': '{ch} delivered', 'queue.notify.failed': '{ch} failed', 'queue.notify.planned': '{ch} on finish',
-    'queue.d.slot': 'Slot', 'queue.d.place': 'Queue', 'queue.d.placeValue': '#{n} in the {agent} queue', 'queue.d.protected': 'past the fair wait, cannot be overtaken',
+    'queue.d.place': 'Queue', 'queue.d.placeValue': '#{n} in the {agent} queue', 'queue.d.protected': 'past the fair wait, cannot be overtaken',
     'queue.d.priorityValue': 'priority {n}', 'queue.d.queued': 'Queued', 'queue.d.notify': 'Notify', 'queue.d.notifyNone': 'none',
     'queue.d.runner': 'Runner', 'queue.d.session': 'Session', 'queue.d.fallbackFrom': 'asked for {model}, switched', 'queue.d.effortDefault': 'default',
-    'queue.a.group': 'Actions', 'queue.a.top': 'To top', 'queue.a.up': 'Move up', 'queue.a.upOf': 'Move {name} up', 'queue.a.down': 'Move down', 'queue.a.model': 'Model',
+    'queue.a.top': 'To top', 'queue.a.up': 'Move up', 'queue.a.upOf': 'Move {name} up', 'queue.a.down': 'Move down', 'queue.a.model': 'Model',
     'queue.a.wrapup': 'Wrap up', 'queue.a.wrapupTitle': 'Queue a wrap-up instruction: after the current step, land what is done and report STATUS',
     'queue.a.cancel': 'Cancel', 'queue.a.cancelConfirm': 'Confirm cancel', 'queue.a.retry': 'Retry', 'queue.a.log': 'Log', 'queue.a.save': 'Save', 'queue.a.close': 'Close',
     'queue.a.modelHint': 'Applies to the next attempt; the step running now keeps its model.',
@@ -366,7 +373,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.r.retry': 'Continuing as a new task: {id}', 'queue.r.wrapup': 'Wrap-up queued: delivered when the current step ends',
     'queue.back': 'Back to quota and queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
     'queue.d.agent': 'Agent', 'queue.d.model': 'Model', 'queue.d.started': 'Started', 'queue.d.elapsed': 'Running for',
-    'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
+    'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Wakes at', 'queue.d.attempts': 'Attempts',
     'queue.d.stalls': 'Stalled', 'queue.d.stallsValue': '{n} (silent with no progress, retried automatically)',
     'queue.d.latest': 'Latest event', 'queue.d.id': 'Task ID', 'queue.d.summary': 'Closing report', 'queue.d.noSummary': 'No closing report was left',
     'panel.title': 'Quota · queue', 'panel.aria': 'Each provider\'s quota and the dispatch queue', 'panel.refresh': 'Refresh quotas and the queue',
@@ -385,10 +392,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.queueLoading': 'Reading the dispatch queue…', 'panel.queueUnavailable': 'This host has no dispatch queue; quotas are still available.',
     'panel.noSources': 'No quota or dispatch source is available.',
     'queue.wait.quotaBoth': 'until {time} (window {reset} + {pad}m margin)', 'queue.wait.quotaNoWindow': 'until {time} (window reset not read)',
-    'queue.d.cost': 'Cost', 'queue.d.costValue': '${usd} · estimated at API prices, not billed', 'queue.d.costFree': 'free (opencode free pool)',
+    'queue.d.cost': 'Cost', 'queue.d.costFree': 'free (opencode free pool)',
     'queue.d.costUnpriced': '— (no price for this model, not estimated)', 'queue.d.costLive': 'as of the last finished attempt',
-    'queue.d.tokens': 'Tokens', 'queue.d.tokensValue': '{total} total · in {in} · cache write {w} · cache read {r} · out {out}',
-    'queue.d.deadline': 'Deadline', 'queue.d.budget': 'Budget', 'queue.d.budgetValue': 'retries {used}/{max} · quota resumes {rused}/{rmax}',
+    'queue.d.tokens': 'Tokens',
+    'queue.d.deadline': 'Deadline',
     'queue.a.confirmLabel': 'Confirm {label}', 'queue.a.brief': 'Brief', 'queue.a.briefTitle': 'Open prompt.md in the file preview (read-only)',
     'queue.a.deadline': 'Deadline +2h', 'queue.a.attempts': 'Retry +1', 'queue.a.resumes': 'Resume +1',
     'queue.a.deadlineConfirm': 'Two more hours: the task holds its place in the queue longer (ceiling: dispatch + 72h). {when} Tap again to confirm.',
@@ -401,6 +408,13 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.brief.noSession': 'The preview opens inside a conversation: open any conversation, then tap again. File: {path}', 'queue.brief.noService': 'This dsh has no file preview. File: {path}',
     'queue.brief.noDir': 'The plugin\'s host half is older and does not say where task directories are: the brief opens after a dsh restart.',
     'queue.brief.failed': 'The preview did not open: {message}. File: {path}', 'queue.brief.opened': 'Opened {file} in the preview',
+    'queue.d.sec.run': 'Run settings', 'queue.d.sec.allowance': 'Allowance', 'queue.d.sec.time': 'Timeline', 'queue.d.sec.usage': 'Usage',
+    'queue.d.sec.end': 'End the task', 'queue.d.sec.again': 'Run again', 'queue.d.sec.raw': 'Raw record',
+    'queue.d.region': 'Details of {name}', 'queue.a.viewGroup': 'View (read-only)', 'queue.a.confirm': 'Confirm',
+    'queue.d.notRecorded': 'not recorded', 'queue.d.retries': 'Retries', 'queue.d.quotaResumes': 'Resumes', 'queue.d.usedOf': '{used} of {max} used',
+    'queue.d.slotOf': 'slot {slot} of {max}', 'queue.d.slotValue': 'slot {slot}', 'queue.d.source': 'Paid by', 'queue.d.windows': 'Windows',
+    'queue.d.pool': 'Free pool', 'queue.d.quotaOut': 'Out of quota', 'queue.d.costFreeShort': 'free', 'queue.d.costEstimate': 'estimated at API prices, not billed',
+    'queue.d.tokensTotal': '{total} total', 'queue.d.tokensSplit': 'in {in} · cache write {w} · cache read {r} · out {out}',
     'queue.brief.needsHost': 'The appends list needs the updated host half (a dsh restart); the brief itself opens now.', 'queue.brief.none': 'No appends', 'queue.brief.readOnly': 'Read-only: change it with dispatch.sh append (--queue while it runs)',
     'queue.r.needsHost': 'The plugin\'s host half on this host is older: this action works after a dsh restart.',
   },
@@ -2669,6 +2683,20 @@ type DetailUi = QueueUi & {
   openPath: (path: string) => void
   /** The provider windows of an agent (the quota wait names the reset it waits for). */
   windowsOf: (agent: string) => ReadonlyArray<{ resetAtMs?: number | null }> | undefined
+  /** What pays for an agent's work (providers.ts join): the plan, its balance row, the free pool, its slots and quota stop. */
+  sourceOf: (agent: string) => DetailSource
+}
+
+/** The allowance an agent burns, as the detail layer's allowance section reads it. */
+type DetailSource = {
+  plan: string | null
+  row: BalanceRow | undefined
+  /** undefined: not a pool; null: a pool whose position is unread. */
+  pool: ReturnType<typeof _poolPosition> | undefined
+  poolSize: number
+  lane: SlotLane | undefined
+  quotaUntilMs: number | null
+  quotaBy: string
 }
 
 /** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
@@ -2698,144 +2726,349 @@ export function _sessionFileAddress(sessionId: string, path: string): string {
   return 'dsh-resource://file/session/' + seg(sessionId) + '/' + path.split('/').map(seg).join('/')
 }
 
-/** A pill in the detail's action bar (the host's transition buttons: hairline, fully rounded). */
-function actionPill(key: string, label: string, onClick: () => void, opts: { danger?: boolean; disabled?: boolean; title?: string } = {}): React.ReactElement {
+/**
+ * The detail layer's order (2026-09-28, kcn: 「问题在详情页……信息没有秩序」). The layer
+ * holds what the row cannot: the whole status sentence, the allowance the task
+ * burns and when it resets, where the free pool stands, the first queue wait,
+ * the budgets and the raw record. It is read top-down in SECTIONS order; a
+ * section with nothing to say is not drawn. Each section is a caption and a
+ * list of fields on THE row grid (--tq-grid): the label on the `when` track
+ * (the name's edge), the value over took…rest, and — for a fact a task can
+ * change — its control on the `aside` track, where the list keeps the state
+ * chip. So a control sits beside the number it changes, and its confirmation
+ * directly under that line.
+ *
+ *   status     glyph · name · the row's own state chip; the full sentence under it
+ *   summary    (ended) the closing report — what happened comes before how
+ *   view       read-only: the brief and the log; what they open unfolds right here
+ *   run        what the next attempt runs with — model, place in line, deadline,
+ *              retries, quota resumes — each with its control when writable
+ *   allowance  who runs it and what pays: agent and slot, the plan; while live also the
+ *              windows with their resets (the list's own window lines), the free pool's
+ *              position and a quota stop — they describe now, not an ended run
+ *   time       queued, first queue wait, started, running for / took, wakes, ended
+ *   usage      tries (when no budget says it), stalls, cost, tokens
+ *   notify     one line per channel, the list's receipt mark and its words (one field, no caption)
+ *   end        the task-ending writes (wrap up, cancel), or retry once it ended
+ *   raw        FOLDED (the list's one disclosure rule: raw source folds): the
+ *              runner's latest log line, the runner api, session and task ids
+ *
+ * DETAIL_ACTIONS says what each action is — `view` reads (a filled, quiet
+ * pill), `write` changes the queue (an outlined control beside its fact),
+ * `danger` ends work (red, last) — and where it lives. The spec checks every
+ * rendered section, field and pill against these tables.
+ */
+export type DetailSection = 'status' | 'summary' | 'view' | 'run' | 'allowance' | 'time' | 'usage' | 'notify' | 'end' | 'raw'
+export const DETAIL_SECTIONS: Record<'live' | 'ended', readonly DetailSection[]> = {
+  live: ['status', 'view', 'run', 'allowance', 'time', 'usage', 'notify', 'end', 'raw'],
+  ended: ['status', 'summary', 'view', 'run', 'allowance', 'time', 'usage', 'notify', 'end', 'raw'],
+}
+export const DETAIL_FIELDS: Partial<Record<DetailSection, readonly string[]>> = {
+  run: ['model', 'place', 'deadline', 'retries', 'resumes'],
+  allowance: ['agent', 'source', 'windows', 'pool', 'quota'],
+  time: ['queued', 'waited', 'started', 'took', 'wakes', 'ended'],
+  usage: ['attempts', 'stalls', 'cost', 'tokens'],
+  notify: ['notify'],
+  raw: ['latest', 'runner', 'session', 'id'],
+}
+export const DETAIL_FOLDED: readonly DetailSection[] = ['raw']
+export type ActionKind = 'view' | 'write' | 'danger'
+export const DETAIL_ACTIONS: Record<string, { kind: ActionKind; home: string }> = {
+  brief: { kind: 'view', home: 'view' },
+  log: { kind: 'view', home: 'view' },
+  model: { kind: 'write', home: 'run.model' },
+  top: { kind: 'write', home: 'run.place' },
+  up: { kind: 'write', home: 'run.place' },
+  down: { kind: 'write', home: 'run.place' },
+  deadline: { kind: 'write', home: 'run.deadline' },
+  attempts: { kind: 'write', home: 'run.retries' },
+  resumes: { kind: 'write', home: 'run.resumes' },
+  wrapup: { kind: 'write', home: 'end' },
+  cancel: { kind: 'danger', home: 'end' },
+  retry: { kind: 'write', home: 'end' },
+}
+
+/** A control in the detail layer: its kind (DETAIL_ACTIONS) is its look; a confirmation arms it. */
+function actionPill(key: string, label: string, onClick: () => void,
+  opts: { disabled?: boolean; title?: string; said?: string; armed?: boolean; kind?: ActionKind } = {}): React.ReactElement {
+  const kind = opts.kind ?? DETAIL_ACTIONS[key]?.kind ?? 'write'
   return h('button', {
-    type: 'button', key, className: cx('tq-pill', opts.danger && 'tq-danger'), 'data-tq-action': key,
-    disabled: opts.disabled === true, title: opts.title, onClick,
-  }, label)
+    type: 'button', key, className: cx('tq-pill', kind === 'danger' && 'tq-danger'), 'data-tq-action': key, 'data-tq-kind': kind,
+    'data-armed': opts.armed ? 'true' : undefined, disabled: opts.disabled === true, title: opts.title,
+    'aria-label': opts.said, onClick,
+  }, key === 'brief' || key === 'log' ? renderViewGlyph(key) : null, h('span', null, label))
+}
+
+/** The read-only pills' glyphs, in the executor glyphs' outline: a page (the brief), lines (the log). */
+function renderViewGlyph(key: string): React.ReactElement {
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
+  return h('svg', { className: cx('tq-pill-glyph'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+    key === 'brief'
+      ? h('path', { ...stroke, d: 'M3 1.5H7.2L9.5 3.8V10.5H3ZM7 1.6V4H9.4M4.6 6.2H7.9M4.6 8.2H7.9' })
+      : h('path', { ...stroke, d: 'M2 3H10M2 6H10M2 9H7' }))
+}
+
+type DetailField = {
+  key: string
+  label: string
+  value: React.ReactNode
+  /** A second line under the value (a breakdown, a qualifier), in caption ink. */
+  sub?: string | null
+  /** The control(s) on the aside track; `wide` puts them on their own line under the value. */
+  control?: React.ReactElement[] | null
+  wide?: boolean
+  /** Under the whole line: a confirmation, the picker, a note. */
+  after?: React.ReactNode
+  mono?: boolean
+  voice?: 'warn' | 'bad'
+}
+
+/** One field on the row grid: dt on the name's edge, dd over took…rest, its control in aside. */
+function renderField(field: DetailField): React.ReactElement {
+  const control = field.control == null || field.control.length === 0 ? null : field.control
+  return h('div', {
+    className: cx('tq-d-field', control !== null && !field.wide && 'tq-d-has-control'), key: field.key, 'data-tq-field': field.key,
+  },
+    h('dt', { className: cx('tq-d-k') }, field.label),
+    h('dd', { className: cx('tq-d-v', field.mono === true && 'tq-mono'), 'data-voice': field.voice }, field.value),
+    field.sub == null || field.sub === '' ? null : h('dd', { className: cx('tq-d-sub') }, field.sub),
+    control === null ? null : h('dd', { className: cx('tq-d-control', field.wide && 'tq-d-control-wide') }, ...control),
+    field.after == null ? null : h('dd', { className: cx('tq-d-after') }, field.after))
+}
+
+/** A section: its caption (a heading for a screen reader's rotor) and its fields as one description list. */
+function renderSection(id: DetailSection, title: string | null, body: Array<React.ReactNode>): React.ReactElement | null {
+  const present = body.filter((node) => node !== null && node !== undefined && node !== false)
+  if (present.length === 0) return null
+  return h('div', { className: cx('tq-d-sec'), key: id, 'data-tq-section': id },
+    title === null ? null : h('div', { className: cx('tq-d-sec-title'), role: 'heading', 'aria-level': 3 }, title),
+    ...present)
+}
+
+function renderFields(fields: Array<DetailField | null>): React.ReactElement | null {
+  const present = fields.filter((field): field is DetailField => field !== null && field.value != null && field.value !== '')
+  return present.length === 0 ? null : h('dl', { className: cx('tq-d-fields'), key: 'dl' }, ...present.map(renderField))
 }
 
 /**
  * The detail layer one task row opens, laid over the list inside the same
- * popover: back · live/ended on top, the name and its status, the four layers
- * as label/value rows (executor, model, slot/queue place, notification), then
- * the actions this task allows right now. Dangerous ones confirm in place and
- * say what they cost: cancelling a queued task is free; a running one loses
- * the step in flight (its session can be resumed); a model change applies to
- * the next attempt.
+ * popover: the back bar stays put; everything else scrolls, in DETAIL_SECTIONS
+ * order. Dangerous writes confirm in place and say what they cost: cancelling
+ * a queued task is free; a running one loses the step in flight (its session
+ * can be resumed); a model change applies to the next attempt. The answer to
+ * a write lands in the layer's resident foot, in view wherever the reader
+ * scrolled to.
  */
 function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number, back: () => void,
   backRef: { current: HTMLButtonElement | null }, ui: DetailUi, notice: { ok: boolean; text: string } | null): React.ReactElement {
   const { task, live } = found
-  const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: executionText(task.state, t) }
-  const cost = _costOf(task)
   const stamp = (ms: number | null | undefined): string | null => ms == null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
-  const took = task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
+  const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: executionText(task.state, t) + ' · ' + reportText(task.outcome, t, task.state) }
+  const chip = live ? _taskState(task, t, now, ui.windowsOf(task.agent)).chip : _endedState(task.state, task.outcome, t)
+  const cost = _costOf(task)
   const m = modelLine(task, live)
   const requested = task.modelRequested ?? ''
   const slot = _slotOf(task)
-  const place = live && task.waiting === 'lock' && task.position
-    ? t('queue.d.placeValue', { n: task.position, agent: task.agent }) + (task.protected ? ' · ' + t('queue.d.protected') : '')
-      + (task.priority ? ' · ' + t('queue.d.priorityValue', { n: task.priority }) : '')
-    : null
-  const fields: Array<[key: string, value: unknown, mono?: boolean]> = [
-    ['queue.d.agent', h('span', { className: cx('tq-inline') }, renderAgentGlyph(task.agent), _agentLabel(task.agent))],
-    ['queue.d.model', m.model === '' ? null : h('span', { className: cx('tq-inline') },
-      _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''),
-      m.fallback ? h('span', { className: cx('tq-tag') }, t('queue.d.fallbackFrom', { model: _modelView(requested).label })) : null)],
-    ['queue.d.slot', slot === null ? null : `${slot.agent}-${slot.slot}`],
-    ['queue.d.place', place],
-    ['queue.d.queued', stamp(task.queuedAtMs)],
-    ['queue.d.started', stamp(task.startedAtMs)],
-    live ? ['', null] : ['queue.d.waited', task.waitMs == null ? t('queue.waitUnknown') : durationOf(t, task.waitMs)],
-    live
-      ? ['queue.d.elapsed', task.startedAtMs === null ? null : durationOf(t, now - task.startedAtMs)]
-      : ['queue.d.took', took],
-    live ? ['queue.d.resumes', stamp(task.wakeAtMs)] : ['queue.d.endedAt', task.updatedAtMs === null ? null
-      : stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs)],
-    ['queue.d.attempts', String(task.attempts)],
-    ['queue.d.stalls', task.stalls ? t('queue.d.stallsValue', { n: task.stalls }) : null],
-    // What the runner enforces now (api 3), not the dispatch record.
-    ['queue.d.deadline', live && task.deadlineAtMs ? stamp(task.deadlineAtMs) : null],
-    ['queue.d.budget', task.maxAttempts == null ? null : t('queue.d.budgetValue', {
-      used: task.attempts, max: task.maxAttempts, rused: task.quotaResumesUsed ?? 0, rmax: task.quotaResumes ?? '—' })],
-    ['queue.d.cost', cost === null ? null : (cost.kind === 'usd' ? t('queue.d.costValue', { usd: (task.costUsd ?? '') })
-      : cost.kind === 'free' ? t('queue.d.costFree') : t('queue.d.costUnpriced')) + (live ? ' · ' + t('queue.d.costLive') : '')],
-    ['queue.d.tokens', task.tokensTotal == null ? null : t('queue.d.tokensValue', {
-      total: _fmtTokens(task.tokensTotal), in: _fmtTokens(task.tokensIn ?? 0), w: _fmtTokens(task.tokensCacheW ?? 0),
-      r: _fmtTokens(task.tokensCacheR ?? 0), out: _fmtTokens(task.tokensOut ?? 0) })],
-    ['queue.d.notify', (task.notify ?? []).length + (task.notified ?? []).length + (task.notifyFailed ?? []).length === 0
-      ? t('queue.d.notifyNone')
-      : h('span', { className: cx('tq-inline') }, renderNotifyIcons(task, t, live),
-        notifyChannels(task).map((ch) => t('queue.notify.' + _notifyState(task, ch, live), { ch: t('queue.ch.' + ch) })).join(' · '))],
-    ['queue.d.runner', live && (task.runnerApi ?? 2) < 2 ? t('queue.noRunnerApi') : null],
-    // Falsy checks: a host older than these fields sends none of them.
-    live && task.lastEvent ? ['queue.d.latest', task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs))] : ['', null],
-    ['queue.d.session', task.session || null, true],
-    ['queue.d.id', task.id, true],
-  ]
   const busy = ui.busy !== null
   const reading = ui.readPending !== null
   const running = live && (slot !== null || (task.attempts > 0 && task.waiting !== 'lock'))
-  const actions: React.ReactElement[] = []
-  if (ui.writable && live && !task.cancelling) {
-    if (reorderable(task)) {
-      actions.push(actionPill('top', t('queue.a.top'), () => { ui.act('priority', task, 'top') }, { disabled: busy || task.position === 1 }))
-      actions.push(actionPill('up', t('queue.a.up'), () => { ui.act('priority', task, 'up') }, { disabled: busy || task.position === 1 }))
-      actions.push(actionPill('down', t('queue.a.down'), () => { ui.act('priority', task, 'down') }, { disabled: busy }))
-    }
-    if ((task.runnerApi ?? 2) >= 2 && !task.patrol) actions.push(actionPill('model', ui.readPending === 'choices' ? t('queue.a.reading') : t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy || reading }))
-    if (running && task.session) actions.push(actionPill('wrapup', t('queue.a.wrapup'), () => { ui.act('wrapup', task) }, { disabled: busy, title: t('queue.a.wrapupTitle') }))
-    if (!task.patrol) {
-      // Budgets (runner api 3): each confirms in place and says what it costs; an older runner
-      // gets the pills disabled with the reason printed below (no hover-only explanation).
-      const old = (task.runnerApi ?? 1) < 3
-      const budget = (action: string, label: string, arg: string): void => {
-        actions.push(actionPill(action, ui.confirm === action + ':' + task.id ? t('queue.a.confirmLabel', { label }) : label, () => {
-          if (ui.confirm === action + ':' + task.id) { ui.askConfirm(null); ui.act(action, task, arg) } else ui.askConfirm(action + ':' + task.id)
-        }, { disabled: busy || old }))
-      }
-      budget('deadline', t('queue.a.deadline'), '+2h')
-      budget('attempts', t('queue.a.attempts'), String((task.maxAttempts ?? 3) + 1))
-      budget('resumes', t('queue.a.resumes'), String((task.quotaResumes ?? 3) + 1))
-    }
-    actions.push(actionPill('cancel', ui.confirm === 'cancel:' + task.id ? t('queue.a.cancelConfirm') : t('queue.a.cancel'), () => {
-      if (ui.confirm === 'cancel:' + task.id) { ui.askConfirm(null); ui.act('cancel', task) } else ui.askConfirm('cancel:' + task.id)
-    }, { danger: true, disabled: busy }))
+  const writable = ui.writable && live && !task.cancelling
+  const budgets = writable && !task.patrol
+  const old = (task.runnerApi ?? 1) < 3
+  const confirming = (action: string): boolean => ui.confirm === action + ':' + task.id
+  const when = running ? t('queue.a.whenNext') : t('queue.a.whenNow')
+  const confirmNote = (action: string, text: string): React.ReactElement | null => !confirming(action) ? null
+    : h('div', { className: cx('tq-note', 'tq-warn', 'tq-confirm'), role: 'alert', 'data-tq-confirm': task.id },
+      h('span', null, text),
+      actionPill('dismiss-confirm', t('queue.a.dismissConfirm'), () => { ui.askConfirm(null) }, { kind: 'view' }))
+  // A budget: one tap arms it (the pill says 确认, the line under it what it costs), the second writes.
+  const budget = (action: string, label: string, short: string, arg: string): React.ReactElement[] | null => !budgets ? null : [
+    actionPill(action, confirming(action) ? t('queue.a.confirm') : short, () => {
+      if (confirming(action)) { ui.askConfirm(null); ui.act(action, task, arg) } else ui.askConfirm(action + ':' + task.id)
+    }, { disabled: busy || old, armed: confirming(action), said: confirming(action) ? t('queue.a.confirmLabel', { label }) : label }),
+  ]
+  const picker = ui.picker
+  const pickerView = picker === null ? null : h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
+    picker.allowed
+      ? [
+        h('label', { className: cx('tq-field'), key: 'm' }, h('span', null, t('queue.d.model')),
+          h('select', {
+            value: picker.model,
+            onChange: (event: { target: { value: string } }) => {
+              const model = event.target.value
+              const efforts = picker.efforts[model] ?? []
+              ui.setPicker({ ...picker, model, effort: efforts.includes(picker.effort) ? picker.effort : '' })
+            },
+          }, picker.models.map((model) => h('option', { key: model, value: model }, _modelView(model).label + ' (' + model + ')')))),
+        h('label', { className: cx('tq-field'), key: 'e' }, h('span', null, picker.flag),
+          h('select', {
+            value: picker.effort,
+            disabled: (picker.efforts[picker.model] ?? []).length === 0,
+            onChange: (event: { target: { value: string } }) => { ui.setPicker({ ...picker, effort: event.target.value }) },
+          }, [h('option', { key: '', value: '' }, t('queue.d.effortDefault')),
+            ...(picker.efforts[picker.model] ?? []).map((effort) => h('option', { key: effort, value: effort }, effort))])),
+        h('div', { className: cx('tq-picker-actions'), key: 'save' },
+          actionPill('save', t('queue.a.save'), () => {
+            ui.setPicker(null)
+            ui.act('model', task, picker.model + '|' + (picker.effort === '' ? 'default' : picker.effort))
+          }, { disabled: busy }),
+          actionPill('close', t('queue.a.close'), () => { ui.setPicker(null) }, { kind: 'view' })),
+        h('div', { className: cx('tq-caption'), key: 'hint' }, t('queue.a.modelHint')),
+      ]
+      : h('div', { className: cx('tq-note') }, picker.reason))
+
+  // ---- run: what the next attempt runs with, each beside its control.
+  const place = live && task.waiting === 'lock' && task.position ? t('queue.d.placeValue', { n: task.position, agent: task.agent }) : null
+  const placeSub = [task.protected ? t('queue.d.protected') : null, task.priority ? t('queue.d.priorityValue', { n: task.priority }) : null]
+    .filter((part): part is string => part !== null).join(' · ')
+  const reorder = writable && reorderable(task)
+  const run = renderFields([
+    m.model === '' ? null : {
+      key: 'model', label: t('queue.d.model'),
+      value: h('span', null, _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''),
+        m.fallback ? h('span', { className: cx('tq-mark'), 'data-role': 'fallback' }, renderRoleGlyph('fallback'),
+          t('queue.d.fallbackFrom', { model: _modelView(requested).label })) : null),
+      control: writable && (task.runnerApi ?? 2) >= 2 && !task.patrol
+        ? [actionPill('model', ui.readPending === 'choices' ? t('queue.a.reading') : t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy || reading })]
+        : null,
+      after: pickerView,
+    },
+    place === null ? null : {
+      key: 'place', label: t('queue.d.place'), value: place, sub: placeSub, wide: true,
+      control: !reorder ? null : [
+        actionPill('top', t('queue.a.top'), () => { ui.act('priority', task, 'top') }, { disabled: busy || task.position === 1 }),
+        actionPill('up', t('queue.a.up'), () => { ui.act('priority', task, 'up') }, { disabled: busy || task.position === 1 }),
+        actionPill('down', t('queue.a.down'), () => { ui.act('priority', task, 'down') }, { disabled: busy }),
+      ],
+    },
+    live && (task.deadlineAtMs || budgets) ? {
+      key: 'deadline', label: t('queue.d.deadline'), value: stamp(task.deadlineAtMs) ?? t('queue.d.notRecorded'),
+      control: budget('deadline', t('queue.a.deadline'), '+2h', '+2h'),
+      after: confirmNote('deadline', t('queue.a.deadlineConfirm', { when })),
+    } : null,
+    task.maxAttempts != null || budgets ? {
+      key: 'retries', label: t('queue.d.retries'),
+      value: task.maxAttempts == null ? t('queue.d.notRecorded') : t('queue.d.usedOf', { used: task.attempts, max: task.maxAttempts }),
+      control: budget('attempts', t('queue.a.attempts'), '+1', String((task.maxAttempts ?? 3) + 1)),
+      after: confirmNote('attempts', t('queue.a.attemptsConfirm', { when })),
+    } : null,
+    task.quotaResumes != null || budgets ? {
+      key: 'resumes', label: t('queue.d.quotaResumes'),
+      value: task.quotaResumes == null ? t('queue.d.notRecorded') : t('queue.d.usedOf', { used: task.quotaResumesUsed ?? 0, max: task.quotaResumes }),
+      control: budget('resumes', t('queue.a.resumes'), '+1', String((task.quotaResumes ?? 3) + 1)),
+      after: confirmNote('resumes', t('queue.a.resumesConfirm', { when })),
+    } : null,
+  ])
+  const budgetOld = budgets && old ? h('div', { className: cx('tq-note', 'tq-d-note'), key: 'old' }, t('queue.a.budgetOld', { api: task.runnerApi ?? 1 })) : null
+
+  // ---- allowance: who runs it and what pays for it.
+  const source = ui.sourceOf(task.agent)
+  // The windows, the pool and a quota stop are the allowance NOW: they belong to a live task only.
+  const windows = !live || source.row === undefined ? null : renderRowDetail(source.row, t, now)
+  const allowance = renderFields([
+    { key: 'agent', label: t('queue.d.agent'), value: h('span', { className: cx('tq-inline') }, renderAgentGlyph(task.agent, 12), _agentLabel(task.agent)),
+      sub: slot === null ? null : source.lane?.max ? t('queue.d.slotOf', { slot: slot.slot, max: source.lane.max }) : t('queue.d.slotValue', { slot: slot.slot }) },
+    source.plan === null ? null : { key: 'source', label: t('queue.d.source'), value: t(source.plan), sub: source.row?.note ?? null,
+      voice: source.row?.note ? 'warn' : undefined },
+    windows === null ? null : { key: 'windows', label: t('queue.d.windows'), value: h('div', { className: cx('pp-allowance', 'tq-d-windows') }, windows) },
+    !live || source.pool === undefined ? null : {
+      key: 'pool', label: t('queue.d.pool'),
+      value: source.pool === null ? t('panel.poolUnread')
+        : t('panel.pool', { current: _modelView(source.pool.current).label, next: source.pool.next === '' ? '—' : _modelView(source.pool.next).label })
+          + (source.pool.fromOrder ? t('panel.poolOrder') : ''),
+      sub: source.poolSize > 1 ? t('panel.poolSwap', { n: source.poolSize }) : null,
+    },
+    live && source.quotaUntilMs ? { key: 'quota', label: t('queue.d.quotaOut'), voice: 'warn',
+      value: t('queue.quotaHint', { time: stamp(source.quotaUntilMs) ?? '', by: source.quotaBy }) } : null,
+  ])
+
+  // ---- time: the task's clock, oldest first.
+  const took = live ? (task.startedAtMs === null ? null : durationOf(t, now - task.startedAtMs))
+    : task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
+  const time = renderFields([
+    { key: 'queued', label: t('queue.d.queued'), value: stamp(task.queuedAtMs) },
+    live ? (task.waitMs == null ? null : { key: 'waited', label: t('queue.d.waited'), value: durationOf(t, task.waitMs) })
+      : { key: 'waited', label: t('queue.d.waited'), value: task.waitMs == null ? t('queue.waitUnknown') : durationOf(t, task.waitMs) },
+    { key: 'started', label: t('queue.d.started'), value: stamp(task.startedAtMs) },
+    { key: 'took', label: t(live ? 'queue.d.elapsed' : 'queue.d.took'), value: took },
+    live ? { key: 'wakes', label: t('queue.d.resumes'), value: stamp(task.wakeAtMs) } : null,
+    live || task.updatedAtMs === null ? null
+      : { key: 'ended', label: t('queue.d.endedAt'), value: stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs) },
+  ])
+
+  // ---- usage.
+  const usage = renderFields([
+    task.maxAttempts == null ? { key: 'attempts', label: t('queue.d.attempts'), value: String(task.attempts) } : null,
+    task.stalls ? { key: 'stalls', label: t('queue.d.stalls'), value: t('queue.d.stallsValue', { n: task.stalls }), voice: 'warn' } : null,
+    cost === null ? null : {
+      key: 'cost', label: t('queue.d.cost'),
+      value: cost.kind === 'usd' ? '$' + (task.costUsd ?? '') : cost.kind === 'free' ? t('queue.d.costFreeShort') : '—',
+      sub: (cost.kind === 'usd' ? t('queue.d.costEstimate') : cost.kind === 'free' ? t('queue.d.costFree') : t('queue.d.costUnpriced'))
+        + (live ? ' · ' + t('queue.d.costLive') : ''),
+    },
+    task.tokensTotal == null ? null : {
+      key: 'tokens', label: t('queue.d.tokens'), value: t('queue.d.tokensTotal', { total: _fmtTokens(task.tokensTotal) }),
+      sub: t('queue.d.tokensSplit', { in: _fmtTokens(task.tokensIn ?? 0), w: _fmtTokens(task.tokensCacheW ?? 0),
+        r: _fmtTokens(task.tokensCacheR ?? 0), out: _fmtTokens(task.tokensOut ?? 0) }),
+    },
+  ])
+
+  // ---- notify: one line per channel.
+  const channels = notifyChannels(task)
+  const notify = renderFields([{
+    key: 'notify', label: t('queue.d.notify'),
+    value: channels.length === 0 ? t('queue.d.notifyNone') : h('span', { className: cx('tq-d-lines') }, channels.map((ch) => {
+      const only = { ...task, notify: [ch], notified: (task.notified ?? []).filter((c) => c === ch), notifyFailed: (task.notifyFailed ?? []).filter((c) => c === ch) }
+      const said = t('queue.notify.' + _notifyState(task, ch, live), { ch: t('queue.ch.' + ch) })
+      return h('span', { className: cx('tq-inline'), key: ch, 'data-tq-channel': ch }, renderNotifyIcons(only, t, live), h('span', { 'aria-hidden': 'true' }, said))
+    })),
+  }])
+
+  // ---- end: the writes that end or restart the task.
+  const end: React.ReactElement[] = []
+  if (writable && running && task.session) end.push(actionPill('wrapup', t('queue.a.wrapup'), () => { ui.act('wrapup', task) }, { disabled: busy, title: t('queue.a.wrapupTitle') }))
+  if (writable) {
+    end.push(actionPill('cancel', confirming('cancel') ? t('queue.a.cancelConfirm') : t('queue.a.cancel'), () => {
+      if (confirming('cancel')) { ui.askConfirm(null); ui.act('cancel', task) } else ui.askConfirm('cancel:' + task.id)
+    }, { disabled: busy, armed: confirming('cancel') }))
   }
   if (ui.writable && !live && task.session && !(task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === ''))) {
-    actions.push(actionPill('retry', t('queue.a.retry'), () => { ui.act('retry', task) }, { disabled: busy }))
+    end.push(actionPill('retry', t('queue.a.retry'), () => { ui.act('retry', task) }, { disabled: busy }))
   }
-  if (ui.writable) actions.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
-  // The brief opens in dsh's own file preview: read-only, no writes, so no ops entry needed.
-  actions.unshift(actionPill('brief', ui.readPending === 'brief' ? t('queue.a.reading') : t('queue.a.brief'), () => { ui.openBrief(task) }, { disabled: reading, title: t('queue.a.briefTitle') }))
-  const when = running ? t('queue.a.whenNext') : t('queue.a.whenNow')
-  const confirmText = ui.confirm === 'cancel:' + task.id
-    ? running
-      ? t('queue.a.cancelRunning', { session: task.session || '—' })
-      : task.waiting === 'quota' || task.waiting === 'retry' ? t('queue.a.cancelSleeping') : t('queue.a.cancelQueued')
-    : ui.confirm === 'deadline:' + task.id ? t('queue.a.deadlineConfirm', { when })
-      : ui.confirm === 'attempts:' + task.id ? t('queue.a.attemptsConfirm', { when })
-        : ui.confirm === 'resumes:' + task.id ? t('queue.a.resumesConfirm', { when }) : null
-  if (confirmText !== null) actions.push(actionPill('dismiss-confirm', t('queue.a.dismissConfirm'), () => { ui.askConfirm(null) }))
-  const budgetOld = ui.writable && live && !task.patrol && (task.runnerApi ?? 1) < 3
+  const cancelText = running ? t('queue.a.cancelRunning', { session: task.session || '—' })
+    : task.waiting === 'quota' || task.waiting === 'retry' ? t('queue.a.cancelSleeping') : t('queue.a.cancelQueued')
+
+  // ---- view: the brief and the log, read-only; what they open unfolds under them.
+  const view: React.ReactElement[] = [
+    actionPill('brief', ui.readPending === 'brief' ? t('queue.a.reading') : t('queue.a.brief'), () => { ui.openBrief(task) }, { disabled: reading, title: t('queue.a.briefTitle') }),
+  ]
+  if (ui.writable) view.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
   const brief = ui.brief !== null && ui.brief.id === task.id ? ui.brief : null
   const kb = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
-  const picker = ui.picker
-  return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
-    h('div', { className: cx('tq-head', 'tq-d-head') },
-      h('button', {
-        type: 'button',
-        className: cx('tq-back'),
-        'data-tq-back': 'true',
-        'aria-label': t('queue.back'),
-        title: t('queue.back'),
-        ref: backRef,
-        onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('panel.title')),
-      h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
-    h('div', { className: cx('tq-scroll') },
-      notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), role: 'status' }, notice.text),
-      h('div', { className: cx('tq-d-title') },
-        live ? h('span', { className: cx('tq-dot'), 'data-balance-state': status.tone }) : null,
-        h('span', { className: cx('tq-d-name') }, task.name)),
-      h('div', { className: cx('tq-d-status'), 'data-balance-state': status.tone }, status.text),
-      live ? null : h('div', { className: cx('tq-sub', 'tq-detail-report'), title: t('queue.statusLegend') }, reportText(task.outcome, t, task.state)),
-      actions.length === 0 ? null : h('div', { className: cx('tq-actions'), role: 'group', 'aria-label': t('queue.a.group') }, actions),
-      budgetOld ? h('div', { className: cx('tq-note') }, t('queue.a.budgetOld', { api: task.runnerApi ?? 1 })) : null,
-      confirmText === null ? null : h('div', { className: cx('tq-note', 'tq-warn'), role: 'alert', 'data-tq-confirm': task.id }, confirmText),
-      brief === null ? null : h('div', { className: cx('tq-brief'), 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
+
+  // ---- raw: folded, the source lines the fields above were read from.
+  const raw = renderFields([
+    live && task.lastEvent ? { key: 'latest', label: t('queue.d.latest'), value: task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs)), mono: true } : null,
+    { key: 'runner', label: t('queue.d.runner'), value: live && (task.runnerApi ?? 2) < 2 ? t('queue.noRunnerApi') : task.runnerApi == null ? null : 'api ' + task.runnerApi,
+      voice: live && (task.runnerApi ?? 2) < 2 ? 'warn' : undefined },
+    { key: 'session', label: t('queue.d.session'), value: task.session || null, mono: true },
+    { key: 'id', label: t('queue.d.id'), value: task.id, mono: true },
+  ])
+
+  const sections: Record<DetailSection, React.ReactElement | null> = {
+    status: h('div', { className: cx('tq-d-sec', 'tq-d-hero'), key: 'status', 'data-tq-section': 'status' },
+      h('span', { className: cx('tq-lead'), 'aria-hidden': 'true' }, renderAgentGlyph(task.agent)),
+      h('span', { className: cx('tq-d-name'), role: 'heading', 'aria-level': 2 }, task.name),
+      renderChip(chip, { slot: 'status' }),
+      status.text === chip.text ? null : h('div', {
+        className: cx('tq-d-status'), 'data-balance-state': status.tone, title: live ? undefined : t('queue.statusLegend'),
+      }, status.text)),
+    summary: live ? null : renderSection('summary', t('queue.d.summary'), [task.summary
+      ? h('div', { className: cx('tq-d-summary'), key: 'summary' }, task.summary)
+      : h('div', { className: cx('tq-empty'), key: 'summary' }, t('queue.d.noSummary'))]),
+    view: renderSection('view', null, [
+      h('div', { className: cx('tq-actions'), key: 'pills', role: 'group', 'aria-label': t('queue.a.viewGroup') }, ...view),
+      brief === null ? null : h('div', { className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
         h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
         h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
           h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kb(brief.bytes) })),
@@ -2848,44 +3081,42 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
               h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { stamp: a.stamp || a.file })),
               h('span', { className: cx('tq-tag'), 'data-tq-delivered': a.delivered ? 'true' : 'false' },
                 t(a.delivered ? 'queue.brief.delivered' : 'queue.brief.pending'))))),
-      picker === null ? null : h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
-        picker.allowed
-          ? [
-            h('label', { className: cx('tq-field'), key: 'm' }, h('span', null, t('queue.d.model')),
-              h('select', {
-                value: picker.model,
-                onChange: (event: { target: { value: string } }) => {
-                  const model = event.target.value
-                  const efforts = picker.efforts[model] ?? []
-                  ui.setPicker({ ...picker, model, effort: efforts.includes(picker.effort) ? picker.effort : '' })
-                },
-              }, picker.models.map((model) => h('option', { key: model, value: model }, _modelView(model).label + ' (' + model + ')')))),
-            h('label', { className: cx('tq-field'), key: 'e' }, h('span', null, picker.flag),
-              h('select', {
-                value: picker.effort,
-                disabled: (picker.efforts[picker.model] ?? []).length === 0,
-                onChange: (event: { target: { value: string } }) => { ui.setPicker({ ...picker, effort: event.target.value }) },
-              }, [h('option', { key: '', value: '' }, t('queue.d.effortDefault')),
-                ...(picker.efforts[picker.model] ?? []).map((effort) => h('option', { key: effort, value: effort }, effort))])),
-            h('div', { className: cx('tq-actions'), key: 'save' },
-              actionPill('save', t('queue.a.save'), () => {
-                ui.setPicker(null)
-                ui.act('model', task, picker.model + '|' + (picker.effort === '' ? 'default' : picker.effort))
-              }, { disabled: busy }),
-              actionPill('close', t('queue.a.close'), () => { ui.setPicker(null) })),
-            h('div', { className: cx('tq-caption'), key: 'hint' }, t('queue.a.modelHint')),
-          ]
-          : h('div', { className: cx('tq-note') }, picker.reason)),
-      h('div', { className: cx('tq-d-grid') },
-        fields.filter(([, value]) => value !== null).flatMap(([key, value, mono]) => [
-          h('span', { className: cx('tq-d-k'), key: key + '-k' }, t(key)),
-          h('span', { className: cx('tq-d-v', mono === true && 'tq-mono'), key: key + '-v' }, value),
-        ])),
-      ui.log === null ? null : h('pre', { className: cx('tq-log'), 'data-tq-log': task.id }, ui.log.join('\n')),
-      live ? null : h('div', { className: cx('tq-caption') }, t('queue.d.summary')),
-      live ? null : task.summary
-        ? h('div', { className: cx('tq-d-summary') }, task.summary)
-        : h('div', { className: cx('tq-empty') }, t('queue.d.noSummary'))))
+      // The log scrolls inside itself: focusable and named, so a keyboard and a screen reader can read it.
+      ui.log === null ? null : h('pre', { className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region', 'aria-label': t('queue.a.log') }, ui.log.join('\n')),
+    ]),
+    run: renderSection('run', t('queue.d.sec.run'), [run, budgetOld]),
+    allowance: renderSection('allowance', t('queue.d.sec.allowance'), [allowance]),
+    time: renderSection('time', t('queue.d.sec.time'), [time]),
+    usage: renderSection('usage', t('queue.d.sec.usage'), [usage]),
+    // One field: its label is the section's name, so the section has no caption of its own.
+    notify: renderSection('notify', null, [notify]),
+    end: renderSection('end', t(live ? 'queue.d.sec.end' : 'queue.d.sec.again'), end.length === 0 ? [] : [
+      h('div', { className: cx('tq-actions'), key: 'pills', role: 'group', 'aria-label': t(live ? 'queue.d.sec.end' : 'queue.d.sec.again') }, ...end),
+      confirming('cancel') ? h('div', { className: cx('tq-note', 'tq-warn', 'tq-confirm'), key: 'confirm', role: 'alert', 'data-tq-confirm': task.id },
+        h('span', null, cancelText),
+        actionPill('dismiss-confirm', t('queue.a.dismissConfirm'), () => { ui.askConfirm(null) }, { kind: 'view' })) : null,
+    ]),
+    raw: raw === null ? null : h('div', { className: cx('tq-d-sec'), key: 'raw', 'data-tq-section': 'raw' },
+      renderFold('raw', t('queue.d.sec.raw'), [raw])),
+  }
+  return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
+    h('div', { className: cx('tq-head', 'tq-d-head') },
+      h('button', {
+        type: 'button',
+        className: cx('tq-back'),
+        'data-tq-back': 'true',
+        'aria-label': t('queue.back'),
+        title: t('queue.back'),
+        ref: backRef,
+        onClick: back,
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('panel.title')),
+      h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
+    h('div', { className: cx('tq-scroll', 'tq-d-scroll'), role: 'region', 'aria-label': t('queue.d.region', { name: task.name }) },
+      ...DETAIL_SECTIONS[live ? 'live' : 'ended'].map((id) => sections[id])),
+    // Resident: the answer to a write, wherever the reader had scrolled to. Always mounted, so a
+    // screen reader hears it when it fills.
+    h('div', { className: cx('tq-d-notice', notice !== null && (notice.ok ? 'tq-ok' : 'tq-bad')), role: 'status', 'data-tq-notice': notice === null ? undefined : 'true' },
+      notice === null ? null : notice.text))
 }
 
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
@@ -3105,13 +3336,26 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     const row = join?.provider ? rows.get(join.provider) : undefined
     return row?.result.snapshot?.windows
   }
+  const sourceOf = (agent: string): DetailSource => {
+    const join = PROVIDER_JOIN.find((j) => j.agent === agent)
+    const queue = (result?.queues ?? []).find((q) => q.agent === agent)
+    return {
+      plan: join?.plan ?? null,
+      row: join?.provider ? rows.get(join.provider) : undefined,
+      pool: join?.kind === 'pool' ? _poolPosition(result) : undefined,
+      poolSize: join?.kind === 'pool' ? result?.opencodePool?.length ?? 0 : 0,
+      lane: dispatcher ? _slotLanes(result!).find((l) => l.agent === agent) : undefined,
+      quotaUntilMs: queue?.quotaUntilMs ?? null,
+      quotaBy: queue?.quotaBy ?? '',
+    }
+  }
   const found = !dispatcher || detailId === null ? null : findTask(result!, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
   lastSeen.current = found
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
     open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null) },
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
-    brief, readPending, openBrief, openPath, windowsOf, rows,
+    brief, readPending, openBrief, openPath, windowsOf, sourceOf, rows,
   }
   // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
   const lines = sources.map((source) => {

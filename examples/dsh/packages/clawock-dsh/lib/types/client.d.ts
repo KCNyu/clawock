@@ -518,6 +518,47 @@ export declare function _costOf(task: DispatchTask): {
  * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
  */
 export declare function _sessionFileAddress(sessionId: string, path: string): string;
+/**
+ * The detail layer's order (2026-09-28, kcn: 「问题在详情页……信息没有秩序」). The layer
+ * holds what the row cannot: the whole status sentence, the allowance the task
+ * burns and when it resets, where the free pool stands, the first queue wait,
+ * the budgets and the raw record. It is read top-down in SECTIONS order; a
+ * section with nothing to say is not drawn. Each section is a caption and a
+ * list of fields on THE row grid (--tq-grid): the label on the `when` track
+ * (the name's edge), the value over took…rest, and — for a fact a task can
+ * change — its control on the `aside` track, where the list keeps the state
+ * chip. So a control sits beside the number it changes, and its confirmation
+ * directly under that line.
+ *
+ *   status     glyph · name · the row's own state chip; the full sentence under it
+ *   summary    (ended) the closing report — what happened comes before how
+ *   view       read-only: the brief and the log; what they open unfolds right here
+ *   run        what the next attempt runs with — model, place in line, deadline,
+ *              retries, quota resumes — each with its control when writable
+ *   allowance  who runs it and what pays: agent and slot, the plan; while live also the
+ *              windows with their resets (the list's own window lines), the free pool's
+ *              position and a quota stop — they describe now, not an ended run
+ *   time       queued, first queue wait, started, running for / took, wakes, ended
+ *   usage      tries (when no budget says it), stalls, cost, tokens
+ *   notify     one line per channel, the list's receipt mark and its words (one field, no caption)
+ *   end        the task-ending writes (wrap up, cancel), or retry once it ended
+ *   raw        FOLDED (the list's one disclosure rule: raw source folds): the
+ *              runner's latest log line, the runner api, session and task ids
+ *
+ * DETAIL_ACTIONS says what each action is — `view` reads (a filled, quiet
+ * pill), `write` changes the queue (an outlined control beside its fact),
+ * `danger` ends work (red, last) — and where it lives. The spec checks every
+ * rendered section, field and pill against these tables.
+ */
+export type DetailSection = 'status' | 'summary' | 'view' | 'run' | 'allowance' | 'time' | 'usage' | 'notify' | 'end' | 'raw';
+export declare const DETAIL_SECTIONS: Record<'live' | 'ended', readonly DetailSection[]>;
+export declare const DETAIL_FIELDS: Partial<Record<DetailSection, readonly string[]>>;
+export declare const DETAIL_FOLDED: readonly DetailSection[];
+export type ActionKind = 'view' | 'write' | 'danger';
+export declare const DETAIL_ACTIONS: Record<string, {
+    kind: ActionKind;
+    home: string;
+}>;
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
 export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
