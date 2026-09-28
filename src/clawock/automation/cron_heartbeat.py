@@ -56,17 +56,43 @@ def _empty(at: datetime | None = None) -> dict:
     }
 
 
-def _load() -> tuple[dict, bool]:
-    """Return (ledger, from_disk). from_disk is False only when no valid ledger
-    file exists yet and a blank one was synthesised."""
+def _load_state(at: datetime | None = None) -> tuple[dict, bool, list[str]]:
+    """Return (ledger, from_disk, unreadable).
+
+    from_disk is False only when no ledger file exists at all and a blank one
+    was synthesised — the one case where record() may anchor a new epoch.
+    A file that exists but cannot be read, parsed or recognised is not "no
+    ledger" (#2073): treating it as one re-anchored the epoch to the current
+    slot and overwrote the old events, so every slot it had swallowed read as
+    "before monitoring began" — green. When nothing valid can be read but
+    something is there, the blank ledger's epoch is the start of the retention
+    window instead, so those slots count as monitored and show up missing, and
+    `unreadable` names what could not be read.
+    """
+    unreadable = []
     for path in (LOCAL_PATH, PUBLIC_PATH):
         try:
             data = json.loads(path.read_text())
-            if data.get("schema_version") == SCHEMA_VERSION:
-                return data, True
-        except (FileNotFoundError, json.JSONDecodeError, OSError):
+        except FileNotFoundError:
             continue
-    return _empty(), False
+        except (ValueError, OSError) as exc:
+            unreadable.append(f"{path.name}: {type(exc).__name__}: {exc}")
+            continue
+        if isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION:
+            return data, True, unreadable
+        version = data.get("schema_version") if isinstance(data, dict) else type(data).__name__
+        unreadable.append(f"{path.name}: schema_version {version!r}")
+    if not unreadable:
+        return _empty(at), False, []
+    ledger = _empty(at)
+    ledger["monitoring_started_at"] = (_now(at) - timedelta(hours=KEEP_HOURS)).isoformat()
+    return ledger, True, unreadable
+
+
+def _load() -> tuple[dict, bool]:
+    """Return (ledger, from_disk); see _load_state."""
+    ledger, from_disk, _ = _load_state()
+    return ledger, from_disk
 
 
 def load_ledger() -> dict:
@@ -128,6 +154,22 @@ def unpushed_commits(workspace=None) -> int | None:
         return None
 
 
+def _keep_unreadable(now: datetime, unreadable: list[str]) -> None:
+    """Move an unreadable local ledger aside instead of overwriting it, and say
+    so where the card reads degradations (#2073)."""
+    if LOCAL_PATH.exists():
+        try:
+            os.replace(LOCAL_PATH, LOCAL_PATH.with_name(
+                f"{LOCAL_PATH.name}.unreadable-{now.strftime('%Y%m%dT%H%M%S')}"))
+        except OSError:
+            pass
+    if LOCAL_PATH == WS / "memory" / ".tmp" / "cron-heartbeats.json":
+        workflow_outcomes.note_degradation(
+            None, "heartbeat_ledger_unreadable",
+            "; ".join(unreadable) + f"; epoch set to the {KEEP_HOURS}h retention start, "
+            "so slots the lost events covered read as missing")
+
+
 def record(market: str, state: str, *, at: datetime | None = None,
            job_name: str | None = None, slot: str | None = None, **details) -> dict:
     now = _now(at)
@@ -136,7 +178,9 @@ def record(market: str, state: str, *, at: datetime | None = None,
     slot = slot or derived_slot
     # Lock spans load→merge→write (same convention as workflow_outcomes).
     with _locked():
-        ledger, from_disk = _load()
+        ledger, from_disk, unreadable = _load_state(now)
+        if unreadable:
+            _keep_unreadable(now, unreadable)
         # A brand-new ledger gets stamped with real wall-clock now inside _empty();
         # anchor monitoring_started_at to this first record's slot boundary instead,
         # otherwise the current slot (crons fire a few minutes past the boundary)

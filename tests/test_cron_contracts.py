@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -1112,3 +1112,37 @@ def test_the_readmes_print_the_brief_slot_the_cron_actually_fires():
             f'{name} prints {sorted(stale)} for the morning slot while the cron '
             f'fires at {scheduling.BRIEF_SLOT_HKT}; update the prose or the '
             'constant')
+
+
+@pytest.mark.parametrize('content', ['{"schema_version": 1, "events": [', '{"schema_version": 2, "events": []}'])
+def test_an_unreadable_ledger_is_not_a_fresh_one(tmp_path, monkeypatch, content):
+    """#2073: a torn (or unrecognised) ledger used to read as "no ledger": the
+    epoch was re-anchored to the current slot and the old file overwritten,
+    so the slots it had covered fell before monitoring start — green. The
+    epoch now opens the retention window, and the file is kept aside."""
+    local = tmp_path / 'local.json'
+    local.write_text(content)
+    monkeypatch.setattr(cron_heartbeat, 'LOCAL_PATH', local)
+    monkeypatch.setattr(cron_heartbeat, 'PUBLIC_PATH', tmp_path / 'public.json')
+    hkt = ZoneInfo('Asia/Hong_Kong')
+    at = datetime(2026, 9, 28, 15, 34, tzinfo=hkt)
+
+    cron_heartbeat.record('hk', 'started', at=at)
+
+    ledger = json.loads(local.read_text())
+    started = datetime.fromisoformat(ledger['monitoring_started_at'])
+    assert started <= at - timedelta(hours=cron_heartbeat.KEEP_HOURS) + timedelta(seconds=1)
+    assert [p.name for p in tmp_path.iterdir() if '.unreadable-' in p.name], \
+        'the unreadable file is kept as evidence, not overwritten'
+    coverage = cron_health.heartbeat_coverage(
+        '盘中盯盘', ['10:00', '15:30'], 'Asia/Shanghai', at.astimezone(timezone.utc), ledger)
+    assert coverage['monitored'] == ['10:00', '15:30'] and coverage['missing'] == ['10:00']
+
+
+def test_an_absent_ledger_still_anchors_to_the_first_slot(tmp_path, monkeypatch):
+    monkeypatch.setattr(cron_heartbeat, 'LOCAL_PATH', tmp_path / 'local.json')
+    monkeypatch.setattr(cron_heartbeat, 'PUBLIC_PATH', tmp_path / 'public.json')
+    at = datetime(2026, 9, 28, 15, 34, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    cron_heartbeat.record('hk', 'started', at=at)
+    ledger = json.loads((tmp_path / 'local.json').read_text())
+    assert ledger['monitoring_started_at'] == '2026-09-28T15:30:00+08:00'
