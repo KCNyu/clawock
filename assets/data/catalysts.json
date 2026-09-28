@@ -1,21 +1,17 @@
 {
-  "generated_at": "2026-09-25T08:03:44.267319+08:00",
+  "generated_at": "2026-09-28T08:03:42.078225+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-25",
-  "window_end": "2026-10-09",
+  "window_start": "2026-09-28",
+  "window_end": "2026-10-12",
   "earnings_queried": [
     "CRCL",
     "RKLB",
     "SPCX"
   ],
   "earnings": [],
+  "recent_earnings": [],
   "fomc": [],
   "macro_events": [
-    {
-      "date": "2026-09-25",
-      "type": "PCE",
-      "detail": "Aug PCE price index (BEA, Fed preferred inflation gauge)"
-    },
     {
       "date": "2026-10-02",
       "type": "NFP",
@@ -26,7 +22,7 @@
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 2,
+    "macro_count": 1,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "NFP 2026-10-02"
