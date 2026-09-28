@@ -133,6 +133,12 @@ def simulate(closes):
     return dict(bh1=bh1, bh2=bh2, reg=reg, rgv=rgv, r1x=r1x, pos=pos, ma=ma, vols=vols)
 
 
+def can_measure_200dma(data):
+    # Decisions use yesterday's completed MA. One extra bar is needed to
+    # produce even the first defined regime return in this evaluator.
+    return len(data) > MA_WIN
+
+
 COLORS = {'bh2': '#ef4444', 'reg': '#f59e0b', 'rgv': '#a855f7', 'r1x': '#22c55e', 'bh1': '#64748b'}
 LBL = {'bh1': '标的 1x 持有', 'bh2': '2x ETF 死扛', 'reg': 'Regime 2x', 'rgv': 'Regime+Vol 2x', 'r1x': 'Regime 1x(降杠杆)'}
 
@@ -158,6 +164,10 @@ def main(argv=None):
         if len(data) < 2:
             print(f'{(etf+"/"+ul):<14}跳过：{sym} 没有可用日线')
             continue
+        if not can_measure_200dma(data):
+            print(f'{(etf+"/"+ul):<14}未测量：{sym} 仅 {len(data)} 根日线，'
+                  f'需要超过 {MA_WIN} 根才有制度收益；不写入 run card')
+            continue
         names.append((etf, ul, sym))
         dates = [d for d, _ in data]; closes = [c for _, c in data]
         series_inputs.append({
@@ -181,6 +191,10 @@ def main(argv=None):
                 'pct_time_in_market': round(inmkt, 2), 'switches': sw,
             }
         print('-' * 76)
+
+    if not names:
+        print('无具备 200DMA 历史的标的；未生成测量值或 run card')
+        return 0
 
     # ---- Figure 1: per-name equity (log) + underwater drawdown (3 rows × 2 cols)
     fig, axes = plt.subplots(len(names), 2, figsize=(13, 3.7 * len(names)), squeeze=False)
