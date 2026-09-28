@@ -925,6 +925,14 @@ def load_em_news(issues):
         return {}
     try:
         d = json.loads(path.read_text())
+        age = _payload_age_hours(d)
+        if _is_stale(age, 36):
+            # Same gate as macro / sentiment / influencer (#2081): a sidecar the
+            # fetch did not refresh must not reach the model as today's news.
+            # Omitted, not an issue — see the macro note in the sentiment loader.
+            print(f'   ⚠ em_news stale/unknown ({_age_str(age)}) '
+                  f'— omitting from brief (non-fatal)')
+            return {}
         hold = {tk: {'name': v.get('name'),
                      'items': [{'date': i.get('date'), 'title': i.get('title')}
                                for i in (v.get('items') or [])[:3]]}
@@ -932,7 +940,8 @@ def load_em_news(issues):
         mkt = [{'date': i.get('date'), 'title': i.get('title')}
                for i in (d.get('market_724') or [])[:5]]
         return {'holdings_news': hold, 'market_724': mkt,
-                'generated_at': d.get('generated_at')}
+                'generated_at': d.get('generated_at'),
+                'age_hours': round(age, 1) if age is not None else None}
     except Exception as e:
         issues.append(f'em_news.json 解析失败: {e}')
         return {}
