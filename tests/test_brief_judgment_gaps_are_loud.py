@@ -63,7 +63,21 @@ def test_an_unparseable_judgment_is_reported_as_such(tmp_path):
 
     issues = postflight._judgment_gap_issues(path, PACKET)
 
-    assert len(issues) == 1 and "无法解析" in issues[0]
+    assert len(issues) == 1 and "解析失败" in issues[0]
+
+
+def test_an_unparseable_judgment_fails_the_brief_closed(tmp_path):
+    """#2078: a truncated judgment makes the renderer skip the whole page and
+    leave yesterday's pre-open.md, which validate_markdown passes. As a warn
+    that stale page shipped; it must be critical like `plan.json 解析失败`."""
+    path = tmp_path / "brief-judgment.json"
+    path.write_text('{"schema_version": 3, "ticker_judgments": [', encoding="utf-8")
+
+    issues = postflight._judgment_gap_issues(path, PACKET)
+
+    assert postflight.categorize(issues) == "fail"
+    assert postflight.categorize(
+        postflight._judgment_gap_issues(tmp_path / "absent.json", PACKET)) == "fail"
 
 
 def test_an_invalid_judgment_says_what_is_lost_and_what_is_not(tmp_path):
