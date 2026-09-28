@@ -1643,6 +1643,7 @@ def load_plans():
                 'tldr': d.get('summary') or d.get('tldr') or '',
                 'has_retrospective': bool(d.get('retrospective')),
                 'context': d.get('context', {}),
+                'watch_levels': d.get('watch_levels'),
                 'truncated': True,
                 'original_bytes': len(raw),
             }

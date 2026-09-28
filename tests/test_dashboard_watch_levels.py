@@ -15,6 +15,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from clawock.publish import dashboard
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLES = ("dashboard.hero.js", "dashboard.render.js")
@@ -22,6 +23,21 @@ TOTALS = {
     "us": {"pnl_usd": -929.62, "pnl_pct": -20.9544},
     "hk": {"pnl_hkd": -48648.44, "pnl_pct": -44.19},
 }
+
+
+def test_large_plan_summary_retains_watch_levels_for_both_page_surfaces(tmp_path, monkeypatch):
+    memory = tmp_path / 'memory'
+    memory.mkdir()
+    levels = {'book_force_derisk_usd': -300}
+    (memory / '2026-09-28-plan.json').write_text(json.dumps({
+        'date': '2026-09-28', 'summary': 'x' * 200,
+        'watch_levels': levels, 'decisions': [],
+    }))
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard, 'MAX_PLAN_BYTES', 100)
+    plan = dashboard.load_plans()[0]['plan']
+    assert plan['truncated'] is True
+    assert plan['watch_levels'] == levels
 
 
 def _watch_rows(bundle, levels):
