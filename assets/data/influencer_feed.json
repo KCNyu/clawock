@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T23:55:37.319412+00:00",
+  "generated_at": "2026-09-28T19:51:30.130249+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -17,9 +17,9 @@
     "ark": "success_empty",
     "serenity": "failed",
     "duan": "success",
-    "honghao": "success",
+    "honghao": "success_empty",
     "burry": "success",
-    "pelosi": "success_empty"
+    "pelosi": "success"
   },
   "llm_filtered": false,
   "llm_filter_status": "failed_kept_previous",
