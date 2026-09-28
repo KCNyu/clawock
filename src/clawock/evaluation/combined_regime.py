@@ -11,7 +11,7 @@ handled on a UNION calendar (a market closed that day → 0 return for its sleev
 
 Dial (matches production compute_regime):
   • HK 2x sleeve (07226): 2x when HSTECH > 200DMA, else de-levered to 1x.
-  • US 2x names (PLTU/ROBN/MSFU): 2x when underlying > 200DMA; cut to 1x ONLY when
+  • US 2x names (any held, e.g. RKLX/SPCH): 2x when underlying > 200DMA; cut to 1x ONLY when
     trend-off AND 20d vol ≥ 70% (hot); trend-off-but-calm keeps 2x (light on low-vol).
   • 1x sleeves untouched.
 
@@ -27,6 +27,7 @@ from pathlib import Path
 
 import requests
 
+from clawock import instruments
 from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
@@ -48,7 +49,11 @@ PROXIES = {
     'MSFT':   ('us', 'usMSFT.OQ'),
 }
 
-# holding ticker → (proxy_key, native_leverage, dial)  dial ∈ {None,'hk2x','us2x'}
+# holding ticker → (proxy_key, native_leverage, dial)  dial ∈ {None,'hk2x','us2x'}.
+# Policy for names whose proxy is a judgement (young listings, sector stand-ins).
+# Membership is NOT this table: the book is every `shares > 0` holding in
+# portfolio.json, and a held name missing here is resolved from the registry
+# (holding_spec) or reported as unmodelled — never dropped silently (#2051).
 HOLDING_MAP = {
     '00100': ('HSTECH', 1, None),   # MINIMAX-W (young) → HSTECH 1x proxy
     '07226': ('HSTECH', 2, 'hk2x'),
@@ -98,16 +103,51 @@ def ann_vol(rets):
     return math.sqrt(sum((x - m) ** 2 for x in rets) / (len(rets) - 1)) * math.sqrt(252)
 
 
-def weights_usd():
-    port = json.loads((WS / 'portfolio.json').read_text())
+def holding_spec(ticker):
+    """(proxy_key, native_leverage, dial) for a held ticker, or None.
+
+    HOLDING_MAP first; otherwise the registry: a name whose signal symbol is
+    one of PROXIES maps onto it, with its own leverage and the market's dial.
+    """
+    if ticker in HOLDING_MAP:
+        return HOLDING_MAP[ticker]
+    meta = instruments.get(ticker)
+    if not meta or meta.get('signal_symbol') not in PROXIES:
+        return None
+    native = meta['leverage_multiple']
+    dial = None if native <= 1 else ('hk2x' if meta['region'] == 'HK' else 'us2x')
+    return meta['signal_symbol'], native, dial
+
+
+def book_weights(port):
+    """Every held position at USD value, split into modelled and unmodelled.
+
+    Returns (weights over the modelled part, modelled USD, book USD, specs,
+    unmodelled [(ticker, usd)]).
+    """
     fx = 0.128205  # HKD→USD (matches risk.json meta)
-    w = {}
+    usd, specs, unmodelled = {}, {}, []
     for leg, ccy in (('hk_stocks', fx), ('us_stocks', 1.0)):
         for h in port['portfolios'][leg]['holdings']:
-            if h.get('shares', 0) > 0 and h.get('ticker') in HOLDING_MAP:
-                w[h['ticker']] = h.get('current_value', 0) * ccy
-    tot = sum(w.values())
-    return {k: v / tot for k, v in w.items()}, tot
+            if not h.get('shares', 0) > 0:
+                continue
+            value = h.get('current_value', 0) * ccy
+            spec = holding_spec(h.get('ticker'))
+            if spec is None:
+                unmodelled.append((h.get('ticker'), value))
+                continue
+            usd[h['ticker']] = value
+            specs[h['ticker']] = spec
+    modelled = sum(usd.values())
+    book = modelled + sum(v for _, v in unmodelled)
+    weights = {k: v / modelled for k, v in usd.items()} if modelled else {}
+    return weights, modelled, book, specs, unmodelled
+
+
+def weights_usd():
+    w, modelled, _book, _specs, _skipped = book_weights(
+        json.loads((WS / 'portfolio.json').read_text()))
+    return w, modelled
 
 
 def _plotting():
@@ -189,13 +229,20 @@ def main(argv=None):
             ma[k].append(last_ma)
             vol[k].append(last_vol)
 
-    w, tot_usd = weights_usd()
-    print(f'Combined book ≈ ${tot_usd:,.0f}  · 共 {len(w)} 持仓 · 窗口 {dates[0]} → {dates[-1]} ({n} 交易日)')
+    w, tot_usd, book_usd, specs, unmodelled = book_weights(
+        json.loads((WS / 'portfolio.json').read_text()))
+    print(f'Combined book ≈ ${book_usd:,.0f}  · 共 {len(w) + len(unmodelled)} 持仓'
+          f' · 窗口 {dates[0]} → {dates[-1]} ({n} 交易日)')
+    if unmodelled:
+        share = sum(v for _, v in unmodelled) / book_usd * 100 if book_usd else 0
+        print(f'⚠️ 未建模 {len(unmodelled)} 只（占账面 {share:.1f}%，没有长历史代理）：'
+              + ', '.join(f'{t} ${v:,.0f}' for t, v in unmodelled)
+              + f'；下面的权重只覆盖其余 ${tot_usd:,.0f}')
     print('权重(USD):', ', '.join(f'{t} {w[t]*100:.0f}%' for t in sorted(w, key=lambda x:-w[x])))
     print()
 
     def eff_lev(tk, i, mode):
-        proxy, native, dial = HOLDING_MAP[tk]
+        proxy, native, dial = specs[tk]
         if mode == 'all1x':
             return 1.0
         if mode == 'bh' or dial is None:
@@ -215,7 +262,7 @@ def main(argv=None):
     for mode in ('bh', 'regime', 'all1x'):
         nav = [1.0]; rb = []
         for i in range(1, n):
-            r = sum(w[tk] * eff_lev(tk, i, mode) * ret[HOLDING_MAP[tk][0]][i] for tk in w)
+            r = sum(w[tk] * eff_lev(tk, i, mode) * ret[specs[tk][0]][i] for tk in w)
             rb.append(r); nav.append(nav[-1] * (1 + r))
         navs[mode] = nav; rets_book[mode] = rb
 
@@ -263,7 +310,9 @@ def main(argv=None):
         params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_hot': VOL_HOT,
                 'crash_window': [crash0, crash1],
                 'weights_usd': {tk: round(wt, 6) for tk, wt in sorted(w.items())},
-                'holding_map': {tk: list(spec) for tk, spec in sorted(HOLDING_MAP.items())}},
+                'holding_map': {tk: list(spec) for tk, spec in sorted(specs.items())},
+                'unmodelled_usd': {tk: round(v, 2) for tk, v in sorted(unmodelled)},
+                'book_usd': round(book_usd, 2)},
         inputs=[{
             'symbol': 'union-calendar book', 'source': 'tencent kline/fqkline via PROXIES',
             'bars': n, 'first_session': dates[0], 'last_session': dates[-1],

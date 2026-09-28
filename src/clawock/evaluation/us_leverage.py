@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-US leverage evaluation — same regime backtest as HSTECH, but for kcn's US 2x
-single-stock ETFs: PLTU(2x PLTR), ROBN(2x HOOD), MSFU(2x MSFT).
+US leverage evaluation — same regime backtest as HSTECH, but for the US 2x
+single-stock ETFs the production dial acts on (compute_regime.US_2X_MAP, from
+the instrument registry); the table marks which are held today.
 
 These ETFs are young (2023-24 launches) so we simulate the 2x daily-reset sleeve
 from the UNDERLYING stock's full history (Tencent fqkline, qfq-adjusted) — which
@@ -15,6 +16,7 @@ Run: clawock evaluate-us-leverage
 """
 from clawock.evaluation.series import mdd, rvol, sma
 import argparse
+import json
 from datetime import date
 from pathlib import Path
 
@@ -30,10 +32,21 @@ OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
 
-# kcn's US 2x single-stock ETFs → underlying
-NAMES = [('PLTU', 'PLTR', 'usPLTR.OQ'),
-         ('ROBN', 'HOOD', 'usHOOD.OQ'),
-         ('MSFU', 'MSFT', 'usMSFT.OQ')]
+# The US 2x single-stock ETFs the production dial acts on → (underlying, its
+# Tencent symbol). Taken from compute_regime.US_2X_MAP (itself derived from
+# config/instruments.json), so this validation evaluates the names the dial
+# reads — a hand-kept list had drifted to three names not held at all (#2051).
+NAMES = [(etf, ul, sym) for etf, (ul, sym) in sorted(compute_regime.US_2X_MAP.items())]
+
+
+def held_symbols():
+    """Tickers with shares > 0 in portfolio.json (empty when it cannot be read)."""
+    try:
+        port = json.loads((WS / 'portfolio.json').read_text())
+    except (OSError, ValueError):
+        return set()
+    return {h.get('ticker') for leg in port.get('portfolios', {}).values()
+            for h in (leg.get('holdings') or []) if (h.get('shares') or 0) > 0}
 MA_WIN, VOL_WIN, VOL_CAP = 200, 20, 0.80   # single stocks run hot → 80% vol band
 
 
@@ -137,11 +150,18 @@ def main(argv=None):
     measured, series_inputs = {}, []
     print(f'{"ETF/标的":<14}{"strategy":<20}{"totRet":>9}{"CAGR":>8}{"maxDD":>9}{"%inMkt":>8}{"sw":>5}')
     print('-' * 76)
+    held = held_symbols()
+    print('在持：' + (', '.join(etf for etf, _, _ in NAMES if etf in held) or '无') + '（其余为刻度盘覆盖但当前未持有）')
+    names = []
     for etf, ul, sym in NAMES:
         data = fetch(sym)
+        if len(data) < 2:
+            print(f'{(etf+"/"+ul):<14}跳过：{sym} 没有可用日线')
+            continue
+        names.append((etf, ul, sym))
         dates = [d for d, _ in data]; closes = [c for _, c in data]
         series_inputs.append({
-            'symbol': sym, 'etf': etf, 'underlying': ul,
+            'symbol': sym, 'etf': etf, 'underlying': ul, 'held': etf in held,
             'source': 'tencent fqkline (qfq-adjusted)',
             'bars': len(data), 'first_session': dates[0], 'last_session': dates[-1],
             'digest': run_card.series_digest(data),
@@ -163,8 +183,8 @@ def main(argv=None):
         print('-' * 76)
 
     # ---- Figure 1: per-name equity (log) + underwater drawdown (3 rows × 2 cols)
-    fig, axes = plt.subplots(3, 2, figsize=(13, 11))
-    for row, (etf, ul, sym) in enumerate(NAMES):
+    fig, axes = plt.subplots(len(names), 2, figsize=(13, 3.7 * len(names)), squeeze=False)
+    for row, (etf, ul, sym) in enumerate(names):
         s = sims[etf]; dts = [date.fromisoformat(d) for d in s['dates']]
         axe, axd = axes[row]
         for key in ('bh2', 'reg', 'r1x', 'bh1'):
@@ -186,7 +206,7 @@ def main(argv=None):
     # ---- Figure 2: summary bars — maxDD & CAGR per name per strategy
     fig2, (a1, a2) = plt.subplots(1, 2, figsize=(13, 4.6))
     keys = ['bh2', 'reg', 'rgv', 'r1x']
-    etfs = [n[0] for n in NAMES]; x = range(len(etfs)); w = 0.2
+    etfs = [n[0] for n in names]; x = range(len(etfs)); w = 0.2
     for j, key in enumerate(keys):
         ddv = [next(m for (e, u, k, t, c, m) in allrows if e == etf and k == key) * 100 for etf in etfs]
         cgv = [next(c for (e, u, k, t, c, m) in allrows if e == etf and k == key) * 100 for etf in etfs]
@@ -203,8 +223,11 @@ def main(argv=None):
 
     # current regime read per name
     print('\n--- 当前各标的制度读数 ---')
-    for etf, ul, sym in NAMES:
+    for etf, ul, sym in names:
         s = sims[etf]; c = s['last_close']; ma = s['ma'][-1]; vol = s['vols'][-1]
+        if ma is None or vol is None:
+            print(f'  {etf}/{ul}: close {c:.1f} · 历史不足 {MA_WIN} 根，无 200DMA 读数')
+            continue
         trend = 'ABOVE ✅' if (ma and c > ma) else 'BELOW ⛔'
         print(f'  {etf}/{ul}: close {c:.1f} vs 200DMA {ma:.1f} → {trend} ({(c/ma-1)*100:+.0f}%) | 20d vol {vol*100:.0f}%')
     print(f'\n charts → {p1}\n          {p2}')
@@ -212,7 +235,7 @@ def main(argv=None):
     card = run_card.record(
         'us_leverage_regime',
         params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_cap': VOL_CAP,
-                'names': [list(n) for n in NAMES]},
+                'names': [list(n) for n in names]},
         inputs=series_inputs,
         metrics=measured,
         code_files=[__file__, Path(compute_regime.__file__)],
