@@ -27,7 +27,7 @@ from clawock.credentials import load_api_keys as _load_api_keys
 from clawock.market_data import fanout, integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock import sessions as trading_calendar
-from clawock.instruments import INSTRUMENTS
+from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root
 
@@ -38,7 +38,9 @@ TIMEOUT = 10
 SESSION = requests.Session()
 SESSION.headers.update({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'})
 
-# Canonical HK 2x/3x products for risk labeling.
+# Canonical HK 2x/3x products in the registry. Holdings are classified with
+# instruments.is_leveraged_holding (registry first, then its name fallback), so
+# a new 2x listing is not reported as 1x before its registry PR lands (#2080).
 LEVERAGED = {
     symbol for symbol, meta in INSTRUMENTS.items()
     if meta['region'] == 'HK' and meta['leverage_multiple'] > 1
@@ -657,7 +659,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
             notes.append(f"浮盈 {pnl:.0f}%，可考虑减仓")
         if pnl <= -15:
             notes.append(f"浮亏 {pnl:.0f}%，关注止损")
-        if code in LEVERAGED:
+        if is_leveraged_holding(h):
             notes.append("2x 杠杆 ETF，波动放大")
         for n in notes:
             print(f"     · {n}")
@@ -671,7 +673,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
 
     # Risk summary
     lev_value = sum(h.get('current_value', 0) for h in active
-                    if h['ticker'] in LEVERAGED)
+                    if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
 
@@ -773,7 +775,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
 
     # Risk
     lev_value = sum(h.get('current_value', 0) for h in active
-                    if h['ticker'] in LEVERAGED)
+                    if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
     lines.append('')
