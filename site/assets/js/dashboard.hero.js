@@ -57,7 +57,9 @@
       return toks.length ? toks.join(" ") : "触发位";
     };
 
-    const rows = Object.entries(wl).map(([key, val]) => {
+    // A level the plan left empty has nothing to watch; printed, it read 「null」
+    // (the sparse-payload spec caught it once #2134 put the levels back).
+    const rows = Object.entries(wl).filter(([, val]) => val != null).map(([key, val]) => {
       const r = resolve(key);
       const who = r.who || key.split(/[_\-]/)[0].toUpperCase();
       const toks = key.toLowerCase().split(/[_\-]/).filter(t => !r.strip.includes(t) && t !== "hkd" && t !== "usd");
@@ -283,49 +285,6 @@
     if (mvEl) mvEl.innerHTML = moversRow;
   }
 
-  // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处
-  function renderHonesty() {
-    const card = document.getElementById("honesty-card");
-    const el = document.getElementById("honesty-body");
-    if (!card || !el) return;
-    card.classList.remove("is-pending");
-    const metrics = safe(DATA, "decision_metrics") || {};
-    const delta = decisionDeltaSummary();
-    const dm = safe(DATA, "debate_metrics");
-    const drv = metrics.by_driver || {};
-    if (!metrics.raw_decisions) { card.style.display = "none"; return; }
-    const row = (label, val, color) =>
-      `<div style="display:flex;justify-content:space-between;gap:var(--space-3);padding:5px 0;border-bottom:1px solid var(--border)">`
-      + `<span style="color:var(--text-dim)">${label}</span>`
-      + `<span style="font-family:var(--mono);text-align:right;color:${color || 'var(--text)'}">${val}</span></div>`;
-    const rows = [];
-    const active = metrics.active || {};
-    if (active.avg_benefit_pct != null) {
-      const ci = active.cluster_ci95 ? ` [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
-      rows.push(row("主动 episode 平均方向分", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
-        active.avg_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
-    }
-    // 同一队列的两行:这里曾把 30d 的平均收益和 episode_backtest 的**全量**资金加权
-    // 并排显示,窗口不同、符号相反(-2.36% vs +0.83%),读者会当成"大仓位的 call 更准"。
-    // 两行必须同源同窗;全量口径归金额曲线,那张图自己标了。
-    if (active.capital_weighted_benefit_pct != null)
-      rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
-        active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
-    rows.push(row("今日决策变化", `新增 ${delta.new_count || 0} · 修改 ${delta.changed_count || 0} · 触发 ${delta.triggered_count || 0} · override ${delta.active_overrides_count || 0}`, "var(--text-dim)"));
-    if (dm && dm.decisiveness_pct != null)
-      rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
-    const fe = [];
-    ["catalyst", "technical", "macro", "peer"].forEach(k => {
-      const e = drv[k]; if (!e || e.win_rate == null) return;
-      const ci = e.cluster_ci95, band = ci ? `[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
-      fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}% ${band}`);
-    });
-    if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
-    el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:var(--fs-micro);margin-top:var(--space-2)">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；被判定未触发的不结算；执行与建议质量分开统计。</div>`;
-    card.style.display = "";
-  }
-
   // Desk rail KPIs come straight from DATA so deep-linked/non-active panels never
   // have to render just to replace a rail dash. Formatting matches their canonical
   // cells, and the entire read/compute phase finishes before the DOM write phase.
@@ -419,7 +378,7 @@
     hero: [
       renderCommandDeck, renderDataHealth, renderSearchVisibility, renderRiskGuardrail,
       renderOverviewSummaries, renderMarketSnapshot, renderTodayHighlights,
-      renderHonesty, renderGoldDca, setupVerdictDeck,
+      renderGoldDca, setupVerdictDeck,
     ],
   };
   let RENDER_VERSION = 0;
@@ -1748,13 +1707,11 @@
 
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
+    // Overview's compact card only (#2140). The Risk tab's full card reads per-row
+    // age, trend and the magnitude line that overview.json does not carry; writing it
+    // from here overwrote render.js's version, and the tab's render-version gate then
+    // never painted it back. render.js owns #guardrail-* and #honesty-body.
     const targets = [
-      {
-        countEl: document.getElementById("guardrail-count"),
-        dirEl: document.getElementById("guardrail-directive"),
-        listEl: document.getElementById("guardrail-list"),
-        compact: false,
-      },
       {
         countEl: document.getElementById("overview-guardrail-count"),
         dirEl: document.getElementById("overview-guardrail-directive"),

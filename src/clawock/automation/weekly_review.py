@@ -21,7 +21,9 @@ from pathlib import Path
 
 from clawock.automation import llm
 from clawock.automation.llm import chat
-from clawock.automation.output_validate import LLMOutputError, validate_sections
+from clawock.automation.output_validate import (
+    LLMOutputError, escape_raw_html, validate_sections,
+)
 from clawock.decision import ledger as decision_v2
 from clawock.safe_io import safe_write_text
 
@@ -590,7 +592,8 @@ def main(argv=None):
     os.makedirs('memory/weekly', exist_ok=True)
     path = Path(f'memory/weekly/{week_id}.md')
     fm = f"---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n\n"
-    safe_write_text(str(path), fm + backfill_note(args.as_of, week_id) + out.strip())
+    safe_write_text(str(path),
+                    fm + backfill_note(args.as_of, week_id) + escape_raw_html(out.strip()))
     print(f'  wrote {path}  ({len(out)} chars)')
 
 

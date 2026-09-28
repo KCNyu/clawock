@@ -51,6 +51,18 @@ class LLMOutputError(ValueError):
     """A model reply that must not be published."""
 
 
+def escape_raw_html(markdown):
+    """Model markdown on its way into a Jekyll page, with every `<` made text.
+
+    kramdown passes raw HTML through, and the pages have no CSP, so a tag the
+    model writes would run in a visitor's browser. The brief fallback and the
+    weekly review write model markdown straight into `memory/*.md` (#2135);
+    `brief_render` does the same to its prose fields (#2099). Nothing these
+    prompts ask for is HTML, and `&lt;` still reads as `<` on the page.
+    """
+    return markdown.replace('<', '&lt;')
+
+
 def validate_sections(text, *, label, required, min_chars):
     """Return `text` unchanged, or raise `LLMOutputError`.
 
