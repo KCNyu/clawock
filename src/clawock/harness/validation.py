@@ -78,6 +78,23 @@ def mentions_ticker(text, ticker):
     return re.search(pattern, text or '') is not None
 
 
+def section_marker_end(text, marker):
+    """End offset of `marker` where it opens a line, or -1.
+
+    A required section is a line that starts with its marker (≤3 spaces, an
+    optional `#` heading or `**`), never the marker named inside a sentence:
+    「本报告不含 ▎情绪面、▎技术面…」 used to satisfy every required section
+    at once (#2049). Same rule as the brief's section-marker lines.
+    """
+    match = re.search(rf'^[ \t]{{0,3}}(?:#{{1,6}}[ \t]+|\*\*)?{re.escape(marker)}',
+                      text or '', re.MULTILINE)
+    return match.end() if match else -1
+
+
+def has_section_marker(text, marker):
+    return section_marker_end(text, marker) >= 0
+
+
 def _contains_phrase(text, phrase):
     """Exact substring for non-ASCII phrases; standalone token for ASCII words.
 
