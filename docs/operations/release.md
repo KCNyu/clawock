@@ -20,7 +20,7 @@ ops/host/refresh_live.sh           # fast-forward, then reinstall only what move
 ops/host/refresh_live.sh --check   # what is pending; writes nothing, exit 1 if behind
 ```
 
-What it decides, and why the three exceptions exist:
+What it decides, and why the four exceptions exist:
 
 | what moved in the merge | what the desk needs | why |
 |---|---|---|
@@ -28,6 +28,7 @@ What it decides, and why the three exceptions exist:
 | `pyproject.toml` | `ops/host/install_clawock_launcher.sh` | pip recorded the dependency set and the `[project.scripts]` entry points at install time; a new console script does not exist until it is re-run |
 | `examples/dsh/packages/clawock-dsh/**` | `ops/host/install_dsh_plugin.sh --restart` | pnpm installed a packed copy, not a link (#709) — no npm publish involved |
 | `ops/host/agent-dispatch/**`, `ops/host/install_agent_dispatch.sh` | `ops/host/install_agent_dispatch.sh` (then `--check`) | the runner executes from a copy in `/root/tools/agent-dispatch/`; each file is replaced by rename, so running tasks are not disturbed and nothing is restarted |
+| `ops/host/task_queue_ops.py`, `ops/host/model_prices.json`, `ops/host/install_task_queue_ops.sh` | `ops/host/install_task_queue_ops.sh` — **named, not run** by `refresh_live.sh` | the runner and the desk's queue actions call the installed copy in `/root/tools/agent-dispatch/`, which the editable install never reaches; installing it stays manual (see the installer's header) (#2067) |
 
 Do not read `clawock --version` as the answer to "what is running here". On an
 editable install that number is the one pip recorded, and it says so itself once
