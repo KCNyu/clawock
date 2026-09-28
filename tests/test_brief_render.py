@@ -563,6 +563,18 @@ def test_a_feed_headline_cannot_open_markup_in_running_text():
     assert "\\[x\\]" in section and "\\*boom\\*" in section
 
 
+def test_model_prose_and_plan_rationale_cannot_open_raw_html():
+    payload = "<img src=x onerror=alert(1)>"
+    judgment = _judgment()
+    judgment["portfolio_assessment"] = payload
+    judgment["narrative"]["bull"] = payload
+    judgment["ticker_judgments"][0]["falsifier"] = payload
+    plan = {**PLAN, "decisions": [{**PLAN["decisions"][0], "rationale": payload}]}
+    body = render.render_brief(CONTEXT, judgment, plan, date="2026-08-31")
+    assert payload not in body
+    assert body.count("&lt;img src=x onerror=alert(1)>") >= 4
+
+
 def test_every_card_and_entries_block_says_markdown_1():
     """Same load-bearing attribute as the appendix: without it kramdown ships the
     whole card's contents as literal markdown."""

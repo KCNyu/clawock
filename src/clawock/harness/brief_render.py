@@ -115,7 +115,7 @@ def text(value):
     read as one rather than as an empty-looking judgment.
     """
     value = (value or "").strip()
-    return value.replace("\n", " ") if value else MISSING
+    return value.replace("\n", " ").replace("<", "&lt;") if value else MISSING
 
 
 def table(headers, rows):
@@ -161,7 +161,7 @@ def entries(items):
     # carry a pipe as well — it is not judgment-gated.
     blocks = []
     for item in items:
-        lines = [f"- {_cell(item['title'])}"]
+        lines = [f"- {_cell(item['title'], trusted_markup=item.get('trusted_title', False))}"]
         meta = [_cell(m) for m in (item.get("meta") or []) if m and m != MISSING]
         if meta:
             lines += ["", f'  <span class="entry-meta">{" · ".join(meta)}</span>']
@@ -186,7 +186,7 @@ def card(section):
                       "</div>"])
 
 
-def _cell(value):
+def _cell(value, *, trusted_markup=False):
     """One table cell, escaped so its content cannot become layout.
 
     Not every string reaching a table is judgment-gated: a news headline out of
@@ -195,7 +195,8 @@ def _cell(value):
     there adds a column to that one row, which is precisely the ragged-table
     failure this module exists to end.
     """
-    return str(value).replace("|", "\\|").replace("\n", " ")
+    out = str(value).replace("|", "\\|").replace("\n", " ")
+    return out if trusted_markup else out.replace("<", "&lt;")
 
 
 def _inline(value):
@@ -681,6 +682,9 @@ def judge_section(plan, judgment=None):
             title += f" · {verdict_badge(row.get('verdict'))}"
         rows.append({
             "title": title,
+            # The sole raw HTML in an entry title is verdict_badge(), built by
+            # this module. Every variable segment above passed through text().
+            "trusted_title": True,
             "meta": [" + ".join(debate.get("frames") or []) or MISSING,
                      text(decision.get("strategy_id")),
                      text(decision.get("driven_by"))],
