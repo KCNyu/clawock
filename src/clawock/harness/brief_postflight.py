@@ -1130,6 +1130,30 @@ def _card_self_reference_issues(judgment_path):
     return check_pipeline_self_reference(assessment, label='微信卡核心结论')
 
 
+def _judgment_identifier_issues(judgment_path):
+    """Flag internal field names in model prose that the brief publishes."""
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []  # _judgment_gap_issues reports unreadable judgment
+    if not isinstance(overlay, dict):
+        return []
+    narrative = overlay.get('narrative') or {}
+    texts = [overlay.get('portfolio_assessment'),
+             overlay.get('portfolio_counterargument')]
+    if isinstance(narrative, dict):
+        for key, value in narrative.items():
+            if key == 'risk_voice_first':  # controls ordering; not displayed as prose
+                continue
+            if isinstance(value, str):
+                texts.append(value)
+            elif isinstance(value, list):
+                texts.extend(item for item in value if isinstance(item, str))
+    prose = '\n'.join(value for value in texts if isinstance(value, str))
+    return [f'{issue} {ADVISORY_MARK}' for issue in
+            check_identifier_leak(prose, label='简报判断正文')]
+
+
 # The plan fields `decision.plans._entry` projects into `plan_context` — which
 # every later report and intraday context carries, and whose prose repeats them
 # to kcn. Replaying 2026-08-31..09-14: all 13 delivered leaks had the term in
@@ -1219,6 +1243,8 @@ def main(argv=None):
     issues += _judgment_gap_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
     issues += _card_self_reference_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
+    issues += _judgment_identifier_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
     issues += _plan_self_reference_issues(normalized_plan)
 
