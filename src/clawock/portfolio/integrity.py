@@ -74,7 +74,6 @@ import json
 import pathlib
 import sys
 from datetime import date, datetime, timedelta
-from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from clawock.bar_conflicts import BENIGN_KINDS, classify_conflict
@@ -625,7 +624,7 @@ def check(portfolio_path=PORTFOLIO):
             # STALENESS（逐只 data_source）
             if market:
                 last = _last_session(market)
-                ref = datetime.now(ZoneInfo('Asia/Hong_Kong')).date() if market == 'hk' else None
+                ref = hkt_today() if market == 'hk' else None
                 iso = _extract_iso(h.get('data_source'), ref=ref)
                 if last and iso and iso < last:
                     add('STALENESS', 'WARN',
