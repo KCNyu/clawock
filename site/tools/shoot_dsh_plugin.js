@@ -19,14 +19,23 @@
  * shot, because it advertises a UI the package no longer ships (the 2026-08-16
  * capture outlived three layout PRs before anyone noticed).
  *
+ * The frame is complete (2026-09-28): the whole app window — sidebar with its
+ * foot cell, the tab's header card, the filter row and the unfolded trace down
+ * to its last line. The viewport grows until the unfolded trace clears the
+ * floating composer, so nothing is cut or covered.
+ *
  * Env: DSH_URL (default http://127.0.0.1:3081/ — the loopback origin, which
  *      skips Tailscale/nginx/HTTPS entirely), SESSION (substring of the
  *      session title to open), ROW (which fill to unfold, default the third),
- *      OUT (output path), CHROME_EXE, WIDTH/HEIGHT/DSF.
+ *      OUT (output path), CHROME_EXE, WIDTH/HEIGHT/DSF, PLAYWRIGHT (module path),
+ *      BUNDLE (a built lib/client.js served in place of the installed one, so a
+ *      branch's client can be shot on the live host half before it is installed;
+ *      INSTALLED names the installed copy, default the web profile's).
  */
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.PLAYWRIGHT || 'playwright');
 const fs = require('fs');
 const path = require('path');
+const { serveBundle } = require('./dsh_bundle.js');
 
 const ROOT = path.resolve(__dirname, '../..');
 const URL = process.env.DSH_URL || 'http://127.0.0.1:3081/';
@@ -51,6 +60,7 @@ async function main() {
     viewport: { width: WIDTH, height: HEIGHT },
     deviceScaleFactor: DSF,
   });
+  await serveBundle(page);
   // `networkidle` never fires here: /plugins/events is a heartbeat-free SSE
   // stream, so the network is never idle. Wait on the DOM instead.
   await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -95,14 +105,29 @@ async function main() {
   await page.mouse.move(WIDTH - 2, HEIGHT - 2);
   await page.waitForTimeout(400);
 
-  // Clip above the floating composer — it is the app's, not the plugin's, and
-  // it covers the bottom rows.
-  const composerTop = await page.evaluate(() => {
-    const seats = [...document.querySelectorAll('textarea')];
-    const box = seats.length ? seats[seats.length - 1].closest('div')?.getBoundingClientRect() : null;
-    return box ? Math.round(box.top) : null;
+  // The floating composer (the app's) must sit below the unfolded trace, not on
+  // it. Grow the viewport until the trace ends 16px above it.
+  const measure = () => page.evaluate(() => {
+    // The composer is a contenteditable card inside dsh's `composerSeat` (no textarea since 0.1.7).
+    const seat = [...document.querySelectorAll('[class*="composerSeat"], [class*="composerStack"]')].at(-1);
+    const box = seat ? seat.getBoundingClientRect() : null;
+    const open = document.querySelector('[data-cell=trace][class*="_open"]')
+      ?? [...document.querySelectorAll('[data-cell=trace]')].find((c) => c.getBoundingClientRect().height > 120);
+    return { composerTop: box ? Math.round(box.top) : null, openBottom: open ? Math.ceil(open.getBoundingClientRect().bottom) : null };
   });
-  const height = Math.max(400, Math.min(HEIGHT, (composerTop ?? HEIGHT) - 8));
+  let viewport = HEIGHT;
+  let seen = await measure();
+  for (let i = 0; i < 4 && seen.openBottom !== null && seen.openBottom + 16 > (seen.composerTop ?? viewport) - 8; i += 1) {
+    viewport += seen.openBottom + 16 - ((seen.composerTop ?? viewport) - 8) + 24;
+    await page.setViewportSize({ width: WIDTH, height: viewport });
+    await page.waitForTimeout(800);
+    seen = await measure();
+  }
+  if (seen.openBottom === null) throw new Error('no unfolded trace to frame');
+  if (seen.openBottom + 16 > (seen.composerTop ?? viewport) - 8) throw new Error('the unfolded trace still runs under the composer');
+  // The whole grown viewport: the sidebar with its foot cell and the composer
+  // are part of the app, and neither covers the trace any more.
+  const height = viewport;
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   await page.screenshot({ path: OUT, clip: { x: 0, y: 0, width: WIDTH, height } });
   const bytes = fs.statSync(OUT).size;

@@ -113,7 +113,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'trace.why': '为什么 ', 'trace.emotion': '情绪 ', 'trace.note': '备注 ',
     'trace.holding': '持仓', 'trace.opposite': '反向', 'trace.market.hk': '港', 'trace.market.us': '美',
     'trace.realizedUsd': '已实现 (USD 等值)', 'trace.realizedUsdNoRate': '已实现 (USD 等值 · HKD 未折算)',
-    'trace.t1Tally': 'T+1 卖飞/卖对 · 判出 {rated}/{sells} 笔卖出',
+    'trace.t1Tally': 'T+1 卖飞/卖对/持平 · 判出 {rated}/{sells} 笔卖出',
     'trace.t1Sideless': ' · {sideless} 笔无侧向',
     'trace.matched': '有当日计划', 'trace.reversed': ' · 反向 {reversed}',
     'trace.more': '显示更早的 {fills} 笔成交', 'trace.less': '收起,只显示最近 {groups} 组',
@@ -153,15 +153,19 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.meta': '{agent} · {model}', 'queue.run': '已跑 {elapsed} · 第 {attempts} 次', 'queue.stalls': '卡死 {n}',
     'queue.waitHeading': '排队 / 等待', 'queue.noneRunning': '没有占用运行槽的任务', 'queue.noneWaiting': '没有排队或等待的任务',
     'queue.recentHeading': '最近结束',
-    'queue.moreEnded': '另 {n} 条结束记录', 'queue.waited': '首次排队 {time}', 'queue.d.waited': '首次排队', 'queue.waitUnknown': '排队耗时未记录',
+    'queue.waited': '首次排队 {time}', 'queue.d.waited': '首次排队', 'queue.waitUnknown': '排队耗时未记录',
     'queue.execution.ok': '执行完成', 'queue.execution.failed': '执行失败', 'queue.execution.cancelled': '已取消',
     'queue.execution.timeout': '已超时', 'queue.execution.blocked': '执行受阻', 'queue.execution.quota': '额度中止',
     'queue.execution.queued': '未启动', 'queue.execution.unknown': '结果未明',
     'queue.report.DONE': '任务：完成', 'queue.report.claimedDone': '任务：自报完成', 'queue.report.PARTIAL': '任务：部分完成',
     'queue.report.BLOCKED': '任务：受阻', 'queue.report.unknown': '任务：未报告',
     'queue.statusLegend': '前项是 runner 对执行过程的判决；“任务”是模型最终报告。执行完成但任务部分完成或受阻，表示机器运行正常、工作尚未做完。',
-    'queue.lastRound': '上一轮', 'queue.olderRounds': '更早的 {n} 轮', 'queue.supervisorLog': '监督器记录',
+    'queue.olderRounds': '更早的 {n} 轮', 'queue.supervisorLog': '监督器原始记录',
     'queue.patrol.waitSlot': '等空闲运行槽', 'queue.patrol.giveWay': '让手工任务先行',
+    'queue.patrol.memory': '内存不足，暂缓', 'queue.patrol.memoryUnread': '读不到内存，暂缓', 'queue.patrol.otherReason': '让路（原因见原始记录）',
+    'queue.patrol.wrapUp': '收尾后让路', 'queue.patrol.forTask': '等待中的任务 {id}',
+    'queue.round.preempted': '让路取消', 'queue.round.yielded': '让路收尾', 'queue.round.name': '{round} · {axis}',
+    'queue.chip.elapsed': '已跑 {time}', 'queue.chip.took': '用时 {time}', 'queue.chip.cost': '估算费用（按 API 价，非实际扣费）', 'queue.chip.unpriced': '未定价',
     'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}', 'queue.roundsHeading': '最近几轮',
     'queue.patrol.running': '巡检运行中', 'queue.patrol.yielding': '巡检让路中',
     'queue.patrol.waiting': '巡检等待下一轮', 'queue.patrol.waitingUntil': '巡检 {time} 开下一轮',
@@ -225,6 +229,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.brief.heading': '任务书与追加', 'queue.brief.prompt': '任务书 prompt.md · {kb} KB', 'queue.brief.append': '追加 {stamp}',
     'queue.brief.delivered': '已投递', 'queue.brief.pending': '待投递', 'queue.brief.big': '原文 {kb} KB（预览里是完整文件；ops 读数已截断到 64 KB）',
     'queue.brief.noSession': '右侧预览要在会话里打开：先进入任意会话，再点一次。文件：{path}', 'queue.brief.noService': '这个 dsh 没有文件预览栏。文件：{path}',
+    'queue.brief.noDir': '插件 host 半边是旧版，没有告诉任务目录在哪；重启 dsh 后才能打开任务书。',
     'queue.brief.failed': '预览打不开：{message}。文件：{path}', 'queue.brief.opened': '已在右侧预览打开 {file}',
     'queue.brief.needsHost': '追加列表要等插件 host 半边更新（需重启 dsh）；任务书本身可以打开。', 'queue.brief.none': '没有追加', 'queue.brief.readOnly': '只读：要改请用 dispatch.sh append（运行中加 --queue）',
     'queue.r.needsHost': '主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。',
@@ -260,7 +265,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'trace.why': 'Why ', 'trace.emotion': 'Emotion ', 'trace.note': 'Note ',
     'trace.holding': 'Position', 'trace.opposite': 'Against plan', 'trace.market.hk': 'HK', 'trace.market.us': 'US',
     'trace.realizedUsd': 'Realized (USD equivalent)', 'trace.realizedUsdNoRate': 'Realized (USD equivalent · HKD unconverted)',
-    'trace.t1Tally': 'T+1 sold-early/sold-well · {rated}/{sells} sells judged',
+    'trace.t1Tally': 'T+1 sold-early/sold-well/flat · {rated}/{sells} sells judged',
     'trace.t1Sideless': ' · {sideless} with no side',
     'trace.matched': 'Had a plan that day', 'trace.reversed': ' · {reversed} against plan',
     'trace.more': 'Show {fills} earlier fills', 'trace.less': 'Collapse to the latest {groups} groups',
@@ -300,15 +305,19 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}', 'queue.stalls': '{n} stalled',
     'queue.waitHeading': 'Queued / waiting', 'queue.noneRunning': 'No task holds a slot', 'queue.noneWaiting': 'Nothing queued or waiting',
     'queue.recentHeading': 'Recently ended',
-    'queue.moreEnded': '{n} more ended tasks', 'queue.waited': 'first queue wait {time}', 'queue.d.waited': 'First queue wait', 'queue.waitUnknown': 'queue wait not recorded',
+    'queue.waited': 'first queue wait {time}', 'queue.d.waited': 'First queue wait', 'queue.waitUnknown': 'queue wait not recorded',
     'queue.execution.ok': 'Execution complete', 'queue.execution.failed': 'Execution failed', 'queue.execution.cancelled': 'Cancelled',
     'queue.execution.timeout': 'Timed out', 'queue.execution.blocked': 'Execution blocked', 'queue.execution.quota': 'Stopped on quota',
     'queue.execution.queued': 'Never started', 'queue.execution.unknown': 'Result unknown',
     'queue.report.DONE': 'Task: complete', 'queue.report.claimedDone': 'Task: reports complete', 'queue.report.PARTIAL': 'Task: partial',
     'queue.report.BLOCKED': 'Task: blocked', 'queue.report.unknown': 'Task: no report',
     'queue.statusLegend': 'The first status is the runner’s execution verdict. “Task” is the model’s final report. Execution can complete while the task remains partial or blocked.',
-    'queue.lastRound': 'Last round', 'queue.olderRounds': '{n} earlier rounds', 'queue.supervisorLog': 'Supervisor log',
+    'queue.olderRounds': '{n} earlier rounds', 'queue.supervisorLog': 'Raw supervisor log',
     'queue.patrol.waitSlot': 'Waiting for a free run slot', 'queue.patrol.giveWay': 'Giving way to manual tasks',
+    'queue.patrol.memory': 'Low memory, deferred', 'queue.patrol.memoryUnread': 'Memory unreadable, deferred', 'queue.patrol.otherReason': 'Giving way (reason in the raw log)',
+    'queue.patrol.wrapUp': 'Wrapping up to give way', 'queue.patrol.forTask': 'Waiting task {id}',
+    'queue.round.preempted': 'Cancelled to give way', 'queue.round.yielded': 'Wrapped up to give way', 'queue.round.name': '{round} · {axis}',
+    'queue.chip.elapsed': 'running {time}', 'queue.chip.took': 'took {time}', 'queue.chip.cost': 'Estimate at API prices, not a bill', 'queue.chip.unpriced': 'unpriced',
     'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}', 'queue.roundsHeading': 'Recent rounds',
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
@@ -372,6 +381,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.brief.heading': 'Brief and appends', 'queue.brief.prompt': 'Brief prompt.md · {kb} KB', 'queue.brief.append': 'Append {stamp}',
     'queue.brief.delivered': 'delivered', 'queue.brief.pending': 'pending', 'queue.brief.big': '{kb} KB (the preview shows the whole file; the ops read is capped at 64 KB)',
     'queue.brief.noSession': 'The preview opens inside a conversation: open any conversation, then tap again. File: {path}', 'queue.brief.noService': 'This dsh has no file preview. File: {path}',
+    'queue.brief.noDir': 'The plugin\'s host half is older and does not say where task directories are: the brief opens after a dsh restart.',
     'queue.brief.failed': 'The preview did not open: {message}. File: {path}', 'queue.brief.opened': 'Opened {file} in the preview',
     'queue.brief.needsHost': 'The appends list needs the updated host half (a dsh restart); the brief itself opens now.', 'queue.brief.none': 'No appends', 'queue.brief.readOnly': 'Read-only: change it with dispatch.sh append (--queue while it runs)',
     'queue.r.needsHost': 'The plugin\'s host half on this host is older: this action works after a dsh restart.',
@@ -1900,31 +1910,159 @@ function renderTaskRow(task: DispatchTask, view: TaskRowView, live: boolean, t: 
       h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
 }
 
-/** Ended work is a short receipt: execution verdict, model report, then time and cost. */
-function renderEndedRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): React.ReactElement {
-  const execution = executionText(task.state, t)
-  const report = reportText(task.outcome, t, task.state)
-  const took = task.startedAtMs === null || task.updatedAtMs === null ? null
-    : durationOf(t, task.updatedAtMs - task.startedAtMs)
-  const wait = task.waitMs == null ? t('queue.waitUnknown') : t('queue.waited', { time: durationOf(t, task.waitMs) })
-  const ended = task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs)
-  const model = modelLine(task, false)
-  const cost = _costOf(task)
-  const facts = [wait, took === null ? null : t('queue.d.took') + ' ' + took, cost?.short].filter(Boolean).join(' · ')
-  return h('div', { className: cx('tq-item', 'tq-ended'), key: task.id, 'data-tq-item': task.id },
-    h('button', { type: 'button', className: cx('tq-row', 'tq-ended-row'), 'data-tq-task': task.id,
-      'data-tq-waiting': '', 'aria-label': [task.name, execution, report, ended, facts, t('queue.d.open')].join(' · '),
-      title: [task.name, execution, report, ended, facts].join(' · '), onClick: () => { open(task.id) } },
-    h('span', { className: cx('tq-ended-glyph') }, renderAgentGlyph(task.agent, 12)),
-    h('span', { className: cx('tq-line') },
-      h('span', { className: cx('tq-name') }, task.name),
-      h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': endedTone(task) }, execution)),
-    h('span', { className: cx('tq-line') },
-      h('span', { className: cx('tq-sub', 'tq-report'), title: t('queue.statusLegend') }, report),
-      h('span', { className: cx('tq-sub', 'tq-num') }, ended)),
-    h('span', { className: cx('tq-sub', 'tq-ended-facts') }, facts,
-      model.model ? ' · ' + _modelView(model.model).label : '')))
+// ---- Records: what just ended, one shape for ended tasks and patrol rounds -------
+
+/**
+ * A chip's tone. One colour, one meaning, as on the live rows: 'run' = running
+ * now (the host's business blue), 'warn' = not done or waiting, 'bad' = failed,
+ * 'plain' = a fact that carries no verdict, 'quiet' = a value that was not
+ * recorded (outlined, no fill: it is the one secondary voice left).
+ */
+type ChipTone = 'plain' | 'run' | 'warn' | 'bad' | 'quiet'
+
+function renderChip(text: string, tone: ChipTone, opts: { key?: string; slot?: string; title?: string; mono?: boolean } = {}): React.ReactElement {
+  return h('span', {
+    className: cx('tq-chip', opts.mono && 'tq-mono'), key: opts.key ?? opts.slot ?? text,
+    'data-tone': tone, 'data-tq-chip': opts.slot, title: opts.title ?? text,
+  }, text)
 }
+
+/** The execution axis alone: the runner's verdict on the process, not on the work. */
+function executionTone(state: string): ChipTone {
+  if (state === 'failed' || state === 'timeout') return 'bad'
+  if (state === 'blocked' || state === 'quota') return 'warn'
+  return 'plain'
+}
+
+/** The report axis alone: DONE is plain only when the execution also completed (else "自报完成"). */
+function reportTone(outcome: string, state: string): ChipTone {
+  if (outcome === 'DONE') return ['ok', 'partial', 'unverified'].includes(state) ? 'plain' : 'warn'
+  return outcome === 'PARTIAL' || outcome === 'BLOCKED' ? 'warn' : 'quiet'
+}
+
+/**
+ * The status slots of a record, in the order both sections render them. A slot
+ * a record has no value for is skipped, never re-ordered: an ended task and a
+ * patrol round line up chip for chip.
+ */
+const RECORD_SLOTS = ['report', 'ended', 'took', 'wait', 'cost', 'model'] as const
+type RecordSlot = typeof RECORD_SLOTS[number]
+type SlotChip = { text: string; tone: ChipTone; title?: string }
+
+type RecordView = {
+  key: string
+  glyph: React.ReactElement
+  name: string
+  status: SlotChip
+  slots: Partial<Record<RecordSlot, SlotChip | null>>
+  /** Marks that belong to the record but are not a slot (fallback model, receipts). */
+  extra?: Array<React.ReactElement | null>
+  /** Opens the detail layer; a record without one is read-only and is not a button. */
+  open?: () => void
+  attrs: Record<string, string>
+}
+
+/**
+ * One record, the same two lines in both sections: glyph · name … execution
+ * status as a chip, then the slot chips (they wrap, never ellipsize a value).
+ */
+function renderRecord(view: RecordView, t: Translate): React.ReactElement {
+  const chips = RECORD_SLOTS.flatMap((slot) => {
+    const chip = view.slots[slot]
+    return chip == null ? [] : [renderChip(chip.text, chip.tone, { slot, title: chip.title })]
+  })
+  const said = [view.name, view.status.text, ...RECORD_SLOTS.map((slot) => view.slots[slot]?.text)].filter(Boolean).join(' · ')
+  const body = [
+    h('span', { className: cx('tq-record-glyph'), key: 'glyph' }, view.glyph),
+    h('span', { className: cx('tq-line'), key: 'line' },
+      h('span', { className: cx('tq-name') }, view.name),
+      renderChip(view.status.text, view.status.tone, { slot: 'status', title: view.status.title })),
+    h('span', { className: cx('tq-chips'), key: 'chips' }, ...chips, ...(view.extra ?? [])),
+  ]
+  return h('div', { className: cx('tq-item'), key: view.key, 'data-tq-item': view.key },
+    view.open === undefined
+      ? h('div', { className: cx('tq-record'), role: 'group', 'aria-label': said, ...view.attrs }, ...body)
+      : h('button', {
+        type: 'button', className: cx('tq-row', 'tq-record'), 'aria-label': said + ' · ' + t('queue.d.open'), title: said,
+        onClick: view.open, ...view.attrs,
+      }, ...body))
+}
+
+/** An ended task as a record: the runner's verdict, the model's report, then when, how long, what it cost. */
+function taskRecord(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): RecordView {
+  const m = modelLine(task, false)
+  const cost = _costOf(task)
+  const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
+  return {
+    key: task.id,
+    glyph: renderAgentGlyph(task.agent, 12),
+    name: task.name,
+    status: { text: executionText(task.state, t), tone: executionTone(task.state), title: t('queue.statusLegend') },
+    slots: {
+      report: { text: reportText(task.outcome, t, task.state), tone: reportTone(task.outcome, task.state), title: t('queue.statusLegend') },
+      ended: task.updatedAtMs === null ? null : { text: agoOf(t, now - task.updatedAtMs), tone: 'plain', title: t('queue.d.endedAt') + ' ' + stamp(task.updatedAtMs) },
+      took: task.startedAtMs === null || task.updatedAtMs === null ? null
+        : { text: t('queue.chip.took', { time: durationOf(t, task.updatedAtMs - task.startedAtMs) }), tone: 'plain' },
+      wait: task.waitMs == null ? { text: t('queue.waitUnknown'), tone: 'quiet' } : { text: t('queue.waited', { time: durationOf(t, task.waitMs) }), tone: 'plain' },
+      cost: cost === null ? null : cost.kind === 'unpriced' ? { text: t('queue.chip.unpriced'), tone: 'quiet', title: t('queue.chip.cost') }
+        : { text: cost.short, tone: 'plain', title: t('queue.chip.cost') },
+      model: m.model === '' ? null : { text: _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''), tone: 'plain', title: m.model },
+    },
+    extra: [m.fallback ? renderChip(t('queue.fallback'), 'warn', { key: 'fallback' }) : null, renderNotifyIcons(task, t)],
+    open: () => { open(task.id) },
+    attrs: { 'data-tq-task': task.id, 'data-tq-waiting': '' },
+  }
+}
+
+/** A finished patrol round as a record (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+function roundRecord(round: PatrolRound, t: Translate, now: number): RecordView {
+  const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? ''
+  const [state = '', outcome = ''] = round.result.slice(how === '' ? 0 : how.length + 1).split('/')
+  const ended = localStampMs(round.endedAt)
+  return {
+    key: 'round-' + round.endedAt + round.round,
+    glyph: renderSectionGlyph('patrol', 12),
+    name: round.axis === '' ? round.round : t('queue.round.name', { round: round.round, axis: round.axis }),
+    status: how === 'preempted' ? { text: t('queue.round.preempted'), tone: 'warn', title: round.result }
+      : how === 'yielded' ? { text: t('queue.round.yielded'), tone: 'plain', title: round.result }
+        : { text: executionText(state, t), tone: executionTone(state), title: round.result },
+    slots: {
+      report: outcome === '' ? null : { text: reportText(outcome, t, state), tone: reportTone(outcome, state), title: t('queue.statusLegend') },
+      ended: ended === null ? null : { text: agoOf(t, now - ended), tone: 'plain', title: t('queue.d.endedAt') + ' ' + round.endedAt },
+      took: round.seconds === null ? null : { text: t('queue.chip.took', { time: durationOf(t, round.seconds * 1000) }), tone: 'plain' },
+    },
+    attrs: { 'data-tq-round': round.round },
+  }
+}
+
+/**
+ * The one fold control both sections use: a native <details> whose summary is
+ * a pill (hairline, chevron that turns, press and focus feedback, a 44px
+ * target under a finger). Opening is immediate — no height animation.
+ */
+function renderFold(kind: string, label: string, children: Array<React.ReactElement | null>): React.ReactElement {
+  return h('details', { className: cx('tq-fold'), key: 'fold-' + kind, 'data-tq-fold': kind },
+    h('summary', { className: cx('tq-fold-summary') },
+      h('svg', { className: cx('tq-fold-chev'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+        h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })),
+      h('span', null, label)),
+    h('div', { className: cx('tq-fold-body') }, ...children))
+}
+
+/**
+ * What stays on screen and what folds — ONE rule for "recently ended" and
+ * "patrol" (pinned by tests/decision_studio_plugin.spec.js):
+ *
+ *   resident = every record of distinct work, and the supervisor's live status;
+ *   folded   = repetition of work already on screen (earlier rounds of the same
+ *              patrol rotation) and the raw source of a line already rendered
+ *              (the journal line behind the patrol status chips).
+ *
+ * Each ended task is distinct work, and the host already caps the list at
+ * `taskQueueRecent`, so no ended task folds. Patrol rounds repeat one
+ * rotation, so the newest round is resident and the earlier ones fold.
+ */
+const RESIDENT_ROUNDS = 1
 
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 const reorderable = (task: DispatchTask): boolean =>
@@ -2097,9 +2235,9 @@ function renderGroupHead(glyph: React.ReactElement, name: string, caption: strin
 }
 
 /** Section glyphs in the executor glyphs' 14px outline: a clock turning back (just ended), a shield (patrol). */
-function renderSectionGlyph(kind: 'recent' | 'patrol'): React.ReactElement {
+function renderSectionGlyph(kind: 'recent' | 'patrol', size = 14): React.ReactElement {
   const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
-  return h('svg', { className: cx('tq-agent-glyph'), width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+  return h('svg', { className: cx('tq-agent-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
     kind === 'recent'
       ? h('path', { ...stroke, d: 'M2.6 7.6A4.5 4.5 0 1 0 3.9 3.8M3.6 1.6V4.1H6.1M7 4.6V7.2L8.7 8.3' })
       : h('path', { ...stroke, d: 'M7 1.8L11.4 3.4V6.9C11.4 9.5 9.6 11.4 7 12.2C4.4 11.4 2.6 9.5 2.6 6.9V3.4ZM5 7L6.4 8.4L9.1 5.7' }))
@@ -2117,12 +2255,6 @@ function patrolStateOf(result: TaskQueueResult, t: Translate, now: number): stri
   return t('queue.patrolState.' + patrol.phase)
 }
 
-/** A finished round's tone, read like an ended task's. */
-function roundTone(result: string): BalanceTone {
-  if (/fail/i.test(result)) return 'low'
-  return /^ok(\/DONE)?$/.test(result) ? 'none' : 'stale'
-}
-
 /** rounds.tsv's local "YYYY-MM-DD HH:MM:SS" as epoch ms, null when it is not one. */
 function localStampMs(stamp: string): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(stamp.trim())
@@ -2130,54 +2262,75 @@ function localStampMs(stamp: string): number | null {
 }
 
 /**
- * Patrol: the phase on the heading line; the supervisor's last words (the
- * current round's id only when those words do not already name it — the
- * round's own row sits in its agent's group); then the last rounds on one
- * grid — id · axis · result (toned) · took · ended.
+ * Why the supervisor gives way, read off its journal line. The patterns are
+ * the reasons the supervisor can actually write — `others_need_slot` and
+ * `round_blocks_someone` in ops/host/patrol.sh, `memory_pressure_reason` in
+ * ops/host/agent-dispatch/resource-pressure.sh — and the spec instantiates
+ * every one of those templates from the files themselves (#2071):
+ *   manual = a manual task waits for the lock or a slot the patrol would use
+ *            (the id is that task, shown so the reader knows whom it waits for);
+ *   slot   = the patrol's own admission: its agent's run slots are all taken;
+ *   memory = admission deferred on memory headroom, pressure or telemetry.
+ * `asking <round> to wrap up …: <demand>` is the grace before a preemption.
+ */
+export function _patrolReason(detail: string): { kind: 'manual' | 'slot' | 'memory' | 'memoryUnread' | 'other'; task: string; wrapUp: boolean } {
+  const wrap = /^asking \S+ to wrap up within \d+s: (.*)$/.exec(detail)
+  const why = wrap?.[1] ?? detail.replace(/^(?:waiting: |preempting \S+?(?: after a \d+s wrap-up grace)?: )/, '')
+  const manual = /^(\S+) is (?:waiting for (?:an \S+ run slot|its agent lock|the \S+ lock)|queued behind the round's \S+ lock)/.exec(why)
+  const kind = manual ? 'manual'
+    : /^the \S+ run slot is busy$/.test(why) ? 'slot'
+      : /^memory telemetry unavailable/.test(why) ? 'memoryUnread'
+        : /^memory (?:headroom low|pressure):/.test(why) ? 'memory' : 'other'
+  return { kind, task: manual?.[1] ?? '', wrapUp: wrap !== null }
+}
+
+/** The supervisor's live status as chips: what it runs now, or why it gives way. */
+function patrolStatusChips(result: TaskQueueResult, t: Translate, now: number): React.ReactElement[] {
+  const patrol = result.patrol
+  const reason = _patrolReason(patrol.detail)
+  const current = result.active.find((task) => task.id === patrol.round)
+  const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail)
+  const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? ''
+  const chips: Array<React.ReactElement | null> = []
+  if (patrol.phase === 'yielding' || reason.wrapUp) {
+    const why = reason.kind === 'manual' ? t('queue.patrol.giveWay') : reason.kind === 'slot' ? t('queue.patrol.waitSlot')
+      : reason.kind === 'memory' ? t('queue.patrol.memory') : reason.kind === 'memoryUnread' ? t('queue.patrol.memoryUnread')
+        : t('queue.patrol.otherReason')
+    chips.push(reason.wrapUp ? renderChip(t('queue.patrol.wrapUp'), 'warn', { slot: 'wrap' }) : null,
+      renderChip(why, 'warn', { slot: 'reason', title: patrol.detail }),
+      reason.task === '' ? null : renderChip(reason.task, 'plain', { slot: 'for', mono: true, title: t('queue.patrol.forTask', { id: reason.task }) }))
+  }
+  if (patrol.phase === 'running' || (patrol.phase === 'yielding' && current !== undefined)) {
+    const m = current === undefined ? null : modelLine(current, true)
+    chips.push(
+      dispatched || axis ? renderChip(dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, 'plain', { slot: 'round', title: patrol.round }) : null,
+      current?.startedAtMs == null ? null : renderChip(t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }), 'plain', { slot: 'elapsed' }),
+      m === null || m.model === '' ? null : renderChip(_modelView(m.model).label, 'plain', { slot: 'model', title: m.model }))
+  }
+  return chips.filter((chip): chip is React.ReactElement => chip !== null)
+}
+
+/**
+ * Patrol: the phase on the heading line, its live status as chips, the newest
+ * round as a record, then — folded, by the one rule above — the earlier
+ * rounds and the raw journal line.
  */
 function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number): React.ReactElement {
   const patrol = result.patrol
   const tone = PATROL_TONE[patrol.phase] ?? 'none'
-  const current = result.active.find((task) => task.id === patrol.round)
-  const axis = /round \S+ \(([^)]+)\)/.exec(patrol.detail)?.[1] ?? ''
-  const activity = patrol.phase === 'running' && patrol.round !== ''
-    ? [axis, patrol.round, current?.startedAtMs == null ? null : durationOf(t, now - current.startedAtMs)].filter(Boolean).join(' · ')
-    : patrol.phase === 'yielding'
-      ? /all \d+ run slots? (?:are )?busy/i.test(patrol.detail) ? t('queue.patrol.waitSlot') : t('queue.patrol.giveWay')
-      : ''
-  const rounds = patrol.rounds ?? []
-  const roundRow = (round: PatrolRound): React.ReactElement => {
-    const ended = localStampMs(round.endedAt)
-    const took = round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)
-    const when = ended === null ? '—' : round.endedAt.slice(5, 16)
-    const parts = round.result.split('/')
-    const status = round.result.startsWith('preempted:') || round.result.startsWith('yielded:')
-      ? t('queue.patrol.giveWay')
-      : executionText(parts[0] ?? '', t)
-    const report = parts[1] ? reportText(parts[1], t, parts[0]) : null
-    return h('div', { className: cx('tq-round'), key: 'round-' + round.endedAt + round.round, title: [round.round, round.axis, round.result, took, round.endedAt].join(' · ') },
-      h('span', { className: cx('tq-round-main') },
-        h('span', { className: cx('tq-round-id', 'tq-sub') }, round.round),
-        h('span', { className: cx('tq-sub', 'tq-round-axis') }, round.axis),
-        h('span', { className: cx('tq-sub', 'tq-v'), 'data-balance-state': roundTone(round.result) }, status)),
-      h('span', { className: cx('tq-round-meta', 'tq-sub') },
-        report ? report + ' · ' : '', took, ' · ', when))
-  }
+  const rounds = (patrol.rounds ?? []).map((round) => roundRecord(round, t, now))
+  const status = patrolStatusChips(result, t, now)
   return h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderGroupHead(renderSectionGlyph('patrol'), t('queue.patrolHeading'), null,
       h('span', { className: cx('tq-sub', 'tq-lane', 'tq-v'), 'data-tq-patrol': patrol.phase, 'data-balance-state': tone, title: patrolPhraseOf(result, t, now) },
         h('span', { className: cx('tq-dot'), 'data-balance-state': tone }),
         patrolStateOf(result, t, now))),
-    activity ? h('div', { className: cx('tq-sub', 'tq-patrol-activity'), title: activity }, activity) : null,
-    rounds.length === 0 ? null : h('div', { className: cx('tq-rounds') },
-      h('div', { className: cx('tq-sub', 'tq-round-caption') }, t('queue.lastRound')),
-      roundRow(rounds[0]!),
-      rounds.length <= 1 ? null : h('details', { className: cx('tq-disclosure') },
-        h('summary', null, t('queue.olderRounds', { n: rounds.length - 1 })),
-        rounds.slice(1).map(roundRow))),
-    patrol.detail === '' ? null : h('details', { className: cx('tq-disclosure') },
-      h('summary', null, t('queue.supervisorLog')),
-      h('div', { className: cx('tq-sub', 'tq-wrap') }, patrol.detail)))
+    status.length === 0 ? null : h('div', { className: cx('tq-chips', 'tq-status-chips'), 'data-tq-patrol-status': patrol.phase }, ...status),
+    ...rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRecord(round, t)),
+    rounds.length <= RESIDENT_ROUNDS ? null
+      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), rounds.slice(RESIDENT_ROUNDS).map((round) => renderRecord(round, t))),
+    patrol.detail === '' ? null : renderFold('journal', t('queue.supervisorLog'),
+      [h('div', { className: cx('tq-log'), key: 'log' }, patrol.detail)]))
 }
 
 /** One provider group of the open panel: identity and plan, the allowance, then the queue it feeds. */
@@ -2263,7 +2416,8 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
     notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
     queueProblem !== null && queueProblem !== ''
       ? h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad'), key: 'qerr', role: 'status' },
-        t(result === null ? 'queue.readFailed' : 'queue.staleWith', { message: queueProblem })) : null,
+        // 'failed' is a cold in-band failure: nothing was ever read, so there is no "last read" to show (#2053).
+        t(result === null || result.status === 'failed' ? 'queue.readFailed' : 'queue.staleWith', { message: queueProblem })) : null,
     queueProblem === null && result === null
       ? h('div', { className: cx('tq-sub', 'tq-note'), key: 'qloading', role: 'status' }, t('panel.queueLoading')) : null,
     queueProblem === null && result !== null && !result.available
@@ -2274,14 +2428,10 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
     sources.length === 0 && balanceProblem === null ? h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' },
       balanceState.data.result === null ? t('balance.reading') : t('panel.noSources')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
-    // Ended work is a time ordered receipt, separate from the live agent queues.
+    // Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS).
     !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
-      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null,
-        h('span', { className: cx('tq-sub', 'tq-lane'), title: t('queue.statusLegend') }, result!.recent.length)),
-      result!.recent.slice(0, 2).map((task) => renderEndedRow(task, t, now, ui.open)),
-      result!.recent.length <= 2 ? null : h('details', { className: cx('tq-disclosure') },
-        h('summary', null, t('queue.moreEnded', { n: result!.recent.length - 2 })),
-        result!.recent.slice(2).map((task) => renderEndedRow(task, t, now, ui.open)))),
+      renderGroupHead(renderSectionGlyph('recent'), t('queue.recentHeading'), null, null),
+      ...result!.recent.map((task) => renderRecord(taskRecord(task, t, now, ui.open), t))),
     patrol === null ? null : renderPatrolSection(result!, t, now),
     ops === undefined ? null : h('div', { className: cx('tq-sub', 'tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
       skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
@@ -2577,9 +2727,6 @@ export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & T
   openFile?: OpenFile
 }
 
-/** Where the runner keeps task directories on this host when the ops entry cannot say (older host half). */
-const FALLBACK_TASK_DIR = '/root/logs/agent-dispatch'
-
 /**
  * The sidebar-foot provider panel (2026-09-27): the balance chip and the
  * dispatch queue as ONE cell, `provider-balance`. Folded, it is one line per
@@ -2679,9 +2826,16 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
           : t('queue.brief.failed', { message: opened.message ?? '', path }) })
   }
   const openBrief = (task: DispatchTask): void => {
-    const fallback = FALLBACK_TASK_DIR + '/' + task.id + '/prompt.md'
+    // When the ops entry cannot say where the brief is, the host half's own dispatch directory
+    // does (`logDir`); a host half older than that field gets no guessed path (#2065).
+    const logDir = queueState.data.result?.logDir
+    const fallback = logDir ? logDir.replace(/\/+$/, '') + '/' + task.id + '/prompt.md' : null
     setConfirm(null)
-    if (run === undefined) { setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return }
+    const noDir = (): void => { setNotice({ ok: false, text: t('queue.brief.noDir') }) }
+    if (run === undefined) {
+      if (fallback === null) { noDir(); return }
+      setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return
+    }
     const request = detailRequest.current
     setReadPending('brief')
     run('brief', task.id, '').then((result) => {
@@ -2694,9 +2848,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
         setNotice({ ok: false, text: t('queue.a.readFailed', { message: result.message }) })
         return
       }
+      const path = (result.ok ? detail.path : undefined) ?? fallback
+      if (path === null) { noDir(); return }
       const view: BriefView = result.ok
-        ? { id: task.id, path: detail.path ?? fallback, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false }
-        : { id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }
+        ? { id: task.id, path, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false }
+        : { id: task.id, path, bytes: 0, truncated: false, appends: [], needsHost: true }
       setBrief(view)
       openPath(view.path)
     }, (err: unknown) => {
@@ -2945,6 +3101,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       : trace.t1.verdictKind == null ? trace.t1.verdict === text : trace.t1.verdictKind === kind
   const soldEarly = sells.filter((trace) => verdictIs(trace, 'soldEarly', '卖飞')).length
   const soldRight = sells.filter((trace) => verdictIs(trace, 'soldRight', '卖对')).length
+  // The dead band's third verdict is counted too, so the three numbers add up to `sellsRated` (#2064).
+  const soldFlat = sells.filter((trace) => verdictIs(trace, 'flat', '持平')).length
   const matched = traces.filter((trace) => trace.decision !== null).length
   const reversed = traces.filter((trace) => trace.decision?.alignment === 'opposite').length
 
@@ -3030,7 +3188,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       h('span', { className: cx('sl') }, t('trace.t1Tally', { rated: sellsRated, sells: sells.length })
         + (sideless === 0 ? '' : t('trace.t1Sideless', { sideless }))),
       h('span', { className: cx('sv') },
-        h('span', { className: cx('down') }, soldEarly), ' / ', h('span', { className: cx('up') }, soldRight))),
+        h('span', { className: cx('down') }, soldEarly), ' / ', h('span', { className: cx('up') }, soldRight), ' / ', h('span', null, soldFlat))),
     h('div', { className: cx('sg') },
       h('span', { className: cx('sl') }, t('trace.matched') + (reversed === 0 ? '' : t('trace.reversed', { reversed }))),
       h('span', { className: cx('sv') }, matched + '/' + traces.length)))

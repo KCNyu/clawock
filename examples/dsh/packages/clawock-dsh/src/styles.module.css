@@ -1084,6 +1084,9 @@ body[data-ds-dark-theme] .dmt {
   --ok:#18763E;
   --bad:#C01313;
   --warn:#8F571B;
+  /* Chip beds for the words above: opaque, so each pair owes 4.5:1 on its own (spec). */
+  --bad-soft:#FCEBEB;
+  --warn-soft:#F6EDE2;
   --label-2:var(--dsw-alias-label-secondary, #545860);
   --glass-separator:var(--dsw-alias-border-l2, rgba(17,24,39,.10));
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
@@ -1095,6 +1098,8 @@ body[data-ds-dark-theme] .pbc {
   --ok:#3FCB74;
   --bad:#FA716A;
   --warn:#E0A752;
+  --bad-soft:#402628;
+  --warn-soft:#3B3224;
   --label-2:var(--dsw-alias-label-secondary, #A9ADB4);
   --glass-separator:var(--dsw-alias-border-l2, rgba(255,255,255,.12))
 }
@@ -1670,6 +1675,13 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-fill-inset:var(--dsw-alias-button-ghost-active-fill);
   --tq-hairline:var(--dsw-alias-border-l2);
   --tq-pill-border:var(--dsw-alias-border-l3);
+  /* Chips: a fact on a neutral fill with a hairline edge (the edge keeps it on a hovered row);
+     a verdict on its state's soft fill, its words in the text role above. */
+  --tq-chip-fill:var(--dsw-alias-button-ghost-active-fill);
+  --tq-chip-edge:var(--dsw-alias-border-l2);
+  --tq-chip-run-fill:color-mix(in srgb, var(--tq-run) 10%, transparent);
+  --tq-chip-warn-fill:var(--warn-soft);
+  --tq-chip-bad-fill:var(--bad-soft);
   --tq-radius:var(--dsw-radius-md);
   --tq-radius-sm:var(--dsw-radius-sm);
   --tq-radius-xs:var(--dsw-radius-xs);
@@ -2025,46 +2037,107 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:normal;
   overflow-wrap:anywhere
 }
-/* Ended work is a receipt, visually separate from the live dot-led queue. */
-.pbc .tq-ended { margin-bottom:2px }
-.pbc .tq-ended-row { grid-template-columns:14px minmax(0, 1fr); row-gap:3px }
-.pbc .tq-ended-glyph { display:flex; align-items:center; grid-row:1 / 4; color:var(--tq-ink-2) }
-.pbc .tq-ended-facts { grid-column:2; font-variant-numeric:tabular-nums }
-.pbc .tq-report { color:var(--tq-ink-2) }
-.pbc .tq-detail-report { margin-top:2px; color:var(--tq-ink-2) }
-.pbc .tq-disclosure { margin:3px 0 4px 14px; font:var(--dsw-font-xxs-12); line-height:16px; color:var(--tq-ink-3) }
-.pbc .tq-disclosure > summary { display:list-item; min-height:28px; padding:5px 2px; cursor:pointer; list-style-position:inside }
-.pbc .tq-disclosure > summary:focus-visible { outline:var(--tq-focus-ring); outline-offset:-2px }
-.pbc .tq-patrol-activity { margin:3px 0 6px 20px; font-variant-numeric:tabular-nums }
-.pbc .tq-round-caption { margin:5px 0 2px 20px }
-.pbc .tq-rounds {
-  display:flex;
-  flex-direction:column;
-  padding:2px 0
-}
-.pbc .tq-round {
-  display:flex;
-  flex-direction:column;
-  gap:2px;
+/* Records (2026-09-28): an ended task and a patrol round are one shape — glyph · name …
+   status chip, then the slot chips (client.ts RECORD_SLOTS). Facts are chips on role
+   fills, not a sentence of grey text; a record that opens a detail is a .tq-row button,
+   a read-only one is the same grid without hover or press. Content starts 20px in, on
+   the group heading's name, so the status chips, records and folds share one edge. */
+.pbc .tq-record {
+  display:grid;
+  grid-template-columns:12px minmax(0, 1fr);
+  column-gap:8px;
+  row-gap:4px;
+  align-items:start;
+  flex:1 1 auto;
   min-width:0;
-  padding:3px 0 3px 20px
+  box-sizing:border-box;
+  padding:7px 8px
 }
-.pbc .tq-round-main { display:flex; align-items:center; gap:8px; min-width:0 }
-.pbc .tq-round-main > :nth-child(2) { flex:1 1 auto }
-.pbc .tq-round-axis { min-width:0 }
-.pbc .tq-round-meta { padding-left:40px; font-variant-numeric:tabular-nums }
-.pbc .tq-round-id {
-  font-family:var(--tq-mono);
-  font-variant-numeric:tabular-nums
+.pbc .tq-record-glyph {
+  display:flex;
+  align-items:center;
+  height:20px;
+  color:var(--tq-ink-2)
 }
-@media (max-width: 520px) {
-  .pbc .tq-round-main { flex-wrap:wrap; gap:3px 7px }
-  .pbc .tq-round-main > :nth-child(2) { flex:1 1 45% }
-  .pbc .tq-round-meta { padding-left:0 }
+.pbc .tq-record > .tq-line { min-height:20px }
+.pbc .tq-chips {
+  grid-column:2;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:4px;
+  min-width:0
 }
-@media (pointer: coarse) {
-  .pbc .tq-disclosure > summary { min-height:44px; box-sizing:border-box; padding:14px 2px }
+.pbc .tq-status-chips { margin:0 0 2px 20px }
+.pbc .tq-chip {
+  display:inline-flex;
+  align-items:center;
+  flex:none;
+  max-width:100%;
+  box-sizing:border-box;
+  height:20px;
+  padding:0 7px;
+  border:.5px solid var(--tq-chip-edge);
+  border-radius:var(--tq-radius-xs);
+  background:var(--tq-chip-fill);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--tq-ink-2)
 }
+.pbc .tq-chip[data-tone="run"] { border-color:transparent; background:var(--tq-chip-run-fill); color:var(--tq-run) }
+.pbc .tq-chip[data-tone="warn"] { border-color:transparent; background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
+.pbc .tq-chip[data-tone="bad"] { border-color:transparent; background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }
+/* Not recorded: outlined, no fill — the one place the secondary grey is still the voice. */
+.pbc .tq-chip[data-tone="quiet"] { border-style:dashed; background:transparent; color:var(--tq-ink-3) }
+.pbc .tq-detail-report { margin-top:2px; color:var(--tq-ink-2) }
+/* The fold control: a pill that looks and answers like the detail layer's action pills —
+   hairline, chevron that turns when open, press scale, the panel's focus ring, a 44px target
+   under a finger. It only ever holds repetition or raw source (client.ts RESIDENT_ROUNDS). */
+.pbc .tq-fold { margin:4px 0 2px 20px }
+.pbc .tq-fold-summary {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  box-sizing:border-box;
+  height:26px;
+  padding:0 10px 0 7px;
+  border:.5px solid var(--tq-pill-border);
+  border-radius:999px;
+  list-style:none;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-2);
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-fold-summary::-webkit-details-marker { display:none }
+.pbc .tq-fold-summary::marker { content:"" }
+.pbc .tq-fold-chev {
+  flex:none;
+  color:var(--tq-ink-3);
+  transition:transform var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-fold[open] > .tq-fold-summary .tq-fold-chev { transform:rotate(90deg) }
+.pbc .tq-fold-summary:active {
+  transform:scale(var(--tq-press-scale));
+  background:var(--tq-fill-press)
+}
+.pbc .tq-fold-summary:focus-visible {
+  outline:var(--tq-focus-ring);
+  outline-offset:1px
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-fold-summary:hover { background:var(--tq-fill-hover) }
+}
+.pbc .tq-fold-body { margin:2px 0 0 -20px }
+.pbc .tq-fold-body > .tq-log { margin:2px 0 4px 20px }
 .pbc .tq-foot {
   margin-top:8px;
   padding-top:6px;
@@ -2228,8 +2301,11 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-icon-btn.spin svg {
     animation:none
   }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back):active {
+  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary):active {
     transform:none
+  }
+  .pbc .tq-fold-chev {
+    transition:none
   }
 }
 /* Fingers: every control a finger can reach gets a 44px target; the visible
@@ -2238,10 +2314,14 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-row {
     min-height:44px
   }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back)::after {
+  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary)::after {
     content:"";
     position:absolute;
     inset:-8px
+  }
+  /* The 26px pill plus 9px above and below: a 44px target. */
+  .pbc .tq-fold-summary::after {
+    inset:-9px -8px
   }
   .pbc .tq-field select {
     height:36px

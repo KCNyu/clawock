@@ -435,6 +435,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     patrol: { ...patrolPhase(service, round, alive.has(round), log), rounds: readRounds(config.patrolDir, 3) },
     queues,
     ops: opsRead.ops,
+    logDir: config.logDir,
   }
 }
 

@@ -314,6 +314,7 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'fairWaitSec': z.number(),
   'error': z.string(),
 }).optional(),
+  'logDir': z.string().optional(),
 })
 `
   const invocation = `    {

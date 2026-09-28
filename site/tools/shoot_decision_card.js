@@ -7,15 +7,18 @@
  * on the card says so, and the README caption says so.
  *
  *   node site/tools/shoot_decision_card.js
+ *
+ * It carries every line of that template, the receipt line included: the
+ * README says the card ends in the run_id, so a card without it is half a card.
  */
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.PLAYWRIGHT || 'playwright');
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = process.env.OUT || path.join(ROOT, 'site/assets/decision-card-example.png');
 const WIDTH = 980;
-const HEIGHT = 560;
+const HEIGHT = 640;
 const DSF = 1.5;
 const CHROME_EXE = process.env.CHROME_EXE
   || '/root/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
@@ -53,6 +56,10 @@ body {
 .pill.ok { background: #e6faed; color: #1b8644; }
 .pill.brand { background: rgba(65,118,230,.08); color: #4176e6; }
 .note { font-size: 11.5px; color: #9aa3af; margin-left: auto; }
+.row.receipt { margin-top: 14px; border-top: 1px solid rgba(17,24,39,.08); align-items: center; }
+.row.receipt .v { font-size: 13px; color: #61666b; }
+.row.receipt code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: #2a2e35; }
+.pill.sm { padding: 2px 9px; font-size: 11.5px; }
 </style></head>
 <body>
 <div class="frame">
@@ -70,6 +77,7 @@ body {
     <span class="pill brand">Action watch · 观望</span>
     <span class="note">模型不能自评——价格、账本、战绩由 Python 独立结算</span>
   </div>
+  <div class="row receipt"><span class="k">Receipt 回执</span><span class="v"><span class="pill ok sm">published</span> · run_id <code>run-example-2026-08-08</code> · certificate pinned</span></div>
 </div>
 </body></html>`;
 
