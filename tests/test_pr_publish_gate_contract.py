@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import os
+import shutil
 import subprocess
 
 
@@ -48,42 +49,53 @@ def test_each_publishing_workflow_scopes_deploy_key_to_push_step():
         )
 
 
-def test_safe_push_uses_and_cleans_ephemeral_actions_key(tmp_path, restores_untracked_artifact):
+def test_safe_push_uses_and_cleans_ephemeral_actions_key(tmp_path):
+    origin = tmp_path / 'origin.git'
+    subprocess.run(['git', 'init', '--bare', '-b', 'master', str(origin)],
+                   check=True, capture_output=True)
+    runner = tmp_path / 'runner'
+    subprocess.run(['git', 'clone', str(origin), str(runner)],
+                   check=True, capture_output=True)
+    subprocess.run(['git', 'config', 'user.name', 'KCNyu'], cwd=runner, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'shengyu.li.evgeny@gmail.com'],
+                   cwd=runner, check=True)
+    (runner / 'README.md').write_text('seed\n')
+    subprocess.run(['git', 'add', 'README.md'], cwd=runner, check=True)
+    subprocess.run(['git', 'commit', '-qm', 'seed'], cwd=runner, check=True)
+    subprocess.run(['git', 'push', 'origin', 'master'], cwd=runner,
+                   check=True, capture_output=True)
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     git_log = tmp_path / "git.log"
     fake_git = fake_bin / "git"
     fake_git.write_text(
         """#!/bin/sh
-if [ "$1" = "grep" ]; then
-  exit 1
-fi
 if [ "$1" = "push" ]; then
   printf '%s\\n' "$*" > "$FAKE_GIT_LOG"
   printf '%s\\n' "$GIT_SSH_COMMAND" >> "$FAKE_GIT_LOG"
   exit 0
 fi
-exit 1
+if [ "$1" = "fetch" ]; then
+  exec "$REAL_GIT" fetch origin master -q
+fi
+exec "$REAL_GIT" "$@"
 """
     )
     fake_git.chmod(0o755)
 
     fake_secret = "not-a-real-private-key"
-    # The money gate runs for real against this repository and writes its
-    # report there; that is the behaviour under test, so put the tree back
-    # afterwards instead of trying to redirect it (#816).
-    restores_untracked_artifact("assets/data/integrity_report.json")
     env = os.environ.copy()
     env.update(
         {
             "PATH": f"{fake_bin}:{env['PATH']}",
             "FAKE_GIT_LOG": str(git_log),
+            "REAL_GIT": shutil.which('git'),
             "CLAWOCK_PUBLISH_SSH_KEY": fake_secret,
         }
     )
     result = subprocess.run(
         ["bash", str(ROOT / "ops" / "publish" / "safe_push.sh")],
-        cwd=ROOT,
+        cwd=runner,
         env=env,
         text=True,
         capture_output=True,

@@ -90,13 +90,30 @@ check_money_if_needed() {
     exit 4
   fi
 }
+BASE_FETCH_OK=0
 if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
+  BASE_FETCH_OK=1
   PORTFOLIO_TOUCHED="$(portfolio_touched)"
 else
   # Cannot tell what is new; assume the money file is in scope rather than skip.
   PORTFOLIO_TOUCHED="portfolio.json"
 fi
 check_money_if_needed
+
+# A pure-data push does not trigger ci.yml, and a fresh Actions checkout has
+# no local pre-push hook. Run the same added-line scan on this shared bot push
+# path before every attempt, including the commit range rewritten by rebase.
+SECRET_SCANNER="$(dirname "${BASH_SOURCE[0]}")/../ci/commit_secret_scan.py"
+check_credentials() {
+  if [ "$BASE_FETCH_OK" != 1 ] || [ ! -f "$SECRET_SCANNER" ]; then
+    echo "✗ REFUSING TO PUSH — credential scan has no fetched base or scanner"
+    exit 5
+  fi
+  if ! python3 "$SECRET_SCANNER" --range "FETCH_HEAD..HEAD"; then
+    echo "✗ REFUSING TO PUSH — added lines failed credential scan"
+    exit 5
+  fi
+}
 
 # ── Replay identity (2026-09-06) ─────────────────────────────────────────────
 # `pull --rebase` REWRITES commits, so it needs a committer identity — and the
@@ -150,6 +167,7 @@ settle_autostash_conflict() {
 }
 
 for i in $(seq 1 $MAX_RETRIES); do
+  check_credentials
   if git push "$REMOTE" "$BRANCH"; then
     echo "✓ pushed on attempt $i"
     exit 0
@@ -158,11 +176,14 @@ for i in $(seq 1 $MAX_RETRIES); do
 
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
   if git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+    BASE_FETCH_OK=1
     PORTFOLIO_TOUCHED="$(portfolio_touched)"
   else
+    BASE_FETCH_OK=0
     PORTFOLIO_TOUCHED="portfolio.json"
   fi
   if "${REPLAY_ID[@]}" git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
+    BASE_FETCH_OK=1
     settle_autostash_conflict
     check_money_if_needed
     echo "  rebase clean, will retry push"
@@ -196,6 +217,7 @@ for i in $(seq 1 $MAX_RETRIES); do
       GIT_EDITOR=true "${REPLAY_ID[@]}" git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
     done
     if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
+      BASE_FETCH_OK=1
       settle_autostash_conflict
       check_money_if_needed
       echo "  rebase auto-resolved (generated files only), will retry push"
