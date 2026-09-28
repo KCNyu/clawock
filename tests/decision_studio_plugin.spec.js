@@ -3020,7 +3020,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(chip(rows[3], "status").props.title, "执行完成 · 任务：完成");
   assert.equal(find(rows, (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "no row speaks through a dot: states are chips");
   assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
-  assert.equal(find(rows[0], (p) => p["data-tq-agent"] !== undefined).length, 0, "a live row leaves the lead to its group head");
+  assert.equal(find(rows[0], (p) => p["data-tq-agent"] === "claude").length, 1, "a live task fills the shared lead track with its executor");
   // Every row is on the one grid: its facts are words in FACT_ORDER, and only the ones its kind lists.
   const factSlots = (node) => find(node, (p) => p["data-tq-fact"] !== undefined).map((c) => c.props["data-tq-fact"]);
   assert.deepEqual(factSlots(rows[3]), ["model", "when", "took"],
@@ -3046,6 +3046,9 @@ test("client: one provider cell carries the queue under each agent's provider an
     const cellsOf = spec.facts.map((slot) => `${FACT_CELL[slot].line}/${FACT_CELL[slot].track}`);
     assert.equal(new Set(cellsOf).size, cellsOf.length, `${kind}: no two of its facts share a cell`);
   }
+  assert.deepEqual(Object.fromEntries(Object.entries(ROW_KINDS).map(([kind, spec]) => [kind, spec.lead])),
+    { source: true, head: true, task: true, ended: true, round: true },
+    "every row kind fills the common lead track; no empty 14px stripe");
   for (const [kind, spec] of Object.entries(ROW_KINDS)) {
     const at = spec.facts.map((slot) => FACT_ORDER.indexOf(slot));
     assert.ok(at.every((i, n) => i >= 0 && (n === 0 || i > at[n - 1])), `${kind}: its facts are a run of FACT_ORDER, in order`);
@@ -3065,7 +3068,8 @@ test("client: one provider cell carries the queue under each agent's provider an
     assert.ok(find(row, (p) => p["data-tq-chip"] !== undefined).length <= RESIDENT_CHIPS, `${kind}: at most one chip`);
     assert.deepEqual(order.slice(0, 2), ["lead", "main"], `${kind}: the lead column is always there, so every name starts on one edge`);
     assert.equal(order.includes("value"), spec.value && order.includes("value"), `${kind}: a value only where the kind has one`);
-    if (!spec.lead) assert.equal((cells[0].children || []).filter(Boolean).length, 0, `${kind}: its lead is its group head's, left empty`);
+    if (spec.lead) assert.ok((cells[0].children || []).filter(Boolean).length > 0, `${kind}: its lead carries a glyph`);
+    else assert.equal((cells[0].children || []).filter(Boolean).length, 0, `${kind}: no glyph in the lead track`);
     const facts = cells.filter((c) => cellName(c) === "tq-fact").map((c) => c.props["data-tq-fact"]);
     assert.ok(facts.every((slot) => spec.facts.includes(slot)), `${kind}: only its own facts (${facts})`);
     assert.deepEqual(facts, [...facts].sort((a, b) => FACT_ORDER.indexOf(a) - FACT_ORDER.indexOf(b)), `${kind}: facts in FACT_ORDER`);
@@ -3736,6 +3740,22 @@ test("provider panel: every row takes its columns from the one grid", async () =
   assert.equal((css.match(/--tq-grid:/g) ?? []).length, 1, "the columns are defined once");
   assert.match(css, /--tq-grid:var\(--tq-lead\) var\(--tq-when\) var\(--tq-took\) minmax\(0(px)?, ?1fr\) var\(--tq-aside\)/);
   for (const track of ["when", "took", "aside"]) assert.match(css, new RegExp(`--tq-${track}:\\d+px`), `--tq-${track} is a fixed width`);
+  const desktop = Object.fromEntries(["when", "took", "aside"].map((track) =>
+    [track, Number(css.match(new RegExp(`--tq-${track}:(\\d+)px`))?.[1])]));
+  const phone = css.match(/@media \(width<=380px\)\{[^}]*--tq-when:(\d+)px;--tq-took:(\d+)px;--tq-aside:(\d+)px/);
+  assert.ok(phone, "the narrow phone has a measured three-track budget");
+  const narrow = { when: Number(phone[1]), took: Number(phone[2]), aside: Number(phone[3]) };
+  // A 360px panel has 298px inside a well row; at 375px viewport the panel
+  // is 351px and the row has 289px. Keep room for the shared lead, four 8px
+  // gaps, both facts, the chip and at least 8px of elastic name track.
+  for (const [label, tracks, rowWidth] of [["desktop", desktop, 298], ["phone", narrow, 289]]) {
+    assert.ok(tracks.aside >= 104, `${label}: the longest resident state words and glyph fit the chip`);
+    assert.ok(14 + 4 * 8 + tracks.when + tracks.took + tracks.aside + 8 <= rowWidth,
+      `${label}: fixed tracks leave a name track at the real narrow sidebar width`);
+  }
+  assert.match(rules("_tq-chip"), /max-width:100%/, "the chip stays in the shared aside track");
+  assert.doesNotMatch(rules("_tq-chip") + rules("_tq-chip-text"), /(?:text-overflow:ellipsis|overflow:hidden)/,
+    "chip words are neither clipped nor ellipsised");
   assert.match(css, /--tq-main-inset:calc\(var\(--tq-lead\) \+ var\(--tq-gap\)\)/);
   assert.match(rules("\\[data-tq-row\\]"), /grid-template-columns:var\(--tq-grid\)/, "panel rows and folded lines alike");
   assert.match(rules("\\[data-tq-row\\]"), /align-items:baseline/, "the first line shares one baseline");
