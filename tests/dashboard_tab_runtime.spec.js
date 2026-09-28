@@ -2244,6 +2244,43 @@ async function testUnconfirmedDeliveryIsNotAllDelivered(browser, base) {
   await context.close();
 }
 
+// #2058：降级台账是终身、按条数轮换的事故史。页脚那一位曾把 5~26 天前的旧行
+// 全部加起来印「24 次降级记录」、黄点永远灭不掉；现在只数与成品同窗的那几条。
+async function testFooterDegradationsCountOnlyTheWindow(browser, base) {
+  const at = "2026-09-27T16:00:00+00:00";
+  const ago = hours => new Date(Date.parse(at) - hours * 3.6e6).toISOString();
+  const footer = async degradations => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page, { patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.build_status = { ...(json.build_status || {}), generated_at: at, stale_files: [],
+        integrity: { error_count: 0, warn_count: 0, top: [] },
+        files: (json.build_status && json.build_status.files || []).map(f => ({ ...f, present: true, stale: false })) };
+      json.workflow_outcomes = { window_hours: 36, counts: { success: 3 }, degradations };
+      return json;
+    } });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const seen = await page.evaluate(() => {
+      const el = document.getElementById("build-status");
+      return { tone: el.querySelector(".bs-dot").dataset.tone,
+               label: el.querySelector(".bs-label").textContent, title: el.title };
+    });
+    await context.close();
+    return seen;
+  };
+  const old = { kind: "sector_scan_missing", detail: "x", count: 8, first_at: ago(24 * 9), last_at: ago(24 * 5) };
+  const quiet = await footer([old]);
+  assert.equal(quiet.tone, "ok", `five-day-old degradations must not light the dot: ${quiet.label}`);
+  assert.ok(!quiet.label.includes("降级记录"), quiet.label);
+  assert.ok(quiet.title.includes("sector_scan_missing: 8 次 · 最后 5 天前"), "history stays readable in the tooltip");
+  const recent = await footer([old, { kind: "heartbeat_bridge_failed", detail: "y", count: 2,
+    first_at: ago(3), last_at: ago(2) }]);
+  assert.equal(recent.tone, "warn");
+  assert.ok(recent.label.includes("36h 内 2 次降级记录"), recent.label);
+}
+
 async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
   for (const width of [390, 1280]) {
     const { context, page, state } = await openDataHealth(browser, base, width);
@@ -3359,6 +3396,7 @@ async function main() {
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
+    await run("testFooterDegradationsCountOnlyTheWindow", () => testFooterDegradationsCountOnlyTheWindow(browser, base));
     await run("testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh", () => testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base));
     await run("testAnOldScheduleIsOneWatchItemNotOnePerJob", () => testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base));
     await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
