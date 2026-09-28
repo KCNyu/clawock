@@ -286,6 +286,54 @@ async function testRuntime(browser, base) {
   assert.deepEqual(mismatchState.errors, []);
 }
 
+// #2140: the first-paint bundle's light renderers must not write another panel's card.
+// A reader deep-linked into Risk / Reflect who visits Overview and comes back used to
+// find the Overview pass's copy (no "连续 N 天" chips, no 幅度校准 row), and the tab's
+// render-version gate never painted the full one back.
+async function testOverviewDoesNotOverwriteTheDetailPanelsCards(browser, base) {
+  const cases = [
+    { tab: "risk", sel: "#guardrail-list", probe: ".risk-age" },
+    { tab: "reflect", sel: "#honesty-body", probe: null },
+  ];
+  for (const { tab, sel, probe } of cases) {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const state = observe(page);
+    await stubLiveOrigin(page, {
+      // Give every hard-gate row an age so the Risk card has chips to lose,
+      // whatever today's data holds.
+      patch: (name, json) => {
+        if (name !== "dashboard.json" || !json.risk_guardrail) return null;
+        (json.risk_guardrail.breaches || []).forEach(b => { b.age_days = 5; });
+        return json;
+      },
+    });
+    await page.goto(base + "#" + tab, { waitUntil: "domcontentloaded" });
+    await waitForTab(page, tab);
+    const read = () => page.evaluate(({ sel, probe }) => {
+      const el = document.querySelector(sel);
+      return { html: el ? el.innerHTML : null, probes: probe && el ? el.querySelectorAll(probe).length : null };
+    }, { sel, probe });
+    const before = await read();
+    assert.ok(before.html && before.html.trim(), `${sel} rendered nothing on ${tab}`);
+    if (probe) assert.ok(before.probes > 0, `${sel} carries no ${probe} to lose`);
+    await clickTab(page, "hero");
+    // waitForTab("hero") wants the overview projection; DATA is the full document by now.
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('.panel[data-panel="hero"]');
+      return panel?.classList.contains("active") && !panel.hasAttribute("aria-busy")
+        && !panel.querySelector(".card.is-pending");
+    });
+    await page.waitForTimeout(300);
+    await clickTab(page, tab);
+    await waitForTab(page, tab);
+    const after = await read();
+    assert.equal(after.html, before.html,
+      `${sel} on ${tab} changed after a visit to Overview (probes ${before.probes} → ${after.probes})`);
+    assert.deepEqual(state.errors, []);
+    await page.close();
+  }
+}
+
 // The publisher reads the FX cache offline and still serves one the daily
 // refresh stopped updating — the peg keeps that a small error — but the hero's
 // provenance line has to say so instead of looking like a fresh quote (#1781).
@@ -3381,6 +3429,7 @@ async function main() {
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
+    await run("testOverviewDoesNotOverwriteTheDetailPanelsCards", () => testOverviewDoesNotOverwriteTheDetailPanelsCards(browser, base));
     await run("testEquityTouch", () => testEquityTouch(browser, base));
     await run("testTabGuardWithoutForcedLayout", () => testTabGuardWithoutForcedLayout(browser, base));
     await run("testMobilePagerCommitsStateAtTheRealSnapPoint", () =>
