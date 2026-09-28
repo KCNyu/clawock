@@ -2819,6 +2819,52 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   fs.rmSync(root, { recursive: true, force: true });
 });
 
+// The detail layer's order (client.ts DETAIL_SECTIONS / DETAIL_FIELDS): the sections drawn are a
+// run of the table's list for that kind of task, and each section's fields a run of its fields.
+function assertDetailOrder(api, layer, kind) {
+  const walk = (node, pred, out = []) => {
+    if (node == null) return out;
+    if (Array.isArray(node)) { node.forEach((n) => walk(n, pred, out)); return out; }
+    if (typeof node !== "object") return out;
+    if (pred(node.props || {})) out.push(node);
+    (node.children || []).forEach((n) => walk(n, pred, out));
+    return out;
+  };
+  const sections = walk(layer, (p) => p["data-tq-section"] !== undefined);
+  const ids = sections.map((n) => n.props["data-tq-section"]);
+  const order = api.DETAIL_SECTIONS[kind];
+  assert.equal(ids[0], "status", "the hero comes first");
+  assert.deepEqual(ids, order.filter((id) => ids.includes(id)), `${kind}: sections in DETAIL_SECTIONS order (${ids})`);
+  for (const section of sections) {
+    const id = section.props["data-tq-section"];
+    const fields = walk(section, (p) => p["data-tq-field"] !== undefined).map((n) => n.props["data-tq-field"]);
+    const table = api.DETAIL_FIELDS[id] ?? [];
+    assert.ok(fields.every((f) => table.includes(f)), `${id}: only its own fields (${fields})`);
+    assert.deepEqual(fields, [...fields].sort((a, b) => table.indexOf(a) - table.indexOf(b)), `${id}: fields in DETAIL_FIELDS order`);
+    if (api.DETAIL_FOLDED.includes(id)) {
+      assert.ok(walk(section, (p) => p["data-tq-fold"] === id).length === 1, `${id} is folded`);
+    }
+  }
+}
+
+// Where each control of a detail layer sits: its section, and its field when it is beside one.
+function actionHomes(layer) {
+  const out = {};
+  (function walk(node, section, field) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach((n) => walk(n, section, field)); return; }
+    if (typeof node !== "object") return;
+    const p = node.props || {};
+    const s = p["data-tq-section"] ?? section;
+    const f = p["data-tq-field"] ?? (p["data-tq-section"] !== undefined ? undefined : field);
+    if (p["data-tq-action"] !== undefined && p["data-tq-action"] !== "dismiss-confirm") {
+      out[p["data-tq-action"]] = { home: f === undefined ? s : `${s}.${f}`, kind: p["data-tq-kind"] };
+    }
+    (node.children || []).forEach((n) => walk(n, s, f));
+  })(layer, undefined, undefined);
+  return out;
+}
+
 test("client: one provider cell carries the queue under each agent's provider and shows who waits for what", async () => {
   const loaded = await loadClient();
   const reactStub = makeReactStub();
@@ -3035,8 +3081,14 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0].props["data-open"], "true",
     "the layer lives inside the open popover — no second surface");
   assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
-  assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent .*Claude Code 模型 .*Opus 5\.5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
+  assert.match(texts(detail), /进行中 model-bump 排队 等 claude 锁 .*模型 Claude Opus 5\.5 .*Agent Claude Code .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/,
+    "the hero (name, the row's chip, the whole sentence), then the sections in DETAIL_SECTIONS order");
   assert.doesNotMatch(texts(detail), /判卡死/, "no stall row when there was none");
+  assertDetailOrder(api, detail, "live");
+  const heroChip = find(find(detail, (p) => p["data-tq-section"] === "status")[0], (p) => p["data-tq-chip"] === "status")[0];
+  assert.deepEqual([texts(heroChip), heroChip.props["data-role"]], [texts(chip(rows[1], "status")), chip(rows[1], "status").props["data-role"]],
+    "the hero carries the very chip the list row had");
+  assert.equal(find(detail, (p) => /_tq-dot(?!-)/.test(p.className || "")).length, 0, "no dot repeating the chip");
   // Without the host's write door only the read-only brief entry remains (it opens dsh's own preview).
   assert.deepEqual(find(detail, (p) => p["data-tq-action"] !== undefined).map((n) => n.props["data-tq-action"]), ["brief"],
     "no write actions without the host's write door");
@@ -3052,7 +3104,9 @@ test("client: one provider cell carries the queue under each agent's provider an
   await tick(); await tick();
   find(render(), (p) => p["data-tq-task"] === "c-1")[0].props.onClick();
   const ended = find(render(), (p) => p["data-tq-detail"] === "c-1")[0];
-  assert.match(texts(ended), /已结束 .*merge-pr1767 执行完成 任务：完成 .*用时 30 分 .*结束 .*30 分钟前 .*结果摘要 - merged: PR #1767\n- CI green/);
+  assert.match(texts(ended), /已结束 merge-pr1767 完成 执行完成 · 任务：完成 结果摘要 - merged: PR #1767\n- CI green .*用时 30 分 .*结束 .*30 分钟前/,
+    "an ended task: its verdict on both axes, then what it reported, before how it ran");
+  assertDetailOrder(api, ended, "ended");
   assert.doesNotMatch(texts(ended), /最近事件/, "an ended task has no latest event row");
   const panelClasses = find(render(), (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(panelClasses.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
@@ -3577,16 +3631,43 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   // Detail of a runner-api-3 task: the enforced deadline and budgets, tokens and cost.
   find(tree, (p) => p["data-tq-task"] === "new-run")[0].props.onClick();
   tree = render();
-  assert.match(texts(tree), /截止 .*预算 重试 1\/3 · 额度续跑 0\/3 .*花费 \$0\.04 · 按 API 价估算，非实际扣费 · 截至上一次尝试结束 .*Tokens 共 102k · 输入 10 · 缓存写 1\.0k · 缓存读 100k · 输出 500/);
+  assert.match(texts(tree), /截止 今天 \d\d:\d\d \+2h 重试 已用 1 \/ 3 \+1 额度续跑 已用 0 \/ 3 \+1 .*花费 \$0\.04 按 API 价估算，非实际扣费 · 截至上一次尝试结束 Tokens 共 102k 输入 10 · 缓存写 1\.0k · 缓存读 100k · 输出 500/,
+    "each budget beside its control; a figure on its line, its breakdown or caveat under it");
+  const layer = find(tree, (p) => p["data-tq-detail"] === "new-run")[0];
+  assertDetailOrder(api, layer, "live");
+  // The list moved these here (#2129): the plan that pays, the windows with their resets.
+  assert.match(texts(find(layer, (p) => p["data-tq-section"] === "allowance")[0]),
+    /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 36% ↻ 10:00 本周 69% ↻ 周四 10:00/);
+  // Writes sit beside the fact they change; reads are one quiet row; the ending writes come last.
+  const homes = actionHomes(layer);
+  assert.deepEqual(Object.keys(homes), ["brief", "log", "model", "deadline", "attempts", "resumes", "wrapup", "cancel"]);
+  for (const [key, where] of Object.entries(homes)) {
+    assert.equal(where.home, api.DETAIL_ACTIONS[key].home, `${key} lives in ${api.DETAIL_ACTIONS[key].home}`);
+    assert.equal(where.kind, api.DETAIL_ACTIONS[key].kind, `${key} looks like a ${api.DETAIL_ACTIONS[key].kind}`);
+  }
+  // The raw record folds (the list's disclosure rule); the scroll area is a named region; the
+  // answer to a write has a resident place outside it.
+  const rawFold = find(find(layer, (p) => p["data-tq-section"] === "raw")[0], (p) => p["data-tq-fold"] === "raw")[0];
+  assert.ok(rawFold && rawFold.type === "details" && !rawFold.props.open, "the raw record is folded");
+  const scrollRegion = find(layer, (p) => p.role === "region" && /_tq-d-scroll/.test(p.className || ""))[0];
+  assert.match(scrollRegion.props["aria-label"], /new-run/);
+  const foot = find(layer, (p) => /_tq-d-notice/.test(p.className || ""))[0];
+  assert.equal(foot.props.role, "status");
+  assert.equal(find(scrollRegion, (p) => /_tq-d-notice/.test(p.className || "")).length, 0, "the answer is not inside the scroll area");
   // Budgets confirm in place and say what they cost; the second tap goes through the ops entry.
   const pill = (key) => find(render(), (p) => p["data-tq-action"] === key)[0];
   pill("resumes").props.onClick();
   assert.equal(calls.length, 0, "one tap never writes");
   assert.match(texts(render()), /多给一次额度续跑：每次都会重放会话上下文，有成本（缓存读）。它在跑：本次尝试的时限不变，下一次尝试起生效。/);
-  assert.match(texts(pill("resumes")), /确认 续跑 \+1/);
+  assert.equal(texts(pill("resumes")), "确认", "the armed control says what the second tap does");
+  assert.equal(pill("resumes").props["aria-label"], "确认 续跑 +1");
+  assert.equal(pill("resumes").props["data-armed"], "true");
+  assert.ok(find(find(render(), (p) => p["data-tq-field"] === "resumes")[0], (p) => p["data-tq-confirm"] !== undefined).length === 1,
+    "its confirmation sits under its own line, not at the end of an action bar");
   pill("resumes").props.onClick();
   await tick(); await tick();
   assert.deepEqual(calls.at(-1), ["resumes", "new-run", "4"]);
+  assert.equal(find(render(), (p) => /_tq-d-notice/.test(p.className || ""))[0].props["data-tq-notice"], "true", "the answer lands in the resident foot");
   pill("deadline").props.onClick(); pill("deadline").props.onClick();
   await tick(); await tick();
   assert.deepEqual(calls.at(-1), ["deadline", "new-run", "+2h"]);
@@ -3685,6 +3766,44 @@ test("provider panel: every row takes its columns from the one grid", async () =
     assert.match(css, new RegExp(`_tq-chip(?::is\\([^)]*)?\\[data-role=${role}\\][^{]*\\{[^}]*color:var\\(--tq-`), `${role}: its own paint`);
   }
   assert.doesNotMatch(css, /data-tone=/, "the grey tone scale is gone");
+});
+
+// 2026-09-28 (kcn: 「问题在详情页」): the detail layer draws on the list's grid and the list's
+// controls. Its fields put the label on the when track (the name's edge), the value over
+// took…rest and a control in aside, where the list keeps its state chip; the hero is the row's own
+// cells. Every control is the fold control's 26px capsule with the panel's focus ring outside it,
+// press feedback and a 44px finger target; what it does (read / write / end) is its look.
+test("detail layer: its fields sit on the list's grid and its controls are one height", () => {
+  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  const rules = (sel) => [...css.matchAll(new RegExp(`${sel}(?:,[^{}]*)?\\{([^}]*)\\}`, "g"))].map((m) => m[1]).join(";");
+  for (const sel of ["_tq-d-field", "_tq-d-hero"]) {
+    assert.match(rules(sel), /grid-template-columns:var\(--tq-grid\)/, `${sel} is on THE row grid`);
+    assert.match(rules(sel), /align-items:baseline/, `${sel}: one baseline per line`);
+  }
+  assert.match(rules("_tq-d-k"), /grid-area:1\/2(;|$)/, "the label on the when track, the name's edge");
+  assert.match(rules("_tq-d-v"), /grid-area:1\/3\/2\/-1/, "the value over took…rest");
+  assert.match(rules("_tq-d-control"), /grid-area:1\/5(;|$)/, "a control in aside, where the list keeps its chip");
+  assert.match(rules("_tq-d-hero>\\.[A-Za-z0-9_-]+_tq-chip"), /grid-area:1\/5;justify-self:stretch/, "the hero's chip in the row's chip column");
+  assert.match(rules("_tq-d-sec-title"), /margin:0 0 2px var\(--tq-main-inset\)/, "a section starts on the name's edge");
+  const pill = rules("_tq-pill");
+  assert.match(pill, /height:26px/, "one control height: the fold control's");
+  assert.match(rules("_tq-fold-summary"), /height:26px/);
+  assert.match(pill, /transition:[^;]*transform/, "its own transition still names transform");
+  assert.match(rules("_tq-pill:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
+  assert.match(rules("_tq-pill:focus-visible"), /outline:var\(--tq-focus-ring\);outline-offset:1px/, "the ring outside the capsule");
+  assert.doesNotMatch(css, /_tq-pill,[^{]*:focus-visible\{outline:var\(--tq-focus-ring\);outline-offset:-2px/, "not the rows' inset ring");
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-d-sec \.[A-Za-z0-9_-]+_tq-pill:after\{inset:-9px -8px\}/, "26 + 9 + 9 = a 44px target");
+  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-pill:hover/, "hover only on a fine pointer");
+  // Kinds look apart: a read is a filled quiet bed, a write an outlined capsule, an end red; armed = its role's bed.
+  const view = rules("_tq-pill\\[data-tq-kind=view\\]");
+  assert.match(view, /background:var\(--tq-fill-inset\)/);
+  assert.match(view, /border-color:(transparent|#0000)/, "a read has no outline");
+  assert.match(pill, /border:\.5px solid var\(--tq-pill-border\)/);
+  assert.match(rules("_tq-pill\\[data-armed\\]"), /background:var\(--tq-chip-warn-fill\)/);
+  assert.match(rules("_tq-pill\\.[A-Za-z0-9_-]+_tq-danger\\[data-armed\\]"), /background:var\(--tq-chip-bad-fill\)/);
+  // The answer to a write is resident, outside the scroll area, and never animates in.
+  assert.match(rules("_tq-d-notice"), /flex:none/);
+  assert.doesNotMatch(css, /_tq-d-[a-z-]+[^{]*\{[^}]*animation/, "nothing in the detail layer animates");
 });
 
 // #1955: the queue and provider panel wrote their waiting/failed WORDS in the host's state
