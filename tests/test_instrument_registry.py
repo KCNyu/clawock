@@ -86,9 +86,14 @@ def test_all_consumer_maps_derive_the_missing_audit_symbols_from_registry():
     assert compute_regime.US_2X_MAP["SPCH"] == ("SPCX", "usSPCX.OQ")
     assert compute_t0_setups.LEVERAGED["SPCH"] == ("SPCX", 2)
     assert analyze_hk_stocks.LEVERAGED == {"07226", "07709", "07747"}
-    assert analyze_us_stocks._is_leveraged_holding(
+    assert analyze_us_stocks.is_leveraged_holding(
         {"ticker": "SPCH", "name": "name without leverage keywords"}
     )
+    # #2080: both analyzers answer with the one predicate, name fallback included,
+    # so an unregistered HK 2x name is not reported as 1x on either side.
+    assert analyze_us_stocks.is_leveraged_holding is instrument_registry.is_leveraged_holding
+    assert analyze_hk_stocks.is_leveraged_holding is instrument_registry.is_leveraged_holding
+    assert instrument_registry.is_leveraged_holding({"ticker": "9999", "stock_name": "XL二南方恒科"})
     assert preflight_integrity.HSTECH_SIBLINGS == {"03032", "03033", "07226"}
 
 
