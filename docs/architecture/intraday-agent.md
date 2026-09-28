@@ -247,7 +247,7 @@ written down.
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
 | `下一触发` numbers and names exist in the context — every such line, merged into one (#2077) | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment`, `test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
-| stale information is labelled | gate (escalating) | every item carries its `cite` with `截至`; `check_stale_citation` flags a stale title quoted without it (`test_quoting_a_stale_headline_without_its_time_is_flagged`) | a 08:10 headline at 23:00 must not read as live |
+| stale information is labelled | gate (escalating) | every item carries its `cite` with a time or explicit time gap; `check_stale_citation` matches the cited title, not a ticker prefix (`test_quoting_a_stale_headline_without_its_time_is_flagged`, `test_a_live_timestamped_title_does_not_collide_with_old_same_ticker_title`) | a 08:10 headline at 23:00 must not read as live |
 | an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
 | a live item is labelled with its own time | gate | tier 2 cite: publisher time + `盘中实时`/`开盘前旧闻`; a pre-open live title falls under `check_stale_citation` like the morning files | a headline fetched at 14:00 may have been written at 06:00 |
 
@@ -273,6 +273,7 @@ as live.
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
+| stale-title matching respects full cited titles and timestamped live duplicates | live (#2106) |
 | one add-side implementation for brief and slot (`add_policy`, `add_side.radar`; `test_both_readers_build_the_same_radar_from_the_same_signals`, `test_the_entries_differ_only_in_how_sure_the_close_is`) | live (#1953) |
 | left-side read, observe mode (`kind: left_scale_in`, `wait`, no size; `test_both_entries_read_the_left_ladder_as_an_unsized_wait`, `test_left_side_is_observed_and_recorded_never_sized`) | live (observe); sizing pending kcn |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |

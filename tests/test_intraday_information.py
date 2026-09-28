@@ -106,6 +106,18 @@ def test_quoting_a_stale_headline_without_its_time_is_flagged():
     assert not [i for i in post.validate(labelled, ctx, labelled) if '旧闻' in i]
 
 
+def test_a_live_timestamped_title_does_not_collide_with_old_same_ticker_title():
+    old = 'MINIMAX-W (00100.HK) Stock Price, Quote & News'
+    live = '港股大模型板块走低 MINIMAX-W跌超10%'
+    ctx = {'information': {'tickers': {'00100': [
+        {'title': old, 'cite': f'《{old}》（旧源，截至 09-11 08:03 HKT，开盘前旧闻）'}]},
+        'live': {'00100': [{'title': live, 'stale': False,
+                            'cite': f'《{live}》（Google新闻，09-28 10:36 HKT 发布，盘中实时）'}]}}}
+    prose = f'《{live}》（Google新闻，09-28 10:36 HKT 发布，盘中实时）'
+    assert post.check_stale_citation(prose, ctx) == []
+    assert post.check_stale_citation(f'《{old}》是今天催化。', ctx)
+
+
 # ── Tier 2: live sources folded into the lane (contract §6) ─────────────────
 
 HK_NOW = datetime(2026, 9, 28, 11, 33, tzinfo=HKT)  # HK session opened 09:30
