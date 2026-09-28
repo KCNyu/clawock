@@ -551,9 +551,13 @@ with CREATED.open("a", encoding="utf-8") as f:
 # A failed send is reported, never silent (review 2026-09-26: the return code was ignored, so a
 # missing TELEGRAM_TARGET or a gateway error looked like a delivered alert). The issue is filed
 # either way; the notification never changes the gate's verdict. The send goes through
-# clawock's delivery provider (the live checkout is installed editable, so this python3 imports
-# it), which sets the runtime's PATH and gateway timeout and honours CLAWOCK_DELIVERY_DISABLED.
+# clawock's delivery provider, which sets the runtime's PATH and gateway timeout and honours
+# CLAWOCK_DELIVERY_DISABLED. This file is installed outside any checkout, so it imports clawock
+# from the patrol's own worktree (origin/master), not from whatever python3 happens to find.
 try:
+    _CHECKOUT = WORK
+    sys.path.insert(0, str(_CHECKOUT))
+    sys.path.insert(0, str(_CHECKOUT / "src"))
     conf = dict(l.split("=", 1) for l in Path("/root/tools/agent-dispatch/notify.env").read_text().splitlines()
                 if "=" in l and not l.lstrip().startswith("#"))
     target = conf.get("TELEGRAM_TARGET", "").strip().strip("'\"")
