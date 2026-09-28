@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T17:38:04.824069",
+  "generated_at": "2026-09-28T19:55:07.417232+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n- **CRCL**: Fed 就 GENIUS Act 下 stablecoin 规则征求意见 (全额储备 + 发行人资本充足率标准) — 直接监管升级, 利差空间长期被压缩, kcn 直接持仓需重估单位经济模型\n- **RKLB**: Iridium 收购获股东批准 + 周 +14% + 96 次 Electron 成功发射 — 三重催化叠加, kcn 持 RKLX (2x), 涨幅被杠杆双向放大\n- **RKLB**: ARK 25M 加仓 + Cantor 看多 + 分析师喊翻倍目标 — 卖方+机构共识强化, RKLX (2x) 杠杆双向放大回撤风险\n- **CRCL**: Clarity Act 停滞反致 XRP/SOL 飙 22%, COIN/HOOD 同涨 — 监管真空 = 高波动, 中性偏正\n- **SPCX**: 直接公告缺失; Alphabet 启动 Project Suncatcher 进入卫星/space 业务 — 间接空间主题竞争信号, kcn 持 SPCH (2x) 暴露巨头入局\n\n## Per-ticker 简报\n- **CRCL**: Fed 拟对 stablecoin 发行人推资本充足率监管 — 银行业级合规, 利差压制风险\n- **CRCL**: Bitget $351M 黑客后 Circle/Tether 冻结关联稳定币 — 运营风控正名, 暴露金额小 (~$318K)\n- **CRCL**: Clarity Act 失败但 crypto 相关股齐涨 — 监管不确定性, 短期高波动\n- **CRCL**: Trump 政府\"强化美元\"计划 — USD 资产需求中长期利好, 中性\n- **CRCL**: IBM 接入 Swift 区块链 ledger (tokenized deposits) — 银行端竞品, 长期 TAM 受压\n- **RKLB**: Iridium 收购获股东批准 + 战略扩张解释 — 垂直整合里程碑, 短期溢价已 priced in\n- **RKLB**: 96 次 Electron 成功发射 + ARK 25M 加仓 — 业务节奏 + 机构信号\n- **SPCX**: 数据缺口 — 系统匹配新闻为 AI/科技 general market (Cognition AI $1B run-rate、Tesla Semi、AMD、Akamai-Anthropic), 非 ticker-specific, 仅作 ETF beta 暴露看待\n\n## 风险 Watch\n- **CRCL**: GENIUS Act 全额储备 + 发行人资本标准 = 银行业级监管, 净利率压制\n- **RKLB**: Iridium 收购溢价偏高, 整合执行 + 估值回吐风险\n- **CRCL**: Bitget 类黑客事件暴露 stablecoin 生态系统性脆弱性\n- **SPCX**: Alphabet (Project Suncatcher) 进 space = 巨头入局, 主题竞争格局恶化",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: Starship 首次入轨并部署 26 颗卫星，但发动机故障导致任务提前结束、飞行器落入太平洋。  \n  对 kcn：里程碑与载荷交付偏利多，故障构成执行风险；持有 **SPCH**，**2x 会双向放大波动**。\n- RKLB: Iridium Communications 收购案获股东批准，Rocket Lab 的星座平台扩张取得关键进展。  \n  对 kcn：并购可能强化估值与协同预期；持有 **RKLX**，**2x 会放大并购重估及整合风险**。\n- CRCL: CFO Jeremy Fox-Green 拟卸任、股价应声下跌 3.5%；联创 Sean Neville 也将于 9 月 25 日退出董事会。  \n  对 kcn：连续管理层变动提高治理与执行不确定性，对 CRCL 持仓偏负面。\n- RKLB: 完成第 97 次 Electron 发射并交付 Synspective 卫星；Cantor 重申“增持”及 122 美元目标价。  \n  对 kcn：发射记录验证执行能力；**RKLX 2x** 会放大积极催化，也放大高估值波动。\n- CRCL: 与 Volante 合作，将 USDC 结算接入银行支付系统，但未披露合同金额或收入贡献。  \n  对 kcn：扩大 USDC 分发入口，偏长期利好但短期业绩贡献尚不可量化。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: Volante 集成打开机构支付渠道，但 CFO 与董事离任令消息面偏混合，治理折价上升。\n- RKLB: Iridium 收购获批叠加第 97 次 Electron 发射，星座扩张与执行节奏均偏利多。\n- SPCX: Starship 首次入轨并释放卫星，但发动机故障令“里程碑成功”与“任务执行失败”并存。\n\n### 风险 watch (若有)\n- CRCL: CFO 接班安排、联创退出董事会；Catena 的条件性 OCC 批准属于 Neville 的另一项目，并非 Circle 获得监管批准。\n- SPCX: 发动机故障及任务提前终止，暴露 Starship 工程可靠性与执行风险；SPCH 的 2x 结构会放大回撤。\n- RKLB: Iridium 收购后的监管条件、整合及协同兑现风险；RKLX 的 2x 结构会放大事件波动。\n- 未见解押财务指引、监管处罚、大股东减持或失败合约披露。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle And Tether Freeze About $318K In Stablecoins Linked To $351.6M Bitget Hack; Other Exploiter Wallets Still Hold Over 63,000 ETH",
-        "datetime": 1790333313,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3d7aab35a3b6e26015b7397af991cc3356eadbb382ccccad8dd29f1cb87504c0"
-      },
-      {
-        "headline": "XRP, Solana Surge 22% After Clarity Act Failure as Regulatory Moves Lifts Coinbase, Robinhood",
-        "datetime": 1790329853,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c02969688895d2c32d0cbd4ddd5af377ce083d5be6733ce3d4b158f34799ce69"
-      },
-      {
-        "headline": "Trump administration has a radical plan to boost U.S. dollar",
-        "datetime": 1790284500,
+        "headline": "Circle Teams With Volante to Bring USDC Settlement to Bank Payment Systems",
+        "datetime": 1790601240,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8962f75266db0e795a76d7088ea3c63618cdce71e16facacb06800f17f71b87"
+        "url": "https://finnhub.io/api/news?id=628cd3c1f531bf8c826eb628312e5eb122103ef1fdc11b7fb19df05c5cfc3cb1"
       },
       {
-        "headline": "IBM Expands Digital Asset Platform With Swift Ledger Integration",
-        "datetime": 1790265300,
+        "headline": "Circle Internet Group Shares Fall After CFO Announces Departure",
+        "datetime": 1790597721,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=80a00cf582261f89a4d38b9b76810716cb7ebd7fb4bd7ebe4c5b3fd9251acd75"
+        "url": "https://finnhub.io/api/news?id=b6a3a9d9bee45a2e504114461e3017b109bd0dfd5f4cd1bee064639aae441c72"
       },
       {
-        "headline": "Federal Reserve Board Seeks Public Comment On Proposals For Stablecoin Rules Under GENIUS Act, Requiring Full Reserve Backing And Capital Standards For Supervised Issuers",
-        "datetime": 1790260568,
+        "headline": "Bitget Hacker Moved $83M+ in XRP: Why Could Tether Freeze Funds but Ripple Couldn’t?",
+        "datetime": 1790588381,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=aed7374893494245ff39d4c21780cb9d3f542dfcdb9474cdb6ed20cdb1272562"
+      },
+      {
+        "headline": "Volante Technologies Partners With Circle Internet Group Over Stablecoin Payment Integration For Financial Institutions",
+        "datetime": 1790586090,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c836b5571b9ef33bb4b2ce5abdd02cd96f846f7bcdb73dfe719150039733d96a"
+        "url": "https://finnhub.io/api/news?id=0f91b1cce23d098d6e40191fbaefedb8d57250e69fca4e7abb3d4d97a12d0ad4"
+      },
+      {
+        "headline": "Circle Co-Founder Sean Neville Exits Board as Catena Secures Conditional OCC Approval",
+        "datetime": 1790582697,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=0fd935a95e8261b797532030e92a4df9ed11a7699a9c6e8597fbec9bfa68fc91"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Crashed Back Toward Earth for 3 Months: This Analyst Says It’s About to Double",
-        "datetime": 1790343459,
+        "headline": "Cantor Backs Rocket Lab’s Launch Momentum After 97th Electron Mission – Highlights These ‘Competitive Advantages’",
+        "datetime": 1790615746,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8b55b8f9176342e7f692593bacc3cdd30805ee302a2c563dd36e2f949684f2ce"
+        "url": "https://finnhub.io/api/news?id=b712a5f4bdaec48174050ccf761382ca88d8382dc72964e5de4602c580519164"
       },
       {
-        "headline": "What's Going On With Rocket Lab Stock Friday?",
-        "datetime": 1790325657,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ed4fb7e9d1beeb1857777ff64c80714ee10af229f73cf5c9f44e8c714d0d6293"
-      },
-      {
-        "headline": "Stocktwits Space Race Weekly: Why RKLB, FLY, RDW And PL Are Outpacing SPCX",
-        "datetime": 1790323117,
+        "headline": "Kirsten Harmon Joins Vinson & Elkins as NY-Based Corporate Partner",
+        "datetime": 1790609297,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=80317a1b56351172d7ca147d1dc6e70c26d792d0a0e09f134b402a648de48362"
+        "url": "https://finnhub.io/api/news?id=8d664df2182f1603b97916326190d67f5b9f107421a4e240a414a71193b29599"
       },
       {
-        "headline": "Why Rocket Lab Wants To Pay Up Big For Iridium",
-        "datetime": 1790319241,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a28a1846ea47f9dabec66573288592d6fd7496372ee6809bb684a55a5052527f"
-      },
-      {
-        "headline": "Cathie Wood buys $25 million in tumbling tech stock",
-        "datetime": 1790291820,
+        "headline": "Why Is Rocket Lab Stock Falling Today?",
+        "datetime": 1790602457,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=15852a2f1e6bb4e16fe009f3a7601535d7b976d927f8d304c0fd37068a5b4681"
+        "url": "https://finnhub.io/api/news?id=5d7add1a5773cd636f532098320403b5e05e786f28c2f6c2a0a7e3b62264aac9"
+      },
+      {
+        "headline": "Can Rocket Lab's Rapid Prototyping Support Faster Production Growth?",
+        "datetime": 1790601420,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=58438134a7a904efc031847b72e677eb7a7f813048eec9436706acdd8538524e"
+      },
+      {
+        "headline": "Stocktwits M&A Watch: PSKY, WBD, BP, DVN, RKLB, IRDM Stocks In Focus",
+        "datetime": 1790577639,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=595233b6b1d4ea5f18168aa751e33fec4a5aab976b1dd86dca78fd35ef0e3775"
       }
     ],
     "SPCX": [
       {
-        "headline": "Cognition AI hits $1 billion run rate amid demand for coding software - Bloomberg",
-        "datetime": 1790351408,
+        "headline": "SpaceX launches Starship to orbit for first time – before it explodes in the ocean",
+        "datetime": 1790618348,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7d6289d0a4179aa6d5f6974c2f4e7c9ad1257a3a8024f9908ed3dfe71a10bc68"
+        "url": "https://finnhub.io/api/news?id=4862ec48f63f8c4df604de77d9a8b8836365f7adcd1862ed030dc77d061f5ba8"
       },
       {
-        "headline": "Why now might be a good time to invest in Alphabet",
-        "datetime": 1790350500,
+        "headline": "Update: US Equity Indexes Fall in Midday Trading as Treasury Yields Rise Amid US-Iran Deadlock",
+        "datetime": 1790617139,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a83edcb9b6c3d3c4c5e9fba4864ed751f36aa52b5c8496057d2e165d8a8aaa4d"
+        "url": "https://finnhub.io/api/news?id=d7e0427dcae96ca3d8f26dc08bffab97f881185c065ade94a9770dba9285272d"
       },
       {
-        "headline": "Tesla Launches the Semi Truck. The New Roadster Is Up Next.",
-        "datetime": 1790345700,
+        "headline": "Tesla Preps Roadster Unveil Ahead Of Q3 Delivery Release; Stock Drops",
+        "datetime": 1790616689,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cad3ea27bec14c3e7458087235eef01e68014ef4409e39c8cd66f0ef1533eced"
+        "url": "https://finnhub.io/api/news?id=f38b2f35aa57731244f9039b1ed69742b4a49e1c2cce582ac416c20dca444898"
       },
       {
-        "headline": "Nvidia, Meta, Akamai, Comcast, Zscaler, Nike, and More Stocks That Explain Today’s Market",
-        "datetime": 1790345100,
+        "headline": "Goldman Sachs Flags SpaceX Stock in Unusual Growth Screen",
+        "datetime": 1790615859,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eaa5f7b6f669e7a5f9ea1fcde30cfa67b258e1bda1f7c0b74e942c5f446da0ec"
+        "url": "https://finnhub.io/api/news?id=bdc16368f15bb4602d6f741fab2dbaf3e2e770ac1248f4ba95b8333244731bb6"
       },
       {
-        "headline": "AMD CEO Lisa Su is having a September to remember",
-        "datetime": 1790344742,
+        "headline": "SpaceX Starship Splashes Down in Pacific Ocean",
+        "datetime": 1790615334,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cee04198c2f7ea7fecea7cde0acfac189004b0ba34545fa8944663a524d29f38"
+        "url": "https://finnhub.io/api/news?id=c81910ce080270f5a222737025370f635a5992c8d96668d295417c4b68863db1"
       }
     ]
   },
