@@ -550,7 +550,9 @@ with CREATED.open("a", encoding="utf-8") as f:
 # WeChat drops silently on a cold session); the daily cap bounds how many that can be.
 # A failed send is reported, never silent (review 2026-09-26: the return code was ignored, so a
 # missing TELEGRAM_TARGET or a gateway error looked like a delivered alert). The issue is filed
-# either way; the notification never changes the gate's verdict.
+# either way; the notification never changes the gate's verdict. The send goes through
+# clawock's delivery provider (the live checkout is installed editable, so this python3 imports
+# it), which sets the runtime's PATH and gateway timeout and honours CLAWOCK_DELIVERY_DISABLED.
 try:
     conf = dict(l.split("=", 1) for l in Path("/root/tools/agent-dispatch/notify.env").read_text().splitlines()
                 if "=" in l and not l.lstrip().startswith("#"))
@@ -558,13 +560,11 @@ try:
     if not target:
         print("gate: notify skipped (TELEGRAM_TARGET not configured)", file=sys.stderr)
     else:
-        sent = subprocess.run(["openclaw", "message", "send",
-                               "--channel", conf.get("TELEGRAM_CHANNEL", "telegram").strip().strip("'\"") or "telegram",
-                               "--target", target,
-                               "-m", f"🔎 clawock 巡检开了 issue：{title}\n{url}"],
-                              capture_output=True, text=True, timeout=60)
-        if sent.returncode != 0:
-            print(f"gate: notify failed (openclaw exit {sent.returncode}: {(sent.stderr or sent.stdout).strip()[-200:]})",
-                  file=sys.stderr)
+        from clawock.providers.delivery import OpenClawDelivery
+        sent = OpenClawDelivery(timeout=60).send(
+            conf.get("TELEGRAM_CHANNEL", "telegram").strip().strip("'\"") or "telegram", target,
+            f"🔎 clawock 巡检开了 issue：{title}\n{url}")
+        if sent.status == "failed":
+            print(f"gate: notify failed ({sent.detail[-200:]})", file=sys.stderr)
 except Exception as e:
     print(f"gate: notify failed ({e})", file=sys.stderr)
