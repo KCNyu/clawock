@@ -31,3 +31,10 @@ def test_every_held_position_is_modelled_or_named():
 def test_us_leverage_evaluates_the_names_the_dial_acts_on():
     assert {etf for etf, _, _ in us_leverage.NAMES} == set(regime.US_2X_MAP)
     assert {"RKLX", "SPCH"} <= {etf for etf, _, _ in us_leverage.NAMES}
+
+
+def test_us_leverage_requires_a_completed_prior_200dma_before_measurement():
+    assert not us_leverage.can_measure_200dma([1.0] * 74)
+    assert not us_leverage.can_measure_200dma([1.0] * 200)
+    assert us_leverage.can_measure_200dma([1.0] * 201)
+    assert us_leverage.simulate([1.0] * 201)["ma"][199] is not None
