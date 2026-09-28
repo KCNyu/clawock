@@ -74,6 +74,7 @@ import json
 import pathlib
 import sys
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from clawock.bar_conflicts import BENIGN_KINDS, classify_conflict
@@ -134,7 +135,7 @@ def _last_session(market):
     return session.isoformat() if session else None
 
 
-def _extract_iso(s):
+def _extract_iso(s, *, ref=None):
     """从 data_source / last_updated 文本里抠出 YYYY-MM-DD 或 Mon D 之类的日期。"""
     if not s:
         return None
@@ -154,6 +155,20 @@ def _extract_iso(s):
                 return datetime.strptime(m.group(0), fmt).date().isoformat()
             except ValueError:
                 continue
+    # The HK quote writer uses "Tencent Sep 28 13:33 HKT" without a year.
+    # Resolve it to the latest such date no later than the market-local day.
+    m = re.search(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+'
+                  r'(\d{1,2})\s+\d{2}:\d{2}\s+HKT\b', str(s))
+    if m and ref is not None:
+        month = datetime.strptime(m.group(1), '%b').month
+        day = int(m.group(2))
+        try:
+            candidate = date(ref.year, month, day)
+            if candidate > ref:
+                candidate = date(ref.year - 1, month, day)
+            return candidate.isoformat()
+        except ValueError:
+            return None
     return None
 
 
@@ -610,7 +625,8 @@ def check(portfolio_path=PORTFOLIO):
             # STALENESS（逐只 data_source）
             if market:
                 last = _last_session(market)
-                iso = _extract_iso(h.get('data_source'))
+                ref = datetime.now(ZoneInfo('Asia/Hong_Kong')).date() if market == 'hk' else None
+                iso = _extract_iso(h.get('data_source'), ref=ref)
                 if last and iso and iso < last:
                     add('STALENESS', 'WARN',
                         f'{t} data_source 日期 {iso} 早于上一交易日 {last}；可能 stale 价当新 session',
