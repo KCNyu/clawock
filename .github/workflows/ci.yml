@@ -272,6 +272,28 @@ jobs:
           fi
           echo "PR file policy OK: ${#files[@]} changed paths"
 
+      # #2033: the added lines of every commit this event brings, Markdown
+      # included — the pre-commit hook skips *.md and never runs here, and the
+      # platform scanner cannot see a bare key next to a variable name. Prints
+      # provider and location, never the value. Undiffable pushes scan HEAD.
+      - name: No credential-shaped values in the added lines
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = pull_request ]; then
+            python3 ops/ci/commit_secret_scan.py --range "$PR_BASE..$PR_HEAD"
+          elif [ "$EVENT" = push ] && [ -n "${PUSH_BEFORE:-}" ] \
+               && [ "$PUSH_BEFORE" != 0000000000000000000000000000000000000000 ] \
+               && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            python3 ops/ci/commit_secret_scan.py --range "$PUSH_BEFORE..HEAD"
+          else
+            python3 ops/ci/commit_secret_scan.py --commit HEAD
+          fi
+
       - name: Detect code changes
         # Scope the heavy Python steps to files covered by repository contracts.
         # Documentation and skills are inputs to those tests, so they light the
