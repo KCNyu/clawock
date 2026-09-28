@@ -2019,11 +2019,12 @@ export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: 
   source: { lead: true, value: true, facts: [] },
   // A section of the panel (what just ended, patrol).
   head: { lead: true, value: false, facts: [] },
-  // A live task sits in its agent's group: the group's glyph is its lead. It has no receipt yet.
-  task: { lead: false, value: false, facts: ['model', 'tries', 'when', 'took', 'cost'] },
+  // Every row fills the shared lead track; a task repeats its executor for scanning within a group.
+  task: { lead: true, value: false, facts: ['model', 'tries', 'when', 'took', 'cost'] },
   // Ended tasks are listed across agents, so each carries its executor.
   ended: { lead: true, value: false, facts: ['model', 'receipt', 'when', 'took', 'cost'] },
-  round: { lead: false, value: false, facts: ['when', 'took'] },
+  // A round uses the patrol section's glyph, just as an ended task carries its executor.
+  round: { lead: true, value: false, facts: ['when', 'took'] },
 }
 
 /** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
@@ -2161,6 +2162,7 @@ function taskRow(task: DispatchTask, t: Translate, now: number, open: (id: strin
   return {
     kind: 'task',
     key: task.id,
+    lead: renderAgentGlyph(task.agent, 12),
     name: task.name,
     state: state.chip,
     facts: {
@@ -2207,6 +2209,7 @@ function roundRow(round: PatrolRound, t: Translate, now: number): RowView {
   return {
     kind: 'round',
     key: 'round-' + round.endedAt + round.round,
+    lead: renderSectionGlyph('patrol'),
     name: round.axis === '' ? round.round : t('queue.round.name', { round: round.round, axis: round.axis }),
     state: how === 'preempted' ? { text: t('queue.round.preempted'), role: 'partial', title: round.result }
       : how === 'yielded' ? { text: t('queue.round.yielded'), role: 'off', title: round.result }

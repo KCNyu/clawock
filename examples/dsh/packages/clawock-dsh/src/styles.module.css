@@ -1700,9 +1700,9 @@ body[data-ds-dark-theme] .pbc .bp {
      everything under a head (its caption, its window bars, its well). */
   --tq-lead:14px;
   --tq-gap:8px;
-  --tq-when:72px;
-  --tq-took:80px;
-  --tq-aside:80px;
+  --tq-when:64px;
+  --tq-took:64px;
+  --tq-aside:104px;
   --tq-grid:var(--tq-lead) var(--tq-when) var(--tq-took) minmax(0, 1fr) var(--tq-aside);
   --tq-main-inset:calc(var(--tq-lead) + var(--tq-gap));
   /* The inset well a queue sits on: the host's hover wash as a surface, one step in from the
@@ -2501,12 +2501,12 @@ body[data-ds-dark-theme] .pbc .bp {
     width:min(360px, calc(100vw - 24px))
   }
 }
-/* A phone narrower than the fixed tracks: the same five tracks, each a step narrower. */
+/* A narrow phone keeps the chip's full width; only the time and duration tracks shrink. */
 @media (max-width: 380px) {
   .pbc.tqf {
-    --tq-when:64px;
-    --tq-took:72px;
-    --tq-aside:76px
+    --tq-when:60px;
+    --tq-took:60px;
+    --tq-aside:104px
   }
 }
 /* Provider panel (2026-09-27): the balance and the queue as one foot cell. Folded, one 28px
