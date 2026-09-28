@@ -1690,14 +1690,25 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-ease:var(--ds-ease-in-out);
   --tq-fast:var(--ds-transition-duration-fast);
   --tq-mono:var(--ds-font-family-code);
-  /* THE row grid (client.ts ROW_KINDS): lead glyph · main name · value · one state chip, the
-     facts line under main…state. Every line of the cell — the sidebar's folded lines, the
-     panel's heads, tasks, ended tasks, rounds — takes its columns from here and nowhere else;
-     --tq-main-inset is where the name starts, the one left edge of everything under a head. */
+  /* THE row grid (client.ts ROW_KINDS / FACT_CELL): five tracks, three of them fixed.
+       lead · when · took · rest · aside
+     line 1: glyph, the name over when…rest, the state chip (or a head's value) in aside;
+     line 2: the model over when…rest, receipts or tries in aside (a head: its caption);
+     line 3: when, took, and the cost in aside.
+     A fixed track is a vertical line: every time, duration, cost and state of the panel sits on
+     it, whichever row it is in. --tq-main-inset is where the name starts, the one left edge of
+     everything under a head (its caption, its window bars, its well). */
   --tq-lead:14px;
   --tq-gap:8px;
-  --tq-grid:var(--tq-lead) minmax(0, 1fr) auto auto;
-  --tq-main-inset:calc(var(--tq-lead) + var(--tq-gap))
+  --tq-when:72px;
+  --tq-took:80px;
+  --tq-aside:80px;
+  --tq-grid:var(--tq-lead) var(--tq-when) var(--tq-took) minmax(0, 1fr) var(--tq-aside);
+  --tq-main-inset:calc(var(--tq-lead) + var(--tq-gap));
+  /* The inset well a queue sits on: the host's hover wash as a surface, one step in from the
+     panel, so an allowance (on the panel) and a task (on the well) never share a surface. */
+  --tq-well:var(--dsw-alias-interactive-bg-hover);
+  --tq-text-ok:var(--ok)
 }
 /* The row: the host badge's geometry (.pbf) with its trailing count. */
 .pbc.pbf.tqf .bchip {
@@ -1793,9 +1804,15 @@ body[data-ds-dark-theme] .pbc .bp {
   scrollbar-width:thin
 }
 .pbc .tq-group + .tq-group {
-  margin-top:4px;
-  padding-top:4px;
+  margin-top:8px;
+  padding-top:8px;
   border-top:.5px solid var(--tq-hairline)
+}
+/* A section (what just ended, patrol) is a grouped list: set apart by space, not another line. */
+.pbc .tq-group + .tq-section {
+  margin-top:14px;
+  padding-top:0;
+  border-top:0
 }
 .pbc .tq-sub {
   min-width:0;
@@ -1823,10 +1840,12 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-dot[data-balance-state="ok"] { background:var(--tq-run) }
 .pbc .tq-dot[data-balance-state="stale"] { background:var(--tq-wait) }
 .pbc .tq-dot[data-balance-state="low"] { background:var(--tq-bad) }
-/* A row on the grid: the host's panel row (8px inset, 12px corners, hover wash). The first line
-   sits on one baseline (name, value and the state chip's words); the glyph centres in its
-   column. Rhythm: 6px above and below every row, 4px between its two lines, 20px lines. */
+/* A row on the grid: the host's panel row (8px inset, 12px corners, hover wash). Line 1 sits on
+   one baseline (name, value, the chip's word); the glyph centres in its track. Rhythm: 6px above
+   and below a head, 8px above and below a row on a well; a 20px first line, 16px lines after it,
+   each 2px below the one above (padding, not row-gap, so a missing line costs nothing). */
 .pbc .tq-item {
+  position:relative;
   display:flex;
   align-items:center;
   gap:2px;
@@ -1836,7 +1855,7 @@ body[data-ds-dark-theme] .pbc .bp {
   display:grid;
   grid-template-columns:var(--tq-grid);
   column-gap:var(--tq-gap);
-  row-gap:4px;
+  row-gap:0;
   align-items:baseline;
   align-content:center;
   min-width:0
@@ -1871,15 +1890,11 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-name {
   grid-column:2;
   min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
   font:var(--dsw-font-xs-13);
   line-height:20px;
+  overflow-wrap:anywhere;
   color:var(--tq-ink)
 }
-/* A head (a source, a section) is the strong weight; the items under it are the regular one. */
-.pbc :is([data-tq-row="source"], [data-tq-row="head"]) > .tq-name { font:var(--dsw-font-xs-strong-13); line-height:20px }
 .pbc .tq-value {
   grid-column:3;
   justify-self:end;
@@ -1893,16 +1908,49 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-value[data-balance-state="stale"] { color:var(--tq-text-warn) }
 .pbc .tq-value[data-used-level="low"] { color:var(--tq-text-bad) }
 .pbc .tq-value[data-balance-state="low"] { color:var(--tq-text-bad) }
-.pbc [data-tq-row] > .tq-chip[data-tq-chip="status"] {
-  grid-column:4;
-  justify-self:end;
-  max-width:14em
+/* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */
+.pbc .tq-row > .tq-name { grid-column:2 / 5 }
+.pbc .tq-row > .tq-value { grid-column:5 }
+.pbc .tq-row > .tq-chip[data-tq-chip="status"] { grid-column:5; justify-self:stretch }
+.pbc .tq-row > [data-tq-fact="model"] { grid-area:2 / 2 / 3 / 5 }
+.pbc .tq-row > :is([data-tq-fact="tries"], [data-tq-fact="receipt"]) { grid-area:2 / 5 / 3 / 6 }
+.pbc .tq-row > [data-tq-fact="when"] { grid-area:3 / 2 / 4 / 3 }
+.pbc .tq-row > [data-tq-fact="took"] { grid-area:3 / 3 / 4 / 4 }
+.pbc .tq-row > [data-tq-fact="cost"] { grid-area:3 / 5 / 4 / 6; justify-self:end }
+.pbc .tq-row > .tq-caption-line { grid-area:2 / 2 / 3 / -1 }
+/* Facts are words in their cell, not chips: 12/16 tertiary, figures tabular. The model is the
+   one secondary-ink fact (it is read, the rest are scanned); a warning speaks in the text role. */
+.pbc .tq-fact {
+  min-width:0;
+  padding-top:2px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  color:var(--tq-ink-3)
 }
-.pbc [data-tq-row] > .tq-chips {
-  grid-column:2 / -1;
-  grid-row:2;
-  align-self:start
+.pbc .tq-fact[data-tq-fact="model"] {
+  white-space:normal;
+  color:var(--tq-ink-2)
 }
+.pbc .tq-fact[data-voice="warn"],
+.pbc .tq-caption-line [data-voice="warn"] { color:var(--tq-text-warn) }
+.pbc .tq-caption-line {
+  min-width:0;
+  padding-top:2px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+  color:var(--tq-ink-3)
+}
+/* Two levels, never mixed (kcn: 「任务和 provider 上下不明显」). A source head is the panel's
+   strong line: 14/20 name and reading, its caption, its bars. A section head (what just ended,
+   patrol) is a label for the list under it: 12/16 caption ink, like a grouped list's header. The
+   rows themselves are 13/20 regular on the well. */
+.pbc .tq-row[data-tq-row="source"] > :is(.tq-name, .tq-value) { font:var(--dsw-font-s-strong-14); line-height:20px }
+.pbc .tq-row[data-tq-row="head"] > .tq-name { font:var(--dsw-font-xxs-strong-12); line-height:20px; color:var(--tq-ink-3) }
+.pbc .tq-row[data-tq-row="head"] > .tq-lead { color:var(--tq-ink-3) }
 .pbc .tq-tag {
   flex:none;
   padding:0 4px;
@@ -1912,15 +1960,66 @@ body[data-ds-dark-theme] .pbc .bp {
   line-height:16px;
   color:var(--tq-ink-3)
 }
-/* The notification layer: 12px glyphs; delivered ink, failed red + slash. */
+/* The well: the one surface a queue, the ended list and patrol's rounds sit on. It starts on
+   the name's edge; its rows keep the full grid (the lead track too), so a name, a state, a time
+   is on the same line in every well; rows are divided by a hairline that starts at the name. */
+.pbc .tq-well {
+  margin:4px 0 2px var(--tq-main-inset);
+  border-radius:var(--tq-radius);
+  background:var(--tq-well);
+  overflow:hidden
+}
+/* One right edge for the whole panel: a head's reading and chip, the window bars and every well
+   row's chip and cost all end 8px in from the content edge (the well rows' own inset). */
+.pbc .tq-group > .tq-item > .tq-row:is([data-tq-row="source"], [data-tq-row="head"]) { padding-right:16px }
+.pbc .pp-allowance, .pbc .tq-group > .tq-note { margin-right:8px }
+.pbc .tq-well > .tq-item { margin:0 }
+.pbc .tq-well .tq-row { padding:8px; border-radius:0 }
+.pbc .tq-well > .tq-item + .tq-item::before {
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  left:calc(8px + var(--tq-main-inset));
+  height:.5px;
+  background:var(--tq-hairline);
+  pointer-events:none
+}
+/* Move up: laid over the live row's empty lead track, so the row keeps the full width and its
+   cells stay on the panel's lines. */
+.pbc .tq-well > .tq-item > .tq-up {
+  position:absolute;
+  top:28px;
+  left:1px;
+  width:24px;
+  height:24px
+}
+/* The notification layer: one mark per channel — its glyph and what its receipt says (✓ ✕ ?).
+   Green only for a receipt that says delivered; red for one that says failed; no receipt is
+   the tertiary ink with a question mark, never a guessed colour. */
 .pbc .tq-notify {
   display:inline-flex;
   align-items:center;
-  gap:3px
+  gap:8px
 }
-.pbc .tq-notify-glyph { color:var(--tq-cap) }
-.pbc .tq-notify-glyph[data-state="sent"] { color:var(--tq-ink-2) }
-.pbc .tq-notify-glyph[data-state="failed"] { color:var(--tq-bad) }
+.pbc .tq-receipt {
+  display:inline-flex;
+  align-items:center;
+  gap:1px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-receipt[data-state="sent"] { color:var(--tq-text-ok) }
+.pbc .tq-receipt[data-state="failed"] { color:var(--tq-text-bad) }
+.pbc .tq-notify-glyph, .pbc .tq-receipt-glyph { display:block; flex:none }
+/* The fallback mark on the model line: the fallback role in words and glyph, not a second chip. */
+.pbc .tq-mark {
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  margin-left:6px;
+  vertical-align:top;
+  color:var(--tq-text-warn)
+}
 /* Round icon buttons: the host panel's 28px action button (refresh, move up). */
 .pbc .tq-icon-btn {
   position:relative;
@@ -2029,30 +2128,41 @@ body[data-ds-dark-theme] .pbc .bp {
   gap:4px;
   min-width:0
 }
+/* THE chip (client.ts STATE_ROLES): a row's one state, as a capsule whose bed, glyph and word all
+   carry the role, so it reads in dark mode and in greyscale as well as in colour —
+     filled bed   run · sleep · partial · fail · done
+     outline      queue · wait · off · fallback
+     dashed       unknown
+   One width per column (the aside track), the glyph and word left-aligned on its inner edge. */
 .pbc .tq-chip {
   display:inline-flex;
   align-items:center;
   flex:none;
+  gap:4px;
   max-width:100%;
   box-sizing:border-box;
   height:20px;
-  padding:0 7px;
-  border:.5px solid var(--tq-chip-edge);
-  border-radius:var(--tq-radius-xs);
+  padding:0 8px 0 6px;
+  border:1px solid transparent;
+  border-radius:999px;
   background:var(--tq-chip-fill);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
   color:var(--tq-ink-2)
 }
-.pbc .tq-chip[data-tone="run"] { border-color:transparent; background:var(--tq-chip-run-fill); color:var(--tq-run) }
-.pbc .tq-chip[data-tone="warn"] { border-color:transparent; background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
-.pbc .tq-chip[data-tone="bad"] { border-color:transparent; background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }
-/* Not recorded: outlined, no fill — the one place the secondary grey is still the voice. */
-.pbc .tq-chip[data-tone="quiet"] { border-style:dashed; background:transparent; color:var(--tq-ink-3) }
+.pbc .tq-chip-text { min-width:0 }
+.pbc .tq-role-glyph { display:block; flex:none }
+.pbc .tq-chip[data-role="run"] { background:var(--tq-chip-run-fill); color:var(--tq-run) }
+.pbc .tq-chip[data-role="queue"] { border-color:var(--tq-run); background:transparent; color:var(--tq-run) }
+.pbc .tq-chip:is([data-role="sleep"], [data-role="partial"]) { background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
+.pbc .tq-chip:is([data-role="wait"], [data-role="fallback"]) { border-color:var(--tq-wait); background:transparent; color:var(--tq-text-warn) }
+.pbc .tq-chip[data-role="fail"] { background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }
+.pbc .tq-chip[data-role="done"] { background:var(--tq-chip-fill); color:var(--tq-ink-2) }
+.pbc .tq-chip[data-role="off"] { border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }
+/* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */
+.pbc .tq-chip[data-role="unknown"] { border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }
 .pbc .tq-detail-report { margin-top:2px; color:var(--tq-ink-2) }
 /* The fold control: a pill that looks and answers like the detail layer's action pills —
    hairline, chevron that turns when open, press scale, the panel's focus ring, a 44px target
@@ -2293,7 +2403,15 @@ body[data-ds-dark-theme] .pbc .bp {
    it. Nothing is dropped: every row keeps both lines. */
 @media (max-width: 520px) {
   .pbc.pbf.tqf .bp {
-    width:min(320px, calc(100vw - 24px))
+    width:min(360px, calc(100vw - 24px))
+  }
+}
+/* A phone narrower than the fixed tracks: the same five tracks, each a step narrower. */
+@media (max-width: 380px) {
+  .pbc.tqf {
+    --tq-when:64px;
+    --tq-took:72px;
+    --tq-aside:76px
   }
 }
 /* Provider panel (2026-09-27): the balance and the queue as one foot cell. Folded, one 28px
@@ -2342,7 +2460,8 @@ body[data-ds-dark-theme] .pbc .bp {
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
-.pbc.ppf .pp-row > .tq-name { max-width:96px }
+.pbc.ppf .pp-row > .tq-name { max-width:96px; overflow:hidden; white-space:nowrap }
+.pbc.ppf .pp-row > .tq-chip[data-tq-chip="status"] { grid-column:4; justify-self:stretch }
 .pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
 .pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
 .pbc.ppf .pp-row:focus-visible,

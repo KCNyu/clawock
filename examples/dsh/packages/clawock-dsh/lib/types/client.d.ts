@@ -332,58 +332,116 @@ export declare function _modelView(id: string): {
     family: string;
 };
 /**
- * A chip's tone. One colour, one meaning: 'run' = running now (the host's
- * business blue), 'warn' = not done or waiting, 'bad' = failed, 'plain' = a
- * fact that carries no verdict, 'quiet' = a value that was not recorded
- * (outlined, no fill: it is the one secondary voice left).
+ * The notification layer: one receipt mark per channel the task asked for,
+ * the channel's glyph followed by what its receipt says. Delivered = the
+ * runner's NOTIFIED list (`openclaw message send` returned success for that
+ * leg), failed = NOTIFY_FAILED, unknown = the task asked for the channel but
+ * result.env holds no receipt for it (a runner older than the receipts, or a
+ * leg that never ran). Colour is only the paint: the mark's glyph (✓ ✕ ?)
+ * and its words say the same thing, and a mark is green only because a
+ * receipt says so — never inferred from the task's own state.
  */
-type ChipTone = 'plain' | 'run' | 'warn' | 'bad' | 'quiet';
+export type ReceiptState = 'sent' | 'failed' | 'unknown' | 'planned';
+export declare function _notifyState(task: DispatchTask, ch: string, live: boolean): ReceiptState;
 /**
- * THE row grid (2026-09-28, kcn: 「整体布局比较乱，归整统一」). Every line of
- * this cell — a folded source line in the sidebar, a source group's head in
- * the panel, a section head, a live task, an ended task, a patrol round — is
- * the same four columns (styles.module.css `--tq-grid`):
+ * A state's ROLE (2026-09-28 redesign, kcn: 「都是灰色 chip 没有区分度」). A role
+ * is a colour AND a bed AND a glyph AND its word, so it survives a dark
+ * theme and a greyscale screen: fill vs outline vs dashed edge, and a shape
+ * per role. The colours are the host's role tokens (styles.module.css
+ * `--tq-run|wait|bad` and the panel's text roles), nothing plugin-picked.
  *
- *   lead   14px  identity glyph, drawn only where it differs from the group
- *                head's: a live task sits under its agent's head and a round
- *                under patrol's, so they leave it empty; ended tasks are listed
- *                across agents, so each carries its executor
- *   main   1fr   the name — a head in the strong weight, an item in the regular
- *   value  auto  the allowance reading, right-aligned figures (source lines only)
- *   state  auto  ONE status chip; its tone is the role, never a grey level
+ *   run       blue, filled bed, solid dot      holds its slot and runs
+ *   queue     blue, outlined, ring             in line for its agent's lock or a slot
+ *   sleep     amber, filled bed, moon          asleep until a quota window resets
+ *   wait      amber, outlined, hourglass       any other wait (memory, retry, starting)
+ *   done      neutral bed, check               ended, and the model reported done
+ *   partial   amber, filled bed, half disc     ended but the work is not done (partial, blocked, no quota)
+ *   fail      red, filled bed, cross           execution failed or timed out
+ *   off       neutral, outlined, bar           cancelled / not running (patrol between rounds)
+ *   unknown   neutral, dashed, question mark   nothing recorded to judge by
+ *   fallback  amber, outlined, return arrow    ran on a fallback model (a mark on the model line)
  *
- * then an optional facts line under main…state: chips in FACT_ORDER. A fact a
- * row has no value for is skipped, never re-ordered, so a fact sits in the
- * same place on every row that has it. ROW_KINDS says what each kind fills;
- * the renderer draws only that, and the spec checks every kind against both.
- * Nothing else is resident: whatever a kind leaves out is in the detail layer
- * (a task's first queue wait, a window's reset and bar, a source's plan).
+ * Done is deliberately NOT green: it rests on the model's own report. The one
+ * green on a row is a delivery receipt (renderNotifyIcons).
  */
-export declare const FACT_ORDER: readonly ['plan', 'slots', 'pool', 'wrap', 'reason', 'for', 'round', 'report', 'when', 'took', 'tries', 'cost', 'model'];
+export type StateRole = 'run' | 'queue' | 'sleep' | 'wait' | 'done' | 'partial' | 'fail' | 'off' | 'unknown' | 'fallback';
+type GlyphPart = {
+    d: string;
+    paint: 'fill' | 'stroke';
+};
+export declare const STATE_ROLES: Record<StateRole, {
+    bed: 'fill' | 'edge' | 'dashed';
+    glyph: readonly GlyphPart[];
+}>;
+type SlotChip = {
+    text: string;
+    role: StateRole;
+    title?: string;
+};
+/**
+ * An ended task's (or round's) ONE state: the runner's verdict and the
+ * model's report folded into the role that most needs the reader. Both axes
+ * stay readable: the chip's title says both, the detail layer shows both.
+ */
+export declare function _endedState(state: string, outcome: string, t: Translate): SlotChip;
+/**
+ * THE row grid (2026-09-28 redesign, kcn: 「很多地方都没有对齐显示导致 chip 过多显示杂乱」).
+ * Every line of the open panel — a source's head, a section head, a live
+ * task, an ended task, a patrol round — sits on the same five tracks
+ * (styles.module.css `--tq-grid`), and every fact has ONE fixed cell:
+ *
+ *            lead   when       took       rest        aside
+ *   line 1   glyph  name ─────────────────────────   state chip | value
+ *   line 2          model (+ fallback mark) ───────   receipts | tries
+ *   line 3          when       took                    cost
+ *
+ * `when`, `took` and `aside` are fixed widths, so a time, a duration, a cost,
+ * a state are on one vertical line in every row that has them; a row without
+ * a fact leaves its cell empty, never shifts the next one in. A head
+ * (source/section) has a caption line in line 2 instead of facts.
+ *
+ * RESIDENT_CHIPS: a row carries at most ONE chip, its state. Everything else
+ * is words in a fixed cell or a mark (receipts, fallback). What has no cell
+ * here is not squeezed in, wrapped or ellipsised: it lives in the detail layer
+ * one tap away (the report axis on its own, attempts' budget, the first queue
+ * wait, the patrol tag, the session). ROW_KINDS says which facts each kind
+ * shows; FACT_CELL where each one sits; the spec checks every rendered row
+ * against both, and that no row has a second chip.
+ */
+export declare const FACT_ORDER: readonly ['model', 'tries', 'receipt', 'when', 'took', 'cost'];
 export type FactSlot = typeof FACT_ORDER[number];
 export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
+export declare const RESIDENT_CHIPS = 1;
+/** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
+export declare const FACT_CELL: Record<FactSlot, {
+    line: 2 | 3;
+    track: 'main' | 'when' | 'took' | 'aside';
+}>;
 export declare const ROW_KINDS: Record<RowKind, {
     lead: boolean;
     value: boolean;
     facts: readonly FactSlot[];
 }>;
-type SlotChip = {
+/** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
+type Fact = {
     text: string;
-    tone: ChipTone;
+    said?: string;
     title?: string;
-    mono?: boolean;
+    voice?: 'warn' | 'quiet';
+    mark?: React.ReactElement | null;
+    node?: React.ReactElement | null;
 };
 /**
  * A live task's state chip: the short word (the group head already names the
- * agent), its tone, and the whole phrase (_taskStatus: which lock, the wake
+ * agent), its role, and the whole phrase (_taskStatus: which lock, the wake
  * and the window it waits for) as the chip's title. A wake time is the 'when'
- * fact, where an ended task keeps when it ended.
+ * cell, where an ended task keeps when it ended.
  */
 export declare function _taskState(task: DispatchTask, t: Translate, now?: number, windows?: ReadonlyArray<{
     resetAtMs?: number | null;
 }>): {
     chip: SlotChip;
-    when: string | null;
+    when: Fact | null;
 };
 /** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
 export type PanelSource = {

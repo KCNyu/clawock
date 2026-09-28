@@ -122,9 +122,10 @@ key 来源、池内位置不常驻：它们在面板里该来源的分组上，�
 有窗口到阈值或有任务在睡额度 → 琥珀方角标，读数失败 → 红色空心环，否则不带角标。
 
 点任意一行在 cell 正上方弹出面板并落在该来源的分组：组头就是折叠态那一行（同一字形、名字、
-读数与芯片），其下是 plan · 槽位 · 池等事实芯片，然后是额度（每窗口一行读数 + 发丝进度条 + 重置；
-DeepSeek 是钱，显示赠金 / 充值拆分，不画条），最后是它喂的那条队列（状态芯片是短词——运行中 /
-排队 #2 / 等额度…，完整原因与 runner 的「等到」、窗口重置两个时刻在芯片的 title 与详情层）。点任务进详情层：槽位、模型与 effort、尝试 /
+读数，14px 粗体，不再带芯片），其下一行灰字说明 plan · 槽位 · 池，然后是额度（每窗口一行读数 + 发丝进度条 + 重置；
+DeepSeek 是钱，显示赠金 / 充值拆分，不画条），最后是它喂的那条队列——放在从名字那条边开始的**内嵌底板**
+上（状态芯片是短词——运行中 / 排队 #2 / 等额度…，完整原因与 runner 的「等到」、窗口重置两个时刻在芯片的
+title 与详情层）。额度在面板上、任务在底板上，两级不混。点任务进详情层：槽位、模型与 effort、尝试 /
 停滞、实际生效的 deadline 与重试预算、花费（按 API 价估算，非实际扣费）、通知回执，以及
 「任务书」（在 dsh 自带的右侧文件预览里打开 `prompt.md` 与各条追加，只读）和既有的写操作
 （全部经 `ops/host/task_queue_ops.py`）。取数失败的 provider 保留上一次好读数并写明读数时间；
@@ -187,48 +188,66 @@ DeepSeek 是钱，显示赠金 / 充值拆分，不画条），最后是它喂�
 `--dsw-elevation-prominent`,12px 圆角,44px 头),**按执行器分组**——每个 agent 一把锁,
 所以每组就是一条独立的队列,顺序只在组内。
 
-**一套行栅格**(`src/client.ts` 的 `ROW_KINDS` / `FACT_ORDER`,列宽只写在 `styles.module.css`
-的 `--tq-grid`,spec 钉住):折叠行、组头、在跑任务、最近结束、巡检轮次全是同四列——
+**一套行栅格**(2026-09-28 重做;`src/client.ts` 的 `ROW_KINDS` / `FACT_ORDER` / `FACT_CELL`,
+列宽只写在 `styles.module.css` 的 `--tq-grid`,spec 钉住):面板里每一行都是同五轨,其中三轨定宽,
+所以同一种信息在任何行都落在同一条竖线上——
 
-| 列 | 宽 | 放什么 |
+|  | lead 14px | when 72px | took 80px | rest 1fr | aside 80px |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| 第 1 行 | 字形 | 名字 ──────── | | | **一枚**状态芯片,或组头的读数 |
+| 第 2 行 | | 模型(+ 回退标记)──── | | | 通知回执 / 尝试·卡死 |
+| 第 3 行 | | 时刻 | 用时 | | 估算费用(右对齐) |
+
+没有的值留空格,不挪位;组头(来源、分节)的第 2 行是一句灰字说明而不是事实。窄于 380px 的手机
+三条定宽轨各收一档。
+
+**常驻芯片最多一枚**(`RESIDENT_CHIPS = 1`,spec 对每一行计数):只有状态是芯片;时刻、用时、费用、
+模型是固定格里的字,回执与回退是标记。放不进这三行格子的——执行判决与任务报告分开的两个轴、尝试预算、
+首次排队、巡检标记、会话——不换行、不加省略号,一律在点开的详情层。
+
+**状态角色**(`STATE_ROLES`):每个角色 = 宿主角色色 + 底(实底/描边/虚线)+ 字形 + 短词,暗色主题与
+转灰度下仍可分:
+
+| 角色 | 底 · 字形 | 用在 |
 | :-- | :-- | :-- |
-| lead | 14px | 身份字形;只在与所在组头不同的行才画(组内任务、巡检轮次留空,最近结束跨 agent 所以画执行器) |
-| main | 1fr | 名字:组头粗体,组内条目常规 |
-| value | auto | 额度读数(只有来源行有),右对齐等宽数字 |
-| state | auto | **一枚**状态芯片,颜色走角色:蓝=在跑,琥珀=没做完或在等,红=失败,中性=无判决的事实,虚线=没记录 |
+| 运行 run | 蓝实底 · 实心点 | 占着槽在跑 |
+| 排队 queue | 蓝描边 · 空心环 | 等本 agent 的锁或运行槽 |
+| 睡额度 sleep | 琥珀实底 · 月牙 | 等额度窗口重置 |
+| 其他等待 wait | 琥珀描边 · 沙漏 | 等内存、重试退避、启动中;巡检让路 |
+| 完成 done | 中性底 · 勾 | 执行完成且模型报完成(**不用绿**:它靠模型自报) |
+| 未完成 partial | 琥珀实底 · 半圆 | 部分完成、受阻、额度中止、让路取消 |
+| 失败 fail | 红实底 · 叉 | 执行失败、超时(自报完成也是失败,title 写两轴) |
+| 停 off | 中性描边 · 横线 | 已取消、未启动、巡检等下一轮 |
+| 未知 unknown | 虚线 · 问号 | 没有可判的记录(无报告) |
+| 回退 fallback | 琥珀描边 · 回转箭头 | 模型行上的标记:实际跑的不是请求的模型 |
 
-其下可选一行事实芯片,顺序只有一张表:plan · 槽位 · 池 · 收尾 · 让路原因 · 为谁 · 轮次 · 任务报告 ·
-时间 · 用时 · 尝试 · 估算费用 · 模型(各类行只取自己那几格,没有的值跳过,不换位)。组头下的额度、
-说明与折叠控件都从名字那条边(`--tq-main-inset`)开始;行距一律 6px 上下、两行之间 4px、首行 20px。
+**通知回执**(最近结束的第 2 行 aside):每个通道一个标记 = 通道字形 + ✓/✕/?,只读 `result.env`
+的 `NOTIFIED` / `NOTIFY_FAILED`(runner 按 `openclaw message send` 的返回写):绿 ✓ = 该通道有送达回执,
+红 ✕ = 回执写失败,灰 ? = 任务要了这个通道但没有回执(旧 runner 或那条腿没跑),**不因为任务完成就推断
+送达**。在跑的任务行不画回执(结束通知还没发;等额度通知的回执在详情层)。runner 不会补发通知,
+所以没有「补发」状态;回退角色只用于模型回退。
 
-| 行 | lead | state | 事实(顺序) |
-| :-- | :-- | :-- | :-- |
-| 来源(折叠行 = 面板组头) | provider/agent 字形 | 队列状态 | plan · 槽位 · 池 |
-| 在跑/排队任务 | — | 运行中 / 排队 #n / 等额度… | 续跑时刻 · 已跑或已等 · 尝试/卡死 · 费用 · 模型 |
-| 最近结束 | 执行器字形 | 执行判决 | 任务报告 · 多久前 · 用时 · 费用 · 模型 |
-| 巡检轮次 | — | 执行判决 / 让路 | 任务报告 · 多久前 · 用时 |
-| 分节头(最近结束、巡检) | 分节字形 | 巡检阶段 | 收尾 · 让路原因 · 为谁 · 轮次 · 已跑 · 模型 |
+组头下的说明、额度、底板与折叠控件都从名字那条边(`--tq-main-inset`)开始,整块面板的右缘只有一条
+(组头读数、窗口进度条、底板里的芯片与费用同一右缘)。节奏:组头上下 6px、底板行上下 8px,首行 20px,
+其后每行 16px、行间 2px;来源组之间发丝线,分节(最近结束、巡检)只靠留白分开。
 
-- 组头:槽位芯片 `槽 1/1`(满了且组内有人排队变琥珀);锁被组外的任务占着、或该 agent 额度用尽
+- 组头:槽位 `槽 1/1`(满了且组内有人排队变琥珀字);锁被组外的任务占着、或该 agent 额度用尽
   (「额度用尽,23:20 恢复(x 触发)」)时各一行说明;闲着的组只有组头,不再写「没有任务」;
 - 行:持锁的在前,其后按 `task_queue_ops.py` 的真实拿锁顺序(芯片 `排队 #2`,title 是
-  `等 claude 锁 · 第 2 位`)。模型芯片是完整模型名 `Claude Opus 5.5 · high`(排队的显示将要用的,
-  在跑的显示实际 `MODEL_USED`,不一致时另有 fallback 芯片),后面是通知回执图标
-  (微信 / Telegram:待发灰、已送达深灰、失败红加斜杠,来自 `result.env` 的 `NOTIFIED` /
-  `NOTIFY_FAILED`)。没发布 `RUNNER_API=2` 的任务不在排队顺序里:列表行不加标记,点开详情写
-  「无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型」;
-- 「最近结束」与「巡检轮次」是同一种行:执行判决芯片在 state 列,任务报告领头事实行。
-  首次排队不常驻,在详情层。执行判决(执行完成/失败/取消/超时/受阻/额度中止/未启动/未明)与模型最终报告
-  (任务:完成/部分完成/受阻/未报告)各占一枚芯片、各自着色,执行失败但模型报完成写
-  「任务：自报完成」,不把两个轴压成一个结果。芯片用角色色:琥珀=没做完或在等,红=失败,
-  蓝=正在跑,中性底=不带判决的事实;没记录的值是虚线框(唯一还用次要灰字的地方)。
-  详情层的首次排队 `waitMs` 是 host 从 `QUEUED_AT` 到 `run.log` 第一条 `got run slot` 派生的可选字段;
-  旧 host、旧 runner 或截断的日志没有该字段时显示「排队耗时未记录」,绝不把总用时冒充等待。
+  `等 claude 锁 · 第 2 位`)。模型是完整模型名 `Claude Opus 5.5 · high`(排队的显示将要用的,
+  在跑的显示实际 `MODEL_USED`,不一致时带回退标记)。没发布 `RUNNER_API=2` 的任务不在排队顺序里:
+  列表行不加标记,点开详情写「无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型」;上移按钮叠在
+  该行空着的 lead 轨上,不挤占行宽;
+- 「最近结束」与「巡检轮次」是同一种行:一枚状态芯片把 runner 的执行判决与模型最终报告折成最需要看的
+  那一个角色(见上表),芯片 title 与详情层照旧把两个轴分开写(执行完成 · 任务：部分完成;执行失败 ·
+  任务：自报完成)。首次排队不常驻,在详情层;详情层的首次排队 `waitMs` 是 host 从 `QUEUED_AT` 到
+  `run.log` 第一条 `got run slot` 派生的可选字段;旧 host、旧 runner 或截断的日志没有该字段时显示
+  「排队耗时未记录」,绝不把总用时冒充等待。
 - **谁常驻、谁折叠只有一条规则**(`src/client.ts` 的 `RESIDENT_ROUNDS` 注释,spec 钉住):
   不同的工作常驻,重复与原始来源才折叠。host 已按 `taskQueueRecent` 截断,所以每条结束任务都常驻;
   巡检轮次是同一轮换在重复,只留最新一轮,更早的轮次与 journal 原始末行进折叠。折叠控件是
   胶囊按钮(发丝边、会转的箭头、按压与焦点环、触屏 44px 热区),打开不做高度动画。
-- 巡检分节头的状态芯片是当前阶段;它的事实芯片说在跑哪一轮(轮次 · 轴、已跑、模型)或为什么让路——
+- 巡检分节头的状态芯片是当前阶段;其下一句说明写下一轮时刻、在跑哪一轮(轮次 · 轴、已跑、模型)或为什么让路——
   让路原因只认 supervisor 真写得出的那几种(`ops/host/patrol.sh` 与
   `ops/host/agent-dispatch/resource-pressure.sh`):手工任务在等锁/槽 →「让手工任务先行」并带上
   那个任务的 id;本 agent 的运行槽都被占 →「等空闲运行槽」;内存余量/压力 →「内存不足，暂缓」;
@@ -268,7 +287,7 @@ clawock's agent-dispatch, the sidebar panel also shows that host's task queue an
 steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one grid (glyph, name, reading, one status chip, then fact chips): each agent's quota windows above its queue, the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套栅格(字形、名字、读数、一枚状态芯片,再一行事实芯片):各 agent 的额度窗口与队列、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、最近结束、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one five-track grid (name and one role-coloured status chip, model and delivery receipts, time, duration and cost in fixed columns); each agent's quota windows above its queue on an inset well, the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套五轨栅格(名字与一枚按角色着色的状态芯片、模型与送达回执、时刻用时费用各在定宽列):各 agent 的额度窗口在上、队列在内嵌底板上、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、最近结束、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
 
 ### English
 
@@ -337,8 +356,9 @@ is restarted.
 block), codex's rollout `token_count` events (cumulative per process), and opencode's database.
 The amount is the tokens at **API list prices**
 ([`model_prices.json`](https://github.com/KCNyu/clawock/blob/master/ops/host/model_prices.json)).
-It is an estimate, not a bill: claude and codex run on subscriptions here. A model without a
-price keeps its tokens and shows no amount.
+It is an estimate, not a bill: claude and codex run on subscriptions here. claude is priced from
+Anthropic's API table, codex's `gpt-*` models from OpenAI's API pricing page (standard tier; URL and
+date in the file). A model without a price keeps its tokens and shows no amount.
 
 **Notifications.** When a task ends, and when it starts a quota wait, the runner sends one
 message per channel in the task's list (`weixin`, `telegram`, both by default), each once and
@@ -428,7 +448,8 @@ host 半边调用,shell 里也能直接用:
 claude 会在每个 content block 行上重复同一条消息的 usage)、codex rollout 里的 `token_count`
 事件(每进程累计)、opencode 的数据库。金额是这些 token 按 **API 标价**
 ([`model_prices.json`](https://github.com/KCNyu/clawock/blob/master/ops/host/model_prices.json))
-算出的**估算,不是账单**——claude 与 codex 在本机走订阅。没有价格的模型只显示 token,不显示金额。
+算出的**估算,不是账单**——claude 与 codex 在本机走订阅。claude 按 Anthropic API 价目,codex 的 `gpt-*`
+按 OpenAI API 定价页(标准档;来源 URL 与取价日期写在文件里)。没有价格的模型只显示 token,不显示金额。
 
 **通知。** 任务结束、以及开始等额度时,runner 向任务通知列表里的每个通道(`weixin`、`telegram`,
 默认两条都发)经 `openclaw message send` 并行各发一次。投递是**尽力而为**:某条失败不改变任务状态、

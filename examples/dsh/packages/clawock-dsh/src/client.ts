@@ -176,10 +176,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.ago.now': '刚刚', 'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
     'queue.wait.lockAt': '等 {agent} 锁 · 第 {n} 位', 'queue.state.cancelling': '取消中',
     'queue.attempt': '第 {n} 次', 'queue.slotCount': '槽 {used}/{max}',
-    'queue.tag.running': '运行中', 'queue.tag.runningSlot': '运行中 · 槽 {slot}', 'queue.tag.starting': '启动中', 'queue.tag.cancelling': '取消中',
+    'queue.tag.running': '运行中', 'queue.tag.runningSlot': '运行 · 槽 {slot}', 'queue.tag.starting': '启动中', 'queue.tag.cancelling': '取消中',
     'queue.tag.queued': '排队', 'queue.tag.queuedAt': '排队 #{n}', 'queue.tag.slot': '等运行槽', 'queue.tag.memory': '等内存',
     'queue.tag.quota': '等额度', 'queue.tag.retry': '重试等待',
-    'queue.fact.wakes': '{time} 续跑', 'queue.chip.waiting': '已等 {time}',
+    'queue.fact.wakes': '{time} 续跑', 'queue.fact.startedAt': '{time} 开始', 'queue.fact.queuedAt': '{time} 起排队', 'queue.chip.waiting': '已等 {time}',
     'queue.fallback': 'fallback', 'queue.patrolTag': '巡检',
     'queue.noRunnerApi': '无 RUNNER_API 2：不在排队顺序里，不能调整顺序或模型',
     'queue.holderOther': '锁被 {id} 占着', 'queue.holderUnnamed': '锁被占着，但没有登记持有者（刚好在拿锁，或不是当前 runner 起的任务）',
@@ -212,6 +212,12 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.plan.anthropic': 'Anthropic 订阅', 'panel.plan.chatgpt': 'ChatGPT 订阅', 'panel.plan.freePool': '无 provider · 免费池',
     'panel.plan.deepseek': '本机 API 账户', 'panel.plan.minimax': 'Token Plan · 源：OpenClaw 配置',
     'panel.pool': '池 {current} → 下一个 {next}', 'panel.poolOrder': '（表序）', 'panel.poolSize': '池内 {n} 个', 'panel.poolSwap': '{n} 个免费模型同档互替', 'panel.poolUnread': '池文件未读到（需 host 半边新版，重启 dsh 后可见）',
+    'queue.verdict.done': '完成', 'queue.verdict.partial': '部分完成', 'queue.verdict.blocked': '受阻', 'queue.verdict.failed': '失败',
+    'queue.verdict.timeout': '超时', 'queue.verdict.cancelled': '已取消', 'queue.verdict.quota': '额度中止', 'queue.verdict.noReport': '无报告',
+    'queue.verdict.notStarted': '未启动', 'queue.verdict.unknown': '未明',
+    'queue.fallbackMark': '回退', 'queue.fallbackTitle': '回退：请求的是 {requested}', 'queue.chip.free': '免费',
+    'queue.notify.unknown': '{ch} 无回执',
+    'queue.receiptLegend': '以 runner 写入 result.env 的回执为准（openclaw 发送成功/失败）；无回执 = 未知，不当作已送达',
     'panel.q.idle': '闲', 'panel.q.run': '运行 {n}', 'panel.q.queued': '排队 {n}', 'panel.q.quota': '等额度 {n}', 'panel.q.wait': '等待 {n}', 'panel.free': '免费',
     'panel.staleAt': '刷新失败（{message}），显示 {time} 的读数', 'panel.openGroup': '打开 {name} 的额度与队列',
     'panel.railTitle': '额度 · 队列：{summary}', 'panel.warn': '有窗口到阈值或有任务在睡额度',
@@ -325,16 +331,16 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
-    'queue.patrolState.running': 'running', 'queue.patrolState.yielding': 'giving way', 'queue.patrolState.waiting': 'between rounds',
+    'queue.patrolState.running': 'running', 'queue.patrolState.yielding': 'giving way', 'queue.patrolState.waiting': 'idle',
     'queue.patrolState.waitingUntil': 'next round {time}', 'queue.patrolState.stopped': 'stopped', 'queue.patrolState.unknown': 'state unknown',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.now': 'just now', 'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
     'queue.wait.lockAt': 'waiting for the {agent} lock · #{n}', 'queue.state.cancelling': 'cancelling',
     'queue.attempt': 'attempt {n}', 'queue.slotCount': 'slot {used}/{max}',
-    'queue.tag.running': 'running', 'queue.tag.runningSlot': 'running · slot {slot}', 'queue.tag.starting': 'starting', 'queue.tag.cancelling': 'cancelling',
-    'queue.tag.queued': 'queued', 'queue.tag.queuedAt': 'queued #{n}', 'queue.tag.slot': 'waiting for a slot', 'queue.tag.memory': 'waiting for memory',
+    'queue.tag.running': 'running', 'queue.tag.runningSlot': 'running #{slot}', 'queue.tag.starting': 'starting', 'queue.tag.cancelling': 'cancelling',
+    'queue.tag.queued': 'queued', 'queue.tag.queuedAt': 'queued #{n}', 'queue.tag.slot': 'slot wait', 'queue.tag.memory': 'memory wait',
     'queue.tag.quota': 'quota wait', 'queue.tag.retry': 'retry wait',
-    'queue.fact.wakes': 'resumes {time}', 'queue.chip.waiting': 'waiting {time}',
+    'queue.fact.wakes': 'resumes {time}', 'queue.fact.startedAt': 'started {time}', 'queue.fact.queuedAt': 'queued since {time}', 'queue.chip.waiting': 'waiting {time}',
     'queue.fallback': 'fallback', 'queue.patrolTag': 'patrol',
     'queue.noRunnerApi': 'No RUNNER_API 2: not in the queue order; its order and model cannot change',
     'queue.holderOther': 'The lock is held by {id}', 'queue.holderUnnamed': 'The lock is held, but no holder is registered (one taking it right now, or a task the current runner did not start)',
@@ -367,6 +373,12 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'panel.plan.anthropic': 'Anthropic subscription', 'panel.plan.chatgpt': 'ChatGPT subscription', 'panel.plan.freePool': 'No provider · free pool',
     'panel.plan.deepseek': 'This host\'s API account', 'panel.plan.minimax': 'Token Plan · key from the OpenClaw config',
     'panel.pool': 'pool {current} → next {next}', 'panel.poolOrder': ' (file order)', 'panel.poolSize': '{n} in pool', 'panel.poolSwap': '{n} free models, each a stand-in for the next', 'panel.poolUnread': 'pool file not read (needs the newer host half, after a dsh restart)',
+    'queue.verdict.done': 'done', 'queue.verdict.partial': 'partial', 'queue.verdict.blocked': 'blocked', 'queue.verdict.failed': 'failed',
+    'queue.verdict.timeout': 'timed out', 'queue.verdict.cancelled': 'cancelled', 'queue.verdict.quota': 'quota stop', 'queue.verdict.noReport': 'no report',
+    'queue.verdict.notStarted': 'not started', 'queue.verdict.unknown': 'unknown',
+    'queue.fallbackMark': 'fallback', 'queue.fallbackTitle': 'fallback: {requested} was requested', 'queue.chip.free': 'free',
+    'queue.notify.unknown': '{ch}: no receipt',
+    'queue.receiptLegend': 'From the receipt the runner writes to result.env (openclaw send succeeded / failed); no receipt = unknown, never taken as delivered',
     'panel.q.idle': 'idle', 'panel.q.run': '{n} running', 'panel.q.queued': '{n} queued', 'panel.q.quota': '{n} on quota', 'panel.q.wait': '{n} waiting', 'panel.free': 'free',
     'panel.staleAt': 'Refresh failed ({message}); showing the reading of {time}', 'panel.openGroup': 'Open {name}\'s quota and queue',
     'panel.railTitle': 'Quota · queue: {summary}', 'panel.warn': 'a window is at its threshold or a task sleeps on quota',
@@ -1829,101 +1841,179 @@ function modelLine(task: DispatchTask, _live: boolean): { model: string; effort:
 }
 
 /**
- * The notification layer: WeChat and Telegram as 12px glyphs. Planned =
- * caption ink, delivered = secondary ink, failed = error red with a slash
- * (the one hue is not the only cue). From result.env receipts, never logs.
+ * The notification layer: one receipt mark per channel the task asked for,
+ * the channel's glyph followed by what its receipt says. Delivered = the
+ * runner's NOTIFIED list (`openclaw message send` returned success for that
+ * leg), failed = NOTIFY_FAILED, unknown = the task asked for the channel but
+ * result.env holds no receipt for it (a runner older than the receipts, or a
+ * leg that never ran). Colour is only the paint: the mark's glyph (✓ ✕ ?)
+ * and its words say the same thing, and a mark is green only because a
+ * receipt says so — never inferred from the task's own state.
  */
-function renderNotifyIcons(task: DispatchTask, t: Translate): React.ReactElement | null {
-  const channels = [...new Set([...(task.notify ?? []), ...(task.notified ?? []), ...(task.notifyFailed ?? [])])]
-  if (channels.length === 0) return null
-  return h('span', { className: cx('tq-notify'), role: 'img', 'aria-label': channels.map((ch) => t('queue.notify.' + notifyState(task, ch), { ch: t('queue.ch.' + ch) })).join(' · ') },
-    channels.map((ch) => h('svg', {
-      key: ch, className: cx('tq-notify-glyph'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true',
-      'data-tq-notify': ch, 'data-state': notifyState(task, ch),
-    },
-    ch === 'telegram'
-      ? h('path', { d: 'M1.5 5.6L10.5 2L8.9 10L6.1 7.9L4.8 9.3L4.7 7L8.4 3.9L3.9 6.5Z', fill: 'currentColor' })
-      : ch === 'weixin'
-        ? h('path', { d: 'M4.6 2C2.6 2 1 3.3 1 5c0 .9.5 1.7 1.2 2.3L1.9 8.6l1.5-.8c.4.1.8.2 1.2.2h.2A2.8 2.8 0 0 1 7.6 5.3c.5 0 .9.1 1.3.2C8.6 3.5 6.8 2 4.6 2ZM7.6 6.1c-1.5 0-2.7 1-2.7 2.2s1.2 2.2 2.7 2.2c.3 0 .6 0 .9-.1l1.2.6-.3-1c.6-.4 1-1 1-1.7 0-1.2-1.2-2.2-2.8-2.2Z', fill: 'currentColor' })
-        : h('circle', { cx: 6, cy: 6, r: 3, fill: 'currentColor' }),
-    notifyState(task, ch) === 'failed' ? h('path', { d: 'M1.5 10.5L10.5 1.5', stroke: 'currentColor', strokeWidth: 1.2 }) : null)))
-}
+export type ReceiptState = 'sent' | 'failed' | 'unknown' | 'planned'
 
-function notifyState(task: DispatchTask, ch: string): 'sent' | 'failed' | 'planned' {
+export function _notifyState(task: DispatchTask, ch: string, live: boolean): ReceiptState {
   if ((task.notifyFailed ?? []).includes(ch)) return 'failed'
   if ((task.notified ?? []).includes(ch)) return 'sent'
-  return 'planned'
+  return live ? 'planned' : 'unknown'
+}
+
+function notifyChannels(task: DispatchTask): string[] {
+  return [...new Set([...(task.notify ?? []), ...(task.notified ?? []), ...(task.notifyFailed ?? [])])]
+}
+
+const RECEIPT_GLYPH: Record<ReceiptState, string> = {
+  sent: 'M1.6 5.2L3.6 7.2L8.4 2.4', failed: 'M2.2 2.2L7.8 7.8M7.8 2.2L2.2 7.8',
+  unknown: 'M3.3 3.4a1.7 1.7 0 1 1 2.3 1.6C5.1 5.2 5 5.5 5 6M5 8v.1', planned: 'M2.2 5H7.8',
+}
+
+function renderNotifyIcons(task: DispatchTask, t: Translate, live: boolean): React.ReactElement | null {
+  const channels = notifyChannels(task)
+  if (channels.length === 0) return null
+  const said = channels.map((ch) => t('queue.notify.' + _notifyState(task, ch, live), { ch: t('queue.ch.' + ch) })).join(' · ')
+  return h('span', { className: cx('tq-notify'), role: 'img', 'aria-label': said, title: said + ' — ' + t('queue.receiptLegend') },
+    channels.map((ch) => {
+      const state = _notifyState(task, ch, live)
+      return h('span', { key: ch, className: cx('tq-receipt'), 'data-tq-notify': ch, 'data-state': state },
+        h('svg', { className: cx('tq-notify-glyph'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+          ch === 'telegram'
+            ? h('path', { d: 'M1.5 5.6L10.5 2L8.9 10L6.1 7.9L4.8 9.3L4.7 7L8.4 3.9L3.9 6.5Z', fill: 'currentColor' })
+            : ch === 'weixin'
+              ? h('path', { d: 'M4.6 2C2.6 2 1 3.3 1 5c0 .9.5 1.7 1.2 2.3L1.9 8.6l1.5-.8c.4.1.8.2 1.2.2h.2A2.8 2.8 0 0 1 7.6 5.3c.5 0 .9.1 1.3.2C8.6 3.5 6.8 2 4.6 2ZM7.6 6.1c-1.5 0-2.7 1-2.7 2.2s1.2 2.2 2.7 2.2c.3 0 .6 0 .9-.1l1.2.6-.3-1c.6-.4 1-1 1-1.7 0-1.2-1.2-2.2-2.8-2.2Z', fill: 'currentColor' })
+              : h('circle', { cx: 6, cy: 6, r: 3, fill: 'currentColor' })),
+        h('svg', { className: cx('tq-receipt-glyph'), width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': 'true' },
+          h('path', { d: RECEIPT_GLYPH[state], stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })))
+    }))
 }
 
 // ---- Rows: one grid for every line of the cell -----------------------------------
 
 /**
- * A chip's tone. One colour, one meaning: 'run' = running now (the host's
- * business blue), 'warn' = not done or waiting, 'bad' = failed, 'plain' = a
- * fact that carries no verdict, 'quiet' = a value that was not recorded
- * (outlined, no fill: it is the one secondary voice left).
+ * A state's ROLE (2026-09-28 redesign, kcn: 「都是灰色 chip 没有区分度」). A role
+ * is a colour AND a bed AND a glyph AND its word, so it survives a dark
+ * theme and a greyscale screen: fill vs outline vs dashed edge, and a shape
+ * per role. The colours are the host's role tokens (styles.module.css
+ * `--tq-run|wait|bad` and the panel's text roles), nothing plugin-picked.
+ *
+ *   run       blue, filled bed, solid dot      holds its slot and runs
+ *   queue     blue, outlined, ring             in line for its agent's lock or a slot
+ *   sleep     amber, filled bed, moon          asleep until a quota window resets
+ *   wait      amber, outlined, hourglass       any other wait (memory, retry, starting)
+ *   done      neutral bed, check               ended, and the model reported done
+ *   partial   amber, filled bed, half disc     ended but the work is not done (partial, blocked, no quota)
+ *   fail      red, filled bed, cross           execution failed or timed out
+ *   off       neutral, outlined, bar           cancelled / not running (patrol between rounds)
+ *   unknown   neutral, dashed, question mark   nothing recorded to judge by
+ *   fallback  amber, outlined, return arrow    ran on a fallback model (a mark on the model line)
+ *
+ * Done is deliberately NOT green: it rests on the model's own report. The one
+ * green on a row is a delivery receipt (renderNotifyIcons).
  */
-type ChipTone = 'plain' | 'run' | 'warn' | 'bad' | 'quiet'
+export type StateRole = 'run' | 'queue' | 'sleep' | 'wait' | 'done' | 'partial' | 'fail' | 'off' | 'unknown' | 'fallback'
 
-function renderChip(text: string, tone: ChipTone, opts: { key?: string; slot?: string; title?: string; mono?: boolean } = {}): React.ReactElement {
+type GlyphPart = { d: string; paint: 'fill' | 'stroke' }
+export const STATE_ROLES: Record<StateRole, { bed: 'fill' | 'edge' | 'dashed'; glyph: readonly GlyphPart[] }> = {
+  run: { bed: 'fill', glyph: [{ d: 'M5 2a3 3 0 1 1 0 6a3 3 0 1 1 0-6Z', paint: 'fill' }] },
+  queue: { bed: 'edge', glyph: [{ d: 'M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z', paint: 'stroke' }] },
+  sleep: { bed: 'fill', glyph: [{ d: 'M6.6 1.8A3.4 3.4 0 1 0 8.4 7.6A2.8 2.8 0 0 1 6.6 1.8Z', paint: 'fill' }] },
+  wait: { bed: 'edge', glyph: [{ d: 'M2.8 1.8H7.2M2.8 8.2H7.2M3.4 1.8C3.4 4 6.6 4 6.6 5S3.4 6 3.4 8.2M6.6 1.8C6.6 4 3.4 4 3.4 5S6.6 6 6.6 8.2', paint: 'stroke' }] },
+  done: { bed: 'fill', glyph: [{ d: 'M2.3 5.2L4.2 7.1L7.8 3', paint: 'stroke' }] },
+  partial: { bed: 'fill', glyph: [{ d: 'M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z', paint: 'stroke' }, { d: 'M5 2.2A2.8 2.8 0 0 0 5 7.8Z', paint: 'fill' }] },
+  fail: { bed: 'fill', glyph: [{ d: 'M2.8 2.8L7.2 7.2M7.2 2.8L2.8 7.2', paint: 'stroke' }] },
+  off: { bed: 'edge', glyph: [{ d: 'M2.6 5H7.4', paint: 'stroke' }] },
+  unknown: { bed: 'dashed', glyph: [{ d: 'M3.5 3.6a1.6 1.6 0 1 1 2.2 1.5C5.2 5.3 5 5.6 5 6.1M5 7.9V8', paint: 'stroke' }] },
+  fallback: { bed: 'edge', glyph: [{ d: 'M7.6 5.6A2.7 2.7 0 1 1 6.9 2.9M7.4 1.4V3.3H5.5', paint: 'stroke' }] },
+}
+
+function renderRoleGlyph(role: StateRole): React.ReactElement {
+  return h('svg', { className: cx('tq-role-glyph'), width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': 'true' },
+    STATE_ROLES[role].glyph.map((part, i) => part.paint === 'fill'
+      ? h('path', { key: i, d: part.d, fill: 'currentColor' })
+      : h('path', { key: i, d: part.d, stroke: 'currentColor', strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })))
+}
+
+type SlotChip = { text: string; role: StateRole; title?: string }
+
+/** THE chip: a row's one state, in its role (bed + glyph + word). */
+function renderChip(chip: SlotChip, opts: { key?: string; slot?: string } = {}): React.ReactElement {
   return h('span', {
-    className: cx('tq-chip', opts.mono && 'tq-mono'), key: opts.key ?? opts.slot ?? text,
-    'data-tone': tone, 'data-tq-chip': opts.slot, title: opts.title ?? text,
-  }, text)
+    className: cx('tq-chip'), key: opts.key ?? opts.slot ?? chip.text,
+    'data-role': chip.role, 'data-bed': STATE_ROLES[chip.role].bed, 'data-tq-chip': opts.slot, title: chip.title ?? chip.text,
+  }, renderRoleGlyph(chip.role), h('span', { className: cx('tq-chip-text') }, chip.text))
 }
 
-/** A BalanceTone (the dots, the rail badge) as the chip role it means. */
-const CHIP_TONE: Record<BalanceTone, ChipTone> = { ok: 'run', stale: 'warn', low: 'bad', none: 'plain' }
+/** A BalanceTone (the dots, the rail badge) as the role it means. */
+const TONE_ROLE: Record<BalanceTone, StateRole> = { ok: 'run', stale: 'wait', low: 'fail', none: 'off' }
 
-/** The execution axis alone: the runner's verdict on the process, not on the work. */
-function executionTone(state: string): ChipTone {
-  if (state === 'failed' || state === 'timeout') return 'bad'
-  if (state === 'blocked' || state === 'quota') return 'warn'
-  return 'plain'
-}
-
-/** The report axis alone: DONE is plain only when the execution also completed (else "自报完成"). */
-function reportTone(outcome: string, state: string): ChipTone {
-  if (outcome === 'DONE') return ['ok', 'partial', 'unverified'].includes(state) ? 'plain' : 'warn'
-  return outcome === 'PARTIAL' || outcome === 'BLOCKED' ? 'warn' : 'quiet'
+/**
+ * An ended task's (or round's) ONE state: the runner's verdict and the
+ * model's report folded into the role that most needs the reader. Both axes
+ * stay readable: the chip's title says both, the detail layer shows both.
+ */
+export function _endedState(state: string, outcome: string, t: Translate): SlotChip {
+  const title = executionText(state, t) + (outcome === '' && state !== 'ok' ? '' : ' · ' + reportText(outcome, t, state))
+  const word = state === 'failed' ? 'failed' : state === 'timeout' ? 'timeout' : state === 'cancelled' ? 'cancelled'
+    : state === 'queued' ? 'notStarted' : state === 'quota' ? 'quota' : state === 'blocked' || outcome === 'BLOCKED' ? 'blocked'
+      : !['ok', 'partial', 'unverified'].includes(state) ? 'unknown'
+        : outcome === 'DONE' ? 'done' : outcome === 'PARTIAL' ? 'partial' : 'noReport'
+  const role: StateRole = ({ failed: 'fail', timeout: 'fail', cancelled: 'off', notStarted: 'off', quota: 'partial', blocked: 'partial',
+    done: 'done', partial: 'partial', noReport: 'unknown', unknown: 'unknown' } as Record<string, StateRole>)[word]!
+  return { text: t('queue.verdict.' + word), role, title }
 }
 
 /**
- * THE row grid (2026-09-28, kcn: 「整体布局比较乱，归整统一」). Every line of
- * this cell — a folded source line in the sidebar, a source group's head in
- * the panel, a section head, a live task, an ended task, a patrol round — is
- * the same four columns (styles.module.css `--tq-grid`):
+ * THE row grid (2026-09-28 redesign, kcn: 「很多地方都没有对齐显示导致 chip 过多显示杂乱」).
+ * Every line of the open panel — a source's head, a section head, a live
+ * task, an ended task, a patrol round — sits on the same five tracks
+ * (styles.module.css `--tq-grid`), and every fact has ONE fixed cell:
  *
- *   lead   14px  identity glyph, drawn only where it differs from the group
- *                head's: a live task sits under its agent's head and a round
- *                under patrol's, so they leave it empty; ended tasks are listed
- *                across agents, so each carries its executor
- *   main   1fr   the name — a head in the strong weight, an item in the regular
- *   value  auto  the allowance reading, right-aligned figures (source lines only)
- *   state  auto  ONE status chip; its tone is the role, never a grey level
+ *            lead   when       took       rest        aside
+ *   line 1   glyph  name ─────────────────────────   state chip | value
+ *   line 2          model (+ fallback mark) ───────   receipts | tries
+ *   line 3          when       took                    cost
  *
- * then an optional facts line under main…state: chips in FACT_ORDER. A fact a
- * row has no value for is skipped, never re-ordered, so a fact sits in the
- * same place on every row that has it. ROW_KINDS says what each kind fills;
- * the renderer draws only that, and the spec checks every kind against both.
- * Nothing else is resident: whatever a kind leaves out is in the detail layer
- * (a task's first queue wait, a window's reset and bar, a source's plan).
+ * `when`, `took` and `aside` are fixed widths, so a time, a duration, a cost,
+ * a state are on one vertical line in every row that has them; a row without
+ * a fact leaves its cell empty, never shifts the next one in. A head
+ * (source/section) has a caption line in line 2 instead of facts.
+ *
+ * RESIDENT_CHIPS: a row carries at most ONE chip, its state. Everything else
+ * is words in a fixed cell or a mark (receipts, fallback). What has no cell
+ * here is not squeezed in, wrapped or ellipsised: it lives in the detail layer
+ * one tap away (the report axis on its own, attempts' budget, the first queue
+ * wait, the patrol tag, the session). ROW_KINDS says which facts each kind
+ * shows; FACT_CELL where each one sits; the spec checks every rendered row
+ * against both, and that no row has a second chip.
  */
-export const FACT_ORDER = ['plan', 'slots', 'pool', 'wrap', 'reason', 'for', 'round', 'report', 'when', 'took', 'tries', 'cost', 'model'] as const
+export const FACT_ORDER = ['model', 'tries', 'receipt', 'when', 'took', 'cost'] as const
 export type FactSlot = typeof FACT_ORDER[number]
 export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round'
+export const RESIDENT_CHIPS = 1
+
+/** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
+export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'when' | 'took' | 'aside' }> = {
+  model: { line: 2, track: 'main' },
+  tries: { line: 2, track: 'aside' },
+  receipt: { line: 2, track: 'aside' },
+  when: { line: 3, track: 'when' },
+  took: { line: 3, track: 'took' },
+  cost: { line: 3, track: 'aside' },
+}
 
 export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: readonly FactSlot[] }> = {
   // A provider/agent: the sidebar's folded line, and the same line heading its group in the panel.
-  source: { lead: true, value: true, facts: ['plan', 'slots', 'pool'] },
-  // A section of the panel (what just ended, patrol): patrol's live status rides as its facts.
-  head: { lead: true, value: false, facts: ['wrap', 'reason', 'for', 'round', 'took', 'model'] },
-  task: { lead: false, value: false, facts: ['when', 'took', 'tries', 'cost', 'model'] },
-  ended: { lead: true, value: false, facts: ['report', 'when', 'took', 'cost', 'model'] },
-  round: { lead: false, value: false, facts: ['report', 'when', 'took'] },
+  source: { lead: true, value: true, facts: [] },
+  // A section of the panel (what just ended, patrol).
+  head: { lead: true, value: false, facts: [] },
+  // A live task sits in its agent's group: the group's glyph is its lead. It has no receipt yet.
+  task: { lead: false, value: false, facts: ['model', 'tries', 'when', 'took', 'cost'] },
+  // Ended tasks are listed across agents, so each carries its executor.
+  ended: { lead: true, value: false, facts: ['model', 'receipt', 'when', 'took', 'cost'] },
+  round: { lead: false, value: false, facts: ['when', 'took'] },
 }
 
-type SlotChip = { text: string; tone: ChipTone; title?: string; mono?: boolean }
+/** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
+type Fact = { text: string; said?: string; title?: string; voice?: 'warn' | 'quiet'; mark?: React.ReactElement | null; node?: React.ReactElement | null }
 
 type RowView = {
   kind: RowKind
@@ -1932,9 +2022,9 @@ type RowView = {
   name: string
   value?: { text: string; tone: BalanceTone; level: UsedLevel | null } | null
   state: SlotChip | null
-  facts: Partial<Record<FactSlot, SlotChip | null>>
-  /** Marks that belong to the row but are not a fact (fallback, patrol, receipts), after the facts. */
-  extra?: Array<React.ReactElement | null>
+  facts: Partial<Record<FactSlot, Fact | null>>
+  /** A head's line 2: what the source is (plan · slots · pool) or what a section is doing. Words, never chips. */
+  caption?: Array<{ text: string; voice?: 'warn'; title?: string }>
   /** Opens the detail layer; a row without one is not a button. */
   open?: () => void
   attrs?: Record<string, string | undefined>
@@ -1944,19 +2034,26 @@ type RowView = {
 function rowCells(view: RowView): { cells: React.ReactElement[]; said: string } {
   const kind = ROW_KINDS[view.kind]
   const slots = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null)
-  const facts = slots.map((slot) => { const chip = view.facts[slot]!; return renderChip(chip.text, chip.tone, { slot, title: chip.title, mono: chip.mono }) })
-  const extra = (view.extra ?? []).filter((mark): mark is React.ReactElement => mark !== null)
   const value = kind.value && view.value != null ? view.value : null
+  const caption = (view.caption ?? []).filter((part) => part.text !== '')
   const cells = [
     h('span', { className: cx('tq-lead'), key: 'lead', 'aria-hidden': 'true' }, kind.lead ? view.lead ?? null : null),
     h('span', { className: cx('tq-name'), key: 'name' }, view.name),
     value === null ? null : h('span', {
       className: cx('tq-value'), key: 'value', 'data-balance-state': value.tone, 'data-used-level': value.level ?? undefined,
     }, value.text),
-    view.state === null ? null : renderChip(view.state.text, view.state.tone, { slot: 'status', title: view.state.title }),
-    facts.length + extra.length === 0 ? null : h('span', { className: cx('tq-chips'), key: 'facts' }, ...facts, ...extra),
+    view.state === null ? null : renderChip(view.state, { slot: 'status' }),
+    ...slots.map((slot) => {
+      const fact = view.facts[slot]!
+      return h('span', {
+        className: cx('tq-fact'), key: slot, 'data-tq-fact': slot, 'data-voice': fact.voice, title: fact.title ?? fact.said,
+      }, fact.node ?? fact.text, fact.mark ?? null)
+    }),
+    caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },
+      ...caption.map((part, i) => h('span', { key: i, 'data-voice': part.voice, title: part.title }, (i > 0 ? ' · ' : '') + part.text))),
   ].filter((cell): cell is React.ReactElement => cell !== null)
-  const said = [view.name, value?.text, view.state?.text, ...slots.map((slot) => view.facts[slot]!.text)]
+  const said = [view.name, value?.text, view.state?.title ?? view.state?.text, ...slots.map((slot) => view.facts[slot]!.said ?? view.facts[slot]!.text),
+    ...caption.map((part) => part.text)]
     .filter((part) => part != null && part !== '').join(' · ')
   return { cells, said }
 }
@@ -1964,8 +2061,9 @@ function rowCells(view: RowView): { cells: React.ReactElement[]; said: string } 
 /**
  * One row of the panel on the grid above: a button when it opens the detail
  * layer, else a read-only group (a head is neither: its section is labelled).
- * `after` is a sibling beside the row (the move-up button) — never a button
- * inside a button.
+ * `after` is a sibling beside the row (the move-up button, laid over the
+ * empty lead track so the row keeps its full width) — never a button inside
+ * a button.
  */
 function renderRow(view: RowView, t: Translate, after: React.ReactElement | null = null): React.ReactElement {
   const { cells, said } = rowCells(view)
@@ -1978,33 +2076,72 @@ function renderRow(view: RowView, t: Translate, after: React.ReactElement | null
     after)
 }
 
+/** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
+function clockOf(ms: number, now: number): string {
+  const d = new Date(ms)
+  const n = new Date(now)
+  const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+  return d.toDateString() === n.toDateString() ? hm : `${d.getMonth() + 1}/${d.getDate()} ${hm}`
+}
+
 /**
  * A live task's state chip: the short word (the group head already names the
- * agent), its tone, and the whole phrase (_taskStatus: which lock, the wake
+ * agent), its role, and the whole phrase (_taskStatus: which lock, the wake
  * and the window it waits for) as the chip's title. A wake time is the 'when'
- * fact, where an ended task keeps when it ended.
+ * cell, where an ended task keeps when it ended.
  */
 export function _taskState(task: DispatchTask, t: Translate, now: number = Date.now(),
-  windows?: ReadonlyArray<{ resetAtMs?: number | null }>): { chip: SlotChip; when: string | null } {
+  windows?: ReadonlyArray<{ resetAtMs?: number | null }>): { chip: SlotChip; when: Fact | null } {
   const status = _taskStatus(task, t, now, windows)
   const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
-  const when = (task.waiting === 'quota' || task.waiting === 'retry') && task.wakeAtMs !== null ? t('queue.fact.wakes', { time: stamp(task.wakeAtMs) }) : null
+  // The when cell: the wake of a sleeping task, else when it started (or joined the queue).
+  const since = task.startedAtMs ?? task.queuedAtMs
+  const when: Fact | null = (task.waiting === 'quota' || task.waiting === 'retry') && task.wakeAtMs !== null
+    ? { text: clockOf(task.wakeAtMs, now), said: t('queue.fact.wakes', { time: stamp(task.wakeAtMs) }), voice: 'warn' }
+    : since != null ? { text: clockOf(since, now), said: t(_slotOf(task) === null ? 'queue.fact.queuedAt' : 'queue.fact.startedAt', { time: stamp(since) }) } : null
   const slot = _slotOf(task)
   const word = task.cancelling ? 'cancelling'
     : task.waiting === 'lock' ? (task.position ? 'queuedAt' : 'queued')
       : task.waiting === 'slot' ? 'slot' : task.waiting === 'memory' ? 'memory'
         : task.waiting === 'quota' ? 'quota' : task.waiting === 'retry' ? 'retry'
           : slot === null ? 'starting' : slot.slot === '1' ? 'running' : 'runningSlot'
-  return { chip: { text: t('queue.tag.' + word, { n: task.position ?? 0, slot: slot?.slot ?? '' }), tone: CHIP_TONE[status.tone], title: status.text }, when }
+  const role: StateRole = word === 'running' || word === 'runningSlot' ? 'run'
+    : word === 'queued' || word === 'queuedAt' || word === 'slot' ? 'queue'
+      : word === 'quota' ? 'sleep' : word === 'cancelling' ? 'off' : 'wait'
+  return { chip: { text: t('queue.tag.' + word, { n: task.position ?? 0, slot: slot?.slot ?? '' }), role, title: status.text }, when }
 }
 
-/** A live task as a row: state chip, then when it wakes, how long, tries, cost, model. */
+/** The model cell: the full model name and effort, and the fallback mark when it ran on another model. */
+function modelFact(task: DispatchTask, live: boolean, t: Translate): Fact | null {
+  const m = modelLine(task, live)
+  if (m.model === '') return null
+  const text = _modelView(m.model).label + (m.effort ? ' · ' + m.effort : '')
+  const requested = task.modelRequested ?? ''
+  return {
+    text, title: m.model,
+    said: text + (m.fallback ? ' · ' + t('queue.fallbackTitle', { requested: _modelView(requested).label }) : ''),
+    mark: m.fallback ? h('span', {
+      className: cx('tq-mark'), 'data-role': 'fallback', title: t('queue.fallbackTitle', { requested: _modelView(requested).label }),
+    }, renderRoleGlyph('fallback'), t('queue.fallbackMark')) : null,
+  }
+}
+
+/** The cost cell: the API-price estimate, 'free', or '—' when the model has no price row (title says which). */
+function costFact(task: DispatchTask, t: Translate, live: boolean): Fact | null {
+  const cost = _costOf(task)
+  if (cost === null) return null
+  const legend = t('queue.chip.cost') + (live ? ' · ' + t('queue.d.costLive') : '')
+  return cost.kind === 'unpriced'
+    ? { text: '—', said: t('queue.chip.unpriced'), title: t('queue.chip.unpriced') + ' · ' + legend, voice: 'quiet' }
+    : { text: cost.kind === 'free' ? t('queue.chip.free') : cost.short, said: legend + ' ' + cost.short, title: legend }
+}
+
+/** A live task as a row: state chip; model, tries; when it wakes, how long, cost so far. */
 function taskRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void,
   windows?: ReadonlyArray<{ resetAtMs?: number | null }>): RowView {
-  const m = modelLine(task, true)
-  const cost = _costOf(task)
   const state = _taskState(task, t, now, windows)
   const since = task.queuedAtMs ?? task.startedAtMs
+  const running = _slotOf(task) !== null
   const tries = [task.attempts > 1 ? t('queue.attempt', { n: task.attempts }) : null, task.stalls ? t('queue.stalls', { n: task.stalls }) : null]
     .filter((part): part is string => part !== null)
   return {
@@ -2013,45 +2150,36 @@ function taskRow(task: DispatchTask, t: Translate, now: number, open: (id: strin
     name: task.name,
     state: state.chip,
     facts: {
-      when: state.when === null ? null : { text: state.when, tone: 'plain' },
+      model: modelFact(task, true, t),
+      tries: tries.length === 0 ? null : { text: tries.join(' · '), voice: task.stalls ? 'warn' : undefined },
+      when: state.when,
       took: since == null ? null
-        : { text: t(_slotOf(task) === null ? 'queue.chip.waiting' : 'queue.chip.elapsed', { time: durationOf(t, now - since) }), tone: 'plain' },
-      tries: tries.length === 0 ? null : { text: tries.join(' · '), tone: task.stalls ? 'warn' : 'plain' },
-      cost: cost === null ? null : cost.kind === 'unpriced' ? { text: t('queue.chip.unpriced'), tone: 'quiet', title: t('queue.chip.cost') }
-        : { text: cost.short, tone: 'plain', title: t('queue.chip.cost') },
-      model: m.model === '' ? null : { text: _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''), tone: 'plain', title: m.model },
+        : { text: durationOf(t, now - since), said: t(running ? 'queue.chip.elapsed' : 'queue.chip.waiting', { time: durationOf(t, now - since) }) },
+      cost: costFact(task, t, true),
     },
-    extra: [
-      m.fallback ? renderChip(t('queue.fallback'), 'warn', { key: 'fallback' }) : null,
-      task.patrol ? renderChip(t('queue.patrolTag'), 'plain', { key: 'patrol' }) : null,
-      renderNotifyIcons(task, t),
-    ],
     open: () => { open(task.id) },
     attrs: { 'data-tq-task': task.id, 'data-tq-waiting': task.waiting },
   }
 }
 
-/** An ended task as a row: the runner's verdict, the model's report, then when, how long, what it cost. */
+/** An ended task as a row: its one verdict; model and receipts; when, how long, what it cost. */
 function endedRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): RowView {
-  const m = modelLine(task, false)
-  const cost = _costOf(task)
   const stamp = (ms: number): string => resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   return {
     kind: 'ended',
     key: task.id,
     lead: renderAgentGlyph(task.agent, 12),
     name: task.name,
-    state: { text: executionText(task.state, t), tone: executionTone(task.state), title: t('queue.statusLegend') },
+    state: _endedState(task.state, task.outcome, t),
     facts: {
-      report: { text: reportText(task.outcome, t, task.state), tone: reportTone(task.outcome, task.state), title: t('queue.statusLegend') },
-      when: task.updatedAtMs === null ? null : { text: agoOf(t, now - task.updatedAtMs), tone: 'plain', title: t('queue.d.endedAt') + ' ' + stamp(task.updatedAtMs) },
+      model: modelFact(task, false, t),
+      receipt: notifyChannels(task).length === 0 ? null : { text: '', node: renderNotifyIcons(task, t, false),
+        said: notifyChannels(task).map((ch) => t('queue.notify.' + _notifyState(task, ch, false), { ch: t('queue.ch.' + ch) })).join(' · ') },
+      when: task.updatedAtMs === null ? null : { text: agoOf(t, now - task.updatedAtMs), title: t('queue.d.endedAt') + ' ' + stamp(task.updatedAtMs) },
       took: task.startedAtMs === null || task.updatedAtMs === null ? null
-        : { text: t('queue.chip.took', { time: durationOf(t, task.updatedAtMs - task.startedAtMs) }), tone: 'plain' },
-      cost: cost === null ? null : cost.kind === 'unpriced' ? { text: t('queue.chip.unpriced'), tone: 'quiet', title: t('queue.chip.cost') }
-        : { text: cost.short, tone: 'plain', title: t('queue.chip.cost') },
-      model: m.model === '' ? null : { text: _modelView(m.model).label + (m.effort ? ' · ' + m.effort : ''), tone: 'plain', title: m.model },
+        : { text: durationOf(t, task.updatedAtMs - task.startedAtMs), said: t('queue.chip.took', { time: durationOf(t, task.updatedAtMs - task.startedAtMs) }) },
+      cost: costFact(task, t, false),
     },
-    extra: [m.fallback ? renderChip(t('queue.fallback'), 'warn', { key: 'fallback' }) : null, renderNotifyIcons(task, t)],
     open: () => { open(task.id) },
     attrs: { 'data-tq-task': task.id, 'data-tq-waiting': '' },
   }
@@ -2066,13 +2194,12 @@ function roundRow(round: PatrolRound, t: Translate, now: number): RowView {
     kind: 'round',
     key: 'round-' + round.endedAt + round.round,
     name: round.axis === '' ? round.round : t('queue.round.name', { round: round.round, axis: round.axis }),
-    state: how === 'preempted' ? { text: t('queue.round.preempted'), tone: 'warn', title: round.result }
-      : how === 'yielded' ? { text: t('queue.round.yielded'), tone: 'plain', title: round.result }
-        : { text: executionText(state, t), tone: executionTone(state), title: round.result },
+    state: how === 'preempted' ? { text: t('queue.round.preempted'), role: 'partial', title: round.result }
+      : how === 'yielded' ? { text: t('queue.round.yielded'), role: 'off', title: round.result }
+        : { ..._endedState(state, outcome, t), title: round.result },
     facts: {
-      report: outcome === '' ? null : { text: reportText(outcome, t, state), tone: reportTone(outcome, state), title: t('queue.statusLegend') },
-      when: ended === null ? null : { text: agoOf(t, now - ended), tone: 'plain', title: t('queue.d.endedAt') + ' ' + round.endedAt },
-      took: round.seconds === null ? null : { text: t('queue.chip.took', { time: durationOf(t, round.seconds * 1000) }), tone: 'plain' },
+      when: ended === null ? null : { text: agoOf(t, now - ended), title: t('queue.d.endedAt') + ' ' + round.endedAt },
+      took: round.seconds === null ? null : { text: durationOf(t, round.seconds * 1000), said: t('queue.chip.took', { time: durationOf(t, round.seconds * 1000) }) },
     },
     attrs: { 'data-tq-round': round.round },
   }
@@ -2202,13 +2329,13 @@ export function _queueState(t: Translate, tasks: DispatchTask[]): { text: string
   const queued = tasks.filter(queuedFor).length
   const quota = tasks.filter((task) => task.waiting === 'quota').length
   const other = tasks.filter((task) => task.waiting === 'retry' || task.waiting === 'memory').length
-  const parts: Array<[string, number, ChipTone]> = [
-    ['panel.q.quota', quota, 'warn'], ['panel.q.queued', queued, 'warn'], ['panel.q.wait', other, 'warn'], ['panel.q.run', run, 'run'],
+  const parts: Array<[string, number, StateRole]> = [
+    ['panel.q.quota', quota, 'sleep'], ['panel.q.queued', queued, 'queue'], ['panel.q.wait', other, 'wait'], ['panel.q.run', run, 'run'],
   ]
   const present = parts.filter(([, n]) => n > 0)
   const text = present.length === 0 ? t('panel.q.idle') : present.map(([key, n]) => t(key, { n })).join(' · ')
   const top = present[0]
-  return { text, chip: top === undefined ? null : { text: t(top[0], { n: top[1] }), tone: top[2], title: text } }
+  return { text, chip: top === undefined ? null : { text: t(top[0], { n: top[1] }), role: top[2], title: text } }
 }
 
 /**
@@ -2274,17 +2401,8 @@ function renderSectionGlyph(kind: 'recent' | 'patrol', size = 14): React.ReactEl
       : h('path', { ...stroke, d: 'M7 1.8L11.4 3.4V6.9C11.4 9.5 9.6 11.4 7 12.2C4.4 11.4 2.6 9.5 2.6 6.9V3.4ZM5 7L6.4 8.4L9.1 5.7' }))
 }
 
-/** The patrol phase's tone, one colour one meaning: running blue, giving way amber, between rounds quiet, stopped red. */
-const PATROL_TONE: Record<string, BalanceTone> = { running: 'ok', yielding: 'stale', waiting: 'none', stopped: 'low', unknown: 'none' }
-
-/** The phase as the patrol section's trailing state (the heading already says "patrol"). */
-function patrolStateOf(result: TaskQueueResult, t: Translate, now: number): string {
-  const patrol = result.patrol
-  if (patrol.phase === 'waiting' && patrol.untilMs !== null) {
-    return t('queue.patrolState.waitingUntil', { time: resetStampOf(t, { resetAt: '', resetAtMs: patrol.untilMs }, now) })
-  }
-  return t('queue.patrolState.' + patrol.phase)
-}
+/** The patrol phase's role: running blue, giving way amber (a wait), between rounds off, stopped red. */
+const PATROL_ROLE: Record<string, StateRole> = { running: 'run', yielding: 'wait', waiting: 'off', stopped: 'fail', unknown: 'unknown' }
 
 /** rounds.tsv's local "YYYY-MM-DD HH:MM:SS" as epoch ms, null when it is not one. */
 function localStampMs(stamp: string): number | null {
@@ -2315,59 +2433,69 @@ export function _patrolReason(detail: string): { kind: 'manual' | 'slot' | 'memo
   return { kind, task: manual?.[1] ?? '', wrapUp: wrap !== null }
 }
 
-/** The supervisor's live status as the patrol head's facts: what it runs now, or why it gives way. */
-function patrolFacts(result: TaskQueueResult, t: Translate, now: number): RowView['facts'] {
+/** The supervisor's live status as the patrol head's caption: when the next round is, what it runs now, or why it gives way. */
+function patrolCaption(result: TaskQueueResult, t: Translate, now: number): NonNullable<RowView['caption']> {
   const patrol = result.patrol
   const reason = _patrolReason(patrol.detail)
   const current = result.active.find((task) => task.id === patrol.round)
   const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail)
   const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? ''
-  const facts: RowView['facts'] = {}
+  const out: NonNullable<RowView['caption']> = []
+  if (patrol.phase === 'waiting' && patrol.untilMs !== null) {
+    out.push({ text: t('queue.patrolState.waitingUntil', { time: resetStampOf(t, { resetAt: '', resetAtMs: patrol.untilMs }, now) }) })
+  }
   if (patrol.phase === 'yielding' || reason.wrapUp) {
     const why = reason.kind === 'manual' ? t('queue.patrol.giveWay') : reason.kind === 'slot' ? t('queue.patrol.waitSlot')
       : reason.kind === 'memory' ? t('queue.patrol.memory') : reason.kind === 'memoryUnread' ? t('queue.patrol.memoryUnread')
         : t('queue.patrol.otherReason')
-    if (reason.wrapUp) facts.wrap = { text: t('queue.patrol.wrapUp'), tone: 'warn' }
-    facts.reason = { text: why, tone: 'warn', title: patrol.detail }
-    if (reason.task !== '') facts.for = { text: reason.task, tone: 'plain', mono: true, title: t('queue.patrol.forTask', { id: reason.task }) }
+    if (reason.wrapUp) out.push({ text: t('queue.patrol.wrapUp'), voice: 'warn' })
+    out.push({ text: why, voice: 'warn', title: patrol.detail })
+    if (reason.task !== '') out.push({ text: reason.task, title: t('queue.patrol.forTask', { id: reason.task }) })
   }
   if (patrol.phase === 'running' || (patrol.phase === 'yielding' && current !== undefined)) {
     const m = current === undefined ? null : modelLine(current, true)
-    if (dispatched || axis) facts.round = { text: dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, tone: 'plain', title: patrol.round }
-    if (current?.startedAtMs != null) facts.took = { text: t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }), tone: 'plain' }
-    if (m !== null && m.model !== '') facts.model = { text: _modelView(m.model).label, tone: 'plain', title: m.model }
+    if (dispatched || axis) out.push({ text: dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, title: patrol.round })
+    if (current?.startedAtMs != null) out.push({ text: t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }) })
+    if (m !== null && m.model !== '') out.push({ text: _modelView(m.model).label, title: m.model })
   }
-  return facts
+  return out
+}
+
+/** A list of rows on the inset well: the one surface every task, ended task and round sits on. */
+function renderWell(key: string, rows: Array<React.ReactElement | null>): React.ReactElement | null {
+  const present = rows.filter((row): row is React.ReactElement => row !== null)
+  return present.length === 0 ? null : h('div', { className: cx('tq-well'), key: 'well-' + key, 'data-tq-well': key }, ...present)
 }
 
 /**
- * Patrol: a head row (the phase as its state chip, the live status as its
- * facts), the newest round, then — folded, by the one rule above — the
- * earlier rounds and the raw journal line.
+ * Patrol: a section head (the phase as its state chip, the live status as its
+ * caption), the newest round on the well, then — folded, by the one rule
+ * above — the earlier rounds and the raw journal line.
  */
 function renderPatrolSection(result: TaskQueueResult, t: Translate, now: number): React.ReactElement {
   const patrol = result.patrol
-  const tone = PATROL_TONE[patrol.phase] ?? 'none'
   const rounds = (patrol.rounds ?? []).map((round) => roundRow(round, t, now))
-  return h('section', { className: cx('tq-group'), key: 'patrol', 'data-tq-group': 'patrol' },
+  return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderRow({
       kind: 'head', key: 'head-patrol', lead: renderSectionGlyph('patrol'), name: t('queue.patrolHeading'),
-      state: { text: patrolStateOf(result, t, now), tone: CHIP_TONE[tone], title: patrolPhraseOf(result, t, now) },
-      facts: patrolFacts(result, t, now),
+      state: { text: t('queue.patrolState.' + patrol.phase), role: PATROL_ROLE[patrol.phase] ?? 'unknown', title: patrolPhraseOf(result, t, now) },
+      facts: {},
+      caption: patrolCaption(result, t, now),
       attrs: { 'data-tq-patrol': patrol.phase },
     }, t),
-    ...rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRow(round, t)),
+    renderWell('rounds', rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRow(round, t))),
     rounds.length <= RESIDENT_ROUNDS ? null
-      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), rounds.slice(RESIDENT_ROUNDS).map((round) => renderRow(round, t))),
+      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), [renderWell('older', rounds.slice(RESIDENT_ROUNDS).map((round) => renderRow(round, t)))]),
     patrol.detail === '' ? null : renderFold('journal', t('queue.supervisorLog'),
       [h('div', { className: cx('tq-log'), key: 'log' }, patrol.detail)]))
 }
 
 /**
  * A source as a row: the sidebar's folded line and its group's head in the
- * panel are this one view (the same glyph, name, value and state chip in the
- * same columns), so the line a reader taps is the line the panel opens on.
- * The panel adds the head's facts: the plan, the run slots, the pool.
+ * panel are this one view (the same glyph, name and value in the same
+ * columns), so the line a reader taps is the line the panel opens on. The
+ * folded line adds the queue's one state chip (its tasks are not on screen);
+ * the head adds its caption — the plan, the run slots, the pool — in words.
  */
 function sourceView(source: PanelSource, row: BalanceRow | undefined, result: TaskQueueResult | null, t: Translate): RowView & { reading: ReturnType<typeof sourceReading>; queue: ReturnType<typeof _queueState> | null } {
   const reading = sourceReading(source, row, result, t)
@@ -2383,24 +2511,30 @@ function sourceView(source: PanelSource, row: BalanceRow | undefined, result: Ta
     name: source.label,
     value: { text: reading.value, tone: reading.tone, level: reading.level },
     state: queue?.chip ?? null,
-    facts: {
-      plan: source.join?.plan === undefined ? null : { text: t(source.join.plan), tone: 'plain' },
-      slots: lane === undefined ? null
-        : { text: t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }), tone: lane.tone === 'stale' ? 'warn' : 'plain', title: t('queue.lanesTitle') },
+    facts: {},
+    caption: [
+      { text: source.join?.plan === undefined ? '' : t(source.join.plan) },
+      lane === undefined ? { text: '' }
+        : { text: t('queue.slotCount', { used: lane.used, max: lane.max ?? '—' }), voice: lane.tone === 'stale' ? 'warn' : undefined, title: t('queue.lanesTitle') },
       // The free pool is one source for all its models: where the rotation is, and how many stand in for one another.
-      pool: source.join?.kind !== 'pool' ? null : pool === null ? { text: t('panel.poolUnread'), tone: 'quiet' }
-        : {
-          text: t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : ''),
-          tone: 'plain', title: reading.title,
-        },
-    },
-    extra: poolSize > 1 && source.join?.kind === 'pool' ? [renderChip(t('panel.poolSize', { n: poolSize }), 'plain', { key: 'pool-size', title: t('panel.poolSwap', { n: poolSize }) })] : [],
+      source.join?.kind !== 'pool' ? { text: '' } : pool === null ? { text: t('panel.poolUnread') }
+        : { text: t('panel.pool', { current: _modelView(pool.current).label, next: pool.next === '' ? '—' : _modelView(pool.next).label }) + (pool.fromOrder ? t('panel.poolOrder') : ''), title: reading.title },
+      poolSize > 1 && source.join?.kind === 'pool' ? { text: t('panel.poolSize', { n: poolSize }), title: t('panel.poolSwap', { n: poolSize }) } : { text: '' },
+    ],
     reading,
     queue,
   }
 }
 
-/** One provider group of the open panel: its source row, the allowance, then the queue it feeds. */
+/**
+ * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
+ * 那个上下好像都不明显了」). Two levels, never mixed: the allowance is the
+ * group's head on the panel itself (14px strong name and reading, the caption,
+ * the window bars on the name's edge); the queue that allowance feeds is a
+ * list on an inset well starting on that same edge, one step down in type
+ * and in weight. A reader tells the two apart by surface and indent before
+ * reading a word.
+ */
 function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, t: Translate, now: number, ui: PanelUi): React.ReactElement {
   const row = source.provider === null ? undefined : ui.rows.get(source.provider.provider)
   const agent = source.agent
@@ -2417,8 +2551,8 @@ function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, 
     : row.result.status === 'stale' && Number.isFinite(snapshotAt)
       ? t('panel.staleAt', { message: row.result.message ?? '—', time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
       : row.note
-  const head = sourceView(source, row, result, t)
-  // The allowance and the notes start on the name's edge (--tq-main-inset): under the head, not beside it.
+  // The panel head drops the folded line's state chip: the tasks it counts are right below.
+  const head = { ...sourceView(source, row, result, t), state: null }
   const detail = row === undefined ? null : renderRowDetail(row, t, now)
   return h('section', {
     className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': agent ?? undefined,
@@ -2430,17 +2564,17 @@ function renderSourceGroup(source: PanelSource, result: TaskQueueResult | null, 
         balanceNote === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'bp-note', row!.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
         detail),
     ...notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-inset'), key: 'n' + i }, note)),
-    ...groupOrder(tasks, queue).map((task) => renderRow(taskRow(task, t, now, ui.open, ui.windowsOf(task.agent)), t,
+    renderWell(source.key, groupOrder(tasks, queue).map((task) => renderRow(taskRow(task, t, now, ui.open, ui.windowsOf(task.agent)), t,
       ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? h('button', {
         type: 'button',
-        className: cx('tq-icon-btn'),
+        className: cx('tq-icon-btn', 'tq-up'),
         'data-tq-up': task.id,
         disabled: ui.busy !== null,
         'aria-label': t('queue.a.upOf', { name: task.name }),
         title: t('queue.a.up'),
         onClick: () => { ui.act('priority', task, 'up') },
       }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-        h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))) : null)))
+        h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))) : null))))
 }
 
 /**
@@ -2488,9 +2622,9 @@ function renderProviderPanelBody(sources: PanelSource[], queueState: ReturnType<
       balanceState.data.result === null ? t('balance.reading') : t('panel.noSources')) : null,
     ...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
     // Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS).
-    !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group'), key: 'recent', 'data-tq-group': 'recent' },
+    !dispatcher || result!.recent.length === 0 ? null : h('section', { className: cx('tq-group', 'tq-section'), key: 'recent', 'data-tq-group': 'recent' },
       renderRow({ kind: 'head', key: 'head-recent', lead: renderSectionGlyph('recent'), name: t('queue.recentHeading'), state: null, facts: {} }, t),
-      ...result!.recent.map((task) => renderRow(endedRow(task, t, now, ui.open), t))),
+      renderWell('recent', result!.recent.map((task) => renderRow(endedRow(task, t, now, ui.open), t)))),
     patrol === null ? null : renderPatrolSection(result!, t, now),
     ops === undefined ? null : h('div', { className: cx('tq-sub', 'tq-foot', skew !== '' && 'tq-bad'), key: 'ops', 'data-tq-ops': ops.available ? ops.version : 'missing' },
       skew !== '' ? skew : t('queue.ops.footer', { v: ops.version, runner: ops.runnerApi })),
@@ -2623,9 +2757,8 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       r: _fmtTokens(task.tokensCacheR ?? 0), out: _fmtTokens(task.tokensOut ?? 0) })],
     ['queue.d.notify', (task.notify ?? []).length + (task.notified ?? []).length + (task.notifyFailed ?? []).length === 0
       ? t('queue.d.notifyNone')
-      : h('span', { className: cx('tq-inline') }, renderNotifyIcons(task, t),
-        [...new Set([...(task.notify ?? []), ...(task.notified ?? []), ...(task.notifyFailed ?? [])])]
-          .map((ch) => t('queue.notify.' + notifyState(task, ch), { ch: t('queue.ch.' + ch) })).join(' · '))],
+      : h('span', { className: cx('tq-inline') }, renderNotifyIcons(task, t, live),
+        notifyChannels(task).map((ch) => t('queue.notify.' + _notifyState(task, ch, live), { ch: t('queue.ch.' + ch) })).join(' · '))],
     ['queue.d.runner', live && (task.runnerApi ?? 2) < 2 ? t('queue.noRunnerApi') : null],
     // Falsy checks: a host older than these fields sends none of them.
     live && task.lastEvent ? ['queue.d.latest', task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs))] : ['', null],
@@ -3026,7 +3159,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
               .filter((part) => part !== '').join(' · '),
             title: reading.title,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
-          }, ...rowCells({ ...view, facts: {}, extra: [] }).cells)))
+          }, ...rowCells({ ...view, caption: [] }).cells)))
       : h('button', {
         type: 'button',
         className: cx('bchip', 'pp-rail'),

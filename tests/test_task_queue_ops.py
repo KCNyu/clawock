@@ -513,7 +513,7 @@ def test_usage_counts_each_claude_message_once_from_dispatch_on_and_prices_it(q,
 
 
 def test_usage_of_an_unpriced_codex_model_keeps_tokens_and_leaves_the_amount_empty(q):
-    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6-sol\n")
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-9-unlisted\n")
     day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
     day.mkdir(parents=True)
     ev = lambda i, c, o: json.dumps({"timestamp": "2026-09-27T01:00:00Z", "type": "event_msg", "payload": {  # noqa: E731
@@ -522,7 +522,28 @@ def test_usage_of_an_unpriced_codex_model_keeps_tokens_and_leaves_the_amount_emp
     (day / "rollout-2026-09-27T01-00-00-019-abc.jsonl").write_text(ev(100, 60, 10) + ev(100, 60, 10) + ev(300, 200, 30) + ev(50, 0, 5))
     code, out = q.run("usage", "u-codex")
     assert out["tokens"] == {"in": 150, "cache_w": 0, "cache_r": 200, "out": 35, "total": 385}
-    assert (out["cost_usd"], out["cost_kind"], out["models"]) == ("", "unpriced", ["gpt-6-sol"])
+    assert (out["cost_usd"], out["cost_kind"], out["models"]) == ("", "unpriced", ["gpt-9-unlisted"])
+
+
+def test_codex_models_are_priced_from_openais_published_api_table(q):
+    """Every model codex runs here has a row (OpenAI's API pricing page, standard short-context
+    rates, source and date in the file); cached input is billed at its own rate."""
+    prices = json.loads((ROOT / "ops/host/model_prices.json").read_text())
+    assert prices["sources"]["openai"]["url"].startswith("https://developers.openai.com/")
+    assert prices["sources"]["openai"]["as_of"]
+    for model in ("gpt-6-sol", "gpt-5.6-sol", "gpt-6-astra"):
+        assert {"in", "out", "cache_read"} <= set(prices["models"][model]), model
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6-sol\n")
+    day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
+    day.mkdir(parents=True)
+    total = {"input_tokens": 3_000_000, "cached_input_tokens": 2_000_000, "output_tokens": 100_000}
+    (day / "rollout-2026-09-27T01-00-00-019-abc.jsonl").write_text(json.dumps({
+        "timestamp": "2026-09-27T01:00:00Z", "type": "event_msg",
+        "payload": {"type": "token_count", "info": {"total_token_usage": total}}}) + "\n")
+    code, out = q.run("usage", "u-codex")
+    assert code == 0, out
+    # gpt-6-sol: 1M fresh input x $2 + 2M cached x $0.20 + 0.1M output x $10
+    assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.4 + 1.0:.2f}", "estimate")
 
 
 def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):
