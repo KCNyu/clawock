@@ -403,7 +403,7 @@ async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
       return {
         ...payload,
         generated_at: "2026-09-20T03:37:35.717Z",
-        digest_markdown: "### Test\n- material update",
+        digest_markdown: "## Test\n- material update\n\n### Risk\n- watch closely",
       };
     },
   });
@@ -413,6 +413,12 @@ async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
   await waitForTab(page, "market");
   await page.waitForFunction(() =>
     document.querySelector("#news-digest .digest-meta")?.textContent.includes("generated:"));
+
+  const digest = page.locator("#news-digest");
+  assert.deepEqual((await digest.locator("h3").allTextContents()).slice(0, 2), ["Test", "Risk"],
+    "both accepted digest heading levels must render as headings");
+  assert(!(await digest.textContent()).includes("## Test"),
+    "the digest printed an accepted heading as literal markdown");
 
   const meta = (await page.locator("#news-digest .digest-meta").textContent()).trim();
   assert(meta.includes("2026/9/20 11:37:35"),
