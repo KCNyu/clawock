@@ -311,17 +311,27 @@ def check_stale_citation(prose, ctx):
 
     The information lane's morning files are hours old by the US night
     (contract §6); quoted without its time, a 08:10 headline reads as live.
-    A sentence that carries a stale item's title (its first 8 characters) must
+    A sentence that carries a stale item's cited title must
     also carry 「截至」 or 「旧闻」 — the words the item's own `cite` gives.
     """
     titles = [t for t in intraday_information.stale_titles(ctx.get('information'))
               if len(t) >= 8]
+    live_rows = [row for rows in ((ctx.get('information') or {}).get('live') or {}).values()
+                 for row in rows if row.get('stale') is False]
     found = []
     sentences = re.split(r'[。；\n]', prose or '')
     for index, sentence in enumerate(sentences):
         context = sentence + (sentences[index + 1] if index + 1 < len(sentences) else '')
         for title in titles:
-            if title[:8] in sentence and not re.search(r'截至|旧闻|早盘前|开盘前', context):
+            # The cite prints at most 60 characters. Eight-character prefixes
+            # collide with unrelated live headlines about the same ticker.
+            if title[:60] not in sentence:
+                continue
+            live_match = any(str(row.get('title') or '')[:60] == title[:60]
+                             for row in live_rows)
+            if (live_match and re.search(r'\d{2}-\d{2} \d{2}:\d{2} HKT 发布，盘中实时', context)):
+                continue
+            if not re.search(r'截至|旧闻|早盘前|开盘前', context):
                 found.append(title[:12])
     if not found:
         return []
