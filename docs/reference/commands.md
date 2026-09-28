@@ -89,7 +89,7 @@ Sources: Eastmoney · Finnhub · Google News · Yahoo · 10jqka · exchange fili
 | `clawock em-news` | `clawock.market_data.eastmoney_news` | Chinese-language Eastmoney news for active HK holdings |
 | `clawock catalysts` | `clawock.market_data.calendar` | next 14 days of earnings, FOMC and macro events |
 | `clawock mover-evidence` | `clawock.market_data.mover_evidence` | filing-first catalyst probe, fired only for names that already moved |
-| `clawock live-sources` | `clawock.evidence.live_sources` | live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, 同花顺 7x24) for any harness, budgeted and timed |
+| `clawock live-sources` | `clawock.evidence.live_sources` | live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, 同花顺 7x24, 东财 7x24) for any harness, budgeted and timed |
 | `clawock news-evidence` | `clawock.evidence.news_evidence_graph` | deduplicates news and filings into an expiring evidence graph with confirmation gates |
 | `clawock-news-digest` | `clawock.automation.news_digest` | US 21:00 digest; Finnhub with a Google News RSS fallback per ticker |
 

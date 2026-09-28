@@ -112,7 +112,7 @@
         },
         {
           "command": "live-sources",
-          "note": "live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, 同花顺 7x24) for any harness, budgeted and timed"
+          "note": "live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, 同花顺 7x24, 东财 7x24) for any harness, budgeted and timed"
         },
         {
           "command": "news-evidence",
