@@ -15,6 +15,19 @@ so it can be rotated before it is pointed at.
 This is a single-maintainer project. Reports are read on a best-effort basis;
 there is no response-time commitment, and none should be inferred from this file.
 
+## Known exposures
+
+Values are never written here — only provider, where and when, and what was done.
+
+| Provider | In public history | Removed from the tree | Rotation |
+|---|---|---|---|
+| Finnhub, Alpha Vantage, Polygon.io | `c4657808b` (2026-03-11, `TOOLS.md` and three scripts), `bbb479ce9` (2026-03-22) | `f749443a4` (2026-04-05), `36711fae4` (2026-05-16) | owner action, tracked in #2033; this row records the date once done |
+
+History is not rewritten: a rewrite changes every later commit SHA and does not
+make a value that has already been cloned unusable — rotation does. The CI step
+`No credential-shaped values in the added lines` (`ops/ci/commit_secret_scan.py`)
+scans every commit a PR or code push brings, Markdown included.
+
 ## What is in scope
 
 - The published package `clawock` (`src/clawock/`) and its declarative profiles.
