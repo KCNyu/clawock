@@ -245,7 +245,7 @@ written down.
 | pipeline words (`harness`, `packet`) | prompt + advisory | `check_pipeline_self_reference` | the sentence is usually a correct read in the wrong words; failing it would cost the analysis |
 | numbers come from the context | advisory | `check_numeric_claims` | cannot tell a real number attached to the wrong thing |
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
-| `下一触发` numbers and names exist in the context | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment` | a structured line looks authoritative |
+| `下一触发` numbers and names exist in the context — every such line, merged into one (#2077) | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment`, `test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
 | stale information is labelled | gate (escalating) | every item carries its `cite` with `截至`; `check_stale_citation` flags a stale title quoted without it (`test_quoting_a_stale_headline_without_its_time_is_flagged`) | a 08:10 headline at 23:00 must not read as live |
 | an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
@@ -264,7 +264,7 @@ as live.
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
-| `下一触发` line (block 11) | live (#1873) |
+| `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
