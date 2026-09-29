@@ -125,6 +125,28 @@ def test_content_rules_run_on_prose_not_the_prepended_block(pf):
     assert not any('异动票' in i for i in pf.validate(assembled, ctx, assembled))
 
 
+def test_a_field_name_in_the_prose_escalates_like_it_does_on_the_card(pf):
+    """#2146: the Mode 6 prose gate stopped at the eight-word pipeline list.
+    2026-09-29 HK open/mid/close each shipped 「全部是 hold_and_watch」 with
+    status pass, and the SKILL's attribution slot invited 「/ sec_filing」. The
+    same sentence on the intraday card raises a validation warning."""
+    ctx = _ctx()
+    leaky = ('▎情绪面\nCRCL -5.5% ← 增发公告（35 分钟前 / sec_filing）。\n\n'
+             '▎技术面\n跌破 $65，下一支撑 $60。\n\n'
+             '▎操作建议\n今天计划全部是 hold_and_watch，SPCH 减仓至 1/3。\n')
+    issues = pf.validate(pf.assemble_message(ctx, leaky), ctx, leaky)
+
+    leaks = [i for i in issues if '字段名' in i]
+    assert len(leaks) == 1 and 'sec_filing' in leaks[0] and 'hold_and_watch' in leaks[0]
+    assert pf.categorize(issues) == 'warn', 'escalating, so the banner names it'
+
+    clean = leaky.replace('sec_filing', 'SEC 文件').replace('hold_and_watch', '持有观察')
+    assert pf.validate(pf.assemble_message(ctx, clean), ctx, clean) == []
+    # The harness-owned block is never judged for it: only the model's words are.
+    block_ctx = _ctx(raw_wechat_block=FRESH_BLOCK + '\nsemantic_unchanged')
+    assert pf.validate(pf.assemble_message(block_ctx, PROSE), block_ctx, PROSE) == []
+
+
 def test_length_is_measured_on_the_assembled_message(pf):
     """The ceiling has always meant the delivered message. Measuring prose alone
     would silently loosen it by the length of the harness-owned block."""
