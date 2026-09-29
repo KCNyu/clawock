@@ -461,7 +461,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog='clawock catalysts', description='Fetch upcoming catalysts (14d default)')
     ap.add_argument('--days', type=int, default=14, help='lookback window in days')
     ap.add_argument('--json', action='store_true',
-                    help='print final JSON to stdout, do not write file')
+                    help='print final JSON to stdout (still writes assets/data/catalysts.json)')
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
 
     try:
