@@ -211,3 +211,88 @@ def test_a_normal_slot_never_sleeps(wd, tmp_path, monkeypatch):
 
     assert slept == []
     assert sent, 'an undelivered finished slot still gets the backstop'
+
+
+# ── #2141: age checks after the wait read the clock at judgement time ────────
+# The wait can run the full INFLIGHT_WAIT_S. A claim stamped during it is fresher
+# evidence than the entry clock's 5-minute future-skew tolerance allows, and the
+# holder-died-mid-send reason was silently dropped for the generic banner.
+
+def _drive_on_a_clock(wd, tmp_path, monkeypatch, *, claim_at, claim_ms=None,
+                      slot_claim=True):
+    """main() entered at 10:13 for the 10:00 slot; every fake sleep advances
+    the wall clock the claim is stamped with. The run stays stuck, so the wait runs its
+    whole budget. `claim_at` (seconds into the wait) is when a claim carrying
+    `send_started_at` appears; its stamp is the clock at that moment unless
+    `claim_ms` pins it."""
+    from clawock.automation import delivery_receipts
+
+    monkeypatch.setattr(wd, 'WS', tmp_path)
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True)
+    (tmp / 'intraday-context-hk-latest.json').write_text(json.dumps({
+        'generated_at': '2026-08-11T10:08:00', 'status': 'ok',
+        'context_id': 'ctx-1000', 'raw_wechat_block': BLOCK,
+        'heartbeat': {'job': '盘中盯盘', 'slot': HK_SLOT}}, ensure_ascii=False))
+    entry = datetime(2026, 8, 11, 10, 13, tzinfo=HKT)
+    clock = {'now': entry, 'waited': 0}
+    claim_file = (delivery_receipts.claim_path(tmp, 'intraday', market='hk', slot=HK_SLOT)
+                  if slot_claim else delivery_receipts.claim_path(tmp, 'intraday', market='hk'))
+
+    def stamp_claim():
+        stamp = claim_ms if claim_ms is not None else int(clock['now'].timestamp() * 1000)
+        claim_file.write_text(json.dumps(
+            {'pid': 999999, 'ts': stamp, 'send_started_at': stamp}))
+
+    def fake_sleep(seconds):
+        clock['now'] += timedelta(seconds=seconds)
+        clock['waited'] += seconds
+        if clock['waited'] >= claim_at and not claim_file.exists():
+            stamp_claim()
+
+    if claim_at <= 0:
+        stamp_claim()
+    sent, events = [], []
+    import time as _time
+    monkeypatch.setattr(_time, 'sleep', fake_sleep)
+    monkeypatch.setattr(wd, 'watchdog_target', lambda market: (entry, '盘中盯盘', HK_SLOT))
+    monkeypatch.setattr(wd, 'find_job_id', lambda name: 'jid')
+    monkeypatch.setattr(wd, 'today_runs', lambda jid: _slot_run(_ms(10, 6), summary=BLOCK))
+    monkeypatch.setattr(wd, 'transcript_loop_score', lambda s: (0, {}))
+    monkeypatch.setattr(wd, 'last_report_text', lambda s, first: None)
+    monkeypatch.setattr(wd.cron_heartbeat, 'record', lambda *a, **k: None)
+    monkeypatch.setattr(wd, 'log', events.append)
+    monkeypatch.setattr(wd, 'send_telegram',
+                        lambda target, msg, dry: (sent.append(msg), (True, 'ok'))[1])
+    monkeypatch.setattr(sys, 'argv', [
+        'intraday_watchdog.py', '--job-name', '盘中盯盘', '--market', 'hk'])
+    assert wd.main() == 0
+    assert clock['waited'] == wd.INFLIGHT_WAIT_S
+    return sent, events
+
+
+def test_a_mid_send_death_during_the_wait_keeps_its_explicit_warning(
+        wd, tmp_path, monkeypatch):
+    """The claim lands six minutes into the wait — past the entry clock's
+    5-minute tolerance. kcn must still be told this slot's WeChat is unknown."""
+    sent, events = _drive_on_a_clock(wd, tmp_path, monkeypatch, claim_at=360)
+
+    assert len(sent) == 1
+    assert sent[0].startswith('⚠️ 该槽位 WeChat 送达未被确认')
+    assert events[-1]['action'] == 'mirror-telegram'
+    assert events[-1]['reason'] == 'holder-died-mid-send'
+
+
+def test_the_later_clock_does_not_loosen_the_1685_age_gate(wd, tmp_path, monkeypatch):
+    """The other direction: a leftover market-only claim stamped 24 minutes
+    before the watchdog started is 34 minutes old when the slot is judged —
+    past MARKER_FRESH_MS — so it proves nothing about this send and must not
+    be announced as a mid-send death."""
+    stale = _ms(10, 13) - 24 * 60 * 1000
+    sent, events = _drive_on_a_clock(wd, tmp_path, monkeypatch, claim_at=0,
+                                     claim_ms=stale, slot_claim=False)
+
+    assert len(sent) == 1
+    assert '送达未被确认' not in sent[0]
+    assert sent[0].startswith('📲 补投（postflight marker missing')
+    assert events[-1]['reason'] == 'postflight marker missing'

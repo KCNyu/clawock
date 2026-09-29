@@ -77,6 +77,7 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
@@ -316,6 +317,7 @@ def main():
 
     tag = f'intraday-{args.market}'
     watchdog_now, expected_job, expected_slot = watchdog_target(args.market)
+    entry_mono = time.monotonic()
     if expected_job != args.job_name:
         log({'tag': tag, 'action': 'skip', 'reason': 'watchdog invoked outside job window',
              'expected_job': expected_job, 'configured_job': args.job_name,
@@ -421,6 +423,15 @@ def main():
             return 0
         log_after_wait(context, last, waited=waited, budget_s=inflight_wait_s,
                        tag=tag, run_at=run_at, lead=slot_fields)
+    # Every age check below compares evidence against THIS moment, not the entry
+    # clock: the wait above can run for up to INFLIGHT_WAIT_S, and a marker or
+    # claim stamped during it is fresher evidence than the entry clock allows for
+    # (the future-skew tolerances were sized for seconds, not a 600s wait). A
+    # later clock only makes old evidence older, so the upper bounds — #1685's
+    # age gate included — hold at least as tight as before (#2141). Measured as
+    # entry clock + elapsed so the slot and the clock stay one reading.
+    elapsed_s = max(waited, time.monotonic() - entry_mono)
+    judge_ms = int((watchdog_now.timestamp() + elapsed_s) * 1000)
 
     # A healthy semantic repeat is an intentional silent slot. Postflight
     # records a slot-bound marker only after the dashboard publish succeeds;
@@ -429,8 +440,7 @@ def main():
         quiet_marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
             WS / 'memory' / '.tmp', 'intraday', market=args.market))
         if quiet_marker_covers_slot(
-                quiet_marker, context, expected_job, expected_slot,
-                int(watchdog_now.timestamp() * 1000)):
+                quiet_marker, context, expected_job, expected_slot, judge_ms):
             log({'tag': tag, 'action': 'no_change',
                  'reason': 'postflight recorded healthy semantic repeat',
                  'expected_slot': expected_slot, 'run_at': run_at})
@@ -443,7 +453,7 @@ def main():
 
     marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
         WS / 'memory' / '.tmp', 'intraday', market=args.market))
-    now_ms = int(watchdog_now.timestamp() * 1000)
+    now_ms = judge_ms
     # A confirmed Telegram send for this exact slot, whichever attempt made it.
     # The evidence gate below can still decline to call the slot covered (stale
     # generation, failed cosend), and the loop gate deliberately ignores it —
@@ -597,8 +607,7 @@ def main():
     # The age bound stays (#1685): the fallback name is still slot-less, and a
     # claim older than one marker window proves nothing about the send in front
     # of us either way.
-    gap = wechat_gap_reason(claim, fresh_ms=MARKER_FRESH_MS,
-                            now_ms=int(watchdog_now.timestamp() * 1000))
+    gap = wechat_gap_reason(claim, fresh_ms=MARKER_FRESH_MS, now_ms=judge_ms)
     if gap:
         reason, tg_banner = gap
     else:
