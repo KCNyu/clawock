@@ -728,6 +728,21 @@ def test_logged_cash_adjustment_is_removed_before_ratio_gate(run_check):
     _assert_clean(run_check(data, previous_cash=(100.0, "2026-07-01")))
 
 
+@pytest.mark.parametrize("row", [{"date": None, "amount": 9000}, {"date": None, "amount": None}])
+def test_null_dated_cash_adjustment_does_not_take_the_other_gates_down(run_check, row):
+    # #2171: a null date used to raise TypeError out of check(), which the
+    # dashboard read as "no integrity finding" — the fat-finger went unreported.
+    data = _portfolio_data(cash=1000.0)
+    _port(data)["cash_reconciled"] = 100.0
+    _port(data)["cash_adjustments"] = [row]
+    _assert_only(
+        run_check(data, previous_cash=(1000.0, "2026-07-01")),
+        "CASH_RECON",
+        "ERROR",
+        "≠ 派生值 100.00",
+    )
+
+
 def test_cash_reconstruction_exact_tolerance_passes_and_just_over_fails(run_check):
     exact = _portfolio_data(cash=101.0)  # derived baseline remains 100; difference == 1
     _port(exact)["cash_reconciled"] = 100.0

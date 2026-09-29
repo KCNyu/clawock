@@ -715,10 +715,13 @@ def check(portfolio_path=PORTFOLIO):
                     # A logged deposit/withdrawal after the last snapshot legitimately
                     # moves cash — subtract it so a *confirmed* move doesn't read as a
                     # fat-finger. An unlogged digit typo still trips the ratio gate.
+                    # `cash_adjustments` is hand-entered: a present-but-null date must
+                    # read as undated (same as math.derive_cash), not raise — a raise
+                    # here takes every other gate down with it (#2171).
                     adj_since = sum(
                         _num(a.get('amount')) or 0
                         for a in port.get('cash_adjustments', []) or []
-                        if a.get('date', '') > (prev_date or ''))
+                        if (a.get('date') or '') > (prev_date or ''))
                     base = cash - adj_since
                     if base > 0:
                         ratio = base / prev
