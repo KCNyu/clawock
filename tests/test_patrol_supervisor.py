@@ -430,3 +430,43 @@ def test_a_recent_round_cut_short_does_not_advance_the_review_cursor(adopted, tm
     assert result.returncode == 0, result.stdout + result.stderr
     assert actions == f"append {rid}\n"
     assert (tmp_path / "recent-since").read_text() == "older\n"
+
+
+def test_the_prompts_head_line_is_cut_by_characters_not_bytes(tmp_path):
+    """#2168's subject put byte 80 inside a Chinese character: `cut -c1-80` (bytes) left
+    invalid UTF-8 in P_HEAD, render() raised UnicodeEncodeError and every dispatch failed."""
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "core.abbrev", "9"], check=True)  # live's hash width
+    subject = "feat(dsh): /dispatch-list 改为任务芯片面板的文本版，复用 dsh 插件代码 (#2168)"
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
+                    "--allow-empty", "-m", subject], check=True)
+    old = subprocess.run(["bash", "-c", "git -C \"$1\" log -1 --format='%h %s' | cut -c1-80", "test", str(repo)],
+                         capture_output=True, timeout=10).stdout
+    with pytest.raises(UnicodeDecodeError):  # the old cut really splits a character on this subject
+        old.decode("utf-8")
+    out = subprocess.run(["bash", "-c", 'source "$1"; head_line "$2"', "test", str(SCRIPT), str(repo)],
+                         capture_output=True, timeout=10)
+    assert out.returncode == 0, out.stderr
+    line = out.stdout.decode("utf-8")  # strict: raises on a split character
+    assert line.split(" ", 1)[1].startswith("feat(dsh): /dispatch-list 改为任务芯片面板")
+
+
+def test_a_file_a_round_rewrote_does_not_block_the_next_refresh(tmp_path):
+    """R345 re-ran the quote modules inside the worktree and rewrote the tracked portfolio.json;
+    `git checkout` then refused to move, and every refresh failed silently for five hours."""
+    git = lambda *a, cwd=tmp_path: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *a],
+                                                  cwd=cwd, check=True, capture_output=True, text=True)
+    git("init", "-q", "--bare", "-b", "master", "origin.git")
+    git("clone", "-q", "origin.git", "wt")
+    wt = tmp_path / "wt"
+    (wt / "portfolio.json").write_text('{"v": 1}\n')
+    git("add", "portfolio.json", cwd=wt)
+    git("commit", "-qm", "one", cwd=wt)
+    git("push", "-q", "origin", "HEAD:master", cwd=wt)
+    (wt / "portfolio.json").write_text('{"v": "a round rewrote me"}\n')  # the stray write
+    out = subprocess.run(["bash", "-c", 'source "$1"; WT="$2"; prepare_worktree', "test", str(SCRIPT), str(wt)],
+                         capture_output=True, text=True, timeout=30)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert (wt / "portfolio.json").read_text() == '{"v": 1}\n'
+    assert "discarding a round's tracked changes: portfolio.json" in out.stdout

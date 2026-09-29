@@ -172,7 +172,12 @@ prepare_worktree() {
     git -C "$LIVE" worktree add --detach "$WT" origin/master >/dev/null 2>&1 || return 1
   fi
   git -C "$WT" fetch -q origin master || return 1
-  git -C "$WT" checkout -q --detach origin/master && git -C "$WT" reset -q --hard origin/master \
+  # The worktree is the supervisor's: a round that wrote a tracked file (R345 re-ran the quote
+  # modules and rewrote portfolio.json) must not block every later refresh. A plain checkout
+  # refused such a file and the loop failed silently for 5h (2026-09-29); -f discards it, logged.
+  git -C "$WT" diff --quiet HEAD 2>/dev/null \
+    || log "discarding a round's tracked changes: $(git -C "$WT" diff --name-only HEAD | xargs)"
+  git -C "$WT" checkout -q -f --detach origin/master && git -C "$WT" reset -q --hard origin/master \
     && git -C "$WT" clean -fdq
 }
 
@@ -195,6 +200,13 @@ lines += ["", "## 最近 30 天关闭（原因：COMPLETED=修了，NOT_PLANNED=
 lines += [f"- #{i['number']} [{i.get('stateReason') or '-'}] {i['title']}" for i in closed[:120]] or ["- （无）"]
 (state / "open-issues.md").write_text("\n".join(lines) + "\n")
 PY
+}
+
+# The worktree's HEAD for the round prompt: hash and subject, cut by characters. `cut -c`
+# cuts bytes: a Chinese subject split mid-character became invalid UTF-8, render() could
+# not print it, and every dispatch failed until HEAD moved (2026-09-29, #2168's subject).
+head_line() {  # <worktree>
+  git -C "$1" log -1 --format='%h %<(72,trunc)%s' | sed 's/ *$//'
 }
 
 # Replace {{KEY}} placeholders; values come from the environment of this function's caller.
@@ -241,7 +253,7 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     [ -f "$STATE/ledger.md" ] || printf '# clawock-patrol ledger\n\n（还没有轮次记录）\n' >"$STATE/ledger.md"
     since=$(cat "$STATE/recent-since" 2>/dev/null || date -d '-3 days' '+%F %T')
   
-    export P_ROUND=$n P_AXIS_TITLE=$title P_HEAD="$(git -C "$WT" log -1 --format='%h %s' | cut -c1-80)"
+    export P_ROUND=$n P_AXIS_TITLE=$title P_HEAD="$(head_line "$WT")"
     export P_AXIS_BODY=${body//'{{RECENT_SINCE}}'/$since}
     if [ -s "$STATE/steer.md" ]; then export P_STEER; P_STEER=$(cat "$STATE/steer.md"); else export P_STEER="（暂无）"; fi
     render >"$STATE/round-prompt.md"
