@@ -3,7 +3,7 @@
   "left_side": {
     "enabled": true,
     "mode": "observe",
-    "mode_rationale": "kcn 2026-09-27: 左侧要进策略（「不可能只有单边右侧交易是好的」）。形态：observe = 两入口出左侧读数与档位、packet 记录闸门状态并逐日留痕到 assets/data/left_side_history.jsonl，不给尺寸、不进 technical.setups、不授权下单。依据（run card add_campaigns-20260927-12aa143a，非杠杆 OOS）：左侧与右侧日 P&L 相关 0.57、对右侧 beta 0.78、年化 alpha -0.72% book/单位，Sharpe 门槛 0.62 > 左侧 0.42，任何权重并入右侧都降低风险调整收益；合体 CI 下界转正是样本合并效应，不是分散化。唯一未测的 edge 来源是 thesis/资讯/同业闸，只能前瞻测。改成 authorize 与尺寸数值是 kcn 拍板项，见 docs/architecture/harness.md § Add-side strategy。",
+    "mode_rationale": "kcn 2026-09-27: 左侧要进策略（「不可能只有单边右侧交易是好的」）。形态：observe = 两入口出左侧读数与档位、packet 记录闸门状态并逐日留痕到 assets/data/left_side_history.jsonl，不给尺寸、不进 technical.setups、不授权下单。依据（run card add_campaigns-20260927-12aa143a 的 families，非杠杆 OOS：每单位投入 0.64% vs 基准 1.70%；以下 left_vs_right 数字晚于该卡、不在卡内，见 harness.md 脚注 ²）：左侧与右侧日 P&L 相关 0.57、对右侧 beta 0.78、年化 alpha -0.72% book/单位，Sharpe 门槛 0.62 > 左侧 0.42，任何权重并入右侧都降低风险调整收益；合体 CI 下界转正是样本合并效应，不是分散化。唯一未测的 edge 来源是 thesis/资讯/同业闸，只能前瞻测。改成 authorize 与尺寸数值是 kcn 拍板项，见 docs/architecture/harness.md § Add-side strategy。",
     "permission": "close_above_ma200",
     "min_depth_atr": 2.0,
     "ladder_atr": 1.0,

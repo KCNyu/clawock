@@ -81,16 +81,22 @@ def load_cards(cards_dir: Path | None = None) -> dict:
     return out
 
 
-def _numbers_in(node, acc: list) -> list:
-    """Every numeric value anywhere in a card's metrics."""
+def _numbers_in(node, acc: list, scale: float = 1.0) -> list:
+    """Every numeric value anywhere in a card's metrics, as a fraction.
+
+    Claims are read as fractions (`-14.93%` is -0.1493). The regime cards store
+    fractions too, but the add-side cards store percentages under `*_pct*`
+    keys (`max_drawdown_pct_of_book: -14.93`), which no claim could match
+    until those leaves were scaled (#2185).
+    """
     if isinstance(node, dict):
-        for value in node.values():
-            _numbers_in(value, acc)
+        for key, value in node.items():
+            _numbers_in(value, acc, 0.01 if 'pct' in str(key).lower() else scale)
     elif isinstance(node, list):
         for value in node:
-            _numbers_in(value, acc)
+            _numbers_in(value, acc, scale)
     elif isinstance(node, (int, float)) and not isinstance(node, bool):
-        acc.append(float(node))
+        acc.append(float(node) * scale)
     return acc
 
 

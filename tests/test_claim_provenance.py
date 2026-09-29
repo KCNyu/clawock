@@ -102,3 +102,24 @@ def test_a_p_value_line_with_no_other_quantity_word_is_checked(tmp_path):
     # A parameter such as `vol_cap=0.50` next to a quantity word is not a p-value.
     param = '"""Evidence: run card fixture-20260802-abcdef12.\np = 0.92; vol_cap=0.50\n"""\n'
     assert _check(_workspace(tmp_path / "c", param, card)) == []
+
+
+def test_a_card_that_stores_percent_units_under_pct_keys_still_backs_its_claim(tmp_path):
+    # #2185: add-side cards write `max_drawdown_pct_of_book: -14.93`, which a
+    # claim read as -0.1493 never matched, so docs citing them could not be gated.
+    prose = '"""Evidence: run card fixture-20260802-abcdef12.\ndrawdown -14.93% of book\n"""\n'
+    root = _workspace(tmp_path, prose,
+                      {"left": {"out_of_sample": {"max_drawdown_pct_of_book": -14.93}}})
+    assert _check(root) == []
+
+    card = root / "memory" / "backtests" / "fixture-20260802-abcdef12.json"
+    card.write_text(json.dumps({"run_id": "fixture-20260802-abcdef12", "metrics": {
+        "left": {"out_of_sample": {"max_drawdown_pct_of_book": -9.2}}}}))
+    assert _check(root) and "no cited run card contains" in _check(root)[0]
+
+
+def test_the_harness_doc_is_a_claim_surface():
+    # #2185: the left-side table cited a card that was never committed, on the
+    # one surface the gate did not read.
+    assert "docs/architecture/harness.md" in cp.load_surfaces(
+        ROOT / "config" / "claim-provenance.json")

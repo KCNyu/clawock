@@ -131,24 +131,27 @@ first gate that would hold it back (`leveraged_excluded`, `thesis_unrecorded`, `
 row per date to `assets/data/left_side_history.jsonl`, a quiet day included.
 kcn may trade the printed ladder at kcn's own discretion; the system gives no size.
 
-Why this shape and not a sized one (run card `add_campaigns-20260927-12aa143a`,
-27 Tencent names, split 2025-07-01, non-leveraged OOS; the card now carries
-`left_vs_right`):
+Why this shape and not a sized one (run card `add_campaigns-20260927-12aa143a`
+in `memory/backtests/`, 27 Tencent names, split 2025-07-01, non-leveraged OOS):
 
 | Measure | Value | Reading |
 |---|---|---|
 | left alone, per unit deployed | 0.64% vs always-in baseline 1.70% | no timing edge from price alone |
-| daily P&L correlation left↔right | 0.57 (IS 0.60; monthly 0.77) | same trades, not a hedge |
-| left's beta on right / alpha after beta | 0.78 / −0.72% of book a year at a 1% unit | more of the right side, slightly worse |
-| Sharpe hurdle `corr × Sharpe(right)` vs Sharpe(left) | 0.62 vs 0.42 (IS 1.33 vs 1.28) | adding left lowers risk-adjusted return |
-| right + left at weight 0 / 0.25 / 0.5 / 1 | Sharpe 1.08 / 1.00 / 0.91 / 0.79; drawdown −1.79 / −2.47 / −3.30 / −5.45% | P&L rises only by taking more risk |
+| daily P&L correlation left↔right² | 0.57 (IS 0.60; monthly 0.77) | same trades, not a hedge |
+| left's beta on right / alpha after beta² | 0.78 / −0.72% of book a year at a 1% unit | more of the right side, slightly worse |
+| Sharpe hurdle `corr × Sharpe(right)` vs Sharpe(left)² | 0.62 vs 0.42 (IS 1.33 vs 1.28) | adding left lowers risk-adjusted return |
+| right + left at weight 0 / 0.25 / 0.5 / 1² | Sharpe 1.08 / 1.00 / 0.91 / 0.79; drawdown −1.79 / −2.47 / −3.30 / −5.45% | P&L rises only by taking more risk |
 | months right lost (7)¹ | left lost too, −5.87% of book | amplifies right's bad months |
 | per rung, unit return to exit¹ | IS 3.6 / 3.9 / 0.19%, OOS 1.56 / 0.23 / −0.69% | the third rung is the weakest in both halves |
 | five 3-month walk-forward folds, left mean¹ | 7.89 / −0.80 / −4.10 / 6.10 / 0.86% | regime-dependent |
 
-¹ One-off analysis on the same series, not in the card; every other row is in
-the card (`families`, `left_vs_right`) and reruns with
-`clawock evaluate-add-shapes --campaigns --source tencent`.
+¹ One-off analysis on the same series, not in the card.
+² From the `left_vs_right` block, which `evaluate-add-shapes --campaigns` gained
+later the same day (#2040); the card predates it and holds only `families`, so
+these rows are not in it. `clawock evaluate-add-shapes --campaigns --source tencent`
+prints the block again, on the data of the day it runs, not these exact figures.
+The unmarked row and the figures quoted below are in the card's `families`
+(#2185).
 
 The combined family's OOS interval turning positive (+0.05% lower bound, 401 vs
 172 campaigns) is more campaigns pooled into one mean, not diversification. The

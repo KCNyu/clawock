@@ -1,0 +1,976 @@
+{
+  "schema_version": 2,
+  "run_id": "add_campaigns-20260927-12aa143a",
+  "backtest": "add_campaigns",
+  "generated_at": "2026-09-27T05:09:42+00:00",
+  "git_commit": "c7bf370d2",
+  "reproduction_key": "sha256:12aa143ab634ca33",
+  "params": {
+    "split": "2025-07-01",
+    "source": "tencent",
+    "input_names": 27,
+    "unit_pct_of_book": 1.0,
+    "right_window": 20,
+    "no_chase_z": 2.0,
+    "left_side": {
+      "enabled": true,
+      "permission": "close_above_ma200",
+      "min_depth_atr": 2.0,
+      "ladder_atr": 1.0,
+      "max_tranches": 3,
+      "stop_atr_below_first": 3.0,
+      "valid_for_sessions": 1,
+      "evaluation_sessions": 20,
+      "leveraged": "exclude",
+      "requires_thesis": "intact",
+      "rationale": "Research candidate only. Initial run had 27 input names, 21 with IS history and one split. OOS mean 2.18%, 90% month-block interval -0.17% to 5.08%; return per unit deployed 0.64% versus baseline 1.70%. Rolling walk-forward and execution/gate replay required before activation."
+    },
+    "sizing": {
+      "basis": "book_risk",
+      "tranche_book_pct": {
+        "technical": 0.02,
+        "exploration_cold_start": 0.005,
+        "exploration": 0.01,
+        "validated": 0.03,
+        "left_scale_in": 0.0025
+      },
+      "max_tranche_risk_book_pct": 0.005,
+      "unit_bridge_max_book_pct": 0.05,
+      "cash_is_hard_cap": false,
+      "rationale": "Research candidate only. Prior +18.43% book/-6.22% drawdown used linear fixed-unit scaling, without actual lots, concentration, cash bridge, thesis or information gates. Replay required before activation."
+    },
+    "parameter_fit": "none; policy-file values, split fixed before the run"
+  },
+  "inputs": [
+    {
+      "symbol": "00100",
+      "source": "tencent",
+      "first": "2026-01-09",
+      "last": "2026-09-25",
+      "bars": 176,
+      "digest": "sha256:57c1c0e42b3cd9eb"
+    },
+    {
+      "symbol": "02208",
+      "source": "tencent",
+      "first": "2024-01-02",
+      "last": "2026-09-25",
+      "bars": 673,
+      "digest": "sha256:ab6e17ade1e4a813"
+    },
+    {
+      "symbol": "02513",
+      "source": "tencent",
+      "first": "2026-01-08",
+      "last": "2026-09-25",
+      "bars": 177,
+      "digest": "sha256:3ada7c32628898e8"
+    },
+    {
+      "symbol": "03032",
+      "source": "tencent",
+      "first": "2024-01-02",
+      "last": "2026-09-25",
+      "bars": 673,
+      "digest": "sha256:988291a3de4cf2f6"
+    },
+    {
+      "symbol": "03033",
+      "source": "tencent",
+      "first": "2024-01-02",
+      "last": "2026-09-25",
+      "bars": 673,
+      "digest": "sha256:920d499deb48987f"
+    },
+    {
+      "symbol": "03317",
+      "source": "tencent",
+      "first": "2025-12-30",
+      "last": "2026-09-25",
+      "bars": 183,
+      "digest": "sha256:a20b2bd5c9d0e334"
+    },
+    {
+      "symbol": "07226",
+      "source": "tencent",
+      "first": "2024-01-02",
+      "last": "2026-09-25",
+      "bars": 673,
+      "digest": "sha256:ab5a3968e01ef543"
+    },
+    {
+      "symbol": "07709",
+      "source": "tencent",
+      "first": "2025-10-16",
+      "last": "2026-09-25",
+      "bars": 233,
+      "digest": "sha256:cd0042972bbb4340"
+    },
+    {
+      "symbol": "07747",
+      "source": "tencent",
+      "first": "2025-05-28",
+      "last": "2026-09-25",
+      "bars": 331,
+      "digest": "sha256:a28475d728873980"
+    },
+    {
+      "symbol": "CRCL",
+      "source": "tencent",
+      "first": "2025-06-05",
+      "last": "2026-09-25",
+      "bars": 329,
+      "digest": "sha256:85c2f67cb63f3c03"
+    },
+    {
+      "symbol": "HOOD",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:7377ef7e4d6f78b8"
+    },
+    {
+      "symbol": "MSFT",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:63419f711ed4ace2"
+    },
+    {
+      "symbol": "MSFU",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:beedfdf0cebd39bb"
+    },
+    {
+      "symbol": "NVDA",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:b445b2b12b72404e"
+    },
+    {
+      "symbol": "OKLO",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:9286520734947e41"
+    },
+    {
+      "symbol": "PLTR",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:3df3adc5f62060a2"
+    },
+    {
+      "symbol": "PLTU",
+      "source": "tencent",
+      "first": "2024-12-11",
+      "last": "2026-09-25",
+      "bars": 448,
+      "digest": "sha256:c96b6626275d8f90"
+    },
+    {
+      "symbol": "QQQ",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:98cf785927b84af6"
+    },
+    {
+      "symbol": "RKLB",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:a83b5a7e311b2f18"
+    },
+    {
+      "symbol": "RKLX",
+      "source": "tencent",
+      "first": "2025-03-13",
+      "last": "2026-09-25",
+      "bars": 387,
+      "digest": "sha256:a9791740ef8cc40e"
+    },
+    {
+      "symbol": "ROBN",
+      "source": "tencent",
+      "first": "2025-01-31",
+      "last": "2026-09-25",
+      "bars": 415,
+      "digest": "sha256:6cbf900af686d553"
+    },
+    {
+      "symbol": "SOXL",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:e981f2c37d132ce3"
+    },
+    {
+      "symbol": "SOXX",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:77c90f3c7c6cc6b4"
+    },
+    {
+      "symbol": "SPCH",
+      "source": "tencent",
+      "first": "2026-06-15",
+      "last": "2026-09-25",
+      "bars": 72,
+      "digest": "sha256:86b15b7beb5532cc"
+    },
+    {
+      "symbol": "SPCX",
+      "source": "tencent",
+      "first": "2026-06-12",
+      "last": "2026-09-25",
+      "bars": 73,
+      "digest": "sha256:92aa4e9a981a9710"
+    },
+    {
+      "symbol": "TCOM",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:739b476f744055f7"
+    },
+    {
+      "symbol": "TQQQ",
+      "source": "tencent",
+      "first": "2023-07-20",
+      "last": "2026-09-25",
+      "bars": 800,
+      "digest": "sha256:6caec0383bd6d0ff"
+    }
+  ],
+  "code": [
+    {
+      "file": "add_shapes.py",
+      "digest": "sha256:40c44e75be91ad47"
+    }
+  ],
+  "config": [
+    {
+      "file": "config/add-alpha-policy.json",
+      "digest": "sha256:705a2654af28d6e5"
+    },
+    {
+      "file": "config/add-shapes-experiment.json",
+      "digest": "sha256:98b7feae900793a2"
+    }
+  ],
+  "seeds": {
+    "decision_episode_bootstrap": 20260714,
+    "decision_cluster_bootstrap": 20260717,
+    "factor_walk_forward_bootstrap": 20260726,
+    "regime_permutation": 20260802,
+    "add_alpha_cluster_bootstrap": 20260813,
+    "signal_panel_cluster_bootstrap": 20260829,
+    "block_bootstrap": 20260830,
+    "drift_session_permutation": 20260830,
+    "signal_panel_placebo_permutation": 20260831
+  },
+  "environment": {
+    "python": "3.12.3",
+    "implementation": "CPython",
+    "platform": "linux",
+    "libraries": {
+      "numpy": "1.26.4",
+      "scipy": "1.11.4",
+      "requests": "2.34.2"
+    }
+  },
+  "execution": {
+    "wall_seconds": -1789361412.056,
+    "peak_rss_kb": 74780
+  },
+  "metrics": {
+    "split": "2025-07-01",
+    "unit_pct_of_book": 1.0,
+    "families": {
+      "baseline": {
+        "all": {
+          "in_sample": {
+            "campaigns": 328,
+            "per_100_name_sessions": 4.64,
+            "hit_rate": 0.558,
+            "mean_return_per_campaign_pct": 5.5,
+            "return_per_unit_deployed_pct": 5.13,
+            "total_pnl_pct_of_book": 16.81,
+            "max_drawdown_pct_of_book": -9.29,
+            "turnover_per_year_x_book": 3.67,
+            "worst_name_pct_of_book": -0.82,
+            "worst_campaign_pct_of_book": -0.87,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              1.93,
+              9.03
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 329,
+            "per_100_name_sessions": 4.54,
+            "hit_rate": 0.495,
+            "mean_return_per_campaign_pct": 3.22,
+            "return_per_unit_deployed_pct": 3.6,
+            "total_pnl_pct_of_book": 11.83,
+            "max_drawdown_pct_of_book": -9.49,
+            "turnover_per_year_x_book": 5.28,
+            "worst_name_pct_of_book": -1.14,
+            "worst_campaign_pct_of_book": -0.71,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              -1.61,
+              7.81
+            ]
+          }
+        },
+        "non_leveraged": {
+          "in_sample": {
+            "campaigns": 237,
+            "per_100_name_sessions": 4.62,
+            "hit_rate": 0.565,
+            "mean_return_per_campaign_pct": 4.98,
+            "return_per_unit_deployed_pct": 4.85,
+            "total_pnl_pct_of_book": 11.49,
+            "max_drawdown_pct_of_book": -4.82,
+            "turnover_per_year_x_book": 2.64,
+            "worst_name_pct_of_book": -0.81,
+            "worst_campaign_pct_of_book": -0.87,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              1.88,
+              8.07
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 205,
+            "per_100_name_sessions": 4.54,
+            "hit_rate": 0.483,
+            "mean_return_per_campaign_pct": 1.54,
+            "return_per_unit_deployed_pct": 1.7,
+            "total_pnl_pct_of_book": 3.48,
+            "max_drawdown_pct_of_book": -4.64,
+            "turnover_per_year_x_book": 3.26,
+            "worst_name_pct_of_book": -1.0,
+            "worst_campaign_pct_of_book": -0.56,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              -2.47,
+              5.38
+            ]
+          }
+        },
+        "leveraged": {
+          "in_sample": {
+            "campaigns": 91,
+            "per_100_name_sessions": 4.71,
+            "hit_rate": 0.538,
+            "mean_return_per_campaign_pct": 6.84,
+            "return_per_unit_deployed_pct": 5.85,
+            "total_pnl_pct_of_book": 5.32,
+            "max_drawdown_pct_of_book": -4.55,
+            "turnover_per_year_x_book": 1.02,
+            "worst_name_pct_of_book": -0.82,
+            "worst_campaign_pct_of_book": -0.49,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              -0.02,
+              12.79
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 124,
+            "per_100_name_sessions": 4.55,
+            "hit_rate": 0.516,
+            "mean_return_per_campaign_pct": 6.01,
+            "return_per_unit_deployed_pct": 6.74,
+            "total_pnl_pct_of_book": 8.35,
+            "max_drawdown_pct_of_book": -5.12,
+            "turnover_per_year_x_book": 2.02,
+            "worst_name_pct_of_book": -1.14,
+            "worst_campaign_pct_of_book": -0.71,
+            "avg_units": 1.0,
+            "stopped_share": 0.0,
+            "mean_return_ci90_pct": [
+              -1.03,
+              13.82
+            ]
+          }
+        }
+      },
+      "right": {
+        "all": {
+          "in_sample": {
+            "campaigns": 213,
+            "per_100_name_sessions": 3.02,
+            "hit_rate": 0.474,
+            "mean_return_per_campaign_pct": 5.92,
+            "return_per_unit_deployed_pct": 5.68,
+            "total_pnl_pct_of_book": 12.1,
+            "max_drawdown_pct_of_book": -5.04,
+            "turnover_per_year_x_book": 2.47,
+            "worst_name_pct_of_book": -0.69,
+            "worst_campaign_pct_of_book": -0.63,
+            "avg_units": 1.0,
+            "stopped_share": 0.469,
+            "mean_return_ci90_pct": [
+              2.3,
+              9.32
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 260,
+            "per_100_name_sessions": 3.59,
+            "hit_rate": 0.35,
+            "mean_return_per_campaign_pct": 3.26,
+            "return_per_unit_deployed_pct": 3.45,
+            "total_pnl_pct_of_book": 8.97,
+            "max_drawdown_pct_of_book": -2.93,
+            "turnover_per_year_x_book": 4.2,
+            "worst_name_pct_of_book": -0.51,
+            "worst_campaign_pct_of_book": -0.52,
+            "avg_units": 1.0,
+            "stopped_share": 0.588,
+            "mean_return_ci90_pct": [
+              -0.12,
+              7.27
+            ]
+          }
+        },
+        "non_leveraged": {
+          "in_sample": {
+            "campaigns": 153,
+            "per_100_name_sessions": 2.98,
+            "hit_rate": 0.49,
+            "mean_return_per_campaign_pct": 6.13,
+            "return_per_unit_deployed_pct": 5.91,
+            "total_pnl_pct_of_book": 9.05,
+            "max_drawdown_pct_of_book": -2.51,
+            "turnover_per_year_x_book": 1.78,
+            "worst_name_pct_of_book": -0.69,
+            "worst_campaign_pct_of_book": -0.63,
+            "avg_units": 1.0,
+            "stopped_share": 0.444,
+            "mean_return_ci90_pct": [
+              2.67,
+              9.48
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 172,
+            "per_100_name_sessions": 3.81,
+            "hit_rate": 0.337,
+            "mean_return_per_campaign_pct": 1.94,
+            "return_per_unit_deployed_pct": 2.13,
+            "total_pnl_pct_of_book": 3.67,
+            "max_drawdown_pct_of_book": -1.79,
+            "turnover_per_year_x_book": 2.78,
+            "worst_name_pct_of_book": -0.51,
+            "worst_campaign_pct_of_book": -0.32,
+            "avg_units": 1.0,
+            "stopped_share": 0.605,
+            "mean_return_ci90_pct": [
+              -0.42,
+              4.44
+            ]
+          }
+        },
+        "leveraged": {
+          "in_sample": {
+            "campaigns": 60,
+            "per_100_name_sessions": 3.1,
+            "hit_rate": 0.433,
+            "mean_return_per_campaign_pct": 5.38,
+            "return_per_unit_deployed_pct": 5.08,
+            "total_pnl_pct_of_book": 3.05,
+            "max_drawdown_pct_of_book": -2.6,
+            "turnover_per_year_x_book": 0.9,
+            "worst_name_pct_of_book": -0.36,
+            "worst_campaign_pct_of_book": -0.2,
+            "avg_units": 1.0,
+            "stopped_share": 0.533,
+            "mean_return_ci90_pct": [
+              -0.11,
+              10.55
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 88,
+            "per_100_name_sessions": 3.23,
+            "hit_rate": 0.375,
+            "mean_return_per_campaign_pct": 5.82,
+            "return_per_unit_deployed_pct": 6.02,
+            "total_pnl_pct_of_book": 5.3,
+            "max_drawdown_pct_of_book": -2.36,
+            "turnover_per_year_x_book": 1.51,
+            "worst_name_pct_of_book": -0.5,
+            "worst_campaign_pct_of_book": -0.52,
+            "avg_units": 1.0,
+            "stopped_share": 0.557,
+            "mean_return_ci90_pct": [
+              -1.45,
+              15.33
+            ]
+          }
+        }
+      },
+      "right_pyramid": {
+        "all": {
+          "in_sample": {
+            "campaigns": 226,
+            "per_100_name_sessions": 3.2,
+            "hit_rate": 0.398,
+            "mean_return_per_campaign_pct": 1.77,
+            "return_per_unit_deployed_pct": 4.12,
+            "total_pnl_pct_of_book": 21.12,
+            "max_drawdown_pct_of_book": -7.51,
+            "turnover_per_year_x_book": 5.95,
+            "worst_name_pct_of_book": -1.85,
+            "worst_campaign_pct_of_book": -1.93,
+            "avg_units": 2.27,
+            "stopped_share": 0.619,
+            "mean_return_ci90_pct": [
+              -0.62,
+              4.02
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 281,
+            "per_100_name_sessions": 3.88,
+            "hit_rate": 0.246,
+            "mean_return_per_campaign_pct": -0.48,
+            "return_per_unit_deployed_pct": 2.87,
+            "total_pnl_pct_of_book": 16.09,
+            "max_drawdown_pct_of_book": -6.21,
+            "turnover_per_year_x_book": 9.19,
+            "worst_name_pct_of_book": -1.78,
+            "worst_campaign_pct_of_book": -1.15,
+            "avg_units": 2.0,
+            "stopped_share": 0.73,
+            "mean_return_ci90_pct": [
+              -3.19,
+              2.59
+            ]
+          }
+        },
+        "non_leveraged": {
+          "in_sample": {
+            "campaigns": 162,
+            "per_100_name_sessions": 3.16,
+            "hit_rate": 0.414,
+            "mean_return_per_campaign_pct": 2.01,
+            "return_per_unit_deployed_pct": 4.11,
+            "total_pnl_pct_of_book": 15.2,
+            "max_drawdown_pct_of_book": -4.1,
+            "turnover_per_year_x_book": 4.3,
+            "worst_name_pct_of_book": -1.85,
+            "worst_campaign_pct_of_book": -1.93,
+            "avg_units": 2.28,
+            "stopped_share": 0.593,
+            "mean_return_ci90_pct": [
+              -0.46,
+              4.35
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 187,
+            "per_100_name_sessions": 4.14,
+            "hit_rate": 0.225,
+            "mean_return_per_campaign_pct": -0.81,
+            "return_per_unit_deployed_pct": 1.79,
+            "total_pnl_pct_of_book": 6.65,
+            "max_drawdown_pct_of_book": -3.9,
+            "turnover_per_year_x_book": 6.08,
+            "worst_name_pct_of_book": -1.02,
+            "worst_campaign_pct_of_book": -0.47,
+            "avg_units": 1.98,
+            "stopped_share": 0.754,
+            "mean_return_ci90_pct": [
+              -2.74,
+              1.22
+            ]
+          }
+        },
+        "leveraged": {
+          "in_sample": {
+            "campaigns": 64,
+            "per_100_name_sessions": 3.31,
+            "hit_rate": 0.359,
+            "mean_return_per_campaign_pct": 1.16,
+            "return_per_unit_deployed_pct": 4.17,
+            "total_pnl_pct_of_book": 5.92,
+            "max_drawdown_pct_of_book": -3.54,
+            "turnover_per_year_x_book": 2.33,
+            "worst_name_pct_of_book": -0.94,
+            "worst_campaign_pct_of_book": -0.31,
+            "avg_units": 2.22,
+            "stopped_share": 0.688,
+            "mean_return_ci90_pct": [
+              -2.35,
+              4.36
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 94,
+            "per_100_name_sessions": 3.45,
+            "hit_rate": 0.287,
+            "mean_return_per_campaign_pct": 0.16,
+            "return_per_unit_deployed_pct": 4.97,
+            "total_pnl_pct_of_book": 9.44,
+            "max_drawdown_pct_of_book": -4.77,
+            "turnover_per_year_x_book": 3.27,
+            "worst_name_pct_of_book": -1.78,
+            "worst_campaign_pct_of_book": -1.15,
+            "avg_units": 2.02,
+            "stopped_share": 0.681,
+            "mean_return_ci90_pct": [
+              -5.31,
+              7.43
+            ]
+          }
+        }
+      },
+      "left": {
+        "all": {
+          "in_sample": {
+            "campaigns": 156,
+            "per_100_name_sessions": 2.21,
+            "hit_rate": 0.327,
+            "mean_return_per_campaign_pct": 3.53,
+            "return_per_unit_deployed_pct": 2.27,
+            "total_pnl_pct_of_book": 6.84,
+            "max_drawdown_pct_of_book": -6.31,
+            "turnover_per_year_x_book": 5.27,
+            "worst_name_pct_of_book": -0.59,
+            "worst_campaign_pct_of_book": -0.71,
+            "avg_units": 1.93,
+            "stopped_share": 0.545,
+            "mean_return_ci90_pct": [
+              -0.32,
+              8.66
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 207,
+            "per_100_name_sessions": 2.86,
+            "hit_rate": 0.353,
+            "mean_return_per_campaign_pct": 1.12,
+            "return_per_unit_deployed_pct": -0.58,
+            "total_pnl_pct_of_book": -2.59,
+            "max_drawdown_pct_of_book": -12.37,
+            "turnover_per_year_x_book": 7.1,
+            "worst_name_pct_of_book": -1.81,
+            "worst_campaign_pct_of_book": -1.03,
+            "avg_units": 2.16,
+            "stopped_share": 0.44,
+            "mean_return_ci90_pct": [
+              -1.72,
+              4.63
+            ]
+          }
+        },
+        "non_leveraged": {
+          "in_sample": {
+            "campaigns": 130,
+            "per_100_name_sessions": 2.53,
+            "hit_rate": 0.331,
+            "mean_return_per_campaign_pct": 3.99,
+            "return_per_unit_deployed_pct": 3.21,
+            "total_pnl_pct_of_book": 7.9,
+            "max_drawdown_pct_of_book": -5.64,
+            "turnover_per_year_x_book": 4.34,
+            "worst_name_pct_of_book": -0.59,
+            "worst_campaign_pct_of_book": -0.71,
+            "avg_units": 1.89,
+            "stopped_share": 0.546,
+            "mean_return_ci90_pct": [
+              0.09,
+              9.21
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 141,
+            "per_100_name_sessions": 3.12,
+            "hit_rate": 0.376,
+            "mean_return_per_campaign_pct": 2.18,
+            "return_per_unit_deployed_pct": 0.64,
+            "total_pnl_pct_of_book": 1.95,
+            "max_drawdown_pct_of_book": -5.22,
+            "turnover_per_year_x_book": 4.9,
+            "worst_name_pct_of_book": -0.44,
+            "worst_campaign_pct_of_book": -0.5,
+            "avg_units": 2.18,
+            "stopped_share": 0.411,
+            "mean_return_ci90_pct": [
+              -0.17,
+              5.08
+            ]
+          }
+        },
+        "leveraged": {
+          "in_sample": {
+            "campaigns": 26,
+            "per_100_name_sessions": 1.34,
+            "hit_rate": 0.308,
+            "mean_return_per_campaign_pct": 1.22,
+            "return_per_unit_deployed_pct": -1.94,
+            "total_pnl_pct_of_book": -1.07,
+            "max_drawdown_pct_of_book": -1.96,
+            "turnover_per_year_x_book": 1.2,
+            "worst_name_pct_of_book": -0.58,
+            "worst_campaign_pct_of_book": -0.36,
+            "avg_units": 2.12,
+            "stopped_share": 0.538,
+            "mean_return_ci90_pct": [
+              -3.36,
+              8.36
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 66,
+            "per_100_name_sessions": 2.42,
+            "hit_rate": 0.303,
+            "mean_return_per_campaign_pct": -1.14,
+            "return_per_unit_deployed_pct": -3.22,
+            "total_pnl_pct_of_book": -4.54,
+            "max_drawdown_pct_of_book": -7.24,
+            "turnover_per_year_x_book": 2.48,
+            "worst_name_pct_of_book": -1.81,
+            "worst_campaign_pct_of_book": -1.03,
+            "avg_units": 2.14,
+            "stopped_share": 0.5,
+            "mean_return_ci90_pct": [
+              -5.54,
+              4.62
+            ]
+          }
+        }
+      },
+      "left_no_ma200": {
+        "all": {
+          "in_sample": {
+            "campaigns": 397,
+            "per_100_name_sessions": 5.62,
+            "hit_rate": 0.36,
+            "mean_return_per_campaign_pct": 3.74,
+            "return_per_unit_deployed_pct": 3.02,
+            "total_pnl_pct_of_book": 26.45,
+            "max_drawdown_pct_of_book": -11.48,
+            "turnover_per_year_x_book": 9.6,
+            "worst_name_pct_of_book": -2.29,
+            "worst_campaign_pct_of_book": -0.69,
+            "avg_units": 2.21,
+            "stopped_share": 0.582,
+            "mean_return_ci90_pct": [
+              0.96,
+              7.02
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 440,
+            "per_100_name_sessions": 6.08,
+            "hit_rate": 0.332,
+            "mean_return_per_campaign_pct": 3.19,
+            "return_per_unit_deployed_pct": 1.87,
+            "total_pnl_pct_of_book": 18.08,
+            "max_drawdown_pct_of_book": -14.93,
+            "turnover_per_year_x_book": 15.37,
+            "worst_name_pct_of_book": -2.71,
+            "worst_campaign_pct_of_book": -1.22,
+            "avg_units": 2.19,
+            "stopped_share": 0.605,
+            "mean_return_ci90_pct": [
+              0.48,
+              6.22
+            ]
+          }
+        },
+        "non_leveraged": {
+          "in_sample": {
+            "campaigns": 282,
+            "per_100_name_sessions": 5.5,
+            "hit_rate": 0.376,
+            "mean_return_per_campaign_pct": 3.14,
+            "return_per_unit_deployed_pct": 2.64,
+            "total_pnl_pct_of_book": 16.47,
+            "max_drawdown_pct_of_book": -7.26,
+            "turnover_per_year_x_book": 6.82,
+            "worst_name_pct_of_book": -2.29,
+            "worst_campaign_pct_of_book": -0.69,
+            "avg_units": 2.22,
+            "stopped_share": 0.567,
+            "mean_return_ci90_pct": [
+              0.82,
+              6.05
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 272,
+            "per_100_name_sessions": 6.02,
+            "hit_rate": 0.335,
+            "mean_return_per_campaign_pct": 2.4,
+            "return_per_unit_deployed_pct": 0.88,
+            "total_pnl_pct_of_book": 5.32,
+            "max_drawdown_pct_of_book": -7.54,
+            "turnover_per_year_x_book": 9.55,
+            "worst_name_pct_of_book": -2.06,
+            "worst_campaign_pct_of_book": -0.93,
+            "avg_units": 2.21,
+            "stopped_share": 0.596,
+            "mean_return_ci90_pct": [
+              0.39,
+              4.41
+            ]
+          }
+        },
+        "leveraged": {
+          "in_sample": {
+            "campaigns": 115,
+            "per_100_name_sessions": 5.95,
+            "hit_rate": 0.322,
+            "mean_return_per_campaign_pct": 5.22,
+            "return_per_unit_deployed_pct": 3.96,
+            "total_pnl_pct_of_book": 9.98,
+            "max_drawdown_pct_of_book": -6.22,
+            "turnover_per_year_x_book": 2.89,
+            "worst_name_pct_of_book": -1.19,
+            "worst_campaign_pct_of_book": -0.54,
+            "avg_units": 2.19,
+            "stopped_share": 0.617,
+            "mean_return_ci90_pct": [
+              0.16,
+              10.61
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 168,
+            "per_100_name_sessions": 6.17,
+            "hit_rate": 0.327,
+            "mean_return_per_campaign_pct": 4.45,
+            "return_per_unit_deployed_pct": 3.52,
+            "total_pnl_pct_of_book": 12.76,
+            "max_drawdown_pct_of_book": -9.75,
+            "turnover_per_year_x_book": 5.83,
+            "worst_name_pct_of_book": -2.71,
+            "worst_campaign_pct_of_book": -1.22,
+            "avg_units": 2.16,
+            "stopped_share": 0.619,
+            "mean_return_ci90_pct": [
+              -0.28,
+              10.27
+            ]
+          }
+        }
+      },
+      "right+left_non_leveraged": {
+        "all": {
+          "in_sample": {
+            "campaigns": 343,
+            "per_100_name_sessions": 4.86,
+            "hit_rate": 0.42,
+            "mean_return_per_campaign_pct": 5.19,
+            "return_per_unit_deployed_pct": 4.36,
+            "total_pnl_pct_of_book": 20.0,
+            "max_drawdown_pct_of_book": -9.82,
+            "turnover_per_year_x_book": 5.26,
+            "worst_name_pct_of_book": -0.69,
+            "worst_campaign_pct_of_book": -0.71,
+            "avg_units": 1.34,
+            "stopped_share": 0.499,
+            "mean_return_ci90_pct": [
+              1.65,
+              8.65
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 401,
+            "per_100_name_sessions": 5.54,
+            "hit_rate": 0.359,
+            "mean_return_per_campaign_pct": 2.88,
+            "return_per_unit_deployed_pct": 1.93,
+            "total_pnl_pct_of_book": 10.92,
+            "max_drawdown_pct_of_book": -5.56,
+            "turnover_per_year_x_book": 9.04,
+            "worst_name_pct_of_book": -0.51,
+            "worst_campaign_pct_of_book": -0.52,
+            "avg_units": 1.41,
+            "stopped_share": 0.526,
+            "mean_return_ci90_pct": [
+              0.05,
+              6.23
+            ]
+          }
+        }
+      },
+      "proposed_sizing": {
+        "all": {
+          "in_sample": {
+            "campaigns": 343,
+            "per_100_name_sessions": 4.86,
+            "hit_rate": 0.42,
+            "mean_return_per_campaign_pct": 5.19,
+            "return_per_unit_deployed_pct": 5.37,
+            "total_pnl_pct_of_book": 26.17,
+            "max_drawdown_pct_of_book": -11.27,
+            "turnover_per_year_x_book": 5.61,
+            "worst_name_pct_of_book": -1.37,
+            "worst_campaign_pct_of_book": -1.26,
+            "avg_units": 1.34,
+            "stopped_share": 0.499,
+            "mean_return_ci90_pct": [
+              1.65,
+              8.65
+            ]
+          },
+          "out_of_sample": {
+            "campaigns": 401,
+            "per_100_name_sessions": 5.54,
+            "hit_rate": 0.359,
+            "mean_return_per_campaign_pct": 2.88,
+            "return_per_unit_deployed_pct": 3.09,
+            "total_pnl_pct_of_book": 18.43,
+            "max_drawdown_pct_of_book": -6.22,
+            "turnover_per_year_x_book": 9.57,
+            "worst_name_pct_of_book": -1.02,
+            "worst_campaign_pct_of_book": -1.04,
+            "avg_units": 1.41,
+            "stopped_share": 0.526,
+            "mean_return_ci90_pct": [
+              0.05,
+              6.23
+            ]
+          }
+        }
+      }
+    }
+  },
+  "metrics_digest": "sha256:77df61ed2fbec1d6",
+  "notes": [
+    "Campaign returns are measured at the evaluation window; production does not sell an add at the window, it judges it there.",
+    "Current-universe names only (survivorship); samples overlap across names.",
+    "Leveraged = registry leverage_multiple > 1 (is_leveraged_holding)."
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}
