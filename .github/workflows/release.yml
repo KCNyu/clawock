@@ -234,13 +234,55 @@ jobs:
           # dispatch (npm_only) without inventing a version out of a branch.
           version="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
           echo "publishing clawock-dsh@${version}"
-          ops/publish/publish_dsh_plugin.sh "$version"
+          # The readback is npm-readback's job, not this one's: see there.
+          ops/publish/publish_dsh_plugin.sh --no-verify "$version"
+
+  npm-readback:
+    # Downloads what the registry serves for this version and compares it to a
+    # fresh build of the same commit (#712/#732). Red on a real mismatch or on a
+    # version the registry still does not serve after the script's wait budget.
+    #
+    # Its own job, and deliberately not in github-release's `needs`. Until 0.3.0
+    # it was the tail of the npm job: on 2026-09-29 the registry took ~2.5 min
+    # to serve an accepted publish, the readback gave up after 41s, the npm job
+    # went red and github-release was skipped — for a version npm, PyPI and the
+    # pushed tag all already carried, so the Release had to be made by hand.
+    # Whether the registry copy matches is a fact about a publish that has
+    # already happened and cannot be undone; withholding the Release does not
+    # repair it, it only leaves the tag without one.
+    needs: npm
+    runs-on: ubuntu-latest
+    # The script waits up to DSH_READBACK_TIMEOUT_S (900s) for the registry;
+    # the job needs room for that plus install and build.
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    env:
+      NODE_OPTIONS: --dns-result-order=ipv4first
+      NO_UPDATE_NOTIFIER: '1'
+      npm_config_replace_registry_host: 'always'
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm to the version the publish used
+        run: npm install -g npm@10.9.8
+
+      - name: Compare the registry copy with this build
+        run: |
+          version="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+          ops/publish/publish_dsh_plugin.sh --verify-only "$version"
 
   github-release:
     # A GitHub Release is a public claim that the version exists. Create it only
     # for a real version tag, and only after PyPI accepted that exact artifact
-    # and npm published the skill package. TestPyPI workflow_dispatch runs have
-    # a branch ref and deliberately skip it.
+    # and npm accepted the skill package. TestPyPI workflow_dispatch runs have
+    # a branch ref and deliberately skip it. The registry readback runs beside
+    # it (npm-readback), not in front of it.
     needs: [publish, npm]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest

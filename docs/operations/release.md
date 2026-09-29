@@ -164,6 +164,31 @@ and npm together; the GitHub Release is created only after both publishers
 accepted (`needs: [publish, npm]`). PR pushes and TestPyPI dispatches never
 touch npm.
 
+### The registry readback is its own job
+
+`npm publish` exiting 0 does not prove the registry serves this build (#712),
+so the `npm-readback` job downloads `clawock-dsh@<version>` and compares it with
+a fresh build of the same commit (`publish_dsh_plugin.sh --verify-only`). It is
+red on a real mismatch, or when the registry still does not serve the version
+after `DSH_READBACK_TIMEOUT_S` (900s by default); npm's own error line
+(`ETARGET`, `E404`, …) is in the log.
+
+It is not in `github-release`'s `needs`, on purpose. Since 2026-09-29 the npm
+registry accepts a publish before it serves it ("Your package is being
+processed and may take a few minutes to become available"): 0.3.0 was accepted
+at 01:08:21Z and served from 01:10:59Z. The readback then lived inside the npm
+job, gave up after 41s — its retries were also replaying npm's cached packument
+(`max-age=300`) instead of asking the registry — and the red npm job skipped
+the GitHub Release of a version that npm, PyPI and the pushed tag all already
+carried. A readback verdict is about a publish that cannot be undone; holding
+the Release back does not repair it.
+
+When a tag run goes red anyway, **Re-run failed jobs** on that run is the
+repair: the publish script skips `npm publish` when the registry already holds
+the version (so a re-run cannot die on "cannot publish over the previously
+published version"), and a re-run `npm` job that succeeds lets `github-release`
+run.
+
 ### Re-run the npm side alone (no PyPI, no GitHub Release)
 
 A version whose PyPI upload already succeeded while its npm job died (v0.1.6:
