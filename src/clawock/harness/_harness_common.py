@@ -12,7 +12,10 @@ import re
 import subprocess
 import sys
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
 
+from clawock import sessions as trading_calendar
 from clawock.publish import store as publish_store
 from clawock.workspace import workspace_root
 
@@ -628,6 +631,84 @@ def run_analyze(market):
 _ANOMALY_PCT = re.compile(r'([+\-])([\d\.]+)%')
 ANOMALY_MOVE_PCT = 3.0
 ANOMALY_SEVERE_PCT = 5.0
+
+
+def quote_fetched_at(data_source, market, now):
+    """Parse the per-holding provenance stamp written by this analysis run."""
+    text = str(data_source or '')
+    zone = trading_calendar.market_tz(market)
+    patterns = (
+        (r'([A-Z][a-z]{2} \d{1,2}, \d{4} \d{2}:\d{2}) ET\b', '%b %d, %Y %H:%M'),
+        (r'([A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}) HKT\b', '%b %d %H:%M'),
+    )
+    for pattern, fmt in patterns:
+        match = re.search(pattern, text)
+        if not match:
+            continue
+        try:
+            parsed = datetime.strptime(match.group(1), fmt)
+            if '%Y' not in fmt:
+                parsed = parsed.replace(year=now.astimezone(zone).year)
+                # A Dec quote observed just after New Year belongs to last year.
+                if parsed.replace(tzinfo=zone) > now.astimezone(zone) + timedelta(days=2):
+                    parsed = parsed.replace(year=parsed.year - 1)
+            return parsed.replace(tzinfo=zone)
+        except ValueError:
+            return None
+    return None
+
+
+def quote_coverage(market, portfolio_path, *, now=None, started_at=None,
+                   fresh_minutes=5):
+    """Count holdings whose persisted provenance proves a fetch in this run.
+
+    Rendered table rows are not evidence of freshness: the analyzer also renders
+    an old portfolio value when every provider failed.  Each successful fetch
+    stamps that holding's ``data_source``, so compare those stamps with the
+    timezone-aware preflight time instead. Intraday and report both read it:
+    the report leg once took the same table as today's with no such count
+    (#2176).
+    """
+    now = now or datetime.now(trading_calendar.HKT)
+    now = now if now.tzinfo else now.replace(tzinfo=trading_calendar.HKT)
+    started_at = started_at or (now - timedelta(minutes=fresh_minutes))
+    started_at = (
+        started_at if started_at.tzinfo
+        else started_at.replace(tzinfo=trading_calendar.HKT)
+    )
+    active = []
+    try:
+        portfolio = json.loads(Path(portfolio_path).read_text())
+        leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
+        active = [
+            row for row in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+            if (row.get('shares') or 0) > 0
+        ]
+    except (OSError, json.JSONDecodeError, TypeError):
+        return {'refreshed': 0, 'active': 0, 'unrefreshed': []}
+    refreshed = []
+    unrefreshed = []
+    for row in active:
+        fetched_at = quote_fetched_at(row.get('data_source'), market, now)
+        since_start = (
+            fetched_at - started_at.astimezone(fetched_at.tzinfo)
+        ).total_seconds() if fetched_at else None
+        until_end = (
+            now.astimezone(fetched_at.tzinfo) - fetched_at
+        ).total_seconds() if fetched_at else None
+        ticker = row.get('ticker')
+        # US fallback can return an earlier-session print.  The fetch happened,
+        # but ``quote_incomplete`` is the analyzer's explicit warning that the
+        # resulting price is not a fully refreshed live quote.
+        if (since_start is not None and since_start >= -60 and until_end >= -60
+                and not row.get('quote_incomplete')):
+            refreshed.append(ticker)
+        else:
+            unrefreshed.append(ticker)
+    return {
+        'refreshed': len(refreshed), 'active': len(active),
+        'unrefreshed': [ticker for ticker in unrefreshed if ticker],
+    }
 
 
 def parse_holdings_rows(stdout):

@@ -70,7 +70,11 @@ HOLDING_MAP = {
 
 def fetch(kind, sym, cnt=1800):
     if kind == 'hk':
-        url = f'https://web.ifzq.gtimg.cn/appstock/app/kline/kline?param={sym},day,2020-01-01,2026-06-06,{cnt}'
+        # The window ends today, like the sibling readers (`decision/regime`,
+        # `hstech_regime`). A literal end froze the HK legs — 95% of the modelled
+        # book — while the union calendar kept forward-filling them (#2177).
+        end = date.today().isoformat()
+        url = f'https://web.ifzq.gtimg.cn/appstock/app/kline/kline?param={sym},day,2020-01-01,{end},{cnt}'
     else:
         url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={sym},day,,,{cnt},qfq'
     d = requests.get(url, headers={'User-Agent': UA}, timeout=20).json()
@@ -320,7 +324,15 @@ def main(argv=None):
                 [(d, sum(ff[proxy][i] for proxy in sorted(ff)))
                  for i, d in enumerate(dates)]),
             'note': 'closes are forward-filled onto a union calendar; see #233',
-        }],
+        }] + [
+            # Per proxy, because the union calendar's last session is set by
+            # whichever leg runs longest: a leg that stopped early is only
+            # visible in its own last bar (#2177).
+            {'symbol': proxy, 'source': f'tencent {PROXIES[proxy][0]} {PROXIES[proxy][1]}',
+             'bars': len(raw[proxy]), 'first_session': min(raw[proxy]),
+             'last_session': max(raw[proxy])}
+            for proxy in sorted(raw) if raw[proxy]
+        ],
         metrics=measured,
         code_files=[__file__, Path(compute_regime.__file__)],
         notes=['book weights are current, applied to history — this is a '

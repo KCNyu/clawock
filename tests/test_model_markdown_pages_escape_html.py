@@ -7,7 +7,10 @@ that land on disk.
 """
 import json
 
+import pytest
+
 from clawock.automation import brief_fallback, weekly_review
+from clawock.automation.output_validate import escape_raw_html
 
 TAG = '<img src=x onerror=alert(1)>'
 
@@ -52,3 +55,36 @@ def test_the_weekly_review_writes_model_tags_as_text(tmp_path, monkeypatch):
     assert '回撤 &lt; 5%' in page and '&lt;img src=x' in page
     assert '<img' not in page
     assert page.startswith('---\nlayout: default\n')
+
+
+# #2181: kramdown also writes attributes with no `<` in the input — an
+# attribute list lands on the element, and a link target becomes an href
+# whatever its scheme. Each form below was rendered through kramdown + GFM (the
+# site's parser) with and without the escape; only the escaped one is inert.
+
+
+@pytest.mark.parametrize('payload, live', [
+    ('段落\n{: onclick="alert(1)"}', '{:'),                  # block IAL
+    ('*强调*{: onmouseover="alert(1)"}', '{:'),               # span IAL
+    ('{::nomarkdown}<b>x</b>{:/nomarkdown}', '{:'),           # raw-HTML extension
+    ('[点我](javascript:alert(1))', '](javascript'),
+    ('[点我]( JavaScript:alert(1))', ']('),
+    ('[点我](jav&#97;script:alert(1))', '](jav'),             # the browser decodes it
+    ('[点我](data:text/html,x)', '](data'),
+    ('[点我][r]\n\n[r]: javascript:alert(1)', ']: javascript'),
+    (TAG, '<'),
+])
+def test_model_markdown_cannot_write_an_attribute_or_a_script_href(payload, live):
+    assert live not in escape_raw_html(payload)
+
+
+@pytest.mark.parametrize('text', [
+    '[公告](https://www1.hkexnews.hk/a.pdf?x=1)',
+    '[相对](../2026-09-28-pre-open.html#持仓)',
+    '[锚点](#top)',
+    '[邮件](mailto:a@b.c)',
+    '[r]: https://example.com',
+    'USD${-720.35} per concentration.{hk,us}.verdict brief-card-{date}.txt',
+])
+def test_ordinary_links_and_braces_are_left_alone(text):
+    assert escape_raw_html(text) == text

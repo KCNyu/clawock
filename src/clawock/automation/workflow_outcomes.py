@@ -207,6 +207,11 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
             row["count"] = int(row.get("count") or 0) + 1
             row["last_at"] = now
             row["detail"] = str(detail)
+            # Recurring moves the row to the newest end, or the ring below
+            # evicts a chain that fails every day by its first-seen position
+            # while one-off rows from weeks ago survive (#2182).
+            rows.remove(row)
+            rows.append(row)
             break
     else:
         row = {"kind": kind, "detail": str(detail), "count": 1,

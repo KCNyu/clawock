@@ -969,6 +969,25 @@ def test_a_grouped_degradation_counts_across_changing_details(tmp_path, monkeypa
     assert rows[0]["detail"].endswith("dec-637d8fe32375:risk:hard_stop:07226")
 
 
+def test_a_recurring_degradation_outlives_one_off_rows_in_a_full_ring(tmp_path, monkeypatch):
+    """#2182: the ring evicts by position, so a row that recurs must move to the
+    newest end; otherwise a chain failing every day is cut first and its count
+    restarts while stale one-off rows stay."""
+    _isolate(tmp_path, monkeypatch)
+    ledger = outcomes._empty()
+    days = 3 * outcomes.MAX_DEGRADATIONS
+    for day in range(days):
+        outcomes.note_degradation(ledger, "debate_citation_unresolved",
+                                  f"1 ref matched nothing: dec-{day}",
+                                  group="unmatched_in_context")
+        outcomes.note_degradation(ledger, "stage_not_recorded", f"brief/{day}: x")
+    rows = ledger[outcomes.DEGRADATIONS_KEY]
+    assert len(rows) == outcomes.MAX_DEGRADATIONS
+    recurring = [row for row in rows if row.get("group") == "unmatched_in_context"]
+    assert [row["count"] for row in recurring] == [days]
+    assert rows[-2] is recurring[0]
+
+
 def test_degradations_ride_into_the_published_copy(tmp_path, monkeypatch):
     """stderr reaches no gate; `logs/watchdog.jsonl` is not read either.
 

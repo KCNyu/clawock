@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from clawock.portfolio.math import ledger_date
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -35,7 +36,7 @@ def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:
             if r is None:
                 continue
             sells.append({
-                'date':         t.get('date', ''),
+                'date':         ledger_date(t.get('date')),
                 'ticker':       ticker,
                 'shares':       t.get('shares', 0),
                 'price':        t.get('price', 0),

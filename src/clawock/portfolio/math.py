@@ -13,6 +13,17 @@ def number(value: Any) -> float | None:
         return None
 
 
+def ledger_date(value: Any) -> str:
+    """A hand-entered ledger date, or '' (undated) when it is not a string.
+
+    `get("date", "")` only covers a missing key; a present null or a number
+    reaches the comparisons and sorts below and raises, taking the integrity
+    gate and the dashboard build down with it (#2171, #2179). Not `str()`:
+    `str(20260929) > "2026-09-29"` would put an adjustment in the wrong window.
+    """
+    return value if isinstance(value, str) else ""
+
+
 def active_holdings(holdings: Iterable[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
     """Holdings with a strictly positive numeric share balance."""
     return [holding for holding in holdings
@@ -24,7 +35,7 @@ def moving_average_cost(trades: Iterable[Mapping[str, Any]]) -> tuple[float | No
     shares = 0.0
     cost = 0.0
     ordered = sorted(enumerate(trades), key=lambda item: (
-        item[1].get("date", ""), item[0]))
+        ledger_date(item[1].get("date")), item[0]))
     for _, trade in ordered:
         quantity = number(trade.get("shares")) or 0
         price = number(trade.get("price")) or 0
@@ -47,7 +58,7 @@ def trade_cashflow_after(
     count = 0
     for holding in holdings or []:
         for trade in holding.get("trades", []) or []:
-            trade_date = trade.get("date", "")
+            trade_date = ledger_date(trade.get("date"))
             if not trade_date or trade_date <= after_date:
                 continue
             quantity = number(trade.get("shares")) or 0
@@ -71,7 +82,7 @@ def derive_cash(book: Mapping[str, Any]) -> tuple[float, float, str, int] | None
     flow, count = trade_cashflow_after(book.get("holdings", []), baseline_date)
     adjustments = 0.0
     for adjustment in book.get("cash_adjustments", []) or []:
-        adjustment_date = adjustment.get("date", "")
+        adjustment_date = ledger_date(adjustment.get("date"))
         if adjustment_date and adjustment_date > baseline_date:
             adjustments += number(adjustment.get("amount")) or 0
     return round(baseline + flow + adjustments, 2), baseline, baseline_date, count
