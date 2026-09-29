@@ -120,13 +120,6 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-09-27)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-09-22-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-22 周二 08:03 HKT description: "clawock 盘前深度简报 2026-09-22：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-22-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-22-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-22 周二 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-22-pre-open.md:9-9]
-
 ## Promoted From Short-Term Memory (2026-09-28)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:11:11 -->
@@ -141,3 +134,16 @@ _（空）_
 - 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:23-23]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-23-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-09-23 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-23-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-09-30)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-25-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-25 周五 08:03 HKT: book 浮亏扩大至 USD -6,659 / HKD -52,224 (USDHKD 7.8427)，combined 30d vol 64.7% / sharpe -1.88 / max DD -22.9% 是 7 月以来最差窗口之一。HK 59% in 00100 + 27% in 07226 = 86.8% 双仓集中；US 84.7% in SPCH 单名 90.3% 杠杆 ETF 集中。7 条仓位硬闸并发（4 breach + 3 hard stop），唯一 forced 动作是 SPCH cut 300 股（9/24 已 fire 于 9.72，settlement pending 今日复挂直到确认）。其他 6 条 may_stand=true，今天和 9/24 比无 material change（HSTECH 9/24 -1.33% / SPX -0.75% 板块同向回踩但未击穿关键位），全部维持 hold_and_watch。regime 标签 neutral（F&G 35 fear / VIX 15 calm / SPX+IXIC 同跌），但 HK amber / US red 防御优先。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-25-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-25-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-09-25 周五 08:03 HKT: **反方**：5d 反弹存在结构性 alpha：00100 5d +9.5% on Token Pay + Saudi Humain、CRCL 5d +9.3% on Binance 入股 + SEC innovation exemption、RKLX 5d +15.8% on Iridium 收购 + ARK 加仓 + Cantor 加码、03032/03033/07226 跟随 HSTECH 修复 + Burry endorse 港股 AI + 南向资金 +9.37 亿。如果现在强行 4 闸减仓，会在反弹窗口切断 alpha 来源（07226 trim @3.0 9/24 已 miss，00100 trim 295 9/22 已 settled，证据是 hold 多半赢 cut）。今天最适合是承认 9/24 砍 SPCH 的纪律性 cut 必须落袋，剩余维持不动，让反弹自我实现。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-25-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-25-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-25-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-25-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-25 周五 08:03 HKT description: "clawock 盘前深度简报 2026-09-25：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-25-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-25-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-25 周五 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-25-pre-open.md:9-9]

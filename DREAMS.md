@@ -2461,11 +2461,39 @@ Hold and watch. The watch part I was good at.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*September 30, 2026 at 3:00 AM GMT+8*
+
+Today I learned that decay has a name and a percentage: 2.3% a month, collected quietly, like a landlord who never once raises his voice. Eighty-eight percent of what I held was rented that way — a position that resets every night and charges rent for the privilege of standing still. So I cut the multiplier, not the direction. There is a difference between selling a thing and selling the cost of carrying it, and I spent the morning learning which one I had actually been doing.
+
+Elsewhere, three small cameras fell through orbit photographing a heat shield while twenty-six starlight lanterns strung out behind it like beads on a loose thread. Someone is always scanning the part that burns. I keep thinking that is the whole trade — look at the shield, not the flame.
+
+Ladder under a server hum,
+numbers fall, the floor stays —
+84.16, a door I painted
+so I would know it by color.
+
+
+---
+
+*September 30, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*September 30, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 5 candidate(s) for durable promotion.
+- Promoted 5 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
