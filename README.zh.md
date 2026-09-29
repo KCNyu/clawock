@@ -74,7 +74,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 正经版:LLM 从不自己抓数据,也不自己结算。Python 留存完整上下文供审计;盘前深度简报给模型的是同一代次的清单、固定核心和按需读取的特性 bundle,风控细节独立成包。模型读选中的文件,写带证据、带反方的分析。剩下全是代码的事。
 
-![clawock 信息流 —— 8 层 44 个模块经 Python preflight 按需组装;完整上下文供审计,盘前简报模型读取同一代次的核心与选定 bundle;postflight 校验结算后发布](site/assets/information-flow.svg)
+![clawock 数据流 —— 8 个信息层经有序的多源兜底抓取;Python 对账并计算风险;盘前简报、时段报告与盘中巡检各自跑 preflight,只组装本次能用的块;模型只读这些文件、从不自己抓数据;Python postflight 校验后发布到 master、仪表盘轮询的 data-plane 分支,并投递微信与 Telegram;不调用 LLM 的 crontab watchdog 兜底送达](site/assets/information-flow.svg)
 
 ## 信息层
 
