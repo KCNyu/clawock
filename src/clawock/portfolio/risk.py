@@ -761,23 +761,27 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
     the sample is the *intersection* of sessions both markets traded.
     """
     weights, returns_by_ticker = {}, {}
+    # The whole book, priced or not: a holding whose history could not be
+    # fetched is still in the book, so it belongs in the coverage denominator
+    # just as `history_coverage.current_value_pct` counts it (#2170).
+    book_value = 0.0
     for leg, holdings in holdings_by_leg.items():
         rate = 1.0 if leg == 'us' else fx_hkd_to_usd
         series_map = series_by_leg.get(leg) or {}
         for holding in holdings:
             ticker = holding['ticker']
+            value_usd = float(holding.get('current_value') or 0) * float(rate)
+            if value_usd <= 0:
+                continue
+            book_value += value_usd
             series = series_map.get(ticker)
             if not series:
-                continue
-            value_usd = float(holding['current_value']) * float(rate)
-            if value_usd <= 0:
                 continue
             weights[ticker] = value_usd
             returns_by_ticker[ticker] = {
                 date: row['return'] for date, row in _return_map(series).items()
             }
 
-    book_value = sum(weights.values())
     excluded = sorted(
         holding['ticker']
         for leg, holdings in holdings_by_leg.items()
@@ -820,6 +824,9 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
     tickers = sorted(returns_by_ticker)
     total = sum(weights[t] for t in tickers)
     w = np.array([weights[t] / total for t in tickers], dtype=float)
+    # `w` sums to 1 over the names the x-ray can see; weights published as a
+    # share "of the book" are rescaled to the whole book (#2170).
+    book_share = total / book_value if book_value > 0 else 1.0
     matrix = np.array(
         [[returns_by_ticker[t][d] for t in tickers] for d in common], dtype=float)
     if not np.isfinite(matrix).all():
@@ -846,7 +853,7 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
             pairs.append({'pair': [tickers[i], tickers[j]],
                           'rho': _round_finite(rho[i, j], 3),
                           'combined_weight_pct': _round_finite(
-                              (w[i] + w[j]) * 100, 2)})
+                              (w[i] + w[j]) * book_share * 100, 2)})
     pairs = [p for p in pairs if p['rho'] is not None]
     pairs.sort(key=lambda p: -abs(p['rho']))
 
@@ -870,7 +877,7 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
             weighted_sigma / sigma_p if sigma_p > 0 else None, 3),
         'var_95': _round_finite(float(np.percentile(portfolio, 5))),
         'expected_shortfall_95': _round_finite(_tail_mean(portfolio, 0.05)),
-        'clusters': _correlation_clusters(tickers, rho, w),
+        'clusters': _correlation_clusters(tickers, rho, w * book_share),
         'top_pairs': pairs[:5],
         'n_common_sessions': len(common),
         'first_session': common[0],
