@@ -223,3 +223,31 @@ def test_the_weekly_review_prompt_does_not_pay_for_publication_bookkeeping(ledge
     assert "provenance" not in payload["decision_metrics"]
     assert payload["decision_metrics"]["settled_episodes"] == \
         metrics["settled_episodes"], "dropping the block must not cost a number"
+
+
+@pytest.mark.parametrize("edit", [
+    lambda row: row.__setitem__("regime", "risk_off"),
+    lambda row: row.__setitem__("signal_provenance", {
+        "schema_version": 1, "information": {"usable_for_decisions": True}}),
+])
+def test_the_digest_covers_the_calibrator_regime_and_the_information_overlay(ledger, edit):
+    # #2188: `compute_metrics` keys calibration on `regime` and counts usable
+    # information packets, so editing either moves a published number.
+    block = metrics_for(ledger)["provenance"]
+    edited = copy.deepcopy(ledger)
+    edit(edited[0])
+
+    assert prov.rows_digest(edited) != prov.rows_digest(ledger)
+    result = prov.verify(block, edited)
+    assert not result["ok"]
+    assert "ledger.slice_digest" in [c["name"] for c in result["checks"] if c["status"] == "fail"]
+
+
+def test_a_block_published_before_a_field_joined_verifies_over_its_own_fields(ledger):
+    block = copy.deepcopy(metrics_for(ledger)["provenance"])
+    older = [f for f in prov.CONSUMED_FIELDS if f != "regime" and not f.startswith("information_")]
+    block["ledger"]["fields"] = older
+    block["ledger"]["slice_digest"] = prov.rows_digest(ledger, older)
+    block["ledger"]["digest"] = prov.rows_digest(ledger, older)
+
+    assert prov.verify(block, ledger)["ok"]
