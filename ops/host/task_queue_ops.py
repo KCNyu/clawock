@@ -7,11 +7,13 @@ Two consumers, one rule each place:
   * run-agent.sh asks `head <agent>` before it takes an agent lock, so the order a task
     waits in is decided here and nowhere else;
   * the dsh task chip (clawock-dsh host half) reads `list --json` and runs the write actions.
-    The plugin never runs systemctl, flock or edits a task directory itself.
+    The plugin never runs systemctl, flock or edits a task directory itself;
+  * the OpenClaw `/dispatch-list` chat command prints `board` (read-only).
 
     task_queue_ops.py [--json] [--source ui|cli] <action> ...
       version                       ops_version (hash of this file) and api level
       list                          per-agent lock holder, queue order, quota hint
+      board [--recent N]            list + every live task and the N most recent ended ones (chat text)
       head <agent>                  the task id that takes <agent>'s lock next ('' when none)
       cancel <id>                   stop a task (idempotent for one already cancelled)
       priority <id> <n|top|up|down|reset>
@@ -343,6 +345,123 @@ def cmd_list(_args) -> dict:
                                                                    "opencode-fallback-models")},
         "agents": agents,
     }
+
+
+# ---- board: the whole queue for a chat message -----------------------------------------------
+# Read-only. The lock/queue/quota facts are `list`'s own (no second order rule); this only adds
+# what a person reading one message needs per task: its name, where it is, and how the recent
+# ones ended. Consumers: the OpenClaw `/dispatch-list` command (ops/host/openclaw-dispatch-list).
+
+BOARD_RECENT_MAX = 20
+
+
+def board_task(tid: str, live: bool) -> dict:
+    d = TASKS_DIR / tid
+    meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
+    started = stamp_epoch(result.get("STARTED") or meta.get("CREATED", ""))
+    updated = stamp_epoch(result.get("UPDATED", ""))
+    return {
+        "id": tid,
+        "name": meta.get("NAME") or tid,
+        "agent": meta.get("AGENT", ""),
+        "model": result.get("MODEL_USED") or meta.get("MODEL", ""),
+        "state": result.get("STATE") or "queued",
+        # An ended task waits for nothing, whatever an interrupted runner left behind.
+        "waiting": result.get("WAITING", "") if live else "",
+        "slot": result.get("SLOT", "") if live else "",
+        "attempts": to_int(result.get("ATTEMPTS")),
+        "queued_at": to_int(result.get("QUEUED_AT")) or None,
+        "wake_at": to_int(result.get("WAKE_AT")) or None,
+        "started": started,
+        "updated": updated,
+        "cost_usd": result.get("COST_USD", ""),
+        "patrol": tid.startswith("patrol-"),
+        "position": None,
+    }
+
+
+def cmd_board(args) -> dict:
+    recent_n = max(0, min(args.recent, BOARD_RECENT_MAX))
+    listed = cmd_list(args)
+    live = sorted(i for i in active_ids() if ID_RE.match(i) and (TASKS_DIR / i / "meta.env").is_file())
+    active = [board_task(i, True) for i in live]
+    positions = {r["id"]: r["position"] for g in listed["agents"].values() for r in g["queue"]}
+    for t in active:
+        t["position"] = positions.get(t["id"])
+    active.sort(key=lambda t: t["queued_at"] or t["started"] or 0)
+    # Newest first by the runner's own UPDATED stamp; file mtime only preselects (as the dsh chip does).
+    ended = []
+    try:
+        entries = [e for e in os.scandir(TASKS_DIR) if e.is_dir() and ID_RE.match(e.name)
+                   and e.name not in live and not e.name.startswith("patrol-")]
+    except OSError:
+        entries = []
+    stamped = []
+    for e in entries:
+        try:
+            stamped.append((os.stat(Path(e.path) / "result.env").st_mtime, e.name))
+        except OSError:
+            continue
+    for _, tid in sorted(stamped, reverse=True)[:recent_n * 3]:
+        ended.append(board_task(tid, False))
+    ended.sort(key=lambda t: t["updated"] or 0, reverse=True)
+    return {"ok": True, "as_of": int(time.time()), "agents": listed["agents"], "active": active,
+            "recent": ended[:recent_n]}
+
+
+OUTCOME_MARK = {"ok": "✅", "partial": "🟡", "unverified": "❔", "failed": "❌", "blocked": "🚫",
+                "timeout": "⏱", "quota": "💤", "cancelled": "⏹"}
+
+
+def board_text(out: dict) -> str:
+    """Plain text for a chat bubble (WeChat renders no markdown): one line per task."""
+    now = out["as_of"]
+    today = time.strftime("%Y-%m-%d", time.localtime(now))
+
+    def at(epoch: int | None) -> str:
+        if not epoch:
+            return "?"
+        day = time.strftime("%Y-%m-%d", time.localtime(epoch))
+        return time.strftime("%H:%M" if day == today else "%m-%d %H:%M", time.localtime(epoch))
+
+    def span(seconds: int | None) -> str:
+        if seconds is None or seconds < 0:
+            return "?"
+        minutes = seconds // 60
+        return f"{minutes}分" if minutes < 60 else f"{minutes // 60}时{minutes % 60:02d}分"
+
+    def where(t: dict) -> str:
+        w = t["waiting"]
+        if w == "lock":
+            return f"排队第{t['position']}位" if t["position"] else "等锁"
+        if w == "slot":
+            return "等运行槽"
+        if w == "memory":
+            return "等内存"
+        if w in ("quota", "retry"):
+            return ("等额度" if w == "quota" else "等重试") + (f" 至{at(t['wake_at'])}" if t["wake_at"] else "")
+        if t["state"] == "running":
+            run = "运行中 " + span(now - t["started"] if t["started"] else None)
+            return run + (f" · 第{t['attempts']}次" if t["attempts"] > 1 else "")
+        return "启动中"
+
+    lines = [f"派发队列 · {at(now)}"]
+    lines.append(f"进行中 {len(out['active'])}" if out["active"] else "进行中：无")
+    for t in out["active"]:
+        waited = f" · 已等{span(now - t['queued_at'])}" if t["waiting"] and t["queued_at"] else ""
+        lines.append(f"• {t['name']} · {t['agent']} · {where(t)}{waited}" + (" · 巡检" if t["patrol"] else ""))
+    for agent, g in out["agents"].items():
+        if g["quota"]:
+            lines.append(f"⚠ {agent} 额度等待至{at(g['quota']['until'])}")
+        for r in g["unqueued"]:
+            lines.append(f"⚠ {r['id']} 不在 {agent} 的排队顺序里")
+    if out["recent"]:
+        lines.append(f"最近结束 {len(out['recent'])}")
+    for t in out["recent"]:
+        took = span(t["updated"] - t["started"]) if t["updated"] and t["started"] else "?"
+        cost = f" · ${t['cost_usd']}" if t["cost_usd"] else ""
+        lines.append(f"{OUTCOME_MARK.get(t['state'], '·')} {at(t['updated'])} {t['name']} · {t['agent']} · {took}{cost}")
+    return "\n".join(lines)
 
 
 # ---- cancel -------------------------------------------------------------------------------
@@ -1102,6 +1221,9 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="action", required=True)
     sub.add_parser("version").set_defaults(fn=cmd_version)
     sub.add_parser("list").set_defaults(fn=cmd_list)
+    bd = sub.add_parser("board")
+    bd.add_argument("--recent", type=int, default=5, help=f"ended tasks to show (0..{BOARD_RECENT_MAX})")
+    bd.set_defaults(fn=cmd_board)
     h = sub.add_parser("head")
     h.add_argument("agent")
     h.set_defaults(fn=cmd_head)
@@ -1161,6 +1283,8 @@ def human(action: str, out: dict) -> str:
             for r in g["unqueued"]:
                 lines.append(f"  !  {r['id']}  not ordered: {r['reason']}")
         return "\n".join(lines)
+    if action == "board":
+        return board_text(out)
     if action == "log":
         return "\n".join(out["lines"])
     if action == "result":
