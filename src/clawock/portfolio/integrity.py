@@ -20,11 +20,14 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   PNL_TOTAL      total_pnl == total_current_value − total_cost           ERROR
   PNL_PCT        total_pnl_percent == total_pnl/total_cost×100           WARN
   COST_ZERO      活跃持仓 cost_basis≠0（收益率无定义，0% 是伪精度）      ERROR
-  COST_MISSING   活跃持仓 cost_basis 有数值（漏填会让成本/盈亏静默缺项）  ERROR
+  COST_MISSING   活跃持仓 cost_basis 可读成数值（漏填会让成本/盈亏静默缺项） ERROR
   SHARES_MISSING 每行 shares 有数值（缺失既不算活跃也不算清仓，逐只与
                  总额闸全部跳过它）                                      ERROR
   SHARES_INVALID 每行 shares 是非负的 JSON 数字（负数同样被合计跳过；
                  数字字符串/布尔会让下游裸比较崩掉）                    ERROR
+  NUMERIC_INVALID 每行其余数值叶（cost_basis/current_price/day_low…）
+                 若存在则是 JSON 数字（数字字符串过得了 float()，
+                 面板构建按原值 round 会崩）                            ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
   TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
@@ -93,6 +96,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
+    ledger_date as _ledger_date,
     moving_average_cost as _moving_avg_cost,
     number as _num,
     trade_cashflow_after as _trade_cashflow_after,  # noqa: F401 — re-exported for tests
@@ -115,6 +119,10 @@ HSTECH_SIBLINGS = {
 TCV_TOL = 1.0      # 货币单位（HKD/USD），手工记账小数误差
 PCT_TOL = 0.5      # pnl_abs 重算容差（货币单位）
 RANGE_TOL = 0.005  # current 越界容忍 0.5%（收盘集合竞价/盘后微动）
+# Per-holding numbers the dashboard rounds as-is (`publish.dashboard.trim_holding`).
+NUMERIC_LEAVES = ('cost_basis', 'current_price', 'current_value', 'prev_close',
+                  'day_low', 'day_high', 'today_change', 'today_change_pct',
+                  'pnl_abs', 'pnl_percent')
 
 
 def _last_session(market):
@@ -521,6 +529,16 @@ def check(portfolio_path=PORTFOLIO):
                 add('SHARES_INVALID', 'ERROR',
                     f'{t} shares={raw_shares:g} 为负：账本不建模空头，它既不算活跃也不算清仓，'
                     f'逐只与总额闸都跳过了它；请核对股数', region, t)
+            # The same reason holds for every other numeric leaf the dashboard
+            # rounds as-is (`trim_holding`): `_num()` reads "508.47" as a number,
+            # so the gates above pass while the build raises TypeError (#2178).
+            for fld in NUMERIC_LEAVES:
+                raw = h.get(fld)
+                if raw is None or (isinstance(raw, (int, float)) and not isinstance(raw, bool)):
+                    continue
+                add('NUMERIC_INVALID', 'ERROR',
+                    f'{t} {fld}={raw!r} 不是 JSON 数字：下游按原值 round 会崩；'
+                    f'请写成数字', region, t)
 
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}
@@ -582,7 +600,7 @@ def check(portfolio_path=PORTFOLIO):
             prev = _num(h.get('prev_close'))
             tchg = _num(h.get('today_change'))
             sess_date = h.get('day_session_date')
-            trade_dates = [tr.get('date') for tr in (h.get('trades') or []) if tr.get('date')]
+            trade_dates = [d for tr in (h.get('trades') or []) if (d := _ledger_date(tr.get('date')))]
             opened_this_session = bool(sess_date) and (
                 h.get('prev_close_date') == sess_date               # 前收日==会话日 → 非真实前收
                 or (trade_dates and min(trade_dates) >= sess_date)  # 首笔买入在本会话 → 前收时未持有
@@ -729,13 +747,13 @@ def check(portfolio_path=PORTFOLIO):
                     # A logged deposit/withdrawal after the last snapshot legitimately
                     # moves cash — subtract it so a *confirmed* move doesn't read as a
                     # fat-finger. An unlogged digit typo still trips the ratio gate.
-                    # `cash_adjustments` is hand-entered: a present-but-null date must
-                    # read as undated (same as math.derive_cash), not raise — a raise
-                    # here takes every other gate down with it (#2171).
+                    # `cash_adjustments` is hand-entered: a null or non-string date
+                    # reads as undated (same as math.derive_cash), not raise — a raise
+                    # here takes every other gate down with it (#2171, #2179).
                     adj_since = sum(
                         _num(a.get('amount')) or 0
                         for a in port.get('cash_adjustments', []) or []
-                        if (a.get('date') or '') > (prev_date or ''))
+                        if _ledger_date(a.get('date')) > (prev_date or ''))
                     base = cash - adj_since
                     if base > 0:
                         ratio = base / prev

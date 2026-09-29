@@ -744,7 +744,11 @@ def test_logged_cash_adjustment_is_removed_before_ratio_gate(run_check):
     _assert_clean(run_check(data, previous_cash=(100.0, "2026-07-01")))
 
 
-@pytest.mark.parametrize("row", [{"date": None, "amount": 9000}, {"date": None, "amount": None}])
+@pytest.mark.parametrize("row", [
+    {"date": None, "amount": 9000},
+    {"date": None, "amount": None},
+    {"date": 20260929, "amount": 9000},  # #2179: a number compared against an ISO string
+])
 def test_null_dated_cash_adjustment_does_not_take_the_other_gates_down(run_check, row):
     # #2171: a null date used to raise TypeError out of check(), which the
     # dashboard read as "no integrity finding" — the fat-finger went unreported.
@@ -757,6 +761,32 @@ def test_null_dated_cash_adjustment_does_not_take_the_other_gates_down(run_check
         "ERROR",
         "≠ 派生值 100.00",
     )
+
+
+@pytest.mark.parametrize("field", [
+    "cost_basis", "current_price", "day_low", "day_high", "today_change_pct"])
+@pytest.mark.parametrize("quoted", [str, lambda value: True])
+def test_a_quoted_numeric_leaf_is_named_before_the_dashboard_rounds_it(run_check, field, quoted):
+    # #2178: #2173 typed `shares` only. `_num()` reads "508.47" as a number, so
+    # every gate passed while `trim_holding` raised TypeError on the raw value.
+    data = _portfolio_data()
+    holding = _port(data)["holdings"][0]
+    holding[field] = quoted(holding[field])
+    report = run_check(data)
+    invalid = [f for f in report["findings"] if f["code"] == "NUMERIC_INVALID"]
+    assert [f["ticker"] for f in invalid] == ["ACME"]
+    assert field in invalid[0]["msg"] and invalid[0]["level"] == "ERROR"
+    assert report["ok"] is False
+
+
+@pytest.mark.parametrize("date", [None, 20260701])
+def test_undated_trade_does_not_take_the_gate_down(run_check, date):
+    # #2179: trades[] is hand-entered like cash_adjustments; a null or numeric
+    # date used to raise out of the moving-average replay, so the whole report
+    # was never written and the previous green one stayed published.
+    data = _portfolio_data(holdings=[_holding(trades=[
+        {"date": date, "action": "buy", "shares": 10.0, "price": 90.0}])])
+    _assert_clean(run_check(data))
 
 
 def test_cash_reconstruction_exact_tolerance_passes_and_just_over_fails(run_check):

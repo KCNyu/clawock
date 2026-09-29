@@ -32,7 +32,10 @@ Output keys:
   title:              suggested WeChat title
   commit_msg:         git commit message suffix
   signal_count:       {watch, stop, trim}
-  anomalies:          list of {ticker, move_pct, reason}
+  anomalies:          list of {ticker, move_pct, reason}; `quote_fresh: false`
+                      when that holding's price was carried, not refreshed
+  quote_coverage:     {refreshed, active, unrefreshed[]} from each holding's
+                      data_source stamp; the block names `unrefreshed` too
   index_direction:    {hk_index_pct, hstech_pct} for HK; null for US
   peer_scan:          {ticker: {theme, self_pct_1d, divergence_signal,
                       listed_peers[<=5]}} for this market's active holdings
@@ -226,6 +229,21 @@ def parse_anomalies(stdout):
     return _harness_common.parse_holdings_anomalies(stdout)
 
 
+def disclose_stale_quotes(block, coverage):
+    """The analyzer block with its carried prices named, under its first line.
+
+    The block is delivered as-is (and alone when the prose is rejected), so the
+    disclosure has to live in it; the first line stays the watchdog's anchor.
+    """
+    missing = coverage.get('unrefreshed') or []
+    if not missing or not block:
+        return block
+    lines = block.splitlines()
+    warning = (f"⛔ 数据降级：{'、'.join(missing)} 本次未刷到行情"
+               '（沿用上次价格与涨跌，不是本时段的数）')
+    return '\n'.join([lines[0], warning, *lines[1:]])
+
+
 def parse_hk_indices(stdout):
     """Extract 恒指 / 恒科 day move from HK script header."""
     m = re.search(r'恒指\s+[\d,]+\s+[▲▼]([\d\.]+)%\s+恒科\s+[\d,]+\s+[▲▼]([\d\.]+)%', stdout)
@@ -317,6 +335,7 @@ def main(argv=None):
         announce_context_path(out_path)
         return 0
 
+    started_at = datetime.now(trading_calendar.HKT)
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
@@ -349,7 +368,13 @@ def main(argv=None):
     peers = collect_peers(args.market)
 
     title = TITLE_TEMPLATES[(args.market, args.phase)].format(date=today)
-    raw_wechat_block = stdout.strip()
+    # Which rows this run actually refreshed. The analyzer keeps the previous
+    # price for a holding no provider answered and its one "Failed:" line is
+    # swallowed in --wechat mode, so the block alone reads as today (#2176).
+    coverage = _harness_common.quote_coverage(
+        args.market, WS / 'portfolio.json',
+        now=datetime.now(trading_calendar.HKT), started_at=started_at)
+    raw_wechat_block = disclose_stale_quotes(stdout.strip(), coverage)
     market_cn = '港股' if args.market == 'hk' else '美股'
     commit_msg = f'portfolio: {market_cn}{COMMIT_PHASE_CN[args.phase]}价格更新'
 
@@ -383,6 +408,11 @@ def main(argv=None):
          for row in _harness_common.parse_holdings_rows(stdout)
          if row.get('price') is not None},
     )
+    # Disclosure only: a carried price still counts, the prose must say so.
+    stale = set(coverage['unrefreshed'])
+    for row in [*anomalies, *plan_triggers]:
+        if row.get('ticker') in stale:
+            row['quote_fresh'] = False
 
     try:
         live_ctx = live_lane.result()
@@ -403,6 +433,9 @@ def main(argv=None):
         'commit_msg':         commit_msg,
         'signal_count':       signals,
         'anomalies':          anomalies,
+        # Holdings whose price this run did not refresh (carried from the
+        # last success); the block names them and so must the prose.
+        'quote_coverage':     coverage,
         'index_direction':    indices,
         'peer_scan':          trim_peer_scan(peers),
         'plan_context':       plan_ctx,

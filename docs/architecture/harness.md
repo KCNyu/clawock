@@ -300,6 +300,7 @@ parameters and what reaches their model.
 | Capability | Owner | Consumers | What an entry passes |
 |---|---|---|---|
 | analyzer run and its stdout (holdings table, signals, ≥3% movers) | `market_data/{hk,us}_analysis` via `_harness_common.run_analyze`; parsers `_harness_common.parse_signal_lines` / `parse_holdings_anomalies` / `parse_holdings_rows` | report, intraday | market |
+| quote freshness (which holdings this run's fetch actually stamped) | `_harness_common.quote_coverage` over each holding's `data_source` | report (context + a `⛔` line in the block, #2176), intraday | market, portfolio path, run start |
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
@@ -368,8 +369,10 @@ alone.
 - Tencent daily-kline readers: `decision/signals.fetch_bars`,
   `decision/regime.fetch_hstech` / `fetch_us`, `market_data/benchmarks`,
   `market_data/peer_quotes.tencent_closes`, `portfolio/risk`,
-  `market_data/bars.fetch_tencent`. They differ in behaviour, not just in
-  spelling:
+  `market_data/bars.fetch_tencent`, `evaluation/combined_regime.fetch`. They
+  differ in behaviour, not just in spelling:
+  - the window end: each one computes it (today, or the caller's), never a
+    literal — a pinned end froze combined_regime's HK legs for months (#2177);
   - a non-object symbol node raises in some and reads as empty in others;
   - `portfolio/risk` prefers `day` over `qfqday` on the forward-adjusted
     endpoint;

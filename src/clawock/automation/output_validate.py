@@ -31,6 +31,7 @@ committed artifact for exactly that reason.
 """
 from __future__ import annotations
 
+import re
 import sys
 
 # influencer.py's LLM_SYSTEM defines this enum; anything else is the model
@@ -51,16 +52,38 @@ class LLMOutputError(ValueError):
     """A model reply that must not be published."""
 
 
+# An inline link `](target` or a reference definition `[id]: target`.
+_LINK_TARGET = re.compile(r'(\]\(|^[ ]{0,3}\[[^\]\n]*\]:)([ \t]*)([^\s)]*)', re.M)
+# http(s)/mailto, or a relative target: no scheme (and no entity that could
+# spell one, since the browser decodes `&#58;` in an href) before its path.
+_SAFE_TARGET = re.compile(r'(?:https?://|mailto:)|[^:&]*(?:[/?#]|$)', re.I)
+
+
+def _neutral_link(match):
+    opener, space, target = match.groups()
+    if _SAFE_TARGET.match(target):
+        return match.group(0)
+    # Break the syntax, not the scheme: kramdown then prints it as text.
+    return opener[:-1] + ('&#40;' if opener.endswith('(') else '&#58;') + space + target
+
+
 def escape_raw_html(markdown):
-    """Model markdown on its way into a Jekyll page, with every `<` made text.
+    """Model markdown on its way into a Jekyll page, made unable to emit markup.
 
     kramdown passes raw HTML through, and the pages have no CSP, so a tag the
     model writes would run in a visitor's browser. The brief fallback and the
     weekly review write model markdown straight into `memory/*.md` (#2135);
     `brief_render` does the same to its prose fields (#2099). Nothing these
     prompts ask for is HTML, and `&lt;` still reads as `<` on the page.
+
+    kramdown also writes attributes without a `<` in sight (#2181): an
+    attribute list `{: onclick=…}` (block or span) lands on the element, and a
+    link target becomes an `href` whatever its scheme. `{:` becomes `&#123;:`
+    (text, the same `{` on the page) and a link to anything but http(s),
+    mailto or a relative path is left as text.
     """
-    return markdown.replace('<', '&lt;')
+    markdown = markdown.replace('<', '&lt;').replace('{:', '&#123;:')
+    return _LINK_TARGET.sub(_neutral_link, markdown)
 
 
 def validate_sections(text, *, label, required, min_chars):

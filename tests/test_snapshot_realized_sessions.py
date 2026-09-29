@@ -114,3 +114,22 @@ def test_the_dashboard_asks_with_a_market():
     assert "market=leg.key" in source, (
         "load_snapshots must resolve fill dates against the leg's calendar, or "
         "the published equity curve silently returns to raw ledger dates")
+
+
+@pytest.mark.parametrize("date", [None, 20260612])
+def test_an_undated_fill_does_not_take_the_dashboard_build_down(date):
+    """#2179: a null or numeric trade date used to raise out of the ledger sort,
+    killing `build_projection` while the integrity report stayed green. It reads
+    as undated — the same branch a missing date key has always taken."""
+    ledger = [_holding("RKLB", [
+        {"date": "2026-05-01", "action": "buy", "shares": 5, "price": 80.0},
+        {"date": date, "action": "sell", "shares": 5, "price": 100.0,
+         "realized_pnl": 100.0},
+    ])]
+    missing_key = [_holding("RKLB", [
+        ledger[0]["trades"][0],
+        {k: v for k, v in ledger[0]["trades"][1].items() if k != "date"},
+    ])]
+
+    assert (realized_as_of(ledger, FRIDAY, {"RKLB": 0}, market="us")
+            == realized_as_of(missing_key, FRIDAY, {"RKLB": 0}, market="us"))
