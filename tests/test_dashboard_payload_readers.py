@@ -74,7 +74,9 @@ def test_every_published_block_has_a_reader_on_the_page(freshly_built_dashboard)
     unread = sorted(
         key for key in payload
         if key not in METADATA_KEYS
-        and not re.search(r"\b" + re.escape(key) + r"\b", site)
+        # `<key>.json` is a file name (the data-health labels in `DATA_FILE_CN`),
+        # not a read of the block; counting it hid two unread blocks (#2191).
+        and not re.search(r"\b" + re.escape(key) + r"\b(?!\.json)", site)
     )
     assert not unread, (
         "these blocks are published on every generation and named nowhere under "

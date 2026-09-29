@@ -63,7 +63,7 @@ def test_the_weekly_review_writes_model_tags_as_text(tmp_path, monkeypatch):
 # site's parser) with and without the escape; only the escaped one is inert.
 
 
-@pytest.mark.parametrize('payload, live', [
+ATTRIBUTE_PAYLOADS = [
     ('段落\n{: onclick="alert(1)"}', '{:'),                  # block IAL
     ('*强调*{: onmouseover="alert(1)"}', '{:'),               # span IAL
     ('{::nomarkdown}<b>x</b>{:/nomarkdown}', '{:'),           # raw-HTML extension
@@ -73,9 +73,28 @@ def test_the_weekly_review_writes_model_tags_as_text(tmp_path, monkeypatch):
     ('[点我](data:text/html,x)', '](data'),
     ('[点我][r]\n\n[r]: javascript:alert(1)', ']: javascript'),
     (TAG, '<'),
-])
+]
+
+
+@pytest.mark.parametrize('payload, live', ATTRIBUTE_PAYLOADS)
 def test_model_markdown_cannot_write_an_attribute_or_a_script_href(payload, live):
     assert live not in escape_raw_html(payload)
+
+
+@pytest.mark.parametrize('payload, live', ATTRIBUTE_PAYLOADS)
+def test_the_harness_renderer_escapes_like_the_fallback_writer(payload, live):
+    # #2187: `brief_render` writes the same pre-open page every morning with its
+    # own escapers, which #2181 left handling `<` only.
+    from clawock.harness import brief_render
+    for escape in (brief_render.text, brief_render._cell, brief_render._inline):
+        assert live not in escape(payload), escape.__name__
+    page = brief_render.render_brief(
+        {'date': '2026-09-29'},
+        {'portfolio_assessment': payload, 'portfolio_counterargument': payload},
+        {'date': '2026-09-29', 'decisions': []}, date='2026-09-29')
+    assert payload.replace('\n', ' ') not in page
+    if live != '<':  # the renderer's own layout carries `<div …>` tags
+        assert live not in page
 
 
 @pytest.mark.parametrize('text', [

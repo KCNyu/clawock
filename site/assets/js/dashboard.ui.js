@@ -872,6 +872,12 @@
       const assessment = brief?.portfolio_judgment?.assessment;
       if (typeof assessment === "string" && assessment.trim()) {
         summary.textContent = assessment.trim();
+      } else if (brief.judgment_status === "invalid" || brief.judgment_status === "missing") {
+        // The date and link below still move to that day; the static fallback
+        // copy would read as if its judgment were fine (#2189).
+        summary.textContent = brief.judgment_status === "invalid"
+          ? "当日组合判断未通过校验，没有可显示的摘要；简报的数据部分照常。"
+          : "当日组合判断缺失，没有可显示的摘要；简报的数据部分照常。";
       }
       if (asOf) {
         date.textContent = `${asOf} · 08:03 HKT`;

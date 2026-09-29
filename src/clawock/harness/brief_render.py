@@ -30,6 +30,7 @@ from datetime import date as _date
 from pathlib import Path
 
 from clawock import sessions as _cal
+from clawock.automation.output_validate import escape_raw_html
 from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
@@ -112,10 +113,12 @@ def text(value):
 
     The validator already refused pipes and newlines-as-layout, so this only has
     to answer for an absent field: a blank cell is a hole in the report and must
-    read as one rather than as an empty-looking judgment.
+    read as one rather than as an empty-looking judgment. Markup is escaped with
+    the fallback writer's own rule (`escape_raw_html`), so both writers of the
+    pre-open page leave the same text inert (#2187).
     """
     value = (value or "").strip()
-    return value.replace("\n", " ").replace("<", "&lt;") if value else MISSING
+    return escape_raw_html(value).replace("\n", " ") if value else MISSING
 
 
 def table(headers, rows):
@@ -195,8 +198,8 @@ def _cell(value, *, trusted_markup=False):
     there adds a column to that one row, which is precisely the ragged-table
     failure this module exists to end.
     """
-    out = str(value).replace("|", "\\|").replace("\n", " ")
-    return out if trusted_markup else out.replace("<", "&lt;")
+    out = str(value) if trusted_markup else escape_raw_html(str(value))
+    return out.replace("|", "\\|").replace("\n", " ")
 
 
 def _inline(value):
@@ -209,10 +212,10 @@ def _inline(value):
     inline markdown would act on, so a headline can only ever be words. (Pipes
     are `entries`' job: it runs every value through `_cell`.)
     """
-    out = str(value).replace("\n", " ")
+    out = escape_raw_html(str(value)).replace("\n", " ")
     for char in ("\\", "`", "*", "_", "[", "]"):
         out = out.replace(char, "\\" + char)
-    return out.replace("<", "&lt;")
+    return out
 
 
 def _holdings(context, leg):
@@ -825,11 +828,19 @@ def sentiment_section(context, judgment):
 def influencer_section(context):
     influencer = context.get("influencer") or {}
     counts = influencer.get("counts") or {}
+    # A quiet day may drop the section; a failed relevance filter may not, or
+    # the reader cannot tell the two apart (#2189).
+    filter_failed = influencer.get("llm_filter_status") == "failed_kept_previous"
+    heading = f"### 名人异动 / 政策风向（{num(influencer.get('age_hours'), 1)}h 前）"
     if not counts.get("total"):
+        if filter_failed:
+            return "\n".join([heading, "", "⚠️ LLM 相关性筛选本轮失败，未发布未评分条目。"])
         return ""
-    out = [f"### 名人异动 / 政策风向（{num(influencer.get('age_hours'), 1)}h 前）", "",
+    out = [heading, "",
            f"撞持仓 **{counts.get('held_hits', 0)}** · 新机会 {counts.get('new_ideas', 0)}"
            f" · 板块相关 {counts.get('sector_hits', 0)}", ""]
+    if filter_failed:
+        out[2:2] = ["⚠️ LLM 相关性筛选本轮失败，以下为上一轮保留的已评分条目。", ""]
     for bucket, label in (("held_hits", "撞持仓"), ("new_ideas", "新机会"),
                           ("sector_hits", "板块相关")):
         for row in (influencer.get(bucket) or [])[:3]:

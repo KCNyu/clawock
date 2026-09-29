@@ -78,3 +78,18 @@ def test_aggregates_dry_run_does_not_write(tmp_path):
     before = path.read_bytes()
     assert aggregates.main(['--path', str(path), '--dry-run']) == 0
     assert path.read_bytes() == before
+
+
+def test_reconcile_names_a_quoted_fill_instead_of_crashing_in_realized(tmp_path, monkeypatch, capsys):
+    # #2186: `realized` formats each fill price with `:g`; a quoted one used to
+    # raise out of the documented repair command before the gate could name it.
+    from clawock.portfolio import reconcile
+    path = tmp_path / 'portfolio.json'
+    ledger = {'portfolios': {'us_stocks': {'holdings': [
+        {'ticker': 'X', 'shares': 0, 'trades': [
+            {'date': '2026-09-01', 'action': 'sell', 'shares': 1, 'price': '10',
+             'realized_pnl': 2}]}]}}}
+    _write(path, ledger)
+    assert reconcile.main(['--path', str(path)]) == 2
+    assert 'TRADE_NUMERIC_INVALID' in capsys.readouterr().out
+    assert _read(path) == ledger

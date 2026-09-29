@@ -1907,10 +1907,16 @@
     const failedSources = Object.entries(d.source_status || {})
       .filter(([, status]) => status === 'failed')
       .map(([key]) => (d.sources || {})[key] || key);
+    // The relevance filter failing is what empties the card; a source that
+    // always fails from CI would otherwise take the blame for it (#2189).
+    const filterFailed = d.llm_filter_status === 'failed_kept_previous';
     if (!items.length) {
       if (sumEl) sumEl.innerHTML = '';
-      wrap.innerHTML = `<div class="empty-state">${failedSources.length
-        ? `⚠️ 来源失败：${escapeHtml(failedSources.join('、'))}`
+      const lines = [];
+      if (filterFailed) lines.push('⚠️ LLM 相关性筛选本轮失败，未发布未评分条目');
+      if (failedSources.length) lines.push(`⚠️ 来源失败：${escapeHtml(failedSources.join('、'))}`);
+      wrap.innerHTML = `<div class="empty-state">${lines.length
+        ? lines.join('<br>')
         : 'No influence signals (48h).'}</div>`;
       return;
     }
@@ -1927,6 +1933,7 @@
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
       asOf.textContent = `${(authors.length ? authors : ['多源']).join(' · ')} · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`
+        + (filterFailed ? ' · ⚠️ 本轮筛选失败，显示上轮保留条目' : '')
         + (failedSources.length ? ` · ⚠️ 来源失败：${failedSources.join('、')}` : '');
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');

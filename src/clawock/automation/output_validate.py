@@ -73,8 +73,9 @@ def escape_raw_html(markdown):
     kramdown passes raw HTML through, and the pages have no CSP, so a tag the
     model writes would run in a visitor's browser. The brief fallback and the
     weekly review write model markdown straight into `memory/*.md` (#2135);
-    `brief_render` does the same to its prose fields (#2099). Nothing these
-    prompts ask for is HTML, and `&lt;` still reads as `<` on the page.
+    `brief_render` runs its prose fields through this same function (#2099,
+    #2187). Nothing these prompts ask for is HTML, and `&lt;` still reads as
+    `<` on the page.
 
     kramdown also writes attributes without a `<` in sight (#2181): an
     attribute list `{: onclick=…}` (block or span) lands on the element, and a

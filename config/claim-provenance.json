@@ -5,6 +5,7 @@
     "src/clawock/evaluation/regime_validation.py",
     "src/clawock/evaluation/hstech_regime.py",
     "src/clawock/evaluation/us_leverage.py",
-    "src/clawock/evaluation/combined_regime.py"
+    "src/clawock/evaluation/combined_regime.py",
+    "docs/architecture/harness.md"
   ]
 }

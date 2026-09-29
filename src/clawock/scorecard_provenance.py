@@ -87,22 +87,33 @@ CONSUMED_FIELDS = (
     'condition_type',
     'technical_setup_id',
     'confidence',
+    'regime',
     'execution_status',
     'override_status',
     'signal_provenance_schema_version',
     'sizing_active',
     'sizing_contributors',
+    'information_usable_for_decisions',
+    'information_activation_progress',
+    'information_activation_blockers',
     'evaluation',
 )
 
 
-def _projection(row: dict) -> dict:
-    """The part of one decision the scorecard can see."""
+def _projection(row: dict, fields=CONSUMED_FIELDS) -> dict:
+    """The part of one decision the scorecard can see, over `fields`.
+
+    `regime` keys the confidence calibrator and `information.*` feeds the
+    overlay's reachability counts; both were read but left out until #2188.
+    A block published before that lists the older `ledger.fields`, and is
+    verified over exactly those.
+    """
     evaluation = row.get('evaluation') or {}
     provenance = row.get('signal_provenance') or {}
     sizing = provenance.get('sizing') or {}
     contributors = sizing.get('contributors') or []
-    return {
+    information = provenance.get('information') or {}
+    full = {
         'decision_id': row.get('decision_id'),
         'plan_date': row.get('plan_date'),
         'created_at': row.get('created_at'),
@@ -120,8 +131,14 @@ def _projection(row: dict) -> dict:
         'signal_provenance_schema_version': provenance.get('schema_version'),
         'sizing_active': sizing.get('sizing_active'),
         'sizing_contributors': sorted(str(c) for c in contributors),
+        'regime': row.get('regime'),
+        'information_usable_for_decisions': information.get('usable_for_decisions'),
+        'information_activation_progress': information.get('activation_progress'),
+        'information_activation_blockers': sorted(
+            str(b) for b in information.get('activation_blockers') or []),
         'evaluation': {k: evaluation.get(k) for k in EVALUATION_FIELDS},
     }
+    return {field: full.get(field) for field in fields}
 
 
 def _canonical(payload) -> str:
@@ -129,7 +146,7 @@ def _canonical(payload) -> str:
                       separators=(',', ':'))
 
 
-def rows_digest(rows) -> str:
+def rows_digest(rows, fields=CONSUMED_FIELDS) -> str:
     """Digest of a set of decisions over the fields the scorecard consumes.
 
     Order-independent on purpose: the ledger is append-only, but a rewrite that
@@ -138,7 +155,7 @@ def rows_digest(rows) -> str:
     code; disagreeing means some number on the page can move.
     """
     projections = sorted(
-        (_canonical(_projection(row)) for row in rows))
+        (_canonical(_projection(row, fields)) for row in rows))
     hasher = hashlib.sha256()
     for line in projections:
         hasher.update(line.encode())
@@ -248,8 +265,11 @@ def verify(provenance: dict, decisions) -> dict:
              'detail': 'provenance block has no window cutoff to verify against'}]}
     rows = list(decisions)
     window_rows = slice_rows(rows, cutoff, window.get('last_plan_date'))
+    # Hash what the block says it covered, so a card published before a field
+    # joined the contract still verifies against its own digest (#2188).
+    fields = tuple(ledger.get('fields') or CONSUMED_FIELDS)
 
-    recomputed_slice = rows_digest(window_rows)
+    recomputed_slice = rows_digest(window_rows, fields)
     published_slice = ledger.get('slice_digest')
     checks.append({
         'name': 'ledger.slice_digest',
@@ -266,7 +286,7 @@ def verify(provenance: dict, decisions) -> dict:
         'actual': len(window_rows),
     })
 
-    recomputed_all = rows_digest(rows)
+    recomputed_all = rows_digest(rows, fields)
     published_all = ledger.get('digest')
     checks.append({
         'name': 'ledger.digest',
