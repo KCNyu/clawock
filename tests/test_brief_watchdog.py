@@ -184,6 +184,64 @@ def test_0905_a_delivered_brief_is_not_mirrored_again(tmp_path, monkeypatch):
     assert events[-1]["action"] == "ok"
 
 
+def _write_receipt(tmp_path, **fields):
+    marker = watchdog.delivery_receipts.receipt_path(
+        tmp_path / "memory" / ".tmp", "brief", date=TODAY)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(json.dumps(watchdog.delivery_receipts.build_receipt(ts=1, **fields)))
+
+
+@pytest.mark.parametrize("argv", [["--check-missing"], []])
+def test_a_wechat_only_receipt_is_mirrored_to_telegram_by_both_passes(
+    tmp_path, monkeypatch, argv
+):
+    """#2143: WeChat landed, the Telegram cosend failed. 08:36 mirrored it but
+    09:05 read the ledger's any-channel `delivered()` and logged ok — so a brief
+    landing after 08:36 (seen only by 09:05) never reached Telegram. Both passes
+    must give the same per-channel answer, and WeChat is not re-sent."""
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", *argv])
+    _write_receipt(tmp_path, sent_ok=True, tg_ok=False)
+    monkeypatch.setattr(watchdog, "send_wechat",
+                        lambda *_a, **_k: pytest.fail("WeChat already has this brief"))
+
+    assert watchdog.main() == 0
+    assert not any(e.get("action") == "ok" for e in events)
+    assert events[-1]["action"] == "mirror-telegram"
+    assert events[-1]["fail_reason"] == "postflight cosend failed (tg_ok=false)"
+    assert len(messages) == 1 and messages[0].endswith("CARD")
+
+
+def test_0905_does_not_repeat_the_0836_telegram_mirror(tmp_path, monkeypatch):
+    """The other direction of #2143 (#508): the 08:36 pass already mirrored this
+    WeChat-only receipt, so 09:05 reads the dedupe flag and sends nothing."""
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+    _write_receipt(tmp_path, sent_ok=True, tg_ok=False)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py"])
+    assert watchdog.main() == 0
+    assert len(messages) == 1
+
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--check-missing"])
+    assert watchdog.main() == 0
+    assert len(messages) == 1
+    assert events[-1]["action"] == "skip"
+
+
+def test_0905_still_backstops_a_failed_wechat_send(tmp_path, monkeypatch):
+    """Telegram landed and WeChat failed: 09:05 used to call that delivered and
+    skip the WeChat retry the 08:36 pass would have made."""
+    messages, events = _wire_0905_with_artifacts(monkeypatch, tmp_path)
+    _write_receipt(tmp_path, sent_ok=False, tg_ok=True, out="ret=-2 prepare failed")
+    retried = []
+    monkeypatch.setattr(watchdog, "wechat_backstop",
+                        lambda *args, **kwargs: retried.append(args))
+
+    assert watchdog.main() == 0
+    assert messages == []
+    assert len(retried) == 1 and retried[0][3]["sent_ok"] is False
+    assert events[-1]["action"] == "ok"
+
+
 @pytest.mark.parametrize('wechat_ok', [True, False])
 def test_0836_old_receipt_never_duplicates_telegram_and_still_checks_wechat(
     tmp_path, monkeypatch, wechat_ok
