@@ -468,3 +468,50 @@ def test_market_age_stays_in_the_market_heading_flow():
     )
     assert heading, "market title and age must share the button heading group"
     assert 'id="market-asof"' in heading.group(1)
+
+
+def _specificity(selector: str) -> tuple[int, int, int]:
+    return (len(re.findall(r"#[\w-]+", selector)),
+            len(re.findall(r"\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+", selector)),
+            len(re.findall(r"(?:^|[\s>+~])[a-z][\w-]*", selector)))
+
+
+def test_every_frosted_surface_turns_solid_under_reduced_transparency():
+    """A glass surface added after the reduced-transparency block keeps its blur
+    and its see-through fill for the users who asked for neither (#2174: the
+    decision-map drawer and the equity tooltip). Each frosted rule must be
+    matched there, at no lower specificity, by blur off *and* a solid fill."""
+    start = re.search(r"@media \(prefers-reduced-transparency: reduce\)\s*\{", CSS)
+    depth, end = 0, None
+    for index in range(start.end() - 1, len(CSS)):
+        depth += {"{": 1, "}": -1}.get(CSS[index], 0)
+        if depth == 0:
+            end = index
+            break
+    block = CSS[start.end():end]
+    block_rules = [(re.sub(r"\s+", " ", m.group(1).strip()), m.group(2))
+                   for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", block)]
+
+    def neutralised(prop_pattern, subject, own):
+        return any(
+            re.search(prop_pattern, body)
+            and any(one.strip().split()[-1] == subject
+                    and _specificity(one.strip()) >= own
+                    for one in selectors.split(","))
+            for selectors, body in block_rules)
+
+    frosted = [(selectors, body) for selectors, body in RULES
+               if any(value.strip() != "none" for value in
+                      re.findall(r"(?<![\w-])backdrop-filter\s*:\s*([^;]+)", body))
+               and (selectors, body) not in block_rules]
+    assert frosted, "the parser no longer sees any frosted surface"
+    missing = []
+    for selectors, _body in frosted:
+        for one in selectors.split(","):
+            one = one.strip()
+            subject, own = one.split()[-1], _specificity(one)
+            if not neutralised(r"(?<![\w-])backdrop-filter\s*:\s*none", subject, own):
+                missing.append(f"{one}: blur stays on")
+            if not neutralised(r"(?<![\w-])background(?:-color)?\s*:", subject, own):
+                missing.append(f"{one}: fill stays see-through")
+    assert missing == [], "\n  ".join(missing)
