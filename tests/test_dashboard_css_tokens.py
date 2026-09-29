@@ -24,6 +24,23 @@ def test_every_fallbackless_var_is_defined():
     assert missing == [], f"dashboard.css reads undefined custom properties: {missing}"
 
 
+def test_a_fallback_never_stands_in_for_a_token_nobody_defines():
+    """#2145: `var(--hover-bg, rgba(0,0,0,0.03))` read a property the palette
+    never defined, so the literal always won — a light-theme 3% black that on
+    the dark canvas measured 1.0139:1, i.e. no hover at all. The gate above
+    skips any var() with a fallback; this one asks that the name still exists
+    (a stylesheet declaration, an inline `style="--x:…"`, or setProperty)."""
+    css = re.sub(r"/\*.*?\*/", "", CSS.read_text(encoding="utf-8"), flags=re.DOTALL)
+    defined = set(re.findall(r"(--[\w-]+)\s*:", css))
+    for path in [*(ROOT / "site").rglob("*.js"), *(ROOT / "site").rglob("*.html")]:
+        text = path.read_text(encoding="utf-8")
+        defined |= set(re.findall(r"setProperty\(\s*[\"'](--[\w-]+)", text))
+        defined |= set(re.findall(r"(--[\w-]+)\s*:", text))
+    orphaned = sorted({name for name, fallback in re.findall(r"var\(\s*(--[\w-]+)\s*(,)?", css)
+                       if fallback and name not in defined})
+    assert orphaned == [], f"dashboard.css falls back for tokens nothing defines: {orphaned}"
+
+
 def test_heatmap_direction_colors_follow_theme_tokens():
     css = re.sub(r"/\*.*?\*/", "", CSS.read_text(encoding="utf-8"), flags=re.DOTALL)
     assert re.search(r"--heat-up\s*:\s*var\(--positive\)", css)
