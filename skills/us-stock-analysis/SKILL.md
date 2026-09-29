@@ -127,13 +127,14 @@ clawock report preflight --market us --phase {open|close}
 
 
 ▎情绪面 里的**异动归因**（`anomalies` 非空时必写，最多 2 行，写在该段最前）：
-- 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {source_class}）」。
-- `halts` 命中该票 → 先写停牌（`reason_code` + 复牌时间）。
+- 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {来源的中文说法}）」。`source_class` 只用来选说法，不照抄：`exchange_filing`/`hkexnews_filing`→交易所公告，`sec_filing`/`sec_filing_mirror`/`sec_fulltext`→SEC 文件，`finnhub_filing`→公司公告（Finnhub），`market_flash`→市场快讯，其余取值同样换成中文。
+- `halts` 命中该票 → 先写停牌（停牌原因用中文说 + 复牌时间，`reason_code` 不照抄）。
 - `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，能不能动手仍由 catalyst-gate 与风控契约决定。
 - 没有 interrupt：`no_recent_filing` 先查 `known_catalysts[票]`；有则写「窗口内无新公告；沿用今早已知催化：…」，没有才写「窗口内无新公告，且无已知催化，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
 - 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
 
 🗣 **读者只看得到这条微信，看不到管线**：三段里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id`，也不描述你在按什么指令、格式或步骤写；约束翻成交易语言（「packet 锁定的破位审议线」→「计划里的破位复核线」）。postflight 会以 advisory 标出。
+context 的字段名与枚举值（任何带下划线的英文标识，如 `hold_and_watch`、`near_breakout`，以及 `verdict=wait` 这类「键=值」）一律不写进正文，翻成中文说法（`hold_and_watch`→持有观察）；postflight 会把它标成正文顶部的校验警告。
 
 写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
 ```

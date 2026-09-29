@@ -16,6 +16,7 @@ from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
+    check_identifier_leak,
     check_numeric_claims,
     check_pipeline_self_reference,
     has_section_marker,
@@ -110,6 +111,11 @@ def validate(body, ctx, model_text):
 
     # 7. 管线术语（模型文本）—— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
+
+    # 8. 字段名/枚举值（模型文本）—— escalating，与盘中（#1870）和简报同一把闸。
+    # 词表点不到每个 key：2026-09-29 港股开盘/午盘/收盘三份报告都把
+    # `hold_and_watch` 原样发进了微信，postflight 印 pass（#2146）。
+    issues.extend(check_identifier_leak(checked, label='散文'))
 
     return issues
 

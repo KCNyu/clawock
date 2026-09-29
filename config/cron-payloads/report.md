@@ -15,6 +15,7 @@ stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、s
 - 只写 ▎情绪面 / ▎技术面 / ▎操作建议 三段（共 4-6 行）；`needs_risk_section=true` 时补 ▎风险提示 段
 - **不要写标题、不要写数据块、不要写表格** —— postflight 自己从 context 拼进消息开头，你写了会重复
 - `anomalies` 非空时，散文必须提到至少一个异动票
+- 正文是给 kcn 看的交易语言：context 的字段名与枚举值（任何带下划线的英文标识，如 hold_and_watch、sec_filing，以及 verdict=wait 这类“键=值”）一律不写进正文，翻译成中文说法；postflight 会把它标成正文顶部的校验警告
 - 长度自己判断，不设字数目标；postflight 按拼装后的全文只判防复读天花板（>5000 warn、>6000 fail）
 - 用文件写入工具存到 `/root/.openclaw/workspace/memory/.tmp/report-prose-{{market}}-{{phase}}.md`
 
