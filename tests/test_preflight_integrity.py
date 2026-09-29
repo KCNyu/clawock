@@ -460,6 +460,22 @@ def test_a_row_without_a_share_count_is_named_not_skipped(run_check, shares):
     assert [(f["level"], f["ticker"]) for f in findings] == [("ERROR", "ORPHAN")]
 
 
+@pytest.mark.parametrize("shares", [-400, -0.5, "400", True])
+def test_a_negative_or_non_number_share_count_is_named(run_check, shares):
+    """#2173: float() accepts these, so SHARES_MISSING let them through."""
+    odd = _holding(ticker="ODD")
+    odd["shares"] = shares
+    data = _portfolio_data()
+    _port(data)["holdings"].append(odd)
+
+    report = run_check(data)
+
+    findings = [f for f in report["findings"] if f["code"].startswith("SHARES_")]
+    assert [(f["code"], f["level"], f["ticker"]) for f in findings] == [
+        ("SHARES_INVALID", "ERROR", "ODD")]
+    assert report["ok"] is False
+
+
 def test_today_total_exact_tolerance_passes_and_just_over_warns(run_check):
     exact = _portfolio_data()
     _port(exact)["today_total_change"] += 1.0
