@@ -277,10 +277,6 @@ def test_installer_saves_installs_checks_and_rolls_back(tmp_path):
     # The price table the `usage` action reads travels with it (first install: nothing to save).
     assert (dest / "model_prices.json").read_bytes() == (ROOT / "ops/host/model_prices.json").read_bytes()
     assert not (dest / "model_prices.json.before-update").exists()
-    # So does the OpenClaw /dispatch-list plugin, beside the entry it runs.
-    for name in ("openclaw.plugin.json", "index.ts"):
-        assert (dest / "dispatch-list-command" / name).read_bytes() == (ROOT / "ops/host/dispatch-list-command" / name).read_bytes()
-    assert "plugins.load.paths" in r.stdout
     assert run("--check").returncode == 0
     assert "already installed" in run().stdout
     assert run("--rollback").returncode == 0
@@ -672,53 +668,3 @@ def test_budget_changes_refuse_an_older_runner_an_ended_task_and_values_below_wh
     assert code == 0 and "QUOTA_RESUMES=5" in (d / "override.env").read_text()
     code, out = q.run("resumes", "t3", "reset")
     assert code == 0 and "QUOTA_RESUMES" not in (d / "override.env").read_text()
-
-
-# ---- board --------------------------------------------------------------------------------
-
-def ended(q, tid, state, updated, agent="claude", mtime=None):
-    d = q.task(tid, agent=agent, active=False,
-               result=f"STATE={state}\nSTARTED=2026-09-29\\ 09:00:00\nUPDATED={updated}\nCOST_USD=1.50\n")
-    (d / "meta.env").write_text(f"ID={tid}\nAGENT={agent}\nNAME={tid.rsplit('-', 1)[0]}\n")
-    if mtime is not None:
-        os.utime(d / "result.env", (mtime, mtime))
-    return d
-
-
-def test_board_places_live_tasks_with_list_s_own_queue_positions(q):
-    now = int(time.time())
-    q.task("run-a", result="STATE=running\nRUNNER_API=2\nSTARTED=2026-09-29\\ 09:00:00\n")
-    q.waiter("wait-b", queued_at=now - 600)
-    q.waiter("wait-c", queued_at=now - 60, priority=5)
-    q.task("nap-d", agent="codex", result=f"STATE=running\nWAITING=quota\nWAKE_AT={now + 900}\nRUNNER_API=2\n")
-    code, out = q.run("board")
-    assert code == 0
-    rows = {t["id"]: t for t in out["active"]}
-    assert set(rows) == {"run-a", "wait-b", "wait-c", "nap-d"}
-    # the order is list's: priority 5 goes ahead of the older priority-0 waiter
-    assert (rows["wait-c"]["position"], rows["wait-b"]["position"]) == (1, 2)
-    assert rows["run-a"]["position"] is None and rows["nap-d"]["wake_at"] == now + 900
-    assert out["agents"] == q.run("list")[1]["agents"]
-
-
-def test_board_recent_is_newest_by_the_runner_s_stamp_without_patrol_rounds(q):
-    old = time.time() - 3600
-    ended(q, "early-1", "ok", "2026-09-29\\ 10:00:00", mtime=old + 30)  # touched later, finished earlier
-    ended(q, "late-1", "failed", "2026-09-29\\ 11:00:00", mtime=old)
-    ended(q, "patrol-20260929-1", "ok", "2026-09-29\\ 12:00:00")
-    q.task("live-1", result="STATE=running\n")
-    code, out = q.run("board", "--recent", "5")
-    assert code == 0 and [t["id"] for t in out["recent"]] == ["late-1", "early-1"]
-    assert out["recent"][0]["waiting"] == "" and out["recent"][0]["name"] == "late"
-    code, out = q.run("board", "--recent", "1")
-    assert [t["id"] for t in out["recent"]] == ["late-1"]
-
-
-def test_board_text_is_one_line_per_task(q):
-    ended(q, "done-1", "ok", "2026-09-29\\ 10:00:00")
-    q.waiter("wait-b")
-    r = subprocess.run([sys.executable, str(OPS), "board"], env=q.env, capture_output=True, text=True, timeout=30)
-    lines = r.stdout.splitlines()
-    assert r.returncode == 0 and lines[0].startswith("派发队列")
-    assert any(line.startswith("• wait-b · claude · 排队第1位") for line in lines)
-    assert any(line.startswith("✅") and "done · claude · 1时00分 · $1.50" in line for line in lines)
