@@ -827,3 +827,18 @@ def test_gold_reconciliation_rejects_nonpositive_reconciled_values(run_check):
 
 def test_missing_optional_gold_fields_are_skipped(run_check):
     _assert_clean(run_check({"gold_dca": {"nav": 10.0}}))
+
+
+@pytest.mark.parametrize("field", ["shares", "price", "realized_pnl"])
+def test_a_quoted_fill_number_is_named_before_the_traces_and_realized_use_it(run_check, field):
+    # #2186: #2178 typed the holding leaves only. A quoted fill price passed
+    # every gate while the dashboard traces and `clawock realized` crashed.
+    trade = {"date": "2026-07-01", "action": "sell", "shares": 10, "price": 110.0,
+             "realized_pnl": 100.0}
+    trade[field] = str(trade[field])
+    data = _portfolio_data(holdings=[_holding(trades=[trade])])
+    report = run_check(data)
+    invalid = [f for f in report["findings"] if f["code"] == "TRADE_NUMERIC_INVALID"]
+    assert [f["ticker"] for f in invalid] == ["ACME"]
+    assert field in invalid[0]["msg"] and "2026-07-01" in invalid[0]["msg"]
+    assert invalid[0]["level"] == "ERROR" and report["ok"] is False

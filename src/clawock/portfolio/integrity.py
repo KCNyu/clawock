@@ -28,6 +28,8 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   NUMERIC_INVALID 每行其余数值叶（cost_basis/current_price/day_low…）
                  若存在则是 JSON 数字（数字字符串过得了 float()，
                  面板构建按原值 round 会崩）                            ERROR
+  TRADE_NUMERIC_INVALID 每笔成交的 shares/price/realized_pnl 若存在则是
+                 JSON 数字（面板成交轨迹与 clawock realized 按原值算术）  ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
   TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
@@ -123,6 +125,9 @@ RANGE_TOL = 0.005  # current 越界容忍 0.5%（收盘集合竞价/盘后微动
 NUMERIC_LEAVES = ('cost_basis', 'current_price', 'current_value', 'prev_close',
                   'day_low', 'day_high', 'today_change', 'today_change_pct',
                   'pnl_abs', 'pnl_percent')
+# Per-fill numbers consumers use as-is (`dashboard.build_decision_traces`,
+# `realized` totals and `:g` formatting).
+TRADE_NUMERIC_LEAVES = ('shares', 'price', 'realized_pnl')
 
 
 def _last_session(market):
@@ -539,6 +544,19 @@ def check(portfolio_path=PORTFOLIO):
                 add('NUMERIC_INVALID', 'ERROR',
                     f'{t} {fld}={raw!r} 不是 JSON 数字：下游按原值 round 会崩；'
                     f'请写成数字', region, t)
+            # trades[] is hand-entered too, and its raw values feed the
+            # dashboard's decision traces and `clawock realized` (#2186).
+            for trade in h.get('trades') or []:
+                if not isinstance(trade, dict):
+                    continue
+                for fld in TRADE_NUMERIC_LEAVES:
+                    raw = trade.get(fld)
+                    if raw is None or (isinstance(raw, (int, float)) and not isinstance(raw, bool)):
+                        continue
+                    add('TRADE_NUMERIC_INVALID', 'ERROR',
+                        f'{t} 成交 {trade.get("date")} {trade.get("action")} {fld}={raw!r} '
+                        f'不是 JSON 数字：面板成交轨迹与 clawock realized 按原值算术会崩；'
+                        f'请写成数字', region, t)
 
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}

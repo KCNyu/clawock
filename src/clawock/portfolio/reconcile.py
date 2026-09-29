@@ -23,6 +23,16 @@ def main(argv=None) -> int:
     derivation_policy = workspace / "config" / "portfolio-derivations.json"
     dry = ["--dry-run"] if args.dry_run else []
 
+    # `realized` does raw arithmetic on each fill, so a quoted fill number
+    # would crash it before the gate below could name the row (#2186).
+    malformed = [f for f in integrity.check(portfolio)['findings']
+                 if f['code'] == 'TRADE_NUMERIC_INVALID']
+    if malformed:
+        for f in malformed:
+            print(f"🔴 {f['code']} [{f.get('region') or '-'}] {f['msg']}")
+        print("\n成交行有非数字字段，先修正再重算 → ❌ 未重算")
+        return 2
+
     print("▸ recompute aggregates")
     aggregates.main(["--path", str(portfolio), "--config", str(derivation_policy), *dry])
     print("▸ recompute cash")
