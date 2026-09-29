@@ -528,16 +528,12 @@ def main():
             return alert_brief_missing(today, args.dry_run, issues)
         # Landed is not delivered (#1899): a postflight that wrote the plan and
         # then died before sending leaves both artifacts on disk and no receipt,
-        # and 09:05 is the last brief check of the day. The receipt name carries
-        # today's date, so any channel it confirms is this brief's delivery.
-        marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
-            WS / 'memory' / '.tmp', 'brief', date=today))
-        if delivery_receipts.delivered(marker):
-            log({'tag': tag, 'action': 'ok',
-                 'reason': '09:05 brief, non-empty valid plan and delivery receipt present'})
-            return 0
-        # No channel confirms it: the card on disk is today's brief, so mirror
-        # it through the same deduped path the 08:36 pass uses below.
+        # and 09:05 is the last brief check of the day. So it falls through to
+        # the per-channel judgement below — the same one the 08:36 pass makes —
+        # rather than asking `delivery_receipts.delivered()`: that is the ledger's
+        # "any channel" question, and a WeChat-only receipt (Telegram cosend
+        # failed) answered it "yes" here while 08:36 mirrored it (#2143). A
+        # brief landing after 08:36 is only ever seen by this pass.
 
     # No brief on disk. There is no card to mirror either way — what differs is whether
     # we can yet call it a miss. At 08:30 we are inside the landing window (08:13-08:49
