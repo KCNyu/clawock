@@ -30,6 +30,7 @@ from datetime import date as _date
 from pathlib import Path
 
 from clawock import sessions as _cal
+from clawock.automation.output_validate import escape_raw_html
 from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
@@ -112,10 +113,12 @@ def text(value):
 
     The validator already refused pipes and newlines-as-layout, so this only has
     to answer for an absent field: a blank cell is a hole in the report and must
-    read as one rather than as an empty-looking judgment.
+    read as one rather than as an empty-looking judgment. Markup is escaped with
+    the fallback writer's own rule (`escape_raw_html`), so both writers of the
+    pre-open page leave the same text inert (#2187).
     """
     value = (value or "").strip()
-    return value.replace("\n", " ").replace("<", "&lt;") if value else MISSING
+    return escape_raw_html(value).replace("\n", " ") if value else MISSING
 
 
 def table(headers, rows):
@@ -195,8 +198,8 @@ def _cell(value, *, trusted_markup=False):
     there adds a column to that one row, which is precisely the ragged-table
     failure this module exists to end.
     """
-    out = str(value).replace("|", "\\|").replace("\n", " ")
-    return out if trusted_markup else out.replace("<", "&lt;")
+    out = str(value) if trusted_markup else escape_raw_html(str(value))
+    return out.replace("|", "\\|").replace("\n", " ")
 
 
 def _inline(value):
@@ -209,10 +212,10 @@ def _inline(value):
     inline markdown would act on, so a headline can only ever be words. (Pipes
     are `entries`' job: it runs every value through `_cell`.)
     """
-    out = str(value).replace("\n", " ")
+    out = escape_raw_html(str(value)).replace("\n", " ")
     for char in ("\\", "`", "*", "_", "[", "]"):
         out = out.replace(char, "\\" + char)
-    return out.replace("<", "&lt;")
+    return out
 
 
 def _holdings(context, leg):
