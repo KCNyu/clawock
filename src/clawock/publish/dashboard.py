@@ -229,8 +229,12 @@ def compile_overview_projection(dashboard):
             # WeChat drop"; only the per-row flags can answer "which ones", and
             # the card is the only consumer that can show either (#771 made the
             # count exist in the summarizer — it never reached a reader).
+            # `trim_workflow_outcomes` has already dropped `stages` and lifted
+            # the two flags to the row, so read them there; reading `stages`
+            # alone wrote every slot as null (#2147).
             'primary_delivery': _fields(
-                (row.get('stages') or {}).get('primary_delivery'),
+                row.get('primary_delivery')
+                or (row.get('stages') or {}).get('primary_delivery'),
                 ('wechat_ok', 'telegram_ok')),
         }
         for row in workflow.get('recent') or [] if isinstance(row, dict)
