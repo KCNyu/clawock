@@ -150,3 +150,38 @@ def test_the_card_never_computes_the_numbers_it_shows():
         assert forbidden not in body, (
             f"renderAddSide grew its own arithmetic ({forbidden}); the numbers "
             "belong to the brief context and the run card")
+
+
+def test_a_proxy_priced_row_keeps_its_distance_and_can_be_the_nearest(monkeypatch, tmp_path):
+    """#2148: `add_side.read_rows` moves a proxy row's numbers to `proxy_*`
+    (#761 — RKLX's 20-day high is RKLB's). The projection read only the bare
+    keys, so RKLX -2.0% shipped as None and the Hero chip named CRCL -13.8% as
+    "nearest" while its own title named RKLX -2.0%."""
+    context = {"date": "2026-09-28", "opportunity": {
+        "counts": {"candidate": 0, "wait": 3, "reject": 0},
+        "rows": [
+            {"ticker": "CRCL", "verdict": "wait", "needs": "首档 ≤90.197",
+             "evidence": {"prior_20d_high": 103.28, "pct_from_high": -13.83}},
+            # The shape read_rows emits for a proxy row: only proxy_* keys.
+            {"ticker": "RKLX", "verdict": "wait", "needs": "RKLB 站上 75.46",
+             "evidence": {"proxy_label": "RKLB", "proxy_prior_20d_high": 75.46,
+                          "proxy_pct_from_high": -2.0, "proxy_close": 73.95}},
+            # A bare 0.0 is a real distance (at the high), not a missing one.
+            {"ticker": "ATHIGH", "verdict": "wait", "needs": "z 回落",
+             "evidence": {"prior_20d_high": 10.0, "pct_from_high": 0.0,
+                          "proxy_pct_from_high": -9.0}},
+        ],
+    }}
+    monkeypatch.setattr(dashboard, "_latest_brief_context",
+                        lambda: ("brief-context-2026-09-28.json", context))
+    add_side = dashboard.compute_add_side(shape_cards_dir=tmp_path)
+    by_ticker = {row["ticker"]: row for row in add_side["rows"]}
+
+    assert by_ticker["RKLX"]["pct_from_high"] == -2.0
+    assert by_ticker["RKLX"]["prior_20d_high"] == 75.46
+    assert by_ticker["ATHIGH"]["pct_from_high"] == 0.0
+
+    del context["opportunity"]["rows"][2]
+    add_side = dashboard.compute_add_side(shape_cards_dir=tmp_path)
+    closest = dashboard.compile_overview_projection({"add_side": add_side})["add_side"]["closest"]
+    assert closest["ticker"] == "RKLX" and closest["pct_from_high"] == -2.0

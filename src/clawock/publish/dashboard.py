@@ -1983,6 +1983,14 @@ def compute_add_side(shape_cards_dir=None):
             'blockers': list(row.get('blockers') or [])[:3],
         })
 
+    def level(evidence, key):
+        # A proxy-priced row (RKLX read off RKLB) carries its level only under
+        # `proxy_*` (#761 re-attributes the number to what it measures); the
+        # brief's own table reads both keys, so the projection must too — else
+        # the row lands with no distance and `closest` ranks it last (#2148).
+        value = evidence.get(key)
+        return value if value is not None else evidence.get(f'proxy_{key}')
+
     rows = []
     for row in (opportunity.get('rows') or [])[:8]:
         evidence = row.get('evidence') or {}
@@ -1991,8 +1999,8 @@ def compute_add_side(shape_cards_dir=None):
             'verdict': row.get('verdict'),
             'why': (row.get('why') or '')[:90],
             'needs': (row.get('needs') or '')[:70],
-            'prior_20d_high': evidence.get('prior_20d_high'),
-            'pct_from_high': evidence.get('pct_from_high'),
+            'prior_20d_high': level(evidence, 'prior_20d_high'),
+            'pct_from_high': level(evidence, 'pct_from_high'),
         })
 
     shapes = _latest_shape_study(shape_cards_dir)
