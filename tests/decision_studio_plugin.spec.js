@@ -3903,7 +3903,7 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
-  const openclaw = await import(pathToFileURL(path.join(PLUGIN, "lib", "openclaw.js")).href);
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
   const now = Date.now();
   const QUEUE = {
     available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
@@ -3969,7 +3969,7 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     render(); await tick(); await tick();
     find(render(), (p) => p["data-pp-row"] !== undefined)[0].props.onClick({ currentTarget: null });
     const popover = find(render(), (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
-    const reply = openclaw.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
+    const reply = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
 
     const rows = find(popover, (p) => p["data-tq-row"] !== undefined);
     assert.ok(rows.length >= 8, `the fixture fills the panel (${rows.length} rows)`);

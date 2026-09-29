@@ -2179,7 +2179,7 @@ function panelText(model, t) {
 	return out.join("\n");
 }
 //#endregion
-//#region src/openclaw.ts
+//#region src/chat.ts
 /**
 * OpenClaw entry: `/dispatch-list` prints the task chip's provider panel —
 * every provider's allowance, each agent's live tasks, what just ended,
@@ -2187,8 +2187,8 @@ function panelText(model, t) {
 * the dsh gateway (desk.ts), the same view model as the sidebar (panel.ts),
 * drawn as text (text.ts). Glue only: nothing about the panel is decided here.
 *
-* OpenClaw loads this package through `plugins.load.paths` (manifest:
-* openclaw.plugin.json; entry: package.json `openclaw.extensions`). A
+* OpenClaw loads this package through `plugins.load.paths` (the plugin manifest
+* beside package.json names the command; package.json lists this entry). A
 * registered command bypasses the model and answers only allowlisted senders.
 * Telegram's menu spells it /dispatch_list; OpenClaw matches `-` and `_` alike.
 *

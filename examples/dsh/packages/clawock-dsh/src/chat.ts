@@ -5,8 +5,8 @@
  * the dsh gateway (desk.ts), the same view model as the sidebar (panel.ts),
  * drawn as text (text.ts). Glue only: nothing about the panel is decided here.
  *
- * OpenClaw loads this package through `plugins.load.paths` (manifest:
- * openclaw.plugin.json; entry: package.json `openclaw.extensions`). A
+ * OpenClaw loads this package through `plugins.load.paths` (the plugin manifest
+ * beside package.json names the command; package.json lists this entry). A
  * registered command bypasses the model and answers only allowlisted senders.
  * Telegram's menu spells it /dispatch_list; OpenClaw matches `-` and `_` alike.
  *

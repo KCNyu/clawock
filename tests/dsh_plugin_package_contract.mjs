@@ -80,13 +80,13 @@ test('packed clawock-dsh installs standalone and every export entry imports', as
     //    the installed package with its manifest beside it, and registers its one command.
     //    OpenClaw imports it in the gateway process, where none of dsh's modules exist.
     await t.test('OpenClaw entry registers /dispatch-list', async () => {
-      assert.deepEqual(pkg.openclaw?.extensions, ['./lib/openclaw.js'])
+      assert.deepEqual(pkg.openclaw?.extensions, ['./lib/chat.js'])
       const manifest = JSON.parse(readFileSync(join(installed, 'openclaw.plugin.json'), 'utf8'))
       assert.ok(manifest.commandAliases.some((alias) => alias.name === 'dispatch-list'))
-      const src = readFileSync(join(installed, 'lib', 'openclaw.js'), 'utf8')
+      const src = readFileSync(join(installed, 'lib', 'chat.js'), 'utf8')
       assert.ok(!/@deepseek-ai\//.test(src), 'the OpenClaw entry must not import dsh modules')
       const commands = []
-      const mod = await import(pathToFileURL(join(installed, 'lib', 'openclaw.js')).href)
+      const mod = await import(pathToFileURL(join(installed, 'lib', 'chat.js')).href)
       mod.default({ registerCommand: (command) => { commands.push(command) } })
       assert.deepEqual(commands.map((command) => command.name), ['dispatch-list'])
     })

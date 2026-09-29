@@ -2,7 +2,7 @@
  * What feeds the task chip's provider panel, assembled once for every host that
  * shows it: the balance services in display order, and the task queue reader's
  * configuration. The dsh gateway (index.ts) serves these to the sidebar; the
- * OpenClaw `/dispatch-list` command (openclaw.ts) reads the same services in
+ * OpenClaw `/dispatch-list` command (chat.ts) reads the same services in
  * its own process. Neither host builds its own list of providers or paths.
  */
 import { join } from 'node:path'

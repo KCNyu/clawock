@@ -65,7 +65,7 @@
     "lib/balance.js",
     "lib/taskqueue.js",
     "lib/desk.js",
-    "lib/openclaw.js",
+    "lib/chat.js",
     "openclaw.plugin.json",
     "lib/scan.js",
     "lib/ledger.js",
@@ -91,7 +91,7 @@
   },
   "openclaw": {
     "extensions": [
-      "./lib/openclaw.js"
+      "./lib/chat.js"
     ]
   },
   "peerDependencies": {

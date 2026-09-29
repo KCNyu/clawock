@@ -253,8 +253,9 @@ def test_every_documented_driven_by_value_has_a_word_on_both_trace_cards():
     client = (PLUGIN_LEDGER.parent / "client.ts").read_text(encoding="utf-8")
     plugin_drv = dict(re.findall(r"(\w+): '(driver\.\w+)'",
                                  re.search(r"const DRV: Record<string, string> = \{(.*?)\n\}", client, re.S)[1]))
-    zh = client[client.index("  zh: {"):client.index("  en: {")]
-    en = client[client.index("  en: {"):]
+    copy = (PLUGIN_LEDGER.parent / "copy.ts").read_text(encoding="utf-8")  # the dictionaries' home
+    zh = copy[copy.index("  zh: {"):copy.index("  en: {")]
+    en = copy[copy.index("  en: {"):]
     words = dict(re.findall(r"'(driver\.\w+)': '([^']+)'", zh))
 
     assert sorted(documented - set(site_drv)) == [], "site trace card DRV"

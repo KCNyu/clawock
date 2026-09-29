@@ -496,7 +496,7 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 
 The same panel, as one chat message: this package is also an OpenClaw plugin
-(`openclaw.plugin.json`, entry `lib/openclaw.js`). Add the installed package directory to
+(`openclaw.plugin.json`, entry `lib/chat.js`). Add the installed package directory to
 OpenClaw's `plugins.load.paths` and restart the gateway; then `/dispatch-list` in WeChat or
 Telegram (whose menu spells it `/dispatch_list`) answers with every provider's allowance
 (window bars ▓░ with their resets), each agent's live tasks, what just ended with its receipts
