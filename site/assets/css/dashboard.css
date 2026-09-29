@@ -4378,7 +4378,7 @@
 }
 .tr-row summary::-webkit-details-marker { display: none; }
 @media (hover: hover) and (pointer: fine) {
-  .tr-row summary:hover { background: var(--fill-inset-2); }
+  .tr-row summary:hover { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); }
 }
 .tr-row summary:active { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); }
 .tr-row[open] summary { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); box-shadow: inset 3px 0 0 var(--accent); }
@@ -4424,7 +4424,7 @@
 /* 0fr collapses content but not the box's own padding (the 8-22 trap): the
    padding lives on an inner wrapper so a closed row reserves no height. */
 .tr-body { grid-column: 1 / -1; min-height: 0; overflow: hidden; padding: 0; }
-.tr-body-inner { padding: 4px 14px 12px; border-top: 1px solid var(--border); background: var(--fill-inset-2); }
+.tr-body-inner { padding: 4px 14px 12px; border-top: 1px solid var(--border); }
 .trace-line { position: relative; padding-left: 20px; margin: 8px 0 4px; }
 .trace-line::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
 .tr-node { position: relative; padding: 3px 0 10px; }
