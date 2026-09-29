@@ -350,7 +350,7 @@ def cmd_list(_args) -> dict:
 # ---- board: the whole queue for a chat message -----------------------------------------------
 # Read-only. The lock/queue/quota facts are `list`'s own (no second order rule); this only adds
 # what a person reading one message needs per task: its name, where it is, and how the recent
-# ones ended. Consumers: the OpenClaw `/dispatch-list` command (ops/host/openclaw-dispatch-list).
+# ones ended. Consumers: the OpenClaw `/dispatch-list` command (ops/host/dispatch-list-command).
 
 BOARD_RECENT_MAX = 20
 
