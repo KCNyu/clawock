@@ -7,19 +7,33 @@
 #     no PyPI) — the version then comes from package.json
 #
 # Usage:
-#   ops/publish/publish_dsh_plugin.sh [version]
-#     version   optional semver; when given, dsh-plugin/package.json is bumped
-#               to it before publishing (used by release.yml with the tag
-#               version). Without it, the current package.json version is
-#               published.
+#   ops/publish/publish_dsh_plugin.sh [--no-verify | --verify-only] [version]
+#     version        optional semver; when given, dsh-plugin/package.json is
+#                    bumped to it before publishing (used by release.yml with
+#                    the tag version). Without it, the current package.json
+#                    version is published.
+#     --no-verify    publish, but leave the registry readback to a separate
+#                    run (release.yml's npm-readback job).
+#     --verify-only  publish nothing; only compare what the registry serves for
+#                    this version against a fresh build of this tree.
+#   With neither flag (a human at a terminal) it publishes, then verifies.
 #
 # Env:
-#   NPM_TOKEN  required (or a userconfig with the registry auth token)
+#   NPM_TOKEN                required to publish (or a userconfig with the
+#                            registry auth token); not needed for --verify-only
+#   DSH_READBACK_TIMEOUT_S   how long the readback waits for the registry to
+#                            serve the version (default 900)
+#   DSH_READBACK_INTERVAL_S  pause between readback attempts (default 20)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PKG_DIR="$ROOT/examples/dsh/packages/clawock-dsh"
 
+mode=all
+case "${1:-}" in
+  --no-verify) mode=publish; shift ;;
+  --verify-only) mode=verify; shift ;;
+esac
 version="${1:-}"
 
 if [ -n "$version" ]; then
@@ -109,41 +123,79 @@ process.stdout.write(JSON.stringify(listed[0].files.map((f) => f.path).sort()));
 # when asked for it anywhere else — so a human running this script directly
 # (a documented path, see the header) must not pass the flag.
 provenance_args=()
-if [ "${GITHUB_ACTIONS:-}" = "true" ] && [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+if [ "$mode" = verify ]; then
+  : # nothing is published, so there is nothing to sign
+elif [ "${GITHUB_ACTIONS:-}" = "true" ] && [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
   echo "provenance: OIDC token available — publishing with --provenance"
   provenance_args+=(--provenance)
 else
   echo "provenance: no Actions OIDC token — publishing without provenance"
 fi
 
-(cd "$PKG_DIR" && npm publish --access public "${provenance_args[@]}")
-
 published="$(cd "$PKG_DIR" && node -p "require('./package.json').version")"
+
+if [ "$mode" != verify ]; then
+  # A re-run of a job whose publish already went through (the readback, or
+  # anything after it, failed) must not die on npm's "cannot publish over the
+  # previously published version": the version is burned either way, and the
+  # readback — not this step — is what proves the registry copy is this build.
+  on_registry="$(cd "$PKG_DIR" && { npm view "clawock-dsh@$published" version --prefer-online 2>/dev/null || true; })"
+  if [ "$on_registry" = "$published" ]; then
+    echo "clawock-dsh@$published is already on the registry — skipping npm publish (a re-run); the readback compares it to this build"
+  else
+    (cd "$PKG_DIR" && npm publish --access public "${provenance_args[@]}")
+  fi
+fi
+
+if [ "$mode" = publish ]; then
+  echo "clawock-dsh@$published published; the registry readback runs separately (--verify-only)"
+  exit 0
+fi
 
 # Publishing "succeeded" is not evidence that the registry now holds this code.
 # #712: npm's clawock-dsh@0.1.5 was a *different* build than the repo's 0.1.5 —
 # same version number, two sets of files — and nobody noticed until a consumer
 # installed a half-working plugin. So download what the registry actually
 # serves and compare it to what was just packed.
+#
+# How long to wait, and how to ask. 0.3.0 (2026-09-29) is why both changed:
+#   - the registry now accepts a publish before it serves it ("Your package is
+#     being processed and may take a few minutes to become available"): the
+#     PUT returned at 01:08:21Z, the packument's time for 0.3.0 is 01:10:59Z.
+#     0.1.9 and 0.2.0 were served within a second. The old budget (5 x 10s)
+#     gave up at 01:09:03 and turned a good publish red.
+#   - a plain `npm pack <spec>` never asked again anyway: the first miss stores
+#     the packument in npm's HTTP cache (`cache-control: max-age=300`), pacote
+#     does not revalidate on ETARGET, so attempts 2..5 read the same stale copy
+#     without touching the network. --prefer-online makes every attempt a
+#     registry request.
+#   - --silent hid npm's own reason (ETARGET) from the log; it is printed now.
 echo "--- verifying the published tarball ---"
 verify="$(mktemp -d)"
 trap 'rm -rf "$verify"' EXIT
+timeout_s="${DSH_READBACK_TIMEOUT_S:-900}"
+interval_s="${DSH_READBACK_INTERVAL_S:-20}"
+started=$SECONDS
 attempt=1
 while :; do
   set +e
   # --ignore-scripts: this is untrusted-by-construction downloaded content.
-  npm pack "clawock-dsh@$published" --pack-destination "$verify" --ignore-scripts --silent
+  out="$(npm pack "clawock-dsh@$published" --pack-destination "$verify" --ignore-scripts --prefer-online --loglevel=error 2>&1)"
   rc=$?
   set -e
   [ "$rc" -eq 0 ] && break
-  if [ "$attempt" -ge 5 ]; then
-    echo "could not download clawock-dsh@$published back from the registry (rc=$rc)" >&2
+  reason="$(printf '%s\n' "$out" | grep '^npm error' | head -n 2 | tr '\n' ' ' || true)"
+  waited=$((SECONDS - started))
+  if [ "$waited" -ge "$timeout_s" ]; then
+    printf '%s\n' "$out" >&2
+    echo "::error::the registry still does not serve clawock-dsh@$published after ${waited}s and $attempt attempts (rc=$rc): ${reason:-no npm error line}"
     exit "$rc"
   fi
-  echo "registry does not serve $published yet — retrying in 10s" >&2
+  echo "attempt $attempt (${waited}s): registry does not serve $published yet — ${reason:-rc=$rc}; retrying in ${interval_s}s" >&2
   attempt=$((attempt + 1))
-  sleep 10
+  sleep "$interval_s"
 done
+echo "  registry serves $published (attempt $attempt, $((SECONDS - started))s after the readback started)"
 tar -xzf "$verify/clawock-dsh-$published.tgz" -C "$verify"
 EXPECTED_FILES="$expected" node -e '
 const { readFileSync, existsSync } = require("node:fs");
