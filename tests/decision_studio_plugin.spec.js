@@ -3891,3 +3891,110 @@ test("queue and provider panel: state-coloured words clear 4.5:1, dots keep the 
     assert.match(css, new RegExp(`_tq-chip(?::is\\([^)]*)?\\[data-role=${role}\\][^{]*\\{[^}]*color:var\\(--tq-text-${text}\\)`), `${role} chip words in --tq-text-${text}`);
   }
 });
+
+// The OpenClaw `/dispatch-list` reply is the provider panel as text (src/text.ts over the
+// panel.ts model the sidebar draws). Its promise: for the same answers, the chat says
+// every row the panel shows, in the panel's order, with the panel's own words.
+test("openclaw /dispatch-list: the reply says every panel row, in order, in the panel's words", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const openclaw = await import(pathToFileURL(path.join(PLUGIN, "lib", "openclaw.js")).href);
+  const now = Date.now();
+  const QUEUE = {
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
+    slotLimits: [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
+    active: [
+      { id: "a-1", name: "source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "claude-1",
+        attempts: 2, stalls: 0, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
+      { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
+        attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false, position: 1 },
+    ],
+    recent: [{ id: "c-1", name: "merge-pr1767", agent: "codex", model: "gpt-6-sol", state: "ok", waiting: "", slot: "", attempts: 1,
+      outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false,
+      notify: ["weixin", "telegram"], notified: ["telegram"], notifyFailed: ["weixin"], tokensTotal: 1000, costUsd: "1.25" }],
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600000,
+      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE", seconds: 4090 }] },
+    queues: [{ agent: "claude", held: true, holder: "a-1", order: ["b-1"], holderNote: "", quotaUntilMs: null, quotaBy: "" }],
+  };
+  const remoteFace = {
+    balance: async () => ({ ok: true, value: BALANCES_OK }),
+    taskQueue: async () => ({ ok: true, value: QUEUE }),
+  };
+  const ctx = {
+    effect() {},
+    locale: { register() { return () => {}; } },
+    get() { return remoteFace; },
+    layout: { selectPanel() {} },
+    slots: {
+      inject(name, fn) { (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const foot = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
+  const face = foot.definition.inject();
+  const t = translatorFor(api);
+  const store = makeBalanceStoreStub();
+  const render = () => { reactStub._resetCursor(); return foot.Component({ wide: true, t, useStore: store.useStore, actions: store.actions, ...face }); };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join("");
+  };
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  try {
+    render(); await tick(); await tick();
+    find(render(), (p) => p["data-pp-row"] !== undefined)[0].props.onClick({ currentTarget: null });
+    const popover = find(render(), (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
+    const reply = openclaw.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
+
+    const rows = find(popover, (p) => p["data-tq-row"] !== undefined);
+    assert.ok(rows.length >= 8, `the fixture fills the panel (${rows.length} rows)`);
+    const cell = (row, cls) => texts(find(row, (p) => new RegExp(`_tq-${cls}$`).test(p.className || "")));
+    let at = 0;
+    for (const row of rows) {
+      const name = cell(row, "name");
+      const line = reply.findIndex((l, i) => i >= at && l.includes(name));
+      assert.ok(line >= 0, `${row.props["data-tq-row"]} "${name}" is in the reply after line ${at}:\n${reply.join("\n")}`);
+      for (const said of [cell(row, "value"), texts(find(row, (p) => p["data-tq-chip"] === "status"))]) {
+        if (said !== "") assert.ok(reply[line].includes(said), `"${said}" is on ${name}'s line: ${reply[line]}`);
+      }
+      for (const fact of find(row, (p) => p["data-tq-fact"] !== undefined && p["data-tq-fact"] !== "receipt")) {
+        assert.ok(reply[line].includes(texts(fact)), `${name}'s ${fact.props["data-tq-fact"]} "${texts(fact)}" is on its line: ${reply[line]}`);
+      }
+      at = line + 1;
+    }
+    // The allowance lines under a source head: every window's label, used share and reset.
+    for (const win of find(popover, (p) => /_bp-win$/.test(p.className || ""))) {
+      const [label, pct, reset] = ["label", "pct", "reset"].map((c) => texts(find(win, (p) => new RegExp(`_bp-win-${c}$`).test(p.className || ""))));
+      assert.ok(reply.some((l) => l.includes(label) && l.includes(pct) && l.includes(reset.replace("↻ ", "↻"))), `window ${label} ${pct} ${reset}`);
+    }
+    // Receipts: the panel's glyphs are words and marks here, one per channel.
+    assert.match(reply.find((l) => l.includes("merge-pr1767")), /微信✕ Telegram✓/);
+  } finally {
+    disposeReactEffects();
+  }
+});

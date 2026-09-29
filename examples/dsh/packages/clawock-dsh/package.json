@@ -64,6 +64,9 @@
     "lib/client.js",
     "lib/balance.js",
     "lib/taskqueue.js",
+    "lib/desk.js",
+    "lib/openclaw.js",
+    "openclaw.plugin.json",
     "lib/scan.js",
     "lib/ledger.js",
     "lib/freshness.js",
@@ -85,6 +88,11 @@
   "dependencies": {
     "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
     "zod": "^4.4.3"
+  },
+  "openclaw": {
+    "extensions": [
+      "./lib/openclaw.js"
+    ]
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1"

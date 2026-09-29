@@ -1,0 +1,18 @@
+{
+  "id": "clawock-dsh",
+  "name": "clawock task chip",
+  "description": "/dispatch-list: the dsh task chip's provider panel (allowances, the agent-dispatch queue, recent tasks, patrol) as a chat reply.",
+  "activation": {
+    "onStartup": true
+  },
+  "commandAliases": [
+    {
+      "name": "dispatch-list",
+      "kind": "runtime-slash"
+    }
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": true
+  }
+}

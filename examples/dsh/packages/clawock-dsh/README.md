@@ -493,6 +493,26 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。
 
+### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
+
+The same panel, as one chat message: this package is also an OpenClaw plugin
+(`openclaw.plugin.json`, entry `lib/openclaw.js`). Add the installed package directory to
+OpenClaw's `plugins.load.paths` and restart the gateway; then `/dispatch-list` in WeChat or
+Telegram (whose menu spells it `/dispatch_list`) answers with every provider's allowance
+(window bars ▓░ with their resets), each agent's live tasks, what just ended with its receipts
+and cost, patrol and the ops footer. `/dispatch-list refresh` bypasses the balance caches. It
+reads the same services the gateway does (`src/desk.ts`) and prints the same view model the
+sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say something the panel
+does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
+come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
+
+同一块面板的纯文本版:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
+`plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
+`/dispatch_list`)就回一条消息:各 provider 额度(窗口用 ▓░ 条和重置时刻)、各 agent 的进行中任务、
+最近结束(含送达回执与费用)、巡检和 ops 页脚;`/dispatch-list refresh` 绕过余额缓存。取数与 dsh
+网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
+spec 逐行比对两者。只读,调度仍在芯片上操作。
+
 ## 语言
 
 插件不自己写死文案:整个 bundle 只注册一个 `ctx.locale` 命名空间(`clawock`),

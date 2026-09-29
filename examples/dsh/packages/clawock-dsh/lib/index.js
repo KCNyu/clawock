@@ -1,9 +1,8 @@
-import { createBalanceService, createClaudeService, createCodexService, createMinimaxService } from "./balance.js";
+import { n as taskQueueConfig, t as createBalanceReader } from "./desk.js";
 import { getRun, listRuns } from "./scan.js";
 import { createQueueActionRunner, createTaskQueueService } from "./taskqueue.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
-import { join } from "node:path";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
 //#region src/index.ts
 /**
@@ -57,51 +56,6 @@ var __esDecorate = function(ctor, descriptorIn, decorators, contextIn, initializ
 	done = true;
 };
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd();
-/**
-* The providers the balance chip lists, in display order. Adding one is one
-* row here plus its service in balance.ts — the gateway method below iterates
-* this table instead of naming each provider in four places (#1480 had to
-* touch the service map, the Promise.all, the row list and the refresh min).
-*/
-const BALANCE_PROVIDERS = [
-	{
-		id: "deepseek",
-		label: "DeepSeek",
-		create: (deps, config) => createBalanceService(deps, {
-			baseUrl: config.balanceBaseUrl,
-			threshold: config.balanceThreshold,
-			refreshMs: config.balanceRefreshMs
-		})
-	},
-	{
-		id: "minimax",
-		label: "MiniMax",
-		create: (deps, config) => createMinimaxService(deps, {
-			baseUrl: config.minimaxBaseUrl,
-			keyRef: config.minimaxKeyRef,
-			lowPct: config.minimaxLowPct,
-			openclawConfigPath: config.minimaxOpenclawConfigPath
-		})
-	},
-	{
-		id: "claude",
-		label: "Claude",
-		create: (deps, config) => createClaudeService(deps, {
-			credentialsPath: config.claudeCredentialsPath,
-			usageUrl: config.claudeUsageUrl,
-			lowPct: config.claudeLowPct
-		})
-	},
-	{
-		id: "codex",
-		label: "Codex",
-		create: (deps, config) => createCodexService(deps, {
-			command: config.codexCommand,
-			lowPct: config.codexLowPct,
-			refreshMs: config.codexRefreshMs
-		})
-	}
-];
 let ClawockStudioGateway = (() => {
 	let _classSuper = TypertRemoteService;
 	let _instanceExtraInitializers = [];
@@ -251,7 +205,7 @@ let ClawockStudioGateway = (() => {
 		* like tracesCache, and constructed here rather than in the constructor so
 		* the gateway constructor keeps the exact super(ctx, serviceKey) shape.
 		*/
-		balanceServices = null;
+		balanceReader = null;
 		/** The task chip's reader, lazily built and instance-scoped like the balance services. */
 		taskQueueService = null;
 		/** The task chip's write door (the ops entry), built with the reader. */
@@ -321,20 +275,8 @@ let ClawockStudioGateway = (() => {
 		* @param force - bypass the TTL caches (the manual refresh button).
 		*/
 		async balance(force) {
-			if (this.balanceServices === null) {
-				const deps = { credentials: credentialsOf(this.ctx) };
-				this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, this.config));
-			}
-			const services = this.balanceServices;
-			const results = await Promise.all(services.map((service) => service.get(force)));
-			return {
-				providers: BALANCE_PROVIDERS.map((provider, i) => ({
-					provider: provider.id,
-					label: provider.label,
-					result: results[i]
-				})),
-				refreshMs: Math.min(...results.map((result) => result.refreshMs))
-			};
+			if (this.balanceReader === null) this.balanceReader = createBalanceReader(credentialsOf(this.ctx), this.config);
+			return this.balanceReader.get(force);
 		}
 		/**
 		* The sidebar-foot task chip: live agent-dispatch tasks and what each waits
@@ -362,15 +304,7 @@ let ClawockStudioGateway = (() => {
 		}
 		queueServices() {
 			if (this.taskQueueService === null || this.queueActionRunner === null) {
-				const config = {
-					logDir: this.config.dispatchLogDir,
-					limitsPath: this.config.dispatchLimitsPath,
-					patrolDir: this.config.patrolStateDir,
-					refreshMs: this.config.taskQueueRefreshMs,
-					recent: this.config.taskQueueRecent,
-					opsPath: this.config.taskQueueOpsPath,
-					repoOpsPath: join(workspaceOf(), "ops", "host", "task_queue_ops.py")
-				};
+				const config = taskQueueConfig(this.config, workspaceOf());
 				const reader = createTaskQueueService(config);
 				this.taskQueueService = reader;
 				this.queueActionRunner = createQueueActionRunner(config, void 0, () => {

@@ -16,8 +16,12 @@ export default defineConfig({
     freshness: 'src/freshness.ts',
     balance: 'src/balance.ts',
     taskqueue: 'src/taskqueue.ts',
+    openclaw: 'src/openclaw.ts',
   },
   outDir: 'lib',
+  // Modules two entries share (desk.ts: index + openclaw) become chunks; a stable name keeps
+  // package.json `files` and the committed lib/ from changing with a content hash.
+  outputOptions: { chunkFileNames: '[name].js' },
   format: ['esm'],
   platform: 'node',
   target: 'es2024',
