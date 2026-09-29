@@ -99,10 +99,11 @@
   `examples/claude-code/CLAUDE.md`、`examples/codex/AGENTS.md` 各自示范
   `clawock record --source openclaw|claude|codex` 同一条命令 —— 一个账本、
   一个命令、每个 harness 都调它。
-- **校验路由**(ledger.py `validate_decision`):`schema_version == 0` **且**
-  `source == "conversation"` 的行路由到 `validate_mind_record`;v2 计划行
-  走原校验器。两个条件缺一不可——当前其它 `source` 的 v0 行不会走
-  mind 校验,而是落入 v2 校验器。
+- **校验路由**(ledger.py `validate_decision`):只看 `schema_version == 0`
+  —— v0 行一律路由到 `validate_mind_record`,不论 `source` 是
+  `conversation / openclaw / claude / codex / cli` 中的哪一个(`source` 的合法值
+  由 mind 校验自己检查);v2 计划行走原校验器。`schema_version` 0 专属心智记录,
+  所以不需要再用 `source` 区分。
 - **落点**:`<workspace>/memory/decisions.jsonl`,v0 心智记录与 v2 计划行
   共存于同一文件(ledger.py `LEDGER`)。
 
