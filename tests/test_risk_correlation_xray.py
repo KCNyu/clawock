@@ -216,6 +216,27 @@ def test_a_holding_with_no_price_history_is_listed_not_dropped_in_silence():
 
     assert out["excluded_no_history"] == ["GONE"]
     assert out["effective_bets"] is not None
+    # #2170: GONE is still in the book, so the x-ray covers 2000 of 2500.
+    assert out["covered_weight_pct"] == pytest.approx(80.0, abs=0.05)
+
+
+def test_cluster_weight_is_a_share_of_the_whole_book_not_of_what_was_priced():
+    """#2170: an unpriced holding used to vanish from the denominator, so a
+    56% cluster read as 100% of the book and passed the 80% coverage gate."""
+    base = _walk(22)
+    out = _xray(
+        us=[_holding("AAA", 2000), _holding("BBB", 2000), _holding("GONE", 3100)],
+        series={"AAA": _series(base), "BBB": _series([1.01 * r for r in base])},
+    )
+
+    assert out["covered_weight_pct"] == pytest.approx(100 * 4000 / 7100, abs=0.05)
+    biggest = out["clusters"][0]
+    assert set(biggest["tickers"]) == {"AAA", "BBB"}
+    assert biggest["weight_pct"] == pytest.approx(100 * 4000 / 7100, abs=0.05)
+    assert out["top_pairs"][0]["combined_weight_pct"] == pytest.approx(
+        100 * 4000 / 7100, abs=0.05)
+    assert not [a for a in risk._correlation_alerts(out)
+                if a["type"] == "correlated_cluster"]
 
 
 def test_every_published_number_survives_a_strict_json_writer():

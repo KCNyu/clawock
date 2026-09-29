@@ -527,25 +527,30 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             workflow_outcomes.note_degradation(
                 None, 'debate_frames_off_menu',
                 f"{len(dropped_frames)} debate frame(s) outside STRATEGY_FRAMES "
-                f"were discarded: " + ', '.join(sorted(set(dropped_frames))[:5]))
+                f"were discarded: " + ', '.join(sorted(set(dropped_frames))[:5]),
+                group='off_menu')
         dropped_evidence = _dropped_debate_evidence(authored)
         if dropped_evidence:
             # These values are gone before context resolution, so the prune
             # below cannot observe them. Keep the same public degradation kind:
             # both are citations the published debate cannot substantiate.
+            # The detail names this morning's refs; `group` keeps one row per
+            # mechanism so its count reads as a rate (#2172).
             workflow_outcomes.note_degradation(
                 None, 'debate_citation_unresolved',
                 f"{len(dropped_evidence)} debate evidence ref(s) were invalid, "
                 f"duplicate, or above the {decision_v2.DEBATE_EVIDENCE_MAX}-ref "
                 f"cap and were discarded: "
-                + ', '.join(dropped_evidence[:5]))
+                + ', '.join(dropped_evidence[:5]),
+                group='discarded_before_resolution')
         normalized, dropped_citations = prune_debate_citations(normalized, context)
         if dropped_citations:
             workflow_outcomes.note_degradation(
                 None, 'debate_citation_unresolved',
                 f"{len(dropped_citations)} debate evidence ref(s) matched "
                 f"nothing in this generation's context: "
-                + ', '.join(dropped_citations[:5]))
+                + ', '.join(dropped_citations[:5]),
+                group='unmatched_in_context')
         if write and normalized != authored:
             # Atomic write: this process is SIGTERM-prone (60s exec timeout,
             # #508/#765) and a torn plan.json would fail every downstream

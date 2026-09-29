@@ -951,6 +951,24 @@ def test_a_repeated_degradation_counts_rather_than_floods(tmp_path, monkeypatch)
     assert rows[0]["first_at"] and rows[0]["last_at"]
 
 
+def test_a_grouped_degradation_counts_across_changing_details(tmp_path, monkeypatch):
+    """#2172: a detail carrying this morning's decision ids must not open a new
+    count-1 row every day; the stable group aggregates, the latest detail stays."""
+    _isolate(tmp_path, monkeypatch)
+    ledger = outcomes._empty()
+    for ref in ("dec-20260901-07226-cut:risk:hard_stop:07226",
+                "dec-637d8fe32375:risk:hard_stop:07226"):
+        outcomes.note_degradation(ledger, "debate_citation_unresolved",
+                                  f"1 ref matched nothing: {ref}",
+                                  group="unmatched_in_context")
+    outcomes.note_degradation(ledger, "debate_citation_unresolved", "other",
+                              group="discarded_before_resolution")
+    rows = ledger[outcomes.DEGRADATIONS_KEY]
+    assert [(row["group"], row["count"]) for row in rows] == [
+        ("unmatched_in_context", 2), ("discarded_before_resolution", 1)]
+    assert rows[0]["detail"].endswith("dec-637d8fe32375:risk:hard_stop:07226")
+
+
 def test_degradations_ride_into_the_published_copy(tmp_path, monkeypatch):
     """stderr reaches no gate; `logs/watchdog.jsonl` is not read either.
 

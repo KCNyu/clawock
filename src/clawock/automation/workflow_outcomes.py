@@ -177,12 +177,17 @@ DEGRADATIONS_KEY = "degradations"
 MAX_DEGRADATIONS = 20
 
 
-def note_degradation(ledger, kind, detail, *, at=None):
+def note_degradation(ledger, kind, detail, *, at=None, group=None):
     """Record, in the ledger, that this ledger could not be trusted somewhere.
 
     Mutates and returns `ledger` so a caller that is already holding it under
     the lock writes the note in the same atomic write as its own change; a
     caller with no ledger to hand passes None and gets a standalone record.
+
+    Rows aggregate on (kind, group), and `group` defaults to `detail`. A caller
+    whose detail carries this occurrence's ids passes a stable `group`, or every
+    occurrence writes a new count-1 row and the class floods the 20-row ring;
+    the row keeps the latest detail for diagnosis (#2172).
     """
     standalone = ledger is None
     if standalone:
@@ -195,14 +200,20 @@ def note_degradation(ledger, kind, detail, *, at=None):
     if not isinstance(rows, list):
         rows = []
     now = _now(at).isoformat()
+    key = str(detail) if group is None else str(group)
     for row in rows:
-        if row.get("kind") == kind and row.get("detail") == str(detail):
+        if (row.get("kind") == kind
+                and row.get("group", row.get("detail")) == key):
             row["count"] = int(row.get("count") or 0) + 1
             row["last_at"] = now
+            row["detail"] = str(detail)
             break
     else:
-        rows.append({"kind": kind, "detail": str(detail), "count": 1,
-                     "first_at": now, "last_at": now})
+        row = {"kind": kind, "detail": str(detail), "count": 1,
+               "first_at": now, "last_at": now}
+        if group is not None:
+            row["group"] = key
+        rows.append(row)
     # Newest last, oldest evicted: a chain that is failing now matters more than
     # one that failed three days ago and has not recurred.
     ledger[DEGRADATIONS_KEY] = rows[-MAX_DEGRADATIONS:]

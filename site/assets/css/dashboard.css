@@ -401,7 +401,11 @@
     /* The site menu is a glass surface too, and it is the one that sits ON TOP
        of other content: with the blur left on it would be a translucent sheet
        over the cards with nothing to justify the see-through. */
-    body .site-menu-panel {
+    body .site-menu-panel,
+    /* Same family (#2174): the decision-map drawer and the equity tooltip both
+       float over rows and chart lines that would show through the sheet. */
+    body .dm-drawer,
+    body .native-equity-tooltip {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -421,6 +425,7 @@
     body .card.verdict-deck .deck-card { background: var(--surface-1); }
     body .overview-strip { background: var(--surface-1); }
     body .site-menu-panel { background: var(--surface-1); }
+    body .dm-drawer, body .native-equity-tooltip { background: var(--surface-1); }
     /* 判定牌自画光池（2026-08-25 第五次迭代起）同属「光穿过材质」，实色
        表面上一并关掉 —— 本块注释自己的判据，v1 漏了这条。 */
     body .verdict-deck .deck-card::before { display: none; }

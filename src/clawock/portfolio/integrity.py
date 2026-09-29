@@ -23,6 +23,8 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   COST_MISSING   活跃持仓 cost_basis 有数值（漏填会让成本/盈亏静默缺项）  ERROR
   SHARES_MISSING 每行 shares 有数值（缺失既不算活跃也不算清仓，逐只与
                  总额闸全部跳过它）                                      ERROR
+  SHARES_INVALID 每行 shares 是非负的 JSON 数字（负数同样被合计跳过；
+                 数字字符串/布尔会让下游裸比较崩掉）                    ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
   TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
@@ -501,12 +503,24 @@ def check(portfolio_path=PORTFOLIO):
         # A row without a numeric share count is neither active (> 0) nor
         # closed (== 0), so every check above and below skips it and the book
         # totals silently leave it out. Missing is not zero (#1636).
+        # A negative count lands in the same skip (the book models no shorts),
+        # and a numeric string or bool passes float() here but not the raw
+        # comparisons downstream consumers make (#2173).
         for h in holdings:
-            if _num(h.get('shares')) is None:
-                t = h.get('ticker')
+            raw_shares = h.get('shares')
+            t = h.get('ticker')
+            if _num(raw_shares) is None:
                 add('SHARES_MISSING', 'ERROR',
-                    f'{t} shares 缺失或非数字（{h.get("shares")!r}）：既不算活跃也不算清仓，'
+                    f'{t} shares 缺失或非数字（{raw_shares!r}）：既不算活跃也不算清仓，'
                     f'逐只与总额闸都跳过了它；请补回股数', region, t)
+            elif isinstance(raw_shares, bool) or not isinstance(raw_shares, (int, float)):
+                add('SHARES_INVALID', 'ERROR',
+                    f'{t} shares={raw_shares!r} 不是 JSON 数字：下游按原值比较会崩；'
+                    f'请写成数字', region, t)
+            elif raw_shares < 0:
+                add('SHARES_INVALID', 'ERROR',
+                    f'{t} shares={raw_shares:g} 为负：账本不建模空头，它既不算活跃也不算清仓，'
+                    f'逐只与总额闸都跳过了它；请核对股数', region, t)
 
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}
@@ -715,10 +729,13 @@ def check(portfolio_path=PORTFOLIO):
                     # A logged deposit/withdrawal after the last snapshot legitimately
                     # moves cash — subtract it so a *confirmed* move doesn't read as a
                     # fat-finger. An unlogged digit typo still trips the ratio gate.
+                    # `cash_adjustments` is hand-entered: a present-but-null date must
+                    # read as undated (same as math.derive_cash), not raise — a raise
+                    # here takes every other gate down with it (#2171).
                     adj_since = sum(
                         _num(a.get('amount')) or 0
                         for a in port.get('cash_adjustments', []) or []
-                        if a.get('date', '') > (prev_date or ''))
+                        if (a.get('date') or '') > (prev_date or ''))
                     base = cash - adj_since
                     if base > 0:
                         ratio = base / prev
