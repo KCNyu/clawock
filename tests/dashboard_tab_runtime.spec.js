@@ -480,6 +480,42 @@ async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
   await context.close();
 }
 
+async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
+  // #2189: both readers ignored the status the producers write. The radar
+  // blamed a source that fails from CI every run, and the brief card kept
+  // its static copy while its date moved to a day with no valid judgment.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name === "influencer_feed.json") {
+        return { ...json, items: [], llm_filtered: false,
+                 llm_filter_status: "failed_kept_previous",
+                 counts: { total: 0, held_hits: 0, new_ideas: 0, sector_hits: 0 } };
+      }
+      if (name === "brief_projection.json") {
+        return { ...json, judgment_status: "invalid", portfolio_judgment: null };
+      }
+      return null;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForFunction(() =>
+    document.getElementById("latest-brief-link")?.getAttribute("href")?.startsWith("memory/"));
+  const summary = (await page.locator("#latest-brief-summary").textContent()).trim();
+  assert(summary.includes("未通过校验"),
+    `brief card kept its fallback copy for an invalid judgment: ${summary}`);
+
+  await clickTab(page, "market");
+  await waitForTab(page, "market");
+  await page.waitForFunction(() =>
+    document.querySelector("#infl-feed .empty-state")?.textContent.trim());
+  const empty = (await page.locator("#infl-feed .empty-state").textContent()).trim();
+  assert(empty.includes("LLM 相关性筛选本轮失败"),
+    `influencer radar did not say its filter failed: ${empty}`);
+  await page.close();
+}
+
 async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
@@ -3458,6 +3494,7 @@ async function main() {
     await run("testEveryAddCampaignRowStartsOnTheSameLine", () => testEveryAddCampaignRowStartsOnTheSameLine(browser, base));
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
+    await run("testAnEmptyRadarAndBriefCardSayWhatFailed", () => testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));

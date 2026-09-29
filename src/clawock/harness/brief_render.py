@@ -828,11 +828,19 @@ def sentiment_section(context, judgment):
 def influencer_section(context):
     influencer = context.get("influencer") or {}
     counts = influencer.get("counts") or {}
+    # A quiet day may drop the section; a failed relevance filter may not, or
+    # the reader cannot tell the two apart (#2189).
+    filter_failed = influencer.get("llm_filter_status") == "failed_kept_previous"
+    heading = f"### 名人异动 / 政策风向（{num(influencer.get('age_hours'), 1)}h 前）"
     if not counts.get("total"):
+        if filter_failed:
+            return "\n".join([heading, "", "⚠️ LLM 相关性筛选本轮失败，未发布未评分条目。"])
         return ""
-    out = [f"### 名人异动 / 政策风向（{num(influencer.get('age_hours'), 1)}h 前）", "",
+    out = [heading, "",
            f"撞持仓 **{counts.get('held_hits', 0)}** · 新机会 {counts.get('new_ideas', 0)}"
            f" · 板块相关 {counts.get('sector_hits', 0)}", ""]
+    if filter_failed:
+        out[2:2] = ["⚠️ LLM 相关性筛选本轮失败，以下为上一轮保留的已评分条目。", ""]
     for bucket, label in (("held_hits", "撞持仓"), ("new_ideas", "新机会"),
                           ("sector_hits", "板块相关")):
         for row in (influencer.get(bucket) or [])[:3]:
