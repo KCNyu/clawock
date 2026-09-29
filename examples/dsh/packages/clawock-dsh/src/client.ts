@@ -501,6 +501,14 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+/**
+ * The host answered, but read no ledger. `readPortfolio` reports a missing or
+ * unparseable portfolio.json as an empty book with `lastUpdated: null`, and
+ * every ledger writer stamps `last_updated`, so a null there is "could not
+ * read", not "no fills" — which the tab used to print as $0 and 0/0 (#2180).
+ */
+class LedgerUnreadable extends Error {}
+
 function todayIso(): string {
   const now = new Date()
   return now.getFullYear()
@@ -2097,7 +2105,10 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     }, (error: unknown) => {
       if (!alive) return
       if (props.cachedTraces() !== null) setData((current) => ({ ...current, stale: true }))
-      else setData({ trades: [], rate: null, loading: false, error: messageOf(error), stale: false })
+      else {
+        const message = error instanceof LedgerUnreadable ? t('trace.unreadable') : messageOf(error)
+        setData({ trades: [], rate: null, loading: false, error: message, stale: false })
+      }
     })
     return () => { alive = false }
   }, [props.sessionId])
@@ -2364,6 +2375,8 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     cachedTraces: () => cached,
     fetchTraces: async () => {
       const result = await call<TracesResult>('traces')
+      // Not cached: a later mount retries instead of replaying the empty book.
+      if (result.lastUpdated === null) throw new LedgerUnreadable('portfolio.json unreadable')
       const snapshot: TraceSnapshot = {
         workspaceKey: result.workspaceKey,
         signature: result.signature,

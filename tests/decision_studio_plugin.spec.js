@@ -839,6 +839,48 @@ test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#
   assert.equal(api.t1ChipTone, undefined, "the client-side chip threshold helper must be gone (#713)");
 });
 
+test("client: an unreadable workspace says so instead of printing a $0 ledger (#2180)", async () => {
+  const loaded = await loadClient();
+  const react = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return react;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  // What readTraces answers when portfolio.json is missing or does not parse.
+  const remoteFace = {
+    traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig0", trades: [], rate: null, rateSource: null, lastUpdated: null } }),
+  };
+  const ctx = {
+    effect() {},
+    locale: { register() { return () => {}; } },
+    get() { return remoteFace; },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const reg = ctx.slots._regs.find((r) => r.definition.id === "decision-studio");
+  const injected = reg.definition.inject("s1");
+  const store = makeStoreStub();
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => reg.Component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  render();
+  await tick(); await tick(); await tick();
+  react._resetCursor(); // same state slots, as a real re-render
+  const text = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { text.push(node); return; }
+    (node.children || []).forEach(walk);
+  })(render());
+  const joined = text.join(" ");
+  assert.match(joined, /读不到工作区的 portfolio\.json/);
+  assert.doesNotMatch(joined, /\$0|没有符合条件的成交/);
+  assert.equal(injected.cachedTraces(), null, "an unread ledger must not be cached as an empty one");
+});
+
 test("client: trace list batches older days behind 'show earlier' and folds by day", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {

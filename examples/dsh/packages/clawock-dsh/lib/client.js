@@ -6458,6 +6458,7 @@ const dictionaries = {
 		"trace.title": "决策轨迹",
 		"trace.subtitle": "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果",
 		"trace.staleSuffix": " · 更新失败,显示此前快照",
+		"trace.unreadable": "读不到工作区的 portfolio.json(CLAWOCK_WORKSPACE 未指向 clawock 工作区,或账本无法解析),不是没有成交",
 		"trace.titleWithPlan": "决策轨迹 · {date}",
 		"trace.titleNoPlan": "决策轨迹 · 无当日计划",
 		"trace.planThen": "当时的计划",
@@ -6859,6 +6860,7 @@ const dictionaries = {
 		"trace.title": "Decision trace",
 		"trace.subtitle": "A real fill + the plan written at the time + the official close",
 		"trace.staleSuffix": " · refresh failed, showing the previous snapshot",
+		"trace.unreadable": "Could not read the workspace's portfolio.json (CLAWOCK_WORKSPACE does not point at a clawock workspace, or the ledger does not parse) — this is not an empty ledger",
 		"trace.titleWithPlan": "Decision trace · {date}",
 		"trace.titleNoPlan": "Decision trace · no plan that day",
 		"trace.planThen": "The plan at the time",
@@ -8895,6 +8897,13 @@ function SkeletonRow() {
 function messageOf(error) {
 	return error instanceof Error ? error.message : String(error);
 }
+/**
+* The host answered, but read no ledger. `readPortfolio` reports a missing or
+* unparseable portfolio.json as an empty book with `lastUpdated: null`, and
+* every ledger writer stamps `last_updated`, so a null there is "could not
+* read", not "no fills" — which the tab used to print as $0 and 0/0 (#2180).
+*/
+var LedgerUnreadable = class extends Error {};
 function todayIso() {
 	const now = /* @__PURE__ */ new Date();
 	return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
@@ -11023,13 +11032,16 @@ function DecisionMind(props) {
 				...current,
 				stale: true
 			}));
-			else setData({
-				trades: [],
-				rate: null,
-				loading: false,
-				error: messageOf(error),
-				stale: false
-			});
+			else {
+				const message = error instanceof LedgerUnreadable ? t("trace.unreadable") : messageOf(error);
+				setData({
+					trades: [],
+					rate: null,
+					loading: false,
+					error: message,
+					stale: false
+				});
+			}
 		});
 		return () => {
 			alive = false;
@@ -11205,6 +11217,7 @@ async function apply(ctx) {
 		cachedTraces: () => cached,
 		fetchTraces: async () => {
 			const result = await call("traces");
+			if (result.lastUpdated === null) throw new LedgerUnreadable("portfolio.json unreadable");
 			const snapshot = {
 				workspaceKey: result.workspaceKey,
 				signature: result.signature,
