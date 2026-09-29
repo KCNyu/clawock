@@ -1,0 +1,19 @@
+{
+  "id": "clawock-dispatch-list",
+  "name": "Dispatch list",
+  "description": "/dispatch-list: the agent-dispatch queue of this host (task_queue_ops.py board) as a chat reply.",
+  "activation": {
+    "onStartup": true
+  },
+  "commandAliases": [
+    {
+      "name": "dispatch-list",
+      "kind": "runtime-slash"
+    }
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
