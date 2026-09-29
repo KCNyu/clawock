@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T01:09:36.561811+00:00",
+  "generated_at": "2026-09-29T01:19:08.231564+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -90,7 +90,7 @@
       "google_news_en": [
         {
           "title": "Discipline and Rules-Based Execution in RKLX Response",
-          "source": "Stock Traders Daily",
+          "source": "news.stocktradersdaily.com",
           "published": "Mon, 28 Sep 2026 08:40:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOaldMaXVPN3pYWjNoV2pBMXVzVDB2V21aQVBrV204VDNBUXBSLXYzRFA5Z2ktNXpMay1UMENzeTYxYWEwWUhYRU1kckhVQktvZjc1WVZTNUZScWwyZHJBYmtCWDhDRUhxRHhKeThZaWhIRVhGYlJ0QTl4OEQxZ2Z2TWVtbDRSaEx1d0tGNkJWTTc5Z29iOXh4RG9kNDZzX09LV2lUWFFCc0VCdEVFbTVLclJkREYyRFlzbE53c2hORjV1SmRtNUpKRmtXZFQ2QQ?oc=5"
         },
@@ -173,7 +173,7 @@
       "google_news_en": [
         {
           "title": "$1,000 invested in SpaceX stock 2 months ago is now worth",
-          "source": "Finbold",
+          "source": "finbold.com",
           "published": "Sun, 27 Sep 2026 08:22:24 GMT",
           "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNbFhrR1JQNGEwcFM5S1Fmelp1clJtSk5nSE5Ta0o4ckFhT0p1MWVfWXZucHNfa2p4Qi0zRXJEWm9KblM2clhIMmw4V3pZVnRjZHNOZjFpdllUendxZkhPUmVQV0hMQ0s4ZzhPS1N2ZDZGbzJuQkU5RmdGclNoeFVka1ln?oc=5"
         },
@@ -191,7 +191,7 @@
         },
         {
           "title": "Wall Street sets SPCX stock price for next 12 months",
-          "source": "Finbold",
+          "source": "finbold.com",
           "published": "Mon, 28 Sep 2026 14:16:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9HWTJwMmNHSmh3Y21zckZfVlFoRUFRTkhyMDBvRnZBNzNmalNtY3FhaURpak55LW5JRTY2dkRiX2otVTVkV3lMWXJVN184Z3Y2a2hkbllqNXF4YmcxaTNGOGQ2VUdtWDR4d1hiOTJrMHRsaDRJbVpHVnMtdHJ4UQ?oc=5"
         },
@@ -256,7 +256,7 @@
       "google_news_en": [
         {
           "title": "(SPCH) Movement as an Input in Quant Signal Sets",
-          "source": "Stock Traders Daily",
+          "source": "news.stocktradersdaily.com",
           "published": "Mon, 28 Sep 2026 11:50:13 GMT",
           "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNRmVkS0dfeVRoQjFLdmJfUzVqQ1Jmem83dzVkZHRFVk9hTmxJME1IdTJvNHRYOXZjdExvUjVBR2FiREVZYU5UX04wUWNmVExRQVhtUENDM25oYjBUMnBJRVMxMmI0NmVzZXZQTmJOTWVKanN0Z0stSHlhOEtDTDhsOWZwVjdhR1JZTFBrY3hQOXB4V0xGVk5aRGdMRW1SX29iTmxwS1IxVDNnUkFVUlIwM1RGOFc5aDBmOVg0VktDSG9iU2xRcGc?oc=5"
         },
@@ -344,6 +344,12 @@
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1WTnRxU25fdlhvYkkxREpBSmZmbjhWQWxvRjhxeFh1S0dHLU10TWt1MHFhY0FXSm95STZjSHNTbTVMc2dGOFFPX2tGcEd6V2ZTSXlTNW9xT3pKN0VTR2VTZTRYTUc1QUtaN2JJUlR5Ni0?oc=5"
         },
         {
+          "title": "神祕「太空兔」搶佔全球模型調用榜榜首！網友推測其為MiniMax新模型",
+          "source": "hstong.com",
+          "published": "Mon, 28 Sep 2026 10:46:35 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE4wMmFlUTAwbDV6SVJHc0hkb0dNNnJ3aHQ0ZUJRR3NLR1BsM2tiSkFKbHZvTEU4TEhGSXl1Ry1Ea1NuZE5RVkRMdWR2Y2FCRVQ4RFJobG1kUmlSVjBhczNkTUJ1d3RKQQ?oc=5"
+        },
+        {
           "title": "港股大模型板塊走低，MINIMAX-W(00100.HK)跌超10%，智譜(02513.H",
           "source": "富途牛牛",
           "published": "Sat, 26 Sep 2026 13:09:00 GMT",
@@ -360,12 +366,6 @@
           "source": "財華網",
           "published": "Mon, 13 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE0xcGdJcThUdUJ1bnZ6Y3VVb2x4cTRZUXRPMTVRYkhMSHNKSkFiSnpJb3d1eDIxdDFKX0E5SFoxVmF1RlJ1cGg1d2RHTGpYQ3ZudG5qOWI4YnJXekxCbHFyLWF4QnprcHJDVlNFRWQxN25PUjdmMGpZRQ?oc=5"
-        },
-        {
-          "title": "0100 MINIMAX-W技術分析｜移動平均線與技術指標解讀",
-          "source": "SL886 財經網",
-          "published": "Wed, 31 Dec 2025 03:13:25 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE9SU0ZEQ1l3VGU1SW5WTjVvMkdBdmVTUFdHTm5nU0J0Vml4dTFjU01oS1cxajZGWTdkR2MwRjJmMWw1UGRDUFY5MnM3Yw?oc=5"
         }
       ]
     },
@@ -382,16 +382,16 @@
       ],
       "google_news_en": [
         {
+          "title": "Zhitong Statistics on Significant Changes in Hong Kong Stock Connect Holdings | August 28",
+          "source": "Moomoo",
+          "published": "Thu, 27 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxOWHNia2R4Wlg4em5WOFdCRS1JR216OGI5cDBDQTM1UDNMNmFmSlZWdS13cnQ0ajFrQkhmd3FaRFlCWGZQOHk5cFVFUG1RbzdleG03aUpuV2hiX0Q4RHpMVmJFWDBWdGFuel9MS0t6d0hHemJRcG1icmZMQVJMOFJEcmh2YU4tYjFvWWhzLTRpV1hYcHhrVFJTR2FkZ2kzUFk1VFBGb3NhZWgxZDB6YWU4?oc=5"
+        },
+        {
           "title": "Goldwind Science&Technology Co., Ltd. (2208.HK) stock price, news, quote and history",
           "source": "Yahoo Finance Singapore",
           "published": "Sun, 11 Jun 2017 23:29:37 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9yOGxiRExQZUwzQ21ISm50QW1TaTZNQzdfalE3VFlNQmh1SmpQVjU2VzlVYzU2VjZFWWFZMTdYZ1FBWTV6bGx5YmsteExQRDZINGxxN3l3?oc=5"
-        },
-        {
-          "title": "Hong Kong-listed wind power stocks bucked the market trend and strengthened, with nearly a year of significant results from industry self-discipline in combating 'internal competition.'",
-          "source": "Moomoo",
-          "published": "Fri, 26 Sep 2025 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPd1B4Ry1TWldQZWVtUTFtRjlDZEh2YVFTNFVrU21FaENXbkZqSWJVRHlESXBtckpQeERscDlqcUc1THk2N2s5R0VOdE9vOGlKS0pGcUdhSENuZnlPNTFpU2RQNFdKT2V6akJwWVpMQldLeWRtQ3RvTkRFWk1udElYU2Y5aTNRdnh4bG1vanQ5QVV5ZmIydEFXLUVYT09IQTYtWEE?oc=5"
         },
         {
           "title": "Zhitong HK Stock Short Interest Statistics | September 18",
@@ -400,16 +400,16 @@
           "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQekttTHFBcE9IdnpseWktd3h5ZjdmYU5aejRrbk9Uc0QzYXBoZGg3VDJobEVkTDdnMXl4b3FlQUhQMWljdWJJeEM2REpTRjRHT1hZRE1Zd3Y4Zlp6YmZUNG5nbVVteGxQWjF6QzM1WENwS0lTNVJINTlnRWlmWkZFMThlcUpLeVhKNzV3QmluMlFaMVcwNm1HMlNKZTE?oc=5"
         },
         {
-          "title": "Long March 7A Failure and Zhuque-3 Delay Trigger Sharp Selloff in China's Commercial Aerospace Stocks",
-          "source": "finance.biggo.com",
-          "published": "Tue, 11 Aug 2026 04:28:20 GMT",
-          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBYN01CTWdLNmRlbFlMcUJ5MVl6NENDTEc3TXpzeC16a01ETlNUV2hJNzdhOTJnZ2ZHbjA3WUpSNzJiOGQzZEFEVVB6a0VrLWpCbEFHZE9WUExtRTh0YXd1OVdWem9rVG9WeXdYQTE4LTJxdllTUlE?oc=5"
+          "title": "Hong Kong-listed wind power stocks bucked the market trend and strengthened, with nearly a year of significant results from industry self-discipline in combating 'internal competition.'",
+          "source": "Moomoo",
+          "published": "Fri, 26 Sep 2025 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPd1B4Ry1TWldQZWVtUTFtRjlDZEh2YVFTNFVrU21FaENXbkZqSWJVRHlESXBtckpQeERscDlqcUc1THk2N2s5R0VOdE9vOGlKS0pGcUdhSENuZnlPNTFpU2RQNFdKT2V6akJwWVpMQldLeWRtQ3RvTkRFWk1udElYU2Y5aTNRdnh4bG1vanQ5QVV5ZmIydEFXLUVYT09IQTYtWEE?oc=5"
         }
       ],
       "google_news_zh": [
         {
           "title": "金風科技風機價量齊升可留意",
-          "source": "bastillepost.com",
+          "source": "巴士的報",
           "published": "Fri, 21 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
@@ -466,7 +466,7 @@
         },
         {
           "title": "Hang Seng TECH Index ETF (3032.HK) stock price, news, quote and history",
-          "source": "uk.finance.yahoo.com",
+          "source": "Yahoo Finance UK",
           "published": "Mon, 18 Jun 2018 07:39:27 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9LZllEUnRkNWxFODN1NlpIbG1JWFhYdzQ5MTRwUGgwLTY0ZWdubGZ3NTFaQ19HR1pLR0FuMmlaZ0F4YUNyR2dITmx6Z19UQmxRWk15a0VB?oc=5"
         },
@@ -619,16 +619,16 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE5IVkhJODhmYlQxaGp1TjEtU21uOG1XRG53dFRLWl9GdTZId1ZvMVZjcjhfNENPaFZiTy1vdzR0NjU0UkpXa09jTXJWTC1IOVlZd25vRlBn?oc=5"
         },
         {
-          "title": "CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
-          "source": "uk.finance.yahoo.com",
-          "published": "Wed, 21 Feb 2018 09:51:20 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE84ODdhd18yMEwzV2VQa2dIdVp2RV9vS3h4M2FvTlo3NDVrdmRETzFKbkZWR1hDeXNSRnhoR0pxVFhYdFZzU093UWZJXy12cjRJdDVHT2JB?oc=5"
-        },
-        {
           "title": "Zhitong HK Stock Connect Holdings Analysis | August 26",
           "source": "Moomoo",
           "published": "Tue, 25 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPWHRwQUt4eDFaVHBnT2h6aE1ib0JnUUU5cVJwbzNDX0pGb1M5SlNsSTEza3RnX0xJd3NySWxBMmp3R19qRUljelVPdzhsNTlvUnFMS3gyajd3VzNLQ3dFVVh5VHFhUTBucGh1RWNLaS03SXNQa1pIeEtPYmliVW5UTE02WjBrRUJFRFNQNWJNeU1yWjJMZFRfaThn?oc=5"
+        },
+        {
+          "title": "CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
+          "source": "Yahoo Finance UK",
+          "published": "Wed, 21 Feb 2018 09:51:20 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE84ODdhd18yMEwzV2VQa2dIdVp2RV9vS3h4M2FvTlo3NDVrdmRETzFKbkZWR1hDeXNSRnhoR0pxVFhYdFZzU093UWZJXy12cjRJdDVHT2JB?oc=5"
         },
         {
           "title": "Zhito Hong Kong Stock Connect Holdings Analysis | July 3",
