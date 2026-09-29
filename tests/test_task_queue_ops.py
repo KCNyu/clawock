@@ -266,9 +266,7 @@ def test_installer_saves_installs_checks_and_rolls_back(tmp_path):
     dest = tmp_path / "agent-dispatch"
     dest.mkdir()
     (dest / "task_queue_ops.py").write_text("print('old')\n")
-    config = tmp_path / "openclaw.json"
-    config.write_text('{"plugins": {"load": {"paths": []}}}')
-    env = dict(os.environ, AGENT_DISPATCH_DIR=str(dest), OPENCLAW_CONFIG_PATH=str(config))
+    env = dict(os.environ, AGENT_DISPATCH_DIR=str(dest))
     run = lambda *a: subprocess.run(["bash", str(INSTALL), *a], env=env, capture_output=True, text=True, timeout=60)
     assert run("--check").returncode == 1
     r = run()
@@ -281,7 +279,7 @@ def test_installer_saves_installs_checks_and_rolls_back(tmp_path):
     assert not (dest / "model_prices.json.before-update").exists()
     # So does the OpenClaw /dispatch-list plugin, beside the entry it runs.
     for name in ("openclaw.plugin.json", "index.ts"):
-        assert (dest / "openclaw-dispatch-list" / name).read_bytes() == (ROOT / "ops/host/openclaw-dispatch-list" / name).read_bytes()
+        assert (dest / "dispatch-list-command" / name).read_bytes() == (ROOT / "ops/host/dispatch-list-command" / name).read_bytes()
     assert "plugins.load.paths" in r.stdout
     assert run("--check").returncode == 0
     assert "already installed" in run().stdout

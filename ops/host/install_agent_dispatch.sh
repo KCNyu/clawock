@@ -10,7 +10,7 @@
 # ops/host/agent-dispatch/ mirrors /root/tools/agent-dispatch/ path for path. Merging does not
 # install; refresh_live.sh runs this after a fast-forward that moved ops/host/agent-dispatch/.
 # Not installed here, on purpose (docs/architecture/task-queue.md § What stays on the host):
-# task_queue_ops.py + model_prices.json + openclaw-dispatch-list/ (install_task_queue_ops.sh owns them), limits.env
+# task_queue_ops.py + model_prices.json + dispatch-list-command/ (install_task_queue_ops.sh owns them), limits.env
 # (live policy shared with clawock-patrol), notify.env (delivery targets), *.before-update,
 # __pycache__/, and everything under /root/logs/agent-dispatch.
 set -euo pipefail

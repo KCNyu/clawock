@@ -2,9 +2,9 @@
 # install_task_queue_ops.sh — put the reviewed task_queue_ops.py (and the model price table its
 # `usage` action reads) where the runner and the dsh task chip call it, the same way patrol.sh is
 # installed: keep what ran before, install, prove the bytes match, and say how to go back.
-# The OpenClaw `/dispatch-list` plugin rides along in openclaw-dispatch-list/: it runs the entry
+# The OpenClaw `/dispatch-list` plugin rides along in dispatch-list-command/: it runs the entry
 # installed next to it, so both always come from one install. OpenClaw loads it through
-# plugins.load.paths (this script prints the one-time setup) and picks up a change on restart.
+# plugins.load.paths (one-time setup) and picks up a change on a gateway restart.
 #
 #   ops/host/install_task_queue_ops.sh             # install from this checkout
 #   ops/host/install_task_queue_ops.sh --check     # exit 1 when an installed copy differs
@@ -17,7 +17,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEST_DIR="${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}"
-FILES=(task_queue_ops.py model_prices.json openclaw-dispatch-list/openclaw.plugin.json openclaw-dispatch-list/index.ts)
+FILES=(task_queue_ops.py model_prices.json)
+# The chat plugin ships whole: every file its source directory holds.
+for f in "$ROOT"/ops/host/dispatch-list-command/*; do FILES+=("dispatch-list-command/$(basename "$f")"); done
 
 case "${1:-}" in
   --check)
@@ -59,11 +61,6 @@ for f in "${FILES[@]}"; do
   echo "installed $dest"
 done
 echo "ops entry: $(python3 "$DEST_DIR/task_queue_ops.py" version)"
-plugin="$DEST_DIR/openclaw-dispatch-list"
-config="${OPENCLAW_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
-if [ -f "$config" ] && ! grep -qF "\"$plugin\"" "$config"; then
-  echo "OpenClaw does not load $plugin yet: add it to plugins.load.paths, then restart the gateway"
-else
-  echo "OpenClaw /dispatch-list: restart the gateway if its plugin files changed above"
-fi
+echo "OpenClaw /dispatch-list: $DEST_DIR/dispatch-list-command must be in plugins.load.paths (one-time);"
+echo "  restart the gateway when its plugin files changed above"
 echo "roll back: $0 --rollback"
