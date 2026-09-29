@@ -158,7 +158,20 @@ def test_the_overview_projection_carries_channel_truth_to_its_reader():
     数据健康卡要答两个问题：这一窗口掉了几档（计数）、掉的是哪几档（逐档
     通道位）。两者都只有 overview 投影能送到读者面前，所以这条闸钉的是
     「计数与逐档布尔一起过投影」，不是某个渲染字符串。
+    The rows go through `trim_workflow_outcomes` first, as they do on the
+    publish path: a hand-built row that still carried `stages` kept this gate
+    green while every real slot projected as null (#2147).
     """
+    trimmed = dashboard.trim_workflow_outcomes({'recent': [{
+        'job': '港股收盘报告',
+        'slot': '2026-08-25T16:00:00+08:00',
+        'raw_execution': {'status': 'error'},
+        'final_product': {'status': 'recovered'},
+        'stages': {'primary_delivery': {
+            'status': 'success', 'channel': 'wechat+telegram',
+            'wechat_ok': False, 'telegram_ok': True,
+        }},
+    }]})
     projection = dashboard.compile_overview_projection({
         'workflow_outcomes': {
             'counts': {'success': 2},
@@ -171,16 +184,7 @@ def test_the_overview_projection_carries_channel_truth_to_its_reader():
             'wechat_dropped_slots': [{
                 'job': '港股收盘报告', 'slot': '2026-08-25T16:00:00+08:00',
             }],
-            'recent': [{
-                'job': '港股收盘报告',
-                'slot': '2026-08-25T16:00:00+08:00',
-                'raw_execution': {'status': 'error'},
-                'final_product': {'status': 'recovered'},
-                'stages': {'primary_delivery': {
-                    'status': 'success', 'channel': 'wechat+telegram',
-                    'wechat_ok': False, 'telegram_ok': True,
-                }},
-            }],
+            'recent': trimmed['recent'],
         },
     })
 
