@@ -42,6 +42,10 @@ Every trading day, clawock turns raw market information into decisions that get 
 - **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
 - **Settle.** Python settles every decision against real prices. The model never touches its own score, and every result lands on the public scorecard.
 
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="600" alt="clawock desk — OpenClaw, DeepSeek Harness and the clawock-patrol service start work through one agent-dispatch runner, which gives every task its own systemd unit and arbitrates: one lock and queue per agent, patrol rounds last, run slots per agent, a session lock, quota waits that free the lock, and no re-dispatch from a dispatched worker. Claude Code, Codex and OpenCode share one AGENTS.md, one memory and the same skills, hand work on with append, result and review, and every change passes the same PR, required CI and squash-merge gate into KCNyu/clawock"></p>
+
+<sub>Several agent harnesses share this desk: one runner arbitrates their tasks, one memory and rule file keep them consistent, and one PR gate takes their changes — wiring in <a href="https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>.</sub>
+
 The whole pipeline plugs into the agent you already use — each logo opens that harness's runnable example, and [the full loop](#run-it-on-your-own-book) is below:
 
 <div align="center">
@@ -95,11 +99,11 @@ For the canonical EN/ZH rendering of every project term — composite, regime, D
 The external agent reads and reasons; clawock owns the portable decision
 workflow and the deterministic truth around it.
 
-![clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg)
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="600" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
 
 The second diagram is the deployed KCNyu desk — that boundary applied to one live portfolio.
 
-![KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg)
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg" width="600" alt="KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop"></p>
 
 ## The information layer
 
@@ -107,7 +111,7 @@ The widest part of the system is data collection: **44 fetch and compute modules
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
-![clawock data flow — eight information layers feed ordered fetch-fallback routes; Python reconciles the book and builds risk; the brief, session reports and intraday check-ins each run a preflight that assembles only the blocks that run can use; the agent reads those files and never fetches; a Python postflight validates, then publishes to master, to the data-plane branch the dashboard polls, and to WeChat and Telegram, with an LLM-free crontab watchdog as the delivery backstop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg" width="600" alt="clawock data flow — eight information layers feed ordered fetch-fallback routes; Python reconciles the book and builds risk; the brief, session reports and intraday check-ins each run a preflight that assembles only the blocks that run can use; the agent reads those files and never fetches; a Python postflight validates, then publishes to master, to the data-plane branch the dashboard polls, and to WeChat and Telegram, with an LLM-free crontab watchdog as the delivery backstop"></p>
 
 <details>
 <summary><b>All 8 layers, row by row</b> — modules and primary sources</summary>
@@ -179,7 +183,7 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 The daily deep brief runs a structured **multi-agent debate**, adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents) for separate Hong Kong and US books. More agents isn't the point: the protocol **demands an opposing case**, and the Judge **attributes each resolution** to a named strategy frame.
 
-![clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg)
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg" width="600" alt="clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop"></p>
 
 - **Bull vs Bear, on the record.** Two researchers must **genuinely disagree on at least one position** and write it down, so unanimity reads as a flag, not evidence. The Bear is the devil's advocate: it attacks the session's *strongest* consensus view, never the weakest.
 - **Risk voices + a Judge.** Aggressive, Conservative and Neutral argue their corner; the first mover rotates every four trading days so the framing cannot calcify. The Judge names the strategy frame behind each decision and writes `plan.json`, which enters the next session's grading.
