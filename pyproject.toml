@@ -40,8 +40,10 @@ classifiers = [
 # pytest collection and silently stopped enforcing the whole suite while the
 # run still looked green.
 dependencies = [
-    # 2.32 is the floor past CVE-2024-35195 (redirect header leak in 2.31.x).
-    "requests>=2.32",
+    # 2.32.4 is the floor past both advisories on this line: CVE-2024-35195
+    # (redirect header leak, fixed 2.32.0) and CVE-2024-47081 (.netrc
+    # credential leak, fixed 2.32.4). Nothing here turns off trust_env.
+    "requests>=2.32.4",
     # numpy was in an optional `compute` extra while `portfolio/risk.py` — the
     # module behind the packaged `portfolio-risk` command — imported it at the
     # top level unconditionally. A clean `pip install clawock` therefore shipped
