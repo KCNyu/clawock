@@ -16,13 +16,12 @@ python3 ops/host/cron_health_check.py
 
 `task_queue_ops.py` is the versioned entry point for the agent-dispatch queue: the
 runner asks it who takes an agent lock next, and the dsh task chip runs every write
-(cancel, …) through it; the OpenClaw `/dispatch-list` chat command (`dispatch-list-command/`,
-installed beside it) prints its read-only `board`. Contract, exit codes and queue order:
+(cancel, …) through it. Contract, exit codes and queue order:
 `docs/architecture/task-queue.md`. It is installed next to the host-local runner, and
 merging does not install it:
 
 ```bash
-ops/host/install_task_queue_ops.sh           # task_queue_ops.py + model_prices.json + dispatch-list-command/: saves .before-update, installs atomically, cmp
+ops/host/install_task_queue_ops.sh           # task_queue_ops.py + model_prices.json: saves .before-update, installs atomically, cmp
 ops/host/install_task_queue_ops.sh --check   # does the installed copy match this checkout?
 ops/host/install_task_queue_ops.sh --rollback
 ```

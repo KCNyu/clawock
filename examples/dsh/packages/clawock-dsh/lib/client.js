@@ -6390,41 +6390,7 @@ function byAgentRank(items) {
 	})).sort((a, b) => a.rank - b.rank || a.at - b.at).map(({ item }) => item);
 }
 //#endregion
-//#region src/client.ts
-/**
-* clawock-dsh browser bundle: the Decision Mind conversation-view tab.
-*
-* One organic view — the decision trace: real fills as the spine, the shared
-* decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
-* layer, and canonical bar closes (memory/bars/, never snapshot current_price
-* — see readBarCloses) as the T+1 verdict. Fills without a decision say so
-* explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
-* figure as the focal number and a GitHub-style vertical timeline in the
-* expandable detail.
-*
-* Official client discipline (`packages/client/AGENTS.md` in the Harness
-* tree), all four rules this file has to satisfy:
-*   - registration happens inside `apply` through `ctx.slots.register`, and
-*     the module body has no side effects — styles arrive as a CSS Modules
-*     import, whose `<style data-plugin>` tag the loader owns and removes on
-*     unload;
-*   - the store is an exported `createDecisionMindStore()` factory called in
-*     `apply`, never a module-level handle (a disguised singleton);
-*   - live data reaches render through the props shares only, so the trace
-*     cache lives in the apply closure and is read through `inject`;
-*   - components take named props and the wire types from `./types.ts`.
-*/
-const { createElement, useEffect, useId, useRef, useState } = React;
-const h = createElement;
-/** Class tokens declared in styles.module.css, mapped to their hashed names. */
-function cx(...tokens) {
-	const out = [];
-	for (const token of tokens) {
-		if (token === "" || token === false || token === null || token === void 0) continue;
-		out.push(styles_module_css_default[token] ?? token);
-	}
-	return out.join(" ");
-}
+//#region src/copy.ts
 /** Dictionary namespace declared by every registration in this bundle. */
 const LOCALE_NS = "clawock";
 /**
@@ -7283,6 +7249,1376 @@ function resetStampOf(t, window, now) {
 		time
 	});
 }
+/** Every window of a snapshot, named and stamped for the active locale. */
+function windowsOf(t, result, now) {
+	return (result.snapshot?.windows ?? []).map((w) => ({
+		label: windowLabelOf(t, w),
+		percent: w.percent,
+		reset: resetStampOf(t, w, now)
+	}));
+}
+//#endregion
+//#region src/panel.ts
+/**
+* The task chip's provider panel as data: every row it shows (a provider's
+* allowance, a live task, an ended one, a patrol round), its words, its state
+* role and its place — without React or the DOM. client.ts draws these rows in
+* dsh's sidebar; text.ts prints the same rows for a chat (OpenClaw's
+* `/dispatch-list`). One view model, two renderers: the chat reply cannot say
+* something the chip does not, or say it in other words.
+*
+* The parts a renderer draws for itself are named, not built here: a row's lead
+* glyph (`RowLead`), the fallback mark and the delivery receipts (`Fact`).
+*/
+/**
+* Colour tier for one used-percent reading against the REMAINING-watermark
+* threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
+* 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
+* warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
+* 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
+*/
+function _usedLevel(percent, threshold) {
+	if (percent === null) return "ok";
+	if (percent >= 100 - threshold) return "low";
+	if (percent >= 100 - 2 * threshold) return "mid";
+	return "ok";
+}
+/**
+* Display projection of ONE provider's answer (test seam, like _displayEntry):
+* the chip and panel render only these fields, so the view never keeps
+* a second copy of the tone rules — the host already decided status and low.
+* The title is the whole hover story: split, quota windows, stale reason,
+* fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+* 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
+* muted pill suffix — both limits visible at the header without opening the
+* panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
+* the reading itself says 100% and `reset` carries when it frees up.
+*/
+function _rowDisplay(result, t, now = Date.now()) {
+	if (result === null) return {
+		tone: "none",
+		value: "—",
+		sub: null,
+		reset: null,
+		level: null,
+		title: t("balance.loading")
+	};
+	if (!result.configured) return {
+		tone: "none",
+		value: t("balance.unconfigured"),
+		sub: null,
+		reset: null,
+		level: null,
+		title: result.message ?? t("balance.unconfiguredKey")
+	};
+	if (result.snapshot === null) return {
+		tone: "none",
+		value: "—",
+		sub: null,
+		reset: null,
+		level: null,
+		title: result.message ?? t("balance.fetchFailed")
+	};
+	const snapshot = result.snapshot;
+	const isPct = snapshot.unit === "pct";
+	const symbol = isPct ? "" : snapshot.currency === "USD" ? "$" : snapshot.currency === "CNY" ? "¥" : "";
+	const pctWins = isPct && Array.isArray(snapshot.windows) ? snapshot.windows.filter((w) => w.percent !== null) : [];
+	const parsed = Number.parseFloat(snapshot.totalBalance);
+	const value = isFinite(parsed) ? isPct ? String(Math.round(parsed)) + "%" : symbol + parsed.toLocaleString(void 0, { maximumFractionDigits: 2 }) : pctWins.length > 0 ? String(Math.round(pctWins[0].percent)) + "%" : snapshot.totalBalance === "" ? "—" : symbol + snapshot.totalBalance;
+	const second = pctWins.length > 1 ? pctWins[1] : null;
+	const wins = windowsOf(t, result, now);
+	const firstReset = wins.length > 0 ? wins[0].reset : "";
+	const reset = pctWins.length > 0 && firstReset !== "" ? firstReset : null;
+	const secondWin = wins.length > 1 ? wins[1] : null;
+	const sub = secondWin !== null && second !== null ? "· " + secondWin.label + " " + Math.round(second.percent) + "%" + (secondWin.reset !== "" ? " ↻" + secondWin.reset : "") : null;
+	const tone = result.status === "stale" ? "stale" : result.low || !snapshot.isAvailable ? "low" : "ok";
+	const quotaTail = wins.length === 0 ? [] : snapshot.note.split(" · ").slice(snapshot.windows.length).filter((note) => note !== "");
+	const quotaLine = wins.length === 0 ? snapshot.note !== "" ? snapshot.note : t("balance.windowsUsed") : [...wins.filter((w) => w.percent !== null).map((w) => w.reset === "" ? t("balance.windowNote", {
+		label: w.label,
+		percent: Math.round(w.percent)
+	}) : t("balance.windowNoteReset", {
+		label: w.label,
+		percent: Math.round(w.percent),
+		reset: w.reset
+	})), ...quotaTail].join(" · ");
+	const parts = [
+		snapshot.unit === "pct" ? quotaLine : t("balance.apiBalance"),
+		!isPct && snapshot.grantedBalance !== "" ? t("balance.granted") + symbol + snapshot.grantedBalance : null,
+		!isPct && snapshot.toppedUpBalance !== "" ? t("balance.toppedUp") + symbol + snapshot.toppedUpBalance : null,
+		snapshot.isAvailable || isPct ? null : t("balance.insufficient"),
+		result.status === "stale" && result.message !== null ? t("balance.staleWith", { message: result.message }) : null
+	].filter((part) => part !== null);
+	const shownPct = isPct ? isFinite(parsed) ? parsed : pctWins.length > 0 ? pctWins[0].percent : null : null;
+	return {
+		tone,
+		value,
+		sub,
+		reset,
+		level: shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold),
+		title: parts.join(" · ")
+	};
+}
+/**
+* The one line a panel row says out loud when something is wrong — stale
+* reason, unconfigured key, insufficient money balance. A healthy number
+* earns no caption at all; null means silence. An exhausted quota window
+* is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
+* rows are the message; a caption would only replace them.
+*/
+function _balanceNote(result, t) {
+	if (result === null) return null;
+	if (!result.configured) return result.message ?? t("balance.unconfiguredKey");
+	if (result.snapshot === null) return result.message ?? t("balance.fetchFailed");
+	if (result.status === "stale") return result.message !== null ? t("balance.staleWith", { message: result.message }) : t("balance.stale");
+	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? null : t("balance.insufficient");
+	if (result.low) {
+		if (result.snapshot.unit === "pct") return (result.snapshot.windows ?? []).length > 0 ? null : t("balance.windowAt", { percent: 100 - result.threshold });
+		return t("balance.lowMoney", { amount: (result.snapshot.currency === "USD" ? "$" : result.snapshot.currency === "CNY" ? "¥" : "") + result.threshold });
+	}
+	return null;
+}
+/** A live task queued for something another task of its agent holds (the backlog patrol yields to). */
+const queuedFor = (task) => task.waiting === "lock" || task.waiting === "slot";
+/**
+* Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
+* Anything else is shown verbatim under the task's own agent. (The shared
+* `slot-1..2` of the runners from before 2026-09-25, a bare number, had a
+* bucket of its own until 2026-09-27, when none was left.)
+*/
+function _slotOf(task) {
+	if (task.slot === "") return null;
+	const lane = /^([a-z][a-z0-9]*)-(\d+)$/.exec(task.slot);
+	return lane ? {
+		agent: lane[1],
+		slot: lane[2]
+	} : {
+		agent: task.agent,
+		slot: task.slot
+	};
+}
+/**
+* Each agent's run slots, in the panel's order (providers.ts), limits.env's
+* agents and any agent seen holding one that limits.env does not name. A full lane with a task of that agent queued
+* is amber: that is the queue's reason at a glance. A host older than
+* slotLimits sends none: the lanes then come from the held slots alone,
+* without a maximum.
+*/
+function _slotLanes(result) {
+	const held = result.active.map(_slotOf).filter((slot) => slot !== null);
+	const limits = new Map((result.slotLimits ?? []).map((limit) => [limit.agent, limit.max]));
+	for (const slot of held) if (!limits.has(slot.agent)) limits.set(slot.agent, -1);
+	return byAgentRank([...limits].map(([agent, limit]) => ({
+		agent,
+		limit
+	}))).map(({ agent, limit }) => {
+		const used = held.filter((slot) => slot.agent === agent).length;
+		const max = limit >= 0 ? limit : null;
+		const queued = result.active.some((task) => task.agent === agent && queuedFor(task));
+		return {
+			agent,
+			used,
+			max,
+			tone: max !== null && used >= max && queued ? "stale" : used > 0 ? "ok" : "none"
+		};
+	});
+}
+function laneText(t, lane) {
+	return lane.max === null ? t("queue.laneNoMax", {
+		agent: lane.agent,
+		used: lane.used
+	}) : t("queue.lane", {
+		agent: lane.agent,
+		used: lane.used,
+		max: lane.max
+	});
+}
+function durationOf(t, ms) {
+	const mins = Math.max(0, Math.floor(ms / 6e4));
+	return mins < 60 ? t("queue.duration.minutes", { m: mins }) : t("queue.duration.hours", {
+		h: Math.floor(mins / 60),
+		m: mins % 60
+	});
+}
+function agoOf(t, ms) {
+	const mins = Math.max(0, Math.floor(ms / 6e4));
+	if (mins < 1) return t("queue.ago.now");
+	if (mins < 60) return t("queue.ago.minutes", { m: mins });
+	if (mins < 2880) return t("queue.ago.hours", { h: Math.floor(mins / 60) });
+	return t("queue.ago.days", { d: Math.floor(mins / 1440) });
+}
+/**
+* One live task's status phrase and its tone. One colour, one meaning:
+* 'ok' (the host's business blue) = holding its agent's lock and running,
+* 'stale' (the host's warn) = waiting for something (the lock, a slot,
+* memory, a quota reset, a retry), 'none' = neither yet (starting).
+*/
+function _taskStatus(task, t, now = Date.now(), windows) {
+	const stamp = (ms) => resetStampOf(t, {
+		resetAt: "",
+		resetAtMs: ms
+	}, now);
+	const at = (key, ms) => ms === null ? t(key + "NoTime") : t(key, { time: stamp(ms) });
+	if (task.cancelling) return {
+		tone: "none",
+		text: t("queue.state.cancelling")
+	};
+	switch (task.waiting) {
+		case "lock": return {
+			tone: "stale",
+			text: task.position ? t("queue.wait.lockAt", {
+				agent: task.agent,
+				n: task.position
+			}) : t("queue.wait.lock", { agent: task.agent })
+		};
+		case "slot": return {
+			tone: "stale",
+			text: t("queue.wait.slot", { agent: task.agent })
+		};
+		case "memory": return {
+			tone: "stale",
+			text: t("queue.wait.memory")
+		};
+		case "quota": {
+			if (task.wakeAtMs === null || windows === void 0) return {
+				tone: "stale",
+				text: at("queue.wait.quota", task.wakeAtMs)
+			};
+			const wake = task.wakeAtMs;
+			const resets = windows.map((w) => w.resetAtMs ?? null).filter((ms) => ms !== null && ms <= wake + 6e4 && wake - ms < 216e5);
+			if (resets.length === 0) return {
+				tone: "stale",
+				text: t("queue.wait.quotaNoWindow", { time: stamp(wake) })
+			};
+			const reset = Math.max(...resets);
+			return {
+				tone: "stale",
+				text: t("queue.wait.quotaBoth", {
+					time: stamp(wake),
+					reset: stamp(reset),
+					pad: Math.max(0, Math.round((wake - reset) / 6e4))
+				})
+			};
+		}
+		case "retry": return {
+			tone: "stale",
+			text: at("queue.wait.retry", task.wakeAtMs)
+		};
+	}
+	const slot = _slotOf(task);
+	if (slot === null) return {
+		tone: "none",
+		text: t("queue.state.starting")
+	};
+	return {
+		tone: "ok",
+		text: slot.slot === "1" ? t("queue.state.running") : t("queue.state.runningSlot", { slot: slot.slot })
+	};
+}
+/** Keep the runner's execution verdict and the model's report in separate, named slots. */
+function executionText(state, t) {
+	return t("queue.execution." + ({
+		ok: "ok",
+		partial: "ok",
+		unverified: "ok",
+		failed: "failed",
+		cancelled: "cancelled",
+		timeout: "timeout",
+		blocked: "blocked",
+		quota: "quota",
+		queued: "queued"
+	}[state] ?? "unknown"));
+}
+function reportText(outcome, t, executionState = "ok") {
+	if (outcome === "DONE" && ![
+		"ok",
+		"partial",
+		"unverified"
+	].includes(executionState)) return t("queue.report.claimedDone");
+	return t("queue.report." + ([
+		"DONE",
+		"PARTIAL",
+		"BLOCKED"
+	].includes(outcome) ? outcome : "unknown"));
+}
+/**
+* An ended task's tone. Done is not blue (blue means running now) and not a
+* dot at all: ended rows speak in words. Not-done amber, failed red.
+*/
+function endedTone(task) {
+	if (task.state === "failed" || task.state === "timeout") return "low";
+	if ([
+		"partial",
+		"unverified",
+		"blocked",
+		"quota"
+	].includes(task.state) || task.state === "ok" && task.outcome !== "DONE" || task.outcome === "BLOCKED") return "stale";
+	return "none";
+}
+function patrolPhraseOf(result, t, now) {
+	const patrol = result.patrol;
+	if (patrol.phase === "waiting" && patrol.untilMs !== null) return t("queue.patrol.waitingUntil", { time: resetStampOf(t, {
+		resetAt: "",
+		resetAtMs: patrol.untilMs
+	}, now) });
+	return t("queue.patrol." + patrol.phase);
+}
+/** The ops entry answered, and its installed copy is the repository's. '' when fine, else why not. */
+function opsProblem(result, t) {
+	const ops = result.ops;
+	if (ops === void 0) return "";
+	if (!ops.available) return t("queue.ops.missing", { error: ops.error });
+	if (ops.repoVersion !== "" && ops.version !== ops.repoVersion) return t("queue.ops.skew", {
+		host: ops.version,
+		repo: ops.repoVersion
+	});
+	return "";
+}
+/**
+* The chip's headline, the host badge's two parts: the label, and a count
+* (running · queued) at the trailing edge. No n/max: slots are per agent, so a
+* free slot of one agent is no room for another's task — the per-agent lanes
+* are in the title and on each group of the panel. The glyph badge carries
+* the one tone that matters most: red when the read failed, amber when a task
+* waits, blue when something runs.
+*/
+function _queueHeadline(result, t, now = Date.now()) {
+	const queued = result.active.filter(queuedFor).length;
+	const memory = result.active.filter((task) => task.waiting === "memory").length;
+	const quota = result.active.filter((task) => task.waiting === "quota").length;
+	const retry = result.active.filter((task) => task.waiting === "retry").length;
+	const waits = [
+		queued > 0 ? t("queue.queued", { n: queued }) : null,
+		memory > 0 ? t("queue.memoryWait", { n: memory }) : null,
+		quota > 0 ? t("queue.quotaWait", { n: quota }) : null,
+		retry > 0 ? t("queue.retryWait", { n: retry }) : null
+	].filter((part) => part !== null);
+	const parts = [...waits, patrolPhraseOf(result, t, now)];
+	const value = result.active.length === 0 ? t("queue.idle") : t("queue.running", { n: result.running });
+	const slots = _slotLanes(result).map((lane) => laneText(t, lane)).join(" · ");
+	const waiting = queued + memory + quota + retry;
+	const tone = result.status === "stale" || result.status === "failed" ? "low" : waiting > 0 ? "stale" : result.running > 0 ? "ok" : "none";
+	const ops = result.ops?.available ? t("queue.ops.version", { v: result.ops.version }) : "";
+	return {
+		tone,
+		value,
+		sub: waits.join(" · "),
+		busy: queued > 0,
+		title: [
+			t("queue.name"),
+			value,
+			slots,
+			parts.join(" · "),
+			opsProblem(result, t) || ops
+		].filter((part) => part !== "").join(" · ")
+	};
+}
+/** Executor names as their makers write them. */
+const AGENT_LABELS = {
+	claude: "Claude Code",
+	codex: "Codex",
+	opencode: "OpenCode"
+};
+const _agentLabel = (agent) => AGENT_LABELS[agent] ?? agent;
+/**
+* The model layer, read off the model id itself (never a hand-kept model
+* list), as its maker names it in full: `claude-opus-5-5` → Claude Opus 5.5 ·
+* `claude-haiku-4-5-20251001` → Claude Haiku 4.5 · `gpt-6-sol` → GPT-6 Sol ·
+* `opencode/nemotron-3-ultra-free` → Nemotron 3 Ultra. No letter tile in
+* front (kcn, 2026-09-27: the two-letter stand-in was noise); the room goes
+* to the whole name.
+*/
+function _modelView(id) {
+	if (id === "") return {
+		label: "—",
+		family: ""
+	};
+	const bare = id.includes("/") ? id.slice(id.lastIndexOf("/") + 1) : id;
+	const title = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+	const claude = /^claude-([a-z]+)(?:-(\d+))?(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(bare);
+	if (claude) {
+		const version = [claude[2], claude[3]].filter(Boolean).join(".");
+		return {
+			label: "Claude " + title(claude[1]) + (version ? " " + version : ""),
+			family: "claude"
+		};
+	}
+	const gpt = /^gpt-([\d.]+)(?:-([a-z]+))?$/.exec(bare);
+	if (gpt) return {
+		label: "GPT-" + gpt[1] + (gpt[2] ? " " + title(gpt[2]) : ""),
+		family: "gpt"
+	};
+	if (/^[a-z]+$/.test(bare) && !id.includes("/")) return {
+		label: title(bare),
+		family: bare
+	};
+	const words = bare.replace(/-(free|contributor)(?=-|$)/g, "").split("-").filter((word) => word !== "");
+	return {
+		label: words.map((word) => /^[a-z]/.test(word) ? title(word) : word).join(" "),
+		family: words[0] ?? bare
+	};
+}
+/** "Opus 5.5 · high", with the model the task will run on while it waits and the one it ran on after. */
+function modelLine(task, _live) {
+	const requested = task.modelRequested ?? task.model;
+	const ran = task.attempts > 0 && (task.modelUsed ?? "") !== "";
+	const used = ran ? task.modelUsed ?? "" : "";
+	return {
+		model: ran ? used : requested || task.model,
+		effort: (ran ? task.effortUsed : "") || task.effortRequested || "",
+		fallback: ran && requested !== "" && used !== requested
+	};
+}
+function _notifyState(task, ch, live) {
+	if ((task.notifyFailed ?? []).includes(ch)) return "failed";
+	if ((task.notified ?? []).includes(ch)) return "sent";
+	return live ? "planned" : "unknown";
+}
+function notifyChannels(task) {
+	return [.../* @__PURE__ */ new Set([
+		...task.notify ?? [],
+		...task.notified ?? [],
+		...task.notifyFailed ?? []
+	])];
+}
+const STATE_ROLES = {
+	run: {
+		bed: "fill",
+		glyph: [{
+			d: "M5 2a3 3 0 1 1 0 6a3 3 0 1 1 0-6Z",
+			paint: "fill"
+		}]
+	},
+	queue: {
+		bed: "edge",
+		glyph: [{
+			d: "M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z",
+			paint: "stroke"
+		}]
+	},
+	sleep: {
+		bed: "fill",
+		glyph: [{
+			d: "M6.6 1.8A3.4 3.4 0 1 0 8.4 7.6A2.8 2.8 0 0 1 6.6 1.8Z",
+			paint: "fill"
+		}]
+	},
+	wait: {
+		bed: "edge",
+		glyph: [{
+			d: "M2.8 1.8H7.2M2.8 8.2H7.2M3.4 1.8C3.4 4 6.6 4 6.6 5S3.4 6 3.4 8.2M6.6 1.8C6.6 4 3.4 4 3.4 5S6.6 6 6.6 8.2",
+			paint: "stroke"
+		}]
+	},
+	done: {
+		bed: "fill",
+		glyph: [{
+			d: "M2.3 5.2L4.2 7.1L7.8 3",
+			paint: "stroke"
+		}]
+	},
+	partial: {
+		bed: "fill",
+		glyph: [{
+			d: "M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z",
+			paint: "stroke"
+		}, {
+			d: "M5 2.2A2.8 2.8 0 0 0 5 7.8Z",
+			paint: "fill"
+		}]
+	},
+	fail: {
+		bed: "fill",
+		glyph: [{
+			d: "M2.8 2.8L7.2 7.2M7.2 2.8L2.8 7.2",
+			paint: "stroke"
+		}]
+	},
+	off: {
+		bed: "edge",
+		glyph: [{
+			d: "M2.6 5H7.4",
+			paint: "stroke"
+		}]
+	},
+	unknown: {
+		bed: "dashed",
+		glyph: [{
+			d: "M3.5 3.6a1.6 1.6 0 1 1 2.2 1.5C5.2 5.3 5 5.6 5 6.1M5 7.9V8",
+			paint: "stroke"
+		}]
+	},
+	fallback: {
+		bed: "edge",
+		glyph: [{
+			d: "M7.6 5.6A2.7 2.7 0 1 1 6.9 2.9M7.4 1.4V3.3H5.5",
+			paint: "stroke"
+		}]
+	}
+};
+/**
+* An ended task's (or round's) ONE state: the runner's verdict and the
+* model's report folded into the role that most needs the reader. Both axes
+* stay readable: the chip's title says both, the detail layer shows both.
+*/
+function _endedState(state, outcome, t) {
+	const title = executionText(state, t) + (outcome === "" && state !== "ok" ? "" : " · " + reportText(outcome, t, state));
+	const word = state === "failed" ? "failed" : state === "timeout" ? "timeout" : state === "cancelled" ? "cancelled" : state === "queued" ? "notStarted" : state === "quota" ? "quota" : state === "blocked" || outcome === "BLOCKED" ? "blocked" : ![
+		"ok",
+		"partial",
+		"unverified"
+	].includes(state) ? "unknown" : outcome === "DONE" ? "done" : outcome === "PARTIAL" ? "partial" : "noReport";
+	const role = {
+		failed: "fail",
+		timeout: "fail",
+		cancelled: "off",
+		notStarted: "off",
+		quota: "partial",
+		blocked: "partial",
+		done: "done",
+		partial: "partial",
+		noReport: "unknown",
+		unknown: "unknown"
+	}[word];
+	return {
+		text: t("queue.verdict." + word),
+		role,
+		title
+	};
+}
+/**
+* THE row grid (2026-09-28 redesign, kcn: 「很多地方都没有对齐显示导致 chip 过多显示杂乱」).
+* Every line of the open panel — a source's head, a section head, a live
+* task, an ended task, a patrol round — sits on the same five tracks
+* (styles.module.css `--tq-grid`), and every fact has ONE fixed cell:
+*
+*            lead   when       took       rest        aside
+*   line 1   glyph  name ─────────────────────────   state chip | value
+*   line 2          model (+ fallback mark) ───────   receipts | tries
+*   line 3          when       took                    cost
+*
+* `when`, `took` and `aside` are fixed widths, so a time, a duration, a cost,
+* a state are on one vertical line in every row that has them; a row without
+* a fact leaves its cell empty, never shifts the next one in. A head
+* (source/section) has a caption line in line 2 instead of facts.
+*
+* RESIDENT_CHIPS: a row carries at most ONE chip, its state. Everything else
+* is words in a fixed cell or a mark (receipts, fallback). What has no cell
+* here is not squeezed in, wrapped or ellipsised: it lives in the detail layer
+* one tap away (the report axis on its own, attempts' budget, the first queue
+* wait, the patrol tag, the session). ROW_KINDS says which facts each kind
+* shows; FACT_CELL where each one sits; the spec checks every rendered row
+* against both, and that no row has a second chip.
+*/
+const FACT_ORDER = [
+	"model",
+	"tries",
+	"receipt",
+	"when",
+	"took",
+	"cost"
+];
+const RESIDENT_CHIPS = 1;
+/** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
+const FACT_CELL = {
+	model: {
+		line: 2,
+		track: "main"
+	},
+	tries: {
+		line: 2,
+		track: "aside"
+	},
+	receipt: {
+		line: 2,
+		track: "aside"
+	},
+	when: {
+		line: 3,
+		track: "when"
+	},
+	took: {
+		line: 3,
+		track: "took"
+	},
+	cost: {
+		line: 3,
+		track: "aside"
+	}
+};
+const ROW_KINDS = {
+	source: {
+		lead: true,
+		value: true,
+		facts: []
+	},
+	head: {
+		lead: true,
+		value: false,
+		facts: []
+	},
+	task: {
+		lead: true,
+		value: false,
+		facts: [
+			"model",
+			"tries",
+			"when",
+			"took",
+			"cost"
+		]
+	},
+	ended: {
+		lead: true,
+		value: false,
+		facts: [
+			"model",
+			"receipt",
+			"when",
+			"took",
+			"cost"
+		]
+	},
+	round: {
+		lead: true,
+		value: false,
+		facts: ["when", "took"]
+	}
+};
+/** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
+function clockOf(ms, now) {
+	const d = new Date(ms);
+	const n = new Date(now);
+	const hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+	return d.toDateString() === n.toDateString() ? hm : `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
+}
+/**
+* A live task's state chip: the short word (the group head already names the
+* agent), its role, and the whole phrase (_taskStatus: which lock, the wake
+* and the window it waits for) as the chip's title. A wake time is the 'when'
+* cell, where an ended task keeps when it ended.
+*/
+function _taskState(task, t, now = Date.now(), windows) {
+	const status = _taskStatus(task, t, now, windows);
+	const stamp = (ms) => resetStampOf(t, {
+		resetAt: "",
+		resetAtMs: ms
+	}, now);
+	const since = task.startedAtMs ?? task.queuedAtMs;
+	const when = (task.waiting === "quota" || task.waiting === "retry") && task.wakeAtMs !== null ? {
+		text: clockOf(task.wakeAtMs, now),
+		said: t("queue.fact.wakes", { time: stamp(task.wakeAtMs) }),
+		voice: "warn"
+	} : since != null ? {
+		text: clockOf(since, now),
+		said: t(_slotOf(task) === null ? "queue.fact.queuedAt" : "queue.fact.startedAt", { time: stamp(since) })
+	} : null;
+	const slot = _slotOf(task);
+	const word = task.cancelling ? "cancelling" : task.waiting === "lock" ? task.position ? "queuedAt" : "queued" : task.waiting === "slot" ? "slot" : task.waiting === "memory" ? "memory" : task.waiting === "quota" ? "quota" : task.waiting === "retry" ? "retry" : slot === null ? "starting" : slot.slot === "1" ? "running" : "runningSlot";
+	const role = word === "running" || word === "runningSlot" ? "run" : word === "queued" || word === "queuedAt" || word === "slot" ? "queue" : word === "quota" ? "sleep" : word === "cancelling" ? "off" : "wait";
+	return {
+		chip: {
+			text: t("queue.tag." + word, {
+				n: task.position ?? 0,
+				slot: slot?.slot ?? ""
+			}),
+			role,
+			title: status.text
+		},
+		when
+	};
+}
+/** The model cell: the full model name and effort, and the fallback mark when it ran on another model. */
+function modelFact(task, live, t) {
+	const m = modelLine(task, live);
+	if (m.model === "") return null;
+	const text = _modelView(m.model).label + (m.effort ? " · " + m.effort : "");
+	const requested = task.modelRequested ?? "";
+	return {
+		text,
+		title: m.model,
+		said: text + (m.fallback ? " · " + t("queue.fallbackTitle", { requested: _modelView(requested).label }) : ""),
+		mark: m.fallback ? {
+			role: "fallback",
+			text: t("queue.fallbackMark"),
+			title: t("queue.fallbackTitle", { requested: _modelView(requested).label })
+		} : null
+	};
+}
+/** The cost cell: the API-price estimate, 'free', or '—' when the model has no price row (title says which). */
+function costFact(task, t, live) {
+	const cost = _costOf(task);
+	if (cost === null) return null;
+	const legend = t("queue.chip.cost") + (live ? " · " + t("queue.d.costLive") : "");
+	return cost.kind === "unpriced" ? {
+		text: "—",
+		said: t("queue.chip.unpriced"),
+		title: t("queue.chip.unpriced") + " · " + legend,
+		voice: "quiet"
+	} : {
+		text: cost.kind === "free" ? t("queue.chip.free") : cost.short,
+		said: legend + " " + cost.short,
+		title: legend
+	};
+}
+/** A live task as a row: state chip; model, tries; when it wakes, how long, cost so far. */
+function taskRow(task, t, now, open, windows) {
+	const state = _taskState(task, t, now, windows);
+	const since = task.queuedAtMs ?? task.startedAtMs;
+	const running = _slotOf(task) !== null;
+	const tries = [task.attempts > 1 ? t("queue.attempt", { n: task.attempts }) : null, task.stalls ? t("queue.stalls", { n: task.stalls }) : null].filter((part) => part !== null);
+	return {
+		kind: "task",
+		key: task.id,
+		lead: {
+			agent: task.agent,
+			size: 12
+		},
+		name: task.name,
+		state: state.chip,
+		facts: {
+			model: modelFact(task, true, t),
+			tries: tries.length === 0 ? null : {
+				text: tries.join(" · "),
+				voice: task.stalls ? "warn" : void 0
+			},
+			when: state.when,
+			took: since == null ? null : {
+				text: durationOf(t, now - since),
+				said: t(running ? "queue.chip.elapsed" : "queue.chip.waiting", { time: durationOf(t, now - since) })
+			},
+			cost: costFact(task, t, true)
+		},
+		open: () => {
+			open(task.id);
+		},
+		attrs: {
+			"data-tq-task": task.id,
+			"data-tq-waiting": task.waiting
+		}
+	};
+}
+/** An ended task as a row: its one verdict; model and receipts; when, how long, what it cost. */
+function endedRow(task, t, now, open) {
+	const stamp = (ms) => resetStampOf(t, {
+		resetAt: "",
+		resetAtMs: ms
+	}, now);
+	return {
+		kind: "ended",
+		key: task.id,
+		lead: {
+			agent: task.agent,
+			size: 12
+		},
+		name: task.name,
+		state: _endedState(task.state, task.outcome, t),
+		facts: {
+			model: modelFact(task, false, t),
+			receipt: notifyChannels(task).length === 0 ? null : {
+				text: "",
+				receipts: notifyChannels(task).map((ch) => ({
+					ch,
+					state: _notifyState(task, ch, false)
+				})),
+				said: notifyChannels(task).map((ch) => t("queue.notify." + _notifyState(task, ch, false), { ch: t("queue.ch." + ch) })).join(" · ")
+			},
+			when: task.updatedAtMs === null ? null : {
+				text: agoOf(t, now - task.updatedAtMs),
+				title: t("queue.d.endedAt") + " " + stamp(task.updatedAtMs)
+			},
+			took: task.startedAtMs === null || task.updatedAtMs === null ? null : {
+				text: durationOf(t, task.updatedAtMs - task.startedAtMs),
+				said: t("queue.chip.took", { time: durationOf(t, task.updatedAtMs - task.startedAtMs) })
+			},
+			cost: costFact(task, t, false)
+		},
+		open: () => {
+			open(task.id);
+		},
+		attrs: {
+			"data-tq-task": task.id,
+			"data-tq-waiting": ""
+		}
+	};
+}
+/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+function roundRow(round, t, now) {
+	const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? "";
+	const [state = "", outcome = ""] = round.result.slice(how === "" ? 0 : how.length + 1).split("/");
+	const ended = localStampMs(round.endedAt);
+	return {
+		kind: "round",
+		key: "round-" + round.endedAt + round.round,
+		lead: { section: "patrol" },
+		name: round.axis === "" ? round.round : t("queue.round.name", {
+			round: round.round,
+			axis: round.axis
+		}),
+		state: how === "preempted" ? {
+			text: t("queue.round.preempted"),
+			role: "partial",
+			title: round.result
+		} : how === "yielded" ? {
+			text: t("queue.round.yielded"),
+			role: "off",
+			title: round.result
+		} : {
+			..._endedState(state, outcome, t),
+			title: round.result
+		},
+		facts: {
+			when: ended === null ? null : {
+				text: agoOf(t, now - ended),
+				title: t("queue.d.endedAt") + " " + round.endedAt
+			},
+			took: round.seconds === null ? null : {
+				text: durationOf(t, round.seconds * 1e3),
+				said: t("queue.chip.took", { time: durationOf(t, round.seconds * 1e3) })
+			}
+		},
+		attrs: { "data-tq-round": round.round }
+	};
+}
+/** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
+const reorderable = (task) => task.waiting === "lock" && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2;
+/** Live tasks of one agent in the order they hold / will take its lock. */
+function groupOrder(tasks, queue) {
+	const rank = (task) => {
+		if (task.slot !== "" || queue?.holder === task.id) return 0;
+		const at = queue?.order.indexOf(task.id) ?? -1;
+		return at >= 0 ? 1 + at : 1e3;
+	};
+	return [...tasks].sort((a, b) => rank(a) - rank(b) || (a.queuedAtMs ?? a.startedAtMs ?? 0) - (b.queuedAtMs ?? b.startedAtMs ?? 0));
+}
+/**
+* The panel's sources in providers.ts's order (sourceRank: the paid,
+* exclusive allowances first, the free pool last, anything without a row
+* among the paid ones). A joined row with a dispatch agent renders with its
+* queue; an agent the queue reports that no row names gets a line of its own;
+* a provider without an agent renders when the balance answer has it. Agent
+* rows need a dispatcher (C3 ②: without one only providers render); a
+* provider row needs its provider.
+*/
+function _panelSources(providers, queue) {
+	const dispatcher = queue !== null && queue.available;
+	const byId = new Map(providers.map((row) => [row.provider, row]));
+	const out = [];
+	const placed = /* @__PURE__ */ new Set();
+	for (const join of PROVIDER_JOIN) {
+		const provider = join.provider === null ? null : byId.get(join.provider) ?? null;
+		if (join.agent === null ? provider === null : provider === null && !dispatcher) continue;
+		const key = join.provider ?? join.agent;
+		out.push({
+			key,
+			label: provider?.label ?? _agentLabel(join.agent ?? key),
+			join,
+			provider,
+			agent: dispatcher ? join.agent : null
+		});
+		placed.add(key);
+	}
+	if (dispatcher) {
+		const agents = [.../* @__PURE__ */ new Set([...(queue.slotLimits ?? []).map((l) => l.agent), ...queue.active.map((t) => t.agent)])];
+		for (const agent of agents) {
+			if (agent === "" || placed.has(agent) || PROVIDER_JOIN.some((j) => j.agent === agent)) continue;
+			out.push({
+				key: agent,
+				label: _agentLabel(agent),
+				join: null,
+				provider: null,
+				agent
+			});
+			placed.add(agent);
+		}
+	}
+	for (const provider of providers) {
+		if (placed.has(provider.provider)) continue;
+		out.push({
+			key: provider.provider,
+			label: provider.label,
+			join: null,
+			provider,
+			agent: null
+		});
+	}
+	return out.map((source, at) => ({
+		source,
+		at,
+		rank: sourceRank({
+			provider: source.provider?.provider ?? source.join?.provider,
+			agent: source.agent ?? source.join?.agent
+		})
+	})).sort((a, b) => a.rank - b.rank || a.at - b.at).map(({ source }) => source);
+}
+/** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
+function _poolPosition(result) {
+	const pool = result?.opencodePool ?? [];
+	const used = [...result?.active ?? [], ...result?.recent ?? []].filter((task) => task.agent === "opencode").find((task) => (task.modelUsed ?? "") !== "" && task.attempts > 0)?.modelUsed ?? "";
+	if (pool.length === 0) return used === "" ? null : {
+		current: used,
+		next: "",
+		fromOrder: false
+	};
+	const at = pool.indexOf(used);
+	if (at < 0) return {
+		current: pool[0],
+		next: pool[1] ?? pool[0],
+		fromOrder: true
+	};
+	return {
+		current: used,
+		next: pool[(at + 1) % pool.length],
+		fromOrder: false
+	};
+}
+/**
+* A queue's state chip, the same on the folded line and on its group's head:
+* the ONE state that most needs the reader, with its count — asleep on quota,
+* then queued behind the lock or a slot, then another wait, then running. A
+* wait outranks running because a queue implies its holder runs. Idle is no
+* chip at all. `text` is every count (the line's aria-label and title).
+*/
+function _queueState(t, tasks) {
+	const run = tasks.filter((task) => task.slot !== "").length;
+	const queued = tasks.filter(queuedFor).length;
+	const quota = tasks.filter((task) => task.waiting === "quota").length;
+	const other = tasks.filter((task) => task.waiting === "retry" || task.waiting === "memory").length;
+	const present = [
+		[
+			"panel.q.quota",
+			quota,
+			"sleep"
+		],
+		[
+			"panel.q.queued",
+			queued,
+			"queue"
+		],
+		[
+			"panel.q.wait",
+			other,
+			"wait"
+		],
+		[
+			"panel.q.run",
+			run,
+			"run"
+		]
+	].filter(([, n]) => n > 0);
+	const text = present.length === 0 ? t("panel.q.idle") : present.map(([key, n]) => t(key, { n })).join(" · ");
+	const top = present[0];
+	return {
+		text,
+		chip: top === void 0 ? null : {
+			text: t(top[0], { n: top[1] }),
+			role: top[2],
+			title: text
+		}
+	};
+}
+/**
+* A source's value column: the allowance headline (used % of the first
+* window, or the balance) and its tone; for the free pool, "free" — where
+* the rotation stands is a fact of its group. `reset` (the headline window's,
+* resetStampOf) is read out in the line's label; the clocks themselves are
+* drawn once, on the group's window bars.
+*/
+function sourceReading(source, row, queue, t) {
+	if (row !== void 0) return {
+		value: row.view.value,
+		reset: row.view.reset === null ? null : "↻ " + row.view.reset,
+		tone: row.view.tone,
+		level: row.view.level,
+		title: row.view.title
+	};
+	if (source.join?.kind === "pool") {
+		const pos = _poolPosition(queue);
+		const size = queue?.opencodePool?.length ?? 0;
+		return {
+			value: t("panel.free"),
+			reset: null,
+			tone: "none",
+			level: null,
+			title: (pos === null ? t("panel.poolUnread") : t("panel.pool", {
+				current: pos.current,
+				next: pos.next || "—"
+			}) + (pos.fromOrder ? t("panel.poolOrder") : "")) + (size > 1 ? " · " + t("panel.poolSwap", { n: size }) : "")
+		};
+	}
+	return {
+		value: "—",
+		reset: null,
+		tone: "none",
+		level: null,
+		title: ""
+	};
+}
+/** The patrol phase's role: running blue, giving way amber (a wait), between rounds off, stopped red. */
+const PATROL_ROLE = {
+	running: "run",
+	yielding: "wait",
+	waiting: "off",
+	stopped: "fail",
+	unknown: "unknown"
+};
+/** rounds.tsv's local "YYYY-MM-DD HH:MM:SS" as epoch ms, null when it is not one. */
+function localStampMs(stamp) {
+	const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(stamp.trim());
+	return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0)).getTime() : null;
+}
+/**
+* Why the supervisor gives way, read off its journal line. The patterns are
+* the reasons the supervisor can actually write — `others_need_slot` and
+* `round_blocks_someone` in ops/host/patrol.sh, `memory_pressure_reason` in
+* ops/host/agent-dispatch/resource-pressure.sh — and the spec instantiates
+* every one of those templates from the files themselves (#2071):
+*   manual = a manual task waits for the lock or a slot the patrol would use
+*            (the id is that task, shown so the reader knows whom it waits for);
+*   slot   = the patrol's own admission: its agent's run slots are all taken;
+*   memory = admission deferred on memory headroom, pressure or telemetry.
+* `asking <round> to wrap up …: <demand>` is the grace before a preemption.
+*/
+function _patrolReason(detail) {
+	const wrap = /^asking \S+ to wrap up within \d+s: (.*)$/.exec(detail);
+	const why = wrap?.[1] ?? detail.replace(/^(?:waiting: |preempting \S+?(?: after a \d+s wrap-up grace)?: )/, "");
+	const manual = /^(\S+) is (?:waiting for (?:an \S+ run slot|its agent lock|the \S+ lock)|queued behind the round's \S+ lock)/.exec(why);
+	return {
+		kind: manual ? "manual" : /^the \S+ run slot is busy$/.test(why) ? "slot" : /^memory telemetry unavailable/.test(why) ? "memoryUnread" : /^memory (?:headroom low|pressure):/.test(why) ? "memory" : "other",
+		task: manual?.[1] ?? "",
+		wrapUp: wrap !== null
+	};
+}
+/** The supervisor's live status as the patrol head's caption: when the next round is, what it runs now, or why it gives way. */
+function patrolCaption(result, t, now) {
+	const patrol = result.patrol;
+	const reason = _patrolReason(patrol.detail);
+	const current = result.active.find((task) => task.id === patrol.round);
+	const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail);
+	const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? "";
+	const out = [];
+	if (patrol.phase === "waiting" && patrol.untilMs !== null) out.push({ text: t("queue.patrolState.waitingUntil", { time: resetStampOf(t, {
+		resetAt: "",
+		resetAtMs: patrol.untilMs
+	}, now) }) });
+	if (patrol.phase === "yielding" || reason.wrapUp) {
+		const why = reason.kind === "manual" ? t("queue.patrol.giveWay") : reason.kind === "slot" ? t("queue.patrol.waitSlot") : reason.kind === "memory" ? t("queue.patrol.memory") : reason.kind === "memoryUnread" ? t("queue.patrol.memoryUnread") : t("queue.patrol.otherReason");
+		if (reason.wrapUp) out.push({
+			text: t("queue.patrol.wrapUp"),
+			voice: "warn"
+		});
+		out.push({
+			text: why,
+			voice: "warn",
+			title: patrol.detail
+		});
+		if (reason.task !== "") out.push({
+			text: reason.task,
+			title: t("queue.patrol.forTask", { id: reason.task })
+		});
+	}
+	if (patrol.phase === "running" || patrol.phase === "yielding" && current !== void 0) {
+		const m = current === void 0 ? null : modelLine(current, true);
+		if (dispatched || axis) out.push({
+			text: dispatched ? t("queue.round.name", {
+				round: dispatched[1],
+				axis
+			}) : axis,
+			title: patrol.round
+		});
+		if (current?.startedAtMs != null) out.push({ text: t("queue.chip.elapsed", { time: durationOf(t, now - current.startedAtMs) }) });
+		if (m !== null && m.model !== "") out.push({
+			text: _modelView(m.model).label,
+			title: m.model
+		});
+	}
+	return out;
+}
+/** The cost cell: an API-price estimate, 'free', or '—' when the model is unpriced; null when nothing was recorded. */
+function _costOf(task) {
+	if (task.tokensTotal == null) return null;
+	const cost = task.costUsd ?? "";
+	if (cost === "free") return {
+		short: "free",
+		kind: "free"
+	};
+	if (/^\d+(\.\d+)?$/.test(cost)) return {
+		short: "$" + cost,
+		kind: "usd"
+	};
+	return {
+		short: "—",
+		kind: "unpriced"
+	};
+}
+/**
+* A source as a row: the sidebar's folded line and its group's head in the
+* panel are this one view (the same glyph, name and value in the same
+* columns), so the line a reader taps is the line the panel opens on. The
+* folded line adds the queue's one state chip (its tasks are not on screen);
+* the head adds its caption — the plan, the run slots, the pool — in words.
+*/
+function sourceView(source, row, result, t) {
+	const reading = sourceReading(source, row, result, t);
+	const queue = source.agent === null || result === null || !result.available ? null : _queueState(t, result.active.filter((task) => task.agent === source.agent));
+	const lane = source.agent === null || result === null || !result.available ? void 0 : _slotLanes(result).find((l) => l.agent === source.agent);
+	const pool = source.join?.kind === "pool" ? _poolPosition(result) : null;
+	const poolSize = result?.opencodePool?.length ?? 0;
+	return {
+		kind: "source",
+		key: source.key,
+		lead: { source },
+		name: source.label,
+		value: {
+			text: reading.value,
+			tone: reading.tone,
+			level: reading.level
+		},
+		state: queue?.chip ?? null,
+		facts: {},
+		caption: [
+			{ text: source.join?.plan === void 0 ? "" : t(source.join.plan) },
+			lane === void 0 ? { text: "" } : {
+				text: t("queue.slotCount", {
+					used: lane.used,
+					max: lane.max ?? "—"
+				}),
+				voice: lane.tone === "stale" ? "warn" : void 0,
+				title: t("queue.lanesTitle")
+			},
+			source.join?.kind !== "pool" ? { text: "" } : pool === null ? { text: t("panel.poolUnread") } : {
+				text: t("panel.pool", {
+					current: _modelView(pool.current).label,
+					next: pool.next === "" ? "—" : _modelView(pool.next).label
+				}) + (pool.fromOrder ? t("panel.poolOrder") : ""),
+				title: reading.title
+			},
+			poolSize > 1 && source.join?.kind === "pool" ? {
+				text: t("panel.poolSize", { n: poolSize }),
+				title: t("panel.poolSwap", { n: poolSize })
+			} : { text: "" }
+		],
+		reading,
+		queue
+	};
+}
+/** Provider rows with their display projection: what every surface of the cell reads. */
+function balanceRows(result, t, now) {
+	return (result?.providers ?? []).map((provider) => ({
+		...provider,
+		view: _rowDisplay(provider.result, t, now),
+		note: _balanceNote(provider.result, t)
+	}));
+}
+/** The provider windows of an agent (a quota wait names the reset it waits for). */
+function agentWindows(rows, agent) {
+	const join = PROVIDER_JOIN.find((j) => j.agent === agent);
+	return (join?.provider ? rows.get(join.provider) : void 0)?.result.snapshot?.windows;
+}
+function allowanceDetail(row, t, now) {
+	const wins = row.result.snapshot === null ? [] : windowsOf(t, row.result, now);
+	if (wins.length > 0) return {
+		kind: "windows",
+		windows: wins.map((w) => {
+			const fill = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)));
+			return {
+				label: w.label,
+				percent: w.percent,
+				fill,
+				reset: w.reset,
+				state: row.view.tone === "stale" ? "stale" : _usedLevel(fill, row.result.threshold)
+			};
+		})
+	};
+	if (row.note !== null) return null;
+	const title = row.view.title;
+	if (title === "") return null;
+	const prefix = t("balance.apiBalance") + " · ";
+	return {
+		kind: "text",
+		text: title.startsWith(prefix) ? title.slice(prefix.length) : title
+	};
+}
+function panelGroup(source, result, rows, t, now, open) {
+	const row = source.provider === null ? void 0 : rows.get(source.provider.provider);
+	const agent = source.agent;
+	const tasks = agent === null || result === null ? [] : result.active.filter((task) => task.agent === agent);
+	const queue = agent === null ? void 0 : (result?.queues ?? []).find((q) => q.agent === agent);
+	const notes = [];
+	if (queue?.held && tasks.every((task) => task.id !== queue.holder)) notes.push(queue.holder !== "" ? t("queue.holderOther", { id: queue.holder }) : t("queue.holderUnnamed"));
+	if (queue?.quotaUntilMs) notes.push(t("queue.quotaHint", {
+		time: resetStampOf(t, {
+			resetAt: "",
+			resetAtMs: queue.quotaUntilMs
+		}, now),
+		by: queue.quotaBy
+	}));
+	const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN;
+	const balanceNote = row === void 0 || row.note === null ? null : row.result.status === "stale" && Number.isFinite(snapshotAt) ? t("panel.staleAt", {
+		message: row.result.message ?? "—",
+		time: resetStampOf(t, {
+			resetAt: "",
+			resetAtMs: snapshotAt
+		}, now)
+	}) : row.note;
+	const { reading: _reading, queue: _queue, ...view } = sourceView(source, row, result, t);
+	return {
+		source,
+		head: {
+			...view,
+			state: null,
+			key: "head-" + source.key,
+			attrs: { "data-pp-head": source.key }
+		},
+		row,
+		balanceNote,
+		detail: row === void 0 ? null : allowanceDetail(row, t, now),
+		notes,
+		tasks: groupOrder(tasks, queue).map((task) => ({
+			task,
+			row: taskRow(task, t, now, open, agentWindows(rows, task.agent))
+		}))
+	};
+}
+/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+function recentSection(result, t, now, open) {
+	if (result === null || !result.available || result.recent.length === 0) return null;
+	return {
+		head: {
+			kind: "head",
+			key: "head-recent",
+			lead: { section: "recent" },
+			name: t("queue.recentHeading"),
+			state: null,
+			facts: {}
+		},
+		rows: result.recent.map((task) => endedRow(task, t, now, open))
+	};
+}
+/**
+* Patrol: a section head (the phase as its state chip, the live status as its
+* caption), the newest round resident, the earlier rounds and the raw journal
+* line folded (RESIDENT_ROUNDS).
+*/
+function patrolSection(result, t, now) {
+	if (result === null || !result.available) return null;
+	const patrol = result.patrol;
+	return {
+		head: {
+			kind: "head",
+			key: "head-patrol",
+			lead: { section: "patrol" },
+			name: t("queue.patrolHeading"),
+			state: {
+				text: t("queue.patrolState." + patrol.phase),
+				role: PATROL_ROLE[patrol.phase] ?? "unknown",
+				title: patrolPhraseOf(result, t, now)
+			},
+			facts: {},
+			caption: patrolCaption(result, t, now),
+			attrs: { "data-tq-patrol": patrol.phase }
+		},
+		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+		detail: patrol.detail
+	};
+}
+/** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
+function opsFooter(result, t) {
+	if (result === null || !result.available || result.ops === void 0) return null;
+	const skew = opsProblem(result, t);
+	const ops = result.ops;
+	return {
+		text: skew !== "" ? skew : t("queue.ops.footer", {
+			v: ops.version,
+			runner: ops.runnerApi
+		}),
+		bad: skew !== "",
+		version: ops.available ? ops.version : "missing"
+	};
+}
+/**
+* Why a half of the cell is not (fully) there: a failed or stale queue read, a
+* host without the dispatcher, a failed balance read. `error` is a transport
+* failure (the fetch never answered); an in-band failure arrives in the result.
+*/
+function panelNotices(input, t) {
+	const { queue, queueError, balances, balanceError, rowCount } = input;
+	const queueProblem = queueError ?? (queue !== null && (queue.status === "stale" || queue.status === "failed") ? queue.message : null);
+	const out = [];
+	if (queueProblem !== null && queueProblem !== "") out.push({
+		key: "qerr",
+		bad: true,
+		text: t(queue === null || queue.status === "failed" ? "queue.readFailed" : "queue.staleWith", { message: queueProblem })
+	});
+	if (queueProblem === null && queue === null) out.push({
+		key: "qloading",
+		bad: false,
+		text: t("panel.queueLoading")
+	});
+	if (queueProblem === null && queue !== null && !queue.available) out.push({
+		key: "qunavailable",
+		bad: false,
+		text: t("panel.queueUnavailable")
+	});
+	if (balanceError !== null) out.push({
+		key: "berr",
+		bad: true,
+		text: rowCount === 0 ? t("balance.readFailed", { message: balanceError }) : t("balance.staleWith", { message: balanceError })
+	});
+	return out;
+}
+function panelModel(input, t, now, open = () => {}) {
+	const rows = balanceRows(input.balances, t, now);
+	const byProvider = new Map(rows.map((row) => [row.provider, row]));
+	const sources = _panelSources(input.balances?.providers ?? [], input.queue);
+	return {
+		title: t("panel.title"),
+		notices: panelNotices({
+			...input,
+			rowCount: rows.length
+		}, t),
+		empty: sources.length === 0 && input.balanceError === null ? input.balances === null ? t("balance.reading") : t("panel.noSources") : null,
+		groups: sources.map((source) => panelGroup(source, input.queue, byProvider, t, now, open)),
+		recent: recentSection(input.queue, t, now, open),
+		patrol: patrolSection(input.queue, t, now),
+		footer: opsFooter(input.queue, t)
+	};
+}
+//#endregion
+//#region src/client.ts
+/**
+* clawock-dsh browser bundle: the Decision Mind conversation-view tab.
+*
+* One organic view — the decision trace: real fills as the spine, the shared
+* decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
+* layer, and canonical bar closes (memory/bars/, never snapshot current_price
+* — see readBarCloses) as the T+1 verdict. Fills without a decision say so
+* explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
+* figure as the focal number and a GitHub-style vertical timeline in the
+* expandable detail.
+*
+* Official client discipline (`packages/client/AGENTS.md` in the Harness
+* tree), all four rules this file has to satisfy:
+*   - registration happens inside `apply` through `ctx.slots.register`, and
+*     the module body has no side effects — styles arrive as a CSS Modules
+*     import, whose `<style data-plugin>` tag the loader owns and removes on
+*     unload;
+*   - the store is an exported `createDecisionMindStore()` factory called in
+*     `apply`, never a module-level handle (a disguised singleton);
+*   - live data reaches render through the props shares only, so the trace
+*     cache lives in the apply closure and is read through `inject`;
+*   - components take named props and the wire types from `./types.ts`.
+*/
+const { createElement, useEffect, useId, useRef, useState } = React;
+const h = createElement;
+/** Class tokens declared in styles.module.css, mapped to their hashed names. */
+function cx(...tokens) {
+	const out = [];
+	for (const token of tokens) {
+		if (token === "" || token === false || token === null || token === void 0) continue;
+		out.push(styles_module_css_default[token] ?? token);
+	}
+	return out.join(" ");
+}
 /**
 * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
 * host that predates it sends only the rendered text, which is passed through
@@ -7292,14 +8628,6 @@ function verdictOf(t, t1) {
 	const kind = t1.verdictKind;
 	if (kind == null) return t1.verdict;
 	return t("t1." + kind);
-}
-/** Every window of a snapshot, named and stamped for the active locale. */
-function windowsOf(t, result, now) {
-	return (result.snapshot?.windows ?? []).map((w) => ({
-		label: windowLabelOf(t, w),
-		percent: w.percent,
-		reset: resetStampOf(t, w, now)
-	}));
 }
 /** Newest date groups rendered expanded; older days arrive in batches. */
 const DEFAULT_VISIBLE_DATES = 3;
@@ -7582,113 +8910,6 @@ function relativeDay(iso, today, t) {
 		day: parseInt(iso.slice(8, 10))
 	});
 }
-/**
-* Colour tier for one used-percent reading against the REMAINING-watermark
-* threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
-* 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
-* warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
-* 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
-*/
-function _usedLevel(percent, threshold) {
-	if (percent === null) return "ok";
-	if (percent >= 100 - threshold) return "low";
-	if (percent >= 100 - 2 * threshold) return "mid";
-	return "ok";
-}
-/**
-* Display projection of ONE provider's answer (test seam, like _displayEntry):
-* the chip and panel render only these fields, so the view never keeps
-* a second copy of the tone rules — the host already decided status and low.
-* The title is the whole hover story: split, quota windows, stale reason,
-* fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
-* 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
-* muted pill suffix — both limits visible at the header without opening the
-* panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
-* the reading itself says 100% and `reset` carries when it frees up.
-*/
-function _rowDisplay(result, t, now = Date.now()) {
-	if (result === null) return {
-		tone: "none",
-		value: "—",
-		sub: null,
-		reset: null,
-		level: null,
-		title: t("balance.loading")
-	};
-	if (!result.configured) return {
-		tone: "none",
-		value: t("balance.unconfigured"),
-		sub: null,
-		reset: null,
-		level: null,
-		title: result.message ?? t("balance.unconfiguredKey")
-	};
-	if (result.snapshot === null) return {
-		tone: "none",
-		value: "—",
-		sub: null,
-		reset: null,
-		level: null,
-		title: result.message ?? t("balance.fetchFailed")
-	};
-	const snapshot = result.snapshot;
-	const isPct = snapshot.unit === "pct";
-	const symbol = isPct ? "" : snapshot.currency === "USD" ? "$" : snapshot.currency === "CNY" ? "¥" : "";
-	const pctWins = isPct && Array.isArray(snapshot.windows) ? snapshot.windows.filter((w) => w.percent !== null) : [];
-	const parsed = Number.parseFloat(snapshot.totalBalance);
-	const value = isFinite(parsed) ? isPct ? String(Math.round(parsed)) + "%" : symbol + parsed.toLocaleString(void 0, { maximumFractionDigits: 2 }) : pctWins.length > 0 ? String(Math.round(pctWins[0].percent)) + "%" : snapshot.totalBalance === "" ? "—" : symbol + snapshot.totalBalance;
-	const second = pctWins.length > 1 ? pctWins[1] : null;
-	const wins = windowsOf(t, result, now);
-	const firstReset = wins.length > 0 ? wins[0].reset : "";
-	const reset = pctWins.length > 0 && firstReset !== "" ? firstReset : null;
-	const secondWin = wins.length > 1 ? wins[1] : null;
-	const sub = secondWin !== null && second !== null ? "· " + secondWin.label + " " + Math.round(second.percent) + "%" + (secondWin.reset !== "" ? " ↻" + secondWin.reset : "") : null;
-	const tone = result.status === "stale" ? "stale" : result.low || !snapshot.isAvailable ? "low" : "ok";
-	const quotaTail = wins.length === 0 ? [] : snapshot.note.split(" · ").slice(snapshot.windows.length).filter((note) => note !== "");
-	const quotaLine = wins.length === 0 ? snapshot.note !== "" ? snapshot.note : t("balance.windowsUsed") : [...wins.filter((w) => w.percent !== null).map((w) => w.reset === "" ? t("balance.windowNote", {
-		label: w.label,
-		percent: Math.round(w.percent)
-	}) : t("balance.windowNoteReset", {
-		label: w.label,
-		percent: Math.round(w.percent),
-		reset: w.reset
-	})), ...quotaTail].join(" · ");
-	const parts = [
-		snapshot.unit === "pct" ? quotaLine : t("balance.apiBalance"),
-		!isPct && snapshot.grantedBalance !== "" ? t("balance.granted") + symbol + snapshot.grantedBalance : null,
-		!isPct && snapshot.toppedUpBalance !== "" ? t("balance.toppedUp") + symbol + snapshot.toppedUpBalance : null,
-		snapshot.isAvailable || isPct ? null : t("balance.insufficient"),
-		result.status === "stale" && result.message !== null ? t("balance.staleWith", { message: result.message }) : null
-	].filter((part) => part !== null);
-	const shownPct = isPct ? isFinite(parsed) ? parsed : pctWins.length > 0 ? pctWins[0].percent : null : null;
-	return {
-		tone,
-		value,
-		sub,
-		reset,
-		level: shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold),
-		title: parts.join(" · ")
-	};
-}
-/**
-* The one line a panel row says out loud when something is wrong — stale
-* reason, unconfigured key, insufficient money balance. A healthy number
-* earns no caption at all; null means silence. An exhausted quota window
-* is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
-* rows are the message; a caption would only replace them.
-*/
-function _balanceNote(result, t) {
-	if (result === null) return null;
-	if (!result.configured) return result.message ?? t("balance.unconfiguredKey");
-	if (result.snapshot === null) return result.message ?? t("balance.fetchFailed");
-	if (result.status === "stale") return result.message !== null ? t("balance.staleWith", { message: result.message }) : t("balance.stale");
-	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? null : t("balance.insufficient");
-	if (result.low) {
-		if (result.snapshot.unit === "pct") return (result.snapshot.windows ?? []).length > 0 ? null : t("balance.windowAt", { percent: 100 - result.threshold });
-		return t("balance.lowMoney", { amount: (result.snapshot.currency === "USD" ? "$" : result.snapshot.currency === "CNY" ? "¥" : "") + result.threshold });
-	}
-	return null;
-}
 /** Store factory — called inside `apply`, never a module-level handle. */
 function createBalanceStore() {
 	return defineStore({
@@ -7717,25 +8938,20 @@ function createBalanceStore() {
 * (unconfigured / fetch-failed) speak through the note alone.
 */
 function renderRowDetail(row, t, now) {
-	const wins = row.result.snapshot === null ? [] : windowsOf(t, row.result, now);
-	if (wins.length > 0) return h("div", { className: cx("bp-wins") }, wins.map((w) => {
-		const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)));
-		const state = row.view.tone === "stale" ? "stale" : _usedLevel(pct, row.result.threshold);
-		return h("div", {
-			className: cx("bp-win"),
-			key: w.label
-		}, h("div", { className: cx("bp-win-line") }, h("span", { className: cx("bp-win-label") }, w.label), h("span", { className: cx("bp-win-pct") }, w.percent === null ? "—" : Math.round(w.percent) + "%"), h("span", { className: cx("bp-win-reset") }, w.reset === "" ? "" : "↻ " + w.reset)), h("div", { className: cx("bp-win-bar") }, h("div", {
-			className: cx("bp-win-fill"),
-			style: pct === null ? { width: "0%" } : { width: pct + "%" },
-			"data-balance-state": state
-		})));
-	}));
-	if (row.note !== null) return null;
-	const title = row.view.title;
-	if (title === "") return null;
-	const prefix = t("balance.apiBalance") + " · ";
-	const body = title.startsWith(prefix) ? title.slice(prefix.length) : title;
-	return h("div", { className: cx("bp-sub") }, body);
+	return renderAllowance(allowanceDetail(row, t, now));
+}
+/** panel.ts's AllowanceDetail as the window lines (label · used · reset over a hairline bar) or the money split. */
+function renderAllowance(detail) {
+	if (detail === null) return null;
+	if (detail.kind === "text") return h("div", { className: cx("bp-sub") }, detail.text);
+	return h("div", { className: cx("bp-wins") }, detail.windows.map((w) => h("div", {
+		className: cx("bp-win"),
+		key: w.label
+	}, h("div", { className: cx("bp-win-line") }, h("span", { className: cx("bp-win-label") }, w.label), h("span", { className: cx("bp-win-pct") }, w.percent === null ? "—" : Math.round(w.percent) + "%"), h("span", { className: cx("bp-win-reset") }, w.reset === "" ? "" : "↻ " + w.reset)), h("div", { className: cx("bp-win-bar") }, h("div", {
+		className: cx("bp-win-fill"),
+		style: w.fill === null ? { width: "0%" } : { width: w.fill + "%" },
+		"data-balance-state": w.state
+	})))));
 }
 /**
 * The balance channel every surface shares: cached-first state, the mount
@@ -7823,11 +9039,7 @@ function useProviderBalances(props, pollKey) {
 		};
 	}, [data.result?.refreshMs, pollKey]);
 	const now = Date.now();
-	const rows = (data.result?.providers ?? []).map((provider) => ({
-		...provider,
-		view: _rowDisplay(provider.result, props.t, now),
-		note: _balanceNote(provider.result, props.t)
-	}));
+	const rows = balanceRows(data.result, props.t, now);
 	const primary = rows.find((row) => row.provider === selected) ?? rows[0];
 	const refresh = () => {
 		setData((current) => ({
@@ -8113,241 +9325,6 @@ function useFootPopover(back) {
 		rootRef
 	};
 }
-/** A live task queued for something another task of its agent holds (the backlog patrol yields to). */
-const queuedFor = (task) => task.waiting === "lock" || task.waiting === "slot";
-/**
-* Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
-* Anything else is shown verbatim under the task's own agent. (The shared
-* `slot-1..2` of the runners from before 2026-09-25, a bare number, had a
-* bucket of its own until 2026-09-27, when none was left.)
-*/
-function _slotOf(task) {
-	if (task.slot === "") return null;
-	const lane = /^([a-z][a-z0-9]*)-(\d+)$/.exec(task.slot);
-	return lane ? {
-		agent: lane[1],
-		slot: lane[2]
-	} : {
-		agent: task.agent,
-		slot: task.slot
-	};
-}
-/**
-* Each agent's run slots, in the panel's order (providers.ts), limits.env's
-* agents and any agent seen holding one that limits.env does not name. A full lane with a task of that agent queued
-* is amber: that is the queue's reason at a glance. A host older than
-* slotLimits sends none: the lanes then come from the held slots alone,
-* without a maximum.
-*/
-function _slotLanes(result) {
-	const held = result.active.map(_slotOf).filter((slot) => slot !== null);
-	const limits = new Map((result.slotLimits ?? []).map((limit) => [limit.agent, limit.max]));
-	for (const slot of held) if (!limits.has(slot.agent)) limits.set(slot.agent, -1);
-	return byAgentRank([...limits].map(([agent, limit]) => ({
-		agent,
-		limit
-	}))).map(({ agent, limit }) => {
-		const used = held.filter((slot) => slot.agent === agent).length;
-		const max = limit >= 0 ? limit : null;
-		const queued = result.active.some((task) => task.agent === agent && queuedFor(task));
-		return {
-			agent,
-			used,
-			max,
-			tone: max !== null && used >= max && queued ? "stale" : used > 0 ? "ok" : "none"
-		};
-	});
-}
-function laneText(t, lane) {
-	return lane.max === null ? t("queue.laneNoMax", {
-		agent: lane.agent,
-		used: lane.used
-	}) : t("queue.lane", {
-		agent: lane.agent,
-		used: lane.used,
-		max: lane.max
-	});
-}
-function durationOf(t, ms) {
-	const mins = Math.max(0, Math.floor(ms / 6e4));
-	return mins < 60 ? t("queue.duration.minutes", { m: mins }) : t("queue.duration.hours", {
-		h: Math.floor(mins / 60),
-		m: mins % 60
-	});
-}
-function agoOf(t, ms) {
-	const mins = Math.max(0, Math.floor(ms / 6e4));
-	if (mins < 1) return t("queue.ago.now");
-	if (mins < 60) return t("queue.ago.minutes", { m: mins });
-	if (mins < 2880) return t("queue.ago.hours", { h: Math.floor(mins / 60) });
-	return t("queue.ago.days", { d: Math.floor(mins / 1440) });
-}
-/**
-* One live task's status phrase and its tone. One colour, one meaning:
-* 'ok' (the host's business blue) = holding its agent's lock and running,
-* 'stale' (the host's warn) = waiting for something (the lock, a slot,
-* memory, a quota reset, a retry), 'none' = neither yet (starting).
-*/
-function _taskStatus(task, t, now = Date.now(), windows) {
-	const stamp = (ms) => resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: ms
-	}, now);
-	const at = (key, ms) => ms === null ? t(key + "NoTime") : t(key, { time: stamp(ms) });
-	if (task.cancelling) return {
-		tone: "none",
-		text: t("queue.state.cancelling")
-	};
-	switch (task.waiting) {
-		case "lock": return {
-			tone: "stale",
-			text: task.position ? t("queue.wait.lockAt", {
-				agent: task.agent,
-				n: task.position
-			}) : t("queue.wait.lock", { agent: task.agent })
-		};
-		case "slot": return {
-			tone: "stale",
-			text: t("queue.wait.slot", { agent: task.agent })
-		};
-		case "memory": return {
-			tone: "stale",
-			text: t("queue.wait.memory")
-		};
-		case "quota": {
-			if (task.wakeAtMs === null || windows === void 0) return {
-				tone: "stale",
-				text: at("queue.wait.quota", task.wakeAtMs)
-			};
-			const wake = task.wakeAtMs;
-			const resets = windows.map((w) => w.resetAtMs ?? null).filter((ms) => ms !== null && ms <= wake + 6e4 && wake - ms < 216e5);
-			if (resets.length === 0) return {
-				tone: "stale",
-				text: t("queue.wait.quotaNoWindow", { time: stamp(wake) })
-			};
-			const reset = Math.max(...resets);
-			return {
-				tone: "stale",
-				text: t("queue.wait.quotaBoth", {
-					time: stamp(wake),
-					reset: stamp(reset),
-					pad: Math.max(0, Math.round((wake - reset) / 6e4))
-				})
-			};
-		}
-		case "retry": return {
-			tone: "stale",
-			text: at("queue.wait.retry", task.wakeAtMs)
-		};
-	}
-	const slot = _slotOf(task);
-	if (slot === null) return {
-		tone: "none",
-		text: t("queue.state.starting")
-	};
-	return {
-		tone: "ok",
-		text: slot.slot === "1" ? t("queue.state.running") : t("queue.state.runningSlot", { slot: slot.slot })
-	};
-}
-/** Keep the runner's execution verdict and the model's report in separate, named slots. */
-function executionText(state, t) {
-	return t("queue.execution." + ({
-		ok: "ok",
-		partial: "ok",
-		unverified: "ok",
-		failed: "failed",
-		cancelled: "cancelled",
-		timeout: "timeout",
-		blocked: "blocked",
-		quota: "quota",
-		queued: "queued"
-	}[state] ?? "unknown"));
-}
-function reportText(outcome, t, executionState = "ok") {
-	if (outcome === "DONE" && ![
-		"ok",
-		"partial",
-		"unverified"
-	].includes(executionState)) return t("queue.report.claimedDone");
-	return t("queue.report." + ([
-		"DONE",
-		"PARTIAL",
-		"BLOCKED"
-	].includes(outcome) ? outcome : "unknown"));
-}
-/**
-* An ended task's tone. Done is not blue (blue means running now) and not a
-* dot at all: ended rows speak in words. Not-done amber, failed red.
-*/
-function endedTone(task) {
-	if (task.state === "failed" || task.state === "timeout") return "low";
-	if ([
-		"partial",
-		"unverified",
-		"blocked",
-		"quota"
-	].includes(task.state) || task.state === "ok" && task.outcome !== "DONE" || task.outcome === "BLOCKED") return "stale";
-	return "none";
-}
-function patrolPhraseOf(result, t, now) {
-	const patrol = result.patrol;
-	if (patrol.phase === "waiting" && patrol.untilMs !== null) return t("queue.patrol.waitingUntil", { time: resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: patrol.untilMs
-	}, now) });
-	return t("queue.patrol." + patrol.phase);
-}
-/** The ops entry answered, and its installed copy is the repository's. '' when fine, else why not. */
-function opsProblem(result, t) {
-	const ops = result.ops;
-	if (ops === void 0) return "";
-	if (!ops.available) return t("queue.ops.missing", { error: ops.error });
-	if (ops.repoVersion !== "" && ops.version !== ops.repoVersion) return t("queue.ops.skew", {
-		host: ops.version,
-		repo: ops.repoVersion
-	});
-	return "";
-}
-/**
-* The chip's headline, the host badge's two parts: the label, and a count
-* (running · queued) at the trailing edge. No n/max: slots are per agent, so a
-* free slot of one agent is no room for another's task — the per-agent lanes
-* are in the title and on each group of the panel. The glyph badge carries
-* the one tone that matters most: red when the read failed, amber when a task
-* waits, blue when something runs.
-*/
-function _queueHeadline(result, t, now = Date.now()) {
-	const queued = result.active.filter(queuedFor).length;
-	const memory = result.active.filter((task) => task.waiting === "memory").length;
-	const quota = result.active.filter((task) => task.waiting === "quota").length;
-	const retry = result.active.filter((task) => task.waiting === "retry").length;
-	const waits = [
-		queued > 0 ? t("queue.queued", { n: queued }) : null,
-		memory > 0 ? t("queue.memoryWait", { n: memory }) : null,
-		quota > 0 ? t("queue.quotaWait", { n: quota }) : null,
-		retry > 0 ? t("queue.retryWait", { n: retry }) : null
-	].filter((part) => part !== null);
-	const parts = [...waits, patrolPhraseOf(result, t, now)];
-	const value = result.active.length === 0 ? t("queue.idle") : t("queue.running", { n: result.running });
-	const slots = _slotLanes(result).map((lane) => laneText(t, lane)).join(" · ");
-	const waiting = queued + memory + quota + retry;
-	const tone = result.status === "stale" || result.status === "failed" ? "low" : waiting > 0 ? "stale" : result.running > 0 ? "ok" : "none";
-	const ops = result.ops?.available ? t("queue.ops.version", { v: result.ops.version }) : "";
-	return {
-		tone,
-		value,
-		sub: waits.join(" · "),
-		busy: queued > 0,
-		title: [
-			t("queue.name"),
-			value,
-			slots,
-			parts.join(" · "),
-			opsProblem(result, t) || ops
-		].filter((part) => part !== "").join(" · ")
-	};
-}
 /** Cached-first read, the mount fetch and the poll, like useProviderBalances in miniature. */
 function useTaskQueue(props) {
 	const mountedRef = useRef(true);
@@ -8406,13 +9383,6 @@ function useTaskQueue(props) {
 		refresh
 	};
 }
-/** Executor names as their makers write them. */
-const AGENT_LABELS = {
-	claude: "Claude Code",
-	codex: "Codex",
-	opencode: "OpenCode"
-};
-const _agentLabel = (agent) => AGENT_LABELS[agent] ?? agent;
 /**
 * The executor layer: a 14px outline glyph in the host's icon stroke, one
 * shape per CLI. All three are plugin-drawn pictograms, not vendor marks:
@@ -8452,67 +9422,6 @@ function renderAgentGlyph(agent, size = 14) {
 		"data-tq-agent": agent
 	}, shape);
 }
-/**
-* The model layer, read off the model id itself (never a hand-kept model
-* list), as its maker names it in full: `claude-opus-5-5` → Claude Opus 5.5 ·
-* `claude-haiku-4-5-20251001` → Claude Haiku 4.5 · `gpt-6-sol` → GPT-6 Sol ·
-* `opencode/nemotron-3-ultra-free` → Nemotron 3 Ultra. No letter tile in
-* front (kcn, 2026-09-27: the two-letter stand-in was noise); the room goes
-* to the whole name.
-*/
-function _modelView(id) {
-	if (id === "") return {
-		label: "—",
-		family: ""
-	};
-	const bare = id.includes("/") ? id.slice(id.lastIndexOf("/") + 1) : id;
-	const title = (word) => word.charAt(0).toUpperCase() + word.slice(1);
-	const claude = /^claude-([a-z]+)(?:-(\d+))?(?:-(\d{1,2}))?(?:-\d{8})?$/.exec(bare);
-	if (claude) {
-		const version = [claude[2], claude[3]].filter(Boolean).join(".");
-		return {
-			label: "Claude " + title(claude[1]) + (version ? " " + version : ""),
-			family: "claude"
-		};
-	}
-	const gpt = /^gpt-([\d.]+)(?:-([a-z]+))?$/.exec(bare);
-	if (gpt) return {
-		label: "GPT-" + gpt[1] + (gpt[2] ? " " + title(gpt[2]) : ""),
-		family: "gpt"
-	};
-	if (/^[a-z]+$/.test(bare) && !id.includes("/")) return {
-		label: title(bare),
-		family: bare
-	};
-	const words = bare.replace(/-(free|contributor)(?=-|$)/g, "").split("-").filter((word) => word !== "");
-	return {
-		label: words.map((word) => /^[a-z]/.test(word) ? title(word) : word).join(" "),
-		family: words[0] ?? bare
-	};
-}
-/** "Opus 5.5 · high", with the model the task will run on while it waits and the one it ran on after. */
-function modelLine(task, _live) {
-	const requested = task.modelRequested ?? task.model;
-	const ran = task.attempts > 0 && (task.modelUsed ?? "") !== "";
-	const used = ran ? task.modelUsed ?? "" : "";
-	return {
-		model: ran ? used : requested || task.model,
-		effort: (ran ? task.effortUsed : "") || task.effortRequested || "",
-		fallback: ran && requested !== "" && used !== requested
-	};
-}
-function _notifyState(task, ch, live) {
-	if ((task.notifyFailed ?? []).includes(ch)) return "failed";
-	if ((task.notified ?? []).includes(ch)) return "sent";
-	return live ? "planned" : "unknown";
-}
-function notifyChannels(task) {
-	return [.../* @__PURE__ */ new Set([
-		...task.notify ?? [],
-		...task.notified ?? [],
-		...task.notifyFailed ?? []
-	])];
-}
 const RECEIPT_GLYPH = {
 	sent: "M1.6 5.2L3.6 7.2L8.4 2.4",
 	failed: "M2.2 2.2L7.8 7.8M7.8 2.2L2.2 7.8",
@@ -8520,16 +9429,20 @@ const RECEIPT_GLYPH = {
 	planned: "M2.2 5H7.8"
 };
 function renderNotifyIcons(task, t, live) {
-	const channels = notifyChannels(task);
-	if (channels.length === 0) return null;
-	const said = channels.map((ch) => t("queue.notify." + _notifyState(task, ch, live), { ch: t("queue.ch." + ch) })).join(" · ");
+	return renderReceipts(notifyChannels(task).map((ch) => ({
+		ch,
+		state: _notifyState(task, ch, live)
+	})), t);
+}
+function renderReceipts(receipts, t) {
+	if (receipts.length === 0) return null;
+	const said = receipts.map(({ ch, state }) => t("queue.notify." + state, { ch: t("queue.ch." + ch) })).join(" · ");
 	return h("span", {
 		className: cx("tq-notify"),
 		role: "img",
 		"aria-label": said,
 		title: said + " — " + t("queue.receiptLegend")
-	}, channels.map((ch) => {
-		const state = _notifyState(task, ch, live);
+	}, receipts.map(({ ch, state }) => {
 		return h("span", {
 			key: ch,
 			className: cx("tq-receipt"),
@@ -8568,81 +9481,6 @@ function renderNotifyIcons(task, t, live) {
 		})));
 	}));
 }
-const STATE_ROLES = {
-	run: {
-		bed: "fill",
-		glyph: [{
-			d: "M5 2a3 3 0 1 1 0 6a3 3 0 1 1 0-6Z",
-			paint: "fill"
-		}]
-	},
-	queue: {
-		bed: "edge",
-		glyph: [{
-			d: "M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z",
-			paint: "stroke"
-		}]
-	},
-	sleep: {
-		bed: "fill",
-		glyph: [{
-			d: "M6.6 1.8A3.4 3.4 0 1 0 8.4 7.6A2.8 2.8 0 0 1 6.6 1.8Z",
-			paint: "fill"
-		}]
-	},
-	wait: {
-		bed: "edge",
-		glyph: [{
-			d: "M2.8 1.8H7.2M2.8 8.2H7.2M3.4 1.8C3.4 4 6.6 4 6.6 5S3.4 6 3.4 8.2M6.6 1.8C6.6 4 3.4 4 3.4 5S6.6 6 6.6 8.2",
-			paint: "stroke"
-		}]
-	},
-	done: {
-		bed: "fill",
-		glyph: [{
-			d: "M2.3 5.2L4.2 7.1L7.8 3",
-			paint: "stroke"
-		}]
-	},
-	partial: {
-		bed: "fill",
-		glyph: [{
-			d: "M5 2.2a2.8 2.8 0 1 1 0 5.6a2.8 2.8 0 1 1 0-5.6Z",
-			paint: "stroke"
-		}, {
-			d: "M5 2.2A2.8 2.8 0 0 0 5 7.8Z",
-			paint: "fill"
-		}]
-	},
-	fail: {
-		bed: "fill",
-		glyph: [{
-			d: "M2.8 2.8L7.2 7.2M7.2 2.8L2.8 7.2",
-			paint: "stroke"
-		}]
-	},
-	off: {
-		bed: "edge",
-		glyph: [{
-			d: "M2.6 5H7.4",
-			paint: "stroke"
-		}]
-	},
-	unknown: {
-		bed: "dashed",
-		glyph: [{
-			d: "M3.5 3.6a1.6 1.6 0 1 1 2.2 1.5C5.2 5.3 5 5.6 5 6.1M5 7.9V8",
-			paint: "stroke"
-		}]
-	},
-	fallback: {
-		bed: "edge",
-		glyph: [{
-			d: "M7.6 5.6A2.7 2.7 0 1 1 6.9 2.9M7.4 1.4V3.3H5.5",
-			paint: "stroke"
-		}]
-	}
-};
 function renderRoleGlyph(role) {
 	return h("svg", {
 		className: cx("tq-role-glyph"),
@@ -8675,137 +9513,8 @@ function renderChip(chip, opts = {}) {
 		title: chip.title ?? chip.text
 	}, renderRoleGlyph(chip.role), h("span", { className: cx("tq-chip-text") }, chip.text));
 }
-/**
-* An ended task's (or round's) ONE state: the runner's verdict and the
-* model's report folded into the role that most needs the reader. Both axes
-* stay readable: the chip's title says both, the detail layer shows both.
-*/
-function _endedState(state, outcome, t) {
-	const title = executionText(state, t) + (outcome === "" && state !== "ok" ? "" : " · " + reportText(outcome, t, state));
-	const word = state === "failed" ? "failed" : state === "timeout" ? "timeout" : state === "cancelled" ? "cancelled" : state === "queued" ? "notStarted" : state === "quota" ? "quota" : state === "blocked" || outcome === "BLOCKED" ? "blocked" : ![
-		"ok",
-		"partial",
-		"unverified"
-	].includes(state) ? "unknown" : outcome === "DONE" ? "done" : outcome === "PARTIAL" ? "partial" : "noReport";
-	const role = {
-		failed: "fail",
-		timeout: "fail",
-		cancelled: "off",
-		notStarted: "off",
-		quota: "partial",
-		blocked: "partial",
-		done: "done",
-		partial: "partial",
-		noReport: "unknown",
-		unknown: "unknown"
-	}[word];
-	return {
-		text: t("queue.verdict." + word),
-		role,
-		title
-	};
-}
-/**
-* THE row grid (2026-09-28 redesign, kcn: 「很多地方都没有对齐显示导致 chip 过多显示杂乱」).
-* Every line of the open panel — a source's head, a section head, a live
-* task, an ended task, a patrol round — sits on the same five tracks
-* (styles.module.css `--tq-grid`), and every fact has ONE fixed cell:
-*
-*            lead   when       took       rest        aside
-*   line 1   glyph  name ─────────────────────────   state chip | value
-*   line 2          model (+ fallback mark) ───────   receipts | tries
-*   line 3          when       took                    cost
-*
-* `when`, `took` and `aside` are fixed widths, so a time, a duration, a cost,
-* a state are on one vertical line in every row that has them; a row without
-* a fact leaves its cell empty, never shifts the next one in. A head
-* (source/section) has a caption line in line 2 instead of facts.
-*
-* RESIDENT_CHIPS: a row carries at most ONE chip, its state. Everything else
-* is words in a fixed cell or a mark (receipts, fallback). What has no cell
-* here is not squeezed in, wrapped or ellipsised: it lives in the detail layer
-* one tap away (the report axis on its own, attempts' budget, the first queue
-* wait, the patrol tag, the session). ROW_KINDS says which facts each kind
-* shows; FACT_CELL where each one sits; the spec checks every rendered row
-* against both, and that no row has a second chip.
-*/
-const FACT_ORDER = [
-	"model",
-	"tries",
-	"receipt",
-	"when",
-	"took",
-	"cost"
-];
-const RESIDENT_CHIPS = 1;
-/** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
-const FACT_CELL = {
-	model: {
-		line: 2,
-		track: "main"
-	},
-	tries: {
-		line: 2,
-		track: "aside"
-	},
-	receipt: {
-		line: 2,
-		track: "aside"
-	},
-	when: {
-		line: 3,
-		track: "when"
-	},
-	took: {
-		line: 3,
-		track: "took"
-	},
-	cost: {
-		line: 3,
-		track: "aside"
-	}
-};
-const ROW_KINDS = {
-	source: {
-		lead: true,
-		value: true,
-		facts: []
-	},
-	head: {
-		lead: true,
-		value: false,
-		facts: []
-	},
-	task: {
-		lead: true,
-		value: false,
-		facts: [
-			"model",
-			"tries",
-			"when",
-			"took",
-			"cost"
-		]
-	},
-	ended: {
-		lead: true,
-		value: false,
-		facts: [
-			"model",
-			"receipt",
-			"when",
-			"took",
-			"cost"
-		]
-	},
-	round: {
-		lead: true,
-		value: false,
-		facts: ["when", "took"]
-	}
-};
 /** A row's cells in grid order, and the sentence it reads as. */
-function rowCells(view) {
+function rowCells(view, t) {
 	const kind = ROW_KINDS[view.kind];
 	const slots = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null);
 	const value = kind.value && view.value != null ? view.value : null;
@@ -8816,7 +9525,7 @@ function rowCells(view) {
 				className: cx("tq-lead"),
 				key: "lead",
 				"aria-hidden": "true"
-			}, kind.lead ? view.lead ?? null : null),
+			}, kind.lead && view.lead != null ? renderLead(view.lead) : null),
 			h("span", {
 				className: cx("tq-name"),
 				key: "name"
@@ -8836,7 +9545,11 @@ function rowCells(view) {
 					"data-tq-fact": slot,
 					"data-voice": fact.voice,
 					title: fact.title ?? fact.said
-				}, fact.node ?? fact.text, fact.mark ?? null);
+				}, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.text, fact.mark == null ? null : h("span", {
+					className: cx("tq-mark"),
+					"data-role": fact.mark.role,
+					title: fact.mark.title
+				}, renderRoleGlyph(fact.mark.role), fact.mark.text));
 			}),
 			caption.length === 0 ? null : h("span", {
 				className: cx("tq-caption-line"),
@@ -8864,7 +9577,7 @@ function rowCells(view) {
 * a button.
 */
 function renderRow(view, t, after = null) {
-	const { cells, said } = rowCells(view);
+	const { cells, said } = rowCells(view, t);
 	const head = view.kind === "source" || view.kind === "head";
 	const common = {
 		className: cx("tq-row", view.open === void 0 && "tq-static"),
@@ -8886,192 +9599,6 @@ function renderRow(view, t, after = null) {
 		title: said,
 		onClick: view.open
 	}, ...cells), after);
-}
-/** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
-function clockOf(ms, now) {
-	const d = new Date(ms);
-	const n = new Date(now);
-	const hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
-	return d.toDateString() === n.toDateString() ? hm : `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
-}
-/**
-* A live task's state chip: the short word (the group head already names the
-* agent), its role, and the whole phrase (_taskStatus: which lock, the wake
-* and the window it waits for) as the chip's title. A wake time is the 'when'
-* cell, where an ended task keeps when it ended.
-*/
-function _taskState(task, t, now = Date.now(), windows) {
-	const status = _taskStatus(task, t, now, windows);
-	const stamp = (ms) => resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: ms
-	}, now);
-	const since = task.startedAtMs ?? task.queuedAtMs;
-	const when = (task.waiting === "quota" || task.waiting === "retry") && task.wakeAtMs !== null ? {
-		text: clockOf(task.wakeAtMs, now),
-		said: t("queue.fact.wakes", { time: stamp(task.wakeAtMs) }),
-		voice: "warn"
-	} : since != null ? {
-		text: clockOf(since, now),
-		said: t(_slotOf(task) === null ? "queue.fact.queuedAt" : "queue.fact.startedAt", { time: stamp(since) })
-	} : null;
-	const slot = _slotOf(task);
-	const word = task.cancelling ? "cancelling" : task.waiting === "lock" ? task.position ? "queuedAt" : "queued" : task.waiting === "slot" ? "slot" : task.waiting === "memory" ? "memory" : task.waiting === "quota" ? "quota" : task.waiting === "retry" ? "retry" : slot === null ? "starting" : slot.slot === "1" ? "running" : "runningSlot";
-	const role = word === "running" || word === "runningSlot" ? "run" : word === "queued" || word === "queuedAt" || word === "slot" ? "queue" : word === "quota" ? "sleep" : word === "cancelling" ? "off" : "wait";
-	return {
-		chip: {
-			text: t("queue.tag." + word, {
-				n: task.position ?? 0,
-				slot: slot?.slot ?? ""
-			}),
-			role,
-			title: status.text
-		},
-		when
-	};
-}
-/** The model cell: the full model name and effort, and the fallback mark when it ran on another model. */
-function modelFact(task, live, t) {
-	const m = modelLine(task, live);
-	if (m.model === "") return null;
-	const text = _modelView(m.model).label + (m.effort ? " · " + m.effort : "");
-	const requested = task.modelRequested ?? "";
-	return {
-		text,
-		title: m.model,
-		said: text + (m.fallback ? " · " + t("queue.fallbackTitle", { requested: _modelView(requested).label }) : ""),
-		mark: m.fallback ? h("span", {
-			className: cx("tq-mark"),
-			"data-role": "fallback",
-			title: t("queue.fallbackTitle", { requested: _modelView(requested).label })
-		}, renderRoleGlyph("fallback"), t("queue.fallbackMark")) : null
-	};
-}
-/** The cost cell: the API-price estimate, 'free', or '—' when the model has no price row (title says which). */
-function costFact(task, t, live) {
-	const cost = _costOf(task);
-	if (cost === null) return null;
-	const legend = t("queue.chip.cost") + (live ? " · " + t("queue.d.costLive") : "");
-	return cost.kind === "unpriced" ? {
-		text: "—",
-		said: t("queue.chip.unpriced"),
-		title: t("queue.chip.unpriced") + " · " + legend,
-		voice: "quiet"
-	} : {
-		text: cost.kind === "free" ? t("queue.chip.free") : cost.short,
-		said: legend + " " + cost.short,
-		title: legend
-	};
-}
-/** A live task as a row: state chip; model, tries; when it wakes, how long, cost so far. */
-function taskRow(task, t, now, open, windows) {
-	const state = _taskState(task, t, now, windows);
-	const since = task.queuedAtMs ?? task.startedAtMs;
-	const running = _slotOf(task) !== null;
-	const tries = [task.attempts > 1 ? t("queue.attempt", { n: task.attempts }) : null, task.stalls ? t("queue.stalls", { n: task.stalls }) : null].filter((part) => part !== null);
-	return {
-		kind: "task",
-		key: task.id,
-		lead: renderAgentGlyph(task.agent, 12),
-		name: task.name,
-		state: state.chip,
-		facts: {
-			model: modelFact(task, true, t),
-			tries: tries.length === 0 ? null : {
-				text: tries.join(" · "),
-				voice: task.stalls ? "warn" : void 0
-			},
-			when: state.when,
-			took: since == null ? null : {
-				text: durationOf(t, now - since),
-				said: t(running ? "queue.chip.elapsed" : "queue.chip.waiting", { time: durationOf(t, now - since) })
-			},
-			cost: costFact(task, t, true)
-		},
-		open: () => {
-			open(task.id);
-		},
-		attrs: {
-			"data-tq-task": task.id,
-			"data-tq-waiting": task.waiting
-		}
-	};
-}
-/** An ended task as a row: its one verdict; model and receipts; when, how long, what it cost. */
-function endedRow(task, t, now, open) {
-	const stamp = (ms) => resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: ms
-	}, now);
-	return {
-		kind: "ended",
-		key: task.id,
-		lead: renderAgentGlyph(task.agent, 12),
-		name: task.name,
-		state: _endedState(task.state, task.outcome, t),
-		facts: {
-			model: modelFact(task, false, t),
-			receipt: notifyChannels(task).length === 0 ? null : {
-				text: "",
-				node: renderNotifyIcons(task, t, false),
-				said: notifyChannels(task).map((ch) => t("queue.notify." + _notifyState(task, ch, false), { ch: t("queue.ch." + ch) })).join(" · ")
-			},
-			when: task.updatedAtMs === null ? null : {
-				text: agoOf(t, now - task.updatedAtMs),
-				title: t("queue.d.endedAt") + " " + stamp(task.updatedAtMs)
-			},
-			took: task.startedAtMs === null || task.updatedAtMs === null ? null : {
-				text: durationOf(t, task.updatedAtMs - task.startedAtMs),
-				said: t("queue.chip.took", { time: durationOf(t, task.updatedAtMs - task.startedAtMs) })
-			},
-			cost: costFact(task, t, false)
-		},
-		open: () => {
-			open(task.id);
-		},
-		attrs: {
-			"data-tq-task": task.id,
-			"data-tq-waiting": ""
-		}
-	};
-}
-/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
-function roundRow(round, t, now) {
-	const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? "";
-	const [state = "", outcome = ""] = round.result.slice(how === "" ? 0 : how.length + 1).split("/");
-	const ended = localStampMs(round.endedAt);
-	return {
-		kind: "round",
-		key: "round-" + round.endedAt + round.round,
-		lead: renderSectionGlyph("patrol"),
-		name: round.axis === "" ? round.round : t("queue.round.name", {
-			round: round.round,
-			axis: round.axis
-		}),
-		state: how === "preempted" ? {
-			text: t("queue.round.preempted"),
-			role: "partial",
-			title: round.result
-		} : how === "yielded" ? {
-			text: t("queue.round.yielded"),
-			role: "off",
-			title: round.result
-		} : {
-			..._endedState(state, outcome, t),
-			title: round.result
-		},
-		facts: {
-			when: ended === null ? null : {
-				text: agoOf(t, now - ended),
-				title: t("queue.d.endedAt") + " " + round.endedAt
-			},
-			took: round.seconds === null ? null : {
-				text: durationOf(t, round.seconds * 1e3),
-				said: t("queue.chip.took", { time: durationOf(t, round.seconds * 1e3) })
-			}
-		},
-		attrs: { "data-tq-round": round.round }
-	};
 }
 /**
 * The one fold control both sections use: a native <details> whose summary is
@@ -9097,157 +9624,6 @@ function renderFold(kind, label, children) {
 		strokeLinecap: "round",
 		strokeLinejoin: "round"
 	})), h("span", null, label)), h("div", { className: cx("tq-fold-body") }, ...children));
-}
-/**
-* What stays on screen and what folds — ONE rule for "recently ended" and
-* "patrol" (pinned by tests/decision_studio_plugin.spec.js):
-*
-*   resident = every record of distinct work, and the supervisor's live status;
-*   folded   = repetition of work already on screen (earlier rounds of the same
-*              patrol rotation) and the raw source of a line already rendered
-*              (the journal line behind the patrol status chips).
-*
-* Each ended task is distinct work, and the host already caps the list at
-* `taskQueueRecent`, so no ended task folds. Patrol rounds repeat one
-* rotation, so the newest round is resident and the earlier ones fold.
-*/
-const RESIDENT_ROUNDS = 1;
-/** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
-const reorderable = (task) => task.waiting === "lock" && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2;
-/** Live tasks of one agent in the order they hold / will take its lock. */
-function groupOrder(tasks, queue) {
-	const rank = (task) => {
-		if (task.slot !== "" || queue?.holder === task.id) return 0;
-		const at = queue?.order.indexOf(task.id) ?? -1;
-		return at >= 0 ? 1 + at : 1e3;
-	};
-	return [...tasks].sort((a, b) => rank(a) - rank(b) || (a.queuedAtMs ?? a.startedAtMs ?? 0) - (b.queuedAtMs ?? b.startedAtMs ?? 0));
-}
-/**
-* The panel's sources in providers.ts's order (sourceRank: the paid,
-* exclusive allowances first, the free pool last, anything without a row
-* among the paid ones). A joined row with a dispatch agent renders with its
-* queue; an agent the queue reports that no row names gets a line of its own;
-* a provider without an agent renders when the balance answer has it. Agent
-* rows need a dispatcher (C3 ②: without one only providers render); a
-* provider row needs its provider.
-*/
-function _panelSources(providers, queue) {
-	const dispatcher = queue !== null && queue.available;
-	const byId = new Map(providers.map((row) => [row.provider, row]));
-	const out = [];
-	const placed = /* @__PURE__ */ new Set();
-	for (const join of PROVIDER_JOIN) {
-		const provider = join.provider === null ? null : byId.get(join.provider) ?? null;
-		if (join.agent === null ? provider === null : provider === null && !dispatcher) continue;
-		const key = join.provider ?? join.agent;
-		out.push({
-			key,
-			label: provider?.label ?? _agentLabel(join.agent ?? key),
-			join,
-			provider,
-			agent: dispatcher ? join.agent : null
-		});
-		placed.add(key);
-	}
-	if (dispatcher) {
-		const agents = [.../* @__PURE__ */ new Set([...(queue.slotLimits ?? []).map((l) => l.agent), ...queue.active.map((t) => t.agent)])];
-		for (const agent of agents) {
-			if (agent === "" || placed.has(agent) || PROVIDER_JOIN.some((j) => j.agent === agent)) continue;
-			out.push({
-				key: agent,
-				label: _agentLabel(agent),
-				join: null,
-				provider: null,
-				agent
-			});
-			placed.add(agent);
-		}
-	}
-	for (const provider of providers) {
-		if (placed.has(provider.provider)) continue;
-		out.push({
-			key: provider.provider,
-			label: provider.label,
-			join: null,
-			provider,
-			agent: null
-		});
-	}
-	return out.map((source, at) => ({
-		source,
-		at,
-		rank: sourceRank({
-			provider: source.provider?.provider ?? source.join?.provider,
-			agent: source.agent ?? source.join?.agent
-		})
-	})).sort((a, b) => a.rank - b.rank || a.at - b.at).map(({ source }) => source);
-}
-/** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
-function _poolPosition(result) {
-	const pool = result?.opencodePool ?? [];
-	const used = [...result?.active ?? [], ...result?.recent ?? []].filter((task) => task.agent === "opencode").find((task) => (task.modelUsed ?? "") !== "" && task.attempts > 0)?.modelUsed ?? "";
-	if (pool.length === 0) return used === "" ? null : {
-		current: used,
-		next: "",
-		fromOrder: false
-	};
-	const at = pool.indexOf(used);
-	if (at < 0) return {
-		current: pool[0],
-		next: pool[1] ?? pool[0],
-		fromOrder: true
-	};
-	return {
-		current: used,
-		next: pool[(at + 1) % pool.length],
-		fromOrder: false
-	};
-}
-/**
-* A queue's state chip, the same on the folded line and on its group's head:
-* the ONE state that most needs the reader, with its count — asleep on quota,
-* then queued behind the lock or a slot, then another wait, then running. A
-* wait outranks running because a queue implies its holder runs. Idle is no
-* chip at all. `text` is every count (the line's aria-label and title).
-*/
-function _queueState(t, tasks) {
-	const run = tasks.filter((task) => task.slot !== "").length;
-	const queued = tasks.filter(queuedFor).length;
-	const quota = tasks.filter((task) => task.waiting === "quota").length;
-	const other = tasks.filter((task) => task.waiting === "retry" || task.waiting === "memory").length;
-	const present = [
-		[
-			"panel.q.quota",
-			quota,
-			"sleep"
-		],
-		[
-			"panel.q.queued",
-			queued,
-			"queue"
-		],
-		[
-			"panel.q.wait",
-			other,
-			"wait"
-		],
-		[
-			"panel.q.run",
-			run,
-			"run"
-		]
-	].filter(([, n]) => n > 0);
-	const text = present.length === 0 ? t("panel.q.idle") : present.map(([key, n]) => t(key, { n })).join(" · ");
-	const top = present[0];
-	return {
-		text,
-		chip: top === void 0 ? null : {
-			text: t(top[0], { n: top[1] }),
-			role: top[2],
-			title: text
-		}
-	};
 }
 /**
 * Brand marks the host itself ships, drawn in the glyph ink: DeepSeek's whale
@@ -9298,42 +9674,11 @@ function renderSourceGlyph(source) {
 		"data-pp-provider": source.key
 	}, shape);
 }
-/**
-* A source's value column: the allowance headline (used % of the first
-* window, or the balance) and its tone; for the free pool, "free" — where
-* the rotation stands is a fact of its group. `reset` (the headline window's,
-* resetStampOf) is read out in the line's label; the clocks themselves are
-* drawn once, on the group's window bars.
-*/
-function sourceReading(source, row, queue, t) {
-	if (row !== void 0) return {
-		value: row.view.value,
-		reset: row.view.reset === null ? null : "↻ " + row.view.reset,
-		tone: row.view.tone,
-		level: row.view.level,
-		title: row.view.title
-	};
-	if (source.join?.kind === "pool") {
-		const pos = _poolPosition(queue);
-		const size = queue?.opencodePool?.length ?? 0;
-		return {
-			value: t("panel.free"),
-			reset: null,
-			tone: "none",
-			level: null,
-			title: (pos === null ? t("panel.poolUnread") : t("panel.pool", {
-				current: pos.current,
-				next: pos.next || "—"
-			}) + (pos.fromOrder ? t("panel.poolOrder") : "")) + (size > 1 ? " · " + t("panel.poolSwap", { n: size }) : "")
-		};
-	}
-	return {
-		value: "—",
-		reset: null,
-		tone: "none",
-		level: null,
-		title: ""
-	};
+/** A row's lead track (panel.ts RowLead) as its glyph. */
+function renderLead(lead) {
+	if ("agent" in lead) return renderAgentGlyph(lead.agent, lead.size);
+	if ("section" in lead) return renderSectionGlyph(lead.section);
+	return renderSourceGlyph(lead.source);
 }
 /** Section glyphs in the executor glyphs' 14px outline: a clock turning back (just ended), a shield (patrol). */
 function renderSectionGlyph(kind, size = 14) {
@@ -9358,86 +9703,6 @@ function renderSectionGlyph(kind, size = 14) {
 		d: "M7 1.8L11.4 3.4V6.9C11.4 9.5 9.6 11.4 7 12.2C4.4 11.4 2.6 9.5 2.6 6.9V3.4ZM5 7L6.4 8.4L9.1 5.7"
 	}));
 }
-/** The patrol phase's role: running blue, giving way amber (a wait), between rounds off, stopped red. */
-const PATROL_ROLE = {
-	running: "run",
-	yielding: "wait",
-	waiting: "off",
-	stopped: "fail",
-	unknown: "unknown"
-};
-/** rounds.tsv's local "YYYY-MM-DD HH:MM:SS" as epoch ms, null when it is not one. */
-function localStampMs(stamp) {
-	const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(stamp.trim());
-	return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0)).getTime() : null;
-}
-/**
-* Why the supervisor gives way, read off its journal line. The patterns are
-* the reasons the supervisor can actually write — `others_need_slot` and
-* `round_blocks_someone` in ops/host/patrol.sh, `memory_pressure_reason` in
-* ops/host/agent-dispatch/resource-pressure.sh — and the spec instantiates
-* every one of those templates from the files themselves (#2071):
-*   manual = a manual task waits for the lock or a slot the patrol would use
-*            (the id is that task, shown so the reader knows whom it waits for);
-*   slot   = the patrol's own admission: its agent's run slots are all taken;
-*   memory = admission deferred on memory headroom, pressure or telemetry.
-* `asking <round> to wrap up …: <demand>` is the grace before a preemption.
-*/
-function _patrolReason(detail) {
-	const wrap = /^asking \S+ to wrap up within \d+s: (.*)$/.exec(detail);
-	const why = wrap?.[1] ?? detail.replace(/^(?:waiting: |preempting \S+?(?: after a \d+s wrap-up grace)?: )/, "");
-	const manual = /^(\S+) is (?:waiting for (?:an \S+ run slot|its agent lock|the \S+ lock)|queued behind the round's \S+ lock)/.exec(why);
-	return {
-		kind: manual ? "manual" : /^the \S+ run slot is busy$/.test(why) ? "slot" : /^memory telemetry unavailable/.test(why) ? "memoryUnread" : /^memory (?:headroom low|pressure):/.test(why) ? "memory" : "other",
-		task: manual?.[1] ?? "",
-		wrapUp: wrap !== null
-	};
-}
-/** The supervisor's live status as the patrol head's caption: when the next round is, what it runs now, or why it gives way. */
-function patrolCaption(result, t, now) {
-	const patrol = result.patrol;
-	const reason = _patrolReason(patrol.detail);
-	const current = result.active.find((task) => task.id === patrol.round);
-	const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail);
-	const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? "";
-	const out = [];
-	if (patrol.phase === "waiting" && patrol.untilMs !== null) out.push({ text: t("queue.patrolState.waitingUntil", { time: resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: patrol.untilMs
-	}, now) }) });
-	if (patrol.phase === "yielding" || reason.wrapUp) {
-		const why = reason.kind === "manual" ? t("queue.patrol.giveWay") : reason.kind === "slot" ? t("queue.patrol.waitSlot") : reason.kind === "memory" ? t("queue.patrol.memory") : reason.kind === "memoryUnread" ? t("queue.patrol.memoryUnread") : t("queue.patrol.otherReason");
-		if (reason.wrapUp) out.push({
-			text: t("queue.patrol.wrapUp"),
-			voice: "warn"
-		});
-		out.push({
-			text: why,
-			voice: "warn",
-			title: patrol.detail
-		});
-		if (reason.task !== "") out.push({
-			text: reason.task,
-			title: t("queue.patrol.forTask", { id: reason.task })
-		});
-	}
-	if (patrol.phase === "running" || patrol.phase === "yielding" && current !== void 0) {
-		const m = current === void 0 ? null : modelLine(current, true);
-		if (dispatched || axis) out.push({
-			text: dispatched ? t("queue.round.name", {
-				round: dispatched[1],
-				axis
-			}) : axis,
-			title: patrol.round
-		});
-		if (current?.startedAtMs != null) out.push({ text: t("queue.chip.elapsed", { time: durationOf(t, now - current.startedAtMs) }) });
-		if (m !== null && m.model !== "") out.push({
-			text: _modelView(m.model).label,
-			title: m.model
-		});
-	}
-	return out;
-}
 /** A list of rows on the inset well: the one surface every task, ended task and round sits on. */
 function renderWell(key, rows) {
 	const present = rows.filter((row) => row !== null);
@@ -9452,81 +9717,16 @@ function renderWell(key, rows) {
 * caption), the newest round on the well, then — folded, by the one rule
 * above — the earlier rounds and the raw journal line.
 */
-function renderPatrolSection(result, t, now) {
-	const patrol = result.patrol;
-	const rounds = (patrol.rounds ?? []).map((round) => roundRow(round, t, now));
+function renderPatrolSection(patrol, t) {
+	const rounds = patrol.rounds;
 	return h("section", {
 		className: cx("tq-group", "tq-section"),
 		key: "patrol",
 		"data-tq-group": "patrol"
-	}, renderRow({
-		kind: "head",
-		key: "head-patrol",
-		lead: renderSectionGlyph("patrol"),
-		name: t("queue.patrolHeading"),
-		state: {
-			text: t("queue.patrolState." + patrol.phase),
-			role: PATROL_ROLE[patrol.phase] ?? "unknown",
-			title: patrolPhraseOf(result, t, now)
-		},
-		facts: {},
-		caption: patrolCaption(result, t, now),
-		attrs: { "data-tq-patrol": patrol.phase }
-	}, t), renderWell("rounds", rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRow(round, t))), rounds.length <= RESIDENT_ROUNDS ? null : renderFold("rounds", t("queue.olderRounds", { n: rounds.length - RESIDENT_ROUNDS }), [renderWell("older", rounds.slice(RESIDENT_ROUNDS).map((round) => renderRow(round, t)))]), patrol.detail === "" ? null : renderFold("journal", t("queue.supervisorLog"), [h("div", {
+	}, renderRow(patrol.head, t), renderWell("rounds", rounds.slice(0, 1).map((round) => renderRow(round, t))), rounds.length <= 1 ? null : renderFold("rounds", t("queue.olderRounds", { n: rounds.length - 1 }), [renderWell("older", rounds.slice(1).map((round) => renderRow(round, t)))]), patrol.detail === "" ? null : renderFold("journal", t("queue.supervisorLog"), [h("div", {
 		className: cx("tq-log"),
 		key: "log"
 	}, patrol.detail)]));
-}
-/**
-* A source as a row: the sidebar's folded line and its group's head in the
-* panel are this one view (the same glyph, name and value in the same
-* columns), so the line a reader taps is the line the panel opens on. The
-* folded line adds the queue's one state chip (its tasks are not on screen);
-* the head adds its caption — the plan, the run slots, the pool — in words.
-*/
-function sourceView(source, row, result, t) {
-	const reading = sourceReading(source, row, result, t);
-	const queue = source.agent === null || result === null || !result.available ? null : _queueState(t, result.active.filter((task) => task.agent === source.agent));
-	const lane = source.agent === null || result === null || !result.available ? void 0 : _slotLanes(result).find((l) => l.agent === source.agent);
-	const pool = source.join?.kind === "pool" ? _poolPosition(result) : null;
-	const poolSize = result?.opencodePool?.length ?? 0;
-	return {
-		kind: "source",
-		key: source.key,
-		lead: renderSourceGlyph(source),
-		name: source.label,
-		value: {
-			text: reading.value,
-			tone: reading.tone,
-			level: reading.level
-		},
-		state: queue?.chip ?? null,
-		facts: {},
-		caption: [
-			{ text: source.join?.plan === void 0 ? "" : t(source.join.plan) },
-			lane === void 0 ? { text: "" } : {
-				text: t("queue.slotCount", {
-					used: lane.used,
-					max: lane.max ?? "—"
-				}),
-				voice: lane.tone === "stale" ? "warn" : void 0,
-				title: t("queue.lanesTitle")
-			},
-			source.join?.kind !== "pool" ? { text: "" } : pool === null ? { text: t("panel.poolUnread") } : {
-				text: t("panel.pool", {
-					current: _modelView(pool.current).label,
-					next: pool.next === "" ? "—" : _modelView(pool.next).label
-				}) + (pool.fromOrder ? t("panel.poolOrder") : ""),
-				title: reading.title
-			},
-			poolSize > 1 && source.join?.kind === "pool" ? {
-				text: t("panel.poolSize", { n: poolSize }),
-				title: t("panel.poolSwap", { n: poolSize })
-			} : { text: "" }
-		],
-		reading,
-		queue
-	};
 }
 /**
 * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
@@ -9537,53 +9737,25 @@ function sourceView(source, row, result, t) {
 * and in weight. A reader tells the two apart by surface and indent before
 * reading a word.
 */
-function renderSourceGroup(source, result, t, now, ui) {
-	const row = source.provider === null ? void 0 : ui.rows.get(source.provider.provider);
-	const agent = source.agent;
-	const tasks = agent === null || result === null ? [] : result.active.filter((task) => task.agent === agent);
-	const queue = agent === null ? void 0 : (result?.queues ?? []).find((q) => q.agent === agent);
-	const notes = [];
-	if (queue?.held && tasks.every((task) => task.id !== queue.holder)) notes.push(queue.holder !== "" ? t("queue.holderOther", { id: queue.holder }) : t("queue.holderUnnamed"));
-	if (queue?.quotaUntilMs) notes.push(t("queue.quotaHint", {
-		time: resetStampOf(t, {
-			resetAt: "",
-			resetAtMs: queue.quotaUntilMs
-		}, now),
-		by: queue.quotaBy
-	}));
-	const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN;
-	const balanceNote = row === void 0 || row.note === null ? null : row.result.status === "stale" && Number.isFinite(snapshotAt) ? t("panel.staleAt", {
-		message: row.result.message ?? "—",
-		time: resetStampOf(t, {
-			resetAt: "",
-			resetAtMs: snapshotAt
-		}, now)
-	}) : row.note;
-	const head = {
-		...sourceView(source, row, result, t),
-		state: null
-	};
-	const detail = row === void 0 ? null : renderRowDetail(row, t, now);
+function renderSourceGroup(group, t, ui) {
+	const { source, row, balanceNote } = group;
+	const detail = renderAllowance(group.detail);
 	return h("section", {
 		className: cx("tq-group", "pp-group"),
 		key: "g-" + source.key,
 		"data-pp-group": source.key,
-		"data-tq-group": agent ?? void 0,
+		"data-tq-group": source.agent ?? void 0,
 		"aria-label": source.label,
 		tabIndex: -1
-	}, renderRow({
-		...head,
-		key: "head-" + source.key,
-		attrs: { "data-pp-head": source.key }
-	}, t), balanceNote === null && detail === null ? null : h("div", {
+	}, renderRow(group.head, t), balanceNote === null && detail === null ? null : h("div", {
 		className: cx("pp-allowance", "tq-inset"),
 		"data-pb-provider": row.provider,
 		"data-pb-role": "panel",
 		"data-balance-state": row.view.tone
-	}, balanceNote === null ? null : h("div", { className: cx("tq-sub", "tq-wrap", "bp-note", row.view.tone === "stale" ? "warn" : "bad") }, balanceNote), detail), ...notes.map((note, i) => h("div", {
+	}, balanceNote === null ? null : h("div", { className: cx("tq-sub", "tq-wrap", "bp-note", row.view.tone === "stale" ? "warn" : "bad") }, balanceNote), detail), ...group.notes.map((note, i) => h("div", {
 		className: cx("tq-sub", "tq-wrap", "tq-note", "tq-inset"),
 		key: "n" + i
-	}, note)), renderWell(source.key, groupOrder(tasks, queue).map((task) => renderRow(taskRow(task, t, now, ui.open, ui.windowsOf(task.agent)), t, ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? h("button", {
+	}, note)), renderWell(source.key, group.tasks.map(({ task, row: view }) => renderRow(view, t, ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? h("button", {
 		type: "button",
 		className: cx("tq-icon-btn", "tq-up"),
 		"data-tq-up": task.id,
@@ -9613,13 +9785,12 @@ function renderSourceGroup(source, result, t, now, ui) {
 * entry's version. Each half keeps its own read: a failed balance read never
 * hides the queue, and a host without the dispatcher shows providers only.
 */
-function renderProviderPanelBody(sources, queueState, balanceState, t, now, ui, notice) {
-	const result = queueState.data.result;
+function renderProviderPanelBody(model, queueState, balanceState, t, ui, notice) {
 	const loading = queueState.data.loading || balanceState.data.loading;
-	const head = h("div", {
+	return [h("div", {
 		className: cx("tq-head"),
 		key: "head"
-	}, h("span", { className: cx("tq-title") }, t("panel.title")), h("button", {
+	}, h("span", { className: cx("tq-title") }, model.title), h("button", {
 		type: "button",
 		className: cx("tq-icon-btn", loading && "spin"),
 		"data-refresh": "true",
@@ -9642,14 +9813,7 @@ function renderProviderPanelBody(sources, queueState, balanceState, t, now, ui, 
 		fill: "none",
 		strokeLinecap: "round",
 		strokeLinejoin: "round"
-	}))));
-	const queueProblem = queueState.data.error ?? (result !== null && (result.status === "stale" || result.status === "failed") ? result.message : null);
-	const balanceProblem = balanceState.data.error;
-	const dispatcher = result !== null && result.available;
-	const ops = dispatcher ? result.ops : void 0;
-	const skew = dispatcher ? opsProblem(result, t) : "";
-	const patrol = dispatcher ? result.patrol : null;
-	return [head, h("div", {
+	})))), h("div", {
 		className: cx("tq-scroll"),
 		key: "scroll"
 	}, [
@@ -9658,53 +9822,28 @@ function renderProviderPanelBody(sources, queueState, balanceState, t, now, ui, 
 			key: "notice",
 			role: "status"
 		}, notice.text),
-		queueProblem !== null && queueProblem !== "" ? h("div", {
-			className: cx("tq-sub", "tq-wrap", "tq-note", "tq-bad"),
-			key: "qerr",
+		...model.notices.map((note) => h("div", {
+			className: note.bad ? cx("tq-sub", "tq-wrap", "tq-note", "tq-bad") : cx("tq-sub", "tq-note"),
+			key: note.key,
 			role: "status"
-		}, t(result === null || result.status === "failed" ? "queue.readFailed" : "queue.staleWith", { message: queueProblem })) : null,
-		queueProblem === null && result === null ? h("div", {
-			className: cx("tq-sub", "tq-note"),
-			key: "qloading",
-			role: "status"
-		}, t("panel.queueLoading")) : null,
-		queueProblem === null && result !== null && !result.available ? h("div", {
-			className: cx("tq-sub", "tq-note"),
-			key: "qunavailable",
-			role: "status"
-		}, t("panel.queueUnavailable")) : null,
-		balanceProblem !== null ? h("div", {
-			className: cx("tq-sub", "tq-wrap", "tq-note", "tq-bad"),
-			key: "berr",
-			role: "status"
-		}, balanceState.rows.length === 0 ? t("balance.readFailed", { message: balanceProblem }) : t("balance.staleWith", { message: balanceProblem })) : null,
-		sources.length === 0 && balanceProblem === null ? h("div", {
+		}, note.text)),
+		model.empty === null ? null : h("div", {
 			className: cx("tq-sub", "tq-empty"),
 			key: "empty",
 			role: "status"
-		}, balanceState.data.result === null ? t("balance.reading") : t("panel.noSources")) : null,
-		...sources.map((source) => renderSourceGroup(source, result, t, now, ui)),
-		!dispatcher || result.recent.length === 0 ? null : h("section", {
+		}, model.empty),
+		...model.groups.map((group) => renderSourceGroup(group, t, ui)),
+		model.recent === null ? null : h("section", {
 			className: cx("tq-group", "tq-section"),
 			key: "recent",
 			"data-tq-group": "recent"
-		}, renderRow({
-			kind: "head",
-			key: "head-recent",
-			lead: renderSectionGlyph("recent"),
-			name: t("queue.recentHeading"),
-			state: null,
-			facts: {}
-		}, t), renderWell("recent", result.recent.map((task) => renderRow(endedRow(task, t, now, ui.open), t)))),
-		patrol === null ? null : renderPatrolSection(result, t, now),
-		ops === void 0 ? null : h("div", {
-			className: cx("tq-sub", "tq-foot", skew !== "" && "tq-bad"),
+		}, renderRow(model.recent.head, t), renderWell("recent", model.recent.rows.map((row) => renderRow(row, t)))),
+		model.patrol === null ? null : renderPatrolSection(model.patrol, t),
+		model.footer === null ? null : h("div", {
+			className: cx("tq-sub", "tq-foot", model.footer.bad && "tq-bad"),
 			key: "ops",
-			"data-tq-ops": ops.available ? ops.version : "missing"
-		}, skew !== "" ? skew : t("queue.ops.footer", {
-			v: ops.version,
-			runner: ops.runnerApi
-		}))
+			"data-tq-ops": model.footer.version
+		}, model.footer.text)
 	])];
 }
 /** A task's current copy by id: live first, then recently ended (it may have just finished). */
@@ -9725,23 +9864,6 @@ function _fmtTokens(n) {
 	if (n < 1e3) return String(n);
 	if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + "k";
 	return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + "M";
-}
-/** The cost cell: an API-price estimate, 'free', or '—' when the model is unpriced; null when nothing was recorded. */
-function _costOf(task) {
-	if (task.tokensTotal == null) return null;
-	const cost = task.costUsd ?? "";
-	if (cost === "free") return {
-		short: "free",
-		kind: "free"
-	};
-	if (/^\d+(\.\d+)?$/.test(cost)) return {
-		short: "$" + cost,
-		kind: "usd"
-	};
-	return {
-		short: "—",
-		kind: "unpriced"
-	};
 }
 /**
 * The file-preview address of a path read through one session — dsh-util-workspace-path's
@@ -10704,10 +10826,7 @@ function ProviderPanelSidebarAction(props) {
 	const dispatcher = result !== null && result.available;
 	const rows = new Map(balanceState.rows.map((row) => [row.provider, row]));
 	const sources = _panelSources(balanceState.data.result?.providers ?? [], result);
-	const windowsOf = (agent) => {
-		const join = PROVIDER_JOIN.find((j) => j.agent === agent);
-		return (join?.provider ? rows.get(join.provider) : void 0)?.result.snapshot?.windows;
-	};
+	const windowsOf = (agent) => agentWindows(rows, agent);
 	const sourceOf = (agent) => {
 		const join = PROVIDER_JOIN.find((j) => j.agent === agent);
 		const queue = (result?.queues ?? []).find((q) => q.agent === agent);
@@ -10822,7 +10941,7 @@ function ProviderPanelSidebarAction(props) {
 	}, ...rowCells({
 		...view,
 		caption: []
-	}).cells))) : h("button", {
+	}, t).cells))) : h("button", {
 		type: "button",
 		className: cx("bchip", "pp-rail"),
 		"data-clawock-action": BALANCE_PANEL,
@@ -10850,7 +10969,12 @@ function ProviderPanelSidebarAction(props) {
 		key: "list",
 		inert: found !== null ? "" : void 0,
 		"aria-hidden": found !== null ? "true" : void 0
-	}, renderProviderPanelBody(sources, queueState, balanceState, t, now, ui, found === null ? notice : null)), found === null ? null : h("div", {
+	}, renderProviderPanelBody(panelModel({
+		balances: balanceState.data.result,
+		balanceError: balanceState.data.error,
+		queue: result,
+		queueError: queueState.data.error
+	}, t, now, ui.open), queueState, balanceState, t, ui, found === null ? notice : null)), found === null ? null : h("div", {
 		className: cx("tq-layer"),
 		key: "detail"
 	}, renderTaskDetail(found, t, now, () => {

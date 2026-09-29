@@ -25,49 +25,10 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import { type ProviderJoin } from './providers.ts';
-import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
-/** Dictionary namespace declared by every registration in this bundle. */
-export declare const LOCALE_NS = "clawock";
-/**
- * Translate one dictionary key with optional `{name}` params. Hand-declared
- * rather than derived from the host's `TranslateNS<NS>`: that type needs the
- * `LocaleNamespaceMap` merge the locale plugin owns, and this file's rule is to
- * hand-declare what cannot be derived without a cross-plugin type import (the
- * same reason `sessionId` is declared, not derived).
- */
-export type Translate = (key: string, params?: Record<string, unknown>) => string;
-/**
- * This plugin's copy, in the locales the browser client ships (`zh`, `en` —
- * `dsh-client-locale`'s LOCALE_IDS). Keys are grouped by surface; the two
- * dictionaries must carry the same key set, which `tests/decision_studio_plugin.spec.js`
- * enforces so a missing translation cannot ship.
- */
-export declare const dictionaries: Record<string, Record<string, string>>;
-/**
- * Bind a dictionary to a lookup shaped exactly like the host's `t` seat, with
- * `{name}` interpolation. The host supplies the real one through the slot
- * registration (`locale: LOCALE_NS`); this factory exists so a render can be
- * exercised without a locale service — the same seam the tests use.
- */
-export declare function createTranslator(dict: Record<string, string>): Translate;
-/**
- * Window length in minutes → the label in the active locale, host string as
- * fallback. The structured fields are typed `| null` but read `== null`: a
- * host that predates them omits the key entirely, so the value that actually
- * arrives is `undefined`. Checking only for null rendered `NaN m` against a
- * previous-version host — the exact half-deployed case this fallback exists
- * for, caught by the projection test rather than in the browser.
- */
-export declare function windowLabelOf(t: Translate, window: {
-    label: string;
-    durationMins?: number | null;
-}): string;
-/** The reset instant → the stamp in the active locale, host string as fallback. */
-export declare function resetStampOf(t: Translate, window: {
-    resetAt: string;
-    resetAtMs?: number | null;
-}, now: number): string;
+import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
+import { type Translate } from './copy.ts';
+export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
+export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf } from './panel.ts';
 /**
  * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
  * host that predates it sends only the rendered text, which is passed through
@@ -77,12 +38,6 @@ export declare function verdictOf(t: Translate, t1: {
     verdictKind?: T1VerdictKind | null;
     verdict: string;
 }): string;
-/** Every window of a snapshot, named and stamped for the active locale. */
-export declare function windowsOf(t: Translate, result: BalanceResult, now: number): {
-    label: string;
-    percent: number | null;
-    reset: string;
-}[];
 /** The four trace filters offered above the list. */
 export type TraceFilter = 'all' | 'miss' | 'sold' | 'dec';
 /**
@@ -185,45 +140,6 @@ export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;
 /** Stable row identities are derived before filtering, so switching filters
  * cannot remount the same trade and discard its expanded state (#1603). */
 export declare function _traceKeys(traces: DisplayEntry[]): Map<DisplayEntry, string>;
-/** The four visual states one provider's reading can take. */
-export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
-/** Usage-direction colour tier of a used-percent reading. */
-export type UsedLevel = 'ok' | 'mid' | 'low';
-/**
- * Colour tier for one used-percent reading against the REMAINING-watermark
- * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
- * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
- * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
- * 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
- */
-export declare function _usedLevel(percent: number | null, threshold: number): UsedLevel;
-/**
- * Display projection of ONE provider's answer (test seam, like _displayEntry):
- * the chip and panel render only these fields, so the view never keeps
- * a second copy of the tone rules — the host already decided status and low.
- * The title is the whole hover story: split, quota windows, stale reason,
- * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
- * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
- * muted pill suffix — both limits visible at the header without opening the
- * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
- * the reading itself says 100% and `reset` carries when it frees up.
- */
-export declare function _rowDisplay(result: BalanceResult | null, t: Translate, now?: number): {
-    tone: BalanceTone;
-    value: string;
-    sub: string | null;
-    reset: string | null;
-    level: UsedLevel | null;
-    title: string;
-};
-/**
- * The one line a panel row says out loud when something is wrong — stale
- * reason, unconfigured key, insufficient money balance. A healthy number
- * earns no caption at all; null means silence. An exhausted quota window
- * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
- * rows are the message; a caption would only replace them.
- */
-export declare function _balanceNote(result: BalanceResult | null, t: Translate): string | null;
 /** What the header chip's `inject` factory hands the component. */
 export interface BalancesInjected {
     /** The last multi-provider answer this registration fetched, or null cold. */
@@ -267,235 +183,6 @@ export interface TaskQueueInjected {
      */
     runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>;
 }
-/**
- * Which run slot a live task holds: `SLOT=<agent>-<n>` (slots are per agent).
- * Anything else is shown verbatim under the task's own agent. (The shared
- * `slot-1..2` of the runners from before 2026-09-25, a bare number, had a
- * bucket of its own until 2026-09-27, when none was left.)
- */
-export declare function _slotOf(task: DispatchTask): {
-    agent: string;
-    slot: string;
-} | null;
-type SlotLane = {
-    agent: string;
-    used: number;
-    max: number | null;
-    tone: BalanceTone;
-};
-/**
- * Each agent's run slots, in the panel's order (providers.ts), limits.env's
- * agents and any agent seen holding one that limits.env does not name. A full lane with a task of that agent queued
- * is amber: that is the queue's reason at a glance. A host older than
- * slotLimits sends none: the lanes then come from the held slots alone,
- * without a maximum.
- */
-export declare function _slotLanes(result: TaskQueueResult): SlotLane[];
-/**
- * One live task's status phrase and its tone. One colour, one meaning:
- * 'ok' (the host's business blue) = holding its agent's lock and running,
- * 'stale' (the host's warn) = waiting for something (the lock, a slot,
- * memory, a quota reset, a retry), 'none' = neither yet (starting).
- */
-export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number, windows?: ReadonlyArray<{
-    resetAtMs?: number | null;
-}>): {
-    tone: BalanceTone;
-    text: string;
-};
-/**
- * The chip's headline, the host badge's two parts: the label, and a count
- * (running · queued) at the trailing edge. No n/max: slots are per agent, so a
- * free slot of one agent is no room for another's task — the per-agent lanes
- * are in the title and on each group of the panel. The glyph badge carries
- * the one tone that matters most: red when the read failed, amber when a task
- * waits, blue when something runs.
- */
-export declare function _queueHeadline(result: TaskQueueResult, t: Translate, now?: number): {
-    tone: BalanceTone;
-    value: string;
-    sub: string;
-    busy: boolean;
-    title: string;
-};
-export declare const _agentLabel: (agent: string) => string;
-/**
- * The model layer, read off the model id itself (never a hand-kept model
- * list), as its maker names it in full: `claude-opus-5-5` → Claude Opus 5.5 ·
- * `claude-haiku-4-5-20251001` → Claude Haiku 4.5 · `gpt-6-sol` → GPT-6 Sol ·
- * `opencode/nemotron-3-ultra-free` → Nemotron 3 Ultra. No letter tile in
- * front (kcn, 2026-09-27: the two-letter stand-in was noise); the room goes
- * to the whole name.
- */
-export declare function _modelView(id: string): {
-    label: string;
-    family: string;
-};
-/**
- * The notification layer: one receipt mark per channel the task asked for,
- * the channel's glyph followed by what its receipt says. Delivered = the
- * runner's NOTIFIED list (`openclaw message send` returned success for that
- * leg), failed = NOTIFY_FAILED, unknown = the task asked for the channel but
- * result.env holds no receipt for it (a runner older than the receipts, or a
- * leg that never ran). Colour is only the paint: the mark's glyph (✓ ✕ ?)
- * and its words say the same thing, and a mark is green only because a
- * receipt says so — never inferred from the task's own state.
- */
-export type ReceiptState = 'sent' | 'failed' | 'unknown' | 'planned';
-export declare function _notifyState(task: DispatchTask, ch: string, live: boolean): ReceiptState;
-/**
- * A state's ROLE (2026-09-28 redesign, kcn: 「都是灰色 chip 没有区分度」). A role
- * is a colour AND a bed AND a glyph AND its word, so it survives a dark
- * theme and a greyscale screen: fill vs outline vs dashed edge, and a shape
- * per role. The colours are the host's role tokens (styles.module.css
- * `--tq-run|wait|bad` and the panel's text roles), nothing plugin-picked.
- *
- *   run       blue, filled bed, solid dot      holds its slot and runs
- *   queue     blue, outlined, ring             in line for its agent's lock or a slot
- *   sleep     amber, filled bed, moon          asleep until a quota window resets
- *   wait      amber, outlined, hourglass       any other wait (memory, retry, starting)
- *   done      neutral bed, check               ended, and the model reported done
- *   partial   amber, filled bed, half disc     ended but the work is not done (partial, blocked, no quota)
- *   fail      red, filled bed, cross           execution failed or timed out
- *   off       neutral, outlined, bar           cancelled / not running (patrol between rounds)
- *   unknown   neutral, dashed, question mark   nothing recorded to judge by
- *   fallback  amber, outlined, return arrow    ran on a fallback model (a mark on the model line)
- *
- * Done is deliberately NOT green: it rests on the model's own report. The one
- * green on a row is a delivery receipt (renderNotifyIcons).
- */
-export type StateRole = 'run' | 'queue' | 'sleep' | 'wait' | 'done' | 'partial' | 'fail' | 'off' | 'unknown' | 'fallback';
-type GlyphPart = {
-    d: string;
-    paint: 'fill' | 'stroke';
-};
-export declare const STATE_ROLES: Record<StateRole, {
-    bed: 'fill' | 'edge' | 'dashed';
-    glyph: readonly GlyphPart[];
-}>;
-type SlotChip = {
-    text: string;
-    role: StateRole;
-    title?: string;
-};
-/**
- * An ended task's (or round's) ONE state: the runner's verdict and the
- * model's report folded into the role that most needs the reader. Both axes
- * stay readable: the chip's title says both, the detail layer shows both.
- */
-export declare function _endedState(state: string, outcome: string, t: Translate): SlotChip;
-/**
- * THE row grid (2026-09-28 redesign, kcn: 「很多地方都没有对齐显示导致 chip 过多显示杂乱」).
- * Every line of the open panel — a source's head, a section head, a live
- * task, an ended task, a patrol round — sits on the same five tracks
- * (styles.module.css `--tq-grid`), and every fact has ONE fixed cell:
- *
- *            lead   when       took       rest        aside
- *   line 1   glyph  name ─────────────────────────   state chip | value
- *   line 2          model (+ fallback mark) ───────   receipts | tries
- *   line 3          when       took                    cost
- *
- * `when`, `took` and `aside` are fixed widths, so a time, a duration, a cost,
- * a state are on one vertical line in every row that has them; a row without
- * a fact leaves its cell empty, never shifts the next one in. A head
- * (source/section) has a caption line in line 2 instead of facts.
- *
- * RESIDENT_CHIPS: a row carries at most ONE chip, its state. Everything else
- * is words in a fixed cell or a mark (receipts, fallback). What has no cell
- * here is not squeezed in, wrapped or ellipsised: it lives in the detail layer
- * one tap away (the report axis on its own, attempts' budget, the first queue
- * wait, the patrol tag, the session). ROW_KINDS says which facts each kind
- * shows; FACT_CELL where each one sits; the spec checks every rendered row
- * against both, and that no row has a second chip.
- */
-export declare const FACT_ORDER: readonly ['model', 'tries', 'receipt', 'when', 'took', 'cost'];
-export type FactSlot = typeof FACT_ORDER[number];
-export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
-export declare const RESIDENT_CHIPS = 1;
-/** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
-export declare const FACT_CELL: Record<FactSlot, {
-    line: 2 | 3;
-    track: 'main' | 'when' | 'took' | 'aside';
-}>;
-export declare const ROW_KINDS: Record<RowKind, {
-    lead: boolean;
-    value: boolean;
-    facts: readonly FactSlot[];
-}>;
-/** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
-type Fact = {
-    text: string;
-    said?: string;
-    title?: string;
-    voice?: 'warn' | 'quiet';
-    mark?: React.ReactElement | null;
-    node?: React.ReactElement | null;
-};
-/**
- * A live task's state chip: the short word (the group head already names the
- * agent), its role, and the whole phrase (_taskStatus: which lock, the wake
- * and the window it waits for) as the chip's title. A wake time is the 'when'
- * cell, where an ended task keeps when it ended.
- */
-export declare function _taskState(task: DispatchTask, t: Translate, now?: number, windows?: ReadonlyArray<{
-    resetAtMs?: number | null;
-}>): {
-    chip: SlotChip;
-    when: Fact | null;
-};
-/** One line of the fused cell: a provider, an agent, or both joined (see providers.ts). */
-export type PanelSource = {
-    /** Stable key: the provider id, else the agent id. */
-    key: string;
-    label: string;
-    join: ProviderJoin | null;
-    provider: BalancesResult['providers'][number] | null;
-    agent: string | null;
-};
-/**
- * The panel's sources in providers.ts's order (sourceRank: the paid,
- * exclusive allowances first, the free pool last, anything without a row
- * among the paid ones). A joined row with a dispatch agent renders with its
- * queue; an agent the queue reports that no row names gets a line of its own;
- * a provider without an agent renders when the balance answer has it. Agent
- * rows need a dispatcher (C3 ②: without one only providers render); a
- * provider row needs its provider.
- */
-export declare function _panelSources(providers: BalancesResult['providers'], queue: TaskQueueResult | null): PanelSource[];
-/** Where the free pool is: the model the latest opencode task used, and the next one in file order. */
-export declare function _poolPosition(result: TaskQueueResult | null): {
-    current: string;
-    next: string;
-    fromOrder: boolean;
-} | null;
-/**
- * A queue's state chip, the same on the folded line and on its group's head:
- * the ONE state that most needs the reader, with its count — asleep on quota,
- * then queued behind the lock or a slot, then another wait, then running. A
- * wait outranks running because a queue implies its holder runs. Idle is no
- * chip at all. `text` is every count (the line's aria-label and title).
- */
-export declare function _queueState(t: Translate, tasks: DispatchTask[]): {
-    text: string;
-    chip: SlotChip | null;
-};
-/**
- * Why the supervisor gives way, read off its journal line. The patterns are
- * the reasons the supervisor can actually write — `others_need_slot` and
- * `round_blocks_someone` in ops/host/patrol.sh, `memory_pressure_reason` in
- * ops/host/agent-dispatch/resource-pressure.sh — and the spec instantiates
- * every one of those templates from the files themselves (#2071):
- *   manual = a manual task waits for the lock or a slot the patrol would use
- *            (the id is that task, shown so the reader knows whom it waits for);
- *   slot   = the patrol's own admission: its agent's run slots are all taken;
- *   memory = admission deferred on memory headroom, pressure or telemetry.
- * `asking <round> to wrap up …: <demand>` is the grace before a preemption.
- */
-export declare function _patrolReason(detail: string): {
-    kind: 'manual' | 'slot' | 'memory' | 'memoryUnread' | 'other';
-    task: string;
-    wrapUp: boolean;
-};
 /** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
 export type OpenFile = (path: string) => {
     ok: true;
@@ -506,11 +193,6 @@ export type OpenFile = (path: string) => {
 };
 /** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
 export declare function _fmtTokens(n: number): string;
-/** The cost cell: an API-price estimate, 'free', or '—' when the model is unpriced; null when nothing was recorded. */
-export declare function _costOf(task: DispatchTask): {
-    short: string;
-    kind: 'usd' | 'free' | 'unpriced';
-} | null;
 /**
  * The file-preview address of a path read through one session — dsh-util-workspace-path's
  * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
@@ -617,4 +299,3 @@ type LayoutProbe = {
 };
 /** Register the Decision Mind tab into the conversation view ring. */
 export declare function apply(ctx: Context & ClientContributionContext): Promise<void>;
-export {};

@@ -214,8 +214,7 @@ def test_an_autostash_conflict_is_reported_not_called_a_fast_forward(desk):
 def _with_queue_ops(upstream, checkout):
     import shutil
     for rel in ("ops/host/install_task_queue_ops.sh", "ops/host/task_queue_ops.py",
-                "ops/host/model_prices.json", "ops/host/dispatch-list-command/openclaw.plugin.json",
-                "ops/host/dispatch-list-command/index.ts"):
+                "ops/host/model_prices.json"):
         dest = upstream / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, dest)

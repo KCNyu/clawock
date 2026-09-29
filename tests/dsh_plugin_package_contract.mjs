@@ -76,7 +76,22 @@ test('packed clawock-dsh installs standalone and every export entry imports', as
       })
     }
 
-    // 5. Every runtime dependency the shipped code imports must be declared.
+    // 5. The OpenClaw entry (`/dispatch-list`, package.json `openclaw.extensions`) loads from
+    //    the installed package with its manifest beside it, and registers its one command.
+    //    OpenClaw imports it in the gateway process, where none of dsh's modules exist.
+    await t.test('OpenClaw entry registers /dispatch-list', async () => {
+      assert.deepEqual(pkg.openclaw?.extensions, ['./lib/chat.js'])
+      const manifest = JSON.parse(readFileSync(join(installed, 'openclaw.plugin.json'), 'utf8'))
+      assert.ok(manifest.commandAliases.some((alias) => alias.name === 'dispatch-list'))
+      const src = readFileSync(join(installed, 'lib', 'chat.js'), 'utf8')
+      assert.ok(!/@deepseek-ai\//.test(src), 'the OpenClaw entry must not import dsh modules')
+      const commands = []
+      const mod = await import(pathToFileURL(join(installed, 'lib', 'chat.js')).href)
+      mod.default({ registerCommand: (command) => { commands.push(command) } })
+      assert.deepEqual(commands.map((command) => command.name), ['dispatch-list'])
+    })
+
+    // 6. Every runtime dependency the shipped code imports must be declared.
     //    (The import above would already fail, but this names the offender.)
     const declared = new Set([
       ...Object.keys(pkg.dependencies || {}),
@@ -156,9 +171,9 @@ test('the npm page keeps its links back to the repository and the live proof', (
  * profile can set. The interface is the list; the README has to name each key.
  */
 test('the README names every optional ClawockStudioConfig key', () => {
-  const src = readFileSync(join(PLUGIN, 'src', 'index.ts'), 'utf8')
+  const src = readFileSync(join(PLUGIN, 'src', 'desk.ts'), 'utf8')
   const body = src.match(/export interface ClawockStudioConfig \{([\s\S]*?)\n\}/)?.[1]
-  assert.ok(body, 'ClawockStudioConfig not found in src/index.ts')
+  assert.ok(body, 'ClawockStudioConfig not found in src/desk.ts')
   const keys = [...body.matchAll(/^\s*(\w+)\?:/gm)].map((m) => m[1])
   assert.ok(keys.length >= 10, `only ${keys.length} keys parsed from ClawockStudioConfig`)
 
@@ -175,9 +190,9 @@ test('the README names every optional ClawockStudioConfig key', () => {
  * the file. Same shape as the README gate: the interface is the list.
  */
 test('cordis.patch.yml names every optional ClawockStudioConfig key', () => {
-  const src = readFileSync(join(PLUGIN, 'src', 'index.ts'), 'utf8')
+  const src = readFileSync(join(PLUGIN, 'src', 'desk.ts'), 'utf8')
   const body = src.match(/export interface ClawockStudioConfig \{([\s\S]*?)\n\}/)?.[1]
-  assert.ok(body, 'ClawockStudioConfig not found in src/index.ts')
+  assert.ok(body, 'ClawockStudioConfig not found in src/desk.ts')
   const keys = [...body.matchAll(/^\s*(\w+)\?:/gm)].map((m) => m[1])
   assert.ok(keys.length >= 10, `only ${keys.length} keys parsed from ClawockStudioConfig`)
 
