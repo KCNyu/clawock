@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T19:55:07.417232+00:00",
+  "generated_at": "2026-09-29T18:23:23.874970+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: Starship 首次入轨并部署 26 颗卫星，但发动机故障导致任务提前结束、飞行器落入太平洋。  \n  对 kcn：里程碑与载荷交付偏利多，故障构成执行风险；持有 **SPCH**，**2x 会双向放大波动**。\n- RKLB: Iridium Communications 收购案获股东批准，Rocket Lab 的星座平台扩张取得关键进展。  \n  对 kcn：并购可能强化估值与协同预期；持有 **RKLX**，**2x 会放大并购重估及整合风险**。\n- CRCL: CFO Jeremy Fox-Green 拟卸任、股价应声下跌 3.5%；联创 Sean Neville 也将于 9 月 25 日退出董事会。  \n  对 kcn：连续管理层变动提高治理与执行不确定性，对 CRCL 持仓偏负面。\n- RKLB: 完成第 97 次 Electron 发射并交付 Synspective 卫星；Cantor 重申“增持”及 122 美元目标价。  \n  对 kcn：发射记录验证执行能力；**RKLX 2x** 会放大积极催化，也放大高估值波动。\n- CRCL: 与 Volante 合作，将 USDC 结算接入银行支付系统，但未披露合同金额或收入贡献。  \n  对 kcn：扩大 USDC 分发入口，偏长期利好但短期业绩贡献尚不可量化。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: Volante 集成打开机构支付渠道，但 CFO 与董事离任令消息面偏混合，治理折价上升。\n- RKLB: Iridium 收购获批叠加第 97 次 Electron 发射，星座扩张与执行节奏均偏利多。\n- SPCX: Starship 首次入轨并释放卫星，但发动机故障令“里程碑成功”与“任务执行失败”并存。\n\n### 风险 watch (若有)\n- CRCL: CFO 接班安排、联创退出董事会；Catena 的条件性 OCC 批准属于 Neville 的另一项目，并非 Circle 获得监管批准。\n- SPCX: 发动机故障及任务提前终止，暴露 Starship 工程可靠性与执行风险；SPCH 的 2x 结构会放大回撤。\n- RKLB: Iridium 收购后的监管条件、整合及协同兑现风险；RKLX 的 2x 结构会放大事件波动。\n- 未见解押财务指引、监管处罚、大股东减持或失败合约披露。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: Starship 第 14 次飞行首次将工作载荷送入轨道并部署卫星，但 Raptor 发动机故障令 NASA 进度再受审视。  \n  **kcn/SPCH:** 持有 SPCH（2x SPCX），2x 将同时放大里程碑溢价与发动机故障带来的回撤。\n- **RKLB**: Starship 部署取得突破后，Rocket Lab 反而下跌 3%，短线反映市场对发射竞争与执行风险的重新定价。  \n  **kcn/RKLX:** 持有 RKLX（2x RKLB），2x 会放大板块情绪逆转；本轮未见 RKLB 自身新增订单或业绩催化。\n- **CRCL**: CFTC 注册 Coinbase Clearing为首家 USDC 原生衍生品清算机构，提升 USDC 的机构应用与合规基础设施预期。  \n  **kcn/CRCL:** 对 CRCL 构成生态利好，但并非 Circle 直接合约或收入事件，短线偏情绪驱动。\n- **CRCL**: CFO Jeremy Fox-Geen 将在 IPO 后离任，核心财务负责人交接增加扩张期执行风险。  \n  **kcn/CRCL**: IPO 后管理层稳定性承压，可能提高市场对成本控制、融资及披露衔接的风险折价。\n\n### Per-ticker 简报 (有新闻才列)\n- **SPCX**: Starship 首次完成卫星部署构成重大技术里程碑；Raptor 故障及 NASA 时间表不确定性仍是核心风险。\n- **RKLB**: 受 SpaceX 突破消息影响下跌 3%，但无公司特定利空或新增基本面催化。\n- **CRCL**: USDC 清算基础设施获监管注册属正面；CFO 离任、CLARITY Act 停滞及稳定币收益竞争构成压制。\n\n### 风险 watch (若有)\n- **SPCX / SPCH**: Raptor 发动机故障可能延误 NASA 任务；SPCH 的 2x 杠杆会放大事件后的方向性波动。\n- **CRCL**: IPO 后 CFO 突然离任，存在管理层交接与执行风险。\n- **CRCL**: CLARITY Act 推进停滞，支付型稳定币与贷款、证券及基金收益产品的边界和竞争仍未明确。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle Teams With Volante to Bring USDC Settlement to Bank Payment Systems",
-        "datetime": 1790601240,
+        "headline": "CFTC Approves Coinbase Clearing as First USDC-Native Clearinghouse",
+        "datetime": 1790640600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=628cd3c1f531bf8c826eb628312e5eb122103ef1fdc11b7fb19df05c5cfc3cb1"
+        "url": "https://finnhub.io/api/news?id=887c432f3597c1370fc4ee132f34646f22951f8a3dd50f4879c8f757601c2cab"
       },
       {
-        "headline": "Circle Internet Group Shares Fall After CFO Announces Departure",
-        "datetime": 1790597721,
+        "headline": "Circle CFO to step down following $1.05B IPO",
+        "datetime": 1790622284,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b6a3a9d9bee45a2e504114461e3017b109bd0dfd5f4cd1bee064639aae441c72"
+        "url": "https://finnhub.io/api/news?id=8eba6b5ef33d8d675094f03fe33c9f0a9b8e8bfe1e36c2c3a7c1e02ec37a81e1"
       },
       {
-        "headline": "Bitget Hacker Moved $83M+ in XRP: Why Could Tether Freeze Funds but Ripple Couldn’t?",
-        "datetime": 1790588381,
+        "headline": "Roundtable 100 analyst reveals Circle’s surprising jump despite beaten-down stock",
+        "datetime": 1790618661,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=aed7374893494245ff39d4c21780cb9d3f542dfcdb9474cdb6ed20cdb1272562"
+        "url": "https://finnhub.io/api/news?id=a5ef6a51d9f2b4cfdfb98f73d309cf0331541e9b13e6b163e3c3aa1fd5c096d2"
       },
       {
-        "headline": "Volante Technologies Partners With Circle Internet Group Over Stablecoin Payment Integration For Financial Institutions",
-        "datetime": 1790586090,
+        "headline": "Bitcoin's Days Are Numbered, And So Are Strategy's",
+        "datetime": 1790617386,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=441e9ff0530b01080ead6f93ce682f29ea21d59907b952bb8102bb37ca4a5394"
+      },
+      {
+        "headline": "The Stablecoin Yield Fight Is Far From Over—Here’s What Comes Next",
+        "datetime": 1790611386,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0f91b1cce23d098d6e40191fbaefedb8d57250e69fca4e7abb3d4d97a12d0ad4"
-      },
-      {
-        "headline": "Circle Co-Founder Sean Neville Exits Board as Catena Secures Conditional OCC Approval",
-        "datetime": 1790582697,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0fd935a95e8261b797532030e92a4df9ed11a7699a9c6e8597fbec9bfa68fc91"
+        "url": "https://finnhub.io/api/news?id=79a6c9c86aec7c8c312918a0f7647cb0632be2ca0df2169a76227ee50614fb5b"
       }
     ],
     "RKLB": [
       {
-        "headline": "Cantor Backs Rocket Lab’s Launch Momentum After 97th Electron Mission – Highlights These ‘Competitive Advantages’",
-        "datetime": 1790615746,
+        "headline": "SpaceX Rises 2% After Starship’s First Orbital Satellite Deployment; Rocket Lab Falls 3%, AST SpaceMobile Drops 3%",
+        "datetime": 1790704482,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b712a5f4bdaec48174050ccf761382ca88d8382dc72964e5de4602c580519164"
+        "url": "https://finnhub.io/api/news?id=0e465b7e1119b95683bf52069794b7fb7ed0677603e1afaeebc1d27abc470c19"
       },
       {
-        "headline": "Kirsten Harmon Joins Vinson & Elkins as NY-Based Corporate Partner",
-        "datetime": 1790609297,
+        "headline": "Data Vs. Infrastructure: The Difficult Space Race Choice Between Planet Labs and Rocket Lab",
+        "datetime": 1790697394,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8d664df2182f1603b97916326190d67f5b9f107421a4e240a414a71193b29599"
+        "url": "https://finnhub.io/api/news?id=ee072b31d8e39dae4fd507da38890ebf90fe59ca2a3456b8c1de5d76e54fbc8d"
       },
       {
-        "headline": "Why Is Rocket Lab Stock Falling Today?",
-        "datetime": 1790602457,
+        "headline": "SpaceX Flew the Most Powerful Rocket Ever Built and the Stock Fell Anyway",
+        "datetime": 1790687459,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5d7add1a5773cd636f532098320403b5e05e786f28c2f6c2a0a7e3b62264aac9"
+        "url": "https://finnhub.io/api/news?id=e730cb010b5d915a4c42ab6613e970e825182b8df7bd588eadd6cf93efbc513c"
       },
       {
-        "headline": "Can Rocket Lab's Rapid Prototyping Support Faster Production Growth?",
-        "datetime": 1790601420,
+        "headline": "AST SpaceMobile Rises 5% as New Change-of-Control Severance Plan Fuels Buyout Speculation; SpaceX and Rocket Lab Tick Up",
+        "datetime": 1790685793,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=58438134a7a904efc031847b72e677eb7a7f813048eec9436706acdd8538524e"
+        "url": "https://finnhub.io/api/news?id=973158b8728b7d1074cec496c5152ea519e22bb0d34dbe4a3dad681e2d6c9bc1"
       },
       {
-        "headline": "Stocktwits M&A Watch: PSKY, WBD, BP, DVN, RKLB, IRDM Stocks In Focus",
-        "datetime": 1790577639,
-        "source": "Yahoo",
+        "headline": "SpaceX: The Market Is Acting Blind",
+        "datetime": 1790677389,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=595233b6b1d4ea5f18168aa751e33fec4a5aab976b1dd86dca78fd35ef0e3775"
+        "url": "https://finnhub.io/api/news?id=7ac87b56c5c7d5742179f6e373f14aa09fc51da2a928e8f5e818440dab079f8c"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX launches Starship to orbit for first time – before it explodes in the ocean",
-        "datetime": 1790618348,
+        "headline": "NASA Gives Boeing Starliner $359 Million Lifeline",
+        "datetime": 1790705291,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4862ec48f63f8c4df604de77d9a8b8836365f7adcd1862ed030dc77d061f5ba8"
+        "url": "https://finnhub.io/api/news?id=29deba6ad4384a64f4acae3d4535dad3f31c60ab3251745d7d573187ccf5add7"
       },
       {
-        "headline": "Update: US Equity Indexes Fall in Midday Trading as Treasury Yields Rise Amid US-Iran Deadlock",
-        "datetime": 1790617139,
+        "headline": "SpaceX's Starship Breakthrough Came With an Expensive Catch",
+        "datetime": 1790705006,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d7e0427dcae96ca3d8f26dc08bffab97f881185c065ade94a9770dba9285272d"
+        "url": "https://finnhub.io/api/news?id=b8732e502c226109aac5b24a8305926634b1f57ef9036e4836011e956df7f85e"
       },
       {
-        "headline": "Tesla Preps Roadster Unveil Ahead Of Q3 Delivery Release; Stock Drops",
-        "datetime": 1790616689,
+        "headline": "SpaceX Rises 2% After Starship’s First Orbital Satellite Deployment; Rocket Lab Falls 3%, AST SpaceMobile Drops 3%",
+        "datetime": 1790704482,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f38b2f35aa57731244f9039b1ed69742b4a49e1c2cce582ac416c20dca444898"
+        "url": "https://finnhub.io/api/news?id=0e465b7e1119b95683bf52069794b7fb7ed0677603e1afaeebc1d27abc470c19"
       },
       {
-        "headline": "Goldman Sachs Flags SpaceX Stock in Unusual Growth Screen",
-        "datetime": 1790615859,
+        "headline": "Musk: “First Orbital Flight Successful” as SpaceX’s Starship Reaches Orbit on Flight 14",
+        "datetime": 1790701420,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bdc16368f15bb4602d6f741fab2dbaf3e2e770ac1248f4ba95b8333244731bb6"
+        "url": "https://finnhub.io/api/news?id=626d748c2de13a72310c4dafb1a7f9a807225a4c2596c6b69f7e130493371c79"
       },
       {
-        "headline": "SpaceX Starship Splashes Down in Pacific Ocean",
-        "datetime": 1790615334,
+        "headline": "Starship, Starlink, or xAI: Which Part of SpaceX Could Move the Stock Most in 2027?",
+        "datetime": 1790700180,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c81910ce080270f5a222737025370f635a5992c8d96668d295417c4b68863db1"
+        "url": "https://finnhub.io/api/news?id=a3db51574fbf1c0295509b62b3a84380b06cf32918935d97afbeca9ae6e830cc"
       }
     ]
   },
