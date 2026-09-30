@@ -481,7 +481,7 @@ export function _endedState(state: string, outcome: string, t: Translate): SlotC
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export const FACT_ORDER = ['model', 'tries', 'receipt', 'when', 'took', 'cost'] as const
+export const FACT_ORDER = ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'] as const
 
 export type FactSlot = typeof FACT_ORDER[number]
 
@@ -492,6 +492,7 @@ export const RESIDENT_CHIPS = 1
 /** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
 export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'when' | 'took' | 'aside' }> = {
   model: { line: 2, track: 'main' },
+  filed: { line: 2, track: 'main' },
   tries: { line: 2, track: 'aside' },
   receipt: { line: 2, track: 'aside' },
   when: { line: 3, track: 'when' },
@@ -508,8 +509,9 @@ export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: 
   task: { lead: true, value: false, facts: ['model', 'tries', 'when', 'took', 'cost'] },
   // Ended tasks are listed across agents, so each carries its executor.
   ended: { lead: true, value: false, facts: ['model', 'receipt', 'when', 'took', 'cost'] },
-  // A round uses the patrol section's glyph, just as an ended task carries its executor.
-  round: { lead: true, value: false, facts: ['when', 'took'] },
+  // A round uses the patrol section's glyph, just as an ended task carries its executor. Its line 2
+  // is what it routed through the filing gate (issues with their severity, digest, comments).
+  round: { lead: true, value: false, facts: ['filed', 'when', 'took'] },
 }
 
 /** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
@@ -647,10 +649,34 @@ export function endedRow(task: DispatchTask, t: Translate, now: number, open: (i
   }
 }
 
-/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+/**
+ * What a round routed through the filing gate, from the third `/` field patrol.sh writes
+ * (`P1#2240 P2#2241 +2 digest +1 comment`, 2026-10-01): each issue with its severity, how many
+ * findings went to the digest, how many were added to an issue on the same root cause. A P0 is
+ * said as a warning. Null when the round filed nothing (or ran before the field existed).
+ */
+export function roundFiled(filed: string, t: Translate): Fact | null {
+  const issues = [...filed.matchAll(/\b(P[0-3])#(\d+)/g)].map((m) => ({ sev: m[1]!, n: m[2]! }))
+  const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0)
+  const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0)
+  const parts = [
+    ...issues.map(({ sev, n }) => `${sev} #${n}`),
+    ...(digest > 0 ? [t('queue.round.digest', { n: String(digest) })] : []),
+    ...(comment > 0 ? [t('queue.round.comment', { n: String(comment) })] : []),
+  ]
+  if (parts.length === 0) return null
+  return {
+    text: parts.join(' · '),
+    said: t('queue.round.filed', { what: parts.join(', ') }),
+    title: filed,
+    voice: issues.some(({ sev }) => sev === 'P0') ? 'warn' : undefined,
+  }
+}
+
+/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 export function roundRow(round: PatrolRound, t: Translate, now: number): RowView {
   const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? ''
-  const [state = '', outcome = ''] = round.result.slice(how === '' ? 0 : how.length + 1).split('/')
+  const [state = '', outcome = '', filed = ''] = round.result.slice(how === '' ? 0 : how.length + 1).split('/')
   const ended = localStampMs(round.endedAt)
   return {
     kind: 'round',
@@ -661,6 +687,7 @@ export function roundRow(round: PatrolRound, t: Translate, now: number): RowView
       : how === 'yielded' ? { text: t('queue.round.yielded'), role: 'off', title: round.result }
         : { ..._endedState(state, outcome, t), title: round.result },
     facts: {
+      filed: roundFiled(filed, t),
       when: ended === null ? null : { text: agoOf(t, now - ended), title: t('queue.d.endedAt') + ' ' + round.endedAt },
       took: round.seconds === null ? null : { text: durationOf(t, round.seconds * 1000), said: t('queue.chip.took', { time: durationOf(t, round.seconds * 1000) }) },
     },
