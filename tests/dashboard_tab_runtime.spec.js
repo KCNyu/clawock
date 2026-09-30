@@ -3443,6 +3443,46 @@ async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
 }
 
 
+// #2233: the headline Brier population is active calls; passive HOLD episodes
+// must not inflate either the displayed denominator or the confidence tier.
+async function testCalibrationUsesTheActiveSampleCount(browser, base) {
+  const cases = [
+    { n: 4, brier: 0.2418, total: 18, tier: "样本少" },
+    { n: 8, brier: 0.2418, total: 40, tier: "有信息量" },
+    { n: 0, brier: null, total: 18, tier: "n/a" },
+    { n: null, brier: 0.2418, total: 18, tier: "样本量未知" },
+  ];
+  for (const c of cases) {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const state = observe(page);
+    await stubLiveOrigin(page, { patch: (name, json) => {
+      if (name !== "dashboard.json") return null;
+      json.decision_metrics = {
+        brier: c.brier, brier_baseline_loo: 0.3333, base_rate: 0.75,
+        mean_confidence: 0.7725, settled_episodes: c.total,
+        calibration: { active: { n: c.n }, all: { n: c.total } },
+      };
+      return json;
+    } });
+    await page.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
+    await waitForTab(page, "reflect");
+    const rendered = await page.evaluate(() => ({
+      value: document.getElementById("brier-val").textContent,
+      meta: document.getElementById("brier-meta").textContent,
+      tier: document.getElementById("brier-tier").textContent,
+      title: document.getElementById("brier-tier").title,
+    }));
+    assert.ok(rendered.meta.includes(`n=${c.n ?? "—"}（主动）`), rendered.meta);
+    assert.ok(!rendered.meta.includes(`n=${c.total}`), rendered.meta);
+    assert.equal(rendered.tier, c.tier);
+    if (c.brier != null) assert.equal(rendered.value, "0.242");
+    if (c.n === 4) assert.match(rendered.title, /少于 8/);
+    assert.deepEqual(state.errors, []);
+    await page.close();
+  }
+}
+
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3461,6 +3501,7 @@ async function main() {
   };
   try {
     await run("runtime", () => testRuntime(browser, base));
+    await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
     await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));

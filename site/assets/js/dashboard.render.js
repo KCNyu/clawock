@@ -2270,6 +2270,9 @@
 
   function renderCalibBadge() {
     const cal = safe(DATA, "decision_metrics") || {};
+    // Headline scores are ACTIVE calibration, not all settled episodes (#2233).
+    const activeN = safe(cal, "calibration", "active", "n");
+    const population = `n=${activeN ?? DASH}（主动）`;
     const brierEl = document.getElementById("brier-val");
     const metaEl = document.getElementById("brier-meta");
     const tierEl = document.getElementById("brier-tier");
@@ -2291,9 +2294,10 @@
     }
     if (cal.brier == null) {
       brierEl.textContent = DASH;
-      metaEl.textContent = `n=${cal.settled_episodes || 0} · need settled episodes`;
+      metaEl.textContent = `${population} · need settled active episodes`;
       tierEl.textContent = "n/a";
       tierEl.className = "tier";
+      tierEl.title = "";
       return;
     }
     const b = cal.brier;
@@ -2305,8 +2309,8 @@
     const mc = cal.mean_confidence;
     brierEl.textContent = b.toFixed(3);
     metaEl.textContent = (bl != null && br != null)
-      ? `准度 ${b.toFixed(3)} · 闭眼总报 ${Math.round(br * 100)}% = ${bl.toFixed(3)} · n=${cal.settled_episodes ?? DASH}`
-      : `Brier · episodes n=${cal.settled_episodes ?? DASH}`;
+      ? `准度 ${b.toFixed(3)} · 闭眼总报 ${Math.round(br * 100)}% = ${bl.toFixed(3)} · ${population}`
+      : `Brier · episodes ${population}`;
     let tier, cls;
     // "没信息量" would overclaim: the score still shows a little resolution, it is
     // the calibration that is broken. Name the actual defect.
@@ -2318,6 +2322,11 @@
     else if (bl - b < 0.02) { tier = "勉强打平"; cls = "fair"; }
     else if (bl - b < 0.05) { tier = "略有信息量"; cls = "good"; }
     else { tier = "有信息量"; cls = "excellent"; }
+    if (activeN == null) { tier = "样本量未知"; cls = ""; }
+    else if (activeN < 8) { tier = "样本少"; cls = "fair"; }
+    tierEl.title = activeN != null && activeN < 8
+      ? `主动 episode 样本 n=${activeN}，少于 8，校准分数参考性弱`
+      : "";
     tierEl.textContent = tier;
     tierEl.className = "tier " + cls;
   }
