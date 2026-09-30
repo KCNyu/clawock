@@ -237,6 +237,23 @@ def test_a_non_numeric_level_is_printed_rather_than_raising():
     assert "2026-09-04" in card
 
 
+def test_the_card_names_levels_in_words_not_plan_keys():
+    """The 2026-09-29 card printed 11 raw keys such as `book_force_derisk_usd` (#2194)."""
+    from clawock.harness.validation import check_identifier_leak
+
+    plan = json.loads(json.dumps(PLAN))
+    plan["watch_levels"] = {"hstech_breakdown": 4246.12, "crcl_chandelier_stop": 84.16,
+                            "book_force_derisk_usd": -300, "spcx_5d_ma_reclaim": 148.59}
+
+    card = render.render_card(CONTEXT, _judgment(), plan, date="2026-08-31")
+    levels = card[card.index("▎触发位"):]
+
+    assert "• 恒科 破位: 4,246.12" in levels
+    assert "• 账面 强制 减仓 USD: -300.00" in levels
+    assert "• SPCX 5日 均线 收复: 148.59" in levels
+    assert check_identifier_leak(levels) == []
+
+
 def test_rendering_from_a_workspace_writes_both_artifacts(tmp_path):
     tmp = tmp_path / "memory" / ".tmp"
     tmp.mkdir(parents=True)

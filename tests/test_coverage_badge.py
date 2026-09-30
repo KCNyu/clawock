@@ -267,7 +267,7 @@ def test_publish_job_is_master_push_only_and_needs_validate():
     job = _publish_job()
     assert 'needs: validate' in job
     assert ('github.event_name == \'push\' && github.ref == \'refs/heads/master\'') in job
-    # #957: a dsh-only master push runs no pytest and produces no artifact, so
+    # #957: a master push outside the code lane runs no pytest and produces no artifact, so
     # the consuming job must read the same lane answer before it may start.
     assert 'needs.validate.outputs.code == \'true\'' in job
     assert 'group: data-write' in job, 'publish must serialize with the other writers'

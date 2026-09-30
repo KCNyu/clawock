@@ -2207,7 +2207,9 @@ def main(argv=None):
         'success' if not issues else 'warning',
         slot=slot,
         issue_count=len(issues),
-        context_path=str(ctx_path),
+        # Workspace-relative: this ledger is published to the data plane, and
+        # an absolute path there names the host's directories to anyone (#2200).
+        context_path=os.path.relpath(ctx_path, WS),
         context_generation_id=context['generation_id'],
         model_context_bytes=bundle_manifest['budget']['always_loaded_bytes'],
         step_timings=step_timings,  # additive detail: per-node ok/wall_s (#916 §1.5)

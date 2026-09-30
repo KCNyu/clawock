@@ -40,21 +40,25 @@ def test_large_plan_summary_retains_watch_levels_for_both_page_surfaces(tmp_path
     assert plan['watch_levels'] == levels
 
 
-def _watch_rows(bundle, levels):
+def _watch_rows(bundle, levels, holdings=()):
     source = (ROOT / "site" / "assets" / "js" / bundle).read_text(encoding="utf-8")
     fn = re.search(r"^  function computeWatchRows\(\) \{.*?^  \}$", source,
                    re.MULTILINE | re.DOTALL).group(0)
     data = {"recent_plans": [{"date": "2026-09-17", "plan": {"watch_levels": levels}}],
-            "totals": TOTALS, "indices": {}, "watch_holdings": []}
+            "totals": TOTALS, "indices": {}, "watch_holdings": list(holdings)}
     script = (
         "const DATA = " + json.dumps(data) + ";\n"
         "const safe = (o, ...ks) => ks.reduce((v, k) => v == null ? undefined : v[k], o);\n"
-        "const flatHoldings = () => [];\n"
+        "const flatHoldings = () => DATA.watch_holdings;\n"
         + fn + "\nprocess.stdout.write(JSON.stringify(computeWatchRows().rows));\n"
     )
     out = subprocess.run([shutil.which("node"), "-e", script], check=True,
                          capture_output=True, text=True).stdout
     return {row["who"] + "/" + str(row["val"]): row for row in json.loads(out)}
+
+
+def _ordered_rows(bundle, levels, holdings=()):
+    return list(_watch_rows(bundle, levels, holdings).values())
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
@@ -75,3 +79,36 @@ def test_book_amount_and_percent_guards_keep_their_units(bundle):
     pct = rows["账面 US/-25"]
     assert (pct["isPct"], pct["ccy"], pct["cur"]) == (True, "%", -20.9544)
     assert pct["dist"] == pytest.approx(4.0456)
+
+
+SPCH = {"ticker": "SPCH", "region": "us", "current_price": 9.61, "pnl_percent": -20.32}
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_a_holding_percent_key_is_not_read_as_a_price(bundle):
+    # spch_breakdown_pct: -4 rendered as "$-4.00 · 现 $9.61 · +340.2%" (#2196).
+    # The key does not say what the -4% is measured from, so no distance.
+    rows = _watch_rows(bundle, {"spch_breakdown_pct": -4, "spch_stop": 9}, [SPCH])
+    pct = rows["SPCH/-4"]
+    assert (pct["isPct"], pct["ccy"], pct["cur"], pct["dist"]) == (True, "%", None, None)
+    assert pct["label"] == "破位"
+    price = rows["SPCH/9"]
+    assert (price["isPct"], price["ccy"], price["cur"]) == (False, "USD", 9.61)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_a_crossed_guard_is_fired_and_sorts_first_however_far_past(bundle):
+    # book_force_derisk_usd: -300 against a -$929.62 book was the faintest row
+    # on the card because only |distance| decided urgency (#2195).
+    rows = _ordered_rows(bundle, {
+        "spch_5d_ma_reclaim": 9.55,   # above the level: an upside trigger that fired
+        "spch_stop": 9.5,             # above a stop: not fired, 1.2% away
+        "book_force_derisk_usd": -300,
+    }, [SPCH])
+    assert [(r["who"], r["fired"], r["side"]) for r in rows] == [
+        ("账面 US", True, "below"),
+        ("SPCH", True, "above"),
+        ("SPCH", False, "below"),
+    ]

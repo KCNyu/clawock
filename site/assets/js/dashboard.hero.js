@@ -22,6 +22,8 @@
     const hkTot = safe(DATA, "totals", "hk") || {};
     const LABELS = { stop:"止损", support:"支撑", breakdown:"破位", target:"目标",
       derisk:"强制减仓", force:"强制减仓", trigger:"触发", resist:"压力", resistance:"压力" };
+    const FIRES_BELOW = ["stop", "breakdown", "derisk", "support", "floor"];
+    const FIRES_ABOVE = ["breakout", "reclaim", "reentry", "resist", "resistance", "target"];
 
     function resolve(key) {
       const k = key.toLowerCase();
@@ -48,6 +50,12 @@
       }
       const tok = key.split(/[_\-]/)[0];
       const h = hmap[tok.toUpperCase()];
+      // spch_breakdown_pct: -4 is a percent threshold whose base the key does
+      // not name (cost? today's open?), so it gets no current value and no
+      // distance — printed as $-4.00 against the price it read +340% (#2196).
+      if (/(^|[_\-])(pct|percent)([_\-]|$)/.test(k))
+        return { cur: null, ccy:"%", who: h ? tok.toUpperCase() : null,
+                 strip: (h ? [tok.toLowerCase()] : []).concat(["pct", "percent"]), isPct:true };
       if (h) return { cur: h.current_price, ccy: h.region === "hk" ? "HKD" : "USD", who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
       return { cur: null, ccy:"", who: null, strip: [] };
     }
@@ -66,22 +74,34 @@
       const label = labelOf(toks);
       const numeric = (typeof val === "number" && isFinite(val));
       const cur = (numeric && r.cur != null && isFinite(r.cur)) ? r.cur : null;
-      let dist = null, ad = null;
+      let dist = null, ad = null, fired = false, side = null;
       // % thresholds (book derisk guards): distance is percentage POINTS (cur - val);
       // price levels: relative distance to the level.
       if (cur != null) {
         dist = r.isPct ? (cur - val) : (cur - val) / Math.abs(val) * 100;
         ad = Math.abs(dist);
+        // |dist| alone painted a derisk line crossed by 232% as the calmest
+        // row on the card (#2195). A key that says which way it fires is
+        // fired once the current value is past it on that side.
+        const allToks = key.toLowerCase().split(/[_\-]/);
+        const down = allToks.some(t => FIRES_BELOW.includes(t));
+        const up = allToks.some(t => FIRES_ABOVE.includes(t));
+        if (down !== up) {
+          side = down ? "below" : "above";
+          fired = down ? cur <= val : cur >= val;
+        }
       }
-      return { who, label, val, cur, ccy: r.ccy, numeric, dist, ad, isPct: !!r.isPct,
+      return { who, label, val, cur, ccy: r.ccy, numeric, dist, ad, fired, side, isPct: !!r.isPct,
                cond: numeric ? null : String(val) };
     });
-    // nearest resolvable numeric → numeric-without-current → condition-only
+    // fired risk guard → other fired level → nearest resolvable numeric →
+    // numeric-without-current → condition-only
     rows.sort((a, b) => {
-      const rank = x => (x.ad != null ? 0 : (x.numeric ? 1 : 2));
+      const rank = x => (x.fired ? (x.side === "below" ? -2 : -1)
+        : x.ad != null ? 0 : (x.numeric ? 1 : 2));
       const ra = rank(a), rb = rank(b);
       if (ra !== rb) return ra - rb;
-      return ra === 0 ? a.ad - b.ad : 0;
+      return ra <= 0 ? a.ad - b.ad : 0;
     });
     return { date: latest.date || null, rows };
   }
@@ -202,12 +222,15 @@
     // 「多近」，精确距离仍在 delta 文本；轨宽写死在 CSS，不随数据变。
     const near = (computeWatchRows().rows || []).find(r => r.ad != null);
     if (near) {
-      const fire = near.ad < 2;
-      const meter = Math.max(0, Math.min(100, 100 - near.ad * 10));
+      // A guard already crossed sorts first and reads as fired however far past (#2195).
+      const fire = near.fired || near.ad < 2;
+      const meter = near.fired ? 100 : Math.max(0, Math.min(100, 100 - near.ad * 10));
+      const fmtVal = (v) => near.isPct ? fmtPct(v, 1) : fmtMoney(v, near.ccy);
+      const distTxt = near.isPct ? `${near.dist >= 0 ? "+" : ""}${near.dist.toFixed(1)}pp` : fmtPct(near.dist, 1);
       chips.push(chip(fire ? "bad" : near.ad < 5 ? "warn" : "flat",
         `${escapeHtml(near.who)}·${escapeHtml(near.label)}`,
-        fmtMoney(near.val, near.ccy),
-        `现 ${fmtMoney(near.cur, near.ccy)} ${fmtPct(near.dist, 1)}${fire ? " ⚠" : ""}`,
+        fmtVal(near.val),
+        `现 ${fmtVal(near.cur)} ${distTxt}${near.fired ? " 已触发" : ""}${fire ? " ⚠" : ""}`,
         meter));
     }
 

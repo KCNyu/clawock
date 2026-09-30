@@ -87,8 +87,8 @@ SCENARIOS = [
         id="screenshot-refresh Sunday commit (PNGs are not css/js): zero CI"),
     pytest.param(
         ["examples/dsh/packages/clawock-dsh/src/store.ts"],
-        _lanes(dsplugin=True, analysable=True), True,
-        id="plugin-only master push: contracts run (the pre-#884 hole)"),
+        _lanes(code=True, dsplugin=True, analysable=True), True,
+        id="plugin-only master push: contracts and suite run (#884, #2199)"),
     pytest.param(
         ["examples/cli/minimal-run/run.sh"],
         _lanes(code=True, analysable=True), True,
