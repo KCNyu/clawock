@@ -111,6 +111,15 @@ documentation:
    verifies what is actually serving. Rule and evidence:
    `docs/operations/release.md` § Running the latest code on this host.
 
+### Closing issues
+
+Handle every open issue on its evidence; there is no issue-count ceiling. Close verified fixes
+as completed with the merged PR or reproducible verification. For patrol findings that are
+false, duplicates, out of scope, or deliberately not worth fixing, record the verified reason
+and close as not planned (or apply `patrol:noise`). These closure signals feed patrol's quality
+feedback; do not mark an unimplemented finding completed merely to clear the queue. For a
+partially resolved digest, record each item's result and keep the unresolved items open.
+
 Runtime-generated market data, snapshots, reports, ledgers, and dashboard artifacts
 remain on the existing direct-to-`master` bot path. They do not open high-frequency PRs.
 Never use the repository-admin bypass for an interactive code change.

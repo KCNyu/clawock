@@ -5,7 +5,7 @@
 delivery provider. It is a module (the gate imports it) and a small CLI the supervisor calls
 after each round, so a digest that is due gets filed even on a day no new finding arrives:
 
-  filing.py flush-digest [--force]   # file the pending digest when due (8 items or 3 days)
+  filing.py flush-digest [--force]   # drain legacy pending entries immediately
   filing.py ensure-labels            # create every label of the taxonomy that is missing
   filing.py backfill [--dry-run]     # label open [patrol] issues that have no severity label yet,
                                      # and give every gated patrol issue its source + lens label

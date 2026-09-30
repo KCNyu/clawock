@@ -1,5 +1,5 @@
-"""clawock-patrol triage (2026-10-01): severity is backed by evidence, P3 and over-budget
-findings go to the digest instead of the void, one root cause is one issue, and the round's
+"""clawock-patrol triage (2026-10-01): severity is backed by evidence, filing counts
+never limit findings, one root cause is one issue, and the round's
 yield is readable by the dsh panel. Unit tests on the pure half plus one gate dry run."""
 import json
 import os
@@ -61,18 +61,13 @@ def test_noise_feedback_demotes_the_category():
     assert v.severity == "P3" and "反馈回路" in v.notes[-1]
 
 
-def test_budget_sends_overflow_to_the_digest_never_drops_p0():
+def test_filing_counts_never_limit_any_severity_or_feature():
     now = time.time()
-    rows = [{"route": "issue", "ts": now - 60, "severity": "P2", "kind": "bug"} for _ in range(5)]
-    v = triage.Verdict("P2", "data", "bug", "logic")
-    assert triage.route(v, rows, now)[0] == "digest"
-    assert triage.route(triage.Verdict("P1", "data", "bug", "logic"), rows, now)[0] == "issue"
-    rows += [{"route": "issue", "ts": now - 60, "severity": "P1", "kind": "bug"} for _ in range(5)]
-    assert triage.route(triage.Verdict("P1", "data", "bug", "logic"), rows, now)[0] == "digest"
-    assert triage.route(triage.Verdict("P0", "data", "bug", "logic"), rows, now)[0] == "issue"
-    assert triage.route(triage.Verdict("P3", "docs", "drift", "docs"), [], now)[0] == "digest"
-    week = [{"route": "issue", "ts": now - 86400 * 3, "severity": "P2", "kind": "feature"}] * 2
-    assert triage.route(triage.Verdict("P2", "delivery", "feature", "peers"), week, now)[0] == "digest"
+    rows = [{"route": "issue", "ts": now - 60, "severity": "P2", "kind": "feature"}] * 2000
+    for severity in triage.SEVERITIES:
+        for kind in ("bug", "feature"):
+            assert triage.route(triage.Verdict(severity, "data", kind, "peers"), rows, now) == ("issue", "")
+    assert not hasattr(triage, "BUDGET")
 
 
 def test_fingerprint_groups_by_enclosing_function(tmp_path):
@@ -99,7 +94,8 @@ def test_digest_flush_and_render_stay_under_githubs_body_cap():
     pending = [{"ts": now - 10, "title": f"[patrol] 小问题 {i}", "severity": "P3", "area": "docs", "kind": "drift",
                 "lens": "docs", "body": "x" * 20000} for i in range(15)]
     assert triage.should_flush(pending, now)
-    assert not triage.should_flush(pending[:2], now)
+    assert triage.should_flush(pending[:1], now)
+    assert not triage.should_flush([], now)
     assert triage.should_flush([dict(pending[0], ts=now - 25 * 3600)], now)
     title, body, labels = triage.render_digest(pending, "2026-10-01")
     assert title.startswith("[patrol] ") and "15 条" in title
@@ -213,7 +209,7 @@ def test_gate_dry_run_reports_triage_and_route(tmp_path):
     assert "labels: patrol severity:P0 area:data kind:bug lens:money" in r.stderr
     r = _gate(tmp_path, DRAFT.format(sev="P3"), name="b")
     assert r.returncode == 0, r.stderr
-    assert "→ digest" in r.stderr and "放进汇总" in r.stderr
+    assert "triage P3 area:data kind:bug lens:money → issue" in r.stderr
 
 
 def test_gate_refuses_a_feature_outside_the_peers_lens(tmp_path):
