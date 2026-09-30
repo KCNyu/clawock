@@ -110,7 +110,8 @@ clawock us-quotes     # 仅刷美股价格
 
 数据/缓存铁律 → 见 `MEMORY.md § 数据规则`。本节只补充 TOOLS-specific 实现细节：
 
-- `prev_close` 由 Polygon `/prev` 历史接口独立获取（带日期戳）。回退链：Polygon历史 → API pc字段 → 保留现有（3天内） → 从dp%反推
+- `prev_close` 由 Polygon 历史收盘接口独立获取（带日期戳）。常规回退链：Polygon 历史 → API pc 字段（不同于当前价）→ 从 API dp% 反推（绝对值 > 0.01%）→ 保留现有（正数、不同于当前价，且 `prev_close_date` 精确等于行情所属时段的上一交易日）→ 当前价作为前收。没有「3 天内」的宽松窗口。
+- 盘后若 Polygon 返回的是本交易日正式收盘价，先据此校正当前价，再重建前收：优先保留日期精确等于上一交易日的现有正数前收，其次从 API dp% 反推；两者都不可用时保留本日收盘价作为前收（当日变动为 0）。
 - `prev_close_date` 字段同步写入 portfolio.json，可验证前收来自哪个交易日
 - 脚本跑完后 `today_change` 字段即可直接信任，无需换算
 

@@ -5,6 +5,8 @@ exists only for genuinely-new listings — a partial-feed mature name must stay
 on the strict gate, or it enters the universe with half a signal set.
 """
 import json
+
+import pytest
 from datetime import date, timedelta
 
 from clawock.decision import signals
@@ -139,3 +141,25 @@ def test_universe_details_tolerates_one_bad_holding(monkeypatch, tmp_path):
     assert len(errors) == 1 and errors[0]['label'] == 'NOT_A_TICKER'
     skhy = next(r for r in rows if r['label'] == 'SKHY')
     assert skhy.get('listing_date') == '2026-07-10'
+
+
+@pytest.mark.parametrize('n', [30, 75, 178, 199, 200, 250])
+@pytest.mark.parametrize('direction', [1, -1])
+def test_trend_tag_matches_factor_availability(n, direction):
+    bars = _bars(n)
+    for i, bar in enumerate(bars):
+        close = 20 + direction * i * 0.02
+        bar.update(open=close - direction * 0.01, close=close,
+                   high=close + 0.1, low=close - 0.1)
+    sig = signals.compute_signals(bars)
+    if n < 200:
+        assert sig['ma200'] is None and sig['trend_on'] is None
+        assert sig['tag'].startswith('趋势未知')
+        assert '趋势OFF' not in sig['tag']
+    else:
+        assert sig['trend_on'] is (direction > 0)
+        assert sig['tag'].startswith('趋势ON' if direction > 0 else '趋势OFF')
+    # Other factors and safety labels remain present in the same row.
+    assert sig['rsi14'] is not None and sig['chandelier_stop'] is not None
+    if sig['stop_distance_pct'] < 0:
+        assert '已破吊灯止损' in sig['tag']
