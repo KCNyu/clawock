@@ -54,6 +54,14 @@ def _lanes(**overrides):
 
 SCENARIOS = [
     pytest.param(
+        [".github/ISSUE_TEMPLATE/config.yml"],
+        _lanes(code=True, analysable=True), True,
+        id="issue chooser alone: public-entry contracts run on PR and push"),
+    pytest.param(
+        [".github/ISSUE_TEMPLATE/new_template.yml"],
+        _lanes(code=True, analysable=True), True,
+        id="future issue template: directory gate includes later additions"),
+    pytest.param(
         ["docs/operations/release.md", "README.md"],
         _lanes(code=True, analysable=True), True,
         id="docs-only PR or push: contract tests run"),

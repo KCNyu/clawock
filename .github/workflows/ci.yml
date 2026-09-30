@@ -85,6 +85,9 @@ on:
       # Composite actions are code the jobs execute; a broken edit deserves a
       # red run on master too, not only on the PR that introduced it.
       - '.github/actions/**'
+      # Public-entry tests read the issue chooser config; template-only changes
+      # must run them on PRs and master, just like other tested inputs (#2240).
+      - '.github/ISSUE_TEMPLATE/**'
       # Whole directory on purpose: every file here (cron contract, instrument
       # registry, thesis/earnings schemas, news-evidence policy, peer rules) is
       # read by the suite, and naming them one by one already left new schemas
