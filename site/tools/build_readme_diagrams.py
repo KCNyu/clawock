@@ -9,7 +9,8 @@ dispatch flow, green for code gates and warm red for isolation / arbitration.
 Every diagram is a single 520-unit column so it still reads on a phone.
 
 Motion is SMIL <animateMotion> pulses along the connectors plus a few CSS
-keyframes. No script, no external font or image, no filter (a filter rasterises
+keyframes. Repository screenshots are embedded as PNG data URIs at their original
+aspect ratio. No script, no external font or image, no filter (a filter rasterises
 the text beneath it) — so the diagrams animate inside the README's <img>, stop
 under prefers-reduced-motion, and the first frame is already complete.
 
@@ -17,6 +18,8 @@ Every label is sourced from the code or docs it names; change the wording here,
 not in the SVG. `fits()` warns when a label would overflow its box, and the
 build refuses to write while it does.
 """
+import base64
+import struct
 import sys
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -206,10 +209,25 @@ class D:
             'down': '<path d="M4 5l15 15M10 20h9v-9"/>',
             'plane': '<path d="M2 11L22 3l-7 19-4-8ZM11 14L22 3"/>',
             'dashboard': '<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20M7 3v5M6 17l4-4 4 2 4-4"/>',
+            'branch': '<circle cx="6" cy="4" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="20" r="2"/><path d="M6 6v12m0-4c8 0 12-2 12-6"/>',
+            'checks': '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/>',
+            'clock': '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
+            'terminal': '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 9l3 3-3 3m6 0h5"/>',
         }
         self.add(f'<g class="hero-icon" data-icon="{name}" transform="translate({x:g} {y:g}) scale({size / 24:g})" '
                  f'fill="none" stroke="{ROLE[role]}" stroke-width="1.7" stroke-linecap="round" '
                  f'stroke-linejoin="round" aria-hidden="true">{shapes[name]}</g>')
+
+    def screenshot(self, name, x, y, w):
+        """An existing, full-frame repo capture; never a simulated product screen."""
+        raw = (ASSETS / name).read_bytes()
+        iw, ih = struct.unpack('>II', raw[16:24])
+        h = w * ih / iw
+        uri = 'data:image/png;base64,' + base64.b64encode(raw).decode('ascii')
+        self.add(f'<image x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" '
+                 f'preserveAspectRatio="xMidYMid meet" href="{uri}">'
+                 f'<title>Existing live-host capture: {escape(name)}</title></image>')
+        return h
 
     def mini_charts(self, x, y, w):
         """Schematic price, factor-rank and risk views; never plotted results."""
@@ -300,126 +318,140 @@ def sweep(d, x, y, w, rows, lh=22, period=None):
 
 # ---------------------------------------------------------------------------
 def harnesses():
-    """site/assets/harnesses.svg — README hero: several agent harnesses, one desk."""
-    d = D('clawock desk — several agent harnesses coexist and hand work to each other',
-          'OpenClaw (kcn chat), DeepSeek Harness (a sidebar task chip that reorders, retries and '
-          'cancels queued work) and the clawock-patrol service start work through one '
-          'agent-dispatch runner; any interactive coding session that names a worker dispatches '
-          'the same way. The runner gives each task its own systemd unit and arbitrates: one lock '
-          'and queue per agent, patrol rounds last, run slots per agent from the host limits.env, a '
-          'session lock so no two tasks resume one session, quota waits that free the agent lock, '
-          'and dispatched workers never dispatch again. Claude Code, Codex and OpenCode share one '
-          'AGENTS.md, one memory store and the same skills, and hand work on with dispatch.sh '
-          'append and result or review each other with --template review. Every change lands in '
-          'KCNyu/clawock through its own worktree and branch, then the same PR, required CI and '
-          'squash-merge gate; the runner reports through result.env to WeChat and Telegram.')
-    y = d.header('ONE DESK · MANY AGENT HARNESSES',
-                 ['Different agents, one desk:', 'they hand work to each other'],
-                 ['OpenClaw, Claude Code, Codex, OpenCode and DeepSeek',
-                  'Harness share one runner, one memory and one gate.'],
-                 [('harness · agent', 'slate'), ('dispatch', 'blue'), ('shared context', 'violet'),
-                  ('merge gate', 'green'), ('isolation · arbitration', 'warm')])
+    """site/assets/harnesses.svg — dsh user story, from delegation to a delivered result."""
+    d = D('The clawock-dsh plugin — delegate, watch, steer, ship, hear back',
+          'On a host configured with agent-dispatch, a user can ask in dsh chat to delegate '
+          'repository work to Claude Code, Codex or OpenCode. The runner starts a background '
+          'systemd task that outlives the conversation. The plugin shows provider allowances, '
+          'each agent queue, running tasks, recent results and notification receipts. Its '
+          'controls reorder waiting work, change the next attempt model where allowed, adjust '
+          'budgets, retry an ended unfinished session or cancel a task through the audited ops '
+          'entry. The repository task pictured requests an isolated branch, a PR, required CI, '
+          'squash merge and host refresh; these are its delivery instructions, not automatic '
+          'plugin actions. The runner records the report and sends best-effort WeChat and '
+          'Telegram notifications, with delivery receipts visible in the panel. The queue '
+          'image is an existing full-frame capture from a live host, not an example result.')
+    d.logo('deepseek-harness', W - M - 34, 26)
+    y = d.header('CLAWOCK-DSH · YOUR BACKGROUND TEAM',
+                 ['Delegate the work.', 'Keep the controls.'],
+                 ['Leave the conversation. Your task keeps running.',
+                  'Come back to the queue, the report and the receipts.'],
+                 [('request · result', 'blue'), ('background agents', 'slate'),
+                  ('checks · live', 'green'), ('quota · control', 'warm')])
 
-    # who starts work
     y += 34
-    d.section(y, 'WHO STARTS WORK')
+    d.section(y, '01 · ASK IN DSH CHAT')
     y += 14
+    h = 156
+    d.card(M, y, CW, h, 'blue')
+    d.logo('deepseek-harness', M + 20, y + 16)
+    d.text(M + 66, y + 38, 'You → your agent', 'h')
+    d.tag(W - M - 16, y + 36, 'EXAMPLE REQUEST', 'blue', anchor='end')
+    d.lines(M + 20, y + 73, CW - 40,
+            ['“Have Codex improve my README.',
+             'Open a PR; merge after required checks pass,',
+             'refresh the live checkout and send me the result.”'], where='request')
+    top = y + h
+    y = top + 52
+    d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    h = 94
+    d.card(M, y, CW, h, 'blue')
+    d.icon('terminal', M + 20, y + 16, size=28)
+    d.text(M + 62, y + 36, 'agent-dispatch', 'h')
+    d.tag(W - M - 16, y + 34, 'HOST REQUIRED', 'blue', anchor='end')
+    d.lines(M + 20, y + 61, CW - 40,
+            ['One systemd task per request; independent of chat.'], cls='m', where='runner')
+    top = y + h
+    y = top + 40
     xs, cw = columns(3)
-    entries = [
-        ('openclaw', ['OpenClaw'], ["kcn's chat;", 'names a worker']),
-        ('deepseek-harness', ['DeepSeek', 'Harness'], ['sidebar task chip', 'steers the queue']),
-        ('clawock', ['clawock-', 'patrol'], ['review rounds,', 'always last']),
-    ]
-    eh = 150
-    for x, (logo, title, body) in zip(xs, entries):
-        d.card(x, y, cw, eh, 'slate')
-        d.logo(logo, x + cw / 2 - 17, y + 14)
-        ty = y + 72
-        for t in title:
-            fits(t, 'h', cw - 16, 'entry')
-            d.text(x + cw / 2, ty, t, 'h', anchor='middle')
-            ty += 19
-        for i, t in enumerate(body):
-            fits(t, 'm', cw - 14, 'entry body')
-            d.text(x + cw / 2, y + eh - 36 + i * 18, t, 'm', anchor='middle', fill=MUT)
-    y += eh
-    ry = y + 56
-    for i, x in enumerate(xs):
-        d.curve(x + cw / 2, y, W / 2, ry, pulses=(i * .7,), dur=2.2)
-
-    # the runner
-    rh = 234
-    d.card(M, ry, CW, rh, 'blue')
-    d.text(M + 20, ry + 32, 'agent-dispatch', 'h')
-    d.tag(W - M - 16, ry + 30, 'ONE RUNNER', 'blue', anchor='end')
-    d.text(M + 20, ry + 54, 'a systemd unit per task · task_queue_ops.py orders', 'm', fill=MUT)
-    fits('a systemd unit per task · task_queue_ops.py orders', 'm', CW - 36, 'runner sub')
-    d.text(M + 20, ry + 74, 'called the same way by any session that names a worker', 'm', fill=MUT)
-    fits('called the same way by any session that names a worker', 'm', CW - 36, 'runner sub')
-    rows = ['One lock and one queue per agent', 'Patrol rounds last; a long wait is protected',
-            'Run slots per agent, set in host limits.env', 'Session lock: one resume per session',
-            'A quota wait frees the agent lock', 'Dispatched workers never re-dispatch']
-    sweep(d, M + 12, ry + 90, CW - 24, len(rows), lh=22)
-    d.bullets(M + 22, ry + 106, CW - 40, rows)
-
-    # workers inside the shared-context frame
-    fy = ry + rh + 46
-    wy = fy + 18
-    wh = 134
-    ay = wy + wh                      # relay arcs hang below the worker cards
-    ky = ay + 52                      # the shared-context label and chips
-    fh = ky - fy + 84
-    d.add(f'<rect x="{M:g}" y="{fy:g}" width="{CW:g}" height="{fh}" rx="16" fill="{TINT["violet"]}" '
-          f'stroke="#dcd8ee" stroke-dasharray="4 4"/>')
-    for i, x in enumerate(xs):
-        d.curve(W / 2, ry + rh, x + cw / 2, wy, pulses=(i * .6,), dur=2.2)
-    workers = [('claude-code', 'Claude Code', 'writes · reviews'),
-               ('codex', 'Codex', 'writes · reviews'),
-               (None, 'OpenCode', 'patrol · explores')]
-    for x, (logo, name, body) in zip(xs, workers):
-        d.card(x, wy, cw, wh, 'slate')
+    h = 122
+    for i, (x, (logo, name)) in enumerate(zip(xs, (
+            ('claude-code', 'Claude Code'), ('codex', 'Codex'), (None, 'OpenCode')))):
+        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .6,), pulse=ROLE['slate'])
+        d.card(x, y, cw, h, 'slate')
         if logo:
-            d.logo(logo, x + cw / 2 - 17, wy + 12)
-        else:  # OpenCode ships no logo in this repository: its name, set as text
-            d.wordmark_tile(x + cw / 2 - 17, wy + 12, 34, 'open', 'code')
-        fits(name, 'h', cw - 16, 'worker')
-        d.text(x + cw / 2, wy + 70, name, 'h', anchor='middle')
-        d.text(x + cw / 2, wy + 94, body, 'm', anchor='middle', fill=MUT)
-        d.add(f'<circle class="breathe" cx="{x + cw / 2 - width("own unit", "m") / 2 - 8:g}" '
-              f'cy="{wy + wh - 13:g}" r="3.5" fill="{ROLE["warm"]}"/>')
-        d.text(x + cw / 2 + 4, wy + wh - 8, 'own unit', 'm', anchor='middle', fill=ROLE['warm'])
-    # relay arcs: work handed on between workers, both ways
-    for a, b in ((0, 1), (1, 2)):
-        x1, x2 = xs[a] + cw / 2, xs[b] + cw / 2
-        d.wire(f'M{x1 + 16:g} {ay:g}C{x1 + 16:g} {ay + 30:g} {x2 - 16:g} {ay + 30:g} {x2 - 16:g} {ay + 2:g}',
-               pulses=(0,), dur=1.8, arrow=False, color='#b9b2dc', pulse=ROLE['violet'])
-        d.wire(f'M{x2 - 28:g} {ay:g}C{x2 - 28:g} {ay + 20:g} {x1 + 28:g} {ay + 20:g} {x1 + 28:g} {ay + 2:g}',
-               pulses=(.9,), dur=1.8, arrow=False, color='#b9b2dc', pulse=ROLE['violet'])
-    d.text(W / 2, ay + 44, [('hand work on: ', MUT), ('append · result · --template review', ROLE['violet'])],
-           'm', anchor='middle')
-    fits('hand work on: append · result · --template review', 'm', CW - 20, 'relay')
-    d.text(M + 16, ky + 18, 'SHARED BY EVERY CODING AGENT', 'kick', fill=ROLE['violet'])
-    cx, ccw = columns(3, gap=8, x0=M + 16, w=CW - 32)
-    for x, label in zip(cx, ('one AGENTS.md', 'shared memory', 'same skills')):
-        d.chip(x, ky + 30, ccw, label, fill=ROLE['violet'], bg='#ffffff')
+            d.logo(logo, x + cw / 2 - 20, y + 14, size=40)
+        else:
+            d.wordmark_tile(x + cw / 2 - 20, y + 14, 40, '[', ']')
+        d.text(x + cw / 2, y + 80, name, 'h', anchor='middle')
+        d.text(x + cw / 2, y + 104, 'own task unit', 'm', anchor='middle', fill=MUT)
+        fits('own task unit', 'm', cw - 12, 'worker')
+    top = y + h
+    y = top + 46
+    for i, x in enumerate(xs):
+        d.curve(x + cw / 2, top, W / 2, y - 30, pulses=(i * .6,), pulse=ROLE['slate'])
 
-    # one gate
-    gy = fy + fh + 46
-    d.down(W / 2, fy + fh, gy, pulses=(0, 1.1), dur=2.2, pulse=ROLE['green'])
-    gh = 162
-    d.card(M, gy, CW, gh, 'green')
-    d.logo('clawock', M + 20, gy + 16, size=30)
-    d.text(M + 60, gy + 37, 'KCNyu/clawock', 'h')
-    d.tag(W - M - 16, gy + 36, 'ONE GATE', 'green', anchor='end')
-    d.bullets(M + 22, gy + 74, CW - 40, ['Own worktree and branch per task',
-                                         'PR → required CI → squash-merge',
-                                         'Live checkout stays on master',
-                                         'One identity: reviews go in reports'], role='green')
-    by = gy + gh + 14
-    xs2, cw2 = columns(2)
-    d.chip(xs2[0], by, cw2, 'report → WeChat + Telegram', fill=MUT, bg='#ffffff')
-    d.chip(xs2[1], by, cw2, 'merge → refresh_live.sh', fill=MUT, bg='#ffffff')
-    return d.render(by + 30 + M)
+    d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
+    shot_w = 224
+    shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
+    shot_h = shot_w * shot_ih / shot_iw
+    h = shot_h + 80
+    d.card(M, y, CW, h, 'violet')
+    d.text(M + 20, y + 32, 'Your team, at a glance', 'h')
+    d.tag(W - M - 16, y + 30, 'LIVE-HOST CAPTURE', 'violet', anchor='end')
+    d.screenshot('dsh-dispatch-queue.png', M + 12, y + 48, shot_w)
+    tx, room = M + 254, CW - 270
+    facts = [
+        ('clock', 'Allowances', ['5h + weekly use', 'and reset times.'], 'warm'),
+        ('terminal', 'Real queue order', ['Running, queued,', 'or waiting for quota.'], 'blue'),
+        ('branch', 'Steer the task', ['Move waiting work;', 'change the next model', 'where allowed.'], 'violet'),
+        ('clock', 'Set its budgets', ['Deadline, retries', 'and quota resumes.'], 'warm'),
+        ('filing', 'Open the brief', ['Read the task and', 'appended instructions.'], 'slate'),
+        ('checks', 'See the receipts', ['Report status and', 'notification delivery', 'shown separately.'], 'green'),
+    ]
+    for i, (icon, title, rows, role) in enumerate(facts):
+        yy = y + 68 + i * 112
+        d.icon(icon, tx, yy, role, size=24)
+        d.text(tx, yy + 44, title, 'b')
+        fits(title, 'b', room, 'queue title')
+        d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
+    d.text(M + 20, y + h - 12, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
+    top = y + h
+    y = top + 48
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
+
+    d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
+    h = 138
+    d.card(M, y, CW, h, 'green')
+    xs, cw = columns(3, gap=18, x0=M + 16, w=CW - 32)
+    for i, (x, (icon, name, sub)) in enumerate(zip(xs, (
+            ('branch', 'Branch + PR', 'isolated worktree'),
+            ('checks', 'Required CI', 'all gates pass'),
+            ('branch', 'Squash merge', 'review the diff')))):
+        d.icon(icon, x + cw / 2 - 16, y + 18, 'green', size=32)
+        d.text(x + cw / 2, y + 77, name, 'b', anchor='middle')
+        d.text(x + cw / 2, y + 100, sub, 'm', anchor='middle', fill=MUT)
+        fits(name, 'b', cw, 'repo step')
+        fits(sub, 'm', cw, 'repo sub')
+        if i:
+            d.wire(f'M{x - 16:g} {y + 34:g}H{x - 3:g}', pulses=(i * .4,), dur=1.2,
+                   pulse=ROLE['green'])
+    top = y + h
+    y = top + 38
+    d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['green'])
+    h = 92
+    d.card(M, y, CW, h, 'green', tint=True)
+    d.logo('clawock', M + 20, y + 18, size=40)
+    d.text(M + 74, y + 38, 'Merged → live on your host', 'h')
+    d.text(M + 74, y + 63, 'refresh_live.sh applies the checked change', 'm', fill=MUT)
+    fits('refresh_live.sh applies the checked change', 'm', CW - 94, 'live')
+    top = y + h
+    y = top + 50
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+
+    d.section(y - 12, '05 · HEAR BACK, EVEN AFTER YOU LEAVE')
+    h = 160
+    d.card(M, y, CW, h, 'blue')
+    d.icon('chat', M + 20, y + 16, size=30)
+    d.icon('plane', M + 58, y + 16, size=30)
+    d.text(M + 104, y + 38, 'WeChat + Telegram', 'h')
+    d.lines(M + 20, y + 74, CW - 40,
+            ['Final report: what changed, what passed, what is live.',
+             'Best-effort sends; the panel shows each receipt.',
+             'If unfinished, inspect the log or retry its session.'], cls='m', where='result')
+    d.text(M + 20, y + 144, 'Task outcome ≠ message delivery', 'm', fill=ROLE['warm'])
+    return d.render(y + h + M)
 
 
 # ---------------------------------------------------------------------------
@@ -863,7 +895,9 @@ def decision_pipeline():
           'brief card, sends WeChat and Telegram and publishes the dashboard. Python then records what '
           'was executed (mark-followed), settles each episode on canonical bars, calibrates confidence, '
           'replays a shadow portfolio against buy and hold and publishes the scorecard, which the next '
-          "brief reads. The model never grades itself.")
+          "brief reads. In dsh, Decision Mind shows real fills beside their plans and T+1 verdicts; "
+          "the trader can ask a follow-up and record a conversation verdict. Execution stays human, "
+          "the trace is read-only, and the model never grades itself.")
     d.logo('clawock', W - M - 34, 26)
     y = d.header('EVERY TRADING DAY · HK + US',
                  ['Raw market data in,', 'graded decisions out'],
@@ -874,35 +908,38 @@ def decision_pipeline():
 
     # 01 collect
     y += 34
-    d.section(y, '01 · COLLECT')
+    d.section(y, '01 · BEFORE OPEN / THE DATA ARRIVES')
     y += 14
-    h = 282
+    h = 302
     d.card(M, y, CW, h, 'blue')
     d.icon('market', M + 20, y + 14)
-    d.text(M + 50, y + 32, 'Market information', 'h')
-    d.tag(W - M - 16, y + 30, '44 MODULES · 8 LAYERS', 'blue', anchor='end')
-    for j, name in enumerate(('market', 'market', 'fx', 'filing', 'bars', 'news', 'chat', 'calendar')):
-        d.icon(name, M + 18, y + 47 + j * 21, size=18)
-    yy = d.kv(M + 44, y + 62, 82, CW - 60, [
-        ('HK quotes', [[('Tencent + Eastmoney', INK), (' → stooq → yfinance', MUT)]]),
-        ('US quotes', [[('Nasdaq', INK), (' → 6 more routes, in order', MUT)]]),
-        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host → Yahoo', MUT)]]),
-        ('filings', [[('SEC EDGAR + XBRL · HKEXnews', INK)]]),
-        ('fundflow', [[('Eastmoney daily capital flow', INK)]]),
-        ('news', [[('Eastmoney · Finnhub · Google News · 10jqka', INK)]]),
-        ('sentiment', [[('Reddit · influencer radar', INK)]]),
-        ('macro', [[('major indices · catalyst calendar', INK)]]),
-    ], lh=21)
-    d.add(f'<path d="M{M + 20:g} {yy - 6:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
-    d.lines(M + 20, yy + 14, CW - 36, [[('One throttled Eastmoney gateway; an empty fetch', MUT)],
-                                       [('keeps the prior value instead of a blank.', MUT)]],
-            cls='m', lh=19, where='collect note')
+    d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
+    d.text(M + 20, y + 56, '44 modules · 8 layers · deterministic collection', 'm', fill=MUT)
+    xs, cw = columns(3, gap=8, x0=M + 16, w=CW - 32)
+    sources = [('market', 'Quotes + FX', 'Tencent/Nasdaq'),
+               ('filing', 'SEC · HKEX', 'primary filings'),
+               ('bars', 'Capital flow', 'Eastmoney'),
+               ('news', 'Bilingual news', 'Google/Finnhub'),
+               ('chat', 'Sentiment', 'Reddit · radar'),
+               ('calendar', 'Macro + events', 'calendars')]
+    for i, (icon, name, source) in enumerate(sources):
+        x, yy = xs[i % 3], y + 70 + (i // 3) * 90
+        d.add(f'<rect x="{x:g}" y="{yy:g}" width="{cw:g}" height="82" rx="9" '
+              f'fill="{TINT["blue"]}"/>')
+        d.icon(icon, x + 12, yy + 10, size=24)
+        d.text(x + 12, yy + 51, name, 'b')
+        d.text(x + 12, yy + 70, source, 'm', fill=MUT)
+        fits(name, 'b', cw - 20, 'source tile')
+        fits(source, 'm', cw - 20, 'source origin')
+    d.lines(M + 20, y + 269, CW - 36,
+            ['Ordered quote / FX fallback; one Eastmoney gateway.',
+             'An empty fetch keeps the prior value.'], cls='m', lh=19, where='collect note')
     top = y + h
     y = top + 48
-    d.down(W / 2, top, y, pulses=(0, 1.1))
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
 
     # 02 compute and gate
-    d.section(y - 12, '02 · COMPUTE AND GATE')
+    d.section(y - 12, '02 · BEFORE THE CALL / FACTORS + GATES')
     blocks = [('Factors + risk', 'PYTHON', [
                   ('reconcile', 1, 'money and FX must balance'),
                   ('portfolio-risk', 1, 'β · volatility · drawdown'),
@@ -956,14 +993,14 @@ def decision_pipeline():
     loop_y = y - 3
     d.down(W / 2, top, y - 14, arrow=False, pulses=())
     y += 60
-    d.down(W / 2, y - 52, y, pulses=(0, 1.1), pulse=ROLE['slate'])
+    d.down(W / 2, y - 52, y - 30, pulses=(0, 1.1), pulse=ROLE['slate'])
 
     # 03 decide
-    d.section(y - 12, '03 · DECIDE')
+    d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
     h = 344
     d.card(M, y, CW, h, 'slate')
-    d.icon('debate', M + 20, y + 14, 'slate')
-    d.text(M + 50, y + 32, 'Swarm debate', 'h')
+    d.logo('openclaw', M + 16, y + 12, size=30)
+    d.text(M + 56, y + 32, 'Swarm debate', 'h')
     d.tag(W - M - 16, y + 30, 'LLM · READ ONLY', 'slate', anchor='end')
     d.text(M + 20, y + 58, 'four analyst lenses', 'm', fill=MUT)
     ix, iw = M + 16, CW - 32
@@ -995,10 +1032,10 @@ def decision_pipeline():
     fits('Judge names the strategy frame → plan.json', 'b', CW - 36, 'judge')
     top = y + h
     y = top + 44
-    d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 04 deliver
-    d.section(y - 12, '04 · DELIVER')
+    d.section(y - 12, '04 · THROUGH THE SESSION / REACH YOUR PHONE')
     h = 96
     d.card(M, y, CW, h, 'green')
     d.icon('shield', M + 20, y + 14, 'green')
@@ -1011,7 +1048,7 @@ def decision_pipeline():
     y = top + 44
     xs, cw = columns(3)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
-            ('WeChat', ['co-sent to', 'Telegram; a', 'watchdog checks']),
+            ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
     h = 156
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
@@ -1028,10 +1065,10 @@ def decision_pipeline():
             d.icon('dashboard', x + 16, y + 115, size=26)
     top = y + h
     y = top + 44
-    d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
+    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 05 settle and calibrate
-    d.section(y - 12, '05 · SETTLE AND CALIBRATE')
+    d.section(y - 12, '05 · AFTER THE SESSION / GRADE THE CALL')
     h = 244
     d.card(M, y, CW, h, 'green')
     d.icon('dashboard', M + 20, y + 14, 'green')
@@ -1055,6 +1092,19 @@ def decision_pipeline():
     gx = W - 11
     d.wire(f'M{W - M:g} {y + 214:g}H{gx:g}V{loop_y:g}H{W / 2 + width("preflight → one context pack per run", "m") / 2 + 10:g}',
            pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+    # dsh is the interactive view of the same real fills, not an execution engine.
+    top = y + h
+    y = top + 44
+    d.down(W / 2, top, y - 30, pulses=(0,), pulse=ROLE['violet'])
+    d.section(y - 12, '06 · BACK AT YOUR DESK / ASK WHY')
+    h = 138
+    d.card(M, y, CW, h, 'violet')
+    d.logo('deepseek-harness', M + 20, y + 16, size=36)
+    d.text(M + 70, y + 38, 'dsh · Decision Mind', 'h')
+    d.lines(M + 20, y + 71, CW - 40,
+            ['Open a real fill: plan → execution → T+1 → P&L.',
+             'Ask a follow-up in chat; record the new verdict.',
+             'The trace stays read-only. You place the orders.'], cls='m', where='dsh loop')
     return d.render(y + h + M)
 
 
