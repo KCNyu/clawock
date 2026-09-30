@@ -733,7 +733,6 @@ def check_cron_paths_exist(r):
     provider: CLI first, then the live SQLite DB read-only, with pre-migration
     files kept only as an explicitly rejected last-resort fossil.
     """
-    import re
     cron_read, error = _cron_listing()
     if error is not None or cron_read is None:
         r.add('cron paths', WARNING, f'cron jobs unreadable: {error}')
@@ -794,15 +793,36 @@ def check_cron_paths_exist(r):
     except Exception as e:
         r.add('cron runtime contract', CRITICAL, f'cannot validate: {e}')
 
-    refs = set()
-    for j in jobs:
-        msg = ((j.get('payload') or {}).get('message')) or j.get('message') or ''
-        refs.update(re.findall(r'/root/\.openclaw/workspace/scripts/[a-z/_]+\.py', msg))
-    missing = [p for p in sorted(refs) if not os.path.exists(p)]
+    refs, missing = _cron_payload_path_audit(jobs)
     if missing:
         r.add('cron paths', CRITICAL, f'missing: {missing}')
     else:
-        r.add('cron paths', OK, f'{len(jobs)} jobs · {len(refs)} referenced scripts present')
+        r.add('cron paths', OK, f'{len(jobs)} jobs · {len(refs)} referenced paths present')
+
+
+def _cron_payload_path_audit(jobs, roots=None):
+    """(checked, missing) — paths under the host roots that live cron payloads name.
+
+    This used to grep only `<workspace>/scripts/*.py`, a directory retired in
+    #429, so it judged 0 paths on every clean host while printing OK (#2225).
+    Today the payloads name the skills they load and the launcher. Roots are
+    derived like `_host_crontab_target_audit`'s. `memory/` under the workspace
+    is excluded: those are the slot's own outputs (`memory/.tmp/
+    report-prose-*.md`), which do not exist until the run writes them.
+    """
+    roots = [Path(root) for root in (roots or (LIVE_WORKSPACE, LAUNCHER_BIN_DIR,
+                                                HOST_TOOLS_DIR))]
+    pattern = re.compile('(?:' + '|'.join(re.escape(str(root)) for root in roots)
+                         + r')/[^\s`"\'),;|，。）]+')
+    refs = set()
+    for job in jobs:
+        msg = ((job.get('payload') or {}).get('message')) or job.get('message') or ''
+        for raw in pattern.findall(msg):
+            path = Path(raw.rstrip('.:'))
+            if any(path.is_relative_to(root / 'memory') for root in roots):
+                continue
+            refs.add(str(path))
+    return sorted(refs), [path for path in sorted(refs) if not os.path.exists(path)]
 
 
 def _host_crontab_target_audit(crontab_text):
