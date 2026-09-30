@@ -140,7 +140,9 @@ def regression_watch(rows, since, tasks, limit=6):
     for line in r.stdout.splitlines():
         if line.startswith("@"):
             sha = line[1:]
-        elif line.strip() and not line.startswith(("assets/data/", "memory/")):
+        # Runtime data commits and test edits cannot undo a fix (a test change is the fix's own guard
+        # being edited; the recent round reviews that diff anyway), so they do not trigger a re-run.
+        elif line.strip() and not line.startswith(("assets/data/", "memory/", "tests/")):
             touched.setdefault(line.strip(), sha)
     if not touched:
         return []

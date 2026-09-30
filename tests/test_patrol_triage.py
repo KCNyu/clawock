@@ -219,3 +219,29 @@ def test_gate_dry_run_reports_triage_and_route(tmp_path):
 def test_gate_refuses_a_feature_outside_the_peers_lens(tmp_path):
     r = _gate(tmp_path, DRAFT.format(sev="P2").replace("类型: bug", "类型: feature"))
     assert r.returncode == 2 and "只在 peers" in r.stderr
+
+
+def test_regression_watch_reruns_old_checks_only_for_code_a_commit_touched(tmp_path, monkeypatch):
+    wt, state = tmp_path / "wt", tmp_path / "state"
+    (wt / "src").mkdir(parents=True)
+    (wt / "tests").mkdir()
+    git = lambda *a: subprocess.run(["git", "-C", str(wt), *a], check=True, capture_output=True)
+    git("init", "-q", "-b", "master")
+    (wt / "src/a.py").write_text("x = 1\n")
+    (wt / "tests/test_a.py").write_text("y = 1\n")
+    git("add", "-A")
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "one")
+    git("update-ref", "refs/remotes/origin/master", "HEAD")
+    (state / "filed").mkdir(parents=True)
+    red = "<!-- RED-CHECK\npython3 -c \"assert open('src/a.py').read()\"\n-->\n"
+    (state / "filed/R1-a.md").write_text("# [patrol] a\nsrc/a.py:1\n" + red)
+    (state / "filed/R2-t.md").write_text("# [patrol] t\ntests/test_a.py:1\n" + red.replace("src/a.py", "tests/test_a.py"))
+    (state / "filed/created.tsv").write_text(
+        "1\tR1-a.md\t[patrol] a\thttps://github.com/KCNyu/clawock/issues/11\tpatrol-logic-20260901-000000\n"
+        "1\tR2-t.md\t[patrol] t\thttps://github.com/KCNyu/clawock/issues/12\tpatrol-logic-20260901-000000\n")
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    monkeypatch.setattr(patrol_intel, "WORK", wt)
+    fixed = lambda n: {"number": n, "fixed": True, "closed": 1.0, "severity": "P1"}
+    out = patrol_intel.regression_watch([fixed(11), fixed(12)], "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    assert len(out) == 1 and "#11" in out[0] and "src/a.py" in out[0], out
+    assert (state / "regress/11.sh").read_text().startswith("python3 -c")
