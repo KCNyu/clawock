@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T00:40:35.715897+00:00",
+  "generated_at": "2026-09-30T00:48:15.003727+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -96,16 +96,16 @@
       ],
       "google_news_en": [
         {
+          "title": "RKLX May 2027 11.000 put (RKLX270521P00011000) Stock Price, News, Quote & History",
+          "source": "Yahoo! Finance Canada",
+          "published": "Tue, 29 Sep 2026 07:59:33 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE9sQlpCajB2ekRZRl8yX3ltdW1yOEd2aGJvOEpKUnItUl9Gck5rSE5UaXJJMnZhME5TNlBERV9vaVV5a0F1VE96Z0FuMkFUTWlmbEhscVlOaC1sQnUtOUtOXzg1ZVpJQQ?oc=5"
+        },
+        {
           "title": "Discipline and Rules-Based Execution in RKLX Response",
           "source": "Stock Traders Daily",
           "published": "Mon, 28 Sep 2026 08:40:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOaldMaXVPN3pYWjNoV2pBMXVzVDB2V21aQVBrV204VDNBUXBSLXYzRFA5Z2ktNXpMay1UMENzeTYxYWEwWUhYRU1kckhVQktvZjc1WVZTNUZScWwyZHJBYmtCWDhDRUhxRHhKeThZaWhIRVhGYlJ0QTl4OEQxZ2Z2TWVtbDRSaEx1d0tGNkJWTTc5Z29iOXh4RG9kNDZzX09LV2lUWFFCc0VCdEVFbTVLclJkREYyRFlzbE53c2hORjV1SmRtNUpKRmtXZFQ2QQ?oc=5"
-        },
-        {
-          "title": "RKLX May 2027 24.000 call (RKLX270521C00024000) Stock Price, News, Quote & History",
-          "source": "Yahoo! Finance Canada",
-          "published": "Tue, 29 Sep 2026 07:51:48 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE1ydl9mcnFYTDRkYmZPY2t4MU5PUlkxRzVDLVBwWTZaTGxnWTNwdG05aFV1UUdJRlVQU0FqWS1EOWJtRU02ZEtHbzB6dlBlOS15ZWw1RVM0OTJKODRESTJRbGpTWEEydw?oc=5"
         },
         {
           "title": "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation",
