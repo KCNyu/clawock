@@ -287,11 +287,11 @@ class _Reply:
                 "stop_reason": "end_turn"}
 
 
-@pytest.mark.parametrize("model,expected", [
-    ("MiniMax-M3.1-Flash-Preview", {"type": "adaptive"}),
-    ("MiniMax-M3", {"type": "disabled"}),
+@pytest.mark.parametrize("model,expected,effort", [
+    ("MiniMax-M3.1-Flash-Preview", {"type": "adaptive"}, {"effort": "low"}),
+    ("MiniMax-M3", {"type": "disabled"}, None),
 ])
-def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model, expected):
+def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model, expected, effort):
     """M3.1 answers thinking.type=disabled with HTTP 400 (#2202); the influencer
     relevance filter sent it on every run and published an empty radar for four."""
     sent = []
@@ -301,3 +301,5 @@ def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model,
     monkeypatch.setenv("MINIMAX_API_KEY", "test")
     llm.chat(user="hi", thinking_disabled=True, json_response=True)
     assert sent[0]["thinking"] == expected
+    # Plain adaptive reasoned for 400s on a full batch; low effort for 30s.
+    assert sent[0].get("output_config") == effort

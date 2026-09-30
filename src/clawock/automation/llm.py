@@ -27,10 +27,10 @@ Notes:
   extraction pass thinking_disabled=True — reasoning budget competing with the
   output cap truncates JSON, and a deterministic extraction wants thinking off.
   MiniMax-M3.1 refuses `disabled` (HTTP 400 "requires adaptive thinking", code
-  2013), so for it the flag sends `adaptive`, the least the model accepts. The
-  caller then has to budget for the reasoning: measured 2026-09-30 on a
-  29-item influencer batch, adaptive spent all of max_tokens=8000 without a
-  text block, and at 32000 used 16.8K tokens and 249s (#2202).
+  2013), so for it the flag sends `adaptive` with `output_config.effort=low`,
+  the least reasoning the model accepts. Plain adaptive is not enough: on a
+  12-item influencer batch (2026-09-30) it spent 12.8K output tokens / 112s,
+  low effort 1.4K / 19s for the same 9 scored items (#2202).
 - json_response: no response_format param is leaned on; we instruct JSON in the
   prompt and pull the first balanced {…}/[…] out of the reply via _extract_json
   (fence- and stray-prose-tolerant).
@@ -248,8 +248,11 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         # Some Anthropic-compatible endpoints default thinking ON when the field
         # is omitted (burns the output budget on reasoning), so disable explicitly
         # — except where the model refuses that and only takes adaptive (#2202).
-        body['thinking'] = ({'type': 'adaptive'} if _ADAPTIVE_ONLY.match(model)
-                            else {'type': 'disabled'})
+        if _ADAPTIVE_ONLY.match(model):
+            body['thinking'] = {'type': 'adaptive'}
+            body['output_config'] = {'effort': 'low'}
+        else:
+            body['thinking'] = {'type': 'disabled'}
 
     headers = {
         'x-api-key': api_key,

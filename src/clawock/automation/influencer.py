@@ -65,13 +65,13 @@ LOOKBACK_HOURS = 48          # catch weekend posts before Mon brief
 RELEVANCE_CUTOFF = 45        # LLM score below this dropped; low so radar stays full
 MAX_CANDIDATES = 48          # cap sent to LLM (token guard; per-source caps in _sources)
 # The relevance filter's budget under MiniMax-M3.1, which will not run with
-# thinking off (#2202): the reasoning shares max_tokens with the JSON, and at
-# ~70 tok/s a full batch outlives llm.TIMEOUT (180s). Measured 2026-09-30:
-# 29 items took 16.8K output tokens / 249s, a full 48 took 31.6K / 400s. The
-# workflow's chain deadline is sized from LLM_TIMEOUT
+# thinking off (#2202): llm.chat sends adaptive at low effort, whose reasoning
+# shares max_tokens with the JSON. Measured 2026-09-30 on a full 48-item
+# batch: 3.7K output tokens in 30s (plain adaptive: 31.6K / 400s). ~4x
+# headroom on both; the workflow's chain deadline is sized from LLM_TIMEOUT
 # (tests/test_llm_workflow_deadlines.py).
-LLM_MAX_TOKENS = 64000
-LLM_TIMEOUT = 720
+LLM_MAX_TOKENS = 16000
+LLM_TIMEOUT = 240
 
 # Cheap pre-filter: a raw post is a candidate only if it smells market/economy/
 # policy-relevant. The LLM is the smart filter downstream — this gate is just a
