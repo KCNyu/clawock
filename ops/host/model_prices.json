@@ -1,7 +1,7 @@
 {
   "what": "API list prices per million tokens, used by task_queue_ops.py `usage` to ESTIMATE what a dispatched task would cost at API rates. An estimate, not a bill: claude and codex run on subscriptions here (Anthropic / ChatGPT plans), so nothing is charged per token and no subscription price enters this table.",
   "source": "claude-*: Anthropic first-party API price table (Claude API skill, models overview, cached 2026-06-24; Opus 5.5 and Fable 5.1 cache-read rates as stated there); cache multipliers from the same skill's prompt-caching page. gpt-*: see sources.openai.",
-  "as_of": "2026-09-28",
+  "as_of": "2026-09-30",
   "sources": {
     "anthropic": {
       "models": "claude-*",
@@ -11,7 +11,7 @@
     "openai": {
       "models": "gpt-*",
       "url": "https://developers.openai.com/api/docs/pricing",
-      "as_of": "2026-09-28",
+      "as_of": "2026-09-30",
       "tier": "Standard processing, short context (the page's 'Flagship models' table; gpt-5.6-sol from its 'Cyber models' table). Not Batch/Flex/Fast mode, not the long-context column, no data-residency uplift.",
       "cache": "`cache_read` is the page's 'Cached input'. Its 'Cache writes' column is exactly 1.25x input for every row priced here, which is the table-wide cache.write_5m multiplier, so no per-row value is needed.",
       "limits": "codex's session record does not say which requests ran in the long-context band, so a long-context request is priced at short-context rates: the estimate can read low, never high."
@@ -32,6 +32,7 @@
     "claude-sonnet-4-6": {"in": 3.0, "out": 15.0},
     "claude-haiku-4-5": {"in": 1.0, "out": 5.0},
     "gpt-6-astra": {"in": 10.0, "out": 50.0, "cache_read": 1.0},
+    "gpt-6.1-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.1},
     "gpt-6-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.2},
     "gpt-6-luna": {"in": 0.1, "out": 0.5, "cache_read": 0.01},
     "gpt-5.6-sol": {"in": 4.0, "out": 20.0, "cache_read": 0.4}
