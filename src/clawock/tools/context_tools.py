@@ -5,11 +5,14 @@ only at user artifacts and data; it is never searched for executable Python.
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import re
 
 from clawock.context import brief as brief_context
 from clawock.decision import packet as brief_decision_packet
 from clawock.tools.base import BaseTool, ToolError
+from clawock.sessions import HKT
 
 # The packet module owns this: it is what builds the rows, and a hand-kept
 # second copy here is how `information` (and four others) ended up unqueryable.
@@ -174,15 +177,68 @@ class ReportContext(BaseTool):
         return path.read_text(encoding="utf-8")
 
 
-def slice_reference(value, *, ticker=None, since=None):
+def slice_reference(value, *, ticker=None, since=None, as_of=None):
     """One ticker's rows, or the rows at/after HH:MM, of a reference entry.
 
     Shapes in the intraday context: a list of rows (`signals_detail`), a dict
     with `rows` (radar, setups), a dict keyed by ticker (`peer_scan`,
     `t0_setups.rows`), or a list of text lines (`headline_feed`). Anything
-    else is returned whole.
+    else is returned whole. `since` is HKT, anchored to the most recent
+    occurrence at/before the slot's `as_of` (including the US overnight wrap).
+    Rows without a publication time cannot belong to a since window.
     """
-    import re  # noqa: PLC0415
+    hkt = HKT
+
+    def parse_time(stamp):
+        if isinstance(stamp, (int, float)):
+            return datetime.fromtimestamp(stamp, timezone.utc)
+        try:
+            parsed = datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
+        except ValueError:
+            return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=hkt)
+
+    cutoff = None
+    if since is not None:
+        if not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d', since):
+            raise ToolError("since must be HH:MM in HKT")
+        slot = parse_time(as_of)
+        if slot is None:
+            raise ToolError("a since window requires the context's slot timestamp")
+        slot = slot.astimezone(hkt)
+        hour, minute = map(int, since.split(':'))
+        cutoff = slot.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if cutoff > slot:
+            cutoff -= timedelta(days=1)
+
+    def row_time(row):
+        stamp = row if not isinstance(row, dict) else next(
+            (row[key] for key in ('published_at', 'time', 'date', 'as_of')
+             if row.get(key)), '')
+        if isinstance(row, dict) and row.get('time_precision') == 'date':
+            return None
+        if isinstance(stamp, (int, float)):
+            return parse_time(stamp)
+        stamp = str(stamp)
+        # Date-only/missing times never pass as fresh news. Naive producer
+        # timestamps and clock-only headline lines are HKT, like the slot.
+        clock = re.search(r'(?<!\d)([0-2]\d:[0-5]\d)(?!\d)', stamp)
+        if clock is None:
+            return None
+        dated = re.search(r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'
+                          r'(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?', stamp)
+        if dated:
+            return parse_time(stamp if isinstance(row, dict) else dated.group(0))
+        if re.search(r'\d{4}-\d{2}-\d{2}', stamp):
+            return None
+        if isinstance(row, dict) and not re.fullmatch(r'\d{2}:\d{2}(?::\d{2})?', stamp):
+            return None
+        try:
+            when = datetime.combine(slot.date(), datetime.strptime(
+                clock.group(1), '%H:%M').time(), tzinfo=hkt)
+        except ValueError:
+            return None
+        return when - timedelta(days=1) if when > slot else when
 
     def hit(row):
         if ticker is not None:
@@ -195,10 +251,8 @@ def slice_reference(value, *, ticker=None, since=None):
             if not ok:
                 return False
         if since is not None:
-            stamp = row if not isinstance(row, dict) else ' '.join(
-                str(row.get(key) or '') for key in ('time', 'published_at', 'date', 'as_of'))
-            times = re.findall(r'(\d{2}:\d{2})', str(stamp))
-            if times and times[0] < since:
+            when = row_time(row)
+            if when is None or when < cutoff:
                 return False
         return True
 
@@ -206,15 +260,15 @@ def slice_reference(value, *, ticker=None, since=None):
         return [row for row in value if hit(row)]
     if isinstance(value, dict):
         if ticker is not None and ticker in value:
-            return {ticker: value[ticker]}
+            return {ticker: slice_reference(value[ticker], since=since, as_of=as_of)}
         out = {}
         for key, item in value.items():
             if isinstance(item, list):
                 out[key] = [row for row in item if hit(row)]
             elif isinstance(item, dict) and ticker is not None and ticker in item:
-                out[key] = {ticker: item[ticker]}
+                out[key] = {ticker: slice_reference(item[ticker], since=since, as_of=as_of)}
             elif isinstance(item, dict) and key == 'live':
-                nested = slice_reference(item, ticker=ticker, since=since)
+                nested = slice_reference(item, ticker=ticker, since=since, as_of=as_of)
                 if nested:
                     out[key] = nested
             elif since is not None and ticker is None and isinstance(item, dict) \
@@ -246,7 +300,9 @@ class IntradayReference(BaseTool):
             "entry": {"type": "string",
                       "description": "Entry name from index.references."},
             "ticker": {"type": "string", "description": "Only this ticker's rows."},
-            "since": {"type": "string", "description": "Only rows at/after HH:MM."},
+            "since": {"type": "string", "description": (
+                "Only timed rows at/after HH:MM HKT, anchored to the slot date "
+                "(overnight wraps).")},
         },
         "required": ["market", "context_id", "entry"],
     }
@@ -282,7 +338,9 @@ class IntradayReference(BaseTool):
             raise ToolError(f"{name!r} is not in context {context_id}")
         value = ctx[name]
         if ticker is not None or since is not None:
-            value = slice_reference(value, ticker=ticker, since=since)
+            value = slice_reference(
+                value, ticker=ticker, since=since,
+                as_of=ctx.get('generated_at') or f"{ctx.get('date')}T{ctx.get('time')}:00+08:00")
         return json.dumps(value, ensure_ascii=False, indent=2)
 
 

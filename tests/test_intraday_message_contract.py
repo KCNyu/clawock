@@ -557,7 +557,8 @@ def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_
     assert one == [{'ticker': '07226', 'level': 'STOP'}]
     assert slice_reference(ctx['peer_scan'], ticker='07226') == {'07226': {'theme': '2x HSTECH'}}
     assert slice_reference(ctx['opportunity_radar'], ticker='07226')['rows'] == ctx['opportunity_radar']['rows']
-    assert slice_reference(ctx['headline_feed'], since='11:00') == ['11:20 07226 放量']
+    assert slice_reference(ctx['headline_feed'], since='11:00',
+                           as_of='2026-09-30T11:33:00+08:00') == ['11:20 07226 放量']
     # Another generation's id, or a name that is not a reference, is refused.
     import pytest
     from clawock.tools.base import ToolError
@@ -593,7 +594,7 @@ def test_information_full_since_slice_filters_the_per_ticker_rows():
         'em_market_724': [{'title': 'flash', 'date': '2026-09-30 09:40'}],
         'macro': {'rates': 'unchanged'},
     }
-    selected = slice_reference(full, since='14:00')
+    selected = slice_reference(full, since='14:00', as_of='2026-09-30T15:33:00+08:00')
     assert selected['tickers'] == {'00100': [full['tickers']['00100'][1]]}
     assert selected['em_market_724'] == []
     assert selected['macro'] == {'rates': 'unchanged'}
@@ -700,3 +701,84 @@ def test_the_judgment_marker_named_inside_a_sentence_is_missing_and_revisable():
     good = '▎我的看法\n' + prose.split('段：', 1)[1]
     assert not any('缺段标记' in i or '太敷衍' in i
                    for i in post.validate(post.assemble_message(ctx, good), ctx, good))
+
+
+def test_a_stale_live_title_beyond_the_summary_cap_is_held_to_the_label_rule():
+    from clawock.evidence.intraday_information import stale_titles
+    title = '根據首次公開發售後股份激勵計劃授出獎勵（公告及通告 - [股份計劃]）'
+    fresh = [{'title': f'盘中新消息第{i}条', 'stale': False, 'cite': '盘中实时'}
+             for i in range(4)]
+    old = {'title': title, 'stale': True,
+           'cite': f'《{title}》（HKEXnews披露易，09-29 20:43 HKT 发布，开盘前旧闻）'}
+    ctx = {'information': {'live': {'00100': fresh}},
+           'information_full': {'live': {'tickers': {'00100': [*fresh, old]}}}}
+    assert title in stale_titles(ctx['information'], ctx['information_full'])
+    assert post.check_stale_citation(f'《{title}》是本档催化。', ctx)
+    assert post.check_stale_citation(f'{old["cite"]}，作为背景。', ctx) == []
+
+
+def _reference_window(tmp_path, *, market, as_of, rows, since, ticker=None):
+    from clawock.tools import build_registry
+    ctx = {'context_id': 'window000001', 'market': market,
+           'generated_at': as_of, 'date': as_of[:10], 'time': as_of[11:16],
+           'information_full': {'tickers': {'00100': rows, '02208': rows},
+                                'live': {'tickers': {'00100': rows, '02208': rows},
+                                         'flashes': rows},
+                                'macro': {'rates': 'unchanged'}}}
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True, exist_ok=True)
+    (tmp / f'intraday-context-{market}-latest.json').write_text(json.dumps(ctx))
+    return json.loads(build_registry(tmp_path).call(
+        'intraday_reference', market=market, context_id=ctx['context_id'],
+        entry='information_full', since=since, **({'ticker': ticker} if ticker else {})))
+
+
+def test_reference_since_uses_hkt_dates_and_combines_the_ticker_filter(tmp_path):
+    rows = [
+        {'title': 'boundary', 'published_at': '2026-09-30T01:30:00Z'},
+        {'title': 'fresh UTC', 'published_at': '2026-09-30T01:32:26+00:00'},
+        {'title': 'fresh ET', 'published_at': '2026-09-29T21:35:00-04:00'},
+        {'title': 'old date, later clock', 'published_at': '2026-09-29T13:17:42+00:00'},
+        {'title': 'today pre-open', 'published_at': '2026-09-29T23:47:00+00:00'},
+        {'title': 'date only', 'published_at': '2026-09-30'},
+        {'title': 'unknown', 'published_at': 'not a timestamp'},
+        {'title': 'no time'},
+        {'title': 'malformed offset', 'published_at': '2026-09-30T10:35:00+bad'},
+        {'title': 'invalid date', 'published_at': '2026-13-30T10:35:00+08:00'},
+    ]
+    for ticker in (None, '00100'):
+        got = _reference_window(tmp_path, market='hk', as_of='2026-09-30T11:03:00+08:00',
+                                rows=rows, since='09:30', ticker=ticker)
+        expected = {t: rows[:3] for t in (['00100'] if ticker else ['00100', '02208'])}
+        assert got['tickers'] == expected
+        assert got['live']['tickers'] == expected
+        assert got['macro'] == {'rates': 'unchanged'}
+        if ticker is None:
+            assert got['live']['flashes'] == rows[:3]
+
+
+def test_reference_since_wraps_the_us_slot_across_midnight(tmp_path):
+    rows = [
+        {'title': 'start', 'published_at': '2026-09-30T14:00:00+00:00'},
+        {'title': 'after midnight', 'published_at': '2026-09-30T16:10:00+00:00'},
+        {'title': 'before start', 'published_at': '2026-09-30T13:59:59+00:00'},
+        {'title': 'prior session', 'published_at': '2026-09-29T23:30:00+08:00'},
+    ]
+    got = _reference_window(tmp_path, market='us', as_of='2026-10-01T02:33:00+08:00',
+                            rows=rows, since='22:00')
+    assert got['live']['tickers']['00100'] == rows[:2]
+
+
+def test_a_since_window_requires_a_valid_clock_and_slot_timestamp():
+    import pytest
+    from clawock.tools.context_tools import slice_reference
+    from clawock.tools.base import ToolError
+    for since, as_of in [('29:00', '2026-09-30T11:03:00+08:00'), ('09:30', None)]:
+        with pytest.raises(ToolError):
+            slice_reference([], since=since, as_of=as_of)
+
+
+def test_clock_only_headlines_also_wrap_with_the_overnight_slot():
+    from clawock.tools.context_tools import slice_reference
+    lines = ['21:59 old', '22:00 boundary', '23:30 last night', '00:10 this morning']
+    assert slice_reference(lines, since='22:00', as_of='2026-10-01T02:33:00+08:00') == lines[1:]

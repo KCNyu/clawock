@@ -341,14 +341,15 @@ def stale_titles(summary, full=None):
     """Title fragments of stale items, for the postflight label check.
 
     `full` is the reference layer (`information_full`): the summary keeps three
-    rows a ticker and the model is told the rest are there, so the gate reads
-    them too — 16 HK / 22 US pre-open titles were quotable unlabelled (#2217).
+    morning rows and four live rows a ticker; the model can quote the rest,
+    so the gate reads both full families (#2217, #2228).
     """
     out = []
     sources = (summary or {}).get('sources') or {}
     for rows in [*((summary or {}).get('tickers') or {}).values(),
                  *((summary or {}).get('live') or {}).values(),
-                 *((full or {}).get('tickers') or {}).values()]:
+                 *((full or {}).get('tickers') or {}).values(),
+                 *(((full or {}).get('live') or {}).get('tickers') or {}).values()]:
         for row in rows:
             cite = row.get('cite') or ''
             if '开盘前旧闻' in cite and row.get('title'):
