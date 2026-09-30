@@ -136,6 +136,19 @@ def _payload(monkeypatch, decisions, snapshots, panel=None):
     return dm.build(ledger_rows=decisions, panel=panel or STUB_PANEL)
 
 
+def test_build_ages_joins_in_the_legs_own_sessions(monkeypatch):
+    """Bars name their leg `HK`/`US`; asking for `hk` found no calendar and every
+    age was calendar days printed as sessions (#2206). Tue 05-26 after the Fri
+    05-22 snapshot is one HK session — 05-25 was a holiday — not four days."""
+    hk = ['2026-05-21', '2026-05-22', '2026-05-26', '2026-05-27']
+    monkeypatch.setattr(dm, 'load_signal_snapshots',
+                        lambda *a, **k: {'2026-05-22': {'AAA': {'quant.rsi14': 50.0}}})
+    monkeypatch.setattr(dm, 'leg_sessions', lambda leg: hk if leg == 'HK' else [])
+    payload = dm.build(ledger_rows=[_decision('d1', 'AAA', '2026-05-26', leg='HK')],
+                       panel=STUB_PANEL)
+    assert payload['decisions']['snapshot_age_sessions'] == [1]
+
+
 def test_coverage_is_published_per_signal(monkeypatch):
     """The first number a reader needs, and the one the panel could not give.
 
