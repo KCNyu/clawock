@@ -86,7 +86,11 @@ named call away — not truncation.
 `clawock tool intraday_reference --arg market=<hk|us> --arg context_id=<id>
 --arg entry=<name> [--arg ticker=<T>] [--arg since=<HH:MM>]` returns one entry
 of the context written by the same preflight, optionally sliced to one ticker
-or a time window; without a slice it returns the whole entry (one explicit
+or a time window. `since` is **HKT**, on the slot's date; if its clock is
+later than the slot, it starts on the preceding date (US overnight slots).
+Offset timestamps are compared as instants; date-only, missing or unparseable
+times are excluded from a since window, and remain available without `since`.
+The ticker and time filters apply together. Without a slice it returns the whole entry (one explicit
 choice; the parameter is `entry`). Entries: `signals_detail`,
 `source_signals_detail`, `peer_scan`, `t0_setups`, `early_trend_candidates`,
 `opportunity_radar`, `provisional_setups`, `prior_semantic_state`,
@@ -275,6 +279,8 @@ as live.
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
 | stale-title matching respects full cited titles and timestamped live duplicates | live (#2106) |
+| stale-quote gate reads full morning and live ticker rows, beyond the summary cap (`test_a_stale_live_title_beyond_the_summary_cap_is_held_to_the_label_rule`) | live (#2228) |
+| reference since windows compare publication instants in HKT on the slot date, including overnight wrap (`test_reference_since_uses_hkt_dates_and_combines_the_ticker_filter`, `test_reference_since_wraps_the_us_slot_across_midnight`) | live (#2229) |
 | one add-side implementation for brief and slot (`add_policy`, `add_side.radar`; `test_both_readers_build_the_same_radar_from_the_same_signals`, `test_the_entries_differ_only_in_how_sure_the_close_is`) | live (#1953) |
 | left-side read, observe mode (`kind: left_scale_in`, `wait`, no size; `test_both_entries_read_the_left_ladder_as_an_unsized_wait`, `test_left_side_is_observed_and_recorded_never_sized`) | live (observe); sizing pending kcn |
 | one ⛔ line with since-when; strategy-evidence reason on its 🛰️ row (`test_an_unverified_gap_says_since_when_instead_of_repeating`, `test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner`) | live (#1900) |
