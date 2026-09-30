@@ -72,6 +72,10 @@ ATTRIBUTE_PAYLOADS = [
     ('[点我](jav&#97;script:alert(1))', '](jav'),             # the browser decodes it
     ('[点我](data:text/html,x)', '](data'),
     ('[点我][r]\n\n[r]: javascript:alert(1)', ']: javascript'),
+    *[(f'[点我]({sep}javascript:alert(1))', '](')
+      for sep in ('\n', '\r', '\f', '\v', '\n \t')],
+    ('![图](\njavascript:alert(1))', ']('),
+    ('[点我][r]\n\n[r]:\njavascript:alert(1)', '[r]:'),
     (TAG, '<'),
 ]
 
@@ -103,6 +107,9 @@ def test_the_harness_renderer_escapes_like_the_fallback_writer(payload, live):
     '[锚点](#top)',
     '[邮件](mailto:a@b.c)',
     '[r]: https://example.com',
+    '[公告](\nhttps://example.com)',
+    '[相对](\n../2026-09-28-pre-open.html#持仓)',
+    '[r]:\nhttps://example.com',
     'USD${-720.35} per concentration.{hk,us}.verdict brief-card-{date}.txt',
 ])
 def test_ordinary_links_and_braces_are_left_alone(text):
