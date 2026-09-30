@@ -23,7 +23,7 @@
 #                          a re-review is a new task quoting the earlier findings, not a resume)
 #   --cwd <dir>            only with --resume, for a session recorded under another project dir;
 #                          new tasks always run in /root (AGENTS/CLAUDE.md + shared memory load from there)
-#   --model <m>            default: claude-opus-5-5 / gpt-6-sol (gpt-6-astra costs several times the quota)
+#   --model <m>            default: claude-opus-5-5 / gpt-6.1-sol (gpt-6-astra costs several times the quota)
 #                          / opencode: the pool file's first model (see --fallback-models)
 #   --fallback-models a,b  opencode only: after a failed attempt continue the same session on the next
 #                          model (wraps around). Default: opencode-fallback-models, which also supplies
@@ -208,7 +208,7 @@ fi
 if [ -n "$FALLBACK_MODELS" ] && [ "$AGENT" != opencode ]; then echo "--fallback-models is for opencode" >&2; exit 2; fi
 case "$AGENT" in
   claude) MODEL=${MODEL:-claude-opus-5-5} EFFORT=${EFFORT:-high} ;;
-  codex) MODEL=${MODEL:-gpt-6-sol} EFFORT=${EFFORT:-medium} ;;
+  codex) MODEL=${MODEL:-gpt-6.1-sol} EFFORT=${EFFORT:-medium} ;;
   opencode)
     # Default opencode tasks take both the primary and the fallback pool from the pool file
     # (one model per line, # comments), read at dispatch time so the patrol service picks up

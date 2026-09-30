@@ -1171,9 +1171,10 @@ def check_codex_runtime(r):
     versions = _codex_runtime_versions()
     if not versions:
         return
-    need = '.'.join(map(str, CODEX_GPT6_MIN_RUNTIME))
+    minimum = (0, 159, 2) if 'openai/gpt-6.1-sol' in gpt6 else CODEX_GPT6_MIN_RUNTIME
+    need = '.'.join(map(str, minimum))
     stale = {name: v for name, v in versions.items()
-             if (_version_tuple(v) or (0,)) < CODEX_GPT6_MIN_RUNTIME}
+             if (_version_tuple(v) or (0,)) < minimum}
     if stale:
         detail = ', '.join(f'{name} = {v or "unreadable"}' for name, v in stale.items())
         r.add('codex runtime', WARNING,

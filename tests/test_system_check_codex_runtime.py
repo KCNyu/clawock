@@ -32,7 +32,7 @@ def system_check():
 
 
 def _host(tmp_path, *, runtime, npm_says="0.144.3", cron_fallback="openai/gpt-6-luna",
-          chat_fallback="openai/gpt-6-sol"):
+          chat_fallback="openai/gpt-6.1-sol"):
     ws = tmp_path / "ws"
     (ws / "config").mkdir(parents=True)
     (ws / "config" / "cron-schedules.json").write_text(json.dumps({"payload_profiles": {
@@ -72,16 +72,23 @@ def test_a_reverted_runtime_is_a_warning_naming_the_dead_hops(system_check, monk
     assert len(rows) == 1
     _, severity, message = rows[0]
     assert severity == system_check.WARNING
-    assert "openai/gpt-6-luna" in message and "openai/gpt-6-sol" in message
-    assert "0.144.3" in message and "0.155.1" in message
+    assert "openai/gpt-6-luna" in message and "openai/gpt-6.1-sol" in message
+    assert "0.144.3" in message and "0.159.2" in message
 
 
 def test_the_layout_manifest_wins_over_the_stale_npm_metadata(system_check, monkeypatch, tmp_path):
     """A re-pin swaps the layout's files and leaves package.json on 0.144.3."""
     rows = _rows(system_check, monkeypatch,
-                 _host(tmp_path, runtime="0.155.1", npm_says="0.144.3"))
+                 _host(tmp_path, runtime="0.159.2", npm_says="0.144.3"))
 
     assert [row[1] for row in rows] == [system_check.OK]
+
+
+def test_previous_gpt6_runtime_cannot_serve_gpt61_sol(system_check, monkeypatch, tmp_path):
+    rows = _rows(system_check, monkeypatch, _host(tmp_path, runtime="0.155.1"))
+
+    assert [row[1] for row in rows] == [system_check.WARNING]
+    assert "0.159.2" in rows[0][2]
 
 
 def test_a_newer_runtime_than_the_minimum_is_fine(system_check, monkeypatch, tmp_path):
@@ -91,7 +98,7 @@ def test_a_newer_runtime_than_the_minimum_is_fine(system_check, monkeypatch, tmp
 
 
 def test_an_unreadable_manifest_is_not_taken_on_trust(system_check, monkeypatch, tmp_path):
-    host = _host(tmp_path, runtime="0.155.1")
+    host = _host(tmp_path, runtime="0.159.2")
     next(host[2].rglob("codex-package.json")).write_text("{")
 
     rows = _rows(system_check, monkeypatch, host)
@@ -103,10 +110,10 @@ def test_an_unreadable_manifest_is_not_taken_on_trust(system_check, monkeypatch,
 def test_one_gpt6_hop_is_enough_to_need_the_runtime(system_check, monkeypatch, tmp_path):
     rows = _rows(system_check, monkeypatch, _host(
         tmp_path, runtime="0.144.3",
-        cron_fallback="openai/gpt-5.6-luna", chat_fallback="openai/gpt-6-sol"))
+        cron_fallback="openai/gpt-5.6-luna", chat_fallback="openai/gpt-6.1-sol"))
 
     assert [row[1] for row in rows] == [system_check.WARNING]
-    assert "openai/gpt-6-sol" in rows[0][2] and "gpt-6-luna" not in rows[0][2]
+    assert "openai/gpt-6.1-sol" in rows[0][2] and "gpt-6-luna" not in rows[0][2]
 
 
 def test_no_gpt6_hop_needs_nothing(system_check, monkeypatch, tmp_path):

@@ -63,7 +63,7 @@ exit 0
     codex_home = tmp_path / "codex"
     codex_home.mkdir()
     (codex_home / "models_cache.json").write_text(json.dumps({"models": [
-        {"slug": "gpt-6-sol", "visibility": "list", "supported_reasoning_levels": [{"effort": "low"}, {"effort": "medium"}]},
+        {"slug": "gpt-6.1-sol", "visibility": "list", "supported_reasoning_levels": [{"effort": "low"}, {"effort": "medium"}]},
         {"slug": "gpt-hidden", "visibility": "hide", "supported_reasoning_levels": [{"effort": "low"}]}]}))
     bindir = tmp_path / "bin"
     bindir.mkdir()
@@ -361,8 +361,8 @@ def test_choices_come_from_each_agents_own_sources(q):
     assert out["efforts"]["opus"] == ["low", "medium", "high", "xhigh", "max"]
     q.task("x-task", agent="codex", result="STATE=running\nRUNNER_API=2\n")
     out = q.run("choices", "x-task")[1]
-    assert "gpt-6-sol" in out["models"] and "gpt-hidden" not in out["models"]
-    assert out["efforts"]["gpt-6-sol"] == ["low", "medium"] and out["effort_flag"] == "model_reasoning_effort"
+    assert "gpt-6.1-sol" in out["models"] and "gpt-hidden" not in out["models"]
+    assert out["efforts"]["gpt-6.1-sol"] == ["low", "medium"] and out["effort_flag"] == "model_reasoning_effort"
     q.task("o-task", agent="opencode", result="STATE=running\nRUNNER_API=2\n")
     out = q.run("choices", "o-task")[1]
     assert out["models"] == ["m", "opencode/free-a", "opencode/free-b"] and out["efforts"]["opencode/free-a"] == []
@@ -375,7 +375,7 @@ def test_model_change_is_validated_written_and_audited(q):
     assert out["model_next"] == "sonnet" and out["effort_next"] == "max"
     assert (d / "override.env").read_text() == "MODEL=sonnet\nEFFORT=max\n"
     assert "source=ui\taction=model\tmodel -->sonnet effort -->max" in (d / "audit.log").read_text()
-    assert q.run("model", "c-task", "gpt-6-sol")[0] == 2
+    assert q.run("model", "c-task", "gpt-6.1-sol")[0] == 2
     assert q.run("model", "c-task", "keep", "ultra")[0] == 2
     code, out = q.run("model", "c-task", "default", "default")
     assert code == 0 and out["model_next"] == "m" and not (d / "override.env").read_text().strip()
@@ -383,10 +383,10 @@ def test_model_change_is_validated_written_and_audited(q):
 
 def test_codex_model_changes_only_before_there_is_a_session(q):
     q.task("x-new", agent="codex", result="STATE=running\nWAITING=lock\nRUNNER_API=2\n")
-    assert q.run("model", "x-new", "gpt-6-sol", "low")[0] == 0
-    assert q.run("model", "x-new", "keep", "high")[0] == 2   # not an effort gpt-6-sol accepts
+    assert q.run("model", "x-new", "gpt-6.1-sol", "low")[0] == 0
+    assert q.run("model", "x-new", "keep", "high")[0] == 2   # not an effort gpt-6.1-sol accepts
     q.task("x-resumed", agent="codex", result="STATE=running\nRUNNER_API=2\n", session="thread-1")
-    code, out = q.run("model", "x-resumed", "gpt-6-sol")
+    code, out = q.run("model", "x-resumed", "gpt-6.1-sol")
     assert code == 3 and "unverified" in out["error"]
     assert q.run("choices", "x-resumed")[1]["allowed"] is False
 
@@ -531,9 +531,9 @@ def test_codex_models_are_priced_from_openais_published_api_table(q):
     prices = json.loads((ROOT / "ops/host/model_prices.json").read_text())
     assert prices["sources"]["openai"]["url"].startswith("https://developers.openai.com/")
     assert prices["sources"]["openai"]["as_of"]
-    for model in ("gpt-6-sol", "gpt-5.6-sol", "gpt-6-astra"):
+    for model in ("gpt-6.1-sol", "gpt-5.6-sol", "gpt-6-astra"):
         assert {"in", "out", "cache_read"} <= set(prices["models"][model]), model
-    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6-sol\n")
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6.1-sol\n")
     day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
     day.mkdir(parents=True)
     total = {"input_tokens": 3_000_000, "cached_input_tokens": 2_000_000, "output_tokens": 100_000}
@@ -542,8 +542,8 @@ def test_codex_models_are_priced_from_openais_published_api_table(q):
         "payload": {"type": "token_count", "info": {"total_token_usage": total}}}) + "\n")
     code, out = q.run("usage", "u-codex")
     assert code == 0, out
-    # gpt-6-sol: 1M fresh input x $2 + 2M cached x $0.20 + 0.1M output x $10
-    assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.4 + 1.0:.2f}", "estimate")
+    # gpt-6.1-sol: 1M fresh input x $2 + 2M cached x $0.10 + 0.1M output x $10
+    assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.2 + 1.0:.2f}", "estimate")
 
 
 def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):
