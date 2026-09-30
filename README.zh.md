@@ -29,38 +29,34 @@
 
 </div>
 
-```bash
-pip install clawock                        # 决策工作流 + CLI(Python ≥ 3.11)
-dsh plugin --profile web add clawock-dsh   # 可选:DeepSeek Harness 面板
-```
+## 日常运行流程
 
 每个交易日,clawock 把市场里的原始信息一路加工成可以打分的决策:
 
 - **收集**:8 层、44 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
 - **算因子**:量化因子、横截面排名、同业残差、趋势 × 波动率的杠杆刻度盘,全部由 Python 确定性计算。
-- **回测**:因子的聚类 bootstrap 区间要避开 50% 才准影响决策;横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在仪表盘的 [Reflect 视图](https://kcnyu.github.io/clawock/#reflect)。
+- **检验与把关**:因子要取得已验证的决策权,聚类 bootstrap 区间须避开 50%;前瞻激活与有上限的探索各有规则。横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在仪表盘的 [Reflect 视图](https://kcnyu.github.io/clawock/#reflect)。
 - **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
-- **结算**:Python 用真实行情逐条结算,模型碰不到自己的分数,结果全部进公开战绩。
+- **投递**:Python postflight 校验计划、记决策账、渲染简报,发布到微信、Telegram 与仪表盘。
+- **结算**:Python 按标准日线逐个 episode 结算,模型碰不到自己的分数,结果全部进公开战绩。
 
 <p align="center"><img src="site/assets/decision-pipeline.svg" width="600" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录"></p>
 
-<p align="center"><img src="site/assets/harnesses.svg" width="600" alt="clawock 投研台 —— OpenClaw、DeepSeek Harness 与 clawock-patrol 服务都经同一个 agent-dispatch runner 发起任务;runner 给每个任务独立的 systemd unit,并负责仲裁:每个 agent 一把锁一条队列、巡检轮次排最后、按 agent 分运行槽、session 锁、额度等待时释放锁、被派发的 worker 不再二次派发。Claude Code、Codex 与 OpenCode 共用同一份 AGENTS.md、同一套记忆与 skills,用 append、result 与 review 互相接力,所有改动都走同一道 PR、必需 CI 与 squash-merge 闸进入 KCNyu/clawock"></p>
+## 开发流程
 
-<sub>多个 agent harness 共用这张投研台:一个 runner 仲裁任务,一份记忆与规则文件保持一致,一道 PR 闸接收改动——接线说明见 <a href="docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>。</sub>
+这张投研台由 Claude Code、Codex 与 OpenCode 经共享的 runner、记忆和规则文件开发。下面画的是代码改动怎么进仓库;上面画的是市场证据怎么变成可打分的决策。
 
-整条流水线可以装进你正在用的 Agent——点 logo 打开对应 harness 的可运行示例,[完整流程](#在你自己的账本上跑)在下面:
+<p align="center"><img src="site/assets/harnesses.svg" width="600" alt="clawock 开发台 —— OpenClaw、DeepSeek Harness 与 clawock-patrol 服务都经同一个 agent-dispatch runner 发起任务;runner 给每个任务独立的 systemd unit,并负责仲裁:每个 agent 一把锁一条队列、巡检轮次排最后、按 agent 分运行槽、session 锁、额度等待时释放锁、被派发的 worker 不再二次派发。Claude Code、Codex 与 OpenCode 共用同一份 AGENTS.md、同一套记忆与 skills,用 append、result 与 review 互相接力,所有改动都走同一道 PR、必需 CI 与 squash-merge 闸进入 KCNyu/clawock"></p>
 
-<div align="center">
-<table>
-<tr>
-<td align="center" valign="top" width="120"><a href="examples/claude-code/CLAUDE.md"><img src="site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
-<td align="center" valign="top" width="120"><a href="examples/codex/AGENTS.md"><img src="site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
-<td align="center" valign="top" width="120"><a href="examples/openclaw/SKILL.md"><img src="site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
-<td align="center" valign="top" width="120"><a href="examples/dsh/README.md"><img src="site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
-<td align="center" valign="top" width="120"><a href="examples/cli/run.sh"><img src="site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>自己的 / 纯 CLI</b></a></td>
-</tr>
-</table>
-</div>
+<sub>多个 coding agent 共用这张开发台:一个 runner 仲裁任务,一份记忆与规则文件保持一致,一道 PR 闸接收改动——接线说明见 <a href="docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>。</sub>
+
+参与开发按 [AGENTS.md](AGENTS.md#interactive-codexclaude-pr-workflow) 的约定走:
+
+1. 从当前 `origin/master` 建独立 worktree,分支用 `codex/<task>` 或 `claude/<task>`。live checkout 留在 `master`,供定时任务写运行数据。
+2. 修改、跑定向检查、commit、推任务分支、开 PR。GitHub Actions 跑全套;作者自查 diff,必需检查通过后才 squash-merge。
+3. 本机用 `ops/host/refresh_live.sh` 应用合并;`--check` 查看待刷新项。它更新 editable checkout,并安装需要刷新的副本。
+
+PyPI/npm 发版面向外部安装:版本号和 changelog 先走 PR,再用对应的 `v<version>` tag 触发 release 工作流。本机刷新与包发版是两个步骤,见[发版手册](docs/operations/release.md)。
 
 ---
 
@@ -249,6 +245,20 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 港股时间按 HKT;美股场次时间按 ET,其 cron 表达式随纽约夏令时自动切换。节假日 + 周末闸门跳过休市场次。精确的生成表见 [docs/operations/cron-schedules.md](docs/operations/cron-schedules.md)。
 
 ## 在你自己的账本上跑
+
+日常运行流程可以装进你正在用的 Agent——点 logo 打开对应 harness 的可运行示例:
+
+<div align="center">
+<table>
+<tr>
+<td align="center" valign="top" width="120"><a href="examples/claude-code/CLAUDE.md"><img src="site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/codex/AGENTS.md"><img src="site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/openclaw/SKILL.md"><img src="site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/dsh/README.md"><img src="site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
+<td align="center" valign="top" width="120"><a href="examples/cli/run.sh"><img src="site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>自己的 / 纯 CLI</b></a></td>
+</tr>
+</table>
+</div>
 
 **甩给 AI(默认):** 把本仓库地址丢给你的 Agent(上面任何一个都行),约 60 秒就能验证一条完整决策(真实决策另需你自己的模型 API):
 

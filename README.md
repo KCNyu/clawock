@@ -29,38 +29,34 @@
 
 </div>
 
-```bash
-pip install clawock                        # the decision workflow + CLI (Python ≥ 3.11)
-dsh plugin --profile web add clawock-dsh   # optional: the DeepSeek Harness panel
-```
+## The operating flow
 
 Every trading day, clawock turns raw market information into decisions that get graded:
 
 - **Collect.** 44 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
 - **Compute factors.** Quant factors, cross-sectional ranks, peer residuals and a trend × volatility leverage dial, all computed deterministically in Python.
-- **Backtest.** A factor's clustered bootstrap interval has to clear 50% before it may influence a decision; the cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published in the [Reflect view](https://kcnyu.github.io/clawock/#reflect).
+- **Test and gate.** Validated factor authority requires a clustered bootstrap interval clear of 50%; prospective activation and capped exploration have separate rules. The cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published in the [Reflect view](https://kcnyu.github.io/clawock/#reflect).
 - **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
-- **Settle.** Python settles every decision against real prices. The model never touches its own score, and every result lands on the public scorecard.
+- **Deliver.** Python postflight validates the plan, records decisions, renders the brief and publishes to WeChat, Telegram and the dashboard.
+- **Settle.** Python settles decision episodes against canonical price bars. The model never touches its own score, and every result lands on the public scorecard.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-pipeline.svg" width="600" alt="One clawock trading day, end to end — Python collects quotes through ordered fallback chains (HK Tencent + Eastmoney, then stooq, then yfinance; US Nasdaq first through a seven-route chain; USD/HKD Frankfurter, exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, Reddit and influencer sentiment, and macro and catalyst calendars; it reconciles the book, computes portfolio risk, per-leg concentration, the leverage regime dial, quant factors, cross-sectional ranks and peer residuals behind a backtest gate, and holds risk caps, the entry gate, earnings quality, thesis drift and the news evidence graph as code gates; a preflight hands the agents one context pack, where four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge write plan.json; a Python postflight validates it, books it in memory/decisions.jsonl, renders the brief card, sends WeChat and Telegram and publishes the dashboard; then code records what was executed with mark-followed, settles each episode on canonical bars, calibrates confidence, replays a shadow portfolio against buy-and-hold and publishes the scorecard, which the next brief reads"></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="600" alt="clawock desk — OpenClaw, DeepSeek Harness and the clawock-patrol service start work through one agent-dispatch runner, which gives every task its own systemd unit and arbitrates: one lock and queue per agent, patrol rounds last, run slots per agent, a session lock, quota waits that free the lock, and no re-dispatch from a dispatched worker. Claude Code, Codex and OpenCode share one AGENTS.md, one memory and the same skills, hand work on with append, result and review, and every change passes the same PR, required CI and squash-merge gate into KCNyu/clawock"></p>
+## The development flow
 
-<sub>Several agent harnesses share this desk: one runner arbitrates their tasks, one memory and rule file keep them consistent, and one PR gate takes their changes — wiring in <a href="https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>.</sub>
+This desk is developed by Claude Code, Codex and OpenCode through a shared runner, memory and rule file. The diagram below shows how code changes reach the repository; the diagram above shows how market evidence reaches a graded decision.
 
-The whole pipeline plugs into the agent you already use — each logo opens that harness's runnable example, and [the full loop](#run-it-on-your-own-book) is below:
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="600" alt="clawock development desk — OpenClaw, DeepSeek Harness and the clawock-patrol service start work through one agent-dispatch runner, which gives every task its own systemd unit and arbitrates: one lock and queue per agent, patrol rounds last, run slots per agent, a session lock, quota waits that free the lock, and no re-dispatch from a dispatched worker. Claude Code, Codex and OpenCode share one AGENTS.md, one memory and the same skills, hand work on with append, result and review, and every change passes the same PR, required CI and squash-merge gate into KCNyu/clawock"></p>
 
-<div align="center">
-<table>
-<tr>
-<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
-<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/codex/AGENTS.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
-<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/openclaw/SKILL.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
-<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
-<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/cli/run.sh"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>Your own / CLI</b></a></td>
-</tr>
-</table>
-</div>
+<sub>Several coding agents share this development desk: one runner arbitrates their tasks, one memory and rule file keep them consistent, and one PR gate takes their changes — wiring in <a href="https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>.</sub>
+
+To contribute, follow [AGENTS.md](https://github.com/KCNyu/clawock/blob/master/AGENTS.md#interactive-codexclaude-pr-workflow):
+
+1. Create an isolated worktree from current `origin/master`, on a `codex/<task>` or `claude/<task>` branch. The live checkout stays on `master` for scheduled writers.
+2. Make the change, run focused checks, commit, push the task branch and open a PR. GitHub Actions runs the full suite; the author reviews the diff and squash-merges only after required checks pass.
+3. Apply the merge on this host with `ops/host/refresh_live.sh`; `--check` reports pending work. It updates the editable checkout and installs the copies that need refreshing.
+
+PyPI/npm releases serve external installs: version and changelog changes go through a PR, then a matching `v<version>` tag runs the release workflow. Host refresh and package release are separate steps — see [the release runbook](https://github.com/KCNyu/clawock/blob/master/docs/operations/release.md).
 
 ---
 
@@ -278,6 +274,20 @@ weekly     archive, health, review, and visual-refresh jobs
 Hong Kong times run on HKT; US session times follow ET and their cron expressions shift automatically with New York DST. A holiday + weekend gate skips closed sessions. The exact generated table is in [docs/operations/cron-schedules.md](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md).
 
 ## Run it on your own book
+
+The operating pipeline plugs into the agent you already use. Each logo opens that harness's runnable example:
+
+<div align="center">
+<table>
+<tr>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/claude-code.svg" width="56" height="56" alt="Claude Code"><br><b>Claude Code</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/codex/AGENTS.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/codex.svg" width="56" height="56" alt="Codex"><br><b>Codex</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/openclaw/SKILL.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/openclaw.svg" width="56" height="56" alt="OpenClaw"><br><b>OpenClaw</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/deepseek-harness.svg" width="56" height="56" alt="DeepSeek Harness"><br><b>DeepSeek Harness</b></a></td>
+<td align="center" valign="top" width="120"><a href="https://github.com/KCNyu/clawock/blob/master/examples/cli/run.sh"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harness/any-cli.svg" width="56" height="56" alt="Any CLI"><br><b>Your own / CLI</b></a></td>
+</tr>
+</table>
+</div>
 
 From an empty directory to a published decision — the same block
 [`examples/cli/workflow-run/run.sh`](https://github.com/KCNyu/clawock/blob/master/examples/cli/workflow-run/run.sh)
