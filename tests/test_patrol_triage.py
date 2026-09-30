@@ -1,6 +1,7 @@
 """clawock-patrol triage (2026-10-01): severity is backed by evidence, P3 and over-budget
 findings go to the digest instead of the void, one root cause is one issue, and the round's
-Unit tests on the pure half plus gate dry runs."""
+yield is readable by the dsh panel. Unit tests on the pure half plus one gate dry run."""
+import json
 import os
 import subprocess
 import sys
@@ -11,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "ops/host/clawock-patrol"
 sys.path.insert(0, str(TOOL))
 
+import patrol_intel  # noqa: E402
 import triage  # noqa: E402
 
 INFRA = "无（基础设施）"
@@ -107,17 +109,42 @@ def test_digest_flush_and_render_stay_under_githubs_body_cap():
 
 def test_taxonomy_covers_every_label_a_verdict_can_carry():
     lenses = triage.lenses_from_axes(TOOL / "axes.tsv")
-    assert {"recent", "manual"} <= set(lenses)
+    assert {"money", "peers", "recent", "manual"} <= set(lenses)
     tax = triage.label_taxonomy(lenses)
     for sev in triage.SEVERITIES:
         for area in triage.AREAS:
             for kind in triage.KINDS:
-                assert set(triage.Verdict(sev, area, kind, "logic").labels()) <= set(tax)
+                assert set(triage.Verdict(sev, area, kind, "peers").labels()) <= set(tax)
     assert all(len(desc) <= 100 for _, desc in tax.values())   # GitHub's label description limit
     rotation = open(TOOL / "rotation").read()
     names = [w for line in rotation.splitlines() for w in line.split("#")[0].split()]
-    assert set(names) <= set(lenses)
+    assert set(names) <= set(lenses) and names.count("peers") == 1
 
+
+def test_feedback_counts_only_labelled_noise(tmp_path, monkeypatch):
+    monkeypatch.setattr(patrol_intel, "LOGDIR", tmp_path)
+    now = time.time()
+    iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 3600))
+    issues = [{"number": n, "title": "[patrol] 面板某卡显示错", "state": "CLOSED", "stateReason": "NOT_PLANNED",
+               "labels": [{"name": "area:dashboard"}, {"name": "kind:bug"}, {"name": "lens:render"}],
+               "createdAt": iso, "closedAt": iso} for n in (1, 2, 3)]
+    issues.append({"number": 4, "title": "[patrol] CI lane 漏了", "state": "CLOSED", "stateReason": "NOT_PLANNED",
+                   "labels": [], "createdAt": iso, "closedAt": iso})
+    saved = tmp_path / "issues.json"
+    saved.write_text(json.dumps(issues))
+    text, noisy = patrol_intel.brief("render", "", str(saved), now)
+    assert noisy == [("dashboard", "bug")]
+    assert "本范围（render）单独开 3 条" in text and "#4" in text
+
+
+def test_round_yield_is_a_slash_free_field(tmp_path, monkeypatch):
+    monkeypatch.setattr(patrol_intel, "LOGDIR", tmp_path)
+    for row in ({"task": "t1", "route": "issue", "severity": "P1", "number": 2240},
+                {"task": "t1", "route": "digest"}, {"task": "t1", "route": "digest"},
+                {"task": "t1", "route": "comment", "number": 2100}, {"task": "t2", "route": "issue"}):
+        triage.append_jsonl(tmp_path / "filed/index.jsonl", row)
+    assert patrol_intel.round_yield("t1") == "P1#2240 +2 digest +1 comment"
+    assert patrol_intel.round_yield("nobody") == ""
 
 
 def _gate(tmp_path, draft_text, env_extra=None, name="a"):
@@ -133,7 +160,7 @@ def _gate(tmp_path, draft_text, env_extra=None, name="a"):
     draft.write_text(draft_text)
     env = {k: v for k, v in os.environ.items() if k != "CLAWOCK_WORKSPACE"}
     env.update({"PATROL_STATE": str(state), "PATROL_WORKTREE": str(wt), "GATE_DRY_RUN": "1",
-                "AGENT_DISPATCH_TASK_ID": "patrol-logic-20261001-010203", **(env_extra or {})})
+                "AGENT_DISPATCH_TASK_ID": "patrol-money-20261001-010203", **(env_extra or {})})
     return subprocess.run([sys.executable, str(TOOL / "gate_issue.py"), str(draft)], env=env,
                           capture_output=True, text=True, timeout=120)
 
@@ -182,8 +209,8 @@ assert d['total'] == 5, 'total is %s' % d['total']
 def test_gate_dry_run_reports_triage_and_route(tmp_path):
     r = _gate(tmp_path, DRAFT.format(sev="P0"))
     assert r.returncode == 0, r.stderr
-    assert "triage P0 area:data kind:bug lens:logic → issue" in r.stderr
-    assert "labels: patrol severity:P0 area:data kind:bug lens:logic" in r.stderr
+    assert "triage P0 area:data kind:bug lens:money → issue" in r.stderr
+    assert "labels: patrol severity:P0 area:data kind:bug lens:money" in r.stderr
     r = _gate(tmp_path, DRAFT.format(sev="P3"), name="b")
     assert r.returncode == 0, r.stderr
     assert "→ digest" in r.stderr and "放进汇总" in r.stderr

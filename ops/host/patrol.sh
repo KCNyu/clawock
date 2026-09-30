@@ -256,6 +256,12 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     export P_ROUND=$n P_AXIS_TITLE=$title P_HEAD="$(head_line "$WT")"
     export P_AXIS_BODY=${body//'{{RECENT_SINCE}}'/$since}
     if [ -s "$STATE/steer.md" ]; then export P_STEER; P_STEER=$(cat "$STATE/steer.md"); else export P_STEER="（暂无）"; fi
+    # What patrol learned from its own issues (precision per lens, noise closures, today's budget,
+    # the regression watch for recent rounds). A failure costs the round its history, not its run.
+    export P_FEEDBACK
+    P_FEEDBACK=$(PATROL_STATE="$STATE" PATROL_WORKTREE="$WT" timeout 150 python3 "$TOOL/patrol_intel.py" brief \
+                   --axis "$axis" --since "$since" 2>/dev/null) || P_FEEDBACK=""
+    [ -n "$P_FEEDBACK" ] || P_FEEDBACK="（反馈读取失败，本轮没有历史数据；分级与预算规则照旧，见 issue-format.md）"
     render >"$STATE/round-prompt.md"
   
     start=$(date +%s)
@@ -306,10 +312,17 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
   ROUND_ID=""; rm -f "$STATE/current-round" "$STATE/yielding"
   # (subshell: result.env's STATE must not clobber this script's STATE directory)
   state=$( STATE="" OUTCOME=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "${STATE:-unknown}${OUTCOME:+/$OUTCOME}" )
-  local how=""
+  local how="" filed="" result
   if [ -n "$reason" ]; then how=preempted; elif [ -n "$yield_at" ]; then how=yielded; fi
-  printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${how:+$how:}$state" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
-  log "round R$n ($axis) ended: ${how:+$how, }$state"
+  # What the round routed through the gate, as a third `/` field of the result
+  # (`ok/DONE/P1#2240 +2 digest`): readers that split STATE/OUTCOME ignore it (the dsh panel shows it).
+  filed=$(PATROL_STATE="$STATE" timeout 30 python3 "$TOOL/patrol_intel.py" round-yield --task "$rid" 2>/dev/null | tr -d '\t/\n')
+  result=$state
+  [ -z "$filed" ] || { [[ $result == */* ]] || result="$result/"; result="$result/$filed"; }
+  printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${how:+$how:}$result" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
+  log "round R$n ($axis) ended: ${how:+$how, }$result"
+  # A digest that is due is filed even on a day no new P3 arrives to trigger it from the gate.
+  PATROL_STATE="$STATE" PATROL_WORKTREE="$WT" timeout 180 python3 "$TOOL/filing.py" flush-digest >/dev/null 2>&1 || true
 
   if [ -n "$bad" ]; then
     log "UNGATED issues: $bad"
