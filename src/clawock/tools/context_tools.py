@@ -228,7 +228,7 @@ def slice_reference(value, *, ticker=None, since=None, as_of=None):
         dated = re.search(r'\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'
                           r'(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?', stamp)
         if dated:
-            return parse_time(dated.group(0))
+            return parse_time(stamp if isinstance(row, dict) else dated.group(0))
         if re.search(r'\d{4}-\d{2}-\d{2}', stamp):
             return None
         if isinstance(row, dict) and not re.fullmatch(r'\d{2}:\d{2}(?::\d{2})?', stamp):

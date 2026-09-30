@@ -743,6 +743,8 @@ def test_reference_since_uses_hkt_dates_and_combines_the_ticker_filter(tmp_path)
         {'title': 'date only', 'published_at': '2026-09-30'},
         {'title': 'unknown', 'published_at': 'not a timestamp'},
         {'title': 'no time'},
+        {'title': 'malformed offset', 'published_at': '2026-09-30T10:35:00+bad'},
+        {'title': 'invalid date', 'published_at': '2026-13-30T10:35:00+08:00'},
     ]
     for ticker in (None, '00100'):
         got = _reference_window(tmp_path, market='hk', as_of='2026-09-30T11:03:00+08:00',
