@@ -53,7 +53,7 @@ class LLMOutputError(ValueError):
 
 
 # An inline link `](target` or a reference definition `[id]: target`.
-_LINK_TARGET = re.compile(r'(\]\(|^[ ]{0,3}\[[^\]\n]*\]:)([ \t]*)([^\s)]*)', re.M)
+_LINK_TARGET = re.compile(r'(\]\(|^[ ]{0,3}\[[^\]\n]*\]:)(\s*)([^\s)]*)', re.M)
 # http(s)/mailto, or a relative target: no scheme (and no entity that could
 # spell one, since the browser decodes `&#58;` in an href) before its path.
 _SAFE_TARGET = re.compile(r'(?:https?://|mailto:)|[^:&]*(?:[/?#]|$)', re.I)
