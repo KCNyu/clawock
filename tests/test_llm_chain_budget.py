@@ -277,3 +277,27 @@ def test_stats_out_over_the_real_provider_signature(keys, monkeypatch):
     leg = stats["legs"][0]
     assert leg == {"provider": "minimax", "ok": True, "attempts": 1,
                    "wall_s": leg["wall_s"]}
+
+
+class _Reply:
+    status_code = 200
+
+    def json(self):
+        return {"content": [{"type": "text", "text": "{}"}], "usage": {},
+                "stop_reason": "end_turn"}
+
+
+@pytest.mark.parametrize("model,expected", [
+    ("MiniMax-M3.1-Flash-Preview", {"type": "adaptive"}),
+    ("MiniMax-M3", {"type": "disabled"}),
+])
+def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model, expected):
+    """M3.1 answers thinking.type=disabled with HTTP 400 (#2202); the influencer
+    relevance filter sent it on every run and published an empty radar for four."""
+    sent = []
+    monkeypatch.setattr(llm._SESSION, "post",
+                        lambda url, json=None, **kw: sent.append(json) or _Reply())
+    monkeypatch.setattr(llm, "MINIMAX_MODEL", model)
+    monkeypatch.setenv("MINIMAX_API_KEY", "test")
+    llm.chat(user="hi", thinking_disabled=True, json_response=True)
+    assert sent[0]["thinking"] == expected
