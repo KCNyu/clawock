@@ -290,3 +290,20 @@ def test_the_real_repository_still_compiles(system_check):
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+def test_cron_payload_paths_are_judged_not_counted_as_zero(system_check, tmp_path):
+    # The check grepped a retired `workspace/scripts/*.py` prefix and printed
+    # "0 referenced scripts present" on every clean host (#2225).
+    skill = tmp_path / "skills" / "daily-deep-brief" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("x", encoding="utf-8")
+    gone = tmp_path / "skills" / "retired" / "SKILL.md"
+    slot_output = tmp_path / "memory" / ".tmp" / "report-prose-hk-open.md"
+    jobs = [{"payload": {"message": f"先读 `{skill}`，写到 {slot_output}。"}},
+            {"message": f"读 {gone}，然后运行。"}]
+
+    checked, missing = system_check._cron_payload_path_audit(jobs, roots=(tmp_path,))
+
+    assert checked == sorted([str(skill), str(gone)])
+    assert missing == [str(gone)]
