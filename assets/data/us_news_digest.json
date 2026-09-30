@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T18:23:23.874970+00:00",
+  "generated_at": "2026-09-30T18:13:21.070956+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: Starship 第 14 次飞行首次将工作载荷送入轨道并部署卫星，但 Raptor 发动机故障令 NASA 进度再受审视。  \n  **kcn/SPCH:** 持有 SPCH（2x SPCX），2x 将同时放大里程碑溢价与发动机故障带来的回撤。\n- **RKLB**: Starship 部署取得突破后，Rocket Lab 反而下跌 3%，短线反映市场对发射竞争与执行风险的重新定价。  \n  **kcn/RKLX:** 持有 RKLX（2x RKLB），2x 会放大板块情绪逆转；本轮未见 RKLB 自身新增订单或业绩催化。\n- **CRCL**: CFTC 注册 Coinbase Clearing为首家 USDC 原生衍生品清算机构，提升 USDC 的机构应用与合规基础设施预期。  \n  **kcn/CRCL:** 对 CRCL 构成生态利好，但并非 Circle 直接合约或收入事件，短线偏情绪驱动。\n- **CRCL**: CFO Jeremy Fox-Geen 将在 IPO 后离任，核心财务负责人交接增加扩张期执行风险。  \n  **kcn/CRCL**: IPO 后管理层稳定性承压，可能提高市场对成本控制、融资及披露衔接的风险折价。\n\n### Per-ticker 简报 (有新闻才列)\n- **SPCX**: Starship 首次完成卫星部署构成重大技术里程碑；Raptor 故障及 NASA 时间表不确定性仍是核心风险。\n- **RKLB**: 受 SpaceX 突破消息影响下跌 3%，但无公司特定利空或新增基本面催化。\n- **CRCL**: USDC 清算基础设施获监管注册属正面；CFO 离任、CLARITY Act 停滞及稳定币收益竞争构成压制。\n\n### 风险 watch (若有)\n- **SPCX / SPCH**: Raptor 发动机故障可能延误 NASA 任务；SPCH 的 2x 杠杆会放大事件后的方向性波动。\n- **CRCL**: IPO 后 CFO 突然离任，存在管理层交接与执行风险。\n- **CRCL**: CLARITY Act 推进停滞，支付型稳定币与贷款、证券及基金收益产品的边界和竞争仍未明确。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **CRCL:** Circle 与 Volante 合作，将 USDC 支付及结算工作流接入银行现有基础设施，拓宽机构渠道。  \n  **对 kcn：** CRCL 持仓偏正面，提升机构采用预期；未披露合同金额或收入贡献，短线仍属采用量催化。\n- **RKLB:** Rocket Lab 已向 Kepler 出售一次专属 Neutron 飞行任务。  \n  **对 kcn:** RKLB 通过 **RKLX（2x）** 持有，订单信号会被 2x 放大；但合同金额与交付时间未披露，暂无法测算业绩弹性。\n- **CRCL:** Citi 扩大与 Coinbase 的合作，连接银行、法币结算与稳定币支付，但未说明是否采用 USDC。  \n  **对 kcn:** 对 CRCL 是行业验证与竞争并存；若合作由其他稳定币承载，USDC 份额逻辑承压。\n- **CRCL:** Blockchain.com 称拟于年底前按 60 亿美元估值上市。  \n  **对 kcn:** 为加密基础设施板块提供估值参照并提升关注度，但尚非 Circle 自身财务催化。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL:** Volante 接入是直接利好；Coinbase-Citi 合作未确认 USDC，板块 IPO 仅提供估值参照 - 净影响温和正面。\n- **RKLB:** 新增 Kepler 专属 Neutron 任务销售，方向正面但缺少合同经济性与排期信息。\n- **SPCX:** Starship 材料仅重复“2 万亿美元估值”叙事，未提供具体技术、发射或订单里程碑 - 通过 **SPCH（2x）** 的持仓无新增可执行催化，2x 只会放大后续题材波动。\n\n### 风险 watch (若有)\n- **CRCL:** Coinbase-Citi 合作未披露 USDC；若机构流量由竞争稳定币承接，可能影响 USDC 份额。Blockchain.com 上市仍只是计划。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "CFTC Approves Coinbase Clearing as First USDC-Native Clearinghouse",
-        "datetime": 1790640600,
+        "headline": "Citigroup Deepens Stablecoin Push With Expanded Coinbase Tie-Up",
+        "datetime": 1790698320,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=887c432f3597c1370fc4ee132f34646f22951f8a3dd50f4879c8f757601c2cab"
+        "url": "https://finnhub.io/api/news?id=e3d0ca9bdb9778d7ddb7c63224460b0de1ec318cef1b9a8a66c0b977d9d148a1"
       },
       {
-        "headline": "Circle CFO to step down following $1.05B IPO",
-        "datetime": 1790622284,
+        "headline": "Circle Expands Institutional USDC Push With Volante Technologies",
+        "datetime": 1790697840,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8eba6b5ef33d8d675094f03fe33c9f0a9b8e8bfe1e36c2c3a7c1e02ec37a81e1"
+        "url": "https://finnhub.io/api/news?id=7e27b362bc83ef2bf52dad3e83f6beabe1c49d14ac09a1d1718b580cb13832ce"
       },
       {
-        "headline": "Roundtable 100 analyst reveals Circle’s surprising jump despite beaten-down stock",
-        "datetime": 1790618661,
+        "headline": "Coinbase Backed Raven Raises Funding to Bring Liquidity to Prediction Markets",
+        "datetime": 1790695440,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a5ef6a51d9f2b4cfdfb98f73d309cf0331541e9b13e6b163e3c3aa1fd5c096d2"
+        "url": "https://finnhub.io/api/news?id=991482dc28d837d7204292914aa4a1a188b79692786b9ded6e9d59cd3211ffd6"
       },
       {
-        "headline": "Bitcoin's Days Are Numbered, And So Are Strategy's",
-        "datetime": 1790617386,
-        "source": "SeekingAlpha",
+        "headline": "Coinbase Deepens Citi Tie-Up to Scale Stablecoin Payments",
+        "datetime": 1790691660,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=441e9ff0530b01080ead6f93ce682f29ea21d59907b952bb8102bb37ca4a5394"
+        "url": "https://finnhub.io/api/news?id=fa2738aab7bf5dbf5f45d7dacf352e365296a98ec1db0b9f9823f4d616083f93"
       },
       {
-        "headline": "The Stablecoin Yield Fight Is Far From Over—Here’s What Comes Next",
-        "datetime": 1790611386,
-        "source": "Benzinga",
+        "headline": "Blockchain.com To Go Public At $6 Billion Valuation",
+        "datetime": 1790688300,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=79a6c9c86aec7c8c312918a0f7647cb0632be2ca0df2169a76227ee50614fb5b"
+        "url": "https://finnhub.io/api/news?id=8e503e46ccd4d983d2f8213af585eea2806e7530c36199d678526241b4e69049"
       }
     ],
     "RKLB": [
       {
-        "headline": "SpaceX Rises 2% After Starship’s First Orbital Satellite Deployment; Rocket Lab Falls 3%, AST SpaceMobile Drops 3%",
-        "datetime": 1790704482,
+        "headline": "3 Space Stocks to Buy in October",
+        "datetime": 1790780820,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0e465b7e1119b95683bf52069794b7fb7ed0677603e1afaeebc1d27abc470c19"
+        "url": "https://finnhub.io/api/news?id=2759e491fbbad0507f8cdf053f7ecd6454200a82d25da6155d27d5f8086ad958"
       },
       {
-        "headline": "Data Vs. Infrastructure: The Difficult Space Race Choice Between Planet Labs and Rocket Lab",
-        "datetime": 1790697394,
+        "headline": "AST SpaceMobile Jumps 5% on Takeover Speculation; Rocket Lab Rises 5%, SpaceX Treads Water",
+        "datetime": 1790777027,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ee072b31d8e39dae4fd507da38890ebf90fe59ca2a3456b8c1de5d76e54fbc8d"
+        "url": "https://finnhub.io/api/news?id=cf8378397b189cf534c37486827b99efb7f82bd0bd1c5fdfd7e8079f001528c2"
       },
       {
-        "headline": "SpaceX Flew the Most Powerful Rocket Ever Built and the Stock Fell Anyway",
-        "datetime": 1790687459,
+        "headline": "Is LUNR Building a Full-Service Space Infrastructure Platform?",
+        "datetime": 1790774400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e730cb010b5d915a4c42ab6613e970e825182b8df7bd588eadd6cf93efbc513c"
+        "url": "https://finnhub.io/api/news?id=638ead0c10199f8e71348886e4e97a42ef1fc7f55e1d512454a783e90d3b2081"
       },
       {
-        "headline": "AST SpaceMobile Rises 5% as New Change-of-Control Severance Plan Fuels Buyout Speculation; SpaceX and Rocket Lab Tick Up",
-        "datetime": 1790685793,
+        "headline": "Are Space ETFs on Track to Rally or Is It Just a Temporary Blip?",
+        "datetime": 1790774400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=973158b8728b7d1074cec496c5152ea519e22bb0d34dbe4a3dad681e2d6c9bc1"
+        "url": "https://finnhub.io/api/news?id=033fbbee6c0241de8aab5a34c66067be7644cdb1856195e797aa7cd76f9d6dd8"
       },
       {
-        "headline": "SpaceX: The Market Is Acting Blind",
-        "datetime": 1790677389,
-        "source": "SeekingAlpha",
+        "headline": "Rocket Lab Sold Kepler a Dedicated Neutron Flight. Here's How Many More It Needs to Justify Its Valuation",
+        "datetime": 1790766420,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7ac87b56c5c7d5742179f6e373f14aa09fc51da2a928e8f5e818440dab079f8c"
+        "url": "https://finnhub.io/api/news?id=d91ffcd886550c0dc8eb5aa7128022073000a7eaea622bf8197e05449aa4f24f"
       }
     ],
     "SPCX": [
       {
-        "headline": "NASA Gives Boeing Starliner $359 Million Lifeline",
-        "datetime": 1790705291,
+        "headline": "SpaceX just proved why Starship matters to its $2 trillion valuation",
+        "datetime": 1790782380,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=29deba6ad4384a64f4acae3d4535dad3f31c60ab3251745d7d573187ccf5add7"
+        "url": "https://finnhub.io/api/news?id=c7e0de69d38f394437af15065b862563c751b0a7b06c10b513054db2de71285f"
       },
       {
-        "headline": "SpaceX's Starship Breakthrough Came With an Expensive Catch",
-        "datetime": 1790705006,
+        "headline": "Top Midday Stories: Fed's Preferred Inflation Gauge Rises as Expected in August; AI Companies Sign White House Accord",
+        "datetime": 1790782114,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b8732e502c226109aac5b24a8305926634b1f57ef9036e4836011e956df7f85e"
+        "url": "https://finnhub.io/api/news?id=c51fe03761bdf6a695ea9c95b6ae8be182927ca0959f6e0ca8872796207e1991"
       },
       {
-        "headline": "SpaceX Rises 2% After Starship’s First Orbital Satellite Deployment; Rocket Lab Falls 3%, AST SpaceMobile Drops 3%",
-        "datetime": 1790704482,
+        "headline": "3 Space Stocks to Buy in October",
+        "datetime": 1790780820,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0e465b7e1119b95683bf52069794b7fb7ed0677603e1afaeebc1d27abc470c19"
+        "url": "https://finnhub.io/api/news?id=2759e491fbbad0507f8cdf053f7ecd6454200a82d25da6155d27d5f8086ad958"
       },
       {
-        "headline": "Musk: “First Orbital Flight Successful” as SpaceX’s Starship Reaches Orbit on Flight 14",
-        "datetime": 1790701420,
+        "headline": "Wall Street's fading IPO hopes: A closer look at Accelevation's public debut & Oura's delay",
+        "datetime": 1790780400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=626d748c2de13a72310c4dafb1a7f9a807225a4c2596c6b69f7e130493371c79"
+        "url": "https://finnhub.io/api/news?id=2445c69ec5e57544827cbd74a9867f4a795d22077daa9485f447bc3d0770c4a3"
       },
       {
-        "headline": "Starship, Starlink, or xAI: Which Part of SpaceX Could Move the Stock Most in 2027?",
-        "datetime": 1790700180,
+        "headline": "Bull and bear case for Anthropic's IPO",
+        "datetime": 1790778984,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a3db51574fbf1c0295509b62b3a84380b06cf32918935d97afbeca9ae6e830cc"
+        "url": "https://finnhub.io/api/news?id=2faa74e2a57966dc4350b1946c52887490849ba67bd7f7d9fc6a8f1a30b2fc51"
       }
     ]
   },
