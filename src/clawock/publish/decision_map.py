@@ -297,7 +297,9 @@ def build(ledger_rows=None, data_dir: Path | None = None,
         json.loads(line) for line in LEDGER.read_text(encoding='utf-8').splitlines()
         if line.strip()]
     snapshots = load_signal_snapshots(data_dir)
-    sessions_by_leg = {leg: leg_sessions(leg) for leg in ('us', 'hk')}
+    # Bars declare their leg upper-case; `leg_sessions('us')` matched nothing,
+    # so every join fell back to calendar days under a `sessions` name (#2206).
+    sessions_by_leg = {leg: leg_sessions(leg.upper()) for leg in ('us', 'hk')}
 
     lookup, timelines = {}, defaultdict(list)
     per_signal = defaultdict(lambda: defaultdict(list))
