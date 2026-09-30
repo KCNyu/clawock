@@ -1,4 +1,4 @@
-"""The four README diagrams are generated; the SVGs must be what the builder emits.
+"""The README diagrams are generated; the SVGs must be what the builder emits.
 
 `site/tools/build_readme_diagrams.py` owns every label and coordinate. A hand
 edit to one of the SVGs would be overwritten by the next rebuild, so the drift
@@ -37,3 +37,6 @@ def test_diagrams_animate_without_anything_an_img_would_drop():
         assert 'filter' not in tags, name
         assert 'animateMotion' in tags, f'{name} has no moving packets'
         assert root.find(f'{SVG}title') is not None, name
+        for image in root.iter(f'{SVG}image'):
+            assert image.attrib['href'].startswith('data:image/png;base64,'), (
+                f'{name}: an SVG inside an img cannot load an external screenshot')

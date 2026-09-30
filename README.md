@@ -31,7 +31,9 @@
 
 ## The operating flow
 
-Every trading day, clawock turns raw market information into decisions that get graded:
+Before the market opens, your HK + US book gets a plan. Through the session,
+the cards reach your phone; afterward, code grades the calls. In dsh, you can
+open a real fill beside its plan and ask what changed:
 
 - **Collect.** 44 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
 - **Compute factors.** Quant factors, cross-sectional ranks, peer residuals and a trend × volatility leverage dial, all computed deterministically in Python.
@@ -40,23 +42,65 @@ Every trading day, clawock turns raw market information into decisions that get 
 - **Deliver.** Python postflight validates the plan, records decisions, renders the brief and publishes to WeChat, Telegram and the dashboard.
 - **Settle.** Python settles decision episodes against canonical price bars. The model never touches its own score, and every result lands on the public scorecard.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-pipeline.svg" width="600" alt="One clawock trading day, end to end — Python collects quotes through ordered fallback chains (HK Tencent + Eastmoney, then stooq, then yfinance; US Nasdaq first through a seven-route chain; USD/HKD Frankfurter, exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, Reddit and influencer sentiment, and macro and catalyst calendars; it reconciles the book, computes portfolio risk, per-leg concentration, the leverage regime dial, quant factors, cross-sectional ranks and peer residuals behind a backtest gate, and holds risk caps, the entry gate, earnings quality, thesis drift and the news evidence graph as code gates; a preflight hands the agents one context pack, where four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge write plan.json; a Python postflight validates it, books it in memory/decisions.jsonl, renders the brief card, sends WeChat and Telegram and publishes the dashboard; then code records what was executed with mark-followed, settles each episode on canonical bars, calibrates confidence, replays a shadow portfolio against buy-and-hold and publishes the scorecard, which the next brief reads"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-pipeline.svg" width="600" alt="One clawock trading day, end to end — Python collects quotes through ordered fallback chains (HK Tencent + Eastmoney, then stooq, then yfinance; US Nasdaq first through a seven-route chain; USD/HKD Frankfurter, exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, Reddit and influencer sentiment, and macro and catalyst calendars; it reconciles the book, computes portfolio risk, per-leg concentration, the leverage regime dial, quant factors, cross-sectional ranks and peer residuals behind a backtest gate, and holds risk caps, the entry gate, earnings quality, thesis drift and the news evidence graph as code gates; a preflight hands the agents one context pack, where four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge write plan.json; a Python postflight validates it, books it in memory/decisions.jsonl, renders the brief card, sends WeChat and Telegram and publishes the dashboard; then code records what was executed with mark-followed, settles each episode on canonical bars, calibrates confidence, replays a shadow portfolio against buy-and-hold and publishes the scorecard, which the next brief reads; in dsh, Decision Mind shows real fills beside their plans and T+1 verdicts for a follow-up, while execution stays human"></p>
 
-## The development flow
+## The DeepSeek Harness plugin
 
-This desk is developed by Claude Code, Codex and OpenCode through a shared runner, memory and rule file. The diagram below shows how code changes reach the repository; the diagram above shows how market evidence reaches a graded decision.
+**Delegate a task, leave the chat, come back to a result.** `clawock-dsh` brings
+an investment-decision skill, a Decision Mind tab and a provider panel into the
+dsh web GUI. On a host with clawock's **agent-dispatch** runner, that panel also
+puts your Claude Code, Codex and OpenCode background team within reach.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="600" alt="clawock development desk — OpenClaw, DeepSeek Harness and the clawock-patrol service start work through one agent-dispatch runner, which gives every task its own systemd unit and arbitrates: one lock and queue per agent, patrol rounds last, run slots per agent, a session lock, quota waits that free the lock, and no re-dispatch from a dispatched worker. Claude Code, Codex and OpenCode share one AGENTS.md, one memory and the same skills, hand work on with append, result and review, and every change passes the same PR, required CI and squash-merge gate into KCNyu/clawock"></p>
+In this story, you ask in dsh chat for a repository change and include the
+delivery contract: a PR, required checks, merge, host refresh and a final report.
+The runner keeps the task alive; the plugin lets you see and steer it.
 
-<sub>Several coding agents share this development desk: one runner arbitrates their tasks, one memory and rule file keep them consistent, and one PR gate takes their changes — wiring in <a href="https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>.</sub>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="600" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
 
-To contribute, follow [AGENTS.md](https://github.com/KCNyu/clawock/blob/master/AGENTS.md#interactive-codexclaude-pr-workflow):
+- **See what is happening.** Subscription use and reset times, provider balances, each agent's real queue, model, elapsed time and API-price cost estimate share one panel.
+- **Change course while it runs.** Move waiting work up; change the next attempt's model where allowed; adjust deadlines and retry budgets. Open the task brief or log, cancel a task, or retry an unfinished session.
+- **Keep the result in reach.** Recently ended tasks show report status and WeChat/Telegram delivery receipts separately. A completed task with a failed send stays visible; a missing message does not erase the work.
 
-1. Create an isolated worktree from current `origin/master`, on a `codex/<task>` or `claude/<task>` branch. The live checkout stays on `master` for scheduled writers.
-2. Make the change, run focused checks, commit, push the task branch and open a PR. GitHub Actions runs the full suite; the author reviews the diff and squash-merges only after required checks pass.
-3. Apply the merge on this host with `ops/host/refresh_live.sh`; `--check` reports pending work. It updates the editable checkout and installs the copies that need refreshing.
+<details>
+<summary><b>Open the full-size queue capture</b> — the real plugin on a live host</summary>
 
-PyPI/npm releases serve external installs: version and changelog changes go through a PR, then a matching `v<version>` tag runs the release workflow. Host refresh and package release are separate steps — see [the release runbook](https://github.com/KCNyu/clawock/blob/master/docs/operations/release.md).
+<br>
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="Full live-host provider panel: Claude and Codex quota windows above their queues, DeepSeek and MiniMax balances, OpenCode free pool, recently ended tasks with notification receipts, patrol rounds and ops version footer"></p>
+
+The sidebar is the control surface; the runner executes tasks and the versioned
+ops entry audits every UI write. Repository delivery steps belong to the task's
+instructions. [Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) ·
+[runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
+
+</details>
+
+### Bring the same discipline back to your trades
+
+Ask, for example, “Can I add to 0700.HK?” The investment skill guides the agent
+through evidence, a bull/bear debate and a bounded decision; Python checks the
+contract and money arithmetic. **Decision Mind** lets you open a real fill and
+follow **plan → execution → T+1 → P&L**. Missing plans and ungraded fills say so;
+USD and HKD stay separate. The trace is read-only, and you place the orders.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" width="820" alt="Decision Mind inside the real dsh web GUI: fills grouped by day with paired plans and T+1 verdicts; an expanded trace follows the plan, actual execution and outcome"></p>
+
+### Install it in your dsh desk
+
+With Python ≥3.11 and the dsh web profile available:
+
+```bash
+python -m pip install clawock
+dsh plugin --profile web add clawock-dsh
+mkdir -p ~/.dsh/skills
+cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
+```
+
+Restart the web profile to load it. The skill copy is required for discovery on
+rc.6 and later. Background queue controls additionally need the host runner and
+ops entry; without them, the panel shows provider allowances and balances.
+[npm package](https://www.npmjs.com/package/clawock-dsh) ·
+[installation and queue setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md).
 
 ---
 
@@ -336,7 +380,7 @@ brief, session report and intraday check-in; each prompt is
 <sub>Rendered from the host's real <code>openclaw cron list --json</code> by <code>site/tools/shoot_openclaw_cron.js</code>; job ids, delivery targets and prompts are left out.</sub>
 
 **Codex** reads the same steps from [`examples/codex/AGENTS.md`](https://github.com/KCNyu/clawock/blob/master/examples/codex/AGENTS.md);
-**DeepSeek Harness** gets a native panel (next section). Whichever harness a
+**DeepSeek Harness** gets the [native panels above](#the-deepseek-harness-plugin). Whichever harness a
 conversation runs in, its verdict lands through one command —
 `clawock record --source <harness>` (bear case and invalidation conditions
 mandatory) — so nobody edits `decisions.jsonl` by hand.
@@ -346,44 +390,6 @@ validation and CLI; it does not reimplement an agent loop. `clawock doctor` and
 `clawock context audit` name the capabilities a foreign workspace is missing
 instead of pretending it is ready to run this live desk.
 
-## The DeepSeek Harness plugin
-
-One command installs the investment-decision skill plus two native surfaces in
-the dsh web GUI — [npm](https://www.npmjs.com/package/clawock-dsh) ·
-[package README](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md):
-
-```bash
-dsh plugin --profile web add clawock-dsh
-```
-
-**Decision Mind** — every real fill beside the plan written at the time. The
-spine is `portfolio.json` trades; each row carries the soft-paired decision
-(±3 days from `decisions.jsonl`) and a T+1 verdict from the canonical
-`memory/bars/` close — 卖飞/卖对 on reduces, 涨/跌 on adds. Click a fill and it
-unfolds into plan → real fill → T+1 → P&L. Fills with no plan say so; USD and
-HKD never mix. The public dashboard's Reflect card renders the same traces from
-a separate implementation, pinned together by `tests/test_decision_trace_parity.py`.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind plugin — decision traces: real fills with soft-paired decisions and T+1 verdicts, expandable to a plan → execution → result timeline" width="860"></p>
-
-<table>
-<tr>
-<td width="46%" valign="top"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="360" alt="The whole sidebar provider panel on a live host: Claude and Codex subscription quota windows (5h and week, with reset times) above each agent's running task, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks with delivery receipts and cost, patrol rounds, and the ops footer / 真实主机上的整块侧栏 provider 面板:Claude 与 Codex 订阅额度窗口(5 小时与周,带重置时间)在各自运行中的任务上方,DeepSeek 与 MiniMax 余额,OpenCode 免费池,最近结束的任务(送达回执与费用),巡检轮次,以及 ops 页脚"></td>
-<td valign="top">
-
-**Provider panel — quota, balances and the task queue in one cell.** The
-sidebar's folded rows (bottom-left in the shot above) open into this panel:
-
-- **Quota windows** for the Claude and Codex subscriptions — 5-hour and weekly use, with reset times.
-- **Balances** for DeepSeek and MiniMax; the OpenCode free pool and its next model.
-- **The dispatch queue** on a host that runs clawock's agent-dispatch: each agent's running and queued tasks with model, start, duration and cost.
-- **Recently ended** tasks with WeChat/Telegram delivery receipts, and **patrol** rounds.
-- Click a row for its detail layer — retry, re-prioritise, switch model or cancel, all through the versioned ops entry ([task-queue.md](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md)); the footer turns red when merged ops code is not installed.
-
-</td>
-</tr>
-</table>
-
 ## Explore the system
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the code-graded scorecard; on phones, swipe between the six views and the tab rail follows the current page.
@@ -392,6 +398,7 @@ sidebar's folded rows (bottom-left in the shot above) open into this panel:
 - [**Examples by harness**](https://github.com/KCNyu/clawock/blob/master/examples/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness, plus the npm DSH plugin.
 - [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
 - [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) — every installed command, generated from the registries, plus the hand-written provider and harness detail.
+- [**Contributing**](https://github.com/KCNyu/clawock/blob/master/AGENTS.md#interactive-codexclaude-pr-workflow) — repository PR and CI workflow.
 - [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — current architecture, product guides, operations, reference, and legal notes.
 
 ### Research surfaces

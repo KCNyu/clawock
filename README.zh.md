@@ -31,7 +31,7 @@
 
 ## 日常运行流程
 
-每个交易日,clawock 把市场里的原始信息一路加工成可以打分的决策:
+开市前,你的港美股账本收到一份计划;交易中,卡片送到手机;之后,代码给判断打分。回到 dsh,还能打开一笔真实成交,对着当时的计划追问变化:
 
 - **收集**:8 层、44 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
 - **算因子**:量化因子、横截面排名、同业残差、趋势 × 波动率的杠杆刻度盘,全部由 Python 确定性计算。
@@ -40,23 +40,49 @@
 - **投递**:Python postflight 校验计划、记决策账、渲染简报,发布到微信、Telegram 与仪表盘。
 - **结算**:Python 按标准日线逐个 episode 结算,模型碰不到自己的分数,结果全部进公开战绩。
 
-<p align="center"><img src="site/assets/decision-pipeline.svg" width="600" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录"></p>
+<p align="center"><img src="site/assets/decision-pipeline.svg" width="600" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录;dsh 的 Decision Mind 展示真实成交、当时计划与 T+1 判定供追问,下单仍由人来"></p>
 
-## 开发流程
+## DeepSeek Harness 插件
 
-这张投研台由 Claude Code、Codex 与 OpenCode 经共享的 runner、记忆和规则文件开发。下面画的是代码改动怎么进仓库;上面画的是市场证据怎么变成可打分的决策。
+**交代任务、离开聊天、回来收结果。** `clawock-dsh` 把投资决策 skill、Decision Mind 标签页和 provider 面板带进 dsh 网页端。在装了 clawock **agent-dispatch** runner 的主机上,这块面板还让你随时看见并控制 Claude Code、Codex、OpenCode 这支后台团队。
 
-<p align="center"><img src="site/assets/harnesses.svg" width="600" alt="clawock 开发台 —— OpenClaw、DeepSeek Harness 与 clawock-patrol 服务都经同一个 agent-dispatch runner 发起任务;runner 给每个任务独立的 systemd unit,并负责仲裁:每个 agent 一把锁一条队列、巡检轮次排最后、按 agent 分运行槽、session 锁、额度等待时释放锁、被派发的 worker 不再二次派发。Claude Code、Codex 与 OpenCode 共用同一份 AGENTS.md、同一套记忆与 skills,用 append、result 与 review 互相接力,所有改动都走同一道 PR、必需 CI 与 squash-merge 闸进入 KCNyu/clawock"></p>
+下面的故事里,你在 dsh 聊天中委派仓库改动,把交付要求一起写明:PR、必需检查、合并、本机刷新和最终报告。runner 让任务独立跑完;插件让你随时看进度、改方向。
 
-<sub>多个 coding agent 共用这张开发台:一个 runner 仲裁任务,一份记忆与规则文件保持一致,一道 PR 闸接收改动——接线说明见 <a href="docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>。</sub>
+<p align="center"><img src="site/assets/harnesses.svg" width="600" alt="你的 dsh 后台团队:在聊天中委派仓库任务,agent-dispatch 为 Claude Code、Codex 或 OpenCode 启动独立 systemd 任务;真实插件截图显示额度和队列,可以调整排队任务与预算;agent 按任务要求完成 PR、必需 CI、squash-merge 和本机刷新;runner 尽力经微信和 Telegram 回传报告,送达回执与任务结果分开显示"></p>
 
-参与开发按 [AGENTS.md](AGENTS.md#interactive-codexclaude-pr-workflow) 的约定走:
+- **看清正在发生什么。** 订阅用量与重置时刻、provider 余额、各 agent 的真实队列、模型、用时和按 API 标价估算的费用,都在同一块面板。
+- **任务在跑,也能改方向。** 把排队任务往前移;在允许时修改下一次尝试的模型;调整截止时间与重试预算。点开任务书或日志,取消任务,或续跑未完成的会话。
+- **结果留得住。** 最近结束的任务把报告状态和微信/Telegram 送达回执分开。任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-1. 从当前 `origin/master` 建独立 worktree,分支用 `codex/<task>` 或 `claude/<task>`。live checkout 留在 `master`,供定时任务写运行数据。
-2. 修改、跑定向检查、commit、推任务分支、开 PR。GitHub Actions 跑全套;作者自查 diff,必需检查通过后才 squash-merge。
-3. 本机用 `ops/host/refresh_live.sh` 应用合并;`--check` 查看待刷新项。它更新 editable checkout,并安装需要刷新的副本。
+<details>
+<summary><b>展开完整队列截图</b> —— 真实主机上的插件</summary>
 
-PyPI/npm 发版面向外部安装:版本号和 changelog 先走 PR,再用对应的 `v<version>` tag 触发 release 工作流。本机刷新与包发版是两个步骤,见[发版手册](docs/operations/release.md)。
+<br>
+
+<p align="center"><img src="site/assets/dsh-dispatch-queue.png" width="400" alt="真实主机上的完整 provider 面板:Claude 和 Codex 额度窗口及各自队列,DeepSeek 与 MiniMax 余额,OpenCode 免费池,带通知回执的最近结束任务,巡检轮次和 ops 版本页脚"></p>
+
+侧栏是控制面;runner 执行任务,版本化 ops 入口审计每次 UI 写操作。仓库交付步骤由任务书约定。[队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
+
+</details>
+
+### 把同样的纪律带回交易
+
+例如问“0700.HK 能不能加点仓?”投资 skill 引导 agent 收集证据、进行多空辩论、写有边界的决策;Python 校验契约和资金算术。**Decision Mind** 让你点开一笔真实成交,顺着**计划 → 执行 → T+1 → 盈亏**往下看。没有计划、尚未判定都明说;USD 与 HKD 分开。轨迹只读,下单仍由你来。
+
+<p align="center"><img src="site/assets/dsh-decision-mind.png" width="820" alt="真实 dsh 网页端里的 Decision Mind:成交按日期分组,旁边显示配对计划与 T+1 判定;展开轨迹能看到当时计划、实际执行和结果"></p>
+
+### 装进你的 dsh 工作台
+
+需要 Python ≥3.11 和可用的 dsh web profile:
+
+```bash
+python -m pip install clawock
+dsh plugin --profile web add clawock-dsh
+mkdir -p ~/.dsh/skills
+cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
+```
+
+重启 web profile 后加载。rc.6 及以后必须复制 skill 才能发现它。后台队列控制还需要主机上的 runner 和 ops 入口;没装派发器时,面板显示 provider 额度与余额。[npm 包](https://www.npmjs.com/package/clawock-dsh) · [安装与队列配置](examples/dsh/packages/clawock-dsh/README.md)。
 
 ---
 
@@ -303,38 +329,9 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 <sub>由 <code>site/tools/shoot_openclaw_cron.js</code> 从主机真实的 <code>openclaw cron list --json</code> 渲染;任务 id、投递目标与 prompt 不出图。</sub>
 
-**Codex** 从 [`examples/codex/AGENTS.md`](examples/codex/AGENTS.md) 读同样的三步;**DeepSeek Harness** 有原生面板(见下一节)。不管对话在哪个 harness 里,判定都走同一条命令落账——`clawock record --source <harness>`(bear 与失效条件强制、情绪自认)——没有人手改 `decisions.jsonl`。
+**Codex** 从 [`examples/codex/AGENTS.md`](examples/codex/AGENTS.md) 读同样的三步;**DeepSeek Harness** 有[上面的原生面板](#deepseek-harness-插件)。不管对话在哪个 harness 里,判定都走同一条命令落账——`clawock record --source <harness>`(bear 与失效条件强制、情绪自认)——没有人手改 `decisions.jsonl`。
 
 **装完你得到三件事:** ① 每天 08:03 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟上线以来的实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
-
-## DeepSeek Harness 插件
-
-一条命令装好 investment-decision skill 和 dsh 网页端的两个原生面板——[npm](https://www.npmjs.com/package/clawock-dsh) · [包 README](examples/dsh/packages/clawock-dsh/README.md):
-
-```bash
-dsh plugin --profile web add clawock-dsh
-```
-
-**Decision Mind**——每一笔真实成交,旁边摆着当时写下的计划。主轴是 `portfolio.json` 的成交,每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`),卖出用 T+1 窗口内 `memory/bars/` 的规范收盘价判定卖飞/卖对,加仓判涨/跌。点开一条展开成**计划 → 执行 → T+1 → 盈亏**;没有计划的成交明说没有;USD/HKD 绝不混加。公开 dashboard 的 Reflect 卡片用另一套实现渲染同一份轨迹,由 `tests/test_decision_trace_parity.py` 钉在一起。
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind 插件——决策轨迹:真实成交挂接软配对决策与 T+1 判定,展开为 计划→执行→结果 时间线" width="860"></p>
-
-<table>
-<tr>
-<td width="46%" valign="top"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="360" alt="The whole sidebar provider panel on a live host: Claude and Codex subscription quota windows (5h and week, with reset times) above each agent's running task, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks with delivery receipts and cost, patrol rounds, and the ops footer / 真实主机上的整块侧栏 provider 面板:Claude 与 Codex 订阅额度窗口(5 小时与周,带重置时间)在各自运行中的任务上方,DeepSeek 与 MiniMax 余额,OpenCode 免费池,最近结束的任务(送达回执与费用),巡检轮次,以及 ops 页脚"></td>
-<td valign="top">
-
-**Provider 面板——额度、余额和任务队列在同一格。** 侧栏底部的折叠行(上图左下角)点开就是这块面板:
-
-- Claude 与 Codex 订阅的**额度窗口**——5 小时与每周用量,带重置时间。
-- DeepSeek 与 MiniMax 的**余额**;OpenCode 免费池和下一个模型。
-- 在跑着 clawock agent-dispatch 的主机上显示**派发队列**:各 agent 运行中与排队的任务,带模型、开始时刻、用时与费用。
-- **最近结束**的任务带微信/Telegram 送达回执,以及**巡检**轮次。
-- 点一行打开详情层——重试、调优先级、换模型或取消,全部经版本化的 ops 入口([task-queue.md](docs/architecture/task-queue.md));已合并但未装机时页脚变红。
-
-</td>
-</tr>
-</table>
 
 ## 逛一逛这套系统
 
@@ -343,6 +340,7 @@ dsh plugin --profile web add clawock-dsh
 - [**决策地图**](https://kcnyu.github.io/clawock/#reflect) —— Reflect 中并列展示决策与当时的信号快照、覆盖率及快照年龄([阅读说明](docs/decision-map.md))。
 - [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
 - [**命令参考**](docs/reference/commands.md) —— 全部 installed command(清单由 registry 生成)+ 手写的 provider 与 harness 细节。
+- [**参与开发**](AGENTS.md#interactive-codexclaude-pr-workflow) —— 仓库 PR 与 CI 流程。
 - [**项目文档**](docs/README.md) —— 当前架构、产品指南、运维、参考与法律说明。
 
 ### 研究入口

@@ -34,17 +34,17 @@ def _first_emoji(text):
     return None
 
 EN_H2 = [
-    "The operating flow", "The development flow",
+    "The operating flow", "The DeepSeek Harness plugin",
     "What this is", "How it works", "The information layer", "How it decides",
     "The debate", "The public scorecard", "What we tested, and what failed",
     "What the code enforces", "Daily rhythm", "Run it on your own book",
-    "The DeepSeek Harness plugin", "Explore the system", "Scope, disclaimer, and license",
+    "Explore the system", "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
-    "日常运行流程", "开发流程",
+    "日常运行流程", "DeepSeek Harness 插件",
     "这是什么", "怎么跑的", "信息层", "怎么做决策", "辩论", "公开战绩",
     "测了什么，什么没通过", "代码强制执行的规矩", "每日节奏",
-    "在你自己的账本上跑", "DeepSeek Harness 插件", "逛一逛这套系统", "范围、免责与许可",
+    "在你自己的账本上跑", "逛一逛这套系统", "范围、免责与许可",
 ]
 
 
