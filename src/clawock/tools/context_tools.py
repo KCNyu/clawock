@@ -5,9 +5,10 @@ only at user artifacts and data; it is never searched for executable Python.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import re
+from zoneinfo import ZoneInfo
 
 from clawock.context import brief as brief_context
 from clawock.decision import packet as brief_decision_packet
@@ -186,8 +187,16 @@ def slice_reference(value, *, ticker=None, since=None, as_of=None):
     occurrence at/before the slot's `as_of` (including the US overnight wrap).
     Rows without a publication time cannot belong to a since window.
     """
-    from clawock.evidence.live_sources import parse_time  # noqa: PLC0415
-    from clawock.sessions import HKT  # noqa: PLC0415
+    hkt = ZoneInfo('Asia/Hong_Kong')
+
+    def parse_time(stamp):
+        if isinstance(stamp, (int, float)):
+            return datetime.fromtimestamp(stamp, timezone.utc)
+        try:
+            parsed = datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
+        except ValueError:
+            return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=hkt)
 
     cutoff = None
     if since is not None:
@@ -196,7 +205,7 @@ def slice_reference(value, *, ticker=None, since=None, as_of=None):
         slot = parse_time(as_of)
         if slot is None:
             raise ToolError("a since window requires the context's slot timestamp")
-        slot = slot.astimezone(HKT)
+        slot = slot.astimezone(hkt)
         hour, minute = map(int, since.split(':'))
         cutoff = slot.replace(hour=hour, minute=minute, second=0, microsecond=0)
         if cutoff > slot:
@@ -226,7 +235,7 @@ def slice_reference(value, *, ticker=None, since=None, as_of=None):
             return None
         try:
             when = datetime.combine(slot.date(), datetime.strptime(
-                clock.group(1), '%H:%M').time(), tzinfo=HKT)
+                clock.group(1), '%H:%M').time(), tzinfo=hkt)
         except ValueError:
             return None
         return when - timedelta(days=1) if when > slot else when
