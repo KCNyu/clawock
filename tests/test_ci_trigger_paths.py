@@ -193,3 +193,59 @@ def test_the_heavy_lanes_are_not_gated_on_the_event_that_started_the_run():
     assert "if:" not in head, (
         "the detector must run on every event; gating it is what made the "
         "push-side lanes unreachable")
+
+
+def _static_contract_inputs():
+    """Find tracked paths referenced by Python tests/ops, across all directories.
+
+    The two CI lists can omit the same file and agree with each other. Discover
+    their inputs independently from literal paths and ROOT / 'dir' / 'file'
+    expressions, rather than limiting discovery to docs/ or site/assets/.
+    Dynamic paths still have their directory-specific contracts above.
+    """
+    import ast
+
+    tracked = set(_tracked())
+    readers = {}
+
+    def parts(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return [node.value]
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            return parts(node.left) + parts(node.right)
+        return []
+
+    for source in sorted(tracked):
+        if not source.startswith(('tests/', 'ops/')) or not source.endswith('.py'):
+            continue
+        for node in ast.walk(ast.parse((ROOT / source).read_text(encoding='utf-8'))):
+            if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+                candidate = '/'.join(parts(node))
+            elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                candidate = node.value
+            else:
+                continue
+            if candidate in tracked:
+                readers.setdefault(candidate, set()).add(source)
+    return readers
+
+
+def test_tracked_static_contract_inputs_run_ci():
+    readers = _static_contract_inputs()
+    assert readers, 'contract-input discovery found nothing'
+    bot = (ROOT / '.github/workflows/screenshot-refresh.yml').read_text(encoding='utf-8')
+    triggers = [p.replace('**', '*') for p in push_paths(WORKFLOW_PATH)]
+    # LICENSE/NOTICE are stage_site inputs, guarded by Pages' staging contract
+    # rather than the Python lane. Verify that exception against its real trigger.
+    pages = [p.replace('**', '*') for p in push_paths(ROOT / '.github/workflows/pages.yml')]
+    missing = {}
+    for name, sources in readers.items():
+        if any(fnmatch(name, p) for p in push_scope.DATA_GLOBS):
+            continue
+        if name.startswith('site/assets/') and name in bot:
+            continue
+        if name in {'LICENSE', 'NOTICE'} and any(fnmatch(name, p) for p in pages):
+            continue
+        if not push_scope.classify([name])['code'] or not any(fnmatch(name, p) for p in triggers):
+            missing[name] = sorted(sources)
+    assert missing == {}, f'tracked contract inputs bypass their tests: {missing}'

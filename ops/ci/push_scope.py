@@ -64,6 +64,8 @@ CODE_GLOBS = [
     "docs/*",
     ".github/workflows/*",
     ".github/actions/*",
+    # Issue chooser/templates are test inputs (public-entry contracts, #2240).
+    ".github/ISSUE_TEMPLATE/*",
     "skills/*",
     "site/tools/*",
     # Brand marks, icons and the README diagrams are read byte-for-byte by
