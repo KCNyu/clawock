@@ -66,6 +66,19 @@ CODE_GLOBS = [
     ".github/actions/*",
     "skills/*",
     "site/tools/*",
+    # Brand marks, icons and the README diagrams are read byte-for-byte by
+    # test_brand_assets / test_readme_diagrams; a change to only them ran
+    # nothing (#2215). `*` crosses `/`, so this covers icons/ and harness/.
+    # The screenshot bot's four outputs (dashboard.gif, social-card.png,
+    # shadow-backtest.png, dsh-decision-mind.png) stay out on purpose: that
+    # workflow validates them itself and its Sunday commit starts no CI.
+    "site/assets/*.svg",
+    "site/assets/icons/*",
+    # Hand-taken README screenshots (test_readme_renders_off_github resolves them).
+    "site/assets/claude-code-terminal.png",
+    "site/assets/decision-card-example.png",
+    "site/assets/dsh-dispatch-queue.png",
+    "site/assets/openclaw-cron.png",
     "examples/cli/*",
     "examples/profiles/*",
     "examples/claude-code/*",

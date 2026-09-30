@@ -78,6 +78,23 @@ def test_tracked_instruction_and_public_document_surfaces_run_ci():
                and any(fnmatch(name, p) for p in triggers) for name in names)
 
 
+def test_site_assets_run_ci_unless_the_screenshot_bot_writes_them():
+    """Found, not listed: every tracked file under site/assets/ outside the
+    css/js lanes and the data plane must start CI and light the code lane —
+    brand SVGs, icons and README diagrams are contracts (#2215). The only
+    exception is what screenshot-refresh.yml commits, which validates its own
+    outputs and whose Sunday push starts no CI by design."""
+    bot = (ROOT / ".github/workflows/screenshot-refresh.yml").read_text(encoding="utf-8")
+    names = [name for name in _tracked() if name.startswith("site/assets/")
+             and name.split("/")[2] not in {"css", "js", "data"}
+             and name not in bot]
+    assert len(names) >= 15
+    triggers = [p.replace("**", "*") for p in push_paths(WORKFLOW_PATH)]
+    missing = [name for name in names if not push_scope.classify([name])["code"]
+               or not any(fnmatch(name, p) for p in triggers)]
+    assert missing == []
+
+
 def test_no_push_path_matches_nothing_in_the_checkout():
     # A path that matches no file is not a gate. #399 moved the dashboard under
     # `site/` and left `assets/css/**`, `assets/js/**` and `index.html` behind:
