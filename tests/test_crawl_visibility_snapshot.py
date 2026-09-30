@@ -202,3 +202,16 @@ def test_every_workflow_is_parseable_yaml():
             yaml.safe_load(path.read_text(encoding="utf-8"))
         except yaml.YAMLError as error:  # pragma: no cover - the message is the test
             raise AssertionError(f"{path.name} is not parseable YAML: {error}") from error
+
+
+def test_the_indexed_pages_denominator_is_measured_from_the_sitemap():
+    # The card printed a hand-typed 「全站 107 条 URL」 while the sitemap had 121 (#2221).
+    xml = ('<?xml version="1.0"?><urlset>'
+           + "".join(f"<url><loc>https://example.test/p{i}.html</loc></url>" for i in range(121))
+           + "<url><loc></loc></url></urlset>")
+    assert crawl_visibility.published_url_count(xml) == 121
+    payload, _ = crawl_visibility.snapshot(_report(_daily("2026-09-08", 30), published_urls=121))
+    assert crawl_visibility.summary(payload)["url_count"] == 121
+    # A reading taken before the count existed says so rather than inventing one.
+    old, _ = crawl_visibility.snapshot(_report(_daily("2026-09-08", 30)))
+    assert crawl_visibility.summary(old)["url_count"] is None

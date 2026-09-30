@@ -112,3 +112,15 @@ def test_a_crossed_guard_is_fired_and_sorts_first_however_far_past(bundle):
         ("SPCH", True, "above"),
         ("SPCH", False, "below"),
     ]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_an_unheld_subject_is_named_once_and_its_words_translated(bundle):
+    # 「RKLB | rklb ma200 reclaim」: the who column fell back to the first token
+    # and the label repeated it with the rest of the raw key (#2211).
+    rows = _ordered_rows(bundle, {"rklb_ma200_reclaim": 81.19,
+                                  "us_10y_yield_alert": 5.24,
+                                  "hstech_breakdown": 4246})
+    labels = {(r["who"], r["label"]) for r in rows}
+    assert labels == {("RKLB", "200日线 收复"), ("US", "10年 收益率 预警"), ("恒科", "破位")}

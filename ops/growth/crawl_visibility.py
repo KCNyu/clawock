@@ -44,6 +44,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -109,6 +110,10 @@ def summary(payload: dict) -> dict:
         "impressions_28d": month.get("impressions"),
         "position": week.get("position"),
         "pages_with_impressions": latest.get("pages_with_impressions"),
+        # The denominator of the line above: URLs the site publishes. Measured,
+        # not typed into the card — a literal 107 fell 14 behind in 18 days
+        # (#2221). Absent on readings taken before it was measured.
+        "url_count": latest.get("published_urls"),
         "queries_reported": queries.get("reported"),
         "top_query": ((queries.get("top") or [{}])[0].get("query")),
         # Absent means Google has never fetched the sitemap. Carried into the
@@ -228,6 +233,7 @@ def snapshot(report: dict, previous: dict | None = None,
         # How many pages Google has ever shown anyone. One since June; the
         # number this whole panel is ultimately about.
         "pages_with_impressions": report["pages_with_impressions"],
+        "published_urls": report.get("published_urls"),
         "sitemap": (report["sitemaps"] or [{}])[0],
         "coverage": report["coverage"],
         # Fourteen days, not the query window: enough to see the shape of a
@@ -277,6 +283,19 @@ def _token(credentials_path: str) -> str:
         credentials_path, scopes=SCOPES)
     creds.refresh(gtr.Request())
     return creds.token
+
+
+def published_url_count(sitemap_xml: str) -> int:
+    """How many URLs the site publishes: the `<loc>` entries of its sitemap."""
+    return len(re.findall(r"<loc>\s*[^<\s]", sitemap_xml))
+
+
+def _published_urls() -> int | None:
+    try:
+        with urllib.request.urlopen(SITE + "sitemap.xml", timeout=45) as response:
+            return published_url_count(response.read().decode("utf-8", "replace"))
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return None
 
 
 def _call(url: str, token: str, payload: dict | None = None) -> dict:
@@ -349,6 +368,7 @@ def collect(token: str, days: int) -> dict:
         "clicks": rows[0].get("clicks", 0),
         "position": rows[0].get("position"),
         "pages_with_impressions": len(pages.get("rows") or []),
+        "published_urls": _published_urls(),
         "sitemaps": sitemaps,
         "coverage": coverage,
     }

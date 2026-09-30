@@ -25,6 +25,12 @@
       derisk:"强制减仓", force:"强制减仓", trigger:"触发", resist:"压力", resistance:"压力" };
     const FIRES_BELOW = ["stop", "breakdown", "derisk", "support", "floor"];
     const FIRES_ABOVE = ["breakout", "reclaim", "reentry", "resist", "resistance", "target"];
+    const WORDS = { hstech:"恒科", hsi:"恒指", book:"账面", us:"美", hk:"港", stop:"止损",
+      support:"支撑", breakdown:"破位", breakout:"突破", target:"目标", force:"强制",
+      derisk:"减仓", trim:"减仓", trigger:"触发", resist:"压力", resistance:"压力",
+      reclaim:"收复", reentry:"重回", floor:"底线", ma:"均线", low:"低点", high:"高点",
+      prior:"前", yield:"收益率", alert:"预警", date:"日期", next:"下次",
+      breakeven:"回本", chandelier:"吊灯" };
 
     function resolve(key) {
       const k = key.toLowerCase();
@@ -58,12 +64,19 @@
         return { cur: null, ccy:"%", who: h ? tok.toUpperCase() : null,
                  strip: (h ? [tok.toLowerCase()] : []).concat(["pct", "percent"]), isPct:true };
       if (h) return { cur: h.current_price, ccy: h.region === "hk" ? "HKD" : "USD", who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
-      return { cur: null, ccy:"", who: null, strip: [] };
+      // Unresolved subject: `who` falls back to this same first token, so strip
+      // it here too or the row reads 「RKLB | rklb ma200 reclaim」 (#2211).
+      return { cur: null, ccy:"", who: null, strip: [tok.toLowerCase()] };
     }
     const labelOf = (toks) => {
       const joined = toks.join("_");
       for (const k in LABELS) if (joined.includes(k)) return LABELS[k];
-      return toks.length ? toks.join(" ") : "触发位";
+      // No single label fits: say each word the way the WeChat card does
+      // (brief_render._LEVEL_WORDS, #2194) instead of echoing the raw key.
+      const words = toks.map(t => WORDS[t]
+        || (/^ma\d+$/.test(t) ? `${t.slice(2)}日线`
+          : /^\d+[dy]$/.test(t) ? t.slice(0, -1) + (t.endsWith("d") ? "日" : "年") : t));
+      return words.length ? words.join(" ") : "触发位";
     };
 
     // A level the plan left empty has nothing to watch; printed, it read 「null」
@@ -1359,7 +1372,10 @@
     const cells = [
       ["曝光 · 7 天", numText(sv.impressions), `28 天 ${numText(sv.impressions_28d)}`],
       ["点击 · 7 天", numText(sv.clicks), sv.clicks ? "有人点进来" : "没有点击"],
-      ["被收录的页", numText(sv.pages_with_impressions), "全站 107 条 URL"],
+      // 分母来自读数本身（sitemap 的 <loc> 数），不再手写：写死的 107 在 18 天里
+      // 落后了 14 条（#2221）。老读数没有这个字段，就不印分母。
+      ["被收录的页", numText(sv.pages_with_impressions),
+        sv.url_count == null ? "全站 URL 数未量" : `全站 ${numText(sv.url_count)} 条 URL`],
       ["平均排名", sv.position == null ? DASH : numText(sv.position),
         `${numText(sv.queries_reported)} 个搜索词有曝光`],
     ];

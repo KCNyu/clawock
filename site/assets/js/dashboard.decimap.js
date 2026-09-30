@@ -447,6 +447,8 @@
     el('dm-drawer-body').innerHTML = html;
     el('dm-drawer').classList.add('is-open');
     el('dm-drawer').setAttribute('aria-hidden', 'false');
+    // Before focus(): focus() on an inert element is a no-op.
+    el('dm-drawer').inert = false;
     el('dm-scrim').hidden = false;
     setBackgroundInert(true);
     el('dm-close').focus();
@@ -553,6 +555,10 @@
       drawerReturnFocus.focus();
     }
     drawerReturnFocus = null;
+    // Closed = out of the Tab order as well as the accessibility tree. With
+    // aria-hidden alone the off-screen 「×」 took a Tab stop no reader
+    // announced (#2220).
+    el('dm-drawer').inert = true;
   }
 
   function renderAll() { renderKpi(); renderActionBar(); renderBoard(); renderTimeline(); }
