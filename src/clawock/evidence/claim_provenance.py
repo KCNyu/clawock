@@ -24,6 +24,9 @@ claim is a percentage or p-value on a line that also names a backtest quantity
 (`maxDD`, `drawdown`, `CAGR`, `p =`, `improvement`, `totRet`). Prose that merely
 discusses a number without asserting it is exempted through the allowlist.
 
+A claim matches a card leaf named for the quantity its line names, within half a
+unit of the digit it is printed to (#2193) — not any number anywhere in the card.
+
 Fail-closed: a scanner error is a red gate, never "no claims found".
 """
 from __future__ import annotations
@@ -48,11 +51,40 @@ QUANTITY = re.compile(
     r'\b(?:(?:maxDD|max_drawdown|drawdown|CAGR|totRet|total_return|improvement|'
     r'p-value)\b|p\s*[=＝])', re.I)
 # -95%, +3.9pp, 0.92 after "p =" — a standalone `p`, not the tail of `vol_cap=0.50`.
-PERCENT = re.compile(r'([+-]?\d+(?:\.\d+)?)\s*(%|pp)')
+# A table cell writes a series once and puts the unit on its last member
+# (`drawdown −1.79 / −2.47 / −3.30 / −5.45%`); every member is a claim, not only
+# the one that carries the `%` (#2193).
+_NUMBER = r'[+\-−]?\d+(?:\.\d+)?'
+PERCENT = re.compile(rf'((?:{_NUMBER}\s*/\s*)*)({_NUMBER})\s*(%|pp)')
+# Which card leaves a percentage on a line may be matched against, by the
+# quantity the line names. The whole metrics tree used to be one bag: the
+# add-side campaign card holds 477 numbers and 393 of 401 possible claims
+# between -20% and +20% found one within tolerance (#2193), the percent-side
+# twin of #1960's p-value hole.
+FAMILIES = (
+    (re.compile(r'\b(?:maxDD|max_drawdown|drawdown)\b', re.I),
+     re.compile(r'drawdown|max_?dd', re.I)),
+    (re.compile(r'\bCAGR\b', re.I), re.compile(r'cagr', re.I)),
+    (re.compile(r'\b(?:totRet|total_return)\b', re.I),
+     re.compile(r'tot_?ret|total_return', re.I)),
+    (re.compile(r'\bimprovement\b', re.I), re.compile(r'improvement', re.I)),
+)
 PVALUE = re.compile(r'\bp\s*[=＝]\s*([01](?:\.\d+)?)', re.I)
 RUN_ID = re.compile(r'\b([a-z_]+-\d{8}-[0-9a-f]{8})\b')
 
-TOLERANCE = 0.006   # 0.6pp — prose rounds to one decimal
+TOLERANCE = 0.006   # 0.6pp — the loosest a claim is ever read
+
+
+def _tolerance(raw: str, kind: str) -> float:
+    """Half a unit of the claim's last printed digit, capped at TOLERANCE.
+
+    `-91.6%` claims a number that rounds to it (±0.05pp), `-95%` one within
+    ±0.5pp. A flat 0.6pp let `−1.79%` match anything from -1.19% to -2.39% on
+    a card with hundreds of leaves (#2193).
+    """
+    decimals = len(raw.split('.', 1)[1]) if '.' in raw else 0
+    unit = 10.0 ** -decimals / (100.0 if kind == 'percent' else 1.0)
+    return min(TOLERANCE, unit / 2 + 1e-6)
 
 
 def load_surfaces(path: Path | None = None) -> tuple[str, ...]:
@@ -100,6 +132,23 @@ def _numbers_in(node, acc: list, scale: float = 1.0) -> list:
     return acc
 
 
+def _keyed_numbers_in(node, key_re, acc: list, scale: float = 1.0,
+                      path: str = '') -> list:
+    """`_numbers_in`, restricted to leaves whose key path matches `key_re`."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            _keyed_numbers_in(value, key_re, acc,
+                              0.01 if 'pct' in str(key).lower() else scale,
+                              f'{path}.{key}')
+    elif isinstance(node, list):
+        for value in node:
+            _keyed_numbers_in(value, key_re, acc, scale, path)
+    elif (isinstance(node, (int, float)) and not isinstance(node, bool)
+          and key_re.search(path)):
+        acc.append(float(node) * scale)
+    return acc
+
+
 def _pvalues_in(node, acc: list) -> list:
     """Only measured p-value leaves, never drawdowns or grid parameters."""
     if isinstance(node, dict):
@@ -129,26 +178,44 @@ def scan_text(text: str, *, source: str) -> list[dict]:
         if not QUANTITY.search(line):
             continue
         values = []
-        for raw, unit in PERCENT.findall(line):
-            values.append((float(raw) / 100.0, 'percent'))
+        for series, last, unit in PERCENT.findall(line):
+            for raw in re.findall(_NUMBER, series) + [last]:
+                values.append((float(raw.replace('−', '-')) / 100.0, 'percent',
+                               _tolerance(raw, 'percent')))
         for raw in PVALUE.findall(line):
-            values.append((float(raw), 'pvalue'))
-        for value, kind in values:
+            values.append((float(raw), 'pvalue', _tolerance(raw, 'pvalue')))
+        keys = [key_re.pattern for word_re, key_re in FAMILIES if word_re.search(line)]
+        for value, kind, tolerance in values:
             claims.append({
                 'source': source, 'line': lineno, 'value': value, 'kind': kind,
+                'tolerance': tolerance,
                 'text': line.strip()[:120], 'cited': cited,
+                'keys': '|'.join(keys),
             })
     return claims
 
 
-def _matches_card(value: float, cards: list[dict], kind='percent') -> bool:
+def _matches_card(value: float, cards: list[dict], kind='percent', keys='',
+                  tolerance: float = TOLERANCE) -> bool:
+    """A percentage matches only leaves named for a quantity its line names.
+
+    A line with no such word (only `p =`) still reads the whole tree: that is
+    the claim shape the scanner accepted before #2193 and narrowing it would
+    need a word the line does not have.
+    """
+    key_re = re.compile(keys, re.I) if keys else None
     for card in cards:
-        numbers = (_pvalues_in(card.get('metrics'), []) if kind == 'pvalue'
-                   else _numbers_in(card.get('metrics'), []))
+        metrics = card.get('metrics')
+        if kind == 'pvalue':
+            numbers = _pvalues_in(metrics, [])
+        elif key_re is not None:
+            numbers = _keyed_numbers_in(metrics, key_re, [])
+        else:
+            numbers = _numbers_in(metrics, [])
         for number in numbers:
             difference = (abs(number - value) if kind == 'pvalue'
                           else abs(abs(number) - abs(value)))
-            if difference <= TOLERANCE:
+            if difference <= tolerance:
                 return True
     return False
 
@@ -187,7 +254,9 @@ def check(root: Path | None = None, cards_dir: Path | None = None,
                     f"{rel}:{claim['line']}: claims {claim['value']:+.4f} but the "
                     f"file cites no run card — {claim['text']}")
                 continue
-            if not _matches_card(claim['value'], cited_cards, claim['kind']):
+            if not _matches_card(claim['value'], cited_cards, claim['kind'],
+                                 claim.get('keys', ''),
+                                 claim.get('tolerance', TOLERANCE)):
                 problems.append(
                     f"{rel}:{claim['line']}: claims {claim['value']:+.4f}, which "
                     f"no cited run card contains — {claim['text']}")
@@ -211,7 +280,11 @@ def main(argv=None) -> int:
         for problem in problems:
             print(f'   · {problem}', file=sys.stderr)
         return 1 if args.check else 0
-    print(f'✅ backtest claims in {len(scanned)} file(s) resolve to stored run cards')
+    # The count, not only the file list: on #2185 six files were "resolved"
+    # while the newest surface had one of its 32 numbers read (#2193).
+    claims = sum(len(scan_text((WS / rel).read_text(), source=rel)) for rel in scanned)
+    print(f'✅ {claims} backtest claim(s) in {len(scanned)} file(s) resolve to '
+          f'stored run cards or the allowlist')
     return 0
 
 
