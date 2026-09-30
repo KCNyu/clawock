@@ -94,8 +94,9 @@ NOISE_LABELS = {NOISE_LABEL, "duplicate", "invalid", "wontfix"}
 
 # Per rolling 24h. P0 is never held back; everything over budget still goes to the digest.
 BUDGET = {"individual": 10, "P2": 5, "feature_7d": 2}
-DIGEST_FLUSH_ITEMS = 8
-DIGEST_FLUSH_AGE_S = 72 * 3600
+# About one digest a day: a replay of 09-21..30 routes ~18 findings a day to it on busy days.
+DIGEST_FLUSH_ITEMS = 15
+DIGEST_FLUSH_AGE_S = 24 * 3600
 CLUSTER_WINDOW_S = 14 * 86400
 
 
@@ -184,7 +185,13 @@ def infer(title, surface):
     if kind == "drift" and area not in ("docs", "security"):
         # "两份实现不一致" is drift too, but a doc-shaped title is the common case.
         area = "docs" if re.search(r"文档|README|docstring|--help|FAQ|docs/", text) else area
+    # P0 is never guessed; a P1 guess still has to pass assess()'s real-artifact evidence rule.
     sev = "P2"
+    if area in ("data", "risk", "delivery", "security") and (
+            MONEY_WORDS.search(text) or re.search(r"微信|投递|送达|发不出|漏发|重复投|补发|泄露|丢", text)):
+        sev = "P1"
+    elif kind in ("false-alarm", "gate-gap") and area in ("data", "risk", "delivery", "harness"):
+        sev = "P1"
     if area == "docs" or kind == "drift":
         sev = "P3"
     return {"severity": sev, "area": area, "kind": kind}

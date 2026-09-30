@@ -97,13 +97,13 @@ def test_fingerprint_groups_by_enclosing_function(tmp_path):
 def test_digest_flush_and_render_stay_under_githubs_body_cap():
     now = time.time()
     pending = [{"ts": now - 10, "title": f"[patrol] 小问题 {i}", "severity": "P3", "area": "docs", "kind": "drift",
-                "lens": "docs", "body": "x" * 20000} for i in range(9)]
+                "lens": "docs", "body": "x" * 20000} for i in range(15)]
     assert triage.should_flush(pending, now)
     assert not triage.should_flush(pending[:2], now)
-    assert triage.should_flush([dict(pending[0], ts=now - 73 * 3600)], now)
+    assert triage.should_flush([dict(pending[0], ts=now - 25 * 3600)], now)
     title, body, labels = triage.render_digest(pending, "2026-10-01")
-    assert title.startswith("[patrol] ") and "9 条" in title
-    assert len(body) < 65536 and body.count("- [ ] **小问题") == 9
+    assert title.startswith("[patrol] ") and "15 条" in title
+    assert len(body) < 65536 and body.count("- [ ] **小问题") == 15
     assert {"patrol", "patrol:digest", "severity:P3", "area:docs"} <= set(labels)
 
 
@@ -245,3 +245,10 @@ def test_regression_watch_reruns_old_checks_only_for_code_a_commit_touched(tmp_p
     out = patrol_intel.regression_watch([fixed(11), fixed(12)], "2000-01-01 00:00:00", patrol_intel.task_by_issue())
     assert len(out) == 1 and "#11" in out[0] and "src/a.py" in out[0], out
     assert (state / "regress/11.sh").read_text().startswith("python3 -c")
+
+
+def test_inference_guesses_p1_only_for_money_delivery_and_blind_gates():
+    assert triage.infer("[patrol] 微信卡把已实现盈亏印成 $0", "简报")["severity"] == "P1"
+    assert triage.infer("[patrol] 盘中 watchdog 对港股半日市失明，漏发不告警", "投递")["severity"] == "P1"
+    assert triage.infer("[patrol] 面板 hover 底色没定义", "面板")["severity"] == "P2"
+    assert triage.infer("[patrol] README 仍写 08:00", "站点静态页")["severity"] == "P3"

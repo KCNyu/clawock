@@ -647,7 +647,7 @@ if where == "digest":
     (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")   # later drafts dedupe against it
     record("digest")
     print(f"gate: PASS — {why}，已放进巡检汇总（{len(triage.read_jsonl(DIGEST_PENDING))} 条待发）。"
-          "这不是拒绝：发现保留，攒够或满 3 天合成一条 issue。")
+          "这不是拒绝：发现保留，攒够 15 条或最老一条满 24 小时合成一条 issue。")
     flush_digest()
     sys.exit(0)
 
