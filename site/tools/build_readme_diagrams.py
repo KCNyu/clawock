@@ -184,6 +184,55 @@ class D:
                  f'style="font-size:{size * .3:g}px;font-weight:700"><tspan fill="{FAINT}">{left}</tspan>'
                  f'<tspan fill="{INK}">{right}</tspan></text>')
 
+    def icon(self, name, x, y, role='blue', size=22):
+        """Original outline glyphs drawn for clawock (MIT), not provider logos.
+
+        Inline geometry keeps the hero self-contained in GitHub/PyPI <img>s.
+        Markets, sources and tools retain their written names beside the glyphs.
+        """
+        shapes = {
+            'market': '<path d="M3 9L12 3l9 6M4 21h16M6 10v8m6-8v8m6-8v8"/>',
+            'fx': '<path d="M4 8h15l-4-4M20 16H5l4 4M20 8v4M4 16v-4"/>',
+            'filing': '<path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6"/>',
+            'bars': '<path d="M3 21h18M6 17V9h3v8m3 0V4h3v13m3 0v-6h3v6"/>',
+            'news': '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h4v4H7Zm7 0h3m-3 4h3"/>',
+            'chat': '<path d="M4 4h13a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9l-5 4v-4a3 3 0 0 1-2-3V7a3 3 0 0 1 2-3Z"/><path d="M7 10h.01m5 0h.01m5 0h.01"/>',
+            'calendar': '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M7 14h3m4 0h3m-10 4h3"/>',
+            'factor': '<path d="M3 20h18M5 16l4-5 4 3 6-9"/><circle cx="9" cy="11" r="1.5"/><circle cx="13" cy="14" r="1.5"/>',
+            'gate': '<path d="M4 21V4h16v17M8 4v17m8-17v17M4 12h16M10 8l2 2 3-3"/>',
+            'shield': '<path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/>',
+            'debate': '<path d="M2 4h12v9H8l-4 3v-3H2ZM17 8h5v11h-2v3l-4-3h-5v-3"/>',
+            'up': '<path d="M4 19L19 4M10 4h9v9"/>',
+            'down': '<path d="M4 5l15 15M10 20h9v-9"/>',
+            'plane': '<path d="M2 11L22 3l-7 19-4-8ZM11 14L22 3"/>',
+            'dashboard': '<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20M7 3v5M6 17l4-4 4 2 4-4"/>',
+        }
+        self.add(f'<g class="hero-icon" data-icon="{name}" transform="translate({x:g} {y:g}) scale({size / 24:g})" '
+                 f'fill="none" stroke="{ROLE[role]}" stroke-width="1.7" stroke-linecap="round" '
+                 f'stroke-linejoin="round" aria-hidden="true">{shapes[name]}</g>')
+
+    def mini_charts(self, x, y, w):
+        """Schematic price, factor-rank and risk views; never plotted results."""
+        self.text(x, y, 'price · factor ranks · risk  /  schematic', 'm', fill=MUT)
+        xs, cw = columns(3, gap=10, x0=x, w=w)
+        for left, role in zip(xs, ('blue', 'green', 'warm')):
+            self.add(f'<rect x="{left:g}" y="{y + 10:g}" width="{cw:g}" height="42" rx="7" '
+                     f'fill="{TINT[role]}"/>')
+            self.add(f'<path d="M{left + 10:g} {y + 42:g}H{left + cw - 10:g}" '
+                     f'stroke="{CARD_STROKE}"/>')
+        # Each panel uses its own scale. Geometry is illustrative, with no axes or values.
+        points = [(0, 28), (.16, 21), (.32, 25), (.5, 11), (.65, 17), (.8, 8), (1, 12)]
+        path = ' '.join(f'{"M" if i == 0 else "L"}{xs[0] + 10 + t * (cw - 20):g} {y + 12 + v:g}'
+                        for i, (t, v) in enumerate(points))
+        self.add(f'<path d="{path}" fill="none" stroke="{ROLE["blue"]}" stroke-width="2"/>')
+        for i, height in enumerate((10, 18, 26, 14, 22)):
+            left = xs[1] + 13 + i * (cw - 26) / 5
+            self.add(f'<rect x="{left:g}" y="{y + 42 - height:g}" width="{(cw - 36) / 5:g}" '
+                     f'height="{height}" rx="2" fill="{ROLE["green"]}" fill-opacity=".7"/>')
+        for i, (role, fraction) in enumerate((('green', .8), ('blue', .55), ('warm', .3))):
+            self.add(f'<rect x="{xs[2] + 10:g}" y="{y + 18 + i * 9:g}" width="{(cw - 20) * fraction:g}" '
+                     f'height="5" rx="2.5" fill="{ROLE[role]}" fill-opacity=".7"/>')
+
     # --- connectors --------------------------------------------------------
     def wire(self, d, pulses=(0,), dur=2.2, arrow=True, color=LINE, pulse=None, dash=False):
         self.n += 1
@@ -805,8 +854,9 @@ def decision_pipeline():
           'exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, '
           'Reddit and influencer sentiment, and macro and catalyst calendars. It reconciles the book, '
           'computes portfolio risk (beta, volatility, drawdown), per-leg concentration, the leverage '
-          'regime dial, quant factors, cross-sectional ranks and peer residuals, and a factor only counts '
-          'once its bootstrap interval clears 50%. Code gates hold risk caps, the entry gate, earnings '
+          'regime dial, quant factors, cross-sectional ranks and peer residuals. Validated factor '
+          'authority requires a bootstrap interval clear of 50%; prospective activation and capped '
+          'exploration have separate rules. Code gates hold risk caps, the entry gate, earnings '
           'quality, thesis drift and the news evidence graph. A preflight hands the agents one context '
           'pack; four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge '
           'write plan.json. A postflight validates it, books it in memory/decisions.jsonl, renders the '
@@ -814,6 +864,7 @@ def decision_pipeline():
           'was executed (mark-followed), settles each episode on canonical bars, calibrates confidence, '
           'replays a shadow portfolio against buy and hold and publishes the scorecard, which the next '
           "brief reads. The model never grades itself.")
+    d.logo('clawock', W - M - 34, 26)
     y = d.header('EVERY TRADING DAY · HK + US',
                  ['Raw market data in,', 'graded decisions out'],
                  ['Python collects, computes, gates and settles;',
@@ -827,9 +878,12 @@ def decision_pipeline():
     y += 14
     h = 282
     d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 32, 'Market information', 'h')
+    d.icon('market', M + 20, y + 14)
+    d.text(M + 50, y + 32, 'Market information', 'h')
     d.tag(W - M - 16, y + 30, '44 MODULES · 8 LAYERS', 'blue', anchor='end')
-    yy = d.kv(M + 20, y + 62, 88, CW - 36, [
+    for j, name in enumerate(('market', 'market', 'fx', 'filing', 'bars', 'news', 'chat', 'calendar')):
+        d.icon(name, M + 18, y + 47 + j * 21, size=18)
+    yy = d.kv(M + 44, y + 62, 82, CW - 60, [
         ('HK quotes', [[('Tencent + Eastmoney', INK), (' → stooq → yfinance', MUT)]]),
         ('US quotes', [[('Nasdaq', INK), (' → 6 more routes, in order', MUT)]]),
         ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host → Yahoo', MUT)]]),
@@ -865,9 +919,10 @@ def decision_pipeline():
                   ('news-evidence', 1, 'expiring event graph'),
                   ('adds', 0, 'two independent evidence families')])]
     for i, (name, tag, rows) in enumerate(blocks):
-        h = 56 + len(rows) * 22
+        h = 56 + len(rows) * 22 + (78 if i == 0 else 0)
         d.card(M, y, CW, h, 'green')
-        d.text(M + 20, y + 32, name, 'h')
+        d.icon('factor' if i == 0 else 'gate', M + 20, y + 14, 'green')
+        d.text(M + 50, y + 32, name, 'h')
         d.tag(W - M - 16, y + 30, tag, 'green', anchor='end')
         for j, (key, cmd, what) in enumerate(rows):
             yy = y + 60 + j * 22
@@ -879,16 +934,20 @@ def decision_pipeline():
             fits(what, 'm', CW - 36 - 150, 'compute what')
             d.text(M + 170, yy, what, 'm')
         if i == 0:
+            d.mini_charts(M + 20, y + h - 62, CW - 40)
             top = y + h
             y = top + 12
     top = y + h
     y = top + 12
-    h = 70
+    h = 91
     d.card(M, y, CW, h, 'green', tint=True)
-    d.text(M + 20, y + 28, [('Backtest gate', INK)], 'b')
+    d.icon('shield', M + 20, y + 10, 'green')
+    d.text(M + 50, y + 28, [('Backtest gate', INK)], 'b')
     d.tag(W - M - 16, y + 27, 'BEFORE IT COUNTS', 'green', anchor='end')
-    d.lines(M + 20, y + 52, CW - 36, [[('a factor’s bootstrap interval must clear 50%', MUT)]],
-            cls='m', where='backtest')
+    d.lines(M + 20, y + 52, CW - 36,
+            ['validated authority: bootstrap CI clears 50%',
+             'prospective activation ≠ capped exploration'],
+            cls='m', lh=21, where='backtest')
     top = y + h
     y = top + 30
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
@@ -903,8 +962,9 @@ def decision_pipeline():
     d.section(y - 12, '03 · DECIDE')
     h = 344
     d.card(M, y, CW, h, 'slate')
-    d.text(M + 20, y + 32, 'Swarm debate', 'h')
-    d.tag(W - M - 16, y + 30, 'LLM · READS, NEVER FETCHES', 'slate', anchor='end')
+    d.icon('debate', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Swarm debate', 'h')
+    d.tag(W - M - 16, y + 30, 'LLM · READ ONLY', 'slate', anchor='end')
     d.text(M + 20, y + 58, 'four analyst lenses', 'm', fill=MUT)
     ix, iw = M + 16, CW - 32
     lx, lw = columns(4, gap=6, x0=ix, w=iw)
@@ -919,6 +979,7 @@ def decision_pipeline():
         d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="56" rx="10" fill="{TINT[role]}" '
               f'stroke="{CARD_STROKE}"/>')
         d.text(x + 14, by + 24, [(name, ROLE[role])], 'h')
+        d.icon('up' if name == 'Bull' else 'down', x + bw - 36, by + 10, role)
         fits(sub, 'm', bw - 24, 'bull bear')
         d.text(x + 14, by + 45, sub, 'm', fill=MUT)
     d.text(W / 2, by + 76, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
@@ -940,7 +1001,8 @@ def decision_pipeline():
     d.section(y - 12, '04 · DELIVER')
     h = 96
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Postflight', 'h')
+    d.icon('shield', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Postflight', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, [[('validates plan.json, books it in ', INK)],
                                       [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
@@ -951,12 +1013,19 @@ def decision_pipeline():
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
             ('WeChat', ['co-sent to', 'Telegram; a', 'watchdog checks']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
-    h = 122
+    h = 156
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
         d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
         d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='deliver')
+        if i == 0:
+            d.icon('filing', x + 16, y + 115, size=26)
+        elif i == 1:
+            d.icon('chat', x + 16, y + 115, size=26)
+            d.icon('plane', x + 52, y + 115, size=26)
+        else:
+            d.icon('dashboard', x + 16, y + 115, size=26)
     top = y + h
     y = top + 44
     d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
@@ -965,7 +1034,8 @@ def decision_pipeline():
     d.section(y - 12, '05 · SETTLE AND CALIBRATE')
     h = 244
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Graded by code', 'h')
+    d.icon('dashboard', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Graded by code', 'h')
     d.tag(W - M - 16, y + 30, 'THE MODEL NEVER SCORES', 'warm', anchor='end')
     rows = [('mark-followed', 'what was actually executed'),
             ('settle', 'canonical bars, per episode'),
