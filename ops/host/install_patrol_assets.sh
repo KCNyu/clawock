@@ -33,6 +33,8 @@ FILES=(
   rotation
   surfaces.json
   gate_issue.py
+  triage.py
+  filing.py
   file_issue.sh
   issue-context.py
   codemap.sh

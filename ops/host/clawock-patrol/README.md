@@ -17,7 +17,27 @@
 | `issue-format.md` | 模型 | 准备提报时：草稿格式、闸规则、拒绝后怎么办 |
 | `axes.tsv` / `rotation` / `surfaces.json` | supervisor / 闸 | 每轮读取，改了不用重启 |
 | `gate_issue.py` / `file_issue.sh` | 模型经 `file_issue.sh` 调用 | 提报时；唯一的开 issue 路径 |
+| `triage.py` | 闸 | 提报时：分级、标签、去向（单独 issue / 补充到同根因 issue / 汇总）、预算 |
+| `filing.py` | 闸；`flush-digest` / `ensure-labels` / `backfill` 手动用 | 打标签、合成汇总 issue、Telegram 一行 |
 | `issue-context.py` / `codemap.sh` / `build_codemap.py` | 模型 | 开工时查 open issue、代码地图 |
 | `clawock-patrol.service` | systemd | 改了要 `systemctl daemon-reload`，安装脚本不替你做 |
 
 让路与安装：仓库 `ops/host/README.md` § Patrol supervisor。
+
+## 分级与路由（2026-10-01）
+
+闸保证一条发现**是真的**；`triage.py` 决定它**值多少**、去哪。依据是 09-21 到 09-30 的 245 条 `[patrol]` issue：
+按 not planned 或无修复关闭的只有约 5%（闸管住了真假），但约三成是文档漂移、样式/对比度、CI 卫生这类小问题，
+各开一条、各修一个 PR；19 条是同一根因被修了一处后的第二、第三条（`#2171` → `#2179` 这种）；单日最多 57 条。
+
+- **分级**：草稿写 `## 分级`（严重度 / 领域 / 类型 / 关联），缺了按标题推断。闸只降不拒：P0/P1 必须拿今天的真实产物
+  作证，文档与纯样式压到 P3，基础设施面最高 P2，最近被反复按误报关闭的类别压到 P3。规则表在 `issue-format.md`。
+- **去向**：P0 总是单独开；P1/P2 在 24 小时预算内单独开（`triage.BUDGET`），超出进汇总；P3 进汇总；`关联:` 指向
+  open issue 或与 14 天内 open 的巡检 issue 同一「文件 + 函数 + 领域」时，作为补充评论挂过去（Sentry 式指纹）。
+  汇总存 `/root/logs/clawock-patrol/digest/pending.jsonl`，满 8 条或最老一条满 3 天由闸合成一条
+  `[patrol] 巡检汇总 …` issue（Renovate 的 Dependency Dashboard 同款），每条带完整证据折叠块。
+- **标签**：`patrol`、`severity:P0–P3`、`area:*`、`kind:*`、`lens:<axis>`、`patrol:digest`，以及给关闭者用的
+  `patrol:noise`。`filing.py ensure-labels` 建全套，`filing.py backfill` 给存量补标签。
+- **反馈回路**：闸读 `/root/logs/clawock-patrol/feedback.json` 的 `noisy`（被多次按 not planned / `patrol:noise`
+  关闭的「领域/类型」）并把它们压到 P3；生成它的统计在后续改动里接上。
+- **关闭巡检 issue 的人**：不成立或不值得修，请以 not planned 关闭或加 `patrol:noise`，这是反馈回路唯一的输入。

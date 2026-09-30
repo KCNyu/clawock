@@ -66,6 +66,11 @@ path (its `README.md` says who reads which file when). It is installed by
 `--check`, `--rollback` undoes only the last install), and `refresh_live.sh`
 runs it whenever `--check` fails. Nothing restarts: every round rereads them. A
 changed unit file still needs `systemctl daemon-reload` and a restart by hand.
+Findings are graded and routed by `triage.py` (severity with evidence, labels, a
+digest issue for P3 and over-budget findings, one issue per root cause); the
+rules are in that directory's `README.md` § 分级与路由. When closing a patrol
+issue as untrue or not worth fixing, close it as not planned or add
+`patrol:noise`: that is the feedback loop's only input.
 Only kcn's standing instructions (`steer.md`, written by `patrol.sh steer`) and
 the state under `/root/logs/clawock-patrol/` stay on the host: the first is a
 live operator note, the second is run state. Prompt and gate changes go through

@@ -35,7 +35,7 @@ from pathlib import Path
 
 LOGDIR = Path(os.environ.get("PATROL_STATE", "/root/logs/clawock-patrol"))
 WORK = Path(os.environ.get("PATROL_WORKTREE", "/root/wt-patrol"))
-TOOL = Path("/root/tools/clawock-patrol")
+TOOL = Path(__file__).resolve().parent   # /root/tools/clawock-patrol once installed
 PREFIX = "[patrol]"
 # Round prompts ask for at most two issues; this caps a model that ignores it.
 DAILY_CAP = int(os.environ.get("PATROL_DAILY_CAP", "999"))
@@ -43,6 +43,12 @@ CREATED = LOGDIR / "filed" / "created.tsv"
 SNAPSHOT = LOGDIR / "issue_snapshot.json"
 REJECTIONS = LOGDIR / "gate-rejections.log"
 REPO = "KCNyu/clawock"
+INDEX = LOGDIR / "filed" / "index.jsonl"          # every routed finding: issue / comment / digest
+DIGEST_PENDING = LOGDIR / "digest" / "pending.jsonl"
+LENS_TASK = os.environ.get("AGENT_DISPATCH_TASK_ID", "-")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import triage  # noqa: E402  (severity, labels, routing — see triage.py)
+from filing import ensure_labels, flush_digest, telegram  # noqa: E402  (the gh/Telegram side)
 RED_TIMEOUT = int(os.environ.get("RED_CHECK_TIMEOUT", "240"))
 
 # A red-check runs unsandboxed as root. It is meant to read the worktree and
@@ -221,6 +227,52 @@ if not (re.search(r"#\d+", _closed) or "无同形态" in _closed):
     _missing.append("`对照已关:` 要写最像的已关 issue 号，或「无同形态」")
 if _missing:
     die("`## 反证自查` 不完整：\n  " + "\n  ".join(_missing))
+
+# ── 0.9 feature proposals (peers lens only) ─────────────────────────────────────────────────
+# kcn 2026-10-01: patrol should also learn from comparable open-source projects and propose
+# features. The 08-28 competitor-port loop did that without limits: 55 issues in ten hours, 31
+# closed not planned, all on product shape. So a proposal must come from the peers round, cite
+# a live upstream repository and a real clawock pain, stay inside the product boundary, and it
+# is capped per week in triage.route().
+LENS = triage.lens_of(LENS_TASK)
+_declared = triage.parse_declared(body)
+if _declared["kind"] == "feature":
+    if LENS not in ("peers", "manual"):
+        die(f"`类型: feature` 只在 peers（开源同类对标）轮提；这是 {LENS} 轮。现有功能今天坏了用 bug/gate-gap/drift；"
+            "想要的新功能写进 ledger「候选」。")
+    if not re.search(r"^#{1,4}\s*同类对标\s*$", body, re.M):
+        die("功能提案缺 `## 同类对标` 一节：\n"
+            "  来源: <https://github.com/<owner>/<repo>/…（README/CHANGELOG/issue/源码的具体链接，可多条）>\n"
+            "  痛点: <#N —— clawock 里这类问题真实发生过的 issue/PR>\n"
+            "  契合: <为什么落在 clawock 的边界里（决策工作流 + 可验证 harness，港美股现金个股，不下单）>")
+    _src = _field("来源")
+    _repos = sorted(set(re.findall(r"https://github\.com/([\w.-]+/[\w.-]+)", _src)))
+    if not _repos:
+        die("`来源:` 里没有 https://github.com/<owner>/<repo> 链接。对标要能点开核对。")
+    _stale = []
+    for _r in _repos[:4]:
+        _q = subprocess.run(["gh", "api", f"repos/{_r}", "-q", "[.archived, .pushed_at] | @tsv"],
+                            capture_output=True, text=True, timeout=60)
+        if _q.returncode != 0 or not _q.stdout.strip():
+            _stale.append(f"{_r}：查不到")
+            continue
+        _arch, _pushed = (_q.stdout.strip().split("\t") + [""])[:2]
+        if _arch == "true" or _pushed[:10] < time.strftime("%Y-%m-%d", time.gmtime(time.time() - 365 * 86400)):
+            _stale.append(f"{_r}：已归档或一年没有提交（pushed_at {_pushed[:10]}）")
+    if len(_stale) == len(_repos[:4]):
+        die("`来源:` 的仓库都不是活跃维护的（kcn 的研究偏好：只借仍在维护的实现，并写明最近维护日期）：\n  "
+            + "\n  ".join(_stale))
+    _pain = re.findall(r"#(\d{1,6})", _field("痛点"))
+    _pain_ok = [n for n in _pain[:3] if subprocess.run(
+        ["gh", "api", f"repos/{REPO}/issues/{n}", "-q", ".number"], capture_output=True, text=True,
+        timeout=60).returncode == 0]
+    if not _pain_ok:
+        die("`痛点:` 要给一条 clawock 里真实存在的 issue/PR（#N），说明这个缺口真的害到过 kcn。"
+            "没有发生过的痛点，提案就是方向性建议（closed-lessons 第 8 条）。")
+    _scope = triage.OUT_OF_SCOPE.search(title + "\n" + _field("契合"))
+    if _scope:
+        die(f"提案落在产品边界外（匹配「{_scope.group(0)}」）：clawock 不下单、不做执行/做市/加密/合规报送。"
+            "08-28 的 competitor-port 就是这样关掉 31 条的。")
 
 # ── 1. file:line must resolve ────────────────────────────────────────────────
 refs = FILE_LINE.findall(body)
@@ -519,6 +571,53 @@ if hits:
         "\n".join(hits[:8]) + "\n\n要么补证据到原 issue，要么写清楚新载体在哪、"
         "并让标题不再是同一句话。")
 
+# ── 3.5 triage: severity, labels, and where the finding goes ────────────────────────────────
+# Never a rejection: the finding is true by now. A level the evidence does not carry is lowered
+# and the reason is written into the issue; P3 and over-budget findings go to the digest.
+index_rows = triage.read_jsonl(INDEX)
+closed_nums, open_nums = set(), set()
+for _i in existing:
+    (open_nums if _i.get("state") == "OPEN" else closed_nums).add(_i.get("number"))
+_noisy = set()
+try:
+    _noisy = {tuple(x) for x in json.loads((LOGDIR / "feedback.json").read_text(encoding="utf-8")).get("noisy", [])}
+except Exception:
+    pass
+verdict = triage.assess(title=title, body=body, surface=surface, infra_label=INFRA_LABEL, refs=refs,
+                        red=red, lens=LENS, noisy=_noisy)
+fp = triage.fingerprint(refs, WORK)
+target = None
+for _n in verdict.related:
+    if _n in open_nums:
+        target = _n
+        break
+    if _n in closed_nums and verdict.kind in ("bug", "gate-gap"):
+        verdict.notes.append(f"关联的 #{_n} 已关闭：按 regression 记")
+        verdict.kind = "regression"
+if target is None and verdict.severity != "P0":
+    target = triage.cluster_target(index_rows, fp, verdict.area, open_nums)
+    if target:
+        verdict.notes.append(f"与 open 的 #{target} 同一处代码（{fp}）")
+where, why = ("comment", f"同根因，补充到 #{target}") if target else triage.route(verdict, index_rows)
+print(f"gate: triage {verdict.severity} area:{verdict.area} kind:{verdict.kind} lens:{verdict.lens} → {where}"
+      + (f"（{why}）" if why else "") + "".join(f"\n  - {n}" for n in verdict.notes)
+      + (f"\n  （草稿没写 {'/'.join(verdict.inferred)}，按规则推断；以后在 `## 分级` 里写明）" if verdict.inferred else ""),
+      file=sys.stderr)
+triage_block = (
+    f"\n\n> 巡检分级：**{verdict.severity}** · `area:{verdict.area}` · `kind:{verdict.kind}` · `lens:{verdict.lens}`"
+    + "".join(f"\n> - {n}" for n in verdict.notes)
+    + "\n> 不成立或不值得修：请以 not planned 关闭或加 `patrol:noise` —— 巡检的反馈回路据此给这一类降权。"
+)
+
+
+def record(route_name, number=None, url=""):
+    triage.append_jsonl(INDEX, {
+        "ts": int(time.time()), "route": route_name, "number": number, "url": url, "title": title,
+        "severity": verdict.severity, "area": verdict.area, "kind": verdict.kind, "lens": verdict.lens,
+        "fingerprint": fp, "task": LENS_TASK, "draft": DRAFT.name,
+    })
+
+
 # ── 4. file it ───────────────────────────────────────────────────────────────
 footer = (
     "\n\n---\n\n"
@@ -531,45 +630,59 @@ footer = (
 )
 final = LOGDIR / "filed" / (DRAFT.name + ".body")
 final.parent.mkdir(parents=True, exist_ok=True)
-final.write_text(body[title_match.end():].lstrip() + footer, encoding="utf-8")
+final.write_text(body[title_match.end():].lstrip() + triage_block + footer, encoding="utf-8")
 
 if os.environ.get("GATE_DRY_RUN"):
-    print(f"gate: DRY RUN — 会提的标题是：{title}\n  body: {final}", file=sys.stderr)
+    _what = {"issue": "单独提", "comment": f"补充到 #{target}", "digest": "放进汇总"}[where]
+    print(f"gate: DRY RUN — 会{_what}："
+          f"{title}\n  labels: {' '.join(verdict.labels())}\n  body: {final}", file=sys.stderr)
     sys.exit(0)
 
-r = subprocess.run(["gh", "issue", "create", "-R", REPO,
-                    "--title", title, "--body-file", str(final)],
-                   capture_output=True, text=True)
+if where == "digest":
+    triage.append_jsonl(DIGEST_PENDING, {
+        "ts": int(time.time()), "title": title, "severity": verdict.severity, "area": verdict.area,
+        "kind": verdict.kind, "lens": verdict.lens, "why": why, "draft": DRAFT.name,
+        "body": final.read_text(encoding="utf-8"),
+    })
+    (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")   # later drafts dedupe against it
+    record("digest")
+    print(f"gate: PASS — {why}，已放进巡检汇总（{len(triage.read_jsonl(DIGEST_PENDING))} 条待发）。"
+          "这不是拒绝：发现保留，攒够或满 3 天合成一条 issue。")
+    flush_digest()
+    sys.exit(0)
+
+if where == "comment":
+    note = LOGDIR / "filed" / (DRAFT.name + ".comment")
+    note.write_text(f"**巡检补充（同根因）：{title.removeprefix(PREFIX).strip()}**\n\n"
+                    + final.read_text(encoding="utf-8"), encoding="utf-8")
+    r = subprocess.run(["gh", "issue", "comment", str(target), "-R", REPO, "--body-file", str(note)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        die("gh issue comment 失败", r.stdout + r.stderr)
+    url = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else f"#{target}"
+    (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")
+    record("comment", target, url)
+    print(f"gate: PASS — 同根因，补充到 #{target}：{url}")
+    sys.exit(0)
+
+labels = verdict.labels()
+ensure_labels(labels)
+args = ["gh", "issue", "create", "-R", REPO, "--title", title, "--body-file", str(final)]
+for lab in labels:
+    args += ["--label", lab]
+r = subprocess.run(args, capture_output=True, text=True)
+if r.returncode != 0:
+    # A label problem must not lose a verified finding: file it bare and say so.
+    print(f"gate: filing with labels failed ({(r.stdout + r.stderr)[-200:]}); retrying without labels", file=sys.stderr)
+    r = subprocess.run(args[:9], capture_output=True, text=True)
 if r.returncode != 0:
     die("gh issue create 失败", r.stdout + r.stderr)
 url = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else "(no url)"
-print(f"gate: PASS — filed {url}")
+print(f"gate: PASS — filed {url} [{verdict.severity}]")
 (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")   # later drafts dedupe against it
 with CREATED.open("a", encoding="utf-8") as f:
-    f.write(f"{int(time.time())}\t{DRAFT.name}\t{title}\t{url}\t{os.environ.get('AGENT_DISPATCH_TASK_ID', '-')}\n")
-# One short Telegram line per filed issue (kcn 2026-09-26: patrol traffic is Telegram-only;
-# WeChat drops silently on a cold session); the daily cap bounds how many that can be.
-# A failed send is reported, never silent (review 2026-09-26: the return code was ignored, so a
-# missing TELEGRAM_TARGET or a gateway error looked like a delivered alert). The issue is filed
-# either way; the notification never changes the gate's verdict. The send goes through
-# clawock's delivery provider, which sets the runtime's PATH and gateway timeout and honours
-# CLAWOCK_DELIVERY_DISABLED. This file is installed outside any checkout, so it imports clawock
-# from the patrol's own worktree (origin/master), not from whatever python3 happens to find.
-try:
-    _CHECKOUT = WORK
-    sys.path.insert(0, str(_CHECKOUT))
-    sys.path.insert(0, str(_CHECKOUT / "src"))
-    conf = dict(l.split("=", 1) for l in Path("/root/tools/agent-dispatch/notify.env").read_text().splitlines()
-                if "=" in l and not l.lstrip().startswith("#"))
-    target = conf.get("TELEGRAM_TARGET", "").strip().strip("'\"")
-    if not target:
-        print("gate: notify skipped (TELEGRAM_TARGET not configured)", file=sys.stderr)
-    else:
-        from clawock.providers.delivery import OpenClawDelivery
-        sent = OpenClawDelivery(timeout=60).send(
-            conf.get("TELEGRAM_CHANNEL", "telegram").strip().strip("'\"") or "telegram", target,
-            f"🔎 clawock 巡检开了 issue：{title}\n{url}")
-        if sent.status == "failed":
-            print(f"gate: notify failed ({sent.detail[-200:]})", file=sys.stderr)
-except Exception as e:
-    print(f"gate: notify failed ({e})", file=sys.stderr)
+    f.write(f"{int(time.time())}\t{DRAFT.name}\t{title}\t{url}\t{LENS_TASK}\n")
+_m = re.search(r"/issues/(\d+)", url)
+record("issue", int(_m.group(1)) if _m else None, url)
+telegram(f"🔎 clawock 巡检 {verdict.severity}：{title}\n{url}")
+flush_digest()
