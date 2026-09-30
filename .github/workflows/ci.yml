@@ -53,6 +53,14 @@ on:
       # detector lane and in no syntax check: the only thing that ever ran it
       # was the weekly screenshot-refresh cron, which commits its output.
       - 'site/tools/**'
+      # Brand/icon/diagram assets the suite reads as contracts (#2215); the
+      # screenshot bot's PNG/GIF outputs stay out (push_scope.CODE_GLOBS).
+      - 'site/assets/**.svg'
+      - 'site/assets/icons/**'
+      - 'site/assets/claude-code-terminal.png'
+      - 'site/assets/decision-card-example.png'
+      - 'site/assets/dsh-dispatch-queue.png'
+      - 'site/assets/openclaw-cron.png'
       # The Decision Studio plugin sources were watched by the detector but
       # missing here, so a plugin-only master push started nothing on master;
       # the contracts only ever ran on PRs. Closing that hole (#884).
