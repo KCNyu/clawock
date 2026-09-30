@@ -796,8 +796,200 @@ def debate_flow():
             cls='m', lh=19, where='notes')
     return d.render(y + 20 + M)
 
+# ---------------------------------------------------------------------------
+def decision_pipeline():
+    """site/assets/decision-pipeline.svg — README hero: one trading day, raw data to a graded call."""
+    d = D('clawock decision pipeline — collect, compute and gate, debate, deliver, settle and calibrate',
+          'Every trading day Python collects quotes through ordered fallback chains (HK Tencent plus '
+          'Eastmoney, then stooq, then yfinance; US through a seven-route chain; USD/HKD Frankfurter, '
+          'exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, '
+          'Reddit and influencer sentiment, and macro and catalyst calendars. It reconciles the book, '
+          'computes portfolio risk (beta, volatility, drawdown), per-leg concentration, the leverage '
+          'regime dial, quant factors, cross-sectional ranks and peer residuals, and a factor only counts '
+          'once its bootstrap interval clears 50%. Code gates hold risk caps, the entry gate, earnings '
+          'quality, thesis drift and the news evidence graph. A preflight hands the agents one context '
+          'pack; four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge '
+          'write plan.json. A postflight validates it, books it in memory/decisions.jsonl, renders the '
+          'brief card, sends WeChat and Telegram and publishes the dashboard. Python then records what '
+          'was executed (mark-followed), settles each episode on canonical bars, calibrates confidence, '
+          'replays a shadow portfolio against buy and hold and publishes the scorecard, which the next '
+          "brief reads. The model never grades itself.")
+    y = d.header('EVERY TRADING DAY · HK + US',
+                 ['Raw market data in,', 'graded decisions out'],
+                 ['Python collects, computes, gates and settles;',
+                  'the agents only argue over the pack it assembles.'],
+                 [('fetch · deliver', 'blue'), ('python · code gate', 'green'), ('agents · LLM', 'slate'),
+                  ('never self-graded', 'warm')])
+
+    # 01 collect
+    y += 34
+    d.section(y, '01 · COLLECT')
+    y += 14
+    h = 282
+    d.card(M, y, CW, h, 'blue')
+    d.text(M + 20, y + 32, 'Market information', 'h')
+    d.tag(W - M - 16, y + 30, '44 MODULES · 8 LAYERS', 'blue', anchor='end')
+    yy = d.kv(M + 20, y + 62, 88, CW - 36, [
+        ('HK quotes', [[('Tencent + Eastmoney', INK), (' → stooq → yfinance', MUT)]]),
+        ('US quotes', [[('Nasdaq', INK), (' → 6 more routes, in order', MUT)]]),
+        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host → Yahoo', MUT)]]),
+        ('filings', [[('SEC EDGAR + XBRL · HKEXnews', INK)]]),
+        ('fundflow', [[('Eastmoney daily capital flow', INK)]]),
+        ('news', [[('Eastmoney · Finnhub · Google News · 10jqka', INK)]]),
+        ('sentiment', [[('Reddit · influencer radar', INK)]]),
+        ('macro', [[('major indices · catalyst calendar', INK)]]),
+    ], lh=21)
+    d.add(f'<path d="M{M + 20:g} {yy - 6:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
+    d.lines(M + 20, yy + 14, CW - 36, [[('One throttled Eastmoney gateway; an empty fetch', MUT)],
+                                       [('keeps the prior value instead of a blank.', MUT)]],
+            cls='m', lh=19, where='collect note')
+    top = y + h
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(0, 1.1))
+
+    # 02 compute and gate
+    d.section(y - 12, '02 · COMPUTE AND GATE')
+    blocks = [('Factors + risk', 'PYTHON', [
+                  ('reconcile', 1, 'money and FX must balance'),
+                  ('portfolio-risk', 1, 'β · volatility · drawdown'),
+                  ('concentration', 0, 'HHI + top-2, per leg'),
+                  ('regime', 1, 'trend × volatility leverage dial'),
+                  ('quant', 1, 'trend, momentum, risk factors'),
+                  ('cross-factor', 1, 'sector-neutral ranks'),
+                  ('peer-residual', 1, 'move vs curated peers')]),
+              ('Gates', 'CODE, NOT PROSE', [
+                  ('risk', 1, 'caps + a durable breach ledger'),
+                  ('entry-gate', 1, 'a new name, before research'),
+                  ('earnings', 1, 'quality from ≥4 periods'),
+                  ('thesis', 1, 'moves only on new evidence'),
+                  ('news-evidence', 1, 'expiring event graph'),
+                  ('adds', 0, 'two independent evidence families')])]
+    for i, (name, tag, rows) in enumerate(blocks):
+        h = 56 + len(rows) * 22
+        d.card(M, y, CW, h, 'green')
+        d.text(M + 20, y + 32, name, 'h')
+        d.tag(W - M - 16, y + 30, tag, 'green', anchor='end')
+        for j, (key, cmd, what) in enumerate(rows):
+            yy = y + 60 + j * 22
+            if cmd:
+                d.text(M + 20, yy, key, 'code', fill=ROLE['green'])
+            else:
+                d.text(M + 20, yy, key, 'm', fill=MUT)
+            fits(key, 'code', 146, 'compute key')
+            fits(what, 'm', CW - 36 - 150, 'compute what')
+            d.text(M + 170, yy, what, 'm')
+        if i == 0:
+            top = y + h
+            y = top + 12
+    top = y + h
+    y = top + 12
+    h = 70
+    d.card(M, y, CW, h, 'green', tint=True)
+    d.text(M + 20, y + 28, [('Backtest gate', INK)], 'b')
+    d.tag(W - M - 16, y + 27, 'BEFORE IT COUNTS', 'green', anchor='end')
+    d.lines(M + 20, y + 52, CW - 36, [[('a factor’s bootstrap interval must clear 50%', MUT)]],
+            cls='m', where='backtest')
+    top = y + h
+    y = top + 30
+    d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
+           'm', anchor='middle')
+    fits('preflight → one context pack per run', 'm', CW, 'preflight label')
+    loop_y = y - 3
+    d.down(W / 2, top, y - 14, arrow=False, pulses=())
+    y += 60
+    d.down(W / 2, y - 52, y, pulses=(0, 1.1), pulse=ROLE['slate'])
+
+    # 03 decide
+    d.section(y - 12, '03 · DECIDE')
+    h = 344
+    d.card(M, y, CW, h, 'slate')
+    d.text(M + 20, y + 32, 'Swarm debate', 'h')
+    d.tag(W - M - 16, y + 30, 'LLM · READS, NEVER FETCHES', 'slate', anchor='end')
+    d.text(M + 20, y + 58, 'four analyst lenses', 'm', fill=MUT)
+    ix, iw = M + 16, CW - 32
+    lx, lw = columns(4, gap=6, x0=ix, w=iw)
+    for x, name in zip(lx, ('fundamental', 'technical', 'sentiment', 'sector')):
+        d.chip(x, y + 68, lw, name)
+    ry = y + 98
+    d.down(W / 2, ry, ry + 24, pulses=(0,), dur=1.6, pulse=ROLE['slate'])
+    bx, bw = columns(2, gap=8, x0=ix, w=iw)
+    by = ry + 26
+    for x, (name, role, sub) in zip(bx, (('Bull', 'green', 'builds the case for'),
+                                         ('Bear', 'warm', 'attacks the consensus'))):
+        d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="56" rx="10" fill="{TINT[role]}" '
+              f'stroke="{CARD_STROKE}"/>')
+        d.text(x + 14, by + 24, [(name, ROLE[role])], 'h')
+        fits(sub, 'm', bw - 24, 'bull bear')
+        d.text(x + 14, by + 45, sub, 'm', fill=MUT)
+    d.text(W / 2, by + 76, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
+    vy = by + 90
+    d.down(W / 2, vy, vy + 22, pulses=(.5,), dur=1.6, pulse=ROLE['slate'])
+    d.text(M + 20, vy + 42, 'three risk voices', 'm', fill=MUT)
+    vx, vw = columns(3, gap=6, x0=ix, w=iw)
+    for x, name in zip(vx, ('aggressive', 'conservative', 'neutral')):
+        d.chip(x, vy + 52, vw, name)
+    jy = vy + 114
+    d.text(M + 20, jy, [('Judge', INK), (' names the strategy frame → ', MUT), ('plan.json', ROLE['slate'])],
+           'b')
+    fits('Judge names the strategy frame → plan.json', 'b', CW - 36, 'judge')
+    top = y + h
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
+
+    # 04 deliver
+    d.section(y - 12, '04 · DELIVER')
+    h = 96
+    d.card(M, y, CW, h, 'green')
+    d.text(M + 20, y + 32, 'Postflight', 'h')
+    d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36, [[('validates plan.json, books it in ', INK)],
+                                      [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
+            lh=21, where='postflight')
+    top = y + h
+    y = top + 44
+    xs, cw = columns(3)
+    outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
+            ('WeChat', ['co-sent to', 'Telegram; a', 'watchdog checks']),
+            ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
+    h = 122
+    for i, (x, (name, body)) in enumerate(zip(xs, outs)):
+        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
+        d.card(x, y, cw, h, 'blue')
+        d.text(x + 16, y + 30, name, 'h')
+        d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='deliver')
+    top = y + h
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
+
+    # 05 settle and calibrate
+    d.section(y - 12, '05 · SETTLE AND CALIBRATE')
+    h = 244
+    d.card(M, y, CW, h, 'green')
+    d.text(M + 20, y + 32, 'Graded by code', 'h')
+    d.tag(W - M - 16, y + 30, 'THE MODEL NEVER SCORES', 'warm', anchor='end')
+    rows = [('mark-followed', 'what was actually executed'),
+            ('settle', 'canonical bars, per episode'),
+            ('calibrate', 'beta-binomial, earlier dates only'),
+            ('shadow', 'followed calls vs buy-and-hold'),
+            ('scorecard', 'public, losses included')]
+    sweep(d, M + 12, y + 46, CW - 24, len(rows), lh=26)
+    for i, (cmd, what) in enumerate(rows):
+        yy = y + 64 + i * 26
+        d.text(M + 20, yy, cmd, 'code', fill=ROLE['green'])
+        fits(what, 'm', CW - 36 - 140, 'settle what')
+        d.text(M + 160, yy, what, 'm')
+    d.add(f'<path d="M{M + 20:g} {y + 196:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
+    d.text(M + 20, y + 222, [('↺ ', ROLE['blue']), ('tomorrow’s brief reads the record', MUT)], 'm')
+    fits('↺ tomorrow’s brief reads the record', 'm', CW - 36, 'loop note')
+    # the loop: the settled record returns to the next run's preflight
+    gx = W - 11
+    d.wire(f'M{W - M:g} {y + 214:g}H{gx:g}V{loop_y:g}H{W / 2 + width("preflight → one context pack per run", "m") / 2 + 10:g}',
+           pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+    return d.render(y + h + M)
+
 
 DIAGRAMS = {
+    'decision-pipeline.svg': decision_pipeline,
     'harnesses.svg': harnesses,
     'information-flow.svg': information_flow,
     'architecture.svg': architecture,

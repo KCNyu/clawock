@@ -42,6 +42,8 @@ dsh plugin --profile web add clawock-dsh   # 可选:DeepSeek Harness 面板
 - **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
 - **结算**:Python 用真实行情逐条结算,模型碰不到自己的分数,结果全部进公开战绩。
 
+<p align="center"><img src="site/assets/decision-pipeline.svg" width="600" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录"></p>
+
 <p align="center"><img src="site/assets/harnesses.svg" width="600" alt="clawock 投研台 —— OpenClaw、DeepSeek Harness 与 clawock-patrol 服务都经同一个 agent-dispatch runner 发起任务;runner 给每个任务独立的 systemd unit,并负责仲裁:每个 agent 一把锁一条队列、巡检轮次排最后、按 agent 分运行槽、session 锁、额度等待时释放锁、被派发的 worker 不再二次派发。Claude Code、Codex 与 OpenCode 共用同一份 AGENTS.md、同一套记忆与 skills,用 append、result 与 review 互相接力,所有改动都走同一道 PR、必需 CI 与 squash-merge 闸进入 KCNyu/clawock"></p>
 
 <sub>多个 agent harness 共用这张投研台:一个 runner 仲裁任务,一份记忆与规则文件保持一致,一道 PR 闸接收改动——接线说明见 <a href="docs/architecture/task-queue.md">docs/architecture/task-queue.md</a>。</sub>
