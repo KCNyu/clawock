@@ -3,5 +3,13 @@
   "src/clawock/decision/regime.py": {
     "values": [],
     "reason": "The superseded -95%/-44% framing is quoted here in order to correct it, and both figures still resolve to the hstech run card, so no exemption is needed yet."
+  },
+  "docs/architecture/harness.md": {
+    "values": [
+      -0.0247,
+      -0.033,
+      -0.0545
+    ],
+    "reason": "Left-side table row 'right + left at weight 0.25 / 0.5 / 1': drawdowns from the left_vs_right block, which footnote 2 of the same table states the cited add_campaigns-20260927-12aa143a card predates and does not hold (weight 0, -1.79%, is the right family alone and does resolve to the card). Drop this entry once a card carrying left_vs_right is committed and cited (#2193)."
   }
 }

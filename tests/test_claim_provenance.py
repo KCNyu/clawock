@@ -123,3 +123,38 @@ def test_the_harness_doc_is_a_claim_surface():
     # one surface the gate did not read.
     assert "docs/architecture/harness.md" in cp.load_surfaces(
         ROOT / "config" / "claim-provenance.json")
+    # Being listed is not being read: on #2185 one number of the table's
+    # drawdown row entered judgement (#2193). The row's four members and the
+    # -14.93% below it must all be claims.
+    claims = cp.scan_text((ROOT / "docs/architecture/harness.md").read_text(),
+                          source="harness.md")
+    assert len(claims) >= 5
+
+
+def test_every_member_of_a_series_is_a_claim_not_only_the_one_with_the_unit(tmp_path):
+    prose = ('"""Evidence: run card fixture-20260802-abcdef12.\n'
+             'drawdown −1.79 / −2.47 / −5.45%\n"""\n')
+    card = {"a": {"max_drawdown_pct_of_book": -1.79},
+            "b": {"max_drawdown_pct_of_book": -5.45}}
+    problems = _check(_workspace(tmp_path, prose, card))
+    assert len(problems) == 1 and "-0.0247" in problems[0]
+
+
+def test_a_percentage_matches_only_the_quantity_its_line_names(tmp_path):
+    # The percent-side twin of #1960: a dense card held some number within
+    # tolerance of 98% of all possible claims because every leaf was eligible.
+    prose = '"""Evidence: run card fixture-20260802-abcdef12.\ndrawdown -3.30%\n"""\n'
+    card = {"left": {"return_per_unit_deployed_pct": -3.3,
+                     "max_drawdown_pct_of_book": -4.1}}
+    assert _check(_workspace(tmp_path, prose, card))
+    card["left"]["max_drawdown_pct_of_book"] = -3.3
+    assert _check(_workspace(tmp_path / "b", prose, card)) == []
+
+
+def test_tolerance_follows_the_precision_the_claim_is_printed_at(tmp_path):
+    card = {"regime": {"max_drawdown": -0.955}}
+    coarse = '"""Evidence: run card fixture-20260802-abcdef12.\nmaxDD -95%\n"""\n'
+    assert _check(_workspace(tmp_path, coarse, card)) == []
+    # -95.0% claims one decimal: -95.5% does not round to it.
+    fine = '"""Evidence: run card fixture-20260802-abcdef12.\nmaxDD -95.0%\n"""\n'
+    assert _check(_workspace(tmp_path / "b", fine, card))
