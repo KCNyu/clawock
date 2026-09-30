@@ -33,6 +33,7 @@ _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.scheduling import parse_cron_slots  # noqa: E402
+from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
@@ -220,6 +221,10 @@ def load_runtime_jobs(jobs_file=None):
         if spec is not None and host_trigger(spec):
             job = {**job, 'enabled': spec.get('enabled', True),
                    'schedule': effective_schedule(spec)}
+        if spec is not None:
+            # OpenClaw's job view lacks the harness phase; the same tracked
+            # phase drives the producer's half-day gate (#2231).
+            job = {**job, 'phase': spec.get('phase')}
         resolved.append(job)
     return resolved
 
@@ -459,14 +464,15 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger, day=None):
             minutes=HEARTBEAT_GRACE_MINUTES
         )
         event = events.get(slot)
+        state = cron_heartbeat.effective_state(event) if event else None
         if not event:
             (pending if within_grace else missing).append(slot)
-        elif event.get('state') in TERMINAL_HEARTBEAT_STATES:
+        elif state in TERMINAL_HEARTBEAT_STATES:
             healthy.append(slot)
         elif within_grace:
-            pending.append(f"{slot}:{event.get('state', '?')}")
+            pending.append(f"{slot}:{state or '?'}")
         else:
-            failed.append(f"{slot}:{event.get('state', '?')}")
+            failed.append(f"{slot}:{state or '?'}")
     return {'monitored': monitored, 'healthy': healthy, 'missing': missing,
             'failed': failed, 'pending': pending}
 
@@ -628,7 +634,7 @@ def check_dashboard_build():
             'ok': True, 'warn_count': 0, 'repair_count': 0, 'age_hours': age_hours}
 
 
-def _market_closed_on(market, day=None):
+def _market_closed_on(market, day=None, *, session="full"):
     """True if `market` ('hk'/'us') is closed on `day` (default: today, its own TZ).
 
     Used to suppress false 'missing commit' reds: a market-report cron on that market's
@@ -636,13 +642,13 @@ def _market_closed_on(market, day=None):
     so it produces no commit by design. Fail-open (False) if the calendar is unavailable."""
     try:
         from clawock import sessions as _tc
-        return not _tc.is_trading_day(market, day)
+        return not _tc.is_trading_day(market, day, session=session)
     except Exception:
         return False
 
 
-def _market_closed_today(market):
-    return _market_closed_on(market)
+def _market_closed_today(market, *, session="full"):
+    return _market_closed_on(market, session=session)
 
 
 # Jobs whose slots exist only because the US session crosses HKT midnight: their
@@ -741,9 +747,11 @@ def main():
                 # No midnight crossing here: the slots' own date IS the session
                 # day being verified (#996).
                 session_day = verify_date
+            from clawock.sessions import phase_session
+            session = phase_session(mkt, job.get('phase'))
             market_closed = (
-                _market_closed_on(mkt, session_day)
-                if session_day is not None else _market_closed_today(mkt))
+                _market_closed_on(mkt, session_day, session=session)
+                if session_day is not None else _market_closed_today(mkt, session=session))
         if expected_past and (market_closed or both_closed):
             label = f'{mkt.upper()} 休市' if mkt else 'HK + US 均休市'
             report.append({

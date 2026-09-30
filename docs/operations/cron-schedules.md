@@ -49,7 +49,13 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
   fixed model candidates defined by the contract. Runtime rotations must remain
   a prefix of that order; health checks never reorder or skip candidates.
 - Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the
-  existing single publisher; cron health verifies every monitored slot.
+  existing single publisher; cron health verifies every monitored slot. Delivery
+  confirmation cannot clear `publish_failed`; only a successful publication
+  verdict can. Health also reads retained publication details in older events
+  whose state was overwritten by watchdog delivery success (#2234).
+- Cron health uses each report's tracked phase with the same `phase_session`
+  calendar gate as preflight/postflight: HK half-days still require the midday
+  report, while `pm` and `close` reports are correctly skipped (#2231).
 - Mode 7 agent turns run on every scheduled slot. The pre-model delta trigger
   was removed on 2026-07-27: model workload is not the binding constraint, and
   a silently skipped slot is indistinguishable from a dead cron. Closed markets
