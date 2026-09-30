@@ -3195,6 +3195,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   // line (the raw source of the status chips) folds.
   const endedTask = (i) => ({ ...QUEUE.recent[0], id: "e-" + i, name: "ended-" + i, updatedAtMs: now - (i + 1) * 60000 });
   const rounds = [0, 1, 2].map((i) => ({ endedAt: `2026-09-23 0${5 - i}:00:00`, round: "R" + (140 - i), axis: "logic", result: "ok/DONE", seconds: 600 }));
+  // What the newest round routed through the filing gate (patrol.sh's third `/` field): line 2.
+  rounds[0].result = "ok/DONE/P1#2240 +2 digest +1 comment";
   answer = { ...QUEUE, recent: [0, 1, 2, 3, 4].map(endedTask), patrol: { ...QUEUE.patrol, rounds } };
   find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick();
@@ -3209,6 +3211,10 @@ test("client: one provider cell carries the queue under each agent's provider an
     "the earlier rounds fold");
   assert.equal(find(section("patrol"), (p) => p["data-tq-round"] === "R140").length, 1);
   assert.equal(find(patrolFolds[0], (p) => p["data-tq-round"] === "R140").length, 0, "the newest round stays resident");
+  const newest = find(section("patrol"), (p) => p["data-tq-round"] === "R140")[0];
+  assert.deepEqual(factSlots(newest), ["filed", "when", "took"], "a round that filed says so on line 2");
+  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]), "P1 #2240 · 汇总 +2 · 补充 1");
+  assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
   assert.match(texts(patrolFolds[1]), /preempting patrol-recent-1: b-1 is waiting for its agent lock/, "the raw journal line is kept, folded");
   for (const fold of patrolFolds) {
     const summary = fold.children.find((c) => c && c.type === "summary");
@@ -3960,7 +3966,7 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false,
       notify: ["weixin", "telegram"], notified: ["telegram"], notifyFailed: ["weixin"], tokensTotal: 1000, costUsd: "1.25" }],
     patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600000,
-      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE", seconds: 4090 }] },
+      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }] },
     queues: [{ agent: "claude", held: true, holder: "a-1", order: ["b-1"], holderNote: "", quotaUntilMs: null, quotaBy: "" }],
   };
   const remoteFace = {

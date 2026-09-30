@@ -196,6 +196,9 @@ const dictionaries = {
 		"queue.round.preempted": "让路取消",
 		"queue.round.yielded": "让路收尾",
 		"queue.round.name": "{round} · {axis}",
+		"queue.round.digest": "汇总 +{n}",
+		"queue.round.comment": "补充 {n}",
+		"queue.round.filed": "本轮提报：{what}",
 		"queue.chip.elapsed": "已跑 {time}",
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
@@ -598,6 +601,9 @@ const dictionaries = {
 		"queue.round.preempted": "Cancelled to give way",
 		"queue.round.yielded": "Wrapped up to give way",
 		"queue.round.name": "{round} · {axis}",
+		"queue.round.digest": "digest +{n}",
+		"queue.round.comment": "{n} added",
+		"queue.round.filed": "filed this round: {what}",
 		"queue.chip.elapsed": "running {time}",
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
@@ -1351,6 +1357,7 @@ function _endedState(state, outcome, t) {
 */
 const FACT_ORDER = [
 	"model",
+	"filed",
 	"tries",
 	"receipt",
 	"when",
@@ -1393,7 +1400,11 @@ const ROW_KINDS = {
 	round: {
 		lead: true,
 		value: false,
-		facts: ["when", "took"]
+		facts: [
+			"filed",
+			"when",
+			"took"
+		]
 	}
 };
 /** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
@@ -1553,10 +1564,36 @@ function endedRow(task, t, now, open) {
 		}
 	};
 }
-/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+/**
+* What a round routed through the filing gate, from the third `/` field patrol.sh writes
+* (`P1#2240 P2#2241 +2 digest +1 comment`, 2026-10-01): each issue with its severity, how many
+* findings went to the digest, how many were added to an issue on the same root cause. A P0 is
+* said as a warning. Null when the round filed nothing (or ran before the field existed).
+*/
+function roundFiled(filed, t) {
+	const issues = [...filed.matchAll(/\b(P[0-3])#(\d+)/g)].map((m) => ({
+		sev: m[1],
+		n: m[2]
+	}));
+	const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0);
+	const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0);
+	const parts = [
+		...issues.map(({ sev, n }) => `${sev} #${n}`),
+		...digest > 0 ? [t("queue.round.digest", { n: String(digest) })] : [],
+		...comment > 0 ? [t("queue.round.comment", { n: String(comment) })] : []
+	];
+	if (parts.length === 0) return null;
+	return {
+		text: parts.join(" · "),
+		said: t("queue.round.filed", { what: parts.join(", ") }),
+		title: filed,
+		voice: issues.some(({ sev }) => sev === "P0") ? "warn" : void 0
+	};
+}
+/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 function roundRow(round, t, now) {
 	const how = /^(preempted|yielded):/.exec(round.result)?.[1] ?? "";
-	const [state = "", outcome = ""] = round.result.slice(how === "" ? 0 : how.length + 1).split("/");
+	const [state = "", outcome = "", filed = ""] = round.result.slice(how === "" ? 0 : how.length + 1).split("/");
 	const ended = localStampMs(round.endedAt);
 	return {
 		kind: "round",
@@ -1579,6 +1616,7 @@ function roundRow(round, t, now) {
 			title: round.result
 		},
 		facts: {
+			filed: roundFiled(filed, t),
 			when: ended === null ? null : {
 				text: agoOf(t, now - ended),
 				title: t("queue.d.endedAt") + " " + round.endedAt

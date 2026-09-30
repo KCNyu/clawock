@@ -1912,7 +1912,7 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-row > .tq-name { grid-column:2 / 5 }
 .pbc .tq-row > .tq-value { grid-column:5 }
 .pbc .tq-row > .tq-chip[data-tq-chip="status"] { grid-column:5; justify-self:stretch }
-.pbc .tq-row > [data-tq-fact="model"] { grid-area:2 / 2 / 3 / 5 }
+.pbc .tq-row > :is([data-tq-fact="model"], [data-tq-fact="filed"]) { grid-area:2 / 2 / 3 / 5 }
 .pbc .tq-row > :is([data-tq-fact="tries"], [data-tq-fact="receipt"]) { grid-area:2 / 5 / 3 / 6 }
 .pbc .tq-row > [data-tq-fact="when"] { grid-area:3 / 2 / 4 / 3 }
 .pbc .tq-row > [data-tq-fact="took"] { grid-area:3 / 3 / 4 / 4 }

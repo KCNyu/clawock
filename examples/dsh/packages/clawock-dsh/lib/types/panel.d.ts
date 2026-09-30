@@ -224,7 +224,7 @@ export declare function _endedState(state: string, outcome: string, t: Translate
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export declare const FACT_ORDER: readonly ['model', 'tries', 'receipt', 'when', 'took', 'cost'];
+export declare const FACT_ORDER: readonly ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'];
 export type FactSlot = typeof FACT_ORDER[number];
 export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
 export declare const RESIDENT_CHIPS = 1;
@@ -311,7 +311,14 @@ export declare function taskRow(task: DispatchTask, t: Translate, now: number, o
 }>): RowView;
 /** An ended task as a row: its one verdict; model and receipts; when, how long, what it cost. */
 export declare function endedRow(task: DispatchTask, t: Translate, now: number, open: (id: string) => void): RowView;
-/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME]`). */
+/**
+ * What a round routed through the filing gate, from the third `/` field patrol.sh writes
+ * (`P1#2240 P2#2241 +2 digest +1 comment`, 2026-10-01): each issue with its severity, how many
+ * findings went to the digest, how many were added to an issue on the same root cause. A P0 is
+ * said as a warning. Null when the round filed nothing (or ran before the field existed).
+ */
+export declare function roundFiled(filed: string, t: Translate): Fact | null;
+/** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 export declare function roundRow(round: PatrolRound, t: Translate, now: number): RowView;
 /**
  * What stays on screen and what folds — ONE rule for "recently ended" and
