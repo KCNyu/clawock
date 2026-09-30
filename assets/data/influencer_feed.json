@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T00:44:01.586467+00:00",
+  "generated_at": "2026-09-30T02:22:43.987235+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -14,7 +14,7 @@
   "source_status": {
     "trump": "success",
     "musk": "success",
-    "ark": "success_empty",
+    "ark": "success",
     "serenity": "failed",
     "duan": "success",
     "honghao": "success_empty",
