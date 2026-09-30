@@ -34,6 +34,7 @@ FILES=(
   surfaces.json
   gate_issue.py
   triage.py
+  github_text.py
   filing.py
   patrol_intel.py
   peers.json

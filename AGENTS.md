@@ -111,6 +111,11 @@ documentation:
    verifies what is actually serving. Rule and evidence:
    `docs/operations/release.md` § Running the latest code on this host.
 
+Public GitHub issues, PRs and comments must not link third-party repositories, issues, PRs or
+commits, use owner/repo#N or owner/repo@revision references, or mention third-party users.
+Describe the idea in your own words and name the project as plain text. Keep external source
+links in repository documentation instead; avoid cross-reference backlinks and notifications.
+
 ### Closing issues
 
 Handle every open issue on its evidence; there is no issue-count ceiling. Close verified fixes

@@ -45,6 +45,7 @@ INDEX = LOGDIR / "filed" / "index.jsonl"          # every routed finding: issue 
 DIGEST_PENDING = LOGDIR / "digest" / "pending.jsonl"
 LENS_TASK = os.environ.get("AGENT_DISPATCH_TASK_ID", "-")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from github_text import sanitize, validate
 import triage  # noqa: E402  (severity, labels, routing — see triage.py)
 from filing import ensure_labels, flush_digest, telegram  # noqa: E402  (the gh/Telegram side)
 RED_TIMEOUT = int(os.environ.get("RED_CHECK_TIMEOUT", "240"))
@@ -230,13 +231,17 @@ if _declared["kind"] == "feature":
             "想要的新功能写进 ledger「候选」。")
     if not re.search(r"^#{1,4}\s*同类对标\s*$", body, re.M):
         die("功能提案缺 `## 同类对标` 一节：\n"
-            "  来源: <https://github.com/<owner>/<repo>/…（README/CHANGELOG/issue/源码的具体链接，可多条）>\n"
+            "  来源: <peers.json 中的纯文本项目名；源码路径或机制说明，不放 GitHub 链接>\n"
             "  痛点: <#N —— clawock 里这类问题真实发生过的 issue/PR>\n"
             "  契合: <为什么落在 clawock 的边界里（决策工作流 + 可验证 harness，港美股现金个股，不下单）>")
     _src = _field("来源")
-    _repos = sorted(set(re.findall(r"https://github\.com/([\w.-]+/[\w.-]+)", _src)))
+    _peers = json.loads((TOOL / "peers.json").read_text(encoding="utf-8"))["peers"]
+    _repos = sorted({p["repo"] for p in _peers
+                     if p["repo"].split("/", 1)[1].lower() in _src.lower()})
+    # Older private drafts may contain source URLs; validate privately, sanitize before filing.
+    _repos = sorted(set(_repos) | set(re.findall(r"https://github\.com/([\w.-]+/[\w.-]+)", _src)))
     if not _repos:
-        die("`来源:` 里没有 https://github.com/<owner>/<repo> 链接。对标要能点开核对。")
+        die("`来源:` 要写 peers.json 中的纯文本项目名，出处细节放仓库文档，不放第三方 GitHub 引用。")
     _stale = []
     for _r in _repos[:4]:
         _q = subprocess.run(["gh", "api", f"repos/{_r}", "-q", "[.archived, .pushed_at] | @tsv"],
@@ -618,25 +623,13 @@ footer = (
 )
 final = LOGDIR / "filed" / (DRAFT.name + ".body")
 final.parent.mkdir(parents=True, exist_ok=True)
-final.write_text(body[title_match.end():].lstrip() + triage_block + footer, encoding="utf-8")
+title = validate(sanitize(title))
+final.write_text(validate(sanitize(body[title_match.end():].lstrip() + triage_block + footer)), encoding="utf-8")
 
 if os.environ.get("GATE_DRY_RUN"):
     _what = {"issue": "单独提", "comment": f"补充到 #{target}", "digest": "放进汇总"}[where]
     print(f"gate: DRY RUN — 会{_what}："
           f"{title}\n  labels: {' '.join(verdict.labels())}\n  body: {final}", file=sys.stderr)
-    sys.exit(0)
-
-if where == "digest":
-    triage.append_jsonl(DIGEST_PENDING, {
-        "ts": int(time.time()), "title": title, "severity": verdict.severity, "area": verdict.area,
-        "kind": verdict.kind, "lens": verdict.lens, "why": why, "draft": DRAFT.name,
-        "body": final.read_text(encoding="utf-8"),
-    })
-    (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")   # later drafts dedupe against it
-    record("digest")
-    print(f"gate: PASS — {why}，已放进巡检汇总（{len(triage.read_jsonl(DIGEST_PENDING))} 条待发）。"
-          "这不是拒绝：发现保留，攒够 15 条或最老一条满 24 小时合成一条 issue。")
-    flush_digest()
     sys.exit(0)
 
 if where == "comment":

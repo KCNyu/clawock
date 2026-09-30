@@ -69,7 +69,7 @@ issue，找到就挂过去。
 
 ```markdown
 ## 同类对标
-来源: <https://github.com/<owner>/<repo>/… 具体到 README 段落 / release / issue / 源码文件的链接，可多条>
+来源: <peers.json 中的纯文本项目名 + 源码路径/机制说明；具体外部出处可放仓库文档>
 痛点: <#N —— clawock 里这类问题真实发生过的 issue/PR>
 契合: <为什么落在边界内：决策工作流 + 可验证 harness，港美股现金个股，不下单>
 ```
@@ -94,3 +94,11 @@ RED-CHECK 只读：不许写 live、git 写操作、gh 写操作、装包、起�
 - 能补证据就改草稿重试；**不要为了让断言变红而改成更弱的判据**。
 - 闸通过后的去向（单独 issue / 补充到 #N）都算提报成功，照实写进 ledger。
 
+
+## 第三方引用（写入 GitHub 前的硬规则）
+
+GitHub issue、PR、评论只用纯文本项目名和自己的机制说明。禁止第三方 GitHub URL（包括 issue、PR、
+commit、源码页）、owner/repo#编号、owner/repo@版本、@用户名；这些会生成跨仓库回链或通知。
+外部可点击出处留在仓库文档或 peers.json。闸先私下核验来源与证据，写入前由 github_text.sanitize
+清除引用，再用 validate 确认；标题、正文、判据日志、同根因补充评论和旧汇总都经过它。
+clawock 自己的 #N 和仓库链接保留。

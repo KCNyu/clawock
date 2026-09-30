@@ -21,6 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import triage  # noqa: E402
+from github_text import sanitize, validate  # noqa: E402
 
 LOGDIR = Path(os.environ.get("PATROL_STATE", "/root/logs/clawock-patrol"))
 WORK = Path(os.environ.get("PATROL_WORKTREE", "/root/wt-patrol"))
@@ -95,7 +96,8 @@ def flush_digest(force=False, task="-"):
     title, body, labels = triage.render_digest(pending, time.strftime("%Y-%m-%d"))
     body += f"\n\n<!-- patrol-gate: passed digest items={len(pending)} -->\n"
     out = LOGDIR / "digest" / f"digest-{int(time.time())}.md"
-    out.write_text(body, encoding="utf-8")
+    title = validate(sanitize(title))
+    out.write_text(validate(sanitize(body)), encoding="utf-8")
     ensure_labels(labels)
     args = ["issue", "create", "-R", REPO, "--title", title, "--body-file", str(out)]
     for lab in labels:
