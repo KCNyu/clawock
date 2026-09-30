@@ -36,7 +36,7 @@
   作证，文档与纯样式压到 P3，基础设施面最高 P2，最近被反复按误报关闭的类别压到 P3。规则表在 `issue-format.md`。
 - **去向**：P0 总是单独开；P1/P2 在 24 小时预算内单独开（`triage.BUDGET`），超出进汇总；P3 进汇总；`关联:` 指向
   open issue 或与 14 天内 open 的巡检 issue 同一「文件 + 函数 + 领域」时，作为补充评论挂过去（Sentry 式指纹）。
-  汇总存 `/root/logs/clawock-patrol/digest/pending.jsonl`，满 8 条或最老一条满 3 天由闸或 supervisor 合成一条
+  汇总存 `/root/logs/clawock-patrol/digest/pending.jsonl`，满 15 条或最老一条满 24 小时（约一天一条）由闸或 supervisor 合成一条
   `[patrol] 巡检汇总 …` issue（Renovate 的 Dependency Dashboard 同款），每条带完整证据折叠块。
 - **标签**：`patrol`、`severity:P0–P3`、`area:*`、`kind:*`、`lens:<axis>`、`patrol:digest`，以及给关闭者用的
   `patrol:noise`。`filing.py ensure-labels` 建全套，`filing.py backfill` 给存量补标签。

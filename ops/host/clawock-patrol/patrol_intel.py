@@ -125,7 +125,7 @@ def budget_line(now):
     left_p2 = max(0, min(left, triage.BUDGET["P2"] - by["P2"]))
     return (f"- 24 小时内单独开了 {len(day)} 条（P0 {by['P0']} / P1 {by['P1']} / P2 {by['P2']}）；"
             f"还能单独开 P1/P2 共 {left} 条，其中 P2 {left_p2} 条，超出的自动进汇总（不丢）；P0 不受限。"
-            f"汇总待发 {pending} 条（满 {triage.DIGEST_FLUSH_ITEMS} 条或最老一条满 3 天合成一条 issue）。")
+            f"汇总待发 {pending} 条（满 {triage.DIGEST_FLUSH_ITEMS} 条或最老一条满 24 小时合成一条 issue）。")
 
 
 def regression_watch(rows, since, tasks, limit=6):
