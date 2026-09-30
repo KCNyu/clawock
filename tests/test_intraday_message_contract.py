@@ -228,6 +228,19 @@ def test_strategy_policy_suppresses_copy_without_discarding_source_signal():
     assert 'STOP-LOSS AAA' not in rendered and '亏损持仓' in rendered
 
 
+def test_the_signal_header_survives_a_section_led_by_trim_or_alert():
+    # The guard knew ▼ △ ✋ ▲ only: a TRIM (▽) or HK ALERT (⚠️) first line lost
+    # the header, and mark_card_changes stopped folding the section (#2219).
+    for first in ('  ▽ TRIM RKLX | 今日-6.9% 浮-65.4%', '  ⚠️ ALERT 00100 | 今日-9.1%'):
+        block = f'⚠️ 信号\n{first}\n\n📉 亏损持仓 1/1'
+        assert policy.strip_suppressed_signal_lines(block, {}).startswith('⚠️ 信号\n')
+    # A section stripped empty still loses its header.
+    emptied = policy.strip_suppressed_signal_lines(
+        '⚠️ 信号\n  ▼ STOP-LOSS AAA | 浮-20%\n\n📉 亏损持仓 1/1',
+        {'AAA': {'suppress_cost_basis_signals': True}})
+    assert '⚠️ 信号' not in emptied
+
+
 def test_strategy_escalations_need_fresh_daily_and_weekly_evidence():
     policies = {'AAA': {'escalations': [
         {'ticker': 'AAA', 'window': 'session', 'below_pct': -15},
@@ -389,7 +402,7 @@ def test_an_unchanged_slot_may_say_so_in_one_line_but_not_invent_a_move():
 
 def test_stale_headline_time_in_next_sentence_is_accepted(monkeypatch):
     monkeypatch.setattr(post.intraday_information, 'stale_titles',
-                        lambda _information: ['某公司发布重大公告'])
+                        lambda _information, _full=None: ['某公司发布重大公告'])
     ctx = {'information': {}}
     assert post.check_stale_citation('某公司发布重大公告。截至10:00，内容是业绩预增。', ctx) == []
     assert post.check_stale_citation('某公司发布重大公告。业绩预增。', ctx)
@@ -568,6 +581,35 @@ def test_information_full_ticker_slice_keeps_live_rows_and_macro():
     assert selected['tickers'] == {'00100': [{'title': 'morning'}]}
     assert selected['live']['tickers'] == {'00100': [{'title': 'live'}]}
     assert selected['macro'] == {'rates': 'unchanged'}
+
+
+def test_information_full_since_slice_filters_the_per_ticker_rows():
+    # `--arg since=` returned `tickers` ({ticker: [row, …]}) whole (#2218).
+    from clawock.tools.context_tools import slice_reference
+
+    full = {
+        'tickers': {'00100': [{'title': 'old', 'published_at': '2026-09-26T13:09:00+08:00'},
+                              {'title': 'new', 'published_at': '2026-09-30T14:10:00+08:00'}]},
+        'em_market_724': [{'title': 'flash', 'date': '2026-09-30 09:40'}],
+        'macro': {'rates': 'unchanged'},
+    }
+    selected = slice_reference(full, since='14:00')
+    assert selected['tickers'] == {'00100': [full['tickers']['00100'][1]]}
+    assert selected['em_market_724'] == []
+    assert selected['macro'] == {'rates': 'unchanged'}
+    # No arguments still returns every family as it was.
+    assert slice_reference(full) == full
+
+
+def test_a_stale_title_only_in_the_reference_layer_is_held_to_the_label_rule():
+    # The gate read the summary's three rows a ticker; the model is told the
+    # rest are in information_full and quoted them unlabelled (#2217).
+    title = '港股大模型板塊走低，MINIMAX-W(00100.HK)跌超10%'
+    ctx = {'information': {'tickers': {'00100': []}},
+           'information_full': {'tickers': {'00100': [
+               {'title': title, 'cite': f'《{title}》（news_evidence_graph，截至 09-26 21:09，开盘前旧闻）'}]}}}
+    assert post.check_stale_citation(f'{title}，情绪偏弱。', ctx)
+    assert post.check_stale_citation(f'{title}（截至 09-26 21:09，开盘前旧闻），情绪偏弱。', ctx) == []
 
 
 def test_a_clipped_add_side_line_never_cuts_a_number():

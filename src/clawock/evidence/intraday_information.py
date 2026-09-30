@@ -217,6 +217,13 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
         # Newest first, then (stable) by grade: primary before soft.
         rows.sort(key=lambda r: str(r.get('published_at') or ''), reverse=True)
         rows.sort(key=lambda r: order.get(r['grade'], 3))
+        # The reference layer is where the model reads past the summary's three
+        # rows a ticker, so its rows carry the same cite: without it there was
+        # no time to copy, and the stale-citation gate never saw them (#2217).
+        for r in rows:
+            r['cite'] = _cite(r.get('title'), r['source'], r.get('published_at'),
+                              sources.get(r['source']) or {}, market, now,
+                              r.get('time_precision'))
         per_ticker[ticker] = [
             {**{k: r[k] for k in ('grade', 'direction', 'title', 'published_at') if r.get(k)},
              'cite': _cite(r.get('title'), r['source'], r.get('published_at'),
@@ -330,12 +337,18 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
     return {'summary': summary, 'full': full, 'degraded': degraded}
 
 
-def stale_titles(summary):
-    """Title fragments of stale items, for the postflight label check."""
+def stale_titles(summary, full=None):
+    """Title fragments of stale items, for the postflight label check.
+
+    `full` is the reference layer (`information_full`): the summary keeps three
+    rows a ticker and the model is told the rest are there, so the gate reads
+    them too — 16 HK / 22 US pre-open titles were quotable unlabelled (#2217).
+    """
     out = []
     sources = (summary or {}).get('sources') or {}
     for rows in [*((summary or {}).get('tickers') or {}).values(),
-                 *((summary or {}).get('live') or {}).values()]:
+                 *((summary or {}).get('live') or {}).values(),
+                 *((full or {}).get('tickers') or {}).values()]:
         for row in rows:
             cite = row.get('cite') or ''
             if '开盘前旧闻' in cite and row.get('title'):

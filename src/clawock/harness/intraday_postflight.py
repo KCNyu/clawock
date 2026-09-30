@@ -314,8 +314,8 @@ def check_stale_citation(prose, ctx):
     A sentence that carries a stale item's cited title must
     also carry 「截至」 or 「旧闻」 — the words the item's own `cite` gives.
     """
-    titles = [t for t in intraday_information.stale_titles(ctx.get('information'))
-              if len(t) >= 8]
+    titles = [t for t in intraday_information.stale_titles(
+        ctx.get('information'), ctx.get('information_full')) if len(t) >= 8]
     live_rows = [row for rows in ((ctx.get('information') or {}).get('live') or {}).values()
                  for row in rows if row.get('stale') is False]
     found = []
@@ -733,7 +733,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     # Holiday/weekend gate: no send/publish on a closed market.
-    closed = trading_calendar.closed_reason(args.market)
+    closed = trading_calendar.closed_reason(
+        args.market, session=trading_calendar.slot_session(args.market))
     if closed:
         market_cn = '港股' if args.market == 'hk' else '美股'
         result = {'status': 'market_closed', 'market': args.market, 'reason': closed,

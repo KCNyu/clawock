@@ -217,6 +217,13 @@ def slice_reference(value, *, ticker=None, since=None):
                 nested = slice_reference(item, ticker=ticker, since=since)
                 if nested:
                     out[key] = nested
+            elif since is not None and ticker is None and isinstance(item, dict) \
+                    and key != 'macro':
+                # `information_full.tickers` is {ticker: [row, …]}; returned whole,
+                # `--arg since=` kept every pre-open row of the largest family (#2218).
+                out[key] = {name: [row for row in rows if hit(row)]
+                            if isinstance(rows, list) else rows
+                            for name, rows in item.items()}
             elif key == 'macro' or ticker is None:
                 out[key] = item
         return out

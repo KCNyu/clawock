@@ -126,6 +126,14 @@ def escalations(holding_policies, anomalies, coverage, prices, universe, fetch_b
     return rows
 
 
+# Every marker the two renderers put in front of a signal line: US
+# `SIGNAL_COLOR` ▲ BUY / △ WATCH / ▽ TRIM / ▼ STOP-LOSS, HK `signal()` ⚠️ ALERT /
+# △ WATCH / ▽ TRIM / ✋ STOP? / ▲ HOLD+. The header guard below knew four of
+# them, so a section led by TRIM or ALERT lost its 「⚠️ 信号」 header and with it
+# the 今日已报 fold (#2219).
+SIGNAL_MARKERS = ('▲', '△', '▽', '▼', '⚠️', '✋')
+
+
 def strip_suppressed_signal_lines(block, holding_policies):
     """Remove only analyzer signal lines for policy covered holdings from copy."""
     suppressed = {ticker for ticker, policy in holding_policies.items()
@@ -144,6 +152,6 @@ def strip_suppressed_signal_lines(block, holding_policies):
     for index in range(len(out) - 1, -1, -1):
         if out[index].strip() == '⚠️ 信号':
             following = next((line.strip() for line in out[index + 1:] if line.strip()), '')
-            if not following.startswith(('▼', '△', '✋', '▲')):
+            if not following.startswith(SIGNAL_MARKERS):
                 del out[index]
     return '\n'.join(out)

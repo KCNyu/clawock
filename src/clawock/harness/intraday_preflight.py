@@ -822,7 +822,8 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
                 skip_reasons = False
                 level, ticker = read_signal_line(stripped)
                 if level and (level, ticker) in seen_signals:
-                    word = stripped.split()[1] if stripped.split()[0] in ('✋', '▼', '△', '▲') else level
+                    word = (stripped.split()[1]
+                            if stripped.split()[0] in intraday_policy.SIGNAL_MARKERS else level)
                     folded.append(f'{word} {ticker}')
                     skip_reasons = True
                     continue
@@ -1316,7 +1317,8 @@ def main(argv=None):
 
     # Holiday/weekend gate (before fetch): closed market → no stale price write,
     # emit a market_closed sentinel (no alert), exit 0.
-    reason = trading_calendar.closed_reason(args.market)
+    reason = trading_calendar.closed_reason(
+        args.market, session=trading_calendar.slot_session(args.market, now))
     if reason:
         cron_heartbeat.record(
             args.market, 'market_closed', job_name=heartbeat['job'],

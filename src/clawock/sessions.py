@@ -332,6 +332,21 @@ def closed_reason(market: str, d: date | None = None,
     return None
 
 
+def slot_session(market: str, at: datetime | None = None) -> str:
+    """The calendar session a clock-driven slot belongs to (HK afternoon = 12:00+).
+
+    The intraday gates asked `closed_reason(market)` with the default `full`
+    session, so on an HK half day the 14:03–15:33 slots ran against the 12:00
+    close and stamped it with the fetch time; the report side already passed
+    `phase_session` (#2213). Only the HK afternoon is special: every other
+    slot keeps the answer it had.
+    """
+    if market.lower() != "hk":
+        return "full"
+    now = at.astimezone(ZoneInfo(MARKET_TZ["hk"])) if at else datetime.now(ZoneInfo(MARKET_TZ["hk"]))
+    return "afternoon" if now.time() >= time(12, 0) else "full"
+
+
 def phase_session(market: str, phase: str | None) -> str:
     """Map a harness phase to a calendar session (HK afternoon = pm/close)."""
     if market == "hk" and phase in ("pm", "close"):
