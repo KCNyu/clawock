@@ -106,5 +106,6 @@ scheduling -> workspace
 scorecard_provenance -> workspace
 tools -> context
 tools -> decision
+tools -> sessions
 workflows -> publish
 workflows -> runtime_model

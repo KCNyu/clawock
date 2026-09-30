@@ -8,11 +8,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import re
-from zoneinfo import ZoneInfo
 
 from clawock.context import brief as brief_context
 from clawock.decision import packet as brief_decision_packet
 from clawock.tools.base import BaseTool, ToolError
+from clawock.sessions import HKT
 
 # The packet module owns this: it is what builds the rows, and a hand-kept
 # second copy here is how `information` (and four others) ended up unqueryable.
@@ -187,7 +187,7 @@ def slice_reference(value, *, ticker=None, since=None, as_of=None):
     occurrence at/before the slot's `as_of` (including the US overnight wrap).
     Rows without a publication time cannot belong to a since window.
     """
-    hkt = ZoneInfo('Asia/Hong_Kong')
+    hkt = HKT
 
     def parse_time(stamp):
         if isinstance(stamp, (int, float)):
