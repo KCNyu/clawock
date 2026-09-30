@@ -3,11 +3,12 @@
   "generated_at": "2026-09-30T08:04:35.161968+08:00",
   "as_of": "2026-09-30",
   "context_generation_id": "6e05bc8a4f96eaf3",
-  "judgment_status": "invalid",
-  "judgment_issues": [
-    "judgment ticker_judgments[8] disposition candidate cannot upgrade a deterministic non-candidate"
-  ],
-  "portfolio_judgment": null,
+  "judgment_status": "valid",
+  "judgment_issues": [],
+  "portfolio_judgment": {
+    "assessment": "今天的方向不是选股，是把两个还在付每日重置成本的 2x 敞口换成 1x 敞口：美股那边卖 SPCH 换 SPCX，港股那边维持 07226 不动。理由不是看空 SpaceX，也不是看空恒科，而是组合里最贵的两笔成本先被砍掉。港股那条 2x 已经站了 48 天硬止损、77 天杠杆超限，今天之所以不再重复发起，是因为账面离重发线还有距离，把动作挂在恒科指数的破位位上比每天追砍更有效。",
+    "counterargument": "最强反方是：Starship 已经首次入轨，砍 2x 等于在一个事件驱动的窗口里把最好的那段让出去；而且这些纪律性减仓已经挂了 77 天、执行 0 次，再挂一次也不会有人执行，所以今天重复发起的边际价值接近零。这个反方在「执行」这一点上是对的，账本就是证据；今天的处理方式是把 US 那两笔的执行价从开盘改成反弹触发，而不是再喊一遍开盘砍。"
+  },
   "tickers": [
     {
       "ticker": "RKLX",
@@ -58,10 +59,24 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "RKLX",
+        "verdict": "bearish",
+        "confidence": 0.55,
+        "disposition": "reject",
+        "assessment": "深度浮亏的火箭发射载体，浮亏幅度是组合里最深的；规则要求的退出路径因为标的已不在持仓里而无法执行，只能减到现金。",
+        "counterargument": "底标近期的跌幅只有这一只的一半左右，事件侧还有发射与星链的正面进展，在反弹里出货比在低位割更划算。",
+        "rationale": "清仓在这个名字上的历史战绩优于持有，但历史上赢的那几次仓位都极小；今天选反弹触发而不是开盘执行，是因为昨天已经发过一次而账面离重发线仍有距离。",
+        "falsifier": "底标收复长期均线并被重新放回持仓名单拿到 1x 承接授权，则本判断作废，改为直接换仓。",
+        "next_evidence": "底标的长期均线位置，以及下一份发射任务的时点与结果。",
+        "fundamentals": "本轮没有新的定期报告数据可用。",
+        "cross_market": "与美股航天板块同步回落，商业航天是这一轮高 beta 方向的代表。",
+        "sentiment_read": "机构零星买入的报道属软情绪，不改变二倍成本这条硬事实。",
+        "peer_read": "跌得比同板块现货多一倍，这就是杠杆成本本身，不需要再找归因。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
-        "effective": "wait",
+        "effective": "reject",
         "discipline": "judgment may downgrade or reject; it cannot create authority"
       }
     },
@@ -113,7 +128,21 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "07226",
+        "verdict": "bearish",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "港股段第二大仓、唯一的港股杠杆敞口，浮亏深、硬止损已触发多日、杠杆占比超限。今天维持，但维持的是执行方式而不是结论。",
+        "counterargument": "南向资金年内累计净买入接近四千三百亿港元，恒生科技指数创年内新低往往出现在情绪最差的位置，此时砍在低位是最差的执行价。",
+        "rationale": "这笔的账本执行率长期为零，重复发起同一条提醒的边际价值已经很低；把它挂在指数的破位位上，比再写一遍砍单更可能真的被执行。",
+        "falsifier": "恒生科技指数跌破年内新低，或浮亏扩大到重发线以上，则恢复减仓与换仓处方。",
+        "next_evidence": "恒生科技指数的破位确认，以及南向资金假期后的第一日净流向。",
+        "fundamentals": "杠杆指数产品无个股基本面；真正该算的是横盘期间的每日重置成本，而这笔成本每月只有零点几个百分点，说明贵的不是衰减而是敞口倍数。",
+        "cross_market": "昨夜美股同向下行且长端收益率抬升，港股科技今天不具备独立走强的条件，链路是跟随而非背离。",
+        "sentiment_read": "媒体上的南向累计买入与底部韧性叙事属软情绪，不构成继续持有杠杆的正面依据。",
+        "peer_read": "比同指数的权重股跌得更多，这是二倍放大的必然结果，不构成额外的个股信息。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -170,10 +199,24 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "bearish",
+        "confidence": 0.6,
+        "disposition": "reject",
+        "assessment": "占美股段八成以上的单名集中度，浮亏击穿硬止损线；规则允许的唯一动作就是清掉这份 2x 敞口。",
+        "counterargument": "首次入轨成功这一事件是真实的，且今天这一组里没有任何被标记为可升级的负面催化，硬止损线与催化逻辑在这一天并不完全一致。",
+        "rationale": "降的是倍数不是观点：把这笔换成同因子 1x，名义敞口保留、上行不缺席、每日重置停止，这才是这条规则真正的目的。",
+        "falsifier": "长端收益率回落到警戒线下方且同因子的 1x 标的收复长期均线，则停止执行并改为持有。",
+        "next_evidence": "长端收益率的方向，以及同因子现货标的能否收复长期均线。",
+        "fundamentals": "本轮没有新的定期报告数据可用。",
+        "cross_market": "跟随美股科技与航天板块回落，没有独立于 beta 的定价。",
+        "sentiment_read": "首次入轨成功属事件面信息，按规则只记为印证，不构成继续持 2x 的理由。",
+        "peer_read": "与同因子现货相比，近五个交易日多跌了一倍左右，差距就是杠杆成本。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
-        "effective": "wait",
+        "effective": "reject",
         "discipline": "judgment may downgrade or reject; it cannot create authority"
       }
     },
@@ -219,7 +262,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "00100",
+        "verdict": "bearish",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "浮亏超过五成、近五个交易日接近两位数跌幅、已跌破吊灯止损位，趋势判定为未确认。消息面昨天出现的股份激励授出属于公司例行动作，不能作为方向依据。",
+        "counterargument": "整块港股 AI 大模型资产在同期普跌，持仓跌幅处在板块中位偏后，说明杀的是板块而不是这家公司；在这个位置上继续看空，等于把板块定价当成公司判断。",
+        "rationale": "这只历史上十九个策略 episode 的胜率只有四成出头，且最近三次里有两次是持有判断做错；在没有一手新证据、板块广度又归零的时候，再做一次主动判断的胜率并不比不做高，所以这一格选等待。",
+        "falsifier": "板块二十日上涨广度回到半数以上，或持仓自身收复二十日均线，则偏空判断作废。",
+        "next_evidence": "新模型的调用量或付费转化数据，以及下一份港交所公告里激励计划的授予条件。",
+        "fundamentals": "本轮没有可用的最新定期报告数据，浮亏比例是唯一能确认的事实；不给估值结论。",
+        "cross_market": "美股 AI 硬件方向隔夜同向下落，纳指与标普双双收跌，这条链路今天是背离而非跟随：美股的坏消息没有传导成更差的港股开盘定价，说明港股已经在低位计价。",
+        "sentiment_read": "股份激励与新模型传闻都是软情绪，只允许把信心小幅下调，不构成翻转依据。",
+        "peer_read": "落后于同板块的语音与垂类同业，幅度差在几个百分点级别，属于板块 β 错配，不是个股 alpha 流失；这一行不支持换股。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -268,7 +325,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "02208",
+        "verdict": "neutral",
+        "confidence": 0.45,
+        "disposition": "wait",
+        "assessment": "港股普跌日里少数收红的风电设备股，站在同业中间偏上；但均线仍是空头排列，长期乖离为负，趋势没有修复。",
+        "counterargument": "外资同期增持港股这一只，电力设备有明确资金净流入，这是个股层面的证据，比板块资金更值得看。",
+        "rationale": "这只十三个 episode 的胜率只有两成多，是组合里最差的战绩之一；在没有硬催化的前提下，主动判断的历史基础不支持出手。",
+        "falsifier": "跌破前低，或风电同业五日广度转负，则持有等待的打法不再成立。",
+        "next_evidence": "全球风电大会临近，行业订单或招标数据是否在会前释放。",
+        "fundamentals": "本轮没有新的定期报告数据可用，只有机构持股变动这一间接口径。",
+        "cross_market": "与美股关联度低，风电定价由国内装机与政策决定，昨夜美股回落对这一只没有传导。",
+        "sentiment_read": "资金净流入与两家机构增持都是软情绪，只提高持有信心，不触发任何主动动作。",
+        "peer_read": "站在板块中间偏上，不是领涨也不是落后，属于跟上节奏的位置，不需要切换。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -317,7 +388,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03032",
+        "verdict": "neutral",
+        "confidence": 0.4,
+        "disposition": "wait",
+        "assessment": "跟踪恒生科技指数的一只重复配置，技术上处于超卖但没有企稳信号，横盘不会让它自动变便宜。",
+        "counterargument": "它是同一标的里波动更低的一只，长期持有成本比 2x 低一个数量级，保留它比保留另一只重复配置更合理。",
+        "rationale": "这一只的价值判断其实被更大的问题盖住了：真正贵的是同一标的上那条 2x 敞口，把注意力花在 1x 的两条重复配置上，是处理错了对象。",
+        "falsifier": "恒生科技指数破位，则两条 1x 一并重评，优先减这一只重复配置。",
+        "next_evidence": "南向资金在假期结束后的第一日净流向。",
+        "fundamentals": "指数基金无个股基本面，只需要跟踪指数本身。",
+        "cross_market": "与美股科技股的相关性在这一段是反向的，昨夜美股回落并没有替港股科技止跌。",
+        "sentiment_read": "媒体上的抗跌叙事属软情绪，不改变指数层面的判断。",
+        "peer_read": "与同跟踪指数的另一只几乎完全同涨同跌，之间不存在强弱差，这一行不产生任何信息。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -366,7 +451,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03033",
+        "verdict": "neutral",
+        "confidence": 0.45,
+        "disposition": "wait",
+        "assessment": "同跟踪恒生科技指数，同时是 2x 换仓处方的指定承接标的；授权在手上，今天不启动。",
+        "counterargument": "半日沽空金额显著增加、街货处于两个月高位，说明这一段的空头仓位在堆积，反弹的持续性存疑。",
+        "rationale": "它的唯一实质价值是承接能力，而承接能力的启动条件在另一只身上；那只今天维持，这里就跟着维持。",
+        "falsifier": "承接标的启动时本判断自动转为买入候选；若恒科先跌破年内新低则本判断作废。",
+        "next_evidence": "沽空比例回落与南向资金重开后的第一日流向。",
+        "fundamentals": "指数基金无个股基本面。",
+        "cross_market": "南向资金在国庆假期暂停，边际定价力量缺席，这一段由存量资金主导。",
+        "sentiment_read": "沽空数据是仓位结构信息，不属于消息面情绪，但足以说明反弹的筹码在减少。",
+        "peer_read": "与另一只同指数产品完全重合，没有相对强弱可言。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -415,7 +514,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "CRCL",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "全组合浮亏最小的一笔，技术上跌破吊灯位、近期跟随风险偏好回落，但业务侧监管路径在打通。",
+        "counterargument": "CFO 在上市第一年离场，加上跨境支付收购还要等监管批准到后年，增长叙事的兑现被拉长。",
+        "rationale": "这一只既没有触发任何仓位超限，也没有出现业务层面的证伪事件，主动判断的收益期望最低。",
+        "falsifier": "跌破关键支撑，或 USDC 流通量出现环比收缩。",
+        "next_evidence": "下一份定期报告里的流通量与储备收入，以及收购审批进度。",
+        "fundamentals": "流通量增速与储备收入是这一只的核心口径，本轮没有新数据可核。",
+        "cross_market": "跟随美股风险偏好而非加密资产本体，这一点在近五个交易日已经体现。",
+        "sentiment_read": "监管批准与战略合作都是软情绪，能提高信心但不足以驱动任何动作。",
+        "peer_read": "与加密支付同业同涨同跌，没有相对强弱差。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -464,7 +577,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCX",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "同因子 1x 载体，是 2x 换仓处方的指定去向；已有一份跨市场相对强弱确认方案，触发价与失效价都已给出，但今天不把它当成提前布局的候选",
+        "counterargument": "承接之后单名会顶到美股段的九成左右，集中度这条并没有被真正解决，只是从一个名字挪到了另一个名字。",
+        "rationale": "换仓解决的是衰减和 β，不是集中度；美股段总规模太小才是集中度的根因，这一点必须在同一天说清楚，不能假装内部换手等于降险。",
+        "falsifier": "跌破失效价，或商业航天板块整体退潮，则不承接，让卖出腿直接落现金。",
+        "next_evidence": "承接价附近的量能确认，以及下一份定期报告。",
+        "fundamentals": "本轮没有新的定期报告数据可用。",
+        "cross_market": "与美股航天板块同步，1x 版本对同样的消息面反应温和得多，这正是换仓想买到的东西。",
+        "sentiment_read": "首次入轨成功与后续试飞的评论都是软情绪，只影响承接时点，不影响承接本身。",
+        "peer_read": "与被换掉的那一只是同一因子，所以这不是选股，是换载体。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
