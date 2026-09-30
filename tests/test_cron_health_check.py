@@ -557,3 +557,38 @@ def test_the_host_measurement_says_none_rather_than_zero_when_it_cannot_tell(tmp
     assert cron_heartbeat.unpushed_commits(ROOT) is not None, (
         "this checkout can be asked, so the answer must be a number"
     )
+
+
+def test_health_reads_failed_publication_details_even_in_a_previously_clobbered_event():
+    event = {**_heartbeat_event('盘中盯盘', '2026-09-30T10:00:00+08:00'),
+             'data_plane_status': 'commit_failed', 'dashboard_published': False,
+             'watchdog_state': 'ok', 'telegram_sent': True}
+    got = cron_health_check.heartbeat_coverage(
+        '盘中盯盘', ['10:03'], 'Asia/Hong_Kong',
+        datetime(2026, 9, 30, 11, 0, tzinfo=HKT), _heartbeat_ledger([event]))
+    assert got['healthy'] == []
+    assert got['failed'] == ['10:03:publish_failed']
+
+
+def test_hk_half_day_skips_only_afternoon_reports(monkeypatch, capsys):
+    rows = _run_health_at(
+        monkeypatch, capsys, datetime(2026, 12, 24, 9, 17, tzinfo=timezone.utc),
+        commit_stamps=[('2026-12-24T12:09:00+08:00', 'dashboard: 港股午盘报告')])
+    assert rows['港股午盘报告']['status'] == 'ok'
+    assert rows['港股午后快报']['status'] == 'holiday'
+    assert rows['港股收盘报告']['status'] == 'holiday'
+    # A normal full day still owes both afternoon products.
+    rows = _run_health_at(
+        monkeypatch, capsys, datetime(2026, 12, 23, 9, 17, tzinfo=timezone.utc),
+        commit_stamps=[('2026-12-23T12:09:00+08:00', 'dashboard: 港股午盘报告')])
+    assert rows['港股午后快报']['status'] == 'missing'
+    assert rows['港股收盘报告']['status'] == 'missing'
+
+
+def test_live_jobs_inherit_report_phase_from_the_tracked_contract(monkeypatch):
+    job = {'name': '港股收盘报告', 'enabled': True,
+           'schedule': {'expr': '3 16 * * 1-5', 'tz': 'Asia/Hong_Kong'}}
+    monkeypatch.setattr(cron_health_check.openclaw, 'read_jobs',
+                        lambda: SimpleNamespace(entries=[job], source='cli'))
+    resolved = cron_health_check.load_runtime_jobs()
+    assert resolved[0]['phase'] == 'close'

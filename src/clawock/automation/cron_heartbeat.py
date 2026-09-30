@@ -170,6 +170,19 @@ def _keep_unreadable(now: datetime, unreadable: list[str]) -> None:
             "so slots the lost events covered read as missing")
 
 
+def effective_state(event: dict) -> str | None:
+    """Delivery success cannot stand in for a failed data-plane publication.
+
+    Also reads old events whose watchdog already overwrote `publish_failed`:
+    their retained publication detail is still authoritative (#2234).
+    """
+    state = event.get("state")
+    if (state in {"completed", "watchdog_backstop", "no_change"}
+            and event.get("data_plane_status") not in {None, "published", "current"}):
+        return "publish_failed"
+    return state
+
+
 def record(market: str, state: str, *, at: datetime | None = None,
            job_name: str | None = None, slot: str | None = None, **details) -> dict:
     now = _now(at)
@@ -214,10 +227,17 @@ def record(market: str, state: str, *, at: datetime | None = None,
         # `unknown` (#1916).
         for key in WRITER_SCOPED_KEYS:
             current.pop(key, None)
+        # Only a new publication verdict can clear an explicit publish failure;
+        # a watchdog is a witness of delivery, not of the public push (#2234).
+        if (current.get("state") == "publish_failed"
+                and state in {"completed", "watchdog_backstop", "no_change"}
+                and details.get("data_plane_status") not in {"published", "current"}):
+            state = "publish_failed"
         current.update({"state": state, "updated_at": now.isoformat()})
         for key, value in details.items():
             if value is not None:
                 current[key] = value
+        current["state"] = effective_state(current)
         events.append(current)
         events.sort(key=lambda e: (e.get("slot", ""), e.get("job", "")))
         ledger["schema_version"] = SCHEMA_VERSION

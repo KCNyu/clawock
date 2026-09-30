@@ -1146,3 +1146,45 @@ def test_an_absent_ledger_still_anchors_to_the_first_slot(tmp_path, monkeypatch)
     cron_heartbeat.record('hk', 'started', at=at)
     ledger = json.loads((tmp_path / 'local.json').read_text())
     assert ledger['monitoring_started_at'] == '2026-09-28T15:30:00+08:00'
+
+
+@pytest.mark.parametrize('watchdog_first', [False, True])
+def test_watchdog_delivery_does_not_hide_a_publication_failure(tmp_path, monkeypatch, watchdog_first):
+    monkeypatch.setattr(cron_heartbeat, 'LOCAL_PATH', tmp_path / 'local.json')
+    monkeypatch.setattr(cron_heartbeat, 'PUBLIC_PATH', tmp_path / 'public.json')
+    at = datetime(2026, 9, 30, 10, 3, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    job, slot = cron_heartbeat.slot_for('hk', at)
+    def postflight():
+        return cron_heartbeat.record('hk', 'publish_failed', at=at, job_name=job, slot=slot,
+                                     data_plane_status='commit_failed', dashboard_published=False,
+                                     postflight_status='pass', telegram_sent=True)
+    def watchdog():
+        return cron_heartbeat.record('hk', 'completed', at=at + timedelta(minutes=10),
+                                     job_name=job, slot=slot, watchdog_state='ok', telegram_sent=True)
+    if watchdog_first:
+        watchdog()
+        event = postflight()
+    else:
+        postflight()
+        event = watchdog()
+    assert event['state'] == 'publish_failed'
+    cron_heartbeat.publish()
+    coverage = cron_health.heartbeat_coverage(job, ['10:03'], 'Asia/Hong_Kong',
+                                             at + timedelta(hours=1), cron_heartbeat.load_ledger())
+    assert coverage['healthy'] == []
+    assert coverage['failed'] == ['10:03:publish_failed']
+    # A real successful publication retry clears the failure.
+    retry = cron_heartbeat.record('hk', 'completed', at=at + timedelta(minutes=20),
+                                  job_name=job, slot=slot, data_plane_status='published',
+                                  dashboard_published=True)
+    assert retry['state'] == 'completed'
+    assert watchdog()['state'] == 'completed'
+
+
+def test_a_standalone_watchdog_success_without_publication_evidence_stays_healthy(tmp_path, monkeypatch):
+    monkeypatch.setattr(cron_heartbeat, 'LOCAL_PATH', tmp_path / 'local.json')
+    monkeypatch.setattr(cron_heartbeat, 'PUBLIC_PATH', tmp_path / 'public.json')
+    at = datetime(2026, 9, 30, 10, 3, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    event = cron_heartbeat.record('hk', 'watchdog_backstop', at=at,
+                                 watchdog_state='deterministic_fallback', telegram_sent=True)
+    assert event['state'] == 'watchdog_backstop'
