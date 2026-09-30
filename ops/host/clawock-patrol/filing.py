@@ -68,8 +68,9 @@ def telegram(text):
     runtime's PATH and gateway timeout and honours CLAWOCK_DELIVERY_DISABLED; this file is
     installed outside any checkout, so clawock comes from the patrol's own worktree."""
     try:
-        sys.path.insert(0, str(WORK))
-        sys.path.insert(0, str(WORK / "src"))
+        _CHECKOUT = WORK
+        sys.path.insert(0, str(_CHECKOUT))
+        sys.path.insert(0, str(_CHECKOUT / "src"))
         conf = dict(l.split("=", 1) for l in NOTIFY_ENV.read_text().splitlines()
                     if "=" in l and not l.lstrip().startswith("#"))
         target = conf.get("TELEGRAM_TARGET", "").strip().strip("'\"")

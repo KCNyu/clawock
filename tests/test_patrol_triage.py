@@ -1,7 +1,6 @@
 """clawock-patrol triage (2026-10-01): severity is backed by evidence, P3 and over-budget
 findings go to the digest instead of the void, one root cause is one issue, and the round's
 Unit tests on the pure half plus gate dry runs."""
-import json
 import os
 import subprocess
 import sys
