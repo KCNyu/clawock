@@ -233,3 +233,24 @@ def test_weekend_entries_are_harmless_but_kept():
     saturday = date(2027, 2, 6)  # Lunar New Year's Day
     assert saturday.weekday() == 5
     assert trading_calendar.closed_reason("hk", saturday) == "周末休市"
+
+
+def test_intraday_slots_on_an_hk_half_day_close_in_the_afternoon_only():
+    """14:03–15:33 on a half day ran against the 12:00 close (#2213)."""
+    from datetime import datetime
+    from clawock import sessions
+    hkt = sessions.HKT
+    half = "2026-12-24"
+    assert half in sessions.HK_HALF_DAYS
+    at = lambda hm: datetime.fromisoformat(f"{half}T{hm}:00").replace(tzinfo=hkt)
+    for hm in ("10:03", "11:33"):
+        assert sessions.closed_reason(
+            "hk", at(hm).date(), session=sessions.slot_session("hk", at(hm))) is None
+    for hm in ("14:03", "15:33"):
+        assert sessions.closed_reason(
+            "hk", at(hm).date(), session=sessions.slot_session("hk", at(hm))) == "半日市·午后休市"
+    # An ordinary afternoon and the US legs keep their answer.
+    normal = datetime(2026, 12, 23, 14, 33, tzinfo=hkt)
+    assert sessions.closed_reason("hk", normal.date(),
+                                  session=sessions.slot_session("hk", normal)) is None
+    assert sessions.slot_session("us", at("15:33")) == "full"

@@ -139,7 +139,7 @@ def test_intraday_postflight_sends_the_next_slot_after_a_late_one(tmp_path, monk
     }
     for name, value in stubs.items():
         monkeypatch.setattr(postflight, name, value)
-    monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda market: None)
+    monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(postflight.cron_heartbeat, 'record', lambda *a, **kw: None)
     monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_commits', lambda: 0)
     monkeypatch.setattr(postflight.intraday_delta, 'persist_delivered_state',

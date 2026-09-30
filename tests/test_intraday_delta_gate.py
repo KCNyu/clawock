@@ -258,7 +258,7 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
     monkeypatch.setattr(preflight.quant_signals, "universe_details", lambda: [])
     monkeypatch.setattr(preflight, "TMP", tmp_path / "memory" / ".tmp")
     monkeypatch.setattr(preflight, "datetime", FixedDateTime)
-    monkeypatch.setattr(preflight.trading_calendar, "closed_reason", lambda *_a: None)
+    monkeypatch.setattr(preflight.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(
         preflight.cron_heartbeat, "record",
         lambda *_a, **_k: {"job": "US intraday", "slot": now.isoformat()},

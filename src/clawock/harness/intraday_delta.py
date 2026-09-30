@@ -292,7 +292,8 @@ def snapshot(market, *, at=None, fetcher=fetch_peers.fetch_all):
     # Friday's US session, and HKT Monday 02:00 is a US Sunday (#1927).
     session_date = market_session_date(market, at)
     closed = trading_calendar.closed_reason(
-        market, date.fromisoformat(session_date))
+        market, date.fromisoformat(session_date),
+        session=trading_calendar.slot_session(market, at))
     holdings = _active_holdings(market)
     requests = [
         {"ticker": holding["ticker"], "region": market}

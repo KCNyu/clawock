@@ -436,7 +436,7 @@ def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypa
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
     monkeypatch.setattr(sys, 'argv', ['intraday_postflight.py', '--market', 'hk',
                                       '--context-id', 'ctx-abc'])
-    monkeypatch.setattr(intraday_postflight.trading_calendar, 'closed_reason', lambda m: None)
+    monkeypatch.setattr(intraday_postflight.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(intraday_postflight, 'load_context', lambda m: (
         {'heartbeat': {'job': '盘中盯盘', 'slot': '2026-07-23T10:00:00+08:00'}}, None))
     monkeypatch.setattr(intraday_postflight.cron_heartbeat, 'record',

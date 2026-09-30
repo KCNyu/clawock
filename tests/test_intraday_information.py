@@ -190,6 +190,9 @@ def test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_ti
     # A pre-open live headline is held to the same quoting rule as the morning files.
     assert '金风科技 when:1d overnight' in info.stale_titles(summary)
     assert '金风科技 when:1d live' not in info.stale_titles(summary)
+    # The reference layer carries the same cite, so there is a time to copy (#2217).
+    full_rows = [row for rows in out['full']['tickers'].values() for row in rows]
+    assert full_rows and all(row['cite'].startswith('《') for row in full_rows)
     # 同花顺 adds what 东财 did not say; 东财 7×24 came from the same lane.
     assert [f['title'] for f in summary['market_flashes']] == ['恒指午间收跌', '恒生科技指数跌2%']
     assert summary['sources']['em_724_live'] == {'status': 'ok', 'requests': 1}
