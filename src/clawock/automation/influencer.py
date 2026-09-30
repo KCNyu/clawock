@@ -64,6 +64,14 @@ TIMEOUT = 12
 LOOKBACK_HOURS = 48          # catch weekend posts before Mon brief
 RELEVANCE_CUTOFF = 45        # LLM score below this dropped; low so radar stays full
 MAX_CANDIDATES = 48          # cap sent to LLM (token guard; per-source caps in _sources)
+# The relevance filter's budget under MiniMax-M3.1, which will not run with
+# thinking off (#2202): the reasoning shares max_tokens with the JSON, and at
+# ~70 tok/s a full batch outlives llm.TIMEOUT (180s). Measured 2026-09-30:
+# 29 items took 16.8K output tokens / 249s, a full 48 took 31.6K / 400s. The
+# workflow's chain deadline is sized from LLM_TIMEOUT
+# (tests/test_llm_workflow_deadlines.py).
+LLM_MAX_TOKENS = 64000
+LLM_TIMEOUT = 720
 
 # Cheap pre-filter: a raw post is a candidate only if it smells market/economy/
 # policy-relevant. The LLM is the smart filter downstream — this gate is just a
@@ -558,17 +566,18 @@ def llm_filter(candidates, held):
         f"kcn 持仓清单：\n{held_lines}\n\n"
         f"待筛选言论(共 {len(candidates)} 条)：\n{cand_lines}"
     )
-    # Structured extraction — disable thinking (deterministic, avoids the
-    # reasoning budget eating the output cap → truncated JSON) and give
-    # headroom for ~40 items of JSON. mimo intermittently bails on a large
+    # Structured extraction — as little thinking as the model allows
+    # (`thinking_disabled`, which M3.1 turns into adaptive), with room for the
+    # reasoning plus ~40 items of JSON (LLM_MAX_TOKENS). mimo intermittently bails on a large
     # batch (returns an empty `{"items":[]}`, ~6 output tokens) — likely CN
     # endpoint moderation choking on Trump's political posts. An empty result
     # parses fine so it never raised; we now treat "empty despite candidates"
     # as a failure and retry, so the feed isn't silently dumped as raw English.
     for attempt in (1, 2):
         try:
-            raw = chat(system=LLM_SYSTEM, user=user, max_tokens=8000,
-                       temperature=0.3, json_response=True, thinking_disabled=True)
+            raw = chat(system=LLM_SYSTEM, user=user, max_tokens=LLM_MAX_TOKENS,
+                       temperature=0.3, json_response=True, thinking_disabled=True,
+                       timeout=LLM_TIMEOUT)
             data = json.loads(raw)
             # Field-check before the caller sees it (#1257): stance/relevance
             # reach the brief and the evidence graph, and a single non-int idx

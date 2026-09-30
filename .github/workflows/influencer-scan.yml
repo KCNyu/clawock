@@ -29,12 +29,12 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    # 10, not 8: the LLM ladder may open two chains (2 x 210s = 7min) and the
-    # fetch phase is now 13 sequential requests across 8 sources (ARK 6 funds +
-    # 5 Google News queries + Trump + Serenity). Pathological worst case is
-    # ~130s of timeouts, which did not fit in the 1 minute the 8-minute job left
-    # over. tests/test_llm_workflow_deadlines.py still checks 2 chains + 60s.
-    timeout-minutes: 10
+    # 30: the LLM ladder may open two chains (2 x 780s = 26min) and the fetch
+    # phase is 13 sequential requests across 8 sources (worst case ~130s of
+    # timeouts). The chain grew from 210s when MiniMax-M3.1 stopped accepting
+    # thinking off: a full 48-item batch now reasons for ~400s (#2202).
+    # tests/test_llm_workflow_deadlines.py checks 2 chains + 60s.
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -51,10 +51,11 @@ jobs:
           # Chain deadline (brief-fallback 2026-08-17 defect class): a hung
           # primary must not eat the whole job before the fallback answers.
           # This scan retries the whole chain once on failure, so the budget is
-          # sized for two chains inside the 8-minute job: 2 x 210s = 7min,
-          # leaving setup/validate/commit their share. Relevance-filter outputs
-          # are tiny — both legs fit comfortably.
-          CLAWOCK_LLM_DEADLINE_SECONDS: '210'
+          # sized for two chains inside the 30-minute job: 2 x 780s = 26min,
+          # leaving setup/validate/commit their share. One attempt gets
+          # influencer.LLM_TIMEOUT (720s): M3.1's adaptive reasoning on a full
+          # batch measured 400s (#2202).
+          CLAWOCK_LLM_DEADLINE_SECONDS: '780'
         run: clawock-influencer-scan
 
       - name: Validate influencer coverage
