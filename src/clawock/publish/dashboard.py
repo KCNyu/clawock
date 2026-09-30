@@ -207,9 +207,8 @@ def compile_overview_projection(dashboard):
         'capital_weighted_benefit_pct',
     ))
     by_driver = {
-        name: _fields((metrics.get('by_driver') or {}).get(name),
-                      ('win_rate', 'cluster_ci95'))
-        for name in ('catalyst', 'technical', 'macro', 'peer')
+        name: _fields(entry, ('win_rate', 'cluster_ci95'))
+        for name, entry in sorted((metrics.get('by_driver') or {}).items())
     }
     # `stranded` travels with `rate`: it is how many rows the denominator drops
     # and never gets back (#294). Shipping the rate without it is what the

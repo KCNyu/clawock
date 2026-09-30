@@ -108,11 +108,11 @@ def test_nothing_waits_for_validate_just_to_read_its_lane():
 def test_coverage_publish_chain_reads_the_lane_that_produces_the_artifact():
     """publish-coverage must not outlive the artifact it downloads.
 
-    `examples/dsh/**` lights only the dsplugin lane (ops/ci/push_scope.py), so a
-    dsh-only master push runs no pytest and produces no coverage-report.json.
-    The consuming job used to start anyway and die hard in download-artifact on
-    the missing file — four of the last eight red master runs were that false
-    alarm (#957, runs 32760585564 / 32759484885 / 32680826301 / 32680290940).
+    A master push outside the code lane runs no pytest and produces no
+    coverage-report.json (`examples/dsh/**` was such a push until #2199 made the
+    dsplugin lane imply code). The consuming job used to start anyway and die
+    hard in download-artifact on the missing file — four of the last eight red
+    master runs were that false alarm (#957, runs 32760585564 / 32759484885 / 32680826301 / 32680290940).
     The upload side stays warn-only on purpose: gating a lane read on the
     starting event is the shape test_ci_trigger_paths.py bans after #750.
     """

@@ -2,13 +2,14 @@
 
 The gap
 -------
-The ledger holds 741 decisions and five registered signal histories sit next to
-it, and nothing joins them. Reviewing one `cut` means opening the ledger for the
-rationale, then three JSONL files to find what the quant, factor and news layers
-were saying that morning, and doing the date arithmetic by hand. That is why
-"which information source actually moved a decision" has never been answerable
+The ledger holds the decisions (741 when this was written) and the registered
+signal histories (`signal_panel.SOURCES`, six today) sit next to it, and nothing
+joined them. Reviewing one `cut` meant opening the ledger for the rationale, then
+one JSONL file per layer to find what the quant, setup, factor, bar, peer and news
+layers were saying that morning, and doing the date arithmetic by hand. That is
+why "which information source actually moved a decision" was never answerable
 from the decision path: not because the data is missing, but because it is in
-five files with no key between them.
+separate files with no key between them.
 
 This builds the join and publishes it: for each decision, the signal values as of
 that decision's own plan date, and for each signal, the decisions it was standing
@@ -18,11 +19,11 @@ The number that has to be published with it
 --------------------------------------------
 **Snapshot age.** A decision on 2026-06-20 joined to a factor snapshot from
 2026-07-24 is not "the factors at decision time"; it is next month's data. The
-registered histories start at different dates — quant on 06-11, factor and peer
-on 07-24, news on 07-26 — and the ledger starts before all of them. So the join
-is one-sided by construction: a snapshot may only be used when its `as_of` is
-before the plan date and within `MAX_SNAPSHOT_AGE_SESSIONS` of it, and every
-row carries the age that was used.
+registered histories start at different dates — setup on 05-16, quant on 06-11,
+factor, bar and peer on 07-24, news on 07-26 — and the ledger starts before all
+but one of them. So the join is one-sided by construction: a snapshot may only
+be used when its `as_of` is before the plan date and within
+`MAX_SNAPSHOT_AGE_SESSIONS` of it, and every row carries the age that was used.
 
 Without that, the drawer would show a full row of signal values for every
 decision and quietly attribute the July factor regime to a June decision.

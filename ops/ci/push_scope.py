@@ -13,7 +13,7 @@ Lanes emitted (GITHUB_OUTPUT `key=value` lines, or --json):
 
   code       run the Python suite / schema checks
   ui         dashboard browser contract needed (implies code)
-  dsplugin   Decision Studio plugin contracts needed
+  dsplugin   Decision Studio plugin contracts needed (implies code, #2199)
   workflows  a workflow file itself changed (drives the lint gate)
   analysable  at least one path CodeQL should analyse; False when every
               changed path is automation-written runtime data, and False on
@@ -135,6 +135,10 @@ def classify(files: list[str]) -> dict[str, bool]:
             code = True
         if ds_re.search(f):
             dsplugin = True
+            # The suite reads the plugin tree too: test_decision_trace_parity
+            # pins the dashboard and plugin decision-trace constants to each
+            # other, and the node contracts never look at src/clawock (#2199).
+            code = True
         if f.startswith(WORKFLOWS_PREFIX):
             workflows = True
     return {

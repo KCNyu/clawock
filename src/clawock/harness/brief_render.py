@@ -1042,6 +1042,40 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
     return body.rstrip() + "\n"
 
 
+# `watch_levels` keys are snake_case the plan model invents each morning
+# (plans.py); printed verbatim they put `book_force_derisk_usd` on kcn's phone
+# (#2194). Words the dashboard's Watch Levels card already names are named the
+# same way; any other token is kept as a plain word, never the joined key.
+_LEVEL_WORDS = {
+    "hstech": "恒科", "hsi": "恒指", "book": "账面", "us": "美", "hk": "港",
+    "stop": "止损", "support": "支撑", "breakdown": "破位", "breakout": "突破",
+    "target": "目标", "force": "强制", "derisk": "减仓", "trim": "减仓",
+    "trigger": "触发", "resist": "压力", "resistance": "压力", "reclaim": "收复",
+    "reentry": "重回", "floor": "底线", "ma": "均线", "low": "低点",
+    "high": "高点", "prior": "前", "yield": "收益率", "alert": "预警",
+    "date": "日期", "next": "下次", "breakeven": "回本", "chandelier": "吊灯",
+    "usd": "USD", "hkd": "HKD", "pct": "%",
+}
+
+
+def _level_label(key):
+    words = []
+    for i, token in enumerate(str(key).lower().replace("-", "_").split("_")):
+        if not token:
+            continue
+        if token in _LEVEL_WORDS:
+            words.append(_LEVEL_WORDS[token])
+        elif re.fullmatch(r"ma(\d+)", token):
+            words.append(f"{token[2:]}日线")
+        elif re.fullmatch(r"\d+[dy]", token):
+            words.append(token[:-1] + ("日" if token[-1] == "d" else "年"))
+        elif i == 0:
+            words.append(token.upper())
+        else:
+            words.append(token)
+    return " ".join(words) or str(key)
+
+
 def render_card(context, judgment, plan, *, date=None, page_url=None):
     """The WeChat/Telegram card: the same facts, cut to what fits a phone.
 
@@ -1106,7 +1140,7 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     if levels:
         lines.append("▎触发位")
         for key, value in levels.items():
-            lines.append(f"• {key}: {num(value)}")
+            lines.append(f"• {_level_label(key)}: {num(value)}")
         lines.append("")
     if page_url:
         lines += ["📈 完整深度报告：", page_url]
