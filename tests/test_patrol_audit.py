@@ -99,3 +99,16 @@ def test_failed_audit_keeps_round_for_retry_without_advancing_cursor(patrol, tmp
     assert not (tmp_path / "current-round").exists()
     assert (tmp_path / "recent-since").read_text() == "2026-09-21 12:00:00\n"
     assert len((tmp_path / "rounds.tsv").read_text().splitlines()) == 1
+
+
+def test_a_round_that_filed_records_its_yield_without_moving_the_cursor_rule(patrol, tmp_path):
+    # patrol_intel.py round-yield's answer becomes a third `/` field of the result (the dsh panel
+    # reads it); the cursor still advances on the plain ok/DONE state.
+    completed_round(tmp_path)
+    tool = tmp_path / "tool"
+    tool.mkdir()
+    (tool / "patrol_intel.py").write_text("print('P1#7 +1 digest')\n")
+    result = patrol(f"TOOL={tool}\n" + ADOPT)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "\tok/DONE/P1#7 +1 digest\t" in (tmp_path / "rounds.tsv").read_text()
+    assert (tmp_path / "recent-since").read_text() == "2026-09-21 12:00:00\n"

@@ -35,6 +35,8 @@ FILES=(
   gate_issue.py
   triage.py
   filing.py
+  patrol_intel.py
+  peers.json
   file_issue.sh
   issue-context.py
   codemap.sh
