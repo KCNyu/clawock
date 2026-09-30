@@ -249,7 +249,8 @@ def compute_signals(bars):
     sig['technical_setups'] = setups
     # 一行人话标签（仍是规则拼的，不是 LLM）
     tags = []
-    tags.append('趋势ON' if trend_on else '趋势OFF')
+    tags.append('趋势未知' if sig['trend_on'] is None else
+                ('趋势ON' if sig['trend_on'] else '趋势OFF'))
     if sig['rsi14'] is not None:
         if sig['rsi14'] >= 70:
             tags.append(f"RSI超买{sig['rsi14']}")
