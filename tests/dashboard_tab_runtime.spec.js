@@ -2134,6 +2134,7 @@ async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) 
           available: true, as_of: "2026-09-11", window_days: 7,
           impressions: 44, clicks: 0, impressions_28d: 51, position: 6.98,
           pages_with_impressions: 1, queries_reported: 5, sitemap_fetched: null,
+          url_count: 121,
         };
         return json;
       },
@@ -2169,7 +2170,7 @@ async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) 
     assert.deepEqual(seen.texts, [
       "曝光 · 7 天 44 28 天 51",
       "点击 · 7 天 0 没有点击",
-      "被收录的页 1 全站 107 条 URL",
+      "被收录的页 1 全站 121 条 URL",
       "平均排名 6.98 5 个搜索词有曝光",
     ], `${label}: the figures changed shape`);
     assert.equal(seen.cellOverflow, 0, `${label}: a cell's content overflows its box`);

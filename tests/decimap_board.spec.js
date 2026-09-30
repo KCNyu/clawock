@@ -224,6 +224,11 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
     "closing the drawer dropped focus on <body> instead of the cell that opened it");
   assert.equal(back.text, opener,
     `focus came back to ${back.tag}#${back.id}, not the cell that opened the drawer`);
+  // Closed is the other half of the contract: aria-hidden alone left the
+  // off-screen 「×」 in the Tab order with nothing announced (#2220).
+  const closedTabStop = await page.evaluate(() =>
+    !document.getElementById("dm-close").closest("[inert]"));
+  assert(!closedTabStop, "the closed drawer's close button is still a Tab stop");
   await context.close();
 }
 

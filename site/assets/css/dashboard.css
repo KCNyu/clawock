@@ -4409,6 +4409,11 @@
 .tr-t1 { font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: var(--radius-sm); white-space: nowrap; }
 .tr-t1.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
 .tr-t1.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); }
+/* T+1 「持平」（死区内 |Δ|<1%）: t1Cls maps tone flat → na since #739, but only
+   .tr-align.na got a rule, so this chip fell through to body text at weight 700
+   — the loudest chip on the row for the one reading with no verdict (#2216).
+   Same neutral step as .tr-align.na and the plugin's .t1.flat. */
+.tr-t1.na { color: var(--text-dim); background: var(--fill-inset-2); }
 .tr-pnl { font-weight: 700; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; min-width: 88px; text-align: right; }
 .tr-pnl.pos { color: var(--positive); } .tr-pnl.neg { color: var(--negative); }
 /* The details content box is the animatable wrapper (Chrome 131+, Safari
@@ -4441,7 +4446,7 @@
 .tr-node.neg::before { border-color: var(--negative); }
 .tr-n { font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.05em; color: var(--text-dim); text-transform: uppercase; }
 .tr-v { font-size: var(--fs-sm); font-weight: 600; margin-top: 2px; }
-.tr-v.pos { color: var(--positive); } .tr-v.neg { color: var(--negative); } .tr-v.ok { color: var(--positive); } .tr-v.skip { color: var(--warning); }
+.tr-v.pos { color: var(--positive); } .tr-v.neg { color: var(--negative); } .tr-v.na { color: var(--text-dim); } .tr-v.ok { color: var(--positive); } .tr-v.skip { color: var(--warning); }
 .tr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
 .tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: var(--radius-sm); background: var(--fill-inset-2); border: 1px solid var(--border-subtle); color: var(--text-dim); }
 .tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 3px solid var(--border); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
