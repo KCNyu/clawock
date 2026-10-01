@@ -2415,7 +2415,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     assert(/微信掉投 3 档/.test(seen.meta), `${label}: the WeChat drop count is gone: ${seen.meta}`);
     assert.deepEqual(seen.cells.map(c => c.key), ["files", "integrity", "delivery", "cron"]);
     assert.deepEqual(seen.cells.map(c => c.tag), ["BUTTON", "BUTTON", "BUTTON", "DIV"]);
-    assert.equal(seen.cells.find(c => c.key === "cron").value, "4/6", "holiday skips must leave the due denominator; quiet slots are landed");
+    assert.equal(seen.cells.find(c => c.key === "cron").value, "4/6落地", "holiday skips must leave the due denominator; quiet slots are landed");
     assert(seen.cells.every(c => c.state && c.value && c.note), `${label}: a reading lacks its state: ${JSON.stringify(seen.cells)}`);
     const delivery = seen.cells.find(c => c.key === "delivery");
     assert.equal(delivery.state, "观察", `${label}: a recovered slot is watch-only`);
@@ -2427,8 +2427,8 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     // 每个任务一行、自己的状态；有事的在上，安静的按时刻表原序。
     assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "idle", "ok", "ok", "pending"],
       `${label}: row order ${JSON.stringify(seen.rows.map(r => r.job))}`);
-    assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "账本看不到", "正常", "待跑"]);
-    assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 1, 2, 1], `${label}: a row lost its slots`);
+    assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "账本看不到", "休市跳过", "正常", "正常", "待跑"]);
+    assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 1, 1, 2, 1, 1], `${label}: a row lost its slots`);
     assert(seen.rows.every(r => r.last), `${label}: a row has no last-success reading`);
     assert(seen.rows.every(r => r.sameLine), `${label}: a status fell onto its own line`);
     assert(seen.rows.every(r => r.height >= 44), `${label}: a row is below a thumb-sized target`);
