@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T18:09:32.927973+00:00",
+  "generated_at": "2026-10-01T00:47:51.850427+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,40 +24,40 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 22,
+    "total": 24,
     "held_hits": 0,
     "new_ideas": 11,
     "sector_hits": 8
   },
   "items": [
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：NVIDIA Corporation(NVDA) 买入 ARKK 187,260 股 / ARKW 80,245 股 / ARKQ 62,034 股 / ARKX 27,142 股（最大单只 ETF 占比 0.96%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-09-29T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.9566,
+      "author": "Burry",
+      "text": "Michael Burry Buys Put Options on Nvidia, Micron, and Palantir as \"The Big Short\" Investor Predicts a 1987-Style Market Crash",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNQU9IQ25UNHAzeFpLVTRiaTl6dS01bUVCRnBuajMzZXUwaF9kWkhPRHN4MEJnbEZoaXlySzA5V3VQU1drLVNGR0pyejBSQlQtQmVDNTcwSGtaU1Z3UFQxQW1ZcVlwWjNCc2V3Y083bmo0Y2lUaGxMREZEQmV6STFESlFmUm1iQlFZdGg0SFRZemhBLUhZbV81Mg?oc=5",
+      "published": "2026-09-30T18:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "fool.com",
       "tickers": [
-        "NVDA"
+        "NVDA",
+        "MU",
+        "PLTR"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "MU",
+        "NVDA",
+        "PLTR"
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
+        "人工智能",
+        "国防科技",
+        "市场风险"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 90,
-      "summary_cn": "ARK Invest于2026年9月29日买入NVDA约35.7万股，机构在加仓AI芯片龙头。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry买入NVIDIA、Micron和Palantir的看跌期权，并预测可能出现类似1987年的市场崩盘。"
     },
     {
       "author": "Cathie Wood",
@@ -76,17 +76,36 @@
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "sell",
-      "relevance": 88,
-      "summary_cn": "ARK Invest于2026年9月29日从多只ETF合计卖出AMD约18.2万股，机构在减仓半导体敞口。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest于2026年9月29日卖出AMD，在多只ARK ETF中进行规模较大的减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：NVIDIA Corporation(NVDA) 买入 ARKK 187,260 股 / ARKW 80,245 股 / ARKQ 62,034 股 / ARKX 27,142 股（最大单只 ETF 占比 0.96%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-29T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.9566,
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 78,
+      "summary_cn": "ARK Invest于2026年9月29日买入NVIDIA，显示出机构继续增持AI算力核心标的。"
     },
     {
       "author": "Cathie Wood",
@@ -105,71 +124,13 @@
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "ARK Invest于2026年9月29日买入AVGO约7.63万股，机构加仓AI定制芯片与半导体基础设施标的。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Did You Copy Nancy Pelosi's Bloom Energy Trade? Shares Surge 44% Since Late-August Disclosure",
-      "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOcTRLVGkwSWNMWWlIRFd4NVpDWkNpVFRxcm1WaW1XRVZmY2p4V1lldUhuZUMzVFFFSndEMHFEYnQ2YnphTXQ3bEQ5YjBtWlMwSjI0MUpPWUQ5cG4xY1JkNGZXU1NnZDFGc293XzZoUTA1SWpPUzlJbFFtLW82MnFfVWRKSXRaQXVUeXRsSkt1VQ?oc=5",
-      "published": "2026-09-30T14:05:37+00:00",
-      "origin": "gnews-rss",
-      "source": "International Business Times UK",
-      "tickers": [
-        "BE"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BE"
-      ],
-      "sectors": [
-        "清洁能源",
-        "氢能",
-        "能源转型"
+        "人工智能",
+        "数据中心"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 84,
-      "summary_cn": "据国会披露后的市场报道，Pelosi交易Bloom Energy（BE），消息披露以来股价上涨44%，但不能据此认定披露当日买入。"
-    },
-    {
-      "author": "Burry",
-      "text": "Microsoft (MSFT) Faces Michael Burry Warning Over $3 Trillion AI Liabilities",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQS3hxX0NPM0NDemphc2ZSQ0g0ZmJpY2NoQy1XNUpnY2lNZU4zblNmMnd5YXh6SlJWQnRxWWJHQ0Fkbk93Y0Y4dW0wWjhqUEsxWVdFc0g3VTJZQVc3TkxUQjNqem9kUXRfSlRtMnhCZVRpOEN5VzRkR01SbjZvTWpweHVBbG9KTTJwc0cxWTBJMnF1bTBsUkdrQXgyZzdNVmNUcFFFMDJaQ2xqSlpYMmpyN1BoVVJuNEUzYVo2MVFQRUpGMGFFX2pN0gHMAUFVX3lxTFBEbVMtTUU2T29pNVo2WkJOd3JuSVpQeDBrRFBOSlE3TFUxVXNzajdKbWNVZU1Hb2QwbmtWZ2EyQUxWVHFUOUxIM0Q4THhQN1pFeGV1dlh0WDRQSGszZnA4U1NEOTJhaDFFNGswc2dZaEhzWXNHTTlfWTRWbUJpbnd6WUdfX0JBa25wYTJfcDZtX2JDclJOdmtQdjEwRDYyOVlsZFUzbk91N3dha1ZtbExVQ3Q3WkJQN1R5VTQ1eTJ3TlJoSFlJZkNHT3diUw?oc=5",
-      "published": "2026-09-30T17:56:57+00:00",
-      "origin": "gnews-rss",
-      "source": "simplywall.st",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "人工智能",
-        "云计算",
-        "科技股",
-        "AI资本开支"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，Michael Burry警告微软约3万亿美元AI相关负债，质疑其AI基础设施投入和资本回报风险。"
+      "relevance": 73,
+      "summary_cn": "ARK Invest于2026年9月29日买入Broadcom，机构增持AI芯片、网络与数据中心基础设施标的。"
     },
     {
       "author": "Cathie Wood",
@@ -192,8 +153,32 @@
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年9月29日买入ABNB约2.69万股，机构增加对在线旅游平台公司的配置。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年9月29日买入Airbnb，机构增持互联网平台与旅游住宿资产。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 386,216 股 / ARKG 49,178 股（最大单只 ETF 占比 0.40%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-29T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4027,
+      "tickers": [
+        "TXG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TXG"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年9月29日卖出10x Genomics，机构减持生命科学工具与基因测序标的。"
     },
     {
       "author": "Cathie Wood",
@@ -216,95 +201,87 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年9月29日从ARKF卖出Z约14.87万股，机构在减仓房地产科技平台敞口。"
+      "relevance": 69,
+      "summary_cn": "ARK Invest于2026年9月29日卖出Zillow，机构减持房地产科技与互联网平台标的。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 386,216 股 / ARKG 49,178 股（最大单只 ETF 占比 0.40%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-29T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4027,
+      "author": "Burry",
+      "text": "Microsoft (MSFT) Faces Michael Burry Warning Over $3 Trillion AI Liabilities",
+      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQS3hxX0NPM0NDemphc2ZSQ0g0ZmJpY2NoQy1XNUpnY2lNZU4zblNmMnd5YXh6SlJWQnRxWWJHQ0Fkbk93Y0Y4dW0wWjhqUEsxWVdFc0g3VTJZQVc3TkxUQjNqem9kUXRfSlRtMnhCZVRpOEN5VzRkR01SbjZvTWpweHVBbG9KTTJwc0cxWTBJMnF1bTBsUkdrQXgyZzdNVmNUcFFFMDJaQ2xqSlpYMmpyN1BoVVJuNEUzYVo2MVFQRUpGMGFFX2pN0gHMAUFVX3lxTFBEbVMtTUU2T29pNVo2WkJOd3JuSVpQeDBrRFBOSlE3TFUxVXNzajdKbWNVZU1Hb2QwbmtWZ2EyQUxWVHFUOUxIM0Q4THhQN1pFeGV1dlh0WDRQSGszZnA4U1NEOTJhaDFFNGswc2dZaEhzWXNHTTlfWTRWbUJpbnd6WUdfX0JBa25wYTJfcDZtX2JDclJOdmtQdjEwRDYyOVlsZFUzbk91N3dha1ZtbExVQ3Q3WkJQN1R5VTQ1eTJ3TlJoSFlJZkNHT3diUw?oc=5",
+      "published": "2026-09-30T17:56:57+00:00",
+      "origin": "gnews-rss",
+      "source": "simplywall.st",
       "tickers": [
-        "TXG"
+        "MSFT"
       ],
       "held": [],
       "new_ideas": [
-        "TXG"
+        "MSFT"
       ],
       "sectors": [
-        "生物科技",
-        "基因测序",
-        "医疗"
+        "人工智能",
+        "云计算",
+        "科技股"
       ],
       "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest于2026年9月29日合计卖出TXG约43.54万股，机构降低基因测序相关公司敞口。"
-    },
-    {
-      "author": "Musk",
-      "text": "From SpaceX to Saudi Aramco: World's biggest IPOs as Anthropic's blockbuster listing looms",
-      "url": "",
-      "published": "Mon, 28 Sep 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "2222"
-      ],
-      "held": [],
-      "new_ideas": [
-        "2222"
-      ],
-      "sectors": [
-        "IPO",
-        "人工智能",
-        "航天",
-        "能源"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体盘点全球最大IPO，涉及SpaceX、沙特阿美以及Anthropic潜在上市，凸显大型科技与AI公司的资本市场融资关注度。"
-    },
-    {
-      "author": "Musk",
-      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
-      "url": "",
-      "published": "Wed, 30 Sep 2026 12:01:41 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [
-        "T"
-      ],
-      "held": [],
-      "new_ideas": [
-        "T"
-      ],
-      "sectors": [
-        "电信",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "attack",
       "relevance": 68,
-      "summary_cn": "据报道，AT&T首席执行官认为马斯克的SpaceX手机战略不可行，反映传统电信与卫星通信融合方案的商业化争议。"
+      "summary_cn": "据报道，Michael Burry警告Microsoft面临约3万亿美元AI相关负债责任，质疑其AI资本开支与财务可持续性。"
+    },
+    {
+      "author": "段永平",
+      "text": "段永平斥近3700萬加注貴州茅台",
+      "url": "https://news.google.com/rss/articles/CBMi2wJBVV95cUxPQjBNYk5pT1dKcTRmV0JsTDJDLVQ5RGdQbGk3cTE4bnpwV2Fobno1N0xGS2o4NWpkSzhkNzgyM2J0VmJQVnFZd2NFRF94aGpHZ2thMk5zbW9QOF9Uck15T1RDdXEtREN5akIxMXhncVI0MHNpWFNuQ3JVMFUySFRqbFBYaXNRTEl2eFMzU2FORkFvbk9ZUkV0TmlRWUE3VHRMMVBEeDZ3ZGRvcjhENTZRS0xZRVo3WHdTOWhZajJFaVdlejZkd2lUejIzMGs0S3ktMFd0X1pRbnFhXzJMLW42Y25vMjhRQW50RndWNFE1RnlxV1BJVG9iRWsyWHFTUFdaRVZkRVRucWg5V2RQQmhxS01CdlJ4QTlfcVhyNmZacmM1QXZ3U2dqMFBiSVRfbEd4YVl2SzhoLTJmVm80R2QwWnJoX3kzNzNFV0JSNlpXckpicS1wNFBqZmFjVQ?oc=5",
+      "published": "2026-09-29T03:39:23+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [
+        "600519"
+      ],
+      "held": [],
+      "new_ideas": [
+        "600519"
+      ],
+      "sectors": [
+        "白酒",
+        "消费",
+        "中国市场"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 64,
+      "summary_cn": "据报道，段永平斥资近3700万元加注贵州茅台，释放其看好中国核心消费龙头资产的信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX have a huge week on tap",
+      "text": "Why Elon Musk Says Delta’s CEO ‘Will Lose His Job’",
       "url": "",
-      "published": "Mon, 28 Sep 2026 12:05:35 GMT",
+      "published": "Wed, 30 Sep 2026 17:02:06 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Investopedia",
+      "tickers": [
+        "DAL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DAL"
+      ],
+      "sectors": [
+        "航空",
+        "运输"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 54,
+      "summary_cn": "据报道，马斯克表示达美航空CEO将失去工作，涉及对Delta管理层与经营表现的不满。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Postpones Roadster Reveal Event to October 15, Cites Severe Weather Conditions",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 23:30:17 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Autos",
       "tickers": [
         "TSLA"
       ],
@@ -314,92 +291,16 @@
       ],
       "sectors": [
         "电动车",
-        "航天",
-        "卫星互联网"
+        "汽车",
+        "航天"
       ],
       "sector_holdings": [
-        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，Tesla和SpaceX迎来重要的一周，但该标题未披露具体业务、订单或资本动作，市场信号有限。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry believes the AI bubble 'may burst' sooner than he first believed",
-      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNOUVVY1JFeTZYS3JGNGFCNlItUlYxMlByQ2tGOVduVzFLNDdpQzk4bXl6dklUWlRrUkRhRzI5VGt1R0V4Y0h6T0ZXa0kzVWZnUkdBbzFSWFFZc2FWdHFoYUQ5bzZQYVNCV2RLNGxiMzc4VWt4Tnh2QzdkeTFJMzVkWTVLM0RfSWdUVkRkaXRvalZ5OGQ3ZXpyMHF1ejRUejQ2UmNyYVFBWmZHSkJmU0hKRHVvTdIBuAFBVV95cUxOTXJSdXlIZWJGcjdGWjk0Zy1UbkdmYXhZYzI3M2tHY05NYnBpa0MwcHNMX2MydDJtakxUSC1ySEtHVk5IZzJ3WGxiME5DcEhGNll1bkJOOTRBcmd4MHJRdmVjYno3TXhBSkVoeFdQSmlxVU1Ddm80Qk4xWmRfTGxqZFB6NS1kVDlHYS1YWmZIRm1tVmdUdEh0bUhidGt5SEluVkVReDFlZUJDU1JOTmlfcnMwWWRQNmlm?oc=5",
-      "published": "2026-09-28T20:43:14+00:00",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI泡沫",
-        "科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry认为AI泡沫可能比原先判断更早破裂，提示AI和科技资产存在较高估值风险。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry just named who can't afford an AI crash, and his bearish bets tell a different story",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNR0pzVU9hVjlaYWpiSkgxMGNwZU5SSU00cDYwYVRteVJxNmpsejZsVkdIWWhsVWJhTjVqbXM5TUFJVFAxS2Vwa3R6WVJNUHhwdnlCTmQ1VzVqNmN4eWhpMW53bzkzSHlpdXdQcUhpSkJNS1pkMW5GVDdxY2N4Z1dQNTJQbkdhbG9Rd2VzTGU3YXVxMzNPa1RUZ3Jn?oc=5",
-      "published": "2026-09-29T20:23:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI泡沫",
-        "科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry认为部分投资者无力承受AI泡沫破裂，暗示AI资产估值和回撤风险上升。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry says it would be for the 'good of humanity' if a market crash stops OpenAI and Anthropic from going public",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNdWJEQTRKTHNFWjBXZmZ4NjFRLXZCWHFlNHo0VjEyRi0yVjBMa3lHa2h2SUFYaHNXanJaakpHajZXY3c0djRtR2xKcXVDMWFfZ3RVOWloTjRVTVdGUnRZWlllbkJfUEp4NDNLR2p1WW1tRV9BMXpYZWlvbllEUHA4djhfSHBPRm83MWdiaG5GbjM1WWk0SDNkbUI1WUE?oc=5",
-      "published": "2026-09-30T16:47:49+00:00",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "IPO",
-        "AI泡沫"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry认为若市场崩盘能阻止OpenAI和Anthropic上市，反而可能有益于人类，显示其对AI公司资本化的负面看法。"
+      "relevance": 52,
+      "summary_cn": "据报道，Tesla将Roadster发布活动因恶劣天气推迟至10月15日，短期影响公司产品发布与品牌关注度。"
     },
     {
       "author": "洪灏",
@@ -413,46 +314,39 @@
       "new_ideas": [],
       "sectors": [
         "中国股市",
-        "科技股",
+        "港股",
         "宏观市场"
       ],
       "sector_holdings": [
-        "00100",
-        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，洪灏判断中国股市已经超卖，10月可能出现技术性反弹。"
+      "relevance": 66,
+      "summary_cn": "据媒体转述，洪灏认为中国股市已经超卖，预计10月可能出现技术性反弹。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk, SpaceXAI subpoenaed by NYC in AI safety investigation",
+      "text": "Pete Hegseth appoints Elon Musk to US taskforce on future of warfare",
       "url": "",
-      "published": "Mon, 28 Sep 2026 19:01:56 GMT",
+      "published": "Wed, 30 Sep 2026 22:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "The Guardian",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "国防",
         "人工智能",
-        "AI监管",
         "航天"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，SpaceX和xAI因AI安全问题被纽约市传唤，AI企业监管风险上升。"
+      "relevance": 62,
+      "summary_cn": "据报道，埃隆·马斯克被纳入美国未来战争研究工作组，强化其参与国防科技与AI政策制定的关联。"
     },
     {
       "author": "洪灏",
@@ -460,13 +354,14 @@
       "url": "https://news.google.com/rss/articles/CBMikwJBVV95cUxOQ1VNdDR3Zm52THdUR3Mta1hQcG1oSldJR1J1WFhwWDRHRlZqVHd2bU9BeVdqVzFUTmZtX2p2OE5nN1BoWUE1bEU3eVcyRDNlM1BNQzY1Ul9TaVVvUk91YWYwbjhMVzZIWGw0bzdfWjVySHhEdE5KTmVRajBiSGwySnNSXzRYR3FudUw1cTVUQnpzbk5JMUpDMkNfNGpCUFJDeW5RczRLYWZtbkNQYUZHNWc3RUFveF9Odm8xS1l4UzE2UmRwbXEybGNnNnFiQWEteW5KT0Zqb3dCSnh6cVZMTENkQ1dVT041bVg1ZHZUMkdpZXZLalBNQjhPYWg5Vk5ibFZGVHhodTZNTVJmUVNaMjJoVQ?oc=5",
       "published": "2026-09-30T17:00:00+00:00",
       "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
+      "source": "specialist.hket.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "中国科技股"
+        "互联网",
+        "中国市场"
       ],
       "sector_holdings": [
         "00100",
@@ -475,147 +370,243 @@
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，洪灏认为互联网商业模式正在重塑，AI板块应该反弹，表达对中国AI资产的看多观点。"
-    },
-    {
-      "author": "段永平",
-      "text": "全球基金4年首停減持A股",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPbkVlZXlqMHZqX3hhd0ZvUjVrbjBGNjlDaXpfVTJYV3R0aTZnYjg2LURzVlo3Y2RmMkViYzZjbDZNTXFfaWJKRWQwQmxwXy1SRlptUDRSTzNES2thVUlXSjZGdkZkdXZKWTNVSWxJX1N2a2Q4Tk9oN3ZfUWRKTHJHX3FReUhIa0xqckpaVVBZSmVNZDlFc1hSUTRmVFg5QUpOOTR0cnp3dDJlQ1pwNEVpQm5lT09OZGJ0RjR6M3pSRUpNdFpkOGZtQnRHTDFFaDlubV9hZ2pZem9JX3ZVNHN0UVRTcXYyOGtUeEloenp1UTdmM0ZGZ3pObWtZV1VnSkZIMVNOMEVB?oc=5",
-      "published": "2026-09-28T19:04:21+00:00",
-      "origin": "gnews-rss",
-      "source": "東方日報",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国股市",
-        "资金流",
-        "宏观政策"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，全球基金四年来首次停止减持A股，海外资金对中国股票的态度出现边际改善。"
+      "relevance": 60,
+      "summary_cn": "据媒体转述，洪灏认为互联网模式正在崩塌但AI应出现反弹，看多AI方向并提示互联网商业模式重估。"
     },
     {
       "author": "Musk",
-      "text": "Musk Mocks Delta’s Wi-Fi, Says CEO Will ‘Lose His Job’ Amid Feud Over Starlink",
+      "text": "Elon Musk lands new Trump admin role shaping future of American warfare",
       "url": "",
-      "published": "Wed, 30 Sep 2026 12:44:47 GMT",
+      "published": "Wed, 30 Sep 2026 20:54:47 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "Fox News",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电信",
-        "卫星互联网",
-        "AI"
+        "国防",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 57,
+      "summary_cn": "据报道，马斯克获得特朗普政府参与未来战争政策的角色，提升其在美国国防科技议题中的影响力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk returns to Trump world for Pentagon war study",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 21:02:16 GMT",
+      "origin": "gnews-rss",
+      "source": "Axios",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，马斯克重返特朗普政府并参与五角大楼战争研究，凸显航天与国防科技的政策关联。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry says it would be for the 'good of humanity' if a market crash stops OpenAI and Anthropic from going public",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNdWJEQTRKTHNFWjBXZmZ4NjFRLXZCWHFlNHo0VjEyRi0yVjBMa3lHa2h2SUFYaHNXanJaakpHajZXY3c0djRtR2xKcXVDMWFfZ3RVOWloTjRVTVdGUnRZWlllbkJfUEp4NDNLR2p1WW1tRV9BMXpYZWlvbllEUHA4djhfSHBPRm83MWdiaG5GbjM1WWk0SDNkbUI1WUE?oc=5",
+      "published": "2026-09-30T16:47:49+00:00",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "资本市场",
+        "IPO"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "据报道，Michael Burry认为若市场崩盘能阻止OpenAI和Anthropic上市将有利于人类，表达对AI企业估值及上市热潮的担忧。"
+    },
+    {
+      "author": "Musk",
+      "text": "The internet is convinced Elon Musk’s xAI trolled OpenAI’s ‘Dots’ launch",
+      "url": "",
+      "published": "Tue, 29 Sep 2026 22:20:59 GMT",
+      "origin": "gnews-rss",
+      "source": "TechCrunch",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "大模型"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "neutral",
+      "relevance": 54,
+      "summary_cn": "据报道，xAI被指在产品发布期间针对OpenAI的Dots进行舆论操作，反映头部AI公司竞争加剧。"
+    },
+    {
+      "author": "Musk",
+      "text": "What It Takes to Get a Job at SpaceX",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 10:00:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "商业航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 66,
-      "summary_cn": "据报道，马斯克抨击达美航空的Wi-Fi服务并称其首席执行官将丢掉工作，争议核心涉及Starlink航空连接服务。"
-    },
-    {
-      "author": "段永平",
-      "text": "段永平斥近3700萬加注貴州茅台",
-      "url": "https://news.google.com/rss/articles/CBMi2wJBVV95cUxPQjBNYk5pT1dKcTRmV0JsTDJDLVQ5RGdQbGk3cTE4bnpwV2Fobno1N0xGS2o4NWpkSzhkNzgyM2J0VmJQVnFZd2NFRF94aGpHZ2thMk5zbW9QOF9Uck15T1RDdXEtREN5akIxMXhncVI0MHNpWFNuQ3JVMFUySFRqbFBYaXNRTEl2eFMzU2FORkFvbk9ZUkV0TmlRWUE3VHRMMVBEeDZ3ZGRvcjhENTZRS0xZRVo3WHdTOWhZajJFaVdlejZkd2lUejIzMGs0S3ktMFd0X1pRbnFhXzJMLW42Y25vMjhRQW50RndWNFE1RnlxV1BJVG9iRWsyWHFTUFdaRVZkRVRucWg5V2RQQmhxS01CdlJ4QTlfcVhyNmZacmM1QXZ3U2dqMFBiSVRfbEd4YVl2SzhoLTJmVm80R2QwWnJoX3kzNzNFV0JSNlpXckpicS1wNFBqZmFjVQ?oc=5",
-      "published": "2026-09-29T03:39:23+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "白酒",
-        "消费",
-        "中国市场"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "据报道，段永平斥资近3700万元加仓贵州茅台，释放对中国核心消费资产的个人看多信号。"
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克分享SpaceX招聘岗位所需条件，属于公司运营与人才市场信息，对上市航天资产仅有间接参考意义。"
     },
     {
       "author": "Trump",
-      "text": "Axios just released a story that “Trump” offered Sanctions Relief and Frozen Funds to Iran. This is untrue. I offered them NOTHING! Axios’ story, like most others, is a HOAX, used only for purposes of satisfying their Trump Derangement Syndrome. They should withdraw this fake story, IMMEDIATELY! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42018",
-      "published": "2026-09-28T21:34:27+00:00",
+      "text": "The Inspector General’s Report just came out on Jerome “Too Late” Powell’s “renovation” of the Federal Reserve Headquarters in Washington, D.C. The IG’s Report states that there were “deficiencies in the management of the renovation project.” The Building is over budget, at a Record Setting rate and, at a minimum, “Too Late” Powell should be forced to resign from the Board. He can’t manage a Building, and he certainly shouldn’t be allowed to manage his High Interest Rate Policy (only on “TRUMP!”). I have asked Attorney General Todd Blanche to study the report, and make a determination as to wh",
+      "url": "https://www.trumpstruth.org/statuses/42031",
+      "published": "2026-09-30T19:48:03+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "伊朗/制裁/地缘政治",
+        "美联储",
+        "利率",
         "宏观政策"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "特朗普否认曾向伊朗提供制裁豁免和冻结资金，媒体称相关报道不实，市场关注伊朗制裁与地缘政治预期。"
+      "relevance": 68,
+      "summary_cn": "特朗普抨击美联储主席鲍威尔管理能力并要求其辞职，增加对美联储高利率政策及政策独立性的政治压力。"
     },
     {
       "author": "Pelosi",
-      "text": "Senate Votes Down Stock Trading Ban That Critics Say Doesn’t Go Far Enough",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9wV2ZnY0RaT19mZE1fS3o3ZFZZYlZ0X09ac2dsa2xoSEU4ellUR1dCd2NQVVZRNkc5YjVucDd2c2N1NS1vMWJBejBkN3VVVkdJYjJuZ244WHB1VVUzYWtzVW5SR2U5YWxTZGRVQ2tGR2JoTnBJRkpWak5YSjk?oc=5",
-      "published": "2026-09-30T16:53:00+00:00",
+      "text": "Senate blocks Republican bill restricting stock trades by US Congress members",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNZWRULWJDNGlZaTBnOU1kZGVGZVFJMUx3ZlAzTnl1d1dBM0RiZk13MjZ5Q2ZoZEs1RmlHb2E5TEgtOEFiNDlNeG1jU0Zwdmx6eTZTWER0X08yemR0LTc1N25EVTVfTFJTNzY0V2F6T2NjRTdFSDJiRGJLZmxKUjFCa1JjTkNlSlRla2wzQy1EbTdhdUZ3bWFmUWxaeXhOTlBTSkkwcW5n?oc=5",
+      "published": "2026-09-30T20:36:35+00:00",
       "origin": "gnews-rss",
-      "source": "dailycaller.com",
+      "source": "inkl",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "股票交易监管",
+        "金融监管",
         "国会",
-        "市场制度"
+        "股票交易"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 61,
+      "summary_cn": "据报道，美国参议院否决限制国会议员股票交易的共和党法案，议员交易监管暂未进一步收紧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, Palmer Luckey and Newt Gingrich to help Pentagon with warfare initiative, Hegseth says",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 19:55:02 GMT",
+      "origin": "gnews-rss",
+      "source": "cnbc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "人工智能"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 58,
-      "summary_cn": "美国参议院否决一项被批评力度不足的股票交易禁令，国会层面的利益冲突与交易监管争议延续。"
+      "summary_cn": "据报道，马斯克、Palmer Luckey与Newt Gingrich将参与五角大楼未来战争倡议，反映科技资本参与国防政策讨论。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpToday, I am pleased to announce, that the last American Forces are leaving Iraq! It has been a long time, with very bad decision-making that got us involved in this quagmire in the first place, but soon, that will be part of History. This is a Great Day for America and, importantly, we leave with Iraq having a wonderful new Prime Minister, Ali al-Zaidi, somebody I supported from the beginning and fully endorsed. He won an Election that he was not expected to win, and did so, in a landslide!Launched in 2003 under the presidency of George W. Bush, and continued under the Admin",
+      "url": "https://www.trumpstruth.org/statuses/42036",
+      "published": "2026-09-30T23:30:40+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "特朗普宣布最后一批美军撤离伊拉克，叠加伊拉克新总理政治支持表态，可能影响地区地缘风险与能源市场预期。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Said AI Bursts in 2028. One Weekend of Research Changed That",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPUDNlaTB0RFVzUFMxR3RFNlJiQnVHZ1lXVFpsd2stTjVJdkNWQlVXd3VaWkhnWE1uQmZvd3ZrQTQ2Q21kM0wyRmtNY28ydy1abTEtOG1xNVpaZWVSczU0alJtejFhSWtYbVB4NmxSUTVrbHpnRi1XMWpUbmk3bEdWVm90TTRSVUY1UW01MTc2WEVhZGw2LXBHM1dB?oc=5",
+      "published": "2026-09-29T05:19:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "科技股",
+        "市场风险"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道，Michael Burry重新研究后认为AI可能在2028年出现阶段性爆发，反映其对AI周期时点的重新判断。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：NVIDIA Corporation(NVDA) 买入 ARKK 187,260 股 / ARKW 80,245 股 / ARKQ 62,034 股 / ARKX 27,142 股（最大单只 ETF 占比 0.96%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-09-29T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.9566,
+      "author": "Burry",
+      "text": "Michael Burry Buys Put Options on Nvidia, Micron, and Palantir as \"The Big Short\" Investor Predicts a 1987-Style Market Crash",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNQU9IQ25UNHAzeFpLVTRiaTl6dS01bUVCRnBuajMzZXUwaF9kWkhPRHN4MEJnbEZoaXlySzA5V3VQU1drLVNGR0pyejBSQlQtQmVDNTcwSGtaU1Z3UFQxQW1ZcVlwWjNCc2V3Y083bmo0Y2lUaGxMREZEQmV6STFESlFmUm1iQlFZdGg0SFRZemhBLUhZbV81Mg?oc=5",
+      "published": "2026-09-30T18:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "fool.com",
       "tickers": [
-        "NVDA"
+        "NVDA",
+        "MU",
+        "PLTR"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "MU",
+        "NVDA",
+        "PLTR"
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
+        "人工智能",
+        "国防科技",
+        "市场风险"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 90,
-      "summary_cn": "ARK Invest于2026年9月29日买入NVDA约35.7万股，机构在加仓AI芯片龙头。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry买入NVIDIA、Micron和Palantir的看跌期权，并预测可能出现类似1987年的市场崩盘。"
     },
     {
       "author": "Cathie Wood",
@@ -634,17 +625,36 @@
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "sell",
-      "relevance": 88,
-      "summary_cn": "ARK Invest于2026年9月29日从多只ETF合计卖出AMD约18.2万股，机构在减仓半导体敞口。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest于2026年9月29日卖出AMD，在多只ARK ETF中进行规模较大的减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：NVIDIA Corporation(NVDA) 买入 ARKK 187,260 股 / ARKW 80,245 股 / ARKQ 62,034 股 / ARKX 27,142 股（最大单只 ETF 占比 0.96%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-29T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.9566,
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 78,
+      "summary_cn": "ARK Invest于2026年9月29日买入NVIDIA，显示出机构继续增持AI算力核心标的。"
     },
     {
       "author": "Cathie Wood",
@@ -663,71 +673,13 @@
       ],
       "sectors": [
         "半导体",
-        "AI基础设施"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "ARK Invest于2026年9月29日买入AVGO约7.63万股，机构加仓AI定制芯片与半导体基础设施标的。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Did You Copy Nancy Pelosi's Bloom Energy Trade? Shares Surge 44% Since Late-August Disclosure",
-      "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOcTRLVGkwSWNMWWlIRFd4NVpDWkNpVFRxcm1WaW1XRVZmY2p4V1lldUhuZUMzVFFFSndEMHFEYnQ2YnphTXQ3bEQ5YjBtWlMwSjI0MUpPWUQ5cG4xY1JkNGZXU1NnZDFGc293XzZoUTA1SWpPUzlJbFFtLW82MnFfVWRKSXRaQXVUeXRsSkt1VQ?oc=5",
-      "published": "2026-09-30T14:05:37+00:00",
-      "origin": "gnews-rss",
-      "source": "International Business Times UK",
-      "tickers": [
-        "BE"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BE"
-      ],
-      "sectors": [
-        "清洁能源",
-        "氢能",
-        "能源转型"
+        "人工智能",
+        "数据中心"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 84,
-      "summary_cn": "据国会披露后的市场报道，Pelosi交易Bloom Energy（BE），消息披露以来股价上涨44%，但不能据此认定披露当日买入。"
-    },
-    {
-      "author": "Burry",
-      "text": "Microsoft (MSFT) Faces Michael Burry Warning Over $3 Trillion AI Liabilities",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQS3hxX0NPM0NDemphc2ZSQ0g0ZmJpY2NoQy1XNUpnY2lNZU4zblNmMnd5YXh6SlJWQnRxWWJHQ0Fkbk93Y0Y4dW0wWjhqUEsxWVdFc0g3VTJZQVc3TkxUQjNqem9kUXRfSlRtMnhCZVRpOEN5VzRkR01SbjZvTWpweHVBbG9KTTJwc0cxWTBJMnF1bTBsUkdrQXgyZzdNVmNUcFFFMDJaQ2xqSlpYMmpyN1BoVVJuNEUzYVo2MVFQRUpGMGFFX2pN0gHMAUFVX3lxTFBEbVMtTUU2T29pNVo2WkJOd3JuSVpQeDBrRFBOSlE3TFUxVXNzajdKbWNVZU1Hb2QwbmtWZ2EyQUxWVHFUOUxIM0Q4THhQN1pFeGV1dlh0WDRQSGszZnA4U1NEOTJhaDFFNGswc2dZaEhzWXNHTTlfWTRWbUJpbnd6WUdfX0JBa25wYTJfcDZtX2JDclJOdmtQdjEwRDYyOVlsZFUzbk91N3dha1ZtbExVQ3Q3WkJQN1R5VTQ1eTJ3TlJoSFlJZkNHT3diUw?oc=5",
-      "published": "2026-09-30T17:56:57+00:00",
-      "origin": "gnews-rss",
-      "source": "simplywall.st",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "人工智能",
-        "云计算",
-        "科技股",
-        "AI资本开支"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，Michael Burry警告微软约3万亿美元AI相关负债，质疑其AI基础设施投入和资本回报风险。"
+      "relevance": 73,
+      "summary_cn": "ARK Invest于2026年9月29日买入Broadcom，机构增持AI芯片、网络与数据中心基础设施标的。"
     },
     {
       "author": "Cathie Wood",
@@ -750,8 +702,32 @@
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年9月29日买入ABNB约2.69万股，机构增加对在线旅游平台公司的配置。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年9月29日买入Airbnb，机构增持互联网平台与旅游住宿资产。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 386,216 股 / ARKG 49,178 股（最大单只 ETF 占比 0.40%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-29T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4027,
+      "tickers": [
+        "TXG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TXG"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年9月29日卖出10x Genomics，机构减持生命科学工具与基因测序标的。"
     },
     {
       "author": "Cathie Wood",
@@ -774,129 +750,142 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年9月29日从ARKF卖出Z约14.87万股，机构在减仓房地产科技平台敞口。"
+      "relevance": 69,
+      "summary_cn": "ARK Invest于2026年9月29日卖出Zillow，机构减持房地产科技与互联网平台标的。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-29 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 386,216 股 / ARKG 49,178 股（最大单只 ETF 占比 0.40%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-29T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4027,
+      "author": "Burry",
+      "text": "Microsoft (MSFT) Faces Michael Burry Warning Over $3 Trillion AI Liabilities",
+      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQS3hxX0NPM0NDemphc2ZSQ0g0ZmJpY2NoQy1XNUpnY2lNZU4zblNmMnd5YXh6SlJWQnRxWWJHQ0Fkbk93Y0Y4dW0wWjhqUEsxWVdFc0g3VTJZQVc3TkxUQjNqem9kUXRfSlRtMnhCZVRpOEN5VzRkR01SbjZvTWpweHVBbG9KTTJwc0cxWTBJMnF1bTBsUkdrQXgyZzdNVmNUcFFFMDJaQ2xqSlpYMmpyN1BoVVJuNEUzYVo2MVFQRUpGMGFFX2pN0gHMAUFVX3lxTFBEbVMtTUU2T29pNVo2WkJOd3JuSVpQeDBrRFBOSlE3TFUxVXNzajdKbWNVZU1Hb2QwbmtWZ2EyQUxWVHFUOUxIM0Q4THhQN1pFeGV1dlh0WDRQSGszZnA4U1NEOTJhaDFFNGswc2dZaEhzWXNHTTlfWTRWbUJpbnd6WUdfX0JBa25wYTJfcDZtX2JDclJOdmtQdjEwRDYyOVlsZFUzbk91N3dha1ZtbExVQ3Q3WkJQN1R5VTQ1eTJ3TlJoSFlJZkNHT3diUw?oc=5",
+      "published": "2026-09-30T17:56:57+00:00",
+      "origin": "gnews-rss",
+      "source": "simplywall.st",
       "tickers": [
-        "TXG"
+        "MSFT"
       ],
       "held": [],
       "new_ideas": [
-        "TXG"
+        "MSFT"
       ],
       "sectors": [
-        "生物科技",
-        "基因测序",
-        "医疗"
+        "人工智能",
+        "云计算",
+        "科技股"
       ],
       "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest于2026年9月29日合计卖出TXG约43.54万股，机构降低基因测序相关公司敞口。"
-    },
-    {
-      "author": "Musk",
-      "text": "From SpaceX to Saudi Aramco: World's biggest IPOs as Anthropic's blockbuster listing looms",
-      "url": "",
-      "published": "Mon, 28 Sep 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "2222"
-      ],
-      "held": [],
-      "new_ideas": [
-        "2222"
-      ],
-      "sectors": [
-        "IPO",
-        "人工智能",
-        "航天",
-        "能源"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "媒体盘点全球最大IPO，涉及SpaceX、沙特阿美以及Anthropic潜在上市，凸显大型科技与AI公司的资本市场融资关注度。"
-    },
-    {
-      "author": "Musk",
-      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
-      "url": "",
-      "published": "Wed, 30 Sep 2026 12:01:41 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [
-        "T"
-      ],
-      "held": [],
-      "new_ideas": [
-        "T"
-      ],
-      "sectors": [
-        "电信",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "attack",
       "relevance": 68,
-      "summary_cn": "据报道，AT&T首席执行官认为马斯克的SpaceX手机战略不可行，反映传统电信与卫星通信融合方案的商业化争议。"
+      "summary_cn": "据报道，Michael Burry警告Microsoft面临约3万亿美元AI相关负债责任，质疑其AI资本开支与财务可持续性。"
+    },
+    {
+      "author": "段永平",
+      "text": "段永平斥近3700萬加注貴州茅台",
+      "url": "https://news.google.com/rss/articles/CBMi2wJBVV95cUxPQjBNYk5pT1dKcTRmV0JsTDJDLVQ5RGdQbGk3cTE4bnpwV2Fobno1N0xGS2o4NWpkSzhkNzgyM2J0VmJQVnFZd2NFRF94aGpHZ2thMk5zbW9QOF9Uck15T1RDdXEtREN5akIxMXhncVI0MHNpWFNuQ3JVMFUySFRqbFBYaXNRTEl2eFMzU2FORkFvbk9ZUkV0TmlRWUE3VHRMMVBEeDZ3ZGRvcjhENTZRS0xZRVo3WHdTOWhZajJFaVdlejZkd2lUejIzMGs0S3ktMFd0X1pRbnFhXzJMLW42Y25vMjhRQW50RndWNFE1RnlxV1BJVG9iRWsyWHFTUFdaRVZkRVRucWg5V2RQQmhxS01CdlJ4QTlfcVhyNmZacmM1QXZ3U2dqMFBiSVRfbEd4YVl2SzhoLTJmVm80R2QwWnJoX3kzNzNFV0JSNlpXckpicS1wNFBqZmFjVQ?oc=5",
+      "published": "2026-09-29T03:39:23+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [
+        "600519"
+      ],
+      "held": [],
+      "new_ideas": [
+        "600519"
+      ],
+      "sectors": [
+        "白酒",
+        "消费",
+        "中国市场"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 64,
+      "summary_cn": "据报道，段永平斥资近3700万元加注贵州茅台，释放其看好中国核心消费龙头资产的信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Why Elon Musk Says Delta’s CEO ‘Will Lose His Job’",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 17:02:06 GMT",
+      "origin": "gnews-rss",
+      "source": "Investopedia",
+      "tickers": [
+        "DAL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DAL"
+      ],
+      "sectors": [
+        "航空",
+        "运输"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 54,
+      "summary_cn": "据报道，马斯克表示达美航空CEO将失去工作，涉及对Delta管理层与经营表现的不满。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Burry",
-      "text": "Michael Burry believes the AI bubble 'may burst' sooner than he first believed",
-      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNOUVVY1JFeTZYS3JGNGFCNlItUlYxMlByQ2tGOVduVzFLNDdpQzk4bXl6dklUWlRrUkRhRzI5VGt1R0V4Y0h6T0ZXa0kzVWZnUkdBbzFSWFFZc2FWdHFoYUQ5bzZQYVNCV2RLNGxiMzc4VWt4Tnh2QzdkeTFJMzVkWTVLM0RfSWdUVkRkaXRvalZ5OGQ3ZXpyMHF1ejRUejQ2UmNyYVFBWmZHSkJmU0hKRHVvTdIBuAFBVV95cUxOTXJSdXlIZWJGcjdGWjk0Zy1UbkdmYXhZYzI3M2tHY05NYnBpa0MwcHNMX2MydDJtakxUSC1ySEtHVk5IZzJ3WGxiME5DcEhGNll1bkJOOTRBcmd4MHJRdmVjYno3TXhBSkVoeFdQSmlxVU1Ddm80Qk4xWmRfTGxqZFB6NS1kVDlHYS1YWmZIRm1tVmdUdEh0bUhidGt5SEluVkVReDFlZUJDU1JOTmlfcnMwWWRQNmlm?oc=5",
-      "published": "2026-09-28T20:43:14+00:00",
+      "author": "洪灏",
+      "text": "洪灝:中國股市已超賣 10月或有望反彈",
+      "url": "https://news.google.com/rss/articles/CBMimwJBVV95cUxQOEVfS2pMc1ViTk9rQUU2RDRrZEdLWU41Ty1CdEEwV00tUnE3bnNuQkdxTVZ1elpIWV8yX0pLWTlVXy1hTXl6WnBDbUxMdUtPaXZ4ZkhjWmt1S05KQVkwT3cyeTJCd0NTZHVwYWsyZGZaYzh3My1oc0hlQmdkaEhBNzdTZGJ1cU0xM0RRT3hremxEdDlrQU5DNXdScnZkWGR4SG10NXNhZFhtSVRwMG9qSVNhd1RhMUVhLUtlS2pZanNTdTZfT0dzWFZmR2lUc3BZUGxmWFRqMVlneXFnMHQ1Sm5yc3dRV1g4SGI0bTVQNGU1cE5BMzhNdE1PS1ZrYURuWk9nemw1Smg1NGNFNzNEaXc5SDd4UTZCT3pN?oc=5",
+      "published": "2026-09-30T08:54:39+00:00",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "信報網站",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "AI泡沫",
-        "科技股"
+        "中国股市",
+        "港股",
+        "宏观市场"
       ],
       "sector_holdings": [
-        "00100",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry认为AI泡沫可能比原先判断更早破裂，提示AI和科技资产存在较高估值风险。"
+      "stance": "endorse",
+      "relevance": 66,
+      "summary_cn": "据媒体转述，洪灏认为中国股市已经超卖，预计10月可能出现技术性反弹。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry just named who can't afford an AI crash, and his bearish bets tell a different story",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNR0pzVU9hVjlaYWpiSkgxMGNwZU5SSU00cDYwYVRteVJxNmpsejZsVkdIWWhsVWJhTjVqbXM5TUFJVFAxS2Vwa3R6WVJNUHhwdnlCTmQ1VzVqNmN4eWhpMW53bzkzSHlpdXdQcUhpSkJNS1pkMW5GVDdxY2N4Z1dQNTJQbkdhbG9Rd2VzTGU3YXVxMzNPa1RUZ3Jn?oc=5",
-      "published": "2026-09-29T20:23:00+00:00",
+      "author": "Musk",
+      "text": "Pete Hegseth appoints Elon Musk to US taskforce on future of warfare",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 22:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "人工智能",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道，埃隆·马斯克被纳入美国未来战争研究工作组，强化其参与国防科技与AI政策制定的关联。"
+    },
+    {
+      "author": "洪灏",
+      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
+      "url": "https://news.google.com/rss/articles/CBMikwJBVV95cUxOQ1VNdDR3Zm52THdUR3Mta1hQcG1oSldJR1J1WFhwWDRHRlZqVHd2bU9BeVdqVzFUTmZtX2p2OE5nN1BoWUE1bEU3eVcyRDNlM1BNQzY1Ul9TaVVvUk91YWYwbjhMVzZIWGw0bzdfWjVySHhEdE5KTmVRajBiSGwySnNSXzRYR3FudUw1cTVUQnpzbk5JMUpDMkNfNGpCUFJDeW5RczRLYWZtbkNQYUZHNWc3RUFveF9Odm8xS1l4UzE2UmRwbXEybGNnNnFiQWEteW5KT0Zqb3dCSnh6cVZMTENkQ1dVT041bVg1ZHZUMkdpZXZLalBNQjhPYWg5Vk5ibFZGVHhodTZNTVJmUVNaMjJoVQ?oc=5",
+      "published": "2026-09-30T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "specialist.hket.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "AI泡沫",
-        "科技股"
+        "互联网",
+        "中国市场"
       ],
       "sector_holdings": [
         "00100",
@@ -904,9 +893,51 @@
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry认为部分投资者无力承受AI泡沫破裂，暗示AI资产估值和回撤风险上升。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "据媒体转述，洪灏认为互联网模式正在崩塌但AI应出现反弹，看多AI方向并提示互联网商业模式重估。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk lands new Trump admin role shaping future of American warfare",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 20:54:47 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 57,
+      "summary_cn": "据报道，马斯克获得特朗普政府参与未来战争政策的角色，提升其在美国国防科技议题中的影响力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk returns to Trump world for Pentagon war study",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 21:02:16 GMT",
+      "origin": "gnews-rss",
+      "source": "Axios",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，马斯克重返特朗普政府并参与五角大楼战争研究，凸显航天与国防科技的政策关联。"
     },
     {
       "author": "Burry",
@@ -920,144 +951,58 @@
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "IPO",
-        "AI泡沫"
+        "资本市场",
+        "IPO"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "00100"
       ],
       "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry认为若市场崩盘能阻止OpenAI和Anthropic上市，反而可能有益于人类，显示其对AI公司资本化的负面看法。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝:中國股市已超賣 10月或有望反彈",
-      "url": "https://news.google.com/rss/articles/CBMimwJBVV95cUxQOEVfS2pMc1ViTk9rQUU2RDRrZEdLWU41Ty1CdEEwV00tUnE3bnNuQkdxTVZ1elpIWV8yX0pLWTlVXy1hTXl6WnBDbUxMdUtPaXZ4ZkhjWmt1S05KQVkwT3cyeTJCd0NTZHVwYWsyZGZaYzh3My1oc0hlQmdkaEhBNzdTZGJ1cU0xM0RRT3hremxEdDlrQU5DNXdScnZkWGR4SG10NXNhZFhtSVRwMG9qSVNhd1RhMUVhLUtlS2pZanNTdTZfT0dzWFZmR2lUc3BZUGxmWFRqMVlneXFnMHQ1Sm5yc3dRV1g4SGI0bTVQNGU1cE5BMzhNdE1PS1ZrYURuWk9nemw1Smg1NGNFNzNEaXc5SDd4UTZCT3pN?oc=5",
-      "published": "2026-09-30T08:54:39+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国股市",
-        "科技股",
-        "宏观市场"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，洪灏判断中国股市已经超卖，10月可能出现技术性反弹。"
+      "relevance": 55,
+      "summary_cn": "据报道，Michael Burry认为若市场崩盘能阻止OpenAI和Anthropic上市将有利于人类，表达对AI企业估值及上市热潮的担忧。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk, SpaceXAI subpoenaed by NYC in AI safety investigation",
+      "text": "The internet is convinced Elon Musk’s xAI trolled OpenAI’s ‘Dots’ launch",
       "url": "",
-      "published": "Mon, 28 Sep 2026 19:01:56 GMT",
+      "published": "Tue, 29 Sep 2026 22:20:59 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "AI监管",
-        "航天"
+        "大模型"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SPCH",
-        "SPCX"
+        "00100"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，SpaceX和xAI因AI安全问题被纽约市传唤，AI企业监管风险上升。"
-    },
-    {
-      "author": "洪灏",
-      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
-      "url": "https://news.google.com/rss/articles/CBMikwJBVV95cUxOQ1VNdDR3Zm52THdUR3Mta1hQcG1oSldJR1J1WFhwWDRHRlZqVHd2bU9BeVdqVzFUTmZtX2p2OE5nN1BoWUE1bEU3eVcyRDNlM1BNQzY1Ul9TaVVvUk91YWYwbjhMVzZIWGw0bzdfWjVySHhEdE5KTmVRajBiSGwySnNSXzRYR3FudUw1cTVUQnpzbk5JMUpDMkNfNGpCUFJDeW5RczRLYWZtbkNQYUZHNWc3RUFveF9Odm8xS1l4UzE2UmRwbXEybGNnNnFiQWEteW5KT0Zqb3dCSnh6cVZMTENkQ1dVT041bVg1ZHZUMkdpZXZLalBNQjhPYWg5Vk5ibFZGVHhodTZNTVJmUVNaMjJoVQ?oc=5",
-      "published": "2026-09-30T17:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "中国科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，洪灏认为互联网商业模式正在重塑，AI板块应该反弹，表达对中国AI资产的看多观点。"
-    },
-    {
-      "author": "段永平",
-      "text": "全球基金4年首停減持A股",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPbkVlZXlqMHZqX3hhd0ZvUjVrbjBGNjlDaXpfVTJYV3R0aTZnYjg2LURzVlo3Y2RmMkViYzZjbDZNTXFfaWJKRWQwQmxwXy1SRlptUDRSTzNES2thVUlXSjZGdkZkdXZKWTNVSWxJX1N2a2Q4Tk9oN3ZfUWRKTHJHX3FReUhIa0xqckpaVVBZSmVNZDlFc1hSUTRmVFg5QUpOOTR0cnp3dDJlQ1pwNEVpQm5lT09OZGJ0RjR6M3pSRUpNdFpkOGZtQnRHTDFFaDlubV9hZ2pZem9JX3ZVNHN0UVRTcXYyOGtUeEloenp1UTdmM0ZGZ3pObWtZV1VnSkZIMVNOMEVB?oc=5",
-      "published": "2026-09-28T19:04:21+00:00",
-      "origin": "gnews-rss",
-      "source": "東方日報",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国股市",
-        "资金流",
-        "宏观政策"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，全球基金四年来首次停止减持A股，海外资金对中国股票的态度出现边际改善。"
+      "relevance": 54,
+      "summary_cn": "据报道，xAI被指在产品发布期间针对OpenAI的Dots进行舆论操作，反映头部AI公司竞争加剧。"
     },
     {
       "author": "Musk",
-      "text": "Musk Mocks Delta’s Wi-Fi, Says CEO Will ‘Lose His Job’ Amid Feud Over Starlink",
+      "text": "What It Takes to Get a Job at SpaceX",
       "url": "",
-      "published": "Wed, 30 Sep 2026 12:44:47 GMT",
+      "published": "Wed, 30 Sep 2026 10:00:05 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电信",
-        "卫星互联网",
-        "AI"
+        "航天",
+        "商业航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 66,
-      "summary_cn": "据报道，马斯克抨击达美航空的Wi-Fi服务并称其首席执行官将丢掉工作，争议核心涉及Starlink航空连接服务。"
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克分享SpaceX招聘岗位所需条件，属于公司运营与人才市场信息，对上市航天资产仅有间接参考意义。"
     }
   ]
 }
