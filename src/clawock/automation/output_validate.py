@@ -32,6 +32,8 @@ committed artifact for exactly that reason.
 from __future__ import annotations
 
 import re
+
+from clawock.prose_validation import check_identifier_leak, check_pipeline_self_reference
 import sys
 
 # influencer.py's LLM_SYSTEM defines this enum; anything else is the model
@@ -87,7 +89,7 @@ def escape_raw_html(markdown):
     return _LINK_TARGET.sub(_neutral_link, markdown)
 
 
-def validate_sections(text, *, label, required, min_chars):
+def validate_sections(text, *, label, required, min_chars, trading_prose=False):
     """Return `text` unchanged, or raise `LLMOutputError`.
 
     `required` is a sequence of substrings that must all appear (matched
@@ -107,6 +109,11 @@ def validate_sections(text, *, label, required, min_chars):
     if missing:
         raise LLMOutputError(
             f'{label}: missing required section(s): ' + ', '.join(missing))
+    if trading_prose:
+        issues = (check_identifier_leak(text, label=label)
+                  + check_pipeline_self_reference(text, label=label))
+        if issues:
+            raise LLMOutputError('; '.join(issues))
     return text
 
 

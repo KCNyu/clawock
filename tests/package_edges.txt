@@ -8,6 +8,7 @@ __main__ -> cli
 automation -> decision
 automation -> instruments
 automation -> market_data
+automation -> prose_validation
 automation -> providers
 automation -> publish
 automation -> safe_io
@@ -62,6 +63,7 @@ harness -> history_store
 harness -> instruments
 harness -> market_data
 harness -> portfolio
+harness -> prose_validation
 harness -> providers
 harness -> publish
 harness -> runtime_model

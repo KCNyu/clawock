@@ -312,6 +312,7 @@ parameters and what reaches their model.
 | add side | § Add-side strategy | brief, intraday | `add_policy.ENTRY_PROFILES[entry]` |
 | open plans and their triggers | `decision/plans` (`open_decisions_context`, `triggered_conditions`) | brief, report, intraday | leg, today, quotes |
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
+| trading-prose vocabulary | `prose_validation` (pure identifier/pipeline checks); `automation/output_validate.validate_sections(trading_prose=True)` | weekly generation/repair and harness postflights | text, label; harness preserves its advisory policy |
 | placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |
 | brief card | `harness/brief_card.build_brief_card` (card file → plan fallback, harness-owned candidate section, `brief_url`) | brief postflight (primary send), brief watchdog (backstop), `brief_render` (link) | date, packet |
 | send transaction | `_watchdog_common.send_under_claim` (mark mid-send → send → receipt → release only if the receipt landed); claim/receipt names in `automation/delivery_receipts` | brief, report, intraday postflights | claim path (None = no claim), send, receipt writer |
