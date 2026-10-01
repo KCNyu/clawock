@@ -306,6 +306,7 @@ parameters and what reaches their model.
 | quote freshness (which holdings this run's fetch actually stamped) | `_harness_common.quote_coverage` over each holding's `data_source` | report (context + a `⛔` line in the block, #2176), intraday | market, portfolio path, run start |
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
+| history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
 | Tencent per-symbol news/announcements | `market_data/tencent_news` | `primary_disclosures` (type 0), `mover_evidence` (type 1) | symbol, feed type, window, `http` |
 | mover evidence | `market_data/mover_evidence.probe` | report, intraday | tickers, market |
