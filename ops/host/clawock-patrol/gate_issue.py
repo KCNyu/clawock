@@ -37,8 +37,6 @@ LOGDIR = Path(os.environ.get("PATROL_STATE", "/root/logs/clawock-patrol"))
 WORK = Path(os.environ.get("PATROL_WORKTREE", "/root/wt-patrol"))
 TOOL = Path(__file__).resolve().parent   # /root/tools/clawock-patrol once installed
 PREFIX = "[patrol]"
-# Round prompts ask for at most two issues; this caps a model that ignores it.
-DAILY_CAP = int(os.environ.get("PATROL_DAILY_CAP", "999"))
 CREATED = LOGDIR / "filed" / "created.tsv"
 SNAPSHOT = LOGDIR / "issue_snapshot.json"
 REJECTIONS = LOGDIR / "gate-rejections.log"
@@ -47,6 +45,7 @@ INDEX = LOGDIR / "filed" / "index.jsonl"          # every routed finding: issue 
 DIGEST_PENDING = LOGDIR / "digest" / "pending.jsonl"
 LENS_TASK = os.environ.get("AGENT_DISPATCH_TASK_ID", "-")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from github_text import sanitize, validate
 import triage  # noqa: E402  (severity, labels, routing — see triage.py)
 from filing import ensure_labels, flush_digest, telegram  # noqa: E402  (the gh/Telegram side)
 RED_TIMEOUT = int(os.environ.get("RED_CHECK_TIMEOUT", "240"))
@@ -147,17 +146,7 @@ title = title_match.group(1).strip()
 if not title.startswith(PREFIX + " "):
     die(f"标题必须以 `{PREFIX} ` 开头，现在是：{title}")
 
-# ── 0.5 daily cap ────────────────────────────────────────────────────────────
 import time
-_recent = 0
-if CREATED.is_file():
-    for _line in CREATED.read_text(encoding="utf-8").splitlines():
-        _ts = _line.split("\t", 1)[0]
-        if _ts.isdigit() and time.time() - int(_ts) < 86400:
-            _recent += 1
-if _recent >= DAILY_CAP and not os.environ.get("GATE_DRY_RUN"):
-    die(f"过去 24 小时已经开了 {_recent} 条 patrol issue（上限 {DAILY_CAP}）。"
-        "这条先写进 ledger.md 的「候选」里，配额空出来的轮次再提。")
 
 if len(body) < 600:
     die(f"草稿只有 {len(body)} 个字符，太短——六段/三段格式写不下。")
@@ -232,8 +221,8 @@ if _missing:
 # kcn 2026-10-01: patrol should also learn from comparable open-source projects and propose
 # features. The 08-28 competitor-port loop did that without limits: 55 issues in ten hours, 31
 # closed not planned, all on product shape. So a proposal must come from the peers round, cite
-# a live upstream repository and a real clawock pain, stay inside the product boundary, and it
-# is capped per week in triage.route().
+# a live upstream repository and a real clawock pain, and stay inside the product boundary. Those gates are the limit;
+# there is no count ceiling (kcn 2026-10-01).
 LENS = triage.lens_of(LENS_TASK)
 _declared = triage.parse_declared(body)
 if _declared["kind"] == "feature":
@@ -242,13 +231,17 @@ if _declared["kind"] == "feature":
             "想要的新功能写进 ledger「候选」。")
     if not re.search(r"^#{1,4}\s*同类对标\s*$", body, re.M):
         die("功能提案缺 `## 同类对标` 一节：\n"
-            "  来源: <https://github.com/<owner>/<repo>/…（README/CHANGELOG/issue/源码的具体链接，可多条）>\n"
+            "  来源: <peers.json 中的纯文本项目名；源码路径或机制说明，不放 GitHub 链接>\n"
             "  痛点: <#N —— clawock 里这类问题真实发生过的 issue/PR>\n"
             "  契合: <为什么落在 clawock 的边界里（决策工作流 + 可验证 harness，港美股现金个股，不下单）>")
     _src = _field("来源")
-    _repos = sorted(set(re.findall(r"https://github\.com/([\w.-]+/[\w.-]+)", _src)))
+    _peers = json.loads((TOOL / "peers.json").read_text(encoding="utf-8"))["peers"]
+    _repos = sorted({p["repo"] for p in _peers
+                     if p["repo"].split("/", 1)[1].lower() in _src.lower()})
+    # Older private drafts may contain source URLs; validate privately, sanitize before filing.
+    _repos = sorted(set(_repos) | set(re.findall(r"https://github\.com/([\w.-]+/[\w.-]+)", _src)))
     if not _repos:
-        die("`来源:` 里没有 https://github.com/<owner>/<repo> 链接。对标要能点开核对。")
+        die("`来源:` 要写 peers.json 中的纯文本项目名，出处细节放仓库文档，不放第三方 GitHub 引用。")
     _stale = []
     for _r in _repos[:4]:
         _q = subprocess.run(["gh", "api", f"repos/{_r}", "-q", "[.archived, .pushed_at] | @tsv"],
@@ -573,7 +566,7 @@ if hits:
 
 # ── 3.5 triage: severity, labels, and where the finding goes ────────────────────────────────
 # Never a rejection: the finding is true by now. A level the evidence does not carry is lowered
-# and the reason is written into the issue; P3 and over-budget findings go to the digest.
+# and the reason is written into the issue; every severity is filed without a count limit.
 index_rows = triage.read_jsonl(INDEX)
 closed_nums, open_nums = set(), set()
 for _i in existing:
@@ -598,7 +591,7 @@ if target is None and verdict.severity != "P0":
     target = triage.cluster_target(index_rows, fp, verdict.area, open_nums)
     if target:
         verdict.notes.append(f"与 open 的 #{target} 同一处代码（{fp}）")
-where, why = ("comment", f"同根因，补充到 #{target}") if target else triage.route(verdict, index_rows)
+where, why = ("comment", f"同根因，补充到 #{target}") if target else triage.route(verdict)
 print(f"gate: triage {verdict.severity} area:{verdict.area} kind:{verdict.kind} lens:{verdict.lens} → {where}"
       + (f"（{why}）" if why else "") + "".join(f"\n  - {n}" for n in verdict.notes)
       + (f"\n  （草稿没写 {'/'.join(verdict.inferred)}，按规则推断；以后在 `## 分级` 里写明）" if verdict.inferred else ""),
@@ -630,25 +623,13 @@ footer = (
 )
 final = LOGDIR / "filed" / (DRAFT.name + ".body")
 final.parent.mkdir(parents=True, exist_ok=True)
-final.write_text(body[title_match.end():].lstrip() + triage_block + footer, encoding="utf-8")
+title = validate(sanitize(title))
+final.write_text(validate(sanitize(body[title_match.end():].lstrip() + triage_block + footer)), encoding="utf-8")
 
 if os.environ.get("GATE_DRY_RUN"):
     _what = {"issue": "单独提", "comment": f"补充到 #{target}", "digest": "放进汇总"}[where]
     print(f"gate: DRY RUN — 会{_what}："
           f"{title}\n  labels: {' '.join(verdict.labels())}\n  body: {final}", file=sys.stderr)
-    sys.exit(0)
-
-if where == "digest":
-    triage.append_jsonl(DIGEST_PENDING, {
-        "ts": int(time.time()), "title": title, "severity": verdict.severity, "area": verdict.area,
-        "kind": verdict.kind, "lens": verdict.lens, "why": why, "draft": DRAFT.name,
-        "body": final.read_text(encoding="utf-8"),
-    })
-    (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")   # later drafts dedupe against it
-    record("digest")
-    print(f"gate: PASS — {why}，已放进巡检汇总（{len(triage.read_jsonl(DIGEST_PENDING))} 条待发）。"
-          "这不是拒绝：发现保留，攒够 15 条或最老一条满 24 小时合成一条 issue。")
-    flush_digest()
     sys.exit(0)
 
 if where == "comment":

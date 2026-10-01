@@ -112,3 +112,10 @@ def test_a_round_that_filed_records_its_yield_without_moving_the_cursor_rule(pat
     assert result.returncode == 0, result.stdout + result.stderr
     assert "\tok/DONE/P1#7 +1 digest\t" in (tmp_path / "rounds.tsv").read_text()
     assert (tmp_path / "recent-since").read_text() == "2026-09-21 12:00:00\n"
+
+
+def test_audit_covers_more_than_twenty_new_issues_and_pagination(patrol):
+    issues = [{"number": i, "title": "[patrol] ungated", "body": ""} for i in range(1, 36)]
+    result = patrol("audit_ungated 0", [issues[:20], issues[20:]])
+    assert result.returncode == 0, result.stderr
+    assert len(result.stdout.splitlines()) == 35 and "#35 " in result.stdout

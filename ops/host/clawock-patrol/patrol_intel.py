@@ -2,7 +2,7 @@
 """What patrol learned from its own issues, rendered into the next round's prompt (2026-10-01).
 
   patrol_intel.py brief --axis <axis> [--since '<YYYY-MM-DD HH:MM:SS>']
-      prints the round prompt's「反馈与预算」block and rewrites feedback.json (the categories the
+      prints the round prompt's「反馈与提报」block and rewrites feedback.json (the categories the
       gate demotes). The supervisor runs it before every dispatch; failure leaves a one-line note.
   patrol_intel.py round-yield --task <task id>
       prints what one round routed, e.g. `P1#2240 P2#2241 +1 digest +1 comment`, for rounds.tsv.
@@ -10,13 +10,12 @@
 Three loops, each borrowed from a tool that already runs one:
 - precision per detector (CodeQL query precision + dismissal reasons): every lens's recent issues
   counted as fixed / noise (closed not planned, or labelled patrol:noise/duplicate/invalid/
-  wontfix); an (area, kind) pair closed as noise 3+ times in 14 days is demoted to the digest
+  wontfix); an (area, kind) pair closed as noise 3+ times in 14 days is classified as P3
   by the gate until it stops being closed that way;
 - regression detection (Sentry's resolved → regressed): a fixed patrol issue kept its RED-CHECK
   in the draft; when a commit in the recent window touches a file that issue cited, the recent
   round is told to re-run that exact check (it must stay green);
-- rate limits (Renovate): today's individual-issue budget and the pending digest, so a round
-  knows whether a P2 will be filed or batched before it writes the draft.
+- filing history: recent severity counts and legacy pending entries, without count ceilings.
 """
 
 import argparse
@@ -115,17 +114,15 @@ def feedback(rows, now):
     return per_lens, noisy, lessons
 
 
-def budget_line(now):
+def filing_line(now):
     index = triage.read_jsonl(LOGDIR / "filed" / "index.jsonl")
     day = [r for r in index if r.get("route") == "issue" and now - r.get("ts", 0) < 86400]
     by = Counter(r.get("severity") for r in day)
-    non_p0 = len(day) - by["P0"]
     pending = len(triage.read_jsonl(LOGDIR / "digest" / "pending.jsonl"))
-    left = max(0, triage.BUDGET["individual"] - non_p0)
-    left_p2 = max(0, min(left, triage.BUDGET["P2"] - by["P2"]))
-    return (f"- 24 小时内单独开了 {len(day)} 条（P0 {by['P0']} / P1 {by['P1']} / P2 {by['P2']}）；"
-            f"还能单独开 P1/P2 共 {left} 条，其中 P2 {left_p2} 条，超出的自动进汇总（不丢）；P0 不受限。"
-            f"汇总待发 {pending} 条（满 {triage.DIGEST_FLUSH_ITEMS} 条或最老一条满 24 小时合成一条 issue）。")
+    return (f"- 24 小时内单独开了 {len(day)} 条（P0 {by['P0']} / P1 {by['P1']} / "
+            f"P2 {by['P2']} / P3 {by['P3']}）；提报数量不限。"
+            "各级发现都按证据和严重度提报，同根因补充到已有 issue；功能提案没有周数量上限。"
+            f"旧汇总待发 {pending} 条，下次收尾立即提报，不等待数量或年龄门槛。")
 
 
 def regression_watch(rows, since, tasks, limit=6):
@@ -175,7 +172,7 @@ def regression_watch(rows, since, tasks, limit=6):
 
 def brief(axis, since, issues_path=None, now=None):
     now = now or time.time()
-    lines = [f"（自动生成 {time.strftime('%m-%d %H:%M')}；分级规则见 issue-format.md「分级」）", budget_line(now)]
+    lines = [f"（自动生成 {time.strftime('%m-%d %H:%M')}；分级规则见 issue-format.md「分级」）", filing_line(now)]
     try:
         tasks = task_by_issue()
         rows = [classify(i, tasks) for i in load_issues(issues_path)]

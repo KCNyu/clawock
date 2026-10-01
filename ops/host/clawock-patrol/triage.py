@@ -3,21 +3,17 @@
 
 The filing gate (`gate_issue.py`) proves a finding is *true*. This module decides what it is
 *worth*: how severe it is, which labels it carries, and whether it becomes its own issue, a
-comment on an issue that already holds the same root cause, or one line in the periodic digest.
+comment on an issue that already holds the same root cause. Legacy digests remain readable.
 
-Why (issue history 09-21 → 09-30, 245 `[patrol]` issues; details in README.md § 分级与路由):
-only ~5% were closed as untrue, so the gate works — the problem was volume and value. About a
-third were documentation drift, style/contrast nits or CI hygiene, each filed and fixed as its
-own issue; 19 were a second or third issue on a root cause that an earlier issue had already
-named ("#2171 只修了一处" → #2179). 57 issues in one day is more than anyone reads.
+Quality is enforced by runtime evidence, severity and root-cause deduplication. There is no
+per-round, daily or weekly issue-count ceiling (kcn 2026-10-01).
 
 Borrowed shapes, and from where:
 - labels as prefixed dimensions (`kind/`, `area/`, `priority/`): Kubernetes prow triage;
 - one severity scale with evidence behind the higher levels, plus a precision feedback per
   detector: CodeQL (`security-severity`, query `@precision`, dismissal reasons);
 - grouping by the innermost in-app frame (file + enclosing function): Sentry fingerprinting;
-- a rolling "dashboard" issue instead of one issue per low-value item, and per-day limits:
-  Renovate's Dependency Dashboard and `prHourlyLimit`/`prConcurrentLimit`;
+- legacy digest rendering: Renovate's Dependency Dashboard; new findings are not batched;
 - a lower-severity alert on a root cause already alerting is folded into it: Alertmanager
   grouping/inhibition.
 
@@ -40,7 +36,7 @@ SEVERITY_TEXT = {
     "P0": "kcn 今天看到/收到的钱、仓位、决策数字是错的，或成品丢了/发重了/发不出去，或公开泄露凭证",
     "P1": "会放过 P0 的闸/检测/watchdog 在真实数据上失明或 fail-open，或让人学会忽略告警的假红",
     "P2": "看得到但不改变决策：标签/格式错、非金额的陈旧文案、CI 触发盲区、真实数据里还没出现的边界崩溃",
-    "P3": "文档错字/顺序、样式与对比度、无害的标签不一致、内部卫生 —— 进周期汇总，不单独开 issue",
+    "P3": "文档错字/顺序、样式与对比度、无害的标签不一致、内部卫生",
 }
 
 AREAS = {
@@ -92,11 +88,7 @@ SOURCE_LABEL = "patrol"
 NOISE_REASONS = {"NOT_PLANNED"}
 NOISE_LABELS = {NOISE_LABEL, "duplicate", "invalid", "wontfix"}
 
-# Per rolling 24h. P0 is never held back; everything over budget still goes to the digest.
-BUDGET = {"individual": 10, "P2": 5, "feature_7d": 2}
-# About one digest a day: a replay of 09-21..30 routes ~18 findings a day to it on busy days.
-DIGEST_FLUSH_ITEMS = 15
-DIGEST_FLUSH_AGE_S = 24 * 3600
+# Existing digest entries are drained immediately; new findings use individual issues.
 CLUSTER_WINDOW_S = 14 * 86400
 
 
@@ -104,7 +96,7 @@ def label_taxonomy(lenses):
     """Every label patrol applies: name → (color, description)."""
     out = {
         SOURCE_LABEL: ("5319e7", "clawock-patrol 巡检经闸提报"),
-        DIGEST_LABEL: ("c5def5", "巡检周期汇总：P3 与超预算的发现，一条一行"),
+        DIGEST_LABEL: ("c5def5", "旧巡检汇总：保留已有发现与处理记录"),
         NOISE_LABEL: ("eeeeee", "巡检误报/不值得修：关闭时加上，巡检据此给该类发现降权"),
     }
     colors = {"P0": "b60205", "P1": "d93f0b", "P2": "fbca04", "P3": "c2e0c6"}
@@ -315,33 +307,18 @@ def cluster_target(index_rows, fp, area, open_numbers, now=None):
     return None
 
 
-def route(v, index_rows, now=None):
-    """'issue' or 'digest' (with the reason) under the severity and the rolling budgets."""
-    now = now or time.time()
-    if v.severity == "P3":
-        return "digest", "P3 进汇总"
-    if v.severity == "P0":
-        return "issue", ""
-    day = [r for r in index_rows if r.get("route") == "issue" and now - r.get("ts", 0) < 86400
-           and r.get("severity") != "P0"]
-    if v.kind == "feature":
-        week = [r for r in index_rows if r.get("route") == "issue" and r.get("kind") == "feature"
-                and now - r.get("ts", 0) < 7 * 86400]
-        if len(week) >= BUDGET["feature_7d"]:
-            return "digest", f"7 天内已开 {len(week)} 条功能提案（上限 {BUDGET['feature_7d']}）"
-    if len(day) >= BUDGET["individual"]:
-        return "digest", f"24 小时内已单独开 {len(day)} 条 P1/P2（上限 {BUDGET['individual']}）"
-    if v.severity == "P2" and sum(r.get("severity") == "P2" for r in day) >= BUDGET["P2"]:
-        return "digest", f"24 小时内已开 {BUDGET['P2']} 条 P2"
+def route(v, index_rows=(), now=None):
+    """Every evidence-backed severity gets an issue, regardless of previous filing counts.
+
+    The optional history arguments remain accepted for callers replaying old findings.
+    Root-cause grouping is handled separately by the gate.
+    """
     return "issue", ""
 
 
-# ── digest (Renovate's dashboard issue, for findings) ───────────────────────────────────────
 def should_flush(pending, now=None):
-    now = now or time.time()
-    if not pending:
-        return False
-    return len(pending) >= DIGEST_FLUSH_ITEMS or now - min(r.get("ts", now) for r in pending) >= DIGEST_FLUSH_AGE_S
+    """Drain legacy digest entries without waiting for a count or age threshold."""
+    return bool(pending)
 
 
 def render_digest(pending, today):
@@ -350,7 +327,7 @@ def render_digest(pending, today):
         by_sev.setdefault(row.get("severity", "P3"), []).append(row)
     title = f"[patrol] 巡检汇总 {today}：{len(pending)} 条低优先级发现"
     lines = [
-        "巡检把 P3（文档/样式/无害不一致）和超出当日预算的发现攒在这里，一条一行，不各开 issue。",
+        "这是取消数量限制前留下的巡检发现；新发现逐条提报，不再因数量或 P3 等级进入汇总。",
         "每条都过了同一道闸（文件:行可解析、RED-CHECK 实跑为红、查重），证据在折叠块里。",
         "处理方式：可以一个 PR 批量修，勾掉已修的；不成立的写一句原因后勾掉。整条汇总不值得修就以 not planned 关闭。",
         "",
