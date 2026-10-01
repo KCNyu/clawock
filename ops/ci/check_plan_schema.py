@@ -7,11 +7,13 @@ Decision/schema errors and any changed or newly authored money block still fail.
 """
 import hashlib
 import json
+import sys
 from pathlib import Path
 
-from clawock.decision import ledger
-
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+from clawock.decision import ledger  # noqa: E402
 EXCEPTIONS = ROOT / 'ops/ci/legacy_plan_book_values.json'
 
 
