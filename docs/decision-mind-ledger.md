@@ -107,31 +107,21 @@
 - **落点**:`<workspace>/memory/decisions.jsonl`,v0 心智记录与 v2 计划行
   共存于同一文件(ledger.py `LEDGER`)。
 
-## 面板:DSH Decision Mind(只读,三视图)
+## 面板：DSH Decision Mind（只读成交轨迹）
 
-注册为 DSH 对话视图环里的 "Decision Mind" 标签页(`conversation.view`
-slot,id=`decision-studio`,client.js)。三个分段视图:
+注册为 DSH 对话视图环里的 "Decision Mind" 标签页（`conversation.view` slot，
+id=`decision-studio`）。每笔 `portfolio.json` 的真实成交是一条可展开的轨迹：
+当时计划 → 实际成交（同向/反向）→ T+1 收盘 → 已实现与当前浮动盈亏。
+没有当日计划的成交显式标注。按 HK/US 分组，并提供全部、买入、卖出、未配对四个过滤。
 
-- **操作**:`portfolio.json` 里每笔真实成交(`trades`)——买入/加仓/卖出/
-  清仓/减仓标签、股数@价格、金额、已实现盈亏、备注。这是「实际做了什么」
-  的表面,不是计划模拟。
-- **账本**:`decisions.jsonl` 逐条记录,按日期分组;两个过滤:已执行交易
-  (`execution.status == followed` 且 active action)/ 全部;展开看
-  Bull/Bear 对置条、thesis、信心、可证伪条件、情绪注记、对账区。
-- **持仓**:按 book 分组表格(ticker/shares/price/pnl%),含币种与 principal。
+浏览器通过 Typert remote 服务 `clawockStudio` 的 `trades` / `trade` 读取成交及配对证据；
+入口 `src/index.ts`，只读加工在 `src/ledger.ts`，绘制在 `src/client.ts`。
+工作区取 `$CLAWOCK_WORKSPACE`，缺省为 dsh 进程 cwd（`workspaceOf()`）。
+界面沿用 DSH 宿主的浅色/暗色主题与角色色令牌，样式真源是 `src/styles.module.css`，
+不再是独立三视图或固定强调色。插件没有 `decision-mind-ledger.html` 静态页面。
 
-实现要点:
-
-- **只读**:浏览器端通过 Typert remote 服务 `clawockStudio` 调
-  `list/get/ledger/portfolio/plans`(client.js;lib/index.js 为 gateway,
-  lib/ledger.js 为纯读 `decisions.jsonl`(坏行跳过)/`portfolio.json`/
-  `memory/*-plan.json`)。插件不写任何数据,只做加工展示。
-- **工作区**:`$CLAWOCK_WORKSPACE` 环境变量,缺省为 dsh 进程 cwd
-  (lib/index.js `workspaceOf()`)。没有硬编码绝对路径。
-- **视觉**:DSH 原生**浅色**主题(ui-theme 令牌值),单一强调色 DeepSeek
-  蓝 `#4176E6`,正/负/警示语义色,仅吸顶 header 用玻璃效果(client.js
-  头部注释与 CSS)。
-- 仓库中**不存在** `decision-mind-ledger.html`,也没有暗色主题令牌。
+Decision Mind 的成交轨迹只读；侧栏 provider 面板是另一个入口，可以控制 agent-dispatch
+任务队列。能力和安装细节以 [插件 README](../examples/dsh/packages/clawock-dsh/README.md) 为准。
 
 ## 已实现 / 未实现
 
@@ -142,7 +132,7 @@ slot,id=`decision-studio`,client.js)。三个分段视图:
 - `mind`/`emotion` 落账后无更新路径(冻结);bear 反方与 invalidation 强制
 - 执行标记:无操作动作落账即 `followed`;下单动作经
   `clawock mark-followed` 标记(execution.py 按 decision_id 定位)
-- DSH 三视图只读面板;openclaw/claude-code/codex 三个 harness 文档统一
+- DSH 只读成交轨迹面板;openclaw/claude-code/codex 三个 harness 文档统一
   走 `clawock record --source <harness>`
 
 **未实现(如实声明)**:

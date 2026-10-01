@@ -1730,9 +1730,6 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:nowrap;
   color:var(--tq-ink-3)
 }
-.pbc.tqf .bal-badge[data-balance-state="ok"] { fill:var(--tq-run) }
-.pbc.tqf .bal-badge[data-balance-state="low"] { fill:var(--tq-bad) }
-.pbc.tqf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-wait) }
 /* The panel: the host's foot panel, not the balance popover's glass. */
 .pbc.pbf.tqf .bp {
   display:flex;
@@ -2589,7 +2586,8 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:nowrap;
   color:var(--tq-ink-3)
 }
-/* The rail: one 36px glyph; the badge says warn (amber square) or a failed read (red ring). */
+/* The rail: one 36px glyph; all rail states live here (the header badge keeps its own rule). */
+.pbc.ppf .bal-badge[data-balance-state="ok"] { fill:var(--tq-run) }
 .pbc.ppf .bal-badge[data-balance-state="low"] { fill:var(--tq-wait) }
 .pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-bad) }
 /* The open panel: a group per source — its source row, then the allowance and any note on the
