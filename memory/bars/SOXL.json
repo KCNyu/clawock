@@ -1878,6 +1878,15 @@
    "source": "tencent",
    "adjustment": "raw",
    "fetched_at": "2026-09-30T08:03:31+08:00"
+  },
+  "2026-09-30": {
+   "open": 147.95,
+   "high": 150.77,
+   "low": 144.41,
+   "close": 147.86,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-10-01T08:03:35+08:00"
   }
  },
  "retired": false
