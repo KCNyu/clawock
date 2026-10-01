@@ -325,7 +325,7 @@ def check_plan_json_schema(r):
     else:
         r.add('plan.json schema', OK, f'{len(plans)} plans valid')
     if book_warnings:
-        r.add('historical plan book', WARN, f'{len(book_warnings)} monetary discrepancies retained in runtime history; current cards recompute totals')
+        r.add('historical plan book', WARNING, f'{len(book_warnings)} monetary discrepancies retained in runtime history; current cards recompute totals')
 
 
 def check_dashboard_buildable(r):
