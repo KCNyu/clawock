@@ -112,9 +112,9 @@
 注册为 DSH 对话视图环里的 "Decision Mind" 标签页（`conversation.view` slot，
 id=`decision-studio`）。每笔 `portfolio.json` 的真实成交是一条可展开的轨迹：
 当时计划 → 实际成交（同向/反向）→ T+1 收盘 → 已实现与当前浮动盈亏。
-没有当日计划的成交显式标注。按 HK/US 分组，并提供全部、买入、卖出、未配对四个过滤。
+没有当日计划的成交显式标注。按 HK/US 分组，并提供全部、无当日计划、卖出复盘、有当日计划四个过滤。
 
-浏览器通过 Typert remote 服务 `clawockStudio` 的 `trades` / `trade` 读取成交及配对证据；
+浏览器通过 Typert remote 服务 `clawockStudio` 的 `traces` 读取成交及配对证据；
 入口 `src/index.ts`，只读加工在 `src/ledger.ts`，绘制在 `src/client.ts`。
 工作区取 `$CLAWOCK_WORKSPACE`，缺省为 dsh 进程 cwd（`workspaceOf()`）。
 界面沿用 DSH 宿主的浅色/暗色主题与角色色令牌，样式真源是 `src/styles.module.css`，
