@@ -13,7 +13,10 @@ from __future__ import annotations
 import re
 
 from clawock.prose_validation import (
-    ADVISORY_MARK, PIPELINE_TERMS, check_identifier_leak, check_pipeline_self_reference,
+    ADVISORY_MARK,
+    PIPELINE_TERMS as PIPELINE_TERMS,
+    check_identifier_leak as check_identifier_leak,
+    check_pipeline_self_reference as check_pipeline_self_reference,
 )
 
 
