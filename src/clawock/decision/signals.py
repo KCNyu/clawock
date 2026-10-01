@@ -695,7 +695,7 @@ def main(argv=None):
     # 它对账 forward return → 因子 edge 表。同日重跑替换当天行（盘中多次刷新取最后）。
     hist_line = json.dumps({'as_of': out['as_of'],
                             'rows': {k: {f: v.get(f) for f in
-                                         ('close', 'trend_on', 'golden_cross', 'rsi14', 'zscore20',
+                                         ('row_as_of', 'close', 'trend_on', 'golden_cross', 'rsi14', 'zscore20',
                                           'stop_distance_pct', 'mom_1m', 'dist_ma200_pct')}
                                      for k, v in rows.items()
                                      if v.get('status') == 'fresh'}}, ensure_ascii=False)

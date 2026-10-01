@@ -35,6 +35,7 @@ from datetime import date as real_date
 
 from clawock import instruments
 from clawock import sessions as trading_calendar
+from clawock.decision.session_history import normalize_days
 
 
 def wilson_ci(hits, n, z=1.96):
@@ -85,25 +86,20 @@ def _load_days():
     （00:00-04:00）已经落到下一个 `as_of` 里去了。
 
     留痕器现在直接写 `session_date`（#1077）。老行没有这个字段，读取侧
-    回落到 `as_of`：与冻结价闸同一模式——防在读取侧，不改写已有数据。
+    用时间戳与本地日 K 收盘核验邻近交易日；无法核验才回落到 `as_of`。
+    防在读取侧，不改写已有数据，闭市漂移价仍由闭市闸排除。
     """
     if not HIST.exists():
         return []
-    by_day = {}   # session date -> {ticker: {grade_label, close}}
+    records = []
     for line in HIST.read_text().splitlines():
         if not line.strip():
             continue
         try:
-            rec = json.loads(line)
+            records.append(json.loads(line))
         except Exception:
             continue
-        fallback = rec.get('as_of')
-        if not fallback:
-            continue
-        for t, m in (rec.get('rows') or {}).items():
-            d = m.get('session_date') or fallback
-            by_day.setdefault(d, {})[t] = m   # 后写覆盖 → 该 session 最后一条
-    return [{'as_of': d, 'rows': by_day[d]} for d in sorted(by_day)]
+    return normalize_days(records)
 
 
 def _session_open(ticker, day):

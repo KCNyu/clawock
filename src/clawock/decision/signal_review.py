@@ -43,6 +43,7 @@ from clawock import seeds
 from clawock import history_store
 from clawock import instruments
 from clawock import sessions as trading_calendar
+from clawock.decision.session_history import normalize_days
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -175,7 +176,7 @@ def main(argv=None):
         print('  no history yet — skip')
         return
     # 归档 + 热窗（#951）：命中率是逐日回放算出来的，读窗口一短，n 就变小。
-    days = history_store.load_series(HIST)
+    days = normalize_days(history_store.load_series(HIST))
 
     stats = {k: {'n': 0, 'hits': 0, 'observations': [], 'horizon': h}
              for k, (_, _, h) in FACTOR_TESTS.items()}
