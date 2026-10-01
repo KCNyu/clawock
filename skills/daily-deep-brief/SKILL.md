@@ -722,8 +722,8 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
   "fx_source": "Frankfurter",
   "regime": {"us": "trending-up", "hk": "trending-down"},
   "book": {
-    "usd_total_pnl": -117.0,
-    "hkd_total_pnl": -918.0,
+    "usd_total_pnl": -117.28,
+    "hkd_total_pnl": -918.44,
     "hk_leg_hkd": -4936.0,
     "us_leg_usd": 513.0
   },
