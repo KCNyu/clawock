@@ -2403,7 +2403,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
         okDot: dot(card.querySelector(".dh-job[data-tone='ok'] .dh-state")).backgroundColor,
         pendingDot: dot(card.querySelector(".dh-job[data-tone='pending'] .dh-state")).backgroundColor,
         total: Number((sum.match(/(\d+) 槽/) || [])[1]),
-        parts: [...sum.matchAll(/(\d+) (落地|兜底|降级|没落地|进行中|待跑|账本看不到|未知)/g)]
+        parts: [...sum.matchAll(/(\d+) (落地|兜底|降级|没落地|进行中|待跑|账本看不到|休市跳过|无变化·静默|未知)/g)]
           .reduce((a, m) => a + Number(m[1]), 0),
         caption: text(document.getElementById("dh-caption")),
       };
@@ -2415,6 +2415,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     assert(/微信掉投 3 档/.test(seen.meta), `${label}: the WeChat drop count is gone: ${seen.meta}`);
     assert.deepEqual(seen.cells.map(c => c.key), ["files", "integrity", "delivery", "cron"]);
     assert.deepEqual(seen.cells.map(c => c.tag), ["BUTTON", "BUTTON", "BUTTON", "DIV"]);
+    assert.equal(seen.cells.find(c => c.key === "cron").value, "4/6", "holiday skips must leave the due denominator; quiet slots are landed");
     assert(seen.cells.every(c => c.state && c.value && c.note), `${label}: a reading lacks its state: ${JSON.stringify(seen.cells)}`);
     const delivery = seen.cells.find(c => c.key === "delivery");
     assert.equal(delivery.state, "观察", `${label}: a recovered slot is watch-only`);
@@ -2424,7 +2425,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     assert.deepEqual(seen.todo.map(t => t.name), ["失败任务"], `${label}: ${JSON.stringify(seen.todo)}`);
     assert(seen.todo[0].shown && seen.todo[0].why.includes("成品没有送达"));
     // 每个任务一行、自己的状态；有事的在上，安静的按时刻表原序。
-    assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "ok", "pending"],
+    assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "idle", "ok", "ok", "pending"],
       `${label}: row order ${JSON.stringify(seen.rows.map(r => r.job))}`);
     assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "账本看不到", "正常", "待跑"]);
     assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 1, 2, 1], `${label}: a row lost its slots`);
