@@ -2592,10 +2592,13 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   const page = await context.newPage();
   await stubLiveOrigin(page, {
     patch: (name, json) => {
-      // The timeline ships in the decision-trail sidecar since 2026-09-12.
+      // The timeline is a sidecar; recent actions still belong to the main payload.
+      if (name === "dashboard.json" || name === "overview.json") {
+        json.recent_decisions = plan;
+        return json;
+      }
       if (name !== "decision_trail.json") return null;
       json.plan_timeline = plan;
-      json.recent_decisions = plan;
       return json;
     },
   });
