@@ -248,3 +248,12 @@ def test_inference_guesses_p1_only_for_money_delivery_and_blind_gates():
     assert triage.infer("[patrol] 盘中 watchdog 对港股半日市失明，漏发不告警", "投递")["severity"] == "P1"
     assert triage.infer("[patrol] 面板 hover 底色没定义", "面板")["severity"] == "P2"
     assert triage.infer("[patrol] README 仍写 08:00", "站点静态页")["severity"] == "P3"
+
+
+def test_gate_sanitizes_the_actual_filed_body_and_log(tmp_path):
+    draft = DRAFT.format(sev="P2") + "\n参考 idea: example/project#42 @someone https://github.com/example/project/issues/42\n"
+    r = _gate(tmp_path, draft)
+    assert r.returncode == 0, r.stderr
+    body = next((tmp_path / 'a' / 'state' / 'filed').glob('*.body')).read_text()
+    assert 'example/project#42' not in body and '@someone' not in body
+    assert 'github.com/example' not in body

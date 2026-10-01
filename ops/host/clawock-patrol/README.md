@@ -40,7 +40,7 @@
   `patrol:noise`。`filing.py ensure-labels` 建全套，`filing.py backfill` 给存量补标签。
 - **反馈回路**：`patrol_intel.py brief` 每轮统计各范围 14 天内的修复/误报，列最近被判误报的 issue，
   把被多次按 not planned / `patrol:noise` 关闭的「领域/类型」写进 `feedback.json`，闸据此降权；recent 轮另附
-  「回归观察」：窗口内提交碰过的、已修 issue 引用的文件，连同那条 issue 当时的 RED-CHECK（`regress/<N>.sh`）。
+  「回归观察」：窗口内非运行时、非 tests/ 编辑碰过的、已修 issue 引用的文件，连同那条 issue 当时的 RED-CHECK（`regress/<N>.sh`）。
 - **peers 轮**：每天一轮读 `peers.json` 里的开源同类项目，只能提 `类型: feature` 的提案（最高 P2，数量不限），
   闸核来源仓库仍活跃、痛点 #N 真实存在、不越产品边界。
 - **关闭巡检 issue 的人**：不成立或不值得修，请以 not planned 关闭或加 `patrol:noise`，这是反馈回路唯一的输入。
