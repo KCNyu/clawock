@@ -3046,7 +3046,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(texts(chip(rows[0], "status")), "运行中");
   assert.equal(chip(rows[0], "status").props["data-role"], "run");
   assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group head already says whose");
-  assert.match(texts(rows[0]), /运行中 Claude Opus 5\.5 第 2 次 · 卡死 1 \d{2}:\d{2} 1 小时 5 分/,
+  assert.match(texts(rows[0]), /运行中 Claude Opus 5\.5 第 2 次 · 卡死 1 (?:\d{1,2}/\d{1,2} )?\d{2}:\d{2} 1 小时 5 分/,
     "the full model name, useful retry and stall numbers, then when it started and how long");
   assert.equal(fact(rows[0], "tries").props["data-voice"], "warn", "a stall is a warning, not a plain count");
   assert.match(fact(rows[0], "took").props.title, /^已跑 1 小时 5 分$/, "a bare figure in its cell, its words in the title");
