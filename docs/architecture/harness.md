@@ -313,6 +313,7 @@ parameters and what reaches their model.
 | open plans and their triggers | `decision/plans` (`open_decisions_context`, `triggered_conditions`) | brief, report, intraday | leg, today, quotes |
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
 | placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |
+| two-currency book totals | `decision/book.pnl_totals` | brief preflight, plan normalization/validation, fallback card | finite HKD/USD legs, positive USDHKD; historical runtime records stay unchanged |
 | brief card | `harness/brief_card.build_brief_card` (card file → plan fallback, harness-owned candidate section, `brief_url`) | brief postflight (primary send), brief watchdog (backstop), `brief_render` (link) | date, packet |
 | send transaction | `_watchdog_common.send_under_claim` (mark mid-send → send → receipt → release only if the receipt landed); claim/receipt names in `automation/delivery_receipts` | brief, report, intraday postflights | claim path (None = no claim), send, receipt writer |
 | per-channel send policy | `_watchdog_common.send_per_policy` | every postflight | kind, message, per-channel renders |

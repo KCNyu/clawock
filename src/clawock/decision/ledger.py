@@ -31,6 +31,7 @@ from pathlib import Path
 from clawock import seeds
 from clawock import sessions as _cal
 from clawock.decision.mind_record import validate_mind_record
+from clawock.decision.book import plan_totals, validate_plan_book
 # One implementation of the interval, not a second copy of the algebra: the
 # scorecard and the T+0 setup review answer the same question ("is this rate
 # distinguishable from a coin flip?") and must not be able to disagree.
@@ -648,7 +649,7 @@ def missing_regime_warnings(decisions: list[dict]) -> list[str]:
     )
 
 
-def validate_plan(plan: dict, path: str | Path | None = None) -> list[str]:
+def validate_plan(plan: dict, path: str | Path | None = None, *, check_book=True) -> list[str]:
     """Validate an authored plan. Pass ``path`` to also enforce date == filename.
 
     2026-06-01-plan.json once shipped with date="2026-06-02". Every id downstream
@@ -668,6 +669,8 @@ def validate_plan(plan: dict, path: str | Path | None = None) -> list[str]:
             errors.append(f"date {plan.get('date')!r} must match filename ({expected!r})")
     if "actions" in plan:
         errors.append("v1 actions field is forbidden")
+    if check_book:
+        errors.extend(validate_plan_book(plan))
     decisions = plan.get("decisions")
     if not isinstance(decisions, list) or not decisions:
         errors.append("decisions must be a non-empty list")
@@ -723,6 +726,8 @@ def normalize_authored_plan(plan: dict, ledger_path: Path = LEDGER) -> dict:
     ]
     assign_episode_ids(existing + normalized)
     out = {k: v for k, v in plan.items() if k != "actions"}
+    if "book" in out:
+        out["book"] = {**out["book"], **plan_totals(out)}
     out["schema_version"] = SCHEMA_VERSION
     out["decisions"] = normalized
     return out

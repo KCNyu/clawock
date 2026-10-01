@@ -15,6 +15,7 @@ manifest, Pages contract); no network, no send.
 import json
 
 from clawock.scheduling import BRIEF_SLOT_HKT
+from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -184,6 +185,12 @@ def build_brief_card(today, decision_packet=None):
     try:
         plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
         bk = plan.get('book') or {}
+        if bk:
+            try:
+                bk = {**bk, **plan_totals(plan)}
+            except ValueError:
+                bk = {}
+                lines.append('Book: 金额未核验，见完整报告')
         if bk:
             lines.append(f"Book: USD${bk.get('usd_total_pnl', '?')} | "
                          f"HK leg {bk.get('hk_leg_hkd', '?')}HKD | US leg {bk.get('us_leg_usd', '?')}USD")

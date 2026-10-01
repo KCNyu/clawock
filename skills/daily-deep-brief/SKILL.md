@@ -711,6 +711,8 @@ clawock brief render --dry-run
 
 postflight 严格 schema 校验：
 
+book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主统一计算，postflight 会覆盖模型手算值并校验，兜底卡也重新计算。不要把 US 腿当两币合计。
+
 ```json
 {
   "schema_version": 2,

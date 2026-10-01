@@ -54,6 +54,7 @@ from clawock import history_store
 from clawock.safe_io import safe_write_text
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
+from clawock.decision.book import pnl_totals
 from clawock.decision import packet as brief_decision_packet
 from clawock.decision import add_policy, add_side, left_side
 from clawock.decision import signals as bar_signals
@@ -1896,11 +1897,12 @@ def main(argv=None):
     rate = fx['rate']
     hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
     us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
+    totals = pnl_totals(hk_pnl_hkd, us_pnl_usd, rate)
     book = {
         'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
         'us_pnl_usd':      round(us_pnl_usd, 2),
-        'usd_base_total':  round(hk_pnl_hkd / rate + us_pnl_usd, 2),
-        'hkd_base_total':  round(hk_pnl_hkd + us_pnl_usd * rate, 2),
+        'usd_base_total':  totals['usd_total_pnl'],
+        'hkd_base_total':  totals['hkd_total_pnl'],
         'fx_used':         rate,
     }
 
