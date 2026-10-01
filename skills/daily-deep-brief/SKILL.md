@@ -711,6 +711,8 @@ clawock brief render --dry-run
 
 postflight 严格 schema 校验：
 
+book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主统一计算，postflight 会覆盖模型手算值并校验，兜底卡也重新计算。不要把 US 腿当两币合计。
+
 ```json
 {
   "schema_version": 2,
@@ -720,8 +722,8 @@ postflight 严格 schema 校验：
   "fx_source": "Frankfurter",
   "regime": {"us": "trending-up", "hk": "trending-down"},
   "book": {
-    "usd_total_pnl": -117.0,
-    "hkd_total_pnl": -918.0,
+    "usd_total_pnl": -117.28,
+    "hkd_total_pnl": -918.44,
     "hk_leg_hkd": -4936.0,
     "us_leg_usd": 513.0
   },

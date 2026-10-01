@@ -545,16 +545,7 @@ jobs:
 
       - name: Schema-validate memory/*-plan.json
         if: steps.changes.outputs.code == 'true'
-        run: |
-          python3 << 'PY'
-          import json, glob
-          from clawock.decision import ledger as decision_v2
-          for p in sorted(glob.glob('memory/*-plan.json')):
-              with open(p) as f: d = json.load(f)
-              errors = decision_v2.validate_plan(d, p)
-              assert not errors, f'{p}: {errors}'
-              print(f'{p}: OK')
-          PY
+        run: python3 ops/ci/check_plan_schema.py
 
       - name: Decision v2 unit tests and ledger audit
         if: steps.changes.outputs.code == 'true'

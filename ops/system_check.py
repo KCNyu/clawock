@@ -308,18 +308,24 @@ def check_plan_json_schema(r):
         r.add('plan.json schema', OK, '0 plans yet')
         return
     bad = []
+    book_warnings = []
     from clawock.decision import ledger as decision_v2
     for p in plans:
         try:
             d = json.loads(open(p).read())
         except Exception:
             bad.append(f'{Path(p).name}: parse fail'); continue
-        errors = decision_v2.validate_plan(d, p)
+        # Historical runtime records stay intact; report their monetary drift
+        # separately. The live writer validates and normalizes book totals.
+        errors = decision_v2.validate_plan(d, p, check_book=False)
+        book_warnings.extend(f'{Path(p).name}: {e}' for e in decision_v2.validate_plan_book(d))
         bad.extend(f'{Path(p).name}: {e}' for e in errors)
     if bad:
         r.add('plan.json schema', CRITICAL, '; '.join(bad[:3]))
     else:
         r.add('plan.json schema', OK, f'{len(plans)} plans valid')
+    if book_warnings:
+        r.add('historical plan book', WARNING, f'{len(book_warnings)} monetary discrepancies retained in runtime history; current cards recompute totals')
 
 
 def check_dashboard_buildable(r):

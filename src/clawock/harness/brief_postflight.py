@@ -72,9 +72,7 @@ REQUIRED_MARKDOWN_SECTIONS = {
     '下一节点': ('下一节点', 'Next-Session', 'Next Session', '下一交易时段'),
     '同行扫描': ('同行扫描', 'Peer Rotation'),
 }
-HKD_USD_BUG_PATTERNS = [
-    '合计 -4423', '合计 -4,423', '合计 -4423.0',
-]
+
 
 # Readability is measured separately from substantive validation. A modestly
 # long brief remains a usable product; only extreme size becomes a warning.
@@ -276,6 +274,8 @@ def _normalization_owned_plan_error(issue):
     trip this valve (four separate days); `bad action` and `bad condition.type`
     — what the refusal was written to stop — never tripped it once.
     """
+    if issue.startswith('book totals mismatch:'):
+        return True  # Only the two derived totals; invalid inputs still block.
     if issue in ('duplicate decision_id None', 'duplicate decision_id '):
         return True
     return any(pattern.fullmatch(issue)
@@ -499,6 +499,17 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             or not isinstance(authored.get('decisions'), list)):
         return _normalization_result([], authored, return_plan)
 
+    authored_on_disk = authored
+    core_book = (context or {}).get('book_totals') or {}
+    if (isinstance(authored.get('book'), dict) and all(k in core_book for k in
+            ('hk_pnl_hkd', 'us_pnl_usd', 'fx_used'))):
+        # Use this generation's deterministic inputs, not a second model-authored
+        # copy. Validation below still rejects invalid source inputs.
+        authored = {**authored, 'fx_rate_usdhkd': core_book['fx_used'],
+                    'book': {**(authored.get('book') or {}),
+                             'hk_leg_hkd': core_book['hk_pnl_hkd'],
+                             'us_leg_usd': core_book['us_pnl_usd']}}
+
     authored_issues = decision_v2.validate_plan(authored, path)
     semantic_issues = [
         issue for issue in authored_issues
@@ -551,7 +562,7 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
                 f"nothing in this generation's context: "
                 + ', '.join(dropped_citations[:5]),
                 group='unmatched_in_context')
-        if write and normalized != authored:
+        if write and normalized != authored_on_disk:
             # Atomic write: this process is SIGTERM-prone (60s exec timeout,
             # #508/#765) and a torn plan.json would fail every downstream
             # consumer the same day.
@@ -726,10 +737,6 @@ def validate_markdown(path, context=None):
                    for marker in markers for alias in aliases):
             issues.append(f'pre-open.md 缺段标记 "{concept}"')
 
-    for bug in HKD_USD_BUG_PATTERNS:
-        if bug in text:
-            issues.append(f'pre-open.md 出现历史 bug 模式 "{bug}" (HKD+USD 直接相加)')
-
     if 'HHI' not in text and 'hhi' not in text:
         issues.append('pre-open.md 未提及 HHI（集中度风险段漏掉？）')
 
@@ -784,6 +791,7 @@ def validate_markdown(path, context=None):
 CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
+    'book inputs invalid', 'book totals mismatch:',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 
 
