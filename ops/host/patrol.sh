@@ -221,12 +221,15 @@ PY
 # Issues whose title carries the prefix but whose body lacks the gate's marker went around it.
 audit_ungated() {  # <epoch the round started>
   local since; since=$(date -u -d "@$1" +%FT%TZ)
-  gh issue list -R "$REPO" --state all --search "\"[patrol]\" in:title created:>=$since" --limit 20 \
-    --json number,title,body 2>/dev/null | python3 -c '
+  gh api --paginate --slurp "repos/$REPO/issues?state=all&since=$since&per_page=100" 2>/dev/null | python3 -c '
 import json, sys
-for i in json.load(sys.stdin):
-    if "patrol-gate: passed" not in (i.get("body") or ""):
-        print("#{} {}".format(i["number"], i["title"]))'
+pages = json.load(sys.stdin)
+rows = [i for page in pages for i in page] if pages and isinstance(pages[0], list) else pages
+for i in rows:
+    if (i.get("title", "").startswith("[patrol]") and "pull_request" not in i
+            and i.get("created_at", sys.argv[1]) >= sys.argv[1]
+            and "patrol-gate: passed" not in (i.get("body") or "")):
+        print("#{} {}".format(i["number"], i["title"]))' "$since"
 }
 
 ROUND_ID=""
@@ -256,12 +259,12 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     export P_ROUND=$n P_AXIS_TITLE=$title P_HEAD="$(head_line "$WT")"
     export P_AXIS_BODY=${body//'{{RECENT_SINCE}}'/$since}
     if [ -s "$STATE/steer.md" ]; then export P_STEER; P_STEER=$(cat "$STATE/steer.md"); else export P_STEER="（暂无）"; fi
-    # What patrol learned from its own issues (precision per lens, noise closures, today's budget,
+    # What patrol learned from its own issues (precision per lens, noise closures, recent filings,
     # the regression watch for recent rounds). A failure costs the round its history, not its run.
     export P_FEEDBACK
     P_FEEDBACK=$(PATROL_STATE="$STATE" PATROL_WORKTREE="$WT" timeout 150 python3 "$TOOL/patrol_intel.py" brief \
                    --axis "$axis" --since "$since" 2>/dev/null) || P_FEEDBACK=""
-    [ -n "$P_FEEDBACK" ] || P_FEEDBACK="（反馈读取失败，本轮没有历史数据；分级与预算规则照旧，见 issue-format.md）"
+    [ -n "$P_FEEDBACK" ] || P_FEEDBACK="（反馈读取失败，本轮没有历史数据；证据与分级规则照旧，提报数量不限，见 issue-format.md）"
     render >"$STATE/round-prompt.md"
   
     start=$(date +%s)
