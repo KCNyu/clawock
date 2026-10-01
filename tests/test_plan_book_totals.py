@@ -87,3 +87,27 @@ def test_postflight_binds_book_to_generation_inputs(tmp_path):
     normalized = json.loads(path.read_text())
     assert normalized['book']['usd_total_pnl'] == -7474.41
     assert not ledger.validate_plan(normalized, path)
+
+
+def test_stored_history_exception_is_exact_and_cannot_hide_other_errors(tmp_path):
+    from ops.ci.check_plan_schema import book_digest, validate_stored_plan
+    plan = ledger.normalize_authored_plan(_plan(), tmp_path / 'empty-ledger.jsonl')
+    # This test uses the independent author fixture to produce valid decisions.
+    plan['decisions'] = ledger.normalize_authored_plan({**plan, 'decisions': [{
+        'ticker': 'AAA', 'strategy_id': 'risk_rebalance', 'action': 'cut',
+        'condition': {'type': 'manual', 'description': 'risk rule'},
+        'size': {'shares': 1}, 'confidence': .8, 'driven_by': 'risk_rule',
+        'regime': 'neutral', 'rationale': 'reduce exposure',
+    }]}, tmp_path / 'empty-ledger.jsonl')['decisions']
+    plan['book']['usd_total_pnl'] = -999.56
+    name = '2026-09-30-plan.json'
+    legacy = {name: book_digest(plan)}
+    errors, retained = validate_stored_plan(plan, name, legacy)
+    assert not errors and retained
+    assert ledger.validate_plan(plan, name)  # Author gate remains strict.
+    plan['book']['usd_total_pnl'] = 123
+    assert validate_stored_plan(plan, name, legacy)[0]
+    plan['book']['usd_total_pnl'] = -999.56
+    assert validate_stored_plan(plan, '2026-10-01-plan.json', legacy)[0]
+    plan['decisions'][0]['action'] = 'invalid-action'
+    assert validate_stored_plan(plan, name, legacy)[0]

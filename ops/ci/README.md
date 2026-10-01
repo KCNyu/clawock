@@ -11,3 +11,9 @@ are not runtime APIs and do not belong in the wheel.
 Every other run of that workflow is a no-op skip, so its green ticks say
 nothing — `--strict` reddens only on a *determined* dead backstop and never on
 a `gh` lookup failure.
+
+Stored-plan schema checks use `check_plan_schema.py`. The exact monetary blocks in
+`legacy_plan_book_values.json` preserve reviewed published history from before the
+book-total gate; they exempt no decision/schema errors, and any changed book/FX
+values or a new filename must pass strict monetary validation. Live normalization,
+publication and pre-commit validation use no exceptions.
