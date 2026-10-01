@@ -487,6 +487,7 @@ def build_user_prompt(payload):
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
         "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
+        "不要印内部字段名或管线词（如 git_shares_diff、hold_and_watch、packet、harness）；改写成交易语言。"
         "直接出 markdown, 不要客套."
     )
 
@@ -504,6 +505,7 @@ def _chain_deadline():
         return float(os.environ.get(llm.DEADLINE_ENV) or 0) or None
     except ValueError:
         return None
+
 
 
 def generate_review(system, user, *, clock=time.monotonic):
@@ -528,7 +530,8 @@ def generate_review(system, user, *, clock=time.monotonic):
     # ~1/10th of a real review (2026-W34 is 11KB).
     try:
         return validate_sections(out, label='weekly review',
-                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
+                                 trading_prose=True)
     except LLMOutputError as rejection:
         _log_rejection(out, rejection)
         budget = _chain_deadline()
@@ -550,7 +553,8 @@ def generate_review(system, user, *, clock=time.monotonic):
             raise rejection from exc
         try:
             return validate_sections(repaired, label='weekly review',
-                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
+                                     trading_prose=True)
         except LLMOutputError as exc:
             _log_rejection(repaired, exc)
             raise

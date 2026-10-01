@@ -1532,8 +1532,8 @@
     // ── 四个领域读数：数据面 / 体检 / 成品 / 定时任务 ──────────────────
     const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
     const deliveredCount = okCount + soft;
-    const landed = n("ok") + n("recovered") + n("degraded");
-    const due = cells.length - n("upcoming") - n("running") - n("unmonitored");
+    const landed = n("ok") + n("recovered") + n("degraded") + n("quiet");
+    const due = cells.length - n("upcoming") - n("running") - n("unmonitored") - n("closed");
     const nowAt = dhHktClock(now);
     const nextCell = scheduleStale ? null
       : cells.find(c => ["upcoming", "running"].includes(c.state) && c.at >= nowAt)
@@ -1666,7 +1666,8 @@
         const parts = [["ok", n("ok"), "落地"], ["recovered", n("recovered"), "兜底"],
           ["degraded", n("degraded"), "降级"], ["failed", n("failed") + n("missed"), "没落地"],
           ["running", n("running"), "进行中"], ["upcoming", n("upcoming"), "待跑"],
-          ["unmonitored", n("unmonitored"), "账本看不到"], ["unknown", n("unknown"), "未知"]]
+          ["unmonitored", n("unmonitored"), "账本看不到"], ["closed", n("closed"), "休市跳过"],
+          ["quiet", n("quiet"), "无变化·静默"], ["unknown", n("unknown"), "未知"]]
           .filter(([, v]) => v);
         sum.innerHTML = (scheduleStale ? `<span class="dh-key is-stale">时刻表停在 ${escapeHtml(cs.date)}</span>` : "")
           + `<span class="dh-key">${cells.length} 槽</span>`
@@ -3807,6 +3808,15 @@
     return `<span class="drv-chip ${m.cls}" title="driven_by=${d}（该信号源的 30d edge 见 Calibration·By Driver 卡）">${m.label}</span>`;
   }
 
+  const PLAN_OUTCOMES = Object.freeze({
+    pending: "待确认", win: "获益", loss: "损失", flat: "持平",
+    not_triggered: "未触发", unknown: "不可判定",
+  });
+  function planOutcome(value) {
+    const key = value == null ? "pending" : Object.hasOwn(PLAN_OUTCOMES, value) ? value : "unknown";
+    return { key, label: PLAN_OUTCOMES[key] };
+  }
+
   function renderPlanActions() {
     const list = (safe(DATA, "recent_decisions") || []).slice(0, 8);
     const wrap = document.getElementById("plan-actions");
@@ -3815,7 +3825,8 @@
       return;
     }
     wrap.innerHTML = list.map(a => {
-      const oc = a.outcome || "pending";
+      const outcome = planOutcome(a.outcome);
+      const oc = outcome.key;
       const conf = a.confidence != null ? (a.confidence * 100).toFixed(0) + "%" : DASH;
       const pnl = a.benefit_t1_pct != null ? fmtPct(a.benefit_t1_pct) : DASH;
       const cond = a.condition || {};
@@ -3829,7 +3840,7 @@
             <div>${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
             <div class="meta">${escapeHtml(a.strategy_id || DASH)} · conf ${conf} · ${escapeHtml(cond.type || DASH)} · 方向分 ${pnl}</div>
           </div>
-          <div class="outcome ${oc}">${oc}</div>
+          <div class="outcome ${oc}">${outcome.label}</div>
         </div>
       `;
     }).join("");
@@ -4466,7 +4477,8 @@
       return `<div class="pt-pnl ${cls}" title="对下一个快照报价的方向分：正值表示这条建议的方向对了。报价时点不稳定，不等于 T+1 收益">方向分 ${s}${p.toFixed(2)}%</div>`;
     };
     const cards = list.map((a, index) => {
-      const oc = a.outcome || "pending";
+      const outcome = planOutcome(a.outcome);
+      const oc = outcome.key;
       const followed = (a.execution || "unknown").toLowerCase();
       const c = a.condition || {};
       const trig = `${c.type || ""}${fmtTriggerPrice(c.price)}${fmtSize(a)}`;
@@ -4505,7 +4517,7 @@
           </div>
           <div class="pt-side">
             <div class="pt-conf">conf ${fmtConf(a.confidence)}</div>
-            <div class="outcome ${oc}">${oc}</div>
+            <div class="outcome ${oc}">${outcome.label}</div>
             ${followedTag}
             ${fmtPnl(a.benefit_t1_pct)}
           </div>

@@ -1829,6 +1829,8 @@
   .outcome.loss { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   .outcome.pending { background: rgba(107,118,145,.15); color: var(--text-secondary); }
   .outcome.flat { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .outcome.not_triggered { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
+  .outcome.unknown { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   /* Add campaign — one deterministic public projection, split by market. */
   .campaign-summary, .campaign-coverage {
     color: var(--text-dim); font: var(--fs-xs)/1.55 var(--mono);
@@ -2190,6 +2192,9 @@
   .pt-row.outcome-win { border-left-color: var(--positive); }
   .pt-row.outcome-loss { border-left-color: var(--negative); }
   .pt-row.outcome-pending { border-left-color: var(--neutral); }
+  .pt-row.outcome-flat { border-left-color: var(--warning); }
+  .pt-row.outcome-not_triggered { border-left-color: var(--neutral); border-left-style: dashed; }
+  .pt-row.outcome-unknown { border-left-color: var(--warning); }
   .pt-row .pt-head {
     display: flex; flex-direction: column; gap: 2px; min-width: 78px;
   }
@@ -3250,6 +3255,10 @@
   .dh-key i[data-s="unmonitored"], .dh-key i[data-s="unknown"] {
     background: color-mix(in srgb, var(--neutral) var(--tint-edge), transparent);
   }
+  .dh-slots i[data-s="closed"], .dh-key i[data-s="closed"] {
+    background: color-mix(in srgb, var(--neutral) var(--tint-strong), transparent);
+  }
+  .dh-slots i[data-s="quiet"], .dh-key i[data-s="quiet"] { background: var(--positive); }
   .dh-job-when { display: contents; }
   .dh-job-last, .dh-job-next {
     grid-row: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

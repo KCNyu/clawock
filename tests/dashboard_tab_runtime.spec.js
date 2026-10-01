@@ -2262,6 +2262,8 @@ function dataHealthFixture(json, { stale = false, outcomes = null } = {}) {
   json.cron_schedule = { date: stale ? "2026-09-20" : hkt, jobs: [
     { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
       slots: [{ at: "08:00", state: "ok" }, { at: "08:30", state: "ok" }] },
+    { job: "港股休市任务", slots: [{ at: "09:33", state: "closed" }, { at: "13:33", state: "closed" }] },
+    { job: "静默任务", slots: [{ at: "10:33", state: "quiet" }] },
     { job: "尚未到期任务", slots: [{ at: "23:50", state: "upcoming" }] },
     { job: "需关注任务", slots: [{ at: "09:00", state: "degraded",
       note: { disposition: "watch", text: "已送达，但发布延迟" } }] },
@@ -2401,7 +2403,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
         okDot: dot(card.querySelector(".dh-job[data-tone='ok'] .dh-state")).backgroundColor,
         pendingDot: dot(card.querySelector(".dh-job[data-tone='pending'] .dh-state")).backgroundColor,
         total: Number((sum.match(/(\d+) 槽/) || [])[1]),
-        parts: [...sum.matchAll(/(\d+) (落地|兜底|降级|没落地|进行中|待跑|账本看不到|未知)/g)]
+        parts: [...sum.matchAll(/(\d+) (落地|兜底|降级|没落地|进行中|待跑|账本看不到|休市跳过|无变化·静默|未知)/g)]
           .reduce((a, m) => a + Number(m[1]), 0),
         caption: text(document.getElementById("dh-caption")),
       };
@@ -2413,6 +2415,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     assert(/微信掉投 3 档/.test(seen.meta), `${label}: the WeChat drop count is gone: ${seen.meta}`);
     assert.deepEqual(seen.cells.map(c => c.key), ["files", "integrity", "delivery", "cron"]);
     assert.deepEqual(seen.cells.map(c => c.tag), ["BUTTON", "BUTTON", "BUTTON", "DIV"]);
+    assert.equal(seen.cells.find(c => c.key === "cron").value, "4/6落地", "holiday skips must leave the due denominator; quiet slots are landed");
     assert(seen.cells.every(c => c.state && c.value && c.note), `${label}: a reading lacks its state: ${JSON.stringify(seen.cells)}`);
     const delivery = seen.cells.find(c => c.key === "delivery");
     assert.equal(delivery.state, "观察", `${label}: a recovered slot is watch-only`);
@@ -2422,10 +2425,10 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     assert.deepEqual(seen.todo.map(t => t.name), ["失败任务"], `${label}: ${JSON.stringify(seen.todo)}`);
     assert(seen.todo[0].shown && seen.todo[0].why.includes("成品没有送达"));
     // 每个任务一行、自己的状态；有事的在上，安静的按时刻表原序。
-    assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "ok", "pending"],
+    assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "idle", "ok", "ok", "pending"],
       `${label}: row order ${JSON.stringify(seen.rows.map(r => r.job))}`);
-    assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "账本看不到", "正常", "待跑"]);
-    assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 1, 2, 1], `${label}: a row lost its slots`);
+    assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "休市跳过", "账本看不到", "正常", "正常", "待跑"]);
+    assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 2, 1, 2, 1, 1], `${label}: a row lost its slots`);
     assert(seen.rows.every(r => r.last), `${label}: a row has no last-success reading`);
     assert(seen.rows.every(r => r.sameLine), `${label}: a status fell onto its own line`);
     assert(seen.rows.every(r => r.height >= 44), `${label}: a row is below a thumb-sized target`);
@@ -2579,7 +2582,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     plan.push({
       date: "2026-09-0" + (i % 9 + 1), ticker: `T${1000 + i}`, action: "hold_and_watch",
       strategy_id: "core_position", condition: { type: "manual" }, confidence: 0.5,
-      outcome: "pending", execution: "unknown",
+      outcome: ["pending", "win", "loss", "flat", "not_triggered", "unknown", "unexpected"][i % 7], execution: "unknown",
       // 最后一条故意是短理由：短理由不该配一个什么都不展开的按钮。
       rationale: i === total - 1 ? "一句话就说完了。" : `第 ${i + 1} 条：${long}`,
     });
@@ -2590,7 +2593,11 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   const page = await context.newPage();
   await stubLiveOrigin(page, {
     patch: (name, json) => {
-      // The timeline ships in the decision-trail sidecar since 2026-09-12.
+      // The timeline is a sidecar; recent actions still belong to the main payload.
+      if (name === "dashboard.json" || name === "overview.json") {
+        json.recent_decisions = plan;
+        return json;
+      }
       if (name !== "decision_trail.json") return null;
       json.plan_timeline = plan;
       return json;
@@ -2603,6 +2610,20 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   await page.waitForFunction(() => document.querySelectorAll("#plan-timeline .pt-row").length > 0,
     null, { timeout: 15000 })
     .catch(() => { throw new Error("the plan timeline never rendered") });
+
+  const outcomes = await page.evaluate(() => {
+    const read = selector => [...document.querySelectorAll(selector)].map(el => ({
+      label: el.textContent, color: getComputedStyle(el).color,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+    return { timeline: read("#plan-timeline .outcome"), actions: read("#plan-actions .outcome") };
+  });
+  const expected = ["待确认", "获益", "损失", "持平", "未触发", "不可判定", "不可判定"];
+  for (const readings of [outcomes.timeline, outcomes.actions]) {
+    assert.deepEqual(readings.slice(0, 7).map(x => x.label), expected);
+    assert(readings[4].background !== "rgba(0, 0, 0, 0)");
+    assert(readings[5].color !== readings[0].color, "unavailable must differ from pending");
+  }
 
   const shape = await page.evaluate(() => {
     const wrap = document.getElementById("plan-timeline");

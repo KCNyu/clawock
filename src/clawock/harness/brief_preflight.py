@@ -1936,9 +1936,11 @@ def main(argv=None):
     decision_metrics = compute_decision_metrics()
     # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
     # It only means something against the constant-forecast baseline it has to beat.
+    active_n = ((decision_metrics.get("calibration") or {}).get("active") or {}).get("n")
     print(f'   {decision_metrics.get("settled_episodes", 0)} settled episodes / '
           f'{decision_metrics.get("raw_decisions", 0)} raw decisions; '
-          f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
+          f'active calibration n={active_n if active_n is not None else "unavailable"}; '
+          f'active Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
           f'{decision_metrics.get("brier_baseline_loo")} '
           f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
     hierarchical = decision_metrics.get('hierarchical_calibration') or {}

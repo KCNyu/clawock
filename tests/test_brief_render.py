@@ -769,3 +769,17 @@ def test_a_failed_influencer_filter_says_so_instead_of_dropping_the_section():
     assert "上一轮保留" in render.influencer_section(kept)
     kept["influencer"]["llm_filter_status"] = "ok"
     assert "筛选" not in render.influencer_section(kept)
+
+
+def test_calibration_count_matches_active_brier_and_missing_count_is_not_borrowed():
+    from clawock.harness.brief_render import calibration_section
+    metrics = {'settled_episodes': 18, 'raw_decisions': 203, 'brier': 0.2418,
+               'brier_baseline_loo': 0.3333, 'calibration': {'active': {'n': 4}}}
+    rendered = calibration_section({'decision_metrics': metrics}, {})
+    assert '全体已结算 **18**' in rendered and '主动校准样本 **4**' in rendered
+    assert '主动口径 Brier 0.2418 vs 常数预测基准 0.3333' in rendered
+    assert '主动校准样本未填满' in rendered
+    metrics.pop('calibration')
+    rendered = calibration_section({'decision_metrics': metrics}, {})
+    assert '主动校准样本 **18**' not in rendered
+    assert '主动校准样本未填满' in rendered

@@ -127,5 +127,5 @@ def test_gold_eastmoney_legs_use_shared_client_and_keep_truth_separate(monkeypat
         "reconciled_date": "2026-07-14", "daily_amount": 200.0,
         "start_date": "2026-07-01",
     }
-    derived = gold.compute(seed, [("2026-07-15", 3.5, 0.5)], None)
+    derived = gold.compute(seed, [("2026-07-01", 3.4, 0.0), ("2026-07-15", 3.5, 0.5)], None)
     assert gold.GROUND_TRUTH_FIELDS.isdisjoint(derived)

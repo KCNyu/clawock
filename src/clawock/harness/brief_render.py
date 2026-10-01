@@ -880,10 +880,13 @@ def _interval(bounds):
 
 def calibration_section(context, judgment):
     metrics = context.get("decision_metrics") or {}
-    head = (f"过去 {metrics.get('window_days', MISSING)} 天：已结算 "
+    active_n = ((metrics.get("calibration") or {}).get("active") or {}).get("n")
+    head = (f"过去 {metrics.get('window_days', MISSING)} 天：全体已结算 "
             f"**{metrics.get('settled_episodes', MISSING)}** 个 episode"
-            f"（{metrics.get('raw_decisions', MISSING)} raw decisions；Brier "
-            f"{num(metrics.get('brier'), 4)}）")
+            f"（{metrics.get('raw_decisions', MISSING)} 条原始决策）；主动校准样本 "
+            f"**{active_n if active_n is not None else MISSING}**；主动口径 Brier "
+            f"{num(metrics.get('brier'), 4)} vs 常数预测基准 "
+            f"{num(metrics.get('brier_baseline_loo'), 4)}")
     rows = []
     for driver, row in sorted((metrics.get("by_driver") or {}).items()):
         rows.append([
@@ -894,6 +897,8 @@ def calibration_section(context, judgment):
             "✅" if row.get("edge_significant") else "—",
         ])
     out = ["### 决策校准", "", head, ""]
+    if active_n is None or active_n < 8:
+        out += ["主动校准样本未填满，只作方向性参考。", ""]
     if rows:
         out += [table(["driven_by", "n", "avg benefit", "cluster CI95", "edge"], rows), ""]
     out.append(text(_narrative(judgment).get("calibration_read")))
