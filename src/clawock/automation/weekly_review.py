@@ -487,6 +487,7 @@ def build_user_prompt(payload):
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
         "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
+        "不要印内部字段名或管线词（如 git_shares_diff、hold_and_watch、packet、harness）；改写成交易语言。"
         "直接出 markdown, 不要客套."
     )
 
@@ -505,6 +506,18 @@ def _chain_deadline():
     except ValueError:
         return None
 
+
+
+def validate_review(text):
+    from clawock.harness.validation import check_identifier_leak, check_pipeline_self_reference
+
+    text = validate_sections(text, label='weekly review',
+                             required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+    issues = (check_identifier_leak(text, label='weekly review')
+              + check_pipeline_self_reference(text, label='weekly review'))
+    if issues:
+        raise LLMOutputError('; '.join(issues))
+    return text
 
 def generate_review(system, user, *, clock=time.monotonic):
     """The review text, after at most one repair turn. Raises LLMOutputError.
@@ -527,8 +540,7 @@ def generate_review(system, user, *, clock=time.monotonic):
     # Anchors are the four questions build_user_prompt asks for; the floor is
     # ~1/10th of a real review (2026-W34 is 11KB).
     try:
-        return validate_sections(out, label='weekly review',
-                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+        return validate_review(out)
     except LLMOutputError as rejection:
         _log_rejection(out, rejection)
         budget = _chain_deadline()
@@ -549,8 +561,7 @@ def generate_review(system, user, *, clock=time.monotonic):
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
         try:
-            return validate_sections(repaired, label='weekly review',
-                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+            return validate_review(repaired)
         except LLMOutputError as exc:
             _log_rejection(repaired, exc)
             raise

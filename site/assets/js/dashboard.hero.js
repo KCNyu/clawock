@@ -1364,8 +1364,8 @@
     // ── 四个领域读数：数据面 / 体检 / 成品 / 定时任务 ──────────────────
     const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
     const deliveredCount = okCount + soft;
-    const landed = n("ok") + n("recovered") + n("degraded");
-    const due = cells.length - n("upcoming") - n("running") - n("unmonitored");
+    const landed = n("ok") + n("recovered") + n("degraded") + n("quiet");
+    const due = cells.length - n("upcoming") - n("running") - n("unmonitored") - n("closed");
     const nowAt = dhHktClock(now);
     const nextCell = scheduleStale ? null
       : cells.find(c => ["upcoming", "running"].includes(c.state) && c.at >= nowAt)
@@ -1498,7 +1498,8 @@
         const parts = [["ok", n("ok"), "落地"], ["recovered", n("recovered"), "兜底"],
           ["degraded", n("degraded"), "降级"], ["failed", n("failed") + n("missed"), "没落地"],
           ["running", n("running"), "进行中"], ["upcoming", n("upcoming"), "待跑"],
-          ["unmonitored", n("unmonitored"), "账本看不到"], ["unknown", n("unknown"), "未知"]]
+          ["unmonitored", n("unmonitored"), "账本看不到"], ["closed", n("closed"), "休市跳过"],
+          ["quiet", n("quiet"), "无变化·静默"], ["unknown", n("unknown"), "未知"]]
           .filter(([, v]) => v);
         sum.innerHTML = (scheduleStale ? `<span class="dh-key is-stale">时刻表停在 ${escapeHtml(cs.date)}</span>` : "")
           + `<span class="dh-key">${cells.length} 槽</span>`

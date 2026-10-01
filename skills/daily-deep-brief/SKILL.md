@@ -632,15 +632,15 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 ```
 ▎Decision v2 校准
 
-过去 30 天：已结算 {settled_episodes} 个 episode
+过去 30 天：全体已结算 {settled_episodes} 个 episode；主动校准样本 {calibration.active.n} 个
 - 主动决策：n=N，平均 benefit=X%，date-cluster CI=[L,U]
-- 信心校准：嘴上平均 {mean_confidence}，实际胜率 {base_rate}；Brier {brier} vs 闭眼总报 {base_rate} 的 {brier_baseline_loo}
+- 主动口径信心校准（n={calibration.active.n}）：嘴上平均 {mean_confidence}，实际胜率 {base_rate}；Brier {brier} vs 闭眼总报 {base_rate} 的 {brier_baseline_loo}
 - 按 strategy / action / driven_by 点出最强与最弱各一项
 - 执行状态：**要动手的** {execution_by_kind.active.rate}（{followed}/{known}）与 **不用动的** {execution_by_kind.passive.rate} 分开写；执行率不等于建议质量。两条腿各自的 `{stranded}` **必须同句写出来**（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
 ```
 
 规则：
-- `settled_episodes < 5`：明确写样本未填满，只作方向性参考。
+- `calibration.active.n < 8` 或主动 n 缺失：明确写样本未填满，只作方向性参考。
 - 主动 `cluster_ci95` 跨 0：不许声称有稳定 edge。
 - **Brier 禁止裸报**。`0.295` 单独写会被读成「接近 0，还行」。只准写成对 `brier_baseline_loo`（闭眼总报基准率的留一法常数预测）的比较。`brier_beats_baseline=false` 时说「信心值校准不合格」或「过度自信」，**不许说「信心值没有信息量」**——Brier 分解里 resolution 仍 >0，是 reliability 把它吃掉了，说「没信息量」是过度指控。
 - **禁止报「听 AI 赚了多少钱」类金额**。`decision_money_impact` 已于 2026-07-15 撤下且**不再写入 dashboard.json**：它把从没执行过的 call 也算进去。重建对照账本前，任何「多赚/少赚 X 元」都是编的。

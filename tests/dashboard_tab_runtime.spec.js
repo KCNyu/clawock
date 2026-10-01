@@ -2262,6 +2262,8 @@ function dataHealthFixture(json, { stale = false, outcomes = null } = {}) {
   json.cron_schedule = { date: stale ? "2026-09-20" : hkt, jobs: [
     { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
       slots: [{ at: "08:00", state: "ok" }, { at: "08:30", state: "ok" }] },
+    { job: "港股休市任务", slots: [{ at: "09:33", state: "closed" }, { at: "13:33", state: "closed" }] },
+    { job: "静默任务", slots: [{ at: "10:33", state: "quiet" }] },
     { job: "尚未到期任务", slots: [{ at: "23:50", state: "upcoming" }] },
     { job: "需关注任务", slots: [{ at: "09:00", state: "degraded",
       note: { disposition: "watch", text: "已送达，但发布延迟" } }] },
@@ -2579,7 +2581,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     plan.push({
       date: "2026-09-0" + (i % 9 + 1), ticker: `T${1000 + i}`, action: "hold_and_watch",
       strategy_id: "core_position", condition: { type: "manual" }, confidence: 0.5,
-      outcome: "pending", execution: "unknown",
+      outcome: ["pending", "win", "loss", "flat", "not_triggered", "unknown", "unexpected"][i % 7], execution: "unknown",
       // 最后一条故意是短理由：短理由不该配一个什么都不展开的按钮。
       rationale: i === total - 1 ? "一句话就说完了。" : `第 ${i + 1} 条：${long}`,
     });
@@ -2593,6 +2595,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
       // The timeline ships in the decision-trail sidecar since 2026-09-12.
       if (name !== "decision_trail.json") return null;
       json.plan_timeline = plan;
+      json.recent_decisions = plan;
       return json;
     },
   });
@@ -2603,6 +2606,20 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   await page.waitForFunction(() => document.querySelectorAll("#plan-timeline .pt-row").length > 0,
     null, { timeout: 15000 })
     .catch(() => { throw new Error("the plan timeline never rendered") });
+
+  const outcomes = await page.evaluate(() => {
+    const read = selector => [...document.querySelectorAll(selector)].map(el => ({
+      label: el.textContent, color: getComputedStyle(el).color,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+    return { timeline: read("#plan-timeline .outcome"), actions: read("#plan-actions .outcome") };
+  });
+  const expected = ["待确认", "获益", "损失", "持平", "未触发", "不可判定", "不可判定"];
+  for (const readings of [outcomes.timeline, outcomes.actions]) {
+    assert.deepEqual(readings.slice(0, 7).map(x => x.label), expected);
+    assert(readings[4].background !== "rgba(0, 0, 0, 0)");
+    assert(readings[5].color !== readings[0].color, "unavailable must differ from pending");
+  }
 
   const shape = await page.evaluate(() => {
     const wrap = document.getElementById("plan-timeline");

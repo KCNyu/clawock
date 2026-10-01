@@ -12,7 +12,7 @@
 （principal_effective / units_effective），所以你天天定投也能自动跟上。每隔几周用真实
 账户报一次新数字 + 更新 reconciled_date，自动累加部分即归零重算（消除 T+1/跳过的累积偏差）。
 本脚本【绝不】改这三个基线字段，只：
-  1. 拉最新净值 + 近 ~150 交易日历史（api.fund.eastmoney.com/f10/lsjz，稳定渠道）
+  1. 拉最新净值 + 覆盖起投日与对账日的历史（api.fund.eastmoney.com/f10/lsjz，稳定渠道）
   2. 拉实时估值（fundgz，净值未出时的当日估算，仅展示用）
   3. 拉上金所 Au99.99 同日收盘，映射真持仓的国内金/伦敦金回本价
   4. 重算 avg_cost / 现值 / 盈亏 / 回本门槛 / 定投摊薄预测 / 区间高低
@@ -95,10 +95,15 @@ def _em_text(url, referer, *, params=None, label='gold DCA'):
     return r.text if r is not None else ''
 
 
-def fetch_nav_history(code, pages=HISTORY_PAGES):
-    """返回 [(date, nav, change_pct)] 升序。抓空返回 []（调用方保留旧值）。"""
+def fetch_nav_history(code, pages=HISTORY_PAGES, *, until=None):
+    """Page NAV rows back to until for accounting, or use a fixed chart page count.
+
+    Failed or repeated pages stop fetching; callers verify coverage before publishing.
+    """
     rows = {}
-    for p in range(1, pages + 1):
+    p = 1
+    while p <= pages or (until and rows and min(rows) > until):
+        previous_oldest = min(rows) if rows else None
         raw = _em_text(
             'https://api.fund.eastmoney.com/f10/lsjz',
             'https://fundf10.eastmoney.com/',
@@ -116,6 +121,11 @@ def fetch_nav_history(code, pages=HISTORY_PAGES):
             if x.get('DWJZ'):
                 rows[x['FSRQ']] = (float(x['DWJZ']),
                                    float(x['JZZZL']) if x.get('JZZZL') not in (None, '') else None)
+        if until and rows and min(rows) <= until:
+            break
+        if previous_oldest and (not rows or min(rows) >= previous_oldest):
+            break
+        p += 1
     return [(dt, v[0], v[1]) for dt, v in sorted(rows.items())]
 
 
@@ -539,6 +549,18 @@ def trading_days_since(history, start):
     return sum(1 for dt, _, _ in history if dt >= start)
 
 
+
+def history_coverage_start(gold):
+    """Lifetime day counts and post-reconciliation units need their full NAV span."""
+    dates = [gold.get(k) for k in ('start_date', 'reconciled_date') if gold.get(k)]
+    return min(dates) if dates else None
+
+
+def require_history_coverage(gold, history):
+    start = history_coverage_start(gold)
+    if start and (not history or history[0][0] > start):
+        raise ValueError(f'净值历史未覆盖起投/对账基线 {start}，保留旧 gold_dca')
+
 def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
     """假设金价原地不动、继续每日定投 daily 元，平均成本/回本门槛如何下移。"""
     out = []
@@ -559,6 +581,7 @@ def project_dca(units, principal, nav, daily, horizons=(20, 40, 60, 120, 250)):
 def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
             xau_hist=None, xau_hist_source=None, fx_hist_source=None,
             hist_advisory=None, domestic_quote=None):
+    require_history_coverage(gold, history)
     base_principal = float(gold['principal_invested'])
     base_units = float(gold['units_held'])
     daily = float(gold.get('daily_amount', 200))
@@ -630,7 +653,7 @@ def main():
         gold = dict(SEED)
 
     code = gold['fund_code']
-    history = fetch_nav_history(code)
+    history = fetch_nav_history(code, until=history_coverage_start(gold))
     realtime = fetch_realtime(code)
     if not history and not gold.get('nav'):
         print('FATAL: 净值历史抓空且无旧值可用，放弃写盘', file=sys.stderr)
@@ -642,6 +665,12 @@ def main():
         # 旧 nav 本来就是上次写入时的值，这一轮没有任何新真值可写。
         print('  warn: 净值历史抓空，沿用 portfolio 里旧 gold_dca，本轮不写盘（merge-not-overwrite）',
               file=sys.stderr)
+        return 0
+
+    try:
+        require_history_coverage(gold, history)
+    except ValueError as exc:
+        print(f'  warn: {exc}，本轮不写盘（merge-not-overwrite）', file=sys.stderr)
         return 0
 
     quote_day = history[-1][0] if history else gold.get('nav_date')

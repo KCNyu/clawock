@@ -141,3 +141,21 @@ def test_rejection_logs_the_headings_the_model_actually_wrote(monkeypatch, capsy
     weekly.generate_review('sys', 'user')
 
     assert '## 4. 下周 Watchlist' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('leak', ['git_shares_diff', 'hold_and_watch', 'decision packet', 'harness'])
+def test_prose_leak_gets_repaired_before_publication(monkeypatch, leak):
+    bad = GOOD + '\n' + leak
+    fake = FakeChat(bad, GOOD)
+    monkeypatch.setattr(weekly, 'chat', fake)
+    monkeypatch.setenv('CLAWOCK_LLM_DEADLINE_SECONDS', '700')
+    assert weekly.generate_review('sys', 'user') == GOOD
+    assert leak.split()[-1] in fake.calls[1]['messages'][-1]['content']
+
+
+def test_repair_cannot_publish_an_identifier_leak(monkeypatch):
+    fake = FakeChat(GOOD + '\ngit_shares_diff', GOOD + '\nhold_and_watch')
+    monkeypatch.setattr(weekly, 'chat', fake)
+    monkeypatch.setenv('CLAWOCK_LLM_DEADLINE_SECONDS', '700')
+    with pytest.raises(LLMOutputError, match='hold_and_watch'):
+        weekly.generate_review('sys', 'user')
