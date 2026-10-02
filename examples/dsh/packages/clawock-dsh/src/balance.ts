@@ -167,14 +167,19 @@ interface RawBalanceBody {
 }
 
 /**
- * Tolerant parse: a missing field degrades to '' / false rather than throwing,
+ * Tolerant parse: a missing field degrades to '' (the availability flag to
+ * "not denied") rather than throwing,
  * so a shape drift upstream reads as an empty box, never as a crashed tab.
  */
 export function parseBalancePayload(body: unknown, asOf: string): BalanceSnapshot {
   const raw = (typeof body === 'object' && body !== null ? body : {}) as RawBalanceBody
   const entry = pickCnyBalanceInfo(raw.balance_infos)
   return {
-    isAvailable: raw.is_available === true,
+    // Only an explicit `false` is the vendor saying the balance is unusable.
+    // A missing flag used to read as false, painting a ¥110 row red under
+    // 「官方接口判定余额不足」— a sentence upstream never said (#2263). With
+    // the flag absent the amount floor in `isLow` decides.
+    isAvailable: raw.is_available !== false,
     unit: 'money',
     currency: typeof entry?.currency === 'string' ? entry.currency : '',
     totalBalance: typeof entry?.total_balance === 'string' ? entry.total_balance : '',
@@ -598,7 +603,16 @@ function createQuotaService(
   }
 
   const exec = async (force: boolean): Promise<BalanceResult> => {
-    const apiKey = await spec.resolveApiKey(deps)
+    let apiKey: string | undefined
+    try {
+      apiKey = await spec.resolveApiKey(deps)
+    } catch (cause) {
+      // The secret exists and could not be READ. That is a failed read, not
+      // "not configured": keep the last snapshot and say what happened (#2266).
+      const message = cause instanceof Error ? cause.message : String(cause)
+      if (snapshot !== null) lastError = message
+      return answer(snapshot !== null ? 'stale' : 'failed', message)
+    }
     if (apiKey === undefined) {
       return {
         configured: false,
@@ -855,7 +869,18 @@ export function createClaudeService(
   const lowPct = numberOr(config.lowPct, DEFAULT_CLAUDE_LOW_PCT)
   // The seam plays no role here — the secret is Claude Code's own login file.
   return createQuotaService(deps, {
-    resolveApiKey: async () => readClaudeCredentials(credentialsPath)?.creds.accessToken,
+    resolveApiKey: async () => {
+      // Absent → the in-band "not found" row. Present but unreadable/invalid →
+      // throw, so the row says the file could not be read and keeps its numbers.
+      if (!existsSync(credentialsPath)) return undefined
+      try {
+        JSON.parse(readFileSync(credentialsPath, 'utf8'))
+      } catch (cause) {
+        throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):`
+          + (cause instanceof Error ? cause.message : String(cause)))
+      }
+      return readClaudeCredentials(credentialsPath)?.creds.accessToken
+    },
     noKeyMessage: '未找到 Claude 登录(~/.claude/.credentials.json)',
     threshold: lowPct,
     refreshMs: DEFAULT_BALANCE_REFRESH_MS,

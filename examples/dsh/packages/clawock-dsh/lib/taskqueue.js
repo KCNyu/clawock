@@ -67,28 +67,42 @@ function runOpsProcess(opsPath, args, timeoutMs) {
 		});
 	});
 }
+/**
+* A command's stdout, and why it could not be asked when it could not.
+*
+* `failed` only when the command errored AND said nothing: `systemctl
+* is-active` exits 3 for an inactive unit and still prints the answer. A
+* swallowed error used to read as an empty answer — no live tasks, patrol
+* stopped — on a payload that still said the queue was available (#2265).
+*/
 function run(command, args) {
 	return new Promise((resolve) => {
-		execFile(command, args, { timeout: COMMAND_TIMEOUT_MS }, (_error, stdout) => {
-			resolve(String(stdout ?? ""));
+		execFile(command, args, { timeout: COMMAND_TIMEOUT_MS }, (error, stdout) => {
+			const out = String(stdout ?? "");
+			resolve({
+				out,
+				failed: error !== null && out.trim() === "" ? error.message || "command failed" : null
+			});
 		});
 	});
 }
 const systemDeps = {
 	async activeTaskIds() {
-		return (await run("systemctl", [
+		const { out, failed } = await run("systemctl", [
 			"list-units",
 			"agent-dispatch-*",
 			"--state=active",
 			"--no-legend",
 			"--plain"
-		])).split("\n").map((line) => line.trim().split(/\s+/)[0] ?? "").filter((unit) => unit.startsWith("agent-dispatch-") && unit.endsWith(".service")).map((unit) => unit.slice(15, -8));
+		]);
+		if (failed !== null) throw new Error("systemctl list-units: " + failed);
+		return out.split("\n").map((line) => line.trim().split(/\s+/)[0] ?? "").filter((unit) => unit.startsWith("agent-dispatch-") && unit.endsWith(".service")).map((unit) => unit.slice(15, -8));
 	},
 	async patrolService() {
-		return (await run("systemctl", ["is-active", PATROL_UNIT])).trim();
+		return (await run("systemctl", ["is-active", PATROL_UNIT])).out.trim();
 	},
 	async patrolLog() {
-		return (await run("journalctl", [
+		const { out } = await run("journalctl", [
 			"-u",
 			PATROL_UNIT,
 			"-n",
@@ -96,7 +110,8 @@ const systemDeps = {
 			"-o",
 			"cat",
 			"--no-pager"
-		])).split("\n").filter((line) => line.trim() !== "");
+		]);
+		return out.split("\n").filter((line) => line.trim() !== "");
 	},
 	runOps: runOpsProcess
 };
@@ -343,6 +358,10 @@ function patrolPhase(service, round, roundAlive, log) {
 		round,
 		detail,
 		untilMs: null
+	};
+	if (service === "") return {
+		...base,
+		phase: "unknown"
 	};
 	if (service !== "active") return {
 		...base,

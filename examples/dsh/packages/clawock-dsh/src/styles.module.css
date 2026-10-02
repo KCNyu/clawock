@@ -115,6 +115,7 @@ body[data-ds-dark-theme] :is(.dmt, .pbc) {
   --tint-strong:color-mix(in srgb, var(--text) 12%, transparent);
   --t1-up-border:rgba(24,118,62,.18);
   --t1-down-border:rgba(192,19,19,.18);
+  --t1-warn-border:rgba(143,87,27,.20);
   /* A host neutral step separates glass cards from the host's white layer-1.
      The inset tray uses another host neutral step; neither adds a hue. */
   --canvas:var(--dsw-static-neutral-bluish-75, #f1f3f5);
@@ -151,6 +152,7 @@ body[data-ds-dark-theme] .dmt {
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);
   --t1-up-border:rgba(63,203,116,.35);
   --t1-down-border:rgba(250,113,106,.35);
+  --t1-warn-border:rgba(224,167,82,.35);
   --canvas:var(--page);
   --tray-fill:color-mix(in srgb, var(--dsw-static-neutral-bluish-950, #151517) 55%, transparent);
   --tray-shadow:inset 0 1px 3px -1px rgba(0,0,0,.45);
@@ -604,7 +606,7 @@ body[data-ds-dark-theme] .dmt {
 .dmt .al.opp {
   color:var(--warn);
   background:var(--warn-soft);
-  border:1px solid var(--t1-down-border)
+  border:1px solid var(--t1-warn-border)
 }
 .dmt .chev {
   grid-area:1/10;

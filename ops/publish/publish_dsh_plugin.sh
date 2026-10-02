@@ -110,7 +110,13 @@ test -f "$PKG_DIR/lib/typert.remote-client.js"
 expected="$(cd "$PKG_DIR" && node -e '
 const { execFileSync } = require("node:child_process");
 const listed = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json"], { encoding: "utf8" }));
-process.stdout.write(JSON.stringify(listed[0].files.map((f) => f.path).sort()));
+// Path AND content hash: a tarball with every name present and a different
+// build behind one of them used to read back as ok (#2304).
+const { createHash } = require("node:crypto");
+const { readFileSync } = require("node:fs");
+const digest = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
+process.stdout.write(JSON.stringify(listed[0].files.map((f) => f.path).sort()
+  .map((path) => ({ path, sha256: digest(path) }))));
 ')"
 
 # npm provenance: a signed, publicly verifiable statement of which repository,
@@ -199,12 +205,17 @@ echo "  registry serves $published (attempt $attempt, $((SECONDS - started))s af
 tar -xzf "$verify/clawock-dsh-$published.tgz" -C "$verify"
 EXPECTED_FILES="$expected" node -e '
 const { readFileSync, existsSync } = require("node:fs");
+const { createHash } = require("node:crypto");
 const { join } = require("node:path");
 const root = join(process.argv[1], "package");
 const expected = JSON.parse(process.env.EXPECTED_FILES);
 const problems = [];
-for (const file of expected) {
-  if (!existsSync(join(root, file))) problems.push(`published tarball is missing ${file}`);
+for (const { path: file, sha256 } of expected) {
+  if (!existsSync(join(root, file))) { problems.push(`published tarball is missing ${file}`); continue; }
+  // package.json is compared field by field below (the registry may rewrite it).
+  if (file === "package.json") continue;
+  const served = createHash("sha256").update(readFileSync(join(root, file))).digest("hex");
+  if (served !== sha256) problems.push(`published tarball has a different ${file}`);
 }
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 if (manifest.version !== process.argv[2]) problems.push(`published version is ${manifest.version}`);
