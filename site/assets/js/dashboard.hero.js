@@ -1074,6 +1074,7 @@
     upcoming:    ["pending", "待跑"],
     closed:      ["idle",    "休市跳过"],
     quiet:       ["ok",      "无变化·静默"],
+    unconfirmed: ["warn",    "仅存档·投递未确认"],
     unmonitored: ["idle",    "账本看不到"],
     unknown:     ["stale",   "状态未知"],
   };
@@ -1091,7 +1092,7 @@
     if (s.note && s.note.disposition && s.note.disposition !== "normal") return s.note.disposition;
     const st = dhSlotState(s);
     if (st === "failed" || st === "missed") return "needs_action";
-    if (st === "degraded" || st === "recovered") return "watch";
+    if (st === "degraded" || st === "recovered" || st === "unconfirmed") return "watch";
     return null;
   }
 
