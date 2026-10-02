@@ -2803,7 +2803,9 @@ async function testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser,
   await waitForData(page);
   await clickTab(page, "drill");
   await waitForTab(page, "drill");
-  await page.waitForFunction(() => typeof renderShadowPortfolioCard === "function");
+  // The detail bundle is an IIFE: its renderers are reached through the tab
+  // registry, the way the page itself re-renders after a refresh.
+  await page.waitForFunction(() => hasTabRenderer("drill"));
 
   const read = coverage => page.evaluate(cov => {
     DATA.shadow_portfolio = {
@@ -2814,7 +2816,7 @@ async function testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser,
       fill_counts: { real_trade: 0, ohlc_assumption: 28, canonical_close_fallback: 0, skipped: 294 },
       curves: {},
     };
-    renderShadowPortfolioCard();
+    refreshTab("drill");
     return {
       summary: document.getElementById("shadow-portfolio-summary").textContent,
       headline: document.getElementById("shadow-estimand-headline").textContent,
