@@ -468,6 +468,53 @@ def _runs_backwards(lo, hi):
     return lo is not None and hi is not None and lo > 0 and lo > hi
 
 
+_EPISODE_CLAIM = re.compile(
+    r'(\d+)\s*个[^。；;\n%]{0,12}?episode[^。；;\n%]{0,12}?胜率\s*(\d+(?:\.\d+)?)\s*%')
+
+
+def _episode_claim_mismatches(text, ctx):
+    """「N 个 episode 胜率 P%」 must be the pair of the ticker it is said about.
+
+    The percent pool is one flat table over the whole context, so another
+    ticker's 62% authorizes itself anywhere: RKLX's verdict shipped 07226's
+    「13 个 episode 胜率 62%」 (its own record was 11 / 45%) and the gate said
+    nothing (#2307). The owner is the last reflection ticker named before the
+    claim; with none named, any ticker's own pair will do.
+    """
+    reflections = {
+        str(ticker): row for ticker, row in ((ctx or {}).get('reflections') or {}).items()
+        if isinstance(row, dict) and isinstance(row.get('n'), int)
+        and isinstance(row.get('win_rate'), (int, float))
+    }
+    if not reflections:
+        return []
+
+    def states(row, n, pct):
+        return row['n'] == n and abs(row['win_rate'] * 100 - pct) <= 1.0
+
+    out = []
+    for match in _EPISODE_CLAIM.finditer(text):
+        n, pct = int(match.group(1)), float(match.group(2))
+        owner, at = None, -1
+        for ticker in reflections:
+            found = text.rfind(ticker, 0, match.start())
+            if found > at:
+                owner, at = ticker, found
+        if owner is not None:
+            if states(reflections[owner], n, pct):
+                continue
+            row = reflections[owner]
+            label = (f'{n} 个 episode 胜率 {match.group(2)}%'
+                     f'（{owner} 自己是 {row["n"]} 个 / {row["win_rate"]:.0%}）')
+        elif any(states(row, n, pct) for row in reflections.values()):
+            continue
+        else:
+            label = f'{n} 个 episode 胜率 {match.group(2)}%'
+        if label not in out:
+            out.append(label)
+    return out
+
+
 def check_numeric_claims(text, ctx):
     """Flag unit-bearing magnitudes the context never states, and impossible
     percentage ranges.
@@ -538,6 +585,10 @@ def check_numeric_claims(text, ctx):
         # at the first zero anywhere in the report.
         check_unit('percent', match.group(1), match.start(1))
         check_unit('percent', match.group(2), match.start(2))
+
+    for label in _episode_claim_mismatches(text, ctx):
+        if label not in unverified:
+            unverified.insert(0, label)
 
     impossible = [
         f'{lo}~{hi}%' for lo, hi in _RANGE.findall(text)
