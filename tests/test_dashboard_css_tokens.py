@@ -46,3 +46,22 @@ def test_heatmap_direction_colors_follow_theme_tokens():
     assert re.search(r"--heat-up\s*:\s*var\(--positive\)", css)
     assert re.search(r"--heat-down\s*:\s*var\(--negative\)", css)
     assert not re.search(r"--heat-(?:up|down)\s*:\s*#[0-9a-fA-F]+", css)
+
+
+def test_every_font_size_is_a_step_of_the_type_scale():
+    """`dashboard.css` declares eight sizes and "no bare px" (#880). The decision
+    map had grown 10.5 / 11.5 / 12.5px steps of its own (#2339)."""
+    import re
+    css = (ROOT / "site" / "assets" / "css" / "dashboard.css").read_text(encoding="utf-8")
+    declared = set(re.findall(r"^\s*(--fs-[a-z]+):", css, re.M))
+    assert len(declared) == 8
+    # `1px` hides text for screen readers only; `0`, `inherit` and an `em`
+    # ratio set no size of their own.
+    allowed = {"0", "1px", "inherit"}
+    off_scale = sorted({
+        value.strip() for value in re.findall(r"(?<![-\w])font-size:\s*([^;}]+)", css)
+        if value.strip() not in allowed and not value.strip().endswith("em")
+        and not (re.fullmatch(r"var\((--fs-[a-z]+)\)", value.strip())
+                 and re.fullmatch(r"var\((--fs-[a-z]+)\)", value.strip()).group(1) in declared)
+    })
+    assert off_scale == [], f"font sizes outside the type scale: {off_scale}"

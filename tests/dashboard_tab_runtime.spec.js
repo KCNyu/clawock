@@ -2791,6 +2791,59 @@ async function testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base) {
   await context.close();
 }
 
+// 政策模拟卡：sidecar 每轮自己判这条曲线还代不代表这条政策
+// （coverage.representative），页面此前没有任何一处读它 —— 322 条腿只成交 28
+// 条（8.7%）的那天，折叠标题行照样印「累计差 = 模拟 timing alpha」（#2337）。
+// payload 是用例自己造的：这份 sidecar 不进仓库。
+async function testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "drill");
+  await waitForTab(page, "drill");
+  // The detail bundle is an IIFE: its renderers are reached through the tab
+  // registry, the way the page itself re-renders after a refresh.
+  await page.waitForFunction(() => hasTabRenderer("drill"));
+
+  const read = coverage => page.evaluate(cov => {
+    DATA.shadow_portfolio = {
+      as_of: "2026-10-02T14:04:40+08:00",
+      coverage: cov,
+      cumulative_diff: { USD: -447.81, HKD: 27544.17 },
+      net_cumulative_diff: { USD: -464.78, HKD: 27299.81 },
+      fill_counts: { real_trade: 0, ohlc_assumption: 28, canonical_close_fallback: 0, skipped: 294 },
+      curves: {},
+    };
+    refreshTab("drill");
+    return {
+      summary: document.getElementById("shadow-portfolio-summary").textContent,
+      headline: document.getElementById("shadow-estimand-headline").textContent,
+    };
+  }, coverage);
+
+  const thin = await read({
+    filled_legs: 28, skipped_legs: 294, fill_rate: 0.087,
+    minimum_representative_fill_rate: 0.5, representative: false,
+  });
+  for (const [where, text] of Object.entries(thin)) {
+    assert(text.includes("28/322") && text.includes("8.7%") && text.includes("50%"),
+      `${where} must print the fill rate with its denominator and floor: ${text}`);
+  }
+  assert(!thin.headline.includes("累计差=模拟 timing alpha"),
+    `an unrepresentative replay still calls its difference timing alpha: ${thin.headline}`);
+
+  const full = await read({
+    filled_legs: 200, skipped_legs: 122, fill_rate: 0.621,
+    minimum_representative_fill_rate: 0.5, representative: true,
+  });
+  assert(full.headline.includes("累计差=模拟 timing alpha"),
+    `a representative replay keeps the estimand: ${full.headline}`);
+  assert(!full.summary.includes("门槛"), `no coverage caveat when representative: ${full.summary}`);
+  await context.close();
+}
+
 async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -3559,6 +3612,7 @@ async function main() {
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testAnEmptyRadarAndBriefCardSayWhatFailed", () => testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
+    await run("testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha", () => testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
     await run("testEveryControlAnswersAPress", () => testEveryControlAnswersAPress(browser, base));

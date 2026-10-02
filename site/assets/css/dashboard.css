@@ -716,7 +716,7 @@
   .site-menu-btn:active { transform: scale(var(--press-scale)); }
   .site-menu-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   .site-menu-chevron {
-    font-size: 10px; line-height: 1; opacity: .55;
+    font-size: var(--fs-micro); line-height: 1; opacity: .55;
     transition: transform var(--duration-fast) var(--ease-out);
   }
   .site-menu[open] > .site-menu-btn { background: var(--surface-2); }
@@ -764,7 +764,7 @@
     content: ""; width: 6px; height: 6px; flex: 0 0 auto;
   }
   /* An external destination is not a section, and saying so saves a surprise. */
-  .site-menu-item.is-external::after { content: "\2197"; opacity: .55; font-size: 11px; }
+  .site-menu-item.is-external::after { content: "\2197"; opacity: .55; font-size: var(--fs-xs); }
 
   /* Phones (≤600px): two compact rows — brand + picker on top, the nav
      cluster below. The picker keeps its 36px button so it stays a real
@@ -3350,8 +3350,8 @@
   /* Decision Map. One board, one timeline, one drawer.
      Scoped under .decimap so nothing here can reach the layout's own
      typography rules for rendered brief content. */
-  .decimap { --dm-gap: 14px; font-size: 14px; }
-  .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; }
+  .decimap { --dm-gap: 14px; font-size: var(--fs-lg); }
+  .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.55; }
   .decimap .dm-warn { color: var(--negative); }
 
   /* The diverging pair for forward return. NOT the site's green/red: measured
@@ -3371,18 +3371,18 @@
      不是一块面板。 */
   .dm-kpi { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0;
     border: 0; background: none; margin: 2px 0 10px;
-    font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
-  .dm-kpi b { font-weight: 600; color: var(--text); font-size: 13px; }
+    font-family: var(--mono); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+  .dm-kpi b { font-weight: 600; color: var(--text); font-size: var(--fs-md); }
   .dm-kpi span { color: var(--text-dim); white-space: nowrap; }
   .dm-kpi .dm-warn { white-space: normal; }
 
   /* controls */
   .dm-controls { display: flex; flex-wrap: wrap; align-items: center;
-    gap: 8px 10px; margin: 0 0 8px; font-size: 12.5px; color: var(--text-dim); }
+    gap: 8px 10px; margin: 0 0 8px; font-size: var(--fs-sm); color: var(--text-dim); }
   .dm-controls select, .dm-controls button {
     font: inherit; color: var(--text); background: var(--fill-inset);
     border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 5px 9px; font-size: 12px; }
+    padding: 5px 9px; font-size: var(--fs-sm); }
   .dm-controls button { cursor: pointer; }
   @media (hover: hover) and (pointer: fine) {
     .dm-controls button:hover { border-color: var(--accent); }
@@ -3414,7 +3414,7 @@
   .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm); background: var(--fill-inset); }
   .dm-board { border-collapse: separate; border-spacing: 0;
-    font-size: 12px; width: 100%; min-width: 720px;
+    font-size: var(--fs-sm); width: 100%; min-width: 720px;
     font-variant-numeric: tabular-nums; }
   .dm-board th, .dm-board td { padding: 0; }
   /* The layout styles `article table th` as an uppercased 11px label, which is
@@ -3427,7 +3427,7 @@
     background: var(--fill-inset); color: var(--text-dim); font-weight: 500;
     text-align: center; white-space: nowrap; padding: 8px 6px;
     border-bottom: 1px solid var(--border); font-family: var(--mono);
-    font-size: 11px; letter-spacing: .02em; }
+    font-size: var(--fs-xs); letter-spacing: .02em; }
   .dm-board thead th.dm-src, .dm-board thead th.dm-covh { text-align: left; }
   /* The source column is the row's identity; it stays put while the actions
      scroll under a thumb. */
@@ -3449,10 +3449,10 @@
     color: var(--text-dim); transition: transform var(--duration-fast) var(--ease-out); }
   .dm-twist[aria-expanded="true"] i { transform: rotate(90deg); }
   .dm-kindname { font-weight: 600; letter-spacing: .01em; }
-  .dm-count { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
+  .dm-count { color: var(--text-dim); font-family: var(--mono); font-size: var(--fs-xs); }
   .dm-signal td, .dm-signal th.dm-src { background: var(--fill-inset); }
   .dm-signal .dm-src { padding-left: 26px; }
-  .dm-signal .dm-name { font-family: var(--mono); font-size: 11.5px;
+  .dm-signal .dm-name { font-family: var(--mono); font-size: var(--fs-xs);
     color: var(--text); overflow-wrap: anywhere; }
 
   /* Coverage as a length, not a card. The old grid gave a source that saw 12%
@@ -3461,7 +3461,7 @@
   .dm-covbar { height: 6px; border-radius: 3px; background: var(--border);
     overflow: hidden; margin-bottom: 2px; }
   .dm-covbar > i { display: block; height: 100%; background: var(--accent); }
-  .dm-covtext { font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); }
+  .dm-covtext { font-family: var(--mono); font-size: var(--fs-micro); color: var(--text-dim); }
 
   .dm-cell { text-align: center; padding: 4px 5px !important; min-width: 62px;
     cursor: pointer; }
@@ -3472,14 +3472,14 @@
   /* 单元格是 <td role="button">：缩放一个表格单元会把整行的列宽拖着走，
      所以这里的「按下去」是它本来就有的描边，不是基线的 scale。 */
   .dm-cell:active { transform: none; }
-  .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
+  .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: var(--fs-xs);
     color: var(--text); font-weight: 600; }
-  .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
+  .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: var(--fs-micro);
     color: var(--text); }
   .dm-empty { text-align: center; color: var(--text-dim); }
 
   .dm-ic { width: 132px; padding: 4px 10px !important; }
-  .dm-icval { font-family: var(--mono); font-size: 11.5px; }
+  .dm-icval { font-family: var(--mono); font-size: var(--fs-xs); }
   .dm-icval.is-clear { color: var(--accent); font-weight: 600; }
   .dm-whisker { position: relative; height: 7px; margin-top: 4px;
     background: var(--border); border-radius: 2px; }
@@ -3493,7 +3493,7 @@
     background: var(--text-dim); text-decoration: none; }
 
   .dm-scalenote { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
-    margin: 8px 2px 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+    margin: 8px 2px 0; font-size: var(--fs-xs); color: var(--text-dim); line-height: 1.5; }
   .dm-ramp { display: inline-flex; align-items: center; gap: 3px; }
   .dm-ramp span { display: inline-block; width: 22px; height: 11px;
     border: 1px solid var(--border); border-radius: 2px; }
@@ -3504,7 +3504,7 @@
   .dm-row { display: grid; grid-template-columns: 78px 1fr; align-items: center;
     gap: 10px; padding: 5px 12px; }
   .dm-row + .dm-row { border-top: 1px solid var(--border); }
-  .dm-row > b { font-size: 12px; font-weight: 600; font-family: var(--mono); }
+  .dm-row > b { font-size: var(--fs-sm); font-weight: 600; font-family: var(--mono); }
   .dm-track { position: relative; height: 20px; }
   /* Shape as well as colour. The four action classes used to be four hues and
      nothing else, which is the same colour-only encoding the board avoids.
@@ -3526,7 +3526,7 @@
   .dm-dot.is-hold::before { background: var(--accent); }
   .dm-dot.is-other::before { background: var(--text-dim); border-radius: 1px;
     clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
-  .dm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px;
+  .dm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: var(--fs-xs);
     color: var(--text-dim); margin: 8px 2px 0; align-items: center; }
   .dm-legend i { display: inline-block; position: relative; width: 10px;
     height: 10px; margin-right: 6px; vertical-align: -1px; top: 0; }
@@ -3543,22 +3543,22 @@
     transform: translateX(100%);
     transition: transform var(--duration-standard) var(--ease-out); }
   .dm-drawer.is-open { transform: none; }
-  .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; overflow-wrap: anywhere; }
+  .dm-drawer h3 { margin: 0 0 2px; font-size: var(--fs-lg); overflow-wrap: anywhere; }
   .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
-    background: none; border: 0; color: var(--text-dim); font-size: 20px; cursor: pointer; }
-  .dm-kv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 4px; }
+    background: none; border: 0; color: var(--text-dim); font-size: var(--fs-xl); cursor: pointer; }
+  .dm-kv { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); margin: 8px 0 4px; }
   .dm-kv th { text-align: left; font-weight: 500; color: var(--text-dim); padding: 3px 0; width: 46%; }
   .dm-kv td { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; padding: 3px 0; }
   .dm-hits { list-style: none; margin: 8px 0 0; padding: 0; }
   .dm-hits li { border-top: 1px solid var(--border); }
   .dm-hits button { width: 100%; display: flex; justify-content: space-between;
     gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer;
-    font: inherit; font-size: 12.5px; padding: 8px 2px; text-align: left; }
+    font: inherit; font-size: var(--fs-sm); padding: 8px 2px; text-align: left; }
   @media (hover: hover) and (pointer: fine) {
     .dm-hits button:hover { background: var(--fill-inset); }
   }
   .dm-hits em { font-style: normal; color: var(--text-dim);
-    font-family: var(--mono); font-size: 11.5px; }
+    font-family: var(--mono); font-size: var(--fs-xs); }
   .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
   [hidden] { display: none !important; }
 
@@ -3580,13 +3580,13 @@
 
     .dm-actionbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .dm-barlabel { color: var(--text-dim); font-family: var(--mono);
-      font-size: 10.5px; letter-spacing: .04em; }
+      font-size: var(--fs-micro); letter-spacing: .04em; }
     .dm-actionbar button { display: inline-flex; align-items: center; gap: 5px;
       border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--fill-inset);
-      color: var(--text); font: inherit; font-size: 12px; padding: 6px 10px;
+      color: var(--text); font: inherit; font-size: var(--fs-sm); padding: 6px 10px;
       cursor: pointer; }
     .dm-actionbar button em { font-style: normal; font-family: var(--mono);
-      font-size: 11px; color: var(--text-dim); }
+      font-size: var(--fs-xs); color: var(--text-dim); }
     .dm-actionbar button[aria-pressed="true"] { background: var(--accent);
       border-color: var(--accent); color: var(--surface-0); }
     .dm-actionbar button[aria-pressed="true"] em { color: inherit; }
@@ -3601,10 +3601,10 @@
     .dm-signal .dm-src { padding-left: 18px; }
 
     .dm-cov { width: 68px; padding: 4px 6px 4px 5px !important; }
-    .dm-covtext { font-size: 10px; }
+    .dm-covtext { font-size: var(--fs-micro); }
     .dm-cell { min-width: 56px; }
     .dm-ic { width: 96px; min-width: 88px; padding: 4px 7px !important; }
-    .dm-board thead th { font-size: 10px; padding: 7px 5px;
+    .dm-board thead th { font-size: var(--fs-micro); padding: 7px 5px;
       white-space: normal; line-height: 1.25; }
     /* A right-hand slide-out is a desktop shape. On a phone min(430px, 94vw)
        covered the page anyway, minus a 6% sliver of scrim nobody can aim at, so
@@ -3616,7 +3616,7 @@
       border-radius: 14px 14px 0 0; padding: 18px 16px 32px;
       transform: translateY(100%);
     }
-    .dm-drawer .dm-close { font-size: 24px; padding: 4px 8px; top: 8px; right: 8px; }
+    .dm-drawer .dm-close { font-size: var(--fs-xxl); padding: 4px 8px; top: 8px; right: 8px; }
   }
 
   /* 320px（SE / 折叠机外屏）：展开信号行之后 IC 那一列回来，四列刚好比屏幕
