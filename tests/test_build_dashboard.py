@@ -541,6 +541,34 @@ def test_delta_windows_activate_only_at_exact_point_boundaries():
     assert dashboard.compute_delta(thirty_one)["hk"]["30d_pct"] == 15.0
 
 
+def _cash_row(day, value, cash, flows=0.0, realized=0.0):
+    return {"date": day, "hk_total_value": value, "hk_cash": cash,
+            "hk_flows": flows, "hk_equity": value + realized,
+            "us_equity": 100.0}
+
+
+def test_delta_does_not_read_a_buy_as_a_gain():
+    """2026-10-02: a 2,594 HKD add on a day the HK book lost 2.78%. Equity leaves
+    cash out, so the spent cash vanished and the page printed +0.82% (#2348)."""
+    rows = [_cash_row("2026-10-01", 60615.6, 12781.0, realized=7259.16),
+            _cash_row("2026-10-02", 61169.2, 10187.0, realized=7259.16)]
+    assert dashboard._pct_change(rows[1]["hk_equity"], rows[0]["hk_equity"]) == 0.82
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] == -2.78
+
+
+def test_delta_does_not_read_a_deposit_as_a_gain():
+    rows = [_cash_row("d1", 1000.0, 100.0),
+            _cash_row("d2", 1010.0, 600.0, flows=500.0)]
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 0.91  # 10 / 1100
+
+
+def test_delta_never_mixes_bases_across_the_start_of_cash_tracking():
+    before = {"date": "d1", "hk_total_value": 1000.0, "hk_cash": None,
+              "hk_equity": 1000.0, "us_equity": 100.0}
+    rows = [before, _cash_row("d2", 1100.0, 5000.0)]
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 10.0
+
+
 def test_delta_empty_single_and_zero_baseline_edges():
     expected_empty = {
         "us": {"today_pct": None, "7d_pct": None, "30d_pct": None},
@@ -1451,6 +1479,27 @@ def test_anomaly_order_follows_the_ledger_not_the_brief_context():
         brief_ctx, us_h, hk_h, leg_keys=["hk", "us"])
     assert [a["ticker"] for a in reversed_ledger
             if a["type"] == "high_weight_loss"] == ["09660", "SOXL"]
+
+
+def test_anomaly_weight_is_the_one_the_concentration_card_prints():
+    """The brief-context is written before the open. A same-day add left the
+    anomaly card on the morning weight and the concentration card on the live
+    one, a screen apart (#2349); the 25% threshold was judged on the old book."""
+    brief_ctx = {"concentration": {"hk": {"weights": [
+        {"ticker": "00100", "weight_pct": 57.8},
+        {"ticker": "07226", "weight_pct": 24.0}]}}}
+    hk_h = [{"ticker": "00100", "pnl_percent": -52.2},
+            {"ticker": "07226", "pnl_percent": -36.8}]
+    live = {"us": {"positions": []}, "hk": {"positions": [
+        {"ticker": "00100", "weight": 0.5557},
+        {"ticker": "07226", "weight": 0.3065}]}}
+
+    rows = dashboard.extract_anomalies(
+        brief_ctx, [], hk_h, leg_keys=["us", "hk"], concentration=live)
+    assert [(a["ticker"], a["detail"]) for a in rows] == [
+        ("00100", "weight 55.6% + pnl -52.2%"),
+        ("07226", "weight 30.6% + pnl -36.8%"),
+    ]
 
 
 def _leg(bucket, key, currency):

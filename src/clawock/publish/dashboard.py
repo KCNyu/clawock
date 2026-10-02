@@ -32,6 +32,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
+from clawock.portfolio.math import ledger_rows
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -1684,6 +1685,15 @@ def load_snapshots():
         # 字段名用币种,和账本里 `cash_usd`/`cash_hkd` 同一条规则。
         for leg in legs:
             row[f'{leg.key}_cash'] = books[leg.key].get(f'cash_{leg.currency.lower()}')
+        # 外部现金流累计 (入金/出金/股息等 `cash_adjustments[]`，取这份快照自己带的那份
+        # 账，所以每个点都是当时的累计值)。`compute_delta` 以 市值 + 现金 为收益基准，
+        # 窗口内这一列的增量从收益里扣掉：入金不算赚的 (#2348)。
+        for leg in legs:
+            row[f'{leg.key}_flows'] = round(sum(
+                float(a.get('amount') or 0)
+                for a in ledger_rows(books[leg.key].get('cash_adjustments'))
+                if isinstance(a.get('amount'), (int, float))
+                and not isinstance(a.get('amount'), bool)), 2)
         # Market-session dates (≠ filename date) so daily P&L can collapse a US
         # session that straddles two HK-dated snapshots instead of double-counting.
         for leg in legs:
@@ -1901,12 +1911,41 @@ def _pct_change(curr, prev):
         return None
 
 
+def _has_cash(row, leg_key):
+    return all(isinstance(row.get(f'{leg_key}_{name}'), (int, float))
+               and not isinstance(row.get(f'{leg_key}_{name}'), bool)
+               for name in ('total_value', 'cash'))
+
+
+def _window_return(now, then, leg_key):
+    """% return of one leg between two snapshot rows.
+
+    On total assets (market value + cash) when both rows track cash: a buy moves
+    money from cash into holdings and a sell moves it back, so neither is a
+    return. Money that came in from outside during the window (`<leg>_flows`,
+    cumulative) is taken off the gain and left out of the base. If either row
+    predates cash tracking, both ends are read on equity (value + realized) —
+    never one of each.
+    """
+    if _has_cash(now, leg_key) and _has_cash(then, leg_key):
+        base = then[f'{leg_key}_total_value'] + then[f'{leg_key}_cash']
+        external = (now.get(f'{leg_key}_flows') or 0) - (then.get(f'{leg_key}_flows') or 0)
+        return _pct_change(
+            now[f'{leg_key}_total_value'] + now[f'{leg_key}_cash'] - external, base)
+    return _pct_change(now.get(f'{leg_key}_equity'), then.get(f'{leg_key}_equity'))
+
+
 def compute_delta(snapshots, legs=None):
-    """Equity rolling-window % change vs today, per leg.
+    """Rolling-window % return vs today, per leg.
 
     snapshots is the same list build_dashboard already prepares: ascending date,
-    so today = snapshots[-1], yesterday = snapshots[-2], etc. Each row carries
-    `<leg>_equity`, written by `load_snapshots` from the same leg list.
+    so today = snapshots[-1], yesterday = snapshots[-2], etc.
+
+    Basis is total assets net of external flows (`_window_return`). The older
+    `<leg>_equity` basis left cash out, so the cash spent on a buy vanished and
+    the shares it bought read as a gain: a 2,594 HKD add on a day the book lost
+    2.78% printed +0.82% (#2348).
+    `compute_drawdown` deliberately stays on equity.
     """
     legs = _ledger_legs() if legs is None else legs
     empty = {leg.key: {'today_pct': None, '7d_pct': None, '30d_pct': None}
@@ -1917,20 +1956,15 @@ def compute_delta(snapshots, legs=None):
         n = len(snapshots)
         today = snapshots[-1]
 
-        def at(offset_back, key):
-            idx = n - 1 - offset_back
-            if idx < 0:
+        def window(leg_key, offset_back):
+            if n - 1 - offset_back < 0:
                 return None
-            return snapshots[idx].get(key)
+            return _window_return(today, snapshots[n - 1 - offset_back], leg_key)
 
-        def region(value_key):
-            today_v = today.get(value_key)
-            return {
-                'today_pct': _pct_change(today_v, at(1, value_key)) if n >= 2 else None,
-                '7d_pct':    _pct_change(today_v, at(7, value_key)) if n >= 8 else None,
-                '30d_pct':   _pct_change(today_v, at(30, value_key)) if n >= 31 else None,
-            }
-        return {leg.key: region(f'{leg.key}_equity') for leg in legs}
+        return {leg.key: {'today_pct': window(leg.key, 1),
+                          '7d_pct': window(leg.key, 7),
+                          '30d_pct': window(leg.key, 30)}
+                for leg in legs}
     except Exception as e:
         print(f'  warn: compute_delta failed: {e}', file=sys.stderr)
         return empty
@@ -2488,8 +2522,60 @@ def validate_intraday_insights(data, known_tickers):
 _LEVERAGED_TICKERS = instrument_registry.leveraged_symbols()
 
 
-def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None):
-    """Risk signals derived from the latest brief-context.
+def _holdings_by_ticker(us_h, hk_h):
+    by_ticker = {}
+    for h in (us_h or []):
+        by_ticker[str(h.get('ticker') or '').upper()] = h
+    for h in (hk_h or []):
+        by_ticker[str(h.get('ticker') or '')] = h
+    return by_ticker
+
+
+def high_weight_loss_anomalies(holdings_by_ticker, leg_keys, concentration, brief_conc=None):
+    """Positions that are both a large share of their leg and deep under water.
+
+    The weight is the one this payload's own `concentration` card prints
+    (`compute_hhi` over the holdings being published). It used to come from the
+    brief-context written before the open, so a same-day add left the anomaly
+    card and the concentration card disagreeing about one position, and the 25%
+    / 40% thresholds were judged on the morning book (#2349). `brief_conc` is
+    only the fallback for a caller that has no concentration to pass.
+
+    Leg order comes from the caller's ledger, NOT from either dict: nothing sorts
+    the list afterwards, so the iteration order is the published order. The
+    brief-context carries its concentration keys as ['hk', 'us'].
+    """
+    out = []
+    brief_conc = brief_conc or {}
+    for region in (leg_keys or list(concentration or brief_conc)):
+        if concentration is not None and region in concentration:
+            weights = [
+                (p.get('ticker'), round((p.get('weight') or 0) * 100, 2))
+                for p in ((concentration.get(region) or {}).get('positions') or [])]
+        else:
+            weights = [
+                (w.get('ticker'), w.get('weight_pct') or 0)
+                for w in ((brief_conc.get(region) or {}).get('weights') or [])]
+        for ticker, weight_pct in weights:
+            tk = str(ticker or '')
+            if weight_pct < 25:
+                continue
+            h = holdings_by_ticker.get(tk.upper()) or holdings_by_ticker.get(tk)
+            if not h:
+                continue
+            pnl_pct = h.get('pnl_percent')
+            if pnl_pct is not None and pnl_pct <= -10:
+                out.append({
+                    'type': 'high_weight_loss',
+                    'ticker': tk,
+                    'detail': f'weight {weight_pct:.1f}% + pnl {pnl_pct:.1f}%',
+                    'severity': 'high' if (weight_pct >= 40 or pnl_pct <= -20) else 'medium',
+                })
+    return out
+
+
+def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None, concentration=None):
+    """Risk signals: live position checks plus the latest brief-context.
 
     Recognized types:
       - rsi_overbought          (rsi >= 70 in any embedded indicator block)
@@ -2507,11 +2593,7 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None):
                 'severity': 'low',
             }]
         out = []
-        holdings_by_ticker = {}
-        for h in (us_h or []):
-            holdings_by_ticker[str(h.get('ticker') or '').upper()] = h
-        for h in (hk_h or []):
-            holdings_by_ticker[str(h.get('ticker') or '')] = h
+        holdings_by_ticker = _holdings_by_ticker(us_h, hk_h)
 
         # NOTE: peer_divergence is no longer injected into anomalies. It now has
         # its own 『同行背离 Peer Divergence』card (Market tab) fed by the single
@@ -2519,35 +2601,9 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None):
         # the UI-layer filter that hid it. holdings_by_ticker above is still used
         # by the high_weight_loss / leveraged guards.
 
-        # high_weight_loss anomalies (concentration top tickers w/ deep loss)
-        conc = brief_ctx.get('concentration') or {}
-        # Leg order comes from the caller's ledger, NOT from `conc`: this loop
-        # appends to `out` and nothing sorts it afterwards, so the iteration order
-        # is the published order of the anomaly list. The brief-context happens to
-        # carry its concentration keys as ['hk', 'us'] — reading them in that order
-        # would silently reorder the card the day both legs have an entry.
-        for region in (leg_keys or list(conc)):
-            if region not in conc:
-                continue
-            region_conc = conc.get(region) or {}
-            weights = region_conc.get('weights') or []
-            for w in weights:
-                tk = str(w.get('ticker') or '')
-                weight_pct = w.get('weight_pct') or 0
-                if weight_pct < 25:
-                    continue
-                h = holdings_by_ticker.get(tk.upper()) or holdings_by_ticker.get(tk)
-                if not h:
-                    continue
-                pnl_pct = h.get('pnl_percent')
-                if pnl_pct is not None and pnl_pct <= -10:
-                    sev = 'high' if (weight_pct >= 40 or pnl_pct <= -20) else 'medium'
-                    out.append({
-                        'type': 'high_weight_loss',
-                        'ticker': tk,
-                        'detail': f'weight {weight_pct:.1f}% + pnl {pnl_pct:.1f}%',
-                        'severity': sev,
-                    })
+        out.extend(high_weight_loss_anomalies(
+            holdings_by_ticker, leg_keys, concentration,
+            brief_ctx.get('concentration') or {}))
 
         # leveraged_etf_stop anomalies — read from the same brief peer_scan snapshot as
         # extract_peer_divergence(). The peer_divergence refactor (3f507d3) dropped this
@@ -4257,7 +4313,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     _presence = {}
 
     out['anomalies'] = extract_anomalies(
-        brief_ctx, us_h, hk_h, leg_keys=[leg.key for leg in resolve_legs(portfolio)])
+        brief_ctx, us_h, hk_h, leg_keys=[leg.key for leg in resolve_legs(portfolio)],
+        concentration=out['concentration'])
     _presence['anomalies'] = bool(brief_ctx)
 
     # market_context is sector-scan-derived (load_sector_scan reads memory/.tmp,
@@ -4362,6 +4419,15 @@ def build_projection(previous_source=None, shadow_previous=None):
     _preserved = merge_previous_payload(
         out, _prev_dash, _presence,
         usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
+    if 'anomalies' in _preserved:
+        # A restored list carries the previous build's position weights. The
+        # brief-derived entries are what the restore is for; the weight check
+        # needs no brief-context, so it is redone on the book being published.
+        _legs = [leg.key for leg in resolve_legs(portfolio)]
+        out['anomalies'] = high_weight_loss_anomalies(
+            _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
+            a for a in out['anomalies']
+            if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
