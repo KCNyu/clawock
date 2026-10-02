@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
-from clawock.workspace import workspace_root
+from clawock.workspace import without_host_paths, workspace_root
 from clawock import history_store
 from clawock.sessions import hkt_today
 from clawock import instruments as instrument_registry
@@ -807,7 +807,8 @@ def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     except Exception as e:
         print(f'  warn: risk_guardrail compute fail: {e}', file=sys.stderr)
         return {
-            'risk_guardrail': {'error': str(e), 'computed': False},
+            # Published: an exception's text carries this host's paths (#2334).
+            'risk_guardrail': {'error': without_host_paths(str(e)), 'computed': False},
             'breakeven_math': {'computed': False},
         }
 
@@ -832,7 +833,7 @@ def build_shadow_sidecar(portfolio, decisions, previous=None):
         return shadow_portfolio.build_shadow_portfolio(
             portfolio, decisions, leg_config=leg_config)
     except Exception as e:
-        failure = {'computed': False, 'error': str(e)}
+        failure = {'computed': False, 'error': without_host_paths(str(e))}
         if isinstance(previous, dict):
             stale_as_of = previous.get('as_of') or previous.get('stale_as_of')
             if stale_as_of:

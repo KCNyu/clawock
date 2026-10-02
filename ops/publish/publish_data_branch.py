@@ -21,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import subprocess
 import sys
@@ -68,11 +69,10 @@ DATA_PLANE_OPTIONAL = (
 
 DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA
 
-# Failure classes, and the whole reason they are classes: `note_degradation`
-# aggregates on (kind, detail), so a detail carrying this incident's text —
-# a sha, a hostname, git's wording — writes a new row every time and the count
-# that makes a rate readable never rises above 1. The incident's text is already
-# on stderr, one line above.
+# Failure classes: `note_degradation` keeps one counted row per kind, and the
+# row shows the latest reason. Reasons stay short fixed phrases — the incident's
+# own text (a sha, a hostname, git's wording) is already on stderr, one line
+# above, and this row is published.
 PUBLISH_FAILED = "data_plane_publish_failed"
 
 
@@ -97,6 +97,28 @@ def note_failure(kind: str, reason: str) -> None:
         workflow_outcomes.note_degradation(None, kind, reason)
     except Exception:
         pass
+
+
+def credential_findings(files: dict[str, str]) -> list[str]:
+    """`path: kind` for every credential-shaped value in the generation.
+
+    The generation is force-pushed to a public branch and never passes
+    `safe_push.sh` or CI, the two places the scan otherwise runs (#2335). The
+    pre-push hook scans it too; this one also covers a checkout without hooks.
+    The value itself is not returned: this goes to a log.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "commit_secret_scan",
+        Path(__file__).resolve().parents[1] / "ci" / "commit_secret_scan.py")
+    scanner = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = scanner  # its dataclass looks itself up there
+    spec.loader.exec_module(scanner)
+    return sorted({
+        f"{path}: {kind} ({name})"
+        for path, text in files.items()
+        for line in text.splitlines()
+        for kind, name, _value in scanner.scan_line(line)
+    })
 
 
 # Same bot identity the scheduled publisher commits under. Injected per
@@ -170,6 +192,18 @@ def main() -> int:
             print(f"✗ data-plane: cannot read {path}: {exc}", file=sys.stderr)
             note_failure(PUBLISH_FAILED, "an output file could not be read")
             return 1
+
+    try:
+        findings = credential_findings(files)
+    except Exception as exc:  # no verdict is not a pass
+        print(f"✗ data-plane: credential scan did not run: {exc}", file=sys.stderr)
+        note_failure(PUBLISH_FAILED, "the credential scan did not run")
+        return 5
+    if findings:
+        print("✗ data-plane: credential-shaped value in the generation, not "
+              "published:\n  " + "\n  ".join(findings), file=sys.stderr)
+        note_failure(PUBLISH_FAILED, "the credential scan refused the generation")
+        return 5
 
     store = GitBranchStore(
         args.repo or root, args.branch, remote=args.remote,
