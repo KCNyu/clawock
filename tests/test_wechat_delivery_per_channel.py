@@ -66,6 +66,13 @@ def _write(path, payload):
 
 # ── A. the idempotency guard ─────────────────────────────────────────────────
 
+@pytest.fixture(autouse=True)
+def _outcome_ledger_in_tmp(tmp_path, monkeypatch):
+    # A landed backstop is noted on the outcome ledger (#2272); keep that ledger
+    # out of the checkout.
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path / 'outcome-ws'))
+
+
 def test_telegram_only_marker_is_not_a_wechat_delivery(tmp_path):
     marker = _write(tmp_path / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
 

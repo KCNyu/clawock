@@ -92,6 +92,30 @@ def test_a_failed_postflight_degrades_a_delivered_product(tmp_path, monkeypatch)
     assert record["stages"]["postflight"]["data_plane_status"] == "committed_local"
 
 
+def test_a_landed_wechat_backstop_takes_the_slot_off_the_dropped_tally(tmp_path, monkeypatch):
+    # #2272: the card named slots as "WeChat dropped, TG covered" that the
+    # watchdog had already re-delivered on WeChat.
+    from datetime import datetime, timezone
+    from clawock.publish import outcomes as published
+
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:00:00+08:00"
+    at = datetime(2026, 7, 24, 2, 5, tzinfo=timezone.utc)
+    outcomes.record_stage("盘中盯盘", "primary_delivery", "success", slot=slot, at=at,
+                          wechat_ok=False, telegram_ok=True)
+
+    def dropped():
+        records = outcomes.load_ledger()["records"]
+        return published.summarize_records(records, hours=36, now=at)[
+            "wechat_dropped_telegram_covered"]
+
+    assert dropped() == 1
+    assert outcomes.record_wechat_backstop(slot=slot, at=at) == 1
+    assert dropped() == 0
+    primary = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
+    assert primary["wechat_ok"] is False, "the primary's own result stays countable"
+
+
 def test_readability_advisory_detail_does_not_degrade_a_delivered_product(
     tmp_path, monkeypatch
 ):

@@ -1012,6 +1012,7 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
                  'detail': str(e)[:300]})
     miss_subject = str(channel or 'wechat')
     if ok and not dry_run:
+        _note_backstop_on_outcome(tag, marker)
         # The condition cleared: the next miss on this channel is a new event
         # and alerts again (#2292).
         _miss_flag(flag_path.parent, miss_subject).unlink(missing_ok=True)
@@ -1040,6 +1041,23 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
              'sent_ok': bool(alert_ok), 'target': alert_target,
              **({} if alert_ok else {'detail': (alert_out or '')[-300:]})})
     return bool(ok)
+
+
+def _note_backstop_on_outcome(tag, marker):
+    """Tell the outcome ledger this slot did reach WeChat after all (#2272)."""
+    try:
+        from clawock.automation import workflow_outcomes
+        slot = marker.get('slot') if isinstance(marker.get('slot'), str) else None
+        job = None
+        if tag == 'brief':
+            job = workflow_outcomes.job_for(brief=True)
+        elif not str(tag).startswith('intraday-') and '-' in str(tag):
+            job = workflow_outcomes.job_for(*str(tag).split('-', 1))
+        if slot or job:
+            workflow_outcomes.record_wechat_backstop(slot=slot, job_name=job)
+    except Exception as e:  # noqa: BLE001 — bookkeeping must not undo a landed send
+        log({'tag': tag, 'action': 'wechat-backstop-outcome-not-recorded',
+             'detail': str(e)[:200]})
 
 
 def _miss_flag(flag_dir, subject):

@@ -482,6 +482,44 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
         return {}
 
 
+def record_wechat_backstop(*, slot=None, job_name=None, at=None):
+    """Note on the slot's own record that the watchdog's WeChat retry landed.
+
+    `primary_delivery.wechat_ok` stays the postflight's result (the primary DID
+    drop it); the added `wechat_backstop_ok` is what lets the data-health tally
+    stop naming a slot kcn did receive on WeChat (#2272). Matched by slot (and
+    job when known), only on records whose primary actually dropped WeChat.
+    Returns how many records were marked; observation never raises.
+    """
+    try:
+        now = _now(at)
+        if slot is None and job_name:
+            slot = slot_for_job(job_name, now)
+        if not slot:
+            return 0
+        marked = 0
+        with _locked():
+            ledger = load_ledger()
+            for record in ledger.get("records", []):
+                if record.get("slot") != slot:
+                    continue
+                if job_name and record.get("job") != job_name:
+                    continue
+                primary = (record.get("stages") or {}).get("primary_delivery") or {}
+                if primary.get("wechat_ok") is False and not primary.get("wechat_backstop_ok"):
+                    primary["wechat_backstop_ok"] = True
+                    record["updated_at"] = now.isoformat()
+                    marked += 1
+            if marked:
+                ledger["updated_at"] = now.isoformat()
+                _atomic_write(local_path(), ledger)
+        return marked
+    except Exception as exc:
+        note_degradation(None, "stage_not_recorded",
+                         f"wechat_backstop: {type(exc).__name__}: {exc}")
+        return 0
+
+
 def record_from_heartbeat(event):
     """Bridge the existing intraday slot ledger into explicit independent stages."""
     job = event.get("job")
