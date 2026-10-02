@@ -514,8 +514,7 @@ def main():
     # pre-market brief for a day neither market opens. Next occurrence of the
     # shape: 2026-12-25 (聖誕 + Christmas). Sibling of the intraday_watchdog
     # holiday bug of 2026-09-07.
-    hk_closed = trading_calendar.closed_reason('hk')
-    us_closed = trading_calendar.closed_reason('us')
+    hk_closed, us_closed = trading_calendar.brief_closed_reasons()
     if hk_closed and us_closed:
         log({'tag': tag, 'action': 'skip',
              'reason': 'both markets closed — no brief was due today',

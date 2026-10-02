@@ -69,7 +69,7 @@ def test_validation_failed_mirror_is_labelled(tmp_path, monkeypatch):
     messages = []
     monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
                         lambda: date.fromisoformat(TODAY))
-    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market, *_a, **_k: None)
     monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "UNREVIEWED CARD")
     monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
     monkeypatch.setattr(
@@ -96,7 +96,7 @@ def test_holder_died_mid_send_names_unconfirmed_wechat(tmp_path, monkeypatch):
     messages, events = [], []
     monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
                         lambda: date.fromisoformat(TODAY))
-    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market, *_a, **_k: None)
     monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "CARD")
     monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
     monkeypatch.setattr(
@@ -141,7 +141,7 @@ def _wire_0905_with_artifacts(monkeypatch, tmp_path):
     messages, events = [], []
     monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
                         lambda: date.fromisoformat(TODAY))
-    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market, *_a, **_k: None)
     monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "CARD")
     monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
     monkeypatch.setattr(

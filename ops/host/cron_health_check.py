@@ -762,8 +762,11 @@ def main():
         # holiday — preflight skips the run by design (the 6-19 端午+Juneteenth double
         # close was a false red). 港股→hk, 美股→us; other jobs (brief/dream) unaffected.
         mkt = 'hk' if name.startswith('港股') else ('us' if name.startswith('美股') else None)
+        # Same day for both halves: the brief's own HKT day (#2317). Asked with
+        # each market's own "today", the US half answered for the previous
+        # calendar day at brief time.
         both_closed = name == '盘前深度简报' and all(
-            _market_closed_today(m) for m in ('hk', 'us')
+            _market_closed_on(m, verify_date) for m in ('hk', 'us')
         )
         market_closed = False
         if mkt:

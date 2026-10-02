@@ -259,7 +259,7 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
     # run from a test writes into the developer's own workspace (#816).
     monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
-        brief_postflight.trading_calendar, "closed_reason", lambda _market: None
+        brief_postflight.trading_calendar, "closed_reason", lambda _market, *_a, **_k: None
     )
     monkeypatch.setattr(
         brief_postflight.workflow_outcomes, "slot_for_job", lambda _job: "slot"
@@ -314,7 +314,7 @@ def test_dry_run_validates_normalized_plan_without_rewriting_source(
     # run from a test writes into the developer's own workspace (#816).
     monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
-        brief_postflight.trading_calendar, "closed_reason", lambda _market: None
+        brief_postflight.trading_calendar, "closed_reason", lambda _market, *_a, **_k: None
     )
     monkeypatch.setattr(
         brief_postflight.workflow_outcomes, "slot_for_job", lambda _job: "slot"
