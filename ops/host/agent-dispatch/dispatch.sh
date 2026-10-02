@@ -85,13 +85,8 @@ case "$cmd" in
     exit 0 ;;
   cancel)
     [ -n "${1:-}" ] || { echo "usage: dispatch.sh cancel <id>" >&2; exit 2; }
-    # The dsh chip cancels through task_queue_ops.py (idempotent, audited, reports the session);
-    # this stays the blocking CLI form, but an unknown or ended id is an error, not "cancelled".
-    [[ "$1" =~ ^[a-z0-9][a-z0-9-]*$ ]] && [ -r "$BASE/$1/meta.env" ] || { echo "no task $1 (unknown or already pruned)" >&2; exit 1; }
-    if [ "$(systemctl is-active "agent-dispatch-$1.service" 2>/dev/null || true)" != active ]; then
-      echo "task $1 is not running ($(show_state "$BASE/$1")); nothing to cancel" >&2; exit 1
-    fi
-    systemctl stop "agent-dispatch-$1.service"; echo "cancelled $1: $(show_state "$BASE/$1")"; exit 0 ;;
+    # CLI and chip share the durable marker, launch barrier and audited stop path.
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py --source cli cancel "$1" ;;
   append)
     if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
       echo "refused: this is dispatched task $AGENT_DISPATCH_TASK_ID; it does not steer other tasks" >&2; exit 2

@@ -384,16 +384,18 @@ def cmd_cancel(args) -> dict:
             return {"ok": True, "id": args.id, "state": state, "pending": state not in TERMINAL, "was": was,
                     "session": session, "resume": resume_hint(meta, session),
                     "message": "already cancelled" if state in TERMINAL else "cancel already requested"}
-        marker.write_text(time.strftime("%Y-%m-%d %H:%M:%S") + f" {args.source}\n")
+        # Same lock as the runner's final launch decision: a committed cancel
+        # prevents every later launch, including quota and retry continuations.
+        with open(d / ".launch.lock", "a") as launch_lock:
+            fcntl.flock(launch_lock, fcntl.LOCK_EX)
+            marker.write_text(time.strftime("%Y-%m-%d %H:%M:%S") + f" {args.source}\n")
         try:
             r = subprocess.run([SYSTEMCTL, "stop", "--no-block", f"agent-dispatch-{args.id}.service"],
                                capture_output=True, text=True, timeout=15)
         except (OSError, subprocess.TimeoutExpired) as e:
-            marker.unlink(missing_ok=True)
             audit(d, args.source, "cancel", f"failed: {e}")
             raise OpsError(5, f"systemctl stop failed: {e}")
         if r.returncode != 0:
-            marker.unlink(missing_ok=True)
             audit(d, args.source, "cancel", f"failed: rc={r.returncode} {r.stderr.strip()[:200]}")
             raise OpsError(5, f"systemctl refused to stop the task: {r.stderr.strip() or r.returncode}")
         deadline = time.time() + CANCEL_SETTLE_SEC
