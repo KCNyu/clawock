@@ -127,8 +127,8 @@ Each entry has four fields:
 | exposure | 敞口 | Dollar or percent-of-book weight of a holding or sleeve; gross or net depending on context. | `portfolio/risk.py` |
 | HHI | 赫芬达尔指数 | Concentration measure (Herfindahl–Hirschman Index): `Σ wᵢ²`; higher = more concentrated; gate renders four bands (green / yellow / orange / red) — only band names are pinned to thresholds; the visual indicator is decided by the dashboard CSS. | `portfolio/risk.py` |
 | covariance | 协方差 | Second moment of joint returns; the matrix this engine shrinks via Ledoit–Wolf or OAS before any allocation uses it. | `portfolio/covariance.py` |
-| correlation | 相关性 | Covariance rescaled by the product of volatilities; bounded in [-1, +1]; SPCH/SPCX observed at 1.000 in this book. | `portfolio/covariance.py` |
-| conditional number | 条件数 | Ratio of largest to smallest eigenvalue; 13,241 on this book — the covariance is nearly singular. | `portfolio/covariance.py` |
+| correlation | 相关性 | Covariance rescaled by the product of volatilities; bounded in [-1, +1]; a leveraged product and its underlying sit near 1 (the live matrix is on the dashboard's Risk tab). | `portfolio/covariance.py` |
+| conditional number | 条件数 | Ratio of largest to smallest eigenvalue; in the thousands on this book — the sample covariance is nearly singular. Current value: `correlation.deep_risk.conditioning.condition_number` in `assets/data/risk.json`. | `portfolio/covariance.py` |
 | stress test | 压力测试 | A scenario projected onto the book's covariance to estimate loss; here transmits through correlations, not "everything falls equally". | `portfolio/stress.py` |
 
 ## Workspace and book

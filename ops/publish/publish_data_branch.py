@@ -42,11 +42,12 @@ from clawock.publish.outputs import output_paths  # noqa: E402
 # updated only the writer would serve a stale generation with every gate green.
 DATA_BRANCH = "data-plane"
 
-# The required generation is seven files: five declared dashboard outputs plus
-# `cron-heartbeats.json` and `workflow-outcomes.json`, written by the same tick.
-# were the ONLY two entries left in the publisher's commit pathspec — which is
-# why moving the four barely changed the commit count (#325). Nothing in the
-# browser fetches them; `build_dashboard` embeds their content into the payload.
+# The required generation is the declared dashboard outputs plus these two,
+# written by the same tick and published with them (#325). Neither is fetched
+# by the browser. `workflow-outcomes.json` reaches the page because
+# `build_dashboard` folds it into the payload; `cron-heartbeats.json` is not
+# embedded anywhere — its one reader is `cron-health.yml`, which fetches the
+# generation off the data branch and passes the file to the health check.
 DATA_PLANE_EXTRA = (
     "assets/data/cron-heartbeats.json",
     "assets/data/workflow-outcomes.json",
