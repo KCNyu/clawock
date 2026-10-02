@@ -69,6 +69,19 @@ if [ "${DISPATCH_TEST_CASES:-}" = cancel-barrier ]; then
   expect 'legacy wait state cleared' "$(field "$d" WAKE_AT)/$(field "$d" WAITING)/$(field "$d" SLOT)" //
   expect 'legacy cancellation becomes durable' "$(test -e "$d/cancel-requested" && echo yes)" yes
 
+  d=$(mk launch-race codex 900 300)
+  exec 8>"$d/.launch.lock"; flock -x 8
+  bash "$R" "$d" 8>&- & p=$!
+  for _ in $(seq 100); do
+    grep -q 'attempt 1/' "$d/run.log" 2>/dev/null && break
+    sleep 0.05
+  done
+  touch "$d/cancel-requested"  # committed cancel owns the launch lock
+  flock -u 8; exec 8>&-
+  e=0; wait "$p" || e=$?
+  expect 'cancel wins final launch race' "$e/$(field "$d" STATE)" 143/cancelled
+  expect 'launch race spends no agent call' "$(test -f "$FAKE_DIR/codex.calls" && cat "$FAKE_DIR/codex.calls" || echo 0)" 0
+
   for kind in quota retry; do
     reset_fake codex quota-then-ok
     [ "$kind" != retry ] || echo quota-notice-then-other-failure >"$FAKE_DIR/codex.mode"
