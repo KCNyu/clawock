@@ -2302,8 +2302,9 @@ def load_tmp_sidecar(prefix, max_age_days=None):
         data.setdefault('_source', name)
         # When the prose was written. Its numbers are that moment's, while the
         # rest of the payload is recomputed every build (#2296).
+        from clawock import sessions as _tc
         data['_written_at'] = datetime.fromtimestamp(
-            os.path.getmtime(latest), ZoneInfo('Asia/Hong_Kong')).strftime('%m-%d %H:%M')
+            os.path.getmtime(latest), ZoneInfo(_tc.MARKET_TZ['hk'])).strftime('%m-%d %H:%M')
         if max_age_days is not None:
             age_days = (time.time() - os.path.getmtime(latest)) / 86400.0
             data['_stale'] = age_days > max_age_days

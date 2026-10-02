@@ -42,6 +42,7 @@ evaluation -> history_store
 evaluation -> instruments
 evaluation -> labeling
 evaluation -> market_data
+evaluation -> portfolio
 evaluation -> safe_io
 evaluation -> seeds
 evaluation -> workspace

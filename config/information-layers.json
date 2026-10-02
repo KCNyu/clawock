@@ -254,7 +254,7 @@
         },
         {
           "command": "evaluate-us-leverage",
-          "note": "the same regime backtest for the US 2x sleeve"
+          "note": "the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial"
         },
         {
           "command": "evaluate-combined-regime",

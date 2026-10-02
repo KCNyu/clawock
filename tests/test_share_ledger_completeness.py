@@ -196,6 +196,8 @@ def test_the_gate_is_actually_wired_into_the_published_check(tmp_path):
     book = tmp_path / 'portfolio.json'
     book.write_text(json.dumps({'portfolios': {'us_stocks': {
         'currency': 'USD',
+        # A leg with active rows carries its total (PNL_TOTAL, #2267).
+        'total_pnl': 0.0,
         # An active row carries its cost basis (COST_MISSING, #1622); this
         # book is only wrong about the share ledger.
         'holdings': [{**_holding('NEWTKR', 6200, [_buy('2026-06-01', 1000)]),
