@@ -734,6 +734,7 @@
     "workflow-outcomes.json": "流程账本",
     "cron-heartbeats.json": "定时心跳",
     "integrity_report.json": "体检报告",
+    "portfolio.json#gold_dca": "黄金定投净值",
     "coverage.json": "测试覆盖率",
     "readme_metrics.json": "README 指标",
     "overview.json": "总览快照",

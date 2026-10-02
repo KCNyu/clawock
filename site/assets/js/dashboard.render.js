@@ -2882,6 +2882,24 @@
         : "";
       coverageNote.style.display = skippedMarks.length ? "" : "none";
     }
+    // The sidecar judges every run whether this curve still stands for the
+    // policy (`coverage.representative`: fill rate against its own floor). With
+    // 28 of 322 legs filled the difference is the result of the few legs the
+    // constraints let through, so it is not called timing alpha (#2337).
+    const coverage = safe(sidecar, "coverage");
+    const fillRate = Number(safe(coverage, "fill_rate"));
+    const fillFloor = Number(safe(coverage, "minimum_representative_fill_rate"));
+    const unrepresentative = safe(coverage, "representative") === false
+      && Number.isFinite(fillRate) && Number.isFinite(fillFloor);
+    const coverageText = unrepresentative
+      ? `成交 ${safe(coverage, "filled_legs")}/${(Number(safe(coverage, "filled_legs")) || 0) + (Number(safe(coverage, "skipped_legs")) || 0)} 条腿（${(fillRate * 100).toFixed(1)}%），低于 ${(fillFloor * 100).toFixed(0)}% 代表性门槛`
+      : "";
+    const estimand = document.getElementById("shadow-estimand-headline");
+    if (estimand) {
+      estimand.textContent = unrepresentative
+        ? `${coverageText}：下面的累计差只是这少数成交腿的结果，不是「跟随全部已触发建议」这条政策的 timing alpha`
+        : "跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha（毛）";
+    }
     const counts = (sidecar && sidecar.fill_counts) || {};
     const countValue = key => counts[key] != null && Number.isFinite(Number(counts[key]))
       ? Number(counts[key]) : null;
@@ -2900,7 +2918,7 @@
       const netHkd = safe(sidecar, "net_cumulative_diff", "HKD");
       const netText = (netUsd == null && netHkd == null) ? ""
         : ` · 净 USD ${signedMoney(netUsd, "USD")} / HKD ${signedMoney(netHkd, "HKD")}`;
-      summary.textContent = `⚠模拟·非实盘 · 毛 USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
+      summary.textContent = `⚠模拟·非实盘 · ${unrepresentative ? `${coverageText} · ` : ""}毛 USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
         + ` · HKD差 ${signedMoney(safe(sidecar, "cumulative_diff", "HKD"), "HKD")}`
         + netText
         + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`

@@ -284,3 +284,16 @@ def test_non_focusable_hover_classes_are_really_not_focusable():
                     f'.{cls} is listed as non-focusable but {label} renders it on a '
                     f'focusable element: {line.strip()[:120]}'
                 )
+
+
+def test_the_dashboard_declares_the_language_it_is_written_in():
+    """#2340: the page is Chinese and declared `lang="en"`, the only page on the
+    site that did; a screen reader picks its voice from this attribute."""
+    import re
+    from pathlib import Path
+    html = (Path(__file__).resolve().parents[1] / "site" / "index.html").read_text(encoding="utf-8")
+    lang = re.search(r"<html[^>]*\blang=\"([^\"]+)\"", html).group(1)
+    body = re.sub(r"<[^>]+>", " ", html[html.index("<body"):])
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", body))
+    latin = len(re.findall(r"[A-Za-z]{2,}", body))
+    assert lang.lower().startswith("zh") == (cjk > latin), (lang, cjk, latin)

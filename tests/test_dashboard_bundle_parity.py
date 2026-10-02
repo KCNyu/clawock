@@ -106,3 +106,36 @@ def test_hero_spark_is_present_in_both(bundles):
     for name in ("heroProfitSeries", "renderHeroSpark", "renderCommandDeck"):
         assert name in hero, f"{name} missing from {HERO.name} (first-paint bundle)"
         assert name in render, f"{name} missing from {RENDER.name}"
+
+
+_TABLE = re.compile(r"^  const ([A-Z][A-Z0-9_]*) = (\{|\[|new Set\()")
+
+
+def _top_level_tables(path: Path) -> dict[str, str]:
+    """Top-level `const NAME = {…}` / `[…]` / `new Set(…)` lookup tables."""
+    lines = path.read_text(encoding="utf-8").split("\n")
+    out: dict[str, str] = {}
+    for i, line in enumerate(lines):
+        match = _TABLE.match(line)
+        if not match:
+            continue
+        end = i
+        while end < len(lines) and not re.match(r"^  [}\])]+;", lines[end]) \
+                and not (end == i and line.rstrip().endswith(";")):
+            end += 1
+        out[match.group(1)] = "\n".join(lines[i:end + 1])
+    return out
+
+
+def test_shared_lookup_tables_are_byte_identical():
+    """#2331: the data-plane label table is hand-copied into both bundles; a
+    row added to one printed `portfolio.json#gold_dca` as a name on the first
+    screen and 「黄金定投净值」 on the detail tab."""
+    hero, render = _top_level_tables(HERO), _top_level_tables(RENDER)
+    shared = sorted(set(hero) & set(render))
+    assert "DATA_FILE_CN" in shared, "the label table is no longer found by this gate"
+    # hero.js renders the first frame only, so its tab table is shorter by design.
+    by_design = {"TAB_RENDERERS"}
+    diverged = [name for name in shared
+                if name not in by_design and hero[name] != render[name]]
+    assert diverged == [], f"lookup tables differ between the two bundles: {diverged}"
