@@ -1086,7 +1086,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                   "benefit_t20_pct",
                   "fill_reason", "fill_assumed", "fill_model", "session_reason",
                   "not_evaluable_reason", "mark_t1_session", "mark_t5_session",
-                  "mark_t20_session",
+                  "mark_t20_session", "mark_t5_reason", "mark_t20_reason",
                   "evaluation_mode", "reference_price", "reference_reason",
                   "condition_role", "pending_reason", "mark_horizon",
                   "evaluation_schema_version"):
@@ -1291,16 +1291,28 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                     reason = "implausible_move"
                 else:
                     u1, b1 = _benefit(d.get("action"), entry, nb["close"])
+            # The longer marks say why they are absent, like T+1 does. A row
+            # that is `settled` with no T+20 and no reason is indistinguishable
+            # from one whose T+20 has not come due, and a replay that withdraws
+            # an already-published T+20 left no trace of which rows or why
+            # (#2336: 19 rows, one ticker's T+20 win rate 20.5% -> 36.0%).
+            r5 = r20 = None
             if len(marks) >= 5:
                 m5 = marks[4]
                 nb5 = bar(ticker, m5)
-                if nb5 is not None and not crosses_suspect_move(m5) and m5 < today:
-                    _, b5 = _benefit(d.get("action"), entry, nb5["close"])
+                if nb5 is not None and m5 < today:
+                    if crosses_suspect_move(m5):
+                        r5 = "implausible_move"
+                    else:
+                        _, b5 = _benefit(d.get("action"), entry, nb5["close"])
             if len(marks) >= 20:
                 m20 = marks[19]
                 nb20 = bar(ticker, m20)
-                if nb20 is not None and not crosses_suspect_move(m20) and m20 < today:
-                    _, b20 = _benefit(d.get("action"), entry, nb20["close"])
+                if nb20 is not None and m20 < today:
+                    if crosses_suspect_move(m20):
+                        r20 = "implausible_move"
+                    else:
+                        _, b20 = _benefit(d.get("action"), entry, nb20["close"])
             ev.update({
                 "status": "settled" if b1 is not None else "pending",
                 "outcome": _outcome(b1),
@@ -1313,6 +1325,9 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 "mark_t20_session": m20 if b20 is not None else None,
                 "mark_horizon": "open_of_session_to_close_of_next_session",
             })
+            for key, why in (("mark_t5_reason", r5), ("mark_t20_reason", r20)):
+                if why:
+                    ev[key] = why
             if b1 is None and reason == "implausible_move":
                 ev.update({"status": "not_evaluable", "outcome": "unknown",
                            "not_evaluable_reason": reason})

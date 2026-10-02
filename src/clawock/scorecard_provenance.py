@@ -288,14 +288,20 @@ def verify(provenance: dict, decisions) -> dict:
 
     recomputed_all = rows_digest(rows, fields)
     published_all = ledger.get('digest')
+    # Growth is the only change this check waves through, so it has to be
+    # growth: with the row count unchanged, a different digest means rows that
+    # were already there read differently now (#2346).
+    grew = len(rows) != ledger.get('rows_total')
     checks.append({
         'name': 'ledger.digest',
-        'status': 'pass' if recomputed_all == published_all else 'moved',
+        'status': ('pass' if recomputed_all == published_all
+                   else 'moved' if grew else 'fail'),
         'expected': published_all,
         'actual': recomputed_all,
         'detail': (
             f'{len(rows)} rows now vs {ledger.get("rows_total")} when published'
-            ' — later sessions appending is expected'),
+            + (' — later sessions appending is expected' if grew else
+               ' — the row count is unchanged, so existing rows were rewritten')),
     })
     return {'ok': all(c['status'] in ('pass', 'moved') for c in checks),
             'checks': checks}

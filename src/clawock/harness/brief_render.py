@@ -786,6 +786,11 @@ def macro_section(context, judgment):
         row = macro.get(key) or {}
         if not row:
             return None
+        if row.get("change_pct") is None:
+            # No day change for this row (pre-open repeat of the last close, or a
+            # source without a previous close): never print it as 0.00%.
+            session = f"{row['session']} 收盘，" if row.get("session") else ""
+            return f"{label} **{num(row.get('price'))}**（{session}当日涨跌未知）"
         return f"{label} **{num(row.get('price'))}** ({pct(row.get('change_pct'))})"
 
     parts = [quote(key, label) for key, label in (
