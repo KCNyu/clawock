@@ -1895,8 +1895,10 @@ def main(argv=None):
     # completes in WAVE1 and rate is its only input (pure arithmetic; nothing
     # between the prefix and this point consumes it).
     rate = fx['rate']
-    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
-    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
+    # A missing leg total is not a zero: defaulting it drops the whole leg out
+    # of the book total while every gate still reconciles (#2267).
+    hk_pnl_hkd = portfolio['portfolios']['hk_stocks']['total_pnl']
+    us_pnl_usd = portfolio['portfolios']['us_stocks']['total_pnl']
     totals = pnl_totals(hk_pnl_hkd, us_pnl_usd, rate)
     book = {
         'hk_pnl_hkd':      round(hk_pnl_hkd, 2),

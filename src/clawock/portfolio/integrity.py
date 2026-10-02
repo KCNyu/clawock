@@ -468,6 +468,10 @@ def check(portfolio_path=PORTFOLIO):
 
         # PNL_TOTAL ------------------------------------------------------
         tpnl = _num(port.get('total_pnl'))
+        if tpnl is None and active:
+            # 缺键不是「空仓的 0」：读者按 0 入账就把整条腿从合计里丢掉（#2267）。
+            add('PNL_TOTAL', 'ERROR',
+                'total_pnl 缺失或不是数值，而本区有活跃持仓；合计会把整条腿按 0 入账', region)
         if tcv is not None and tcost is not None and tpnl is not None:
             if abs(tpnl - (tcv - tcost)) > TCV_TOL:
                 add('PNL_TOTAL', 'ERROR',

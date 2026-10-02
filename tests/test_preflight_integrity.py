@@ -313,6 +313,8 @@ def test_missing_optional_holding_fields_are_skipped_without_false_positive(run_
         "portfolios": {
             "us_stocks": {
                 "currency": "USD",
+                # the leg total is not optional once a row is active (#2267)
+                "total_pnl": 0.0,
                 "holdings": [
                     {
                         "ticker": "SPARSE",
@@ -652,6 +654,15 @@ def test_staleness_accepts_last_session_and_warns_one_session_behind(run_check):
         "WARN",
         "早于上一交易日 2026-07-17",
     )
+
+
+def test_missing_leg_total_pnl_is_an_error_not_a_zero(run_check):
+    # #2267
+    data = _portfolio_data(region="hk_stocks", holdings=[_holding(ticker="00100")])
+    del data["portfolios"]["hk_stocks"]["total_pnl"]
+    report = run_check(data)
+    assert not report["ok"]
+    assert any(f["code"] == "PNL_TOTAL" and "缺失" in f["msg"] for f in report["findings"])
 
 
 def test_prev_close_stamped_with_the_wrong_session_is_reported(run_check):
