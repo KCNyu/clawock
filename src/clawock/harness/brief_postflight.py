@@ -1464,8 +1464,9 @@ def main(argv=None):
             claim_declined = True
         else:
             # WeChat, then Telegram (cold-proof — WeChat can't confirm real delivery), per
-            # the delivery policy. The Telegram result is recorded: it's the sole backstop
-            # brief_watchdog uses (no WeChat resend), so it needs to know if TG got this card.
+            # the delivery policy. The Telegram result is recorded: it's the backstop
+            # brief_watchdog mirrors to (WeChat is re-sent only on a recorded failure,
+            # once), so it needs to know if TG got this card.
             def send():
                 return send_per_policy(
                     'brief', message, tag='brief', dry_run=args.dry_run,

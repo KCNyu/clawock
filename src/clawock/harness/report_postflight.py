@@ -208,8 +208,9 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     # only once the marker below has landed (#1743) — `send_under_claim`.
     # WeChat, then Telegram, per the delivery policy. Telegram is never gated on
     # WeChat — WeChat can't confirm real delivery (cold drop returns sent_ok=true).
-    # Its result is recorded too: it's the cold-proof channel and the ONLY backstop
-    # report_watchdog uses (no WeChat resend), so the watchdog needs to know
+    # Its result is recorded too: it's the cold-proof channel report_watchdog
+    # mirrors to (WeChat is re-sent only on a recorded failure, once), so the
+    # watchdog needs to know
     # whether THIS report already reached Telegram.
     def send():
         return send_per_policy(

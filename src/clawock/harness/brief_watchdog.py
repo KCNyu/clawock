@@ -19,7 +19,8 @@ WeChat via a fresh token. That DUPLICATED the card on WeChat whenever the marker
 merely looked stale but WeChat had actually landed — and you can't tell a landed
 WeChat send from a silently-dropped one (#81096/#81316 wontfix). Since brief_postflight
 now ALWAYS co-sends the card to Telegram (cold-proof), the WeChat retry bought
-nothing but duplicates, so it's gone. Telegram is the sole backstop channel.
+nothing but duplicates, so it's gone. Telegram is the mirror backstop; WeChat is re-sent once, only when the receipt
+records that its send failed (`wechat_backstop`, 2026-09-17).
 
 ONE EXCEPTION — A CONFIRMED WECHAT FAILURE (2026-09-17): the 08:03 brief that day
 recorded `sent_ok=false` (`ret=-2 prepare failed`) with `tg_ok=true`, and this

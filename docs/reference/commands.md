@@ -219,7 +219,7 @@ These are installed commands too. They are listed here so the catalog is the who
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
 - **`clawock report preflight --market {hk|us} --phase {open|mid|pm|close}`**：跑 analyze_*.py + 抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 指数方向；写 `memory/.tmp/report-context-{market}-{phase}-{date}.json`（`{date}` = 跑批当天）并清掉该 market+phase 其它日期的残留；**stdout 与文件是同一份 JSON**（含 `context_id`，末行 `context_path:`），靠 `peer_scan` 在源头裁剪保持小体积。`raw_wechat_block` 不再经模型手 —— postflight 自己拼进消息
 - **`clawock report postflight --market {hk|us} --phase {phase} --context-id ID --text-file PATH`**：拼 `title + raw_wechat_block + 模型散文`，校验三段标记 / 异动票必须被提及 / 长度 / 敷衍词；`--context-id` 不匹配或散文文件 >30min 未更新则拒发。**fail-closed**：pass/warn 发全文 + scoped commit/push，fail 只发数据块（绝不发被拒散文）且不 commit，休市/缺 context 不发。失败过的 slot 之后可被合格报告**补发一次**。主发 WeChat + 镜像 Telegram。
-- **`clawock-report-watchdog --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free Telegram-only backstop。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，只有 Telegram 未确认时才补投，绝不重发 WeChat。
+- **`clawock-report-watchdog --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free 投递兜底。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，两路分开判：Telegram 未确认时补投 Telegram；本 slot marker 明确记录微信失败（`sent_ok=false`）时补发微信一次，再失败就 Telegram 告警。marker 缺失/过期/对不上 slot 时不重发 WeChat。
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
 - **`clawock intraday preflight --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
