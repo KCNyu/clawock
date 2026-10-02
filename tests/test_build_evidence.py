@@ -415,3 +415,11 @@ def test_an_unknown_verdict_sorts_last_instead_of_raising():
     payload = ev.payload([section], "x")
     assert payload["sections"][0]["verdict_key"] == "unknown"
     assert payload["sections"][0]["tone"] == "idle"
+
+
+def test_activation_values_are_printed_for_a_reader_not_as_python():
+    # #2303
+    assert ev._plain(0.6153846153846154) == "0.6154"
+    assert ev._plain([-0.057161, -0.003202]) == "[-0.05716, -0.003202]"
+    assert (ev._plain(False), ev._plain(True)) == ("否", "是")
+    assert ev._plain("none_detected") == "none_detected" and ev._plain(12) == "12"

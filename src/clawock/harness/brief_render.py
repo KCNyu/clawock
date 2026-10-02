@@ -31,6 +31,7 @@ from pathlib import Path
 
 from clawock import sessions as _cal
 from clawock.automation.output_validate import escape_raw_html
+from clawock.prose_validation import check_identifier_leak, check_pipeline_self_reference
 from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
@@ -117,7 +118,12 @@ def text(value):
     the fallback writer's own rule (`escape_raw_html`), so both writers of the
     pre-open page leave the same text inert (#2187).
     """
-    value = (value or "").strip()
+    # A model that writes `{"theme": 5}` still gets its page: one non-string
+    # field used to raise here and cost the whole day's brief (#2300). The type
+    # error itself is the judgment validator's to report.
+    if value is None:
+        return MISSING
+    value = (value if isinstance(value, str) else str(value)).strip()
     return escape_raw_html(value).replace("\n", " ") if value else MISSING
 
 
@@ -911,11 +917,37 @@ def next_session_section(judgment):
     return "### 下一节点\n\n" + (body or "无。")
 
 
+# A file of the pipeline (`core.json`, `memory/.tmp/x.jsonl`) or a dotted field
+# path (`quant.left_side`): neither is a thing a reader of the brief can act on.
+_INTERNAL_NAME = re.compile(
+    r'[\w./-]+\.(?:jsonl?|py|md|tmp|ya?ml|sh)\b|(?<![\w.])[a-z][a-z0-9_]*\.[a-z_][a-z0-9_.]*')
+
+
+def _reader_facing(diagnostic):
+    """A preflight diagnostic as it may appear on the public page, or None.
+
+    `context.issues` and the research-surface errors are written for whoever
+    debugs the pipeline: they name files, field paths and stages. The model's
+    own prose is gated for exactly those words; these lines reached the same
+    page ungated (#2260). One that names internals is published as a count,
+    not as text.
+    """
+    line = str(diagnostic)
+    if (check_identifier_leak(line) or check_pipeline_self_reference(line)
+            or _INTERNAL_NAME.search(line)):
+        return None
+    return line
+
+
 def data_holes_section(context, judgment):
     holes = list(_narrative(judgment).get("data_holes") or [])
-    holes += [str(issue) for issue in (context.get("issues") or [])]
     surface = (context.get("research_surface") or {}).get("errors") or []
-    holes += [str(error) for error in surface]
+    diagnostics = [_reader_facing(row)
+                   for row in list(context.get("issues") or []) + list(surface)]
+    holes += [row for row in diagnostics if row]
+    withheld = sum(1 for row in diagnostics if row is None)
+    if withheld:
+        holes.append(f"另有 {withheld} 条数据准备阶段的内部诊断，已记入运行日志，不在此展开")
     if not holes:
         return "### 待补\n\n无。"
     return "### 待补\n\n" + "\n".join(f"- {text(hole)}" for hole in holes)

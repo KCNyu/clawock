@@ -1860,7 +1860,7 @@
       const inBook = (s.tickers_in_book || []).join(", ");
       return `<div class="sector-block">
         <div class="theme">${escape(s.theme)} ${inBook ? `<span class="in-book">[持仓: ${escape(inBook)}]</span>` : ""}</div>
-        <div class="movers">${movers || '<span class="muted" style="font-size:var(--fs-xs);opacity:0.55">— LLM 未填 top movers</span>'}</div>
+        <div class="movers">${movers || '<span class="muted" style="font-size:var(--fs-xs)">— LLM 未填 top movers</span>'}</div>
         ${selfRows ? `<div class="self">${selfRows}</div>` : ""}
       </div>`;
     }).join("");
@@ -2079,7 +2079,7 @@
         const v = hn[tk] || {};
         emHtml += `<div style="margin:3px 0"><strong>${escapeHtml(tk)} ${escapeHtml(v.name || '')}</strong>`;
         (v.items || []).slice(0, 2).forEach(it => {
-          emHtml += `<div style="font-size:var(--fs-xs);opacity:.8">· [${escapeHtml(it.date || '')}] ${escapeHtml(it.title || '')}</div>`;
+          emHtml += `<div style="font-size:var(--fs-xs)">· [${escapeHtml(it.date || '')}] ${escapeHtml(it.title || '')}</div>`;
         });
         emHtml += '</div>';
       });
@@ -3331,7 +3331,7 @@
     if (!names.length) { card.style.display = 'none'; return; }
     card.style.display = '';
     document.getElementById('quant-asof').textContent = qs.as_of || '';
-    const num = (v, suf = '') => v == null ? '—' : `${v}${suf}`;
+    const num = t0Num;
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
     document.getElementById('quant-tbody').innerHTML = names.map(k => {
       const r = rows[k];
@@ -3355,6 +3355,29 @@
     }
   }
 
+  // Cells of the quant / T+0 tables: at most two decimals, never the producer's
+  // raw float (16.3661% beside the holdings table's +16.37%, #2285). `signed`
+  // prints the + a daily change carries everywhere else on the page.
+  function t0Num(v, suf = '', signed = false) {
+    if (v == null || !Number.isFinite(Number(v))) return v == null ? '—' : `${v}${suf}`;
+    const n = +Number(v).toFixed(2);
+    return `${signed && n > 0 ? '+' : ''}${n}${suf}`;
+  }
+
+  // Which session the T+0 rows belong to, per market. One 「收盘牌面」 for the
+  // whole table mislabelled an intraday US snapshot whenever HK was shut (#2302).
+  function t0SessionLabel(t0) {
+    const closed = t0.market_closed || {};
+    const sessions = t0.session_date || {};
+    const markets = Object.keys(closed);
+    if (!markets.length) return '';
+    if (markets.every(m => closed[m]) && !Object.keys(sessions).length) return ' · 收盘牌面';
+    const name = { hk: '港股', us: '美股' };
+    return ' · ' + markets.map(m =>
+      `${name[m] || m} ${closed[m] ? '收盘' : '盘中'}${sessions[m] ? ' ' + String(sessions[m]).slice(5) : ''}`
+    ).join(' / ');
+  }
+
   function renderT0Setups() {
     const t0 = safe(DATA, "t0_setups");
     const card = document.getElementById('t0-card');
@@ -3363,12 +3386,8 @@
     const names = Object.keys(rows);
     if (!names.length) { card.style.display = 'none'; return; }
     card.style.display = '';
-    // 市场休市时这些是上一交易日收盘的牌面
-    const closed = t0.market_closed || {};
-    const anyClosed = Object.values(closed).some(Boolean);
-    document.getElementById('t0-asof').textContent =
-      (t0.as_of || '') + (anyClosed ? ' · 收盘牌面' : '');
-    const num = (v, suf = '') => v == null ? '—' : `${v}${suf}`;
+    document.getElementById('t0-asof').textContent = (t0.as_of || '') + t0SessionLabel(t0);
+    const num = t0Num;
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
     // 🔴 追高排前面（最该看的牌面）
     const order = { '🔴': 0, '🟡': 1, '⚪': 2 };
@@ -3382,8 +3401,8 @@
         `<td style="text-align:left;font-size:var(--fs-xs)">${r.grade} ${r.grade_label}` +
         `<div class="muted" style="font-size:var(--fs-micro)">${r.grade_reason || ''}</div>${vw}</td>` +
         `<td class="num">${num(r.range_pos, '%')}</td>` +
-        `<td class="num" ${cls(r.today_change_pct)}>${num(r.today_change_pct, '%')}</td>` +
-        `<td class="num" ${cls(r.gap_pct)}>${num(r.gap_pct, '%')}</td>` +
+        `<td class="num" ${cls(r.today_change_pct)}>${num(r.today_change_pct, '%', true)}</td>` +
+        `<td class="num" ${cls(r.gap_pct)}>${num(r.gap_pct, '%', true)}</td>` +
         `<td class="num">${num(r.range_used_atr, '×')}</td></tr>`;
     }).join('');
     // 数据背书：牌面命中率（T+1 对账，n<20 标样本不足）
@@ -3489,7 +3508,7 @@
           <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">
             现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
           </div>
-          ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px;opacity:0.75">${w.note}</div>` : ''}
+          ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${w.note}</div>` : ''}
         </div>`;
     }).join('');
     document.getElementById('reentry-list').innerHTML = rows;
@@ -4494,7 +4513,10 @@
       const followed = (a.execution || "unknown").toLowerCase();
       const c = a.condition || {};
       const trig = `${c.type || ""}${fmtTriggerPrice(c.price)}${fmtSize(a)}`;
-      const cond = c.note ? `<div class="pt-trigger" title="${escapeHtml(c.note)}">${escapeHtml(c.note)}</div>` : "";
+      // The ledger writes the trigger prose as `condition.description`; `note`
+      // is a key no producer emits, so every row showed the bare enum (#2271).
+      const condText = c.description || c.note || "";
+      const cond = condText ? `<div class="pt-trigger" title="${escapeHtml(condText)}">${escapeHtml(condText)}</div>` : "";
       // 理由是这张卡最长的一段（实测 390px：一条 209-369px，15 条 = 4515px）。
       // 默认夹成两行，长到会被夹住的才给一个展开器 —— 短理由配一个什么都不
       // 展开的按钮是噪音。阈值按字数不按版式：量版式要等面板排完，而这块牌
@@ -4977,7 +4999,7 @@
     if (dc && dc.bear_case_pct != null)
       bits.push(`留了反方案文 ${dc.bear_case_pct}%（${dc.with_bear_case}/${dc.decisions}）`);
     if (bits.length) el.insertAdjacentHTML("afterbegin",
-      `<div style="font-size:var(--fs-xs);opacity:.75;margin-bottom:var(--space-2)">${bits.join(" · ")}</div>`);
+      `<div style="font-size:var(--fs-xs);margin-bottom:var(--space-2)">${bits.join(" · ")}</div>`);
   }
 
   // =========================================================
@@ -5079,7 +5101,7 @@
         <div class="ext-row"><span class="k">历史最低利润</span><span class="v ${(p.trough && p.trough.value) < 0 ? "neg" : ""}">${signed(p.trough && p.trough.value, cur)}<small>${dstr(p.trough && p.trough.date)}</small></span></div>
         <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}<small>${dstr(p.current && p.current.date)}</small></span></div>
         <div class="ext-dd">
-          <div class="ext-row"><span class="k">最大回撤</span><span class="v">${ddMain}</span></div>
+          <div class="ext-row"><span class="k">最大回撤</span><span class="v neg">${ddMain}</span></div>
           <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
           <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
         </div>${recoveryBlock}` : `
@@ -5121,7 +5143,7 @@
         }
       }
       const assetSecondary = taLine ? `
-        <div class="ext-dd" style="opacity:.85">
+        <div class="ext-dd">
           <div class="span" style="margin-top:0"><b>真实总资产</b>（持仓市值 ＋ 现金，加减仓不影响）</div>
           ${taLine}
         </div>` : "";

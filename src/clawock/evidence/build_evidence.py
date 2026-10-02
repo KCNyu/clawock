@@ -107,6 +107,22 @@ def _pct(value, digits=1):
     return None if value is None else f'{float(value) * 100:.{digits}f}%'
 
 
+def _plain(value):
+    """An activation-check value as a reader sees it, not as Python prints it.
+
+    The public ledger carried `0.6153846153846154`, `[-0.057161, -0.003202]`
+    and `False / 需要 True` (#2303). Presentation only: the pass/fail beside it
+    is the check's own.
+    """
+    if isinstance(value, bool):
+        return '是' if value else '否'
+    if isinstance(value, float):
+        return f'{value:.4g}'
+    if isinstance(value, (list, tuple)):
+        return '[' + ', '.join(_plain(item) for item in value) + ']'
+    return '—' if value is None else str(value)
+
+
 def _p(value):
     """A p value, or n/a: `permutation_test` returns None under 30 sessions."""
     return 'n/a' if value is None else f'{float(value):.3f}'
@@ -290,7 +306,7 @@ def cross_sectional_section() -> dict | None:
         if not isinstance(check, dict):
             continue
         rows.append((f'`{name}`',
-                     f"{check.get('actual')} / 需要 {check.get('required')} · "
+                     f"{_plain(check.get('actual'))} / 需要 {_plain(check.get('required'))} · "
                      f"{'✅' if check.get('pass') else '⚪ 未达标'}"))
     horizon = _horizon_status(payload, checks)
     if horizon['pending']:

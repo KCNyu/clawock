@@ -116,7 +116,10 @@ def holding_metrics(h, q=None):
     range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None
     return {
         'name': h.get('name'), 'current': cur,
-        'today_change_pct': _num(h.get('today_change_pct')),
+        # Rounded like its four sibling fields: the card printed 16.3661% beside
+        # the holdings table's +16.37% (#2285).
+        'today_change_pct': (None if _num(h.get('today_change_pct')) is None
+                             else round(_num(h.get('today_change_pct')), 2)),
         'gap_pct': gap, 'range_pos': range_pos, 'day_range_pct': day_range_pct,
         'range_used_atr': range_used_atr,
         'rsi14': _num(q.get('rsi14')), 'zscore20': _num(q.get('zscore20')),

@@ -97,3 +97,21 @@ def test_clean_brief_keeps_passing_the_placeholder_gate(tmp_path):
     path.write_text(CHINESE_LOCALIZED_BRIEF, encoding='utf-8')
 
     assert [i for i in brief_postflight.validate_markdown(path) if '敷衍词' in i] == []
+
+
+def test_naming_a_section_in_a_sentence_does_not_satisfy_it(tmp_path):
+    # #2261: 「本报告不含大盘速读、社交舆情」 passed the bare-substring gate.
+    context = {'macro': {'age_hours': 2, 'vix': 18.0},
+               'sentiment': {'age_hours': 2, 'tickers': ['ACME']}}
+    path = tmp_path / 'pre-open.md'
+
+    path.write_text(CHINESE_LOCALIZED_BRIEF + '\n本报告不含大盘速读、社交舆情速读两段。\n',
+                    encoding='utf-8')
+    dodged = brief_postflight.validate_markdown(path, context)
+    assert any('大盘速读' in issue for issue in dodged)
+    assert any('社交舆情' in issue for issue in dodged)
+
+    path.write_text(CHINESE_LOCALIZED_BRIEF + '\n### 大盘速读\n\nVIX 18。\n\n### 社交舆情\n\n平静。\n',
+                    encoding='utf-8')
+    written = brief_postflight.validate_markdown(path, context)
+    assert not any('大盘速读' in issue or '社交舆情' in issue for issue in written)

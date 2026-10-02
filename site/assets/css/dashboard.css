@@ -2341,7 +2341,9 @@
     margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
   }
   .ext-region .ext-dd .k { color: var(--text); }
-  .ext-region .ext-dd .v { font-size: var(--fs-xl); color: var(--negative); }
+  /* Colour is the row's own (.v.neg / inline accent): an unconditional loss red
+     here painted asset balances as losses (#2284). */
+  .ext-region .ext-dd .v { font-size: var(--fs-xl); }
   .ext-region .ext-dd .span { font-size: var(--fs-micro); color: var(--text); margin-top: 3px; }
   /* 回撤恢复条 (并入历史利润极值卡) */
   .ext-region .ext-dd .dd-bar {
@@ -3473,7 +3475,7 @@
     color: var(--text); font-weight: 600; }
   .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
     color: var(--text); }
-  .dm-empty { text-align: center; color: var(--text-dim); opacity: .35; }
+  .dm-empty { text-align: center; color: var(--text-dim); }
 
   .dm-ic { width: 132px; padding: 4px 10px !important; }
   .dm-icval { font-family: var(--mono); font-size: 11.5px; }

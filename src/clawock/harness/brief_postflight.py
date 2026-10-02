@@ -7,7 +7,10 @@ Runs AFTER the agent writes memory/{date}-pre-open.md + memory/{date}-plan.json.
 Validates:
   1. plan.json schema (required fields, valid enums, confidence 0-1)
   2. pre-open.md required sections (Header / Tier 1 / Tier 2 / Tier 3 / Judge / Confidence / Next-Session)
-  3. Sanity: no HKD+USD direct-sum errors (historical bug)
+  3. Currency arithmetic: the plan's two legs are bound to this generation's
+     core and usd_total_pnl / hkd_total_pnl are recomputed (a mismatch is
+     critical); the page's ledger block is templated from book_totals, so no
+     string scan for a direct HKD+USD sum remains
   4. Sanity: concentration HHI was actually mentioned (preflight provided it)
 
 Outputs JSON to stdout:
@@ -183,6 +186,12 @@ def _section_markers(text):
         if bold:
             markers.append(bold.group(1).strip())
     return markers
+
+
+def _names_section(markers, name):
+    """A real section line carries `name` — not a sentence that mentions it
+    (「本报告不含大盘速读…」 used to satisfy the gate, #2261)."""
+    return any(name in marker for marker in markers)
 
 
 def _marker_has_alias(marker, alias):
@@ -768,14 +777,14 @@ def validate_markdown(path, context=None):
         # Only enforce when macro is known-fresh. age None = unknown/stale (preflight
         # now omits stale sidecars, but if one reaches here, don't demand the section
         # off unprovable-fresh data — that would fail a correctly-omitted section).
-        if (age is not None and age <= STALE_H) and m.get('vix') and '大盘速读' not in text:
+        if (age is not None and age <= STALE_H) and m.get('vix') and not _names_section(markers, '大盘速读'):
             issues.append('pre-open.md 缺 ▎大盘速读 段（context.macro 有 fresh 数据 '
                           f'age={age}h 但 LLM 没写）')
     if context and context.get('sentiment'):
         s = context['sentiment']
         age = s.get('age_hours')
         tickers = s.get('tickers') or []
-        if (age is not None and age <= STALE_H) and tickers and '社交舆情' not in text:
+        if (age is not None and age <= STALE_H) and tickers and not _names_section(markers, '社交舆情'):
             issues.append(f'pre-open.md 缺「社交舆情」段（context.sentiment '
                           f'{len(tickers)} 个 ticker 有信号 age={age}h 但 LLM 没写）')
 
