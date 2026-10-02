@@ -75,6 +75,27 @@ def test_session_asof_uses_the_snapshot_day_across_new_year():
     assert dashboard._session_asof(holding, "2026-12-31") == "2026-12-31"
 
 
+def test_session_asof_prefers_the_rows_own_session_and_folds_closed_days():
+    # #2269: `data_source` is the fetch time, and fetchers run on closed days.
+    us = {"holdings": [{"shares": 1, "day_session_date": "2026-09-04",
+                        "data_source": "Nasdaq API (stocks) Sep 06, 2026 04:03 ET"}]}
+    assert dashboard._session_asof(us, "2026-09-07", "us") == "2026-09-04"
+    hk = {"holdings": [{"shares": 1, "data_source": "Tencent Oct 01 08:03 HKT"}]}
+    assert dashboard._session_asof(hk, "2026-10-01", "hk") == "2026-09-30"
+    assert dashboard._session_asof(hk, "2026-10-01") == "2026-10-01"
+    open_day = {"holdings": [{"shares": 1, "data_source": "Tencent Sep 30 16:10 HKT"}]}
+    assert dashboard._session_asof(open_day, "2026-09-30", "hk") == "2026-09-30"
+
+
+def test_today_movers_say_which_session_each_move_belongs_to():
+    rows = dashboard.compute_today_movers(
+        [{"ticker": "SPCH", "today_change_pct": -3.78, "current_price": 9.67}],
+        [{"ticker": "00100", "today_change_pct": 3.65, "current_price": 250.2}],
+        sessions={("us", "SPCH"): "2026-10-01", ("hk", "00100"): "2026-09-30"})
+    assert {r["ticker"]: r["session"] for r in rows} == {
+        "SPCH": "2026-10-01", "00100": "2026-09-30"}
+
+
 def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     data_dir = tmp_path / "assets" / "data"
     data_dir.mkdir(parents=True)

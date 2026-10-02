@@ -966,9 +966,52 @@ _MONTHS = {m: i for i, m in enumerate(
 _ASOF_RE = re.compile(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})(?:,\s*(\d{4}))?')
 
 
-def _session_asof(region_pf, snapshot_date):
-    """The market-session date (YYYY-MM-DD) a snapshot's prices belong to, parsed
-    from an ACTIVE holding's data_source (exited names carry stale dates).
+def _holding_session(h, snapshot_date, market=None):
+    """The market session one holding's quote belongs to, or None.
+
+    The row's own `day_session_date` (written by the US fetcher) wins. Otherwise
+    the date is read off `data_source`, which is the FETCH time: fetchers run on
+    closed days too, so a date the market did not trade is folded back to the
+    last session that did (#2269). `market` None keeps the raw stamp.
+    """
+    own = h.get('day_session_date')
+    if isinstance(own, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', own):
+        return own
+    m = _ASOF_RE.search(h.get('data_source') or '')
+    if not m:
+        return None
+    mon, day = _MONTHS[m.group(1)], int(m.group(2))
+    raw_date = str(snapshot_date)
+    yr = int(m.group(3) or raw_date[:4])
+    if not m.group(3) and len(raw_date) >= 10:
+        anchor = date.fromisoformat(raw_date[:10])
+        candidates = []
+        for candidate_year in (yr - 1, yr, yr + 1):
+            try:
+                candidate = date(candidate_year, mon, day)
+            except ValueError:
+                continue
+            if candidate <= anchor:
+                candidates.append(candidate)
+        if candidates:
+            yr = max(candidates).year
+    try:
+        stamped = date(yr, mon, day)
+    except ValueError:
+        return None
+    if market:
+        from clawock import sessions as _tc
+        try:
+            if _tc.closed_reason(market, stamped) is not None:
+                stamped = _tc.previous_trading_day(market, stamped)
+        except Exception:
+            pass
+    return stamped.isoformat()
+
+
+def _session_asof(region_pf, snapshot_date, market=None):
+    """The market-session date (YYYY-MM-DD) a snapshot's prices belong to, read
+    from an ACTIVE holding (exited names carry stale dates).
 
     Why: US trades during HK night, so one US session (e.g. Jun 8 ET) lands in BOTH
     the HK-6/8 and HK-6/9 snapshots. Keying daily P&L by this session date — not the
@@ -977,24 +1020,9 @@ def _session_asof(region_pf, snapshot_date):
     for h in (region_pf.get('holdings', []) or []):
         if (h.get('shares', 0) or 0) <= 0:
             continue
-        m = _ASOF_RE.search(h.get('data_source') or '')
-        if m:
-            mon, day = _MONTHS[m.group(1)], int(m.group(2))
-            raw_date = str(snapshot_date)
-            yr = int(m.group(3) or raw_date[:4])
-            if not m.group(3) and len(raw_date) >= 10:
-                anchor = date.fromisoformat(raw_date[:10])
-                candidates = []
-                for candidate_year in (yr - 1, yr, yr + 1):
-                    try:
-                        candidate = date(candidate_year, mon, day)
-                    except ValueError:
-                        continue
-                    if candidate <= anchor:
-                        candidates.append(candidate)
-                if candidates:
-                    yr = max(candidates).year
-            return f'{yr:04d}-{mon:02d}-{day:02d}'
+        session = _holding_session(h, snapshot_date, market)
+        if session:
+            return session
     return None
 
 
@@ -1619,7 +1647,7 @@ def load_snapshots():
         # Market-session dates (≠ filename date) so daily P&L can collapse a US
         # session that straddles two HK-dated snapshots instead of double-counting.
         for leg in legs:
-            row[f'{leg.key}_asof'] = _session_asof(books[leg.key], date)
+            row[f'{leg.key}_asof'] = _session_asof(books[leg.key], date, leg.key)
         results.append(row)
     return results
 
@@ -1868,11 +1896,13 @@ def compute_delta(snapshots, legs=None):
         return empty
 
 
-def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk')):
+def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk'), sessions=None):
     """abs(today_change_pct) >= 3.0 holdings across both legs, top 10 by abs.
 
     `leg_keys` labels the two holdings lists. The default is the historical pair
     and exists for direct callers; the projection passes its ledger's legs.
+    `sessions` maps (leg_key, ticker) to the session the move belongs to: the
+    two legs routinely sit on different sessions under one「今日」(#2269).
     """
     try:
         items = []
@@ -1888,6 +1918,7 @@ def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk')):
                         'region': leg_key,
                         'today_change_pct': round(pct, 2),
                         'current_price': h.get('current_price'),
+                        'session': (sessions or {}).get((leg_key, h.get('ticker'))),
                     })
         items.sort(key=lambda x: -abs(x['today_change_pct']))
         return items[:10]
@@ -4118,8 +4149,14 @@ def build_projection(previous_source=None, shadow_previous=None):
     # ── Dashboard v2 NEW fields (additive; never replace existing keys) ─
     brief_ctx_path, brief_ctx = _latest_brief_context()
     out['delta'] = compute_delta(snapshots)
+    _today = hkt_today().isoformat()
     out['today_movers'] = compute_today_movers(
-        us_h, hk_h, leg_keys=(base_leg.key, quote_leg.key))
+        us_h, hk_h, leg_keys=(base_leg.key, quote_leg.key),
+        sessions={
+            (leg.key, h.get('ticker') or h.get('code')): _holding_session(h, _today, leg.key)
+            for leg, pf in ((base_leg, us_pf), (quote_leg, hk_pf))
+            for h in (pf.get('holdings') or [])
+        })
 
     # merge-not-overwrite guard for sidecar-derived cards. A context-less rebuild
     # (fresh checkout: memory/.tmp is gitignored, so brief-context + insights/

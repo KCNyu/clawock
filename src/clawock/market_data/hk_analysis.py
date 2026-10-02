@@ -377,6 +377,13 @@ def signal(holding: Dict) -> str:
 
 # ── portfolio update ──────────────────────────────────────────────────────────
 
+def _hk_prev_close_session(today):
+    """HK session the fetched prior close belongs to at calendar day ``today``."""
+    quote_session = today if trading_calendar.is_trading_day('hk', today) \
+        else trading_calendar.previous_trading_day('hk', today)
+    return trading_calendar.previous_trading_day('hk', quote_session)
+
+
 def update_hk_portfolio(dry_run: bool = False) -> Dict:
     with open(PORTFOLIO_PATH, encoding='utf-8') as f:
         data = json.load(f)
@@ -411,8 +418,11 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     # prev_close_date equalled the session date — an impossible state that also
     # switched off integrity's STALE_PRICE gate for exactly the rows that needed
     # it. Align with the US path (us_quotes.py) and use the HK trading calendar.
-    hk_prev_session = trading_calendar.previous_trading_day(
-        'hk', now_hkt.date()).isoformat()
+    # On a closed day the quote itself is the last completed session's close and
+    # its `pc` the close before that, so fold the closed day back first (the
+    # same two folds as `us_quotes._us_quote_session_date`); one fold alone
+    # stamps the prior close with the quote's own session (#2270).
+    hk_prev_session = _hk_prev_close_session(now_hkt.date()).isoformat()
     updated, missing, range_warns = [], [], []
 
     for h in active:

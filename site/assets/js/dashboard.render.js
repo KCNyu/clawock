@@ -1823,8 +1823,8 @@
     }
     const narr = document.getElementById("sector-narrative");
     if (narr) {
-      if (ctx.narrative) {
-        narr.textContent = ctx.narrative;
+      if (ctx.narrative || ctx.note) {
+        narr.textContent = [ctx.narrative, ctx.note].filter(Boolean).join(" ");
         narr.style.display = "";
       } else {
         narr.style.display = "none";
@@ -1878,12 +1878,14 @@
       const dir = p > 0 ? "up" : p < 0 ? "down" : "";
       const ccy = m.region === "hk" ? "HKD" : "USD";
       const note = m.note ? `<div class="mover-note">${escLLM(m.note)}</div>` : "";
+      // The two legs routinely sit on different sessions; say which one this move is.
+      const sess = m.session ? ` · ${escapeHtml(String(m.session).slice(5))} 场` : "";
       return `
         <div class="mover-card ${dir}${m.note ? ' has-note' : ''}">
           <div class="tk">${escapeHtml(m.ticker || DASH)}</div>
           <div class="nm">${escapeHtml(m.name || "")}</div>
           <div class="pct ${pnlClass(p)}">${fmtPct(p, 2)}</div>
-          <div class="px">${fmtMoney(m.current_price, ccy)}</div>
+          <div class="px">${fmtMoney(m.current_price, ccy)}${sess}</div>
           ${note}
         </div>
       `;

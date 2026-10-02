@@ -27,7 +27,8 @@ def pi():
 def run_check(pi, monkeypatch):
     """Run the real gate against JSON held entirely in memory."""
 
-    def run(data, *, last_session="2026-07-17", previous_cash=None):
+    def run(data, *, last_session="2026-07-17", previous_cash=None, bars=None):
+        bars = bars or {}
         payload = json.dumps(data)
         # `summarize_bar_conflicts` is the one collaborator that still reaches
         # the filesystem: with no explicit log it resolves
@@ -46,6 +47,7 @@ def run_check(pi, monkeypatch):
             "Path",
             lambda _unused: SimpleNamespace(read_text=lambda: payload),
         )
+        monkeypatch.setattr(pi, "_bar_close", lambda _ticker, _day: bars.get((_ticker, _day)))
         monkeypatch.setattr(pi, "_last_session", lambda _market: last_session)
         monkeypatch.setattr(
             pi, "_prev_snapshot_cash", lambda _region, _field: previous_cash
@@ -650,6 +652,20 @@ def test_staleness_accepts_last_session_and_warns_one_session_behind(run_check):
         "WARN",
         "早于上一交易日 2026-07-17",
     )
+
+
+def test_prev_close_stamped_with_the_wrong_session_is_reported(run_check):
+    # #2270: on an HK holiday the prior close was dated to the quote's own session.
+    row = _holding(ticker="00100", current=250.2, previous=241.4)
+    data = _portfolio_data(region="hk_stocks", holdings=[row])
+    wrong = run_check(data, bars={("00100", "2026-07-16"): 250.2})
+    assert [f["ticker"] for f in wrong["findings"]
+            if f["code"] == "PREV_CLOSE_SESSION"] == ["00100"]
+    assert wrong["ok"]
+    right = run_check(data, bars={("00100", "2026-07-16"): 241.4})
+    assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in right["findings"])
+    unknown = run_check(data)
+    assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in unknown["findings"])
 
 
 def test_stale_price_gate_fires_only_when_prev_close_date_is_prior_session(run_check):

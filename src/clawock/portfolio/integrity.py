@@ -57,6 +57,8 @@ data_source 里的 provider 名，而在这之前没有任何消费者读过那�
 2026-08-19..28 美股整本账天天走 Finnhub（Nasdaq 的 /info 端点不带前收，
 _quote_is_complete 因此弃用它——链在正常工作），逐日报警只会喂出一条没人看的
 黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
+  PREV_CLOSE_SESSION prev_close == memory/bars 在 prev_close_date 那天的收盘  WARN
+                 → 休市日抓价把前收日盖成报价自己那一场（#2270）
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
@@ -336,6 +338,18 @@ def _kind_of(row) -> str:
         except Exception:
             pass
     return str(row.get('kind') or 'unknown')
+
+
+def _bar_close(ticker, day):
+    """Canonical-store close for ``ticker`` on ``day``; None when not on file."""
+    path = (workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars'
+            / f'{ticker}.json')
+    try:
+        close = json.loads(path.read_text())['bars'][day]['close']
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return float(close) if isinstance(close, (int, float)) \
+        and not isinstance(close, bool) else None
 
 
 def summarize_bar_conflicts(log_path=None, *, now=None,
@@ -695,6 +709,18 @@ def check(portfolio_path=PORTFOLIO):
                     f'（{h["prev_close_date"]}）四位小数完全相等；报价源大概率停在昨收，'
                     f'当日涨跌被算成 0（today_change_pct={h.get("today_change_pct")}）',
                     region, t)
+
+            # PREV_CLOSE_SESSION：前收日那天的 canonical bar 收盘 ≠ 记的前收
+            # → 日期戳到了别的 session（#2270：休市日把前收盖成报价自己那一场）。
+            pcd = h.get('prev_close_date')
+            if prev is not None and sh and isinstance(pcd, str):
+                bar_close = _bar_close(t, pcd)
+                if bar_close is not None and abs(prev - bar_close) > max(
+                        0.005, abs(bar_close) * 0.0005):
+                    add('PREV_CLOSE_SESSION', 'WARN',
+                        f'{t} prev_close={prev:.4f} 标为 {pcd} 的收盘，但 canonical bar '
+                        f'当日收盘是 {bar_close:.4f}；前收日戳错了 session，当日涨跌的基准日不可信',
+                        region, t)
 
             # 数据源自己声明的质量降级，别让它只留在 stdout 里
             if h.get('stale_price_repair'):
