@@ -107,6 +107,25 @@ def test_a_later_session_joining_the_ledger_is_growth_not_a_mismatch(ledger):
     assert statuses["ledger.digest"] == "moved"
 
 
+def test_a_rewritten_row_outside_the_window_is_not_growth(ledger):
+    """#2346: same row count, different digest. It was reported as `moved` with
+    the detail "later sessions appending is expected", and passed."""
+    block = metrics_for(ledger)["provenance"]
+    block = {**block, "window": {**block["window"], "cutoff": "2099-01-01"},
+             "ledger": {**block["ledger"], "slice_rows": 0,
+                        "slice_digest": prov.rows_digest([])}}
+    assert prov.verify(block, ledger)["ok"], "baseline: every row is outside the window"
+
+    regraded = copy.deepcopy(ledger)
+    ev = regraded[0]["evaluation"]
+    ev["outcome"] = "loss" if ev.get("outcome") == "win" else "win"
+    result = prov.verify(block, regraded)
+
+    digest = next(c for c in result["checks"] if c["name"] == "ledger.digest")
+    assert digest["status"] == "fail" and not result["ok"]
+    assert "existing rows were rewritten" in digest["detail"]
+
+
 def test_verify_fails_when_a_row_inside_the_published_window_is_regraded(ledger):
     block = metrics_for(ledger)["provenance"]
 
@@ -117,7 +136,8 @@ def test_verify_fails_when_a_row_inside_the_published_window_is_regraded(ledger)
 
     assert not result["ok"]
     failed = [c for c in result["checks"] if c["status"] == "fail"]
-    assert [c["name"] for c in failed] == ["ledger.slice_digest"]
+    # The whole-ledger digest fails with it: no row was added, one was rewritten.
+    assert [c["name"] for c in failed] == ["ledger.slice_digest", "ledger.digest"]
 
 
 def test_recorded_cutoff_makes_the_window_reproducible_off_the_clock(ledger):
