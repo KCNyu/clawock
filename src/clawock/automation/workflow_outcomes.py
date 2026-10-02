@@ -349,6 +349,10 @@ def _derive_final(record):
         degraded = (
             llm == "failed"
             or (llm == "warning" and not _advisory_only(stages["llm"]))
+            # A delivered slot whose postflight FAILED (e.g. the dashboard
+            # data-plane push did not land) is degraded, not a clean success:
+            # only `warning` used to be read here, so it stayed green (#2283).
+            or postflight == "failed"
             or (
                 postflight == "warning"
                 and not (
