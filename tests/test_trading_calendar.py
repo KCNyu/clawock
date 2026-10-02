@@ -254,3 +254,16 @@ def test_intraday_slots_on_an_hk_half_day_close_in_the_afternoon_only():
     assert sessions.closed_reason("hk", normal.date(),
                                   session=sessions.slot_session("hk", normal)) is None
     assert sessions.slot_session("us", at("15:33")) == "full"
+
+
+def test_the_brief_asks_both_markets_about_its_own_day():
+    # #2317: at 08:03 HKT New York is still on the previous calendar day.
+    from datetime import date
+
+    # HK holiday Monday (2026-10-19 重陽), US trades that night: the brief runs.
+    hk, us = trading_calendar.brief_closed_reasons(date(2026, 10, 19))
+    assert hk and us is None
+    # 2026-12-25: neither trades; the brief is skipped.
+    assert all(trading_calendar.brief_closed_reasons(date(2026, 12, 25)))
+    # An ordinary Tuesday: both open.
+    assert trading_calendar.brief_closed_reasons(date(2026, 10, 6)) == (None, None)

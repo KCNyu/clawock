@@ -335,3 +335,17 @@ def test_heatmap_and_drawdown_small_text_use_readable_text_steps():
     assert _rule_value(css, ".dm-cell .dm-m", "color") == "var(--text)"
     assert _rule_value(css, ".ext-region .ext-dd .k", "color") == "var(--text)"
     assert _rule_value(css, ".ext-region .ext-dd .span", "color") == "var(--text)"
+
+
+def test_the_installed_app_opens_on_a_colour_the_site_actually_uses():
+    """#2312: the manifest carried a fifth, orphan near-white. A manifest holds
+    one value, so it takes the light theme's `--bg`; the dark chrome comes from
+    the page's own `theme-color` metas."""
+    import json
+
+    site = CSS.parents[2]
+    manifest = json.loads((site / "manifest.webmanifest").read_text(encoding="utf-8"))
+    backgrounds = {value.upper() for value in re.findall(
+        r"--bg:\s*(#[0-9A-Fa-f]{6})", CSS.read_text(encoding="utf-8"))}
+    assert manifest["background_color"].upper() in backgrounds
+    assert manifest["theme_color"].upper() in backgrounds

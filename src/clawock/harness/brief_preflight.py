@@ -1769,11 +1769,9 @@ def main(argv=None):
     workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
 
     # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
-    # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
-    # US session is the just-closed NY day, which trading_calendar reads correctly
-    # (NY-local date is still the prior calendar day at that hour).
-    hk_closed = trading_calendar.closed_reason('hk')
-    us_closed = trading_calendar.closed_reason('us')
+    # HK and US are closed (still runs if either trades). Both are asked about
+    # the brief's own HKT day — see `sessions.brief_closed_reasons`.
+    hk_closed, us_closed = trading_calendar.brief_closed_reasons()
     if hk_closed and us_closed:
         workflow_outcomes.record_stage(
             job_name, 'preflight', 'skipped', slot=slot,

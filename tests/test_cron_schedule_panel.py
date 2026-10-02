@@ -294,3 +294,17 @@ def test_the_page_names_every_state_the_projection_emits():
         table = re.search(r'const DH_SLOT = \{(.*?)\};', js, re.S).group(1)
         keys = set(re.findall(r'^\s*(\w+):', table, re.M))
         assert PANEL_STATES <= keys, (bundle, sorted(PANEL_STATES - keys))
+
+
+def test_unconfirmed_delivery_has_warning_colour_and_is_counted_in_both_legends():
+    from pathlib import Path
+    import re
+    root = Path(__file__).resolve().parents[1]
+    css = (root / 'site/assets/css/dashboard.css').read_text()
+    rules = re.findall(r'([^{}]+)\{([^{}]+)\}', css)
+    for selector in ('.dh-slots i[data-s="unconfirmed"]', '.dh-key i[data-s="unconfirmed"]'):
+        assert any(selector in selectors and 'background: var(--warning)' in body
+                   for selectors, body in rules)
+    for bundle in ('dashboard.hero.js', 'dashboard.render.js'):
+        js = (root / 'site/assets/js' / bundle).read_text()
+        assert '["unconfirmed", n("unconfirmed"), "仅存档·投递未确认"]' in js

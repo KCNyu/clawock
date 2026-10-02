@@ -1229,7 +1229,7 @@ def main(argv=None):
 
     # Holiday/weekend gate: skip send/commit only when BOTH markets are closed
     # (mirrors brief_preflight; brief still ships if either market trades).
-    if trading_calendar.closed_reason('hk') and trading_calendar.closed_reason('us'):
+    if all(trading_calendar.brief_closed_reasons()):
         workflow_outcomes.record_stage(
             job_name, 'preflight', 'skipped', slot=slot, dry_run=args.dry_run,
             reason='both markets closed',

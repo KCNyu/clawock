@@ -122,7 +122,7 @@ def test_brief_card_leak_reaches_delivered_message_as_information(
     monkeypatch.setattr(pf, 'WS', tmp_path)
     monkeypatch.setattr(pf.trading_calendar, 'hkt_today',
                         lambda: date.fromisoformat(today))
-    monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda _market: None)
+    monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda _market, *_a, **_k: None)
     monkeypatch.setattr(pf.workflow_outcomes, 'slot_for_job', lambda _job: 'slot')
     monkeypatch.setattr(pf.workflow_outcomes, 'record_stage', lambda *_a, **_k: None)
     monkeypatch.setattr(pf.workflow_outcomes, 'record_primary_delivery',

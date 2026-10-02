@@ -54,7 +54,7 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
     # test writes into the developer's own workspace (#816).
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setattr(
-        postflight.trading_calendar, 'closed_reason', lambda _market: None
+        postflight.trading_calendar, 'closed_reason', lambda _market, *_a, **_k: None
     )
     monkeypatch.setattr(
         postflight.workflow_outcomes, 'slot_for_job', lambda _job: 'slot'

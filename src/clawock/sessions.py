@@ -332,6 +332,20 @@ def closed_reason(market: str, d: date | None = None,
     return None
 
 
+def brief_closed_reasons(day: date | None = None) -> tuple[str | None, str | None]:
+    """(HK, US) closed reasons for the pre-open brief of HKT day ``day``.
+
+    Both markets are asked about the SAME calendar day — the brief's own. Left
+    to default, the US half answers for New York's "today", which at 08:03 HKT
+    is still the previous calendar day: an HK-holiday Monday read the US as
+    "weekend" and skipped a brief the US session that night needed, while
+    2026-12-25 read the US as open (it was still the 24th there) and shipped a
+    brief for a day neither market traded (#2317).
+    """
+    day = day or hkt_today()
+    return closed_reason("hk", day), closed_reason("us", day)
+
+
 def slot_session(market: str, at: datetime | None = None) -> str:
     """The calendar session a clock-driven slot belongs to (HK afternoon = 12:00+).
 
