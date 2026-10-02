@@ -1102,6 +1102,13 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   const fillMid = idxOf(/_bp-win-fill\[data-balance-state=mid\]/);
   assert.ok(fillStale > -1 && fillStale > fillMid,
     "bar stale yellow must keep out-ranking usage tiers in source order");
+  // The panel's reading cell carries both attributes too (#2338): its stale
+  // rule sat between the tiers, so a stale reading at >=80% used painted red
+  // in the row while the pill above it painted the same reading yellow.
+  const valueStale = idxOf(/_tq-value\[data-balance-state=stale\]/);
+  const valueLow = idxOf(/_tq-value\[data-used-level=low\]/);
+  assert.ok(valueStale > -1 && valueLow > -1 && valueStale > valueLow,
+    "stale yellow must out-rank the reading cell's usage tiers in source order");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
   // The host publishes a font stack but no font-size tokens. The plugin's
   // seven whole-pixel roles are shared by the board and both sidebar chips;
