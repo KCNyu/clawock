@@ -240,6 +240,26 @@ def test_backstop_retries_wechat_once_and_records_it(tmp_path, isolated_watchdog
     assert event['body_source'] == 'unspecified'
 
 
+def test_a_second_checkout_cannot_back_the_same_slot_up_again(
+        tmp_path, monkeypatch, isolated_watchdog_log):
+    # #2291: the O_EXCL flag lived under each checkout, so two trees sent twice.
+    monkeypatch.setenv('CLAWOCK_DELIVERY_STATE_DIR', str(tmp_path / 'host-state'))
+    calls, senders = _senders(wechat_ok=True)
+    results = []
+    for tree in ('treeA', 'treeB'):
+        tmp = tmp_path / tree
+        tmp.mkdir()
+        marker_path = _write(tmp / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
+        results.append(common.wechat_backstop(
+            'brief', 'brief', 'card', json.loads(marker_path.read_text()), marker_path,
+            tmp / 'watchdog-brief-wechat-2026-09-17.done', False, **senders))
+
+    assert results == [True, None]
+    assert calls['wechat'] == ['card']
+    assert any('another checkout' in (e.get('reason') or '')
+               for e in _events(isolated_watchdog_log))
+
+
 def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log):
     marker_path = _write(tmp_path / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
     calls, senders = _senders(wechat_ok=False)

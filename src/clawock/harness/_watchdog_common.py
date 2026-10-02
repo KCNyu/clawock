@@ -871,6 +871,49 @@ def already_delivered(marker_path, within_ms=None, slot=None):
     return delivered_channels(marker_path, within_ms, slot)[0]
 
 
+HOST_FLAG_KEEP_DAYS = 7
+
+
+def _host_delivery_state_dir():
+    """Host-wide (not per-checkout) home of the backstop dedupe flags, or None.
+
+    `CLAWOCK_DELIVERY_STATE_DIR` overrides it; set empty it turns the host
+    flag off (the test suite does, so tests never write under $HOME).
+    """
+    configured = os.environ.get('CLAWOCK_DELIVERY_STATE_DIR')
+    if configured is not None:
+        return Path(configured) if configured.strip() else None
+    return Path.home() / '.local' / 'state' / 'clawock' / 'delivery'
+
+
+def _claim_host_flag(name):
+    """True when this process is the first on this HOST to back this slot up.
+
+    The per-checkout flag is keyed by the tree it lives in, so a second checkout
+    able to run a watchdog re-sent the same slot (#2291). The flag name already
+    carries tag and slot; taking it once more outside any checkout makes the
+    promise "(tag, slot) at most once" hold across trees. An unusable host
+    directory does not block the send: the per-checkout flag is already held.
+    """
+    state_dir = _host_delivery_state_dir()
+    if state_dir is None:
+        return True
+    try:
+        state_dir.mkdir(parents=True, exist_ok=True)
+        cutoff = time.time() - HOST_FLAG_KEEP_DAYS * 86400
+        for old in state_dir.glob('*.done'):
+            if old.stat().st_mtime < cutoff:
+                old.unlink(missing_ok=True)
+        fd = os.open(state_dir / name, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(fd, datetime.now(HKT).isoformat().encode())
+        os.close(fd)
+    except FileExistsError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
 def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
                     market=None, wechat=None, telegram=None, resolve=None,
                     body_source=None):
@@ -889,7 +932,8 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
     neither retried nor reported anywhere kcn reads.
 
     At most once per slot: `flag_path` is created with O_EXCL BEFORE the send, so a
-    crash mid-send or a second watchdog pass cannot double it. On success the
+    crash mid-send or a second watchdog pass cannot double it; the same name is
+    then claimed host-wide (`_claim_host_flag`) so a second checkout cannot either. On success the
     marker gains `wechat_backstop.ok=true` (its `sent_ok` stays the postflight's
     own result, which is what the delivery health counts); a postflight re-run
     then reads WeChat as delivered. On failure kcn gets a Telegram alert naming
@@ -931,6 +975,11 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
             # Without the flag the attempt cannot be kept to one; do not send.
             log({'tag': tag, 'action': 'wechat-backstop-skip',
                  'reason': f'dedupe flag unwritable: {e}'})
+            return None
+        if not _claim_host_flag(flag_path.name):
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'WeChat backstop already attempted this slot from '
+                           'another checkout on this host (host dedupe flag)'})
             return None
     try:
         channel, to, account = resolve(market) if market else resolve()
