@@ -1663,7 +1663,12 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   assert.equal(parsed.isAvailable, true);
   const degraded = parseBalancePayload({ nope: true }, "2026-08-23T10:00:00.000Z");
   assert.equal(degraded.totalBalance, "");
-  assert.equal(degraded.isAvailable, false);
+  // #2263: a missing flag is not the vendor saying "unusable" — only an explicit false is.
+  assert.equal(degraded.isAvailable, true);
+  assert.equal(parseBalancePayload({ is_available: false }, "2026-08-23T10:00:00.000Z").isAvailable, false);
+  assert.equal(parseBalancePayload({
+    balance_infos: [{ currency: "CNY", total_balance: "110.00" }],
+  }, "2026-08-23T10:00:00.000Z").isAvailable, true);
 
   // Service: key from the credentials seam, TTL cache, forced refresh,
   // in-flight join, stale retention and the host-side low reading.
@@ -1940,6 +1945,16 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
       { credentialsPath: "/nonexistent/creds.json", usageUrl: "https://api.anthropic.com/api/oauth/usage" },
     ).get(false);
     assert.equal(none.status, "no-key");
+
+    // #2266: present but unreadable is a failed read, not "not configured".
+    const brokenPath = pathMod.join(tmp, "broken.json");
+    fsMod.writeFileSync(brokenPath, "{ not json");
+    const unreadable = await createClaudeService(
+      { credentials: { resolve: async () => undefined } },
+      { credentialsPath: brokenPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
+    ).get(false);
+    assert.equal(unreadable.status, "failed");
+    assert.match(unreadable.message, /读不出来/);
   } finally {
     globalThis.fetch = originalFetch;
     fsMod.rmSync(tmp, { recursive: true, force: true });
@@ -2835,6 +2850,8 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(phase(["2026-09-23 02:45:42 waiting: the opencode run slot is busy"], "active"), "yielding");
   assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "active", "patrol-b", true), "running");
   assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "inactive", "patrol-b", true), "stopped");
+  // #2265: an unanswered systemctl probe is unknown, not a stopped patrol.
+  assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "", "patrol-b", true), "unknown");
 
   assert.equal(tq.unquoteShell("''"), "");
   assert.equal(tq.unquoteShell("$'a\\nb'"), "a\nb");

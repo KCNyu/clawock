@@ -135,7 +135,8 @@ export interface BalanceInfoEntry {
  */
 export declare function pickCnyBalanceInfo(infos: readonly BalanceInfoEntry[] | undefined): BalanceInfoEntry | undefined;
 /**
- * Tolerant parse: a missing field degrades to '' / false rather than throwing,
+ * Tolerant parse: a missing field degrades to '' (the availability flag to
+ * "not denied") rather than throwing,
  * so a shape drift upstream reads as an empty box, never as a crashed tab.
  */
 export declare function parseBalancePayload(body: unknown, asOf: string): BalanceSnapshot;

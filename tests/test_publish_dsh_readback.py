@@ -63,7 +63,10 @@ case "$1" in
     version="${spec#*@}"
     mkdir -p "$dest/package/lib"
     cp "$FAKE_PKG/package.json" "$dest/package/package.json"
-    echo "// registry copy" > "$dest/package/lib/typert.remote-client.js"
+    cp "$FAKE_PKG/lib/typert.remote-client.js" "$dest/package/lib/typert.remote-client.js"
+    if [ -n "${FAKE_OTHER_BUILD:-}" ]; then
+      echo "// another build" >> "$dest/package/lib/typert.remote-client.js"
+    fi
     tar -czf "$dest/clawock-dsh-$version.tgz" -C "$dest" package
     rm -rf "$dest/package"
     echo "clawock-dsh-$version.tgz"
@@ -75,7 +78,8 @@ exit 2
 
 
 def run(tmp_path: Path, *args: str, visible_after: int, already_published: bool = False,
-        timeout_s: int = 60) -> tuple[subprocess.CompletedProcess, list[str]]:
+        timeout_s: int = 60, other_build: bool = False,
+        ) -> tuple[subprocess.CompletedProcess, list[str]]:
     bin_dir = tmp_path / "bin"
     state = tmp_path / "state"
     bin_dir.mkdir()
@@ -96,6 +100,8 @@ def run(tmp_path: Path, *args: str, visible_after: int, already_published: bool 
         "DSH_READBACK_INTERVAL_S": "0",
     }
     env.pop("GITHUB_ACTIONS", None)
+    if other_build:
+        env["FAKE_OTHER_BUILD"] = "1"
     result = subprocess.run(["bash", str(SCRIPT), *args], env=env, text=True,
                             capture_output=True, timeout=120)
     calls = (state / "calls").read_text().splitlines()
@@ -134,6 +140,16 @@ def test_a_rerun_does_not_publish_over_a_version_the_registry_holds(tmp_path):
     assert published(calls) == 0
     assert "already on the registry — skipping npm publish" in result.stdout
     assert "ok: 2 files, version" in result.stdout
+
+
+def test_every_name_present_but_another_build_behind_one_is_red(tmp_path):
+    # #2304: the readback compared file names only.
+    result, _ = run(tmp_path, "--verify-only", visible_after=0, already_published=True,
+                    other_build=True)
+
+    assert result.returncode != 0
+    assert "published tarball has a different lib/typert.remote-client.js" in (
+        result.stdout + result.stderr)
 
 
 def test_no_verify_publishes_and_leaves_the_readback_to_its_own_job(tmp_path):

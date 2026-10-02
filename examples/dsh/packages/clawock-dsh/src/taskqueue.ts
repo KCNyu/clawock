@@ -90,24 +90,40 @@ function runOpsProcess(opsPath: string, args: string[], timeoutMs: number): Prom
   })
 }
 
-function run(command: string, args: string[]): Promise<string> {
+type RunResult = { out: string; failed: string | null }
+
+/**
+ * A command's stdout, and why it could not be asked when it could not.
+ *
+ * `failed` only when the command errored AND said nothing: `systemctl
+ * is-active` exits 3 for an inactive unit and still prints the answer. A
+ * swallowed error used to read as an empty answer — no live tasks, patrol
+ * stopped — on a payload that still said the queue was available (#2265).
+ */
+function run(command: string, args: string[]): Promise<RunResult> {
   return new Promise((resolve) => {
-    execFile(command, args, { timeout: COMMAND_TIMEOUT_MS }, (_error, stdout) => { resolve(String(stdout ?? '')) })
+    execFile(command, args, { timeout: COMMAND_TIMEOUT_MS }, (error, stdout) => {
+      const out = String(stdout ?? '')
+      resolve({ out, failed: error !== null && out.trim() === '' ? (error.message || 'command failed') : null })
+    })
   })
 }
 
 export const systemDeps: TaskQueueDeps = {
   async activeTaskIds() {
-    const out = await run('systemctl', ['list-units', 'agent-dispatch-*', '--state=active', '--no-legend', '--plain'])
+    const { out, failed } = await run('systemctl', ['list-units', 'agent-dispatch-*', '--state=active', '--no-legend', '--plain'])
+    // Throwing reaches the service's stale channel: the panel keeps the last
+    // read and says the read failed, instead of showing an empty queue.
+    if (failed !== null) throw new Error('systemctl list-units: ' + failed)
     return out.split('\n').map((line) => line.trim().split(/\s+/)[0] ?? '')
       .filter((unit) => unit.startsWith('agent-dispatch-') && unit.endsWith('.service'))
       .map((unit) => unit.slice('agent-dispatch-'.length, -'.service'.length))
   },
   async patrolService() {
-    return (await run('systemctl', ['is-active', PATROL_UNIT])).trim()
+    return (await run('systemctl', ['is-active', PATROL_UNIT])).out.trim()
   },
   async patrolLog() {
-    const out = await run('journalctl', ['-u', PATROL_UNIT, '-n', '12', '-o', 'cat', '--no-pager'])
+    const { out } = await run('journalctl', ['-u', PATROL_UNIT, '-n', '12', '-o', 'cat', '--no-pager'])
     return out.split('\n').filter((line) => line.trim() !== '')
   },
   runOps: runOpsProcess,
@@ -328,6 +344,9 @@ export function patrolPhase(service: string, round: string, roundAlive: boolean,
   const last = lines[lines.length - 1]
   const detail = last?.[2] ?? ''
   const base = { service: service || 'unknown', round, detail, untilMs: null as number | null }
+  // No answer is not an answer of "stopped": only what systemctl actually said
+  // (inactive / failed / …) is. An unanswered probe stays unknown (#2265).
+  if (service === '') return { ...base, phase: 'unknown' }
   if (service !== 'active') return { ...base, phase: 'stopped' }
   if (round !== '' && roundAlive && !/^preempting /.test(detail)) return { ...base, phase: 'running' }
   if (last === undefined) return { ...base, phase: 'unknown' }

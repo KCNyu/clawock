@@ -93,14 +93,15 @@ function pickCnyBalanceInfo(infos) {
 	return infos.find((entry) => (entry.currency ?? "").toUpperCase() === "CNY") ?? infos[0];
 }
 /**
-* Tolerant parse: a missing field degrades to '' / false rather than throwing,
+* Tolerant parse: a missing field degrades to '' (the availability flag to
+* "not denied") rather than throwing,
 * so a shape drift upstream reads as an empty box, never as a crashed tab.
 */
 function parseBalancePayload(body, asOf) {
 	const raw = typeof body === "object" && body !== null ? body : {};
 	const entry = pickCnyBalanceInfo(raw.balance_infos);
 	return {
-		isAvailable: raw.is_available === true,
+		isAvailable: raw.is_available !== false,
 		unit: "money",
 		currency: typeof entry?.currency === "string" ? entry.currency : "",
 		totalBalance: typeof entry?.total_balance === "string" ? entry.total_balance : "",
@@ -363,7 +364,14 @@ function createQuotaService(deps, spec) {
 		}
 	};
 	const exec = async (force) => {
-		const apiKey = await spec.resolveApiKey(deps);
+		let apiKey;
+		try {
+			apiKey = await spec.resolveApiKey(deps);
+		} catch (cause) {
+			const message = cause instanceof Error ? cause.message : String(cause);
+			if (snapshot !== null) lastError = message;
+			return answer(snapshot !== null ? "stale" : "failed", message);
+		}
 		if (apiKey === void 0) return {
 			configured: false,
 			snapshot: null,
@@ -574,7 +582,15 @@ function createClaudeService(deps, config = {}) {
 	const usageUrl = config.usageUrl ?? "https://api.anthropic.com/api/oauth/usage";
 	const lowPct = numberOr(config.lowPct, 20);
 	return createQuotaService(deps, {
-		resolveApiKey: async () => readClaudeCredentials(credentialsPath)?.creds.accessToken,
+		resolveApiKey: async () => {
+			if (!existsSync(credentialsPath)) return void 0;
+			try {
+				JSON.parse(readFileSync(credentialsPath, "utf8"));
+			} catch (cause) {
+				throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):` + (cause instanceof Error ? cause.message : String(cause)));
+			}
+			return readClaudeCredentials(credentialsPath)?.creds.accessToken;
+		},
 		noKeyMessage: "未找到 Claude 登录(~/.claude/.credentials.json)",
 		threshold: lowPct,
 		refreshMs: DEFAULT_BALANCE_REFRESH_MS,
