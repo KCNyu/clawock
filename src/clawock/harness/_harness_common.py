@@ -480,10 +480,14 @@ def _publish_generation(ws):
             # before the second started and the push retry ladder could never
             # run. Six intraday slots recorded `publish_failed` that day.
             #
-            # No outer deadline is being violated by the larger number: the cron
-            # payloads say the postflight is never wrapped in `timeout` and never
-            # killed (#765), and this runs AFTER delivery — a slow publish delays
-            # the site, never the report.
+            # The postflight is never wrapped in a shell `timeout` (#765), but
+            # it is not unbounded: the cron turn that runs it has the contract's
+            # `timeout_seconds` (config/cron-schedules.json), and this chain's
+            # worst case is longer than that turn (#2318). The margin is on the
+            # observed side only — real turns finish well inside it — so a
+            # publish that does run this long can be cut off by the turn. It
+            # runs AFTER delivery: what is lost then is this pass's site
+            # publish, which the scheduled publisher repeats.
             timeout=publish_store.PUBLISH_BUDGET_SECONDS, cwd=str(ws),
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
@@ -534,11 +538,12 @@ def dashboard_publication_state(ws=None):
 # not one is a refusal by the hook. The commits then sit unpushed until some
 # later push happens to win on its first attempt.
 #
-# There is no outer timeout to respect: the cron payloads say explicitly that
-# the postflight is never wrapped in `timeout` and never killed (#765), and the
-# shell publishers (gold_dca_refresh.sh, commit_dreaming.sh) exec safe_push.sh
-# with no cap at all. This one caller was the only place the script was cut off
-# mid-run.
+# No shell `timeout` wraps the postflight (#765), and the shell publishers
+# (gold_dca_refresh.sh, commit_dreaming.sh) exec safe_push.sh with no cap at
+# all; this caller was the only place the script itself was cut off mid-run.
+# The cron turn's own `timeout_seconds` still bounds a postflight from outside
+# and is shorter than the worst case of rebuild + push (#2318) — see the note
+# in `rebuild_dashboard`.
 # 2026-09-07: the hook's own cost is now ~9s — check_model_chain_health was
 # reading the cron history one `openclaw` process per job and
 # check_scripts_compile was spawning py_compile once per file. The ceiling below
