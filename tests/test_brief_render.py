@@ -170,6 +170,25 @@ def test_a_missing_narrative_field_reads_as_a_hole_not_as_None():
     assert render.MISSING in macro
 
 
+def test_a_non_string_model_field_is_printed_not_raised():
+    # #2300: one judgment field written as a number cost the whole day's page.
+    assert render.text(5) == "5"
+    assert render.text(None) == render.MISSING
+    judgment = _judgment(narrative={"macro_read": 5})
+    body = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
+    assert "### 大盘速读" in body
+
+
+def test_pipeline_diagnostics_are_not_published_verbatim_under_待补():
+    # #2260: context.issues named files and field paths on the public page.
+    context = {"issues": ["core.json 的 quant.left_side 解析失败", "07226 日线缺 3 根"],
+               "research_surface": {"errors": ["peer_scan stage timeout"]}}
+    section = render.data_holes_section(context, {})
+    assert "core.json" not in section and "peer_scan" not in section
+    assert "07226 日线缺 3 根" in section
+    assert "内部诊断" in section
+
+
 def test_an_unknown_risk_voice_still_renders_three_named_voices():
     judgment = _judgment(narrative={"risk_voice_first": None})
     body = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
