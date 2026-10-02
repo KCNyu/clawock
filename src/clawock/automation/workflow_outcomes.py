@@ -24,6 +24,7 @@ import fcntl
 import json
 import os
 import sys
+import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -177,65 +178,111 @@ DEGRADATIONS_KEY = "degradations"
 MAX_DEGRADATIONS = 20
 
 
+def _fold_degradations(rows):
+    """One row per (kind, group): counts summed, earliest `first_at`, and the
+    detail of the latest occurrence, at the position of that occurrence.
+
+    Also what heals a ledger written under the older key (the detail's full
+    text): its count-1 fragments of one class collapse the next time anything
+    is noted (#2344).
+    """
+    folded = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        key = (row.get("kind"), row.get("group"))
+        seen = folded.pop(key, None)
+        if seen is None:
+            folded[key] = row
+            continue
+        newer = max(seen, row, key=lambda item: str(item.get("last_at") or ""))
+        firsts = [item["first_at"] for item in (seen, row) if item.get("first_at")]
+        merged = dict(newer)
+        merged["count"] = int(seen.get("count") or 0) + int(row.get("count") or 0)
+        if firsts:
+            merged["first_at"] = min(firsts)
+        folded[key] = merged
+    return list(folded.values())
+
+
+def _public(value):
+    """`value` as it may be published: host paths out of every string in it."""
+    if isinstance(value, str):
+        return without_host_paths(value)
+    if isinstance(value, dict):
+        return {key: _public(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_public(item) for item in value]
+    return value
+
+
 def note_degradation(ledger, kind, detail, *, at=None, group=None):
     """Record, in the ledger, that this ledger could not be trusted somewhere.
 
     Mutates and returns `ledger` so a caller that is already holding it under
     the lock writes the note in the same atomic write as its own change; a
-    caller with no ledger to hand passes None and gets a standalone record.
+    caller with no ledger to hand passes None and gets a standalone record,
+    read and written under the same lock as every other writer (#2343).
 
-    Rows aggregate on (kind, group), and `group` defaults to `detail`. A caller
-    whose detail carries this occurrence's ids passes a stable `group`, or every
-    occurrence writes a new count-1 row and the class floods the 20-row ring;
-    the row keeps the latest detail for diagnosis (#2172).
+    Rows aggregate on (kind, group): one row per class, carrying the count, the
+    first and last time, and the latest detail for diagnosis. `group` splits a
+    kind into classes a reader should see apart. The detail is not part of the
+    key: it carries the occurrence's job, slot, ids and exception text, so
+    keying on it opened a count-1 row per occurrence and one class filled the
+    20-row ring (#2172, #2344).
     """
     # This row is published: keep the host's absolute paths out of it (#2281).
     detail = without_host_paths(detail)
     if group is not None:
-        group = without_host_paths(group)
-    standalone = ledger is None
-    if standalone:
-        # Read the file, not `load_ledger` (#1214). The most important caller is
-        # the one whose failure *was* `load_ledger`, and routing the note back
-        # through it would raise from inside the handler that exists to keep
-        # this non-fatal. `_read_path` already swallows a torn or missing file.
-        ledger = _read_path(local_path()) or _empty()
-    rows = ledger.get(DEGRADATIONS_KEY)
-    if not isinstance(rows, list):
-        rows = []
+        group = str(without_host_paths(group))
     now = _now(at).isoformat()
-    key = str(detail) if group is None else str(group)
-    for row in rows:
-        if (row.get("kind") == kind
-                and row.get("group", row.get("detail")) == key):
-            row["count"] = int(row.get("count") or 0) + 1
-            row["last_at"] = now
-            row["detail"] = str(detail)
-            # Recurring moves the row to the newest end, or the ring below
-            # evicts a chain that fails every day by its first-seen position
-            # while one-off rows from weeks ago survive (#2182).
-            rows.remove(row)
+
+    def note(target):
+        rows = target.get(DEGRADATIONS_KEY)
+        rows = _fold_degradations(rows if isinstance(rows, list) else [])
+        for row in rows:
+            if row.get("kind") == kind and row.get("group") == group:
+                row["count"] = int(row.get("count") or 0) + 1
+                row["last_at"] = now
+                row["detail"] = str(detail)
+                # Recurring moves the row to the newest end, or the ring below
+                # evicts a chain that fails every day by its first-seen position
+                # while one-off rows from weeks ago survive (#2182).
+                rows.remove(row)
+                rows.append(row)
+                break
+        else:
+            row = {"kind": kind, "detail": str(detail), "count": 1,
+                   "first_at": now, "last_at": now}
+            if group is not None:
+                row["group"] = group
             rows.append(row)
-            break
-    else:
-        row = {"kind": kind, "detail": str(detail), "count": 1,
-               "first_at": now, "last_at": now}
-        if group is not None:
-            row["group"] = key
-        rows.append(row)
-    # Newest last, oldest evicted: a chain that is failing now matters more than
-    # one that failed three days ago and has not recurred.
-    ledger[DEGRADATIONS_KEY] = rows[-MAX_DEGRADATIONS:]
+        # Newest last, oldest evicted: a chain that is failing now matters more
+        # than one that failed three days ago and has not recurred.
+        target[DEGRADATIONS_KEY] = rows[-MAX_DEGRADATIONS:]
+        return target
+
     print(f"warn: {kind}: {detail}", file=sys.stderr)
-    if standalone:
-        try:
+    if ledger is not None:
+        return note(ledger)
+    try:
+        with _locked():
+            # Read the file, not `load_ledger` (#1214). The most important
+            # caller is the one whose failure *was* `load_ledger`, and routing
+            # the note back through it would raise from inside the handler that
+            # exists to keep this non-fatal. `_read_path` already swallows a
+            # torn or missing file. Inside the lock: read outside it, this
+            # write put back a ledger from before a concurrent `record_stage`
+            # and the other writer's put back one without this row (#2343).
+            ledger = note(_read_path(local_path()) or _empty())
             _atomic_write(local_path(), ledger)
-        except OSError as exc:
-            # The one place with nowhere left to write. Say so on stderr and
-            # carry on: this is the observer failing to observe its own failure,
-            # not a reason to take the desk down.
-            print(f"warn: could not record degradation {kind}: {exc}",
-                  file=sys.stderr)
+    except OSError as exc:
+        # The one place with nowhere left to write. Say so on stderr and carry
+        # on: this is the observer failing to observe its own failure, not a
+        # reason to take the desk down.
+        print(f"warn: could not record degradation {kind}: {exc}",
+              file=sys.stderr)
+        ledger = ledger if ledger is not None else note(_empty())
     return ledger
 
 
@@ -285,12 +332,25 @@ def _atomic_write(path, data):
     os.replace(tmp, path)
 
 
+_lock_state = threading.local()
+
+
 @contextmanager
 def _locked():
+    """The ledger's writer lock. Re-entrant within a thread: `flock` on a second
+    descriptor would wait on the first, and a note recorded from inside a
+    locked block must not wait on its own caller."""
+    if getattr(_lock_state, "held", False):
+        yield
+        return
     lock_path().parent.mkdir(parents=True, exist_ok=True)
     with lock_path().open("a+") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        yield
+        _lock_state.held = True
+        try:
+            yield
+        finally:
+            _lock_state.held = False
 
 
 def delivery_channel(wechat_ok, telegram_ok):
@@ -451,8 +511,10 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
             current.setdefault("stages", {name: _stage() for name in STAGES})
             for name in STAGES:
                 current["stages"].setdefault(name, _stage())
+            # The ledger is published: a caller's reason or exception text
+            # carries this host's absolute paths (#2334).
             current["stages"][stage] = _stage(
-                status, at=now.isoformat(), **details
+                status, at=now.isoformat(), **_public(details)
             )
             current["updated_at"] = now.isoformat()
             current["final_product"] = _derive_final(current)

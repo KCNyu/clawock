@@ -284,7 +284,18 @@ def test_pre_push_does_not_apply_master_ledger_gates_to_data_plane(tmp_path):
     repo = _ledger_repo(tmp_path)
     hook = _install_prepush(repo)
     zero = "0" * 40
-    one = "1" * 40
+    # A real parentless generation: the hook scans the pushed bytes of every
+    # ref for credentials (#2335), which is not one of the ledger gates.
+    scanner = repo / "ops" / "ci" / "commit_secret_scan.py"
+    scanner.parent.mkdir(parents=True, exist_ok=True)
+    scanner.write_text((ROOT / "ops" / "ci" / "commit_secret_scan.py").read_text())
+    tree = subprocess.run(
+        ["git", "-C", str(repo), "mktree"], input="", check=True,
+        capture_output=True, text=True).stdout.strip()
+    one = subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.name=t", "-c",
+         "user.email=t@example.invalid", "commit-tree", tree, "-m", "generation"],
+        check=True, capture_output=True, text=True).stdout.strip()
 
     data_update = f"refs/heads/data-plane {one} refs/heads/data-plane {zero}\n"
     data = subprocess.run(

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# clawock pre-push hook — protects updates to master.
-# Critical failure blocks a master push; warnings shown but push proceeds.
+# clawock pre-push hook — protects updates to master, and scans every pushed
+# ref for credentials. Critical failure blocks the push; warnings shown but push
+# proceeds.
 #
 # Override with: git push --no-verify  (use sparingly)
 
@@ -20,6 +21,30 @@ WS="$(git rev-parse --show-toplevel)"
 # push Git always supplies the update lines; when it supplies lines and none
 # targets master, this hook has no applicable invariant and exits cleanly.
 UPDATES="$(cat)"
+
+# The credential scan is the one check that is about the pushed bytes rather
+# than about the ledger, so it applies to every ref (#2335). The runtime
+# generation force-pushed to `data-plane` is public within minutes and was the
+# only push in the repository no scan ever saw. A parentless commit is scanned
+# whole; any other non-master update from the remote's current tip. Master
+# updates are scanned further down, after the checks that certify their base.
+SECRET_SCANNER="$WS/ops/ci/commit_secret_scan.py"
+ZERO="0000000000000000000000000000000000000000"
+while read -r _lref lsha rref rsha; do
+  [ -n "$lsha" ] && [ "$lsha" != "$ZERO" ] && [ "$rref" != "refs/heads/master" ] || continue
+  if [ -z "$(git rev-list --parents -n 1 "$lsha" 2>/dev/null | cut -s -d' ' -f2-)" ]; then
+    SCAN=(--commit "$lsha")
+  elif [ "$rsha" != "$ZERO" ] && git cat-file -e "$rsha^{commit}" 2>/dev/null; then
+    SCAN=(--range "$rsha..$lsha")
+  else
+    continue  # a new branch with history: its commits are scanned on the PR
+  fi
+  if [ ! -f "$SECRET_SCANNER" ] || ! python3 "$SECRET_SCANNER" "${SCAN[@]}"; then
+    echo "🚫 push blocked — $rref update failed credential scan"
+    exit 1
+  fi
+done <<< "$UPDATES"
+
 if [ -n "$UPDATES" ] && ! printf '%s\n' "$UPDATES" | awk '$3 == "refs/heads/master" { found=1 } END { exit !found }'; then
   exit 0
 fi
