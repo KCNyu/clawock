@@ -209,3 +209,19 @@ def test_a_ledger_that_stopped_receiving_records_is_reported(system_check, works
 
     assert status("2026-09-28T16:55:39Z") == system_check.WARNING
     assert status("2026-10-01T00:05:00+00:00") == system_check.OK
+
+
+def test_briefs_that_stopped_reaching_memory_are_reported(system_check, workspace):
+    # #2293: the dreaming commit kept landing while promotion had stopped at 09-25.
+    for day in ("2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01"):
+        (workspace / "memory" / f"{day}-pre-open.md").write_text("# brief\n")
+    memory = workspace / "MEMORY.md"
+
+    def status(newest):
+        memory.write_text(f"- 判断 (source=memory/{newest}-pre-open.md:9-9)\n")
+        result = system_check.Result()
+        system_check.check_memory_promotion(result)
+        return result.checks[0][1]
+
+    assert status("2026-09-25") == system_check.WARNING
+    assert status("2026-09-30") == system_check.OK
