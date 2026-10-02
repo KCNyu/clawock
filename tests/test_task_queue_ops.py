@@ -246,7 +246,7 @@ def test_systemctl_refusal_is_a_visible_failure(q):
     d = q.task("stuck-task", result="STATE=running\nATTEMPTS=1\n")
     code, out = q.run("cancel", "stuck-task", extra_env={"STOP_FAILS": "1"})
     assert code == 5 and "access denied" in out["error"]
-    assert not (d / "cancel-requested").exists()
+    assert (d / "cancel-requested").exists()
     assert "action=cancel\tfailed: rc=1" in (d / "audit.log").read_text()
 
 

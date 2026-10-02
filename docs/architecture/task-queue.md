@@ -70,6 +70,16 @@ non-blocking lock on `<task>/.ops.lock`; a second write while one is in flight a
   wait; the session is kept), `running` (the current step's unsaved progress is lost).
   `session` and `resume` give the command that continues the session.
 
+Cancellation is a durable launch barrier. The CLI and chip use the same audited
+cancel operation. `cancel-requested` remains even if stopping the unit fails;
+the runner checks it at startup, after quota/retry wakes, and under a per-task
+lock before launching an attempt. Old `STATE=cancelled` records also refuse
+restart without losing their session or usage. Terminal cancellation clears the
+task's wake/slot/queue state. The account-wide quota hint remains an account
+availability fact, and cannot schedule or restart the cancelled task. Explicit
+`retry` or an append to an ended task creates a new task; it does not remove the
+old task's barrier.
+
 ### priority
 
 Only a live task of the current runner (`RUNNER_API=2` in its `result.env`) that is

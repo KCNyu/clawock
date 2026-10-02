@@ -51,6 +51,22 @@ LOCKDIR="${AGENT_DISPATCH_LOCKDIR:-/root/logs/agent-dispatch}"
 # The queue: waiting tasks register as .queue/<agent>/<id>; the entry below decides who is next.
 TASKS_DIR=$(dirname "$DIR")
 QDIR="$LOCKDIR/.queue/$AGENT"
+# Cancellation is durable across unit restarts, including pre-barrier task records.
+# Preserve the old session/usage instead of initializing a fresh queued result.
+# shellcheck disable=SC1091
+previous_state=$( ( [ ! -r "$DIR/result.env" ] || . "$DIR/result.env"; printf '%s' "${STATE:-}" ) )
+if [ -e "$DIR/cancel-requested" ] || [ "$previous_state" = cancelled ]; then
+  : >>"$DIR/cancel-requested"
+  rm -f "${QDIR:?}/${ID:?}"
+  if [ -r "$DIR/result.env" ]; then
+    sed -e 's/^STATE=.*/STATE=cancelled/' -e 's/^RC=.*/RC=143/' \
+      -e "s/^\(WAITING\|WAKE_AT\|SLOT\)=.*/\1=''/" "$DIR/result.env" >"$DIR/.cancel-result.tmp"
+    mv -f "$DIR/.cancel-result.tmp" "$DIR/result.env"
+  else
+    printf "STATE=cancelled\nRC=143\nWAITING=''\nWAKE_AT=''\nSLOT=''\n" >"$DIR/result.env"
+  fi
+  exit 143
+fi
 OPS="${AGENT_DISPATCH_OPS:-/root/tools/agent-dispatch/task_queue_ops.py}"
 QUEUE_POLL_SEC="${AGENT_DISPATCH_QUEUE_POLL_SEC:-3}"
 # More test seams of the same kind: notification config, codex rollouts, claude transcripts.
@@ -421,14 +437,23 @@ on_signal() {
   release_slot  # notifications must not delay a waiting foreground attempt
   # A stopped task waits for nothing. Leaving WAITING=lock/slot/quota behind made a
   # cancelled task read as still queued (2026-09-23 dispatch-default-model-bump).
-  WAITING=""
-  if [ "$(remaining)" -le 15 ]; then STATE=timeout; else STATE=cancelled; fi
+  WAITING="" WAKE_AT=""
+  if [ -e "$DIR/cancel-requested" ] || [ "$(remaining)" -gt 15 ]; then
+    STATE=cancelled
+    : >>"$DIR/cancel-requested"
+  else
+    STATE=timeout
+  fi
   RC=143
   FINISH_NOTIFY_TIMEOUT=30 FINISH_USAGE_TIMEOUT=8
   finish
   exit 143
 }
 trap on_signal TERM INT
+cancel_guard() {
+  [ ! -e "$DIR/cancel-requested" ] || on_signal
+}
+cancel_guard
 
 if [ "${DISPATCH_WRAPPED:-0}" != 1 ]; then
   left=$(remaining)
@@ -535,6 +560,7 @@ release_agent_lock() {
 QUOTA_HINT="$LOCKDIR/.queue/$AGENT.quota" HINT_UNTIL=""
 take_lock() {  # <budget seconds>: 0 = lock held; 1 = out of time (HINT_UNTIL set when a quota wait was the reason)
   local budget=$1 until by
+  cancel_guard
   HINT_UNTIL=""
   while :; do
     wait_agent_lock "$budget" || return 1
@@ -551,6 +577,7 @@ take_lock() {  # <budget seconds>: 0 = lock held; 1 = out of time (HINT_UNTIL se
     echo "---- $(ts) quota: $AGENT is out of quota ($by hit it); waiting without spending an attempt; sleeping until $(date -d "@$until" '+%F %T')"
     sleep "$(( until - $(now) ))" & CHILD=$!; wait "$CHILD"; CHILD=""
     WAKE_AT=""
+    cancel_guard
     budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN )); [ "$budget" -gt 0 ] || budget=0
   done
 }
@@ -799,6 +826,11 @@ $block"
 
 }$block"; fi
   [ -n "$prompt" ] || prompt=$CONTINUE_PROMPT
+  # Serialize the final launch decision with the cancellation marker. The cancel
+  # writer releases this lock before signalling; children close it before exec.
+  exec 5>"$DIR/.launch.lock"
+  flock -x 5
+  cancel_guard
   # fd 6 is the run slot: agents and anything they leave running must not keep it locked.
   if [ "$AGENT" = claude ]; then
     local args=(-p --output-format json --model "$CUR_MODEL" --effort "$EFFORT" --dangerously-skip-permissions)
@@ -812,8 +844,8 @@ $block"
     fi
     write_result
     ( cd "$CWD" && exec timeout -k 60 "$cap" claude "${args[@]}" "$prompt" </dev/null ) \
-      >"$alog.json" 2>"$alog.err" 6>&- &
-    CHILD=$!; wait_attempt "$alog.json"
+      >"$alog.json" 2>"$alog.err" 6>&- 5>&- &
+    CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.json"
     eval "$(python3 - "$alog.json" <<'PY'
 import json, re, shlex, sys
 try:
@@ -839,8 +871,8 @@ PY
     [ -n "$EFFORT" ] && args+=(--variant "$EFFORT")
     [ -n "$resumable" ] && args+=(-s "$SESSION")
     ( cd "$CWD" && exec timeout -k 60 "$cap" opencode "${args[@]}" -- "$prompt" </dev/null ) \
-      >"$alog.jsonl" 2>"$alog.err" 6>&- &
-    CHILD=$!; wait_attempt "$alog.jsonl"
+      >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
+    CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
     # opencode 1.18 exits 0 even when the model call failed; the run's `error` events decide.
     eval "$(python3 - "$alog.jsonl" <<'PY'
 import json, shlex, sys
@@ -887,8 +919,8 @@ PY
     ( cd "$CWD" && exec timeout -k 60 "$cap" codex "${sub[@]}" --json \
         -c "model=\"$CUR_MODEL\"" -c "model_reasoning_effort=\"$EFFORT\"" \
         --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check \
-        -o "$DIR/last-message.md" "${tail_args[@]}" "$prompt" </dev/null ) >"$alog.jsonl" 2>"$alog.err" 6>&- &
-    CHILD=$!; wait_attempt "$alog.jsonl"
+        -o "$DIR/last-message.md" "${tail_args[@]}" "$prompt" </dev/null ) >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
+    CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
     eval "$(python3 - "$alog.jsonl" <<'PY'
 import json, re, shlex, sys
 # Quota wording from the codex 0.154.0 binary: usage limit (with or without a reset time),
@@ -937,6 +969,7 @@ PY
 # instruction continues the current attempt in the same session and does not use up a retry.
 STATE=running
 while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
+  cancel_guard
   slot_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
   if ! acquire_slot "$(( slot_budget > 0 ? slot_budget : 0 ))"; then
     if [ "$ATTEMPTS" -eq 0 ]; then STATE=blocked; else STATE=timeout; fi
@@ -1056,6 +1089,7 @@ id：$ID
     sleep "$(( wake - $(now) ))" &
     CHILD=$!; wait "$CHILD"; CHILD=""
     WAKE_AT=""
+    cancel_guard
     # Back in the queue with the original QUEUED_AT: by then it has usually waited long enough to
     # be protected, so it goes first among the tasks of its agent unless one was queued earlier.
     lock_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
@@ -1069,9 +1103,11 @@ id：$ID
       sleep "$POLL_SEC" & CHILD=$!; wait "$CHILD"; CHILD=""
     done
     WAKE_AT=""
+    cancel_guard
   fi
 done
-WAITING=""
+cancel_guard
+WAITING="" WAKE_AT=""
 [ "$STATE" = running ] && STATE=failed
 
 OUTCOME=$(printf '%s\n' "$FINAL_TEXT" | grep -oE 'STATUS:[[:space:]]*(DONE|PARTIAL|BLOCKED)' | tail -1 | awk '{print $NF}' | sed 's/STATUS://')

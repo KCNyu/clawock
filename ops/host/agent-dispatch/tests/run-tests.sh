@@ -53,6 +53,58 @@ EOF
 }
 reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
 
+if [ "${DISPATCH_TEST_CASES:-}" = cancel-barrier ]; then
+  echo '=== durable cancellation and wake/launch barriers (fake agents only)'
+  reset_fake codex notice-then-ok
+  d=$(mk startup-marker codex 900 300)
+  touch "$d/cancel-requested"
+  e=0; bash "$R" "$d" || e=$?
+  expect 'marked task refuses startup' "$e/$(field "$d" STATE)" 143/cancelled
+  expect 'no cold agent call' "$(test -f "$FAKE_DIR/codex.calls" && cat "$FAKE_DIR/codex.calls" || echo 0)" 0
+
+  d=$(mk legacy-cancel codex 900 300)
+  printf "STATE=cancelled\nSESSION=old-session\nATTEMPTS=7\nWAKE_AT=123\nWAITING=quota\nSLOT=1\n" >"$d/result.env"
+  e=0; bash "$R" "$d" || e=$?
+  expect 'legacy cancelled record refuses restart' "$e/$(field "$d" SESSION)/$(field "$d" ATTEMPTS)" 143/old-session/7
+  expect 'legacy wait state cleared' "$(field "$d" WAKE_AT)/$(field "$d" WAITING)/$(field "$d" SLOT)" //
+  expect 'legacy cancellation becomes durable' "$(test -e "$d/cancel-requested" && echo yes)" yes
+
+  d=$(mk launch-race codex 900 300)
+  exec 8>"$d/.launch.lock"; flock -x 8
+  bash "$R" "$d" 8>&- & p=$!
+  for _ in $(seq 100); do
+    grep -q 'attempt 1/' "$d/run.log" 2>/dev/null && break
+    sleep 0.05
+  done
+  touch "$d/cancel-requested"  # committed cancel owns the launch lock
+  flock -u 8; exec 8>&-
+  e=0; wait "$p" || e=$?
+  expect 'cancel wins final launch race' "$e/$(field "$d" STATE)" 143/cancelled
+  expect 'launch race spends no agent call' "$(test -f "$FAKE_DIR/codex.calls" && cat "$FAKE_DIR/codex.calls" || echo 0)" 0
+
+  for kind in quota retry; do
+    reset_fake codex quota-then-ok
+    [ "$kind" != retry ] || echo quota-notice-then-other-failure >"$FAKE_DIR/codex.mode"
+    rm -f "$AGENT_DISPATCH_LOCKDIR/.queue/codex.quota"
+    d=$(mk "cancel-$kind" codex 900 300)
+    FAKE_RESET_SEC=3 QUOTA_WAKE_PAD_SEC=0 RETRY_WAIT=3 bash "$R" "$d" & p=$!
+    for _ in $(seq 100); do
+      [ -r "$d/result.env" ] && [ "$(field "$d" WAITING)" = "$kind" ] && break
+      sleep 0.05
+    done
+    expect "$kind wait reached" "$(field "$d" WAITING)" "$kind"
+    # No signal: emulate a committed cancel whose stop races/fails. Wake alone
+    # must notice it before any second CLI request.
+    touch "$d/cancel-requested"
+    e=0; wait "$p" || e=$?
+    expect "$kind wake exits cancelled" "$e/$(field "$d" STATE)" 143/cancelled
+    expect "$kind never calls fake agent again" "$(cat "$FAKE_DIR/codex.calls")" 1
+    expect "$kind leaves no wake or slot" "$(field "$d" WAKE_AT)/$(field "$d" WAITING)/$(field "$d" SLOT)" //
+    e=0; bash "$R" "$d" || e=$?
+    expect "$kind restart still cannot call agent" "$e/$(cat "$FAKE_DIR/codex.calls")" 143/1
+  done
+fi
+
 if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,quota,* ]]; then
 echo "=== [1+2] quota with a reset time -> notify, wait -> resume the same session ($(date +%T))"
 reset_fake claude quota-then-ok; echo quota-then-ok >"$FAKE_DIR/codex.mode"
@@ -459,7 +511,7 @@ for bad in , '' 'weixin,bogus' 'none,telegram'; do
 done
 expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/notify-check-* 2>/dev/null | wc -l)" 0
 e40=0; out40=$("$D" cancel no-such-task-20000101-000000 2>&1) || e40=$?
-expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 1/1
+expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 4/1
 fi
 if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,notify,* ]]; then
 # kcn 2026-09-26: user tasks tell WeChat and Telegram. The outcome of every leg lands in
