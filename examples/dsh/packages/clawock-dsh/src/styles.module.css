@@ -1904,9 +1904,11 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink)
 }
 .pbc .tq-value[data-used-level="mid"] { color:var(--tq-text-warn) }
-.pbc .tq-value[data-balance-state="stale"] { color:var(--tq-text-warn) }
 .pbc .tq-value[data-used-level="low"] { color:var(--tq-text-bad) }
 .pbc .tq-value[data-balance-state="low"] { color:var(--tq-text-bad) }
+/* stale 黄排在用量档之后，与头条 chip、每窗进度条同一优先级：同元素同时带两个属性时
+   源序后者赢，读数不可信这件事要压过它（已经过期的）用量档颜色。 */
+.pbc .tq-value[data-balance-state="stale"] { color:var(--tq-text-warn) }
 /* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */
 .pbc .tq-row > .tq-name { grid-column:2 / 5 }
 .pbc .tq-row > .tq-value { grid-column:5 }
