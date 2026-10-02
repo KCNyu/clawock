@@ -235,17 +235,36 @@ def _check_watchdogs_clear_timeout(job: dict, watchdogs: list, timeout) -> None:
     paired with the watchdog's next fire after it. A watchdog that waits out an
     in-flight attempt judges at its fire time plus that wait (#1784).
     """
-    starts = _daily_utc_minutes(effective_schedule(job), job["name"])
+    # Every season the contract declares, not the one in force today: checked
+    # through `effective_schedule()` alone, the other season's watchdog times
+    # were never judged until the clocks changed and they went live (#2351).
     for watchdog in watchdogs:
-        fires = _daily_utc_minutes(
-            effective_schedule(watchdog), f"{job['name']} watchdog")
         wait_min = watchdog_inflight_wait_s(watchdog) / 60
-        for start in starts:
-            after = min((f - start) % 1440 or 1440 for f in fires)
-            if after + wait_min <= int(timeout) / 60:
-                raise ValueError(
-                    f"{job['name']}: watchdog {watchdog.get('command', '')[:60]!r} "
-                    f"judges at or before the run's {int(timeout)}s timeout boundary")
+        seasons = sorted({*(job.get("seasonal_schedules") or {}),
+                          *(watchdog.get("seasonal_schedules") or {})}) or [None]
+        for season in seasons:
+            label = f" ({season})" if season else ""
+            starts = _daily_utc_minutes(
+                _season_schedule(job, season), f"{job['name']}{label}")
+            fires = _daily_utc_minutes(
+                _season_schedule(watchdog, season), f"{job['name']} watchdog{label}")
+            for start in starts:
+                after = min((f - start) % 1440 or 1440 for f in fires)
+                if after + wait_min <= int(timeout) / 60:
+                    raise ValueError(
+                        f"{job['name']}{label}: watchdog "
+                        f"{watchdog.get('command', '')[:60]!r} judges at or before "
+                        f"the run's {int(timeout)}s timeout boundary")
+
+
+def _season_schedule(item: dict, season: str | None) -> dict:
+    """`item`'s schedule in `season`; an item without seasons has one schedule."""
+    seasonal = item.get("seasonal_schedules")
+    if not seasonal:
+        return effective_schedule(item)
+    if season not in seasonal:
+        raise ValueError(f"missing {season} seasonal schedule")
+    return seasonal[season]
 
 
 # Expanding a cron expression into the slots it fires on a given day has exactly

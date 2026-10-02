@@ -1211,3 +1211,27 @@ def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
     shutil.copytree(ROOT / 'config/cron-payloads', tmp_path / 'config/cron-payloads')
     with pytest.raises(ValueError, match='post-delivery budget'):
         cron_contract.load_contract(path, workspace=tmp_path)
+
+
+@pytest.mark.parametrize('season', ['daylight', 'standard'])
+def test_a_watchdog_is_checked_in_every_season_not_only_the_current_one(
+        tmp_path, season):
+    """#2351: the check read each schedule through `effective_schedule()`, i.e.
+    for the season in force today. The other season's watchdog times were never
+    judged, so one set to fire with the run itself loaded cleanly until the
+    clocks changed."""
+    data = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
+    job = next(j for j in data['jobs'] if j['name'] == '美股收盘报告')
+    run = job['seasonal_schedules'][season]
+    minute, rest = run['expr'].split(' ', 1)
+    # One minute after the run fires: far inside the run's timeout.
+    job['watchdog']['seasonal_schedules'][season] = {
+        **job['watchdog']['seasonal_schedules'][season],
+        'expr': f'{int(minute) + 1} {rest}'}
+    path = tmp_path / 'config' / 'cron-schedules.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(data))
+    shutil.copytree(ROOT / 'config' / 'cron-payloads', tmp_path / 'config' / 'cron-payloads')
+
+    with pytest.raises(ValueError, match=rf'\({season}\).*timeout boundary'):
+        cron_contract.load_contract(path, workspace=tmp_path)
