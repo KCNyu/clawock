@@ -30,6 +30,7 @@ import requests
 from clawock import instruments
 from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
+from clawock.portfolio import fx as fx_rates
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -123,13 +124,28 @@ def holding_spec(ticker):
     return meta['signal_symbol'], native, dial
 
 
+#: Used only when the local FX cache is missing: risk.json's
+#: `meta.fx_hkd_to_usd_used` on 2026-10-01.
+FX_HKD_USD_FALLBACK = 0.127449
+
+
+def hkd_to_usd():
+    """HKD→USD from the same cached rate the publisher reads (no network).
+
+    This was a hand-copied literal claiming to match risk.json and had drifted
+    0.6% from it (#2277).
+    """
+    rate = (fx_rates.read_cached_usdhkd() or {}).get('rate')
+    return 1 / float(rate) if rate else FX_HKD_USD_FALLBACK
+
+
 def book_weights(port):
     """Every held position at USD value, split into modelled and unmodelled.
 
     Returns (weights over the modelled part, modelled USD, book USD, specs,
     unmodelled [(ticker, usd)]).
     """
-    fx = 0.128205  # HKD→USD (matches risk.json meta)
+    fx = hkd_to_usd()
     usd, specs, unmodelled = {}, {}, []
     for leg, ccy in (('hk_stocks', fx), ('us_stocks', 1.0)):
         for h in port['portfolios'][leg]['holdings']:
@@ -316,7 +332,8 @@ def main(argv=None):
                 'weights_usd': {tk: round(wt, 6) for tk, wt in sorted(w.items())},
                 'holding_map': {tk: list(spec) for tk, spec in sorted(specs.items())},
                 'unmodelled_usd': {tk: round(v, 2) for tk, v in sorted(unmodelled)},
-                'book_usd': round(book_usd, 2)},
+                'book_usd': round(book_usd, 2),
+                'fx_hkd_usd': round(hkd_to_usd(), 6)},
         inputs=[{
             'symbol': 'union-calendar book', 'source': 'tencent kline/fqkline via PROXIES',
             'bars': n, 'first_session': dates[0], 'last_session': dates[-1],
