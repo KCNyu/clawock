@@ -325,6 +325,13 @@ def _book(payload, stamp):
     return payload
 
 
+def _same_day(portfolio, clock):
+    """A stamp on the book's own day. The quote rows carry a month and day
+    only; the book's stamp supplies their year, so a restamp must not move the
+    book to before its own quotes."""
+    return f"{portfolio['last_updated'][:10]} {clock} HKT"
+
+
 def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(
         tmp_path, freshly_built_dashboard):
     """The intraday publishing model: every slot rebuilds the dashboard from the
@@ -333,10 +340,10 @@ def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(
     the two field by field reddened the gate on every tick of 2026-08-03."""
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     source = write_json(
-        tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 09:30 HKT'))
+        tmp_path / 'portfolio.json', _book(portfolio, _same_day(portfolio, '09:30')))
 
     payload = json.loads(freshly_built_dashboard.read_text())
-    payload['last_updated'] = '2026/08/03 12:00 HKT'
+    payload['last_updated'] = _same_day(portfolio, '12:00')
     payload['totals']['hk']['value_hkd'] += 1688.0
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
@@ -347,10 +354,10 @@ def test_dashboard_built_from_an_older_book_than_the_committed_one_fails(
         tmp_path, freshly_built_dashboard):
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     source = write_json(
-        tmp_path / 'portfolio.json', _book(portfolio, '2026/08/03 12:00 HKT'))
+        tmp_path / 'portfolio.json', _book(portfolio, _same_day(portfolio, '12:00')))
 
     payload = json.loads(freshly_built_dashboard.read_text())
-    payload['last_updated'] = '2026/08/03 09:30 HKT'
+    payload['last_updated'] = _same_day(portfolio, '09:30')
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
     with pytest.raises(AssertionError, match='older book than the committed'):

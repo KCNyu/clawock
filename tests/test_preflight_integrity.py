@@ -562,22 +562,37 @@ def test_today_leg_exact_half_unit_passes_and_just_over_warns(run_check):
     over = copy.deepcopy(exact)
     _port(over)["holdings"][0]["today_change"] += 0.01
     _sync_totals(_port(over))
-    _assert_only(run_check(over), "TODAY_LEG", "WARN", "cur−prev_close")
+    _assert_only(run_check(over), "TODAY_LEG", "ERROR", "按批当日盈亏")
 
 
-def test_today_leg_skips_position_opened_in_current_session(run_check):
-    h = _holding(
-        current=100,
-        previous=80,
-        trades=[
-            {"date": "2026-07-17", "action": "buy", "shares": 10, "price": 90}
-        ],
-    )
-    h["today_change"] = 1.0  # deliberately not shares * (current - previous)
+def test_today_leg_runs_a_position_opened_this_session_from_its_fill(run_check):
+    """Bought this session: the day's P&L starts at the fill (90), not at a
+    previous close the position was never held at (80)."""
+    def book(today_change):
+        h = _holding(current=100, previous=80, trades=[
+            {"date": "2026-07-17", "action": "buy", "shares": 10, "price": 90}])
+        h["today_change"] = today_change
+        data = _portfolio_data(holdings=[h])
+        _port(data)["today_total_change"] = today_change
+        _port(data)["cash_reconciled_date"] = "2026-07-17"
+        return data
+
+    _assert_clean(run_check(book(100.0)))
+    _assert_only(run_check(book(200.0)), "TODAY_LEG", "ERROR", "按批当日盈亏")
+
+
+def test_today_leg_fails_a_row_whose_shares_changed_without_a_recompute(run_check):
+    """#2332: 1000 shares added to 6200, `today_change` left on the old count.
+    The book stayed on public master for 68 minutes with the gate at exit 0."""
+    h = _holding(shares=7200, current=2.584, previous=2.742, cost=2.5, trades=[
+        {"date": "2026-07-01", "action": "buy", "shares": 6200, "price": 2.5},
+        {"date": "2026-07-17", "action": "buy", "shares": 1000, "price": 2.5}])
+    h["today_change"] = round(6200 * (2.584 - 2.742), 2)
     data = _portfolio_data(holdings=[h])
-    _port(data)["today_total_change"] = 1.0
-    _port(data)["cash_reconciled_date"] = "2026-07-17"
-    _assert_clean(run_check(data))
+    _port(data)["today_total_change"] = h["today_change"]
+    report = run_check(data)
+    assert ("TODAY_LEG", "ERROR") in {(f["code"], f["level"]) for f in report["findings"]}
+    assert report["ok"] is False
 
 
 def test_cost_basis_exact_half_percent_passes_and_just_over_fails(run_check):

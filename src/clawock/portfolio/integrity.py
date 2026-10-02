@@ -31,7 +31,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   TRADE_NUMERIC_INVALID 每笔成交的 shares/price/realized_pnl 若存在则是
                  JSON 数字（面板成交轨迹与 clawock realized 按原值算术）  ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
-  TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
+  TODAY_LEG      每只 today_change == 按批当日盈亏（旧股按前收、本 session 买入按成交价） ERROR
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
   CASH_RECON     cash == cash_reconciled基线 + Σ(此后trades现金流) + 存取款 ERROR
                  → 加仓记进仓位漏扣现金 → 双计（修复命令：clawock cash）
@@ -654,16 +654,21 @@ def check(portfolio_path=PORTFOLIO):
                     add('PNL_LEG', 'WARN',
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
 
-            # The same per-lot base used by both fetchers and reconciliation.
+            # TODAY_LEG：today_change == `math.day_pnl`，与两个行情写入方和 reconcile
+            # 同一个函数：旧股从前收起算，本 session 买入的那批从成交价起算，所以
+            # 整仓新建/IPO 首日不需要例外。写入方都过这个函数，剩下的不一致只有一种
+            # 来源——改了 shares/trades 却没重算（#2332：加仓后当日盈亏仍按旧股数在
+            # 公开账本上挂了 68 分钟），因此是 ERROR，`clawock reconcile` 即可修。
             prev = _num(h.get('prev_close'))
             tchg = _num(h.get('today_change'))
             sess_date = holding_session(h, data.get('last_updated'), market)
             if cur is not None and sh and prev is not None and tchg is not None:
                 want_tc, _ = day_pnl(h, sess_date)
                 if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
-                    add('TODAY_LEG', 'WARN',
-                        f'{t} today_change={tchg:.2f} ≠ per-lot day P&L={want_tc:.2f}'
-                        f'（差 {tchg - want_tc:+.2f}）；成交批次基准或重算不一致', region, t)
+                    add('TODAY_LEG', 'ERROR',
+                        f'{t} today_change={tchg:.2f} ≠ 按批当日盈亏={want_tc:.2f}'
+                        f'（差 {tchg - want_tc:+.2f}）；改过 shares/trades 后未重算，'
+                        f'运行 clawock reconcile', region, t)
 
             # COST_BASIS：仅当 trades 账本完整(净股==当前 shares)时才校验，
             # 半账本(只记近期 T+0、缺建仓买入)净股对不上 → cost_basis 是手填的、跳过
