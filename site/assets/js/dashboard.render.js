@@ -901,6 +901,7 @@
     "workflow-outcomes.json": "流程账本",
     "cron-heartbeats.json": "定时心跳",
     "integrity_report.json": "体检报告",
+    "portfolio.json#gold_dca": "黄金定投净值",
     "coverage.json": "测试覆盖率",
     "readme_metrics.json": "README 指标",
     "overview.json": "总览快照",
@@ -4018,7 +4019,15 @@
       </div>
     `).join("");
     const meta = safe(DATA, "insights_meta") || {};
-    document.getElementById("bear-src").textContent = meta.source ? `源 ${meta.source}` : "";
+    document.getElementById("bear-src").textContent = insightsSource(meta);
+  }
+
+  // The insights prose is written once, pre-open; its percentages are that
+  // moment's while every other card is recomputed each build. Say so (#2296).
+  function insightsSource(meta) {
+    if (!meta.source) return "";
+    const at = meta.written_at ? `${meta.written_at} HKT 写入的快照，文中数字为当时值 · ` : "";
+    return `${at}源 ${meta.source}`;
   }
 
   function renderHiddenConcentration() {
@@ -4039,7 +4048,7 @@
       <div class="hc-detail">${escLLM(hc.detail)}</div>
     `;
     const meta = safe(DATA, "insights_meta") || {};
-    document.getElementById("hidden-conc-src").textContent = meta.source ? `源 ${meta.source}` : "";
+    document.getElementById("hidden-conc-src").textContent = insightsSource(meta);
   }
 
   function renderStatusBanner() {

@@ -2300,6 +2300,10 @@ def load_tmp_sidecar(prefix, max_age_days=None):
                   file=sys.stderr)
             return {'_source': name, '_invalid': True}
         data.setdefault('_source', name)
+        # When the prose was written. Its numbers are that moment's, while the
+        # rest of the payload is recomputed every build (#2296).
+        data['_written_at'] = datetime.fromtimestamp(
+            os.path.getmtime(latest), ZoneInfo('Asia/Hong_Kong')).strftime('%m-%d %H:%M')
         if max_age_days is not None:
             age_days = (time.time() - os.path.getmtime(latest)) / 86400.0
             data['_stale'] = age_days > max_age_days
@@ -3533,6 +3537,9 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
     }
 
 
+GOLD_DCA_SLA_HOURS = 240
+
+
 def compute_build_status(portfolio, data_dir, at=None):
     """A2 健康卡数据：每个数据文件的新鲜度 + 体检结论 + 每市场 data 时点。
 
@@ -3582,6 +3589,30 @@ def compute_build_status(portfolio, data_dir, at=None):
                                   due['grace_hours'] if due else None
                               )}
                              if schedule else {})})
+
+    # gold_dca lives inside portfolio.json, whose mtime the HK/US refreshers move
+    # a dozen times a day — so the file row above can never see this block go
+    # stale, and its fetcher's skip branches all exit 0 (#2268). Judge the block
+    # by its own `last_updated`. The NAV only prints on mainland trading days, so
+    # the window is wide enough for a Golden Week or Spring Festival closure.
+    try:
+        gold = json.loads((WS_ROOT / 'portfolio.json').read_text()).get('gold_dca')
+    except (OSError, ValueError, AttributeError):
+        gold = None
+    if isinstance(gold, dict) and gold:
+        row = {'name': 'portfolio.json#gold_dca', 'sla_hours': GOLD_DCA_SLA_HOURS,
+               'freshness_mode': 'max_age', 'nav_date': gold.get('nav_date')}
+        try:
+            written = datetime.fromisoformat(
+                str(gold.get('last_updated')).replace('Z', '+00:00'))
+            if written.tzinfo is None:
+                written = written.replace(tzinfo=timezone.utc)
+            age_h = (now.timestamp() - written.timestamp()) / 3600.0
+            row.update({'present': True, 'age_hours': round(age_h, 1),
+                        'stale': age_h > GOLD_DCA_SLA_HOURS})
+        except ValueError:
+            row.update({'present': False, 'stale': True})
+        files.append(row)
 
     # 每市场数据时点：逐只活跃持仓的报价日期 vs 最近已完成 session。
     # 不能信 region.last_updated 或 portfolio.json mtime；两者都会被另一条写入刷新。
@@ -4250,6 +4281,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['insights_meta'] = {
         'source': _insights.get('_source'),
         'stale': _insights.get('_stale', True if not _insights else False),
+        'written_at': _insights.get('_written_at'),
     }
     for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
         _presence[_k] = insights_present

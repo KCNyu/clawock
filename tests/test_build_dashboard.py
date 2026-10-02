@@ -1643,3 +1643,22 @@ def test_the_published_fx_says_when_its_cache_is_old_or_missing(
     assert stale["usdhkd"] == 7.8434
     assert stale["stale"] is True and stale["warning"]
     assert stale["source"] == "Frankfurter"
+
+
+def test_gold_dca_freshness_is_judged_by_its_own_stamp_not_the_file_mtime(monkeypatch, tmp_path):
+    # #2268: portfolio.json's mtime is moved by the HK/US refreshers all day.
+    at = datetime(2026, 8, 3, 2, 30, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+
+    def gold_row(last_updated):
+        (tmp_path / "portfolio.json").write_text(json.dumps(
+            {"gold_dca": {"nav_date": "2026-07-31", "last_updated": last_updated}}))
+        os.utime(tmp_path / "portfolio.json", (at.timestamp(), at.timestamp()))
+        status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+        return status, next(r for r in status["files"]
+                            if r["name"] == "portfolio.json#gold_dca")
+
+    status, fresh = gold_row("2026-08-01T15:50:54Z")
+    assert fresh["stale"] is False and "portfolio.json#gold_dca" not in status["stale_files"]
+    status, frozen = gold_row("2026-07-20T15:50:54Z")
+    assert frozen["stale"] is True and "portfolio.json#gold_dca" in status["stale_files"]
