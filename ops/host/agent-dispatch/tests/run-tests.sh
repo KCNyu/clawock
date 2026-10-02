@@ -498,7 +498,7 @@ for bad in , '' 'weixin,bogus' 'none,telegram'; do
 done
 expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/notify-check-* 2>/dev/null | wc -l)" 0
 e40=0; out40=$("$D" cancel no-such-task-20000101-000000 2>&1) || e40=$?
-expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 1/1
+expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 4/1
 fi
 if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,notify,* ]]; then
 # kcn 2026-09-26: user tasks tell WeChat and Telegram. The outcome of every leg lands in
