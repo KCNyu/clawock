@@ -192,6 +192,12 @@ def test_the_brief_context_carries_the_add_side_and_explains_an_empty_one(tmp_pa
     assert "前 20 日高" in read["why_no_candidate"]
     assert read["levels"], "the level that would settle the question must be quotable"
 
+    # #2309: a held proxy is named with the symbol the number belongs to.
+    monkeypatch.setattr(brief_preflight.bar_signals, "universe_details",
+                        lambda portfolio=None: [{"label": "SLEEPY", "source_holdings": ["PROXY"]}])
+    proxied = brief_preflight._opportunity_reads({"open": []}, {})["why_no_candidate"]
+    assert "PROXY（标的 SLEEPY）" in proxied
+
 
 def test_a_breakout_in_the_bar_store_reaches_the_brief_context(tmp_path, monkeypatch):
     """The 48-breakouts-zero-adds failure, reproduced end to end.

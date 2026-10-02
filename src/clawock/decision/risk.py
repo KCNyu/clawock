@@ -662,6 +662,16 @@ def _record_stances_unlocked(
             adaptive["last_reissued_on"] = plan_date
             adaptive["anchor"] = record.get("pressure")
             adaptive["anchor_severity"] = record.get("severity")
+            # Both rails are derived from what was just re-anchored; leaving
+            # them printed yesterday's must-reissue line under today's anchor (#2308).
+            adaptive["rearm_at"] = _rearm_at(adaptive["anchor"])
+            adaptive["days_since_reissue"] = 0
+            try:
+                adaptive["forced_on"] = (
+                    datetime.fromisoformat(plan_date).date()
+                    + timedelta(days=REISSUE_CEILING_DAYS)).isoformat()
+            except (TypeError, ValueError):
+                pass
         record["adaptive"] = adaptive
         filed.append({"breach_id": record.get("breach_id"), **entry})
     if filed:

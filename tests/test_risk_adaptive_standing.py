@@ -149,6 +149,9 @@ def test_a_reissue_re_anchors_both_rails_and_a_stand_does_not(tmp_path):
     record = json.loads(path.read_text())["records"][0]
     assert record["adaptive"]["last_reissued_on"] == "2026-09-20"
     assert record["adaptive"]["anchor"]["value"] == -40.0
+    # #2308: the printed rails follow the anchor they are derived from.
+    assert record["adaptive"]["rearm_at"] == risk._rearm_at(record["adaptive"]["anchor"])
+    assert record["adaptive"]["forced_on"] == "2026-10-18"
     assert [row["date"] for row in record["adaptive"]["stances"]] == ["2026-09-11", "2026-09-20"]
     after = _adaptive(_run(tmp_path, "2026-09-21T00:00:00+00:00",
                            guardrail=_stop(pnl=-45.0), book=active))
