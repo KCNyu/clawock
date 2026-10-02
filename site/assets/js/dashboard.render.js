@@ -1116,7 +1116,7 @@
         + `<div class="ht-chart">${dailyBars(20)}</div>`;
     }
 
-    renderHeroSpark();
+    renderHeroSpark(totalUsd);
   }
 
 
@@ -1156,13 +1156,23 @@
     return typeof iso === "string" && iso.length >= 10 ? iso.slice(5) : String(iso || "");
   }
 
-  function renderHeroSpark() {
+  function renderHeroSpark(currentProfit) {
     const host = document.getElementById("hero-spark");
     if (!host) return;
     const pts = heroProfitSeries();
     // 两点以下画不出趋势。容器高度由 CSS 占住，所以这里清空不会让页面跳。
     if (pts.length < 3) { host.replaceChildren(); return; }
 
+    // Historical snapshots round each currency leg to cents. The last point
+    // must use this generation's headline value, or a half-dollar boundary
+    // can print two different totals. Preserve earlier snapshot dates/values.
+    const generated = new Date(DATA.generated_at || DATA.last_updated || "");
+    if (currentProfit != null && isFinite(currentProfit) && !isNaN(generated)) {
+      const date = dhHktDay(generated);
+      const latest = pts[pts.length - 1];
+      if (date === latest.date) latest.v = currentProfit;
+      else if (date > latest.date) pts.push({ date, v: currentProfit });
+    }
     const vals = pts.map(p => p.v);
     const W = 1000, H = 200, PAD = 6;            // viewBox 坐标，实际尺寸由 CSS 给
     const lo = Math.min(...vals, 0), hi = Math.max(...vals, 0);
@@ -1666,7 +1676,8 @@
       if (sum) {
         // 分项加起来必须等于总数：每个计数都带它自己的色块，图例就是读数。
         const parts = [["ok", n("ok"), "落地"], ["recovered", n("recovered"), "兜底"],
-          ["degraded", n("degraded"), "降级"], ["failed", n("failed") + n("missed"), "没落地"],
+          ["degraded", n("degraded"), "降级"], ["unconfirmed", n("unconfirmed"), "仅存档·投递未确认"],
+          ["failed", n("failed") + n("missed"), "没落地"],
           ["running", n("running"), "进行中"], ["upcoming", n("upcoming"), "待跑"],
           ["unmonitored", n("unmonitored"), "账本看不到"], ["closed", n("closed"), "休市跳过"],
           ["quiet", n("quiet"), "无变化·静默"], ["unknown", n("unknown"), "未知"]]

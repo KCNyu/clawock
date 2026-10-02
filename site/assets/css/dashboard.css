@@ -3243,6 +3243,7 @@
   }
   .dh-key i { height: 10px; }
   .dh-slots i[data-s="recovered"], .dh-slots i[data-s="degraded"],
+  .dh-slots i[data-s="unconfirmed"], .dh-key i[data-s="unconfirmed"],
   .dh-key i[data-s="recovered"], .dh-key i[data-s="degraded"] { background: var(--warning); }
   .dh-slots i[data-s="failed"], .dh-slots i[data-s="missed"],
   .dh-key i[data-s="failed"], .dh-key i[data-s="missed"] { background: var(--negative); }
