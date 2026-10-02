@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from typing import Any
+from datetime import date
+import re
 
 
 def number(value: Any) -> float | None:
@@ -26,7 +28,7 @@ def ledger_date(value: Any) -> str:
 
 def active_holdings(holdings: Iterable[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
     """Holdings with a strictly positive numeric share balance."""
-    return [holding for holding in holdings
+    return [holding for holding in ledger_rows(holdings)
             if (number(holding.get("shares")) or 0) > 0]
 
 
@@ -51,7 +53,7 @@ def moving_average_cost(trades: Iterable[Mapping[str, Any]]) -> tuple[float | No
 
 
 def ledger_rows(rows: Any) -> list[Mapping[str, Any]]:
-    """The object rows of a hand-entered ledger list (`trades`, `cash_adjustments`).
+    """The object rows of a hand-entered ledger list (`holdings`, `trades`, `cash_adjustments`).
 
     One row that is not a JSON object used to raise in every reader and take the
     whole money gate down with it (#2273). Readers skip it; `integrity.check`
@@ -67,7 +69,7 @@ def trade_cashflow_after(
     """Cash flow from trades strictly after an ISO reconciliation date."""
     flow = 0.0
     count = 0
-    for holding in holdings or []:
+    for holding in ledger_rows(holdings):
         for trade in ledger_rows(holding.get("trades")):
             trade_date = ledger_date(trade.get("date"))
             if not trade_date or trade_date <= after_date:
@@ -97,3 +99,99 @@ def derive_cash(book: Mapping[str, Any]) -> tuple[float, float, str, int] | None
         if adjustment_date and adjustment_date > baseline_date:
             adjustments += number(adjustment.get("amount")) or 0
     return round(baseline + flow + adjustments, 2), baseline, baseline_date, count
+
+
+_MONTHS = {m: i for i, m in enumerate(
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], 1)}
+_ASOF_RE = re.compile(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})(?:,\s*(\d{4}))?')
+
+
+def holding_session(h, snapshot_date, market=None):
+    """The market session one holding's quote belongs to, or None.
+
+    The row's own `day_session_date` (written by the US fetcher) wins. Otherwise
+    the date is read off `data_source`, which is the FETCH time: fetchers run on
+    closed days too, so a date the market did not trade is folded back to the
+    last session that did (#2269). `market` None keeps the raw stamp.
+    """
+    market = {'us_stocks': 'us', 'hk_stocks': 'hk'}.get(market, market)
+    own = h.get('day_session_date')
+    if isinstance(own, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', own):
+        return own
+    m = _ASOF_RE.search(h.get('data_source') or '')
+    if not m:
+        return None
+    mon, day = _MONTHS[m.group(1)], int(m.group(2))
+    raw_date = str(snapshot_date or '').replace('/', '-')
+    if len(raw_date) < 4:
+        return None
+    yr = int(m.group(3) or raw_date[:4])
+    if not m.group(3) and len(raw_date) >= 10:
+        anchor = date.fromisoformat(raw_date[:10])
+        candidates = []
+        for candidate_year in (yr - 1, yr, yr + 1):
+            try:
+                candidate = date(candidate_year, mon, day)
+            except ValueError:
+                continue
+            if candidate <= anchor:
+                candidates.append(candidate)
+        if candidates:
+            yr = max(candidates).year
+    try:
+        stamped = date(yr, mon, day)
+    except ValueError:
+        return None
+    if market:
+        from clawock import sessions as _tc
+        try:
+            if _tc.closed_reason(market, stamped) is not None:
+                stamped = _tc.previous_trading_day(market, stamped)
+        except Exception:
+            pass
+    return stamped.isoformat()
+
+
+
+def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None) -> tuple[float, float]:
+    """Day P&L of the remaining position and its matching reference capital.
+
+    Old shares start at prior close; shares bought in this quote session start
+    at their fill. Replay same-session sells oldest first so a buy/sell/rebuy
+    does not count sold shares as a remaining new lot. Realized sells remain
+    in the realized ledger, outside this mark of the currently held position.
+    """
+    shares = number(holding.get('shares')) or 0
+    current = number(holding.get('current_price') if current is None else current) or 0
+    prev = number(holding.get('prev_close')) or 0
+    trades = [t for t in ledger_rows(holding.get('trades'))
+              if session and ledger_date(t.get('date')) == session
+              and t.get('action') in ('buy', 'sell')
+              and (number(t.get('shares')) or 0) > 0
+              and number(t.get('price')) is not None]
+    bought = sum(number(t.get('shares')) for t in trades if t.get('action') == 'buy')
+    sold = sum(number(t.get('shares')) for t in trades if t.get('action') == 'sell')
+    old = max(0, shares - bought + sold)
+    lots = []
+    for trade in trades:
+        quantity = number(trade.get('shares'))
+        if trade.get('action') == 'buy':
+            lots.append([quantity, number(trade.get('price'))])
+        else:
+            from_old = min(old, quantity)
+            old -= from_old
+            quantity -= from_old
+            for lot in lots:
+                taken = min(lot[0], quantity)
+                lot[0] -= taken
+                quantity -= taken
+    # An incomplete opening ledger cannot create more marked shares than held.
+    remaining = shares
+    new_base = new_shares = 0
+    for quantity, price in reversed(lots):
+        used = min(remaining, quantity)
+        new_base += used * price
+        new_shares += used
+        remaining -= used
+    base = (shares - new_shares) * prev + new_base
+    return shares * current - base, base

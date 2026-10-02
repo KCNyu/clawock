@@ -9,10 +9,9 @@ pure function of those and must never be edited by hand:
     current_value = shares × current_price
     pnl_abs       = shares × (current_price − cost_basis)
     pnl_percent   = (current_price − cost_basis) / cost_basis × 100
-    today_change  = shares × (current_price − prev_close)      [only if prev_close]
-                    (− cost_basis instead when the whole position was bought
-                     in its `day_session_date` session, as the US fetcher does)
-    today_change_pct = (current_price − that same ref) / ref × 100
+    today_change  = current value − (old shares × prev_close + new shares × fill)
+                    (same-session sales consume the oldest remaining shares)
+    today_change_pct = today_change / that same reference capital × 100
 
   per region (Σ over active holdings):
     total_current_value = Σ current_value
@@ -33,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-from clawock.portfolio.math import active_holdings, number
+from clawock.portfolio.math import active_holdings, number, ledger_rows, day_pnl, holding_session
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -97,7 +96,11 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
 
         # Closed rows are retained for history, but their mark-to-market leaves
         # must not keep describing the position that used to be open (#1601).
-        for h in pf.get('holdings', []):
+        for h in ledger_rows(pf.get('holdings')):
+            if 'today_change_abs' in h:
+                diffs.setdefault('holdings.today_change_abs', []).append((h.get('ticker'), h['today_change_abs'], None))
+                if not dry_run:
+                    h.pop('today_change_abs')
             if number(h.get('shares')) != 0:
                 continue
             for field in ('current_value', 'pnl_abs', 'pnl_percent',
@@ -142,20 +145,12 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                 h['current_value'] = cv
             pc = number(h.get('prev_close'))
             if pc is not None:
-                # Same fresh-lot basis the US fetcher writes (us_quotes `tc_ref`):
-                # a position bought entirely this session was not held at
-                # prev_close, so its day P&L runs from cost. Rebuilding it from
-                # prev_close turned a fetched +50 into -150 on reconcile (#1527).
-                session = h.get('day_session_date')
-                bought_this_session = sum(
-                    number(t.get('shares')) or 0
-                    for t in (h.get('trades') or [])
-                    if isinstance(t, dict) and t.get('action') == 'buy'
-                    and session and t.get('date') == session)
-                fresh_lot = (cb is not None and bought_this_session > 0
-                             and bought_this_session >= sh)
-                ref = cb if fresh_lot else pc
-                tc = _r(sh * (cp - ref))
+                session = holding_session(h, data.get('last_updated'), region)
+                amount, base = day_pnl(h, session)
+                ref = base / sh if sh else 0
+                fresh_lot = bool(session and any(t.get('action') == 'buy' and t.get('date') == session
+                                                for t in ledger_rows(h.get('trades'))))
+                tc = _r(amount)
                 sum_tc += tc
                 if number(h.get('today_change')) != tc:
                     diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))

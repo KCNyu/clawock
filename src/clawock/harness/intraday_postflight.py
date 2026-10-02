@@ -31,9 +31,12 @@ Validates:
   3. 若 preflight should_alert=true：正文须提到至少一个异动票，且（有 ALERT/WATCH/STOP/TRIM 信号时）至少一个信号票
   4. 无敷衍 phrases
 
-Note: Mode 7 does NOT commit portfolio.json. For every usable preflight context,
-including a slot whose prose is rejected, it rebuilds dashboard.json and commits
-only semantic changes. Every slot also updates the local heartbeat ledger, which
+Note: for every usable preflight context, including a slot whose prose is
+rejected, Mode 7 rebuilds dashboard.json and commits only semantic changes. The
+commit carries portfolio.json together with the day's snapshot (its byte copy):
+the preflight's quote refresh rewrites the book every slot, and leaving it out
+kept master's book a generation behind its own snapshot and kept the push-time
+money gate from ever running on the busiest write path (#2325). Every slot also updates the local heartbeat ledger, which
 the existing single publisher exposes without introducing another git writer.
 """
 
@@ -651,8 +654,10 @@ def publish_data_plane(market):
         publication_state = dashboard_publication_state(WS)
         # No dashboard outputs here: #314 untracked them, and `git add` on a
         # gitignored path fails rather than skipping, which would abort the
-        # snapshot commit too.
-        paths = ['logs/dashboard_build_status.json']
+        # snapshot commit too. The book is written atomically (`mutate_json`),
+        # so a refresh landing between the snapshot and this commit only makes
+        # the committed book newer than the snapshot, never torn.
+        paths = ['portfolio.json', 'logs/dashboard_build_status.json']
         snap = snapshot_date_for_now()
         if snap:
             paths.append(f'memory/snapshots/{snap}.json')

@@ -31,6 +31,7 @@ from clawock.credentials import load_api_keys
 from clawock.portfolio import allocation as _allocation
 from clawock.portfolio import covariance as _covariance
 from clawock.portfolio import stress as _stress
+from clawock.portfolio.math import ledger_rows
 from clawock.portfolio.fx import get_usdhkd
 from clawock.instruments import get as get_instrument
 from clawock.instruments import leverage_map, require as require_instrument
@@ -343,7 +344,7 @@ def active_holdings(portfolio: dict, key: str):
     """Return the live positions plus the ledger needed for historical weights."""
     bucket = portfolio.get('portfolios', {}).get(key, {})
     out = []
-    for h in bucket.get('holdings', []):
+    for h in ledger_rows(bucket.get('holdings')):
         shares = h.get('shares') or 0
         cv = h.get('current_value') or 0
         if shares <= 0 or cv <= 0:

@@ -431,8 +431,8 @@ class TestRecomputeAggregates:
         ra.recompute(d, dry_run=False)
         new, part = d["portfolios"]["us_stocks"]["holdings"]
         assert new["today_change"] == 50.0
-        assert part["today_change"] == -150.0
-        assert d["portfolios"]["us_stocks"]["today_total_change"] == -100.0
+        assert part["today_change"] == -50.0  # five old at 120 + five new at 100
+        assert d["portfolios"]["us_stocks"]["today_total_change"] == 0.0
 
     def test_dry_run_writes_nothing(self):
         d = self._book()

@@ -1003,52 +1003,7 @@ def _aggregate_indices(us_pf, hk_pf):
     return out
 
 
-_MONTHS = {m: i for i, m in enumerate(
-    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], 1)}
-_ASOF_RE = re.compile(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})(?:,\s*(\d{4}))?')
-
-
-def _holding_session(h, snapshot_date, market=None):
-    """The market session one holding's quote belongs to, or None.
-
-    The row's own `day_session_date` (written by the US fetcher) wins. Otherwise
-    the date is read off `data_source`, which is the FETCH time: fetchers run on
-    closed days too, so a date the market did not trade is folded back to the
-    last session that did (#2269). `market` None keeps the raw stamp.
-    """
-    own = h.get('day_session_date')
-    if isinstance(own, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', own):
-        return own
-    m = _ASOF_RE.search(h.get('data_source') or '')
-    if not m:
-        return None
-    mon, day = _MONTHS[m.group(1)], int(m.group(2))
-    raw_date = str(snapshot_date)
-    yr = int(m.group(3) or raw_date[:4])
-    if not m.group(3) and len(raw_date) >= 10:
-        anchor = date.fromisoformat(raw_date[:10])
-        candidates = []
-        for candidate_year in (yr - 1, yr, yr + 1):
-            try:
-                candidate = date(candidate_year, mon, day)
-            except ValueError:
-                continue
-            if candidate <= anchor:
-                candidates.append(candidate)
-        if candidates:
-            yr = max(candidates).year
-    try:
-        stamped = date(yr, mon, day)
-    except ValueError:
-        return None
-    if market:
-        from clawock import sessions as _tc
-        try:
-            if _tc.closed_reason(market, stamped) is not None:
-                stamped = _tc.previous_trading_day(market, stamped)
-        except Exception:
-            pass
-    return stamped.isoformat()
+from clawock.portfolio.math import holding_session as _holding_session
 
 
 def _session_asof(region_pf, snapshot_date, market=None):

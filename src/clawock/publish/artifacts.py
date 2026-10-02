@@ -742,14 +742,13 @@ def _assert_dashboard_money_reconciles(
                     for finding in money_findings[:6]))
 
     # The dashboard and portfolio.json have deliberately different commit
-    # cadences. Mode 7 and the scheduled publisher rebuild the dashboard from
-    # the live book every slot but never commit portfolio.json — that is an
-    # explicit design decision (intraday_postflight.py header), because the book
-    # can be mid-refresh when a postflight commits. The price updaters own it and
-    # publish at open/midday/close. During a session the committed dashboard is
-    # therefore legitimately built from a NEWER book than the committed
-    # portfolio, and comparing their totals field by field compares two
-    # generations — which reddened the gate on every intraday tick.
+    # cadences. The scheduled publisher rebuilds the dashboard from the live
+    # book without committing portfolio.json, and Mode 7 pushes the payload to
+    # the data branch before its master commit (book + snapshot, #2325) lands.
+    # During a session the published dashboard is therefore legitimately built
+    # from a NEWER book than the committed portfolio, and comparing their totals
+    # field by field compares two generations — which reddened the gate on
+    # every intraday tick.
     #
     # Reconcile field by field only within one book generation. Across
     # generations, assert the direction instead: a dashboard built from an OLDER
