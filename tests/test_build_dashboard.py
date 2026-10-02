@@ -1662,3 +1662,33 @@ def test_gold_dca_freshness_is_judged_by_its_own_stamp_not_the_file_mtime(monkey
     assert fresh["stale"] is False and "portfolio.json#gold_dca" not in status["stale_files"]
     status, frozen = gold_row("2026-07-20T15:50:54Z")
     assert frozen["stale"] is True and "portfolio.json#gold_dca" in status["stale_files"]
+
+
+def test_the_price_series_is_session_closes_not_file_dated_snapshots(monkeypatch, tmp_path):
+    # #2301: a closed day repeats the last close across two snapshot files, so
+    # the newest heat cell read 0.0% for a session the table above put at +3.65%.
+    (tmp_path / "memory" / "bars").mkdir(parents=True)
+    (tmp_path / "memory" / "bars" / "00100.json").write_text(json.dumps({"bars": {
+        "2026-09-28": {"close": 250.2}, "2026-09-29": {"close": 241.4},
+        "2026-09-30": {"close": 250.2}}}))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+    paths = []
+    for day, price, prev in (("2026-09-29", 241.4, 250.2), ("2026-09-30", 250.2, 241.4),
+                             ("2026-10-01", 250.2, 241.4)):
+        path = tmp_path / f"{day}.json"
+        path.write_text(json.dumps({"portfolios": {"hk_stocks": {"holdings": [
+            {"ticker": "00100", "current_price": price, "prev_close": prev},
+            {"ticker": "NOBARS", "current_price": price, "prev_close": prev}]}}}))
+        paths.append(str(path))
+
+    series = dashboard.build_holdings_history(paths, days=3)
+
+    assert series["00100"] == [250.2, 241.4, 250.2], "ends on prev_close → current"
+    assert series["NOBARS"] == [241.4, 250.2, 250.2], "no bars: the snapshot series stays"
+
+    # Mid-session: the quote is newer than the last stored close.
+    live = tmp_path / "2026-10-02.json"
+    live.write_text(json.dumps({"portfolios": {"hk_stocks": {"holdings": [
+        {"ticker": "00100", "current_price": 255.0, "prev_close": 250.2}]}}}))
+    assert dashboard.build_holdings_history(paths[1:] + [str(live)], days=3)["00100"] == [
+        241.4, 250.2, 255.0]

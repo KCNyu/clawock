@@ -913,6 +913,7 @@ def build_holdings_history(snapshot_paths, days=8):
     """
     paths = snapshot_paths[-days:]
     out = {}
+    latest = {}
     for p in paths:
         d = load_json(p)
         if not d:
@@ -923,13 +924,52 @@ def build_holdings_history(snapshot_paths, days=8):
                 if not t:
                     continue
                 out.setdefault(t, []).append(h.get('current_price'))
+                latest[t] = h
     # Right-align: if a ticker appeared late, pad the head with None so length matches paths
     n = len(paths)
     for t, arr in out.items():
         if len(arr) < n:
             arr[:0] = [None] * (n - len(arr))
         out[t] = arr[-n:]  # safety cap
+        closes = _session_close_series(t, latest.get(t) or {}, n)
+        if closes:
+            out[t] = closes
     return out
+
+
+def _session_close_series(ticker, holding, n):
+    """`n` session-dated closes for `ticker` from the canonical bar store, the
+    last one being the holding's current price while its session is still open;
+    None when the store cannot supply them.
+
+    Snapshots are keyed by HKT file date, not by session: a closed day repeats
+    the previous close (the heatmap read 0.0% for a session that moved +3.65%)
+    and a US session straddles two files. The day change printed in the table
+    above is `current_price` vs `prev_close`, so the series is built to end on
+    that same pair (#2301).
+    """
+    try:
+        doc = json.loads((WS_ROOT / 'memory' / 'bars' / f'{ticker}.json').read_text())
+        bars = sorted((day, float(bar['close'])) for day, bar in doc['bars'].items())
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+    if n < 2 or len(bars) < n:
+        return None
+    closes = [close for _, close in bars]
+    current, prev = holding.get('current_price'), holding.get('prev_close')
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               for v in (current, prev)):
+        return None
+
+    def same(a, b):
+        return abs(a - b) <= max(0.005, abs(b) * 0.0005)
+
+    if same(prev, closes[-1]):
+        # The quote's session is newer than the store's last completed one.
+        return closes[-(n - 1):] + [current]
+    if same(prev, closes[-2]) and same(current, closes[-1]):
+        return closes[-n:]
+    return None
 
 
 def _aggregate_indices(us_pf, hk_pf):
