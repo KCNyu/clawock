@@ -971,6 +971,20 @@
       return Math.round(running * 100) / 100;
     });
 
+    // The running sum starts at zero on the first embedded snapshot, not at
+    // inception: the payload carries a capped window. Name the window on the
+    // series and say how much history sits outside it (#2264).
+    const cumName = `累计（近 ${dates.length} 根）`;
+    const pnlWindow = document.getElementById("daily-pnl-window");
+    if (pnlWindow) {
+      const total = safe(DATA, "snapshots_total");
+      const embedded = (safe(DATA, "snapshots") || []).length;
+      const outside = Number.isFinite(total) && total > embedded
+        ? `；磁盘共 ${total} 天快照，更早的不在这条累计里` : "";
+      pnlWindow.textContent = dates.length
+        ? ` 累计线从 ${dates[0]} 起算（窗口内 ${dates.length} 根）${outside}。` : "";
+    }
+
     const accent = getCSS("--accent") || "#36A3FF";
     const green = getCSS("--positive") || "#28C08D";
     const red = getCSS("--negative") || "#F05B67";
@@ -989,7 +1003,7 @@
     const opt = {
       ...baseChartOpts(),
       grid: { left: isMobile ? 56 : 70, right: isMobile ? 56 : 70, top: 34, bottom: manyPts ? 58 : 36 },
-      legend: { data: ["每日 P&L", "累计"], textStyle: { color: chartTextColor(), fontSize: 10 }, top: 4, itemGap: 10 },
+      legend: { data: ["每日 P&L", cumName], textStyle: { color: chartTextColor(), fontSize: 10 }, top: 4, itemGap: 10 },
       tooltip: {
         ...chartTooltip("axis", "cross"),
         formatter: (params) => {
@@ -1015,14 +1029,14 @@
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
         }),
         chartAxis({
-          type: "value", name: `累计 ${cur}`, position: "right",
+          type: "value", name: `${cumName} ${cur}`, position: "right",
           splitLine: { show: false },
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
         }),
       ],
       series: [
         { name: "每日 P&L", type: "bar", data: bars, yAxisIndex: 0, barWidth: "55%" },
-        { name: "累计", type: "line", data: cumulative, yAxisIndex: 1,
+        { name: cumName, type: "line", data: cumulative, yAxisIndex: 1,
           itemStyle: { color: accent }, lineStyle: { width: 2 },
           symbol: dates.length > 45 ? "none" : "circle", symbolSize: 4, smooth: 0.1, z: 3 },
       ],

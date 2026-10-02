@@ -1860,7 +1860,7 @@
       const inBook = (s.tickers_in_book || []).join(", ");
       return `<div class="sector-block">
         <div class="theme">${escape(s.theme)} ${inBook ? `<span class="in-book">[持仓: ${escape(inBook)}]</span>` : ""}</div>
-        <div class="movers">${movers || '<span class="muted" style="font-size:var(--fs-xs);opacity:0.55">— LLM 未填 top movers</span>'}</div>
+        <div class="movers">${movers || '<span class="muted" style="font-size:var(--fs-xs)">— LLM 未填 top movers</span>'}</div>
         ${selfRows ? `<div class="self">${selfRows}</div>` : ""}
       </div>`;
     }).join("");
@@ -2079,7 +2079,7 @@
         const v = hn[tk] || {};
         emHtml += `<div style="margin:3px 0"><strong>${escapeHtml(tk)} ${escapeHtml(v.name || '')}</strong>`;
         (v.items || []).slice(0, 2).forEach(it => {
-          emHtml += `<div style="font-size:var(--fs-xs);opacity:.8">· [${escapeHtml(it.date || '')}] ${escapeHtml(it.title || '')}</div>`;
+          emHtml += `<div style="font-size:var(--fs-xs)">· [${escapeHtml(it.date || '')}] ${escapeHtml(it.title || '')}</div>`;
         });
         emHtml += '</div>';
       });
@@ -3508,7 +3508,7 @@
           <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">
             现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
           </div>
-          ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px;opacity:0.75">${w.note}</div>` : ''}
+          ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${w.note}</div>` : ''}
         </div>`;
     }).join('');
     document.getElementById('reentry-list').innerHTML = rows;
@@ -4513,7 +4513,10 @@
       const followed = (a.execution || "unknown").toLowerCase();
       const c = a.condition || {};
       const trig = `${c.type || ""}${fmtTriggerPrice(c.price)}${fmtSize(a)}`;
-      const cond = c.note ? `<div class="pt-trigger" title="${escapeHtml(c.note)}">${escapeHtml(c.note)}</div>` : "";
+      // The ledger writes the trigger prose as `condition.description`; `note`
+      // is a key no producer emits, so every row showed the bare enum (#2271).
+      const condText = c.description || c.note || "";
+      const cond = condText ? `<div class="pt-trigger" title="${escapeHtml(condText)}">${escapeHtml(condText)}</div>` : "";
       // 理由是这张卡最长的一段（实测 390px：一条 209-369px，15 条 = 4515px）。
       // 默认夹成两行，长到会被夹住的才给一个展开器 —— 短理由配一个什么都不
       // 展开的按钮是噪音。阈值按字数不按版式：量版式要等面板排完，而这块牌
@@ -4996,7 +4999,7 @@
     if (dc && dc.bear_case_pct != null)
       bits.push(`留了反方案文 ${dc.bear_case_pct}%（${dc.with_bear_case}/${dc.decisions}）`);
     if (bits.length) el.insertAdjacentHTML("afterbegin",
-      `<div style="font-size:var(--fs-xs);opacity:.75;margin-bottom:var(--space-2)">${bits.join(" · ")}</div>`);
+      `<div style="font-size:var(--fs-xs);margin-bottom:var(--space-2)">${bits.join(" · ")}</div>`);
   }
 
   // =========================================================
@@ -5140,7 +5143,7 @@
         }
       }
       const assetSecondary = taLine ? `
-        <div class="ext-dd" style="opacity:.85">
+        <div class="ext-dd">
           <div class="span" style="margin-top:0"><b>真实总资产</b>（持仓市值 ＋ 现金，加减仓不影响）</div>
           ${taLine}
         </div>` : "";

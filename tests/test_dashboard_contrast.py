@@ -307,6 +307,29 @@ def test_informational_rows_and_badges_are_not_dimmed_below_aa():
             f"{selector} dims readable information with parent opacity")
 
 
+def test_no_markup_dims_text_with_inline_opacity():
+    """#2286: the rule above named two selectors; six other places dimmed
+    readable text the same way (the footer disclaimer on every long-form page
+    measured 2.89:1 in light). Scan the markup instead of naming rules: an
+    element that carries text takes a text-colour step, never `opacity`.
+    Bars, dots, SVG strokes and animated cards carry no text and are exempt.
+    """
+    site = CSS.parents[2]
+    offenders = []
+    sources = (site / "index.html", site / "_layouts" / "default.html",
+               site / "assets" / "js" / "dashboard.render.js")
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        # style="…opacity:<1…">text   — an element opened with a dimmed style
+        # and followed directly by content rather than by its closing tag.
+        for match in re.finditer(r'style="[^"]*opacity\s*:\s*0?\.\d+[^"]*">(?!\s*</)', text):
+            offenders.append(f"{path.name}: {match.group(0)[:80]}")
+    layout = (site / "_layouts" / "default.html").read_text(encoding="utf-8")
+    disclaimer = re.search(r"footer \.disclaimer\s*\{([^}]*)\}", layout)
+    assert disclaimer and "opacity" not in disclaimer.group(1)
+    assert offenders == []
+
+
 def test_heatmap_and_drawdown_small_text_use_readable_text_steps():
     css = CSS.read_text(encoding="utf-8")
     assert _rule_value(css, ".dm-cell .dm-m", "color") == "var(--text)"
