@@ -65,7 +65,8 @@ jobs:
       - name: Run cron health check
         id: health
         run: |
-          # CI cannot query the host's SQLite, so it consumes the tracked mirror.
+          # CI cannot query the host's SQLite, so it consumes the heartbeat
+          # ledger from the generation fetched above (gitignored, not tracked).
           # system_check.py compares this contract with the live CLI on the host.
           python3 ops/host/cron_health_check.py \
             --jobs-file config/cron-schedules.json \

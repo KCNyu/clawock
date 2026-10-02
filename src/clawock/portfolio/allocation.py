@@ -2,9 +2,10 @@
 
 The question this is for
 ------------------------
-`correlation_xray` reports that the book has 3.78 effective names and **1.98
-effective bets**: eight positions behaving as two. It says that clearly, and
-then stops, because knowing the book is concentrated does not say *which*
+`correlation_xray` reports the book's effective names (`1/HHI`) next to its
+**effective bets** (`1/(wᵀρw)`), and on this book the second is about half the
+first: the positions behave as far fewer independent ones. It says that clearly
+(the current pair is in `risk.json`), and then stops, because knowing the book is concentrated does not say *which*
 position is carrying the concentration, or what the alternative would have been.
 
 Two things close that gap and neither is an optimiser telling anyone what to
@@ -25,8 +26,8 @@ hold:
 
 Why HRP rather than mean-variance
 ---------------------------------
-Mean-variance needs `Σ⁻¹`, and at eight names on sixty sessions the smallest
-eigenvalue of the sample correlation is inside the Marchenko–Pastur noise band
+Mean-variance needs `Σ⁻¹`, and with a handful of names on sixty sessions the
+smallest eigenvalue of the sample correlation is inside the Marchenko–Pastur noise band
 (see `portfolio.covariance.spectrum_report`) — inverting it puts the largest
 weights on the directions that are purest estimation error. HRP never inverts:
 it clusters, orders the matrix so similar names are adjacent, and splits capital

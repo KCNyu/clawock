@@ -22,7 +22,8 @@ come up when a position is being sized are shaped differently:
   it is usually not "everything falls equally".
 
 Every function takes a covariance the caller chose. Feed it a shrunk one: at
-this book's sample size, three of ten eigenvalues sit essentially at zero, and
+this book's sample size, most eigenvalues sit inside the noise band (see
+`covariance.spectrum_report`: `eigenvalues_above_noise` of `n_names`), and
 `Σ_ss⁻¹` on the sample matrix would put the whole shock into whichever direction
 is purest estimation error.
 """
