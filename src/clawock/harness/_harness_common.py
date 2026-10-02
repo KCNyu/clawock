@@ -17,7 +17,7 @@ from pathlib import Path
 
 from clawock import sessions as trading_calendar
 from clawock.publish import store as publish_store
-from clawock.workspace import workspace_root
+from clawock.workspace import without_host_paths, workspace_root
 
 WS = workspace_root()
 _CHECKOUT = WS
@@ -278,7 +278,7 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None,
             'repair_count': repair_count,
             # Git hooks and remote rules print the useful cause *before* their
             # generic "failed to push" footer. The old 500-char tail hid it.
-            'tail': (output or '')[-4000:],
+            'tail': without_host_paths((output or '')[-4000:], ws or WS),
             # Wall-clock seconds per stage (#1217). The rebuild is the slowest
             # thing a postflight does and nothing measured it, so "the build got
             # slower" was only ever an impression. `skipped` says whether the

@@ -32,7 +32,7 @@ from zoneinfo import ZoneInfo
 from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
-from clawock.workspace import workspace_root
+from clawock.workspace import without_host_paths, workspace_root
 from clawock import scheduling as schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -189,6 +189,10 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
     occurrence writes a new count-1 row and the class floods the 20-row ring;
     the row keeps the latest detail for diagnosis (#2172).
     """
+    # This row is published: keep the host's absolute paths out of it (#2281).
+    detail = without_host_paths(detail)
+    if group is not None:
+        group = without_host_paths(group)
     standalone = ledger is None
     if standalone:
         # Read the file, not `load_ledger` (#1214). The most important caller is

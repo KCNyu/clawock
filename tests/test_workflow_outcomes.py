@@ -116,6 +116,18 @@ def test_a_landed_wechat_backstop_takes_the_slot_off_the_dropped_tally(tmp_path,
     assert primary["wechat_ok"] is False, "the primary's own result stays countable"
 
 
+def test_a_degradation_note_does_not_publish_the_hosts_absolute_path(tmp_path, monkeypatch):
+    # #2281: the row lands on a public branch.
+    _isolate(tmp_path, monkeypatch)
+    workspace = tmp_path / "ws"
+    ledger = outcomes.note_degradation(
+        None, "ledger_fallback_to_published",
+        f"{workspace}/memory/.tmp/workflow-outcomes.json unreadable")
+    detail = ledger[outcomes.DEGRADATIONS_KEY][-1]["detail"]
+    assert str(tmp_path) not in detail
+    assert detail.startswith("memory/.tmp/workflow-outcomes.json")
+
+
 def test_readability_advisory_detail_does_not_degrade_a_delivered_product(
     tmp_path, monkeypatch
 ):
