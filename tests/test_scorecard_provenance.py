@@ -150,6 +150,19 @@ def test_recompute_reproduces_the_published_counts(ledger):
     assert not scorecard_verify.recompute_headline(block, dropped)["ok"]
 
 
+def test_an_episode_straddling_the_cutoff_is_scored_whole_and_recomputes(ledger):
+    # #2275 / #2295: membership is "the episode has a call inside the window";
+    # the verifier must rebuild episodes from the same full ledger.
+    early = decision("2026-06-29", ticker="EEE", action="cut", benefit=3.0)
+    late = decision("2026-07-02", ticker="EEE", action="cut", benefit=1.0)
+    early["episode_id"] = late["episode_id"] = "ep-eee-straddle"
+    rows = [*ledger, early, late]
+
+    metrics = metrics_for(rows)
+    assert metrics["settled_episodes"] == metrics_for(ledger)["settled_episodes"] + 1
+    assert scorecard_verify.recompute_headline(metrics["provenance"], rows)["ok"]
+
+
 def _published(tmp_path, metrics, rows):
     payload = tmp_path / "dashboard.json"
     payload.write_text(json.dumps({"decision_metrics": metrics}), encoding="utf-8")

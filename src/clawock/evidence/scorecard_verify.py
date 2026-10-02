@@ -47,9 +47,13 @@ def recompute_headline(provenance: dict, decisions) -> dict:
     from clawock.decision import ledger as ledger_module
 
     window = provenance.get('window') or {}
+    # Only the upper bound is cut here. `compute_metrics` takes the whole ledger
+    # plus a cutoff and builds episodes before windowing; handing it the window
+    # slice rebuilt straddling episodes from half their members (#2295).
+    last = window.get('last_plan_date')
     metrics = ledger_module.compute_metrics(
-        prov.slice_rows(list(decisions), window.get('cutoff'),
-                        window.get('last_plan_date')),
+        [r for r in decisions
+         if not last or (r.get('plan_date') or '') <= last],
         window_days=window.get('days') or 30,
         cutoff=window.get('cutoff'),
     )
