@@ -865,7 +865,9 @@ def load_ticker_bars(ticker: str) -> dict:
     if ticker not in _BAR_CACHE:
         p = BARS_DIR / f"{ticker}.json"
         try:
-            _BAR_CACHE[ticker] = (json.loads(p.read_text()).get("bars") or {}) if p.exists() else {}
+            from clawock.market_data.integrity import flag_implausible_moves
+            stored = (json.loads(p.read_text()).get("bars") or {}) if p.exists() else {}
+            _BAR_CACHE[ticker] = flag_implausible_moves(stored)
         except Exception:
             _BAR_CACHE[ticker] = {}
     return _BAR_CACHE[ticker]
@@ -1001,6 +1003,8 @@ def condition_execution(decision: dict, day_bar: dict | None) -> tuple[bool | No
     action = decision.get("action")
     if day_bar is None:
         return None, None, "no_bar"
+    if day_bar.get("implausible_move"):
+        return None, None, "implausible_move"
     if day_bar.get("degenerate"):
         return None, None, "degenerate_bar"
 
@@ -1108,6 +1112,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         pending_session = None
         missing_session = None
         degenerate_session = None
+        implausible_session = None
         invalidated_session = None
         invalidation = _float(d.get("invalidation_price"))
         for candidate in candidate_sessions:
@@ -1117,6 +1122,11 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                     pending_session = candidate
                     break
                 missing_session = candidate
+                break
+            # A suspect traded session cannot be skipped as if nothing traded:
+            # a later clean bar cannot prove the trigger/invalidation order.
+            if day_bar.get("implausible_move"):
+                implausible_session = candidate
                 break
             # A zero-width bar is retained by the canonical store so downstream
             # readers can distinguish a halted/untraded session from missing
@@ -1142,6 +1152,14 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
             if fired is True or fired is None:
                 trigger_session = candidate if fired is True else None
                 break
+        if implausible_session is not None:
+            ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
+                       "not_evaluable_reason": "implausible_move",
+                       "trigger_session": implausible_session,
+                       "evaluation_schema_version": EVAL_SCHEMA_VERSION})
+            if json.dumps(ev, sort_keys=True) != before:
+                changed += 1
+            continue
         if missing_session is not None:
             inactive = ticker_retired(ticker)
             ev.update({
@@ -1246,6 +1264,12 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
             entry = fill
             fill_session = trigger_session or sess
             marks = next_sessions(leg, fill_session, 20)
+            suspect_days = [day for day, row in load_ticker_bars(ticker).items()
+                            if day > fill_session and row.get("implausible_move")]
+
+            def crosses_suspect_move(mark):
+                return any(day <= mark for day in suspect_days)
+
             b1 = b5 = b20 = u1 = None
             m1 = m5 = m20 = None
             reason = None
@@ -1263,17 +1287,19 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                     # session that did happen" are different facts.
                     reason = ("mark_pending" if m1 > (last_closed_session(leg) or "")
                               else "mark_bar_missing")
+                elif crosses_suspect_move(m1):
+                    reason = "implausible_move"
                 else:
                     u1, b1 = _benefit(d.get("action"), entry, nb["close"])
             if len(marks) >= 5:
                 m5 = marks[4]
                 nb5 = bar(ticker, m5)
-                if nb5 is not None and m5 < today:
+                if nb5 is not None and not crosses_suspect_move(m5) and m5 < today:
                     _, b5 = _benefit(d.get("action"), entry, nb5["close"])
             if len(marks) >= 20:
                 m20 = marks[19]
                 nb20 = bar(ticker, m20)
-                if nb20 is not None and m20 < today:
+                if nb20 is not None and not crosses_suspect_move(m20) and m20 < today:
                     _, b20 = _benefit(d.get("action"), entry, nb20["close"])
             ev.update({
                 "status": "settled" if b1 is not None else "pending",
@@ -1287,7 +1313,10 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 "mark_t20_session": m20 if b20 is not None else None,
                 "mark_horizon": "open_of_session_to_close_of_next_session",
             })
-            if b1 is None and reason:
+            if b1 is None and reason == "implausible_move":
+                ev.update({"status": "not_evaluable", "outcome": "unknown",
+                           "not_evaluable_reason": reason})
+            elif b1 is None and reason:
                 ev["pending_reason"] = reason
         if json.dumps(ev, sort_keys=True) != before:
             changed += 1

@@ -348,11 +348,29 @@ def incremental_beg(ticker: str) -> str:
                (date.fromisoformat(max(bars)) - timedelta(days=2)).isoformat())
 
 
+def grade_stored(ticker: str) -> int:
+    """Backfill quality flags only; retain OHLC and audit each new flag."""
+    doc = load_bars(ticker)
+    stored = doc.get('bars') or {}
+    graded = bar_checks.flag_implausible_moves(stored)
+    flagged = [day for day in graded if graded[day].get('implausible_move')
+               and not stored[day].get('implausible_move')]
+    if flagged:
+        doc['bars'] = graded
+        write_bars(ticker, doc)
+        record_conflicts(ticker, [{'date': day, 'kind': 'implausible_move',
+                                  'detail': graded[day]['implausible_move']}
+                                 for day in flagged])
+    return len(flagged)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="clawock daily-bars")
     ap.add_argument("--backfill", action="store_true", help=f"fetch from {START_DATE}")
     ap.add_argument("--ticker", help="single ticker")
     ap.add_argument("--repair", action="store_true", help="allow overwriting a stored bar")
+    ap.add_argument("--grade-stored", action="store_true",
+                    help="backfill suspect-move flags without refetching or changing OHLC")
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
 
     tickers = [args.ticker] if args.ticker else list(MANIFEST)
@@ -360,6 +378,11 @@ def main(argv=None) -> int:
     if unknown:
         print(f"not in manifest (add it explicitly, never guess): {unknown}", file=sys.stderr)
         return 2
+
+    if args.grade_stored:
+        for ticker in tickers:
+            print(f"{ticker}: {grade_stored(ticker)} stored bars flagged; OHLC unchanged")
+        return 0
 
     end = datetime.now(HKT).date().isoformat()
     total_add = total_rev = 0

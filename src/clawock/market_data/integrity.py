@@ -196,3 +196,22 @@ def gap_safe_returns(bars, *, skip_degenerate: bool = True):
     for (_, previous), (date, close) in zip(usable, usable[1:]):
         out.append((date, close / previous - 1))
     return out
+
+
+def flag_implausible_moves(bars):
+    """Grade stored history without changing OHLC or dropping any session.
+
+    Old bars predate the writer's flag. Settlement must grade them on read too;
+    requiring a fetch or a migration would leave old bad fills trusted forever.
+    """
+    out = {}
+    previous = None
+    for day, bar in sorted(bars.items()):
+        row = dict(bar)
+        jump = next((f for f in check_bar(row, prev_close=previous)['flags']
+                     if f.startswith('implausible_move ')), None)
+        if jump:
+            row['implausible_move'] = jump.split(' ', 1)[1]
+        out[day] = row
+        previous = row.get('close')
+    return out

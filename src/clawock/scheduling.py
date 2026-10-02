@@ -13,6 +13,7 @@ from clawock.sessions import ET, HKT as HKT
 from clawock.config.profiles import ENV_VAR as PROFILE_ENV_VAR
 from clawock.config.profiles import load_profile
 from clawock.workspace import workspace_root
+from clawock.run_budgets import POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS
 
 #: The pre-open brief's own firing time, as printed on every artifact kcn reads
 #: (the markdown title, the WeChat/Telegram card, the watchdog's fallback card).
@@ -163,6 +164,12 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
                 raise ValueError(f"{job['name']}: watchdog command missing")
         timeout = profiles[job["payload_profile"]].get("timeout_seconds")
         if timeout is not None:
+            if job['payload_profile'] in {'brief', 'report', 'intraday'}:
+                minimum = POST_DELIVERY_BUDGET_SECONDS + PRE_DELIVERY_RESERVE_SECONDS
+                if int(timeout) <= minimum:
+                    raise ValueError(
+                        f"{job['name']}: timeout_seconds {timeout} must exceed "
+                        f"post-delivery budget + pre-delivery reserve ({minimum}s)")
             _check_watchdogs_clear_timeout(
                 job, [w for w in watchdogs if w], timeout)
     sync = data.get("dst_sync") or {}

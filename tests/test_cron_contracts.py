@@ -874,8 +874,8 @@ def test_every_strategy_profile_pins_a_run_timeout():
     """
     profiles = contract()['payload_profiles']
     assert {name: profiles[name].get('timeout_seconds') for name in profiles} == {
-        'report': 900,
-        'intraday': 900,
+        'report': 1680,
+        'intraday': 1680,
         'brief': 1800,
         'memory': None,
     }
@@ -930,10 +930,10 @@ def test_watchdog_wait_budgets_match_the_watchdogs():
 
 
 @pytest.mark.parametrize(('profile', 'timeout_s'), [
-    # 港股收盘报告 16:10, watchdog 16:20 + 600s wait: judges at 16:30.
-    ('report', 1200),
-    # 盘中盯盘 :03/:33, watchdogs :13/:43 + 600s wait: judge at +20 min.
-    ('intraday', 1200),
+    # 港股收盘报告 16:10, watchdog 16:30 + 600s wait: judges at 16:40.
+    ('report', 1800),
+    # 盘中盯盘 :03/:33, watchdogs :23/:53 + 600s wait: judge at +30 min.
+    ('intraday', 1800),
 ])
 def test_raising_a_timeout_past_the_watchdog_verdict_fails_the_contract(
         tmp_path, profile, timeout_s):
@@ -1188,3 +1188,26 @@ def test_a_standalone_watchdog_success_without_publication_evidence_stays_health
     event = cron_heartbeat.record('hk', 'watchdog_backstop', at=at,
                                  watchdog_state='deterministic_fallback', telegram_sent=True)
     assert event['state'] == 'watchdog_backstop'
+
+
+def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
+    from clawock import run_budgets as budgets
+    from clawock.harness import _harness_common as common
+    from clawock.publish import store, deploy
+    assert store.PUBLISH_BUDGET_SECONDS == budgets.PUBLISH_BUDGET_SECONDS
+    assert deploy.DEPLOY_REQUEST_TIMEOUT_SECONDS == budgets.DEPLOY_REQUEST_TIMEOUT_SECONDS
+    assert budgets.POST_DELIVERY_BUDGET_SECONDS == (
+        common.DASHBOARD_FETCH_TIMEOUT_SECONDS + common.DASHBOARD_LOCK_WAIT_SECONDS
+        + common.DASHBOARD_BUILD_TIMEOUT_SECONDS + common.DECISION_MAP_TIMEOUT_SECONDS
+        + store.PUBLISH_BUDGET_SECONDS + common.PUSH_TIMEOUT_SECONDS)
+    data = contract()
+    minimum = budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.PRE_DELIVERY_RESERVE_SECONDS
+    for name in ('brief', 'report', 'intraday'):
+        assert data['payload_profiles'][name]['timeout_seconds'] > minimum
+    data['payload_profiles']['intraday']['timeout_seconds'] = minimum
+    path = tmp_path / 'config/cron-schedules.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(data))
+    shutil.copytree(ROOT / 'config/cron-payloads', tmp_path / 'config/cron-payloads')
+    with pytest.raises(ValueError, match='post-delivery budget'):
+        cron_contract.load_contract(path, workspace=tmp_path)

@@ -814,6 +814,7 @@ from clawock.harness.validation import (
     advisory_prefix,
     categorize_issues,
     check_identifier_leak,
+    check_numeric_claims,
     check_md_table_column_consistency,
     check_pipeline_self_reference,
     mentions_ticker,
@@ -1213,6 +1214,35 @@ def _plan_self_reference_issues(plan):
                check_identifier_leak(prose, label='plan 理由/触发条件')])
 
 
+def _brief_numeric_issues(judgment_path, plan, context):
+    """Check all published model prose, with each ticker row's identity intact."""
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        overlay = {}
+    texts = []
+    if isinstance(overlay, dict):
+        texts.extend(overlay.get(key) for key in
+                     ('portfolio_assessment', 'portfolio_counterargument'))
+        narrative = overlay.get('narrative') or {}
+        if isinstance(narrative, dict):
+            for value in narrative.values():
+                texts.extend(value if isinstance(value, list) else [value])
+        for row in overlay.get('ticker_judgments') or []:
+            if isinstance(row, dict):
+                prose = '\n'.join(row[key] for key in JUDGMENT_ROW_PROSE
+                                  if isinstance(row.get(key), str))
+                texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
+    for row in (plan or {}).get('decisions') or []:
+        if isinstance(row, dict):
+            prose = '\n'.join(value for value in (row.get('rationale'),
+                             (row.get('condition') or {}).get('description'))
+                             if isinstance(value, str))
+            texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
+    return check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
+                                context)
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -1281,6 +1311,8 @@ def main(argv=None):
     issues += _judgment_identifier_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
     issues += _plan_self_reference_issues(normalized_plan)
+    issues += _brief_numeric_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', normalized_plan, context)
 
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.

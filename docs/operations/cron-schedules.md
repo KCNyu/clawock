@@ -23,21 +23,32 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 切换。隔夜盯盘无论冬夏令时都在 02:30 HKT 截止，保留 03:00 dreaming 独占窗口；
 因此冬令时比夏令时少两个盘中 slot。
 
+## Whole-turn budget / 回合预算
+
+Report and intraday turns allow 28 minutes; the brief allows 30. The shared
+post-delivery network/build retry chain reserves 1368 seconds plus 300 seconds
+for preflight, judgment, delivery and local work. The contract rejects a turn
+limit that cannot cover that reservation. These are ceilings, not expected
+durations; a late preflight can still consume its own whole-turn deadline.
+Report/intraday watchdogs fire 20 minutes after the slot and wait up to 10
+minutes for an in-flight attempt, so their verdict clears the 28-minute limit.
+The intraday turn plus the 30-second retry backoff still clears the next slot.
+
 ## OpenClaw jobs + watchdogs
 
 | Job | OpenClaw schedule | Mode | Harness | System watchdog |
 |---|---|---|---|---|
-| 美股盘中盯盘-overnight | `3,33 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `13,43 0-2 * * 2-6` · Asia/Hong_Kong |
+| 美股盘中盯盘-overnight | `3,33 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `23,53 0-2 * * 2-6` · Asia/Hong_Kong |
 | Memory Dreaming Promotion | `0 3 * * *` · host HKT | memory-core | `—` | — |
 | 美股收盘报告 | EDT `3 4 * * 2-6`<br>EST `3 5 * * 2-6` | Mode 6 | `report --us close` | EDT `23 4 * * 2-6`<br>EST `23 5 * * 2-6` |
 | 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `36 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:36 is inside the landing window) |
-| 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `48 9 * * 1-5` · Asia/Hong_Kong |
-| 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `13,43 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
-| 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `15 12 * * 1-5` · Asia/Hong_Kong |
-| 港股午后快报 | `33 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `45 13 * * 1-5` · Asia/Hong_Kong |
-| 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `20 16 * * 1-5` · Asia/Hong_Kong |
-| 美股开盘报告 | EDT `33 21 * * 1-5`<br>EST `33 22 * * 1-5` | Mode 6 | `report --us open` | EDT `48 21 * * 1-5`<br>EST `48 22 * * 1-5` |
-| 美股盘中盯盘 | EDT `3,33 22-23 * * 1-5`<br>EST `3,33 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `13,43 22-23 * * 1-5`<br>EST `13,43 23 * * 1-5` |
+| 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `53 9 * * 1-5` · Asia/Hong_Kong |
+| 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `23,53 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
+| 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `23 12 * * 1-5` · Asia/Hong_Kong |
+| 港股午后快报 | `33 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `53 13 * * 1-5` · Asia/Hong_Kong |
+| 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `30 16 * * 1-5` · Asia/Hong_Kong |
+| 美股开盘报告 | EDT `33 21 * * 1-5`<br>EST `33 22 * * 1-5` | Mode 6 | `report --us open` | EDT `53 21 * * 1-5`<br>EST `53 22 * * 1-5` |
+| 美股盘中盯盘 | EDT `3,33 22-23 * * 1-5`<br>EST `3,33 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `23,53 22-23 * * 1-5`<br>EST `23,53 23 * * 1-5` |
 
 ## Operational invariants / 运维不变量
 

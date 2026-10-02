@@ -12,7 +12,7 @@
   },
   "payload_profiles": {
     "report": {
-      "timeout_seconds": 900,
+      "timeout_seconds": 1680,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3.1-Flash-Preview",
       "model_candidates": [
@@ -63,7 +63,7 @@
       ]
     },
     "intraday": {
-      "timeout_seconds": 900,
+      "timeout_seconds": 1680,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3.1-Flash-Preview",
       "model_candidates": [
@@ -203,7 +203,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "13,43 0-2 * * 2-6",
+          "expr": "23,53 0-2 * * 2-6",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-intraday-watchdog --job-name \"美股盘中盯盘-overnight\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -319,7 +319,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "48 9 * * 1-5",
+          "expr": "53 9 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-report-watchdog --market hk --phase open --job-name \"港股开盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -345,7 +345,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "13,43 10-11,14-15 * * 1-5",
+          "expr": "23,53 10-11,14-15 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-intraday-watchdog --job-name \"盘中盯盘\" --market hk >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -375,7 +375,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "15 12 * * 1-5",
+          "expr": "23 12 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-report-watchdog --market hk --phase mid --job-name \"港股午盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -409,7 +409,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "45 13 * * 1-5",
+          "expr": "53 13 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-report-watchdog --market hk --phase pm --job-name \"港股午后快报\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -439,7 +439,7 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "20 16 * * 1-5",
+          "expr": "30 16 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-report-watchdog --market hk --phase close --job-name \"港股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
@@ -477,12 +477,12 @@
         "seasonal_schedules": {
           "daylight": {
             "kind": "cron",
-            "expr": "48 21 * * 1-5",
+            "expr": "53 21 * * 1-5",
             "tz": "Asia/Hong_Kong"
           },
           "standard": {
             "kind": "cron",
-            "expr": "48 22 * * 1-5",
+            "expr": "53 22 * * 1-5",
             "tz": "Asia/Hong_Kong"
           }
         },
@@ -517,12 +517,12 @@
         "seasonal_schedules": {
           "daylight": {
             "kind": "cron",
-            "expr": "13,43 22-23 * * 1-5",
+            "expr": "23,53 22-23 * * 1-5",
             "tz": "Asia/Hong_Kong"
           },
           "standard": {
             "kind": "cron",
-            "expr": "13,43 23 * * 1-5",
+            "expr": "23,53 23 * * 1-5",
             "tz": "Asia/Hong_Kong"
           }
         },

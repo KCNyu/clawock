@@ -31,10 +31,14 @@ DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
 # build itself takes ~2s. Waiting used to share the build's 30s timeout, so a
 # slow tick was recorded as a failed build (#1904). The wait is bounded on its
 # own: past it the tick is stuck in its retry ladder, and waiting longer would
-# eat the intraday run's 900s budget, which must also fit this path's own
+# eat the intraday run's whole-turn budget, which must also fit this path's own
 # publish. flock exits with EX_TEMPFAIL when the wait runs out.
-DASHBOARD_LOCK_WAIT_SECONDS = 90
-DASHBOARD_BUILD_TIMEOUT_SECONDS = 30
+from clawock.run_budgets import (  # noqa: E402,F401
+    DASHBOARD_LOCK_WAIT_SECONDS, DASHBOARD_BUILD_TIMEOUT_SECONDS,
+    DASHBOARD_FETCH_TIMEOUT_SECONDS, DECISION_MAP_TIMEOUT_SECONDS,
+    SAFE_PUSH_ATTEMPTS, PREPUSH_ATTEMPT_SECONDS, PUSH_RETRY_BACKOFF_SECONDS,
+    PUSH_TIMEOUT_SECONDS,
+)
 DASHBOARD_LOCK_BUSY_EXIT = 75
 
 # Where rebuild_dashboard records its last outcome so the daily cron health
@@ -372,7 +376,7 @@ def rebuild_dashboard(ws=None):
         subprocess.run(
             ['python3', str(ws / 'ops' / 'pages' / 'fetch_data_plane.py'),
              '--into', str(previous)],
-            capture_output=True, text=True, timeout=60, cwd=str(ws), check=False,
+            capture_output=True, text=True, timeout=DASHBOARD_FETCH_TIMEOUT_SECONDS, cwd=str(ws), check=False,
         )
         timings['fetch_data_plane'] = round(time.monotonic() - _t0, 3)
 
@@ -424,7 +428,7 @@ def rebuild_dashboard(ws=None):
                 _t0 = time.monotonic()
                 mapped = subprocess.run(
                     [sys.executable, '-m', 'clawock', 'decision-map'],
-                    capture_output=True, text=True, timeout=180, cwd=str(ws),
+                    capture_output=True, text=True, timeout=DECISION_MAP_TIMEOUT_SECONDS, cwd=str(ws),
                 )
                 timings['decision_map'] = round(time.monotonic() - _t0, 3)
                 full += mapped.stdout + mapped.stderr
@@ -480,14 +484,9 @@ def _publish_generation(ws):
             # before the second started and the push retry ladder could never
             # run. Six intraday slots recorded `publish_failed` that day.
             #
-            # The postflight is never wrapped in a shell `timeout` (#765), but
-            # it is not unbounded: the cron turn that runs it has the contract's
-            # `timeout_seconds` (config/cron-schedules.json), and this chain's
-            # worst case is longer than that turn (#2318). The margin is on the
-            # observed side only — real turns finish well inside it — so a
-            # publish that does run this long can be cut off by the turn. It
-            # runs AFTER delivery: what is lost then is this pass's site
-            # publish, which the scheduled publisher repeats.
+            # The cron contract covers this chain plus the pre-delivery reserve
+            # (run_budgets.py). No shell timeout wraps the postflight (#765);
+            # the whole agent turn still has its own finite deadline.
             timeout=publish_store.PUBLISH_BUDGET_SECONDS, cwd=str(ws),
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
@@ -538,24 +537,16 @@ def dashboard_publication_state(ws=None):
 # not one is a refusal by the hook. The commits then sit unpushed until some
 # later push happens to win on its first attempt.
 #
-# No shell `timeout` wraps the postflight (#765), and the shell publishers
-# (gold_dca_refresh.sh, commit_dreaming.sh) exec safe_push.sh with no cap at
-# all; this caller was the only place the script itself was cut off mid-run.
-# The cron turn's own `timeout_seconds` still bounds a postflight from outside
-# and is shorter than the worst case of rebuild + push (#2318) — see the note
-# in `rebuild_dashboard`.
+# No shell timeout wraps the postflight (#765), but its cron turn has a
+# finite deadline. scheduling.load_contract checks that this push + rebuild
+# chain and a pre-delivery reserve fit inside the declared turn limit.
+# Shell publishers exec safe_push.sh without an outer cap.
 # 2026-09-07: the hook's own cost is now ~9s — check_model_chain_health was
 # reading the cron history one `openclaw` process per job and
 # check_scripts_compile was spawning py_compile once per file. The ceiling below
 # is deliberately NOT lowered to match: it is sized for a loaded, swapping host,
 # and the failure it prevents (a stranded commit on a lost race) costs more than
 # the seconds it reserves.
-SAFE_PUSH_ATTEMPTS = 3            # ops/publish/safe_push.sh MAX_RETRIES
-PREPUSH_ATTEMPT_SECONDS = 90      # pre-push hook (57s measured) + fetch/rebase + transfer
-PUSH_RETRY_BACKOFF_SECONDS = 9    # safe_push.sh: sleep i*3 after attempts 1 and 2
-PUSH_TIMEOUT_SECONDS = (
-    SAFE_PUSH_ATTEMPTS * PREPUSH_ATTEMPT_SECONDS + PUSH_RETRY_BACKOFF_SECONDS
-)
 
 
 def push_with_rebase_retry(remote='origin', branch='master', attempts=3):

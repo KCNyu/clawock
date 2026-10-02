@@ -11,6 +11,9 @@ sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.scheduling import load_contract  # noqa: E402
+from clawock.run_budgets import (  # noqa: E402
+    POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS,
+)
 
 WS = workspace_root(_CHECKOUT)
 OUTPUT = WS / "docs" / "operations" / "cron-schedules.md"
@@ -111,6 +114,17 @@ def render(contract: dict) -> str:
         "美股 job 继续使用 HKT 表达式，但由每日 06:20 的同步器按纽约真实 UTC offset 自动",
         "切换。隔夜盯盘无论冬夏令时都在 02:30 HKT 截止，保留 03:00 dreaming 独占窗口；",
         "因此冬令时比夏令时少两个盘中 slot。",
+        "",
+        "## Whole-turn budget / 回合预算",
+        "",
+        "Report and intraday turns allow 28 minutes; the brief allows 30. The shared",
+        f"post-delivery network/build retry chain reserves {POST_DELIVERY_BUDGET_SECONDS} seconds plus {PRE_DELIVERY_RESERVE_SECONDS} seconds",
+        "for preflight, judgment, delivery and local work. The contract rejects a turn",
+        "limit that cannot cover that reservation. These are ceilings, not expected",
+        "durations; a late preflight can still consume its own whole-turn deadline.",
+        "Report/intraday watchdogs fire 20 minutes after the slot and wait up to 10",
+        "minutes for an in-flight attempt, so their verdict clears the 28-minute limit.",
+        "The intraday turn plus the 30-second retry backoff still clears the next slot.",
         "",
         "## OpenClaw jobs + watchdogs",
         "",

@@ -25,7 +25,7 @@ import json
 import subprocess
 from typing import Protocol
 
-DEPLOY_REQUEST_TIMEOUT_SECONDS = 120
+from clawock.run_budgets import DEPLOY_REQUEST_TIMEOUT_SECONDS  # noqa: E402
 
 
 class SiteDeployer(Protocol):

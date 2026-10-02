@@ -66,3 +66,30 @@ def test_every_ticker_judgment_field_the_page_prints_is_checked(tmp_path):
             printed.add(key)
     assert printed, "no judgment field reached the page: the fixture no longer renders rows"
     assert set(JUDGMENT_ROW_PROSE) == printed
+
+
+def test_brief_numeric_gate_reads_judgment_and_plan_with_their_own_ticker(tmp_path):
+    from clawock.harness.brief_postflight import _brief_numeric_issues
+    ctx = {'reflections': {'RKLX': {'n': 11, 'win_rate': .45},
+                          'SPCH': {'n': 7, 'win_rate': .43},
+                          '07226': {'n': 13, 'win_rate': .62}}}
+    prose = '真正要处理的是 SPCH。13 个 episode 胜率 62%'
+    path = tmp_path / 'judgment.json'
+    path.write_text(json.dumps({'ticker_judgments': [{'ticker': 'RKLX', 'rationale': prose}]}))
+    assert 'RKLX 自己是 11 个 / 45%' in _brief_numeric_issues(path, {}, ctx)[0]
+    path.write_text('{}')
+    plan = {'decisions': [{'ticker': 'RKLX', 'rationale': prose}]}
+    assert 'RKLX 自己是 11 个 / 45%' in _brief_numeric_issues(path, plan, ctx)[0]
+
+
+def test_packet_rejects_wrong_episode_pair_in_public_projection():
+    from clawock.decision.packet import validate_judgment_overlay, compile_pages_projection
+    packet = {'tickers': {'RKLX': {'history': {'settled_episodes': 11, 'win_rate': .45}},
+                          'SPCH': {'history': {'settled_episodes': 7, 'win_rate': .43}}}}
+    overlay = {'ticker_judgments': [{'ticker': 'RKLX',
+        'rationale': '真正要处理的是 SPCH。13 个 episode 胜率 62%'}]}
+    issues = validate_judgment_overlay(packet, overlay)
+    assert any('RKLX 自己是 11 个 / 45%' in issue for issue in issues)
+    projection = compile_pages_projection(packet, overlay, overlay_issues=issues)
+    assert projection['judgment_status'] == 'invalid'
+    assert any('RKLX 自己是 11 个 / 45%' in issue for issue in projection['judgment_issues'])
