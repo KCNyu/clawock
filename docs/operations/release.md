@@ -85,11 +85,15 @@ index.
 ## Release
 
 ```bash
+# NEXT is the version being released: one above what pyproject.toml holds now.
+# (Not a literal here on purpose — a copied number is either already tagged or
+# publishes a released version again.)
+NEXT=X.Y.Z
 # version lives in exactly one place
-sed -i 's/^version = .*/version = "0.2.0"/' pyproject.toml
+sed -i "s/^version = .*/version = \"$NEXT\"/" pyproject.toml
 # then write the CHANGELOG.md entry for that version, in the same PR
 # ...open a PR, merge it, then tag the merge commit
-git tag v0.2.0 && git push origin v0.2.0
+git tag "v$NEXT" && git push origin "v$NEXT"
 ```
 
 The workflow refuses a tag that disagrees with `pyproject.toml`, because a
@@ -109,7 +113,7 @@ friction, not a bug:
 
 ```bash
 gh api -X PUT repos/KCNyu/clawock/rulesets/21184290 -f enforcement=disabled
-git push --delete origin v0.2.0        # or force it to the right commit
+git push --delete origin "v$MISTYPED"   # the tag just pushed by mistake, never a released version; or force it to the right commit
 gh api -X PUT repos/KCNyu/clawock/rulesets/21184290 -f enforcement=active
 ```
 
@@ -146,7 +150,7 @@ publication path — release.yml and a human both go through it:
 NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh
 
 # Standalone npm bump (no GitHub Release, no PyPI): the version is explicit
-NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh 0.2.1
+NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh "$NEXT"
 ```
 
 `NPM_TOKEN` is the npm registry auth token and the only environment input the

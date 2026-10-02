@@ -119,3 +119,14 @@ def test_audit_covers_more_than_twenty_new_issues_and_pagination(patrol):
     result = patrol("audit_ungated 0", [issues[:20], issues[20:]])
     assert result.returncode == 0, result.stderr
     assert len(result.stdout.splitlines()) == 35 and "#35 " in result.stdout
+
+
+def test_a_round_finished_twice_is_one_row(patrol, tmp_path):
+    # #2305: an adopted round audited a second time appended its row again.
+    completed_round(tmp_path)
+    assert patrol(ADOPT).returncode == 0
+    first = (tmp_path / "rounds.tsv").read_text()
+    (tmp_path / "current-round").write_text(first.split("\t")[3] + "\n")
+    again = patrol(ADOPT)
+    assert again.returncode == 0, again.stdout + again.stderr
+    assert (tmp_path / "rounds.tsv").read_text() == first

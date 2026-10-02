@@ -601,3 +601,17 @@ def test_live_jobs_inherit_report_phase_from_the_tracked_contract(monkeypatch):
                         lambda: SimpleNamespace(entries=[job], source='cli'))
     resolved = cron_health_check.load_runtime_jobs()
     assert resolved[0]['phase'] == 'close'
+
+
+def test_an_old_ledger_degradation_is_history_with_an_age_not_a_current_warning():
+    # #2299: 17 of 18 rows were 38 hours to 31 days old and all printed as ⚠.
+    now = datetime(2026, 10, 1, 12, 0, tzinfo=timezone.utc)
+    old = {"kind": "data_plane_publish_failed", "count": 8,
+           "last_at": "2026-09-26T12:00:00+00:00"}
+    fresh = {"kind": "stage_not_recorded", "count": 2,
+             "last_at": "2026-10-01T10:00:00+00:00"}
+    undated = {"kind": "ledger_fallback_to_published", "count": 1}
+
+    assert cron_health_check.degradation_age(old, now) == (False, " · 最后 5 天前")
+    assert cron_health_check.degradation_age(fresh, now) == (True, " · 最后 2 小时前")
+    assert cron_health_check.degradation_age(undated, now) == (True, "")
