@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-01T18:40:39.065321+00:00",
+  "generated_at": "2026-10-02T18:09:51.639049+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,122 +14,101 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB:** Synspective 追加 20 次 Electron 发射，录得 Rocket Lab 最大 Electron 订单并将任务积压推至逾 100 个；Citi 初评 Buy、目标价 $105。  \n  **RKLX implication:** kcn 持有 RKLX（2x RKLB）；2x 单日杠杆会放大订单利好的上涨弹性，也会放大执行不及预期后的回撤。\n- **CRCL:** Arc 主网上线并与 Volante 合作拓展银行支付；Cloudflare 同时推出以 USDC 按量付费的 AI agent 工具。  \n  **Position implication:** 对 kcn 的 CRCL 持仓偏正面，扩大 USDC 的银行结算与 AI 支付场景，但暂无财务贡献量化。\n- **SPCX:** SpaceX 成功将 NASA Crew-13 的四名宇航员送往 ISS，任务此前延误近三周。  \n  **SPCH implication:** kcn 持有 SPCH（2x SPCX 敞口）；2x 杠杆会放大成功发射带来的短线正面波动，但单次任务不足以单独改变估值逻辑。\n- **CRCL:** Visa、Stripe 等 100 多家公司推出 OUSD，并拟配置 $10 亿流动性，直接挑战 USDC。  \n  **Position implication:** 对 CRCL 偏中期负面；虽流动性仍属计划阶段，支付巨头入场可能加大 USDC 份额及费率压力。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL:** Arc 银行支付合作及 AI agent USDC 工具扩展生态；OUSD 构成竞争。\n- **RKLB:** 最大 Electron 订单与 Citi Buy 提振预期，但分析师将估值中枢由约 $114.33 下调至 $109.37。\n- **SPCX:** Crew-13 发射落地；Musk 在 Flight 14 后下调明年 Starship 发射次数预期，显示项目节奏仍有压力。\n\n### 风险 watch (若有)\n- **CRCL:** OUSD 获支付巨头及 $10 亿拟议流动性支持，可能侵蚀 USDC 市场地位。\n- **RKLB:** Neutron 进展及订单履约风险仍是估值折价因素；RKLX 的 2x 单日杠杆会放大波动与路径损耗。\n- **SPCX:** Crew-13 延期及 Starship 发射预期下调构成执行风险；SPCH 的 2x 敞口会同步放大涨跌。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: Musk 据报下调明年 Starship 发射次数预期，但未给出新数量。  \n  kcn 持仓含义（SPCH）：发射节奏增长预期承压；SPCH 为 2x 杠杆 ETF，会放大负面修订。\n- SPCX: 新一轮 Falcon 9 拼车任务后 SpaceX 上涨 6%，任务收入及载荷价值未披露。  \n  kcn 持仓含义（SPCH）：偏情绪催化而非盈利增量；2x 杠杆会同步放大上涨与回吐。\n- RKLB: RKLB 随太空板块上涨 7%，ARK 据报增持但未披露规模；无 RKLB 新订单或指引。  \n  kcn 持仓含义（RKLX）：资金和板块情绪驱动强于基本面；RKLX 的 2x 杠杆放大 sympathy move。\n- CRCL: OUSD stablecoin 上线，报道提及 Visa 牵头及 Mastercard、Stripe、Coinbase 分发渠道，但未披露规模与经济条款。  \n  kcn 持仓含义（CRCL）：对 USDC 构成潜在竞争压力，暂不足以触发盈利假设下修。\n- SPCX: 分析师预计 Starlink 移动业务将先在航空、海事场景放量、2031 年收入增长，但并非公司指引或已签收入。  \n  kcn 持仓含义（SPCH）：提供长期 TAM 弹性；SPCH 的 2x 杠杆也会放大兑现周期风险。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: OUSD 进入大型支付及加密分发渠道——偏竞争观察，缺少发行量、费率和渠道分成数据。\n- RKLB: 板块上涨及 ARK 增持带来资金面支撑，但 Starship 成本竞争仍构成压力；RKLX 2x 放大波动。\n- SPCX: Starship 节奏预期下调与 Falcon 9 任务上涨相互抵消，近景偏混合；SPCH 2x 放大事件波动。\n\n### 风险 watch (若有)\n- SPCX: Starship 发射次数预期被下调，属于运营节奏风险；并非正式 financial guidance。\n- SPCX: AI 重估及“2030 年 5 万亿美元”属于叙事/情景假设，未披露新 AI 合约或盈利支持，存在估值回吐风险。\n- CRCL: OUSD 的发起方、分发与经济条款仍不完整，暂不应据此下调 USDC 收入预期。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 2,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Cloudflare just announced a tool that lets businesses charge AI agents in stablecoins",
-        "datetime": 1790787992,
+        "headline": "Inside OUSD’s big stablecoin launch",
+        "datetime": 1790874000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2581f81aa937a3373101dca6df93c5644ed9cd054274c7bc23baefd8a7ee8db0"
+        "url": "https://finnhub.io/api/news?id=86de288ab27dc6fa782dca814f5cf271f2b0147d52fc50691d94e23adcf4203f"
       },
       {
-        "headline": "Circle (CRCL) Stock Looks Fairly Valued Despite Fresh USDC Partnership News",
-        "datetime": 1790784707,
+        "headline": "Visa-Led Consortium Launches OUSD Stablecoin",
+        "datetime": 1790871240,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e6fa94f37f601dc6a6871f019e7ab1ccab746bacc7b336ad4b80aea631736a90"
-      },
-      {
-        "headline": "Circle Internet Group (CRCL) Launches Arc Mainnet And Expands Into Bank Payments",
-        "datetime": 1790780902,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3ac737511a79460a832a569c57ca6394acd376410f0c1cb64b5a7172e3e99385"
-      },
-      {
-        "headline": "Mastercard, Visa, Stripe-Backed Consortium Enters USD Stablecoin Market",
-        "datetime": 1790776327,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0b041baa10d29c7610d48016db279fd68cdbb7872362439c52c7ac59f801d1d1"
-      },
-      {
-        "headline": "Ethereum-Based Stablecoin Issuer ENA Could Surge 600%: Standard Chartered",
-        "datetime": 1790773774,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f15c85be46d1cd43e9f23cc0753ac12ed4f4f2e24e904b1860912447100c0784"
+        "url": "https://finnhub.io/api/news?id=e27dc4a3ec0453e54bd0e206513172b1399e3579ed61bc0b0d80b3ee3730500c"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab (RKLB) Stock Fair Value Edges Lower As Neutron And Deal Risks Weigh",
-        "datetime": 1790867381,
+        "headline": "SpaceX Climbs 6% on Fresh Falcon 9 Rideshare Launch; Rocket Lab Jumps 7%, AST SpaceMobile Ticks Up",
+        "datetime": 1790952448,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4db946fe162a0063950ada9b6f66dd6ee68c4362528757b744462600cd0e38e0"
+        "url": "https://finnhub.io/api/news?id=b4ea60ac45448b900b2739480903c0f78f06ab1447036f9c3880083dc1276310"
       },
       {
-        "headline": "Elon Musk Lowers Starship Expectations, Rocket Lab Surges On Electron Deal",
-        "datetime": 1790865699,
+        "headline": "Musk, Huang Forecast AI-Powered GDP Gains; ARK Buys More Rocket Lab",
+        "datetime": 1790946385,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e7c69a0bc11cfdc93d7a2959528e9ca03ef6e2bc969a2eb0d234ac855f918d1b"
+        "url": "https://finnhub.io/api/news?id=fd6ff1f0f2939811198c1da10b13aec2998024f53a2d36438b1ae290bf97445b"
       },
       {
-        "headline": "Rocket Lab Stock Rises on Record Electron Launch Deal and Citi Buy Rating",
-        "datetime": 1790864760,
+        "headline": "SpaceX Just Upped The Ante On Rocket Lab",
+        "datetime": 1790945106,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5bd3e70935312c6b0c2d523507e6a1026d44d9468500115891e92095c96d37de"
+        "url": "https://finnhub.io/api/news?id=0199acf43847e8cd7d223e9a868d035e7da67f0c503f18c5b0ec1ed4fcb342e2"
       },
       {
-        "headline": "Exxon Mobil downgraded, BP upgraded: Wall Street's top analyst calls",
-        "datetime": 1790861886,
+        "headline": "Stocktwits Space Race Weekly: SPCX Holds Pole Position As ASTS, RKLB, PL, RDW, FLY Lose Altitude",
+        "datetime": 1790934579,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5d5953131721a88f722b7a6e427349b870531e20af1c034150db5bb9a35e2726"
+        "url": "https://finnhub.io/api/news?id=518cb0e6c4d7fd78780e252f710cd38f60d849e8692bc25bc63178e6501ccef6"
       },
       {
-        "headline": "Rocket Lab Climbs 5% as Largest-Ever Electron Deal Lifts Backlog Past 100 Missions; AST SpaceMobile Ticks Up, SpaceX Holds Flat",
-        "datetime": 1790861197,
+        "headline": "Nasdaq, S&P 500, Dow Futures Rise Ahead Of Jobs Report: NKE, META, RKLB, MRNA, SLS, TSLA Stocks In Focus",
+        "datetime": 1790929901,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c0fa7dd6dac99e6f7b92216f9408ae657bb3037a90602953dd13dab478424d06"
+        "url": "https://finnhub.io/api/news?id=b0433938a5153602f02557a4aa3ac9dba90df0c0707dfef81c5471331dcce542"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX successfully launches NASA Crew-13 astronauts to ISS",
-        "datetime": 1790875454,
+        "headline": "Why SpaceX Stock Popped on Friday",
+        "datetime": 1790956317,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4efa3d86e092bd0ace152e141cb90126ecee4feda1a4df87caffac762f4b3a64"
+        "url": "https://finnhub.io/api/news?id=edfa86d03b7ae490f6f58e916f7f7536610fafe1cf3472760c3862502c1dfb56"
       },
       {
-        "headline": "Micron CFO: No 'line of sight' for when memory shortage will end",
-        "datetime": 1790873974,
+        "headline": "Here's How Fast SpaceX Must Grow to Be a $5 Trillion Company by 2030",
+        "datetime": 1790955840,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2e113e39a9afd6883b4a9eca2b37c2f8a65a8b9db59159963c3ba95967ec789a"
+        "url": "https://finnhub.io/api/news?id=a398b247a68244add06e715b9943aedd729455cf07d7fcc2efc549902710900b"
       },
       {
-        "headline": "Morgan Stanley gives SpaceX a B+ grade after Flight 14",
-        "datetime": 1790873220,
+        "headline": "SpaceX, AI Weigh On Telecom Valuations, Scotiabank Says — Cuts Targets Across Major US Communication Names",
+        "datetime": 1790954979,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=934e96d7970ac0671a1f0fedea2ec6de0de89f75265d2311a09665d70a788e43"
+        "url": "https://finnhub.io/api/news?id=c303dec3e8a234a766f29c2022c3a7e686b55b1e61a3df222b54745b8955c31b"
       },
       {
-        "headline": "Here's What a $10,000 Investment in SpaceX Stock Could Be Worth in 2035 (Hint: It's a Lot)",
-        "datetime": 1790872800,
+        "headline": "Musk's SpaceX Could Target Airlines, Maritime Before Taking On Big Wireless Firms",
+        "datetime": 1790954439,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e304edb33fc263f923d7eb6a1036d3a97e67020494daeeef9de144e81cef52fc"
+        "url": "https://finnhub.io/api/news?id=830b8bd1c4b71d1b9a9ebdbf64337dca9b4bd6d3b823c8aa989b5e6de7b6659a"
       },
       {
-        "headline": "All or nothing: Why Anthropic is a big bet and a big risk for IPO buyers",
-        "datetime": 1790871245,
+        "headline": "Outer space had a big week: A closer look at SpaceX's & Google's successful launches",
+        "datetime": 1790954292,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=054fa9ea75efb933f8b4c91d89f1fa895550b9e4254a15ed8182590ad7f94824"
+        "url": "https://finnhub.io/api/news?id=97e15ed3cdbce900623da64c96633068af98ef221641d569cac3d8e1666befa6"
       }
     ]
   },
