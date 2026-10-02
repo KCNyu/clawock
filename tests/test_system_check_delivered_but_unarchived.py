@@ -190,3 +190,22 @@ def test_the_outcome_does_not_depend_on_what_day_it_is(system_check, workspace,
     # true answer, reached deliberately. What must never happen is the two
     # halves disagreeing about which day they mean inside ONE run.
     assert [s for _, s, _ in after] == []
+
+
+def test_a_ledger_that_stopped_receiving_records_is_reported(system_check, workspace):
+    # #2294: the file is rewritten every pass; only the newest RECORD shows it stopped.
+    import json
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 1, 15, 16, tzinfo=timezone.utc)
+    ledger = workspace / "memory" / ".tmp" / "workflow-outcomes.json"
+
+    def status(newest):
+        ledger.write_text(json.dumps({
+            "updated_at": now.isoformat(),
+            "records": [{"updated_at": "2026-09-20T00:00:00+00:00"}, {"updated_at": newest}]}))
+        result = system_check.Result()
+        system_check.check_outcome_ledger_receiving(result, now=now)
+        return result.checks[0][1]
+
+    assert status("2026-09-28T16:55:39Z") == system_check.WARNING
+    assert status("2026-10-01T00:05:00+00:00") == system_check.OK

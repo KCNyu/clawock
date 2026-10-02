@@ -1614,6 +1614,44 @@ def check_delivered_but_unarchived(r):
               f'{today} brief delivered and archived')
 
 
+OUTCOME_LEDGER_SILENT_HOURS = 56
+
+
+def check_outcome_ledger_receiving(r, now=None):
+    """The product-outcome ledger is still being appended to (#2294).
+
+    `memory/.tmp/workflow-outcomes.json` is rewritten (its own `updated_at`
+    moves) by every publisher pass, so the file looks alive while its newest
+    RECORD can be days old — which the dashboard then prints as 「窗口内没有成品
+    投递记录」, the same words as a day with no products, and which switches off
+    cron-health's backstop-covered exemption. Judged by the newest record, not
+    the file. The window spans a weekend (Sat US close → Mon brief ≈ 52h); WARN only,
+    for the reason `check_publish_backlog` gives.
+    """
+    path = WS / 'memory' / '.tmp' / 'workflow-outcomes.json'
+    if not path.exists():
+        return  # a checkout that has never run a product owes no ledger
+    try:
+        records = json.loads(path.read_text()).get('records') or []
+        stamps = [datetime.fromisoformat(str(row['updated_at']).replace('Z', '+00:00'))
+                  for row in records if isinstance(row, dict) and row.get('updated_at')]
+    except (OSError, ValueError, AttributeError, TypeError) as e:
+        r.add('outcome ledger', WARNING, f'workflow-outcomes.json unreadable: {e}')
+        return
+    if not stamps:
+        r.add('outcome ledger', WARNING, 'workflow-outcomes.json holds no dated record')
+        return
+    newest = max(s if s.tzinfo else s.replace(tzinfo=timezone.utc) for s in stamps)
+    hours = ((now or datetime.now(timezone.utc)) - newest).total_seconds() / 3600
+    if hours > OUTCOME_LEDGER_SILENT_HOURS:
+        r.add('outcome ledger', WARNING,
+              f'newest product record is {hours:.0f}h old (> {OUTCOME_LEDGER_SILENT_HOURS}h): '
+              f'postflights are not reaching record_stage; the dashboard reads this '
+              f'as "no products"')
+    else:
+        r.add('outcome ledger', OK, f'newest product record {hours:.0f}h old')
+
+
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
@@ -2054,6 +2092,7 @@ def main():
         check_publish_backlog,
         check_master_ci_conclusion,
         check_delivered_but_unarchived,
+        check_outcome_ledger_receiving,
         check_fallback_chain_shape,
         check_codex_runtime,
         check_model_chain_health,
