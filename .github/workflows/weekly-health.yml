@@ -1,11 +1,14 @@
 name: Weekly Health Check
 
-# Sundays 23:00 UTC (Monday 07:00 HKT, before the 08:00 brief and HK open).
+# Sundays 20:17 UTC (Monday 04:17 HKT), to land before the 08:00 HKT brief and HK
+# open. It ran at 23:00 UTC with a 60-minute budget until GitHub's schedule drift
+# made that unmeetable: the last five arrivals were 97-141 minutes after the cron
+# time, i.e. 08:37-09:20 HKT (#2258). 223 minutes of budget covers that drift.
 # Catches drift: scripts that no longer compile, schemas that diverged, missing baselines,
 # data sources gone offline. Failures remain visible in Actions and the daily review.
 on:
   schedule:
-    - cron: '0 23 * * 0'
+    - cron: '17 20 * * 0'
   workflow_dispatch:
 
 permissions:

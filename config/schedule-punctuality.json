@@ -29,8 +29,8 @@
     },
     "weekly-health.yml": {
       "deadline_hkt": "08:00",
-      "enforcement": "enforced",
-      "why": "Header: 'Sundays 23:00 UTC (Monday 07:00 HKT, before the 08:00 brief and HK open)'. A drift check that lands after the week's first brief and open has already missed what it exists to catch."
+      "enforcement": "accepted",
+      "why": "A drift check that lands after the week's first brief and open has already missed what it exists to catch, so the deadline is real. At 23:00 UTC its 60-minute budget was consumed by GitHub's schedule drift: 11 of the last 20 runs were late and the last five arrived 97-141 minutes after the cron time (08:37-09:20 HKT), so `enforced` reddened cron-health every day from 2026-09-29 with nothing to act on. The cron moved to 20:17 UTC on 2026-10-02 (223-minute budget). Accepted while the measured window still holds the old schedule's late arrivals - it runs once a week, so that is five weeks; set it back to enforced once those have aged out and it reads ok."
     },
     "news-digest.yml": {
       "deadline_hkt": null,
