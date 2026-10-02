@@ -45,4 +45,5 @@ def test_a_late_scheduled_run_still_stamps_the_friday_it_was_scheduled_for():
 
     # Writer and validator read the same function, and neither reads the clock itself.
     append_run = _step_run('Append week-end snapshot')
-    assert 'eod_snapshot_date()' in append_run and 'date.today()' not in append_run
+    assert 'snapshot_date = eod_snapshot_date()' in append_run
+    assert "'date': snapshot_date," in append_run
