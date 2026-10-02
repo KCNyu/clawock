@@ -30,7 +30,11 @@ jobs:
           mkdir -p memory/archive
           python3 << 'PY'
           import json, csv, os
-          from datetime import date
+          from clawock.publish.artifacts import eod_snapshot_date
+
+          # The Friday this run was scheduled for, not the runner's calendar day:
+          # a late delivery crosses midnight UTC (#2279).
+          snapshot_date = eod_snapshot_date()
 
           p = json.load(open('portfolio.json'))
           rows = []
@@ -40,7 +44,7 @@ jobs:
               for h in leg.get('holdings', []):
                   if h.get('shares', 0) > 0:
                       rows.append({
-                          'date': str(date.today()),
+                          'date': snapshot_date,
                           'ticker': h['ticker'],
                           'name': h.get('name',''),
                           'currency': cur,

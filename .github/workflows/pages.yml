@@ -18,6 +18,9 @@ on:
       - 'memory/weekly/**'
       - 'config/pages-public.json'
       - 'ops/pages/**'
+      # Also read by the build (ops/pages imports the publisher's output list).
+      - 'config/dashboard-outputs.json'
+      - 'ops/publish/**'
   pull_request:
     paths:
       - '.github/workflows/pages.yml'
@@ -34,6 +37,9 @@ on:
       - 'memory/weekly/**'
       - 'config/pages-public.json'
       - 'ops/pages/**'
+      # Also read by the build (ops/pages imports the publisher's output list).
+      - 'config/dashboard-outputs.json'
+      - 'ops/publish/**'
   # The publisher asks for a deploy once a generation reaches the data branch
   # (#314). A push to that branch cannot do it: `push` runs the workflows on the
   # ref that was pushed, and an orphan data branch carries none. GitHub
