@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-01T18:35:19.613302+00:00",
+  "generated_at": "2026-10-02T01:03:26.341594+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,17 +24,17 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 23,
+    "total": 24,
     "held_hits": 1,
-    "new_ideas": 9,
-    "sector_hits": 7
+    "new_ideas": 6,
+    "sector_hits": 9
   },
   "items": [
     {
       "author": "Musk",
       "text": "Elon Musk Lowers Starship Expectations, Rocket Lab Surges On Electron Deal",
       "url": "",
-      "published": "Thu, 01 Oct 2026 14:41:00 GMT",
+      "published": "Thu, 01 Oct 2026 20:59:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
       "tickers": [
@@ -46,8 +46,7 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "火箭",
+        "航空航天",
         "电子元件"
       ],
       "sector_holdings": [
@@ -55,8 +54,94 @@
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 86,
-      "summary_cn": "媒体报道下调Starship预期之际，Rocket Lab因电子元件协议取得上涨催化，直接关联持仓RKLX。"
+      "relevance": 68,
+      "summary_cn": "媒体报道马斯克下调星舰预期后，Rocket Lab因电子元件交易消息股价上涨。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns Nvidia, AI Infrastructure Expansion Mirroring 1960s Computer Leasing Bubble",
+      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxPaHF1cmkzcG5pcTVHalU2YmtaMFlLc0VKd21EaVhOVlhqNlpfSU9FaWtRXzNNY3l0bDJIUlotMzB2Nl9YX0JjWFlwRl9JYnJKaGE0YlJPaWoxZGJ2SnlmMDNhSWxjM1k1c2xwZjl1RW0zNUJDc2gyXzlBanZBV3E0bXlqenRUM2otM25NcWFSd3FhV3lwSmtQUkN4Sk40MTBlSjJ2SU55WUpySmpzOW9vVllzYXpRVmtWaGVYVTFFRGYyT0NOZVhpZVhWNk1aWTloMFRIYXItWUVIc3Y3c1VEbk94ZFFCNHFaMmhkMkg1RQ?oc=5",
+      "published": "2026-10-01T21:37:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI基础设施",
+        "科技估值"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "据报道Michael Burry警告英伟达及AI基础设施扩张正在重演1960年代计算机租赁泡沫，直接质疑NVDA相关AI繁荣的可持续性。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpCongratulations to the GREAT Boeing Company for producing a plane, the 737 Max, that was able to withstand G Forces and Strain far beyond what it was designed and expected to do. It was an amazing show of precise and powerful structural planning and design. It is about time that The Boeing Company, which builds, by far, the finest commercial airliners in the sky, was given credit for this airplane’s incredible “genius!” To Kelly Ortberg, and all of his officers and associates at Boeing, congratulations on a job well done!!! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42061",
+      "published": "2026-10-01T14:58:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "BA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BA"
+      ],
+      "sectors": [
+        "航空航天",
+        "国防工业"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "特朗普赞扬波音及其737 Max的制造能力，称波音是全球最优秀的商用客机生产商。"
+    },
+    {
+      "author": "Burry",
+      "text": "Here’s What Michael Burry Sees in His Palantir Short That Others Don’t",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOMjF5UjBjbnNZeVkxS1ZJU1JDN0JCZTd0c3ZucVhRRFBoWDhKUzEtVWdoaXRGZE5YV0NfQUo4c1RYcTRTcS1FamFoYUNtM0NLX3lYWF9FX21HbHRsdGE3em5zQmJWTDF3bkRXUW1PRnp5WmVwNFVWX1J6RldwUzlKa1l3ekc3NkUwS2RYQ1ZuSXdUTUE2WDg5WmJzRFV6em0yQklwVVNhVEhmbmM4bFAzcC1B?oc=5",
+      "published": "2026-10-01T12:17:55+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "人工智能",
+        "软件",
+        "国防科技",
+        "做空"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道Michael Burry继续看空Palantir，并强调其做空逻辑区别于市场其他观点。"
     },
     {
       "author": "Musk",
@@ -78,169 +163,8 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "媒体援引分析师称特斯拉第三季度全球销量可能下降，反映其汽车业务需求承压。"
-    },
-    {
-      "author": "Burry",
-      "text": "Here’s What Michael Burry Sees in His Palantir Short That Others Don’t",
-      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOMjF5UjBjbnNZeVkxS1ZJU1JDN0JCZTd0c3ZucVhRRFBoWDhKUzEtVWdoaXRGZE5YV0NfQUo4c1RYcTRTcS1FamFoYUNtM0NLX3lYWF9FX21HbHRsdGE3em5zQmJWTDF3bkRXUW1PRnp5WmVwNFVWX1J6RldwUzlKa1l3ekc3NkUwS2RYQ1ZuSXdUTUE2WDg5WmJzRFV6em0yQklwVVNhVEhmbmM4bFAzcC1B?oc=5",
-      "published": "2026-10-01T12:17:55+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PLTR"
-      ],
-      "sectors": [
-        "AI",
-        "软件",
-        "大数据"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry持续做空Palantir，并认为市场参与者低估了其做空依据。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Tesla Just Secured a $30B Lifeline — BNP Warns the Real Funding Need May Be Much Bigger",
-      "url": "",
-      "published": "Thu, 01 Oct 2026 10:30:13 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车",
-        "资本市场"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "媒体报道特斯拉获得300亿美元融资支持，但BNP警告其实际资金需求可能更高。"
-    },
-    {
-      "author": "Burry",
-      "text": "SOXX Posts Worst Quarter In Over A Year — Michael Burry Cites An 1880 Story To Flag AI’s ‘Power-Hungry’ Chip Race",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOc1p2cVZGVnlYTmh5emxiUHo4YnhyMzRtZVo5dzlZZWNUUWtFR3F3NHFzZjdZcEpVWFNJOU8yVDRBbkIyUlVKOHZuLThUbTVuVzZoZTRULVU1TUFpU1FBM1JNc19GZ2x2cDZ5TUlRZGJpdWVROHgwRUF5clNZcm1yVDJlWU1nLXQ4cTBoXzJQVFpwdzZiSXkwdEdR?oc=5",
-      "published": "2026-10-01T07:31:40+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SOXX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SOXX"
-      ],
-      "sectors": [
-        "半导体",
-        "AI",
-        "芯片"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 74,
-      "summary_cn": "据报道，Michael Burry以历史类比警示AI芯片竞赛过度消耗电力，使SOXX半导体ETF面临估值担忧。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry's New Bet Against Micron Stock Expires in June 2027. I Think His Timing Is Off.",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPeUJFX28yU0RvVnVnT2RoMldna2ZrZkJfd3d4TWpOcGUtaTdIcFZIaHFjeFJYRWJ5UHFZd1FCd2xTSHFKTTZzQjRSb1Boam1VTWNTQk5JVDREdGxxcnF0Q3BNTmVyRzdyTkNVbmVNUEhDRHE1RllHcG4tMGs0VmZTX0ZmSHpWV3g5YXotRTEycnJ3RmRfeEdNdEQxaTh3SzhkX29LaTBpSGNYLVVjTjVRZzBVWF9vV1VVU3FlbDFEWEpPcGlPeEFxaFJYNjVhbTg?oc=5",
-      "published": "2026-10-01T08:37:00+00:00",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "存储芯片",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "报道聚焦Michael Burry针对美光科技的看跌押注，该头寸持续至2027年6月。"
-    },
-    {
-      "author": "Trump",
-      "text": "Congratulations to the GREAT Boeing Company for producing a plane, the 737 Max, that was able to withstand G Forces and Strain far beyond what it was designed and expected to do. It was an amazing show of precise and powerful structural planning and design. It is about time that The Boeing Company, which builds, by far, the finest commercial airliners in the sky, was given credit for this airplane’s incredible “genius!” To Kelly Ortberg, and all of his officers and associates at Boeing, congratulations on a job well done!!! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42059",
-      "published": "2026-10-01T04:40:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BA"
-      ],
-      "sectors": [
-        "航空航天",
-        "商用飞机"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "特朗普称赞波音及其737 MAX的耐撞设计与结构工程能力，并给予明确正面背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
-      "url": "",
-      "published": "Wed, 30 Sep 2026 01:39:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [
-        "T"
-      ],
-      "held": [],
-      "new_ideas": [
-        "T"
-      ],
-      "sectors": [
-        "电信",
-        "卫星通信",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "AT&T首席执行官据报道否定Musk旗下SpaceX的手机战略，认为其商业可行性不足。"
+      "summary_cn": "据报道分析师认为特斯拉第三季度全球销量可能下滑，显示市场对其汽车业务需求转弱。"
     },
     {
       "author": "Cathie Wood",
@@ -258,14 +182,13 @@
         "NTLA"
       ],
       "sectors": [
-        "基因治疗",
-        "生物科技",
-        "医疗"
+        "基因编辑",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 58,
-      "summary_cn": "ARK于2026年9月30日买入INTELLIA THERAPEUTICS，ARKK和ARKG单只ETF最大占比仅0.06%，属于常规小额加仓。"
+      "summary_cn": "ARK Invest买入Intellia Therapeutics约36.5万股，但单日最大单只ETF占比仅0.06%，属于常规规模调仓。"
     },
     {
       "author": "Cathie Wood",
@@ -283,66 +206,13 @@
         "VCYT"
       ],
       "sectors": [
-        "基因诊断",
-        "医疗",
+        "基因检测",
         "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 53,
-      "summary_cn": "ARK于2026年9月30日买入Veracyte，ARKK单只ETF占比仅0.04%，属于常规再平衡级别的小额加仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk is being tapped to co-lead the Pentagon's \"Project Meridian,\" which has 120 days to identify the weapons, technology and military capabilities the US may need for future wars. Musk's SpaceX and Palmer Luckey's Anduril already have extensive Pe",
-      "url": "",
-      "published": "Thu, 01 Oct 2026 14:24:49 GMT",
-      "origin": "gnews-rss",
-      "source": "facebook.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防科技",
-        "航天",
-        "军工",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，Musk将共同牵头五角大楼Project Meridian，为期120天评估未来战争所需的武器和技术能力。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry wants market crash to stop OpenAI, Anthropic IPOs",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE52czdLUE51R2xKU0lac1JvY2NsZ0Q1ZHp1cWlnVC1Xd0k2ZUJtb2dELUJfWEY1Z3R5OTBQbnVSWE91dmF5a2JRTENfYUxhdndoMng0OTdXak9la204QVlXa2tDNXFEVGs1Q1ZYeVRBcmdubVVTNXUwcg?oc=5",
-      "published": "2026-10-01T11:33:50+00:00",
-      "origin": "gnews-rss",
-      "source": "qz.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "IPO",
-        "风险投资",
-        "监管"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry希望以市场崩跌阻止未上市的OpenAI和Anthropic推进IPO，对AI一级市场估值构成负面信号。"
+      "relevance": 48,
+      "summary_cn": "ARK Invest买入Veracyte约7.6万股，但单日单只ETF占比仅0.04%，属于常规规模调仓。"
     },
     {
       "author": "洪灏",
@@ -356,44 +226,18 @@
       "new_ideas": [],
       "sectors": [
         "中国股市",
-        "中资股",
         "港股",
-        "科技股"
+        "科技股",
+        "宏观资金流"
       ],
       "sector_holdings": [
-        "00100",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "endorse",
-      "relevance": 69,
-      "summary_cn": "据报道，洪灏称中资股在10月左右可能迎来技术性反弹，理由包括外资低配、市场超卖和情绪低迷。"
-    },
-    {
-      "author": "洪灏",
-      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPTjNKZFI2ODYzWEF1WENBa3J4VWZkeU01ZEotZUZCc0VORDY1MUx4VElFMlRISGpUdGZpcEduRkRySWt5eEpnMFNONl9PZC1kcTkyNXNjV2pTYURMOHh0bVg5MmlOa3hnQW9rX19TOF9EaTZCaGtvWlhTRlZ5QzU3b2ZSZ2N4blF1eE5yM0pRX2t2N3UtREN6UWVjRmFaUVFTdjBJNml6a2Fhbm5hZnpPdi1TTllzb1ZDZG1BcTJ1ZjhqdHh2Tk5ObmZ3dzRjZnZoNFZ0cnZsNTI2WW1uWVUxa3ZEaTFMTkY4RlFpWDZFM0U0MnF3TDRDTkxwQ3ZxaEJqa01uOVlB?oc=5",
-      "published": "2026-09-30T17:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "中国互联网",
-        "科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，洪灏在互联网模式承压的背景下仍认为AI板块应当反弹。"
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道洪灏认为外资低配、市场超卖且情绪低迷，中资股可能在10月迎来技术性反弹。"
     },
     {
       "author": "洪灏",
@@ -408,6 +252,30 @@
       "sectors": [
         "中国股市",
         "港股",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "据报道洪灏认为中国股市已超卖，10月可能出现一轮反弹。"
+    },
+    {
+      "author": "洪灏",
+      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
+      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPTjNKZFI2ODYzWEF1WENBa3J4VWZkeU01ZEotZUZCc0VORDY1MUx4VElFMlRISGpUdGZpcEduRkRySWt5eEpnMFNONl9PZC1kcTkyNXNjV2pTYURMOHh0bVg5MmlOa3hnQW9rX19TOF9EaTZCaGtvWlhTRlZ5QzU3b2ZSZ2N4blF1eE5yM0pRX2t2N3UtREN6UWVjRmFaUVFTdjBJNml6a2Fhbm5hZnpPdi1TTllzb1ZDZG1BcTJ1ZjhqdHh2Tk5ObmZ3dzRjZnZoNFZ0cnZsNTI2WW1uWVUxa3ZEaTFMTkY4RlFpWDZFM0U0MnF3TDRDTkxwQ3ZxaEJqa01uOVlB?oc=5",
+      "published": "2026-09-30T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "中国互联网",
         "科技股"
       ],
       "sector_holdings": [
@@ -416,9 +284,107 @@
         "03033",
         "07226"
       ],
-      "stance": "endorse",
+      "stance": "buy",
       "relevance": 66,
-      "summary_cn": "据报道，洪灏认为中国股市已经超卖，10月可能出现反弹。"
+      "summary_cn": "据报道洪灏认为互联网商业模式正在崩塌，并判断AI板块应会出现反弹。"
+    },
+    {
+      "author": "洪灏",
+      "text": "東方日報B1：中港股今季宜撈貨 科網企反彈可期",
+      "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQmoxRmo1THNLbEh1SGlJWHBweGxPZEk0SEZxTmdLb19TQzdLWURINGZfcW5heDY5R0ZwYy1MY1RpVXFsamNfQVNPWjZ6Wk1ZRS1sWkRDNUtRdDNZSUxqUW9ZekVwamlLVVhBUjBvRVhCVkdzbW56Z1hEVGtJSmJZT3dRYmZzUU04aGpV?oc=5",
+      "published": "2026-10-02T00:55:12+00:00",
+      "origin": "gnews-rss",
+      "source": "hk.on.cc",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股市",
+        "港股",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 64,
+      "summary_cn": "据报道洪灏认为中港股四季度适合逢低吸纳，并预期科技网络股反弹。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry is rooting for a market crash to stop the OpenAI and Anthropic IPOs",
+      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE52czdLUE51R2xKU0lac1JvY2NsZ0Q1ZHp1cWlnVC1Xd0k2ZUJtb2dELUJfWEY1Z3R5OTBQbnVSWE91dmF5a2JRTENfYUxhdndoMng0OTdXak9la204QVlXa2tDNXFEVGs1Q1ZYeVRBcmdubVVTNXUwcg?oc=5",
+      "published": "2026-10-01T11:33:50+00:00",
+      "origin": "gnews-rss",
+      "source": "qz.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "IPO市场",
+        "科技估值"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 64,
+      "summary_cn": "据报道Michael Burry希望市场崩盘，以阻止OpenAI和Anthropic上市，反映其对AI估值和IPO行情的看空态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, SpaceXAI subpoenaed by NYC in AI safety investigation",
+      "url": "",
+      "published": "Mon, 28 Sep 2026 19:01:56 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "航天",
+        "AI监管"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 63,
+      "summary_cn": "据报道SpaceX和xAI因人工智能安全问题被纽约市传票调查。"
+    },
+    {
+      "author": "Musk",
+      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 01:39:29 GMT",
+      "origin": "gnews-rss",
+      "source": "axios.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信",
+        "卫星通信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "据报道美国电话电报公司首席执行官认为马斯克的SpaceX手机战略不可行。"
     },
     {
       "author": "Musk",
@@ -426,47 +392,49 @@
       "url": "",
       "published": "Wed, 30 Sep 2026 22:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Guardian",
+      "source": "theguardian.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "国防科技",
-        "航天",
-        "政府政策"
+        "人工智能",
+        "航天"
       ],
       "sector_holdings": [
+        "00100",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "据报道，Hegseth任命Musk加入美国未来战争任务组，体现其与五角大楼合作深化。"
+      "relevance": 60,
+      "summary_cn": "据报道美国国防部长皮特·赫格塞思任命马斯克加入未来战争特别工作组。"
     },
     {
       "author": "Musk",
       "text": "Elon Musk to return his attention to government, advise Pentagon on future of war",
       "url": "",
-      "published": "Thu, 01 Oct 2026 17:42:03 GMT",
+      "published": "Thu, 01 Oct 2026 20:10:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "source": "washingtonpost.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "国防科技",
         "航天",
-        "政府政策"
+        "人工智能"
       ],
       "sector_holdings": [
+        "00100",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 59,
-      "summary_cn": "据媒体报道，Musk将把更多注意力转向政府并为五角大楼提供未来战争战略建议。"
+      "relevance": 58,
+      "summary_cn": "据报道马斯克将重新参与政府事务，并就未来战争向五角大楼提供建议。"
     },
     {
       "author": "Trump",
@@ -480,33 +448,13 @@
       "sectors": [
         "能源",
         "电力基础设施",
-        "美韩贸易",
-        "宏观投资"
+        "制造业",
+        "美韩投资"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "buy",
       "relevance": 78,
-      "summary_cn": "特朗普称与美国韩国总统达成协议，将推动2000亿美元对美投资，重点建设能源和电力基础设施项目。"
-    },
-    {
-      "author": "Trump",
-      "text": "In New York, I met with Lee Jae Myung, the President of the Republic of Korea, and we agreed to launch 200 Billion Dollars of new Investments in AMERICA! We will build American Energy and American Power across the United States under my 350 BILLION DOLLAR Korea Strategic Trade and Investment Deal that I reached with President Myung last year.We are turning Korea’s Investment commitments into HUGE Construction Projects, and tens of thousands of AMERICAN JOBS. These are massive Energy Projects, adding Power Capacity in the United States. This is new Construction, new Manufacturing, and GREAT Job",
-      "url": "https://www.trumpstruth.org/statuses/42037",
-      "published": "2026-10-01T00:41:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "电力基础设施",
-        "美韩贸易",
-        "宏观投资"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特朗普宣布韩国拟启动2000亿美元对美投资，将转化为能源、电力、制造和建设等大型项目。"
+      "summary_cn": "特朗普称美韩将推动2000亿美元新投资，在美国建设能源、电力和制造业项目并增加就业。"
     },
     {
       "author": "Trump",
@@ -519,34 +467,13 @@
       "new_ideas": [],
       "sectors": [
         "汽车",
-        "燃油车",
         "电动车",
-        "监管"
+        "能源效率监管"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 74,
-      "summary_cn": "路透报道美国最终确定更宽松的燃油经济性标准，利好高油耗燃油车并提高车企合规空间。"
-    },
-    {
-      "author": "Trump",
-      "text": "Iran’s economy will have ‘nothing’ left ‘within two weeks,’ Scott Bessent warns: https://nypost.com/2026/09/27/us-news/irans-economy-will-have-nothing-left-within-two-weeks-scott-bessent-warns/",
-      "url": "https://www.trumpstruth.org/statuses/42054",
-      "published": "2026-10-01T02:19:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "伊朗经济",
-        "地缘政治",
-        "能源",
-        "原油"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "特朗普转发相关报道并援引贝森特对伊朗经济可能迅速恶化的警告，显示地缘冲突风险上升。"
+      "relevance": 72,
+      "summary_cn": "路透报道称美国敲定更宽松的燃油经济性标准，政策利好汽油车并可能削弱电动车强制需求。"
     },
     {
       "author": "Trump",
@@ -560,12 +487,69 @@
       "sectors": [
         "汽车",
         "燃油车",
-        "监管"
+        "能源效率监管"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 67,
-      "summary_cn": "特朗普政府据报废除前任政府的燃油经济性规定，预计将降低传统燃油车成本并放宽监管要求。"
+      "summary_cn": "特朗普政府据报道取消拜登时期的燃油经济性规则，预计新规将使汽车成本降低约1300美元，利好高油耗燃油车。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran’s economy will have ‘nothing’ left ‘within two weeks,’ Scott Bessent warns: https://nypost.com/2026/09/27/us-news/irans-economy-will-have-nothing-left-within-two-weeks-scott-bessent-warns/",
+      "url": "https://www.trumpstruth.org/statuses/42054",
+      "published": "2026-10-01T02:19:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "伊朗经济",
+        "能源",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道美国财政部长贝森特警告伊朗经济将在两周内几乎被摧毁，提升能源和地缘政治风险关注度。"
+    },
+    {
+      "author": "Trump",
+      "text": "Prices are way down from what Biden and the Dumocrats left us. It’s why I won the Election, and now prices are coming down, RAPIDLY. It’s the Dumocrats’ fault, not the fault of the Republicans — But we are fixing it! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42072",
+      "published": "2026-10-01T18:38:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "特朗普称美国价格正在快速下降，并将通胀回落归因于其执政团队的修复工作。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "The Senate Just Voted Down a Ban on Congressional Stock Trading",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNa0g0cF8xWGhKNGVTVncxWkhSQTFVRXNzM3N6M1UzdjgyRmg4R2dIOHBWZXJHaks5ZU9TellxVXZUWl9zRm90dHBUZW5ma1pCZjdTVDZhZElkN2xwVmd0X2JjbmthVnpwb2NOQmJCb0VvYnpYTGxkUXE5Q0w4c2F6Z1djVE9SWk4ycnlMdU1UUnRWanNGQUlISF9VbmhxeDFyVHAwbkl2cWhrN1U?oc=5",
+      "published": "2026-10-01T12:15:00+00:00",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国会监管",
+        "内幕交易",
+        "金融监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道美国参议院否决禁止国会议员股票交易的提案，凸显卡尔交易监管进展不确定。"
     },
     {
       "author": "Pelosi",
@@ -579,13 +563,33 @@
       "new_ideas": [],
       "sectors": [
         "国会监管",
-        "金融监管",
-        "内幕交易"
+        "内幕交易",
+        "金融监管"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，美国民主党议员一致投票反对禁止国会议员交易股票，可能削弱相关监管推进。"
+      "relevance": 52,
+      "summary_cn": "据报道美国民主党人一致投票反对《禁止国会内幕交易法案》，影响国会议员交易监管预期。"
+    },
+    {
+      "author": "Burry",
+      "text": "Big Short’s Michael Burry Leads Group Suing to Block Silicon Valley Housing Project",
+      "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPSnoxcDBBUHJVbTNOS1ZIaFVJRy1qUDFvQzFTUGlrZU5rb0daTHhsVE4tREstcC05VHVBdDd3T1dweXROVXRNOHB2NUlGaG16TzFiZ1JiS190aTNDY2pIeUFPbkVvSU9PMThHVjdPVHdlYjMwdkJSd1hBNEw3TXlsbjg5b0dycER1QXBNakZNbnVPSmxRM3k2X2RKU1k1eVZOajA5bGptb1RUeExJTU5DbW90dGtOcERCd0ZIZjN2SQ?oc=5",
+      "published": "2026-10-01T17:34:22+00:00",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "房地产",
+        "科技园区",
+        "诉讼"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "据报道Michael Burry参与诉讼，试图阻止硅谷一个大型住房项目。"
     }
   ],
   "held_hits": [
@@ -593,7 +597,7 @@
       "author": "Musk",
       "text": "Elon Musk Lowers Starship Expectations, Rocket Lab Surges On Electron Deal",
       "url": "",
-      "published": "Thu, 01 Oct 2026 14:41:00 GMT",
+      "published": "Thu, 01 Oct 2026 20:59:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
       "tickers": [
@@ -605,8 +609,7 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "火箭",
+        "航空航天",
         "电子元件"
       ],
       "sector_holdings": [
@@ -614,11 +617,97 @@
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 86,
-      "summary_cn": "媒体报道下调Starship预期之际，Rocket Lab因电子元件协议取得上涨催化，直接关联持仓RKLX。"
+      "relevance": 68,
+      "summary_cn": "媒体报道马斯克下调星舰预期后，Rocket Lab因电子元件交易消息股价上涨。"
     }
   ],
   "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns Nvidia, AI Infrastructure Expansion Mirroring 1960s Computer Leasing Bubble",
+      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxPaHF1cmkzcG5pcTVHalU2YmtaMFlLc0VKd21EaVhOVlhqNlpfSU9FaWtRXzNNY3l0bDJIUlotMzB2Nl9YX0JjWFlwRl9JYnJKaGE0YlJPaWoxZGJ2SnlmMDNhSWxjM1k1c2xwZjl1RW0zNUJDc2gyXzlBanZBV3E0bXlqenRUM2otM25NcWFSd3FhV3lwSmtQUkN4Sk40MTBlSjJ2SU55WUpySmpzOW9vVllzYXpRVmtWaGVYVTFFRGYyT0NOZVhpZVhWNk1aWTloMFRIYXItWUVIc3Y3c1VEbk94ZFFCNHFaMmhkMkg1RQ?oc=5",
+      "published": "2026-10-01T21:37:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI基础设施",
+        "科技估值"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "据报道Michael Burry警告英伟达及AI基础设施扩张正在重演1960年代计算机租赁泡沫，直接质疑NVDA相关AI繁荣的可持续性。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpCongratulations to the GREAT Boeing Company for producing a plane, the 737 Max, that was able to withstand G Forces and Strain far beyond what it was designed and expected to do. It was an amazing show of precise and powerful structural planning and design. It is about time that The Boeing Company, which builds, by far, the finest commercial airliners in the sky, was given credit for this airplane’s incredible “genius!” To Kelly Ortberg, and all of his officers and associates at Boeing, congratulations on a job well done!!! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42061",
+      "published": "2026-10-01T14:58:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "BA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BA"
+      ],
+      "sectors": [
+        "航空航天",
+        "国防工业"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "特朗普赞扬波音及其737 Max的制造能力，称波音是全球最优秀的商用客机生产商。"
+    },
+    {
+      "author": "Burry",
+      "text": "Here’s What Michael Burry Sees in His Palantir Short That Others Don’t",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOMjF5UjBjbnNZeVkxS1ZJU1JDN0JCZTd0c3ZucVhRRFBoWDhKUzEtVWdoaXRGZE5YV0NfQUo4c1RYcTRTcS1FamFoYUNtM0NLX3lYWF9FX21HbHRsdGE3em5zQmJWTDF3bkRXUW1PRnp5WmVwNFVWX1J6RldwUzlKa1l3ekc3NkUwS2RYQ1ZuSXdUTUE2WDg5WmJzRFV6em0yQklwVVNhVEhmbmM4bFAzcC1B?oc=5",
+      "published": "2026-10-01T12:17:55+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "人工智能",
+        "软件",
+        "国防科技",
+        "做空"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道Michael Burry继续看空Palantir，并强调其做空逻辑区别于市场其他观点。"
+    },
     {
       "author": "Musk",
       "text": "Tesla global sales likely down in third quarter, analysts say",
@@ -639,169 +728,8 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "媒体援引分析师称特斯拉第三季度全球销量可能下降，反映其汽车业务需求承压。"
-    },
-    {
-      "author": "Burry",
-      "text": "Here’s What Michael Burry Sees in His Palantir Short That Others Don’t",
-      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOMjF5UjBjbnNZeVkxS1ZJU1JDN0JCZTd0c3ZucVhRRFBoWDhKUzEtVWdoaXRGZE5YV0NfQUo4c1RYcTRTcS1FamFoYUNtM0NLX3lYWF9FX21HbHRsdGE3em5zQmJWTDF3bkRXUW1PRnp5WmVwNFVWX1J6RldwUzlKa1l3ekc3NkUwS2RYQ1ZuSXdUTUE2WDg5WmJzRFV6em0yQklwVVNhVEhmbmM4bFAzcC1B?oc=5",
-      "published": "2026-10-01T12:17:55+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PLTR"
-      ],
-      "sectors": [
-        "AI",
-        "软件",
-        "大数据"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry持续做空Palantir，并认为市场参与者低估了其做空依据。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Tesla Just Secured a $30B Lifeline — BNP Warns the Real Funding Need May Be Much Bigger",
-      "url": "",
-      "published": "Thu, 01 Oct 2026 10:30:13 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车",
-        "资本市场"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "媒体报道特斯拉获得300亿美元融资支持，但BNP警告其实际资金需求可能更高。"
-    },
-    {
-      "author": "Burry",
-      "text": "SOXX Posts Worst Quarter In Over A Year — Michael Burry Cites An 1880 Story To Flag AI’s ‘Power-Hungry’ Chip Race",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOc1p2cVZGVnlYTmh5emxiUHo4YnhyMzRtZVo5dzlZZWNUUWtFR3F3NHFzZjdZcEpVWFNJOU8yVDRBbkIyUlVKOHZuLThUbTVuVzZoZTRULVU1TUFpU1FBM1JNc19GZ2x2cDZ5TUlRZGJpdWVROHgwRUF5clNZcm1yVDJlWU1nLXQ4cTBoXzJQVFpwdzZiSXkwdEdR?oc=5",
-      "published": "2026-10-01T07:31:40+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SOXX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SOXX"
-      ],
-      "sectors": [
-        "半导体",
-        "AI",
-        "芯片"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 74,
-      "summary_cn": "据报道，Michael Burry以历史类比警示AI芯片竞赛过度消耗电力，使SOXX半导体ETF面临估值担忧。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry's New Bet Against Micron Stock Expires in June 2027. I Think His Timing Is Off.",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPeUJFX28yU0RvVnVnT2RoMldna2ZrZkJfd3d4TWpOcGUtaTdIcFZIaHFjeFJYRWJ5UHFZd1FCd2xTSHFKTTZzQjRSb1Boam1VTWNTQk5JVDREdGxxcnF0Q3BNTmVyRzdyTkNVbmVNUEhDRHE1RllHcG4tMGs0VmZTX0ZmSHpWV3g5YXotRTEycnJ3RmRfeEdNdEQxaTh3SzhkX29LaTBpSGNYLVVjTjVRZzBVWF9vV1VVU3FlbDFEWEpPcGlPeEFxaFJYNjVhbTg?oc=5",
-      "published": "2026-10-01T08:37:00+00:00",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "存储芯片",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "报道聚焦Michael Burry针对美光科技的看跌押注，该头寸持续至2027年6月。"
-    },
-    {
-      "author": "Trump",
-      "text": "Congratulations to the GREAT Boeing Company for producing a plane, the 737 Max, that was able to withstand G Forces and Strain far beyond what it was designed and expected to do. It was an amazing show of precise and powerful structural planning and design. It is about time that The Boeing Company, which builds, by far, the finest commercial airliners in the sky, was given credit for this airplane’s incredible “genius!” To Kelly Ortberg, and all of his officers and associates at Boeing, congratulations on a job well done!!! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42059",
-      "published": "2026-10-01T04:40:35+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BA"
-      ],
-      "sectors": [
-        "航空航天",
-        "商用飞机"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "特朗普称赞波音及其737 MAX的耐撞设计与结构工程能力，并给予明确正面背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
-      "url": "",
-      "published": "Wed, 30 Sep 2026 01:39:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [
-        "T"
-      ],
-      "held": [],
-      "new_ideas": [
-        "T"
-      ],
-      "sectors": [
-        "电信",
-        "卫星通信",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "AT&T首席执行官据报道否定Musk旗下SpaceX的手机战略，认为其商业可行性不足。"
+      "summary_cn": "据报道分析师认为特斯拉第三季度全球销量可能下滑，显示市场对其汽车业务需求转弱。"
     },
     {
       "author": "Cathie Wood",
@@ -819,14 +747,13 @@
         "NTLA"
       ],
       "sectors": [
-        "基因治疗",
-        "生物科技",
-        "医疗"
+        "基因编辑",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 58,
-      "summary_cn": "ARK于2026年9月30日买入INTELLIA THERAPEUTICS，ARKK和ARKG单只ETF最大占比仅0.06%，属于常规小额加仓。"
+      "summary_cn": "ARK Invest买入Intellia Therapeutics约36.5万股，但单日最大单只ETF占比仅0.06%，属于常规规模调仓。"
     },
     {
       "author": "Cathie Wood",
@@ -844,69 +771,16 @@
         "VCYT"
       ],
       "sectors": [
-        "基因诊断",
-        "医疗",
+        "基因检测",
         "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 53,
-      "summary_cn": "ARK于2026年9月30日买入Veracyte，ARKK单只ETF占比仅0.04%，属于常规再平衡级别的小额加仓。"
+      "relevance": 48,
+      "summary_cn": "ARK Invest买入Veracyte约7.6万股，但单日单只ETF占比仅0.04%，属于常规规模调仓。"
     }
   ],
   "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk is being tapped to co-lead the Pentagon's \"Project Meridian,\" which has 120 days to identify the weapons, technology and military capabilities the US may need for future wars. Musk's SpaceX and Palmer Luckey's Anduril already have extensive Pe",
-      "url": "",
-      "published": "Thu, 01 Oct 2026 14:24:49 GMT",
-      "origin": "gnews-rss",
-      "source": "facebook.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防科技",
-        "航天",
-        "军工",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，Musk将共同牵头五角大楼Project Meridian，为期120天评估未来战争所需的武器和技术能力。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry wants market crash to stop OpenAI, Anthropic IPOs",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE52czdLUE51R2xKU0lac1JvY2NsZ0Q1ZHp1cWlnVC1Xd0k2ZUJtb2dELUJfWEY1Z3R5OTBQbnVSWE91dmF5a2JRTENfYUxhdndoMng0OTdXak9la204QVlXa2tDNXFEVGs1Q1ZYeVRBcmdubVVTNXUwcg?oc=5",
-      "published": "2026-10-01T11:33:50+00:00",
-      "origin": "gnews-rss",
-      "source": "qz.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "IPO",
-        "风险投资",
-        "监管"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry希望以市场崩跌阻止未上市的OpenAI和Anthropic推进IPO，对AI一级市场估值构成负面信号。"
-    },
     {
       "author": "洪灏",
       "text": "【名家看法】洪灝：中資股有望在10月左右迎來一輪技術反彈 外資低配、市場超賣、情緒非常低迷",
@@ -919,44 +793,18 @@
       "new_ideas": [],
       "sectors": [
         "中国股市",
-        "中资股",
         "港股",
-        "科技股"
+        "科技股",
+        "宏观资金流"
       ],
       "sector_holdings": [
-        "00100",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "endorse",
-      "relevance": 69,
-      "summary_cn": "据报道，洪灏称中资股在10月左右可能迎来技术性反弹，理由包括外资低配、市场超卖和情绪低迷。"
-    },
-    {
-      "author": "洪灏",
-      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPTjNKZFI2ODYzWEF1WENBa3J4VWZkeU01ZEotZUZCc0VORDY1MUx4VElFMlRISGpUdGZpcEduRkRySWt5eEpnMFNONl9PZC1kcTkyNXNjV2pTYURMOHh0bVg5MmlOa3hnQW9rX19TOF9EaTZCaGtvWlhTRlZ5QzU3b2ZSZ2N4blF1eE5yM0pRX2t2N3UtREN6UWVjRmFaUVFTdjBJNml6a2Fhbm5hZnpPdi1TTllzb1ZDZG1BcTJ1ZjhqdHh2Tk5ObmZ3dzRjZnZoNFZ0cnZsNTI2WW1uWVUxa3ZEaTFMTkY4RlFpWDZFM0U0MnF3TDRDTkxwQ3ZxaEJqa01uOVlB?oc=5",
-      "published": "2026-09-30T17:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "中国互联网",
-        "科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，洪灏在互联网模式承压的背景下仍认为AI板块应当反弹。"
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道洪灏认为外资低配、市场超卖且情绪低迷，中资股可能在10月迎来技术性反弹。"
     },
     {
       "author": "洪灏",
@@ -971,6 +819,30 @@
       "sectors": [
         "中国股市",
         "港股",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "据报道洪灏认为中国股市已超卖，10月可能出现一轮反弹。"
+    },
+    {
+      "author": "洪灏",
+      "text": "互聯網模式崩塌 洪灝：AI應該反彈",
+      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxPTjNKZFI2ODYzWEF1WENBa3J4VWZkeU01ZEotZUZCc0VORDY1MUx4VElFMlRISGpUdGZpcEduRkRySWt5eEpnMFNONl9PZC1kcTkyNXNjV2pTYURMOHh0bVg5MmlOa3hnQW9rX19TOF9EaTZCaGtvWlhTRlZ5QzU3b2ZSZ2N4blF1eE5yM0pRX2t2N3UtREN6UWVjRmFaUVFTdjBJNml6a2Fhbm5hZnpPdi1TTllzb1ZDZG1BcTJ1ZjhqdHh2Tk5ObmZ3dzRjZnZoNFZ0cnZsNTI2WW1uWVUxa3ZEaTFMTkY4RlFpWDZFM0U0MnF3TDRDTkxwQ3ZxaEJqa01uOVlB?oc=5",
+      "published": "2026-09-30T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "中国互联网",
         "科技股"
       ],
       "sector_holdings": [
@@ -979,9 +851,107 @@
         "03033",
         "07226"
       ],
-      "stance": "endorse",
+      "stance": "buy",
       "relevance": 66,
-      "summary_cn": "据报道，洪灏认为中国股市已经超卖，10月可能出现反弹。"
+      "summary_cn": "据报道洪灏认为互联网商业模式正在崩塌，并判断AI板块应会出现反弹。"
+    },
+    {
+      "author": "洪灏",
+      "text": "東方日報B1：中港股今季宜撈貨 科網企反彈可期",
+      "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQmoxRmo1THNLbEh1SGlJWHBweGxPZEk0SEZxTmdLb19TQzdLWURINGZfcW5heDY5R0ZwYy1MY1RpVXFsamNfQVNPWjZ6Wk1ZRS1sWkRDNUtRdDNZSUxqUW9ZekVwamlLVVhBUjBvRVhCVkdzbW56Z1hEVGtJSmJZT3dRYmZzUU04aGpV?oc=5",
+      "published": "2026-10-02T00:55:12+00:00",
+      "origin": "gnews-rss",
+      "source": "hk.on.cc",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股市",
+        "港股",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 64,
+      "summary_cn": "据报道洪灏认为中港股四季度适合逢低吸纳，并预期科技网络股反弹。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry is rooting for a market crash to stop the OpenAI and Anthropic IPOs",
+      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE52czdLUE51R2xKU0lac1JvY2NsZ0Q1ZHp1cWlnVC1Xd0k2ZUJtb2dELUJfWEY1Z3R5OTBQbnVSWE91dmF5a2JRTENfYUxhdndoMng0OTdXak9la204QVlXa2tDNXFEVGs1Q1ZYeVRBcmdubVVTNXUwcg?oc=5",
+      "published": "2026-10-01T11:33:50+00:00",
+      "origin": "gnews-rss",
+      "source": "qz.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "IPO市场",
+        "科技估值"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 64,
+      "summary_cn": "据报道Michael Burry希望市场崩盘，以阻止OpenAI和Anthropic上市，反映其对AI估值和IPO行情的看空态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk, SpaceXAI subpoenaed by NYC in AI safety investigation",
+      "url": "",
+      "published": "Mon, 28 Sep 2026 19:01:56 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "航天",
+        "AI监管"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 63,
+      "summary_cn": "据报道SpaceX和xAI因人工智能安全问题被纽约市传票调查。"
+    },
+    {
+      "author": "Musk",
+      "text": "AT&T CEO says Elon Musk's SpaceX phone strategy not \"viable\"",
+      "url": "",
+      "published": "Wed, 30 Sep 2026 01:39:29 GMT",
+      "origin": "gnews-rss",
+      "source": "axios.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电信",
+        "卫星通信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "据报道美国电话电报公司首席执行官认为马斯克的SpaceX手机战略不可行。"
     },
     {
       "author": "Musk",
@@ -989,47 +959,49 @@
       "url": "",
       "published": "Wed, 30 Sep 2026 22:48:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Guardian",
+      "source": "theguardian.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "国防科技",
-        "航天",
-        "政府政策"
+        "人工智能",
+        "航天"
       ],
       "sector_holdings": [
+        "00100",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "据报道，Hegseth任命Musk加入美国未来战争任务组，体现其与五角大楼合作深化。"
+      "relevance": 60,
+      "summary_cn": "据报道美国国防部长皮特·赫格塞思任命马斯克加入未来战争特别工作组。"
     },
     {
       "author": "Musk",
       "text": "Elon Musk to return his attention to government, advise Pentagon on future of war",
       "url": "",
-      "published": "Thu, 01 Oct 2026 17:42:03 GMT",
+      "published": "Thu, 01 Oct 2026 20:10:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "source": "washingtonpost.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "国防科技",
         "航天",
-        "政府政策"
+        "人工智能"
       ],
       "sector_holdings": [
+        "00100",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 59,
-      "summary_cn": "据媒体报道，Musk将把更多注意力转向政府并为五角大楼提供未来战争战略建议。"
+      "relevance": 58,
+      "summary_cn": "据报道马斯克将重新参与政府事务，并就未来战争向五角大楼提供建议。"
     }
   ]
 }
