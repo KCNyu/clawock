@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Callable
 from zoneinfo import ZoneInfo
 
+from clawock.portfolio.math import ledger_rows
 from clawock.decision import ledger as decision_v2
 from clawock import sessions as trading_calendar
 from clawock import costs
@@ -191,7 +192,7 @@ def _trade_rows(
 ) -> list[dict]:
     rows = []
     for ticker, holding in _holding_map(portfolio, leg, leg_config).items():
-        for ordinal, trade in enumerate(holding.get("trades") or []):
+        for ordinal, trade in enumerate(ledger_rows(holding.get("trades"))):
             row = dict(trade)
             row["ticker"] = ticker
             row["_ordinal"] = ordinal
@@ -207,7 +208,7 @@ def _cash_adjustments(
     cfg = _leg_cfg(portfolio, leg, leg_config)
     book = ((portfolio.get("portfolios") or {}).get(cfg["portfolio_key"]) or {})
     rows = []
-    for ordinal, adjustment in enumerate(book.get("cash_adjustments") or []):
+    for ordinal, adjustment in enumerate(ledger_rows(book.get("cash_adjustments"))):
         amount = _number(adjustment.get("amount"))
         day = str(adjustment.get("date") or "")
         if amount is None or not day:

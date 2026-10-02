@@ -197,7 +197,7 @@ def test_a_degenerate_bar_reaches_the_canonical_store_carrying_its_flag(
     mod = _bars_module(tmp_path, monkeypatch)
     fresh = [
         {'date': '2026-01-05', 'open': 10, 'high': 11, 'low': 9.5, 'close': 10.5},
-        {'date': '2026-01-06', 'open': 4.2, 'high': 4.2, 'low': 4.2, 'close': 4.2},
+        {'date': '2026-01-06', 'open': 10.4, 'high': 10.4, 'low': 10.4, 'close': 10.4},
     ]
 
     added, revised, conflicts = mod.merge('TEST', fresh, repair=False)

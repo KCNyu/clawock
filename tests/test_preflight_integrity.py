@@ -665,6 +665,25 @@ def test_missing_leg_total_pnl_is_an_error_not_a_zero(run_check):
     assert any(f["code"] == "PNL_TOTAL" and "缺失" in f["msg"] for f in report["findings"])
 
 
+def test_a_non_object_ledger_row_is_named_and_the_gate_still_completes(run_check, pi):
+    # #2273: one bare string in trades[] / cash_adjustments[] used to raise.
+    row = _holding(ticker="ACME")
+    row["trades"].append("sold 5 on 2026-07-10")
+    data = _portfolio_data(holdings=[row])
+    _port(data)["cash_adjustments"].append("+5000 on 2026-07-10")
+    report = run_check(data)
+    named = [f["msg"] for f in report["findings"] if f["code"] == "LEDGER_ROW_INVALID"]
+    assert len(named) == 2 and not report["ok"]
+    assert any("trades[1]" in m for m in named)
+    assert any("cash_adjustments[0]" in m for m in named)
+    assert {f["code"] for f in report["findings"]} == {"LEDGER_ROW_INVALID"}
+
+    from clawock.portfolio import math as pmath
+    assert pmath.moving_average_cost(row["trades"] + ["junk"]) == pmath.moving_average_cost(
+        [t for t in row["trades"] if isinstance(t, dict)])
+    assert pmath.derive_cash({**_port(data), "cash_adjustments": ["junk"]}) is not None
+
+
 def test_prev_close_stamped_with_the_wrong_session_is_reported(run_check):
     # #2270: on an HK holiday the prior close was dated to the quote's own session.
     row = _holding(ticker="00100", current=250.2, previous=241.4)

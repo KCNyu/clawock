@@ -18,7 +18,7 @@ strict date-`<` branch handles later sell→rebuy cycles without false negatives
 """
 from datetime import date as _date
 
-from clawock.portfolio.math import ledger_date
+from clawock.portfolio.math import ledger_date, ledger_rows
 
 
 def _ledger_sells(holdings):
@@ -33,7 +33,7 @@ def _ledger_sells(holdings):
         bal = 0.0
         sells = []
         # Stable order: by (date, original index) so same-day buy-before-sell holds.
-        trades = list(enumerate(h.get('trades', []) or []))
+        trades = list(enumerate(ledger_rows(h.get('trades'))))
         trades.sort(key=lambda it: (ledger_date(it[1].get('date')), it[0]))
         for seq, t in trades:
             shares = t.get('shares', 0) or 0

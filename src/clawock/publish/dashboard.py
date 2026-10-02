@@ -3612,12 +3612,17 @@ def compute_build_status(portfolio, data_dir, at=None):
                              for f in rep['findings']][:6]}
     except Exception as e:
         print(f'  warn: integrity check in build_status failed: {e}', file=sys.stderr)
+        # A gate that could not finish is not a gate that passed (#2273).
+        integrity = {'ok': False, 'error_count': 1, 'warn_count': 0,
+                     'top': [{'code': 'INTEGRITY_UNAVAILABLE', 'level': 'ERROR',
+                              'msg': f'体检闸未能完成（{type(e).__name__}）；'
+                                     f'本轮没有任何算术校验结论'}]}
 
     stale_files = [f['name'] for f in files if f.get('stale')]
     stale_markets = [market for market, state in markets.items()
                      if not state.get('fresh')]
-    healthy = (not stale_files) and (not stale_markets) and (
-        integrity is None or integrity.get('ok'))
+    healthy = (not stale_files) and (not stale_markets) and bool(
+        integrity.get('ok'))
     return {'generated_at': now.isoformat(timespec='seconds'), 'healthy': healthy,
             'stale_files': stale_files, 'stale_markets': stale_markets,
             'files': files, 'markets': markets,

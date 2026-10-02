@@ -59,6 +59,8 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
 黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
   PREV_CLOSE_SESSION prev_close == memory/bars 在 prev_close_date 那天的收盘  WARN
                  → 休市日抓价把前收日盖成报价自己那一场（#2270）
+  LEDGER_ROW_INVALID trades[] / cash_adjustments[] 每行是 JSON 对象          ERROR
+                 → 一行裸字符串曾让整道闸抛异常、五个消费方全哑（#2273）
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
@@ -101,6 +103,7 @@ from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
     ledger_date as _ledger_date,
+    ledger_rows as _ledger_rows,
     moving_average_cost as _moving_avg_cost,
     number as _num,
     trade_cashflow_after as _trade_cashflow_after,  # noqa: F401 — re-exported for tests
@@ -441,6 +444,21 @@ def check(portfolio_path=PORTFOLIO):
             continue
         market = region_market.get(region)
         holdings = port.get('holdings', []) or []
+        # LEDGER_ROW_INVALID：手填清单里一行不是对象 → 点名，然后在本次体检的
+        # 副本里摘掉它，让其余每道闸照常跑完。以前这一行让整道闸抛异常，五个
+        # 消费方全哑（#2273）。
+        for owner, key, who in (
+                [(h, 'trades', h.get('ticker')) for h in holdings if isinstance(h, dict)]
+                + [(port, 'cash_adjustments', None)]):
+            rows = owner.get(key)
+            if not isinstance(rows, list):
+                continue
+            for index, row in enumerate(rows):
+                if not isinstance(row, dict):
+                    add('LEDGER_ROW_INVALID', 'ERROR',
+                        f'{who + " " if who else ""}{key}[{index}]={row!r:.60} 不是 JSON 对象：'
+                        f'这一行不进任何成本/现金/已实现合计；请改成对象或删除', region, who)
+            owner[key] = _ledger_rows(rows)
         active = _active(holdings)
 
         # FX_TAG ---------------------------------------------------------
