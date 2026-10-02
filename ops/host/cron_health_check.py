@@ -324,6 +324,13 @@ def publish_backlog(ledger, now=None):
     to age is already saying so through the missing-cron lines above.
     """
     now = now or datetime.now(timezone.utc)
+    if not ledger:
+        # `load_heartbeats` returns None for a missing, unparseable or
+        # wrong-schema file. Reading `.get` off it killed the whole check before
+        # it printed a line, on exactly the day it had the most to say (#2352).
+        return {'state': 'absent', 'count': None,
+                'detail': 'heartbeat ledger unreadable or absent — the publish '
+                          'backlog cannot be read from it'}
     for event in reversed(ledger.get('events') or []):
         count = event.get('unpushed_commits')
         if count is None:

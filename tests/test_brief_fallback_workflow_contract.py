@@ -57,9 +57,10 @@ def test_the_provider_chain_is_given_less_time_than_the_job(job):
         "the LLM budget must fit inside the job, or the second provider is "
         "unreachable code rather than a fallback"
     )
-    assert job_seconds - budget >= 300, (
-        "postflight, the dashboard rebuild and the push still have to fit in "
-        "what is left"
+    from clawock import run_budgets
+    assert job_seconds - budget >= run_budgets.POST_DELIVERY_BUDGET_SECONDS, (
+        "postflight's rebuild-and-push chain has a declared worst case; what "
+        "is left of the job after the provider chain has to hold it (#2354)"
     )
     assert budget >= brief_fallback.BRIEF_LLM_TIMEOUT_SECONDS, (
         "the chain deadline must not silently shorten the fallback's one "

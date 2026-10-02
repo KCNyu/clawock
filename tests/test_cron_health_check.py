@@ -482,6 +482,16 @@ def test_a_backlog_the_size_of_the_incident_is_degraded():
     assert "never published" in result["detail"]
 
 
+def test_an_unreadable_heartbeat_ledger_is_reported_not_a_crash():
+    """#2352: `load_heartbeats` returns None for a missing, torn or
+    wrong-schema file, and every other reader of it says so."""
+    for ledger in (None, {}):
+        result = cron_health_check.publish_backlog(ledger, now=_JUDGED_AT)
+        assert result["state"] == "absent" and result["count"] is None
+    assert "unreadable or absent" in cron_health_check.publish_backlog(
+        None, now=_JUDGED_AT)["detail"]
+
+
 def test_a_normal_publish_cycle_is_not_a_backlog():
     assert cron_health_check.publish_backlog(
         _ledger(0, 1), now=_JUDGED_AT)["state"] == "ok"

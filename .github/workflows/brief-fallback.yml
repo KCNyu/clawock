@@ -81,9 +81,11 @@ concurrency:
 jobs:
   fallback:
     runs-on: ubuntu-latest
-    # 20, not 15. The old budget was shorter than the provider chain it
-    # contained; see CLAWOCK_LLM_DEADLINE_SECONDS below.
-    timeout-minutes: 20
+    # The job has to hold both chains it runs: the provider chain
+    # (CLAWOCK_LLM_DEADLINE_SECONDS below) and the postflight's rebuild-and-push
+    # chain, whose own worst case is run_budgets.POST_DELIVERY_BUDGET_SECONDS
+    # (1368s). At 20 minutes the second did not fit even alone (#2354).
+    timeout-minutes: 45
     env:
       CLAWOCK_PROFILE: kcnyu
       CLAWOCK_WORKSPACE: ${{ github.workspace }}
@@ -93,10 +95,10 @@ jobs:
       # RemoteDisconnected, started retrying, and the runner killed the job at 15
       # minutes before anything was written.
       #
-      # 900s of a 20-minute job, all of it MiniMax's since the OpenCode fallback
-      # leg was removed (2026-09-13). This must be at least the call site's
-      # per-attempt timeout or the deadline silently shortens the long-context
-      # generation; the remaining 5 minutes cover validation, rebuild and push.
+      # 900s, all of it MiniMax's since the OpenCode fallback leg was removed
+      # (2026-09-13). This must be at least the call site's per-attempt timeout
+      # or the deadline silently shortens the long-context generation; the rest
+      # of the job covers preflight, validation, rebuild and push.
       CLAWOCK_LLM_DEADLINE_SECONDS: '900'
       REHEARSE: ${{ inputs.rehearse == true || inputs.rehearse == 'true' || github.event.schedule == '23 4 * * 3' }}
     permissions:
