@@ -3330,7 +3330,19 @@
     const names = Object.keys(rows);
     if (!names.length) { card.style.display = 'none'; return; }
     card.style.display = '';
-    document.getElementById('quant-asof').textContent = qs.as_of || '';
+    // `as_of` is the run date; each row carries the session its numbers are
+    // from, and the two legs sit on different ones (#2311). The oldest row per
+    // leg is the one the label names.
+    const quantData = {};
+    Object.values(rows).forEach(r => {
+      const leg = /^(us|hk)/i.exec(r.code || '');
+      if (!leg || !r.row_as_of) return;
+      const key = leg[1].toUpperCase();
+      if (!quantData[key] || r.row_as_of < quantData[key]) quantData[key] = r.row_as_of;
+    });
+    const quantLegs = Object.keys(quantData).sort();
+    document.getElementById('quant-asof').textContent = (qs.as_of || '') +
+      (quantLegs.length ? ' · 数据 ' + quantLegs.map(k => `${k} ${quantData[k]}`).join(' · ') : '');
     const num = t0Num;
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
     document.getElementById('quant-tbody').innerHTML = names.map(k => {
