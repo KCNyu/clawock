@@ -537,6 +537,15 @@ def test_a_measurement_with_no_timestamp_is_still_judged():
         "degraded")
 
 
+def test_one_commit_stuck_past_two_hours_is_degraded_like_on_the_host():
+    # #2298: the mirror judged by count >= 3 only; the host's 2-hour rule never left it.
+    stuck = {"events": [{"unpushed_commits": 1, "unpushed_oldest_h": 2.5}]}
+    fresh = {"events": [{"unpushed_commits": 1, "unpushed_oldest_h": 0.1}]}
+    assert cron_health_check.publish_backlog(stuck, now=_JUDGED_AT)["state"] == "degraded"
+    assert "oldest 2.5h" in cron_health_check.publish_backlog(stuck, now=_JUDGED_AT)["detail"]
+    assert cron_health_check.publish_backlog(fresh, now=_JUDGED_AT)["state"] == "ok"
+
+
 def test_a_host_that_cannot_measure_it_is_absent_not_zero():
     """The failure being guarded is a lane that looked fine because nobody looked.
 
