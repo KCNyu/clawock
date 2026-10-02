@@ -1562,6 +1562,9 @@ def main(argv=None):
         advisory_count=len(advisories),
         commit_ok=commit_ok,
         readability=readability,
+        # Same field the report leg records: without it the schedule board
+        # cannot say the dashboard publish is what degraded this slot (#2283).
+        data_plane_status=data_plane_status,
     )
     # A declined claim process never sent, so it must not file the primary
     # verdict — the concurrent holder owns it, and a false `failed` written

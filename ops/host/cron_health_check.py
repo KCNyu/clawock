@@ -232,6 +232,7 @@ def load_runtime_jobs(jobs_file=None):
 #: A backlog this deep means the host has been committing without publishing
 #: for at least an hour at the publisher's twenty-minute cadence.
 UNPUSHED_WARN_COMMITS = 3
+UNPUSHED_WARN_HOURS = 2.0
 
 
 #: How old a heartbeat's measurement may be and still describe *now*.
@@ -311,10 +312,15 @@ def publish_backlog(ledger, now=None):
                     'age_hours': round(age_h, 1),
                     'detail': f'last measured {age_h:.0f}h ago: {reading} — no '
                               f'heartbeat since, so this is history not now'}
-        if count >= UNPUSHED_WARN_COMMITS:
+        # Same rule as the host's own gate (system_check: 3 commits OR 2 hours).
+        oldest_h = event.get('unpushed_oldest_h')
+        aged = (count and isinstance(oldest_h, (int, float))
+                and oldest_h >= UNPUSHED_WARN_HOURS)
+        if count >= UNPUSHED_WARN_COMMITS or aged:
+            how_old = f', oldest {oldest_h:.1f}h' if aged else ''
             return {'state': 'degraded', 'count': count,
                     'age_hours': None if age_h is None else round(age_h, 1),
-                    'detail': f'{count} commit(s) committed here and never '
+                    'detail': f'{count} commit(s){how_old} committed here and never '
                               f'published — the push did not land: refused by '
                               f'pre-push, or cut off before it finished'}
         return {'state': 'ok', 'count': count,

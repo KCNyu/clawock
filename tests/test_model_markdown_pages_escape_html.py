@@ -75,6 +75,10 @@ ATTRIBUTE_PAYLOADS = [
     *[(f'[点我]({sep}javascript:alert(1))', '](')
       for sep in ('\n', '\r', '\f', '\v', '\n \t')],
     ('![图](\njavascript:alert(1))', ']('),
+    # #2280: whitespace INSIDE the scheme; the browser strips it.
+    *[(f'[点我](java{sep}script:alert(1))', '](java')
+      for sep in ('\t', '\r', '\n', ' \t')],
+    ('[点我][r]\n\n[r]: java\tscript:alert(1)', ']: java'),
     ('[点我][r]\n\n[r]:\njavascript:alert(1)', '[r]:'),
     (TAG, '<'),
 ]

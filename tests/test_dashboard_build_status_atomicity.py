@@ -106,3 +106,15 @@ def test_no_temp_files_are_left_behind(tmp_path):
     leftovers = [p.name for p in (tmp_path / "logs").iterdir()
                  if p.name.startswith(".tmp-")]
     assert not leftovers, f"temp files left in logs/: {leftovers}"
+
+
+def test_the_published_tail_does_not_carry_the_hosts_absolute_path(tmp_path):
+    # #2281: logs/dashboard_build_status.json is committed to a public branch.
+    import json
+    from clawock.harness import _harness_common
+
+    output = f"✓ wrote {tmp_path}/assets/data/dashboard.json (123 bytes)"
+    _harness_common._record_dashboard_build(True, True, output, ws=tmp_path)
+    status = json.loads((tmp_path / "logs" / "dashboard_build_status.json").read_text())
+    assert str(tmp_path) not in status["tail"]
+    assert "assets/data/dashboard.json (123 bytes)" in status["tail"]

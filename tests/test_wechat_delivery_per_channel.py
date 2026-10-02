@@ -66,6 +66,13 @@ def _write(path, payload):
 
 # ── A. the idempotency guard ─────────────────────────────────────────────────
 
+@pytest.fixture(autouse=True)
+def _outcome_ledger_in_tmp(tmp_path, monkeypatch):
+    # A landed backstop is noted on the outcome ledger (#2272); keep that ledger
+    # out of the checkout.
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path / 'outcome-ws'))
+
+
 def test_telegram_only_marker_is_not_a_wechat_delivery(tmp_path):
     marker = _write(tmp_path / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
 
@@ -141,7 +148,8 @@ def test_intraday_postflight_sends_the_next_slot_after_a_late_one(tmp_path, monk
         monkeypatch.setattr(postflight, name, value)
     monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(postflight.cron_heartbeat, 'record', lambda *a, **kw: None)
-    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_commits', lambda: 0)
+    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_commits', lambda **_: 0)
+    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_oldest_hours', lambda: None)
     monkeypatch.setattr(postflight.intraday_delta, 'persist_delivered_state',
                         lambda *a, **kw: None)
 
@@ -240,6 +248,26 @@ def test_backstop_retries_wechat_once_and_records_it(tmp_path, isolated_watchdog
     assert event['body_source'] == 'unspecified'
 
 
+def test_a_second_checkout_cannot_back_the_same_slot_up_again(
+        tmp_path, monkeypatch, isolated_watchdog_log):
+    # #2291: the O_EXCL flag lived under each checkout, so two trees sent twice.
+    monkeypatch.setenv('CLAWOCK_DELIVERY_STATE_DIR', str(tmp_path / 'host-state'))
+    calls, senders = _senders(wechat_ok=True)
+    results = []
+    for tree in ('treeA', 'treeB'):
+        tmp = tmp_path / tree
+        tmp.mkdir()
+        marker_path = _write(tmp / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
+        results.append(common.wechat_backstop(
+            'brief', 'brief', 'card', json.loads(marker_path.read_text()), marker_path,
+            tmp / 'watchdog-brief-wechat-2026-09-17.done', False, **senders))
+
+    assert results == [True, None]
+    assert calls['wechat'] == ['card']
+    assert any('another checkout' in (e.get('reason') or '')
+               for e in _events(isolated_watchdog_log))
+
+
 def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log):
     marker_path = _write(tmp_path / 'brief-sent-2026-09-17.json', {'ts': _now_ms(), **INCIDENT})
     calls, senders = _senders(wechat_ok=False)
@@ -254,7 +282,7 @@ def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log)
     assert any(e['action'] == 'wechat-miss-alert' for e in _events(isolated_watchdog_log))
 
 
-def test_a_repeated_wechat_miss_alerts_once_a_day_per_tag(tmp_path, isolated_watchdog_log):
+def test_a_repeated_wechat_miss_alerts_once_per_channel_until_it_recovers(tmp_path, isolated_watchdog_log):
     """2026-09-25: ret=-2 on every intraday slot put a 微信未送达 alert on
     Telegram after every card. Later misses the same day are logged, not sent."""
     calls, senders = _senders(wechat_ok=False)
@@ -268,10 +296,21 @@ def test_a_repeated_wechat_miss_alerts_once_a_day_per_tag(tmp_path, isolated_wat
     assert len(calls['telegram']) == 1
     actions = [e['action'] for e in _events(isolated_watchdog_log)]
     assert actions.count('wechat-miss-alert-suppressed') == 2
-    # another tag keeps its own first alert
+    # #2292: the allowance belongs to the channel — another tag hitting the same
+    # outage is the same condition, not a second alert.
     marker_path = _write(tmp_path / 'report-sent.json', {'ts': _now_ms(), **INCIDENT})
     common.wechat_backstop('report', 'report-hk-mid', 'card', json.loads(marker_path.read_text()),
                            marker_path, tmp_path / 'watchdog-report.done', False, **senders)
+    assert len(calls['telegram']) == 1
+    # ...and a recovery re-arms it: the next miss is a new event.
+    _, healthy = _senders(wechat_ok=True)
+    marker_path = _write(tmp_path / 'brief-sent.json', {'ts': _now_ms(), **INCIDENT})
+    assert common.wechat_backstop('brief', 'brief', 'card', json.loads(marker_path.read_text()),
+                                  marker_path, tmp_path / 'watchdog-brief.done', False,
+                                  **healthy) is True
+    marker_path = _write(tmp_path / 'report-us.json', {'ts': _now_ms(), **INCIDENT})
+    common.wechat_backstop('report', 'report-us-close', 'card', json.loads(marker_path.read_text()),
+                           marker_path, tmp_path / 'watchdog-report-us.done', False, **senders)
     assert len(calls['telegram']) == 2
 
 

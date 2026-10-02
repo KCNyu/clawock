@@ -32,7 +32,7 @@ from zoneinfo import ZoneInfo
 from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
-from clawock.workspace import workspace_root
+from clawock.workspace import without_host_paths, workspace_root
 from clawock import scheduling as schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -189,6 +189,10 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
     occurrence writes a new count-1 row and the class floods the 20-row ring;
     the row keeps the latest detail for diagnosis (#2172).
     """
+    # This row is published: keep the host's absolute paths out of it (#2281).
+    detail = without_host_paths(detail)
+    if group is not None:
+        group = without_host_paths(group)
     standalone = ledger is None
     if standalone:
         # Read the file, not `load_ledger` (#1214). The most important caller is
@@ -349,6 +353,10 @@ def _derive_final(record):
         degraded = (
             llm == "failed"
             or (llm == "warning" and not _advisory_only(stages["llm"]))
+            # A delivered slot whose postflight FAILED (e.g. the dashboard
+            # data-plane push did not land) is degraded, not a clean success:
+            # only `warning` used to be read here, so it stayed green (#2283).
+            or postflight == "failed"
             or (
                 postflight == "warning"
                 and not (
@@ -476,6 +484,44 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
             None, "stage_not_recorded",
             f"{job_name}/{stage}: {type(exc).__name__}: {exc}")
         return {}
+
+
+def record_wechat_backstop(*, slot=None, job_name=None, at=None):
+    """Note on the slot's own record that the watchdog's WeChat retry landed.
+
+    `primary_delivery.wechat_ok` stays the postflight's result (the primary DID
+    drop it); the added `wechat_backstop_ok` is what lets the data-health tally
+    stop naming a slot kcn did receive on WeChat (#2272). Matched by slot (and
+    job when known), only on records whose primary actually dropped WeChat.
+    Returns how many records were marked; observation never raises.
+    """
+    try:
+        now = _now(at)
+        if slot is None and job_name:
+            slot = slot_for_job(job_name, now)
+        if not slot:
+            return 0
+        marked = 0
+        with _locked():
+            ledger = load_ledger()
+            for record in ledger.get("records", []):
+                if record.get("slot") != slot:
+                    continue
+                if job_name and record.get("job") != job_name:
+                    continue
+                primary = (record.get("stages") or {}).get("primary_delivery") or {}
+                if primary.get("wechat_ok") is False and not primary.get("wechat_backstop_ok"):
+                    primary["wechat_backstop_ok"] = True
+                    record["updated_at"] = now.isoformat()
+                    marked += 1
+            if marked:
+                ledger["updated_at"] = now.isoformat()
+                _atomic_write(local_path(), ledger)
+        return marked
+    except Exception as exc:
+        note_degradation(None, "stage_not_recorded",
+                         f"wechat_backstop: {type(exc).__name__}: {exc}")
+        return 0
 
 
 def record_from_heartbeat(event):

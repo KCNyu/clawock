@@ -75,6 +75,59 @@ def test_preflight_failure_degrades_a_delivered_product(tmp_path, monkeypatch):
     assert record["final_product"]["status"] == "degraded"
 
 
+def test_a_failed_postflight_degrades_a_delivered_product(tmp_path, monkeypatch):
+    # #2283: the brief folds a data-plane push failure into postflight=failed;
+    # the delivered slot stayed a green "success" on the schedule board.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:00:00+08:00"
+    job = "盘前深度简报"
+
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(job, "llm", "success", slot=slot)
+    outcomes.record_stage(job, "postflight", "failed", slot=slot,
+                          data_plane_status="committed_local")
+    record = outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
+
+    assert record["final_product"]["status"] == "degraded"
+    assert record["stages"]["postflight"]["data_plane_status"] == "committed_local"
+
+
+def test_a_landed_wechat_backstop_takes_the_slot_off_the_dropped_tally(tmp_path, monkeypatch):
+    # #2272: the card named slots as "WeChat dropped, TG covered" that the
+    # watchdog had already re-delivered on WeChat.
+    from datetime import datetime, timezone
+    from clawock.publish import outcomes as published
+
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:00:00+08:00"
+    at = datetime(2026, 7, 24, 2, 5, tzinfo=timezone.utc)
+    outcomes.record_stage("盘中盯盘", "primary_delivery", "success", slot=slot, at=at,
+                          wechat_ok=False, telegram_ok=True)
+
+    def dropped():
+        records = outcomes.load_ledger()["records"]
+        return published.summarize_records(records, hours=36, now=at)[
+            "wechat_dropped_telegram_covered"]
+
+    assert dropped() == 1
+    assert outcomes.record_wechat_backstop(slot=slot, at=at) == 1
+    assert dropped() == 0
+    primary = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
+    assert primary["wechat_ok"] is False, "the primary's own result stays countable"
+
+
+def test_a_degradation_note_does_not_publish_the_hosts_absolute_path(tmp_path, monkeypatch):
+    # #2281: the row lands on a public branch.
+    _isolate(tmp_path, monkeypatch)
+    workspace = tmp_path / "ws"
+    ledger = outcomes.note_degradation(
+        None, "ledger_fallback_to_published",
+        f"{workspace}/memory/.tmp/workflow-outcomes.json unreadable")
+    detail = ledger[outcomes.DEGRADATIONS_KEY][-1]["detail"]
+    assert str(tmp_path) not in detail
+    assert detail.startswith("memory/.tmp/workflow-outcomes.json")
+
+
 def test_readability_advisory_detail_does_not_degrade_a_delivered_product(
     tmp_path, monkeypatch
 ):

@@ -259,6 +259,29 @@ def test_a_holiday_skip_and_a_quiet_slot_have_their_own_states():
     assert _states(result)[:2] == ['closed', 'quiet']
 
 
+def test_every_verdict_the_ledger_can_file_has_a_panel_state():
+    """#2262: `artifact_only` was a verdict nobody mapped, so the board said
+    「状态未知」 beside a product section that said 「仅存档」. Read the verdicts
+    off the function that files them."""
+    import inspect
+    import re
+
+    from clawock.automation import workflow_outcomes
+    from clawock.publish.cron_schedule import STATE_OF_VERDICT
+
+    source = inspect.getsource(workflow_outcomes._derive_final)
+    verdicts = set(re.findall(r'status(?:, reason)? = \(?"(\w+)"', source))
+    verdicts |= set(re.findall(r'status = "(\w+)" if \w+ else "(\w+)"', source)[0])
+    assert {"artifact_only", "success", "degraded"} <= verdicts
+    assert verdicts <= set(STATE_OF_VERDICT), verdicts - set(STATE_OF_VERDICT)
+
+    result = timetable(_contract('3 10 * * 1-5'), [
+        _record('2026-09-03T10:03:00+08:00', 'artifact_only'),
+    ], now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+    cell = result['jobs'][0]['slots'][0]
+    assert cell['state'] == 'unconfirmed' and cell['note']['disposition'] == 'watch'
+
+
 def test_the_page_names_every_state_the_projection_emits():
     """#1854: the projection wrote `closed`, the page knew nine states and
     printed 状态未知 for it. Both bundles carry their own DH_SLOT copy."""

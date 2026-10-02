@@ -61,9 +61,19 @@ _LINK_TARGET = re.compile(r'(\]\(|^[ ]{0,3}\[[^\]\n]*\]:)(\s*)([^\s)]*)', re.M)
 _SAFE_TARGET = re.compile(r'(?:https?://|mailto:)|[^:&]*(?:[/?#]|$)', re.I)
 
 
+# Whitespace inside the target followed by more of it (not a `"title"` and not
+# the closing paren). A browser strips tab/CR/LF from a URL before reading its
+# scheme, so `java\tscript:` is `javascript:` — and the token before the tab
+# looks like a harmless relative path (#2280).
+_INLINE_TARGET_GOES_ON = re.compile(r'[ \t\r\n\f\v]+[^\s)"\'(]')
+_REFERENCE_TARGET_GOES_ON = re.compile(r'[ \t\r\f\v]+[^\s"\'(]')
+
+
 def _neutral_link(match):
     opener, space, target = match.groups()
-    if _SAFE_TARGET.match(target):
+    goes_on = (_INLINE_TARGET_GOES_ON if opener.endswith('(')
+               else _REFERENCE_TARGET_GOES_ON).match(match.string, match.end())
+    if _SAFE_TARGET.match(target) and not goes_on:
         return match.group(0)
     # Break the syntax, not the scheme: kramdown then prints it as text.
     return opener[:-1] + ('&#40;' if opener.endswith('(') else '&#58;') + space + target

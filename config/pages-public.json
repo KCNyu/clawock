@@ -65,6 +65,7 @@
   ],
   "repository_only": [
     "assets/data/*.jsonl",
+    "assets/data/crawl_visibility.json",
     "assets/data/repo-traffic.json",
     "assets/data/schedule-drift.json",
     "memory/*.jsonl",

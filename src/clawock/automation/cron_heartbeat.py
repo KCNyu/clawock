@@ -122,7 +122,30 @@ def _locked():
         yield
 
 
-def unpushed_commits(workspace=None) -> int | None:
+def unpushed_oldest_hours(workspace=None, now: datetime | None = None) -> float | None:
+    """Age in hours of the oldest commit not on `origin/master`; None when none
+    or when it cannot be measured.
+
+    The host's own gate warns on "3 commits OR 2 hours"; the off-host mirror
+    only had the count, so one commit stuck all day stayed green there (#2298).
+    """
+    import subprocess
+
+    root = Path(workspace) if workspace else WS
+    try:
+        out = subprocess.run(
+            ["git", "log", "--format=%ct", "origin/master..HEAD"],
+            capture_output=True, text=True, timeout=10, cwd=str(root))
+        stamps = [int(line) for line in out.stdout.split()]
+    except Exception:
+        return None
+    if out.returncode != 0 or not stamps:
+        return None
+    current = (now or datetime.now(timezone.utc)).timestamp()
+    return round(max(0.0, current - min(stamps)) / 3600.0, 2)
+
+
+def unpushed_commits(workspace=None, refresh: bool = False) -> int | None:
     """How many commits this host has made and not published, or `None`.
 
     Only the host can answer this. The end-of-day health gate runs on GitHub
@@ -140,6 +163,16 @@ def unpushed_commits(workspace=None) -> int | None:
     import subprocess
 
     root = Path(workspace) if workspace else WS
+    if refresh:
+        # The remote-tracking ref only moves on fetch here: read straight after
+        # a push that landed, it still showed the pushed commit as unpushed, and
+        # 43 of 46 published heartbeats said `published` beside `1` (#2298).
+        # Best effort — offline keeps the last known ref.
+        try:
+            subprocess.run(["git", "fetch", "-q", "origin", "master"],
+                           capture_output=True, text=True, timeout=15, cwd=str(root))
+        except Exception:
+            pass
     try:
         out = subprocess.run(
             ["git", "rev-list", "--count", "origin/master..HEAD"],

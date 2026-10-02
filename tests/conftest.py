@@ -45,6 +45,8 @@ import pytest
 # test-module collection, so import order and monkeypatch target changes cannot
 # reopen live delivery.
 os.environ["CLAWOCK_DELIVERY_DISABLED"] = "1"
+# The host-wide backstop dedupe flag lives under $HOME; tests opt in per test.
+os.environ["CLAWOCK_DELIVERY_STATE_DIR"] = ""
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"

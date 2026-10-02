@@ -60,6 +60,23 @@ def workspace_root(default: Path | str | None = None) -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def without_host_paths(text, root: Path | str | None = None) -> str:
+    """`text` with this host's absolute prefixes removed, for published files.
+
+    Status files and degradation notes are committed to a public branch; a
+    subprocess tail or an exception message carries the live checkout's
+    absolute path into them (#2200, #2281). The file name is the diagnostic;
+    the directory it sits in on this machine is not.
+    """
+    text = str(text or '')
+    base = str(Path(root).resolve() if root is not None else workspace_root())
+    for prefix, shown in ((base + os.sep, ''), (base, '.'),
+                          (str(Path.home()) + os.sep, '~' + os.sep)):
+        if prefix and prefix != os.sep:
+            text = text.replace(prefix, shown)
+    return text
+
+
 def missing_pieces(root: Path | str) -> list[str]:
     """Which required files a candidate workspace lacks."""
     root = Path(root)

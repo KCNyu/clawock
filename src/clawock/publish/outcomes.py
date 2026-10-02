@@ -97,7 +97,9 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
         # per-run cron alerts are unwanted (feedback_no_individual_cron_alerts).
         # Absent flags are not counted — an old record proves nothing either way.
         delivery = (record.get("stages") or {}).get("primary_delivery") or {}
-        if delivery.get("wechat_ok") is False and delivery.get("telegram_ok") is True:
+        # A slot the watchdog's WeChat retry did land is not a dropped one (#2272).
+        if (delivery.get("wechat_ok") is False and delivery.get("telegram_ok") is True
+                and delivery.get("wechat_backstop_ok") is not True):
             wechat_dropped += 1
             if len(wechat_dropped_slots) < MAX_NAMED:
                 wechat_dropped_slots.append({

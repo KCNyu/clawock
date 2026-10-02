@@ -53,6 +53,9 @@ STATE_OF_VERDICT = {
     # #1853: a healthy unchanged intraday slot is silent on purpose and files
     # `no_change`; unmapped it read as `unknown` on the card.
     'no_change': 'quiet',
+    # #2262: the artifact exists and no send is confirmed. Unmapped it read
+    # 「状态未知」 while the product section of the same card said 「仅存档」.
+    'artifact_only': 'unconfirmed',
 }
 
 #: Every state `timetable` can emit. The page's `DH_SLOT` must name each one;
@@ -151,7 +154,12 @@ _MISSED_NOTE = _note(
 _UNMONITORED_NOTE = _note(
     NORMAL, '这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑')
 
+def _narrate_unconfirmed(record):
+    return _note(WATCH, '产物已生成，投递尚未确认；看这一槽的 stages，或 Telegram 是否兜住')
+
+
 _NARRATORS = {
+    'unconfirmed': _narrate_unconfirmed,
     'recovered': _narrate_recovered,
     'degraded': _narrate_degraded,
     'failed': _narrate_failed,

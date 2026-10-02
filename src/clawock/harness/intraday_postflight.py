@@ -1049,7 +1049,8 @@ def main(argv=None):
         # Published so a gate that runs elsewhere can see a lane only this
         # machine can measure: commits made here that never reached the remote
         # (#1241). `None` when it cannot be determined — never 0.
-        unpushed_commits=cron_heartbeat.unpushed_commits(),
+        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
         # The ledger needs the same escalating/advisory split the banner uses:
         # an advisory-only slot delivered a clean report (#764).
         escalating_count=len(escalating), advisory_count=len(advisories),
