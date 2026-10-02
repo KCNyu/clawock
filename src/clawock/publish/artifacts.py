@@ -895,6 +895,55 @@ def _assert_dashboard_money_reconciles(
         'build_status.integrity is not clean')
 
 
+def _assert_dashboard_derived_money(data: dict) -> None:
+    """`delta` and `anomalies` restate other blocks of the same payload, so they
+    are recomputed from those blocks: the page prints both side by side, and a
+    second opinion about today's return or a position's weight is the fault
+    (#2348, #2349 both passed this gate while it read neither block, #2350).
+
+    Needs nothing but the payload, so it runs on every validation.
+    """
+    from types import SimpleNamespace
+    from clawock.publish.dashboard import compute_delta, snapshots_of
+
+    def finite(value):
+        return (isinstance(value, (int, float))
+                and not isinstance(value, bool) and math.isfinite(value))
+
+    assert isinstance(data['delta'], dict), 'delta must be an object'
+    assert isinstance(data['anomalies'], list), 'anomalies must be a list'
+    recomputed = compute_delta(
+        snapshots_of(data), legs=[SimpleNamespace(key=leg) for leg in data['delta']])
+    for leg, windows in data['delta'].items():
+        assert isinstance(windows, dict), f'delta.{leg} must be an object'
+        for window, expected in recomputed[leg].items():
+            if expected is None:
+                # The embedded series can be shorter than the one the build read.
+                continue
+            actual = windows.get(window)
+            assert finite(actual) and abs(actual - expected) <= 0.005, (
+                f'delta.{leg}.{window}={actual} does not reconcile to the '
+                f'snapshots in this payload (value + cash - flows): {expected}')
+
+    weights = {
+        str(row.get('ticker')): row.get('weight')
+        for block in data['concentration'].values() if isinstance(block, dict)
+        for row in block.get('positions') or [] if isinstance(row, dict)
+    }
+    for row in data['anomalies']:
+        if not isinstance(row, dict) or row.get('type') != 'high_weight_loss':
+            continue
+        ticker = str(row.get('ticker'))
+        printed = re.match(r'weight (-?[0-9.]+)%', str(row.get('detail') or ''))
+        assert printed and finite(weights.get(ticker)), (
+            f'anomalies: high_weight_loss {ticker} has no weight in concentration '
+            'to reconcile against')
+        # 0.06 = half the printed unit plus the 4-decimal rounding of `weight`.
+        assert abs(float(printed.group(1)) - weights[ticker] * 100) <= 0.06, (
+            f'anomalies.{ticker} prints weight {printed.group(1)}% but '
+            f'concentration prints {weights[ticker] * 100:.2f}% for the same position')
+
+
 def validate_dashboard(
         path: Path | str = 'assets/data/dashboard.json', *,
         portfolio_path: Path | str | None = None,
@@ -928,7 +977,7 @@ def validate_dashboard(
 
     required = (
         'generated_at', 'fx', 'totals', 'concentration', 'holdings',
-        'snapshots', 'decision_metrics', 'decision_delta',
+        'snapshots', 'decision_metrics', 'decision_delta', 'delta', 'anomalies',
     )
     missing = [key for key in required if key not in data]
     assert not missing, f'missing keys: {missing}'
@@ -1020,6 +1069,8 @@ def validate_dashboard(
         assert isinstance(overview.get('overview_equity'), list), (
             'Overview equity projection must be a list')
         assert overview['overview_equity'], 'Overview equity projection is empty'
+
+    _assert_dashboard_derived_money(data)
 
     suffix = ' + money reconciliation' if portfolio_path is not None else ''
     print(f'dashboard structural validation{suffix} OK: {path}')

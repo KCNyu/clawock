@@ -120,6 +120,9 @@ def dashboard_payload() -> dict:
         'snapshots': [{'date': '2026-07-17'}],
         'decision_metrics': {},
         'decision_delta': {},
+        'delta': {leg: {'today_pct': None, '7d_pct': None, '30d_pct': None}
+                  for leg in ('us', 'hk')},
+        'anomalies': [],
     }
 
 
@@ -434,7 +437,7 @@ def test_json_artifacts_fail_clearly(
 
 @pytest.mark.parametrize('missing', (
     'generated_at', 'fx', 'totals', 'holdings', 'concentration', 'snapshots',
-    'decision_metrics', 'decision_delta',
+    'decision_metrics', 'decision_delta', 'delta', 'anomalies',
 ))
 def test_dashboard_rejects_missing_first_paint_contract_key(tmp_path, missing):
     payload = dashboard_payload()
@@ -1065,3 +1068,41 @@ def test_a_fresh_position_published_as_a_flat_day_fails(tmp_path, freshly_built_
 
     with pytest.raises(AssertionError, match=r'today_change_pct=0 does not reconcile to portfolio\.json=null'):
         validators.validate_dashboard(dashboard, portfolio_path=source)
+
+
+def _derived_money_payload() -> dict:
+    """Yesterday 60,615.60 in holdings + 12,781 cash; today a 2,594 buy and a
+    falling market leave 61,169.20 + 10,187 (the 2026-10-02 HK book, #2348)."""
+    payload = dashboard_payload()
+    payload['snapshots'] = [
+        {'date': '2026-10-01', 'hk_total_value': 60615.6, 'hk_cash': 12781.0,
+         'hk_flows': 30000.0, 'hk_equity': 67874.76},
+        {'date': '2026-10-02', 'hk_total_value': 61169.2, 'hk_cash': 10187.0,
+         'hk_flows': 30000.0, 'hk_equity': 68428.36},
+    ]
+    payload['delta']['hk']['today_pct'] = -2.78
+    payload['concentration']['hk']['positions'] = [
+        {'ticker': '00100', 'name': 'x', 'value': 33992.0, 'weight': 0.5557}]
+    payload['anomalies'] = [{
+        'type': 'high_weight_loss', 'ticker': '00100', 'severity': 'high',
+        'detail': 'weight 55.6% + pnl -52.2%'}]
+    return payload
+
+
+def test_dashboard_derived_money_blocks_reconcile_to_their_sources(tmp_path):
+    validators.validate_dashboard(
+        write_json(tmp_path / 'dashboard.json', _derived_money_payload()))
+
+
+def test_dashboard_rejects_a_delta_that_counts_a_buy_as_a_gain(tmp_path):
+    payload = _derived_money_payload()
+    payload['delta']['hk']['today_pct'] = 0.82  # equity basis: the cash vanished
+    with pytest.raises(AssertionError, match=r'delta\.hk\.today_pct=0\.82 does not reconcile'):
+        validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
+
+
+def test_dashboard_rejects_an_anomaly_weight_the_concentration_card_does_not_print(tmp_path):
+    payload = _derived_money_payload()
+    payload['anomalies'][0]['detail'] = 'weight 57.8% + pnl -52.2%'  # the morning book
+    with pytest.raises(AssertionError, match=r'anomalies\.00100 prints weight 57\.8%'):
+        validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
