@@ -47,6 +47,18 @@ def test_one_isolated_failure_is_noted_not_escalated():
     assert row["consecutive_failures"] == 0
 
 
+def test_a_cancelled_scheduled_run_is_not_a_healthy_one():
+    # #2259: cancelled before any step ran, and the table printed `✓`.
+    once = wh.assess("x.yml", ["0 1 * * *"],
+                     [run("success", 1), run("cancelled", 2), run("success", 3)], NOW)
+    assert once["status"] == "noted" and once["cancellations_in_window"] == 1
+
+    twice = wh.assess("x.yml", ["0 1 * * *"],
+                      [run("cancelled", 1), run("cancelled", 2), run("success", 3)], NOW)
+    assert twice["status"] == "attention"
+    assert "2 consecutive cancellations" in wh._row_detail(twice)
+
+
 def test_a_workflow_that_quietly_stopped_firing_is_caught():
     """Silence is the worse failure: a disabled or drifted schedule looks calm."""
     row = wh.assess("sentiment-scan.yml", ["30 21 * * 0-4"],
