@@ -950,7 +950,8 @@ def main(argv=None):
             else:
                 # WeChat, then Telegram (cold-proof — WeChat can't confirm real
                 # delivery), per the delivery policy. The Telegram result is recorded:
-                # it's the sole backstop intraday_watchdog uses (no WeChat resend), so
+                # it's the mirror intraday_watchdog backstops to (WeChat is re-sent only on
+                # a recorded failure, once), so
                 # it needs to know if TG already got this.
                 wechat_message = render_for_channel(message, ctx, 'wechat')
 

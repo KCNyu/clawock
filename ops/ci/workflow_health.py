@@ -136,11 +136,23 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
 
     recent = [r for r in scheduled if (parsed(r) or window_start) >= window_start]
     failures = [r for r in recent if _status(r) == "error"]
+    # A scheduled run that was cancelled ran no step: nothing it exists to do
+    # happened. It used to fall through as neutral, so a leg killed by a
+    # concurrency group read `✓` on the only table watching it (#2259).
+    cancellations = [r for r in recent if _status(r) == "cancelled"]
     streak = 0
     for run in scheduled:                       # newest first
         if _status(run) == "error":
             streak += 1
         elif _status(run) in ("running", "cancelled", "skipped"):
+            continue
+        else:
+            break
+    cancelled_streak = 0
+    for run in scheduled:                       # newest first
+        if _status(run) == "cancelled":
+            cancelled_streak += 1
+        elif _status(run) in ("running", "skipped"):
             continue
         else:
             break
@@ -152,9 +164,10 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
         if age > interval * MISSED_CADENCE_FACTOR:
             overdue_hours = round(age, 1)
     status = "ok"
-    if not scheduled or streak >= 2 or overdue_hours is not None:
+    if (not scheduled or streak >= 2 or cancelled_streak >= 2
+            or overdue_hours is not None):
         status = "attention"
-    elif failures:
+    elif failures or cancellations:
         status = "noted"
     return {
         "workflow": workflow,
@@ -164,6 +177,8 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
         "last_conclusion": _display_status(scheduled[0]) if scheduled else None,
         "failures_in_window": len(failures),
         "consecutive_failures": streak,
+        "cancellations_in_window": len(cancellations),
+        "consecutive_cancellations": cancelled_streak,
         "overdue_hours": overdue_hours,
         "status": status,
     }
@@ -214,6 +229,11 @@ def _row_detail(row):
         detail.append(f"{row['consecutive_failures']} consecutive failures")
     elif row["failures_in_window"]:
         detail.append(f"{row['failures_in_window']} failure(s) in {LOOKBACK_DAYS}d")
+    if row.get("consecutive_cancellations"):
+        detail.append(f"{row['consecutive_cancellations']} consecutive cancellations "
+                      f"(the scheduled run was cancelled before any step ran)")
+    elif row.get("cancellations_in_window"):
+        detail.append(f"{row['cancellations_in_window']} cancelled run(s) in {LOOKBACK_DAYS}d")
     if row["overdue_hours"]:
         detail.append(f"no run for {row['overdue_hours']}h "
                       f"(expected every ~{row['expected_interval_hours']}h)")

@@ -43,7 +43,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 
 - Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.
 - Six report, three intraday, and two brief watchdog passes are tracked; the brief
-  uses an 08:30 delivery backstop plus a 09:05 post-window miss detector.
+  uses an 08:36 delivery backstop plus a 09:05 post-window miss detector.
 - Market payloads use deterministic preflight/postflight, `delivery.mode=none`,
   a unique WeChat path, Telegram mirror, and an ordered unique subset of the
   fixed model candidates defined by the contract. Runtime rotations must remain

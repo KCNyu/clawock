@@ -1913,6 +1913,37 @@ def _memory_curation_gaps():
     return orphans, dangling
 
 
+MEMORY_PROMOTION_LAG_BRIEFS = 3
+
+
+def check_memory_promotion(r):
+    """Dreaming is still promoting recent briefs into MEMORY.md (#2293).
+
+    The nightly dreaming commit kept landing while the newest promoted source
+    stayed at 09-25: four later briefs had not contributed one line, and the
+    commit itself looked like every healthy one. MEMORY.md records where each
+    promoted line came from (`source=memory/<date>-pre-open.md`), so the lag is
+    readable without touching the ranking: newest promoted brief vs the briefs
+    on disk. WARN only — recall quality is not a publish invariant.
+    """
+    memory = WS / 'MEMORY.md'
+    briefs = sorted(p.name[:10] for p in (WS / 'memory').glob('20??-??-??-pre-open.md'))
+    if not memory.exists() or not briefs:
+        return
+    promoted = sorted(set(re.findall(
+        r'source=memory/(\d{4}-\d{2}-\d{2})-pre-open\.md', memory.read_text())))
+    if not promoted:
+        return  # this workspace does not promote briefs; nothing to lag behind
+    newer = [day for day in briefs if day > promoted[-1]]
+    if len(newer) > MEMORY_PROMOTION_LAG_BRIEFS:
+        r.add('memory promotion', WARNING,
+              f'newest brief promoted into MEMORY.md is {promoted[-1]}; '
+              f'{len(newer)} later briefs ({newer[0]} … {newer[-1]}) have contributed nothing')
+    else:
+        r.add('memory promotion', OK,
+              f'newest promoted brief {promoted[-1]} ({len(newer)} newer on disk)')
+
+
 def check_memory_curation(r):
     """The memory is an index plus topic files; drift shows up as both halves.
 
@@ -2103,6 +2134,7 @@ def main():
         check_trading_calendar_horizon,
         check_macro_calendar_horizon,
         check_memory_index,
+        check_memory_promotion,
         check_memory_curation,
         check_benchmark_freshness,
     ]

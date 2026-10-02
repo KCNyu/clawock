@@ -263,6 +263,31 @@ def _measured_at(event):
     return None
 
 
+#: A degradation row older than this is incident history, not a current state.
+#: Same window the dashboard's product summary folds by.
+DEGRADATION_CURRENT_HOURS = 36
+
+
+def degradation_age(row, now):
+    """(is it current, ' · 最后 N 小时/天前') for one ledger degradation row.
+
+    The ledger keeps the last 20 kinds for weeks. Printing every one as ⚠ with
+    no age put 17 rows between 38 hours and 31 days old beside the one from
+    this morning (#2299). A row with no readable `last_at` stays ⚠: unknown age
+    is not old.
+    """
+    raw = row.get('last_at') or row.get('at')
+    try:
+        stamp = datetime.fromisoformat(str(raw).replace('Z', '+00:00'))
+    except (TypeError, ValueError):
+        return True, ''
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    hours = max(0.0, (now - stamp).total_seconds() / 3600.0)
+    age = f' · 最后 {hours:.0f} 小时前' if hours < 48 else f' · 最后 {hours / 24:.0f} 天前'
+    return hours <= DEGRADATION_CURRENT_HOURS, age
+
+
 def publish_backlog(ledger, now=None):
     """The newest heartbeat's view of commits the host never published (#1241).
 
@@ -872,6 +897,9 @@ def main():
         'scheduled_publisher': publisher,
         'publish_backlog': backlog,
         'degradations': (outcomes_ledger or {}).get('degradations') or [],
+        'degradations_in_window': sum(
+            1 for row in (outcomes_ledger or {}).get('degradations') or []
+            if degradation_age(row, now)[0]),
         'token_usage': token_reports,
         'has_missing': has_missing,
         'has_warn': has_warn,
@@ -893,7 +921,9 @@ def main():
         print(f"  {DASHBOARD_STATE_ICONS[backlog['state']]} "
               f"{'publish backlog':25s}  {backlog['detail']}")
         for row in summary['degradations']:
-            print(f"  ⚠ {'ledger degradation':25s}  {row.get('kind')}: {row.get('count')} 次")
+            current, age = degradation_age(row, now)
+            print(f"  {'⚠' if current else '·'} {'ledger degradation':25s}  "
+                  f"{row.get('kind')}: {row.get('count')} 次{age}")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")
         if has_missing:

@@ -62,6 +62,22 @@ def watchdog_text(job: dict) -> str:
     return "<br>".join(rendered) or "—"
 
 
+def _clock(expr: str) -> str:
+    """`36 8 * * 1-5` → `08:36`. The prose used to hand-copy this and kept
+    saying 08:30 after the contract moved to 08:36 (#2288)."""
+    minute, hour = expr.split()[:2]
+    return f"{int(hour):02d}:{int(minute):02d}"
+
+
+def _brief_watchdog_clocks(contract: dict) -> tuple[str, str]:
+    for job in contract["jobs"]:
+        extras = job.get("extra_watchdogs") or []
+        if "brief-watchdog" in ((job.get("watchdog") or {}).get("command") or "") and extras:
+            return (_clock(job["watchdog"]["schedule"]["expr"]),
+                    _clock(extras[0]["schedule"]["expr"]))
+    raise SystemExit("cron contract has no brief watchdog with a miss detector")
+
+
 def render(contract: dict) -> str:
     rows = []
     for job in contract["jobs"]:
@@ -69,6 +85,7 @@ def render(contract: dict) -> str:
             f"| {job['name']} | {schedule_text(job)} | {job.get('mode', '—')} | "
             f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
+    brief_backstop, brief_miss = _brief_watchdog_clocks(contract)
     return "\n".join([
         "# Cron schedule contract / 调度契约",
         "",
@@ -105,7 +122,7 @@ def render(contract: dict) -> str:
         "",
         "- Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.",
         "- Six report, three intraday, and two brief watchdog passes are tracked; the brief",
-        "  uses an 08:30 delivery backstop plus a 09:05 post-window miss detector.",
+        f"  uses an {brief_backstop} delivery backstop plus a {brief_miss} post-window miss detector.",
         "- Market payloads use deterministic preflight/postflight, `delivery.mode=none`,",
         "  a unique WeChat path, Telegram mirror, and an ordered unique subset of the",
         "  fixed model candidates defined by the contract. Runtime rotations must remain",

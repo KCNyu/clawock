@@ -335,7 +335,7 @@ def main():
                           'dry_run': args.dry_run}, ensure_ascii=False))
         return 0
 
-    # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
+    # --- Delivery backstop: Telegram mirror (WeChat only via wechat_backstop) --
     # WHY NO WECHAT RESEND ANYMORE (2026-07-09, kcn's call): a watchdog WeChat
     # resend DUPLICATED the report on WeChat whenever the postflight marker merely
     # looked stale/mismatched but WeChat had actually landed — and you can't tell a

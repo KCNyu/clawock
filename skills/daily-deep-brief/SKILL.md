@@ -1,9 +1,9 @@
 ---
 name: daily-deep-brief
-description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`clawock brief preflight` 计算并编译 typed decision packet，LLM 只写 plan 与受限 judgment（纯文本判断，不写版式），`clawock brief postflight` 校验后由 `brief_render` 渲染报告与微信卡、生成 Pages projection、commit 并自动投递微信。**输出**：结构化 plan、受限 judgment JSON，harness 渲染的 markdown 报告与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
+description: kcn 每个工作日 08:03 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`clawock brief preflight` 计算并编译 typed decision packet，LLM 只写 plan 与受限 judgment（纯文本判断，不写版式），`clawock brief postflight` 校验后由 `brief_render` 渲染报告与微信卡、生成 Pages projection、commit 并自动投递微信。**输出**：结构化 plan、受限 judgment JSON，harness 渲染的 markdown 报告与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
 ---
 
-# Daily Deep Brief (08:00 HKT, weekday)
+# Daily Deep Brief (08:03 HKT, weekday)
 
 8 点这个时点：HK 开盘前 ~90 分钟，US 已收盘 ~4 小时。盘前是 deep think 最好的窗口 —
 有完整夜间消息面，没有盘中执行压力。
@@ -803,7 +803,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
       - resolver 另外接受**那一行所在 list 的键名**作为同一行的别名（`risk:hard_stop_watch:RKLX` == `risk:leveraged_hard_stop:RKLX`），**仅限该 list 里所有行 type 相同时**——`breaches` 装着四种 type，拿它当名字说不清指的是哪一行，照样被丢。这是给「抄了外层键名」兜底的，不是第二种写法：**照抄 `evidence_id` 仍然是唯一该做的事。**
     - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）。**只有 `rows` 里真有的 ticker 能引**：杠杆 ETF 通常没有自己的行（07226 没有，它的底层 HSTECH 有），要引就引你真正读的那一行
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
-  - **菜单外 frame 或不合规的 `evidence_ids` 不会让 08:00 流水线变红**：postflight 的 normalizer 会丢弃它们，并另计一条 degradation（`debate_frames_off_menu` / `debate_citation_unresolved`）。超长文本会被裁剪；其他 `debate` schema 错误（如未知键、非文本的 Bull/Bear）仍会打回 plan，不要依赖 normalizer 猜意图。整块为空时按「没写」计覆盖率；dashboard 的 `debate_coverage.bear_case_pct` 会显示这种缺席。**这两类豁免只覆盖 `debate.frames` / `debate.evidence_ids`**：`action`、`condition`、`strategy_id` 这些会被塞进默认值的字段写错仍然整份 plan 打回重写。
+  - **菜单外 frame 或不合规的 `evidence_ids` 不会让盘前简报流水线变红**：postflight 的 normalizer 会丢弃它们，并另计一条 degradation（`debate_frames_off_menu` / `debate_citation_unresolved`）。超长文本会被裁剪；其他 `debate` schema 错误（如未知键、非文本的 Bull/Bear）仍会打回 plan，不要依赖 normalizer 猜意图。整块为空时按「没写」计覆盖率；dashboard 的 `debate_coverage.bear_case_pct` 会显示这种缺席。**这两类豁免只覆盖 `debate.frames` / `debate.evidence_ids`**：`action`、`condition`、`strategy_id` 这些会被塞进默认值的字段写错仍然整份 plan 打回重写。
 - `expected_move_pct`（number，选填，带符号，单位 %）：**这条 decision 预期这只票走多远**（#1159）。`confidence` 说的是「多有把握」，`invalidation_price` 说的是「论点在哪死」，**没有一个字段说「走多远」**——所以「方向对、幅度错了四倍」这句话这本账本目前对自己讲不出来。填了之后按 t1 对 `underlying_return_t1_pct` 打分（这只票自己的收益，不是 `benefit_t1_pct` 那个相对不动的反事实）。
   - 是**预测**不是目标价，也不是止损距离：写 `-8` 表示「我预期它跌 8%」。`0` 是合法且可打分的预测（「预期它不动」），和不填不是一回事。
   - |值| > 100 会被丢弃（打字过滤，不是风控），丢弃不会让流水线变红。
@@ -1002,7 +1002,7 @@ clawock brief postflight
 > pass/warn 时 **`brief_postflight` 自己**会用 fresh-token 短连接把渲染出的
 > `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是唯一微信路径），
 > 并同步 Telegram，把两路结果记到 `memory/.tmp/brief-sent-{date}.json`。
-> `brief_watchdog`（08:30）只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
+> `brief_watchdog`（08:36）在 Telegram marker 缺失/失败时补投 Telegram；微信只在回执明确记录发送失败时补发一次，其余情况不重发。
 >
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >

@@ -322,7 +322,12 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
   filed=$(PATROL_STATE="$STATE" timeout 30 python3 "$TOOL/patrol_intel.py" round-yield --task "$rid" 2>/dev/null | tr -d '\t/\n')
   result=$state
   [ -z "$filed" ] || { [[ $result == */* ]] || result="$result/"; result="$result/$filed"; }
-  printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${how:+$how:}$result" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
+  # One row per round. A second writer finishing the same round (an adopted
+  # round audited twice) used to append it again, and the panel listed one
+  # round as both "just ended" and "earlier" (#2305). The first row is the one
+  # stamped when the round really ended, so it is the one kept.
+  grep -q $'\t'"$rid"$'\t' "$STATE/rounds.tsv" 2>/dev/null \
+    || printf '%s\tR%s\t%s\t%s\t%s\t%ss\n' "$(date '+%F %T')" "$n" "$axis" "$rid" "${how:+$how:}$result" "$(( $(date +%s) - start ))" >>"$STATE/rounds.tsv"
   log "round R$n ($axis) ended: ${how:+$how, }$result"
   # A digest that is due is filed even on a day no new P3 arrives to trigger it from the gate.
   PATROL_STATE="$STATE" PATROL_WORKTREE="$WT" timeout 180 python3 "$TOOL/filing.py" flush-digest >/dev/null 2>&1 || true

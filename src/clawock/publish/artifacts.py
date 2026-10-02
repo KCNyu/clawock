@@ -373,6 +373,23 @@ def validate_news_digest(
           f'age={age.total_seconds() / 3600:.2f}h')
 
 
+def eod_snapshot_date(now: datetime | None = None, event: str | None = None) -> str:
+    """The date the weekly EOD archive rows are stamped with.
+
+    The scheduled run fires Friday 22:00 UTC to record the week's close, and
+    GitHub delivers it late: twice it crossed midnight and stamped the week's
+    close as a Saturday, so those Fridays have no rows at all — and the
+    validator read the same clock, so it agreed (#2279). A scheduled run stamps
+    the Friday it was scheduled for (the latest one not after today, UTC); a
+    manual run stamps today, because it archives whatever is current.
+    """
+    today = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).date()
+    event = os.environ.get('GITHUB_EVENT_NAME') if event is None else event
+    if event == 'schedule':
+        today -= timedelta(days=(today.weekday() - 4) % 7)
+    return today.isoformat()
+
+
 def validate_eod_archive(
         csv_path: Path | str,
         portfolio_path: Path | str,
@@ -380,7 +397,7 @@ def validate_eod_archive(
         snapshot_date: str | None = None,
 ) -> None:
     portfolio_path = Path(portfolio_path)
-    snapshot_date = snapshot_date or str(date.today())
+    snapshot_date = snapshot_date or eod_snapshot_date()
     expected = None
     held = []
     if portfolio_path.is_file():

@@ -31,7 +31,8 @@ merely looked stale/mismatched but WeChat had actually landed — and you can't 
 landed WeChat send from a silently-dropped one (#81096/#81316 wontfix, cold drop
 still returns sent_ok=true). Since intraday_postflight now ALWAYS co-sends the same
 body to Telegram (cold-proof, no contextToken drop), the WeChat retry bought nothing
-but duplicates, so it's gone. Telegram is the sole backstop channel.
+but duplicates, so it's gone. Telegram is the mirror backstop; WeChat is re-sent once, only when the
+receipt records that its send failed (`wechat_backstop`, 2026-09-17).
 
 ONE EXCEPTION — A CONFIRMED WECHAT FAILURE (2026-09-17): a marker for THIS slot
 with `sent_ok=false` is not the ambiguous stale/mismatched case above — the
@@ -579,7 +580,7 @@ def main():
             telegram_already_delivered=telegram_already_delivered)
         return 0
 
-    # --- Delivery backstop: Telegram only (no WeChat resend) ------------------
+    # --- Delivery backstop: Telegram mirror (WeChat only via wechat_backstop) --
     # WHY NO WECHAT RESEND ANYMORE (2026-07-09, kcn's call): a watchdog WeChat
     # resend DUPLICATED the report on WeChat whenever the marker merely looked
     # stale/mismatched but WeChat had actually landed — and you can't tell a landed

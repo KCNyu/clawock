@@ -17,7 +17,7 @@
 | `ci.yml` | push to master + 每个 PR + 周六 03:41 UTC | (read-only) | 合并后的 lint/actionlint、schema/import/pytest、CodeQL；按 `ops/ci/push_scope.py` 分类决定跑哪些 job |
 | `dashboard-artifact-gate.yml` | `repository_dispatch: data-plane-published` | (read-only) | 与 `pages.yml` 同一事件，GitHub runner 上零依赖校验发布到 data 分支的首屏 payload |
 | `pages.yml` | 站点/数据 push + `data-plane-published` | (Pages) | 部署 GitHub Pages；并发组 `pages` 排队不取消 |
-| `weekly-health.yml` | 周日 23:00 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
+| `weekly-health.yml` | 周日 20:17 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |
 | `sentiment-scan.yml` | 周日–四 21:30 + 21:55 UTC | `assets/data/sentiment.json` + `factor-snapshots/sentiment/` | 05:30 HKT 盘前 Reddit + Google News 扫描；21:55 为抗漂移第二档 |
 | `macro-scan.yml` | 周日–四 21:45 + 21:55 UTC | `assets/data/macro.json` + `factor-snapshots/macro/` | 05:45 HKT 盘前宏观扫描；21:55 为抗漂移第二档 |
@@ -148,7 +148,7 @@ clawock us-quotes     # 仅刷美股价格
 
 ### Cron map
 
-11 个 OpenClaw job、11 个 watchdog pass（6 report + 3 intraday + 08:30 brief 投递兜底 + 09:05 brief miss-detector）、EDT/EST 两季表达式和 harness 映射只在
+11 个 OpenClaw job、11 个 watchdog pass（6 report + 3 intraday + 08:36 brief 投递兜底 + 09:05 brief miss-detector）、EDT/EST 两季表达式和 harness 映射只在
 [`config/cron-schedules.json`](../../config/cron-schedules.json) 维护；人读表由
 [`docs/operations/cron-schedules.md`](../operations/cron-schedules.md) 自动生成。每日 06:20 HKT 的同步器按
 `America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、
