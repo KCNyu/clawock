@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-01T00:03:52.247499+00:00",
+  "generated_at": "2026-10-02T00:03:57.050960+00:00",
   "as_of": "2026-09-30",
   "index": "HSTECH",
   "source": "tencent",
@@ -33,11 +33,11 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 69.68,
-        "ma": 81.28,
+        "close": 70.46,
+        "ma": 81.32,
         "ma_window": 200,
-        "dist_ma_pct": -14.3,
-        "vol_annualized": 0.5344,
+        "dist_ma_pct": -13.4,
+        "vol_annualized": 0.5346,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": false,
@@ -48,21 +48,21 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 150.86,
+        "close": 148.07,
         "ma": 148.46,
         "ma_window": 5,
-        "dist_ma_pct": 1.6,
+        "dist_ma_pct": -0.3,
         "vol_annualized": null,
-        "trend_on": true,
-        "state": "ok",
+        "trend_on": false,
+        "state": "cut",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 76 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
+        "note": "SPCX 新上市仅 77 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
       }
     ],
-    "tier": "amber",
-    "label": "1 只趋势off(波动未过热) → 观察，暂不强砍",
+    "tier": "red",
+    "label": "1 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
     "vol_hot_cap": 0.7,
-    "cut_count": 0,
+    "cut_count": 1,
     "watch_count": 1
   },
   "regime_history": {
@@ -969,12 +969,6 @@
       }
     },
     "us": {
-      "2026-02-26": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -0.6,
-        "regime3": "chop"
-      },
       "2026-02-27": {
         "trend_on": null,
         "dist_ma_pct": null,
@@ -1868,16 +1862,22 @@
         "dist_ma_pct": 10.9,
         "mom_pct": 5.0,
         "regime3": "bull"
+      },
+      "2026-10-01": {
+        "trend_on": true,
+        "dist_ma_pct": 11.1,
+        "mom_pct": 3.5,
+        "regime3": "bull"
       }
     },
     "meta": {
       "hk_index": "HSTECH",
       "us_index": "QQQ",
-      "us_bars": 209,
+      "us_bars": 210,
       "ma_window": 200,
       "mom_window": 10,
       "mom_band_pct": 3.0,
-      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 209 根（≥200，已可判趋势）"
+      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 210 根（≥200，已可判趋势）"
     }
   }
 }
