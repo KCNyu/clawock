@@ -29,7 +29,7 @@ PORTFOLIO_PATH = workspace_root() / 'portfolio.json'
 def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:
     """Sum sell trades' realized_pnl + build chronological note."""
     sells: List[Dict] = []
-    for h in holdings:
+    for h in ledger_rows(holdings):
         ticker = h.get('ticker', '?')
         for t in ledger_rows(h.get('trades')):
             r = t.get('realized_pnl')

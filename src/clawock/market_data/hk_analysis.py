@@ -29,6 +29,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
+from clawock.portfolio.math import day_pnl, ledger_rows
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -499,6 +500,17 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
             h['today_change']     = round((c - pc) * shrs, 2)
             # A healthy fetch clears it; a flag nobody retires is its own defect.
             h.pop('quote_incomplete', None)
+        if not approximated_pc or stored_pc:
+            quote_day = now_hkt.date()
+            if not trading_calendar.is_trading_day('hk', quote_day):
+                quote_day = trading_calendar.previous_trading_day('hk', quote_day)
+            amount, base = day_pnl(h, quote_day.isoformat(), current=c)
+            h['today_change'] = round(amount, 2)
+            # With no new lot, the vendor percentage retains its quote precision.
+            if any(t.get('action') == 'buy' and t.get('date') == quote_day.isoformat()
+                   for t in ledger_rows(h.get('trades'))):
+                h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
+        h.pop('today_change_abs', None)
         h['stock_name']       = q.get('name', h.get('stock_name', code))
         h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
         # Fallback sources do not consistently expose board lots. Preserve a

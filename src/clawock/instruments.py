@@ -364,11 +364,10 @@ def compute_lookthrough_exposure(portfolio: dict) -> dict[str, dict]:
     result: dict[str, dict] = {"us": {}, "hk": {}}
     for region in ("us_stocks", "hk_stocks"):
         key = "us" if region == "us_stocks" else "hk"
-        active = [
-            h
-            for h in portfolio["portfolios"][region].get("holdings", [])
-            if (h.get("shares") or 0) > 0
-        ]
+        # Foundation module: keep the row guard local instead of importing a
+        # portfolio consumer and reintroducing the instruments/portfolio cycle.
+        active = [h for h in portfolio["portfolios"][region].get("holdings", [])
+                  if isinstance(h, dict) and (h.get("shares") or 0) > 0]
         by_factor: dict[str, dict] = {}
         by_sector: dict[str, dict] = {}
         capital_total = sum(float(h.get("current_value") or 0) for h in active)

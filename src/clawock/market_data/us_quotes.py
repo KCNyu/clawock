@@ -33,6 +33,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
+from clawock.portfolio.math import day_pnl
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -1203,23 +1204,9 @@ def update_us_portfolio(
             holding['quote_incomplete'] = True
         else:
             holding.pop('quote_incomplete', None)
-        # Fresh-lot detection: when the ENTIRE current position was acquired
-        # today, prev_close belongs to a lot you no longer hold — either an IPO
-        # reference price you never got (SPCX 2026-06-12, prev_close was a stale
-        # reused-ticker bar → +637%), or a pre-clearance close from before a
-        # same-day re-entry (RKLX 2026-06-12: re-bought 10@52.3 after the April
-        # lot was fully sold; prev_close 61.67 from 6/11 made today_change read
-        # -21.7% vs the real -7.6% from entry). Compare held shares against
-        # shares bought today; old sold-out buys still in trades[] don't count
-        # because they net to zero against their matching sells. Using a simple
-        # "all buy trades are today" test misses this re-entry case.
-        shares_bought_today = sum(
-            (t.get('shares') or 0)
-            for t in (holding.get('trades') or [])
-            if t.get('action') == 'buy' and t.get('date') == today_et_date)
-        all_bought_today = shares_bought_today > 0 and shares_bought_today >= shrs
-        tc_ref = cost if all_bought_today else pc
-        holding['today_change_pct'] = round(_pct(c, tc_ref), 4)
+        amount, base = day_pnl(holding, today_et_date, current=c)
+        holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
+        holding.pop('today_change_abs', None)
 
         # ── session-aware running day range ───────────────────────────────────
         # Nasdaq's quote payload often carries no real intraday h/l/o (the old
@@ -1263,7 +1250,7 @@ def update_us_portfolio(
         # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
         # one zero-cost lot must not abort the whole region's refresh.
         holding['pnl_percent']      = _pct(c, cost)
-        holding['today_change']     = round((c - tc_ref) * shrs, 2)
+        holding['today_change']     = round(amount, 2)
         if q.get('volume'):
             holding['volume'] = q['volume']
 

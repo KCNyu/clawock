@@ -652,7 +652,7 @@ def publish_data_plane(market):
         # No dashboard outputs here: #314 untracked them, and `git add` on a
         # gitignored path fails rather than skipping, which would abort the
         # snapshot commit too.
-        paths = ['logs/dashboard_build_status.json']
+        paths = ['portfolio.json', 'logs/dashboard_build_status.json']
         snap = snapshot_date_for_now()
         if snap:
             paths.append(f'memory/snapshots/{snap}.json')

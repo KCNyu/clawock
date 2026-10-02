@@ -50,7 +50,9 @@ for region in ('us_stocks', 'hk_stocks'):
     leg = d['portfolios'][region]
     if not isinstance(leg.get('holdings'), list):
         print(f'    ✗ portfolios.{region}.holdings must be a list', file=sys.stderr); sys.exit(1)
-    for h in leg['holdings']:
+    for index, h in enumerate(leg['holdings']):
+        if not isinstance(h, dict):
+            print(f'    ✗ {region}.holdings[{index}] must be an object', file=sys.stderr); sys.exit(1)
         for f in ('ticker', 'shares', 'cost_basis'):
             if f not in h:
                 print(f'    ✗ {region} holding missing field "{f}": {h.get("ticker")}', file=sys.stderr); sys.exit(1)

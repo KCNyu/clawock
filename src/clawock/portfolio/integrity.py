@@ -102,6 +102,8 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
+    day_pnl,
+    holding_session,
     ledger_date as _ledger_date,
     ledger_rows as _ledger_rows,
     moving_average_cost as _moving_avg_cost,
@@ -287,7 +289,7 @@ def check_share_ledgers(portfolios):
     for region, port in (portfolios or {}).items():
         if not isinstance(port, dict):
             continue
-        for h in port.get('holdings', []) or []:
+        for h in _ledger_rows(port.get('holdings')):
             if not (h.get('trades') or []):
                 continue
             ticker = h.get('ticker')
@@ -444,6 +446,11 @@ def check(portfolio_path=PORTFOLIO):
             continue
         market = region_market.get(region)
         holdings = port.get('holdings', []) or []
+        for index, row in enumerate(holdings):
+            if not isinstance(row, dict):
+                add('LEDGER_ROW_INVALID', 'ERROR', f'holdings[{index}]={row!r:.60} 不是 JSON 对象', region)
+        holdings = _ledger_rows(holdings)
+        port['holdings'] = holdings
         # LEDGER_ROW_INVALID：手填清单里一行不是对象 → 点名，然后在本次体检的
         # 副本里摘掉它，让其余每道闸照常跑完。以前这一行让整道闸抛异常，五个
         # 消费方全哑（#2273）。
@@ -647,25 +654,16 @@ def check(portfolio_path=PORTFOLIO):
                     add('PNL_LEG', 'WARN',
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
 
-            # TODAY_LEG：today_change == shares×(current−prev_close)（日内 P&L 的源）
-            # 例外：本 session 内建仓的持仓——prev_close 时未持有，其当日 P&L 基准是
-            # 成本价而非前收(today_change==current−cost==pnl_abs 才对)，prev_close 对它
-            # 无意义(IPO 首日更是连真实前收都没有)。跳过前收公式，免 IPO/新建仓假警报。
+            # The same per-lot base used by both fetchers and reconciliation.
             prev = _num(h.get('prev_close'))
             tchg = _num(h.get('today_change'))
-            sess_date = h.get('day_session_date')
-            trade_dates = [d for tr in (h.get('trades') or []) if (d := _ledger_date(tr.get('date')))]
-            opened_this_session = bool(sess_date) and (
-                h.get('prev_close_date') == sess_date               # 前收日==会话日 → 非真实前收
-                or (trade_dates and min(trade_dates) >= sess_date)  # 首笔买入在本会话 → 前收时未持有
-            )
-            if (cur is not None and sh and prev is not None and tchg is not None
-                    and not opened_this_session):
-                want_tc = sh * (cur - prev)
+            sess_date = holding_session(h, data.get('last_updated'), market)
+            if cur is not None and sh and prev is not None and tchg is not None:
+                want_tc, _ = day_pnl(h, sess_date)
                 if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
                     add('TODAY_LEG', 'WARN',
-                        f'{t} today_change={tchg:.2f} ≠ shares×(cur−prev_close)={want_tc:.2f}'
-                        f'（差 {tchg - want_tc:+.2f}）；prev_close 陈旧或漏重算', region, t)
+                        f'{t} today_change={tchg:.2f} ≠ per-lot day P&L={want_tc:.2f}'
+                        f'（差 {tchg - want_tc:+.2f}）；成交批次基准或重算不一致', region, t)
 
             # COST_BASIS：仅当 trades 账本完整(净股==当前 shares)时才校验，
             # 半账本(只记近期 T+0、缺建仓买入)净股对不上 → cost_basis 是手填的、跳过
