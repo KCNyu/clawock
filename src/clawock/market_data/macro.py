@@ -12,6 +12,7 @@ Sources (all free, no API key):
 Writes: assets/data/macro.json
 """
 import argparse
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -66,6 +67,29 @@ def classify_regime(macro_snapshot):
     return {'label': label, 'score': score, 'reasons': reasons}
 
 
+def _quote(symbol, price, prev, change_pct, source, as_of):
+    """One index row. `change_pct` is the day's move or None, never a stand-in.
+
+    Before the open a vendor repeats the last close as both price and previous
+    close with a change of 0: that row is the previous session's close, and its
+    0.00% belongs to no session. It went into the brief as `HSI 24613.27
+    (0.00%)` on a day the index then lost 2.60% (#2347). `as_of` says which
+    session or moment the price is from.
+    """
+    if prev and price == prev and not change_pct:
+        change_pct = None
+    row = {
+        'symbol': symbol,
+        'price': round(price, 4),
+        'prev': round(prev, 4) if prev else None,
+        'change_pct': round(change_pct, 2) if change_pct is not None else None,
+        'source': source,
+    }
+    if as_of and (not isinstance(as_of, str) or re.fullmatch(r'\d{4}-\d{2}-\d{2}', as_of)):
+        row['as_of'] = as_of
+    return row
+
+
 def yahoo_quote(symbol):
     """Latest + previous close. Tries Stooq → Tencent gtimg → Yahoo (last resort).
 
@@ -90,15 +114,12 @@ def yahoo_quote(symbol):
                 # CSV: Symbol,Date,Time,Open,High,Low,Close,Volume
                 parts = r.text.strip().split('\n')[-1].split(',')
                 if len(parts) >= 7:
-                    open_p = float(parts[3])
                     close = float(parts[6])
-                    chg = ((close - open_p) / open_p * 100) if open_p else 0
-                    return {
-                        'symbol': symbol, 'price': round(close, 4),
-                        'prev': round(open_p, 4),  # rough proxy: today open
-                        'change_pct': round(chg, 2),
-                        'source': 'stooq',
-                    }
+                    # This endpoint has no previous close. The move from the
+                    # open used to be published as the day's change with the
+                    # open as `prev`; a reader cannot tell that from a real
+                    # one, so it is left unknown (#2347).
+                    return _quote(symbol, close, None, None, 'stooq', parts[1])
         except Exception:
             pass
 
@@ -124,13 +145,10 @@ def yahoo_quote(symbol):
                     prev = float(parts[4]) if parts[4] else None
                     # parts[31] = change, parts[32] = change_pct
                     if price:
-                        chg_pct = float(parts[32]) if parts[32] else 0
-                        return {
-                            'symbol': symbol, 'price': round(price, 4),
-                            'prev': round(prev, 4) if prev else None,
-                            'change_pct': round(chg_pct, 2),
-                            'source': 'tencent',
-                        }
+                        chg_pct = float(parts[32]) if parts[32] else None
+                        # parts[30] is the vendor's own quote time.
+                        return _quote(symbol, price, prev, chg_pct, 'tencent',
+                                      parts[30].split(' ')[0].replace('/', '-'))
         except Exception:
             pass
 
@@ -148,15 +166,8 @@ def yahoo_quote(symbol):
         prev  = meta.get('chartPreviousClose') or meta.get('previousClose')
         if not price:
             return None
-        chg = ((price - prev) / prev * 100) if prev else 0
-        return {
-            'symbol': symbol,
-            'price':  round(price, 4),
-            'prev':   round(prev or price, 4),
-            'change_pct': round(chg, 2),
-            'as_of': meta.get('regularMarketTime'),
-            'source': 'yahoo',
-        }
+        chg = ((price - prev) / prev * 100) if prev else None
+        return _quote(symbol, price, prev, chg, 'yahoo', meta.get('regularMarketTime'))
     except Exception as e:
         print(f'  ⚠️ {symbol} 全源失败: {e}', file=sys.stderr)
         return None
@@ -285,9 +296,11 @@ def main(argv=None):
         elif k == 'fear_greed':
             print(f'  {k:14s}  {v["score"]} ({v["rating"]})  · prev close {v.get("prev_close")}, 1w {v.get("prev_1_week")}')
         elif k == 'treasury_10y':
-            print(f'  {k:14s}  {v["yield_pct"]}%  ({v["change_pct"]:+.2f}%)')
+            print(f'  {k:14s}  {v["yield_pct"]}%  ({(v.get("change_pct") or 0):+.2f}%)')
         else:
-            print(f'  {k:14s}  {v["price"]:>10}  ({v["change_pct"]:+.2f}%)')
+            change = v.get("change_pct")
+            print(f'  {k:14s}  {v["price"]:>10}  '
+                  + (f'({change:+.2f}%)' if change is not None else '(当日涨跌未知)'))
     print(f'\n✓ wrote {output} ({output.stat().st_size:,} bytes)')
 
 

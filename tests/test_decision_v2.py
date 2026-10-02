@@ -1257,3 +1257,13 @@ def test_t5_mark_cannot_cross_a_suspect_intermediate_session():
     assert ev['status'] == 'settled'  # the clean T+1 remains evidence
     assert ev['benefit_t1_pct'] is not None
     assert ev['benefit_t5_pct'] is None and ev['mark_t5_session'] is None
+    # #2336: the withheld mark names its reason, like a withheld T+1 does.
+    assert ev['mark_t5_reason'] == 'implausible_move'
+    assert 'mark_t20_reason' not in ev  # not due yet is not a reason
+
+
+def test_a_clean_window_carries_no_mark_reason():
+    bars = {f'2026-07-0{day}': _bar(10 + day) for day in range(1, 7)}
+    ev = _settle_against('2026-07-09', 12, bars=bars)
+    assert ev['benefit_t5_pct'] is not None
+    assert 'mark_t5_reason' not in ev and 'mark_t20_reason' not in ev

@@ -71,6 +71,21 @@ def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
         and data[field]['price'] > 0
         and data[field].get('source') in quote_sources
     ]
+    # A day change has to be the change this row's own two prices describe. A
+    # row whose price equals its previous close with a 0% change is a vendor's
+    # pre-open repeat of the last close, not a flat session (#2347).
+    for field in market_quotes:
+        row = data[field]
+        price, prev, change = row['price'], row.get('prev'), row.get('change_pct')
+        if not (finite_number(prev) and prev > 0 and finite_number(change)):
+            continue
+        assert not (price == prev and change == 0), (
+            f'{field}: price equals prev with a 0% change — the previous '
+            'close repeated before the open, not a day change')
+        assert abs(change - (price - prev) / prev * 100) <= 0.05, (
+            f'{field}: change_pct={change} is not the move from prev={prev} '
+            f'to price={price}')
+
     supplemental = []
     fear_greed = data.get('fear_greed')
     if isinstance(fear_greed, dict) and finite_number(fear_greed.get('score')):

@@ -1033,8 +1033,13 @@ def load_macro_and_sentiment(today, issues):
                 def _q(k):
                     v = m.get(k)
                     if not v: return None
-                    return {'price': v.get('price'), 'change_pct': v.get('change_pct'),
-                            'source': v.get('source')}
+                    row = {'price': v.get('price'), 'change_pct': v.get('change_pct'),
+                           'source': v.get('source')}
+                    # A row without a day change is some session's close, not
+                    # this morning's print: say which (#2347).
+                    if v.get('change_pct') is None and isinstance(v.get('as_of'), str):
+                        row['session'] = v['as_of']
+                    return row
                 macro_trim = {
                     'as_of':        m.get('generated_at'),
                     'age_hours':    round(age, 1),

@@ -1022,6 +1022,94 @@ def test_a_grouped_degradation_counts_across_changing_details(tmp_path, monkeypa
     assert rows[0]["detail"].endswith("dec-637d8fe32375:risk:hard_stop:07226")
 
 
+def test_one_class_is_one_row_whatever_its_detail_says(tmp_path, monkeypatch):
+    """#2344: the detail names the job, slot and exception of one occurrence.
+    Keyed on it, every occurrence was a new count-1 row."""
+    _isolate(tmp_path, monkeypatch)
+    ledger = outcomes._empty()
+    outcomes.note_degradation(ledger, "stage_not_recorded", "brief/primary: KeyError: x")
+    outcomes.note_degradation(ledger, "stage_not_recorded", "report/close: KeyError: y")
+    for slot in ("09:35", "10:05", "10:35"):
+        outcomes.note_degradation(ledger, "heartbeat_bridge_failed", f"intraday/{slot}: boom")
+    rows = ledger[outcomes.DEGRADATIONS_KEY]
+    assert [(row["kind"], row["count"], row["detail"]) for row in rows] == [
+        ("stage_not_recorded", 2, "report/close: KeyError: y"),
+        ("heartbeat_bridge_failed", 3, "intraday/10:35: boom"),
+    ]
+
+
+def test_fragments_written_under_the_old_key_fold_into_their_class(tmp_path, monkeypatch):
+    """The published ledger of 2026-10-02: one class as fifteen count-1 rows."""
+    _isolate(tmp_path, monkeypatch)
+    ledger = outcomes._empty()
+    ledger[outcomes.DEGRADATIONS_KEY] = [
+        {"kind": "debate_citation_unresolved", "detail": f"1 ref matched nothing: dec-{day}",
+         "count": 1, "first_at": f"2026-09-{day:02d}T08:30:00+08:00",
+         "last_at": f"2026-09-{day:02d}T08:30:00+08:00"}
+        for day in range(1, 16)
+    ] + [{"kind": "sector_scan_missing", "detail": "no scan", "count": 9,
+          "first_at": "2026-09-20T08:30:00+08:00", "last_at": "2026-09-28T08:30:00+08:00"}]
+    outcomes.note_degradation(ledger, "data_plane_publish_failed", "push rejected")
+    rows = {row["kind"]: row for row in ledger[outcomes.DEGRADATIONS_KEY]}
+    assert len(rows) == 3
+    citation = rows["debate_citation_unresolved"]
+    assert citation["count"] == 15
+    assert citation["first_at"].startswith("2026-09-01")
+    assert citation["last_at"].startswith("2026-09-15")
+    assert citation["detail"].endswith("dec-15")
+    assert rows["sector_scan_missing"]["count"] == 9
+
+
+def test_a_standalone_note_waits_for_the_ledger_lock(tmp_path, monkeypatch):
+    """#2343: read and written outside the lock, the note put back a ledger from
+    before a concurrent `record_stage`, whose own write then dropped the note."""
+    import threading
+
+    _isolate(tmp_path, monkeypatch)
+    done = threading.Event()
+
+    def note():
+        outcomes.note_degradation(None, "heartbeat_bridge_failed", "brief/slot: boom")
+        done.set()
+
+    with outcomes._locked():
+        ledger = outcomes.load_ledger()
+        worker = threading.Thread(target=note)
+        worker.start()
+        assert not done.wait(0.3), "the note must queue behind the writer holding the lock"
+        ledger["records"] = [{"job": "brief", "slot": "2026-10-02T08:03:00+08:00"}]
+        outcomes._atomic_write(outcomes.local_path(), ledger)
+    worker.join(5)
+    assert done.is_set()
+    written = outcomes._read_path(outcomes.local_path())
+    assert [record["job"] for record in written["records"]] == ["brief"]
+    assert [row["kind"] for row in written[outcomes.DEGRADATIONS_KEY]] == [
+        "heartbeat_bridge_failed"]
+
+
+def test_a_note_from_inside_a_locked_block_does_not_wait_on_itself(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    with outcomes._locked():
+        outcomes.note_degradation(None, "stage_not_recorded", "x")
+    assert outcomes._read_path(outcomes.local_path())[outcomes.DEGRADATIONS_KEY]
+
+
+def test_a_recorded_stage_does_not_publish_the_hosts_absolute_path(tmp_path, monkeypatch):
+    """#2334: `reason` / `detail` arrive as the caller's raw exception text."""
+    _isolate(tmp_path, monkeypatch)
+    workspace = tmp_path / "ws"
+    record = outcomes.record_stage(
+        "brief", "preflight", "failed",
+        slot="2026-10-02T08:03:00+08:00",
+        at=datetime.fromisoformat("2026-10-02T08:05:00+08:00"),
+        reason=f"散文文件不存在: {workspace}/memory/.tmp/report.md",
+        issues=[f"immutable brief context artifact changed: {workspace}/memory/x.json"])
+    assert record, "the stage must be recorded"
+    text = outcomes.local_path().read_text()
+    assert str(tmp_path) not in text
+    assert "memory/.tmp/report.md" in text and "memory/x.json" in text
+
+
 def test_a_recurring_degradation_outlives_one_off_rows_in_a_full_ring(tmp_path, monkeypatch):
     """#2182: the ring evicts by position, so a row that recurs must move to the
     newest end; otherwise a chain failing every day is cut first and its count
@@ -1033,7 +1121,7 @@ def test_a_recurring_degradation_outlives_one_off_rows_in_a_full_ring(tmp_path, 
         outcomes.note_degradation(ledger, "debate_citation_unresolved",
                                   f"1 ref matched nothing: dec-{day}",
                                   group="unmatched_in_context")
-        outcomes.note_degradation(ledger, "stage_not_recorded", f"brief/{day}: x")
+        outcomes.note_degradation(ledger, f"one_off_{day}", "x")
     rows = ledger[outcomes.DEGRADATIONS_KEY]
     assert len(rows) == outcomes.MAX_DEGRADATIONS
     recurring = [row for row in rows if row.get("group") == "unmatched_in_context"]

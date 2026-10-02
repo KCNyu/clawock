@@ -1113,3 +1113,26 @@ def test_dashboard_rejects_an_anomaly_weight_the_concentration_card_does_not_pri
     payload['anomalies'][0]['detail'] = 'weight 57.8% + pnl -52.2%'  # the morning book
     with pytest.raises(AssertionError, match=r'anomalies\.00100 prints weight 57\.8%'):
         validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
+
+
+def _macro_with_index(**row):
+    payload = macro_payload()
+    payload['hsi'] = {'symbol': '^HSI', 'source': 'tencent', **row}
+    return payload
+
+
+def test_macro_accepts_an_index_row_with_no_day_change(tmp_path):
+    """Before the open the honest value is unknown, not 0.00% (#2347)."""
+    path = write_json(tmp_path / 'macro.json', _macro_with_index(
+        price=24613.27, prev=24613.27, change_pct=None, as_of='2026-09-30'))
+    validators.validate_macro(path, now=generated_time(path) + timedelta(hours=1))
+
+
+@pytest.mark.parametrize('row,problem', (
+    (dict(price=24613.27, prev=24613.27, change_pct=0.0), 'previous close repeated'),
+    (dict(price=23972.29, prev=24613.27, change_pct=-0.53), 'is not the move from prev'),
+))
+def test_macro_rejects_a_day_change_its_own_prices_do_not_describe(tmp_path, row, problem):
+    path = write_json(tmp_path / 'macro.json', _macro_with_index(**row))
+    with pytest.raises(AssertionError, match=problem):
+        validators.validate_macro(path, now=generated_time(path) + timedelta(hours=1))

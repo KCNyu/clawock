@@ -36,14 +36,14 @@
     "symbol": "^HSI",
     "price": 24613.27,
     "prev": 24613.27,
-    "change_pct": 0.0,
+    "change_pct": null,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
     "price": 4253.89,
     "prev": 4253.89,
-    "change_pct": 0.0,
+    "change_pct": null,
     "source": "tencent"
   },
   "spx": {
