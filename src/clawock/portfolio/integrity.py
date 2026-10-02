@@ -57,6 +57,10 @@ data_source 里的 provider 名，而在这之前没有任何消费者读过那�
 2026-08-19..28 美股整本账天天走 Finnhub（Nasdaq 的 /info 端点不带前收，
 _quote_is_complete 因此弃用它——链在正常工作），逐日报警只会喂出一条没人看的
 黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
+  PREV_CLOSE_SESSION prev_close == memory/bars 在 prev_close_date 那天的收盘  WARN
+                 → 休市日抓价把前收日盖成报价自己那一场（#2270）
+  LEDGER_ROW_INVALID trades[] / cash_adjustments[] 每行是 JSON 对象          ERROR
+                 → 一行裸字符串曾让整道闸抛异常、五个消费方全哑（#2273）
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
@@ -99,6 +103,7 @@ from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
     ledger_date as _ledger_date,
+    ledger_rows as _ledger_rows,
     moving_average_cost as _moving_avg_cost,
     number as _num,
     trade_cashflow_after as _trade_cashflow_after,  # noqa: F401 — re-exported for tests
@@ -338,6 +343,18 @@ def _kind_of(row) -> str:
     return str(row.get('kind') or 'unknown')
 
 
+def _bar_close(ticker, day):
+    """Canonical-store close for ``ticker`` on ``day``; None when not on file."""
+    path = (workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars'
+            / f'{ticker}.json')
+    try:
+        close = json.loads(path.read_text())['bars'][day]['close']
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return float(close) if isinstance(close, (int, float)) \
+        and not isinstance(close, bool) else None
+
+
 def summarize_bar_conflicts(log_path=None, *, now=None,
                             window_days=BAR_CONFLICT_WINDOW_DAYS) -> dict:
     """Count the canonical store's refused provider disagreements (#1146).
@@ -427,6 +444,21 @@ def check(portfolio_path=PORTFOLIO):
             continue
         market = region_market.get(region)
         holdings = port.get('holdings', []) or []
+        # LEDGER_ROW_INVALID：手填清单里一行不是对象 → 点名，然后在本次体检的
+        # 副本里摘掉它，让其余每道闸照常跑完。以前这一行让整道闸抛异常，五个
+        # 消费方全哑（#2273）。
+        for owner, key, who in (
+                [(h, 'trades', h.get('ticker')) for h in holdings if isinstance(h, dict)]
+                + [(port, 'cash_adjustments', None)]):
+            rows = owner.get(key)
+            if not isinstance(rows, list):
+                continue
+            for index, row in enumerate(rows):
+                if not isinstance(row, dict):
+                    add('LEDGER_ROW_INVALID', 'ERROR',
+                        f'{who + " " if who else ""}{key}[{index}]={row!r:.60} 不是 JSON 对象：'
+                        f'这一行不进任何成本/现金/已实现合计；请改成对象或删除', region, who)
+            owner[key] = _ledger_rows(rows)
         active = _active(holdings)
 
         # FX_TAG ---------------------------------------------------------
@@ -454,6 +486,10 @@ def check(portfolio_path=PORTFOLIO):
 
         # PNL_TOTAL ------------------------------------------------------
         tpnl = _num(port.get('total_pnl'))
+        if tpnl is None and active:
+            # 缺键不是「空仓的 0」：读者按 0 入账就把整条腿从合计里丢掉（#2267）。
+            add('PNL_TOTAL', 'ERROR',
+                'total_pnl 缺失或不是数值，而本区有活跃持仓；合计会把整条腿按 0 入账', region)
         if tcv is not None and tcost is not None and tpnl is not None:
             if abs(tpnl - (tcv - tcost)) > TCV_TOL:
                 add('PNL_TOTAL', 'ERROR',
@@ -695,6 +731,18 @@ def check(portfolio_path=PORTFOLIO):
                     f'（{h["prev_close_date"]}）四位小数完全相等；报价源大概率停在昨收，'
                     f'当日涨跌被算成 0（today_change_pct={h.get("today_change_pct")}）',
                     region, t)
+
+            # PREV_CLOSE_SESSION：前收日那天的 canonical bar 收盘 ≠ 记的前收
+            # → 日期戳到了别的 session（#2270：休市日把前收盖成报价自己那一场）。
+            pcd = h.get('prev_close_date')
+            if prev is not None and sh and isinstance(pcd, str):
+                bar_close = _bar_close(t, pcd)
+                if bar_close is not None and abs(prev - bar_close) > max(
+                        0.005, abs(bar_close) * 0.0005):
+                    add('PREV_CLOSE_SESSION', 'WARN',
+                        f'{t} prev_close={prev:.4f} 标为 {pcd} 的收盘，但 canonical bar '
+                        f'当日收盘是 {bar_close:.4f}；前收日戳错了 session，当日涨跌的基准日不可信',
+                        region, t)
 
             # 数据源自己声明的质量降级，别让它只留在 stdout 里
             if h.get('stale_price_repair'):

@@ -24,7 +24,7 @@ def test_every_held_position_is_modelled_or_named():
     assert set(weights) == {"07226", "RKLX", "CRCL"}, "a held name missing from the map is resolved"
     assert specs["RKLX"] == ("RKLB", 2, "us2x"), "registry: signal RKLB, 2x, US dial"
     assert [t for t, _ in unmodelled] == ["SPCH"], "no long-history proxy → named, not dropped"
-    assert abs(book - (17_000 * 0.128205 + 200 + 2_900 + 180)) < 1e-6
+    assert abs(book - (17_000 * combined_regime.hkd_to_usd() + 200 + 2_900 + 180)) < 1e-6
     assert abs(sum(weights.values()) - 1) < 1e-9 and modelled < book
 
 
@@ -38,3 +38,21 @@ def test_us_leverage_requires_a_completed_prior_200dma_before_measurement():
     assert not us_leverage.can_measure_200dma([1.0] * 200)
     assert us_leverage.can_measure_200dma([1.0] * 201)
     assert us_leverage.simulate([1.0] * 201)["ma"][199] is not None
+
+
+def test_hkd_to_usd_reads_the_cached_rate_not_a_literal(monkeypatch):
+    # #2277
+    monkeypatch.setattr(combined_regime.fx_rates, "read_cached_usdhkd", lambda: {"rate": 7.8})
+    assert abs(combined_regime.hkd_to_usd() - 1 / 7.8) < 1e-12
+    monkeypatch.setattr(combined_regime.fx_rates, "read_cached_usdhkd", lambda: {"rate": None})
+    assert combined_regime.hkd_to_usd() == combined_regime.FX_HKD_USD_FALLBACK
+
+
+def test_us_leverage_replays_the_production_dial_not_its_own_rule():
+    # #2276: same hot-vol line, and only `cut` (trend off AND hot) leaves the 2x.
+    assert us_leverage.VOL_CAP == regime.US_VOL_HOT
+    for trend_on in (True, False):
+        for vol in (None, regime.US_VOL_HOT - 0.01, regime.US_VOL_HOT, 1.2):
+            hot = vol is not None and vol >= regime.US_VOL_HOT
+            state = "ok" if trend_on else "cut" if hot else "watch"
+            assert us_leverage.holds_2x(trend_on, vol) == (state != "cut"), (trend_on, vol)

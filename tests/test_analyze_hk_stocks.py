@@ -220,8 +220,7 @@ def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volum
     """
     now_hkt = datetime.now(timezone(timedelta(hours=8)))
     today = now_hkt.date().isoformat()
-    prior_session = hk.trading_calendar.previous_trading_day(
-        "hk", now_hkt.date()).isoformat()
+    prior_session = hk._hk_prev_close_session(now_hkt.date()).isoformat()
 
     port = {
         "portfolios": {
@@ -378,3 +377,12 @@ def test_news_sentiment_uses_documented_two_hit_margin(articles, expected):
 )
 def test_signal_thresholds_and_priority_are_definitional(holding, expected):
     assert hk.signal(holding) == expected
+
+
+def test_prior_close_session_folds_a_closed_day_back_first():
+    # #2270: 2026-10-01 is an HK holiday. The quote fetched that day is the
+    # 09-30 close, so its prior close is the 09-29 one — not 09-30.
+    from datetime import date
+    assert hk._hk_prev_close_session(date(2026, 9, 30)) == date(2026, 9, 29)
+    assert hk._hk_prev_close_session(date(2026, 10, 1)) == date(2026, 9, 29)
+    assert hk._hk_prev_close_session(date(2026, 10, 2)) == date(2026, 9, 30)

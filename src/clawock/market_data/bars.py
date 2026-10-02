@@ -260,7 +260,11 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
         d = b["date"]
         if d > last_closed:
             continue                      # session not finished — never store a live bar
-        verdict = bar_checks.check_bar(b)
+        # The move check needs the prior stored close; without it the >50% jump
+        # detector was unreachable from its only production caller (#2274).
+        prior_dates = [k for k in bars if k < d]
+        prev_close = bars[max(prior_dates)].get("close") if prior_dates else None
+        verdict = bar_checks.check_bar(b, prev_close=prev_close)
         if verdict["fatal"]:
             conflicts.append({
                 "date": d, "kind": "impossible_bar",
@@ -278,10 +282,24 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
         # range is not evidence of anything.
         if "degenerate_range" in verdict["flags"]:
             rec["degenerate"] = True
+        jump = next((f for f in verdict["flags"] if f.startswith("implausible_move")), None)
+        if jump:
+            # Stored, like a degenerate bar (settlement still needs the close),
+            # but flagged on the record so nobody settles against it unseen.
+            rec["implausible_move"] = jump.split(" ", 1)[1]
         old = bars.get(d)
         if old is None:
             bars[d] = rec
             added += 1
+            if jump:
+                print(f"  {ticker} {d} [{jump}] vs prior close {prev_close} — stored with flag",
+                      file=sys.stderr)
+                record_conflicts(ticker, [{
+                    "date": d, "kind": "implausible_move",
+                    "detail": f"close {rec['close']} vs prior close {prev_close} "
+                              f"({rec['implausible_move']}); stored with flag, not refused",
+                    "fetched": {k: rec[k] for k in ("open", "high", "low", "close")},
+                }])
             continue
         same = all(abs(old[k] - rec[k]) < 1e-9 for k in ("open", "high", "low", "close"))
         if same:

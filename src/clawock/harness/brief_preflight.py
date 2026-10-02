@@ -232,6 +232,14 @@ def _opportunity_reads(open_decisions, portfolio):
     # A silent zero is what produced 「为什么只有卖出」— say which of the three
     # reasons it was, so an empty add side is an answer and not an absence.
     over = [r for r in (radar.get('rows') or []) if r['state'] == 'wait_rebreak']
+
+    def _name_for(label):
+        # The radar's numbers are the signal symbol's. A held proxy named beside
+        # them must say whose number it is (RKLX -6.6% was RKLB's, #2309).
+        members = holdings_of.get(label, [label])
+        named = '/'.join(members)
+        return named if label in members else f'{named}（标的 {label}）'
+
     if reads['candidate_count']:
         why_none = None
     elif not signals_by_label:
@@ -241,7 +249,7 @@ def _opportunity_reads(open_decisions, portfolio):
         # the no-chase filter demoted it. Naming the names and the z is what
         # lets kcn argue with the threshold instead of with the silence.
         names = '、'.join(
-            f"{'/'.join(holdings_of.get(r['label'], [r['label']]))} z={r['zscore20']}"
+            f"{_name_for(r['label'])} z={r['zscore20']}"
             for r in over[:4])
         why_none = (f'{len(over)} 只已收盘站上前 20 日高，但 z≥{no_chase_z:g} 判为追高'
                     f'（policy: 等回踩不破再谈）：{names}')
@@ -256,7 +264,7 @@ def _opportunity_reads(open_decisions, portfolio):
                           for k, v in (radar.get('levels') or {}).items()
                           if v.get('pct_from_high') is not None), reverse=True)[:3]
         near_txt = '、'.join(
-            f"{'/'.join(holdings_of.get(k, [k]))} {p:+.1f}%" for p, k in nearest
+            f"{_name_for(k)} {p:+.1f}%" for p, k in nearest
         ) or '无可比价位'
         why_none = (f'全部持仓收盘未站上前 20 日高，最接近的三只：{near_txt}'
                     f'（突破是唯一有回测边缘的加仓形态，#819）')
@@ -1895,8 +1903,10 @@ def main(argv=None):
     # completes in WAVE1 and rate is its only input (pure arithmetic; nothing
     # between the prefix and this point consumes it).
     rate = fx['rate']
-    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
-    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
+    # A missing leg total is not a zero: defaulting it drops the whole leg out
+    # of the book total while every gate still reconciles (#2267).
+    hk_pnl_hkd = portfolio['portfolios']['hk_stocks']['total_pnl']
+    us_pnl_usd = portfolio['portfolios']['us_stocks']['total_pnl']
     totals = pnl_totals(hk_pnl_hkd, us_pnl_usd, rate)
     book = {
         'hk_pnl_hkd':      round(hk_pnl_hkd, 2),

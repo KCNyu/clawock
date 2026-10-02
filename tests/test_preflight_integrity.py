@@ -27,7 +27,8 @@ def pi():
 def run_check(pi, monkeypatch):
     """Run the real gate against JSON held entirely in memory."""
 
-    def run(data, *, last_session="2026-07-17", previous_cash=None):
+    def run(data, *, last_session="2026-07-17", previous_cash=None, bars=None):
+        bars = bars or {}
         payload = json.dumps(data)
         # `summarize_bar_conflicts` is the one collaborator that still reaches
         # the filesystem: with no explicit log it resolves
@@ -46,6 +47,7 @@ def run_check(pi, monkeypatch):
             "Path",
             lambda _unused: SimpleNamespace(read_text=lambda: payload),
         )
+        monkeypatch.setattr(pi, "_bar_close", lambda _ticker, _day: bars.get((_ticker, _day)))
         monkeypatch.setattr(pi, "_last_session", lambda _market: last_session)
         monkeypatch.setattr(
             pi, "_prev_snapshot_cash", lambda _region, _field: previous_cash
@@ -311,6 +313,8 @@ def test_missing_optional_holding_fields_are_skipped_without_false_positive(run_
         "portfolios": {
             "us_stocks": {
                 "currency": "USD",
+                # the leg total is not optional once a row is active (#2267)
+                "total_pnl": 0.0,
                 "holdings": [
                     {
                         "ticker": "SPARSE",
@@ -650,6 +654,48 @@ def test_staleness_accepts_last_session_and_warns_one_session_behind(run_check):
         "WARN",
         "早于上一交易日 2026-07-17",
     )
+
+
+def test_missing_leg_total_pnl_is_an_error_not_a_zero(run_check):
+    # #2267
+    data = _portfolio_data(region="hk_stocks", holdings=[_holding(ticker="00100")])
+    del data["portfolios"]["hk_stocks"]["total_pnl"]
+    report = run_check(data)
+    assert not report["ok"]
+    assert any(f["code"] == "PNL_TOTAL" and "缺失" in f["msg"] for f in report["findings"])
+
+
+def test_a_non_object_ledger_row_is_named_and_the_gate_still_completes(run_check, pi):
+    # #2273: one bare string in trades[] / cash_adjustments[] used to raise.
+    row = _holding(ticker="ACME")
+    row["trades"].append("sold 5 on 2026-07-10")
+    data = _portfolio_data(holdings=[row])
+    _port(data)["cash_adjustments"].append("+5000 on 2026-07-10")
+    report = run_check(data)
+    named = [f["msg"] for f in report["findings"] if f["code"] == "LEDGER_ROW_INVALID"]
+    assert len(named) == 2 and not report["ok"]
+    assert any("trades[1]" in m for m in named)
+    assert any("cash_adjustments[0]" in m for m in named)
+    assert {f["code"] for f in report["findings"]} == {"LEDGER_ROW_INVALID"}
+
+    from clawock.portfolio import math as pmath
+    assert pmath.moving_average_cost(row["trades"] + ["junk"]) == pmath.moving_average_cost(
+        [t for t in row["trades"] if isinstance(t, dict)])
+    assert pmath.derive_cash({**_port(data), "cash_adjustments": ["junk"]}) is not None
+
+
+def test_prev_close_stamped_with_the_wrong_session_is_reported(run_check):
+    # #2270: on an HK holiday the prior close was dated to the quote's own session.
+    row = _holding(ticker="00100", current=250.2, previous=241.4)
+    data = _portfolio_data(region="hk_stocks", holdings=[row])
+    wrong = run_check(data, bars={("00100", "2026-07-16"): 250.2})
+    assert [f["ticker"] for f in wrong["findings"]
+            if f["code"] == "PREV_CLOSE_SESSION"] == ["00100"]
+    assert wrong["ok"]
+    right = run_check(data, bars={("00100", "2026-07-16"): 241.4})
+    assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in right["findings"])
+    unknown = run_check(data)
+    assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in unknown["findings"])
 
 
 def test_stale_price_gate_fires_only_when_prev_close_date_is_prior_session(run_check):

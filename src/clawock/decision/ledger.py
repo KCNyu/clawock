@@ -2164,7 +2164,13 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
     cutoff = cutoff or (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     lifetime_reps = episode_representatives(decisions, "t1")
-    reps = [r for r in lifetime_reps if r.get("plan_date", "") >= cutoff]
+    # Membership is "the episode has a call inside the window", the same rule
+    # `_coverage` counts by. Filtering on the representative's own plan_date
+    # (the episode's FIRST settled call) dropped every straddling episode whole,
+    # so the rate and the coverage printed beside it described two populations
+    # (#2275).
+    in_window_eps = {d.get("episode_id") for d in in_window}
+    reps = [r for r in lifetime_reps if r.get("episode_id") in in_window_eps]
     def _calib(rows: list[dict]) -> dict:
         """Brier + the baselines that make it readable, over one population.
 

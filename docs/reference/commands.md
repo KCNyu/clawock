@@ -139,7 +139,7 @@ Sources: local snapshots + canonical bars
 | Command | Module | What it collects or computes |
 |---|---|---|
 | `clawock evaluate-hstech-regime` | `clawock.evaluation.hstech_regime` | the regime de-risking thesis, tested on real HSTECH data |
-| `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the same regime backtest for the US 2x sleeve |
+| `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial |
 | `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights |
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
 | `clawock validate-regime-hmm` | `clawock.evaluation.regime_hmm` | posterior regimes with a duration, scored on the dial's own circular-shift null |

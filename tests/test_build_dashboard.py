@@ -75,6 +75,27 @@ def test_session_asof_uses_the_snapshot_day_across_new_year():
     assert dashboard._session_asof(holding, "2026-12-31") == "2026-12-31"
 
 
+def test_session_asof_prefers_the_rows_own_session_and_folds_closed_days():
+    # #2269: `data_source` is the fetch time, and fetchers run on closed days.
+    us = {"holdings": [{"shares": 1, "day_session_date": "2026-09-04",
+                        "data_source": "Nasdaq API (stocks) Sep 06, 2026 04:03 ET"}]}
+    assert dashboard._session_asof(us, "2026-09-07", "us") == "2026-09-04"
+    hk = {"holdings": [{"shares": 1, "data_source": "Tencent Oct 01 08:03 HKT"}]}
+    assert dashboard._session_asof(hk, "2026-10-01", "hk") == "2026-09-30"
+    assert dashboard._session_asof(hk, "2026-10-01") == "2026-10-01"
+    open_day = {"holdings": [{"shares": 1, "data_source": "Tencent Sep 30 16:10 HKT"}]}
+    assert dashboard._session_asof(open_day, "2026-09-30", "hk") == "2026-09-30"
+
+
+def test_today_movers_say_which_session_each_move_belongs_to():
+    rows = dashboard.compute_today_movers(
+        [{"ticker": "SPCH", "today_change_pct": -3.78, "current_price": 9.67}],
+        [{"ticker": "00100", "today_change_pct": 3.65, "current_price": 250.2}],
+        sessions={("us", "SPCH"): "2026-10-01", ("hk", "00100"): "2026-09-30"})
+    assert {r["ticker"]: r["session"] for r in rows} == {
+        "SPCH": "2026-10-01", "00100": "2026-09-30"}
+
+
 def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     data_dir = tmp_path / "assets" / "data"
     data_dir.mkdir(parents=True)
@@ -1622,3 +1643,22 @@ def test_the_published_fx_says_when_its_cache_is_old_or_missing(
     assert stale["usdhkd"] == 7.8434
     assert stale["stale"] is True and stale["warning"]
     assert stale["source"] == "Frankfurter"
+
+
+def test_gold_dca_freshness_is_judged_by_its_own_stamp_not_the_file_mtime(monkeypatch, tmp_path):
+    # #2268: portfolio.json's mtime is moved by the HK/US refreshers all day.
+    at = datetime(2026, 8, 3, 2, 30, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+
+    def gold_row(last_updated):
+        (tmp_path / "portfolio.json").write_text(json.dumps(
+            {"gold_dca": {"nav_date": "2026-07-31", "last_updated": last_updated}}))
+        os.utime(tmp_path / "portfolio.json", (at.timestamp(), at.timestamp()))
+        status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+        return status, next(r for r in status["files"]
+                            if r["name"] == "portfolio.json#gold_dca")
+
+    status, fresh = gold_row("2026-08-01T15:50:54Z")
+    assert fresh["stale"] is False and "portfolio.json#gold_dca" not in status["stale_files"]
+    status, frozen = gold_row("2026-07-20T15:50:54Z")
+    assert frozen["stale"] is True and "portfolio.json#gold_dca" in status["stale_files"]

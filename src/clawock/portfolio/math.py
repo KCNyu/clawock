@@ -34,7 +34,7 @@ def moving_average_cost(trades: Iterable[Mapping[str, Any]]) -> tuple[float | No
     """Replay buys/sells and return the remaining moving-average cost and shares."""
     shares = 0.0
     cost = 0.0
-    ordered = sorted(enumerate(trades), key=lambda item: (
+    ordered = sorted(enumerate(ledger_rows(list(trades))), key=lambda item: (
         ledger_date(item[1].get("date")), item[0]))
     for _, trade in ordered:
         quantity = number(trade.get("shares")) or 0
@@ -50,6 +50,17 @@ def moving_average_cost(trades: Iterable[Mapping[str, Any]]) -> tuple[float | No
     return (cost / shares if shares else None), shares
 
 
+def ledger_rows(rows: Any) -> list[Mapping[str, Any]]:
+    """The object rows of a hand-entered ledger list (`trades`, `cash_adjustments`).
+
+    One row that is not a JSON object used to raise in every reader and take the
+    whole money gate down with it (#2273). Readers skip it; `integrity.check`
+    names it as `LEDGER_ROW_INVALID`, so the skip is never silent.
+    """
+    return [row for row in (rows or []) if isinstance(row, Mapping)] \
+        if isinstance(rows, (list, tuple)) else []
+
+
 def trade_cashflow_after(
     holdings: Iterable[Mapping[str, Any]], after_date: str,
 ) -> tuple[float, int]:
@@ -57,7 +68,7 @@ def trade_cashflow_after(
     flow = 0.0
     count = 0
     for holding in holdings or []:
-        for trade in holding.get("trades", []) or []:
+        for trade in ledger_rows(holding.get("trades")):
             trade_date = ledger_date(trade.get("date"))
             if not trade_date or trade_date <= after_date:
                 continue
@@ -81,7 +92,7 @@ def derive_cash(book: Mapping[str, Any]) -> tuple[float, float, str, int] | None
         return None
     flow, count = trade_cashflow_after(book.get("holdings", []), baseline_date)
     adjustments = 0.0
-    for adjustment in book.get("cash_adjustments", []) or []:
+    for adjustment in ledger_rows(book.get("cash_adjustments")):
         adjustment_date = ledger_date(adjustment.get("date"))
         if adjustment_date and adjustment_date > baseline_date:
             adjustments += number(adjustment.get("amount")) or 0

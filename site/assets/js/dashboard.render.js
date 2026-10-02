@@ -901,6 +901,7 @@
     "workflow-outcomes.json": "流程账本",
     "cron-heartbeats.json": "定时心跳",
     "integrity_report.json": "体检报告",
+    "portfolio.json#gold_dca": "黄金定投净值",
     "coverage.json": "测试覆盖率",
     "readme_metrics.json": "README 指标",
     "overview.json": "总览快照",
@@ -1823,8 +1824,8 @@
     }
     const narr = document.getElementById("sector-narrative");
     if (narr) {
-      if (ctx.narrative) {
-        narr.textContent = ctx.narrative;
+      if (ctx.narrative || ctx.note) {
+        narr.textContent = [ctx.narrative, ctx.note].filter(Boolean).join(" ");
         narr.style.display = "";
       } else {
         narr.style.display = "none";
@@ -1878,12 +1879,14 @@
       const dir = p > 0 ? "up" : p < 0 ? "down" : "";
       const ccy = m.region === "hk" ? "HKD" : "USD";
       const note = m.note ? `<div class="mover-note">${escLLM(m.note)}</div>` : "";
+      // The two legs routinely sit on different sessions; say which one this move is.
+      const sess = m.session ? ` · ${escapeHtml(String(m.session).slice(5))} 场` : "";
       return `
         <div class="mover-card ${dir}${m.note ? ' has-note' : ''}">
           <div class="tk">${escapeHtml(m.ticker || DASH)}</div>
           <div class="nm">${escapeHtml(m.name || "")}</div>
           <div class="pct ${pnlClass(p)}">${fmtPct(p, 2)}</div>
-          <div class="px">${fmtMoney(m.current_price, ccy)}</div>
+          <div class="px">${fmtMoney(m.current_price, ccy)}${sess}</div>
           ${note}
         </div>
       `;
@@ -4016,7 +4019,15 @@
       </div>
     `).join("");
     const meta = safe(DATA, "insights_meta") || {};
-    document.getElementById("bear-src").textContent = meta.source ? `源 ${meta.source}` : "";
+    document.getElementById("bear-src").textContent = insightsSource(meta);
+  }
+
+  // The insights prose is written once, pre-open; its percentages are that
+  // moment's while every other card is recomputed each build. Say so (#2296).
+  function insightsSource(meta) {
+    if (!meta.source) return "";
+    const at = meta.written_at ? `${meta.written_at} HKT 写入的快照，文中数字为当时值 · ` : "";
+    return `${at}源 ${meta.source}`;
   }
 
   function renderHiddenConcentration() {
@@ -4037,7 +4048,7 @@
       <div class="hc-detail">${escLLM(hc.detail)}</div>
     `;
     const meta = safe(DATA, "insights_meta") || {};
-    document.getElementById("hidden-conc-src").textContent = meta.source ? `源 ${meta.source}` : "";
+    document.getElementById("hidden-conc-src").textContent = insightsSource(meta);
   }
 
   function renderStatusBanner() {

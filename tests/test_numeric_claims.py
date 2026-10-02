@@ -469,3 +469,21 @@ def test_every_postflight_reports_the_product_not_the_check(module_name):
     source = Path(module.__file__).read_text(encoding="utf-8")
     assert "product_status(status, escalating)" in source, (
         f"{module_name} still files the checker's verdict as the product")
+
+
+def test_an_episode_win_rate_is_checked_against_the_ticker_it_is_said_about():
+    # #2307: 07226's 「13 个 episode 胜率 62%」 shipped under RKLX (11 / 45%).
+    from clawock.harness.validation import check_numeric_claims
+    ctx = {"reflections": {
+        "07226": {"n": 13, "win_rate": 0.62,
+                  "lesson": "07226: 过去 13 个策略 episode 胜率 62%"},
+        "RKLX": {"n": 11, "win_rate": 0.45,
+                 "lesson": "RKLX: 过去 11 个策略 episode 胜率 45%"},
+    }}
+    wrong = check_numeric_claims("### RKLX\n判定：13 个 episode 胜率 62% 是组合里最高的一档", ctx)
+    assert wrong and "RKLX 自己是 11 个 / 45%" in wrong[0]
+    for fine in ("### RKLX\n判定：过去 11 个策略 episode 胜率 45%，本次谨慎",
+                 "### 07226\n13 个 episode 胜率 62%",
+                 "### RKLX\n不像 07226 的 13 个 episode 胜率 62%",
+                 "组合里有一只 13 个 episode 胜率 62%"):
+        assert check_numeric_claims(fine, ctx) == [], fine

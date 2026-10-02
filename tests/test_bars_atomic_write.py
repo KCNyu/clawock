@@ -52,3 +52,28 @@ def test_successful_bar_write_preserves_sorted_storage_format(tmp_path, monkeypa
     bars.write_bars("TEST", doc)
     assert list(bars.load_bars("TEST")["bars"]) == ["2026-09-10", "2026-09-11"]
     assert bars.bars_path("TEST").read_text() == json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+
+
+def test_merge_flags_a_jump_against_the_prior_stored_close(tmp_path, monkeypatch):
+    # #2274: the >50% detector needs the prior close; merge() never passed it.
+    monkeypatch.setattr(bars, "BARS_DIR", tmp_path)
+    monkeypatch.setattr(bars, "CONFLICT_LOG", tmp_path / "bar-conflicts.jsonl")
+    monkeypatch.setitem(bars.MANIFEST, "TEST", {"tencent": "usTEST", "leg": "us"})
+    monkeypatch.setattr(bars, "_last_closed_session", lambda leg: "2026-09-11")
+    monkeypatch.setattr(bars, "_sync_manifest_flags", lambda ticker: None, raising=False)
+
+    def bar(day, close):
+        return {"date": day, "open": close, "high": close * 1.01,
+                "low": close * 0.99, "close": close}
+
+    added, _, conflicts = bars.merge(
+        "TEST", [bar("2026-09-09", 10.0), bar("2026-09-10", 10.5), bar("2026-09-11", 16.6)], False)
+    stored = bars.load_bars("TEST")["bars"]
+
+    assert added == 3 and conflicts == []
+    assert "implausible_move" not in stored["2026-09-10"]
+    assert stored["2026-09-11"]["implausible_move"].startswith("58.")
+    logged = [json.loads(line) for line in
+              (tmp_path / "bar-conflicts.jsonl").read_text().splitlines()]
+    assert [(r["ticker"], r["date"], r["kind"]) for r in logged] == [
+        ("TEST", "2026-09-11", "implausible_move")]

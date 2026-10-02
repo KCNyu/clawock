@@ -7,6 +7,8 @@ the instrument registry); the table marks which are held today.
 These ETFs are young (2023-24 launches) so we simulate the 2x daily-reset sleeve
 from the UNDERLYING stock's full history (Tencent fqkline, qfq-adjusted) — which
 captures volatility decay exactly. Regime dial = per-stock 200DMA trend + 20d vol.
+The `rgv` row replays production's ok/watch/cut mapping (leave the 2x only on
+`cut`); `reg` and `r1x` are trend-only variants of the same indicators.
 
 Outputs:
   • a results table (totRet / CAGR / maxDD / worst-window / %inMkt / switches)
@@ -47,7 +49,17 @@ def held_symbols():
         return set()
     return {h.get('ticker') for leg in port.get('portfolios', {}).values()
             for h in (leg.get('holdings') or []) if (h.get('shares') or 0) > 0}
-MA_WIN, VOL_WIN, VOL_CAP = 200, 20, 0.80   # single stocks run hot → 80% vol band
+# The hot-vol line is production's own (`compute_regime.US_VOL_HOT`): a copy
+# here had drifted to 0.80 against 0.70 and graded a rule nobody runs (#2276).
+MA_WIN, VOL_WIN, VOL_CAP = 200, 20, compute_regime.US_VOL_HOT
+
+
+def holds_2x(trend_on, vol):
+    """Production's dial (`compute_regime.compute_us`): only `cut` leaves the 2x.
+
+    cut = trend off AND hot; trend off but calm is `watch`, which does not cut.
+    """
+    return bool(trend_on) or not (vol is not None and vol >= VOL_CAP)
 
 
 def _plotting():
@@ -123,11 +135,10 @@ def simulate(closes):
     for i in range(1, n):
         r = rets[i]; lev = 1 + 2 * r
         trend = ma[i - 1] is not None and closes[i - 1] > ma[i - 1]
-        vok = vols[i - 1] is not None and vols[i - 1] < VOL_CAP
         bh1.append(bh1[-1] * (1 + r))
         bh2.append(bh2[-1] * lev)
         reg.append(reg[-1] * (lev if trend else 1.0))
-        rgv.append(rgv[-1] * (lev if (trend and vok) else 1.0))
+        rgv.append(rgv[-1] * (lev if holds_2x(trend, vols[i - 1]) else 1.0))
         r1x.append(r1x[-1] * ((1 + r) if trend else 1.0))
         pos.append(1 if trend else 0)
     return dict(bh1=bh1, bh2=bh2, reg=reg, rgv=rgv, r1x=r1x, pos=pos, ma=ma, vols=vols)
@@ -140,7 +151,7 @@ def can_measure_200dma(data):
 
 
 COLORS = {'bh2': '#ef4444', 'reg': '#f59e0b', 'rgv': '#a855f7', 'r1x': '#22c55e', 'bh1': '#64748b'}
-LBL = {'bh1': '标的 1x 持有', 'bh2': '2x ETF 死扛', 'reg': 'Regime 2x', 'rgv': 'Regime+Vol 2x', 'r1x': 'Regime 1x(降杠杆)'}
+LBL = {'bh1': '标的 1x 持有', 'bh2': '2x ETF 死扛', 'reg': 'Regime 2x', 'rgv': '生产三档 2x(仅 cut 离场)', 'r1x': 'Regime 1x(降杠杆)'}
 
 
 def main(argv=None):
