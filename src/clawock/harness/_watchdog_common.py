@@ -981,6 +981,7 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
                  'reason': 'WeChat backstop already attempted this slot from '
                            'another checkout on this host (host dedupe flag)'})
             return None
+    channel = None
     try:
         channel, to, account = resolve(market) if market else resolve()
         ok, out = wechat(channel, to, account, message, dry_run=dry_run)
@@ -1009,20 +1010,27 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
         except Exception as e:  # noqa: BLE001 — the send result is already logged
             log({'tag': tag, 'action': 'wechat-backstop-marker-write-failed',
                  'detail': str(e)[:300]})
-    if not ok and not dry_run and not _first_miss_today(flag_path.parent, tag):
+    miss_subject = str(channel or 'wechat')
+    if ok and not dry_run:
+        # The condition cleared: the next miss on this channel is a new event
+        # and alerts again (#2292).
+        _miss_flag(flag_path.parent, miss_subject).unlink(missing_ok=True)
+    if not ok and not dry_run and not _first_miss_today(flag_path.parent, miss_subject):
         # 2026-09-25: WeChat refused every intraday slot (ret=-2) and kcn got
         # this alert on Telegram after every card — an error message every 30
         # minutes for one known condition (feedback: no per-run alerts). The
-        # first miss per tag and HKT day still alerts; later ones are logged and
-        # counted by the data-health card's wechat-dropped tally.
+        # allowance is per CHANNEL and HKT day, not per job tag: one outage hit
+        # nine tags and bought nine alerts differing by a name (#2292). Later
+        # misses are logged and counted by the data-health card's tally.
         log({'tag': tag, 'action': 'wechat-miss-alert-suppressed',
-             'reason': 'already alerted for this tag today'})
+             'reason': f'already alerted for {miss_subject} today'})
     elif not ok:
         alert = (f'⚠️ 微信未送达：{tag}\n\n'
                  f'postflight 微信发送失败（{first_failure or "无输出"}），'
                  f'watchdog 补发一次也失败（{(out or "无输出")[-200:]}）。\n'
                  f'这一条请以 Telegram 为准；微信不会再自动重试。'
-                 f'今天 {tag} 之后的微信失败不再逐条提醒，次数见数据健康牌。')
+                 f'今天微信通道之后的失败（不分档位）不再逐条提醒，恢复后再掉会重新提醒；'
+                 f'次数见数据健康牌。')
         try:
             alert_target = telegram_target()
             alert_ok, alert_out = telegram(alert_target, alert, dry_run)
@@ -1034,9 +1042,13 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
     return bool(ok)
 
 
-def _first_miss_today(flag_dir, tag):
-    """Claim today's one WeChat-miss alert for `tag`; False once it is taken."""
-    flag = Path(flag_dir) / f"wechat-miss-alert-{tag}-{datetime.now(HKT):%Y%m%d}.done"
+def _miss_flag(flag_dir, subject):
+    return Path(flag_dir) / f"wechat-miss-alert-{subject}-{datetime.now(HKT):%Y%m%d}.done"
+
+
+def _first_miss_today(flag_dir, subject):
+    """Claim today's one WeChat-miss alert for `subject`; False once it is taken."""
+    flag = _miss_flag(flag_dir, subject)
     try:
         flag.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(flag, os.O_CREAT | os.O_EXCL | os.O_WRONLY)

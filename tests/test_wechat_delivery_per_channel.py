@@ -274,7 +274,7 @@ def test_failed_backstop_alerts_kcn_on_telegram(tmp_path, isolated_watchdog_log)
     assert any(e['action'] == 'wechat-miss-alert' for e in _events(isolated_watchdog_log))
 
 
-def test_a_repeated_wechat_miss_alerts_once_a_day_per_tag(tmp_path, isolated_watchdog_log):
+def test_a_repeated_wechat_miss_alerts_once_per_channel_until_it_recovers(tmp_path, isolated_watchdog_log):
     """2026-09-25: ret=-2 on every intraday slot put a 微信未送达 alert on
     Telegram after every card. Later misses the same day are logged, not sent."""
     calls, senders = _senders(wechat_ok=False)
@@ -288,10 +288,21 @@ def test_a_repeated_wechat_miss_alerts_once_a_day_per_tag(tmp_path, isolated_wat
     assert len(calls['telegram']) == 1
     actions = [e['action'] for e in _events(isolated_watchdog_log)]
     assert actions.count('wechat-miss-alert-suppressed') == 2
-    # another tag keeps its own first alert
+    # #2292: the allowance belongs to the channel — another tag hitting the same
+    # outage is the same condition, not a second alert.
     marker_path = _write(tmp_path / 'report-sent.json', {'ts': _now_ms(), **INCIDENT})
     common.wechat_backstop('report', 'report-hk-mid', 'card', json.loads(marker_path.read_text()),
                            marker_path, tmp_path / 'watchdog-report.done', False, **senders)
+    assert len(calls['telegram']) == 1
+    # ...and a recovery re-arms it: the next miss is a new event.
+    _, healthy = _senders(wechat_ok=True)
+    marker_path = _write(tmp_path / 'brief-sent.json', {'ts': _now_ms(), **INCIDENT})
+    assert common.wechat_backstop('brief', 'brief', 'card', json.loads(marker_path.read_text()),
+                                  marker_path, tmp_path / 'watchdog-brief.done', False,
+                                  **healthy) is True
+    marker_path = _write(tmp_path / 'report-us.json', {'ts': _now_ms(), **INCIDENT})
+    common.wechat_backstop('report', 'report-us-close', 'card', json.loads(marker_path.read_text()),
+                           marker_path, tmp_path / 'watchdog-report-us.done', False, **senders)
     assert len(calls['telegram']) == 2
 
 
