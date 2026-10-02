@@ -112,3 +112,7 @@ tools -> decision
 tools -> sessions
 workflows -> publish
 workflows -> runtime_model
+# Stdlib-only ceilings: contracts and callers share budget arithmetic, not implementations.
+harness -> run_budgets
+publish -> run_budgets
+scheduling -> run_budgets

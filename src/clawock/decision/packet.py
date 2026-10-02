@@ -1705,7 +1705,11 @@ def _narrative_issues(narrative) -> list[str]:
 
 
 def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
+    from clawock.decision.reflection_claims import episode_claim_mismatches
     issues = []
+    reflections = {ticker: {'n': (row.get('history') or {}).get('settled_episodes'),
+                            'win_rate': (row.get('history') or {}).get('win_rate')}
+                   for ticker, row in (packet.get('tickers') or {}).items()}
     top_allowed = {
         "schema_version", "context_generation_id", "portfolio_assessment",
         "portfolio_counterargument", "narrative", "ticker_judgments",
@@ -1770,6 +1774,9 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
             issues.append(f"{label} confidence must be in [0,1]")
         for field in ROW_TEXT_FIELDS:
             issues.extend(_prose_issues(row.get(field), field, label))
+            if isinstance(row.get(field), str):
+                issues.extend(f'{label} {field}: {issue}' for issue in
+                              episode_claim_mismatches(row[field], reflections, subject=ticker))
     missing = sorted(known - seen)
     if missing:
         issues.append(f"judgment missing active tickers: {missing}")

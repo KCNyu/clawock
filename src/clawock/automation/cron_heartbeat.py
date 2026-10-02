@@ -126,6 +126,8 @@ def unpushed_oldest_hours(workspace=None, now: datetime | None = None) -> float 
     """Age in hours of the oldest commit not on `origin/master`; None when none
     or when it cannot be measured.
 
+    Author time survives fetch/rebase retry; committer time would reset the
+    age to zero each time the stranded work is rebased (#2323).
     The host's own gate warns on "3 commits OR 2 hours"; the off-host mirror
     only had the count, so one commit stuck all day stayed green there (#2298).
     """
@@ -134,7 +136,7 @@ def unpushed_oldest_hours(workspace=None, now: datetime | None = None) -> float 
     root = Path(workspace) if workspace else WS
     try:
         out = subprocess.run(
-            ["git", "log", "--format=%ct", "origin/master..HEAD"],
+            ["git", "log", "--format=%at", "origin/master..HEAD"],
             capture_output=True, text=True, timeout=10, cwd=str(root))
         stamps = [int(line) for line in out.stdout.split()]
     except Exception:

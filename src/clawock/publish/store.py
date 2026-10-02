@@ -27,7 +27,6 @@ from pathlib import Path
 from typing import Mapping, Protocol
 from uuid import uuid4
 
-from clawock.publish.deploy import DEPLOY_REQUEST_TIMEOUT_SECONDS
 
 
 # Published artifacts are read by a web server, a Jekyll container and anyone
@@ -188,21 +187,9 @@ class FilesystemStore:
 # The numbers are not renegotiated here (a hung remote must still fail the
 # publish rather than park the process, #848). What changes is that the outer
 # budget is now DERIVED from them.
-GIT_CALL_TIMEOUT_SECONDS = 120     # any single git call, local or over the wire
-PUSH_ATTEMPTS = 3                  # GitBranchStore.publish(attempts=)
-PUSH_RETRY_BACKOFF_STEP_SECONDS = 3   # sleep attempt*step between attempts
-
-# One `publish()` makes: ls-remote (default-branch probe) + fetch (compare
-# against the branch) + up to PUSH_ATTEMPTS pushes, with the backoff ladder in
-# between. Local plumbing (hash-object / write-tree / commit-tree) is not counted
-# — it cannot hang on the network, which is the only thing this budget is sized
-# against.
-PUBLISH_NETWORK_CALLS = 2 + PUSH_ATTEMPTS
-PUBLISH_BUDGET_SECONDS = (
-    PUBLISH_NETWORK_CALLS * GIT_CALL_TIMEOUT_SECONDS
-    + sum(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS
-          for attempt in range(1, PUSH_ATTEMPTS))
-    + DEPLOY_REQUEST_TIMEOUT_SECONDS
+from clawock.run_budgets import (  # noqa: E402,F401
+    GIT_CALL_TIMEOUT_SECONDS, PUSH_ATTEMPTS, PUSH_RETRY_BACKOFF_STEP_SECONDS,
+    PUBLISH_NETWORK_CALLS, PUBLISH_BUDGET_SECONDS, DEPLOY_REQUEST_TIMEOUT_SECONDS,
 )
 
 

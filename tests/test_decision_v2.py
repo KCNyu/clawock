@@ -1215,3 +1215,45 @@ def test_checked_in_ledger_has_no_unkeyed_rows():
     # goes CRITICAL and nothing on this host can publish.
     rows = dv2.load_decisions(ROOT / "memory" / "decisions.jsonl")
     assert [i for i, r in enumerate(rows) if not r.get("decision_id")] == []
+
+
+def test_suspect_trigger_is_not_a_fill_and_cannot_skip_to_a_clean_window():
+    flagged = {**_bar(12.0), 'implausible_move': '57.9%'}
+    ev = _settle_against('2026-07-04', 13, condition={
+        'type': 'price_above', 'price': 11, 'valid_for_sessions': 2},
+        bars={'2026-07-01': flagged, '2026-07-02': _bar(13), '2026-07-03': _bar(14)})
+    assert ev['status'] == 'not_evaluable' and ev['not_evaluable_reason'] == 'implausible_move'
+    assert 'execution_price' not in ev and 'capital' not in ev
+    assert 'benefit_t1_pct' not in ev and ev['outcome'] == 'unknown'
+
+
+def test_suspect_mark_cannot_score_a_clean_fill():
+    ev = _settle_against('2026-07-03', 17, bars={
+        '2026-07-01': _bar(10),
+        '2026-07-02': {**_bar(17), 'implausible_move': '70.0%'}})
+    assert ev['status'] == 'not_evaluable' and ev['not_evaluable_reason'] == 'implausible_move'
+    assert ev['outcome'] == 'unknown' and ev['benefit_t1_pct'] is None
+
+
+def test_resettlement_removes_stale_profit_amounts_on_a_suspect_fill():
+    row = dv2.legacy_action_to_decision({'ticker': 'AAA', 'action': 'cut',
+        'condition': {'type': 'open'}, 'size': {'shares': 14}, 'confidence': .6}, '2026-07-01')
+    row['evaluation'] = {'status': 'settled', 'outcome': 'loss',
+        'execution_price': 36.98, 'capital': 517.72, 'benefit_t20_pct': -44.7}
+    patches = _with_bars({'2026-07-01': {**_bar(36.98), 'implausible_move': '57.9%'}})
+    for patch in patches: patch.start()
+    try: dv2.settle_decisions([row], now_date='2026-07-04')
+    finally:
+        for patch in patches: patch.stop()
+    ev = row['evaluation']
+    assert ev['not_evaluable_reason'] == 'implausible_move'
+    assert not {'execution_price', 'capital', 'benefit_t20_pct'} & ev.keys()
+
+
+def test_t5_mark_cannot_cross_a_suspect_intermediate_session():
+    bars = {f'2026-07-0{day}': _bar(10 + day) for day in range(1, 7)}
+    bars['2026-07-03']['implausible_move'] = '60.0%'
+    ev = _settle_against('2026-07-09', 12, bars=bars)
+    assert ev['status'] == 'settled'  # the clean T+1 remains evidence
+    assert ev['benefit_t1_pct'] is not None
+    assert ev['benefit_t5_pct'] is None and ev['mark_t5_session'] is None

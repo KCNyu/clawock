@@ -487,3 +487,15 @@ def test_an_episode_win_rate_is_checked_against_the_ticker_it_is_said_about():
                  "### RKLX\n不像 07226 的 13 个 episode 胜率 62%",
                  "组合里有一只 13 个 episode 胜率 62%"):
         assert check_numeric_claims(fine, ctx) == [], fine
+
+
+def test_brief_block_owner_survives_an_inline_peer_reference():
+    from clawock.harness.validation import check_numeric_claims
+    ctx = {'reflections': {'RKLX': {'n': 11, 'win_rate': .45},
+                          'SPCH': {'n': 7, 'win_rate': .43},
+                          '07226': {'n': 13, 'win_rate': .62}}}
+    prose = '- **RKLX** ·\n理由：真正要处理的是 SPCH。\n判定：13 个 episode 胜率 62%'
+    issues = check_numeric_claims(prose, ctx)
+    assert issues and 'RKLX 自己是 11 个 / 45%' in issues[0]
+    assert not check_numeric_claims(prose.replace('13 个 episode 胜率 62%',
+                                                 '11 个 episode 胜率 45%'), ctx)

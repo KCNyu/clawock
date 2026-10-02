@@ -158,3 +158,13 @@ def test_a_rebase_does_not_reset_the_age(system_check, monkeypatch, repo, tmp_pa
 
     assert "oldest 6." in before, before
     assert "oldest 6." in after, after      # …and the age survived it
+
+
+def test_heartbeat_age_survives_rebase_and_measures_oldest_author_time(repo):
+    from clawock.automation import cron_heartbeat
+    _commit_aged(repo, 'old.txt', hours_ago=5)
+    _commit_aged(repo, 'new.txt', hours_ago=0)
+    # Rebase/amend changes committer time while keeping author time.
+    _run(repo, 'rebase', '--force-rebase', 'origin/master')
+    age = cron_heartbeat.unpushed_oldest_hours(repo)
+    assert age is not None and 4.9 < age < 5.1

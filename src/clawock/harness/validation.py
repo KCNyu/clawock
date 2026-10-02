@@ -276,6 +276,8 @@ def _context_unit_numbers(ctx):
         elif isinstance(node, bool):
             return
         elif isinstance(node, (int, float)):
+            if key == 'win_rate' and 0 <= node <= 1:
+                add('percent', node * 100)
             for unit, hint in _UNIT_KEY_HINTS.items():
                 if hint.search(key):
                     add(unit, node)
@@ -468,51 +470,13 @@ def _runs_backwards(lo, hi):
     return lo is not None and hi is not None and lo > 0 and lo > hi
 
 
-_EPISODE_CLAIM = re.compile(
-    r'(\d+)\s*个[^。；;\n%]{0,12}?episode[^。；;\n%]{0,12}?胜率\s*(\d+(?:\.\d+)?)\s*%')
+from clawock.decision.reflection_claims import (  # noqa: E402,F401
+    _EPISODE_CLAIM, episode_claim_mismatches,
+)
 
 
 def _episode_claim_mismatches(text, ctx):
-    """「N 个 episode 胜率 P%」 must be the pair of the ticker it is said about.
-
-    The percent pool is one flat table over the whole context, so another
-    ticker's 62% authorizes itself anywhere: RKLX's verdict shipped 07226's
-    「13 个 episode 胜率 62%」 (its own record was 11 / 45%) and the gate said
-    nothing (#2307). The owner is the last reflection ticker named before the
-    claim; with none named, any ticker's own pair will do.
-    """
-    reflections = {
-        str(ticker): row for ticker, row in ((ctx or {}).get('reflections') or {}).items()
-        if isinstance(row, dict) and isinstance(row.get('n'), int)
-        and isinstance(row.get('win_rate'), (int, float))
-    }
-    if not reflections:
-        return []
-
-    def states(row, n, pct):
-        return row['n'] == n and abs(row['win_rate'] * 100 - pct) <= 1.0
-
-    out = []
-    for match in _EPISODE_CLAIM.finditer(text):
-        n, pct = int(match.group(1)), float(match.group(2))
-        owner, at = None, -1
-        for ticker in reflections:
-            found = text.rfind(ticker, 0, match.start())
-            if found > at:
-                owner, at = ticker, found
-        if owner is not None:
-            if states(reflections[owner], n, pct):
-                continue
-            row = reflections[owner]
-            label = (f'{n} 个 episode 胜率 {match.group(2)}%'
-                     f'（{owner} 自己是 {row["n"]} 个 / {row["win_rate"]:.0%}）')
-        elif any(states(row, n, pct) for row in reflections.values()):
-            continue
-        else:
-            label = f'{n} 个 episode 胜率 {match.group(2)}%'
-        if label not in out:
-            out.append(label)
-    return out
+    return episode_claim_mismatches(text, (ctx or {}).get('reflections'))
 
 
 def check_numeric_claims(text, ctx):
