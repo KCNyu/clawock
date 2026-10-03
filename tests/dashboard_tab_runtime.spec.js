@@ -2367,11 +2367,16 @@ async function testFooterDegradationsCountOnlyTheWindow(browser, base) {
   const quiet = await footer([old]);
   assert.equal(quiet.tone, "ok", `five-day-old degradations must not light the dot: ${quiet.label}`);
   assert.ok(!quiet.label.includes("降级记录"), quiet.label);
-  assert.ok(quiet.title.includes("sector_scan_missing: 8 次 · 最后 5 天前"), "history stays readable in the tooltip");
+  assert.ok(quiet.title.includes("sector_scan_missing: 累计 8 次 · 最后 5 天前"), "history stays readable in the tooltip");
   const recent = await footer([old, { kind: "heartbeat_bridge_failed", detail: "y", count: 2,
-    first_at: ago(3), last_at: ago(2) }]);
+    first_at: ago(3), last_at: ago(2), hits: [ago(3), ago(2)], hits_incomplete: false }]);
   assert.equal(recent.tone, "warn");
   assert.ok(recent.label.includes("36h 内 2 次降级记录"), recent.label);
+  const aggregated = await footer([{ kind: "legacy_fold", count: 15,
+    first_at: ago(24 * 20), last_at: ago(2), hits: [ago(24 * 20), ago(2)], hits_incomplete: true }]);
+  assert.ok(aggregated.label.includes("36h 内 至少 1 次降级记录"), aggregated.label);
+  assert.ok(!aggregated.label.includes("15 次降级记录"), aggregated.label);
+  assert.ok(aggregated.title.includes("累计 15 次"), aggregated.title);
 }
 
 async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
