@@ -83,6 +83,8 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 
 ### Mode 7 — 盘中盯盘（cron，每 30 分钟）
 
+当前 `config/intraday-delivery.json` 的 `always_full: true` 要求每档完整卡，无变化也正常发；以 preflight 本档 `delivery_mode` 为准。以下 `no_change` / `review_candidate` 静默分支仅在 operator 显式改为 false 时启用（权威契约见 `docs/architecture/intraday-agent.md`），不得自行切换。
+
 美股按 ET 交易日判定，含跨 HKT 午夜档。SPCH 无限子弹流：不重复风险提醒、不建议砍仓；仅 `raw_wechat_block` 本档新出现 P0 行时核 `strategy_checks` 的数值、状态和来源证据并问一次是否继续。策略由持仓 `strategy` 与 `config/intraday-strategy-policies.json` 表达。只有 `strategy_checks.status=clear` 才能说对应 P0 未触发；`unavailable` 只说证据未取到，不拿单日涨跌推断五交易日。
 
 1. `clawock intraday preflight --market us --judgment-packet`。`market_closed` 结束。stdout 是核心包（计划含 0 股观察、观察线、`analyzer_block`、来源与失败状态），`index.references` 列出参考层条目（板块全景等），按条目的 fetch 命令取；同代副本留在 `memory/.tmp/intraday-context-us-latest.json`，postflight 用 `context_id` 锁同代。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成实时。
@@ -260,5 +262,5 @@ These are market-agnostic; `hk-stock-analysis` also references them.
 ## Companion tools
 
 - `../scrapling/SKILL.md` — when all 7 script-internal fallbacks fail, or when Reddit/social needs comment-level depth past the public JSON
-- `../tavily-search/SKILL.md` — primary web search tool for news/sentiment/research (do not let the model improvise with Yahoo/Google scraping)
+- `../tavily-search/SKILL.md` — optional configured search; skill 名是 `tavily`，catalog/key 不可用或脚本返回 unavailable 时用当前会话可用搜索
 - `portfolio-swarm-review` skill — deep bull/bear/judge debate framework (analysts → researchers → risk debators → trader), inspired by TauricResearch/TradingAgents design; use when single-shot analysis isn't enough

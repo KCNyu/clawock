@@ -85,7 +85,7 @@ Historical size heuristics (not acceptance gates; do not remove concrete inciden
 | Pattern | Where it lives | Fix |
 |---|---|---|
 | "Promoted From Short-Term Memory" in MEMORY.md | Dreaming auto-promotes summaries; they pile up | Flag dated market excerpts/front matter/HTML for review; preserve concrete incident lessons. Position exit alone does not make a lesson obsolete |
-| Duplicate fallback chains in MEMORY.md + TOOLS.md + INVESTMENT_SOP.md | Same rules 3x | Keep ONE authoritative copy (TOOLS.md); others reference it |
+| Duplicate fallback chains in MEMORY.md + TOOLS.md + INVESTMENT_SOP.md | Same rules 3x | Keep provider chains in docs/reference/tool-operations.md with the current implementation; TOOLS.md routes there, MEMORY.md keeps incident lessons |
 | Group chat / Discord behavior in AGENTS.md | User uses 1:1 weixin | Drop unless multi-user channels are added |
 | Verbose heartbeat instructions in AGENTS.md | openclaw injects `HEARTBEAT_CONTEXT_PROMPT` itself | Keep one short line about HEARTBEAT_OK token |
 | 50+ line preamble repeating "real data, no cache" | Said 5 times across files | One铁律 block in MEMORY.md, reference elsewhere |
