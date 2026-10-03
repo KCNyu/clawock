@@ -5,11 +5,11 @@ description: Safe OpenClaw version upgrade with regression checklist. Use when k
 
 # OpenClaw Safe Upgrade
 
-Kcn runs a live automated trading system on OpenClaw. An upgrade that loses crons, breaks embeddings, or orphans an in-flight cron is a production incident. This is the battle-tested flow (5.28→6.1→6.5→6.6→6.8). Full version-specific history lives in auto-memory `openclaw-update-missing-deps.md` — read it first for the target version's known traps.
+Kcn runs a live automated trading system on OpenClaw. An upgrade that loses crons, breaks embeddings, or orphans an in-flight cron is a production incident. This is the battle-tested flow (5.28→6.1→6.5→6.6→6.8). The current host runbook is `/root/.shared-memory/project-openclaw-upgrade-runbook.md`; historical version traps are in the archive it links. Read these only on this host, never copy them into the public repository.
 
 ## 0. Check + decide
 1. `openclaw --version` vs `npm view openclaw version` (latest). Pull the changelog (`npm pack openclaw@<v>` → `package/CHANGELOG.md`) and judge relevance — don't upgrade reflexively.
-2. Read auto-memory `openclaw-update-missing-deps.md` for that version's traps.
+2. Read the host runbook above for the target version's traps; use the installed version's changelog/source when the runbook has no entry.
 
 ## 1. 🔴 Never restart the gateway while a cron is in-flight
 Use the structured runtime field, not a text grep:
@@ -42,8 +42,9 @@ The wrapper applies these idempotent host scripts in order:
 2. `/root/tools/openclaw/current/patch-memory-search-timeout.sh`
 3. `/root/tools/openclaw/current/patch-minimax-m3-priority.sh`
 4. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
+5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
 
-It then verifies all four markers, runs `node --check` on every modified bundle,
+It then verifies every patch marker (including the header deadline value), runs `node --check` on every modified bundle,
 and compiles the maintenance detector. It does **not** restart the gateway.
 
 Any missing script, changed source anchor, syntax error, or missing marker is a
@@ -63,13 +64,20 @@ bash ops/host/reapply_openclaw_patches.sh --check-only
 | Check | Command | Pass = |
 |---|---|---|
 | version | `openclaw --version` | shows target |
-| **cron count** | `openclaw cron list \| grep -c isolated` | **11** (SQLite→SQLite keeps them; if lost → `openclaw doctor --fix` imports legacy jobs.json) |
+| **cron contract** | `openclaw cron list --json`; `clawock system check`; `bash ops/host/check_crons.sh --timeline` | names, schedules, enabled state, payloads and host triggers match `config/cron-schedules.json`; inspect the cron runtime/watchdog contract results, not only the total count |
 | embedding | `openclaw memory search "<q>" --max-results 2 --json` | returns results, no `Unknown memory embedding provider` (6.8 has no `--limit`) |
-| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all four markers and JS/Python syntax pass |
+| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all five patches' markers and JS/Python syntax pass |
 | MiniMax transport | transport log + fallback smoke | Anthropic protocol; `priority` present; a no-header timeout is retryable; the 300s generation timeout remains |
 | weixin delivery | tail `/tmp/openclaw/openclaw-*.log` | `weixin monitor started` + `gateway ready`, no crash loop |
 | model chain | the cron run log / a throwaway `openclaw agent` call | a model answers (⚠️ see note) |
-| clean startup | gateway log | `cron: started jobs:11`, no plugin load errors |
+| clean startup | gateway log + structured cron listing | scheduler starts the contract's enabled OpenClaw jobs; no plugin load errors |
+
+The contract currently declares 11 job identities, with 10 enabled in OpenClaw.
+`港股午后快报` remains stored but disabled there: since #1443 its host crontab
+trigger (`33 13 * * 1-5 clawock cron-trigger --job-name "港股午后快报"`)
+queues it instead. A listing of 10 enabled jobs is not a lost job; verify the
+disabled identity and the host trigger together. Do not import legacy jobs or
+enable it merely to make a count pass. Derive future expectations from the contract.
 
 Run one complete isolated cron after the cheap checks. Inspect its actual
 session and `systemPromptReport`, not only the final summary. Pass means:

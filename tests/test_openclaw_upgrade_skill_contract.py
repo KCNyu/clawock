@@ -1,7 +1,10 @@
 """Guard the upgrade path that preserves host-local OpenClaw dist fixes."""
 
 from pathlib import Path
+import os
 import subprocess
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +16,7 @@ PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-memory-search-timeout.sh",
     "/root/tools/openclaw/current/patch-minimax-m3-priority.sh",
     "/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh",
+    "/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh",
 )
 PATCH_BASENAMES = tuple(Path(script).name for script in PATCH_SCRIPTS)
 PATCH_MARKERS = (
@@ -21,6 +25,7 @@ PATCH_MARKERS = (
     "clawock-minimax-m3-priority",
     "clawock-minimax-response-header-timeout-v3",
     "MiniMax response-header timeout after 60000ms",
+    "clawock-minimax-m3x-adaptive-thinking",
 )
 
 
@@ -70,3 +75,35 @@ def test_upgrade_contract_preserves_rich_agent_context():
 
 def test_patch_wrapper_has_valid_shell_syntax():
     subprocess.run(["bash", "-n", str(WRAPPER)], check=True)
+
+
+@pytest.mark.parametrize("adaptive_present", [False, True])
+def test_check_only_requires_adaptive_thinking_in_installed_bundle(tmp_path, adaptive_present):
+    """An upgrade that wiped only the M3.x fix must fail the operator's gate."""
+    install = tmp_path / "openclaw"
+    dist = install / "dist"
+    dist.mkdir(parents=True)
+    markers = PATCH_MARKERS if adaptive_present else PATCH_MARKERS[:-1]
+    (dist / "bundle.js").write_text("\n".join(f"// {marker}" for marker in markers))
+    shims = tmp_path / "bin"
+    shims.mkdir()
+    for name, body in {
+        "realpath": 'printf "%s\\n" "$TEST_OPENCLAW_INSTALL"',
+        # Keep this fixture away from host maintenance files and their pycache.
+        "python3": "exit 0",
+    }.items():
+        shim = shims / name
+        shim.write_text(f"#!/bin/sh\n{body}\n")
+        shim.chmod(0o755)
+    result = subprocess.run(
+        ["bash", str(WRAPPER), "--check-only"],
+        env={**os.environ, "PATH": f"{shims}:{os.environ['PATH']}",
+             "TEST_OPENCLAW_INSTALL": str(install)},
+        capture_output=True, text=True,
+    )
+    if adaptive_present:
+        assert result.returncode == 0, result.stderr
+        assert "all 5 patches" in result.stdout
+    else:
+        assert result.returncode != 0
+        assert "marker missing for MiniMax-M3.x always-adaptive thinking" in result.stderr

@@ -18,7 +18,7 @@ The more you know, the better you can help. But remember — you're learning abo
 
 ## 交易风格
 - **风险偏好：激进型**
-- **可用现金：约15万人民币（≈$20,500 USD）**
+- **可用现金：读 `portfolio.json` 的当次账本，不在偏好文件保留金额副本**
 - 美股+港股持仓均在可接受范围内
 - 不排斥高波动标的，可以接受较大回撤
 - 港股AI个股（MiniMax、迅策等）有兴趣追热点

@@ -84,6 +84,8 @@ In this order:
 
 ### Mode 7 — 盘中盯盘（cron，每 30 分钟）
 
+当前 `config/intraday-delivery.json` 的 `always_full: true` 要求每档完整卡，无变化也正常发；以 preflight 本档 `delivery_mode` 为准。以下 `no_change` / `review_candidate` 静默分支仅在 operator 显式改为 false 时启用（权威契约见 `docs/architecture/intraday-agent.md`），不得自行切换。
+
 港股 10:03–11:33、14:03–15:33 HKT。
 
 1. `clawock intraday preflight --market hk --judgment-packet`。`market_closed` 结束。stdout 是核心包（计划含 0 股观察、观察线、`analyzer_block`、来源与失败状态），`index.references` 列出参考层条目（板块全景等），按条目的 fetch 命令取；同代副本留在 `memory/.tmp/intraday-context-hk-latest.json`，postflight 用 `context_id` 锁同代。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成实时。
@@ -267,5 +269,5 @@ Output:
 ## Companion tools
 
 - `../scrapling/SKILL.md` — 当 Tencent/Eastmoney/stooq/yfinance 全挂 或需要抓雪球/富途社区时
-- `../tavily-search/SKILL.md` — 中文新闻 / 南向资金数据 / 政策搜索的首选 web 搜索
+- `../tavily-search/SKILL.md` — 中文新闻 / 南向资金数据 / 政策搜索的可选配置入口；skill 名是 `tavily`，catalog/key 不可用或脚本返回 unavailable 时用当前会话可用搜索
 - `/root/.openclaw/workspace/TradingAgents/` — 用户已克隆的 TauricResearch 多 agent 框架。深度分析需要 bull/bear debate 时可参考其 agent 角色设计

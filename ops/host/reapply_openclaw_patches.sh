@@ -12,6 +12,7 @@ PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-memory-search-timeout.sh"
   "$PATCH_ROOT/patch-minimax-m3-priority.sh"
   "$PATCH_ROOT/patch-minimax-response-header-timeout.sh"
+  "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
 )
 
 case "$RUN_MODE" in
@@ -50,6 +51,7 @@ PATCH_MARKERS=(
   "clawock-minimax-m3-priority"
   "clawock-minimax-response-header-timeout-v3"
   "MiniMax response-header timeout after 60000ms"
+  "clawock-minimax-m3x-adaptive-thinking"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
@@ -57,6 +59,7 @@ PATCH_LABELS=(
   "MiniMax-M3.x priority admission"
   "MiniMax 60s response-header deadline"
   "MiniMax response-header deadline value"
+  "MiniMax-M3.x always-adaptive thinking"
 )
 
 declare -a syntax_targets=()
@@ -80,5 +83,5 @@ for target in "${unique_targets[@]}"; do
 done
 python3 -m py_compile "$PATCH_ROOT/memory_index_maintenance.py"
 
-echo "[openclaw-patches] all four patches and modified bundles verified"
+echo "[openclaw-patches] all ${#PATCH_SCRIPTS[@]} patches and modified bundles verified"
 echo "[openclaw-patches] gateway was not restarted"
