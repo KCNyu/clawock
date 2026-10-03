@@ -143,7 +143,7 @@ title 与详情层）。额度在面板上、任务在底板上，两级不混�
 | Provider | 口径 | 读数 |
 | :--- | :--- | :--- |
 | DeepSeek | 官方 `GET /user/balance`(凭据缝 → 环境变量) | 余额 ¥(CNY 行优先,金额口径不变),面板见赠金/充值拆分 |
-| MiniMax | 官方 `GET /v1/token_plan/remains`(Token Plan 配额窗口) | 窗口已使用 %(上游报剩余则取补;`general` 桶);key 解析链=凭据缝 → env → **openclaw 网关配置**(`~/.openclaw/openclaw.json` 的 `models.providers.minimax.apiKey`) |
+| MiniMax | 官方 `GET /v1/token_plan/remains`(Token Plan 配额窗口) | 窗口已使用 %(上游报剩余则取补;`general` 桶;固定 5 小时 + 周窗口,重置时刻取 API 的 end_time);key 解析链=凭据缝 → env → **openclaw 网关配置**(`~/.openclaw/openclaw.json` 的 `models.providers.minimax.apiKey`) |
 | Claude | 订阅制额度:OAuth `GET /api/oauth/usage`(`anthropic-beta: oauth-2025-04-20`),token 读自 `~/.claude/.credentials.json` | 会话窗口已使用 %(utilization 本来就是用量,**直读不再取补**)+ 本周已使用;面板附各窗口重置时间 |
 | Codex | ChatGPT 订阅额度:本机 Codex CLI 的官方 `codex app-server`(JSON-RPC `account/rateLimits/read`),鉴权归 CLI 自己 | 5h 窗口已使用 % + 本周已使用;后端报额度受限时附「当前额度受限」 |
 

@@ -376,12 +376,15 @@ export function parseMinimaxRemains(body: unknown, asOf: string, now: number = D
   const raw = (typeof body === 'object' && body !== null ? body : {}) as RawRemainsBody
   const buckets = Array.isArray(raw.model_remains) ? raw.model_remains : []
   // `general` is the text/coding bucket every plan carries; video et al are add-ons.
-  const entry = buckets.find((b) => (b.model_name ?? b.model) === 'general') ?? buckets[0]
-  if (entry === undefined) throw new Error('MiniMax 响应里没有 model_remains 数据')
+  const entry = buckets.find((b) => (b.model_name ?? b.model) === 'general')
+  if (entry === undefined) throw new Error('MiniMax 响应里没有 general model_remains 数据')
   return quotaSnapshot([
     quotaWindow({
       usedPercent: windowUsedPercent(entry),
-      durationMins: spanMins(entry.start_time, entry.end_time),
+      // Token Plan's contractual fixed window is five hours. The API's
+      // current interval boundaries are reset timestamps, not plan metadata.
+      // https://platform.minimaxi.com/docs/coding-plan/intro
+      durationMins: 300,
       resetsAt: entry.end_time,
       fallbackLabel: '5h',
     }, now),
