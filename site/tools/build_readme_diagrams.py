@@ -824,36 +824,39 @@ def debate_flow():
                  ['Disagreement is required.', 'The resolution is attributed.'],
                  ['Protocol rules set in the brief prompt; code only', 'checks that each tier was written.'],
                  [('evidence · python', 'green'), ('agents · LLM', 'slate'), ('opposing case', 'warm'),
-                  ('grading', 'blue')])
+                  ('grading', 'blue')], title_lh=34)
     y += 30
     d.section(y, 'SHARED INPUT')
     y += 14
     h = 76
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 30, [('context.json', INK)], 'h')
+    d.icon('book', M + 20, y + 12, 'green')
+    d.text(M + 50, y + 30, [('context.json', INK)], 'h')
     d.text(M + 20, y + 54, 'one immutable evidence pack; every claim cites it', 'm', fill=MUT)
     top = y + h
     d.section(top + 34, 'TIER 1 · ANALYST LENSES')
     y = top + 48
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
-    h = 150
+    h = 176
     d.card(M, y, CW, h, 'slate')
     d.text(M + 20, y + 32, 'Four analyst lenses', 'h')
     d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
-    xs, cw = columns(2, gap=8, x0=M + 16, w=CW - 32)
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
     for i, name in enumerate(['Fundamental', 'Technical', 'Sentiment', 'Sector rotation']):
-        d.chip(xs[i % 2], y + 46 + (i // 2) * 36, cw, name)
+        d.chip(xs[i % 2], y + 50 + (i // 2) * 48, cw, name, h=36,
+               icon=('lens', 'factor', 'chat', 'sector')[i])
     d.text(M + 20, y + h - 14, 'same context → one merged table', 'm', fill=MUT)
     top = y + h
     d.section(top + 34, 'TIER 2 · RESEARCHERS')
     y = top + 48
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
-    h = 96
+    h = 112
     xs, cw = columns(2, gap=40)
     for x, (name, body, sub, role) in zip(xs, (('Bull case', 'hold / add', 'cites the pack', 'green'),
                                               ('Bear case', 'trim / cut', 'hits the strongest view', 'warm'))):
         d.card(x, y, cw, h, role)
-        d.text(x + 18, y + 32, name, 'h', fill=ROLE[role])
+        d.icon('up' if role == 'green' else 'down', x + 18, y + 14, role)
+        d.text(x + 48, y + 32, name, 'h', fill=ROLE[role])
         d.text(x + 18, y + 56, body, 'b')
         fits(sub, 'm', cw - 26, 'bullbear')
         d.text(x + 18, y + 78, sub, 'm', fill=MUT)
@@ -872,16 +875,18 @@ def debate_flow():
     xs, cw = columns(3, gap=10)
     for i, (x, name) in enumerate(zip(xs, ('Aggressive', 'Conservative', 'Neutral'))):
         d.curve(W / 2, fy, x + cw / 2, y, pulses=(i * .5,), dur=1.8, pulse=ROLE['slate'])
-        d.card(x, y, cw, 50, 'slate')
+        d.card(x, y, cw, 84, 'slate')
+        d.icon(('up', 'shield', 'balance')[i], x + cw / 2 - 11, y + 15, 'slate')
         fits(name, 'b', cw - 20, 'risk')
-        d.text(x + cw / 2 + 2, y + 31, name, 'b', anchor='middle')
-    top = y + 50
+        d.text(x + cw / 2 + 2, y + 65, name, 'b', anchor='middle')
+    top = y + 84
     y = top + 46
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, W / 2, y, pulses=(i * .5 + .3,), dur=1.8, pulse=ROLE['slate'])
     h = 96
     d.card(M, y, CW, h, 'slate')
-    d.text(M + 20, y + 32, 'Judge', 'h')
+    d.icon('judge', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Judge', 'h')
     d.tag(W - M - 16, y + 30, 'ATTRIBUTED', 'slate', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Names the strategy frame driving each call',
                                       [('→ plan.json', ROLE['blue'])]], lh=21, where='judge')
@@ -890,7 +895,8 @@ def debate_flow():
     d.down(W / 2, top, y, pulses=(0, 1.1))
     h = 76
     d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 30, "Next session's grading", 'h')
+    d.icon('checks', M + 20, y + 12)
+    d.text(M + 50, y + 30, "Next session's grading", 'h')
     d.text(M + 20, y + 54, 'code, not the model, settles the score', 'm', fill=MUT)
     y += h + 26
     d.lines(M, y, CW, ['The bear attacks the strongest consensus, never the weakest;',
