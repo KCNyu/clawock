@@ -943,7 +943,7 @@ def summarize(*, reconcile=False, hours=36):
 def publish():
     reconcile_raw_execution()
     reconcile_delivery_receipts()
-    ledger = load_ledger()
+    ledger = _public(load_ledger())
     before = public_path().read_text() if public_path().exists() else None
     payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
     if before == payload:

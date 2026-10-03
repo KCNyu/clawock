@@ -1204,3 +1204,16 @@ def test_the_card_carries_the_faults_beside_the_counts_they_undermine(
     assert "delivery_reconcile_skipped" in [row["kind"] for row in rows], rows
     # And a clean ledger says nothing, so the field's presence is the signal.
     assert published.degradations_of({"records": []}) == []
+
+
+def test_publish_sanitizes_legacy_ledger_at_boundary(tmp_path, monkeypatch):
+    monkeypatch.setattr(outcomes, "reconcile_raw_execution", lambda: None)
+    monkeypatch.setattr(outcomes, "reconcile_delivery_receipts", lambda: None)
+    legacy = {"records": [{"stages": {"preflight": {"context_path": "/root/.openclaw/workspace/memory/.tmp/old.json"}}}]}
+    monkeypatch.setattr(outcomes, "load_ledger", lambda: legacy)
+    target = tmp_path / "public.json"
+    monkeypatch.setattr(outcomes, "public_path", lambda: target)
+    assert outcomes.publish()
+    assert "/root/" not in target.read_text()
+    assert legacy["records"][0]["stages"]["preflight"]["context_path"].startswith("/root/")
+    assert not outcomes.publish()
