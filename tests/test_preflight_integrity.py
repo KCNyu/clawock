@@ -903,3 +903,13 @@ def test_a_quoted_fill_number_is_named_before_the_traces_and_realized_use_it(run
     assert [f["ticker"] for f in invalid] == ["ACME"]
     assert field in invalid[0]["msg"] and "2026-07-01" in invalid[0]["msg"]
     assert invalid[0]["level"] == "ERROR" and report["ok"] is False
+
+
+def test_hk_mixed_sessions_block_publication(run_check):
+    book = _portfolio_data(region="hk_stocks", holdings=[_holding(ticker="A"), _holding(ticker="B")])
+    rows = _port(book, "hk_stocks")["holdings"]
+    rows[0]["day_session_date"] = "2026-07-17"
+    rows[1]["day_session_date"] = "2026-07-16"
+    report = run_check(book, last_session=None)
+    assert not report["ok"]
+    assert any(f["code"] == "HK_ASOF" and f["level"] == "ERROR" for f in report["findings"])

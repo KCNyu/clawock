@@ -32,7 +32,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
-from clawock.portfolio.math import ledger_rows
+from clawock.portfolio.math import number as portfolio_number, ledger_rows
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -1646,10 +1646,8 @@ def load_snapshots():
         # 窗口内这一列的增量从收益里扣掉：入金不算赚的 (#2348)。
         for leg in legs:
             row[f'{leg.key}_flows'] = round(sum(
-                float(a.get('amount') or 0)
-                for a in ledger_rows(books[leg.key].get('cash_adjustments'))
-                if isinstance(a.get('amount'), (int, float))
-                and not isinstance(a.get('amount'), bool)), 2)
+                (portfolio_number(a.get('amount')) or 0)
+                for a in ledger_rows(books[leg.key].get('cash_adjustments'))), 2)
         # Market-session dates (≠ filename date) so daily P&L can collapse a US
         # session that straddles two HK-dated snapshots instead of double-counting.
         for leg in legs:
@@ -1895,7 +1893,8 @@ def compute_delta(snapshots, legs=None):
     """Rolling-window % return vs today, per leg.
 
     snapshots is the same list build_dashboard already prepares: ascending date,
-    so today = snapshots[-1], yesterday = snapshots[-2], etc.
+    so today = snapshots[-1]. Multi-day windows use calendar dates;
+    Today uses the current session P&L instead of an intraday baseline file.
 
     Basis is total assets net of external flows (`_window_return`). The older
     `<leg>_equity` basis left cash out, so the cash spent on a buy vanished and
@@ -1912,12 +1911,24 @@ def compute_delta(snapshots, legs=None):
         n = len(snapshots)
         today = snapshots[-1]
 
-        def window(leg_key, offset_back):
-            if n - 1 - offset_back < 0:
+        def window(leg_key, days):
+            cut = (datetime.fromisoformat(today['date']).date() - timedelta(days=days)).isoformat()
+            candidates = [row for row in snapshots[:-1] if row['date'] <= cut]
+            if not candidates:
                 return None
-            return _window_return(today, snapshots[n - 1 - offset_back], leg_key)
+            return _window_return(today, candidates[-1], leg_key)
 
-        return {leg.key: {'today_pct': window(leg.key, 1),
+        def daily(leg_key):
+            # HKT snapshot files often contain a US intraday quote. Their value
+            # is not yesterday's close. The current session P&L is valued by the
+            # canonical day_pnl producer, so recover its prior asset base here.
+            pnl = today.get(f'{leg_key}_today_change')
+            if _has_cash(today, leg_key) and isinstance(pnl, (int, float)) and not isinstance(pnl, bool):
+                assets = today[f'{leg_key}_total_value'] + today[f'{leg_key}_cash']
+                return _pct_change(assets, assets - pnl)
+            return window(leg_key, 1)
+
+        return {leg.key: {'today_pct': daily(leg.key),
                           '7d_pct': window(leg.key, 7),
                           '30d_pct': window(leg.key, 30)}
                 for leg in legs}

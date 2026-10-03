@@ -378,11 +378,17 @@ def signal(holding: Dict) -> str:
 
 # ── portfolio update ──────────────────────────────────────────────────────────
 
-def _hk_prev_close_session(today):
-    """HK session the fetched prior close belongs to at calendar day ``today``."""
-    quote_session = today if trading_calendar.is_trading_day('hk', today) \
-        else trading_calendar.previous_trading_day('hk', today)
-    return trading_calendar.previous_trading_day('hk', quote_session)
+def _hk_quote_session(now):
+    """Quote session at the HK clock, including pre-open and holidays."""
+    day = now.date() if isinstance(now, datetime) else now
+    before_open = isinstance(now, datetime) and (now.hour, now.minute) < (9, 30)
+    if before_open or not trading_calendar.is_trading_day('hk', day):
+        return trading_calendar.previous_trading_day('hk', day)
+    return day
+
+
+def _hk_prev_close_session(now):
+    return trading_calendar.previous_trading_day('hk', _hk_quote_session(now))
 
 
 def update_hk_portfolio(dry_run: bool = False) -> Dict:
@@ -394,12 +400,12 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
 
     hk_key, us = region_book(data, 'HK')
-    active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     codes  = [h['ticker'] for h in active]
 
     # Zero out snapshot fields on closed positions — refresh skips shares==0
     # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in us['holdings']:
+    for h in ledger_rows(us['holdings']):
         if h.get('shares', 0) == 0:
             for k in ('current_value', 'pnl_abs', 'pnl_percent',
                       'today_change', 'today_change_pct'):
@@ -414,6 +420,11 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     quotes = fetch_hk_quotes(codes)
     print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
 
+    missing = [code for code in codes if code not in quotes]
+    if missing:
+        # Fail before mutating/persisting the leg: partial totals understate assets.
+        raise RuntimeError('HK quote refresh incomplete: ' + ', '.join(missing))
+
     # A prior close belongs to the PRIOR HK session, never today. Stamping
     # today_date here (the old behaviour) produced holdings whose
     # prev_close_date equalled the session date — an impossible state that also
@@ -423,7 +434,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     # its `pc` the close before that, so fold the closed day back first (the
     # same two folds as `us_quotes._us_quote_session_date`); one fold alone
     # stamps the prior close with the quote's own session (#2270).
-    hk_prev_session = _hk_prev_close_session(now_hkt.date()).isoformat()
+    hk_prev_session = _hk_prev_close_session(now_hkt).isoformat()
     updated, missing, range_warns = [], [], []
 
     for h in active:
@@ -501,9 +512,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
             # A healthy fetch clears it; a flag nobody retires is its own defect.
             h.pop('quote_incomplete', None)
         if not approximated_pc or stored_pc:
-            quote_day = now_hkt.date()
-            if not trading_calendar.is_trading_day('hk', quote_day):
-                quote_day = trading_calendar.previous_trading_day('hk', quote_day)
+            quote_day = _hk_quote_session(now_hkt)
             amount, base = day_pnl(h, quote_day.isoformat(), current=c)
             h['today_change'] = round(amount, 2)
             # With no new lot, the vendor percentage retains its quote precision.
@@ -512,6 +521,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
                 h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
         h.pop('today_change_abs', None)
         h['stock_name']       = q.get('name', h.get('stock_name', code))
+        h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
         h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
         # Fallback sources do not consistently expose board lots. Preserve a
         # prior verified lot when absent, but never invent a one-share HK lot.

@@ -703,12 +703,13 @@ def check(portfolio_path=PORTFOLIO):
             if sh and provider:
                 quote_sources.setdefault(provider, []).append(t)
 
-            # 收集 us_asof
+            # Collect actual sessions in both legs, including HK holiday folding.
             if market == 'us':
-                src = h.get('data_source') or ''
-                iso = _extract_iso(src)
-                if iso:
+                iso = _extract_iso(h.get('data_source') or '')
+                if sh and iso:
                     asofs.add(iso)
+            elif market == 'hk' and sh and sess_date:
+                asofs.add(sess_date)
 
             # STALENESS（逐只 data_source）
             if market:
@@ -780,9 +781,10 @@ def check(portfolio_path=PORTFOLIO):
                     f'恒科同标的族方向矛盾（{detail}）；疑似某只坏 tick', region)
 
         # US_ASOF：活跃美股多个 session 日期
-        if market == 'us' and len(asofs) > 1:
-            add('US_ASOF', 'WARN',
-                f'活跃美股横跨多个 session 日期 {sorted(asofs)}；当心每日 P&L 跨天双计', region)
+        if market in ('hk', 'us') and len(asofs) > 1:
+            add('HK_ASOF' if market == 'hk' else 'US_ASOF',
+                'ERROR' if market == 'hk' else 'WARN',
+                f'活跃{market.upper()}持仓横跨多个 session 日期 {sorted(asofs)}；每日 P&L 跨天混算', region)
 
         # TRUE_PRINCIPAL：手填的「峰值净投入」常量是「净本金回报率」的分母，改仓忘
         # 重算会让回报率失真。不变量：true_principal（历史峰值净投入）≥ 当前净投入
