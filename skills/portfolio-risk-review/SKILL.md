@@ -39,7 +39,7 @@ may change valuation but cannot by themselves change business, moat, or manageme
 /root/.local/bin/clawock analyze-hk --no-news
 ```
 
-If any leg of the fallback fails for a holding, mark that line stale in the output. Special trap: **00100 only has Tencent** — Tencent down means 00100 is stale.
+Use the returned quote coverage/source warnings to mark stale or unverified holdings; failure of an unused fallback alone does not invalidate a successful quote. Special trap: **00100 only has Tencent** — Tencent down means 00100 is stale.
 
 KR linkage: 07709/07747 are exited (`shares == 0`), but SKHY (SK Hynix ADR) can be
 held — check `portfolio.json` before deciding whether a KR fetch is needed rather
