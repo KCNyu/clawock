@@ -848,7 +848,9 @@ def _assert_dashboard_money_reconciles(
 
             for ticker, source in source_rows.items():
                 public = public_by_ticker[ticker]
-                expected_name = source.get('name') or source.get('stock_name', '')
+                from clawock import instruments
+                expected_name = ((instruments.get(ticker) or {}).get('name')
+                                 or source.get('name') or source.get('stock_name', ''))
                 assert public.get('name') == expected_name, (
                     f'holdings.{leg}.{ticker}.name does not reconcile')
                 assert public.get('currency') == currency, (
