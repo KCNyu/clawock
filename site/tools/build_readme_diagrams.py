@@ -349,7 +349,7 @@ def harnesses():
                  ['Leave the conversation. Your task keeps running.',
                   'Come back to the queue, the report and the receipts.'],
                  [('request · result', 'blue'), ('background agents', 'slate'),
-                  ('checks · live', 'green'), ('quota · control', 'warm')])
+                  ('checks · live', 'green'), ('quota · control', 'warm')], title_lh=34)
 
     y += 34
     d.section(y, '01 · ASK IN DSH CHAT')
@@ -364,9 +364,9 @@ def harnesses():
              'Open a PR; merge after required checks pass,',
              'refresh the live checkout and send me the result.”'], where='request')
     top = y + h
-    y = top + 52
+    y = top + 60
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1))
     h = 94
     d.card(M, y, CW, h, 'blue')
     d.icon('terminal', M + 20, y + 16, size=28)
@@ -390,17 +390,18 @@ def harnesses():
         d.text(x + cw / 2, y + 104, 'own task unit', 'm', anchor='middle', fill=MUT)
         fits('own task unit', 'm', cw - 12, 'worker')
     top = y + h
-    y = top + 46
+    y = top + 56
     for i, x in enumerate(xs):
-        d.curve(x + cw / 2, top, W / 2, y - 30, pulses=(i * .6,), pulse=ROLE['slate'])
+        d.curve(x + cw / 2, top, W / 2, y - 38, pulses=(i * .6,), pulse=ROLE['slate'])
 
     d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
     shot_w = 224
     shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
     shot_h = shot_w * shot_ih / shot_iw
-    h = shot_h + 80
+    h = shot_h + 92
     d.card(M, y, CW, h, 'violet')
-    d.text(M + 20, y + 32, 'Your team, at a glance', 'h')
+    d.icon('dashboard', M + 20, y + 14, 'violet')
+    d.text(M + 50, y + 32, 'Your team, at a glance', 'h')
     d.tag(W - M - 16, y + 30, 'LIVE-HOST CAPTURE', 'violet', anchor='end')
     d.screenshot('dsh-dispatch-queue.png', M + 12, y + 48, shot_w)
     tx, room = M + 254, CW - 270
@@ -418,10 +419,10 @@ def harnesses():
         d.text(tx, yy + 44, title, 'b')
         fits(title, 'b', room, 'queue title')
         d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
-    d.text(M + 20, y + h - 12, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
+    d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
-    y = top + 48
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
+    y = top + 60
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
     h = 138
@@ -430,7 +431,7 @@ def harnesses():
     for i, (x, (icon, name, sub)) in enumerate(zip(xs, (
             ('branch', 'Branch + PR', 'isolated worktree'),
             ('checks', 'Required CI', 'all gates pass'),
-            ('branch', 'Squash merge', 'review the diff')))):
+            ('commit', 'Squash merge', 'review the diff')))):
         d.icon(icon, x + cw / 2 - 16, y + 18, 'green', size=32)
         d.text(x + cw / 2, y + 77, name, 'b', anchor='middle')
         d.text(x + cw / 2, y + 100, sub, 'm', anchor='middle', fill=MUT)
@@ -449,8 +450,8 @@ def harnesses():
     d.text(M + 74, y + 63, 'refresh_live.sh applies the checked change', 'm', fill=MUT)
     fits('refresh_live.sh applies the checked change', 'm', CW - 94, 'live')
     top = y + h
-    y = top + 50
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    y = top + 60
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1))
 
     d.section(y - 12, '05 · HEAR BACK, EVEN AFTER YOU LEAVE')
     h = 160
