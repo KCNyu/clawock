@@ -3165,8 +3165,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.deepEqual([texts(heroChip), heroChip.props["data-role"]], [texts(chip(rows[1], "status")), chip(rows[1], "status").props["data-role"]],
     "the hero carries the very chip the list row had");
   assert.equal(find(detail, (p) => /_tq-dot(?!-)/.test(p.className || "")).length, 0, "no dot repeating the chip");
-  // Without the host's write door only the read-only brief entry remains (it opens dsh's own preview).
-  assert.deepEqual(find(detail, (p) => p["data-tq-action"] !== undefined).map((n) => n.props["data-tq-action"]), ["brief"],
+  // Without the write door, only file-preview reads remain.
+  assert.deepEqual(find(detail, (p) => p["data-tq-action"] !== undefined).map((n) => n.props["data-tq-action"]), ["brief", "raw-log"],
     "no write actions without the host's write door");
   // Back returns to the list; so does Escape (tested through the same back function).
   find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
@@ -3735,7 +3735,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
     /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 36% ↻ 10:00 本周 69% ↻ 周四 10:00/);
   // Writes sit beside the fact they change; reads are one quiet row; the ending writes come last.
   const homes = actionHomes(layer);
-  assert.deepEqual(Object.keys(homes), ["brief", "log", "model", "deadline", "attempts", "resumes", "wrapup", "cancel"]);
+  assert.deepEqual(Object.keys(homes), ["brief", "log", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]);
   for (const [key, where] of Object.entries(homes)) {
     assert.equal(where.home, api.DETAIL_ACTIONS[key].home, `${key} lives in ${api.DETAIL_ACTIONS[key].home}`);
     assert.equal(where.kind, api.DETAIL_ACTIONS[key].kind, `${key} looks like a ${api.DETAIL_ACTIONS[key].kind}`);
@@ -3751,6 +3751,16 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.equal(find(scrollRegion, (p) => /_tq-d-notice/.test(p.className || "")).length, 0, "the answer is not inside the scroll area");
   // Budgets confirm in place and say what they cost; the second tap goes through the ops entry.
   const pill = (key) => find(render(), (p) => p["data-tq-action"] === key)[0];
+  pill("raw-log").props.onClick();
+  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/new-run/run.log", "full log uses the host's directory and file-preview door");
+  assert.equal(calls.length, 0, "opening a full log does not call a queue write");
+  const savedDir = QUEUE.logDir;
+  delete QUEUE.logDir;
+  const openedBeforeNoDir = opened.length;
+  pill("raw-log").props.onClick();
+  assert.equal(opened.length, openedBeforeNoDir, "an old host without a directory must not guess a path");
+  assert.match(texts(render()), /未报告派发目录/);
+  QUEUE.logDir = savedDir;
   pill("resumes").props.onClick();
   assert.equal(calls.length, 0, "one tap never writes");
   assert.match(texts(render()), /多给一次额度续跑：每次都会重放会话上下文，有成本（缓存读）。它在跑：本次尝试的时限不变，下一次尝试起生效。/);
@@ -3799,6 +3809,19 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   tree = render();
   assert.equal(pill("deadline").props.disabled, true);
   assert.match(texts(tree), /这个任务的 runner 是 api 2/);
+  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  find(render(), (p) => p["data-tq-task"] === "done")[0].props.onClick();
+  assert.equal(find(render(), (p) => p["data-tq-section"] === "summary").length, 0, "no summary does not consume an entire section");
+  preview = { ok: false, reason: "no-session" };
+  pill("raw-log").props.onClick();
+  assert.match(texts(render()), /右侧预览要在会话里打开/, "the log exit reports missing preview context");
+  QUEUE.recent[0].summary = "Truncated report…";
+  tree = render();
+  assertDetailOrder(api, find(tree, (p) => p["data-tq-detail"] === "done")[0], "ended");
+  assert.equal(actionHomes(tree)["summary-log"].home, "summary", "a report has an exit to its complete source");
+  preview = { ok: true };
+  pill("summary-log").props.onClick();
+  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/done/run.log");
   disposeReactEffects();
 
   // Touch: every new pressable is a 44px target under a coarse pointer; hover lives only behind a fine one.

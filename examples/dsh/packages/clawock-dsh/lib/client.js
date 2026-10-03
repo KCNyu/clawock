@@ -6595,6 +6595,9 @@ const dictionaries = {
 		"queue.round.openIssue": "查看提报 {issue}（新标签页）",
 		"queue.patrol.remaining": "还剩 {time}",
 		"queue.patrol.due": "已到计划时间",
+		"queue.a.fullLog": "完整日志",
+		"queue.a.fullLogTitle": "在文件预览中打开完整日志",
+		"queue.a.logNoDir": "宿主未报告派发目录；更新插件并重启 dsh 后再打开完整日志。",
 		"queue.chip.elapsed": "已跑 {time}",
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
@@ -7004,6 +7007,9 @@ const dictionaries = {
 		"queue.round.openIssue": "Open finding {issue} (new tab)",
 		"queue.patrol.remaining": "{time} remaining",
 		"queue.patrol.due": "scheduled time reached",
+		"queue.a.fullLog": "Full log",
+		"queue.a.fullLogTitle": "Open the full log in file preview",
+		"queue.a.logNoDir": "The host did not report the dispatch directory; update the plugin and restart dsh before opening the full log.",
 		"queue.chip.elapsed": "running {time}",
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
@@ -10028,6 +10034,14 @@ const DETAIL_ACTIONS = {
 		kind: "view",
 		home: "view"
 	},
+	"summary-log": {
+		kind: "view",
+		home: "summary"
+	},
+	"raw-log": {
+		kind: "view",
+		home: "raw.id"
+	},
 	model: {
 		kind: "write",
 		home: "run.model"
@@ -10083,7 +10097,7 @@ function actionPill(key, label, onClick, opts = {}) {
 		title: opts.title,
 		"aria-label": opts.said,
 		onClick
-	}, key === "brief" || key === "log" ? renderViewGlyph(key) : null, h("span", null, label));
+	}, key === "brief" || key === "log" || key.endsWith("-log") ? renderViewGlyph(key === "brief" ? "brief" : "log") : null, h("span", null, label));
 }
 /** The read-only pills' glyphs, in the executor glyphs' outline: a page (the brief), lines (the log). */
 function renderViewGlyph(key) {
@@ -10498,7 +10512,10 @@ function renderTaskDetail(found, t, now, back, backRef, ui, notice) {
 			key: "id",
 			label: t("queue.d.id"),
 			value: task.id,
-			mono: true
+			mono: true,
+			control: [actionPill("raw-log", t("queue.a.fullLog"), () => {
+				ui.openFullLog(task);
+			}, { title: t("queue.a.fullLogTitle") })]
 		}
 	]);
 	const sections = {
@@ -10518,13 +10535,15 @@ function renderTaskDetail(found, t, now, back, backRef, ui, notice) {
 			"data-balance-state": status.tone,
 			title: live ? void 0 : t("queue.statusLegend")
 		}, status.text)),
-		summary: live ? null : renderSection("summary", t("queue.d.summary"), [task.summary ? h("div", {
+		summary: live || !task.summary ? null : renderSection("summary", t("queue.d.summary"), [h("div", {
 			className: cx("tq-d-summary"),
 			key: "summary"
-		}, task.summary) : h("div", {
-			className: cx("tq-empty"),
-			key: "summary"
-		}, t("queue.d.noSummary"))]),
+		}, task.summary), h("div", {
+			className: cx("tq-actions"),
+			key: "summary-log"
+		}, actionPill("summary-log", t("queue.a.fullLog"), () => {
+			ui.openFullLog(task);
+		}, { title: t("queue.a.fullLogTitle") }))]),
 		view: renderSection("view", null, [
 			h("div", {
 				className: cx("tq-actions"),
@@ -10843,6 +10862,17 @@ function ProviderPanelSidebarAction(props) {
 			});
 		});
 	};
+	const openFullLog = (task) => {
+		const logDir = queueState.data.result?.logDir;
+		if (!logDir) {
+			setNotice({
+				ok: false,
+				text: t("queue.a.logNoDir")
+			});
+			return;
+		}
+		openPath(logDir.replace(/\/+$/, "") + "/" + task.id + "/run.log");
+	};
 	const openPicker = (task) => {
 		if (run === void 0) return;
 		setConfirm(null);
@@ -10948,6 +10978,7 @@ function ProviderPanelSidebarAction(props) {
 		brief,
 		readPending,
 		openBrief,
+		openFullLog,
 		openPath,
 		windowsOf,
 		sourceOf,
