@@ -7,7 +7,7 @@
  * hairline, and nothing relies on colour or on a monospaced font (WeChat has
  * neither).
  */
-import { FACT_ORDER, RESIDENT_ROUNDS, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole } from './panel.ts'
+import { FACT_ORDER, FLAT_ROUNDS, RESIDENT_ROUNDS, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole } from './panel.ts'
 import type { Translate } from './copy.ts'
 
 /** A role's glyph as one character, in the shape the chip draws (panel.ts STATE_ROLES). */
@@ -79,8 +79,9 @@ export function panelText(model: PanelModel, t: Translate): string {
     const [head, ...caption] = rowText(model.patrol.head, t)
     out.push('', '▌' + head!, ...indent(caption, '  '))
     const rounds = model.patrol.rounds
-    for (const row of rounds.slice(0, RESIDENT_ROUNDS)) out.push('  • ' + rowText(row, t)[0]!)
-    if (rounds.length > RESIDENT_ROUNDS) out.push('  ' + t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }))
+    const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
+    for (const row of rounds.slice(0, resident)) out.push('  • ' + rowText(row, t)[0]!)
+    if (rounds.length > resident) out.push('  ' + t('queue.olderRounds', { n: rounds.length - resident }))
   }
   if (model.footer !== null) out.push('', (model.footer.bad ? '⚠ ' : '') + model.footer.text)
   return out.join('\n')

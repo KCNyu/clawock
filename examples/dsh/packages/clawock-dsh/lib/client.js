@@ -8564,8 +8564,8 @@ function recentSection(result, t, now, open) {
 }
 /**
 * Patrol: a section head (the phase as its state chip, the live status as its
-* caption), the newest round resident, the earlier rounds and the raw journal
-* line folded (RESIDENT_ROUNDS).
+* caption), and one chronological history group. The raw supervisor journal
+* is not a task conclusion; the head already projects its useful status.
 */
 function patrolSection(result, t, now) {
 	if (result === null || !result.available) return null;
@@ -8585,8 +8585,7 @@ function patrolSection(result, t, now) {
 			caption: patrolCaption(result, t, now),
 			attrs: { "data-tq-patrol": patrol.phase }
 		},
-		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
-		detail: patrol.detail
+		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now))
 	};
 }
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
@@ -9799,21 +9798,15 @@ function renderWell(key, rows) {
 		"data-tq-well": key
 	}, ...present);
 }
-/**
-* Patrol: a section head (the phase as its state chip, the live status as its
-* caption), the newest round on the well, then — folded, by the one rule
-* above — the earlier rounds and the raw journal line.
-*/
+/** Patrol history folds as one kind of content, only when it is long. */
 function renderPatrolSection(patrol, t) {
 	const rounds = patrol.rounds;
+	const resident = rounds.length <= 4 ? rounds.length : 1;
 	return h("section", {
 		className: cx("tq-group", "tq-section"),
 		key: "patrol",
 		"data-tq-group": "patrol"
-	}, renderRow(patrol.head, t), renderWell("rounds", rounds.slice(0, 1).map((round) => renderRow(round, t))), rounds.length <= 1 ? null : renderFold("rounds", t("queue.olderRounds", { n: rounds.length - 1 }), [renderWell("older", rounds.slice(1).map((round) => renderRow(round, t)))]), patrol.detail === "" ? null : renderFold("journal", t("queue.supervisorLog"), [h("div", {
-		className: cx("tq-log"),
-		key: "log"
-	}, patrol.detail)]));
+	}, renderRow(patrol.head, t), renderWell("rounds", rounds.slice(0, resident).map((round) => renderRow(round, t))), rounds.length <= resident ? null : renderFold("rounds", t("queue.olderRounds", { n: rounds.length - resident }), [renderWell("older", rounds.slice(resident).map((round) => renderRow(round, t)))]));
 }
 /**
 * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
