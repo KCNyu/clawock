@@ -70,3 +70,71 @@ def test_peer_nodes_do_not_touch_or_overlap():
                 assert dy >= 5.99, (name, a, b, 'vertical gap', dy)
             elif dy < 0:
                 assert dx >= 5.99, (name, a, b, 'horizontal gap', dx)
+
+
+def _path_endpoint(d):
+    """Interpret absolute generated SVG segments; don't guess from the last digit."""
+    import re
+    tokens = re.findall(r'[A-Za-z]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?', d)
+    i, point = 0, (0.0, 0.0)
+    arity = {'M': 2, 'L': 2, 'H': 1, 'V': 1, 'C': 6, 'Q': 4}
+    while i < len(tokens):
+        command = tokens[i]
+        assert command in arity, f'unsupported generated segment {command}'
+        n = arity[command]
+        coords = list(map(float, tokens[i + 1:i + n + 1]))
+        assert len(coords) == n
+        if command == 'H':
+            point = (coords[0], point[1])
+        elif command == 'V':
+            point = (point[0], coords[0])
+        else:
+            point = tuple(coords[-2:])
+        i += n + 1
+    return point
+
+
+def test_connectors_declare_real_targets_and_enter_their_outlines():
+    """CI catches detached arrowheads even when they happen to miss every label.
+
+    Browser bbox/marker/halo checks are provided by audit_readme_diagrams.py.
+    Here the declared graph and rounded rectangle interiors need no fonts or
+    browser downloads, and a whole-page rectangle cannot serve as a target.
+    """
+    from collections import defaultdict
+
+    for name in _builder().DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        nodes = {e.attrib['id']: e for e in root.iter() if 'data-node' in e.attrib}
+        fanout = defaultdict(list)
+        for edge in root.iter(f'{SVG}path'):
+            if not edge.attrib.get('id', '').startswith('w'):
+                continue
+            source, target = edge.attrib.get('data-source'), edge.attrib.get('data-target')
+            assert source in nodes and target in nodes, (name, edge.attrib)
+            assert source != target, (name, source, target)
+            fanout[source].append(target)
+            node = nodes[target]
+            if node.tag != f'{SVG}rect':
+                # Operation glyph bounds are checked in the rendered audit.
+                assert node.attrib.get('class') == 'hero-icon'
+                continue
+            x, y, w, h = (float(node.attrib[k]) for k in ('x', 'y', 'width', 'height'))
+            ex, ey = _path_endpoint(edge.attrib['d'])
+            assert x < ex < x + w and y < ey < y + h, (name, edge.attrib['id'], target, ex, ey)
+            radius = float(node.attrib.get('rx', 0))
+            nx = min(max(ex, x + radius), x + w - radius)
+            ny = min(max(ey, y + radius), y + h - radius)
+            assert (ex - nx)**2 + (ey - ny)**2 < radius**2, (name, target, 'rounded corner')
+        assert all(len(targets) == len(set(targets)) for targets in fanout.values()), (name, fanout)
+
+
+def test_morning_debate_fanout_has_both_cases_and_all_risk_voices():
+    root = ET.parse(ROOT / 'site/assets/decision-pipeline.svg').getroot()
+    graph = {(e.attrib['data-source'], e.attrib['data-target'])
+             for e in root.iter(f'{SVG}path') if 'data-target' in e.attrib}
+    assert {('merged-table', 'bull'), ('merged-table', 'bear')} <= graph
+    assert {(lens, 'merged-table') for lens in ('fundamental', 'technical', 'sentiment', 'sector')} <= graph
+    assert {('opposition', voice) for voice in ('aggressive', 'conservative', 'neutral')} <= graph
+    assert {('preflight', lens) for lens in ('fundamental', 'technical', 'sentiment', 'sector')} <= graph
+    assert ('judge', 'postflight') in graph
