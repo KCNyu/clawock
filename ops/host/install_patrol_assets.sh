@@ -33,6 +33,7 @@ FILES=(
   rotation
   surfaces.json
   gate_issue.py
+  debt_check.py
   triage.py
   github_text.py
   filing.py

@@ -40,6 +40,7 @@ SEVERITY_TEXT = {
 }
 
 AREAS = {
+    "debt": "单一真值源、重复实现、依赖声明与循环的可执行契约",
     "data": "行情、持仓、汇率、账本等数字的生产与计算",
     "risk": "风控、加仓侧、决策与策略闸",
     "delivery": "简报/盘中/复盘的生成与投递、watchdog、cron",
@@ -52,6 +53,7 @@ AREAS = {
 }
 
 KINDS = {
+    "debt": "固定静态判据证实的结构债务（不按文件大小或命名）",
     "bug": "现有功能今天产出错误结果",
     "drift": "文档/文案/两份实现与真源分叉",
     "false-alarm": "告警或健康判定报了不存在的问题（假红）",
@@ -226,6 +228,8 @@ def assess(*, title, body, surface, infra_label, refs, red, lens, noisy=None):
         if v.severity != before:
             v.notes.append(f"{before}→{v.severity}：{why}")
 
+    if v.kind == "debt" or v.area == "debt":
+        lower("P3", "结构债务最高 P3；真实结果错误按原领域的 bug/gate-gap 提报")
     if v.kind == "feature":
         lower("P2", "功能提案最高 P2（它不是今天坏掉的东西）")
     if v.area == "docs" or (v.kind == "drift" and paths and all(p.endswith(DOC_EXT) for p in paths)):
