@@ -14,7 +14,9 @@ import sys
 import tomllib
 
 CHECKS = ('duplicate-python', 'import-cycle', 'undeclared-import')
-IMPORT_DISTRIBUTIONS = {'PIL': 'pillow', 'google.auth': 'google-auth'}
+# The existing dependency guard owns import/distribution aliases. Read its literal
+# without importing tests or running arbitrary repository code; do not fork that fact.
+DEPENDENCY_GUARD = 'tests/test_packaging_extras_contract.py'
 
 
 def source(root, path):
@@ -121,6 +123,11 @@ def evaluate(contract, root):
     if not isinstance(name, str) or not name or name.split('.')[0] in sys.stdlib_module_names | {'clawock'}:
         raise ValueError('import must name an external dependency')
     tree, _ = source(root, path)
+    if Path(path).parts[0] not in ('src', 'ops'):
+        raise ValueError('dependency source must be in src or ops')
+    local = {p.stem for p in (root / Path(path).parts[0]).rglob('*.py')}
+    if name.split('.')[0] in local:
+        raise ValueError('repository-local import is not an external dependency')
     seen = imports(tree)
     if name not in seen:
         raise ValueError(f'{name} is not imported by {path}')
@@ -131,7 +138,13 @@ def evaluate(contract, root):
     import re
     normalize = lambda s: re.sub(r'[-_.]+', '-', s).lower()
     declared = {normalize(re.split(r'[<>=!~\[; ]', s, 1)[0]) for s in specs}
-    dist = IMPORT_DISTRIBUTIONS.get(name, name.split('.')[0])
+    guard_tree = ast.parse((root / DEPENDENCY_GUARD).read_text())
+    aliases = next((ast.literal_eval(n.value) for n in guard_tree.body
+                    if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'DISTRIBUTION'
+                                                         for t in n.targets)), None)
+    if not isinstance(aliases, dict):
+        raise ValueError('dependency alias owner missing or not a literal mapping')
+    dist = aliases.get(name.split('.')[0], name.split('.')[0])
     missing = normalize(dist) not in declared
     return missing, f'undeclared-import: {path} imports={name} distribution={dist} declared={sorted(declared)}', [path, 'pyproject.toml']
 

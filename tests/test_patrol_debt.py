@@ -23,6 +23,8 @@ def repository(tmp_path):
     function = 'def value(x):\n    y = x + 1\n    z = y * 2\n    z += 3\n    return z\n'
     for name in ('a', 'b'):
         (tmp_path / f'src/clawock/{name}.py').write_text(function)
+    (tmp_path / 'tests').mkdir()
+    (tmp_path / 'tests/test_packaging_extras_contract.py').write_text("DISTRIBUTION = {'PIL': 'pillow', 'google': 'google-auth', 'yaml': 'pyyaml'}\n")
     (tmp_path / 'pyproject.toml').write_text('[project]\ndependencies = []\n')
     subprocess.run(['git', '-C', str(tmp_path), 'add', '.'], check=True)
     return tmp_path
@@ -56,6 +58,9 @@ def test_dependency_extra_is_a_declaration_and_stdlib_is_not_debt(tmp_path):
     assert debt_check.evaluate(contract, root)[0]
     (root / 'pyproject.toml').write_text('[project]\ndependencies=[]\n[project.optional-dependencies]\nmarket=["yfinance>=0.2"]\n')
     assert not debt_check.evaluate(contract, root)[0]
+    (root / 'src/clawock/a.py').write_text('import b\n')
+    with pytest.raises(ValueError, match='repository-local'):
+        debt_check.evaluate(dict(contract, **{'import': 'b'}), root)
     with pytest.raises(ValueError, match='external'):
         debt_check.evaluate(dict(contract, **{'import': 'json'}), root)
 

@@ -117,7 +117,7 @@ clawock 自己的 #N 和仓库链接保留。
 - `import-cycle`：`modules` 是按环顺序排列的 `src/clawock/*.py` 路径；逐边核对模块顶层 import。
   函数内延迟 import 与重导出猜出来的环不算。解释这个环为何没有有意边界，给移除哪条边和守卫。
 - `undeclared-import`：`source` 和 `import` 指明实际的外部 import；对照 pyproject 的全部依赖与 extras，
-  声明存在就绿。命名映射保守，无法映射的发行包先核对真实包名，不能把动态 import 或 extra 漏装冒充未声明。
+  声明存在就绿。import/发行包别名沿用 `tests/test_packaging_extras_contract.py` 的唯一映射；本仓局部模块排除。命名映射保守，无法映射的发行包先核对真实包名，不能把动态 import 或 extra 漏装冒充未声明。
 
 每种都要 `fact`（同一事实/契约）、`repair`（稳定 owner / 断边 / 声明的最小改法）、
 `guard`（拟钉住什么回流），各至少 12 字符。列出全部检查文件的 文件:行；依赖检查也引用 pyproject.toml。
