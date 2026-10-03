@@ -15,8 +15,8 @@
 
 ## 分级
 严重度: <P0 / P1 / P2 / P3>
-领域: <data / risk / delivery / dashboard / dsh / harness / ops / security / docs>
-类型: <bug / drift / false-alarm / gate-gap / regression / feature>
+领域: <data / risk / delivery / dashboard / dsh / harness / ops / security / docs / debt>
+类型: <bug / drift / false-alarm / gate-gap / regression / feature / debt>
 关联: <同根因的已有 issue #N；没有就写「无」>
 
 ## 用户能看到的差别
@@ -80,7 +80,7 @@ issue，找到就挂过去。
 
 闸会：核对每个 文件:行 存在；检查 SURFACE 声称的面你确实看过（路径出现在 文件:行 或判据里）；
 **在 `/root/wt-patrol` 里真跑 RED-CHECK，要求它以 AssertionError/SystemExit 非零退出并打印说明**，
-而且判据必须读你点名的文件；检查 `## 反证自查` 五行齐全；标题落进「拆分/重构/import 耗时/散落/抽常量」直接拒；
+而且判据必须读你点名的文件；检查 `## 反证自查` 五行齐全；标题落进「拆分/重构/import 耗时/散落/抽常量」须真实先例；固定 DEBT-CHECK 证实的代码债务仅豁免此项和基础设施先例；
 声称「没人用/没清理/没校验」的，RED-CHECK 里必须有不限目录的 `git grep`；和所有已有 issue 查重；提报数量不限。
 判据先打印实际读到的值再断言，自己先跑一遍确认红的是你说的那件事（#1328、#1353 红的是正则和拼写）。
 说「闸没看到 / 只看了一部分」的，判据要打印这道闸在今天真实数据上**进入判定的条数 / 总条数**（#2072、#2075 那样），
@@ -102,3 +102,36 @@ commit、源码页）、owner/repo#编号、owner/repo@版本、@用户名；这
 外部可点击出处留在仓库文档或 peers.json。闸先私下核验来源与证据，写入前由 github_text.sanitize
 清除引用，再用 validate 确认；标题、正文、判据日志、同根因补充评论和旧汇总都经过它。
 clawock 自己的 #N 和仓库链接保留。
+
+## 代码债务（固定静态契约，最高 P3）
+
+`领域: debt`、`类型: debt`，`SURFACE: 无（基础设施）`。其余六节、反证、查重、文件行及实际跑红照旧。
+只有固定判据证实的债务豁免「重构关键词先例」和「基础设施先例」；普通重构仍走原闸。
+不是另设一个任意行数阈值：没有 `size` / `naming` / 任意命令检查。
+
+在草稿加 `<!-- DEBT-CHECK` 换行 JSON 换行 `-->`。JSON 的 `check` 三选一：
+
+- `duplicate-python`：`symbols` 是 2–10 个不同文件的 `path::function`，模块顶层函数至少 5 行；
+  完整 AST（含参数、常量、引用、装饰器）须相同，仅忽略声明名和位置。相同只是复制证据，
+  正文仍必须核对引用的全局绑定/输入契约，解释为什么表达同一事实；薄包装和不同语义的 resolve 不算。
+- `import-cycle`：`modules` 是按环顺序排列的 `src/clawock/*.py` 路径；逐边核对模块顶层 import。
+  函数内延迟 import 与重导出猜出来的环不算。解释这个环为何没有有意边界，给移除哪条边和守卫。
+- `undeclared-import`：`source` 和 `import` 指明实际的外部 import；对照 pyproject 的全部依赖与 extras，
+  声明存在就绿。import/发行包别名沿用 `tests/test_packaging_extras_contract.py` 的唯一映射；本仓局部模块排除。命名映射保守，无法映射的发行包先核对真实包名，不能把动态 import 或 extra 漏装冒充未声明。
+
+每种都要 `fact`（同一事实/契约）、`repair`（稳定 owner / 断边 / 声明的最小改法）、
+`guard`（拟钉住什么回流），各至少 12 字符。列出全部检查文件的 文件:行；依赖检查也引用 pyproject.toml。
+判据仅读已跟踪源码；找不到符号/语法错/探针失败是 INVALID，不能当红。先用当前代码跑绿时立刻放弃。
+
+生成 RED-CHECK 的唯一命令（JSON 与 DEBT-CHECK 完全相同）：
+
+```python
+import sys
+sys.path.insert(0, '/root/tools/clawock-patrol')
+from debt_check import red_command
+print(red_command(contract, '/root/tools/clawock-patrol'))
+```
+
+把打印的整行放进 RED-CHECK（不额外包 shell / 拼接其他命令）。闸先用同一 evaluator 测量，再实跑固定命令：
+exit 1 + DEBT RED 是违反契约；exit 0 + DEBT GREEN 是证伪；exit 2 + INVALID 是探针坏了。
+修完同一 JSON 必须绿，并给永久守卫。不得借 debt 类别提新功能、臆测交易风险或独立拆大文件。

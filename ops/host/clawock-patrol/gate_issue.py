@@ -46,6 +46,7 @@ DIGEST_PENDING = LOGDIR / "digest" / "pending.jsonl"
 LENS_TASK = os.environ.get("AGENT_DISPATCH_TASK_ID", "-")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from github_text import sanitize, validate
+from debt_check import evaluate as debt_evaluate, red_command as debt_red_command
 import triage  # noqa: E402  (severity, labels, routing — see triage.py)
 from filing import ensure_labels, flush_digest, telegram  # noqa: E402  (the gh/Telegram side)
 RED_TIMEOUT = int(os.environ.get("RED_CHECK_TIMEOUT", "240"))
@@ -151,6 +152,29 @@ import time
 if len(body) < 600:
     die(f"草稿只有 {len(body)} 个字符，太短——六段/三段格式写不下。")
 
+# Structural debt gets an exemption only from the two precedent requirements.
+# Evidence comes from the fixed read-only checker, not arbitrary assert False.
+DEBT_VERIFIED = False
+_debt_block = re.search(r"<!--\s*DEBT-CHECK\s*\n(.*?)\n\s*-->", body, re.S)
+_declares_debt = triage.parse_declared(body)["kind"] == "debt"
+if _debt_block or _declares_debt:
+    if not _debt_block or not _declares_debt:
+        die("代码债务必须同时声明 `类型: debt` 和 DEBT-CHECK JSON。")
+    try:
+        _contract = json.loads(_debt_block.group(1))
+        _violated, _measured, _paths = debt_evaluate(_contract, WORK)
+    except (ValueError, OSError, SyntaxError, KeyError, TypeError, subprocess.SubprocessError) as e:
+        die("DEBT-CHECK 无效；判据自己失败不能当证据", str(e))
+    if not _violated:
+        die("DEBT-CHECK 是绿的：债务已证伪", _measured)
+    if not set(_paths) <= {p for p, _ in FILE_LINE.findall(body)}:
+        die("DEBT-CHECK 每个源文件都要有可解析的 文件:行（依赖检查也要引用 pyproject.toml）。")
+    _red_debt = RED_BLOCK.search(body)
+    if not _red_debt or _red_debt.group(1).strip() != debt_red_command(_contract, TOOL):
+        die("债务 RED-CHECK 必须是 debt_check.red_command(contract, TOOL) 生成的固定命令；不能替换为自定阈值或 assert False。")
+    DEBT_VERIFIED = True
+    print("gate: measured debt: " + _measured, file=sys.stderr)
+
 # ── 0.7 shapes that were closed again and again (closed-lessons.md) ─────────
 # 2026-09-17: of 239 loop issues since 08-25, 90 were closed without a PR. The shapes below
 # were never worth scheduling, or were false because the consumer lived outside the grep.
@@ -159,7 +183,7 @@ _head_text = title + "\n" + body[:1500]
 NEVER = re.compile(r"拆分|拆成|拆出|行数过多|函数过长|模块过大|职责过多|单一职责|god (?:module|function)|eager import|"
                    r"import 耗时|顶层 import|magic number|魔法数|散落|注册表|统一常量|抽成常量|重构", re.I)
 _m = NEVER.search(_head_text)
-if _m:
+if _m and not DEBT_VERIFIED:
     # kcn 2026-09-17 wants coupling and structure looked at too, so these are not refused outright;
     # but every past one without a real consequence was closed, so a real consequence is required.
     _pm = re.search(r"^\s*(?:[-*]\s*)?(?:\*\*)?先例(?:\*\*)?\s*[:：]\s*(.+?)\s*$", body, re.M)
@@ -375,7 +399,7 @@ if len(now_txt) < 8 or len(after_txt) < 8:
 if normalise(now_txt) == normalise(after_txt):
     die("`现在:` 和 `修完:` 是同一句话。说不出差别，就是没有差别。")
 
-if surface == INFRA_LABEL:
+if surface == INFRA_LABEL and not DEBT_VERIFIED:
     _pm = PRECEDENT_LINE.search(body)
     nums = re.findall(r"#(\d{1,6})", _pm.group(1)) if _pm else []
     if not nums:
@@ -393,6 +417,8 @@ if surface == INFRA_LABEL:
     print(f"gate: SURFACE={INFRA_LABEL}（逃生口）先例={' | '.join(ok_nums)}", file=sys.stderr)
     with (LOGDIR / "infra-escape.log").open("a", encoding="utf-8") as f:
         f.write(f"{DRAFT.name}\t{title}\t{'|'.join(ok_nums)}\n")
+elif surface == INFRA_LABEL and DEBT_VERIFIED:
+    print("gate: infrastructure debt backed by fixed checker (no precedent exemption for ordinary refactors)", file=sys.stderr)
 elif surface not in SURFACE_MAP:
     die(f"`SURFACE: {surface}` 不在清单里。只能填这几个之一："
         f"{' / '.join(SURFACE_MAP)} / {INFRA_LABEL}。见 /root/tools/clawock-patrol/surfaces.json。")
@@ -445,6 +471,8 @@ try:
 except subprocess.TimeoutExpired:
     die(f"RED-CHECK 超过 {RED_TIMEOUT}s 没跑完。判据必须是能当场跑完的，不是一次审计。")
 out = (proc.stdout + proc.stderr).strip()
+if DEBT_VERIFIED and (proc.returncode != 1 or "DEBT RED" not in out):
+    die("固定债务判据未确认违反契约（绿或探针错误）", out)
 if proc.returncode == 0:
     die("RED-CHECK 跑出来是**绿的**（exit 0）。你说它今天是坏的，但判据说它今天是好的——"
         "这条发现不成立，把证伪结果写进 ledger.md 就好。",

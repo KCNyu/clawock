@@ -1,5 +1,5 @@
 # Area order for clawock-patrol rounds (names from axes.tsv), read every round; edit freely.
-# 2026-10-01: 21 slots ≈ one pass a day. recent ×5 and the money path ×2 (most fixed P0/P1 issues live
+# 2026-10-01: 22 slots ≈ one pass a day. recent ×5 and the money path ×2 (most fixed P0/P1 issues live
 # on the recent diff and the money path); style and docs once (their findings are mostly P3, digested);
-# peers (open-source benchmark, feature proposals) once.
-recent logic money automation recent harness render dsh recent money site automation recent logic coupling ops security recent style docs peers
+# peers (open-source benchmark, feature proposals) once; debt once, appended without displacing recent/money.
+recent logic money automation recent harness render dsh recent money site automation recent logic coupling ops security recent style docs peers debt
