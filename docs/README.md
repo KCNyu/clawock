@@ -33,6 +33,9 @@ belongs here.
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
   visual rules and the tests that enforce them.
+- [DSH patrol chip](design/dsh-patrol-2026-10-03/README.md) and
+  [task detail exits](design/dsh-patrol-2026-10-03/details.md) — density tradeoffs,
+  motion decisions and before/after captures from an isolated instance.
 
 ## Operations
 
