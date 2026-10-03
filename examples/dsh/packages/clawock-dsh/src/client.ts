@@ -1350,6 +1350,7 @@ type DetailUi = QueueUi & {
   brief: BriefView | null
   readPending: string | null
   openBrief: (task: DispatchTask) => void
+  openFullLog: (task: DispatchTask) => void
   openPath: (path: string) => void
   /** The provider windows of an agent (the quota wait names the reset it waits for). */
   windowsOf: (agent: string) => ReadonlyArray<{ resetAtMs?: number | null }> | undefined
@@ -1437,6 +1438,8 @@ export type ActionKind = 'view' | 'write' | 'danger'
 export const DETAIL_ACTIONS: Record<string, { kind: ActionKind; home: string }> = {
   brief: { kind: 'view', home: 'view' },
   log: { kind: 'view', home: 'view' },
+  'summary-log': { kind: 'view', home: 'summary' },
+  'raw-log': { kind: 'view', home: 'raw.id' },
   model: { kind: 'write', home: 'run.model' },
   top: { kind: 'write', home: 'run.place' },
   up: { kind: 'write', home: 'run.place' },
@@ -1457,7 +1460,7 @@ function actionPill(key: string, label: string, onClick: () => void,
     type: 'button', key, className: cx('tq-pill', kind === 'danger' && 'tq-danger'), 'data-tq-action': key, 'data-tq-kind': kind,
     'data-armed': opts.armed ? 'true' : undefined, disabled: opts.disabled === true, title: opts.title,
     'aria-label': opts.said, onClick,
-  }, key === 'brief' || key === 'log' ? renderViewGlyph(key) : null, h('span', null, label))
+  }, key === 'brief' || key === 'log' || key.endsWith('-log') ? renderViewGlyph(key === 'brief' ? 'brief' : 'log') : null, h('span', null, label))
 }
 
 /** The read-only pills' glyphs, in the executor glyphs' outline: a page (the brief), lines (the log). */
@@ -1713,7 +1716,8 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     { key: 'runner', label: t('queue.d.runner'), value: live && (task.runnerApi ?? 2) < 2 ? t('queue.noRunnerApi') : task.runnerApi == null ? null : 'api ' + task.runnerApi,
       voice: live && (task.runnerApi ?? 2) < 2 ? 'warn' : undefined },
     { key: 'session', label: t('queue.d.session'), value: task.session || null, mono: true },
-    { key: 'id', label: t('queue.d.id'), value: task.id, mono: true },
+    { key: 'id', label: t('queue.d.id'), value: task.id, mono: true,
+      control: [actionPill('raw-log', t('queue.a.fullLog'), () => { ui.openFullLog(task) }, { title: t('queue.a.fullLogTitle') })] },
   ])
 
   const sections: Record<DetailSection, React.ReactElement | null> = {
@@ -1724,9 +1728,11 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       status.text === chip.text ? null : h('div', {
         className: cx('tq-d-status'), 'data-balance-state': status.tone, title: live ? undefined : t('queue.statusLegend'),
       }, status.text)),
-    summary: live ? null : renderSection('summary', t('queue.d.summary'), [task.summary
-      ? h('div', { className: cx('tq-d-summary'), key: 'summary' }, task.summary)
-      : h('div', { className: cx('tq-empty'), key: 'summary' }, t('queue.d.noSummary'))]),
+    summary: live || !task.summary ? null : renderSection('summary', t('queue.d.summary'), [
+      h('div', { className: cx('tq-d-summary'), key: 'summary' }, task.summary),
+      h('div', { className: cx('tq-actions'), key: 'summary-log' },
+        actionPill('summary-log', t('queue.a.fullLog'), () => { ui.openFullLog(task) }, { title: t('queue.a.fullLogTitle') })),
+    ]),
     view: renderSection('view', null, [
       h('div', { className: cx('tq-actions'), key: 'pills', role: 'group', 'aria-label': t('queue.a.viewGroup') }, ...view),
       brief === null ? null : h('div', { className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
@@ -1945,6 +1951,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
       setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
     })
   }
+  const openFullLog = (task: DispatchTask): void => {
+    const logDir = queueState.data.result?.logDir
+    if (!logDir) { setNotice({ ok: false, text: t('queue.a.logNoDir') }); return }
+    openPath(logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log')
+  }
   const openPicker = (task: DispatchTask): void => {
     if (run === undefined) return
     setConfirm(null)
@@ -2012,7 +2023,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const ui: PanelUi = {
     open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null) },
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
-    brief, readPending, openBrief, openPath, windowsOf, sourceOf, rows,
+    brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows,
   }
   // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
   const lines = sources.map((source) => {
