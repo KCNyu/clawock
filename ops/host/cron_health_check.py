@@ -91,7 +91,7 @@ COMMIT_PATTERNS = {
     '盘中盯盘': None,        # Mode 7 dashboard commit 不是 one-per-slot contract
     '美股盘中盯盘': None,    # same
     '美股盘中盯盘-overnight': None,
-    'Memory Dreaming Promotion': None,  # 不 commit
+    'Memory Dreaming Promotion': None,  # 变更由 commit_dreaming 提交；无变化合法，下面核成功运行证据
 }
 
 
