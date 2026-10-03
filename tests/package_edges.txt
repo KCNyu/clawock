@@ -103,6 +103,7 @@ publish -> json_repair
 publish -> market_data
 publish -> portfolio
 publish -> safe_io
+publish -> scorecard_provenance
 publish -> scheduling
 publish -> sessions
 publish -> workspace
