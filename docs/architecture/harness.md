@@ -305,6 +305,7 @@ parameters and what reaches their model.
 | analyzer run and its stdout (holdings table, signals, ≥3% movers) | `market_data/{hk,us}_analysis` via `_harness_common.run_analyze`; parsers `_harness_common.parse_signal_lines` / `parse_holdings_anomalies` / `parse_holdings_rows` | report, intraday | market |
 | quote freshness (which holdings this run's fetch actually stamped) | `_harness_common.quote_coverage` over each holding's `data_source` | report (context + a `⛔` line in the block, #2176), intraday | market, portfolio path, run start |
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
+| provenance code identity | `code_identity.git_commit` / `file_digest` | run cards, scorecard provenance | explicit workspace / file; short commit or null, sha256 prefix unchanged; `tests/test_code_identity.py` pins one owner |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
 | history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |

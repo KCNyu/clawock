@@ -43,8 +43,8 @@ package that sits above it.
 from __future__ import annotations
 
 import hashlib
+from clawock.code_identity import git_commit, file_digest as _file_digest
 import json
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -184,20 +184,7 @@ def slice_rows(rows, cutoff: str, last_plan_date: str | None = None) -> list[dic
 
 
 def _git_commit() -> str | None:
-    try:
-        out = subprocess.run(
-            ['git', 'rev-parse', '--short', 'HEAD'], cwd=WS,
-            capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return out.stdout.strip() or None if out.returncode == 0 else None
-
-
-def _file_digest(path) -> str | None:
-    path = Path(path)
-    if not path.exists():
-        return None
-    return f'sha256:{hashlib.sha256(path.read_bytes()).hexdigest()[:16]}'
+    return git_commit(WS)
 
 
 def build(decisions, *, window_days: int, cutoff: str, counts: dict,

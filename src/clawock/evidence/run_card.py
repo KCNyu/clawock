@@ -62,8 +62,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from clawock.code_identity import git_commit, file_digest
 import json
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -96,21 +96,8 @@ def series_digest(series) -> str:
     return f'sha256:{hasher.hexdigest()[:16]}'
 
 
-def file_digest(path) -> str | None:
-    path = Path(path)
-    if not path.exists():
-        return None
-    return f'sha256:{hashlib.sha256(path.read_bytes()).hexdigest()[:16]}'
-
-
 def _git_commit() -> str | None:
-    try:
-        out = subprocess.run(
-            ['git', 'rev-parse', '--short', 'HEAD'], cwd=WS,
-            capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return out.stdout.strip() or None if out.returncode == 0 else None
+    return git_commit(WS)
 
 
 #: The libraries whose version can move a number without any code changing.
