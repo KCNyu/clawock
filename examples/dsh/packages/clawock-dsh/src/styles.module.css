@@ -2669,6 +2669,13 @@ body[data-ds-dark-theme] .pbc .bp {
   text-underline-offset:2px
 }
 .pbc .tq-tag[data-tq-delivered="false"] { border-color:var(--tq-wait); color:var(--tq-text-warn) }
+.pbc .tq-file-label { min-width:0; display:flex; flex-direction:column; gap:3px }
+.pbc .tq-file-excerpt { color:var(--tq-ink-3); overflow-wrap:anywhere; white-space:normal }
+.pbc .tq-timeline { margin:8px 0 0 var(--tq-main-inset); font:var(--dsw-font-xxs-12); color:var(--tq-ink-2) }
+.pbc .tq-timeline ol { margin:8px 0; padding:0; list-style:none }
+.pbc .tq-timeline li { border-left:1px solid var(--tq-hairline); padding:0 0 12px 10px; overflow-wrap:anywhere }
+.pbc .tq-timeline time { display:block; color:var(--tq-ink-3); font-variant-numeric:tabular-nums }
+.pbc .tq-timeline strong { display:block; font-weight:600; color:var(--tq-ink) }
 /* Fingers: every line and file row is a 44px target; the glyph and type keep their size. */
 @media (pointer: coarse) {
   .pbc.ppf .pp-row, .pbc .tq-file { min-height:44px }

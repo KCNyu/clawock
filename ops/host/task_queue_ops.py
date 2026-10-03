@@ -722,6 +722,90 @@ def redact(text: str) -> str:
     return text
 
 
+def task_timeline(d: Path) -> dict:
+    """Read supervisor events on demand, never model/tool prose or an invented state history.
+
+    Head + tail are bounded for a large log. Missing intervals and missing logs are explicit;
+    result.UPDATED is a write stamp, not an end event (notification writes change it too).
+    """
+    events = []
+
+    def add(stamp: str, kind: str, text: str) -> None:
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", stamp):
+            events.append({"stamp": stamp, "kind": kind, "text": redact(text)[:600]})
+
+    meta = read_env(d / "meta.env")
+    add(meta.get("CREATED", ""), "created", "")
+    # 2 MiB head + 2 MiB tail; small files are read only once. Split boundary fragments
+    # are discarded so a model output fragment cannot become a supervisor event.
+    limit, omitted, missing = 2 * 1024 * 1024, 0, False
+    try:
+        with (d / "run.log").open("rb") as f:
+            size = os.fstat(f.fileno()).st_size
+            if size <= limit * 2:
+                chunks = [f.read(limit * 2).decode("utf-8", "replace")]
+            else:
+                head = f.read(limit).decode("utf-8", "replace").rsplit("\n", 1)[0]
+                f.seek(size - limit)
+                tail = f.read(limit).decode("utf-8", "replace").split("\n", 1)[-1]
+                chunks = [head, tail]
+                omitted = size - len(head.encode()) - len(tail.encode())
+    except OSError:
+        chunks, missing = [], True
+    patterns = (
+        (r"waiting for .+ lock \(", "lock_wait"),
+        (r"lock held$", "lock_acquired"),
+        (r"waiting for a .+ run slot", "slot_wait"),
+        (r"waiting: ", "memory_wait"),
+        (r"got run slot ", "slot_acquired"),
+        (r"queue: ", "queue"),
+        (r"attempt \d+/\d+ ", "attempt"),
+        (r"attempt \d+ \(.+\) rc=", "attempt_end"),
+        (r"(?:quota: .*sleeping until|quota; sleeping until|released .* quota wait)", "quota"),
+        (r"\w+; sleeping until", "retry_wait"),
+        (r"no progress for ", "stall"),
+        (r"delivering appended instruction\(s\):$", "append_delivered"),
+        (r"(?:appended instruction:|finished with appended instruction)", "append_resume"),
+        (r"(?:override:|budget:|switching to model )", "change"),
+    )
+    for chunk in chunks:
+        for line in chunk.splitlines():
+            boundary = re.fullmatch(r"=+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \S+ (start|end state=.+) =+", line)
+            if boundary:
+                add(boundary[1], "started" if boundary[2] == "start" else "ended", "" if boundary[2] == "start" else boundary[2])
+                continue
+            m = re.match(r"^(?:---- )?(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (.+)$", line)
+            if m:
+                for pattern, kind in patterns:
+                    if re.match(pattern, m[2]):
+                        add(m[1], kind, m[2])
+                        break
+    # Submission time comes from the immutable append filename, not its mtime. Delivered
+    # is today's file location; its actual delivery event above has the supervisor timestamp.
+    entries = list((d / "inbox").glob("*.md")) + list((d / "inbox" / "delivered").glob("*.md"))
+    for f in sorted(entries, key=lambda f: f.name):
+        m = re.match(r"^(\d{8})-(\d{6})", f.name)
+        if m:
+            stamp = f"{m[1][:4]}-{m[1][4:6]}-{m[1][6:]} {m[2][:2]}:{m[2][2:4]}:{m[2][4:]}"
+            add(stamp, "append_submitted", f.name)
+    audit, _, audit_cut = capped(d / "audit.log", 262144)
+    for line in audit.splitlines():
+        m = re.match(r"^(.*?)\tsource=(.*?)\taction=(.*?)\t(.*?)\tops=", line)
+        if m and m[3] != "append":  # append submission is already represented by its file
+            add(m[1], "change", f"{m[3]} ({m[2]}): {m[4]}")
+    result = read_env(d / "result.env")
+    receipts = result.get("NOTIFIED", "") or result.get("NOTIFY_FAILED", "")
+    if receipts:
+        add(result.get("NOTIFY_AT", ""), "notification", f"sent={result.get('NOTIFIED') or '-'} failed={result.get('NOTIFY_FAILED') or '-'}")
+    events.sort(key=lambda e: e["stamp"])
+    total = len(events)
+    # Keep both ends and state the omitted event count; no hidden preselection by mtime.
+    if total > 200:
+        events = events[:100] + events[-100:]
+    return {"events": events, "omitted_bytes": max(0, omitted), "omitted_events": max(0, total - 200),
+            "audit_truncated": audit_cut, "log_missing": missing}
+
+
 def cmd_log(args) -> dict:
     d = task_dir(args.id)
     n = max(1, min(args.lines, 400))
@@ -732,7 +816,7 @@ def cmd_log(args) -> dict:
             lines = f.read().decode("utf-8", "replace").splitlines()[-n:]
     except OSError:
         lines = []
-    return {"ok": True, "id": args.id, "lines": [redact(line) for line in lines]}
+    return {"ok": True, "id": args.id, "lines": [redact(line) for line in lines], "timeline": task_timeline(d)}
 
 
 def cmd_result(args) -> dict:

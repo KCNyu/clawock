@@ -1327,9 +1327,17 @@ type BriefView = {
   path: string
   bytes: number
   truncated: boolean
-  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; bytes: number }>
+  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; bytes: number; text?: string }>
   /** The host half predates `brief` (a dsh restart is pending): only prompt.md can be listed. */
   needsHost: boolean
+}
+
+type TaskTimeline = {
+  events: Array<{ stamp: string; kind: string; text: string }>
+  omitted_bytes: number
+  omitted_events: number
+  audit_truncated: boolean
+  log_missing: boolean
 }
 
 /** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
@@ -1343,6 +1351,8 @@ type DetailUi = QueueUi & {
   setPicker: (picker: ModelPicker | null) => void
   log: string[] | null
   loadLog: (task: DispatchTask) => void
+  timeline: TaskTimeline | 'older' | null
+  loadTimeline: (task: DispatchTask) => void
   brief: BriefView | null
   readPending: string | null
   openBrief: (task: DispatchTask) => void
@@ -1434,6 +1444,7 @@ export type ActionKind = 'view' | 'write' | 'danger'
 export const DETAIL_ACTIONS: Record<string, { kind: ActionKind; home: string }> = {
   brief: { kind: 'view', home: 'view' },
   log: { kind: 'view', home: 'view' },
+  timeline: { kind: 'view', home: 'view' },
   'summary-log': { kind: 'view', home: 'summary' },
   'raw-log': { kind: 'view', home: 'raw.id' },
   model: { kind: 'write', home: 'run.model' },
@@ -1702,7 +1713,10 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
   const view: React.ReactElement[] = [
     actionPill('brief', ui.readPending === 'brief' ? t('queue.a.reading') : t('queue.a.brief'), () => { ui.openBrief(task) }, { disabled: reading, title: t('queue.a.briefTitle') }),
   ]
-  if (ui.writable) view.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
+  if (ui.writable) {
+    view.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
+    view.push(actionPill('timeline', ui.readPending === 'timeline' ? t('queue.a.reading') : t('queue.timeline.heading'), () => { ui.loadTimeline(task) }, { disabled: reading }))
+  }
   const brief = ui.brief !== null && ui.brief.id === task.id ? ui.brief : null
   const kb = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
 
@@ -1738,12 +1752,27 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
           brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kb(brief.bytes) })) : null),
         brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
           : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
-            : brief.appends.map((a) => h('button', {
+            : brief.appends.map((a, index) => h('button', {
               type: 'button', key: a.file, className: cx('tq-file'), 'data-tq-file': a.path, onClick: () => { ui.openPath(a.path) },
             },
-              h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { stamp: a.stamp || a.file })),
+              h('span', { className: cx('tq-file-label') },
+                h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: a.stamp || a.file })),
+                a.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, a.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
               h('span', { className: cx('tq-tag'), 'data-tq-delivered': a.delivered ? 'true' : 'false' },
                 t(a.delivered ? 'queue.brief.delivered' : 'queue.brief.pending'))))),
+      ui.timeline === null ? null : h('div', { className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id },
+        h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
+        ui.timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [
+          h('div', { className: cx('tq-note'), key: 'source' }, t('queue.timeline.source')),
+          ui.timeline.log_missing ? h('div', { className: cx('tq-note'), key: 'missing' }, t('queue.timeline.missing')) : null,
+          ui.timeline.omitted_bytes > 0 || ui.timeline.omitted_events > 0 || ui.timeline.audit_truncated
+            ? h('div', { className: cx('tq-note'), key: 'cut' }, t('queue.timeline.cut', { bytes: ui.timeline.omitted_bytes, count: ui.timeline.omitted_events })) : null,
+          ui.timeline.events.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty' }, t('queue.timeline.empty'))
+            : h('ol', { key: 'events' }, ...ui.timeline.events.map((event, index) => h('li', { key: index },
+              h('time', null, event.stamp),
+              h('strong', null, t('queue.timeline.' + event.kind)),
+              event.text ? h('div', null, event.text) : null))),
+        ]),
       // The log scrolls inside itself: focusable and named, so a keyboard and a screen reader can read it.
       ui.log === null ? null : h('pre', { className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region', 'aria-label': t('queue.a.log') }, ui.log.join('\n')),
     ]),
@@ -1833,6 +1862,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const [confirm, setConfirm] = useState<string | null>(null)
   const [picker, setPicker] = useState<ModelPicker | null>(null)
   const [log, setLog] = useState<string[] | null>(null)
+  const [timeline, setTimeline] = useState<TaskTimeline | 'older' | null>(null)
   const [brief, setBrief] = useState<BriefView | null>(null)
   const [readPending, setReadPending] = useState<string | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
@@ -1852,7 +1882,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     detailRequest.current += 1
     activeDetail.current = null
     setDetailId(null)
-    setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null)
+    setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
         rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')?.focus({ preventScroll: false })
@@ -1867,7 +1897,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     detailRequest.current += 1
     activeDetail.current = null
     setDetailId(null); setNotice(null); setConfirm(null); setBrief(null)
-    setPicker(null); setLog(null); setReadPending(null)
+    setPicker(null); setLog(null); setTimeline(null); setReadPending(null)
     // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
     // instead of letting it fall to <body>.
     if (typeof document !== 'undefined' && rootRef.current !== null && openerRef.current !== null
@@ -1994,6 +2024,26 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     })
   }
 
+  // Reuse the existing read-only log transport: updating ops is enough even while the
+  // dsh host is waiting for its next restart. A late reply belongs only to its task.
+  const loadTimeline = (task: DispatchTask): void => {
+    if (run === undefined) return
+    const request = detailRequest.current
+    setReadPending('timeline')
+    run('log', task.id, '').then((result) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      if (!result.ok) { setNotice({ ok: false, text: t('queue.a.readFailed', { message: result.message }) }); return }
+      let answer: { timeline?: TaskTimeline } = {}
+      try { answer = JSON.parse(result.detail || '{}') as typeof answer } catch { /* older ops */ }
+      setTimeline(answer.timeline ?? 'older')
+    }, (err: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
+    })
+  }
+
   const now = Date.now()
   const result = queueState.data.result
   const dispatcher = result !== null && result.available
@@ -2017,9 +2067,9 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   lastSeen.current = found
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
-    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setConfirm(null); setBrief(null); setReadPending(null) },
+    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
-    brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows,
+    brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows, timeline, loadTimeline,
   }
   // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
   const lines = sources.map((source) => {

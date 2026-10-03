@@ -375,3 +375,31 @@ and verifies with `cmp`), or `--rollback` to go back. `list` also reports the ha
 installed `run-agent.sh`, `dispatch.sh` and `limits.env`. The first two are versioned now:
 `ops/host/install_agent_dispatch.sh --check` says whether they, and every other runner file,
 match the checkout.
+
+## Reading a task's history
+
+The existing `log <id> --json` answer includes a `timeline` next to `lines`; its text answer
+remains the log tail. The dsh detail's **Progress timeline** button uses that same read-only
+RPC, so the new client can read the updated installed ops entry without a host restart.
+It reads stamped supervisor events, append submission filenames, audit writes and the latest
+notification receipt, sorted by the recorded local timestamp. Append submission and delivery
+are distinct events. A `result.env` UPDATED write is not a completion event.
+
+This is a view of existing evidence, not a new runner state machine. Old logs can have gaps;
+missing logs are labelled. A large run log is bounded to a 2 MiB head and 2 MiB tail, the audit
+read to 256 KiB, and the displayed event list to its first/last 100 events. Omitted bytes/events
+and audit truncation are explicit. Full log preview remains available. Reads do not append an
+audit record, consume attempts or change task state.
+
+The brief's append files remain the durable instruction records. The client displays their
+chronological sequence number, timestamp, delivered/pending status and first-line excerpt;
+opening a row previews its source file. The filename is its identity, and these numbers are
+not immutable snapshots of the entire brief/plan. PRs and commits remain the code diff history.
+
+Recent completions read every non-active, non-patrol result's terminal state and UPDATED before
+capping the list. File mtime does not select candidates; missing UPDATED sorts last. Detailed
+logs are read only for the chosen rows. This reader change requires the dsh host and gateway
+to reload their modules; a no-restart client install alone does not change that in-memory code.
+
+The comparison and deliberately rejected scope are in
+[the Todos workflow study](../design/todos-workflow-2026-10-04/README.md).
