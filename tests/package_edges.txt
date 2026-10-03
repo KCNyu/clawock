@@ -47,6 +47,7 @@ evaluation -> portfolio
 evaluation -> safe_io
 evaluation -> seeds
 evaluation -> workspace
+evidence -> code_identity
 evidence -> decision
 evidence -> history_store
 evidence -> instruments
@@ -110,6 +111,7 @@ publish -> workspace
 scheduling -> config
 scheduling -> sessions
 scheduling -> workspace
+scorecard_provenance -> code_identity
 scorecard_provenance -> workspace
 tools -> context
 tools -> decision
