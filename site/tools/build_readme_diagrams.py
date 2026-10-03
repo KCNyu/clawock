@@ -485,37 +485,41 @@ def information_flow():
                  ['From eight source layers', 'to a delivered card'],
                  ['Python fetches, computes and settles; the model', 'only reads the files a run assembles.'],
                  [('source · fetch', 'blue'), ('python', 'green'), ('agent · LLM', 'slate'),
-                  ('gate · watchdog', 'warm')])
+                  ('gate · watchdog', 'warm')], title_lh=34)
 
     y += 30
     d.section(y, '1 · SOURCES')
     y += 14
-    h = 178
+    h = 238
     d.card(M, y, CW, h, 'blue')
     d.text(M + 20, y + 32, '8 information layers', 'h')
     d.tag(W - M - 16, y + 30, 'HK + US', 'blue', anchor='end')
-    xs, cw = columns(2, gap=8, x0=M + 16, w=CW - 32)
-    layers = ['L1 market', 'L2 filings', 'L3 capital flow', 'L4 news', 'L5 macro · mood',
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
+    layers = ['L1 market', 'L2 SEC · HKEX', 'L3 capital flow', 'L4 news', 'L5 macro · mood',
               'L6 quant · risk', 'L7 book · FX', 'L8 backtest']
     for i, name in enumerate(layers):
         col, row = i % 2, i // 2
-        d.chip(xs[col], y + 46 + row * 32, cw, name)
+        d.chip(xs[col], y + 54 + row * 44, cw, name, h=36, role='blue',
+               icon=('market', 'filing', 'bars', 'news', 'calendar', 'shield', 'fx', 'replay')[i])
     top = y + h
     y = top + 44
     d.down(W / 2, top, y, pulses=(0, 1.1))
 
-    h = 248
+    h = 312
     d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 32, 'Fetch with fallback', 'h')
+    d.icon('market', M + 20, y + 14)
+    d.text(M + 50, y + 32, 'Fetch with fallback', 'h')
     d.tag(W - M - 16, y + 30, 'ORDERED ROUTES', 'blue', anchor='end')
-    fb = [(' → ', FAINT)]
-    yy = d.kv(M + 20, y + 60, 84, CW - 36, [
-        ('HK quotes', [[('Tencent + Eastmoney HK', INK)], [('→ stooq → yfinance', MUT)]]),
+    yy = y + 66
+    routes = [
+        ('HK quotes', [[('Tencent + Eastmoney HK', INK)], [('→ stooq → yfinance', MUT)]], 'market'),
         ('US quotes', [[('Nasdaq', INK), (' → Eastmoney → Finnhub', MUT)],
-                       [('→ Yahoo → yfinance', MUT)], [('→ Alpha Vantage → Polygon', MUT)]]),
-        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host', MUT)], [('→ Yahoo', MUT)]]),
-    ], lh=20)
-    del fb
+                       [('→ Yahoo → yfinance', MUT)], [('→ Alpha Vantage → Polygon', MUT)]], 'market'),
+        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host', MUT)], [('→ Yahoo', MUT)]], 'fx'),
+    ]
+    for key, values, icon in routes:
+        d.icon(icon, M + 20, yy - 15, size=18)
+        yy = d.kv(M + 48, yy, 100, CW - 64, [(key, values)], lh=22) + 12
     d.add(f'<path d="M{M + 20:g} {yy - 6:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
     d.lines(M + 20, yy + 14, CW - 36, [[('One throttled gateway for every live Eastmoney', MUT)],
                                        [('call; an empty fetch keeps the prior value.', MUT)]],
@@ -526,7 +530,8 @@ def information_flow():
 
     h = 150
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Portfolio + risk', 'h')
+    d.icon('shield', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Portfolio + risk', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.kv(M + 20, y + 60, 84, CW - 36, [
         ('reconcile', ['recompute every money field']),
@@ -539,8 +544,8 @@ def information_flow():
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' · only the blocks this run can use', MUT)],
            'm', anchor='middle')
     fits('preflight · only the blocks this run can use', 'm', CW, 'preflight label')
-    d.down(W / 2, top, y - 14, arrow=False, pulses=())
-    y += 34
+    d.down(W / 2, top, y - 22, arrow=False, pulses=())
+    y += 50
     xs, cw = columns(3)
     cad = [('Brief', ['pre-open', '08:03 HKT', 'weekdays', '→ plan.json']),
            ('Report', ['HK open, mid,', 'pm, close', 'US open, close', 'fresh quotes']),
@@ -558,7 +563,8 @@ def information_flow():
 
     h = 96
     d.card(M, y, CW, h, 'slate')
-    d.text(M + 20, y + 32, 'Agent', 'h')
+    d.icon('debate', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Agent', 'h')
     d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Reads the context files, never fetches;',
                                       'the brief also writes plan.json.'], lh=21, where='agent')
@@ -567,7 +573,8 @@ def information_flow():
     d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
     h = 96
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Postflight', 'h')
+    d.icon('checks', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Postflight', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Validates the output, then publishes;',
                                       'sends WeChat and co-sends Telegram.'], lh=21, where='postflight')
@@ -576,12 +583,13 @@ def information_flow():
     outs = [('Deliver', ['WeChat +', 'Telegram']),
             ('data-plane', ['7 files, one', 'generation']),
             ('master', ['ledger +', 'pre-push gate'])]
-    h = 100
+    h = 132
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
         d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
         d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='outputs')
+        d.icon(('plane', 'publish', 'commit')[i], x + 16, y + 96, size=22)
     top = deliver_bottom = y + h
     d.lines(xs[1], top + 24, W - M - xs[1], [[('WeChat cannot confirm a send;', FAINT)],
                                             [('Telegram can. The dashboard polls', FAINT)],
@@ -595,7 +603,8 @@ def information_flow():
            color='#d9a8a3', pulse=ROLE['warm'])
     h = 136
     d.card(M, y, CW, h, 'warm')
-    d.text(M + 20, y + 32, 'Watchdog', 'h')
+    d.icon('clock', M + 20, y + 14, 'warm')
+    d.text(M + 50, y + 32, 'Watchdog', 'h')
     d.tag(W - M - 16, y + 30, 'CRONTAB · NO LLM', 'warm', anchor='end')
     yy = d.kv(M + 20, y + 60, 84, CW - 36, [
         ('brief', [[('08:36', INK), (' · miss check 09:05', MUT)]]),
