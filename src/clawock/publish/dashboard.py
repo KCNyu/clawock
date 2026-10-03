@@ -1908,7 +1908,6 @@ def compute_delta(snapshots, legs=None):
     try:
         if not snapshots:
             return empty
-        n = len(snapshots)
         today = snapshots[-1]
 
         def window(leg_key, days):
