@@ -326,19 +326,12 @@ export declare function endedRow(task: DispatchTask, t: Translate, now: number, 
 export declare function roundFiled(filed: string, t: Translate): Fact | null;
 /** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 export declare function roundRow(round: PatrolRound, t: Translate, now: number): RowView;
-/**
- * What stays on screen and what folds — ONE rule for "recently ended" and
- * "patrol" (pinned by tests/decision_studio_plugin.spec.js):
- *
- *   resident = every record of distinct work, and the supervisor's live status;
- *   folded   = repetition of work already on screen (earlier rounds of the same
- *              patrol rotation) and the raw source of a line already rendered
- *              (the journal line behind the patrol status chips).
- *
- * Each ended task is distinct work, and the host already caps the list at
- * `taskQueueRecent`, so no ended task folds. Patrol rounds repeat one
- * rotation, so the newest round is resident and the earlier ones fold.
+/** Patrol history is one semantic group, regardless of individual outcomes.
+ * Up to four rounds stay visible; longer history keeps the newest round and
+ * one disclosure for all older rounds, preserving chronological order.
+ * Distinct ended tasks remain visible (the host already caps that list).
  */
+export declare const FLAT_ROUNDS = 4;
 export declare const RESIDENT_ROUNDS = 1;
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 export declare const reorderable: (task: DispatchTask) => boolean;
@@ -492,13 +485,12 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
 } | null;
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
- * caption), the newest round resident, the earlier rounds and the raw journal
- * line folded (RESIDENT_ROUNDS).
+ * caption), and one chronological history group. The raw supervisor journal
+ * is not a task conclusion; the head already projects its useful status.
  */
 export declare function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): {
     head: RowView;
     rounds: RowView[];
-    detail: string;
 } | null;
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
 export declare function opsFooter(result: TaskQueueResult | null, t: Translate): {

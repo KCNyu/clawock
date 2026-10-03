@@ -2066,8 +2066,8 @@ function recentSection(result, t, now, open) {
 }
 /**
 * Patrol: a section head (the phase as its state chip, the live status as its
-* caption), the newest round resident, the earlier rounds and the raw journal
-* line folded (RESIDENT_ROUNDS).
+* caption), and one chronological history group. The raw supervisor journal
+* is not a task conclusion; the head already projects its useful status.
 */
 function patrolSection(result, t, now) {
 	if (result === null || !result.available) return null;
@@ -2087,8 +2087,7 @@ function patrolSection(result, t, now) {
 			caption: patrolCaption(result, t, now),
 			attrs: { "data-tq-patrol": patrol.phase }
 		},
-		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
-		detail: patrol.detail
+		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now))
 	};
 }
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
@@ -2234,8 +2233,9 @@ function panelText(model, t) {
 		const [head, ...caption] = rowText(model.patrol.head, t);
 		out.push("", "▌" + head, ...indent(caption, "  "));
 		const rounds = model.patrol.rounds;
-		for (const row of rounds.slice(0, 1)) out.push("  • " + rowText(row, t)[0]);
-		if (rounds.length > 1) out.push("  " + t("queue.olderRounds", { n: rounds.length - 1 }));
+		const resident = rounds.length <= 4 ? rounds.length : 1;
+		for (const row of rounds.slice(0, resident)) out.push("  • " + rowText(row, t)[0]);
+		if (rounds.length > resident) out.push("  " + t("queue.olderRounds", { n: rounds.length - resident }));
 	}
 	if (model.footer !== null) out.push("", (model.footer.bad ? "⚠ " : "") + model.footer.text);
 	return out.join("\n");

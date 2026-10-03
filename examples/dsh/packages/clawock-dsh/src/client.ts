@@ -34,7 +34,7 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts'
 
@@ -1230,20 +1230,16 @@ function renderWell(key: string, rows: Array<React.ReactElement | null>): React.
   return present.length === 0 ? null : h('div', { className: cx('tq-well'), key: 'well-' + key, 'data-tq-well': key }, ...present)
 }
 
-/**
- * Patrol: a section head (the phase as its state chip, the live status as its
- * caption), the newest round on the well, then — folded, by the one rule
- * above — the earlier rounds and the raw journal line.
- */
+/** Patrol history folds as one kind of content, only when it is long. */
 function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
   const rounds = patrol.rounds
+  const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
   return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderRow(patrol.head, t),
-    renderWell('rounds', rounds.slice(0, RESIDENT_ROUNDS).map((round) => renderRow(round, t))),
-    rounds.length <= RESIDENT_ROUNDS ? null
-      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - RESIDENT_ROUNDS }), [renderWell('older', rounds.slice(RESIDENT_ROUNDS).map((round) => renderRow(round, t)))]),
-    patrol.detail === '' ? null : renderFold('journal', t('queue.supervisorLog'),
-      [h('div', { className: cx('tq-log'), key: 'log' }, patrol.detail)]))
+    renderWell('rounds', rounds.slice(0, resident).map((round) => renderRow(round, t))),
+    rounds.length <= resident ? null
+      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - resident }),
+        [renderWell('older', rounds.slice(resident).map((round) => renderRow(round, t)))]))
 }
 
 /**

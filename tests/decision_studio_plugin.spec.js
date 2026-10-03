@@ -3219,12 +3219,9 @@ test("client: one provider cell carries the queue under each agent's provider an
     find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
   }
 
-  // ONE disclosure rule for both sections (client.ts, above RESIDENT_ROUNDS): distinct work is
-  // resident, repetition and raw source fold. Five ended tasks are five pieces of work — none
-  // folds; three patrol rounds are one rotation — the newest stays, two fold, and the journal
-  // line (the raw source of the status chips) folds.
+  // Distinct ended tasks stay visible; only long patrol history folds, as one group.
   const endedTask = (i) => ({ ...QUEUE.recent[0], id: "e-" + i, name: "ended-" + i, updatedAtMs: now - (i + 1) * 60000 });
-  const rounds = [0, 1, 2].map((i) => ({ endedAt: `2026-09-23 0${5 - i}:00:00`, round: "R" + (140 - i), axis: "logic", result: "ok/DONE", seconds: 600 }));
+  const rounds = [0, 1, 2, 3, 4].map((i) => ({ endedAt: `2026-09-23 0${5 - i}:00:00`, round: "R" + (140 - i), axis: "logic", result: "ok/DONE", seconds: 600 }));
   // What the newest round routed through the filing gate (patrol.sh's third `/` field): line 2.
   rounds[0].result = "ok/DONE/P1#2240 +2 digest +1 comment";
   answer = { ...QUEUE, recent: [0, 1, 2, 3, 4].map(endedTask), patrol: { ...QUEUE.patrol, rounds } };
@@ -3236,8 +3233,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(find(section("recent"), (p) => p["data-tq-task"] !== undefined).length, 5, "every ended task the host sends is on screen");
   assert.equal(folds(section("recent")).length, 0, "no ended task hides behind a fold");
   const patrolFolds = folds(section("patrol"));
-  assert.deepEqual(patrolFolds.map((f) => f.props["data-tq-fold"]), ["rounds", "journal"]);
-  assert.deepEqual(find(patrolFolds[0], (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), ["R139", "R138"],
+  assert.deepEqual(patrolFolds.map((f) => f.props["data-tq-fold"]), ["rounds"]);
+  assert.deepEqual(find(patrolFolds[0], (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), ["R139", "R138", "R137", "R136"],
     "the earlier rounds fold");
   assert.equal(find(section("patrol"), (p) => p["data-tq-round"] === "R140").length, 1);
   assert.equal(find(patrolFolds[0], (p) => p["data-tq-round"] === "R140").length, 0, "the newest round stays resident");
@@ -3250,10 +3247,24 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(issueLink.props["aria-label"], /P1 #2240/);
   assert.equal(find(newest, (p) => p["data-severity"] === "P1").length, 1, "severity is text and a paint role");
   assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
-  assert.match(texts(patrolFolds[1]), /preempting patrol-recent-1: b-1 is waiting for its agent lock/, "the raw journal line is kept, folded");
+  assert.doesNotMatch(texts(section("patrol")), /preempting patrol-recent-1/, "raw supervisor output is not a task conclusion");
   for (const fold of patrolFolds) {
     const summary = fold.children.find((c) => c && c.type === "summary");
     assert.ok(summary && /_tq-fold-summary/.test(summary.props.className), "a fold opens from its own summary control");
+  }
+
+  // Boundary cases, including mixed outcomes: never split into count/state chunks.
+  for (const count of [0, 1, 2, 3, 4, 5, 6]) {
+    const history = Array.from({ length: count }, (_, i) => ({ ...rounds[i % rounds.length], round: 'B' + i,
+      result: i % 2 === 0 ? 'ok/DONE' : 'failed/BLOCKED' }));
+    answer = { ...answer, patrol: { ...answer.patrol, rounds: history } };
+    find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+    await tick(); await tick();
+    const patrol = find(render(), (p) => p["data-tq-group"] === "patrol")[0];
+    const disclosures = folds(patrol);
+    assert.equal(disclosures.length, count <= 4 ? 0 : 1, `${count} rounds: only long history folds`);
+    assert.deepEqual(find(patrol, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), history.map(r => r.round));
+    if (count > 4) assert.equal(find(disclosures[0], (p) => p["data-tq-round"] !== undefined).length, count - 1);
   }
 
   // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
@@ -4110,6 +4121,14 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     for (const win of find(popover, (p) => /_bp-win$/.test(p.className || ""))) {
       const [label, pct, reset] = ["label", "pct", "reset"].map((c) => texts(find(win, (p) => new RegExp(`_bp-win-${c}$`).test(p.className || ""))));
       assert.ok(reply.some((l) => l.includes(label) && l.includes(pct) && l.includes(reset.replace("↻ ", "↻"))), `window ${label} ${pct} ${reset}`);
+    }
+    for (const count of [2, 4, 5]) {
+      const rounds = Array.from({ length: count }, (_, i) => ({ ...QUEUE.patrol.rounds[0], round: 'T' + i }));
+      const text = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
+        queue: { ...QUEUE, patrol: { ...QUEUE.patrol, rounds } }, queueError: null }, t, now);
+      for (let i = 0; i < (count <= 4 ? count : 1); i++) assert.ok(text.includes('T' + i));
+      if (count > 4) assert.ok(text.includes(t('queue.olderRounds', { n: count - 1 })));
+      else assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
     }
     // Receipts: the panel's glyphs are words and marks here, one per channel.
     assert.match(reply.find((l) => l.includes("merge-pr1767")), /微信✕ Telegram✓/);

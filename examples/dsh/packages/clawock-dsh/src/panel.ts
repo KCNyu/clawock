@@ -699,19 +699,12 @@ export function roundRow(round: PatrolRound, t: Translate, now: number): RowView
   }
 }
 
-/**
- * What stays on screen and what folds — ONE rule for "recently ended" and
- * "patrol" (pinned by tests/decision_studio_plugin.spec.js):
- *
- *   resident = every record of distinct work, and the supervisor's live status;
- *   folded   = repetition of work already on screen (earlier rounds of the same
- *              patrol rotation) and the raw source of a line already rendered
- *              (the journal line behind the patrol status chips).
- *
- * Each ended task is distinct work, and the host already caps the list at
- * `taskQueueRecent`, so no ended task folds. Patrol rounds repeat one
- * rotation, so the newest round is resident and the earlier ones fold.
+/** Patrol history is one semantic group, regardless of individual outcomes.
+ * Up to four rounds stay visible; longer history keeps the newest round and
+ * one disclosure for all older rounds, preserving chronological order.
+ * Distinct ended tasks remain visible (the host already caps that list).
  */
+export const FLAT_ROUNDS = 4
 export const RESIDENT_ROUNDS = 1
 
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
@@ -1059,10 +1052,10 @@ export function recentSection(result: TaskQueueResult | null, t: Translate, now:
 
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
- * caption), the newest round resident, the earlier rounds and the raw journal
- * line folded (RESIDENT_ROUNDS).
+ * caption), and one chronological history group. The raw supervisor journal
+ * is not a task conclusion; the head already projects its useful status.
  */
-export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; detail: string } | null {
+export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[] } | null {
   if (result === null || !result.available) return null
   const patrol = result.patrol
   return {
@@ -1074,7 +1067,6 @@ export function patrolSection(result: TaskQueueResult | null, t: Translate, now:
       attrs: { 'data-tq-patrol': patrol.phase },
     },
     rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
-    detail: patrol.detail,
   }
 }
 
