@@ -1218,3 +1218,26 @@ def test_publish_sanitizes_legacy_ledger_at_boundary(tmp_path, monkeypatch):
     assert private_prefix not in target.read_text()
     assert legacy["records"][0]["stages"]["preflight"]["context_path"].startswith(private_prefix)
     assert not outcomes.publish()
+
+
+def test_degradation_fold_preserves_times_not_lifetime_window_counts():
+    ledger = {'degradations': [
+        {'kind': 'x', 'count': 15, 'first_at': '2026-09-01T00:00:00Z',
+         'last_at': '2026-09-29T00:00:00Z', 'detail': 'legacy'},
+    ]}
+    outcomes.note_degradation(ledger, 'x', 'new', at=datetime.fromisoformat('2026-10-03T00:00:00+00:00'))
+    row = ledger['degradations'][0]
+    assert row['count'] == 16
+    assert len(row['hits']) == 2
+    assert row['hits_incomplete'] is True
+    # Only one recorded occurrence is within the latest 36h.
+    assert sum(t >= '2026-10-01T12:00:00' for t in row['hits']) == 1
+
+
+def test_new_degradation_rows_preserve_complete_occurrence_history():
+    ledger = {}
+    for hour in range(3):
+        outcomes.note_degradation(ledger, 'x', 'boom', at=datetime.fromisoformat(f'2026-10-03T0{hour}:00:00+00:00'))
+    row = ledger['degradations'][0]
+    assert row['count'] == len(row['hits']) == 3
+    assert row['hits_incomplete'] is False

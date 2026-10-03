@@ -526,9 +526,14 @@
     const degWinH = Number(wf.window_hours) > 0 ? Number(wf.window_hours) : null;
     const degAsOf = Date.parse(bs && bs.generated_at) || Date.now();
     const degAgeH = row => (degAsOf - Date.parse(row.last_at)) / 3.6e6;
-    const degradationCount = degWinH === null ? 0 : degradations
-      .filter(row => degAgeH(row) <= degWinH)
-      .reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+    const recentDegradations = degWinH === null ? [] : degradations
+      .filter(row => degAgeH(row) >= 0 && degAgeH(row) <= degWinH);
+    const degradationUnknown = recentDegradations.some(row => row.hits_incomplete || !Array.isArray(row.hits));
+    const degradationCount = recentDegradations.reduce((sum, row) => sum +
+      (Array.isArray(row.hits) ? row.hits : [row.last_at]).filter(at => {
+        const age = (degAsOf - Date.parse(at)) / 3.6e6;
+        return age >= 0 && age <= degWinH;
+      }).length, 0);
     el.style.display = '';
     const ig = bs.integrity || {};
     const stale = bs.stale_files || [];
@@ -546,7 +551,7 @@
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
       if (recovered) bits.push(`${recovered} 成品恢复/降级`);
       if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
-      if (degradationCount) bits.push(`${degWinH}h 内 ${degradationCount} 次降级记录`);
+      if (degradationCount) bits.push(`${degWinH}h 内 ${degradationUnknown ? "至少 " : ""}${degradationCount} 次降级记录${degradationUnknown ? "（旧历史不完整）" : ""}`);
       label = bits.join(' · ');
     } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
     if (wf.raw_error_but_product_usable) {
@@ -571,7 +576,7 @@
     degradations.forEach(row => {
       const age = degAgeH(row);
       const when = Number.isFinite(age) ? ` · 最后 ${age < 48 ? `${Math.max(0, Math.round(age))} 小时` : `${Math.round(age / 24)} 天`}前` : '';
-      lines.push(`[降级] ${row.kind}: ${row.count} 次${when}`);
+      lines.push(`[降级] ${row.kind}: 累计 ${row.count} 次${when}${row.hits_incomplete || !Array.isArray(row.hits) ? " · 逐次历史不完整" : ""}`);
     });
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>

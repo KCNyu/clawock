@@ -636,3 +636,20 @@ def test_schedule_day_survives_midnight_and_skips_unscheduled_sunday():
     # Monday before its schedule belongs to Saturday, not Sunday.
     now = datetime(2026, 9, 28, 0, tzinfo=timezone.utc)
     assert cron_health_check.health_schedule_day(now, scheduled=True).date() == date(2026, 9, 26)
+
+
+def test_dreaming_no_change_needs_successful_execution(monkeypatch, capsys):
+    for count, status in [(1, 'ok-run'), (0, 'missing'), (None, 'execution-unknown')]:
+        monkeypatch.setattr(cron_health_check, 'runs_finished_today', lambda *a, **kw: count)
+        rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 2, 10, tzinfo=timezone.utc))
+        assert rows['Memory Dreaming Promotion']['status'] == status
+
+
+def test_scheduled_midnight_run_still_checks_previous_day_commits(monkeypatch, capsys):
+    monkeypatch.setenv('GITHUB_EVENT_NAME', 'schedule')
+    monkeypatch.setattr(cron_health_check, 'runs_finished_today', lambda *a, **kw: 1)
+    # 2026-09-29 01:00 HKT, a late Monday 17:17 schedule.
+    rows = _run_health_at(monkeypatch, capsys, datetime(2026, 9, 28, 17, tzinfo=timezone.utc))
+    assert rows['港股收盘报告']['expected_today'] == 1
+    assert rows['港股收盘报告']['status'] == 'missing'
+    assert rows['盘前深度简报']['expected_today'] == 1
