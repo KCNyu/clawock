@@ -631,16 +631,17 @@ def architecture():
                  ['How this deployment turns', 'a claim into a public record'],
                  ['OpenClaw argues the call. Code gates it, the', 'bars settle it, and the score feeds tomorrow.'],
                  [('python', 'green'), ('agent · LLM', 'slate'), ('settle · grade', 'blue'),
-                  ('gate', 'warm')])
-    RAIL = W - M - 6          # the return loop runs up the right edge
-    IW = CW - 30              # inner column, leaving room for the loop
+                  ('gate', 'warm')], title_lh=34)
+    RAIL = W - M - 18          # the return loop runs up the right edge
+    IW = CW - 42              # inner column, leaving room for the loop
     y += 30
     d.section(y, '01 · EVIDENCE')
     y += 14
     ey = y
     h = 118
     d.card(M, y, IW, h, 'green')
-    d.text(M + 20, y + 32, 'Evidence pack', 'h')
+    d.icon('book', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Evidence pack', 'h')
     d.tag(M + IW - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.text(M + 20, y + 54, [('context.json', INK), (' — reconciled, immutable', MUT)], 'm')
     xs, cw = columns(4, gap=6, x0=M + 16, w=IW - 32)
@@ -652,7 +653,8 @@ def architecture():
     d.down(M + IW / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
     h = 74
     d.card(M, y, IW, h, 'slate')
-    d.text(M + 20, y + 30, 'Four analyst lenses', 'h')
+    d.icon('lens', M + 20, y + 12, 'slate')
+    d.text(M + 50, y + 30, 'Four analyst lenses', 'h')
     d.tag(M + IW - 16, y + 28, 'LLM', 'slate', anchor='end')
     d.text(M + 20, y + 54, 'fundamental · technical · sentiment · sector', 'm', fill=MUT)
     fits('fundamental · technical · sentiment · sector', 'm', IW - 36, 'lenses')
@@ -661,20 +663,22 @@ def architecture():
     xs, cw = columns(3, gap=10, x0=M, w=IW)
     fork = [('Bull case', 'hold / add', 'green'), ('Bear case', 'trim / cut', 'warm'),
             ('Risk voices', 'three of them', 'slate')]
-    h = 84
+    h = 112
     for i, (x, (name, body, role)) in enumerate(zip(xs, fork)):
         d.curve(M + IW / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8, pulse=ROLE['slate'])
         d.card(x, y, cw, h, role)
         fits(name, 'h', cw - 24, 'fork')
-        d.text(x + 16, y + 32, name, 'h')
-        d.text(x + 16, y + 56, body, 'm', fill=MUT)
+        d.icon({'Bull case': 'up', 'Bear case': 'down', 'Risk voices': 'shield'}[name], x + 16, y + 14, role)
+        d.text(x + 16, y + 64, name, 'h')
+        d.text(x + 16, y + 88, body, 'm', fill=MUT)
     top = y + h
     y = top + 48
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, M + IW / 2, y, pulses=(i * .5 + .3,), dur=1.8, pulse=ROLE['slate'])
     h = 96
     d.card(M, y, IW, h, 'slate')
-    d.text(M + 20, y + 32, 'Judge', 'h')
+    d.icon('judge', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Judge', 'h')
     d.tag(M + IW - 16, y + 30, 'LLM', 'slate', anchor='end')
     d.lines(M + 20, y + 58, IW - 36, ['Names the strategy frame of each call:',
                                       [('action · trigger · confidence → plan.json', MUT)]], lh=21, where='judge')
@@ -684,7 +688,8 @@ def architecture():
     d.down(M + IW / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
     h = 134
     d.card(M, y, IW, h, 'green')
-    d.text(M + 20, y + 32, 'Code gate', 'h')
+    d.icon('checks', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Code gate', 'h')
     d.tag(M + IW - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.bullets(M + 22, y + 62, IW - 40, ['plan.json schema: fields, enums, confidence',
                                         'Brief sections: tiers, judge, next session',
@@ -693,13 +698,14 @@ def architecture():
     y = top + 48
     xs, cw = columns(3, gap=10, x0=M, w=IW)
     pubs = [('Ledger', 'decisions.jsonl'), ('Brief', 'the chat card'), ('Dashboard', 'data-plane')]
-    h = 76
+    h = 106
     for i, (x, (name, body)) in enumerate(zip(xs, pubs)):
         d.curve(M + IW / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
-        d.text(x + 16, y + 30, name, 'h')
-        fits(body, 'm', cw - 24, 'pub')
-        d.text(x + 16, y + 54, body, 'm', fill=MUT)
+        d.icon(('filing', 'chat', 'dashboard')[i], x + 16, y + 12)
+        d.text(x + 16, y + 60, name, 'h')
+        fits(body, 'm', cw - 20, 'pub')
+        d.text(x + 12, y + 84, body, 'm', fill=MUT)
     top = y + h
     y = top + 48
     d.text(xs[0] + cw / 2 + 14, y - 14, '04 · SETTLE IN THE OPEN', 'kick', fill=FAINT)
@@ -713,8 +719,7 @@ def architecture():
     d.card(M, y, IW, h, 'blue')
     for i, (name, body) in enumerate(steps):
         yy = y + 34 + i * 46
-        d.add(f'<circle cx="{M + 30:g}" cy="{yy - 5:g}" r="11" fill="{TINT["blue"]}"/>')
-        d.text(M + 30, yy, str(i + 1), 'tag', anchor='middle', fill=ROLE['blue'])
+        d.icon(('filing', 'market', 'sector', 'checks', 'dashboard')[i], M + 20, yy - 16, size=20)
         d.text(M + 52, yy, name, 'b')
         fits(body, 'm', IW - 70, 'settle')
         d.text(M + 52, yy + 20, body, 'm', fill=MUT)
@@ -725,8 +730,8 @@ def architecture():
     d.wire(f'M{M + IW:g} {bottom - 30:g}H{RAIL - 8:g}Q{RAIL:g} {bottom - 30:g} {RAIL:g} {bottom - 38:g}'
            f'V{ey + 40:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
            pulses=(0, 2.5), dur=5, color='#b8c9d8')
-    d.add(f'<text x="{RAIL + 4:g}" y="{(ey + bottom) / 2:g}" class="kick" fill="{ROLE["blue"]}" '
-          f'transform="rotate(90 {RAIL + 4:g} {(ey + bottom) / 2:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
+    d.add(f'<text x="{W - M - 2:g}" y="{(ey + bottom) / 2:g}" class="kick" fill="{ROLE["blue"]}" '
+          f'transform="rotate(90 {W - M - 2:g} {(ey + bottom) / 2:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
     return d.render(bottom + M)
 
 
