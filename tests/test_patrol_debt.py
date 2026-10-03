@@ -35,6 +35,8 @@ def test_duplicate_red_then_owner_delegation_green(tmp_path):
     (root / paths[1]).write_text('def value(x):\n    """Compatibility wrapper with no independent implementation."""\n    from .a import value as owner\n    result = owner(x)\n    return result\n')
     green, output, _ = debt_check.evaluate(BASE, root)
     assert not green and 'copies=1' in output
+    (root / paths[1]).write_text('def value(x):\n    return x\n')
+    assert not debt_check.evaluate(BASE, root)[0]
 
 
 def test_cycle_includes_relative_child_but_excludes_deferred_import(tmp_path):

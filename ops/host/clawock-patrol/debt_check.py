@@ -98,8 +98,10 @@ def evaluate(contract, root):
             canonical.name = 'OWNER'
             bodies.append(ast.dump(canonical, include_attributes=False))
             paths.append(path)
-        if len(set(paths)) < 2 or min(sizes) < 5:
-            raise ValueError('wrappers/tiny idioms are not debt evidence')
+        if len(set(paths)) < 2:
+            raise ValueError('need implementations in distinct modules')
+        if min(sizes) < 5:
+            return False, f'duplicate-python: copies=0 (wrappers/tiny idioms) lines={sizes} symbols={symbols}', paths
         same = len(set(bodies)) == 1
         return same, f'duplicate-python: copies={len(symbols) if same else 1} lines={sizes} symbols={symbols}', paths
     if kind == 'import-cycle':
