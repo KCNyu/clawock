@@ -130,7 +130,10 @@ def runs_finished_today(job_id, provider=None, *, day=None):
     try:
         if provider is None:
             from clawock.providers.runs import OpenClawRuns
-            provider = OpenClawRuns()
+            read = openclaw.read_runs(job_id)
+            if read.source in {'empty', 'fossil'}:
+                return None  # Unavailable/stale history cannot prove a current miss.
+            provider = OpenClawRuns(reader=lambda _job: read.entries)
         today = day or datetime.now(HKT).date()
         count = 0
         for run in provider.history(job_id, limit=200):

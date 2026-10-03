@@ -653,3 +653,10 @@ def test_scheduled_midnight_run_still_checks_previous_day_commits(monkeypatch, c
     assert rows['港股收盘报告']['expected_today'] == 1
     assert rows['港股收盘报告']['status'] == 'missing'
     assert rows['盘前深度简报']['expected_today'] == 1
+
+
+def test_default_execution_reader_distinguishes_unavailable_from_no_runs(monkeypatch):
+    for source, expected in [('empty', None), ('fossil', None), ('cli', 0), ('sqlite', 0)]:
+        monkeypatch.setattr(cron_health_check.openclaw, 'read_runs',
+                            lambda _job: SimpleNamespace(source=source, entries=[]))
+        assert cron_health_check.runs_finished_today('dreaming') == expected
