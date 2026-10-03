@@ -31,8 +31,7 @@ from clawock.portfolio import integrity  # noqa: E402
 
 def _sessions():
     now_hkt = datetime.now(timezone(timedelta(hours=8)))
-    prior = hk.trading_calendar.previous_trading_day(
-        "hk", now_hkt.date()).isoformat()
+    prior = hk._hk_prev_close_session(now_hkt.date()).isoformat()
     return now_hkt.date().isoformat(), prior
 
 

@@ -1209,11 +1209,12 @@ def test_the_card_carries_the_faults_beside_the_counts_they_undermine(
 def test_publish_sanitizes_legacy_ledger_at_boundary(tmp_path, monkeypatch):
     monkeypatch.setattr(outcomes, "reconcile_raw_execution", lambda: None)
     monkeypatch.setattr(outcomes, "reconcile_delivery_receipts", lambda: None)
-    legacy = {"records": [{"stages": {"preflight": {"context_path": "/root/.openclaw/workspace/memory/.tmp/old.json"}}}]}
+    private_prefix = str(__import__("pathlib").Path.home()) + "/"
+    legacy = {"records": [{"stages": {"preflight": {"context_path": private_prefix + ".openclaw/workspace/memory/.tmp/old.json"}}}]}
     monkeypatch.setattr(outcomes, "load_ledger", lambda: legacy)
     target = tmp_path / "public.json"
     monkeypatch.setattr(outcomes, "public_path", lambda: target)
     assert outcomes.publish()
-    assert "/root/" not in target.read_text()
-    assert legacy["records"][0]["stages"]["preflight"]["context_path"].startswith("/root/")
+    assert private_prefix not in target.read_text()
+    assert legacy["records"][0]["stages"]["preflight"]["context_path"].startswith(private_prefix)
     assert not outcomes.publish()
