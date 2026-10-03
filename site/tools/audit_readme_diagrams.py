@@ -41,11 +41,32 @@ const edges=[...svg.querySelectorAll('path[id^="w"],line[data-target]')].map(e=>
  if(target){const b=target.box;inside=end.x>b.x&&end.x<b.x+b.w&&end.y>b.y&&end.y<b.y+b.h;
  const el=svg.querySelector('#'+CSS.escape(target.id));
  if(el.tagName==='rect'&&el.isPointInFill){const pt=new DOMPoint(end.x,end.y).matrixTransform(matrix(el).inverse());inside=inside&&el.isPointInFill(pt);}}
- return {id:e.id,line:+e.dataset.line,source:e.dataset.source||null,target:e.dataset.target||null,end,targetBox:target?.box||null,endpointValid:inside,minimumTextDistance:Math.min(...nearest.map(t=>t.distance)),closestText:nearest.reduce((a,b)=>a.distance<b.distance?a:b),intersections:hits,haloIntersections:haloHits};
+ return {d:e.getAttribute('d'),id:e.id,line:+e.dataset.line,source:e.dataset.source||null,target:e.dataset.target||null,end,targetBox:target?.box||null,endpointValid:inside,minimumTextDistance:Math.min(...nearest.map(t=>t.distance)),closestText:nearest.reduce((a,b)=>a.distance<b.distance?a:b),intersections:hits,haloIntersections:haloHits};
 });
 const rects=[...svg.querySelectorAll('svg > rect')].filter(e=>e.ownerSVGElement===svg&&!e.classList.contains('sweep')&&+e.getAttribute('width')>=60&&+e.getAttribute('height')>=30).slice(1).map(record);
 const primitivePaths=[...svg.querySelectorAll('path,line')].filter(e=>!e.closest('defs')).map(e=>({line:+e.dataset.line,id:e.id,category:e.id.startsWith('w')?'connection':e.closest('.hero-icon')?'icon':e.ownerSVGElement!==svg?'logo':'accent/separator/schematic'}));
-const artwork=[...svg.querySelectorAll('text,rect,path,line,g.hero-icon')].filter(e=>!e.closest('defs')).map(record);
+const artwork=[...svg.querySelectorAll('text,rect,path,line,image,g.hero-icon')].filter(e=>!e.closest('defs')).map(record);
+
+// Geometry is an additional floor, not a substitute for reviewing the drawing.
+// Parent group cards contain a source/target on purpose; unrelated cards are obstacles.
+const contains=(a,b)=>a.x<=b.x+.01&&a.y<=b.y+.01&&a.x+a.w>=b.x+b.w-.01&&a.y+a.h>=b.y+b.h-.01;
+const obstacles=[...svg.querySelectorAll('svg > rect,g.hero-icon,image')].filter(e=>!e.closest('defs')&&!e.classList.contains('sweep')&&
+ (e.tagName!=='rect'||(+e.getAttribute('width')>=60&&+e.getAttribute('height')>=30))).map(record).filter(o=>o.box.w<svg.viewBox.baseVal.width-1);
+for(const edge of edges){
+ const source=nodes.find(n=>n.id===edge.source),target=nodes.find(n=>n.id===edge.target);
+ const unrelated=obstacles.filter(o=>o.id!==source?.id&&o.id!==target?.id&&!(source&&contains(o.box,source.box))&&!(target&&contains(o.box,target.box)));
+ const el=svg.querySelector('#'+CSS.escape(edge.id)),length=el.getTotalLength(),m=matrix(el),hits=[];let gap=Infinity;
+ for(const o of unrelated){let closest=Infinity;
+  for(let i=0;i<=Math.ceil(length);i++){const q=el.getPointAtLength(length*i/Math.max(1,Math.ceil(length))).matrixTransform(m),b=o.box;
+   const dist=Math.hypot(Math.max(b.x-q.x,0,q.x-b.x-b.w),Math.max(b.y-q.y,0,q.y-b.y-b.h));closest=Math.min(closest,dist);}
+  if(closest<.01)hits.push(o);gap=Math.min(gap,closest);
+ }
+ // Each Q is one rounded 90-degree turn. A monotone C fanout is a deliberate
+ // diagonal transition, not a box-avoidance turn; it has no corner vertices.
+ edge.turns=(edge.d.match(/Q/gi)||[]).length;edge.cardTransits=hits;edge.minimumObstacleGap=Number.isFinite(gap)?gap:null;
+}
+const routingErrors=edges.filter(e=>e.turns>3||e.cardTransits.length);
+const images=[...svg.querySelectorAll('image')].map(record);
 const vb=svg.viewBox.baseVal;
 const outside=artwork.filter(e=>e.box.x<-.01||e.box.y<-.01||e.box.x+e.box.w>vb.width+.01||e.box.y+e.box.h>vb.height+.01);
 const overlap=(a,b)=>Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)>.15&&Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)>.15;
@@ -60,7 +81,8 @@ for(const e of svg.querySelectorAll('path,line')){
  for(const t of texts){const b=t.box,hit=points.find(q=>q.x>=b.x-r&&q.x<=b.x+b.w+r&&q.y>=b.y-r&&q.y<=b.y+b.h+r);
  if(hit)decorationHits.push({pathLine:+e.dataset.line,text:t,point:hit});}
 }
-return {viewBox:svg.getAttribute('viewBox'),texts,nodes,rects,edges,primitivePaths,outside,textOverlaps,iconOverlaps,decorationHits};
+const imageOverlaps=images.flatMap(im=>[...texts,...obstacles].filter(o=>o!==im&&o.line!==im.line&&!contains(o.box,im.box)&&overlap(im.box,o.box)).map(o=>({image:im,other:o})));
+return {routingErrors,images,imageOverlaps,viewBox:svg.getAttribute('viewBox'),texts,nodes,rects,edges,primitivePaths,outside,textOverlaps,iconOverlaps,decorationHits};
 }'''
 
 def contains(a,b):
@@ -130,7 +152,9 @@ def run(assets, executable=None, font=None, width=343, legacy=None):
                         minimumGap=min((g['gap'] for g in gaps),default=None),gaps=sorted(gaps,key=lambda g:g['gap'])[:12],
                         yIntervalDistribution=distribution,renderWidth=width,viewportWidth=max(375,width+32),fontOverride=font)
             results[name]=data
-            print(f'{name}: text-intersections={hits} invalid-endpoints={endpoints} undeclared-edges={undeclared} fanout-errors={fanout_errors} halo-intersections={halos} min-gap={data["minimumGap"]:.2f} outside={len(data["outside"])} text-overlaps={len(data["textOverlaps"])} icon-overlaps={len(data["iconOverlaps"])} decorative-path-hits={len(data["decorationHits"])}')
+            print(f'{name}: text-intersections={hits} invalid-endpoints={endpoints} undeclared-edges={undeclared} fanout-errors={fanout_errors} halo-intersections={halos} min-gap={data["minimumGap"]:.2f} outside={len(data["outside"])} text-overlaps={len(data["textOverlaps"])} icon-overlaps={len(data["iconOverlaps"])} decorative-path-hits={len(data["decorationHits"])} routing-errors={len(data["routingErrors"])} image-overlaps={len(data["imageOverlaps"])}')
+            for edge in data['routingErrors']:
+                print(f"  ROUTE {name}.svg:{edge['line']} #{edge['id']} turns={edge['turns']} card-transits={[o['line'] for o in edge['cardTransits']]}")
             for edge in data['edges']:
                 if not edge['endpointValid']:
                     print(f"  END {name}.svg:{edge['line']} #{edge['id']} -> {edge['target']} end={edge['end']} target-box={edge['targetBox']}")
@@ -150,7 +174,7 @@ def main():
     ap.add_argument('--legacy-targets',type=Path,help='Reviewed target element lines for the old baseline only')
     args=ap.parse_args();data=run(args.assets,args.webkit_executable,args.font,args.width,json.loads(args.legacy_targets.read_text()) if args.legacy_targets else None)
     args.output.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
-    n=sum(d['intersectionCount']+d['invalidEndpointCount']+d['fanOutErrorCount']+d['haloIntersectionCount']+len(d['decorationHits'])+len(d['outside'])+len(d['textOverlaps'])+len(d['iconOverlaps']) for d in data.values())
+    n=sum(d['intersectionCount']+d['invalidEndpointCount']+d['fanOutErrorCount']+d['haloIntersectionCount']+len(d['decorationHits'])+len(d['outside'])+len(d['textOverlaps'])+len(d['iconOverlaps'])+len(d['routingErrors'])+len(d['imageOverlaps']) for d in data.values())
     print(f'TOTAL: {n} acceptance violations')
     return int(n>0 or any(d['undeclaredEdgeCount'] for d in data.values()))
 

@@ -138,3 +138,23 @@ def test_morning_debate_fanout_has_both_cases_and_all_risk_voices():
     assert {('opposition', voice) for voice in ('aggressive', 'conservative', 'neutral')} <= graph
     assert {('preflight', lens) for lens in ('fundamental', 'technical', 'sentiment', 'sector')} <= graph
     assert ('judge', 'postflight') in graph
+
+
+def test_harness_keeps_the_complete_live_host_capture():
+    """The real quota bars and task history are evidence, not illustrative states."""
+    import base64
+    root = ET.parse(ROOT / 'site/assets/harnesses.svg').getroot()
+    images = list(root.iter(f'{SVG}image'))
+    assert len(images) == 1
+    assert base64.b64decode(images[0].attrib['href'].split(',', 1)[1]) == (
+        ROOT / 'site/assets/dsh-dispatch-queue.png').read_bytes()
+
+
+def test_connectors_have_at_most_three_rounded_turns():
+    """A target-valid detour can still be unreadable; cap avoidance corners."""
+    import re
+    for name in _builder().DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        for edge in root.iter(f'{SVG}path'):
+            if edge.attrib.get('class') == 'connection':
+                assert len(re.findall('[Qq]', edge.attrib['d'])) <= 3, (name, edge.attrib['id'])
