@@ -220,7 +220,7 @@ def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volum
     """
     now_hkt = datetime.now(timezone(timedelta(hours=8)))
     today = now_hkt.date().isoformat()
-    prior_session = hk._hk_prev_close_session(now_hkt.date()).isoformat()
+    prior_session = hk._hk_prev_close_session(now_hkt).isoformat()
 
     port = {
         "portfolios": {
@@ -386,3 +386,26 @@ def test_prior_close_session_folds_a_closed_day_back_first():
     assert hk._hk_prev_close_session(date(2026, 9, 30)) == date(2026, 9, 29)
     assert hk._hk_prev_close_session(date(2026, 10, 1)) == date(2026, 9, 29)
     assert hk._hk_prev_close_session(date(2026, 10, 2)) == date(2026, 9, 30)
+
+
+def test_hk_preopen_and_after_close_have_distinct_quote_sessions():
+    tz = timezone(timedelta(hours=8))
+    before = datetime(2026, 10, 2, 8, 3, tzinfo=tz)
+    closed = before.replace(hour=16, minute=10)
+    assert hk._hk_quote_session(before).isoformat() == "2026-09-30"
+    assert hk._hk_prev_close_session(before).isoformat() == "2026-09-29"
+    assert hk._hk_quote_session(closed).isoformat() == "2026-10-02"
+    assert hk._hk_prev_close_session(closed).isoformat() == "2026-09-30"
+
+
+def test_hk_partial_fetch_preserves_entire_portfolio(tmp_path, monkeypatch):
+    path = tmp_path / "portfolio.json"
+    original = {"portfolios": {"hk_stocks": {"holdings": [
+        {"ticker": "00100", "shares": 1, "cost_basis": 1},
+        {"ticker": "02208", "shares": 1, "cost_basis": 1}]}}}
+    path.write_text(json.dumps(original))
+    monkeypatch.setattr(hk, "PORTFOLIO_PATH", str(path))
+    monkeypatch.setattr(hk, "fetch_hk_quotes", lambda _: {"00100": {"c": 2, "pc": 1}})
+    with pytest.raises(RuntimeError, match="02208"):
+        hk.update_hk_portfolio()
+    assert json.loads(path.read_text()) == original

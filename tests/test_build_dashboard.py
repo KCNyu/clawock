@@ -514,7 +514,7 @@ def test_pct_change_rejects_a_negative_baseline():
 
 def test_delta_windows_activate_only_at_exact_point_boundaries():
     seven = [
-        _snapshot(f"d{i}", us_equity=100 + i, hk_equity=200 + 2 * i)
+        _snapshot((dashboard.date(2026, 1, 1) + dashboard.timedelta(days=i)).isoformat(), us_equity=100 + i, hk_equity=200 + 2 * i)
         for i in range(7)
     ]
     assert dashboard.compute_delta(seven) == {
@@ -522,7 +522,7 @@ def test_delta_windows_activate_only_at_exact_point_boundaries():
         "hk": {"today_pct": 0.95, "7d_pct": None, "30d_pct": None},
     }
 
-    eight = seven + [_snapshot("d7", us_equity=107, hk_equity=214)]
+    eight = seven + [_snapshot("2026-01-08", us_equity=107, hk_equity=214)]
     assert dashboard.compute_delta(eight)["us"] == {
         "today_pct": 0.94,
         "7d_pct": 7.0,
@@ -531,12 +531,12 @@ def test_delta_windows_activate_only_at_exact_point_boundaries():
     assert dashboard.compute_delta(eight)["hk"]["7d_pct"] == 7.0
 
     thirty = [
-        _snapshot(f"d{i}", us_equity=100 + i, hk_equity=200 + i)
+        _snapshot((dashboard.date(2026, 1, 1) + dashboard.timedelta(days=i)).isoformat(), us_equity=100 + i, hk_equity=200 + i)
         for i in range(30)
     ]
     assert dashboard.compute_delta(thirty)["us"]["30d_pct"] is None
 
-    thirty_one = thirty + [_snapshot("d30", us_equity=130, hk_equity=230)]
+    thirty_one = thirty + [_snapshot("2026-01-31", us_equity=130, hk_equity=230)]
     assert dashboard.compute_delta(thirty_one)["us"]["30d_pct"] == 30.0
     assert dashboard.compute_delta(thirty_one)["hk"]["30d_pct"] == 15.0
 
@@ -557,15 +557,15 @@ def test_delta_does_not_read_a_buy_as_a_gain():
 
 
 def test_delta_does_not_read_a_deposit_as_a_gain():
-    rows = [_cash_row("d1", 1000.0, 100.0),
-            _cash_row("d2", 1010.0, 600.0, flows=500.0)]
+    rows = [_cash_row("2026-01-01", 1000.0, 100.0),
+            _cash_row("2026-01-02", 1010.0, 600.0, flows=500.0)]
     assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 0.91  # 10 / 1100
 
 
 def test_delta_never_mixes_bases_across_the_start_of_cash_tracking():
-    before = {"date": "d1", "hk_total_value": 1000.0, "hk_cash": None,
+    before = {"date": "2026-01-01", "hk_total_value": 1000.0, "hk_cash": None,
               "hk_equity": 1000.0, "us_equity": 100.0}
-    rows = [before, _cash_row("d2", 1100.0, 5000.0)]
+    rows = [before, _cash_row("2026-01-02", 1100.0, 5000.0)]
     assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 10.0
 
 
@@ -576,12 +576,12 @@ def test_delta_empty_single_and_zero_baseline_edges():
     }
     assert dashboard.compute_delta([]) == expected_empty
     assert dashboard.compute_delta([
-        _snapshot("d1", us_equity=10, hk_equity=20)
+        _snapshot("2026-01-01", us_equity=10, hk_equity=20)
     ]) == expected_empty
 
     zero_base = dashboard.compute_delta([
-        _snapshot("d1", us_equity=0, hk_equity=0),
-        _snapshot("d2", us_equity=10, hk_equity=20),
+        _snapshot("2026-01-01", us_equity=0, hk_equity=0),
+        _snapshot("2026-01-02", us_equity=10, hk_equity=20),
     ])
     assert zero_base["us"]["today_pct"] is None
     assert zero_base["hk"]["today_pct"] is None
@@ -1741,3 +1741,35 @@ def test_the_price_series_is_session_closes_not_file_dated_snapshots(monkeypatch
         {"ticker": "00100", "current_price": 255.0, "prev_close": 250.2}]}}}))
     assert dashboard.build_holdings_history(paths[1:] + [str(live)], days=3)["00100"] == [
         241.4, 250.2, 255.0]
+
+
+def test_delta_today_ignores_previous_intraday_value():
+    rows = [_cash_row("2026-10-01", 10000, 0),
+            _cash_row("2026-10-02", 3393.44, 574.36)]
+    rows[-1]["hk_today_change"] = 116.88
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 3.04
+    rows[0]["hk_total_value"] = 2
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] == 3.04
+
+
+def test_delta_calendar_windows_with_weekend_gaps():
+    rows = [_cash_row("2026-09-02", 100, 0),
+            _cash_row("2026-09-23", 110, 0),
+            _cash_row("2026-09-25", 120, 0),
+            _cash_row("2026-10-02", 130, 0)]
+    result = dashboard.compute_delta(rows)["hk"]
+    assert result["7d_pct"] == 8.33
+    assert result["30d_pct"] == 30.0
+
+
+def test_snapshot_cash_flows_use_ledger_numeric_coercion(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    snapshots = tmp_path / 'memory' / 'snapshots'
+    snapshots.mkdir(parents=True)
+    book = {'total_current_value': 100, 'cash_hkd': 30000,
+            'cash_adjustments': [{'amount': '30000'}, {'amount': 'unreadable'}, None]}
+    (snapshots / '2026-07-07.json').write_text(json.dumps({'portfolios': {'hk_stocks': book}}))
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard, '_canonical_ledger', lambda: {})
+    monkeypatch.setattr(dashboard, '_ledger_legs', lambda: [SimpleNamespace(key='hk', bucket='hk_stocks', currency='HKD')])
+    assert dashboard.load_snapshots()[0]['hk_flows'] == 30000
