@@ -1120,7 +1120,11 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
       const fact = view.facts[slot]!
       return h('span', {
         className: cx('tq-fact'), key: slot, 'data-tq-fact': slot, 'data-voice': fact.voice, title: fact.title ?? fact.said,
-      }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.text,
+      }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.parts == null ? fact.text
+        : fact.parts.map((part, i) => h('span', { key: i, className: cx('tq-filed-part'), 'data-severity': part.severity },
+          i === 0 ? null : h('span', { className: cx('tq-filed-sep'), 'aria-hidden': 'true' }, ' · '),
+          part.href === undefined ? part.text : h('a', { href: part.href, target: '_blank', rel: 'noopener noreferrer',
+            'aria-label': t('queue.round.openIssue', { issue: part.text }) }, part.text))),
         fact.mark == null ? null : h('span', { className: cx('tq-mark'), 'data-role': fact.mark.role, title: fact.mark.title }, renderRoleGlyph(fact.mark.role), fact.mark.text))
     }),
     caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },

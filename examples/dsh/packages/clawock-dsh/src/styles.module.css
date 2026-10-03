@@ -1913,7 +1913,7 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-row > .tq-name { grid-column:2 / 5 }
 .pbc .tq-row > .tq-value { grid-column:5 }
 .pbc .tq-row > .tq-chip[data-tq-chip="status"] { grid-column:5; justify-self:stretch }
-.pbc .tq-row > :is([data-tq-fact="model"], [data-tq-fact="filed"]) { grid-area:2 / 2 / 3 / 5 }
+.pbc .tq-row > [data-tq-fact="model"] { grid-area:2 / 2 / 3 / 5 }
 .pbc .tq-row > :is([data-tq-fact="tries"], [data-tq-fact="receipt"]) { grid-area:2 / 5 / 3 / 6 }
 .pbc .tq-row > [data-tq-fact="when"] { grid-area:3 / 2 / 4 / 3 }
 .pbc .tq-row > [data-tq-fact="took"] { grid-area:3 / 3 / 4 / 4 }
@@ -1933,6 +1933,27 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-fact[data-tq-fact="model"] {
   white-space:normal;
   color:var(--tq-ink-2)
+}
+/* Patrol evidence gets the unused aside space, not another chip or summary row.
+   Severity is written (P0…P3) as well as coloured; links keep their underline. */
+.pbc .tq-row > [data-tq-fact="filed"] {
+  grid-area:2 / 2 / 3 / 6;
+  white-space:normal;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  color:var(--tq-ink-2)
+}
+.pbc .tq-filed-part { white-space:nowrap }
+.pbc .tq-filed-part:first-child { font-weight:600 }
+.pbc .tq-filed-part[data-severity="P0"],
+.pbc .tq-filed-part[data-severity="P1"] { color:var(--tq-text-bad) }
+.pbc .tq-filed-part[data-severity="P2"] { color:var(--tq-text-warn) }
+.pbc .tq-filed-part a { color:inherit; text-underline-offset:3px; border-radius:var(--tq-radius-xs) }
+.pbc .tq-filed-part a:focus-visible { outline:var(--tq-focus-ring); outline-offset:2px }
+.pbc .tq-filed-sep { color:var(--tq-ink-3) }
+@media (pointer: coarse) {
+  .pbc .tq-filed-part a { display:inline-flex; align-items:center; min-height:44px }
 }
 .pbc .tq-fact[data-voice="warn"],
 .pbc .tq-caption-line [data-voice="warn"] { color:var(--tq-text-warn) }

@@ -490,9 +490,9 @@ export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round'
 export const RESIDENT_CHIPS = 1
 
 /** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
-export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'when' | 'took' | 'aside' }> = {
+export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'full' | 'when' | 'took' | 'aside' }> = {
   model: { line: 2, track: 'main' },
-  filed: { line: 2, track: 'main' },
+  filed: { line: 2, track: 'full' },
   tries: { line: 2, track: 'aside' },
   receipt: { line: 2, track: 'aside' },
   when: { line: 3, track: 'when' },
@@ -517,6 +517,8 @@ export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: 
 /** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
 export type Fact = {
   text: string; said?: string; title?: string; voice?: 'warn' | 'quiet'
+  /** Filing evidence: words/links, not additional state chips. Same text in chat. */
+  parts?: Array<{ text: string; severity?: string; href?: string }>
   /** A mark after the words: the fallback model's return arrow (a role glyph, drawn by the renderer). */
   mark?: { role: StateRole; text: string; title: string } | null
   /** Delivery receipts, one per channel, in place of words (the renderer draws each channel's glyph). */
@@ -659,15 +661,17 @@ export function roundFiled(filed: string, t: Translate): Fact | null {
   const issues = [...filed.matchAll(/\b(P[0-3])#(\d+)/g)].map((m) => ({ sev: m[1]!, n: m[2]! }))
   const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0)
   const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0)
-  const parts = [
-    ...issues.map(({ sev, n }) => `${sev} #${n}`),
-    ...(digest > 0 ? [t('queue.round.digest', { n: String(digest) })] : []),
-    ...(comment > 0 ? [t('queue.round.comment', { n: String(comment) })] : []),
+  const parts: NonNullable<Fact['parts']> = [
+    ...(issues.length > 0 ? [{ text: t('queue.round.issueCount', { n: issues.length }) }] : []),
+    ...issues.map(({ sev, n }) => ({ text: `${sev} #${n}`, severity: sev, href: `https://github.com/KCNyu/clawock/issues/${n}` })),
+    ...(digest > 0 ? [{ text: t('queue.round.digest', { n: String(digest) }) }] : []),
+    ...(comment > 0 ? [{ text: t('queue.round.comment', { n: String(comment) }) }] : []),
   ]
   if (parts.length === 0) return null
   return {
-    text: parts.join(' · '),
-    said: t('queue.round.filed', { what: parts.join(', ') }),
+    text: parts.map((part) => part.text).join(' · '),
+    parts,
+    said: t('queue.round.filed', { what: parts.map((part) => part.text).join(', ') }),
     title: filed,
     voice: issues.some(({ sev }) => sev === 'P0') ? 'warn' : undefined,
   }
@@ -870,6 +874,9 @@ export function patrolCaption(result: TaskQueueResult, t: Translate, now: number
   const out: NonNullable<RowView['caption']> = []
   if (patrol.phase === 'waiting' && patrol.untilMs !== null) {
     out.push({ text: t('queue.patrolState.waitingUntil', { time: resetStampOf(t, { resetAt: '', resetAtMs: patrol.untilMs }, now) }) })
+    out.push({ text: t(patrol.untilMs > now ? 'queue.patrol.remaining' : 'queue.patrol.due', {
+      time: durationOf(t, Math.max(0, patrol.untilMs - now)),
+    }) })
   }
   if (patrol.phase === 'yielding' || reason.wrapUp) {
     const why = reason.kind === 'manual' ? t('queue.patrol.giveWay') : reason.kind === 'slot' ? t('queue.patrol.waitSlot')
@@ -880,10 +887,10 @@ export function patrolCaption(result: TaskQueueResult, t: Translate, now: number
     if (reason.task !== '') out.push({ text: reason.task, title: t('queue.patrol.forTask', { id: reason.task }) })
   }
   if (patrol.phase === 'running' || (patrol.phase === 'yielding' && current !== undefined)) {
-    const m = current === undefined ? null : modelLine(current, true)
     if (dispatched || axis) out.push({ text: dispatched ? t('queue.round.name', { round: dispatched[1]!, axis }) : axis, title: patrol.round })
     if (current?.startedAtMs != null) out.push({ text: t('queue.chip.elapsed', { time: durationOf(t, now - current.startedAtMs) }) })
-    if (m !== null && m.model !== '') out.push({ text: _modelView(m.model).label, title: m.model })
+    // The executor's row already shows the model. Use this space for an actual wait.
+    if (current !== undefined && current.waiting !== '') out.push({ text: _taskStatus(current, t, now).text, voice: 'warn' })
   }
   return out
 }
