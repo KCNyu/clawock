@@ -20,8 +20,8 @@ no investment data, provider catalog, cron map or repository investigation is ne
 - Published dashboard data gate: `dashboard-artifact-gate.yml` ([workflow](.github/workflows/dashboard-artifact-gate.yml)); validates the published generation.
 - Research cadence: [research-cadence](docs/operations/research-cadence.md). Cron contract: `config/cron-schedules.json`;
   generated schedule: `docs/operations/cron-schedules.md`.
-- Skill installation follows [skills-store-policy](docs/operations/skills-store-policy.md): `skillhub` first, `clawhub` fallback;
-  show source/version/risk and obtain the required confirmation before installation.
+- Skill discovery/installation follows [skills-store-policy](docs/operations/skills-store-policy.md);
+  obtain the required confirmation before installation.
 
 ## Skill 路由表（什么场景用哪个）
 

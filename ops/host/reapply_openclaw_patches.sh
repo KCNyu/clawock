@@ -24,8 +24,10 @@ case "$RUN_MODE" in
       fi
       "$patch_script"
     done
+    bash "$(dirname "$0")/install_skillhub_plugin.sh"
     ;;
   --check-only)
+    bash "$(dirname "$0")/install_skillhub_plugin.sh" --check
     ;;
   *)
     echo "usage: $0 [--check-only]" >&2
