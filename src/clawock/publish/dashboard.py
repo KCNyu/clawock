@@ -1923,8 +1923,15 @@ def compute_delta(snapshots, legs=None):
             # HKT snapshot files often contain a US intraday quote. Their value
             # is not yesterday's close. The current session P&L is valued by the
             # canonical day_pnl producer, so recover its prior asset base here.
+            asof = today.get(f'{leg_key}_asof')
+            # A holiday snapshot can carry the previous session's nonzero P&L.
+            # Even across HKT midnight, do not label an earlier US session Today.
+            if asof is not None and asof != today['date']:
+                return None
             pnl = today.get(f'{leg_key}_today_change')
             if _has_cash(today, leg_key) and isinstance(pnl, (int, float)) and not isinstance(pnl, bool):
+                if asof != today['date']:
+                    return None
                 assets = today[f'{leg_key}_total_value'] + today[f'{leg_key}_cash']
                 return _pct_change(assets, assets - pnl)
             return window(leg_key, 1)
