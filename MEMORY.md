@@ -124,3 +124,18 @@ _（空）_
 
 runtime 自动晋升片段在审阅前只作候选，score 高不等于已核实的长期规则。审阅时保留可跨日期复用的具体教训，
 拒收 front matter / HTML / 当日价格与仓位动作；相同来源的候选不能替代独立证据。
+
+## Promoted From Short-Term Memory (2026-10-04)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.806 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-29 周二 08:03 HKT: 总基调是减法：美股段 84.86% 押在一只 2 倍杠杆票上、对标普的敏感度 3.41，这个结构在 10 年期美债收益率创 2007 年来新高时是单向赔率，今天把 SPCH 与 RKLX 的 2 倍敞口一次清掉，敞口降到现金；港股段维持现状，MiniMax 单票占 57.5% 且昨天 -9.08% 领跌同业，但规则只给持有。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-09-29 周二 08:03 HKT: **反方**：最强的反方是：星舰 9 月 28 日首次入轨并部署 26 颗星链三号，RKLB 一个月动量 +6.9% 且离 20 日高只剩 4.33%，这是组合里唯一还在上冲的敞口，砍 2 倍等于在最不该砍的位置砍。反驳它的不是情绪，是账户结构：88% 的美股段是每日重置产品，2 倍的横盘衰减每月约 2.3% 是确定支出，而 1 倍现货把这段成本直接归零。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-29 周二 08:03 HKT description: "clawock 盘前深度简报 2026-09-29：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-29 周二 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:9-9]
