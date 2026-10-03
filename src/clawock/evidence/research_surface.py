@@ -17,6 +17,8 @@ brief context and as a warning, and never block a publish.
 """
 from __future__ import annotations
 
+from clawock.portfolio.math import ledger_rows
+
 import argparse
 import json
 import sys
@@ -164,7 +166,7 @@ def active_positions(portfolio: dict) -> list[dict]:
     out = []
     for region in ("us_stocks", "hk_stocks"):
         leg = (portfolio.get("portfolios") or {}).get(region) or {}
-        for holding in leg.get("holdings") or []:
+        for holding in ledger_rows(leg.get("holdings")):
             if (holding.get("shares") or 0) <= 0:
                 continue
             buys = [

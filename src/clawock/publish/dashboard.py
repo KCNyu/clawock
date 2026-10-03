@@ -855,7 +855,8 @@ def trim_holding(h, currency):
 
     return {
         'ticker': h.get('ticker') or h.get('code'),
-        'name': h.get('name') or h.get('stock_name', ''),
+        'name': (instrument_registry.get(h.get('ticker') or h.get('code')) or {}).get('name')
+                or h.get('name') or h.get('stock_name', ''),
         'currency': currency,
         'shares': h.get('shares', 0),
         'cost_basis': round(h.get('cost_basis') or 0, 4),
@@ -874,7 +875,7 @@ def trim_holding(h, currency):
 
 def compute_hhi(holdings):
     """HHI = Σ weight²; return (hhi, top2, weights[], total_value)."""
-    active = [h for h in holdings if h['is_active'] and h['current_value'] > 0]
+    active = [h for h in ledger_rows(holdings) if h['is_active'] and h['current_value'] > 0]
     total = sum(h['current_value'] for h in active)
     if total <= 0:
         return {'hhi': 0, 'top2': 0, 'positions': [], 'total': 0}
@@ -895,12 +896,12 @@ def compute_hhi(holdings):
 
 def hhi_verdict(hhi, top2):
     if hhi < 0.15 and top2 < 0.40:
-        return {'level': 'healthy', 'label': '健康', 'color': '#4ade80'}
+        return {'level': 'healthy', 'label': '健康'}
     if hhi < 0.25 and top2 < 0.60:
-        return {'level': 'moderate', 'label': '偏集中', 'color': '#facc15'}
+        return {'level': 'moderate', 'label': '偏集中'}
     if hhi < 0.40 and top2 < 0.75:
-        return {'level': 'concentrated', 'label': '集中风险', 'color': '#fb923c'}
-    return {'level': 'danger', 'label': '危险集中', 'color': '#ef4444'}
+        return {'level': 'concentrated', 'label': '集中风险'}
+    return {'level': 'danger', 'label': '危险集中'}
 
 
 def build_holdings_history(snapshot_paths, days=8):
@@ -3075,7 +3076,7 @@ def compute_sector_exposure(portfolio):
         for leg in legs:
             r_key = leg.key
             holdings = portfolio['portfolios'][leg.bucket].get('holdings', [])
-            active = [h for h in holdings if h.get('shares', 0) > 0]
+            active = [h for h in ledger_rows(holdings) if h.get('shares', 0) > 0]
             total_value = sum(h.get('current_value', 0) or 0 for h in active)
             if total_value <= 0:
                 continue
@@ -3356,11 +3357,9 @@ def compute_net_principal_return(portfolio, fx_rate):
             tp_base = round(
                 out[base.key]['total_profit'] + out[quote.key]['total_profit'] / fx_rate, 2)
             # combined 分母是混合的：一条腿可能用 true_principal、另一条用 net_principal。
-            # 暴露 basis 让前端标签诚实（任一腿用真实本金即标「真实本金」）。
-            mixed_basis = ('true_principal'
-                           if 'true_principal' in (out[base.key].get('return_basis'),
-                                                   out[quote.key].get('return_basis'))
-                           else 'net_principal')
+            # 暴露 basis 让前端标签诚实（不同分母标为 mixed）。
+            bases = {out[base.key].get('return_basis'), out[quote.key].get('return_basis')}
+            mixed_basis = next(iter(bases)) if len(bases) == 1 else 'mixed'
             out[combined_key] = {
                 'net_principal': np_base,
                 'total_profit': tp_base,
@@ -3419,6 +3418,8 @@ _BRIEF_FRESHNESS_ARTIFACTS = frozenset({
     'lev_regime.json',
     'catalysts.json',
     'em_news.json',
+    't0_setups.json',
+    't0_setup_review.json',
 })
 
 # The local brief normally commits in minutes but has a remote fallback and a
@@ -4188,8 +4189,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     us_pf = portfolio['portfolios'][base_leg.bucket]
     hk_pf = portfolio['portfolios'][quote_leg.bucket]
 
-    us_h = [trim_holding(h, base_leg.currency) for h in us_pf.get('holdings', [])]
-    hk_h = [trim_holding(h, quote_leg.currency) for h in hk_pf.get('holdings', [])]
+    us_h = [trim_holding(h, base_leg.currency) for h in ledger_rows(us_pf.get('holdings'))]
+    hk_h = [trim_holding(h, quote_leg.currency) for h in ledger_rows(hk_pf.get('holdings'))]
 
     us_conc = compute_hhi(us_h)
     hk_conc = compute_hhi(hk_h)
@@ -4356,7 +4357,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['status_banner'] = _intra_v['status_banner']
     out['status_banner_meta'] = {
         'source': _intra.get('_source'),
-        'generated_at': _intra.get('generated_at'),
+        'generated_at': _intra.get('generated_at') or _intra.get('_written_at'),
         'stale': _intra.get('_stale', True if not _intra else False),
     }
     _presence['status_banner'] = intra_present

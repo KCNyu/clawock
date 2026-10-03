@@ -80,4 +80,5 @@ def test_check_names_a_limits_key_the_host_lacks(tmp_path):
     assert run(dest).returncode == 0
     (dest / "limits.env").write_text(LIMITS.replace("QUEUE_FAIR_WAIT_SEC=14400\n", ""))
     r = run(dest, "--check")
-    assert r.returncode == 1 and "QUEUE_FAIR_WAIT_SEC" in r.stderr
+    assert r.returncode == 3 and "QUEUE_FAIR_WAIT_SEC" in r.stderr
+    assert run(dest, "--check-files").returncode == 0

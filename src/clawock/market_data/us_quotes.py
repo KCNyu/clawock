@@ -33,7 +33,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import day_pnl
+from clawock.portfolio.math import day_pnl, ledger_rows
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -946,13 +946,13 @@ def update_us_portfolio(
     keys = load_api_keys()
     us_key, us = region_book(data, 'US')
 
-    active_holdings = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active_holdings = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     all_active      = [h['ticker'] for h in active_holdings]
     tickers         = tickers_override if tickers_override else all_active
 
     # Zero out snapshot fields on closed positions — refresh skips shares==0
     # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in us['holdings']:
+    for h in ledger_rows(us['holdings']):
         if h.get('shares', 0) == 0:
             for k in ('current_value', 'pnl_abs', 'pnl_percent',
                       'today_change', 'today_change_pct'):
@@ -1028,7 +1028,7 @@ def update_us_portfolio(
     missing: List[str] = []
     source_counts: Dict[str, int] = {}
 
-    for holding in us['holdings']:
+    for holding in ledger_rows(us['holdings']):
         t = holding['ticker']
         if t not in tickers:
             continue
@@ -1268,7 +1268,7 @@ def update_us_portfolio(
               f"P&L: {pnl_sign}${holding['pnl_abs']:.2f} ({pnl_sign}{holding['pnl_percent']:.2f}%)")
 
     # Recompute portfolio totals from all active holdings
-    all_active_h = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    all_active_h = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     total_cost  = sum(h['cost_basis'] * h['shares'] for h in all_active_h)
     total_value = sum(h.get('current_value', h['cost_basis'] * h['shares']) for h in all_active_h)
     total_pnl   = total_value - total_cost

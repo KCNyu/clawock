@@ -31,8 +31,8 @@ BRIEF_LLM_TIMEOUT_SECONDS = 900
 
 # Structural anchors every SKILL.md brief carries, matched as substrings so the
 # model's own heading decoration does not fail a good brief.
-BRIEF_REQUIRED_SECTIONS = ('仓位明细', 'Retrospective', 'Tier 1', 'Tier 2',
-                           'Tier 3', 'Next-Session Plan')
+from clawock.brief_contract import REQUIRED_MARKDOWN_SECTIONS
+BRIEF_REQUIRED_SECTIONS = tuple(REQUIRED_MARKDOWN_SECTIONS.values())
 
 
 def split_brief_and_plan(out):

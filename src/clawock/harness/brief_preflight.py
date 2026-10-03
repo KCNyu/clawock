@@ -37,6 +37,8 @@ from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
     compute_concentration,
     compute_risk_guardrail,
 )
+from clawock.portfolio.math import ledger_rows
+
 import argparse
 import concurrent.futures
 import json
@@ -665,7 +667,7 @@ def compute_reflections(portfolio):
     rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
 
     held = {h['ticker'] for leg in ('hk_stocks', 'us_stocks')
-            for h in portfolio['portfolios'][leg]['holdings'] if h.get('shares', 0) > 0}
+            for h in ledger_rows(portfolio['portfolios'][leg]['holdings']) if h.get('shares', 0) > 0}
     out = {}
     for tk in sorted(held):
         settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss')]

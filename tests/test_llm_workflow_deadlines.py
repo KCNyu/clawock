@@ -17,6 +17,7 @@ import pytest
 import yaml
 
 from clawock.automation import llm
+from clawock.run_budgets import PUSH_TIMEOUT_SECONDS, POST_DELIVERY_BUDGET_SECONDS
 
 ROOT = Path(__file__).resolve().parents[1]
 DEADLINE_KEY = "CLAWOCK_LLM_DEADLINE_SECONDS"
@@ -126,7 +127,16 @@ def test_the_provider_chain_fits_inside_the_job(workflow_name, job_id, chains):
         f"job, or the second provider is unreachable code rather than a "
         f"fallback"
     )
-    assert job_seconds - budget >= 60, (
+    if workflow_name == 'brief-fallback.yml':
+        reserve = POST_DELIVERY_BUDGET_SECONDS
+    else:
+        steps = '\n'.join(step.get('run', '') for step in job.get('steps', []))
+        pushes = steps.count('safe_push.sh')
+        if 'gha_commit_push.sh' in steps:
+            helper = (ROOT / 'ops/publish/gha_commit_push.sh').read_text()
+            pushes += sum('bash \"$SAFE_PUSH\"' in line for line in helper.splitlines() if not line.lstrip().startswith('#'))
+        reserve = PUSH_TIMEOUT_SECONDS * pushes + 60
+    assert job_seconds - budget >= reserve, (
         f"{workflow_name}: setup, validation and commit still have to fit in "
         f"what is left of the job"
     )

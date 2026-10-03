@@ -5,6 +5,7 @@
 # A removed edge must be deleted here too, so the list never claims coupling that is gone.
 (root) -> workspace
 __main__ -> cli
+automation -> brief_contract
 automation -> decision
 automation -> instruments
 automation -> market_data
@@ -50,12 +51,14 @@ evidence -> decision
 evidence -> history_store
 evidence -> instruments
 evidence -> market_data
+evidence -> portfolio
 evidence -> safe_io
 evidence -> scorecard_provenance
 evidence -> seeds
 evidence -> sessions
 evidence -> workspace
 harness -> automation
+harness -> brief_contract
 harness -> config
 harness -> context
 harness -> decision

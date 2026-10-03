@@ -1076,7 +1076,8 @@
     }
 
     const palette = [
-      "#36A3FF", "#7C8CF2", "#3FB7A9", "#C9974A", "#A96FA8", "#71869D",
+      getCSS("--accent"), getCSS("--positive"), getCSS("--warning"),
+      getCSS("--negative"), getCSS("--text-secondary"), getCSS("--neutral"),
     ];
 
     const opt = {

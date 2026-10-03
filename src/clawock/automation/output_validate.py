@@ -115,7 +115,11 @@ def validate_sections(text, *, label, required, min_chars, trading_prose=False):
             f'{label}: model returned {len(body)} chars, below the '
             f'{min_chars}-char floor for a usable output')
     lowered = body.lower()
-    missing = [anchor for anchor in required if anchor.lower() not in lowered]
+    missing = []
+    for anchor in required:
+        aliases = (anchor,) if isinstance(anchor, str) else tuple(anchor)
+        if not any(alias.lower() in lowered for alias in aliases):
+            missing.append('/'.join(aliases))
     if missing:
         raise LLMOutputError(
             f'{label}: missing required section(s): ' + ', '.join(missing))

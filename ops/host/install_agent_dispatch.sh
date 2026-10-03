@@ -52,7 +52,7 @@ limits_missing() {  # prints the LIMIT_KEYS the host's limits.env does not set
 }
 
 case "${1:-}" in
-  --check)
+  --check|--check-files)
     bad=0
     for f in "${FILES[@]}"; do
       if ! cmp -s "$SRC_DIR/$f" "$DEST_DIR/$f"; then
@@ -60,8 +60,9 @@ case "${1:-}" in
       fi
     done
     [ "$bad" = 0 ] && echo "all ${#FILES[@]} installed files match this checkout"
+    [ "${1:-}" = "--check-files" ] && exit "$bad"
     missing="$(limits_missing)"
-    if [ -n "$missing" ]; then echo "host limits.env lacks: $(echo $missing)" >&2; bad=1; fi
+    if [ -n "$missing" ]; then echo "host limits.env lacks: $(echo $missing)" >&2; [ "$bad" != 0 ] || bad=3; fi
     [ -f "$DEST_DIR/notify.env" ] || echo "note: no $DEST_DIR/notify.env — tasks that ask for a notification will log 'missing'"
     exit "$bad" ;;
   --rollback)
