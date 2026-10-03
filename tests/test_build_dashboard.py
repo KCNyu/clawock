@@ -1760,3 +1760,16 @@ def test_delta_calendar_windows_with_weekend_gaps():
     result = dashboard.compute_delta(rows)["hk"]
     assert result["7d_pct"] == 8.33
     assert result["30d_pct"] == 30.0
+
+
+def test_snapshot_cash_flows_use_ledger_numeric_coercion(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    snapshots = tmp_path / 'memory' / 'snapshots'
+    snapshots.mkdir(parents=True)
+    book = {'total_current_value': 100, 'cash_hkd': 30000,
+            'cash_adjustments': [{'amount': '30000'}, {'amount': 'unreadable'}, None]}
+    (snapshots / '2026-07-07.json').write_text(json.dumps({'portfolios': {'hk_stocks': book}}))
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard, '_canonical_ledger', lambda: {})
+    monkeypatch.setattr(dashboard, '_ledger_legs', lambda: [SimpleNamespace(key='hk', bucket='hk_stocks', currency='HKD')])
+    assert dashboard.load_snapshots()[0]['hk_flows'] == 30000
