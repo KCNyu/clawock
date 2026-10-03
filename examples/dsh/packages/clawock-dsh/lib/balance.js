@@ -233,12 +233,11 @@ const spanMins = (start, end) => {
 */
 function parseMinimaxRemains(body, asOf, now = Date.now()) {
 	const raw = typeof body === "object" && body !== null ? body : {};
-	const buckets = Array.isArray(raw.model_remains) ? raw.model_remains : [];
-	const entry = buckets.find((b) => (b.model_name ?? b.model) === "general") ?? buckets[0];
-	if (entry === void 0) throw new Error("MiniMax 响应里没有 model_remains 数据");
+	const entry = (Array.isArray(raw.model_remains) ? raw.model_remains : []).find((b) => (b.model_name ?? b.model) === "general");
+	if (entry === void 0) throw new Error("MiniMax 响应里没有 general model_remains 数据");
 	return quotaSnapshot([quotaWindow({
 		usedPercent: windowUsedPercent(entry),
-		durationMins: spanMins(entry.start_time, entry.end_time),
+		durationMins: 300,
 		resetsAt: entry.end_time,
 		fallbackLabel: "5h"
 	}, now), quotaWindow({

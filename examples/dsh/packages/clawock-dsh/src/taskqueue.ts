@@ -291,9 +291,9 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     session: result.SESSION ?? '',
     // Runner api 3: what the runner uses now (task_queue_ops.py deadline/attempts/resumes), and
     // the usage as of the last finished attempt. Absent from an older runner's result.env.
-    deadlineAtMs: epochMs(result.DEADLINE_EPOCH) ?? epochMs(meta.DEADLINE_EPOCH),
-    maxAttempts: countOf(result.MAX_ATTEMPTS),
-    quotaResumes: countOf(result.QUOTA_RESUMES),
+    deadlineAtMs: epochMs(override.DEADLINE_EPOCH) ?? epochMs(result.DEADLINE_EPOCH) ?? epochMs(meta.DEADLINE_EPOCH),
+    maxAttempts: countOf(override.MAX_ATTEMPTS) ?? countOf(result.MAX_ATTEMPTS) ?? countOf(meta.MAX_ATTEMPTS),
+    quotaResumes: countOf(override.QUOTA_RESUMES) ?? countOf(result.QUOTA_RESUMES) ?? countOf(meta.QUOTA_RESUMES),
     quotaResumesUsed: countOf(result.QUOTA_RESUMES_USED),
     tokensIn: countOf(result.TOKENS_IN),
     tokensCacheW: countOf(result.TOKENS_CACHE_W),

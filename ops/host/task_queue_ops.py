@@ -1033,6 +1033,8 @@ def budget_task(d: Path, task_id: str, action: str) -> tuple[dict, dict, dict]:
 
 
 def applies(result: dict) -> tuple[str, str]:
+    if result.get("WAITING") in ("quota", "retry"):
+        return "on_wake", "the saved change is visible now; the runner applies it when it wakes for the next attempt"
     running = bool(result.get("SLOT")) or (to_int(result.get("ATTEMPTS")) > 0 and result.get("WAITING") in ("", "slot"))
     if running:
         return "next_attempt", "the attempt running now keeps its time cap; the change applies to the next attempt and every wait"

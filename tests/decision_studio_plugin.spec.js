@@ -1792,8 +1792,8 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
 
   // The live payload (2026-09-13) names the bucket `model_name`, not `model`,
   // and puts the video bucket first: matching on `model` alone silently read
-  // the video plan. The interval window's length comes from start/end (4h
-  // here), and the weekly window carries its own reset.
+  // the video plan. Interval bounds carry resets; the plan's five-hour
+  // window is independent of a shortened/extended interval.
   const now = new Date(2026, 8, 13, 20, 0).getTime();
   const live = parseMinimaxRemains({
     base_resp: { status_code: 0, status_msg: "success" },
@@ -1809,8 +1809,14 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     ],
   }, AS_OF, now);
   assert.deepEqual(live.windows.map((w) => [w.label, w.percent, w.resetAt]),
-    [["8h", 0, "明天 00:00"], ["周", 83, "明天 00:00"]]);
-  assert.equal(live.note, "8h 已用 0%,明天 00:00 重置 · 周 已用 83%,明天 00:00 重置");
+    [["5h", 0, "明天 00:00"], ["周", 83, "明天 00:00"]]);
+  assert.equal(live.note, "5h 已用 0%,明天 00:00 重置 · 周 已用 83%,明天 00:00 重置");
+
+  const shortInterval = parseMinimaxRemains({model_remains: [{model_name: "general",
+    start_time: now, end_time: now + 4 * 3600_000, current_interval_remaining_percent: 81}]}, AS_OF, now);
+  assert.equal(shortInterval.windows[0].label, "5h");
+  assert.equal(shortInterval.windows[0].resetAtMs, now + 4 * 3600_000);
+  assert.throws(() => parseMinimaxRemains({model_remains: [{model_name: "video", current_interval_remaining_percent: 99}]}, AS_OF), /general/);
 
   let minimaxCalls = 0;
   globalThis.fetch = async (url, init) => {
@@ -3366,6 +3372,9 @@ test("task queue host: the ops entry orders each agent's queue and is the only w
   task("new-wait", "AGENT=claude\nNAME=new-wait\nMODEL=claude-opus-5-5\nEFFORT=high\nNOTIFY=weixin,telegram\n",
     "STATE=running\nWAITING=lock\nATTEMPTS=0\nRUNNER_API=2\nQUEUED_AT=1790422408\nSTARTED=2026-09-26\\ 19:33:28\n",
     "MODEL=claude-haiku-4-5-20251001\nPRIORITY=2\n");
+  task("budget-wait", "AGENT=claude\nNAME=budget-wait\nMAX_ATTEMPTS=3\nQUOTA_RESUMES=3\nDEADLINE_EPOCH=1791000000\n",
+    "STATE=running\nWAITING=quota\nRUNNER_API=3\nMAX_ATTEMPTS=3\nQUOTA_RESUMES=3\nDEADLINE_EPOCH=1791000000\n",
+    "MAX_ATTEMPTS=4\nQUOTA_RESUMES=5\nDEADLINE_EPOCH=1791007200\n");
   task("done", "AGENT=codex\nNAME=done\nNOTIFY=weixin,telegram\n",
     "STATE=ok\nOUTCOME=DONE\nNOTIFIED=telegram\nNOTIFY_FAILED=weixin\nNOTIFY_AT=2026-09-26\\ 20:00:00\nRUNNER_API=2\nUPDATED=2026-09-26\\ 20:00:00\n");
   const opsPath = path.join(root, "task_queue_ops.py");
@@ -3388,9 +3397,14 @@ test("task queue host: the ops entry orders each agent's queue and is the only w
     if (args.includes("cancel")) return { code: 0, stdout: JSON.stringify({ ok: true, was: "queued", state: "cancelled", message: "cancelled before it started" }), stderr: "" };
     return { code: 3, stdout: JSON.stringify({ ok: false, code: 3, error: "refused: no RUNNER_API 2" }), stderr: "" };
   };
-  const deps = { activeTaskIds: async () => ["old-run", "new-wait"], patrolService: async () => "active", patrolLog: async () => [], runOps };
+  const deps = { activeTaskIds: async () => ["old-run", "new-wait", "budget-wait"], patrolService: async () => "active", patrolLog: async () => [], runOps };
   const config = { logDir, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath, repoOpsPath: repoOps };
   const r = await tq.createTaskQueueService(config, deps).get(true);
+  const budget = r.active.find((t) => t.id === "budget-wait");
+  assert.deepEqual([budget.maxAttempts, budget.quotaResumes, budget.deadlineAtMs], [4, 5, 1791007200000]);
+  fs.writeFileSync(path.join(logDir, "budget-wait", "override.env"), "MAX_ATTEMPTS=\nQUOTA_RESUMES=\nDEADLINE_EPOCH=\n");
+  const resetBudget = (await tq.createTaskQueueService(config, deps).get(true)).active.find((t) => t.id === "budget-wait");
+  assert.deepEqual([resetBudget.maxAttempts, resetBudget.quotaResumes, resetBudget.deadlineAtMs], [3, 3, 1791000000000]);
   const wait = r.active.find((t) => t.id === "new-wait");
   assert.equal(wait.position, 2, "the queue place comes from the ops entry");
   assert.equal(wait.priority, 2);

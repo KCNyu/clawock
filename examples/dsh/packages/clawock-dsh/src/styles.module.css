@@ -2592,8 +2592,8 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 /* The rail: one 36px glyph; all rail states live here (the header badge keeps its own rule). */
 .pbc.ppf .bal-badge[data-balance-state="ok"] { fill:var(--tq-run) }
-.pbc.ppf .bal-badge[data-balance-state="low"] { fill:var(--tq-wait) }
-.pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-bad) }
+.pbc.ppf .bal-badge[data-balance-state="low"] { fill:var(--tq-bad) }
+.pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-wait); stroke-width:1.3 }
 /* The open panel: a group per source — its source row, then the allowance and any note on the
    name's edge, then the queue's task rows. */
 .pbc .tq-inset { margin-left:var(--tq-main-inset) }
