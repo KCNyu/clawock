@@ -110,3 +110,17 @@ def test_a_trigger_that_stays_met_is_one_delta_not_one_per_slot():
                                    'through_pct': 7.18}])
 
     assert not intraday_delta.compare_semantic_states(later, first)['changed']
+
+
+def test_next_trigger_uses_its_own_price_and_accepts_near_future_levels():
+    from clawock.harness.intraday_postflight import check_next_trigger
+    ctx = {'full_holdings': [
+        {'ticker': 'SPCH', 'current_price': 9.67, 'shares': 300},
+        {'ticker': 'SPCX', 'current_price': 148.07, 'shares': 8},
+    ]}
+    assert check_next_trigger('下一触发：SPCH 站上 9.80', ctx) == []
+    assert check_next_trigger('下一触发：SPCH 站上 10.0', ctx) == []
+    assert check_next_trigger('下一触发：SPCH 站上 148.07', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 300', ctx)
+    ctx['watch_levels'] = {'SPCH_trim_trigger': 12.0}
+    assert check_next_trigger('下一触发：SPCH 站上 12.0', ctx) == []

@@ -247,6 +247,22 @@ def build(decisions, *, window_days: int, cutoff: str, counts: dict,
     }
 
 
+def record_settlement_view(provenance, source_rows):
+    """Bind the effective in-memory scorecard to its unmodified public source."""
+    ledger = provenance['ledger']
+    window = provenance['window']
+    ledger['view'] = 'in_memory_settled'
+    ledger['source_digest'] = rows_digest(source_rows)
+    ledger['source_slice_digest'] = rows_digest(slice_rows(
+        source_rows, window['cutoff'], window.get('last_plan_date')))
+    provenance['note'] = (
+        'The source is the public decision ledger. Metrics use an in-memory '
+        'settled view, not a committed re-grade. Verification checks the source '
+        'identity, replays settlement from canonical bars, then checks the '
+        'effective digests and counts; changed bars can change that view.')
+    return provenance
+
+
 def verify(provenance: dict, decisions) -> dict:
     """Recompute the digests from `decisions` and compare with a published block.
 

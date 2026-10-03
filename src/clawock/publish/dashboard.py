@@ -9,6 +9,7 @@ Outputs: assets/data/overview.json, assets/data/dashboard.json,
 Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 import argparse
+import copy
 import glob
 import hashlib
 import json
@@ -24,7 +25,7 @@ from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import without_host_paths, workspace_root
-from clawock import history_store
+from clawock import history_store, scorecard_provenance
 from clawock.sessions import hkt_today
 from clawock import instruments as instrument_registry
 from clawock import json_repair
@@ -2395,7 +2396,24 @@ def _resolve_insight_ticker(raw, known_tickers):
     return '+'.join(parts)
 
 
-def validate_insights(data, known_tickers):
+def insight_weight_values(payload):
+    """Percentage values from the deterministic portfolio exposure projections."""
+    values = []
+    for leg in (payload.get('concentration') or {}).values():
+        if not isinstance(leg, dict):
+            continue
+        for row in leg.get('positions') or []:
+            if isinstance(row, dict) and isinstance(row.get('weight'), (int, float)):
+                values.append(row['weight'] * 100)
+    for rows in (payload.get('sector_exposure') or {}).values():
+        if isinstance(rows, list):
+            values.extend(r['pct'] for r in rows if isinstance(r, dict) and isinstance(r.get('pct'), (int, float)))
+    values.extend(v for k, v in (payload.get('leveraged_etf') or {}).items()
+                  if k.endswith('_pct') and isinstance(v, (int, float)))
+    return values
+
+
+def validate_insights(data, known_tickers, *, weights=None):
     """Schema + sanity gate for the agent-written daily insights sidecar.
 
     The sidecar is LLM-authored, so anything malformed or hallucinated must be
@@ -2407,6 +2425,18 @@ def validate_insights(data, known_tickers):
     out = {'behavioral_review': None, 'bear_cases': [], 'hidden_concentration': None}
     if not isinstance(data, dict):
         return out
+    def grounded(text, *, exposure=False):
+        if weights is None:
+            return True  # Schema-only callers; the publisher supplies the book.
+        sentences = re.split(r'[。；;]', text or '')
+        for sentence in sentences:
+            if not exposure and not re.search(r'权重|占比|仓位|集中|暴露|weight|exposure', sentence, re.I):
+                continue
+            for raw in re.findall(r'(\d+(?:\.\d+)?)\s*[%％]', sentence):
+                if not any(abs(float(raw) - value) <= 0.15 for value in weights):
+                    return False
+        return True
+
     # behavioral_review — verdict + tagged points; calibration is %-based, so a raw
     # $amount in a review point is a hallucination → drop that point.
     br = data.get('behavioral_review')
@@ -2434,7 +2464,7 @@ def validate_insights(data, known_tickers):
         # per-component holdings check in _resolve_insight_ticker.
         tk = _clean_str(c.get('ticker'), 40)
         thesis = _clean_str(c.get('thesis'), 220)
-        if not tk or not thesis:
+        if not tk or not thesis or not grounded(thesis):
             continue
         resolved = _resolve_insight_ticker(tk, known_tickers)
         if not resolved:
@@ -2454,12 +2484,15 @@ def validate_insights(data, known_tickers):
             pct = float(hc.get('exposure_pct'))
         except (TypeError, ValueError):
             pct = None
-        if headline and pct is not None and 0 <= pct <= 100:
+        detail = _clean_str(hc.get('detail'), 220) or ''
+        pct_ok = weights is None or (pct is not None and any(abs(pct - value) <= 0.15 for value in weights))
+        if (headline and pct is not None and 0 <= pct <= 100 and pct_ok
+                and grounded(headline + '；' + detail, exposure=True)):
             out['hidden_concentration'] = {
                 'headline': headline,
                 'factor': _clean_str(hc.get('factor'), 40) or '',
-                'exposure_pct': round(pct),
-                'detail': _clean_str(hc.get('detail'), 220) or '',
+                'exposure_pct': round(pct, 2),
+                'detail': detail,
             }
     return out
 
@@ -4331,6 +4364,10 @@ def build_projection(previous_source=None, shadow_previous=None):
     # so the card hides instead of publishing bad data. Anti-hallucination cross-check
     # is against the live book's tickers.
     known_tickers = {h.get('ticker') for h in (us_h + hk_h) if h.get('ticker')}
+    fx_rate = (out.get('fx') or {}).get('usdhkd')
+    out['sector_exposure'] = compute_sector_exposure(portfolio)
+    out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
+    _insight_weights = insight_weight_values(out)
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
@@ -4339,7 +4376,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     # gitignored) may republish the previous card; an unreadable file must let
     # the card hide rather than show yesterday's critique as today's.
     insights_present = bool(_insights)
-    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers)
+    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers,
+                             weights=_insight_weights)
     out['behavioral_review'] = _ins['behavioral_review']
     out['bear_cases'] = _ins['bear_cases']
     out['hidden_concentration'] = _ins['hidden_concentration']
@@ -4395,9 +4433,13 @@ def build_projection(previous_source=None, shadow_previous=None):
             _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
             a for a in out['anomalies']
             if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
+    _checked_insights = validate_insights(out, known_tickers, weights=_insight_weights)
+    out['bear_cases'] = _checked_insights['bear_cases']
+    out['hidden_concentration'] = _checked_insights['hidden_concentration']
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
+    _source_decisions = copy.deepcopy(_decisions)
     decision_v2.settle_decisions(_decisions)
     # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
     # The full per-decision `records` trail (~700KB, recomputable from decisions)
@@ -4411,6 +4453,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_schema_version'] = 2
     out['decision_metrics'] = trim_decision_metrics(
         decision_v2.compute_metrics(_decisions))
+    scorecard_provenance.record_settlement_view(
+        out['decision_metrics']['provenance'], _source_decisions)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of
     # this file could make: dashboard.json is public, so the retired figure was still
@@ -4436,8 +4480,6 @@ def build_projection(previous_source=None, shadow_previous=None):
     # v2.1: broker-style analytics
     fx_rate = (out.get('fx') or {}).get('usdhkd')
     out['drawdown'] = compute_drawdown(snapshots, fx_rate)
-    out['sector_exposure'] = compute_sector_exposure(portfolio)
-    out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
     # Tier 2: pull pre-computed risk metrics (from `clawock portfolio-risk`)
     risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
     if risk_path.exists():

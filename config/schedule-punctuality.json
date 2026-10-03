@@ -38,7 +38,7 @@
     },
     "cron-health.yml": {
       "deadline_hkt": null,
-      "why": "Explicitly drift-insensitive by its own design note: it reads the day's already-landed git products and heartbeats, so an hour later reads the same facts."
+      "why": "Scheduled runs anchor to the latest Mon-Sat 17:17 HKT occurrence, retaining that day's evidence even after midnight. Manual runs inspect today."
     },
     "eod-archive.yml": {
       "deadline_hkt": null,

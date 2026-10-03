@@ -1773,3 +1773,23 @@ def test_snapshot_cash_flows_use_ledger_numeric_coercion(tmp_path, monkeypatch):
     monkeypatch.setattr(dashboard, '_canonical_ledger', lambda: {})
     monkeypatch.setattr(dashboard, '_ledger_legs', lambda: [SimpleNamespace(key='hk', bucket='hk_stocks', currency='HKD')])
     assert dashboard.load_snapshots()[0]['hk_flows'] == 30000
+
+
+def test_narrative_exposure_numbers_must_match_the_same_book():
+    data = {
+        'hidden_concentration': {'headline': '中国 AI 集中', 'factor': 'AI',
+            'exposure_pct': 57.79, 'detail': '中国 AI 45.13% / 恒生科技 50.27%'},
+        'bear_cases': [{'ticker': 'MINIMAX', 'thesis': '仓位占比 45.13% 偏高'}],
+    }
+    weights = [57.79, 36.33, 8.28]
+    bad = dashboard.validate_insights(data, {'MINIMAX'}, weights=weights)
+    assert bad['hidden_concentration'] is None
+    assert bad['bear_cases'] == []
+    data['hidden_concentration']['detail'] = '中国 AI 57.79% / 恒生科技 36.33%'
+    data['bear_cases'][0]['thesis'] = '仓位占比 57.79% 偏高'
+    good = dashboard.validate_insights(data, {'MINIMAX'}, weights=weights)
+    assert good['hidden_concentration']['exposure_pct'] == 57.79
+    assert len(good['bear_cases']) == 1
+    # Business-growth hypotheses are not portfolio exposure claims.
+    data['bear_cases'][0]['thesis'] = '若营收增长低于 20%，则需重审估值'
+    assert dashboard.validate_insights(data, {'MINIMAX'}, weights=weights)['bear_cases']

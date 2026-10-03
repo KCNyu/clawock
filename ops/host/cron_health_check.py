@@ -22,6 +22,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -94,7 +95,20 @@ COMMIT_PATTERNS = {
 }
 
 
-def runs_finished_today(job_id, provider=None):
+def health_schedule_day(now, *, scheduled=False):
+    """Latest Mon-Sat 17:17 HKT schedule occurrence; manual runs inspect today."""
+    local = now.astimezone(HKT)
+    if not scheduled:
+        return local
+    anchor = local.replace(hour=17, minute=17, second=0, microsecond=0)
+    if anchor > local:
+        anchor -= timedelta(days=1)
+    while anchor.weekday() == 6:
+        anchor -= timedelta(days=1)
+    return anchor
+
+
+def runs_finished_today(job_id, provider=None, *, day=None):
     """How many times the job finished OK today, per the run-history provider.
 
     ADVISORY ONLY. It answers a different question from counting commits — "did
@@ -108,8 +122,8 @@ def runs_finished_today(job_id, provider=None):
     straight swap would silently change what a live alerting path means, so this
     is reported beside the commit count and measured for agreement first.
 
-    Never raises and never influences status: an advisory signal that can fail
-    the health check is worse than no advisory signal.
+    Never raises. Advisory for output-producing jobs; Dreaming uses successful
+    execution as its contract because a no-change run legitimately has no commit.
     """
     if not job_id:
         return None
@@ -117,7 +131,7 @@ def runs_finished_today(job_id, provider=None):
         if provider is None:
             from clawock.providers.runs import OpenClawRuns
             provider = OpenClawRuns()
-        today = datetime.now(HKT).date()
+        today = day or datetime.now(HKT).date()
         count = 0
         for run in provider.history(job_id, limit=200):
             if run.status != 'ok' or not run.started_at:
@@ -728,6 +742,7 @@ def main():
         sys.exit(1)
 
     now = datetime.now(timezone.utc)
+    scheduled_day = health_schedule_day(now, scheduled=os.environ.get('GITHUB_EVENT_NAME') == 'schedule')
     heartbeat_ledger = load_heartbeats(args.heartbeats_file)
     outcomes_ledger = load_workflow_outcomes(args.outcomes_file)
 
@@ -745,7 +760,7 @@ def main():
         # Post-window jobs (#996) are judged on YESTERDAY's schedule and
         # yesterday's evidence; every other job keeps today.
         post_window = name in POST_WINDOW_JOBS
-        expected_day = now - timedelta(days=1) if post_window else now
+        expected_day = scheduled_day - timedelta(days=1) if post_window else scheduled_day
         expected = parse_cron_slots(expr, tz, expected_day)
         # Only check slots already past
         try:
@@ -753,7 +768,7 @@ def main():
             now_local = now.astimezone(ZoneInfo(tz)).strftime('%H:%M')
         except Exception:
             now_local = now.strftime('%H:%M')
-        if post_window:
+        if post_window or expected_day.astimezone(HKT).date() < now.astimezone(HKT).date():
             # Yesterday's slots are past by construction; the HH:MM filter
             # would wrongly drop the ones firing after 17:17.
             expected_past = list(expected)
@@ -763,7 +778,7 @@ def main():
         verify_date = expected_day.astimezone(HKT).date()
         commit_n = commit_count_on(commit_pat, verify_date)
         # Advisory second evidence source (#262). Reported, never acted on.
-        runs_n = runs_finished_today(job.get('id'))
+        runs_n = runs_finished_today(job.get('id'), day=verify_date)
 
         # Holiday gate: don't expect a commit from a 港股*/美股* report on that market's
         # holiday — preflight skips the run by design (the 6-19 端午+Juneteenth double
@@ -781,10 +796,10 @@ def main():
             if name in SESSION_DAY_OFFSET_JOBS:
                 try:
                     session_day = (
-                        now.astimezone(ZoneInfo(tz)).date() - timedelta(days=1))
+                        expected_day.astimezone(ZoneInfo(tz)).date() - timedelta(days=1))
                 except Exception:
                     session_day = None  # fail open into the same-day gate below
-            elif post_window:
+            else:
                 # No midnight crossing here: the slots' own date IS the session
                 # day being verified (#996).
                 session_day = verify_date
@@ -851,6 +866,15 @@ def main():
             else:
                 status = 'ok-heartbeat'
                 detail = f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])} slots OK"
+        elif name == 'Memory Dreaming Promotion':
+            if runs_n is None:
+                status, detail = 'execution-unknown', 'Dreaming run history unavailable; no-change is allowed'
+                has_warn = True
+            elif runs_n < len(expected_past):
+                status, detail = 'missing', f'Dreaming successful runs {runs_n}/{len(expected_past)}'
+                has_missing = True
+            else:
+                status, detail = 'ok-run', f'Dreaming successful runs {runs_n}; no-change is allowed'
         else:
             detail = f'{len(expected_past)} slots expected (no output contract)'
             status = 'ok-no-track'

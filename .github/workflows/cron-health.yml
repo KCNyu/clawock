@@ -20,8 +20,8 @@ name: Cron Health Check
 # 这么失效的，见 #780）。当前漂移表由 `ops/ci/schedule_drift.py` 每周采两次写进
 # `assets/data/schedule-drift.json`，别再凭印象猜。
 #
-# 本档自身对漂移不敏感：它读的是当天已落地的 git 产物与 heartbeat，晚一小时读到
-# 的是同一批事实。
+# 排程事件按最近一个周一至周六 17:17 HKT 调度日核验；跨午夜延迟仍读原日证据。
+# 手动运行核验当天；不把运行时钟的日期误当调度日。
 # 报告任务对 git 产物（缺 commit 时再查 workflow-outcomes 是否是 Telegram backstop
 # 接管——那条路径设计上不产 commit，见 #696）；盘中任务对逐 slot heartbeat
 # 缺漏 → workflow fail（Actions 可见；不做 README 首屏 badge）

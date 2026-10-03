@@ -625,3 +625,14 @@ def test_an_old_ledger_degradation_is_history_with_an_age_not_a_current_warning(
     assert cron_health_check.degradation_age(old, now) == (False, " · 最后 5 天前")
     assert cron_health_check.degradation_age(fresh, now) == (True, " · 最后 2 小时前")
     assert cron_health_check.degradation_age(undated, now) == (True, "")
+
+
+def test_schedule_day_survives_midnight_and_skips_unscheduled_sunday():
+    from datetime import date
+    # Tuesday 01:00 HKT still audits Monday's 17:17 run.
+    now = datetime(2026, 9, 28, 17, tzinfo=timezone.utc)
+    assert cron_health_check.health_schedule_day(now, scheduled=True).date() == date(2026, 9, 28)
+    assert cron_health_check.health_schedule_day(now).date() == date(2026, 9, 29)
+    # Monday before its schedule belongs to Saturday, not Sunday.
+    now = datetime(2026, 9, 28, 0, tzinfo=timezone.utc)
+    assert cron_health_check.health_schedule_day(now, scheduled=True).date() == date(2026, 9, 26)
