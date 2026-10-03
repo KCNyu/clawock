@@ -542,7 +542,7 @@ def test_delta_windows_activate_only_at_exact_point_boundaries():
 
 
 def _cash_row(day, value, cash, flows=0.0, realized=0.0):
-    return {"date": day, "hk_total_value": value, "hk_cash": cash,
+    return {"date": day, "hk_asof": day, "hk_total_value": value, "hk_cash": cash,
             "hk_flows": flows, "hk_equity": value + realized,
             "us_equity": 100.0}
 
@@ -1793,3 +1793,24 @@ def test_narrative_exposure_numbers_must_match_the_same_book():
     # Business-growth hypotheses are not portfolio exposure claims.
     data['bear_cases'][0]['thesis'] = '若营收增长低于 20%，则需重审估值'
     assert dashboard.validate_insights(data, {'MINIMAX'}, weights=weights)['bear_cases']
+
+
+@pytest.mark.parametrize("asof", ["2026-09-30", None, ""])
+def test_delta_today_does_not_repeat_unverified_session_pnl(asof):
+    rows = [_cash_row("2026-09-30", 10000, 0),
+            _cash_row("2026-10-01", 10000, 500)]
+    rows[-1].update(hk_asof=asof, hk_today_change=1324.8, hk_flows=500)
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] is None
+
+
+def test_delta_today_does_not_label_overnight_us_session_today():
+    rows = [{"date": "2026-10-03", "us_asof": "2026-10-02",
+             "us_total_value": 1000, "us_cash": 100, "us_today_change": 50}]
+    assert dashboard.compute_delta(rows)["us"]["today_pct"] is None
+
+
+def test_delta_stale_session_does_not_fallback_to_asset_changes():
+    rows = [_cash_row("2026-09-30", 10000, 0),
+            _cash_row("2026-10-01", 11000, 0)]
+    rows[-1]["hk_asof"] = "2026-09-30"
+    assert dashboard.compute_delta(rows)["hk"]["today_pct"] is None
