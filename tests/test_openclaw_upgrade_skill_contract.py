@@ -3,6 +3,7 @@
 from pathlib import Path
 import os
 import subprocess
+import shutil
 
 import pytest
 
@@ -95,10 +96,12 @@ def test_check_only_requires_adaptive_thinking_in_installed_bundle(tmp_path, ada
         shim = shims / name
         shim.write_text(f"#!/bin/sh\n{body}\n")
         shim.chmod(0o755)
+    plugin = tmp_path / "skillhub"
+    shutil.copytree(ROOT / "ops/host/skillhub", plugin)
     result = subprocess.run(
         ["bash", str(WRAPPER), "--check-only"],
         env={**os.environ, "PATH": f"{shims}:{os.environ['PATH']}",
-             "TEST_OPENCLAW_INSTALL": str(install)},
+             "TEST_OPENCLAW_INSTALL": str(install), "SKILLHUB_PLUGIN_DIR": str(plugin)},
         capture_output=True, text=True,
     )
     if adaptive_present:

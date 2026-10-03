@@ -154,3 +154,18 @@ a supervisor restart during the grace does not append the instruction twice;
 `PATROL_DISPATCH_DIR` can point tests at fixture policy/helpers; production uses
 `/root/tools/agent-dispatch`. Run the focused supervisor coverage with
 `env -u CLAWOCK_WORKSPACE PYTHONPATH="$PWD/src" python3 -m pytest -q tests/test_patrol_audit.py tests/test_patrol_supervisor.py`.
+
+## Skill registry host extension
+
+`skillhub/` is the maintained host plugin, installed at `$OPENCLAW_STATE_DIR/extensions/skillhub` (default `~/.openclaw/extensions/skillhub`), outside the OpenClaw package tree. `openclaw.json` owns registry fields; `docs/operations/skills-store-policy.md` owns the six rules. The plugin renders that document once at registration and contributes stable system context on every assembled prompt. It never writes policy into user input/history. A per-session "already injected" flag is unsafe: native providers rebuild their system prompt, so subsequent turns, restarts or compaction would lose the constraints. API requests still carry the stable policy; no zero-token claim is made.
+
+After a merge/`refresh_live.sh`, run:
+
+```bash
+bash ops/host/install_skillhub_plugin.sh
+bash ops/host/install_skillhub_plugin.sh --check
+```
+
+The installer does not restart or edit config. Before activation, check `runningAtMs != null` via `openclaw cron list --json`, recompute the timeline with `check_crons.sh --timeline`, inspect `dispatch.sh status` and active gateway runs, and wait until other work is safe. Record the gateway PID/start time, then `systemctl --user restart openclaw-gateway.service`. Verify a changed PID, `/health`, `NRestarts=0`, unchanged version and enabled cron identities, and a new multi-turn session: zero policy blocks in user prompts, exactly one in system context, real primary search execution/output, no progress `message` calls. Do not send test messages to live chat recipients.
+
+Upgrades do not replace this extension, and `reapply_openclaw_patches.sh` replays/verifies it before restart. A future SDK incompatibility is a hard failure to investigate, not permission to drop a rule. `SKILLHUB_PLUGIN_DIR` provides an isolated install target for tests. Rollback: `bash ops/host/install_skillhub_plugin.sh --rollback`; restore the policy document matching that generation if its template changed, then use the same safe restart gate. `.before-update` copies remain on the host and are not published.

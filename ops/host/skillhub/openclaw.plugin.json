@@ -1,0 +1,48 @@
+{
+  "id": "skillhub",
+  "name": "Skillhub Plugin",
+  "description": "Renders the operator skill registry policy as stable system context; never prefixes user messages.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "primaryCli": {
+        "type": "string"
+      },
+      "fallbackCli": {
+        "type": "string"
+      },
+      "primaryLabel": {
+        "type": "string"
+      },
+      "fallbackLabel": {
+        "type": "string"
+      },
+      "extraNote": {
+        "type": "string"
+      }
+    }
+  },
+  "uiHints": {
+    "primaryCli": {
+      "label": "Primary CLI",
+      "help": "Command the agent should try first for skills discovery/install (default: skillhub)."
+    },
+    "fallbackCli": {
+      "label": "Fallback CLI",
+      "help": "Command used when primary registry is unavailable or has no match (default: clawhub)."
+    },
+    "primaryLabel": {
+      "label": "Primary Label",
+      "help": "Short display label for the primary registry in injected guidance."
+    },
+    "fallbackLabel": {
+      "label": "Fallback Label",
+      "help": "Short display label for the fallback registry in injected guidance."
+    },
+    "extraNote": {
+      "label": "Extra Note",
+      "help": "Optional extra policy line appended to injected guidance."
+    }
+  }
+}
