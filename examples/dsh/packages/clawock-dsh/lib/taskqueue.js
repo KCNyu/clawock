@@ -505,15 +505,22 @@ async function readTaskQueue(config, deps) {
 	}
 	active.sort((a, b) => since(a) - since(b));
 	const ended = readdirSync(config.logDir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !alive.has(entry.name) && !entry.name.startsWith("patrol-")).map((entry) => {
-		try {
-			return {
-				id: entry.name,
-				at: statSync(join(config.logDir, entry.name, "result.env")).mtimeMs
-			};
-		} catch {
-			return null;
-		}
-	}).filter((row) => row !== null).sort((a, b) => b.at - a.at).slice(0, config.recent * 3).map((row) => readTask(config.logDir, row.id, false)).sort((a, b) => (b.updatedAtMs ?? 0) - (a.updatedAtMs ?? 0)).slice(0, config.recent);
+		const result = readEnvFile(join(config.logDir, entry.name, "result.env"));
+		if (![
+			"ok",
+			"partial",
+			"unverified",
+			"failed",
+			"blocked",
+			"timeout",
+			"quota",
+			"cancelled"
+		].includes(result.STATE ?? "")) return null;
+		return {
+			id: entry.name,
+			at: localStampMs(result.UPDATED) ?? 0
+		};
+	}).filter((row) => row !== null).sort((a, b) => b.at - a.at || a.id.localeCompare(b.id)).slice(0, config.recent).map((row) => readTask(config.logDir, row.id, false));
 	let round = "";
 	try {
 		round = readFileSync(join(config.patrolDir, "current-round"), "utf8").trim();

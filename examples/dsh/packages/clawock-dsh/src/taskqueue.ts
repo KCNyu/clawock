@@ -428,19 +428,20 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     })
   }
   active.sort((a, b) => since(a) - since(b))
-  // Newest first by the runner's own UPDATED stamp (file mtime only preselects, so a hand
-  // edit to an old result.env cannot float it up); patrol rounds have their own section.
+  // Read every result stamp before capping. mtime can change on takeover or restoration;
+  // preselecting by it can discard the most recently ended task (#2417).
+  // Only read the heavy task/log details for the selected rows.
   const ended = readdirSync(config.logDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !alive.has(entry.name) && !entry.name.startsWith('patrol-'))
     .map((entry) => {
-      try { return { id: entry.name, at: statSync(join(config.logDir, entry.name, 'result.env')).mtimeMs } } catch { return null }
+      const result = readEnvFile(join(config.logDir, entry.name, 'result.env'))
+      if (!['ok', 'partial', 'unverified', 'failed', 'blocked', 'timeout', 'quota', 'cancelled'].includes(result.STATE ?? '')) return null
+      return { id: entry.name, at: localStampMs(result.UPDATED) ?? 0 }
     })
     .filter((row): row is { id: string; at: number } => row !== null)
-    .sort((a, b) => b.at - a.at)
-    .slice(0, config.recent * 3)
-    .map((row) => readTask(config.logDir, row.id, false))
-    .sort((a, b) => (b.updatedAtMs ?? 0) - (a.updatedAtMs ?? 0))
+    .sort((a, b) => b.at - a.at || a.id.localeCompare(b.id))
     .slice(0, config.recent)
+    .map((row) => readTask(config.logDir, row.id, false))
   let round = ''
   try { round = readFileSync(join(config.patrolDir, 'current-round'), 'utf8').trim() } catch { /* no round */ }
   return {

@@ -1,0 +1,13 @@
+--- a/ops/host/agent-dispatch/dispatch.sh
++++ b/ops/host/agent-dispatch/dispatch.sh
+@@ -51,6 +51,10 @@
+ 
+ cmd="${1:-}"; shift || true
+ case "$cmd" in
++  timeline)
++    # Proposal only: reuse the versioned ops event reader; no runner writes or new state.
++    [ -n "${1:-}" ] || { echo "usage: dispatch.sh timeline <id>" >&2; exit 2; }
++    exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json log "$1" ;;
+   result)
+     exec python3 /root/tools/agent-dispatch/read-result.py "${1:-}" ;;
+   queue)

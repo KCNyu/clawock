@@ -445,6 +445,53 @@ def test_log_tail_is_redacted(q):
     assert out["lines"] == ["line 98", "line 99", "token=<redacted> <redacted>"]
 
 
+def test_timeline_recovers_early_events_and_append_submission_without_guessing_delivery(q):
+    d = q.task("history", result="STATE=ok\nUPDATED=2026-09-27\\ 05:30:00\nNOTIFIED=telegram\nNOTIFY_AT=2026-09-27\\ 05:30:00\n")
+    with (d / "meta.env").open("a") as f:
+        f.write("CREATED=2026-09-27\\ 01:00:00\n")
+    (d / "inbox" / "delivered").mkdir(parents=True)
+    (d / "inbox" / "delivered" / "20260927-020000-11-queue.md").write_text("private instruction")
+    (d / "audit.log").write_text("2026-09-27 01:15:00\tsource=ui\taction=deadline\tdeadline changed\tops=hash\n")
+    (d / "run.log").write_text(
+        "==================== 2026-09-27 01:01:00 history start ====================\n"
+        "2026-09-27 01:02:00 waiting for claude lock (budget 3600s)\n"
+        "2026-09-27 01:03:00 lock held\n"
+        "2026-09-27 01:04:00 got run slot claude-1\n"
+        "---- 2026-09-27 01:05:00 attempt 1/3 (task) cap=3600s session=s model=m\n"
+        "     | 2026-09-27 01:06:00 lock held\n"  # agent prose is never a runner event
+        "---- 2026-09-27 01:10:00 quota; sleeping until 2026-09-27 03:00:00\n"
+        "---- 2026-09-27 03:01:00 delivering appended instruction(s):\n"
+        "---- 2026-09-27 03:02:00 no progress for 60s (tool; limit 60s): stopping the attempt as stalled token=private\n"
+        + "     | working\n" * 100
+        + "==================== 2026-09-27 05:00:00 history end state=ok outcome=DONE rc=0 ====================\n"
+    )
+    code, out = q.run("log", "history", "--lines", "3")
+    assert code == 0
+    events = out["timeline"]["events"]
+    assert [e["kind"] for e in events] == ["created", "started", "lock_wait", "lock_acquired", "slot_acquired",
+                                               "attempt", "quota", "change", "append_submitted", "append_delivered", "stall", "ended", "notification"]
+    assert next(e for e in events if e["kind"] == "append_submitted")["stamp"] == "2026-09-27 02:00:00"
+    assert next(e for e in events if e["kind"] == "append_delivered")["stamp"] == "2026-09-27 03:01:00"
+    assert "private" not in json.dumps(out) and not out["timeline"]["log_missing"]
+    assert events[-2]["stamp"] == "2026-09-27 05:00:00", "UPDATED after notification is not completion time"
+
+
+def test_timeline_reports_missing_and_bounded_history(q):
+    d = q.task("bounded", active=False)
+    _, out = q.run("log", "bounded")
+    assert out["timeline"]["log_missing"] and not out["timeline"]["events"]
+    (d / "run.log").write_text(
+        "2026-09-27 01:00:00 lock held\n" + "     | output\n" * 350000
+        + "---- 2026-09-27 05:00:00 attempt 2/3 (retry) cap=600s\n"
+    )
+    _, out = q.run("log", "bounded")
+    assert out["timeline"]["omitted_bytes"] > 0 and not out["timeline"]["log_missing"]
+    assert [e["kind"] for e in out["timeline"]["events"]] == ["lock_acquired", "attempt"]
+    (d / "run.log").write_text("2026-09-27 01:00:00 lock held\n" * 220)
+    _, out = q.run("log", "bounded")
+    assert len(out["timeline"]["events"]) == 200 and out["timeline"]["omitted_events"] == 20
+
+
 # ---- tasks without RUNNER_API 2: named, never ordered, never hidden ---------------------------
 # The run.log parsing that placed pre-2026-09-26 runners in the queue was removed on 2026-09-27
 # (no such task was left); what stays is that list/head never pretend such a task is not there.

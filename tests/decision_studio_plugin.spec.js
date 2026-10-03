@@ -2815,6 +2815,12 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
     "2026-09-23 02:04:00 got run slot codex-1\nfinal | an earlier attempt\n---- 2026-09-23 02:47:16 attempt 2 (task) rc=0 kind=ok\n     | x\n" +
     "final | - merged: PR #1767\nfinal | \nfinal | STATUS: DONE\nquota | 5h 48%\n");
   task("patrol-render-20260923-000200", "AGENT=opencode\nNAME=patrol-render\n", "STATE=cancelled\nUPDATED=2026-09-23\\ 02:40:41\n");
+  for (let i = 0; i < 20; i += 1) {
+    task(`older-${i}`, "AGENT=claude\n", "STATE=ok\nUPDATED=2026-09-22\\ 02:00:00\n");
+  }
+  task("abandoned-live-state", "AGENT=codex\n", "STATE=running\nUPDATED=2026-09-24\\ 02:00:00\n");
+  // Latest completion restored with an old mtime; old completions touched later.
+  fs.utimesSync(path.join(logDir, "done-20260923-000100", "result.env"), 1, 1);
   const limits = path.join(root, "limits.env");
   fs.writeFileSync(limits, "# per agent\nMAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\nMAX_RUNNING=3\n");
   fs.writeFileSync(path.join(patrolDir, "rounds.tsv"),
@@ -2849,7 +2855,7 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(r.recent[0].waitMs, 4 * 60000, "wait is first slot acquisition minus QUEUED_AT");
   assert.equal(r.recent[1].waitMs, null, "an older runner log cannot yield a trustworthy wait duration");
   assert.equal(r.recent[1].summary, "", "no run log, no report");
-  assert.deepEqual(r.recent.map((t) => [t.name, t.state, t.waiting]), [["done", "ok", ""], ["cancelled", "cancelled", ""]],
+  assert.deepEqual(r.recent.map((t) => [t.name, t.state, t.waiting]), [["done", "ok", ""], ["cancelled", "cancelled", ""], ["older-0", "ok", ""], ["older-1", "ok", ""], ["older-10", "ok", ""]],
     "ended tasks newest first by UPDATED, patrol rounds excluded, stale WAITING dropped");
   assert.equal(r.patrol.phase, "waiting");
   assert.equal(r.patrol.untilMs, new Date(2026, 8, 23, 4, 0, 0).getTime(), "next round due = log stamp + gap");
@@ -3680,16 +3686,25 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const calls = [];
   let hostKnows = false;
   let briefFailure = false;
+  let deferLog = false;
+  let resolveLog;
   const runQueueAction = async (action, id, arg) => {
     calls.push([action, id, arg]);
     if (action === "brief") {
       if (briefFailure) return { ok: false, code: 1, action, id, message: "permission denied", detail: "" };
       return hostKnows
         ? { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, path: "/tasks/" + id + "/prompt.md", brief_bytes: 70000, truncated: true,
-          appends: [{ file: "20260927-010000-1-queue.md", path: "/tasks/" + id + "/inbox/delivered/20260927-010000-1-queue.md", stamp: "2026-09-27 01:00:00", delivered: true, bytes: 12 },
-            { file: "20260927-020000-2-now.md", path: "/tasks/" + id + "/inbox/20260927-020000-2-now.md", stamp: "2026-09-27 02:00:00", delivered: false, bytes: 13 }] }) }
+          appends: [{ file: "20260927-010000-1-queue.md", path: "/tasks/" + id + "/inbox/delivered/20260927-010000-1-queue.md", stamp: "2026-09-27 01:00:00", delivered: true, bytes: 12, text: "# 缩小范围\n只修 handler" },
+            { file: "20260927-020000-2-now.md", path: "/tasks/" + id + "/inbox/20260927-020000-2-now.md", stamp: "2026-09-27 02:00:00", delivered: false, bytes: 13, text: "修正验收依据" }] }) }
         : { ok: false, code: 2, action, id, message: 'unknown action "brief"', detail: "" };
     }
+    if (action === "log" && deferLog) return new Promise((resolve) => { resolveLog = resolve; });
+    if (action === "log") return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({
+      ok: true, lines: ["log tail"], timeline: hostKnows ? { events: [
+        { stamp: "2026-09-27 01:00:00", kind: "lock_wait", text: "waiting for claude lock" },
+        { stamp: "2026-09-27 02:00:00", kind: "ended", text: "end state=ok" },
+      ], omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false } : undefined,
+    }) };
     return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, changed: true, message: "deadline moved" }) };
   };
   const opened = [];
@@ -3746,7 +3761,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
     /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 36% ↻ 10:00 本周 69% ↻ 周四 10:00/);
   // Writes sit beside the fact they change; reads are one quiet row; the ending writes come last.
   const homes = actionHomes(layer);
-  assert.deepEqual(Object.keys(homes), ["brief", "log", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]);
+  assert.deepEqual(Object.keys(homes), ["brief", "log", "timeline", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]);
   for (const [key, where] of Object.entries(homes)) {
     assert.equal(where.home, api.DETAIL_ACTIONS[key].home, `${key} lives in ${api.DETAIL_ACTIONS[key].home}`);
     assert.equal(where.kind, api.DETAIL_ACTIONS[key].kind, `${key} looks like a ${api.DETAIL_ACTIONS[key].kind}`);
@@ -3788,6 +3803,16 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   await tick(); await tick();
   assert.deepEqual(calls.at(-1), ["deadline", "new-run", "+2h"]);
 
+  pill("timeline").props.onClick();
+  await tick(); await tick();
+  assert.match(texts(render()), /本机队列 ops 尚未更新/);
+  hostKnows = true;
+  pill("timeline").props.onClick();
+  await tick(); await tick();
+  assert.match(texts(find(render(), (p) => p["data-tq-timeline"] === "new-run")[0]), /01:00:00 等待执行锁.*02:00:00 结束/);
+  assert.deepEqual(calls.at(-1), ["log", "new-run", ""], "timeline uses the existing read-only host transport");
+  hostKnows = false;
+
   // The brief opens in dsh's own preview; an older host half cannot list the appends and says so.
   pill("brief").props.onClick();
   await tick(); await tick();
@@ -3801,7 +3826,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const files = find(tree, (p) => p["data-tq-file"] !== undefined);
   assert.deepEqual(files.map((f) => f.props["data-tq-file"]), ["/tasks/new-run/prompt.md",
     "/tasks/new-run/inbox/delivered/20260927-010000-1-queue.md", "/tasks/new-run/inbox/20260927-020000-2-now.md"]);
-  assert.match(texts(tree), /原文 68 KB.*追加 2026-09-27 01:00:00 已投递 .*追加 2026-09-27 02:00:00 待投递/);
+  assert.match(texts(tree), /原文 68 KB.*追加 #1 · 2026-09-27 01:00:00 缩小范围 已投递 .*追加 #2 · 2026-09-27 02:00:00 修正验收依据 待投递/);
   files[2].props.onClick();
   assert.equal(opened.at(-1), "/tasks/new-run/inbox/20260927-020000-2-now.md", "an append opens its own file");
   preview = { ok: false, reason: "no-session" };
@@ -3814,12 +3839,22 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.equal(opened.length, openedBeforeFailure, "a failed brief read must not pretend a fallback file opened");
   assert.match(texts(render()), /读取失败：permission denied/);
 
+  deferLog = true;
+  pill("timeline").props.onClick();
+  await tick();
   // An api-2 task: the budget pills are off and the reason is printed, not hover-only.
   find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
   find(render(), (p) => p["data-tq-task"] === "old-wait")[0].props.onClick();
   tree = render();
   assert.equal(pill("deadline").props.disabled, true);
   assert.match(texts(tree), /这个任务的 runner 是 api 2/);
+  resolveLog({ ok: true, code: 0, action: "log", id: "new-run", message: "", detail: JSON.stringify({
+    timeline: { events: [{ stamp: "2026-09-27 03:00:00", kind: "ended", text: "late result" }],
+      omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false },
+  }) });
+  await tick(); await tick();
+  assert.equal(find(render(), (p) => p["data-tq-timeline"] !== undefined).length, 0, "a late timeline cannot paint another task");
+
   find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
   find(render(), (p) => p["data-tq-task"] === "done")[0].props.onClick();
   assert.equal(find(render(), (p) => p["data-tq-section"] === "summary").length, 0, "no summary does not consume an entire section");
