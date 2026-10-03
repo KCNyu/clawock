@@ -4432,7 +4432,7 @@
       setVal("plan-winrate", wr.toFixed(1) + "%");
       const cov = calib.coverage_active || {};
       const covNote = cov.episodes_unresolved
-        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${esc(Object.keys(cov.unresolved_reasons || {}).join(" / ") || "原因未记录")}）`
+        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${Object.keys(cov.unresolved_reasons || {}).join(" / ") || "原因未记录"}）`
         : "";
       setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
       // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在
