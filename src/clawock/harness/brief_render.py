@@ -29,7 +29,8 @@ import re
 from datetime import date as _date
 from pathlib import Path
 
-from clawock import sessions as _cal
+from clawock import sessions as _cal, instruments as instrument_registry
+from clawock.portfolio.math import ledger_rows
 from clawock.automation.output_validate import escape_raw_html
 from clawock.prose_validation import check_identifier_leak, check_pipeline_self_reference
 from clawock.safe_io import safe_write_text
@@ -68,6 +69,11 @@ MISSING = "—"
 # Every number in the brief goes through one of these, so a percentage looks the
 # same in the header as it does in the last table.  That consistency is the
 # whole point of moving rendering out of the model.
+
+def confidence_pct(value):
+    number = _numeric(value)
+    return pct(number * 100 if number is not None else None, digits=0, sign=False)
+
 
 def _numeric(value):
     """A number, or None when the field is absent or is not one.
@@ -227,7 +233,8 @@ def _inline(value):
 def _holdings(context, leg):
     portfolios = ((context.get("portfolio") or {}).get("portfolios") or {})
     book = portfolios.get(f"{leg}_stocks") or {}
-    held = [row for row in (book.get("holdings") or []) if (row.get("shares") or 0) > 0]
+    held = [{**row, 'name': (instrument_registry.get(row.get('ticker')) or {}).get('name') or row.get('name')}
+            for row in ledger_rows(book.get('holdings')) if (row.get('shares') or 0) > 0]
     return book, held
 
 
@@ -559,7 +566,7 @@ def retrospective_section(context):
             text(row.get("action")),
             text(row.get("strategy_id")),
             num(row.get("plan_size_shares"), 0) if row.get("plan_size_shares") else MISSING,
-            pct((row.get("plan_confidence") or 0) * 100, digits=0, sign=False),
+            confidence_pct(row.get("plan_confidence")),
             text(row.get("followed") if row.get("followed") is not None
                  else row.get("outcome") or row.get("verdict")),
         ])
@@ -686,7 +693,7 @@ def judge_section(plan, judgment=None):
             fields.append(("证伪条件", text(row.get("falsifier"))))
         title = f"**{text(ticker)}** · **{text(decision.get('action'))}**"
         if confidence is not None:
-            title += f" · 信心 {pct(confidence * 100, digits=0, sign=False)}"
+            title += f" · 信心 {confidence_pct(confidence)}"
         if row.get("verdict"):
             title += f" · {verdict_badge(row.get('verdict'))}"
         rows.append({
@@ -1162,7 +1169,7 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
                 f" {text(decision.get('action'))}"
                 f"{f' {num(size, 0)} 股' if size else ''}"
                 f" (driven_by={text(decision.get('driven_by'))},"
-                f" conf {pct((decision.get('confidence') or 0) * 100, digits=0, sign=False)})")
+                f" conf {confidence_pct(decision.get('confidence'))})")
     else:
         lines.append("无主动动作。")
     if holds:

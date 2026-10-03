@@ -87,6 +87,7 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
                 "job": record.get("job"),
                 "slot": record.get("slot"),
                 "status": final,
+                "reason": str((record.get("final_product") or {}).get("reason") or "")[:120],
             })
         if ((record.get("raw_execution") or {}).get("status") == "error"
                 and final in USABLE_PRODUCT_STATES):

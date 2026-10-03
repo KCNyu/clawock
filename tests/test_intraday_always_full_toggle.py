@@ -35,7 +35,7 @@ def workspace(tmp_path):
 
 def test_no_config_file_leaves_the_gate_on(monkeypatch, workspace):
     """The reviewed default must survive an absent toggle."""
-    assert _module(monkeypatch, workspace).always_full_intraday() is False
+    assert _module(monkeypatch, workspace).always_full_intraday() is True
 
 
 def test_the_toggle_turns_every_slot_into_a_full_block(monkeypatch, workspace):
@@ -53,9 +53,9 @@ def test_a_broken_or_ambiguous_toggle_falls_back_to_the_gate(monkeypatch, worksp
     """
     path = workspace / 'config' / 'intraday-delivery.json'
     for content in ('{not json', '{}', json.dumps({'always_full': 'true'}),
-                    json.dumps({'always_full': 1}), json.dumps({'always_full': False})):
+                    json.dumps({'always_full': 1}), 'null', '[]'):
         path.write_text(content)
-        assert _module(monkeypatch, workspace).always_full_intraday() is False, content
+        assert _module(monkeypatch, workspace).always_full_intraday() is True, content
 
 
 def test_the_live_workspace_toggle_sends_every_slot():
@@ -63,3 +63,8 @@ def test_the_live_workspace_toggle_sends_every_slot():
     doc = json.loads((ROOT / 'config' / 'intraday-delivery.json').read_text())
     assert doc['always_full'] is True
     assert doc['set_at'] == '2026-09-25' and doc['set_by'] == 'kcn' and '定稿' in doc['note']
+
+
+def test_only_explicit_false_permits_silence(monkeypatch, workspace):
+    (workspace / 'config' / 'intraday-delivery.json').write_text('{"always_full": false}')
+    assert _module(monkeypatch, workspace).always_full_intraday() is False

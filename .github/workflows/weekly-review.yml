@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     # 15, not 12: the chain deadline below is 700s and the contract test wants a
     # minute of slack after it for setup, validation and the commit.
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:

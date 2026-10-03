@@ -1260,19 +1260,19 @@
   .regime-badge .rg-label { font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
   .regime-badge .rg-reasons { color: var(--text-dim); font-size: var(--fs-xs); }
   .regime-badge.risk_on  { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--positive) var(--tint-strong), transparent); }
-  .regime-badge.risk_on  .rg-dot { background:var(--positive); } .regime-badge.risk_on  .rg-label { color:var(--positive); }
+  .regime-badge.risk_on  .rg-dot { background:var(--positive); } .regime-badge.risk_on  .rg-label { color:var(--positive-ink); }
   .regime-badge.neutral  { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--neutral) var(--tint-strong), transparent); }
   /* 字色不用 --neutral：它在这块灰底上浅色 4.18、深色 4.23，都不到 AA；
      --text-secondary 两主题都过线（#1580，tests/test_dashboard_contrast.py 钉住）。 */
   .regime-badge.neutral  .rg-dot { background:var(--neutral); } .regime-badge.neutral  .rg-label { color:var(--text-secondary); }
   .regime-badge.risk_off { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--negative) var(--tint-strong), transparent); }
-  .regime-badge.risk_off .rg-dot { background:var(--negative); } .regime-badge.risk_off .rg-label { color:var(--negative); }
+  .regime-badge.risk_off .rg-dot { background:var(--negative); } .regime-badge.risk_off .rg-label { color:var(--negative-ink); }
   .regime-badge.green { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--positive) var(--tint-strong), transparent); }
-  .regime-badge.green .rg-dot { background:var(--positive); } .regime-badge.green .rg-label { color:var(--positive); }
+  .regime-badge.green .rg-dot { background:var(--positive); } .regime-badge.green .rg-label { color:var(--positive-ink); }
   .regime-badge.amber { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--warning) var(--tint-edge), transparent); }
-  .regime-badge.amber .rg-dot { background:var(--warning); } .regime-badge.amber .rg-label { color:var(--warning); }
+  .regime-badge.amber .rg-dot { background:var(--warning); } .regime-badge.amber .rg-label { color:var(--warning-ink); }
   .regime-badge.red   { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--negative) var(--tint-strong), transparent); }
-  .regime-badge.red   .rg-dot { background:var(--negative); } .regime-badge.red   .rg-label { color:var(--negative); }
+  .regime-badge.red   .rg-dot { background:var(--negative); } .regime-badge.red   .rg-label { color:var(--negative-ink); }
 
   /* Risk keyword banner (top of macro card; hidden when no hits) */
   .risk-banner {
@@ -1280,10 +1280,10 @@
     background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-left: 3px solid var(--negative);
     border-radius: var(--radius-sm); font-size: var(--fs-sm); line-height: 1.5;
   }
-  .risk-banner .rb-hdr { color: var(--negative); font-weight: 700; font-size: var(--fs-xs);
+  .risk-banner .rb-hdr { color: var(--negative-ink); font-weight: 700; font-size: var(--fs-xs);
     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
   .risk-banner .rb-row { color: var(--text); margin: 2px 0; }
-  .risk-banner .rb-tk  { font-weight: 700; color: var(--negative); margin-right: 8px; }
+  .risk-banner .rb-tk  { font-weight: 700; color: var(--negative-ink); margin-right: 8px; }
   .risk-banner .rb-kw  { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); padding: 1px 5px;
     border-radius: 3px; font-size: var(--fs-xs); margin: 0 3px; }
 

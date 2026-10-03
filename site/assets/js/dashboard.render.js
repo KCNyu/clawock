@@ -1442,7 +1442,7 @@
     const slotsWith = (...states) => (wf.degraded_slots || [])
       .filter(r => states.includes((r || {}).status))
       .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
-                   status: r.status, slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+                   status: r.status, reason: String(r.reason || ""), slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
     // 同一个任务的几档合成一条：「A 降级 2 档、B 降级」，而不是把 A 念两遍。
     const nameThem = (total, rows) => {
       if (!rows.length) return "";
@@ -1618,7 +1618,7 @@
             : dhState("idle", "仅供参考"));
       }).join("");
     const softRows = slotsWith("failed", "artifact_only", "recovered", "degraded").map(r => item(r.job, r.slot,
-      r.status === "failed" ? "成品未落地" : r.status === "artifact_only" ? `${r.what}，投递未确认` : `${r.what}，成品已送达`,
+      r.status === "failed" ? "成品未落地" : r.status === "artifact_only" ? `${r.what}，投递未确认` : `${r.what}${r.reason ? `（${r.reason}）` : ""}，成品已送达`,
       dhState(r.status === "failed" ? "bad" : "warn", r.status === "failed" ? "需处理" : "观察"))).join("");
     const unnamed = Math.max(0, droppedTotal - dropped.length);
     const dropRows = dropped.map(r => item(r.job || "未具名任务",
@@ -2594,7 +2594,13 @@
     if (bookSort) {
       const { key, dir } = bookSort;
       rows.sort((a, b) => {
-        const av = a.h[key], bv = b.h[key];
+        const money = ["current_value", "cost_basis", "current_price"].includes(key);
+        const fx = Number(safe(DATA, "fx", "usdhkd"));
+        if (money && !(Number.isFinite(fx) && fx > 0) && a.h.region !== b.h.region)
+          return String(a.h.region).localeCompare(String(b.h.region));
+        const value = h => h[key] == null ? null : money && h.region === "hk" && Number.isFinite(fx) && fx > 0
+          ? h[key] / fx : h[key];
+        const av = value(a.h), bv = value(b.h);
         if (av == null && bv == null) return 0;
         if (av == null) return 1;
         if (bv == null) return -1;
@@ -2661,7 +2667,10 @@
         + (usedProxy ? " ▵ = 杠杆 ETF，量化列取底层标的。" : "") + `</span>`;
     }
     const meta = document.getElementById("book-meta");
-    if (meta) meta.textContent = bookSort ? "按列排序" : "需动作的排最前";
+    if (meta) meta.textContent = bookSort
+      ? (["current_value", "cost_basis", "current_price"].includes(bookSort.key)
+          ? (Number(safe(DATA, "fx", "usdhkd")) > 0 ? "按 USD 等值排序（显示本币）" : "无汇率，按币种分组排序")
+          : "按列排序") : "需动作的排最前";
 
     if (tbody.dataset.wired !== "1") {
       tbody.dataset.wired = "1";
@@ -4260,7 +4269,7 @@
     const nprProfit = safe(npr, "combined_usd", "total_profit");
     // 分母口径诚实标注：US 用 true_principal(真实本金)，HK 回退 net_principal(净投入)
     const nprBasis  = safe(npr, "combined_usd", "return_basis");
-    const nprBasisLbl = nprBasis === "true_principal" ? "真实本金" : "净投入本金";
+    const nprBasisLbl = ({true_principal: "真实本金", net_principal: "净投入本金", mixed: "真实本金 + 净投入本金"})[nprBasis] || "净投入本金";
     setVal("kpi-netret", nprPct != null ? fmtPct(nprPct, 2) : DASH);
     setVal("kpi-netret-abs", nprUsd
       ? `${fmtMoney(nprProfit, "USD")} ÷ ${fmtMoney(nprUsd, "USD")} ${nprBasisLbl}`
@@ -4423,7 +4432,7 @@
       setVal("plan-winrate", wr.toFixed(1) + "%");
       const cov = calib.coverage_active || {};
       const covNote = cov.episodes_unresolved
-        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（休市/需人工核实）`
+        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${esc(Object.keys(cov.unresolved_reasons || {}).join(" / ") || "原因未记录")}）`
         : "";
       setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
       // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在

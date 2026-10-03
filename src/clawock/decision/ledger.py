@@ -2301,10 +2301,14 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
                 "unresolved_reasons": dict(Counter(
                     reason
                     for members in by_ep.values()
+                    if not any(_float((d.get("evaluation") or {}).get("benefit_t1_pct")) is not None for d in members)
                     for reason in {
-                        (d.get("evaluation") or {}).get("not_evaluable_reason")
-                        for d in members
+                        ((d.get("evaluation") or {}).get("not_evaluable_reason") or "unknown")
                         if (d.get("evaluation") or {}).get("status") == "not_evaluable"
+                        else ("pending:" + ((d.get("evaluation") or {}).get("pending_reason") or "unknown"))
+                        if (d.get("evaluation") or {}).get("status") == "pending"
+                        else ((d.get("evaluation") or {}).get("status") or "unknown")
+                        for d in members
                     }))}
 
     coverage_active = _coverage([d for d in in_window if d.get("action") in ACTIVE_ACTIONS])

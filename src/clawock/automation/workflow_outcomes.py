@@ -428,11 +428,20 @@ def _derive_final(record):
             or preflight in {"warning", "failed"}
         )
         status = "degraded" if degraded else "success"
-        reason = (
-            "primary delivery succeeded with degraded generation/input"
-            if degraded
-            else "primary delivery succeeded"
-        )
+        reasons = []
+        if stages['postflight'].get('data_plane_status') not in {None, 'published', 'current', 'skipped'}:
+            reasons.append('数据面 push 丢了')
+        if llm == 'failed':
+            reasons.append('模型链失败后兜底出货')
+        elif llm == 'warning' and not _advisory_only(stages['llm']):
+            reasons.append('模型输出校验意见')
+        if postflight == 'failed':
+            reasons.append('postflight 未落地')
+        elif postflight == 'warning' and not _advisory_only(stages['postflight']):
+            reasons.append('投递前校验意见')
+        if preflight in {'warning', 'failed'}:
+            reasons.append('preflight 告警')
+        reason = (reasons[0] + (f' +{len(reasons)-1}' if len(reasons) > 1 else '')) if reasons else 'primary delivery succeeded'
     elif primary == "failed" and watchdog == "failed":
         # Ahead of artifact_only (#1921): that state means delivery is not yet
         # confirmed, and here both routes to the reader confirmed a failure.
@@ -944,6 +953,11 @@ def publish():
     reconcile_raw_execution()
     reconcile_delivery_receipts()
     ledger = _public(load_ledger())
+    for record in ledger.get('records', []):
+        stages = record.get('stages') or {}
+        required = ('preflight', 'llm', 'postflight', 'primary_delivery', 'watchdog_delivery')
+        if all(isinstance(stages.get(key), dict) and 'status' in stages[key] for key in required):
+            record['final_product'] = _derive_final(record)
     before = public_path().read_text() if public_path().exists() else None
     payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
     if before == payload:

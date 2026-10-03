@@ -475,7 +475,7 @@ def build(ledger_rows=None, data_dir: Path | None = None,
             'first_decision': dates[0] if dates else None,
             'signals': len(per_signal),
             'max_snapshot_age_sessions': MAX_SNAPSHOT_AGE_SESSIONS,
-            'join': ('a snapshot is used only when its as_of is at or before the '
+            'join': ('a snapshot is used only when its as_of is strictly before the '
                      'plan date and within the age bound; every joined value '
                      'carries the age that was used'),
         },

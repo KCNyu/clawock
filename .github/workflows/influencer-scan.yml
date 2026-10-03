@@ -35,7 +35,7 @@ jobs:
     # thinking off; at low effort a full 48-item batch reasons for ~30s, and
     # the rest is room for 529 overload retries (#2202).
     # tests/test_llm_workflow_deadlines.py checks 2 chains + 60s.
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: write
     steps:

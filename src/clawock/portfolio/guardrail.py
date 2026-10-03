@@ -13,6 +13,8 @@ several tests refer to them there.
 """
 from __future__ import annotations
 
+from clawock.portfolio.math import ledger_rows
+
 import math
 
 from clawock.instruments import is_leveraged_holding, one_x_swap_map
@@ -24,7 +26,7 @@ def _is_leveraged_etf(holding):
 
 def compute_concentration(holdings):
     """HHI + Top2 + per-holding weights for one leg."""
-    active = [h for h in holdings if h.get('shares', 0) > 0]
+    active = [h for h in ledger_rows(holdings) if h.get('shares', 0) > 0]
     if not active:
         return {}
     total = sum(h.get('current_value', h['cost_basis'] * h['shares']) for h in active)

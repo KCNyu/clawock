@@ -675,7 +675,7 @@ def test_the_summary_names_the_slot_that_only_half_shipped(tmp_path, monkeypatch
         "fixture no longer exercises the case: the soft slot still fits in recent")
     assert summary["degraded_slots"] == [
         {"job": "港股收盘报告", "slot": "2026-07-24T16:00:00+08:00",
-         "status": "recovered"},
+         "status": "recovered", "reason": ""},
     ]
 
 

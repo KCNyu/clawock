@@ -580,16 +580,20 @@ def always_full_intraday() -> bool:
     behaviour, where a healthy unchanged slot is silent with an auditable
     heartbeat and exact-slot marker (`can_silence`, `render_unchanged_receipt`
     and the watchdog's quiet-marker check stay for that). Data/source
-    degradation never silences either way. Missing or invalid config leaves
-    the semantic gate enabled.
+    degradation never silences either way. Only an explicit boolean false permits silence; missing or invalid config
+    keeps every slot sending a full card.
 
     `config/intraday-delivery.json`:  {"always_full": true}
     """
     try:
         doc = json.loads((WS / 'config' / 'intraday-delivery.json').read_text())
-    except Exception:
-        return False
-    return doc.get('always_full') is True
+    except Exception as exc:
+        print(f'⚠️ intraday-delivery 配置读不到（{exc}），本档按 always_full 处理', file=sys.stderr)
+        return True
+    if not isinstance(doc, dict) or not isinstance(doc.get('always_full'), bool):
+        print('⚠️ intraday-delivery 缺少布尔 always_full，本档按 always_full 处理', file=sys.stderr)
+        return True
+    return doc['always_full']
 
 
 def render_unchanged_receipt(market, block, coverage, active):

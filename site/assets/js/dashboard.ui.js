@@ -295,8 +295,14 @@
   // the same thing it means anywhere else on the page.
   document.addEventListener("keydown", e => {
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-    if (e.key === "ArrowLeft") shiftTab(-1);
-    else if (e.key === "ArrowRight") shiftTab(1);
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    // Arrows belong to the focused control or content. Tab navigation is
+    // scoped to its own tablist; a scrollable table must retain native keys.
+    const tab = e.target?.closest?.('[role="tab"]');
+    if (!tab) return;
+    e.preventDefault();
+    shiftTab(e.key === "ArrowLeft" ? -1 : 1);
+    document.querySelector('[role="tab"][aria-selected="true"]')?.focus();
   });
 
   // back-compat alias (older call sites used activateTab)

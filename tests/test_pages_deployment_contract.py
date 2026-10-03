@@ -94,9 +94,9 @@ def test_every_browser_fetch_is_declared_public():
 def test_dashboard_gif_is_a_required_shipped_asset():
     """The README and published PyPI description both link to this asset."""
     assert (ROOT / "site/assets/dashboard.gif").is_file()
-    assert "assets/dashboard.gif" in CONTRACT["required_pages"]
-    assert "assets/dashboard.gif" in CONTRACT["artifact_include"]
-    assert "assets/dashboard.gif" not in CONTRACT["repository_only"]
+    assert "assets/dashboard.gif" not in CONTRACT["required_pages"]
+    assert "assets/dashboard.gif" not in CONTRACT["artifact_include"]
+    assert "assets/dashboard.gif" in CONTRACT["repository_only"]
 
 
 def test_linked_web_manifest_is_required_and_triggers_deploy():
@@ -391,7 +391,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert not (output / "assets/data/crawl_visibility_summary.json").exists()
     assert (site / "assets/dashboard.gif").is_file()
     assert list((site / "assets/data").glob("*.jsonl"))
-    assert (output / "assets/dashboard.gif").stat().st_size == source_gif_size
+    assert not (output / "assets/dashboard.gif").exists()
     assert not list((output / "assets/data").glob("*.jsonl"))
     assert not (output / "memory/decisions.jsonl").exists()
     assert not (output / "tests").exists()

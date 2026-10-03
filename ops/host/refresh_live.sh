@@ -57,7 +57,7 @@ behind="$(git rev-list --count "$range")"
 RUNNER_DIR="${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}"
 runner_differs() {
   [ -d "$RUNNER_DIR" ] && [ -f ops/host/install_agent_dispatch.sh ] &&
-    ! bash ops/host/install_agent_dispatch.sh --check >/dev/null 2>&1
+    ! bash ops/host/install_agent_dispatch.sh --check-files >/dev/null 2>&1
 }
 install_runner() {
   bash ops/host/install_agent_dispatch.sh

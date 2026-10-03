@@ -1274,7 +1274,7 @@
     const slotsWith = (...states) => (wf.degraded_slots || [])
       .filter(r => states.includes((r || {}).status))
       .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
-                   status: r.status, slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+                   status: r.status, reason: String(r.reason || ""), slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
     // 同一个任务的几档合成一条：「A 降级 2 档、B 降级」，而不是把 A 念两遍。
     const nameThem = (total, rows) => {
       if (!rows.length) return "";
@@ -1450,7 +1450,7 @@
             : dhState("idle", "仅供参考"));
       }).join("");
     const softRows = slotsWith("failed", "artifact_only", "recovered", "degraded").map(r => item(r.job, r.slot,
-      r.status === "failed" ? "成品未落地" : r.status === "artifact_only" ? `${r.what}，投递未确认` : `${r.what}，成品已送达`,
+      r.status === "failed" ? "成品未落地" : r.status === "artifact_only" ? `${r.what}，投递未确认` : `${r.what}${r.reason ? `（${r.reason}）` : ""}，成品已送达`,
       dhState(r.status === "failed" ? "bad" : "warn", r.status === "failed" ? "需处理" : "观察"))).join("");
     const unnamed = Math.max(0, droppedTotal - dropped.length);
     const dropRows = dropped.map(r => item(r.job || "未具名任务",

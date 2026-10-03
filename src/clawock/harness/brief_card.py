@@ -202,7 +202,10 @@ def build_brief_card(today, decision_packet=None):
                 trig = condition.get('price')
                 trig = f"@{trig}" if trig is not None else (condition.get('type') or '')
                 conf = a.get('confidence')
-                conf = f" conf{round(float(conf) * 100)}%" if conf is not None else ''
+                try:
+                    conf = f" conf{round(float(conf) * 100)}%" if conf is not None else ''
+                except (TypeError, ValueError, OverflowError):
+                    conf = ''
                 lines.append(f"{i}. {a.get('ticker', '?')} [{a.get('strategy_id', '?')}] {a.get('action', '')} {trig}{conf}")
     except Exception:
         pass  # link-only fallback

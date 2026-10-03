@@ -308,3 +308,11 @@ def test_unmatched_digest_bullets_are_counted(capsys, monkeypatch):
     assert len(events) == 1
     err = capsys.readouterr().err
     assert re.search(r'2 bullet line\(s\) did not match', err)
+
+
+def test_fallback_anchors_accept_current_prompt_concepts_without_renderer_heading():
+    text = '\n'.join(aliases[0] for aliases in brief_fallback.BRIEF_REQUIRED_SECTIONS) + '\n' + 'evidence ' * 300
+    assert '仓位明细' not in text
+    validate_sections(text, label='brief markdown', required=brief_fallback.BRIEF_REQUIRED_SECTIONS, min_chars=2000)
+    with pytest.raises(LLMOutputError, match='多空对辩'):
+        validate_sections(text.replace('多空对辩', ''), label='brief markdown', required=brief_fallback.BRIEF_REQUIRED_SECTIONS, min_chars=2000)
