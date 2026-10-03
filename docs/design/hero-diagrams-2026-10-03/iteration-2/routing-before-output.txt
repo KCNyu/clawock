@@ -1,7 +1,12 @@
-decision-pipeline: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=8.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
+decision-pipeline: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=8.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=2 image-overlaps=0
+  ROUTE decision-pipeline.svg:278 #w7 turns=4 card-transits=[]
+  ROUTE decision-pipeline.svg:279 #w8 turns=4 card-transits=[]
 information-flow: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=8.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
 architecture: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=6.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
 harnesses: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=12.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
-debate-flow: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=10.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
+debate-flow: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=10.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=3 image-overlaps=0
+  ROUTE debate-flow.svg:100 #w8 turns=4 card-transits=[]
+  ROUTE debate-flow.svg:101 #w9 turns=4 card-transits=[]
+  ROUTE debate-flow.svg:102 #w10 turns=4 card-transits=[]
 product-architecture: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=18.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0 routing-errors=0 image-overlaps=0
-TOTAL: 0 acceptance violations
+TOTAL: 5 acceptance violations
