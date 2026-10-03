@@ -750,7 +750,7 @@ def product_architecture():
     y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
                  ['The runtime thinks.', 'clawock keeps it reconciled.'],
                  ['Three owners, one contract between them:', 'skill + CLI + JSON in, adapter-owned I/O out.'],
-                 [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')])
+                 [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')], title_lh=34)
     y += 30
     d.section(y, 'OWNED BY THE EXTERNAL RUNTIME')
     y += 14
@@ -781,16 +781,18 @@ def product_architecture():
         yy = y + 86 + i * 52
         d.add(f'<circle cx="{M + 32:g}" cy="{yy - 5:g}" r="11" fill="{TINT["green"]}"/>')
         d.text(M + 32, yy, f'0{i + 1}', 'tag', anchor='middle', fill=ROLE['green'])
-        d.text(M + 54, yy, [(name, INK), (' · ', FAINT), (what, MUT)], 'm')
-        fits(name + ' · ' + what, 'm', CW - 70, 'stage')
-        d.text(M + 54, yy + 20, cmd, 'code', fill=ROLE['green'])
+        d.icon(('debate', 'checks', 'balance', 'dashboard', 'replay')[i], M + 52, yy - 15, 'green', size=18)
+        d.text(M + 78, yy, [(name, INK), (' · ', FAINT), (what, MUT)], 'm')
+        fits(name + ' · ' + what, 'm', CW - 94, 'stage')
+        d.text(M + 78, yy + 20, cmd, 'code', fill=ROLE['green'])
     top = y + h
     y = top + 44
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['violet'])
     d.text(W / 2 + 14, top + 26, 'adapter-owned I/O', 'm', fill=MUT)
     h = 118
     d.card(M, y, CW, h, 'violet')
-    d.text(M + 20, y + 32, 'Your instance', 'h')
+    d.icon('book', M + 20, y + 14, 'violet')
+    d.text(M + 50, y + 32, 'Your instance', 'h')
     d.tag(W - M - 16, y + 30, 'NOT IN THE WHEEL', 'violet', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['strategy, evidence, ledger, schedules, delivery, UI',
                                       [('default store: FilesystemStore. KCNyu is one live', MUT)],
@@ -802,12 +804,13 @@ def product_architecture():
     xs, cw = columns(3, gap=18)
     stepsb = [('run prepare', '→ request.json', 'green'), ('agent writes', 'decision.json', 'slate'),
               ('run publish', '→ published', 'green')]
-    h = 76
+    h = 110
     for i, (x, (name, body, role)) in enumerate(zip(xs, stepsb)):
         d.card(x, y, cw, h, role)
-        d.text(x + 16, y + 30, name, 'b')
+        d.icon(('checks', 'filing', 'publish')[i], x + 16, y + 12, role)
+        d.text(x + 16, y + 64, name, 'b')
         fits(body, 'm', cw - 24, 'steps')
-        d.text(x + 16, y + 54, body, 'm', fill=MUT)
+        d.text(x + 16, y + 88, body, 'm', fill=MUT)
         if i:
             d.wire(f'M{x - 17:g} {y + h / 2:g}H{x - 3:g}', pulses=(i * .4,), dur=1.2)
     y += h + 26
