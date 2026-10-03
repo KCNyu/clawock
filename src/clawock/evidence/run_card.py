@@ -96,7 +96,6 @@ def series_digest(series) -> str:
     return f'sha256:{hasher.hexdigest()[:16]}'
 
 
-
 def _git_commit() -> str | None:
     return git_commit(WS)
 

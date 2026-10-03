@@ -187,7 +187,6 @@ def _git_commit() -> str | None:
     return git_commit(WS)
 
 
-
 def build(decisions, *, window_days: int, cutoff: str, counts: dict,
           generated_at: str | None = None,
           code_files=(), ledger_path: str = LEDGER_PATH) -> dict:
