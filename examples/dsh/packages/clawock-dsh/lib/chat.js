@@ -199,6 +199,10 @@ const dictionaries = {
 		"queue.round.digest": "汇总 +{n}",
 		"queue.round.comment": "补充 {n}",
 		"queue.round.filed": "本轮提报：{what}",
+		"queue.round.issueCount": "提报 {n}",
+		"queue.round.openIssue": "查看提报 {issue}（新标签页）",
+		"queue.patrol.remaining": "还剩 {time}",
+		"queue.patrol.due": "已到计划时间",
 		"queue.chip.elapsed": "已跑 {time}",
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
@@ -604,6 +608,10 @@ const dictionaries = {
 		"queue.round.digest": "digest +{n}",
 		"queue.round.comment": "{n} added",
 		"queue.round.filed": "filed this round: {what}",
+		"queue.round.issueCount": "{n} filed",
+		"queue.round.openIssue": "Open finding {issue} (new tab)",
+		"queue.patrol.remaining": "{time} remaining",
+		"queue.patrol.due": "scheduled time reached",
 		"queue.chip.elapsed": "running {time}",
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
@@ -1578,14 +1586,20 @@ function roundFiled(filed, t) {
 	const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0);
 	const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0);
 	const parts = [
-		...issues.map(({ sev, n }) => `${sev} #${n}`),
-		...digest > 0 ? [t("queue.round.digest", { n: String(digest) })] : [],
-		...comment > 0 ? [t("queue.round.comment", { n: String(comment) })] : []
+		...issues.length > 0 ? [{ text: t("queue.round.issueCount", { n: issues.length }) }] : [],
+		...issues.map(({ sev, n }) => ({
+			text: `${sev} #${n}`,
+			severity: sev,
+			href: `https://github.com/KCNyu/clawock/issues/${n}`
+		})),
+		...digest > 0 ? [{ text: t("queue.round.digest", { n: String(digest) }) }] : [],
+		...comment > 0 ? [{ text: t("queue.round.comment", { n: String(comment) }) }] : []
 	];
 	if (parts.length === 0) return null;
 	return {
-		text: parts.join(" · "),
-		said: t("queue.round.filed", { what: parts.join(", ") }),
+		text: parts.map((part) => part.text).join(" · "),
+		parts,
+		said: t("queue.round.filed", { what: parts.map((part) => part.text).join(", ") }),
 		title: filed,
 		voice: issues.some(({ sev }) => sev === "P0") ? "warn" : void 0
 	};
@@ -1844,10 +1858,13 @@ function patrolCaption(result, t, now) {
 	const dispatched = /round (\S+) \(([^)]+)\)/.exec(patrol.detail);
 	const axis = dispatched?.[2] ?? /^patrol-(.+)-\d{8}-\d{6}$/.exec(patrol.round)?.[1] ?? "";
 	const out = [];
-	if (patrol.phase === "waiting" && patrol.untilMs !== null) out.push({ text: t("queue.patrolState.waitingUntil", { time: resetStampOf(t, {
-		resetAt: "",
-		resetAtMs: patrol.untilMs
-	}, now) }) });
+	if (patrol.phase === "waiting" && patrol.untilMs !== null) {
+		out.push({ text: t("queue.patrolState.waitingUntil", { time: resetStampOf(t, {
+			resetAt: "",
+			resetAtMs: patrol.untilMs
+		}, now) }) });
+		out.push({ text: t(patrol.untilMs > now ? "queue.patrol.remaining" : "queue.patrol.due", { time: durationOf(t, Math.max(0, patrol.untilMs - now)) }) });
+	}
 	if (patrol.phase === "yielding" || reason.wrapUp) {
 		const why = reason.kind === "manual" ? t("queue.patrol.giveWay") : reason.kind === "slot" ? t("queue.patrol.waitSlot") : reason.kind === "memory" ? t("queue.patrol.memory") : reason.kind === "memoryUnread" ? t("queue.patrol.memoryUnread") : t("queue.patrol.otherReason");
 		if (reason.wrapUp) out.push({
@@ -1865,7 +1882,6 @@ function patrolCaption(result, t, now) {
 		});
 	}
 	if (patrol.phase === "running" || patrol.phase === "yielding" && current !== void 0) {
-		const m = current === void 0 ? null : modelLine(current, true);
 		if (dispatched || axis) out.push({
 			text: dispatched ? t("queue.round.name", {
 				round: dispatched[1],
@@ -1874,9 +1890,9 @@ function patrolCaption(result, t, now) {
 			title: patrol.round
 		});
 		if (current?.startedAtMs != null) out.push({ text: t("queue.chip.elapsed", { time: durationOf(t, now - current.startedAtMs) }) });
-		if (m !== null && m.model !== "") out.push({
-			text: _modelView(m.model).label,
-			title: m.model
+		if (current !== void 0 && current.waiting !== "") out.push({
+			text: _taskStatus(current, t, now).text,
+			voice: "warn"
 		});
 	}
 	return out;

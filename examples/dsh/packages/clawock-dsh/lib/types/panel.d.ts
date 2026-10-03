@@ -231,7 +231,7 @@ export declare const RESIDENT_CHIPS = 1;
 /** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
 export declare const FACT_CELL: Record<FactSlot, {
     line: 2 | 3;
-    track: 'main' | 'when' | 'took' | 'aside';
+    track: 'main' | 'full' | 'when' | 'took' | 'aside';
 }>;
 export declare const ROW_KINDS: Record<RowKind, {
     lead: boolean;
@@ -244,6 +244,12 @@ export type Fact = {
     said?: string;
     title?: string;
     voice?: 'warn' | 'quiet';
+    /** Filing evidence: words/links, not additional state chips. Same text in chat. */
+    parts?: Array<{
+        text: string;
+        severity?: string;
+        href?: string;
+    }>;
     /** A mark after the words: the fallback model's return arrow (a role glyph, drawn by the renderer). */
     mark?: {
         role: StateRole;

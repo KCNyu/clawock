@@ -3107,7 +3107,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   const status = find(popover, (p) => p["data-tq-patrol"] !== undefined)[0];
   assert.deepEqual(find(status, (p) => p["data-tq-chip"] !== undefined).map((c) => [c.props["data-tq-chip"], texts(c), c.props["data-role"]]),
     [["status", "让路中", "wait"]], "the patrol head: its phase as its one chip");
-  assert.equal(texts(find(status, (p) => /_tq-caption-line$/.test(p.className || ""))[0]), "让手工任务先行  · b-1  · 已跑 1 分  · X",
+  assert.equal(texts(find(status, (p) => /_tq-caption-line$/.test(p.className || ""))[0]), "让手工任务先行  · b-1  · 已跑 1 分",
     "then why it gives way and to whom, in words");
   // THE row grid (client.ts ROW_KINDS / FACT_ORDER / FACT_CELL): every row of the cell, folded or
   // open, is lead · name · value · state then its facts, a kind draws only what ROW_KINDS gives
@@ -3243,7 +3243,12 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(find(patrolFolds[0], (p) => p["data-tq-round"] === "R140").length, 0, "the newest round stays resident");
   const newest = find(section("patrol"), (p) => p["data-tq-round"] === "R140")[0];
   assert.deepEqual(factSlots(newest), ["filed", "when", "took"], "a round that filed says so on line 2");
-  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]), "P1 #2240 · 汇总 +2 · 补充 1");
+  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]).replace(/ +/g, " "), "提报 1 · P1 #2240 · 汇总 +2 · 补充 1");
+  const issueLink = find(newest, (p) => p.href !== undefined)[0];
+  assert.equal(issueLink.type, "a", "filing evidence has an exit to the actual finding");
+  assert.equal(issueLink.props.href, "https://github.com/KCNyu/clawock/issues/2240");
+  assert.match(issueLink.props["aria-label"], /P1 #2240/);
+  assert.equal(find(newest, (p) => p["data-severity"] === "P1").length, 1, "severity is text and a paint role");
   assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
   assert.match(texts(patrolFolds[1]), /preempting patrol-recent-1: b-1 is waiting for its agent lock/, "the raw journal line is kept, folded");
   for (const fold of patrolFolds) {
@@ -3854,7 +3859,7 @@ test("provider panel: every row takes its columns from the one grid", async () =
   assert.match(rules(row + "\\.[A-Za-z0-9_-]+_tq-chip\\[data-tq-chip=status\\]"), /grid-column:5;justify-self:stretch/, "one chip width per column");
   const loaded = await loadClient();
   const api = loaded.factory((s) => { if (s === "react") return makeReactStub(); return makeRuntimeStub(); });
-  const cols = { main: "2/5", when: "2/3", took: "3/4", aside: "5/6" };
+  const cols = { main: "2/5", full: "2/6", when: "2/3", took: "3/4", aside: "5/6" };
   for (const [slot, cell] of Object.entries(api.FACT_CELL)) {
     const [from, to] = cols[cell.track].split("/");
     const placed = css.match(new RegExp(`_tq-row>(?::is\\([^)]*)?\\[data-tq-fact=${slot}\\][^{]*\\{([^}]*)\\}`))?.[1] ?? "";
@@ -4057,6 +4062,11 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     const popover = find(render(), (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
     const reply = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
 
+    assert.ok(reply.some((line) => /还剩 1 小时/.test(line)), "next-round wait has remaining time as well as the scheduled clock");
+    const overdue = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
+      queue: { ...QUEUE, patrol: { ...QUEUE.patrol, untilMs: now - 60000 } }, queueError: null }, t, now);
+    assert.match(overdue, /已到计划时间/, "a due round is not promised to have started");
+    assert.doesNotMatch(overdue, /还剩 -/, "no negative countdown");
     const rows = find(popover, (p) => p["data-tq-row"] !== undefined);
     assert.ok(rows.length >= 8, `the fixture fills the panel (${rows.length} rows)`);
     const cell = (row, cls) => texts(find(row, (p) => new RegExp(`_tq-${cls}$`).test(p.className || "")));
