@@ -178,6 +178,14 @@ DEGRADATIONS_KEY = "degradations"
 MAX_DEGRADATIONS = 20
 
 
+def _degradation_hits(row):
+    hits = row.get('hits')
+    if isinstance(hits, list):
+        return list(hits)
+    # A legacy row gives us its last occurrence, never all of its lifetime count.
+    return [row['last_at']] if row.get('last_at') else []
+
+
 def _fold_degradations(rows):
     """One row per (kind, group): counts summed, earliest `first_at`, and the
     detail of the latest occurrence, at the position of that occurrence.
@@ -193,12 +201,18 @@ def _fold_degradations(rows):
         key = (row.get("kind"), row.get("group"))
         seen = folded.pop(key, None)
         if seen is None:
+            row = dict(row)
+            row['hits'] = _degradation_hits(row)[-256:]
+            row['hits_incomplete'] = bool(row.get('hits_incomplete')) or int(row.get('count') or 0) > len(row['hits'])
             folded[key] = row
             continue
         newer = max(seen, row, key=lambda item: str(item.get("last_at") or ""))
         firsts = [item["first_at"] for item in (seen, row) if item.get("first_at")]
         merged = dict(newer)
         merged["count"] = int(seen.get("count") or 0) + int(row.get("count") or 0)
+        merged['hits'] = sorted(_degradation_hits(seen) + _degradation_hits(row))[-256:]
+        merged['hits_incomplete'] = (bool(seen.get('hits_incomplete')) or bool(row.get('hits_incomplete'))
+                                     or merged['count'] > len(merged['hits']))
         if firsts:
             merged["first_at"] = min(firsts)
         folded[key] = merged
@@ -243,6 +257,8 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
         for row in rows:
             if row.get("kind") == kind and row.get("group") == group:
                 row["count"] = int(row.get("count") or 0) + 1
+                row['hits'] = (row.get('hits', []) + [now])[-256:]
+                row['hits_incomplete'] = bool(row.get('hits_incomplete')) or row['count'] > len(row['hits'])
                 row["last_at"] = now
                 row["detail"] = str(detail)
                 # Recurring moves the row to the newest end, or the ring below
@@ -253,7 +269,7 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
                 break
         else:
             row = {"kind": kind, "detail": str(detail), "count": 1,
-                   "first_at": now, "last_at": now}
+                   "first_at": now, "last_at": now, "hits": [now], "hits_incomplete": False}
             if group is not None:
                 row["group"] = group
             rows.append(row)

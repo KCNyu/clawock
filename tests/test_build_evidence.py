@@ -423,3 +423,17 @@ def test_activation_values_are_printed_for_a_reader_not_as_python():
     assert ev._plain([-0.057161, -0.003202]) == "[-0.05716, -0.003202]"
     assert (ev._plain(False), ev._plain(True)) == ("否", "是")
     assert ev._plain("none_detected") == "none_detected" and ev._plain(12) == "12"
+
+
+def test_absent_cards_keep_the_full_ledger_visible(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(ev, 'CARDS', tmp_path)
+    monkeypatch.setattr(ev, 'WS', tmp_path)
+    monkeypatch.setattr(ev, 'ARTIFACT', tmp_path / 'evidence.json')
+    assert ev.main([]) == 1
+    data = json.loads(ev.ARTIFACT.read_text())
+    assert len(data['sections']) == 4
+    assert 'regime_dial_validation' in data['omitted']
+    assert 'add_alpha_walkforward' in data['omitted']
+    assert 'regime_dial_validation' in capsys.readouterr().err
+    absent = [r for r in data['sections'] if r['source'] in data['omitted']]
+    assert all(r['verdict_key'] == 'undecided' for r in absent)

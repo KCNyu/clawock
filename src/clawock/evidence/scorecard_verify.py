@@ -23,6 +23,7 @@ metric, see its source" half of #1113.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import subprocess
 import sys
@@ -108,6 +109,34 @@ def load_provenance(metrics_path: Path | str | None = None) -> dict:
     raise SystemExit(f'no decision_metrics.provenance in {path}')
 
 
+def materialize_view(provenance, source_rows):
+    """Replay the named view in memory; never write the source ledger."""
+    ledger = provenance.get('ledger') or {}
+    if ledger.get('view') != 'in_memory_settled':
+        return source_rows, []
+    window = provenance.get('window') or {}
+    fields = tuple(ledger.get('fields') or prov.CONSUMED_FIELDS)
+    source_digest = (prov.settlement_source_digest
+                     if ledger.get('source_projection') == 'all_non_evaluation_fields'
+                     else lambda rows: prov.rows_digest(rows, fields))
+    actual_slice = source_digest(prov.slice_rows(
+        source_rows, window['cutoff'], window.get('last_plan_date')))
+    actual_all = source_digest(source_rows)
+    checks = [
+        {'name': 'ledger.source_slice_digest',
+         'status': 'pass' if actual_slice == ledger.get('source_slice_digest') else 'fail',
+         'expected': ledger.get('source_slice_digest'), 'actual': actual_slice},
+        {'name': 'ledger.source_digest',
+         'status': ('pass' if actual_all == ledger.get('source_digest') else
+                    'moved' if len(source_rows) > ledger.get('rows_total', 0) else 'fail'),
+         'expected': ledger.get('source_digest'), 'actual': actual_all},
+    ]
+    from clawock.decision.ledger import settle_decisions
+    effective = copy.deepcopy(source_rows)
+    settle_decisions(effective, now_date=ledger.get('settlement_day'))
+    return effective, checks
+
+
 def _print_checks(title: str, result: dict) -> None:
     print(title)
     for check in result['checks']:
@@ -143,7 +172,10 @@ def main(argv=None) -> int:
         return 0
 
     decisions = load_ledger(args.ledger, args.ref)
+    decisions, source_checks = materialize_view(provenance, decisions)
     result = prov.verify(provenance, decisions)
+    result['checks'] = source_checks + result['checks']
+    result['ok'] = result['ok'] and all(c['status'] != 'fail' for c in source_checks)
     if args.recompute:
         headline = recompute_headline(provenance, decisions)
         result = {'ok': result['ok'] and headline['ok'],

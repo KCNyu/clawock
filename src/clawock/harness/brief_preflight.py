@@ -1426,10 +1426,17 @@ def evidence_node():
     # 产物是 assets/data/evidence.json（看板 Reflect 读它），markdown 页同源保留。
     issues = []
     try:
-        subprocess.run(clawock_argv('evidence'),
-                       capture_output=True, text=True, timeout=60, check=False)
+        result = subprocess.run(clawock_argv('evidence'),
+                                capture_output=True, text=True, timeout=60, check=False)
+        if result.returncode:
+            detail = f'evidence exit {result.returncode}: {result.stderr[-600:]}'
+            print(f'   ⚠ {detail}')
+            workflow_outcomes.note_degradation(None, 'evidence_unavailable', detail)
     except Exception as e:
-        print(f'   ⚠ evidence page rebuild failed: {e}')
+        detail = f'evidence page rebuild failed: {e}'
+        print(f'   ⚠ {detail}')
+        workflow_outcomes.note_degradation(None, 'evidence_unavailable', detail)
+    # Optional research evidence is visible as degraded, never a daily delivery blocker.
     return None, issues
 
 

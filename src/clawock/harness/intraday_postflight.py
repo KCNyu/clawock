@@ -42,6 +42,7 @@ the existing single publisher exposes without introducing another git writer.
 
 import argparse
 import json
+import math
 import re
 import sys
 from datetime import datetime, timezone
@@ -252,34 +253,67 @@ def _context_tickers(ctx):
     return {str(name) for name in names if name and name != '代码'}
 
 
-def _context_numbers(ctx):
-    """Every number the context states, as JSON values or inside its text."""
-    seen = set()
+def _subject_prices(ctx, subject):
+    """Only the named subject's quoted prices and explicit plan levels.
 
-    def walk(value):
+    Shares, P&L, dates, unrelated tickers and prose numbers are not prices.
+    A proposed near-market level may be within 5% of a current quote; farther
+    levels must already be explicitly sourced to this subject in the context.
+    """
+    from clawock.harness._harness_common import parse_holdings_rows
+    aliases = {
+        '恒科': ('hstech', '恒生科技'), '恒生科技': ('hstech', '恒科'),
+        '恒指': ('hsi', '恒生指数'), '恒生指数': ('hsi', '恒指'),
+        '标普': ('spx', 'spy'), '纳指': ('ndx', 'nasdaq'),
+    }
+    names = (subject.lower(), *aliases.get(subject, ()))
+    levels, current = set(), set()
+    keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
+            'support', 'resistance', 'price_above', 'price_below'}
+
+    def number(value, target):
         if isinstance(value, bool):
             return
-        if isinstance(value, (int, float)):
-            seen.add(round(abs(float(value)), 4))
-        elif isinstance(value, str):
-            for whole, frac in _TRIGGER_NUMBER.findall(value):
-                seen.add(round(float((whole + frac).replace(',', '')), 4))
-        elif isinstance(value, dict):
-            for item in value.values():
-                walk(item)
+        try:
+            n = float(value)
+            if math.isfinite(n) and n > 0:
+                target.add(round(n, 4))
+        except (ValueError, TypeError):
+            pass
+
+    def walk(value, belongs=False):
+        if isinstance(value, dict):
+            identity = str(value.get('ticker') or value.get('symbol') or value.get('label') or '').lower()
+            if identity:
+                belongs = identity in names
+            for key, child in value.items():
+                named = any(name == key.lower() or key.lower().startswith(name + '_') for name in names)
+                if belongs and key in keys:
+                    number(child, levels)
+                    if key in {'price', 'current_price', 'last'}:
+                        number(child, current)
+                elif named and not isinstance(child, (dict, list)):
+                    number(child, levels)
+                elif isinstance(child, (dict, list)):
+                    walk(child, belongs or named)
         elif isinstance(value, list):
-            for item in value:
-                walk(item)
+            for child in value:
+                walk(child, belongs)
     walk(ctx)
-    return seen
+    for block in (ctx.get('raw_wechat_block'), ctx.get('analyzer_block')):
+        for row in parse_holdings_rows(block or ''):
+            if str(row.get('ticker') or '').lower() == subject.lower():
+                number(row.get('price'), current)
+                number(row.get('price'), levels)
+    return levels, current
 
 
 def check_next_trigger(prose, ctx):
     """One escalating issue when the 下一触发 line is missing or unverifiable.
 
     Structured means each item (split on ；/ ` / `) names a subject — a ticker
-    in the context or an index — and quotes a level the context contains,
-    literally. A line that reads authoritative must be checkable; one issue
+    in the context or an index — and quotes its own sourced level or a
+    prospective level within 5% of its own current quote. A line that reads authoritative must be checkable; one issue
     for the whole line so a single bad line counts once.
     """
     line, _ = split_next_trigger(prose)
@@ -287,23 +321,28 @@ def check_next_trigger(prose, ctx):
         inline = '下一触发' in (prose or '')
         return [('「下一触发」没有单独成行' if inline else '缺「下一触发」行')
                 + '（单独一行：下一触发：<标的> <条件><价位>；…）']
-    tickers, known = _context_tickers(ctx), _context_numbers(ctx)
+    tickers = _context_tickers(ctx)
     problems = []
     for item in [part.strip() for part in _NEXT_TRIGGER_ITEM.split(line[len(NEXT_TRIGGER):])
                  if part.strip()]:
         bare = item
         for ticker in sorted(tickers, key=len, reverse=True):
             bare = bare.replace(ticker, ' ')
-        if not any(mentions_ticker(item, ticker) for ticker in tickers) and not any(
-                name in item for name in TRIGGER_INDEX_NAMES):
+        subjects = [ticker for ticker in tickers if mentions_ticker(item, ticker)]
+        subjects += [name for name in TRIGGER_INDEX_NAMES if name in item]
+        if not subjects:
             problems.append(f'无标的「{item[:16]}」')
         numbers = [whole + frac for whole, frac in _TRIGGER_NUMBER.findall(bare)]
         if not numbers:
             problems.append(f'无价位「{item[:16]}」')
-        missing = [raw for raw in numbers
-                   if round(float(raw.replace(',', '')), 4) not in known]
+        prices = [_subject_prices(ctx, subject) for subject in subjects]
+        missing = [raw for raw in numbers if not any(
+            round(float(raw.replace(',', '')), 4) in levels or any(
+                abs(float(raw.replace(',', '')) / quote - 1) <= 0.05
+                for quote in current)
+            for levels, current in prices)]
         if missing:
-            problems.append(f"价位不在 context：{'、'.join(missing[:3])}")
+            problems.append(f"价位无本标的依据或超出当前价 ±5%：{'、'.join(missing[:3])}")
     if not problems:
         return []
     return ['「下一触发」无法核对（' + '；'.join(problems[:3]) + '）']

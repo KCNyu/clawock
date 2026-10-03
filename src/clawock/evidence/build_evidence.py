@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from clawock.safe_io import safe_write_json
@@ -437,6 +438,7 @@ def payload(sections: list[dict], generated_at: str) -> dict:
     """
     return {
         'schema_version': 1,
+        'omitted': [s['source'] for s in sections if s.get('unavailable')],
         'generated_at': generated_at,
         'note': (
             'every figure here is read from an artifact at generation time; the '
@@ -471,9 +473,17 @@ def build() -> str:
 
 
 def _sections() -> list[dict]:
-    builders = (dial_section, factor_section, cross_sectional_section,
-                add_alpha_section)
-    return [section for section in (build() for build in builders) if section]
+    builders = (
+        (dial_section, '杠杆刻度盘（生产 tier 映射）', 'regime_dial_validation'),
+        (factor_section, '量化因子 edge', 'quant_signal_review'),
+        (cross_sectional_section, '截面因子（预注册）', 'cross_sectional_factor'),
+        (add_alpha_section, '低频加仓交互（新 campaign）', 'add_alpha_walkforward'),
+    )
+    return [builder() or {
+        'title': title, 'verdict': VERDICT['undecided'], 'sample': '证据不可读',
+        'source': source, 'reading': '输入缺失或不可读；不能据此判断通过或失败。',
+        'rows': [('输入', source)], 'unavailable': True,
+    } for builder, title, source in builders]
 
 
 def _generated_at() -> str:
@@ -497,7 +507,10 @@ def main(argv=None) -> int:
     ).parse_args(argv)
     artifact = write_all()
     print(f'wrote {artifact.relative_to(WS)} ({artifact.stat().st_size} bytes)')
-    return 0
+    missing = json.loads(artifact.read_text()).get('omitted') or []
+    for name in missing:
+        print(f'evidence unavailable: {name}', file=sys.stderr)
+    return 1 if missing else 0
 
 
 if __name__ == '__main__':

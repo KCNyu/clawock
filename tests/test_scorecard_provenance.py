@@ -284,3 +284,36 @@ def test_a_block_published_before_a_field_joined_verifies_over_its_own_fields(le
     block["ledger"]["digest"] = prov.rows_digest(ledger, older)
 
     assert prov.verify(block, ledger)["ok"]
+
+
+def test_in_memory_settlement_is_replayed_without_changing_source(monkeypatch):
+    source = [decision('2026-07-02')]
+    settled_evaluation = copy.deepcopy(source[0]['evaluation'])
+    source[0]['evaluation'] = {'status': 'pending'}
+    before = copy.deepcopy(source)
+
+    def settle(rows, now_date=None):
+        rows[0]['evaluation'] = copy.deepcopy(settled_evaluation)
+
+    monkeypatch.setattr(dv2, 'settle_decisions', settle)
+    effective = copy.deepcopy(source)
+    settle(effective)
+    block = metrics_for(effective)['provenance']
+    prov.record_settlement_view(block, source)
+    replay, source_checks = scorecard_verify.materialize_view(block, source)
+    assert source == before
+    assert all(c['status'] == 'pass' for c in source_checks)
+    assert prov.verify(block, replay)['ok']
+    assert scorecard_verify.recompute_headline(block, replay)['ok']
+    already_graded = copy.deepcopy(source)
+    settle(already_graded)
+    _, graded_checks = scorecard_verify.materialize_view(block, already_graded)
+    assert all(c['status'] == 'pass' for c in graded_checks)
+    # Different condition levels/shares are source changes even before replay.
+    changed_inputs = copy.deepcopy(source)
+    changed_inputs[0]['condition']['price'] = 12.0
+    _, input_checks = scorecard_verify.materialize_view(block, changed_inputs)
+    assert any(c['status'] == 'fail' for c in input_checks)
+    source[0]['confidence'] = 0.9
+    _, changed = scorecard_verify.materialize_view(block, source)
+    assert any(c['status'] == 'fail' for c in changed)

@@ -960,11 +960,49 @@ def _assert_dashboard_derived_money(data: dict) -> None:
             f'concentration prints {weights[ticker] * 100:.2f}% for the same position')
 
 
+def validate_dashboard_companions(manifest: Path | str) -> None:
+    outputs = json.loads(Path(manifest).read_text())['outputs']
+    checked = {'assets/data/dashboard.json', 'assets/data/overview.json'}
+    for filename in outputs:
+        if filename in checked:
+            continue
+        try:
+            data = json.loads(Path(filename).read_text())
+            assert isinstance(data, dict) and data, 'empty or non-object payload'
+            if filename == 'assets/data/decision_audit.json':
+                assert data.get('schema_version') == 1, 'schema_version must be 1'
+                assert isinstance(data.get('episode_backtest'), dict), 'episode_backtest missing'
+                assert isinstance(data['episode_backtest'].get('horizons'), dict), 'horizons missing'
+                assert 't1' in data['episode_backtest']['horizons'], 'T+1 missing'
+                assert isinstance(data.get('timing_diagnostic'), dict), 'timing_diagnostic missing'
+            elif filename == 'assets/data/shadow_portfolio.json':
+                if data.get('computed') is False:
+                    assert isinstance(data.get('error'), str) and data['error'], 'degraded marker needs error'
+                    continue
+                assert data.get('schema_version') == 1, 'schema_version must be 1'
+                assert isinstance(data.get('curves'), dict), 'curves missing'
+                assert isinstance(data.get('coverage'), dict), 'coverage missing'
+            elif filename == 'assets/data/decision_trail.json':
+                assert isinstance(data.get('decision_traces'), list), 'decision_traces missing'
+                assert all(isinstance(r, dict) for r in data['decision_traces']), 'invalid trace row'
+                assert isinstance(data.get('plan_timeline'), list), 'plan_timeline missing'
+                assert all(isinstance(r, dict) for r in data['plan_timeline']), 'invalid timeline row'
+                scope = data.get('decision_trace_scope')
+                assert isinstance(scope, dict), 'decision_trace_scope missing'
+                assert scope.get('fillsShown') == len(data['decision_traces']), 'fillsShown mismatch'
+            else:
+                raise AssertionError('manifest member has no validator')
+            datetime.fromisoformat(data['as_of'].replace('Z', '+00:00'))
+        except (OSError, ValueError, KeyError, TypeError, AssertionError) as exc:
+            raise AssertionError(f'{filename}: {exc}') from None
+
+
 def validate_dashboard(
         path: Path | str = 'assets/data/dashboard.json', *,
         portfolio_path: Path | str | None = None,
         fx_path: Path | str | None = None,
-        overview_path: Path | str | None = None) -> None:
+        overview_path: Path | str | None = None,
+        outputs_manifest: Path | str | None = None) -> None:
     """Validate the committed, public full cross-tab dashboard payload.
 
     This intentionally uses only the standard library so a dashboard-only push
@@ -973,6 +1011,8 @@ def validate_dashboard(
     property, so this gate validates the timestamp but does not compare it with
     wall-clock time.
     """
+    if outputs_manifest is not None:
+        validate_dashboard_companions(outputs_manifest)
     path = Path(path)
     assert path.is_file(), f'dashboard payload missing: {path}'
     try:
@@ -1169,6 +1209,7 @@ def _dispatch(name: str) -> None:
             portfolio_path='portfolio.json',
             fx_path='.cache/fx_rate.json',
             overview_path='assets/data/overview.json',
+            outputs_manifest='config/dashboard-outputs.json',
         )
     elif name == 'coverage':
         validate_coverage_badge('assets/data/coverage.json')
