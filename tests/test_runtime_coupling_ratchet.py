@@ -425,6 +425,9 @@ def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
 # of these is parameterised its entry has to go, so the list cannot outlive its
 # reason.
 HOST_OWNED_SHELL = {
+    "ops/host/install_skillhub_plugin.sh": (
+        3, "host extension installer: owns the OpenClaw state-directory copy, "
+        "byte verification and recovery pair; no product-runtime dependency"),
     "ops/publish/publish_dashboard.sh": (
         1, "the host publisher: WS is this machine's live checkout, which is "
            "what ops/publish/ is defined to own"),
