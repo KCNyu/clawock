@@ -292,7 +292,7 @@ def test_in_memory_settlement_is_replayed_without_changing_source(monkeypatch):
     source[0]['evaluation'] = {'status': 'pending'}
     before = copy.deepcopy(source)
 
-    def settle(rows):
+    def settle(rows, now_date=None):
         rows[0]['evaluation'] = copy.deepcopy(settled_evaluation)
 
     monkeypatch.setattr(dv2, 'settle_decisions', settle)

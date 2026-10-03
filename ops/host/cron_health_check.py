@@ -111,7 +111,7 @@ def health_schedule_day(now, *, scheduled=False):
 def runs_finished_today(job_id, provider=None, *, day=None):
     """How many times the job finished OK today, per the run-history provider.
 
-    ADVISORY ONLY. It answers a different question from counting commits — "did
+    Advisory for output-producing jobs. It answers a different question from counting commits — "did
     the job run" rather than "did the job produce" — and the two can legitimately
     disagree: a run that finishes clean but writes nothing is healthy here and
     missing there, and a cron status can itself be falsely red when a mid-run
@@ -777,7 +777,7 @@ def main():
         commit_pat = COMMIT_PATTERNS.get(name)
         verify_date = expected_day.astimezone(HKT).date()
         commit_n = commit_count_on(commit_pat, verify_date)
-        # Advisory second evidence source (#262). Reported, never acted on.
+        # Secondary execution evidence (#262); authoritative only for no-change Dreaming.
         runs_n = runs_finished_today(job.get('id'), day=verify_date)
 
         # Holiday gate: don't expect a commit from a 港股*/美股* report on that market's
@@ -885,7 +885,7 @@ def main():
             'tz': tz,
             'expected_today': len(expected_past),
             'commits_today': commit_n,
-            # `runs_today` is the run-history provider's answer and is advisory:
+            # `runs_today` is advisory for jobs with an output contract:
             # it is here to be compared with `commits_today` over time, not to
             # decide anything. `None` = the provider had nothing to say.
             'runs_today': runs_n,

@@ -247,11 +247,12 @@ def build(decisions, *, window_days: int, cutoff: str, counts: dict,
     }
 
 
-def record_settlement_view(provenance, source_rows):
+def record_settlement_view(provenance, source_rows, *, settlement_day=None):
     """Bind the effective in-memory scorecard to its unmodified public source."""
     ledger = provenance['ledger']
     window = provenance['window']
     ledger['view'] = 'in_memory_settled'
+    ledger['settlement_day'] = settlement_day or provenance['generated_at'][:10]
     ledger['source_digest'] = rows_digest(source_rows)
     ledger['source_slice_digest'] = rows_digest(slice_rows(
         source_rows, window['cutoff'], window.get('last_plan_date')))

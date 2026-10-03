@@ -4440,7 +4440,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
     _source_decisions = copy.deepcopy(_decisions)
-    decision_v2.settle_decisions(_decisions)
+    _settlement_day = hkt_today().isoformat()
+    decision_v2.settle_decisions(_decisions, now_date=_settlement_day)
     # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
     # The full per-decision `records` trail (~700KB, recomputable from decisions)
     # is not rendered or linked anywhere, so it stays unpublished.
@@ -4454,7 +4455,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_metrics'] = trim_decision_metrics(
         decision_v2.compute_metrics(_decisions))
     scorecard_provenance.record_settlement_view(
-        out['decision_metrics']['provenance'], _source_decisions)
+        out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of
     # this file could make: dashboard.json is public, so the retired figure was still

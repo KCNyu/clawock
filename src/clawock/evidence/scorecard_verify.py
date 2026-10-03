@@ -130,7 +130,7 @@ def materialize_view(provenance, source_rows):
     ]
     from clawock.decision.ledger import settle_decisions
     effective = copy.deepcopy(source_rows)
-    settle_decisions(effective)
+    settle_decisions(effective, now_date=ledger.get('settlement_day'))
     return effective, checks
 
 
