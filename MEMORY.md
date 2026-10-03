@@ -4,9 +4,9 @@
 
 ### 持仓分析风格
 - **直接分析当前持仓**：用 `portfolio.json` 成本 vs 实时价计算盈亏
-- 忽略 `trades` 字段的历史操作，focus 当前仓位
+- focus 当前仓位，不用历史操作代替当前持仓；当日盈亏仍须使用行情交易日的成交记录，口径见 `docs/architecture/harness.md` 的 day P&L owner
 - 简洁直接，不交代背景
-- **风险偏好：激进型**，可用现金约 15万人民币（≈$20,500 USD）
+- **风险偏好：激进型**；可用现金读 `portfolio.json`，不在长期记忆维护金额副本
 - **重点：港股**（持仓、节奏、机会），美股作为补充观察
 - 表格优先，能用结构化展示就不用大段文字
 - **仓位策略：2026-07-08 起偏好集中，不散着玩** —— 资金归拢到少数大仓位，不要摊成一堆小票。
@@ -31,7 +31,7 @@
 
 ### 1. 不用缓存价
 - **禁止用 portfolio.json 的 `current_price` 计算盈亏** — 那是上次更新的旧数据
-- 必须先跑 `clawock analyze-us` / `clawock analyze-hk`（fallback 链详情见 `TOOLS.md` § 数据源清单）
+- 必须先跑 `clawock analyze-us` / `clawock analyze-hk`（fallback 链详情见 `docs/reference/tool-operations.md` § 数据源清单）
 - 所有源均失败 → 明确说"数据获取失败，以下为旧数据"，**禁止静默使用**
 - 数据成功后 → 更新 `portfolio.json` + git commit
 - 教训：2026-05-11 用缓存价 RKLB 写成 $110 vs 实时 $118，盈利 +$790 错写成 +$550
@@ -50,7 +50,7 @@
 - **Vibe-Research 数据源审计（2026-07-11）**：kcn 让学 github.com/simonlin1212/Vibe-Research（A股40端点 + 美港18端点）。结论=**其可达的源我们已全覆盖且多数更优**——① 美股基本面它用 Yahoo quoteSummary，我们用 `clawock filings`（SEC EDGAR XBRL，零 auth 政府源，已接进 brief_preflight）+ `clawock fundamentals`（东财 GMAININDICATOR/三表，US+HK，实测 200 可达）双保险，比它稳；② β 它拉 Yahoo 单股发布值，我们 `clawock portfolio-risk` 用真实收益率算组合级 Cov/Var vs SPX/HSI（>3.0 硬闸），更严谨；③ 美港资金流我们有 `clawock fundflow`。**唯一真缺口=analyst 一致预期（目标价/评级/升降级历史），是 Yahoo quoteSummary 独家 → 本机实测 429（连 crumb 端点都限），建了也不可靠 → 暂不建**。副产：`cls_telegraph()`（财联社快讯）已 404 下线别再试；它东财全系用 `em_get()` 串行≥1s+随机0.1-0.5s 抖动，比我们粗暴 sleep 好，将来 fetcher 防封可抄这个抖动策略
 
 ### 4. 数字与断言铁律（钱相关，kcn 反复当场抓错 → 列为硬闸）
-- **成本基准只认 `portfolio.json` holdings[].cost（实际买入价）**：浮盈/浮%/今日盈亏/盈亏金额一律以它为基准。**绝不**用 IPO 参考价/上市首日价/前收/现价冒充成本。教训：SPCX 用 IPO 参考价当 prev_close 算出错误 `today_change +135`，kcn 当场抓。
+- **成本基准只认 `portfolio.json` holdings[].cost（实际买入价）**：当前仓位浮盈/浮%以它为基准；**当日盈亏另按行情交易日的前收与当日成交计算**，唯一实现是 `portfolio/math.day_pnl`（owner 见 `docs/architecture/harness.md`），不得用成本或 IPO 参考价替代前收。**绝不**用 IPO 参考价/上市首日价/前收/现价冒充成本。教训：SPCX 用 IPO 参考价当 prev_close 算出错误 `today_change +135`，kcn 当场抓。
 - **状态断言先核实数再说，禁编造**："新高/历史最高/历史低位/XX 区域/突破/接近前高"这类话**必须先核 `memory/snapshots/` + `portfolio.json` 真实数字**才能下；不许凭记忆、语感或新闻语气脑补。不确定就写"待核"，别给一个听起来对的假断言。教训：RKLB「新高区域」纯属编造被 kcn 抓。
 - **每个关键数字能指出来源 file:field**（成本→holdings、前收→Polygon `/prev`、市值→total_current_value…）；报数字时心里先过一遍来源，报不出来源的数字不报。
 
@@ -71,6 +71,8 @@
 ---
 
 ## 时区
+
+这些交易时区原则保留在本文件；精确调度以 `config/cron-schedules.json` 为唯一权威，`docs/operations/cron-schedules.md` 仅为生成视图。
 - 港股：HKT 09:30-12:00 / 13:00-16:00（北京时间同）
 - 美股：ET 09:30-16:00；对应北京时间随 EDT/EST 自动切换，禁止写死 21:30~04:00
 - 判断美股阶段优先用 ET；精确 HKT cron 见自动生成的 `docs/operations/cron-schedules.md`
@@ -94,10 +96,10 @@
 - 查 gateway → `curl http://127.0.0.1:18789/health`。
 
 ### ⚠️ brief 投递铁律 — WeChat 只发紧凑卡 + 链接，**绝不贴完整 brief 全文**
-- **brief cron Step 4 写紧凑卡，Step 5 postflight 主发**：卡片只含核心结论 + Book + ≤3 动作 + 触发位 + 当日全文链接；LLM 最终回复仅留痕，不调 message 工具。
+- **brief cron Step 4 写受限 judgment，Step 5 postflight 渲染紧凑卡并主发**：卡片只含核心结论 + Book + ≤3 动作 + 触发位 + 当日全文链接；LLM 最终回复仅留痕，不调 message 工具。
 - **绝不把 pre-open.md 全文(~14-17KB)糊进微信。** 完整 brief 照常写进 pre-open.md → commit → dashboard/briefs 页看（深度不变，全文不裁）。
 - **教训：2026-05-31** 让 mimo 把完整 brief 作为最终消息吐出 → **复读死循环**（"Now let me output the WeChat message…"复读几十遍被当回复发出，kcn 收到一屏垃圾），2 次实测都犯。**根因=mimo 在长输出上 commit 不下来**，不是 size 也不是措辞；**短卡片 = 物理上不会 loop**（已验证干净投递）。`delivered=true` 对 brief 不可信（同 report stub 坑）。
-- **兜底**：安装命令 `clawock-brief-watchdog`（系统 crontab 08:30 HKT 工作日）读取 postflight delivery marker；Telegram 已成功则不动，marker 缺失/失败才补投 Telegram。它不再重发 WeChat，也不靠截断的 run summary 猜成败。
+- **兜底**：安装命令 `clawock-brief-watchdog`（档位由 `config/cron-schedules.json` 声明，见 `docs/operations/cron-schedules.md`）读取 postflight delivery marker；Telegram 已成功则不动，marker 缺失/失败才补投 Telegram。同 slot marker 明确记录微信失败时只补发一次；marker 缺失/过期/身份不符不猜微信成败，也不靠截断的 run summary。
 - WeChat 通道正常（手动 `openclaw message send` 即时送达）；冷会话静默丢弃见 cold-session 坑（本次不是）。
 - briefs 页 7 列表格在 mobile 横向滚动（`site/_layouts/default.html` @media≤600px：table display:block+overflow-x:auto），不撑破布局。
 
@@ -120,22 +122,5 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-10-02)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-09-24-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-24 周四 08:03 HKT description: "clawock 盘前深度简报 2026-09-24：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-09-24-pre-open.md:2-4]
-
-## Promoted From Short-Term Memory (2026-10-03)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-28 周一 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.807 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-09-28 周一 08:03 HKT: 今天要动的是仓位结构，不是观点。港股这一侧已经顶在上限边缘、无可执行空间；美股这一侧一只 2x 杠杆占了整段的绝大部分、且对大盘的敏感度已经超过上限，所以清掉它、反弹里减半另一只。今天唯一继续挂着不动的，是那笔选了 46 天没执行的杠杆仓。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-09-28 周一 08:03 HKT: **反方**：最强反方：美股段的减仓正好砍在商业航天动量最强的一侧，而情绪指标显示恐慌度在快速修复、波动率在降、清算压力在减，这时候降杠杆是卖在情绪转折前。回应是这条减仓的依据不是预测，是敞口结构本身已经越界，反方给的是持有理由，给不出的是为什么单名占比可以长期停在强制线之上。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-28-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-28 周一 08:03 HKT description: "clawock 盘前深度简报 2026-09-28：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-28-pre-open.md:2-4]
+runtime 自动晋升片段在审阅前只作候选，score 高不等于已核实的长期规则。审阅时保留可跨日期复用的具体教训，
+拒收 front matter / HTML / 当日价格与仓位动作；相同来源的候选不能替代独立证据。
