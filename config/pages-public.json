@@ -69,6 +69,7 @@
     "assets/data/repo-traffic.json",
     "assets/data/schedule-drift.json",
     "memory/*.jsonl",
-    "tests/**"
+    "tests/**",
+    "assets/data/crawl_visibility_summary.json"
   ]
 }

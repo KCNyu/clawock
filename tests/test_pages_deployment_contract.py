@@ -286,6 +286,7 @@ def _stage_publishable_site(site):
     """
     shutil.copytree(ROOT / "site/assets", site / "assets")
     _copy_repo_data(site / "assets/data")
+    (site / "assets/data/crawl_visibility_summary.json").write_text("{}")
     (site / "index.html").write_text("ok")
     for path in (
         "briefs.html", "faq.html", "llms.txt",
@@ -331,6 +332,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     output = tmp_path / "_pages"
     shutil.copytree(ROOT / "site/assets", site / "assets")
     _copy_repo_data(site / "assets/data")
+    (site / "assets/data/crawl_visibility_summary.json").write_text("{}")
     (site / "index.html").write_text("ok")
     for path in (
         "briefs.html", "faq.html", "llms.txt",
@@ -386,6 +388,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
         text=True,
     )
 
+    assert not (output / "assets/data/crawl_visibility_summary.json").exists()
     assert (site / "assets/dashboard.gif").is_file()
     assert list((site / "assets/data").glob("*.jsonl"))
     assert (output / "assets/dashboard.gif").stat().st_size == source_gif_size
