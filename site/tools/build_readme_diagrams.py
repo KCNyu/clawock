@@ -363,7 +363,7 @@ def harnesses():
           'squash merge and host refresh; these are its delivery instructions, not automatic '
           'plugin actions. The runner records the report and sends best-effort WeChat and '
           'Telegram notifications, with delivery receipts visible in the panel. The queue '
-          'overview is an explicitly labelled editable schematic; the README retains the real full-size capture.')
+          'image is an existing full-frame capture from a live host, not an example result.')
     d.logo('deepseek-harness', W - M - 34, 26)
     y = d.header('CLAWOCK-DSH · YOUR BACKGROUND TEAM',
                  ['Delegate the work.', 'Keep the controls.'],
@@ -385,9 +385,9 @@ def harnesses():
              'Open a PR; merge after required checks pass,',
              'refresh the live checkout and send me the result.”'], where='request')
     top = y + h
-    y = top + 60
+    y = top + 80
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
-    d.chapter_link(W / 2, top, y, source='request', target='runner', pulses=(0, 1.1))
+    d.down(480, top, y, pulses=(0, 1.1), source='request', target='runner')
     h = 94
     d.card(M, y, CW, h, 'blue', node='runner')
     d.icon('terminal', M + 20, y + 16, size=28)
@@ -396,7 +396,7 @@ def harnesses():
     d.lines(M + 20, y + 61, CW - 40,
             ['One systemd task per request; independent of chat.'], cls='m', where='runner')
     top = y + h
-    y = top + 40
+    y = top + 48
     xs, cw = columns(3)
     h = 122
     for i, (x, (logo, name)) in enumerate(zip(xs, (
@@ -411,29 +411,24 @@ def harnesses():
         d.text(x + cw / 2, y + 104, 'own task unit', 'm', anchor='middle', fill=MUT)
         fits('own task unit', 'm', cw - 12, 'worker')
     top = y + h
-    y = top + 56
+    y = top + 80
     for i, x in enumerate(xs):
-        d.chapter_link(x + cw / 2, top, y, source=('claude-worker','codex-worker','opencode-worker')[i], target='sidebar', pulses=(), pulse=ROLE['slate'])
+        d.wire(f'M{x + cw / 2:g} {top:g}V{top + 16:g}'
+               f'Q{x + cw / 2:g} {top + 24:g} {x + cw / 2 + 8:g} {top + 24:g}'
+               f'H472Q480 {top + 24:g} 480 {top + 32:g}V{y + 5:g}',
+               pulses=(), source=('claude-worker','codex-worker','opencode-worker')[i], target='sidebar')
 
     d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
-    h = 688
+    shot_w = 224
+    shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
+    shot_h = shot_w * shot_ih / shot_iw
+    h = shot_h + 92
     d.card(M, y, CW, h, 'violet', node='sidebar')
     d.icon('dashboard', M + 20, y + 14, 'violet')
     d.text(M + 50, y + 32, 'Your team, at a glance', 'h')
-    d.tag(W - M - 16, y + 30, 'SCHEMATIC', 'violet', anchor='end')
-    d.text(M + 20, y + 58, 'Editable overview · real capture below the hero', 'm', fill=MUT)
-    for i, (state, name, role, icon) in enumerate((
-            ('RUNNING', 'Codex', 'blue', 'terminal'),
-            ('QUEUED', 'Claude Code', 'slate', 'clock'),
-            ('QUOTA WAIT', 'OpenCode', 'warm', 'clock'))):
-        yy = y + 78 + i * 82
-        d.card(M + 16, yy, CW - 32, 68, role, tint=True)
-        d.icon(icon, M + 30, yy + 16, role, size=24)
-        d.text(M + 68, yy + 29, name, 'b')
-        d.tag(W - M - 30, yy + 28, state, role, anchor='end')
-        d.text(M + 68, yy + 51, ('independent task · open log', 'waiting order · move priority',
-                                  'allowance reset · resume budget')[i], 'm', fill=MUT)
-    tx, room = M + 20, 190
+    d.tag(W - M - 16, y + 30, 'LIVE-HOST CAPTURE', 'violet', anchor='end')
+    d.screenshot('dsh-dispatch-queue.png', M + 12, y + 48, shot_w)
+    tx, room = M + 254, CW - 270
     facts = [
         ('clock', 'Allowances', ['5h + weekly use', 'and reset times.'], 'warm'),
         ('terminal', 'Real queue order', ['Running, queued,', 'or waiting for quota.'], 'blue'),
@@ -443,16 +438,15 @@ def harnesses():
         ('checks', 'See the receipts', ['Report status and', 'notification delivery', 'shown separately.'], 'green'),
     ]
     for i, (icon, title, rows, role) in enumerate(facts):
-        xx = tx + (i % 2) * 222
-        yy = y + 350 + (i // 2) * 102
-        d.icon(icon, xx, yy, role, size=22)
-        d.text(xx + 30, yy + 20, title, 'b')
+        yy = y + 68 + i * 112
+        d.icon(icon, tx, yy, role, size=24)
+        d.text(tx, yy + 44, title, 'b')
         fits(title, 'b', room, 'queue title')
-        d.lines(xx, yy + 46, room, rows, cls='m', lh=19, where='queue detail')
-    d.text(M + 20, y + h - 20, 'Queue states are illustrative · full-size capture in README', 'm', fill=MUT)
+        d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
+    d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
-    y = top + 60
-    d.chapter_link(W / 2, top, y, source='sidebar', target='repo-task', pulses=(0, 1.1), pulse=ROLE['green'])
+    y = top + 80
+    d.down(480, top, y, pulses=(0, 1.1), pulse=ROLE['green'], source='sidebar', target='repo-task')
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
     h = 138
@@ -471,7 +465,7 @@ def harnesses():
             d.wire(f'M{x - 18 - cw / 2 + (8 if i == 1 else 12):g} {y + 34:g}H{x + cw / 2 - 10:g}', pulses=(i * .4,), dur=1.2,
                    pulse=ROLE['green'], source=('branch-pr','required-ci')[i-1], target=('required-ci','squash-merge')[i-1])
     top = y + h
-    y = top + 38
+    y = top + 48
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['green'], source='repo-task', target='live')
     h = 92
     d.card(M, y, CW, h, 'green', tint=True, node='live')
@@ -480,8 +474,8 @@ def harnesses():
     d.text(M + 74, y + 63, 'refresh_live.sh applies the checked change', 'm', fill=MUT)
     fits('refresh_live.sh applies the checked change', 'm', CW - 94, 'live')
     top = y + h
-    y = top + 60
-    d.chapter_link(W / 2, top, y, source='live', target='receipts', pulses=(0, 1.1))
+    y = top + 80
+    d.down(480, top, y, pulses=(0, 1.1), source='live', target='receipts')
 
     d.section(y - 12, '05 · HEAR BACK, EVEN AFTER YOU LEAVE')
     h = 160
@@ -925,12 +919,14 @@ def debate_flow():
     xs, cw = columns(3, gap=10)
     for i, (x, name) in enumerate(zip(xs, ('Aggressive', 'Conservative', 'Neutral'))):
         end = x + cw / 2
-        d.wire(f'M{end:g} {rule_bottom:g}V{rule_bottom + 6:g}'
-               f'Q{end:g} {rule_bottom + 14:g} {end - 8:g} {rule_bottom + 14:g}'
-               f'H20Q12 {rule_bottom + 14:g} 12 {rule_bottom + 22:g}'
-               f'V{y - 24:g}Q12 {y - 16:g} 20 {y - 16:g}'
-               f'H{end - 8:g}Q{end:g} {y - 16:g} {end:g} {y - 8:g}V{y + 5:g}',
-               source='opposition', target=('aggressive','conservative','neutral')[i], pulses=())
+        if i == 1:
+            d.down(260, rule_bottom, y, source='opposition', target='conservative', pulses=())
+        else:
+            direction = -1 if i == 0 else 1
+            d.wire(f'M260 {rule_bottom:g}V{y - 24:g}'
+                   f'Q260 {y - 16:g} {260 + direction * 8:g} {y - 16:g}'
+                   f'H{end - direction * 8:g}Q{end:g} {y - 16:g} {end:g} {y - 8:g}V{y + 5:g}',
+                   source='opposition', target=('aggressive','conservative','neutral')[i], pulses=())
         d.card(x, y, cw, 84, 'slate', node=('aggressive','conservative','neutral')[i])
         d.icon(('up', 'shield', 'balance')[i], x + cw / 2 - 11, y + 15, 'slate')
         fits(name, 'b', cw - 20, 'risk')
@@ -1111,13 +1107,12 @@ def decision_pipeline():
         x = lx[i % 2] + lw / 2
         if i < 2:
             rail = 32 if i == 0 else 488
-            end = 70 if i == 0 else 450
+            start = ix if i == 0 else ix + iw
+            end = ix + 8 if i == 0 else ix + iw - 8
             direction = -1 if i == 0 else 1
-            d.wire(f'M{x:g} {y + 106:g}V{y + 107:g}'
-                   f'Q{x:g} {y + 112:g} {x + direction * 5:g} {y + 112:g}'
-                   f'H{rail - direction * 5:g}Q{rail:g} {y + 112:g} {rail:g} {y + 117:g}'
-                   f'V{y + 171:g}Q{rail:g} {y + 176:g} {rail - direction * 5:g} {y + 176:g}'
-                   f'H{end - direction * 5:g}Q{end:g} {y + 176:g} {end:g} {y + 181:g}V{y + 189:g}',
+            d.wire(f'M{start:g} {y + 98:g}H{rail - direction * 4:g}'
+                   f'Q{rail:g} {y + 98:g} {rail:g} {y + 102:g}'
+                   f'V{y + 190:g}Q{rail:g} {y + 194:g} {rail - direction * 4:g} {y + 194:g}H{end:g}',
                    source=name, target='merged-table', pulses=())
         else:
             d.curve(x, y + 154, 210 if i == 2 else 310, y + 182,
