@@ -116,9 +116,12 @@ def materialize_view(provenance, source_rows):
         return source_rows, []
     window = provenance.get('window') or {}
     fields = tuple(ledger.get('fields') or prov.CONSUMED_FIELDS)
-    actual_slice = prov.rows_digest(prov.slice_rows(
-        source_rows, window['cutoff'], window.get('last_plan_date')), fields)
-    actual_all = prov.rows_digest(source_rows, fields)
+    source_digest = (prov.settlement_source_digest
+                     if ledger.get('source_projection') == 'all_non_evaluation_fields'
+                     else lambda rows: prov.rows_digest(rows, fields))
+    actual_slice = source_digest(prov.slice_rows(
+        source_rows, window['cutoff'], window.get('last_plan_date')))
+    actual_all = source_digest(source_rows)
     checks = [
         {'name': 'ledger.source_slice_digest',
          'status': 'pass' if actual_slice == ledger.get('source_slice_digest') else 'fail',

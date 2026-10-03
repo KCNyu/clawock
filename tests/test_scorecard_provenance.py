@@ -305,6 +305,15 @@ def test_in_memory_settlement_is_replayed_without_changing_source(monkeypatch):
     assert all(c['status'] == 'pass' for c in source_checks)
     assert prov.verify(block, replay)['ok']
     assert scorecard_verify.recompute_headline(block, replay)['ok']
+    already_graded = copy.deepcopy(source)
+    settle(already_graded)
+    _, graded_checks = scorecard_verify.materialize_view(block, already_graded)
+    assert all(c['status'] == 'pass' for c in graded_checks)
+    # Different condition levels/shares are source changes even before replay.
+    changed_inputs = copy.deepcopy(source)
+    changed_inputs[0]['condition']['price'] = 12.0
+    _, input_checks = scorecard_verify.materialize_view(block, changed_inputs)
+    assert any(c['status'] == 'fail' for c in input_checks)
     source[0]['confidence'] = 0.9
     _, changed = scorecard_verify.materialize_view(block, source)
     assert any(c['status'] == 'fail' for c in changed)

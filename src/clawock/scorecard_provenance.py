@@ -247,19 +247,29 @@ def build(decisions, *, window_days: int, cutoff: str, counts: dict,
     }
 
 
+def settlement_source_digest(rows):
+    """Settlement inputs, including complete conditions/shares, excluding re-derived evaluation."""
+    projected = [json.dumps({k: v for k, v in row.items() if k != 'evaluation'},
+                            sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+                 for row in rows]
+    return hashlib.sha256('\n'.join(sorted(projected)).encode()).hexdigest()
+
+
 def record_settlement_view(provenance, source_rows, *, settlement_day=None):
     """Bind the effective in-memory scorecard to its unmodified public source."""
     ledger = provenance['ledger']
     window = provenance['window']
     ledger['view'] = 'in_memory_settled'
     ledger['settlement_day'] = settlement_day or provenance['generated_at'][:10]
-    ledger['source_digest'] = rows_digest(source_rows)
-    ledger['source_slice_digest'] = rows_digest(slice_rows(
+    ledger['source_projection'] = 'all_non_evaluation_fields'
+    ledger['source_digest'] = settlement_source_digest(source_rows)
+    ledger['source_slice_digest'] = settlement_source_digest(slice_rows(
         source_rows, window['cutoff'], window.get('last_plan_date')))
     provenance['note'] = (
         'The source is the public decision ledger. Metrics use an in-memory '
         'settled view, not a committed re-grade. Verification checks the source '
-        'identity, replays settlement from canonical bars, then checks the '
+        'input identity (all non-evaluation fields; evaluation is re-derived), '
+        'replays settlement from canonical bars, then checks the '
         'effective digests and counts; changed bars can change that view.')
     return provenance
 
