@@ -1,0 +1,7 @@
+decision-pipeline: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=8.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+information-flow: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=8.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+architecture: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=6.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+harnesses: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=12.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+debate-flow: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=10.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+product-architecture: text-intersections=0 invalid-endpoints=0 undeclared-edges=0 fanout-errors=0 halo-intersections=0 min-gap=18.00 outside=0 text-overlaps=0 icon-overlaps=0 decorative-path-hits=0
+TOTAL: 0 acceptance violations

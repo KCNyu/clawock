@@ -36,7 +36,7 @@ const edges=[...svg.querySelectorAll('path[id^="w"],line[data-target]')].map(e=>
  const hits=nearest.filter(t=>t.distance<=radius);
  const hasPulse=[...svg.querySelectorAll('circle.pulse mpath')].some(p=>p.getAttribute('href')==='#'+e.id);
  const haloHits=hasPulse?nearest.filter(t=>t.distance<7):[];
- const target=nodes.find(n=>n.id===e.dataset.target),end=e.getPointAtLength(length).matrixTransform(m);
+ const target=nodes.find(n=>n.id===e.dataset.target),last=e.getPointAtLength(length).matrixTransform(m),end={x:last.x,y:last.y};
  let inside=false;
  if(target){const b=target.box;inside=end.x>b.x&&end.x<b.x+b.w&&end.y>b.y&&end.y<b.y+b.h;
  const el=svg.querySelector('#'+CSS.escape(target.id));
@@ -56,7 +56,7 @@ const decorationHits=[];
 for(const e of svg.querySelectorAll('path,line')){
  if(e.closest('defs')||e.id.startsWith('w'))continue;
  const len=e.getTotalLength(),m=matrix(e),r=(+e.getAttribute('stroke-width')||1)/2;
- const points=[];for(let i=0;i<=Math.ceil(len);i++)points.push(e.getPointAtLength(len*i/Math.max(1,Math.ceil(len))).matrixTransform(m));
+ const points=[];for(let i=0;i<=Math.ceil(len);i++){const q=e.getPointAtLength(len*i/Math.max(1,Math.ceil(len))).matrixTransform(m);points.push({x:q.x,y:q.y});}
  for(const t of texts){const b=t.box,hit=points.find(q=>q.x>=b.x-r&&q.x<=b.x+b.w+r&&q.y>=b.y-r&&q.y<=b.y+b.h+r);
  if(hit)decorationHits.push({pathLine:+e.dataset.line,text:t,point:hit});}
 }
@@ -90,8 +90,13 @@ def run(assets, executable=None, font=None, width=343, legacy=None):
                         node.set('id',f'legacy-node-{line}')
                         node.set('data-node','legacy-intended-target')
                     if len(lines)>1:
-                        ambiguous+=1
-                        by_id[edge].set('data-target','ambiguous-undivided-fanout')
+                        # A non-arrow trunk can already have explicit outgoing
+                        # branches: its absent junction is an endpoint defect,
+                        # not an additional undivided-arrow fanout defect.
+                        if 'marker-end' in by_id[edge].attrib:
+                            ambiguous+=1
+                            by_id[edge].set('data-target','ambiguous-undivided-fanout')
+                        else:by_id[edge].set('data-target','unowned-junction')
                     else:by_id[edge].set('data-target',f'legacy-node-{lines[0]}')
             page.set_content('<style>body{margin:16px}svg{width:343px;height:auto}</style>'+etree.tostring(root).decode())
             if font:page.add_style_tag(content=f'svg text:not(.code){{font-family:{font}!important}}')
