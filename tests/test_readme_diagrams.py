@@ -40,3 +40,33 @@ def test_diagrams_animate_without_anything_an_img_would_drop():
         for image in root.iter(f'{SVG}image'):
             assert image.attrib['href'].startswith('data:image/png;base64,'), (
                 f'{name}: an SVG inside an img cannot load an external screenshot')
+
+
+def test_peer_nodes_do_not_touch_or_overlap():
+    """Ignore intentional containment; sibling node boxes need breathing room.
+
+    Tags, logos, chart marks and list sweep highlights aren't flow nodes. This
+    catches the source-chip rows collapsing back to a two-unit gutter without
+    depending on a specific label, row count, or font installed on the runner.
+    """
+    from itertools import combinations
+
+    for name in _builder().DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        nodes = []
+        for el in root.findall(f'{SVG}rect'):
+            if 'sweep' in el.attrib.get('class', ''):
+                continue
+            x, y, w, h = (float(el.attrib[k]) for k in ('x', 'y', 'width', 'height'))
+            if w >= 60 and h >= 30:
+                nodes.append((x, y, x + w, y + h))
+        for a, b in combinations(nodes, 2):
+            if (a[0] <= b[0] and a[1] <= b[1] and a[2] >= b[2] and a[3] >= b[3]
+                    or b[0] <= a[0] and b[1] <= a[1] and b[2] >= a[2] and b[3] >= a[3]):
+                continue
+            dx = max(a[0], b[0]) - min(a[2], b[2])
+            dy = max(a[1], b[1]) - min(a[3], b[3])
+            if dx < 0:
+                assert dy >= 5.99, (name, a, b, 'vertical gap', dy)
+            elif dy < 0:
+                assert dx >= 5.99, (name, a, b, 'horizontal gap', dx)

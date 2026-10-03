@@ -85,13 +85,13 @@ class D:
         self.add(f'<text x="{x:g}" y="{y:g}" class="{cls}"{a}>{spans}</text>')
 
     # --- building blocks -------------------------------------------------
-    def header(self, kicker, title, sub, legend):
+    def header(self, kicker, title, sub, legend, title_lh=30):
         self.text(M, 46, kicker, 'kick', fill=ROLE['blue'])
         y = 80
         for line in title:
             fits(line, 'title', CW, 'title')
             self.text(M, y, line, 'title')
-            y += 30
+            y += title_lh
         y += 2
         for line in sub:
             fits(line, 'sub', CW, 'sub')
@@ -126,10 +126,14 @@ class D:
         self.text(x + w / 2, y, [(label, ROLE[role])], 'tag', anchor='middle')
         return w
 
-    def chip(self, x, y, w, label, cls='m', fill=INK, bg=CHIP):
-        fits(label, cls, w - 12, f'chip {label}')
-        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="30" rx="9" fill="{bg}" stroke="{CARD_STROKE}"/>')
-        self.text(x + w / 2, y + 20, [(label, fill)], cls, anchor='middle')
+    def chip(self, x, y, w, label, cls='m', fill=INK, bg=CHIP, icon=None, role='slate', h=30):
+        fits(label, cls, w - (42 if icon else 12), f'chip {label}')
+        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h}" rx="9" fill="{bg}" stroke="{CARD_STROKE}"/>')
+        if icon:
+            self.icon(icon, x + 10, y + (h - 18) / 2, role, size=18)
+            self.text(x + 36, y + h / 2 + 5, [(label, fill)], cls)
+        else:
+            self.text(x + w / 2, y + h / 2 + 5, [(label, fill)], cls, anchor='middle')
 
     def lines(self, x, y, room, rows, cls='b', lh=21, where='lines'):
         for i, row in enumerate(rows):
@@ -194,6 +198,14 @@ class D:
         Markets, sources and tools retain their written names beside the glyphs.
         """
         shapes = {
+            'lens': '<circle cx="10" cy="10" r="6"/><path d="M14 14l7 7M7 10h6m-3-3v6"/>',
+            'sector': '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+            'balance': '<path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/>',
+            'judge': '<path d="M8 4l5-2 5 10-5 2ZM11 10l-6 9M12 21h9"/>',
+            'publish': '<path d="M12 15V3M7 8l5-5 5 5M4 14v7h16v-7"/>',
+            'commit': '<circle cx="12" cy="12" r="5"/><path d="M2 12h5m10 0h5"/>',
+            'replay': '<path d="M4 8a9 9 0 1 1-1 8M4 3v6h6"/><path d="M10 8l6 4-6 4Z"/>',
+            'book': '<path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3ZM12 6v16M6 8h3m-3 4h3m6-4h3m-3 4h3"/>',
             'market': '<path d="M3 9L12 3l9 6M4 21h16M6 10v8m6-8v8m6-8v8"/>',
             'fx': '<path d="M4 8h15l-4-4M20 16H5l4 4M20 8v4M4 16v-4"/>',
             'filing': '<path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6"/>',
@@ -337,7 +349,7 @@ def harnesses():
                  ['Leave the conversation. Your task keeps running.',
                   'Come back to the queue, the report and the receipts.'],
                  [('request · result', 'blue'), ('background agents', 'slate'),
-                  ('checks · live', 'green'), ('quota · control', 'warm')])
+                  ('checks · live', 'green'), ('quota · control', 'warm')], title_lh=34)
 
     y += 34
     d.section(y, '01 · ASK IN DSH CHAT')
@@ -352,9 +364,9 @@ def harnesses():
              'Open a PR; merge after required checks pass,',
              'refresh the live checkout and send me the result.”'], where='request')
     top = y + h
-    y = top + 52
+    y = top + 60
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1))
     h = 94
     d.card(M, y, CW, h, 'blue')
     d.icon('terminal', M + 20, y + 16, size=28)
@@ -378,17 +390,18 @@ def harnesses():
         d.text(x + cw / 2, y + 104, 'own task unit', 'm', anchor='middle', fill=MUT)
         fits('own task unit', 'm', cw - 12, 'worker')
     top = y + h
-    y = top + 46
+    y = top + 56
     for i, x in enumerate(xs):
-        d.curve(x + cw / 2, top, W / 2, y - 30, pulses=(i * .6,), pulse=ROLE['slate'])
+        d.curve(x + cw / 2, top, W / 2, y - 38, pulses=(i * .6,), pulse=ROLE['slate'])
 
     d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
     shot_w = 224
     shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
     shot_h = shot_w * shot_ih / shot_iw
-    h = shot_h + 80
+    h = shot_h + 92
     d.card(M, y, CW, h, 'violet')
-    d.text(M + 20, y + 32, 'Your team, at a glance', 'h')
+    d.icon('dashboard', M + 20, y + 14, 'violet')
+    d.text(M + 50, y + 32, 'Your team, at a glance', 'h')
     d.tag(W - M - 16, y + 30, 'LIVE-HOST CAPTURE', 'violet', anchor='end')
     d.screenshot('dsh-dispatch-queue.png', M + 12, y + 48, shot_w)
     tx, room = M + 254, CW - 270
@@ -406,10 +419,10 @@ def harnesses():
         d.text(tx, yy + 44, title, 'b')
         fits(title, 'b', room, 'queue title')
         d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
-    d.text(M + 20, y + h - 12, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
+    d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
-    y = top + 48
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
+    y = top + 60
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
     h = 138
@@ -418,7 +431,7 @@ def harnesses():
     for i, (x, (icon, name, sub)) in enumerate(zip(xs, (
             ('branch', 'Branch + PR', 'isolated worktree'),
             ('checks', 'Required CI', 'all gates pass'),
-            ('branch', 'Squash merge', 'review the diff')))):
+            ('commit', 'Squash merge', 'review the diff')))):
         d.icon(icon, x + cw / 2 - 16, y + 18, 'green', size=32)
         d.text(x + cw / 2, y + 77, name, 'b', anchor='middle')
         d.text(x + cw / 2, y + 100, sub, 'm', anchor='middle', fill=MUT)
@@ -437,8 +450,8 @@ def harnesses():
     d.text(M + 74, y + 63, 'refresh_live.sh applies the checked change', 'm', fill=MUT)
     fits('refresh_live.sh applies the checked change', 'm', CW - 94, 'live')
     top = y + h
-    y = top + 50
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    y = top + 60
+    d.down(W / 2, top, y - 38, pulses=(0, 1.1))
 
     d.section(y - 12, '05 · HEAR BACK, EVEN AFTER YOU LEAVE')
     h = 160
@@ -473,37 +486,41 @@ def information_flow():
                  ['From eight source layers', 'to a delivered card'],
                  ['Python fetches, computes and settles; the model', 'only reads the files a run assembles.'],
                  [('source · fetch', 'blue'), ('python', 'green'), ('agent · LLM', 'slate'),
-                  ('gate · watchdog', 'warm')])
+                  ('gate · watchdog', 'warm')], title_lh=34)
 
     y += 30
     d.section(y, '1 · SOURCES')
     y += 14
-    h = 178
+    h = 238
     d.card(M, y, CW, h, 'blue')
     d.text(M + 20, y + 32, '8 information layers', 'h')
     d.tag(W - M - 16, y + 30, 'HK + US', 'blue', anchor='end')
-    xs, cw = columns(2, gap=8, x0=M + 16, w=CW - 32)
-    layers = ['L1 market', 'L2 filings', 'L3 capital flow', 'L4 news', 'L5 macro · mood',
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
+    layers = ['L1 market', 'L2 SEC · HKEX', 'L3 capital flow', 'L4 news', 'L5 macro · mood',
               'L6 quant · risk', 'L7 book · FX', 'L8 backtest']
     for i, name in enumerate(layers):
         col, row = i % 2, i // 2
-        d.chip(xs[col], y + 46 + row * 32, cw, name)
+        d.chip(xs[col], y + 54 + row * 44, cw, name, h=36, role='blue',
+               icon=('market', 'filing', 'bars', 'news', 'calendar', 'shield', 'fx', 'replay')[i])
     top = y + h
     y = top + 44
     d.down(W / 2, top, y, pulses=(0, 1.1))
 
-    h = 248
+    h = 312
     d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 32, 'Fetch with fallback', 'h')
+    d.icon('market', M + 20, y + 14)
+    d.text(M + 50, y + 32, 'Fetch with fallback', 'h')
     d.tag(W - M - 16, y + 30, 'ORDERED ROUTES', 'blue', anchor='end')
-    fb = [(' → ', FAINT)]
-    yy = d.kv(M + 20, y + 60, 84, CW - 36, [
-        ('HK quotes', [[('Tencent + Eastmoney HK', INK)], [('→ stooq → yfinance', MUT)]]),
+    yy = y + 66
+    routes = [
+        ('HK quotes', [[('Tencent + Eastmoney HK', INK)], [('→ stooq → yfinance', MUT)]], 'market'),
         ('US quotes', [[('Nasdaq', INK), (' → Eastmoney → Finnhub', MUT)],
-                       [('→ Yahoo → yfinance', MUT)], [('→ Alpha Vantage → Polygon', MUT)]]),
-        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host', MUT)], [('→ Yahoo', MUT)]]),
-    ], lh=20)
-    del fb
+                       [('→ Yahoo → yfinance', MUT)], [('→ Alpha Vantage → Polygon', MUT)]], 'market'),
+        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host', MUT)], [('→ Yahoo', MUT)]], 'fx'),
+    ]
+    for key, values, icon in routes:
+        d.icon(icon, M + 20, yy - 15, size=18)
+        yy = d.kv(M + 48, yy, 100, CW - 64, [(key, values)], lh=22) + 12
     d.add(f'<path d="M{M + 20:g} {yy - 6:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
     d.lines(M + 20, yy + 14, CW - 36, [[('One throttled gateway for every live Eastmoney', MUT)],
                                        [('call; an empty fetch keeps the prior value.', MUT)]],
@@ -514,7 +531,8 @@ def information_flow():
 
     h = 150
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Portfolio + risk', 'h')
+    d.icon('shield', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Portfolio + risk', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.kv(M + 20, y + 60, 84, CW - 36, [
         ('reconcile', ['recompute every money field']),
@@ -527,8 +545,8 @@ def information_flow():
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' · only the blocks this run can use', MUT)],
            'm', anchor='middle')
     fits('preflight · only the blocks this run can use', 'm', CW, 'preflight label')
-    d.down(W / 2, top, y - 14, arrow=False, pulses=())
-    y += 34
+    d.down(W / 2, top, y - 22, arrow=False, pulses=())
+    y += 50
     xs, cw = columns(3)
     cad = [('Brief', ['pre-open', '08:03 HKT', 'weekdays', '→ plan.json']),
            ('Report', ['HK open, mid,', 'pm, close', 'US open, close', 'fresh quotes']),
@@ -546,7 +564,8 @@ def information_flow():
 
     h = 96
     d.card(M, y, CW, h, 'slate')
-    d.text(M + 20, y + 32, 'Agent', 'h')
+    d.icon('debate', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Agent', 'h')
     d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Reads the context files, never fetches;',
                                       'the brief also writes plan.json.'], lh=21, where='agent')
@@ -555,7 +574,8 @@ def information_flow():
     d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
     h = 96
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 32, 'Postflight', 'h')
+    d.icon('checks', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Postflight', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Validates the output, then publishes;',
                                       'sends WeChat and co-sends Telegram.'], lh=21, where='postflight')
@@ -564,12 +584,13 @@ def information_flow():
     outs = [('Deliver', ['WeChat +', 'Telegram']),
             ('data-plane', ['7 files, one', 'generation']),
             ('master', ['ledger +', 'pre-push gate'])]
-    h = 100
+    h = 132
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
         d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
         d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='outputs')
+        d.icon(('plane', 'publish', 'commit')[i], x + 16, y + 96, size=22)
     top = deliver_bottom = y + h
     d.lines(xs[1], top + 24, W - M - xs[1], [[('WeChat cannot confirm a send;', FAINT)],
                                             [('Telegram can. The dashboard polls', FAINT)],
@@ -583,7 +604,8 @@ def information_flow():
            color='#d9a8a3', pulse=ROLE['warm'])
     h = 136
     d.card(M, y, CW, h, 'warm')
-    d.text(M + 20, y + 32, 'Watchdog', 'h')
+    d.icon('clock', M + 20, y + 14, 'warm')
+    d.text(M + 50, y + 32, 'Watchdog', 'h')
     d.tag(W - M - 16, y + 30, 'CRONTAB · NO LLM', 'warm', anchor='end')
     yy = d.kv(M + 20, y + 60, 84, CW - 36, [
         ('brief', [[('08:36', INK), (' · miss check 09:05', MUT)]]),
@@ -610,16 +632,17 @@ def architecture():
                  ['How this deployment turns', 'a claim into a public record'],
                  ['OpenClaw argues the call. Code gates it, the', 'bars settle it, and the score feeds tomorrow.'],
                  [('python', 'green'), ('agent · LLM', 'slate'), ('settle · grade', 'blue'),
-                  ('gate', 'warm')])
-    RAIL = W - M - 6          # the return loop runs up the right edge
-    IW = CW - 30              # inner column, leaving room for the loop
+                  ('gate', 'warm')], title_lh=34)
+    RAIL = W - M - 18          # the return loop runs up the right edge
+    IW = CW - 42              # inner column, leaving room for the loop
     y += 30
     d.section(y, '01 · EVIDENCE')
     y += 14
     ey = y
     h = 118
     d.card(M, y, IW, h, 'green')
-    d.text(M + 20, y + 32, 'Evidence pack', 'h')
+    d.icon('book', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Evidence pack', 'h')
     d.tag(M + IW - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.text(M + 20, y + 54, [('context.json', INK), (' — reconciled, immutable', MUT)], 'm')
     xs, cw = columns(4, gap=6, x0=M + 16, w=IW - 32)
@@ -631,7 +654,8 @@ def architecture():
     d.down(M + IW / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
     h = 74
     d.card(M, y, IW, h, 'slate')
-    d.text(M + 20, y + 30, 'Four analyst lenses', 'h')
+    d.icon('lens', M + 20, y + 12, 'slate')
+    d.text(M + 50, y + 30, 'Four analyst lenses', 'h')
     d.tag(M + IW - 16, y + 28, 'LLM', 'slate', anchor='end')
     d.text(M + 20, y + 54, 'fundamental · technical · sentiment · sector', 'm', fill=MUT)
     fits('fundamental · technical · sentiment · sector', 'm', IW - 36, 'lenses')
@@ -640,20 +664,22 @@ def architecture():
     xs, cw = columns(3, gap=10, x0=M, w=IW)
     fork = [('Bull case', 'hold / add', 'green'), ('Bear case', 'trim / cut', 'warm'),
             ('Risk voices', 'three of them', 'slate')]
-    h = 84
+    h = 112
     for i, (x, (name, body, role)) in enumerate(zip(xs, fork)):
         d.curve(M + IW / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8, pulse=ROLE['slate'])
         d.card(x, y, cw, h, role)
         fits(name, 'h', cw - 24, 'fork')
-        d.text(x + 16, y + 32, name, 'h')
-        d.text(x + 16, y + 56, body, 'm', fill=MUT)
+        d.icon({'Bull case': 'up', 'Bear case': 'down', 'Risk voices': 'shield'}[name], x + 16, y + 14, role)
+        d.text(x + 16, y + 64, name, 'h')
+        d.text(x + 16, y + 88, body, 'm', fill=MUT)
     top = y + h
     y = top + 48
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, M + IW / 2, y, pulses=(i * .5 + .3,), dur=1.8, pulse=ROLE['slate'])
     h = 96
     d.card(M, y, IW, h, 'slate')
-    d.text(M + 20, y + 32, 'Judge', 'h')
+    d.icon('judge', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Judge', 'h')
     d.tag(M + IW - 16, y + 30, 'LLM', 'slate', anchor='end')
     d.lines(M + 20, y + 58, IW - 36, ['Names the strategy frame of each call:',
                                       [('action · trigger · confidence → plan.json', MUT)]], lh=21, where='judge')
@@ -663,7 +689,8 @@ def architecture():
     d.down(M + IW / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
     h = 134
     d.card(M, y, IW, h, 'green')
-    d.text(M + 20, y + 32, 'Code gate', 'h')
+    d.icon('checks', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Code gate', 'h')
     d.tag(M + IW - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.bullets(M + 22, y + 62, IW - 40, ['plan.json schema: fields, enums, confidence',
                                         'Brief sections: tiers, judge, next session',
@@ -672,13 +699,14 @@ def architecture():
     y = top + 48
     xs, cw = columns(3, gap=10, x0=M, w=IW)
     pubs = [('Ledger', 'decisions.jsonl'), ('Brief', 'the chat card'), ('Dashboard', 'data-plane')]
-    h = 76
+    h = 106
     for i, (x, (name, body)) in enumerate(zip(xs, pubs)):
         d.curve(M + IW / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
-        d.text(x + 16, y + 30, name, 'h')
-        fits(body, 'm', cw - 24, 'pub')
-        d.text(x + 16, y + 54, body, 'm', fill=MUT)
+        d.icon(('filing', 'chat', 'dashboard')[i], x + 16, y + 12)
+        d.text(x + 16, y + 60, name, 'h')
+        fits(body, 'm', cw - 20, 'pub')
+        d.text(x + 12, y + 84, body, 'm', fill=MUT)
     top = y + h
     y = top + 48
     d.text(xs[0] + cw / 2 + 14, y - 14, '04 · SETTLE IN THE OPEN', 'kick', fill=FAINT)
@@ -692,8 +720,7 @@ def architecture():
     d.card(M, y, IW, h, 'blue')
     for i, (name, body) in enumerate(steps):
         yy = y + 34 + i * 46
-        d.add(f'<circle cx="{M + 30:g}" cy="{yy - 5:g}" r="11" fill="{TINT["blue"]}"/>')
-        d.text(M + 30, yy, str(i + 1), 'tag', anchor='middle', fill=ROLE['blue'])
+        d.icon(('filing', 'market', 'sector', 'checks', 'dashboard')[i], M + 20, yy - 16, size=20)
         d.text(M + 52, yy, name, 'b')
         fits(body, 'm', IW - 70, 'settle')
         d.text(M + 52, yy + 20, body, 'm', fill=MUT)
@@ -704,8 +731,8 @@ def architecture():
     d.wire(f'M{M + IW:g} {bottom - 30:g}H{RAIL - 8:g}Q{RAIL:g} {bottom - 30:g} {RAIL:g} {bottom - 38:g}'
            f'V{ey + 40:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
            pulses=(0, 2.5), dur=5, color='#b8c9d8')
-    d.add(f'<text x="{RAIL + 4:g}" y="{(ey + bottom) / 2:g}" class="kick" fill="{ROLE["blue"]}" '
-          f'transform="rotate(90 {RAIL + 4:g} {(ey + bottom) / 2:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
+    d.add(f'<text x="{W - M - 2:g}" y="{(ey + bottom) / 2:g}" class="kick" fill="{ROLE["blue"]}" '
+          f'transform="rotate(90 {W - M - 2:g} {(ey + bottom) / 2:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
     return d.render(bottom + M)
 
 
@@ -723,7 +750,7 @@ def product_architecture():
     y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
                  ['The runtime thinks.', 'clawock keeps it reconciled.'],
                  ['Three owners, one contract between them:', 'skill + CLI + JSON in, adapter-owned I/O out.'],
-                 [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')])
+                 [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')], title_lh=34)
     y += 30
     d.section(y, 'OWNED BY THE EXTERNAL RUNTIME')
     y += 14
@@ -754,16 +781,18 @@ def product_architecture():
         yy = y + 86 + i * 52
         d.add(f'<circle cx="{M + 32:g}" cy="{yy - 5:g}" r="11" fill="{TINT["green"]}"/>')
         d.text(M + 32, yy, f'0{i + 1}', 'tag', anchor='middle', fill=ROLE['green'])
-        d.text(M + 54, yy, [(name, INK), (' · ', FAINT), (what, MUT)], 'm')
-        fits(name + ' · ' + what, 'm', CW - 70, 'stage')
-        d.text(M + 54, yy + 20, cmd, 'code', fill=ROLE['green'])
+        d.icon(('debate', 'checks', 'balance', 'dashboard', 'replay')[i], M + 52, yy - 15, 'green', size=18)
+        d.text(M + 78, yy, [(name, INK), (' · ', FAINT), (what, MUT)], 'm')
+        fits(name + ' · ' + what, 'm', CW - 94, 'stage')
+        d.text(M + 78, yy + 20, cmd, 'code', fill=ROLE['green'])
     top = y + h
     y = top + 44
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['violet'])
     d.text(W / 2 + 14, top + 26, 'adapter-owned I/O', 'm', fill=MUT)
     h = 118
     d.card(M, y, CW, h, 'violet')
-    d.text(M + 20, y + 32, 'Your instance', 'h')
+    d.icon('book', M + 20, y + 14, 'violet')
+    d.text(M + 50, y + 32, 'Your instance', 'h')
     d.tag(W - M - 16, y + 30, 'NOT IN THE WHEEL', 'violet', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['strategy, evidence, ledger, schedules, delivery, UI',
                                       [('default store: FilesystemStore. KCNyu is one live', MUT)],
@@ -775,12 +804,13 @@ def product_architecture():
     xs, cw = columns(3, gap=18)
     stepsb = [('run prepare', '→ request.json', 'green'), ('agent writes', 'decision.json', 'slate'),
               ('run publish', '→ published', 'green')]
-    h = 76
+    h = 110
     for i, (x, (name, body, role)) in enumerate(zip(xs, stepsb)):
         d.card(x, y, cw, h, role)
-        d.text(x + 16, y + 30, name, 'b')
+        d.icon(('checks', 'filing', 'publish')[i], x + 16, y + 12, role)
+        d.text(x + 16, y + 64, name, 'b')
         fits(body, 'm', cw - 24, 'steps')
-        d.text(x + 16, y + 54, body, 'm', fill=MUT)
+        d.text(x + 16, y + 88, body, 'm', fill=MUT)
         if i:
             d.wire(f'M{x - 17:g} {y + h / 2:g}H{x - 3:g}', pulses=(i * .4,), dur=1.2)
     y += h + 26
@@ -803,36 +833,39 @@ def debate_flow():
                  ['Disagreement is required.', 'The resolution is attributed.'],
                  ['Protocol rules set in the brief prompt; code only', 'checks that each tier was written.'],
                  [('evidence · python', 'green'), ('agents · LLM', 'slate'), ('opposing case', 'warm'),
-                  ('grading', 'blue')])
+                  ('grading', 'blue')], title_lh=34)
     y += 30
     d.section(y, 'SHARED INPUT')
     y += 14
     h = 76
     d.card(M, y, CW, h, 'green')
-    d.text(M + 20, y + 30, [('context.json', INK)], 'h')
+    d.icon('book', M + 20, y + 12, 'green')
+    d.text(M + 50, y + 30, [('context.json', INK)], 'h')
     d.text(M + 20, y + 54, 'one immutable evidence pack; every claim cites it', 'm', fill=MUT)
     top = y + h
     d.section(top + 34, 'TIER 1 · ANALYST LENSES')
     y = top + 48
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
-    h = 150
+    h = 176
     d.card(M, y, CW, h, 'slate')
     d.text(M + 20, y + 32, 'Four analyst lenses', 'h')
     d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
-    xs, cw = columns(2, gap=8, x0=M + 16, w=CW - 32)
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
     for i, name in enumerate(['Fundamental', 'Technical', 'Sentiment', 'Sector rotation']):
-        d.chip(xs[i % 2], y + 46 + (i // 2) * 36, cw, name)
+        d.chip(xs[i % 2], y + 50 + (i // 2) * 48, cw, name, h=36,
+               icon=('lens', 'factor', 'chat', 'sector')[i])
     d.text(M + 20, y + h - 14, 'same context → one merged table', 'm', fill=MUT)
     top = y + h
     d.section(top + 34, 'TIER 2 · RESEARCHERS')
     y = top + 48
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
-    h = 96
+    h = 112
     xs, cw = columns(2, gap=40)
     for x, (name, body, sub, role) in zip(xs, (('Bull case', 'hold / add', 'cites the pack', 'green'),
                                               ('Bear case', 'trim / cut', 'hits the strongest view', 'warm'))):
         d.card(x, y, cw, h, role)
-        d.text(x + 18, y + 32, name, 'h', fill=ROLE[role])
+        d.icon('up' if role == 'green' else 'down', x + 18, y + 14, role)
+        d.text(x + 48, y + 32, name, 'h', fill=ROLE[role])
         d.text(x + 18, y + 56, body, 'b')
         fits(sub, 'm', cw - 26, 'bullbear')
         d.text(x + 18, y + 78, sub, 'm', fill=MUT)
@@ -851,16 +884,18 @@ def debate_flow():
     xs, cw = columns(3, gap=10)
     for i, (x, name) in enumerate(zip(xs, ('Aggressive', 'Conservative', 'Neutral'))):
         d.curve(W / 2, fy, x + cw / 2, y, pulses=(i * .5,), dur=1.8, pulse=ROLE['slate'])
-        d.card(x, y, cw, 50, 'slate')
+        d.card(x, y, cw, 84, 'slate')
+        d.icon(('up', 'shield', 'balance')[i], x + cw / 2 - 11, y + 15, 'slate')
         fits(name, 'b', cw - 20, 'risk')
-        d.text(x + cw / 2 + 2, y + 31, name, 'b', anchor='middle')
-    top = y + 50
+        d.text(x + cw / 2 + 2, y + 65, name, 'b', anchor='middle')
+    top = y + 84
     y = top + 46
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, W / 2, y, pulses=(i * .5 + .3,), dur=1.8, pulse=ROLE['slate'])
     h = 96
     d.card(M, y, CW, h, 'slate')
-    d.text(M + 20, y + 32, 'Judge', 'h')
+    d.icon('judge', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Judge', 'h')
     d.tag(W - M - 16, y + 30, 'ATTRIBUTED', 'slate', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, ['Names the strategy frame driving each call',
                                       [('→ plan.json', ROLE['blue'])]], lh=21, where='judge')
@@ -869,7 +904,8 @@ def debate_flow():
     d.down(W / 2, top, y, pulses=(0, 1.1))
     h = 76
     d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 30, "Next session's grading", 'h')
+    d.icon('checks', M + 20, y + 12)
+    d.text(M + 50, y + 30, "Next session's grading", 'h')
     d.text(M + 20, y + 54, 'code, not the model, settles the score', 'm', fill=MUT)
     y += h + 26
     d.lines(M, y, CW, ['The bear attacks the strongest consensus, never the weakest;',
@@ -904,13 +940,13 @@ def decision_pipeline():
                  ['Python collects, computes, gates and settles;',
                   'the agents only argue over the pack it assembles.'],
                  [('fetch · deliver', 'blue'), ('python · code gate', 'green'), ('agents · LLM', 'slate'),
-                  ('never self-graded', 'warm')])
+                  ('never self-graded', 'warm')], title_lh=34)
 
     # 01 collect
     y += 34
     d.section(y, '01 · BEFORE OPEN / THE DATA ARRIVES')
     y += 14
-    h = 302
+    h = 330
     d.card(M, y, CW, h, 'blue')
     d.icon('market', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
@@ -923,20 +959,20 @@ def decision_pipeline():
                ('chat', 'Sentiment', 'Reddit · radar'),
                ('calendar', 'Macro + events', 'calendars')]
     for i, (icon, name, source) in enumerate(sources):
-        x, yy = xs[i % 3], y + 70 + (i // 3) * 90
-        d.add(f'<rect x="{x:g}" y="{yy:g}" width="{cw:g}" height="82" rx="9" '
+        x, yy = xs[i % 3], y + 70 + (i // 3) * 100
+        d.add(f'<rect x="{x:g}" y="{yy:g}" width="{cw:g}" height="90" rx="9" '
               f'fill="{TINT["blue"]}"/>')
         d.icon(icon, x + 12, yy + 10, size=24)
         d.text(x + 12, yy + 51, name, 'b')
         d.text(x + 12, yy + 70, source, 'm', fill=MUT)
         fits(name, 'b', cw - 20, 'source tile')
         fits(source, 'm', cw - 20, 'source origin')
-    d.lines(M + 20, y + 269, CW - 36,
+    d.lines(M + 20, y + 297, CW - 36,
             ['Ordered quote / FX fallback; one Eastmoney gateway.',
              'An empty fetch keeps the prior value.'], cls='m', lh=19, where='collect note')
     top = y + h
-    y = top + 48
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1))
+    y = top + 60
+    d.down(W / 2, top, y - 36, pulses=(0, 1.1))
 
     # 02 compute and gate
     d.section(y - 12, '02 · BEFORE THE CALL / FACTORS + GATES')
@@ -990,49 +1026,55 @@ def decision_pipeline():
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
            'm', anchor='middle')
     fits('preflight → one context pack per run', 'm', CW, 'preflight label')
+    d.icon('checks', 102, y - 16, 'green', size=20)
     loop_y = y - 3
-    d.down(W / 2, top, y - 14, arrow=False, pulses=())
-    y += 60
-    d.down(W / 2, y - 52, y - 30, pulses=(0, 1.1), pulse=ROLE['slate'])
+    d.down(W / 2, top, y - 22, arrow=False, pulses=())
+    y += 76
+    d.down(W / 2, y - 52, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
 
     # 03 decide
     d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
-    h = 344
+    h = 466
     d.card(M, y, CW, h, 'slate')
     d.logo('openclaw', M + 16, y + 12, size=30)
     d.text(M + 56, y + 32, 'Swarm debate', 'h')
     d.tag(W - M - 16, y + 30, 'LLM · READ ONLY', 'slate', anchor='end')
     d.text(M + 20, y + 58, 'four analyst lenses', 'm', fill=MUT)
     ix, iw = M + 16, CW - 32
-    lx, lw = columns(4, gap=6, x0=ix, w=iw)
-    for x, name in zip(lx, ('fundamental', 'technical', 'sentiment', 'sector')):
-        d.chip(x, y + 68, lw, name)
-    ry = y + 98
+    lx, lw = columns(2, gap=12, x0=ix, w=iw)
+    for i, (name, icon) in enumerate(zip(('fundamental', 'technical', 'sentiment', 'sector'),
+                                         ('lens', 'factor', 'chat', 'sector'))):
+        d.chip(lx[i % 2], y + 70 + (i // 2) * 48, lw, name, icon=icon, h=36)
+    ry = y + 154
     d.down(W / 2, ry, ry + 24, pulses=(0,), dur=1.6, pulse=ROLE['slate'])
     bx, bw = columns(2, gap=8, x0=ix, w=iw)
-    by = ry + 26
+    by = ry + 32
     for x, (name, role, sub) in zip(bx, (('Bull', 'green', 'builds the case for'),
                                          ('Bear', 'warm', 'attacks the consensus'))):
-        d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="56" rx="10" fill="{TINT[role]}" '
+        d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="64" rx="10" fill="{TINT[role]}" '
               f'stroke="{CARD_STROKE}"/>')
         d.text(x + 14, by + 24, [(name, ROLE[role])], 'h')
         d.icon('up' if name == 'Bull' else 'down', x + bw - 36, by + 10, role)
         fits(sub, 'm', bw - 24, 'bull bear')
         d.text(x + 14, by + 45, sub, 'm', fill=MUT)
-    d.text(W / 2, by + 76, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
-    vy = by + 90
+    d.text(W / 2, by + 90, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
+    vy = by + 110
     d.down(W / 2, vy, vy + 22, pulses=(.5,), dur=1.6, pulse=ROLE['slate'])
     d.text(M + 20, vy + 42, 'three risk voices', 'm', fill=MUT)
-    vx, vw = columns(3, gap=6, x0=ix, w=iw)
+    vx, vw = columns(3, gap=12, x0=ix, w=iw)
     for x, name in zip(vx, ('aggressive', 'conservative', 'neutral')):
-        d.chip(x, vy + 52, vw, name)
-    jy = vy + 114
-    d.text(M + 20, jy, [('Judge', INK), (' names the strategy frame → ', MUT), ('plan.json', ROLE['slate'])],
+        d.add(f'<rect x="{x:g}" y="{vy + 52:g}" width="{vw:g}" height="56" rx="9" fill="{CHIP}" stroke="{CARD_STROKE}"/>')
+        d.text(x + vw / 2, vy + 97, name, 'm', anchor='middle')
+        d.icon({'aggressive': 'up', 'conservative': 'shield', 'neutral': 'balance'}[name],
+               x + vw / 2 - 9, vy + 58, 'slate', size=18)
+    jy = vy + 142
+    d.icon('judge', M + 20, jy - 17, 'slate', size=22)
+    d.text(M + 50, jy, [('Judge', INK), (' names the strategy frame → ', MUT), ('plan.json', ROLE['slate'])],
            'b')
-    fits('Judge names the strategy frame → plan.json', 'b', CW - 36, 'judge')
+    fits('Judge names the strategy frame → plan.json', 'b', CW - 66, 'judge')
     top = y + h
-    y = top + 44
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
+    y = top + 56
+    d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 04 deliver
     d.section(y - 12, '04 · THROUGH THE SESSION / REACH YOUR PHONE')
@@ -1045,7 +1087,7 @@ def decision_pipeline():
                                       [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
             lh=21, where='postflight')
     top = y + h
-    y = top + 44
+    y = top + 56
     xs, cw = columns(3)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
             ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
@@ -1064,38 +1106,40 @@ def decision_pipeline():
         else:
             d.icon('dashboard', x + 16, y + 115, size=26)
     top = y + h
-    y = top + 44
-    d.down(W / 2, top, y - 30, pulses=(0, 1.1), pulse=ROLE['green'])
+    y = top + 56
+    d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 05 settle and calibrate
     d.section(y - 12, '05 · AFTER THE SESSION / GRADE THE CALL')
-    h = 244
+    h = 284
     d.card(M, y, CW, h, 'green')
     d.icon('dashboard', M + 20, y + 14, 'green')
     d.text(M + 50, y + 32, 'Graded by code', 'h')
-    d.tag(W - M - 16, y + 30, 'THE MODEL NEVER SCORES', 'warm', anchor='end')
+    d.tag(M + 20, y + 61, 'THE MODEL NEVER SCORES', 'warm')
     rows = [('mark-followed', 'what was actually executed'),
             ('settle', 'canonical bars, per episode'),
             ('calibrate', 'beta-binomial, earlier dates only'),
             ('shadow', 'followed calls vs buy-and-hold'),
             ('scorecard', 'public, losses included')]
-    sweep(d, M + 12, y + 46, CW - 24, len(rows), lh=26)
+    sweep(d, M + 12, y + 78, CW - 24, len(rows), lh=28)
     for i, (cmd, what) in enumerate(rows):
-        yy = y + 64 + i * 26
-        d.text(M + 20, yy, cmd, 'code', fill=ROLE['green'])
-        fits(what, 'm', CW - 36 - 140, 'settle what')
-        d.text(M + 160, yy, what, 'm')
-    d.add(f'<path d="M{M + 20:g} {y + 196:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
-    d.text(M + 20, y + 222, [('↺ ', ROLE['blue']), ('tomorrow’s brief reads the record', MUT)], 'm')
+        yy = y + 97 + i * 28
+        d.icon({'mark-followed': 'checks', 'settle': 'balance', 'calibrate': 'factor',
+                'shadow': 'replay', 'scorecard': 'dashboard'}[cmd], M + 20, yy - 15, 'green', size=18)
+        d.text(M + 46, yy, cmd, 'code', fill=ROLE['green'])
+        fits(what, 'm', CW - 36 - 160, 'settle what')
+        d.text(M + 180, yy, what, 'm')
+    d.add(f'<path d="M{M + 20:g} {y + 238:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
+    d.text(M + 20, y + 264, [('↺ ', ROLE['blue']), ('tomorrow’s brief reads the record', MUT)], 'm')
     fits('↺ tomorrow’s brief reads the record', 'm', CW - 36, 'loop note')
     # the loop: the settled record returns to the next run's preflight
     gx = W - 11
-    d.wire(f'M{W - M:g} {y + 214:g}H{gx:g}V{loop_y:g}H{W / 2 + width("preflight → one context pack per run", "m") / 2 + 10:g}',
+    d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W / 2 + width("preflight → one context pack per run", "m") / 2 + 10:g}',
            pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
     # dsh is the interactive view of the same real fills, not an execution engine.
     top = y + h
-    y = top + 44
-    d.down(W / 2, top, y - 30, pulses=(0,), pulse=ROLE['violet'])
+    y = top + 56
+    d.down(W / 2, top, y - 36, pulses=(0,), pulse=ROLE['violet'])
     d.section(y - 12, '06 · BACK AT YOUR DESK / ASK WHY')
     h = 138
     d.card(M, y, CW, h, 'violet')
