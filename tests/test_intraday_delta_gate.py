@@ -226,6 +226,8 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
     """Run the real main while replacing unrelated network/analysis producers."""
     now = datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo("Asia/Hong_Kong"))
     (tmp_path / 'assets/data').mkdir(parents=True)
+    (tmp_path / 'config').mkdir(exist_ok=True)
+    (tmp_path / 'config/intraday-delivery.json').write_text('{"always_full": false}')
     (tmp_path / 'assets/data/t0_setups.json').write_text('{"rows": {}}')
     signals = [{"ticker": "RKLX", "level": "STOP", "line": "STOP RKLX"}]
     setups = {"rows": [{
@@ -758,3 +760,10 @@ def test_preflight_prints_the_leverage_line_from_the_t0_map(monkeypatch, tmp_pat
             in lines)
     assert ctx["leverage_legs"][0]["gap_pp"] == -0.3
     assert ctx["analyzer_block"] == block
+
+
+def test_missing_policy_sends_full_card_instead_of_silencing(monkeypatch, tmp_path, capsys):
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    (tmp_path / 'config/intraday-delivery.json').unlink()
+    assert run(copy.deepcopy(current))['delivery_mode'] == 'full_delta'
+    assert 'always_full' in capsys.readouterr().err
