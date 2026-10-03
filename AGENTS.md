@@ -48,7 +48,9 @@ Override with `--no-verify` if false positive (rare).
 ## Git Auto-Commit Rules
 
 The workspace is a local git repo. **`origin` is the public repo `github.com/KCNyu/clawock`** — the
-contents (positions, plans, memory logs) are intentionally public per kcn's instruction.
+published investment contents (positions, plans, daily briefs and the curated
+OpenClaw memory) are intentionally public per kcn's instruction. This does not
+authorize publishing private chat/session metadata, credentials or coding-agent memory.
 This table governs the live runtime workspace and its scheduled writers. Interactive
 Codex/Claude code changes follow the PR workflow in the next section.
 After any of the following changes, run a git commit automatically — no need to ask:
@@ -139,11 +141,13 @@ so a rule a scheduled run must obey belongs in its payload, SKILL mode or postfl
 gate, not only here. Keep it self-contained; write the conclusion into the index
 rather than into a side file.
 
-What must NOT enter the repository is `memory/*.md` — those are written by the
+What must NOT enter the repository is coding-agent prose under `memory/*.md` — written by the
 interactive coding agents (Claude Code / Codex) in their own memory format, their
 durable store is `/root/.shared-memory`, and a copy here is a leak. `.gitignore`
 and `.githooks/pre-commit` both refuse that class; `ops/system_check.py` reports
-any that pile up on the host so somebody can clean them.
+any that pile up on the host so somebody can clean them. The existing
+`memory/*-pre-open.md` exception is the published investment brief, not a coding-agent
+diary; its plan JSON is also runtime data. Do not create new prose exceptions.
 - **Long-term:** `MEMORY.md` — curated wisdom; **only load in main session**, do NOT load in shared contexts (Discord, group chats)
 - Don't keep "mental notes" — if it matters, write it to `MEMORY.md` (or, for the
   interactive coding agents, their own durable memory outside this repository).

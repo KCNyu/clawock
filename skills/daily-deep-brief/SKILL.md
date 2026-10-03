@@ -181,7 +181,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 本 cron 是 isolated 运行：上下文里已注入 AGENTS.md / SOUL.md / TOOLS.md / IDENTITY.md / USER.md，
 **不注入 MEMORY.md**（直聊才注入）。已注入的不要重读，另外读：
 
-1. `MEMORY.md` § 数据规则 — 数据铁律的唯一权威（缓存价、FX、数字与断言）
+1. 本 skill 的数据/数字/投递规则与本次 packet — isolated cron 不读主会话 `MEMORY.md`；其中的具体教训保留在主会话，cron 约束在本 skill 和 postflight gate 生效
 2. `portfolio.json` — 持仓 ground truth（preflight 已刷过价）
 3. `memory/{昨天 YYYY-MM-DD}-pre-open.md` 如果存在 — 上次 thesis 和 next-session plan
 4. `INVESTMENT_SOP.md` — 启动顺序参考
