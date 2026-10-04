@@ -28,7 +28,11 @@ Values are never written here — only provider, where and when, and what was do
 History is not rewritten: a rewrite changes every later commit SHA and does not
 make a value that has already been cloned unusable — rotation does. The CI step
 `No credential-shaped values in the added lines` (`ops/ci/commit_secret_scan.py`)
-scans every commit a PR or code push brings, Markdown included.
+scans every commit a PR or code push brings, Markdown included. Besides the
+shapes that leak had, it reports credentials that need no variable name beside
+them — a private-key block, a service-account key id, fixed-prefix vendor tokens,
+a URL carrying a password — because the platform's non-provider patterns are not
+available to this repository.
 
 ## What is in scope
 

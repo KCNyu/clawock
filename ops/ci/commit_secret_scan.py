@@ -19,6 +19,14 @@ blocks in the hook. A value must mix letters and digits, so identifiers such as
 `api_key = get_finnhub_key` and placeholders such as `YOUR_API_KEY_HERE` are not
 reported.
 
+A second tier, STRUCTURAL, holds the shapes that need no variable name beside
+them: a PEM private-key header, a service-account key id, fixed-prefix vendor
+tokens, a URL carrying a password (#2528). They are the platform's "non-provider
+patterns", which this repository cannot switch on (ops/ci/security_posture.py),
+so this file is the only content gate that sees them — in prose as well as code.
+A whole-tree tier with the same list lived in ops/system_check.py until it was
+removed as unreferenced; it belongs here, on the three paths that actually run.
+
 Findings print provider/variable, commit and path — never the value
 (.github/SECURITY.md: "never paste a credential ... into" a public place). A
 value's length and sha256 prefix are printed so the maintainer can compare it
@@ -63,6 +71,34 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         r"\b((?:sk|tp|tvly)-)([A-Za-z0-9]{20,})\b")),
 ]
 
+_URL_PASSWORD = "URL with a password"
+
+# Shapes that are a credential on their own, wherever they sit. Group 1 names the
+# shape's marker and group 2 is the value, like PATTERNS; the letters-and-digits
+# test does not apply (a PEM header has no digits). Lengths are floors, not the
+# vendor's exact length: a token one character short of today's format is still
+# a token.
+STRUCTURAL: list[tuple[str, re.Pattern[str]]] = [
+    ("PEM private key", re.compile(r"(-----BEGIN )([A-Z ]*PRIVATE KEY-----)")),
+    # Keyed on the 40-hex id, not on "type": "service_account", which any setup
+    # document may quote.
+    ("service-account key id", re.compile(
+        r"\"(private_key_id)\"\s*:\s*\"([0-9a-f]{40})\"")),
+    # No trailing \b where the charset includes '-' or '_': a key ending in one
+    # has no word boundary after it.
+    ("Google API key", re.compile(r"\b(AIza)([0-9A-Za-z_-]{35})")),
+    ("Telegram bot token", re.compile(r"\b([0-9]{8,10}:AA)([A-Za-z0-9_-]{30,})")),
+    ("GitHub token", re.compile(
+        r"\b(gh[pousr]_|github_pat_)([A-Za-z0-9_]{30,})")),
+    ("AWS access key id", re.compile(r"\b(AKIA)([0-9A-Z]{16})\b")),
+    ("Slack token", re.compile(r"\b(xox[baprs]-)([A-Za-z0-9-]{10,})")),
+    ("Nostr signing key", re.compile(r"\b(nsec1)([02-9ac-hj-np-z]{58})\b")),
+    # A URL whose authority carries a password: the user is the name, the
+    # password the value. A template slot in that position is not a finding.
+    (_URL_PASSWORD, re.compile(
+        r"\b[a-z][a-z0-9+.-]*://([^\s:/@'\"]+):([^\s/@'\"]{6,})@[A-Za-z0-9.\-\[]")),
+]
+
 _PLACEHOLDER = re.compile(r"(?i)your|example|placeholder|xxxx|dummy|redacted|changeme")
 
 
@@ -86,12 +122,23 @@ def looks_like_secret(value: str) -> bool:
             and not _PLACEHOLDER.search(value))
 
 
+def _unfilled(value: str) -> bool:
+    """A template slot (`${DB_PASSWORD}`, `<password>`, `your-password`), not a value."""
+    return bool(re.search(r"[${}<>]", value) or _PLACEHOLDER.search(value))
+
+
 def scan_line(line: str) -> list[tuple[str, str, str]]:
     hits, seen = [], set()
     for kind, pattern in PATTERNS:
         for match in pattern.finditer(line):
             name, value = match.group(1), match.group(2)
             if looks_like_secret(value) and value not in seen:
+                seen.add(value)
+                hits.append((kind, name, value))
+    for kind, pattern in STRUCTURAL:
+        for match in pattern.finditer(line):
+            name, value = match.group(1), match.group(2)
+            if value not in seen and not (kind == _URL_PASSWORD and _unfilled(value)):
                 seen.add(value)
                 hits.append((kind, name, value))
     return hits

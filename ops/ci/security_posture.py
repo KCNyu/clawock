@@ -47,6 +47,12 @@ are already explicitly blocked from PRs. That block is on filenames. It cannot
 see content. Validity checks answer the only question that matters during an
 actual leak: is this credential still live.
 
+"Not offered here" does not mean "covered": the platform will never see those
+shapes in this repository, so the content gate for them is the repository's own
+— `STRUCTURAL` in ops/ci/commit_secret_scan.py, which runs in CI, in the
+pre-push hook and before a data-plane publish. Removing that tier because
+"push protection remains" would leave nothing behind it (#2528).
+
 Usage:
     security_posture.py            # report; exit 1 if something is off
     security_posture.py --warn     # report; always exit 0 (annotations only)

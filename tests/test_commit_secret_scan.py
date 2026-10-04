@@ -1,4 +1,5 @@
-"""The CI scan of a range's added lines catches the shapes the 2026-03-11 leak had (#2033).
+"""The CI scan of a range's added lines catches the shapes the 2026-03-11 leak had (#2033),
+and the standalone shapes no variable name announces (#2528).
 
 The leak put three market-data keys into TOOLS.md (a `**Provider**: value` line —
 Markdown, which the pre-commit hook skips on purpose) and into scripts as named
@@ -64,6 +65,44 @@ def test_every_shape_the_leak_had_is_reported(path, line):
 ])
 def test_names_identifiers_and_placeholders_stay_quiet(line):
     assert scan.scan_diff(_patch("x.py", line)) == []
+
+
+# Each value is assembled at runtime for the same reason as above. One row per
+# shape that needs no variable name beside it (#2528): these were covered by a
+# whole-tree scan that was removed as unreferenced, on the assumption that the
+# platform's non-provider patterns would take over — a switch this repository
+# cannot turn on.
+STANDALONE = {
+    "PEM private key": "-----BEGIN RSA " + "PRIVATE KEY-----",
+    "service-account key id": '"private_key_' + f'id": "{"a1b2c3d4e5" * 4}"',
+    "Google API key": "AI" + "za" + "SyD-" + "x7" * 15 + "Q",
+    "Telegram bot token": f"- bot: {'1234567890'}:A" + "A" + "Hd9" * 11,
+    "GitHub token": "token is gh" + "p_" + "0aB" * 12,
+    "AWS access key id": "aws key AK" + "IA" + "Q7" * 8,
+    "Slack token": "slack xo" + "xb-" + "123456789012-AbCdEfGh",
+    "Nostr signing key": "ns" + "ec1" + "q2" * 29,
+    "URL with a password": "postgresql://clawock:" + "hunter2supersecret" + "@db.internal:5432/x",
+}
+
+
+@pytest.mark.parametrize("kind", sorted(STANDALONE))
+@pytest.mark.parametrize("path", ["memory/2026-10-05-pre-open.md", "ops/host/x.sh"])
+def test_a_credential_that_needs_no_name_beside_it_is_reported(kind, path):
+    findings = scan.scan_diff(_patch(path, STANDALONE[kind]))
+    assert [f.kind for f in findings] == [kind]
+    assert findings[0].value not in findings[0].describe()
+
+
+@pytest.mark.parametrize("line", [
+    "postgres://app:${DB_PASSWORD}@db/app",
+    "https://user:<password>@host.example/x",
+    "git@github.com:KCNyu/clawock.git",
+    "https://example.com/a:b@c",
+    "at 09:30 HKT the desk wrote ops@example.com",
+    "sha256:" + "ab12" * 16,
+])
+def test_urls_templates_and_digests_stay_quiet(line):
+    assert scan.scan_diff(_patch("memory/2026-10-05-pre-open.md", line)) == []
 
 
 def test_only_added_lines_count():
