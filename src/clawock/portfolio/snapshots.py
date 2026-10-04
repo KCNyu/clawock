@@ -16,9 +16,7 @@ The same-day share check uses the running balance *after* the sell, so a sell is
 only counted once the holding has actually been drawn down to (or below) it. The
 strict date-`<` branch handles later sell→rebuy cycles without false negatives.
 """
-from datetime import date as _date
-
-from clawock.portfolio.math import ledger_date, ledger_rows
+from clawock.portfolio.math import ledger_date, ledger_rows, session_date
 
 
 def _ledger_sells(holdings):
@@ -54,34 +52,6 @@ def _ledger_sells(holdings):
             by_ticker[ticker] = sells
     return by_ticker
 
-
-def session_date(market, day):
-    """The trading session a fill belongs to, given the date it was recorded.
-
-    A ledger date is the operator's calendar date. A US session in Hong Kong
-    time runs 21:30 to 04:00, so a fill reported at 01:08 HKT on a Saturday
-    belongs to *Friday's* session and is stamped with Saturday's date. Comparing
-    that raw date against a snapshot named for the session drops the fill from
-    the very session that contains it.
-
-    Only non-session dates move, and only when the calendar covers that year —
-    a real session date, an unknown market, or a year the holiday tables do not
-    reach is returned unchanged rather than guessed at.
-    """
-    if not market or not isinstance(day, str) or len(day) != 10:
-        return day
-    from clawock.sessions import (
-        MARKET_TZ, covered_years, is_trading_day, previous_trading_day,
-    )
-    if market not in MARKET_TZ:
-        return day
-    try:
-        parsed = _date.fromisoformat(day)
-    except ValueError:
-        return day
-    if parsed.year not in covered_years(market) or is_trading_day(market, parsed):
-        return day
-    return previous_trading_day(market, parsed).isoformat()
 
 
 def realized_as_of(holdings, snap_date, snap_shares, *, market=None):

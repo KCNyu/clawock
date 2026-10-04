@@ -92,3 +92,45 @@ def test_intraday_commits_the_book_and_its_snapshot_together(tmp_path, monkeypat
     monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry', lambda: (True, ''))
     assert intraday_postflight.publish_data_plane('hk') == ('published', True)
     assert git('show', 'HEAD:portfolio.json')[1] == git('show', 'HEAD:memory/snapshots/2026-10-02.json')[1]
+
+
+@pytest.mark.parametrize('session,shares,fill,current,prev,amount,base', [
+    ('2026-08-14', 260, 8.77, 9.0, 9.21, -50.2, 2390.2),
+    ('2026-06-12', 10, 52.3, 48.3, 61.67, -40.0, 523.0),
+])
+def test_weekend_us_fill_uses_its_trading_session(session, shares, fill, current, prev, amount, base):
+    from datetime import date, timedelta
+    ledger_day = (date.fromisoformat(session) + timedelta(days=1)).isoformat()
+    row = dict(shares=shares, current_price=current, prev_close=prev,
+               trades=[dict(action='buy', date=ledger_day, shares=10, price=fill)])
+    actual, capital = day_pnl(row, session, market='us')
+    assert actual == pytest.approx(amount)
+    assert capital == pytest.approx(base)
+
+
+def test_us_asof_reads_session_even_when_fetch_dates_match(tmp_path):
+    book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
+    rows = [h for h in book['portfolios']['us_stocks']['holdings'] if h['shares'] > 0]
+    for h in rows:
+        h['data_source'] = 'Finnhub Oct 05, 2026 09:35 ET'
+        h['day_session_date'] = '2026-10-05'
+    rows[0]['day_session_date'] = '2026-10-02'
+    path = tmp_path / 'portfolio.json'
+    path.write_text(json.dumps(book))
+    result = integrity.check(path)
+    assert any(f['code'] == 'US_ASOF' and f['level'] == 'ERROR' for f in result['findings'])
+    assert not result['ok']
+
+
+def test_us_missing_quote_preserves_entire_book(tmp_path, monkeypatch):
+    from clawock.market_data import us_quotes
+    book = dict(portfolios={'us_stocks': {'holdings': [
+        dict(ticker='CRCL', shares=10, cost_basis=1), dict(ticker='RKLX', shares=10, cost_basis=1)]}})
+    path = tmp_path / 'portfolio.json'
+    path.write_text(json.dumps(book))
+    before = path.read_bytes()
+    monkeypatch.setattr(us_quotes, 'load_api_keys', lambda: {})
+    monkeypatch.setattr(us_quotes, 'fetch_us_quotes', lambda *a: {'CRCL': {'c': 2}})
+    with pytest.raises(RuntimeError, match='US quote refresh incomplete: RKLX'):
+        us_quotes.update_us_portfolio(str(path))
+    assert path.read_bytes() == before

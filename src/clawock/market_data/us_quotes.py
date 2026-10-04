@@ -981,6 +981,9 @@ def update_us_portfolio(
     print(f"{'═'*62}")
 
     quotes = fetch_us_quotes(tickers, keys)
+    missing_quotes = [t for t in tickers if not quotes.get(t)]
+    if missing_quotes:
+        raise RuntimeError('US quote refresh incomplete: ' + ', '.join(missing_quotes))
 
     # Fetch dated prev_close from Polygon historical (authoritative, avoids
     # the after-hours trap where live-quote APIs set pc = today's close)
@@ -1204,7 +1207,7 @@ def update_us_portfolio(
             holding['quote_incomplete'] = True
         else:
             holding.pop('quote_incomplete', None)
-        amount, base = day_pnl(holding, today_et_date, current=c)
+        amount, base = day_pnl(holding, today_et_date, current=c, market='us')
         holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
         holding.pop('today_change_abs', None)
 

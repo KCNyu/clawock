@@ -32,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-from clawock.portfolio.math import active_holdings, number, ledger_rows, day_pnl, holding_session
+from clawock.portfolio.math import active_holdings, number, ledger_rows, day_pnl, holding_session, session_date, ledger_date
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -146,9 +146,9 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             pc = number(h.get('prev_close'))
             if pc is not None:
                 session = holding_session(h, data.get('last_updated'), region)
-                amount, base = day_pnl(h, session)
+                amount, base = day_pnl(h, session, market=region)
                 ref = base / sh if sh else 0
-                fresh_lot = bool(session and any(t.get('action') == 'buy' and t.get('date') == session
+                fresh_lot = bool(session and any(t.get('action') == 'buy' and session_date(region, ledger_date(t.get('date'))) == session
                                                 for t in ledger_rows(h.get('trades'))))
                 tc = _r(amount)
                 sum_tc += tc
