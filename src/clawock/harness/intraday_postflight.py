@@ -269,16 +269,21 @@ def _subject_prices(ctx, subject):
         name = str(INSTRUMENTS.get(ticker, {}).get('name') or '')
         return {spelling(name), spelling(re.sub(r'-(?:W|SW|SS)$', '', name, flags=re.I))} - {''}
 
-    # Names come from registry identity, not arbitrary narrative. Shared names
-    # are ambiguous and cannot lend a price to either instrument.
-    plan_names = display_names(subject)
+    # Resolve the longest complete registered name prefix. A shorter name
+    # cannot borrow a longer instrument's level; shared names stay ambiguous.
+    plan_owners = {}
     for ticker in INSTRUMENTS:
-        if ticker != subject:
-            plan_names -= display_names(ticker)
+        for name in display_names(ticker):
+            plan_owners.setdefault(name, set()).add(ticker)
 
     def plan_named(key):
         tokens = key.split('_')
-        return any(spelling('_'.join(tokens[:n])) in plan_names for n in range(1, len(tokens) + 1))
+        owners = None
+        for n in range(1, len(tokens) + 1):
+            match = plan_owners.get(spelling('_'.join(tokens[:n])))
+            if match:
+                owners = match
+        return owners == {subject}
     levels, current = set(), set()
     keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
             'support', 'resistance', 'price_above', 'price_below',

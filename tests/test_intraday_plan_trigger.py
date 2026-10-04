@@ -159,3 +159,12 @@ def test_ambiguous_registry_display_names_do_not_lend_prices(monkeypatch):
     from clawock.harness.intraday_postflight import _subject_prices
     monkeypatch.setitem(instruments.INSTRUMENTS, 'OTHER', {'name': 'MINIMAX-W'})
     assert 231.4 not in _subject_prices({'watch_levels': {'mini_max_low': 231.4}}, '00100')[0]
+
+
+def test_longer_registry_name_cannot_lend_its_level_to_a_shorter_name(monkeypatch):
+    from clawock import instruments
+    from clawock.harness.intraday_postflight import _subject_prices
+    monkeypatch.setitem(instruments.INSTRUMENTS, 'OTHER', {'name': 'MINIMAX OTHER-W'})
+    ctx = {'watch_levels': {'minimax_other_low': 231.4}}
+    assert 231.4 not in _subject_prices(ctx, '00100')[0]
+    assert 231.4 in _subject_prices(ctx, 'OTHER')[0]
