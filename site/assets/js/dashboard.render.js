@@ -814,19 +814,10 @@
   // Display order for the Market Snapshot card.
   const MARKET_INDICES = ["SPX", "NDX", "DJI", "HSI", "HSTECH"];
 
-  // Parse a YYYY/MM/DD or YYYY-MM-DD timestamp out of the source string so we
-  // can flag stale (>1 trading day old) data with a ⚠ marker. Compare in UTC
-  // calendar-day terms (Date.UTC truncates the time) so the same source string
-  // doesn't look "1 day old" just because the user is in a different timezone.
-  function _indexAgeDays(src) {
-    if (!src) return null;
-    const m = src.match(/(20\d\d)[-/](\d{2})[-/](\d{2})/);
-    if (!m) return null;
-    const srcUTC = Date.UTC(+m[1], +m[2] - 1, +m[3]);
-    const now = new Date();
-    const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    return Math.max(0, Math.round((nowUTC - srcUTC) / 86400000));
-  }
+  // Which session an index quote belongs to, and whether that is behind the
+  // market's newest close, is decided by the publisher against the trading
+  // calendar (`session` / `stale`). The page does not count calendar days from
+  // its own clock: that painted Friday's close as stale every weekend.
 
   function renderMarketSnapshot() {
     const idx = safe(DATA, "indices") || {};
@@ -839,8 +830,7 @@
       const r = idx[k];
       const pct = r.change_pct;
       const cls = (pct == null) ? "neutral" : (pct > 0 ? "pos" : (pct < 0 ? "neg" : "neutral"));
-      const ageDays = _indexAgeDays(r.source);
-      const stale = ageDays != null && ageDays > 1;
+      const stale = r.stale === true;
       const priceTxt = (r.price != null)
         ? r.price.toLocaleString("en-US", { maximumFractionDigits: r.price < 100 ? 2 : 0 })
         : DASH;
@@ -856,12 +846,9 @@
     });
     grid.innerHTML = cells.length ? cells.join("") : `<div class="empty-state">No index data.</div>`;
 
-    // As-of line: most recent age across rendered cells
-    const ages = MARKET_INDICES.map(k => idx[k] && _indexAgeDays(idx[k].source)).filter(a => a != null);
-    if (ages.length && asof) {
-      const minAge = Math.min(...ages);
-      asof.textContent = minAge === 0 ? "(刚刚)" : minAge === 1 ? "(1 天前)" : `(${minAge} 天前)`;
-    }
+    // As-of line: the newest session across rendered cells
+    const sessions = MARKET_INDICES.map(k => idx[k] && idx[k].session).filter(Boolean).sort();
+    if (sessions.length && asof) asof.textContent = `(行情 ${sessions[sessions.length - 1].slice(5)})`;
 
     // RS: our combined today_pct vs SPX/HSI (region-weighted)
     if (rsRow) {
@@ -1837,11 +1824,25 @@
     const sectors = ctx.sectors || [];
     const asof = document.getElementById("sector-context-asof");
     if (asof) {
-      if (ctx.date) {
-        const ageDays = Math.floor((Date.now() - new Date(ctx.date + "T00:00:00+08:00").getTime()) / 86400000);
-        const stale = ageDays >= 1;
-        asof.textContent = `as of ${ctx.date}` + (stale ? ` · ${ageDays}天前 · 待 brief 刷新` : "");
-        asof.style.color = stale ? "var(--warning)" : "";
+      // The scan is made before the open, so its numbers are the session that
+      // had closed by then (`_sessions`), not the scan day in `date`. Say which
+      // close each market's numbers are, and flag the card once the holdings
+      // on this page quote a newer session than it does.
+      const closes = ctx._sessions || {};
+      const quoted = safe(DATA, "build_status", "markets") || {};
+      const parts = [["hk", "港股"], ["us", "美股"]].filter(([m]) => closes[m])
+        .map(([m, name]) => `${name} ${closes[m].slice(5)} 收盘`);
+      const behind = [["hk", "港股"], ["us", "美股"]].filter(([m]) => {
+        const now = quoted[m] && quoted[m].newest_quote_session;
+        return closes[m] && now && now > closes[m];
+      }).map(([m, name]) => `${name} ${quoted[m].newest_quote_session.slice(5)}`);
+      if (parts.length) {
+        asof.textContent = `盘前扫描 · ${parts.join(" · ")}`
+          + (behind.length ? ` · 持仓已是 ${behind.join(" / ")}` : "");
+        asof.style.color = behind.length ? "var(--warning)" : "";
+      } else if (ctx.date) {
+        asof.textContent = `扫描于 ${ctx.date}`;
+        asof.style.color = "";
       } else {
         asof.textContent = "";
         asof.style.color = "";
@@ -3984,7 +3985,8 @@
     const audit = safe(DATA, "decision_audit");
     const card = document.getElementById("decision-audit-card");
     if (!card) return;
-    document.getElementById("audit-asof").textContent = ` · 数据 ${audit?.as_of || "日期未知"}`;
+    // as_of is a machine stamp (HKT ISO, seconds and offset); the card prints its day.
+    document.getElementById("audit-asof").textContent = ` · 数据 ${String(audit?.as_of || "").slice(0, 10) || "日期未知"}`;
     const timing = (audit && audit.timing_diagnostic) || {};
     const byCcy = timing.by_currency || {};
     if (!audit || !["HKD", "USD"].some(c => byCcy[c])) { card.style.display = "none"; return; }
@@ -4742,9 +4744,16 @@
     const host = document.getElementById("ledger-body");
     if (!host) return;
     const payload = safe(DATA, "evidence");
-    document.getElementById("ledger-asof").textContent = payload?.built_at
-      ? `台账生成 ${payload.built_at}`
-      : `参考数据 ${payload?.generated_at || "日期未知"}（择时诊断日期；台账生成时刻未记录）`;
+    // built_at is written in UTC with microseconds; print it to the minute in
+    // HKT, like the other build times on this page. A bare date passes through.
+    const built = String(payload?.built_at || "");
+    const builtAt = new Date(built);
+    const builtText = built.includes("T") && !isNaN(builtAt)
+      ? builtAt.toLocaleString("sv-SE", { timeZone: "Asia/Hong_Kong" }).slice(0, 16) + " HKT"
+      : built.slice(0, 10);
+    document.getElementById("ledger-asof").textContent = builtText
+      ? `台账生成 ${builtText}`
+      : `参考数据 ${String(payload?.generated_at || "").slice(0, 10) || "日期未知"}（择时诊断日期；台账生成时刻未记录）`;
     const sections = (payload && payload.sections) || [];
     if (!sections.length) {
       host.innerHTML = '<p class="muted">evidence.json 没有载入 —— 它由 '

@@ -3386,7 +3386,7 @@ async function testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base) {
     await waitForData(page);
     const collisions = await page.evaluate(() => {
       const samples = {
-        "market-asof": ["(刚刚)", "(3 分钟前)", "(2 小时前)", "(1 天前)"],
+        "market-asof": ["(行情 10-02)", "(刚刚)", "(3 分钟前)", "(2 小时前)", "(1 天前)"],
         "last-updated": [
           "· 生成于 刚刚 · 06:44 UTC",
           "· 生成于 3 分钟前 · 06:41 UTC",

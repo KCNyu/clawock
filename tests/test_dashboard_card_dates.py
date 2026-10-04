@@ -25,6 +25,10 @@ function run(name, data) {
 assert.match(run('renderDecisionAudit', {decision_audit: {as_of: '2026-10-03'}}).get('audit-asof').textContent, /2026-10-03/);
 assert.match(run('renderLedger', {evidence: {built_at: '2026-10-04'}}).get('ledger-asof').textContent, /台账生成 2026-10-04/);
 assert.match(run('renderLedger', {evidence: {generated_at: '2026-10-02'}}).get('ledger-asof').textContent, /2026-10-02.*台账生成时刻未记录/);
+// Machine stamps are printed the way the rest of the page prints them (#2522).
+assert.equal(run('renderDecisionAudit', {decision_audit: {as_of: '2026-10-03T04:06:02+08:00'}}).get('audit-asof').textContent, ' · 数据 2026-10-03');
+assert.equal(run('renderLedger', {evidence: {built_at: '2026-10-03T20:04:41.123456+00:00'}}).get('ledger-asof').textContent, '台账生成 2026-10-04 04:04 HKT');
+assert.equal(run('renderLedger', {evidence: {generated_at: '2026-10-02T04:04:41+08:00'}}).get('ledger-asof').textContent, '参考数据 2026-10-02（择时诊断日期；台账生成时刻未记录）');
 '''], cwd=ROOT, check=True)
 
 
