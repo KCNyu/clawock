@@ -54,7 +54,9 @@ def test_successful_evidence_write_keeps_storage_format(tmp_path, monkeypatch):
     monkeypatch.setattr(ev, "ARTIFACT", artifact)
     monkeypatch.setattr(ev, "_sections", lambda: [])
     monkeypatch.setattr(ev, "_generated_at", lambda: "2026-09-18")
+    monkeypatch.setattr(ev, "_built_at", lambda: "2026-09-18T00:00:00+00:00")
     ev.write_all()
     expected = ev.payload([], "2026-09-18")
+    expected["built_at"] = "2026-09-18T00:00:00+00:00"
     assert artifact.read_text(encoding="utf-8") == (
         json.dumps(expected, ensure_ascii=False, indent=2) + "\n")

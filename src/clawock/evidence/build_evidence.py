@@ -491,15 +491,19 @@ def _generated_at() -> str:
     return audit.get('as_of') or 'unknown'
 
 
+def _built_at() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
 def write_all() -> Path:
     """The one output. Called by the CLI and by the preflight node, so there is a
     single place deciding what a published ledger contains. Written atomically:
     a crash mid-write must leave the last complete ledger, not a torn one the
     dashboard cannot parse (#1579)."""
     sections = _sections()
-    from datetime import datetime, timezone
     result = payload(sections, _generated_at())
-    result['built_at'] = datetime.now(timezone.utc).isoformat()
+    result['built_at'] = _built_at()
     safe_write_json(str(ARTIFACT), result)
     return ARTIFACT
 
