@@ -1934,6 +1934,7 @@ def compute_delta(snapshots, legs=None):
             return window(leg_key, 1)
 
         return {leg.key: {'today_pct': daily(leg.key),
+                          'session_date': today.get(f'{leg.key}_asof') or today['date'],
                           '7d_pct': window(leg.key, 7),
                           '30d_pct': window(leg.key, 30)}
                 for leg in legs}

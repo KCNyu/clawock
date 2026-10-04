@@ -518,13 +518,14 @@ def test_delta_windows_activate_only_at_exact_point_boundaries():
         for i in range(7)
     ]
     assert dashboard.compute_delta(seven) == {
-        "us": {"today_pct": 0.95, "7d_pct": None, "30d_pct": None},
-        "hk": {"today_pct": 0.95, "7d_pct": None, "30d_pct": None},
+        "us": {"today_pct": 0.95, "session_date": "2026-01-07", "7d_pct": None, "30d_pct": None},
+        "hk": {"today_pct": 0.95, "session_date": "2026-01-07", "7d_pct": None, "30d_pct": None},
     }
 
     eight = seven + [_snapshot("2026-01-08", us_equity=107, hk_equity=214)]
     assert dashboard.compute_delta(eight)["us"] == {
         "today_pct": 0.94,
+        "session_date": "2026-01-08",
         "7d_pct": 7.0,
         "30d_pct": None,
     }
@@ -577,7 +578,7 @@ def test_delta_empty_single_and_zero_baseline_edges():
     assert dashboard.compute_delta([]) == expected_empty
     assert dashboard.compute_delta([
         _snapshot("2026-01-01", us_equity=10, hk_equity=20)
-    ]) == expected_empty
+    ]) == {key: {**value, "session_date": "2026-01-01"} for key, value in expected_empty.items()}
 
     zero_base = dashboard.compute_delta([
         _snapshot("2026-01-01", us_equity=0, hk_equity=0),
