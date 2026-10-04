@@ -1073,6 +1073,7 @@ def test_every_artifact_that_prints_the_brief_time_reads_the_constant():
     printers = {
         'src/clawock/harness/brief_render.py': 2,      # markdown title + card
         'src/clawock/harness/brief_card.py': 1,        # fallback card
+        'src/clawock/harness/brief_watchdog.py': 2,    # rerun reason + miss alert (#2544)
     }
     for relative, expected in printers.items():
         source = (ROOT / relative).read_text(encoding='utf-8')

@@ -3534,6 +3534,10 @@ _BRIEF_FRESHNESS_ARTIFACTS = frozenset({
     't0_setup_review.json',
     'evidence.json',
     'decision_audit.json',
+    # Rewritten by every brief (benchmark_node), fetch-empty series included.
+    # A flat 80h allowance outlasted the 72h Friday→Monday gap, so a missed
+    # Monday run still read fresh (#2539).
+    'benchmark.json',
 })
 
 # The local brief normally commits in minutes but has a remote fallback and a
@@ -3551,7 +3555,6 @@ _FRESHNESS_POLICY = {
         name: _scheduled_policy(30, _BRIEF_FIRE)
         for name in _BRIEF_FRESHNESS_ARTIFACTS
     },
-    'benchmark.json': {'sla_hours': 80},  # 偶发限流，宽容
     # Grace is per fire, rounded above producer-only history (max observed:
     # macro 4.32h, sentiment 4.60h, influencer 5.04h, digest 5.57h).
     'macro.json': _scheduled_policy(

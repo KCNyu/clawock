@@ -959,6 +959,25 @@ def test_brief_artifact_turns_stale_after_next_required_fire(monkeypatch, tmp_pa
     assert risk["stale"] is True
 
 
+@pytest.mark.parametrize("at, stale", [
+    (datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc), False),    # Saturday
+    (datetime(2026, 8, 3, 7, 0, tzinfo=timezone.utc), True),     # Monday 15:00 HKT
+])
+def test_benchmark_is_judged_by_the_brief_that_writes_it(monkeypatch, tmp_path, at, stale):
+    """A flat 80h allowance outlasted the 72h weekend gap, so a Monday brief
+    that never ran left Friday's benchmark reading fresh (#2539)."""
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    friday_brief = datetime(2026, 7, 31, 0, 5, tzinfo=timezone.utc)
+    os.utime(data_dir / "benchmark.json",
+             (friday_brief.timestamp(), friday_brief.timestamp()))
+
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    row = next(row for row in status["files"] if row["name"] == "benchmark.json")
+
+    assert row["freshness_mode"] == "scheduled_fire"
+    assert row["stale"] is stale
+
+
 def test_multiple_daily_fires_use_latest_due_schedule(monkeypatch, tmp_path):
     at = datetime(2026, 7, 31, 19, 0, tzinfo=timezone.utc)
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
