@@ -84,6 +84,8 @@ on:
       - 'memory/theses/**'
       - 'memory/earnings/**'
       - 'memory/entry-gates/**'
+      # Hand-maintained peer registry; its contract test reads the real file.
+      - 'memory/peer-map.json'
       # Composite actions are code the jobs execute; a broken edit deserves a
       # red run on master too, not only on the PR that introduced it.
       - '.github/actions/**'
