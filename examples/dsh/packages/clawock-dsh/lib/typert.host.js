@@ -115,6 +115,24 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'round': z.string(),
   'detail': z.string(),
   'untilMs': z.union([z.number(), z.literal(null)]),
+  'progress': z.object({
+    'records': z.union([z.number(), z.literal(null)]),
+    'lensInventory': z.boolean(),
+    'areaInventory': z.boolean(),
+    'firstAt': z.string(),
+    'rejected': z.number(),
+    'issuesAt': z.string(),
+    'lenses': z.array(z.object({
+      'name': z.string(),
+      'rounds': z.union([z.number(), z.literal(null)]),
+      'open': z.union([z.number(), z.literal(null)]),
+      'last': z.union([z.literal(null), z.object({
+        'endedAt': z.string(), 'round': z.string(), 'axis': z.string(),
+        'result': z.string(), 'seconds': z.union([z.number(), z.literal(null)]),
+      })]),
+    })),
+    'areas': z.array(z.object({ 'name': z.string(), 'open': z.union([z.number(), z.literal(null)]) })),
+  }).optional(),
   'rounds': z.array(z.object({
   'endedAt': z.string(),
   'round': z.string(),

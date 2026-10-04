@@ -40,6 +40,8 @@ belongs here.
 - [README hero diagrams](design/hero-diagrams-2026-10-03/README.md), with
   [second iteration](design/hero-diagrams-2026-10-03/iteration-2/README.md) — diagram layout evidence.
 - [Task chip folding](design/dsh-task-chip-fold-2026-10-04/README.md) — task history layout evidence.
+- [Patrol coverage and dispatch Markdown](design/dsh-progress-2026-10-04/README.md), with
+  [installed WeChat filter output](design/dsh-progress-2026-10-04/wechat-filter-output.md) — real data provenance, screenshot and remaining rendering limits.
 
 - [Todos workflow](design/todos-workflow-2026-10-04/README.md) — task workflow evidence.
 

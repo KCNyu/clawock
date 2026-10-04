@@ -1,5 +1,5 @@
 /**
- * The task chip's provider panel as plain text: the ASCII rendering of the same
+ * The task chip's provider panel as conservative Markdown: the chat rendering of the same
  * panel.ts model the sidebar draws, for a chat reply (OpenClaw `/dispatch-list`).
  * It decides nothing — groups, rows, words, order and folding all come from the
  * model. Only the drawing is its own: a role is a character where the chip has

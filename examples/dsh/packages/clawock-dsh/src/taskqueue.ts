@@ -3,7 +3,8 @@
  * tasks are alive, what each one waits for, what just finished, and what the
  * clawock-patrol supervisor is doing (running a round, giving way, or waiting
  * for its next one). Everything is read from this host — files the runner and
- * the supervisor write, plus systemctl/journalctl — never the network.
+ * the supervisor write, plus systemctl/journalctl. Coverage alone reads GitHub open patrol labels
+ * through gh, cached for five minutes; no patrol state is written.
  *
  *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
  *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
@@ -35,7 +36,7 @@ import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, rea
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type {
-  AgentQueue, AgentSlotLimit, DispatchTask, OpsStatus, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult,
+  PatrolProgress, AgentQueue, AgentSlotLimit, DispatchTask, OpsStatus, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult,
 } from './types.ts'
 import { expandHome } from './balance.ts'
 
@@ -74,6 +75,8 @@ export interface TaskQueueDeps {
   patrolService(): Promise<string>
   /** The supervisor's most recent journal lines, oldest first, timestamps kept. */
   patrolLog(): Promise<string[]>
+  /** Read-only GitHub patrol issue labels, with their own five-minute cache. */
+  patrolIssues?(): Promise<{ labels: string[][] | null; asOf: string }>
   /** Run the ops entry: `python3 <opsPath> --json …`. Optional: tests without it get no queue order. */
   runOps?(opsPath: string, args: string[], timeoutMs: number): Promise<OpsRun>
 }
@@ -109,6 +112,9 @@ function run(command: string, args: string[]): Promise<RunResult> {
   })
 }
 
+let issueFetchedAt = 0
+let issueCache: { labels: string[][] | null; asOf: string } | null = null
+
 export const systemDeps: TaskQueueDeps = {
   async activeTaskIds() {
     const { out, failed } = await run('systemctl', ['list-units', 'agent-dispatch-*', '--state=active', '--no-legend', '--plain'])
@@ -125,6 +131,22 @@ export const systemDeps: TaskQueueDeps = {
   async patrolLog() {
     const { out } = await run('journalctl', ['-u', PATROL_UNIT, '-n', '12', '-o', 'cat', '--no-pager'])
     return out.split('\n').filter((line) => line.trim() !== '')
+  },
+  async patrolIssues() {
+    const now = Date.now()
+    if (issueCache !== null && now - issueFetchedAt < 300000) return issueCache
+    issueFetchedAt = now
+    const { out, failed } = await new Promise<RunResult>((resolve) => {
+      execFile('gh', ['issue', 'list', '-R', 'KCNyu/clawock', '--label', 'patrol', '--state', 'open', '--limit', '1000', '--json', 'labels'],
+        { timeout: COMMAND_TIMEOUT_MS, maxBuffer: 4 << 20 }, (error, stdout) => resolve({ out: String(stdout ?? ''), failed: error === null ? null : error.message }))
+    })
+    try {
+      const rows = JSON.parse(out)
+      // A saturated result cannot establish exact counts. Failure is unknown, never zero.
+      if (failed !== null || !Array.isArray(rows) || rows.length >= 1000 || rows.some((r) => !Array.isArray(r.labels) || r.labels.some((l: { name?: unknown }) => typeof l.name !== 'string'))) throw new Error('incomplete labels')
+      issueCache = { labels: rows.map((r) => r.labels.map((l: { name: string }) => l.name)), asOf: new Date(now).toISOString() }
+    } catch { issueCache = { labels: null, asOf: '' } }
+    return issueCache
   },
   runOps: runOpsProcess,
 }
@@ -323,14 +345,48 @@ function readPool(limitsPath: string): string[] {
   return text.split('\n').flatMap((line) => (line.split('#')[0] ?? '').split(/\s+/)).filter((word) => word !== '')
 }
 
-function readRounds(patrolDir: string, limit: number): PatrolRound[] {
+/** Read every valid record once; malformed rows are disclosed, not silently counted. */
+function roundRecords(patrolDir: string): { rows: PatrolRound[] | null; rejected: number } {
   let text: string
-  try { text = readFileSync(join(patrolDir, 'rounds.tsv'), 'utf8') } catch { return [] }
-  return text.split('\n').filter((line) => line.trim() !== '').slice(-limit).reverse().map((line) => {
-    const [endedAt = '', round = '', axis = '', , result = '', took = ''] = line.split('\t')
-    const seconds = Number.parseInt(took, 10)
-    return { endedAt, round, axis, result, seconds: Number.isFinite(seconds) ? seconds : null }
-  })
+  try {
+    const file = join(patrolDir, 'rounds.tsv')
+    // Refuse an oversized source instead of silently taking a tail as all-history coverage.
+    if (statSync(file).size > (8 << 20)) return { rows: null, rejected: 0 }
+    text = readFileSync(file, 'utf8')
+  } catch { return { rows: null, rejected: 0 } }
+  const rows: PatrolRound[] = []
+  let rejected = 0
+  for (const line of text.split('\n').filter((l) => l.trim() !== '')) {
+    const fields = line.split('\t')
+    const [endedAt = '', round = '', axis = '', task = '', result = '', took = ''] = fields
+    if (fields.length !== 6 || !/^R\d+$/.test(round) || !axis || !task || !result || localStampMs(endedAt) === null) { rejected++; continue }
+    const seconds = /^\d+s$/.test(took) ? Number(took.slice(0, -1)) : null
+    rows.push({ endedAt, round, axis, result, seconds })
+  }
+  return { rows, rejected }
+}
+
+export function readPatrolProgress(patrolDir: string, axesPath: string, issues: { labels: string[][] | null; asOf: string }): { rounds: PatrolRound[]; progress: PatrolProgress } {
+  const { rows, rejected } = roundRecords(patrolDir)
+  let axes: string[] = []
+  let known: string[] = []
+  let lensInventory = false
+  let areaInventory = false
+  try { axes = readFileSync(axesPath, 'utf8').split('\n').filter((l) => l.includes('\t') && !l.startsWith('#')).map((l) => l.split('\t')[0]!); lensInventory = axes.length > 0 } catch { /* inventory unavailable */ }
+  try { const labels: unknown = JSON.parse(readFileSync(join(patrolDir, 'labels-known.json'), 'utf8')); if (Array.isArray(labels)) { known = labels.filter((l): l is string => typeof l === 'string'); areaInventory = known.some((l) => l.startsWith('area:')) } } catch { /* inventory unavailable */ }
+  const count = (label: string): number | null => issues.labels === null ? null : issues.labels.filter((ls) => ls.includes(label)).length
+  const observed = issues.labels?.flat() ?? []
+  const lenses = [...new Set([...axes, ...(rows ?? []).map((r) => r.axis), ...observed.filter((l) => l.startsWith('lens:')).map((l) => l.slice(5))])].sort()
+  const areas = [...new Set([...known, ...observed].filter((l) => l.startsWith('area:')).map((l) => l.slice(5)))].sort()
+  const newest = [...(rows ?? [])].reverse().sort((a, b) => (localStampMs(b.endedAt) ?? 0) - (localStampMs(a.endedAt) ?? 0))
+  return {
+    rounds: newest.slice(0, 8),
+    progress: {
+      records: rows === null ? null : rows.length, lensInventory, areaInventory, firstAt: newest.at(-1)?.endedAt ?? '', rejected,
+      lenses: lenses.map((name) => ({ name, rounds: rows === null ? null : rows.filter((r) => r.axis === name).length, last: newest.find((r) => r.axis === name) ?? null, open: count('lens:' + name) })),
+      areas: areas.map((name) => ({ name, open: count('area:' + name) })), issuesAt: issues.asOf,
+    },
+  }
 }
 
 /**
@@ -405,8 +461,9 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   if (!existsSync(config.logDir)) {
     return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
   }
-  const [activeIds, service, log, opsRead] = await Promise.all([
+  const [activeIds, service, log, opsRead, issues] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
+    deps.patrolIssues?.().catch(() => ({ labels: null, asOf: '' })) ?? Promise.resolve({ labels: null, asOf: '' }),
   ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
   // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was
@@ -452,7 +509,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     running: active.filter((task) => task.slot !== '').length,
     active,
     recent: ended,
-    patrol: { ...patrolPhase(service, round, alive.has(round), log), rounds: readRounds(config.patrolDir, 8) },
+    patrol: { ...patrolPhase(service, round, alive.has(round), log), ...readPatrolProgress(config.patrolDir, join(config.limitsPath, '..', '..', 'clawock-patrol', 'axes.tsv'), issues) },
     queues,
     ops: opsRead.ops,
     logDir: config.logDir,

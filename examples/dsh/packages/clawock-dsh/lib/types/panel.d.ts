@@ -483,6 +483,30 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
     head: RowView;
     rows: RowView[];
 } | null;
+/** Words and provenance for the coverage disclosure; renderers choose its layout.
+ * Recorded lens attempts do not establish successful or exhaustive area inspection. */
+declare function progressView(progress: TaskQueueResult['patrol']['progress'], t: Translate, now: number): {
+    title: string;
+    summary: string;
+    scope: string;
+    warnings: string[];
+    lensHeading: string;
+    areaHeading: string;
+    areaNote: string;
+    lenses: {
+        name: string;
+        meta: string;
+        last: string;
+        stamp: string;
+        href: string;
+    }[];
+    areas: {
+        name: string;
+        text: string;
+        href: string;
+    }[];
+    empty: string;
+} | null;
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
@@ -491,6 +515,7 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
 export declare function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): {
     head: RowView;
     rounds: RowView[];
+    progress: ReturnType<typeof progressView>;
 } | null;
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
 export declare function opsFooter(result: TaskQueueResult | null, t: Translate): {
@@ -537,3 +562,4 @@ export type PanelInput = {
     queueError: string | null;
 };
 export declare function panelModel(input: PanelInput, t: Translate, now: number, open?: (id: string) => void): PanelModel;
+export {};
