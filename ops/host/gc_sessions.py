@@ -19,7 +19,7 @@ last KEEP_LOG_LINES lines once they pass KEEP_LOG_MB. Nothing rotated them:
 99 days of delivery evidence, both still growing (#1324).
 
 Defaults are conservative; tune via env vars if needed.
-Designed to run as a daily cron (~03:00 HKT, after overnight monitor ends 02:30
+Designed to run as a daily cron (~03:00 HKT, after the overnight monitor's last 02:33 slot
 and before US close 04:05 — see openclaw-intraday-cron-no-overlap memory).
 
 Idempotent + dry-run via --dry-run. Failures non-fatal (prints + exits 0).

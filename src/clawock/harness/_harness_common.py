@@ -417,9 +417,9 @@ def rebuild_dashboard(ws=None):
         publish_ok = None
         full = r.stdout + r.stderr
         # The decision map rides the same cadence but deliberately not the same
-        # generation: `clawock.publish.outputs` owns a four-file write set that
-        # is swapped in atomically, and a fifth file whose failure is survivable
-        # does not belong inside a contract whose whole point is that all four
+        # generation: `clawock.publish.outputs` owns a five-file write set that
+        # is swapped in atomically, and a sixth file whose failure is survivable
+        # does not belong inside a contract whose whole point is that all five
         # land or none do. It is a read-only view — a broken one costs a page,
         # not a number — so its return code is recorded and never gates the
         # publish.

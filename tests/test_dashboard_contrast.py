@@ -349,3 +349,9 @@ def test_the_installed_app_opens_on_a_colour_the_site_actually_uses():
         r"--bg:\s*(#[0-9A-Fa-f]{6})", CSS.read_text(encoding="utf-8"))}
     assert manifest["background_color"].upper() in backgrounds
     assert manifest["theme_color"].upper() in backgrounds
+    # The metas were named in #2312 and kept the pre-#1002 dark canvas (#2542).
+    for page in ("index.html", "_layouts/default.html"):
+        metas = re.findall(r'<meta name="theme-color" content="(#[0-9A-Fa-f]{6})"',
+                           (site / page).read_text(encoding="utf-8"))
+        assert len(metas) == 2 and {value.upper() for value in metas} <= backgrounds, (
+            f"{page}: theme-color {metas} is not a canvas colour the stylesheet declares")

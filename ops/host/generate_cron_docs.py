@@ -72,6 +72,17 @@ def _clock(expr: str) -> str:
     return f"{int(hour):02d}:{int(minute):02d}"
 
 
+def _overnight_last_slot(contract: dict) -> str:
+    """Last slot of the overnight monitor, read off its expression: the prose
+    said 02:30 while the table beside it printed `3,33 0-2` (#2545)."""
+    for job in contract["jobs"]:
+        if job.get("name", "").endswith("-overnight"):
+            minutes, hours = job["schedule"]["expr"].split()[:2]
+            last = lambda field: max(int(part) for part in field.replace("-", ",").split(","))
+            return f"{last(hours):02d}:{last(minutes):02d}"
+    raise SystemExit("contract has no overnight monitor job")
+
+
 def _brief_watchdog_clocks(contract: dict) -> tuple[str, str]:
     for job in contract["jobs"]:
         extras = job.get("extra_watchdogs") or []
@@ -89,6 +100,7 @@ def render(contract: dict) -> str:
             f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
     brief_backstop, brief_miss = _brief_watchdog_clocks(contract)
+    overnight_last = _overnight_last_slot(contract)
     return "\n".join([
         "# Cron schedule contract / 调度契约",
         "",
@@ -108,11 +120,11 @@ def render(contract: dict) -> str:
         "US market jobs remain expressed in HKT because the daemon's ET timezone parser has",
         "regressed before. `ops/host/sync_us_cron_dst.py --apply` runs daily at **06:20 HKT**, derives",
         "the season from `America/New_York`, and updates both OpenClaw jobs and their system",
-        "watchdogs. The overnight monitor always stops at 02:30 HKT so 03:00 memory dreaming",
-        "keeps an exclusive window; standard time therefore has two fewer US intraday slots.",
+        f"watchdogs. The overnight monitor's last slot is {overnight_last} HKT in both seasons, ahead of",
+        "03:00 memory dreaming; standard time therefore has two fewer US intraday slots.",
         "",
         "美股 job 继续使用 HKT 表达式，但由每日 06:20 的同步器按纽约真实 UTC offset 自动",
-        "切换。隔夜盯盘无论冬夏令时都在 02:30 HKT 截止，保留 03:00 dreaming 独占窗口；",
+        f"切换。隔夜盯盘无论冬夏令时最后一档都是 {overnight_last} HKT，排在 03:00 dreaming 之前；",
         "因此冬令时比夏令时少两个盘中 slot。",
         "",
         "## Whole-turn budget / 回合预算",
