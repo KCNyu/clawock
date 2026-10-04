@@ -5087,7 +5087,7 @@
       if (r.leveraged) {
         const vol = r.underlying_vol_pct == null ? '标的样本不足，未取波动率' :
           `标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · 半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%`;
-        const swap = r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${numOr(r.underlying_need_if_1x_pct ?? r.breakeven_need_pct, "%")}` : '';
+        const swap = r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 ${fmtPct(r.underlying_need_if_1x_pct ?? r.breakeven_need_pct)}` : '';
         extra = `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">${vol}${swap}</div>`;
       }
       return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
