@@ -321,3 +321,21 @@ def test_a_slot_going_missed_moves_the_fingerprint_and_an_idle_minute_does_not(
 
     assert running == still
     assert missed != running
+
+
+def test_atomic_generation_outputs_do_not_invalidate_the_next_build(tmp_path):
+    from clawock.publish import outputs
+    ws = _desk(tmp_path)
+    before = dashboard_input_fingerprint(ws)
+    # First generation on a clean checkout, then an identical atomic rewrite.
+    for name in outputs.output_paths():
+        target = ws / name
+        target.write_text('{}')
+    assert dashboard_input_fingerprint(ws) == before
+    for name in outputs.output_paths():
+        target = ws / name
+        target.write_bytes(target.read_bytes())
+    assert dashboard_input_fingerprint(ws) == before
+    # The external audit evidence remains a real input.
+    (ws / 'assets/data/evidence.json').write_text('{}')
+    assert dashboard_input_fingerprint(ws) != before

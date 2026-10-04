@@ -36,14 +36,16 @@ from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.math import number as portfolio_number, ledger_rows
 
 def benchmark_staleness(benchmark):
-    from clawock.market_data.benchmarks import _freshness
-    freshness = _freshness(benchmark.get('series') or {})
-    benchmark['freshness'] = freshness
+    # The normal lag is measured by the morning producer. Recomputing against
+    # an evening/weekend clock penalizes the normal wait until its next fetch.
+    # Producer failure is monitored separately by build/host freshness checks.
+    freshness = benchmark.get('freshness') or {}
     delayed = [dict(symbol=symbol, **row) for symbol, row in freshness.items()
                if isinstance(row.get('sessions_behind'), int)
                and row['sessions_behind'] > row['expected_lag_sessions']]
-    unknown = [symbol for symbol, row in freshness.items()
-               if row.get('sessions_behind') is None]
+    unknown = sorted(set(benchmark.get('series') or {}) - set(freshness)
+                     | {symbol for symbol, row in freshness.items()
+                        if row.get('sessions_behind') is None})
     return {'basis': 'sessions', 'is_stale': bool(delayed),
             'delayed': delayed, 'unknown': unknown}
 
@@ -3972,9 +3974,12 @@ FINGERPRINT_FILES = (
 ) + tuple(sorted(
     f'assets/data/{name}'
     for name in set(_FRESHNESS_POLICY) | set(_FINGERPRINT_EXTRA_DATA_PLANE)
-    # portfolio.json is freshness-policed and lives at the workspace root, not
-    # in the data plane; it is named above.
+    # This generation's five outputs describe the build, not its inputs.
+    # Rewriting even identical audit bytes changes mtime and would prevent
+    # --skip-if-unchanged from ever firing. Keep their health checks separate.
+    # portfolio.json lives at the workspace root and is named above.
     if name != 'portfolio.json'
+    and f'assets/data/{name}' not in dashboard_outputs.output_paths(WS_ROOT)
 ))
 FINGERPRINT_DIRS = ('memory/bars', 'memory/snapshots', 'memory/weekly', 'memory/.tmp')
 FINGERPRINT_CACHE = '.cache/dashboard-input.json'
