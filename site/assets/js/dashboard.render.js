@@ -3008,6 +3008,7 @@
   function renderRiskMetrics() {
     const r = safe(DATA, "risk") || {};
     const us = r.us || {}, hk = r.hk || {}, combined = r.combined || {}, lev = r.leveraged_exposure || {};
+    const formatNumber = v => Number(v).toFixed(2);
     const setNum = (id, v, fmt = 'num') => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -3015,7 +3016,7 @@
       let text;
       if (fmt === 'pct') text = (v * 100).toFixed(1) + '%';
       else if (fmt === 'pct_signed') text = (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
-      else text = v.toFixed(2);
+      else text = formatNumber(v);
       el.textContent = text;
       // Color by sign / threshold
       let cls = "val";
@@ -3035,11 +3036,19 @@
 
     const alerts = r.alerts || [];
     document.getElementById('risk-alert-count').textContent = alerts.length ? `(${alerts.length})` : '';
-    const ICONS = {};
+    const ALERT_ZH = {
+      high_beta: "高 β", high_vol: "高波动", deep_dd: "深回撤",
+      negative_sharpe: "负夏普", high_leverage: "高杠杆",
+      risk_data_stale: "风险数据陈旧", risk_data_coverage: "风险数据覆盖不足",
+      insufficient_observations: "样本不足", correlated_cluster: "相关持仓集中",
+      diversification_illusion: "分散度不足",
+    };
+    // Format only measured values after '='; keep threshold wording intact.
+    const detail = a => (a.detail || '').replace(/(=\s*)(-?\d+\.\d{3,})/g,
+      (_match, prefix, value) => prefix + formatNumber(value));
     const html = alerts.map(a =>
       `<div class="risk-alert ${a.severity || 'high'}">
-         <span class="icon"></span>
-         <div><strong>${a.type}</strong>: ${a.detail || ''}</div>
+         <div><strong>${escapeHtml(ALERT_ZH[a.type] || a.type)}</strong>: ${escapeHtml(detail(a))}</div>
        </div>`
     ).join('');
     document.getElementById('risk-alerts').innerHTML = html;
