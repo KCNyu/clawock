@@ -1375,3 +1375,10 @@ def transcript_loop_score(session_id):
     windows = [blob[i:i + 50] for i in range(0, len(blob) - 50, 25)]
     top = Counter(windows).most_common(1)
     return (top[0][1] if top else 0), len(blob)
+
+
+def deterministic_fallback(raw_block, tag, reason):
+    """Pure formatter used by the watchdog and regression tests."""
+    return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
+            '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
+            + raw_block.strip())
