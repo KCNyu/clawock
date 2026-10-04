@@ -1848,7 +1848,7 @@ async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base
       const holdings = [...((json.holdings || {}).us || []), ...((json.holdings || {}).hk || [])];
       json.breakeven_math = {
         rows: holdings.map(h => ({ ticker: h.ticker, pnl_pct: -18.8,
-                                    breakeven_need_pct: 23.2, leveraged: true })),
+                                    breakeven_need_pct: 23.2, leveraged: true, swap_1x: "SPCX", underlying_need_if_1x_pct: 23.2 })),
         note: "",
       };
       return json;
@@ -1868,6 +1868,7 @@ async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base
   assert.doesNotMatch(pageText, /(?:undefined|NaN)\s*%/,
     "a missing number was formatted as text instead of being left out");
 
+  assert.match(await page.locator("#breakeven-list").textContent(), /SPCX/, "swap target remains available without volatility");
   assert.deepEqual(state.failures, []);
   assert.deepEqual(state.errors, []);
   await page.close();

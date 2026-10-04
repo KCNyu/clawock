@@ -543,6 +543,11 @@
       el.textContent = text;
       el.className = "dr-v" + (cls ? " " + cls : "");
     });
+    ["us", "hk"].forEach(leg => {
+      const label = document.getElementById("dr-session-" + leg);
+      const session = safe(DATA, "delta", leg, "session_date");
+      if (label) label.textContent = `Session · ${leg.toUpperCase()} ${session || "日期未核实"}`;
+    });
     const compact = document.getElementById("dr-compact");
     if (compact) {
       compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
@@ -1734,15 +1739,15 @@
       return;
     }
     const rows = [
-      ["Today", safe(d, "us", "today_pct"), safe(d, "hk", "today_pct")],
+      ["Session", safe(d, "us", "today_pct"), safe(d, "hk", "today_pct")],
       ["7d", safe(d, "us", "7d_pct"), safe(d, "hk", "7d_pct")],
       ["30d", safe(d, "us", "30d_pct"), safe(d, "hk", "30d_pct")],
     ];
     tbody.innerHTML = rows.map(([label, u, h]) => `
       <tr>
         <td>${label}</td>
-        <td class="${pnlClass(u)}">${fmtPct(u)}</td>
-        <td class="${pnlClass(h)}">${fmtPct(h)}</td>
+        <td class="${pnlClass(u)}">${fmtPct(u)}${label === "Session" ? `<div class="muted">${escapeHtml(safe(d, "us", "session_date") || "日期未核实")}</div>` : ""}</td>
+        <td class="${pnlClass(h)}">${fmtPct(h)}${label === "Session" ? `<div class="muted">${escapeHtml(safe(d, "hk", "session_date") || "日期未核实")}</div>` : ""}</td>
       </tr>
     `).join("");
   }
@@ -2440,6 +2445,7 @@
     if (q.rsi14 != null) tech.push(kv("RSI 14", numOr(q.rsi14), q.rsi14 >= 70 ? "neg" : q.rsi14 <= 30 ? "pos" : ""));
     if (q.zscore20 != null) tech.push(kv("z-score 20", numOr(q.zscore20)));
     if (q.dist_ma200_pct != null) tech.push(kv("距 MA200", numOr(q.dist_ma200_pct, "%"), pnlClass(q.dist_ma200_pct)));
+    if (q.stop_state) tech.push(kv("止损状态", escapeHtml(q.stop_state)));
     if (q.stop_distance_pct != null) tech.push(kv("止损距", numOr(q.stop_distance_pct, "%")));
     if (q.vol_target_weight != null) tech.push(kv("vol 目标仓位", numOr(q.vol_target_weight)));
     if (q.tag) tech.push(kv("因子状态", escapeHtml(q.tag)));
@@ -2587,7 +2593,7 @@
       let q = e.q || {}, action = rgAction[h.ticker] || null;
       if (proj) {
         usedProjection = true;
-        q = proj.technical || q;
+        q = { ...q, ...(proj.technical || {}) };
         const ra = (proj.risk || {}).action;
         if (ra) action = { txt: ra.label, kind: ra.kind };
       }
@@ -2645,6 +2651,7 @@
           <td class="num cell-stack">
             <div class="${pnlClass(h.today_change)}">${fmtMoney(h.today_change, ccy)}</div>
             <div class="cell-sub ${pnlClass(h.today_change_pct)}">${fmtPct(h.today_change_pct)}</div>
+            <div class="cell-sub">${escapeHtml(h.day_session_date || safe(DATA, "delta", h.region, "session_date") || "日期未核实")}</div>
           </td>
           <td class="num cell-stack">
             <div class="${pnlClass(h.pnl_abs)}">${fmtMoney(h.pnl_abs, ccy)}</div>
@@ -3886,6 +3893,14 @@
     return `<span class="drv-chip ${m.cls}" title="driven_by=${d}（该信号源的 30d edge 见 Calibration·By Driver 卡）">${m.label}</span>`;
   }
 
+  function unresolvedReasonLabel(reason) {
+    const labels = { not_triggered: "未触发", market_closed: "休市", session_not_final: "未收盘",
+      confirmation_window_open: "待确认", needs_human_evidence: "需人工核实", invalid_authored_timestamp: "时间戳不可信",
+      bar_missing: "行情缺失", degenerate_bar: "行情无有效区间", implausible_move: "行情异常",
+      instrument_inactive: "标的未启用", campaign_invalidated: "计划已失效" };
+    return labels[String(reason || "").replace(/^pending:/, "")] || "原因未记录";
+  }
+
   const PLAN_OUTCOMES = Object.freeze({
     pending: "待确认", win: "获益", loss: "损失", flat: "持平",
     not_triggered: "未触发", unknown: "不可判定",
@@ -3950,7 +3965,7 @@
            + `<span>${escLLM(p.text)}</span></div>`;
     }).join("");
     const meta = safe(DATA, "insights_meta") || {};
-    document.getElementById("br-src").textContent = meta.source ? `源 ${meta.source}` : "";
+    document.getElementById("br-src").textContent = insightsSource(meta);
   }
 
   function renderDecisionAudit() {
@@ -4437,7 +4452,7 @@
       setVal("plan-winrate", wr.toFixed(1) + "%");
       const cov = calib.coverage_active || {};
       const covNote = cov.episodes_unresolved
-        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${Object.keys(cov.unresolved_reasons || {}).join(" / ") || "原因未记录"}）`
+        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${Object.keys(cov.unresolved_reasons || {}).map(reason => unresolvedReasonLabel(reason)).join(" / ") || "原因未记录"}）`
         : "";
       setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
       // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在
@@ -5069,10 +5084,11 @@
     card.style.display = '';
     const html = rows.map(r => {
       let extra = '';
-      if (r.leveraged && r.underlying_vol_pct != null) {
-        extra = `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · ` +
-                `半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%` +
-                (r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${r.underlying_need_if_1x_pct}%` : '') + `</div>`;
+      if (r.leveraged) {
+        const vol = r.underlying_vol_pct == null ? '标的样本不足，未取波动率' :
+          `标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · 半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%`;
+        const swap = r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${r.underlying_need_if_1x_pct ?? r.breakeven_need_pct}%` : '';
+        extra = `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">${vol}${swap}</div>`;
       }
       return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
          <span class="icon"></span>

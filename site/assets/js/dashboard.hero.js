@@ -348,6 +348,11 @@
       el.textContent = text;
       el.className = "dr-v" + (cls ? " " + cls : "");
     });
+    ["us", "hk"].forEach(leg => {
+      const label = document.getElementById("dr-session-" + leg);
+      const session = safe(DATA, "delta", leg, "session_date");
+      if (label) label.textContent = `Session · ${leg.toUpperCase()} ${session || "日期未核实"}`;
+    });
     const compact = document.getElementById("dr-compact");
     if (compact) {
       compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;

@@ -411,6 +411,8 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
                    'breakeven_need_pct': round(need, 1),
                    'leveraged': bool(_is_leveraged_etf(h))}
             if row['leveraged']:
+                row['swap_1x'] = LEV_1X_SWAP.get(h['ticker'])
+                row['underlying_need_if_1x_pct'] = round(need, 1)
                 sigma = us_vols.get(h['ticker']) if leg == 'US' else hk_dial.get('vol_annualized')
                 if isinstance(sigma, (int, float)) and sigma > 0:
                     drag_y = sigma ** 2                     # k=2 → (k²−k)/2·σ² = σ²
@@ -420,7 +422,6 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
                         'chop_drag_pct_per_month':   round(drag_y / 12 * 100, 2),
                         'underlying_need_2x_6m_pct': round(x_2x * 100, 1),
                         'underlying_need_if_1x_pct': round(need, 1),
-                        'swap_1x':                   LEV_1X_SWAP.get(h['ticker']),
                     })
             rows.append(row)
     rows.sort(key=lambda r: r['pnl_pct'])

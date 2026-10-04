@@ -1075,10 +1075,8 @@
       });
     }
 
-    const palette = [
-      getCSS("--accent"), getCSS("--positive"), getCSS("--warning"),
-      getCSS("--negative"), getCSS("--text-secondary"), getCSS("--neutral"),
-    ];
+    // Categories carry identity; health colors belong to state-bearing charts.
+    const palette = ["#7c8cf2", "#9c75c9", "#5675b7", "#7c91a8", "#baa5d5", "#455f80"];
 
     const opt = {
       ...baseChartOpts(),
