@@ -1652,6 +1652,13 @@ def check_outcome_ledger_receiving(r, now=None):
         r.add('outcome ledger', OK, f'newest product record {hours:.0f}h old')
 
 
+def check_weekly_reviews(r, now=None):
+    from clawock.automation.weekly_health import missing_weeks
+    gaps = missing_weeks(WS, now=now)
+    r.add('weekly reviews', WARNING if gaps else OK,
+          'missing due weeks: ' + ', '.join(gaps) if gaps else 'no missing due weeks')
+
+
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
@@ -2124,6 +2131,7 @@ def main():
         check_master_ci_conclusion,
         check_delivered_but_unarchived,
         check_outcome_ledger_receiving,
+        check_weekly_reviews,
         check_fallback_chain_shape,
         check_codex_runtime,
         check_model_chain_health,

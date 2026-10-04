@@ -58,7 +58,7 @@
     },
     "weekly-review.yml": {
       "deadline_hkt": null,
-      "why": "Writes memory/weekly/<ISO week>.md for a week that has already ended. Late is fine; missing is not, and that is workflow_health.py's overdue check, not a punctuality question."
+      "why": "Writes memory/weekly/<ISO week>.md for a week that has already ended. Late is fine; missing is not, and that is workflow_health.py's shared due-week artifact check, not a punctuality question."
     },
     "ci.yml": {
       "deadline_hkt": null,
