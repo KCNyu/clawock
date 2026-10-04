@@ -1175,9 +1175,10 @@ body[data-ds-dark-theme] .pbc {
    不带该属性,保持墨色、low 红走 tone。#908:档位只染色,不减信息。 */
 .pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
 .pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
+.pbc .bchip-v[data-used-level="low"] { color:var(--bad) }
 /* stale 黄必须排在用量档之后(与面板 bp-win-fill 同一优先级):这几条选择器
    特异度相同,同元素同时带 data-balance-state 与 data-used-level,源序后者赢
-   ——排在前面的 stale 规则会被 ok/mid 档盖成「安心绿」,数字不可信的信号丢失。
+   ——排在前面的 stale 规则会被 ok/mid/low 档盖成「安心绿」,数字不可信的信号丢失。
    spec 的 CSS 契约钉住了这条顺序。 */
 .pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
 /* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行

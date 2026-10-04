@@ -1327,7 +1327,7 @@ type BriefView = {
   path: string
   bytes: number
   truncated: boolean
-  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; bytes: number; text?: string }>
+  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; dropped?: boolean; bytes: number; text?: string }>
   /** The host half predates `brief` (a dsh restart is pending): only prompt.md can be listed. */
   needsHost: boolean
 }
@@ -1759,7 +1759,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
                 h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: a.stamp || a.file })),
                 a.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, a.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
               h('span', { className: cx('tq-tag'), 'data-tq-delivered': a.delivered ? 'true' : 'false' },
-                t(a.delivered ? 'queue.brief.delivered' : 'queue.brief.pending'))))),
+                t(a.delivered ? 'queue.brief.delivered' : (a.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending'))))),
       ui.timeline === null ? null : h('div', { className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id },
         h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
         ui.timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [

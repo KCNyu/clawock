@@ -715,3 +715,20 @@ def test_budget_changes_refuse_an_older_runner_an_ended_task_and_values_below_wh
     assert code == 0 and "QUOTA_RESUMES=5" in (d / "override.env").read_text()
     code, out = q.run("resumes", "t3", "reset")
     assert code == 0 and "QUOTA_RESUMES" not in (d / "override.env").read_text()
+
+
+def test_ended_task_appends_are_undelivered_with_a_drop_event(q):
+    d = q.task("drop-task", result="STATE=quota\n")
+    (d / "prompt.md").write_text("task")
+    (d / "inbox").mkdir(exist_ok=True)
+    (d / "inbox" / "20261002-114046-1-queue.md").write_text("follow-up")
+    (d / "run.log").write_text("inbox: 1 appended message(s) not delivered\n"
+                               "==== 2026-10-02 12:19:47 drop-task end state=quota outcome=- rc=1 ====\n")
+    out = q.run("brief", "drop-task")[1]
+    assert out["appends"][0]["dropped"] is True
+    timeline = q.run("log", "drop-task")[1]["timeline"]
+    dropped = [e for e in timeline["events"] if e["kind"] == "append_dropped"]
+    assert len(dropped) == 1 and dropped[0]["stamp"] == "2026-10-02 12:19:47"
+    r = subprocess.run([sys.executable, str(OPS), "brief", "drop-task"], env=q.env,
+                       capture_output=True, text=True, timeout=30)
+    assert "not delivered (task ended)" in r.stdout and "pending" not in r.stdout
