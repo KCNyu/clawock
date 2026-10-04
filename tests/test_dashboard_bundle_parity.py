@@ -30,7 +30,6 @@ ALLOWED_DIVERGENT = {
     "renderRiskGuardrail",
     "renderTab",
     "renderTodayHighlights",
-    "syncDeskRail",
 }
 
 _DECL = re.compile(r"^  function ([A-Za-z_$][\w$]*)\s*\(")

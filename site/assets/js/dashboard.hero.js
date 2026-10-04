@@ -277,9 +277,15 @@
     // present. On ordinary days it remains visible exactly as before.
     const dm = safe(DATA, "decision_metrics") || {};
     if (dm.brier != null) {
-      chips.push(chip(dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
-        Number(dm.brier).toFixed(3),
-        dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`));
+      // Same sample rule as the Reflect calibration badge (#2233): the count is
+      // `calibration.active.n`, under 8 is weak, and a missing n is unknown —
+      // a score on two episodes is not a green one (#2541).
+      const brierN = safe(dm, "calibration", "active", "n");
+      const thin = brierN == null || brierN < 8;
+      const sample = brierN == null ? "样本量未知" : `n=${brierN}${thin ? " 样本少" : ""}`;
+      const baseline = dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`;
+      chips.push(chip(thin ? "flat" : dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
+        Number(dm.brier).toFixed(3), [baseline, sample].filter(Boolean).join(" · ")));
     }
 
     if (!chips.length && !movers.length) {
@@ -357,38 +363,6 @@
     if (compact) {
       compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
       compact.title = compact.textContent;
-    }
-
-    // Hero promotion: rate includes its known execution sample; calibration
-    // explicitly compares against the leave-one-out baseline and names n.
-    const followed = document.getElementById("overview-followed");
-    const followedMeta = document.getElementById("overview-followed-meta");
-    const brier = document.getElementById("overview-brier");
-    const brierMeta = document.getElementById("overview-brier-meta");
-    const activeCal = safe(metrics, "calibration", "active") || {};
-    if (followed) {
-      followed.textContent = values[3][1];
-      followed.className = "overview-discipline-value neutral";
-    }
-    if (followedMeta) {
-      // The denominator and what it drops, together. `stranded` rows are calls
-      // whose verification window closed without an answer and never resolves,
-      // so a bare `known n=` overstates how much of the record this rate covers.
-      const stranded = activeExec.stranded;
-      followedMeta.textContent = activeExec.known == null
-        ? "known sample —"
-        : `known n=${activeExec.known}` + (stranded ? ` · ${stranded} unverifiable` : "");
-    }
-    if (brier) {
-      brier.textContent = metrics.brier == null ? DASH : metrics.brier.toFixed(3);
-      brier.className = "overview-discipline-value " +
-        (metrics.brier_beats_baseline === true ? "pos" :
-          metrics.brier_beats_baseline === false ? "neg" : "neutral");
-    }
-    if (brierMeta) {
-      const baseline = metrics.brier_baseline_loo ?? activeCal.baseline_loo;
-      const n = activeCal.n;
-      brierMeta.textContent = `vs LOO ${baseline == null ? DASH : baseline.toFixed(3)} · active n=${n == null ? DASH : n}`;
     }
   }
 
