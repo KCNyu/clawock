@@ -12,6 +12,10 @@ name: Macro Scan
 # Free public APIs, no key. Writes assets/data/macro.json — consumed by brief preflight.
 on:
   schedule:
+    # These schedules are the host-down fallback. Since 2026-09-29 GitHub has
+    # delivered them 3-10h late, after the brief; the run the brief actually
+    # reads is dispatched from the host at 07:20 HKT
+    # (ops/host/dispatch_preopen_scans.sh, #2516).
     - cron: '45 21 * * 0-4'
     # Second attempt (brief-fallback multi-tier pattern): measured drift
     # (assets/data/schedule-drift.json, n=20) maxes at 199min against this

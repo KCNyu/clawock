@@ -14,13 +14,13 @@
     },
     "macro-scan.yml": {
       "deadline_hkt": "08:00",
-      "enforcement": "enforced",
-      "why": "Feeds the 08:03 HKT pre-open brief. Its own header sizes the 21:45 UTC slot as '~2.25h before the brief ... GH Action scheduled crons routinely fire 1-2h LATE'. brief_preflight omits macro entirely past 36h, so a late scan does not corrupt the brief - it silently costs it a day of macro."
+      "enforcement": "accepted",
+      "why": "Feeds the 08:03 HKT pre-open brief, so the deadline is real: a scan that lands later costs the brief a day of macro (brief_preflight still adopts the previous day's snapshot, labelled with its age, up to 36h). The 21:45/21:55 UTC slots were sized for a 1-2h schedule delay; from 2026-09-29 GitHub delivered both attempts 3-10 hours late and in the same wave, so every brief that week printed the previous session's VIX/HSI/DXY/10Y. Accepted, not enforced, because no schedule can fix it: the scan has to start after the US close (21:00 UTC in winter) and the brief is at 00:03 UTC. The real trigger is the host: ops/host/dispatch_preopen_scans.sh runs `gh workflow run` at 07:20 HKT (dispatch latency is seconds). The scheduled legs remain for the host-down case, where they cannot arrive in time - that gap is the accepted cost."
     },
     "sentiment-scan.yml": {
       "deadline_hkt": "08:00",
-      "enforcement": "enforced",
-      "why": "Same bet as macro-scan, stated in its own header: '21:30 UTC ... ~2.5h before the 08:00 HKT brief. Scheduled this early to absorb GH Actions' typical 1-2h scheduled-cron delay.'"
+      "enforcement": "accepted",
+      "why": "Same bet and same answer as macro-scan: the 21:30/21:55 UTC slots arrive hours after the 08:03 HKT brief under GitHub's current schedule delay, so ops/host/dispatch_preopen_scans.sh dispatches it from the host at 07:20 HKT. Accepted for the scheduled legs, which now only cover a host outage."
     },
     "influencer-scan.yml": {
       "deadline_hkt": "08:00",
