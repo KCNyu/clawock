@@ -1053,7 +1053,7 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert "const ev = bookEvidence()" in renderer
     assert 'put(r.ticker, "proj", r)' in renderer
     assert "const proj = e.proj" in renderer
-    assert "q = proj.technical || q" in renderer
+    assert "q = { ...q, ...(proj.technical || {}) }" in renderer
     assert "(h.shares ?? 0) > 0" in renderer
     # The compiled status schema is {rank, label, state}; keep the Pages
     # consumer on the same key so a populated projection cannot print
