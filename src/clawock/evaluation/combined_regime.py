@@ -10,7 +10,7 @@ daily reset, so volatility decay is captured at the book level. Multi-market day
 handled on a UNION calendar (a market closed that day → 0 return for its sleeves).
 
 Dial (matches production compute_regime):
-  • HK 2x sleeve (07226): 2x when HSTECH > 200DMA, else de-levered to 1x.
+  • HK 2x sleeve (07226): production trend/volatility dial: 2x green, 1x amber, 0x red.
   • US 2x names (any held, e.g. RKLX/SPCH): 2x when underlying > 200DMA; cut to 1x ONLY when
     trend-off AND 20d vol ≥ 70% (hot); trend-off-but-calm keeps 2x (light on low-vol).
   • 1x sleeves untouched.
@@ -106,6 +106,11 @@ def ann_vol(rets):
     if len(rets) < 2: return 0.0
     m = sum(rets) / len(rets)
     return math.sqrt(sum((x - m) ** 2 for x in rets) / (len(rets) - 1)) * math.sqrt(252)
+
+
+def hk_effective_leverage(close, ma, vol, native=2.0):
+    """Use the shipped HK dial, including its conservative missing-input tier."""
+    return native * compute_regime.classify(close, ma, vol)[3]
 
 
 def holding_spec(ticker):
@@ -270,7 +275,7 @@ def main(argv=None):
         # regime mode, leveraged sleeve
         trend_on = ma[proxy][i-1] is not None and ff[proxy][i-1] > ma[proxy][i-1]
         if dial == 'hk2x':
-            return 2.0 if trend_on else 1.0
+            return hk_effective_leverage(ff[proxy][i-1], ma[proxy][i-1], vol[proxy][i-1], native)
         if dial == 'us2x':
             if trend_on:
                 return 2.0
@@ -327,7 +332,7 @@ def main(argv=None):
 
     card = run_card.record(
         'combined_regime',
-        params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_hot': VOL_HOT,
+        params={'ma_window': MA_WIN, 'vol_window': VOL_WIN, 'vol_hot': VOL_HOT, 'hk_vol_cap': compute_regime.VOL_CAP,
                 'crash_window': [crash0, crash1],
                 'weights_usd': {tk: round(wt, 6) for tk, wt in sorted(w.items())},
                 'holding_map': {tk: list(spec) for tk, spec in sorted(specs.items())},
