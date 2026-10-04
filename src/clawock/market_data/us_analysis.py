@@ -266,7 +266,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"  总市值:  ${tv:>10,.2f}  (成本 ${tc:,.2f})")
     print(f"  浮盈亏:  {sign(pnl)}${pnl:>9,.2f}  ({sign(pnl_)}{pnl_:.2f}%)")
     print(f"  今日:    {sign(day)}${day:>9,.2f}")
-    print(f"  已实现:  +${real:,.2f}")
+    print(f"  已实现:  {sign(real)}${real:,.2f}")
     print(f"{'─'*w}")
 
     # Header
@@ -365,7 +365,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
         f" | 今日 {sgn(day)}${day:,.0f}"
     )
     if real:
-        totals += f" | ✅ 已实现 +${real:,.0f}"
+        totals += f" | ✅ 已实现 {sgn(real)}${real:,.0f}"
     lines.append(totals)
 
     # Holdings
