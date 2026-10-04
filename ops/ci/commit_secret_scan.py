@@ -41,7 +41,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 
-_VALUE = r"([A-Za-z0-9_\-]{16,})"
+_VALUE = r"([A-Za-z0-9_:\-]{16,})"
 
 PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     # FINNHUB_API_KEY = 'abc…', POLYGON_API_KEY: abc…, export X_TOKEN="…"

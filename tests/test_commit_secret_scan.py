@@ -45,6 +45,7 @@ def _patch(path: str, *added: str) -> str:
     ("check_ai_stocks.py", f"api_key = '{KEY40}'"),
     ("fetch.py", f"url = f'https://finnhub.io/api/v1/quote?symbol=X&token={KEY40}'"),
     ("notes.md", f"used sk-{KEY40} for the probe"),
+    ("bot.py", f'TELEGRAM_BOT_TOKEN = "{str(12345) * 2}:{KEY40}"'),
 ])
 def test_every_shape_the_leak_had_is_reported(path, line):
     findings = scan.scan_diff(_patch(path, line))
