@@ -250,6 +250,8 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
         held_us = {h.get('ticker') for h in us_holdings if h.get('shares', 0) > 0}
         for nm in us_reg.get('names', []):
             if nm.get('state') == 'cut' and nm.get('etf') in held_us:
+                holding = next(h for h in us_holdings if h.get('ticker') == nm['etf']
+                               and h.get('shares', 0) > 0)
                 vol = nm.get('vol_annualized')
                 if vol is None:
                     basis = nm.get('regime_basis') or 'short_ma'
@@ -284,6 +286,10 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                         'kind': 'full_leveraged_position',
                         'target_tickers': [nm['etf']],
                         'swap_to': nm['underlying'],
+                        'minimum_shares': holding.get('shares'),
+                        'minimum_value': (holding.get('current_value')
+                                          or holding.get('cost_basis', 0) * holding.get('shares', 0)),
+                        'currency': 'USD',
                     },
                 })
 

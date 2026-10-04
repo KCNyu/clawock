@@ -400,6 +400,13 @@ def test_regime_cut_for_a_held_us_leveraged_etf_emits_forced_delever(preflight):
     assert breach["leg"] == "US"
     assert breach["ticker"] == "PLTU"
     assert breach["severity"] == "high"
+    reduction = breach['required_reduction']
+    assert reduction['minimum_value'] == 25
+    assert reduction['currency'] == 'USD'
+    from clawock.decision.risk import _pressure, _rearm_at
+    pressure = _pressure(breach)
+    assert pressure == {'kind': 'minimum_value', 'value': 25.0, 'currency': 'USD'}
+    assert '38 USD' in _rearm_at(pressure)
     assert "PLTU 2x→PLTR" in breach["action"]
     assert "driven_by=risk_rule" in breach["action"]
 
