@@ -36,7 +36,8 @@ tests), mirrored path for path. It is a separate install target from the ops ent
 
 ```bash
 ops/host/install_agent_dispatch.sh            # per file: .before-update, install by rename, cmp
-ops/host/install_agent_dispatch.sh --check    # does every installed file match this checkout?
+ops/host/install_agent_dispatch.sh --check    # exit 1 for file drift; 3 for missing limits keys
+ops/host/install_agent_dispatch.sh --check-files # file drift only; exit 1
 ops/host/install_agent_dispatch.sh --rollback # undo the last install that changed something
 ```
 

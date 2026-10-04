@@ -101,7 +101,7 @@ clawock us-quotes     # 仅刷美股价格
 - fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
 
 ### 美股基本面 / SEC filings
-`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 13项)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/commands.md`。
+`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 关键概念)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/commands.md`。
 
 ### 港股/美股基本面(中文) — 东财 datacenter
 `clawock fundamentals {CODE}` — 无 key，**填港股财报空白**：`--indicators`(GMAININDICATOR ROE/EPS/毛利率/资产负债率，美+港) / `--statements income|balance|cashflow`(中文科目行) / `--json`。美股数字以 SEC 为准、此为中文速查。datacenter-web+searchapi 子域实测稳；**资金流 `clawock fundflow`(push2his)本机 IP 被封暂不可用**。

@@ -5,7 +5,7 @@ Why this exists
 Each fetcher grew its own idea of a bad bar, and the strongest check ended up
 guarding the weakest place:
 
-* `fetch_daily_bars.sane()` — the gate on the **canonical** store the decision
+* `market_data.bars.sane()` — the gate on the **canonical** store the decision
   ledger settles against — only checked ordering (`low <= open,close <= high`,
   positive prices). A bar where `open == high == low == close` passes that
   cleanly.
@@ -136,7 +136,7 @@ def check_bar(bar, *, prev_close=None, session_date=None, last_closed=None):
 
 
 def is_structurally_sane(bar) -> bool:
-    """The old `fetch_daily_bars.sane()` predicate, now one call site of many."""
+    """The old `market_data.bars.sane()` predicate, now one call site of many."""
     return not check_bar(bar)['fatal']
 
 

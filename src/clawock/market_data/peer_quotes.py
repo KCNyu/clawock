@@ -16,7 +16,7 @@ code stays 0.
 Three traps this file has already paid for:
   * US kline symbols need their exchange suffix (`usSOXL.AM`, not `usSOXL`, which
     silently returns a single bar). Tencent self-reports it in quote field 2.
-  * A 5-day *return* needs the forward-adjusted series, unlike `fetch_daily_bars.py`
+  * A 5-day *return* needs the forward-adjusted series, unlike `market_data/bars.py`
     which stores raw bars because a historical trigger price must stay nominal. A
     split inside the window would otherwise read as a phantom ±50% move.
   * The batch budget must clamp each request's own timeout, or it is advisory
@@ -109,7 +109,7 @@ def tencent_quote(sym: str, deadline=None):
 def tencent_closes(sym: str, sessions: int = 8, deadline=None):
     """Forward-adjusted daily closes, oldest first.
 
-    Deliberately the opposite choice from `fetch_daily_bars.py`, which stores the
+    Deliberately the opposite choice from `market_data/bars.py`, which stores the
     raw `day` series because a historical *trigger price* must stay nominal. This
     is a *return* over a window, and a split inside that window would turn into a
     phantom ±50% move if compared against raw closes. Same qfq source and same

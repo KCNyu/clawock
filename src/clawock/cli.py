@@ -308,7 +308,7 @@ def _tool(args) -> int:
 
 
 def _context(args) -> int:
-    """Audit or assemble the runtime-neutral context contract (#366)."""
+    """Audit, assemble, compare or verify the runtime-neutral context contract."""
     from clawock.context.assembly import (
         assemble,
         audit,
@@ -666,7 +666,7 @@ def build_parser() -> argparse.ArgumentParser:
         utility.set_defaults(func=_packaged_utility)
 
     context = sub.add_parser(
-        "context", help="audit or assemble the agent context contract")
+        "context", help="audit, assemble, compare or verify the agent context contract")
     context_sub = context.add_subparsers(dest="context_command", required=True)
     context_audit = context_sub.add_parser(
         "audit", help="verify the OpenClaw context profiles and capability roots")

@@ -13,6 +13,6 @@ reports. The staging step is one-way and never writes into the live workspace.
 runtime state with its own data-plane publication contract, not website source.
 
 `assets/dashboard.gif` is the animated dashboard preview linked from both READMEs
-and the published clawock 0.2.0 PyPI description. Pages also serves the file at
-`/clawock/assets/dashboard.gif`. The screenshot refresh workflow regenerates it
+and the published clawock 0.2.0 PyPI description. It remains a repository-only
+asset and is excluded from Pages artifacts. The screenshot refresh workflow regenerates it
 from the live dashboard only on manual dispatch; its two PNGs refresh weekly.

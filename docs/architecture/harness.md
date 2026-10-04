@@ -38,7 +38,7 @@ clawock init <workspace>
 clawock workflow list|show|install
 clawock run prepare --workspace <workspace>
 clawock run publish --workspace <workspace> --request <json> --artifact <name=path>
-clawock context audit|assemble
+clawock context audit|assemble|compare|verify
 clawock brief preflight|postflight
 clawock report preflight|postflight
 clawock intraday preflight|postflight

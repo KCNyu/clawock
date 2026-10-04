@@ -4,7 +4,8 @@
 # keep what ran before, install each file atomically, prove the bytes match, say how to go back.
 #
 #   ops/host/install_agent_dispatch.sh             # install from this checkout
-#   ops/host/install_agent_dispatch.sh --check     # exit 1 when an installed copy differs
+#   ops/host/install_agent_dispatch.sh --check     # exit 1 for file drift; 3 for missing limits keys
+#   ops/host/install_agent_dispatch.sh --check-files # file drift only; exit 1
 #   ops/host/install_agent_dispatch.sh --rollback  # undo the last install that changed anything
 #
 # ops/host/agent-dispatch/ mirrors /root/tools/agent-dispatch/ path for path. Merging does not

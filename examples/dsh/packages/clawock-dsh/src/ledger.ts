@@ -515,7 +515,7 @@ function enrichTrade(
  * @param workspace - desk workspace root.
  * @returns `{ trades, rate, rateSource, lastUpdated }` — `trades` is the
  *          enriched fill list; `rate` is the USD/HKD FX rate when the desk
- *          published one in portfolio.json market_context (else null).
+ *          published one in memory/fx-rates.jsonl (readFxRate) (else null).
  */
 export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey' | 'signature'> {
   const { books, trades, lastUpdated } = readPortfolio(workspace)

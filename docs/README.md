@@ -37,6 +37,12 @@ belongs here.
   [task detail exits](design/dsh-patrol-2026-10-03/details.md) — density tradeoffs,
   motion decisions and before/after captures from an isolated instance.
 
+- [README hero diagrams](design/hero-diagrams-2026-10-03/README.md), with
+  [second iteration](design/hero-diagrams-2026-10-03/iteration-2/README.md) — diagram layout evidence.
+- [Task chip folding](design/dsh-task-chip-fold-2026-10-04/README.md) — task history layout evidence.
+
+- [Todos workflow](design/todos-workflow-2026-10-04/README.md) — task workflow evidence.
+
 ## Operations
 
 - [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the

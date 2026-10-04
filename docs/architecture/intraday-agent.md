@@ -1,7 +1,8 @@
 # Intraday agent contract
 
 The intraday (Mode 7) agent is one slot every 30 minutes: HK 8 per session, US
-10 per night including the overnight job. This document is the contract every
+10 per night in daylight time and 8 in standard time, including the overnight job
+(see the generated [schedule table](../operations/cron-schedules.md)). This document is the contract every
 change to it is checked against: what the model is given (ctx), what kcn is
 sent (the card), who owns each step, what the system optimises, and which rules
 are enforced by code rather than asked for in a prompt. It is updated in the

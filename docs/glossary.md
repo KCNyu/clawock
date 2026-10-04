@@ -184,7 +184,7 @@ Each entry has four fields:
 | harness | Harness | The host process that owns scheduling, retries, gates; lives in `harness/`. | `cli.py` |
 | command | 命令 | A registered `clawock <cmd>`; the registry lives in `utilities.py`. | `utilities.py` |
 | utility | 子命令 | Same as `command`; the project uses both names. | `utilities.py` |
-| plugin | 插件 | A drop-in feature that adds a command or context surface; lives under `plugins/`. | `cli.py` |
+| plugin | 插件 | A packaged extension that adds a command or context surface; the DSH integration lives under `examples/dsh/packages/clawock-dsh/`. | `examples/dsh/packages/clawock-dsh/src/index.ts` |
 | skill | 技能 | A packaged prompt + runtime contract; delivered to the model via `skills_delivery`. | `cli.py` |
 | evidence | 证据 | The persisted record (file or run_card) that links a claim to the data behind it. | `evidence/build_evidence.py` |
 | verdict | 判定 | A short, decision-facing summary published by the brief or the deck. | `decision/record.py` |
