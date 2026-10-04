@@ -71,7 +71,7 @@ WORKFLOW = "brief-fallback.yml"
 GENERATION_STEP = "Call off-host LLM to generate brief"
 PUBLISH_STEP = "Commit + push"
 # The rehearsal fires weekly; allow two of its own periods before calling it
-# overdue, matching workflow_health.MISSED_CADENCE_FACTOR's intent — one delayed
+# overdue, independent of the workflow rollup's scheduled-gap allowance — one delayed
 # or skipped week is a slow scheduler, two is a backstop nobody is testing.
 OVERDUE_DAYS = 15
 RUN_LOOKBACK = 30

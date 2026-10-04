@@ -92,13 +92,12 @@ def test_a_weekly_workflow_is_not_called_overdue_the_day_before_it_runs():
 
 
 @pytest.mark.parametrize("exprs,hours", [
-    (["*/30 10-11 * * 1-5"], 0.5),
-    # weekday-only jobs average 168/5 = 33.6h because of the weekend gap; using a
-    # flat 24h here would call every Monday-morning check overdue
-    (["0 13 * * 1-5"], 33.6),
+    (["*/30 10-11 * * 1-5"], 70.5),
+    # Weekday-only schedules carry a 72h weekend gap.
+    (["0 13 * * 1-5"], 72),
     (["0 22 * * 0"], 168.0),
     (["0 22 * * 5"], 168.0),
-    (["45 21 * * 0-4", "50 12 * * 1-5"], 33.6),
+    (["45 21 * * 0-4", "50 12 * * 1-5"], 56.916667),
 ])
 def test_cadence_is_read_from_the_cron_expression(exprs, hours):
     assert wh.expected_interval_hours(exprs) == pytest.approx(hours, rel=0.01)
@@ -213,3 +212,23 @@ def test_surface_is_a_noop_without_a_runner_summary(tmp_path, monkeypatch):
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     wh._surface({"needs_attention": 0, "scheduled_workflows": 0,
                  "lookback_days": 7, "workflows": []})  # must not raise
+
+
+def test_multiple_weekly_expressions_merge_into_one_gap():
+    assert wh.expected_interval_hours(['0 0 * * 3', '0 0 * * 6']) == 96
+
+
+def test_weekend_gap_has_separate_runner_delay_allowance():
+    gap = wh.expected_interval_hours(['0 13 * * 1-5'])
+    row = wh.assess('weekday.yml', ['0 13 * * 1-5'], [run('success', 83 / 24)], NOW)
+    assert gap == 72 and row['overdue_hours'] is None
+    row = wh.assess('weekday.yml', ['0 13 * * 1-5'], [run('success', 85 / 24)], NOW)
+    assert row['overdue_hours'] == 85
+
+
+def test_weekly_build_checks_all_outputs_with_canonical_clock_normalization():
+    text = (ROOT / '.github/workflows/weekly-health.yml').read_text()
+    step = text.split('- name: Dashboard build idempotency')[1]
+    assert 'config/dashboard-outputs.json' in step
+    assert 'ops/ci/strip_dashboard_clocks.py' in step
+    assert 'for name in $names' in step
