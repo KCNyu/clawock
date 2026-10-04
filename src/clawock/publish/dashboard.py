@@ -3653,11 +3653,12 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
 GOLD_DCA_SLA_HOURS = 240
 
 
-def compute_build_status(portfolio, data_dir, at=None):
+def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
     """A2 健康卡数据：每个数据文件的新鲜度 + 体检结论 + 每市场 data 时点。
 
     纯文件运算、零网络。被动暴露 staleness 给前端（不推送，遵 feedback_no_individual_cron_alerts）。
     内联跑一次 `clawock integrity` 取新鲜体检结论嵌进来。
+    generated_files 只指定已在本代编译、与健康卡原子发布的文件。
     """
     now = at if at is not None else datetime.now().astimezone()
     if now.tzinfo is None:
@@ -3675,8 +3676,8 @@ def compute_build_status(portfolio, data_dir, at=None):
         schedule = policy.get('schedule')
         due = _latest_due_fire(schedule, now, _tc) if schedule else None
         freshness_mode = 'scheduled_fire' if schedule else 'max_age'
-        if path.exists():
-            mtime = path.stat().st_mtime
+        if name in generated_files or path.exists():
+            mtime = now.timestamp() if name in generated_files else path.stat().st_mtime
             age_h = (now.timestamp() - mtime) / 3600.0
             stale = (
                 mtime < due['scheduled_at'].timestamp()
@@ -4606,7 +4607,10 @@ def build_projection(previous_source=None, shadow_previous=None):
 
     # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
     try:
-        out['build_status'] = compute_build_status(portfolio, OUT_DIR)
+        # Audit is compiled above and published atomically with this health
+        # card. Its previous disk copy is not an input freshness dependency.
+        out['build_status'] = compute_build_status(
+            portfolio, OUT_DIR, generated_files=('decision_audit.json',))
     except Exception as e:
         print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
         out['build_status'] = None
