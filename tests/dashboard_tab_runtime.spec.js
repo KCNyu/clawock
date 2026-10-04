@@ -1670,6 +1670,43 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
   }
 }
 
+// The first-paint Brier chip follows the Reflect badge's sample rule (#2541): it
+// names `calibration.active.n`, and a score on fewer than 8 episodes — or on an
+// unknown number — is not painted as beating the baseline.
+async function testHeroBrierChipNamesItsSample(browser, base) {
+  const cases = [
+    { n: 2, tone: "tone-flat", text: /n=2 样本少/ },
+    { n: 12, tone: "tone-ok", text: /n=12$/ },
+    { n: null, tone: "tone-flat", text: /样本量未知/ },
+  ];
+  for (const c of cases) {
+    const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+    await stubLiveOrigin(page, {
+      patch: (name, json) => {
+        if (name !== "overview.json" && name !== "dashboard.json") return null;
+        // The chip yields its slot when five live inputs are present.
+        json.add_side = null;
+        json.catalysts = {};
+        json.decision_metrics = {
+          ...(json.decision_metrics || {}),
+          brier: 0.4004, brier_baseline_loo: 1.0, brier_beats_baseline: true,
+          calibration: { active: c.n == null ? { baseline_loo: 1.0 } : { baseline_loo: 1.0, n: c.n } },
+        };
+        return json;
+      },
+    });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const chip = page.locator("#today-highlights .hl-chip", { hasText: "Brier·30d" });
+    assert.equal(await chip.count(), 1, `n=${c.n}: the first-paint verdict lost its Brier chip`);
+    assert.match((await chip.innerText()).trim(), c.text,
+      `n=${c.n}: the Brier chip does not name its sample`);
+    assert((await chip.getAttribute("class")).split(/\s+/).includes(c.tone),
+      `n=${c.n}: expected ${c.tone}, got ${await chip.getAttribute("class")}`);
+    await page.close();
+  }
+}
+
 // The pager number, the exposed card and the picture must name one card while
 // the deck is moving — not only after its spring happens to settle. This also
 // pins the DOM-order labels and the compact add-side decision input added to the
@@ -3629,6 +3666,7 @@ async function main() {
     await run("testHoldingsAndHeroNeverTruncate", () => testHoldingsAndHeroNeverTruncate(browser, base));
     await run("testVerdictDeckFillsItsBoxAndRanksGatesBySeverity", () => testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base));
     await run("testVerdictDeckPagerTracksTheVisualCard", () => testVerdictDeckPagerTracksTheVisualCard(browser, base));
+    await run("testHeroBrierChipNamesItsSample", () => testHeroBrierChipNamesItsSample(browser, base));
     await run("testASidecarStillReachesItsCardWhenThePagerIsStillSettling", () => testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base));
     await run("testFailedSidecarRefreshKeepsTheLastGoodValue", () => testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base));
     await run("testTheDebateTrailIsAListOfCasesNotAWallOfText", () => testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base));
