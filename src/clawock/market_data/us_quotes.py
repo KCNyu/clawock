@@ -417,7 +417,8 @@ def get_yahoo_v8_quote(ticker: str) -> Optional[Dict]:
 
 
 def get_yfinance_quote(ticker: str) -> Optional[Dict]:
-    """yfinance library – no key, may rate-limit."""
+    """yfinance library – no key, may rate-limit. Needs the `market` extra
+    (pip install 'clawock[market]'); without it this hop is skipped."""
     try:
         import yfinance as yf
         info = yf.Ticker(ticker).fast_info

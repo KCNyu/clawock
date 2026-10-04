@@ -16,7 +16,7 @@
       "modules": [
         {
           "command": "analyze-hk",
-          "note": "HK holdings: Tencent + Eastmoney dual-source reconciliation, stooq/yfinance fallback"
+          "note": "HK holdings: Tencent + Eastmoney dual-source reconciliation, stooq/yfinance fallback (the yfinance hop needs `clawock[market]`)"
         },
         {
           "command": "analyze-us",
@@ -24,7 +24,7 @@
         },
         {
           "command": "us-quotes",
-          "note": "multi-provider US quote fetcher, seven-route fallback"
+          "note": "multi-provider US quote fetcher, seven-route fallback (the yfinance hop needs `clawock[market]`)"
         },
         {
           "command": "fetch-peers",
@@ -254,11 +254,11 @@
         },
         {
           "command": "evaluate-us-leverage",
-          "note": "the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial"
+          "note": "the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial; needs `clawock[evaluation]`"
         },
         {
           "command": "evaluate-combined-regime",
-          "note": "the whole book at current USD weights"
+          "note": "the whole book at current USD weights; needs `clawock[evaluation]`"
         },
         {
           "command": "validate-regime-dial",

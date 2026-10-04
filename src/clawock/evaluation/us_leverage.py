@@ -14,7 +14,7 @@ Outputs:
   • a results table (totRet / CAGR / maxDD / worst-window / %inMkt / switches)
   • PNG charts → memory/.tmp/us_lev_*.png  (equity log + underwater drawdown + summary bars)
 
-Run: clawock evaluate-us-leverage
+Run: clawock evaluate-us-leverage   (needs the charting extra: pip install 'clawock[evaluation]')
 """
 from clawock.evaluation.series import mdd, rvol, sma
 import argparse
@@ -71,7 +71,11 @@ def _plotting():
     did not ask for plots, which is the failure `test_wheel_contains_the_package`
     exists to catch.
     """
-    import matplotlib
+    try:
+        import matplotlib
+    except ImportError:
+        raise SystemExit("clawock evaluate-us-leverage draws its charts with matplotlib, which is the "
+                         "`evaluation` extra: pip install 'clawock[evaluation]'") from None
     matplotlib.use('Agg')
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt

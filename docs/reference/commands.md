@@ -54,9 +54,9 @@ Sources: Tencent · Yahoo · Eastmoney · Polygon
 
 | Command | Module | What it collects or computes |
 |---|---|---|
-| `clawock analyze-hk` | `clawock.market_data.hk_analysis` | HK holdings: Tencent + Eastmoney dual-source reconciliation, stooq/yfinance fallback |
+| `clawock analyze-hk` | `clawock.market_data.hk_analysis` | HK holdings: Tencent + Eastmoney dual-source reconciliation, stooq/yfinance fallback (the yfinance hop needs `clawock[market]`) |
 | `clawock analyze-us` | `clawock.market_data.us_analysis` | US holdings: price refresh plus RSI/MA and news-derived signals |
-| `clawock us-quotes` | `clawock.market_data.us_quotes` | multi-provider US quote fetcher, seven-route fallback |
+| `clawock us-quotes` | `clawock.market_data.us_quotes` | multi-provider US quote fetcher, seven-route fallback (the yfinance hop needs `clawock[market]`) |
 | `clawock fetch-peers` | `clawock.market_data.peer_quotes` | current price and 5-day P&L for peer tickers |
 | `clawock daily-bars` | `clawock.market_data.bars` | canonical unadjusted daily OHLC store the ledger settles against |
 | `clawock benchmark` | `clawock.market_data.benchmarks` | SPY / HSI / HSTECH daily-close history for the equity-curve overlay |
@@ -139,8 +139,8 @@ Sources: local snapshots + canonical bars
 | Command | Module | What it collects or computes |
 |---|---|---|
 | `clawock evaluate-hstech-regime` | `clawock.evaluation.hstech_regime` | the regime de-risking thesis, tested on real HSTECH data |
-| `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial |
-| `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights |
+| `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the regime indicators on the US 2x sleeve; the `生产三档` row replays production's ok/watch/cut dial; needs `clawock[evaluation]` |
+| `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights; needs `clawock[evaluation]` |
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
 | `clawock validate-regime-hmm` | `clawock.evaluation.regime_hmm` | posterior regimes with a duration, scored on the dial's own circular-shift null |
 | `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha, gross and net of the pre-registered cost model |
