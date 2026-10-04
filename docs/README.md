@@ -42,6 +42,7 @@ belongs here.
 - [Task chip folding](design/dsh-task-chip-fold-2026-10-04/README.md) — task history layout evidence.
 - [Patrol coverage and dispatch Markdown](design/dsh-progress-2026-10-04/README.md), with
   [installed WeChat filter output](design/dsh-progress-2026-10-04/wechat-filter-output.md) — real data provenance, screenshot and remaining rendering limits.
+- [Task chip coverage and chat list redesign](design/dsh-task-chip-redesign-2026-10-04/README.md) — critique, decisions, before/after renders and the WeChat filter evidence.
 
 - [Todos workflow](design/todos-workflow-2026-10-04/README.md) — task workflow evidence.
 

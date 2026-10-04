@@ -2696,14 +2696,97 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 
-/* Coverage is static reading material: no motion on the polling data. */
-.tq-coverage { margin: .65rem 0; border: 1px solid var(--glass-border); border-radius: .65rem; padding: .65rem; font-size: .8125rem; line-height: 1.5; font-optical-sizing: auto; }
-.tq-coverage summary { cursor: pointer; display: list-item; min-height: 2.75rem; }
-.tq-coverage summary span { display: block; color: var(--dsw-alias-label-secondary); font-variant-numeric: tabular-nums; }
-.tq-coverage h4 { margin: 1rem 0 .5rem; font-size: .875rem; letter-spacing: -.01em; }
-.tq-coverage p { margin: .25rem 0; overflow-wrap: anywhere; }
-.tq-coverage-note { color: var(--dsw-alias-label-secondary); }
-.tq-coverage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
-.tq-coverage-grid article { padding: .65rem; border-radius: .5rem; background: var(--hover); min-width: 0; font-variant-numeric: tabular-nums; }
-.tq-coverage-grid a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .2em; display: inline-flex; align-items: center; min-height: 2.75rem; }
-@media (max-width: 480px) { .tq-coverage-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Patrol coverage (client.ts renderPatrolProgress): two tables on the well, behind the section's
+   last fold. One left edge (the well's 8px) and one set of right-aligned number tracks for both,
+   so a count is under a count whichever table it is in; a caveat is one caption under the
+   heading it qualifies; the provenance is the footer. Static reading material: nothing moves. */
+.pbc .tq-cov {
+  padding:8px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-2);
+  font-variant-numeric:tabular-nums;
+  --tq-cov-num:36px
+}
+.pbc .tq-cov-block + .tq-cov-block {
+  margin-top:10px;
+  padding-top:10px;
+  border-top:.5px solid var(--tq-hairline)
+}
+.pbc .tq-cov-head { font:var(--dsw-font-xxs-strong-12); line-height:16px; color:var(--tq-ink) }
+.pbc :is(.tq-cov-note, .tq-cov-foot, .tq-cov-cols, .tq-cov-last, .tq-cov-clear-label) { color:var(--tq-ink-3) }
+.pbc .tq-cov-note { margin-bottom:6px; overflow-wrap:anywhere }
+.pbc .tq-cov-alert { margin-bottom:8px; color:var(--tq-text-warn); overflow-wrap:anywhere }
+.pbc .tq-cov-list { margin:0; padding:0; list-style:none }
+.pbc :is(.tq-cov-area, .tq-cov-lens) {
+  display:grid;
+  column-gap:var(--tq-gap);
+  align-items:baseline;
+  padding:4px 0
+}
+.pbc .tq-cov-area { grid-template-columns:minmax(0, 5.5em) minmax(0, 1fr) var(--tq-cov-num) }
+.pbc .tq-cov-lens { grid-template-columns:minmax(0, 1fr) var(--tq-when) var(--tq-cov-num) var(--tq-cov-num) }
+.pbc .tq-cov-cols { padding:0 0 2px; text-align:right }
+.pbc .tq-cov-name {
+  justify-self:start;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:var(--dsw-font-xs-13);
+  line-height:20px;
+  color:var(--tq-ink);
+  text-decoration:underline;
+  text-decoration-color:var(--tq-pill-border);
+  text-underline-offset:3px;
+  border-radius:var(--tq-radius-xs)
+}
+.pbc .tq-cov a:focus-visible { outline:var(--tq-focus-ring); outline-offset:2px }
+.pbc .tq-cov-num { text-align:right; white-space:nowrap }
+.pbc .tq-cov-area > .tq-cov-num,
+.pbc .tq-cov-num[data-open="true"] { font-weight:600; color:var(--tq-ink) }
+.pbc .tq-cov-num[data-open="false"] { color:var(--tq-ink-3) }
+.pbc .tq-cov-bar {
+  align-self:center;
+  height:3px;
+  border-radius:2px;
+  overflow:hidden;
+  background:color-mix(in srgb, var(--text) 9%, transparent)
+}
+.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2) }
+.pbc .tq-cov-clear {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:0 10px;
+  padding-top:4px
+}
+.pbc .tq-cov-clear .tq-cov-name { font:var(--dsw-font-xxs-12); line-height:20px; color:var(--tq-ink-2) }
+/* A lens's last round: quiet facts set apart by space, so a wrapped line never starts on a dot. */
+.pbc .tq-cov-last {
+  grid-column:1 / -1;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  column-gap:.75em;
+  min-width:0
+}
+.pbc .tq-cov-filed { display:contents }
+.pbc .tq-cov-state { white-space:nowrap }
+.pbc .tq-cov .tq-filed-sep { display:none }
+.pbc .tq-cov .tq-filed-part:first-child { font-weight:400 }
+.pbc .tq-cov-state .tq-role-glyph { display:inline-block; margin-right:3px; vertical-align:-1px }
+.pbc .tq-cov-state[data-role="fail"] { color:var(--tq-text-bad) }
+.pbc .tq-cov-state[data-role="partial"] { color:var(--tq-text-warn) }
+.pbc .tq-cov-lens + .tq-cov-lens { border-top:.5px solid var(--tq-hairline) }
+.pbc .tq-cov-foot {
+  margin-top:10px;
+  padding-top:8px;
+  border-top:.5px solid var(--tq-hairline);
+  overflow-wrap:anywhere
+}
+@media (pointer: coarse) {
+  /* A finger's target without a taller row: inline padding widens the hit area, not the line box. */
+  .pbc .tq-cov a { display:inline; min-height:0; padding-block:12px }
+  .pbc .tq-cov a.tq-cov-name { padding-block:6px; margin-block:-6px }
+}

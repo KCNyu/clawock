@@ -211,20 +211,27 @@ const dictionaries = {
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
 		"queue.chip.unpriced": "未定价",
 		"queue.coverage.title": "巡检覆盖",
+		"queue.coverage.openAreas": "{n} 个 area 有未决",
+		"queue.coverage.openLenses": "{n} 个 lens 有未决",
+		"queue.coverage.openNone": "无未决",
+		"queue.coverage.openUnknown": "未决数未知",
+		"queue.coverage.areas": "未决问题 · 按 area",
+		"queue.coverage.areaNote": "只说明已提报的问题归谁，不说明巡检过哪里。",
+		"queue.coverage.clear": "无未决",
+		"queue.coverage.lenses": "轮次 · 按 lens",
+		"queue.coverage.lensNote": "记录含失败与中断的尝试，不等于代码覆盖率。",
+		"queue.coverage.col.last": "上次",
+		"queue.coverage.col.runs": "记录",
+		"queue.coverage.col.open": "未决",
 		"queue.coverage.records": "{n} 条轮次记录",
-		"queue.coverage.scope": "记录起点 {date}；统计所有可读记录，不代表完整代码覆盖。",
-		"queue.coverage.unreadable": "rounds.tsv 读不到或超出读取上限，轮次覆盖未知。",
-		"queue.coverage.rejected": "{n} 条损坏记录未计入，覆盖统计不完整。",
-		"queue.coverage.issuesUnreadable": "读不到 GitHub open patrol 标签，issue 数未知。",
-		"queue.coverage.issuesAt": "GitHub open patrol 快照 {date}（最多缓存 5 分钟）",
-		"queue.coverage.lenses": "Lens · 轮次视角",
-		"queue.coverage.areas": "Area · 问题归属",
-		"queue.coverage.areaUnknown": "Area 覆盖时间、轮次与结论未知：轮次没有 area，issue 标签只说明发现的问题归属，不能证明巡检覆盖。",
-		"queue.coverage.open": "open {n}",
+		"queue.coverage.rejected": "另有 {n} 条损坏未计",
+		"queue.coverage.since": "自 {date} 起",
+		"queue.coverage.issuesAt": "issue 快照 {date}",
+		"queue.coverage.unreadable": "rounds.tsv 读不到或超出读取上限，轮次记录未知。",
+		"queue.coverage.issuesUnreadable": "读不到 GitHub 的巡检 issue，未决数未知。",
+		"queue.coverage.inventoryUnreadable": "读不到 lens/area 清单，下表可能不全。",
 		"queue.coverage.unknown": "未知",
-		"queue.coverage.attempts": "{n} 次记录",
-		"queue.coverage.notRecorded": "可读历史中未记录；不等于从未巡检",
-		"queue.coverage.inventoryUnreadable": "读不到范围清单。",
+		"queue.coverage.notRecorded": "可读历史里没有记录（不等于没巡检过）",
 		"queue.patrolHeading": "巡检",
 		"queue.patrolRound": "当前轮次 {round}",
 		"queue.roundsHeading": "最近几轮",
@@ -665,20 +672,27 @@ const dictionaries = {
 		"queue.chip.cost": "Estimate at API prices, not a bill",
 		"queue.chip.unpriced": "unpriced",
 		"queue.coverage.title": "Patrol coverage",
+		"queue.coverage.openAreas": "{n} areas with open issues",
+		"queue.coverage.openLenses": "{n} lenses with open issues",
+		"queue.coverage.openNone": "nothing open",
+		"queue.coverage.openUnknown": "open counts unknown",
+		"queue.coverage.areas": "Open issues · by area",
+		"queue.coverage.areaNote": "Where filed issues belong, not where patrol looked.",
+		"queue.coverage.clear": "None open",
+		"queue.coverage.lenses": "Rounds · by lens",
+		"queue.coverage.lensNote": "Runs include failed and interrupted attempts; not code coverage.",
+		"queue.coverage.col.last": "last",
+		"queue.coverage.col.runs": "runs",
+		"queue.coverage.col.open": "open",
 		"queue.coverage.records": "{n} round records",
-		"queue.coverage.scope": "Records begin {date}; all readable records, not exhaustive code coverage.",
-		"queue.coverage.unreadable": "rounds.tsv unreadable or exceeds the read limit; round coverage unknown.",
-		"queue.coverage.rejected": "{n} malformed records excluded; coverage is incomplete.",
-		"queue.coverage.issuesUnreadable": "GitHub open patrol labels unreadable; issue counts unknown.",
-		"queue.coverage.issuesAt": "GitHub open patrol snapshot {date} (cached up to 5 minutes)",
-		"queue.coverage.lenses": "Lens · inspection perspective",
-		"queue.coverage.areas": "Area · finding ownership",
-		"queue.coverage.areaUnknown": "Area inspection time, rounds and conclusions are unknown: rounds have no area. Issue labels describe finding ownership and cannot establish inspection coverage.",
-		"queue.coverage.open": "open {n}",
+		"queue.coverage.rejected": "{n} more malformed, not counted",
+		"queue.coverage.since": "since {date}",
+		"queue.coverage.issuesAt": "issues as of {date}",
+		"queue.coverage.unreadable": "rounds.tsv is unreadable or over the read limit; round records unknown.",
+		"queue.coverage.issuesUnreadable": "GitHub patrol issues unreadable; open counts unknown.",
+		"queue.coverage.inventoryUnreadable": "Lens/area inventory unreadable; the tables may be incomplete.",
 		"queue.coverage.unknown": "unknown",
-		"queue.coverage.attempts": "{n} recorded attempts",
-		"queue.coverage.notRecorded": "Not in readable history; does not mean never inspected",
-		"queue.coverage.inventoryUnreadable": "Scope inventory unreadable.",
+		"queue.coverage.notRecorded": "Not in the readable history (which does not mean never inspected)",
 		"queue.patrolHeading": "Patrol",
 		"queue.patrolRound": "current round {round}",
 		"queue.roundsHeading": "Recent rounds",
@@ -2148,44 +2162,73 @@ function recentSection(result, t, now, open) {
 		rows: result.recent.map((task) => endedRow(task, t, now, open))
 	};
 }
-/** Words and provenance for the coverage disclosure; renderers choose its layout.
-* Recorded lens attempts do not establish successful or exhaustive area inspection. */
 function progressView(progress, t, now) {
 	if (progress === void 0) return null;
 	const unknown = t("queue.coverage.unknown");
-	const open = (n) => t("queue.coverage.open", { n: n === null ? unknown : n });
+	const count = (n) => n === null ? unknown : String(n);
+	const issues = (label) => "https://github.com/KCNyu/clawock/issues?q=" + encodeURIComponent("is:issue is:open label:patrol label:" + label);
+	const stamp = (ms, raw) => ms === null || Number.isNaN(ms) ? raw : resetStampOf(t, {
+		resetAt: raw,
+		resetAtMs: ms
+	}, now);
+	const listed = progress.areas.filter((a) => a.open !== 0).sort((a, b) => (b.open ?? -1) - (a.open ?? -1) || a.name.localeCompare(b.name));
+	const most = Math.max(0, ...listed.map((a) => a.open ?? 0));
+	const openAreas = progress.areas.filter((a) => (a.open ?? 0) > 0).length;
+	const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length;
+	const unread = progress.issuesAt === "" || [...progress.areas, ...progress.lenses].some((x) => x.open === null);
+	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity;
 	return {
 		title: t("queue.coverage.title"),
-		summary: t("queue.coverage.records", { n: progress.records === null ? unknown : progress.records }),
-		scope: progress.records === null ? t("queue.coverage.unreadable") : t("queue.coverage.scope", { date: progress.firstAt || unknown }),
-		warnings: [
+		headline: t("queue.coverage.title") + " · " + (openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone")),
+		alerts: [
+			...progress.records === null ? [t("queue.coverage.unreadable")] : [],
 			...!progress.lensInventory || !progress.areaInventory ? [t("queue.coverage.inventoryUnreadable")] : [],
-			...progress.rejected > 0 ? [t("queue.coverage.rejected", { n: progress.rejected })] : [],
-			...progress.issuesAt === "" ? [t("queue.coverage.issuesUnreadable")] : [t("queue.coverage.issuesAt", { date: progress.issuesAt })]
+			...progress.issuesAt === "" ? [t("queue.coverage.issuesUnreadable")] : []
 		],
-		lensHeading: t("queue.coverage.lenses"),
 		areaHeading: t("queue.coverage.areas"),
-		areaNote: t("queue.coverage.areaUnknown"),
-		lenses: progress.lenses.map((l) => {
+		areaNote: t("queue.coverage.areaNote"),
+		areas: listed.map((a) => ({
+			name: a.name,
+			open: count(a.open),
+			share: a.open === null || most === 0 ? null : a.open / most,
+			href: issues("area:" + a.name)
+		})),
+		clear: {
+			label: t("queue.coverage.clear"),
+			names: progress.areas.filter((a) => a.open === 0).map((a) => ({
+				name: a.name,
+				href: issues("area:" + a.name)
+			}))
+		},
+		lensHeading: t("queue.coverage.lenses"),
+		lensNote: t("queue.coverage.lensNote"),
+		columns: {
+			last: t("queue.coverage.col.last"),
+			runs: t("queue.coverage.col.runs"),
+			open: t("queue.coverage.col.open")
+		},
+		lenses: [...progress.lenses].sort((a, b) => ended(b) - ended(a) || a.name.localeCompare(b.name)).map((l) => {
 			const last = l.last === null ? null : roundRow(l.last, t, now);
 			return {
 				name: l.name,
-				meta: t("queue.coverage.attempts", { n: l.rounds === null ? unknown : l.rounds }) + " · " + open(l.open),
-				last: last === null ? l.rounds === null ? unknown : t("queue.coverage.notRecorded") : [
-					last.name,
-					last.state?.text,
-					last.facts.when?.text,
-					last.facts.filed?.text
-				].filter(Boolean).join(" · "),
-				stamp: l.last?.endedAt ?? "",
-				href: "https://github.com/KCNyu/clawock/issues?q=" + encodeURIComponent("is:issue is:open label:patrol label:lens:" + l.name)
+				href: issues("lens:" + l.name),
+				when: last?.facts.when ?? null,
+				runs: count(l.rounds),
+				open: count(l.open),
+				hasOpen: l.open === null ? null : l.open > 0,
+				last: last === null ? null : {
+					round: l.last.round,
+					state: last.state,
+					filed: last.facts.filed ?? null
+				},
+				none: l.rounds === null ? unknown : t("queue.coverage.notRecorded")
 			};
 		}),
-		areas: progress.areas.map((a) => ({
-			name: a.name,
-			text: open(a.open),
-			href: "https://github.com/KCNyu/clawock/issues?q=" + encodeURIComponent("is:issue is:open label:patrol label:area:" + a.name)
-		})),
+		footnote: [...progress.records === null ? [] : [
+			t("queue.coverage.records", { n: progress.records }),
+			...progress.rejected > 0 ? [t("queue.coverage.rejected", { n: progress.rejected })] : [],
+			...progress.firstAt === "" ? [] : [t("queue.coverage.since", { date: stamp(localStampMs(progress.firstAt), progress.firstAt) })]
+		], ...progress.issuesAt === "" ? [] : [t("queue.coverage.issuesAt", { date: stamp(Date.parse(progress.issuesAt), progress.issuesAt) })]].join(" · "),
 		empty: t("queue.coverage.inventoryUnreadable")
 	};
 }
@@ -2283,8 +2326,8 @@ function panelModel(input, t, now, open = () => {}) {
 /**
 * The task chip's provider panel as conservative Markdown: the chat rendering of the same
 * panel.ts model the sidebar draws, for a chat reply (OpenClaw `/dispatch-list`).
-* It decides nothing — groups, rows, words, order and folding all come from the
-* model. Only the drawing is its own: a role is a character where the chip has
+* It decides nothing — groups, rows, words and order all come from the model.
+* Only the drawing is its own: a role is a character where the chip has
 * a glyph, a window's used share is a bar of blocks where the chip has a
 * hairline, and nothing relies on colour or on a monospaced font (WeChat has
 * neither).
@@ -2298,7 +2341,7 @@ const ROLE_MARK = {
 	done: "✓",
 	partial: "◐",
 	fail: "✕",
-	off: "–",
+	off: "⊖",
 	unknown: "?",
 	fallback: "↩"
 };
@@ -2319,37 +2362,62 @@ function factText(fact, t) {
 	const words = fact.receipts != null ? fact.receipts.map(({ ch, state }) => t("queue.ch." + ch) + RECEIPT_MARK[state]).join(" ") : fact.text;
 	return fact.mark == null ? words : words + " " + ROLE_MARK[fact.mark.role] + fact.mark.text;
 }
-/** One row on one line: name, value, [state], then its kind's facts in FACT_ORDER; a head's caption on the next. */
-function rowText(view, t) {
+/**
+* One row on one line, then a head's caption on the next.
+*
+* A list row (a task, an ended task, a round) LEADS with its state: a chat has no columns, so
+* the start of the line is the only place every row shares, and what a reader scans a list for
+* is the state (is anything stuck, did it fail). A head (a source, a section) leads with its
+* name, then its reading and state. `warn: false` leaves the low mark off a source's reading
+* when a window line below carries it (see panelText).
+*/
+function rowText(view, t, opts = {}) {
 	const kind = ROW_KINDS[view.kind];
-	const value = kind.value && view.value != null ? (view.value.tone === "low" ? "⚠" : "") + view.value.text : null;
+	const value = kind.value && view.value != null ? (view.value.tone === "low" && opts.warn !== false ? "⚠" : "") + view.value.text : null;
 	const state = view.state === null ? null : ROLE_MARK[view.state.role] + view.state.text;
 	const facts = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null).map((slot) => factText(view.facts[slot], t)).filter((text) => text !== "");
-	const line = [
+	const listed = view.kind === "task" || view.kind === "ended" || view.kind === "round";
+	const line = (listed ? [state, view.name] : [
 		view.name,
 		value,
 		state
-	].filter((part) => part !== null && part !== "").join("  ");
+	]).filter((part) => part !== null && part !== "").join(listed ? " " : "  ");
 	const caption = (view.caption ?? []).map((part) => part.text).filter((text) => text !== "");
 	return [facts.length === 0 ? line : line + " · " + facts.join(" · "), ...caption.length === 0 ? [] : [caption.join(" · ")]];
 }
 const literal = (text) => text.replace(/([\\`*_[\]<>])/g, "\\$1").replace(/[\r\n]+/g, " ");
 const prose = (lines) => lines.map(literal);
+/**
+* The message, top to bottom in the model's order. Three levels and no more: the title (H1); the
+* two sections that are lists of their own, what just ended and patrol (H2); a provider is a bold
+* line, not a heading, so five providers do not become five headings between the reader and the
+* rows. Under a provider: its windows, what it says about itself, then its live tasks, every one
+* a flat list item. That is the one construct that keeps one fact per line whether or not the
+* client renders Markdown: a bare line after a list item is that item's continuation.
+*
+* A source's low mark sits on the window that is at its limit, not on the headline reading: the
+* headline is the short window, and `⚠0%` read as a fault when it was the week that was spent.
+* A chat cannot unfold, so patrol prints every round the host sent (at most eight) instead of a
+* "N earlier rounds" line nobody can open. The coverage archive (lens/area tables) is the
+* sidebar's; here it speaks only when one of its sources could not be read.
+*/
 function panelText(model, t) {
 	const out = ["# " + literal(model.title)];
 	for (const note of model.notices) out.push((note.bad ? "⚠ " : "") + literal(note.text));
 	if (model.empty !== null) out.push(literal(model.empty));
 	for (const group of model.groups) {
 		out.push("");
-		const [head, ...caption] = rowText(group.head, t);
-		out.push("## " + literal(head), ...prose(caption));
-		if (group.balanceNote !== null) out.push("⚠ " + literal(group.balanceNote));
-		if (group.detail?.kind === "windows") for (const w of group.detail.windows) {
+		const windows = group.detail?.kind === "windows" ? group.detail.windows : [];
+		const [head, ...caption] = rowText(group.head, t, { warn: !windows.some((w) => w.state === "low") });
+		const name = group.head.name;
+		out.push(["**" + literal(name) + "**" + literal(head.slice(name.length).replace(/^ +/, " ")), ...prose(caption)].join(" · "));
+		if (group.balanceNote !== null) out.push("- ⚠ " + literal(group.balanceNote));
+		for (const w of windows) {
 			const pct = w.percent === null ? "—" : Math.round(w.percent) + "%";
-			out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.reset === "" ? "" : " ↻" + literal(w.reset)));
+			out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.state === "low" ? " ⚠" : "") + (w.reset === "" ? "" : " ↻" + literal(w.reset)));
 		}
-		else if (group.detail?.kind === "text") out.push(literal(group.detail.text));
-		for (const note of group.notes) out.push(literal(note));
+		if (group.detail?.kind === "text") out.push("- " + literal(group.detail.text));
+		for (const note of group.notes) out.push("- " + literal(note));
 		for (const { row } of group.tasks) out.push("- " + literal(rowText(row, t)[0]));
 	}
 	if (model.recent !== null) {
@@ -2359,17 +2427,10 @@ function panelText(model, t) {
 	if (model.patrol !== null) {
 		const [head, ...caption] = rowText(model.patrol.head, t);
 		out.push("", "## " + literal(head), ...prose(caption));
-		const rounds = model.patrol.rounds;
-		const resident = rounds.length <= 4 ? rounds.length : 1;
-		for (const row of rounds.slice(0, resident)) out.push("- " + literal(rowText(row, t)[0]));
-		if (rounds.length > resident) out.push(literal(t("queue.olderRounds", { n: rounds.length - resident })));
-		if (model.patrol.progress !== null) {
-			out.push("", "### " + literal(model.patrol.progress.title), literal(model.patrol.progress.summary), literal(model.patrol.progress.scope));
-			for (const warning of model.patrol.progress.warnings) out.push(literal(warning));
-			out.push(literal(model.patrol.progress.areaNote));
-		}
+		for (const row of model.patrol.rounds) out.push("- " + literal(rowText(row, t)[0]));
+		for (const alert of model.patrol.progress?.alerts ?? []) out.push("- ⚠ " + literal(alert));
 	}
-	if (model.footer !== null) out.push("", "**" + literal((model.footer.bad ? "⚠ " : "") + model.footer.text) + "**");
+	if (model.footer !== null) out.push("", literal((model.footer.bad ? "⚠ " : "") + model.footer.text));
 	return out.join("\n");
 }
 //#endregion

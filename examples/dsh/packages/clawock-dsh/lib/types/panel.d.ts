@@ -483,30 +483,72 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
     head: RowView;
     rows: RowView[];
 } | null;
-/** Words and provenance for the coverage disclosure; renderers choose its layout.
- * Recorded lens attempts do not establish successful or exhaustive area inspection. */
-declare function progressView(progress: TaskQueueResult['patrol']['progress'], t: Translate, now: number): {
+/**
+ * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
+ * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
+ * whether anything is open; inside, every number has a column and is said once:
+ *
+ *   areas   open filed issues per area, most first, each with its share of the largest; the areas
+ *           with none share one line. This is where findings belong, NOT where patrol looked
+ *           (rounds.tsv has no area), and the one caption under the heading says so.
+ *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *           `when` column: last run, recorded attempts, open issues; under it the last round with
+ *           its verdict and what it filed (the same words and links as a round row).
+ *
+ * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
+ * said only when it happens; the provenance every reading has (how many records, since when, the
+ * issue snapshot's time) is the one `footnote` line. No count is inferred: unknown stays unknown.
+ */
+export type CoverageView = {
     title: string;
-    summary: string;
-    scope: string;
-    warnings: string[];
-    lensHeading: string;
+    /** The fold's label: the title and how many areas (or lenses) have open issues. */
+    headline: string;
+    alerts: string[];
     areaHeading: string;
     areaNote: string;
-    lenses: {
+    /** Areas with open issues (or an unknown count), most first; `share` is the bar against the largest. */
+    areas: Array<{
         name: string;
-        meta: string;
+        open: string;
+        share: number | null;
+        href: string;
+    }>;
+    /** Areas with none, on one line. */
+    clear: {
+        label: string;
+        names: Array<{
+            name: string;
+            href: string;
+        }>;
+    };
+    lensHeading: string;
+    lensNote: string;
+    columns: {
         last: string;
-        stamp: string;
-        href: string;
-    }[];
-    areas: {
+        runs: string;
+        open: string;
+    };
+    lenses: Array<{
         name: string;
-        text: string;
         href: string;
-    }[];
+        /** When it last ran, as a round row says it; null when no round is recorded. */
+        when: Fact | null;
+        runs: string;
+        open: string;
+        /** Open issues exist (the count is drawn strong); null when unknown. */
+        hasOpen: boolean | null;
+        /** The last round: its id, its verdict, what it filed. */
+        last: {
+            round: string;
+            state: SlotChip | null;
+            filed: Fact | null;
+        } | null;
+        /** In place of `last` when there is none. */
+        none: string;
+    }>;
+    footnote: string;
     empty: string;
-} | null;
+};
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
@@ -515,7 +557,7 @@ declare function progressView(progress: TaskQueueResult['patrol']['progress'], t
 export declare function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): {
     head: RowView;
     rounds: RowView[];
-    progress: ReturnType<typeof progressView>;
+    progress: CoverageView | null;
 } | null;
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
 export declare function opsFooter(result: TaskQueueResult | null, t: Translate): {
@@ -562,4 +604,3 @@ export type PanelInput = {
     queueError: string | null;
 };
 export declare function panelModel(input: PanelInput, t: Translate, now: number, open?: (id: string) => void): PanelModel;
-export {};

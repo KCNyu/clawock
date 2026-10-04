@@ -500,28 +500,34 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 
 ### Patrol coverage · 巡检覆盖
 
-The patrol section has one read-only coverage disclosure. Lens attempts, latest recorded outcome
-and age come from every valid `rounds.tsv` row; the existing history still shows at most eight.
-Counts include interrupted and unsuccessful attempts, not just successful inspections. The scope
-starts at the first readable record, not a claim about all past activity or exhaustive code coverage.
-The installed `axes.tsv` supplies the lens inventory; `labels-known.json` supplies area names.
-Open patrol counts use a read-only GitHub label query through `gh` (cached up to five minutes;
-a failed or saturated query shows unknown). Each area/lens name links to its open issues.
-Area inspection rounds, age and conclusions are explicitly unknown: issue area labels describe
-finding ownership and cannot be mapped to lens rounds. Missing records/inventories are disclosed.
-No supervisor state, dispatch behavior or patrol files are changed.
+The patrol section ends with one read-only coverage fold, closed until asked for; its label is the
+headline (how many areas have open issues). Inside are two tables on the panel's well. **Open issues
+by area**: most first, each with a bar against the largest; areas with none share one line. These
+counts say where filed issues belong, not where patrol looked: rounds carry no area, so no area
+inspection time, round or verdict is shown or inferred. **Rounds by lens**: most recently run first,
+with last run, recorded attempts and open issues in right-aligned columns, and under each the last
+round with its verdict and linked filings. Attempts come from every valid `rounds.tsv` row and
+include interrupted and unsuccessful ones (the history above still shows at most eight). The
+installed `axes.tsv` supplies the lens inventory; `labels-known.json` supplies area names. Open
+counts use a read-only GitHub label query through `gh` (cached up to five minutes; a failed or
+saturated query shows unknown). One footer line gives the provenance: record count, malformed rows
+left out, the first readable record and the issue snapshot time. An unreadable history, inventory
+or issue query is said at the top of the fold, and only then. No supervisor state, dispatch
+behavior or patrol files are changed.
 
-巡检分节增加一个只读的「巡检覆盖」展开区。Lens 的轮次记录、上次结果与距今时间来自
-`rounds.tsv` 的全部有效记录，原历史仍最多八轮。次数包含中断与失败，不等于成功巡检次数。
-范围从首条可读记录起算，不宣称覆盖所有过去活动或全部代码。已安装 `axes.tsv` 给出 lens
-清单，`labels-known.json` 给出 area 名称。Open patrol 数通过 `gh` 只读查询 GitHub 标签，
-最多缓存五分钟；查询失败或达到数量上限则显示未知。Area/lens 名称可点到相应 open issues。
-Area 的轮次、距今时间与结论明确为未知：issue area 标签只说明发现的问题归属，不能映射到
-lens 轮次。记录或范围清单缺失会明说。不写巡检文件、不改 supervisor 状态或派发行为。
+巡检分节的最后是一个只读的「巡检覆盖」折叠区，默认收起，折叠标签本身就是结论（几个 area 有未决问题）。
+展开后是底板上的两张表。**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的细条；没有未决的
+area 合成一行。这些数只说明已提报的问题归谁，不说明巡检过哪里：轮次记录里没有 area，所以不显示也不
+推断任何 area 的巡检时间、轮次或结论。**轮次 · 按 lens**：按上次运行时间从近到远，上次时间、记录次数、
+未决数右对齐成列，下面一行是上一轮的结论与带链接的提报。次数来自 `rounds.tsv` 的全部有效记录，包含中断
+与失败（上方历史仍最多八轮）。已安装 `axes.tsv` 给出 lens 清单，`labels-known.json` 给出 area 名称。
+未决数通过 `gh` 只读查询 GitHub 标签，最多缓存五分钟；查询失败或达到数量上限则显示未知。页脚一行交代
+来源：记录条数、未计入的损坏记录、首条可读记录与 issue 快照时刻。历史、清单或 issue 查询读不到时在
+折叠区顶部明说，且只在那时出现。不写巡检文件、不改 supervisor 状态或派发行为。
 
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 
-The same panel, as one Markdown chat message (headings, bold allowance labels and flat lists; no tables, nested lists or HTML): this package is also an OpenClaw plugin
+The same panel, as one Markdown chat message (a title, a bold line per provider, two section headings, flat lists whose rows lead with their state; no tables, nested lists or HTML; every patrol round the host sent, and no coverage tables): this package is also an OpenClaw plugin
 (`openclaw.plugin.json`, entry `lib/chat.js`). Add the installed package directory to
 OpenClaw's `plugins.load.paths` and restart the gateway; then `/dispatch-list` in WeChat or
 Telegram (whose menu spells it `/dispatch_list`) answers with every provider's allowance
@@ -532,7 +538,7 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
-同一块面板的 Markdown 版（标题、额度标签加粗与平铺列表；不用表格、嵌套列表或 HTML）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
+同一块面板的 Markdown 版（一个标题、每个 provider 一行粗体、两个分节标题、状态打头的平铺列表；不用表格、嵌套列表或 HTML；宿主给的巡检轮次全部列出，不带覆盖表）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
 `plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
 `/dispatch_list`)就回一条消息:各 provider 额度(窗口用 ▓░ 条和重置时刻)、各 agent 的进行中任务、
 最近结束(含送达回执与费用)、巡检和 ops 页脚;`/dispatch-list refresh` 绕过余额缓存。取数与 dsh
