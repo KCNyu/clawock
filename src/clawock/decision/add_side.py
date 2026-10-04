@@ -52,8 +52,7 @@ from clawock.instruments import INSTRUMENTS
 VERDICTS = ("candidate", "wait", "reject")
 
 # How a plan action reads to kcn. Same words as the intraday card's plan
-# trigger section (intraday_preflight.ACTION_CN); kept here so the decision
-# layer does not import the harness.
+# trigger section; both entry points read this decision-layer mapping.
 ACTION_WORDS = {
     "trim_on_rebound": "反弹减仓", "cut": "清仓", "add_only_on_trigger": "触发加仓",
     "add_on_breakout": "突破加仓", "hold_and_watch": "持有观察",

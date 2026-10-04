@@ -1047,11 +1047,6 @@ def generic_news_feed(block):
     return _split_generic_news(block)[1]
 
 
-ACTION_CN = {
-    'trim_on_rebound': '减仓', 'cut': '清仓', 'add_only_on_trigger': '加仓',
-    'add_on_breakout': '突破加仓', 'hold_and_watch': '持有观察',
-}
-
 
 def append_plan_trigger_section(block, triggered):
     """Print the plan conditions this slot's quotes satisfy.
@@ -1067,7 +1062,7 @@ def append_plan_trigger_section(block, triggered):
     lines = ['', '🎯 计划触发线已破（计划自己的价，不是新阈值）']
     for row in triggered[:6]:
         arrow = plan_surface.PRICE_CONDITIONS[row['condition']]
-        action = ACTION_CN.get(row['action'], row['action'])
+        action = add_side.ACTION_WORDS.get(row['action'], row['action'])
         status = '未执行' if row.get('execution_status') == 'unknown' else row.get('execution_status')
         shares = f"{row['shares']}股" if row.get('shares') else '—'
         # `open_since` before today is the whole point of the line: a trigger

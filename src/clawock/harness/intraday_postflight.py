@@ -269,7 +269,8 @@ def _subject_prices(ctx, subject):
     names = (subject.lower(), *aliases.get(subject, ()))
     levels, current = set(), set()
     keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
-            'support', 'resistance', 'price_above', 'price_below'}
+            'support', 'resistance', 'price_above', 'price_below',
+            'close', 'prior_20d_high', 'proxy_close', 'proxy_prior_20d_high'}
 
     def number(value, target):
         if isinstance(value, bool):

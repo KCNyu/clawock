@@ -291,7 +291,7 @@ def concentration_section(context):
             money(row.get("leg_total"), digits=0),
         ])
     return "### 集中度\n\n" + table(
-        ["Leg", "HHI", "判定", "Top2", "腿总值"], rows)
+        ["Leg", "HHI", "判定", "Top2", "腿总值(原币)"], rows)
 
 
 def _track_record_line(context, actions):
@@ -548,7 +548,7 @@ def holdings_section(context):
                 money(row.get("pnl_abs"), digits=0),
             ])
         rows.append([f"**小计 {leg.upper()}**", "", "", "",
-                     money(book.get("today_total_change"), digits=0),
+                     f'{money(book.get("today_total_change"), digits=0)} {currency}',
                      pct(book.get("total_pnl_percent")),
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
         sources = sorted({str(row.get("data_source") or "") for row in held if row.get("data_source")})
