@@ -2252,7 +2252,7 @@ function dataHealthFixture(json, { stale = false, outcomes = null } = {}) {
     window_hours: 36,
     counts: { success: 9, recovered: 1 },
     wechat_dropped_telegram_covered: 3,
-    degraded_slots: [{ job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00", status: "recovered" }],
+    degraded_slots: [{ job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00", status: "recovered", reason: "数据面 push 丢了" }],
     wechat_dropped_slots: [
       { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00" },
       { job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00" },
@@ -2426,6 +2426,7 @@ async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
     const delivery = seen.cells.find(c => c.key === "delivery");
     assert.equal(delivery.state, "观察", `${label}: a recovered slot is watch-only`);
     assert(/港股收盘报告 恢复/.test(delivery.note), `${label}: the recovered slot is not named: ${delivery.note}`);
+    assert(delivery.note.includes("数据面 push 丢了"), `${label}: degradation reason is hidden: ${delivery.note}`);
     assert.equal(seen.cells.find(c => c.key === "cron").state, "需处理");
     // 需处理不藏在点击后面；watch 级的槽不混进来。
     assert.deepEqual(seen.todo.map(t => t.name), ["失败任务"], `${label}: ${JSON.stringify(seen.todo)}`);
