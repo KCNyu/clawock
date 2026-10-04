@@ -146,3 +146,18 @@ SPCH 持续加仓摊本，直到 SPCX 正股出现实质性反弹，或解禁落
 - layout: default title: 盘前深度简报｜2026-09-29 周二 08:03 HKT description: "clawock 盘前深度简报 2026-09-29：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:2-4]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-29-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-09-29 周二 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-29-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-10-05)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-30 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.805 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-30 周三 08:03 HKT: 今天的方向不是选股，是把两个还在付每日重置成本的 2x 敞口换成 1x 敞口：美股那边卖 SPCH 换 SPCX，港股那边维持 07226 不动。理由不是看空 SpaceX，也不是看空恒科，而是组合里最贵的两笔成本先被砍掉。港股那条 2x 已经站了 48 天硬止损、77 天杠杆超限，今天之所以不再重复发起，是因为账面离重发线还有距离，把动作挂在恒科指数的破位位上比每天追砍更有效。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-09-30 周三 08:03 HKT: **反方**：最强反方是：Starship 已经首次入轨，砍 2x 等于在一个事件驱动的窗口里把最好的那段让出去；而且这些纪律性减仓已经挂了 77 天、执行 0 次，再挂一次也不会有人执行，所以今天重复发起的边际价值接近零。这个反方在「执行」这一点上是对的，账本就是证据；今天的处理方式是把 US 那两笔的执行价从开盘改成反弹触发，而不是再喊一遍开盘砍。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-30 周三 08:03 HKT description: "clawock 盘前深度简报 2026-09-30：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:2-4]
