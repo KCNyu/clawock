@@ -1022,15 +1022,21 @@ def decision_pipeline():
              'prospective activation ≠ capped exploration'],
             cls='m', lh=24, where='backtest')
     top = y + h
-    y = top + 60
-    d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
+    # preflight is a step in the flow, so it is drawn as one: the connector
+    # arrives at a node and the next one leaves from it. As a bare label it sat
+    # in the path with a line stopping short above it.
+    y = top + 66
+    d.add(f'<rect x="92" y="{y - 22:g}" width="{W - 184}" height="36" rx="10" fill="#ffffff" '
+          f'stroke="{CARD_STROKE}"/>')
+    d.text(W / 2 + 12, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
            'm', anchor='middle')
-    fits('preflight → one context pack per run', 'm', CW, 'preflight label')
-    d.icon('checks', 102, y - 16, 'green', size=20)
-    loop_y = y - 3
-    d.down(W / 2, top, y - 22, arrow=False, pulses=())
-    y += 100
-    d.down(W / 2, y - 76, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
+    fits('preflight → one context pack per run', 'm', W - 184 - 56, 'preflight label')
+    d.icon('checks', 106, y - 14, 'green', size=20)
+    loop_y = y - 4
+    d.down(W / 2, top, y - 22, pulses=(0,), pulse=ROLE['green'])
+    top = y + 14
+    y = top + 76
+    d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
 
     # 03 decide
     d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
@@ -1134,7 +1140,7 @@ def decision_pipeline():
     fits('↺ tomorrow’s brief reads the record', 'm', CW - 36, 'loop note')
     # the loop: the settled record returns to the next run's preflight
     gx = W - 11
-    d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W / 2 + width("preflight → one context pack per run", "m") / 2 + 10:g}',
+    d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W - 92 + 8:g}',
            pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
     # dsh is the interactive view of the same real fills, not an execution engine.
     top = y + h
