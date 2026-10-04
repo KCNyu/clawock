@@ -320,14 +320,21 @@ def main():
              'expected_slot': expected_slot})
         return 0
 
+    from clawock.harness import _watchdog_common as evidence
+    evidence.LAST_LOAD_SOURCE = None
     job_id = find_job_id(args.job_name)
+    if evidence.cron_evidence_unreadable(evidence.LAST_LOAD_SOURCE, tag=tag, dry_run=args.dry_run):
+        return 0
     if not job_id:
         log({'tag': tag, 'action': 'skip', 'reason': f'job not found: {args.job_name}'})
         return 0
 
+    evidence.LAST_RUNS_SOURCE = None
     runs_today = today_runs(job_id)
+    if evidence.cron_evidence_unreadable(evidence.LAST_RUNS_SOURCE, tag=tag, dry_run=args.dry_run):
+        return 0
     if not runs_today:
-        log({'tag': tag, 'action': 'skip', 'reason': 'no run today yet'})
+        log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
         return 0
     last = run_for_slot(runs_today, args.market, expected_job, expected_slot)
     if not last:
@@ -526,7 +533,7 @@ def main():
         # backstop — kcn already got the 🔴 banner in the message itself — but the
         # watchdog log should not claim a clean run either.
         log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
+             'reason': 'Telegram already delivered this slot; WeChat retry evidence is recorded separately',
              'loop_score': loop_score,
              'delivery_state': (marker or {}).get('delivery_state'),
              'run_at': run_at})
