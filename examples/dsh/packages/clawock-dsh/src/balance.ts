@@ -533,7 +533,15 @@ export function readJsonFile(path: string): Record<string, unknown> | undefined 
 
 /** kcn keeps provider keys in the openclaw gateway config at this pointer. */
 function readOpenclawProviderKey(configPath: string, provider: string): string | undefined {
-  const cfg = readJsonFile(configPath)
+  if (!existsSync(configPath)) return undefined
+  let cfg: Record<string, unknown>
+  try {
+    cfg = JSON.parse(readFileSync(configPath, 'utf8'))
+    if (typeof cfg !== 'object' || cfg === null) throw new Error('配置不是对象')
+  } catch (cause) {
+    throw new Error(`OpenClaw 配置读不出来(${configPath}):`
+      + (cause instanceof Error ? cause.message : String(cause)))
+  }
   const providers = cfg?.models as Record<string, unknown> | undefined ?? {}
   const list = providers.providers as Record<string, Record<string, unknown>> | undefined ?? {}
   const entry = list[provider] ?? {}
@@ -617,6 +625,10 @@ function createQuotaService(
       return answer(snapshot !== null ? 'stale' : 'failed', message)
     }
     if (apiKey === undefined) {
+      if (snapshot !== null) {
+        lastError = spec.noKeyMessage
+        return answer('stale', lastError)
+      }
       return {
         configured: false,
         snapshot: null,
@@ -882,7 +894,11 @@ export function createClaudeService(
         throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):`
           + (cause instanceof Error ? cause.message : String(cause)))
       }
-      return readClaudeCredentials(credentialsPath)?.creds.accessToken
+      const token = readClaudeCredentials(credentialsPath)?.creds.accessToken
+      if (typeof token !== 'string' || token.trim() === '') {
+        throw new Error(`Claude 登录文件里没有可用 accessToken(${credentialsPath})`)
+      }
+      return token
     },
     noKeyMessage: '未找到 Claude 登录(~/.claude/.credentials.json)',
     threshold: lowPct,
