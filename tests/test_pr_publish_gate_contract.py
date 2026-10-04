@@ -76,7 +76,7 @@ if [ "$1" = "push" ]; then
   exit 0
 fi
 if [ "$1" = "fetch" ]; then
-  exec "$REAL_GIT" fetch origin master -q
+  exec "$REAL_GIT" fetch -q --no-write-fetch-head origin "$5"
 fi
 exec "$REAL_GIT" "$@"
 """

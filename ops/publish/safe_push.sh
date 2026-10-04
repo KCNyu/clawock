@@ -63,10 +63,10 @@ portfolio_touched() {
   # Compare each side with their merge base. A straight FETCH_HEAD..HEAD diff
   # can hide a portfolio change on the remote side of a divergent history.
   local ours theirs
-  ours="$(git diff --name-only FETCH_HEAD...HEAD -- portfolio.json 2>/dev/null)" || {
+  ours="$(git diff --name-only "$BASE_REV...HEAD" -- portfolio.json 2>/dev/null)" || {
     echo portfolio.json; return;
   }
-  theirs="$(git diff --name-only HEAD...FETCH_HEAD -- portfolio.json 2>/dev/null)" || {
+  theirs="$(git diff --name-only "HEAD...$BASE_REV" -- portfolio.json 2>/dev/null)" || {
     echo portfolio.json; return;
   }
   [ -z "$ours$theirs" ] || echo portfolio.json
@@ -90,9 +90,22 @@ check_money_if_needed() {
     exit 4
   fi
 }
-BASE_FETCH_OK=0
-if git fetch "$REMOTE" "$BRANCH" -q 2>/dev/null; then
-  BASE_FETCH_OK=1
+# FETCH_HEAD is shared by every worktree and publisher. Fetch to a per-process
+# ref, then pin its commit for the money check, credential scan and replay.
+# An explicit refspec also works when the deploy key selects an SSH URL rather
+# than a named remote. Do not infer a refs/remotes/<URL>/... tracking ref.
+BASE_REV="" BASE_FETCH_OK=0
+BASE_REF="refs/clawock/publish-base-$BASHPID"
+fetch_base() {
+  BASE_REV="" BASE_FETCH_OK=0
+  if git fetch -q --no-write-fetch-head "$REMOTE" "+refs/heads/$BRANCH:$BASE_REF" && \
+     BASE_REV=$(git rev-parse --verify "$BASE_REF^{commit}" 2>/dev/null); then
+    BASE_FETCH_OK=1
+  fi
+  git update-ref -d "$BASE_REF" || return 1
+  [ "$BASE_FETCH_OK" = 1 ]
+}
+if fetch_base 2>/dev/null; then
   PORTFOLIO_TOUCHED="$(portfolio_touched)"
 else
   # Cannot tell what is new; assume the money file is in scope rather than skip.
@@ -109,7 +122,7 @@ check_credentials() {
     echo "✗ REFUSING TO PUSH — credential scan has no fetched base or scanner"
     exit 5
   fi
-  if ! python3 "$SECRET_SCANNER" --range "FETCH_HEAD..HEAD"; then
+  if ! python3 "$SECRET_SCANNER" --range "$BASE_REV..HEAD"; then
     echo "✗ REFUSING TO PUSH — added lines failed credential scan"
     exit 5
   fi
@@ -175,15 +188,13 @@ for i in $(seq 1 $MAX_RETRIES); do
   echo "push failed attempt $i, trying rebase (autostash)…"
 
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
-  if git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
-    BASE_FETCH_OK=1
+  if fetch_base >/dev/null 2>&1; then
     PORTFOLIO_TOUCHED="$(portfolio_touched)"
   else
     BASE_FETCH_OK=0
     PORTFOLIO_TOUCHED="portfolio.json"
   fi
-  if "${REPLAY_ID[@]}" git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
-    BASE_FETCH_OK=1
+  if [ "$BASE_FETCH_OK" = 1 ] && "${REPLAY_ID[@]}" git -c rebase.autoStash=true rebase "$BASE_REV"; then
     settle_autostash_conflict
     check_money_if_needed
     echo "  rebase clean, will retry push"
@@ -217,7 +228,6 @@ for i in $(seq 1 $MAX_RETRIES); do
       GIT_EDITOR=true "${REPLAY_ID[@]}" git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
     done
     if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
-      BASE_FETCH_OK=1
       settle_autostash_conflict
       check_money_if_needed
       echo "  rebase auto-resolved (generated files only), will retry push"
