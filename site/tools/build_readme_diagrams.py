@@ -951,7 +951,7 @@ def decision_pipeline():
     d.icon('market', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
     d.text(M + 20, y + 56, '44 modules · 8 layers · deterministic collection', 'm', fill=MUT)
-    xs, cw = columns(3, gap=8, x0=M + 16, w=CW - 32)
+    xs, cw = columns(3, gap=16, x0=M + 16, w=CW - 32)
     sources = [('market', 'Quotes + FX', 'Tencent/Nasdaq'),
                ('filing', 'SEC · HKEX', 'primary filings'),
                ('bars', 'Capital flow', 'Eastmoney'),
@@ -971,7 +971,7 @@ def decision_pipeline():
             ['Ordered quote / FX fallback; one Eastmoney gateway.',
              'An empty fetch keeps the prior value.'], cls='m', lh=19, where='collect note')
     top = y + h
-    y = top + 95
+    y = top + 76
     d.down(W / 2, top, y - 36, pulses=(0, 1.1))
 
     # 02 compute and gate
@@ -1009,71 +1009,71 @@ def decision_pipeline():
         if i == 0:
             d.mini_charts(M + 20, y + h - 62, CW - 40)
             top = y + h
-            y = top + 12
+            y = top + 24
     top = y + h
-    y = top + 12
-    h = 91
+    y = top + 24
+    h = 104
     d.card(M, y, CW, h, 'green', tint=True)
-    d.icon('shield', M + 20, y + 10, 'green')
-    d.text(M + 50, y + 28, [('Backtest gate', INK)], 'b')
-    d.tag(W - M - 16, y + 27, 'BEFORE IT COUNTS', 'green', anchor='end')
-    d.lines(M + 20, y + 52, CW - 36,
+    d.icon('shield', M + 20, y + 13, 'green')
+    d.text(M + 50, y + 31, [('Backtest gate', INK)], 'b')
+    d.tag(W - M - 16, y + 30, 'BEFORE IT COUNTS', 'green', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36,
             ['validated authority: bootstrap CI clears 50%',
              'prospective activation ≠ capped exploration'],
-            cls='m', lh=21, where='backtest')
+            cls='m', lh=24, where='backtest')
     top = y + h
-    y = top + 88
+    y = top + 60
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
            'm', anchor='middle')
     fits('preflight → one context pack per run', 'm', CW, 'preflight label')
     d.icon('checks', 102, y - 16, 'green', size=20)
     loop_y = y - 3
-    d.down(W / 2, top, y - 80, arrow=False, pulses=())
-    y += 76
-    d.down(W / 2, y - 52, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
+    d.down(W / 2, top, y - 22, arrow=False, pulses=())
+    y += 100
+    d.down(W / 2, y - 76, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
 
     # 03 decide
     d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
-    h = 482
+    h = 510
     d.card(M, y, CW, h, 'slate')
     d.logo('openclaw', M + 16, y + 12, size=30)
     d.text(M + 56, y + 32, 'Swarm debate', 'h')
     d.tag(W - M - 16, y + 30, 'LLM · READ ONLY', 'slate', anchor='end')
-    d.text(M + 20, y + 58, 'four analyst lenses', 'm', fill=MUT)
+    d.text(M + 20, y + 62, 'four analyst lenses', 'm', fill=MUT)
     ix, iw = M + 16, CW - 32
-    lx, lw = columns(2, gap=12, x0=ix, w=iw)
+    lx, lw = columns(2, gap=18, x0=ix, w=iw)
     for i, (name, icon) in enumerate(zip(('fundamental', 'technical', 'sentiment', 'sector'),
                                          ('lens', 'factor', 'chat', 'sector'))):
-        d.chip(lx[i % 2], y + 70 + (i // 2) * 56, lw, name, icon=icon, h=36)
-    ry = y + 170
-    d.down(W / 2, ry, ry + 24, pulses=(0,), dur=1.6, pulse=ROLE['slate'])
-    bx, bw = columns(2, gap=8, x0=ix, w=iw)
-    by = ry + 32
+        d.chip(lx[i % 2], y + 74 + (i // 2) * 48, lw, name, icon=icon, h=36)
+    ry = y + 172
+    d.down(W / 2, ry, ry + 30, pulses=(0,), dur=1.6, pulse=ROLE['slate'])
+    bx, bw = columns(2, gap=18, x0=ix, w=iw)
+    by = ry + 42
     for x, (name, role, sub) in zip(bx, (('Bull', 'green', 'builds the case for'),
                                          ('Bear', 'warm', 'attacks the consensus'))):
-        d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="64" rx="10" fill="{TINT[role]}" '
+        d.add(f'<rect x="{x:g}" y="{by:g}" width="{bw:g}" height="70" rx="10" fill="{TINT[role]}" '
               f'stroke="{CARD_STROKE}"/>')
-        d.text(x + 14, by + 24, [(name, ROLE[role])], 'h')
-        d.icon('up' if name == 'Bull' else 'down', x + bw - 36, by + 10, role)
+        d.text(x + 14, by + 26, [(name, ROLE[role])], 'h')
+        d.icon('up' if name == 'Bull' else 'down', x + bw - 36, by + 12, role)
         fits(sub, 'm', bw - 24, 'bull bear')
-        d.text(x + 14, by + 45, sub, 'm', fill=MUT)
-    d.text(W / 2, by + 90, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
+        d.text(x + 14, by + 50, sub, 'm', fill=MUT)
+    d.text(W / 2, by + 94, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
     vy = by + 110
-    d.down(W / 2, vy, vy + 22, pulses=(.5,), dur=1.6, pulse=ROLE['slate'])
-    d.text(M + 20, vy + 42, 'three risk voices', 'm', fill=MUT)
-    vx, vw = columns(3, gap=12, x0=ix, w=iw)
+    d.down(W / 2, vy, vy + 30, pulses=(.5,), dur=1.6, pulse=ROLE['slate'])
+    d.text(M + 20, vy + 56, 'three risk voices', 'm', fill=MUT)
+    vx, vw = columns(3, gap=18, x0=ix, w=iw)
     for x, name in zip(vx, ('aggressive', 'conservative', 'neutral')):
-        d.add(f'<rect x="{x:g}" y="{vy + 52:g}" width="{vw:g}" height="56" rx="9" fill="{CHIP}" stroke="{CARD_STROKE}"/>')
-        d.text(x + vw / 2, vy + 97, name, 'm', anchor='middle')
+        d.add(f'<rect x="{x:g}" y="{vy + 68:g}" width="{vw:g}" height="56" rx="9" fill="{CHIP}" stroke="{CARD_STROKE}"/>')
+        d.text(x + vw / 2, vy + 113, name, 'm', anchor='middle')
         d.icon({'aggressive': 'up', 'conservative': 'shield', 'neutral': 'balance'}[name],
-               x + vw / 2 - 9, vy + 58, 'slate', size=18)
-    jy = vy + 142
+               x + vw / 2 - 9, vy + 74, 'slate', size=18)
+    jy = vy + 158
     d.icon('judge', M + 20, jy - 17, 'slate', size=22)
     d.text(M + 50, jy, [('Judge', INK), (' names the strategy frame → ', MUT), ('plan.json', ROLE['slate'])],
            'b')
     fits('Judge names the strategy frame → plan.json', 'b', CW - 66, 'judge')
     top = y + h
-    y = top + 56
+    y = top + 76
     d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 04 deliver
@@ -1087,27 +1087,26 @@ def decision_pipeline():
                                       [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
             lh=21, where='postflight')
     top = y + h
-    y = top + 91
-    xs, cw = columns(3)
+    y = top + 56
+    xs, cw = columns(3, gap=18)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
             ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
-    h = 156
-    d.down(W / 2, top, top + 37, arrow=False, pulses=())
+    h = 160
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
-        d.curve(W / 2, top + 35, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
+        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
-        d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='deliver')
+        d.lines(x + 16, y + 57, cw - 24, body, cls='m', lh=21, where='deliver')
         if i == 0:
-            d.icon('filing', x + 16, y + 115, size=26)
+            d.icon('filing', x + 16, y + 118, size=26)
         elif i == 1:
-            d.icon('chat', x + 16, y + 115, size=26)
-            d.icon('plane', x + 52, y + 115, size=26)
+            d.icon('chat', x + 16, y + 118, size=26)
+            d.icon('plane', x + 52, y + 118, size=26)
         else:
-            d.icon('dashboard', x + 16, y + 115, size=26)
+            d.icon('dashboard', x + 16, y + 118, size=26)
     top = y + h
-    y = top + 56
+    y = top + 76
     d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['green'])
 
     # 05 settle and calibrate
@@ -1139,7 +1138,7 @@ def decision_pipeline():
            pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
     # dsh is the interactive view of the same real fills, not an execution engine.
     top = y + h
-    y = top + 56
+    y = top + 76
     d.down(W / 2, top, y - 36, pulses=(0,), pulse=ROLE['violet'])
     d.section(y - 12, '06 · BACK AT YOUR DESK / ASK WHY')
     h = 138
