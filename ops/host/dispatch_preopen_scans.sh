@@ -39,7 +39,7 @@ dispatch() {
 # Conclusion of the newest host-dispatched run of a workflow ("" while it runs).
 conclusion() {
   "$GH" run list -R "$REPO" --workflow "$1" --event workflow_dispatch --limit 1 \
-    --json conclusion --jq '.[0].conclusion // ""' 2>/dev/null
+    --json conclusion --jq 'map(.conclusion) | first // ""' 2>/dev/null
 }
 
 status=0
