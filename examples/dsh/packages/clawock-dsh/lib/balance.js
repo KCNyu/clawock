@@ -309,7 +309,15 @@ function readJsonFile(path) {
 }
 /** kcn keeps provider keys in the openclaw gateway config at this pointer. */
 function readOpenclawProviderKey(configPath, provider) {
-	const key = (((readJsonFile(configPath)?.models ?? {}).providers ?? {})[provider] ?? {}).apiKey;
+	if (!existsSync(configPath)) return void 0;
+	let cfg;
+	try {
+		cfg = JSON.parse(readFileSync(configPath, "utf8"));
+		if (typeof cfg !== "object" || cfg === null) throw new Error("配置不是对象");
+	} catch (cause) {
+		throw new Error(`OpenClaw 配置读不出来(${configPath}):` + (cause instanceof Error ? cause.message : String(cause)));
+	}
+	const key = (((cfg?.models ?? {}).providers ?? {})[provider] ?? {}).apiKey;
 	return typeof key === "string" && key !== "" ? key : void 0;
 }
 const numberOr = (value, fallback) => typeof value === "number" && isFinite(value) ? value : fallback;
@@ -371,15 +379,21 @@ function createQuotaService(deps, spec) {
 			if (snapshot !== null) lastError = message;
 			return answer(snapshot !== null ? "stale" : "failed", message);
 		}
-		if (apiKey === void 0) return {
-			configured: false,
-			snapshot: null,
-			status: "no-key",
-			low: false,
-			message: spec.noKeyMessage,
-			threshold: spec.threshold,
-			refreshMs: spec.refreshMs
-		};
+		if (apiKey === void 0) {
+			if (snapshot !== null) {
+				lastError = spec.noKeyMessage;
+				return answer("stale", lastError);
+			}
+			return {
+				configured: false,
+				snapshot: null,
+				status: "no-key",
+				low: false,
+				message: spec.noKeyMessage,
+				threshold: spec.threshold,
+				refreshMs: spec.refreshMs
+			};
+		}
 		if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) return lastError !== null ? answer("stale", lastError) : answer("cached", null);
 		return run(apiKey);
 	};
@@ -588,7 +602,9 @@ function createClaudeService(deps, config = {}) {
 			} catch (cause) {
 				throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):` + (cause instanceof Error ? cause.message : String(cause)));
 			}
-			return readClaudeCredentials(credentialsPath)?.creds.accessToken;
+			const token = readClaudeCredentials(credentialsPath)?.creds.accessToken;
+			if (typeof token !== "string" || token.trim() === "") throw new Error(`Claude 登录文件里没有可用 accessToken(${credentialsPath})`);
+			return token;
 		},
 		noKeyMessage: "未找到 Claude 登录(~/.claude/.credentials.json)",
 		threshold: lowPct,

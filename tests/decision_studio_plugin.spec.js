@@ -1970,6 +1970,22 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
     ).get(false);
     assert.equal(unreadable.status, "failed");
     assert.match(unreadable.message, /读不出来/);
+    for (const value of [{ claudeAiOauth: {} }, {}, { claudeAiOauth: { accessToken: " " } }]) {
+      fsMod.writeFileSync(credsPath, JSON.stringify(value));
+      const tokenless = await svc.get(true);
+      assert.equal(tokenless.status, "stale");
+      assert.equal(tokenless.snapshot.totalBalance, "36");
+      assert.match(tokenless.message, /没有可用 accessToken/);
+      const cold = await createClaudeService({ credentials: { resolve: async () => undefined } },
+        { credentialsPath: credsPath }).get(true);
+      assert.equal(cold.status, "failed");
+    }
+    const configPath = pathMod.join(tmp, "provider-fixture.json");
+    fsMod.writeFileSync(configPath, "{ broken");
+    const minimax = await balance.createMinimaxService({ credentials: { resolve: async () => undefined } },
+      { keyRef: "SWEEP_NO_KEY", openclawConfigPath: configPath }).get(true);
+    assert.equal(minimax.status, "failed");
+    assert.match(minimax.message, /配置读不出来/);
   } finally {
     globalThis.fetch = originalFetch;
     fsMod.rmSync(tmp, { recursive: true, force: true });
