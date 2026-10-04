@@ -2699,10 +2699,10 @@ body[data-ds-dark-theme] .pbc .bp {
 /* Coverage is static reading material: no motion on the polling data. */
 .tq-coverage { margin: .65rem 0; border: 1px solid var(--glass-border); border-radius: .65rem; padding: .65rem; font-size: .8125rem; line-height: 1.5; font-optical-sizing: auto; }
 .tq-coverage summary { cursor: pointer; display: list-item; min-height: 2.75rem; }
-.tq-coverage summary span { display: block; opacity: .75; font-variant-numeric: tabular-nums; }
+.tq-coverage summary span { display: block; color: var(--dsw-alias-label-secondary); font-variant-numeric: tabular-nums; }
 .tq-coverage h4 { margin: 1rem 0 .5rem; font-size: .875rem; letter-spacing: -.01em; }
 .tq-coverage p { margin: .25rem 0; overflow-wrap: anywhere; }
-.tq-coverage-note { opacity: .8; }
+.tq-coverage-note { color: var(--dsw-alias-label-secondary); }
 .tq-coverage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
 .tq-coverage-grid article { padding: .65rem; border-radius: .5rem; background: var(--hover); min-width: 0; font-variant-numeric: tabular-nums; }
 .tq-coverage-grid a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .2em; display: inline-flex; align-items: center; min-height: 2.75rem; }
