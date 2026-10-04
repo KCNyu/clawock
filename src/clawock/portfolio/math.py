@@ -123,11 +123,14 @@ def holding_session(h, snapshot_date, market=None):
         return None
     mon, day = _MONTHS[m.group(1)], int(m.group(2))
     raw_date = str(snapshot_date or '').replace('/', '-')
-    if len(raw_date) < 4:
-        return None
-    yr = int(m.group(3) or raw_date[:4])
-    if not m.group(3) and len(raw_date) >= 10:
-        anchor = date.fromisoformat(raw_date[:10])
+    anchor = None
+    if not m.group(3):
+        try:
+            anchor = date.fromisoformat(raw_date[:10])
+        except ValueError:
+            return None
+    yr = int(m.group(3)) if m.group(3) else anchor.year
+    if anchor is not None:
         candidates = []
         for candidate_year in (yr - 1, yr, yr + 1):
             try:
