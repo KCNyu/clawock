@@ -249,7 +249,7 @@ let ClawockStudioGateway = (() => {
 		* The decision-trace view: real fills as the spine with soft-paired
 		* decisions (±3 days) and T+1 verdicts. Cached by workspace-freshness
 		* signature — the enriched result is rebuilt only when portfolio.json /
-		* snapshots / decisions.jsonl actually changed; a hit returns in µs.
+		* memory/bars / decisions.jsonl / memory/fx-rates.jsonl actually changed; a hit returns in µs.
 		* Every result carries `workspaceKey` (opaque hash) and `signature` so the
 		* client can cache across tab mounts and re-fetch only on a real change.
 		*/
