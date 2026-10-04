@@ -644,17 +644,17 @@ def test_leverage_direction_ignores_exact_noise_floor_and_warns_just_over(run_ch
     _assert_only(run_check(over), "LEV_DIRECTION", "WARN", "方向矛盾")
 
 
-def test_us_asof_accepts_one_session_and_warns_on_mixed_sessions(run_check):
+def test_us_asof_accepts_one_session_and_rejects_mixed_sessions(run_check):
     same = _portfolio_data(
         holdings=[_holding(ticker="A"), _holding(ticker="B", shares=5)]
     )
     _assert_clean(run_check(same))
 
     mixed = copy.deepcopy(same)
-    _port(mixed)["holdings"][1]["data_source"] = "synthetic quote 2026-07-16"
+    _port(mixed)["holdings"][1]["day_session_date"] = "2026-07-16"
     # Isolate US_ASOF from per-name STALENESS: this test is about mixed vintages.
     report = run_check(mixed, last_session=None)
-    _assert_only(report, "US_ASOF", "WARN", "横跨多个 session 日期")
+    _assert_only(report, "US_ASOF", "ERROR", "横跨多个 session 日期")
 
 
 def test_staleness_accepts_last_session_and_warns_one_session_behind(run_check):

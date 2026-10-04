@@ -153,7 +153,37 @@ def holding_session(h, snapshot_date, market=None):
 
 
 
-def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None) -> tuple[float, float]:
+def session_date(market, day):
+    """The trading session a fill belongs to, given the date it was recorded.
+
+    A ledger date is the operator's calendar date. A US session in Hong Kong
+    time runs 21:30 to 04:00, so a fill reported at 01:08 HKT on a Saturday
+    belongs to *Friday's* session and is stamped with Saturday's date. Comparing
+    that raw date against a snapshot named for the session drops the fill from
+    the very session that contains it.
+
+    Only non-session dates move, and only when the calendar covers that year —
+    a real session date, an unknown market, or a year the holiday tables do not
+    reach is returned unchanged rather than guessed at.
+    """
+    market = {'us_stocks': 'us', 'hk_stocks': 'hk'}.get(market, market)
+    if not market or not isinstance(day, str) or len(day) != 10:
+        return day
+    from clawock.sessions import (
+        MARKET_TZ, covered_years, is_trading_day, previous_trading_day,
+    )
+    if market not in MARKET_TZ:
+        return day
+    try:
+        parsed = date.fromisoformat(day)
+    except ValueError:
+        return day
+    if parsed.year not in covered_years(market) or is_trading_day(market, parsed):
+        return day
+    return previous_trading_day(market, parsed).isoformat()
+
+
+def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, market=None) -> tuple[float, float]:
     """Day P&L of the remaining position and its matching reference capital.
 
     Old shares start at prior close; shares bought in this quote session start
@@ -165,7 +195,7 @@ def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None) ->
     current = number(holding.get('current_price') if current is None else current) or 0
     prev = number(holding.get('prev_close')) or 0
     trades = [t for t in ledger_rows(holding.get('trades'))
-              if session and ledger_date(t.get('date')) == session
+              if session and session_date(market, ledger_date(t.get('date'))) == session
               and t.get('action') in ('buy', 'sell')
               and (number(t.get('shares')) or 0) > 0
               and number(t.get('price')) is not None]

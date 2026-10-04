@@ -513,7 +513,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
             h.pop('quote_incomplete', None)
         if not approximated_pc or stored_pc:
             quote_day = _hk_quote_session(now_hkt)
-            amount, base = day_pnl(h, quote_day.isoformat(), current=c)
+            amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')
             h['today_change'] = round(amount, 2)
             # With no new lot, the vendor percentage retains its quote precision.
             if any(t.get('action') == 'buy' and t.get('date') == quote_day.isoformat()

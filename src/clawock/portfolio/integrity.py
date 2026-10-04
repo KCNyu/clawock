@@ -65,7 +65,7 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
                    (SPCH 18.07 vs 券商 18.38；只在账本可验证时拦,不误伤半账本)
-  US_ASOF        活跃美股共享单一 session 日期（避免跨天双计）            WARN
+  US_ASOF        活跃美股共享单一 session 日期（避免跨天双计）            ERROR
                  → 同一 US session 落进两个 HK 日期快照（fd86a53）
   TRUE_PRINCIPAL true_principal（峰值净投入）≥ 当前净投入(cost−realized)   WARN
                  → 手填本金常量过期 → 「净本金回报率」分母失真而虚高
@@ -663,7 +663,7 @@ def check(portfolio_path=PORTFOLIO):
             tchg = _num(h.get('today_change'))
             sess_date = holding_session(h, data.get('last_updated'), market)
             if cur is not None and sh and prev is not None and tchg is not None:
-                want_tc, _ = day_pnl(h, sess_date)
+                want_tc, _ = day_pnl(h, sess_date, market=market)
                 if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
                     add('TODAY_LEG', 'ERROR',
                         f'{t} today_change={tchg:.2f} ≠ 按批当日盈亏={want_tc:.2f}'
@@ -704,11 +704,7 @@ def check(portfolio_path=PORTFOLIO):
                 quote_sources.setdefault(provider, []).append(t)
 
             # Collect actual sessions in both legs, including HK holiday folding.
-            if market == 'us':
-                iso = _extract_iso(h.get('data_source') or '')
-                if sh and iso:
-                    asofs.add(iso)
-            elif market == 'hk' and sh and sess_date:
+            if sh and sess_date:
                 asofs.add(sess_date)
 
             # STALENESS（逐只 data_source）
@@ -783,7 +779,7 @@ def check(portfolio_path=PORTFOLIO):
         # US_ASOF：活跃美股多个 session 日期
         if market in ('hk', 'us') and len(asofs) > 1:
             add('HK_ASOF' if market == 'hk' else 'US_ASOF',
-                'ERROR' if market == 'hk' else 'WARN',
+                'ERROR',
                 f'活跃{market.upper()}持仓横跨多个 session 日期 {sorted(asofs)}；每日 P&L 跨天混算', region)
 
         # TRUE_PRINCIPAL：手填的「峰值净投入」常量是「净本金回报率」的分母，改仓忘
