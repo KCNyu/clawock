@@ -15,5 +15,5 @@
 
 <!-- Agents: the review stays in the interactive handoff. Both agents
      authenticate as `KCNyu`, so a posted review reads as kcn talking to
-     themself — see AGENTS.md § Interactive Codex/Claude PR workflow. -->
+     themself — see AGENTS.md § Boundaries. -->
 

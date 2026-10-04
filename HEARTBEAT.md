@@ -1,15 +1,12 @@
 # HEARTBEAT.md
 
-_状态：idle — 无待办任务，回复 `HEARTBEAT_OK` 即可。_
+状态：idle。没有待办任务，回复 `HEARTBEAT_OK`，不做其他动作。
 
-## 如何工作
+## 规则
 
-openclaw 收到 heartbeat poll 时会自动注入提示，让 agent 读这个文件并严格 follow。规则：
-
-- **本文件 idle 状态**（当前）→ agent 直接回复 `HEARTBEAT_OK`，不做任何动作
-- **本文件有具体任务**（譬如下面的"待办任务"段）→ agent 严格执行该任务，完成后把本文件改回 idle 状态
+- 「待办任务」为空：回复 `HEARTBEAT_OK`。
+- 「待办任务」列有任务：严格执行，完成后把该段改回「（无）」。
 
 ## 待办任务
 
-_（无）_
-
+（无）
