@@ -1459,9 +1459,12 @@
       const groups = [];
       rows.forEach(r => {
         const hit = groups.find(g => g.job === r.job && g.what === r.what);
-        if (hit) hit.n += 1; else groups.push({ job: r.job, what: r.what, n: 1 });
+        if (hit) {
+          hit.n += 1;
+          if (r.reason && !hit.reasons.includes(r.reason)) hit.reasons.push(r.reason);
+        } else groups.push({ job: r.job, what: r.what, n: 1, reasons: r.reason ? [r.reason] : [] });
       });
-      const head = groups.slice(0, 2).map(g => `${g.job} ${g.what}${g.n > 1 ? ` ${g.n} 档` : ""}`).join("、");
+      const head = groups.slice(0, 2).map(g => `${g.job} ${g.what}${g.n > 1 ? ` ${g.n} 档` : ""}${g.reasons.length ? `（${g.reasons.join(" / ")}）` : ""}`).join("、");
       return groups.length > 2 || total > rows.length ? `${head} 等 ${total} 档` : head;
     };
 
