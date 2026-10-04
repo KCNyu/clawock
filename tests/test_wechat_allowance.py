@@ -10,7 +10,7 @@ import os
 from clawock.harness import _watchdog_common as common
 from clawock.providers import wechat_allowance as allowance
 
-KCN = "o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat"
+KCN = "fixture-user@" + "im.wechat"
 INBOUND = 1_789_100_000.0
 
 

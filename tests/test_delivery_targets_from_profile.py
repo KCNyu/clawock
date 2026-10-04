@@ -35,13 +35,24 @@ def _workspace(tmp_path, monkeypatch, targets, site_url=None):
 
 
 def test_the_reusable_package_names_no_desk_of_its_own():
-    leaked = ("2033937852", "o9cq80-hGTruM-OSs8kNmDOtLVZI", "kcnyu.github.io")
+    leaked = ("2033937852",  "kcnyu.github.io")
     offenders = [
         f"{path.relative_to(ROOT)}: {needle}"
         for path in (ROOT / "src/clawock").rglob("*.py")
         for needle in leaked
         if needle in path.read_text(encoding="utf-8")
     ]
+    # Real opaque runtime WeChat identifiers do not belong in any tracked text,
+    # including test fixtures. Synthetic human-readable addresses remain useful.
+    import subprocess
+    import re
+    for name in subprocess.check_output(['git', 'ls-files'], cwd=ROOT, text=True).splitlines():
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        text = path.read_bytes().decode('utf-8', errors='replace')
+        if re.search(r'\b[a-z0-9]{6}-[a-z0-9_-]{12,}@?im\.wechat\b', text):
+            offenders.append(name + ': opaque WeChat runtime identifier')
     assert offenders == []
 
 

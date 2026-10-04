@@ -23,6 +23,8 @@ Values are never written here — only provider, where and when, and what was do
 |---|---|---|---|
 | Finnhub, Alpha Vantage, Polygon.io | `c4657808b` (2026-03-11, `TOOLS.md` and three scripts), `bbb479ce9` (2026-03-22) | `f749443a4` (2026-04-05), `36711fae4` (2026-05-16) | **Pending owner rotation** at each provider and replacement in `.api_keys`; record completion dates here after the owner confirms them |
 
+| Telegram bot token | `c4657808b` (2026-03-11) | `4ef6b1203` (2026-07-04) | **Rotation unverified**; owner must revoke the exposed token and record completion here |
+
 History is not rewritten: a rewrite changes every later commit SHA and does not
 make a value that has already been cloned unusable — rotation does. The CI step
 `No credential-shaped values in the added lines` (`ops/ci/commit_secret_scan.py`)
