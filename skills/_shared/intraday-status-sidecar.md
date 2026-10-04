@@ -8,14 +8,14 @@
 写 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`：
 ```json
 {
-  "status_banner": "一句话 ≤50字：regime + 今日盈亏主来源 + 最该盯的一件事（盯盘提醒口吻）",
-  "movers": {"代码": "一行归因 ≤40字：催化 / 板块beta / 纯杠杆放大噪音 + 操作含义(追/不追/观望)"}
+  "status_banner": "一句话 ≤160字：regime + 今日盈亏主来源 + 最该盯的一件事（盯盘提醒口吻）",
+  "movers": {"代码": "一行归因 ≤120字：催化 / 板块beta / 纯杠杆放大噪音 + 操作含义(追/不追/观望)"}
 }
 ```
 - **模型只写 `status_banner` / `movers` 文本**；`generated_at` 由 postflight harness
   以当前真实 UTC 写入，禁止模型生成或猜测基础设施时间。
 - 横幅写**本档新变化**及下一触发点；`delivery_mode=no_change` 不改写 sidecar，
-  不能把上一档的判断盖上新时间。超过 50/40 字、字段类型错误时 harness 拒收 sidecar，
+  不能把上一档的判断盖上新时间。超过 160/120 字时 harness 与发布侧按同一契约截断；字段类型错误时拒收 sidecar，
   盘中微信仍正常投递。
 - `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**（本市场杠杆 ticker 见调用方 Step 2.5）。
 - **催化优先引 `context.mover_news`**：该票有 `signal=interrupt` 的条目就用它的标题要点 + `age_minutes` 写归因；`halts` 命中先写停牌；`no_recent_filing` / `index_fund_no_issuer` / `degraded` 各自照实说（分别是「无一手公告」「指数基金无发行人」「催化源未取到」）。

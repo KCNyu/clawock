@@ -189,18 +189,11 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
         payload = json.loads(path.read_text())
         if not isinstance(payload, dict):
             raise ValueError('top-level JSON must be an object')
-        banner, movers = payload.get('status_banner'), payload.get('movers')
-        if not isinstance(banner, str) or len(banner) > 50:
-            raise ValueError('status_banner must be text of at most 50 characters')
-        if not isinstance(movers, dict) or any(
-                not isinstance(key, str) or not isinstance(value, str)
-                or len(value) > 40 for key, value in movers.items()):
-            raise ValueError('movers must map tickers to text of at most 40 characters')
+        from clawock.evidence.intraday_status import normalize_status
         canonical = {
+            **normalize_status(payload),
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
                 timespec='seconds').replace('+00:00', 'Z'),
-            'status_banner': banner,
-            'movers': movers,
         }
         safe_write_json(str(path), canonical)
         return True

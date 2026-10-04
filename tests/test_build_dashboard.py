@@ -1814,3 +1814,23 @@ def test_delta_stale_session_does_not_fallback_to_asset_changes():
             _cash_row("2026-10-01", 11000, 0)]
     rows[-1]["hk_asof"] = "2026-09-30"
     assert dashboard.compute_delta(rows)["hk"]["today_pct"] is None
+
+
+def test_leg_exposure_claims_do_not_confuse_return_percentages():
+    thesis = '占港股段55.57%，近6个月-74.7%、3个月-27.8%，52周位置5.5%'
+    data = {'bear_cases': [{'ticker': 'MINIMAX', 'thesis': thesis}]}
+    assert dashboard.validate_insights(data, {'MINIMAX'}, weights=[55.57])['bear_cases']
+    data['bear_cases'][0]['thesis'] = thesis.replace('55.57', '57.8')
+    assert not dashboard.validate_insights(data, {'MINIMAX'}, weights=[55.57])['bear_cases']
+
+
+def test_intraday_status_has_one_truncation_contract(tmp_path):
+    from clawock.harness.intraday_postflight import normalize_intraday_insights
+    data = {'status_banner': '板' * 200, 'movers': {'MINIMAX': '归' * 150}}
+    path = tmp_path / 'insights.json'
+    path.write_text(json.dumps(data))
+    assert normalize_intraday_insights(path)
+    saved = json.loads(path.read_text())
+    published = dashboard.validate_intraday_insights(data, {'MINIMAX'})
+    assert saved['status_banner'] == published['status_banner'] == '板' * 160
+    assert saved['movers'] == published['movers'] == {'MINIMAX': '归' * 120}

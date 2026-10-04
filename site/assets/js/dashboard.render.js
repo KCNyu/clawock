@@ -3510,7 +3510,7 @@
         ? ` · <span class="muted">新上市不足200日线,短均线替代</span>` : '';
       return `<div class="risk-alert ${sev}"><span class="icon"></span>
         <div><strong>${n.etf}=2x ${n.underlying} <span class="${cls}">${tag}</span></strong>
-        <div class="muted" style="font-size:var(--fs-xs);margin-top:2px">距${maLbl} ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${trig}${basisNote}</div></div></div>`;
+        <div class="muted" style="font-size:var(--fs-xs);margin-top:2px">距${maLbl} ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${trig}${basisNote} · 数据 ${escapeHtml(n.as_of || '日期未核实')}</div></div></div>`;
     }).join('');
     usEl.innerHTML = rows || '<div class="muted" style="font-size:var(--fs-sm)">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
@@ -3561,14 +3561,14 @@
             <span style="font-size:var(--fs-xs);color:${color};min-width:52px;text-align:right">${dist != null ? (dist > 0 ? '+' : '') + dist.toFixed(1) + '%' : DASH}</span>
           </div>
           <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">
-            现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
+            数据 ${escapeHtml(w.as_of || '日期未核实')} · 现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
           </div>
           ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${w.note}</div>` : ''}
         </div>`;
     }).join('');
     document.getElementById('reentry-list').innerHTML = rows;
     document.getElementById('reentry-asof').textContent =
-      (r.as_of ? `数据 ${r.as_of} · ` : '') + '距均线越接近 0 越该盯 · 条件复用 lev_regime 右侧确认';
+      '各行数据日期见上方 · 距均线越接近 0 越该盯 · 条件复用 lev_regime 右侧确认';
   }
 
   function renderGoldDca() {

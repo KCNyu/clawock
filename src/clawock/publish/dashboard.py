@@ -204,14 +204,6 @@ def compile_overview_projection(dashboard):
         reverse=True,
     )[:1]
 
-    active = _fields(metrics.get('active'), (
-        'avg_benefit_pct', 'cluster_ci95', 'n_episodes',
-        'capital_weighted_benefit_pct',
-    ))
-    by_driver = {
-        name: _fields(entry, ('win_rate', 'cluster_ci95'))
-        for name, entry in sorted((metrics.get('by_driver') or {}).items())
-    }
     # `stranded` travels with `rate`: it is how many rows the denominator drops
     # and never gets back (#294). Shipping the rate without it is what the
     # detail card was already fixed for; the Hero is the copy people see first.
@@ -265,9 +257,9 @@ def compile_overview_projection(dashboard):
         'generation_id': generation,
         **_fields(dashboard, (
             'generated_at', 'last_updated', 'fx', 'totals', 'indices', 'regime',
-            'today_movers', 'anomalies', 'catalysts', 'debate_metrics',
-            'build_status', 'delta', 'gold_dca', 'status_banner',
-            'status_banner_meta', 'benchmark',
+            'today_movers', 'anomalies', 'catalysts',
+            'build_status', 'delta', 'status_banner',
+            'status_banner_meta',
             # The data-health card renders on the Overview tab, and the Overview
             # tab renders from THIS projection — not from dashboard.json. A key
             # present only in the full payload is a row that never appears on the
@@ -275,6 +267,10 @@ def compile_overview_projection(dashboard):
             # correct, tested, and invisible.
             'crawl_visibility',
         )),
+        'gold_dca': _fields(dashboard.get('gold_dca'), (
+            'auto_added_days', 'avg_cost', 'breakeven_upside_pct', 'currency', 'current_value', 'daily_amount', 'days_invested', 'domestic_gold', 'fund_code', 'fund_name', 'installments_est', 'london', 'nav', 'nav_change_pct', 'nav_date', 'nav_history', 'pnl_abs', 'pnl_percent', 'principal_effective', 'principal_invested', 'projection', 'realtime', 'reconciled_date', 'start_date',
+        )),
+        'benchmark': _fields(dashboard.get('benchmark'), ('series', 'staleness')),
         'watch_holdings': watch_holdings,
         'recent_plans': [
             {
@@ -292,11 +288,9 @@ def compile_overview_projection(dashboard):
         },
         'decision_metrics': {
             **_fields(metrics, (
-                'raw_decisions', 'brier', 'brier_beats_baseline',
+                'brier', 'brier_beats_baseline',
                 'brier_baseline_loo',
             )),
-            'active': active,
-            'by_driver': by_driver,
             'execution_by_kind': {'active': execution},
             'calibration': {'active': active_calibration},
         },
@@ -339,8 +333,11 @@ def compile_overview_projection(dashboard):
                 # …and "which ones". Both lists are window-wide and capped;
                 # `recent` cannot answer this because it is a tail, not a set.
                 'wechat_dropped_slots', 'degraded_slots',
-                'degradations',
             )),
+            'degradations': [
+                {key: row[key] for key in ('kind', 'group', 'count', 'first_at', 'last_at', 'hits', 'hits_incomplete') if key in row}
+                for row in workflow.get('degradations') or [] if isinstance(row, dict)
+            ],
             'recent': compact_recent,
         },
         # Passed through whole rather than field-picked: it is already the
@@ -2436,10 +2433,12 @@ def validate_insights(data, known_tickers, *, weights=None):
         if weights is None:
             return True  # Schema-only callers; the publisher supplies the book.
         sentences = re.split(r'[。；;]', text or '')
+        claim = r'(?:权重|占比|仓位|集中|暴露|敞口|占(?:港股|美股|HK|US)段|weight|exposure)\s*(?:为|约|达|是|占比|[:：=])?\s*([0-9]+(?:\.[0-9]+)?)\s*[%％]'
         for sentence in sentences:
-            if not exposure and not re.search(r'权重|占比|仓位|集中|暴露|weight|exposure', sentence, re.I):
-                continue
-            for raw in re.findall(r'(\d+(?:\.\d+)?)\s*[%％]', sentence):
+            numbers = re.findall(claim, sentence, re.I)
+            if exposure and not numbers:
+                numbers = re.findall(r'(?<![-+\d.])([0-9]+(?:\.[0-9]+)?)\s*[%％]', sentence)
+            for raw in numbers:
                 if not any(abs(float(raw) - value) <= 0.15 for value in weights):
                     return False
         return True
@@ -2508,20 +2507,13 @@ def validate_intraday_insights(data, known_tickers):
     """Schema + sanity gate for the intraday sidecar (status_banner + per-mover
     attribution). Mover notes only survive for tickers that actually exist in the
     book. Returns {status_banner, movers}."""
-    out = {'status_banner': None, 'movers': {}}
-    if not isinstance(data, dict):
-        return out
-    out['status_banner'] = _clean_str(data.get('status_banner'), 160)
-    mv = data.get('movers')
-    if isinstance(mv, dict):
-        for tk, note in mv.items():
-            tkc = _clean_str(tk, 12)
-            notec = _clean_str(note, 120)
-            if not tkc or not notec:
-                continue
-            if known_tickers and tkc not in known_tickers:
-                continue
-            out['movers'][tkc] = notec
+    from clawock.evidence.intraday_status import normalize_status
+    try:
+        out = normalize_status(data)
+    except ValueError:
+        return {'status_banner': None, 'movers': {}}
+    if known_tickers:
+        out['movers'] = {k: v for k, v in out['movers'].items() if k in known_tickers}
     return out
 
 
@@ -3154,6 +3146,7 @@ def compute_reentry_radar(lev_regime, portfolio):
     if hk.get('close') is not None and hk.get('ma') is not None:
         watches.append({
             'market': 'HK', 'name': 'HSTECH', 'etf': None, 'kind': 'index',
+            'as_of': hk.get('as_of') or lev_regime.get('as_of'),
             'close': hk.get('close'), 'ma': hk.get('ma'),
             'ma_window': lev_regime.get('ma_window', 200),
             'dist_ma_pct': hk.get('dist_ma_pct'),
@@ -3165,7 +3158,7 @@ def compute_reentry_radar(lev_regime, portfolio):
             continue
         watches.append({
             'market': 'US', 'name': n.get('underlying') or n.get('etf'),
-            'etf': n.get('etf'), 'kind': 'stock',
+            'etf': n.get('etf'), 'kind': 'stock', 'as_of': n.get('as_of'),
             'close': n.get('close'), 'ma': n.get('ma'),
             'ma_window': n.get('ma_window'),
             'dist_ma_pct': n.get('dist_ma_pct'),

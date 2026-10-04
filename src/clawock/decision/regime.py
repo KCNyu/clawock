@@ -125,6 +125,13 @@ def fetch_hstech(start='2021-01-01', lim=2000):
     return out
 
 
+class DatedCloses(list):
+    """Keep list compatibility while carrying the source's final valid bar date."""
+    def __init__(self):
+        super().__init__()
+        self.as_of = None
+
+
 def fetch_us(sym, cnt=400):
     """Tencent fqkline (qfq-adjusted) US daily closes — enough bars for 200DMA + vol."""
     url = f'{TENCENT_FQ}?param={sym},day,,,{cnt},qfq'
@@ -135,11 +142,16 @@ def fetch_us(sym, cnt=400):
         return []
     node = (d.get('data') or {}).get(sym, {})
     rows = node.get('qfqday') or node.get('day') or []
-    out = []
+    out = DatedCloses()
     for r in rows:
         try:
-            out.append(float(r[2]))
-        except (IndexError, ValueError):
+            close = float(r[2])
+            bar_date = date.fromisoformat(r[0]).isoformat()
+            if not math.isfinite(close) or close <= 0:
+                continue
+            out.append(close)
+            out.as_of = bar_date
+        except (IndexError, ValueError, TypeError):
             continue
     return out
 
@@ -179,7 +191,7 @@ def compute_us():
                 close = closes[-1]
                 trend_on = close > short_ma
                 names.append({
-                    'etf': etf, 'underlying': underlying,
+                    'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None),
                     'close': round(close, 2), 'ma': round(short_ma, 2), 'ma_window': w,
                     'dist_ma_pct': round((close / short_ma - 1) * 100, 1),
                     'vol_annualized': None, 'trend_on': trend_on,
@@ -191,7 +203,7 @@ def compute_us():
                                 else '短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上')),
                 })
             else:
-                names.append({'etf': etf, 'underlying': underlying, 'state': 'unknown',
+                names.append({'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None), 'state': 'unknown',
                               'note': f'insufficient history ({len(closes)} bars)'})
             continue
         ma, vol = compute(closes)
@@ -205,7 +217,7 @@ def compute_us():
         else:
             state = 'watch'      # trend-off but calm → advisory only (light on low-vol)
         names.append({
-            'etf': etf, 'underlying': underlying,
+            'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None),
             'close': round(close, 2), 'ma': round(ma, 2), 'ma_window': MA_WINDOW,
             'dist_ma_pct': round((close / ma - 1) * 100, 1),
             'vol_annualized': round(vol, 4) if vol else None,
@@ -221,7 +233,8 @@ def compute_us():
         tier, label = 'amber', f"{len(watches)} 只趋势off(波动未过热) → 观察，暂不强砍"
     else:
         tier, label = 'green', '美股各2x标的趋势ON' if names else '无持仓2x ETF'
-    return {'names': names, 'tier': tier, 'label': label,
+    dated = [n['as_of'] for n in names if n.get('as_of')]
+    return {'names': names, 'as_of': min(dated) if dated else None, 'tier': tier, 'label': label,
             'vol_hot_cap': US_VOL_HOT, 'cut_count': len(cuts), 'watch_count': len(watches)}
 
 
@@ -402,7 +415,7 @@ def main(argv=None):
     if missing_inputs:
         out['missing_inputs'] = missing_inputs
     # Top-level fields above describe the HK (HSTECH) dial; mirror under 'hk' and add 'us'.
-    out['hk'] = {'tier': tier, 'lev_cap_mult': mult, 'label': label,
+    out['hk'] = {'as_of': dates[-1], 'tier': tier, 'lev_cap_mult': mult, 'label': label,
                  'close': out['close'], 'ma': out['ma'], 'dist_ma_pct': dist,
                  'vol_annualized': out['vol_annualized'], 'trend_on': trend_on, 'vol_ok': vol_ok}
     out['us'] = compute_us()
