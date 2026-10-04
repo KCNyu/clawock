@@ -140,3 +140,22 @@ def test_plan_trigger_action_uses_decision_layer_vocabulary():
     from clawock.decision.add_side import ACTION_WORDS
     result = intraday_preflight.append_plan_trigger_section('', TRIGGERED)
     assert ACTION_WORDS['trim_on_rebound'] in result
+
+
+def test_display_name_watch_levels_are_prices_only_for_their_own_subject():
+    from clawock.harness.intraday_postflight import check_next_trigger, _subject_prices
+    for key in ('00100_prior_low', 'minimax_prior_20d_low', 'mini_max_prior_20d_low'):
+        ctx = {'full_holdings': [{'ticker': '00100', 'current_price': 254.2}],
+               'watch_levels': {key: 231.4}}
+        assert check_next_trigger('下一触发：00100 跌破前低 231.4', ctx) == []
+        assert check_next_trigger('下一触发：00100 跌破前低 200', ctx)
+        assert 231.4 not in _subject_prices(ctx, 'SPCH')[0]
+    assert 231.4 not in _subject_prices({'minimax_profit': 231.4}, '00100')[0]
+    assert 231.4 not in _subject_prices({'watch_levels': {'minimaximpostor_low': 231.4}}, '00100')[0]
+
+
+def test_ambiguous_registry_display_names_do_not_lend_prices(monkeypatch):
+    from clawock import instruments
+    from clawock.harness.intraday_postflight import _subject_prices
+    monkeypatch.setitem(instruments.INSTRUMENTS, 'OTHER', {'name': 'MINIMAX-W'})
+    assert 231.4 not in _subject_prices({'watch_levels': {'mini_max_low': 231.4}}, '00100')[0]

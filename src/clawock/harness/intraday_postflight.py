@@ -260,6 +260,25 @@ def _subject_prices(ctx, subject):
         '标普': ('spx', 'spy'), '纳指': ('ndx', 'nasdaq'),
     }
     names = (subject.lower(), *aliases.get(subject, ()))
+    from clawock.instruments import INSTRUMENTS
+
+    def spelling(value):
+        return re.sub(r'[^a-z0-9\u4e00-\u9fff]', '', value.lower())
+
+    def display_names(ticker):
+        name = str(INSTRUMENTS.get(ticker, {}).get('name') or '')
+        return {spelling(name), spelling(re.sub(r'-(?:W|SW|SS)$', '', name, flags=re.I))} - {''}
+
+    # Names come from registry identity, not arbitrary narrative. Shared names
+    # are ambiguous and cannot lend a price to either instrument.
+    plan_names = display_names(subject)
+    for ticker in INSTRUMENTS:
+        if ticker != subject:
+            plan_names -= display_names(ticker)
+
+    def plan_named(key):
+        tokens = key.split('_')
+        return any(spelling('_'.join(tokens[:n])) in plan_names for n in range(1, len(tokens) + 1))
     levels, current = set(), set()
     keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
             'support', 'resistance', 'price_above', 'price_below',
@@ -275,13 +294,14 @@ def _subject_prices(ctx, subject):
         except (ValueError, TypeError):
             pass
 
-    def walk(value, belongs=False):
+    def walk(value, belongs=False, in_plan=False):
         if isinstance(value, dict):
             identity = str(value.get('ticker') or value.get('symbol') or value.get('label') or '').lower()
             if identity:
                 belongs = identity in names
             for key, child in value.items():
                 named = any(name == key.lower() or key.lower().startswith(name + '_') for name in names)
+                named = named or (in_plan and plan_named(key))
                 if belongs and key in keys:
                     number(child, levels)
                     if key in {'price', 'current_price', 'last'}:
@@ -289,10 +309,10 @@ def _subject_prices(ctx, subject):
                 elif named and not isinstance(child, (dict, list)):
                     number(child, levels)
                 elif isinstance(child, (dict, list)):
-                    walk(child, belongs or named)
+                    walk(child, belongs or named, in_plan or key == 'watch_levels')
         elif isinstance(value, list):
             for child in value:
-                walk(child, belongs)
+                walk(child, belongs, in_plan)
     walk(ctx)
     for block in (ctx.get('raw_wechat_block'), ctx.get('analyzer_block')):
         for row in parse_holdings_rows(block or ''):
