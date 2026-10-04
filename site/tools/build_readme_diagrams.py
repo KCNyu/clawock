@@ -971,7 +971,7 @@ def decision_pipeline():
             ['Ordered quote / FX fallback; one Eastmoney gateway.',
              'An empty fetch keeps the prior value.'], cls='m', lh=19, where='collect note')
     top = y + h
-    y = top + 60
+    y = top + 95
     d.down(W / 2, top, y - 36, pulses=(0, 1.1))
 
     # 02 compute and gate
@@ -1022,13 +1022,13 @@ def decision_pipeline():
              'prospective activation ≠ capped exploration'],
             cls='m', lh=21, where='backtest')
     top = y + h
-    y = top + 53
+    y = top + 88
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
            'm', anchor='middle')
     fits('preflight → one context pack per run', 'm', CW, 'preflight label')
     d.icon('checks', 102, y - 16, 'green', size=20)
     loop_y = y - 3
-    d.down(W / 2, top, y - 45, arrow=False, pulses=())
+    d.down(W / 2, top, y - 80, arrow=False, pulses=())
     y += 76
     d.down(W / 2, y - 52, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
 
@@ -1087,14 +1087,15 @@ def decision_pipeline():
                                       [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
             lh=21, where='postflight')
     top = y + h
-    y = top + 56
+    y = top + 91
     xs, cw = columns(3)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
             ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
     h = 156
+    d.down(W / 2, top, top + 37, arrow=False, pulses=())
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
-        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
+        d.curve(W / 2, top + 35, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
         d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='deliver')
