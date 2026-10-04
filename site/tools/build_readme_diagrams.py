@@ -946,7 +946,7 @@ def decision_pipeline():
     y += 34
     d.section(y, '01 · BEFORE OPEN / THE DATA ARRIVES')
     y += 14
-    h = 389
+    h = 354
     d.card(M, y, CW, h, 'blue')
     d.icon('market', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
@@ -971,7 +971,7 @@ def decision_pipeline():
             ['Ordered quote / FX fallback; one Eastmoney gateway.',
              'An empty fetch keeps the prior value.'], cls='m', lh=19, where='collect note')
     top = y + h
-    y = top + 60
+    y = top + 95
     d.down(W / 2, top, y - 36, pulses=(0, 1.1))
 
     # 02 compute and gate
@@ -1078,7 +1078,7 @@ def decision_pipeline():
 
     # 04 deliver
     d.section(y - 12, '04 · THROUGH THE SESSION / REACH YOUR PHONE')
-    h = 153
+    h = 118
     d.card(M, y, CW, h, 'green')
     d.icon('shield', M + 20, y + 14, 'green')
     d.text(M + 50, y + 32, 'Postflight', 'h')
@@ -1087,14 +1087,14 @@ def decision_pipeline():
                                       [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
             lh=21, where='postflight')
     top = y + h
-    y = top + 56
+    y = top + 91
     xs, cw = columns(3)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
             ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
     h = 156
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
-        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
+        d.curve(W / 2, top + 35, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
         d.card(x, y, cw, h, 'blue')
         d.text(x + 16, y + 30, name, 'h')
         d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='deliver')

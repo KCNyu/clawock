@@ -20,8 +20,8 @@
   <text x="39" y="224" class="m"><tspan fill="#5b6875">never self-graded</tspan></text>
   <path d="M24 244H496" stroke="#dde4eb"/>
   <text x="24" y="278" class="kick"><tspan fill="#8794a1">01 · BEFORE OPEN / THE DATA ARRIVES</tspan></text>
-  <rect x="24" y="292" width="472" height="389" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
-  <path d="M25.5 304V669" stroke="#3f82b5" stroke-width="4" stroke-linecap="round"/>
+  <rect x="24" y="292" width="472" height="354" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <path d="M25.5 304V634" stroke="#3f82b5" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="market" transform="translate(44 306) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9L12 3l9 6M4 21h16M6 10v8m6-8v8m6-8v8"/></g>
   <text x="74" y="324" class="h"><tspan fill="#151a21">Your HK + US book wakes up</tspan></text>
   <text x="44" y="348" class="m"><tspan fill="#5b6875">44 modules · 8 layers · deterministic collection</tspan></text>
@@ -51,7 +51,7 @@
   <text x="350.667" y="532" class="m"><tspan fill="#5b6875">calendars</tspan></text>
   <text x="44" y="589" class="m"><tspan fill="#5b6875">Ordered quote / FX fallback; one Eastmoney gateway.</tspan></text>
   <text x="44" y="608" class="m"><tspan fill="#5b6875">An empty fetch keeps the prior value.</tspan></text>
-  <path id="w1" d="M260 681V703" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w1" d="M260 646V703" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#3f82b5" fill-opacity="0.16"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#3f82b5" fill-opacity="1"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
   <circle class="pulse" r="7" fill="#3f82b5" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.10s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
@@ -207,8 +207,8 @@
   <circle class="pulse" r="7" fill="#13865f" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.10s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#13865f" fill-opacity="1"><animateMotion dur="2.2s" begin="-1.10s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <text x="24" y="2022" class="kick"><tspan fill="#8794a1">04 · THROUGH THE SESSION / REACH YOUR PHONE</tspan></text>
-  <rect x="24" y="2034" width="472" height="153" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
-  <path d="M25.5 2046V2175" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
+  <rect x="24" y="2034" width="472" height="118" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <path d="M25.5 2046V2140" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="shield" transform="translate(44 2048) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/></g>
   <text x="74" y="2066" class="h"><tspan fill="#151a21">Postflight</tspan></text>
   <rect x="410.18" y="2050" width="69.82" height="20" rx="10" fill="#e6f4ee"/>
