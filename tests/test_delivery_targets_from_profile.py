@@ -7,6 +7,7 @@ profile's `delivery.targets` and the brief link from the workspace's Pages
 contract; a workspace that declares neither gets a failed send that says why.
 """
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,8 @@ from clawock.config.profiles import load_profile
 from clawock.harness import _watchdog_common as common
 from clawock.harness import brief_card
 from clawock.providers.openclaw import CronRead
+
+OPAQUE_WECHAT = re.compile(r'\b(?:wxid_[a-z0-9_-]{8,}|[a-z0-9]{4,}[-_][a-z0-9_-]{8,})@?im\.wechat\b', re.I)
 
 ROOT = Path(__file__).resolve().parents[1]
 MINIMAL = json.loads((ROOT / "examples/profiles/minimal/profile.json").read_text())
@@ -51,7 +54,7 @@ def test_the_reusable_package_names_no_desk_of_its_own():
         if not path.is_file():
             continue
         text = path.read_bytes().decode('utf-8', errors='replace')
-        if re.search(r'\b[a-z0-9]{6}-[a-z0-9_-]{12,}@?im\.wechat\b', text):
+        if OPAQUE_WECHAT.search(text):
             offenders.append(name + ': opaque WeChat runtime identifier')
     assert offenders == []
 
@@ -143,3 +146,14 @@ def test_profile_rejects_a_target_whose_fields_do_not_fit_its_source(
 
     with pytest.raises(ValueError, match=message):
         load_profile(tmp_path, "desk")
+
+
+@pytest.mark.parametrize('local', ['ab12cd-0123456789abcdef', 'ab12cd-hGTruM-OSs8kNmDOtLVIZ',
+                                    'wxid_9a8b7c6d5e4f3g2h', 'wxid_9A8b7c6d', 'a1b2-XyZ0123456789'])
+def test_opaque_wechat_shapes_are_detected(local):
+    for separator in ('', '@'):
+        assert OPAQUE_WECHAT.search(local + separator + 'im.' + 'wechat')
+
+@pytest.mark.parametrize('local', ['fixture-user', 'example', 'desk'])
+def test_readable_synthetic_wechat_addresses_are_allowed(local):
+    assert not OPAQUE_WECHAT.search(local + '@im.' + 'wechat')
