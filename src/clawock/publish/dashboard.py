@@ -35,6 +35,19 @@ from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.math import number as portfolio_number, ledger_rows
 
+def benchmark_staleness(benchmark):
+    from clawock.market_data.benchmarks import _freshness
+    freshness = _freshness(benchmark.get('series') or {})
+    benchmark['freshness'] = freshness
+    delayed = [dict(symbol=symbol, **row) for symbol, row in freshness.items()
+               if isinstance(row.get('sessions_behind'), int)
+               and row['sessions_behind'] > row['expected_lag_sessions']]
+    unknown = [symbol for symbol, row in freshness.items()
+               if row.get('sessions_behind') is None]
+    return {'basis': 'sessions', 'is_stale': bool(delayed),
+            'delayed': delayed, 'unknown': unknown}
+
+
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
 # rows in the equity curve before this filter was added). Aliased to the
@@ -4542,28 +4555,10 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['add_side'] = compute_add_side()
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
     # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
-    # equity curve 的 SPY/恒科等值线会静默退化成平线。被动暴露 staleness 给前端显示小字
-    # 提示(不推送,遵 feedback_no_individual_cron_alerts)。>4 日历日(≈>2交易日,含周末)算停更。
-    try:
-        _bm = out.get('benchmark')
-        if isinstance(_bm, dict):
-            _series = _bm.get('series') or {}
-            _last = [arr[-1].get('date') for arr in _series.values()
-                     if isinstance(arr, list) and arr and arr[-1].get('date')]
-            if _last:
-                _fresh = max(_last)
-                try:
-                    _y, _m, _d = map(int, _fresh.split('-'))
-                    _behind = (datetime.now().date() - datetime(_y, _m, _d).date()).days
-                except Exception:
-                    _behind = None
-                _bm['staleness'] = {
-                    'last_date': _fresh,
-                    'days_behind': _behind,
-                    'is_stale': (_behind is not None and _behind > 4),
-                }
-    except Exception as e:
-        print(f'  warn: benchmark staleness calc failed: {e}', file=sys.stderr)
+    # Re-evaluate retained benchmark bars at publication time using the session owner.
+    _bm = out.get('benchmark')
+    if isinstance(_bm, dict):
+        _bm['staleness'] = benchmark_staleness(_bm)
     # Option 2 decouple (2026-07-04): the GH-Action / scan sidecars (macro,
     # sentiment, influencer_feed, us_news_digest, em_news) are NO LONGER embedded
     # here — index.html fetches them directly. This makes dashboard.json carry only
