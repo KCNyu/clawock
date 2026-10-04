@@ -437,3 +437,15 @@ def test_absent_cards_keep_the_full_ledger_visible(monkeypatch, tmp_path, capsys
     assert 'regime_dial_validation' in capsys.readouterr().err
     absent = [r for r in data['sections'] if r['source'] in data['omitted']]
     assert all(r['verdict_key'] == 'undecided' for r in absent)
+
+
+def test_evidence_records_its_own_build_time(tmp_path, monkeypatch):
+    from datetime import datetime
+    from clawock.evidence import build_evidence as ev
+    monkeypatch.setattr(ev, 'ARTIFACT', tmp_path / 'evidence.json')
+    monkeypatch.setattr(ev, '_sections', lambda: [])
+    monkeypatch.setattr(ev, '_generated_at', lambda: '2020-01-01T00:00:00Z')
+    ev.write_all()
+    result = json.loads(ev.ARTIFACT.read_text())
+    assert result['generated_at'] == '2020-01-01T00:00:00Z'
+    assert datetime.fromisoformat(result['built_at']).year >= 2026

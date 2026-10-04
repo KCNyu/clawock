@@ -3467,6 +3467,8 @@ _BRIEF_FRESHNESS_ARTIFACTS = frozenset({
     'em_news.json',
     't0_setups.json',
     't0_setup_review.json',
+    'evidence.json',
+    'decision_audit.json',
 })
 
 # The local brief normally commits in minutes but has a remote fallback and a
