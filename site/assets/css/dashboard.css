@@ -932,9 +932,8 @@
        needed, but can reveal them immediately during two quick consecutive
        swipes. Forcing distant pages to `hidden` until JS committed the previous
        snap produced a blank page during an interrupted/retargeted gesture. */
-    /* visually hidden but kept in the a11y tree so the heading sequence stays h1→h2→h3
-       (display:none would drop the h2 → axe/screen-readers see an h1→h3 skip). NOTE: must
-       stay IN FLOW — position:absolute here escapes the horizontal scroll-snap pager and
+    /* The active panel retains its h2 in the a11y tree; inactive panels are inert.
+       Headings must stay IN FLOW — position:absolute escapes the horizontal scroll-snap pager and
        shoves the panel left (blank gutter on the right). 1px+clip-path collapses it safely. */
     .panel > h2 { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
       white-space: nowrap; margin: 0; padding: 0; font-size: 1px; }
