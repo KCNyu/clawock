@@ -144,11 +144,17 @@ def _narrate_degraded(record):
     # on its own — this is a bookkeeping lag, not a delivery problem.
     if data_plane and data_plane not in {'published', 'current', 'skipped'}:
         from clawock.publish.backlog import UNPUSHED_WARN_COMMITS, UNPUSHED_WARN_HOURS
-        count = postflight.get('unpushed_commits') or 0
-        oldest = postflight.get('unpushed_oldest_h') or 0
-        if count >= UNPUSHED_WARN_COMMITS or (count and oldest >= UNPUSHED_WARN_HOURS):
+        count = postflight.get('unpushed_commits')
+        oldest = postflight.get('unpushed_oldest_h')
+        if not isinstance(count, (int, float)):
             return _note(NEEDS_ACTION,
-                         f'发布积压 {count} 个提交，最老 {oldest:.1f} 小时；'
+                         '此记录尚未确认公开面板已更新；本档未测到发布积压，需检查发布状态')
+        measured_age = isinstance(oldest, (int, float))
+        if count >= UNPUSHED_WARN_COMMITS or (count and measured_age and oldest >= UNPUSHED_WARN_HOURS):
+            return _note(NEEDS_ACTION,
+                         f'发布积压 {count} 个提交，'
+                         + (f'最老 {oldest:.1f} 小时；' if measured_age else '最老年龄未测到；')
+                         +
                          '公开面板仍是上一代，需要检查 push 失败原因')
         return _note(WATCH,
                     '两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，'

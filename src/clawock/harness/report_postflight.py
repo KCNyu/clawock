@@ -49,7 +49,7 @@ WS = workspace_root()
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
-from clawock.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import cron_heartbeat, workflow_outcomes  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 
 # The deterministic report core moved into the installed package so `clawock
@@ -612,6 +612,8 @@ def main(argv=None):
         slot=slot,
         delivered=result['delivered'],
         data_plane_status=data_plane_status,
+        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
         issue_count=len(issues),
         escalating_count=len(escalating),
         advisory_count=len(advisories),
