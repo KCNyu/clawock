@@ -17,7 +17,7 @@
   <text x="349.235" y="202" class="m"><tspan fill="#5b6875">user instance</tspan></text>
   <path d="M24 222H496" stroke="#dde4eb"/>
   <text x="24" y="252" class="kick"><tspan fill="#8794a1">OWNED BY THE EXTERNAL RUNTIME</tspan></text>
-  <rect id="runtime" data-node="stage" x="24" y="266" width="472" height="124" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <rect x="24" y="266" width="472" height="124" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M25.5 278V378" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <svg x="44" y="282" width="34" height="34" viewBox="0 0 96 96"><!-- OpenClaw mark from OpenClaw control-ui/favicon.svg (MIT, (c) 2026 OpenClaw Foundation), animation removed. Used to name the harness a README example runs on. -->
 
@@ -65,9 +65,19 @@
 <path d="M26 34 L42 48 L26 62" fill="none" stroke="#252b35" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 62 H70" stroke="#252b35" stroke-width="7" stroke-linecap="round"/></svg>
   <text x="44" y="344" class="b"><tspan fill="#151a21">OpenClaw · Claude Code · Codex · DeepSeek Harness</tspan></text>
   <text x="44" y="365" class="b"><tspan fill="#5b6875">or your own CLI — each owns model, memory, tools</tspan></text>
+  <path id="w1" d="M248 390V442" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
+  <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
+  <path id="w2" d="M272 444V392" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle class="pulse" r="7" fill="#13865f" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#13865f" fill-opacity="1"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
+  <circle class="pulse" r="7" fill="#13865f" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#13865f" fill-opacity="1"><animateMotion dur="2.2s" begin="-1.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
   <text x="236" y="422" class="m" text-anchor="end"><tspan fill="#5b6875">install skill · call CLI</tspan></text>
   <text x="284" y="422" class="m"><tspan fill="#5b6875">JSON back</tspan></text>
-  <rect id="package" data-node="stage" x="24" y="444" width="472" height="340" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <rect x="24" y="444" width="472" height="340" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M25.5 456V772" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <svg x="44" y="460" width="30" height="30" viewBox="0 0 96 96"><rect x="1" y="1" width="94" height="94" rx="22" fill="#ffffff" stroke="#d8dde3" stroke-width="2"/><linearGradient id="mark-bull" x1="14" y1="50" x2="51" y2="31" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#245574"/><stop offset="1" stop-color="#559ed1"/></linearGradient><g transform="translate(16 16)"><path fill="#10141a" d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z"/><path fill="url(#mark-bull)" d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z"/></g></svg>
   <text x="84" y="481" class="h"><tspan fill="#151a21">clawock package</tspan></text>
@@ -100,8 +110,11 @@
   <g class="hero-icon" data-icon="replay" transform="translate(76 723) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a9 9 0 1 1-1 8M4 3v6h6"/><path d="M10 8l6 4-6 4Z"/></g>
   <text x="102" y="738" class="m"><tspan fill="#151a21">Improve</tspan><tspan fill="#8794a1"> · </tspan><tspan fill="#5b6875">bounded proposal, exact diff</tspan></text>
   <text x="102" y="758" class="code"><tspan fill="#13865f">review · apply · rollback</tspan></text>
+  <path id="w4" d="M260 784V826" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle class="pulse" r="7" fill="#6f64a8" fill-opacity="0.16"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#6f64a8" fill-opacity="1"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
   <text x="274" y="810" class="m"><tspan fill="#5b6875">adapter-owned I/O</tspan></text>
-  <rect id="instance" data-node="stage" x="24" y="828" width="472" height="118" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <rect x="24" y="828" width="472" height="118" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M25.5 840V934" stroke="#6f64a8" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="book" transform="translate(44 842) scale(0.916667)" fill="none" stroke="#6f64a8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3ZM12 6v16M6 8h3m-3 4h3m6-4h3m-3 4h3"/></g>
   <text x="74" y="860" class="h"><tspan fill="#151a21">Your instance</tspan></text>
@@ -111,36 +124,27 @@
   <text x="44" y="906" class="b"><tspan fill="#5b6875">default store: FilesystemStore. KCNyu is one live</tspan></text>
   <text x="44" y="926" class="b"><tspan fill="#5b6875">proof, not the product.</tspan></text>
   <text x="24" y="982" class="kick"><tspan fill="#8794a1">EVERY HARNESS, THE SAME THREE STEPS</tspan></text>
-  <rect id="prepare" data-node="stage" x="24" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <rect x="24" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M25.5 1010V1096" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="checks" transform="translate(40 1010) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
   <text x="40" y="1062" class="b"><tspan fill="#151a21">run prepare</tspan></text>
   <text x="40" y="1086" class="m"><tspan fill="#5b6875">→ request.json</tspan></text>
-  <rect id="write" data-node="stage" x="187.333" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <rect x="187.333" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M188.833 1010V1096" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="filing" transform="translate(203.333 1010) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6"/></g>
   <text x="203.333" y="1062" class="b"><tspan fill="#151a21">agent writes</tspan></text>
   <text x="203.333" y="1086" class="m"><tspan fill="#5b6875">decision.json</tspan></text>
-  <rect id="publish" data-node="stage" x="350.667" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
+  <path id="w5" d="M170.333 1053H184.333" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle class="pulse" r="7" fill="#3f82b5" fill-opacity="0.16"><animateMotion dur="1.2s" begin="-0.40s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#3f82b5" fill-opacity="1"><animateMotion dur="1.2s" begin="-0.40s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
+  <rect x="350.667" y="998" width="145.333" height="110" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M352.167 1010V1096" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="publish" transform="translate(366.667 1010) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 14v7h16v-7"/></g>
   <text x="366.667" y="1062" class="b"><tspan fill="#151a21">run publish</tspan></text>
   <text x="366.667" y="1086" class="m"><tspan fill="#5b6875">→ published</tspan></text>
+  <path id="w6" d="M333.667 1053H347.667" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <circle class="pulse" r="7" fill="#3f82b5" fill-opacity="0.16"><animateMotion dur="1.2s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
+  <circle class="pulse" r="3.4" fill="#3f82b5" fill-opacity="1"><animateMotion dur="1.2s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <text x="24" y="1134" class="m"><tspan fill="#5b6875">Drop the opposing evidence from decision.json and</tspan></text>
   <text x="24" y="1153" class="m"><tspan fill="#5b6875">publish refuses it with exit code 1.</tspan></text>
-  <path id="w1" data-source="runtime" data-target="package" class="connection" d="M248 390V451" fill="none" stroke="#a9b6c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-  <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
-  <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
-  <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
-  <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
-  <path id="w2" data-source="package" data-target="runtime" class="connection" d="M272 444V382" fill="none" stroke="#a9b6c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-  <circle class="pulse" r="7" fill="#13865f" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
-  <circle class="pulse" r="3.4" fill="#13865f" fill-opacity="1"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
-  <circle class="pulse" r="7" fill="#13865f" fill-opacity="0.16"><animateMotion dur="2.2s" begin="-1.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
-  <circle class="pulse" r="3.4" fill="#13865f" fill-opacity="1"><animateMotion dur="2.2s" begin="-1.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
-  <path id="w4" data-source="package" data-target="instance" class="connection" d="M260 784V833" fill="none" stroke="#a9b6c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-  <circle class="pulse" r="7" fill="#6f64a8" fill-opacity="0.16"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
-  <circle class="pulse" r="3.4" fill="#6f64a8" fill-opacity="1"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
-  <path id="w5" data-source="prepare" data-target="write" class="connection" d="M170.333 1053H195.333" fill="none" stroke="#a9b6c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
-  <path id="w6" data-source="write" data-target="publish" class="connection" d="M333.667 1053H358.667" fill="none" stroke="#a9b6c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
 </svg>
