@@ -221,7 +221,7 @@ These are installed commands too. They are listed here so the catalog is the who
 - **`clawock report postflight --market {hk|us} --phase {phase} --context-id ID --text-file PATH`**：拼 `title + raw_wechat_block + 模型散文`，校验三段标记 / 异动票必须被提及 / 长度 / 敷衍词；`--context-id` 不匹配或散文文件 >30min 未更新则拒发。**fail-closed**：pass/warn 发全文 + scoped commit/push，fail 只发数据块（绝不发被拒散文）且不 commit，休市/缺 context 不发。失败过的 slot 之后可被合格报告**补发一次**。主发 WeChat + 镜像 Telegram。
 - **`clawock-report-watchdog --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free 投递兜底。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，两路分开判：Telegram 未确认时补投 Telegram；本 slot marker 明确记录微信失败（`sent_ok=false`）时补发微信一次，再失败就 Telegram 告警。marker 缺失/过期/对不上 slot 时不重发 WeChat。
 
-**Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
+**Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜最后一档始终是 02:33 HKT）
 - **`clawock intraday preflight --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
 - **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。`--context-id` 必填：legacy 整报告输入形态（模型交整篇、事后 verbatim 校验数据块）已在 #1279 删除，省略即 argparse 报错退出 2。
 

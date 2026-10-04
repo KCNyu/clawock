@@ -16,11 +16,11 @@ the contract before every push.
 US market jobs remain expressed in HKT because the daemon's ET timezone parser has
 regressed before. `ops/host/sync_us_cron_dst.py --apply` runs daily at **06:20 HKT**, derives
 the season from `America/New_York`, and updates both OpenClaw jobs and their system
-watchdogs. The overnight monitor always stops at 02:30 HKT so 03:00 memory dreaming
-keeps an exclusive window; standard time therefore has two fewer US intraday slots.
+watchdogs. The overnight monitor's last slot is 02:33 HKT in both seasons, ahead of
+03:00 memory dreaming; standard time therefore has two fewer US intraday slots.
 
 美股 job 继续使用 HKT 表达式，但由每日 06:20 的同步器按纽约真实 UTC offset 自动
-切换。隔夜盯盘无论冬夏令时都在 02:30 HKT 截止，保留 03:00 dreaming 独占窗口；
+切换。隔夜盯盘无论冬夏令时最后一档都是 02:33 HKT，排在 03:00 dreaming 之前；
 因此冬令时比夏令时少两个盘中 slot。
 
 ## Whole-turn budget / 回合预算
