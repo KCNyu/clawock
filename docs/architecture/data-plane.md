@@ -54,3 +54,15 @@ Selection criteria for a replacement are deliberately provider-neutral:
    cache;
 4. expose a receipt the watchdog can verify independently of the writer;
 5. require no OpenClaw path, Git checkout, or repository hook.
+
+
+Intraday status sidecar text normalization is owned by
+`intraday_status.py`: both postflight and dashboard publication use its
+160-character banner and 120-character mover limits, trimming valid text rather
+than rejecting the whole sidecar for length. Postflight owns the generation timestamp;
+the publisher additionally filters mover identities against the current book.
+
+Overview carries only first-paint evidence; detail metrics and degradation prose stay in the
+full payload. The leverage dial's top-level `as_of` remains HSTECH's date. Each US
+name and reentry radar row carries its own source-bar `as_of`; missing dates are
+shown as unverified and are never borrowed from HK or the separate proxy history.
