@@ -17,7 +17,8 @@ function run(name, data) {
     if (!nodes.has(id)) nodes.set(id, {style: {}});
     return nodes.get(id);
   }};
-  new Function('document', 'DATA', 'safe', source.slice(begin, end) + `;${name}();`)(
+  new Function('document', 'DATA', 'safe', source.slice(begin, end) + `
+;${name}();`)(
     document, data, (data, key) => data[key]);
   return nodes;
 }
