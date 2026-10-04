@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-brief_watchdog.py — LLM-free BACKSTOP for the 08:00 盘前深度简报 cron.
+brief_watchdog.py — LLM-free BACKSTOP for the 08:03 盘前深度简报 cron.
 
 ARCHITECTURE (2026-06-08): delivery is decoupled. The cron runs delivery=none;
 brief_postflight does the SOLE WeChat send in a short-lived `openclaw message send`
@@ -33,12 +33,12 @@ Card content comes from brief_card.build_brief_card (LLM card file → plan.json
 fallback), the same builder postflight uses. Dedupe flag prevents double-sends.
 
 TWO MODES (2026-07-16). The delivery backstop above answers "card exists but did it
-land?", and it runs at 08:30 — INSIDE the brief's observed landing window (08:13 on
-07-14 … 08:49 on 07-15). At 08:30 a missing brief is indistinguishable from a slow
+land?", and it runs at 08:36 — INSIDE the brief's observed landing window (08:13 on
+07-14 … 08:49 on 07-15). At 08:36 a missing brief is indistinguishable from a slow
 one, so that mode cannot judge a total miss and must stay quiet about it.
 
-  (default)        08:30 — delivery backstop: mirror the card to Telegram if unconfirmed.
-                   With no brief on disk it also asks the scheduler whether the 08:00
+  (default)        08:36 — delivery backstop: mirror the card to Telegram if unconfirmed.
+                   With no brief on disk it also asks the scheduler whether the 08:03
                    run is still going: if that run already ended in error it re-runs the
                    on-host job once (#493), because the runtime's own transient retry —
                    the thing that rescues every other job from the provider's first-call
@@ -53,7 +53,7 @@ Why --check-missing had to be added: on 2026-07-16 the 08:00 cron was killed by 
 reboot at 09:11 (the box thrashes itself to death under this cron) and NOTHING said so
 — this watchdog logged `skip` at 08:30 and returned 0, and the GHA fallback skipped on
 its lateness gate. kcn found out by asking. A brief that was never written was the one
-failure mode with no owner: too early for the 08:30 pass to call, too late for GHA's.
+failure mode with no owner: too early for the 08:36 pass to call, too late for GHA's.
 
 Usage: brief_watchdog.py [--check-missing] [--dry-run]
 """
@@ -65,6 +65,7 @@ from datetime import datetime
 from clawock.automation import delivery_receipts
 from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_text
+from clawock.scheduling import BRIEF_SLOT_HKT
 
 from .brief_card import build_brief_card
 from ._watchdog_common import (
@@ -79,7 +80,7 @@ from ._watchdog_common import (
 
 MISSING_STATE_VERSION = 1
 NOTIFICATION_ATTEMPTS_PER_RUN = 2
-MAX_ONHOST_RERUNS = 2  # 08:30 first re-run; 09:05 second chance before off-host fallback (#550)
+MAX_ONHOST_RERUNS = 2  # 08:36 first re-run; 09:05 second chance before off-host fallback (#550)
 
 
 def postflight_validation_banner(today):
@@ -144,7 +145,7 @@ def _mark_rerun(today):
 def _rerun_once(today, dry_run, attempt, job=None):
     """Queue one on-host re-run, deduped to MAX_ONHOST_RERUNS per day (#550).
 
-    The 08:30 pass fires attempt 1; if its re-run itself failed (2026-08-12),
+    The 08:36 pass fires attempt 1; if its re-run itself failed (2026-08-12),
     the 09:05 miss detector fires attempt 2 before dispatching the off-host
     fallback — a local re-run is cheaper than a vendor fallback and lands well
     before the 10:00 HKT cutoff. Returns True when a re-run was queued.
@@ -178,7 +179,7 @@ def _rerun_once(today, dry_run, attempt, job=None):
     log({'tag': 'brief', 'action': 'rerun-onhost', 'attempt': attempt,
          'dry_run': dry_run, 'queued_ok': ok,
          'job_id': job.get('id'), 'job_name': job.get('name'),
-         'reason': f'the 08:00 run already ended in error; retry budget {verdict}',
+         'reason': f'the {BRIEF_SLOT_HKT} run already ended in error; retry budget {verdict}',
          'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
          'out': out})
     return ok
@@ -194,12 +195,12 @@ def _safe_brief_cron_job_state():
 
 
 def retrigger_or_wait(today, dry_run):
-    """08:30 with no brief on disk: wait, or run the on-host job once more.
+    """08:36 with no brief on disk: wait, or run the on-host job once more.
 
     The landing window (08:13-08:49 observed) is why this pass stays quiet about
-    a missing brief — at 08:30 late and lost look the same *from the artifact*.
+    a missing brief — at 08:36 late and lost look the same *from the artifact*.
     They do not look the same from the scheduler, which already knows whether
-    the 08:00 run is still going. #490 drew that line for the capability gate;
+    the 08:03 run is still going. #490 drew that line for the capability gate;
     the recovery path needs it too.
 
     Why re-run here rather than leave it to 09:05's off-host fallback: the
@@ -208,7 +209,7 @@ def retrigger_or_wait(today, dry_run):
     `consecutiveErrors > cron.retry.maxAttempts` (5 on this host), and that
     counter only resets on a success a once-a-day job never reaches while it is
     failing (#493). A brief run takes
-    9-19 minutes, so one started at 08:30 still lands before the 09:05 miss
+    9-19 minutes, so one started at 08:36 still lands before the 09:05 miss
     detector, which keeps its alert and its off-host dispatch either way.
 
     Deliberately narrow: only a run that has already ended in failure *today*
@@ -336,7 +337,7 @@ def alert_brief_missing(today, dry_run, issues=None):
     Dispatch has to happen before 10:00 HKT — brief-fallback.yml refuses to generate a
     pre-open brief after HK open. That is why this pass runs at 09:05 and not later.
     We alert even when the dispatch succeeds: the fallback is a single-turn vendor call
-    that can itself fail, so kcn should know the 08:00 swarm missed regardless."""
+    that can itself fail, so kcn should know the 08:03 swarm missed regardless."""
     issues = issues if issues is not None else inspect_brief_artifacts(today)
     if not issues:
         return 0
@@ -355,12 +356,12 @@ def alert_brief_missing(today, dry_run, issues=None):
     state['issues'] = list(issues)
     rerun_queued = False
     if not state.get('fallback_dispatch_attempted'):
-        # Second on-host chance before the off-host fallback (#550): the 08:30
+        # Second on-host chance before the off-host fallback (#550): the 08:36
         # re-run can itself fail (2026-08-12), and a local re-run is cheaper
         # than a vendor fallback and lands well before the 10:00 HKT cutoff.
         # #606: gate the chance on evidence, not just the counter — only a run
         # that already ended in failure today is proof the attempt is over
-        # (three-way rule as the 08:30 pass); a healthy run or an unreadable
+        # (three-way rule as the 08:36 pass); a healthy run or an unreadable
         # schedule must not stack another queue entry. The counter only caps
         # the number of chances.
         job = _safe_brief_cron_job_state()
@@ -414,7 +415,7 @@ def alert_brief_missing(today, dry_run, issues=None):
         + retry_budget_note()
         + recovery_note
         + '\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
-          '/ sar -q 看 08:00 起的 blocked'
+          f'/ sar -q 看 {BRIEF_SLOT_HKT} 起的 blocked'
     )
 
     tg_ok, tg_out = False, ''
@@ -443,7 +444,7 @@ def alert_brief_missing(today, dry_run, issues=None):
         safe_write_text(str(flag), datetime.now(HKT).isoformat())
 
     # The miss alert above is deliberately sent before the run finishes, so kcn learns
-    # at 09:05 that 08:00 missed. Only now do we find out whether the recovery actually
+    # at 09:05 that 08:03 missed. Only now do we find out whether the recovery actually
     # worked — reporting that is the whole point (2026-08-11: dispatch accepted, run
     # failed 8min later, and the last thing kcn heard was a green check).
     outcome, outcome_detail = 'not-dispatched', ''
@@ -536,7 +537,7 @@ def main():
         # brief landing after 08:36 is only ever seen by this pass.
 
     # No brief on disk. There is no card to mirror either way — what differs is whether
-    # we can yet call it a miss. At 08:30 we are inside the landing window (08:13-08:49
+    # we can yet call it a miss. At 08:36 we are inside the landing window (08:13-08:49
     # observed) so silence is correct; at 09:05 the window has closed, so it is a miss.
     # Unless the scheduler already says the run is over: then nothing is landing.
     if not (WS / 'memory' / f'{today}-pre-open.md').exists():

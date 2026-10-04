@@ -553,7 +553,7 @@ def holdings_section(context):
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
         sources = sorted({str(row.get("data_source") or "") for row in held if row.get("data_source")})
         out += ["", f"**{leg.upper()} leg**（{currency}；报价源 {', '.join(sources) or MISSING}）", "",
-                table(["代码", "股", "成本", "现价", "今日", "浮%", f"浮$ {currency}"], rows)]
+                table(["代码", "股", "成本", "现价", "上一场收盘", "浮%", f"浮$ {currency}"], rows)]
     return "\n".join(out)
 
 
@@ -778,7 +778,7 @@ def peer_section(context, judgment):
         strongest = (f"{text(best.get('ticker'))} {text(best.get('name'))} "
                      f"{pct(best.get('pct_1d'))}") if best else MISSING
         rows.append({
-            "title": (f"**{ticker}** · 今日 {pct(row.get('self_pct_1d'))} · "
+            "title": (f"**{ticker}** · 上一场收盘 {pct(row.get('self_pct_1d'))} · "
                       f"差距 {f'{gap:+.2f}pp' if gap is not None else MISSING}"),
             "meta": [text(row.get("theme")), f"最强同行 {strongest}"],
             "fields": [("判断", text((judgments.get(ticker) or {}).get("peer_read")))],
