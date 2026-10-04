@@ -1050,31 +1050,100 @@ export function recentSection(result: TaskQueueResult | null, t: Translate, now:
   }
 }
 
-/** Words and provenance for the coverage disclosure; renderers choose its layout.
- * Recorded lens attempts do not establish successful or exhaustive area inspection. */
-function progressView(progress: TaskQueueResult['patrol']['progress'], t: Translate, now: number) {
+/**
+ * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
+ * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
+ * whether anything is open; inside, every number has a column and is said once:
+ *
+ *   areas   open filed issues per area, most first, each with its share of the largest; the areas
+ *           with none share one line. This is where findings belong, NOT where patrol looked
+ *           (rounds.tsv has no area), and the one caption under the heading says so.
+ *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *           `when` column: last run, recorded attempts, open issues; under it the last round with
+ *           its verdict and what it filed (the same words and links as a round row).
+ *
+ * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
+ * said only when it happens; the provenance every reading has (how many records, since when, the
+ * issue snapshot's time) is the one `footnote` line. No count is inferred: unknown stays unknown.
+ */
+export type CoverageView = {
+  title: string
+  /** The fold's label: the title and how many areas (or lenses) have open issues. */
+  headline: string
+  alerts: string[]
+  areaHeading: string
+  areaNote: string
+  /** Areas with open issues (or an unknown count), most first; `share` is the bar against the largest. */
+  areas: Array<{ name: string; open: string; share: number | null; href: string }>
+  /** Areas with none, on one line. */
+  clear: { label: string; names: Array<{ name: string; href: string }> }
+  lensHeading: string
+  lensNote: string
+  columns: { last: string; runs: string; open: string }
+  lenses: Array<{
+    name: string; href: string
+    /** When it last ran, as a round row says it; null when no round is recorded. */
+    when: Fact | null
+    runs: string
+    open: string
+    /** Open issues exist (the count is drawn strong); null when unknown. */
+    hasOpen: boolean | null
+    /** The last round: its id, its verdict, what it filed. */
+    last: { round: string; state: SlotChip | null; filed: Fact | null } | null
+    /** In place of `last` when there is none. */
+    none: string
+  }>
+  footnote: string
+  empty: string
+}
+
+function progressView(progress: TaskQueueResult['patrol']['progress'], t: Translate, now: number): CoverageView | null {
   if (progress === undefined) return null
   const unknown = t('queue.coverage.unknown')
-  const open = (n: number | null) => t('queue.coverage.open', { n: n === null ? unknown : n })
+  const count = (n: number | null): string => n === null ? unknown : String(n)
+  const issues = (label: string): string => 'https://github.com/KCNyu/clawock/issues?q=' + encodeURIComponent('is:issue is:open label:patrol label:' + label)
+  const stamp = (ms: number | null, raw: string): string => ms === null || Number.isNaN(ms) ? raw : resetStampOf(t, { resetAt: raw, resetAtMs: ms }, now)
+  const listed = progress.areas.filter((a) => a.open !== 0).sort((a, b) => (b.open ?? -1) - (a.open ?? -1) || a.name.localeCompare(b.name))
+  const most = Math.max(0, ...listed.map((a) => a.open ?? 0))
+  const openAreas = progress.areas.filter((a) => (a.open ?? 0) > 0).length
+  const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length
+  const unread = progress.issuesAt === '' || [...progress.areas, ...progress.lenses].some((x) => x.open === null)
+  const ended = (l: (typeof progress.lenses)[number]): number => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity
   return {
     title: t('queue.coverage.title'),
-    summary: t('queue.coverage.records', { n: progress.records === null ? unknown : progress.records }),
-    scope: progress.records === null ? t('queue.coverage.unreadable') : t('queue.coverage.scope', { date: progress.firstAt || unknown }),
-    warnings: [
+    headline: t('queue.coverage.title') + ' · ' + (openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
+      : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
+        : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')),
+    alerts: [
+      ...(progress.records === null ? [t('queue.coverage.unreadable')] : []),
       ...(!progress.lensInventory || !progress.areaInventory ? [t('queue.coverage.inventoryUnreadable')] : []),
-      ...(progress.rejected > 0 ? [t('queue.coverage.rejected', { n: progress.rejected })] : []),
-      ...(progress.issuesAt === '' ? [t('queue.coverage.issuesUnreadable')] : [t('queue.coverage.issuesAt', { date: progress.issuesAt })]),
+      ...(progress.issuesAt === '' ? [t('queue.coverage.issuesUnreadable')] : []),
     ],
-    lensHeading: t('queue.coverage.lenses'), areaHeading: t('queue.coverage.areas'),
-    areaNote: t('queue.coverage.areaUnknown'),
-    lenses: progress.lenses.map((l) => {
+    areaHeading: t('queue.coverage.areas'),
+    areaNote: t('queue.coverage.areaNote'),
+    areas: listed.map((a) => ({ name: a.name, open: count(a.open), share: a.open === null || most === 0 ? null : a.open / most, href: issues('area:' + a.name) })),
+    clear: { label: t('queue.coverage.clear'), names: progress.areas.filter((a) => a.open === 0).map((a) => ({ name: a.name, href: issues('area:' + a.name) })) },
+    lensHeading: t('queue.coverage.lenses'),
+    lensNote: t('queue.coverage.lensNote'),
+    columns: { last: t('queue.coverage.col.last'), runs: t('queue.coverage.col.runs'), open: t('queue.coverage.col.open') },
+    lenses: [...progress.lenses].sort((a, b) => ended(b) - ended(a) || a.name.localeCompare(b.name)).map((l) => {
       const last = l.last === null ? null : roundRow(l.last, t, now)
-      return { name: l.name, meta: t('queue.coverage.attempts', { n: l.rounds === null ? unknown : l.rounds }) + ' · ' + open(l.open),
-        last: last === null ? (l.rounds === null ? unknown : t('queue.coverage.notRecorded'))
-          : [last.name, last.state?.text, last.facts.when?.text, last.facts.filed?.text].filter(Boolean).join(' · '),
-        stamp: l.last?.endedAt ?? '', href: 'https://github.com/KCNyu/clawock/issues?q=' + encodeURIComponent('is:issue is:open label:patrol label:lens:' + l.name) }
+      return {
+        name: l.name, href: issues('lens:' + l.name),
+        when: last?.facts.when ?? null,
+        runs: count(l.rounds), open: count(l.open), hasOpen: l.open === null ? null : l.open > 0,
+        last: last === null ? null : { round: l.last!.round, state: last.state, filed: last.facts.filed ?? null },
+        none: l.rounds === null ? unknown : t('queue.coverage.notRecorded'),
+      }
     }),
-    areas: progress.areas.map((a) => ({ name: a.name, text: open(a.open), href: 'https://github.com/KCNyu/clawock/issues?q=' + encodeURIComponent('is:issue is:open label:patrol label:area:' + a.name) })),
+    footnote: [
+      ...(progress.records === null ? [] : [
+        t('queue.coverage.records', { n: progress.records }),
+        ...(progress.rejected > 0 ? [t('queue.coverage.rejected', { n: progress.rejected })] : []),
+        ...(progress.firstAt === '' ? [] : [t('queue.coverage.since', { date: stamp(localStampMs(progress.firstAt), progress.firstAt) })]),
+      ]),
+      ...(progress.issuesAt === '' ? [] : [t('queue.coverage.issuesAt', { date: stamp(Date.parse(progress.issuesAt), progress.issuesAt) })]),
+    ].join(' · '),
     empty: t('queue.coverage.inventoryUnreadable'),
   }
 }
@@ -1084,7 +1153,7 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
  * caption), and one chronological history group. The raw supervisor journal
  * is not a task conclusion; the head already projects its useful status.
  */
-export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; progress: ReturnType<typeof progressView> } | null {
+export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; progress: CoverageView | null } | null {
   if (result === null || !result.available) return null
   const patrol = result.patrol
   return {

@@ -4102,7 +4102,13 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false,
       notify: ["weixin", "telegram"], notified: ["telegram"], notifyFailed: ["weixin"], tokensTotal: 1000, costUsd: "1.25" }],
     patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600000,
-      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }] },
+      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }],
+      progress: { records: 40, lensInventory: true, areaInventory: true, firstAt: "2026-09-17 04:00:19", rejected: 1, issuesAt: "2026-10-04T08:23:04.597Z",
+        lenses: [
+          { name: "docs", rounds: 0, last: null, open: 0 },
+          { name: "logic", rounds: 9, last: { endedAt: "2026-09-22 03:55:00", round: "R130", axis: "logic", result: "failed", seconds: 60 }, open: 0 },
+          { name: "automation", rounds: 31, last: { endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }, open: 2 }],
+        areas: [{ name: "dashboard", open: 1 }, { name: "data", open: 4 }, { name: "debt", open: 0 }, { name: "risk", open: 0 }] } },
     queues: [{ agent: "claude", held: true, holder: "a-1", order: ["b-1"], holderNote: "", quotaUntilMs: null, quotaBy: "" }],
   };
   const remoteFace = {
@@ -4157,6 +4163,9 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
 
     assert.ok(reply[0].startsWith('# '), 'Markdown title');
     assert.ok(reply.some(line => line.startsWith('## ')), 'sections use supported headings');
+    assert.ok(reply.filter(line => /^#+ /.test(line)).length <= 3, 'a provider is a bold line: headings are the title and the two list sections');
+    assert.ok(reply.every((line, i) => !reply[i - 1]?.startsWith('- ') || line === '' || line.startsWith('- ')), 'nothing bare follows a list item (it would read as that item\'s continuation)');
+    assert.ok(reply.filter(line => /^- [●○☾⌛✓◐✕⊖?]/.test(line)).length >= 4, 'task, ended and round rows lead with their state');
     assert.ok(reply.some(line => line.startsWith('- **')), 'allowance window labels use bold flat list items');
     assert.ok(reply.some(line => line.startsWith('- ') && line.includes('source-sync')), 'live tasks use flat lists');
     assert.ok(reply.every(line => !/^\s{2,}[-*]|^\|/.test(line)), 'no nested lists or Markdown tables');
@@ -4190,9 +4199,39 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       const rounds = Array.from({ length: count }, (_, i) => ({ ...QUEUE.patrol.rounds[0], round: 'T' + i }));
       const text = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
         queue: { ...QUEUE, patrol: { ...QUEUE.patrol, rounds } }, queueError: null }, t, now);
-      for (let i = 0; i < (count <= 4 ? count : 1); i++) assert.ok(text.includes('T' + i));
-      if (count > 4) assert.ok(text.includes(t('queue.olderRounds', { n: count - 1 })));
-      else assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
+      // A chat cannot unfold: every round the host sent is said, and the sidebar's fold label is not.
+      for (let i = 0; i < count; i++) assert.ok(text.includes('T' + i));
+      assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
+    }
+    // Coverage is the section's last fold, closed, its label the headline; inside, each count once, in a column.
+    const patrolGroup = find(popover, (p) => p["data-tq-group"] === "patrol")[0];
+    const fold = find(patrolGroup, (p) => p["data-tq-fold"] === "coverage")[0];
+    assert.equal(patrolGroup.children.filter(Boolean).at(-1), fold, 'coverage comes after the rounds, not between the head and the latest round');
+    assert.ok(!fold.props.open, 'closed until asked for');
+    assert.match(texts(fold.children[0]), /巡检覆盖 · 2 个 area 有未决/);
+    const covered = (attr) => find(fold, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
+    assert.deepEqual(covered("data-coverage-area"), [["data", "data4"], ["dashboard", "dashboard1"], ["debt", "debt"], ["risk", "risk"]],
+      'areas with open issues first, most first; the ones with none keep their names and links on one line');
+    assert.deepEqual(covered("data-coverage-lens").map(([name]) => name), ["automation", "logic", "docs"], 'lenses most recently run first, never recorded last');
+    assert.match(covered("data-coverage-lens")[0][1], /312R139完成提报 1 · P0 #2241 · 汇总 \+1$/, 'runs, open, then the last round with its verdict and filings');
+    assert.equal(find(fold, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
+    assert.match(covered("data-coverage-lens")[1][1], /R130失败/, 'a failed last round says so');
+    assert.doesNotMatch(texts(fold), /\d{4}-\d{2}-\d{2}[T ]\d{2}:/, 'no raw timestamp: stamps use the panel\'s own format');
+    assert.match(texts(fold), /40 条轮次记录 · 另有 1 条损坏未计 · 自 9\/17 .* 起 · issue 快照 /, 'provenance is one footer line');
+    // The chat reply keeps the archive out and speaks of coverage only when a source could not be read.
+    assert.ok(!reply.join("\n").includes('巡检覆盖') && !reply.some((l) => /dashboard|未决/.test(l)), 'no coverage block and no area counts in chat');
+    const unread = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
+      queue: { ...QUEUE, patrol: { ...QUEUE.patrol, progress: { ...QUEUE.patrol.progress, issuesAt: "" } } }, queueError: null }, t, now);
+    assert.ok(unread.includes('- ⚠ ' + t('queue.coverage.issuesUnreadable')), 'an unreadable source is said in chat too');
+    // A source's low mark is on the window that is at its limit, not on its headline reading.
+    const low = BALANCES_OK.providers.find((p) => (p.result?.snapshot?.windows ?? []).length > 1);
+    assert.ok(low, 'the fixture has a multi-window provider');
+    {
+      const spent = { ...BALANCES_OK, providers: BALANCES_OK.providers.map((p) => p !== low ? p
+        : { ...p, result: { ...p.result, snapshot: { ...p.result.snapshot, windows: p.result.snapshot.windows.map((w, i) => ({ ...w, percent: i === 0 ? 0 : 100 })) } } }) };
+      const lines = chat.dispatchListText({ balances: spent, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
+      assert.ok(lines.some((l) => /^- \*\*.* 100% ⚠/.test(l)), 'the spent window carries the mark');
+      assert.ok(lines.every((l) => !/^\*\*.*⚠0%/.test(l)), 'the headline does not read as a fault at 0%');
     }
     // Receipts: the panel's glyphs are words and marks here, one per channel.
     assert.match(reply.find((l) => l.includes("merge-pr1767")), /微信✕ Telegram✓/);

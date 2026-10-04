@@ -34,7 +34,7 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts'
 
@@ -1103,6 +1103,14 @@ function renderChip(chip: SlotChip, opts: { key?: string; slot?: string } = {}):
   }, renderRoleGlyph(chip.role), h('span', { className: cx('tq-chip-text') }, chip.text))
 }
 
+/** What a round filed: words and issue links, severity written as well as coloured. */
+function renderFiledParts(parts: NonNullable<Fact['parts']>, t: Translate): React.ReactElement[] {
+  return parts.map((part, i) => h('span', { key: i, className: cx('tq-filed-part'), 'data-severity': part.severity },
+    i === 0 ? null : h('span', { className: cx('tq-filed-sep'), 'aria-hidden': 'true' }, ' · '),
+    part.href === undefined ? part.text : h('a', { href: part.href, target: '_blank', rel: 'noopener noreferrer',
+      'aria-label': t('queue.round.openIssue', { issue: part.text }) }, part.text)))
+}
+
 /** A row's cells in grid order, and the sentence it reads as. */
 function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; said: string } {
   const kind = ROW_KINDS[view.kind]
@@ -1120,11 +1128,7 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
       const fact = view.facts[slot]!
       return h('span', {
         className: cx('tq-fact'), key: slot, 'data-tq-fact': slot, 'data-voice': fact.voice, title: fact.title ?? fact.said,
-      }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.parts == null ? fact.text
-        : fact.parts.map((part, i) => h('span', { key: i, className: cx('tq-filed-part'), 'data-severity': part.severity },
-          i === 0 ? null : h('span', { className: cx('tq-filed-sep'), 'aria-hidden': 'true' }, ' · '),
-          part.href === undefined ? part.text : h('a', { href: part.href, target: '_blank', rel: 'noopener noreferrer',
-            'aria-label': t('queue.round.openIssue', { issue: part.text }) }, part.text))),
+      }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.parts == null ? fact.text : renderFiledParts(fact.parts, t),
         fact.mark == null ? null : h('span', { className: cx('tq-mark'), 'data-role': fact.mark.role, title: fact.mark.title }, renderRoleGlyph(fact.mark.role), fact.mark.text))
     }),
     caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },
@@ -1230,35 +1234,65 @@ function renderWell(key: string, rows: Array<React.ReactElement | null>): React.
   return present.length === 0 ? null : h('div', { className: cx('tq-well'), key: 'well-' + key, 'data-tq-well': key }, ...present)
 }
 
-/** An optional read-only coverage disclosure, separate from the bounded history. */
-function renderPatrolProgress(view: NonNullable<PanelModel['patrol']>['progress']): React.ReactElement | null {
+/**
+ * Patrol coverage: the section's last fold, closed until asked for (the cell is opened for quota
+ * and the queue; this is its archive). Its label is the headline. Inside, on the same well as
+ * every list of the panel, two tables whose numbers share right-aligned columns: open issues by
+ * area (a bar against the largest, the areas with none on one line), then a row per lens, most
+ * recently run first. Nothing here animates: the readings refresh under the reader.
+ */
+function renderPatrolProgress(view: NonNullable<PanelModel['patrol']>['progress'], t: Translate): React.ReactElement | null {
   if (view === null) return null
-  return h('details', { className: cx('tq-coverage'), 'data-patrol-progress': '' },
-    h('summary', {}, h('strong', {}, view.title), h('span', {}, view.summary)),
-    h('p', {}, view.scope),
-    ...view.warnings.map((text) => h('p', { key: text, className: cx('tq-coverage-note') }, text)),
-    h('h4', {}, view.lensHeading),
-    h('div', { className: cx('tq-coverage-grid') }, ...(view.lenses.length === 0 ? [h('p', {}, view.empty)] : view.lenses.map((l) =>
-      h('article', { key: l.name, 'data-coverage-lens': l.name },
-        h('a', { href: l.href, target: '_blank', rel: 'noopener noreferrer' }, l.name),
-        h('p', {}, l.meta), h('p', { title: l.stamp }, l.last))))),
-    h('h4', {}, view.areaHeading), h('p', { className: cx('tq-coverage-note') }, view.areaNote),
-    h('div', { className: cx('tq-coverage-grid') }, ...(view.areas.length === 0 ? [h('p', {}, view.empty)] : view.areas.map((a) =>
-      h('article', { key: a.name, 'data-coverage-area': a.name },
-        h('a', { href: a.href, target: '_blank', rel: 'noopener noreferrer' }, a.name), h('p', {}, a.text))))))
+  const link = (name: string, href: string): React.ReactElement => h('a', { className: cx('tq-cov-name'), href, target: '_blank', rel: 'noopener noreferrer' }, name)
+  const heading = (text: string, note: string): React.ReactElement[] => [
+    h('div', { className: cx('tq-cov-head'), key: 'h', role: 'heading', 'aria-level': 4 }, text),
+    h('div', { className: cx('tq-cov-note'), key: 'n' }, note),
+  ]
+  const nothing = h('div', { className: cx('tq-cov-note') }, view.empty)
+  return renderFold('coverage', view.headline, [h('div', { className: cx('tq-well', 'tq-cov'), key: 'cov', 'data-tq-well': 'coverage' },
+    ...view.alerts.map((text) => h('div', { key: text, className: cx('tq-cov-alert'), role: 'status' }, text)),
+    h('section', { className: cx('tq-cov-block'), 'data-coverage': 'areas' },
+      ...heading(view.areaHeading, view.areaNote),
+      view.areas.length === 0 && view.clear.names.length === 0 ? nothing : null,
+      view.areas.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.areas.map((a) =>
+        h('li', { key: a.name, className: cx('tq-cov-area'), 'data-coverage-area': a.name },
+          link(a.name, a.href),
+          h('span', { className: cx('tq-cov-bar'), 'aria-hidden': 'true' },
+            a.share === null ? null : h('span', { className: cx('tq-cov-fill'), style: { width: Math.round(a.share * 100) + '%' } })),
+          h('span', { className: cx('tq-cov-num') }, a.open)))),
+      view.clear.names.length === 0 ? null : h('div', { className: cx('tq-cov-clear') },
+        h('span', { className: cx('tq-cov-clear-label') }, view.clear.label),
+        ...view.clear.names.map((a) => h('span', { key: a.name, 'data-coverage-area': a.name }, link(a.name, a.href))))),
+    h('section', { className: cx('tq-cov-block'), 'data-coverage': 'lenses' },
+      ...heading(view.lensHeading, view.lensNote),
+      view.lenses.length === 0 ? nothing : h('div', { className: cx('tq-cov-lens', 'tq-cov-cols'), 'aria-hidden': 'true' },
+        h('span', null), h('span', null, view.columns.last), h('span', null, view.columns.runs), h('span', null, view.columns.open)),
+      view.lenses.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.lenses.map((l) =>
+        h('li', { key: l.name, className: cx('tq-cov-lens'), 'data-coverage-lens': l.name },
+          link(l.name, l.href),
+          h('span', { className: cx('tq-cov-num'), title: l.when?.title }, l.when?.text ?? '—'),
+          h('span', { className: cx('tq-cov-num'), title: view.columns.runs }, l.runs),
+          h('span', { className: cx('tq-cov-num'), title: view.columns.open, 'data-open': l.hasOpen === null ? undefined : String(l.hasOpen) }, l.open),
+          h('span', { className: cx('tq-cov-last') }, ...(l.last === null ? [l.none] : [
+            h('span', { key: 'r' }, l.last.round),
+            l.last.state === null ? null : h('span', { key: 's', className: cx('tq-cov-state'), 'data-role': l.last.state.role, title: l.last.state.title },
+              renderRoleGlyph(l.last.state.role), l.last.state.text),
+            l.last.filed?.parts == null ? null : h('span', { key: 'f', className: cx('tq-cov-filed') }, ...renderFiledParts(l.last.filed.parts, t)),
+          ])))))),
+    view.footnote === '' ? null : h('div', { className: cx('tq-cov-foot') }, view.footnote))])
 }
 
-/** Patrol history folds as one kind of content, only when it is long. */
+/** Patrol: the live head, its history (one fold, only when it is long), then the coverage archive. */
 function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
   const rounds = patrol.rounds
   const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
   return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderRow(patrol.head, t),
-    renderPatrolProgress(patrol.progress),
     renderWell('rounds', rounds.slice(0, resident).map((round) => renderRow(round, t))),
     rounds.length <= resident ? null
       : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - resident }),
-        [renderWell('older', rounds.slice(resident).map((round) => renderRow(round, t)))]))
+        [renderWell('older', rounds.slice(resident).map((round) => renderRow(round, t)))]),
+    renderPatrolProgress(patrol.progress, t))
 }
 
 /**
