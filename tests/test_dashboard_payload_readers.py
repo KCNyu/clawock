@@ -172,3 +172,19 @@ def test_the_snapshot_floor_survives_the_ladder():
     # Oldest-first: the recent shape is what the equity curve is read for.
     assert out["snapshots"][-1]["date"] == "2026-01-60"
     assert out["snapshots_trimmed_for_budget"] == 30
+
+
+def test_every_overview_block_has_a_first_paint_reader(freshly_built_dashboard):
+    overview = json.loads(freshly_built_dashboard.with_name('overview.json').read_text())
+    paths = ['assets/js/dashboard.hero.js', 'assets/js/dashboard.core.js',
+             'assets/js/dashboard.charts.js', 'index.html']
+    source = '\n'.join((SITE / p).read_text() for p in paths)
+    metadata = {'schema_version', 'projection', 'generation_id'}
+    unread = [k for k in overview if k not in metadata
+              and not re.search(r'\b' + re.escape(k) + r'\b(?!\.json)', source)]
+    assert not unread, f'overview has no first-paint reader: {unread}'
+    for key in overview.get('gold_dca') or {}:
+        assert re.search(r'\bg\.' + re.escape(key) + r'\b', source), key
+    assert set(overview['decision_metrics']) <= {'brier', 'brier_beats_baseline',
+        'brier_baseline_loo', 'execution_by_kind', 'calibration'}
+    assert all('detail' not in row for row in overview['workflow_outcomes']['degradations'])

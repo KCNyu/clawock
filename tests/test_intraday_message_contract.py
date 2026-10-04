@@ -355,7 +355,7 @@ def test_detailed_judgment_kept_for_filing_plan_and_add_side():
 
 def test_bad_sidecar_does_not_get_fresh_timestamp(tmp_path):
     path = tmp_path / 'insights.json'
-    path.write_text(json.dumps({'status_banner': '重复' * 30, 'movers': {}}))
+    path.write_text(json.dumps({'status_banner': ['invalid'], 'movers': {}}))
     assert post.normalize_intraday_insights(path) is False
     assert 'generated_at' not in json.loads(path.read_text())
 
