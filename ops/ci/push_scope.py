@@ -53,8 +53,9 @@ CODE_GLOBS = [
     # decisions.jsonl ran none of them. That is how a fabricated row reached
     # master on 2026-08-26 and how its removal had to be verified by a manual
     # workflow_dispatch. Named exactly, not `memory/*.jsonl`: the sibling
-    # archive/history files are automation output nothing validates.
+    # other archive/history files are automation output nothing validates.
     "memory/decisions.jsonl",
+    "memory/archive/eod-history.csv",
     "memory/theses/*",
     "memory/earnings/*",
     "memory/entry-gates/*",
