@@ -639,3 +639,11 @@ def validate_watchdogs(contract: dict, crontab_text: str,
             if row["expr"] != expected:
                 errors.append(f"DST sync cron expected {expected!r}, got {row['expr']!r}")
     return errors
+
+
+def parse_at(value: str | None) -> datetime:
+    """Audit CLI timestamps allow naive UTC; strict evidence parsing does not."""
+    if not value:
+        return datetime.now(timezone.utc)
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)

@@ -104,8 +104,8 @@ def evaluate(contract, root):
             raise ValueError('need implementations in distinct modules')
         if min(sizes) < 5:
             return False, f'duplicate-python: copies=0 (wrappers/tiny idioms) lines={sizes} symbols={symbols}', paths
-        same = len(set(bodies)) == 1
-        return same, f'duplicate-python: copies={len(symbols) if same else 1} lines={sizes} symbols={symbols}', paths
+        copies = max(bodies.count(body) for body in set(bodies))
+        return copies >= 2, f'duplicate-python: copies={copies} of {len(symbols)} symbols lines={sizes} symbols={symbols}', paths
     if kind == 'import-cycle':
         paths = contract.get('modules', [])
         if not isinstance(paths, list) or not 2 <= len(paths) <= 20 or len(set(paths)) != len(paths):

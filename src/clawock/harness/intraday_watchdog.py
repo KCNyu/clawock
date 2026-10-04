@@ -83,6 +83,7 @@ from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
+    deterministic_fallback,
     WS, HKT, log, find_job_id, today_runs, telegram_target,
     transcript_loop_score, last_report_text, send_telegram,
     same_generation_window,
@@ -116,12 +117,6 @@ REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the
 INFLIGHT_WAIT_S = 600
 INFLIGHT_POLL_S = 30
 
-
-def deterministic_fallback(raw_block, tag, reason):
-    """Pure formatter used by the watchdog and regression tests."""
-    return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
-            '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
-            + raw_block.strip())
 
 
 def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,

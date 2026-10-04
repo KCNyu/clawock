@@ -124,3 +124,12 @@ def test_axis_lens_labels_rotation_and_caps():
     rotation = [w for line in (TOOL / 'rotation').read_text().splitlines() if not line.startswith('#') for w in line.split()]
     assert len(rotation) == 22 and rotation.count('recent') == 5 and rotation.count('money') == 2
     assert rotation.count('debt') == 1 and set(rotation) <= set(triage.lenses_from_axes(TOOL / 'axes.tsv'))
+
+
+def test_duplicate_subset_is_not_hidden_by_distinct_implementations(tmp_path):
+    root = repository(tmp_path)
+    (root / 'src/clawock/c.py').write_text('def value(x):\n    y = x - 1\n    z = y * 2\n    z += 3\n    return z\n')
+    subprocess.run(['git', '-C', str(root), 'add', 'src/clawock/c.py'], check=True)
+    contract = dict(BASE, symbols=BASE['symbols'] + ['src/clawock/c.py::value'])
+    red, detail, _ = debt_check.evaluate(contract, root)
+    assert red and 'copies=2 of 3' in detail

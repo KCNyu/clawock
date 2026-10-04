@@ -161,3 +161,22 @@ def _writer_step(workflow: Path, var: str) -> str:
         if f'{var}=' in step_block(workflow, name):
             return name
     raise AssertionError(f'nothing writes {var} into GITHUB_ENV')
+
+
+def logical_commit_commands(commit_run):
+    """Join backslash continuations so multi-path gha_commit_push calls read
+    as one logical command (the snapshots slice added a second data path)."""
+    logical, buf = [], ""
+    for raw in commit_run.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        buf = f"{buf} {line}".strip() if buf else line
+        if buf.endswith("\\"):
+            buf = buf[:-1].rstrip()
+            continue
+        logical.append(buf)
+        buf = ""
+    if buf:
+        logical.append(buf)
+    return [l for l in logical if l.startswith("bash ops/publish/gha_commit_push.sh")]

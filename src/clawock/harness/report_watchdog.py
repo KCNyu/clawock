@@ -56,6 +56,7 @@ from datetime import datetime
 from clawock.automation import delivery_receipts
 from clawock.sessions import hkt_today
 from ._watchdog_common import (
+    deterministic_fallback,
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, telegram_target,
     same_generation_window, wait_out_inflight, log_after_wait,
@@ -76,12 +77,6 @@ MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ 
 REGEN_WINDOW_S = 30 * 60           # context rebuilt within this of the delivered one ⇒ same slot
 REGEN_BACKWARD_S = 60              # tolerance for a context timestamped just before the marker's
 
-
-def deterministic_fallback(raw_block, tag, reason):
-    """Pure formatter used by the watchdog and regression tests."""
-    return (f'🧯 {tag} 确定性兜底（LLM {reason}）\n'
-            '以下内容由 preflight 数据直接生成，未经过模型改写：\n\n'
-            + raw_block.strip())
 
 
 def _same_generation_window(marker, ctx_generated_at):

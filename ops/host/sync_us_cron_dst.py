@@ -26,6 +26,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
 WS = workspace_root(_CHECKOUT)
+from clawock.scheduling import parse_at
 from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
@@ -75,12 +76,6 @@ def _crontab_change(name: str, spec: dict, rows: list[dict], at: datetime,
         "to": {"expr": desired_expr, "command": desired_command},
     }, None
 
-
-def parse_at(value: str | None) -> datetime:
-    if not value:
-        return datetime.now(timezone.utc)
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 def desired_changes(contract: dict, live_jobs: list[dict], crontab_text: str,

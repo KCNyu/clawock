@@ -36,6 +36,7 @@ WS = workspace_root(_CHECKOUT)
 # The CHECKOUT root, not WS: `workspace_root` is overridable, so WS can be
 # someone else's data directory with no `clawock` package in it. The import has
 # to resolve against the tree this file ships in.
+from clawock.scheduling import parse_at
 from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
@@ -49,12 +50,6 @@ from clawock.providers.openclaw import (  # noqa: E402
 
 Runner = Callable[..., subprocess.CompletedProcess]
 
-
-def parse_at(value: str | None) -> datetime:
-    if not value:
-        return datetime.now(timezone.utc)
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 def load_live_jobs(runner=None) -> list[dict]:
