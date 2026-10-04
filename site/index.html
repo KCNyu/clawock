@@ -171,8 +171,8 @@ layout: null
       </div>
       <div class="dr-kpis" aria-label="Portfolio summary">
         <div class="dr-kpi"><span class="dr-k">Book · USD-eq</span><span class="dr-v" id="dr-book">—</span></div>
-        <div class="dr-kpi"><span class="dr-k">Today · US</span><span class="dr-v" id="dr-pnl-us">—</span></div>
-        <div class="dr-kpi"><span class="dr-k">Today · HK</span><span class="dr-v" id="dr-pnl-hk">—</span></div>
+        <div class="dr-kpi"><span class="dr-k" id="dr-session-us">Session · US</span><span class="dr-v" id="dr-pnl-us">—</span></div>
+        <div class="dr-kpi"><span class="dr-k" id="dr-session-hk">Session · HK</span><span class="dr-v" id="dr-pnl-hk">—</span></div>
         <div class="dr-kpi"><span class="dr-k">Followed · 30d</span><span class="dr-v" id="dr-followed">—</span></div>
         <div class="dr-kpi" title="Brier score vs leave-one-out baseline — lower is better"><span class="dr-k">Brier · 30d</span><span class="dr-v" id="dr-grade">—</span></div>
       </div>
@@ -399,7 +399,7 @@ layout: null
               <th data-sort="current_price" class="num" aria-sort="none"><button type="button" class="sort-btn">现价</button></th>
               <th data-sort="current_value" class="num" aria-sort="none"><button type="button" class="sort-btn">市值</button></th>
               <th class="num spark-col col-p3">8 日</th>
-              <th data-sort="today_change_pct" class="num" aria-sort="none"><button type="button" class="sort-btn">今日</button></th>
+              <th data-sort="today_change_pct" class="num" aria-sort="none"><button type="button" class="sort-btn">场次</button></th>
               <th data-sort="pnl_percent" class="num" aria-sort="none"><button type="button" class="sort-btn">盈亏</button></th>
             </tr>
           </thead>

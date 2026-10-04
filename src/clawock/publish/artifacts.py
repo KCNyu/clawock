@@ -935,6 +935,10 @@ def _assert_dashboard_derived_money(data: dict) -> None:
     for leg, windows in data['delta'].items():
         assert isinstance(windows, dict), f'delta.{leg} must be an object'
         for window, expected in recomputed[leg].items():
+            if window == 'session_date':
+                if window in windows:
+                    assert windows[window] == expected, f'delta.{leg}.session_date does not match snapshots'
+                continue  # Older generations omit display metadata; it is not a money value.
             if expected is None:
                 # The embedded series can be shorter than the one the build read.
                 continue
