@@ -88,6 +88,10 @@ SCENARIOS = [
         _lanes(code=True, analysable=False), True,
         id="ledger-only commit: suite runs (#1063), CodeQL still skips"),
     pytest.param(
+        ["memory/peer-map.json"],
+        _lanes(code=True, analysable=False), True,
+        id="hand-maintained peer registry alone runs its contract test (#2527)"),
+    pytest.param(
         ["site/assets/shadow-backtest.png", "site/assets/social-card.png",
          "site/assets/dsh-decision-mind.png"],
         # analysable moot: the push-path filter never starts a run for PNGs.

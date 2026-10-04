@@ -59,6 +59,10 @@ CODE_GLOBS = [
     "memory/theses/*",
     "memory/earnings/*",
     "memory/entry-gates/*",
+    # Hand-maintained registry (themes, listed peers, names), not automation
+    # output: tests/test_fetch_peers_cli.py reads the real file as a contract,
+    # and a change to it alone used to run nothing (#2527).
+    "memory/peer-map.json",
     "assets/data/overview.json",
     "assets/data/dashboard.json",
     "config/*",
