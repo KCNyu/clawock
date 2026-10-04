@@ -134,3 +134,25 @@ def test_us_missing_quote_preserves_entire_book(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match='US quote refresh incomplete: RKLX'):
         us_quotes.update_us_portfolio(str(path))
     assert path.read_bytes() == before
+
+
+def test_session_anchor_malformed_or_missing_is_unknown():
+    h = {'data_source': 'Tencent Oct 02 16:10 HKT'}
+    for stamp in (None, '', '10/03/2026', '2026/99/03', 1234):
+        assert holding_session(h, stamp, 'hk') is None
+    assert holding_session(h, '2026/10/03 04:03 HKT', 'hk') == '2026-10-02'
+    assert holding_session({'data_source': 'Tencent Oct 02, 2026'}, None, 'hk') == '2026-10-02'
+
+@pytest.mark.parametrize('stamp', [None, '10/03/2026'])
+def test_unknown_quote_session_is_a_named_money_error(tmp_path, stamp):
+    book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
+    book['last_updated'] = stamp
+    h = next(h for h in book['portfolios']['hk_stocks']['holdings'] if h['shares'] > 0)
+    h.pop('day_session_date', None)
+    h['data_source'] = 'Tencent Oct 02 16:10 HKT'
+    path = tmp_path / 'portfolio.json'
+    path.write_text(json.dumps(book))
+    report = integrity.check(path)
+    assert not report['ok']
+    assert any(f['code'] == 'SESSION_STAMP_INVALID' and f.get('ticker') == h['ticker']
+               for f in report['findings'])
