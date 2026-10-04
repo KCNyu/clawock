@@ -3564,6 +3564,33 @@ async function testCalibrationUsesTheActiveSampleCount(browser, base) {
 }
 
 
+async function testOnlyActivePanelAcceptsFocus(browser, base) {
+  for (const width of [390, 1023, 1280]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    try {
+      await stubLiveOrigin(page);
+      await page.goto(base);
+      for (const tab of ["hero", ...TABS]) {
+        await clickTab(page, tab);
+        await page.waitForFunction(t => document.querySelector(`.panel[data-panel="${t}"]`).classList.contains("active"), tab);
+        const state = await page.evaluate(() => {
+          const panels = [...document.querySelectorAll('.panel')];
+          const inactive = panels.filter(p => !p.classList.contains('active'));
+          const target = inactive.flatMap(p => [...p.querySelectorAll('a,button,[tabindex]')])
+            .find(el => !el.disabled);
+          if (target) target.focus();
+          return { exposed: panels.filter(p => !p.inert).length,
+            hidden: inactive.every(p => p.inert && p.getAttribute('aria-hidden') === 'true'),
+            hiddenFocused: inactive.some(p => p.contains(document.activeElement)) };
+        });
+        assert.equal(state.exposed, 1);
+        assert.equal(state.hidden, true);
+        assert.equal(state.hiddenFocused, false);
+      }
+    } finally { await page.close(); }
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3581,6 +3608,7 @@ async function main() {
     await fn();
   };
   try {
+    await run("testOnlyActivePanelAcceptsFocus", () => testOnlyActivePanelAcceptsFocus(browser, base));
     await run("runtime", () => testRuntime(browser, base));
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
     await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));

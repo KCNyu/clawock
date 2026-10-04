@@ -63,7 +63,13 @@
     const activeIndex = TAB_ORDER.indexOf(t);
     PANELS.forEach(p => {
       const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
-      p.classList.toggle("active", panelIndex === activeIndex);
+      const on = panelIndex === activeIndex;
+      if (!on && p.contains(document.activeElement)) {
+        document.querySelector(`.tab-btn[data-tab="${t}"]`)?.focus({ preventScroll: true });
+      }
+      p.classList.toggle("active", on);
+      p.inert = !on;
+      p.setAttribute("aria-hidden", String(!on));
     });
     if (DATA) {
       // Activation is the consumer boundary: mapped sidecars load first, then
