@@ -946,7 +946,7 @@ def decision_pipeline():
     y += 34
     d.section(y, '01 · BEFORE OPEN / THE DATA ARRIVES')
     y += 14
-    h = 338
+    h = 354
     d.card(M, y, CW, h, 'blue')
     d.icon('market', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
@@ -1022,13 +1022,13 @@ def decision_pipeline():
              'prospective activation ≠ capped exploration'],
             cls='m', lh=21, where='backtest')
     top = y + h
-    y = top + 37
+    y = top + 53
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
            'm', anchor='middle')
     fits('preflight → one context pack per run', 'm', CW, 'preflight label')
     d.icon('checks', 102, y - 16, 'green', size=20)
     loop_y = y - 3
-    d.down(W / 2, top, y - 29, arrow=False, pulses=())
+    d.down(W / 2, top, y - 45, arrow=False, pulses=())
     y += 76
     d.down(W / 2, y - 52, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
 
@@ -1078,7 +1078,7 @@ def decision_pipeline():
 
     # 04 deliver
     d.section(y - 12, '04 · THROUGH THE SESSION / REACH YOUR PHONE')
-    h = 102
+    h = 118
     d.card(M, y, CW, h, 'green')
     d.icon('shield', M + 20, y + 14, 'green')
     d.text(M + 50, y + 32, 'Postflight', 'h')
