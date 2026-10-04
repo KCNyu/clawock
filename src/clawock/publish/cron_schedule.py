@@ -104,6 +104,11 @@ def _narrate_degraded(record):
     issues = postflight.get('issue_count') or 0
     data_plane = postflight.get('data_plane_status')
 
+    llm = (record.get('stages') or {}).get('llm') or {}
+    if llm.get('status') == 'failed':
+        return _note(NEEDS_ACTION,
+                     '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')
+
     # WeChat's context-token drop is diagnosed and deliberately left unfixed
     # (#771) — Telegram is the reliable channel on those slots, not a gap.
     if wechat_ok is False and telegram_ok:
@@ -138,9 +143,16 @@ def _narrate_degraded(record):
     # written. The scheduled publisher ticks every 20 minutes and catches up
     # on its own — this is a bookkeeping lag, not a delivery problem.
     if data_plane and data_plane not in {'published', 'current', 'skipped'}:
+        from clawock.publish.backlog import UNPUSHED_WARN_COMMITS, UNPUSHED_WARN_HOURS
+        count = postflight.get('unpushed_commits') or 0
+        oldest = postflight.get('unpushed_oldest_h') or 0
+        if count >= UNPUSHED_WARN_COMMITS or (count and oldest >= UNPUSHED_WARN_HOURS):
+            return _note(NEEDS_ACTION,
+                         f'发布积压 {count} 个提交，最老 {oldest:.1f} 小时；'
+                         '公开面板仍是上一代，需要检查 push 失败原因')
         return _note(WATCH,
                     '两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，'
-                    '几分钟内自动追上，无需处理')
+                    '等待定时发布器追上；此记录尚未确认公开面板已更新')
     reason = (record.get('final_product') or {}).get('reason')
     return _note(WATCH, reason or '降级送达')
 

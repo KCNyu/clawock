@@ -314,7 +314,8 @@ def verify(provenance: dict, decisions) -> dict:
         'actual': recomputed_all,
         'detail': (
             f'{len(rows)} rows now vs {ledger.get("rows_total")} when published'
-            + (' — later sessions appending is expected' if grew else
+            + (' — unchanged' if recomputed_all == published_all else
+               ' — later sessions appending is expected' if grew else
                ' — the row count is unchanged, so existing rows were rewritten')),
     })
     return {'ok': all(c['status'] in ('pass', 'moved') for c in checks),

@@ -248,8 +248,7 @@ def load_runtime_jobs(jobs_file=None):
 
 #: A backlog this deep means the host has been committing without publishing
 #: for at least an hour at the publisher's twenty-minute cadence.
-UNPUSHED_WARN_COMMITS = 3
-UNPUSHED_WARN_HOURS = 2.0
+from clawock.publish.backlog import UNPUSHED_WARN_COMMITS, UNPUSHED_WARN_HOURS
 
 
 #: How old a heartbeat's measurement may be and still describe *now*.

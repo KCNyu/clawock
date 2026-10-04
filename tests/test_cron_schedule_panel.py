@@ -208,7 +208,7 @@ def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():
 
     note = result['jobs'][0]['slots'][0]['note']
     assert note['disposition'] == 'watch'
-    assert '发布还在排队' in note['text'] and '无需处理' in note['text']
+    assert '发布还在排队' in note['text'] and '尚未确认' in note['text']
 
 
 def test_degraded_from_a_wechat_drop_reads_as_known_not_fixed():
@@ -308,3 +308,25 @@ def test_unconfirmed_delivery_has_warning_colour_and_is_counted_in_both_legends(
     for bundle in ('dashboard.hero.js', 'dashboard.render.js'):
         js = (root / 'site/assets/js' / bundle).read_text()
         assert '["unconfirmed", n("unconfirmed"), "仅存档·投递未确认"]' in js
+
+
+def test_failed_model_is_described_as_deterministic_fallback():
+    from clawock.publish.cron_schedule import _note_for
+    result = _note_for('degraded', {'stages': {
+        'llm': {'status': 'failed'},
+        'postflight': {'escalating_count': 1, 'issue_count': 1},
+        'primary_delivery': {'wechat_ok': True, 'telegram_ok': True}}})
+    assert result['disposition'] == 'needs_action'
+    assert '确定性兜底' in result['text']
+    assert '可能有误' not in result['text']
+
+
+def test_old_publication_backlog_needs_action():
+    from clawock.publish.cron_schedule import _note_for
+    for count, oldest in [(3, 0.1), (1, 72)]:
+        result = _note_for('degraded', {'stages': {
+            'postflight': {'data_plane_status': 'push_failed',
+                           'unpushed_commits': count, 'unpushed_oldest_h': oldest},
+            'primary_delivery': {'wechat_ok': True, 'telegram_ok': True}}})
+        assert result['disposition'] == 'needs_action'
+        assert f'{count} 个提交' in result['text']
