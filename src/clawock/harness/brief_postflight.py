@@ -43,7 +43,7 @@ from clawock.decision import risk as risk_discipline
 WS = workspace_root()
 _CHECKOUT = WS
 
-from clawock.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import cron_heartbeat, workflow_outcomes  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
@@ -1598,6 +1598,8 @@ def main(argv=None):
         # Same field the report leg records: without it the schedule board
         # cannot say the dashboard publish is what degraded this slot (#2283).
         data_plane_status=data_plane_status,
+        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
     )
     # A declined claim process never sent, so it must not file the primary
     # verdict — the concurrent holder owns it, and a false `failed` written

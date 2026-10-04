@@ -202,6 +202,7 @@ def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():
     yet when the ledger snapshotted. Self-heals within the next publish tick."""
     record = _record_with('degraded', postflight={
         'issue_count': 0, 'escalating_count': 0, 'data_plane_status': 'committed_local',
+        'unpushed_commits': 1, 'unpushed_oldest_h': 0.1,
     }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
     result = timetable(_contract('3 10 * * 1-5'), [record],
                        now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
@@ -330,3 +331,15 @@ def test_old_publication_backlog_needs_action():
             'primary_delivery': {'wechat_ok': True, 'telegram_ok': True}}})
         assert result['disposition'] == 'needs_action'
         assert f'{count} 个提交' in result['text']
+
+
+def test_publication_backlog_never_invents_missing_measurements():
+    from clawock.publish.cron_schedule import _note_for
+    for details in ({'unpushed_commits': 3}, {}):
+        result = _note_for('degraded', {'stages': {
+            'postflight': dict(data_plane_status='committed_local', **details),
+            'primary_delivery': {'wechat_ok': True, 'telegram_ok': True}}})
+        assert result['disposition'] == 'needs_action'
+        assert '未测到' in result['text']
+        assert '0.0 小时' not in result['text']
+        assert '等待定时发布器追上' not in result['text']
