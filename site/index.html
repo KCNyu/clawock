@@ -859,7 +859,7 @@ layout: null
     
       </div>
       <div class="sub-block" id="decision-audit-card" style="display:none">
-        <div class="sub-block-head">单事件择时诊断 <span class="muted">AI 成交价 vs 同日收盘</span></div>
+        <div class="sub-block-head">单事件择时诊断 <span class="muted">AI 成交价 vs 同日收盘</span><span id="audit-asof" class="muted"></span></div>
       
       <p class="chart-hint">只回答「触发价 vs 同日收盘执行好多少」；同票、同日、同方向、同股数严格配对。换仓不跨票比较，HKD/USD 分区，不画累计金额。</p>
       <div class="timing-zones" id="timing-zones"></div>
@@ -1120,6 +1120,7 @@ layout: null
   <section class="card desktop-wide" id="ledger-card">
     <div class="card-head"><div>
       <div class="overview-card-kicker">验证台账 · 每个数字读自产物，`clawock evidence` 每日重算</div>
+      <p id="ledger-asof" class="muted"></p>
       <h3 id="ledger-title">我们测过什么、什么没活下来</h3>
     </div></div>
     <p class="chart-hint">面板展示结果，这里展示方法。判定分三种且不许混：<strong>未通过</strong>（测了没活下来）、<strong>尚不可判</strong>（样本不够）、<strong>尚未到期</strong>（还没到能算的日子）。把前两者说成一回事，本身就是不诚实。</p>

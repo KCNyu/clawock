@@ -3975,6 +3975,7 @@
     const audit = safe(DATA, "decision_audit");
     const card = document.getElementById("decision-audit-card");
     if (!card) return;
+    document.getElementById("audit-asof").textContent = ` · 数据 ${audit?.as_of || "日期未知"}`;
     const timing = (audit && audit.timing_diagnostic) || {};
     const byCcy = timing.by_currency || {};
     if (!audit || !["HKD", "USD"].some(c => byCcy[c])) { card.style.display = "none"; return; }
@@ -4732,6 +4733,9 @@
     const host = document.getElementById("ledger-body");
     if (!host) return;
     const payload = safe(DATA, "evidence");
+    document.getElementById("ledger-asof").textContent = payload?.built_at
+      ? `台账生成 ${payload.built_at}`
+      : `参考数据 ${payload?.generated_at || "日期未知"}（择时诊断日期；台账生成时刻未记录）`;
     const sections = (payload && payload.sections) || [];
     if (!sections.length) {
       host.innerHTML = '<p class="muted">evidence.json 没有载入 —— 它由 '

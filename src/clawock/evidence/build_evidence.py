@@ -497,7 +497,10 @@ def write_all() -> Path:
     a crash mid-write must leave the last complete ledger, not a torn one the
     dashboard cannot parse (#1579)."""
     sections = _sections()
-    safe_write_json(str(ARTIFACT), payload(sections, _generated_at()))
+    from datetime import datetime, timezone
+    result = payload(sections, _generated_at())
+    result['built_at'] = datetime.now(timezone.utc).isoformat()
+    safe_write_json(str(ARTIFACT), result)
     return ARTIFACT
 
 
