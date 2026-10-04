@@ -68,7 +68,8 @@
    "close": 29.36,
    "source": "tencent",
    "adjustment": "raw",
-   "fetched_at": "2026-08-17T09:11:49+08:00"
+   "fetched_at": "2026-08-17T09:11:49+08:00",
+   "implausible_move": "64.3%"
   },
   "2025-12-10": {
    "open": 29.48,
@@ -995,7 +996,8 @@
    "close": 59.3,
    "source": "tencent",
    "adjustment": "raw",
-   "fetched_at": "2026-07-15T23:39:08+08:00"
+   "fetched_at": "2026-07-15T23:39:08+08:00",
+   "implausible_move": "67.7%"
   },
   "2026-05-11": {
    "open": 59.4,

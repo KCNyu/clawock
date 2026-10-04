@@ -46,3 +46,8 @@
 {"date": "2026-09-15", "detail": "stored O40.04/H40.14/L39.1/C39.25 vs fetched O40.04/H40.14/L39.08/C39.25", "fetched": {"close": 39.25, "high": 40.14, "low": 39.08, "open": 40.04}, "kind": "extreme_only", "seen_at": "2026-09-21T08:03:39+08:00", "stored": {"close": 39.25, "high": 40.14, "low": 39.1, "open": 40.04}, "ticker": "TCOM"}
 {"date": "2026-09-16", "detail": "stored O144.88/H153.0/L144.36/C150.88 vs fetched O144.88/H153.01/L144.36/C150.88", "fetched": {"close": 150.88, "high": 153.01, "low": 144.36, "open": 144.88}, "kind": "rounding", "seen_at": "2026-09-22T08:03:37+08:00", "stored": {"close": 150.88, "high": 153.0, "low": 144.36, "open": 144.88}, "ticker": "SPCX"}
 {"date": "2026-09-30", "detail": "stored O39.01/H39.24/L38.87/C39.1 vs fetched O39.01/H39.24/L38.84/C39.1", "fetched": {"close": 39.1, "high": 39.24, "low": 38.84, "open": 39.01}, "kind": "extreme_only", "seen_at": "2026-10-02T08:03:38+08:00", "stored": {"close": 39.1, "high": 39.24, "low": 38.87, "open": 39.01}, "ticker": "TCOM"}
+{"date": "2026-07-31", "detail": "67.7%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "07709"}
+{"date": "2026-08-04", "detail": "57.9%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "PLTU"}
+{"date": "2025-12-09", "detail": "64.3%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "RKLX"}
+{"date": "2026-05-08", "detail": "67.7%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "RKLX"}
+{"date": "2026-03-09", "detail": "52.4%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "03317"}
