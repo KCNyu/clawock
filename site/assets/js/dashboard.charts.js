@@ -756,7 +756,12 @@
     if (bmEl) {
       const notes = [];
       if (bmStale && bmStale.is_stale) {
-        notes.push(`⚠ 基准数据延迟（SPY/恒科等值止于 ${bmStale.last_date}，落后 ${bmStale.days_behind} 天）`);
+        const delayed = (bmStale.delayed || []).map(row =>
+          `${row.symbol} 止于 ${row.last_session}，落后 ${row.sessions_behind} 个交易日（正常滞后 ${row.expected_lag_sessions} 场）`);
+        notes.push(`⚠ 基准数据延迟（${delayed.join("；")}）`);
+      }
+      if (bmStale && (bmStale.unknown || []).length) {
+        notes.push(`⚠ 基准新鲜度未测到（${bmStale.unknown.join(" / ")}）`);
       }
       // 合计口径才折 HKD；美股/港股单市场视图不需要汇率，也就不标。
       if (view === "combined" && fx == null) notes.push(FX_MISSING_NOTE);

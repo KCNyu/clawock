@@ -215,3 +215,19 @@ def test_a_breach_is_recorded_in_the_payload_not_only_on_stderr(monkeypatch):
     marker = source.split("out['payload_over_cap'] = {", 1)[1].split('}', 1)[0]
     for field in ('bytes', 'cap', 'over_by', 'levers_spent'):
         assert f"'{field}'" in marker, f'{field} must be in the marker'
+
+
+def test_dashboard_benchmark_uses_completed_sessions_on_weekend(monkeypatch):
+    from datetime import date
+    from clawock import sessions
+    from clawock.publish.dashboard import benchmark_staleness
+    monkeypatch.setattr(sessions, 'latest_completed_session', lambda market: date(2026, 10, 2))
+    benchmark = {'series': {'SPY': [{'date': '2026-09-30'}]}}
+    result = benchmark_staleness(benchmark)
+    assert result['is_stale']
+    assert result['delayed'][0]['sessions_behind'] == 2
+    assert result['delayed'][0]['expected_lag_sessions'] == 1
+
+def test_dashboard_benchmark_reports_missing_date():
+    from clawock.publish.dashboard import benchmark_staleness
+    assert benchmark_staleness({'series': {'SPY': []}})['unknown'] == ['SPY']
