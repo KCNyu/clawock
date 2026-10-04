@@ -2508,7 +2508,7 @@ def validate_intraday_insights(data, known_tickers):
     """Schema + sanity gate for the intraday sidecar (status_banner + per-mover
     attribution). Mover notes only survive for tickers that actually exist in the
     book. Returns {status_banner, movers}."""
-    from clawock.evidence.intraday_status import normalize_status
+    from clawock.intraday_status import normalize_status
     try:
         out = normalize_status(data)
     except ValueError:

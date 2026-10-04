@@ -66,6 +66,7 @@ harness -> decision
 harness -> evidence
 harness -> history_store
 harness -> instruments
+harness -> intraday_status
 harness -> market_data
 harness -> portfolio
 harness -> prose_validation
@@ -100,6 +101,7 @@ publish -> decision
 publish -> evaluation
 publish -> history_store
 publish -> instruments
+publish -> intraday_status
 publish -> json_repair
 publish -> market_data
 publish -> portfolio

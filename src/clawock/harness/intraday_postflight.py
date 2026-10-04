@@ -189,7 +189,7 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
         payload = json.loads(path.read_text())
         if not isinstance(payload, dict):
             raise ValueError('top-level JSON must be an object')
-        from clawock.evidence.intraday_status import normalize_status
+        from clawock.intraday_status import normalize_status
         canonical = {
             **normalize_status(payload),
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(

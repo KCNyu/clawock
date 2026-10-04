@@ -57,7 +57,7 @@ Selection criteria for a replacement are deliberately provider-neutral:
 
 
 Intraday status sidecar text normalization is owned by
-`evidence/intraday_status.py`: both postflight and dashboard publication use its
+`intraday_status.py`: both postflight and dashboard publication use its
 160-character banner and 120-character mover limits, trimming valid text rather
 than rejecting the whole sidecar for length. Postflight owns the generation timestamp;
 the publisher additionally filters mover identities against the current book.
