@@ -317,3 +317,12 @@ def test_in_memory_settlement_is_replayed_without_changing_source(monkeypatch):
     source[0]['confidence'] = 0.9
     _, changed = scorecard_verify.materialize_view(block, source)
     assert any(c['status'] == 'fail' for c in changed)
+
+
+def test_equal_digest_does_not_accuse_rewrites(ledger):
+    card = metrics_for(ledger)['provenance']
+    result = prov.verify(card, ledger)
+    check = next(c for c in result['checks'] if c['name'] == 'ledger.digest')
+    assert check['status'] == 'pass'
+    assert 'unchanged' in check['detail']
+    assert 'rewritten' not in check['detail']
