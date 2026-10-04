@@ -45,7 +45,7 @@ Workspace, run and harness lifecycle commands; details are in the hand-written s
 | `clawock brief` | run brief harness in-process |
 | `clawock intraday` | run intraday harness in-process |
 | `clawock tool` | call a context tool through the registry |
-| `clawock context` | audit or assemble the agent context contract |
+| `clawock context` | audit, assemble, compare or verify the agent context contract |
 | `clawock workflow` | discover or install portable decision-workflow skills |
 
 ### Layer 1 · Market / 行情
@@ -194,7 +194,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | 数据 | 用法 |
 |---|---|
 | 最近 filings (10-K/10-Q/8-K) | `clawock filings RKLB` （`--filings 10-K,10-Q` 指定表型） |
-| XBRL 关键财务概念（营收/净利/现金/EPS 等 13 项）| `--financials` |
+| XBRL 关键财务概念（营收/净利/现金/EPS 等关键概念）| `--financials` |
 | Insider Form 4 / 13F-HR | `--form4` / `--13f` |
 | 机器可读 | 任一模式加 `--json` |
 

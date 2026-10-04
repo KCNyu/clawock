@@ -880,7 +880,7 @@ def bar(ticker: str, day: str) -> dict | None:
 def ticker_retired(ticker: str) -> bool:
     """Whether the store *declares* this instrument retired — never an inference.
 
-    This has to be a fact someone wrote down (fetch_daily_bars' MANIFEST), because
+    This has to be a fact someone wrote down (market_data.bars' MANIFEST), because
     the obvious shortcut — "the session we want is past this ticker's newest bar" —
     cannot tell a retired line apart from a writer that stopped running for it. Under
     that shortcut a frozen active ticker had its decisions filed as
@@ -1178,7 +1178,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
             # The market WAS open (the calendar said so) but we have no bar. Either
             # the session has not closed yet — which is pending, not unevaluable —
             # or this instrument genuinely did not trade (not yet listed, halted, or
-            # retired — an instrument declared `retired` in fetch_daily_bars' MANIFEST).
+            # retired — an instrument declared `retired` in market_data.bars' MANIFEST).
             last = last_closed_session(leg) or ""
             if pending_session > last:
                 ev.update({"triggered": None, "status": "pending", "outcome": "pending",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_daily_bars.py — the canonical daily OHLC store the decision ledger settles against.
+market_data/bars.py — the canonical daily OHLC store the decision ledger settles against.
 
 Why this exists
 ---------------

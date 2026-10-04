@@ -110,9 +110,9 @@ REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the
 # How long an in-flight attempt may hold this watchdog before it judges anyway
 # (#1532, the #988 wait). The next pass does NOT look again: it runs 30 minutes
 # later and owns the NEXT slot, so returning on an in-flight attempt was this
-# slot's only verdict. The budget must end before the next slot's preflight
-# rewrites the latest context — watchdog at +10 min, next cron at +30 — so 600s
-# (report_watchdog's measured budget) still ends ten minutes clear of it.
+# slot's only verdict. The watchdog fires at +20 min; its 600s wait ends at +30,
+# alongside the next slot cron and after the 28-minute turn timeout. Slot identity
+# checks reject a next-slot context rather than misjudge it as this slot.
 INFLIGHT_WAIT_S = 600
 INFLIGHT_POLL_S = 30
 
@@ -170,9 +170,9 @@ def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
 def watchdog_target(market, now=None):
     """Return the exact cron slot this watchdog invocation owns.
 
-    Watchdogs run ten minutes after each half-hour Mode 7 slot. Subtracting that
-    delay before applying the canonical slot mapping also handles midnight and a
-    modestly delayed system-cron invocation without selecting an adjacent run.
+    Watchdogs run twenty minutes after each half-hour Mode 7 slot. The ten-minute
+    WATCHDOG_DELAY_MINUTES is a lookback offset, not the firing delay: slot_for
+    floors the resulting time to the owning half-hour, including across midnight.
     """
     wall_now = now or datetime.now(HKT)
     target_at = wall_now - timedelta(minutes=WATCHDOG_DELAY_MINUTES)
