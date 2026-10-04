@@ -33,18 +33,6 @@ belongs here.
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
   visual rules and the tests that enforce them.
-- [DSH patrol chip](design/dsh-patrol-2026-10-03/README.md) and
-  [task detail exits](design/dsh-patrol-2026-10-03/details.md) — density tradeoffs,
-  motion decisions and before/after captures from an isolated instance.
-
-- [README hero diagrams](design/hero-diagrams-2026-10-03/README.md), with
-  [second iteration](design/hero-diagrams-2026-10-03/iteration-2/README.md) — diagram layout evidence.
-- [Task chip folding](design/dsh-task-chip-fold-2026-10-04/README.md) — task history layout evidence.
-- [Patrol coverage and dispatch Markdown](design/dsh-progress-2026-10-04/README.md), with
-  [installed WeChat filter output](design/dsh-progress-2026-10-04/wechat-filter-output.md) — real data provenance, screenshot and remaining rendering limits.
-- [Task chip coverage and chat list redesign](design/dsh-task-chip-redesign-2026-10-04/README.md) — critique, decisions, before/after renders and the WeChat filter evidence.
-
-- [Todos workflow](design/todos-workflow-2026-10-04/README.md) — task workflow evidence.
 
 ## Operations
 
@@ -73,6 +61,11 @@ belongs here.
 
 Everything under `docs/` is published with the Pages build
 (`ops/pages/stage_site.py`). Keep this index current when adding or removing docs.
+
+A document here describes how the project works now. The record of one task — measurements,
+before/after captures, command output, proposed patches, what was and was not verified —
+belongs in that task's pull request, where it stays attached to the change it explains.
+Write the conclusion into the document that owns the subject; do not add a dated folder.
 
 ## Why OpenClaw files stay at the root
 
