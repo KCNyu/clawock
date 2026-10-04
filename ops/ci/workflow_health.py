@@ -34,10 +34,8 @@ from clawock.providers import GitHubRuns, Run  # noqa: E402
 WS = workspace_root(_CHECKOUT)
 WORKFLOW_DIR = WS / ".github" / "workflows"
 LOOKBACK_DAYS = 7
-# A schedule that fires at most weekly still has to fire inside two of its own
-# periods before we call it missing; anything tighter turns a delayed runner into
-# a false alarm.
-MISSED_CADENCE_FACTOR = 2.2
+# Maximum scheduled gap plus an independent allowance for runner delay.
+DELAY_ALLOWANCE_H = 12.0
 CRON_RE = re.compile(r"cron:\s*'([^']+)'")
 
 
@@ -46,34 +44,29 @@ def schedules(path: Path) -> list[str]:
 
 
 def expected_interval_hours(exprs: list[str]) -> float | None:
-    """Roughly how often this workflow should fire, from its cron expressions.
-
-    Deliberately coarse: the question is "should something have happened by now",
-    not the exact next fire time.
-    """
+    """Maximum gap on the union of weekly schedules, including weekend gaps."""
+    from clawock.scheduling import parse_cron_slots
     if not exprs:
         return None
-    best = None
+    points = set()
+    # A fixed Sunday anchors cron's 0/7 numbering; no mutable wall clock.
+    sunday = datetime(2026, 1, 4, tzinfo=timezone.utc)
     for expr in exprs:
         fields = expr.split()
         if len(fields) != 5:
             continue
-        minute, hour, dom, month, dow = fields
-        if minute.startswith("*/"):
-            hours = int(minute[2:]) / 60
-        elif hour.startswith("*/"):
-            hours = int(hour[2:])
-        elif hour == "*":
-            hours = 1
-        elif dow != "*" and dom == "*":
-            days = len([d for d in _expand_dow(dow)]) or 1
-            hours = 24 * 7 / days
-        elif dom != "*":
-            hours = 24 * 31
-        else:
-            hours = 24
-        best = hours if best is None else min(best, hours)
-    return best
+        if fields[2:4] != ['*', '*']:
+            return 24 * 31  # conservative for non-weekly calendar expressions
+        for day in range(7):
+            for slot in parse_cron_slots(expr, 'UTC', sunday + timedelta(days=day)):
+                hour, minute = map(int, slot.split(':'))
+                points.add(day * 1440 + hour * 60 + minute)
+    if not points:
+        return None
+    ordered = sorted(points)
+    gaps = [b - a for a, b in zip(ordered, ordered[1:])]
+    gaps.append(7 * 1440 + ordered[0] - ordered[-1])
+    return max(gaps) / 60
 
 
 def _expand_dow(dow: str) -> list[int]:
@@ -161,7 +154,7 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
     overdue_hours = None
     if last and interval:
         age = (now - last).total_seconds() / 3600
-        if age > interval * MISSED_CADENCE_FACTOR:
+        if age > interval + DELAY_ALLOWANCE_H:
             overdue_hours = round(age, 1)
     status = "ok"
     if (not scheduled or streak >= 2 or cancelled_streak >= 2
@@ -245,7 +238,7 @@ def _row_detail(row):
         detail.append(f"{row['cancellations_in_window']} cancelled run(s) in {LOOKBACK_DAYS}d")
     if row["overdue_hours"]:
         detail.append(f"no run for {row['overdue_hours']}h "
-                      f"(expected every ~{row['expected_interval_hours']}h)")
+                      f"(maximum scheduled gap {row['expected_interval_hours']}h + {DELAY_ALLOWANCE_H}h delay allowance)")
     return "; ".join(detail)
 
 

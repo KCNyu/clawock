@@ -128,24 +128,25 @@ jobs:
 
       - name: Dashboard build idempotency
         run: |
-          clawock dashboard-build
-          cp assets/data/dashboard.json /tmp/dash1.json
-          sleep 1
-          clawock dashboard-build
-          # Only wall-clock `generated_at` stamps should differ between two runs.
-          # These live at the top level AND nested (e.g. build_status.generated_at,
-          # added with the health card) — strip every `generated_at` recursively.
-          python3 -c "
-          import json
-          def strip(o):
-              if isinstance(o, dict):
-                  o.pop('generated_at', None)
-                  for v in o.values(): strip(v)
-              elif isinstance(o, list):
-                  for v in o: strip(v)
-              return o
-          a = strip(json.load(open('/tmp/dash1.json')))
-          b = strip(json.load(open('assets/data/dashboard.json')))
-          assert a == b, 'dashboard build is non-deterministic'
-          print('dashboard build deterministic ✓')
-          "
+          clawock dashboard-build > /dev/null
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          # The write set comes from the contract, not from a copy of it (#1449).
+          # Spelling the five names here meant a sixth output would be built,
+          # published and never checked for determinism — the check would stay
+          # green about a file it had never read.
+          names="$(python3 -c "import json;print(' '.join(p.rsplit('/',1)[-1][:-5] for p in json.load(open('config/dashboard-outputs.json'))['outputs']))")"
+          echo "determinism check covers: $names"
+          for name in $names; do
+            python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" > "$tmp/$name.first"
+          done
+          clawock dashboard-build > /dev/null
+          for name in $names; do
+            if ! python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
+              echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
+              exit 1
+            fi
+          done
+          rm -rf "$tmp"
+          echo "OK: rebuild deterministic modulo generation stamps"
+
