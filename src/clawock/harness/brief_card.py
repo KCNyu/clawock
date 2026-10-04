@@ -192,6 +192,7 @@ def build_brief_card(today, decision_packet=None):
                 bk = {}
                 lines.append('Book: 金额未核验，见完整报告')
         if bk:
+            lines[0] += f' (USDHKD={plan["fx_rate_usdhkd"]})'
             lines.append(f"Book: USD${bk.get('usd_total_pnl', '?')} | "
                          f"HK leg {bk.get('hk_leg_hkd', '?')}HKD | US leg {bk.get('us_leg_usd', '?')}USD")
         acts = [a for a in (plan.get('decisions') or []) if isinstance(a, dict)][:4]

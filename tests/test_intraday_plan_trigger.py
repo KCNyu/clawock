@@ -124,3 +124,19 @@ def test_next_trigger_uses_its_own_price_and_accepts_near_future_levels():
     assert check_next_trigger('下一触发：SPCH 站上 300', ctx)
     ctx['watch_levels'] = {'SPCH_trim_trigger': 12.0}
     assert check_next_trigger('下一触发：SPCH 站上 12.0', ctx) == []
+
+
+def test_radar_subject_levels_are_available_without_borrowing_other_symbols():
+    from clawock.harness.intraday_postflight import _subject_prices
+    context = {'opportunity_radar': {'rows': [
+        {'label': 'RKLB', 'close': 73.52, 'prior_20d_high': 75.46},
+        {'label': 'SPCX', 'close': 10, 'prior_20d_high': 12}]}}
+    levels, _ = _subject_prices(context, 'RKLB')
+    assert {73.52, 75.46} <= levels
+    assert not ({10, 12, 68, 80} & levels)
+
+
+def test_plan_trigger_action_uses_decision_layer_vocabulary():
+    from clawock.decision.add_side import ACTION_WORDS
+    result = intraday_preflight.append_plan_trigger_section('', TRIGGERED)
+    assert ACTION_WORDS['trim_on_rebound'] in result
