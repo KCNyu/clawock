@@ -184,7 +184,7 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
     }
 
 
-def report(now: datetime | None = None, runner=None, workflow_dir: Path = WORKFLOW_DIR) -> dict:
+def report(now: datetime | None = None, runner=None, workflow_dir: Path = WORKFLOW_DIR, source_root: Path = WS) -> dict:
     now = now or datetime.now(timezone.utc)
     rows = []
     for path in sorted(workflow_dir.glob("*.yml")):
@@ -192,6 +192,13 @@ def report(now: datetime | None = None, runner=None, workflow_dir: Path = WORKFL
         if not exprs:
             continue                            # push/PR workflows report through PRs
         rows.append(assess(path.name, exprs, fetch_runs(path.name, runner=runner), now))
+    from clawock.automation.weekly_health import missing_weeks
+    gaps = missing_weeks(source_root, now=now)
+    for row in rows:
+        if row['workflow'] == 'weekly-review.yml':
+            row['missing_weeks'] = gaps
+            if gaps:
+                row['status'] = 'attention'
     attention = [r for r in rows if r["status"] == "attention"]
     return {
         "as_of": now.isoformat(),
@@ -225,6 +232,8 @@ def main(argv=None) -> int:
 
 def _row_detail(row):
     detail = []
+    if row.get('missing_weeks'):
+        detail.append('missing due reviews: ' + ', '.join(row['missing_weeks']))
     if row["consecutive_failures"]:
         detail.append(f"{row['consecutive_failures']} consecutive failures")
     elif row["failures_in_window"]:

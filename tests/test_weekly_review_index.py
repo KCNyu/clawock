@@ -128,3 +128,41 @@ def test_the_page_names_the_provider_the_code_actually_calls():
     for dead in ("Xiaomi", "MiMo", "OpenCode", "deepseek"):
         assert dead not in weekly, (
             f"the weekly section still advertises the removed {dead} route")
+
+
+def test_operational_health_reports_the_same_due_gaps(tmp_path, monkeypatch, capsys):
+    from clawock.automation.weekly_health import missing_weeks
+    import importlib.util
+    def load(name, path):
+        spec = importlib.util.spec_from_file_location(name, ROOT / path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    health = load('weekly_workflow_health', 'ops/ci/workflow_health.py')
+    system = load('weekly_system_check', 'ops/system_check.py')
+    root = _tree(tmp_path, ['2026-W32', '2026-W34'])
+    now = datetime(2026, 8, 25, tzinfo=timezone.utc)
+    assert missing_weeks(root, now=now) == ['2026-W33']
+    workflows = root / '.github' / 'workflows'
+    workflows.mkdir(parents=True)
+    (workflows / 'weekly-review.yml').write_text("cron: '0 14 * * 0'\n")
+    monkeypatch.setattr(health, 'fetch_runs', lambda *a, **kw: [dict(
+        event='schedule', status='completed', conclusion='success',
+        createdAt='2026-08-23T14:00:00Z')])
+    result = health.report(now=now, workflow_dir=workflows, source_root=root)
+    row = result['workflows'][0]
+    assert row['status'] == 'attention'
+    assert row['missing_weeks'] == ['2026-W33']
+    health._surface(result)
+    assert 'missing due reviews: 2026-W33' in capsys.readouterr().out
+    monkeypatch.setattr(system, 'WS', root)
+    class Recorder:
+        def add(self, *args):
+            self.row = args
+    recorder = Recorder()
+    system.check_weekly_reviews(recorder, now=now)
+    assert recorder.row[1] == system.WARNING
+    assert '2026-W33' in recorder.row[2]
+    (root / 'memory/weekly/2026-W33.md').write_text('review')
+    system.check_weekly_reviews(recorder, now=now)
+    assert recorder.row[1] == system.OK
