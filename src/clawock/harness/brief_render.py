@@ -761,7 +761,7 @@ def sector_section(sector_scan, judgment):
                 text(own.get("attribution")),
             ])
     out = ["### 板块全景", "",
-           table(["板块", "持仓", "今日", "位置", "板块 Top", "归因"], rows), "", read]
+           table(["板块", "持仓", "上一场收盘", "位置", "板块 Top", "归因"], rows), "", read]
     return "\n".join(out)
 
 

@@ -647,19 +647,10 @@
   // Display order for the Market Snapshot card.
   const MARKET_INDICES = ["SPX", "NDX", "DJI", "HSI", "HSTECH"];
 
-  // Parse a YYYY/MM/DD or YYYY-MM-DD timestamp out of the source string so we
-  // can flag stale (>1 trading day old) data with a ⚠ marker. Compare in UTC
-  // calendar-day terms (Date.UTC truncates the time) so the same source string
-  // doesn't look "1 day old" just because the user is in a different timezone.
-  function _indexAgeDays(src) {
-    if (!src) return null;
-    const m = src.match(/(20\d\d)[-/](\d{2})[-/](\d{2})/);
-    if (!m) return null;
-    const srcUTC = Date.UTC(+m[1], +m[2] - 1, +m[3]);
-    const now = new Date();
-    const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    return Math.max(0, Math.round((nowUTC - srcUTC) / 86400000));
-  }
+  // Which session an index quote belongs to, and whether that is behind the
+  // market's newest close, is decided by the publisher against the trading
+  // calendar (`session` / `stale`). The page does not count calendar days from
+  // its own clock: that painted Friday's close as stale every weekend.
 
   function renderMarketSnapshot() {
     const idx = safe(DATA, "indices") || {};
@@ -672,8 +663,7 @@
       const r = idx[k];
       const pct = r.change_pct;
       const cls = (pct == null) ? "neutral" : (pct > 0 ? "pos" : (pct < 0 ? "neg" : "neutral"));
-      const ageDays = _indexAgeDays(r.source);
-      const stale = ageDays != null && ageDays > 1;
+      const stale = r.stale === true;
       const priceTxt = (r.price != null)
         ? r.price.toLocaleString("en-US", { maximumFractionDigits: r.price < 100 ? 2 : 0 })
         : DASH;
@@ -689,12 +679,9 @@
     });
     grid.innerHTML = cells.length ? cells.join("") : `<div class="empty-state">No index data.</div>`;
 
-    // As-of line: most recent age across rendered cells
-    const ages = MARKET_INDICES.map(k => idx[k] && _indexAgeDays(idx[k].source)).filter(a => a != null);
-    if (ages.length && asof) {
-      const minAge = Math.min(...ages);
-      asof.textContent = minAge === 0 ? "(刚刚)" : minAge === 1 ? "(1 天前)" : `(${minAge} 天前)`;
-    }
+    // As-of line: the newest session across rendered cells
+    const sessions = MARKET_INDICES.map(k => idx[k] && idx[k].session).filter(Boolean).sort();
+    if (sessions.length && asof) asof.textContent = `(行情 ${sessions[sessions.length - 1].slice(5)})`;
 
     // RS: our combined today_pct vs SPX/HSI (region-weighted)
     if (rsRow) {

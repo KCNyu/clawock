@@ -27,6 +27,7 @@ from zoneinfo import ZoneInfo
 from clawock.workspace import without_host_paths, workspace_root
 from clawock import history_store, scorecard_provenance
 from clawock.sessions import hkt_today
+from clawock import sessions as trading_calendar
 from clawock import instruments as instrument_registry
 from clawock import json_repair
 from clawock.decision import ledger as decision_v2
@@ -988,23 +989,53 @@ def _session_close_series(ticker, holding, n):
     return None
 
 
-def _aggregate_indices(us_pf, hk_pf):
+_INDEX_SOURCE_DATE = re.compile(r'(20\d\d)[-/](\d{2})[-/](\d{2})')
+
+
+def _index_session(source, market):
+    """The session an index quote belongs to, read off its `source` stamp.
+
+    The stamp is the fetch date, and fetchers run on closed days too, so a date
+    the market did not trade folds back to the last session that did — the same
+    reading `holding_session` gives a holding row.
+    """
+    m = _INDEX_SOURCE_DATE.search(source or '')
+    if not m:
+        return None
+    try:
+        day = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        if trading_calendar.closed_reason(market, day) is not None:
+            day = trading_calendar.previous_trading_day(market, day)
+    except Exception:
+        return None
+    return day
+
+
+def _aggregate_indices(us_pf, hk_pf, at=None):
     """Combine US + HK leg indices into one flat dict for the dashboard.
 
     portfolio.json stores them per-leg (legacy: only US leg was read), so HK
     indices (HSI/HSTECH) were invisible to the frontend even though they're
     fetched daily by analyze_hk_stocks.py. Normalize key shape to:
 
-        { TICKER: {name, price, prev_close, change_pct, source} }
+        { TICKER: {name, price, prev_close, change_pct, source, session, stale} }
 
-    where TICKER is NDX/SPX/HSI/HSTECH/etc.
+    where TICKER is NDX/SPX/HSI/HSTECH/etc. `session` and `stale` are decided
+    here, against the market's own calendar: the page used to count calendar
+    days from the browser's clock, which painted Friday's close as stale every
+    weekend and Monday (#2524). `stale` is None when the stamp carries no date.
     """
     out = {}
-    for leg in (us_pf or {}, hk_pf or {}):
+    for market, leg in (('us', us_pf or {}), ('hk', hk_pf or {})):
         idx = leg.get('indices_snapshot') or {}
+        try:
+            newest = trading_calendar.latest_completed_session(market, at)
+        except Exception:
+            newest = None
         for k, v in idx.items():
             if not isinstance(v, dict):
                 continue
+            session = _index_session(v.get('source'), market)
             # Different sources use chg_pct vs change_pct — normalize
             normalized = {
                 'name':       v.get('name', k),
@@ -1012,6 +1043,8 @@ def _aggregate_indices(us_pf, hk_pf):
                 'prev_close': v.get('prev_close'),
                 'change_pct': v.get('change_pct') if v.get('change_pct') is not None else v.get('chg_pct'),
                 'source':     v.get('source', 'unknown'),
+                'session':    session.isoformat() if session else None,
+                'stale':      (session < newest) if session and newest else None,
             }
             out[k] = normalized
     return out
@@ -2288,6 +2321,32 @@ def record_preservation(presence, taken, source, out_file, at=None, missing=Fals
         print(f'  warn: preservation telemetry failed: {e}', file=sys.stderr)
 
 
+def _scan_sessions(data, path):
+    """The session each market's percentages in a sector scan belong to.
+
+    The sweep runs before the open, so what it could see is the newest session
+    that had finished when it was written — not the calendar day in `date`.
+    Read at the block's own `generated_at`, else the file's mtime; a market the
+    calendar cannot answer for is left out rather than guessed.
+    """
+    at = None
+    try:
+        at = datetime.fromisoformat(str(data.get('generated_at')))
+    except (TypeError, ValueError):
+        pass
+    if at is None or at.tzinfo is None:
+        at = datetime.fromtimestamp(os.path.getmtime(path), timezone.utc)
+    out = {}
+    for market in ('hk', 'us'):
+        try:
+            session = trading_calendar.latest_completed_session(market, at)
+        except Exception:
+            session = None
+        if session:
+            out[market] = session.isoformat()
+    return out
+
+
 def load_sector_scan():
     """Read the freshest sector-scan-*.json written by daily-deep-brief LLM.
 
@@ -2295,6 +2354,10 @@ def load_sector_scan():
     attribution / narrative) to memory/.tmp/sector-scan-{date}.json after
     running Step 3 板块全景 tavily-search. We pick the newest by mtime to
     cover overnight edge cases. Non-fatal on any error (returns {}).
+
+    `date` is the day the scan was made. `_sessions` is what its numbers are as
+    of: the page labels the card with that, and says so when the rest of the
+    payload has moved on (#2524).
     """
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / 'sector-scan-*.json'))
@@ -2304,8 +2367,8 @@ def load_sector_scan():
         data = load_json(latest)
         if not isinstance(data, dict):
             return {}
-        # Stamp where it came from so frontend can show "as of {date}"
         data.setdefault('_source', os.path.basename(latest))
+        data['_sessions'] = _scan_sessions(data, latest)
         return data
     except Exception as e:
         print(f'  warn: load_sector_scan failed: {e}', file=sys.stderr)
@@ -3640,7 +3703,6 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
     dated = [value for value in quotes.values() if value]
     fresh = expected is not None and not missing and not stale
     return {
-        'last_updated': portfolio_leg.get('last_updated'),
         'expected_completed_session': expected.isoformat() if expected else None,
         'oldest_quote_session': min(dated) if dated else None,
         'newest_quote_session': max(dated) if dated else None,
