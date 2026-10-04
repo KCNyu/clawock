@@ -114,6 +114,37 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     return _portfolio(), data_dir
 
 
+def test_build_status_keeps_missing_audit_visible_without_a_generation(monkeypatch, tmp_path):
+    at = datetime(2026, 10, 4, 9, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    (data_dir / "decision_audit.json").unlink()
+    (data_dir / "evidence.json").unlink()
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    assert {"decision_audit.json", "evidence.json"} <= set(status["stale_files"])
+
+
+def test_projection_audit_freshness_uses_this_generation_on_first_and_repeat_build(monkeypatch, tmp_path):
+    at = datetime.now(timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    (tmp_path / "portfolio.json").write_text(json.dumps(portfolio))
+    monkeypatch.setattr(dashboard, "OUT_DIR", data_dir)
+    audit = data_dir / "decision_audit.json"
+    audit.unlink()
+    (data_dir / "evidence.json").unlink()
+    first = dashboard.build_projection()
+    assert not audit.exists(), "projection must remain read-only"
+    audit.write_text(first["audit"])
+    # A stale previous generation must not make this generation stale either.
+    os.utime(audit, (0, 0))
+    second = dashboard.build_projection()
+    for projection in (first, second):
+        status = json.loads(projection["dashboard"])["build_status"]
+        row = next(x for x in status["files"] if x["name"] == "decision_audit.json")
+        assert row["present"] and not row["stale"]
+        assert "evidence.json" in status["stale_files"]
+        assert "decision_audit.json" not in status["stale_files"]
+
+
 def test_guardrail_compute_exception_is_an_explicit_failure_dict(monkeypatch):
     def explode(*_args, **_kwargs):
         raise RuntimeError("synthetic guardrail failure")

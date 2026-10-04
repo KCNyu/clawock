@@ -15,6 +15,29 @@ A generation is the correlated audit unit emitted by one workflow run, not the
 product itself. The product-level loop is evidence → debate/workflow → decision →
 execution/outcome → bounded, reviewable improvement proposal.
 
+## Runtime publishing on the KCNyu host
+
+Scheduled postflights call `push_with_rebase_retry`, which runs
+`ops/publish/safe_push.sh`. It sources `publish_identity.sh`: the live checkout
+selects the host runtime deploy key; Actions publishers receive
+`CLAWOCK_PUBLISH_SSH_KEY` at step scope. That identity has the repository's
+DeployKey ruleset bypass. A bare HTTPS `git push origin master` uses the user's
+credentials instead and is subject to the PR gate. Interactive code changes
+continue through task branches and PRs.
+
+A publication backlog records unpushed commits, not their failure cause. Read
+the publishing log before changing permissions: a pre-push `system_check`
+CRITICAL can stop the deploy-key path too. For cron message drift, inspect
+`config/cron-schedules.json` and its rendered `config/cron-payloads/` template,
+then use the read-only `ops/host/sync_cron_payloads.py` plan. Its `--apply` mode
+updates declared runtime fields; it does not rewrite the tracked contract.
+`refresh_live.sh` updates the checkout but does not reconcile cron payloads.
+
+Dashboard generations use the separate [data plane](data-plane.md), so a fresh
+screen does not prove that master ledger commits reached GitHub. Generated
+files ignored on master must be published as a complete generation rather than
+added individually to a ledger commit.
+
 ## Ownership
 
 | Layer | Owns | Current location |
