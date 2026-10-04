@@ -3964,6 +3964,8 @@ _FINGERPRINT_EXTRA_DATA_PLANE = (
     'crawl_visibility_summary.json',
 )
 
+_FINGERPRINT_BUILD_OUTPUT_NAMES = frozenset(
+    path.name for path in resolve_output_paths(OUT_DIR).values())
 FINGERPRINT_FILES = (
     'portfolio.json',
     'memory/decisions.jsonl',
@@ -3979,7 +3981,7 @@ FINGERPRINT_FILES = (
     # --skip-if-unchanged from ever firing. Keep their health checks separate.
     # portfolio.json lives at the workspace root and is named above.
     if name != 'portfolio.json'
-    and f'assets/data/{name}' not in dashboard_outputs.output_paths(WS_ROOT)
+    and name not in _FINGERPRINT_BUILD_OUTPUT_NAMES
 ))
 FINGERPRINT_DIRS = ('memory/bars', 'memory/snapshots', 'memory/weekly', 'memory/.tmp')
 FINGERPRINT_CACHE = '.cache/dashboard-input.json'
