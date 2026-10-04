@@ -48,7 +48,6 @@ def test_the_reusable_package_names_no_desk_of_its_own():
     # Real opaque runtime WeChat identifiers do not belong in any tracked text,
     # including test fixtures. Synthetic human-readable addresses remain useful.
     import subprocess
-    import re
     for name in subprocess.check_output(['git', 'ls-files'], cwd=ROOT, text=True).splitlines():
         path = ROOT / name
         if not path.is_file():
