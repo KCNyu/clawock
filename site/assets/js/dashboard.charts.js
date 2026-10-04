@@ -1225,6 +1225,9 @@
       _region: p.region,
     }));
 
+    // Reserve 20% of the axis for the capped bubble radius and ticker label.
+    const maxWeight = Math.max(0, ...list.map(p => Number(p.weight_pct) || 0));
+    const weightAxisMax = Math.max(70, Math.ceil(maxWeight / 0.8 / 10) * 10);
     const opt = {
       ...baseChartOpts(),
       grid: { left: 50, right: 30, top: 30, bottom: 50, containLabel: true },
@@ -1245,8 +1248,7 @@
       },
       xAxis: chartAxis({
         name: "Weight within US/HK leg %", nameLocation: "middle", nameGap: 28,
-        // 70 leaves buffer for the 00100 bubble (weight ~57% + symbol radius ~42px)
-        type: "value", min: 0, max: 70,
+        type: "value", min: 0, max: weightAxisMax,
         splitLine: { lineStyle: { color: chartGridColor(), opacity: 0.5 } },
         axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: "{value}%" },
       }),
@@ -1259,7 +1261,7 @@
       // Reference lines: weight=20%, conf=65%
       series: [{
         type: "scatter",
-        // Cap at 42 so even a 57% weight bubble fits inside the xAxis(=70) buffer
+        // Radius is capped; axis headroom follows the largest current weight.
         symbolSize: (v) => Math.max(14, Math.min(42, 14 + v[0] * 0.6)),
         data: [...points, ...ghosts],
         label: {
@@ -1282,7 +1284,7 @@
         markArea: {
           silent: true,
           itemStyle: { color: echarts.color.modifyAlpha(quadrantColor.high_risk, .06) },
-          data: [[{ xAxis: 20, yAxis: 30 }, { xAxis: 70, yAxis: 65 }]],
+          data: [[{ xAxis: 20, yAxis: 30 }, { xAxis: weightAxisMax, yAxis: 65 }]],
         },
       }],
     };
