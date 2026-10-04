@@ -16,7 +16,7 @@ Dial (matches production compute_regime):
   • 1x sleeves untouched.
 
 Outputs: results table + memory/.tmp/combined_*.png
-Run: clawock evaluate-combined-regime
+Run: clawock evaluate-combined-regime   (needs the charting extra: pip install 'clawock[evaluation]')
 """
 from clawock.evaluation.series import mdd, rvol, sma
 import json
@@ -184,7 +184,11 @@ def _plotting():
     did not ask for plots, which is the failure `test_wheel_contains_the_package`
     exists to catch.
     """
-    import matplotlib
+    try:
+        import matplotlib
+    except ImportError:
+        raise SystemExit("clawock evaluate-combined-regime draws its charts with matplotlib, which is the "
+                         "`evaluation` extra: pip install 'clawock[evaluation]'") from None
     matplotlib.use('Agg')
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt

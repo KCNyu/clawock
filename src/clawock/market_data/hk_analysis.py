@@ -171,7 +171,7 @@ def _fetch_stooq(code: str) -> Optional[Dict]:
 
 
 def _fetch_yfinance(code: str) -> Optional[Dict]:
-    """Fallback: yfinance (e.g. 0100.HK). Requires the `yfinance` package."""
+    """Fallback: yfinance (e.g. 0100.HK). Needs the `market` extra (pip install 'clawock[market]')."""
     try:
         import yfinance as yf  # lazy import
         sym = f"{int(code):04d}.HK"
