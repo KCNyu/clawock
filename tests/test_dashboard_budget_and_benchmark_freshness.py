@@ -217,17 +217,29 @@ def test_a_breach_is_recorded_in_the_payload_not_only_on_stderr(monkeypatch):
         assert f"'{field}'" in marker, f'{field} must be in the marker'
 
 
-def test_dashboard_benchmark_uses_completed_sessions_on_weekend(monkeypatch):
-    from datetime import date
+@pytest.mark.parametrize("published", ["2026-10-02T17:00:00+08:00", "2026-10-04T17:00:00+08:00"])
+def test_dashboard_keeps_the_producers_freshness(published, monkeypatch):
+    from datetime import datetime
     from clawock import sessions
     from clawock.publish.dashboard import benchmark_staleness
-    monkeypatch.setattr(sessions, 'latest_completed_session', lambda market: date(2026, 10, 2))
-    benchmark = {'series': {'SPY': [{'date': '2026-09-30'}]}}
-    result = benchmark_staleness(benchmark)
-    assert result['is_stale']
-    assert result['delayed'][0]['sessions_behind'] == 2
-    assert result['delayed'][0]['expected_lag_sessions'] == 1
+    benchmark = _bench("2026-09-30", hsi_last="2026-09-30", spy_behind=1)
+    benchmark["generated_at"] = "2026-10-02T00:05:00Z"
+    original = json.loads(json.dumps(benchmark))
+    monkeypatch.setattr(sessions, "latest_completed_session", lambda market: (
+        pytest.fail(f"publication at {published} must not remeasure producer lag")))
+    assert datetime.fromisoformat(published)  # evening and weekend publications
+    assert not benchmark_staleness(benchmark)["is_stale"]
+    assert benchmark == original
 
-def test_dashboard_benchmark_reports_missing_date():
+
+def test_dashboard_reports_the_measured_gap():
     from clawock.publish.dashboard import benchmark_staleness
-    assert benchmark_staleness({'series': {'SPY': []}})['unknown'] == ['SPY']
+    result = benchmark_staleness(_bench("2026-08-21", spy_behind=2))
+    assert result["is_stale"]
+    assert result["delayed"][0]["sessions_behind"] == 2
+    assert result["delayed"][0]["expected_lag_sessions"] == 1
+
+
+def test_dashboard_benchmark_reports_missing_measurement():
+    from clawock.publish.dashboard import benchmark_staleness
+    assert benchmark_staleness({"series": {"SPY": []}})["unknown"] == ["SPY"]
