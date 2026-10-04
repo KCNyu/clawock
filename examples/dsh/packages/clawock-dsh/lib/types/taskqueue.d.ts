@@ -3,7 +3,8 @@
  * tasks are alive, what each one waits for, what just finished, and what the
  * clawock-patrol supervisor is doing (running a round, giving way, or waiting
  * for its next one). Everything is read from this host — files the runner and
- * the supervisor write, plus systemctl/journalctl — never the network.
+ * the supervisor write, plus systemctl/journalctl. Coverage alone reads GitHub open patrol labels
+ * through gh, cached for five minutes; no patrol state is written.
  *
  *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
  *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
@@ -28,7 +29,7 @@
  * balance services: `get()` never throws, a failed read keeps the last good
  * snapshot as 'stale'.
  */
-import type { PatrolStatus, QueueActionResult, TaskQueueResult } from './types.ts';
+import type { PatrolProgress, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult } from './types.ts';
 export declare const DEFAULT_DISPATCH_LOG_DIR: string;
 export declare const DEFAULT_DISPATCH_LIMITS_PATH: string;
 export declare const DEFAULT_PATROL_STATE_DIR: string;
@@ -54,6 +55,11 @@ export interface TaskQueueDeps {
     patrolService(): Promise<string>;
     /** The supervisor's most recent journal lines, oldest first, timestamps kept. */
     patrolLog(): Promise<string[]>;
+    /** Read-only GitHub patrol issue labels, with their own five-minute cache. */
+    patrolIssues?(): Promise<{
+        labels: string[][] | null;
+        asOf: string;
+    }>;
     /** Run the ops entry: `python3 <opsPath> --json …`. Optional: tests without it get no queue order. */
     runOps?(opsPath: string, args: string[], timeoutMs: number): Promise<OpsRun>;
 }
@@ -83,6 +89,13 @@ export declare function lastLogEvent(log: string): {
 };
 /** `weixin,telegram` → ['weixin', 'telegram']; 'none' and blanks dropped, each once. */
 export declare function channelList(raw: string | undefined): string[];
+export declare function readPatrolProgress(patrolDir: string, axesPath: string, issues: {
+    labels: string[][] | null;
+    asOf: string;
+}): {
+    rounds: PatrolRound[];
+    progress: PatrolProgress;
+};
 /**
  * What the supervisor is doing, from its own last log line: `waiting: <why>`
  * (giving way before a round), `preempting …` (cancelling one for a user

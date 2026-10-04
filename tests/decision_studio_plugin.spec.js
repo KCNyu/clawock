@@ -4155,6 +4155,11 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     const popover = find(render(), (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
     const reply = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
 
+    assert.ok(reply[0].startsWith('# '), 'Markdown title');
+    assert.ok(reply.some(line => line.startsWith('## ')), 'sections use supported headings');
+    assert.ok(reply.some(line => line.startsWith('- **')), 'allowance window labels use bold flat list items');
+    assert.ok(reply.some(line => line.startsWith('- ') && line.includes('source-sync')), 'live tasks use flat lists');
+    assert.ok(reply.every(line => !/^\s{2,}[-*]|^\|/.test(line)), 'no nested lists or Markdown tables');
     assert.ok(reply.some((line) => /还剩 1 小时/.test(line)), "next-round wait has remaining time as well as the scheduled clock");
     const overdue = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
       queue: { ...QUEUE, patrol: { ...QUEUE.patrol, untilMs: now - 60000 } }, queueError: null }, t, now);
@@ -4194,4 +4199,33 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
   } finally {
     disposeReactEffects();
   }
+});
+
+test('patrol coverage: full recorded lens history stays separate from eight rows; area is not inferred', async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, 'lib/taskqueue.js')).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'clawock-coverage-'));
+  try {
+    const axes = path.join(root, 'axes.tsv');
+    fs.writeFileSync(axes, 'logic\tLogic\tScope\nsecurity\tSecurity\tScope\n');
+    fs.writeFileSync(path.join(root, 'labels-known.json'), JSON.stringify(['area:data', 'area:ops']));
+    fs.writeFileSync(path.join(root, 'rounds.tsv'), Array.from({ length: 12 }, (_, i) =>
+      `2026-09-23 03:${String(i).padStart(2, '0')}:00\tR${i + 1}\tlogic\tpatrol-${i}\t${i === 11 ? 'preempted:cancelled' : 'ok/DONE/P2#10'}\t20s`).join('\n') + '\nbad\n');
+    const result = tq.readPatrolProgress(root, axes, { labels: [['area:data', 'lens:security']], asOf: '2026-09-23T04:00:00Z' });
+    assert.equal(result.rounds.length, 8);
+    assert.equal(result.progress.records, 12);
+    const { TYPERT_REMOTE } = await import(pathToFileURL(path.join(PLUGIN, 'lib/typert.remote-client.js')).href);
+    const schema = TYPERT_REMOTE.descriptors.find(d => d.method === 'taskQueue').result.create();
+    const wire = schema.shape.patrol.parse({ service: 'active', phase: 'waiting', round: '', detail: '', untilMs: null, ...result });
+    assert.deepEqual(wire.progress, result.progress, 'the real RPC codec must preserve coverage instead of stripping it');
+    assert.equal(result.progress.rejected, 1);
+    assert.deepEqual(result.progress.lenses.map(l => [l.name, l.rounds, l.open]), [['logic', 12, 0], ['security', 0, 1]]);
+    assert.equal(result.progress.lenses[0].last.result, 'preempted:cancelled');
+    assert.deepEqual(result.progress.areas, [{ name: 'data', open: 1 }, { name: 'ops', open: 0 }]);
+    assert.ok(!('last' in result.progress.areas[0]), 'issue ownership never becomes an area inspection timestamp');
+    fs.unlinkSync(path.join(root, 'rounds.tsv'));
+    const missing = tq.readPatrolProgress(root, axes, { labels: null, asOf: '' });
+    assert.equal(missing.progress.records, null);
+    assert.ok(missing.progress.lenses.every(l => l.rounds === null && l.open === null));
+    assert.ok(missing.progress.areas.every(a => a.open === null));
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });

@@ -1,5 +1,5 @@
 /**
- * The task chip's provider panel as plain text: the ASCII rendering of the same
+ * The task chip's provider panel as conservative Markdown: the chat rendering of the same
  * panel.ts model the sidebar draws, for a chat reply (OpenClaw `/dispatch-list`).
  * It decides nothing — groups, rows, words, order and folding all come from the
  * model. Only the drawing is its own: a role is a character where the chip has
@@ -49,40 +49,47 @@ export function rowText(view: RowView, t: Translate): string[] {
   ]
 }
 
-const indent = (lines: string[], by: string): string[] => lines.map((line) => by + line)
+// Dynamic row words are literal text, never Markdown markup supplied by a task name.
+const literal = (text: string): string => text.replace(/([\\`*_[\]<>])/g, '\\$1').replace(/[\r\n]+/g, ' ')
+const prose = (lines: string[]): string[] => lines.map(literal)
 
 export function panelText(model: PanelModel, t: Translate): string {
-  const out: string[] = [model.title]
-  for (const note of model.notices) out.push((note.bad ? '⚠ ' : '') + note.text)
-  if (model.empty !== null) out.push(model.empty)
+  const out: string[] = ['# ' + literal(model.title)]
+  for (const note of model.notices) out.push((note.bad ? '⚠ ' : '') + literal(note.text))
+  if (model.empty !== null) out.push(literal(model.empty))
   for (const group of model.groups) {
     out.push('')
     const [head, ...caption] = rowText(group.head, t)
-    out.push('▌' + head!, ...indent(caption, '  '))
-    if (group.balanceNote !== null) out.push('  ⚠ ' + group.balanceNote)
+    out.push('## ' + literal(head!), ...prose(caption))
+    if (group.balanceNote !== null) out.push('⚠ ' + literal(group.balanceNote))
     if (group.detail?.kind === 'windows') {
       for (const w of group.detail.windows) {
         const pct = w.percent === null ? '—' : Math.round(w.percent) + '%'
-        out.push(`  ${w.label} ${bar(w.fill)} ${pct}` + (w.reset === '' ? '' : ' ↻' + w.reset))
+        out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.reset === '' ? '' : ' ↻' + literal(w.reset)))
       }
     } else if (group.detail?.kind === 'text') {
-      out.push('  ' + group.detail.text)
+      out.push(literal(group.detail.text))
     }
-    for (const note of group.notes) out.push('  ' + note)
-    for (const { row } of group.tasks) out.push('  • ' + rowText(row, t)[0]!)
+    for (const note of group.notes) out.push(literal(note))
+    for (const { row } of group.tasks) out.push('- ' + literal(rowText(row, t)[0]!))
   }
   if (model.recent !== null) {
-    out.push('', '▌' + rowText(model.recent.head, t)[0]!)
-    for (const row of model.recent.rows) out.push('  • ' + rowText(row, t)[0]!)
+    out.push('', '## ' + literal(rowText(model.recent.head, t)[0]!))
+    for (const row of model.recent.rows) out.push('- ' + literal(rowText(row, t)[0]!))
   }
   if (model.patrol !== null) {
     const [head, ...caption] = rowText(model.patrol.head, t)
-    out.push('', '▌' + head!, ...indent(caption, '  '))
+    out.push('', '## ' + literal(head!), ...prose(caption))
     const rounds = model.patrol.rounds
     const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
-    for (const row of rounds.slice(0, resident)) out.push('  • ' + rowText(row, t)[0]!)
-    if (rounds.length > resident) out.push('  ' + t('queue.olderRounds', { n: rounds.length - resident }))
+    for (const row of rounds.slice(0, resident)) out.push('- ' + literal(rowText(row, t)[0]!))
+    if (rounds.length > resident) out.push(literal(t('queue.olderRounds', { n: rounds.length - resident })))
+    if (model.patrol.progress !== null) {
+      out.push('', '### ' + literal(model.patrol.progress.title), literal(model.patrol.progress.summary), literal(model.patrol.progress.scope))
+      for (const warning of model.patrol.progress.warnings) out.push(literal(warning))
+      out.push(literal(model.patrol.progress.areaNote))
+    }
   }
-  if (model.footer !== null) out.push('', (model.footer.bad ? '⚠ ' : '') + model.footer.text)
+  if (model.footer !== null) out.push('', '**' + literal((model.footer.bad ? '⚠ ' : '') + model.footer.text) + '**')
   return out.join('\n')
 }

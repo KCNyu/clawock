@@ -1050,12 +1050,41 @@ export function recentSection(result: TaskQueueResult | null, t: Translate, now:
   }
 }
 
+/** Words and provenance for the coverage disclosure; renderers choose its layout.
+ * Recorded lens attempts do not establish successful or exhaustive area inspection. */
+function progressView(progress: TaskQueueResult['patrol']['progress'], t: Translate, now: number) {
+  if (progress === undefined) return null
+  const unknown = t('queue.coverage.unknown')
+  const open = (n: number | null) => t('queue.coverage.open', { n: n === null ? unknown : n })
+  return {
+    title: t('queue.coverage.title'),
+    summary: t('queue.coverage.records', { n: progress.records === null ? unknown : progress.records }),
+    scope: progress.records === null ? t('queue.coverage.unreadable') : t('queue.coverage.scope', { date: progress.firstAt || unknown }),
+    warnings: [
+      ...(!progress.lensInventory || !progress.areaInventory ? [t('queue.coverage.inventoryUnreadable')] : []),
+      ...(progress.rejected > 0 ? [t('queue.coverage.rejected', { n: progress.rejected })] : []),
+      ...(progress.issuesAt === '' ? [t('queue.coverage.issuesUnreadable')] : [t('queue.coverage.issuesAt', { date: progress.issuesAt })]),
+    ],
+    lensHeading: t('queue.coverage.lenses'), areaHeading: t('queue.coverage.areas'),
+    areaNote: t('queue.coverage.areaUnknown'),
+    lenses: progress.lenses.map((l) => {
+      const last = l.last === null ? null : roundRow(l.last, t, now)
+      return { name: l.name, meta: t('queue.coverage.attempts', { n: l.rounds === null ? unknown : l.rounds }) + ' · ' + open(l.open),
+        last: last === null ? (l.rounds === null ? unknown : t('queue.coverage.notRecorded'))
+          : [last.name, last.state?.text, last.facts.when?.text, last.facts.filed?.text].filter(Boolean).join(' · '),
+        stamp: l.last?.endedAt ?? '', href: 'https://github.com/KCNyu/clawock/issues?q=' + encodeURIComponent('is:issue is:open label:patrol label:lens:' + l.name) }
+    }),
+    areas: progress.areas.map((a) => ({ name: a.name, text: open(a.open), href: 'https://github.com/KCNyu/clawock/issues?q=' + encodeURIComponent('is:issue is:open label:patrol label:area:' + a.name) })),
+    empty: t('queue.coverage.inventoryUnreadable'),
+  }
+}
+
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
  * is not a task conclusion; the head already projects its useful status.
  */
-export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[] } | null {
+export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; progress: ReturnType<typeof progressView> } | null {
   if (result === null || !result.available) return null
   const patrol = result.patrol
   return {
@@ -1067,6 +1096,7 @@ export function patrolSection(result: TaskQueueResult | null, t: Translate, now:
       attrs: { 'data-tq-patrol': patrol.phase },
     },
     rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+    progress: progressView(patrol.progress, t, now),
   }
 }
 

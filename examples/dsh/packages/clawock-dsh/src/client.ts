@@ -1230,12 +1230,31 @@ function renderWell(key: string, rows: Array<React.ReactElement | null>): React.
   return present.length === 0 ? null : h('div', { className: cx('tq-well'), key: 'well-' + key, 'data-tq-well': key }, ...present)
 }
 
+/** An optional read-only coverage disclosure, separate from the bounded history. */
+function renderPatrolProgress(view: NonNullable<PanelModel['patrol']>['progress']): React.ReactElement | null {
+  if (view === null) return null
+  return h('details', { className: cx('tq-coverage'), 'data-patrol-progress': '' },
+    h('summary', {}, h('strong', {}, view.title), h('span', {}, view.summary)),
+    h('p', {}, view.scope),
+    ...view.warnings.map((text) => h('p', { key: text, className: cx('tq-coverage-note') }, text)),
+    h('h4', {}, view.lensHeading),
+    h('div', { className: cx('tq-coverage-grid') }, ...(view.lenses.length === 0 ? [h('p', {}, view.empty)] : view.lenses.map((l) =>
+      h('article', { key: l.name, 'data-coverage-lens': l.name },
+        h('a', { href: l.href, target: '_blank', rel: 'noopener noreferrer' }, l.name),
+        h('p', {}, l.meta), h('p', { title: l.stamp }, l.last))))),
+    h('h4', {}, view.areaHeading), h('p', { className: cx('tq-coverage-note') }, view.areaNote),
+    h('div', { className: cx('tq-coverage-grid') }, ...(view.areas.length === 0 ? [h('p', {}, view.empty)] : view.areas.map((a) =>
+      h('article', { key: a.name, 'data-coverage-area': a.name },
+        h('a', { href: a.href, target: '_blank', rel: 'noopener noreferrer' }, a.name), h('p', {}, a.text))))))
+}
+
 /** Patrol history folds as one kind of content, only when it is long. */
 function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
   const rounds = patrol.rounds
   const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
   return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderRow(patrol.head, t),
+    renderPatrolProgress(patrol.progress),
     renderWell('rounds', rounds.slice(0, resident).map((round) => renderRow(round, t))),
     rounds.length <= resident ? null
       : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - resident }),

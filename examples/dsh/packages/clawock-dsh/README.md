@@ -296,7 +296,7 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 宿主侧对同一操作的连点合并为一次(2s 内重复直接返回上一次结果)。新 host 半边没装时
 (只换了 client)面板只读。契约见 `docs/architecture/task-queue.md`。
 
-全是本机文件加 `systemctl`/`journalctl`,不走网络;宿主侧 5s 缓存、客户端
+队列与历史来自本机文件加 `systemctl`/`journalctl`;新增覆盖区的 open issue 数另用只读 `gh` 标签查询（最多缓存五分钟）;宿主侧 5s 缓存、客户端
 15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
 `dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent` / `taskQueueOpsPath`。
 宿主把侧栏底部动作排成一行(`.footerActions` 横向 flex),而且 list slot 的每一项
@@ -498,9 +498,30 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。
 
+### Patrol coverage · 巡检覆盖
+
+The patrol section has one read-only coverage disclosure. Lens attempts, latest recorded outcome
+and age come from every valid `rounds.tsv` row; the existing history still shows at most eight.
+Counts include interrupted and unsuccessful attempts, not just successful inspections. The scope
+starts at the first readable record, not a claim about all past activity or exhaustive code coverage.
+The installed `axes.tsv` supplies the lens inventory; `labels-known.json` supplies area names.
+Open patrol counts use a read-only GitHub label query through `gh` (cached up to five minutes;
+a failed or saturated query shows unknown). Each area/lens name links to its open issues.
+Area inspection rounds, age and conclusions are explicitly unknown: issue area labels describe
+finding ownership and cannot be mapped to lens rounds. Missing records/inventories are disclosed.
+No supervisor state, dispatch behavior or patrol files are changed.
+
+巡检分节增加一个只读的「巡检覆盖」展开区。Lens 的轮次记录、上次结果与距今时间来自
+`rounds.tsv` 的全部有效记录，原历史仍最多八轮。次数包含中断与失败，不等于成功巡检次数。
+范围从首条可读记录起算，不宣称覆盖所有过去活动或全部代码。已安装 `axes.tsv` 给出 lens
+清单，`labels-known.json` 给出 area 名称。Open patrol 数通过 `gh` 只读查询 GitHub 标签，
+最多缓存五分钟；查询失败或达到数量上限则显示未知。Area/lens 名称可点到相应 open issues。
+Area 的轮次、距今时间与结论明确为未知：issue area 标签只说明发现的问题归属，不能映射到
+lens 轮次。记录或范围清单缺失会明说。不写巡检文件、不改 supervisor 状态或派发行为。
+
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 
-The same panel, as one chat message: this package is also an OpenClaw plugin
+The same panel, as one Markdown chat message (headings, bold allowance labels and flat lists; no tables, nested lists or HTML): this package is also an OpenClaw plugin
 (`openclaw.plugin.json`, entry `lib/chat.js`). Add the installed package directory to
 OpenClaw's `plugins.load.paths` and restart the gateway; then `/dispatch-list` in WeChat or
 Telegram (whose menu spells it `/dispatch_list`) answers with every provider's allowance
@@ -511,7 +532,7 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
-同一块面板的纯文本版:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
+同一块面板的 Markdown 版（标题、额度标签加粗与平铺列表；不用表格、嵌套列表或 HTML）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
 `plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
 `/dispatch_list`)就回一条消息:各 provider 额度(窗口用 ▓░ 条和重置时刻)、各 agent 的进行中任务、
 最近结束(含送达回执与费用)、巡检和 ops 页脚;`/dispatch-list refresh` 绕过余额缓存。取数与 dsh

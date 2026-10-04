@@ -375,6 +375,26 @@ export interface PatrolRound {
     result: string;
     seconds: number | null;
 }
+/** Coverage of recorded lens rounds, independent of the eight-row history view.
+ * Area labels describe findings, not inspection rounds; no area coverage is inferred. */
+export interface PatrolProgress {
+    records: number | null;
+    lensInventory: boolean;
+    areaInventory: boolean;
+    firstAt: string;
+    rejected: number;
+    lenses: {
+        name: string;
+        rounds: number | null;
+        last: PatrolRound | null;
+        open: number | null;
+    }[];
+    areas: {
+        name: string;
+        open: number | null;
+    }[];
+    issuesAt: string;
+}
 /** What the clawock-patrol supervisor is doing now. */
 export interface PatrolStatus {
     /** `systemctl is-active` verbatim ('active' | 'inactive' | 'failed' | 'unknown'). */
@@ -387,8 +407,9 @@ export interface PatrolStatus {
     detail: string;
     /** When the next round is due (phase 'waiting'). */
     untilMs: number | null;
-    /** Newest first, at most three. */
+    /** Newest first, at most eight. */
     rounds: PatrolRound[];
+    progress?: PatrolProgress;
 }
 /** How many run slots one agent has (limits.env `MAX_RUNNING_<AGENT>`). */
 export interface AgentSlotLimit {

@@ -210,6 +210,21 @@ const dictionaries = {
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
 		"queue.chip.unpriced": "未定价",
+		"queue.coverage.title": "巡检覆盖",
+		"queue.coverage.records": "{n} 条轮次记录",
+		"queue.coverage.scope": "记录起点 {date}；统计所有可读记录，不代表完整代码覆盖。",
+		"queue.coverage.unreadable": "rounds.tsv 读不到或超出读取上限，轮次覆盖未知。",
+		"queue.coverage.rejected": "{n} 条损坏记录未计入，覆盖统计不完整。",
+		"queue.coverage.issuesUnreadable": "读不到 GitHub open patrol 标签，issue 数未知。",
+		"queue.coverage.issuesAt": "GitHub open patrol 快照 {date}（最多缓存 5 分钟）",
+		"queue.coverage.lenses": "Lens · 轮次视角",
+		"queue.coverage.areas": "Area · 问题归属",
+		"queue.coverage.areaUnknown": "Area 覆盖时间、轮次与结论未知：轮次没有 area，issue 标签只说明发现的问题归属，不能证明巡检覆盖。",
+		"queue.coverage.open": "open {n}",
+		"queue.coverage.unknown": "未知",
+		"queue.coverage.attempts": "{n} 次记录",
+		"queue.coverage.notRecorded": "可读历史中未记录；不等于从未巡检",
+		"queue.coverage.inventoryUnreadable": "读不到范围清单。",
 		"queue.patrolHeading": "巡检",
 		"queue.patrolRound": "当前轮次 {round}",
 		"queue.roundsHeading": "最近几轮",
@@ -649,6 +664,21 @@ const dictionaries = {
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
 		"queue.chip.unpriced": "unpriced",
+		"queue.coverage.title": "Patrol coverage",
+		"queue.coverage.records": "{n} round records",
+		"queue.coverage.scope": "Records begin {date}; all readable records, not exhaustive code coverage.",
+		"queue.coverage.unreadable": "rounds.tsv unreadable or exceeds the read limit; round coverage unknown.",
+		"queue.coverage.rejected": "{n} malformed records excluded; coverage is incomplete.",
+		"queue.coverage.issuesUnreadable": "GitHub open patrol labels unreadable; issue counts unknown.",
+		"queue.coverage.issuesAt": "GitHub open patrol snapshot {date} (cached up to 5 minutes)",
+		"queue.coverage.lenses": "Lens · inspection perspective",
+		"queue.coverage.areas": "Area · finding ownership",
+		"queue.coverage.areaUnknown": "Area inspection time, rounds and conclusions are unknown: rounds have no area. Issue labels describe finding ownership and cannot establish inspection coverage.",
+		"queue.coverage.open": "open {n}",
+		"queue.coverage.unknown": "unknown",
+		"queue.coverage.attempts": "{n} recorded attempts",
+		"queue.coverage.notRecorded": "Not in readable history; does not mean never inspected",
+		"queue.coverage.inventoryUnreadable": "Scope inventory unreadable.",
 		"queue.patrolHeading": "Patrol",
 		"queue.patrolRound": "current round {round}",
 		"queue.roundsHeading": "Recent rounds",
@@ -2118,6 +2148,47 @@ function recentSection(result, t, now, open) {
 		rows: result.recent.map((task) => endedRow(task, t, now, open))
 	};
 }
+/** Words and provenance for the coverage disclosure; renderers choose its layout.
+* Recorded lens attempts do not establish successful or exhaustive area inspection. */
+function progressView(progress, t, now) {
+	if (progress === void 0) return null;
+	const unknown = t("queue.coverage.unknown");
+	const open = (n) => t("queue.coverage.open", { n: n === null ? unknown : n });
+	return {
+		title: t("queue.coverage.title"),
+		summary: t("queue.coverage.records", { n: progress.records === null ? unknown : progress.records }),
+		scope: progress.records === null ? t("queue.coverage.unreadable") : t("queue.coverage.scope", { date: progress.firstAt || unknown }),
+		warnings: [
+			...!progress.lensInventory || !progress.areaInventory ? [t("queue.coverage.inventoryUnreadable")] : [],
+			...progress.rejected > 0 ? [t("queue.coverage.rejected", { n: progress.rejected })] : [],
+			...progress.issuesAt === "" ? [t("queue.coverage.issuesUnreadable")] : [t("queue.coverage.issuesAt", { date: progress.issuesAt })]
+		],
+		lensHeading: t("queue.coverage.lenses"),
+		areaHeading: t("queue.coverage.areas"),
+		areaNote: t("queue.coverage.areaUnknown"),
+		lenses: progress.lenses.map((l) => {
+			const last = l.last === null ? null : roundRow(l.last, t, now);
+			return {
+				name: l.name,
+				meta: t("queue.coverage.attempts", { n: l.rounds === null ? unknown : l.rounds }) + " · " + open(l.open),
+				last: last === null ? l.rounds === null ? unknown : t("queue.coverage.notRecorded") : [
+					last.name,
+					last.state?.text,
+					last.facts.when?.text,
+					last.facts.filed?.text
+				].filter(Boolean).join(" · "),
+				stamp: l.last?.endedAt ?? "",
+				href: "https://github.com/KCNyu/clawock/issues?q=" + encodeURIComponent("is:issue is:open label:patrol label:lens:" + l.name)
+			};
+		}),
+		areas: progress.areas.map((a) => ({
+			name: a.name,
+			text: open(a.open),
+			href: "https://github.com/KCNyu/clawock/issues?q=" + encodeURIComponent("is:issue is:open label:patrol label:area:" + a.name)
+		})),
+		empty: t("queue.coverage.inventoryUnreadable")
+	};
+}
 /**
 * Patrol: a section head (the phase as its state chip, the live status as its
 * caption), and one chronological history group. The raw supervisor journal
@@ -2141,7 +2212,8 @@ function patrolSection(result, t, now) {
 			caption: patrolCaption(result, t, now),
 			attrs: { "data-tq-patrol": patrol.phase }
 		},
-		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now))
+		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+		progress: progressView(patrol.progress, t, now)
 	};
 }
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */
@@ -2209,7 +2281,7 @@ function panelModel(input, t, now, open = () => {}) {
 //#endregion
 //#region src/text.ts
 /**
-* The task chip's provider panel as plain text: the ASCII rendering of the same
+* The task chip's provider panel as conservative Markdown: the chat rendering of the same
 * panel.ts model the sidebar draws, for a chat reply (OpenClaw `/dispatch-list`).
 * It decides nothing — groups, rows, words, order and folding all come from the
 * model. Only the drawing is its own: a role is a character where the chip has
@@ -2261,37 +2333,43 @@ function rowText(view, t) {
 	const caption = (view.caption ?? []).map((part) => part.text).filter((text) => text !== "");
 	return [facts.length === 0 ? line : line + " · " + facts.join(" · "), ...caption.length === 0 ? [] : [caption.join(" · ")]];
 }
-const indent = (lines, by) => lines.map((line) => by + line);
+const literal = (text) => text.replace(/([\\`*_[\]<>])/g, "\\$1").replace(/[\r\n]+/g, " ");
+const prose = (lines) => lines.map(literal);
 function panelText(model, t) {
-	const out = [model.title];
-	for (const note of model.notices) out.push((note.bad ? "⚠ " : "") + note.text);
-	if (model.empty !== null) out.push(model.empty);
+	const out = ["# " + literal(model.title)];
+	for (const note of model.notices) out.push((note.bad ? "⚠ " : "") + literal(note.text));
+	if (model.empty !== null) out.push(literal(model.empty));
 	for (const group of model.groups) {
 		out.push("");
 		const [head, ...caption] = rowText(group.head, t);
-		out.push("▌" + head, ...indent(caption, "  "));
-		if (group.balanceNote !== null) out.push("  ⚠ " + group.balanceNote);
+		out.push("## " + literal(head), ...prose(caption));
+		if (group.balanceNote !== null) out.push("⚠ " + literal(group.balanceNote));
 		if (group.detail?.kind === "windows") for (const w of group.detail.windows) {
 			const pct = w.percent === null ? "—" : Math.round(w.percent) + "%";
-			out.push(`  ${w.label} ${bar(w.fill)} ${pct}` + (w.reset === "" ? "" : " ↻" + w.reset));
+			out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.reset === "" ? "" : " ↻" + literal(w.reset)));
 		}
-		else if (group.detail?.kind === "text") out.push("  " + group.detail.text);
-		for (const note of group.notes) out.push("  " + note);
-		for (const { row } of group.tasks) out.push("  • " + rowText(row, t)[0]);
+		else if (group.detail?.kind === "text") out.push(literal(group.detail.text));
+		for (const note of group.notes) out.push(literal(note));
+		for (const { row } of group.tasks) out.push("- " + literal(rowText(row, t)[0]));
 	}
 	if (model.recent !== null) {
-		out.push("", "▌" + rowText(model.recent.head, t)[0]);
-		for (const row of model.recent.rows) out.push("  • " + rowText(row, t)[0]);
+		out.push("", "## " + literal(rowText(model.recent.head, t)[0]));
+		for (const row of model.recent.rows) out.push("- " + literal(rowText(row, t)[0]));
 	}
 	if (model.patrol !== null) {
 		const [head, ...caption] = rowText(model.patrol.head, t);
-		out.push("", "▌" + head, ...indent(caption, "  "));
+		out.push("", "## " + literal(head), ...prose(caption));
 		const rounds = model.patrol.rounds;
 		const resident = rounds.length <= 4 ? rounds.length : 1;
-		for (const row of rounds.slice(0, resident)) out.push("  • " + rowText(row, t)[0]);
-		if (rounds.length > resident) out.push("  " + t("queue.olderRounds", { n: rounds.length - resident }));
+		for (const row of rounds.slice(0, resident)) out.push("- " + literal(rowText(row, t)[0]));
+		if (rounds.length > resident) out.push(literal(t("queue.olderRounds", { n: rounds.length - resident })));
+		if (model.patrol.progress !== null) {
+			out.push("", "### " + literal(model.patrol.progress.title), literal(model.patrol.progress.summary), literal(model.patrol.progress.scope));
+			for (const warning of model.patrol.progress.warnings) out.push(literal(warning));
+			out.push(literal(model.patrol.progress.areaNote));
+		}
 	}
-	if (model.footer !== null) out.push("", (model.footer.bad ? "⚠ " : "") + model.footer.text);
+	if (model.footer !== null) out.push("", "**" + literal((model.footer.bad ? "⚠ " : "") + model.footer.text) + "**");
 	return out.join("\n");
 }
 //#endregion
