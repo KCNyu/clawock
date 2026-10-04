@@ -113,7 +113,7 @@ SPCH 持续加仓摊本，直到 SPCX 正股出现实质性反弹，或解禁落
 
 ### 简报投递：微信只发紧凑卡 + 链接
 
-- 不把 `pre-open.md` 全文贴进微信。全文写进 `memory/{date}-pre-open.md`，在 briefs 页看。
+- 不把 `pre-open.md` 全文贴进微信。全文写进当日的 pre-open 简报文件，在 briefs 页看。
 - brief cron 的模型只写受限 judgment；postflight 渲染紧凑卡并主发。卡片只含核心结论、
   Book、不超过 3 个动作、触发位和当日全文链接。模型的最终回复只留痕，不调 message 工具。
 - brief 的 `delivered=true` 不可信，以 postflight 的 delivery marker 为准。
