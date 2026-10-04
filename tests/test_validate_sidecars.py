@@ -272,6 +272,8 @@ def test_real_committed_eod_archive_passes(tmp_path):
     archive = ROOT / 'memory/archive/eod-history.csv'
     with archive.open(newline='', encoding='utf-8') as handle:
         rows = list(csv.DictReader(handle))
+    keys = [(r['date'], r['ticker'], r['currency']) for r in rows]
+    assert len(keys) == len(set(keys))
     latest_date = max(row['date'] for row in rows)
     latest_tickers = tuple(row['ticker'] for row in rows if row['date'] == latest_date)
     archive_portfolio = write_portfolio(tmp_path / 'archive-portfolio.json', latest_tickers)
@@ -1136,3 +1138,13 @@ def test_macro_rejects_a_day_change_its_own_prices_do_not_describe(tmp_path, row
     path = write_json(tmp_path / 'macro.json', _macro_with_index(**row))
     with pytest.raises(AssertionError, match=problem):
         validators.validate_macro(path, now=generated_time(path) + timedelta(hours=1))
+
+
+def test_eod_rejects_duplicates_outside_the_requested_date(tmp_path):
+    archive = write_eod(tmp_path / 'history.csv', '2026-07-17', ('AAPL',))
+    historical = archive.read_text().splitlines()[1].replace('2026-07-17', '2026-05-17')
+    with archive.open('a') as f:
+        f.write(historical + '\n' + historical + '\n')
+    portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
+    with pytest.raises(AssertionError, match='duplicate EOD rows in archive'):
+        validators.validate_eod_archive(archive, portfolio, snapshot_date='2026-07-17')

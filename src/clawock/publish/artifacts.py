@@ -424,7 +424,7 @@ def validate_eod_archive(
             if holding.get('shares', 0) > 0
         ]
         expected = {h['ticker'] for h in held}
-        if not expected:
+        if not expected and not Path(csv_path).is_file():
             print(f'EOD archive coverage validation OK: all-cash portfolio, 0 rows for {snapshot_date}')
             return
 
@@ -443,6 +443,8 @@ def validate_eod_archive(
     except UnicodeDecodeError:
         raise AssertionError('file is not valid UTF-8') from None
 
+    keys = [(row.get('date'), row.get('ticker'), row.get('currency')) for row in rows]
+    assert len(keys) == len(set(keys)), 'duplicate EOD rows in archive (date, ticker, currency)'
     today_rows = [row for row in rows if row['date'] == snapshot_date]
     for index, row in enumerate(today_rows, start=1):
         ticker = row.get('ticker')
