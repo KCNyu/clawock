@@ -1980,7 +1980,7 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
         { credentialsPath: credsPath }).get(true);
       assert.equal(cold.status, "failed");
     }
-    const configPath = pathMod.join(tmp, "openclaw.json");
+    const configPath = pathMod.join(tmp, "provider-fixture.json");
     fsMod.writeFileSync(configPath, "{ broken");
     const minimax = await balance.createMinimaxService({ credentials: { resolve: async () => undefined } },
       { keyRef: "SWEEP_NO_KEY", openclawConfigPath: configPath }).get(true);
