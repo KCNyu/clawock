@@ -161,6 +161,7 @@ def _record_watchdog_outcome(event):
 # Callers that assert on live payload state (e.g. the cron-contract check) MUST
 # consult this and refuse to report failures off a fossil.
 LAST_LOAD_SOURCE = None
+LAST_RUNS_SOURCE = None
 
 
 def load_jobs(source='auto'):
@@ -191,8 +192,23 @@ def read_runs(job_id, source='auto'):
     to know which source answered should call `_openclaw.read_runs` and read the
     returned `CronRead.source` instead of a module global.
     """
-    return _openclaw.read_runs(job_id, source).entries
+    global LAST_RUNS_SOURCE
+    read = _openclaw.read_runs(job_id, source)
+    LAST_RUNS_SOURCE = read.source
+    return read.entries
 
+
+
+def cron_evidence_unreadable(source, *, tag, dry_run=False):
+    """A stale/unreadable scheduler cannot establish that no current run exists."""
+    if source not in {'empty', 'fossil'}:
+        return False
+    detail = f'scheduler evidence unavailable ({source}); cannot verify current job/run'
+    log({'tag': tag, 'action': 'scheduler-unreadable', 'reason': detail, 'dry_run': dry_run})
+    if not dry_run:
+        from clawock.automation import workflow_outcomes
+        workflow_outcomes.note_degradation(None, 'scheduler_unreadable', detail, group=tag)
+    return True
 
 def is_today_hkt(ts_ms):
     if not isinstance(ts_ms, (int, float)):
@@ -1011,8 +1027,9 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
             log({'tag': tag, 'action': 'wechat-backstop-marker-write-failed',
                  'detail': str(e)[:300]})
     miss_subject = str(channel or 'wechat')
+    if not dry_run:
+        _note_backstop_on_outcome(tag, marker, entry)
     if ok and not dry_run:
-        _note_backstop_on_outcome(tag, marker)
         # The condition cleared: the next miss on this channel is a new event
         # and alerts again (#2292).
         _miss_flag(flag_path.parent, miss_subject).unlink(missing_ok=True)
@@ -1043,7 +1060,7 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
     return bool(ok)
 
 
-def _note_backstop_on_outcome(tag, marker):
+def _note_backstop_on_outcome(tag, marker, evidence):
     """Tell the outcome ledger this slot did reach WeChat after all (#2272)."""
     try:
         from clawock.automation import workflow_outcomes
@@ -1054,7 +1071,10 @@ def _note_backstop_on_outcome(tag, marker):
         elif not str(tag).startswith('intraday-') and '-' in str(tag):
             job = workflow_outcomes.job_for(*str(tag).split('-', 1))
         if slot or job:
-            workflow_outcomes.record_wechat_backstop(slot=slot, job_name=job)
+            workflow_outcomes.record_wechat_backstop(
+                slot=slot, job_name=job, sent_ok=evidence["sent_ok"],
+                body_source=evidence["body_source"], body_chars=evidence["body_chars"],
+                body_sha256=evidence["body_sha256"], detail=evidence.get("detail"))
     except Exception as e:  # noqa: BLE001 — bookkeeping must not undo a landed send
         log({'tag': tag, 'action': 'wechat-backstop-outcome-not-recorded',
              'detail': str(e)[:200]})

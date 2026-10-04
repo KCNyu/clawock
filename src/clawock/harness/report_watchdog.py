@@ -168,14 +168,21 @@ def main():
     today = hkt_today().isoformat()
     tag = f'{args.market}-{args.phase}'
 
+    from clawock.harness import _watchdog_common as evidence
+    evidence.LAST_LOAD_SOURCE = None
     job_id = find_job_id(args.job_name)
+    if evidence.cron_evidence_unreadable(evidence.LAST_LOAD_SOURCE, tag=tag, dry_run=args.dry_run):
+        return 0
     if not job_id:
         log({'tag': tag, 'action': 'skip', 'reason': f'job not found: {args.job_name}'})
         return 0
 
+    evidence.LAST_RUNS_SOURCE = None
     runs_today = today_runs(job_id)
+    if evidence.cron_evidence_unreadable(evidence.LAST_RUNS_SOURCE, tag=tag, dry_run=args.dry_run):
+        return 0
     if not runs_today:
-        log({'tag': tag, 'action': 'skip', 'reason': 'no run today yet (cron likely never fired)'})
+        log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
         return 0
     last = runs_today[-1]
     run_at = last.get('runAtMs')
@@ -293,7 +300,7 @@ def main():
     # deterministic fallback fires on every healthy prose run.
     if delivered_this_slot:
         log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight cosend already delivered Telegram this slot — no backstop',
+             'reason': 'Telegram already delivered this slot; WeChat retry evidence is recorded separately',
              # Which rule accepted it. `regenerated-context` recurring here means
              # the cron keeps retrying — visible instead of inferred.
              'match': delivery_judge,

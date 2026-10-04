@@ -556,7 +556,7 @@ def main():
     # TG is covered iff postflight's cosend confirmed today's card to Telegram.
     if marker and marker.get('tg_ok'):
         log({'tag': tag, 'action': 'ok',
-             'reason': 'postflight cosend already delivered Telegram today — no backstop'})
+             'reason': 'Telegram already delivered today; WeChat retry evidence is recorded separately'})
         return 0
 
     # Postflight cosend failed or never ran ⇒ mirror the card to Telegram.
