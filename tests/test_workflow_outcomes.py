@@ -1241,3 +1241,19 @@ def test_new_degradation_rows_preserve_complete_occurrence_history():
     row = ledger['degradations'][0]
     assert row['count'] == len(row['hits']) == 3
     assert row['hits_incomplete'] is False
+
+
+def test_failed_wechat_retry_keeps_its_evidence_without_recovering_product(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:00:00+08:00"
+    outcomes.record_stage("盘中盯盘", "primary_delivery", "success", slot=slot,
+                          wechat_ok=False, telegram_ok=True)
+    assert outcomes.record_wechat_backstop(slot=slot, sent_ok=False, body_source="receipt",
+                                          body_chars=123, body_sha256="digest", detail="refused") == 1
+    record = outcomes.load_ledger()["records"][0]
+    primary = record["stages"]["primary_delivery"]
+    assert primary["wechat_backstop_ok"] is False
+    assert primary["wechat_backstop"]["status"] == "failed"
+    assert primary["wechat_backstop"]["body_chars"] == 123
+    assert primary["wechat_backstop"]["body_source"] == "receipt"
+    assert record["stages"]["watchdog_delivery"]["status"] == "unknown"

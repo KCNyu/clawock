@@ -573,8 +573,9 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
         return {}
 
 
-def record_wechat_backstop(*, slot=None, job_name=None, at=None):
-    """Note on the slot's own record that the watchdog's WeChat retry landed.
+def record_wechat_backstop(*, slot=None, job_name=None, at=None, sent_ok=True,
+                          body_source=None, body_chars=None, body_sha256=None, detail=None):
+    """Record each WeChat retry result on its own slot, including failed attempts.
 
     `primary_delivery.wechat_ok` stays the postflight's result (the primary DID
     drop it); the added `wechat_backstop_ok` is what lets the data-health tally
@@ -597,8 +598,13 @@ def record_wechat_backstop(*, slot=None, job_name=None, at=None):
                 if job_name and record.get("job") != job_name:
                     continue
                 primary = (record.get("stages") or {}).get("primary_delivery") or {}
-                if primary.get("wechat_ok") is False and not primary.get("wechat_backstop_ok"):
-                    primary["wechat_backstop_ok"] = True
+                if primary.get("wechat_ok") is False:
+                    primary["wechat_backstop_ok"] = bool(sent_ok)
+                    primary["wechat_backstop"] = {
+                        "status": "success" if sent_ok else "failed", "at": now.isoformat(),
+                        "body_source": body_source, "body_chars": body_chars,
+                        "body_sha256": body_sha256, "detail": without_host_paths(detail) if detail else None,
+                    }
                     record["updated_at"] = now.isoformat()
                     marked += 1
             if marked:
