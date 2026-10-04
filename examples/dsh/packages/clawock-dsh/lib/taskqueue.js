@@ -535,7 +535,7 @@ async function readTaskQueue(config, deps) {
 		recent: ended,
 		patrol: {
 			...patrolPhase(service, round, alive.has(round), log),
-			rounds: readRounds(config.patrolDir, 3)
+			rounds: readRounds(config.patrolDir, 8)
 		},
 		queues,
 		ops: opsRead.ops,

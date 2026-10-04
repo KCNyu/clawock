@@ -1095,6 +1095,8 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // and co-occur on one element, so source order decides: stale must come last.
   const idxOf = (re) => { const m = re.exec(css); return m === null ? -1 : m.index; };
   const chipStale = idxOf(/_bchip-v\[data-balance-state=stale\]/);
+  const chipLow = idxOf(/_bchip-v\[data-used-level=low\]/);
+  assert.ok(chipLow > -1 && chipStale > chipLow, "high usage stays red unless stale");
   const chipMid = idxOf(/_bchip-v\[data-used-level=mid\]/);
   assert.ok(chipStale > -1 && chipStale > chipMid,
     "stale yellow must out-rank the pill's usage tiers in source order");
@@ -2861,6 +2863,12 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(r.patrol.untilMs, new Date(2026, 8, 23, 4, 0, 0).getTime(), "next round due = log stamp + gap");
   assert.deepEqual(r.patrol.rounds.map((x) => [x.round, x.result, x.seconds]),
     [["R139", "preempted:cancelled", 4090], ["R137", "preempted:cancelled", 3778]]);
+
+  fs.writeFileSync(path.join(patrolDir, "rounds.tsv"), Array.from({ length: 10 }, (_, i) =>
+    `2026-09-23 03:55:00\tR${i}\tlogic\tpatrol-${i}\tok\t20s`).join("\n") + "\n");
+  const longHistory = await tq.createTaskQueueService(config, deps([])).get(true);
+  assert.deepEqual(longHistory.patrol.rounds.map(x => x.round), ["R9", "R8", "R7", "R6", "R5", "R4", "R3", "R2"],
+    "real host output reaches the five-round disclosure threshold with a bounded history");
 
   const phase = (log, service, round = "", alive = false) => tq.patrolPhase(service, round, alive, log).phase;
   assert.equal(phase(["2026-09-23 03:54:58 preempting patrol-a: x is waiting for its agent lock"], "active", "patrol-a", true), "yielding",

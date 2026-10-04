@@ -769,10 +769,18 @@ def task_timeline(d: Path) -> dict:
         (r"(?:override:|budget:|switching to model )", "change"),
     )
     for chunk in chunks:
+        pending_drops = []
         for line in chunk.splitlines():
             boundary = re.fullmatch(r"=+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \S+ (start|end state=.+) =+", line)
             if boundary:
+                if boundary[2].startswith("end state="):
+                    for drop in pending_drops:
+                        add(boundary[1], "append_dropped", drop + " (recorded at task end)")
+                pending_drops = []
                 add(boundary[1], "started" if boundary[2] == "start" else "ended", "" if boundary[2] == "start" else boundary[2])
+                continue
+            if re.fullmatch(r"inbox: \d+ appended message\(s\) not delivered", line):
+                pending_drops.append(line)
                 continue
             m = re.match(r"^(?:---- )?(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (.+)$", line)
             if m:
@@ -1069,6 +1077,7 @@ def cmd_brief(args) -> dict:
     d = task_dir(args.id)
     meta = read_env(d / "meta.env")
     text, size, cut = capped(d / "prompt.md", BRIEF_MAX_BYTES)
+    ended = read_env(d / "result.env").get("STATE") in TERMINAL
     appends, budget = [], APPENDS_MAX_BYTES
     entries = [(f, False) for f in (d / "inbox").glob("*.md")] + [(f, True) for f in (d / "inbox" / "delivered").glob("*.md")]
     for f, delivered in sorted(entries, key=lambda e: e[0].name):
@@ -1076,7 +1085,7 @@ def cmd_brief(args) -> dict:
         stamp = f"{m[1][:4]}-{m[1][4:6]}-{m[1][6:]} {m[2][:2]}:{m[2][2:4]}:{m[2][4:]}" if m else ""
         body, n, over = capped(f, max(0, budget))
         budget -= len(body.encode())
-        appends.append({"file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "bytes": n,
+        appends.append({"file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "dropped": ended and not delivered, "bytes": n,
                         "text": body, "truncated": over})
     # `truncated` stays prompt.md's own flag (the chip labels it with brief_bytes); the appends say
     # so each, and together in appends_truncated / dropped_bytes (#1988: the text answer used to
@@ -1262,7 +1271,8 @@ def human(action: str, out: dict) -> str:
         if out["truncated"]:
             parts.append("\n---" + cut(out["brief_bytes"], out["brief"], out["path"]))
         for a in out["appends"]:
-            head = f"\n\n--- append {a['stamp']} ({'delivered' if a['delivered'] else 'pending'})"
+            status = "delivered" if a["delivered"] else "not delivered (task ended)" if a["dropped"] else "pending"
+            head = f"\n\n--- append {a['stamp']} ({status})"
             parts.append(head + (cut(a["bytes"], a["text"], a["path"]) if a["truncated"] else "") + "\n" + a["text"])
         if out.get("dropped_bytes"):
             parts.append(f"\n\n--- {out['dropped_bytes']} bytes not shown (caps: prompt {BRIEF_MAX_BYTES // 1024} KB, "

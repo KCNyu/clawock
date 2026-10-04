@@ -452,7 +452,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     running: active.filter((task) => task.slot !== '').length,
     active,
     recent: ended,
-    patrol: { ...patrolPhase(service, round, alive.has(round), log), rounds: readRounds(config.patrolDir, 3) },
+    patrol: { ...patrolPhase(service, round, alive.has(round), log), rounds: readRounds(config.patrolDir, 8) },
     queues,
     ops: opsRead.ops,
     logDir: config.logDir,

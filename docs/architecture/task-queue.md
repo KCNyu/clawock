@@ -391,7 +391,9 @@ read to 256 KiB, and the displayed event list to its first/last 100 events. Omit
 and audit truncation are explicit. Full log preview remains available. Reads do not append an
 audit record, consume attempts or change task state.
 
-The brief's append files remain the durable instruction records. The client displays their
+The brief's append files remain the durable instruction records. An append left in the
+inbox of a terminal task is `dropped`, not pending. Unstamped runner drop records are
+shown at their following task-end boundary, explicitly labelled with that timestamp basis. The client displays their
 chronological sequence number, timestamp, delivered/pending status and first-line excerpt;
 opening a row previews its source file. The filename is its identity, and these numbers are
 not immutable snapshots of the entire brief/plan. PRs and commits remain the code diff history.
