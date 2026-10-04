@@ -77,6 +77,9 @@ def _instruction_texts():
         yield path.relative_to(ROOT).as_posix(), path.read_text(encoding="utf-8")
 
 
+_DIARY_BAN = "- Never write dated diaries"
+
+
 def test_no_instruction_file_asks_a_session_to_read_or_write_a_diary():
     """The habit comes back through the instructions, not through the code.
 
@@ -93,18 +96,18 @@ def test_no_instruction_file_asks_a_session_to_read_or_write_a_diary():
     diary = re.compile(r"memory/(\{[^}]*\})?\s*YYYY-MM-DD(\{[^}]*\})?\.md")
     offenders = {}
     for name, text in _instruction_texts():
-        hits = [line.strip() for line in text.splitlines()
-                if diary.search(line) and "retired in #1038" not in line]
-        # AGENTS.md carries the one allowed mention: the note saying they are gone.
+        hits = [line.strip() for line in text.splitlines() if diary.search(line)]
+        # AGENTS.md carries the one allowed mention: the rule forbidding them.
         if name == "AGENTS.md":
-            hits = [h for h in hits if not h.startswith(("- Dated diaries", "then removed"))]
+            hits = [h for h in hits if not h.startswith(_DIARY_BAN)]
         if hits:
             offenders[name] = hits
     assert offenders == {}, (
         f"instruction files still point at the retired diaries: {offenders}")
-    assert "retired in #1038" in (ROOT / "AGENTS.md").read_text(encoding="utf-8"), (
-        "the note explaining that the diaries are gone is what stops the next "
-        "session from recreating them; keep it")
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    assert any(line.startswith(_DIARY_BAN) and diary.search(line) for line in agents), (
+        "the rule forbidding the diaries is what stops the next session from "
+        "recreating them; keep it")
 
 
 def test_no_instruction_file_keeps_a_hand_maintained_holdings_mirror():

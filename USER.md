@@ -2,45 +2,33 @@
 
 - **Name:** Shengyu Li
 - **What to call them:** kcn
-- **Pronouns:** _(to be learned)_
 - **Timezone:** Asia/Shanghai (GMT+8)
-- **Notes:** Chinese speaker, interested in stock analysis
-
-## Context
-
-- Primary interest: Stock market analysis and trading
-- Communication: Comfortable with both Chinese and English
-- Username: KCNyu (Telegram)
-
----
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+- **Language:** Chinese and English; answer in the language of the question
+- **Telegram:** KCNyu
 
 ## 交易风格
-- **风险偏好：激进型**
-- **可用现金：读 `portfolio.json` 的当次账本，不在偏好文件保留金额副本**
-- 美股+港股持仓均在可接受范围内
-- 不排斥高波动标的，可以接受较大回撤
-- 港股AI个股（MiniMax、迅策等）有兴趣追热点
-- **AI 板块是 alpha 来源** —— 智谱 / MINIMAX / 迅策 这类，新闻和南向资金敏感度高于其他板块
 
-## 沟通偏好（来自历史日志归纳）
+- 风险偏好激进。接受高波动标的和较大回撤。
+- 可用现金读 `portfolio.json` 的当次账本。
+- AI 板块是 alpha 来源。港股 AI 个股（智谱、MiniMax、迅策）对新闻和南向资金的敏感度高于
+  其他板块，有兴趣追热点。
 
-- **持仓回答统一用表格** —— 一句话验证："喜欢简洁表格展示持仓"（2026-05-13 备注）
-- **直接判断，不要 hedging** —— 跳过 "this is not financial advice" 之类的免责，铁律已记录在 `MEMORY.md`
-- **数据缺失必须明说** —— ⚠️ 标注哪条没拿到，禁止用旧数据兜底回答
-- **terse 风格** —— 中英文都能接，少废话多结论，能用结构化展示就不用大段文字
-- **盯盘节奏不止开/午/收** —— 14:00 HKT 盘中也会查（见 2026-05-14 日志），盘中 cron `3,33 10-11,14-15`（HK，错开开/午/午后/收报告）就是为这个
+## 沟通偏好
 
-## 工作节奏
+- 持仓回答用表格。
+- 直接给判断。不 hedging，不写 "this is not financial advice" 之类的免责，不每次重复
+  「高风险请注意」。
+- 数据缺失必须明说：用 ⚠️ 标出哪条没拿到，不用旧数据兜底。
+- 少废话多结论。能结构化展示就不写大段文字。
+- 群聊和微信简报标题最多 1 个 emoji，正文克制。
 
-- 港股工作日 09:30-12:00 / 13:00-16:00（北京时间同）
-- 美股工作日按 ET 09:30-16:00 折算（禁止写死北京时间，见 `MEMORY.md § 时区`）；当季精确档位见 `docs/operations/cron-schedules.md`
-- 操作发生后习惯立即 git commit，且按 type 前缀（`portfolio:` / `memory:` / `docs:`；代码走 PR，用 `fix:` / `feat:` / `refactor:`）
+## 节奏
 
-## 不要做的事
+- 港股：工作日 09:30-12:00 / 13:00-16:00（北京时间相同）。
+- 美股：按 ET 09:30-16:00 折算，不写死北京时间。
+- 盘中也会查，不只看开盘、午间、收盘。各档精确时间见 `docs/operations/cron-schedules.md`。
 
-- 不要建议立保证金 / 借钱加杠杆 —— 现金管理偏稳，杠杆敞口已经在杠杆 ETF 里
-- 不要每次都重复"高风险请注意"之类的免责
-- 不要从 dated memory 恢复已删除脚本；只用 installed `clawock` 与 named `ops/*` 入口
-- 不要在 group chat / 微信简报里加 emoji 烟花 —— 标题用 1 个 emoji，正文克制
+## 不要做
+
+- 不建议融资、借钱或加保证金杠杆。杠杆敞口已经在杠杆 ETF 里，现金管理偏稳。
+- 不从旧笔记恢复已删除的脚本。只用已安装的 `clawock` 和 `ops/` 下的具名入口。
