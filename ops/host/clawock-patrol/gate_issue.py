@@ -46,7 +46,7 @@ DIGEST_PENDING = LOGDIR / "digest" / "pending.jsonl"
 LENS_TASK = os.environ.get("AGENT_DISPATCH_TASK_ID", "-")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from github_text import sanitize, validate
-from debt_check import evaluate as debt_evaluate, red_command as debt_red_command
+from debt_check import evaluate as debt_evaluate, precedent_touches, red_command as debt_red_command
 import triage  # noqa: E402  (severity, labels, routing — see triage.py)
 from filing import ensure_labels, flush_digest, telegram  # noqa: E402  (the gh/Telegram side)
 RED_TIMEOUT = int(os.environ.get("RED_CHECK_TIMEOUT", "240"))
@@ -152,9 +152,38 @@ import time
 if len(body) < 600:
     die(f"草稿只有 {len(body)} 个字符，太短——六段/三段格式写不下。")
 
+def _field(name):
+    m = re.search(r"^\s*(?:[-*]\s*)?(?:\*\*)?" + name + r"(?:\*\*)?\s*[:：]\s*(.+?)\s*$", body, re.M)
+    return m.group(1).strip() if m else ""
+
+
+def _precedents():
+    """(`先例:` 里的编号, 其中成立的, 草稿「现象」点名的文件)。
+
+    成立 = 编号在本仓存在，并且提到它的提交改过「现象」里点名的文件。2026-10-05 之前只核编号存在，
+    随便引一条无关 issue 就能过；一条没碰过这段代码的先例说明不了这段代码引发过什么。
+    """
+    nums = re.findall(r"#(\d{1,6})", _field("先例"))
+    sec = re.search(r"^#{1,4}\s*现象\s*$(.*?)(?=^#{1,4}\s|\Z)", body, re.M | re.S)
+    named = [p for p, _ in FILE_LINE.findall(sec.group(1) if sec else "")] or [p for p, _ in FILE_LINE.findall(body)]
+    paths = []
+    for p in dict.fromkeys(named):
+        r = subprocess.run(["git", "ls-files", "--", p, f":(glob)**/{p}"], cwd=WORK, capture_output=True, text=True, timeout=60)
+        paths += [x for x in r.stdout.splitlines() if x not in paths]
+    held = []
+    for n in nums[:3]:
+        r = subprocess.run(["gh", "api", f"repos/{REPO}/issues/{n}", "-q", ".title"],
+                           capture_output=True, text=True, timeout=60)
+        hit = precedent_touches(WORK, n, paths) if r.returncode == 0 and r.stdout.strip() else ""
+        if hit:
+            held.append(f"#{n}（{hit}）")
+    return nums, held, paths
+
+
 # Structural debt gets an exemption only from the two precedent requirements.
 # Evidence comes from the fixed read-only checker, not arbitrary assert False.
 DEBT_VERIFIED = False
+DEBT_KIND = ""
 _debt_block = re.search(r"<!--\s*DEBT-CHECK\s*\n(.*?)\n\s*-->", body, re.S)
 _declares_debt = triage.parse_declared(body)["kind"] == "debt"
 if _debt_block or _declares_debt:
@@ -172,8 +201,19 @@ if _debt_block or _declares_debt:
     _red_debt = RED_BLOCK.search(body)
     if not _red_debt or _red_debt.group(1).strip() != debt_red_command(_contract, TOOL):
         die("债务 RED-CHECK 必须是 debt_check.red_command(contract, TOOL) 生成的固定命令；不能替换为自定阈值或 assert False。")
+    DEBT_KIND = _contract["check"]
+    if DEBT_KIND in ("structure", "unreferenced-symbol") and "claim=full" not in _measured:
+        die("DEBT-CHECK 里写的和今天量到的不全相符：structure 的原函数必须还在且在尾部，"
+            "unreferenced-symbol 列的每个符号都必须今天零引用。", _measured)
+    # kcn 2026-10-05：无先例的纯质量债可以提，但要明写；写了先例就得是碰过这段代码的。
+    _nums, _held, _paths_named = _precedents()
+    if _nums and not _held:
+        die(f"`先例:` 给的 {', '.join('#' + n for n in _nums[:3])} 不存在，或提到它的提交没有改过 "
+            f"{' , '.join(_paths_named[:6])}。删掉这行并写「无先例」，或换成真的碰过这段代码的修复。")
+    if not _held and not (DEBT_KIND == "structure" and _contract["precedent"]) and "无先例" not in body:
+        die("这条债务没有成立的先例：正文要明写「无先例」（预防性，最高 P3），不能让读的人以为它出过事。")
     DEBT_VERIFIED = True
-    print("gate: measured debt: " + _measured, file=sys.stderr)
+    print("gate: measured debt: " + _measured + (" 先例=" + " ".join(_held) if _held else ""), file=sys.stderr)
 
 # ── 0.7 shapes that were closed again and again (closed-lessons.md) ─────────
 # 2026-09-17: of 239 loop issues since 08-25, 90 were closed without a PR. The shapes below
@@ -184,25 +224,32 @@ NEVER = re.compile(r"拆分|拆成|拆出|行数过多|函数过长|模块过大
                    r"import 耗时|顶层 import|magic number|魔法数|散落|注册表|统一常量|抽成常量|重构", re.I)
 _m = NEVER.search(_head_text)
 if _m and not DEBT_VERIFIED:
-    # kcn 2026-09-17 wants coupling and structure looked at too, so these are not refused outright;
-    # but every past one without a real consequence was closed, so a real consequence is required.
-    _pm = re.search(r"^\s*(?:[-*]\s*)?(?:\*\*)?先例(?:\*\*)?\s*[:：]\s*(.+?)\s*$", body, re.M)
-    _nums = re.findall(r"#(\d{1,6})", _pm.group(1)) if _pm else []
-    _real = []
-    for _n in _nums[:3]:
-        _r = subprocess.run(["gh", "api", f"repos/{REPO}/issues/{_n}", "-q", ".title"],
-                            capture_output=True, text=True, timeout=60)
-        if _r.returncode == 0 and _r.stdout.strip():
-            _real.append(_n)
+    # kcn 2026-09-17 wants coupling and structure looked at too, and on 2026-10-05 allowed refactors
+    # that change callers. The keyword list still marks a refactor-shaped draft; what changed is the
+    # way out. There are two, and nothing else passes:
+    #   1. a DEBT-CHECK contract that measured red (handled above: landing/benefit are contract fields);
+    #   2. a precedent whose fix changed the file this draft is about, plus 落点 and 收益 lines.
+    _nums, _real, _paths_named = _precedents()
     if not _real:
-        die(f"草稿是重构/拆分/耦合/散落类（匹配「{_m.group(0)}」）。这类以前没有真实后果的全被关了"
-            f"（#1318 #1319 #1322 #1326 #1346 #1359 #1456 #1481，见 {LESSONS} 第 3、4 条）。"
-            "要提就加一行 `先例: #N`，N 是这个耦合/结构**真实引发过**的 bug issue 或修复 PR，并在正文说清因果。")
+        die(f"草稿是重构/拆分/耦合/散落类（匹配「{_m.group(0)}」）。只说「该拆」而没有后果的以前全被关了"
+            f"（#1318 #1319 #1322 #1326 #1346 #1359 #1456 #1481，见 {LESSONS} 第 3、4 条）。两条出路：\n"
+            "  1. `类型: debt` + DEBT-CHECK 契约（structure / duplicate-python / unreferenced-symbol，见 issue-format.md）；\n"
+            "  2. `先例: #N`，N 是这段代码**真实引发过**的 bug issue 或修复 PR——闸会核提到 #N 的提交改过"
+            "「现象」里点名的文件。\n"
+            + (f"你给的 {', '.join('#' + n for n in _nums[:3])} 不存在，或没有改过 {' , '.join(_paths_named[:6]) or '（现象里没有 文件:行）'}。"
+               if _nums else "草稿里没有 `先例:` 行。"))
+    _landing, _benefit = _field("落点"), _field("收益")
+    if not FILE_LINE.search(" " + _landing) or len(_benefit) < 12 or not re.search(r"\d", _benefit):
+        die("重构类草稿有先例还不够，要答得上改哪里、换来什么：\n"
+            "  落点: <文件:行 + 拆成/并到哪几个符号 + 现有调用点几处 + 签名改不改>\n"
+            "  收益: <可对照的数字：调用点、分支数、副本数、只能整体走的测试入口数、这段代码上的 fix 提交数>\n"
+            "写不出这两行的进 ledger 候选。")
+    print(f"gate: 重构类草稿，先例碰过该文件：{' '.join(_real)}", file=sys.stderr)
 NO_CONSUMER = re.compile(r"无人消费|没人读|无人读取|未被(?:使用|消费|读取|调用)|从未被|没有(?:任何)?(?:消费|调用|清理|校验|测试)|"
                          r"0 ?(?:个)?消费者|never (?:used|read|consumed|called)|unused|no consumer|dead code|死代码", re.I)
 _m = NO_CONSUMER.search(_head_text)
 _red_for_shape = RED_BLOCK.search(body)
-if _m:
+if _m and DEBT_KIND != "unreferenced-symbol":   # that checker runs the unrestricted git grep itself
     _red_txt = _red_for_shape.group(1) if _red_for_shape else ""
     # shell `git grep …` or subprocess ["git", "grep", …]; a `--` pathspec limits it to some directories
     _whole = [l for l in _red_txt.splitlines()
@@ -214,9 +261,6 @@ if _m:
 
 # ── 0.8 the draft must show it tried to refute itself ────────────────────────
 REFUTE = re.compile(r"^#{1,4}\s*反证自查\s*$", re.M)
-def _field(name):
-    m = re.search(r"^\s*(?:[-*]\s*)?(?:\*\*)?" + name + r"(?:\*\*)?\s*[:：]\s*(.+?)\s*$", body, re.M)
-    return m.group(1).strip() if m else ""
 if not REFUTE.search(body):
     die("草稿缺 `## 反证自查` 一节。五行，缺一不可（以前 90 条 issue 就是缺了这一步被关的，见 " + LESSONS + "）：\n"
         "  全仓搜索: <git grep 命令 + 命中几处、在哪些目录>\n"
