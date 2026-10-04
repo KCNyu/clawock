@@ -113,3 +113,75 @@ def test_the_stored_note_admits_the_figures_are_a_lower_bound():
         pytest.skip("no capture committed yet")
     import json
     assert "lower bound" in json.loads(payload.read_text(encoding="utf-8"))["note"]
+
+
+# ── which occurrence, and which crons (#2517, #2526) ─────────────────────────
+
+def test_two_crons_closer_together_than_the_delay_each_keep_their_own_run():
+    """05:45 and 05:55 HKT, both delivered ~3h late, arrive minutes apart. The
+    earlier cron used to have no sample at all: both runs went to the later one."""
+    crons = ["45 21 * * 0-4", "55 21 * * 0-4"]
+    samples = drift.attribute([
+        ("early", at("2026-10-02T01:04:28"), crons),
+        ("late", at("2026-10-02T01:06:20"), crons),
+        ("yesterday-early", at("2026-10-01T00:50:00"), crons),
+        ("yesterday-late", at("2026-10-01T00:51:46"), crons),
+    ])
+    assert {s["run_id"]: (s["cron"], s["scheduled_at"]) for s in samples} == {
+        "early": ("45 21 * * 0-4", "2026-10-01T21:45:00Z"),
+        "late": ("55 21 * * 0-4", "2026-10-01T21:55:00Z"),
+        "yesterday-early": ("45 21 * * 0-4", "2026-09-30T21:45:00Z"),
+        "yesterday-late": ("55 21 * * 0-4", "2026-09-30T21:55:00Z"),
+    }
+    assert [s["run_id"] for s in samples][0] == "late", "newest first, like the API"
+
+
+def test_a_run_that_arrives_after_the_next_occurrence_is_its_own_wave():
+    """Runs with a cron instant between them are not regrouped: each takes the
+    latest instant before it, as before."""
+    samples = drift.attribute([
+        ("a", at("2026-08-21T07:03:00"), ["0 7 * * *", "0 10 * * *"]),
+        ("b", at("2026-08-21T10:05:00"), ["0 7 * * *", "0 10 * * *"]),
+    ])
+    assert {s["run_id"]: s["drift_minutes"] for s in samples} == {"a": 3.0, "b": 5.0}
+
+
+def test_one_occurrence_is_never_given_to_two_runs():
+    samples = drift.attribute([
+        ("a", at("2026-08-21T22:10:00"), ["0 22 * * *"]),
+        ("b", at("2026-08-21T22:12:00"), ["0 22 * * *"]),
+    ])
+    assert len({s["scheduled_at"] for s in samples}) == len(samples) == 1
+    assert samples[0]["run_id"] == "b"
+
+
+def test_a_run_is_matched_against_the_crons_its_workflow_had_at_the_time():
+    """weekly-health moved from 23:00 to 20:17 UTC on 2 October. Every earlier
+    run was re-attributed to 20:17 and read 163 minutes later than it was."""
+    history = [(at("2026-05-01T00:00:00"), ["0 23 * * 0"]),
+               (at("2026-10-02T02:38:54"), ["17 20 * * 0"])]
+    before, after = at("2026-09-28T01:20:55"), at("2026-10-04T21:00:00")
+    assert drift.crons_at(history, before, ["17 20 * * 0"]) == ["0 23 * * 0"]
+    assert drift.crons_at(history, after, ["17 20 * * 0"]) == ["17 20 * * 0"]
+    sample, = drift.attribute([("r", before, drift.crons_at(history, before, []))])
+    assert (sample["cron"], sample["drift_minutes"]) == ("0 23 * * 0", 140.9)
+
+
+def test_the_cron_history_is_the_version_live_at_the_oldest_run_and_every_later_one(monkeypatch):
+    files = {"new": "    - cron: '17 20 * * 0'\n", "old": "    - cron: '0 23 * * 0'\n",
+             "older": "    - cron: '0 1 * * 1'\n"}
+    asked = []
+
+    def api(path, token, raw=False):
+        asked.append(path)
+        if raw:
+            return files[path.rsplit("ref=", 1)[1]]
+        return [{"sha": sha, "commit": {"committer": {"date": date}}} for sha, date in (
+            ("new", "2026-10-02T02:38:54Z"), ("old", "2026-08-24T00:00:00Z"),
+            ("older", "2026-06-01T00:00:00Z"))]
+
+    monkeypatch.setattr(drift, "_api", api)
+    history = drift.cron_history("weekly-health.yml", at("2026-09-01T00:00:00"), "t")
+    assert history == [(at("2026-08-24T00:00:00"), ["0 23 * * 0"]),
+                       (at("2026-10-02T02:38:54"), ["17 20 * * 0"])]
+    assert not any(path.endswith("ref=older") for path in asked)

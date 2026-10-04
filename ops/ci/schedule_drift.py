@@ -26,6 +26,18 @@ delayed past its own next occurrence would be attributed to that later one, so
 the reported drift is a **lower bound** — which is the right direction to be
 wrong in for a number used to argue that things are late.
 
+Two refinements keep that reconstruction honest (#2517, #2526):
+
+  - **Which crons.** A run is matched against the cron lines the workflow file
+    carried when the run was created, read from the file's commit history — not
+    against today's file. Otherwise moving a cron re-attributes every earlier
+    run to an instant that did not exist yet.
+  - **Which occurrence.** Runs that arrive with no cron instant between them
+    are one delivery wave: a workflow with two crons ten minutes apart, both
+    delivered three hours late, produced two runs minutes apart. Those are
+    matched in order to the latest occurrences before the wave, one each,
+    instead of all to the last one — which left the earlier cron unmeasured.
+
 Usage:
     schedule_drift.py                 # merge into assets/data/schedule-drift.json
     schedule_drift.py --print         # table only, write nothing
@@ -56,18 +68,19 @@ class DriftError(RuntimeError):
     pass
 
 
-def _api(path: str, token: str) -> Any:
+def _api(path: str, token: str, raw: bool = False) -> Any:
     req = urllib.request.Request(
         f"https://api.github.com/repos/{REPO}/{path}",
         headers={
-            "Accept": "application/vnd.github+json",
+            "Accept": "application/vnd.github.raw" if raw else "application/vnd.github+json",
             "Authorization": f"Bearer {token}",
             "User-Agent": "clawock-schedule-drift (+https://github.com/KCNyu/clawock)",
         },
     )
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            body = resp.read().decode("utf-8")
+            return body if raw else json.loads(body)
     except urllib.error.HTTPError as exc:
         raise DriftError(f"{path} -> HTTP {exc.code} {exc.reason}") from exc
     except Exception as exc:  # noqa: BLE001
@@ -134,12 +147,104 @@ def scheduled_crons(path: Path) -> list[str]:
     block is unambiguous as text, so this stays dependency-free and cannot be
     thrown off by the rest of the file.
     """
+    return _crons_in(path.read_text(encoding="utf-8"))
+
+
+def _crons_in(text: str) -> list[str]:
     out = []
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("- cron:"):
             out.append(stripped.split(":", 1)[1].strip().strip("'\""))
     return out
+
+
+def _instant(stamp: str) -> dt.datetime:
+    return dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(
+        dt.timezone.utc).replace(tzinfo=None)
+
+
+def cron_history(name: str, since: dt.datetime, token: str) -> list[tuple[dt.datetime, list[str]]]:
+    """(effective from, crons) for each version of a workflow file that was live
+    at or after `since`, oldest first.
+
+    Read from the file's commits: the one in effect at `since` and every later
+    one. The checkout this runs in is shallow, so the history comes from the API.
+    """
+    commits = _api(f"commits?path=.github/workflows/{name}&per_page=30", token)
+    versions = []
+    for commit in commits:                      # newest first
+        when = _instant(commit["commit"]["committer"]["date"])
+        text = _api(f"contents/.github/workflows/{name}?ref={commit['sha']}", token, raw=True)
+        versions.append((when, _crons_in(text)))
+        if when <= since:
+            break
+    return sorted(versions, key=lambda v: v[0])
+
+
+def crons_at(history: list[tuple[dt.datetime, list[str]]], when: dt.datetime,
+             current: list[str]) -> list[str]:
+    """The crons a run created at `when` could have been scheduled by."""
+    live = [crons for since, crons in history if since <= when]
+    if live:
+        return live[-1]
+    return history[0][1] if history else current
+
+
+def _latest_occurrences(crons: list[str], when: dt.datetime, count: int,
+                        claimed: set[dt.datetime]) -> list[tuple[dt.datetime, str]]:
+    """Up to `count` unclaimed cron instants at or before `when`, oldest first."""
+    found: list[tuple[dt.datetime, str]] = []
+    cursor = when
+    while len(found) < count:
+        best: tuple[dt.datetime, str] | None = None
+        for expr in crons:
+            occurrence = previous_occurrence(expr, cursor)
+            if occurrence is not None and (best is None or occurrence > best[0]):
+                best = (occurrence, expr)
+        if best is None or (when - best[0]).total_seconds() > LOOKBACK_MINUTES * 60:
+            break
+        if best[0] not in claimed:
+            found.append(best)
+        cursor = best[0] - dt.timedelta(minutes=1)
+    return found[::-1]
+
+
+def attribute(runs: list[tuple[Any, dt.datetime, list[str]]]) -> list[dict[str, Any]]:
+    """Match each run — (id, created, crons live at that time) — to a cron instant.
+
+    Runs are taken oldest first and grouped into delivery waves: a run joins the
+    previous one's wave when no cron instant falls between them. A wave of k
+    runs takes the k latest instants before it, in order, so two crons that are
+    closer together than GitHub's delay each keep their own run. An instant is
+    never given to two runs. A run with no instant inside the lookback window is
+    left out rather than matched to a guess.
+    """
+    ordered = sorted(runs, key=lambda r: r[1])
+    waves: list[list[tuple[Any, dt.datetime, list[str]]]] = []
+    for run in ordered:
+        newest = _latest_occurrences(run[2], run[1], 1, set())
+        if not newest:
+            continue
+        if waves and newest[0][0] <= waves[-1][-1][1]:
+            waves[-1].append(run)
+        else:
+            waves.append([run])
+    samples: list[dict[str, Any]] = []
+    claimed: set[dt.datetime] = set()
+    for wave in waves:
+        slots = _latest_occurrences(wave[0][2], wave[0][1], len(wave), claimed)
+        # Fewer instants than runs: the newest runs keep the newest instants.
+        for (run_id, created, _), (occurrence, expr) in zip(wave[len(wave) - len(slots):], slots):
+            claimed.add(occurrence)
+            samples.append({
+                "run_id": run_id,
+                "cron": expr,
+                "scheduled_at": occurrence.isoformat() + "Z",
+                "started_at": created.isoformat() + "Z",
+                "drift_minutes": round((created - occurrence).total_seconds() / 60, 1),
+            })
+    return samples[::-1]
 
 
 def measure(token: str, workflows: Iterable[Path]) -> list[dict[str, Any]]:
@@ -159,29 +264,19 @@ def measure(token: str, workflows: Iterable[Path]) -> list[dict[str, Any]]:
                              "samples": 0, "note": "no scheduled runs yet"})
                 continue
             raise
-        samples: list[dict[str, Any]] = []
-        for run in runs.get("workflow_runs", []):
-            created = dt.datetime.fromisoformat(
-                run["created_at"].replace("Z", "+00:00")).replace(tzinfo=None)
-            # A workflow with several crons: attribute the run to whichever
-            # occurrence is closest before it.
-            best: tuple[float, str, dt.datetime] | None = None
-            for expr in crons:
-                occurrence = previous_occurrence(expr, created)
-                if occurrence is None:
-                    continue
-                delta = (created - occurrence).total_seconds() / 60
-                if best is None or delta < best[0]:
-                    best = (delta, expr, occurrence)
-            if best is None:
-                continue
-            samples.append({
-                "run_id": run["id"],
-                "cron": best[1],
-                "scheduled_at": best[2].isoformat() + "Z",
-                "started_at": run["created_at"],
-                "drift_minutes": round(best[0], 1),
-            })
+        listed = [(run["id"], _instant(run["created_at"]))
+                  for run in runs.get("workflow_runs", [])]
+        history: list[tuple[dt.datetime, list[str]]] = []
+        history_error = None
+        if listed:
+            try:
+                history = cron_history(path.name, min(c for _, c in listed), token)
+            except (DriftError, KeyError, TypeError) as exc:
+                # Without the history every run is matched against today's
+                # crons. Say so in the row instead of passing it off as measured.
+                history_error = str(exc)
+        samples = attribute([(run_id, created, crons_at(history, created, crons))
+                             for run_id, created in listed])
         if not samples:
             continue
         drifts = [s["drift_minutes"] for s in samples]
@@ -192,6 +287,11 @@ def measure(token: str, workflows: Iterable[Path]) -> list[dict[str, Any]]:
             "drift_min": min(drifts),
             "drift_median": round(statistics.median(drifts), 1),
             "drift_max": max(drifts),
+            # A cron in today's file that no sampled run was scheduled by: new,
+            # or not delivered. Its punctuality is unknown, not fine.
+            "unmeasured_crons": [c for c in crons if c not in {s["cron"] for s in samples}],
+            **({"cron_history": f"unavailable ({history_error}); matched against today's crons"}
+               if history_error else {}),
             "runs": samples,
         })
     return rows
@@ -245,7 +345,9 @@ def main(argv: list[str] | None = None) -> int:
         "note": ("drift_minutes = run.created_at - the reconstructed cron instant. "
                  "GitHub does not report the scheduled instant, so a run delayed "
                  "past its own next occurrence is attributed to that later one: "
-                 "every figure here is a lower bound."),
+                 "every figure here is a lower bound. A run is matched against the "
+                 "crons its workflow file carried when the run was created, and runs "
+                 "delivered in one wave take one occurrence each, in order."),
         "workflows": rows,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
