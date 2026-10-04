@@ -662,7 +662,7 @@ def check(portfolio_path=PORTFOLIO):
             prev = _num(h.get('prev_close'))
             tchg = _num(h.get('today_change'))
             sess_date = holding_session(h, data.get('last_updated'), market)
-            if sh and not sess_date:
+            if sh and cur is not None and not sess_date:
                 add('SESSION_STAMP_INVALID', 'ERROR',
                     f'{t} 无法确定报价 session；检查 day_session_date、data_source 和 last_updated；'
                     'STALE_PRICE 与跨 session 校验缺少依据', region, t)
