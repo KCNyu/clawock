@@ -22,6 +22,11 @@
 # scan is dispatched on its own, given time to finish, and dispatched once more
 # if it was cancelled.
 #
+# A dispatch that GitHub accepted is not a scan that ran (#2549): the retry can be
+# cancelled too, and a scan can fail. So the run each dispatch produced is read
+# back, and anything other than `success` — no new run, still running when the
+# wait is spent, cancelled twice, failure — is a FAILED line and exit 1.
+#
 # System crontab (HKT), Mon–Fri like the brief:
 #   20 7 * * 1-5 /bin/bash /root/.openclaw/workspace/ops/host/dispatch_preopen_scans.sh >> /root/.openclaw/workspace/logs/preopen_scans.log 2>&1
 set -uo pipefail
@@ -31,34 +36,78 @@ GH="${GH_BIN:-/usr/bin/gh}"
 REPO="${CLAWOCK_REPO:-KCNyu/clawock}"
 
 SETTLE_SECONDS="${PREOPEN_SCAN_SETTLE_SECONDS:-150}"
+# A scan takes about a minute; one still running after the settle is polled
+# for this much longer before it is reported as not finished.
+WAIT_SECONDS="${PREOPEN_SCAN_WAIT_SECONDS:-300}"
+POLL_SECONDS="${PREOPEN_SCAN_POLL_SECONDS:-20}"
 
 dispatch() {
   "$GH" workflow run "$1" -R "$REPO" --ref master >/dev/null 2>&1
 }
 
-# Conclusion of the newest host-dispatched run of a workflow ("" while it runs).
-conclusion() {
+# "<run id> <conclusion>" of the newest host-dispatched run of a workflow; the
+# conclusion is empty while it runs, the whole line is empty when there is none.
+newest() {
   "$GH" run list -R "$REPO" --workflow "$1" --event workflow_dispatch --limit 1 \
-    --json conclusion --jq 'map(.conclusion) | first // ""' 2>/dev/null
+    --json databaseId,conclusion \
+    --jq 'map("\(.databaseId) \(.conclusion // "")") | first // ""' 2>/dev/null
+}
+
+run_id() {
+  local line
+  line="$(newest "$1")"
+  echo "${line%% *}"
+}
+
+# How the run dispatched after run id $2 ended: its conclusion, `missing` when
+# no newer run showed up, `running` when it has not concluded in time.
+outcome() {
+  local workflow="$1" before="$2" waited=0 line id result
+  sleep "$SETTLE_SECONDS"
+  while :; do
+    line="$(newest "$workflow")"
+    id="${line%% *}"
+    result="${line#* }"
+    [ "$line" = "$id" ] && result=""
+    if [ -z "$id" ] || [ "$id" = "$before" ]; then
+      result="missing"
+    elif [ -z "$result" ]; then
+      result="running"
+    else
+      break
+    fi
+    [ "$waited" -ge "$WAIT_SECONDS" ] && break
+    sleep "$POLL_SECONDS"
+    waited=$((waited + POLL_SECONDS))
+  done
+  echo "$result"
 }
 
 status=0
 for workflow in macro-scan.yml sentiment-scan.yml; do
+  before="$(run_id "$workflow")"
   if ! dispatch "$workflow"; then
     echo "$(date -Is) dispatch FAILED for $workflow — the brief will read whatever the scheduled run left"
     status=1
     continue
   fi
   echo "$(date -Is) dispatched $workflow"
-  sleep "$SETTLE_SECONDS"
-  if [ "$(conclusion "$workflow")" = "cancelled" ]; then
-    if dispatch "$workflow"; then
-      echo "$(date -Is) $workflow was cancelled in the queue — dispatched again"
-      sleep "$SETTLE_SECONDS"
-    else
+  result="$(outcome "$workflow" "$before")"
+  if [ "$result" = "cancelled" ]; then
+    before="$(run_id "$workflow")"
+    if ! dispatch "$workflow"; then
       echo "$(date -Is) $workflow was cancelled in the queue and the retry FAILED"
       status=1
+      continue
     fi
+    echo "$(date -Is) $workflow was cancelled in the queue — dispatched again"
+    result="$(outcome "$workflow" "$before")"
+  fi
+  if [ "$result" = "success" ]; then
+    echo "$(date -Is) $workflow finished: success"
+  else
+    echo "$(date -Is) $workflow FAILED: run ended $result — the brief will read whatever the previous scan left"
+    status=1
   fi
 done
 exit "$status"
