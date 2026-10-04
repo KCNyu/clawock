@@ -8,6 +8,11 @@ system sans type on a fixed scale, graphite ink with blue kept for data and
 dispatch flow, green for code gates and warm red for isolation / arbitration.
 Every diagram is a single 520-unit column so it still reads on a phone.
 
+Depth is drawn with gradients only: a cool light falling from the top-left of
+the canvas, a short contact shadow under each card, a card edge that is lighter
+on top than underneath, and pulse halos that fade out instead of ending at a
+rim. They live in the shared primitives, so the six diagrams change together.
+
 Motion is SMIL <animateMotion> pulses along the connectors plus a few CSS
 keyframes. Repository screenshots are embedded as PNG data URIs at their original
 aspect ratio. No script, no external font or image, no filter (a filter rasterises
@@ -52,6 +57,7 @@ TYPE = {
     'h': (17.5, 700, .55), 'b': (15, 450, .53), 'm': (14.5, 450, .53),
     'code': (13.5, 500, .62), 'tag': (11.5, 700, .78),
 }
+GLOW = {color: role for role, color in ROLE.items()}   # pulse colour -> halo gradient id
 WARN = []
 
 
@@ -105,7 +111,7 @@ class D:
             self.add(f'<circle cx="{x + 5}" cy="{y - 4.5}" r="4.5" fill="{ROLE[role]}"/>')
             self.text(x + 15, y, label, 'm', fill=MUT)
             x += w + 14
-        self.add(f'<path d="M{M} {y + 20}H{W - M}" stroke="{CARD_STROKE}"/>')
+        self.add(f'<path d="M{M} {y + 20}H{W - M}" stroke="url(#rule)"/>')
         return y + 20
 
     def section(self, y, label):
@@ -113,8 +119,11 @@ class D:
 
     def card(self, x, y, w, h, role, tint=False):
         fill = TINT[role] if tint else '#ffffff'
+        # The card covers all but the last few units of this, which fade out below it.
+        self.add(f'<rect x="{x + 6:g}" y="{y + h - 14:g}" width="{w - 12:g}" height="22" rx="11" '
+                 f'fill="url(#lift)"/>')
         self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="12" fill="{fill}" '
-                 f'stroke="{CARD_STROKE}" stroke-width="1.2"/>')
+                 f'stroke="url(#edge)" stroke-width="1.2"/>')
         self.add(f'<path d="M{x + 1.5:g} {y + 12:g}V{y + h - 12:g}" stroke="{ROLE[role]}" '
                  f'stroke-width="4" stroke-linecap="round"/>')
 
@@ -122,7 +131,8 @@ class D:
         w = width(label, 'tag') + 16
         if anchor == 'end':
             x -= w
-        self.add(f'<rect x="{x:g}" y="{y - 14:g}" width="{w:g}" height="20" rx="10" fill="{TINT[role]}"/>')
+        self.add(f'<rect x="{x:g}" y="{y - 14:g}" width="{w:g}" height="20" rx="10" fill="{TINT[role]}" '
+                 f'stroke="{ROLE[role]}" stroke-opacity=".16"/>')
         self.text(x + w / 2, y, [(label, ROLE[role])], 'tag', anchor='middle')
         return w
 
@@ -272,8 +282,8 @@ class D:
         self.add(f'<path id="{pid}" d="{d}" fill="none" stroke="{color}" stroke-width="1.5"{ds}{mk}/>')
         for b in pulses:
             c = pulse or ROLE['blue']
-            for r, op in ((7, .16), (3.4, 1)):
-                self.add(f'<circle class="pulse" r="{r}" fill="{c}" fill-opacity="{op}">'
+            for r, fill in ((7, f'url(#glow-{GLOW[c]})'), (3.4, c)):
+                self.add(f'<circle class="pulse" r="{r}" fill="{fill}">'
                          f'<animateMotion dur="{dur}s" begin="{-b:.2f}s" repeatCount="indefinite" '
                          f'keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1">'
                          f'<mpath href="#{pid}" xlink:href="#{pid}"/></animateMotion></circle>')
@@ -304,11 +314,27 @@ class D:
                 '  <defs><linearGradient id="page" x1="0" y1="0" x2="1" y2="1">'
                 '<stop offset="0" stop-color="#fbfbfc"/><stop offset=".6" stop-color="#f4f6f8"/>'
                 '<stop offset="1" stop-color="#edf1f4"/></linearGradient>'
-                f'<marker id="arr" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto" '
+                f'<radialGradient id="light" cx="0" cy="0" r="{W * .9:g}" gradientUnits="userSpaceOnUse">'
+                f'<stop offset="0" stop-color="{ROLE["blue"]}" stop-opacity=".10"/>'
+                f'<stop offset="1" stop-color="{ROLE["blue"]}" stop-opacity="0"/></radialGradient>'
+                '<linearGradient id="lift" x1="0" y1="0" x2="0" y2="1">'
+                '<stop offset=".55" stop-color="#1c2b3a" stop-opacity=".11"/>'
+                '<stop offset="1" stop-color="#1c2b3a" stop-opacity="0"/></linearGradient>'
+                '<linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">'
+                '<stop offset="0" stop-color="#e9eef3"/><stop offset="1" stop-color="#cfd9e2"/></linearGradient>'
+                f'<linearGradient id="rule" x1="{M}" y1="0" x2="{W - M}" y2="0" gradientUnits="userSpaceOnUse">'
+                f'<stop offset=".5" stop-color="{CARD_STROKE}"/>'
+                f'<stop offset="1" stop-color="{CARD_STROKE}" stop-opacity="0"/></linearGradient>'
+                + ''.join(f'<radialGradient id="glow-{role}"><stop offset=".4" stop-color="{color}" stop-opacity=".36"/>'
+                          f'<stop offset=".72" stop-color="{color}" stop-opacity=".14"/>'
+                          f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient>'
+                          for role, color in ROLE.items())
+                + f'<marker id="arr" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto" '
                 f'markerUnits="userSpaceOnUse"><path d="M1 1.5L6.5 5L1 8.5" fill="none" stroke="{LINE}" '
                 f'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>'
                 f'<style>{style}</style></defs>\n'
-                f'  <rect x=".5" y=".5" width="{W - 1}" height="{h - 1}" rx="22" fill="url(#page)" stroke="#e1e6eb"/>\n')
+                f'  <rect x=".5" y=".5" width="{W - 1}" height="{h - 1}" rx="22" fill="url(#page)" stroke="#e1e6eb"/>\n'
+                f'  <rect x=".5" y=".5" width="{W - 1}" height="{h - 1}" rx="22" fill="url(#light)"/>\n')
         return head + '\n'.join('  ' + p for p in self.parts) + '\n</svg>\n'
 
 
