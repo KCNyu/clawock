@@ -403,5 +403,19 @@ capping the list. File mtime does not select candidates; missing UPDATED sorts l
 logs are read only for the chosen rows. This reader change requires the dsh host and gateway
 to reload their modules; a no-restart client install alone does not change that in-memory code.
 
-The comparison and deliberately rejected scope are in
-[the Todos workflow study](../design/todos-workflow-2026-10-04/README.md).
+Deliberately out of scope, each for a recorded reason:
+
+- **Parent/child tasks, a dependency graph, fan-out/join.** Nothing here depends on it, and
+  one slot per agent on a two-core host is the real limit. Relations go in the brief or the PR.
+- **A phase board with drag-to-change-state.** There is no plan-approval or diff-acceptance
+  lifecycle to project; provider → queue → detail fits a narrow sidebar. A failure is an end
+  result and a quota wait is automatic, so neither is "waiting on a person".
+- **A native `events.jsonl` written by the runner.** It would be an unambiguous source, but it
+  needs atomic runner writes, a failure policy and compatibility with old tasks. Until that is
+  a runner change with fault injection behind it, the timeline stays a reading of existing logs.
+- **Per-model cost charts and live token counters.** Nothing collects continuously, and a
+  subscription window is not an API bill.
+
+Searching ended tasks by title, id or outcome is the next thing worth measuring: the list
+shows only the most recent few. It would be a read-only paged index, separate from the
+active poll.
