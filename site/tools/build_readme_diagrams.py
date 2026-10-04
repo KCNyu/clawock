@@ -283,7 +283,7 @@ class D:
 
     def curve(self, x1, y1, x2, y2, **kw):
         ym = (y1 + y2) / 2
-        self.wire(f'M{x1:g} {y1:g}C{x1:g} {ym:g} {x2:g} {ym:g} {x2:g} {y2 - 2:g}', **kw)
+        self.wire(f'M{x1:g} {y1:g}C{x1:g} {ym:g} {x2:g} {ym:g} {x2:g} {y2 - 10:g}', **kw)
 
     def render(self, h):
         style = (
@@ -312,7 +312,7 @@ class D:
         return head + '\n'.join('  ' + p for p in self.parts) + '\n</svg>\n'
 
 
-def columns(n, gap=12, x0=M, w=CW):
+def columns(n, gap=16, x0=M, w=CW):
     cw = (w - gap * (n - 1)) / n
     return [x0 + i * (cw + gap) for i in range(n)], cw
 
@@ -364,7 +364,7 @@ def harnesses():
              'Open a PR; merge after required checks pass,',
              'refresh the live checkout and send me the result.”'], where='request')
     top = y + h
-    y = top + 60
+    y = top + 76
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
     d.down(W / 2, top, y - 38, pulses=(0, 1.1))
     h = 94
@@ -375,7 +375,7 @@ def harnesses():
     d.lines(M + 20, y + 61, CW - 40,
             ['One systemd task per request; independent of chat.'], cls='m', where='runner')
     top = y + h
-    y = top + 40
+    y = top + 56
     xs, cw = columns(3)
     h = 122
     for i, (x, (logo, name)) in enumerate(zip(xs, (
@@ -390,7 +390,7 @@ def harnesses():
         d.text(x + cw / 2, y + 104, 'own task unit', 'm', anchor='middle', fill=MUT)
         fits('own task unit', 'm', cw - 12, 'worker')
     top = y + h
-    y = top + 56
+    y = top + 72
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, W / 2, y - 38, pulses=(i * .6,), pulse=ROLE['slate'])
 
@@ -421,7 +421,7 @@ def harnesses():
         d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
     d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
-    y = top + 60
+    y = top + 76
     d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
@@ -441,7 +441,7 @@ def harnesses():
             d.wire(f'M{x - 16:g} {y + 34:g}H{x - 3:g}', pulses=(i * .4,), dur=1.2,
                    pulse=ROLE['green'])
     top = y + h
-    y = top + 38
+    y = top + 54
     d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['green'])
     h = 92
     d.card(M, y, CW, h, 'green', tint=True)
@@ -450,7 +450,7 @@ def harnesses():
     d.text(M + 74, y + 63, 'refresh_live.sh applies the checked change', 'm', fill=MUT)
     fits('refresh_live.sh applies the checked change', 'm', CW - 94, 'live')
     top = y + h
-    y = top + 60
+    y = top + 76
     d.down(W / 2, top, y - 38, pulses=(0, 1.1))
 
     d.section(y - 12, '05 · HEAR BACK, EVEN AFTER YOU LEAVE')
@@ -491,7 +491,7 @@ def information_flow():
     y += 30
     d.section(y, '1 · SOURCES')
     y += 14
-    h = 238
+    h = 262
     d.card(M, y, CW, h, 'blue')
     d.text(M + 20, y + 32, '8 information layers', 'h')
     d.tag(W - M - 16, y + 30, 'HK + US', 'blue', anchor='end')
@@ -500,7 +500,7 @@ def information_flow():
               'L6 quant · risk', 'L7 book · FX', 'L8 backtest']
     for i, name in enumerate(layers):
         col, row = i % 2, i // 2
-        d.chip(xs[col], y + 54 + row * 44, cw, name, h=36, role='blue',
+        d.chip(xs[col], y + 54 + row * 52, cw, name, h=36, role='blue',
                icon=('market', 'filing', 'bars', 'news', 'calendar', 'shield', 'fx', 'replay')[i])
     top = y + h
     y = top + 44
@@ -1034,7 +1034,7 @@ def decision_pipeline():
 
     # 03 decide
     d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
-    h = 466
+    h = 482
     d.card(M, y, CW, h, 'slate')
     d.logo('openclaw', M + 16, y + 12, size=30)
     d.text(M + 56, y + 32, 'Swarm debate', 'h')
@@ -1044,8 +1044,8 @@ def decision_pipeline():
     lx, lw = columns(2, gap=12, x0=ix, w=iw)
     for i, (name, icon) in enumerate(zip(('fundamental', 'technical', 'sentiment', 'sector'),
                                          ('lens', 'factor', 'chat', 'sector'))):
-        d.chip(lx[i % 2], y + 70 + (i // 2) * 48, lw, name, icon=icon, h=36)
-    ry = y + 154
+        d.chip(lx[i % 2], y + 70 + (i // 2) * 56, lw, name, icon=icon, h=36)
+    ry = y + 170
     d.down(W / 2, ry, ry + 24, pulses=(0,), dur=1.6, pulse=ROLE['slate'])
     bx, bw = columns(2, gap=8, x0=ix, w=iw)
     by = ry + 32

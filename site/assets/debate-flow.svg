@@ -72,34 +72,34 @@
   <text x="260" y="784" class="tag" text-anchor="middle"><tspan fill="#b8524a">OPPOSING CASE REQUIRED</tspan></text>
   <text x="24" y="830" class="kick"><tspan fill="#8794a1">TIER 3 · RISK + JUDGE</tspan></text>
   <path id="w5" d="M260 796V844" fill="none" stroke="#a9b6c2" stroke-width="1.5"/>
-  <path id="w6" d="M260 844C260 864 99.3333 864 99.3333 882" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w6" d="M260 844C260 864 99.3333 864 99.3333 874" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <rect x="24" y="884" width="150.667" height="84" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M25.5 896V956" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="up" transform="translate(88.3333 899) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19L19 4M10 4h9v9"/></g>
   <text x="101.333" y="949" class="b" text-anchor="middle"><tspan fill="#151a21">Aggressive</tspan></text>
-  <path id="w7" d="M260 844C260 864 260 864 260 882" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w7" d="M260 844C260 864 260 864 260 874" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
   <rect x="184.667" y="884" width="150.667" height="84" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M186.167 896V956" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="shield" transform="translate(249 899) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/></g>
   <text x="262" y="949" class="b" text-anchor="middle"><tspan fill="#151a21">Conservative</tspan></text>
-  <path id="w8" d="M260 844C260 864 420.667 864 420.667 882" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w8" d="M260 844C260 864 420.667 864 420.667 874" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
   <rect x="345.333" y="884" width="150.667" height="84" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
   <path d="M346.833 896V956" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="balance" transform="translate(409.667 899) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>
   <text x="422.667" y="949" class="b" text-anchor="middle"><tspan fill="#151a21">Neutral</tspan></text>
-  <path id="w9" d="M99.3333 968C99.3333 991 260 991 260 1012" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w9" d="M99.3333 968C99.3333 991 260 991 260 1004" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
-  <path id="w10" d="M260 968C260 991 260 991 260 1012" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w10" d="M260 968C260 991 260 991 260 1004" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w10" xlink:href="#w10"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w10" xlink:href="#w10"/></animateMotion></circle>
-  <path id="w11" d="M420.667 968C420.667 991 260 991 260 1012" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w11" d="M420.667 968C420.667 991 260 991 260 1004" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="#5d7487" fill-opacity="0.16"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487" fill-opacity="1"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
   <rect x="24" y="1014" width="472" height="96" rx="12" fill="#ffffff" stroke="#dde4eb" stroke-width="1.2"/>
