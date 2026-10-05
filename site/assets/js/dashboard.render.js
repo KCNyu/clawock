@@ -533,12 +533,17 @@
     const activeExec = safe(metrics, "execution_by_kind", "active") || {};
     const totalUsd = fx && us.value_usd != null && hk.value_hkd != null
       ? us.value_usd + hk.value_hkd / fx : null;
+    // Same sample rule as the first-paint chip (#2555): the score never stands
+    // without `calibration.active.n`, on any panel the rail rides along (#2561).
+    const brierN = safe(metrics, "calibration", "active", "n");
+    const brierSample = brierN == null ? "样本量未知" : `n=${brierN}${brierN < 8 ? " 样本少" : ""}`;
+    const brierText = metrics.brier == null ? DASH : `${metrics.brier.toFixed(3)} · ${brierSample}`;
     const values = [
       ["dr-book", fmtMoney(totalUsd, "USD"), ""],
       ["dr-pnl-us", fmtMoney(us.today_change_usd, "USD"), pnlClass(us.today_change_usd)],
       ["dr-pnl-hk", fmtMoney(hk.today_change_hkd, "HKD"), pnlClass(hk.today_change_hkd)],
       ["dr-followed", activeExec.rate == null ? DASH : (activeExec.rate * 100).toFixed(1) + "%", "neutral"],
-      ["dr-grade", metrics.brier == null ? DASH : metrics.brier.toFixed(3), ""],
+      ["dr-grade", brierText, ""],
     ];
     // Values and semantic classes are computed first, then committed together.
     // The old mirror alternated writes with getComputedStyle() five times, forcing
@@ -556,7 +561,7 @@
     });
     const compact = document.getElementById("dr-compact");
     if (compact) {
-      compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
+      compact.textContent = `持仓市值 ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
       compact.title = compact.textContent;
     }
   }
@@ -4435,7 +4440,7 @@
       // held through a 2x ETF looks like. They are out of the denominator above,
       // so the count has to be visible or the rate is quietly censored. Same
       // shape as the win-rate card's 「另有 N 条判不了」 note.
-      const stranded = (act.stranded || 0) + (pas.stranded || 0);
+      const stranded = act.stranded || 0;
       const strandedNote = stranded ? ` · 另有 ${stranded} 条永远验不了（不在分母）` : "";
       setSub("plan-followed-sub", `${act.followed}/${act.known} 条要动手的${passiveNote}${strandedNote}`);
       setClass("plan-followed", "neutral");
@@ -4492,10 +4497,16 @@
       const hcNote = hc && hc.n
         ? ` · 最有把握的 ${hc.n} 次只对了 ${hc.wins} 次`
         : "";
-      setSub("plan-brier-sub", (mc != null && br != null)
+      // The colour is the calibration verdict, so it obeys the calibration sample
+      // rule (#2233): under 8 active episodes, or an unknown count, is not graded.
+      const calibN = safe(calib, "calibration", "active", "n");
+      const thin = calibN == null || calibN < 8;
+      const sampleNote = calibN == null ? " · 校准样本量未知" : thin ? ` · 校准样本 n=${calibN} 样本少` : "";
+      setSub("plan-brier-sub", ((mc != null && br != null)
         ? `说自己 ${Math.round(mc * 100)}% 把握，实际对 ${Math.round(br * 100)}%${hcNote}`
-        : `准度 ${brier.toFixed(3)}`);
-      setClass("plan-brier", calib.brier_beats_baseline === true ? "pos"
+        : `准度 ${brier.toFixed(3)}`) + sampleNote);
+      setClass("plan-brier", thin ? "neutral"
+                           : calib.brier_beats_baseline === true ? "pos"
                            : calib.brier_beats_baseline === false ? "neg" : "neutral");
     }
 
