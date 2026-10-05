@@ -76,6 +76,11 @@
       // this tab alone renders. Rapid swipes share in-flight fetches and the last
       // visible tab wins, so no hidden panel receives runtime DOM.
       activateTabData(t);
+    } else if (t !== TAB_ORDER[0]) {
+      // Switched (or deep-linked) before the first projection landed: loadData()
+      // paints whichever tab is showing when it finishes, and until then this
+      // panel is card chrome with nothing in it. Say it is loading.
+      document.querySelector(`.panel[data-panel="${t}"]`)?.setAttribute("aria-busy", "true");
     }
     const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
     // Keep the chosen tab inside the strip — but `scrollIntoView` is a layout
@@ -382,6 +387,14 @@
   let OVERVIEW_DATA = null;
   let FULL_DASHBOARD = null;
   let FULL_DASHBOARD_INFLIGHT = null;
+  // A full document that arrived under a generation nobody had asked for yet.
+  // See _loadFullDashboard: it is the other half of the Overview the next
+  // resync is about to read, so that resync must not download it again.
+  let FULL_DASHBOARD_SPARE = null;
+  // Whether OVERVIEW_DATA itself was read from the data branch. The first one
+  // never is (the LCP fetch stays on this origin), and that decides how a
+  // generation mismatch against the branch has to be read.
+  let OVERVIEW_FROM_LIVE = false;
 
   // Seven required outputs and one optional evidence file reach `data-plane` and only
   // reach this origin through a Pages deployment. Measured 2026-08-06: the
@@ -396,7 +409,9 @@
   // only fetch on the LCP path, and a second origin's DNS/TCP/TLS handshake
   // there would be paid by every cold visit — including Lighthouse — to save a
   // wait that nobody is watching yet. A `preconnect` would not help either: the
-  // first cross-origin request happens 60 s in, far outside the load window.
+  // first cross-origin request is the idle warm-up after that paint (see
+  // _warmDetailPath), which nobody is waiting on, and a handshake started in
+  // the head would compete with the stylesheet for the connection that matters.
   const DATA_PLANE_ORIGIN = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/";
   const DATA_PLANE_FILES = new Set([
     "cron-heartbeats", "dashboard", "decision_audit", "decision_trail",
@@ -418,7 +433,35 @@
   let LIVE_ORIGIN_BLOCKED = false;
 
   function _isLiveUrl(url) {
-    return LIVE_ORIGIN != null && url.startsWith(LIVE_ORIGIN);
+    return url.startsWith(DATA_PLANE_ORIGIN);
+  }
+
+  function _blockLiveOrigin() {
+    LIVE_ORIGIN_BLOCKED = true;
+    LIVE_ORIGIN = null;
+  }
+
+  // Every read of the data branch is bounded. A route that swallows packets to
+  // that host (it is a second origin, and not every network reaches it) leaves
+  // `fetch` pending for as long as the OS keeps the socket — measured: a detail
+  // tab still `aria-busy` after 30 s, and the 60 s poll stacking one more
+  // pending request behind it each minute, so the fallback to this origin never
+  // ran at all. The deadline covers the body too: headers arriving is not the
+  // document arriving. A normal read is well under a second.
+  const LIVE_FETCH_TIMEOUT_MS = 8000;
+  async function _fetchJson(url, init) {
+    const live = _isLiveUrl(url);
+    const controller = live ? new AbortController() : null;
+    const timer = live ? setTimeout(() => controller.abort(), LIVE_FETCH_TIMEOUT_MS) : 0;
+    try {
+      const response = await fetch(url, live ? { ...init, signal: controller.signal } : init);
+      return {
+        ok: response.ok, status: response.status,
+        value: response.ok ? await response.json() : null,
+      };
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   // `bust` is dropped for the live origin on purpose: raw.githubusercontent.com
@@ -456,27 +499,58 @@
 
   function _loadFullDashboard(generation, triggeredByUser = false) {
     if (_generation(FULL_DASHBOARD) === generation) return Promise.resolve(FULL_DASHBOARD);
+    if (_generation(FULL_DASHBOARD_SPARE) === generation &&
+        _generation(OVERVIEW_DATA) === generation) {
+      FULL_DASHBOARD = FULL_DASHBOARD_SPARE;
+      FULL_DASHBOARD_SPARE = null;
+      return Promise.resolve(FULL_DASHBOARD);
+    }
     if (FULL_DASHBOARD_INFLIGHT?.generation === generation) {
       return FULL_DASHBOARD_INFLIGHT.promise;
     }
     const fetchGeneration = async retry => {
       const bust = triggeredByUser || retry ? "?t=" + Date.now() : "";
       const url = _dataUrl("dashboard", bust);
-      const response = await fetch(url, {
-        cache: triggeredByUser || retry ? "no-store" : "no-cache",
-      });
-      if (!response.ok) throw new Error("dashboard HTTP " + response.status);
-      const value = _unpackSnapshots(await response.json());
+      const live = _isLiveUrl(url);
+      let response;
+      try {
+        response = await _fetchJson(url, {
+          cache: triggeredByUser || retry ? "no-store" : "no-cache",
+        });
+        if (!response.ok) throw new Error("dashboard HTTP " + response.status);
+      } catch (error) {
+        // Lets the caller tell "the data branch let us down" (drop it and read
+        // this origin) from "this origin has no document either".
+        error.liveOrigin = live;
+        throw error;
+      }
+      const value = _unpackSnapshots(response.value);
       if (_generation(value) !== generation) {
-        // The live origin caches each file independently for 300 s, so the two
-        // halves of one generation can be minutes apart at the edge. `no-store`
+        // The Overview on screen came from this origin and the full document
+        // from the data branch, which is a generation ahead of Pages for most
+        // of a trading session (#367). That is not an edge still catching up:
+        // re-hopping returns the same newer document, and the first tab opened
+        // after a cold load used to fail on it and sit on the error box until
+        // the next 60 s poll moved Overview across. Keep the document and let
+        // the caller resync Overview to it instead of downloading it twice.
+        const crossOrigin = live && !OVERVIEW_FROM_LIVE;
+        // Overview moved on while this request was in the air (a poll, or the
+        // resync a sibling request started). Nobody wants `generation` any
+        // more, so re-hopping for it is a wasted download; if what arrived is
+        // the half Overview now needs, it is simply the answer.
+        const current = _generation(OVERVIEW_DATA);
+        const superseded = current !== generation;
+        if (superseded && _generation(value) === current) FULL_DASHBOARD = value;
+        else if (crossOrigin) FULL_DASHBOARD_SPARE = value;
+        // Both halves from the live origin: it caches each file independently
+        // for 300 s, so they can be minutes apart at the edge. `no-store`
         // re-hops it. If the pair still does not line up, this generation is
         // simply not assembled yet — say so in a way the caller can tell apart
         // from a real failure, and let the next poll pick it up.
-        if (!retry) return fetchGeneration(true);
+        if (!retry && !crossOrigin && !superseded) return fetchGeneration(true);
         const error = new Error(
           `dashboard generation mismatch: wanted ${generation}, got ${_generation(value)}`);
-        error.incompleteGeneration = _isLiveUrl(url);
+        error.incompleteGeneration = live || superseded;
         throw error;
       }
       // A slower request for the previous Overview generation must not replace
@@ -548,8 +622,8 @@
     const load = async () => {
       const url = _dataUrl(k, bust);
       try {
-        const response = await fetch(url, init);
-        if (response.ok) return await response.json();
+        const response = await _fetchJson(url, init);
+        if (response.ok) return response.value;
       } catch (error) {
         if (!_isLiveUrl(url)) return null;
       }
@@ -652,7 +726,7 @@
   // `triggeredByUser` is what the retry button passes: both loaders below take
   // it and turn it into `no-store`, so pressing 重试 re-hops the network instead
   // of revalidating its way back to the same failure.
-  function activateTabData(t, triggeredByUser = false) {
+  function activateTabData(t, triggeredByUser = false, recovery = 0) {
     const version = ++TAB_ACTIVATION_VERSION;
     const keys = _sidecarsForTab(t);
     const needsFetch = keys.some(k => {
@@ -667,10 +741,16 @@
       if (t === "hero" && OVERVIEW_DATA) DATA = OVERVIEW_DATA;
       else if (t !== "hero" && FULL_DASHBOARD) DATA = FULL_DASHBOARD;
     };
-    if ((needsFetch || needsRuntime || needsFull) && panel) {
-      panel.setAttribute("aria-busy", "true");
-    }
-    if (!needsFetch && !needsRuntime && !needsFull) {
+    // Every poll marks the loaded sidecars stale, so "needs a fetch" is true of
+    // almost every activation a minute into a visit. Stale is not missing: when
+    // the renderers, the document and a previous copy of each sidecar are all
+    // here, paint now and revalidate behind the paint. Holding the tab on a
+    // round trip to learn that nothing changed is what made a switch feel stuck
+    // long after the first one.
+    const paintable = !needsRuntime && !needsFull &&
+      keys.every(k => _sidecarState(k).ready);
+    if (!paintable && panel) panel.setAttribute("aria-busy", "true");
+    if (paintable) {
       applyCore();
       // The sidecars are ready — but "ready" is not "already on DATA". A tab
       // whose activation resolved while the pager was still settling never got
@@ -678,8 +758,18 @@
       // took this fast path forever: the card stayed empty until a full reload.
       _applySidecars(DATA);
       _paintActivatedTab(t);
+      if (!needsFetch) return;
+      _loadTabSidecars(t, triggeredByUser).then(sidecarsChanged => {
+        if (!sidecarsChanged || version !== TAB_ACTIVATION_VERSION || !DATA) return;
+        _applySidecars(DATA);
+        if (currentTab() === t) _paintActivatedTab(t, true);
+      });
       return;
     }
+    // The chart bundle is the largest download a detail tab owns and nothing
+    // below depends on it, so it must not wait in line behind the render: it
+    // used to start only after the tab had painted.
+    preloadTabCharts(t);
     Promise.all([
       _loadTabRuntime(t),
       needsFull
@@ -700,11 +790,79 @@
         _paintActivatedTab(t, !!sidecarsChanged);
       })
       .catch(error => {
+        // Two failures are recoverable without the reader doing anything, and
+        // both end in the same move — read Overview again from wherever the
+        // data now comes from, then activate this tab against that pair:
+        //   · the branch is unreachable or timed out → drop it, use this origin;
+        //   · the branch's full document belongs to a newer generation than the
+        //     Overview on screen → take the branch's Overview as well.
+        // The panel stays busy meanwhile. Bounded, so a pair that really cannot
+        // be assembled still ends on the message and its retry button.
+        // A superseded activation leaves all of it to the one that replaced it.
+        if (version !== TAB_ACTIVATION_VERSION) return;
+        if (recovery < 2 && (error?.liveOrigin || error?.incompleteGeneration)) {
+          _resyncPair(error).then(() => {
+            if (version === TAB_ACTIVATION_VERSION && currentTab() === t) {
+              activateTabData(t, triggeredByUser, recovery + 1);
+            }
+          });
+          return;
+        }
         console.error(error);
-        if (version !== TAB_ACTIVATION_VERSION || !panel) return;
+        if (!panel) return;
         panel.removeAttribute("aria-busy");
         _showPanelLoadError(panel, t);
       });
+  }
+
+  // One resync however many callers hit the same failure: a click is followed
+  // by the pager's settle, and both activations share the rejected request.
+  let PAIR_RESYNC = null;
+  function _resyncPair(error) {
+    if (error.liveOrigin) _blockLiveOrigin();
+    if (!PAIR_RESYNC) {
+      PAIR_RESYNC = loadData(false, true).finally(() => { PAIR_RESYNC = null; });
+    }
+    return PAIR_RESYNC;
+  }
+
+  // ── Warm the detail path while Overview is being read ─────────────────
+  // Leaving Overview for the first time used to START three downloads at the
+  // moment the swipe settled: the detail renderers (~104 KB gzip), the full
+  // document (~39 KB) and the tab's sidecars, with the chart bundle queued
+  // behind them. Nothing could paint until all of that had crossed the network,
+  // which on a phone is the "it froze" second. The first two are the same for
+  // every detail tab, so fetch them once Overview has painted and the main
+  // thread is idle. It also settles which origin and generation the full
+  // document comes from before anyone is waiting on the answer.
+  //
+  // Not on the first-paint path (it runs after it, on idle), not for a reader
+  // who asked for less data, and not the chart bundle: that one is twice the
+  // size of everything here and three of the six tabs never need it.
+  let DETAIL_PATH_WARMED = false;
+  function _warmDetailPath() {
+    if (DETAIL_PATH_WARMED || !OVERVIEW_DATA) return;
+    const connection = navigator.connection;
+    if (connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || ""))) return;
+    DETAIL_PATH_WARMED = true;
+    _loadTabRuntime(TAB_ORDER[1]).catch(() => {});
+    // The one tab a single swipe from Overview reaches gets its sidecars too,
+    // so that swipe ends on a render instead of a request.
+    _loadTabSidecars(TAB_ORDER[1]);
+    const warmFull = recovery => _loadFullDashboard(_generation(OVERVIEW_DATA)).catch(error => {
+      if (recovery >= 2 || !(error?.liveOrigin || error?.incompleteGeneration)) return null;
+      return _resyncPair(error).then(() => warmFull(recovery + 1));
+    });
+    // An activation may already be recovering the pair; join it, do not race it.
+    (PAIR_RESYNC || Promise.resolve()).then(() => warmFull(0));
+  }
+  function _scheduleDetailWarmup() {
+    // A press anywhere is intent: do not make that reader wait for idle.
+    document.addEventListener("pointerdown", _warmDetailPath, { once: true, passive: true });
+    setTimeout(() => {
+      if ("requestIdleCallback" in window) requestIdleCallback(_warmDetailPath, { timeout: 3000 });
+      else _warmDetailPath();
+    }, 1500);
   }
 
   function _formatRelative(iso) {
@@ -734,7 +892,10 @@
     if (status) status.textContent = message;
   }
 
-  async function loadData(triggeredByUser = false) {
+  // `resync` is the recovery above re-reading Overview on behalf of a tab that
+  // is already loading: the sidecars that tab just fetched are not made stale
+  // by it, so they are not downloaded a second time.
+  async function loadData(triggeredByUser = false, resync = false) {
     const btn = document.getElementById("refresh-btn");
     if (btn) btn.classList.add("is-loading");
     if (triggeredByUser && btn) btn.setAttribute("disabled", "true");
@@ -749,15 +910,17 @@
       let json = window.__overviewBoot && !triggeredByUser
         ? await window.__overviewBoot : null;
       delete window.__overviewBoot;
+      let overviewFromLive = false;
       if (!json) {
         // Auto-polls revalidate the small Overview projection via ETag/Last-Modified.
         // The full cross-tab document is fetched only at the detail consumer boundary.
         // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
         // through stale intermediary caches (WeChat webview / carrier proxies).
         const url = _dataUrl("overview", triggeredByUser ? "?t=" + Date.now() : "");
-        const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
+        const res = await _fetchJson(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        json = await res.json();
+        json = res.value;
+        overviewFromLive = _isLiveUrl(url);
       }
       if (json.schema_version !== 1 || json.projection !== "overview" ||
           !_generation(json)) {
@@ -767,18 +930,21 @@
       const firstLoad = OVERVIEW_DATA == null;
       const hasNew = newAt && newAt !== LAST_LOADED_AT;
       OVERVIEW_DATA = json;
+      OVERVIEW_FROM_LIVE = overviewFromLive;
       // Tab activation is the only sidecar consumer boundary. A normal Hero
-      // landing therefore makes no full-dashboard or sidecar requests; a deep
-      // link waits for one generation-compatible full document and its mapped
-      // dependencies before the first render.
+      // landing therefore puts no full-dashboard or sidecar request on its
+      // first paint (_warmDetailPath fetches the shared ones afterwards, on
+      // idle); a deep link waits for one generation-compatible full document
+      // and its mapped dependencies before the first render.
       let landing = currentTab();
-      if (!firstLoad) _markLoadedSidecarsStale();
+      if (!firstLoad && !resync) _markLoadedSidecarsStale();
       if (firstLoad || hasNew) {
         // A user can click/swipe while projection dependencies are in flight. Keep the
         // first paint complete for whichever tab is actually visible when its
         // dependencies finish, rather than rendering a partial new landing tab.
         do {
           landing = currentTab();
+          preloadTabCharts(landing);
           await Promise.all([
             _loadTabRuntime(landing),
             landing === "hero"
@@ -792,6 +958,14 @@
         DATA = landing === "hero" ? json : FULL_DASHBOARD;
         _applySidecars(DATA);
         render();
+        // render() just painted this tab from a complete pair. A message left
+        // by an earlier failed activation would now sit above the very content
+        // it says did not load.
+        const painted = document.querySelector(`.panel[data-panel="${landing}"]`);
+        if (painted) {
+          painted.removeAttribute("aria-busy");
+          _clearPanelLoadError(painted);
+        }
       }
       // An unchanged generation still updates relative-time copy and refresh
       // feedback, but must not replace DATA or replay the same DOM every minute.
@@ -834,10 +1008,7 @@
       // failure — the next poll gets it. Anything else means we cannot rely on
       // that origin, so fall back to this one for good. `LIVE_ORIGIN` is set
       // here only if this cycle actually read from it.
-      if (LIVE_ORIGIN && !e?.incompleteGeneration) {
-        LIVE_ORIGIN_BLOCKED = true;
-        LIVE_ORIGIN = null;
-      }
+      if (LIVE_ORIGIN && !e?.incompleteGeneration) _blockLiveOrigin();
       console.error("Failed to load Overview projection:", e);
       // Blanking the age label on a background poll would replace the one honest
       // statement on screen — how old the rendered generation is — with a string
@@ -846,6 +1017,8 @@
       if (DATA == null) {
         document.getElementById("last-updated").textContent = "load failed";
         _announceDataRefresh("数据载入失败");
+        // Nothing is on its way any more; a pulsing panel would say otherwise.
+        PANELS.forEach(panel => panel.removeAttribute("aria-busy"));
       } else {
         _updateAgeLabel();
         if (triggeredByUser) {
@@ -876,9 +1049,11 @@
     const link = document.getElementById("latest-brief-link");
     if (!date || !summary || !link) return;
     try {
-      const response = await fetch(_dataUrl("brief_projection"), { cache: "no-cache" });
-      if (!response.ok) return;
-      const brief = await response.json();
+      // Holdings maps the same file as a sidecar. Read it through that owner so
+      // the first visit to Holdings does not download it a second time.
+      await _fetchSidecar("brief_projection", false, Date.now());
+      const brief = _sidecarState("brief_projection").value;
+      if (!brief) return;
       const asOf = typeof brief.as_of === "string" && /^\d{4}-\d{2}-\d{2}$/.test(brief.as_of)
         ? brief.as_of : "";
       const assessment = brief?.portfolio_judgment?.assessment;
@@ -969,7 +1144,7 @@
     const t0 = tabFromHash();
     if (t0) goToTab(t0);
     else setActiveButton(TAB_ORDER[0]);
-    loadData().then(loadLatestBriefCard);
+    loadData().then(loadLatestBriefCard).then(_scheduleDetailWarmup);
     _scheduleAutoRefresh();
   }
   if (document.readyState === "loading") {

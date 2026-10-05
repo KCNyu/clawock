@@ -95,6 +95,19 @@ async function stubLiveOrigin(page, options = {}) {
   return served;
 }
 
+// After the first paint the page warms the detail path on idle (the renderers,
+// the full document, the first tab's sidecars). A case that counts requests
+// would otherwise be counting a timer, so it loads as a data-saver reader —
+// the one reader the warm-up is contractually skipped for.
+async function withoutWarmup(page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(Navigator.prototype, "connection", {
+      configurable: true,
+      get: () => ({ saveData: true, effectiveType: "4g" }),
+    });
+  });
+}
+
 function observe(page) {
   const result = { detailRequests: 0, fullRequests: 0, overviewRequests: 0, failures: [], errors: [] };
   page.on("request", request => {
@@ -182,6 +195,7 @@ async function dispatchTouch(session, type, points) {
 async function testRuntime(browser, base) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
+  await withoutWarmup(page);
   await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
@@ -233,6 +247,7 @@ async function testRuntime(browser, base) {
 
   const deep = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const deepState = observe(deep);
+  await withoutWarmup(deep);
   await stubLiveOrigin(deep);
   await deep.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
   await waitForTab(deep, "reflect");
@@ -243,6 +258,7 @@ async function testRuntime(browser, base) {
 
   const rapid = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const rapidState = observe(rapid);
+  await withoutWarmup(rapid);
   await stubLiveOrigin(rapid);
   await rapid.route(`**${DETAIL_PATH}`, async route => {
     await new Promise(resolve => setTimeout(resolve, 250));
@@ -264,6 +280,7 @@ async function testRuntime(browser, base) {
 
   const mismatch = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const mismatchState = observe(mismatch);
+  await withoutWarmup(mismatch);
   await stubLiveOrigin(mismatch);
   let fullAttempt = 0;
   await mismatch.route(/\/assets\/data\/dashboard\.json(?:\?.*)?$/, async route => {
@@ -616,6 +633,7 @@ async function testLiveDataOrigin(browser, base) {
   // visit — Lighthouse included — to save a wait nobody is watching yet.
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
+  await withoutWarmup(page);
   const served = await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
@@ -643,6 +661,7 @@ async function testLiveDataOrigin(browser, base) {
   // must leave a working page behind.
   const offline = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const offlineState = observe(offline);
+  await withoutWarmup(offline);
   const attempts = await stubLiveOrigin(offline, { fail: true });
   await offline.goto(base, { waitUntil: "networkidle" });
   await waitForData(offline);
@@ -3628,6 +3647,172 @@ async function testOnlyActivePanelAcceptsFocus(browser, base) {
   }
 }
 
+// ── Leaving Overview for the first time ────────────────────────────────
+// 用户报的是「首次加载时 overview 左右切换会卡住 / 很久加载不出来，像死机」。
+// 量出来三个原因，下面一条用例钉一个。
+
+function liveBody(name, edit) {
+  const file = path.resolve(ROOT, "assets/data", name);
+  if (!fs.existsSync(file)) return null;
+  const json = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (edit) edit(name, json);
+  return JSON.stringify(json);
+}
+
+async function testTheFirstTabAwayFromOverviewIsWarmedBeforeItIsOpened(browser, base) {
+  // The renderers, the full document and Holdings' sidecars used to START
+  // downloading when the first swipe settled, so that swipe always ended on a
+  // network wait. They are fetched on idle after the first paint instead; the
+  // switch itself must then need nothing but the chart bundle.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await stubLiveOrigin(page);
+  const data = [];
+  page.on("request", request => {
+    const pathname = new URL(request.url()).pathname;
+    if (pathname.includes("/assets/data/")) data.push(path.basename(pathname));
+  });
+  await page.goto(base, { waitUntil: "domcontentloaded" });
+  await waitForData(page);
+  await page.waitForFunction(() =>
+    hasTabRenderer("drill") && !!FULL_DASHBOARD &&
+    ["decision_trail", "shadow_portfolio", "brief_projection"].every(k =>
+      SIDECAR_STATE.get(k)?.ready), null, { timeout: 15000 })
+    .catch(() => { throw new Error("the detail path was not warmed after the first paint"); });
+  assert.equal(await page.evaluate(() => DATA?.projection), "overview",
+    "warming the detail path replaced the Overview document on screen");
+
+  const before = data.length;
+  await clickTab(page, "drill");
+  await waitForTab(page, "drill");
+  assert.deepEqual(data.slice(before), [],
+    "the first tab away from Overview still waited on data requests");
+  assert.equal(state.detailRequests, 1, "the warm-up and the tab did not share one bundle request");
+  assert.equal(state.fullRequests, 1, "the warm-up and the tab did not share one full document");
+  // The Overview brief card and Holdings read the same file.
+  assert.equal(data.filter(name => name === "brief_projection.json").length, 1,
+    "brief_projection.json was downloaded once per reader");
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
+async function testADataBranchAheadOfPagesDoesNotFailTheFirstTab(browser, base) {
+  // The first paint reads this origin; everything after it reads the data
+  // branch, which is a generation ahead of Pages for most of a session (#367).
+  // The first tab opened after a cold load therefore asked the branch for the
+  // full document of a generation the branch had already replaced. It
+  // re-downloaded it, failed, and showed "这一页的数据没能载入" until the next
+  // 60 s poll — measured 57 s, and the message then stayed above the content.
+  const NEWER = "2099-01-01T00:00:00Z";
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await withoutWarmup(page);
+  const served = [];
+  await page.route(LIVE_DATA_ORIGIN + "**", async route => {
+    const name = path.basename(new URL(route.request().url()).pathname);
+    served.push(name);
+    const body = liveBody(name, (file, json) => {
+      if (file !== "dashboard.json" && file !== "overview.json") return;
+      json.generated_at = NEWER;
+      if (json.generation_id) json.generation_id = NEWER;
+    });
+    if (body == null) return route.fulfill({ status: 404, body: "not found" });
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json; charset=utf-8",
+                 "access-control-allow-origin": "*" },
+      body,
+    });
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  assert.notEqual(await page.evaluate(() => DATA.generated_at), NEWER,
+    "fixture: the first paint must come from this origin's older generation");
+
+  await clickTab(page, "drill");
+  await waitForTab(page, "drill");
+  const panel = page.locator('.panel[data-panel="drill"]');
+  assert.equal(await panel.locator(".panel-load-error").count(), 0,
+    "a newer generation on the data branch was reported as a failed load");
+  assert.ok(await panel.locator("#book-table tbody tr").count() > 0,
+    "the tab did not paint from the newer generation");
+  assert.deepEqual(await page.evaluate(() =>
+    [DATA.generated_at, OVERVIEW_DATA.generated_at]), [NEWER, NEWER],
+    "Overview and the full document are not the same generation");
+  assert.equal(served.filter(name => name === "dashboard.json").length, 1,
+    "the newer full document was downloaded more than once");
+  assert.equal(served.filter(name => name === "overview.json").length, 1,
+    "resyncing Overview took more than one request");
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
+async function testADataBranchThatNeverAnswersFallsBackToThisOrigin(browser, base) {
+  // A route that swallows packets to the second origin leaves `fetch` pending.
+  // Nothing bounded it: the tab stayed `aria-busy` (measured: still busy after
+  // 30 s) and every poll queued one more pending request, so the fallback to
+  // this origin never ran. The read is now bounded and the tab must paint.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await withoutWarmup(page);
+  let swallowed = 0;
+  await page.route(LIVE_DATA_ORIGIN + "**", () => { swallowed += 1; });   // never answered
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  await clickTab(page, "drill");
+  const panel = page.locator('.panel[data-panel="drill"]');
+  assert.equal(await panel.getAttribute("aria-busy"), "true",
+    "a tab waiting on its data must say so");
+  assert.notEqual(
+    await panel.evaluate(el => getComputedStyle(el, "::before").content), "none",
+    "the busy state has no visible label");
+  await waitForTab(page, "drill");
+  assert.ok(swallowed > 0, "fixture: the data branch was never asked");
+  assert.equal(await panel.locator(".panel-load-error").count(), 0,
+    "falling back to this origin still ended on the failure message");
+  assert.ok(await panel.locator("#book-table tbody tr").count() > 0,
+    "the tab did not paint from this origin");
+  const asked = swallowed;
+  await page.evaluate(() => loadData(false));
+  assert.equal(swallowed, asked, "a data branch that timed out was asked again by the next poll");
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
+async function testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork(browser, base) {
+  // Every poll marks loaded sidecars stale, so a minute into a visit every tab
+  // switch waited for a revalidation round trip before it would paint — with
+  // the previous copy of every sidecar already in memory.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await withoutWarmup(page);
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "market");
+  await waitForTab(page, "market");
+  await clickTab(page, "hero");
+  await waitForTab(page, "hero");
+  await page.evaluate(() => loadData(false));              // a poll: sidecars go stale
+  let held = 0;
+  await page.route("**/assets/data/macro.json*", () => { held += 1; });   // never answered
+  await clickTab(page, "market");
+  await page.waitForFunction(() =>
+    document.querySelector('.panel[data-panel="market"]').classList.contains("active"));
+  for (let i = 0; i < 40 && !held; i += 1) await page.waitForTimeout(50);
+  assert.ok(held > 0, "fixture: the stale sidecar was not revalidated at all");
+  const panel = page.locator('.panel[data-panel="market"]');
+  assert.equal(await panel.getAttribute("aria-busy"), null,
+    "a tab with every sidecar in memory waited on a revalidation before painting");
+  assert.equal(await page.evaluate(() => !!DATA?.macro), true,
+    "the previous sidecar was not applied while its revalidation was in flight");
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3653,6 +3838,14 @@ async function main() {
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
+    await run("testTheFirstTabAwayFromOverviewIsWarmedBeforeItIsOpened", () =>
+      testTheFirstTabAwayFromOverviewIsWarmedBeforeItIsOpened(browser, base));
+    await run("testADataBranchAheadOfPagesDoesNotFailTheFirstTab", () =>
+      testADataBranchAheadOfPagesDoesNotFailTheFirstTab(browser, base));
+    await run("testADataBranchThatNeverAnswersFallsBackToThisOrigin", () =>
+      testADataBranchThatNeverAnswersFallsBackToThisOrigin(browser, base));
+    await run("testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork", () =>
+      testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork(browser, base));
     await run("testOverviewDoesNotOverwriteTheDetailPanelsCards", () => testOverviewDoesNotOverwriteTheDetailPanelsCards(browser, base));
     await run("testEquityTouch", () => testEquityTouch(browser, base));
     await run("testTabGuardWithoutForcedLayout", () => testTabGuardWithoutForcedLayout(browser, base));

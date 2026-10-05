@@ -840,6 +840,23 @@
      above already flattens it. */
   .panel[aria-busy="true"] { animation: panel-busy 1.1s var(--ease-out) infinite alternate; }
   @keyframes panel-busy { from { opacity: .5; } to { opacity: .82; } }
+  /* The pulse alone dims card chrome that has nothing in it yet, which a reader
+     waiting on a slow network cannot tell from a page that stopped responding.
+     Name the state. The note takes no room (negative margin), so nothing moves
+     when the data lands, and it only fades in after 250ms: a tab that was
+     already warmed paints before then and never flashes it. */
+  .panel[aria-busy="true"]::before {
+    content: "正在载入这一页…";
+    position: sticky; top: var(--space-2); z-index: 2;
+    display: block; box-sizing: border-box;
+    width: max-content; max-width: 100%;
+    height: 28px; margin: 0 auto -28px; padding: 0 var(--space-3);
+    font-size: var(--fs-sm); line-height: 26px; color: var(--text);
+    background: var(--fill-inset);
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    animation: panel-busy-note var(--duration-fast) linear .25s both;
+  }
+  @keyframes panel-busy-note { from { opacity: 0; } to { opacity: 1; } }
 
   /* The box is addressed through the state the JS sets, so `data-load-error` is
      load-bearing rather than a comment: no attribute, no message. */
