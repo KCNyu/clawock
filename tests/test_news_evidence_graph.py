@@ -535,6 +535,7 @@ def test_etf_marketing_headline_cannot_enter_tavily_queue():
 
 def test_news_digest_persists_headline_metadata_not_body(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     raw = {
         'ABC': [{
             'headline': 'ABC filing update',
@@ -568,6 +569,7 @@ def test_news_digest_persists_headline_metadata_not_body(tmp_path, monkeypatch):
 def test_news_digest_validator_rejects_licensed_body_fields(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     raw = {
         'ABC': [{
             'headline': 'ABC filing update',

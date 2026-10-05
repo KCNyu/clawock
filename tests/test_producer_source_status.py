@@ -161,6 +161,7 @@ def _news_portfolio(path):
 def test_news_producer_writes_explicit_quiet_artifact(tmp_path, monkeypatch):
     _news_portfolio(tmp_path / 'portfolio.json')
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
         gh_action_news_digest, 'fetch_news',
         lambda _tickers, since_days=2: (
@@ -190,6 +191,7 @@ def test_news_producer_total_source_outage_fails_without_writing(
         tmp_path, monkeypatch):
     _news_portfolio(tmp_path / 'portfolio.json')
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
         gh_action_news_digest, 'fetch_news',
         lambda _tickers, since_days=2: (

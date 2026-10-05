@@ -17,6 +17,7 @@ TAG = '<img src=x onerror=alert(1)>'
 
 def test_the_off_host_brief_writes_model_tags_as_text(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setenv('TODAY', '2026-09-29')
     (tmp_path / 'memory/.tmp').mkdir(parents=True)
     (tmp_path / 'memory/.tmp/brief-context-2026-09-29.json').write_text('{}')
@@ -42,6 +43,7 @@ def test_the_off_host_brief_writes_model_tags_as_text(tmp_path, monkeypatch):
 
 def test_the_weekly_review_writes_model_tags_as_text(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(weekly_review, 'aggregate_week', lambda as_of: {'week': '2026-W39'})
     monkeypatch.setattr(weekly_review, 'validate_bundle', lambda bundle: None)
     monkeypatch.setattr(weekly_review, 'build_prompt_payload', lambda bundle: {})
