@@ -21,11 +21,11 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
-| **<!-- CW_M:days -->134<!-- /CW_M:days -->** | **<!-- CW_M:rows -->936<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->152<!-- /CW_M:settled -->** | **44** | **5** | **0** |
+| **<!-- CW_M:days -->141<!-- /CW_M:days -->** | **<!-- CW_M:rows -->980<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->158<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
-<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−22.33%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
+<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−24.26%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
 
 </div>
 
