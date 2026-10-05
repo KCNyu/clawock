@@ -349,6 +349,8 @@ def compile_overview_projection(dashboard):
                 # …and "which ones". Both lists are window-wide and capped;
                 # `recent` cannot answer this because it is a tail, not a set.
                 'wechat_dropped_slots', 'degraded_slots',
+                # Due slots with no record at all, and which ones (#2546).
+                'due_no_record', 'no_record_slots',
             )),
             'degradations': [
                 {key: row[key] for key in ('kind', 'group', 'count', 'first_at', 'last_at', 'hits', 'hits_incomplete') if key in row}
@@ -3872,6 +3874,9 @@ def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
             'integrity': integrity}
 
 
+NO_RECORD_SLOTS_SHOWN = 6
+
+
 def compute_workflow_outcomes():
     """Read and summarize the package-produced outcome sidecar.
 
@@ -3893,6 +3898,19 @@ def compute_workflow_outcomes():
         # nothing to do produced the identical card. `degradations` is normally
         # absent; when it is not, every number beside it was computed by a
         # bookkeeping pass that knows it degraded.
+        if isinstance(summary, dict):
+            # Slots the contract says were due in the same window and that have
+            # no record at all: the card's denominator, not only its records (#2546).
+            try:
+                from clawock.publish.cron_schedule import due_without_record  # noqa: PLC0415
+                from clawock.scheduling import load_contract  # noqa: PLC0415
+                missing = due_without_record(
+                    load_contract(), (payload or {}).get('records', []),
+                    hours=summary.get('window_hours') or 36)
+                summary['due_no_record'] = len(missing)
+                summary['no_record_slots'] = missing[-NO_RECORD_SLOTS_SHOWN:]
+            except Exception as e:  # noqa: BLE001 — the fold above still stands
+                print(f'  warn: due-slot count failed: {e}', file=sys.stderr)
         degradations = dashboard_outcomes.degradations_of(payload)
         if degradations and isinstance(summary, dict):
             summary['degradations'] = degradations

@@ -310,3 +310,47 @@ def timetable(contract, records, *, now=None):
         'grace_minutes': GRACE_MINUTES,
         'jobs': rows,
     }
+
+
+def due_without_record(contract, records, *, now=None, hours=36):
+    """Monitored slots that came due in the last `hours` and left no ledger record.
+
+    The delivery readout folds the records the ledger HAS, so a run that never
+    wrote one was in neither its numerator nor its denominator (#2546). This is
+    the same `missed` verdict the panel paints for today — same grid, same snap
+    tolerance, same grace, same exemption for jobs without a harness — asked of
+    each day the window touches, so the two readings cannot disagree about a
+    slot. The ledger cannot speak about the time before its oldest record (a
+    fresh checkout, a pruned file), so nothing earlier than that is counted.
+    """
+    now = now or datetime.now(HKT)
+    stamps = []
+    for record in records or []:
+        try:
+            stamps.append(datetime.fromisoformat(record['slot']))
+        except (KeyError, TypeError, ValueError):
+            continue
+    stamps = [stamp for stamp in stamps if stamp.tzinfo]
+    if not stamps:
+        return []
+    start = max(now - timedelta(hours=hours), min(stamps))
+    missing = []
+    for back in range(int(hours // 24) + 1, -1, -1):
+        # A past day is read at its last second, so every slot of it is judged.
+        view = now if back == 0 else (now.astimezone(HKT) - timedelta(days=back)).replace(
+            hour=23, minute=59, second=59, microsecond=0)
+        for row in timetable(contract, records, now=view)['jobs']:
+            if row.get('unmonitored'):
+                continue
+            tz = ZoneInfo(row['tz'])
+            day = view.astimezone(tz).date()
+            for cell in row['slots']:
+                if cell['state'] != 'missed':
+                    continue
+                hour, minute = (int(part) for part in cell['at'].split(':'))
+                fires_at = datetime.combine(day, datetime.min.time(), tzinfo=tz).replace(
+                    hour=hour, minute=minute)
+                if start <= fires_at <= now:
+                    missing.append({'job': row['job'], 'slot': fires_at.isoformat()})
+    return sorted(missing, key=lambda item: item['slot'])
+
