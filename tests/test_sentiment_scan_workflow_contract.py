@@ -37,3 +37,11 @@ def test_sentiment_snapshot_requires_coverage_before_exact_publish():
     ]
     names = [n for n in names]
     assert names.index('Snapshot point-in-time copy') == len(names) - 2
+
+
+def test_the_commit_title_carries_the_day_its_snapshot_file_is_keyed_by():
+    # `snapshot_factor_sidecar.py` keys the dated file by the HKT day; a UTC title
+    # named the day before on every run after 00:00 HKT (#2603).
+    commit_run = step_run(WORKFLOW, 'Commit')
+    assert '$(TZ=Asia/Hong_Kong date +%Y-%m-%d)' in commit_run
+    assert 'date -u' not in commit_run

@@ -62,6 +62,6 @@ jobs:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
           bash ops/publish/gha_commit_push.sh \
-            "macro: daily snapshot $(date -u +%Y-%m-%d)" \
+            "macro: daily snapshot $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" \
             assets/data/macro.json \
             assets/data/factor-snapshots/macro

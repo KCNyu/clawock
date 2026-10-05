@@ -47,3 +47,17 @@ def test_a_late_scheduled_run_still_stamps_the_friday_it_was_scheduled_for():
     append_run = _step_run('Append week-end snapshot')
     assert 'snapshot_date = eod_snapshot_date()' in append_run
     assert "'date': snapshot_date," in append_run
+
+
+def test_the_commit_title_names_the_iso_week_of_the_rows_it_archives(monkeypatch, capsys):
+    """`date -u +%Y-W%W` named the week before the CSV rows' ISO week on all 25 archive commits (#2603)."""
+    import re
+
+    from clawock.publish import artifacts
+
+    title_run = _step_run('Compose the commit message')
+    snippet = re.search(r"python3 -c '([^']+)'", title_run).group(1)
+    for snapshot_date, week in (('2026-10-02', '2026-W40'), ('2026-01-02', '2026-W01'), ('2027-01-01', '2026-W53')):
+        monkeypatch.setattr(artifacts, 'eod_snapshot_date', lambda day=snapshot_date: day)
+        exec(snippet, {})  # the step's own one-liner, not a copy of it
+        assert capsys.readouterr().out.strip() == week
