@@ -1885,3 +1885,32 @@ def test_intraday_status_has_one_truncation_contract(tmp_path):
     published = dashboard.validate_intraday_insights(data, {'MINIMAX'})
     assert saved['status_banner'] == published['status_banner'] == '板' * 160
     assert saved['movers'] == published['movers'] == {'MINIMAX': '归' * 120}
+
+
+def test_restore_stage_restores_absent_cards_and_rederives_what_belongs_to_this_book():
+    """The restore phase on its own: absent cards come back, but numbers of the
+    previous book do not (#430, #2353). It used to be reachable only through a
+    whole `build_projection` run."""
+    previous = {
+        "anomalies": [{"type": "high_weight_loss", "ticker": "OLD", "weight": 0.9},
+                      {"type": "peer_gap", "ticker": "00100"}],
+        "market_context": {"data_as_of": "prev"},
+        "peer_divergence": {"as_of": "2026-10-02", "items": [{"ticker": "00100"}]},
+        "workflow_outcomes": {"counts": {"success": 1}},
+    }
+    out = {"anomalies": [], "market_context": None, "workflow_outcomes": {"counts": {"success": 3}},
+           "peer_divergence": {"as_of": "", "items": []}, "concentration": {},
+           "bear_cases": [], "hidden_concentration": None, "behavioral_review": None}
+    presence = {"anomalies": False, "market_context": False, "peer_divergence": False,
+                "workflow_outcomes": True}
+
+    preserved = dashboard._restore_previous_cards(
+        out, previous, presence, {"portfolios": {}}, [], [], set(), [])
+
+    assert sorted(preserved) == ["anomalies", "market_context", "peer_divergence"]
+    assert out["market_context"] == {"data_as_of": "prev"}
+    assert out["peer_divergence"]["items"] == [{"ticker": "00100"}]
+    # A card this build did compute is not replaced by the previous one.
+    assert out["workflow_outcomes"] == {"counts": {"success": 3}}
+    # The brief-derived entry is restored; the previous book's weight entry is not.
+    assert out["anomalies"] == [{"type": "peer_gap", "ticker": "00100"}]
