@@ -1236,6 +1236,14 @@ def main(argv: list[str] | None = None) -> int:
         _dispatch(argv[0])
     except SystemExit:
         raise
+    except ModuleNotFoundError as exc:
+        # A missing optional dependency is the environment, not the artifact:
+        # under the generic handler below it read `ASSERTION FAILED: GIF …`.
+        if exc.name != 'PIL':
+            raise
+        print(f"clawock validate-sidecar {argv[0]} decodes images with Pillow, which is the "
+              "`imaging` extra: pip install 'clawock[imaging]'", file=sys.stderr)
+        return 1
     except Exception as exc:
         failure_labels = {
             'macro': 'macro snapshot assets/data/macro.json',

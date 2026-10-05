@@ -639,10 +639,21 @@ def test_schedule_day_survives_midnight_and_skips_unscheduled_sunday():
 
 
 def test_dreaming_no_change_needs_successful_execution(monkeypatch, capsys):
+    # The host path: the job carries its runtime id, so an unreadable store is a warning.
+    load = cron_health_check.load_runtime_jobs
+    monkeypatch.setattr(cron_health_check, 'load_runtime_jobs', lambda *a, **kw: [
+        {**job, 'id': 'job-1'} for job in load(*a, **kw)])
     for count, status in [(1, 'ok-run'), (0, 'missing'), (None, 'execution-unknown')]:
         monkeypatch.setattr(cron_health_check, 'runs_finished_today', lambda *a, **kw: count)
         rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 2, 10, tzinfo=timezone.utc))
         assert rows['Memory Dreaming Promotion']['status'] == status
+
+
+def test_a_contract_job_without_a_run_store_is_unmeasured_not_a_warning(monkeypatch, capsys):
+    # CI runs --jobs-file only; contract jobs have no runtime id, so the Dreaming
+    # row read 'execution-unknown' and the run exited 2 on a healthy day (#2564).
+    rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 2, 10, tzinfo=timezone.utc))
+    assert rows['Memory Dreaming Promotion']['status'] == 'unmeasured'
 
 
 def test_scheduled_midnight_run_still_checks_previous_day_commits(monkeypatch, capsys):

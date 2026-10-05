@@ -301,7 +301,7 @@
       "reason": "publication ownership and semantic diffs for generated write sets"
     },
     "validate-sidecar": {
-      "reason": "behavioral validation of a publication artifact"
+      "reason": "behavioral validation of a publication artifact; `gif` and `screenshots` decode images and need the `imaging` extra (pip install 'clawock[imaging]')"
     },
     "evidence": {
       "reason": "renders the public evidence page from artifacts; it collects nothing"

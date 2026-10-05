@@ -158,7 +158,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock dashboard-build` | `clawock.publish.dashboard` | publishes the dashboard projection from data the layers already produced |
 | `clawock decision-map` | `clawock.publish.decision_map` | joins decisions to signal histories the layers already collected and publishes the projection; it acquires nothing and decides nothing |
 | `clawock dashboard-outputs` | `clawock.publish.outputs` | publication ownership and semantic diffs for generated write sets |
-| `clawock validate-sidecar` | `clawock.publish.artifacts` | behavioral validation of a publication artifact |
+| `clawock validate-sidecar` | `clawock.publish.artifacts` | behavioral validation of a publication artifact; `gif` and `screenshots` decode images and need the `imaging` extra (pip install 'clawock[imaging]') |
 | `clawock evidence` | `clawock.evidence.build_evidence` | renders the public evidence page from artifacts; it collects nothing |
 | `clawock run-card` | `clawock.evidence.run_card` | records that a backtest ran and against what — provenance, not a measurement |
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |

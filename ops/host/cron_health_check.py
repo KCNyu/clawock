@@ -869,8 +869,13 @@ def main():
                 status = 'ok-heartbeat'
                 detail = f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])} slots OK"
         elif name == 'Memory Dreaming Promotion':
-            if runs_n is None:
-                status, detail = 'execution-unknown', 'Dreaming run history unavailable; no-change is allowed'
+            if runs_n is None and not job.get('id'):
+                # A tracked --jobs-file job (CI) has no runtime id, so there is no
+                # run store to ask. Not measured is not a warning: it made every
+                # CI run exit 2, healthy or not (#2564).
+                status, detail = 'unmeasured', 'no run history on this path (contract job without a runtime id); Dreaming is not judged here'
+            elif runs_n is None:
+                status, detail = 'execution-unknown', 'Dreaming run history unreadable on this host; no-change is allowed'
                 has_warn = True
             elif runs_n < len(expected_past):
                 status, detail = 'missing', f'Dreaming successful runs {runs_n}/{len(expected_past)}'
