@@ -1065,6 +1065,211 @@ def _outcome(benefit: float | None) -> str:
     return "flat"
 
 
+def _trigger_window(d, *, ticker, leg, candidate_sessions, today):
+    """Scan the confirmation window for the session the condition traded in.
+
+    Returns every reading the scan can end on: the sessions that were really
+    evaluated, the fill (`fired` True/False/None with its price and reason),
+    and the session each early exit stopped at — pending, missing, degenerate,
+    implausible, invalidated. Which of them wins is `settle_decisions`' call.
+    """
+    evaluated = []
+    fired = fill = fill_reason = None
+    trigger_session = None
+    pending_session = None
+    missing_session = None
+    degenerate_session = None
+    implausible_session = None
+    invalidated_session = None
+    invalidation = _float(d.get("invalidation_price"))
+    for candidate in candidate_sessions:
+        day_bar = bar(ticker, candidate)
+        if day_bar is None:
+            if candidate >= today or candidate > (last_closed_session(leg) or ""):
+                pending_session = candidate
+                break
+            missing_session = candidate
+            break
+        # A suspect traded session cannot be skipped as if nothing traded:
+        # a later clean bar cannot prove the trigger/invalidation order.
+        if day_bar.get("implausible_move"):
+            implausible_session = candidate
+            break
+        # A zero-width bar is retained by the canonical store so downstream
+        # readers can distinguish a halted/untraded session from missing
+        # data. It is not evidence that either a trigger or an invalidation
+        # traded, so do not feed it to either test.
+        if day_bar.get("degenerate"):
+            degenerate_session = candidate
+            continue
+        evaluated.append(candidate)
+        # An authorised add is cancelled as soon as its risk line trades.
+        # We intentionally treat an ambiguous same-day low-below/high-above
+        # bar as invalidated: daily OHLC cannot prove the trigger happened
+        # first, and optimism here would be lookahead by assumption.
+        if (
+            d.get("action") in ADD_ACTIONS
+            and invalidation is not None
+            and day_bar["low"] <= invalidation
+        ):
+            invalidated_session = candidate
+            fired, fill, fill_reason = False, None, "invalidation_traded"
+            break
+        fired, fill, fill_reason = condition_execution(d, day_bar)
+        if fired is True or fired is None:
+            trigger_session = candidate if fired is True else None
+            break
+    return {
+        'evaluated': evaluated, 'fired': fired, 'fill': fill, 'fill_reason': fill_reason,
+        'trigger_session': trigger_session, 'pending_session': pending_session,
+        'missing_session': missing_session, 'degenerate_session': degenerate_session,
+        'implausible_session': implausible_session,
+        'invalidated_session': invalidated_session,
+    }
+
+
+def _window_refusal(scan, *, ticker, leg):
+    """The evaluation fields for a window that cannot be settled at all, or None.
+
+    Order matters and is the settlement policy: a suspect bar outranks a missing
+    one, which outranks a session that has not closed, which outranks a window
+    whose only bars were degenerate.
+    """
+    evaluated = scan['evaluated']
+    pending_session, missing_session = scan['pending_session'], scan['missing_session']
+    degenerate_session, implausible_session = scan['degenerate_session'], scan['implausible_session']
+    invalidated_session = scan['invalidated_session']
+    if implausible_session is not None:
+        return {"triggered": None, "status": "not_evaluable", "outcome": "unknown",
+                "not_evaluable_reason": "implausible_move",
+                "trigger_session": implausible_session,
+                "evaluation_schema_version": EVAL_SCHEMA_VERSION}
+    if missing_session is not None:
+        inactive = ticker_retired(ticker)
+        return {
+            "triggered": None,
+            "status": "not_evaluable",
+            "outcome": "unknown",
+            "not_evaluable_reason": (
+                "instrument_inactive" if inactive else "bar_missing"
+            ),
+            "trigger_session": missing_session,
+        }
+    if not evaluated and pending_session:
+        # The market WAS open (the calendar said so) but we have no bar. Either
+        # the session has not closed yet — which is pending, not unevaluable —
+        # or this instrument genuinely did not trade (not yet listed, halted, or
+        # retired — an instrument declared `retired` in market_data.bars' MANIFEST).
+        last = last_closed_session(leg) or ""
+        if pending_session > last:
+            return {"triggered": None, "status": "pending", "outcome": "pending",
+                    "pending_reason": "session_not_final", "trigger_session": pending_session}
+        inactive = ticker_retired(ticker)
+        return {"triggered": None, "status": "not_evaluable", "outcome": "unknown",
+                "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
+                "trigger_session": pending_session}
+
+    # Only when the window held no real bar at all is there nothing to
+    # settle on. A real bar that says False is evidence — the same evidence
+    # a real bar that says True is allowed to be one branch up — so it must
+    # still settle as `not_triggered`, not be rewritten into unknown by the
+    # halted session next to it (#1719).
+    if (
+        degenerate_session is not None
+        and not evaluated
+        and invalidated_session is None
+    ):
+        return {
+            "triggered": None,
+            "status": "not_evaluable",
+            "outcome": "unknown",
+            "not_evaluable_reason": "degenerate_bar",
+            "trigger_session": degenerate_session,
+            "evaluation_schema_version": EVAL_SCHEMA_VERSION,
+        }
+    return None
+
+
+def _mark_horizons(d, *, ticker, leg, entry, fill_session, today):
+    """Price a fill at T+1, T+5 and T+20 from canonical closes; the evaluation fields to set.
+
+    A mark that cannot be taken says why: the session is not final, its bar is
+    missing or pending, or the path from the fill crosses a suspect bar.
+    """
+    out = {}
+    marks = next_sessions(leg, fill_session, 20)
+    suspect_days = [day for day, row in load_ticker_bars(ticker).items()
+                    if day > fill_session and row.get("implausible_move")]
+
+    def crosses_suspect_move(mark):
+        return any(day <= mark for day in suspect_days)
+
+    b1 = b5 = b20 = u1 = None
+    m1 = m5 = m20 = None
+    reason = None
+    if marks:
+        m1 = marks[0]
+        nb = bar(ticker, m1)
+        if m1 >= today:
+            # Belt and braces: the bar store never holds an unfinished
+            # session, but a mark dated today must not score regardless of
+            # where the price came from. This is the defect that let a
+            # settled call flip win/loss with the intraday tape.
+            reason = "session_not_final"
+        elif nb is None:
+            # "Has not closed yet" vs "this instrument had no bar for a
+            # session that did happen" are different facts.
+            reason = ("mark_pending" if m1 > (last_closed_session(leg) or "")
+                      else "mark_bar_missing")
+        elif crosses_suspect_move(m1):
+            reason = "implausible_move"
+        else:
+            u1, b1 = _benefit(d.get("action"), entry, nb["close"])
+    # The longer marks say why they are absent, like T+1 does. A row
+    # that is `settled` with no T+20 and no reason is indistinguishable
+    # from one whose T+20 has not come due, and a replay that withdraws
+    # an already-published T+20 left no trace of which rows or why
+    # (#2336: 19 rows, one ticker's T+20 win rate 20.5% -> 36.0%).
+    r5 = r20 = None
+    if len(marks) >= 5:
+        m5 = marks[4]
+        nb5 = bar(ticker, m5)
+        if nb5 is not None and m5 < today:
+            if crosses_suspect_move(m5):
+                r5 = "implausible_move"
+            else:
+                _, b5 = _benefit(d.get("action"), entry, nb5["close"])
+    if len(marks) >= 20:
+        m20 = marks[19]
+        nb20 = bar(ticker, m20)
+        if nb20 is not None and m20 < today:
+            if crosses_suspect_move(m20):
+                r20 = "implausible_move"
+            else:
+                _, b20 = _benefit(d.get("action"), entry, nb20["close"])
+    out.update({
+        "status": "settled" if b1 is not None else "pending",
+        "outcome": _outcome(b1),
+        "underlying_return_t1_pct": u1,
+        "benefit_t1_pct": b1,
+        "benefit_t5_pct": b5,
+        "benefit_t20_pct": b20,
+        "mark_t1_session": m1 if b1 is not None else None,
+        "mark_t5_session": m5 if b5 is not None else None,
+        "mark_t20_session": m20 if b20 is not None else None,
+        "mark_horizon": "open_of_session_to_close_of_next_session",
+    })
+    for key, why in (("mark_t5_reason", r5), ("mark_t20_reason", r20)):
+        if why:
+            out[key] = why
+    if b1 is None and reason == "implausible_move":
+        out.update({"status": "not_evaluable", "outcome": "unknown",
+                   "not_evaluable_reason": reason})
+    elif b1 is None and reason:
+        out["pending_reason"] = reason
+    return out
+
+
 def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
     """Recompute trigger and T+1/T+5 outcomes from canonical bars, in place.
 
@@ -1113,110 +1318,15 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         candidate_sessions = [sess]
         if window > 1:
             candidate_sessions += next_sessions(leg, sess, window - 1)
-        evaluated = []
-        fired = fill = fill_reason = None
-        trigger_session = None
-        pending_session = None
-        missing_session = None
-        degenerate_session = None
-        implausible_session = None
-        invalidated_session = None
-        invalidation = _float(d.get("invalidation_price"))
-        for candidate in candidate_sessions:
-            day_bar = bar(ticker, candidate)
-            if day_bar is None:
-                if candidate >= today or candidate > (last_closed_session(leg) or ""):
-                    pending_session = candidate
-                    break
-                missing_session = candidate
-                break
-            # A suspect traded session cannot be skipped as if nothing traded:
-            # a later clean bar cannot prove the trigger/invalidation order.
-            if day_bar.get("implausible_move"):
-                implausible_session = candidate
-                break
-            # A zero-width bar is retained by the canonical store so downstream
-            # readers can distinguish a halted/untraded session from missing
-            # data. It is not evidence that either a trigger or an invalidation
-            # traded, so do not feed it to either test.
-            if day_bar.get("degenerate"):
-                degenerate_session = candidate
-                continue
-            evaluated.append(candidate)
-            # An authorised add is cancelled as soon as its risk line trades.
-            # We intentionally treat an ambiguous same-day low-below/high-above
-            # bar as invalidated: daily OHLC cannot prove the trigger happened
-            # first, and optimism here would be lookahead by assumption.
-            if (
-                d.get("action") in ADD_ACTIONS
-                and invalidation is not None
-                and day_bar["low"] <= invalidation
-            ):
-                invalidated_session = candidate
-                fired, fill, fill_reason = False, None, "invalidation_traded"
-                break
-            fired, fill, fill_reason = condition_execution(d, day_bar)
-            if fired is True or fired is None:
-                trigger_session = candidate if fired is True else None
-                break
-        if implausible_session is not None:
-            ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
-                       "not_evaluable_reason": "implausible_move",
-                       "trigger_session": implausible_session,
-                       "evaluation_schema_version": EVAL_SCHEMA_VERSION})
-            if json.dumps(ev, sort_keys=True) != before:
-                changed += 1
-            continue
-        if missing_session is not None:
-            inactive = ticker_retired(ticker)
-            ev.update({
-                "triggered": None,
-                "status": "not_evaluable",
-                "outcome": "unknown",
-                "not_evaluable_reason": (
-                    "instrument_inactive" if inactive else "bar_missing"
-                ),
-                "trigger_session": missing_session,
-            })
-            if json.dumps(ev, sort_keys=True) != before:
-                changed += 1
-            continue
-        if not evaluated and pending_session:
-            # The market WAS open (the calendar said so) but we have no bar. Either
-            # the session has not closed yet — which is pending, not unevaluable —
-            # or this instrument genuinely did not trade (not yet listed, halted, or
-            # retired — an instrument declared `retired` in market_data.bars' MANIFEST).
-            last = last_closed_session(leg) or ""
-            if pending_session > last:
-                ev.update({"triggered": None, "status": "pending", "outcome": "pending",
-                           "pending_reason": "session_not_final", "trigger_session": pending_session})
-            else:
-                inactive = ticker_retired(ticker)
-                ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
-                           "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
-                           "trigger_session": pending_session})
-            if json.dumps(ev, sort_keys=True) != before:
-                changed += 1
-            continue
-
-        # Only when the window held no real bar at all is there nothing to
-        # settle on. A real bar that says False is evidence — the same evidence
-        # a real bar that says True is allowed to be one branch up — so it must
-        # still settle as `not_triggered`, not be rewritten into unknown by the
-        # halted session next to it (#1719).
-        if (
-            degenerate_session is not None
-            and not evaluated
-            and invalidated_session is None
-        ):
-            ev.update({
-                "triggered": None,
-                "status": "not_evaluable",
-                "outcome": "unknown",
-                "not_evaluable_reason": "degenerate_bar",
-                "trigger_session": degenerate_session,
-                "evaluation_schema_version": EVAL_SCHEMA_VERSION,
-            })
+        scan = _trigger_window(d, ticker=ticker, leg=leg,
+                               candidate_sessions=candidate_sessions, today=today)
+        evaluated, fired, fill, fill_reason = (
+            scan['evaluated'], scan['fired'], scan['fill'], scan['fill_reason'])
+        trigger_session, pending_session = scan['trigger_session'], scan['pending_session']
+        invalidated_session = scan['invalidated_session']
+        refusal = _window_refusal(scan, ticker=ticker, leg=leg)
+        if refusal is not None:
+            ev.update(refusal)
             if json.dumps(ev, sort_keys=True) != before:
                 changed += 1
             continue
@@ -1270,76 +1380,8 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         else:
             entry = fill
             fill_session = trigger_session or sess
-            marks = next_sessions(leg, fill_session, 20)
-            suspect_days = [day for day, row in load_ticker_bars(ticker).items()
-                            if day > fill_session and row.get("implausible_move")]
-
-            def crosses_suspect_move(mark):
-                return any(day <= mark for day in suspect_days)
-
-            b1 = b5 = b20 = u1 = None
-            m1 = m5 = m20 = None
-            reason = None
-            if marks:
-                m1 = marks[0]
-                nb = bar(ticker, m1)
-                if m1 >= today:
-                    # Belt and braces: the bar store never holds an unfinished
-                    # session, but a mark dated today must not score regardless of
-                    # where the price came from. This is the defect that let a
-                    # settled call flip win/loss with the intraday tape.
-                    reason = "session_not_final"
-                elif nb is None:
-                    # "Has not closed yet" vs "this instrument had no bar for a
-                    # session that did happen" are different facts.
-                    reason = ("mark_pending" if m1 > (last_closed_session(leg) or "")
-                              else "mark_bar_missing")
-                elif crosses_suspect_move(m1):
-                    reason = "implausible_move"
-                else:
-                    u1, b1 = _benefit(d.get("action"), entry, nb["close"])
-            # The longer marks say why they are absent, like T+1 does. A row
-            # that is `settled` with no T+20 and no reason is indistinguishable
-            # from one whose T+20 has not come due, and a replay that withdraws
-            # an already-published T+20 left no trace of which rows or why
-            # (#2336: 19 rows, one ticker's T+20 win rate 20.5% -> 36.0%).
-            r5 = r20 = None
-            if len(marks) >= 5:
-                m5 = marks[4]
-                nb5 = bar(ticker, m5)
-                if nb5 is not None and m5 < today:
-                    if crosses_suspect_move(m5):
-                        r5 = "implausible_move"
-                    else:
-                        _, b5 = _benefit(d.get("action"), entry, nb5["close"])
-            if len(marks) >= 20:
-                m20 = marks[19]
-                nb20 = bar(ticker, m20)
-                if nb20 is not None and m20 < today:
-                    if crosses_suspect_move(m20):
-                        r20 = "implausible_move"
-                    else:
-                        _, b20 = _benefit(d.get("action"), entry, nb20["close"])
-            ev.update({
-                "status": "settled" if b1 is not None else "pending",
-                "outcome": _outcome(b1),
-                "underlying_return_t1_pct": u1,
-                "benefit_t1_pct": b1,
-                "benefit_t5_pct": b5,
-                "benefit_t20_pct": b20,
-                "mark_t1_session": m1 if b1 is not None else None,
-                "mark_t5_session": m5 if b5 is not None else None,
-                "mark_t20_session": m20 if b20 is not None else None,
-                "mark_horizon": "open_of_session_to_close_of_next_session",
-            })
-            for key, why in (("mark_t5_reason", r5), ("mark_t20_reason", r20)):
-                if why:
-                    ev[key] = why
-            if b1 is None and reason == "implausible_move":
-                ev.update({"status": "not_evaluable", "outcome": "unknown",
-                           "not_evaluable_reason": reason})
-            elif b1 is None and reason:
-                ev["pending_reason"] = reason
+            ev.update(_mark_horizons(d, ticker=ticker, leg=leg, entry=entry,
+                                     fill_session=fill_session, today=today))
         if json.dumps(ev, sort_keys=True) != before:
             changed += 1
     return changed
