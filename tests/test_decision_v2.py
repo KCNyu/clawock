@@ -1267,3 +1267,66 @@ def test_a_clean_window_carries_no_mark_reason():
     ev = _settle_against('2026-07-09', 12, bars=bars)
     assert ev['benefit_t5_pct'] is not None
     assert 'mark_t5_reason' not in ev and 'mark_t20_reason' not in ev
+
+
+def _patched(bars, sessions=None):
+    import contextlib
+    stack = contextlib.ExitStack()
+    for patch in _with_bars(bars, sessions):
+        stack.enter_context(patch)
+    stack.enter_context(mock.patch.object(dv2, "last_closed_session", return_value=max(bars)))
+    return stack
+
+
+def test_mark_horizons_names_each_reason_a_mark_is_withheld():
+    """The pricing half of settlement on its own (#2596): one fill, four refusals."""
+    row = {"action": "cut"}
+    days = [f"2026-07-{day:02d}" for day in range(1, 8)]
+    marks = lambda bars, today: dv2._mark_horizons(  # noqa: E731
+        row, ticker="AAA", leg="US", entry=10.0, fill_session="2026-07-01", today=today)
+
+    clean = {day: _bar(10 + i) for i, day in enumerate(days)}
+    with _patched(clean, days):
+        out = marks(clean, "2026-07-09")
+        assert out["status"] == "settled" and out["mark_t1_session"] == "2026-07-02"
+        assert out["mark_t5_session"] == "2026-07-06" and "mark_t5_reason" not in out
+        # T+1 dated today never scores, wherever the price came from.
+        assert marks(clean, "2026-07-02")["pending_reason"] == "session_not_final"
+    no_bar = {day: bar for day, bar in clean.items() if day != "2026-07-02"}
+    with _patched(no_bar, days):
+        assert marks(no_bar, "2026-07-09")["pending_reason"] == "mark_bar_missing"
+    with _patched(no_bar, days), mock.patch.object(dv2, "last_closed_session", return_value="2026-07-01"):
+        assert marks(no_bar, "2026-07-09")["pending_reason"] == "mark_pending"
+    suspect = {**clean, "2026-07-02": {**clean["2026-07-02"], "implausible_move": "60.0%"}}
+    with _patched(suspect, days):
+        out = marks(suspect, "2026-07-09")
+        assert (out["status"], out["not_evaluable_reason"]) == ("not_evaluable", "implausible_move")
+        assert out["mark_t5_reason"] == "implausible_move"
+
+
+def test_trigger_window_keeps_a_halted_session_and_a_suspect_one_apart():
+    """A degenerate bar is skipped and the scan goes on; a suspect bar ends it (#1717)."""
+    row = dv2.legacy_action_to_decision({"ticker": "AAA", "action": "cut",
+        "condition": {"type": "open"}, "confidence": .6}, "2026-07-01")
+    days = ["2026-07-01", "2026-07-02", "2026-07-03"]
+    scan = lambda: dv2._trigger_window(  # noqa: E731
+        row, ticker="AAA", leg="US", candidate_sessions=days, today="2026-07-09")
+
+    halted_then_real = {"2026-07-01": {**_bar(10), "degenerate": True}, "2026-07-02": _bar(11)}
+    with _patched(halted_then_real, days):
+        got = scan()
+        assert got["degenerate_session"] == "2026-07-01" and got["implausible_session"] is None
+        assert got["evaluated"] == ["2026-07-02"] and got["fired"] is True
+        assert got["trigger_session"] == "2026-07-02"
+        assert dv2._window_refusal(got, ticker="AAA", leg="US") is None
+    suspect_first = {"2026-07-01": {**_bar(10), "implausible_move": "57.9%"}, "2026-07-02": _bar(11)}
+    with _patched(suspect_first, days):
+        got = scan()
+        assert got["implausible_session"] == "2026-07-01" and got["evaluated"] == []
+        refusal = dv2._window_refusal(got, ticker="AAA", leg="US")
+        assert refusal["not_evaluable_reason"] == "implausible_move"
+    only_halted = {"2026-07-01": {**_bar(10), "degenerate": True}}
+    with _patched(only_halted, ["2026-07-01"]):
+        got = dv2._trigger_window(row, ticker="AAA", leg="US",
+                                  candidate_sessions=["2026-07-01"], today="2026-07-09")
+        assert dv2._window_refusal(got, ticker="AAA", leg="US")["not_evaluable_reason"] == "degenerate_bar"
