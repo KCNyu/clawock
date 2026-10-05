@@ -86,7 +86,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-typert-protocol": "^0.2.0-rc.2",
     "zod": "^4.4.3"
   },
   "openclaw": {
@@ -98,8 +98,8 @@
     "@deepseek-ai/cordis": "^4.0.1"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-client-store": "^0.1.2-rc.1",
-    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-store": "^0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.2.0-rc.2",
     "@deepseek-ai/dsh-typert-generator": "0.1.0-rc.8",
     "@types/node": "^26.2.0",
     "@types/react": "~18.3.1",
