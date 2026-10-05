@@ -73,7 +73,11 @@ jobs:
       # so the stamp is computed here and the composite stays declarative.
       - name: Compose the commit message
         run: |
-          echo "COMMIT_MESSAGE=archive: EOD snapshot $(date -u +%Y-W%W)" >> "$GITHUB_ENV"
+          # The ISO week of the rows just appended, from the same function that
+          # dated them. `date -u +%Y-W%W` is a different calendar: every title
+          # named the week before the one in the CSV (#2603).
+          WEEK=$(python3 -c 'from datetime import date; from clawock.publish.artifacts import eod_snapshot_date; y, w, _ = date.fromisoformat(eod_snapshot_date()).isocalendar(); print(f"{y}-W{w:02d}")')
+          echo "COMMIT_MESSAGE=archive: EOD snapshot $WEEK" >> "$GITHUB_ENV"
 
       - name: Commit
         env:
