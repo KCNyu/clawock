@@ -196,6 +196,27 @@ def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_p
     assert "stages" not in card["recent"][0]
 
 
+def test_an_unreadable_schedule_leaves_the_due_slot_count_unknown_not_zero(tmp_path, monkeypatch):
+    """#2609: the card read the missing count as 0 and printed 全部按时送达."""
+    from clawock.publish import dashboard
+
+    path = tmp_path / "assets/data/workflow-outcomes.json"
+    path.parent.mkdir(parents=True)
+    slot = datetime.now(timezone.utc) - timedelta(hours=1)
+    path.write_text(json.dumps({"schema_version": 1, "records": [{
+        "job": "港股收盘报告", "slot": slot.isoformat(),
+        "final_product": {"status": "success"}}]}))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))  # no config/cron-schedules.json
+
+    card = dashboard.compute_workflow_outcomes()
+
+    assert card["counts"] == {"success": 1}
+    assert "due_no_record" in card and card["due_no_record"] is None
+    overview = dashboard.compile_overview_projection({"workflow_outcomes": card})
+    assert overview["workflow_outcomes"]["due_no_record"] is None
+
+
 def test_overview_keeps_degradation_ledger_visible():
     from clawock.publish.dashboard import compile_overview_projection
 

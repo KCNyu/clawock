@@ -280,6 +280,14 @@ jobs:
                 [[ "$f" == site/assets/* || "$f" == docs/* ]] || bad+=("$f")
                 ;;
             esac
+            # Coding-agent prose (#2607): the class .gitignore and the pre-commit
+            # hook refuse. Neither runs on a server-side squash merge, and the one
+            # pytest that owns the class is skipped when no code path changed.
+            # A regex, not a `case` glob: there `*` would also match `/` and take
+            # memory/weekly/ and the README files with it.
+            if [[ "$f" =~ ^memory/[^/]+\.md$ && "$f" != *-pre-open.md ]]; then
+              bad+=("$f")
+            fi
           done
           if ((${#bad[@]})); then
             printf '::error::Forbidden PR path: %s\n' "${bad[@]}"

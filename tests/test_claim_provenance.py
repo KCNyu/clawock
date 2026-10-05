@@ -160,10 +160,20 @@ def test_tolerance_follows_the_precision_the_claim_is_printed_at(tmp_path):
     assert _check(_workspace(tmp_path / "b", fine, card))
 
 
+def test_a_json_string_is_read_a_sentence_at_a_time(tmp_path):
+    """#2610: a JSON rationale is one line, so its one quantity word claimed every
+    number in the paragraph — or, off the surface list, none of them was read."""
+    text = ('{"rationale": "Run card demo-20260101-0a1b2c3d. Mean 2.18% over 141 campaigns; '
+            'per unit 0.64% vs 1.70%. Without the permission OOS drawdown -14.93% of book: rejected."}')
+    assert [c["value"] for c in cp.scan_text(text, source="config/x.json")] == [-0.1493]
+    assert len(cp.scan_text(text, source="docs/x.md")) == 4
+
+
 def test_no_file_with_a_backtest_shaped_number_sits_outside_the_gate():
     """The surface list is hand-kept, so a file left off it was simply never read
-    (#2185 the harness doc, #2556 the left-side module). Every tracked source,
-    doc or skill the scanner matches is either a surface or a listed non-claim."""
+    (#2185 the harness doc, #2556 the left-side module, #2610 the left-side policy
+    file itself). Every tracked source, doc, skill or config file the scanner
+    matches is either a surface or a listed non-claim."""
     config = json.loads((ROOT / "config" / "claim-provenance.json").read_text())
     surfaces = set(cp.load_surfaces(ROOT / "config" / "claim-provenance.json"))
     reasons = {path: reason for path, reason in config["not_backtest_claims"].items()
@@ -172,7 +182,8 @@ def test_no_file_with_a_backtest_shaped_number_sits_outside_the_gate():
     assert not surfaces & set(reasons), "a surface is checked; it needs no exemption"
 
     matched = set()
-    for pattern in ("src/**/*.py", "docs/**/*.md", "skills/**/*.md", "*.md"):
+    for pattern in ("src/**/*.py", "docs/**/*.md", "skills/**/*.md", "*.md",
+                    "config/**/*.json"):
         for path in ROOT.glob(pattern):
             rel = path.relative_to(ROOT).as_posix()
             if cp.scan_text(path.read_text(encoding="utf-8"), source=rel):

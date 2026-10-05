@@ -157,6 +157,45 @@ def _curation(system_check):
     return result.checks[0]
 
 
+def test_the_pr_policy_refuses_coding_agent_prose(tmp_path):
+    """The hook is a per-clone install and a squash merge is made on the server;
+    a PR carrying only a note changed no code path, so the pytest above was
+    skipped too and CI had nothing to say about the class (#2607). Runs the
+    workflow step itself, on a real diff."""
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = [step for job in workflow["jobs"].values() for step in job.get("steps", [])
+             if step.get("name") == "PR file safety policy"]
+    assert len(steps) == 1
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+
+    def commit(*names):
+        for name in names:
+            (repo / name).parent.mkdir(parents=True, exist_ok=True)
+            (repo / name).write_text(f"{name}\n", encoding="utf-8")
+        _git(repo, "add", "-f", *names)
+        _git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t",
+             "commit", "-q", "--no-verify", "-m", "x")
+        return _git(repo, "rev-parse", "HEAD").stdout.strip()
+
+    def policy(base, head):
+        return subprocess.run(["bash", "-c", steps[0]["run"]], cwd=repo, text=True,
+                              capture_output=True, env={"PATH": "/usr/bin:/bin",
+                                                        "BASE_SHA": base, "HEAD_SHA": head})
+
+    base = commit("README.md")
+    allowed = commit("memory/2099-01-01-pre-open.md", "memory/weekly/2099-W01.md",
+                     "memory/theses/README.md", "MEMORY.md")
+    assert policy(base, allowed).returncode == 0, policy(base, allowed).stderr
+    for note in ("memory/2099-01-01-1530.md", "memory/feedback_something.md"):
+        refused = policy(allowed, commit(note))
+        assert refused.returncode == 1 and f"Forbidden PR path: {note}" in refused.stdout
+
+
 def test_a_topic_file_the_index_never_links_is_reported(system_check, live):
     (live / "MEMORY.md").write_text(
         "- [rules](memory/rules.md) — read before X\n", encoding="utf-8")

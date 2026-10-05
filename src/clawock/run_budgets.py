@@ -24,8 +24,10 @@ SAFE_PUSH_ATTEMPTS = 3
 PREPUSH_ATTEMPT_SECONDS = 90
 PUSH_RETRY_BACKOFF_SECONDS = 9
 PUSH_TIMEOUT_SECONDS = SAFE_PUSH_ATTEMPTS * PREPUSH_ATTEMPT_SECONDS + PUSH_RETRY_BACKOFF_SECONDS
-# Local git steps of a postflight: `git add` and `git commit`, each through
-# `_harness_common.git_cmd`.
+# Local git steps a postflight runs before its push: `git add` and `git commit`,
+# each through `_harness_common.git_cmd`. A branch that runs a third one (the
+# intraday chain asks the index why a commit failed) returns without pushing,
+# so it is shorter than the chain charged here (#2608).
 GIT_STEP_TIMEOUT_SECONDS = 30
 GIT_STEPS_PER_POSTFLIGHT = 2
 # `sync_gha_data_files`: one fetch, one batch restore, and — when the batch
