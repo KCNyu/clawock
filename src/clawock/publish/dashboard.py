@@ -4304,6 +4304,160 @@ def apply_size_budget(out):
     return payload, size_bytes
 
 
+def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
+    """The LLM-written cards and peer divergence, each next to its presence test.
+
+    Everything here may be restored from the previous payload, so it runs before
+    `_restore_previous_cards`. Returns what the re-check after the restore needs.
+    """
+    # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
+    # Each sidecar is validated (validate_insights / validate_intraday_insights)
+    # before it reaches dashboard.json: malformed / hallucinated content is dropped
+    # so the card hides instead of publishing bad data. Anti-hallucination cross-check
+    # is against the live book's tickers.
+    known_tickers = {h.get('ticker') for h in (us_h + hk_h) if h.get('ticker')}
+    out['sector_exposure'] = compute_sector_exposure(portfolio)
+    out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
+    _insight_weights = insight_weight_values(out)
+    # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
+    # 7d stale guard so a missed brief doesn't show week-old critique as current.
+    _insights = load_tmp_sidecar('insights', max_age_days=7)
+    # True when the file existed at all — including when it existed but was
+    # unreadable. Only genuine absence (a GHA checkout, where memory/.tmp is
+    # gitignored) may republish the previous card; an unreadable file must let
+    # the card hide rather than show yesterday's critique as today's.
+    insights_present = bool(_insights)
+    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers,
+                             weights=_insight_weights)
+    out['behavioral_review'] = _ins['behavioral_review']
+    out['bear_cases'] = _ins['bear_cases']
+    out['hidden_concentration'] = _ins['hidden_concentration']
+    out['insights_meta'] = {
+        'source': _insights.get('_source'),
+        'stale': _insights.get('_stale', True if not _insights else False),
+        'written_at': _insights.get('_written_at'),
+    }
+    for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
+        presence[_k] = insights_present
+    # intraday insights (every 30min): status_banner + per-mover attribution.
+    _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
+    intra_present = bool(_intra)  # file existed in this checkout (vs. GHA-absent)
+    _intra_v = validate_intraday_insights({} if _intra.get('_stale') else _intra, known_tickers)
+    out['status_banner'] = _intra_v['status_banner']
+    out['status_banner_meta'] = {
+        'source': _intra.get('_source'),
+        'generated_at': _intra.get('generated_at') or _intra.get('_written_at'),
+        'stale': _intra.get('_stale', True if not _intra else False),
+    }
+    presence['status_banner'] = intra_present
+    presence['status_banner_meta'] = intra_present
+
+    # Merge validated mover attribution onto the deterministic movers list (by ticker).
+    for _m in out['today_movers']:
+        _note = _intra_v['movers'].get(_m.get('ticker'))
+        if _note:
+            _m['note'] = _note
+    out['peer_divergence'] = {
+        'as_of': (brief_ctx or {}).get('date')
+                 or ((brief_ctx or {}).get('generated_at') or '')[:10],
+        'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
+    }
+    # peer_divergence is brief-context-derived → preserve last good when absent.
+    # Its wrapper dict is truthy even with an empty items list, so restoring it
+    # needs a stricter test than the other cards — hence `usable` below.
+    presence['peer_divergence'] = bool(brief_ctx) or bool(out['peer_divergence']['items'])
+    return known_tickers, _insight_weights
+
+
+def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, known_tickers, insight_weights):
+    """Restore absent cards from the previous payload, then redo what must match this book.
+
+    The one phase boundary of `build_projection`: a card computed after this call
+    overwrites its restored value (#430), and a restored card that carries numbers
+    of the previous book is re-derived here (#2353). Returns the restored keys.
+    """
+    # One merge, after every card above has been computed: the nine keys are
+    # disjoint from everything read in between, so applying them together changes
+    # nothing except that the set of restored keys can now be named. Anything
+    # added later that falls back to `previous` belongs in this map, or the
+    # payload will under-report what it copied.
+    _preserved = merge_previous_payload(
+        out, previous, presence,
+        usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
+    if 'anomalies' in _preserved:
+        # A restored list carries the previous build's position weights. The
+        # brief-derived entries are what the restore is for; the weight check
+        # needs no brief-context, so it is redone on the book being published.
+        _legs = [leg.key for leg in resolve_legs(portfolio)]
+        out['anomalies'] = high_weight_loss_anomalies(
+            _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
+            a for a in out['anomalies']
+            if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
+    _checked_insights = validate_insights(out, known_tickers, weights=insight_weights)
+    out['bear_cases'] = _checked_insights['bear_cases']
+    out['hidden_concentration'] = _checked_insights['hidden_concentration']
+    return _preserved
+
+
+def _risk_cards(out, portfolio, snapshots, fx_rate):
+    """Drawdown, deep risk, the leverage dial, the re-entry radar and the guardrail card."""
+    # v2.1: broker-style analytics
+    out['drawdown'] = compute_drawdown(snapshots, fx_rate)
+    # Tier 2: pull pre-computed risk metrics (from `clawock portfolio-risk`)
+    risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
+    if risk_path.exists():
+        try:
+            out['risk'] = trim_deep_risk(json.loads(risk_path.read_text()))
+        except Exception as e:
+            print(f'  warn: risk.json parse fail: {e}', file=sys.stderr)
+            out['risk'] = None
+    else:
+        out['risk'] = None
+
+    # Risk guardrail card — recompute from the LIVE portfolio via the canonical
+    # brief_preflight.compute_risk_guardrail (single source of truth) so the dashboard
+    # always shows current breaches, not whatever the last brief-context captured.
+    # Leverage dial (lev_regime.json) — embed for the 🧭 card AND feed the guardrail
+    # recompute so the dashboard's leveraged-ETF cap matches the tightened regime cap.
+    lev_regime = None
+    lr_path = WS_ROOT / 'assets' / 'data' / 'lev_regime.json'
+    if lr_path.exists():
+        try:
+            lev_regime = json.loads(lr_path.read_text())
+        except Exception as e:
+            print(f'  warn: lev_regime.json parse fail: {e}', file=sys.stderr)
+    # regime_history is ~16KB of per-date series that no chart reads — it exists
+    # for the alpha-by-regime bucket and is still published whole in
+    # assets/data/lev_regime.json. The page pays for it on every first paint
+    # otherwise.
+    out['lev_regime'] = trim_lev_regime(lev_regime)
+    out['reentry_radar'] = compute_reentry_radar(lev_regime, portfolio)
+
+    out.update(compute_guardrail_outputs(
+        portfolio, out.get('risk') or {}, lev_regime=lev_regime))
+    annotate_guardrail_history(out.get('risk_guardrail'), load_guardrail_history())
+
+
+def _gold_card(portfolio):
+    """The gold DCA card, trimmed for the browser; None when the book has none."""
+    # 🥇 黄金定投卡（000217 华安黄金ETF联接C）— 独立成卡，CNY，不并入跨币种总额
+    # （见记忆 openclaw-fx-rule）。数据由 KCNyu gold automation 每日刷进 portfolio.json['gold_dca']，
+    # 这里只做体积裁剪后透传。portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
+    _gold = portfolio.get('gold_dca')
+    if _gold:
+        _gold = dict(_gold)
+        _gold.pop('parent_backtest', None)  # ETF 回测段 2026-06-11 撤除（kcn：没用，就是黄金本身）
+        if isinstance(_gold.get('nav_history'), list):
+            _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
+        if isinstance(_gold.get('london'), dict):
+            _gold['london'] = dict(_gold['london'])
+            # 结算窗的原始参考序列只属于 fetcher 持久状态；dashboard 只需要
+            # 来源、点数和可见 advisory，不把整条内部校验账本发到浏览器。
+            _gold['london'].pop('hist_series', None)
+            _gold['london'].pop('fx_hist_series', None)
+    return _gold
+
+
 def build_projection(previous_source=None, shadow_previous=None):
     """Compute the five public payloads from the workspace. Writes nothing.
 
@@ -4478,84 +4632,14 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['crawl_visibility'] = load_json(OUT_DIR / 'crawl_visibility_summary.json') or {}
     _presence['crawl_visibility'] = bool(out['crawl_visibility'].get('available'))
 
-    # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
-    # Each sidecar is validated (validate_insights / validate_intraday_insights)
-    # before it reaches dashboard.json: malformed / hallucinated content is dropped
-    # so the card hides instead of publishing bad data. Anti-hallucination cross-check
-    # is against the live book's tickers.
-    known_tickers = {h.get('ticker') for h in (us_h + hk_h) if h.get('ticker')}
     fx_rate = (out.get('fx') or {}).get('usdhkd')
-    out['sector_exposure'] = compute_sector_exposure(portfolio)
-    out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
-    _insight_weights = insight_weight_values(out)
-    # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
-    # 7d stale guard so a missed brief doesn't show week-old critique as current.
-    _insights = load_tmp_sidecar('insights', max_age_days=7)
-    # True when the file existed at all — including when it existed but was
-    # unreadable. Only genuine absence (a GHA checkout, where memory/.tmp is
-    # gitignored) may republish the previous card; an unreadable file must let
-    # the card hide rather than show yesterday's critique as today's.
-    insights_present = bool(_insights)
-    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers,
-                             weights=_insight_weights)
-    out['behavioral_review'] = _ins['behavioral_review']
-    out['bear_cases'] = _ins['bear_cases']
-    out['hidden_concentration'] = _ins['hidden_concentration']
-    out['insights_meta'] = {
-        'source': _insights.get('_source'),
-        'stale': _insights.get('_stale', True if not _insights else False),
-        'written_at': _insights.get('_written_at'),
-    }
-    for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
-        _presence[_k] = insights_present
-    # intraday insights (every 30min): status_banner + per-mover attribution.
-    _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
-    intra_present = bool(_intra)  # file existed in this checkout (vs. GHA-absent)
-    _intra_v = validate_intraday_insights({} if _intra.get('_stale') else _intra, known_tickers)
-    out['status_banner'] = _intra_v['status_banner']
-    out['status_banner_meta'] = {
-        'source': _intra.get('_source'),
-        'generated_at': _intra.get('generated_at') or _intra.get('_written_at'),
-        'stale': _intra.get('_stale', True if not _intra else False),
-    }
-    _presence['status_banner'] = intra_present
-    _presence['status_banner_meta'] = intra_present
+    known_tickers, _insight_weights = _narrative_cards(
+        out, _presence, portfolio, us_h, hk_h, brief_ctx, fx_rate)
 
-    # Merge validated mover attribution onto the deterministic movers list (by ticker).
-    for _m in out['today_movers']:
-        _note = _intra_v['movers'].get(_m.get('ticker'))
-        if _note:
-            _m['note'] = _note
-    out['peer_divergence'] = {
-        'as_of': (brief_ctx or {}).get('date')
-                 or ((brief_ctx or {}).get('generated_at') or '')[:10],
-        'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
-    }
-    # peer_divergence is brief-context-derived → preserve last good when absent.
-    # Its wrapper dict is truthy even with an empty items list, so restoring it
-    # needs a stricter test than the other cards — hence `usable` below.
-    _presence['peer_divergence'] = bool(brief_ctx) or bool(out['peer_divergence']['items'])
-
-    # One merge, after every card above has been computed: the nine keys are
-    # disjoint from everything read in between, so applying them together changes
-    # nothing except that the set of restored keys can now be named. Anything
-    # added later that falls back to `_prev_dash` belongs in this map, or the
-    # payload will under-report what it copied.
-    _preserved = merge_previous_payload(
-        out, _prev_dash, _presence,
-        usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
-    if 'anomalies' in _preserved:
-        # A restored list carries the previous build's position weights. The
-        # brief-derived entries are what the restore is for; the weight check
-        # needs no brief-context, so it is redone on the book being published.
-        _legs = [leg.key for leg in resolve_legs(portfolio)]
-        out['anomalies'] = high_weight_loss_anomalies(
-            _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
-            a for a in out['anomalies']
-            if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
-    _checked_insights = validate_insights(out, known_tickers, weights=_insight_weights)
-    out['bear_cases'] = _checked_insights['bear_cases']
-    out['hidden_concentration'] = _checked_insights['hidden_concentration']
+    # Anything added later that falls back to `_prev_dash` belongs in `_presence`
+    # before this call, or the payload will under-report what it copied.
+    _preserved = _restore_previous_cards(
+        out, _prev_dash, _presence, portfolio, us_h, hk_h, known_tickers, _insight_weights)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()
@@ -4598,42 +4682,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['magnitude_metrics'] = compute_magnitude_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
-    # v2.1: broker-style analytics
-    fx_rate = (out.get('fx') or {}).get('usdhkd')
-    out['drawdown'] = compute_drawdown(snapshots, fx_rate)
-    # Tier 2: pull pre-computed risk metrics (from `clawock portfolio-risk`)
-    risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
-    if risk_path.exists():
-        try:
-            out['risk'] = trim_deep_risk(json.loads(risk_path.read_text()))
-        except Exception as e:
-            print(f'  warn: risk.json parse fail: {e}', file=sys.stderr)
-            out['risk'] = None
-    else:
-        out['risk'] = None
-
-    # Risk guardrail card — recompute from the LIVE portfolio via the canonical
-    # brief_preflight.compute_risk_guardrail (single source of truth) so the dashboard
-    # always shows current breaches, not whatever the last brief-context captured.
-    # Leverage dial (lev_regime.json) — embed for the 🧭 card AND feed the guardrail
-    # recompute so the dashboard's leveraged-ETF cap matches the tightened regime cap.
-    lev_regime = None
-    lr_path = WS_ROOT / 'assets' / 'data' / 'lev_regime.json'
-    if lr_path.exists():
-        try:
-            lev_regime = json.loads(lr_path.read_text())
-        except Exception as e:
-            print(f'  warn: lev_regime.json parse fail: {e}', file=sys.stderr)
-    # regime_history is ~16KB of per-date series that no chart reads — it exists
-    # for the alpha-by-regime bucket and is still published whole in
-    # assets/data/lev_regime.json. The page pays for it on every first paint
-    # otherwise.
-    out['lev_regime'] = trim_lev_regime(lev_regime)
-    out['reentry_radar'] = compute_reentry_radar(lev_regime, portfolio)
-
-    out.update(compute_guardrail_outputs(
-        portfolio, out.get('risk') or {}, lev_regime=lev_regime))
-    annotate_guardrail_history(out.get('risk_guardrail'), load_guardrail_history())
+    _risk_cards(out, portfolio, snapshots, fx_rate)
 
     # Embed GH Action outputs into dashboard.json so the static page can render them
     def _embed(key, fname):
@@ -4691,22 +4740,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['capital_deployed'] = compute_capital_deployed(portfolio, fx_rate)
     out['net_principal_return'] = compute_net_principal_return(portfolio, fx_rate)
 
-    # 🥇 黄金定投卡（000217 华安黄金ETF联接C）— 独立成卡，CNY，不并入跨币种总额
-    # （见记忆 openclaw-fx-rule）。数据由 KCNyu gold automation 每日刷进 portfolio.json['gold_dca']，
-    # 这里只做体积裁剪后透传。portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
-    _gold = portfolio.get('gold_dca')
-    if _gold:
-        _gold = dict(_gold)
-        _gold.pop('parent_backtest', None)  # ETF 回测段 2026-06-11 撤除（kcn：没用，就是黄金本身）
-        if isinstance(_gold.get('nav_history'), list):
-            _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
-        if isinstance(_gold.get('london'), dict):
-            _gold['london'] = dict(_gold['london'])
-            # 结算窗的原始参考序列只属于 fetcher 持久状态；dashboard 只需要
-            # 来源、点数和可见 advisory，不把整条内部校验账本发到浏览器。
-            _gold['london'].pop('hist_series', None)
-            _gold['london'].pop('fx_hist_series', None)
-    out['gold_dca'] = _gold
+    out['gold_dca'] = _gold_card(portfolio)
 
     # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
     try:
