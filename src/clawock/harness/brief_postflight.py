@@ -1030,9 +1030,13 @@ def maybe_commit(status, today, dry_run=False):
         return False, f'git add failed: {add_out[-200:]}'
 
     commit_ok, commit_out = _git('commit', '-m', f'memory: daily deep brief {today}{msg_suffix}')
-    if not commit_ok and 'nothing to commit' in commit_out:
-        return True, 'nothing to commit (idempotent)'
     if not commit_ok:
+        # git words "nothing staged" by whatever else is dirty in the checkout
+        # ("no changes added to commit" on the live host), so the index is
+        # asked instead (0 = no diff), as intraday_postflight does.
+        clean, _ = _git('diff', '--cached', '--quiet')
+        if clean:
+            return True, 'nothing to commit (idempotent)'
         return False, commit_out[-200:]
 
     # Push so Pages picks it up; rebase + retry handles races with GH Action commits

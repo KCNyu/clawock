@@ -217,6 +217,73 @@ def test_every_subcommand_the_parser_offers_can_actually_be_dispatched():
     assert all(cli.UTILITY_HELP.values()), "a utility ships an empty help line"
 
 
+FORWARDED_FLAGS = {"--market", "--phase", "--context-id", "--text-file", "--date",
+                   "--dry-run", "--judgment-packet"}
+
+
+def _flags_the_phase_module_declares(workflow, phase):
+    source = (Path(__file__).resolve().parents[1] / "src" / "clawock" / "harness"
+              / f"{workflow}_{phase}.py").read_text(encoding="utf-8")
+    return {arg.value for node in ast.walk(ast.parse(source))
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "add_argument"
+            for arg in node.args
+            if isinstance(arg, ast.Constant) and str(arg.value).startswith("--")}
+
+
+def test_every_flag_a_lifecycle_help_prints_is_accepted_by_a_phase_it_names(monkeypatch, capsys):
+    """#2616: `clawock brief|report|intraday --help` printed one flat flag list.
+
+    Six of the seven lifecycle entries rejected a flag their own `--help`
+    advertised, and `intraday` offered `--date`/`--dry-run`, which neither of its
+    phases reads. The table is held against each phase module's own parser in
+    both directions, the workflow parser may offer only what the table lists,
+    and a flag given to the wrong phase is refused by name before anything runs.
+    """
+    from clawock import cli
+    from clawock.harness import runner
+
+    for (workflow, phase), flags in cli.PHASE_FLAGS.items():
+        declared = _flags_the_phase_module_declares(workflow, phase) & FORWARDED_FLAGS
+        assert set(flags) == declared, (
+            f"{workflow} {phase}: PHASE_FLAGS lists {sorted(flags)}, "
+            f"its parser declares {sorted(declared)}")
+
+    ran = []
+    monkeypatch.setattr(runner, "run_phase",
+                        lambda *args, **kwargs: ran.append(args) or 0)
+    samples = {"--market": ["--market", "hk"], "--phase": ["--phase", "open"],
+               "--context-id": ["--context-id", "c1"], "--text-file": ["--text-file", "p.md"],
+               "--date": ["--date", "2026-10-05"], "--dry-run": ["--dry-run"],
+               "--judgment-packet": ["--judgment-packet"]}
+    for workflow in ("brief", "report", "intraday"):
+        phases = [phase for name, phase in cli.PHASE_FLAGS if name == workflow]
+        offered = set()
+        for flag, argv in samples.items():
+            outcomes = {}
+            for phase in phases:
+                ran.clear()
+                try:
+                    code = cli.main([workflow, phase, *argv])
+                except SystemExit:
+                    break  # the workflow parser does not offer this flag at all
+                outcomes[phase] = (code, bool(ran), capsys.readouterr().err)
+            else:
+                offered.add(flag)
+                for phase, (code, reached, err) in outcomes.items():
+                    if flag in cli.PHASE_FLAGS[workflow, phase]:
+                        assert (code, reached) == (0, True), (workflow, phase, flag, err)
+                    else:
+                        assert (code, reached) == (2, False), (workflow, phase, flag)
+                        assert flag in err and cli._flag_phases(workflow, flag) in err
+            capsys.readouterr()
+        accepted_somewhere = {flag for phase in phases
+                              for flag in cli.PHASE_FLAGS[workflow, phase]}
+        assert offered == accepted_somewhere, (
+            f"`clawock {workflow} --help` offers {sorted(offered - accepted_somewhere)} "
+            "that no phase of it accepts")
+
+
 def test_every_packaged_utility_answers_help_without_running_anything():
     """`--help` is the first thing anyone types, and it must not do work.
 

@@ -218,6 +218,27 @@ def _report(args) -> int:
     return 0 if verdict == "pass" else 1
 
 
+# The flags each lifecycle phase accepts, of the ones `_harness` forwards. One
+# table drives the parser, the `--help` text and the refusal below;
+# tests/test_harness_cli_contract.py holds it against each phase module's own
+# parser.
+PHASE_FLAGS = {
+    ("brief", "preflight"): (),
+    ("brief", "postflight"): ("--dry-run",),
+    ("brief", "render"): ("--date", "--dry-run"),
+    ("report", "preflight"): ("--market", "--phase"),
+    ("report", "postflight"): ("--market", "--phase", "--context-id", "--text-file"),
+    ("intraday", "preflight"): ("--market", "--judgment-packet"),
+    ("intraday", "postflight"): ("--market", "--context-id", "--text-file"),
+}
+
+
+def _flag_phases(workflow, flag) -> str:
+    """The phases of `workflow` that accept `flag`, as `--help` prints them."""
+    return ", ".join(phase for (name, phase), flags in PHASE_FLAGS.items()
+                     if name == workflow and flag in flags)
+
+
 def _harness(args, workflow=None) -> int:
     """Drive the live instance through the package lifecycle, in-process."""
     from clawock.harness.runner import AdapterUnavailable, run_phase
@@ -225,6 +246,7 @@ def _harness(args, workflow=None) -> int:
     workflow = workflow or args.command
     phase = args.harness_phase
     forwarded = []
+    given = []
     for flag, value in (
         ("--market", getattr(args, "market", None)),
         ("--phase", getattr(args, "market_phase", None)),
@@ -233,11 +255,21 @@ def _harness(args, workflow=None) -> int:
         ("--date", getattr(args, "date", None)),
     ):
         if value is not None:
+            given.append(flag)
             forwarded += [flag, str(value)]
     if getattr(args, "dry_run", False):
+        given.append("--dry-run")
         forwarded.append("--dry-run")
     if getattr(args, "judgment_packet", False):
+        given.append("--judgment-packet")
         forwarded.append("--judgment-packet")
+    # Name the phase the flag belongs to here, before the phase module's own
+    # parser answers with a bare `unrecognized arguments` (#2616).
+    for flag in given:
+        if flag not in PHASE_FLAGS[workflow, phase]:
+            print(f"clawock {workflow} {phase}: {flag} applies to "
+                  f"{_flag_phases(workflow, flag)} only", file=sys.stderr)
+            return 2
     try:
         return run_phase(workflow, phase, forwarded,
                          workspace=getattr(args, "workspace", None),
@@ -617,11 +649,14 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--prose", type=Path, default=None,
                         help="model prose; reads stdin when omitted")
     report.add_argument("--json", action="store_true")
-    report.add_argument("--market", choices=("hk", "us"))
+    report.add_argument("--market", choices=("hk", "us"),
+                        help="accepted by " + _flag_phases("report", "--market"))
     report.add_argument("--phase", dest="market_phase",
-                        choices=("open", "mid", "pm", "close"))
-    report.add_argument("--context-id")
-    report.add_argument("--text-file", type=Path)
+                        choices=("open", "mid", "pm", "close"),
+                        help="accepted by " + _flag_phases("report", "--phase"))
+    report.add_argument("--context-id", help="accepted by " + _flag_phases("report", "--context-id"))
+    report.add_argument("--text-file", type=Path,
+                        help="accepted by " + _flag_phases("report", "--text-file"))
     report.add_argument("--workspace", type=Path, default=None)
     report.add_argument(
         "--profile", dest="runtime_profile",
@@ -635,14 +670,26 @@ def build_parser() -> argparse.ArgumentParser:
         phases = (("preflight", "postflight", "render") if workflow == "brief"
                   else ("preflight", "postflight"))
         harness.add_argument("harness_phase", choices=phases)
-        harness.add_argument("--market", choices=("hk", "us"))
-        harness.add_argument("--context-id")
-        harness.add_argument("--text-file", type=Path)
-        harness.add_argument("--date", help="artifact date (render; default today in HKT)")
-        harness.add_argument("--dry-run", action="store_true")
-        if workflow == "intraday":
-            harness.add_argument("--judgment-packet", action="store_true",
-                                 help="print the complete decision context; keep the same context on disk")
+        # Only the flags some phase of this workflow accepts; each one's help
+        # names those phases (#2616).
+        for flag, options in (
+            ("--market", {"choices": ("hk", "us")}),
+            ("--context-id", {}),
+            ("--text-file", {"type": Path}),
+            ("--date", {"help": "artifact date, default today in HKT"}),
+            ("--dry-run", {"action": "store_true"}),
+            ("--judgment-packet", {
+                "action": "store_true",
+                "help": "print the complete decision context; "
+                        "keep the same context on disk"}),
+        ):
+            accepted = _flag_phases(workflow, flag)
+            if not accepted:
+                continue
+            note = options.pop("help", None)
+            scope = f"accepted by {accepted}"
+            harness.add_argument(
+                flag, help=f"{note}; {scope}" if note else scope, **options)
         harness.add_argument("--workspace", type=Path, default=None)
         harness.add_argument(
             "--profile", dest="runtime_profile",
