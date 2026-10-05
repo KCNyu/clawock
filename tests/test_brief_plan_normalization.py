@@ -512,6 +512,34 @@ def test_an_unnormalized_plan_blocks_the_commit_path(monkeypatch):
     assert brief_postflight.classify_commit_outcome(committed, message) == "failed"
 
 
+def test_a_brief_with_nothing_new_is_idempotent_whatever_else_is_dirty(monkeypatch):
+    """git words an empty commit by the rest of the checkout ("no changes added
+    to commit" on the live host), so the index decides, not the wording."""
+    for name in ("log_decisions", "record_risk_stances", "rebuild_dashboard"):
+        monkeypatch.setattr(brief_postflight, name, lambda *_a, **_k: True)
+
+    def must_not_push():
+        raise AssertionError("nothing was committed, nothing to push")
+
+    monkeypatch.setattr(brief_postflight, "push_with_rebase_retry", must_not_push)
+    index_clean = [True]
+
+    def git(*args):
+        if args[0] == "commit":
+            return False, 'no changes added to commit (use "git add" and/or "git commit -a")'
+        return (index_clean[0] if args[0] == "diff" else True), ""
+
+    monkeypatch.setattr(brief_postflight, "_git", git)
+
+    assert brief_postflight.maybe_commit("pass", "2026-07-30") == (
+        True, "nothing to commit (idempotent)")
+
+    # A rejected commit with the files still staged is not idempotent.
+    index_clean[0] = False
+    committed, message = brief_postflight.maybe_commit("pass", "2026-07-30")
+    assert brief_postflight.classify_commit_outcome(committed, message) == "failed"
+
+
 def test_off_menu_debate_frames_do_not_block_the_whole_plan(tmp_path, monkeypatch):
     """2026-09-16, decision[7]: one out-of-menu `debate.frames` value on one
     decision left all nine that day without machine-owned ids.

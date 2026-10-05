@@ -281,9 +281,13 @@ def maybe_commit(status, commit_msg):
         return False, 'git add failed'
     commit_paths = add_args[1:]
     ok, out = _git('commit', '-m', f'{commit_msg}{suffix}', '--', *commit_paths)
-    if not ok and 'nothing to commit' in out:
-        return True, f'nothing to commit (idempotent; dashboard={publication_state})'
     if not ok:
+        # git words "nothing staged" by whatever else is dirty in the checkout
+        # ("no changes added to commit" on the live host), so the index is
+        # asked instead (0 = no diff), as intraday_postflight does.
+        clean, _ = _git('diff', '--cached', '--quiet', '--', *commit_paths)
+        if clean:
+            return True, f'nothing to commit (idempotent; dashboard={publication_state})'
         return False, out[-200:]
 
     # Push so Pages updates; rebase+retry handles races with GH Action commits

@@ -370,6 +370,46 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert body.startswith('🌙 美股收盘日报') and FRESH_BLOCK in body and '▎情绪面' in body
 
 
+def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
+    """git says "no changes added to commit", not "nothing to commit", when
+    anything else in the checkout is dirty, which on the live host is always.
+    The text match read that as a failed commit; the index is asked instead."""
+    import subprocess
+
+    reject = []
+
+    def git(*args):
+        if args[0] == 'commit' and reject:
+            return False, 'hook rejected'
+        p = subprocess.run(['git', '-C', str(tmp_path), *args], text=True, capture_output=True)
+        return p.returncode == 0, p.stdout + p.stderr
+    for setup in (('init',), ('config', 'user.name', 'test'),
+                  ('config', 'user.email', 'test@example.invalid'),
+                  ('config', 'core.hooksPath', '/dev/null')):
+        assert git(*setup)[0]
+    for name in ['portfolio.json', 'logs/dashboard_build_status.json', 'other.json']:
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text('{"generation": 1}')
+    assert git('add', '.')[0] and git('commit', '-m', 'seed')[0]
+    monkeypatch.setattr(pf, '_git', git)
+    monkeypatch.setattr(pf, 'WS', tmp_path)
+    monkeypatch.setattr(pf, 'rebuild_dashboard', lambda: (True, 'ok'))
+    monkeypatch.setattr(pf, 'dashboard_publication_state', lambda _: 'current')
+    monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
+    monkeypatch.setattr(pf, 'push_with_rebase_retry',
+                        lambda: pytest.fail('nothing was committed, nothing to push'))
+
+    (tmp_path / 'other.json').write_text('{"generation": 2}')
+    ok, message = pf.maybe_commit('pass', 'portfolio: refresh')
+    assert ok is True and pf.classify_data_plane(ok, message) == 'current'
+
+    # A rejected commit with the files still staged is not "current".
+    (tmp_path / 'portfolio.json').write_text('{"generation": 2}')
+    reject.append(True)
+    ok, message = pf.maybe_commit('pass', 'portfolio: refresh')
+    assert ok is False and pf.classify_data_plane(ok, message) == 'failed'
+
+
 def test_failed_narrative_still_commits_the_money_file_and_nothing_ignored(pf, monkeypatch):
     """A rejected narrative must not cost the deterministic half of the run.
 
