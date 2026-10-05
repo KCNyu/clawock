@@ -338,12 +338,17 @@
     const activeExec = safe(metrics, "execution_by_kind", "active") || {};
     const totalUsd = fx && us.value_usd != null && hk.value_hkd != null
       ? us.value_usd + hk.value_hkd / fx : null;
+    // Same sample rule as the first-paint chip (#2555): the score never stands
+    // without `calibration.active.n`, on any panel the rail rides along (#2561).
+    const brierN = safe(metrics, "calibration", "active", "n");
+    const brierSample = brierN == null ? "样本量未知" : `n=${brierN}${brierN < 8 ? " 样本少" : ""}`;
+    const brierText = metrics.brier == null ? DASH : `${metrics.brier.toFixed(3)} · ${brierSample}`;
     const values = [
       ["dr-book", fmtMoney(totalUsd, "USD"), ""],
       ["dr-pnl-us", fmtMoney(us.today_change_usd, "USD"), pnlClass(us.today_change_usd)],
       ["dr-pnl-hk", fmtMoney(hk.today_change_hkd, "HKD"), pnlClass(hk.today_change_hkd)],
       ["dr-followed", activeExec.rate == null ? DASH : (activeExec.rate * 100).toFixed(1) + "%", "neutral"],
-      ["dr-grade", metrics.brier == null ? DASH : metrics.brier.toFixed(3), ""],
+      ["dr-grade", brierText, ""],
     ];
     // Values and semantic classes are computed first, then committed together.
     // The old mirror alternated writes with getComputedStyle() five times, forcing
@@ -361,7 +366,7 @@
     });
     const compact = document.getElementById("dr-compact");
     if (compact) {
-      compact.textContent = `Book ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
+      compact.textContent = `持仓市值 ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
       compact.title = compact.textContent;
     }
   }
