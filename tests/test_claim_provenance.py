@@ -158,3 +158,27 @@ def test_tolerance_follows_the_precision_the_claim_is_printed_at(tmp_path):
     # -95.0% claims one decimal: -95.5% does not round to it.
     fine = '"""Evidence: run card fixture-20260802-abcdef12.\nmaxDD -95.0%\n"""\n'
     assert _check(_workspace(tmp_path / "b", fine, card))
+
+
+def test_no_file_with_a_backtest_shaped_number_sits_outside_the_gate():
+    """The surface list is hand-kept, so a file left off it was simply never read
+    (#2185 the harness doc, #2556 the left-side module). Every tracked source,
+    doc or skill the scanner matches is either a surface or a listed non-claim."""
+    config = json.loads((ROOT / "config" / "claim-provenance.json").read_text())
+    surfaces = set(cp.load_surfaces(ROOT / "config" / "claim-provenance.json"))
+    reasons = {path: reason for path, reason in config["not_backtest_claims"].items()
+               if not path.startswith("_")}
+    assert all(isinstance(reason, str) and len(reason) > 20 for reason in reasons.values())
+    assert not surfaces & set(reasons), "a surface is checked; it needs no exemption"
+
+    matched = set()
+    for pattern in ("src/**/*.py", "docs/**/*.md", "skills/**/*.md", "*.md"):
+        for path in ROOT.glob(pattern):
+            rel = path.relative_to(ROOT).as_posix()
+            if cp.scan_text(path.read_text(encoding="utf-8"), source=rel):
+                matched.add(rel)
+    unowned = sorted(matched - surfaces - set(reasons))
+    assert unowned == [], (
+        f"{unowned} carry a backtest-shaped number: add the file to `surfaces` (and cite its "
+        "run card) or to `not_backtest_claims` with the reason it is not one")
+    assert sorted(set(reasons) - matched) == [], "an exemption for a file the scanner no longer matches"

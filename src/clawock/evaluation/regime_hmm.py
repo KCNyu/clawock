@@ -6,9 +6,9 @@ What is here today
 200-day mean, 20-day volatility against a cap — and maps the result to a
 leverage multiplier. It is pre-registered, it is legible, and `validate-regime-dial`
 has already measured what it is worth: purged CSCV puts its PBO at 0.21 and the
-permutation test of its *timing* against the returns comes back p = 0.92. The
-dial reduces drawdown because it spends time out of the market, not because it
-knows when to.
+permutation test of its *timing* against the returns comes back p = 0.92 (run
+card ``regime_dial_validation-20260802-896b2145``). The dial reduces drawdown
+because it spends time out of the market, not because it knows when to.
 
 What it cannot express is anything between the two sides of a threshold. On the
 day HSTECH closes 0.1% below its 200-day mean the dial goes from full leverage to

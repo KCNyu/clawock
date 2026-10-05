@@ -6,7 +6,8 @@ what was tested, what failed, and what we refuse to claim. This repository runs
 Wilson intervals, a leave-one-out Brier baseline, two-way clustered bootstrap
 CIs, pre-registration that forbids retrospective activation, and — since #233 —
 a permutation test that returned p = 0.92 against our own flagship leverage dial
-and was published rather than buried. None of that was visible anywhere.
+(run card ``regime_dial_validation-20260802-896b2145``) and was published rather
+than buried. None of that was visible anywhere.
 
 For a reader who knows what they are looking at, "here is what we tested and
 here is what did not survive" is stronger evidence of method than any equity
