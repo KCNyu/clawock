@@ -2,6 +2,7 @@
   "schema_version": 1,
   "surfaces": [
     "src/clawock/decision/regime.py",
+    "src/clawock/decision/left_side.py",
     "src/clawock/evaluation/regime_validation.py",
     "src/clawock/evaluation/hstech_regime.py",
     "src/clawock/evaluation/us_leverage.py",

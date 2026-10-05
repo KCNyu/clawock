@@ -8,9 +8,9 @@ a close over yesterday's high. This family does not: it places resting
 
 What the initial evidence showed (``clawock evaluate-add-shapes --campaigns``,
 Tencent daily bars 2023-07..2026-09, 27 input names, 21 with IS history,
-IS < 2025-07-01 ≤ OOS, one split):
+IS < 2025-07-01 ≤ OOS, one split; run card ``add_campaigns-20260927-12aa143a``):
 
-* permissionless deep dip (the shape #819 rejected) — OOS max drawdown −15.8%
+* permissionless deep dip (the shape #819 rejected) — OOS max drawdown −14.93%
   of book at 1%/unit: rejected again;
 * the same dip **only above MA200, non-leveraged** — OOS mean return per
   campaign 2.18%, with a 90% month-block interval of -0.17% to 5.08%; return
