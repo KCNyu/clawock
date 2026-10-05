@@ -256,6 +256,7 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
     now = datetime.now(HKT).isoformat(timespec="seconds")
     added = revised = 0
     conflicts: list[dict] = []
+    leverage = leverage_context(ticker)
     for b in fresh:
         d = b["date"]
         if d > last_closed:
@@ -283,6 +284,11 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
         if "degenerate_range" in verdict["flags"]:
             rec["degenerate"] = True
         jump = next((f for f in verdict["flags"] if f.startswith("implausible_move")), None)
+        if jump and prior_dates:
+            # A leveraged fund's jump is graded with its underlying (#2595).
+            pair = {max(prior_dates): bars[max(prior_dates)], d: b}
+            if not bar_checks.flag_implausible_moves(pair, **leverage)[d].get("implausible_move"):
+                jump = None
         if jump:
             # Stored, like a degenerate bar (settlement still needs the close),
             # but flagged on the record so nobody settles against it unseen.
@@ -348,19 +354,43 @@ def incremental_beg(ticker: str) -> str:
                (date.fromisoformat(max(bars)) - timedelta(days=2)).isoformat())
 
 
+def leverage_context(ticker: str, bars_of=None) -> dict:
+    """What `flag_implausible_moves` needs to know about a leveraged product.
+
+    `{}` for a 1x name. `bars_of(symbol) -> {day: bar}` lets a caller with its
+    own store (the ledger) read the underlying from the same place.
+    """
+    from clawock import instruments as registry  # noqa: PLC0415 — registry reads config at import
+    meta = registry.get(ticker) or {}
+    multiple = float(meta.get('leverage_multiple') or 1)
+    symbol = meta.get('underlying')
+    if multiple <= 1 or not symbol:
+        return {}
+    read = bars_of or (lambda name: load_bars(name).get('bars') or {})
+    try:
+        return {'multiple': multiple, 'underlying': read(symbol) or {}}
+    except Exception:  # noqa: BLE001 — no evidence means the plain 50% line
+        return {'multiple': multiple, 'underlying': {}}
+
+
 def grade_stored(ticker: str) -> int:
-    """Backfill quality flags only; retain OHLC and audit each new flag."""
+    """Backfill quality flags only; retain OHLC and audit each flag set or cleared."""
     doc = load_bars(ticker)
     stored = doc.get('bars') or {}
-    graded = bar_checks.flag_implausible_moves(stored)
+    graded = bar_checks.flag_implausible_moves(stored, **leverage_context(ticker))
     flagged = [day for day in graded if graded[day].get('implausible_move')
                and not stored[day].get('implausible_move')]
-    if flagged:
+    cleared = [day for day in graded if stored[day].get('implausible_move')
+               and not graded[day].get('implausible_move')]
+    if flagged or cleared:
         doc['bars'] = graded
         write_bars(ticker, doc)
         record_conflicts(ticker, [{'date': day, 'kind': 'implausible_move',
                                   'detail': graded[day]['implausible_move']}
-                                 for day in flagged])
+                                 for day in flagged] + [
+            {'date': day, 'kind': 'implausible_move_cleared',
+             'detail': f"{stored[day]['implausible_move']} matches the underlying at the fund's multiple"}
+            for day in cleared])
     return len(flagged)
 
 

@@ -106,3 +106,19 @@ def test_ledger_grades_legacy_unflagged_bars_without_mutating_the_store(tmp_path
     before = path.read_bytes()
     assert ledger.bar('PLTU', '2026-08-04')['implausible_move'] == '57.9%'
     assert path.read_bytes() == before
+
+
+def test_ledger_grades_a_leveraged_fund_with_its_underlying_from_the_same_store(tmp_path, monkeypatch):
+    """With PLTR's two closes beside it, PLTU's +57.9% is its multiple, not a suspect bar (#2595)."""
+    from clawock.decision import ledger
+    monkeypatch.setattr(ledger, 'BARS_DIR', tmp_path)
+    monkeypatch.setattr(ledger, '_BAR_CACHE', {})
+    (tmp_path / 'PLTU.json').write_text(json.dumps({'bars': {
+        '2026-08-03': {'open': 28, 'high': 29, 'low': 27, 'close': 28.39},
+        '2026-08-04': {'open': 36.98, 'high': 45, 'low': 36, 'close': 44.82,
+                       'implausible_move': '57.9%'}}}))
+    (tmp_path / 'PLTR.json').write_text(json.dumps({'bars': {
+        '2026-08-03': {'open': 125, 'high': 127, 'low': 124, 'close': 125.65},
+        '2026-08-04': {'open': 150, 'high': 165, 'low': 149, 'close': 162.66}}}))
+    assert 'implausible_move' not in ledger.bar('PLTU', '2026-08-04')
+    assert 'implausible_move' not in ledger.bar('PLTR', '2026-08-04')

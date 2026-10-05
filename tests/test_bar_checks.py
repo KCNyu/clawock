@@ -269,3 +269,35 @@ def test_no_script_re_implements_the_degenerate_check_privately():
     assert not offenders, (
         'private degenerate-range check(s) outside bar_checks.py:\n'
         + '\n'.join(offenders))
+
+
+def _closes(*pairs):
+    return {day: {'open': close, 'high': close, 'low': close * 0.99, 'close': close}
+            for day, close in pairs}
+
+
+def test_a_leveraged_funds_move_is_graded_with_its_underlying():
+    """PLTU +57.9% on the day PLTR went +29.5% is a 2x fund doing its job (#2595)."""
+    fund = _closes(('2026-08-03', 28.39), ('2026-08-04', 44.82))
+    underlying = _closes(('2026-08-03', 125.65), ('2026-08-04', 162.66))
+    flagged = lambda **kw: bar_checks.flag_implausible_moves(fund, **kw)['2026-08-04'].get('implausible_move')  # noqa: E731
+
+    assert flagged() == '57.9%', 'a 1x name still answers to the 50% line'
+    assert flagged(multiple=2, underlying=underlying) is None
+    # No evidence is not an explanation: without both underlying closes the line stands.
+    assert flagged(multiple=2, underlying={}) == '57.9%'
+    assert flagged(multiple=2, underlying=_closes(('2026-08-04', 162.66))) == '57.9%'
+    # The underlying did not move like that (a split, a bad print): still suspect.
+    flat = _closes(('2026-08-03', 125.65), ('2026-08-04', 127.0))
+    assert flagged(multiple=2, underlying=flat) == '57.9%'
+    down = _closes(('2026-08-03', 125.65), ('2026-08-04', 90.0))
+    assert flagged(multiple=2, underlying=down) == '57.9%'
+
+
+def test_an_explained_move_clears_a_flag_an_older_grading_stored():
+    fund = _closes(('2026-08-03', 28.39), ('2026-08-04', 44.82))
+    fund['2026-08-04']['implausible_move'] = '57.9%'
+    underlying = _closes(('2026-08-03', 125.65), ('2026-08-04', 162.66))
+    graded = bar_checks.flag_implausible_moves(fund, multiple=2, underlying=underlying)
+    assert 'implausible_move' not in graded['2026-08-04']
+    assert fund['2026-08-04']['implausible_move'] == '57.9%', 'the input is not mutated'

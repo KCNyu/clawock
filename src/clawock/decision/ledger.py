@@ -863,11 +863,18 @@ _SESSION_CACHE: dict[str, list[str]] = {}
 def load_ticker_bars(ticker: str) -> dict:
     """{date: {open, high, low, close, ...}} for one ticker. Empty if unknown."""
     if ticker not in _BAR_CACHE:
-        p = BARS_DIR / f"{ticker}.json"
         try:
             from clawock.market_data.integrity import flag_implausible_moves
-            stored = (json.loads(p.read_text()).get("bars") or {}) if p.exists() else {}
-            _BAR_CACHE[ticker] = flag_implausible_moves(stored)
+            from clawock.market_data.bars import leverage_context
+
+            def stored_bars(symbol):
+                path = BARS_DIR / f"{symbol}.json"
+                return (json.loads(path.read_text()).get("bars") or {}) if path.exists() else {}
+
+            # A leveraged fund is graded with its underlying's bars from the
+            # same store: a 2x move that the underlying explains is not suspect.
+            _BAR_CACHE[ticker] = flag_implausible_moves(
+                stored_bars(ticker), **leverage_context(ticker, stored_bars))
         except Exception:
             _BAR_CACHE[ticker] = {}
     return _BAR_CACHE[ticker]
