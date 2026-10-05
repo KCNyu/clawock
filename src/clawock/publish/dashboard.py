@@ -225,7 +225,7 @@ def compile_overview_projection(dashboard):
     # detail card was already fixed for; the Hero is the copy people see first.
     execution = _fields(
         (metrics.get('execution_by_kind') or {}).get('active'),
-        ('rate', 'known', 'stranded'))
+        ('rate', 'known', 'stranded', 'pending'))
     active_calibration = _fields(
         (metrics.get('calibration') or {}).get('active'), ('baseline_loo', 'n'))
     compact_recent = [

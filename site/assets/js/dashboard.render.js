@@ -1067,7 +1067,8 @@
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
         railMeter(ae.rate == null ? null : ae.rate * 100,
           `主动 call · n=${ae.known == null ? DASH : ae.known}`
-          + (ae.stranded ? ` · ${ae.stranded} 未能核验` : ""))),
+          + (ae.stranded ? ` · ${ae.stranded} 未能核验` : "")
+          + (ae.pending ? ` · ${ae.pending} 待核验` : ""))),
     ].filter(Boolean).join("");
 
     // 今日行：一个 USD-eq 合计 + 美股/港股两个分项 + 一条与上方走势图同宽的
@@ -4451,8 +4452,13 @@
       // held through a 2x ETF looks like. They are out of the denominator above,
       // so the count has to be visible or the rate is quietly censored. Same
       // shape as the win-rate card's 「另有 N 条判不了」 note.
+      // Both kinds of row the denominator leaves out are named: the ones that
+      // will never resolve and the ones whose window is still open (#2594).
       const stranded = act.stranded || 0;
-      const strandedNote = stranded ? ` · 另有 ${stranded} 条永远验不了（不在分母）` : "";
+      const pending = act.pending || 0;
+      const outside = [stranded ? `${stranded} 条永远验不了` : "",
+                       pending ? `${pending} 条核验窗口还没关` : ""].filter(Boolean);
+      const strandedNote = outside.length ? ` · 另有 ${outside.join("、")}（不在分母）` : "";
       setSub("plan-followed-sub", `${act.followed}/${act.known} 条要动手的${passiveNote}${strandedNote}`);
       setClass("plan-followed", "neutral");
     }

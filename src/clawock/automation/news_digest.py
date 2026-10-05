@@ -24,6 +24,7 @@ from clawock.automation.llm import chat
 from clawock.automation.output_validate import validate_sections
 from clawock.market_data.sentiment import fetch_google_news
 from clawock.sessions import hkt_today
+from clawock.workspace import workspace_root
 
 # Sections build_user_prompt demands, checked on the way out (#1264).
 # `移动信号`, not `Top`: a bare case-insensitive `top` also matches
@@ -197,8 +198,10 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
         'source_status': source_status,
         'no_material_news': no_material_news,
     }
-    os.makedirs('assets/data', exist_ok=True)
-    with open('assets/data/us_news_digest.json', 'w') as handle:
+    # The book named by CLAWOCK_WORKSPACE, not the process cwd (#2597).
+    data_dir = workspace_root() / 'assets' / 'data'
+    os.makedirs(data_dir, exist_ok=True)
+    with open(data_dir / 'us_news_digest.json', 'w') as handle:
         json.dump(out, handle, ensure_ascii=False, indent=2)
     return out
 
@@ -237,7 +240,7 @@ def build_user_prompt(news_payload, held_via):
 
 
 def main():
-    pf = json.load(open('portfolio.json'))
+    pf = json.load(open(workspace_root() / 'portfolio.json'))
     held = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
             if h.get('shares', 0) > 0]
     # Ask about the company, not the fund. A 2x single-stock ETF publishes nothing:

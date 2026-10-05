@@ -249,3 +249,16 @@ def test_market_level_reference_rows_carry_a_cite_and_reach_the_label_gate(tmp_p
     title = '美联储10月维持利率不变的概率升至75.1%'
     assert post.check_stale_citation(f'{title}，风险偏好回升。', ctx)
     assert post.check_stale_citation(f'{title}（截至 09-25 07:57，开盘前旧闻），风险偏好回升。', ctx) == []
+
+
+def test_a_pre_open_headline_from_the_live_lanes_flash_feed_reaches_the_label_gate():
+    # 同花顺 7×24 lands in information_full.live.flashes, the one market-level
+    # family the gate still did not list (#2593).
+    title = '美国9月CPI同比2.4% 低于预期'
+    full = {'live': {'tickers': {}, 'flashes': [
+        {'title': title, 'cite': f'《{title}》（同花顺7×24，10-05 08:22 HKT 发布，开盘前旧闻）'},
+        {'title': '港股午后拉升，恒指涨超1%', 'cite': '《港股午后拉升，恒指涨超1%》（同花顺7×24，10-05 13:40 HKT 发布，盘中实时）'}]}}
+    assert info.stale_titles({}, full) == [title]
+    ctx = {'information': {}, 'information_full': full}
+    assert post.check_stale_citation(f'{title}，降息预期升温。', ctx)
+    assert post.check_stale_citation(f'{title}（10-05 08:22 HKT 发布，开盘前旧闻），降息预期升温。', ctx) == []

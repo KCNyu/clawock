@@ -358,7 +358,7 @@ def stale_titles(summary, full=None):
     `full` is the reference layer (`information_full`): the summary keeps three
     morning rows and four live rows a ticker; the model can quote the rest,
     so the gate reads both per-ticker full families (#2217, #2228) and the
-    three market-level ones (#2568). A `macro_schedule` event is a calendar
+    market-level ones, the live lane's flashes included (#2568, #2593). A `macro_schedule` event is a calendar
     entry for a coming release, not a headline, and is not held to the label.
     """
     out = []
@@ -371,11 +371,14 @@ def stale_titles(summary, full=None):
             cite = row.get('cite') or ''
             if '开盘前旧闻' in cite and row.get('title'):
                 out.append(str(row['title']))
-    for family in ('graph_market_events', 'em_market_724', 'market_flashes_raw'):
-        for row in (full or {}).get(family) or []:
-            if ('开盘前旧闻' in (row.get('cite') or '') and row.get('title')
-                    and row.get('event_type') != 'macro_schedule'):
-                out.append(str(row['title']))
+    market_rows = [row for family in ('graph_market_events', 'em_market_724', 'market_flashes_raw')
+                   for row in (full or {}).get(family) or []]
+    # The second 7×24 feed (同花顺) lands in the live lane, not in the families above (#2593).
+    market_rows += ((full or {}).get('live') or {}).get('flashes') or []
+    for row in market_rows:
+        if ('开盘前旧闻' in (row.get('cite') or '') and row.get('title')
+                and row.get('event_type') != 'macro_schedule'):
+            out.append(str(row['title']))
     if (sources.get('em_news') or {}).get('stale'):
         out += [str(r.get('title')) for r in (summary or {}).get('morning_flashes') or []
                 if r.get('title')]

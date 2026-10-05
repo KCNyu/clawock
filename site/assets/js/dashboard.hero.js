@@ -894,7 +894,8 @@
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
         railMeter(ae.rate == null ? null : ae.rate * 100,
           `主动 call · n=${ae.known == null ? DASH : ae.known}`
-          + (ae.stranded ? ` · ${ae.stranded} 未能核验` : ""))),
+          + (ae.stranded ? ` · ${ae.stranded} 未能核验` : "")
+          + (ae.pending ? ` · ${ae.pending} 待核验` : ""))),
     ].filter(Boolean).join("");
 
     // 今日行：一个 USD-eq 合计 + 美股/港股两个分项 + 一条与上方走势图同宽的
