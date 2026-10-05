@@ -12,6 +12,6 @@
     "max_tranche_risk_book_pct": 0.005,
     "unit_bridge_max_book_pct": 0.05,
     "cash_is_hard_cap": false,
-    "rationale": "Research candidate only. Prior +18.43% book/-6.22% drawdown used linear fixed-unit scaling, without actual lots, concentration, cash bridge, thesis or information gates. Replay required before activation."
+    "rationale": "Research candidate only. Prior run add_campaigns-20260927-12aa143a (proposed_sizing, out of sample): total P&L +18.43% of book; max drawdown -6.22% of book. It used linear fixed-unit scaling, without actual lots, concentration, cash bridge, thesis or information gates. Replay required before activation."
   }
 }

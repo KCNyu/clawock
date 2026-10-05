@@ -94,6 +94,51 @@ def test_intraday_commits_the_book_and_its_snapshot_together(tmp_path, monkeypat
     assert git('show', 'HEAD:portfolio.json')[1] == git('show', 'HEAD:memory/snapshots/2026-10-02.json')[1]
 
 
+def test_the_intraday_chain_that_pushes_runs_the_git_steps_the_budget_charges(tmp_path, monkeypatch):
+    """#2608: three git subprocesses ran before the push and the budget charged two."""
+    from clawock import run_budgets
+    calls, pushes, reject = [], [], []
+
+    def git(*args):
+        calls.append(args[0])
+        if args[0] == 'commit' and reject:
+            return False, 'hook rejected'
+        p = subprocess.run(['git', '-C', str(tmp_path), *args], text=True, capture_output=True)
+        return p.returncode == 0, p.stdout + p.stderr
+    for setup in (('init',), ('config', 'user.name', 'test'),
+                  ('config', 'user.email', 'test@example.invalid'),
+                  ('config', 'core.hooksPath', '/dev/null')):
+        assert git(*setup)[0]
+    for name in ['portfolio.json', 'logs/dashboard_build_status.json', 'other.json']:
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text('{"generation": 1}')
+    assert git('add', 'other.json')[0] and git('commit', '-m', 'seed')[0]
+    monkeypatch.setattr(intraday_postflight, 'git_cmd', git)
+    monkeypatch.setattr(intraday_postflight, 'WS', tmp_path)
+    monkeypatch.setattr(intraday_postflight, 'rebuild_dashboard', lambda: (True, ''))
+    monkeypatch.setattr(intraday_postflight, 'dashboard_publication_state', lambda _: 'current')
+    monkeypatch.setattr(intraday_postflight, 'snapshot_date_for_now', lambda: None)
+    monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry',
+                        lambda: (pushes.append(len(calls)), (True, ''))[1])
+
+    calls.clear()
+    assert intraday_postflight.publish_data_plane('hk') == ('published', True)
+    assert pushes == [run_budgets.GIT_STEPS_PER_POSTFLIGHT]
+
+    # Nothing new to commit, with unrelated dirt in the checkout as on the live
+    # host: git then says "no changes added to commit", not "nothing to commit".
+    (tmp_path / 'other.json').write_text('{"generation": 2}')
+    calls.clear()
+    assert intraday_postflight.publish_data_plane('hk') == ('current', False)
+
+    # A rejected commit with the files still staged is not "current".
+    (tmp_path / 'portfolio.json').write_text('{"generation": 2}')
+    reject.append(True)
+    calls.clear()
+    assert intraday_postflight.publish_data_plane('hk') == ('commit_failed', False)
+    assert calls == ['add', 'commit', 'diff'] and len(pushes) == 1
+
+
 @pytest.mark.parametrize('session,shares,fill,current,prev,amount,base', [
     ('2026-08-14', 260, 8.77, 9.0, 9.21, -50.2, 2390.2),
     ('2026-06-12', 10, 52.3, 48.3, 61.67, -40.0, 523.0),

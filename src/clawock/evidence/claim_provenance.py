@@ -21,7 +21,8 @@ What counts as a claim
 ----------------------
 Deliberately narrow, because a fuzzy scanner that cries wolf gets disabled. A
 claim is a percentage or p-value on a line that also names a backtest quantity
-(`maxDD`, `drawdown`, `CAGR`, `p =`, `improvement`, `totRet`). Prose that merely
+(`maxDD`, `drawdown`, `CAGR`, `p =`, `improvement`, `totRet`); in a `.json` file,
+whose strings cannot break a line, on a sentence that does. Prose that merely
 discusses a number without asserting it is exempted through the allowlist.
 
 A claim matches a card leaf named for the quantity its line names, within half a
@@ -170,11 +171,19 @@ def load_allowlist(path: Path | None = None) -> dict:
     return json.loads(path.read_text())
 
 
+_SENTENCE_END = re.compile(r'(?<=[.;])\s+')
+
+
 def scan_text(text: str, *, source: str) -> list[dict]:
     """Numeric backtest claims in one document, with their cited run_ids."""
     cited = RUN_ID.findall(text)
     claims = []
-    for lineno, line in enumerate(text.splitlines(), 1):
+    # A JSON string cannot break a line, so a whole paragraph of results sits on
+    # one: there a sentence is the unit a line is in prose (#2610).
+    by_sentence = source.endswith('.json')
+    units = ((lineno, part) for lineno, line in enumerate(text.splitlines(), 1)
+             for part in (_SENTENCE_END.split(line) if by_sentence else (line,)))
+    for lineno, line in units:
         if not QUANTITY.search(line):
             continue
         values = []

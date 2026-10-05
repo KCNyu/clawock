@@ -1488,12 +1488,17 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       };
       const okSegs = [...document.querySelectorAll(".dh-slots i[data-s='ok']")];
       const fills = okSegs.map(s => getComputedStyle(s).backgroundColor);
+      // 同一张卡的「正常」徽标与槽位同色（#2612：徽标曾单独取涨跌绿）。
+      const okBadges = [...document.querySelectorAll('.dh-state[data-tone="ok"]')];
+      const badgeDots = okBadges.map(b => getComputedStyle(b, "::before").backgroundColor);
+      const badgeInks = okBadges.map(b => getComputedStyle(b).color);
       // 探针读完再摘：摘掉之后 getComputedStyle 读的是游离节点，颜色恒为空。
       const accentBlue = tint("var(--accent)");
       const oldGrey = tint("color-mix(in srgb, var(--text) 38%, transparent)");
       const negRed = tint("var(--negative)");
+      const accentInk = tint("var(--accent-ink)");
       probe.remove();
-      return { accentBlue, oldGrey, negRed, fills };
+      return { accentBlue, oldGrey, negRed, fills, accentInk, badgeDots, badgeInks };
     });
     if (health.fills.length) {
       assert(health.fills.every(f => f === health.accentBlue),
@@ -1503,6 +1508,8 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       assert(health.fills[0] !== health.negRed,
         "in-period health segments carry a P&L colour — data state is not an up/down");
     }
+    assert(health.badgeDots.every(c => c === health.accentBlue) && health.badgeInks.every(c => c === health.accentInk),
+      `a healthy badge is not the brand blue its own slots are: ${health.badgeDots[0]} / ${health.badgeInks[0]}`);
     await context.close();
   }
 
@@ -2367,6 +2374,25 @@ function dataHealthEdges() {
       && getComputedStyle(el).textOverflow !== "ellipsis"
       && getComputedStyle(el).webkitLineClamp === "none").map(el => el.className).slice(0, 5),
   };
+}
+
+// #2609：排程契约读不到时「到期无记录」没算出来（发布端写 null），卡片曾照印
+// 「全部按时送达 · 正常」；算出来是 0 才是按时。
+async function testUncountedDueSlotsAreNotAllDelivered(browser, base) {
+  const cellOf = async dueNoRecord => {
+    const { context, page } = await openDataHealth(browser, base, 1280, { outcomes: {
+      window_hours: 36, counts: { success: 12 }, due_no_record: dueNoRecord, no_record_slots: [] } });
+    const cell = await page.evaluate(() => {
+      const el = document.querySelector('#dh-cells .dh-cell[data-key="delivery"]');
+      return { tone: el.dataset.tone, note: el.querySelector(".dh-cell-note").textContent.trim() };
+    });
+    await context.close();
+    return cell;
+  };
+  const uncounted = await cellOf(null);
+  assert.equal(uncounted.tone, "warn");
+  assert.ok(!uncounted.note.includes("全部按时送达") && uncounted.note.includes("未核对"), uncounted.note);
+  assert.deepEqual(await cellOf(0), { tone: "ok", note: "全部按时送达" });
 }
 
 // #2056：artifact_only（产物在、投递未确认）曾整类掉出分母，1 成功 + 2 未确认
@@ -3869,6 +3895,7 @@ async function main() {
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
+    await run("testUncountedDueSlotsAreNotAllDelivered", () => testUncountedDueSlotsAreNotAllDelivered(browser, base));
     await run("testFooterDegradationsCountOnlyTheWindow", () => testFooterDegradationsCountOnlyTheWindow(browser, base));
     await run("testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh", () => testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base));
     await run("testAnOldScheduleIsOneWatchItemNotOnePerJob", () => testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base));

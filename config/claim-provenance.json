@@ -9,13 +9,15 @@
     "src/clawock/evaluation/hstech_regime.py",
     "src/clawock/evaluation/us_leverage.py",
     "src/clawock/evaluation/combined_regime.py",
-    "docs/architecture/harness.md"
+    "docs/architecture/harness.md",
+    "config/left-side-policy.json",
+    "config/add-shapes-experiment.json"
   ],
   "not_backtest_claims": {
-    "_doc": "Files the scanner matches that assert no backtest result. Every file with a match is either a surface above or listed here with its reason, so a new claim cannot sit outside the gate unnoticed (#2556).",
+    "_doc": "Files the scanner matches that assert no backtest result. Every source, doc, skill or config file with a match is either a surface above or listed here with its reason, so a new claim cannot sit outside the gate unnoticed (#2556, #2610).",
     "src/clawock/evidence/claim_provenance.py": "the scanner's own comments quote example figures to document its patterns",
     "src/clawock/labeling/triple_barrier.py": "an illustrative sentence about a hypothetical week, not a measured result",
-    "src/clawock/market_data/gold/fetch.py": "`p = 1` is a loop variable assignment",
+    "src/clawock/market_data/gold/fetch.py": "a loop variable named p being assigned an integer",
     "src/clawock/portfolio/guardrail.py": "the 2026-06 book's composition (leveraged share, one-factor share) and a formatted beta message; holdings facts, not backtest metrics",
     "src/clawock/portfolio/risk.py": "quotes the same 2026-06 book composition",
     "skills/portfolio-swarm-review/SKILL.md": "the same 2026-06 book composition and a review-band rule; no backtest figure"

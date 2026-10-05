@@ -722,16 +722,20 @@ def publish_data_plane(market):
         added, _ = git_cmd('add', '--', *paths)
         if not added:
             return 'git_add_failed', False
-        # git diff --cached --quiet returns 0 when there is NO diff
-        clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
-        if clean:
-            return ('current', False) if ok else (publication_state, False)
         msg = (
             f"dashboard: intraday refresh "
             f"({market} {datetime.now().strftime('%H:%M HKT')})"
         )
         committed, _ = git_cmd('commit', '-m', msg, '--', *paths)
         if not committed:
+            # "Nothing staged" and "commit rejected" both exit non-zero, and git
+            # words the first by whatever else is dirty in the checkout, so the
+            # index is asked (0 = no diff). Only this branch asks, and it never
+            # reaches the push: the path that does push stays at the two git
+            # steps `run_budgets.POST_DELIVERY_STEPS` charges (#2608).
+            clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
+            if clean:
+                return ('current', False) if ok else (publication_state, False)
             return 'commit_failed', False
         pushed, _ = push_with_rebase_retry()
         if not pushed:

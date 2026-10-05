@@ -3116,8 +3116,8 @@
   .dh-state[data-tone="warn"]::before, .dh-state[data-tone="stale"]::before { background: var(--warning); }
   .dh-state[data-tone="bad"] { color: var(--negative-ink); font-weight: 600; }
   .dh-state[data-tone="bad"]::before { background: var(--negative); }
-  .dh-state[data-tone="ok"] { color: var(--positive-ink); font-weight: 600; }
-  .dh-state[data-tone="ok"]::before { background: var(--positive); }
+  .dh-state[data-tone="ok"] { color: var(--accent-ink); font-weight: 600; }
+  .dh-state[data-tone="ok"]::before { background: var(--accent); }
   .dh-state[data-tone="live"] { color: var(--accent-ink); }
   .dh-state[data-tone="pending"], .dh-state[data-tone="idle"] { color: var(--text-tertiary); }
   .dh-state[data-tone="pending"]::before {

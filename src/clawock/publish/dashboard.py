@@ -3973,6 +3973,10 @@ def compute_workflow_outcomes():
                 summary['due_no_record'] = len(missing)
                 summary['no_record_slots'] = missing[-NO_RECORD_SLOTS_SHOWN:]
             except Exception as e:  # noqa: BLE001 — the fold above still stands
+                # Not counted is not zero: the card reads a null as "the due
+                # slots were not checked" instead of 全部按时送达 (#2609).
+                summary['due_no_record'] = None
+                summary['no_record_slots'] = []
                 print(f'  warn: due-slot count failed: {e}', file=sys.stderr)
         degradations = dashboard_outcomes.degradations_of(payload)
         if degradations and isinstance(summary, dict):
