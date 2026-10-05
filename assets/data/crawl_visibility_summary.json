@@ -1,15 +1,15 @@
 {
   "available": true,
-  "as_of": "2026-09-26",
+  "as_of": "2026-10-02",
   "window_days": 7,
-  "impressions": 136,
+  "impressions": 73,
   "clicks": 0,
-  "impressions_28d": 223,
-  "position": 4.43,
+  "impressions_28d": 265,
+  "position": 3.75,
   "pages_with_impressions": 1,
-  "url_count": 121,
-  "queries_reported": 6,
+  "url_count": 124,
+  "queries_reported": 7,
   "top_query": "+人工智能 新闻 今日%",
   "sitemap_fetched": null,
-  "readings": 5
+  "readings": 6
 }
