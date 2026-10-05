@@ -2505,7 +2505,64 @@ def insight_weight_values(payload):
     return values
 
 
-def validate_insights(data, known_tickers, *, weights=None):
+#: The two exposure bases a hidden-concentration card may declare (#2560).
+#: `market_value` is what the 板块暴露 card prints; `lookthrough` counts a
+#: leveraged product at its notional multiple (`compute_lookthrough_exposure`).
+INSIGHT_BASES = ('market_value', 'lookthrough')
+_SUBSET_SUM_BUCKETS = 8
+
+
+def _with_subset_sums(buckets):
+    """Each bucket and every sum of two or more: "A plus B is N% of the leg"."""
+    values = [float(v) for v in buckets if isinstance(v, (int, float))][:_SUBSET_SUM_BUCKETS]
+    sums = {0.0}
+    for value in values:
+        sums |= {round(total + value, 2) for total in sums}
+    return sorted(sums - {0.0})
+
+
+def insight_basis_values(payload, portfolio):
+    """{basis: the percentages a hidden-concentration card of that basis may print}.
+
+    Each basis is its own partition of each leg, so a card is checked against
+    the basis it declares and never against the other one: a look-through
+    figure does not pass because it happens to sit near a market weight.
+    Single-name weights and the leveraged-ETF share carry their own nouns and
+    mean the same thing in both, so both vocabularies include them.
+    """
+    shared = []
+    for leg in (payload.get('concentration') or {}).values():
+        if isinstance(leg, dict):
+            shared.extend(row['weight'] * 100 for row in leg.get('positions') or []
+                          if isinstance(row, dict) and isinstance(row.get('weight'), (int, float)))
+    shared.extend(v for k, v in (payload.get('leveraged_etf') or {}).items()
+                  if k.endswith('_pct') and isinstance(v, (int, float)))
+    market = list(shared)
+    for rows in (payload.get('sector_exposure') or {}).values():
+        if isinstance(rows, list):
+            market.extend(_with_subset_sums(r.get('pct') for r in rows if isinstance(r, dict)))
+    lookthrough = list(shared)
+    try:
+        exposure = instrument_registry.compute_lookthrough_exposure(portfolio)
+    except Exception as exc:  # noqa: BLE001 — no projection, no look-through card
+        print(f'  warn: look-through exposure unavailable: {exc}', file=sys.stderr)
+        exposure = {}
+    for leg in exposure.values():
+        for family in ('factors', 'sectors'):
+            lookthrough.extend(_with_subset_sums(
+                row.get('gross_pct') for row in (leg or {}).get(family) or []))
+    return {'market_value': market, 'lookthrough': lookthrough}
+
+
+def _matches(raw, values):
+    """Within half a unit of the precision the number was printed at (min 0.15)."""
+    text = str(raw)
+    decimals = len(text.split('.')[1]) if '.' in text else 0
+    tolerance = max(0.15, 0.5 * 10 ** -decimals)
+    return any(abs(float(raw) - value) <= tolerance for value in values)
+
+
+def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
     """Schema + sanity gate for the agent-written daily insights sidecar.
 
     The sidecar is LLM-authored, so anything malformed or hallucinated must be
@@ -2517,7 +2574,7 @@ def validate_insights(data, known_tickers, *, weights=None):
     out = {'behavioral_review': None, 'bear_cases': [], 'hidden_concentration': None}
     if not isinstance(data, dict):
         return out
-    def grounded(text, *, exposure=False):
+    def grounded(text, *, exposure=False, weights=weights):
         if weights is None:
             return True  # Schema-only callers; the publisher supplies the book.
         sentences = re.split(r'[。；;]', text or '')
@@ -2527,7 +2584,7 @@ def validate_insights(data, known_tickers, *, weights=None):
             if exposure and not numbers:
                 numbers = re.findall(r'(?<![-+\d.])([0-9]+(?:\.[0-9]+)?)\s*[%％]', sentence)
             for raw in numbers:
-                if not any(abs(float(raw) - value) <= 0.15 for value in weights):
+                if not _matches(raw, weights):
                     return False
         return True
 
@@ -2579,14 +2636,20 @@ def validate_insights(data, known_tickers, *, weights=None):
         except (TypeError, ValueError):
             pct = None
         detail = _clean_str(hc.get('detail'), 220) or ''
-        pct_ok = weights is None or (pct is not None and any(abs(pct - value) <= 0.15 for value in weights))
-        if (headline and pct is not None and 0 <= pct <= 100 and pct_ok
-                and grounded(headline + '；' + detail, exposure=True)):
+        # The publisher checks the card against the basis it declares; a card
+        # that declares none (or an unknown one) cannot be checked and is dropped.
+        basis = hc.get('basis') if hc.get('basis') in INSIGHT_BASES else None
+        vocabulary = weights if basis_values is None else (basis_values.get(basis) if basis else None)
+        checkable = basis_values is None or vocabulary is not None
+        pct_ok = vocabulary is None or (pct is not None and _matches(hc.get('exposure_pct'), vocabulary))
+        if (headline and pct is not None and 0 <= pct <= 100 and checkable and pct_ok
+                and grounded(headline + '；' + detail, exposure=True, weights=vocabulary)):
             out['hidden_concentration'] = {
                 'headline': headline,
                 'factor': _clean_str(hc.get('factor'), 40) or '',
                 'exposure_pct': round(pct, 2),
                 'detail': detail,
+                **({'basis': basis} if basis else {}),
             }
     return out
 
@@ -4319,6 +4382,7 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
     out['sector_exposure'] = compute_sector_exposure(portfolio)
     out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
     _insight_weights = insight_weight_values(out)
+    _basis_values = insight_basis_values(out, portfolio)
     # daily insights (brief): behavioral_review / bear_cases / hidden_concentration.
     # 7d stale guard so a missed brief doesn't show week-old critique as current.
     _insights = load_tmp_sidecar('insights', max_age_days=7)
@@ -4327,8 +4391,9 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
     # gitignored) may republish the previous card; an unreadable file must let
     # the card hide rather than show yesterday's critique as today's.
     insights_present = bool(_insights)
-    _ins = validate_insights({} if _insights.get('_stale') else _insights, known_tickers,
-                             weights=_insight_weights)
+    _fresh = {} if _insights.get('_stale') else _insights
+    _ins = validate_insights(_fresh, known_tickers,
+                             weights=_insight_weights, basis_values=_basis_values)
     out['behavioral_review'] = _ins['behavioral_review']
     out['bear_cases'] = _ins['bear_cases']
     out['hidden_concentration'] = _ins['hidden_concentration']
@@ -4336,6 +4401,10 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
         'source': _insights.get('_source'),
         'stale': _insights.get('_stale', True if not _insights else False),
         'written_at': _insights.get('_written_at'),
+        # A card the sidecar wrote and the number check refused: the page says
+        # so instead of the card silently not being there (#2560).
+        'dropped': [k for k in ('hidden_concentration',)
+                    if isinstance(_fresh.get(k), dict) and _ins[k] is None],
     }
     for _k in ('behavioral_review', 'bear_cases', 'hidden_concentration', 'insights_meta'):
         presence[_k] = insights_present
@@ -4366,10 +4435,11 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
     # Its wrapper dict is truthy even with an empty items list, so restoring it
     # needs a stricter test than the other cards — hence `usable` below.
     presence['peer_divergence'] = bool(brief_ctx) or bool(out['peer_divergence']['items'])
-    return known_tickers, _insight_weights
+    return known_tickers, _insight_weights, _basis_values
 
 
-def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, known_tickers, insight_weights):
+def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, known_tickers, insight_weights,
+                            basis_values=None):
     """Restore absent cards from the previous payload, then redo what must match this book.
 
     The one phase boundary of `build_projection`: a card computed after this call
@@ -4393,7 +4463,8 @@ def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, know
             _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
             a for a in out['anomalies']
             if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
-    _checked_insights = validate_insights(out, known_tickers, weights=insight_weights)
+    _checked_insights = validate_insights(out, known_tickers, weights=insight_weights,
+                                          basis_values=basis_values)
     out['bear_cases'] = _checked_insights['bear_cases']
     out['hidden_concentration'] = _checked_insights['hidden_concentration']
     return _preserved
@@ -4633,13 +4704,14 @@ def build_projection(previous_source=None, shadow_previous=None):
     _presence['crawl_visibility'] = bool(out['crawl_visibility'].get('available'))
 
     fx_rate = (out.get('fx') or {}).get('usdhkd')
-    known_tickers, _insight_weights = _narrative_cards(
+    known_tickers, _insight_weights, _basis_values = _narrative_cards(
         out, _presence, portfolio, us_h, hk_h, brief_ctx, fx_rate)
 
     # Anything added later that falls back to `_prev_dash` belongs in `_presence`
     # before this call, or the payload will under-report what it copied.
     _preserved = _restore_previous_cards(
-        out, _prev_dash, _presence, portfolio, us_h, hk_h, known_tickers, _insight_weights)
+        out, _prev_dash, _presence, portfolio, us_h, hk_h, known_tickers, _insight_weights,
+        _basis_values)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
     _decisions = decision_v2.load_decisions()

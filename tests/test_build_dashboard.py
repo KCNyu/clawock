@@ -1914,3 +1914,51 @@ def test_restore_stage_restores_absent_cards_and_rederives_what_belongs_to_this_
     assert out["workflow_outcomes"] == {"counts": {"success": 3}}
     # The brief-derived entry is restored; the previous book's weight entry is not.
     assert out["anomalies"] == [{"type": "peer_gap", "ticker": "00100"}]
+
+
+def _hidden(basis, pct, detail):
+    card = {'headline': '名义分散，实际同一条因子', 'factor': '恒科 + 中国 AI',
+            'exposure_pct': pct, 'detail': detail}
+    if basis:
+        card['basis'] = basis
+    return {'hidden_concentration': card}
+
+
+def test_a_hidden_concentration_card_is_checked_against_the_basis_it_declares():
+    """One leg, two partitions (#2560): market value says 57.79 / 36.33 / 5.88, look-through
+    says 50.27 / 45.13 / 4.6. A card is held to the one it names, an integer is a rounded
+    sum of that basis's buckets, and a card that names none cannot be published."""
+    values = {'market_value': [57.79, 36.33, 5.88, 94.12, 63.67, 42.21, 100.0],
+              'lookthrough': [50.27, 45.13, 4.6, 95.4, 54.87, 49.73, 100.0]}
+    check = lambda data: dashboard.validate_insights(  # noqa: E731
+        data, set(), weights=values['market_value'], basis_values=values)['hidden_concentration']
+
+    through = check(_hidden('lookthrough', 95, '穿透后恒生科技 50.27% 加中国 AI 45.13%，合计 95.4%'))
+    assert through['basis'] == 'lookthrough' and through['exposure_pct'] == 95
+    market = check(_hidden('market_value', 94, 'AI 大模型 57.79% 加恒生科技 ETF 36.33%'))
+    assert market['basis'] == 'market_value'
+    # The other basis's numbers do not pass, however close a market weight happens to sit.
+    assert check(_hidden('market_value', 95, '恒生科技 50.27% 加中国 AI 45.13%')) is None
+    assert check(_hidden('lookthrough', 94, 'AI 大模型 57.79% 加恒生科技 ETF 36.33%')) is None
+    # An invented figure, a figure from no projection, and a card without a basis are all dropped.
+    assert check(_hidden('lookthrough', 88, '恒生科技 50.27% 加中国 AI 45.13%')) is None
+    assert check(_hidden('lookthrough', 95, '00100 占 37.2% 权重却吃 54.7% 风险')) is None
+    assert check(_hidden(None, 95, '恒生科技 50.27% 加中国 AI 45.13%')) is None
+    assert check(_hidden('gross', 95, '恒生科技 50.27% 加中国 AI 45.13%')) is None
+
+
+def test_basis_vocabularies_come_from_the_two_projections_of_the_same_book():
+    portfolio = {'portfolios': {
+        'hk_stocks': {'holdings': [
+            {'ticker': '00100', 'shares': 10, 'current_value': 6000.0},
+            {'ticker': '07226', 'shares': 10, 'current_value': 4000.0}]},
+        'us_stocks': {'holdings': []}}}
+    payload = {'sector_exposure': {'hk': [{'sector': 'a', 'pct': 60.0}, {'sector': 'b', 'pct': 40.0}]},
+               'concentration': {'hk': {'positions': [{'weight': 0.6}, {'weight': 0.4}]}},
+               'leveraged_etf': {'hk_pct': 40.0}}
+    values = dashboard.insight_basis_values(payload, portfolio)
+
+    # 07226 is a 2x product: 4000 of capital is 8000 of notional, 8000/14000 = 57.14%.
+    assert 57.14 in values['lookthrough'] and 42.86 in values['lookthrough']
+    assert 57.14 not in values['market_value']
+    assert {60.0, 40.0, 100.0} <= set(values['market_value'])

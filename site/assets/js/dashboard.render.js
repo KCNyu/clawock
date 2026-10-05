@@ -4124,8 +4124,19 @@
   function insightsSource(meta) {
     if (!meta.source) return "";
     const at = meta.written_at ? `${meta.written_at} HKT 写入的快照，文中数字为当时值 · ` : "";
-    return `${at}源 ${meta.source}`;
+    // A card the sidecar wrote but the publisher's number check refused is named,
+    // so "no card" is not read as "nothing to say" (#2560).
+    const dropped = (meta.dropped || []).includes("hidden_concentration")
+      ? " · 隐藏集中度卡的数字未通过核对，本次不展示" : "";
+    return `${at}源 ${meta.source}${dropped}`;
   }
+
+  // The card states which exposure it counts: the 板块暴露 card beside it is
+  // market value, and the two differ by the leverage multiple (#2560).
+  const HC_BASIS_LABEL = {
+    market_value: "市值口径",
+    lookthrough: "穿透口径（杠杆产品按名义倍数计）",
+  };
 
   function renderHiddenConcentration() {
     const hc = safe(DATA, "hidden_concentration");
@@ -4138,7 +4149,7 @@
     document.getElementById("hidden-conc-body").innerHTML = `
       <div class="hc-headline">${escLLM(hc.headline)}</div>
       <div class="hc-bar-row">
-        <div class="hc-factor">${escLLM(hc.factor)}</div>
+        <div class="hc-factor">${escLLM(hc.factor)}${HC_BASIS_LABEL[hc.basis] ? ` · ${HC_BASIS_LABEL[hc.basis]}` : ""}</div>
         <div class="hc-bar"><div class="hc-bar-fill" style="width:${barW}%"></div></div>
         <div class="hc-pct">${pct != null ? pct + "%" : DASH}</div>
       </div>
