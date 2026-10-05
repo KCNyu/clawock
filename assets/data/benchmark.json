@@ -1,20 +1,8 @@
 {
-  "generated_at": "2026-10-02T00:04:58.546489Z",
+  "generated_at": "2026-10-05T00:04:31.832470Z",
   "window_days": 60,
   "series": {
     "SPY": [
-      {
-        "date": "2026-08-03",
-        "close": 757.67
-      },
-      {
-        "date": "2026-08-04",
-        "close": 771.33
-      },
-      {
-        "date": "2026-08-05",
-        "close": 769.79
-      },
       {
         "date": "2026-08-06",
         "close": 768.56
@@ -170,21 +158,17 @@
       {
         "date": "2026-09-30",
         "close": 762.63
+      },
+      {
+        "date": "2026-10-01",
+        "close": 763.99
+      },
+      {
+        "date": "2026-10-02",
+        "close": 769.64
       }
     ],
     "HSI": [
-      {
-        "date": "2026-08-03",
-        "close": 26009.4
-      },
-      {
-        "date": "2026-08-04",
-        "close": 25852.92
-      },
-      {
-        "date": "2026-08-05",
-        "close": 25915.82
-      },
       {
         "date": "2026-08-06",
         "close": 25530.28
@@ -344,21 +328,13 @@
       {
         "date": "2026-09-30",
         "close": 24613.27
+      },
+      {
+        "date": "2026-10-02",
+        "close": 23972.29
       }
     ],
     "HSTECH": [
-      {
-        "date": "2026-08-03",
-        "close": 4875.61
-      },
-      {
-        "date": "2026-08-04",
-        "close": 4885.61
-      },
-      {
-        "date": "2026-08-05",
-        "close": 4933.07
-      },
       {
         "date": "2026-08-06",
         "close": 4820.78
@@ -518,25 +494,29 @@
       {
         "date": "2026-09-30",
         "close": 4253.89
+      },
+      {
+        "date": "2026-10-02",
+        "close": 4157.94
       }
     ]
   },
   "freshness": {
     "SPY": {
       "market": "us",
-      "last_session": "2026-09-30",
-      "sessions_behind": 1,
+      "last_session": "2026-10-02",
+      "sessions_behind": 0,
       "expected_lag_sessions": 1
     },
     "HSI": {
       "market": "hk",
-      "last_session": "2026-09-30",
+      "last_session": "2026-10-02",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     },
     "HSTECH": {
       "market": "hk",
-      "last_session": "2026-09-30",
+      "last_session": "2026-10-02",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     }

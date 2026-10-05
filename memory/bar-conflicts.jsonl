@@ -51,3 +51,5 @@
 {"date": "2025-12-09", "detail": "64.3%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "RKLX"}
 {"date": "2026-05-08", "detail": "67.7%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "RKLX"}
 {"date": "2026-03-09", "detail": "52.4%", "kind": "implausible_move", "seen_at": "2026-10-02T12:13:53+08:00", "ticker": "03317"}
+{"date": "2026-10-01", "detail": "stored O72.31/H72.64/L69.43/C70.46 vs fetched O72.31/H72.64/L69.42/C70.46", "fetched": {"close": 70.46, "high": 72.64, "low": 69.42, "open": 72.31}, "kind": "rounding", "seen_at": "2026-10-05T08:03:33+08:00", "stored": {"close": 70.46, "high": 72.64, "low": 69.43, "open": 72.31}, "ticker": "RKLB"}
+{"date": "2026-09-30", "detail": "stored O39.01/H39.24/L38.87/C39.1 vs fetched O39.01/H39.24/L38.84/C39.1", "fetched": {"close": 39.1, "high": 39.24, "low": 38.84, "open": 39.01}, "kind": "extreme_only", "seen_at": "2026-10-05T08:03:34+08:00", "stored": {"close": 39.1, "high": 39.24, "low": 38.87, "open": 39.01}, "ticker": "TCOM"}

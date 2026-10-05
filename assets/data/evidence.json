@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-02T04:04:41+08:00",
+  "omitted": [],
+  "generated_at": "2026-10-03T04:06:02+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -43,7 +44,7 @@
       "verdict": "⚪ 尚不可判",
       "verdict_key": "undecided",
       "tone": "idle",
-      "sample": "留痕 83 天",
+      "sample": "留痕 84 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -57,11 +58,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 56.8% · CI95 [44.9%, 67.2%] · n=322（63 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 57.5% · CI95 [45.6%, 68.2%] · n=327（64 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 55.7% · CI95 [45.8%, 65.4%] · n=465（75 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 56.3% · CI95 [46.2%, 66.0%] · n=471（76 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_on_follow`",
@@ -84,7 +85,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "26 / 需要 24 · ✅"
+          "value": "27 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -96,19 +97,19 @@
         },
         {
           "label": "`price_coverage`",
-          "value": "1.0 / 需要 0.8 · ✅"
+          "value": "1 / 需要 0.8 · ✅"
         },
         {
           "label": "`quality_coverage`",
-          "value": "0.6153846153846154 / 需要 0.6 · ✅"
+          "value": "0.6154 / 需要 0.6 · ✅"
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.056312, -0.002996] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.05413, -0.002565] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
-          "value": "False / 需要 True · ⚪ 未达标"
+          "value": "否 / 需要 是 · ⚪ 未达标"
         },
         {
           "label": "`corporate_actions`",
@@ -163,5 +164,6 @@
         }
       ]
     }
-  ]
+  ],
+  "built_at": "2026-10-05T00:04:29.733814+00:00"
 }
