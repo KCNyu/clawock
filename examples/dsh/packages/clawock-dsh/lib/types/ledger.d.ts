@@ -25,10 +25,21 @@ export declare function readLedger(workspace: string): LedgerResult;
  * has ever produced — so `rate` was permanently null and the header's
  * "已实现 (USD 等值)" silently dropped every HKD figure (#838).
  */
-export declare function readFxRate(workspace: string): {
+export interface FxRecord {
     rate: number;
     source: string | null;
-} | null;
+    day: string | null;
+    fetchedAt: string | null;
+    fallbackUsed: boolean;
+}
+/** Same reading as `clawock.portfolio.fx.STALE_READ_HOURS`: older means the daily refresh stopped. */
+export declare const FX_STALE_READ_HOURS = 96;
+/**
+ * Where the rate came from and when, as one printable label: the panel folds
+ * every HKD figure through this number, so it says whose it is (#2569).
+ */
+export declare function fxProvenance(fx: FxRecord, nowMs: number): string;
+export declare function readFxRate(workspace: string): FxRecord | null;
 /**
  * Summarize the portfolio (portfolio.json): per-book holdings with the desk's
  * own money fields, plus the flattened trade log (newest first).

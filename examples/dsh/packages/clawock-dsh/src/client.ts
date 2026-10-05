@@ -130,6 +130,8 @@ export interface TraceSnapshot {
   signature: string
   trades: EnrichedTrade[]
   rate: number | null
+  /** Who gave the rate and for which day (host-built label); null when unknown. */
+  rateSource: string | null
 }
 
 /** What the registration's `inject` factory hands the view. */
@@ -492,6 +494,7 @@ function SkeletonRow(): React.ReactElement {
 interface DataState {
   trades: EnrichedTrade[]
   rate: number | null
+  rateSource: string | null
   loading: boolean
   error: string | null
   stale: boolean
@@ -2207,21 +2210,21 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const [data, setData] = useState<DataState>(() => {
     const cached = props.cachedTraces()
     return cached === null
-      ? { trades: [], rate: null, loading: true, error: null, stale: false }
-      : { trades: cached.trades, rate: cached.rate, loading: false, error: null, stale: false }
+      ? { trades: [], rate: null, rateSource: null, loading: true, error: null, stale: false }
+      : { trades: cached.trades, rate: cached.rate, rateSource: cached.rateSource, loading: false, error: null, stale: false }
   })
 
   useEffect(() => {
     let alive = true
     props.fetchTraces().then((fetched) => {
       if (!alive || !fetched.changed) return // 同一份数据,跳过重渲染
-      setData({ trades: fetched.snapshot.trades, rate: fetched.snapshot.rate, loading: false, error: null, stale: false })
+      setData({ trades: fetched.snapshot.trades, rate: fetched.snapshot.rate, rateSource: fetched.snapshot.rateSource, loading: false, error: null, stale: false })
     }, (error: unknown) => {
       if (!alive) return
       if (props.cachedTraces() !== null) setData((current) => ({ ...current, stale: true }))
       else {
         const message = error instanceof LedgerUnreadable ? t('trace.unreadable') : messageOf(error)
-        setData({ trades: [], rate: null, loading: false, error: message, stale: false })
+        setData({ trades: [], rate: null, rateSource: null, loading: false, error: message, stale: false })
       }
     })
     return () => { alive = false }
@@ -2413,7 +2416,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         h('div', { className: cx('tt') }, t('trace.title'),
           h('span', { className: cx('ts') }, t('trace.subtitle') + (data.stale ? t('trace.staleSuffix') : '')),
           h('span', { className: cx('rate') },
-            t('trace.fillCount', { count: traces.length }) + (rate === null ? '' : ' · @' + rate))),
+            t('trace.fillCount', { count: traces.length }) + (rate === null ? '' : ' · @' + rate
+              + (data.rateSource ? ' · ' + data.rateSource : '')))),
         stats)),
     h('div', { className: cx('bar') },
       h('div', { className: cx('bin') }, filters)),
@@ -2496,6 +2500,8 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         signature: result.signature,
         trades: result.trades,
         rate: result.rate,
+        // An older host half omits nothing here, but tolerate one that does.
+        rateSource: result.rateSource ?? null,
       }
       // The host answers a signature hit in µs from its own cache; an
       // unchanged signature means the rendered snapshot is still current.

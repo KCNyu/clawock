@@ -698,7 +698,15 @@ export function createBalanceService(
         401: 'API Key 无效或已过期',
         429: '请求过于频繁,请稍后再试',
       })
-      return parseBalancePayload(body, new Date().toISOString())
+      const snapshot = parseBalancePayload(body, new Date().toISOString())
+      // The tolerant parse keeps a drifted body from crashing the tab, but a
+      // 200 without an amount is "not read", and `isLow` would call it healthy
+      // (no number is above every floor). Fail like the other three providers
+      // so the row reads failed/stale, never a green dot beside a dash.
+      if (snapshot.isAvailable && !isFinite(Number.parseFloat(snapshot.totalBalance))) {
+        throw new Error('余额接口没有返回金额')
+      }
+      return snapshot
     },
     // DeepSeek is money, not quota — its snapshots are always unit 'money'
     // (parseBalancePayload), so the low check stays a plain balance floor.

@@ -74,7 +74,34 @@ export function readLedger(workspace: string): LedgerResult {
  * has ever produced — so `rate` was permanently null and the header's
  * "已实现 (USD 等值)" silently dropped every HKD figure (#838).
  */
-export function readFxRate(workspace: string): { rate: number; source: string | null } | null {
+export interface FxRecord {
+  rate: number
+  source: string | null
+  day: string | null
+  fetchedAt: string | null
+  fallbackUsed: boolean
+}
+
+/** Same reading as `clawock.portfolio.fx.STALE_READ_HOURS`: older means the daily refresh stopped. */
+export const FX_STALE_READ_HOURS = 96
+
+/**
+ * Where the rate came from and when, as one printable label: the panel folds
+ * every HKD figure through this number, so it says whose it is (#2569).
+ */
+export function fxProvenance(fx: FxRecord, nowMs: number): string {
+  const parts: string[] = []
+  if (fx.source !== null) parts.push(fx.source)
+  const fetched = fx.fetchedAt === null ? NaN : Date.parse(fx.fetchedAt)
+  const day = fx.day ?? (isFinite(fetched) ? new Date(fetched + 8 * 3600_000).toISOString().slice(0, 10) : null)
+  parts.push(day === null ? '日期未知' : day.slice(5))
+  if (fx.fallbackUsed) parts.push('回退值')
+  const ageHours = isFinite(fetched) ? (nowMs - fetched) / 3600_000 : null
+  if (ageHours !== null && ageHours > FX_STALE_READ_HOURS) parts.push(`⚠ 缓存 ${Math.round(ageHours)}h 未刷新`)
+  return parts.join(' · ')
+}
+
+export function readFxRate(workspace: string): FxRecord | null {
   const path = join(workspace, 'memory', 'fx-rates.jsonl')
   if (!existsSync(path)) return null
   let last: JsonValue = null
@@ -94,10 +121,17 @@ export function readFxRate(workspace: string): { rate: number; source: string | 
   if (last === null || typeof last !== 'object' || Array.isArray(last)) return null
   const rate = num((last as { rate?: unknown })['rate'])
   if (rate === null || rate <= 0) return null
-  const source = typeof (last as { source?: unknown })['source'] === 'string'
-    ? (last as { source?: unknown })['source'] as string
-    : null
-  return { rate, source }
+  const record = last as { [key: string]: unknown }
+  // The ledger is USDHKD only; a row for another pair is not this rate.
+  if (typeof record['pair'] === 'string' && record['pair'] !== 'USDHKD') return null
+  const text = (key: string): string | null => (typeof record[key] === 'string' ? record[key] as string : null)
+  return {
+    rate,
+    source: text('source'),
+    day: text('day'),
+    fetchedAt: text('fetched_at'),
+    fallbackUsed: record['fallback_used'] === true,
+  }
 }
 
 /**
@@ -472,8 +506,16 @@ function enrichTrade(
     const emotion = (b['emotion'] ?? {}) as { [key: string]: unknown }
     const size = (b['size'] ?? {}) as { [key: string]: unknown }
     const evaluation = (b['evaluation'] ?? {}) as { [key: string]: unknown }
-    const bull = (mind['bull'] ?? {}) as { [key: string]: unknown }
-    const bear = (mind['bear'] ?? {}) as { [key: string]: unknown }
+    // Same source order as the site's row (`dashboard.py` build_decision_traces):
+    // `mind.<side>.summary` first, the debate's prose when it is empty. Nearly
+    // every ledger row carries the argument in `debate` only (#2571).
+    const debate = (b['debate'] ?? {}) as { [key: string]: unknown }
+    const argument = (side: 'bull' | 'bear'): string | null => {
+      const summary = ((mind[side] ?? {}) as { [key: string]: unknown })['summary']
+      if (typeof summary === 'string' && summary !== '') return summary
+      const debated = debate[side]
+      return typeof debated === 'string' && debated !== '' ? debated : null
+    }
     const execution = (b['execution'] ?? {}) as { [key: string]: unknown }
     const condition = (b['condition'] ?? {}) as { [key: string]: unknown }
     const planDate = typeof b['plan_date'] === 'string'
@@ -485,8 +527,8 @@ function enrichTrade(
       confidence: num(b['confidence']),
       drivenBy: typeof b['driven_by'] === 'string' ? b['driven_by'] : null,
       rationale: readableRationale(typeof b['rationale'] === 'string' ? b['rationale'] : null),
-      bull: typeof bull['summary'] === 'string' ? bull['summary'] : null,
-      bear: typeof bear['summary'] === 'string' ? bear['summary'] : null,
+      bull: argument('bull'),
+      bear: argument('bear'),
       emotion: typeof emotion['pressure'] === 'string' ? emotion['pressure'] : null,
       emotionNote: typeof emotion['note'] === 'string' ? emotion['note'] : null,
       execution: typeof execution['status'] === 'string' ? execution['status'] : null,
@@ -552,7 +594,7 @@ export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey'
   return {
     trades: enriched,
     rate: fx === null ? null : fx.rate,
-    rateSource: fx === null ? null : fx.source,
+    rateSource: fx === null ? null : fxProvenance(fx, Date.now()),
     lastUpdated,
   }
 }

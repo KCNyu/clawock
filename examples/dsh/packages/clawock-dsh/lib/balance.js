@@ -433,10 +433,12 @@ function createBalanceService(deps, config = {}) {
 		threshold,
 		refreshMs: numberOr(config.refreshMs, DEFAULT_BALANCE_REFRESH_MS),
 		async fetchFresh(apiKey) {
-			return parseBalancePayload(await fetchJson(`${baseUrl}/user/balance`, { authorization: `Bearer ${apiKey}` }, "余额", {
+			const snapshot = parseBalancePayload(await fetchJson(`${baseUrl}/user/balance`, { authorization: `Bearer ${apiKey}` }, "余额", {
 				401: "API Key 无效或已过期",
 				429: "请求过于频繁,请稍后再试"
 			}), (/* @__PURE__ */ new Date()).toISOString());
+			if (snapshot.isAvailable && !isFinite(Number.parseFloat(snapshot.totalBalance))) throw new Error("余额接口没有返回金额");
+			return snapshot;
 		},
 		isLow: (snapshot) => snapshot.unit === "money" && snapshot.isAvailable && numOrInfinity(snapshot.totalBalance) <= threshold
 	});
