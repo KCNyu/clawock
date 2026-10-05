@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T23:22:56.853152+00:00",
+  "generated_at": "2026-10-05T00:04:42.513723+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -79,15 +79,8 @@
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us_stocks",
-      "reddit_mentions_7d": 1,
-      "reddit_posts": [
-        {
-          "sub": "wallstreetbetsGER",
-          "title": "Was sagt ihr dazu?",
-          "url": "https://www.reddit.com/r/wallstreetbetsGER/comments/1wxq7jv/was_sagt_ihr_dazu/",
-          "created": "2026-10-04T20:49:15+00:00"
-        }
-      ],
+      "reddit_mentions_7d": 0,
+      "reddit_posts": [],
       "reddit_status": "ok",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
@@ -138,7 +131,7 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 4,
+      "reddit_mentions_7d": 3,
       "reddit_posts": [
         {
           "sub": "MarketProbabilities",
@@ -157,12 +150,6 @@
           "title": "What’s prediction price to buy SpaceX guys? Im holding cash and been waiting to have a good entry-point. What’s you guys price average?",
           "url": "https://www.reddit.com/r/SPCXInvestors/comments/1wxrggx/whats_prediction_price_to_buy_spacex_guys_im/",
           "created": "2026-10-04T21:42:58+00:00"
-        },
-        {
-          "sub": "wallstreetbetsGER",
-          "title": "Was sagt ihr dazu?",
-          "url": "https://www.reddit.com/r/wallstreetbetsGER/comments/1wxq7jv/was_sagt_ihr_dazu/",
-          "created": "2026-10-04T20:49:15+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -192,7 +179,7 @@
         },
         {
           "title": "SpaceX Stock (SPCX) Opened Up by 3.77% on Oct 2: Facts Behind the Movement",
-          "source": "tradingkey.com",
+          "source": "TradingKey",
           "published": "Fri, 02 Oct 2026 13:47:23 GMT",
           "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQLUZBV1pOUURKVXNyampfWmh1dFFpUzB0TGxZb1gyYms2YmpaUE1wOUpKUTJoWFBmdkZ2Z2xodFpPWVloM2RleXV6eEN3QkZXYjBNOGhkTkNqQzlMWDNDZTQwRlY0NWJoWDY3R203RExCOThlalh5ZWlmUmlHTXByZy1IWWFWTFdraEVj?oc=5"
         },
@@ -215,7 +202,7 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 4,
+      "reddit_mentions_7d": 3,
       "reddit_posts": [
         {
           "sub": "MarketProbabilities",
@@ -234,12 +221,6 @@
           "title": "What’s prediction price to buy SpaceX guys? Im holding cash and been waiting to have a good entry-point. What’s you guys price average?",
           "url": "https://www.reddit.com/r/SPCXInvestors/comments/1wxrggx/whats_prediction_price_to_buy_spacex_guys_im/",
           "created": "2026-10-04T21:42:58+00:00"
-        },
-        {
-          "sub": "wallstreetbetsGER",
-          "title": "Was sagt ihr dazu?",
-          "url": "https://www.reddit.com/r/wallstreetbetsGER/comments/1wxq7jv/was_sagt_ihr_dazu/",
-          "created": "2026-10-04T20:49:15+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -334,13 +315,13 @@
         },
         {
           "title": "MINIMAX-W(00100) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
-          "source": "hkej.com",
+          "source": "信報網站",
           "published": "Thu, 01 Oct 2026 10:23:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMigwNBVV95cUxOSW55cmYyS0FoM0hXZTZJOFFFX0lXUDB4Yy14ZzdxSGZOeG1pZ3hfd0tNcUVzeF9YSldmR1pHSE5vNjVPRWpvUE1fQmpxSGFzQ1JpWFBnZGprdnYwNFhQOVl0clNtQmxQekQ0clVMZ3drcDBRM0RyUFRINVNTTG9JZTFLaVdiNmJLWTU3MmhVOTZDQmdqaGVNVHgwQzcxeUFBYTlkTFU1eUFqM0lTY0U3akFWaElxX2lKZkNWS0pmU3p6Nl9SRHFkZmI5ZUZGWVVzanhfMkp2eV9yWXJvOVEyV2RqZVMyNm52MWNqUmVmX3QwODVfVk8zam1yOHNfbmhleGFOUTN2eEwyamRKTm80ZVNHeEYySzhOS3JCeHJwMjVOYWY2S0ZxcWFjbWptdTFGcDNlN3Jyd1dvbHNBOE85dnI3b1FncURlWTJtS0p4Vy1GNmhsUDVVQlFxSW54alR2LXY0eVFjYk1WZjdXcnYyckNUZ3lkaHI2ZEVvR1pUdWZrelU?oc=5"
         },
         {
-          "title": "MINIMAX-W(00100)授出合共209.2萬份獎勵 作者 智通財經",
-          "source": "hk.investing.com",
+          "title": "MINIMAX-W(00100)授出合共209.2萬份獎勵 作者 智通財經 - Investing.com 香港",
+          "source": "Investing.com 香港 - 股市報價& 財經新聞",
           "published": "Tue, 29 Sep 2026 13:40:08 GMT",
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9vUmJmR280VGJMSEtmQmJkVFo5MDJvakstODdlTzJhR2VrajNCb3VjcGtlVGVXWmk3bHRoUlUtcW5wV1NzYkJDbjA5czdJbE9Lb29sRGV1Z21LeWkwVGxfUzAyak53UVhTRWlaSGUzOVE?oc=5"
         },
@@ -404,27 +385,27 @@
       "google_news_zh": [
         {
           "title": "金風科技風機價量齊升可留意",
-          "source": "bastillepost.com",
+          "source": "巴士的報",
           "published": "Fri, 21 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
         {
-          "title": "金風科技(02208) 海外監管公告-營運業績最新情況",
-          "source": "hkej.com",
-          "published": "Tue, 25 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMizgJBVV95cUxOalBRLWhEUEZ0bG9KRlFDLWdzZ2UwcHNDTjJWcmZSOG1Vc1J5b0IxOVZLZ3JKVnBOemNxVTRwNjljbGZWR0NPX2VOY0RoYUY2UU4wcmZ4NUR5VUlsa0pTU0llVjFqb1htcTEwNWtFVXdjUm0xMjJ3UFJfd2MtNzBCQVVyOUxqeERjSVN6NDQtRGxMMXF6OW16cWhxald5ajFQTEJsQl9PS2dnZTkxbURDMk1yV054dUhvUFdJMEVBckRncE94Yk0zVEJrWWpfbkZiSkdObTJBQ1hQeTdUTEFwQ0k4VEdOSDg1ZUdFaXc3U2lBVmludGZIUFNVWEZYQnZkNGtuTUR3WURuQ29JT3VocTBTWHZLbXRjT2JDRDVWdkJGRTY1SjdkUUR1eXhudHJ5WGl2czdlLU8yc3ZlMjdpa1diMnExMzc0a2REQjdR?oc=5"
+          "title": "金風科技(02208) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
+          "source": "信報網站",
+          "published": "Tue, 22 Sep 2026 10:38:03 GMT",
+          "url": "https://news.google.com/rss/articles/CBMirwNBVV95cUxOM0xYcU9Sb1RjWHEwYy11TzktU21sNlZZQmVHMGFlN1BxVWUwQ210U2d1WHZjdmNqX0lfYzZtS21EWHJHWjFiWWFVS3ltSkFDSjR3eEQzRlFIeS05aW16VEk3SE1XOVVpN0lGeVRXRmc1SF90OEdvTmRDV1FDVlB6QUpjb2VHaHA0S3ZuQ1o3bW5DM3ZxaFU0dlk4UnJDMWNmVklvZWhRY0h6ZjBkdDZzc0ZFTkZhNzBWU1BHamctcFZzeWpLZXVzNXdiOUp1aUtUTnZUYXM3VUthNlhBQ1ctbzJRQWE2R0s4aU9MUDl4aWlFc2VERjV6R09POHRkQ041Tm55dk9odUd2WFFXV3FfYVhtU1V2cDNFSlhKbTlfSlhpTy1wR2tGZUZnTWNvd0JzaS00a0l2U21Cb1VsVl8za0hlMnNEa1VXSHpWNzQ5OTlmNm91S1FqejR2MS1fZUpZcVlSVDBfc0ZGY1FXWlB4ZDQ0N05pM3hNX1g5TTFRVC1kb0dXQW9JR0JWdnU2ZEhqcDhaSVJUb2wzZGd6RENVSVRTRm9rTG5falRTMTFHbw?oc=5"
         },
         {
-          "title": "港股異動 | 金風科技(02208)漲超7% 7月風機招標顯著回暖 出口保持較高景氣度 作者 智通財經",
-          "source": "hk.investing.com",
+          "title": "港股異動 | 金風科技(02208)漲超7% 7月風機招標顯著回暖 出口保持較高景氣度 作者 智通財經 - Investing.com 香港",
+          "source": "Investing.com 香港 - 股市報價& 財經新聞",
           "published": "Fri, 07 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE0zTUpJajRBQmdXaElIeFFxbFJfVlF3MlczcjdpV01JOU43S0Z3VXAtQ2ZsVWItd0V6Z1F4SFZWTXJRczE3TkNKRTNPU2dIMjFpMEJNczR0aUJHRGZhMlZFTHFSQkJfSTF3VDdHUVdBQ1Q?oc=5"
         },
         {
-          "title": "金風科技(02208) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
-          "source": "hkej.com",
-          "published": "Tue, 22 Sep 2026 10:38:03 GMT",
-          "url": "https://news.google.com/rss/articles/CBMirwNBVV95cUxOM0xYcU9Sb1RjWHEwYy11TzktU21sNlZZQmVHMGFlN1BxVWUwQ210U2d1WHZjdmNqX0lfYzZtS21EWHJHWjFiWWFVS3ltSkFDSjR3eEQzRlFIeS05aW16VEk3SE1XOVVpN0lGeVRXRmc1SF90OEdvTmRDV1FDVlB6QUpjb2VHaHA0S3ZuQ1o3bW5DM3ZxaFU0dlk4UnJDMWNmVklvZWhRY0h6ZjBkdDZzc0ZFTkZhNzBWU1BHamctcFZzeWpLZXVzNXdiOUp1aUtUTnZUYXM3VUthNlhBQ1ctbzJRQWE2R0s4aU9MUDl4aWlFc2VERjV6R09POHRkQ041Tm55dk9odUd2WFFXV3FfYVhtU1V2cDNFSlhKbTlfSlhpTy1wR2tGZUZnTWNvd0JzaS00a0l2U21Cb1VsVl8za0hlMnNEa1VXSHpWNzQ5OTlmNm91S1FqejR2MS1fZUpZcVlSVDBfc0ZGY1FXWlB4ZDQ0N05pM3hNX1g5TTFRVC1kb0dXQW9JR0JWdnU2ZEhqcDhaSVJUb2wzZGd6RENVSVRTRm9rTG5falRTMTFHbw?oc=5"
+          "title": "全球裝機續壯大 金風科技乘勢上",
+          "source": "信報網站",
+          "published": "Wed, 06 May 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMigwNBVV95cUxOT1Z1Mk5QWTV4RUdUS1FKTUo4M0RJSXVEbVk0UGxmRTZFNkg1SDBXUHVnVmlnRVNoNl95LW0zbzVvNzhJNW00LV9BMFkyVENBZS1WR3liUU1SeXBRVG9qWi1GZE51NmMzZUk3bWt0Y1VnT2oxM3RiSjd5WEVnZW1iZ0doUWdJRW1vN09nOUMzVVc5V0dnRng3b29jUDVYWE1uSm5nOHdUcVJkdjdwQ3pYNjNCeGh0N09yMmpTRjFpelNYOFh6TElsaXpteUYxWDd5NHNJdEFtUFNnSWFra1N3TkVXV1ZPSzZYMmZUUWRBeEVzbzYzZVpTMG1oRmpkVDE1eVM5eno1cTc0dk9XLW9sWHZtSVBKa2NBeVByQS1rWE4yY2xMMHM5bWNoOFBDSllNUVA2TUJwRjZmWFIxYjl5R3pUYjRtaGhhRHJlRDNyOEVMamJjZUVCblJaOHlJNUdHQ0F5WWIzb2UwSXM5aVk2ekxNMFZxX2czOWxyMzB4Q2hnRW8?oc=5"
         },
         {
           "title": "龍虎榜 | 超41億資金狂甩兆易創新！深股通4.28億殺入金風科技",
@@ -434,7 +415,7 @@
         },
         {
           "title": "財律指揮｜中美科技處處角力 金風科技不只做風電 火箭概念有排炒｜曲鳴",
-          "source": "hk.finance.yahoo.com",
+          "source": "Yahoo 財經",
           "published": "Sun, 11 Jan 2026 08:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiywNBVV95cUxNLThUME1aUm5lQU9nSUpVdlJKem9NT2stQzB4MzFtVWVqaUNKYTZCdmJuODlYOWFCYTNRbUhRVFl2Z1MwLTFsLXZGalM4ZlVCcWlHbENvRzZvVlprN3JHSlJMQTVBeTlTQUZzX0MyOUNGOTI1Y196R3NrSTZaUjBCOXFzdnd4ZkVkQjREZDJVMXhlOEtjaWZZSGt5R0NkYzBPVll3bmdFLTVSMU9ZOHA2dEttTWFZeVE3bUhrbF84RHJXMzdWWTFCLUtGWWJHQmk0N2tXQldCTGdEb2J1ZzdoTVpGemtVZHBoUHY3ZVg4d29ENmszajZ4TmxFOVE3NFJrcURHNk1aUXEwcmJNVVhxX2VKREFwZUl3STlVMWN0bEtGQ21EaW01cWl6dWEwUnI2bkxLU1ppckhwXzlKZDEyMWVHMmpTVmthc0RBSTk3YlBnLWxKRnVCWXM0ZGdlZ01LR3NjYzZUVzJ2OVI5YzZTeGdJOEx0bGJpdVhTWGRDOUswdC1ybHBvdmdIQ1p1Nk9tNzlKejBMRkd2UGlGVW1yUFRLTGdQcGVBc1JBLUc5N0dMb2Q5OU5yNHo2WVEtUmhGQXBmUDEwQmtRT1U?oc=5"
         }
@@ -467,7 +448,7 @@
         },
         {
           "title": "Hang Seng Investment Index Funds Series - Hang Seng Tech Index ETF (3032.HK) stock price, news, quote and history",
-          "source": "Yahoo Finance UK",
+          "source": "uk.finance.yahoo.com",
           "published": "Mon, 18 Jun 2018 07:39:27 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9LZllEUnRkNWxFODN1NlpIbG1JWFhYdzQ5MTRwUGgwLTY0ZWdubGZ3NTFaQ19HR1pLR0FuMmlaZ0F4YUNyR2dITmx6Z19UQmxRWk15a0VB?oc=5"
         },
@@ -487,9 +468,15 @@
         },
         {
           "title": "恒生科技ＥＴＦ(03032) 交易所買賣基金的交易資料",
-          "source": "hkej.com",
+          "source": "信報網站",
           "published": "Fri, 02 Oct 2026 18:20:54 GMT",
           "url": "https://news.google.com/rss/articles/CBMi0wJBVV95cUxNMDBOTjB4UTZPTzB5MEVvb3FtLWlWTGh1c3RLUWhsVV9JRFlPSFdmMld5Qnh4bE56bnF1MTdPSm5KNnplMjAxTWQ2Y0wzeXRJYjZkR1FXbUozUGpGR3RCN0c5R2ZJbVJLUDB6bzZTSEwxb01vY3hDak9iUi1qR0dFc3hWWWNyNUhiZjJyWldzOGN0Q181aWpZaTJ0azdGYzlYNTc1UV9saWhhai1qZXhLaHlmT0l5LXN1N3dLYU50OFJYZWUxM2IzUWlPZVZ5bXh0MTJDSFhkV2M1cUxnSHdyYXN1REVyWXkwQlRFV0F4S2lLM3ppQTZXLVMyX1RidWNoWFVaZTdZbHR5Um13MlVjTmJfQnBoV3pMMTdySVhWZHJfVnVMX0FEQzgwcl91X3Z3WlFzRjlsRlluZnlXNUx0enB5bEFRVkFiaHZuSTd6TXJWM1E?oc=5"
+        },
+        {
+          "title": "03032 恒生科技ＥＴＦ - ETF - etnet 經濟通 Mobile|香港新聞財經資訊和生活平台",
+          "source": "etnet 經濟通",
+          "published": "Mon, 28 Sep 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9YeHpxVlAwbExFdGFBd28wMzRBOU5vSXczSGlXV004TTBpZ0ZuSDg5LUdPN3pwbGxpWU9PUHBpWERvMWN6cVVuZWlkN0taU0gtREtBSkFYR0pPbXA3SEZzSXpRcXNoN09OVFJzZG82NTA?oc=5"
         },
         {
           "title": "ETF融資盤點|短融ETF領銜融資買入，恒生科技ETF、科創50ETF獲加碼",
@@ -505,15 +492,9 @@
         },
         {
           "title": "告別「外賣指數」？恒生科技或迎史上最大改革，AI與硬件股將成新主角？",
-          "source": "富途牛牛",
+          "source": "q.futunn.com",
           "published": "Mon, 10 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE11c0RHZ0ptTzludmhSLWl2V0RpcWhSZ3lkTUNiTk1XbjM0RjVvSklDYUNxbmt3b0ZFQjNKQ3V3N2w4RkVuVS1ic0tPbEV2ZkVKVm12N1B2WQ?oc=5"
-        },
-        {
-          "title": "恒科「掉隊」捕捉更高純度AI",
-          "source": "hk.finance.yahoo.com",
-          "published": "Tue, 17 Mar 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNTFdacXozck1XdDZhWjBDM3hrd1VoOTFrXzh4STJGUHUwU1FTLTJVRFNqMXVZd3Z2Sm5GSE1Fb0luSjR6akVxTTQ1YUEyQ2szcWNZRFozS1IyZjVaRTV6Q2dmM2gtWnUtZnBoOXVGSlh2MjIzejlPRDhMS2h6T1BJX3VablBqVURTZTdGQVNnV0hCYkRwOFVRUkVRY0pGV01UNlh3QXRhMlhvdDlXMnNmcnVJcjNvdzV0ejhOV1N3Q0xEVFhGX2RWcE1ubHliRmVGaGdaVWRHSlFmODA?oc=5"
         }
       ]
     },
@@ -531,16 +512,16 @@
       ],
       "google_news_en": [
         {
+          "title": "CSOP Hang Seng TECH Index Daily (2x) Leveraged Product (7226.HK) Stock Price, News, Quote & History",
+          "source": "Yahoo! Finance Canada",
+          "published": "Tue, 26 Jan 2021 22:26:50 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFAzekMtVUFKTzVvaFJQbkVEczdIdXQyQXBRa1lYMWM5d2tfTmtrUE01Ymp4VDhsR1hqSExMSnZqUWIwT0tib1NlYkpKYktaS2stdEFxR1F3?oc=5"
+        },
+        {
           "title": "CSOP Hang Seng TECH Index Daily (2x) Leveraged Product (7226.HK) stock price, news, quote and history",
           "source": "Yahoo Finance Singapore",
           "published": "Sun, 14 Feb 2021 04:07:13 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9pOXhuNDQ3Z2NBTGJ6WG9rTkduMFF0YTdQZkVLd25UdkRXWTZxYlpyMnNHQS1yN2N3U0lMVWU4a21YcHE0OWRuWDB1UGxNdEIteERyd2lR?oc=5"
-        },
-        {
-          "title": "CSOP Leveraged and Inverse Series - CSOP Hang Seng TECH Index Daily (2x) Leveraged Product (7226.HK)",
-          "source": "Yahoo! Finance Canada",
-          "published": "Tue, 26 Jan 2021 22:26:50 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFAzekMtVUFKTzVvaFJQbkVEczdIdXQyQXBRa1lYMWM5d2tfTmtrUE01Ymp4VDhsR1hqSExMSnZqUWIwT0tib1NlYkpKYktaS2stdEFxR1F3?oc=5"
         },
         {
           "title": "ETF Daily Report (Oct 2) | Macro and Industrial Resonance Lifts Korean Equity ETFs Against the Trend; High U.S. Treasury Yields Weigh on Hang Seng Tech Index",
@@ -558,13 +539,13 @@
       "google_news_zh": [
         {
           "title": "槓桿及反向產品的交易資料",
-          "source": "hkej.com",
+          "source": "信報網站",
           "published": "Sat, 03 Oct 2026 08:59:19 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxQeXhRZlV6cWs5UEVTbDVFOXJUY3ZYUExfbVFfbEk4NzhJTDFIWmV0M2xGSENGRGFadzA3cjJTWFVpbFZlYVEyc1VIejVHbXNYTkVtd3pWemxtNVJrdXBtd2x4dGhxcVloUmt6SFFmR1BnOWloYjJPcVZsWDR2SXNzSXE2Qng3TFBfRkpMNlhuS2J3QjY3ZDRfNl9ZTGFOb2ZYRzFvNVZNYnppYXBSa2pvTk1yeWhkYm02VC1kMWNYVE94UTVheTY2NFh3aUpUN3JXcER0Y0JnNFB6bjNUREtvQ05IbHlYNFJ4NmJ6ZTVJUXdhWDZZ?oc=5"
         },
         {
           "title": "盤中速報 - 恆生科技指數上漲155.99點至4663.03點，漲幅3.46%",
-          "source": "hk.finance.yahoo.com",
+          "source": "Yahoo 財經",
           "published": "Tue, 07 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxOeTQ4NHk1YXJNNGJnWkNWVlhINVpteU40NHZiYmxJTWZ6dnk2bFdxZkY2Um9WWUFzVlJMaEVZRC1FYmxnb0NWeVJGTlhPaHRLblozU1lkckJyTkJzTEtqRmJXbzJvbU14c040alBXSUpHQTZhWXhTakhzblY3WmNwNGxXWWVHdDY2aGQzX2cyZEVJakdkSko2aHJ2UHZHb3VDalkwSDJJMDR5ZzN5U084dHFPbUFNMEQ4VlBFV3Y3S0Jqc3BqLVFtdk9kVkk2aUZSUUVydkJ1WkNxNldFODFqanZ1bTdtcXBva3dtZXZuYlBrOUZGam0zaGEtTTdmRTVJb3RkOXA4REtGU3IyTWVJaF9JRXJ4RHI0dWhYSEVvbmFXOG41eENhSUpkdElUOWlGV3J6UEdFanFfNGx1YWRR?oc=5"
         },
@@ -576,19 +557,19 @@
         },
         {
           "title": "盤中速報 - 恆生科技指數上漲151.06點至4658.1點，漲幅3.35%",
-          "source": "hk.finance.yahoo.com",
+          "source": "Yahoo 財經",
           "published": "Tue, 07 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMivgJBVV95cUxNSUEtNWpTeC0yYzI1Z0ZGdmhaR1dNaV8wekM4alFoTjhpbU1obU9ScXNuXzVZSWVxMWZkaGtpLXM1aUthUGhRR29BNWRqMEZTY052R25rNG5UdzRBZ1NrbWZwU2hNeTVhcDhrV2xXR0xtTjh3RkZLMkdyOC1HVU9YZ2ZMeWVOVXhCdzR6M0dNRUhLZVlfOGxyZlVoemIxWXZGTG8xZ0Y2dUczY1hKTl9jMEQ4V2FLLWpNSDJkV0N2cnNLVzJFUGM4MWZJS2Jtd3pPTHNid3cyd3ZLOFV3Z21PelBjSk9nVmFuaENOdVpuTjNzUXF6QUs1M2lHRGZFeFdEaWxYOW1xVFE5ZWZNeHJxZTlaMnlKRWl6V1VkeTA5aHpDeDJQVXBiTHVBbDh4YzhxTGVsU28tY2s5QW45OEE?oc=5"
         },
         {
           "title": "盤中速報 - 恆生指數上漲510.01點至25908.19點，漲幅2.01%",
-          "source": "hk.finance.yahoo.com",
+          "source": "Yahoo 財經",
           "published": "Tue, 02 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiqAJBVV95cUxPMG5pVEFxNjNhdG5ua0RtUjJVckNicWxGY25EdjdNY2RIUEkwNU9wcVp3bVU0MVdoSTlrZ2pSYWZOeUdvX3F0MVMtTEl5T0FNYU5YTm1CdGNMMTFhR1lKRXdxMndyMXJxZmt5X2MtWEphXzRqZi1Dek5pc2N6dUM1Z1BEVC1UUXVkODJkcE1ZVEFGMkEyS05jMXFaSUM5YVNEa1BNdzlRNzN2a2d0UGhZZGR0eGRubEkyWnRWNFo5dlA0bUtKZnhLbXlaVWdxUHFMVG1fUWR0YUFGbnktb0doVTlIRkEyQ3B1MG55Qy1uazRMQkNTWTlWc1V4aDlxLXpEOFAwRzI5ZVpnODdnM1UzcGNzUlVPNE9LSFVRWHNWaGtscDFReE1ZYQ?oc=5"
         },
         {
           "title": "盤中速報 - 恆生科技指數下跌-142.87點至4263.05點，跌幅3.24%",
-          "source": "hk.finance.yahoo.com",
+          "source": "Yahoo 財經",
           "published": "Thu, 25 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMipgJBVV95cUxOcmExRXJqeU9VVVZ4b1hzMnVsU2JXWUx4UGtibW1FY0J1UXVnQnM2ejBrVVJ6TjF6aWFvY2p0eHZYNlpSMTJUa0xOZzJsenZfV1JvbE55VG5TSVJKRWF3NHZvY3NXQkxzTmZMV1NMMjZNQXV1VUxTVUtmYjdCUVR4MkNmZEkyVVRYeXdxZXJGSm5VTEZaM1paOUhuRDBXNVVIYUJ2YzgzMVF0X1RzcUg5dmtZR2VqdzBITTFvTnZEZ0l1ME52dG1Ib2pWeGxxY0FxMDY3dWpRcHRHaFoyQ0lSM0xjd0tLb1l1MG9HN2xNR2pFTG45SHZGM2cxVm9XalhMaFp2cXlhN3hQV01EZUhVMHNaZ1FXQ094d1NBUmNycTdOV2RJcUE?oc=5"
         }
@@ -621,7 +602,7 @@
         },
         {
           "title": "CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
-          "source": "Yahoo Finance UK",
+          "source": "uk.finance.yahoo.com",
           "published": "Wed, 21 Feb 2018 09:51:20 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE84ODdhd18yMEwzV2VQa2dIdVp2RV9vS3h4M2FvTlo3NDVrdmRETzFKbkZWR1hDeXNSRnhoR0pxVFhYdFZzU093UWZJXy12cjRJdDVHT2JB?oc=5"
         },
@@ -635,19 +616,19 @@
       "google_news_zh": [
         {
           "title": "半日沽空金額增35% 盈富基金減4% 南方恒生科技街貨近兩個月高(12:26) - 20260928 - 即時財經新聞",
-          "source": "finance.mingpao.com",
+          "source": "明報財經網",
           "published": "Mon, 28 Sep 2026 04:29:21 GMT",
           "url": "https://news.google.com/rss/articles/CBMipANBVV95cUxOczljQVhXUzRzRmRSZXRhZmozYW1Od0dydmIzajhob2xPMzZDQzM2LU1kdDA0T0o1ZEtrNEJ6QzhLblhrNXdmc2NRdjl3RWY1TFFFdDNPdmRyWDBNUnR5bDBCczBiRFMyaE9nNjZmLVEzUW5fRlg4Z1NpdHpmakZYdGJyYW9rampYRWZXelhuVDA3N0p0dndKMzd0QTBiMzF5Vk1XQzFWU3dLQ1B3R003cWRodGhIWFIzTy0xcmNndWE1RkE4WGs4VUdpa2V4QVE1c2lKNm1sV1JJOVdKRnZvOTE3NjQtOXJHVHBMeVA4SHpoaXA5cnNwVW90ekFVQ2diakNJTFBSZDJ6dUlMMFhRamdsM1FOT21aSjdteGtsenFwcjVmWDZObGpUNkxQaFpDd1RSLXl0YjBwSWF6RTlKSG5meTRSZHdEZHNQWDdnMEYxdGtKVTR3bzc2Y3pJWGdQWXlLRzdkQ0dRNWRGdzFCcDBEX1VBcjdBTjZVdkxCMk5SMElFTE1YMlZEQmxjaHVuYjJnNm8tdTlmSnJCNmpfZlpqem4?oc=5"
         },
         {
           "title": "交易所買賣基金的交易資料",
-          "source": "hkej.com",
+          "source": "信報網站",
           "published": "Wed, 30 Sep 2026 18:19:21 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxORURPMUxuclBQVG1CVjRpUDNWMzFnMi1waEhuRHhTV21iRHBZVWRxNjFsOXBtWWgySnVaZjU5UjRyYVRTcHdhVTFneWF4TWpwbzBuWThrR2ozR2pUODEzOWM4blhjeHRySWlnRVp6dEhMcE9md0xUMllsLTNPMXBrVGd1WFUwQ0xOV1BnLXBtdGtDblVfZWdjMTRvZ3NZa05qR0o5Q0lkOVIwWG1yZlNvTkYydmdjRE96OF84Z2FfeGJId1JaM21wM1pIdHFFYTFWSFpSVVE2UktFS1o2VzB4anpuNnBZXzJYUnlRZTdycDNscnlP?oc=5"
         },
         {
           "title": "半日沽空金額減3% 南方恒生科技增318% (12:26) - 20260817 - 即時財經新聞",
-          "source": "finance.mingpao.com",
+          "source": "明報財經網",
           "published": "Mon, 17 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMioAJBVV95cUxOUktHaW5aSFZaM0NqeF9kMmhvM2ZOaG9YNzNqUGtCUWV3TUg0ZnFxN2FhdHVYcUJpYW5ndFIxbldqTF9MQlFpeEVDMGNMUVktV1VFY3R0NlZrREJSX0U5bldZME95SjBoMVMtX01XOUJkakR3VU9DcTBZUy1TYmR5WHRLMC1ULV93WHVRdmprSjlONzY1VHZjeWxsVGNKd2w4X1hvMDI1cmFfenNlTzRxOEZLQjl5MnF2b3BPVnBoNTBhVENJVXRkb3J3d0cyMW03cUh2STdlVEtfNUhzdkJuZjktRG9QekVZSlFoS0w0ZEhlUzJMR190am53MjBHUjVwYU5IZjlzczQ1NU5jVGwwOGhoVHcwS0JTeWxXWHlid1M?oc=5"
         },
@@ -659,13 +640,13 @@
         },
         {
           "title": "交易所買賣基金的交易資料",
-          "source": "hkej.com",
+          "source": "信報網站",
           "published": "Tue, 29 Sep 2026 16:59:57 GMT",
           "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxPcV83ZDZ0WDVCdlRyTWR0UFB2YmZJX1NQMHAxUU4tY2tNM0ZjNzAtODdSdVNuR3p1VU1NWjljZ3E2LVVyTDFjak5KalhyUE1GeHc3WngyWWFyWkdiMl9vNjlGZU5XNjNkVE5fWGs0YWF0TlJFQlNsXzNpWnQ3QV84OGFRYmVTSFFranJfZDlFWUN0Vmh5allib0w4X3N2UklkVVpsUS1KRW9nTlB4WmYxTGpxV3hCZ1o4WkN1a2s4dUEyRW9rUHd5djRFVE4zS0FQWlo4aWdjMWRvMlBGdFh4dG9tTGNGUXg4RFpqM0tMQWVLQQ?oc=5"
         },
         {
           "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
-          "source": "finance.mingpao.com",
+          "source": "明報財經網",
           "published": "Mon, 10 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQZWFNN0wwem8tQzh6Y2NFRlB6dHdMLWp6ekg0dTdyYjNZaUJKVldENDFJcjJ2Z0pEN3REbmlwdVk4dGR2R2FRWFhfRHFpZ2tScVZYV0YwVVpDbmhLYjU1Tl91ZHRrbWhEV0ZIUWFaUFpEWVpzVHFYS2tERjlObTg2UkN0UzhDZTVEOHFTNC1MSWctZjUtQUtqQ3dSUW9udzUzQ3JXZDBkWDdWMFFfWVhjS3ZSamhSTjdVNVlFd0FodlR0b1RwSUNKSEZuTjFMbm9qYklBUDdsX2hnS0JCWHNXdzU5eEQyczY2dGEyckozYnZaZHNSa0lkZ2ttNGhTNGVPMGRqN0NDTlJaWVU5T1VPUHRDOHJBeXlmeTRJUnpSTmFDQUlHSlBR?oc=5"
         }
