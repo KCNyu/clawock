@@ -26,7 +26,7 @@ watchdogs. The overnight monitor's last slot is 02:33 HKT in both seasons, ahead
 ## Whole-turn budget / 回合预算
 
 Report and intraday turns allow 28 minutes; the brief allows 30. The shared
-post-delivery network/build retry chain reserves 1368 seconds plus 300 seconds
+post-delivery network/build retry chain reserves 1373 seconds plus 300 seconds
 for preflight, judgment, delivery and local work. The contract rejects a turn
 limit that cannot cover that reservation. These are ceilings, not expected
 durations; a late preflight can still consume its own whole-turn deadline.
