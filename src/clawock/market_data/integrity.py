@@ -198,20 +198,51 @@ def gap_safe_returns(bars, *, skip_degenerate: bool = True):
     return out
 
 
-def flag_implausible_moves(bars):
+#: A daily-reset leveraged product tracks `multiple` × its underlying's session
+#: move, give or take fees, financing and the close-to-close mismatch. Inside
+#: this band the underlying explains the move; outside it, it does not.
+LEVERAGE_TRACKING_TOLERANCE = 0.25
+
+
+def leveraged_move_explained(move_pct, underlying_move_pct, multiple):
+    """Did the underlying's own session move produce this one? Signed percents."""
+    if not multiple or multiple <= 1 or not underlying_move_pct:
+        return False
+    ratio = move_pct / underlying_move_pct
+    return abs(ratio - multiple) <= LEVERAGE_TRACKING_TOLERANCE * multiple
+
+
+def flag_implausible_moves(bars, *, multiple=1.0, underlying=None):
     """Grade stored history without changing OHLC or dropping any session.
 
     Old bars predate the writer's flag. Settlement must grade them on read too;
     requiring a fetch or a migration would leave old bad fills trusted forever.
+
+    `multiple` and `underlying` ({day: bar}) describe a leveraged product. A 2x
+    fund that went +58% on the day its underlying went +29.5% did its job; that
+    is not a bad bar, and flagging it voided every mark that crossed it (#2595).
+    Such a move is cleared only by evidence: both of the underlying's closes for
+    the same two sessions, moving the same way, within the tracking band. With
+    no such evidence the 50% line stands, and a stored flag is cleared the same
+    way it is set — by this reading, not by the record.
     """
     out = {}
-    previous = None
+    previous = previous_day = None
     for day, bar in sorted(bars.items()):
         row = dict(bar)
         jump = next((f for f in check_bar(row, prev_close=previous)['flags']
                      if f.startswith('implausible_move ')), None)
+        if jump and multiple and multiple > 1 and underlying:
+            before = _finite_number((underlying.get(previous_day) or {}).get('close'))
+            after = _finite_number((underlying.get(day) or {}).get('close'))
+            close, prior = _finite_number(row.get('close')), _finite_number(previous)
+            if before and after and close and prior and before > 0 and leveraged_move_explained(
+                    (close / prior - 1) * 100, (after / before - 1) * 100, multiple):
+                jump = None
         if jump:
             row['implausible_move'] = jump.split(' ', 1)[1]
+        elif previous is not None:
+            row.pop('implausible_move', None)
         out[day] = row
-        previous = row.get('close')
+        previous, previous_day = row.get('close'), day
     return out
