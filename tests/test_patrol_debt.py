@@ -189,6 +189,9 @@ def test_unreferenced_symbol_counts_every_tracked_file_and_goes_green_when_delet
     ('import functools\n\n@functools.cache\ndef hook():\n    return 1\n', 'src/clawock/a.py::hook'),
     ('def main():\n    return 1\n', 'src/clawock/a.py::main'),
     ('def exported():\n    return 1\n', 'src/clawock/__init__.py::exported'),
+    # under `if __name__ == "__main__":` the definition is in the file but not at module level (#2573)
+    ("if __name__ == '__main__':\n    def _bump(i):\n        return i\n    _bump(1)\n", 'src/clawock/a.py::_bump'),
+    ('try:\n    import x\nexcept ImportError:\n    def shim():\n        return 1\n', 'src/clawock/a.py::shim'),
 ])
 def test_entry_points_reached_without_a_name_are_not_dead_code(tmp_path, source, symbol):
     root = repository(tmp_path)
@@ -275,6 +278,28 @@ def test_structure_repair_must_cut_the_body_not_move_it(tmp_path):
     big.write_text(half('_first', 0) + half('_second', 8) + 'def big(x):\n    return _second(_first(x))\n')
     green, output, _ = debt_check.evaluate(STRUCTURE, root)
     assert not green and 'claim=repaired' in output
+
+
+def test_structure_green_is_checked_like_red(tmp_path):
+    """A shortened function plus two helpers that already had their own callers is not a repair (#2573, #2574)."""
+    root = tail_repository(tmp_path)
+    big = root / 'src/clawock/big.py'
+    half = lambda name, lo: f'def {name}(x):\n' + ''.join(f'    if x == {i}:\n        x += 1\n' for i in range(lo, lo + 8)) + '    return x\n\n\n'
+    cut = half('_first', 0) + half('_second', 8) + 'def big(x):\n    return _second(_first(x))\n'
+    big.write_text(cut)
+    for bad, message in (({'callers': 99}, 'callers=99 claimed'), ({'precedent': [999999]}, 'never changed')):
+        with pytest.raises(ValueError, match=message):
+            debt_check.evaluate(dict(STRUCTURE, **bad), root)
+    # the same pieces, but one of them is somebody else's helper
+    (root / 'src/clawock/other.py').write_text('from clawock.big import _first\n\n\ndef other(x):\n    return _first(x)\n')
+    subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+    with pytest.raises(ValueError, match='used outside'):
+        debt_check.evaluate(STRUCTURE, root)
+    # the original still in the file under a guard is unreadable, not repaired
+    (root / 'src/clawock/other.py').write_text('')
+    big.write_text(half('_first', 0) + half('_second', 8) + 'if True:\n' + ''.join('    ' + line for line in BIG.splitlines(True)))
+    with pytest.raises(ValueError, match='below module level'):
+        debt_check.evaluate(STRUCTURE, root)
 
 
 def run_gate(tmp_path, body, prepare=None, lens='debt'):
