@@ -211,3 +211,41 @@ def test_a_live_source_that_did_not_answer_is_on_the_lanes_degraded_list(tmp_pat
     out = info.collect(_workspace(tmp_path), 'hk', ['02208'], now=HK_NOW, live=live)
     assert out['degraded'] == ['Google新闻（TimeoutError）']
     assert out['summary']['sources']['google_news']['status'] == 'failed'
+
+
+def test_market_level_reference_rows_carry_a_cite_and_reach_the_label_gate(tmp_path):
+    # The gate listed the per-ticker families only; the three market-level
+    # families of information_full had no cite and were never matched (#2568).
+    root = _workspace(tmp_path)
+    graph_path = root / 'assets' / 'data' / 'news_evidence_graph.json'
+    graph = json.loads(graph_path.read_text())
+    graph['events'] += [
+        {'ticker': 'MARKET', 'title': '美联储10月维持利率不变的概率升至75.1%',
+         'publication_time': {'iso': '2026-09-25T07:57:00+08:00', 'precision': 'minute'}},
+        {'ticker': 'MARKET', 'event_type': 'macro_schedule',
+         'title': 'Sep jobs report (Non-Farm Payrolls); BLS 8:30 ET',
+         'publication_time': {'iso': '2026-09-25T08:03:00+08:00', 'precision': 'minute'}}]
+    graph_path.write_text(json.dumps(graph, ensure_ascii=False))
+    flashes = [{'title': '美股三大指数集体高开，纳指涨0.5%', 'date': '2026-09-25 23:02'},
+               {'title': '日本东京9月份整体消费物价同比增长2.7%', 'date': '2026-09-25 07:30'}]
+    out = info.collect(root, 'us', ['RKLB'], now=NOW, fast_news=lambda limit: flashes)
+    full = out['full']
+
+    for family in ('graph_market_events', 'market_flashes_raw'):
+        assert full[family] and all(row['cite'].startswith('《') for row in full[family]), family
+    # em_news is the HK leg's file; its 7×24 rows have no clock in this fixture.
+    hk = info.collect(root, 'hk', ['00100'], now=HK_NOW, fast_news=lambda limit: [])
+    assert [row['cite'] for row in hk['full']['em_market_724']] == [
+        '《日经225指数开盘上涨0.19%》（em_news 7×24，条目时间未知（文件写于 09-25 08:03 HKT），开盘前旧闻）']
+    assert '日经225指数开盘上涨0.19%' in info.stale_titles(hk['summary'], hk['full'])
+    stale = info.stale_titles(out['summary'], full)
+    assert '美联储10月维持利率不变的概率升至75.1%' in stale
+    assert '日本东京9月份整体消费物价同比增长2.7%' in stale
+    # A headline from after the open is live; a schedule entry is not a headline.
+    assert '美股三大指数集体高开，纳指涨0.5%' not in stale
+    assert 'Sep jobs report (Non-Farm Payrolls); BLS 8:30 ET' not in stale
+
+    ctx = {'information': out['summary'], 'information_full': full}
+    title = '美联储10月维持利率不变的概率升至75.1%'
+    assert post.check_stale_citation(f'{title}，风险偏好回升。', ctx)
+    assert post.check_stale_citation(f'{title}（截至 09-25 07:57，开盘前旧闻），风险偏好回升。', ctx) == []

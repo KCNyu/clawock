@@ -324,12 +324,27 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
             'rule': ('引用任何一条都照抄它的 cite（条目自己的发布时间或时间缺口）；标为开盘前旧闻的条目，'
                  '不许说成盘中/最新消息。grade: primary 一手披露 > authoritative 权威 > soft 软消息/情绪。'),
     }
+    # The market-level families are quotable like the per-ticker ones, so each
+    # row carries the same `cite` and the postflight label gate can read it.
     full = {'tickers': full_ticker, 'sentiment': [
         row for row in (loaded.get('sentiment') or {}).get('tickers') or []
         if str(row.get('ticker')) in per_ticker], 'macro': macro,
-        'graph_market_events': [e for e in graph.get('events') or []
-                                if e.get('ticker') == 'MARKET'],
-        'em_market_724': em.get('market_724') or [], 'market_flashes_raw': rows}
+        'graph_market_events': [
+            {**e, 'cite': _cite(e.get('title'), 'news_evidence_graph',
+                                (e.get('publication_time') or {}).get('iso'),
+                                sources.get('news_evidence_graph') or {}, market, now,
+                                (e.get('publication_time') or {}).get('precision'))}
+            for e in graph.get('events') or [] if e.get('ticker') == 'MARKET'],
+        'em_market_724': [
+            {**i, 'cite': _cite(i.get('title'), 'em_news 7×24',
+                                i.get('date') or i.get('showtime'),
+                                sources.get('em_news') or {}, market, now)}
+            for i in em.get('market_724') or []],
+        'market_flashes_raw': [
+            {**r, 'cite': _cite(r.get('title'), '东财7×24',
+                                str(r.get('date') or '').replace(' ', 'T'),
+                                {}, market, now)}
+            for r in rows]}
     if live_rows is not None:
         full['live'] = {'tickers': live_rows, 'flashes': live.get('flashes') or [],
                         'requests': live.get('requests') or [],
@@ -342,7 +357,9 @@ def stale_titles(summary, full=None):
 
     `full` is the reference layer (`information_full`): the summary keeps three
     morning rows and four live rows a ticker; the model can quote the rest,
-    so the gate reads both full families (#2217, #2228).
+    so the gate reads both per-ticker full families (#2217, #2228) and the
+    three market-level ones (#2568). A `macro_schedule` event is a calendar
+    entry for a coming release, not a headline, and is not held to the label.
     """
     out = []
     sources = (summary or {}).get('sources') or {}
@@ -353,6 +370,11 @@ def stale_titles(summary, full=None):
         for row in rows:
             cite = row.get('cite') or ''
             if '开盘前旧闻' in cite and row.get('title'):
+                out.append(str(row['title']))
+    for family in ('graph_market_events', 'em_market_724', 'market_flashes_raw'):
+        for row in (full or {}).get(family) or []:
+            if ('开盘前旧闻' in (row.get('cite') or '') and row.get('title')
+                    and row.get('event_type') != 'macro_schedule'):
                 out.append(str(row['title']))
     if (sources.get('em_news') or {}).get('stale'):
         out += [str(r.get('title')) for r in (summary or {}).get('morning_flashes') or []
