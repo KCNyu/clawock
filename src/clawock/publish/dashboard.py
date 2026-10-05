@@ -989,22 +989,27 @@ def _session_close_series(ticker, holding, n):
     return None
 
 
-_INDEX_SOURCE_DATE = re.compile(r'(20\d\d)[-/](\d{2})[-/](\d{2})')
+_INDEX_SOURCE_DATE = re.compile(
+    r'(20\d\d)[-/](\d{2})[-/](\d{2})(?:\s+(\d{1,2}):(\d{2}))?')
 
 
 def _index_session(source, market):
     """The session an index quote belongs to, read off its `source` stamp.
 
-    The stamp is the fetch date, and fetchers run on closed days too, so a date
-    the market did not trade folds back to the last session that did — the same
-    reading `holding_session` gives a holding row.
+    The stamp is the fetch time in the market's own clock, and fetchers run on
+    closed days and before the open too. A date the market did not trade, or a
+    fetch before that day's opening bell, belongs to the last session that did
+    trade — the reading `_hk_quote_session` gives a holding row (#2575).
     """
     m = _INDEX_SOURCE_DATE.search(source or '')
     if not m:
         return None
     try:
         day = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-        if trading_calendar.closed_reason(market, day) is not None:
+        opening = trading_calendar.SESSION_WINDOWS[market][0][0]
+        before_open = (m.group(4) is not None
+                       and (int(m.group(4)), int(m.group(5))) < (opening.hour, opening.minute))
+        if before_open or trading_calendar.closed_reason(market, day) is not None:
             day = trading_calendar.previous_trading_day(market, day)
     except Exception:
         return None
@@ -3641,8 +3646,30 @@ def _latest_completed_session(market, calendar, at=None):
     return calendar.latest_completed_session(market, at)
 
 
-def _quote_session(holding, reference):
-    """Extract the holding's own quote date, never a shared file/region timestamp."""
+def _quote_session(holding, reference, market=None, calendar=None):
+    """Extract the holding's own quote date, never a shared file/region timestamp.
+
+    `day_session_date` is the session the fetcher itself assigned and wins. The
+    other fields carry the FETCH clock, so a date read off them that the market
+    did not trade folds back to the last session that did (#2580).
+    """
+    own = holding.get('day_session_date')
+    if isinstance(own, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', own):
+        try:
+            return date.fromisoformat(own)
+        except ValueError:
+            pass
+    stamped = _quote_stamp_date(holding, reference)
+    if stamped is not None and market and calendar is not None:
+        try:
+            if calendar.closed_reason(market, stamped) is not None:
+                stamped = calendar.previous_trading_day(market, stamped)
+        except Exception:
+            pass
+    return stamped
+
+
+def _quote_stamp_date(holding, reference):
     values = [
         holding.get('quote_time'),
         holding.get('as_of'),
@@ -3697,7 +3724,7 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
     stale = []
     for holding in active:
         ticker = holding.get('ticker') or holding.get('code') or '?'
-        session = _quote_session(holding, expected)
+        session = _quote_session(holding, expected, market, calendar)
         quotes[ticker] = session.isoformat() if session else None
         if session is None:
             missing.append(ticker)
