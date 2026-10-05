@@ -114,7 +114,24 @@ def top_level(root, symbol, kinds=FUNC):
     matches = [n for n in tree.body if isinstance(n, kinds) and n.name == name]
     if len(matches) > 1:
         raise ValueError(f'{symbol} is defined {len(matches)} times at module level')
+    if not matches and any(isinstance(n, kinds) and n.name == name for n in guarded(tree.body)):
+        # Still in the module's scope, under an `if`/`try`: not seen is not gone.
+        raise ValueError(f'{symbol} is defined below module level (inside if/try/with): the check cannot read it')
     return matches[0] if matches else None
+
+
+def guarded(body):
+    """Statements of a module that sit inside its compound statements, not inside a def or class."""
+    for stmt in body:
+        if isinstance(stmt, FUNC + (ast.ClassDef,)):
+            continue
+        for field in ('body', 'orelse', 'finalbody'):
+            inner = getattr(stmt, field, None) or []
+            yield from inner
+            yield from guarded(inner)
+        for part in [*getattr(stmt, 'handlers', []), *getattr(stmt, 'cases', [])]:
+            yield from part.body
+            yield from guarded(part.body)
 
 
 def own_nodes(fn):
@@ -335,7 +352,31 @@ def structure(contract, root):
                          'does not exist: the contract no longer describes this code')
     over = {s: v for s, v in values.items() if v > after}
     state = 'relocated' if node is None else 'moved-not-cut'
-    return bool(over), f'structure: claim={state if over else "repaired"} {symbol} target<={after} {scale} landing={values}', [path]
+    if over:
+        return True, f'structure: claim={state} {symbol} target<={after} {scale} landing={values}', [path]
+    # Green is a claim too, so it is checked like the red one: the pieces must come out of this
+    # function (used by it or by each other), and the caller count and precedent must be real.
+    # A function that already existed and is used elsewhere is nobody's landing.
+    pieces = [(path, node)] if node is not None else []
+    pieces += [(split_symbol(s)[0], n) for s, n in landed]
+    inside = lambda site: any(site.rsplit(':', 1)[0] == p and n.lineno <= int(site.rsplit(':', 1)[1]) <= n.end_lineno
+                              for p, n in pieces)
+    outside = {s: [site for site in references(root, s, trees) if not inside(site)] for s in landing}
+    if node is not None:
+        sites = references(root, symbol, trees)
+        if len(sites) != callers:
+            raise ValueError(f'callers={callers} claimed, measured {len(sites)}: {sites}')
+        foreign = {s: sites for s, sites in outside.items() if sites}
+    else:
+        # The original is gone, so its callers may now call the pieces directly — but no more of them.
+        foreign = {s: sites for s, sites in outside.items() if len(sites) > callers}
+    if foreign:
+        raise ValueError(f'landing {sorted(foreign)} is used outside {symbol} ({foreign}): '
+                         'a function with its own callers was not cut out of this one')
+    unrelated = [n for n in precedent if not precedent_touches(root, n, [path])]
+    if unrelated:
+        raise ValueError(f'precedent {unrelated} never changed {path} (git log --grep "#N" -- {path} is empty)')
+    return False, f'structure: claim=repaired {symbol} target<={after} {scale} landing={values}', [path]
 
 
 def evaluate(contract, root):
