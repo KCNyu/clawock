@@ -884,6 +884,10 @@ def trim_holding(h, currency):
         'pnl_percent': round(h.get('pnl_percent') or 0, 2),
         'is_active': (h.get('shares') or 0) > 0,
         'trades_count': len(h.get('trades') or []),
+        # The row's own session, as the fetcher assigned it. The holdings table's
+        # 场次 cell reads it first; without it every row showed its leg's first
+        # holding's session (#2587). None when the row has none: never a guess.
+        'day_session_date': h.get('day_session_date'),
     }
 
 
