@@ -173,3 +173,20 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:19-19]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:2:4 -->
 - layout: default title: 盘前深度简报｜2026-09-30 周三 08:03 HKT description: "clawock 盘前深度简报 2026-09-30：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:2-4]
+
+## Promoted From Short-Term Memory (2026-10-06)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-10-01 周四 08:03 HKT: 港股今天休市，港股数字停在 9 月 30 日收盘；美股则用一场星舰入轨任务把最好的一天给了我们最大的那笔敞口。今晚基调只有一句：这不是一个该加仓的组合，是一个该把决策权收回来的组合。九成账面亏损不是选股问题而是仓位结构问题——港股段 57.79% 压在 00100，美股段 86.11% 压在 SPCH，两段 HHI 分别是 0.421 和 0.748。四条仓位硬闸加两条杠杆硬止损同时亮着，其中两条已站 49 天和 78 天而账本上一次执行、一次确认、一次豁免都没有。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-10-01 周四 08:03 HKT: **反方**：最强反方会说：四条硬闸全在恒科与纳指同向下跌的那三周生成，现在恐惧贪婪 31.6、波动率只有 16，从没见过这么干净的反弹窗口；SPCH 今天涨 2.24% 领涨全组合，此时砍仓就是把最好的消息卖在最低价。它有一半对——今天确实不该砍。但它混淆了两件事：星舰成功是印证型消息，按纪律从来不能成为减仓理由；反过来我要减的从来不是这个故事，而是 3501 美元账户里 3015 美元是同一只 2x 杠杆 ETF。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-10-01 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-01：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-10-01 周四 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:9-9]

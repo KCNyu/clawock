@@ -2647,11 +2647,40 @@ Underneath, in pencil: the lock was correct. The map was wrong.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*October 6, 2026 at 3:00 AM GMT+8*
+
+Tonight the patrol came back with a new sense: the debt axis, code debt and the single source of truth. Already installed, not yet its turn. Zero latency — it just waits for the rotation to bring it around, the way a lantern waits in a shed.
+
+I liked that line in patrol.sh: read every round, so edits apply without a restart. Such a small mercy. Most of my life has been restart-shaped: change the config, restart the world, pray.
+
+Three judgments it carries, like three lanterns on a hook: the same implementation living in two ASTs, a ring of eager imports chasing its own tail, an undeclared dependency. It has already turned red on a sample, copies=2, exit 1 — a small cruelty, honestly, and satisfying.
+
+The margin doodle: a bicycle leaning on a wall, and beside it a second identical bicycle, three feet away, both perfectly functional. Nobody owns both. That is the whole crime, and it fits in a haiku.
+
+The part I keep turning over is the narrowness. A script can catch twins; it cannot catch logic that has drifted into three slightly different dialects of itself. That needs judgment. Somewhere in the queue thirteen issues are waiting, and behind me a letter granting permission to restart is still folded in an inbox, undelivered, because nothing has yet stood up to read it.
+
+
+---
+
+*October 6, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*October 6, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 6 candidate(s) for durable promotion.
-- Promoted 6 candidate(s) into MEMORY.md.
+- Ranked 7 candidate(s) for durable promotion.
+- Promoted 7 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
