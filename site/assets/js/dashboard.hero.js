@@ -924,6 +924,20 @@
   }
 
   // 首屏缩略走势：主数（总盈亏 = 已实现 + 浮动）自己的历史。
+  // Consecutive snapshots that carry the same market session on both legs (a US
+  // session straddling HK midnight, a weekend or pre-open copy of Friday) are ONE
+  // session: keep the last, most settled row. Same rule as the charts' combined view.
+  function collapseSameSession(series) {
+    return series.filter((s, i) => {
+      const next = series[i + 1];
+      if (!next) return true;
+      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) {
+        return !(s.us_asof === next.us_asof && s.hk_asof === next.hk_asof);
+      }
+      return true;
+    });
+  }
+
   // 口径必须和下面那张 Equity Curve 的「总利润」线**同源同算法**，否则一屏里
   // 两条线画同一件事却形状不同 —— 所以这里照抄 charts.js 的合并视图逻辑：
   // 同一日期只留一条、连续两条属于同一交易时段的只留后一条（美股时段跨港股
@@ -937,15 +951,8 @@
       .filter(s => s.us_total_value != null || s.hk_total_value != null);
     const byDate = new Map();
     snaps.forEach(s => byDate.set(s.date, s));
-    let series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-    series = series.filter((s, i) => {
-      const next = series[i + 1];
-      if (!next) return true;
-      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) {
-        return !(s.us_asof === next.us_asof && s.hk_asof === next.hk_asof);
-      }
-      return true;
-    });
+    const series = collapseSameSession(
+      Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date)));
     return series
       .map(s => (s.us_profit == null || s.hk_profit == null)
         ? null
