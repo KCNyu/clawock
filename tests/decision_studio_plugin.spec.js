@@ -1426,6 +1426,80 @@ test("readFxRate: last valid line wins; missing/malformed degrade to null (#838)
   }
 });
 
+
+test("fx provenance: the rate names its source, its day, a fallback and a stopped refresh (#2569)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-fx-"));
+  fs.mkdirSync(path.join(root, "memory"), { recursive: true });
+  const fxPath = path.join(root, "memory", "fx-rates.jsonl");
+  const now = Date.parse("2026-10-05T01:00:00Z");
+  try {
+    fs.writeFileSync(fxPath, '{"day":"2026-10-02","fallback_used":false,"fetched_at":"2026-10-02T00:03:33+00:00","pair":"USDHKD","rate":7.8472,"source":"Frankfurter"}\n');
+    const fx = ledger.readFxRate(root);
+    assert.deepEqual(fx, { rate: 7.8472, source: "Frankfurter", day: "2026-10-02", fetchedAt: "2026-10-02T00:03:33+00:00", fallbackUsed: false });
+    assert.equal(ledger.fxProvenance(fx, now), "Frankfurter · 10-02", "73h old is inside the 96h reading window");
+    assert.equal(ledger.fxProvenance(fx, now + 48 * 3600000), "Frankfurter · 10-02 · ⚠ 缓存 121h 未刷新");
+    assert.equal(ledger.fxProvenance({ ...fx, fallbackUsed: true }, now), "Frankfurter · 10-02 · 回退值");
+    // No day on the row: the HKT date of the fetch. No clock at all: say so, never guess fresh.
+    assert.equal(ledger.fxProvenance({ ...fx, day: null, fetchedAt: "2026-10-02T17:30:00+00:00" }, now), "Frankfurter · 10-03");
+    assert.equal(ledger.fxProvenance({ ...fx, day: null, fetchedAt: null, source: null }, now), "日期未知");
+    fs.writeFileSync(fxPath, '{"day":"2026-10-02","pair":"USDCNY","rate":7.1,"source":"x"}\n');
+    assert.equal(ledger.readFxRate(root), null, "another pair is not the USDHKD rate");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("readTraces: bull/bear fall back to the debate prose, as the site's row does (#2571)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  try {
+    fs.appendFileSync(path.join(root, "memory", "decisions.jsonl"), JSON.stringify({
+      decision_id: "dec-debate1", plan_date: "2026-08-04", ticker: "00100", leg: "HK", action: "buy",
+      rationale: "回踩 230 承接", debate: { bull: "南向持续承接", bear: "解禁抛压未完", judge: "小仓试" },
+      execution: { status: "unknown" },
+    }) + "\n");
+    const fill = ledger.readTraces(root).trades.find((t) => t.date === "2026-08-04");
+    assert.equal(fill.decision.planDate, "2026-08-04", "the fill pairs with the debate row");
+    assert.equal(fill.decision.bull, "南向持续承接");
+    assert.equal(fill.decision.bear, "解禁抛压未完");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("balance: a 200 without an amount is a failed read, not a healthy row (#2572)", async () => {
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const originalFetch = globalThis.fetch;
+  let body = {};
+  globalThis.fetch = async () => new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+  try {
+    const deps = { credentials: { resolve: async () => ({ value: "sk-test" }) } };
+    for (const drifted of [{}, { balance_infos: [] }, { is_available: true, balances: [{ currency: "CNY", total_balance: "9.00" }] }]) {
+      body = drifted;
+      const cold = await balance.createBalanceService(deps, { threshold: 10, refreshMs: 60000 }).get(true);
+      assert.equal(cold.status, "failed", JSON.stringify(drifted));
+      assert.equal(cold.snapshot, null);
+      assert.match(cold.message, /没有返回金额/);
+    }
+    // After a good read the drift keeps the last number and marks it stale.
+    const service = balance.createBalanceService(deps, { threshold: 10, refreshMs: 60000 });
+    body = { is_available: true, balance_infos: [{ currency: "CNY", total_balance: "110.00" }] };
+    assert.equal((await service.get(true)).status, "fresh");
+    body = {};
+    const drifted = await service.get(true);
+    assert.equal(drifted.status, "stale");
+    assert.equal(drifted.snapshot.totalBalance, "110.00");
+    // An explicit refusal stays the vendor's own verdict (#2263), amount or not.
+    body = { is_available: false };
+    const refused = await balance.createBalanceService(deps, { threshold: 10, refreshMs: 60000 }).get(true);
+    assert.equal(refused.status, "fresh");
+    assert.equal(refused.snapshot.isAvailable, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("freshness: trace cache is signature-keyed and µs-hit", async () => {
   const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
   const cache = freshness.createTraceCache();

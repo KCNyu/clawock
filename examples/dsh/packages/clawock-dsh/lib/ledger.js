@@ -56,16 +56,23 @@ function readLedger(workspace) {
 		path
 	};
 }
+/** Same reading as `clawock.portfolio.fx.STALE_READ_HOURS`: older means the daily refresh stopped. */
+const FX_STALE_READ_HOURS = 96;
 /**
-* Latest USDHKD rate from the append-only FX ledger
-* (`memory/fx-rates.jsonl`, one line per day, written by
-* `clawock.portfolio.fx`). The last valid line wins.
-*
-* This is the *actual* FX channel. The previous reader looked at
-* `portfolio.json`'s `market_context.usdhk_rate` — a field no Python writer
-* has ever produced — so `rate` was permanently null and the header's
-* "已实现 (USD 等值)" silently dropped every HKD figure (#838).
+* Where the rate came from and when, as one printable label: the panel folds
+* every HKD figure through this number, so it says whose it is (#2569).
 */
+function fxProvenance(fx, nowMs) {
+	const parts = [];
+	if (fx.source !== null) parts.push(fx.source);
+	const fetched = fx.fetchedAt === null ? NaN : Date.parse(fx.fetchedAt);
+	const day = fx.day ?? (isFinite(fetched) ? new Date(fetched + 288e5).toISOString().slice(0, 10) : null);
+	parts.push(day === null ? "日期未知" : day.slice(5));
+	if (fx.fallbackUsed) parts.push("回退值");
+	const ageHours = isFinite(fetched) ? (nowMs - fetched) / 36e5 : null;
+	if (ageHours !== null && ageHours > 96) parts.push(`⚠ 缓存 ${Math.round(ageHours)}h 未刷新`);
+	return parts.join(" · ");
+}
 function readFxRate(workspace) {
 	const path = join(workspace, "memory", "fx-rates.jsonl");
 	if (!existsSync(path)) return null;
@@ -84,9 +91,15 @@ function readFxRate(workspace) {
 	if (last === null || typeof last !== "object" || Array.isArray(last)) return null;
 	const rate = num(last["rate"]);
 	if (rate === null || rate <= 0) return null;
+	const record = last;
+	if (typeof record["pair"] === "string" && record["pair"] !== "USDHKD") return null;
+	const text = (key) => typeof record[key] === "string" ? record[key] : null;
 	return {
 		rate,
-		source: typeof last["source"] === "string" ? last["source"] : null
+		source: text("source"),
+		day: text("day"),
+		fetchedAt: text("fetched_at"),
+		fallbackUsed: record["fallback_used"] === true
 	};
 }
 /**
@@ -399,8 +412,13 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 		const emotion = b["emotion"] ?? {};
 		const size = b["size"] ?? {};
 		const evaluation = b["evaluation"] ?? {};
-		const bull = mind["bull"] ?? {};
-		const bear = mind["bear"] ?? {};
+		const debate = b["debate"] ?? {};
+		const argument = (side) => {
+			const summary = (mind[side] ?? {})["summary"];
+			if (typeof summary === "string" && summary !== "") return summary;
+			const debated = debate[side];
+			return typeof debated === "string" && debated !== "" ? debated : null;
+		};
 		const execution = b["execution"] ?? {};
 		const condition = b["condition"] ?? {};
 		out.decision = {
@@ -409,8 +427,8 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 			confidence: num(b["confidence"]),
 			drivenBy: typeof b["driven_by"] === "string" ? b["driven_by"] : null,
 			rationale: readableRationale(typeof b["rationale"] === "string" ? b["rationale"] : null),
-			bull: typeof bull["summary"] === "string" ? bull["summary"] : null,
-			bear: typeof bear["summary"] === "string" ? bear["summary"] : null,
+			bull: argument("bull"),
+			bear: argument("bear"),
 			emotion: typeof emotion["pressure"] === "string" ? emotion["pressure"] : null,
 			emotionNote: typeof emotion["note"] === "string" ? emotion["note"] : null,
 			execution: typeof execution["status"] === "string" ? execution["status"] : null,
@@ -467,9 +485,9 @@ function readTraces(workspace) {
 	return {
 		trades: enriched,
 		rate: fx === null ? null : fx.rate,
-		rateSource: fx === null ? null : fx.source,
+		rateSource: fx === null ? null : fxProvenance(fx, Date.now()),
 		lastUpdated
 	};
 }
 //#endregion
-export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictKindOf, t1VerdictOf };
+export { FX_STALE_READ_HOURS, T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, fxProvenance, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictKindOf, t1VerdictOf };

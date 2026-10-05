@@ -11473,12 +11473,14 @@ function DecisionMind(props) {
 		return cached === null ? {
 			trades: [],
 			rate: null,
+			rateSource: null,
 			loading: true,
 			error: null,
 			stale: false
 		} : {
 			trades: cached.trades,
 			rate: cached.rate,
+			rateSource: cached.rateSource,
 			loading: false,
 			error: null,
 			stale: false
@@ -11491,6 +11493,7 @@ function DecisionMind(props) {
 			setData({
 				trades: fetched.snapshot.trades,
 				rate: fetched.snapshot.rate,
+				rateSource: fetched.snapshot.rateSource,
 				loading: false,
 				error: null,
 				stale: false
@@ -11506,6 +11509,7 @@ function DecisionMind(props) {
 				setData({
 					trades: [],
 					rate: null,
+					rateSource: null,
 					loading: false,
 					error: message,
 					stale: false
@@ -11647,7 +11651,7 @@ function DecisionMind(props) {
 	return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle") + (data.stale ? t("trace.staleSuffix") : "")), h("span", { className: cx("rate") }, t("trace.fillCount", { count: traces.length }) + (rate === null ? "" : " · @" + rate))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle") + (data.stale ? t("trace.staleSuffix") : "")), h("span", { className: cx("rate") }, t("trace.fillCount", { count: traces.length }) + (rate === null ? "" : " · @" + rate + (data.rateSource ? " · " + data.rateSource : "")))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
 }
 /**
 * `layout` is listed even though the plugin only *probes* it, and that is not
@@ -11691,7 +11695,8 @@ async function apply(ctx) {
 				workspaceKey: result.workspaceKey,
 				signature: result.signature,
 				trades: result.trades,
-				rate: result.rate
+				rate: result.rate,
+				rateSource: result.rateSource ?? null
 			};
 			const changed = cached === null || cached.workspaceKey !== snapshot.workspaceKey || cached.signature !== snapshot.signature;
 			cached = snapshot;

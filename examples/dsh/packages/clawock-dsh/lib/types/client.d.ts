@@ -73,6 +73,8 @@ export interface TraceSnapshot {
     signature: string;
     trades: EnrichedTrade[];
     rate: number | null;
+    /** Who gave the rate and for which day (host-built label); null when unknown. */
+    rateSource: string | null;
 }
 /** What the registration's `inject` factory hands the view. */
 export interface DecisionMindInjected {
