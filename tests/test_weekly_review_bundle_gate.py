@@ -61,6 +61,7 @@ def test_real_committed_weekly_bundle_passes():
 def test_weekly_bundle_with_valid_minimum_inputs_passes(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     _stub_decisions(monkeypatch)
     _write_json(tmp_path / 'memory/2026-07-20-plan.json',
                 _plan('2026-07-20', decisions=[{'action': 'hold'}]))
@@ -89,6 +90,7 @@ def test_week_nav_change_is_computed_not_asked_for(tmp_path, monkeypatch):
     at each day's own rate, which is exactly the step a model gets wrong.
     """
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     _stub_decisions(monkeypatch)
     _write_json(tmp_path / 'memory/2026-07-20-plan.json', _plan('2026-07-20', fx=7.80))
     _write_json(tmp_path / 'memory/2026-07-24-plan.json', _plan(
@@ -129,6 +131,7 @@ def test_week_nav_change_is_none_rather_than_a_zero_week():
 def test_weekly_nav_uses_boundary_and_nearest_fx_when_interior_fx_missing(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     _stub_decisions(monkeypatch)
     _write_json(tmp_path / 'memory/2026-07-20-plan.json',
                 _plan('2026-07-20', fx=7.80))
@@ -156,6 +159,7 @@ def test_weekly_nav_uses_boundary_and_nearest_fx_when_interior_fx_missing(
 def test_weekly_nav_still_fails_when_no_valid_fx_exists(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     _stub_decisions(monkeypatch)
     for day in ('2026-07-22', '2026-07-24'):
         _write_json(tmp_path / f'memory/{day}-plan.json',
@@ -173,6 +177,7 @@ def test_weekly_nav_still_fails_when_no_valid_fx_exists(
 def test_weekly_malformed_snapshot_names_missing_nav_before_llm(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     _stub_decisions(monkeypatch)
     _write_json(tmp_path / 'memory/2026-07-20-plan.json',
                 _plan('2026-07-20', decisions=[{'action': 'hold'}]))
@@ -204,6 +209,7 @@ def test_the_episode_window_is_closed_on_both_edges(tmp_path, monkeypatch):
     which ate the prompt budget and pushed decision_metrics out of the payload.
     plans and snapshots have always been bounded on both edges; so is this."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     episodes = [
         {'plan_date': '2026-07-16', 'ticker': 'BEFORE'},
         {'plan_date': '2026-07-17', 'ticker': 'START'},
@@ -226,3 +232,23 @@ def test_the_episode_window_is_closed_on_both_edges(tmp_path, monkeypatch):
     assert [e['ticker'] for e in bundle['decision_episodes']] == [
         'START', 'INSIDE', 'END']
     assert bundle['bundle_evidence']['decision_episodes'] == 3
+
+
+def test_the_review_reads_and_writes_the_workspace_not_the_cwd(tmp_path, monkeypatch):
+    """`clawock-weekly-review` resolved every path against the process cwd, so
+    under the launcher's CLAWOCK_WORKSPACE it read 0 plans and said nothing (#2597)."""
+    book, elsewhere = tmp_path / "book", tmp_path / "elsewhere"
+    (book / "memory" / "snapshots").mkdir(parents=True)
+    elsewhere.mkdir()
+    (book / "memory" / "2026-09-30-plan.json").write_text('{"decisions": []}')
+    monkeypatch.chdir(elsewhere)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(book))
+    monkeypatch.setattr(weekly.decision_v2, "load_decisions", lambda: [])
+
+    bundle = weekly.aggregate_week(today=date(2026, 10, 2))
+
+    assert bundle["bundle_evidence"]["plan_days"] == 1
+    assert not any("no plan and no snapshot" in w for w in bundle["input_warnings"])
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(elsewhere))
+    empty = weekly.aggregate_week(today=date(2026, 10, 2))
+    assert "window: no plan and no snapshot found in this workspace" in empty["input_warnings"]

@@ -952,6 +952,25 @@ def test_raising_a_timeout_past_the_watchdog_verdict_fails_the_contract(
     cron_contract.load_contract(path, workspace=tmp_path)
 
 
+@pytest.mark.parametrize('watchdog_expr, message', [
+    ('33 9 * * 1-5', 'timeout boundary'),   # the job's own minute: judges at +0
+    ('13 9 * * 1-5', 'no backstop'),        # only before the job: wraps to tomorrow
+])
+def test_a_watchdog_at_or_before_its_jobs_minute_fails_the_contract(tmp_path, watchdog_expr, message):
+    """`(f - start) % 1440 or 1440` read both shapes as a day of headroom (#2592)."""
+    data = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
+    job = next(j for j in data['jobs'] if j['name'] == '港股开盘报告')
+    assert job['schedule']['expr'] == '33 9 * * 1-5'
+    job['watchdog']['schedule']['expr'] = watchdog_expr
+    path = tmp_path / 'config' / 'cron-schedules.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(data))
+    shutil.copytree(ROOT / 'config' / 'cron-payloads', tmp_path / 'config' / 'cron-payloads')
+
+    with pytest.raises(ValueError, match=message):
+        cron_contract.load_contract(path, workspace=tmp_path)
+
+
 def test_no_llm_slot_is_scheduled_on_the_hour_or_half_hour():
     """A slot that fires at :00 or :30 loses ~40% of its first attempts.
 

@@ -17,7 +17,6 @@ import re
 import sys
 import time
 from datetime import date, timedelta
-from pathlib import Path
 
 from clawock.automation import llm
 from clawock.automation.llm import chat
@@ -26,6 +25,7 @@ from clawock.automation.output_validate import (
 )
 from clawock.decision import ledger as decision_v2
 from clawock.safe_io import safe_write_text
+from clawock.workspace import workspace_root
 
 # The four questions build_user_prompt asks for, checked on the way out (#1263).
 WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下周关注')
@@ -116,8 +116,9 @@ OMITTABLE_SECTIONS = ('plans', 'snapshots', 'decision_metrics')
 
 
 def _load_json(path, kind, errors):
+    """`path` is workspace-relative: it is what the warnings print (#2597)."""
     try:
-        with open(path, encoding='utf-8') as handle:
+        with open(workspace_root() / path, encoding='utf-8') as handle:
             value = json.load(handle)
     except Exception as exc:
         errors.append(f'{kind} {path}: {type(exc).__name__}')
@@ -255,7 +256,8 @@ def aggregate_week(today=None):
 
     plans = []
     plan_fx = {}
-    for f in sorted(glob.glob('memory/*-plan.json')):
+    ws = workspace_root()
+    for f in sorted(glob.glob('memory/*-plan.json', root_dir=ws)):
         d_str = os.path.basename(f).split('-plan.json')[0]
         try:
             d = date.fromisoformat(d_str)
@@ -285,7 +287,7 @@ def aggregate_week(today=None):
 
     snapshots = []
     snapshot_records = []
-    for f in sorted(glob.glob('memory/snapshots/*.json')):
+    for f in sorted(glob.glob('memory/snapshots/*.json', root_dir=ws)):
         d_str = os.path.basename(f).split('.json')[0]
         try:
             d = date.fromisoformat(d_str)
@@ -299,10 +301,14 @@ def aggregate_week(today=None):
                 snapshot_records.append((d_str, snapshot))
 
     risk = None
-    if os.path.exists('assets/data/risk.json'):
+    if (ws / 'assets' / 'data' / 'risk.json').exists():
         risk = _load_json('assets/data/risk.json', 'risk', input_errors)
     else:
         input_errors.append('risk assets/data/risk.json: missing')
+
+    if not plans and not snapshots:
+        # A week with neither is a wrong workspace far more often than a quiet week.
+        input_errors.append('window: no plan and no snapshot found in this workspace')
 
     plan_decisions = 0
     valid_plan_days = 0
@@ -593,8 +599,8 @@ def main(argv=None):
 
     out = generate_review(system, user)
 
-    os.makedirs('memory/weekly', exist_ok=True)
-    path = Path(f'memory/weekly/{week_id}.md')
+    path = workspace_root() / 'memory' / 'weekly' / f'{week_id}.md'
+    os.makedirs(path.parent, exist_ok=True)
     fm = f"---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n\n"
     safe_write_text(str(path),
                     fm + backfill_note(args.as_of, week_id) + escape_raw_html(out.strip()))

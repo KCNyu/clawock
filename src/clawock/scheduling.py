@@ -212,6 +212,12 @@ WATCHDOG_INFLIGHT_WAIT_S = {
 }
 
 
+#: A watchdog is a same-day backstop. Schedules are compared in UTC minutes, so
+#: a pass on the far side of UTC midnight is still "after"; one more than half a
+#: day away is the next day's pass and does not cover this run.
+WATCHDOG_MAX_GAP_MINUTES = 720
+
+
 def watchdog_inflight_wait_s(watchdog: dict) -> int:
     command = str(watchdog.get("command") or "")
     for entry_point, wait_s in WATCHDOG_INFLIGHT_WAIT_S.items():
@@ -249,12 +255,22 @@ def _check_watchdogs_clear_timeout(job: dict, watchdogs: list, timeout) -> None:
             fires = _daily_utc_minutes(
                 _season_schedule(watchdog, season), f"{job['name']} watchdog{label}")
             for start in starts:
-                after = min((f - start) % 1440 or 1440 for f in fires)
+                # A watchdog in the job's own minute fires with it: 0 minutes
+                # later, not a day later (`or 1440` read it as tomorrow, #2592).
+                after = min((f - start) % 1440 for f in fires)
                 if after + wait_min <= int(timeout) / 60:
                     raise ValueError(
                         f"{job['name']}{label}: watchdog "
                         f"{watchdog.get('command', '')[:60]!r} judges at or before "
                         f"the run's {int(timeout)}s timeout boundary")
+                if after > WATCHDOG_MAX_GAP_MINUTES:
+                    # The modulo wraps a watchdog that only fires BEFORE the job
+                    # into "tomorrow": that pass judged before the run began, so
+                    # this slot has no backstop at all.
+                    raise ValueError(
+                        f"{job['name']}{label}: watchdog "
+                        f"{watchdog.get('command', '')[:60]!r} next fires {after} "
+                        f"minutes after the run starts; the slot has no backstop")
 
 
 def _season_schedule(item: dict, season: str | None) -> dict:
