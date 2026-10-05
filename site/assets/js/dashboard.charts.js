@@ -32,6 +32,21 @@
     }
     _echartsPromise.then(ready => { if (ready && window.echarts) cb(); });
   }
+  // Start downloading the bundle for a tab that will need it, without waiting
+  // for that tab to paint — but only download it. A preload does not execute,
+  // so the ~620 KB evaluation still happens where it always did, after the
+  // tab's text is on screen; whenEcharts()'s <script> then takes the same
+  // response instead of issuing a request of its own.
+  let _echartsPreloaded = false;
+  function preloadTabCharts(t) {
+    if (!CHART_FNS[t] || window.echarts || _echartsPromise || _echartsPreloaded) return;
+    _echartsPreloaded = true;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "script";
+    link.href = "assets/js/echarts.min.js";
+    document.head.appendChild(link);
+  }
   function paintCharts(t) {
     if (!DATA) return;
     // Native 先画（无网络依赖），ECharts 系随后到随画 —— 同一 tab 可以两类都有
