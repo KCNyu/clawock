@@ -552,8 +552,14 @@ def holdings_section(context):
                      pct(book.get("total_pnl_percent")),
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
         sources = sorted({str(row.get("data_source") or "") for row in held if row.get("data_source")})
+        # The column is a percentage against the previous close, so the header
+        # names a change and the session it belongs to, never a price (#2579).
+        sessions = {str(row.get("day_session_date") or "") for row in held}
+        session = sessions.pop() if len(sessions) == 1 else ""
+        change = (f"收盘涨跌({session[5:]})"
+                  if re.fullmatch(r"\d{4}-\d{2}-\d{2}", session) else "收盘涨跌%")
         out += ["", f"**{leg.upper()} leg**（{currency}；报价源 {', '.join(sources) or MISSING}）", "",
-                table(["代码", "股", "成本", "现价", "上一场收盘", "浮%", f"浮$ {currency}"], rows)]
+                table(["代码", "股", "成本", "现价", change, "浮%", f"浮$ {currency}"], rows)]
     return "\n".join(out)
 
 
