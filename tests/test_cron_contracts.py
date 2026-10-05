@@ -1197,10 +1197,19 @@ def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
     from clawock.publish import store, deploy
     assert store.PUBLISH_BUDGET_SECONDS == budgets.PUBLISH_BUDGET_SECONDS
     assert deploy.DEPLOY_REQUEST_TIMEOUT_SECONDS == budgets.DEPLOY_REQUEST_TIMEOUT_SECONDS
-    assert budgets.POST_DELIVERY_BUDGET_SECONDS == (
-        common.DASHBOARD_FETCH_TIMEOUT_SECONDS + common.DASHBOARD_LOCK_WAIT_SECONDS
-        + common.DASHBOARD_BUILD_TIMEOUT_SECONDS + common.DECISION_MAP_TIMEOUT_SECONDS
-        + store.PUBLISH_BUDGET_SECONDS + common.PUSH_TIMEOUT_SECONDS)
+    # One list of steps, each the ceiling the code enforces; the budget is its sum (#2565).
+    assert budgets.POST_DELIVERY_STEPS == {
+        'gha_data_sync': (common.GHA_SYNC_FETCH_TIMEOUT_SECONDS
+                          + 2 * common.GHA_SYNC_RESTORE_TIMEOUT_SECONDS),
+        'dashboard_fetch': common.DASHBOARD_FETCH_TIMEOUT_SECONDS,
+        'dashboard_lock_wait': common.DASHBOARD_LOCK_WAIT_SECONDS,
+        'dashboard_build': common.DASHBOARD_BUILD_TIMEOUT_SECONDS,
+        'decision_map': common.DECISION_MAP_TIMEOUT_SECONDS,
+        'publish_generation': store.PUBLISH_BUDGET_SECONDS,
+        'git_add_commit': 2 * common.GIT_STEP_TIMEOUT_SECONDS,
+        'push': common.PUSH_TIMEOUT_SECONDS,
+    }
+    assert budgets.POST_DELIVERY_BUDGET_SECONDS == sum(budgets.POST_DELIVERY_STEPS.values())
     data = contract()
     minimum = budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.PRE_DELIVERY_RESERVE_SECONDS
     for name in ('brief', 'report', 'intraday'):
@@ -1236,3 +1245,25 @@ def test_a_watchdog_is_checked_in_every_season_not_only_the_current_one(
 
     with pytest.raises(ValueError, match=rf'\({season}\).*timeout boundary'):
         cron_contract.load_contract(path, workspace=tmp_path)
+
+
+def test_the_gha_sync_fallback_shares_one_deadline(tmp_path, monkeypatch):
+    """Ten seconds a file was 60s nobody budgeted; the fallback now stops at one deadline (#2565)."""
+    from clawock.harness import _harness_common as common
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append((cmd, kwargs.get('timeout')))
+        if 'fetch' in cmd:
+            return subprocess.CompletedProcess(cmd, 0, '', '')
+        if len(cmd) > 7:                       # the batch restore names every file
+            return subprocess.CompletedProcess(cmd, 1, '', 'pathspec')
+        raise subprocess.TimeoutExpired(cmd, kwargs.get('timeout'))
+
+    monkeypatch.setattr(common.subprocess, 'run', fake_run)
+    ok, summary = common.sync_gha_data_files(tmp_path)
+
+    assert (ok, summary) == (True, f'synced 0/{len(common.GHA_DATA_FILES)}')
+    per_file = [t for cmd, t in calls if 'restore' in cmd and len(cmd) <= 7]
+    assert len(per_file) == 1, 'a file that eats the deadline ends the fallback'
+    assert per_file[0] <= common.GHA_SYNC_RESTORE_TIMEOUT_SECONDS

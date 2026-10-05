@@ -36,6 +36,7 @@ DASHBOARD_PUBLISH_LOCK = '/tmp/dashboard_publish.lock'
 from clawock.run_budgets import (  # noqa: E402,F401
     DASHBOARD_LOCK_WAIT_SECONDS, DASHBOARD_BUILD_TIMEOUT_SECONDS,
     DASHBOARD_FETCH_TIMEOUT_SECONDS, DECISION_MAP_TIMEOUT_SECONDS,
+    GIT_STEP_TIMEOUT_SECONDS, GHA_SYNC_FETCH_TIMEOUT_SECONDS, GHA_SYNC_RESTORE_TIMEOUT_SECONDS,
     SAFE_PUSH_ATTEMPTS, PREPUSH_ATTEMPT_SECONDS, PUSH_RETRY_BACKOFF_SECONDS,
     PUSH_TIMEOUT_SECONDS,
 )
@@ -96,7 +97,7 @@ def git_cmd(*args, cwd=None):
                  '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com']
     try:
         r = subprocess.run(base + list(args),
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=GIT_STEP_TIMEOUT_SECONDS)
         return r.returncode == 0, (r.stdout + r.stderr).strip()
     except Exception as e:
         return False, str(e)
@@ -203,7 +204,7 @@ def sync_gha_data_files(ws=None):
     try:
         fetch = subprocess.run(
             ['git', 'fetch', 'origin', 'master', '--quiet'],
-            capture_output=True, text=True, timeout=15, cwd=str(ws),
+            capture_output=True, text=True, timeout=GHA_SYNC_FETCH_TIMEOUT_SECONDS, cwd=str(ws),
         )
         if fetch.returncode != 0:
             return False, f'fetch failed: {fetch.stderr[-150:]}'
@@ -218,19 +219,29 @@ def sync_gha_data_files(ws=None):
         # postflight slot; N spawns here were N needless git startups).
         batch = subprocess.run(
             ['git', 'restore', '--source=origin/master', '--worktree', '--', *relpaths],
-            capture_output=True, text=True, timeout=10, cwd=str(ws),
+            capture_output=True, text=True, timeout=GHA_SYNC_RESTORE_TIMEOUT_SECONDS, cwd=str(ws),
         )
         if batch.returncode == 0:
             return True, f'synced {len(GHA_DATA_FILES)}/{len(GHA_DATA_FILES)}'
         # A missing artifact on origin would fail the whole batch — fall back to
         # the per-file checkout so the files that do exist still refresh.
+        # The whole fallback shares one deadline: 10s a file was 60s the cron
+        # contract's post-delivery budget never counted (#2565). A file the
+        # deadline cuts off keeps its local copy, like any other failure here.
         synced = []
+        deadline = time.monotonic() + GHA_SYNC_RESTORE_TIMEOUT_SECONDS
         for f in GHA_DATA_FILES:
-            r = subprocess.run(
-                ['git', 'restore', '--source=origin/master', '--worktree', '--',
-                 f'assets/data/{f}'],
-                capture_output=True, text=True, timeout=10, cwd=str(ws),
-            )
+            left = deadline - time.monotonic()
+            if left <= 0:
+                break
+            try:
+                r = subprocess.run(
+                    ['git', 'restore', '--source=origin/master', '--worktree', '--',
+                     f'assets/data/{f}'],
+                    capture_output=True, text=True, timeout=left, cwd=str(ws),
+                )
+            except subprocess.TimeoutExpired:
+                break
             if r.returncode == 0:
                 synced.append(f)
         return True, f'synced {len(synced)}/{len(GHA_DATA_FILES)}'
