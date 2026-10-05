@@ -921,6 +921,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
   "hidden_concentration": {
     "headline": "一句话点穿名义分散下的真实集中 ≤40字",
     "factor": "主导因子名（如 AI/半导体高 beta）",
+    "basis": "market_value | lookthrough",
     "exposure_pct": 88,
     "detail": "哪些持仓同因子联动 + 风险 ≤70字"
   }
@@ -930,7 +931,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 内容要求：
 - **behavioral_review.points 4-5 条**，覆盖：① `decision_metrics.by_driver`；② `by_strategy`；③ `by_condition`；④ active episode 的 cluster CI；⑤ execution 与 advice 是否出现偏差。`tag`：edge=正面发现 / bias=认知偏差 / warning=要警惕。
 - **bear_cases 2-3 个**，选**最重仓或最高杠杆**的持仓（看 context 仓位权重 + leveraged_etf）。
-- **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
+- **hidden_concentration**：识别表面分散实际同因子。先选一个口径写进 `basis`，全卡只用这一个口径的数字：`market_value` = `sector_exposure` 的市值占比；`lookthrough` = `lookthrough_exposure` 的 `factors`/`sectors` 的 `gross_pct`（杠杆产品按名义倍数计）。`exposure_pct` 不是估算：取**同一条腿**里你点名的那几个桶的占比之和（可四舍五入到整数），`detail` 里每个百分数都必须是该口径的某个桶、几个桶之和、单只持仓权重或 `leveraged_etf` 的占比。发布端按 `basis` 逐个核对，对不上或缺 `basis` 整张卡不发布；风险贡献、有效下注数这类不在这两份投影里的数不要带百分号写进这张卡。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
 #### E. 微信卡：harness 渲染，不用你写
