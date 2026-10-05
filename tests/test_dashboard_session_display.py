@@ -17,3 +17,11 @@ def test_swap_target_does_not_require_underlying_volatility():
     assert result['swap_1x'] == 'SPCX'
     assert result['underlying_need_if_1x_pct'] == 25
     assert 'underlying_vol_pct' not in result
+
+
+def test_a_holding_row_carries_its_own_session_or_none():
+    # The 场次 cell reads `h.day_session_date` first; the projection dropped it (#2587).
+    from clawock.publish.dashboard import trim_holding
+    row = {'ticker': 'CRCL', 'shares': 1, 'day_session_date': '2026-10-02'}
+    assert trim_holding(row, 'USD')['day_session_date'] == '2026-10-02'
+    assert trim_holding({'ticker': 'CRCL', 'shares': 1}, 'USD')['day_session_date'] is None
