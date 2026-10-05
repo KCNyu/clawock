@@ -10,7 +10,7 @@ _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock.scheduling import load_contract  # noqa: E402
+from clawock.scheduling import host_trigger, load_contract, runtime_enabled  # noqa: E402
 from clawock.run_budgets import (  # noqa: E402
     POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS,
 )
@@ -92,13 +92,49 @@ def _brief_watchdog_clocks(contract: dict) -> tuple[str, str]:
     raise SystemExit("cron contract has no brief watchdog with a miss detector")
 
 
+def _fired_by(job: dict) -> str:
+    """Who fires the job, when it is not OpenClaw's own scheduler."""
+    if not job.get("enabled", True):
+        return "<br>disabled"
+    return "<br>fired by host crontab; disabled in OpenClaw" if host_trigger(job) else ""
+
+
+def _job_counts(contract: dict) -> str:
+    """The job-count invariant, counted. It was a literal that said 11 enabled
+    while `runtime_enabled` held for 10, and no enable/disable moved it (#2614)."""
+    jobs = contract["jobs"]
+    running = [job for job in jobs if job.get("enabled", True)]
+    scheduled = [job for job in running if runtime_enabled(job)]
+    hosted = "、".join(job["name"] for job in running if host_trigger(job))
+    market = [job for job in scheduled
+              if job.get("payload_profile") in {"brief", "report", "intraday"}]
+    others = "、".join(job["name"] for job in scheduled if job not in market)
+    text = (f"- {len(jobs)} job identities; exactly {len(scheduled)} enabled in OpenClaw's own "
+            f"scheduler ({len(market)} market jobs{f' plus {others}' if others else ''}).")
+    if hosted:
+        text += (f"\n  The host crontab fires {hosted} (`clawock cron-trigger`), which stays\n"
+                 "  disabled in OpenClaw so the slot is not fired twice.")
+    return text
+
+
+def _watchdog_counts(contract: dict) -> dict:
+    counts = {"report": 0, "intraday": 0, "brief": 0}
+    for job in contract["jobs"]:
+        for watchdog in [job.get("watchdog"), *(job.get("extra_watchdogs") or [])]:
+            for kind in counts:
+                if watchdog and f"clawock-{kind}-watchdog" in (watchdog.get("command") or ""):
+                    counts[kind] += 1
+    return counts
+
+
 def render(contract: dict) -> str:
     rows = []
     for job in contract["jobs"]:
         rows.append(
-            f"| {job['name']} | {schedule_text(job)} | {job.get('mode', '—')} | "
+            f"| {job['name']} | {schedule_text(job)}{_fired_by(job)} | {job.get('mode', '—')} | "
             f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
+    passes = _watchdog_counts(contract)
     brief_backstop, brief_miss = _brief_watchdog_clocks(contract)
     overnight_last = _overnight_last_slot(contract)
     return "\n".join([
@@ -146,8 +182,8 @@ def render(contract: dict) -> str:
         "",
         "## Operational invariants / 运维不变量",
         "",
-        "- Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.",
-        "- Six report, three intraday, and two brief watchdog passes are tracked; the brief",
+        _job_counts(contract),
+        f"- {passes['report']} report, {passes['intraday']} intraday and {passes['brief']} brief watchdog passes are tracked; the brief",
         f"  uses an {brief_backstop} delivery backstop plus a {brief_miss} post-window miss detector.",
         "- Market payloads use deterministic preflight/postflight, `delivery.mode=none`,",
         "  a unique WeChat path, Telegram mirror, and an ordered unique subset of the",
