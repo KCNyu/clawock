@@ -272,8 +272,8 @@ python3 ops/host/sync_cron_payloads.py --json
 python3 ops/host/sync_cron_payloads.py --apply --json
 ```
 同步器按精确 job 名/ID 规划最小 patch，发现重复/缺失/额外 job 或目标 job 正在运行时不写，
-逐 job 失败即停，apply 后重新读取验证。升级大版本后仍应先 `openclaw cron list` 数 job 个数
-（应为 11），少了跑 `openclaw doctor --fix`。
+逐 job 失败即停，apply 后重新读取验证。升级大版本后仍应先 `openclaw cron list --all` 数 job 个数
+（应为 11，其中 10 个启用；不带 `--all` 只列启用的 10 个），少了跑 `openclaw doctor --fix`。
 
 ### Cron 运行历史（自动 + 手动跨 job 聚合）
 

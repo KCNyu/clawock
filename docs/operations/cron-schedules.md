@@ -45,15 +45,17 @@ The intraday turn plus the 30-second retry backoff still clears the next slot.
 | 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `53 9 * * 1-5` · Asia/Hong_Kong |
 | 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `23,53 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `23 12 * * 1-5` · Asia/Hong_Kong |
-| 港股午后快报 | `33 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `53 13 * * 1-5` · Asia/Hong_Kong |
+| 港股午后快报 | `33 13 * * 1-5` · Asia/Shanghai<br>fired by host crontab; disabled in OpenClaw | Mode 6 | `report --hk pm` | `53 13 * * 1-5` · Asia/Hong_Kong |
 | 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `30 16 * * 1-5` · Asia/Hong_Kong |
 | 美股开盘报告 | EDT `33 21 * * 1-5`<br>EST `33 22 * * 1-5` | Mode 6 | `report --us open` | EDT `53 21 * * 1-5`<br>EST `53 22 * * 1-5` |
 | 美股盘中盯盘 | EDT `3,33 22-23 * * 1-5`<br>EST `3,33 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `23,53 22-23 * * 1-5`<br>EST `23,53 23 * * 1-5` |
 
 ## Operational invariants / 运维不变量
 
-- Exactly 11 enabled OpenClaw jobs; 10 market jobs plus memory promotion.
-- Six report, three intraday, and two brief watchdog passes are tracked; the brief
+- 11 job identities; exactly 10 enabled in OpenClaw's own scheduler (9 market jobs plus Memory Dreaming Promotion).
+  The host crontab fires 港股午后快报 (`clawock cron-trigger`), which stays
+  disabled in OpenClaw so the slot is not fired twice.
+- 6 report, 3 intraday and 2 brief watchdog passes are tracked; the brief
   uses an 08:36 delivery backstop plus a 09:05 post-window miss detector.
 - Market payloads use deterministic preflight/postflight, `delivery.mode=none`,
   a unique WeChat path, Telegram mirror, and an ordered unique subset of the
