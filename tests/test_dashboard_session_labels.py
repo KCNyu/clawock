@@ -69,3 +69,40 @@ def test_a_fetch_on_a_closed_day_belongs_to_the_last_session_that_traded():
         at=datetime(2026, 10, 4, 10, 0, tzinfo=timezone.utc))
     assert rows["SPX"]["session"] == "2026-10-02"
     assert rows["HSI"]["session"] == "2026-09-30"
+
+
+def test_a_fetch_before_the_opening_bell_belongs_to_the_previous_session():
+    # 2026-10-05 is a Monday both markets trade; 08:03 HKT / 05:54 ET is pre-open.
+    at = datetime(2026, 10, 5, 0, 26, tzinfo=timezone.utc)
+    rows = dashboard._aggregate_indices(
+        *_legs("Tencent usINX index @ 2026-10-05 05:54 ET",
+               "Tencent qt.gtimg.cn 2026/10/05 08:03 HKT"), at=at)
+    assert {k: (r["session"], r["stale"]) for k, r in rows.items()} == {
+        "SPX": ("2026-10-02", False), "HSI": ("2026-10-02", False)}
+    # Once the bell has rung the same day's stamp is that day's session.
+    rows = dashboard._aggregate_indices(
+        *_legs("Tencent usINX index @ 2026-10-05 09:31 ET",
+               "Tencent qt.gtimg.cn 2026/10/05 16:10 HKT"), at=at)
+    assert {k: r["session"] for k, r in rows.items()} == {
+        "SPX": "2026-10-05", "HSI": "2026-10-05"}
+
+
+def test_holding_quote_session_is_the_fetchers_session_not_the_fetch_clock():
+    from clawock import sessions as trading_calendar
+
+    at = datetime(2026, 10, 5, 0, 26, tzinfo=timezone.utc)
+    hk = {"holdings": [
+        {"ticker": "00100", "shares": 1, "day_session_date": "2026-10-02",
+         "data_source": "Tencent Oct 05 08:03 HKT"}]}
+    us = {"holdings": [
+        {"ticker": "OWN", "shares": 1, "day_session_date": "2026-10-02",
+         "data_source": "Nasdaq API Oct 4, 2026 20:03 ET"},
+        # No session of its own: a Sunday fetch stamp folds back on the calendar.
+        {"ticker": "STAMP", "shares": 1,
+         "data_source": "Nasdaq API Oct 4, 2026 20:03 ET"}]}
+    hk_status = dashboard._market_leg_freshness(hk, "hk", trading_calendar, at=at)
+    us_status = dashboard._market_leg_freshness(us, "us", trading_calendar, at=at)
+    assert hk_status["quote_sessions"] == {"00100": "2026-10-02"}
+    assert us_status["quote_sessions"] == {"OWN": "2026-10-02", "STAMP": "2026-10-02"}
+    assert hk_status["newest_quote_session"] == hk_status["expected_completed_session"]
+    assert us_status["fresh"] is True and hk_status["fresh"] is True
