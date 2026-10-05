@@ -343,3 +343,40 @@ def test_publication_backlog_never_invents_missing_measurements():
         assert '未测到' in result['text']
         assert '0.0 小时' not in result['text']
         assert '等待定时发布器追上' not in result['text']
+
+
+def test_due_slots_without_a_record_are_counted_across_the_window():
+    """The delivery readout counted only records, so a run that never wrote one
+    was invisible once the day rolled over (#2546)."""
+    from clawock.publish.cron_schedule import due_without_record
+
+    at = datetime(2026, 9, 4, 9, 0, tzinfo=HKT)  # Friday morning, before today's slots
+    records = [_record('2026-09-02T10:03:00+08:00', 'success'),   # the ledger starts here
+               _record('2026-09-03T10:03:00+08:00', 'success'),
+               _record('2026-09-03T10:33:00+08:00', 'skipped'),   # a closed market is a record
+               _record('2026-09-03T11:03:00+08:00', 'failed')]    # a failure is a record too
+    missing = due_without_record(_contract(), records, now=at, hours=36)
+
+    # Thursday 11:33 never ran. Wednesday's later slots fall outside the 36h window.
+    assert missing == [{'job': '盘中盯盘', 'slot': '2026-09-03T11:33:00+08:00'}]
+    wider = due_without_record(_contract(), records, now=at, hours=60)
+    assert [m['slot'][:16] for m in wider] == [
+        '2026-09-02T10:33', '2026-09-02T11:03', '2026-09-02T11:33', '2026-09-03T11:33']
+
+
+def test_due_slot_count_does_not_speak_for_time_the_ledger_never_saw():
+    from clawock.publish.cron_schedule import due_without_record
+
+    at = datetime(2026, 9, 4, 9, 0, tzinfo=HKT)
+    # A ledger that begins Thursday 11:33 says nothing about Thursday's earlier slots,
+    # an empty one says nothing at all, and a job without a harness writes no records.
+    late = [_record('2026-09-03T11:33:00+08:00', 'success')]
+    assert due_without_record(_contract(), late, now=at, hours=36) == []
+    assert due_without_record(_contract(), [], now=at, hours=36) == []
+    assert due_without_record(_contract(harness=None), late, now=at, hours=36) == []
+    # Today's slot inside its grace is still running, not missing.
+    in_grace = datetime(2026, 9, 4, 10, 10, tzinfo=HKT)
+    full = [_record(f'2026-09-03T{slot}:00+08:00', 'success') for slot in ('10:03', '10:33', '11:03', '11:33')]
+    assert due_without_record(_contract(), full, now=in_grace, hours=36) == []
+    after_grace = datetime(2026, 9, 4, 10, 30, tzinfo=HKT)
+    assert [m['slot'][:16] for m in due_without_record(_contract(), full, now=after_grace)] == ['2026-09-04T10:03']

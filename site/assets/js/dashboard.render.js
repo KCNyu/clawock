@@ -1422,7 +1422,13 @@
     // 产物在、投递没确认（artifact_only）：该投而没确认投到，进分母、不进分子（#2056）。
     // no_change / skipped 本来就没欠一次投递，不进分母。
     const unconfirmed = wc.artifact_only || 0;
-    const slotTotal = okCount + soft + failed + pending + unconfirmed;
+    // 契约在同一窗口排了、账本里却一条记录都没有的槽（#2546）：只数已有记录时，
+    // 没跑的那一档既不进分子也不进分母，读数反而更好看。判定与定时任务板的
+    // missed 同源（publish/cron_schedule.due_without_record）。
+    const noRecord = wf.due_no_record || 0;
+    const noRecordNames = (wf.no_record_slots || [])
+      .map(r => `${r.job} ${String(r.slot || "").slice(5, 16).replace("T", " ")}`).join("、");
+    const slotTotal = okCount + soft + failed + pending + unconfirmed + noRecord;
     // 窗口写不出来就不写 —— 「37 档」配一个猜出来的小时数比没有小时数更坏。
     const winH = Number(wf.window_hours) > 0 ? Number(wf.window_hours) : null;
     const dropped = wf.wechat_dropped_slots || [];
@@ -1558,10 +1564,11 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed ? "bad" : (soft || unconfirmed || !slotTotal ? "warn" : "ok"),
-        state: failed ? "需处理" : (soft || unconfirmed || !slotTotal ? "观察" : "正常"),
+        tone: failed || noRecord ? "bad" : (soft || unconfirmed || !slotTotal ? "warn" : "ok"),
+        state: failed || noRecord ? "需处理" : (soft || unconfirmed || !slotTotal ? "观察" : "正常"),
         value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
         note: failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
+          : noRecord ? `${noRecord} 档到期无记录${noRecordNames ? `（${noRecordNames}${noRecord > (wf.no_record_slots || []).length ? " 等" : ""}）` : ""}`
           : unconfirmed ? `${nameThem(unconfirmed, slotsWith("artifact_only")) || `${unconfirmed} 档仅存档`}，投递未确认`
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
           : (pending ? `${pending} 档进行中` : (slotTotal ? "全部按时送达" : "窗口内没有成品投递记录")) },
