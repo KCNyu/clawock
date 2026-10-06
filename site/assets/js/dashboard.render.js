@@ -2499,11 +2499,11 @@
       const ccyMoney = (v, ccy, plus) => {
         if (v == null || !isFinite(v)) return DASH;
         const sym = ccy === "USD" ? "$" : "HK$";
-        const sign = v < 0 ? "-" : (plus ? "+" : "");
+        const sign = v < 0 ? "−" : (plus ? "+" : "");
         return sign + sym + Math.abs(Math.round(v)).toLocaleString("en-US");
       };
       const signNum = v => (v == null || !isFinite(v)) ? DASH
-        : (v < 0 ? "-" : "+") + Math.abs(Math.round(v)).toLocaleString("en-US");
+        : (v < 0 ? "−" : "+") + Math.abs(Math.round(v)).toLocaleString("en-US");
       const pct1 = v => (v != null ? fmtPct(v, 1) : DASH);
       const buildCard = (key, label, ccy) => {
         const r = safe(rv, key, "realized") ?? 0;

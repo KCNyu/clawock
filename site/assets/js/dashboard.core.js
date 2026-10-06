@@ -6,10 +6,14 @@
   const fmtMoney = (v, ccy) => {
     if (v == null || !isFinite(v)) return DASH;
     const sym = ccy === "USD" ? "$" : ccy === "HKD" ? "HK$" : "";
-    const n = Math.abs(v) >= 1000
-      ? v.toLocaleString("en-US", { maximumFractionDigits: 0 })
-      : v.toLocaleString("en-US", { maximumFractionDigits: 2 });
-    return sym + n;
+    const abs = Math.abs(v);
+    const n = abs >= 1000
+      ? abs.toLocaleString("en-US", { maximumFractionDigits: 0 })
+      : abs.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    // The minus goes outside the currency symbol, here and nowhere else: one
+    // loss used to print as −$7,269 on the command deck and $-7,269 two cards
+    // down (#2672).
+    return (v < 0 ? "−" : "") + sym + n;
   };
   const fmtPct = (v, digits = 2) => {
     if (v == null || !isFinite(v)) return DASH;
