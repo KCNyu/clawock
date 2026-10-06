@@ -753,8 +753,16 @@
     const totalUsd = (has(realUsd) && has(unrealUsd)) ? realUsd + unrealUsd : unrealUsd;
     const bookUsd = eq(us.value_usd, hk.value_hkd);
     const todayUsd = eq(us.today_change_usd, hk.today_change_hkd);
-    const todayPct = (has(bookUsd) && has(todayUsd) && (bookUsd - todayUsd) > 0)
-      ? todayUsd / (bookUsd - todayUsd) * 100 : null;
+    // 今日百分比只读 payload 的 delta：它带场次闸（旧场次留空）和「市值 + 现金」
+    // 分母。这一行以前自己拿持仓市值当分母、也不看场次，和 Delta 卡、desk rail
+    // 对同一腿给出三个答案（#2632）。金额仍走 totals。
+    const legDelta = { us: safe(DATA, "delta", "us") || {}, hk: safe(DATA, "delta", "hk") || {} };
+    const usTodayPct = has(legDelta.us.today_pct) ? legDelta.us.today_pct : null;
+    const hkTodayPct = has(legDelta.hk.today_pct) ? legDelta.hk.today_pct : null;
+    const bothToday = usTodayPct != null && hkTodayPct != null;
+    const assetsUsd = eq((us.value_usd || 0) + (us.cash_usd || 0), (hk.value_hkd || 0) + (hk.cash_hkd || 0));
+    const todayPct = (bothToday && has(assetsUsd) && has(todayUsd) && (assetsUsd - todayUsd) > 0)
+      ? todayUsd / (assetsUsd - todayUsd) * 100 : null;
 
     pnlEl.textContent = heroMoney(totalUsd, "USD");
     pnlEl.className = "hero-deck-pnl " + pnlClass(totalUsd);
@@ -806,7 +814,6 @@
     const ae = safe(m, "execution_by_kind", "active") || {};
     // 一格一次视觉起停：值和「它自己的变化」并成一行，限定语进标签，
     // 只有真正额外的信息（样本量、基线）才留副行。信息一条不少。(#879)
-    const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
     const cell = (k, v, s, cls) =>
       `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
       + `<div class="hero-rail-v ${cls || ""}">${v}</div>`
@@ -903,8 +910,9 @@
     // 「亏在哪边」），柱子回答「这根在最近的分布里算大还是算小」。
     const todayEl = document.getElementById("hero-today");
     if (todayEl) {
-      const usTodayPct = legPct(us.value_usd, us.today_change_usd);
-      const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
+      // 没有今日百分比的腿，金额是它最近一场的：把场次写在腿名上。
+      const legName = (name, d) => (d.today_pct == null && d.session_date)
+        ? `${name} ${escapeHtml(String(d.session_date).slice(5))}` : name;
       const leg = (k, v, pct, cls) =>
         `<span class="ht-leg"><span class="ht-leg-k">${k}</span>`
         + `<b class="${cls}">${v}</b>`
@@ -912,15 +920,15 @@
         + `</span>`;
       todayEl.innerHTML =
         `<div class="ht-nums">`
-        + `<div class="overview-card-kicker">今日 · USD 等值</div>`
+        + `<div class="overview-card-kicker">${bothToday ? "今日" : "最近场次"} · USD 等值</div>`
         + `<div class="ht-total ${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}`
         + (todayPct == null ? "" : ` <span class="ht-total-pct">${fmtPct(todayPct)}</span>`)
         + `</div>`
         + `<div class="ht-legs">`
-        + leg("美股", heroMoney(us.today_change_usd, "USD"), usTodayPct,
+        + leg(legName("美股", legDelta.us), heroMoney(us.today_change_usd, "USD"), usTodayPct,
           pnlClass(us.today_change_usd))
         + `<span class="hds-sep">·</span>`
-        + leg("港股", heroMoney(hk.today_change_hkd, "HKD"), hkTodayPct,
+        + leg(legName("港股", legDelta.hk), heroMoney(hk.today_change_hkd, "HKD"), hkTodayPct,
           pnlClass(hk.today_change_hkd))
         + `</div></div>`
         + `<div class="ht-chart">${dailyBars(20)}</div>`;

@@ -43,6 +43,29 @@ def test_last_success_comes_from_the_ledger_even_if_it_was_yesterday():
     assert result['jobs'][0]['last_success_at'] == '2026-09-02T10:08:00+08:00'
 
 
+def test_last_success_is_the_delivery_not_the_watchdogs_later_pass():
+    # #2634: the 09:05 watchdog pass wrote `not_required` and moved updated_at.
+    at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)
+    record = _record('2026-09-03T10:03:00+08:00', 'success')
+    record['stages'] = {
+        'primary_delivery': {'status': 'success', 'at': '2026-09-03T10:26:00+08:00'},
+        'watchdog_delivery': {'status': 'not_required', 'at': '2026-09-03T11:05:00+08:00'}}
+    record['updated_at'] = '2026-09-03T11:05:00+08:00'
+    result = timetable(_contract('3 10 * * 1-5'), [record], now=at)
+    assert result['jobs'][0]['last_success_at'] == '2026-09-03T10:26:00+08:00'
+
+
+def test_a_recovered_slot_was_delivered_when_the_watchdog_sent_it():
+    at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)
+    record = _record('2026-09-03T10:03:00+08:00', 'recovered')
+    record['stages'] = {
+        'primary_delivery': {'status': 'failed', 'at': '2026-09-03T10:09:00+08:00'},
+        'watchdog_delivery': {'status': 'success', 'at': '2026-09-03T10:24:00+08:00'}}
+    record['updated_at'] = '2026-09-03T10:40:00+08:00'
+    result = timetable(_contract('3 10 * * 1-5'), [record], now=at)
+    assert result['jobs'][0]['last_success_at'] == '2026-09-03T10:24:00+08:00'
+
+
 def test_an_unmapped_ledger_status_shows_as_unknown_not_as_green():
     """A default of 'ok' would render a status nobody has looked at as healthy."""
     at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)

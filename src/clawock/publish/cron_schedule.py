@@ -238,6 +238,19 @@ def _records_by_slot(records, job_name, day, tz, slots):
     return found
 
 
+def _delivered_at(record):
+    """When the product reached the reader, not when the record was last touched.
+
+    `updated_at` moves on every stage write, and each watchdog pass that finds
+    the slot already delivered writes one — the panel then printed the pass as
+    the success time (#2634). A recovered slot was delivered by the watchdog.
+    """
+    stages = record.get('stages') or {}
+    recovered = (record.get('final_product') or {}).get('status') == 'recovered'
+    stage = stages.get('watchdog_delivery' if recovered else 'primary_delivery') or {}
+    return stage.get('at') or record.get('updated_at')
+
+
 def timetable(contract, records, *, now=None):
     """One row per job, one light per slot, for the day `now` falls in."""
     now = now or datetime.now(HKT)
@@ -270,14 +283,14 @@ def timetable(contract, records, *, now=None):
                                    'note': _UNMONITORED_NOTE} for slot in slots]})
             continue
         # The slot grid covers today; the last successful delivery may belong to
-        # yesterday. Use the ledger's completion/update timestamp, never infer a
+        # yesterday. Use the ledger's own delivery timestamp, never infer a
         # success from a scheduled slot that has no outcome.
         successes = []
         for record in records:
             if record.get('job') != name or (record.get('final_product') or {}).get('status') not in {'success', 'recovered'}:
                 continue
             try:
-                completed = datetime.fromisoformat(record.get('updated_at') or record['slot'])
+                completed = datetime.fromisoformat(_delivered_at(record) or record['slot'])
                 if completed.tzinfo and completed <= now:
                     successes.append(completed)
             except (KeyError, TypeError, ValueError):

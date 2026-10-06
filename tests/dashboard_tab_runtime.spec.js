@@ -1297,10 +1297,26 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         legs: row.querySelectorAll(".ht-leg").length,
         clipped: parts.filter(p => p.scrollWidth > p.clientWidth + 1).map(p => p.textContent),
         bars: row.querySelectorAll(".rc-bars > i").length,
+        kicker: row.querySelector(".overview-card-kicker").textContent,
+        legText: [...row.querySelectorAll(".ht-leg")].map(el => el.textContent),
+        delta: ["us", "hk"].map(leg => (DATA.delta || {})[leg] || {}),
       };
     });
     assert(today, "the 今日 row is gone — today's move left the first screen");
-    assert.match(today.text, /%/, "the 今日 row dropped the today percentage");
+    // The percentages are the payload's own `delta.<leg>.today_pct` (#2632): a
+    // leg whose session is not today prints no percentage and names its session.
+    today.delta.forEach((d, i) => {
+      if (d.today_pct != null) {
+        assert.match(today.legText[i], /%/, "a leg with a today percentage in the payload did not print it");
+      } else {
+        assert.doesNotMatch(today.legText[i], /%/, "a leg the payload gives no today percentage printed its own");
+        if (d.session_date) assert.ok(today.legText[i].includes(d.session_date.slice(5)),
+          "a leg showing an earlier session's move did not name that session");
+      }
+    });
+    const bothToday = today.delta.every(d => d.today_pct != null);
+    assert.equal(today.kicker.startsWith("今日"), bothToday,
+      "the row is labelled 今日 only when both legs' sessions are today");
     assert.equal(today.legs, 2, "the 今日 row must keep the US / HK split, not just the total");
     assert.match(today.text, /美股/, "the 今日 row lost the US leg");
     assert.match(today.text, /港股/, "the 今日 row lost the HK leg");
@@ -3808,6 +3824,31 @@ async function testADataBranchThatNeverAnswersFallsBackToThisOrigin(browser, bas
   await page.close();
 }
 
+async function testASidecarFallbackThatNeverAnswersReleasesTheTab(browser, base) {
+  // The sidecar's own-origin fallback was the one read left without a deadline
+  // (#2643): once it hung, `inFlight` never cleared and the tab stayed
+  // `aria-busy` for the rest of the visit, with no error box to retry from.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await withoutWarmup(page);
+  await page.route(LIVE_DATA_ORIGIN + "**", () => {});                     // never answered
+  let held = 0;
+  await page.route("**/assets/data/shadow_portfolio.json*", route => {     // never answered
+    if (!route.request().url().startsWith(LIVE_DATA_ORIGIN)) held += 1;
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  await clickTab(page, "drill");
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('.panel[data-panel="drill"]');
+    return panel.classList.contains("active") && !panel.hasAttribute("aria-busy");
+  }, null, { timeout: 45000 });
+  assert.ok(held > 0, "fixture: the sidecar's own-origin fallback was never asked");
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
 async function testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork(browser, base) {
   // Every poll marks loaded sidecars stale, so a minute into a visit every tab
   // switch waited for a revalidation round trip before it would paint — with
@@ -3870,6 +3911,8 @@ async function main() {
       testADataBranchAheadOfPagesDoesNotFailTheFirstTab(browser, base));
     await run("testADataBranchThatNeverAnswersFallsBackToThisOrigin", () =>
       testADataBranchThatNeverAnswersFallsBackToThisOrigin(browser, base));
+    await run("testASidecarFallbackThatNeverAnswersReleasesTheTab", () =>
+      testASidecarFallbackThatNeverAnswersReleasesTheTab(browser, base));
     await run("testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork", () =>
       testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork(browser, base));
     await run("testOverviewDoesNotOverwriteTheDetailPanelsCards", () => testOverviewDoesNotOverwriteTheDetailPanelsCards(browser, base));

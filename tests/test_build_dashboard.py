@@ -1896,6 +1896,20 @@ def test_leg_exposure_claims_do_not_confuse_return_percentages():
     assert not dashboard.validate_insights(data, {'MINIMAX'}, weights=[55.57])['bear_cases']
 
 
+def test_a_weight_written_number_first_is_still_reconciled():
+    # #2640: the 2026-10-05 SPCH card; the same payload's concentration was 87.93.
+    pool = [1.35, 3.83, 30.82, 87.93]
+    check = lambda thesis: dashboard.validate_insights(  # noqa: E731
+        {'bear_cases': [{'ticker': 'SPCH', 'thesis': thesis}]}, {'SPCH'}, weights=pool)['bear_cases']
+    assert not check('z20 +2.53 的极端超买里，86.64% 单名占比下一次回吐就直接打在美股段上')
+    assert check('z20 +2.53 的极端超买里，87.93% 单名占比下一次回吐就直接打在美股段上')
+    assert not check('86.64% 的美股段占比过高')
+    # Returns, volatility and decay in the same cards are not weights.
+    assert check('5 日 -13.0% 落后智谱 -1.88% 十一个百分点，叠加 99.7% 年化波动')
+    assert check('衰减在横盘里每月白付 0.3%，回本门槛却随标的下跌从 26.9% 一路抬')
+    assert check('年化波动 99.7%，仓位过重')
+
+
 def test_intraday_status_has_one_truncation_contract(tmp_path):
     from clawock.harness.intraday_postflight import normalize_intraday_insights
     data = {'status_banner': '板' * 200, 'movers': {'MINIMAX': '归' * 150}}
