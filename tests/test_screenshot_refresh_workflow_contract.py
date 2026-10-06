@@ -32,7 +32,8 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
     # The staged set is a contract: the two PNGs always, the GIF only on manual
     # dispatch, the DSH shot only when a DSH origin was provided (same
     # conditional pattern as the GIF, evaluated in the compose step), and
-    # exactly the README metrics files. No other path may creep in (this was
+    # exactly the README metrics files and the two per-book charts the metrics
+    # step draws from the same payload. No other path may creep in (this was
     # relaxed to any(...) once and had to be pinned back). The step moved to
     # the clawock-commit composite in #806, so the list is now read from the
     # env var the workflow computes rather than from `git add` lines — same
@@ -44,6 +45,8 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
         'README.zh.md',
         'README.md',
         'assets/data/readme_metrics.json',
+        'site/assets/book-us.svg',
+        'site/assets/book-hk.svg',
         'site/assets/dsh-decision-mind.png',
     ]
 

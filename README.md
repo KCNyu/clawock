@@ -21,11 +21,11 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
-| **<!-- CW_M:days -->141<!-- /CW_M:days -->** | **<!-- CW_M:rows -->980<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->158<!-- /CW_M:settled -->** | **44** | **5** | **0** |
+| **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
-<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−24.26%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
+<sub>Real positions, real P&amp;L, two books kept apart — US book <b><!-- CW_M:us_return_pct -->+91.75%<!-- /CW_M:us_return_pct --></b> on <!-- CW_M:us_principal -->US$2,491<!-- /CW_M:us_principal -->, HK book <b><!-- CW_M:hk_return_pct -->−40.32%<!-- /CW_M:hk_return_pct --></b> on <!-- CW_M:hk_principal -->HK$105,427<!-- /CW_M:hk_principal -->, <!-- CW_M:return_pct -->−19.66%<!-- /CW_M:return_pct --> combined in USD (<a href="#two-books-measured-apart">the two percentages use different denominators</a>) — published exactly as it is, graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
 
 </div>
 
@@ -253,6 +253,22 @@ The model submits decisions; it can never write or amend its own evaluation. Tha
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
 <sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the Shadow Portfolio under Holdings; this is a different question. Refreshed weekly by GitHub Actions; live figures are on the <a href="https://kcnyu.github.io/clawock/#drill">Holdings tab</a>.</sub>
+
+### Two books, measured apart
+
+The scorecard above grades direction. This is the money: one brokerage account, a US book in USD and a Hong Kong book in HKD. The two are never added without a stamped FX rate, and neither is used to hide the other.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/book-us.svg" width="600" alt="US book in USD: return on principal as a headline, total and realized P&amp;L in dollars underneath, and a daily curve of total P&amp;L against realized P&amp;L drawn from the dashboard's daily snapshots"></p>
+
+<sub><b>US book: <!-- CW_M:us_return_pct -->+91.75%<!-- /CW_M:us_return_pct --></b> on <!-- CW_M:us_principal -->US$2,491<!-- /CW_M:us_principal -->. Return is total P&amp;L (realized + unrealized) divided by <code><!-- CW_M:us_basis -->true_principal<!-- /CW_M:us_basis --></code>. The curve is money in USD, so it has no denominator.</sub>
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/book-hk.svg" width="600" alt="Hong Kong book in HKD: return on principal as a headline, total and realized P&amp;L in Hong Kong dollars underneath, and a daily curve of total P&amp;L against realized P&amp;L drawn from the dashboard's daily snapshots"></p>
+
+<sub><b>HK book: <!-- CW_M:hk_return_pct -->−40.32%<!-- /CW_M:hk_return_pct --></b> on <!-- CW_M:hk_principal -->HK$105,427<!-- /CW_M:hk_principal -->. Return is total P&amp;L (realized + unrealized) divided by <code><!-- CW_M:hk_basis -->net_principal<!-- /CW_M:hk_basis --></code>. The curve is money in HKD, so it has no denominator.</sub>
+
+**Read the two percentages with their denominators, not against each other.** `true_principal` is the peak net cash ever put into a book; `net_principal` is the current cost basis minus realized P&L, which shrinks as gains are banked, so a percentage on it is larger in either direction. Each book uses the first when it is configured and the second otherwise. The amount printed beside each percentage is that denominator: the books are different sizes, and a percentage on a small book is a small amount of money. Converted at the stamped USD/HKD rate, the account as a whole is <!-- CW_M:return_pct -->−19.66%<!-- /CW_M:return_pct -->, on a basis the payload labels `<!-- CW_M:return_basis -->mixed<!-- /CW_M:return_basis -->`.
+
+<sub>Every figure here is read from <a href="https://kcnyu.github.io/clawock/assets/data/dashboard.json"><code>dashboard.json</code></a>: <code>net_principal_return.us</code>, <code>.hk</code> and <code>.combined_usd</code> for the returns and denominators, <code>realized_vs_unrealized</code> for the split, <code>snapshots</code> for the curves. The curves cover the daily snapshots embedded in that payload, not the account's first day. Charts and numbers are regenerated weekly by GitHub Actions (<code>ops/growth/refresh_readme_metrics.py</code>, <code>site/tools/build_readme_book_charts.py</code>); live figures are on the <a href="https://kcnyu.github.io/clawock/#drill">Holdings tab</a>. The account owner decides which calls to execute, so this is a human-and-model result, not the model's alone. Past results say nothing about future ones, and none of this is investment advice.</sub>
 
 <details>
 <summary><b>How the grading handles the hard cases</b></summary>

@@ -287,13 +287,18 @@ def test_the_weekly_metrics_placeholders_survive_a_rewrite():
     produced = set(re.findall(r'^        "(\w+)":', block.group(1), re.M))
     assert produced, "no keys read from the refresh script: this test would pass vacuously"
 
+    # Each book's return travels with its denominator and that denominator's
+    # name; a README that keeps the percentage and drops either is the claim
+    # this section exists to avoid.
+    books = {"us_return_pct", "us_principal", "us_basis",
+             "hk_return_pct", "hk_principal", "hk_basis", "return_basis"}
     expected = {
-        "README.md": {"days", "rows", "settled", "return_pct"},
+        "README.md": {"days", "rows", "settled", "return_pct"} | books,
         "README.zh.md": {
             "as_of", "days", "rows", "settled", "return_pct", "active_pct",
             "active_n", "hold_pct", "hold_n", "hi_pct", "hi_n", "active_ci",
             "hi_ci", "followed", "not_followed", "unknown",
-        },
+        } | books,
     }
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         opened = re.findall(r"<!-- CW_M:(\w+) -->", md)
