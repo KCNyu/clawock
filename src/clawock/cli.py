@@ -186,8 +186,23 @@ def _report(args) -> int:
     Delivery and publication are not done here: those are capability providers,
     and a report you can render without them is exactly the point of the split.
     """
+    # One parser serves both modes, so each mode refuses the other's flags by
+    # name instead of taking and dropping them (#2627).
+    assemble_given = [flag for flag, given in (
+        ("--context", args.context is not None), ("--prose", args.prose is not None),
+        ("--json", args.json)) if given]
     if args.harness_phase:
+        if assemble_given:
+            print(f"clawock report {args.harness_phase}: {assemble_given[0]} applies to "
+                  f"report assembly (no phase) only", file=sys.stderr)
+            return 2
         return _harness(args, "report")
+    for flag, value in (("--market", args.market), ("--phase", args.market_phase),
+                        ("--context-id", args.context_id), ("--text-file", args.text_file)):
+        if value is not None:
+            print(f"clawock report: {flag} applies to "
+                  f"{_flag_phases('report', flag)} only", file=sys.stderr)
+            return 2
 
     from clawock.harness.report import assemble_message, categorize, validate
 
@@ -645,10 +660,10 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("harness_phase", nargs="?", choices=("preflight", "postflight"),
                         help="run the live harness phase in-process")
     report.add_argument("--context", type=Path,
-                        help="preflight context JSON")
+                        help="preflight context JSON (assembly, without a phase)")
     report.add_argument("--prose", type=Path, default=None,
-                        help="model prose; reads stdin when omitted")
-    report.add_argument("--json", action="store_true")
+                        help="model prose; reads stdin when omitted (assembly)")
+    report.add_argument("--json", action="store_true", help="assembly only")
     report.add_argument("--market", choices=("hk", "us"),
                         help="accepted by " + _flag_phases("report", "--market"))
     report.add_argument("--phase", dest="market_phase",

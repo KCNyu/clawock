@@ -284,6 +284,29 @@ def test_every_flag_a_lifecycle_help_prints_is_accepted_by_a_phase_it_names(monk
             "that no phase of it accepts")
 
 
+def test_report_modes_refuse_each_others_flags(monkeypatch, capsys, tmp_path):
+    """#2627: one parser serves assembly and the phases; each mode took the
+    other's flags and dropped them — a bogus `--context-id` changed nothing."""
+    from clawock import cli
+    from clawock.harness import runner
+
+    ran = []
+    monkeypatch.setattr(runner, "run_phase", lambda *a, **k: ran.append(a) or 0)
+    ctx = tmp_path / "ctx.json"
+    ctx.write_text("{}")
+    for argv in (["--market", "us"], ["--phase", "open"], ["--context-id", "BOGUS"],
+                 ["--text-file", "/nonexistent.md"]):
+        assert cli.main(["report", "--context", str(ctx), *argv]) == 2
+        err = capsys.readouterr().err
+        assert argv[0] in err and cli._flag_phases("report", argv[0]) in err
+    for argv in (["--context", str(ctx)], ["--prose", str(ctx)], ["--json"]):
+        assert cli.main(["report", "preflight", "--market", "hk", "--phase", "open", *argv]) == 2
+        assert argv[0] in capsys.readouterr().err
+    assert ran == []
+    assert cli.main(["report", "preflight", "--market", "hk", "--phase", "open"]) == 0
+    assert len(ran) == 1
+
+
 def test_every_packaged_utility_answers_help_without_running_anything():
     """`--help` is the first thing anyone types, and it must not do work.
 

@@ -55,7 +55,9 @@ The intraday turn plus the 30-second retry backoff still clears the next slot.
 - 11 job identities; exactly 10 enabled in OpenClaw's own scheduler (9 market jobs plus Memory Dreaming Promotion).
   The host crontab fires 港股午后快报 (`clawock cron-trigger`), which stays
   disabled in OpenClaw so the slot is not fired twice.
-- 6 report, 3 intraday and 2 brief watchdog passes are tracked; the brief
+- 11 watchdog crontab entries are tracked: 6 report, 3 intraday and
+  2 brief. An entry is not one pass a day: the intraday entries fire
+  18 times under the EDT schedule (16 under EST) on a full trading day, and the brief
   uses an 08:36 delivery backstop plus a 09:05 post-window miss detector.
 - Market payloads use deterministic preflight/postflight, `delivery.mode=none`,
   a unique WeChat path, Telegram mirror, and an ordered unique subset of the

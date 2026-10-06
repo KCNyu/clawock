@@ -844,6 +844,14 @@ def main():
                         detail += (f'; {len(covered)} of the gap covered by backstop, '
                                   f'{gap - len(covered)} still unaccounted')
                     has_missing = True
+            elif commit_n > len(expected_past):
+                # One commit per slot is the contract. More means the postflight
+                # ran again for a slot it had already committed; printed as a
+                # ratio with ✓ this read "3/1 commits OK" (#2635).
+                status = 'over'
+                detail = (f'{commit_n} commits for {len(expected_past)} slot(s) — '
+                          f'the postflight committed more than once')
+                has_warn = True
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
         elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
@@ -953,7 +961,7 @@ def main():
         for r in report:
             icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~',
                     'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
-                    'holiday':'🏖','backstop':'⚠'}.get(r['status'], '·')
+                    'holiday':'🏖','backstop':'⚠','over':'⚠'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")

@@ -93,3 +93,20 @@ def test_packet_rejects_wrong_episode_pair_in_public_projection():
     projection = compile_pages_projection(packet, overlay, overlay_issues=issues)
     assert projection['judgment_status'] == 'invalid'
     assert any('RKLX 自己是 11 个 / 45%' in issue for issue in projection['judgment_issues'])
+
+
+def test_a_rationale_restating_its_own_size_is_not_an_unsourced_number(tmp_path):
+    # #2636: the three active calls of 2026-10-05 were each flagged for the
+    # share count their own `size.shares` carried.
+    from clawock.harness.brief_postflight import _brief_numeric_issues
+
+    path = tmp_path / 'j.json'
+    path.write_text('{}')
+    plan = {'decisions': [{'ticker': '07226', 'rationale': '减 1500 股后杠杆下降',
+                           'size': {'shares': 1500, 'pct': 20.83, 'note': '约 9999 股'}}]}
+    assert _brief_numeric_issues(path, plan, {}) == []
+    plan['decisions'][0]['rationale'] = '减 1700 股后杠杆下降'
+    assert '1700股' in _brief_numeric_issues(path, plan, {})[0]
+    # `size.note` is prose, not a source for other prose.
+    plan['decisions'][0]['rationale'] = '减 9999 股后杠杆下降'
+    assert '9999股' in _brief_numeric_issues(path, plan, {})[0]

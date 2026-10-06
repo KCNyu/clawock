@@ -471,6 +471,14 @@ def test_every_postflight_reports_the_product_not_the_check(module_name):
         f"{module_name} still files the checker's verdict as the product")
 
 
+def test_quant_momentum_and_annualised_vol_are_percent_sources(hc):
+    # #2636: copied and invented figures got the same verdict.
+    ctx = {"quant_signals": {"rows": {"00100": {"mom_1m": -29.1, "vol20_annualized": 0.9974}}}}
+    assert hc.check_numeric_claims("00100 1 个月 -29.1%、20 日年化波动 99.7%", ctx) == []
+    assert "-33.7%" in hc.check_numeric_claims("00100 1 个月 -33.7%", ctx)[0]
+    assert "88.1%" in hc.check_numeric_claims("00100 20 日年化波动 88.1%", ctx)[0]
+
+
 def test_an_episode_win_rate_is_checked_against_the_ticker_it_is_said_about():
     # #2307: 07226's 「13 个 episode 胜率 62%」 shipped under RKLX (11 / 45%).
     from clawock.harness.validation import check_numeric_claims

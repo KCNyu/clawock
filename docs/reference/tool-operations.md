@@ -148,7 +148,7 @@ clawock us-quotes     # 仅刷美股价格
 
 ### Cron map
 
-11 个任务身份（OpenClaw 中 10 个启用，港股午后快报保留禁用身份、由 host crontab 触发）、11 个 watchdog pass（6 report + 3 intraday + 08:36 brief 投递兜底 + 09:05 brief miss-detector）、EDT/EST 两季表达式和 harness 映射只在
+任务身份（港股午后快报保留禁用身份、由 host crontab 触发）、各 watchdog 的 crontab 条目（含 brief 的投递兜底与 miss-detector 两条）、EDT/EST 两季表达式和 harness 映射只在
 [`config/cron-schedules.json`](../../config/cron-schedules.json) 维护；人读表由
 [`docs/operations/cron-schedules.md`](../operations/cron-schedules.md) 自动生成。每日 06:20 HKT 的同步器按
 `America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、
