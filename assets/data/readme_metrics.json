@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-06T15:12:45",
+ "generated_at": "2026-10-06T16:45:40",
  "as_of": "2026-10",
  "days": 142,
  "rows": 985,
@@ -15,12 +15,5 @@
  "return_pct": "-19.79",
  "followed": 547,
  "not_followed": 383,
- "unknown": 55,
- "us_return_pct": "+91.75%",
- "us_principal": "US$2,491",
- "us_basis": "true_principal",
- "hk_return_pct": "−40.48%",
- "hk_principal": "HK$105,427",
- "hk_basis": "net_principal",
- "return_basis": "mixed"
+ "unknown": 55
 }

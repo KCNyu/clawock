@@ -29,7 +29,6 @@ sys.path.insert(0, str(_ROOT / "src"))
 from clawock.decision import ledger  # noqa: E402
 
 _CHARTS = _ROOT / "site" / "tools" / "build_readme_book_charts.py"
-_BOOK_CURRENCY = {"us": "US$", "hk": "HK$"}
 
 
 def _book_charts():
@@ -40,26 +39,6 @@ def _book_charts():
     spec.loader.exec_module(module)
     return module
 
-
-def _book_values(net_principal_return) -> dict:
-    """Per-book return, its denominator and the name of that denominator.
-
-    The two books do not share a basis: a leg with `true_principal` configured
-    divides by the peak net cash put in, the other by cost minus realized. The
-    README prints `return_basis` beside each percentage instead of asserting
-    one in prose, so a basis that changes in the payload changes on the page.
-    """
-    out = {}
-    for leg, prefix in _BOOK_CURRENCY.items():
-        book = net_principal_return[leg]
-        basis = book["return_basis"]
-        pct = book["return_pct"]
-        sign = "" if pct is None else ("+" if pct >= 0 else "\u2212")
-        out[f"{leg}_return_pct"] = "n/a" if pct is None else f"{sign}{abs(pct):.2f}%"
-        out[f"{leg}_principal"] = f"{prefix}{book[basis]:,.0f}"
-        out[f"{leg}_basis"] = basis
-    out["return_basis"] = net_principal_return["combined_usd"]["return_basis"]
-    return out
 
 PLACEHOLDER = re.compile(r"<!-- CW_M:(\w+) -->.*?<!-- /CW_M:\1 -->", re.S)
 
@@ -135,7 +114,6 @@ def _refresh() -> int:
 
     dashboard = json.loads((dp / "dashboard.json").read_text())
     return_pct = dashboard["net_principal_return"]["combined_usd"]["return_pct"]
-    books = _book_values(dashboard["net_principal_return"])
 
     metrics = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -155,7 +133,6 @@ def _refresh() -> int:
         "followed": followed,
         "not_followed": not_followed,
         "unknown": unknown,
-        **books,
     }
 
     values = {
@@ -175,13 +152,6 @@ def _refresh() -> int:
         "followed": str(metrics["followed"]),
         "not_followed": str(metrics["not_followed"]),
         "unknown": str(metrics["unknown"]),
-        "us_return_pct": metrics["us_return_pct"],
-        "us_principal": metrics["us_principal"],
-        "us_basis": metrics["us_basis"],
-        "hk_return_pct": metrics["hk_return_pct"],
-        "hk_principal": metrics["hk_principal"],
-        "hk_basis": metrics["hk_basis"],
-        "return_basis": metrics["return_basis"],
     }
 
     changed = False

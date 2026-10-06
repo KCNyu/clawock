@@ -21,7 +21,7 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
 
-<a href="https://kcnyu.github.io/clawock/#drill"><img src="site/assets/books.svg" width="640" alt="美股账本(美元)与港股账本(港币)并排:各自的本金回报率、总盈亏与逐日盈亏曲线"></a>
+<a href="https://kcnyu.github.io/clawock/#drill"><img src="site/assets/books.svg" width="600" alt="美股账本(美元)与港股账本(港币)并排:各自的本金回报率、总盈亏与逐日盈亏曲线"></a>
 
 | **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|

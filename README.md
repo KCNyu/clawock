@@ -21,7 +21,7 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
-<a href="https://kcnyu.github.io/clawock/#drill"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/books.svg" width="640" alt="US book in USD and Hong Kong book in HKD, side by side: each book's return on its own principal, its total P&amp;L and its daily P&amp;L curve"></a>
+<a href="https://kcnyu.github.io/clawock/#drill"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/books.svg" width="600" alt="US book in USD and Hong Kong book in HKD, side by side: each book's return on its own principal, its total P&amp;L and its daily P&amp;L curve"></a>
 
 | **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
