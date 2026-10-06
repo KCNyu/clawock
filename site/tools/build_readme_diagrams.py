@@ -1558,7 +1558,140 @@ def guardrails(wide=False):
     return d.render(y + 20 + M)
 
 
+def _rsi_cards(title, desc, kicker, headline, sub, cards, wide, parallel=False):
+    """Six artifact-sized steps, down the left then down the right on desktop.
+
+    The RSI views use the same glass, chips and packet motion as the detailed
+    desk diagrams. Each card names an output rather than another abstract layer.
+    """
+    d = D(title, desc, wide=wide)
+    y = d.header(kicker, headline, sub,
+                 [('evidence', 'blue'), ('agent', 'slate'), ('code', 'green'),
+                  ('human / review', 'warm')], title_lh=34) + 30
+    d.flow(y)
+    h, gap = 132, 34
+    for i, (role, icon, heading, rows, artifact) in enumerate(cards):
+        if i == 3:
+            if parallel:
+                if d.wide:
+                    d.place(1, y, d.top, y - gap)
+            else:
+                d.turn(W / 2, y - gap, y, first=y, enter=y + h / 2,
+                       reach=M, pulses=(0, 1.1), pulse=ROLE['green'])
+        elif i:
+            d.down(W / 2, y - gap, y, pulses=(0, 1.1), pulse=ROLE[role])
+        d.card(M, y, CW, h, role)
+        d.icon(icon, M + 20, y + 14, role)
+        fits(heading, 'h', CW - 70, 'RSI heading')
+        d.text(M + 50, y + 32, heading, 'h')
+        d.lines(M + 20, y + 59, CW - 40, rows, cls='m', lh=20, where='RSI body')
+        d.chip(M + 20, y + 96, CW - 40, artifact, cls='code',
+               fill=ROLE[role], role=role, h=26)
+        y += h + gap
+    return d.render(y - gap + M)
+
+
+def rsi_loop(wide=False):
+    """The daily user story, with an artifact at every hand-off."""
+    return _rsi_cards(
+        'RSI: information, decision, outcome, next judgment',
+        'Recursive Self-Improvement on a stock book: sourced information becomes an evidence '
+        'pack; an agent writes both cases and invalidation; code validates a plan or decision '
+        'receipt; the human chooses execution; code settles outcomes and returns history and '
+        'earlier-date calibration to the next judgment. Portable improvement is reviewed and '
+        'bounded, not autonomous strategy editing or a promise of returns.',
+        'RSI · YOUR TRADING DAY', ['Information in.', 'The next judgment learns.'],
+        ['Evidence → decision → code-settled outcome', '→ the next context, in any harness.'], [
+            ('blue', 'news', 'Collect what changed',
+             ['Quotes, filings, news and your book;', 'sources, timestamps and missing feeds.'],
+             'sourced evidence'),
+            ('blue', 'filing', 'Keep the evidence pack',
+             ['Desk: core plus loadable references.', 'Portable: context + workflow certificate.'],
+             'preflight context / request.json'),
+            ('slate', 'debate', 'Argue before choosing',
+             ['Bull and bear cite the same pack.', 'Action, trigger and invalidation are explicit.'],
+             'plan.json / decision.json'),
+            ('green', 'checks', 'Check, publish, keep the call',
+             ['Python checks evidence and money.', 'A receipt pins the run; you place orders.'],
+             'brief card / publication receipt'),
+            ('green', 'balance', 'Settle without the model',
+             ['Execution status stays beside the call.', 'Losses and ungradeable cases remain visible.'],
+             'decisions.jsonl / evaluation.json'),
+            ('warm', 'replay', 'Start the next judgment here',
+             ['History and earlier-date calibration return.', 'Bounded changes need review, with rollback.'],
+             'next context / reviewed proposal'),
+        ], wide)
+
+
+def evidence_receipt(wide=False):
+    """Explain source provenance and content certification as separate checks."""
+    return _rsi_cards(
+        'What the evidence certificate actually pins',
+        'Live data collectors preserve source and time, label missing feeds, reconcile book and '
+        'FX and assemble generation-bound core/reference context. A portable prepare request '
+        'certifies every context document and the whole bundle with SHA-256 and pins the workflow '
+        'pack. Publish rejects changed context or a changed workflow certificate. Hashes identify '
+        'what was used; they do not prove a source true. Runtime credentials stay outside artifacts.',
+        'INFORMATION · A TRACEABLE INPUT', ['Before an opinion,', 'keep its evidence.'],
+        ['Source provenance and content certification', 'answer different questions.'], [
+            ('blue', 'filing', 'Where did it come from?',
+             ['Issuer / regulator documents and feeds;', 'source locator plus publication or observation.'],
+             'source · published_at / observed_at'),
+            ('warm', 'news', 'What could not be fetched?',
+             ['Fallback routes and old-news labels.', 'A missing feed is not “no news”.'],
+             'source health / degraded'),
+            ('green', 'fx', 'Does the book reconcile?',
+             ['Python checks money and quote freshness.', 'USD and HKD meet only through stated FX.'],
+             'reconciled book + risk'),
+            ('blue', 'book', 'What does this judgment read?',
+             ['Desk preflight: core plus references.', 'Each batch carries its own generation.'],
+             'core packet + reference layers'),
+            ('green', 'checks', 'Which exact input was used?',
+             ['Portable prepare pins document / bundle', 'hashes, workflow version and pack certificate.'],
+             'request.json → manifest.json'),
+            ('warm', 'shield', 'What does the check guarantee?',
+             ['Publish refuses changed certified input.', 'It pins content, not the truth of a claim.'],
+             'rejection or pinned receipt'),
+        ], wide)
+
+
+def feedback_learning(wide=False):
+    """Show the live learning path beside the portable adoption path."""
+    return _rsi_cards(
+        'How feedback becomes the next judgment',
+        'Read the left column as the live desk path: execution evidence, canonical-bar settlement, '
+        'history and earlier-date confidence calibration in the next brief. The right column is '
+        'the portable workflow path: source-linked outcome, directional evaluation (not realized '
+        'P&L), bounded proposal from evaluation or rejection, named exact-hash review, apply and '
+        'rollback. Current parameters change only evidence/provenance strictness, not trading '
+        'strategy, and neither path guarantees a return.',
+        'FEEDBACK · TWO PATHS TO THE NEXT RUN', ['Keep the outcome.', 'Change with evidence.'],
+        ['Live desk: history and calibration.', 'Portable workflow: reviewed parameter changes.'], [
+            ('warm', 'checks', 'LIVE · Did you follow it?',
+             ['Human execution evidence is recorded.', 'Followed / not-followed / unknown stay visible.'],
+             'mark-followed → decisions.jsonl'),
+            ('green', 'balance', 'LIVE · How did the call settle?',
+             ['Canonical bars and each market’s calendar.', 'Repeated theses group; ungradeable stays.'],
+             'episode outcomes + scorecard'),
+            ('blue', 'replay', 'LIVE · What comes back tomorrow?',
+             ['History, reviews and calibration return.', 'Only earlier dates calibrate confidence.'],
+             'next brief context'),
+            ('blue', 'filing', 'PORTABLE · Observe the outcome',
+             ['Link observed price and FX to their source.', 'Directional evaluation is not realized P&L.'],
+             'outcome.json → evaluation.json'),
+            ('slate', 'factor', 'PORTABLE · Propose a bounded change',
+             ['Evaluation or rejection anchors a proposal.', 'Only evidence / provenance parameters change.'],
+             'workflow propose'),
+            ('warm', 'shield', 'PORTABLE · Review before adoption',
+             ['A named reviewer accepts the exact hash.', 'Apply records prior values; rollback checks drift.'],
+             'review → apply → rollback'),
+        ], wide, parallel=True)
+
+
 LAYOUTS = {
+    'rsi-loop': rsi_loop,
+    'evidence-receipt': evidence_receipt,
+    'feedback-learning': feedback_learning,
     'decision-pipeline': decision_pipeline,
     'harnesses': harnesses,
     'information-flow': information_flow,

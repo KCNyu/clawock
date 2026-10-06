@@ -33,6 +33,24 @@ def test_committed_diagrams_match_their_builder():
         'run `python3 site/tools/build_readme_diagrams.py` and commit the SVGs')
 
 
+def test_rsi_views_share_the_house_style_and_stay_small():
+    builder = _builder()
+    names = {'rsi-loop', 'evidence-receipt', 'feedback-learning'}
+    assert names <= builder.LAYOUTS.keys()
+    for name in names:
+        for suffix in ('', '-narrow'):
+            path = ROOT / 'site/assets' / f'{name}{suffix}.svg'
+            text = path.read_text(encoding='utf-8')
+            assert path.stat().st_size < 40_000, path.name
+            for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
+                assert primitive in text, (path.name, primitive)
+            assert '@media (prefers-reduced-motion:reduce)' in text
+            root = ET.fromstring(text)
+            for motion in root.iter(f'{SVG}animateMotion'):
+                parent = next(el for el in root.iter() if motion in list(el))
+                assert 'pulse' in parent.attrib.get('class', '').split(), path.name
+
+
 def test_diagrams_animate_without_anything_an_img_would_drop():
     for name in _builder().DIAGRAMS:
         root = ET.parse(ROOT / 'site/assets' / name).getroot()

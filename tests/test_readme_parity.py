@@ -38,14 +38,18 @@ def _first_emoji(text):
     return None
 
 EN_H2 = [
-    "What you get", "Try it in five minutes", "A trading day on your book",
-    "The record, losses included", "What the model is not allowed to do",
-    "Delegate from DeepSeek Harness", "Under the hood", "Explore",
+    "What you get", "Information in: sources before opinions",
+    "Decision out: both sides read the same evidence",
+    "After the close: results feed the next decision",
+    "Any harness, one decision contract that accumulates evidence",
+    "What the model is not allowed to do", "Try it in five minutes",
+    "Harness views and background work", "Under the hood", "Explore",
     "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
-    "你能得到什么", "五分钟跑起来", "你账本上的一个交易日",
-    "战绩,亏损照样摆出来", "模型不被允许做的事", "在 DeepSeek Harness 里委派",
+    "你能得到什么", "信息进来：先有来源，再有观点", "决策出来：多空同读一份证据",
+    "收盘后：结果回到下一次判断", "任何 harness，同一套会积累的决策契约",
+    "模型不被允许做的事", "五分钟跑起来", "Harness 界面与后台工作",
     "引擎盖下面", "接着看", "范围、免责与许可",
 ]
 
@@ -227,6 +231,33 @@ def test_explicit_h2_sequences():
     # not just the count — so a section can't be added/reordered in one language only.
     assert [h[3:].strip() for h in _h2(EN)] == EN_H2
     assert [h[3:].strip() for h in _h2(ZH)] == ZH_H2
+
+
+def test_hero_is_unchanged_apart_from_weekly_metrics():
+    """The confirmed first 33 lines stay byte-identical except refreshed CW_M values."""
+    import hashlib
+
+    for md, expected in (
+        (EN, "d179668bd8b5d487ef3fbc5c0243aeb6e8f25c3104614a6dc22e6295540058f0"),
+        (ZH, "6267f85a944050fdc44c0d309a829d9bff9c66110f71c30bcfc547b76636acd1"),
+    ):
+        hero = ''.join(md.splitlines(keepends=True)[:33])
+        hero = re.sub(r'(<!-- CW_M:\w+ -->).*?(<!-- /CW_M:\w+ -->)', r'\1\2', hero)
+        assert hashlib.sha256(hero.encode()).hexdigest() == expected
+
+
+def test_rsi_artifacts_and_portability_precede_installation():
+    """The reader sees inputs, a decision and measurable feedback before setup."""
+    for md, setup in ((EN, "## Try it in five minutes"), (ZH, "## 五分钟跑起来")):
+        story = md[:md.index(setup)]
+        for artifact in ('request.json', 'decision.json', 'plan.json', 'decisions.jsonl',
+                         'outcome.json', 'evaluation.json'):
+            assert artifact in story, artifact
+        for harness in ('Claude Code', 'Codex', 'OpenClaw', 'DeepSeek Harness'):
+            assert harness in story, harness
+        for diagram in ('rsi-loop', 'evidence-receipt', 'feedback-learning'):
+            assert f'{diagram}.svg' in story, diagram
+        assert story.index('decision-card-example.png') < story.index('scorecard.svg')
 
 
 def test_emoji_only_in_the_hhi_bucket_row():
