@@ -1042,72 +1042,20 @@ def _live_health(context: dict) -> dict:
     }
 
 
-def compile_packet(context: dict, generation_id: str | None = None) -> dict:
-    generation_id = generation_id or context.get("generation_id")
-    if not generation_id:
-        raise ValueError("decision packet requires context generation_id")
-    quant_rows = (context.get("quant_signals") or {}).get("rows") or {}
-    cross_payload = context.get("cross_sectional_factor") or {}
-    peer_payload = context.get("peer_residual") or {}
-    # ``held_rankings``/``held`` were early fixture names. Production has
-    # always published ``live_rankings``/``live``. Keeping the aliases is useful
-    # for older external runtimes, but the real producer contract comes first.
-    cross_rows = (
-        cross_payload.get("live_rankings")
-        or cross_payload.get("held_rankings")
-        or {}
-    )
-    peer_rows = peer_payload.get("live") or peer_payload.get("held") or {}
-    sentiment_rows = (context.get("sentiment") or {}).get("tickers") or []
-    events = (context.get("news_evidence_graph") or {}).get("events") or []
-    evidence_graph = context.get("news_evidence_graph") or {}
-    add_policy = _add_alpha_policy(context)
-    left_policy = _left_side_policy(context)
-    alpha_activation = add_alpha_activation(context)
-    proxies = _proxy_map(context)
-    holdings = list(_active_holdings(context))
-    active = {str(holding.get("ticker")) for _, holding in holdings}
-    # Do not emit another tranche while an earlier add is still open in the
-    # authoritative ledger. This is the daily equivalent of an exchange open-
-    # order check and prevents repeated briefs from stacking the same setup.
-    open_surface = context.get("open_decisions") or {}
-    if "open_add_tickers" in open_surface:
-        open_adds = {str(ticker) for ticker in open_surface["open_add_tickers"]}
-        open_add_gate_error = bool(open_surface.get("open_add_gate_error"))
-    else:
-        # Backward-compatible input for external runtimes. A generic surface
-        # error/truncation cannot prove that no add is open, so fail closed.
-        open_adds = {
-            str(row.get("ticker") or "")
-            for row in open_surface.get("open") or []
-            if row.get("action") in {"add_only_on_trigger", "add_on_breakout"}
-            and row.get("execution_status") == "unknown"
-        }
-        open_add_gate_error = bool(
-            open_surface.get("error") or open_surface.get("truncated")
-        )
-    setup_usage = context.get("technical_setup_usage") or {}
-    risks = _risk_map(context, active)
-    swap_mandates = _swap_mandates(risks)
-    tickers = {}
-    portfolios = (context.get("portfolio") or {}).get("portfolios") or {}
-    invested = {
-        "HK": sum(
-            float(h.get("current_value") or 0)
-            for h in (portfolios.get("hk_stocks") or {}).get("holdings") or []
-            if (_number(h.get("shares")) or 0) > 0
-        ),
-        "US": sum(
-            float(h.get("current_value") or 0)
-            for h in (portfolios.get("us_stocks") or {}).get("holdings") or []
-            if (_number(h.get("shares")) or 0) > 0
-        ),
-    }
-    cash = {
-        "HK": float((portfolios.get("hk_stocks") or {}).get("cash_hkd") or 0),
-        "US": float((portfolios.get("us_stocks") or {}).get("cash_usd") or 0),
-    }
+def _matching_events(events, ticker, source_ticker) -> list:
+    return [
+        _event_view(event) for event in events
+        if str(event.get("ticker") or event.get("reported_ticker") or "")
+        in {ticker, source_ticker}
+    ]
 
+
+def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross_rows,
+                 events, evidence_graph, invested, left_policy, open_add_gate_error,
+                 open_adds, peer_rows, proxies, quant_rows, risks, sentiment_rows,
+                 setup_usage, swap_mandates) -> dict:
+    """One projected row per active holding: its views, authority and add state."""
+    tickers = {}
     for leg, holding in holdings:
         ticker = str(holding.get("ticker"))
         source_ticker = ticker if ticker in quant_rows else proxies.get(ticker, ticker)
@@ -1116,11 +1064,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             source_ticker,
             source_ticker != ticker,
         ), setup_usage.get(ticker) or {})
-        matching_events = [
-            _event_view(event) for event in events
-            if str(event.get("ticker") or event.get("reported_ticker") or "")
-            in {ticker, source_ticker}
-        ]
+        matching_events = _matching_events(events, ticker, source_ticker)
         actionable_ids = [
             event.get("event_id") for event in matching_events
             if event.get("actionable_escalation") and event.get("event_id")
@@ -1272,7 +1216,30 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 swap_mandates.get(ticker) or [],
             ),
         }
+    return tickers
 
+
+def _candidate_state(tier, early, active_setup, execution, row, allowed) -> str:
+    """One of the seven mutually exclusive add-candidate states, judged in this order."""
+    if tier == "none" and early.get("observed"):
+        state = early.get("state") or "candidate_only"
+    elif tier == "none":
+        state = "insufficient_evidence"
+    elif active_setup is None:
+        state = "waiting_timing"
+    elif active_setup.get("remaining_tranches") == 0:
+        state = "already_at_target"
+    elif execution.get("blockers") or row.get("risk"):
+        state = "risk_blocked"
+    elif allowed:
+        state = "eligible"
+    else:
+        state = "constraint_blocked"
+    return state
+
+
+def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
+    """The add-candidate state of every ticker row, with tier and blocker tallies."""
     tier_counts = {"validated": 0, "exploration": 0, "none": 0}
     blocker_counts = {}
     candidates = []
@@ -1302,20 +1269,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         execution = row.get("execution") or {}
         allowed = "add_only_on_trigger" in (constraints.get("allowed_actions") or [])
         early_ready = bool(early.get("exploration_ready"))
-        if tier == "none" and early.get("observed"):
-            state = early.get("state") or "candidate_only"
-        elif tier == "none":
-            state = "insufficient_evidence"
-        elif active_setup is None:
-            state = "waiting_timing"
-        elif active_setup.get("remaining_tranches") == 0:
-            state = "already_at_target"
-        elif execution.get("blockers") or row.get("risk"):
-            state = "risk_blocked"
-        elif allowed:
-            state = "eligible"
-        else:
-            state = "constraint_blocked"
+        state = _candidate_state(tier, early, active_setup, execution, row, allowed)
         candidates.append({
             "ticker": ticker,
             "leg": row.get("leg"),
@@ -1343,8 +1297,75 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "execution_blockers": list(execution.get("blockers") or []),
             "early_trend": early,
         })
+    return candidates, tier_counts, blocker_counts
 
-    packet = {
+
+def _packet_budget_warnings(packet: dict, tickers: dict) -> None:
+    """Refuse a packet over the byte budget; warn when it or its summary nears it."""
+    size = len(_compact(packet).encode("utf-8"))
+    if size > MAX_PACKET_BYTES:
+        raise ValueError(f"decision packet exceeds {MAX_PACKET_BYTES} bytes: {size}")
+    if size > MAX_PACKET_BYTES * PACKET_BUDGET_WARN_RATIO:
+        # 2026-08-17 taught this about the *summary* budget: "Nothing warned on
+        # the way past the line, because the trigger was portfolio growth, not a
+        # code change." `SUMMARY_BUDGET_WARN_RATIO` was the answer — and the
+        # packet's own ceiling never got one, so the lesson stopped at the
+        # smaller of the two numbers.
+        #
+        # Measured 2026-09-06 while adding `history`: the packet was already at
+        # 94,071 of 98,304 bytes (95.7%), i.e. past where the summary's warning
+        # would have fired, with nothing anywhere saying so. Overrunning it is a
+        # hard ValueError in preflight, which is the morning brief getting no
+        # packet at all — so the warning has to arrive while there is still room
+        # to act, not at the wall.
+        print(f"warn: decision packet at {size} bytes is "
+              f"{size / MAX_PACKET_BYTES:.1%} of the {MAX_PACKET_BYTES}-byte "
+              f"ceiling ({len(tickers)} tickers) — overrunning it fails preflight "
+              f"outright, so trim a projection before the next holding lands",
+              file=sys.stderr)
+    # …and the summary's own warning, which is the one the comment above credits
+    # with the lesson. `SUMMARY_BUDGET_WARN_RATIO` and `summary_budget_report`
+    # were written for 2026-08-17 and then never called outside the tests, so
+    # `near_budget` — "the signal that has to fire while there is still room" —
+    # had nowhere to fire. Both budgets are crossed by the same act (buying a
+    # stock), so both belong on the same alarm, at the one place that runs on
+    # every generation.
+    summary = summary_budget_report(packet)
+    if summary["over_budget"] or summary["near_budget"]:
+        print(f"warn: decision packet summary at {summary['bytes']} bytes is "
+              f"{summary['ratio']:.1%} of the {summary['budget']}-byte ceiling "
+              f"({summary['tickers']} tickers) — "
+              + ("`decision_packet_summary` is already refusing, and it is the "
+                 "brief's only resident input"
+                 if summary["over_budget"] else
+                 "`decision_packet_summary` refuses outright at the line"),
+              file=sys.stderr)
+
+
+def _book_totals(portfolios: dict) -> tuple[dict, dict]:
+    """Invested value and cash per leg, in the leg's own currency."""
+    invested = {
+        "HK": sum(
+            float(h.get("current_value") or 0)
+            for h in (portfolios.get("hk_stocks") or {}).get("holdings") or []
+            if (_number(h.get("shares")) or 0) > 0
+        ),
+        "US": sum(
+            float(h.get("current_value") or 0)
+            for h in (portfolios.get("us_stocks") or {}).get("holdings") or []
+            if (_number(h.get("shares")) or 0) > 0
+        ),
+    }
+    cash = {
+        "HK": float((portfolios.get("hk_stocks") or {}).get("cash_hkd") or 0),
+        "US": float((portfolios.get("us_stocks") or {}).get("cash_usd") or 0),
+    }
+    return invested, cash
+
+
+def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blocker_counts, candidates, swap_mandates, tickers, tier_counts) -> dict:
+    """The packet literal: every section the brief reads, in its published key order."""
+    return {
         "_meta": {
             "schema_version": SCHEMA_VERSION,
             "kind": "brief_decision_packet",
@@ -1467,44 +1488,74 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             for mandate in mandates
         ],
     }
-    size = len(_compact(packet).encode("utf-8"))
-    if size > MAX_PACKET_BYTES:
-        raise ValueError(f"decision packet exceeds {MAX_PACKET_BYTES} bytes: {size}")
-    if size > MAX_PACKET_BYTES * PACKET_BUDGET_WARN_RATIO:
-        # 2026-08-17 taught this about the *summary* budget: "Nothing warned on
-        # the way past the line, because the trigger was portfolio growth, not a
-        # code change." `SUMMARY_BUDGET_WARN_RATIO` was the answer — and the
-        # packet's own ceiling never got one, so the lesson stopped at the
-        # smaller of the two numbers.
-        #
-        # Measured 2026-09-06 while adding `history`: the packet was already at
-        # 94,071 of 98,304 bytes (95.7%), i.e. past where the summary's warning
-        # would have fired, with nothing anywhere saying so. Overrunning it is a
-        # hard ValueError in preflight, which is the morning brief getting no
-        # packet at all — so the warning has to arrive while there is still room
-        # to act, not at the wall.
-        print(f"warn: decision packet at {size} bytes is "
-              f"{size / MAX_PACKET_BYTES:.1%} of the {MAX_PACKET_BYTES}-byte "
-              f"ceiling ({len(tickers)} tickers) — overrunning it fails preflight "
-              f"outright, so trim a projection before the next holding lands",
-              file=sys.stderr)
-    # …and the summary's own warning, which is the one the comment above credits
-    # with the lesson. `SUMMARY_BUDGET_WARN_RATIO` and `summary_budget_report`
-    # were written for 2026-08-17 and then never called outside the tests, so
-    # `near_budget` — "the signal that has to fire while there is still room" —
-    # had nowhere to fire. Both budgets are crossed by the same act (buying a
-    # stock), so both belong on the same alarm, at the one place that runs on
-    # every generation.
-    summary = summary_budget_report(packet)
-    if summary["over_budget"] or summary["near_budget"]:
-        print(f"warn: decision packet summary at {summary['bytes']} bytes is "
-              f"{summary['ratio']:.1%} of the {summary['budget']}-byte ceiling "
-              f"({summary['tickers']} tickers) — "
-              + ("`decision_packet_summary` is already refusing, and it is the "
-                 "brief's only resident input"
-                 if summary["over_budget"] else
-                 "`decision_packet_summary` refuses outright at the line"),
-              file=sys.stderr)
+
+
+def compile_packet(context: dict, generation_id: str | None = None) -> dict:
+    generation_id = generation_id or context.get("generation_id")
+    if not generation_id:
+        raise ValueError("decision packet requires context generation_id")
+    quant_rows = (context.get("quant_signals") or {}).get("rows") or {}
+    cross_payload = context.get("cross_sectional_factor") or {}
+    peer_payload = context.get("peer_residual") or {}
+    # ``held_rankings``/``held`` were early fixture names. Production has
+    # always published ``live_rankings``/``live``. Keeping the aliases is useful
+    # for older external runtimes, but the real producer contract comes first.
+    cross_rows = (
+        cross_payload.get("live_rankings")
+        or cross_payload.get("held_rankings")
+        or {}
+    )
+    peer_rows = peer_payload.get("live") or peer_payload.get("held") or {}
+    sentiment_rows = (context.get("sentiment") or {}).get("tickers") or []
+    events = (context.get("news_evidence_graph") or {}).get("events") or []
+    evidence_graph = context.get("news_evidence_graph") or {}
+    add_policy = _add_alpha_policy(context)
+    left_policy = _left_side_policy(context)
+    alpha_activation = add_alpha_activation(context)
+    proxies = _proxy_map(context)
+    holdings = list(_active_holdings(context))
+    active = {str(holding.get("ticker")) for _, holding in holdings}
+    # Do not emit another tranche while an earlier add is still open in the
+    # authoritative ledger. This is the daily equivalent of an exchange open-
+    # order check and prevents repeated briefs from stacking the same setup.
+    open_surface = context.get("open_decisions") or {}
+    if "open_add_tickers" in open_surface:
+        open_adds = {str(ticker) for ticker in open_surface["open_add_tickers"]}
+        open_add_gate_error = bool(open_surface.get("open_add_gate_error"))
+    else:
+        # Backward-compatible input for external runtimes. A generic surface
+        # error/truncation cannot prove that no add is open, so fail closed.
+        open_adds = {
+            str(row.get("ticker") or "")
+            for row in open_surface.get("open") or []
+            if row.get("action") in {"add_only_on_trigger", "add_on_breakout"}
+            and row.get("execution_status") == "unknown"
+        }
+        open_add_gate_error = bool(
+            open_surface.get("error") or open_surface.get("truncated")
+        )
+    setup_usage = context.get("technical_setup_usage") or {}
+    risks = _risk_map(context, active)
+    swap_mandates = _swap_mandates(risks)
+    portfolios = (context.get("portfolio") or {}).get("portfolios") or {}
+    invested, cash = _book_totals(portfolios)
+
+    tickers = _ticker_rows(
+        holdings, context, add_policy=add_policy,
+        alpha_activation=alpha_activation, cash=cash, cross_rows=cross_rows,
+        events=events, evidence_graph=evidence_graph, invested=invested,
+        left_policy=left_policy, open_add_gate_error=open_add_gate_error, open_adds=open_adds,
+        peer_rows=peer_rows, proxies=proxies, quant_rows=quant_rows,
+        risks=risks, sentiment_rows=sentiment_rows, setup_usage=setup_usage,
+        swap_mandates=swap_mandates,
+    )
+    candidates, tier_counts, blocker_counts = _candidate_rows(tickers)
+
+    packet = _packet_payload(
+        context, generation_id, add_policy=add_policy, alpha_activation=alpha_activation, blocker_counts=blocker_counts,
+        candidates=candidates, swap_mandates=swap_mandates, tickers=tickers, tier_counts=tier_counts,
+    )
+    _packet_budget_warnings(packet, tickers)
     return packet
 
 
