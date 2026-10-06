@@ -3617,7 +3617,23 @@ _BRIEF_FRESHNESS_ARTIFACTS = frozenset({
     # A flat 80h allowance outlasted the 72h Friday→Monday gap, so a missed
     # Monday run still read fresh (#2539).
     'benchmark.json',
+    # Committed by the same brief and fetched by the Drill / Reflect tabs; the
+    # dashboard build rewrites the map, so its row also catches that step
+    # timing out day after day (#2618).
+    'brief_projection.json',
+    'decision_map.json',
 })
+
+# Artifacts the page downloads that carry no freshness row, each with the
+# reason. `tests/test_build_dashboard.py` holds this and `_FRESHNESS_POLICY`
+# against what `dashboard.ui.js` and `config/dashboard-outputs.json` name, so a
+# new artifact is either judged here or listed with why it is not (#2618).
+_FRESHNESS_EXEMPT = {
+    name: 'written by the build that computes this status; its age is the build\'s '
+          'own, which the scheduled-publisher and generation checks judge'
+    for name in ('overview.json', 'dashboard.json', 'decision_trail.json',
+                 'shadow_portfolio.json')
+}
 
 # The local brief normally commits in minutes but has a remote fallback and a
 # 10:00 HKT landing window.  Do not declare it missed until 14:00 HKT.  Unlike
