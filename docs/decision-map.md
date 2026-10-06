@@ -29,8 +29,8 @@ The join is one-sided and bounded: a snapshot is used only when its `as_of` is
 strictly before the plan date and within `MAX_SNAPSHOT_AGE_SESSIONS` (5) of it.
 Without that, the drawer would show a full row of values for every decision and
 quietly attribute July's factor regime to a June judgement. A same-day snapshot
-is excluded too: it carries that session's close, which a plan written at 08:00
-HKT could not see (#1911). Every card publishes the median and maximum age it
+is excluded too: it carries that session's close, which a plan written before the
+open could not see (#1911). Every card publishes the median and maximum age it
 actually used; on the live data (2026-09-30) the median is 1 on every card — the
 joined values are the previous session's, the latest a pre-open plan could read.
 

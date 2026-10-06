@@ -35,6 +35,7 @@ sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.scheduling import parse_cron_slots  # noqa: E402
 from clawock.automation import cron_heartbeat  # noqa: E402
+from clawock.publish import cron_schedule as _panel_schedule  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
@@ -64,9 +65,9 @@ HEARTBEAT_GRACE_MINUTES = 25
 # these three jobs to 3,33 specifically to dodge MiniMax's on-the-hour
 # congestion). An exact HH:MM join between the two therefore never matches —
 # same failure `clawock.publish.cron_schedule._records_by_slot` already snaps
-# around for the dashboard timetable panel; this constant and the matching
-# below mirror that fix (its SNAP_MINUTES) for the health check's own join.
-HEARTBEAT_SNAP_MINUTES = 15
+# around for the dashboard timetable panel. The tolerance has one owner, that
+# module's SNAP_MINUTES; the matching below applies it to the health check's join.
+HEARTBEAT_SNAP_MINUTES = _panel_schedule.SNAP_MINUTES
 
 # Indexed directly (not .get) so a state added to check_dashboard_build without
 # an icon fails here loudly instead of printing a blank cell. Module-level so the

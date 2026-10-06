@@ -112,14 +112,14 @@ clawock report preflight --market hk --phase {open|mid|pm|close}
 
 **你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
-用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `plan_context`（08:00 简报还没执行完的决策，见下）/ `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）/ `live_information`（每只持仓的实时公告与新闻：`summary.<票>` 每条照抄 `cite`，含发布时间与「盘中实时」/「开盘前旧闻」；`degraded` 里的源是没取到，写「X 未取到」，不等于没有消息）/ `quote_coverage`（`unrefreshed` 里的票本次没刷到行情，表里是上次的价与涨跌；`anomalies`/`plan_triggers` 里这些票带 `quote_fresh: false`）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成本时段的数。
+用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `plan_context`（盘前简报还没执行完的决策，见下）/ `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）/ `live_information`（每只持仓的实时公告与新闻：`summary.<票>` 每条照抄 `cite`，含发布时间与「盘中实时」/「开盘前旧闻」；`degraded` 里的源是没取到，写「X 未取到」，不等于没有消息）/ `quote_coverage`（`unrefreshed` 里的票本次没刷到行情，表里是上次的价与涨跌；`anomalies`/`plan_triggers` 里这些票带 `quote_fresh: false`）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成本时段的数。
 
-⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 08:00 简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
+⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 盘前简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
 - **不许给同一只票提相反的建议**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报，2026-07-27 09:30 就这么把一条 4 重 breach 的 swap 写成了「回踩 -1% 再减」（issue #119）。要推翻必须明写理由和新证据。
 - `exec_mode.today_override` 说了 MOO 就不许改写成限价单口径。
 - 股数/比例**照抄 `shares`/`pct`，不许换算也不许心算**；`carried_over>0` 时点一句「{n} 条昨日挂单仍未成交」。
 - `plan_context` 为 `{}` 说明今天本腿没有未完成决策，按正常写，不要编一个计划出来。
-- `plan_context` 里带 `error` 字段说明**计划没读出来，不是今天没有计划**（issue #136）。此时必须在 ▎操作建议 开头写一行「今日计划未取到（{error}），以下建议未与 08:00 简报对账」，并且**不许**顺势断言「今天没有未完成决策」。
+- `plan_context` 里带 `error` 字段说明**计划没读出来，不是今天没有计划**（issue #136）。此时必须在 ▎操作建议 开头写一行「今日计划未取到（{error}），以下建议未与 盘前简报对账」，并且**不许**顺势断言「今天没有未完成决策」。
 - 可选键（#605/#609）：`overridden_by_user` = 用户已 override 的 risk_rule 砍单（已隐藏并结案，**不要再提「该砍未砍」**）；`reinvest_candidates` = 砍/trim 的弹药去向候选（仅当 `open[]` 真有 cut/trim 时出现；是观察不是授权，配对话术照抄候选 ticker 与 trigger，不许虚构「砍 X 的弹药」当 `open[]` 里没有 X）。
 
 🔢 **数字铁律（postflight 会查，见 `check_numeric_claims`）**：散文里出现的每个金额/股数**必须是 context 里已有的数字**，照抄不换算。

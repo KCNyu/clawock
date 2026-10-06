@@ -313,8 +313,8 @@ Tests. `.github/workflows/dispatch-runner.yml` runs the suite on every PR that t
 runner, the ops entry, either installer or `patrol.sh`. It stages the files at their host path
 through the two installers and runs them as root, as on the host, one matrix leg per group.
 It is not a required check, and its trigger is path-filtered so other PRs start nothing. By
-default it runs `unit, names, notify, core, queue, slots, deadline, budget`: the longest,
-`budget`, took 158 s on the first run, less than `validate`. `stall` (198 s) and `quota` (256 s)
+default it runs the non-slow matrix in `.github/workflows/dispatch-runner.yml` (every group
+except the two below): the longest, `budget`, took 158 s on the first run, less than `validate`. `stall` (198 s) and `quota` (256 s)
 are almost entirely real waiting: stall timers running out, a quota reset minutes away. They
 run on demand (`workflow_dispatch` with `slow`), or on the host:
 

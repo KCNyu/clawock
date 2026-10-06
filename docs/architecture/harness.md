@@ -475,6 +475,7 @@ investment-decision/
 ├── references/outcome.schema.json
 ├── references/improvement-proposal.schema.json
 ├── assets/decision.example.json
+├── assets/order.example.json
 └── assets/outcome.example.json
 ```
 

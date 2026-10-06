@@ -69,6 +69,5 @@ payload and the dashboard's own tokens and components.
 - `testAnOldScheduleIsOneWatchItemNotOnePerJob` checks that an old schedule is
   marked `过期` and counts as one watch item.
 
-`renderDataHealth` and its helpers are duplicated in `dashboard.hero.js` and
-`dashboard.render.js`, and must stay byte-identical
-(`tests/test_dashboard_bundle_parity.py`).
+`renderDataHealth` and its helpers live only in `dashboard.hero.js`: the card is
+first-screen only, and the detail bundle carries no copy.

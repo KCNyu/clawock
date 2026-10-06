@@ -80,9 +80,9 @@ RUNTIME = "openclaw"
 # 6 → 1 when system_check moved behind the adapter; 1 → 0 when the remaining
 # operator-owned session collector started asking the same adapter for runtime
 # paths. Zero means no *Python* module outside the provider knows a host-specific
-# layout. It does not mean nothing in the repository names the host: seven
-# shell/JS entry points do, deliberately, and they are pinned by
-# HOST_OWNED_SHELL below.
+# layout. It does not mean nothing in the repository names the host: the
+# shell/JS entry points listed in HOST_OWNED_SHELL below do, deliberately, and
+# that list is where they are counted.
 BASELINE = 0
 
 DELIBERATE_EXCLUSIONS = {}

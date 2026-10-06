@@ -106,7 +106,7 @@ Each entry has four fields:
 | EN | 中文 | 一句话 | First defined |
 |---|---|---|---|
 | decision ledger | 决策账本 | The append-only log of every decision the model produced; ground truth for backtests and provenance. | `decision/ledger.py` |
-| tactical entry | 战术入场 | An entry decision with a setup and timing; **structurally rare** — all 7 historical instances pre-date the v1 packet. | `decision/ledger.py` |
+| tactical entry | 战术入场 | An entry decision with a setup and timing; **structurally rare**; count the rows with `strategy_id == "tactical_entry"` in `memory/decisions.jsonl`, where a row produced by the v1 decision packet carries `signal_provenance`. | `decision/ledger.py` |
 | cut | 出场信号 | Decision to exit the position; printed on the scorecard and published in the daily brief. | `decision/actions.py` |
 | hold and watch | 持有观望 | Decision to keep the position without sizing up; not the same as "add". | `decision/actions.py` |
 | add | 加仓 | Adding to an existing position; rare in this book — see `tactical entry`. | `decision/actions.py` |
