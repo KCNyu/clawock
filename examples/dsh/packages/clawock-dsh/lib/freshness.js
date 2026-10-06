@@ -65,25 +65,35 @@ function workspaceSignature(ws) {
 function workspaceKeyOf(ws) {
 	return createHash("sha1").update(ws).digest("hex").slice(0, 12);
 }
+/** How long an unchanged signature may answer from the cache. */
+const TRACE_TTL_MS = 6e4;
 /**
 * Small signature-keyed cache: one enriched trace result per workspace,
-* rebuilt only when the signature moves. readTraces costs 70–140ms (snapshot
-* rescan dominates) — a hit returns the cached object in µs.
+* rebuilt when the signature moves or the entry is older than `ttlMs`.
+* readTraces costs 70–140ms (snapshot rescan dominates) — a hit returns the
+* cached object in µs.
+*
+* The age bound is there for the one field that depends on the clock rather
+* than on a file: the FX line's "cache Nh not refreshed" warning. It is about
+* `memory/fx-rates.jsonl` no longer being written — exactly the write the
+* signature watches — so a signature-only cache held the first answer for as
+* long as the warning's own condition lasted (#2639).
 */
-function createTraceCache() {
+function createTraceCache(ttlMs = TRACE_TTL_MS, now = Date.now) {
 	const entries = /* @__PURE__ */ new Map();
 	return {
 		get(ws, signature) {
 			const hit = entries.get(ws);
-			return hit !== void 0 && hit.signature === signature ? hit.value : void 0;
+			return hit !== void 0 && hit.signature === signature && now() - hit.at < ttlMs ? hit.value : void 0;
 		},
 		set(ws, signature, value) {
 			entries.set(ws, {
 				signature,
-				value
+				value,
+				at: now()
 			});
 		}
 	};
 }
 //#endregion
-export { createTraceCache, workspaceKeyOf, workspaceSignature };
+export { TRACE_TTL_MS, createTraceCache, workspaceKeyOf, workspaceSignature };

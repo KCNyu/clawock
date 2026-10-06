@@ -63,8 +63,9 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
     /**
      * The decision-trace view: real fills as the spine with soft-paired
      * decisions (±3 days) and T+1 verdicts. Cached by workspace-freshness
-     * signature — the enriched result is rebuilt only when portfolio.json /
-     * memory/bars / decisions.jsonl / memory/fx-rates.jsonl actually changed; a hit returns in µs.
+     * signature — the enriched result is rebuilt when portfolio.json /
+     * memory/bars / decisions.jsonl / memory/fx-rates.jsonl changed, or once a
+     * minute so the FX staleness line can age; a hit returns in µs.
      * Every result carries `workspaceKey` (opaque hash) and `signature` so the
      * client can cache across tab mounts and re-fetch only on a real change.
      */
