@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T09:24:27Z",
+  "generated_at": "2026-10-06T10:45:02Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -287,6 +287,21 @@
       "timestamp": "2026-10-02T00:00:00Z",
       "count": 5,
       "uniques": 3
+    },
+    {
+      "timestamp": "2026-10-03T00:00:00Z",
+      "count": 7,
+      "uniques": 5
+    },
+    {
+      "timestamp": "2026-10-04T00:00:00Z",
+      "count": 14,
+      "uniques": 4
+    },
+    {
+      "timestamp": "2026-10-05T00:00:00Z",
+      "count": 12,
+      "uniques": 5
     }
   ],
   "clones": [
@@ -574,6 +589,21 @@
       "timestamp": "2026-10-02T00:00:00Z",
       "count": 1600,
       "uniques": 250
+    },
+    {
+      "timestamp": "2026-10-03T00:00:00Z",
+      "count": 1305,
+      "uniques": 211
+    },
+    {
+      "timestamp": "2026-10-04T00:00:00Z",
+      "count": 2014,
+      "uniques": 254
+    },
+    {
+      "timestamp": "2026-10-05T00:00:00Z",
+      "count": 1721,
+      "uniques": 333
     }
   ],
   "referrers_snapshots": [
@@ -1009,6 +1039,37 @@
           "referrer": "search.brave.com",
           "count": 2,
           "uniques": 2
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-10-06T10:45:02Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 19,
+          "uniques": 17
+        },
+        {
+          "referrer": "agentsmd.io",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "referrer": "search.brave.com",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "referrer": "Google",
+          "count": 1,
+          "uniques": 1
         },
         {
           "referrer": "kcnyu.github.io",
@@ -2008,6 +2069,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-06T10:45:02Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 97,
+          "uniques": 30
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1999",
+          "title": "/pull/1999",
+          "count": 15,
+          "uniques": 9
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 9,
+          "uniques": 9
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 7,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/discussions",
+          "title": "/discussions",
+          "count": 5,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "title": "/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/security/secret-scanning/2",
+          "title": "/security/secret-scanning/2",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/security/secret-scanning/3",
+          "title": "/security/secret-scanning/3",
+          "count": 2,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -2094,6 +2221,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 6
+    },
+    {
+      "captured_at": "2026-10-06T10:45:02Z",
+      "stargazers": 17,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 1
     }
   ],
   "package_downloads": [
@@ -2254,6 +2388,19 @@
         "downloads": 875,
         "start": "2026-09-02",
         "end": "2026-10-01"
+      }
+    },
+    {
+      "captured_at": "2026-10-06T10:45:02Z",
+      "pypi": {
+        "last_day": 2,
+        "last_month": 311,
+        "last_week": 133
+      },
+      "npm": {
+        "downloads": 6520,
+        "start": "2026-09-05",
+        "end": "2026-10-04"
       }
     }
   ]
