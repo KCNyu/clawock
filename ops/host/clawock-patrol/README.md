@@ -10,7 +10,7 @@
 | 文件 | 读者 | 时机 |
 |---|---|---|
 | `round-prompt.md` | 每轮模型 | 每轮注入（`patrol.sh render` 替换 `{{ROUND}}` `{{AXIS_TITLE}}` `{{AXIS_BODY}}` `{{HEAD}}` `{{STEER}}`） |
-| `closed-lessons.md` | 每轮模型 | 开工必读的八类核对清单；编号被 `gate_issue.py` 的拒绝信息引用，改编号要同步 |
+| `closed-lessons.md` | 每轮模型 | 开工必读的九类核对清单；编号被 `gate_issue.py` 的拒绝信息引用，改编号要同步 |
 | `hunting-patterns.md` | 每轮模型 | 开工必读：修掉的 issue 反复出在哪八类地方、每类的探针；recent 轮的修复兄弟项核查 |
 | `closed-lessons-examples.md` | 模型 | 按需：写「对照已关」或拿不准时 |
 | `investigation-guide.md` | 模型 | 按需：调查卡住、判断值不值得提 |

@@ -50,3 +50,8 @@
 
 - competitor-port 31 条 NOT_PLANNED：实盘下单、OMS、HFT、RL、MLOps、超参搜索……clawock 是决策工作流插件 + 可验证 harness，**不下单、不搜参数**。
 - #1119 / #1122 / #1150：方向性建议由 kcn 决定。
+
+## 9. 把工作区里的旧副本当成线上
+
+- #2702 「dashboard.json 停在 10-01，发布器 5 天没跑」：读的是工作区里被 gitignore 的旧文件；已发布的那份 `generated_at` 是当天。
+- #2700 「发布器用了 221 小时前的汇率缓存」：221 小时的是工作区自己的 `.cache/fx_rate.json`；线上产物的汇率是当天取的、`stale: false`。
