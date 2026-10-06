@@ -31,7 +31,10 @@ Findings are graded:
 * `fatal` — the bar cannot be true of any real session (close outside
   `[low, high]`, non-positive price, a non-finite number). Callers reject.
 * `flags` — the bar may be true but is worth carrying forward
-  (`degenerate_range`, `implausible_move`, `stale_session`). Callers record and
+  (`degenerate_range`, `implausible_move`; and `session_mismatch` /
+  `unfinished_session`, which appear only when the caller passes
+  `session_date=` / `last_closed=`, which no production caller does today).
+  Callers record and
   surface; they must not silently drop the bar, and they must not silently
   invent a range for it either.
 

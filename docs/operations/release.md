@@ -238,11 +238,17 @@ not disagree with it:
   bumps it to the version it is given
 - `CHANGELOG.md` top entry — what the version claims to contain
 
-`tests/test_versions_agree.py` enforces the contract in CI: the newest changelog
-entry must be the `pyproject.toml` version, entries must be unique and
-newest-first, and the changelog must be reachable from the package metadata. A
-bump that updates `pyproject.toml` alone meets a red `validate` before any tag
-can be cut.
+`tests/test_versions_agree.py` enforces the `pyproject.toml` and `CHANGELOG.md`
+half in CI: the newest changelog entry must be the `pyproject.toml` version,
+entries must be unique and newest-first, and the changelog must be reachable
+from the package metadata. A bump that updates `pyproject.toml` alone meets a
+red `validate` before any tag can be cut.
+
+`package.json` has no CI check, on purpose. On a `v*` tag the publish script
+sets it to the tag's version, so a release cannot ship the two apart; between
+releases a standalone npm bump (`ops/publish/publish_dsh_plugin.sh` without a
+GitHub Release) may leave it ahead of `pyproject.toml`, and an equality test
+would turn that supported path red.
 
 ## The bump is idempotent
 

@@ -115,7 +115,10 @@ def _last_closed_session(leg: str) -> str:
     """The newest session that is certainly finished, in that market's own calendar.
 
     Never write today's bar while it can still move — that is the exact defect this
-    store exists to remove. HK closes 16:00 HKT; US closes 16:00 ET.
+    store exists to remove. Continuous trading ends at 16:00 in both markets, but
+    the close is not final then: HK runs a closing auction until about 16:10 HKT
+    and the vendor's daily bar settles after it, so the cutoff is 17:00 local on
+    purpose.
     """
     if leg == "HK":
         now = datetime.now(HKT)

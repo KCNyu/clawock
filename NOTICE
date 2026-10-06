@@ -9,5 +9,12 @@ This product includes modified code adapted from:
   https://github.com/simonlin1212/a-stock-data
   Licensed under the Apache License, Version 2.0.
 
-The affected files identify their origin in their source headers. A copy of
+  Apache ECharts 5.6.0
+  Copyright 2017-2025 The Apache Software Foundation
+  https://echarts.apache.org/
+  Licensed under the Apache License, Version 2.0.
+  Vendored as a tree-shaken custom build in site/assets/js/echarts.min.js
+  (how it is built: ops/pages/echarts-custom-bundle.md).
+
+The adapted source files identify their origin in their source headers. A copy of
 the Apache License 2.0 is provided at THIRD_PARTY_LICENSES/Apache-2.0.txt.
