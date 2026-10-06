@@ -1846,6 +1846,8 @@
     if (!g || g.nav == null || g.principal_invested == null) { card.style.display = 'none'; return; }
     card.style.display = '';
     const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    // 盈亏金额的负号放在 ¥ 外面，和 fmtMoney 一致：这张卡曾印 ¥-2,766，同页别的卡印 −$7,269。
+    const signedCny = (v) => (v == null ? DASH : (v < 0 ? '−' : '+') + '¥' + num(Math.abs(v)));
     const cur = g.currency || 'CNY';
     const loss = (g.pnl_abs || 0) < 0;
     const pnlColor = loss ? 'var(--negative)' : 'var(--positive)';
@@ -1862,7 +1864,7 @@
       `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:2px 0 12px">
          <span style="font-size:var(--fs-xxl);font-weight:700">¥${num(g.current_value)}</span>
          <span style="font-size:var(--fs-lg);font-weight:700;color:${pnlColor}">${sign}${num(g.pnl_percent, 2)}%</span>
-         <span style="font-size:var(--fs-md);color:${pnlColor}">${(g.pnl_abs >= 0 ? '+' : '')}¥${num(g.pnl_abs)}</span>
+         <span style="font-size:var(--fs-md);color:${pnlColor}">${signedCny(g.pnl_abs)}</span>
        </div>`;
 
     // stats grid
