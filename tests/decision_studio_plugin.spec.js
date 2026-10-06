@@ -1399,6 +1399,22 @@ test("freshness: signature moves on each of the four data sources", async () => 
   }
 });
 
+test("freshness: an unchanged signature stops answering from the cache once it is a minute old (#2639)", async () => {
+  // The FX line's "cache Nh not refreshed" warning is computed from the clock.
+  // A signature-only cache froze the first answer for exactly as long as the
+  // FX ledger stayed unwritten — the condition the warning is about.
+  const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
+  let clock = 1_000_000;
+  const cache = freshness.createTraceCache(freshness.TRACE_TTL_MS, () => clock);
+  cache.set("/ws", "sig", { rateSource: "Frankfurter · 10-05" });
+  assert.deepEqual(cache.get("/ws", "sig"), { rateSource: "Frankfurter · 10-05" });
+  clock += freshness.TRACE_TTL_MS - 1;
+  assert.notEqual(cache.get("/ws", "sig"), undefined, "a hit inside the minute must stay a hit");
+  assert.equal(cache.get("/ws", "moved"), undefined, "a moved signature is still a miss");
+  clock += 1;
+  assert.equal(cache.get("/ws", "sig"), undefined, "the same signature must be recomputed after the ttl");
+});
+
 test("readFxRate: last valid line wins; missing/malformed degrade to null (#838)", async () => {
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-fx-"));
