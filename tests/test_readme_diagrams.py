@@ -7,9 +7,10 @@ is caught here instead of in a later diff nobody connects to it.
 The README shows them through `<img>`, where browsers run no script and load no
 external resource; the animation must come from CSS and SMIL inside the file.
 
-Each diagram exists twice: the two-column desktop layout under its name and a
-single column beside it as `<name>-narrow.svg`. Both are built from one
-description, so the checks below run over both.
+Each diagram exists twice: a desktop layout under its name and a narrow one
+beside it as `<name>-narrow.svg`. The RSI overview has a larger canvas and
+semantic side regions; the other views retain their established desktop width.
+Both variants share content, so the checks below run over both.
 """
 import importlib.util
 import re
@@ -65,7 +66,7 @@ def test_diagrams_animate_without_anything_an_img_would_drop():
                 f'{name}: an SVG inside an img cannot load an external screenshot')
 
 
-def _placed_rects(root):
+def _placed_rects(root, dx=0.0, dy=0.0):
     """Every rect with the offset of the column group it is drawn in.
 
     The wide layout draws each run of a column inside `<g transform="translate">`,
@@ -73,14 +74,17 @@ def _placed_rects(root):
     """
     for el in root:
         if el.tag == f'{SVG}rect':
-            yield el, 0.0, 0.0
+            yield el, dx, dy
         elif el.tag == f'{SVG}g':
             # A column group is a bare translate; an icon's group also scales.
             column = re.fullmatch(r'translate\((\S+) (\S+)\)', el.attrib.get('transform', ''))
             if column:
-                dx, dy = map(float, column.groups())
-                for child in el.findall(f'{SVG}rect'):
-                    yield child, dx, dy
+                cx, cy = map(float, column.groups())
+                yield from _placed_rects(el, dx + cx, dy + cy)
+            elif not el.attrib.get('transform'):
+                # The large overview names semantic regions with untransformed
+                # groups. Walk their cards too; they must not evade overlap checks.
+                yield from _placed_rects(el, dx, dy)
 
 
 def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both():
@@ -91,22 +95,43 @@ def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both()
     and the two files have to carry the same words.
     """
     builder = _builder()
+    # The requested total-to-parts overview needs source/ownership sidebars,
+    # three central stages and a bottom return lane. Its larger text is drawn
+    # on a 1440 canvas; all other desktop views keep the established 1016.
+    desktop_widths = builder.DESKTOP_WIDTHS
     for readme, base in (('README.md', 'refs/heads/master/site/assets/'), ('README.zh.md', 'site/assets/')):
         text = (ROOT / readme).read_text(encoding='utf-8')
         for name in builder.LAYOUTS:
             assert ('<source media="(max-width: 700px)" srcset="' in text
                     and f'{base}{name}-narrow.svg"><img src=' in text), (readme, name)
-            assert f'{base}{name}.svg" width="{builder.WIDE}"' in text, (readme, name)
+            width = desktop_widths.get(name, builder.WIDE)
+            assert f'{base}{name}.svg" width="{width}"' in text, (readme, name)
     for name in builder.LAYOUTS:
         wide = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
         narrow = ET.parse(ROOT / 'site/assets' / f'{name}-narrow.svg').getroot()
-        assert float(wide.attrib['width']) == builder.WIDE and float(narrow.attrib['width']) == builder.W
+        assert float(wide.attrib['width']) == desktop_widths.get(name, builder.WIDE)
+        assert float(narrow.attrib['width']) == builder.W
         assert float(wide.attrib['height']) < float(narrow.attrib['height']) * .75, (
             f'{name}: the wide layout is not meaningfully shorter than the column')
         # The wide header sets on one line what the column sets on two.
         words = lambda root: sorted(' '.join(  # noqa: E731
             ''.join(t.itertext()) for t in root.iter(f'{SVG}text')).split())
         assert words(wide) == words(narrow), f'{name}: the two layouts say different things'
+
+
+def test_rsi_overview_has_side_regions_and_a_bottom_return_lane():
+    root = ET.parse(ROOT / 'site/assets/rsi-loop.svg').getroot()
+    assert float(root.attrib['width']) == 1440
+    regions = {el.attrib['data-region']: el for el in root.iter(f'{SVG}g')
+               if 'data-region' in el.attrib}
+    assert set(regions) == {'sources', 'input', 'decision', 'outcome', 'owners', 'return'}
+    cards = {key: group.find(f'{SVG}rect') for key, group in regions.items()}
+    bounds = {key: tuple(float(card.attrib[a]) for a in ('x', 'y', 'width', 'height'))
+              for key, card in cards.items()}
+    assert bounds['sources'][0] < bounds['input'][0] < bounds['decision'][0] < bounds['outcome'][0]
+    assert bounds['outcome'][0] < bounds['owners'][0]
+    assert bounds['return'][1] > max(y + h for key, (_, y, _, h) in bounds.items() if key != 'return')
+    assert bounds['return'][2] > bounds['input'][2] + bounds['decision'][2] + bounds['outcome'][2]
 
 
 def test_peer_nodes_do_not_touch_or_overlap():

@@ -43,7 +43,7 @@
 | 今天该不该动？ | 多空读同一份证据，写清触发条件、反方与失效条件，代码核对金额 | `memory/{date}-pre-open.md` + `memory/{date}-plan.json`，盘中收到触发卡片 |
 | 判断后来怎样了？ | 对照行情结算，保留执行状态与失败样本，把历史与校准结果交给下一次判断 | `memory/decisions.jsonl`、公开记分与复盘；可迁移工作流另有 `evaluation.json` |
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/rsi-loop-narrow.svg"><img src="site/assets/rsi-loop.svg" width="1016" alt="RSI 闭环：采集带来源的信息、固定证据包、写出多空与失效条件、留下计划与回执、代码结算结果、把记录与校准交回下一次判断；下单由人，改进须经审查，不承诺收益"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/rsi-loop-narrow.svg"><img src="site/assets/rsi-loop.svg" width="1440" alt="RSI 总分结构：左侧信息源，中间认证输入、多空决策与代码结算，右侧 Agent、人、Python 与审查的权责，下方历史与校准回流到下一次上下文"></picture></p>
 
 ## 信息进来：先有来源，再有观点
 
@@ -53,14 +53,11 @@
 
 **认证固定的是“用了什么”。** 引用包含来源、发布时间或观察时间；哈希核对内容与代次，不能证明新闻是真的。源需要的访问凭证与模型 API key 仍由你的运行时保管，不进公开仓库。可迁移 skill 也允许 Agent 用自己的研究工具补充可追溯证据；实盘定时任务读 Python 已装配的文件。
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/evidence-receipt-narrow.svg"><img src="site/assets/evidence-receipt.svg" width="1016" alt="证据如何认证：源与发布时间、未取到的源、持仓与汇率核对、带代次的核心包与参考层、逐文件及整包哈希、发布时拒绝变更的上下文；哈希不保证事实为真"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/evidence-receipt-narrow.svg"><img src="site/assets/evidence-receipt.svg" width="1016" alt="证据矩阵：八类信息逐行对应来源、可用产出与检查；下方溯源带区分引用时间与上下文和工作流哈希，认证固定所用内容，不保证事实为真"></picture></p>
 
-<details>
-<summary><b>展开实盘的完整信息流与投递路径</b></summary>
+**实盘完整信息流与投递路径**
 
 <p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/information-flow-narrow.svg"><img src="site/assets/information-flow.svg" width="1016" alt="clawock 数据流 —— 8 个信息层经有序的多源兜底抓取;Python 对账并计算风险;盘前简报、时段报告与盘中巡检各自跑 preflight,只组装本次能用的块;模型只读这些文件、从不自己抓数据;Python postflight 校验后发布到 master、仪表盘轮询的 data-plane 分支,并投递微信与 Telegram;不调用 LLM 的 crontab watchdog 兜底送达"></picture></p>
-
-</details>
 
 [信息层与来源目录](docs/how-the-desk-works.zh.md#信息层) · [认证协议](docs/architecture/runtime-protocol.md).
 
@@ -74,12 +71,9 @@
 
 <sub>示例输出，不是真实结算。</sub>
 
-<details>
-<summary><b>展开实盘的完整多空辩论</b></summary>
+**实盘完整多空辩论**
 
 <p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/debate-flow-narrow.svg"><img src="site/assets/debate-flow.svg" width="1016" alt="clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环"></picture></p>
-
-</details>
 
 多空辩论改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents)；裁判给每条判定写明策略框架。
 
@@ -91,7 +85,7 @@
 
 **换个 harness 也能继续反馈。** 可迁移工作流用带来源的 `outcome.json` 生成 `evaluation.json`（方向评估，不是已实现盈亏）；评估或拒收回执可触发有边界提案，经具名审查接受后应用，并保留回滚记录。目前只允许调整证据数量与无一手来源时的置信度上限，不能自行改策略、买卖规则或 skill。这是可审查的改进路径，不是自动变得更赚钱。
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/feedback-learning-narrow.svg"><img src="site/assets/feedback-learning.svg" width="1016" alt="反馈如何积累：实盘执行状态、按标准日线结算、下一份简报的历史与更早日期校准；可迁移工作流的 outcome.json、evaluation.json、提案审查应用与回滚；只改证据与溯源严格度，不自动改策略"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/feedback-learning-narrow.svg"><img src="site/assets/feedback-learning.svg" width="1016" alt="实盘反馈轮：执行、结算、历史与校准围绕下一份简报；右侧可迁移工作流用状态机展示结果、提案、具名接受或拒绝、应用与回滚，不自动改策略"></picture></p>
 
 截至 <!-- CW_M:as_of -->2026-10<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->159<!-- /CW_M:settled --> 条判断**,全部由 Python 机械结算后发布:赢的、输的、没法打分的都在。
 
@@ -187,8 +181,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 ## Harness 界面与后台工作
 
-<details>
-<summary><b>展开 DeepSeek Harness 的实盘视图与后台队列</b></summary>
+**DeepSeek Harness 的实盘视图与后台队列**
 
 **交代任务、离开聊天、回来收结果。** `clawock-dsh` 把投资决策 skill、Decision Mind 标签页和 provider 面板带进 dsh 网页端。在装了 clawock **agent-dispatch** runner 的主机上,这块面板还让你随时看见并控制 Claude Code、Codex、OpenCode 这支后台团队:你在聊天里委派仓库改动并写明交付要求,runner 让任务独立跑完,插件让你随时看进度、改方向。
 
@@ -198,8 +191,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 - **任务在跑,也能改方向。** 把排队任务往前移,在允许时改下一次尝试的模型,调整截止时间与重试预算,取消任务或续跑未完成的会话。
 - **结果留得住。** 任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-<details>
-<summary><b>展开完整队列截图</b> —— 真实主机上的插件</summary>
+**完整队列截图** —— 真实主机上的插件
 
 <br>
 
@@ -207,16 +199,11 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 [队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
 
-</details>
-
-<details>
-<summary><b>打开单个任务的历史</b> — 追加指令与进展时间线</summary>
+**单个任务的历史** — 追加指令与进展时间线
 
 <br>
 
 <p align="center"><img src="site/assets/dsh-task-detail.png" width="380" alt="手机布局下的完整真实 dsh 任务详情:已结束的仓库任务,带编号与投递状态的追加指令,以及按时间排列的派发、等待执行锁、执行尝试、指令投递、续跑和通知回执"></p>
-
-</details>
 
 问一句“0700.HK 能不能加点仓?”,投资 skill 会带着 agent 收集证据、做多空辩论、写出有边界的决策。**Decision Mind** 让你点开一笔真实成交,顺着**计划 → 执行 → T+1 → 盈亏**往下看。没有计划、尚未判定都明说,USD 与 HKD 分开,下单仍由你来。
 
@@ -230,8 +217,6 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 ```
 
 重启 web profile 后加载。后台队列控制还需要主机上的 runner;没装时面板仍显示 provider 额度与余额。[npm 包](https://www.npmjs.com/package/clawock-dsh) · [安装与队列配置](examples/dsh/packages/clawock-dsh/README.md)。
-
-</details>
 
 ## 引擎盖下面
 

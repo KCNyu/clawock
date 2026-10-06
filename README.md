@@ -43,7 +43,7 @@ Here **RSI means Recursive Self-Improvement**: each decision leaves evidence and
 | Should I act today? | Makes bull and bear read the same evidence; states triggers and invalidation; checks money | `memory/{date}-pre-open.md` + `memory/{date}-plan.json`, then intraday trigger cards |
 | How did that call turn out? | Settles against price bars, keeps execution status and failures, returns history and calibration | `memory/decisions.jsonl`, the public scorecard and reviews; portable runs also produce `evaluation.json` |
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="The RSI loop: source-linked information, a pinned evidence pack, bull and bear plus invalidation, a plan and receipt, code-settled outcomes, then history and calibration in the next judgment; human execution, reviewed improvement, no promise of returns"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1440" alt="RSI overview in multiple regions: information sources at left; certified input, opposing-case decision and code-settled feedback in the centre; agent, human, Python and review ownership at right; history and calibration return along the bottom to the next context"></picture></p>
 
 ## Information in: sources before opinions
 
@@ -53,14 +53,11 @@ Before you open the morning brief, Python has collected quotes through fallback 
 
 **Certification pins what was used.** Citations carry the source and publication or observation time; hashes check content and generation, not whether a news story is true. Source access credentials and model API keys remain with your runtime, outside the public repository. The portable skill also lets your agent use its own research tools to add traceable evidence; scheduled desk jobs read the Python-assembled files.
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/evidence-receipt-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/evidence-receipt.svg" width="1016" alt="Evidence certification: sources and timestamps, named missing feeds, book and FX checks, generation-bound core and reference layers, document and bundle hashes, then rejection of changed context at publication; a hash is not proof of truth"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/evidence-receipt-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/evidence-receipt.svg" width="1016" alt="Evidence matrix: eight information families mapped across sources, usable outputs and checks; the bottom provenance strip distinguishes citations and timestamps from certified context and workflow hashes, which pin content rather than truth"></picture></p>
 
-<details>
-<summary><b>Open the live desk’s full information and delivery flow</b></summary>
+**The live desk’s full information and delivery flow**
 
 <p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg" width="1016" alt="clawock data flow — eight information layers feed ordered fetch-fallback routes; Python reconciles the book and builds risk; the brief, session reports and intraday check-ins each run a preflight that assembles only the blocks that run can use; the agent reads those files and never fetches; a Python postflight validates, then publishes to master, to the data-plane branch the dashboard polls, and to WeChat and Telegram, with an LLM-free crontab watchdog as the delivery backstop"></picture></p>
-
-</details>
 
 [Information layers and source catalog](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#the-information-layer) · [Certification protocol](https://github.com/KCNyu/clawock/blob/master/docs/architecture/runtime-protocol.md).
 
@@ -74,12 +71,9 @@ Ask “Can I add to this position today?” The agent writes the supporting case
 
 <sub>Example output, not a settled call.</sub>
 
-<details>
-<summary><b>Open the live desk’s full bull / bear debate</b></summary>
+**The live desk’s full bull / bear debate**
 
 <p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg" width="1016" alt="clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop"></picture></p>
-
-</details>
 
 The desk debate is adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents); the judge names the strategy frame behind each call.
 
@@ -91,7 +85,7 @@ The close is not the end of the conversation. You use `mark-followed` to mark fo
 
 **A different harness can continue the feedback.** Portable runs turn source-linked `outcome.json` into `evaluation.json` (a directional evaluation, not realized P&L). An evaluation or rejection receipt can anchor a bounded proposal, applied after a named review accepts it, with a rollback record. Today those parameters govern evidence counts and the confidence cap without a primary source; they cannot silently change strategy, trading rules or the skill. This is a reviewable improvement path, not an automatic increase in returns.
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning.svg" width="1016" alt="Two feedback paths: live execution status, canonical-bar settlement and earlier-date calibration in the next brief; portable outcome.json, evaluation.json and proposal review, apply and rollback; changes govern evidence and provenance strictness, never automatic strategy edits"></picture></p>
+<p align="center"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning.svg" width="1016" alt="Live feedback wheel: execution, settlement, history and calibration surround the next brief; alongside it, a portable adoption state machine follows outcome, bounded proposal, named acceptance or rejection, and reversible apply; no silent strategy edits"></picture></p>
 
 Every call is settled mechanically and published: wins, losses, and the cases
 that can't be graded. Nothing is hand-tuned after the fact.
@@ -193,8 +187,7 @@ Here is the whole run inside Claude Code, from the
 
 ## Harness views and background work
 
-<details>
-<summary><b>Open the DeepSeek Harness desk views and background queue</b></summary>
+**The DeepSeek Harness desk views and background queue**
 
 **Delegate a task, leave the chat, come back to a result.** `clawock-dsh` brings
 an investment-decision skill, a Decision Mind tab and a provider panel into the
@@ -209,8 +202,7 @@ task alive, and the plugin lets you see and steer it.
 - **Change course while it runs.** Move waiting work up, change the next attempt's model where allowed, adjust deadlines and retry budgets, cancel a task or retry an unfinished session.
 - **Keep the result in reach.** A completed task with a failed send stays visible; a missing message does not erase the work.
 
-<details>
-<summary><b>Open the full-size queue capture</b> — the real plugin on a live host</summary>
+**The full-size queue capture** — the real plugin on a live host
 
 <br>
 
@@ -219,16 +211,11 @@ task alive, and the plugin lets you see and steer it.
 [Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) ·
 [runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
 
-</details>
-
-<details>
-<summary><b>Open a task's history</b> — append instructions and the progress timeline</summary>
+**A task's history** — append instructions and the progress timeline
 
 <br>
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png" width="380" alt="Complete live dsh task detail in a phone layout: a finished repository task, numbered append instruction with delivery status, and timestamped progress from dispatch and execution-lock waiting through attempts, instruction delivery, continuation and notification receipts"></p>
-
-</details>
 
 Ask “Can I add to 0700.HK?” and the investment skill takes the agent through
 evidence, a bull/bear debate and a bounded decision. **Decision Mind** then lets
@@ -248,8 +235,6 @@ Restart the web profile to load it. Queue controls also need the host runner;
 without it the panel still shows provider allowances and balances.
 [npm package](https://www.npmjs.com/package/clawock-dsh) ·
 [installation and queue setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md).
-
-</details>
 
 ## Under the hood
 

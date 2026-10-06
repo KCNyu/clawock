@@ -71,7 +71,9 @@ def test_section_count_matches():
 
 
 def test_details_count_matches():
-    assert _details(EN) == _details(ZH) > 0
+    # The user explicitly wants the original visual forms directly visible.
+    # Pin zero collapsibles rather than silently allowing them to return.
+    assert _details(EN) == _details(ZH) == 0
 
 
 def test_embedded_assets_match():
