@@ -185,3 +185,28 @@ def test_the_cron_history_is_the_version_live_at_the_oldest_run_and_every_later_
     assert history == [(at("2026-08-24T00:00:00"), ["0 23 * * 0"]),
                        (at("2026-10-02T02:38:54"), ["17 20 * * 0"])]
     assert not any(path.endswith("ref=older") for path in asked)
+
+
+def test_drift_is_measured_on_the_runs_the_event_filter_has_not_caught_up_with(tmp_path, monkeypatch):
+    """The filtered listing gave 10-05 as brief-fallback's newest scheduled run on
+    2026-10-06; the three that arrived that morning, six hours late, were only on
+    the unfiltered page, so the stored drift left out the latest deliveries."""
+    workflow = tmp_path / "brief-fallback.yml"
+    workflow.write_text("on:\n  schedule:\n    - cron: '25 0 * * 1-5'\n")
+
+    def api(path, token, raw=False):
+        if path.startswith("commits?"):
+            return []
+        if "event=schedule" in path:
+            return {"workflow_runs": [
+                {"id": 1, "event": "schedule", "created_at": "2026-10-05T05:57:11Z"}]}
+        return {"workflow_runs": [
+            {"id": 2, "event": "schedule", "created_at": "2026-10-06T06:35:01Z"},
+            {"id": 3, "event": "workflow_dispatch", "created_at": "2026-10-06T06:00:00Z"},
+            {"id": 1, "event": "schedule", "created_at": "2026-10-05T05:57:11Z"}]}
+
+    monkeypatch.setattr(drift, "_api", api)
+    row, = drift.measure("t", [workflow])
+
+    assert row["samples"] == 2
+    assert row["drift_max"] == 370.0          # 10-06 00:25Z -> 06:35Z

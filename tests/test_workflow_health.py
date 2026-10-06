@@ -126,7 +126,9 @@ def test_only_scheduled_workflows_are_assessed():
     assert "release.yml" not in calls          # tag-triggered, no schedule
     assert "pages.yml" not in calls            # push/PR/dispatch, no schedule
     assert "dashboard-artifact-gate.yml" not in calls  # repository_dispatch only
-    assert result["scheduled_workflows"] == len(calls)
+    # Each workflow is listed twice: filtered to its scheduled runs, and
+    # unfiltered for the ones the filter has not caught up with.
+    assert result["scheduled_workflows"] == len(set(calls))
 
 
 def test_the_rollup_never_fails_its_host_job(capsys, monkeypatch):

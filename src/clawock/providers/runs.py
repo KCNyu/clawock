@@ -120,18 +120,35 @@ class GitHubRuns:
         return subprocess.run(cmd, capture_output=True, text=True,
                               timeout=self.timeout).stdout
 
-    def history(self, job: str, limit: int = 20, event: str | None = None) -> list[Run]:
+    def _list(self, job: str, limit: int, event: str | None) -> list[dict]:
         command = [
             "gh", "run", "list", "--workflow", job, "--limit", str(limit),
             "--json", "conclusion,createdAt,event,databaseId",
         ]
         if event:
             command.extend(["--event", event])
-        raw = self._runner(command)
         try:
-            entries = json.loads(raw or "[]")
+            entries = json.loads(self._runner(command) or "[]")
         except json.JSONDecodeError:
             return []
+        return entries if isinstance(entries, list) else []
+
+    def history(self, job: str, limit: int = 20, event: str | None = None) -> list[Run]:
+        entries = self._list(job, limit, event)
+        if event:
+            # GitHub's event-filtered listing is served from an index that lags
+            # and disagrees with itself: on 2026-10-06 `--event schedule` for
+            # brief-fallback.yml answered 09-18, 10-01 and 10-05 as the newest
+            # run within a minute, while the unfiltered listing had three runs
+            # from that morning. The unfiltered page is the fresh one, so its
+            # runs of this event are merged in; the filtered page still reaches
+            # the scheduled runs that pushes crowd out of it (ci.yml).
+            known = {entry.get("databaseId") for entry in entries}
+            entries = entries + [
+                entry for entry in self._list(job, limit, None)
+                if entry.get("event") == event and entry.get("databaseId") not in known]
+            entries.sort(key=lambda entry: str(entry.get("createdAt") or ""), reverse=True)
+            entries = entries[:limit]
         return [
             Run(job=job,
                 started_at=entry.get("createdAt"),

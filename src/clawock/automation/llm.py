@@ -243,6 +243,13 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
             'type': 'enabled',
             'budget_tokens': max(1024, min(max_tokens - 1024, 16000)),
         }
+        # An adaptive-only model does not hold to budget_tokens: the weekly
+        # review's 3.9K-character answer cost 25.6K output tokens on M3.1
+        # (2026-10-06). `effort` is the bound it does take, for a caller that
+        # has to finish inside a deadline.
+        if thinking.get('effort') and _ADAPTIVE_ONLY.match(model):
+            body['thinking'] = {'type': 'adaptive'}
+            body['output_config'] = {'effort': thinking['effort']}
     else:
         body['temperature'] = temperature
         # Some Anthropic-compatible endpoints default thinking ON when the field
@@ -294,7 +301,7 @@ def chat(system: str = '', user: str = '', messages: list = None,
          max_tokens: int = 32000, temperature: float = 0.7,
          thinking_disabled: bool = False, json_response: bool = False,
          timeout: int = None, deadline_seconds: float = None,
-         stats_out: dict = None) -> str:
+         stats_out: dict = None, thinking_effort: str = None) -> str:
     """Call MiniMax M3. Returns the assistant content string, or raises
     RuntimeError('all LLM providers failed: …') when it fails — the prefix is
     what callers (influencer.llm_filter) match to stop retrying a dead chain.
@@ -310,6 +317,9 @@ def chat(system: str = '', user: str = '', messages: list = None,
 
     stats_out: when given, receives {'legs': [{provider, ok, attempts, wall_s,
     error?}]} so a job log can say what the call actually cost (C-F3a).
+
+    thinking_effort: 'low' / 'medium' / 'high' for a thinking call on a model
+    that only takes adaptive thinking (M3.1). Unset leaves the request as it was.
     """
     if messages is None:
         messages = []
@@ -319,6 +329,8 @@ def chat(system: str = '', user: str = '', messages: list = None,
             messages.append({'role': 'user', 'content': user})
 
     thinking = {'type': 'disabled'} if thinking_disabled else {'type': 'enabled'}
+    if thinking_effort and not thinking_disabled:
+        thinking['effort'] = thinking_effort
 
     if deadline_seconds is None:
         raw = os.environ.get(DEADLINE_ENV)

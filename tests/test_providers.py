@@ -151,6 +151,40 @@ def test_both_run_sources_normalise_to_the_same_shape():
     assert github[0].trigger == "schedule"
 
 
+def test_a_stale_event_filter_does_not_hide_the_runs_that_arrived_since():
+    """`gh run list --event schedule` answered 09-18 as brief-fallback's newest
+    scheduled run on 2026-10-06 while the unfiltered listing had that morning's.
+    The rollup then read "no run for 441h" on a workflow that had just run, and
+    the same lag would hide a failure the filter had not caught up with."""
+    def runner(cmd):
+        if "--event" in cmd:
+            return ('[{"conclusion":"success","createdAt":"2026-09-18T05:49:06Z",'
+                    '"event":"schedule","databaseId":1}]')
+        return ('[{"conclusion":"failure","createdAt":"2026-10-06T07:28:28Z",'
+                '"event":"schedule","databaseId":3},'
+                '{"conclusion":"success","createdAt":"2026-10-06T07:00:00Z",'
+                '"event":"workflow_dispatch","databaseId":2},'
+                '{"conclusion":"success","createdAt":"2026-09-18T05:49:06Z",'
+                '"event":"schedule","databaseId":1}]')
+
+    runs = GitHubRuns(runner=runner).history("brief-fallback.yml", event="schedule")
+
+    assert [(r.reference, r.status) for r in runs] == [("3", "error"), ("1", "ok")]
+
+
+def test_a_scheduled_run_that_pushes_crowd_out_is_still_found_through_the_filter():
+    def runner(cmd):
+        if "--event" in cmd:
+            return ('[{"conclusion":"success","createdAt":"2026-10-03T09:25:17Z",'
+                    '"event":"schedule","databaseId":9}]')
+        return ('[{"conclusion":"success","createdAt":"2026-10-06T15:05:33Z",'
+                '"event":"push","databaseId":10}]')
+
+    runs = GitHubRuns(runner=runner).history("ci.yml", limit=1, event="schedule")
+
+    assert [(r.reference, r.trigger) for r in runs] == [("9", "schedule")]
+
+
 def test_an_unfinished_github_run_is_running_not_success():
     runs = GitHubRuns(runner=lambda cmd: (
         '[{"conclusion":null,"createdAt":"2026-08-02T00:00:00Z",'

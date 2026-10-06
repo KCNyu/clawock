@@ -264,8 +264,22 @@ def measure(token: str, workflows: Iterable[Path]) -> list[dict[str, Any]]:
                              "samples": 0, "note": "no scheduled runs yet"})
                 continue
             raise
-        listed = [(run["id"], _instant(run["created_at"]))
-                  for run in runs.get("workflow_runs", [])]
+        # The event-filtered listing lags by days at times (2026-10-06: it gave
+        # 10-05 as brief-fallback's newest run while three had arrived that
+        # morning, +6h late each), so the unfiltered page supplies the runs it
+        # has not caught up with. A failure here only loses that top-up.
+        scheduled = {run["id"]: run for run in runs.get("workflow_runs", [])}
+        try:
+            recent = _api(f"actions/workflows/{path.name}/runs"
+                          f"?per_page={RUNS_PER_WORKFLOW}", token)
+        except DriftError:
+            recent = {}
+        for run in recent.get("workflow_runs", []):
+            if run.get("event") == "schedule":
+                scheduled.setdefault(run["id"], run)
+        listed = sorted(((run_id, _instant(run["created_at"]))
+                         for run_id, run in scheduled.items()),
+                        key=lambda item: item[1], reverse=True)[:RUNS_PER_WORKFLOW]
         history: list[tuple[dt.datetime, list[str]]] = []
         history_error = None
         if listed:
