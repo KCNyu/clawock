@@ -16,3 +16,7 @@
 8. **产品边界外**——clawock 是决策工作流插件 + 可验证 harness，不下单、不搜参数；常规轮次不提新功能、竞品移植、方向性建议，只提「现有功能今天是坏的」。
    新功能只在 peers 轮按 issue-format.md「功能提案」提：要有活跃上游的具体机制链接和 clawock 真实发生过的痛点 #N
    （08-28 那轮 competitor-port 55 条里 31 条按 not planned 关，全因产品形状：没有执行引擎、不做加密/合规、PBO 反对多试因子）。
+9. **把工作区里的旧副本当成线上**——`/root/wt-patrol` 里的 `assets/data/dashboard.json`、`overview.json` 和 `.cache/`
+   都被 gitignore，刷新工作区时不会清掉，是以前某一轮留下的副本，不是今天发布的产物，也不是 live 的缓存。
+   「面板 / 缓存陈旧」「发布产物带着旧值」这类结论只能读已发布的 `https://kcnyu.github.io/clawock/assets/data/<文件>`
+   （或 `git show origin/data-plane:assets/data/<文件>`），并把读到的 `generated_at` 打印进判据。
