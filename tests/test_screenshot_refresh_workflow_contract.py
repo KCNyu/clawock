@@ -46,6 +46,7 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
         'README.md',
         'assets/data/readme_metrics.json',
         'site/assets/books.svg',
+        'site/assets/books-narrow.svg',
         'site/assets/dsh-decision-mind.png',
     ]
 

@@ -216,6 +216,10 @@ def test_the_two_book_card_sits_in_the_hero_after_the_dashboard_gif():
         assert "books.svg" in hero, f"{name}: the book card slid below the first section"
         assert hero.index("dashboard.gif") < hero.index("books.svg"), (
             f"{name}: the book card moved ahead of the dashboard GIF")
+        # Like every other figure it has a desktop and a single-column layout.
+        assert re.search(r'<picture><source media="\(max-width: 700px\)" srcset="[^"]*'
+                         r'site/assets/books-narrow\.svg"><img src="[^"]*site/assets/books\.svg"',
+                         hero), f"{name}: the book card lost one of its two layouts"
 
 
 def test_explicit_h2_sequences():
