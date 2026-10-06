@@ -46,9 +46,10 @@ UA = "Mozilla/5.0 (clawock primary disclosure provider)"
 CACHE_SCHEMA_VERSION = 1
 
 
-def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S):
+def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S, user_agent=UA):
+    """The one JSON-over-HTTP seam for this package's disclosure and mover probes."""
     request = urllib.request.Request(
-        url, headers={"User-Agent": UA, "Referer": "https://gu.qq.com/", **(headers or {})}
+        url, headers={"User-Agent": user_agent, "Referer": "https://gu.qq.com/", **(headers or {})}
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8", "ignore"))

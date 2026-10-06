@@ -75,12 +75,12 @@ NOISE = "noise"
 
 
 def _http_json(url: str, *, headers=None, timeout=PER_REQUEST_TIMEOUT_S):
-    """The single network seam, so tests never touch the network."""
-    request = urllib.request.Request(
-        url, headers={"User-Agent": UA, "Referer": "https://gu.qq.com/", **(headers or {})}
-    )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8", "ignore"))
+    """The single network seam, so tests never touch the network.
+
+    The request itself has one owner, `primary_disclosures._http_json`; this
+    probe only brings its own User-Agent.
+    """
+    return primary_disclosures._http_json(url, headers=headers, timeout=timeout, user_agent=UA)
 
 
 def _http_text(url: str, *, timeout=PER_REQUEST_TIMEOUT_S) -> str:

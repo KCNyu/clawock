@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -481,8 +482,12 @@ def collect(market, tickers, *, targets=None, names=None, window_minutes=24 * 60
     if cache_path:
         try:
             safe_write_json(str(cache_path), store)
-        except OSError:
-            pass  # the cache is an optimisation; this call's answers stand
+        except OSError as error:
+            # The cache is an optimisation and this call's answers stand, but the
+            # next slot refetches everything and loses the rows a feed has since
+            # stopped listing, so say it.
+            print(f'⚠ live-sources cache not written ({cache_path}): {error}',
+                  file=sys.stderr)
 
     by_ticker, flashes = {}, []
     for request in requests:

@@ -92,16 +92,6 @@ def block_loadings(ranks, weights, blocks=None) -> dict:
     return out
 
 
-def to_blocks(sessions, weights, blocks=None) -> dict:
-    """Rewrite a `{as_of: (loadings, forward)}` map in block space."""
-    blocks = blocks or FACTOR_BLOCKS
-    return {
-        as_of: ({name: block_loadings(ranks, weights, blocks)
-                 for name, ranks in loadings.items()}, forward)
-        for as_of, (loadings, forward) in sessions.items()
-    }
-
-
 def _design(loadings_by_name, factors, names):
     matrix = np.array([[float(loadings_by_name[name].get(factor, 0.0))
                         for factor in factors] for name in names], dtype=float)

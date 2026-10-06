@@ -973,7 +973,8 @@ def main():
         for row in summary['degradations']:
             current, age = degradation_age(row, now)
             print(f"  {'⚠' if current else '·'} {'ledger degradation':25s}  "
-                  f"{row.get('kind')}: 累计 {row.get('count')} 次{age}")
+                  f"{row.get('kind')}{' / ' + str(row['group']) if row.get('group') else ''}: "
+                  f"累计 {row.get('count')} 次{age}")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")
         if has_missing:

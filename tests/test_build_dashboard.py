@@ -1933,6 +1933,10 @@ def test_a_weight_written_number_first_is_still_reconciled():
     assert not check('z20 +2.53 的极端超买里，86.64% 单名占比下一次回吐就直接打在美股段上')
     assert check('z20 +2.53 的极端超买里，87.93% 单名占比下一次回吐就直接打在美股段上')
     assert not check('86.64% 的美股段占比过高')
+    # #2669: the 2026-10-06 card dropped 「占比」 and kept only 「单名」.
+    assert check('单名 87.93%、美股 β 4.43，2x 每日重置')
+    assert not check('单名 86.64%、美股 β 4.43，2x 每日重置')
+    assert not check('86.64% 单名，2x 每日重置')
     # Returns, volatility and decay in the same cards are not weights.
     assert check('5 日 -13.0% 落后智谱 -1.88% 十一个百分点，叠加 99.7% 年化波动')
     assert check('衰减在横盘里每月白付 0.3%，回本门槛却随标的下跌从 26.9% 一路抬')
