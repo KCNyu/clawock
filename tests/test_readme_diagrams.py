@@ -78,7 +78,7 @@ def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both()
         for name in builder.LAYOUTS:
             assert ('<source media="(max-width: 700px)" srcset="' in text
                     and f'{base}{name}-narrow.svg"><img src=' in text), (readme, name)
-            assert f'{base}{name}.svg" width="100%"' in text, (readme, name)
+            assert f'{base}{name}.svg" width="{builder.WIDE}"' in text, (readme, name)
     for name in builder.LAYOUTS:
         wide = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
         narrow = ET.parse(ROOT / 'site/assets' / f'{name}-narrow.svg').getroot()
