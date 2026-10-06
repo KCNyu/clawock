@@ -204,18 +204,14 @@ def test_the_information_layer_table_adds_up_in_both_languages():
         f"layer counts differ between languages: {seen}")
 
 
-def test_the_two_book_cards_sit_in_the_hero_with_their_denominators():
-    """The US and HK cards are the result the page leads with, so they stay above
-    the first section heading; and the one line under them is where each
-    percentage meets the amount and basis it was divided by."""
+def test_the_two_book_card_sits_in_the_hero_after_the_dashboard_gif():
+    """The US/HK card is a result, so it stays above the first section heading;
+    it follows the dashboard GIF, which is the page's opening image."""
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         hero = md.split("\n## ", 1)[0]
-        assert "book-us.svg" in hero and "book-hk.svg" in hero, (
-            f"{name}: the book cards slid below the first section")
-        caption = next(ln for ln in hero.splitlines() if "CW_M:us_return_pct" in ln)
-        for key in ("us_basis", "us_principal", "hk_return_pct", "hk_basis",
-                    "hk_principal", "return_pct", "return_basis"):
-            assert f"CW_M:{key} " in caption, f"{name}: the caption lost {key}"
+        assert "books.svg" in hero, f"{name}: the book card slid below the first section"
+        assert hero.index("dashboard.gif") < hero.index("books.svg"), (
+            f"{name}: the book card moved ahead of the dashboard GIF")
 
 
 def test_explicit_h2_sequences():
@@ -301,18 +297,15 @@ def test_the_weekly_metrics_placeholders_survive_a_rewrite():
     produced = set(re.findall(r'^        "(\w+)":', block.group(1), re.M))
     assert produced, "no keys read from the refresh script: this test would pass vacuously"
 
-    # Each book's return travels with its denominator and that denominator's
-    # name; a README that keeps the percentage and drops either is the claim
-    # this section exists to avoid.
-    books = {"us_return_pct", "us_principal", "us_basis",
-             "hk_return_pct", "hk_principal", "hk_basis", "return_basis"}
     expected = {
-        "README.md": {"days", "rows", "settled", "return_pct"} | books,
+        # The per-book and combined returns are printed by site/assets/books.svg,
+        # which the same script redraws, so README.md carries no placeholder for them.
+        "README.md": {"days", "rows", "settled"},
         "README.zh.md": {
             "as_of", "days", "rows", "settled", "return_pct", "active_pct",
             "active_n", "hold_pct", "hold_n", "hi_pct", "hi_n", "active_ci",
             "hi_ci", "followed", "not_followed", "unknown",
-        } | books,
+        },
     }
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         opened = re.findall(r"<!-- CW_M:(\w+) -->", md)

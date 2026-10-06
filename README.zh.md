@@ -19,14 +19,9 @@
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
-<p>
-  <a href="https://kcnyu.github.io/clawock/#drill"><img src="site/assets/book-us.svg" width="405" alt="美股账本(美元):本金回报率、总盈亏与逐日盈亏曲线"></a>
-  <a href="https://kcnyu.github.io/clawock/#drill"><img src="site/assets/book-hk.svg" width="405" alt="港股账本(港币):本金回报率、总盈亏与逐日盈亏曲线"></a>
-</p>
-
-<sub>一个账户、两本账、两个分母:美股 <!-- CW_M:us_return_pct -->+91.75%<!-- /CW_M:us_return_pct --> ÷ <code><!-- CW_M:us_basis -->true_principal<!-- /CW_M:us_basis --></code> <!-- CW_M:us_principal -->US$2,491<!-- /CW_M:us_principal --> · 港股 <!-- CW_M:hk_return_pct -->−40.48%<!-- /CW_M:hk_return_pct --> ÷ <code><!-- CW_M:hk_basis -->net_principal<!-- /CW_M:hk_basis --></code> <!-- CW_M:hk_principal -->HK$105,427<!-- /CW_M:hk_principal --> · 折美元合并 <!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct -->(<code><!-- CW_M:return_basis -->mixed<!-- /CW_M:return_basis --></code>)。</sub>
-
 <a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
+
+<a href="https://kcnyu.github.io/clawock/#drill"><img src="site/assets/books.svg" width="640" alt="美股账本(美元)与港股账本(港币)并排:各自的本金回报率、总盈亏与逐日盈亏曲线"></a>
 
 | **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
@@ -210,7 +205,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 翻译成人话:**主动判断的方向命中率看上表实时数字；单凭它不能推断赚了多少钱。** 所以它只敢吹「不骗你」,不敢吹「赚多少」。
 
-方向命中率 ≠ 赚到钱:真实账户按折美元合并口径自公开以来为负(数字见下方「四条线」表,由脚本刷新;美股、港股分开的数字见页首两张图),收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。[**原始账本全部公开,欢迎查账。**](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)
+方向命中率 ≠ 赚到钱:真实账户按折美元合并口径自公开以来为负(数字见下方「四条线」表,由脚本刷新;美股、港股分开看见页首的图),收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。[**原始账本全部公开,欢迎查账。**](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)
 
 **查账不是读文档,战绩可以复算:** `clawock audit-resettle` 重新结算整本决策账(默认不写入)、`clawock reconcile` 复算全部组合派生、`clawock integrity` 校验资金与行情不变量。判定规则(什么是 win / loss、怎么归组、怎么处理缺数据)全部在代码里版本化,**对不上算我们输**——README 上每个数字,都能从命令跑出来。四个口径互不换算:别拿方向命中率去算账户收益,也别拿账本行数当已结算数。
 
@@ -221,7 +216,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 | **决策账本** | <!-- CW_M:rows -->985<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
 | **方向命中率** | 主动 **<!-- CW_M:active_pct -->50%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->56<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
 | **影子组合**(模拟,非实盘) | 跟随建议 vs 买入持有 | 同一时间线、同日收盘计价回放,见[持仓页](https://kcnyu.github.io/clawock/#drill) |
-| **真实账户** | 折美元合并 **<!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动);美股 <!-- CW_M:us_return_pct -->+91.75%<!-- /CW_M:us_return_pct -->、港股 <!-- CW_M:hk_return_pct -->−40.48%<!-- /CW_M:hk_return_pct -->,分母不同 | 决策执行:followed <!-- CW_M:followed -->547<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->383<!-- /CW_M:not_followed --> 条 |
+| **真实账户** | 折美元合并 **<!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->547<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->383<!-- /CW_M:not_followed --> 条 |
 
 **谁决定跟进?账户所有者。** 每条跟进/不跟进都有记录与来源;在跟进规则集公开审计之前,请把账户收益当作**人机混合的成绩**,而不是模型单独的成绩——这一点我们明说,不藏。
 

@@ -4,8 +4,8 @@
 Reads memory/decisions.jsonl, assets/data/shadow_portfolio.json and
 assets/data/dashboard.json, recomputes every published figure, rewrites the
 <!-- CW_M:key -->...<!-- /CW_M:key --> placeholders in README.zh.md (and
-README.md once it carries them), redraws the two per-book P&L charts
-(site/assets/book-us.svg, book-hk.svg) from the same dashboard payload, and
+README.md once it carries them), redraws the two-book P&L card
+(site/assets/books.svg) from the same dashboard payload, and
 writes assets/data/readme_metrics.json for audit. Idempotent: leaves the files
 untouched when nothing changed.
 
