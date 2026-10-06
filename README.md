@@ -19,14 +19,9 @@
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
-<p>
-  <a href="https://kcnyu.github.io/clawock/#drill"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/book-us.svg" width="405" alt="US book, USD: return on principal, total P&amp;L and the daily P&amp;L curve"></a>
-  <a href="https://kcnyu.github.io/clawock/#drill"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/book-hk.svg" width="405" alt="Hong Kong book, HKD: return on principal, total P&amp;L and the daily P&amp;L curve"></a>
-</p>
-
-<sub>One account, two books, two denominators: US <!-- CW_M:us_return_pct -->+91.75%<!-- /CW_M:us_return_pct --> ÷ <code><!-- CW_M:us_basis -->true_principal<!-- /CW_M:us_basis --></code> <!-- CW_M:us_principal -->US$2,491<!-- /CW_M:us_principal --> · HK <!-- CW_M:hk_return_pct -->−40.48%<!-- /CW_M:hk_return_pct --> ÷ <code><!-- CW_M:hk_basis -->net_principal<!-- /CW_M:hk_basis --></code> <!-- CW_M:hk_principal -->HK$105,427<!-- /CW_M:hk_principal --> · combined <!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct --> in USD (<code><!-- CW_M:return_basis -->mixed<!-- /CW_M:return_basis --></code>).</sub>
-
 <a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
+
+<a href="https://kcnyu.github.io/clawock/#drill"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/books.svg" width="640" alt="US book in USD and Hong Kong book in HKD, side by side: each book's return on its own principal, its total P&amp;L and its daily P&amp;L curve"></a>
 
 | **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **44** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|

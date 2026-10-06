@@ -1,7 +1,7 @@
 """The README's per-book P&L charts are drawn from the dashboard payload.
 
 `site/tools/build_readme_book_charts.py` turns `dashboard.json` into
-`site/assets/book-us.svg` and `book-hk.svg`, the two cards at the top of the README; the weekly README refresh calls it
+`site/assets/books.svg`, the two-book card in the README's hero; the weekly README refresh calls it
 from the payload it reads the placeholders from. The payload is not in a test
 checkout, so these run the builder on a small synthetic one and pin the three
 things a chart of money can get quietly wrong: reading a snapshot column by
@@ -71,19 +71,34 @@ def test_the_curve_is_read_by_column_name(charts):
 
 
 def test_each_percentage_is_printed_with_the_denominator_the_payload_used(charts):
-    rendered = charts.render_all(_payload())
-    us, hk = _text(rendered['book-us.svg']), _text(rendered['book-hk.svg'])
-    assert '+30.00%' in us and 'US$1,000' in us and 'true_principal' in us
-    assert 'US$800' not in us, 'the US chart printed net_principal beside a true_principal return'
-    assert '−20.00%' in hk and 'HK$20,000' in hk and 'net_principal' in hk
+    card = _text(charts.render_all(_payload())['books.svg'])
+    assert '+30.00%' in card and 'US$1,000' in card and 'true_principal' in card
+    assert 'US$800' not in card, 'the US half printed net_principal beside a true_principal return'
+    assert '\u221220.00%' in card and 'HK$20,000' in card and 'net_principal' in card
+    # The one figure spanning both books is the payload's own, with its own basis.
+    assert 'combined \u22125.00% in USD (mixed)' in card
 
     # The basis is the payload's, not this file's: give HK a true_principal and
-    # the chart must follow it rather than keep the wording it had.
+    # the card must follow it rather than keep the wording it had.
     payload = _payload()
     payload['net_principal_return']['hk'].update(
         return_basis='true_principal', true_principal=25000.0, return_pct=-16.0)
-    hk = _text(charts.render_all(payload)['book-hk.svg'])
-    assert 'HK$25,000' in hk and 'true_principal' in hk and 'HK$20,000' not in hk
+    card = _text(charts.render_all(payload)['books.svg'])
+    assert 'HK$25,000' in card and 'net_principal' not in card and 'HK$20,000' not in card
+
+
+def test_the_two_books_never_share_a_scale_or_a_sum(charts):
+    """One card, two plots: each curve spans its own half and its own range."""
+    root = ET.fromstring(charts.render_all(_payload())['books.svg'])
+    curves = [el.attrib['d'] for el in root.iter(f'{SVG}path')
+              if el.attrib.get('stroke', '').startswith('url(#stroke-')]
+    assert len(curves) == 2
+    xs = [[float(pair.split()[0]) for pair in d.replace('M', 'L').split('L') if pair.strip()]
+          for d in curves]
+    assert max(xs[0]) < charts.HALF < min(xs[1])
+    # USD 300 and HKD -4000 are never combined into one amount on the card.
+    text = _text(charts.render_all(_payload())['books.svg'])
+    assert '3,700' not in text and '4,300' not in text
 
 
 def test_a_label_that_no_longer_fits_stops_the_write(charts, tmp_path):
@@ -94,15 +109,14 @@ def test_a_label_that_no_longer_fits_stops_the_write(charts, tmp_path):
     assert list(tmp_path.iterdir()) == []
 
 
-def test_the_charts_survive_an_img_tag(charts):
-    """GitHub shows them through <img>: no script, nothing external, real text."""
+def test_the_card_survives_an_img_tag(charts):
+    """GitHub shows it through <img>: no script, nothing external, real text."""
     for name, svg in charts.render_all(_payload()).items():
         root = ET.fromstring(svg)
         tags = {el.tag.removeprefix(SVG) for el in root.iter()}
         assert not tags & {'script', 'foreignObject', 'filter', 'image'}, name
         assert root.find(f'{SVG}title') is not None and root.find(f'{SVG}desc') is not None, name
-    for name in charts.BOOKS.values():
-        ET.parse(ROOT / 'site/assets' / name[0])    # the committed pair is well-formed
+    ET.parse(ROOT / 'site/assets' / charts.NAME)    # the committed card is well-formed
 
 
 def test_readme_values_carry_sign_denominator_and_basis():
