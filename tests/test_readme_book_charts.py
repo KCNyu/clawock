@@ -7,9 +7,11 @@ it reads the placeholders from. The payload is not in a test checkout, so these
 run the builder on a small synthetic one and pin what a chart of money can get
 quietly wrong: reading a snapshot column by position, printing a percentage
 without the basis the payload divided by, letting the two layouts say different
-things, and writing a partial chart when a label no longer fits.
+things, writing a partial chart when a label no longer fits, and motion that
+ignores prefers-reduced-motion or leaves the first frame incomplete.
 """
 import importlib.util
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -147,6 +149,42 @@ def test_a_label_that_no_longer_fits_stops_the_write(charts, tmp_path):
     with pytest.raises(ValueError, match='overflow'):
         charts.write_all(payload, assets=tmp_path)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_the_card_moves_and_all_of_it_stops_for_reduced_motion(charts):
+    """Light runs each curve in both layouts, and none of it outlives the media query."""
+    smil = {f'{SVG}{tag}' for tag in ('animate', 'animateMotion', 'animateTransform', 'set')}
+    seen = {}
+    for name, svg in charts.render_all(_payload()).items():
+        root = ET.fromstring(svg)
+        css = ''.join(el.text or '' for el in root.iter(f'{SVG}style'))
+        reduced = ''.join(re.findall(r'@media \(prefers-reduced-motion:reduce\)\{((?:[^{}]|\{[^{}]*\})*)\}',
+                                     css))
+        # SMIL has no media query: every element it drives is one the query removes.
+        assert re.search(r'\.pulse\{display:none\}', reduced), name
+        driven = [el for el in root.iter() if any(child.tag in smil for child in el)]
+        assert all('pulse' in el.attrib.get('class', '').split() for el in driven), name
+        # Each book has something travelling its own curve.
+        runs = {el.attrib['href'] for el in root.iter(f'{SVG}mpath')}
+        assert runs == {'#curve-us', '#curve-hk'}, name
+        # Every CSS animation in use is switched off (or hidden) in the query.
+        animated = set(re.findall(r'\.([\w-]+)\{animation:', css.replace(reduced, '')))
+        used = {cls for el in root.iter() for cls in el.attrib.get('class', '').split()}
+        stopped = set(re.findall(r'\.([\w-]+)', ''.join(
+            re.findall(r'([^{}]+)\{(?:animation:none|display:none)\}', reduced))))
+        assert {'glint', 'drift'} <= animated & used, name
+        assert animated & used <= stopped, (name, sorted((animated & used) - stopped))
+        # The first frame is the whole figure: what carries information is never animated.
+        still = [el for el in root.iter()
+                 if el.tag == f'{SVG}text' or el.attrib.get('class') == 'curve']
+        assert len(still) == 10
+        for el in still:
+            assert not any(child.tag in smil for child in el.iter()), name
+            assert not set(el.attrib.get('class', '').split()) & (animated | {'pulse'}), name
+        seen[name] = (sorted(el.attrib['id'] for el in root.iter() if 'id' in el.attrib),
+                      sorted(el.attrib.get('class', '') for el in driven), sorted(animated))
+    # One set of definitions for both layouts; only distances differ.
+    assert seen['books.svg'] == seen['books-narrow.svg']
 
 
 def test_the_card_survives_an_img_tag(charts):
