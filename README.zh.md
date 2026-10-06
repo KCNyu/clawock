@@ -33,15 +33,104 @@
 
 ## 你能得到什么
 
-clawock 给你已经在用的 AI Agent 加一套投资决策纪律,用在你自己的股票账本上:Agent 读的是核验过的证据,必须写出反方,资金与汇率算术由 Python 核对;之后每一条判断由代码而不是模型公开打分。它跑在一个真实的港美股账户上,下单仍由你自己来。
+你持有港美股，每天要知道：哪些消息改变了判断，今天该不该动，昨天的建议后来怎样了。clawock 把你已经在用的 AI Agent 接成一套连续工作的投研流程：**信息收集 → 有反方的决策 → 代码结算 → 反馈给下一次判断**。Claude Code、Codex、OpenClaw、DeepSeek Harness 或自己的 CLI，都用同一套契约，下单仍由你来。
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/start-here-narrow.svg"><img src="site/assets/start-here.svg" width="1016" alt="从哪里开始用 clawock —— 自己做港美股:开市前收到计划、盘中收到卡片、收盘后拿到打分,从 clawock init 开始;已经在用 Claude Code、Codex、OpenClaw 或 DeepSeek Harness:装上 investment-decision 工作流,模型调用仍在你的 Agent 里;想先看战绩:实时仪表盘上每条判断都由代码结算,亏损照样摆着;三条路底下是同一份契约:核验过的证据、必填的反方、核对过的资金与汇率算术、把结果连回当初那条决策"></picture></p>
+这里的 **RSI 指递归自我改进（Recursive Self-Improvement）闭环**：每次判断留下证据与结果，下次接着这份记录往前走。**不承诺收益。** 主动建议尚未显出优势；可核验、能积累的判断才是你拿到的东西。
 
-- **开市前,一份计划。** 港股美股一份简报,看多理由旁边必须写着看空理由。
-- **收盘后,一个分数。** Python 按真实日线逐条结算,模型碰不到自己的分数。
-- **不承诺收益。** 主动建议至今没跑赢买入持有,页面照实写着。你拿到的是一份查得了的账。
+| 你每天的问题 | 它替你做什么 | 你拿到的实物 |
+|---|---|---|
+| 有什么新信息值得看？ | 把持仓行情、公告、新闻与风险放到同一份有来源的上下文里 | 盘前证据包，带发布时间、引用和未取到的源 |
+| 今天该不该动？ | 多空读同一份证据，写清触发条件、反方与失效条件，代码核对金额 | `memory/{date}-pre-open.md` + `memory/{date}-plan.json`，盘中收到触发卡片 |
+| 判断后来怎样了？ | 对照行情结算，保留执行状态与失败样本，把历史与校准结果交给下一次判断 | `memory/decisions.jsonl`、公开记分与复盘；可迁移工作流另有 `evaluation.json` |
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/rsi-loop-narrow.svg"><img src="site/assets/rsi-loop.svg" width="1440" alt="RSI 总分结构：左侧信息源，中间认证输入、多空决策与代码结算，右侧 Agent、人、Python 与审查的权责，下方历史与校准回流到下一次上下文"></picture></p>
+
+## 信息进来：先有来源，再有观点
+
+早上打开简报前，Python 已按兜底链抓好腾讯 / Nasdaq 等行情、SEC / 港交所公告、东财资金流、中英文新闻、宏观与情绪，再对你的账本、汇率和风险做核对。旧闻与实时信息分开标，失败的源点名为“未取到”，不会被写成“没有消息”。港股基础覆盖齐全，**研究广度落后美股**。
+
+**你拿到的是证据包。** 实盘简报的 `preflight` 把本次判断需要的核心包与可按需读取的参考层落盘；Agent 不用从聊天里猜这批数据的来历。迁到自己的 harness 时，`run prepare` 产出 `request.json`，把上下文逐文件及整体的 SHA-256、工作流版本和整包证书固定下来。
+
+**认证固定的是“用了什么”。** 引用包含来源、发布时间或观察时间；哈希核对内容与代次，不能证明新闻是真的。源需要的访问凭证与模型 API key 仍由你的运行时保管，不进公开仓库。可迁移 skill 也允许 Agent 用自己的研究工具补充可追溯证据；实盘定时任务读 Python 已装配的文件。
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/evidence-receipt-narrow.svg"><img src="site/assets/evidence-receipt.svg" width="1016" alt="证据矩阵：八类信息逐行对应来源、可用产出与检查；下方溯源带区分引用时间与上下文和工作流哈希，认证固定所用内容，不保证事实为真"></picture></p>
+
+**实盘完整信息流与投递路径**
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/information-flow-narrow.svg"><img src="site/assets/information-flow.svg" width="1016" alt="clawock 数据流 —— 8 个信息层经有序的多源兜底抓取;Python 对账并计算风险;盘前简报、时段报告与盘中巡检各自跑 preflight,只组装本次能用的块;模型只读这些文件、从不自己抓数据;Python postflight 校验后发布到 master、仪表盘轮询的 data-plane 分支,并投递微信与 Telegram;不调用 LLM 的 crontab watchdog 兜底送达"></picture></p>
+
+[信息层与来源目录](docs/how-the-desk-works.zh.md#信息层) · [认证协议](docs/architecture/runtime-protocol.md).
+
+## 决策出来：多空同读一份证据
+
+比如你问“今天能不能加仓？”：Agent 先写看多依据，再写能推翻它的反方；最后落到动作、触发条件、置信度和论点失效条件。实盘简报用分析师、多空研究员、风险官与裁判完成这个辩论；可迁移工作流把同样的证据与反方要求带进你当前的 Agent。
+
+**你拿到的是计划与回执。** 实盘每天留下简报和 `plan.json`，盘中卡片把新行情对照早上的触发价。可迁移工作流交出 `decision.json`，Python 校验引用关系、反方、失效条件及订单 / 汇率算术，发布后给出固定代次的回执；缺少反方就拒收。对话里产生的实盘判定用 `clawock record --source <harness>` 落账，下单仍由你决定。
+
+<p align="center"><img src="site/assets/decision-card-example.png" width="640" alt="一张 clawock 决策回执:标的、各自引用证据的看多与看空理由、论点、失效条件、置信度与动作,以及已发布的 run id 和固定的证书"></p>
+
+<sub>示例输出，不是真实结算。</sub>
+
+**实盘完整多空辩论**
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/debate-flow-narrow.svg"><img src="site/assets/debate-flow.svg" width="1016" alt="clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环"></picture></p>
+
+多空辩论改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents)；裁判给每条判定写明策略框架。
+
+## 收盘后：结果回到下一次判断
+
+收盘不是对话的终点。你用 `mark-followed` 标记跟随 / 未跟随的执行证据，代码按各市场自己的日历和标准日线检查触发与结果；同一论点的重复表态归为同一 episode，没法结算的也留在记录里。
+
+**下一次从这份记录开始。** 实盘下一份简报读决策指标、历史复盘与置信度校准；校准只用更早日期，样本不足时收缩或弃权。失败判断连着原始证据留下来，Agent 可以复核昨天的理由，而不是每天重新讲一遍故事。
+
+**换个 harness 也能继续反馈。** 可迁移工作流用带来源的 `outcome.json` 生成 `evaluation.json`（方向评估，不是已实现盈亏）；评估或拒收回执可触发有边界提案，经具名审查接受后应用，并保留回滚记录。目前只允许调整证据数量与无一手来源时的置信度上限，不能自行改策略、买卖规则或 skill。这是可审查的改进路径，不是自动变得更赚钱。
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/feedback-learning-narrow.svg"><img src="site/assets/feedback-learning.svg" width="1016" alt="实盘反馈轮：执行、结算、历史与校准围绕下一份简报；右侧可迁移工作流用状态机展示结果、提案、具名接受或拒绝、应用与回滚，不自动改策略"></picture></p>
+
+截至 <!-- CW_M:as_of -->2026-10<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->159<!-- /CW_M:settled --> 条判断**,全部由 Python 机械结算后发布:赢的、输的、没法打分的都在。
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/scorecard-narrow.svg"><img src="site/assets/scorecard.svg" width="1016" alt="clawock 怎么给一条判断打分 —— 模型把带版本的决策写进 memory/decisions.jsonl,此后没有写权限;Python 按各市场自己的日历、用基准供应商的不复权日线核对触发,未完成场次不打分,跳空越过触发价按开盘价成交;同一论点的重复判断归为一个案例;代码对照朴素方向基线结算,赢、输和无法打分的都发布,无法打分的留在页面上但不进胜率分母;这份记录是诊断,不是收益证明"></picture></p>
+
+| 组 | 方向命中率 | 样本 |
+|---|---|---|
+| 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->50%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->56<!-- /CW_M:active_n -->,95% 区间约 <!-- CW_M:active_ci -->37%–63%<!-- /CW_M:active_ci --> |
+| 只是躺着 hold | <!-- CW_M:hold_pct -->32%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->103<!-- /CW_M:hold_n --> |
+| 高信心主动判断 | <!-- CW_M:hi_pct -->56%<!-- /CW_M:hi_pct --> | n=<!-- CW_M:hi_n -->16<!-- /CW_M:hi_n -->,95% 区间约 <!-- CW_M:hi_ci -->32%–80%<!-- /CW_M:hi_ci --> |
+
+<p align="center"><img src="site/assets/shadow-backtest.png" alt="累计案例胜率对 50% 方向命中基线" width="760"></p>
+
+<sub>累计案例胜率对 50% 方向命中基线:衡量方向对了多少次,不是赚了多少。每周刷新;实时数字在<a href="https://kcnyu.github.io/clawock/#drill">持仓页</a>。</sub>
+
+读这些数字,请带着四条限定:
+
+- **是诊断,不是收益证明。** 方向命中率与盈亏无关;区间包含 50% 时统计上还不能算优势,该是噪声的地方就标成噪声。
+- **真实账户另算。** 折美元合并 **<!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动;美股、港股分开看见页首的图),对比买入持有仍然落后。
+- **影子组合是模拟,不是实盘。** 跟随建议与买入持有在同一时间线上回放,见[持仓页](https://kcnyu.github.io/clawock/#drill)。
+- **账户成绩是人机混合的成绩。** 跟不跟由账户所有者决定:<!-- CW_M:rows -->985<!-- /CW_M:rows --> 条记录里 followed <!-- CW_M:followed -->547<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->383<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->55<!-- /CW_M:unknown -->,每条都带执行状态。
+
+杠杆刻度盘的择时能力目前不可与随机区分,[Reflect](https://kcnyu.github.io/clawock/#reflect) 照实写着。战绩可以复算:`clawock audit-resettle` 重新结算整本决策账(默认不写入),`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。[原始账本全部公开](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl) · [打分硬规则](docs/how-the-desk-works.zh.md#战绩怎么打分硬规则) · [测了什么、什么没通过](docs/how-the-desk-works.zh.md#测了什么什么没通过)。
+
+## 任何 harness，同一套会积累的决策契约
+
+你可以在 **Claude Code / Codex / OpenClaw / DeepSeek Harness / 任意能读写文件并调用 CLI 的运行时**里继续用同一套 `investment-decision` skill 与产物契约。模型、对话、记忆、研究工具、凭证与权限跟着你的 Agent；clawock 负责认证输入、核验输出、评估结果和记录改进，不启动另一个模型。
+
+“越用越聪明”有可查的落点：证据连到决策，决策连到执行与结果，历史进入下一次上下文，置信度由更早样本校准，证据要求的改动留有审查与回滚记录。换 harness 时，保留工作区产物并接回上下文；连续性来自这些文件，不依赖某个聊天窗口。新工作区不会自动拥有作者的实盘数据源、排程和历史，需按能力检查配置。
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/product-architecture-narrow.svg"><img src="site/assets/product-architecture.svg" width="1016" alt="clawock 产品架构 —— 外部运行时拥有模型、对话、记忆与工具;包提供可迁移工作流、认证上下文、确定性对账、评估和有边界改进"></picture></p>
+
+[通用调用与反馈协议](docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [工作流的改进边界](docs/architecture/harness.md#ownership).
+
+## 模型不被允许做的事
+
+分数不是模型自己打的,账也不是模型自己记的。可能把记录算坏的算术都在 Python 里,有单元测试钉着。
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/guardrails-narrow.svg"><img src="site/assets/guardrails.svg" width="1016" alt="clawock 代码强制执行的规矩 —— 每份简报核查六条风控上限(杠杆单一标的、非杠杆核心单一标的及其复核带、相关集群、杠杆 ETF 仓位、组合 β、止损),每次越线记入台账并冻结同风险增仓;资金规矩:美元与港币不直接相加,账目不平的账本不推送,回报按峰值本金计;证据规矩:加仓需要两个独立证据族,论点只在有新证据时变、价格波动动不了,对外数字必须两源,没有看空理由的决策不予发布;执行仍然是人"></picture></p>
+
+[全部 12 条,代码具体做什么](docs/how-the-desk-works.zh.md#代码强制执行的规矩)。
 
 ## 五分钟跑起来
+
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/start-here-narrow.svg"><img src="site/assets/start-here.svg" width="1016" alt="从哪里开始用 clawock —— 自己做港美股:开市前收到计划、盘中收到卡片、收盘后拿到打分,从 clawock init 开始;已经在用 Claude Code、Codex、OpenClaw 或 DeepSeek Harness:装上 investment-decision 工作流,模型调用仍在你的 Agent 里;想先看战绩:实时仪表盘上每条判断都由代码结算,亏损照样摆着;三条路底下是同一份契约:核验过的证据、必填的反方、核对过的资金与汇率算术、把结果连回当初那条决策"></picture></p>
 
 选你正在用的 Agent,点 logo 打开对应 harness 的可运行示例:
 
@@ -73,12 +162,6 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 模型调用留在你自己的运行时里,费用走你自己的 API key;clawock 本身免费开源。[这一段](examples/cli/workflow-run/run.sh)每个 PR 都在干净虚拟环境里只装 wheel 原样跑一遍。
 
-跑完拿到的是一张回执,多空两边都写在上面:
-
-<p align="center"><img src="site/assets/decision-card-example.png" width="640" alt="一张 clawock 决策回执:标的、各自引用证据的看多与看空理由、论点、失效条件、置信度与动作,以及已发布的 run id 和固定的证书"></p>
-
-<sub>示例输出,不是真实结算。</sub>
-
 把 `decision.json` 里的反方证据删掉,`publish` 直接拒收(退出码 1):
 
 ```json
@@ -96,57 +179,9 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code 跑通 investment-decision 全流程:clawock init、clawock run prepare、Claude 写 decision.json、clawock run publish 返回 status: published" width="820"></p>
 
-不管对话在哪个 harness 里,判定都走同一条命令落账:`clawock record --source <harness>`,看空理由与失效条件必填。没有人手改 `decisions.jsonl`。
+## Harness 界面与后台工作
 
-## 你账本上的一个交易日
-
-- **08:03 HKT,计划送到。** Python 已经抓好行情、公告、资金流和中英文新闻;四位分析师、多空两位研究员、三位风险官和一位裁判读同一份证据,辩论出一份计划,发到微信、Telegram 和仪表盘。
-- **盘中,卡片到手机。** 开盘、午间、收盘各一份播报,开市期间每 30 分钟一次盯盘;每张卡都写明早上计划里的触发价,现价已经碰到哪几条。
-- **收盘后,打分。** 代码记下你实际执行了什么,按真实日线逐条结算。
-- **第二天早上,它读自己的战绩。** 记分进入下一份简报。
-
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/decision-pipeline-narrow.svg"><img src="site/assets/decision-pipeline.svg" width="1016" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录;dsh 的 Decision Mind 展示真实成交、当时计划与 T+1 判定供追问,下单仍由人来"></picture></p>
-
-作者自己的投研台用 OpenClaw 无人值守地跑这一套。每个任务都是 `clawock … preflight` → 模型写 → `clawock … postflight`:
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="投研台主机上 OpenClaw 的真实 cron 列表:九个 clawock 任务(盘前简报、港美股场次报告、盘中盯盘),各自的 cron 表达式、所跑的 clawock preflight → postflight 生命周期、上次状态 ok 与耗时" width="820"></p>
-
-<sub>由 <code>site/tools/shoot_openclaw_cron.js</code> 从主机真实的 <code>openclaw cron list --json</code> 渲染;任务 id、投递目标与 prompt 不出图。完整时刻表见<a href="docs/operations/cron-schedules.md">生成的排程表</a>。</sub>
-
-## 战绩,亏损照样摆出来
-
-截至 <!-- CW_M:as_of -->2026-10<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->159<!-- /CW_M:settled --> 条判断**,全部由 Python 机械结算后发布:赢的、输的、没法打分的都在。
-
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/scorecard-narrow.svg"><img src="site/assets/scorecard.svg" width="1016" alt="clawock 怎么给一条判断打分 —— 模型把带版本的决策写进 memory/decisions.jsonl,此后没有写权限;Python 按各市场自己的日历、用基准供应商的不复权日线核对触发,未完成场次不打分,跳空越过触发价按开盘价成交;同一论点的重复判断归为一个案例;代码对照朴素方向基线结算,赢、输和无法打分的都发布,无法打分的留在页面上但不进胜率分母;这份记录是诊断,不是收益证明"></picture></p>
-
-| 组 | 方向命中率 | 样本 |
-|---|---|---|
-| 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->50%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->56<!-- /CW_M:active_n -->,95% 区间约 <!-- CW_M:active_ci -->37%–63%<!-- /CW_M:active_ci --> |
-| 只是躺着 hold | <!-- CW_M:hold_pct -->32%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->103<!-- /CW_M:hold_n --> |
-| 高信心主动判断 | <!-- CW_M:hi_pct -->56%<!-- /CW_M:hi_pct --> | n=<!-- CW_M:hi_n -->16<!-- /CW_M:hi_n -->,95% 区间约 <!-- CW_M:hi_ci -->32%–80%<!-- /CW_M:hi_ci --> |
-
-<p align="center"><img src="site/assets/shadow-backtest.png" alt="累计案例胜率对 50% 方向命中基线" width="760"></p>
-
-<sub>累计案例胜率对 50% 方向命中基线:衡量方向对了多少次,不是赚了多少。每周刷新;实时数字在<a href="https://kcnyu.github.io/clawock/#drill">持仓页</a>。</sub>
-
-读这些数字,请带着四条限定:
-
-- **是诊断,不是收益证明。** 方向命中率与盈亏无关;区间包含 50% 时统计上还不能算优势,该是噪声的地方就标成噪声。
-- **真实账户另算。** 折美元合并 **<!-- CW_M:return_pct -->−19.79%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动;美股、港股分开看见页首的图),对比买入持有仍然落后。
-- **影子组合是模拟,不是实盘。** 跟随建议与买入持有在同一时间线上回放,见[持仓页](https://kcnyu.github.io/clawock/#drill)。
-- **账户成绩是人机混合的成绩。** 跟不跟由账户所有者决定:<!-- CW_M:rows -->985<!-- /CW_M:rows --> 条记录里 followed <!-- CW_M:followed -->547<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->383<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->55<!-- /CW_M:unknown -->,每条都带执行状态。
-
-杠杆刻度盘的择时能力目前不可与随机区分,[Reflect](https://kcnyu.github.io/clawock/#reflect) 照实写着。战绩可以复算:`clawock audit-resettle` 重新结算整本决策账(默认不写入),`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。[原始账本全部公开](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl) · [打分硬规则](docs/how-the-desk-works.zh.md#战绩怎么打分硬规则) · [测了什么、什么没通过](docs/how-the-desk-works.zh.md#测了什么什么没通过)。
-
-## 模型不被允许做的事
-
-分数不是模型自己打的,账也不是模型自己记的。可能把记录算坏的算术都在 Python 里,有单元测试钉着。
-
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/guardrails-narrow.svg"><img src="site/assets/guardrails.svg" width="1016" alt="clawock 代码强制执行的规矩 —— 每份简报核查六条风控上限(杠杆单一标的、非杠杆核心单一标的及其复核带、相关集群、杠杆 ETF 仓位、组合 β、止损),每次越线记入台账并冻结同风险增仓;资金规矩:美元与港币不直接相加,账目不平的账本不推送,回报按峰值本金计;证据规矩:加仓需要两个独立证据族,论点只在有新证据时变、价格波动动不了,对外数字必须两源,没有看空理由的决策不予发布;执行仍然是人"></picture></p>
-
-[全部 12 条,代码具体做什么](docs/how-the-desk-works.zh.md#代码强制执行的规矩)。
-
-## 在 DeepSeek Harness 里委派
+**DeepSeek Harness 的实盘视图与后台队列**
 
 **交代任务、离开聊天、回来收结果。** `clawock-dsh` 把投资决策 skill、Decision Mind 标签页和 provider 面板带进 dsh 网页端。在装了 clawock **agent-dispatch** runner 的主机上,这块面板还让你随时看见并控制 Claude Code、Codex、OpenCode 这支后台团队:你在聊天里委派仓库改动并写明交付要求,runner 让任务独立跑完,插件让你随时看进度、改方向。
 
@@ -156,8 +191,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 - **任务在跑,也能改方向。** 把排队任务往前移,在允许时改下一次尝试的模型,调整截止时间与重试预算,取消任务或续跑未完成的会话。
 - **结果留得住。** 任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-<details>
-<summary><b>展开完整队列截图</b> —— 真实主机上的插件</summary>
+**完整队列截图** —— 真实主机上的插件
 
 <br>
 
@@ -165,16 +199,11 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 [队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
 
-</details>
-
-<details>
-<summary><b>打开单个任务的历史</b> — 追加指令与进展时间线</summary>
+**单个任务的历史** — 追加指令与进展时间线
 
 <br>
 
 <p align="center"><img src="site/assets/dsh-task-detail.png" width="380" alt="手机布局下的完整真实 dsh 任务详情:已结束的仓库任务,带编号与投递状态的追加指令,以及按时间排列的派发、等待执行锁、执行尝试、指令投递、续跑和通知回执"></p>
-
-</details>
 
 问一句“0700.HK 能不能加点仓?”,投资 skill 会带着 agent 收集证据、做多空辩论、写出有边界的决策。**Decision Mind** 让你点开一笔真实成交,顺着**计划 → 执行 → T+1 → 盈亏**往下看。没有计划、尚未判定都明说,USD 与 HKD 分开,下单仍由你来。
 
@@ -191,23 +220,19 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 
 ## 引擎盖下面
 
-想看机器怎么转的读者,这里有四张图;图背后的文字在[投研台怎么运转](docs/how-the-desk-works.zh.md)。
-
-**谁管什么。** 模型调用、对话、记忆、工具、权限和凭证都留在你的运行时里;clawock 只是围着它们的文件加 CLI。
-
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/product-architecture-narrow.svg"><img src="site/assets/product-architecture.svg" width="1016" alt="clawock 产品架构 —— 外部运行时拥有模型、对话、记忆与工具;包提供可迁移工作流、认证上下文、确定性对账、评估和有边界改进"></picture></p>
-
-**真实投研台。** 同一条边界落在一个真实组合上。
+同一套闭环在作者的真实账本上怎么落地：
 
 <p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/architecture-narrow.svg"><img src="site/assets/architecture.svg" width="1016" alt="KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环"></picture></p>
 
-**证据从哪来。** Python 按有序的兜底链抓取,模型只读组装好的文件。港股基础覆盖与美股对齐,港股研究广度落后美股。
+<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/decision-pipeline-narrow.svg"><img src="site/assets/decision-pipeline.svg" width="1016" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录;dsh 的 Decision Mind 展示真实成交、当时计划与 T+1 判定供追问,下单仍由人来"></picture></p>
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/information-flow-narrow.svg"><img src="site/assets/information-flow.svg" width="1016" alt="clawock 数据流 —— 8 个信息层经有序的多源兜底抓取;Python 对账并计算风险;盘前简报、时段报告与盘中巡检各自跑 preflight,只组装本次能用的块;模型只读这些文件、从不自己抓数据;Python postflight 校验后发布到 master、仪表盘轮询的 data-plane 分支,并投递微信与 Telegram;不调用 LLM 的 crontab watchdog 兜底送达"></picture></p>
+作者自己的投研台在 **08:03 HKT** 送出盘前计划，用 OpenClaw 无人值守地跑这一套。每个任务都是 `clawock … preflight` → 模型写 → `clawock … postflight`:
 
-**辩论怎么被逼出分歧。** 改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents):多空两位研究员必须有分歧并记录下来,全员一致是警示信号而不是共识;裁判点名每条决策背后的策略框架。
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="投研台主机上 OpenClaw 的真实 cron 列表:九个 clawock 任务(盘前简报、港美股场次报告、盘中盯盘),各自的 cron 表达式、所跑的 clawock preflight → postflight 生命周期、上次状态 ok 与耗时" width="820"></p>
 
-<p align="center"><picture><source media="(max-width: 700px)" srcset="site/assets/debate-flow-narrow.svg"><img src="site/assets/debate-flow.svg" width="1016" alt="clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环"></picture></p>
+<sub>由 <code>site/tools/shoot_openclaw_cron.js</code> 从主机真实的 <code>openclaw cron list --json</code> 渲染;任务 id、投递目标与 prompt 不出图。完整时刻表见<a href="docs/operations/cron-schedules.md">生成的排程表</a>。</sub>
+
+[投研台怎么运转](docs/how-the-desk-works.zh.md)有信息层、运行上下文、结算细则与代码闸的完整说明。
 
 ## 接着看
 
@@ -217,7 +242,7 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 - [**各 harness 示例**](examples/README.md) —— 同一条决策,五种 harness,外加 npm 上的 dsh 插件。
 - [**投研台怎么运转**](docs/how-the-desk-works.zh.md) —— 信息层、每种运行读什么、决策闸、打分规则与 12 条代码规矩。
 - [**影响者雷达**](docs/influencer-radar.md) —— 八个公开来源每个交易日扫两次并关联到持仓;落空也照实记空。
-- [**命令参考**](docs/reference/commands.md) · [**术语表**](docs/glossary.md) · [**全部项目文档**](docs/README.md) · [**参与开发**](AGENTS.md#interactive-codexclaude-pr-workflow)
+- [**命令参考**](docs/reference/commands.md) · [**术语表**](docs/glossary.md) · [**全部项目文档**](docs/README.md) · [**参与开发**](AGENTS.md#code-changes)
 
 ### 研究入口
 
