@@ -1,21 +1,16 @@
-"""The README diagrams are generated; the SVGs must be what the builder emits.
+"""One SVG composition at every width, with generated and geometric contracts.
 
-`site/tools/build_readme_diagrams.py` owns every label and coordinate. A hand
-edit to one of the SVGs would be overwritten by the next rebuild, so the drift
-is caught here instead of in a later diff nobody connects to it.
-
-The README shows them through `<img>`, where browsers run no script and load no
-external resource; the animation must come from CSS and SMIL inside the file.
-
-Each diagram exists twice: a desktop layout under its name and a narrow one
-beside it as `<name>-narrow.svg`. The RSI overview has a larger canvas and
-semantic side regions; the other views retain their established desktop width.
-Both variants share content, so the checks below run over both.
+The user replaced the dual-layout intent: text parity and a desktop/narrow
+height ratio no longer describe the design. Pin one composition, a readable
+font floor, exact anchor seams, collision-free labels, spacing and both README
+consumers instead. Deliberate malformed drawings prove the geometry gate fails.
 """
 import importlib.util
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / 'site/tools/build_readme_diagrams.py'
@@ -39,84 +34,63 @@ def test_rsi_views_share_the_house_style_and_stay_small():
     names = {'rsi-loop', 'evidence-receipt', 'feedback-learning'}
     assert names <= builder.LAYOUTS.keys()
     for name in names:
-        for suffix in ('', '-narrow'):
-            path = ROOT / 'site/assets' / f'{name}{suffix}.svg'
-            text = path.read_text(encoding='utf-8')
-            assert path.stat().st_size < 40_000, path.name
-            for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
-                assert primitive in text, (path.name, primitive)
-            assert '@media (prefers-reduced-motion:reduce)' in text
-            root = ET.fromstring(text)
-            for motion in root.iter(f'{SVG}animateMotion'):
-                parent = next(el for el in root.iter() if motion in list(el))
-                assert 'pulse' in parent.attrib.get('class', '').split(), path.name
+        path = ROOT / 'site/assets' / f'{name}.svg'
+        text = path.read_text(encoding='utf-8')
+        assert path.stat().st_size < 40_000, path.name
+        for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
+            assert primitive in text, (path.name, primitive)
+        assert '@media (prefers-reduced-motion:reduce)' in text
+        root = ET.fromstring(text)
+        for motion in root.iter(f'{SVG}animateMotion'):
+            parent = next(el for el in root.iter() if motion in list(el))
+            assert 'pulse' in parent.attrib.get('class', '').split(), path.name
 
 
 def test_diagrams_animate_without_anything_an_img_would_drop():
     for name in _builder().DIAGRAMS:
         root = ET.parse(ROOT / 'site/assets' / name).getroot()
         tags = {el.tag.removeprefix(SVG) for el in root.iter()}
-        assert 'script' not in tags and 'foreignObject' not in tags, name
-        # A filter rasterises the text beneath it at the viewBox resolution.
-        assert 'filter' not in tags, name
+        assert not tags & {'script', 'foreignObject', 'filter'}, name
         assert 'animateMotion' in tags, f'{name} has no moving packets'
         assert root.find(f'{SVG}title') is not None, name
+        assert root.find(f'{SVG}desc') is not None, name
         for image in root.iter(f'{SVG}image'):
-            assert image.attrib['href'].startswith('data:image/png;base64,'), (
-                f'{name}: an SVG inside an img cannot load an external screenshot')
+            assert image.attrib['href'].startswith('data:image/png;base64,'), name
 
 
-def _placed_rects(root, dx=0.0, dy=0.0):
-    """Every rect with the offset of the column group it is drawn in.
-
-    The wide layout draws each run of a column inside `<g transform="translate">`,
-    so a walk over the root's own children would see the header and nothing else.
-    """
-    for el in root:
-        if el.tag == f'{SVG}rect':
-            yield el, dx, dy
-        elif el.tag == f'{SVG}g':
-            # A column group is a bare translate; an icon's group also scales.
-            column = re.fullmatch(r'translate\((\S+) (\S+)\)', el.attrib.get('transform', ''))
-            if column:
-                cx, cy = map(float, column.groups())
-                yield from _placed_rects(el, dx + cx, dy + cy)
-            elif not el.attrib.get('transform'):
-                # The large overview names semantic regions with untransformed
-                # groups. Walk their cards too; they must not evade overlap checks.
-                yield from _placed_rects(el, dx, dy)
-
-
-def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both():
-    """A phone gets the single column and a desktop the two-column canvas.
-
-    The wide layout is unreadable at phone width and the narrow one is a tower
-    three screens tall in a README column, so each README entry has to name both
-    and the two files have to carry the same words.
-    """
+def test_one_composition_and_both_readme_consumers():
     builder = _builder()
-    # The requested total-to-parts overview needs source/ownership sidebars,
-    # three central stages and a bottom return lane. Its larger text is drawn
-    # on a 1440 canvas; all other desktop views keep the established 1016.
-    desktop_widths = builder.DESKTOP_WIDTHS
-    for readme, base in (('README.md', 'refs/heads/master/site/assets/'), ('README.zh.md', 'site/assets/')):
-        text = (ROOT / readme).read_text(encoding='utf-8')
+    assert set(builder.DIAGRAMS) == {f'{name}.svg' for name in builder.LAYOUTS}
+    # The sole exception is a byte-identical filename alias needed by the
+    # separately protected first 33 lines. It is never a different layout.
+    assert {p.name for p in (ROOT / 'site/assets').glob('*-narrow.svg')} == {'books-narrow.svg'}
+    assert (ROOT / 'site/assets/books-narrow.svg').read_bytes() == (ROOT / 'site/assets/books.svg').read_bytes()
+    for readme in ('README.md', 'README.zh.md'):
+        body = '\n'.join((ROOT / readme).read_text(encoding='utf-8').splitlines()[33:])
+        assert '<picture>' not in body and '-narrow.svg' not in body, readme
         for name in builder.LAYOUTS:
-            assert ('<source media="(max-width: 700px)" srcset="' in text
-                    and f'{base}{name}-narrow.svg"><img src=' in text), (readme, name)
-            width = desktop_widths.get(name, builder.WIDE)
-            assert f'{base}{name}.svg" width="{width}"' in text, (readme, name)
+            width = builder.DESKTOP_WIDTHS.get(name, builder.WIDE)
+            assert re.search(rf'<img[^>]+site/assets/{name}\.svg" width="{width}"', body), (readme, name)
     for name in builder.LAYOUTS:
-        wide = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
-        narrow = ET.parse(ROOT / 'site/assets' / f'{name}-narrow.svg').getroot()
-        assert float(wide.attrib['width']) == desktop_widths.get(name, builder.WIDE)
-        assert float(narrow.attrib['width']) == builder.W
-        assert float(wide.attrib['height']) < float(narrow.attrib['height']) * .75, (
-            f'{name}: the wide layout is not meaningfully shorter than the column')
-        # The wide header sets on one line what the column sets on two.
-        words = lambda root: sorted(' '.join(  # noqa: E731
-            ''.join(t.itertext()) for t in root.iter(f'{SVG}text')).split())
-        assert words(wide) == words(narrow), f'{name}: the two layouts say different things'
+        root = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
+        expected_width = builder.DESKTOP_WIDTHS.get(name, builder.WIDE)
+        assert float(root.attrib['width']) == expected_width
+        assert root.attrib['viewBox'] == f'0 0 {expected_width} {root.attrib["height"]}'
+
+
+def test_font_floor_at_324_css_pixels():
+    """Arithmetic contract, explicitly not a substitute for real-device testing."""
+    builder = _builder()
+    for name in builder.DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        css = ''.join(el.text or '' for el in root.iter(f'{SVG}style'))
+        sizes = {cls: float(size) for cls, size in re.findall(r'\.([\w-]+)\{font-size:([\d.]+)px', css)}
+        scale = 324 / float(root.attrib['width'])
+        for text in root.iter(f'{SVG}text'):
+            assert 'style' not in text.attrib, (name, 'inline font escapes the scale contract')
+            size = sizes[text.attrib['class']]
+            assert size * scale >= 10, (name, ''.join(text.itertext()), size, scale)
+            assert size == builder.TYPE[text.attrib['class']][0]
 
 
 def test_rsi_overview_has_side_regions_and_a_bottom_return_lane():
@@ -132,35 +106,85 @@ def test_rsi_overview_has_side_regions_and_a_bottom_return_lane():
     assert bounds['outcome'][0] < bounds['owners'][0]
     assert bounds['return'][1] > max(y + h for key, (_, y, _, h) in bounds.items() if key != 'return')
     assert bounds['return'][2] > bounds['input'][2] + bounds['decision'][2] + bounds['outcome'][2]
+    assert any(p.attrib.get('data-from') == 'return:left' and p.attrib.get('data-to') == 'input:top'
+               for p in root.iter(f'{SVG}path')), 'feedback must visibly return to input'
 
 
-def test_peer_nodes_do_not_touch_or_overlap():
-    """Ignore intentional containment; sibling node boxes need breathing room.
+def test_all_committed_diagrams_pass_geometry_checks():
+    builder = _builder()
+    for name in builder.DIAGRAMS:
+        svg = (ROOT / 'site/assets' / name).read_text(encoding='utf-8')
+        assert builder.validate_geometry(svg), name
 
-    Tags, logos, chart marks and list sweep highlights aren't flow nodes. This
-    catches the source-chip rows collapsing back to a two-unit gutter without
-    depending on a specific label, row count, or font installed on the runner.
-    """
-    from itertools import combinations
 
-    for name in _builder().DIAGRAMS:
-        root = ET.parse(ROOT / 'site/assets' / name).getroot()
-        nodes = []
-        for el, dx, dy in _placed_rects(root):
-            # Highlights are light on a node, not nodes: the list sweep, the glass sheen.
-            if el.attrib.get('class', '').split()[-1:] in (['sweep'], ['sheen']):
-                continue
-            x, y, w, h = (float(el.attrib[k]) for k in ('x', 'y', 'width', 'height'))
-            if w >= 60 and h >= 30:
-                nodes.append((x + dx, y + dy, x + dx + w, y + dy + h))
-        assert len(nodes) > 6, f'{name}: only {len(nodes)} boxes found — did the walk break?'
-        for a, b in combinations(nodes, 2):
-            if (a[0] <= b[0] and a[1] <= b[1] and a[2] >= b[2] and a[3] >= b[3]
-                    or b[0] <= a[0] and b[1] <= a[1] and b[2] >= a[2] and b[3] >= a[3]):
-                continue
-            dx = max(a[0], b[0]) - min(a[2], b[2])
-            dy = max(a[1], b[1]) - min(a[3], b[3])
-            if dx < 0:
-                assert dy >= 5.99, (name, a, b, 'vertical gap', dy)
-            elif dy < 0:
-                assert dx >= 5.99, (name, a, b, 'horizontal gap', dx)
+def _fixture(builder):
+    d = builder.Canvas('architecture', 'Geometry fixture')
+    d.panel('left', 36, 200, 432, 240, 'Left', ['Evidence'], 'blue')
+    d.panel('right', 548, 200, 432, 240, 'Right', ['Decision'], 'green')
+    d.link(('left', 'right'), ('right', 'left'))
+    return ET.fromstring(d.finish(500))
+
+
+@pytest.mark.parametrize('fault, message', [
+    ('seam', 'connector seam'), ('overflow', 'pane text overflow'),
+    ('text_collision', 'text collision'), ('pane_collision', 'pane collision'),
+    ('spacing', 'horizontal breathing room'), ('through_text', 'connector crosses text'),
+    ('graphic_collision', 'graphic crosses text'), ('small_font', 'mobile font floor'),
+    ('off_canvas', 'pane canvas overflow'), ('unowned', 'unowned text touches pane'),
+])
+def test_deliberately_bad_drawings_are_rejected(fault, message):
+    builder = _builder()
+    root = _fixture(builder)
+    text = next(el for el in root.iter(f'{SVG}text') if el.attrib.get('data-in') == 'left')
+    path = next(el for el in root.iter(f'{SVG}path') if 'data-from' in el.attrib)
+    nodes = {el.attrib['data-node']: el for el in root.iter(f'{SVG}rect') if 'data-node' in el.attrib}
+    if fault == 'seam':
+        path.set('d', 'M467 320 L548 320')  # visible one-unit gap at the source boundary
+    elif fault == 'overflow':
+        text.set('x', '40')
+    elif fault == 'text_collision':
+        duplicate = ET.fromstring(ET.tostring(text, encoding='unicode'))
+        duplicate.set('y', str(float(text.attrib['y']) + 2))
+        root.append(duplicate)
+    elif fault == 'pane_collision':
+        nodes['left'].set('width', '600')
+    elif fault == 'spacing':
+        nodes['left'].set('width', '488')  # 24-unit gap, below the 28-unit floor
+    elif fault == 'unowned':
+        del text.attrib['data-in']
+    elif fault == 'small_font':
+        text.set('class', 'code')
+    elif fault == 'off_canvas':
+        nodes['left'].set('x', '-1')
+    elif fault == 'graphic_collision':
+        root.append(ET.fromstring('<rect xmlns="http://www.w3.org/2000/svg" data-obstacle="icon" x="60" y="230" width="60" height="60"/>'))
+    elif fault == 'through_text':
+        path.set('d', 'M468 320 L500 320 L500 250 L60 250 L60 320 L548 320')
+    with pytest.raises(AssertionError, match=message):
+        builder.validate_geometry(ET.tostring(root, encoding='unicode'))
+
+
+def test_a_label_overflow_prevents_any_write(monkeypatch):
+    builder = _builder()
+    monkeypatch.setattr(builder, 'DIAGRAMS', {'broken.svg': lambda: builder.fits('W' * 20, 'body', 50, 'broken') or ''})
+    assert builder.main([]) == 1
+    assert not (ROOT / 'site/assets/broken.svg').exists()
+
+
+def test_risk_labels_are_generated_from_policy_constants():
+    import ast
+
+    tree = ast.parse((ROOT / 'src/clawock/portfolio/guardrail.py').read_text())
+    assignment = next(n for n in tree.body if isinstance(n, ast.Assign) and any(
+        isinstance(t, ast.Name) and t.id == 'GUARDRAIL_CAPS' for t in n.targets))
+    caps = ast.literal_eval(assignment.value)
+    builder = _builder()
+    assert builder.risk_caps() == caps
+    root = ET.fromstring(builder.guardrails())
+    labels = [''.join(t.itertext()) for t in root.iter(f'{SVG}text')]
+    for key in ('leveraged_single_name_pct', 'correlated_cluster_pct', 'lev_etf_leg_pct'):
+        assert f"≤ {caps[key]:g}%" in labels
+    assert f"≤ {caps['single_name_mandatory_pct']:g}% / review {caps['single_name_review_pct']:g}%" in labels
+    assert f"≤ {caps['us_beta_max']:.1f}" in labels
+    assert f"{caps['lev_etf_stop_pct']:g}%".replace('-', '−') in labels
+    assert 'guardrail.py:GUARDRAIL_CAPS' in root.find(f'{SVG}desc').text
