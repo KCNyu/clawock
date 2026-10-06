@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo
 from clawock.decision import ledger as decision_v2
 from clawock import sessions as trading_calendar
 from clawock import costs
-from clawock.safe_io import safe_write_text
+from clawock.safe_io import safe_write_text, to_finite_number as _number
 from clawock.workspace import workspace_root
 
 SCHEMA_VERSION = 1
@@ -139,14 +139,6 @@ def resolve_leg_config(
     if len(currencies) != len(set(currencies)):
         raise ValueError("shadow-book currencies must be unique output keys")
     return resolved
-
-
-def _number(value) -> float | None:
-    try:
-        number = float(value)
-        return number if math.isfinite(number) else None
-    except (TypeError, ValueError):
-        return None
 
 
 def _shares(value) -> int | None:

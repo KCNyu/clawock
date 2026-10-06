@@ -106,6 +106,7 @@ from clawock.evaluation import cscv
 from clawock.evidence import run_card
 from clawock.instruments import canonical_bar_manifest
 from clawock.labeling import triple_barrier
+from clawock.safe_io import to_strict_finite_number as _number
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -139,16 +140,6 @@ def _rows_of(payload) -> dict:
 
 def _as_of(payload) -> str:
     return str(payload.get('as_of') or '')[:10]
-
-
-def _number(value):
-    if isinstance(value, bool) or value is None:
-        return None
-    try:
-        out = float(value)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
 
 
 def quant_signals(payload) -> list[tuple[str, str, float]]:

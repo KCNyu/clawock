@@ -316,6 +316,26 @@ def to_number(value):
         return None
 
 
+def to_finite_number(value):
+    """`to_number`, with `nan` and `inf` read as not-a-number too.
+
+    A bool still counts (`True` is 1.0), as in `to_number`. `decision.shadow`
+    and `market_data.factors` each carried this (#2625).
+    """
+    number = to_number(value)
+    return number if number is not None and math.isfinite(number) else None
+
+
+def to_strict_finite_number(value):
+    """`to_finite_number` that also refuses a bool.
+
+    The reading for values a gate judges: `True` in a price field is a defect
+    to name, not a 1.0 to do arithmetic with. `evaluation.signal_panel` carried
+    this; `market_data.integrity` keeps its own because it is stdlib only (#2625).
+    """
+    return None if isinstance(value, bool) else to_finite_number(value)
+
+
 def parse_iso_utc(value, field, errors):
     """An ISO-8601 timestamp that carries a timezone, or `None` plus an error.
 

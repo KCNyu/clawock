@@ -53,7 +53,6 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from clawock.market_data import integrity as bar_checks
-from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import canonical_bar_manifest
 from clawock.safe_io import jsonl_line, safe_write_text
 from clawock.sessions import ET, HKT
@@ -163,30 +162,6 @@ def fetch_tencent(sym: str, beg: str, end: str) -> list[dict]:
     # Only ever the unadjusted key. If Tencent hands back qfqday instead, that is an
     # adjusted series and we refuse it rather than quietly settling against it.
     return _rows_to_bars(node.get("day") or [])
-
-
-def fetch_em_audit(secid: str, beg: str, end: str) -> list[dict]:
-    """Cross-audit only, best-effort. push2his is IP-blocked here and usually returns
-    nothing; when it does answer, disagreement is worth knowing about."""
-    r = em_get(
-        "https://push2his.eastmoney.com/api/qt/stock/kline/get",
-        params={"secid": secid, "fields1": "f1,f2,f3", "fields2": "f51,f52,f53,f54,f55,f56",
-                "klt": "101", "fqt": "0",
-                "beg": beg.replace("-", ""), "end": end.replace("-", ""), "lmt": "1000"},
-    )
-    if r is None:
-        return []
-    out = []
-    for k in ((r.json().get("data") or {}).get("klines") or []):
-        p = k.split(",")
-        if len(p) < 5:
-            continue
-        try:
-            out.append({"date": p[0], "open": float(p[1]), "close": float(p[2]),
-                        "high": float(p[3]), "low": float(p[4])})
-        except ValueError:
-            continue
-    return out
 
 
 def sane(b: dict) -> bool:

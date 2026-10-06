@@ -69,23 +69,6 @@ def expected_interval_hours(exprs: list[str]) -> float | None:
     return max(gaps) / 60
 
 
-def _expand_dow(dow: str) -> list[int]:
-    out: list[int] = []
-    for part in dow.split(","):
-        if "-" in part:
-            start, end = part.split("-")[:2]
-            try:
-                out.extend(range(int(start), int(end) + 1))
-            except ValueError:
-                continue
-        else:
-            try:
-                out.append(int(part))
-            except ValueError:
-                continue
-    return out
-
-
 def fetch_runs(workflow: str, limit: int = 20, runner=None) -> list[Run]:
     """Production caller for the GitHub run-history provider (#362)."""
     return GitHubRuns(runner=runner).history(workflow, limit=limit, event="schedule")

@@ -27,7 +27,7 @@ import requests
 from clawock import seeds
 from clawock import history_store
 from clawock.market_data import bar_signals
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, to_finite_number as _as_number
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -149,14 +149,6 @@ def fetch_universe(config, workers=8):
                           'error': str(exc)[:120]}
             results[spec['ticker']] = result
     return results
-
-
-def _as_number(value):
-    try:
-        number = float(value)
-        return number if math.isfinite(number) else None
-    except (TypeError, ValueError):
-        return None
 
 
 def _concept_entries(facts, concept, as_of):

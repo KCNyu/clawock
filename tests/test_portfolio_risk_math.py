@@ -240,3 +240,20 @@ def test_the_embedded_copy_keeps_the_sentences_and_drops_the_working():
     # The detail is gone from the embedded copy, not from the file.
     assert 'risk_contributions' not in summary
     assert 'reference_allocation' not in summary
+
+
+def test_the_three_numeric_readings_differ_only_where_they_say(capsys):
+    """#2625: six modules each chose one of these implicitly."""
+    from clawock import safe_io
+    from clawock.portfolio import math as ledger_math
+
+    assert ledger_math.number is safe_io.to_number
+    readings = {value: (safe_io.to_number(value), safe_io.to_finite_number(value),
+                        safe_io.to_strict_finite_number(value))
+                for value in ("1.5", True, None, "x")}
+    assert readings == {"1.5": (1.5, 1.5, 1.5), True: (1.0, 1.0, None),
+                        None: (None, None, None), "x": (None, None, None)}
+    wide, finite, strict = (reader("nan") for reader in (
+        safe_io.to_number, safe_io.to_finite_number, safe_io.to_strict_finite_number))
+    assert wide != wide and finite is None and strict is None
+    assert safe_io.to_finite_number(float("inf")) is None
