@@ -308,12 +308,13 @@ def test_every_verdict_the_ledger_can_file_has_a_panel_state():
 
 def test_the_page_names_every_state_the_projection_emits():
     """#1854: the projection wrote `closed`, the page knew nine states and
-    printed 状态未知 for it. Both bundles carry their own DH_SLOT copy."""
+    printed 状态未知 for it. The card is drawn by the first-screen bundle only
+    (the detail bundle's unreachable copy was removed, #2638)."""
     import re
     from pathlib import Path
     from clawock.publish.cron_schedule import PANEL_STATES
     root = Path(__file__).resolve().parents[1]
-    for bundle in ('dashboard.render.js', 'dashboard.hero.js'):
+    for bundle in ('dashboard.hero.js',):
         js = (root / 'site/assets/js' / bundle).read_text()
         table = re.search(r'const DH_SLOT = \{(.*?)\};', js, re.S).group(1)
         keys = set(re.findall(r'^\s*(\w+):', table, re.M))
@@ -329,7 +330,7 @@ def test_unconfirmed_delivery_has_warning_colour_and_is_counted_in_both_legends(
     for selector in ('.dh-slots i[data-s="unconfirmed"]', '.dh-key i[data-s="unconfirmed"]'):
         assert any(selector in selectors and 'background: var(--warning)' in body
                    for selectors, body in rules)
-    for bundle in ('dashboard.hero.js', 'dashboard.render.js'):
+    for bundle in ('dashboard.hero.js',):
         js = (root / 'site/assets/js' / bundle).read_text()
         assert '["unconfirmed", n("unconfirmed"), "仅存档·投递未确认"]' in js
 
