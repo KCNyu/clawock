@@ -29,7 +29,7 @@ ASSET_SUFFIXES = ('.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif')
 def _references(text):
     """Every link and image target in the document."""
     return (re.findall(r'\]\(([^)\s]+)', text)
-            + re.findall(r'(?:src|href)="([^"]+)"', text))
+            + re.findall(r'(?:src|srcset|href)="([^"]+)"', text))
 
 
 def _relative(targets):

@@ -6,8 +6,13 @@ is caught here instead of in a later diff nobody connects to it.
 
 The README shows them through `<img>`, where browsers run no script and load no
 external resource; the animation must come from CSS and SMIL inside the file.
+
+Each diagram exists twice: the two-column desktop layout under its name and a
+single column beside it as `<name>-narrow.svg`. Both are built from one
+description, so the checks below run over both.
 """
 import importlib.util
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -42,6 +47,50 @@ def test_diagrams_animate_without_anything_an_img_would_drop():
                 f'{name}: an SVG inside an img cannot load an external screenshot')
 
 
+def _placed_rects(root):
+    """Every rect with the offset of the column group it is drawn in.
+
+    The wide layout draws each run of a column inside `<g transform="translate">`,
+    so a walk over the root's own children would see the header and nothing else.
+    """
+    for el in root:
+        if el.tag == f'{SVG}rect':
+            yield el, 0.0, 0.0
+        elif el.tag == f'{SVG}g':
+            # A column group is a bare translate; an icon's group also scales.
+            column = re.fullmatch(r'translate\((\S+) (\S+)\)', el.attrib.get('transform', ''))
+            if column:
+                dx, dy = map(float, column.groups())
+                for child in el.findall(f'{SVG}rect'):
+                    yield child, dx, dy
+
+
+def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both():
+    """A phone gets the single column and a desktop the two-column canvas.
+
+    The wide layout is unreadable at phone width and the narrow one is a tower
+    three screens tall in a README column, so each README entry has to name both
+    and the two files have to carry the same words.
+    """
+    builder = _builder()
+    for readme, base in (('README.md', 'refs/heads/master/site/assets/'), ('README.zh.md', 'site/assets/')):
+        text = (ROOT / readme).read_text(encoding='utf-8')
+        for name in builder.LAYOUTS:
+            assert ('<source media="(max-width: 700px)" srcset="' in text
+                    and f'{base}{name}-narrow.svg"><img src=' in text), (readme, name)
+            assert f'{base}{name}.svg" width="100%"' in text, (readme, name)
+    for name in builder.LAYOUTS:
+        wide = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
+        narrow = ET.parse(ROOT / 'site/assets' / f'{name}-narrow.svg').getroot()
+        assert float(wide.attrib['width']) == builder.WIDE and float(narrow.attrib['width']) == builder.W
+        assert float(wide.attrib['height']) < float(narrow.attrib['height']) * .75, (
+            f'{name}: the wide layout is not meaningfully shorter than the column')
+        # The wide header sets on one line what the column sets on two.
+        words = lambda root: sorted(' '.join(  # noqa: E731
+            ''.join(t.itertext()) for t in root.iter(f'{SVG}text')).split())
+        assert words(wide) == words(narrow), f'{name}: the two layouts say different things'
+
+
 def test_peer_nodes_do_not_touch_or_overlap():
     """Ignore intentional containment; sibling node boxes need breathing room.
 
@@ -54,12 +103,14 @@ def test_peer_nodes_do_not_touch_or_overlap():
     for name in _builder().DIAGRAMS:
         root = ET.parse(ROOT / 'site/assets' / name).getroot()
         nodes = []
-        for el in root.findall(f'{SVG}rect'):
-            if 'sweep' in el.attrib.get('class', ''):
+        for el, dx, dy in _placed_rects(root):
+            # Highlights are light on a node, not nodes: the list sweep, the glass sheen.
+            if el.attrib.get('class', '').split()[-1:] in (['sweep'], ['sheen']):
                 continue
             x, y, w, h = (float(el.attrib[k]) for k in ('x', 'y', 'width', 'height'))
             if w >= 60 and h >= 30:
-                nodes.append((x, y, x + w, y + h))
+                nodes.append((x + dx, y + dy, x + dx + w, y + dy + h))
+        assert len(nodes) > 6, f'{name}: only {len(nodes)} boxes found — did the walk break?'
         for a, b in combinations(nodes, 2):
             if (a[0] <= b[0] and a[1] <= b[1] and a[2] >= b[2] and a[3] >= b[3]
                     or b[0] <= a[0] and b[1] <= a[1] and b[2] >= a[2] and b[3] >= a[3]):
