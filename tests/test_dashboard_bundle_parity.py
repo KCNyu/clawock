@@ -25,11 +25,7 @@ RENDER = ROOT / "site" / "assets" / "js" / "dashboard.render.js"
 # 修一个删一行。**只准删，不准加** —— 加一行就等于默许了一次新的漂移。
 ALLOWED_DIVERGENT = {
     "computeWatchRows",
-    "refreshTab",
-    "render",
     "renderRiskGuardrail",
-    "renderTab",
-    "renderTodayHighlights",
 }
 
 _DECL = re.compile(r"^  function ([A-Za-z_$][\w$]*)\s*\(")
@@ -99,12 +95,38 @@ def test_allowlist_only_shrinks(bundles):
     )
 
 
-def test_hero_spark_is_present_in_both(bundles):
-    """本轮的具体事故：这两个函数只落进了 render.js。"""
+def test_first_screen_functions_live_in_the_first_screen_bundle(bundles):
+    """本轮的具体事故：这两个函数只落进了 render.js，而首屏走 hero.js。
+    详情包里那份从注册入口到不了的副本已删（#2638），不要再抄回去。"""
     hero, render = bundles
     for name in ("heroProfitSeries", "renderHeroSpark", "renderCommandDeck"):
         assert name in hero, f"{name} missing from {HERO.name} (first-paint bundle)"
-        assert name in render, f"{name} missing from {RENDER.name}"
+        assert name not in render, f"{name} is unreachable in {RENDER.name}"
+
+
+def test_every_function_in_the_detail_bundle_is_reachable_from_its_registration(bundles):
+    """#2638: the detail bundle is one IIFE whose only way out is
+    `registerDetailRenderers`. Thirty of its ninety functions (a third of its
+    bytes) could not be reached from it and were downloaded on every detail tab."""
+    _, render = bundles
+    source = RENDER.read_text(encoding="utf-8")
+    outside = source
+    for body in render.values():
+        outside = outside.replace(body, "")
+    words = lambda text: set(re.findall(r"[A-Za-z_$][\w$]*", text))  # noqa: E731
+    reached, frontier = set(), words(outside) & set(render)
+    assert frontier, "no renderer is named outside the function bodies — did the parser break?"
+    while frontier:
+        name = frontier.pop()
+        reached.add(name)
+        frontier |= (words(render[name]) & set(render)) - reached
+    assert sorted(set(render) - reached) == []
+    # A tab listed in the table but not registered keeps its renderers "named"
+    # while nothing can run them — the shape the removed hero list had.
+    table = source.split("const TAB_RENDERERS = {", 1)[1].split("\n  };", 1)[0]
+    registered = source.split("window.registerDetailRenderers({", 1)[1].split("});", 1)[0]
+    assert set(re.findall(r"^    (\w+): \[", table, re.M)) == set(
+        re.findall(r"^    (\w+): TAB_RENDERERS\.\1,", registered, re.M))
 
 
 _TABLE = re.compile(r"^  const ([A-Z][A-Z0-9_]*) = (\{|\[|new Set\()")
@@ -132,7 +154,7 @@ def test_shared_lookup_tables_are_byte_identical():
     screen and 「黄金定投净值」 on the detail tab."""
     hero, render = _top_level_tables(HERO), _top_level_tables(RENDER)
     shared = sorted(set(hero) & set(render))
-    assert "DATA_FILE_CN" in shared, "the label table is no longer found by this gate"
+    assert "DATA_FILE_CN" in hero, "the label table is no longer found by this gate"
     # hero.js renders the first frame only, so its tab table is shorter by design.
     by_design = {"TAB_RENDERERS"}
     diverged = [name for name in shared

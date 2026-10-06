@@ -180,10 +180,9 @@ def test_the_deck_measures_once_per_paint_not_once_per_card():
     to the one-read-then-write that computing a position legitimately needs.
 
     The width belongs to the stage, not to the card, so `paint` measures once and
-    hands it down. Both bundles carry this deck by hand (see
-    `test_dashboard_bundle_parity`), so both are asserted.
+    hands it down. The deck lives in the first-screen bundle only (#2638).
     """
-    for path in (JS_DIR / "dashboard.hero.js", JS_DIR / "dashboard.render.js"):
+    for path in (JS_DIR / "dashboard.hero.js",):
         source = path.read_text(encoding="utf-8")
         pose = _function_body(source, "pose")
         assert not LAYOUT_READS.search(pose), (
