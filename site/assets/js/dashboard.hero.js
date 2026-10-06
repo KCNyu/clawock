@@ -719,12 +719,10 @@
   };
   const dataFileCn = name => DATA_FILE_CN[name] || String(name || "").replace(/\.json$/, "");
 
-  // 负号在货币符号外面：−$1,361 而不是 $-1,361。只用于首屏指挥台，
-  // 不改全局 fmtMoney（别处的断言吃的是旧格式）。
+  // 首屏指挥台的带正号写法；负号的位置由 fmtMoney 一处决定（−$1,361）。
   function heroMoney(v, ccy) {
     if (v == null || !isFinite(v)) return DASH;
-    const body = fmtMoney(Math.abs(v), ccy);
-    return (v < 0 ? "−" : v > 0 ? "+" : "") + body;
+    return (v > 0 ? "+" : "") + fmtMoney(v, ccy);
   }
 
   // 首屏指挥台：一个主数 + 一条统计轨，取代 book / today / discipline 三张卡。(#874)
