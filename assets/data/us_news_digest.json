@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T21:06:06.052182+00:00",
+  "generated_at": "2026-10-06T18:42:15.897872+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,101 +14,122 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: 连续三次发射成功，近期运营执行继续兑现。  \n  **kcn implication（SPCH）**: 强化高估值背后的执行叙事；SPCH 为 2x 杠杆 ETF，会放大消息驱动的上涨与波动。\n- **SPCX**: Morgan Stanley 重申 $300 目标价，较 10 月 2 日 $158.96 收盘价约有 89% 空间，相关报道中 SpaceX 上涨 5%。  \n  **kcn implication（SPCH）**: 估值重估方向明确，但 SPCH 的 2x 结构会同步放大回撤。\n- **RKLB**: 报道称 Blue Origin 竞争加剧，Rocket Lab 若争取 NASA $700m 火星合同或需诉诸联邦法院；尚非已确认丢单。  \n  **kcn implication（RKLX）**: 合同及法律不确定性压制估值；RKLX 的 2x 杠杆会放大负面标题引发的下行。\n- **CRCL**: Brian Armstrong 称 Coinbase 与 Citi 合作推进机构稳定币支付，验证机构采用趋势，但未披露 Circle 直接参与。  \n  **kcn implication（CRCL）**: 属于 CRCL 的生态需求旁证，不是已落地订单或收入催化。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: Coinbase–Citi 机构稳定币合作及 DTCC 代币化服务扩张——行业采用信号偏正面，但对 CRCL 的财务贡献尚未量化。\n- **RKLB**: Blue Origin 竞争与 NASA 火星合同不确定性升温——短线偏负面，供应链韧性报道则未提供新增订单。\n- **SPCX**: 三次连续发射成功叠加 Morgan Stanley $300 目标价——运营与估值信号偏多，但高度依赖持续兑现。\n\n### 风险 watch (若有)\n- **RKLB**: NASA $700m 合同相关诉讼说法目前仅为报道指称，需防被市场直接解读为竞标失败。\n- **SPCX**: 估值高度投机，Musk 的政府关系及负面政治新闻可能触发快速估值压缩。\n- **CRCL**: Coinbase–Citi 合作不等于 Circle 获得合同；分成、发行量及收入贡献均未披露。\n- **RKLX / SPCH**: 均为 2x 杠杆 ETF，会放大上述正负面消息对应的价格波动。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**：Morgan Stanley 重申 300 美元目标价，Goldman 因 AI 基础设施变现前景转乐观；SPCX 三日累涨 20%、一周涨 17%。  \n  **对 kcn：** 持有 **SPCH（2x SPCX）**，分析师重估将放大净值弹性，但当前催化偏估值与情绪，2x 也会放大回撤。\n- **RKLB**：NASA 正准备批量采购发射服务以支持月球基地计划，潜在订单成为近期最强公司级催化。  \n  **对 kcn：** 持有 **RKLX（2x RKLB）**，订单落地可同时推升基本面预期和杠杆净值，但目前仅处于“临近公布”阶段。\n- **SPCX**：Musk 称今年约 90% 收入来自商业业务，并预计第四季度政府收入占比低于 5%。  \n  **对 kcn：** **SPCH（2x SPCX）** 将放大收入结构去政府依赖的重估，但该表态并非正式财务指引。\n- **RKLB**：SpaceX 停止销售 2028 年后的新 Falcon 9 拼车任务，可能形成中型发射供给缺口。  \n  **对 kcn：** **RKLX（2x RKLB）** 获得长期可选性催化，但兑现依赖 Neutron 按期交付，短期订单贡献尚未确立。\n- **CRCL**：OKX 与 ICE 计划推出 24/7 代币化美股交易；与此同时，新稳定币 OUSD 上线并直接挑战 Circle、Tether。  \n  **对 kcn：** 对 CRCL 持仓构成“代币化赛道验证＋稳定币竞争加剧”的混合信号，暂无 Circle 收入或订单确认。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**：代币化交易基础设施继续扩张，但 OUSD 进入市场，短期行业利好与份额竞争并存。\n- **RKLB**：NASA 潜在批量采购是最重要催化；Falcon 9 退出构成 Neutron 的长期机会，RKLX 的 2x 将放大订单及执行波动。\n- **SPCX**：投行上调预期叠加商业收入占比表态支持重估，SPCH 的 2x 放大近期涨势及估值回撤风险。\n\n### 风险 watch (若有)\n- **RKLB**：NASA 采购尚未正式披露，金额、供应商及时间表未确认；Neutron 延期或性能不及预期会放大 RKLX 波动。\n- **SPCX**：收入结构数据来自 Musk 表态而非正式 guidance，且近期涨幅主要由分析师目标驱动，SPCH 存在快速反转风险。\n- **CRCL**：OUSD 构成直接产品竞争；银行团体起诉 OCC 加密信托牌照框架虽未点名 Circle，但增加行业监管不确定性。",
   "raw_news_counts": {
-    "CRCL": 2,
+    "CRCL": 5,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Once 'Nearly Impossible,' Now Reality: Brian Armstrong Cheers Citi Partnership, Says Coinbase 'Has Come a Long Way'",
-        "datetime": 1791169185,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=93555f5df48d6431a19e3c3942b6060924b0a952500369dfb54719cfb2e99f5e"
-      },
-      {
-        "headline": "The Settlement Layer Is Going On-Chain",
-        "datetime": 1791093576,
+        "headline": "OKX and ICE Plan 24/7 Trading for Tokenized U.S. Stocks",
+        "datetime": 1791223260,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c872e5d673cb30750b62a73d239c83f79c4c6b3b0cb0cd8608d23e655d6fe001"
+        "url": "https://finnhub.io/api/news?id=37631e2d2b7c068be1530b46a20dc41aa0568f703ccca87cf0859f6c90de1d0d"
+      },
+      {
+        "headline": "Strategy buys 334 more bitcoin and $176M of STRC stock",
+        "datetime": 1791216701,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f408f261dddcd6b74e368e7b670d60de7468bf662c798403a2c44a48efe18fba"
+      },
+      {
+        "headline": "New Stablecoin Open USD (OUSD) Goes Live With Plans to Take on Circle and Tether. Here's What Crypto Investors Need to Know.",
+        "datetime": 1791207720,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=30334cad5e4bb6fb82a93297ccef2a8ac4dbeaf7c8efa2c642ab7eca9c284f40"
+      },
+      {
+        "headline": "Banks Sue Over Crypto Charters as Tom Lee Backs $10K ETH, Citi Eyes $150K Bitcoin",
+        "datetime": 1791198735,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c8b1043374ccf8989bca9e271cc5b8aafa24c9e4c8a9e08b009c1198a775ecf7"
+      },
+      {
+        "headline": "MSTR, COIN, CRCL, BMNR Stocks Rally With Bitcoin Within $500 Of September Peak",
+        "datetime": 1791198250,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=5d0cd4ec4e84fa0aa2df6decd1486f3d636e7641d46609293d5897b5f21b3a4f"
       }
     ],
     "RKLB": [
       {
-        "headline": "SpaceX Climbs 5% as Musk Renames SpaceXAI to SpaceXSI, Morgan Stanley Reiterates $300 Target; Rocket Lab Slips, AST SpaceMobile Nudges Higher",
-        "datetime": 1791211563,
+        "headline": "Rocket Lab Stock Pops Tuesday: What's Going On?",
+        "datetime": 1791298672,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9a66c39936b1b169087a4c75442d0e2f9bd261d0f4972e3022a435c569eef358"
+        "url": "https://finnhub.io/api/news?id=03e2817be320773ed173d2001c4b9abf13c89589c6f8d2389f983630dc198a72"
       },
       {
-        "headline": "Can Rocket Lab's Supply-Chain Strategy Support Future Growth?",
-        "datetime": 1791210840,
+        "headline": "SpaceX Gains 2% as Morgan Stanley Sees a Closing Window; AST SpaceMobile Surges 8%, Rocket Lab Rises 5%",
+        "datetime": 1791298421,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3b3b81609287044d2c33921ccc62710569673a33020bf30d5bd626960f149bb4"
+        "url": "https://finnhub.io/api/news?id=95932a4e727a2d75334bc9682481ebb29041a96cfb69abc53c5bc4b3fd1c4a37"
       },
       {
-        "headline": "Down More Than 50% From Its High, Is Rocket Lab Stock a Good Buy Right Now?",
-        "datetime": 1791207602,
+        "headline": "Rocket Lab Gains 13.6% in a Month: Should Investors Buy the Stock Now?",
+        "datetime": 1791293940,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=459e43f68cecab9d223bead182b5d888cbc4efb7d2e3dbb0d532c6e52f8e2158"
+        "url": "https://finnhub.io/api/news?id=d0f3f0f0dd063ad1bb3f560a31b26b0cb099acb13d8f830d1d410629dc31944a"
       },
       {
-        "headline": "SpaceX (SPCX) vs Rocket Lab (RKLB): Which is a Better Stock to Buy?",
-        "datetime": 1791151252,
+        "headline": "Can Rocket Lab Capitalize on Falcon 9’s Exit Before Neutron Slips Again",
+        "datetime": 1791286901,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e551b1c2e81b814831b2c3b7b8bfd5c983c17e722aba0fee75e2fa95672d1b33"
+        "url": "https://finnhub.io/api/news?id=680d3b0e71464fa1c166e47f6d9eac1ea56d09b6287cb535e351a91e75a2d0fc"
       },
       {
-        "headline": "SpaceX Isn't Rocket Lab's Biggest Threat Now -- Blue Origin Is",
-        "datetime": 1791113220,
-        "source": "Yahoo",
+        "headline": "Cathie Wood Buys Rocket Lab as ARK Sees SpaceX's Starship Shift Squeezing Launch Capacity",
+        "datetime": 1791277448,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9d6ba1544f82ece5a603b7d1e662bf36bd65bbef7bf071be28f9d248fb19ed8a"
+        "url": "https://finnhub.io/api/news?id=b7f114cd7b574e7c8f648cb6dbf993b46a9c9119f9c48b741e1bfe04d230e58c"
       }
     ],
     "SPCX": [
       {
-        "headline": "What's behind Morgan Stanley's bullish call on SpaceX",
-        "datetime": 1791229565,
+        "headline": "Anduril Wins $4.7 Billion In Defense Contracts After Luckey Takes Key Role",
+        "datetime": 1791308101,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c8b65046c0c23cdb1e5d210ceca60a4352197838eb4b54bfce3af54e47e215fc"
+        "url": "https://finnhub.io/api/news?id=5e183c5f0690a08811663d5325e60c22bf4f352381a2cdc096cd015bc1384093"
       },
       {
-        "headline": "Sector Update: Tech Stocks Mixed Late Afternoon",
-        "datetime": 1791229360,
+        "headline": "Analyst Sees 75% Upside Potential for SpaceX: “We Are Seeing the Very Beginning” Declares Investor",
+        "datetime": 1791307420,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=203b79e92b19e6959cafc41b2825576030f12a1165ece5fff3f2b8ed528169b2"
+        "url": "https://finnhub.io/api/news?id=6b1fa72330e0253fcff1931d42a1133fed29e07504a0ff4bc93af257ca493e40"
       },
       {
-        "headline": "SpaceX Successfully Nails Three Launches in a Row",
-        "datetime": 1791226786,
+        "headline": "Musk Fires Back: SpaceX’s Government Revenue Will Be “Less Than 5%” in Q4",
+        "datetime": 1791306918,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a4f840b77f36df6d81d439430e33aad5176d22f8b5db884086e1f56062264017"
+        "url": "https://finnhub.io/api/news?id=1595b317ba9b85453c30f1e5d3d9319f782fb6f7fad91c60e8ad13105e1f34fe"
       },
       {
-        "headline": "Elon Musk Is Back Working With the U.S. Government. Why That Could Be Trouble for SpaceX's Stock",
-        "datetime": 1791225601,
+        "headline": "SPCX Stock Rallies 20% In Three Sessions – Why Does Goldman See Another 30% Upside?",
+        "datetime": 1791306782,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5413c99bf5481ed245a792f6add609d214165569d6c657e3fe6dbc3f284f43e9"
+        "url": "https://finnhub.io/api/news?id=20b257029da68e6579136754950cb3898eabee62b3b4815db1f6cce49141e5d3"
       },
       {
-        "headline": "IBD Stock Of The Day TSMC Breaks Out On Terafab Chatter",
-        "datetime": 1791224963,
+        "headline": "Three Defense Stocks That Could Benefit From Modern Warfare",
+        "datetime": 1791303180,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d4d5d96446a9a6697c5b42f4d8bad555673482c63ee4f2925b6ad93f2a431f01"
+        "url": "https://finnhub.io/api/news?id=9e9f77e98ec05832a6d574671f01633a276a13af8867e35d0bbf405882a23fa3"
       }
     ]
   },
