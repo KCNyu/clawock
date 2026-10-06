@@ -133,3 +133,10 @@ def test_an_undated_fill_does_not_take_the_dashboard_build_down(date):
 
     assert (realized_as_of(ledger, FRIDAY, {"RKLB": 0}, market="us")
             == realized_as_of(missing_key, FRIDAY, {"RKLB": 0}, market="us"))
+
+
+def test_snapshot_shares_skips_a_row_that_is_not_an_object():
+    # #2631: a snapshot is a byte copy of portfolio.json, whose gate only names
+    # such a row; here it raised and aborted the whole dashboard build.
+    assert snapshot_shares({"holdings": [{"ticker": "A", "shares": 3}, "oops", None]}) == {"A": 3}
+    assert snapshot_shares({"holdings": None}) == {}

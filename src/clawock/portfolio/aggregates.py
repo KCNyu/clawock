@@ -119,8 +119,17 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             sh = number(h.get('shares'))
             cp = number(h.get('current_price'))
             cb = number(h.get('cost_basis'))
-            if sh is None or cp is None:
+            if sh is None:
                 continue  # missing a required leaf → can't derive; leave untouched
+            if cp is None:
+                # No quote yet: nothing to derive, but the row is still in the
+                # book. Dropping it from the totals made this command write a
+                # total_cost its own COST_TOTAL gate then refused (#2628). Its
+                # value is whatever the row carries, as TCV_SUM reads it.
+                if cb is not None:
+                    sum_cost += sh * cb
+                sum_cv += number(h.get('current_value')) or 0
+                continue
             cv = _r(sh * cp)
             sum_cv += cv
             if cb is not None:

@@ -15,6 +15,7 @@ Usage:
   clawock analyze-hk --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
+import copy
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -29,7 +30,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import day_pnl, ledger_rows
+from clawock.portfolio.math import day_pnl, ledger_date, ledger_rows, session_date
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -400,6 +401,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
 
     hk_key, us = region_book(data, 'HK')
+    region_before_fetch = copy.deepcopy(us)
     active = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     codes  = [h['ticker'] for h in active]
 
@@ -516,7 +518,10 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
             amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')
             h['today_change'] = round(amount, 2)
             # With no new lot, the vendor percentage retains its quote precision.
-            if any(t.get('action') == 'buy' and t.get('date') == quote_day.isoformat()
+            # Same folded session as `day_pnl` and `aggregates`: a fill dated
+            # on a closed day belongs to the session before it (#2630).
+            if any(t.get('action') == 'buy'
+                   and session_date('hk', ledger_date(t.get('date'))) == quote_day.isoformat()
                    for t in ledger_rows(h.get('trades'))):
                 h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
         h.pop('today_change_abs', None)
@@ -604,11 +609,12 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         from clawock.portfolio.realized import recompute as recompute_realized
         recompute_realized(data)
         # 锁内重读、只覆盖自己拥有的 HK 区 + 顶层 last_updated 戳，保住并发
-        # 写者(gold/us)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）
-        mutate_json(PORTFOLIO_PATH, lambda d: {
-            **d, 'last_updated': data.get('last_updated', d.get('last_updated')),
-            'portfolios': {**d.get('portfolios', {}),
-                           hk_key: data['portfolios'][hk_key]}})
+        # 写者(gold/us)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）。
+        # 区内也一样：抓价期间落进本区的成交/现金不被抓价前那份读覆盖 (#2629)。
+        from clawock.portfolio import region_merge
+        mutate_json(PORTFOLIO_PATH, lambda d: region_merge.overlay(
+            d, hk_key, region_before_fetch, data['portfolios'][hk_key],
+            last_updated=data.get('last_updated')))
         print(f"  ✅ Saved → {PORTFOLIO_PATH}")
 
     print(f"{'═'*60}\n")
