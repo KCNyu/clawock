@@ -1119,7 +1119,8 @@ def test_the_readmes_print_the_brief_slot_the_cron_actually_fires():
     """
     from clawock import scheduling
 
-    for name in ('README.md', 'README.zh.md'):
+    for name in ('README.md', 'README.zh.md',
+                 'docs/how-the-desk-works.md', 'docs/how-the-desk-works.zh.md'):
         text = (ROOT / name).read_text(encoding='utf-8')
         assert scheduling.BRIEF_SLOT_HKT in text, (
             f'{name} no longer states the brief slot '

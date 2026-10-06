@@ -24,6 +24,9 @@ belongs here.
 
 ## Product surfaces
 
+- [`how-the-desk-works.md`](how-the-desk-works.md) — the detail behind the README:
+  information layers, what each run reads, decision gates, grading rules, what was
+  tested and failed, the twelve code-enforced rules ([中文](how-the-desk-works.zh.md)).
 - [`decision-map.md`](decision-map.md) — the Decision Map board in Reflect: how
   to read coverage and snapshot age, the payload, and where it runs.
 - [`decision-mind-ledger.md`](decision-mind-ledger.md) — the decision-mind

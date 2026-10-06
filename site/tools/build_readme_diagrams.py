@@ -1354,6 +1354,209 @@ def decision_pipeline(wide=False):
              'The trace stays read-only. You place the orders.'], cls='m', where='dsh loop')
     return d.render(y + h + M)
 
+# ---------------------------------------------------------------------------
+def start_here(wide=False):
+    """site/assets/start-here.svg — three readers, where each one starts."""
+    d = D('Where to start with clawock',
+          'Three readers and where each one starts. If you trade your own Hong Kong and US book, you '
+          'get a plan before the open, cards through the session and a grade after the close, and you '
+          'start with clawock init. If you already run an agent such as Claude Code, Codex, OpenClaw '
+          'or DeepSeek Harness, you install the investment-decision workflow and your agent keeps the '
+          'model call. If you want to see the record first, the live dashboard shows every call '
+          'settled by code with the losses included. Underneath all three sits one contract: '
+          'certified evidence, a required opposing case, checked money arithmetic and an outcome '
+          'linked back to the decision.',
+          wide=wide)
+    y = d.header('START HERE · THREE READERS',
+                 ['Start where you are.', 'One contract underneath.'],
+                 ['Pick the line that sounds like you;', 'each one is a single command or a single link.'],
+                 [('your book', 'blue'), ('your agent', 'slate'), ('the record', 'green'),
+                  ('the contract', 'violet')], title_lh=34)
+    y += 30
+    d.flow(y - 12)
+    readers = [
+        ('blue', 'book', 'YOUR BOOK', 'I trade my own HK + US book',
+         ['a plan before the open, cards through', 'the session, a grade after the close'],
+         'clawock init ./my-book'),
+        ('slate', 'terminal', 'YOUR AGENT', 'I already run an agent',
+         ['it keeps the model call; clawock adds', 'the decision contract around it'],
+         'clawock workflow install …'),
+        ('green', 'dashboard', 'NO INSTALL', 'Show me the record first',
+         ['every call settled by code, on a real', 'account, with the losses left in'],
+         'kcnyu.github.io/clawock'),
+    ]
+    h = 150
+    for i, (role, icon, tag, title, body, cmd) in enumerate(readers):
+        if i == 2:
+            if d.wide:
+                d.place(1, y, d.top + 12, y - 22)
+        d.card(M, y, CW, h, role)
+        d.icon(icon, M + 20, y + 14, role)
+        d.text(M + 50, y + 32, title, 'h')
+        d.tag(W - M - 16, y + 30, tag, role, anchor='end')
+        d.lines(M + 20, y + 62, CW - 36, [[(row, MUT)] for row in body], lh=21, where='reader')
+        d.chip(M + 20, y + h - 42, CW - 40, cmd, cls='code', fill=ROLE[role], h=28)
+        if i == 1:
+            for j, name in enumerate(('claude-code', 'codex', 'openclaw', 'deepseek-harness', 'any-cli')):
+                d.logo(name, W - M - 16 - (5 - j) * 26, y + 52, size=22)
+        y += h + 22
+    top = y - 22
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(0, 1.1), pulse=ROLE['violet'])
+    h = 158
+    d.card(M, y, CW, h, 'violet', tint=True)
+    d.logo('clawock', M + 20, y + 16, size=30)
+    d.text(M + 60, y + 37, 'The same contract', 'h')
+    d.tag(W - M - 16, y + 36, 'FILES + CLI', 'violet', anchor='end')
+    d.bullets(M + 22, y + 72, CW - 40, ['evidence is certified before the model reads it',
+                                        'an opposing case is required, or publish refuses',
+                                        'money and FX arithmetic is checked in Python',
+                                        'the outcome is linked back to the decision'], role='violet')
+    return d.render(y + h + M)
+
+
+# ---------------------------------------------------------------------------
+def scorecard(wide=False):
+    """site/assets/scorecard.svg — how one call becomes a public grade."""
+    d = D('How clawock grades a call',
+          'The model writes a versioned decision with its strategy, condition, regime, size and '
+          'confidence into memory/decisions.jsonl. From there the model has no write access. Python '
+          'evaluates the trigger against canonical unadjusted daily bars on each market\'s own '
+          'calendar; an unfinished session grades nothing and a gap through a trigger fills at the '
+          'open. Repeated calls on one thesis collapse into one episode. Code settles the outcome and '
+          'scores it against a plain directional baseline, then publishes wins, losses and the cases '
+          'that cannot be graded, which stay visible and out of the win-rate denominator. The record '
+          'is a diagnostic, not proof of return.',
+          wide=wide)
+    y = d.header('THE SCORECARD · CODE-SETTLED',
+                 ['The model makes the call.', 'It never touches the grade.'],
+                 ['Four mechanical steps from a decision', 'to a published result, losses included.'],
+                 [('model · LLM', 'slate'), ('code · python', 'green'), ('isolation', 'warm'),
+                  ('published', 'blue')], title_lh=34)
+    y += 30
+    d.flow(y - 12)
+    d.section(y, '01 · RECORD')
+    y += 14
+    h = 104
+    d.card(M, y, CW, h, 'slate')
+    d.icon('filing', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'The model submits a decision', 'h')
+    d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
+    d.text(M + 20, y + 58, 'strategy · condition · regime · size · confidence', 'm', fill=MUT)
+    d.text(M + 20, y + 82, 'memory/decisions.jsonl', 'code', fill=ROLE['slate'])
+    top = y + h
+    y = top + 34
+    d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['slate'])
+    d.add(f'<rect x="{M:g}" y="{y:g}" width="{CW:g}" height="34" rx="10" fill="{TINT["warm"]}"/>')
+    d.text(W / 2, y + 22, [('NO MODEL WRITES BELOW THIS LINE', ROLE['warm'])], 'tag', anchor='middle')
+    top = y + 34
+
+    def step(y, label, icon, title, rows):
+        d.section(y - 14, label)
+        h = 60 + len(rows) * 21
+        d.card(M, y, CW, h, 'green')
+        d.icon(icon, M + 20, y + 14, 'green')
+        d.text(M + 50, y + 32, title, 'h')
+        d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
+        d.lines(M + 20, y + 58, CW - 36, [[(row, MUT)] for row in rows], cls='m', lh=21, where=label)
+        return y + h
+
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(.4,), pulse=ROLE['green'])
+    top = step(y, '02 · TRIGGER', 'bars', 'Checked against real bars',
+               ['canonical unadjusted daily bars, per-market calendar',
+                'an unfinished session grades nothing',
+                'a gap through the trigger fills at the open'])
+    y = top + 48
+    d.turn(W / 2, top, y, first=y - 26, enter=y + 28, tail=20, pulses=(0,), pulse=ROLE['green'])
+    top = step(y, '03 · GROUP', 'sector', 'One thesis, one episode',
+               ['five mornings holding the same view', 'do not manufacture five samples'])
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(.4,), pulse=ROLE['green'])
+    top = step(y, '04 · GRADE', 'balance', 'Settled against a plain baseline',
+               ['the outcome is scored by code, then rendered;', 'nothing is hand-tuned after the fact'])
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(0, 1.1))
+    h = 132
+    d.card(M, y, CW, h, 'blue')
+    d.icon('publish', M + 20, y + 14)
+    d.text(M + 50, y + 32, 'Published, whatever it says', 'h')
+    xs, cw = columns(3, gap=10, x0=M + 16, w=CW - 32)
+    for x, (label, role) in zip(xs, (('win', 'green'), ('loss', 'warm'), ('ungradeable', 'slate'))):
+        d.chip(x, y + 50, cw, label, fill=ROLE[role], h=32)
+    d.text(M + 20, y + h - 16, 'ungradeable stays visible, outside the win rate', 'm', fill=MUT)
+    y += h + 26
+    d.lines(M, y, CW, ['This stops the desk grading itself. It does not make the',
+                       'data or the metric right: a diagnostic, not proof of return.'],
+            cls='m', lh=19, where='scorecard note')
+    return d.render(y + 20 + M)
+
+
+# ---------------------------------------------------------------------------
+def guardrails(wide=False):
+    """site/assets/guardrails.svg — the lines the code holds whatever the model writes."""
+    d = D('What clawock code enforces',
+          'The model writes opinions; the limits are code. Risk caps are checked in every brief: a '
+          'leveraged single name at most 35 percent, a non-leveraged core name at most 60 percent '
+          'with a 35 to 60 percent review band, a correlated cluster at most 70 percent, the '
+          'leverage-ETF sleeve at most 50 percent, portfolio beta at most 3.0 and a stop at minus 18 '
+          'percent. Money rules: US dollars and Hong Kong dollars never sum, the book must reconcile '
+          'before anything is pushed, and return is measured on peak principal. Evidence rules: an '
+          'add needs two independent evidence families, a thesis moves only on new evidence and '
+          'never on price alone, a published research number needs two sources, and a decision '
+          'without a bear case is rejected. Execution stays human.',
+          wide=wide)
+    y = d.header('GUARDRAILS · ENFORCED IN PYTHON',
+                 ['The model proposes.', 'These lines do not move.'],
+                 ['Limits live in code and unit tests,', 'not in a prompt the model could argue with.'],
+                 [('risk caps', 'warm'), ('money', 'green'), ('evidence', 'blue')], title_lh=34)
+    y += 30
+    d.flow(y - 12)
+    d.section(y, 'RISK CAPS · CHECKED EVERY BRIEF')
+    y += 14
+    caps = [('leveraged single name', '≤ 35%'), ('core single name', '≤ 60%'),
+            ('correlated cluster', '≤ 70%'), ('leverage-ETF sleeve', '≤ 50%'),
+            ('portfolio β', '≤ 3.0'), ('stop', '−18%')]
+    h = 62 + len(caps) * 38 + 48
+    d.card(M, y, CW, h, 'warm')
+    d.icon('shield', M + 20, y + 14, 'warm')
+    d.text(M + 50, y + 32, 'Six caps, one breach ledger', 'h')
+    sweep(d, M + 12, y + 50, CW - 24, len(caps), lh=38, period=9)
+    for i, (name, cap) in enumerate(caps):
+        yy = y + 74 + i * 38
+        d.text(M + 24, yy, name, 'b')
+        d.text(W - M - 24, yy, [(cap, ROLE['warm'])], 'h', anchor='end')
+    d.lines(M + 20, y + h - 36, CW - 36, [[('35–60% on a core name is a review band;', MUT)],
+                                          [('a breach freezes same-risk adds until compliant', MUT)]],
+            cls='m', lh=19, where='caps note')
+    top = y + h
+    y = top + 48
+    d.turn(W / 2, top, y, first=y - 26, enter=y + 28, tail=20, pulses=(0,), pulse=ROLE['warm'])
+
+    def rules(y, label, role, icon, title, rows):
+        d.section(y - 14, label)
+        h = 56 + len(rows) * 22 + 8
+        d.card(M, y, CW, h, role)
+        d.icon(icon, M + 20, y + 14, role)
+        d.text(M + 50, y + 32, title, 'h')
+        d.bullets(M + 22, y + 64, CW - 40, rows, role=role)
+        return y + h
+
+    top = rules(y, 'MONEY', 'green', 'fx', 'The ledger has to reconcile',
+                ['USD and HKD never sum', 'a book that fails to balance is not pushed',
+                 'return is measured on peak principal'])
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(.5,), pulse=ROLE['green'])
+    top = rules(y, 'EVIDENCE', 'blue', 'checks', 'A story is not enough',
+                ['an add needs two independent evidence families',
+                 'a thesis moves on new evidence, never on price',
+                 'a published number needs two sources',
+                 'no bear case, no publish'])
+    y = top + 26
+    d.lines(M, y, CW, ['Risk it cannot compute prints "risk unavailable", never a',
+                       'green "none". Execution stays human.'], cls='m', lh=19, where='guard note')
+    return d.render(y + 20 + M)
+
 
 LAYOUTS = {
     'decision-pipeline': decision_pipeline,
@@ -1362,6 +1565,9 @@ LAYOUTS = {
     'architecture': architecture,
     'product-architecture': product_architecture,
     'debate-flow': debate_flow,
+    'start-here': start_here,
+    'scorecard': scorecard,
+    'guardrails': guardrails,
 }
 #: Every file this builder owns: the wide layout under the diagram's name, the
 #: single column beside it. A `partial` keeps `build()` the whole interface.

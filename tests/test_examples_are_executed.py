@@ -50,7 +50,7 @@ def test_the_foreign_workspace_example_is_run_on_every_pull_request():
     """A release-time-only proof is a proof about the tag, not about the change
     that breaks it. Both isolated scripts now run in ci.yml, and the
     workflow-run one runs on every PR — including a docs-only PR, because the
-    claim it backs ("Run it on your own book") is a README claim."""
+    claim it backs ("Try it in five minutes") is a README claim."""
     workflow = CI.read_text()
     block = workflow.split('\n  portable-workflow:', 1)
     assert len(block) == 2, 'ci.yml must carry the portable-workflow job'
