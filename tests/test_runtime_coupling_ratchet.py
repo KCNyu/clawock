@@ -129,7 +129,9 @@ def _is_runtime_path(value: str) -> bool:
     # A bare filename still points at its private storage: `openclaw.sqlite`.
     # A bare `openclaw` is a label — the `--source` choice, a channel name —
     # and counting it is the mistake this classifier exists to stop making.
-    return value.startswith(f"{RUNTIME}.")
+    # `openclaw.plugin.json` is the other direction: the manifest this
+    # repository hands the host to read, tracked here, not the host's storage.
+    return value.startswith(f"{RUNTIME}.") and value != f"{RUNTIME}.plugin.json"
 
 
 def _docstring_ids(tree: ast.AST) -> set[int]:
@@ -426,8 +428,18 @@ def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
 # reason.
 HOST_OWNED_SHELL = {
     "ops/host/install_skillhub_plugin.sh": (
-        3, "host extension installer: owns the OpenClaw state-directory copy, "
+        2, "host extension installer: owns the OpenClaw state-directory copy, "
         "byte verification and recovery pair; no product-runtime dependency"),
+    "ops/host/skillhub/index.ts": (
+        2, "the host extension itself: it imports the host's plugin SDK and "
+           "falls back to the host's default workspace when none is configured"),
+    "examples/dsh/packages/clawock-dsh/src/balance.ts": (
+        1, "source of lib/balance.js below: reads the provider key from the "
+           "host's own config file, which is the panel's documented input"),
+    "skills/tavily-search/lib/ledger.mjs": (
+        1, "default location of the Tavily credit ledger: the skill runs inside "
+           "the OpenClaw runtime and keeps the ledger in its home so a workspace "
+           "reset cannot zero the spend count; TAVILY_LEDGER_PATH overrides it"),
     "ops/publish/publish_dashboard.sh": (
         1, "the host publisher: WS is this machine's live checkout, which is "
            "what ops/publish/ is defined to own"),
@@ -492,7 +504,7 @@ def _shell_files():
     boundary for a different reason: an untracked script on this host is not
     something the repository claims anything about.
 
-    Recognised by suffix (`.sh`, `.js`) or by shebang, because
+    Recognised by suffix (`.sh`, or one of `_JS_SUFFIXES`) or by shebang, because
     `.githooks/pre-commit` has no suffix and is exactly where this family of
     defect has shipped before (#445). `.js` is in the suffix list, not just the
     shebang check, because a Node entry point that reaches into another
@@ -508,7 +520,7 @@ def _shell_files():
         path = ROOT / name
         if not path.is_file():
             continue
-        if path.suffix in (".sh", ".js"):
+        if path.suffix in (".sh", *_JS_SUFFIXES):
             yield path
             continue
         try:
@@ -517,6 +529,35 @@ def _shell_files():
             continue
         if first.startswith("#!") and "sh" in first:
             yield path
+
+
+#: Node and TypeScript sources. `.ts`/`.mjs` joined `.js` after four lines in
+#: them named the host's private layout outside the walk (#2661): the plugin
+#: sources are TypeScript and the skill libraries are ES modules, so `.js`
+#: alone covered only the compiled output.
+_JS_SUFFIXES = (".js", ".ts", ".mts", ".mjs", ".cjs")
+
+
+def _strip_js_comment(line: str) -> str:
+    """Drop a `//` comment or a block-comment line, quote-aware.
+
+    A bare `split('//')` would cut every URL, so quotes are tracked the same way
+    the shell stripper tracks them. A line inside `/* … */` is recognised by its
+    leading `*` or `/*`, which is how every block comment in this tree is laid
+    out; a comment hiding behind code on a block-comment line is not handled.
+    """
+    if line.lstrip().startswith(("*", "/*")):
+        return ""
+    quote = ""
+    for index, char in enumerate(line):
+        if quote:
+            if char == quote and line[index - 1] != "\\":
+                quote = ""
+        elif char in "\"'`":
+            quote = char
+        elif char == "/" and line[index:index + 2] == "//":
+            return line[:index]
+    return line
 
 
 def _strip_comment(line: str) -> str:
@@ -549,7 +590,7 @@ _RUNTIME_ASSIGNMENT = re.compile(
     rf"""(?:^|\s)[A-Za-z_][A-Za-z0-9_]*=["']?\.?{RUNTIME}(?:["']?(?:\s|$|/))""")
 
 
-def runtime_paths_in_shell(text: str) -> list[int]:
+def runtime_paths_in_shell(text: str, *, strip=None) -> list[int]:
     """Line numbers where a shell script spells out one of the runtime's paths.
 
     Reuses `_is_runtime_path`, so both halves of this file agree on what counts
@@ -568,7 +609,7 @@ def runtime_paths_in_shell(text: str) -> list[int]:
     """
     found = []
     for number, raw in enumerate(text.splitlines(), start=1):
-        code = _strip_comment(raw)
+        code = (strip or _strip_comment)(raw)
         if (any(_is_runtime_path(token) for token in _SHELL_TOKEN.findall(code))
                 or _RUNTIME_ASSIGNMENT.search(code)):
             found.append(number)
@@ -578,7 +619,9 @@ def runtime_paths_in_shell(text: str) -> list[int]:
 def host_naming_shell() -> dict[str, list[int]]:
     sites = {}
     for path in _shell_files():
-        found = runtime_paths_in_shell(path.read_text(encoding="utf-8", errors="ignore"))
+        found = runtime_paths_in_shell(
+            path.read_text(encoding="utf-8", errors="ignore"),
+            strip=_strip_js_comment if path.suffix in _JS_SUFFIXES else None)
         if found:
             sites[path.relative_to(ROOT).as_posix()] = found
     return sites
@@ -653,3 +696,18 @@ def test_a_shell_comment_is_not_coupling_and_an_assignment_is():
         "documented limit")
     assert runtime_paths_in_shell("exec cron_timeline --source=openclaw --json\n") == [], (
         "--source openclaw|gha|crontab is the multi-source design, not coupling")
+
+
+def test_a_js_comment_is_not_coupling_and_a_js_path_is():
+    """The TypeScript and ES-module half of the walk (#2661), both directions."""
+    scan = lambda text: runtime_paths_in_shell(text, strip=_strip_js_comment)  # noqa: E731
+    assert scan(
+        "// The key is read from ~/.openclaw/openclaw.json when present\n"
+        " * see /root/.openclaw/workspace for the live checkout\n"
+        "const manifest = 'openclaw.plugin.json'\n") == [], (
+        "a comment about the host and this repository's own plugin manifest are "
+        "not the host's layout")
+    assert scan(
+        "const file = join(homedir(), '.openclaw', 'openclaw.json')\n"
+        'const ledger = process.env.X ?? "/root/.openclaw/ledger.json"  // default\n'
+        "const docs = 'https://example.test/a'  // not cut at the URL\n") == [1, 2]
