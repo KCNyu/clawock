@@ -2580,12 +2580,12 @@ def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
         if weights is None:
             return True  # Schema-only callers; the publisher supplies the book.
         sentences = re.split(r'[。；;]', text or '')
-        claim = r'(?:权重|占比|仓位|集中|暴露|敞口|占(?:港股|美股|HK|US)段|weight|exposure)\s*(?:为|约|达|是|占比|[:：=])?\s*([0-9]+(?:\.[0-9]+)?)\s*[%％]'
+        claim = r'(?:权重|占比|仓位|集中|暴露|敞口|单名|单一|占(?:港股|美股|HK|US)段|weight|exposure)\s*(?:为|约|达|是|占比|[:：=])?\s*([0-9]+(?:\.[0-9]+)?)\s*[%％]'
         # The same claim with the number first (「86.64% 单名占比」): word order
         # must not decide whether a weight is checked (#2640). The keyword has
         # to follow within a few characters and the same clause, so a return or
         # volatility figure elsewhere in the sentence stays out.
-        trailing = r'(?<![-+\d.])([0-9]+(?:\.[0-9]+)?)\s*[%％]\s*[^，,、：:%％\d\s]{0,4}?(?:权重|占比|仓位|集中|暴露|敞口|weight|exposure)'
+        trailing = r'(?<![-+\d.])([0-9]+(?:\.[0-9]+)?)\s*[%％]\s*[^，,、：:%％\d\s]{0,4}?(?:权重|占比|仓位|集中|暴露|敞口|单名|单一|weight|exposure)'
         for sentence in sentences:
             numbers = re.findall(claim, sentence, re.I) + re.findall(trailing, sentence, re.I)
             if exposure and not numbers:

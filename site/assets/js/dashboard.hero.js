@@ -560,7 +560,7 @@
     degradations.forEach(row => {
       const age = degAgeH(row);
       const when = Number.isFinite(age) ? ` · 最后 ${age < 48 ? `${Math.max(0, Math.round(age))} 小时` : `${Math.round(age / 24)} 天`}前` : '';
-      lines.push(`[降级] ${row.kind}: 累计 ${row.count} 次${when}${row.hits_incomplete || !Array.isArray(row.hits) ? " · 逐次历史不完整" : ""}`);
+      lines.push(`[降级] ${row.kind}${row.group ? ` / ${row.group}` : ''}: 累计 ${row.count} 次${when}${row.hits_incomplete || !Array.isArray(row.hits) ? " · 逐次历史不完整" : ""}`);
     });
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
