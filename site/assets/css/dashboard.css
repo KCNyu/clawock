@@ -1193,45 +1193,6 @@
   .rs-row b.pos { color: var(--positive); }
   .rs-row b.neg { color: var(--negative); }
 
-  /* =========================================================
-     Hero: 总资产卡
-     ========================================================= */
-  .totals-grid {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0;
-    border-top: 1px solid var(--border-subtle);
-  }
-  @media (max-width: 360px) {
-    /* Narrow phones: HK$xx,xxx is too wide for half-grid; stack legs vertically */
-    .totals-grid { grid-template-columns: 1fr; gap: 0; }
-    .total-leg { padding: var(--space-3); }
-  }
-  .total-leg {
-    background: var(--surface-1);
-    border-radius: 0;
-    padding: var(--space-3);
-    border-right: 1px solid var(--border-subtle);
-    border-bottom: 1px solid var(--border-subtle);
-    min-height: 82px;
-  }
-  .total-leg .lbl { font-size: var(--fs-xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  .total-leg .val { font-size: var(--fs-xxl); font-weight: 700; margin: var(--space-1) 0 0; font-variant-numeric: tabular-nums; }
-  .total-leg .sub { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-  .total-combined {
-    margin-top: 0;
-    background: var(--surface-1);
-    border-radius: 0;
-    padding: var(--space-4) var(--space-3);
-    display: flex; flex-wrap: wrap; gap: var(--space-4);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .total-combined > div { flex: 1 1 130px; min-width: 0; min-height: 66px; }
-  .total-combined .lbl { font-size: var(--fs-xs); color: var(--text-dim); }
-  .total-combined .val {
-    font-size: var(--fs-xxl); line-height: 1.15; font-weight: 700;
-    margin-top: var(--space-1); font-variant-numeric: tabular-nums;
-  }
-  .total-combined .fx { font-size: var(--fs-xs); color: var(--text-faint); }
-
   .pos { color: var(--positive); }
   .neg { color: var(--negative); }
   .neutral { color: var(--text-dim); }
@@ -1470,28 +1431,10 @@
   .lev-tickers { margin-top: 8px; font-size: var(--fs-xs); }
 
   /* Today's range bars */
-        .range-bar { height: 8px; background: var(--fill-inset); border-radius: 4px; position: relative; overflow: hidden; }
-  .range-bar > .fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--positive), var(--negative)); opacity: 0.5; }
-  .range-bar > .dot { position: absolute; top: -2px; width: 4px; height: 12px; background: var(--text); border-radius: 2px; }
   
   /* Extremes (winners/losers) */
           
   /* Today's P&L cards */
-  .today-pnl-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    border-top: 1px solid var(--border-subtle);
-  }
-  .today-pnl-cell {
-    background: var(--surface-1); border-radius: 0;
-    padding: var(--space-4) var(--space-3); text-align: left;
-    font-variant-numeric: tabular-nums;
-    border-right: 1px solid var(--border-subtle);
-    border-bottom: 1px solid var(--border-subtle);
-    min-height: 86px;
-  }
-  .today-pnl-cell .lbl { font-size: var(--fs-xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 4px; }
-  .today-pnl-cell .val { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.01em; }
-  .today-pnl-cell .pct { font-size: var(--fs-sm); margin-top: 2px; }
 
   /* Delta table */
   .delta-table {
@@ -2301,37 +2244,6 @@
   /* minmax(0, 1fr) prevents wide stat cells from forcing the card past its column.
    * On desktop the dashboard runs a 3-col layout (≥1024px) so the Reflect column
    * is only ~420px wide — too narrow for a 2-col DD grid; collapse back to single. */
-  .dd-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  @media (min-width: 768px) and (max-width: 1023px) {
-    .dd-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  }
-  .dd-region {
-    padding: var(--space-4); background: var(--fill-inset); border-radius: var(--radius-sm);
-    border-left: 3px solid var(--border);
-  }
-  .dd-region.recovery-poor { border-left-color: var(--negative); }
-  .dd-region.recovery-mid  { border-left-color: var(--warning); }
-  .dd-region.recovery-good { border-left-color: var(--positive); }
-  .dd-region .dd-region-name {
-    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--text-dim); font-weight: 600; margin-bottom: 8px;
-  }
-  .dd-region .dd-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: var(--space-3); }
-  .dd-region .dd-cell .lbl { font-size: var(--fs-micro); color: var(--text-faint); }
-  .dd-region .dd-cell .val { font-size: var(--fs-xl); font-weight: 700; font-family: var(--mono); margin-top: 2px; }
-  .dd-region .dd-cell .val.neg { color: var(--negative); }
-  .dd-region .dd-cell .val.pos { color: var(--positive); }
-  .dd-region .dd-bar {
-    height: 8px; background: var(--fill-inset-2); border-radius: 4px; overflow: hidden;
-    border: 1px solid var(--border-subtle);
-  }
-  .dd-region .dd-bar-fill { height: 100%; width: 100%; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform var(--duration-standard) var(--ease-out); }
-  .dd-region .dd-bar-fill.poor { background: var(--negative); }
-  .dd-region .dd-bar-fill.mid  { background: var(--warning); }
-  .dd-region .dd-bar-fill.good { background: var(--positive); }
-  .dd-region .dd-status {
-    margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--text-dim);
-  }
 
   /* 历史净值极值 (peak / trough / max drawdown) */
   .ext-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
@@ -2522,15 +2434,15 @@
   }
   .revision-note b { color: var(--text); }
   .retired-note b { color: var(--text); }
-  .audit-summary, .timing-zones {
+  .timing-zones {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 8px; margin: var(--space-3) 0;
   }
-  .audit-stat, .timing-zone {
+  .timing-zone {
     background: var(--fill-inset); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: var(--space-3); min-width: 0;
   }
-  .audit-stat .n, .timing-zone .median {
+  .timing-zone .median {
     font: 700 var(--fs-xl) var(--mono); color: var(--text);
   }
   .sect-divider {
@@ -2543,38 +2455,8 @@
     color: var(--text-dim); margin: var(--space-4) 2px 0; padding-top: 4px;
   }
   .sect-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-  .audit-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
-  .audit-row {
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--fill-inset); overflow: hidden;
-  }
-  .audit-row summary {
-    cursor: pointer; list-style: none; display: grid;
-    grid-template-columns: 86px minmax(0,1fr) auto; gap: 8px;
-    align-items: center; padding: var(--space-3); font-size: var(--fs-sm);
-  }
-  .audit-row summary::-webkit-details-marker { display: none; }
-  .audit-row .audit-title { overflow-wrap: anywhere; }
-  .audit-state { font: 600 var(--fs-micro) var(--mono); color: var(--text-dim); }
-  .audit-detail {
-    padding: 0 12px 12px; border-top: 1px solid var(--border);
-    font-size: var(--fs-xs); color: var(--text-dim); line-height: 1.5;
-  }
-  .audit-detail-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
-    gap: 8px; margin-top: 9px;
-  }
-  .audit-detail-grid > div {
-    min-width: 0; padding: 8px; background: var(--fill-inset-2);
-    border-radius: var(--radius-sm); overflow-wrap: anywhere;
-  }
-  .audit-path { width: 100%; height: 54px; margin-top: var(--space-2); display: block; }
   .timing-events { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
   .timing-events table { min-width: 560px; width: 100%; font-size: var(--fs-micro); }
-  @media (max-width: 600px) {
-    .audit-row summary { grid-template-columns: 72px minmax(0,1fr); }
-    .audit-row summary .audit-state { grid-column: 2; }
-  }
 
   /* KPI strip — broker-style summary cards (Reflect tab top row) */
   .kpi-grid {
@@ -4037,10 +3919,6 @@
   .overview-gates {
     padding-top: 16px; border-top: 1px solid var(--border-subtle);
   }
-  .overview-gates-head {
-    color: var(--text-secondary); font: 700 var(--fs-micro)/1.2 var(--mono);
-    letter-spacing: .06em; text-transform: uppercase;
-  }
   .overview-gates-directive {
     display: -webkit-box; margin-top: 8px; overflow: hidden;
     -webkit-box-orient: vertical; -webkit-line-clamp: 1;
@@ -4232,7 +4110,6 @@
      文字承载，不再由任何圆点承载；渲染端（hero.js/render.js 双份）已不再
      输出 .hl-ic。 */
   /* 真告警整行红字（全站唯一的非涨跌红） */
-  .hl-chip.hl-alert { color: var(--negative); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
     /* 卡片节奏的窄档：这一档 Overview 还是 12 列网格（≤767 才转 flex 列），
@@ -4323,7 +4200,7 @@
   .kpi-cell, .risk-cell, .lev-cell, .hhi-card,
   .mkt-card,   .mkt-card, .macro-row > *,
   .plan-action > *, .catalyst-row > *, .pd-top > *,
-  .sd-row summary > *, .dd-region .dd-cell,
+  .sd-row summary > *,
   .card [style*="display:flex"] > * {
     min-width: 0;
   }
@@ -4332,8 +4209,7 @@
   .plan-action .meta, .peer-div-row, .mkt-stat .v,
   .kpi-cell .val, .kpi-cell .sub, .risk-cell .val,
   .lev-cell .val, .shadow-stat .val, .ext-row .v,
-  .sd-row .sd-counts, .sd-body, .pt-row .pt-trigger,
-  .dd-region .dd-cell .val {
+  .sd-row .sd-counts, .sd-body, .pt-row .pt-trigger {
     overflow-wrap: anywhere;
   }
   .calib-badge, .pd-top { flex-wrap: wrap; }
@@ -4342,12 +4218,6 @@
     width: 100%; max-width: 100%; min-width: 0; padding-bottom: 3px;
     overscroll-behavior-x: contain;
   }
-  #holdings-table { min-width: 940px; }
-  #holdings-table th:nth-child(6),
-  #holdings-table td:nth-child(6) {
-    min-width: 112px; padding-left: 12px; padding-right: 16px;
-  }
-  #decision-matrix-table { min-width: 760px !important; }
   .holdings-table th:last-child,
   .holdings-table td:last-child { padding-right: 14px; }
   .delta-table { min-width: 300px; }
@@ -4646,11 +4516,7 @@
     color: var(--text); font: 700 var(--fs-sm)/1.4 var(--font, inherit); margin-bottom: 10px;
   }
   .sub-block-head .muted { font-weight: 500; font-size: var(--fs-micro); letter-spacing: 0; }
-  .action-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
-  .action-split .sub-block + .sub-block { margin-top: 0; padding-top: 0; border-top: 0; }
   @media (max-width: 900px) {
-    .action-split { grid-template-columns: minmax(0, 1fr); }
-    .action-split .sub-block + .sub-block { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
     .book-table th.col-p2, .book-table td.col-p2 { display: none; }
   }
   @media (max-width: 560px) {
