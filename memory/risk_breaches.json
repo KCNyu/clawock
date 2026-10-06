@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-05T00:26:16+00:00",
+  "updated_at": "2026-10-06T00:14:22+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,16 +11,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 82,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 83,
       "recurrence_count": 1,
-      "detail": "RKLX 浮亏 -61.5% ≤ 硬止损线 -18%",
+      "detail": "RKLX 浮亏 -62.4% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 10,
-        "minimum_value": 191.2,
+        "minimum_value": 186.8,
         "currency": "USD",
         "target_tickers": [
           "RKLX"
@@ -43,10 +43,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "d98247ab17311054",
+      "fingerprint": "252fd0319ac11e27",
       "resolution": null,
       "standing": {
-        "days_open": 82,
+        "days_open": 83,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -58,7 +58,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -61.5
+        "value": -62.4
       },
       "adaptive": {
         "eligible": true,
@@ -79,19 +79,14 @@
         },
         "anchor": {
           "kind": "pnl_pct",
-          "value": -61.5
+          "value": -62.4
         },
         "anchor_severity": "critical",
-        "last_reissued_on": "2026-10-05",
+        "last_reissued_on": "2026-10-06",
         "days_since_reissue": 0,
-        "forced_on": "2026-11-02",
-        "rearm_at": "浮亏 ≤ -71.5%",
+        "forced_on": "2026-11-03",
+        "rearm_at": "浮亏 ≤ -72.4%",
         "stances": [
-          {
-            "date": "2026-09-22",
-            "choice": "stand",
-            "why": "硬止损触发 68 天是组合最老 breach, stance=declined (同期他处有成交, RKLX 一股没动), kcn 选保留敞口承受 -64.9% 浮亏。swap_mandate→RKLB 是设计好的 2x→1x 解套处方, 但 RKLB 6/13 已清仓 (target_held=false), 处方失效无解套路径。breakeven 199.9% 几乎无回本可能。今日 9/22 与 9/18 比无新事件: RKLB 9/18 -4.79% 板块回调, RKL"
-          },
           {
             "date": "2026-09-23",
             "choice": "reissue",
@@ -136,6 +131,11 @@
             "date": "2026-10-05",
             "choice": "reissue",
             "why": "浮亏 -61.5% 是全组合最深的坑，规则要求换 1x 同因子 RKLB。1x 承接腿今天走不通，RKLB 不在持仓里、账上没有换仓授权，所以这笔只能裸清并留下现金。这笔只有 191 美元、占美股段 4.98%，对组合伤害极小，所以判低信心不是判不重要——判这笔金额在今天三笔里不是决定性的一环，真正决定组合的是 SPCH 那 300 股。"
+          },
+          {
+            "date": "2026-10-06",
+            "choice": "reissue",
+            "why": "浮亏 -62.4% 是全组合最深的坑，规则要求换成 1x 同因子 RKLB。1x 承接腿今天走不通——RKLB 不在持仓里、账上没有换仓授权，所以这笔只能裸清并留下现金。信心给 0.6 不是因为这笔重要，它只占美股段 4.3%，而是账上已经给了 4 次反弹触发价、一次都没成交，这只票的记录是最近在别的票上有成交、这一只一股没动。一只 187 美元的仓位继续留着，唯一的作用是让美股段的 2x 敞口表永远关不掉。这不是择时判断，是纪律执行。"
           }
         ]
       }
@@ -149,16 +149,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 53,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 54,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -36.8% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -35.9% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 7200,
-        "minimum_value": 18748.8,
+        "minimum_value": 18993.6,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -181,10 +181,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "969d8a26059e93ef",
+      "fingerprint": "5001781ce2112028",
       "resolution": null,
       "standing": {
-        "days_open": 53,
+        "days_open": 54,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -196,7 +196,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -36.8
+        "value": -35.9
       },
       "adaptive": {
         "eligible": true,
@@ -221,15 +221,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-10-05",
-        "days_since_reissue": 0,
+        "days_since_reissue": 1,
         "forced_on": "2026-11-02",
         "rearm_at": "浮亏 ≤ -46.8%",
         "stances": [
-          {
-            "date": "2026-09-22",
-            "choice": "stand",
-            "why": "硬止损已开 39 天, kcn 选保留敞口让 HSTECH 反弹修复, swap_mandate→03033 工具备好 (max 18463.6 HKD, breach_id risk-4ab7eff27f15)。今日 9/22 与 9/18 (last_reissued) 比无新催化: HSTECH 4405 (+2.2%) 没破 4200 触发, HK lev_regime 仍 amber ×0.5, 07226 9/21 +4.38% 跟反弹修复中。breakeven "
-          },
           {
             "date": "2026-09-23",
             "choice": "stand",
@@ -274,6 +269,11 @@
             "date": "2026-10-05",
             "choice": "reissue",
             "why": "纪律性降杠杆的一步，不是预测。今天和上次重提相比变了什么：护栏要求的减额从 1742 港元抬到 3457 港元以上，1.5 倍，这一档关不掉了。减 1500 股后港股段杠杆从 30.65% 降到约 24.3%，回到 25% 上限之内，2x 的每日重置衰减基数也少两成。限制要说清楚：1x 承接腿今天走不通，03033 那一侧没有可执行的技术批次，买腿无法与卖腿同时落纸，所以卖出所得今天留在现金而不是挪进 03033；完整换仓要等 03033 拿到批次授权。"
+          },
+          {
+            "date": "2026-10-06",
+            "choice": "stand",
+            "why": "这是纪律性降杠杆里唯一一条我今天选择按住的，理由是账上没有出现新变量而不是我改主意了。规则要求把 3586 港元的 2x 换成 03033 的 1x，1x 那一侧今天拿得到换仓授权了，但卖腿一旦不在同一天落纸，买腿就不该单独进场，否则又变成裸买。恒科 4183.68 压在 200 日线 4955.41 下方 15.6%，制度档位是趋势走坏、杠杆敞口上限砍半到 25%，而 2x 每天要重置一次。kcn 在这只票上的既定打法是逢跌摊本：过去 7 个月 1 次买入、0 次卖出，13"
           }
         ]
       }
@@ -287,15 +287,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 82,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 83,
       "recurrence_count": 1,
-      "detail": "SPCH = 86.64% of US (mandatory cap 35%; 2x/3x)",
-      "required_action": "纪律性 trim SPCH → ≤35% (减约 3047.95 USD，借反弹分批、勿在新低日一次砍)",
+      "detail": "SPCH = 87.93% of US (mandatory cap 35%; 2x/3x)",
+      "required_action": "纪律性 trim SPCH → ≤35% (减约 3539.58 USD，借反弹分批、勿在新低日一次砍)",
       "required_reduction": {
         "kind": "market_value",
-        "minimum_value": 3047.95,
+        "minimum_value": 3539.58,
         "currency": "USD",
         "target_pct": 35,
         "target_tickers": [
@@ -318,10 +318,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "9e49b1959e95180d",
+      "fingerprint": "6d6f723e167c56f2",
       "resolution": null,
       "standing": {
-        "days_open": 82,
+        "days_open": 83,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -333,7 +333,7 @@
       },
       "pressure": {
         "kind": "minimum_value",
-        "value": 3047.95,
+        "value": 3539.58,
         "currency": "USD"
       },
       "adaptive": {
@@ -355,20 +355,15 @@
         },
         "anchor": {
           "kind": "minimum_value",
-          "value": 3047.95,
+          "value": 3539.58,
           "currency": "USD"
         },
         "anchor_severity": "high",
-        "last_reissued_on": "2026-10-05",
+        "last_reissued_on": "2026-10-06",
         "days_since_reissue": 0,
-        "forced_on": "2026-11-02",
-        "rearm_at": "需减额 ≥ 4,572 USD",
+        "forced_on": "2026-11-03",
+        "rearm_at": "需减额 ≥ 5,309 USD",
         "stances": [
-          {
-            "date": "2026-09-22",
-            "choice": "stand",
-            "why": "单名 85.65% 严重超 35% cap, stance=contrary (kcn 显式加仓 13 次, 2026-08-20 最后买入)。今日 9/22 与 9/18 (last_reissued) 比的实质变化: Starship Flight 14 从 9/22 进一步推迟到 9/28 是 soft disconfirming, 按铁律只动 confidence ±10pp 不翻 bucket; SPCX 9/21 -1.36% 是板块回调跟随, SPCX 152."
-          },
           {
             "date": "2026-09-23",
             "choice": "reissue",
@@ -413,6 +408,11 @@
             "date": "2026-10-05",
             "choice": "reissue",
             "why": "单名占美股段 86.64% 对 35% 硬上限，美股杠杆敞口 91.6% 对 50% 上限，美股 β 3.94 对 3.0 上限——三条账上的规则指向同一笔卖出，一笔成交同时关掉三条。今天的时点比前几次都好：z20 +2.53 极端超买，星舰入轨与算力合约属于确认型利好且已在价，卖在利好兑现处正是借反弹分批想要的位置。买腿 SPCX 今天同样走不通：它没有换仓授权、技术批次算出来是 0 股被最小交易单位卡死、上周五那条确认位 152.58 的批次已被判定失效，所以 1x 由账"
+          },
+          {
+            "date": "2026-10-06",
+            "choice": "reissue",
+            "why": "单名占美股段 87.93% 对 35% 硬上限，美股 2x 敞口 92.2% 对 50% 上限，美股 β 4.43 对 3.0 上限，三条账上的规则指向同一笔卖出，一笔成交同时关掉三条。这条已经开了 83 天，触发价一路从 9.84 抬到 11.00 又抬到今天，卖出所得 0 笔，账上对这只票的买入 13 次、卖出 0 次——市场上唯一持续在做的事是加仓。今天是这笔单子第一次拿到像样的执行价：正股 z20 +3.47σ、5 日 +17.6%、2x 5 日 +36.1%，摩根士"
           }
         ]
       }
@@ -426,15 +426,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 82,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 83,
       "recurrence_count": 1,
-      "detail": "US 杠杆 ETF = 91.6% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-      "required_action": "降杠杆=换仓非清仓：把约 1596.87 USD 的 2x 换成 1x 同因子(RKLX→RKLB、SPCH→SPCX)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+      "detail": "US 杠杆 ETF = 92.2% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+      "required_action": "降杠杆=换仓非清仓：把约 1835.56 USD 的 2x 换成 1x 同因子(RKLX→RKLB、SPCH→SPCX)，敞口不变、停 decay；🧭转 green 后可换回 2x",
       "required_reduction": {
         "kind": "leveraged_market_value",
-        "minimum_value": 1596.87,
+        "minimum_value": 1835.56,
         "currency": "USD",
         "target_pct": 50,
         "target_tickers": [
@@ -499,10 +499,10 @@
           }
         ]
       },
-      "fingerprint": "344ddbf995ce1fc3",
+      "fingerprint": "85962548d590395f",
       "resolution": null,
       "standing": {
-        "days_open": 82,
+        "days_open": 83,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -514,7 +514,7 @@
       },
       "pressure": {
         "kind": "minimum_value",
-        "value": 1596.87,
+        "value": 1835.56,
         "currency": "USD"
       },
       "adaptive": {
@@ -537,20 +537,15 @@
         },
         "anchor": {
           "kind": "minimum_value",
-          "value": 1596.87,
+          "value": 1835.56,
           "currency": "USD"
         },
         "anchor_severity": "high",
-        "last_reissued_on": "2026-10-05",
+        "last_reissued_on": "2026-10-06",
         "days_since_reissue": 0,
-        "forced_on": "2026-11-02",
-        "rearm_at": "需减额 ≥ 2,395 USD",
+        "forced_on": "2026-11-03",
+        "rearm_at": "需减额 ≥ 2,753 USD",
         "stances": [
-          {
-            "date": "2026-09-22",
-            "choice": "stand",
-            "why": "硬止损触发 68 天是组合最老 breach, stance=declined (同期他处有成交, RKLX 一股没动), kcn 选保留敞口承受 -64.9% 浮亏。swap_mandate→RKLB 是设计好的 2x→1x 解套处方, 但 RKLB 6/13 已清仓 (target_held=false), 处方失效无解套路径。breakeven 199.9% 几乎无回本可能。今日 9/22 与 9/18 比无新事件: RKLB 9/18 -4.79% 板块回调, RKL"
-          },
           {
             "date": "2026-09-23",
             "choice": "reissue",
@@ -595,6 +590,11 @@
             "date": "2026-10-05",
             "choice": "reissue",
             "why": "浮亏 -61.5% 是全组合最深的坑，规则要求换 1x 同因子 RKLB。1x 承接腿今天走不通，RKLB 不在持仓里、账上没有换仓授权，所以这笔只能裸清并留下现金。这笔只有 191 美元、占美股段 4.98%，对组合伤害极小，所以判低信心不是判不重要——判这笔金额在今天三笔里不是决定性的一环，真正决定组合的是 SPCH 那 300 股。"
+          },
+          {
+            "date": "2026-10-06",
+            "choice": "reissue",
+            "why": "浮亏 -62.4% 是全组合最深的坑，规则要求换成 1x 同因子 RKLB。1x 承接腿今天走不通——RKLB 不在持仓里、账上没有换仓授权，所以这笔只能裸清并留下现金。信心给 0.6 不是因为这笔重要，它只占美股段 4.3%，而是账上已经给了 4 次反弹触发价、一次都没成交，这只票的记录是最近在别的票上有成交、这一只一股没动。一只 187 美元的仓位继续留着，唯一的作用是让美股段的 2x 敞口表永远关不掉。这不是择时判断，是纪律执行。"
           }
         ]
       }
@@ -608,15 +608,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 82,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 83,
       "recurrence_count": 1,
-      "detail": "HK 杠杆 ETF = 30.7% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-      "required_action": "降杠杆=换仓非清仓：把约 3456.5 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+      "detail": "HK 杠杆 ETF = 30.8% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+      "required_action": "降杠杆=换仓非清仓：把约 3586.1 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
       "required_reduction": {
         "kind": "leveraged_market_value",
-        "minimum_value": 3456.5,
+        "minimum_value": 3586.1,
         "currency": "HKD",
         "target_pct": 25,
         "target_tickers": [
@@ -639,10 +639,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "8650979874c3d1fc",
+      "fingerprint": "b956e3c249e2f3f0",
       "resolution": null,
       "standing": {
-        "days_open": 82,
+        "days_open": 83,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -654,14 +654,14 @@
       },
       "pressure": {
         "kind": "minimum_value",
-        "value": 3456.5,
+        "value": 3586.1,
         "currency": "HKD"
       },
       "adaptive": {
         "eligible": true,
-        "may_stand": false,
-        "must_reissue": true,
-        "must_reason": "需减额 1,742 → 3,456 HKD（≥1.5×）",
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
         "stance": {
           "stance": "contrary",
           "since": "2026-07-15",
@@ -681,15 +681,10 @@
         },
         "anchor_severity": "high",
         "last_reissued_on": "2026-10-05",
-        "days_since_reissue": 0,
+        "days_since_reissue": 1,
         "forced_on": "2026-11-02",
         "rearm_at": "需减额 ≥ 5,185 HKD",
         "stances": [
-          {
-            "date": "2026-09-22",
-            "choice": "stand",
-            "why": "硬止损已开 39 天, kcn 选保留敞口让 HSTECH 反弹修复, swap_mandate→03033 工具备好 (max 18463.6 HKD, breach_id risk-4ab7eff27f15)。今日 9/22 与 9/18 (last_reissued) 比无新催化: HSTECH 4405 (+2.2%) 没破 4200 触发, HK lev_regime 仍 amber ×0.5, 07226 9/21 +4.38% 跟反弹修复中。breakeven "
-          },
           {
             "date": "2026-09-23",
             "choice": "stand",
@@ -734,6 +729,11 @@
             "date": "2026-10-05",
             "choice": "reissue",
             "why": "纪律性降杠杆的一步，不是预测。今天和上次重提相比变了什么：护栏要求的减额从 1742 港元抬到 3457 港元以上，1.5 倍，这一档关不掉了。减 1500 股后港股段杠杆从 30.65% 降到约 24.3%，回到 25% 上限之内，2x 的每日重置衰减基数也少两成。限制要说清楚：1x 承接腿今天走不通，03033 那一侧没有可执行的技术批次，买腿无法与卖腿同时落纸，所以卖出所得今天留在现金而不是挪进 03033；完整换仓要等 03033 拿到批次授权。"
+          },
+          {
+            "date": "2026-10-06",
+            "choice": "stand",
+            "why": "这是纪律性降杠杆里唯一一条我今天选择按住的，理由是账上没有出现新变量而不是我改主意了。规则要求把 3586 港元的 2x 换成 03033 的 1x，1x 那一侧今天拿得到换仓授权了，但卖腿一旦不在同一天落纸，买腿就不该单独进场，否则又变成裸买。恒科 4183.68 压在 200 日线 4955.41 下方 15.6%，制度档位是趋势走坏、杠杆敞口上限砍半到 25%，而 2x 每天要重置一次。kcn 在这只票上的既定打法是逢跌摊本：过去 7 个月 1 次买入、0 次卖出，13"
           }
         ]
       }
@@ -747,11 +747,11 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-09-28T00:04:37+00:00",
-      "last_seen_at": "2026-10-05T00:04:34+00:00",
-      "last_changed_at": "2026-10-05T00:04:34+00:00",
-      "age_days": 7,
+      "last_seen_at": "2026-10-06T00:04:38+00:00",
+      "last_changed_at": "2026-10-06T00:04:38+00:00",
+      "age_days": 8,
       "recurrence_count": 5,
-      "detail": "US β vs S&P = 3.9427 (cap 3.0) — 大盘 −1% 本子约 −3.9%",
+      "detail": "US β vs S&P = 4.4342 (cap 3.0) — 大盘 −1% 本子约 −4.4%",
       "required_action": "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis",
       "required_reduction": {
         "kind": "beta",
@@ -777,10 +777,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "201a51eaafc50257",
+      "fingerprint": "e87438c4c534979c",
       "resolution": null,
       "standing": {
-        "days_open": 7,
+        "days_open": 8,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": false,
@@ -796,7 +796,7 @@
         "may_stand": false,
         "must_reissue": false,
         "not_eligible_because": [
-          "open 7d < 10d"
+          "open 8d < 10d"
         ],
         "stance": {
           "stance": "declined",

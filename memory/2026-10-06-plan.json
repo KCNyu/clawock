@@ -1,0 +1,826 @@
+{
+  "schema_version": 2,
+  "date": "2026-10-06",
+  "context_generation_id": "26bd0d56b231c61a",
+  "fx_rate_usdhkd": 7.8476,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "trending-up",
+    "hk": "trending-down"
+  },
+  "book": {
+    "usd_total_pnl": -6595.92,
+    "hkd_total_pnl": -51762.18,
+    "hk_leg_hkd": -51056.6,
+    "us_leg_usd": -89.91
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d9c215d90ab9",
+      "episode_id": "ep-0ddb42cac6a2",
+      "decision_group_id": "2026-10-06:07226",
+      "plan_date": "2026-10-06",
+      "created_at": "2026-10-06T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-2x-to-1x-03033-swap",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 2.55,
+        "description": "维持今天不改口径，等的是反弹兑现的那一档。今天和 10 月 5 日那次重提相比变的是边距不是方向：护栏要求的减额从 3457 港元抬到 3586 港元，只多 3.7%，离重新发这笔所需的 5185 港元还差很远；浮亏从 36.8% 收回到 35.9%，离重新强制的 46.8% 也差得远。真正要盯的是 2.55：跌破它说明反弹窗口关掉了，那时不再等 2.66，改成开盘直接执行，2x 的横盘衰减每月无条件扣 0.23%，等得越久付得越多。",
+        "valid_for_sessions": 3
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "维持不操作，加仓仍然冻结"
+      },
+      "confidence": 0.5,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "这是纪律性降杠杆里唯一一条我今天选择按住的，理由是账上没有出现新变量而不是我改主意了。规则要求把 3586 港元的 2x 换成 03033 的 1x，1x 那一侧今天拿得到换仓授权了，但卖腿一旦不在同一天落纸，买腿就不该单独进场，否则又变成裸买。恒科 4183.68 压在 200 日线 4955.41 下方 15.6%，制度档位是趋势走坏、杠杆敞口上限砍半到 25%，而 2x 每天要重置一次。kcn 在这只票上的既定打法是逢跌摊本：过去 7 个月 1 次买入、0 次卖出，13 个策略 episode 胜率 62%，是全组合唯一长期为正的账本。在这套打法里真正该盯的不是我又喊了多少次减仓，而是 2.55 这条线：它跌穿就说明你等的反弹不会来，届时规则会自己从等待切换成执行。",
+      "contested": true,
+      "thesis_invalidation": "跌破 2.55 反弹窗口关闭，改为开盘直接执行这笔 3586 港元的降杠杆；若恒科收复 200 日线 4955.41 且 20 日波动仍低于 50%，制度档位转 green，届时 1x 可以换回 2x。",
+      "debate": {
+        "bull": "恒科 RSI 27.9 一线、z20 -2.10 已是极端超卖区，07226 过去三次清仓三次都对，2x 回本门槛是正股半年涨 25.8%，在 52 周低位区砍两成等于把最差的价格写进账本。",
+        "bear": "2x 横盘每月无条件扣 0.23% 的衰减，正股要收复 200 日线还差 15.6%，而这条硬止损已经开立 54 天，执行、确认留痕、限时豁免三个出口一个都没走过，浮亏 -35.9% 意味着回本需要正股涨 56.1%。",
+        "attacked_consensus": "攻击的是「恒科在地板价、RSI 不到 30，砍 2x 是卖在地板上」这条当下最强的多头共识——它把择时问题当成了持有理由，而规则问的是要不要继续为重置层付钱。",
+        "judge": "超卖是择时理由不是持有 2x 的理由；但今天护栏要求的减额没跨过重新发起的门槛、浮亏还在收窄，唯一有信息量的变化是 2.55 这条失效线，所以这一档维持、按住这条线不放。",
+        "frames": [
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:07226",
+          "risk:leveraged_exposure:HK"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": 2.0,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "26bd0d56b231c61a",
+        "observed_at": "2026-10-06T08:04:40.377335+08:00",
+        "information": {
+          "activation_blockers": [
+            "cross_section_tickers"
+          ],
+          "activation_progress": {
+            "cross_section_tickers": [
+              7,
+              8
+            ],
+            "history_dates": [
+              38,
+              24
+            ]
+          },
+          "as_of": "2026-10-06T00:04:33.296307+00:00",
+          "attention_acceleration": null,
+          "attention_event_count": 0,
+          "attention_rank": null,
+          "attention_score": null,
+          "attention_source_type_count": 0,
+          "cross_section_rank": null,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《港股收评：恒生指数涨0.28% 恒生科技指数涨0.62%》（Google新闻·东方财富，10-06 01:37 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T17:37:55+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股收评：恒生指数涨0.28% 恒生科技指数涨0.62%"
+            },
+            {
+              "cite": "《10月5日港股开盘：恒指低开0.04% 网易领跌成分股》（Google新闻·手机新浪网，10-06 00:22 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T16:22:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月5日港股开盘：恒指低开0.04% 网易领跌成分股"
+            },
+            {
+              "cite": "《10月5日港股收盘：恒指涨0.28% 联想集团领涨成分股》（Google新闻·手机新浪网，10-06 00:22 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T16:22:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月5日港股收盘：恒指涨0.28% 联想集团领涨成分股"
+            },
+            {
+              "cite": "《港股午盘：恒生指数跌0.08% 恒生科技指数涨0.27%》（Google新闻·东方财富，10-05 21:34 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T13:34:43+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股午盘：恒生指数跌0.08% 恒生科技指数涨0.27%"
+            }
+          ],
+          "own_surprise_z": null,
+          "signed_score": null,
+          "sizing_tilt": "inactive",
+          "source_ticker": "HSTECH",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 300,
+          "position_room_shares": 3800,
+          "lot_size": 100,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-156735134f95",
+      "episode_id": "ep-585b56975ac8",
+      "decision_group_id": "2026-10-06:SPCH",
+      "plan_date": "2026-10-06",
+      "created_at": "2026-10-06T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-2x-to-1x-spcx-swap",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "开盘任意价清掉全部 300 股 2x 敞口，约 3822 美元。昨天写的触发价是站上 11.00 卖掉，昨晚收 12.74 已经越过去 15.8%，那条价已经成交不到——今天不再往上抬价，改成开盘执行。昨天是低位区所以等反弹，今天是单日 +14.98%、5 日 +36.1% 的兑现日，价在这里而不在地板上。正股 SPCX 继续由账上 1 股 SPCX 承担，砍掉的只是重置层。",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 300,
+        "pct": 100.0,
+        "note": "全部持仓，卖完美股段 2x 敞口从 92.2% 降到约 4.7%，β 从 4.43 回到 3.0 上限之内"
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "单名占美股段 87.93% 对 35% 硬上限，美股 2x 敞口 92.2% 对 50% 上限，美股 β 4.43 对 3.0 上限，三条账上的规则指向同一笔卖出，一笔成交同时关掉三条。这条已经开了 83 天，触发价一路从 9.84 抬到 11.00 又抬到今天，卖出所得 0 笔，账上对这只票的买入 13 次、卖出 0 次——市场上唯一持续在做的事是加仓。今天是这笔单子第一次拿到像样的执行价：正股 z20 +3.47σ、5 日 +17.6%、2x 5 日 +36.1%，摩根士丹利重申 300 美元目标价、股价创 6 月以来新高，这些都是确认型利好而且已在价。买腿 SPCX 今天依然走不通——它没有换仓授权，探索批次按目标仓位算出 0 股被最小交易单位卡死，所以 1x 由账上那 1 股 SPCX 承担，不重复买。",
+      "contested": true,
+      "thesis_invalidation": "若 SPCX 连续 5 个交易日站稳 200 日线之上、且 2x 敞口占比自然回落到 50% 以下，这笔判早，SpaceX 敞口按 1x 重新定权重；若开盘跳空低开超过 5% 且盘中反抽无力，改为分两笔挂单而不是一次砸完。",
+      "debate": {
+        "bull": "星舰连着三次成功、连续三发入轨，摩根士丹利说便宜并重申 300 美元，SPCX 一个月 +14.3% 创新高，这是纳指创新高里最干净的一门生意，SPCH 浮亏只剩 +5.6% 是全组合离回本最近的杠杆仓，这时候砍是在最强叙事上先收一次杠杆。",
+        "bear": "z20 +3.47σ 是全组合唯一的极端超买，5 日 +36.1% 的涨幅里没有任何一条来自一手营收披露带来的，87.93% 的单名占比意味着正股任何一次回吐都直接砸在美股段上；板块里 ASTS -0.02%、RKLB -1.22%、BKSY -2.51% 全在跌，说明这不是航天板块行情，是 SpaceX 单点行情，单点行情的回吐没有板块轮动接。",
+        "attacked_consensus": "攻击的是「摩根士丹利重申目标价加连续三发入轨，2x 敞口可以一直扛到回本」这条当下最强的多头共识——它把两笔不同的账混成了一笔：回本只需正股涨 8.8%，而 2x 每天付的重置成本和方向风险都不在这个 8.8% 里。",
+        "judge": "确认型利好不构成继续为重置层付溢价的理由：敞口由 SPCX 以 1x 继续持有，砍掉的只有衰减，门面生意一分不少。",
+        "frames": [
+          "mean_reversion",
+          "sentiment_shift"
+        ],
+        "evidence_ids": [
+          "risk:single_name:SPCH",
+          "risk:leveraged_exposure:US",
+          "risk:beta:US",
+          "quant:SPCX:zscore20"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -6.0,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "26bd0d56b231c61a",
+        "observed_at": "2026-10-06T08:04:40.377335+08:00",
+        "information": {
+          "activation_blockers": [
+            "cross_section_tickers"
+          ],
+          "activation_progress": {
+            "cross_section_tickers": [
+              7,
+              8
+            ],
+            "history_dates": [
+              38,
+              24
+            ]
+          },
+          "as_of": "2026-10-06T00:04:33.296307+00:00",
+          "attention_acceleration": 1.1534,
+          "attention_event_count": 11,
+          "attention_rank": 0.8333,
+          "attention_score": 1.541574,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Why is SpaceX stock surging today?》（Google新闻·Investing.com，10-06 07:05 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T23:05:45+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Why is SpaceX stock surging today?"
+            },
+            {
+              "cite": "《Dow Jones Futures: Nasdaq Hits Record Highs; TSMC, Nvidia, E》（Yahoo财经，10-06 06:35 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:35:32+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Dow Jones Futures: Nasdaq Hits Record Highs; TSMC, Nvidia, Elon Musk-Led SpaceX, Tesla Rally"
+            },
+            {
+              "cite": "《SPCX Stock Reclaims $165 as Upgrade and Microsoft Deal Hopes》（Google新闻·FXLeaders，10-06 06:17 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:17:57+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "SPCX Stock Reclaims $165 as Upgrade and Microsoft Deal Hopes Lift Revenue Outlook"
+            },
+            {
+              "cite": "《Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure》（Yahoo财经，10-06 06:09 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:09:32+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure From Soaring Yields — NVDA, SPCX, CRML, TSLA, QCOM In Focus"
+            }
+          ],
+          "own_surprise_z": 0.0138,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "SPCX",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 0,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-342d69fee4df",
+      "episode_id": "ep-5cd95da3534a",
+      "decision_group_id": "2026-10-06:RKLX",
+      "plan_date": "2026-10-06",
+      "created_at": "2026-10-06T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-2x-exit",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "开盘任意价清掉全部 10 股 2x 敞口，约 187 美元，所得留在现金。昨天这一档的写法是反弹站上 19.50 才清，收在 18.68 没碰到；浮亏从 61.5% 只扩到 62.4%，离重新强制的 71.5% 还远，规则档位没变，所以今天换的不是价位是形式——一只 187 美元、占美股段 4.3% 的仓位，为它挂一个六天没碰到过的反弹价，本质上是把一条已经开了 83 天的规则继续挂成空头支票。",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": "全部持仓，清完美股段不再有 RKLB 相关的 2x 敞口"
+      },
+      "confidence": 0.6,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "浮亏 -62.4% 是全组合最深的坑，规则要求换成 1x 同因子 RKLB。1x 承接腿今天走不通——RKLB 不在持仓里、账上没有换仓授权，所以这笔只能裸清并留下现金。信心给 0.6 不是因为这笔重要，它只占美股段 4.3%，而是账上已经给了 4 次反弹触发价、一次都没成交，这只票的记录是最近在别的票上有成交、这一只一股没动。一只 187 美元的仓位继续留着，唯一的作用是让美股段的 2x 敞口表永远关不掉。这不是择时判断，是纪律执行。",
+      "contested": true,
+      "thesis_invalidation": "若 RKLB 在 5 个交易日内站稳 200 日线 81.41 之上并创出新高，这笔清仓时点判错，1x 敞口应重新建立；若 07226 那边也完成 2x 到 1x 的换仓、美股段只剩 SPCX 一条 1x 桥，则 RKLB 这条腿的必要性本身需要重评。",
+      "debate": {
+        "bull": "RKLB 5 日 +1.15% 是在板块普跌里唯一没崩的，20 日年化波动 55.6% 意味着它有反弹的弹性，2x 回本门槛是正股半年涨 76.4%，187 美元留着赌一次发射催化，输赢都不影响组合。",
+        "bear": "正股压在 200 日线下方、趋势判定走坏，2x 横盘衰减每月扣 1.17%，而这一档从 8 月起就没执行过；把规则挂在一个永远不来的反弹价上，等于承认这条规则不存在。",
+        "attacked_consensus": "攻击的是「仓位小所以可以一直不动」这条共识——4.3% 是今天 SPCH 卖掉之后才变小，在 2x 敞口总表里它一直是敞口，而且它是让 β 4.43 降不下来的那一小块。",
+        "judge": "金额小不等于规则失效，但金额小也决定了它不值得再等一个反弹价：今天这一笔是清掉一条挂了一个半月的空头支票，不是判断 RKLB 的方向。",
+        "frames": [
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:RKLX",
+          "risk:leveraged_exposure:US"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -1.5,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "26bd0d56b231c61a",
+        "observed_at": "2026-10-06T08:04:40.377335+08:00",
+        "information": {
+          "activation_blockers": [
+            "cross_section_tickers"
+          ],
+          "activation_progress": {
+            "cross_section_tickers": [
+              7,
+              8
+            ],
+            "history_dates": [
+              38,
+              24
+            ]
+          },
+          "as_of": "2026-10-06T00:04:33.296307+00:00",
+          "attention_acceleration": 0.7043,
+          "attention_event_count": 4,
+          "attention_rank": 0.1667,
+          "attention_score": 0.400979,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Rocket Lab (NASDAQ:RKLB) Stock Falls 1.2% After Insider Sell》（Google新闻·MarketBeat，10-06 05:24 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T21:24:38+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Rocket Lab (NASDAQ:RKLB) Stock Falls 1.2% After Insider Selling"
+            },
+            {
+              "cite": "《Rocket Lab Corporation (RKLB) Stock Falls Amid Market Uptick》（Google新闻·Yahoo Finance，10-06 05:15 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T21:15:04+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Rocket Lab Corporation (RKLB) Stock Falls Amid Market Uptick: What Investors Need to Know"
+            },
+            {
+              "cite": "《Rocket Lab Stock Pulls Back: What's Going On?》（Google新闻·Benzinga，10-06 00:49 HKT 发布，上次收盘前旧闻）",
+              "grade": "soft",
+              "published_at": "2026-10-05T16:49:34+00:00",
+              "source": "google_news",
+              "stale": true,
+              "title": "Rocket Lab Stock Pulls Back: What's Going On?"
+            },
+            {
+              "cite": "《Can Rocket Lab's Supply-Chain Strategy Support Future Growth》（Google新闻·The Globe and Mail，10-06 00:45 HKT 发布，上次收盘前旧闻）",
+              "grade": "soft",
+              "published_at": "2026-10-05T16:45:24+00:00",
+              "source": "google_news",
+              "stale": true,
+              "title": "Can Rocket Lab's Supply-Chain Strategy Support Future Growth?"
+            }
+          ],
+          "own_surprise_z": -0.262,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "RKLB",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 24,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-1d0894381816",
+      "episode_id": "ep-4d88045f0db6",
+      "decision_group_id": "2026-10-06:00100",
+      "plan_date": "2026-10-06",
+      "created_at": "2026-10-06T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "00100-minimax-ai-commercialization",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 231.4,
+        "description": "跌破前 20 日低 231.4 就重评核心论点：5 日 -11.3% 会从超跌变成加速下跌，锁价解禁的供给压力仍在出。当前只授权持有与观察，加仓被冻结；港股段占比 55.47% 落在 35% 到 60% 的复核带内，不触发强制减仓，但今天 07226 维持不动意味着它不会像昨天预估的那样升到 59%，60% 强制线还留着约 4.5pp 的余量。",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.42,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "收 244.2、RSI 40.4、z20 -0.93、52 周区间位置 4.9%、20 日年化波动 99.3%，是全组合波动最高的一只。1 个月 -31.2%、6 个月 -73.7% 已经把故事证伪了一半：锁价解禁首日单日 -20% 说明筹码在换手，不是在换故事。浮亏 -51.97% 的回本门槛是 108.2%，这在没有新一手催化前不该用便宜当理由。它贡献了港股段 55.47% 的权重和全组合第一大单名风险份额，但风险份额大不等于今天就该动它——今天板块给了一个很清楚的信号。",
+      "contested": true,
+      "thesis_invalidation": "若公司披露可验证的商业化收入指引并站回 20 日线 274.5 之上，商业化未兑现这条论点需要重写；若跌破 231.4，则从等反弹改判为论点已破。",
+      "debate": {
+        "bull": "港股 AI 板块 5 日中位数约 -7.4%，它自己 -11.3% 是被杀得更惨而不是更差；南向资金在解禁当天还在净买，52 周区间位置 4.9% 意味着最坏的一段大概已经走完。",
+        "bear": "智谱 10 月 5 日因为 GLM-5.3 在 Cursor 上线并拿下开放权重模型第一而涨 6.15%，它只有 +0.58%，落后 5.6pp——同一个国产大模型叙事里，别人拿得出产品级的一手催化，它拿不出，5 日比板块中位数多跌 4pp 全是这一段；年化波动 99.3% 意味着 20 港元一天就能打到前低。",
+        "attacked_consensus": "攻击的是南向爆买加超跌等于底这条当下最强的多头共识——南向是流量，这只票的卖压是解禁期的新增供给，两者不是同一笔账；更狠的一条是：板块上涨时它涨不过智谱，这已经不是估值问题。",
+        "judge": "两者可以同时成立：超跌是真的，新增供给也是真的，板块内掉队也是真的；在没有一手商业化数据之前，看多理由和不能加仓的理由是同一条。",
+        "frames": [
+          "relative_strength",
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:single_name_review:00100",
+          "quant:00100:rsi14",
+          "quant:00100:zscore20"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -3.0,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "26bd0d56b231c61a",
+        "observed_at": "2026-10-06T08:04:40.377335+08:00",
+        "information": {
+          "activation_blockers": [
+            "cross_section_tickers"
+          ],
+          "activation_progress": {
+            "cross_section_tickers": [
+              7,
+              8
+            ],
+            "history_dates": [
+              38,
+              24
+            ]
+          },
+          "as_of": "2026-10-06T00:04:33.296307+00:00",
+          "attention_acceleration": 0.2931,
+          "attention_event_count": 3,
+          "attention_rank": 0.375,
+          "attention_score": 0.004137,
+          "attention_source_type_count": 1,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《恒生科技30支个股，有10个都在亏损，却个个都是狠角色。数据小编准备国庆节后逐步建仓，不知道这样的机会以后还有没有。不过》（Google新闻·手机新浪网，10-06 05:19 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T21:19:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "恒生科技30支个股，有10个都在亏损，却个个都是狠角色。数据小编准备国庆节后逐步建仓，不知道这样的机会以后还有没有。不过这次机会应该不错。从去年10月初收盘6465点左右到现在4180点左右已经跌了大约35%。 余下8家，最值得一提的就是智谱，全球最优秀"
+            },
+            {
+              "cite": "《中国AI大模型调用量连续二十三周领跑：匿名模型“太空兔”冲上榜首，环比增长179%》（Google新闻·搜狐网，10-06 00:27 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T16:27:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "中国AI大模型调用量连续二十三周领跑：匿名模型“太空兔”冲上榜首，环比增长179%"
+            },
+            {
+              "cite": "《中国AI大模型调用量连续二十三周领跑：匿名模型“太空兔”冲上榜首，环比增长179%！DeepSeek V4 Flash预》（Google新闻·新浪财经，10-05 23:38 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T15:38:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "中国AI大模型调用量连续二十三周领跑：匿名模型“太空兔”冲上榜首，环比增长179%！DeepSeek V4 Flash预览版跌出榜单"
+            },
+            {
+              "cite": "《10月5日港股软件服务行业沽空数据盘点，腾讯控股、网易、MINIMAX-W沽空金额位居行业前三-证券之星》（Google新闻·证券之星，10-05 18:08 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T10:08:04+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月5日港股软件服务行业沽空数据盘点，腾讯控股、网易、MINIMAX-W沽空金额位居行业前三-证券之星"
+            }
+          ],
+          "own_surprise_z": -0.233,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "00100",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 20,
+          "position_room_shares": 20,
+          "lot_size": 20,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-2d4695efd9b2",
+      "episode_id": "ep-334bc30449d2",
+      "decision_group_id": "2026-10-06:SPCX",
+      "plan_date": "2026-10-06",
+      "created_at": "2026-10-06T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spch-2x-to-1x-spcx-swap",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "price_below",
+        "price": 151.289,
+        "description": "跌回 20 日线 151.289 就是这轮突破的回踩确认位，站住才算二次上攻的入场点。今天 z20 +3.47σ 已触发过热不追高闸，探索批次必须等回踩守住 159.84 前高再谈，而该批次按目标仓位算出 0 股、被最小交易单位卡死，等于冻结。它的角色是 SpaceX 敞口的 1x 桥，不是加仓对象。",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": "1 股，探索批次 0 股被交易单位卡死"
+      },
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "evidence_event_id": "evt_25904bf943895c129e5b",
+      "regime": "risk_on",
+      "rationale": "收 171.09、RSI 68.8、z20 +3.47σ、收盘站上前 20 日高 159.84、20 日残差 +19.6% 是同行分散度的 5.2 倍、关注度加速度 1.15。确定性候选是数据层自己标出来的，但它的状态是等回踩再破位，不是现在进。我把它判为等而不是否：形态是四个统计周期唯一全绿的那一类，可信度够；但它同时是软情绪最热的位置——9 条 Reddit 讨论、摩根士丹利的 300 美元目标价重述，都是别人在喊而不是公司在披露。更实际的是，账上只有 1 股，探索批次算出来是 0 股，物理上今天也加不了。过去 9 个 episode 加 2 胜 0，这只票上追高的历史战绩不支持任何主动动作。",
+      "contested": true,
+      "thesis_invalidation": "若星舰后续飞行或算力合约出现可验证的营收口径披露并被价格在 200 日线之上确认，不追高这条判断需要重估；若跌破 151.289 的 20 日线则 1x 桥本身进入回踩观察，跌回前 20 日高 159.84 之下视同突破失败。",
+      "debate": {
+        "bull": "连着三发成功入轨、股价创 6 月以来新高、马斯克重回万亿身家，20 日残差 5.2 倍于同行分散度说明这是单点定价而不是随板块，摩根士丹利说便宜并重申 300 美元；1x 拿着不付衰减成本，这种位置最贵的错误是砍掉而不是追高。",
+        "bear": "z20 +3.47σ 加 5 日 +17.6%，而账上 SPCX 加仓 2 次全错、9 个 episode 胜率 22%；同板块 ASTS -0.02%、RKLB -1.22%、BKSY -2.51% 全在跌说明这是单点行情不是板块行情，单点行情没有轮动接；最直接的反证是 SpaceX 与五角大楼的定价争执——正股越强，把门的钥匙越不在自己手里。",
+        "attacked_consensus": "攻击的是「z+3.5σ 的 20 日突破是四周期唯一全绿形态，该跟不该等」这条当下最强的多头共识——形态统计告诉你方向概率，它不告诉你在这个位置上你付的溢价能不能被下一个催化覆盖。",
+        "judge": "形态够好但位置太贵、样本也不够：判等，方向上认可，位置上认输；今天真正要处理的是 2x 那层重置，不是这只 1x 桥。",
+        "frames": [
+          "breakout",
+          "mean_reversion"
+        ],
+        "evidence_ids": [
+          "quant:SPCX:zscore20",
+          "news:evt_25904bf943895c129e5b"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -5.0,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "26bd0d56b231c61a",
+        "observed_at": "2026-10-06T08:04:40.377335+08:00",
+        "information": {
+          "activation_blockers": [
+            "cross_section_tickers"
+          ],
+          "activation_progress": {
+            "cross_section_tickers": [
+              7,
+              8
+            ],
+            "history_dates": [
+              38,
+              24
+            ]
+          },
+          "as_of": "2026-10-06T00:04:33.296307+00:00",
+          "attention_acceleration": 1.1534,
+          "attention_event_count": 11,
+          "attention_rank": 0.8333,
+          "attention_score": 1.541574,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Why is SpaceX stock surging today?》（Google新闻·Investing.com，10-06 07:05 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T23:05:45+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Why is SpaceX stock surging today?"
+            },
+            {
+              "cite": "《Dow Jones Futures: Nasdaq Hits Record Highs; TSMC, Nvidia, E》（Yahoo财经，10-06 06:35 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:35:32+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Dow Jones Futures: Nasdaq Hits Record Highs; TSMC, Nvidia, Elon Musk-Led SpaceX, Tesla Rally"
+            },
+            {
+              "cite": "《SPCX Stock Reclaims $165 as Upgrade and Microsoft Deal Hopes》（Google新闻·FXLeaders，10-06 06:17 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:17:57+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "SPCX Stock Reclaims $165 as Upgrade and Microsoft Deal Hopes Lift Revenue Outlook"
+            },
+            {
+              "cite": "《Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure》（Yahoo财经，10-06 06:09 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-05T22:09:32+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure From Soaring Yields — NVDA, SPCX, CRML, TSLA, QCOM In Focus"
+            }
+          ],
+          "own_surprise_z": 0.0138,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "SPCX",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 2,
+          "lot_size": 1,
+          "tier": "exploration_cold_start"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4111,
+    "hstech_reclaim_ma200": 4955.41,
+    "lev_hk_stand_invalidation": 2.55,
+    "minimax_prior_low": 231.4,
+    "spch_open_any": 12.74,
+    "rklx_close": 18.68,
+    "spcx_reclaim_ma20": 151.289,
+    "spcx_breakdown_pct": -8,
+    "book_force_derisk_usd": -7500
+  }
+}
