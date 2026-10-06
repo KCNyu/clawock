@@ -707,6 +707,7 @@
     "decision_audit.json": "择时诊断",
     "shadow_portfolio.json": "政策模拟",
     "brief_projection.json": "简报投影",
+    "decision_map.json": "决策地图",
     "workflow-outcomes.json": "流程账本",
     "cron-heartbeats.json": "定时心跳",
     "integrity_report.json": "体检报告",

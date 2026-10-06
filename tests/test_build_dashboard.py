@@ -96,6 +96,35 @@ def test_today_movers_say_which_session_each_move_belongs_to():
         "SPCH": "2026-10-01", "00100": "2026-09-30"}
 
 
+def test_every_artifact_the_page_downloads_is_judged_or_exempt_with_a_reason():
+    """#2618: the freshness list was a hand copy nobody held against its readers —
+    6 of the 13 artifacts the page fetches had no row and the card read 20/20."""
+    import re
+    root = Path(dashboard.__file__).resolve().parents[3]
+    ui = (root / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
+    block = ui.split("const SIDECAR_TAB = {", 1)[1].split("};", 1)[0]
+    downloaded = {f"{key}.json" for key in re.findall(r"([a-z][a-z0-9_]+)\s*:", block)}
+    downloaded |= {"overview.json", "dashboard.json"}
+    outputs = json.loads((root / "config" / "dashboard-outputs.json").read_text())["outputs"]
+    downloaded |= {Path(name).name for name in outputs}
+    assert len(downloaded) >= 13
+
+    judged, exempt = set(dashboard._FRESHNESS_POLICY), dashboard._FRESHNESS_EXEMPT
+    assert downloaded - judged - set(exempt) == set()
+    assert not judged & set(exempt)
+    assert all(reason.strip() for reason in exempt.values())
+
+
+def test_a_brief_artifact_the_page_fetches_is_named_when_it_goes_stale(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 5, 8, 0, tzinfo=timezone.utc)      # Wednesday 16:00 HKT
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    assert dashboard.compute_build_status(portfolio, data_dir, at=at)["stale_files"] == []
+    old = (at - timedelta(days=3)).timestamp()
+    os.utime(data_dir / "brief_projection.json", (old, old))
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    assert status["stale_files"] == ["brief_projection.json"]
+
+
 def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
     data_dir = tmp_path / "assets" / "data"
     data_dir.mkdir(parents=True)
