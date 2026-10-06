@@ -449,8 +449,8 @@
   // ran at all. The deadline covers the body too: headers arriving is not the
   // document arriving. A normal read is well under a second.
   const LIVE_FETCH_TIMEOUT_MS = 8000;
-  async function _fetchJson(url, init) {
-    const live = _isLiveUrl(url);
+  async function _fetchJson(url, init, bounded) {
+    const live = bounded || _isLiveUrl(url);
     const controller = live ? new AbortController() : null;
     const timer = live ? setTimeout(() => controller.abort(), LIVE_FETCH_TIMEOUT_MS) : 0;
     try {
@@ -632,9 +632,12 @@
       // this origin still serves: a tab rendered a few minutes behind beats an
       // empty one. Same-origin failures keep the existing null contract.
       if (!_isLiveUrl(url)) return null;
+      // Bounded like the read it replaces: this is the only way out once the
+      // live origin failed, and a pending fetch here pinned `inFlight` — the
+      // tab stayed `aria-busy` with no error box and no retry (#2643).
       try {
-        const response = await fetch("assets/data/" + k + ".json" + bust, init);
-        return response.ok ? await response.json() : null;
+        const response = await _fetchJson("assets/data/" + k + ".json" + bust, init, true);
+        return response.ok ? response.value : null;
       } catch (error) {
         return null;
       }

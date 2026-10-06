@@ -1296,3 +1296,22 @@ def test_a_later_primary_send_that_reached_wechat_drops_the_old_retry_verdict(tm
     primary = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
     assert primary["wechat_ok"] is True
     assert "wechat_backstop_ok" not in primary and "wechat_backstop" not in primary
+
+
+def test_the_watchdog_witnessing_a_delivery_does_not_move_its_time(tmp_path, monkeypatch):
+    # #2634: the watchdog's `completed` heartbeat rewrote primary_delivery with
+    # its own clock, so the timetable printed the pass as the delivery.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-10-05T10:00:00+08:00"
+    sent = {"job": "盘中盯盘", "slot": slot, "state": "completed", "postflight_status": "pass",
+            "data_plane_status": "published", "wechat_sent": True, "telegram_sent": True}
+    outcomes.record_from_heartbeat(sent)
+    delivered_at = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]["at"]
+    monkeypatch.setattr(outcomes, "_now", lambda at=None: at or datetime.fromisoformat(delivered_at) + timedelta(minutes=18))
+    outcomes.record_from_heartbeat({**sent, "watchdog_state": "ok"})
+    primary = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
+    assert primary["watchdog_state"] == "ok"
+    assert primary["at"] == delivered_at
+    # A different verdict is a new fact and takes the new time.
+    outcomes.record_from_heartbeat({**sent, "wechat_sent": False})
+    assert outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]["at"] != delivered_at

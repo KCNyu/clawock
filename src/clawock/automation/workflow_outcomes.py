@@ -555,6 +555,14 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
                 for key in WECHAT_BACKSTOP_KEYS:
                     if key in previous and key not in details:
                         current["stages"][stage][key] = previous[key]
+            if (stage == "primary_delivery" and at is None and previous.get("at")
+                    and previous.get("status") == status
+                    and all(previous.get(key) == details.get(key)
+                            for key in ("wechat_ok", "telegram_ok"))):
+                # The same delivery reported again is not a later delivery: the
+                # intraday watchdog re-records `completed` 23 minutes after the
+                # send, and the timetable prints this as the success time (#2634).
+                current["stages"][stage]["at"] = previous["at"]
             current["updated_at"] = now.isoformat()
             current["final_product"] = _derive_final(current)
             records.append(current)
