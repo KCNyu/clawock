@@ -42,6 +42,9 @@ def run_check(pi, monkeypatch):
             "window_days": 30, "total": 0, "by_kind": {}, "by_ticker": {},
             "last_seen_at": None, "log": "bar-conflicts.jsonl",
         })
+        # Same reach, same reason: the coverage check reads the desk's real
+        # `memory/bars/`, where one refused bar is a finding about the desk.
+        monkeypatch.setattr(pi, "summarize_bar_gaps", lambda *a, **k: [])
         monkeypatch.setattr(
             pi,
             "Path",
