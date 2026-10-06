@@ -2504,10 +2504,13 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         rateSource: result.rateSource ?? null,
       }
       // The host answers a signature hit in µs from its own cache; an
-      // unchanged signature means the rendered snapshot is still current.
+      // unchanged signature means the rendered snapshot is still current,
+      // except for the one field that moves with the clock: the FX provenance
+      // label gains its staleness warning while the signature stays put (#2670).
       const changed = cached === null
         || cached.workspaceKey !== snapshot.workspaceKey
         || cached.signature !== snapshot.signature
+        || cached.rateSource !== snapshot.rateSource
       cached = snapshot
       return { snapshot, changed }
     },

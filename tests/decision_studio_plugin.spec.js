@@ -470,6 +470,16 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.ok(injected.cachedTraces(), "the fetched snapshot is cached in the apply closure");
   const second = await injected.fetchTraces();
   assert.equal(second.changed, false, "the same workspace signature must not re-render");
+  // #2670: the FX provenance label moves with the clock while the signature
+  // stays put; the panel must be told, or the staleness warning never prints.
+  const sameSignature = remoteFace.traces;
+  remoteFace.traces = async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [], rate: null,
+    rateSource: "Frankfurter · 10-06 · ⚠ 缓存 120h 未刷新" } });
+  const aged = await injected.fetchTraces();
+  assert.equal(aged.changed, true, "a changed rateSource under an unchanged signature is a change");
+  assert.equal((await injected.fetchTraces()).changed, false, "and once shown, the same label is not");
+  remoteFace.traces = sameSignature;
+  assert.equal((await injected.fetchTraces()).changed, true, "the label going away again is also a change");
 
   // The chip's inject face owns the balance channel with its own cache.
   const balInjected = chipReg.definition.inject("s1");
