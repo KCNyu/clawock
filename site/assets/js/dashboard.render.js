@@ -1915,7 +1915,12 @@
       const p = m.today_change_pct;
       const dir = p > 0 ? "up" : p < 0 ? "down" : "";
       const ccy = m.region === "hk" ? "HKD" : "USD";
-      const note = m.note ? `<div class="mover-note">${escLLM(m.note)}</div>` : "";
+      // The note was written at one refresh; the price beside it moves on.
+      const notedAt = m.note_at ? new Date(m.note_at) : null;
+      const noteAt = notedAt && !isNaN(notedAt)
+        ? notedAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Hong_Kong" }) + " HKT 注 · "
+        : "";
+      const note = m.note ? `<div class="mover-note">${noteAt}${escLLM(m.note)}</div>` : "";
       // The two legs routinely sit on different sessions; say which one this move is.
       const sess = m.session ? ` · ${escapeHtml(String(m.session).slice(5))} 场` : "";
       return `
@@ -2144,7 +2149,9 @@
     if (rgEl) {
       const rg = safe(DATA, 'regime');
       if (rg && rg.label) {
-        const guard = rg.label === 'risk_on'  ? '默认 HOLD · 主动 call 封顶 ≤0.55'
+        // The owner is the brief's regime guard (skills/daily-deep-brief/SKILL.md);
+        // it sets no confidence cap for risk_on (#2644).
+        const guard = rg.label === 'risk_on'  ? '默认 HOLD · 择时 cut/trim 需证伪硬催化'
                     : rg.label === 'risk_off' ? '防御优先 · 优先减杠杆'
                     : '按 frame 常规判断';
         rgEl.className = 'regime-badge ' + rg.label;
@@ -2883,7 +2890,7 @@
       return `${horizonKey.toUpperCase()} n=${row.n ?? 0} · mean ${ret} · hit ${hit}`;
     };
     const earlyCoverage = coverage.early_trend || {};
-    evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage"><b>early candidate replay</b> · US ${earlyHorizon("us", "t1")} / ${earlyHorizon("us", "t5")} · HK ${earlyHorizon("hk", "t1")} / ${earlyHorizon("hk", "t5")} · observed ${earlyCoverage.observed_candidates ?? 0}, information-confirmed ${earlyCoverage.information_confirmed ?? 0}, exploration-ready ${earlyCoverage.exploration_ready ?? 0}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
+    evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")} · 生成 ${escapeHtml(run.generated_at ? String(run.generated_at).slice(0, 10) : "日期未记录")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage"><b>early candidate replay</b> · US ${earlyHorizon("us", "t1")} / ${earlyHorizon("us", "t5")} · HK ${earlyHorizon("hk", "t1")} / ${earlyHorizon("hk", "t5")} · observed ${earlyCoverage.observed_candidates ?? 0}, information-confirmed ${earlyCoverage.information_confirmed ?? 0}, exploration-ready ${earlyCoverage.exploration_ready ?? 0}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
   }
 
 

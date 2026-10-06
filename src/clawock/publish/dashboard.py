@@ -4453,6 +4453,10 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
         _note = _intra_v['movers'].get(_m.get('ticker'))
         if _note:
             _m['note'] = _note
+            # The row beside it is recomputed every refresh; the note is the
+            # sidecar's and says so, or its 「现价」 reads as this row's (#2641).
+            if out['status_banner_meta'].get('generated_at'):
+                _m['note_at'] = out['status_banner_meta']['generated_at']
     out['peer_divergence'] = {
         'as_of': (brief_ctx or {}).get('date')
                  or ((brief_ctx or {}).get('generated_at') or '')[:10],

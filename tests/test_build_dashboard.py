@@ -1997,3 +1997,22 @@ def test_basis_vocabularies_come_from_the_two_projections_of_the_same_book():
     assert 57.14 in values['lookthrough'] and 42.86 in values['lookthrough']
     assert 57.14 not in values['market_value']
     assert {60.0, 40.0, 100.0} <= set(values['market_value'])
+
+
+def test_a_mover_note_carries_the_time_it_was_written(monkeypatch):
+    # #2641: the row is recomputed every refresh, the note is the sidecar's.
+    sidecar = {'status_banner': '盘中平稳', 'movers': {'SPCX': '现价 167.07 在当日高位'},
+               'generated_at': '2026-10-05T18:33:55Z', '_source': 'intraday-insights-2026-10-06.json'}
+    monkeypatch.setattr(dashboard, 'load_tmp_sidecar',
+                        lambda name, **kwargs: sidecar if name == 'intraday-insights' else {})
+    holding = {'ticker': 'SPCX', 'shares': 1, 'current_price': 171.09, 'current_value': 171.09}
+    portfolio = {'portfolios': {'us_stocks': {'holdings': [holding]}, 'hk_stocks': {'holdings': []}}}
+    out = {'today_movers': [{'ticker': 'SPCX', 'current_price': 171.09},
+                            {'ticker': 'SPCH', 'current_price': 12.74}]}
+
+    dashboard._narrative_cards(out, {}, portfolio, [holding], [], {}, 7.8)
+
+    noted, bare = out['today_movers']
+    assert noted['note'] == '现价 167.07 在当日高位'
+    assert noted['note_at'] == '2026-10-05T18:33:55Z'
+    assert 'note' not in bare and 'note_at' not in bare
