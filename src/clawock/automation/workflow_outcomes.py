@@ -500,6 +500,9 @@ def _prune(records, now, ledger=None):
     return kept
 
 
+WECHAT_BACKSTOP_KEYS = ("wechat_backstop_ok", "wechat_backstop")
+
+
 def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, **details):
     """Atomically update one product stage; never lets observability break a job."""
     if dry_run:
@@ -538,9 +541,20 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
                 current["stages"].setdefault(name, _stage())
             # The ledger is published: a caller's reason or exception text
             # carries this host's absolute paths (#2334).
+            previous = current["stages"].get(stage) or {}
             current["stages"][stage] = _stage(
                 status, at=now.isoformat(), **_public(details)
             )
+            if (stage == "primary_delivery" and details.get("wechat_ok") is False
+                    and previous.get("wechat_ok") is False):
+                # A stage write replaces the stage, and the intraday watchdog
+                # re-projects this one through the heartbeat bridge right after
+                # its own WeChat retry: the retry verdict has no other home, so
+                # a rewrite that still says the primary dropped WeChat keeps it
+                # (#2633). A rewrite where WeChat landed drops it with the rest.
+                for key in WECHAT_BACKSTOP_KEYS:
+                    if key in previous and key not in details:
+                        current["stages"][stage][key] = previous[key]
             current["updated_at"] = now.isoformat()
             current["final_product"] = _derive_final(current)
             records.append(current)

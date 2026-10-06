@@ -1257,3 +1257,42 @@ def test_failed_wechat_retry_keeps_its_evidence_without_recovering_product(tmp_p
     assert primary["wechat_backstop"]["body_chars"] == 123
     assert primary["wechat_backstop"]["body_source"] == "receipt"
     assert record["stages"]["watchdog_delivery"]["status"] == "unknown"
+
+
+def _backstopped_intraday_slot(slot):
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘", "slot": slot, "state": "completed", "postflight_status": "pass",
+        "data_plane_status": "published", "wechat_sent": False, "telegram_sent": True})
+    assert outcomes.record_wechat_backstop(slot=slot, sent_ok=True, body_source="receipt") == 1
+
+
+def test_the_watchdog_heartbeat_after_a_wechat_retry_keeps_the_retry_verdict(tmp_path, monkeypatch):
+    # #2633: intraday_watchdog retries WeChat and then records `completed`
+    # through the heartbeat bridge in the same process; that rewrite of
+    # primary_delivery erased the retry, so the slot was tallied as dropped.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-10-05T14:00:00+08:00"
+    _backstopped_intraday_slot(slot)
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘", "slot": slot, "state": "completed", "postflight_status": "pass",
+        "data_plane_status": "published", "wechat_sent": False, "telegram_sent": True,
+        "watchdog_state": "ok", "market": "hk"})
+    record = outcomes.load_ledger()["records"][0]
+    primary = record["stages"]["primary_delivery"]
+    assert primary["watchdog_state"] == "ok"
+    assert primary["wechat_backstop_ok"] is True
+    assert primary["wechat_backstop"]["body_source"] == "receipt"
+    summary = summarize_records([record], now=datetime.fromisoformat("2026-10-05T15:00:00+08:00"))
+    assert summary["wechat_dropped_telegram_covered"] == 0
+
+
+def test_a_later_primary_send_that_reached_wechat_drops_the_old_retry_verdict(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-10-05T14:00:00+08:00"
+    _backstopped_intraday_slot(slot)
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘", "slot": slot, "state": "completed", "postflight_status": "pass",
+        "data_plane_status": "published", "wechat_sent": True, "telegram_sent": True})
+    primary = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
+    assert primary["wechat_ok"] is True
+    assert "wechat_backstop_ok" not in primary and "wechat_backstop" not in primary

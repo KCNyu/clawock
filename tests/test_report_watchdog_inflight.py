@@ -253,3 +253,44 @@ def test_a_prose_run_whose_telegram_cosend_failed_is_mirrored_not_called_unfinis
     assert '未完成' not in sent[0]
     assert 'postflight cosend failed' in sent[0]
     assert BLOCK.splitlines()[0] in sent[0]
+
+
+# ── #2646: the first attempt of the day is invisible while it runs ───────────
+
+def test_a_first_attempt_still_running_holds_the_slot_and_is_backed_up(
+        wd, tmp_path, monkeypatch):
+    sent, slept = _drive(wd, tmp_path, monkeypatch, script=[[], [], []])
+
+    assert len(slept) == 3, f'the slot was judged above the in-flight wait: {slept}'
+    assert sent and BLOCK.splitlines()[0] in sent[-1]
+    flags = sorted(p.name for p in (tmp_path / 'memory' / '.tmp').glob('watchdog-*.done'))
+    assert flags and all('None' not in name for name in flags), flags
+
+
+def test_a_first_attempt_that_lands_during_the_wait_is_not_doubled(
+        wd, tmp_path, monkeypatch):
+    from datetime import datetime
+    now_ms = int(datetime.now(wd.HKT).timestamp() * 1000)
+    sent, slept = _drive(wd, tmp_path, monkeypatch,
+                         script=[[], _run(finished_ms=now_ms + 5_000)], marker_at_step=1)
+
+    assert slept
+    assert sent == []
+
+
+def test_no_run_and_no_report_block_is_still_a_quiet_skip(wd, tmp_path, monkeypatch):
+    monkeypatch.setattr(wd, 'WS', tmp_path)
+    (tmp_path / 'memory' / '.tmp').mkdir(parents=True)
+    events, sent = [], []
+    monkeypatch.setattr(wd, 'find_job_id', lambda name: 'jid')
+    monkeypatch.setattr(wd, 'today_runs', lambda jid: [])
+    monkeypatch.setattr(wd, 'log', events.append)
+    monkeypatch.setattr(wd, 'send_telegram',
+                        lambda target, msg, dry: (sent.append(msg), (True, 'ok'))[1])
+    monkeypatch.setattr(sys, 'argv', [
+        'report_watchdog.py', '--market', 'us', '--phase', 'close',
+        '--job-name', '美股收盘报告'])
+
+    assert wd.main() == 0
+    assert sent == []
+    assert events[-1]['reason'] == 'no completed run recorded today'
