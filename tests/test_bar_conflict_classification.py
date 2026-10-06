@@ -344,3 +344,45 @@ def test_a_row_without_a_payload_keeps_the_kind_it_was_written_with(tmp_path):
         log, now=datetime(2026, 9, 8, tzinfo=timezone.utc))
 
     assert summary['by_kind'] == {'close_only': 1}
+
+
+def _bar_file(root, ticker, leg, days, retired=False):
+    bar = {'open': 1.0, 'high': 1.0, 'low': 1.0, 'close': 1.0}
+    (root / f'{ticker}.json').write_text(json.dumps({
+        'ticker': ticker, 'leg': leg, 'retired': retired,
+        'bars': {day: bar for day in days}}))
+
+
+def test_a_refused_bar_is_named_as_the_hole_it_leaves(tmp_path, monkeypatch):
+    """#2654: a structurally refused bar stores nothing, so the ledger reads the
+    session as missing. The health check counted the refusal and named no date."""
+    from clawock.portfolio import integrity
+
+    bars = tmp_path / 'memory' / 'bars'
+    bars.mkdir(parents=True)
+    week = ['2026-09-30', '2026-10-01', '2026-10-02', '2026-10-05']
+    _bar_file(bars, 'CRCL', 'US', week)
+    _bar_file(bars, 'RKLX', 'US', week[:-1])            # refused on 10-05
+    _bar_file(bars, 'SPCX', 'US', week[2:])             # listed later: not a gap
+    _bar_file(bars, 'GONE', 'US', week[:1], retired=True)
+    _bar_file(bars, '00100', 'HK', week[:-1])           # HK did not trade 10-05
+    (tmp_path / 'memory' / 'bar-conflicts.jsonl').write_text(json.dumps({
+        'ticker': 'RKLX', 'date': '2026-10-05', 'kind': 'impossible_bar',
+        'fetched': {'open': 19.03, 'high': 18.88, 'low': 17.81, 'close': 18.68}}) + '\n')
+
+    gaps = integrity.summarize_bar_gaps(bars)
+    assert [(g['leg'], g['ticker'], g['date']) for g in gaps] == [('US', 'RKLX', '2026-10-05')]
+
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    book = tmp_path / 'portfolio.json'
+    book.write_text(json.dumps({'portfolios': {}}))
+    report = integrity.check(book)
+    finding = [f for f in report['findings'] if f['code'] == 'BAR_COVERAGE']
+    assert len(finding) == 1 and finding[0]['level'] == 'WARN'
+    assert 'RKLX' in finding[0]['msg'] and '2026-10-05' in finding[0]['msg']
+    assert 'H18.88' in finding[0]['msg'], 'the refused bar itself is part of the finding'
+    assert report['ok'], 'a coverage hole is reported, never a publish blocker'
+
+    # The hole closes when the bar lands; the log's history does not matter.
+    _bar_file(bars, 'RKLX', 'US', week)
+    assert not [f for f in integrity.check(book)['findings'] if f['code'] == 'BAR_COVERAGE']

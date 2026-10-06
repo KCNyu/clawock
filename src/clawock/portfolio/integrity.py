@@ -76,6 +76,11 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
                    判据是「缺失股数」不是「余额转负」：再卖一笔只让低点更深、
                    改不了缺多少，而 07226 缺 5200 股却一次都没转负。
 
+  BAR_COVERAGE   每只票的 canonical bar 覆盖它那条腿最近的每个 session     WARN
+                 → 结构闸拒掉的 bar 不入库：RKLX 2026-10-05 腾讯给的 high 低于
+                   open，那一格就空着，两条决策读成 bar_missing，而体检只把它数进
+                   BAR_CONFLICT 的 impossible_bar 计数（#2654）
+
 用法：
   clawock integrity [portfolio.json]   # 默认 workspace 根 portfolio.json
   退出码：0=全过或仅 WARN；2=有 ERROR（调用方应阻止发布/投递）
@@ -345,6 +350,78 @@ def _kind_of(row) -> str:
     return str(row.get('kind') or 'unknown')
 
 
+#: How many of a leg's most recent sessions the coverage check looks at. The
+#: settlement windows that can still be open are days long, and an older hole
+#: (a halt, a late listing in a mixed store) is history, not something to act on.
+BAR_COVERAGE_SESSIONS = 30
+
+
+def summarize_bar_gaps(bars_dir=None, *, sessions=BAR_COVERAGE_SESSIONS,
+                       refused=None) -> list:
+    """Sessions a leg traded that one of its tickers has no canonical bar for.
+
+    `market_data.bars.merge` refuses a bar that cannot be true of any session
+    and stores nothing for that date. Every other refusal keeps the stored bar,
+    so this is the one refusal that leaves a hole, and the ledger then reads
+    the hole as `bar_missing` exactly as if the vendor had sent nothing
+    (#2654). Nothing compared a ticker's stored sessions with its leg's.
+
+    A leg's sessions are the union of what its tickers hold: no calendar is
+    consulted, so a market holiday is never a gap. Only sessions on or after a
+    ticker's own first bar count (a later listing is not a gap), retired
+    tickers are skipped, and only the leg's last `sessions` are examined.
+
+    `refused` maps (ticker, date) to the OHLC a structural refusal logged, so
+    the finding can say the bar was fetched and refused rather than absent.
+    """
+    root = pathlib.Path(bars_dir) if bars_dir is not None else (
+        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars')
+    legs = {}
+    try:
+        files = sorted(root.glob('*.json'))
+    except OSError:
+        return []
+    for path in files:
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        bars = doc.get('bars') if isinstance(doc, dict) else None
+        if not isinstance(bars, dict) or not bars or doc.get('retired'):
+            continue
+        legs.setdefault(str(doc.get('leg') or ''), {})[
+            str(doc.get('ticker') or path.stem)] = set(bars)
+    gaps = []
+    for leg, tickers in sorted(legs.items()):
+        recent = sorted(set().union(*tickers.values()))[-sessions:]
+        for ticker, held in sorted(tickers.items()):
+            first = min(held)
+            for day in recent:
+                if day >= first and day not in held:
+                    gaps.append({'leg': leg, 'ticker': ticker, 'date': day,
+                                 'refused': (refused or {}).get((ticker, day))})
+    return gaps
+
+
+def _refused_bars(log_path=None) -> dict:
+    """(ticker, date) -> fetched OHLC for every structural refusal on the log."""
+    path = pathlib.Path(log_path) if log_path is not None else (
+        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bar-conflicts.jsonl')
+    out = {}
+    try:
+        lines = path.read_text(encoding='utf-8').splitlines()
+    except OSError:
+        return out
+    for line in lines:
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(row, dict) and row.get('kind') == 'impossible_bar':
+            out[(str(row.get('ticker')), str(row.get('date')))] = row.get('fetched')
+    return out
+
+
 def _bar_close(ticker, day):
     """Canonical-store close for ``ticker`` on ``day``; None when not on file."""
     path = (workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars'
@@ -369,9 +446,11 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     So the refusals are classified at the point of refusal and appended to
     `memory/bar-conflicts.jsonl`, and this turns that log into counts by kind
     over a window. Reporting only, and deliberately: this must not become a
-    publish blocker. The bars were not written, nothing downstream is wrong,
-    and blocking a brief over a provider's revision would trade a visible
-    disagreement for an invisible one.
+    publish blocker. For a disagreement with a stored bar the stored bar stands
+    and nothing downstream is wrong, and blocking a brief over a provider's
+    revision would trade a visible disagreement for an invisible one. An
+    `impossible_bar` is the exception: nothing was stored for that session, and
+    `summarize_bar_gaps` names the hole it leaves.
 
     Counts are of distinct disagreements, not sightings. The store is never
     overwritten, so an incremental fetch whose overlap still covers a refused
@@ -885,6 +964,21 @@ def check(portfolio_path=PORTFOLIO):
             + ', '.join(f'{kind} {count}' for kind, count in worst))
         errors = [f for f in findings if f['level'] == 'ERROR']
         warns = [f for f in findings if f['level'] == 'WARN']
+    # A session with no canonical bar: named per ticker and date, because the
+    # ledger cannot settle through it and the count above does not say where.
+    bar_gaps = summarize_bar_gaps(refused=_refused_bars())
+    for gap in bar_gaps:
+        fetched = gap['refused']
+        if isinstance(fetched, dict):
+            ohlc = '/'.join(f"{key[0].upper()}{fetched.get(key)}"
+                            for key in ('open', 'high', 'low', 'close'))
+            why = f'抓到但被结构闸拒记（{ohlc}），库中无该 session'
+        else:
+            why = '库中无该 session'
+        add('BAR_COVERAGE', 'WARN',
+            f"canonical bars: {gap['ticker']} 缺 {gap['date']}（{gap['leg']} 腿当日有其他票的 bar）：{why}；"
+            f"经过这一天的决策会读成 bar_missing", ticker=gap['ticker'])
+    warns = [f for f in findings if f['level'] == 'WARN']
     report = {
         'generated_at': datetime.now().astimezone().isoformat(timespec='seconds'),
         'ok': not errors,
@@ -895,6 +989,7 @@ def check(portfolio_path=PORTFOLIO):
         # 是谁定的价、主源覆盖了几只」，不必再去翻某次 cron 的 stdout。
         'quote_sources': quote_ledger,
         'bar_conflicts': bar_conflicts,
+        'bar_gaps': bar_gaps,
     }
     return report
 
