@@ -3,21 +3,32 @@
     python3 site/tools/build_readme_diagrams.py            # rewrite the SVGs
     python3 site/tools/build_readme_diagrams.py --check    # exit 1 if any differs
 
-The system: a pearl canvas, white cards with a thin role-coloured accent bar,
-system sans type on a fixed scale, graphite ink with blue kept for data and
-dispatch flow, green for code gates and warm red for isolation / arbitration.
-Every diagram is a single 520-unit column so it still reads on a phone.
+The system: a pearl canvas washed with four soft colour fields, translucent
+glass cards with a thin role-coloured accent bar, system sans type on a fixed
+scale, graphite ink with blue kept for data and dispatch flow, green for code
+gates and warm red for isolation / arbitration.
 
-Depth is drawn with gradients only: a cool light falling from the top-left of
-the canvas, a short contact shadow under each card, a card edge that is lighter
-on top than underneath, and pulse halos that fade out instead of ending at a
-rim. They live in the shared primitives, so the six diagrams change together.
+Every diagram is built twice from one description. `<name>.svg` is the desktop
+layout: two 472-unit columns on a 1016-unit canvas, read down the left and then
+down the right, so a figure that was three screens tall in a README column is
+about one. `<name>-narrow.svg` is the same content in one 520-unit column for a
+phone. The README picks between them with `<picture>`. A diagram function draws
+in column coordinates either way and says where the wide layout turns
+(`D.turn`, `D.place`); it never positions a second copy of anything.
+
+The glass is drawn, not filtered: an image has no backdrop to blur. A card is a
+white fill at partial opacity over the colour fields, a sheen that fades down
+its top third, a rim that is bright where the light lands (top) and darker
+underneath, a one-unit highlight inside the top edge, and a soft shadow wider
+than the card. A sparse dot pattern over the canvas gives the surface grain.
+All of it lives in the shared primitives, so every diagram changes together.
 
 Motion is SMIL <animateMotion> pulses along the connectors plus a few CSS
 keyframes. Repository screenshots are embedded as PNG data URIs at their original
 aspect ratio. No script, no external font or image, no filter (a filter rasterises
-the text beneath it) — so the diagrams animate inside the README's <img>, stop
-under prefers-reduced-motion, and the first frame is already complete.
+the text beneath it, and feTurbulence grain costs far more bytes than a pattern)
+— so the diagrams animate inside the README's <img>, stop under
+prefers-reduced-motion, and the first frame is already complete.
 
 Every label is sourced from the code or docs it names; change the wording here,
 not in the SVG. `fits()` warns when a label would overflow its box, and the
@@ -26,12 +37,16 @@ build refuses to write while it does.
 import base64
 import struct
 import sys
+from functools import partial
 from pathlib import Path
 from xml.sax.saxutils import escape
 
 ASSETS = Path(__file__).resolve().parents[1] / 'assets'
-W, M = 520, 24          # canvas width, outer margin
-CW = W - 2 * M          # content width
+W, M = 520, 24          # one column's width, outer margin
+CW = W - 2 * M          # content width of a column
+GUTTER = 24             # between the two columns of the wide layout
+COL2 = CW + GUTTER      # x offset of the second column
+WIDE = W + COL2         # canvas width of the wide layout
 
 SANS = ('-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,'
         '"Helvetica Neue",Arial,sans-serif')
@@ -76,12 +91,72 @@ def width(text, cls):
 class D:
     """One diagram: collects SVG fragments on a fixed-width canvas."""
 
-    def __init__(self, title, desc):
-        self.title, self.desc = title, desc
+    def __init__(self, title, desc, wide=False):
+        self.title, self.desc, self.wide = title, desc, wide
+        self.pw = WIDE if wide else W          # page width
         self.parts, self.n, self.h = [], 0, 0
+        # Wide layout: drawing happens in column coordinates and each run of it
+        # is a group translated into place. `dx, dy` is the current group's
+        # offset; `bottoms` collects where each closed group ended on the page.
+        self.dx = self.dy = 0
+        self.group, self.bottoms = None, []
 
     def add(self, s):
-        self.parts.append(s)
+        (self.parts if self.group is None else self.group).append(s)
+
+    # --- wide layout -------------------------------------------------------
+    def at(self, x, y):
+        """Page coordinates of a point given in the current column's coordinates."""
+        return x + self.dx, y + self.dy
+
+    def _close(self):
+        if self.group is not None:
+            self.parts.append(f'<g transform="translate({self.dx:g} {self.dy:g})">\n    '
+                              + '\n    '.join(self.group) + '\n  </g>')
+        self.group = None
+        self.dx = self.dy = 0
+
+    def flow(self, y):
+        """Start the first column; `y` is where its content begins."""
+        self.top = y
+        if self.wide:
+            self.group = []
+
+    def place(self, col, first, page_y, bottom):
+        """Wide only: continue in column `col`, with column-y `first` at `page_y`.
+
+        `bottom` is where the content drawn so far ends, in its own coordinates.
+        """
+        self.bottoms.append(bottom + self.dy + M)
+        self._close()
+        self.dx, self.dy, self.group = col * COL2, page_y - first, []
+
+    def page_wire(self, d, **kw):
+        """A connector in page coordinates, drawn outside the column groups."""
+        group, dx, dy = self.group, self.dx, self.dy
+        self.group, self.dx, self.dy = None, 0, 0
+        self.wire(d, **kw)
+        self.group, self.dx, self.dy = group, dx, dy
+
+    def turn(self, x, top, end, *, first, enter, reach=M, leave=None, tail=26, **kw):
+        """The connector between two consecutive blocks, and the wide layout's turn.
+
+        Narrow: a plain `down(x, top, end)`. Wide: the first column ends at
+        `top`; the flow leaves it, runs up the gutter and enters the second
+        column from the left at column-y `enter`, stopping at column-x `reach`.
+        `first` is the column-y that lines up with the top of the first column,
+        `leave` an exit point on a node's right edge instead of straight down,
+        and `tail` how far below `top` the first column still draws.
+        """
+        if not self.wide:
+            return self.down(x, top, end, **kw)
+        x0, y0 = self.at(*(leave or (x, top)))
+        self.place(1, first, self.top, top + tail)
+        lane = COL2 + M - GUTTER / 2
+        ex, ey = self.at(reach, enter)
+        start = f'M{x0:g} {y0:g}' + ('' if leave else f'V{y0 + 16:g}')
+        kw.setdefault('dur', 3.2)
+        self.page_wire(f'{start}H{lane:g}V{ey:g}H{ex - 2:g}', **kw)
 
     def text(self, x, y, segs, cls='b', anchor='start', fill=INK):
         if isinstance(segs, str):
@@ -92,39 +167,49 @@ class D:
 
     # --- building blocks -------------------------------------------------
     def header(self, kicker, title, sub, legend, title_lh=30):
+        room = self.pw - 2 * M
+        if self.wide:           # one line each: the canvas is wide enough
+            title, sub = [' '.join(title)], [' '.join(sub)]
         self.text(M, 46, kicker, 'kick', fill=ROLE['blue'])
         y = 80
         for line in title:
-            fits(line, 'title', CW, 'title')
+            fits(line, 'title', room, 'title')
             self.text(M, y, line, 'title')
             y += title_lh
         y += 2
         for line in sub:
-            fits(line, 'sub', CW, 'sub')
+            fits(line, 'sub', room, 'sub')
             self.text(M, y, line, 'sub', fill=MUT)
             y += 21
         x, y = M, y + 10
         for label, role in legend:
             w = width(label, 'm') + 22
-            if x + w > W - M:
+            if x + w > self.pw - M:
                 x, y = M, y + 22
             self.add(f'<circle cx="{x + 5}" cy="{y - 4.5}" r="4.5" fill="{ROLE[role]}"/>')
             self.text(x + 15, y, label, 'm', fill=MUT)
             x += w + 14
-        self.add(f'<path d="M{M} {y + 20}H{W - M}" stroke="url(#rule)"/>')
+        self.add(f'<path d="M{M} {y + 20}H{self.pw - M}" stroke="url(#rule)"/>')
         return y + 20
 
     def section(self, y, label):
         self.text(M, y, label, 'kick', fill=FAINT)
 
     def card(self, x, y, w, h, role, tint=False):
-        fill = TINT[role] if tint else '#ffffff'
-        # The card covers all but the last few units of this, which fade out below it.
-        self.add(f'<rect x="{x + 6:g}" y="{y + h - 14:g}" width="{w - 12:g}" height="22" rx="11" '
-                 f'fill="url(#lift)"/>')
-        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="12" fill="{fill}" '
-                 f'stroke="url(#edge)" stroke-width="1.2"/>')
-        self.add(f'<path d="M{x + 1.5:g} {y + 12:g}V{y + h - 12:g}" stroke="{ROLE[role]}" '
+        """A pane of glass: shadow, translucent body, sheen, rim, top highlight."""
+        body = f'url(#glass-{role})' if tint else 'url(#glass)'
+        # A shadow wider and softer than the pane: thick material sits off the page.
+        # It starts at the pane's lower edge: glass would show a shadow drawn under it.
+        self.add(f'<path d="M{x + 10:g} {y + h - 1:g}H{x + w - 10:g}L{x + w - 2:g} {y + h + 15:g}'
+                 f'H{x + 2:g}Z" fill="url(#lift)"/>')
+        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="14" fill="{body}" '
+                 f'stroke="url(#rim)" stroke-width="1.2"/>')
+        # Sheen over the top third, and the line of light just inside the top edge.
+        self.add(f'<rect class="sheen" x="{x + 1:g}" y="{y + 1:g}" width="{w - 2:g}" '
+                 f'height="{min(h - 2, 64):g}" rx="13" fill="url(#sheen)"/>')
+        self.add(f'<path d="M{x + 14:g} {y + 1.4:g}H{x + w - 14:g}" stroke="#ffffff" '
+                 f'stroke-opacity=".95" stroke-linecap="round"/>')
+        self.add(f'<path d="M{x + 1.5:g} {y + 14:g}V{y + h - 14:g}" stroke="{ROLE[role]}" '
                  f'stroke-width="4" stroke-linecap="round"/>')
 
     def tag(self, x, y, label, role, anchor='start'):
@@ -138,7 +223,8 @@ class D:
 
     def chip(self, x, y, w, label, cls='m', fill=INK, bg=CHIP, icon=None, role='slate', h=30):
         fits(label, cls, w - (42 if icon else 12), f'chip {label}')
-        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h}" rx="9" fill="{bg}" stroke="{CARD_STROKE}"/>')
+        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h}" rx="9" fill="{bg}" '
+                 f'fill-opacity=".62" stroke="url(#rim)"/>')
         if icon:
             self.icon(icon, x + 10, y + (h - 18) / 2, role, size=18)
             self.text(x + 36, y + h / 2 + 5, [(label, fill)], cls)
@@ -306,23 +392,56 @@ class D:
             '@keyframes breathe{50%{opacity:.35}}'
             '@media (prefers-reduced-motion:reduce){.pulse{display:none}.breathe,.sweep{animation:none}}'
         )
+        if self.group is not None:
+            self.bottoms.append(h + self.dy)
+            self._close()
+            h = max(self.bottoms)
+        pw = self.pw
+        # Deterministic grain: a 96-unit tile of sparse dots, light and dark.
+        seed, dots = 20260930, []
+        for _ in range(46):
+            seed = (seed * 1103515245 + 12345) % 2 ** 31
+            gx = seed % 9600 / 100
+            seed = (seed * 1103515245 + 12345) % 2 ** 31
+            gy = seed % 9600 / 100
+            dots.append(f'<circle cx="{gx:g}" cy="{gy:g}" r=".55" fill="{"#ffffff" if seed % 3 else "#22303c"}" '
+                        f'fill-opacity="{".5" if seed % 3 else ".16"}"/>')
+        fields = (('blue', 0, 0, .30), ('violet', pw, 0, .22),
+                  ('green', pw * .92, h, .20), ('warm', 0, h * .96, .16))
         head = (f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
-                f'width="{W}" height="{h}" viewBox="0 0 {W} {h}" role="img" aria-labelledby="title desc">\n'
+                f'width="{pw}" height="{h:g}" viewBox="0 0 {pw} {h:g}" role="img" aria-labelledby="title desc">\n'
                 f'  <title id="title">{escape(self.title)}</title>\n'
                 f'  <desc id="desc">{escape(self.desc)}</desc>\n'
                 '  <!-- Generated by site/tools/build_readme_diagrams.py; edit the builder, not this file. -->\n'
                 '  <defs><linearGradient id="page" x1="0" y1="0" x2="1" y2="1">'
-                '<stop offset="0" stop-color="#fbfbfc"/><stop offset=".6" stop-color="#f4f6f8"/>'
-                '<stop offset="1" stop-color="#edf1f4"/></linearGradient>'
-                f'<radialGradient id="light" cx="0" cy="0" r="{W * .9:g}" gradientUnits="userSpaceOnUse">'
-                f'<stop offset="0" stop-color="{ROLE["blue"]}" stop-opacity=".10"/>'
-                f'<stop offset="1" stop-color="{ROLE["blue"]}" stop-opacity="0"/></radialGradient>'
+                '<stop offset="0" stop-color="#f7f9fc"/><stop offset=".6" stop-color="#eef2f7"/>'
+                '<stop offset="1" stop-color="#e6ecf3"/></linearGradient>'
+                + ''.join(
+                    f'<radialGradient id="field-{role}" cx="{cx:g}" cy="{cy:g}" r="{max(pw, 520) * .62:g}" '
+                    f'gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{ROLE[role]}" '
+                    f'stop-opacity="{alpha:g}"/><stop offset="1" stop-color="{ROLE[role]}" stop-opacity="0"/>'
+                    f'</radialGradient>' for role, cx, cy, alpha in fields)
+                + '<pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse">'
+                + ''.join(dots) + '</pattern>'
+                '<linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">'
+                '<stop offset="0" stop-color="#ffffff" stop-opacity=".74"/>'
+                '<stop offset="1" stop-color="#ffffff" stop-opacity=".48"/></linearGradient>'
+                + ''.join(
+                    f'<linearGradient id="glass-{role}" x1="0" y1="0" x2="0" y2="1">'
+                    f'<stop offset="0" stop-color="{tint}" stop-opacity=".88"/>'
+                    f'<stop offset="1" stop-color="{tint}" stop-opacity=".60"/></linearGradient>'
+                    for role, tint in TINT.items())
+                + '<linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">'
+                '<stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>'
+                '<stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>'
+                '<linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">'
+                '<stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>'
+                '<stop offset=".5" stop-color="#dfe7ef" stop-opacity=".9"/>'
+                '<stop offset="1" stop-color="#9fb0c0" stop-opacity=".75"/></linearGradient>'
                 '<linearGradient id="lift" x1="0" y1="0" x2="0" y2="1">'
-                '<stop offset=".55" stop-color="#1c2b3a" stop-opacity=".11"/>'
+                '<stop offset="0" stop-color="#1c2b3a" stop-opacity=".17"/>'
                 '<stop offset="1" stop-color="#1c2b3a" stop-opacity="0"/></linearGradient>'
-                '<linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">'
-                '<stop offset="0" stop-color="#e9eef3"/><stop offset="1" stop-color="#cfd9e2"/></linearGradient>'
-                f'<linearGradient id="rule" x1="{M}" y1="0" x2="{W - M}" y2="0" gradientUnits="userSpaceOnUse">'
+                f'<linearGradient id="rule" x1="{M}" y1="0" x2="{pw - M}" y2="0" gradientUnits="userSpaceOnUse">'
                 f'<stop offset=".5" stop-color="{CARD_STROKE}"/>'
                 f'<stop offset="1" stop-color="{CARD_STROKE}" stop-opacity="0"/></linearGradient>'
                 + ''.join(f'<radialGradient id="glow-{role}"><stop offset=".4" stop-color="{color}" stop-opacity=".36"/>'
@@ -333,8 +452,11 @@ class D:
                 f'markerUnits="userSpaceOnUse"><path d="M1 1.5L6.5 5L1 8.5" fill="none" stroke="{LINE}" '
                 f'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>'
                 f'<style>{style}</style></defs>\n'
-                f'  <rect x=".5" y=".5" width="{W - 1}" height="{h - 1}" rx="22" fill="url(#page)" stroke="#e1e6eb"/>\n'
-                f'  <rect x=".5" y=".5" width="{W - 1}" height="{h - 1}" rx="22" fill="url(#light)"/>\n')
+                f'  <rect x=".5" y=".5" width="{pw - 1}" height="{h - 1:g}" rx="22" fill="url(#page)"/>\n'
+                + ''.join(f'  <rect x=".5" y=".5" width="{pw - 1}" height="{h - 1:g}" rx="22" '
+                          f'fill="url(#field-{role})"/>\n' for role, *_ in fields)
+                + f'  <rect x=".5" y=".5" width="{pw - 1}" height="{h - 1:g}" rx="22" fill="url(#grain)" '
+                f'stroke="#d5dde6"/>\n')
         return head + '\n'.join('  ' + p for p in self.parts) + '\n</svg>\n'
 
 
@@ -355,7 +477,7 @@ def sweep(d, x, y, w, rows, lh=22, period=None):
 
 
 # ---------------------------------------------------------------------------
-def harnesses():
+def harnesses(wide=False):
     """site/assets/harnesses.svg — dsh user story, from delegation to a delivered result."""
     d = D('The clawock-dsh plugin — delegate, watch, steer, ship, hear back',
           'On a host configured with agent-dispatch, a user can ask in dsh chat to delegate '
@@ -368,8 +490,9 @@ def harnesses():
           'squash merge and host refresh; these are its delivery instructions, not automatic '
           'plugin actions. The runner records the report and sends best-effort WeChat and '
           'Telegram notifications, with delivery receipts visible in the panel. The queue '
-          'image is an existing full-frame capture from a live host, not an example result.')
-    d.logo('deepseek-harness', W - M - 34, 26)
+          'image is an existing full-frame capture from a live host, not an example result.',
+          wide=wide)
+    d.logo('deepseek-harness', d.pw - M - 34, 26)
     y = d.header('CLAWOCK-DSH · YOUR BACKGROUND TEAM',
                  ['Delegate the work.', 'Keep the controls.'],
                  ['Leave the conversation. Your task keeps running.',
@@ -378,6 +501,7 @@ def harnesses():
                   ('checks · live', 'green'), ('quota · control', 'warm')], title_lh=34)
 
     y += 34
+    d.flow(y - 12)
     d.section(y, '01 · ASK IN DSH CHAT')
     y += 14
     h = 156
@@ -394,6 +518,7 @@ def harnesses():
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
     d.down(W / 2, top, y - 38, pulses=(0, 1.1))
     h = 94
+    runner = y + h / 2
     d.card(M, y, CW, h, 'blue')
     d.icon('terminal', M + 20, y + 16, size=28)
     d.text(M + 62, y + 36, 'agent-dispatch', 'h')
@@ -420,6 +545,14 @@ def harnesses():
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, W / 2, y - 38, pulses=(i * .6,), pulse=ROLE['slate'])
 
+    if d.wide:
+        # The panel watches the work while it runs, so on a wide canvas it
+        # stands beside the story instead of interrupting it.
+        merge = d.at(W / 2, y - 38)[1]
+        side = d.at(W - M, runner)
+        d.place(1, y - 26, d.top, y - 38)
+        d.page_wire(f'M{side[0]:g} {side[1]:g}H{COL2 + M - 2:g}', pulses=(.3,), dur=1.4,
+                    pulse=ROLE['violet'])
     d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
     shot_w = 224
     shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
@@ -448,7 +581,10 @@ def harnesses():
     d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
     y = top + 76
-    d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
+    if d.wide:
+        d.place(0, y - 26, merge + 12, top)
+    else:
+        d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
     h = 138
@@ -494,7 +630,7 @@ def harnesses():
 
 
 # ---------------------------------------------------------------------------
-def information_flow():
+def information_flow(wide=False):
     """site/assets/information-flow.svg — the live desk's data flow, end to end."""
     d = D('clawock data flow — sources, fetch fallback, portfolio and risk, three cadences, '
           'agent, postflight, data plane and delivery',
@@ -507,7 +643,8 @@ def information_flow():
           'blocks that run can use; the agent reads those files and never fetches; a Python '
           'postflight validates and publishes to master, to the data-plane branch the dashboard '
           'polls, and to WeChat and Telegram. An LLM-free crontab watchdog checks every slot and '
-          'mirrors to Telegram when the send is not confirmed.')
+          'mirrors to Telegram when the send is not confirmed.',
+          wide=wide)
     y = d.header('DATA FLOW · HK + US',
                  ['From eight source layers', 'to a delivered card'],
                  ['Python fetches, computes and settles; the model', 'only reads the files a run assembles.'],
@@ -515,6 +652,7 @@ def information_flow():
                   ('gate · watchdog', 'warm')], title_lh=34)
 
     y += 30
+    d.flow(y - 12)
     d.section(y, '1 · SOURCES')
     y += 14
     h = 262
@@ -568,10 +706,12 @@ def information_flow():
     ])
     top = y + h
     y = top + 30
+    label = 'preflight · only the blocks this run can use'
+    d.turn(W / 2, top, y - 22, first=y - 14, enter=y - 3, reach=W / 2 - width(label, 'm') / 2 - 6,
+           pulses=(0,), pulse=ROLE['green'], arrow=False)
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' · only the blocks this run can use', MUT)],
            'm', anchor='middle')
-    fits('preflight · only the blocks this run can use', 'm', CW, 'preflight label')
-    d.down(W / 2, top, y - 22, arrow=False, pulses=())
+    fits(label, 'm', CW, 'preflight label')
     y += 50
     xs, cw = columns(3)
     cad = [('Brief', ['pre-open', '08:03 HKT', 'weekdays', '→ plan.json']),
@@ -643,7 +783,7 @@ def information_flow():
 
 
 # ---------------------------------------------------------------------------
-def architecture():
+def architecture(wide=False):
     """site/assets/architecture.svg — the KCNyu live desk: argue, gate, publish, settle, loop."""
     d = D('KCNyu live investment instance built with clawock contracts',
           'This is the KCNyu deployment, not the reusable clawock product architecture. Python '
@@ -653,7 +793,8 @@ def architecture():
           'flags any risk breach the plan ignores, before the ledger, brief and dashboard publish '
           'it. On the return path code triggers each call against canonical unadjusted daily bars, '
           'groups repeated calls into episodes, grades them against a directional baseline and '
-          'publishes the scorecard, which feeds the next brief.')
+          'publishes the scorecard, which feeds the next brief.',
+          wide=wide)
     y = d.header('KCNYU LIVE DESK · HK + US',
                  ['How this deployment turns', 'a claim into a public record'],
                  ['OpenClaw argues the call. Code gates it, the', 'bars settle it, and the score feeds tomorrow.'],
@@ -662,6 +803,7 @@ def architecture():
     RAIL = W - M - 18          # the return loop runs up the right edge
     IW = CW - 42              # inner column, leaving room for the loop
     y += 30
+    d.flow(y - 12)
     d.section(y, '01 · EVIDENCE')
     y += 14
     ey = y
@@ -711,8 +853,8 @@ def architecture():
                                       [('action · trigger · confidence → plan.json', MUT)]], lh=21, where='judge')
     top = y + h
     y = top + 50
+    d.turn(M + IW / 2, top, y, first=y - 26, enter=y + 28, pulses=(0, 1.6), pulse=ROLE['green'])
     d.section(y - 14, '03 · DECISION CONTRACT')
-    d.down(M + IW / 2, top, y, pulses=(0, 1.1), pulse=ROLE['green'])
     h = 134
     d.card(M, y, IW, h, 'green')
     d.icon('checks', M + 20, y + 14, 'green')
@@ -754,16 +896,27 @@ def architecture():
             d.add(f'<path d="M{M + 30:g} {yy - 30:g}V{yy - 18:g}" stroke="{LINE}" stroke-width="1.5"/>')
     bottom = y + h
     # the loop: the scorecard feeds the next brief's evidence
-    d.wire(f'M{M + IW:g} {bottom - 30:g}H{RAIL - 8:g}Q{RAIL:g} {bottom - 30:g} {RAIL:g} {bottom - 38:g}'
-           f'V{ey + 40:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
-           pulses=(0, 2.5), dur=5, color='#b8c9d8')
-    d.add(f'<text x="{W - M - 2:g}" y="{(ey + bottom) / 2:g}" class="kick" fill="{ROLE["blue"]}" '
-          f'transform="rotate(90 {W - M - 2:g} {(ey + bottom) / 2:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
+    if d.wide:
+        # Up the second column's rail, over both columns, down the first one's.
+        x1, yb = d.at(M + IW, bottom - 30)
+        r1, over = d.at(RAIL, 0)[0], d.top - 12
+        d.page_wire(f'M{x1:g} {yb:g}H{r1 - 8:g}Q{r1:g} {yb:g} {r1:g} {yb - 8:g}V{over + 8:g}'
+                    f'Q{r1:g} {over:g} {r1 - 8:g} {over:g}H{RAIL + 8:g}Q{RAIL:g} {over:g} {RAIL:g} {over + 8:g}'
+                    f'V{ey + 24:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
+                    pulses=(0, 3.5), dur=7, color='#b8c9d8')
+        ty = d.top + (yb - d.top) / 2 - d.dy
+    else:
+        d.wire(f'M{M + IW:g} {bottom - 30:g}H{RAIL - 8:g}Q{RAIL:g} {bottom - 30:g} {RAIL:g} {bottom - 38:g}'
+               f'V{ey + 40:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
+               pulses=(0, 2.5), dur=5, color='#b8c9d8')
+        ty = (ey + bottom) / 2
+    d.add(f'<text x="{W - M - 2:g}" y="{ty:g}" class="kick" fill="{ROLE["blue"]}" '
+          f'transform="rotate(90 {W - M - 2:g} {ty:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
     return d.render(bottom + M)
 
 
 # ---------------------------------------------------------------------------
-def product_architecture():
+def product_architecture(wide=False):
     """site/assets/product-architecture.svg — runtime / package / instance ownership."""
     d = D('clawock product architecture',
           'External agent runtimes own the model, conversation, memory, planning, tools, permissions '
@@ -772,12 +925,14 @@ def product_architecture():
           'deterministic money and foreign-exchange reconciliation, outcome evaluation, receipts, '
           'and bounded proposal review and rollback. User instances own strategy, evidence, ledgers, '
           'schedules, delivery and user interfaces. Every harness drives the same three steps: '
-          'clawock run prepare, the agent writes decision.json, clawock run publish.')
+          'clawock run prepare, the agent writes decision.json, clawock run publish.',
+          wide=wide)
     y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
                  ['The runtime thinks.', 'clawock keeps it reconciled.'],
                  ['Three owners, one contract between them:', 'skill + CLI + JSON in, adapter-owned I/O out.'],
                  [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')], title_lh=34)
     y += 30
+    d.flow(y - 12)
     d.section(y, 'OWNED BY THE EXTERNAL RUNTIME')
     y += 14
     h = 124
@@ -813,8 +968,8 @@ def product_architecture():
         d.text(M + 78, yy + 20, cmd, 'code', fill=ROLE['green'])
     top = y + h
     y = top + 44
-    d.down(W / 2, top, y, pulses=(0,), pulse=ROLE['violet'])
-    d.text(W / 2 + 14, top + 26, 'adapter-owned I/O', 'm', fill=MUT)
+    d.text(W / 2 + 14, top + (40 if d.wide else 26), 'adapter-owned I/O', 'm', fill=MUT)
+    d.turn(W / 2, top, y, first=y - 26, enter=y + 28, tail=48, pulses=(0,), pulse=ROLE['violet'])
     h = 118
     d.card(M, y, CW, h, 'violet')
     d.icon('book', M + 20, y + 14, 'violet')
@@ -846,7 +1001,7 @@ def product_architecture():
 
 
 # ---------------------------------------------------------------------------
-def debate_flow():
+def debate_flow(wide=False):
     """site/assets/debate-flow.svg — the three-tier debate inside the pre-open brief."""
     d = D('Inside the clawock multi-agent debate',
           "A pipeline. One shared evidence pack feeds four analyst lenses that merge into a single "
@@ -854,13 +1009,15 @@ def debate_flow():
           "they disagree, so unanimous agreement reads as a flag. Three risk voices then stress every "
           "call and a judge names the strategy frame driving each decision, resolving the argument "
           "into plan.json — which enters the next session's grading pipeline, where code, not the "
-          "model, settles the score.")
+          "model, settles the score.",
+          wide=wide)
     y = d.header('THE DEBATE · HK + US',
                  ['Disagreement is required.', 'The resolution is attributed.'],
                  ['Protocol rules set in the brief prompt; code only', 'checks that each tier was written.'],
                  [('evidence · python', 'green'), ('agents · LLM', 'slate'), ('opposing case', 'warm'),
                   ('grading', 'blue')], title_lh=34)
     y += 30
+    d.flow(y - 12)
     d.section(y, 'SHARED INPUT')
     y += 14
     h = 76
@@ -903,9 +1060,10 @@ def debate_flow():
     d.add(f'<rect x="{M:g}" y="{y:g}" width="{CW:g}" height="34" rx="10" fill="{TINT["warm"]}"/>')
     d.text(W / 2, y + 22, [('OPPOSING CASE REQUIRED', ROLE['warm'])], 'tag', anchor='middle')
     top = y + 34
-    d.section(top + 34, 'TIER 3 · RISK + JUDGE')
     fy = top + 48
-    d.wire(f'M{W / 2:g} {top:g}V{fy:g}', pulses=(), arrow=False)
+    d.turn(W / 2, top, fy, first=top + 22, enter=fy, reach=W / 2 + 2, tail=20,
+           pulses=(0,), pulse=ROLE['slate'], arrow=False)
+    d.section(top + 34, 'TIER 3 · RISK + JUDGE')
     y = fy + 40
     xs, cw = columns(3, gap=10)
     for i, (x, name) in enumerate(zip(xs, ('Aggressive', 'Conservative', 'Neutral'))):
@@ -940,7 +1098,7 @@ def debate_flow():
     return d.render(y + 20 + M)
 
 # ---------------------------------------------------------------------------
-def decision_pipeline():
+def decision_pipeline(wide=False):
     """site/assets/decision-pipeline.svg — README hero: one trading day, raw data to a graded call."""
     d = D('clawock decision pipeline — collect, compute and gate, debate, deliver, settle and calibrate',
           'Every trading day Python collects quotes through ordered fallback chains (HK Tencent plus '
@@ -959,8 +1117,9 @@ def decision_pipeline():
           'replays a shadow portfolio against buy and hold and publishes the scorecard, which the next '
           "brief reads. In dsh, Decision Mind shows real fills beside their plans and T+1 verdicts; "
           "the trader can ask a follow-up and record a conversation verdict. Execution stays human, "
-          "the trace is read-only, and the model never grades itself.")
-    d.logo('clawock', W - M - 34, 26)
+          "the trace is read-only, and the model never grades itself.",
+          wide=wide)
+    d.logo('clawock', d.pw - M - 34, 26)
     y = d.header('EVERY TRADING DAY · HK + US',
                  ['Raw market data in,', 'graded decisions out'],
                  ['Python collects, computes, gates and settles;',
@@ -970,6 +1129,7 @@ def decision_pipeline():
 
     # 01 collect
     y += 34
+    d.flow(y - 12)
     d.section(y, '01 · BEFORE OPEN / THE DATA ARRIVES')
     y += 14
     h = 354
@@ -1061,8 +1221,10 @@ def decision_pipeline():
     loop_y = y - 4
     d.down(W / 2, top, y - 22, pulses=(0,), pulse=ROLE['green'])
     top = y + 14
+    node = d.at(W / 2, top)
     y = top + 76
-    d.down(W / 2, top, y - 36, pulses=(0, 1.1), pulse=ROLE['slate'])
+    d.turn(W / 2, top, y - 36, first=y - 26, enter=y + 28, leave=(W - 92, loop_y), tail=40,
+           pulses=(0, 1.6), pulse=ROLE['slate'])
 
     # 03 decide
     d.section(y - 12, '03 · YOUR MORNING PLAN / DEBATE')
@@ -1165,9 +1327,18 @@ def decision_pipeline():
     d.text(M + 20, y + 264, [('↺ ', ROLE['blue']), ('tomorrow’s brief reads the record', MUT)], 'm')
     fits('↺ tomorrow’s brief reads the record', 'm', CW - 36, 'loop note')
     # the loop: the settled record returns to the next run's preflight
-    gx = W - 11
-    d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W - 92 + 8:g}',
-           pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+    if d.wide:
+        # Across to the first column, under everything it draws, and up into
+        # the preflight node from below.
+        x1, y1 = d.at(M, y + 256)
+        y1 = max(y1, node[1] + 22)
+        d.page_wire(f'M{x1:g} {y1:g}H{node[0] + 8:g}Q{node[0]:g} {y1:g} {node[0]:g} {y1 - 8:g}V{node[1] + 4:g}',
+                    pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+        d.bottoms.append(y1 + 4)
+    else:
+        gx = W - 11
+        d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W - 92 + 8:g}',
+               pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
     # dsh is the interactive view of the same real fills, not an execution engine.
     top = y + h
     y = top + 76
@@ -1184,13 +1355,20 @@ def decision_pipeline():
     return d.render(y + h + M)
 
 
+LAYOUTS = {
+    'decision-pipeline': decision_pipeline,
+    'harnesses': harnesses,
+    'information-flow': information_flow,
+    'architecture': architecture,
+    'product-architecture': product_architecture,
+    'debate-flow': debate_flow,
+}
+#: Every file this builder owns: the wide layout under the diagram's name, the
+#: single column beside it. A `partial` keeps `build()` the whole interface.
 DIAGRAMS = {
-    'decision-pipeline.svg': decision_pipeline,
-    'harnesses.svg': harnesses,
-    'information-flow.svg': information_flow,
-    'architecture.svg': architecture,
-    'product-architecture.svg': product_architecture,
-    'debate-flow.svg': debate_flow,
+    f'{name}{suffix}.svg': partial(draw, wide=wide)
+    for name, draw in LAYOUTS.items()
+    for suffix, wide in (('', True), ('-narrow', False))
 }
 
 
