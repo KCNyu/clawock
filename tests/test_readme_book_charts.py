@@ -1,12 +1,13 @@
 """The README's per-book P&L charts are drawn from the dashboard payload.
 
 `site/tools/build_readme_book_charts.py` turns `dashboard.json` into
-`site/assets/books.svg`, the two-book card in the README's hero; the weekly README refresh calls it
-from the payload it reads the placeholders from. The payload is not in a test
-checkout, so these run the builder on a small synthetic one and pin the three
-things a chart of money can get quietly wrong: reading a snapshot column by
-position, printing a percentage without the denominator the payload used, and
-writing a partial chart when a label no longer fits.
+`site/assets/books.svg` and `books-narrow.svg`, the two layouts of the two-book
+card in the README's hero; the weekly README refresh calls it from the payload
+it reads the placeholders from. The payload is not in a test checkout, so these
+run the builder on a small synthetic one and pin what a chart of money can get
+quietly wrong: reading a snapshot column by position, printing a percentage
+without the basis the payload divided by, letting the two layouts say different
+things, and writing a partial chart when a label no longer fits.
 """
 import importlib.util
 import xml.etree.ElementTree as ET
@@ -57,8 +58,16 @@ def _payload(columns=None):
     }
 
 
+def _labels(svg):
+    return [''.join(el.itertext()) for el in ET.fromstring(svg).iter(f'{SVG}text')]
+
+
 def _text(svg):
-    return ' '.join(''.join(el.itertext()) for el in ET.fromstring(svg).iter(f'{SVG}text'))
+    return ' '.join(_labels(svg))
+
+
+def _desc(svg):
+    return ET.fromstring(svg).find(f'{SVG}desc').text
 
 
 def test_the_curve_is_read_by_column_name(charts):
@@ -70,40 +79,71 @@ def test_the_curve_is_read_by_column_name(charts):
     assert charts.render_all(_payload(reordered)) == charts.render_all(_payload())
 
 
-def test_each_percentage_is_printed_with_the_denominator_the_payload_used(charts):
-    card = _text(charts.render_all(_payload())['books.svg'])
-    assert '+30.00%' in card and 'US$1,000' in card and 'true_principal' in card
-    assert 'US$800' not in card, 'the US half printed net_principal beside a true_principal return'
-    assert '\u221220.00%' in card and 'HK$20,000' in card and 'net_principal' in card
-    # The one figure spanning both books is the payload's own, with its own basis.
-    assert 'combined \u22125.00% in USD (mixed)' in card
+def test_each_percentage_is_printed_with_the_basis_the_payload_used(charts):
+    """The amounts left the card; which denominator each return has did not."""
+    for name, svg in charts.render_all(_payload()).items():
+        labels = _labels(svg)
+        # Each pane reads book, return, basis, in that order, then the footer.
+        assert labels[:3] == ['US BOOK', '+30.00%', '÷ true_principal'], name
+        assert labels[3:6] == ['HK BOOK', '\u221220.00%', '÷ net_principal'], name
+        # The one figure spanning both books is the payload's own, with its own basis.
+        assert labels[6] == 'combined \u22125.00%÷ mixed', name
+        assert len(labels) == 8, f'{name}: a label was added to the card: {labels}'
+        # No money is printed; the amounts behind each return are in the description.
+        assert '$' not in ' '.join(labels), name
+        desc = _desc(svg)
+        assert '+US$300 on US$1,000 (true_principal)' in desc, name
+        assert '\u2212HK$4,000 on HK$20,000 (net_principal)' in desc, name
+        assert 'US$800' not in desc, 'the US book quoted net_principal for a true_principal return'
 
     # The basis is the payload's, not this file's: give HK a true_principal and
     # the card must follow it rather than keep the wording it had.
     payload = _payload()
     payload['net_principal_return']['hk'].update(
         return_basis='true_principal', true_principal=25000.0, return_pct=-16.0)
-    card = _text(charts.render_all(payload)['books.svg'])
-    assert 'HK$25,000' in card and 'net_principal' not in card and 'HK$20,000' not in card
+    payload['net_principal_return']['combined_usd']['return_basis'] = 'true_principal'
+    svg = charts.render_all(payload)['books.svg']
+    assert 'net_principal' not in _text(svg) and 'mixed' not in _text(svg)
+    assert _labels(svg)[5] == '÷ true_principal'
+    assert 'HK$25,000' in _desc(svg) and 'HK$20,000' not in _desc(svg)
+
+
+def test_the_two_layouts_say_the_same_thing(charts):
+    """Desktop canvas and single column: same words, same curves' data, two sizes."""
+    rendered = charts.render_all(_payload())
+    assert set(rendered) == {'books.svg', 'books-narrow.svg'}
+    wide, narrow = (ET.fromstring(rendered[n]) for n in ('books.svg', 'books-narrow.svg'))
+    assert float(wide.attrib['width']) == charts.house.WIDE
+    assert float(narrow.attrib['width']) == charts.house.W
+    assert _labels(rendered['books.svg']) == _labels(rendered['books-narrow.svg'])
+    assert _desc(rendered['books.svg']) == _desc(rendered['books-narrow.svg'])
+    # The hero stays short on a desktop: the wide card is lower than the narrow one.
+    assert float(wide.attrib['height']) < float(narrow.attrib['height'])
 
 
 def test_the_two_books_never_share_a_scale_or_a_sum(charts):
     """One card, two plots: each curve spans its own half and its own range."""
-    root = ET.fromstring(charts.render_all(_payload())['books.svg'])
-    curves = [el.attrib['d'] for el in root.iter(f'{SVG}path')
-              if el.attrib.get('class') == 'curve']
-    assert len(curves) == 2
-    xs = [[float(pair.split()[0]) for pair in d.replace('M', 'L').split('L') if pair.strip()]
-          for d in curves]
-    assert max(xs[0]) < charts.HALF < min(xs[1])
-    # USD 300 and HKD -4000 are never combined into one amount on the card.
-    text = _text(charts.render_all(_payload())['books.svg'])
-    assert '3,700' not in text and '4,300' not in text
+    for name, svg in charts.render_all(_payload()).items():
+        root = ET.fromstring(svg)
+        curves = [el.attrib['d'] for el in root.iter(f'{SVG}path')
+                  if el.attrib.get('class') == 'curve']
+        assert len(curves) == 2, name
+        points = [[tuple(map(float, pair.split())) for pair in d.replace('M', 'L').split('L')
+                   if pair.strip()] for d in curves]
+        half = float(root.attrib['width']) / 2
+        assert max(x for x, _ in points[0]) < half < min(x for x, _ in points[1]), name
+        # Own range: US moves 320 dollars and HK 8,500, yet the US curve is the
+        # taller one, which a scale shared with HKD would flatten to a line.
+        us_tall, hk_tall = (max(y for _, y in pts) - min(y for _, y in pts) for pts in points)
+        assert us_tall > hk_tall > 20, (name, us_tall, hk_tall)
+        # USD 300 and HKD -4000 are never combined into one amount, drawn or described.
+        said = _text(svg) + _desc(svg)
+        assert '3,700' not in said and '4,300' not in said, name
 
 
 def test_a_label_that_no_longer_fits_stops_the_write(charts, tmp_path):
     payload = _payload()
-    payload['net_principal_return']['hk'].update(total_profit=-4e15, net_principal=2e16)
+    payload['net_principal_return']['us']['return_pct'] = 123456.78
     with pytest.raises(ValueError, match='overflow'):
         charts.write_all(payload, assets=tmp_path)
     assert list(tmp_path.iterdir()) == []
@@ -116,4 +156,4 @@ def test_the_card_survives_an_img_tag(charts):
         tags = {el.tag.removeprefix(SVG) for el in root.iter()}
         assert not tags & {'script', 'foreignObject', 'filter', 'image'}, name
         assert root.find(f'{SVG}title') is not None and root.find(f'{SVG}desc') is not None, name
-    ET.parse(ROOT / 'site/assets' / charts.NAME)    # the committed card is well-formed
+        ET.parse(ROOT / 'site/assets' / name)       # the committed card is well-formed
