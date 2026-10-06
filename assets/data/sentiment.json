@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T01:49:59.675416+00:00",
+  "generated_at": "2026-10-06T01:58:04.817795+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -38,7 +38,7 @@
       "google_news_en": [
         {
           "title": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
-          "source": "Stocktwits",
+          "source": "stocktwits.com",
           "published": "Mon, 05 Oct 2026 07:22:44 GMT",
           "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
         },
@@ -47,6 +47,12 @@
           "source": "Stock Titan",
           "published": "Mon, 05 Oct 2026 22:22:42 GMT",
           "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNVTdFTVh5VmZFb2pTNDBzWGh0MEc2ZFd6TkZtZHA4elFKRWtYd3lpdnJmTGU3TXl0VHE3bXdRaDZNVXJMZTVDc0V0amhqY1c1UWNpVzZEdGxiWDBfaWVtZTlWc2lybUNSS0x1RVI4bVlLM1dRMnFEbjI0b1E4U2Y5S01lUW9FQk43X0VtNjhjR2hGeW96NGdfMUhpRl8yMG1MQkZsQWRRS3BHMXVUSHUtNlNwRmZsbHBFS29R?oc=5"
+        },
+        {
+          "title": "Circle Internet Group (NYSE:CRCL) Insider Hossein Razzaghi Sells 1,830 Shares of Company Stock",
+          "source": "MarketBeat",
+          "published": "Mon, 05 Oct 2026 23:17:45 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPem1wU2JVSmVGSWVBYTc3R01uZXBTem9nSlh6S2NrUEdRWmFGbGJwUTlqNXBGUU5DaTVQZHJUSkstaHhjSmx1TzluUlVwX1VaWThFclkyTDdtMGhCQVlXWU1vUzJIUlo5bE56ZUtqRW9LbGZaQUVIZkRrQ1phWVczYlBHNVBlT1dYakRJNkVyZENkdDczUGNlaTJYODN5SHo5VTV4anNfNHFJczV1MlkyRlJjVGRVellCcFBBSWctTlVXRWRlN2lqRTV4WUVGNmdMX2ljUzVVWFJNYzdkZDV6MWNNV205WXVF?oc=5"
         },
         {
           "title": "Circle (CRCL) Stock Looks Fairly Valued Despite Fresh USDC Partnership News",
@@ -59,12 +65,6 @@
           "source": "Quiver Quantitative",
           "published": "Mon, 05 Oct 2026 14:51:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOcld2OXc4QU9xck1zX19WSkpOZTNzTEZzdU5fNWJBYmg0SVpsVjZUSWtGekk1NXJONkFBLS1qM1huTWxyRnFYYk5XTlR6akRhOVJ4ZmZxS2hULUVySnowVlBTTTExaGJDcjZ0dzRhdTA0U193WTlBUDNMaVhiTWZkRThZMHRoUElzc0tDSE53N01JVDBoNmtEbjhRMURiTjJLTFJfOTB1RjFuOXAyR1FPVkNTRHJ3RU1sWFoxZ3dWOWlnTzJMMGZaUFZqU0NSdC1tUi13?oc=5"
-        },
-        {
-          "title": "Circle Internet Group (NYSE:CRCL) Stock Rating Raised to Sell at Wall Street Zen",
-          "source": "MarketBeat",
-          "published": "Sat, 03 Oct 2026 05:47:03 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOR3V3QVI1T1NaZzJlZVp5VDlvQzB5YVVvUGVQUnN0Zk9OVWVFbXlOZVJNa0hHcnBYbTdKQTBWWmJDWXQxSzg1b0Q0aExNbVhIRnA5MVFXQWR2RlRxbXhDemVnS21CZmNuVUd6UWl6OUFhbzNPd0duVnQ3bnM2cXR5TmhZZ0RWODFTb1FnSnhzdng3RmtQTjZGNnRUSXlRXzhfZU94WXJVekxFNlBRdjdFV1pHcDg2NmpoN3VqZVpjUnNWaXJCSWYxMjJJY2Jrc0dWbUtiaTctTQ?oc=5"
         },
         {
           "title": "Under a trading plan, Circle Internet Group (CRCL) CFO sold 4,238 shares at $85.78.",
@@ -95,16 +95,16 @@
           "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE91SVZSejNmZFNxdk9UdDllRG5fTGNCOTNsSjhxZER4bWhkdFAtMlhlUGNxLV9hNEV3d2ZUUkxDTGtMR2xMUkZzMi15TGJ4TTFFWUZsNnptUDZpR1RLZ3Bnc2dMMWJqUQ?oc=5"
         },
         {
+          "title": "RKLX Oct 2026 10.000 call (RKLX261016C00010000) Stock Price, News, Quote & History",
+          "source": "Yahoo! Finance Canada",
+          "published": "Sun, 04 Oct 2026 18:42:02 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE0tSFM3VVZOVlB4cm5mZU40Qm9SN1p4UFRBOERnM2EwYWoxYTZ2UDBSRUNoLVB1UVF2OTd2eHVnU2VZSS1MVzlCNXlhRzVUZzNtVU5CQXBZNWFkaHdBZE54bi1IdklYUQ?oc=5"
+        },
+        {
           "title": "Discipline and Rules-Based Execution in RKLX Response",
           "source": "Stock Traders Daily",
           "published": "Mon, 28 Sep 2026 08:40:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOaldMaXVPN3pYWjNoV2pBMXVzVDB2V21aQVBrV204VDNBUXBSLXYzRFA5Z2ktNXpMay1UMENzeTYxYWEwWUhYRU1kckhVQktvZjc1WVZTNUZScWwyZHJBYmtCWDhDRUhxRHhKeThZaWhIRVhGYlJ0QTl4OEQxZ2Z2TWVtbDRSaEx1d0tGNkJWTTc5Z29iOXh4RG9kNDZzX09LV2lUWFFCc0VCdEVFbTVLclJkREYyRFlzbE53c2hORjV1SmRtNUpKRmtXZFQ2QQ?oc=5"
-        },
-        {
-          "title": "RKLX Feb 2027 42.000 call (RKLX270219C00042000) Interactive Stock Chart",
-          "source": "Yahoo! Finance Canada",
-          "published": "Sun, 04 Oct 2026 18:23:39 GMT",
-          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBCYXdJUlVjX1FIOWpzSGVDYUZ6VEJvMUp1RmRJa1JESTZXdXd2REE4TkdVYURNcnRWYy1KZ3c2N0F1UzluT0M2MkxXb3ZDS0ZLX0RHblBOSVhTWGFUUWdESkJhX2tGV0VkLVJvVGVn?oc=5"
         },
         {
           "title": "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation",
@@ -113,16 +113,16 @@
           "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNbU9WSU9DVDhsNThkWU9IV1J3WXZKaUdFTDVJUWtOOGZfMmduX1ctZDJFMi1BTFJPMkpYYWxBcHNlWHh4TkNiVEZDWnBMOWdGTGRNcnFyVmItblV4eElxZkVUVndUOHFIRHBDbVlIM0wtcUdLNEdGY0VUekpHNkxNbzU1T1JEbzlNT3d1LXdPSWtlUTBpeDZ4TXhmYkMzWTRPS1pj?oc=5"
         },
         {
+          "title": "RKLX Oct 2026 10.000 call (RKLX261016C00010000) Interactive Stock Chart",
+          "source": "Yahoo! Finance Canada",
+          "published": "Sun, 04 Oct 2026 07:17:21 GMT",
+          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBRb1QycDhSS0JGaXI5NHJsUW5pUWx1WV9zdHdWcmVHNVdSTHFzd2tRMGxzc0luSnlCSmFCOUU2RXNjQl9ibjZsbkxVLUVtQzl5TzJuMzdGeFpkajJXMXNGMkRoclM4d2hqcDdsNndn?oc=5"
+        },
+        {
           "title": "Discipline and Rules-Based Execution in RKLX Response",
           "source": "Stock Traders Daily",
           "published": "Fri, 18 Sep 2026 01:24:02 GMT",
           "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxNYTdPRnFQekU4XzQ5ZDhRSGg1bHI1UUxYUU5ic3Z6UW1oQ3VqQlRfeGhwVFF1Zl95VmM0MEp5ZkJjV01RNGVOY3dVVE1sN3RmcDVtMWFPUDlnOFkyRUtUUnF0aWMwNVpCd1ZlRzRxVzZMNkFGVmk4ZGMyajNzUC1tSTRfbDdYRmNyVGRwVEI2anVhVFBqVWNYYlNLekE1MDlpS1U4c1pnQjd3MXU5elQxa3RvN1JNRnhtTUdrUXJmbzVZTTZpMms3V0FqUnRFdw?oc=5"
-        },
-        {
-          "title": "RKLX May 2027 25.000 call (RKLX270521C00025000) Stock Historical Prices & Data",
-          "source": "Yahoo! Finance Canada",
-          "published": "Thu, 01 Oct 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1SbGtLWHc0SmpVNXloSTFqbmtNZEsyM3NCY2kxd3hlbjZoVUtXZ09YSW5DTldmMkZJV0RYRnFTMW9LVXlXRWFfTjdSc295MFZULWhmSGpUQ21MNHRlM0VjVzlxQlJyMWhydC1LNHh2dHI?oc=5"
         }
       ],
       "google_news_zh": []
@@ -179,7 +179,7 @@
       "google_news_en": [
         {
           "title": "SpaceX (NASDAQ:SPCX) Stock Jumps 6% as Morgan Stanley Says Shares Are ‘Cheap’ and Reiterates US$300 Target",
-          "source": "stocksdownunder.com",
+          "source": "Stocks Down Under",
           "published": "Mon, 05 Oct 2026 20:09:42 GMT",
           "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBqN3hhbmNwVGxlMU5YMmN0eHVxYnNySnp3S202Sk55QlRFc01DNkJ3bkVDM3ZWbGI1LTJWNEtfNjJHd1o2VWRUeHdxR0VDdGNkZnVGcU15QnZLLXVWRFhBSnJXSU12SWpHVXFzWjFNOTllMkNQZFE?oc=5"
         },
@@ -203,13 +203,13 @@
         },
         {
           "title": "SpaceX Bags Massive AI Compute Deal With Anthropic. What That Means for SPCX Stock.",
-          "source": "barchart.com",
+          "source": "Barchart.com",
           "published": "Sat, 03 Oct 2026 13:34:05 GMT",
           "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOVmJyVkNiT2hCdmFVRkVTY2JrN2VPTXVYMkdtbjBoMDNSeXVHMk0xNXJ2S2d5WW1CcGdyeHFDSXVMUldZWkN2VHhfdWhkWnlfUUFrYmM2ajhiSm1uSjFnUkV0NEtrT2prWjdEbEF2NTRDZmR1MVhlVFBDSjBZaFlaby1US3BnemJjSGtjVlprWm5oX1RkZmw0c1JyWU8teG1MMXU4Tl93UmpoUjVUSWdqcnJ0cWxnVG9Fb1FwanFMejQtQWs?oc=5"
         },
         {
           "title": "SPCX Stock Ends Higher On Starship Fuel Plans, Analyst Optimism And TSMC Talks",
-          "source": "Stocktwits",
+          "source": "stocktwits.com",
           "published": "Mon, 05 Oct 2026 18:29:51 GMT",
           "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNZmFCV1RuNnNCbXZpc25tNG9ZdWduckdqdVZwbzFtTjB0VFZuYUpqbkt0M0V2YVNwNld2dG00WFZNTEFXSllQOUZSeTJxYll6X2pPSGpjN1FMTXo3b1cxR1VTZ2NIeVFnNUZLSEEwZkdYazJhZEpVOGVoMzdEN3BXT3M5UnRTQUplUTkyYjREN0prN2xmUG43dkhYb19qUnlibFpFYnVsVGkzYTNXMklvaE9CZ3U2Z29QRERVN3p4WkU2aHRSOVNKNl9wd3dMVVpVRzVkYlBxM0k?oc=5"
         }
@@ -362,16 +362,16 @@
           "url": "https://news.google.com/rss/articles/CBMigwNBVV95cUxOSW55cmYyS0FoM0hXZTZJOFFFX0lXUDB4Yy14ZzdxSGZOeG1pZ3hfd0tNcUVzeF9YSldmR1pHSE5vNjVPRWpvUE1fQmpxSGFzQ1JpWFBnZGprdnYwNFhQOVl0clNtQmxQekQ0clVMZ3drcDBRM0RyUFRINVNTTG9JZTFLaVdiNmJLWTU3MmhVOTZDQmdqaGVNVHgwQzcxeUFBYTlkTFU1eUFqM0lTY0U3akFWaElxX2lKZkNWS0pmU3p6Nl9SRHFkZmI5ZUZGWVVzanhfMkp2eV9yWXJvOVEyV2RqZVMyNm52MWNqUmVmX3QwODVfVk8zam1yOHNfbmhleGFOUTN2eEwyamRKTm80ZVNHeEYySzhOS3JCeHJwMjVOYWY2S0ZxcWFjbWptdTFGcDNlN3Jyd1dvbHNBOE85dnI3b1FncURlWTJtS0p4Vy1GNmhsUDVVQlFxSW54alR2LXY0eVFjYk1WZjdXcnYyckNUZ3lkaHI2ZEVvR1pUdWZrelU?oc=5"
         },
         {
-          "title": "港股異動| MINIMAX-W(00100)早盤漲超3% 最新文本模型M3.1-Flash-Preview上線MiniMax Code平臺作者智通財經 - Investing.com 香港",
-          "source": "Investing.com 香港 - 股市報價& 財經新聞",
-          "published": "Wed, 30 Sep 2026 03:03:34 GMT",
-          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9FXzVCVnZRSzJCVFlJai1ycjhCcmxEbW44UE90YV9aQnBscUJlSmo3U1daYTlIdkdMekNzVnRHUnMtUU9hd1ZLLVFwblNRci0ycHBKMnFyVUt0cC1aZy1jV2paWm5ITE5rTkNNRkVoa1E?oc=5"
-        },
-        {
           "title": "0100.HK 港股報價| MINIMAX-W | MINIMAX-W | 香港即時股票股價",
           "source": "etnet 經濟通",
           "published": "Sun, 29 Mar 2026 00:58:52 GMT",
           "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFB4N1dscVBoc29Ub0FwWldMaGZJdS1fMGxYVURSSzUyRVZ2SF9xRXhCYk82N3I0RUZUcFBPWmdwWUF0YWo4OEFGTGxBWHpRQkhPenZoWm1pT2l2R3ptZ05qYm5XMG5qOHFFQnJhODJoMVc5Xy1nM0E?oc=5"
+        },
+        {
+          "title": "港股異動| MINIMAX-W(00100)早盤漲超3% 最新文本模型M3.1-Flash-Preview上線MiniMax Code平臺作者智通財經 - Investing.com 香港",
+          "source": "Investing.com 香港 - 股市報價& 財經新聞",
+          "published": "Wed, 30 Sep 2026 03:03:34 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9FXzVCVnZRSzJCVFlJai1ycjhCcmxEbW44UE90YV9aQnBscUJlSmo3U1daYTlIdkdMekNzVnRHUnMtUU9hd1ZLLVFwblNRci0ycHBKMnFyVUt0cC1aZy1jV2paWm5ITE5rTkNNRkVoa1E?oc=5"
         },
         {
           "title": "MINIMAX-W(00100.HK)：朱華星辭任獨立非執行董事",
@@ -406,16 +406,16 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9yOGxiRExQZUwzQ21ISm50QW1TaTZNQzdfalE3VFlNQmh1SmpQVjU2VzlVYzU2VjZFWWFZMTdYZ1FBWTV6bGx5YmsteExQRDZINGxxN3l3?oc=5"
         },
         {
-          "title": "Zhitong HK Stock Short Interest Statistics | September 18",
-          "source": "富途牛牛",
-          "published": "Fri, 18 Sep 2026 11:22:22 GMT",
-          "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQekttTHFBcE9IdnpseWktd3h5ZjdmYU5aejRrbk9Uc0QzYXBoZGg3VDJobEVkTDdnMXl4b3FlQUhQMWljdWJJeEM2REpTRjRHT1hZRE1Zd3Y4Zlp6YmZUNG5nbVVteGxQWjF6QzM1WENwS0lTNVJINTlnRWlmWkZFMThlcUpLeVhKNzV3QmluMlFaMVcwNm1HMlNKZTE?oc=5"
-        },
-        {
           "title": "Goldwind Science&Technology Co., Ltd. (2208.HK) stock price, news, quote and history",
-          "source": "au.finance.yahoo.com",
+          "source": "Yahoo Finance Australia",
           "published": "Tue, 30 May 2017 23:02:53 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE14bHV5YWcxb0xnTjFuQ1N4VXhLbUJERU80ZWxXSWNrZ3EyOV9VS3M2dlR6dWh6cjhWbmlDWk1qVlJZcEl5V093V05vZzJ4c0RkaU5MVk5R?oc=5"
+        },
+        {
+          "title": "Hong Kong Stocks Surge 319 Points in Strong May Start; Xiaomi, Alibaba Lead as AI Concepts Rally",
+          "source": "finance.biggo.com",
+          "published": "Mon, 04 May 2026 10:00:22 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE5uRlJuM3BncEVyd1RKb3F0cmdpeWZuQUVQMVVnZm5OYXRpYllHOUVpZEF4eHRTaUN0Tm9mSVpPU2tlUkZTOW1wNlB3OU9JN29VWnZ5SW1DdlZZMzRjbmx1dg?oc=5"
         }
       ],
       "google_news_zh": [
@@ -451,7 +451,7 @@
         },
         {
           "title": "龍虎榜 | 超41億資金狂甩兆易創新！深股通4.28億殺入金風科技",
-          "source": "SL886 財經網",
+          "source": "sl886.com",
           "published": "Fri, 10 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiR0FVX3lxTE13ZVgtNFVXX3QtWW5zelpIREVRSWw5ZENOUHV4YnNOc3ZSbllXMFdpeEtoQ2FaemRWeFlRWkl1Wm9CSnJqamRj?oc=5"
         }
@@ -522,13 +522,13 @@
         },
         {
           "title": "告別「外賣指數」？恒生科技或迎史上最大改革，AI與硬件股將成新主角？",
-          "source": "q.futunn.com",
+          "source": "富途牛牛",
           "published": "Mon, 10 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE11c0RHZ0ptTzludmhSLWl2V0RpcWhSZ3lkTUNiTk1XbjM0RjVvSklDYUNxbmt3b0ZFQjNKQ3V3N2w4RkVuVS1ic0tPbEV2ZkVKVm12N1B2WQ?oc=5"
         },
         {
           "title": "港股4月開啟反彈！恒生科技ETF易方達(513010)本月累計上升4.69%，自去年10月以來合計淨流入超170億元",
-          "source": "SL886 財經網",
+          "source": "sl886.com",
           "published": "Wed, 15 Apr 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiR0FVX3lxTE90UUVlV0FKVTlacmJGZW8xV2FqX1duTC0zYjZZaDJMeFBTOEVvS0RZdTMycHRDSEtSLVZvSzg5RGhyZDhjekxJ?oc=5"
         }
@@ -670,7 +670,7 @@
         },
         {
           "title": "北水動向｜北水走資86億！盈富遭拋售114億 建滔系逆勢漲 騰訊獲買9億（第五版）|香港經濟日報",
-          "source": "invest.hket.com",
+          "source": "香港經濟日報HKET",
           "published": "Wed, 10 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi7gNBVV95cUxOR0hEZEhmQVFuZ0RjdWJSRHpyMTI4QWVPQW9ZaHpqMzV0dkdqUGxIbDZmUTJyLXg5S29KN3Z4ZnVZWk1IVjgwSFJJT3BBN3hOUjNMUV8zTUFKb3BpUndzTGJuREhhS3Z5Wmtkd3BMZ2hrRG1qWHJrYTBZMXlwYzl5VUxRLUg3OW83N3hUalBnMVFReDA2UDh6VlFJekdaVHRRT3pvc05KLVZ4RXdiTG84TDh5aGVUcXQtV1VxY1lLWm1yZUwxbEg4OWdGNkRnZlpkS0ZpOGxoNjRucXh6M2FCLU5oNnhuZXotdVZlRlJFOFpiQUJNZmlDVDRLb1Y3eS05QTVMenltYmNldUNhRHR3c3lyYkJxc1FSb3hlX3BpRnhUeFNUOEZnT2Exb3VVUXJ1TEdEVmIzaDcteEdLOFlNTmEybjFwMzRrVWUxZ3FHX2Q0TE5QTUdZdEVEaGprOU5WaFhLZTR5Q2ZlTHpaWkxsdmhkbno1dXZOVHJVR2NOd3RkVmRyS2xiWEpjSXJrRFJrLUJLblFkdFFiWGtvUmhXc0ZBVXk5OWFVT3lOZG9CbE1mMjdVeUtOVi1IVnRqTmtSNnZLOWtWeXRrbU1tYkpwNm56RXFSLWYzSGxVeUZUMTBIM1NwcThZYXY5LXZjZw?oc=5"
         },
