@@ -12,6 +12,24 @@ from clawock import instruments, sessions
 from clawock.market_data import bars
 
 
+def session_open_for_symbol(symbol, day) -> bool:
+    """该标的所属市场在 day 是否有交易时段。
+
+    周六/周日与交易日历里的整日休市（节假日）都算闭市；日期无法解析或
+    日历未覆盖该年份时 fail-open 当开市——宁可少剔一行，绝不静默丢真时段。
+    Both settlement reviewers (`setup_review`, `signal_review`) carried this,
+    and #1050 / #1056 were each applied to both copies (#2622).
+    """
+    try:
+        d = date.fromisoformat(str(day)[:10])
+    except ValueError:
+        return True
+    try:
+        return sessions.is_trading_day(instruments.market_for_symbol(symbol), d)
+    except Exception:
+        return True
+
+
 def normalize_days(records):
     """Last logged row per ticker/source session, preserving legacy fallbacks."""
     cached = {}

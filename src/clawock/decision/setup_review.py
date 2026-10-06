@@ -31,11 +31,8 @@ import json
 import math
 import sys
 from datetime import date
-from datetime import date as real_date
 
-from clawock import instruments
-from clawock import sessions as trading_calendar
-from clawock.decision.session_history import normalize_days
+from clawock.decision.session_history import normalize_days, session_open_for_symbol
 
 
 def wilson_ci(hits, n, z=1.96):
@@ -102,23 +99,6 @@ def _load_days():
     return normalize_days(records)
 
 
-def _session_open(ticker, day):
-    """该标的所属市场在 day 是否有交易时段。
-
-    周六/周日与交易日历里的整日休市（节假日）都算闭市；日期无法解析或
-    日历未覆盖该年份时 fail-open 当开市——宁可少剔一行，绝不静默丢真时段。
-    """
-    try:
-        d = real_date.fromisoformat(str(day)[:10])
-    except ValueError:
-        return True
-    try:
-        return trading_calendar.is_trading_day(
-            instruments.market_for_symbol(ticker), d)
-    except Exception:
-        return True
-
-
 def _closed_trigger_rows(days):
     """闭市留痕日里本会触发计数的牌面行数——它们不再产生任何观测（#1050/#1056）。
 
@@ -127,7 +107,7 @@ def _closed_trigger_rows(days):
     n = 0
     for d in days:
         for t, m in (d.get('rows') or {}).items():
-            if _session_open(t, d.get('as_of')):
+            if session_open_for_symbol(t, d.get('as_of')):
                 continue
             if not m.get('close'):
                 continue
@@ -154,7 +134,7 @@ def _settle(days, horizon):
     seq_max = 0
     for t in universe:
         # 该标的自己的时段序列：开市留痕日上有它一行才入列。
-        seq = [row for d in days if _session_open(t, d.get('as_of'))
+        seq = [row for d in days if session_open_for_symbol(t, d.get('as_of'))
                for row in [(d.get('rows') or {}).get(t)] if row is not None]
         seq_max = max(seq_max, len(seq))
         for i, m in enumerate(seq):

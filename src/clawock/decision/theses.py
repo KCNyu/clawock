@@ -8,6 +8,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from clawock.safe_io import parse_iso_utc as _parse_time
 from clawock.workspace import engine_config, workspace_root
 
 WS = workspace_root()
@@ -37,17 +38,6 @@ def _exact_fields(item, required, prefix, errors):
         errors.append(f"{prefix} missing fields: {missing}")
     if extra:
         errors.append(f"{prefix} unknown fields: {extra}")
-
-
-def _parse_time(value, field, errors):
-    try:
-        result = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        if result.tzinfo is None:
-            raise ValueError
-        return result
-    except (TypeError, ValueError):
-        errors.append(f"{field} must be an ISO-8601 timestamp with timezone")
-        return None
 
 
 def _refs(items, prefix, evidence_ids, errors):

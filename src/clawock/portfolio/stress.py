@@ -31,13 +31,7 @@ from __future__ import annotations
 
 import numpy as np
 
-
-def _weights(vector) -> np.ndarray:
-    array = np.asarray(vector, dtype=float)
-    total = array.sum()
-    if total <= 0:
-        raise ValueError('weights must sum to a positive number')
-    return array / total
+from clawock.portfolio.allocation import normalized_weights
 
 
 def historical_worst_windows(returns, weights, *, sessions=(1, 5, 20),
@@ -49,7 +43,7 @@ def historical_worst_windows(returns, weights, *, sessions=(1, 5, 20),
     The distinction matters and is stated in the payload rather than assumed.
     """
     matrix = np.asarray(returns, dtype=float)
-    vector = _weights(weights)
+    vector = normalized_weights(weights)
     if matrix.ndim != 2 or matrix.shape[1] != len(vector):
         raise ValueError('returns and weights disagree on the number of names')
     portfolio = matrix @ vector
@@ -92,7 +86,7 @@ def correlated_shock(covariance, weights, shocks, names) -> dict:
     """
     matrix = np.asarray(covariance, dtype=float)
     names = list(names)
-    vector = _weights(weights)
+    vector = normalized_weights(weights)
     index_of = {str(name): position for position, name in enumerate(names)}
     shocked = [index_of[str(name)] for name in shocks if str(name) in index_of]
     if not shocked:
@@ -136,7 +130,7 @@ def reverse_stress(covariance, weights, loss, names) -> dict:
     most is what turns a limit into a decision.
     """
     matrix = np.asarray(covariance, dtype=float)
-    vector = _weights(weights)
+    vector = normalized_weights(weights)
     names = list(names)
     variance = float(vector @ matrix @ vector)
     if variance <= 0:
@@ -163,7 +157,7 @@ def scenario_suite(covariance, weights, names, *, returns=None, dates=None,
     recorded rather than hidden, so a reader can tell a -20% assumption from a
     -50% one.
     """
-    vector = _weights(weights)
+    vector = normalized_weights(weights)
     names = list(names)
     top = str(names[int(np.argmax(vector))])
     report = {

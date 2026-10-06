@@ -36,14 +36,11 @@ CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露
 fail-open 不剔数据。
 """
 import random
-from datetime import date as real_date
 from datetime import date
 
 from clawock import seeds
 from clawock import history_store
-from clawock import instruments
-from clawock import sessions as trading_calendar
-from clawock.decision.session_history import normalize_days
+from clawock.decision.session_history import normalize_days, session_open_for_symbol
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -60,25 +57,6 @@ MIN_N = 20
 FROZEN_RUN_MIN = 4
 
 
-def _session_open(ticker, day):
-    """该标的所属市场在 day 是否有交易时段。
-
-    周六/周日与交易日历里的整日休市（节假日）都算闭市；日期无法解析或
-    日历未覆盖该年份时 fail-open 当开市——宁可少剔一行，绝不静默丢真时段。
-
-    用 real_date 而非模块级 date：测试会替换后者（_FixedDate 只造 today）。
-    """
-    try:
-        d = real_date.fromisoformat(str(day)[:10])
-    except ValueError:
-        return True
-    try:
-        return trading_calendar.is_trading_day(
-            instruments.market_for_symbol(ticker), d)
-    except Exception:
-        return True
-
-
 def _closed_trigger_rows(days):
     """闭市留痕日里本会触发计数的因子行数——它们不再产生任何观测（#1050/#1056）。
 
@@ -87,7 +65,7 @@ def _closed_trigger_rows(days):
     n = 0
     for day in days:
         for sym, sig in (day.get('rows') or {}).items():
-            if _session_open(sym, day.get('as_of')):
+            if session_open_for_symbol(sym, day.get('as_of')):
                 continue
             if not sig.get('close'):
                 continue
@@ -191,7 +169,7 @@ def main(argv=None):
     for sym in universe:
         seq = []
         for day in days:
-            if not _session_open(sym, day.get('as_of')):
+            if not session_open_for_symbol(sym, day.get('as_of')):
                 continue
             sig = (day.get('rows') or {}).get(sym)
             if sig is not None:

@@ -319,11 +319,11 @@ def to_number(value):
 def parse_iso_utc(value, field, errors):
     """An ISO-8601 timestamp that carries a timezone, or `None` plus an error.
 
-    `decision.earnings` and `decision.entry` validated their timestamps with
-    byte-identical copies of this. Both artifacts are consumed by the same
-    review surfaces, so the two copies disagreeing about what counts as a valid
-    timestamp would be a silent divergence between two files that are meant to
-    be read together.
+    `decision.earnings`, `decision.entry` and `decision.theses` validated
+    their timestamps with byte-identical copies of this. The artifacts are
+    consumed by the same review surfaces, so copies disagreeing about what
+    counts as a valid timestamp would be a silent divergence between files that
+    are meant to be read together.
     """
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))

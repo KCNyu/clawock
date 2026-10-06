@@ -50,7 +50,6 @@ Run:
 from __future__ import annotations
 
 import argparse
-import math
 import random
 import sys
 from datetime import date
@@ -61,6 +60,7 @@ import requests
 from clawock import seeds
 from clawock.decision import regime as compute_regime
 from clawock.evaluation import cscv
+from clawock.evaluation.series import rvol as realized_vol
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
@@ -105,16 +105,6 @@ def trailing_mean(values, window):
         if i >= window - 1:
             out[i] = total / window
     return out
-
-
-def realized_vol(returns, window, i):
-    """Annualised stdev of the trailing `window` returns ending at `i`."""
-    if i < window:
-        return None
-    sample = returns[i - window + 1:i + 1]
-    mean = sum(sample) / window
-    variance = sum((x - mean) ** 2 for x in sample) / (window - 1)
-    return math.sqrt(variance) * math.sqrt(252)
 
 
 def tier_for(trend_on, vol_ok):
