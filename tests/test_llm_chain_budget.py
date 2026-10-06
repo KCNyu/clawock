@@ -303,3 +303,22 @@ def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model,
     assert sent[0]["thinking"] == expected
     # Plain adaptive reasoned for 400s on a full batch; low effort for 30s.
     assert sent[0].get("output_config") == effort
+
+
+@pytest.mark.parametrize("model,effort,thinking,config", [
+    ("MiniMax-M3.1-Flash-Preview", "medium", {"type": "adaptive"}, {"effort": "medium"}),
+    ("MiniMax-M3.1-Flash-Preview", None, {"type": "enabled", "budget_tokens": 16000}, None),
+    ("MiniMax-M3", "medium", {"type": "enabled", "budget_tokens": 16000}, None),
+])
+def test_a_thinking_call_can_bound_the_reasoning_of_an_adaptive_only_model(
+        monkeypatch, model, effort, thinking, config):
+    """M3.1 does not hold to budget_tokens: the weekly review spent 25.6K output
+    tokens on a 3.9K-character answer and lost two scheduled weeks to it."""
+    sent = []
+    monkeypatch.setattr(llm._SESSION, "post",
+                        lambda url, json=None, **kw: sent.append(json) or _Reply())
+    monkeypatch.setattr(llm, "MINIMAX_MODEL", model)
+    monkeypatch.setenv("MINIMAX_API_KEY", "test")
+    llm.chat(user="hi", thinking_effort=effort)
+    assert sent[0]["thinking"] == thinking
+    assert sent[0].get("output_config") == config

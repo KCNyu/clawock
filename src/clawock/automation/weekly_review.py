@@ -78,6 +78,15 @@ PROMPT_BUDGET_CHARS = 200_000
 # share (tests/test_llm_workflow_deadlines.py enforces it for every LLM job).
 WEEKLY_LLM_TIMEOUT_SECONDS = 420
 
+# How hard the model is asked to reason. Since the move to M3.1 (#1999) nothing
+# bounded it: both scheduled runs after it (2026-09-27, 10-04) lost the week --
+# two attempts each cut off by the remote end at 270-290s, the third left with
+# 118-148s -- and the 10-06 backfill of W40 got through on its second attempt
+# after the first ran the full 420s (25.6K output tokens for a 3.9K-character
+# review). The numbers the review argues from are computed before the prompt is
+# built; what is left to the model is the synthesis.
+WEEKLY_LLM_THINKING_EFFORT = 'medium'
+
 # Machine-owned fields on decision / episode records that no review question
 # consumes; the harness already distills them into decision_episodes /
 # decision_metrics. signal_provenance alone was ~76% of the decisions bytes in
@@ -529,7 +538,8 @@ def generate_review(system, user, *, clock=time.monotonic):
                 {'role': 'user', 'content': user}]
     # Weekly review benefits most from thinking + depth (complex synthesis).
     out = chat(messages=messages, max_tokens=32000, temperature=0.6,
-               timeout=WEEKLY_LLM_TIMEOUT_SECONDS)
+               timeout=WEEKLY_LLM_TIMEOUT_SECONDS,
+               thinking_effort=WEEKLY_LLM_THINKING_EFFORT)
     # Refuse before writing (#1263): a blank or off-prompt reply used to be
     # published as that week's review, and nothing downstream re-reads it.
     # Anchors are the four questions build_user_prompt asks for; the floor is
@@ -553,7 +563,8 @@ def generate_review(system, user, *, clock=time.monotonic):
             + "\n\n直接出 markdown, 不要解释。")})
         try:
             repaired = chat(messages=repair, max_tokens=32000, temperature=0.6,
-                            timeout=WEEKLY_LLM_TIMEOUT_SECONDS, deadline_seconds=left)
+                            timeout=WEEKLY_LLM_TIMEOUT_SECONDS, deadline_seconds=left,
+                            thinking_effort=WEEKLY_LLM_THINKING_EFFORT)
         except RuntimeError as exc:
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
