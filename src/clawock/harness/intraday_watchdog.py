@@ -91,7 +91,7 @@ from ._watchdog_common import (
     # re-export below keeps `intraday_watchdog.attempt_still_running` importable
     # for the tests and callers that learned the rule here first.
     attempt_still_running,  # noqa: F401  re-export
-    wait_out_inflight, log_after_wait,
+    wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason,
 )
@@ -333,14 +333,21 @@ def main():
     runs_today = today_runs(job_id)
     if evidence.cron_evidence_unreadable(evidence.LAST_RUNS_SOURCE, tag=tag, dry_run=args.dry_run):
         return 0
-    if not runs_today:
-        log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
-        return 0
-    last = run_for_slot(runs_today, args.market, expected_job, expected_slot)
+    ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
+    last = run_for_slot(runs_today or [], args.market, expected_job, expected_slot)
     if not last:
-        log({'tag': tag, 'action': 'skip', 'reason': 'expected slot has no completed run',
-             'expected_job': expected_job, 'expected_slot': expected_slot})
-        return 0
+        # The run record only holds FINISHED attempts, so "no run for this
+        # slot" is also what a first attempt that is still running looks like.
+        # This pass is the slot's only one: when preflight already wrote this
+        # slot's context, hold the slot at the in-flight gate below instead of
+        # returning above it (#2646). No context for this slot stays a skip.
+        if context_for_slot(ctx_path, expected_job, expected_slot) is None:
+            log({'tag': tag, 'action': 'skip',
+                 'reason': ('expected slot has no completed run' if runs_today
+                            else 'no completed run recorded today'),
+                 'expected_job': expected_job, 'expected_slot': expected_slot})
+            return 0
+        last = UNFINISHED_RUN
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
 
@@ -353,7 +360,6 @@ def main():
 
     # --- Context gate: only assess this slot's own preflight data -------------
     summary = last.get('summary', '')
-    ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
     context = context_for_slot(ctx_path, expected_job, expected_slot)
     if context is None:
         cron_heartbeat.record(

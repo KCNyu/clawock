@@ -431,6 +431,12 @@ def cron_run_ended_in_failure(job, today, now=None):
     return False if last_status else None
 
 
+# Stands in for "the newest finished run" when the slot has none yet but its
+# preflight context exists. Compared by identity; it reads as an empty record,
+# so every field a caller takes from it is absent rather than borrowed.
+UNFINISHED_RUN = {}
+
+
 def attempt_still_running(context, last_run):
     """Is a newer attempt in flight than the newest FINISHED run for this slot?
 
@@ -458,6 +464,11 @@ def attempt_still_running(context, last_run):
     drift the same_generation_window sharing note (#458) already warned about.
     """
     generated_at = (context or {}).get('generated_at')
+    if last_run is UNFINISHED_RUN:
+        # No attempt of this slot has finished at all, and the slot's own
+        # preflight context is already on disk: the first attempt is the one
+        # in flight (#2646).
+        return bool(generated_at)
     finished_ms = (last_run or {}).get('ts')
     if not generated_at or not isinstance(finished_ms, (int, float)):
         return False

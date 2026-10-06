@@ -296,3 +296,36 @@ def test_the_later_clock_does_not_loosen_the_1685_age_gate(wd, tmp_path, monkeyp
     assert '送达未被确认' not in sent[0]
     assert sent[0].startswith('📲 补投（postflight marker missing')
     assert events[-1]['reason'] == 'postflight marker missing'
+
+
+# ── #2646: a slot whose FIRST attempt is still running has no run record ─────
+# openclaw writes a run record only when an attempt finishes, so "this slot has
+# no finished run" was also the shape of "this slot's attempt is running" — and
+# both returned above the wait. The slot's own preflight context tells them apart.
+
+def test_a_first_attempt_still_running_holds_the_slot_and_is_backed_up(
+        wd, tmp_path, monkeypatch):
+    sent, slept = _drive(wd, tmp_path, monkeypatch, script=[[], [], []])
+
+    assert len(slept) == 3, f'the slot was judged above the in-flight wait: {slept}'
+    assert sent and BLOCK.splitlines()[0] in sent[-1], (
+        'the attempt never finished and nobody backed the slot up')
+
+
+def test_a_first_attempt_that_lands_during_the_wait_is_not_doubled(
+        wd, tmp_path, monkeypatch):
+    sent, slept = _drive(wd, tmp_path, monkeypatch,
+                         script=[[], _slot_run(_ms(10, 14))], marker_at_step=1)
+
+    assert slept
+    assert sent == [], 'mirrored a report the slot had already delivered'
+
+
+def test_only_an_earlier_slots_run_still_waits_for_this_slots_attempt(
+        wd, tmp_path, monkeypatch):
+    earlier = [{'runAtMs': _ms(9, 30), 'sessionId': 'old', 'status': 'ok',
+                'summary': '上一档', 'ts': _ms(9, 36)}]
+    monkeypatch.setattr(wd, 'run_for_slot', lambda runs, *a: None)
+    sent, slept = _drive(wd, tmp_path, monkeypatch, script=[earlier, earlier])
+
+    assert slept and sent

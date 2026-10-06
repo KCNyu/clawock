@@ -59,7 +59,7 @@ from ._watchdog_common import (
     deterministic_fallback,
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, telegram_target,
-    same_generation_window, wait_out_inflight, log_after_wait,
+    same_generation_window, wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     attempt_still_running,  # noqa: F401  re-export; tests learned the rule here
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason,
@@ -152,6 +152,10 @@ def _read_json(path):
         return {}
 
 
+def _flag_key(run_at, today):
+    return run_at if run_at is not None else f'unfinished-{today}'
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -181,16 +185,29 @@ def main():
     runs_today = today_runs(job_id)
     if evidence.cron_evidence_unreadable(evidence.LAST_RUNS_SOURCE, tag=tag, dry_run=args.dry_run):
         return 0
+    ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
+    # One read, one generation: a cron retry rewrites this file mid-flight, so
+    # re-reading it per field could mix two generations' block and id.
+    ctx = _read_json(ctx_path)
     if not runs_today:
-        log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
-        return 0
-    last = runs_today[-1]
+        # The run record only holds FINISHED attempts, so "no run today" is also
+        # what a first attempt that is still running looks like. This pass is
+        # the slot's only one: when preflight already wrote today's report
+        # block, hold the slot at the in-flight gate below instead of returning
+        # above it (#2646). Without a block there is nothing to back up.
+        if not (ctx.get('raw_wechat_block') or '').strip():
+            log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
+            return 0
+        last = UNFINISHED_RUN
+    else:
+        last = runs_today[-1]
     run_at = last.get('runAtMs')
     session_id = last.get('sessionId')
     summary = last.get('summary', '')
 
-    # Dedupe per slot (one re-send per run, keyed by runAtMs).
-    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
+    # Dedupe per slot (one re-send per run, keyed by runAtMs). A slot judged
+    # with no finished run keys on its date: `None` would be one file for every day.
+    flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{_flag_key(run_at, today)}.done'
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
@@ -198,10 +215,6 @@ def main():
     # --- Generation gate: generated report or deterministic fallback ----------
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend.
-    ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
-    # One read, one generation: a cron retry rewrites this file mid-flight, so
-    # re-reading it per field could mix two generations' block and id.
-    ctx = _read_json(ctx_path)
     raw_block = (ctx.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
     if not raw_block_first:
@@ -236,7 +249,7 @@ def main():
     def refresh(_ctx, _last):
         nonlocal runs_today
         runs_today = today_runs(job_id) or runs_today
-        return _read_json(ctx_path), runs_today[-1]
+        return _read_json(ctx_path), (runs_today[-1] if runs_today else _last)
 
     ctx, last, waited = wait_out_inflight(
         ctx, last, refresh=refresh, budget_s=inflight_wait_s,
@@ -247,7 +260,7 @@ def main():
         run_at = last.get('runAtMs')
         session_id = last.get('sessionId')
         summary = last.get('summary', '')
-        flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
+        flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{_flag_key(run_at, today)}.done'
         if flag.exists():
             log({'tag': tag, 'action': 'skip',
                  'reason': 'already handled this slot (dedupe flag, after wait)'})
