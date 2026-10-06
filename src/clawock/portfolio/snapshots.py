@@ -93,7 +93,7 @@ def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
 def snapshot_shares(region_pf):
     """{ticker: shares} from a snapshot region's holdings."""
     out = {}
-    for h in region_pf.get('holdings', []) or []:
+    for h in ledger_rows(region_pf.get('holdings')):
         tk = h.get('ticker')
         if tk:
             out[tk] = h.get('shares', 0) or 0

@@ -283,6 +283,17 @@ class TestRecomputeAggregates:
         assert us["today_total_change"] == 14.0            # 10 + 4
         assert C["current_value"] == 0                     # closed holding sanitized
 
+    def test_a_row_without_a_quote_stays_in_the_cost_total(self):
+        """#2628: skipping it wrote a total_cost the COST_TOTAL gate refused."""
+        d = self._book()
+        d["portfolios"]["us_stocks"]["holdings"].append(
+            {"ticker": "NOQUOTE", "shares": 2, "cost_basis": 50.0})
+        ra.recompute(d, dry_run=False, percent_rounding={"us_stocks": 4})
+        us = d["portfolios"]["us_stocks"]
+        assert us["total_cost"] == 230.0                   # 130 + 2*50
+        assert us["total_current_value"] == 180.0          # the row carries no value
+        assert "current_value" not in us["holdings"][-1]
+
     def test_an_empty_book_agrees_with_the_quote_writers_and_converges(self):
         """#1856: us_quotes/hk_analysis write 0 on a zero-cost book; recompute
         wrote None, so every fetch/reconcile round flipped the field."""

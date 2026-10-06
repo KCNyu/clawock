@@ -409,3 +409,31 @@ def test_hk_partial_fetch_preserves_entire_portfolio(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match="02208"):
         hk.update_hk_portfolio()
     assert json.loads(path.read_text()) == original
+
+
+def test_a_lot_dated_on_a_closed_day_is_this_sessions_lot_for_the_percentage_too(
+        tmp_path, monkeypatch):
+    """#2630: the amount came from `day_pnl` (fill price, folded session) while
+    the percentage stayed the vendor's change from the previous close."""
+    from datetime import date
+
+    friday = date(2026, 10, 2)
+    monkeypatch.setattr(hk, "_hk_quote_session", lambda now: friday)
+    port = {"portfolios": {"hk_stocks": {"holdings": [{
+        "ticker": "00100", "shares": 100.0, "cost_basis": 290.0,
+        "current_price": 290.0, "prev_close": 312.2, "lot_size": 500,
+        # Entered on Saturday; it traded in Friday's session.
+        "trades": [{"date": "2026-10-03", "action": "buy", "shares": 100.0, "price": 290.0}],
+    }]}}}
+    p = tmp_path / "portfolio.json"
+    p.write_text(json.dumps(port))
+    monkeypatch.setattr(hk, "PORTFOLIO_PATH", str(p))
+    quote = {"name": "MINIMAX-W", "c": 299.6, "pc": 312.2, "o": 312.0, "h": 323.6,
+             "l": 290.4, "lot_size": 500, "volume": 1, "dp": -4.04, "_src": "Tencent"}
+    monkeypatch.setattr(hk, "fetch_hk_quotes", lambda codes: {"00100": quote})
+    monkeypatch.setattr(hk, "fetch_indices", lambda: {})
+
+    h = hk.update_hk_portfolio(dry_run=True)["portfolios"]["hk_stocks"]["holdings"][0]
+
+    assert h["today_change"] == 960.0
+    assert h["today_change_pct"] == 3.31

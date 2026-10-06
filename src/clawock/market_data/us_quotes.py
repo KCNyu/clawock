@@ -18,6 +18,7 @@ Usage:
   clawock us-quotes RKLB SOXL               # specific tickers only
 """
 
+import copy
 import json
 import fcntl
 import os
@@ -946,6 +947,7 @@ def update_us_portfolio(
 
     keys = load_api_keys()
     us_key, us = region_book(data, 'US')
+    region_before_fetch = copy.deepcopy(us)
 
     active_holdings = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     all_active      = [h['ticker'] for h in active_holdings]
@@ -1337,11 +1339,12 @@ def update_us_portfolio(
         from clawock.portfolio.realized import recompute as recompute_realized
         recompute_realized(data)
         # 锁内重读、只覆盖自己拥有的 US 区 + 顶层 last_updated 戳，保住并发
-        # 写者(gold/hk)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）
-        mutate_json(portfolio_path, lambda d: {
-            **d, 'last_updated': data.get('last_updated', d.get('last_updated')),
-            'portfolios': {**d.get('portfolios', {}),
-                           us_key: data['portfolios'][us_key]}})
+        # 写者(gold/hk)的字段 [cut #2]（last_updated 是顶层键，别随 region-overlay 丢）。
+        # 区内也一样：抓价期间落进本区的成交/现金不被抓价前那份读覆盖 (#2629)。
+        from clawock.portfolio import region_merge
+        mutate_json(portfolio_path, lambda d: region_merge.overlay(
+            d, us_key, region_before_fetch, data['portfolios'][us_key],
+            last_updated=data.get('last_updated')))
         print(f"\n  ✅ Saved → {portfolio_path}")
 
     print(f"{'═'*62}\n")
