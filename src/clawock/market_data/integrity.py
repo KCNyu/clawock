@@ -57,7 +57,11 @@ _OHLC_KEYS = ('open', 'high', 'low', 'close')
 
 
 def _finite_number(value):
-    """Return the value as a finite float, or None if it is not one."""
+    """Return the value as a finite float, or None if it is not one.
+
+    Same reading as `safe_io.to_strict_finite_number`; kept here because this
+    module is stdlib only (see the module docstring).
+    """
     if isinstance(value, bool) or value is None:
         return None
     try:

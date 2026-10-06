@@ -6,13 +6,8 @@ from typing import Any
 from datetime import date
 import re
 
-
-def number(value: Any) -> float | None:
-    """Return a numeric ledger value as float, or None when it is unusable."""
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
+# The ledger's float-or-None reading is the shared one (#2625).
+from clawock.safe_io import to_number as number  # noqa: F401  re-exported
 
 
 def ledger_date(value: Any) -> str:

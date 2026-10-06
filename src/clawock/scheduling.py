@@ -597,11 +597,6 @@ def parse_crontab_lines(text: str) -> list[dict]:
     return rows
 
 
-def find_crontab_row(rows: list[dict], command_contains: list[str]) -> dict | None:
-    matches = [r for r in rows if all(token in r["command"] for token in command_contains)]
-    return matches[0] if len(matches) == 1 else None
-
-
 def validate_watchdogs(contract: dict, crontab_text: str,
                        at: datetime | None = None) -> list[str]:
     rows = parse_crontab_lines(crontab_text)
