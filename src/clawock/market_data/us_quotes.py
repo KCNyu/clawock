@@ -929,6 +929,252 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
 
 # ── portfolio update ─────────────────────────────────────────────────────────
 
+def _polygon_prev_closes(tickers, polygon_key, *, today_et_date, expected_prev_session):
+    # Fetch dated prev_close from Polygon historical (authoritative, avoids
+    # the after-hours trap where live-quote APIs set pc = today's close)
+    prev_closes: Dict[str, tuple] = {}
+    if polygon_key:
+        print("  [PC] Polygon prev-close (grouped)...")
+        prev_closes, rate_limited, snapshot_valid = get_prev_closes_polygon_grouped(
+            tickers, polygon_key, today_et_date)
+        for t, result in prev_closes.items():
+            print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]})")
+        # Per-ticker fallback for anything the grouped session did not list
+        # (rare: non-NMS venues). Bounded to the misses, so the 5/min free-tier
+        # limit stays out of reach — and skipped entirely once we know the quota
+        # is already gone, since those calls would just 429 as well.
+        missing = [t for t in tickers if t not in prev_closes]
+        if missing and rate_limited:
+            print(f"       ⚠ Polygon rate limited — no dated prior close for "
+                  f"{', '.join(missing)}; prev_close falls back to the quote "
+                  f"provider's own field", file=sys.stderr)
+        elif missing and snapshot_valid:
+            for t in missing:
+                result = get_prev_close_polygon(t, polygon_key)
+                if result and result[1] == expected_prev_session:
+                    prev_closes[t] = result
+                    print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]}) [per-ticker]")
+                elif result:
+                    print(
+                        f"       ✗ {t}: per-ticker Polygon bar {result[1]} "
+                        f"does not match expected prior session "
+                        f"{expected_prev_session}",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(f"       ✗ {t}: no Polygon prior close", file=sys.stderr)
+        elif missing:
+            print(
+                f"       ⚠ Polygon grouped snapshot unavailable — skip per-ticker "
+                f"fallback because absence of {', '.join(missing)} is unproven",
+                file=sys.stderr,
+            )
+
+    return prev_closes
+
+
+def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expected_prev_session):
+    t = ticker
+    c = q['c']
+    # Resolve prev_close with date-stamping:
+    # 1st: Polygon historical (date-stamped, immune to after-hours confusion)
+    # 2nd: API's pc field if it differs from c (real PreviousClose returned)
+    # 3rd: Reconstruct from API's own reported %change — authoritative for "today"
+    #      (must come BEFORE the keep-existing branch; otherwise a stale prev_close
+    #       set last trading day silently survives into new days when Nasdaq's
+    #       PreviousClose field is missing — see ROBN/MSFU 2026-05-18 bug)
+    # 4th: keep existing prev_close if it's fresh and we have no other source
+    # Ticker-reuse / fresh-IPO trap (SPCX 2026-06-12): a "previous close" bar
+    # dated weeks ago is the *old* instrument that used to own this ticker —
+    # a day-change computed against it is fiction (SPCX showed +637%).
+    poly_pc = prev_closes.get(t)
+    if poly_pc and poly_pc[1] < expected_prev_session:
+        print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} "
+              f"(< expected session {expected_prev_session}) "
+              f"— stale bar / ticker reuse, ignoring")
+        poly_pc = None
+    if poly_pc:
+        pc, pc_date = poly_pc
+        # ── Post-close authority + stale-current guard (①②) ──────────────────
+        # When Polygon's "prev close" date == today, the market has closed and
+        # Polygon's bar IS today's official close (not yesterday's). Two traps
+        # follow — see memory/openclaw-us-postclose-stale-price-swap.md (2026-05-29):
+        #   ① Nasdaq lastSalePrice can lag at a stale prior-day value while
+        #      Polygon holds the real close (MSFU 28.01 vs real 29.92) →
+        #      trust Polygon's official close as current_price.
+        #   ② With pc == today's close, today_change collapses to 0 → rebuild the
+        #      real prev_close from the prior session.
+        if pc_date == today_et_date:
+            poly_close = pc
+            if poly_close > 0 and abs(c - poly_close) / poly_close > 0.005:
+                print(f"  ⚠ {t}: Nasdaq last ${c:.4f} deviates "
+                      f"{(c - poly_close) / poly_close * 100:+.2f}% from Polygon close "
+                      f"${poly_close:.4f} → using Polygon (stale-quote guard ①)")
+                c = poly_close
+            # ② prior-session close: prefer the existing dated prev_close (an
+            # independent capture from a run before today's bar finalized — robust
+            # even if Nasdaq's %change is also stale), then Nasdaq dp, then no-op.
+            existing_pc      = holding.get('prev_close', 0)
+            existing_pc_date = holding.get('prev_close_date', '')
+            api_dp           = q.get('dp', 0)
+            if existing_pc > 0 and existing_pc_date and \
+                    existing_pc_date == expected_prev_session:
+                pc, pc_date = existing_pc, existing_pc_date
+            elif api_dp and abs(api_dp) > 0.01:
+                pc = round(c / (1 + api_dp / 100), 4)
+                pc_date = expected_prev_session
+            # else: leave pc = today's close (today_change falls back to 0, safe)
+    else:
+        # A prior close belongs to the PRIOR session, so it is stamped with
+        # _prev_trading_day() — never today. Stamping today_et_date here (the
+        # old behaviour) produced holdings whose prev_close_date equalled
+        # day_session_date, an impossible state that also tripped
+        # preflight_integrity's `opened_this_session` exemption and switched
+        # off the TODAY_LEG gate for exactly the rows this bug had touched.
+        prev_session = expected_prev_session
+        api_pc = q.get('pc')
+        existing_pc      = holding.get('prev_close', 0)
+        existing_pc_date = holding.get('prev_close_date', '')
+        api_dp = q.get('dp', 0)
+        if api_pc is not None and api_pc != c:
+            pc, pc_date = api_pc, prev_session
+        elif api_dp and abs(api_dp) > 0.01:
+            pc = round(c / (1 + api_dp / 100), 4)
+            pc_date = prev_session
+        elif (existing_pc > 0 and existing_pc != c
+              and existing_pc_date == expected_prev_session):
+            pc, pc_date = existing_pc, existing_pc_date
+        else:
+            pc, pc_date = c, prev_session
+
+    return c, pc, pc_date
+
+
+def _stale_last_price_guard(q, c, pc, pc_date, *, ticker, today_et_date, now_et):
+    t = ticker
+    # ── stale-last guard ④: last price identical to the PRIOR session close ──
+    # Nasdaq's lastSalePrice intermittently reverts to the prior close for
+    # thin / leveraged instruments. When it does, `c == pc` and every derived
+    # number agrees with every other one — today_change is 0, TODAY_LEG's
+    # `today_change == shares*(cur-prev_close)` holds exactly, and STALENESS
+    # passes because the data_source *timestamp* is fresh even though the
+    # *price* is not. A self-consistent lie clears every existing gate.
+    #
+    # Two independent prices matching to four decimals is ~impossible for a
+    # normally traded instrument, so treat it as stale whenever the provider
+    # itself reports a move. netChange rebuilds the true last exactly
+    # (2026-07-27 PLTU: pc 27.35 + nc 1.47 = 28.82, the real print, against a
+    # reported 27.35 that showed the position as flat on a +6.3% day);
+    # percentageChange is the rounder fallback.
+    #
+    # The rebuild is arithmetic only while the provider measured its move
+    # against the SAME prior close we hold. When it did not, `pc + nc` /
+    # `pc × (1+dp)` composes two different sessions and INVENTS a price that
+    # never traded — a far worse failure than the flat reading this guard
+    # exists to fix, and one that is just as self-consistent afterwards
+    # (2026-08-06 PLTU, #332: Alpha Vantage served the 08-04 daily bar —
+    # price 44.82, its own previous close 28.39, +57.87% — against our
+    # correct 08-04 close of 44.82, and the guard rebuilt $70.7585 on a day
+    # the stock traded 42.61–46.76). So the repair requires the provider's
+    # own prior close to agree with ours, and refuses outright on a quote
+    # the fetch layer already knows is a print from an earlier session.
+    # A refused repair still surfaces: `current_price == prev_close` is
+    # exactly what preflight_integrity's STALE_PRICE gate reports.
+    stale_repair = None
+    api_dp_now = q.get('dp') or 0
+    provider_pc = q.get('pc')
+    prior_session_print = bool(q.get('stale_asof'))
+    baseline_matches = provider_pc is None or (
+        pc and abs(provider_pc - pc) / pc <= 0.005)
+    if (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
+            and abs(api_dp_now) > 0.05
+            and not prior_session_print and baseline_matches):
+        nc = q.get('nc')
+        if nc is not None and abs(nc) > 1e-9:
+            repaired = round(pc + nc, 4)
+            basis = 'netChange'
+        else:
+            repaired = round(pc * (1 + api_dp_now / 100), 4)
+            basis = 'percentageChange'
+        print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) but "
+              f"{q['source']} reports {api_dp_now:+.2f}% → stale last price; "
+              f"rebuilt to ${repaired:.4f} from {basis} (stale-quote guard ④)",
+              file=sys.stderr)
+        stale_repair = {'reported': c, 'repaired': repaired, 'basis': basis,
+                        'source': q['source'], 'at': now_et.strftime('%Y-%m-%d %H:%M ET')}
+        c = repaired
+    elif (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
+            and abs(api_dp_now) > 0.05):
+        why = (f"the quote is a print dated {q.get('stale_asof')}"
+               if prior_session_print else
+               f"its %change is measured against ${provider_pc:.4f}, not ${pc:.4f}")
+        print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) and "
+              f"{q['source']} reports {api_dp_now:+.2f}%, but {why} → NOT rebuilding "
+              f"(would compose two sessions, #332); today reads flat and "
+              f"preflight's STALE_PRICE will say so", file=sys.stderr)
+
+    return c, stale_repair
+
+
+def _warn_degenerate_range(q, now_et, *, ticker):
+    t = ticker
+    # ③ degenerate-range warning: a live regular-session quote with
+    # open==high==low==close has no intraday range → likely a stale/frozen
+    # quote (the tell-tale signature of the 2026-05-29 swap). Warn-only.
+    # This alarm was dead until now: get_nasdaq_quote defaulted o/h/l to the
+    # last price, so it fired for every ticker on every fetch and meant
+    # nothing. Now that absent fields stay None, a flat range is once again
+    # a real signal from the provider rather than our own fabrication.
+    if 9 <= now_et.hour < 16:
+        o_, h_, l_ = q.get('o'), q.get('h'), q.get('l')
+        if None not in (o_, h_, l_) and bar_checks.is_degenerate(
+                {'open': o_, 'high': h_, 'low': l_, 'close': q['c']}):
+            print(f"  ⚠ {t}: degenerate range (o=h=l=c=${q['c']:.4f}) mid-session "
+                  f"— possible stale quote (run with US_FETCH_DEBUG=1 to capture payload)",
+                  file=sys.stderr)
+
+
+
+def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
+    # ── session-aware running day range ───────────────────────────────────
+    # Nasdaq's quote payload often carries no real intraday h/l/o (the old
+    # `q.get('h', c)` fallback flattened them to the last price each fetch →
+    # o==h==l==c, and after any move even day_high < current_price — visibly
+    # impossible numbers on the dashboard's Today's Range card). The */30min
+    # intraday cadence lets us accumulate the true session envelope locally:
+    # first capture of the ET day pins the open, every later fetch stretches
+    # high/low with both the API values and the live price. The live price
+    # only grows the range during regular session hours so a stray
+    # pre/post-market print doesn't fake an intraday extreme.
+    # A quote the fetch layer already identified as an earlier session's
+    # print describes THAT session's envelope, not today's. Feeding its
+    # o/h/l in here writes a price that never traded today into the running
+    # range, and the accumulator then keeps it for the rest of the session —
+    # 2026-08-06 PLTU carried day_low 36.265 (the 08-04 bar's low) on a day
+    # whose real low was 42.61. Its last price is still the best number we
+    # have, so keep that and drop only the range fields.
+    if q.get('stale_asof'):
+        api_h = api_l = api_o = None
+    else:
+        api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
+    in_session   = 9 <= now_et.hour < 16
+    same_session = holding.get('day_session_date') == today_et_date
+    cands_h = [v for v in (api_h, c if in_session else None) if v]
+    cands_l = [v for v in (api_l, c if in_session else None) if v]
+    if same_session:
+        if holding.get('day_high'):
+            cands_h.append(holding['day_high'])
+        if holding.get('day_low'):
+            cands_l.append(holding['day_low'])
+        day_o = holding.get('day_open') or api_o or c
+    else:
+        day_o = api_o or c
+    holding['day_high'] = round(max(cands_h) if cands_h else c, 4)
+    holding['day_low']  = round(min(cands_l) if cands_l else c, 4)
+    holding['day_open'] = round(day_o, 4)
+    holding['day_session_date'] = today_et_date
+
+
 def update_us_portfolio(
     portfolio_path: str = PORTFOLIO_PATH,
     dry_run: bool = False,
@@ -988,46 +1234,9 @@ def update_us_portfolio(
     if missing_quotes:
         raise RuntimeError('US quote refresh incomplete: ' + ', '.join(missing_quotes))
 
-    # Fetch dated prev_close from Polygon historical (authoritative, avoids
-    # the after-hours trap where live-quote APIs set pc = today's close)
-    prev_closes: Dict[str, tuple] = {}
-    polygon_key = keys.get('POLYGON_API_KEY', '')
-    if polygon_key:
-        print("  [PC] Polygon prev-close (grouped)...")
-        prev_closes, rate_limited, snapshot_valid = get_prev_closes_polygon_grouped(
-            tickers, polygon_key, today_et_date)
-        for t, result in prev_closes.items():
-            print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]})")
-        # Per-ticker fallback for anything the grouped session did not list
-        # (rare: non-NMS venues). Bounded to the misses, so the 5/min free-tier
-        # limit stays out of reach — and skipped entirely once we know the quota
-        # is already gone, since those calls would just 429 as well.
-        missing = [t for t in tickers if t not in prev_closes]
-        if missing and rate_limited:
-            print(f"       ⚠ Polygon rate limited — no dated prior close for "
-                  f"{', '.join(missing)}; prev_close falls back to the quote "
-                  f"provider's own field", file=sys.stderr)
-        elif missing and snapshot_valid:
-            for t in missing:
-                result = get_prev_close_polygon(t, polygon_key)
-                if result and result[1] == expected_prev_session:
-                    prev_closes[t] = result
-                    print(f"       ✓ {t}: ${result[0]:.4f} ({result[1]}) [per-ticker]")
-                elif result:
-                    print(
-                        f"       ✗ {t}: per-ticker Polygon bar {result[1]} "
-                        f"does not match expected prior session "
-                        f"{expected_prev_session}",
-                        file=sys.stderr,
-                    )
-                else:
-                    print(f"       ✗ {t}: no Polygon prior close", file=sys.stderr)
-        elif missing:
-            print(
-                f"       ⚠ Polygon grouped snapshot unavailable — skip per-ticker "
-                f"fallback because absence of {', '.join(missing)} is unproven",
-                file=sys.stderr,
-            )
+    prev_closes = _polygon_prev_closes(
+        tickers, keys.get('POLYGON_API_KEY', ''),
+        today_et_date=today_et_date, expected_prev_session=expected_prev_session)
 
     print(f"\n{'─'*62}")
     updated: List[str] = []
@@ -1045,156 +1254,17 @@ def update_us_portfolio(
             continue
 
         old_price = holding.get('current_price', 0)
-        c    = q['c']
         cost = holding['cost_basis']
         shrs = holding['shares']
 
-        # Resolve prev_close with date-stamping:
-        # 1st: Polygon historical (date-stamped, immune to after-hours confusion)
-        # 2nd: API's pc field if it differs from c (real PreviousClose returned)
-        # 3rd: Reconstruct from API's own reported %change — authoritative for "today"
-        #      (must come BEFORE the keep-existing branch; otherwise a stale prev_close
-        #       set last trading day silently survives into new days when Nasdaq's
-        #       PreviousClose field is missing — see ROBN/MSFU 2026-05-18 bug)
-        # 4th: keep existing prev_close if it's fresh and we have no other source
-        # Ticker-reuse / fresh-IPO trap (SPCX 2026-06-12): a "previous close" bar
-        # dated weeks ago is the *old* instrument that used to own this ticker —
-        # a day-change computed against it is fiction (SPCX showed +637%).
-        poly_pc = prev_closes.get(t)
-        if poly_pc and poly_pc[1] < expected_prev_session:
-            print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} "
-                  f"(< expected session {expected_prev_session}) "
-                  f"— stale bar / ticker reuse, ignoring")
-            poly_pc = None
-        if poly_pc:
-            pc, pc_date = poly_pc
-            # ── Post-close authority + stale-current guard (①②) ──────────────────
-            # When Polygon's "prev close" date == today, the market has closed and
-            # Polygon's bar IS today's official close (not yesterday's). Two traps
-            # follow — see memory/openclaw-us-postclose-stale-price-swap.md (2026-05-29):
-            #   ① Nasdaq lastSalePrice can lag at a stale prior-day value while
-            #      Polygon holds the real close (MSFU 28.01 vs real 29.92) →
-            #      trust Polygon's official close as current_price.
-            #   ② With pc == today's close, today_change collapses to 0 → rebuild the
-            #      real prev_close from the prior session.
-            if pc_date == today_et_date:
-                poly_close = pc
-                if poly_close > 0 and abs(c - poly_close) / poly_close > 0.005:
-                    print(f"  ⚠ {t}: Nasdaq last ${c:.4f} deviates "
-                          f"{(c - poly_close) / poly_close * 100:+.2f}% from Polygon close "
-                          f"${poly_close:.4f} → using Polygon (stale-quote guard ①)")
-                    c = poly_close
-                # ② prior-session close: prefer the existing dated prev_close (an
-                # independent capture from a run before today's bar finalized — robust
-                # even if Nasdaq's %change is also stale), then Nasdaq dp, then no-op.
-                existing_pc      = holding.get('prev_close', 0)
-                existing_pc_date = holding.get('prev_close_date', '')
-                api_dp           = q.get('dp', 0)
-                if existing_pc > 0 and existing_pc_date and \
-                        existing_pc_date == expected_prev_session:
-                    pc, pc_date = existing_pc, existing_pc_date
-                elif api_dp and abs(api_dp) > 0.01:
-                    pc = round(c / (1 + api_dp / 100), 4)
-                    pc_date = expected_prev_session
-                # else: leave pc = today's close (today_change falls back to 0, safe)
-        else:
-            # A prior close belongs to the PRIOR session, so it is stamped with
-            # _prev_trading_day() — never today. Stamping today_et_date here (the
-            # old behaviour) produced holdings whose prev_close_date equalled
-            # day_session_date, an impossible state that also tripped
-            # preflight_integrity's `opened_this_session` exemption and switched
-            # off the TODAY_LEG gate for exactly the rows this bug had touched.
-            prev_session = expected_prev_session
-            api_pc = q.get('pc')
-            existing_pc      = holding.get('prev_close', 0)
-            existing_pc_date = holding.get('prev_close_date', '')
-            api_dp = q.get('dp', 0)
-            if api_pc is not None and api_pc != c:
-                pc, pc_date = api_pc, prev_session
-            elif api_dp and abs(api_dp) > 0.01:
-                pc = round(c / (1 + api_dp / 100), 4)
-                pc_date = prev_session
-            elif (existing_pc > 0 and existing_pc != c
-                  and existing_pc_date == expected_prev_session):
-                pc, pc_date = existing_pc, existing_pc_date
-            else:
-                pc, pc_date = c, prev_session
+        c, pc, pc_date = _resolve_prev_close(
+            q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
+            expected_prev_session=expected_prev_session)
 
-        # ── stale-last guard ④: last price identical to the PRIOR session close ──
-        # Nasdaq's lastSalePrice intermittently reverts to the prior close for
-        # thin / leveraged instruments. When it does, `c == pc` and every derived
-        # number agrees with every other one — today_change is 0, TODAY_LEG's
-        # `today_change == shares*(cur-prev_close)` holds exactly, and STALENESS
-        # passes because the data_source *timestamp* is fresh even though the
-        # *price* is not. A self-consistent lie clears every existing gate.
-        #
-        # Two independent prices matching to four decimals is ~impossible for a
-        # normally traded instrument, so treat it as stale whenever the provider
-        # itself reports a move. netChange rebuilds the true last exactly
-        # (2026-07-27 PLTU: pc 27.35 + nc 1.47 = 28.82, the real print, against a
-        # reported 27.35 that showed the position as flat on a +6.3% day);
-        # percentageChange is the rounder fallback.
-        #
-        # The rebuild is arithmetic only while the provider measured its move
-        # against the SAME prior close we hold. When it did not, `pc + nc` /
-        # `pc × (1+dp)` composes two different sessions and INVENTS a price that
-        # never traded — a far worse failure than the flat reading this guard
-        # exists to fix, and one that is just as self-consistent afterwards
-        # (2026-08-06 PLTU, #332: Alpha Vantage served the 08-04 daily bar —
-        # price 44.82, its own previous close 28.39, +57.87% — against our
-        # correct 08-04 close of 44.82, and the guard rebuilt $70.7585 on a day
-        # the stock traded 42.61–46.76). So the repair requires the provider's
-        # own prior close to agree with ours, and refuses outright on a quote
-        # the fetch layer already knows is a print from an earlier session.
-        # A refused repair still surfaces: `current_price == prev_close` is
-        # exactly what preflight_integrity's STALE_PRICE gate reports.
-        stale_repair = None
-        api_dp_now = q.get('dp') or 0
-        provider_pc = q.get('pc')
-        prior_session_print = bool(q.get('stale_asof'))
-        baseline_matches = provider_pc is None or (
-            pc and abs(provider_pc - pc) / pc <= 0.005)
-        if (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
-                and abs(api_dp_now) > 0.05
-                and not prior_session_print and baseline_matches):
-            nc = q.get('nc')
-            if nc is not None and abs(nc) > 1e-9:
-                repaired = round(pc + nc, 4)
-                basis = 'netChange'
-            else:
-                repaired = round(pc * (1 + api_dp_now / 100), 4)
-                basis = 'percentageChange'
-            print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) but "
-                  f"{q['source']} reports {api_dp_now:+.2f}% → stale last price; "
-                  f"rebuilt to ${repaired:.4f} from {basis} (stale-quote guard ④)",
-                  file=sys.stderr)
-            stale_repair = {'reported': c, 'repaired': repaired, 'basis': basis,
-                            'source': q['source'], 'at': now_et.strftime('%Y-%m-%d %H:%M ET')}
-            c = repaired
-        elif (pc and pc_date < today_et_date and abs(c - pc) < 1e-4
-                and abs(api_dp_now) > 0.05):
-            why = (f"the quote is a print dated {q.get('stale_asof')}"
-                   if prior_session_print else
-                   f"its %change is measured against ${provider_pc:.4f}, not ${pc:.4f}")
-            print(f"  ⚠ {t}: last ${c:.4f} == prior close ${pc:.4f} ({pc_date}) and "
-                  f"{q['source']} reports {api_dp_now:+.2f}%, but {why} → NOT rebuilding "
-                  f"(would compose two sessions, #332); today reads flat and "
-                  f"preflight's STALE_PRICE will say so", file=sys.stderr)
+        c, stale_repair = _stale_last_price_guard(
+            q, c, pc, pc_date, ticker=t, today_et_date=today_et_date, now_et=now_et)
 
-        # ③ degenerate-range warning: a live regular-session quote with
-        # open==high==low==close has no intraday range → likely a stale/frozen
-        # quote (the tell-tale signature of the 2026-05-29 swap). Warn-only.
-        # This alarm was dead until now: get_nasdaq_quote defaulted o/h/l to the
-        # last price, so it fired for every ticker on every fetch and meant
-        # nothing. Now that absent fields stay None, a flat range is once again
-        # a real signal from the provider rather than our own fabrication.
-        if 9 <= now_et.hour < 16:
-            o_, h_, l_ = q.get('o'), q.get('h'), q.get('l')
-            if None not in (o_, h_, l_) and bar_checks.is_degenerate(
-                    {'open': o_, 'high': h_, 'low': l_, 'close': q['c']}):
-                print(f"  ⚠ {t}: degenerate range (o=h=l=c=${q['c']:.4f}) mid-session "
-                      f"— possible stale quote (run with US_FETCH_DEBUG=1 to capture payload)",
-                      file=sys.stderr)
+        _warn_degenerate_range(q, now_et, ticker=t)
 
         holding['current_price']    = round(c, 4)
         holding['prev_close']       = round(pc, 4)
@@ -1214,43 +1284,7 @@ def update_us_portfolio(
         holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
         holding.pop('today_change_abs', None)
 
-        # ── session-aware running day range ───────────────────────────────────
-        # Nasdaq's quote payload often carries no real intraday h/l/o (the old
-        # `q.get('h', c)` fallback flattened them to the last price each fetch →
-        # o==h==l==c, and after any move even day_high < current_price — visibly
-        # impossible numbers on the dashboard's Today's Range card). The */30min
-        # intraday cadence lets us accumulate the true session envelope locally:
-        # first capture of the ET day pins the open, every later fetch stretches
-        # high/low with both the API values and the live price. The live price
-        # only grows the range during regular session hours so a stray
-        # pre/post-market print doesn't fake an intraday extreme.
-        # A quote the fetch layer already identified as an earlier session's
-        # print describes THAT session's envelope, not today's. Feeding its
-        # o/h/l in here writes a price that never traded today into the running
-        # range, and the accumulator then keeps it for the rest of the session —
-        # 2026-08-06 PLTU carried day_low 36.265 (the 08-04 bar's low) on a day
-        # whose real low was 42.61. Its last price is still the best number we
-        # have, so keep that and drop only the range fields.
-        if q.get('stale_asof'):
-            api_h = api_l = api_o = None
-        else:
-            api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
-        in_session   = 9 <= now_et.hour < 16
-        same_session = holding.get('day_session_date') == today_et_date
-        cands_h = [v for v in (api_h, c if in_session else None) if v]
-        cands_l = [v for v in (api_l, c if in_session else None) if v]
-        if same_session:
-            if holding.get('day_high'):
-                cands_h.append(holding['day_high'])
-            if holding.get('day_low'):
-                cands_l.append(holding['day_low'])
-            day_o = holding.get('day_open') or api_o or c
-        else:
-            day_o = api_o or c
-        holding['day_high'] = round(max(cands_h) if cands_h else c, 4)
-        holding['day_low']  = round(min(cands_l) if cands_l else c, 4)
-        holding['day_open'] = round(day_o, 4)
-        holding['day_session_date'] = today_et_date
+        _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
         holding['current_value']    = round(c * shrs, 2)
         holding['pnl_abs']          = round((c - cost) * shrs, 2)
         # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
