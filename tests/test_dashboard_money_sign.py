@@ -29,3 +29,18 @@ def test_the_command_deck_and_the_cards_print_a_loss_the_same_way():
     out = subprocess.run([shutil.which("node"), "-e", script], check=True,
                          capture_output=True, text=True).stdout
     assert json.loads(out) == ["−$7,269", "−$7,269", "−HK$99.99", "$3,301", "+$3,301", "$0"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+def test_the_gold_card_prints_a_loss_with_the_minus_outside_the_symbol():
+    """The gold card had its own formatter and printed `¥-2,766` while the cards
+    around it printed `−$7,269` (#2713)."""
+    hero = (JS / "dashboard.hero.js").read_text(encoding="utf-8")
+    num = re.search(r"^    const num = \(v, d = 0\) => .*$", hero, re.M).group(0)
+    signed = re.search(r"^    const signedCny = \(v\) => .*$", hero, re.M).group(0)
+    script = ('const DASH = "—";\n' + num + "\n" + signed + "\n"
+              "process.stdout.write(JSON.stringify("
+              "[signedCny(-2766.1), signedCny(1204.6), signedCny(0), signedCny(null)]));\n")
+    out = subprocess.run([shutil.which("node"), "-e", script], check=True,
+                         capture_output=True, text=True).stdout
+    assert json.loads(out) == ["−¥2,766", "+¥1,205", "+¥0", "—"]
