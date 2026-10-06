@@ -758,7 +758,7 @@ jobs:
     #
     # Runs on every PR rather than behind the code lane: the claim this backs
     # is a documentation claim as much as a code one, so a docs-only PR that
-    # rewrites the "Run it on your own book" block must still face it. ~40s.
+    # rewrites the "Try it in five minutes" block must still face it. ~40s.
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

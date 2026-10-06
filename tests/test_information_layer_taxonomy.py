@@ -42,6 +42,9 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "config" / "information-layers.json").read_text())
 EN = (ROOT / "README.md").read_text()
 ZH = (ROOT / "README.zh.md").read_text()
+# The layer table and its headline live in the detail page the READMEs link to.
+DESK_EN = (ROOT / "docs" / "how-the-desk-works.md").read_text()
+DESK_ZH = (ROOT / "docs" / "how-the-desk-works.zh.md").read_text()
 FAQ = (ROOT / "site" / "faq.md").read_text()
 
 PUBLIC = "clawock"
@@ -198,7 +201,8 @@ def test_the_readme_layer_table_matches_the_config():
     """
     layers = CONFIG["layers"]
 
-    for markdown, name, language in ((EN, "README.md", "en"), (ZH, "README.zh.md", "zh")):
+    for markdown, name, language in ((DESK_EN, "docs/how-the-desk-works.md", "en"),
+                                     (DESK_ZH, "docs/how-the-desk-works.zh.md", "zh")):
         rows = _rows(markdown)
         assert len(rows) == len(layers), (
             f"{name}: {len(rows)} table rows, {len(layers)} layers in the config")
@@ -220,9 +224,9 @@ def test_the_headline_totals_come_from_the_config():
     modules = sum(len(layer["modules"]) for layer in layers)
 
     for markdown, name, pattern, order in (
-        (EN, "README.md",
+        (DESK_EN, "docs/how-the-desk-works.md",
          r"\*\*(\d+) fetch and compute modules across (\d+) layers\*\*", "ml"),
-        (ZH, "README.zh.md",
+        (DESK_ZH, "docs/how-the-desk-works.zh.md",
          r"\*\*(\d+) 层、(\d+) 个抓取与计算模块\*\*", "lm"),
         (FAQ, "site/faq.md",
          r"(\d+) fetch and compute modules across (\d+) layers", "ml"),

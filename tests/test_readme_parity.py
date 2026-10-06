@@ -12,6 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EN = (ROOT / "README.md").read_text(encoding="utf-8")
 ZH = (ROOT / "README.zh.md").read_text(encoding="utf-8")
+# The detail the READMEs link to instead of carrying (#2707): the layer table, the
+# per-run block breakdown and the rules moved here, and their pins moved with them.
+DESK_EN = (ROOT / "docs/how-the-desk-works.md").read_text(encoding="utf-8")
+DESK_ZH = (ROOT / "docs/how-the-desk-works.zh.md").read_text(encoding="utf-8")
 LLMS = (ROOT / "site/llms.txt").read_text(encoding="utf-8")
 FAQ = (ROOT / "site/faq.md").read_text(encoding="utf-8")
 
@@ -34,17 +38,15 @@ def _first_emoji(text):
     return None
 
 EN_H2 = [
-    "The operating flow", "The DeepSeek Harness plugin",
-    "What this is", "How it works", "The information layer", "How it decides",
-    "The debate", "The public scorecard", "What we tested, and what failed",
-    "What the code enforces", "Daily rhythm", "Run it on your own book",
-    "Explore the system", "Scope, disclaimer, and license",
+    "What you get", "Try it in five minutes", "A trading day on your book",
+    "The record, losses included", "What the model is not allowed to do",
+    "Delegate from DeepSeek Harness", "Under the hood", "Explore",
+    "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
-    "日常运行流程", "DeepSeek Harness 插件",
-    "这是什么", "怎么跑的", "信息层", "怎么做决策", "辩论", "公开战绩",
-    "测了什么，什么没通过", "代码强制执行的规矩", "每日节奏",
-    "在你自己的账本上跑", "逛一逛这套系统", "范围、免责与许可",
+    "你能得到什么", "五分钟跑起来", "你账本上的一个交易日",
+    "战绩,亏损照样摆出来", "模型不被允许做的事", "在 DeepSeek Harness 里委派",
+    "引擎盖下面", "接着看", "范围、免责与许可",
 ]
 
 
@@ -125,8 +127,8 @@ def test_per_run_context_layers_documented_in_both_languages():
     """
     import re
 
-    assert "### What each run actually receives" in EN
-    assert "### 每种运行实际拿到什么" in ZH
+    assert "### What each run actually receives" in DESK_EN
+    assert "### 每种运行实际拿到什么" in DESK_ZH
 
     root = Path(__file__).resolve().parents[1]
     counts = {}
@@ -142,7 +144,8 @@ def test_per_run_context_layers_documented_in_both_languages():
         counts[name] = len(re.findall(r"^        '([a-z_0-9]+)':",
                                       block.group(1), re.M))
 
-    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+    for md, name in ((DESK_EN, "docs/how-the-desk-works.md"),
+                     (DESK_ZH, "docs/how-the-desk-works.zh.md")):
         row = next(line for line in md.splitlines()
                    if line.startswith("| **Blocks**") or line.startswith("| **块数**"))
         # split, not a shared-delimiter regex: `| 36 | 15 | 18 |` consumes the
@@ -178,8 +181,9 @@ def test_the_information_layer_table_adds_up_in_both_languages():
     """
     seen = {}
     for md, name, pattern in (
-        (EN, "README.md", r"\*\*(\d+) fetch and compute modules across (\d+) layers\*\*"),
-        (ZH, "README.zh.md", r"\*\*(\d+) 层、(\d+) 个抓取与计算模块\*\*"),
+        (DESK_EN, "docs/how-the-desk-works.md",
+         r"\*\*(\d+) fetch and compute modules across (\d+) layers\*\*"),
+        (DESK_ZH, "docs/how-the-desk-works.zh.md", r"\*\*(\d+) 层、(\d+) 个抓取与计算模块\*\*"),
     ):
         headline = re.search(pattern, md)
         assert headline, f"{name}: the information-layer headline changed shape"
@@ -200,7 +204,7 @@ def test_the_information_layer_table_adds_up_in_both_languages():
 
     # The rows must also be the same rows in both languages, or the two READMEs
     # describe different systems while each stays internally self-consistent.
-    assert seen["README.md"] == seen["README.zh.md"], (
+    assert seen["docs/how-the-desk-works.md"] == seen["docs/how-the-desk-works.zh.md"], (
         f"layer counts differ between languages: {seen}")
 
 
@@ -225,7 +229,9 @@ def test_emoji_only_in_the_hhi_bucket_row():
     # The single place emoji are allowed is the HHI concentration row, where the
     # ✅🟡🟠🔴 markers mirror the dashboard's actual bucket colors. Nowhere else — no
     # decorative heading emoji, no ⚠️ leaking into prose. Whole-document scan.
-    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+    for md, name in ((EN, "README.md"), (ZH, "README.zh.md"),
+                     (DESK_EN, "docs/how-the-desk-works.md"),
+                     (DESK_ZH, "docs/how-the-desk-works.zh.md")):
         for i, line in enumerate(md.splitlines(), 1):
             if "HHI" in line and "0.15" in line:
                 continue  # the allowed bucket legend

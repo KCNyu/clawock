@@ -16,8 +16,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EN = (ROOT / "README.md").read_text()
-ZH = (ROOT / "README.zh.md").read_text()
+README_EN = (ROOT / "README.md").read_text()
+README_ZH = (ROOT / "README.zh.md").read_text()
+# The argued version of the claim, with the modules it rests on, is in the detail
+# page; the READMEs keep the one-line conclusion. Both are pinned.
+EN = (ROOT / "docs" / "how-the-desk-works.md").read_text()
+ZH = (ROOT / "docs" / "how-the-desk-works.zh.md").read_text()
 
 
 def test_hk_research_breadth_is_narrowed_while_the_code_is_asymmetric():
@@ -27,12 +31,12 @@ def test_hk_research_breadth_is_narrowed_while_the_code_is_asymmetric():
         # The flag moved. Both narrowing sentences are now wrong; rewrite them
         # rather than deleting this test.
         assert "the flag stays off" not in EN, (
-            "HK auto peer discovery is ON — README.md still says the flag is off")
+            "HK auto peer discovery is ON — how-the-desk-works.md still says the flag is off")
         assert "闸仍关着" not in ZH, (
-            "HK auto peer discovery is ON — README.zh.md still says the flag is off")
+            "HK auto peer discovery is ON — how-the-desk-works.zh.md still says the flag is off")
         return
 
-    for text, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+    for text, name in ((EN, "docs/how-the-desk-works.md"), (ZH, "docs/how-the-desk-works.zh.md")):
         assert "peer_discovery.py" in text, (
             f"{name} must name the module its HK peer claim rests on")
         assert "mover_evidence.py" in text, (
@@ -43,6 +47,8 @@ def test_hk_research_breadth_is_narrowed_while_the_code_is_asymmetric():
     # same about 研究广度.
     assert "research breadth behind US" in EN
     assert "研究广度落后美股" in ZH
+    assert "research breadth is behind US" in README_EN
+    assert "研究广度落后美股" in README_ZH
 
 
 def test_the_two_gaps_are_still_the_gaps_the_readme_names():
