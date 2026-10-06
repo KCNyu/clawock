@@ -54,3 +54,28 @@ def test_the_job_count_invariant_is_counted_from_the_contract():
     changed = render(contract)
     assert f"exactly {enabled - 1} enabled in OpenClaw's own scheduler" in changed
     assert '<br>disabled |' in changed and '<br>disabled |' not in page
+
+
+def test_watchdog_entries_are_not_printed_as_passes():
+    """#2647: the page called 3 intraday crontab entries "3 passes"; the
+    contract schedules 18 of them on a full trading day under EDT."""
+    from datetime import datetime, timezone
+
+    from clawock.scheduling import parse_cron_slots
+
+    contract = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
+    day = datetime(2026, 1, 7, 4, 0, tzinfo=timezone.utc)
+    passes = {'daylight': 0, 'standard': 0}
+    for job in contract['jobs']:
+        watchdog = job.get('watchdog') or {}
+        if 'intraday-watchdog' not in (watchdog.get('command') or ''):
+            continue
+        for season in passes:
+            schedule = (watchdog.get('seasonal_schedules') or {}).get(season) or watchdog['schedule']
+            passes[season] += len(parse_cron_slots(schedule['expr'], schedule['tz'], day))
+    page = render(contract)
+
+    assert 'watchdog passes are tracked' not in page
+    assert '3 intraday' in page and 'watchdog crontab entries are tracked' in page
+    assert passes['daylight'] > 3
+    assert f"{passes['daylight']} times under the EDT schedule ({passes['standard']} under EST)" in page

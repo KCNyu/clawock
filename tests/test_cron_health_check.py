@@ -431,6 +431,21 @@ def test_the_next_days_run_verifies_the_previous_evening_products(monkeypatch, c
     assert "4/4" in intraday["detail"]
 
 
+def test_more_commits_than_slots_is_a_warning_not_ok(monkeypatch, capsys):
+    """#2635: three brief commits for one slot printed `✓ 3/1 commits OK`."""
+    stamps = [(f"2026-08-24T21:{minute}:00+08:00", "dashboard: 美股开盘报告 (us open 21:33 HKT)")
+              for minute in (36, 38, 41)]
+    rows = _run_health_at(
+        monkeypatch, capsys,
+        datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
+        heartbeats=_evening_slots(), commit_stamps=stamps,
+    )
+    row = rows["美股开盘报告"]
+    assert row["status"] == "over", row
+    assert "3 commits for 1 slot(s)" in row["detail"]
+    assert "OK" not in row["detail"]
+
+
 def test_a_missing_previous_evening_commit_is_a_miss_not_idle(monkeypatch, capsys):
     """Anti-idle: with no matching commit from Monday evening, the open report
     reads as MISSING on Tuesday — the verdict that never fired before."""

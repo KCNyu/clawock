@@ -1228,12 +1228,22 @@ def _brief_numeric_issues(judgment_path, plan, context):
                 prose = '\n'.join(row[key] for key in JUDGMENT_ROW_PROSE
                                   if isinstance(row.get(key), str))
                 texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
+    # A decision's own machine fields are a source for its own prose: the
+    # rationale restating `size.shares` was reported as a number the context
+    # never states (#2636). Numbers only — `size.note` is model prose.
+    own_fields = []
     for row in (plan or {}).get('decisions') or []:
         if isinstance(row, dict):
             prose = '\n'.join(value for value in (row.get('rationale'),
                              (row.get('condition') or {}).get('description'))
                              if isinstance(value, str))
             texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
+            size = row.get('size')
+            if isinstance(size, dict):
+                own_fields.append({key: value for key, value in size.items()
+                                   if isinstance(value, (int, float)) and not isinstance(value, bool)})
+    if own_fields and isinstance(context, dict):
+        context = {**context, 'plan_decision_sizes': own_fields}
     return check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
                                 context)
 

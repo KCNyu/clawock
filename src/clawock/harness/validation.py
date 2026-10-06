@@ -169,11 +169,17 @@ _UNIT_CLAIMS = {
     'sigma': re.compile(rf'({_UNIT_NUM})\s*(?:σ|sigma(?![A-Za-z0-9_]))', re.IGNORECASE),
 }
 _UNIT_LABELS = {'percent': '%', 'pp': 'pp', 'multiple': 'x', 'sigma': 'σ'}
+# 0..1 ratios the prose states as percentages.
+_RATIO_AS_PERCENT = frozenset({'win_rate', 'vol20_annualized'})
 _UNIT_KEY_HINTS = {
     # ``range_pos`` is the T+0 strategy's 0–100 intraday range percentile.
     # It is rendered and discussed with ``%`` even though its established JSON
     # key predates the otherwise-consistent ``*_pct`` naming convention.
-    'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage|range_pos)(?:_|$)'),
+    # The quant rows' momentum leaves are percentages under names that predate
+    # ``*_pct`` too; without them a copied "1 个月 -29.1%" and an invented one
+    # got the same verdict (#2636).
+    'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage|range_pos)(?:_|$)'
+                          r'|^mom_(?:1m|3m|6m|12_1)$'),
     'pp': re.compile(r'(?:^|_)(?:pp|percentage_points?)(?:_|$)'),
     'multiple': re.compile(r'(?:^|_)(?:multiple|multiplier|leverage|leverage_ratio)(?:_|$)'),
     'sigma': re.compile(r'(?:^|_)(?:sigma|z_?score\d*)(?:_|$)'),
@@ -276,7 +282,7 @@ def _context_unit_numbers(ctx):
         elif isinstance(node, bool):
             return
         elif isinstance(node, (int, float)):
-            if key == 'win_rate' and 0 <= node <= 1:
+            if key in _RATIO_AS_PERCENT and 0 <= node <= 1:
                 add('percent', node * 100)
             for unit, hint in _UNIT_KEY_HINTS.items():
                 if hint.search(key):

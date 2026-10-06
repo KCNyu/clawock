@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
-from clawock.scheduling import host_trigger, load_contract, runtime_enabled  # noqa: E402
+from clawock.scheduling import host_trigger, load_contract, parse_cron_slots, runtime_enabled  # noqa: E402
 from clawock.run_budgets import (  # noqa: E402
     POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS,
 )
@@ -117,14 +118,46 @@ def _job_counts(contract: dict) -> str:
     return text
 
 
-def _watchdog_counts(contract: dict) -> dict:
-    counts = {"report": 0, "intraday": 0, "brief": 0}
+def _watchdogs(contract: dict):
     for job in contract["jobs"]:
         for watchdog in [job.get("watchdog"), *(job.get("extra_watchdogs") or [])]:
-            for kind in counts:
+            for kind in ("report", "intraday", "brief"):
                 if watchdog and f"clawock-{kind}-watchdog" in (watchdog.get("command") or ""):
-                    counts[kind] += 1
+                    yield kind, watchdog
+
+
+def _watchdog_counts(contract: dict) -> dict:
+    """Crontab ENTRIES per kind. One entry is not one pass: an intraday entry
+    fires twice an hour all session, and the page printed 3 as its passes (#2647)."""
+    counts = {"report": 0, "intraday": 0, "brief": 0}
+    for kind, _watchdog in _watchdogs(contract):
+        counts[kind] += 1
     return counts
+
+
+# A Wednesday: inside both the `1-5` and the `2-6` day-of-week ranges.
+_FULL_TRADING_DAY = datetime(2026, 1, 7, 4, 0, tzinfo=timezone.utc)
+
+
+def _intraday_passes(contract: dict) -> dict:
+    """Intraday watchdog passes on a full trading day, per US season."""
+    passes = {}
+    for kind, watchdog in _watchdogs(contract):
+        if kind != "intraday":
+            continue
+        seasonal = watchdog.get("seasonal_schedules") or {}
+        for season in ("daylight", "standard"):
+            schedule = seasonal.get(season) or watchdog["schedule"]
+            passes[season] = passes.get(season, 0) + len(
+                parse_cron_slots(schedule["expr"], schedule["tz"], _FULL_TRADING_DAY))
+    return passes
+
+
+def _season_text(passes: dict) -> str:
+    daylight, standard = passes["daylight"], passes["standard"]
+    if daylight == standard:
+        return f"{daylight} times"
+    return f"{daylight} times under the EDT schedule ({standard} under EST)"
 
 
 def render(contract: dict) -> str:
@@ -134,7 +167,8 @@ def render(contract: dict) -> str:
             f"| {job['name']} | {schedule_text(job)}{_fired_by(job)} | {job.get('mode', '—')} | "
             f"`{job.get('harness', '—')}` | {watchdog_text(job)} |"
         )
-    passes = _watchdog_counts(contract)
+    entries = _watchdog_counts(contract)
+    intraday = _intraday_passes(contract)
     brief_backstop, brief_miss = _brief_watchdog_clocks(contract)
     overnight_last = _overnight_last_slot(contract)
     return "\n".join([
@@ -183,7 +217,9 @@ def render(contract: dict) -> str:
         "## Operational invariants / 运维不变量",
         "",
         _job_counts(contract),
-        f"- {passes['report']} report, {passes['intraday']} intraday and {passes['brief']} brief watchdog passes are tracked; the brief",
+        f"- {sum(entries.values())} watchdog crontab entries are tracked: {entries['report']} report, {entries['intraday']} intraday and",
+        f"  {entries['brief']} brief. An entry is not one pass a day: the intraday entries fire",
+        f"  {_season_text(intraday)} on a full trading day, and the brief",
         f"  uses an {brief_backstop} delivery backstop plus a {brief_miss} post-window miss detector.",
         "- Market payloads use deterministic preflight/postflight, `delivery.mode=none`,",
         "  a unique WeChat path, Telegram mirror, and an ordered unique subset of the",
