@@ -11698,7 +11698,7 @@ async function apply(ctx) {
 				rate: result.rate,
 				rateSource: result.rateSource ?? null
 			};
-			const changed = cached === null || cached.workspaceKey !== snapshot.workspaceKey || cached.signature !== snapshot.signature;
+			const changed = cached === null || cached.workspaceKey !== snapshot.workspaceKey || cached.signature !== snapshot.signature || cached.rateSource !== snapshot.rateSource;
 			cached = snapshot;
 			return {
 				snapshot,
