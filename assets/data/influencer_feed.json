@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T00:07:24.375761+00:00",
+  "generated_at": "2026-10-06T01:51:30.239890+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,16 +21,923 @@
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": false,
-  "llm_filter_status": "failed_kept_previous",
+  "llm_filtered": true,
+  "llm_filter_status": "ok",
   "counts": {
-    "total": 0,
+    "total": 21,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 13,
+    "sector_hits": 4
   },
-  "items": [],
+  "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Agrees Tesla's Early Custom AI Chit Bet May be More Important Than Ever, Backs TSLA Engineer's Warning: ‘Current Compute Shortage Is Only the Tip of the Iceberg’",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 22:00:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "人工智能",
+        "半导体",
+        "算力"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据媒体报道，马斯克认同特斯拉早期定制AI芯片的重要性，并支持工程师关于当前算力短缺只是开端、后续瓶颈仍会加剧的警告。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry takes new position in Deckers Outdoors as part of 'proxy swap' (DECK:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPbGtfOWRFWnllOFRZeE1laG1VU1BtLWxzcHFFZmlKMXZoOEpOWnRrVVdTMWtxc2d2N2Q1THZ1eDgxU2EtTGRWMkJZU1l0dWZxekc2UVlrZHZKZVZ2eHFtM1RualgxTlJ1TExPcEhqLVRWQm9MYXFmNTNnUTUxczRJVzFvbXNlNU9aeHJRUk85WXJ3NGNCWDRZQzg5aDlDWFkxeXBqT1RwSWs3d0tUaVBycS13?oc=5",
+      "published": "2026-10-05T18:18:30+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "DECK"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DECK"
+      ],
+      "sectors": [
+        "鞋服",
+        "消费",
+        "商品零售"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 79,
+      "summary_cn": "据媒体报道，Michael Burry建立Deckers Outdoors新仓位，并将其作为一项“代理置换”交易的一部分。"
+    },
+    {
+      "author": "Musk",
+      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "INTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "INTC"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "芯片制造"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据媒体援引马斯克相关消息，其行动给英特尔造成挫折并引发股价下跌，涉及马斯克与芯片制造合作预期的变化。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk confirms TeraFab discussions between SpaceX and TSMC, says SpaceXAI will be renamed SpaceXSI",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 17:59:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Data Center Dynamics",
+      "tickers": [
+        "TSM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSM"
+      ],
+      "sectors": [
+        "半导体",
+        "晶圆代工",
+        "航天",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 76,
+      "summary_cn": "据媒体报道，马斯克确认SpaceX与台积电正在讨论TeraFab项目，同时表示SpaceXAI将更名为SpaceXSI，涉及先进制程与航天产能合作。"
+    },
+    {
+      "author": "洪灏",
+      "text": "私募大佬但斌：英偉達可以再升一倍",
+      "url": "https://news.google.com/rss/articles/CBMipAJBVV95cUxPU2EtdlFBTzFIMFgta1VHRndCQTIzMlJTek1MX19VV2FWaDNVTEtkWC1VVC1EVExfc3BNQ1lHODlrd0lIQVdQYXZrNzRtZGJ1Z2JGYzBYNFZ5TnBEdkE0Qk5lWXVTbnpQRUhZY3lMeC1kanZOc2M1T0gyU0FqZ3NDWUV0NklrMW11dVZhLUs1R09wU2RUQm94NHIxZWdxSF9nM29QWC1mVW1QRHVQbWlsYWRYZEN1Nk5vcHRqWU5WbjJtMHJuclZKeE1oOW5KVDg5ME9JLTYtV2JBVzlTNzVJTHJzbzN3Y2hoLVVyVVdjU2FhRURRcFJDaVg1NnZkYWducmstTkltRnVoUzljbFZIWVZrWWE5ZS0yQUtlSXNLWGF6SjBu?oc=5",
+      "published": "2026-10-04T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "specialist.hket.com",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI芯片"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "据媒体报道，私募投资人但斌认为英伟达股价仍可能翻倍，延续其对AI算力龙头的强烈看多观点。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Cerebras Systems Inc(CBRS) 买入 ARKK 80,694 股 / ARKW 37,064 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3032,
+      "tickers": [
+        "CBRS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CBRS"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI芯片"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 75,
+      "summary_cn": "ARK Invest于2026年10月2日买入Cerebras Systems共80,694股ARKK及37,064股ARKW份额，最大单只ETF占比0.30%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Admits Why Tesla Robotaxis Can’t Be Trusted at Night",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 14:23:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据媒体报道，马斯克承认特斯拉夜间运行的Robotaxi目前存在可靠性问题，对自动驾驶商业化能力作出负面表态。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Amazon.com Inc(AMZN) 买入 ARKW 16,550 股（最大单只 ETF 占比 0.20%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2024,
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月2日买入16,550股AMZN，相关头寸占ARKW的0.20%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Airbnb, Inc.(ABNB) 买入 ARKF 16,152 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2989,
+      "tickers": [
+        "ABNB"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABNB"
+      ],
+      "sectors": [
+        "互联网平台",
+        "旅游住宿"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "ARK Invest于2026年10月2日买入16,152股ABNB，相关头寸占ARKF的0.30%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：BWX Technologies Inc(BWXT) 买入 ARKK 72,502 股（最大单只 ETF 占比 0.12%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1218,
+      "tickers": [
+        "BWXT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BWXT"
+      ],
+      "sectors": [
+        "核能",
+        "国防科技",
+        "先进制造"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 67,
+      "summary_cn": "ARK Invest于2026年10月2日买入72,502股BWXT，相关头寸占ARKK的0.12%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Doordash, Inc.(DASH) 买入 ARKF 11,638 股（最大单只 ETF 占比 0.25%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2492,
+      "tickers": [
+        "DASH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DASH"
+      ],
+      "sectors": [
+        "互联网平台",
+        "本地生活",
+        "电商"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 66,
+      "summary_cn": "ARK Invest于2026年10月2日买入11,638股DASH，相关头寸占ARKF的0.25%。"
+    },
+    {
+      "author": "Burry",
+      "text": "Palantir's 93% Revenue Growth Is Colliding With Michael Burry's Bear Case -- Here's Who Has the Stronger Argument",
+      "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQSXc0TzNkMXB0cHhpVlFQUElVOU5RRkJFNjkxdFRKVlplR25sVDZIU2lKM2FxVGoyWjlxQWVsNUp1Mml3N0xYODB3M2ppd3htcVpvLTJRVTRQengzZmQtS2Vsc1pkQWZiRm9rcGVCY2I5NV96cTV5cnBzTkdIbEE2X3FIY3dsM0YwWjVmMGNB?oc=5",
+      "published": "2026-10-05T11:35:00+00:00",
+      "origin": "gnews-rss",
+      "source": "fool.com",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "人工智能",
+        "软件",
+        "国防科技"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "媒体围绕Palantir高达93%的收入增长是否足以反驳Michael Burry的看空逻辑展开争论，核心仍是对PLTR高增长与估值风险的争议。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：INTELLIA THERAPEUTICS, INC.(NTLA) 买入 ARKK 410,738 股 / ARKG 100,959 股（最大单只 ETF 占比 0.06%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0622,
+      "tickers": [
+        "NTLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NTLA"
+      ],
+      "sectors": [
+        "基因治疗",
+        "生物科技",
+        "医疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "ARK Invest于2026年10月2日买入410,738股NTLA的ARKK份额及100,959股ARKG份额，最大单只ETF占比仅0.06%，属于较小规模加仓。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Just Pulled a 1960s Market Bubble Into Nvidia's AI Debate — ‘We Have All Been Here Before’",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOLTUybWJhbW5ual9Bdm82bGJMOTdDcmN6NXZISjBJYlNLUzNYYXZzWENONmx2OTZPZDdhdktZUnlUQUJNN096b3NqNXFwVTFRRmhTYlg1QWFKeGlMQjhGVjNZMllLeEYzSENSb2NrYXBVWEQwZHZrNkdzUmlwNUdrQWZHb1NSMnNJS20wVGZRYVRkYUVzOVVOOHNXRXA?oc=5",
+      "published": "2026-10-04T18:00:09+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "科技股",
+        "市场泡沫"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据媒体报道，Michael Burry将当前AI热潮与互联网泡沫时期相提并论，警告市场可能再次出现资产价格泡沫。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Back Working With the U.S. Government. Why That Could Be Trouble for SpaceX's Stock",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "fool.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政府合同",
+        "监管"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据媒体报道，马斯克重新与美国政府合作可能给SpaceX带来政府关系与监管方面的不确定性，并对其股票前景形成压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX stock climbs to highest since June, returning Musk to trillionaire status",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 20:04:38 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 67,
+      "summary_cn": "据媒体报道，SpaceX股价升至6月以来高位，并使马斯克的纸面财富重返万亿美元级别，但SpaceX本身未上市。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk rebrands SpaceXAI following Trump directive",
+      "url": "",
+      "published": "Sun, 04 Oct 2026 20:39:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 51,
+      "summary_cn": "据媒体报道，马斯克在特朗普要求下将SpaceXAI更名为SpaceXSI，属于航天与AI业务的品牌重组。"
+    },
+    {
+      "author": "Trump",
+      "text": "What's driving up Gasoline is no longer the Strait of Hormuz, because Record Numbers of Barrels are coming out now on an almost daily basis, but the word, \"Refineries,\" where Russia's are being blown up by Ukraine, and where ours are being closed up, in Blue States, like California, by the Dumocrats. President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42164",
+      "published": "2026-10-05T16:32:36+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "炼化",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "特朗普将汽油价格上涨归因于俄罗斯炼厂遭袭及美国部分炼厂关闭，并称霍尔木兹海峡已不再是主要原因，涉及原油供应与炼化产能。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump credits tariffs for bringing pharmaceutical manufacturing campus to Ohio: https://justthenews.com/government/white-house/trump-credits-tariffs-bringing-pharmaceutical-manufacturing-campus-ohio",
+      "url": "https://www.trumpstruth.org/statuses/42158",
+      "published": "2026-10-04T17:49:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "医药制造",
+        "美国制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 71,
+      "summary_cn": "特朗普将医药制造项目落地俄亥俄州归功于关税政策，强化其以关税推动本土医药产能回流的政策信号。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Gridlock looms on congressional stock trade ban as parties clash over divestment",
+      "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxOUTVqa25xd2ZpVjhCcFRLSFNuQ0RSMFNoUW5jREs4YWxMakVCRmxIcUZQWFNUQ2NnekxPbjBJWW9HUmtRbUswcUh3aVI3MFdyRnhldDQ1aDdpRzBPdkJESE0tb1d1eGFSR0ZPUG5pZnlzTkxKWTR3ZWNfYVdVN25IYWg1YmRHMTFPMGlkYjFEUEtsSFJwbFp4SGVkSEM4TUlMWk5pRWpoSDY0cy1RZkZ0TVNhalVUTzRuQ1pRcmFRc2MwX0ZjczAyLVFsd004MzNfYVhueDBwODJaVHdMRFp2c1ZDcUNKejkzTUtXeg?oc=5",
+      "published": "2026-10-06T00:12:07+00:00",
+      "origin": "gnews-rss",
+      "source": "WXLV",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国会监管",
+        "议员股票交易",
+        "金融监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "美国国会两党围绕限制议员交易及强制资产处置的规定陷入僵局，可能影响现有交易披露和利益冲突监管制度。"
+    },
+    {
+      "author": "Trump",
+      "text": "If Republicans win the House of Representatives and the Senate in the 2026 Midterm Elections, I’m going to give all Adult Citizens in the United States of America, $5,000. Thank you for your attention to this matter, and I look forward to signing those checks! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42170",
+      "published": "2026-10-05T22:00:51+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "财政刺激",
+        "美国经济",
+        "可选消费"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 56,
+      "summary_cn": "特朗普称若共和党在2026年中期选举中赢得两院，将向美国成年公民每人发放5000美元，若兑现将形成大规模财政与消费刺激。"
+    }
+  ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Agrees Tesla's Early Custom AI Chit Bet May be More Important Than Ever, Backs TSLA Engineer's Warning: ‘Current Compute Shortage Is Only the Tip of the Iceberg’",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 22:00:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "人工智能",
+        "半导体",
+        "算力"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据媒体报道，马斯克认同特斯拉早期定制AI芯片的重要性，并支持工程师关于当前算力短缺只是开端、后续瓶颈仍会加剧的警告。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry takes new position in Deckers Outdoors as part of 'proxy swap' (DECK:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPbGtfOWRFWnllOFRZeE1laG1VU1BtLWxzcHFFZmlKMXZoOEpOWnRrVVdTMWtxc2d2N2Q1THZ1eDgxU2EtTGRWMkJZU1l0dWZxekc2UVlrZHZKZVZ2eHFtM1RualgxTlJ1TExPcEhqLVRWQm9MYXFmNTNnUTUxczRJVzFvbXNlNU9aeHJRUk85WXJ3NGNCWDRZQzg5aDlDWFkxeXBqT1RwSWs3d0tUaVBycS13?oc=5",
+      "published": "2026-10-05T18:18:30+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "DECK"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DECK"
+      ],
+      "sectors": [
+        "鞋服",
+        "消费",
+        "商品零售"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 79,
+      "summary_cn": "据媒体报道，Michael Burry建立Deckers Outdoors新仓位，并将其作为一项“代理置换”交易的一部分。"
+    },
+    {
+      "author": "Musk",
+      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "INTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "INTC"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "芯片制造"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据媒体援引马斯克相关消息，其行动给英特尔造成挫折并引发股价下跌，涉及马斯克与芯片制造合作预期的变化。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk confirms TeraFab discussions between SpaceX and TSMC, says SpaceXAI will be renamed SpaceXSI",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 17:59:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Data Center Dynamics",
+      "tickers": [
+        "TSM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSM"
+      ],
+      "sectors": [
+        "半导体",
+        "晶圆代工",
+        "航天",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 76,
+      "summary_cn": "据媒体报道，马斯克确认SpaceX与台积电正在讨论TeraFab项目，同时表示SpaceXAI将更名为SpaceXSI，涉及先进制程与航天产能合作。"
+    },
+    {
+      "author": "洪灏",
+      "text": "私募大佬但斌：英偉達可以再升一倍",
+      "url": "https://news.google.com/rss/articles/CBMipAJBVV95cUxPU2EtdlFBTzFIMFgta1VHRndCQTIzMlJTek1MX19VV2FWaDNVTEtkWC1VVC1EVExfc3BNQ1lHODlrd0lIQVdQYXZrNzRtZGJ1Z2JGYzBYNFZ5TnBEdkE0Qk5lWXVTbnpQRUhZY3lMeC1kanZOc2M1T0gyU0FqZ3NDWUV0NklrMW11dVZhLUs1R09wU2RUQm94NHIxZWdxSF9nM29QWC1mVW1QRHVQbWlsYWRYZEN1Nk5vcHRqWU5WbjJtMHJuclZKeE1oOW5KVDg5ME9JLTYtV2JBVzlTNzVJTHJzbzN3Y2hoLVVyVVdjU2FhRURRcFJDaVg1NnZkYWducmstTkltRnVoUzljbFZIWVZrWWE5ZS0yQUtlSXNLWGF6SjBu?oc=5",
+      "published": "2026-10-04T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "specialist.hket.com",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI芯片"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "据媒体报道，私募投资人但斌认为英伟达股价仍可能翻倍，延续其对AI算力龙头的强烈看多观点。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Cerebras Systems Inc(CBRS) 买入 ARKK 80,694 股 / ARKW 37,064 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3032,
+      "tickers": [
+        "CBRS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CBRS"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "AI芯片"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 75,
+      "summary_cn": "ARK Invest于2026年10月2日买入Cerebras Systems共80,694股ARKK及37,064股ARKW份额，最大单只ETF占比0.30%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Admits Why Tesla Robotaxis Can’t Be Trusted at Night",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 14:23:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Futurism",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据媒体报道，马斯克承认特斯拉夜间运行的Robotaxi目前存在可靠性问题，对自动驾驶商业化能力作出负面表态。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Amazon.com Inc(AMZN) 买入 ARKW 16,550 股（最大单只 ETF 占比 0.20%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2024,
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月2日买入16,550股AMZN，相关头寸占ARKW的0.20%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：Airbnb, Inc.(ABNB) 买入 ARKF 16,152 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2989,
+      "tickers": [
+        "ABNB"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABNB"
+      ],
+      "sectors": [
+        "互联网平台",
+        "旅游住宿"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "ARK Invest于2026年10月2日买入16,152股ABNB，相关头寸占ARKF的0.30%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-02 调仓：BWX Technologies Inc(BWXT) 买入 ARKK 72,502 股（最大单只 ETF 占比 0.12%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1218,
+      "tickers": [
+        "BWXT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BWXT"
+      ],
+      "sectors": [
+        "核能",
+        "国防科技",
+        "先进制造"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 67,
+      "summary_cn": "ARK Invest于2026年10月2日买入72,502股BWXT，相关头寸占ARKK的0.12%。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Just Pulled a 1960s Market Bubble Into Nvidia's AI Debate — ‘We Have All Been Here Before’",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOLTUybWJhbW5ual9Bdm82bGJMOTdDcmN6NXZISjBJYlNLUzNYYXZzWENONmx2OTZPZDdhdktZUnlUQUJNN096b3NqNXFwVTFRRmhTYlg1QWFKeGlMQjhGVjNZMllLeEYzSENSb2NrYXBVWEQwZHZrNkdzUmlwNUdrQWZHb1NSMnNJS20wVGZRYVRkYUVzOVVOOHNXRXA?oc=5",
+      "published": "2026-10-04T18:00:09+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "科技股",
+        "市场泡沫"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据媒体报道，Michael Burry将当前AI热潮与互联网泡沫时期相提并论，警告市场可能再次出现资产价格泡沫。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Back Working With the U.S. Government. Why That Could Be Trouble for SpaceX's Stock",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "fool.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政府合同",
+        "监管"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据媒体报道，马斯克重新与美国政府合作可能给SpaceX带来政府关系与监管方面的不确定性，并对其股票前景形成压力。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX stock climbs to highest since June, returning Musk to trillionaire status",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 20:04:38 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 67,
+      "summary_cn": "据媒体报道，SpaceX股价升至6月以来高位，并使马斯克的纸面财富重返万亿美元级别，但SpaceX本身未上市。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk rebrands SpaceXAI following Trump directive",
+      "url": "",
+      "published": "Sun, 04 Oct 2026 20:39:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "neutral",
+      "relevance": 51,
+      "summary_cn": "据媒体报道，马斯克在特朗普要求下将SpaceXAI更名为SpaceXSI，属于航天与AI业务的品牌重组。"
+    }
+  ]
 }
