@@ -140,17 +140,13 @@ def _near_duplicate(title, others):
                for o in others)
 
 
-def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
-    """`{summary, full, degraded}` for this leg's `tickers`. Never raises.
+def _morning_files(ws, market, now):
+    """Read this leg's morning files and the sentiment snapshot.
 
-    `live` is `collect_live`'s answer (tier 2, started earlier); without it the
-    lane is tiers 0–1 exactly as before.
+    Returns `(loaded, sources, degraded)`: the documents that parsed, each
+    source's status and freshness, and one degraded label per unreadable file.
     """
-    now = now or datetime.now(timezone.utc)
-    tickers = [str(t) for t in tickers or [] if t]
-    ws = Path(workspace)
-    summary, full, degraded, sources = {}, {}, [], {}
-
+    sources, degraded = {}, []
     loaded = {}
     for name, rel in FILES.items():
         if FILE_MARKET.get(name) not in (None, market):
@@ -173,7 +169,16 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
     else:
         sources['sentiment_snapshot'] = {
             'status': 'ok', **freshness(_parse_time(snap.get('generated_at')), market, now)}
+    return loaded, sources, degraded
 
+
+def _per_ticker_evidence(loaded, tickers, sources, market, now):
+    """Per-ticker news rows from the three morning sources.
+
+    Returns `(per_ticker, full_ticker)`: the summary's capped rows and the
+    reference layer's full rows, both sorted primary-first then newest-first,
+    every row carrying its `cite`.
+    """
     per_ticker = {ticker: [] for ticker in tickers}
     full_ticker = {ticker: [] for ticker in tickers}
 
@@ -230,7 +235,11 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
                            sources.get(r['source']) or {}, market, now,
                            r.get('time_precision'))}
             for r in rows[:MAX_ITEMS_PER_TICKER]]
+    return per_ticker, full_ticker
 
+
+def _attention(loaded, per_ticker):
+    """Reddit and Google News counts for the tickers in this leg."""
     attention = {}
     for row in (loaded.get('sentiment') or {}).get('tickers') or []:
         if str(row.get('ticker')) in per_ticker:
@@ -240,14 +249,25 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
                 'google_news_en': len(row.get('google_news_en') or []),
                 'google_news_zh': len(row.get('google_news_zh') or []),
             }
+    return attention
 
-    macro = loaded.get('macro') or {}
+
+def _market_view(macro, market):
+    """Index quotes for this market, plus fear & greed when the file has it."""
     market_view = {key: {k: (macro.get(key) or {}).get(k) for k in ('price', 'change_pct')}
                    for key in (('hsi', 'hstech') if market == 'hk' else ('spx', 'nasdaq', 'vix'))
                    if macro.get(key)}
     if macro.get('fear_greed'):
         market_view['fear_greed'] = {k: macro['fear_greed'].get(k) for k in ('score', 'rating')}
+    return market_view
 
+
+def _market_flashes(now, fast_news, live):
+    """Tier 1 market flashes: `(flashes, raw rows, status)`.
+
+    An empty answer is reported as not fetched, a flash stamped in the future
+    is dropped, and the list is capped at `MAX_FLASH_ITEMS`.
+    """
     # Tier 1: market-level 7x24, one free request, not filtered by movers.
     # Fetched inside the tier 2 lane when there is one (same request, earlier).
     flashes, flash_status = [], 'ok'
@@ -277,10 +297,16 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
                         'cite': f"《{str(row.get('title'))[:60]}》（东财7×24，{row.get('date')}）"})
         if len(flashes) >= MAX_FLASH_ITEMS:
             break
-    sources['em_724_live'] = {'status': flash_status, 'requests': 1}
-    if flash_status != 'ok':
-        degraded.append(f'东财7×24（{flash_status}）')
+    return flashes, rows, flash_status
 
+
+def _apply_live_layer(live, per_ticker, flashes, now):
+    """Tier 2 on top of tier 1: `(live_rows, flashes, sources, degraded)`.
+
+    Live rows stay apart from the morning rows; a live flash older than the
+    window or nearly the same title as one already listed is not added.
+    """
+    sources, degraded = {}, []
     # Tier 2: live per-ticker rows and a second 7x24 feed. Kept apart from the
     # morning rows (`tickers`), so a live item can never inherit a morning
     # file's time and a morning item can never pass as live.
@@ -302,6 +328,33 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
                           'source': item['source'], 'cite': item['cite']})
         flashes = sorted([*flashes, *extra[:MAX_EXTRA_FLASH_ITEMS]],
                          key=lambda f: str(f.get('time') or ''), reverse=True)
+    return live_rows, flashes, sources, degraded
+
+
+def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
+    """`{summary, full, degraded}` for this leg's `tickers`. Never raises.
+
+    `live` is `collect_live`'s answer (tier 2, started earlier); without it the
+    lane is tiers 0–1 exactly as before.
+    """
+    now = now or datetime.now(timezone.utc)
+    tickers = [str(t) for t in tickers or [] if t]
+    loaded, sources, degraded = _morning_files(Path(workspace), market, now)
+    per_ticker, full_ticker = _per_ticker_evidence(loaded, tickers, sources, market, now)
+    attention = _attention(loaded, per_ticker)
+    macro = loaded.get('macro') or {}
+    market_view = _market_view(macro, market)
+    graph = loaded.get('news_evidence_graph') or {}
+    em = loaded.get('em_news') or {}
+
+    flashes, rows, flash_status = _market_flashes(now, fast_news, live)
+    sources['em_724_live'] = {'status': flash_status, 'requests': 1}
+    if flash_status != 'ok':
+        degraded.append(f'东财7×24（{flash_status}）')
+    live_rows, flashes, live_sources_seen, live_degraded = _apply_live_layer(
+        live, per_ticker, flashes, now)
+    sources.update(live_sources_seen)
+    degraded.extend(live_degraded)
 
     summary = {
         'sources': sources,

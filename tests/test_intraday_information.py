@@ -262,3 +262,31 @@ def test_a_pre_open_headline_from_the_live_lanes_flash_feed_reaches_the_label_ga
     ctx = {'information': {}, 'information_full': full}
     assert post.check_stale_citation(f'{title}，降息预期升温。', ctx)
     assert post.check_stale_citation(f'{title}（10-05 08:22 HKT 发布，开盘前旧闻），降息预期升温。', ctx) == []
+
+
+def test_the_flash_tiers_keep_their_own_rules_when_called_directly():
+    """`collect` was one 210-line body; its two flash tiers are now separate
+    functions (#2683), and these are the three rules that lived only inline."""
+    from datetime import datetime, timedelta, timezone
+
+    from clawock.evidence import intraday_information as lane
+
+    now = datetime(2026, 10, 6, 6, 0, tzinfo=timezone.utc)
+    hkt = lambda minutes: (now + timedelta(minutes=minutes)).astimezone(  # noqa: E731
+        lane.HKT).strftime('%Y-%m-%d %H:%M:%S')
+
+    assert lane._market_flashes(now, lambda limit=20: [], None) == ([], [], 'empty_or_failed')
+    flashes, rows, status = lane._market_flashes(now, lambda limit=20: [
+        {'title': '十分钟后的快讯', 'date': hkt(10)}, {'title': '刚才的快讯', 'date': hkt(-2)}], None)
+    assert status == 'ok' and len(rows) == 2
+    assert [f['title'] for f in flashes] == ['刚才的快讯'], 'a flash stamped in the future is dropped'
+
+    live = {'flashes': [
+        {'title': '刚才的快讯', 'published_at': now.isoformat(), 'source': 'ths_724', 'cite': 'a'},
+        {'title': '另一件完全不同的事情发生了', 'published_at': now.isoformat(),
+         'source': 'ths_724', 'cite': 'b'}]}
+    _, merged, _, _ = lane._apply_live_layer(live, {}, flashes, now)
+    assert sorted(f['title'] for f in merged) == ['刚才的快讯', '另一件完全不同的事情发生了'], (
+        'a live flash repeating a tier-1 title is not added twice')
+    assert lane._apply_live_layer(None, {}, flashes, now) == (None, flashes, {}, [])
+
