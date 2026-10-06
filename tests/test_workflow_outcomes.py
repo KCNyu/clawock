@@ -1315,3 +1315,15 @@ def test_the_watchdog_witnessing_a_delivery_does_not_move_its_time(tmp_path, mon
     # A different verdict is a new fact and takes the new time.
     outcomes.record_from_heartbeat({**sent, "wechat_sent": False})
     assert outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]["at"] != delivered_at
+
+
+def test_the_published_ledger_never_carries_a_non_finite_number(tmp_path, monkeypatch):
+    # #2620: the ledger had its own writer without the owner's guard; a NaN in
+    # a stage detail made the published file one a strict parser rejects.
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("盘中盯盘", "postflight", "success",
+                          slot="2026-10-05T10:00:00+08:00", age_hours=float("nan"))
+    text = outcomes.local_path().read_text()
+    assert "NaN" not in text
+    assert json.loads(text)["records"][0]["stages"]["postflight"]["age_hours"] is None
+    assert not list(outcomes.local_path().parent.glob("*.tmp*"))

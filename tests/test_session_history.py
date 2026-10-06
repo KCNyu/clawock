@@ -81,3 +81,18 @@ def test_factor_review_consumes_session_keys_before_settlement(monkeypatch):
     signal_review.main()
     assert captured['factors']['trend_on_follow']['n_events'] == 1
     assert captured['closed_market_rows_excluded'] == 0
+
+
+def test_session_open_is_judged_on_the_symbols_own_market():
+    """#2622: both settlement reviewers carried a copy of this; one direct entry now."""
+    from clawock.decision.session_history import session_open_for_symbol
+
+    # 2026-07-03 is the observed US Independence Day; Hong Kong trades.
+    assert session_open_for_symbol("NVDA", "2026-07-03") is False
+    assert session_open_for_symbol("00700", "2026-07-03") is True
+    # 2026-07-01 is the HKSAR Establishment Day; the US trades.
+    assert session_open_for_symbol("00700", "2026-07-01T16:00:00+08:00") is False
+    assert session_open_for_symbol("NVDA", "2026-07-01") is True
+    assert session_open_for_symbol("NVDA", "2026-07-04") is False     # Saturday
+    # Fail open: an unparseable day drops no real session.
+    assert session_open_for_symbol("NVDA", "not-a-date") is True

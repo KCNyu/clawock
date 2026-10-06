@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import fcntl
 import json
-import os
 import sys
 import threading
 from contextlib import contextmanager
@@ -34,6 +33,9 @@ from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
 from clawock.workspace import without_host_paths, workspace_root
+# The ledger is published; its writes go through the one atomic JSON writer
+# (fsync, orphan-tmp cleanup, non-finite guard) under the name the call sites use (#2620).
+from clawock.safe_io import safe_write_json as _atomic_write
 from clawock import scheduling as schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -339,13 +341,6 @@ def load_ledger(*, note_fallback=True):
                 f"publish may be missing")
         return public
     return _empty()
-
-
-def _atomic_write(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
-    os.replace(tmp, path)
 
 
 _lock_state = threading.local()

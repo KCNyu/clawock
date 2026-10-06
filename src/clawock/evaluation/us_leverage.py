@@ -16,7 +16,7 @@ Outputs:
 
 Run: clawock evaluate-us-leverage   (needs the charting extra: pip install 'clawock[evaluation]')
 """
-from clawock.evaluation.series import mdd, rvol, sma
+from clawock.evaluation.series import mdd, rvol, sma, underwater
 import argparse
 import json
 from datetime import date
@@ -115,13 +115,6 @@ def fetch(sym, cnt=1800):
 
 
 
-
-
-def underwater(nav):
-    peak = -1e9; out = []
-    for v in nav:
-        peak = max(peak, v); out.append((v / peak - 1) * 100)
-    return out
 
 
 def cagr(nav, dates):

@@ -44,7 +44,11 @@ from scipy.spatial.distance import squareform
 from clawock.portfolio.covariance import correlation_from
 
 
-def _as_weights(weights) -> np.ndarray:
+def normalized_weights(weights) -> np.ndarray:
+    """Weights scaled to sum to 1; a non-positive total is refused.
+
+    `portfolio.stress` carried its own copy of this (#2642).
+    """
     vector = np.asarray(weights, dtype=float)
     total = vector.sum()
     if total <= 0:
@@ -53,7 +57,7 @@ def _as_weights(weights) -> np.ndarray:
 
 
 def portfolio_volatility(weights, covariance) -> float:
-    vector = _as_weights(weights)
+    vector = normalized_weights(weights)
     return float(np.sqrt(vector @ np.asarray(covariance, dtype=float) @ vector))
 
 
@@ -68,7 +72,7 @@ def risk_contributions(weights, covariance, names=None) -> dict:
     name carries more of the book's risk than its size, which is what a
     correlated overweight looks like from the inside.
     """
-    vector = _as_weights(weights)
+    vector = normalized_weights(weights)
     matrix = np.asarray(covariance, dtype=float)
     total_volatility = float(np.sqrt(vector @ matrix @ vector))
     if total_volatility <= 0:
@@ -105,7 +109,7 @@ def effective_bets(weights, covariance) -> dict:
     `1 / (wᵀρw)` counts *bets* and collapses toward one as the book co-moves.
     The gap between them is the part of the diversification that is nominal.
     """
-    vector = _as_weights(weights)
+    vector = normalized_weights(weights)
     correlation = correlation_from(np.asarray(covariance, dtype=float))
     quadratic = float(vector @ correlation @ vector)
     deviations = np.sqrt(np.diag(np.asarray(covariance, dtype=float)))
@@ -252,7 +256,7 @@ def allocation_report(returns, weights, names, *, covariance_estimate) -> dict:
     numbers and how hard it shrank.
     """
     matrix = covariance_estimate['covariance']
-    live = _as_weights(weights)
+    live = normalized_weights(weights)
     reference = hierarchical_risk_parity(matrix, names)
     hrp_weights = np.array([reference['weights'][str(name)] for name in names]) \
         if reference.get('status') == 'measured' else None

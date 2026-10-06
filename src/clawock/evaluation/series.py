@@ -1,14 +1,15 @@
 """Series maths shared by the regime evaluations.
 
-`combined_regime` and `us_leverage` each carried byte-identical copies of these
-three. They are small enough that copying felt cheaper than sharing, which is
-how a rolling-window off-by-one gets fixed in one file and not the other — and
-both of these evaluations feed the leverage dial, so a divergence between them
-would be invisible and load-bearing at the same time.
+`combined_regime` and `us_leverage` each carried byte-identical copies of these,
+and `hstech_regime` / `regime_validation` kept two more of `sma` and `rvol`.
+They are small enough that copying felt cheaper than sharing, which is how a
+rolling-window off-by-one gets fixed in one file and not the other — and these
+evaluations feed the leverage dial, so a divergence between them would be
+invisible and load-bearing at the same time.
 
-Deliberately left behind: `underwater`, whose two copies are NOT identical, and
-`fetch`, which is a network seam rather than maths. Merging things that only
-look alike is how a shared helper acquires a caller it was never right for.
+Deliberately left behind: `fetch`, which is a network seam rather than maths.
+Merging things that only look alike is how a shared helper acquires a caller it
+was never right for.
 
 Imports nothing from clawock.
 """
@@ -47,3 +48,13 @@ def mdd(nav):
         peak = max(peak, v)
         m = min(m, v / peak - 1)
     return m
+
+
+def underwater(nav):
+    """Drawdown from the running peak at each point, in percent."""
+    peak = -1e9
+    out = []
+    for v in nav:
+        peak = max(peak, v)
+        out.append((v / peak - 1) * 100)
+    return out

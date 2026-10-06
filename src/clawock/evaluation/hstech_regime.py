@@ -16,13 +16,13 @@ Run:
   clawock evaluate-hstech-regime --ma 150 --vol-cap 0.45
 """
 import argparse
-import math
 from datetime import date
 from pathlib import Path
 
 import requests
 
 from clawock.decision import regime as compute_regime
+from clawock.evaluation.series import rvol as realized_vol, sma
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
@@ -43,29 +43,6 @@ def fetch_hstech(start='2021-01-01', end=None, lim=2000):
         except (IndexError, ValueError):
             continue
     return out
-
-
-def sma(vals, n):
-    """Trailing simple moving average; None until n samples exist."""
-    out = [None] * len(vals)
-    s = 0.0
-    for i, v in enumerate(vals):
-        s += v
-        if i >= n:
-            s -= vals[i - n]
-        if i >= n - 1:
-            out[i] = s / n
-    return out
-
-
-def realized_vol(rets, n, i):
-    """Annualised stdev of the trailing n daily returns ending at i."""
-    if i < n:
-        return None
-    window = rets[i - n + 1:i + 1]
-    m = sum(window) / n
-    var = sum((x - m) ** 2 for x in window) / (n - 1)
-    return math.sqrt(var) * math.sqrt(252)
 
 
 def max_drawdown(nav, dates=None):

@@ -18,7 +18,7 @@ Dial (matches production compute_regime):
 Outputs: results table + memory/.tmp/combined_*.png
 Run: clawock evaluate-combined-regime   (needs the charting extra: pip install 'clawock[evaluation]')
 """
-from clawock.evaluation.series import mdd, rvol, sma
+from clawock.evaluation.series import mdd, rvol, sma, underwater
 import json
 import argparse
 import math
@@ -88,13 +88,6 @@ def fetch(kind, sym, cnt=1800):
 
 
 
-
-
-def underwater(nav):
-    peak = -1e9; o = []
-    for v in nav:
-        peak = max(peak, v); o.append((v / peak - 1) * 100)
-    return o
 
 
 def cagr(nav, dts):

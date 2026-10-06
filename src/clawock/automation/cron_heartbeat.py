@@ -17,6 +17,10 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 from clawock.automation import workflow_outcomes
+# Both ledgers are published. Their writes go through the one atomic JSON
+# writer (fsync, orphan-tmp cleanup, non-finite guard) under the local name the
+# call sites already use (#2620).
+from clawock.safe_io import safe_write_json as _atomic_write
 
 WS = workspace_root()
 LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"
@@ -97,13 +101,6 @@ def _load() -> tuple[dict, bool]:
 
 def load_ledger() -> dict:
     return _load()[0]
-
-
-def _atomic_write(path: Path, data: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
-    os.replace(tmp, path)
 
 
 @contextmanager
