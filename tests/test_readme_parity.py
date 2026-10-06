@@ -204,6 +204,20 @@ def test_the_information_layer_table_adds_up_in_both_languages():
         f"layer counts differ between languages: {seen}")
 
 
+def test_the_two_book_cards_sit_in_the_hero_with_their_denominators():
+    """The US and HK cards are the result the page leads with, so they stay above
+    the first section heading; and the one line under them is where each
+    percentage meets the amount and basis it was divided by."""
+    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
+        hero = md.split("\n## ", 1)[0]
+        assert "book-us.svg" in hero and "book-hk.svg" in hero, (
+            f"{name}: the book cards slid below the first section")
+        caption = next(ln for ln in hero.splitlines() if "CW_M:us_return_pct" in ln)
+        for key in ("us_basis", "us_principal", "hk_return_pct", "hk_basis",
+                    "hk_principal", "return_pct", "return_basis"):
+            assert f"CW_M:{key} " in caption, f"{name}: the caption lost {key}"
+
+
 def test_explicit_h2_sequences():
     # Lock both languages' section order (and their 1:1 correspondence by position),
     # not just the count — so a section can't be added/reordered in one language only.

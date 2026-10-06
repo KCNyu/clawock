@@ -1,7 +1,7 @@
 """The README's per-book P&L charts are drawn from the dashboard payload.
 
 `site/tools/build_readme_book_charts.py` turns `dashboard.json` into
-`site/assets/book-us.svg` and `book-hk.svg`; the weekly README refresh calls it
+`site/assets/book-us.svg` and `book-hk.svg`, the two cards at the top of the README; the weekly README refresh calls it
 from the payload it reads the placeholders from. The payload is not in a test
 checkout, so these run the builder on a small synthetic one and pin the three
 things a chart of money can get quietly wrong: reading a snapshot column by
@@ -65,7 +65,7 @@ def test_the_curve_is_read_by_column_name(charts):
     """The packed rows carry no keys; a reordered payload must draw the same curve."""
     reordered = ['hk_realized', 'us_profit', 'date', 'hk_profit', 'us_realized']
     assert charts.series(_payload(reordered), 'us') == charts.series(_payload(), 'us')
-    assert [total for _, total, _ in charts.series(_payload(reordered), 'hk')] == [
+    assert [total for _, total in charts.series(_payload(reordered), 'hk')] == [
         -500.0, -9000.0, -4000.0]
     assert charts.render_all(_payload(reordered)) == charts.render_all(_payload())
 
