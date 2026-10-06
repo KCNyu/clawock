@@ -5,6 +5,8 @@ import json
 import copy
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -1255,3 +1257,63 @@ def test_left_side_is_observed_and_recorded_never_sized():
     recorded = left_side.history_row(packet)
     assert set(recorded["rows"]) == {"00100", "LEVX"}
     assert recorded["generation_id"] == packet["_meta"]["generation_id"]
+
+
+# ── #2626: the candidate state machine and the byte-budget alarms had no entry
+# of their own; they could only be reached through a whole `compile_packet`.
+
+_SETUP = {"setup_id": "alpha_confirmation", "remaining_tranches": 1, "entry_price": 10.0}
+_ALLOWED = {"allowed_actions": ["add_only_on_trigger"], "max_add_shares": 5}
+
+
+def _candidate_row(tier="validated", *, early=None, setups=(_SETUP,), constraints=_ALLOWED,
+                   execution=None, risk=None):
+    return {"leg": "US", "quant": {"add_authority": {"tier": tier, "blockers": ["thin"]},
+                                    "early_trend": early or {}},
+            "technical": {"setups": list(setups)}, "constraints": constraints,
+            "execution": execution or {}, "risk": risk}
+
+
+@pytest.mark.parametrize("row, state", [
+    (_candidate_row("none", early={"observed": True}), "candidate_only"),
+    (_candidate_row("none", early={"observed": True, "state": "watching"}), "watching"),
+    (_candidate_row("none"), "insufficient_evidence"),
+    (_candidate_row(setups=()), "waiting_timing"),
+    (_candidate_row(setups=({**_SETUP, "remaining_tranches": 0},)), "already_at_target"),
+    (_candidate_row(execution={"blockers": ["open_add"]}), "risk_blocked"),
+    (_candidate_row(risk={"level": "breach"}), "risk_blocked"),
+    (_candidate_row(), "eligible"),
+    (_candidate_row(constraints={"allowed_actions": []}), "constraint_blocked"),
+])
+def test_each_candidate_state_is_reachable_on_its_own(row, state):
+    candidates, tiers, blockers = packet_mod._candidate_rows({"ACME": row})
+    assert [(c["ticker"], c["state"]) for c in candidates] == [("ACME", state)]
+    tier = row["quant"]["add_authority"]["tier"]
+    assert tiers[tier] == 1 and blockers == {"thin": 1}
+    assert candidates[0]["target_tranche_level"] == (1.0 if tier == "validated" else 0.0)
+
+
+def test_the_packet_budget_refuses_over_the_line_and_warns_near_it(monkeypatch, capsys):
+    monkeypatch.setattr(packet_mod, "summary_budget_report", lambda packet: {
+        "over_budget": False, "near_budget": False})
+    packet = {"blob": "x" * 1000}
+    size = len(packet_mod._compact(packet).encode("utf-8"))
+
+    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size * 10)
+    packet_mod._packet_budget_warnings(packet, {})
+    assert capsys.readouterr().err == ""
+
+    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size + 1)
+    packet_mod._packet_budget_warnings(packet, {"A": {}, "B": {}})
+    err = capsys.readouterr().err
+    assert f"decision packet at {size} bytes" in err and "(2 tickers)" in err
+
+    monkeypatch.setattr(packet_mod, "summary_budget_report", lambda packet: {
+        "over_budget": False, "near_budget": True, "bytes": 7, "ratio": 0.9,
+        "budget": 8, "tickers": 2})
+    packet_mod._packet_budget_warnings(packet, {})
+    assert err.count("warn:") == 1 and capsys.readouterr().err.count("warn:") == 2
+
+    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size - 1)
+    with pytest.raises(ValueError, match="decision packet exceeds"):
+        packet_mod._packet_budget_warnings(packet, {})
