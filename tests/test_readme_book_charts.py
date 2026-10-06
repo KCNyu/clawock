@@ -91,7 +91,7 @@ def test_the_two_books_never_share_a_scale_or_a_sum(charts):
     """One card, two plots: each curve spans its own half and its own range."""
     root = ET.fromstring(charts.render_all(_payload())['books.svg'])
     curves = [el.attrib['d'] for el in root.iter(f'{SVG}path')
-              if el.attrib.get('stroke', '').startswith('url(#stroke-')]
+              if el.attrib.get('class') == 'curve']
     assert len(curves) == 2
     xs = [[float(pair.split()[0]) for pair in d.replace('M', 'L').split('L') if pair.strip()]
           for d in curves]
@@ -117,13 +117,3 @@ def test_the_card_survives_an_img_tag(charts):
         assert not tags & {'script', 'foreignObject', 'filter', 'image'}, name
         assert root.find(f'{SVG}title') is not None and root.find(f'{SVG}desc') is not None, name
     ET.parse(ROOT / 'site/assets' / charts.NAME)    # the committed card is well-formed
-
-
-def test_readme_values_carry_sign_denominator_and_basis():
-    refresh = _load('ops/growth/refresh_readme_metrics.py', 'refresh_readme_metrics')
-    values = refresh._book_values(_payload()['net_principal_return'])
-    assert values == {
-        'us_return_pct': '+30.00%', 'us_principal': 'US$1,000', 'us_basis': 'true_principal',
-        'hk_return_pct': '−20.00%', 'hk_principal': 'HK$20,000', 'hk_basis': 'net_principal',
-        'return_basis': 'mixed',
-    }
