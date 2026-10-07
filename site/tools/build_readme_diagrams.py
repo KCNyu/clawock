@@ -13,8 +13,9 @@ scales the same file down for a phone, so the picture a desktop reader sees is t
 picture a phone reader sees. Every diagram uses the 1016-unit canvas and the one
 five-step type scale in `TYPE`; none redeclares a size, so a label class is the
 same size in every figure. Detailed desk flows read down two 472-unit columns. The
-overview is a tall poster of eight panels: tile grid, logo rail, versus split,
-limit bars, verdict tiles and a return timeline. Shared primitives draw the
+overview is a tall poster of nine panels: tile grid, logo rail, versus split,
+limit bars beside a breach track, verdict tiles, two return loops through one
+record, and the maintenance loop around the dsh panel. Shared primitives draw the
 material; each diagram owns the arrangement that best explains its content.
 
 The glass is drawn, not filtered: an image has no backdrop to blur. A card is a
@@ -566,7 +567,7 @@ def harnesses():
         ('clock', 'Allowances', ['5h + weekly use', 'and reset times.'], 'warm'),
         ('terminal', 'Real queue order', ['Running, queued,', 'or waiting for quota.'], 'blue'),
         ('branch', 'Steer the task', ['Move waiting work;', 'change the next model', 'where allowed.'], 'violet'),
-        ('clock', 'Set its budgets', ['Deadline, retries', 'and quota resumes.'], 'warm'),
+        ('gate', 'Set its budgets', ['Deadline, retries', 'and quota resumes.'], 'warm'),
         ('filing', 'Open the brief', ['Read the task and', 'appended instructions.'], 'slate'),
         ('checks', 'See the receipts', ['Report status and', 'notification delivery', 'shown separately.'], 'green'),
     ]
@@ -1121,7 +1122,7 @@ def decision_pipeline():
     d.icon('market', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
     d.text(M + 20, y + 56, '44 modules · 8 layers · deterministic collection', 'm', fill=MUT)
-    xs, cw = columns(3, gap=16, x0=M + 16, w=CW - 32)
+    xs, cw = columns(3, gap=10, x0=M + 16, w=CW - 32)
     sources = [('market', 'Quotes + FX', 'Tencent/Nasdaq'),
                ('filing', 'SEC · HKEX', 'filings'),
                ('bars', 'Capital flow', 'Eastmoney'),
@@ -1172,7 +1173,7 @@ def decision_pipeline():
             if cmd:
                 d.text(M + 20, yy, key, 'code', fill=ROLE['green'])
             else:
-                d.text(M + 20, yy, key, 'm', fill=MUT)
+                d.text(M + 20, yy, key, 'code', fill=MUT)
             fits(key, 'code', 146, 'compute key')
             fits(what, 'm', CW - 36 - 150, 'compute what')
             d.text(M + 170, yy, what, 'm')
@@ -1268,7 +1269,7 @@ def decision_pipeline():
     y = top + 56
     xs, cw = columns(3, gap=18)
     outs = [('Brief card', ['report + card,', 'laid out by', 'code']),
-            ('Your phone', ['WeChat +', 'Telegram;', 'watchdog checks']),
+            ('Your phone', ['WeChat +', 'Telegram,', '+ watchdog']),
             ('Dashboard', ['data-plane', 'branch, polled', 'every 60 s'])]
     h = 160
     for i, (x, (name, body)) in enumerate(zip(xs, outs)):
@@ -1331,7 +1332,59 @@ def decision_pipeline():
             ['Open a real fill: plan → execution → T+1 → P&L.',
              'Ask a follow-up in chat; record the new verdict.',
              'The trace stays read-only. You place the orders.'], cls='m', where='dsh loop')
+    # The first column ends at the preflight; the room under the return line holds
+    # the same day as a clock strip instead of another box-and-arrow run.
+    foot = d.at(0, y + h)[1]
+    group, dx, dy = d.group, d.dx, d.dy
+    d.group, d.dx, d.dy = None, 0, 0
+    _day_strip(d, M, foot - 198, CW, 198)
+    assert foot - 198 >= y1 + 24, 'the day strip needs room under the return line'
+    d.group, d.dx, d.dy = group, dx, dy
     return d.render(y + h + M)
+
+
+def _day_strip(d, x, y, w, h):
+    """One HKT day of scheduled runs, from config/cron-schedules.json (New York summer time)."""
+    d.card(x, y, w, h, 'blue')
+    d.icon('clock', x + 20, y + 14)
+    d.text(x + 50, y + 32, 'One day on the desk', 'h')
+    d.tag(x + w - 16, y + 30, 'HKT', 'blue', anchor='end')
+    bx, bw, by, bh = x + 20, w - 40, y + 54, 24
+    at = lambda hour: bx + bw * hour / 24
+    d.add(f'<rect x="{bx:g}" y="{by:g}" width="{bw:g}" height="{bh}" rx="6" fill="{CHIP}" stroke="{CARD_STROKE}"/>')
+    for a, b, role in ((9.5, 16, 'blue'), (21.5, 24, 'slate'), (0, 4, 'slate')):
+        d.add(f'<rect x="{at(a):g}" y="{by:g}" width="{at(b) - at(a):g}" height="{bh}" rx="6" '
+              f'fill="{ROLE[role]}" fill-opacity=".2"/>')
+    checkins = ([h_ + m for h_ in (10, 11, 14, 15, 22, 23, 0, 1, 2) for m in (.05, .55)])
+    for t in checkins:
+        d.add(f'<path d="M{at(t):g} {by + 7:g}V{by + bh - 7:g}" stroke="{ROLE["slate"]}" stroke-width="1.5" '
+              f'stroke-linecap="round"/>')
+    for t in (9.55, 12.05, 13.55, 16.17, 21.55, 4.05):
+        d.add(f'<circle cx="{at(t):g}" cy="{by + bh / 2:g}" r="4" fill="{ROLE["blue"]}" stroke="#ffffff"/>')
+    d.add(f'<circle cx="{at(8.05):g}" cy="{by + bh / 2:g}" r="6" fill="{ROLE["green"]}" stroke="#ffffff" '
+          f'stroke-width="1.5"/>')
+    d.add(f'<circle cx="{at(3):g}" cy="{by + bh / 2:g}" r="4" fill="{ROLE["violet"]}" stroke="#ffffff"/>')
+    for hour in range(0, 25, 4):
+        d.text(at(hour), by + bh + 18, f'{hour:02d}', 'code', anchor='middle', fill=FAINT)
+    rows = [[('dot', 'green', 'brief 08:03'), ('dot', 'blue', 'session reports'), ('tick', 'slate', 'check-ins')],
+            [('band', 'blue', 'HK session'), ('band', 'slate', 'US session'), ('dot', 'violet', 'memory 03:00')]]
+    for i, row in enumerate(rows):
+        lx, ly = bx, by + bh + 46 + i * 22
+        for kind, role, label in row:
+            if kind == 'dot':
+                d.add(f'<circle cx="{lx + 5:g}" cy="{ly - 5:g}" r="4.5" fill="{ROLE[role]}"/>')
+            elif kind == 'tick':
+                d.add(f'<path d="M{lx + 5:g} {ly - 10:g}V{ly:g}" stroke="{ROLE[role]}" stroke-width="1.5" '
+                      f'stroke-linecap="round"/>')
+            else:
+                d.add(f'<rect x="{lx:g}" y="{ly - 10:g}" width="10" height="10" rx="2.5" fill="{ROLE[role]}" '
+                      f'fill-opacity=".3"/>')
+            d.text(lx + 16, ly, label, 'm', fill=MUT)
+            lx += bw / 3
+            fits(label, 'm', bw / 3 - 22, 'day legend')
+    note = 'Check-ins every 30 min · US slots follow New York DST'
+    d.text(bx, by + bh + 46 + 44, note, 'm', fill=FAINT)
+    fits(note, 'm', bw, 'day note')
 
 def _wrap(row, cls, room, scale=1):
     # A separator stays with the word before it: no line opens on "·" or "/".
@@ -1501,13 +1554,22 @@ def rsi_loop():
     rx_, rw = mx + mw + 28, M + full - 20 - (mx + mw + 28)
     for sep in (mx - 14, rx_ - 14):
         d.add(f'<path d="M{sep:g} {top - 10:g}V{y + ch - 22:g}" stroke="{CARD_STROKE}"/>')
-    d.text(mx, top, 'MONEY', 'kick', fill=ROLE['green'])
-    half = (mw - 52) / 2
-    d.chip(mx, top + 16, half, 'USD', cls='code', fill=ROLE['green'], h=34)
-    d.chip(mx + half + 52, top + 16, half, 'HKD', cls='code', fill=ROLE['green'], h=34)
-    d.icon('fx', mx + half + 15, top + 22, 'green')
-    d.lines(mx, top + 82, mw, ['Currencies never sum directly', 'Unreconciled book: not pushed',
-                               'Return on peak principal', 'A breach freezes same-risk adds'], cls='m', lh=30, where='money')
+    # What happens after a cap is crossed: a short track, not a fourth list.
+    d.text(mx, top, 'WHEN A LIMIT BREAKS', 'kick', fill=ROLE['green'])
+    track = [('Breach recorded with its age', INK), ('Same-risk adds freeze', INK),
+             ('Any override expires', INK), ('Execution stays human', MUT)]
+    d.add(f'<path d="M{mx + 7:g} {top + 32:g}V{top + 32 + 40 * (len(track) - 1):g}" stroke="{LINE}" '
+          f'stroke-width="1.5"/>')
+    for i, (label, fill) in enumerate(track):
+        yy = top + 32 + i * 40
+        last = i == len(track) - 1
+        d.add(f'<circle cx="{mx + 7:g}" cy="{yy:g}" r="6" fill="{"#ffffff" if last else ROLE["green"]}" '
+              f'stroke="{ROLE["green"]}" stroke-width="1.5"/>')
+        d.text(mx + 26, yy + 5, label, 'm', fill=fill)
+        fits(label, 'm', mw - 26, 'breach step')
+    d.icon('gate', mx - 3, top + 176, 'green', size=20)
+    d.text(mx + 26, top + 191, 'Unreconciled book: no push', 'm')
+    fits('Unreconciled book: no push', 'm', mw - 26, 'breach footer')
     d.text(rx_, top, 'EVIDENCE', 'kick', fill=ROLE['blue'])
     for i, rule in enumerate(('Two evidence families per add', 'Price alone never moves a thesis',
                               'Two sources per published number', 'No bear case, no publication',
@@ -1560,30 +1622,110 @@ def rsi_loop():
     for a, b, role in ((M + w1, x2, 'blue'), (x2 + w2, x3, 'warm')):
         d.wire(f'M{a:g} {y + dh / 2:g}H{b - 2:g}', pulses=(0, 1.2), pulse=ROLE[role])
 
-    # --- row E: the record comes back -------------------------------------------
+    # --- row E: the record comes back, around two loops ---------------------------
     d_bottom = y + dh
     y = d_bottom + 48
-    eh = 176
+    eh = 306
     d.down(x3 + w3 / 2, d_bottom, y, pulses=(0, 1.2), pulse=ROLE['green'])
     d.section(y - 12, '08 · WHAT RETURNS')
     top = _panel(d, M, y, full, eh, 'violet', 'replay', 'The next judgment starts from the record',
                  'RSI · RECURSIVE SELF-IMPROVEMENT', tint=True)
-    line_y = top + 46
-    d.add(f'<path d="M{M + full - 40:g} {line_y:g}H{M:g}" stroke="{LINE}" stroke-width="1.5"/>')
-    stops = [('History + reviews', 'in the next brief'), ('Earlier-date calibration', 'shrinks or abstains'),
-             ('Bounded proposal', 'evidence rules only'), ('Named review + rollback', 'no silent strategy edits')]
-    for i, (name, body) in enumerate(stops):
-        xx = M + full * (i + .5) / 4
-        d.add(f'<circle cx="{xx:g}" cy="{line_y:g}" r="7" fill="{ROLE["violet"]}"/>')
-        d.text(xx, line_y - 20, name, 'b', anchor='middle')
-        d.text(xx, line_y + 30, body, 'm', anchor='middle', fill=MUT)
-        fits(name, 'b', full / 4 - 16, 'return stop')
-        fits(body, 'm', full / 4 - 16, 'return stop body')
-    # The return leaves the lane's left edge on its own timeline and climbs the
-    # margin back to the sources, clear of every pane.
+    ty, th, r = top + 58, 96, 48
+    cy, k = ty + th / 2, 26.5
+    hub_x, hub_w = M + full / 2 - 68, 136
+    lobes = [
+        (hub_x, -1, 'THE JUDGMENT', 'every brief',
+         [('History + reviews', ['enter the next brief']),
+          ('Calibration', ['earlier dates only', 'shrinks or abstains'])],
+         [('Next judgment', ['starts from the record']), ('Settled by code', ['never by the model'])]),
+        (hub_x + hub_w, 1, 'THE EVIDENCE RULES', 'when a named review accepts',
+         [('Bounded proposal', ['evidence rules only']),
+          ('Named review', ['accepts the exact hash', 'or rejects it'])],
+         [('Applied', ['with a rollback record']), ('No silent edits', ['strategy stays yours'])]),
+    ]
+    for x0, s, kick, cadence, out, back in lobes:
+        # A stadium that leaves the record along the top and comes back along the foot.
+        near, far = x0 + s * r, x0 + s * (376 - r)
+        end = x0 + s * 376
+        d.wire(f'M{x0:g} {cy:g}C{x0:g} {cy - k:g} {near - s * k:g} {ty:g} {near:g} {ty:g}H{far:g}'
+               f'C{far + s * k:g} {ty:g} {end:g} {cy - k:g} {end:g} {cy:g}'
+               f'C{end:g} {cy + k:g} {far + s * k:g} {ty + th:g} {far:g} {ty + th:g}H{near:g}'
+               f'C{near - s * k:g} {ty + th:g} {x0:g} {cy + k:g} {x0 + s * 2:g} {cy + 3:g}',
+               pulses=(0, 3, 6), dur=9, pulse=ROLE['violet'], arrow=False)
+        mid = x0 + s * 188
+        d.text(mid, cy - 3, kick, 'kick', anchor='middle', fill=ROLE['violet'])
+        d.text(mid, cy + 18, cadence, 'm', anchor='middle', fill=MUT)
+        for row, edge, names in ((out, ty, (0, 1)), (back, ty + th, (1, 0))):
+            for (name, body), slot in zip(row, names):
+                xx = x0 + s * (101 + slot * 174)
+                d.add(f'<circle cx="{xx:g}" cy="{edge:g}" r="6.5" fill="{ROLE["violet"]}" stroke="#ffffff" '
+                      f'stroke-width="2"/>')
+                base = edge - 50 if edge == ty else edge + 28
+                d.text(xx, base, name, 'b', anchor='middle')
+                fits(name, 'b', 170, 'loop station')
+                for j, line in enumerate(body):
+                    d.text(xx, base + 20 + j * 20, line, 'm', anchor='middle', fill=MUT)
+                    fits(line, 'm', 178, 'loop station body')
+        # Which way round: one chevron on the outbound edge, one on the way back.
+        for xx, edge, way in ((mid, ty, s), (mid, ty + th, -s)):
+            d.add(f'<path d="M{xx - way * 4:g} {edge - 5:g}L{xx + way * 3:g} {edge:g}L{xx - way * 4:g} {edge + 5:g}" '
+                  f'fill="none" stroke="{ROLE["violet"]}" stroke-width="1.8" stroke-linecap="round" '
+                  f'stroke-linejoin="round"/>')
+    d.add(f'<rect x="{hub_x:g}" y="{cy - 40:g}" width="{hub_w}" height="80" rx="14" fill="#ffffff" '
+          f'stroke="{ROLE["violet"]}" stroke-opacity=".45" stroke-width="1.5"/>')
+    d.text(hub_x + hub_w / 2, cy - 2, [('The record', ROLE['violet'])], 'h', anchor='middle')
+    d.text(hub_x + hub_w / 2, cy + 20, 'every call kept', 'm', anchor='middle', fill=MUT)
+    fits('every call kept', 'm', hub_w - 16, 'record hub')
+    # The return leaves the far end of the judgment loop and climbs the margin
+    # back to the sources, clear of every pane.
     first = d.header_bottom + 44 + ah / 2
-    d.wire(f'M{M:g} {line_y:g}H{M - 13:g}V{first:g}H{M - 2:g}', pulses=(0, 4, 8), dur=12,
+    d.wire(f'M{hub_x - 376:g} {cy:g}H{M - 13:g}V{first:g}H{M - 2:g}', pulses=(0, 4, 8), dur=12,
            pulse=ROLE['violet'], dash=True)
+
+    # --- row F: the desk's own code goes round the same kind of loop --------------
+    e_bottom = y + eh
+    y = e_bottom + 48
+    fh = 336
+    d.section(y - 12, '09 · THE DESK FIXES ITSELF THE SAME WAY')
+    top = _panel(d, M, y, full, fh, 'blue', 'lens', 'Audited, fixed and shipped in the background',
+                 'ON THE AUTHOR’S HOST')
+    xs, cw = columns(3, gap=36, x0=M + 20, w=full - 40)
+    th, band = 78, 52
+    y1, y2 = top - 4, top - 4 + th + 22 + band + 22
+    stations = [
+        (xs[0], y1, 'lens', 'Patrol round', 'audits what the desk published'),
+        (xs[1], y1, 'gate', 'Filing gate', 'proven first, or it is not filed'),
+        (xs[2], y1, None, 'Background agent', 'own worktree · own task unit'),
+        (xs[2], y2, 'checks', 'PR + required CI', 'every gate passes before merge'),
+        (xs[1], y2, 'commit', 'Merged → live', 'the refresh applies what passed'),
+        (xs[0], y2, 'replay', 'A closed issue is feedback', 'repeat false alarms get demoted'),
+    ]
+    for x, yy, icon, name, body in stations:
+        d.add(f'<rect x="{x:g}" y="{yy:g}" width="{cw:g}" height="{th}" rx="9" fill="{TINT["blue"]}" '
+              f'stroke="{ROLE["blue"]}" stroke-opacity=".18"/>')
+        if icon:
+            d.icon(icon, x + 12, yy + 12, 'blue', size=20)
+        d.text(x + (42 if icon else 14), yy + 28, name, 'b')
+        d.text(x + 14, yy + 58, body, 'm', fill=MUT)
+        fits(name, 'b', cw - (56 if icon else 120), 'system station')
+        fits(body, 'm', cw - 24, 'system station body')
+    lx = xs[2] + cw - 12 - 3 * 30
+    d.logo('claude-code', lx, y1 + 9, 26)
+    d.logo('codex', lx + 30, y1 + 9, 26)
+    d.wordmark_tile(lx + 60, y1 + 9, 26, '[', ']')
+    for a, b in ((0, 1), (1, 2)):
+        d.wire(f'M{xs[a] + cw:g} {y1 + th / 2:g}H{xs[b] - 2:g}', pulses=(a * .5,), dur=1.6)
+        d.wire(f'M{xs[b]:g} {y2 + th / 2:g}H{xs[a] + cw + 2:g}', pulses=(a * .5 + 1.5,), dur=1.6)
+    d.wire(f'M{xs[2] + cw / 2:g} {y1 + th:g}V{y2 - 2:g}', pulses=(1,), dur=2)
+    d.wire(f'M{xs[0] + cw / 2:g} {y2:g}V{y1 + th + 2:g}', pulses=(3,), dur=2)
+    bx, bw_, by = xs[1] - 18, cw + 36, y1 + th + 22
+    d.add(f'<rect x="{bx:g}" y="{by:g}" width="{bw_:g}" height="{band}" rx="12" fill="{TINT["violet"]}" '
+          f'stroke="{ROLE["violet"]}" stroke-opacity=".2"/>')
+    d.logo('deepseek-harness', bx + 10, by + 8, 36)
+    d.text(bx + 56, by + 22, 'Watched and steered from dsh', 'b')
+    d.text(bx + 56, by + 42, 'queue · quota · receipts', 'm', fill=MUT)
+    fits('Watched and steered from dsh', 'b', bw_ - 66, 'dsh band')
+    eh = fh
     bottom = y + eh
     note = 'No promise of returns. The active calls have yet to show an edge; what accumulates is a record you can check.'
     fits(note, 'm', full - 40, 'overview note')

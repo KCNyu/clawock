@@ -136,7 +136,7 @@
     <text x="278" y="1144" class="m"><tspan fill="#5b6875">Move waiting work;</tspan></text>
     <text x="278" y="1162" class="m"><tspan fill="#5b6875">change the next model</tspan></text>
     <text x="278" y="1180" class="m"><tspan fill="#5b6875">where allowed.</tspan></text>
-    <g class="hero-icon" data-icon="clock" transform="translate(278 1195) scale(1)" fill="none" stroke="#b8524a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></g>
+    <g class="hero-icon" data-icon="gate" transform="translate(278 1195) scale(1)" fill="none" stroke="#b8524a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h16v17M8 4v17m8-17v17M4 12h16M10 8l2 2 3-3"/></g>
     <text x="278" y="1237" class="b"><tspan fill="#151a21">Set its budgets</tspan></text>
     <text x="278" y="1256" class="m"><tspan fill="#5b6875">Deadline, retries</tspan></text>
     <text x="278" y="1274" class="m"><tspan fill="#5b6875">and quota resumes.</tspan></text>

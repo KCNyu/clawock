@@ -42,8 +42,8 @@ def test_rsi_views_share_the_house_style_and_stay_small():
     for name in names:
         path = ROOT / 'site/assets' / f'{name}.svg'
         text = path.read_text(encoding='utf-8')
-        # Vector only: the overview inlines six logos and still loads like an icon.
-        assert path.stat().st_size < 90_000, path.name
+        # Vector only: the overview inlines nine logos and still loads like an icon.
+        assert path.stat().st_size < 100_000, path.name
         for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
             assert primitive in text, (path.name, primitive)
         assert '@media (prefers-reduced-motion:reduce)' in text
@@ -208,15 +208,18 @@ def test_every_diagram_sets_type_on_the_one_shared_scale():
 
 
 def test_the_overview_carries_every_step_and_every_harness_logo():
-    """The first figure is the whole loop: all eight panels, all five harnesses."""
+    """The first figure is the whole loop: all nine panels, all five harnesses."""
     text = (ROOT / 'site/assets/rsi-loop.svg').read_text(encoding='utf-8')
     root = ET.fromstring(text)
     labels = [''.join(el.itertext()) for el in root.iter(f'{SVG}text')]
     steps = [label for label in labels if re.match(r'0\d · ', label)]
-    assert [step[:2] for step in steps] == [f'0{n}' for n in range(1, 9)], steps
+    assert [step[:2] for step in steps] == [f'0{n}' for n in range(1, 10)], steps
     for harness in ('Claude Code', 'Codex', 'OpenClaw', 'DeepSeek Harness', 'Your own CLI'):
         assert harness in labels, harness
-    assert len(root.findall(f'{SVG}svg')) == 6, 'five harness logos and the clawock mark'
+    # The harness rail and the clawock mark, then the background team that
+    # maintains the desk: Claude Code, Codex and the dsh panel that watches them.
+    assert len(root.findall(f'{SVG}svg')) == 9, 'six marks above, three in the maintenance loop'
+    assert 'Currencies never sum directly' not in labels, 'a rule nobody needs drawn'
     assert float(root.attrib['height']) > 1.5 * float(root.attrib['width'])
 
 
