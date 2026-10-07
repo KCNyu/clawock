@@ -119,7 +119,7 @@ jobs:
       - name: Recompute README metrics
         # Reuses the packaged ledger directly from src/ — no install needed.
         # Rewrites the <!-- CW_M:* --> placeholders, redraws the two-book
-        # One P&L composition plus the byte-identical frozen-hero alias, from the same dashboard
+        # P&L card (site/assets/books.svg and books-narrow.svg) from the same dashboard
         # payload, and writes assets/data/readme_metrics.json for audit. Exit contract:
         #   0 = changed, 1 = nothing changed (normal on a quiet week; the
         #   commit step below makes the final call), 2 = real error.

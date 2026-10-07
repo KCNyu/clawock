@@ -1,13 +1,13 @@
 """The README's per-book P&L charts are drawn from the dashboard payload.
 
 `site/tools/build_readme_book_charts.py` turns `dashboard.json` into
-`site/assets/books.svg` and `books-narrow.svg`, one composition and a legacy filename alias of the two-book
+`site/assets/books.svg` and `books-narrow.svg`, the two layouts of the two-book
 card in the README's hero; the weekly README refresh calls it from the payload
 it reads the placeholders from. The payload is not in a test checkout, so these
 run the builder on a small synthetic one and pin what a chart of money can get
 quietly wrong: reading a snapshot column by position, printing a percentage
-without the basis the payload divided by, letting the hero alias select a different
-composition, writing a partial chart when a label no longer fits, and motion that
+without the basis the payload divided by, letting the two layouts say different
+things, writing a partial chart when a label no longer fits, and motion that
 ignores prefers-reduced-motion or leaves the first frame incomplete.
 """
 import importlib.util
@@ -110,14 +110,17 @@ def test_each_percentage_is_printed_with_the_basis_the_payload_used(charts):
     assert 'HK$25,000' in _desc(svg) and 'HK$20,000' not in _desc(svg)
 
 
-def test_the_hero_compatibility_alias_is_the_same_composition(charts):
-    """The protected hero link survives, but cannot select different geometry."""
+def test_the_two_layouts_say_the_same_thing(charts):
+    """Desktop canvas and single column: same words, same curves' data, two sizes."""
     rendered = charts.render_all(_payload())
     assert set(rendered) == {'books.svg', 'books-narrow.svg'}
-    assert rendered['books.svg'] == rendered['books-narrow.svg']
-    assert (ROOT / 'site/assets/books.svg').read_bytes() == (ROOT / 'site/assets/books-narrow.svg').read_bytes()
-    root = ET.fromstring(rendered['books.svg'])
-    assert float(root.attrib['width']) == charts.house.WIDE
+    wide, narrow = (ET.fromstring(rendered[n]) for n in ('books.svg', 'books-narrow.svg'))
+    assert float(wide.attrib['width']) == charts.house.WIDE
+    assert float(narrow.attrib['width']) == charts.house.W
+    assert _labels(rendered['books.svg']) == _labels(rendered['books-narrow.svg'])
+    assert _desc(rendered['books.svg']) == _desc(rendered['books-narrow.svg'])
+    # The hero stays short on a desktop: the wide card is lower than the narrow one.
+    assert float(wide.attrib['height']) < float(narrow.attrib['height'])
 
 
 def test_the_two_books_never_share_a_scale_or_a_sum(charts):

@@ -2,10 +2,10 @@
 
     python3 site/tools/build_readme_book_charts.py [--data-plane DIR]   # rewrite the SVG
 
-One composition with the US book on the left and Hong Kong on the right.
-The byte-frozen README hero still names `books-narrow.svg` in its picture tag;
-that filename is now only a byte-identical compatibility alias of `books.svg`.
-The same geometry scales on every screen. It is drawn with the primitives of
+One figure in the README's two layouts, with the US book on the left and the
+Hong Kong book on the right, under the dashboard GIF: `site/assets/books.svg`
+on the desktop canvas and `books-narrow.svg` on the single column, chosen by a
+`<picture>` like every other figure. It is drawn with the primitives of
 `build_readme_diagrams.py` (canvas, glass panes, type scale, inks, the glow of a
 pulse), so it reads as one of them. The two books take two of that system's
 role colours, blue for US and warm red for HK.
@@ -19,7 +19,8 @@ one result in the hero. Per pane, on one `CYCLE`: the house pulse runs the
 curve with a streak of light behind it, a ring opens where it lands on today's
 value, and a glint crosses the glass. Behind the panes two colour fields drift,
 which is what the translucent glass is there to show. The two books run half a
-cycle apart so something is always moving. There is one `_motion` and `_book` composition.
+cycle apart so something is always moving. Both layouts call the same `_motion`
+and `_book`, so they carry the same definitions and differ only in distances.
 Everything that moves stops under `prefers-reduced-motion`: SMIL carries the
 class `pulse`, which the house style removes, and each CSS animation is
 switched off in the same media query. The first frame is complete without any
@@ -62,10 +63,8 @@ _spec.loader.exec_module(house)
 
 ASSETS = house.ASSETS
 NAME = 'books.svg'
-M = house.M
-# The frozen hero still names books-narrow.svg. It is a byte-identical legacy
-# alias of books.svg, never a second composition. Keep until that link can change.
-FILES = (NAME, 'books-narrow.svg')
+W, M = house.W, house.M
+FILES = {NAME: True, 'books-narrow.svg': False}     # file -> wide layout
 BOOKS = {
     # leg key in the payload -> (kicker, currency prefix, role colour in the house palette)
     'us': ('US BOOK', 'US$', 'blue'),
@@ -112,7 +111,7 @@ def _motion(d, panes, top, height):
     """Shared light: definitions, the drifting fields behind the glass, the styles.
 
     `panes` is [(leg, x, width)]. Distances are the only thing that differs
-    between the two book panels.
+    between the two layouts.
     """
     w = panes[0][2]
     reach, band = w + 150, 64                  # how far a glint travels; its width
@@ -150,9 +149,14 @@ def _book(d, dashboard, leg, x, top, w, height, glint, begin):
     points = series(dashboard, leg)
     first, last = points[0][0], points[-1][0]
     headline = percent(ret['return_pct'])
-    head, left, room = 44, x + 28, 222
-    rows = (top + 37, top + 85, top + 111)
-    x0, x1, y0, y1 = left + room + 14, x + w - 26, top + 28, top + height - 28
+    if d.wide:      # return on the left, curve on the right
+        head, left, room = 44, x + 28, 222
+        rows = (top + 37, top + 85, top + 111)
+        x0, x1, y0, y1 = left + room + 14, x + w - 26, top + 28, top + height - 28
+    else:           # return on top, curve underneath
+        head, left, room = 38, x + 18, w - 18 - 12
+        rows = (top + 30, top + 70, top + 94)
+        x0, x1, y0, y1 = left, x + w - 18, top + 114, top + height - 20
 
     if len(headline) * head * house.TYPE['title'][2] > room:
         house.WARN.append(f'{leg} headline: "{headline}" does not fit {room:.0f}')
@@ -224,10 +228,14 @@ def _book(d, dashboard, leg, x, top, w, height, glint, begin):
     return f'{kicker.title()} {headline}, {amount} ({basis})', first, last
 
 
-def chart(dashboard):
+def chart(dashboard, wide=True):
     combined = dashboard['net_principal_return']['combined_usd']
-    d = house.D('US and Hong Kong books, measured apart', '')
-    top, height, w, xs = M, 138, house.CW, (M, M + house.COL2)
+    d = house.D('US and Hong Kong books, measured apart', '', wide=wide)
+    if wide:
+        top, height, w, xs = M, 138, house.CW, (M, M + house.COL2)
+    else:
+        top, height, w = 20, 176, (W - 2 * M - 12) / 2
+        xs = (M, M + w + 12)
     glint = _motion(d, [('us', xs[0], w), ('hk', xs[1], w)], top, height)
     us = _book(d, dashboard, 'us', xs[0], top, w, height, glint, 0)
     hk = _book(d, dashboard, 'hk', xs[1], top, w, height, glint, -CYCLE / 2)
@@ -251,10 +259,9 @@ def chart(dashboard):
 
 
 def render_all(dashboard):
-    """One composition plus its frozen-hero alias; refuse partial charts."""
+    """{file name: svg}, both layouts. Raises rather than drawing a partial card."""
     house.WARN.clear()
-    svg = chart(dashboard)
-    rendered = dict.fromkeys(FILES, svg)
+    rendered = {name: chart(dashboard, wide) for name, wide in FILES.items()}
     if house.WARN:
         raise ValueError('book chart label overflow: ' + '; '.join(house.WARN))
     return rendered
