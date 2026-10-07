@@ -115,7 +115,7 @@
     <rect class="sheen" x="346.333" y="808" width="148.667" height="64" rx="13" fill="url(#sheen)"/>
     <path d="M359.333 808.4H482" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
     <path d="M346.833 821V877" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
-    <g class="hero-icon" data-icon="balance" transform="translate(409.667 822) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>
+    <g class="hero-icon" data-icon="even" transform="translate(409.667 822) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 10h8M8 14h8"/></g>
     <text x="422.667" y="872" class="b" text-anchor="middle"><tspan fill="#151a21">Neutral</tspan></text>
     <path id="w9" data-kind="decision" d="M99.3333 891C99.3333 914 260 914 260 935" fill="none" stroke="#9aabb9" stroke-width="1.5" stroke-dasharray="7 4" marker-end="url(#arr-decision)"/>
     <use class="pulse" href="#pk-decision" xlink:href="#pk-decision"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0.091;0.812" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.14;.86;1" dur="1.8s" begin="-0.30s" repeatCount="indefinite"/></use>
@@ -144,7 +144,7 @@
     <rect class="sheen" x="25" y="1074" width="470" height="64" rx="13" fill="url(#sheen)"/>
     <path d="M38 1074.4H482" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
     <path d="M25.5 1087V1135" stroke="#3f82b5" stroke-width="4" stroke-linecap="round"/>
-    <g class="hero-icon" data-icon="checks" transform="translate(44 1085) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="balance" transform="translate(44 1085) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>
     <text x="74" y="1103" class="h"><tspan fill="#151a21">Next session's grading</tspan></text>
     <text x="44" y="1127" class="m"><tspan fill="#5b6875">code, not the model, settles the score</tspan></text>
     <text x="24" y="1175" class="m"><tspan fill="#5b6875">The bear attacks the strongest consensus, not the weakest;</tspan></text>

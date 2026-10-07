@@ -137,7 +137,7 @@
     <text x="44" y="1251" class="m"><tspan fill="#5b6875">prospective activation ≠ capped exploration</tspan></text>
     <rect x="92" y="1317" width="336" height="36" rx="10" fill="#ffffff" stroke="#dde4eb"/>
     <text x="272" y="1341" class="m" text-anchor="middle"><tspan fill="#13865f">preflight</tspan><tspan fill="#5b6875"> → one pack per run</tspan></text>
-    <g class="hero-icon" data-icon="checks" transform="translate(106 1325) scale(0.833333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="seal" transform="translate(106 1325) scale(0.833333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l2 2 3-4M8.5 14L7 22l5-3 5 3-1.5-8"/></g>
     <path id="w2" data-kind="gate" d="M260 1273V1315" fill="none" stroke="#7dbda4" stroke-width="1.5" marker-end="url(#arr-gate)"/>
     <use class="pulse" href="#pk-gate" xlink:href="#pk-gate"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0.286;0.571" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.14;.86;1" dur="2.2s" begin="0.00s" repeatCount="indefinite"/></use>
   </g>
@@ -280,7 +280,7 @@
     <g class="hero-icon" data-icon="shield" transform="translate(251 1827) scale(0.75)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/></g>
     <rect x="345.333" y="1821" width="134.667" height="56" rx="9" fill="#f2f5f8" stroke="#dde4eb"/>
     <text x="412.667" y="1866" class="m" text-anchor="middle"><tspan fill="#151a21">neutral</tspan></text>
-    <g class="hero-icon" data-icon="balance" transform="translate(403.667 1827) scale(0.75)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>
+    <g class="hero-icon" data-icon="even" transform="translate(403.667 1827) scale(0.75)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 10h8M8 14h8"/></g>
     <g class="hero-icon" data-icon="judge" transform="translate(44 1894) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4l5-2 5 10-5 2ZM11 10l-6 9M12 21h9"/></g>
     <text x="74" y="1911" class="b"><tspan fill="#151a21">Judge</tspan><tspan fill="#5b6875"> names the strategy frame → </tspan><tspan fill="#5d7487">plan.json</tspan></text>
     <path id="w6" data-kind="decision" d="M260 1939V1977" fill="none" stroke="#9aabb9" stroke-width="1.5" stroke-dasharray="7 4" marker-end="url(#arr-decision)"/>
@@ -294,7 +294,7 @@
     <rect class="sheen" x="25" y="2016" width="470" height="64" rx="13" fill="url(#sheen)"/>
     <path d="M38 2016.4H482" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
     <path d="M25.5 2029V2119" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
-    <g class="hero-icon" data-icon="shield" transform="translate(44 2029) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/></g>
+    <g class="hero-icon" data-icon="checks" transform="translate(44 2029) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
     <text x="74" y="2047" class="h"><tspan fill="#151a21">Postflight</tspan></text>
     <rect x="407.84" y="2031" width="72.16" height="20" rx="10" fill="#e6f4ee" stroke="#13865f" stroke-opacity=".16"/>
     <text x="443.92" y="2045" class="tag" text-anchor="middle"><tspan fill="#13865f">PYTHON</tspan></text>
@@ -349,13 +349,13 @@
     <rect class="sheen" x="25" y="2426" width="470" height="64" rx="13" fill="url(#sheen)"/>
     <path d="M38 2426.4H482" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
     <path d="M25.5 2439V2695" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
-    <g class="hero-icon" data-icon="dashboard" transform="translate(44 2439) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20M7 3v5M6 17l4-4 4 2 4-4"/></g>
+    <g class="hero-icon" data-icon="balance" transform="translate(44 2439) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>
     <text x="74" y="2457" class="h"><tspan fill="#151a21">Graded by code</tspan></text>
     <rect x="44" y="2472" width="221.92" height="20" rx="10" fill="#fbecea" stroke="#b8524a" stroke-opacity=".16"/>
     <text x="154.96" y="2486" class="tag" text-anchor="middle"><tspan fill="#b8524a">THE MODEL NEVER SCORES</tspan></text>
     <style>.sw11{animation:sw11 7.5s steps(1) infinite}@keyframes sw11{0.00%{transform:translateY(0px)}20.00%{transform:translateY(28px)}40.00%{transform:translateY(56px)}60.00%{transform:translateY(84px)}80.00%{transform:translateY(112px)}}@media (prefers-reduced-motion:reduce){.sw11{animation:none}}</style>
     <rect class="sw11 sweep" x="36" y="2503" width="448" height="28" rx="6" fill="#000" fill-opacity=".035"/>
-    <g class="hero-icon" data-icon="checks" transform="translate(44 2507) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="followed" transform="translate(44 2507) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 3 1M15 19l2 2 5-5"/></g>
     <text x="70" y="2522" class="code"><tspan fill="#13865f">mark-followed</tspan></text>
     <text x="204" y="2522" class="m"><tspan fill="#151a21">what was actually executed</tspan></text>
     <g class="hero-icon" data-icon="balance" transform="translate(44 2535) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17M5 21h14M4 7h16M6 7l-4 7h8Zm12 0-4 7h8Z"/></g>

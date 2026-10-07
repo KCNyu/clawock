@@ -139,7 +139,7 @@
     <text x="278" y="1349" class="b"><tspan fill="#151a21">Open the brief</tspan></text>
     <text x="278" y="1368" class="m"><tspan fill="#5b6875">Read the task and</tspan></text>
     <text x="278" y="1386" class="m"><tspan fill="#5b6875">appended instructions.</tspan></text>
-    <g class="hero-icon" data-icon="checks" transform="translate(278 1419) scale(1)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="receipt" transform="translate(278 1419) scale(1)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3v18l2.5-2 2.5 2 2-2 2 2 2.5-2 2.5 2V3ZM9 8h6M9 12h6"/></g>
     <text x="278" y="1461" class="b"><tspan fill="#151a21">See the receipts</tspan></text>
     <text x="278" y="1480" class="m"><tspan fill="#5b6875">Report status and</tspan></text>
     <text x="278" y="1498" class="m"><tspan fill="#5b6875">notification delivery</tspan></text>
@@ -156,7 +156,7 @@
     <g class="hero-icon" data-icon="branch" transform="translate(91.3333 1775) scale(1.33333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="4" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="20" r="2"/><path d="M6 6v12m0-4c8 0 12-2 12-6"/></g>
     <text x="107.333" y="1834" class="b" text-anchor="middle"><tspan fill="#151a21">Branch + PR</tspan></text>
     <text x="107.333" y="1857" class="m" text-anchor="middle"><tspan fill="#5b6875">own worktree</tspan></text>
-    <g class="hero-icon" data-icon="checks" transform="translate(244 1775) scale(1.33333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="ci" transform="translate(244 1775) scale(1.33333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M5 7v10M9 5h6a3 3 0 0 1 3 3v2M13 17l3 3 6-7"/></g>
     <text x="260" y="1834" class="b" text-anchor="middle"><tspan fill="#151a21">Required CI</tspan></text>
     <text x="260" y="1857" class="m" text-anchor="middle"><tspan fill="#5b6875">all gates pass</tspan></text>
     <path id="w9" data-kind="gate" d="M176.667 1791H189.667" fill="none" stroke="#7dbda4" stroke-width="1.5" marker-end="url(#arr-gate)"/>
