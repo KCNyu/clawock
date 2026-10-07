@@ -3,42 +3,37 @@
 # (after the last one it wraps back to the first). The pool is read at dispatch time, so edits
 # apply without restarting the patrol service.
 #
-# 2026-09-27 reorder — from a live probe (tools/agent-dispatch/probe-free-models.sh --tool) plus
-# the provider's own error text per model (opencode.log / an isolated XDG_DATA_HOME copy).
-# Why: rounds R239-R244 all failed. Every model then in the pool was rate-limited, and a Zen
-# free-tier 429 does not surface in `opencode run` — it retries silently, so each attempt burned
-# the runner's full 300s stall timer before rotating to a model that was equally limited.
-#   * alive and tool-calling today (the only two that were; both new, 1M ctx, and both ZDR — their
-#     providers do not train on prompts, unlike the muse-spark contributor tier, which does):
-#       space-bunny-free          — 2026-09-23, stealth model, 3/3 probe runs with a bash call
-#       longcat-2.5-preview-free  — 2026-09-25, 3/3 probe runs with a bash call
-#   * alive but rate-limited today — kept: they recover, and the limits look per-upstream, so
-#     alternating upstreams is what keeps a round going (all four answered "Rate limit exceeded"):
-#       mimo-v2.6-flash-free (2026-09-22), muse-spark-1.3-contributor-free, nemotron-3-ultra-free,
-#       ling-3.0-flash-fin-free. Same for big-pickle (2025 stealth) and nemotron-3.5-lightning-free
-#       (small fast tier) — both alive, still left out on purpose; kcn wants good models first.
-#   * dead today — instant "Unexpected server error" in the CLI, "Upstream request failed: Model is
-#     unavailable" from the API: deepseek-v4-flash-free and x-preview-f-free (already on the retired
-#     list; they are back in the /zen/v1/models catalog, so the catalog alone is not proof of life),
-#     jev-1.13-free (System One decision model, not a chat model), muse-spark-1.2-contributor-free.
-#   * mimo-v2.5-free answers instantly with "Unexpected server error" — broken, not throttled — so
-#     it sits late in the pool, where a fast failure is cheap.
-#   * opencode-go is NOT an option: the key in ~/.local/share/opencode/auth.json is present but the
-#     subscription is not active ("An active OpenCode Go subscription is required to use Go
-#     models"), even though it lists space-bunny-free / longcat-2.5-preview-free as unlimited.
+# Every entry must be in the Zen catalog (`opencode models opencode`) and cost nothing. The runner
+# allows 2 attempts per pool line, so a dead entry is two wasted attempts per failing round.
 #
-# Re-probe before trusting this file: /root/tools/agent-dispatch/probe-free-models.sh --tool
-opencode/space-bunny-free
+# 2026-10-07 reorder, from the patrol run logs of 10-05..10-07 (242 attempts) and opencode.log.
+# What decides the order is how a model behaves while the free tier throttles it (HTTP 429
+# FreeUsageLimitError, "Rate limit exceeded"), because the limit is not always account-wide:
+#   * longcat-2.5-preview-free and nemotron-3-ultra-free surface the 429 and the attempt ends in
+#     about 80s (0 stalls in 65 attempts). They go first: a throttled try is cheap.
+#   * space-bunny-free, mimo-v2.6-flash-free, muse-spark-1.3-contributor-free and
+#     ling-3.0-flash-fin-free retry the 429 silently, so a throttled attempt burns the runner's
+#     full 300s stall timer. On 10-07 five rounds were finished by nemotron-3-ultra-free as attempt
+#     5, each after about 20 minutes spent waiting out the three stalling models ahead of it.
+#     space-bunny-free was the primary and went from 21/24 first attempts (10-05) to 1/24 (10-07).
+#   * exo-free, fledge-alpha-free (both 1M context) and ling-3.1-flash-free are new in the catalog
+#     (2026-09-29..10-06), declare tool calling, and answered 429 on 10-07 like everything else,
+#     so they are alive but have not finished a round here yet. They sit last, where they are
+#     reached only after every proven model failed.
+#   * removed: mimo-v2.5-free and union-alpha. Both are out of the catalog and answer "Unexpected
+#     server error" (13/13 attempts each on 10-07).
+#   * left out on purpose: big-pickle (2025 stealth, 200k context) and nemotron-3.5-lightning-free
+#     (small fast tier) — kcn wants good models first. opencode-go is not an option: the key in
+#     ~/.local/share/opencode/auth.json has no active subscription.
+#
+# Some windows throttle every model at once (10-07 00:50-06:30 and 16:48 onward); no order helps
+# there. Re-probe before trusting this file: /root/tools/agent-dispatch/probe-free-models.sh --tool
 opencode/longcat-2.5-preview-free
+opencode/nemotron-3-ultra-free
+opencode/space-bunny-free
 opencode/mimo-v2.6-flash-free
 opencode/muse-spark-1.3-contributor-free
-opencode/nemotron-3-ultra-free
-opencode/mimo-v2.5-free
 opencode/ling-3.0-flash-fin-free
-# kcn 2026-09-19: 先挂着 —— kept LAST on purpose as a revival probe. It is out of the Zen catalog
-# today and fails in ~5s ("Model is unavailable"), but only the last line is reached after every
-# live model failed, so it costs nothing on the normal path and a returning endpoint is picked up
-# automatically. Do not move it up while it is dead (that was the original bug: as the default it
-# burned one failed attempt + FALLBACK_WAIT on every round). Check with:
-#   /root/tools/agent-dispatch/probe-free-models.sh --tool opencode/union-alpha
-opencode/union-alpha
+opencode/exo-free
+opencode/fledge-alpha-free
+opencode/ling-3.1-flash-free
