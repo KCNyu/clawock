@@ -134,13 +134,17 @@ def test_a_writer_that_publishes_no_freshness_block_is_itself_the_warning(
 
 
 def test_the_writer_publishes_the_block(system_check, monkeypatch):
-    from datetime import date
-    from clawock import sessions
+    """The 08-26 morning itself: SPY at 08-21 with 08-24 and 08-25 completed.
 
-    # Measure the incident's two-session gap, not the wall clock: after 30
-    # sessions the writer deliberately returns an unknown lag for old input.
-    monkeypatch.setattr(sessions, 'latest_completed_session', lambda market: date(2026, 8, 25))
+    The clock is pinned. Read against the real one, the fixture ages past the
+    writer's 30-session "broken table" cutoff and the count becomes None.
+    """
+    import datetime as dt
+
     benchmarks = pytest.importorskip("clawock.market_data.benchmarks")
+    from clawock import sessions
+    monkeypatch.setattr(sessions, "latest_completed_session",
+                        lambda market, at=None: dt.date(2026, 8, 25))
     rows = benchmarks._freshness({"SPY": [{"date": "2026-08-21", "close": 1.0}]})
     assert rows["SPY"]["market"] == "us"
     assert rows["SPY"]["last_session"] == "2026-08-21"
