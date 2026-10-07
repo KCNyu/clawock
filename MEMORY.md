@@ -144,21 +144,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-05)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-30 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.805 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-09-30 周三 08:03 HKT: 今天的方向不是选股，是把两个还在付每日重置成本的 2x 敞口换成 1x 敞口：美股那边卖 SPCH 换 SPCX，港股那边维持 07226 不动。理由不是看空 SpaceX，也不是看空恒科，而是组合里最贵的两笔成本先被砍掉。港股那条 2x 已经站了 48 天硬止损、77 天杠杆超限，今天之所以不再重复发起，是因为账面离重发线还有距离，把动作挂在恒科指数的破位位上比每天追砍更有效。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-09-30 周三 08:03 HKT: **反方**：最强反方是：Starship 已经首次入轨，砍 2x 等于在一个事件驱动的窗口里把最好的那段让出去；而且这些纪律性减仓已经挂了 77 天、执行 0 次，再挂一次也不会有人执行，所以今天重复发起的边际价值接近零。这个反方在「执行」这一点上是对的，账本就是证据；今天的处理方式是把 US 那两笔的执行价从开盘改成反弹触发，而不是再喊一遍开盘砍。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-30-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-30 周三 08:03 HKT description: "clawock 盘前深度简报 2026-09-30：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-30-pre-open.md:2-4]
-
 ## Promoted From Short-Term Memory (2026-10-06)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:23:23 -->
@@ -188,3 +173,14 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - layout: default title: 盘前深度简报｜2026-10-02 周五 08:03 HKT description: "clawock 盘前深度简报 2026-10-02：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:2-4]
 <!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-10-02 周五 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-10-08)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:14:17 -->
+- 六张全过，我给了排序表让它别平均用力: | 图 | 接线 | 文字 | 风险 | |---|---|---|---| decision-pipeline | 58 | 117 | **最高**（你圈的 4 处）| information-flow | 29 | 90 | 高 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:18:21 -->
+- 六张全过，我给了排序表让它别平均用力: architecture | 30 | 60 | 中 | harnesses | 42 | 65 | 中 | debate-flow | 17 | 40 | 中低 | product-architecture | 25 | 45 | 中低 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:18-21]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:23:23 -->
+- 六张全过，我给了排序表让它别平均用力: **判据脚本必须一次跑全部六张**，输出每张各自的相交数 / 终点归属 / 最小间距 / 纵向节奏。而且要求它**复用 #2424 的 `measurements.json` 测量基础，只换判据**（从「距离」换成「相交 / 终点归属 / 扇出目标」），别从零重写。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:25:25 -->
+- 六张全过，我给了排序表让它别平均用力: 一句我写进去了：**哪张本来就干净，如实报「零缺陷」并给判据输出，不要为了显得做了事去改。** [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:25-25]
