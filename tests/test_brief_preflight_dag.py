@@ -23,6 +23,8 @@ from collections import defaultdict
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -375,7 +377,6 @@ def test_max_parallelism_never_exceeds_two(tmp_path, monkeypatch):
 
 def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, monkeypatch):
     expected = [
-        'US refresh failed: analyze-us-failed-marker',
         'SEC EDGAR PLTR failed',
         'SEC EDGAR MSFT failed',
         'FX fallback used: provider down',
@@ -385,7 +386,6 @@ def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, 
         'news evidence graph failed',
     ]
     failures = {
-        'analyze-us': (1, ''),
         'fx': (1, 'provider down'),
         'filings': (1, 'sec down'),
         'daily-bars': (1, ''),
@@ -463,3 +463,37 @@ def test_a_live_source_gap_is_carried_to_the_model_not_raised_as_a_failed_prefli
     broken = run_stubbed_preflight(tmp_path, monkeypatch, plan={
         **DEFAULT_PLAN, 'live-sources': (1, '')})
     assert broken.issues == ['live sources failed']
+
+
+@pytest.mark.parametrize('failed', [('analyze-us',), ('analyze-hk',),
+                                    ('analyze-us', 'analyze-hk')])
+def test_failed_price_refresh_replaces_old_context_and_stops_before_snapshot(
+    failed, tmp_path, monkeypatch
+):
+    # Re-run the same date after a successful generation. Publishers must see
+    # the failure rather than the earlier book and decision packet.
+    prior = run_stubbed_preflight(tmp_path, monkeypatch)
+    snapshot = tmp_path / 'memory' / 'snapshots' / f'{TODAY}.json'
+    snapshot_before = snapshot.read_bytes(), snapshot.stat().st_mtime_ns
+    manifest_path = (tmp_path / 'memory' / '.tmp' /
+                     f'brief-context-{TODAY}' / 'manifest.json')
+    assert 'decision_packet' in json.loads(manifest_path.read_text())['tools']
+    plan = {**DEFAULT_PLAN, **{command: (1, '') for command in failed}}
+    run = run_stubbed_preflight(tmp_path, monkeypatch, plan=plan)
+
+    assert run.exit_code == 1
+    assert run.context['status'] == 'price_refresh_failed'
+    assert len(run.issues) == len(failed)
+    assert set(run.timeline.count) == {'analyze_us', 'analyze_hk'}
+    assert run.timeline.start['analyze_hk'] >= run.timeline.end['analyze_us']
+    assert 'portfolio' not in run.context and 'book_totals' not in run.context
+    assert run.context['generation_id'] != prior.context['generation_id']
+    assert (snapshot.read_bytes(), snapshot.stat().st_mtime_ns) == snapshot_before
+    manifest = json.loads((tmp_path / 'memory' / '.tmp' /
+                           f'brief-context-{TODAY}' / 'manifest.json').read_text())
+    assert manifest['generation_id'] == run.context['generation_id']
+    assert manifest['tools'] == {}
+    final = run.stage_calls[-1]
+    assert final['status'] == 'failed'
+    assert final['kwargs']['reason'] == 'price_refresh_failed'
+    assert set(final['kwargs']['step_timings']) == {'analyze_us', 'analyze_hk'}

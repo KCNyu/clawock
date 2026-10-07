@@ -65,3 +65,22 @@ def test_an_ordinary_incomplete_context_still_fails_closed(workspace, monkeypatc
 
     assert (workspace / 'memory' / f'{TODAY}-pre-open.md').exists()
     assert (workspace / 'memory' / f'{TODAY}-plan.json').exists()
+
+
+def test_failed_price_refresh_never_calls_model_or_overwrites_brief(workspace, monkeypatch):
+    (workspace / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(
+        json.dumps({'status': 'price_refresh_failed', 'date': TODAY,
+                    'issues': ['US refresh failed']}))
+    old = {}
+    for suffix in ('pre-open.md', 'plan.json'):
+        path = workspace / 'memory' / f'{TODAY}-{suffix}'
+        path.write_text('earlier successful artifact')
+        old[path] = (path.read_bytes(), path.stat().st_mtime_ns)
+    monkeypatch.setattr(brief_fallback, 'chat',
+                        lambda *a, **kw: pytest.fail('model call after price refresh failure'))
+
+    with pytest.raises(SystemExit) as exit:
+        brief_fallback.main()
+    assert exit.value.code == 1
+    for path, before in old.items():
+        assert (path.read_bytes(), path.stat().st_mtime_ns) == before

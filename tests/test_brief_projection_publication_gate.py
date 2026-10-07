@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import sys
+
+import pytest
 from datetime import date
 
 from clawock.harness import brief_postflight as postflight
@@ -36,13 +38,16 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
     return overlay
 
 
-def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
+def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, price_refresh_failed=False):
     today = '2026-09-14'
     monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
                         lambda: date.fromisoformat(today))
     context_path = tmp_path / 'memory' / '.tmp' / f'brief-context-{today}.json'
     context_path.parent.mkdir(parents=True)
-    context_path.write_text(json.dumps({'generation_id': 'generation-fixture'}))
+    context = {'generation_id': 'generation-fixture'}
+    if price_refresh_failed:
+        context.update(status='price_refresh_failed', issues=['US refresh failed'])
+    context_path.write_text(json.dumps(context))
     (context_path.parent / f'brief-judgment-{today}.json').write_text(
         json.dumps(_filled_judgment(), ensure_ascii=False))
 
@@ -111,6 +116,13 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
     )
     monkeypatch.setattr(sys, 'argv', ['brief_postflight.py'])
 
+    if price_refresh_failed:
+        monkeypatch.setattr(postflight, 'normalize_plan_json',
+                            lambda *a, **kw: pytest.fail('normalization after failed refresh'))
+        monkeypatch.setattr(postflight.brief_render, 'render_from_workspace',
+                            lambda *a, **kw: pytest.fail('render after failed refresh'))
+        monkeypatch.setattr(postflight, 'send_wechat',
+                            lambda *a, **kw: pytest.fail('delivery after failed refresh'))
     code = postflight.main()
     result = json.loads(capsys.readouterr().out)
     gate = json.loads(
@@ -156,3 +168,16 @@ def test_written_deterministic_projection_releases_existing_publish_route(
     # The preflight filed its own stage with its diagnostics; a present context
     # must not be rewritten to {success, context_present} here (#1875).
     assert [stage for _, stage, _, _ in stages].count('preflight') == 0
+
+
+def test_failed_price_refresh_blocks_publication_before_normalization_or_delivery(
+    tmp_path, monkeypatch, capsys
+):
+    code, result, gate, commits, stages = _run_postflight(
+        tmp_path, monkeypatch, capsys, price_refresh_failed=True)
+    assert code == 2
+    assert result['status'] == 'fail' and result['publication_ready'] is False
+    assert result['reason'] == 'price_refresh_failed'
+    assert gate['publish_ok'] is False and gate['reason'] == 'price_refresh_failed'
+    assert commits == []
+    assert [(stage, state) for _, stage, state, _ in stages] == [('postflight', 'failed')]

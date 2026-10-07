@@ -1833,6 +1833,19 @@ def main(argv=None):
     # path), so concurrent execution would lose one side's update (#916 §1.2).
     _run_serial('analyze_us', analyze_us)
     _run_serial('analyze_hk', analyze_hk)
+    if issues:
+        # Overwrite any earlier successful generation for this date. No partial
+        # book may reach snapshots, decision packets or either publisher.
+        ctx_path = TMP_DIR / f'brief-context-{today}.json'
+        failure = {'status': 'price_refresh_failed', 'date': today, 'issues': issues}
+        brief_context.write_run_bundle(failure, ctx_path)
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'failed', slot=slot,
+            reason='price_refresh_failed', issue_count=len(issues),
+            context_path=os.path.relpath(ctx_path, WS), step_timings=step_timings,
+        )
+        print(json.dumps(failure, ensure_ascii=False, indent=2))
+        return 1
 
     # [4] Snapshot
     print('[4/14] Portfolio snapshot')

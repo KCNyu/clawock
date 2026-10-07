@@ -35,6 +35,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import day_pnl, ledger_rows
+from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -1175,21 +1176,6 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
     holding['day_session_date'] = today_et_date
 
 
-def _us_active_and_zero_closed(region):
-    active = [h for h in ledger_rows(region['holdings']) if h.get('shares', 0) > 0]
-
-    # Zero out snapshot fields on closed positions — refresh skips shares==0
-    # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in ledger_rows(region['holdings']):
-        if h.get('shares', 0) == 0:
-            for k in ('current_value', 'pnl_abs', 'pnl_percent',
-                      'today_change', 'today_change_pct'):
-                if h.get(k):
-                    h[k] = 0
-
-    return active
-
-
 def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_prev_session):
     t = holding['ticker']
     old_price = holding.get('current_price', 0)
@@ -1316,17 +1302,21 @@ def update_us_portfolio(
     Args:
         portfolio_path:   path to portfolio.json
         dry_run:          if True, print prices but don't write to file
-        tickers_override: if given, only fetch these tickers (must still exist in portfolio)
+        tickers_override: if nonempty, only fetch these active holdings; empty refreshes all
     """
     with open(portfolio_path, encoding='utf-8') as f:
         data = json.load(f)
 
-    keys = load_api_keys()
     us_key, us = region_book(data, 'US')
     region_before_fetch = copy.deepcopy(us)
 
-    all_active = [h['ticker'] for h in _us_active_and_zero_closed(us)]
-    tickers    = tickers_override if tickers_override else all_active
+    all_active = [h['ticker'] for h in active_and_zero_closed(us)]
+    if tickers_override:
+        unknown = set(tickers_override) - set(all_active)
+        if unknown:
+            raise ValueError(f'tickers_override contains non-active holdings: {sorted(unknown)}')
+    tickers = tickers_override if tickers_override else all_active
+    keys = load_api_keys()
 
     # Timezone helpers
     et_tz = trading_calendar.ET

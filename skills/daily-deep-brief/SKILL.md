@@ -64,6 +64,12 @@ ls -la memory/2026-08-17* 2>/dev/null || true; echo "---"; \
 clawock brief preflight
 ```
 
+**行情失败闸**：US 或 HK 刷新失败时，preflight 退出 1，并把本日 context 与
+manifest 换成 `price_refresh_failed` 的失败代（无持仓数字、无 decision packet）。
+看到该状态立即结束本轮，不写 plan/judgment，不调用 postflight；修复行情后重跑
+preflight。fallback 会拒绝生成，postflight 也会阻止发布。其他资料采集警告仍按
+本次 context 的 `issues` 逐项披露。
+
 这一步内部做了：
 
 1. `clawock analyze-us` — US 价格刷新（7-route fallback + RSI/MA）
