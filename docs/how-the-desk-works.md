@@ -20,7 +20,7 @@ rules live in code. The figures are in the README; the words they summarise are 
 
 ## The information layer
 
-The widest part of the system is data collection: **44 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage**. Each run consumes only the subset relevant to its market and session — collection stays broad, the decision layer stays constrained.
+The widest part of the system is data collection: **45 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage**. Each run consumes only the subset relevant to its market and session — collection stays broad, the decision layer stays constrained.
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
@@ -28,7 +28,7 @@ Coverage is bilingual, but it is not symmetric, and the asymmetry is in research
 
 | Layer | Modules | Primary sources |
 |---|:---:|---|
-| 1 · Market | 7 | Tencent · Yahoo · Eastmoney · Polygon |
+| 1 · Market | 8 | Tencent · Yahoo · Eastmoney · Polygon · Nasdaq |
 | 2 · Fundamentals & filings | 3 | SEC EDGAR · Eastmoney datacenter · HKEX |
 | 3 · Capital flow | 1 | Eastmoney push2his |
 | 4 · News & catalysts (bilingual) | 6 | Eastmoney · Finnhub · Google News · Yahoo · 10jqka · exchange filings |
@@ -48,7 +48,7 @@ No run gets everything: each job's preflight assembles only the blocks it can ac
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:03 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 41 | 19 | 47 |
+| **Blocks** | 42 | 19 | 47 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block, naming any row this run could not refresh | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups, the close-confirmed opportunity radar (which names closed above their prior 20-day high, and why an empty add side is empty) | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags, entry setups and early-trend candidates re-run on the open bar, price-surface opportunity radar |

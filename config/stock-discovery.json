@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "max_candidates": 6,
+  "min_market_cap_usd": 2000000000,
+  "min_price_usd": 5,
+  "min_turnover_proxy_usd": 20000000,
+  "min_change_pct": -3,
+  "max_change_pct": 5,
+  "max_per_sector": 1
+}

@@ -64,6 +64,7 @@ CODE_ONLY_FIELDS = (
     "opportunity",
     "add_alpha_activation",
     "action_track_record",
+    "stock_discovery",
 )
 
 BUNDLE_FIELDS = {

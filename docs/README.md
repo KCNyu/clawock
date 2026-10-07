@@ -80,3 +80,5 @@ Write the conclusion into the document that owns the subject; do not add a dated
 OpenClaw workspace contract. They remain at their required runtime paths until
 an adjacent context-parity canary proves a supported alternative. Website files
 have no such constraint and therefore live under `site/`.
+
+- [持仓外候选发现](architecture/stock-discovery.md)：免费全市场筛选、研究交接与参考实现。
