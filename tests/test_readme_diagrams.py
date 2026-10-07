@@ -9,8 +9,8 @@ external resource; the animation must come from CSS and SMIL inside the file.
 
 Each diagram is one composition. The README scales the same file for a phone
 instead of swapping in a second, single-column drawing, so both readers see the
-same picture. The RSI overview has a larger canvas and semantic side regions;
-the other views share the established 1016-unit width.
+same picture. Every diagram shares one 1016-unit canvas and one type scale, so
+the same class of label is the same size in every figure on the page.
 """
 import importlib.util
 import math
@@ -37,12 +37,13 @@ def test_committed_diagrams_match_their_builder():
 
 def test_rsi_views_share_the_house_style_and_stay_small():
     builder = _builder()
-    names = {'rsi-loop', 'evidence-receipt', 'feedback-learning'}
+    names = {'rsi-loop', 'feedback-learning'}
     assert names <= builder.LAYOUTS.keys()
     for name in names:
         path = ROOT / 'site/assets' / f'{name}.svg'
         text = path.read_text(encoding='utf-8')
-        assert path.stat().st_size < 40_000, path.name
+        # Vector only: the overview inlines six logos and still loads like an icon.
+        assert path.stat().st_size < 90_000, path.name
         for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
             assert primitive in text, (path.name, primitive)
         assert '@media (prefers-reduced-motion:reduce)' in text
@@ -95,18 +96,17 @@ def test_one_composition_serves_every_width():
     book card is owned by build_readme_book_charts.py and is not covered here.
     """
     builder = _builder()
-    desktop_widths = builder.DESKTOP_WIDTHS
     assert set(builder.DIAGRAMS) == {f'{name}.svg' for name in builder.LAYOUTS}
     for readme, base in (('README.md', 'refs/heads/master/site/assets/'), ('README.zh.md', 'site/assets/')):
         text = (ROOT / readme).read_text(encoding='utf-8')
         for name in builder.LAYOUTS:
-            width = desktop_widths.get(name, builder.WIDE)
+            width = builder.WIDE
             assert re.search(rf'<img src="[^"]*{re.escape(base + name)}\.svg" width="{width}"', text), (readme, name)
             assert f'{name}-narrow.svg' not in text, (readme, name)
     for name in builder.LAYOUTS:
         assert not (ROOT / 'site/assets' / f'{name}-narrow.svg').exists(), name
         root = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
-        assert float(root.attrib['width']) == desktop_widths.get(name, builder.WIDE)
+        assert float(root.attrib['width']) == builder.WIDE
 
 
 def _wire_points(d, step=4.0):
@@ -190,19 +190,43 @@ def test_fan_arrows_land_on_the_node_they_point_at():
     assert ends == ['98', '98']
 
 
-def test_rsi_overview_has_side_regions_and_a_bottom_return_lane():
-    root = ET.parse(ROOT / 'site/assets/rsi-loop.svg').getroot()
-    assert float(root.attrib['width']) == 1440
-    regions = {el.attrib['data-region']: el for el in root.iter(f'{SVG}g')
-               if 'data-region' in el.attrib}
-    assert set(regions) == {'sources', 'input', 'decision', 'outcome', 'owners', 'return'}
-    cards = {key: group.find(f'{SVG}rect') for key, group in regions.items()}
-    bounds = {key: tuple(float(card.attrib[a]) for a in ('x', 'y', 'width', 'height'))
-              for key, card in cards.items()}
-    assert bounds['sources'][0] < bounds['input'][0] < bounds['decision'][0] < bounds['outcome'][0]
-    assert bounds['outcome'][0] < bounds['owners'][0]
-    assert bounds['return'][1] > max(y + h for key, (_, y, _, h) in bounds.items() if key != 'return')
-    assert bounds['return'][2] > bounds['input'][2] + bounds['decision'][2] + bounds['outcome'][2]
+def test_every_diagram_sets_type_on_the_one_shared_scale():
+    """A figure that enlarges its own labels reads as a different page.
+
+    The overview once redeclared five sizes to survive a 1440-unit canvas, so its
+    body text was a third larger than the figure under it. Sizes come from
+    `TYPE` alone; the two logo wordmark tiles are lettering inside a mark.
+    """
+    builder = _builder()
+    scale = {f'{size:g}' for size, _, _ in builder.TYPE.values()}
+    assert len(scale) <= 5, scale
+    for name in builder.DIAGRAMS:
+        text = (ROOT / 'site/assets' / name).read_text(encoding='utf-8')
+        text = re.sub(r'<text [^>]*class="code"[^>]*style="font-size:[\d.]+px;font-weight:700">', '', text)
+        declared = set(re.findall(r'font-size:([\d.]+)px', text))
+        assert declared == scale, (name, declared ^ scale)
+
+
+def test_the_overview_carries_every_step_and_every_harness_logo():
+    """The first figure is the whole loop: all eight panels, all five harnesses."""
+    text = (ROOT / 'site/assets/rsi-loop.svg').read_text(encoding='utf-8')
+    root = ET.fromstring(text)
+    labels = [''.join(el.itertext()) for el in root.iter(f'{SVG}text')]
+    steps = [label for label in labels if re.match(r'0\d · ', label)]
+    assert [step[:2] for step in steps] == [f'0{n}' for n in range(1, 9)], steps
+    for harness in ('Claude Code', 'Codex', 'OpenClaw', 'DeepSeek Harness', 'Your own CLI'):
+        assert harness in labels, harness
+    assert len(root.findall(f'{SVG}svg')) == 6, 'five harness logos and the clawock mark'
+    assert float(root.attrib['height']) > 1.5 * float(root.attrib['width'])
+
+
+def test_no_diagram_prints_a_file_path():
+    """A label names the thing; where it lives on disk belongs to the docs."""
+    for name in _builder().DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        for el in root.iter(f'{SVG}text'):
+            label = ''.join(el.itertext())
+            assert not re.search(r'\b(?:memory|src|site|docs)/\w', label), (name, label)
 
 
 def test_peer_nodes_do_not_touch_or_overlap():

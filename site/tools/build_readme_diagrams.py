@@ -10,12 +10,12 @@ gates and warm red for isolation / arbitration.
 
 Every diagram is one composition, served at every width: the README's `<img>`
 scales the same file down for a phone, so the picture a desktop reader sees is the
-picture a phone reader sees. Most diagrams use a 1016-unit canvas. Detailed desk
-flows read down two 472-unit columns; the RSI overview uses a 1440-unit canvas with
-source/ownership sidebars, central stages and a bottom feedback lane. Source
-matrices, branching routes, feedback loops, state machines and control panels have
-their own reading shapes. Shared primitives draw the material; each diagram owns
-the arrangement that best explains its content.
+picture a phone reader sees. Every diagram uses the 1016-unit canvas and the one
+five-step type scale in `TYPE`; none redeclares a size, so a label class is the
+same size in every figure. Detailed desk flows read down two 472-unit columns. The
+overview is a tall poster of eight panels: tile grid, logo rail, versus split,
+limit bars, verdict tiles and a return timeline. Shared primitives draw the
+material; each diagram owns the arrangement that best explains its content.
 
 The glass is drawn, not filtered: an image has no backdrop to blur. A card is a
 white fill at partial opacity over the colour fields, a sheen that fades down
@@ -47,7 +47,6 @@ CW = W - 2 * M          # content width of a column
 GUTTER = 24             # between the two columns
 COL2 = CW + GUTTER      # x offset of the second column
 WIDE = W + COL2         # canvas width
-DESKTOP_WIDTHS = {'rsi-loop': 1440}  # the total-to-parts overview needs side regions
 
 SANS = ('-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,'
         '"Helvetica Neue",Arial,sans-serif')
@@ -69,9 +68,9 @@ TINT = {'blue': '#e8f1f8', 'green': '#e6f4ee', 'warm': '#fbecea',
 # Inter's measured mean (.51 regular, .52 bold — the widest face in SANS) plus ~5%;
 # caps with tracking for kickers and tags.
 TYPE = {
-    'kick': (12.5, 700, .74), 'title': (25, 750, .55), 'sub': (15, 450, .53),
-    'h': (17.5, 700, .55), 'b': (15, 450, .53), 'm': (14.5, 450, .53),
-    'code': (13.5, 500, .62), 'tag': (11.5, 700, .78),
+    'kick': (12, 700, .74), 'title': (26, 750, .55), 'sub': (15, 450, .53),
+    'h': (18, 700, .55), 'b': (15, 450, .53), 'm': (15, 450, .53),
+    'code': (13, 500, .62), 'tag': (12, 700, .78),
 }
 GLOW = {color: role for role, color in ROLE.items()}   # pulse colour -> halo gradient id
 WARN = []
@@ -189,10 +188,11 @@ class D:
             self.text(x + 15, y, label, 'm', fill=MUT)
             x += w + 14
         self.add(f'<path d="M{M} {y + 20}H{self.pw - M}" stroke="url(#rule)"/>')
+        self.header_bottom = y + 20
         return y + 20
 
-    def section(self, y, label):
-        self.text(M, y, label, 'kick', fill=FAINT)
+    def section(self, y, label, x=M):
+        self.text(x, y, label, 'kick', fill=FAINT)
 
     def card(self, x, y, w, h, role, tint=False):
         """A pane of glass: shadow, translucent body, sheen, rim, top highlight."""
@@ -586,7 +586,7 @@ def harnesses():
     d.card(M, y, CW, h, 'green')
     xs, cw = columns(3, gap=18, x0=M + 16, w=CW - 32)
     for i, (x, (icon, name, sub)) in enumerate(zip(xs, (
-            ('branch', 'Branch + PR', 'isolated worktree'),
+            ('branch', 'Branch + PR', 'own worktree'),
             ('checks', 'Required CI', 'all gates pass'),
             ('commit', 'Squash merge', 'review the diff')))):
         d.icon(icon, x + cw / 2 - 16, y + 18, 'green', size=32)
@@ -859,7 +859,7 @@ def architecture():
     top = y + h
     y = top + 48
     xs, cw = columns(3, gap=10, x0=M, w=IW)
-    pubs = [('Ledger', 'decisions.jsonl'), ('Brief', 'the chat card'), ('Dashboard', 'data-plane')]
+    pubs = [('Ledger', 'every call'), ('Brief', 'the chat card'), ('Dashboard', 'data-plane')]
     h = 106
     for i, (x, (name, body)) in enumerate(zip(xs, pubs)):
         d.curve(M + IW / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8)
@@ -942,7 +942,7 @@ def product_architecture():
     d.card(M, y, CW, h, 'green')
     d.logo('clawock', M + 20, y + 16, size=30)
     d.text(M + 60, y + 37, 'clawock package', 'h')
-    d.tag(W - M - 16, y + 36, 'SRC/CLAWOCK', 'green', anchor='end')
+    d.tag(W - M - 16, y + 36, 'IN THE WHEEL', 'green', anchor='end')
     sweep(d, M + 12, y + 60, CW - 24, len(stages), lh=52, period=10)
     for i, (name, what, cmd) in enumerate(stages):
         yy = y + 86 + i * 52
@@ -1077,8 +1077,8 @@ def debate_flow():
     d.text(M + 50, y + 30, "Next session's grading", 'h')
     d.text(M + 20, y + 54, 'code, not the model, settles the score', 'm', fill=MUT)
     y += h + 26
-    d.lines(M, y, CW, ['The bear attacks the strongest consensus, never the weakest;',
-                       "the risk voices' first mover rotates every four trading days."],
+    d.lines(M, y, CW, ['The bear attacks the strongest consensus, not the weakest;',
+                       'the first risk voice rotates every four trading days.'],
             cls='m', lh=19, where='notes')
     return d.render(y + 20 + M)
 
@@ -1123,7 +1123,7 @@ def decision_pipeline():
     d.text(M + 20, y + 56, '44 modules · 8 layers · deterministic collection', 'm', fill=MUT)
     xs, cw = columns(3, gap=16, x0=M + 16, w=CW - 32)
     sources = [('market', 'Quotes + FX', 'Tencent/Nasdaq'),
-               ('filing', 'SEC · HKEX', 'primary filings'),
+               ('filing', 'SEC · HKEX', 'filings'),
                ('bars', 'Capital flow', 'Eastmoney'),
                ('news', 'Bilingual news', 'Google/Finnhub'),
                ('chat', 'Sentiment', 'Reddit · radar'),
@@ -1198,9 +1198,9 @@ def decision_pipeline():
     y = top + 66
     d.add(f'<rect x="92" y="{y - 22:g}" width="{W - 184}" height="36" rx="10" fill="#ffffff" '
           f'stroke="{CARD_STROKE}"/>')
-    d.text(W / 2 + 12, y + 2, [('preflight', ROLE['green']), (' → one context pack per run', MUT)],
+    d.text(W / 2 + 12, y + 2, [('preflight', ROLE['green']), (' → one pack per run', MUT)],
            'm', anchor='middle')
-    fits('preflight → one context pack per run', 'm', W - 184 - 56, 'preflight label')
+    fits('preflight → one pack per run', 'm', W - 184 - 56, 'preflight label')
     d.icon('checks', 106, y - 14, 'green', size=20)
     loop_y = y - 4
     d.down(W / 2, top, y - 22, pulses=(0,), pulse=ROLE['green'])
@@ -1262,7 +1262,7 @@ def decision_pipeline():
     d.text(M + 50, y + 32, 'Postflight', 'h')
     d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
     d.lines(M + 20, y + 58, CW - 36, [[('validates plan.json, books it in ', INK)],
-                                      [('memory/decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
+                                      [('decisions.jsonl', ROLE['green']), (', renders the card', INK)]],
             lh=21, where='postflight')
     top = y + h
     y = top + 56
@@ -1333,179 +1333,6 @@ def decision_pipeline():
              'The trace stays read-only. You place the orders.'], cls='m', where='dsh loop')
     return d.render(y + h + M)
 
-# ---------------------------------------------------------------------------
-def start_here():
-    """site/assets/start-here.svg — three readers, where each one starts."""
-    d = D('Where to start with clawock',
-          'Three readers and where each one starts. If you trade your own Hong Kong and US book, you '
-          'get a plan before the open, cards through the session and a grade after the close, and you '
-          'start with clawock init. If you already run an agent such as Claude Code, Codex, OpenClaw '
-          'or DeepSeek Harness, you install the investment-decision workflow and your agent keeps the '
-          'model call. If you want to see the record first, the live dashboard shows every call '
-          'settled by code with the losses included. Underneath all three sits one contract: '
-          'certified evidence, a required opposing case, checked money arithmetic and an outcome '
-          'linked back to the decision.')
-    y = d.header('START HERE · THREE ROUTES', ['What brings you here?', 'Choose your route.'],
-                 ['Your book, your agent or the public record:', 'the same contract meets you there.'],
-                 [], title_lh=34) + 30
-    readers = [
-        ('blue', 'YOUR BOOK', 'I trade my own HK + US book',
-         ['a plan before the open, cards through the session, a grade after the close'],
-         'clawock init ./my-book'),
-        ('slate', 'YOUR AGENT', 'I already run an agent',
-         ['it keeps the model call; clawock adds the decision contract around it'],
-         'clawock workflow install …'),
-        ('green', 'NO INSTALL', 'Show me the record first',
-         ['every call settled by code, on a real account, with the losses left in'],
-         'kcnyu.github.io/clawock'),
-    ]
-    root_x, root_w = 308, 400
-    d.card(root_x, y, root_w, 62, 'violet')
-    d.text(root_x + root_w / 2, y + 38, 'Start where you are', 'h', anchor='middle')
-    branch_y = y + 112
-    h = 230
-    positions = [(M + i * 328, branch_y, 312) for i in range(3)]
-    for i, ((role, tag, title, body, cmd), (x, yy, w)) in enumerate(zip(readers, positions)):
-        d.curve(root_x + root_w / 2, y + 62, x + w / 2, yy, pulses=(i * .8,),
-                pulse=ROLE[role])
-        d.card(x, yy, w, h, role)
-        d.text(x + 18, yy + 32, tag, 'kick', fill=ROLE[role])
-        _words(d, x + 18, yy + 64, w - 36, [title], cls='h', lh=24, fill=INK)
-        _words(d, x + 18, yy + 112, w - 36, body, lh=22)
-        d.chip(x + 16, yy + h - 44, w - 32, cmd, cls='code', fill=ROLE[role], h=28)
-    top = max(yy + h for _, yy, _ in positions)
-    yy = top + 58
-    for i, (x, py, w) in enumerate(positions):
-        d.curve(x + w / 2, py + h, d.pw / 2, yy, pulses=(i * .6,), pulse=ROLE['violet'])
-    contract_h = 110
-    d.card(M, yy, d.pw - 2 * M, contract_h, 'violet')
-    d.text(M + 20, yy + 32, 'THE SAME CONTRACT', 'kick', fill=ROLE['violet'])
-    labels = ['Certified evidence', 'Required opposing case', 'Checked money + FX', 'Outcome linked back']
-    for i, label in enumerate(labels):
-        x, py, w = M + 16 + i * 236, yy + 56, 224
-        d.chip(x, py, w, label, fill=ROLE['violet'], h=30)
-    return d.render(yy + contract_h + M)
-
-
-
-def scorecard():
-    """site/assets/scorecard.svg — how one call becomes a public grade."""
-    d = D('How clawock grades a call',
-          'The model writes a versioned decision with its strategy, condition, regime, size and '
-          'confidence into memory/decisions.jsonl. From there the model has no write access. Python '
-          'evaluates the trigger against canonical unadjusted daily bars on each market\'s own '
-          'calendar; an unfinished session grades nothing and a gap through a trigger fills at the '
-          'open. Repeated calls on one thesis collapse into one episode. Code settles the outcome and '
-          'scores it against a plain directional baseline, then publishes wins, losses and the cases '
-          'that cannot be graded, which stay visible and out of the win-rate denominator. The record '
-          'is a diagnostic, not proof of return.')
-    y = d.header('SCORECARD · A SETTLEMENT STATE MACHINE',
-                 ['One recorded call.', 'Every possible verdict stays.'],
-                 ['Separate a model opinion from code-owned settlement.',
-                  'Incomplete evidence stays visible as a state.'], [], title_lh=34) + 30
-    states = [
-        ('slate', 'RECORDED', ['strategy · condition · regime · size · confidence', 'memory/decisions.jsonl']),
-        ('green', 'TRIGGER CHECK', ['Canonical unadjusted bars · market calendar',
-                                 'Unfinished session: no grade', 'Gap through trigger: fill at open']),
-        ('green', 'EPISODE', ['One thesis, one episode', 'Reaffirmations do not add samples',
-                            'Code grades against a plain baseline']),
-    ]
-    h = 160
-    positions = [(M + i * 328, y, 312) for i in range(3)]
-    for i, ((role, label, rows), (x, yy, w)) in enumerate(zip(states, positions)):
-        d.card(x, yy, w, h, role)
-        d.text(x + 18, yy + 32, label, 'kick', fill=ROLE[role])
-        _words(d, x + 18, yy + 64, w - 36, rows, lh=23)
-        if i:
-            d.wire(f'M{x-16} {yy+h/2}H{x-2}', pulses=(0,), pulse=ROLE['green'])
-    top = max(yy + h for _, yy, _ in positions)
-    isolation_y = top + 30
-    d.card(M, isolation_y, d.pw - 2 * M, 42, 'warm')
-    d.text(d.pw / 2, isolation_y + 27, 'NO MODEL WRITES THE EVALUATION', 'kick',
-           anchor='middle', fill=ROLE['warm'])
-    # A branching diamond expresses eligibility rather than a fourth identical card.
-    # It hangs from the isolation bar, and the fan below it has room to turn.
-    cx, cy = d.pw / 2, isolation_y + 42 + 18 + 25
-    verdict_y = cy + 25 + 54
-    d.add(f'<path d="M{cx} {isolation_y + 42}V{cy - 25}" stroke="{LINE}" stroke-width="1.5"/>')
-    d.add(f'<path d="M{cx} {cy-25}L{cx+38} {cy}L{cx} {cy+25}L{cx-38} {cy}Z" '
-          f'fill="{TINT["green"]}" stroke="{ROLE["green"]}"/>')
-    d.text(cx, cy + 5, 'grade?', 'm', anchor='middle')
-    verdicts = [('green', 'WIN', 'Settled result, published'),
-                ('warm', 'LOSS', 'Settled result, published'),
-                ('slate', 'UNGRADEABLE', 'Visible; outside the win rate')]
-    vpos = [(M + i * 328, verdict_y, 312) for i in range(3)]
-    for i, ((role, label, body), (x, yy, w)) in enumerate(zip(verdicts, vpos)):
-        d.curve(cx, cy + 25, x + w / 2, yy, pulses=(i * .7,), pulse=ROLE[role])
-        d.card(x, yy, w, 92, role)
-        d.text(x + 20, yy + 36, label, 'h', fill=ROLE[role])
-        _words(d, x + 20, yy + 66, w - 40, [body], lh=22)
-    bottom = max(yy + 92 for _, yy, _ in vpos)
-    note = ['Nothing is hand-tuned after the fact. A diagnostic, not proof of return.',
-            'Isolation cannot make the data or metric definitions correct.']
-    bottom = _words(d, M + 20, bottom + 42, d.pw - 2 * M - 40, note, lh=23)
-    return d.render(bottom + M)
-
-
-
-def guardrails():
-    """site/assets/guardrails.svg — the lines the code holds whatever the model writes."""
-    d = D('What clawock code enforces',
-          'The model writes opinions; the limits are code. Risk caps are checked in every brief: a '
-          'leveraged single name at most 35 percent, a non-leveraged core name at most 60 percent '
-          'with a 35 to 60 percent review band, a correlated cluster at most 70 percent, the '
-          'leverage-ETF sleeve at most 50 percent, portfolio beta at most 3.0 and a stop at minus 18 '
-          'percent. Money rules: US dollars and Hong Kong dollars never sum, the book must reconcile '
-          'before anything is pushed, and return is measured on peak principal. Evidence rules: an '
-          'add needs two independent evidence families, a thesis moves only on new evidence and '
-          'never on price alone, a published research number needs two sources, and a decision '
-          'without a bear case is rejected. Execution stays human.')
-    y = d.header('GUARDRAILS · A CODE CONTROL PANEL', ['The model proposes.', 'Code holds the boundary.'],
-                 ['Limits, ledger identities and evidence requirements',
-                  'are different controls, checked together.'], [], title_lh=34) + 30
-    risk_h = 484
-    d.card(M, y, CW, risk_h, 'warm')
-    d.text(M + 20, y + 32, 'RISK LIMITS · NOT CURRENT EXPOSURE', 'kick', fill=ROLE['warm'])
-    caps = [('leveraged single name', '≤ 35%', .35), ('core single name', '≤ 60%', .60),
-            ('correlated cluster', '≤ 70%', .70), ('leverage-ETF sleeve', '≤ 50%', .50),
-            ('portfolio β', '≤ 3.0', None), ('stop', '−18%', None)]
-    for i, (label, limit, proportion) in enumerate(caps):
-        yy = y + 74 + i * 54
-        d.text(M + 20, yy, label, 'm')
-        d.text(W - M - 20, yy, limit, 'h', anchor='end', fill=ROLE['warm'])
-        if proportion is not None:
-            d.add(f'<rect x="{M+20}" y="{yy+10}" width="{CW-40}" height="7" rx="3.5" fill="{CHIP}"/>')
-            d.add(f'<rect x="{M+20}" y="{yy+10}" width="{(CW-40)*proportion:g}" height="7" '
-                  f'rx="3.5" fill="{ROLE["warm"]}" fill-opacity=".5"/>')
-    _words(d, M + 20, y + 414, CW - 40,
-           ['35–60% core review band', 'A breach freezes same-risk adds until compliant'], lh=23)
-    x2, yy = COL2 + M, y
-    d.card(x2, yy, CW, 196, 'green')
-    d.text(x2 + 20, yy + 32, 'MONEY · TWO CURRENCIES', 'kick', fill=ROLE['green'])
-    d.chip(x2 + 20, yy + 56, 140, 'USD', fill=ROLE['green'], h=32)
-    d.chip(x2 + CW - 160, yy + 56, 140, 'HKD', fill=ROLE['green'], h=32)
-    d.wire(f'M{x2+160} {yy+72}H{x2+CW-162}', pulses=(0,), pulse=ROLE['green'])
-    d.text(x2 + CW / 2, yy + 64, 'FX', 'm', anchor='middle', fill=MUT)
-    _words(d, x2 + 20, yy + 120, CW - 40,
-           ['Currencies never sum directly', 'A book that fails to reconcile is not pushed',
-            'Return is measured on peak principal'], lh=22)
-    ey = yy + 228
-    d.card(x2, ey, CW, 256, 'blue')
-    d.text(x2 + 20, ey + 32, 'EVIDENCE · REQUIRED CONDITIONS', 'kick', fill=ROLE['blue'])
-    rows = ['Adds need two independent evidence families', 'A thesis moves on new evidence, not price',
-            'A published number needs two sources', 'No bear case, no publication']
-    for i, row in enumerate(rows):
-        ry = ey + 70 + i * 42
-        d.icon('checks', x2 + 18, ry - 15, 'blue', size=18)
-        _words(d, x2 + 48, ry, CW - 66, [row], lh=21)
-    bottom = max(y + risk_h, ey + 256)
-    bottom = _words(d, M + 20, bottom + 42, d.pw - 2 * M - 40,
-                    ['Risk it cannot compute prints “risk unavailable”, never a green “none”.',
-                     'Execution stays human.'], lh=23)
-    return d.render(bottom + M)
-
-
-
 def _wrap(row, cls, room, scale=1):
     # A separator stays with the word before it: no line opens on "·" or "/".
     tokens = []
@@ -1538,212 +1365,332 @@ def _words(d, x, y, room, rows, cls='m', lh=21, scale=1, anchor='start', fill=MU
     return y
 
 
+def _panel(d, x, y, w, h, role, icon, title, tag=None, tint=False):
+    """A titled pane: glyph, heading and an optional role tag on one baseline."""
+    d.card(x, y, w, h, role, tint=tint)
+    d.icon(icon, x + 20, y + 14, role)
+    d.text(x + 50, y + 32, title, 'h')
+    room = w - 66
+    if tag:
+        room -= d.tag(x + w - 16, y + 30, tag, role, anchor='end') + 10
+    fits(title, 'h', room, f'panel {title}')
+    return y + 62
+
+
 def rsi_loop():
-    """A large overview with source/scope sidebars and a feedback floor."""
-    d = D('RSI: one stock book, a continuing decision loop',
-          'A total-to-parts overview: information sources at left; evidence, opposing-case '
-          'decision and code-settled feedback at centre; runtime, human, code and review ownership '
-          'at right; history, earlier-date calibration and reviewed evidence requirements return '
-          'along the bottom to the next context. The human executes. Content certification is '
-          'not a truth guarantee and measured feedback is not a promise of return.')
-    d.pw = DESKTOP_WIDTHS['rsi-loop']
-    # Larger type survives the GitHub column's downscale; shared glass is unchanged.
-    d.add('<style>.title{font-size:38px}.h{font-size:26px}.m{font-size:20px}'
-          '.b{font-size:21px}.code{font-size:16px}</style>')
-    scale = 1.35            # .m is drawn at 20px here, against the 14.5 fits() assumes
-    y = d.header('RSI · THE WHOLE STORY', ['One stock book.', 'A continuing decision loop.'],
-                 ['Information → decision → outcome, with side constraints',
-                  'and a return path into the next judgment.'], [], title_lh=44) + 42
-    panels = [
-        ('sources', 'blue', 'YOUR INFORMATION',
-         ['Quotes + FX', 'SEC / HKEX filings', 'Capital flow', 'News + catalysts',
-          'Macro + sentiment', 'Your holdings'], ['source + time', 'missing feeds named']),
-        ('input', 'blue', 'INFORMATION',
-         ['Certified input', 'Sources + timestamps', 'Core + references',
-          'Context + pack hashes'], ['request.json']),
-        ('decision', 'slate', 'DECISION',
-         ['Argue both sides', 'Supporting evidence', 'Opposing evidence',
-          'Action + invalidation'], ['plan.json', 'decision.json']),
-        ('outcome', 'green', 'FEEDBACK',
-         ['Code settles', 'Trigger', 'Outcome', 'Calibrate', 'Losses stay visible'],
-         ['ledger', 'evaluation.json']),
-        ('owners', 'warm', 'WHO HOLDS THE KEYS',
-         ['Your agent', 'model · tools · memory', 'You', 'orders and execution',
-          'Python', 'money and grading', 'Review', 'bounded changes only'], []),
-        ('return', 'violet', 'THE NEXT JUDGMENT STARTS HERE',
-         ['Past evidence + outcomes', 'Earlier-date calibration', 'Reviewed evidence rules'],
-         ['next context', 'No promise of returns']),
-    ]
-    h, gap, floor_h = 440, 24, 212
-    widths = [232, 284, 264, 248, 268]
-    regions, x = [], M
-    for w in widths:
-        regions.append((x, y, w, h))
-        x += w + gap
-    regions.append((M, y + h + 52, d.pw - 2 * M, floor_h))
-    for (kind, role, title, rows, chips), (x, yy, w, h) in zip(panels, regions):
-        d.add(f'<g data-region="{kind}">')
-        d.card(x, yy, w, h, role)
-        d.text(x + 18, yy + 34, title, 'kick' if kind in ('sources', 'owners', 'return') else 'h',
-               fill=ROLE[role])
-        if kind == 'decision':
-            d.text(x + 18, yy + 78, rows[0], 'h')
-            for j, label in enumerate(rows[1:3]):
-                by = yy + 104 + j * 70
-                d.card(x + 16, by, w - 32, 58, 'blue' if j == 0 else 'warm')
-                d.text(x + 32, by + 36, label, 'm')
-                fits(label, 'm', (w - 64) / scale, 'rsi decision side')
-            d.text(x + 18, yy + 282, rows[3], 'm', fill=MUT)
-        elif kind == 'outcome':
-            d.text(x + 18, yy + 78, rows[0], 'h')
-            cx, cy, r = x + w / 2, yy + 180, 68
-            d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="{r:g}" fill="none" '
-                  f'stroke="{ROLE[role]}" stroke-opacity=".25" stroke-width="15"/>')
-            d.wire(f'M{cx:g} {cy-r:g}A{r:g} {r:g} 0 1 1 {cx-1:g} {cy-r:g}',
-                   pulses=(0, 1.8), dur=6, pulse=ROLE[role], arrow=False)
-            for j, label in enumerate(rows[1:4]):
-                d.text(cx, cy - 18 + j * 25, label, 'm', anchor='middle')
-            d.text(x + 18, yy + 296, rows[4], 'm', fill=MUT)
-        elif kind == 'return':
-            # One line carries the record leftwards and leaves the pane as the
-            # return path, so the floor and the loop read as a single stroke.
-            line_y = yy + 116
-            d.add(f'<path d="M{x + w - 40:g} {line_y:g}H{x:g}" stroke="{LINE}" stroke-width="1.5"/>')
-            for xx, label in zip((x + w * f for f in (.2, .5, .8)), rows):
-                d.add(f'<circle cx="{xx:g}" cy="{line_y:g}" r="9" fill="{ROLE[role]}"/>')
-                d.text(xx, line_y - 30, label, 'm', anchor='middle')
-            d.text(x + 22, yy + 172, chips[0], 'code', fill=ROLE[role])
-            d.text(x + w - 22, yy + 172, chips[1], 'm', anchor='end', fill=MUT)
-        elif kind == 'owners':
-            for j in range(0, len(rows), 2):
-                ry = yy + 92 + j / 2 * 92
-                d.text(x + 18, ry, rows[j], 'h')
-                d.text(x + 18, ry + 30, rows[j + 1], 'm', fill=MUT)
-                fits(rows[j + 1], 'm', (w - 36) / scale, 'rsi owner')
-        elif kind == 'input':
-            d.text(x + 18, yy + 78, rows[0], 'h')
-            for j, label in enumerate(rows[1:]):
-                ry = yy + 136 + j * 54
-                d.icon('checks', x + 18, ry - 17, role, size=20)
-                d.text(x + 46, ry, label, 'm', fill=MUT)
-                fits(label, 'm', (w - 64) / scale, 'rsi input')
-        else:
-            for j, label in enumerate(rows):
-                d.text(x + 18, yy + 82 + j * 40, label, 'm', fill=MUT)
-                fits(label, 'm', (w - 36) / scale, 'rsi source')
-        if kind != 'return':
-            for j, chip in enumerate(chips):
-                d.chip(x + 16, yy + h - 52 - (len(chips) - 1 - j) * 44, w - 32, chip,
-                       cls='code', fill=ROLE[role], h=36)
-        d.add('</g>')
-    for (x, yy, w, h), role in zip(regions[:3], ('blue', 'blue', 'green')):
-        d.wire(f'M{x + w:g} {yy + h / 2:g}H{x + w + gap - 2:g}', pulses=(0, 1.4), pulse=ROLE[role])
-    # The return leaves the floor's left edge on the timeline and re-enters the
-    # sources pane from outside, clear of every label.
-    x, yy, w, _ = regions[-1]
-    d.wire(f'M{x:g} {yy + 116:g}H{x - 12:g}V{y + h / 2:g}H{x - 2:g}', pulses=(0, 3.5), dur=10,
-           pulse=ROLE['violet'])
-    return d.render(yy + floor_h + M)
+    """site/assets/rsi-loop.svg — the whole loop on one page, and who owns each step."""
+    d = D('clawock on one page: the whole decision loop and who owns each step',
+          'One poster of the whole loop. Eight source layers arrive through ordered fallback '
+          'routes; Python reconciles the book and certifies one context pack; the agent you '
+          'already run argues a bull and a bear case over it; code holds risk limits, currency '
+          'rules and evidence requirements; the plan reaches you and you place the orders; code '
+          'settles every call as a win, a loss or ungradeable; history, earlier-date calibration '
+          'and reviewed proposals return to the next context. No promise of returns.')
+    y = d.header('CLAWOCK · THE WHOLE LOOP ON ONE PAGE',
+                 ['One stock book. Every step of the loop,', 'and who owns it.'],
+                 ['Sources in, an argued decision out, code settles it,',
+                  'and the record opens the next judgment.'],
+                 [('data · sources', 'blue'), ('python · code gates', 'green'), ('agents · LLM', 'slate'),
+                  ('opposing case · limits', 'warm'), ('what returns', 'violet')])
+    d.logo('clawock', d.pw - M - 44, 30, 44)
+    full, gap = d.pw - 2 * M, 24
 
+    # --- row A: what comes in, and which agent carries it -------------------
+    y += 44
+    ah, aw = 300, 632
+    ax2, aw2 = M + aw + gap, full - aw - gap
+    d.section(y - 12, '01 · INFORMATION IN')
+    top = _panel(d, M, y, aw, ah, 'blue', 'market', 'Eight source layers', 'HK + US')
+    layers = [('market', 'Quotes + FX', 'Tencent, Nasdaq'), ('filing', 'Filings', 'SEC · HKEX'),
+              ('bars', 'Capital flow', 'Eastmoney'), ('news', 'News', 'two languages'),
+              ('calendar', 'Macro + mood', 'calendars'), ('factor', 'Quant + risk', 'price history'),
+              ('book', 'Your book', 'your ledger'), ('replay', 'Backtest', 'local bars')]
+    xs, cw = columns(4, gap=8, x0=M + 16, w=aw - 32)
+    for i, (icon, name, origin) in enumerate(layers):
+        x, yy = xs[i % 4], top + (i // 4) * 84
+        role = 'blue' if i < 5 else 'green'
+        d.add(f'<rect x="{x:g}" y="{yy:g}" width="{cw:g}" height="76" rx="9" fill="{TINT[role]}"/>')
+        d.icon(icon, x + 12, yy + 9, role, size=20)
+        d.text(x + 12, yy + 48, name, 'b')
+        d.text(x + 12, yy + 66, origin, 'm', fill=MUT)
+        fits(name, 'b', cw - 20, 'layer')
+        fits(origin, 'm', cw - 20, 'layer origin')
+    d.icon('fx', M + 20, top + 176, 'blue', size=18)
+    d.lines(M + 48, top + 190, aw - 68,
+            ['Every quote has an ordered fallback route.',
+             [('A failed source says “not fetched”, never “no news”.', MUT)]], cls='m', where='fallback')
 
-def evidence_receipt():
-    """A source-to-output matrix restores the full information-layer view."""
-    d = D('Evidence matrix: source, output, check',
-          'Eight information families as a matrix, not a sequential feed: market, filings, flow, '
-          'news, macro/sentiment, quant/risk, book/FX and backtest/calibration. Each source maps to '
-          'an output and a check. Source provenance is distinct from content certification; '
-          'context and pack hashes identify input, not truth. Credentials stay with the runtime.')
-    y = d.header('INFORMATION · THE SOURCE MATRIX', ['Many sources.', 'One traceable context.'],
-                 ['Read across: information family → source → usable output.',
-                  'Missing or stale evidence stays labelled.'], [], title_lh=34) + 30
-    headings = ['INFORMATION FAMILY', 'SOURCE / INPUT', 'OUTPUT / CHECK']
-    rows = [
-        ('Market', 'Tencent · Nasdaq · fallbacks', 'Quotes · freshness'),
-        ('Filings', 'SEC EDGAR · HKEX', 'Primary documents · time'),
-        ('Capital flow', 'Eastmoney', 'Flow series · coverage'),
-        ('News + catalysts', 'Bilingual news · calendars', 'Citations · old / live'),
-        ('Macro + sentiment', 'Macro feeds · public voices', 'Book-linked context'),
-        ('Quant + risk', 'Price history', 'Factors · risk · evidence gate'),
-        ('Book + FX', 'Holdings ledger · FX feeds', 'Reconciliation · currencies'),
-        ('Backtest + calibration', 'Local snapshots · bars', 'Earlier-date diagnostics'),
-    ]
-    xs, widths = [M + 20, 296, 662], [238, 338, 306]
-    for x, label in zip(xs, headings):
-        d.text(x, y, label, 'kick', fill=FAINT)
-    for i, row in enumerate(rows):
-        yy = y + 24 + i * 64
-        d.card(M, yy, d.pw - 2 * M, 52, 'blue' if i < 5 else 'green')
-        for x, room, label in zip(xs, widths, row):
-            fits(label, 'm', room, 'matrix cell')
-            d.text(x, yy + 32, label, 'm')
-    bottom = y + 24 + len(rows) * 64
-    d.wire(f'M{M+20} {bottom+8}H{d.pw-M-20}', pulses=(0, 1.8), arrow=False,
-           pulse=ROLE['blue'], dur=7)
-    note = ['Source + timestamp → core + references → request.json / manifest.json',
-            'Context + pack hashes pin content, not truth. Credentials stay with your runtime.']
-    bottom = _words(d, M + 20, bottom + 40, d.pw - 2 * M - 40, note, lh=23)
-    return d.render(bottom + M)
+    d.section(y - 12, 'ANY HARNESS', x=ax2)
+    top = _panel(d, ax2, y, aw2, ah, 'slate', 'terminal', 'Your agent', 'LLM')
+    agents = [('claude-code', 'Claude Code'), ('codex', 'Codex'), ('openclaw', 'OpenClaw'),
+              ('deepseek-harness', 'DeepSeek Harness'), ('any-cli', 'Your own CLI')]
+    for i, (logo, name) in enumerate(agents):
+        yy = top - 6 + i * 40
+        d.logo(logo, ax2 + 20, yy, 32)
+        d.text(ax2 + 64, yy + 21, name, 'b')
+    d.text(ax2 + 20, y + ah - 18, 'keeps its model · memory · tools', 'm', fill=MUT)
+    fits('keeps its model · memory · tools', 'm', aw2 - 36, 'agent note')
+
+    # --- row B: the pack, then the argument over it ---------------------------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    bh, bw = 322, 400
+    bx2, bw2 = M + bw + gap, full - bw - gap
+    d.down(M + 330, a_bottom, y, pulses=(0, 1.1))
+    d.down(ax2 + aw2 / 2, a_bottom, y, pulses=(.5,), pulse=ROLE['slate'])
+    d.section(y - 12, '02 · PYTHON BUILDS THE PACK')
+    top = _panel(d, M, y, bw, bh, 'green', 'checks', 'Certified context', 'PYTHON')
+    rows = [('reconcile', ['money and FX must balance']), ('risk', ['β · volatility · drawdown']),
+            ('factors', ['trend · momentum · ranks']), ('backtest', ['bootstrap CI clears 50%']),
+            ('certify', ['hashes pin what was read'])]
+    sweep(d, M + 12, top - 16, bw - 24, len(rows))
+    for i, (key, values) in enumerate(rows):
+        d.text(M + 20, top + i * 22, key, 'code', fill=ROLE['green'])
+        fits(values[0], 'm', bw - 36 - 112, 'pack row')
+        d.text(M + 132, top + i * 22, values[0], 'm')
+    d.mini_charts(M + 20, top + 132, bw - 40)
+    d.chip(M + 16, y + bh - 46, bw - 32, 'one context pack per run', fill=ROLE['green'])
+
+    d.section(y - 12, '03 · THE DEBATE', x=bx2)
+    top = _panel(d, bx2, y, bw2, bh, 'slate', 'debate', 'Argue both sides', 'LLM · READ ONLY')
+    xs, cw = columns(4, gap=6, x0=bx2 + 16, w=bw2 - 32)
+    for x, lens in zip(xs, ('fundamental', 'technical', 'sentiment', 'sector')):
+        d.chip(x, top - 12, cw, lens)
+    xs, cw = columns(2, gap=44, x0=bx2 + 16, w=bw2 - 32)
+    vy = top + 34
+    for x, (icon, name, body, role) in zip(xs, (('up', 'Bull case', 'builds the case for', 'green'),
+                                                ('down', 'Bear case', 'attacks the consensus', 'warm'))):
+        d.add(f'<rect x="{x:g}" y="{vy:g}" width="{cw:g}" height="72" rx="9" fill="{TINT[role]}" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".18"/>')
+        d.text(x + 14, vy + 30, [(name, ROLE[role])], 'h')
+        d.text(x + 14, vy + 54, body, 'm', fill=MUT)
+        d.icon(icon, x + cw - 36, vy + 12, role)
+        fits(body, 'm', cw - 28, 'side')
+    mid = bx2 + bw2 / 2
+    d.wire(f'M{mid - 16:g} {vy + 28:g}H{mid + 14:g}', pulses=(0,), dur=1.6, pulse=ROLE['green'])
+    d.wire(f'M{mid + 16:g} {vy + 46:g}H{mid - 14:g}', pulses=(.8,), dur=1.6, pulse=ROLE['warm'])
+    d.text(mid, vy + 96, [('must disagree on at least one position', ROLE['warm'])], 'm', anchor='middle')
+    xs, cw = columns(3, gap=8, x0=bx2 + 16, w=bw2 - 32)
+    for x, (icon, voice) in zip(xs, (('up', 'aggressive'), ('shield', 'conservative'), ('balance', 'neutral'))):
+        d.chip(x, vy + 112, cw, voice, icon=icon)
+    d.icon('judge', bx2 + 20, y + bh - 42, 'slate', size=20)
+    d.text(bx2 + 50, y + bh - 26, [('Judge', INK), (' names the strategy frame → plan', MUT)], 'm')
+    d.wire(f'M{M + bw:g} {y + bh / 2:g}H{bx2 - 2:g}', pulses=(0, 1.2), pulse=ROLE['green'])
+
+    # --- row C: one wide band of limits, in three different shapes --------------
+    b_bottom = y + bh
+    y = b_bottom + 48
+    ch = 286
+    d.down(bx2 + bw2 / 2, b_bottom, y, pulses=(0, 1.3), pulse=ROLE['slate'])
+    d.section(y - 12, '04 · CODE HOLDS THE BOUNDARY')
+    top = _panel(d, M, y, full, ch, 'green', 'gate', 'The model proposes. Code holds the line.',
+                 'PYTHON · UNIT-TESTED')
+    cx, cw1 = M + 20, 330
+    d.text(cx, top, 'RISK LIMITS', 'kick', fill=ROLE['warm'])
+    caps = [('leveraged single name', '≤ 35%', .35), ('core single name', '≤ 60%', .60),
+            ('correlated cluster', '≤ 70%', .70), ('leverage-ETF sleeve', '≤ 50%', .50),
+            ('portfolio β', '≤ 3.0', .30), ('stop', '−18%', .18)]
+    for i, (label, limit, part) in enumerate(caps):
+        yy = top + 30 + i * 32
+        d.text(cx, yy, label, 'm')
+        d.text(cx + cw1, yy, limit, 'b', anchor='end', fill=ROLE['warm'])
+        d.add(f'<rect x="{cx}" y="{yy + 7}" width="{cw1}" height="5" rx="2.5" fill="{CHIP}"/>')
+        d.add(f'<rect x="{cx}" y="{yy + 7}" width="{cw1 * part:g}" height="5" rx="2.5" '
+              f'fill="{ROLE["warm"]}" fill-opacity=".5"/>')
+    mx, mw = cx + cw1 + 28, 252
+    rx_, rw = mx + mw + 28, M + full - 20 - (mx + mw + 28)
+    for sep in (mx - 14, rx_ - 14):
+        d.add(f'<path d="M{sep:g} {top - 10:g}V{y + ch - 22:g}" stroke="{CARD_STROKE}"/>')
+    d.text(mx, top, 'MONEY', 'kick', fill=ROLE['green'])
+    half = (mw - 52) / 2
+    d.chip(mx, top + 16, half, 'USD', cls='code', fill=ROLE['green'], h=34)
+    d.chip(mx + half + 52, top + 16, half, 'HKD', cls='code', fill=ROLE['green'], h=34)
+    d.icon('fx', mx + half + 15, top + 22, 'green')
+    d.lines(mx, top + 82, mw, ['Currencies never sum directly', 'Unreconciled book: not pushed',
+                               'Return on peak principal', 'A breach freezes same-risk adds'], cls='m', lh=30, where='money')
+    d.text(rx_, top, 'EVIDENCE', 'kick', fill=ROLE['blue'])
+    for i, rule in enumerate(('Two evidence families per add', 'Price alone never moves a thesis',
+                              'Two sources per published number', 'No bear case, no publication',
+                              'Unknown risk never reads green')):
+        yy = top + 36 + i * 38
+        d.icon('checks', rx_, yy - 15, 'blue', size=20)
+        d.text(rx_ + 30, yy, rule, 'm')
+        fits(rule, 'm', rw - 30, 'evidence rule')
+
+    # --- row D: out to you, your call, back to code -----------------------------
+    c_bottom = y + ch
+    y = c_bottom + 48
+    dh = 208
+    w1, w2 = 292, 200
+    x2 = M + w1 + gap
+    x3 = x2 + w2 + gap
+    w3 = M + full - x3
+    d.down(M + 240, c_bottom, y, pulses=(0, 1.2), pulse=ROLE['green'])
+    d.section(y - 12, '05 · DELIVERED')
+    top = _panel(d, M, y, w1, dh, 'blue', 'plane', 'Reaches you', 'PUBLISH')
+    for i, (icon, label) in enumerate((('news', 'Brief + plan before the open'),
+                                       ('chat', 'WeChat + Telegram cards'),
+                                       ('dashboard', 'Live dashboard, polled 60 s'),
+                                       ('clock', 'Watchdog backstop, no LLM'))):
+        yy = top + 6 + i * 32
+        d.icon(icon, M + 20, yy - 15, 'blue', size=20)
+        d.text(M + 50, yy, label, 'm')
+        fits(label, 'm', w1 - 66, 'delivery')
+    d.section(y - 12, '06 · YOUR CALL', x=x2)
+    d.card(x2, y, w2, dh, 'warm', tint=True)
+    d.text(x2 + 20, y + 32, 'You decide', 'h')
+    d.tag(x2 + w2 - 16, y + 30, 'HUMAN', 'warm', anchor='end')
+    d.lines(x2 + 20, top + 6, w2 - 36, ['You place orders.', 'You mark each call',
+                                        'followed or not.'], cls='m', lh=24, where='you')
+    d.chip(x2 + 16, y + dh - 46, w2 - 32, 'mark-followed', cls='code', fill=ROLE['warm'])
+    d.section(y - 12, '07 · SETTLED BY CODE', x=x3)
+    top = _panel(d, x3, y, w3, dh, 'green', 'balance', 'Code settles it', 'NO SELF-SCORE')
+    xs, cw = columns(3, gap=8, x0=x3 + 16, w=w3 - 32)
+    for x, (name, body, role) in zip(xs, (('Win', 'published', 'green'), ('Loss', 'published', 'warm'),
+                                          ('Ungradeable', 'still shown', 'slate'))):
+        d.add(f'<rect x="{x:g}" y="{top - 12:g}" width="{cw:g}" height="62" rx="9" fill="{TINT[role]}" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".18"/>')
+        d.text(x + 12, top + 14, [(name, ROLE[role])], 'b')
+        d.text(x + 12, top + 36, body, 'm', fill=MUT)
+        fits(name, 'b', cw - 22, 'verdict')
+        fits(body, 'm', cw - 22, 'verdict body')
+    d.lines(x3 + 20, top + 78, w3 - 36, ['Canonical bars · each market’s calendar',
+                                         [('One thesis = one episode · nothing hand-tuned', MUT)]],
+            cls='m', lh=22, where='settle')
+    for a, b, role in ((M + w1, x2, 'blue'), (x2 + w2, x3, 'warm')):
+        d.wire(f'M{a:g} {y + dh / 2:g}H{b - 2:g}', pulses=(0, 1.2), pulse=ROLE[role])
+
+    # --- row E: the record comes back -------------------------------------------
+    d_bottom = y + dh
+    y = d_bottom + 48
+    eh = 176
+    d.down(x3 + w3 / 2, d_bottom, y, pulses=(0, 1.2), pulse=ROLE['green'])
+    d.section(y - 12, '08 · WHAT RETURNS')
+    top = _panel(d, M, y, full, eh, 'violet', 'replay', 'The next judgment starts from the record',
+                 'RSI · RECURSIVE SELF-IMPROVEMENT', tint=True)
+    line_y = top + 46
+    d.add(f'<path d="M{M + full - 40:g} {line_y:g}H{M:g}" stroke="{LINE}" stroke-width="1.5"/>')
+    stops = [('History + reviews', 'in the next brief'), ('Earlier-date calibration', 'shrinks or abstains'),
+             ('Bounded proposal', 'evidence rules only'), ('Named review + rollback', 'no silent strategy edits')]
+    for i, (name, body) in enumerate(stops):
+        xx = M + full * (i + .5) / 4
+        d.add(f'<circle cx="{xx:g}" cy="{line_y:g}" r="7" fill="{ROLE["violet"]}"/>')
+        d.text(xx, line_y - 20, name, 'b', anchor='middle')
+        d.text(xx, line_y + 30, body, 'm', anchor='middle', fill=MUT)
+        fits(name, 'b', full / 4 - 16, 'return stop')
+        fits(body, 'm', full / 4 - 16, 'return stop body')
+    # The return leaves the lane's left edge on its own timeline and climbs the
+    # margin back to the sources, clear of every pane.
+    first = d.header_bottom + 44 + ah / 2
+    d.wire(f'M{M:g} {line_y:g}H{M - 13:g}V{first:g}H{M - 2:g}', pulses=(0, 4, 8), dur=12,
+           pulse=ROLE['violet'], dash=True)
+    bottom = y + eh
+    note = 'No promise of returns. The active calls have yet to show an edge; what accumulates is a record you can check.'
+    fits(note, 'm', full - 40, 'overview note')
+    d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
+    return d.render(bottom + 36 + M)
 
 
 def feedback_learning():
-    """A live feedback wheel beside a portable proposal state machine."""
-    d = D('Feedback: a live learning wheel and a portable adoption state machine',
-          'Left: a live loop connects execution evidence, canonical-bar episodes, history and '
-          'earlier-date calibration back to the next brief. Right: portable source-linked '
-          'outcome and directional evaluation can trigger a bounded proposal; exact-hash named '
-          'review accepts or rejects it, accepted changes apply with rollback records. Only '
-          'evidence/provenance strictness changes, not strategy. Neither path promises returns.')
-    y = d.header('FEEDBACK · TWO WAYS TO CARRY THE RECORD', ['A live learning loop.',
-                 'A reviewed adoption path.'], ['Different mechanisms, the same continuity:',
-                 'keep evidence and outcome with the next judgment.'], [], title_lh=34) + 30
-    live = [('Execution', 'followed / not-followed / unknown'),
-            ('Settle', 'canonical bars · one thesis, one episode'),
-            ('History', 'metrics + reviews in the next brief'),
-            ('Calibrate', 'earlier dates only · shrink or abstain')]
-    portable = [('Observed outcome', 'outcome.json → evaluation.json'),
-                ('Bounded proposal', 'evaluation or rejection → propose'),
-                ('Named review', 'accept exact hash / reject'),
-                ('Adopt with a way back', 'apply → recorded prior values → rollback')]
-    x2, h = COL2 + M, 452
-    d.card(M, y, CW, h, 'blue')
-    d.text(M + 20, y + 32, 'LIVE DESK', 'kick', fill=ROLE['blue'])
+    """site/assets/feedback-learning.svg — settlement, then the two ways the record returns."""
+    d = D('After the close: code settles the call and the record feeds the next one',
+          'Top: a call is recorded once by the model, checked against canonical daily bars on each '
+          'market’s own calendar, grouped so one thesis is one episode, and settled by code as a '
+          'win, a loss or ungradeable; all three stay published and ungradeable calls sit outside '
+          'the win rate. Lower left: on the live desk, execution status, settlement, history and '
+          'earlier-date calibration circle back into the next brief. Lower right: in any other '
+          'harness, an observed outcome can anchor a bounded proposal that a named review accepts '
+          'or rejects, applied with a rollback record. Only evidence requirements change, never '
+          'strategy. A directional evaluation is not realized P&L and nothing here promises returns.')
+    y = d.header('AFTER THE CLOSE · SETTLE, THEN LEARN',
+                 ['Code settles the call.', 'The record teaches the next one.'],
+                 ['Wins, losses and ungradeable calls all stay published;',
+                  'calibration only ever looks backwards.'],
+                 [('written by the model', 'slate'), ('settled by python', 'green'),
+                  ('live desk', 'blue'), ('portable workflow', 'warm')])
+    full, gap = d.pw - 2 * M, 24
+    y += 44
+    d.section(y - 12, 'ONE CALL, SETTLED IN THE OPEN')
+    xs, cw = columns(4, gap=gap, x0=M, w=full)
+    sh = 150
+    steps = [('slate', 'book', 'Record', ['the model submits once', 'no write access after']),
+             ('green', 'market', 'Trigger', ['canonical daily bars', 'each market’s calendar']),
+             ('green', 'sector', 'Episode', ['one thesis, one episode', 'repeats add no samples'])]
+    for x, (role, icon, name, body) in zip(xs, steps):
+        top = _panel(d, x, y, cw, sh, role, icon, name)
+        d.lines(x + 20, top + 12, cw - 36, [[(row, MUT)] for row in body], cls='m', lh=24, where='settle step')
+    x = xs[3]
+    top = _panel(d, x, y, cw, sh, 'green', 'balance', 'Verdict')
+    used = d.tag(x + 20, top + 8, 'WIN', 'green')
+    d.tag(x + 26 + used, top + 8, 'LOSS', 'warm')
+    d.tag(x + 20, top + 36, 'UNGRADEABLE', 'slate')
+    d.text(x + 20, top + 64, 'all published', 'm', fill=MUT)
+    for i, x in enumerate(xs[:3]):
+        d.wire(f'M{x + cw:g} {y + sh / 2:g}H{x + cw + gap - 2:g}', pulses=(i * .4,),
+               pulse=ROLE['green'])
+    s_bottom = y + sh
+
+    y = s_bottom + 52
+    lw = (full - gap) / 2
+    rx_ = M + lw + gap
+    h = 380
+    d.down(xs[1] + cw / 2, s_bottom, y, pulses=(0, 1.1), pulse=ROLE['blue'])
+    d.down(xs[3] + cw / 2, s_bottom, y, pulses=(.5, 1.6), pulse=ROLE['warm'])
+    d.section(y - 12, 'ON THE LIVE DESK')
+    top = _panel(d, M, y, lw, h, 'blue', 'replay', 'A loop around the next brief', 'EVERY DAY')
+    live = [('commit', 'Execution', 'followed / not-followed / unknown'),
+            ('balance', 'Settle', 'wins, losses and ungradeable kept'),
+            ('book', 'History', 'metrics + reviews in the next brief'),
+            ('factor', 'Calibrate', 'earlier dates only · shrink or abstain')]
     # Four stations at the corners of a loop that closes around the next brief.
     # Every leg starts and ends on a station, so no stroke runs behind a label.
-    left, right, top, low, cw, ch = M + 26, W - M - 26 - 184, y + 76, y + 300, 184, 32
+    sw_, ch = 168, 32
+    left, right, hi, low = M + 22, M + lw - 22 - sw_, top + 10, top + 202
     feet = {}
-    for (heading, body), (xx, yy) in zip(live, ((left, top), (right, top), (right, low), (left, low))):
-        d.chip(xx, yy, cw, heading, fill=ROLE['blue'], h=ch)
-        feet[heading] = _words(d, xx + cw / 2, yy + ch + 26, cw - 4, [body], lh=21, anchor='middle') - 21
-    legs = [f'M{left + cw} {top + ch / 2}H{right - 2}',
-            f'M{right + cw / 2} {feet["Settle"] + 12}V{low - 2}',
-            f'M{right} {low + ch / 2}H{left + cw + 2}',
-            f'M{left + cw / 2} {low}V{feet["Execution"] + 14}']
+    for (icon, heading, body), (xx, yy) in zip(live, ((left, hi), (right, hi), (right, low), (left, low))):
+        d.chip(xx, yy, sw_, heading, fill=ROLE['blue'], icon=icon, role='blue', h=ch)
+        feet[heading] = _words(d, xx + sw_ / 2, yy + ch + 24, sw_, [body], lh=21, anchor='middle') - 21
+    legs = [f'M{left + sw_:g} {hi + ch / 2:g}H{right - 2:g}',
+            f'M{right + sw_ / 2:g} {feet["Settle"] + 12:g}V{low - 2:g}',
+            f'M{right:g} {low + ch / 2:g}H{left + sw_ + 2:g}',
+            f'M{left + sw_ / 2:g} {low:g}V{feet["Execution"] + 14:g}']
     for i, leg in enumerate(legs):
         d.wire(leg, pulses=(i * .5,), dur=2.4, pulse=ROLE['blue'])
-    cx, cy = W / 2, (feet['Execution'] + low) / 2 + 6
-    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="46" fill="none" stroke="{ROLE["blue"]}" '
-          'stroke-width="12" stroke-opacity=".13"/>')
-    d.text(cx, cy - 3, 'Next', 'b', anchor='middle', fill=ROLE['blue'])
-    d.text(cx, cy + 16, 'brief', 'b', anchor='middle', fill=ROLE['blue'])
-    d.card(x2, y, CW, h, 'warm')
-    d.text(x2 + 20, y + 32, 'PORTABLE WORKFLOW', 'kick', fill=ROLE['warm'])
-    for i, (heading, body) in enumerate(portable):
-        yy = y + 78 + i * 94
-        d.tag(x2 + 20, yy + 4, ('observe', 'propose', 'review', 'apply')[i], 'warm')
-        d.text(x2 + 126, yy + 4, heading, 'h')
-        d.text(x2 + 20, yy + 37, body, 'm')
+    cx, cy = M + lw / 2, (feet['Execution'] + low) / 2 + 6
+    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="44" fill="{TINT["blue"]}" stroke="{ROLE["blue"]}" '
+          'stroke-width="10" stroke-opacity=".16"/>')
+    d.text(cx, cy - 3, [('Next', ROLE['blue'])], 'b', anchor='middle')
+    d.text(cx, cy + 16, [('brief', ROLE['blue'])], 'b', anchor='middle')
+
+    d.section(y - 12, 'IN ANY OTHER HARNESS', x=rx_)
+    top = _panel(d, rx_, y, lw, h, 'warm', 'branch', 'A reviewed adoption path', 'PORTABLE')
+    portable = [('observe', 'Observed outcome', 'outcome → directional evaluation'),
+                ('propose', 'Bounded proposal', 'evidence requirements only'),
+                ('review', 'Named review', 'accept the exact hash, or reject'),
+                ('apply', 'Adopt with a way back', 'prior values kept for rollback')]
+    # A staircase, not a list: each state sits one step right of the one before.
+    step_w = 286
+    for i, (verb, heading, body) in enumerate(portable):
+        xx, yy = rx_ + 20 + i * 44, top - 8 + i * 80
+        d.add(f'<rect x="{xx:g}" y="{yy:g}" width="{step_w}" height="62" rx="9" fill="{TINT["warm"]}" '
+              f'stroke="{ROLE["warm"]}" stroke-opacity=".18"/>')
+        d.text(xx + 14, yy + 26, heading, 'b')
+        d.tag(xx + step_w - 12, yy + 25, verb.upper(), 'warm', anchor='end')
+        d.text(xx + 14, yy + 48, body, 'm', fill=MUT)
+        fits(body, 'm', step_w - 26, 'adoption step')
         if i < 3:
-            d.wire(f'M{x2 + 36} {yy + 50}V{yy + 76}', pulses=(0,), pulse=ROLE['warm'])
+            d.wire(f'M{xx + 22:g} {yy + 62:g}V{yy + 78:g}', pulses=(i * .4,), pulse=ROLE['warm'])
     bottom = y + h
-    note = ['Directional evaluation is not realized P&L. Only evidence / provenance rules change.',
-            'No silent strategy edits. No promise of returns.']
-    bottom = _words(d, M + 20, bottom + 40, d.pw - 2 * M - 40, note, lh=23)
-    return d.render(bottom + M)
+    note = ['A directional evaluation is not realized P&L. Only evidence requirements change: no silent strategy edits.',
+            'A diagnostic, not proof of return.']
+    for i, row in enumerate(note):
+        fits(row, 'm', full - 40, 'feedback note')
+        d.text(M + 20, bottom + 36 + i * 22, row, 'm', fill=MUT)
+    return d.render(bottom + 58 + M)
 
 
 LAYOUTS = {
     'rsi-loop': rsi_loop,
-    'evidence-receipt': evidence_receipt,
     'feedback-learning': feedback_learning,
     'decision-pipeline': decision_pipeline,
     'harnesses': harnesses,
@@ -1751,9 +1698,6 @@ LAYOUTS = {
     'architecture': architecture,
     'product-architecture': product_architecture,
     'debate-flow': debate_flow,
-    'start-here': start_here,
-    'scorecard': scorecard,
-    'guardrails': guardrails,
 }
 #: Every file this builder owns: one composition per diagram, at every width.
 DIAGRAMS = {f'{name}.svg': draw for name, draw in LAYOUTS.items()}

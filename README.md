@@ -33,17 +33,11 @@
 
 ## What you get
 
-You own a HK + US stock book. Each day you need to know what changed, whether to act, and how yesterday's call turned out. clawock gives the AI agent you already use a continuing investment workflow: **collect information → argue both sides → settle in code → feed the result into the next decision**. Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI can carry the same contract. You still place the orders.
+clawock gives the AI agent you already use a continuing investment workflow for a HK + US stock book: **collect information → argue both sides → settle in code → feed the result into the next decision**. You still place the orders.
 
-Here **RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="clawock on one page: eight source layers arrive through fallback routes; Python reconciles the book and certifies one context pack; Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI argues a bull and a bear case over it; code holds six risk limits, currency rules and evidence requirements; the plan reaches you and you place the orders; code settles each call as a win, a loss or ungradeable; history, earlier-date calibration and reviewed proposals return to the next judgment"></p>
 
-| Your daily question | What it does for you | What you get |
-|---|---|---|
-| What changed that matters to my book? | Collects quotes, filings, news and risk into context with sources | A pre-open evidence pack with timestamps, citations and named missing sources |
-| Should I act today? | Makes bull and bear read the same evidence; states triggers and invalidation; checks money | `memory/{date}-pre-open.md` + `memory/{date}-plan.json`, then intraday trigger cards |
-| How did that call turn out? | Settles against price bars, keeps execution status and failures, returns history and calibration | `memory/decisions.jsonl`, the public scorecard and reviews; portable runs also produce `evaluation.json` |
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1440" alt="RSI overview in multiple regions: information sources at left; certified input, opposing-case decision and code-settled feedback in the centre; agent, human, Python and review ownership at right; history and calibration return along the bottom to the next context"></p>
+**RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
 
 ## Information in: sources before opinions
 
@@ -52,8 +46,6 @@ Before you open the morning brief, Python has collected quotes through fallback 
 **You get an evidence pack.** On the live desk, `preflight` writes the core needed for this judgment and reference layers the agent can load on demand. The agent can trace the batch without reconstructing it from chat. In your own harness, `run prepare` produces `request.json`, pinning per-file and whole-context SHA-256 hashes, the workflow version and the whole-pack certificate.
 
 **Certification pins what was used.** Citations carry the source and publication or observation time; hashes check content and generation, not whether a news story is true. Source access credentials and model API keys remain with your runtime, outside the public repository. The portable skill also lets your agent use its own research tools to add traceable evidence; scheduled desk jobs read the Python-assembled files.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/evidence-receipt.svg" width="1016" alt="Evidence matrix: eight information families mapped across sources, usable outputs and checks; the bottom provenance strip distinguishes citations and timestamps from certified context and workflow hashes, which pin content rather than truth"></p>
 
 **The live desk’s full information and delivery flow**
 
@@ -85,12 +77,10 @@ The close is not the end of the conversation. You use `mark-followed` to mark fo
 
 **A different harness can continue the feedback.** Portable runs turn source-linked `outcome.json` into `evaluation.json` (a directional evaluation, not realized P&L). An evaluation or rejection receipt can anchor a bounded proposal, applied after a named review accepts it, with a rollback record. Today those parameters govern evidence counts and the confidence cap without a primary source; they cannot silently change strategy, trading rules or the skill. This is a reviewable improvement path, not an automatic increase in returns.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning.svg" width="1016" alt="Live feedback wheel: execution, settlement, history and calibration surround the next brief; alongside it, a portable adoption state machine follows outcome, bounded proposal, named acceptance or rejection, and reversible apply; no silent strategy edits"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning.svg" width="1016" alt="After the close: a call is recorded once by the model, checked against canonical daily bars on each market’s calendar, grouped into one episode per thesis and settled by code as a win, a loss or ungradeable, all published; on the live desk execution, settlement, history and calibration loop back into the next brief; in any other harness an observed outcome can anchor a bounded proposal that a named review accepts or rejects, applied with a rollback record"></p>
 
 Every call is settled mechanically and published: wins, losses, and the cases
 that can't be graded. Nothing is hand-tuned after the fact.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/scorecard.svg" width="1016" alt="How clawock grades a call — the model submits a versioned decision into memory/decisions.jsonl and has no write access after that; Python checks the trigger against canonical unadjusted daily bars on each market's own calendar, where an unfinished session grades nothing and a gap through a trigger fills at the open; repeated calls on one thesis collapse into one episode; code settles the outcome against a plain directional baseline and publishes wins, losses and ungradeable cases, which stay visible outside the win rate; the record is a diagnostic, not proof of return"></p>
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
@@ -122,15 +112,11 @@ Use the same **`investment-decision` skill and artifact contract in Claude Code 
 ## What the model is not allowed to do
 
 The model writes opinions. The arithmetic that could corrupt the record runs in
-Python and is unit-tested.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/guardrails.svg" width="1016" alt="What clawock code enforces — six risk caps checked in every brief (leveraged single name, core single name with a review band, correlated cluster, leverage-ETF sleeve, portfolio beta and a stop), each breach kept in a ledger that freezes same-risk adds; money rules: USD and HKD never sum, a book that fails to reconcile is not pushed, return is measured on peak principal; evidence rules: an add needs two independent evidence families, a thesis moves only on new evidence and never on price, a published number needs two sources, and a decision with no bear case is not published; execution stays human"></p>
+Python and is unit-tested. The six risk limits, the currency rules and the evidence requirements are panel 04 of the overview at the top.
 
 [All twelve rules, and what the code does for each](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#what-the-code-enforces).
 
 ## Try it in five minutes
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/start-here.svg" width="1016" alt="Where to start with clawock — if you trade your own Hong Kong and US book, you get a plan before the open, cards through the session and a grade after the close, starting with clawock init; if you already run an agent such as Claude Code, Codex, OpenClaw or DeepSeek Harness, you install the investment-decision workflow and your agent keeps the model call; if you want to see the record first, the live dashboard shows every call settled by code with the losses left in; underneath all three is one contract: certified evidence, a required opposing case, checked money and FX arithmetic, and an outcome linked back to the decision"></p>
 
 Pick the agent you already use; each logo opens that harness's runnable example.
 

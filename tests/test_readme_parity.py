@@ -248,6 +248,16 @@ def test_hero_is_unchanged_apart_from_weekly_metrics():
         assert hashlib.sha256(hero.encode()).hexdigest() == expected
 
 
+def test_the_whole_loop_figure_opens_the_first_section():
+    """The complete figure leads; a one-paragraph intro is all that precedes it."""
+    for md in (EN, ZH):
+        first = md.split("\n## ")[1]
+        before, _, after = first.partition('<p align="center"><img')
+        assert 'rsi-loop.svg' in after.split('\n', 1)[0]
+        assert len([ln for ln in before.splitlines()[1:] if ln.strip()]) == 1
+        assert '|---' not in first
+
+
 def test_rsi_artifacts_and_portability_precede_installation():
     """The reader sees inputs, a decision and measurable feedback before setup."""
     for md, setup in ((EN, "## Try it in five minutes"), (ZH, "## 五分钟跑起来")):
@@ -257,9 +267,9 @@ def test_rsi_artifacts_and_portability_precede_installation():
             assert artifact in story, artifact
         for harness in ('Claude Code', 'Codex', 'OpenClaw', 'DeepSeek Harness'):
             assert harness in story, harness
-        for diagram in ('rsi-loop', 'evidence-receipt', 'feedback-learning'):
+        for diagram in ('rsi-loop', 'information-flow', 'feedback-learning'):
             assert f'{diagram}.svg' in story, diagram
-        assert story.index('decision-card-example.png') < story.index('scorecard.svg')
+        assert story.index('decision-card-example.png') < story.index('shadow-backtest.png')
 
 
 def test_emoji_only_in_the_hhi_bucket_row():
