@@ -1,12 +1,12 @@
 {
-  "as_of": "2026-10-07T08:03:48+08:00",
+  "as_of": "2026-10-07T15:33:19+08:00",
   "market_closed": {
     "us": true,
-    "hk": true
+    "hk": false
   },
   "session_date": {
     "us": "2026-10-06",
-    "hk": "2026-10-06"
+    "hk": "2026-10-07"
   },
   "intraday_enriched": false,
   "note": "牌面质量评级，非买卖信号。追高检测 = 当日高位+振幅耗尽时买入为低质。",
@@ -82,60 +82,60 @@
     "00100": {
       "market": "hk",
       "name": "MINIMAX-W",
-      "current": 249.2,
-      "today_change_pct": 2.05,
-      "gap_pct": 1.15,
-      "range_pos": 52.0,
-      "day_range_pct": 6.14,
-      "range_used_atr": 0.58,
+      "current": 239.2,
+      "today_change_pct": -4.01,
+      "gap_pct": 0.0,
+      "range_pos": 39.8,
+      "day_range_pct": 6.66,
+      "range_used_atr": 0.63,
       "rsi14": 42.0,
       "zscore20": -0.73,
       "atr14_pct": 10.55,
       "grade": "🟡",
       "grade_label": "中性",
-      "grade_reason": "区间 52% 中段，无明显边缘"
+      "grade_reason": "区间 40% 中段，无明显边缘"
     },
     "02208": {
       "market": "hk",
       "name": "金风科技",
-      "current": 8.82,
-      "today_change_pct": 0.17,
+      "current": 8.695,
+      "today_change_pct": -1.42,
       "gap_pct": 0.0,
-      "range_pos": 41.7,
-      "day_range_pct": 2.04,
-      "range_used_atr": 0.6,
+      "range_pos": 58.3,
+      "day_range_pct": 3.4,
+      "range_used_atr": 1.0,
       "rsi14": 41.2,
       "zscore20": -0.71,
       "atr14_pct": 3.4,
       "grade": "🟡",
       "grade_label": "中性",
-      "grade_reason": "区间 42% 中段，无明显边缘"
+      "grade_reason": "区间 58% 中段，无明显边缘"
     },
     "03032": {
       "market": "hk",
       "name": "恒生科技ETF",
-      "current": 4.216,
-      "today_change_pct": 1.05,
-      "gap_pct": 0.67,
-      "range_pos": 30.8,
-      "day_range_pct": 1.25,
-      "range_used_atr": 0.61,
+      "current": 4.19,
+      "today_change_pct": -0.62,
+      "gap_pct": -0.05,
+      "range_pos": 56.3,
+      "day_range_pct": 1.52,
+      "range_used_atr": 0.74,
       "rsi14": 35.7,
       "zscore20": -1.25,
       "atr14_pct": 2.05,
       "grade": "🟡",
       "grade_label": "中性",
-      "grade_reason": "区间 31% 中段，无明显边缘"
+      "grade_reason": "区间 56% 中段，无明显边缘"
     },
     "07226": {
       "market": "hk",
       "name": "XL二南方恒科",
-      "current": 2.688,
-      "today_change_pct": 1.9,
-      "gap_pct": 2.35,
-      "range_pos": 26.5,
-      "day_range_pct": 2.58,
-      "range_used_atr": 1.31,
+      "current": 2.654,
+      "today_change_pct": -1.26,
+      "gap_pct": -0.82,
+      "range_pos": 52.4,
+      "day_range_pct": 3.13,
+      "range_used_atr": 1.59,
       "rsi14": 35.7,
       "zscore20": -1.23,
       "atr14_pct": 1.97,
@@ -143,23 +143,23 @@
       "decay_note": "2x 每日杠杆，多日持有有衰减；做 T 当日无碍，别拿来等多日故事",
       "grade": "🟡",
       "grade_label": "中性",
-      "grade_reason": "区间 26% 中段，无明显边缘"
+      "grade_reason": "区间 52% 中段，无明显边缘"
     },
     "03033": {
       "market": "hk",
       "name": "南方恒生科技",
-      "current": 4.14,
-      "today_change_pct": 1.17,
-      "gap_pct": 1.27,
-      "range_pos": 38.5,
-      "day_range_pct": 1.27,
-      "range_used_atr": 0.63,
+      "current": 4.11,
+      "today_change_pct": -0.72,
+      "gap_pct": -0.43,
+      "range_pos": 52.9,
+      "day_range_pct": 1.64,
+      "range_used_atr": 0.81,
       "rsi14": 36.9,
       "zscore20": -1.17,
       "atr14_pct": 2.02,
       "grade": "🟡",
       "grade_label": "中性",
-      "grade_reason": "区间 38% 中段，无明显边缘"
+      "grade_reason": "区间 53% 中段，无明显边缘"
     }
   }
 }
