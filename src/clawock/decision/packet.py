@@ -1371,6 +1371,7 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
             "kind": "brief_decision_packet",
             "generation_id": generation_id,
         },
+        "stock_discovery": context.get("stock_discovery") or {},
         "date": context.get("date"),
         "generated_at": context.get("generated_at"),
         "integrity": {
@@ -1621,6 +1622,7 @@ def bind_plan_provenance(plan: dict, packet: dict) -> dict:
 
 def summary_view(packet: dict) -> dict:
     return {
+        "stock_discovery": packet.get("stock_discovery") or {},
         "_meta": packet.get("_meta"),
         "date": packet.get("date"),
         "integrity": packet.get("integrity"),

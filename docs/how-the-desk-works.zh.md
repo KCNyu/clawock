@@ -12,13 +12,13 @@
 
 ## 信息层
 
-仓库编录了 **8 层、44 个抓取与计算模块**,港股美股双语覆盖:
+仓库编录了 **8 层、45 个抓取与计算模块**,港股美股双语覆盖:
 
 **全部 8 层,逐行展开**
 
 | 层 | 模块 | 主要来源 |
 |---|---|---|
-| 1 · 行情 | 7 | 腾讯 · Yahoo · 东财 · Polygon |
+| 1 · 行情 | 8 | 腾讯 · Yahoo · 东财 · Polygon · Nasdaq |
 | 2 · 基本面/申报 | 3 | SEC EDGAR · 东财 datacenter · 港交所 |
 | 3 · 资金面 | 1 | 东财 push2his |
 | 4 · 消息面与催化剂(双语) | 6 | 东财 · Finnhub · Google News · Yahoo · 同花顺 · 交易所公告 |
@@ -29,7 +29,7 @@
 
 覆盖是双语的,但不对称,而且不对称的地方在研究广度不在基础面。行情、基本面、消息面、资金守恒都有真实的港股分支;两项研究广度能力没有:同业发现在美股侧自动抓取、在港股侧读人工策展的 peer-map([`peer_discovery.py`](../src/clawock/market_data/peer_discovery.py) —— 机制已实测可用,闸仍关着,等 peer-residual 规则对着更宽的同业域重新登记之后再开),停牌在美股侧是结构化 feed、在港股侧只是一条要人工判读的公告([`mover_evidence.py`](../src/clawock/market_data/mover_evidence.py))。即:港股基础覆盖对齐,港股研究广度落后美股。
 
-抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。44 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](../config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
+抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。45 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](../config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 
 ### 热点捕获:影响者雷达
 
@@ -61,7 +61,7 @@
 | | 盘前深度简报 | 开 / 午 / 收报告 | 盘中盯盘 |
 |---|---|---|---|
 | **什么时候** | 工作日 08:03 HKT | 港 09:30·12:00·13:30·16:00,美开收 | 开市每 30 分钟 |
-| **块数** | 41 | 19 | 47 |
+| **块数** | 42 | 19 | 47 |
 | **核心内容** | 持仓真值、风控、量化信号、**收盘确认的加仓面**、新闻/催化剂(含上次收盘以来的实时公告与新闻)、论点登记册、历史复盘、当日计划 | 新鲜行情、异动催化探针、全持仓实时公告与新闻、待成交决策、**计划触发线是否已破** | 行情、信号计数、T+0 牌面、异动标记、每档全持仓实时公告/新闻/7×24、盘中重跑的入场 setup、**计划触发线是否已破**(算术判定并印进块里,不指望模型自己看出来) |
 
 块数 = 每个频次产出的 context 顶层块数,CI(`tests/test_readme_parity.py`)对着 preflight 自己的 context dict 数——标识包身份的信封键(`context_id` / `generation_id`)不计数,所以实际产物会多一个键。

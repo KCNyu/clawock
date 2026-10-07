@@ -121,6 +121,11 @@ def _early_candidate_section(packet):
         lines.append(f'- {name}: {state}{suffix}')
     if not ranked:
         lines.append('- 暂无确定性提前提示；不是“模型没写”，而是价格/同业条件未同时成立')
+    from clawock.market_data.stock_discovery import candidate_lines
+    discovery_lines = candidate_lines(packet.get('stock_discovery'))
+    if discovery_lines:
+        # Part of this owned block: re-injection replaces both queues together.
+        lines += [''] + discovery_lines
     return '\n'.join(lines)
 
 

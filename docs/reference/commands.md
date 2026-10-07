@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**82 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 59 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (70 subcommands). 44 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**83 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 60 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (71 subcommands). 45 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -50,7 +50,7 @@ Workspace, run and harness lifecycle commands; details are in the hand-written s
 
 ### Layer 1 · Market / 行情
 
-Sources: Tencent · Yahoo · Eastmoney · Polygon
+Sources: Tencent · Yahoo · Eastmoney · Polygon · Nasdaq
 
 | Command | Module | What it collects or computes |
 |---|---|---|
@@ -61,6 +61,7 @@ Sources: Tencent · Yahoo · Eastmoney · Polygon
 | `clawock daily-bars` | `clawock.market_data.bars` | canonical unadjusted daily OHLC store the ledger settles against |
 | `clawock benchmark` | `clawock.market_data.benchmarks` | SPY / HSI / HSTECH daily-close history for the equity-curve overlay |
 | `clawock-gold-fetch` | `clawock.market_data.gold.fetch` | daily NAV for the 000217 gold DCA position from the Eastmoney fund API |
+| `clawock discover-stocks` | `clawock.market_data.stock_discovery` | free Nasdaq US-listed snapshot, sector-diverse research candidates outside held exposures; time unverified, no trade authority |
 
 ### Layer 2 · Fundamentals & filings / 基本面/申报
 

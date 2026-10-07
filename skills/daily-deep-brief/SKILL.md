@@ -132,6 +132,14 @@ reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirma
   --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
 
+summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队列。它只有
+`needs_entry_gate`、`allowed=false` 的候选，不提供建仓授权。简报和投递卡由 harness
+固定展示；不要把候选改写成 add/swap 决策。可说明下一步研究哪个行业、要核什么
+一手披露。`snapshot_metrics` 不是实时价格，`observed_at=null` 必须保留「时点未核」。
+先用 `quote_request` 经 `clawock fetch-peers` 核验报价，再遵循 entry-gate 的人工研究
+流程；不要用 `analyze-us TICKER` 查新票（该命令当前只刷新持仓）。候选源失败写
+「Nasdaq 未取到」，不能解释为「没有机会」。港股跨板块发现、analyst 一致预期尚缺。
+
 summary 包含 book/concentration、每票 deterministic status、技术/因子可用性、风险计数、allowed actions 与 evidence IDs。它不要求模型加载原始持仓交易流水或整张因子表。
 
 需要分析某票时才查该票；需要单一维度时必须带 `--section`：

@@ -10,8 +10,8 @@
         "zh": "行情"
       },
       "sources": {
-        "en": "Tencent · Yahoo · Eastmoney · Polygon",
-        "zh": "腾讯 · Yahoo · 东财 · Polygon"
+        "en": "Tencent · Yahoo · Eastmoney · Polygon · Nasdaq",
+        "zh": "腾讯 · Yahoo · 东财 · Polygon · Nasdaq"
       },
       "modules": [
         {
@@ -42,6 +42,10 @@
           "command": "clawock-gold-fetch",
           "registry": "standalone",
           "note": "daily NAV for the 000217 gold DCA position from the Eastmoney fund API"
+        },
+        {
+          "command": "discover-stocks",
+          "note": "free Nasdaq US-listed snapshot, sector-diverse research candidates outside held exposures; time unverified, no trade authority"
         }
       ]
     },

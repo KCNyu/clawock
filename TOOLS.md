@@ -12,6 +12,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 - Installed `clawock` CLI owns workflows and tools; source is `src/clawock/`. Never revive old root scripts or `scripts/data/` entrypoints.
 - `clawock analyze-us` / `clawock analyze-hk`: market analysis; `clawock us-quotes`: US price refresh.
 - `clawock fx`: conversion; HKD and USD must be converted before totaling. Data rules remain in `MEMORY.md`.
+- `clawock discover-stocks --json`: free US market-wide, sector-diverse research ideas outside held exposures; verify quotes and disclosures before entry-gate.
 - `clawock entry-gate`, `clawock earnings`, `clawock thesis`, `clawock provenance`, `clawock research`: research lifecycle;
   artifacts in `memory/entry-gates/`, `memory/earnings/`, `memory/theses/`.
 - Scheduled jobs use `clawock brief|report|intraday` preflight/postflight. Follow the selected job/skill; do not manually trigger the daily brief for an unrelated question.

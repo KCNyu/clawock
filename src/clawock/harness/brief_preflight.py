@@ -1584,6 +1584,24 @@ def live_sources_node():
     return live, issues
 
 
+def stock_discovery_node():
+    # Optional research ideas cannot fail the book/quote preflight. Provider
+    # failure remains explicit in the generation-bound packet and rendered card.
+    from clawock.market_data.stock_discovery import unavailable
+
+    try:
+        result = subprocess.run(clawock_argv('discover-stocks', '--json'),
+                                cwd=WS, capture_output=True, text=True, timeout=25)
+        if result.returncode != 0:
+            return unavailable('Nasdaq discovery command failed'), []
+        payload = json.loads(result.stdout)
+        if not isinstance(payload, dict) or 'status' not in payload:
+            raise ValueError('discovery command returned no status')
+        return payload, []
+    except Exception as exc:
+        return unavailable(f'Nasdaq discovery failed ({type(exc).__name__})'), []
+
+
 def catalysts_node():
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
     issues = []
@@ -1719,7 +1737,7 @@ NODE_ORDER = [
     'cross_factor_node', 'evidence_node', 'peer_residual_node',
     't0_node', 't0_review_node', 'em_news_node',
     'catalysts_node', 'benchmark_node', 'news_evidence_node',
-    'live_sources_node',
+    'live_sources_node', 'stock_discovery_node',
 ]
 
 
@@ -1916,6 +1934,7 @@ def main(argv=None):
         'em_news_node': em_news_node,
         'catalysts_node': catalysts_node,
         'live_sources_node': live_sources_node,
+        'stock_discovery_node': stock_discovery_node,
         'peer_residual_node': lambda: peer_residual_node(portfolio),
     }))
     fx = w1['fx_rate']
@@ -2164,6 +2183,7 @@ def main(argv=None):
         'us_fundamentals': us_fund,
         'retrospective': retro,
         'peer_scan':     peer_scan,
+        'stock_discovery': w1['stock_discovery_node'],
         'decision_metrics': decision_metrics,
         'reflections':   reflections,
         'risk_metrics':  risk,

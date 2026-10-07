@@ -983,6 +983,13 @@ PAGE_BOOK_PART = "这本账现在什么样"
 CARD_BOOK_HEADING = "这本账"
 
 
+def stock_discovery_section(context):
+    from clawock.market_data.stock_discovery import candidate_lines
+
+    lines = candidate_lines(context.get("stock_discovery"), limit=6)
+    return "### " + "\n\n".join(lines) if lines else ""
+
+
 def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
     """The full pre-open report.  Order is fixed here and nowhere else."""
     date = date or context.get("date") or ""
@@ -1015,6 +1022,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         ("今天做什么", [
             judge_section(plan, judgment),
             next_session_section(judgment),
+            stock_discovery_section(context),
         ]),
         ("我的看法", [
             tier2_section(judgment),
