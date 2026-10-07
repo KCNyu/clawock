@@ -764,12 +764,11 @@ def test_an_intraday_receipt_reconciles_its_own_named_slot(tmp_path, monkeypatch
 def test_falling_back_to_the_published_ledger_is_never_silent(
     tmp_path, monkeypatch, capsys
 ):
-    """That fallback then writes PUBLIC's content back over LOCAL — say so."""
+    """An absent local ledger can bootstrap from published evidence, visibly."""
     _isolate(tmp_path, monkeypatch)
     outcomes.public_path().write_text(
         json.dumps({"schema_version": outcomes.SCHEMA_VERSION, "records": []})
     )
-    outcomes.local_path().write_text("{ not json")
     ledger = outcomes.load_ledger()
     assert ledger["records"] == []
     assert "ledger_fallback_to_published" in capsys.readouterr().err
@@ -777,6 +776,77 @@ def test_falling_back_to_the_published_ledger_is_never_silent(
     # that caller writes next rather than living only in a build log (#1214).
     assert [row["kind"] for row in ledger[outcomes.DEGRADATIONS_KEY]] == [
         "ledger_fallback_to_published"]
+
+
+@pytest.mark.parametrize("damaged", [
+    '{"schema_version": 1, "records": [',
+    '{"schema_version": 2, "records": []}',
+    '{"schema_version": 1, "records": {}}',
+    '[]',
+])
+def test_damaged_local_ledger_is_preserved_and_cannot_roll_back_public_history(
+    tmp_path, monkeypatch, damaged
+):
+    _isolate(tmp_path, monkeypatch)
+    local, public = outcomes.local_path(), outcomes.public_path()
+    public_before = json.dumps({"schema_version": outcomes.SCHEMA_VERSION,
+                               "records": [{"job": "old", "slot": "2026-07-24T08:03:00+08:00"}]})
+    public.write_text(public_before)
+    local.write_text(damaged)
+
+    ledger = outcomes.load_ledger()
+    assert ledger["records"] == []
+    assert ledger["monitoring_started_at"] == (FROZEN_NOW - timedelta(hours=96)).isoformat()
+    assert [row["kind"] for row in ledger[outcomes.DEGRADATIONS_KEY]] == ["ledger_unreadable"]
+
+    assert outcomes.record_stage("港股开盘报告", "preflight", "success",
+                                 slot="2026-07-24T09:30:00+08:00") == {}
+    outcomes.note_degradation(None, "test_failure", "must not erase evidence")
+    with pytest.raises(outcomes.LedgerUnreadable):
+        outcomes.publish()
+    assert local.read_text() == damaged
+    assert public.read_text() == public_before
+
+
+def test_local_read_error_is_not_absence_and_repair_resumes_stage_writes(
+    tmp_path, monkeypatch
+):
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("港股开盘报告", "preflight", "success",
+                          slot="2026-07-24T09:30:00+08:00")
+    local = outcomes.local_path()
+    original = local.read_text()
+    read_text = Path.read_text
+
+    def denied(path, *args, **kwargs):
+        if path == local:
+            raise PermissionError("test unreadable ledger")
+        return read_text(path, *args, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "read_text", denied)
+        assert outcomes.load_ledger()["records"] == []
+        assert outcomes.record_stage("港股开盘报告", "llm", "success",
+                                     slot="2026-07-24T09:30:00+08:00") == {}
+        with pytest.raises(outcomes.LedgerUnreadable):
+            outcomes.publish()
+    assert local.read_text() == original
+    outcomes.record_stage("港股开盘报告", "llm", "success",
+                          slot="2026-07-24T09:30:00+08:00")
+    assert outcomes.load_ledger()["records"][0]["stages"]["llm"]["status"] == "success"
+
+
+def test_absent_local_ledger_can_bootstrap_and_keep_published_stages(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T09:30:00+08:00"
+    outcomes.record_stage("港股开盘报告", "preflight", "success", slot=slot)
+    outcomes.public_path().write_text(outcomes.local_path().read_text())
+    outcomes.local_path().unlink()
+    outcomes.record_stage("港股开盘报告", "llm", "success", slot=slot)
+    ledger = outcomes.load_ledger()
+    stages = ledger["records"][0]["stages"]
+    assert stages["preflight"]["status"] == stages["llm"]["status"] == "success"
+    assert "ledger_fallback_to_published" in [row["kind"] for row in ledger["degradations"]]
 
 
 # ── #771: which channel actually carried the slot ────────────────────────────
@@ -1207,6 +1277,7 @@ def test_the_card_carries_the_faults_beside_the_counts_they_undermine(
 
 
 def test_publish_sanitizes_legacy_ledger_at_boundary(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
     monkeypatch.setattr(outcomes, "reconcile_raw_execution", lambda: None)
     monkeypatch.setattr(outcomes, "reconcile_delivery_receipts", lambda: None)
     private_prefix = str(__import__("pathlib").Path.home()) + "/"

@@ -350,6 +350,13 @@ parameters and what reaches their model.
 | workflow outcomes | `automation/workflow_outcomes` | brief and report pre/postflights, watchdogs (`_watchdog_common`), cron heartbeat, dashboard | job, slot, stage |
 | schedule contract | `scheduling.load_contract` (cron timeouts against watchdog judgement times) | ops, watchdogs, tests | — |
 
+Workflow outcomes use the published ledger only when the local ledger is absent.
+An existing but unreadable local ledger produces an empty view with
+`ledger_unreadable` and a monitoring epoch at the retention window's start.
+Stage writers warn and skip their write; publication refuses to replace either
+copy. Preserve the damaged file and restore a validated local ledger before
+resuming observation. Product execution and delivery continue independently.
+
 Parameters (windows, freshness, budgets, concurrency, timeouts, TTLs) are
 module constants or a dataclass the caller passes (`live_sources.Limits`).
 Per-profile values are declarative config under `config/`. None of them is a

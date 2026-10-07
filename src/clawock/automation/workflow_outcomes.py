@@ -33,9 +33,9 @@ from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
 from clawock.workspace import without_host_paths, workspace_root
-# The ledger is published; its writes go through the one atomic JSON writer
-# (fsync, orphan-tmp cleanup, non-finite guard) under the name the call sites use (#2620).
-from clawock.safe_io import safe_write_json as _atomic_write
+# Ledger writes use the shared atomic JSON writer (fsync, orphan-tmp cleanup,
+# non-finite guard) after checking that local evidence can be read (#2620).
+from clawock.safe_io import safe_write_json
 from clawock import scheduling as schedule
 
 # Code lives in the checkout; only DATA lives in the workspace. `workspace_root`
@@ -304,32 +304,50 @@ def note_degradation(ledger, kind, detail, *, at=None, group=None):
     return ledger
 
 
-def _read_path(path):
+class LedgerUnreadable(OSError):
+    """An existing ledger must be recovered before a writer can replace it."""
+
+
+def _read_path(path, *, strict=False):
     try:
         data = json.loads(path.read_text())
-        if data.get("schema_version") == SCHEMA_VERSION and isinstance(
+        if isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION and isinstance(
             data.get("records"), list
         ):
             return data
-    except (FileNotFoundError, json.JSONDecodeError, OSError, AttributeError):
-        pass
+        raise ValueError("unsupported ledger schema or records")
+    except FileNotFoundError:
+        return None
+    except (ValueError, OSError) as exc:
+        if strict:
+            raise LedgerUnreadable(
+                f"{path} unreadable ({type(exc).__name__}); preserve and recover "
+                "the local ledger before writing or publishing") from exc
     return None
 
 
+def _atomic_write(path, ledger):
+    # All local writers hold _locked(). Check again at the write boundary so
+    # neither a stage nor its exception's degradation note can erase damaged
+    # evidence. Public writes also require a readable (or absent) local ledger.
+    _read_path(local_path(), strict=True)
+    safe_write_json(path, ledger)
+
+
 def load_ledger(*, note_fallback=True):
-    """Local ledger first; the published copy is a last resort, never a silent one.
+    """Use the public copy only when the local ledger is absent.
 
-    Falling back to public_path() and then writing that content back to local_path()
-    would roll the local ledger back to whatever was last published. It has not
-    been observed happening, but a data-losing path must not be invisible.
-
-    "Not invisible" used to mean a line on stderr, which no gate reads. The
-    fallback now rides in the returned ledger's own `degradations` list, so the
-    published copy and the dashboard card carry the fact that every stage
-    recorded since the last publish may be missing. `note_fallback=False` is for
-    `note_degradation` itself, which would otherwise recurse.
+    An unreadable local file returns an empty, explicitly degraded view; it is
+    never treated as a fresh monitoring epoch or overwritten with older public
+    evidence. Writers and publish refuse to replace it until it is recovered.
     """
-    local = _read_path(local_path())
+    try:
+        local = _read_path(local_path(), strict=True)
+    except LedgerUnreadable as exc:
+        ledger = _empty()
+        ledger["monitoring_started_at"] = (_now() - timedelta(hours=KEEP_HOURS)).isoformat()
+        note_degradation(ledger, "ledger_unreadable", str(exc))
+        return ledger
     if local is not None:
         return local
     public = _read_path(public_path())
@@ -337,7 +355,7 @@ def load_ledger(*, note_fallback=True):
         if note_fallback:
             note_degradation(
                 public, "ledger_fallback_to_published",
-                f"{local_path()} unreadable; stages recorded since the last "
+                f"{local_path()} missing; stages recorded since the last "
                 f"publish may be missing")
         return public
     return _empty()
@@ -989,20 +1007,24 @@ def summarize(*, reconcile=False, hours=36):
 
 
 def publish():
+    # Reject corruption before reconciliation can attempt any local writes.
+    _read_path(local_path(), strict=True)
     reconcile_raw_execution()
     reconcile_delivery_receipts()
-    ledger = _public(load_ledger())
-    for record in ledger.get('records', []):
-        stages = record.get('stages') or {}
-        required = ('preflight', 'llm', 'postflight', 'primary_delivery', 'watchdog_delivery')
-        if all(isinstance(stages.get(key), dict) and 'status' in stages[key] for key in required):
-            record['final_product'] = _derive_final(record)
-    before = public_path().read_text() if public_path().exists() else None
-    payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
-    if before == payload:
-        return False
-    _atomic_write(public_path(), ledger)
-    return True
+    with _locked():
+        _read_path(local_path(), strict=True)
+        ledger = _public(load_ledger())
+        for record in ledger.get('records', []):
+            stages = record.get('stages') or {}
+            required = ('preflight', 'llm', 'postflight', 'primary_delivery', 'watchdog_delivery')
+            if all(isinstance(stages.get(key), dict) and 'status' in stages[key] for key in required):
+                record['final_product'] = _derive_final(record)
+        before = public_path().read_text() if public_path().exists() else None
+        payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
+        if before == payload:
+            return False
+        _atomic_write(public_path(), ledger)
+        return True
 
 
 def main():
