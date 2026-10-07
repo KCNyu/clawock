@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-10-06T04:04:51+08:00",
+  "generated_at": "2026-10-07T04:04:58+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -44,7 +44,7 @@
       "verdict": "⚪ 尚不可判",
       "verdict_key": "undecided",
       "tone": "idle",
-      "sample": "留痕 85 天",
+      "sample": "留痕 86 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -58,11 +58,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 57.8% · CI95 [46.4%, 68.5%] · n=332（65 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 58.0% · CI95 [45.9%, 68.7%] · n=338（67 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 56.4% · CI95 [46.4%, 66.1%] · n=477（77 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 56.3% · CI95 [46.4%, 66.0%] · n=483（78 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_on_follow`",
@@ -85,7 +85,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "28 / 需要 24 · ✅"
+          "value": "30 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -105,7 +105,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.05349, -0.000355] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.05294, -0.000139] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -165,5 +165,5 @@
       ]
     }
   ],
-  "built_at": "2026-10-06T00:04:33.169220+00:00"
+  "built_at": "2026-10-07T00:04:32.318218+00:00"
 }
