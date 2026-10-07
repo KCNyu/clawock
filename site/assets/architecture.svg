@@ -55,7 +55,7 @@
     <rect x="395.09" y="387" width="42.91" height="20" rx="10" fill="#eaeef2" stroke="#5d7487" stroke-opacity=".16"/>
     <text x="416.545" y="401" class="tag" text-anchor="middle"><tspan fill="#5d7487">LLM</tspan></text>
     <text x="44" y="427" class="m"><tspan fill="#5b6875">fundamental · technical · sentiment · sector</tspan></text>
-    <path id="w2" d="M239 447C239 469 92.3333 469 92.3333 481" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w2" d="M239 447C239 469 92.3333 469 92.3333 489" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
     <path d="M34 602H150.667L158.667 618H26Z" fill="url(#lift)"/>
@@ -66,7 +66,7 @@
     <g class="hero-icon" data-icon="up" transform="translate(40 505) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19L19 4M10 4h9v9"/></g>
     <text x="40" y="555" class="h"><tspan fill="#151a21">Bull case</tspan></text>
     <text x="40" y="579" class="m"><tspan fill="#5b6875">hold / add</tspan></text>
-    <path id="w3" d="M239 447C239 469 239 469 239 481" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w3" d="M239 447C239 469 239 469 239 489" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w3" xlink:href="#w3"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w3" xlink:href="#w3"/></animateMotion></circle>
     <path d="M180.667 602H297.333L305.333 618H172.667Z" fill="url(#lift)"/>
@@ -77,7 +77,7 @@
     <g class="hero-icon" data-icon="down" transform="translate(186.667 505) scale(0.916667)" fill="none" stroke="#b8524a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5l15 15M10 20h9v-9"/></g>
     <text x="186.667" y="555" class="h"><tspan fill="#151a21">Bear case</tspan></text>
     <text x="186.667" y="579" class="m"><tspan fill="#5b6875">trim / cut</tspan></text>
-    <path id="w4" d="M239 447C239 469 385.667 469 385.667 481" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w4" d="M239 447C239 469 385.667 469 385.667 489" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
     <path d="M327.333 602H444L452 618H319.333Z" fill="url(#lift)"/>
@@ -88,13 +88,13 @@
     <g class="hero-icon" data-icon="shield" transform="translate(333.333 505) scale(0.916667)" fill="none" stroke="#5d7487" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6ZM8 12l3 3 5-6"/></g>
     <text x="333.333" y="555" class="h"><tspan fill="#151a21">Risk voices</tspan></text>
     <text x="333.333" y="579" class="m"><tspan fill="#5b6875">three of them</tspan></text>
-    <path id="w5" d="M92.3333 603C92.3333 627 239 627 239 641" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w5" d="M92.3333 603C92.3333 627 239 627 239 649" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
-    <path id="w6" d="M239 603C239 627 239 627 239 641" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w6" d="M239 603C239 627 239 627 239 649" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
-    <path id="w7" d="M385.667 603C385.667 627 239 627 239 641" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w7" d="M385.667 603C385.667 627 239 627 239 649" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
     <path d="M34 746H444L452 762H26Z" fill="url(#lift)"/>
@@ -136,7 +136,7 @@
     <text x="64" y="881" class="b"><tspan fill="#151a21">Brief sections: tiers, judge, next session</tspan></text>
     <rect x="46" y="894.5" width="7" height="7" rx="1" transform="rotate(45 49.5 898)" fill="#13865f"/>
     <text x="64" y="903" class="b"><tspan fill="#151a21">A risk breach the plan ignores is flagged</tspan></text>
-    <path id="w9" d="M239 931C239 955 92.3333 955 92.3333 969" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w9" d="M239 931C239 955 92.3333 955 92.3333 977" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <path d="M34 1084H150.667L158.667 1100H26Z" fill="url(#lift)"/>
@@ -147,7 +147,7 @@
     <g class="hero-icon" data-icon="filing" transform="translate(40 991) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6"/></g>
     <text x="40" y="1039" class="h"><tspan fill="#151a21">Ledger</tspan></text>
     <text x="36" y="1063" class="m"><tspan fill="#5b6875">decisions.jsonl</tspan></text>
-    <path id="w10" d="M239 931C239 955 239 955 239 969" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w10" d="M239 931C239 955 239 955 239 977" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w10" xlink:href="#w10"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w10" xlink:href="#w10"/></animateMotion></circle>
     <path d="M180.667 1084H297.333L305.333 1100H172.667Z" fill="url(#lift)"/>
@@ -158,7 +158,7 @@
     <g class="hero-icon" data-icon="chat" transform="translate(186.667 991) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h13a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9l-5 4v-4a3 3 0 0 1-2-3V7a3 3 0 0 1 2-3Z"/><path d="M7 10h.01m5 0h.01m5 0h.01"/></g>
     <text x="186.667" y="1039" class="h"><tspan fill="#151a21">Brief</tspan></text>
     <text x="182.667" y="1063" class="m"><tspan fill="#5b6875">the chat card</tspan></text>
-    <path id="w11" d="M239 931C239 955 385.667 955 385.667 969" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w11" d="M239 931C239 955 385.667 955 385.667 977" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
     <path d="M327.333 1084H444L452 1100H319.333Z" fill="url(#lift)"/>

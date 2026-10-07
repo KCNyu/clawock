@@ -113,7 +113,7 @@
   <circle class="pulse" r="3.4" fill="#13865f"><animateMotion dur="3.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w3" xlink:href="#w3"/></animateMotion></circle>
   <g transform="translate(496 -854)">
     <text x="260" y="1055" class="m" text-anchor="middle"><tspan fill="#13865f">preflight</tspan><tspan fill="#5b6875"> · only the blocks this run can use</tspan></text>
-    <path id="w4" d="M260 1077C260 1090 97.3333 1090 97.3333 1093" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w4" d="M260 1077C260 1090 97.3333 1090 97.3333 1101" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.6s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.6s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
     <path d="M34 1252H160.667L168.667 1268H26Z" fill="url(#lift)"/>
@@ -126,7 +126,7 @@
     <text x="40" y="1179" class="m"><tspan fill="#5b6875">08:03 HKT</tspan></text>
     <text x="40" y="1199" class="m"><tspan fill="#5b6875">weekdays</tspan></text>
     <text x="40" y="1219" class="m"><tspan fill="#5b6875">→ plan.json</tspan></text>
-    <path id="w5" d="M260 1077C260 1090 260 1090 260 1093" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w5" d="M260 1077C260 1090 260 1090 260 1101" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.6s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.6s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
     <path d="M196.667 1252H323.333L331.333 1268H188.667Z" fill="url(#lift)"/>
@@ -139,7 +139,7 @@
     <text x="202.667" y="1179" class="m"><tspan fill="#5b6875">pm, close</tspan></text>
     <text x="202.667" y="1199" class="m"><tspan fill="#5b6875">US open, close</tspan></text>
     <text x="202.667" y="1219" class="m"><tspan fill="#5b6875">fresh quotes</tspan></text>
-    <path id="w6" d="M260 1077C260 1090 422.667 1090 422.667 1093" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w6" d="M260 1077C260 1090 422.667 1090 422.667 1101" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.6s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.6s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
     <path d="M359.333 1252H486L494 1268H351.333Z" fill="url(#lift)"/>
@@ -152,13 +152,13 @@
     <text x="365.333" y="1179" class="m"><tspan fill="#5b6875">while a market</tspan></text>
     <text x="365.333" y="1199" class="m"><tspan fill="#5b6875">is open</tspan></text>
     <text x="365.333" y="1219" class="m"><tspan fill="#5b6875">judgment packet</tspan></text>
-    <path id="w7" d="M97.3333 1253C97.3333 1278 260 1278 260 1293" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w7" d="M97.3333 1253C97.3333 1278 260 1278 260 1301" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
-    <path id="w8" d="M260 1253C260 1278 260 1278 260 1293" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w8" d="M260 1253C260 1278 260 1278 260 1301" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
-    <path id="w9" d="M422.667 1253C422.667 1278 260 1278 260 1293" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w9" d="M422.667 1253C422.667 1278 260 1278 260 1301" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="1.8s" begin="-1.30s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <path d="M34 1398H486L494 1414H26Z" fill="url(#lift)"/>
@@ -188,7 +188,7 @@
     <text x="445.09" y="1469" class="tag" text-anchor="middle"><tspan fill="#13865f">PYTHON</tspan></text>
     <text x="44" y="1497" class="b"><tspan fill="#151a21">Validates the output, then publishes;</tspan></text>
     <text x="44" y="1518" class="b"><tspan fill="#151a21">sends WeChat and co-sends Telegram.</tspan></text>
-    <path id="w11" d="M260 1535C260 1560 97.3333 1560 97.3333 1575" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w11" d="M260 1535C260 1560 97.3333 1560 97.3333 1583" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w11" xlink:href="#w11"/></animateMotion></circle>
     <path d="M34 1716H160.667L168.667 1732H26Z" fill="url(#lift)"/>
@@ -200,7 +200,7 @@
     <text x="40" y="1641" class="m"><tspan fill="#5b6875">WeChat +</tspan></text>
     <text x="40" y="1661" class="m"><tspan fill="#5b6875">Telegram</tspan></text>
     <g class="hero-icon" data-icon="plane" transform="translate(40 1681) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 11L22 3l-7 19-4-8ZM11 14L22 3"/></g>
-    <path id="w12" d="M260 1535C260 1560 260 1560 260 1575" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w12" d="M260 1535C260 1560 260 1560 260 1583" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w12" xlink:href="#w12"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w12" xlink:href="#w12"/></animateMotion></circle>
     <path d="M196.667 1716H323.333L331.333 1732H188.667Z" fill="url(#lift)"/>
@@ -212,7 +212,7 @@
     <text x="202.667" y="1641" class="m"><tspan fill="#5b6875">7 files, one</tspan></text>
     <text x="202.667" y="1661" class="m"><tspan fill="#5b6875">generation</tspan></text>
     <g class="hero-icon" data-icon="publish" transform="translate(202.667 1681) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 14v7h16v-7"/></g>
-    <path id="w13" d="M260 1535C260 1560 422.667 1560 422.667 1575" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w13" d="M260 1535C260 1560 422.667 1560 422.667 1583" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w13" xlink:href="#w13"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w13" xlink:href="#w13"/></animateMotion></circle>
     <path d="M359.333 1716H486L494 1732H351.333Z" fill="url(#lift)"/>

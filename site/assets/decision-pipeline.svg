@@ -245,7 +245,7 @@
     <text x="445.09" y="2045" class="tag" text-anchor="middle"><tspan fill="#13865f">PYTHON</tspan></text>
     <text x="44" y="2073" class="b"><tspan fill="#151a21">validates plan.json, books it in </tspan></text>
     <text x="44" y="2094" class="b"><tspan fill="#13865f">memory/decisions.jsonl</tspan><tspan fill="#151a21">, renders the card</tspan></text>
-    <path id="w7" d="M260 2133C260 2161 96.6667 2161 96.6667 2179" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w7" d="M260 2133C260 2161 96.6667 2161 96.6667 2187" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w7" xlink:href="#w7"/></animateMotion></circle>
     <path d="M34 2348H159.333L167.333 2364H26Z" fill="url(#lift)"/>
@@ -258,7 +258,7 @@
     <text x="40" y="2267" class="m"><tspan fill="#5b6875">laid out by</tspan></text>
     <text x="40" y="2288" class="m"><tspan fill="#5b6875">code</tspan></text>
     <g class="hero-icon" data-icon="filing" transform="translate(40 2307) scale(1.08333)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6ZM14 3v5h4M9 12h6m-6 4h6"/></g>
-    <path id="w8" d="M260 2133C260 2161 260 2161 260 2179" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w8" d="M260 2133C260 2161 260 2161 260 2187" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-0.50s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w8" xlink:href="#w8"/></animateMotion></circle>
     <path d="M197.333 2348H322.667L330.667 2364H189.333Z" fill="url(#lift)"/>
@@ -272,7 +272,7 @@
     <text x="203.333" y="2288" class="m"><tspan fill="#5b6875">watchdog checks</tspan></text>
     <g class="hero-icon" data-icon="chat" transform="translate(203.333 2307) scale(1.08333)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h13a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9l-5 4v-4a3 3 0 0 1-2-3V7a3 3 0 0 1 2-3Z"/><path d="M7 10h.01m5 0h.01m5 0h.01"/></g>
     <g class="hero-icon" data-icon="plane" transform="translate(239.333 2307) scale(1.08333)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 11L22 3l-7 19-4-8ZM11 14L22 3"/></g>
-    <path id="w9" d="M260 2133C260 2161 423.333 2161 423.333 2179" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+    <path id="w9" d="M260 2133C260 2161 423.333 2161 423.333 2187" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
     <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="1.8s" begin="-1.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w9" xlink:href="#w9"/></animateMotion></circle>
     <path d="M360.667 2348H486L494 2364H352.667Z" fill="url(#lift)"/>

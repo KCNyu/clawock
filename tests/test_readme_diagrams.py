@@ -7,12 +7,13 @@ is caught here instead of in a later diff nobody connects to it.
 The README shows them through `<img>`, where browsers run no script and load no
 external resource; the animation must come from CSS and SMIL inside the file.
 
-Each diagram exists twice: a desktop layout under its name and a narrow one
-beside it as `<name>-narrow.svg`. The RSI overview has a larger canvas and
-semantic side regions; the other views retain their established desktop width.
-Both variants share content, so the checks below run over both.
+Each diagram is one composition. The README scales the same file for a phone
+instead of swapping in a second, single-column drawing, so both readers see the
+same picture. The RSI overview has a larger canvas and semantic side regions;
+the other views share the established 1016-unit width.
 """
 import importlib.util
+import math
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -39,17 +40,16 @@ def test_rsi_views_share_the_house_style_and_stay_small():
     names = {'rsi-loop', 'evidence-receipt', 'feedback-learning'}
     assert names <= builder.LAYOUTS.keys()
     for name in names:
-        for suffix in ('', '-narrow'):
-            path = ROOT / 'site/assets' / f'{name}{suffix}.svg'
-            text = path.read_text(encoding='utf-8')
-            assert path.stat().st_size < 40_000, path.name
-            for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
-                assert primitive in text, (path.name, primitive)
-            assert '@media (prefers-reduced-motion:reduce)' in text
-            root = ET.fromstring(text)
-            for motion in root.iter(f'{SVG}animateMotion'):
-                parent = next(el for el in root.iter() if motion in list(el))
-                assert 'pulse' in parent.attrib.get('class', '').split(), path.name
+        path = ROOT / 'site/assets' / f'{name}.svg'
+        text = path.read_text(encoding='utf-8')
+        assert path.stat().st_size < 40_000, path.name
+        for primitive in ('url(#glass)', 'url(#sheen)', 'url(#rim)', 'url(#grain)'):
+            assert primitive in text, (path.name, primitive)
+        assert '@media (prefers-reduced-motion:reduce)' in text
+        root = ET.fromstring(text)
+        for motion in root.iter(f'{SVG}animateMotion'):
+            parent = next(el for el in root.iter() if motion in list(el))
+            assert 'pulse' in parent.attrib.get('class', '').split(), path.name
 
 
 def test_diagrams_animate_without_anything_an_img_would_drop():
@@ -66,57 +66,128 @@ def test_diagrams_animate_without_anything_an_img_would_drop():
                 f'{name}: an SVG inside an img cannot load an external screenshot')
 
 
-def _placed_rects(root, dx=0.0, dy=0.0):
-    """Every rect with the offset of the column group it is drawn in.
+def _placed(root, tag, dx=0.0, dy=0.0):
+    """Every `tag` element with the offset of the column group it is drawn in.
 
-    The wide layout draws each run of a column inside `<g transform="translate">`,
-    so a walk over the root's own children would see the header and nothing else.
+    A column flow draws each run inside `<g transform="translate">`, so a walk
+    over the root's own children would see the header and nothing else.
     """
     for el in root:
-        if el.tag == f'{SVG}rect':
+        if el.tag == f'{SVG}{tag}':
             yield el, dx, dy
         elif el.tag == f'{SVG}g':
             # A column group is a bare translate; an icon's group also scales.
             column = re.fullmatch(r'translate\((\S+) (\S+)\)', el.attrib.get('transform', ''))
             if column:
                 cx, cy = map(float, column.groups())
-                yield from _placed_rects(el, dx + cx, dy + cy)
+                yield from _placed(el, tag, dx + cx, dy + cy)
             elif not el.attrib.get('transform'):
                 # The large overview names semantic regions with untransformed
                 # groups. Walk their cards too; they must not evade overlap checks.
-                yield from _placed_rects(el, dx, dy)
+                yield from _placed(el, tag, dx, dy)
 
 
-def test_every_diagram_has_a_wide_and_a_narrow_layout_and_the_readmes_use_both():
-    """A phone gets the single column and a desktop the two-column canvas.
+def test_one_composition_serves_every_width():
+    """A phone gets the desktop drawing scaled down, never a second layout.
 
-    The wide layout is unreadable at phone width and the narrow one is a tower
-    three screens tall in a README column, so each README entry has to name both
-    and the two files have to carry the same words.
+    A separate single-column file is a different picture: its own seams, gaps
+    and wraps, drifting from the one that was actually looked at. The hero's
+    book card is owned by build_readme_book_charts.py and is not covered here.
     """
     builder = _builder()
-    # The requested total-to-parts overview needs source/ownership sidebars,
-    # three central stages and a bottom return lane. Its larger text is drawn
-    # on a 1440 canvas; all other desktop views keep the established 1016.
     desktop_widths = builder.DESKTOP_WIDTHS
+    assert set(builder.DIAGRAMS) == {f'{name}.svg' for name in builder.LAYOUTS}
     for readme, base in (('README.md', 'refs/heads/master/site/assets/'), ('README.zh.md', 'site/assets/')):
         text = (ROOT / readme).read_text(encoding='utf-8')
         for name in builder.LAYOUTS:
-            assert ('<source media="(max-width: 700px)" srcset="' in text
-                    and f'{base}{name}-narrow.svg"><img src=' in text), (readme, name)
             width = desktop_widths.get(name, builder.WIDE)
-            assert f'{base}{name}.svg" width="{width}"' in text, (readme, name)
+            assert re.search(rf'<img src="[^"]*{re.escape(base + name)}\.svg" width="{width}"', text), (readme, name)
+            assert f'{name}-narrow.svg' not in text, (readme, name)
     for name in builder.LAYOUTS:
-        wide = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
-        narrow = ET.parse(ROOT / 'site/assets' / f'{name}-narrow.svg').getroot()
-        assert float(wide.attrib['width']) == desktop_widths.get(name, builder.WIDE)
-        assert float(narrow.attrib['width']) == builder.W
-        assert float(wide.attrib['height']) < float(narrow.attrib['height']) * .75, (
-            f'{name}: the wide layout is not meaningfully shorter than the column')
-        # The wide header sets on one line what the column sets on two.
-        words = lambda root: sorted(' '.join(  # noqa: E731
-            ''.join(t.itertext()) for t in root.iter(f'{SVG}text')).split())
-        assert words(wide) == words(narrow), f'{name}: the two layouts say different things'
+        assert not (ROOT / 'site/assets' / f'{name}-narrow.svg').exists(), name
+        root = ET.parse(ROOT / 'site/assets' / f'{name}.svg').getroot()
+        assert float(root.attrib['width']) == desktop_widths.get(name, builder.WIDE)
+
+
+def _wire_points(d, step=4.0):
+    """Points along a connector path: the builder emits M, H, V, C, Q and full-turn A."""
+    out, x, y = [], 0.0, 0.0
+    for cmd, args in re.findall(r'([MHVCQA])([^MHVCQA]*)', d):
+        n = [float(v) for v in re.findall(r'-?\d+(?:\.\d+)?', args)]
+        if cmd == 'M':
+            x, y = n
+            out.append((x, y))
+            continue
+        if cmd == 'A':                 # a wheel: start at twelve o'clock, come back round
+            r = n[0]
+            out += [(x + r * math.sin(t / 30 * math.pi), y + r - r * math.cos(t / 30 * math.pi))
+                    for t in range(60)]
+            x, y = n[-2:]
+            continue
+        ctrl = {'H': [(n[0], y)], 'V': [(x, n[0])]}.get(cmd) or list(zip(n[::2], n[1::2]))
+        pts = [(x, y)] + ctrl
+        length = sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+        for i in range(1, max(2, int(length / step)) + 1):
+            t, level = i / max(2, int(length / step)), pts
+            while len(level) > 1:      # de Casteljau: a line, a quadratic or a cubic alike
+                level = [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+                         for a, b in zip(level, level[1:])]
+            out.append(level[0])
+        x, y = ctrl[-1]
+    return out
+
+
+def _connector_label_collisions(builder, root):
+    """(connector id, label) pairs where a stroke passes through set text."""
+    sizes = {cls: size for cls, (size, _, _) in builder.TYPE.items()}
+    for style in root.iter(f'{SVG}style'):       # a diagram may enlarge its own scale
+        sizes.update({cls: float(px) for cls, px in
+                      re.findall(r'\.(\w+)\{font-size:([\d.]+)px\}', style.text or '')})
+    labels = []
+    for el, dx, dy in _placed(root, 'text'):
+        label, cls = ''.join(el.itertext()), el.attrib.get('class', 'b')
+        if 'transform' in el.attrib or cls not in builder.TYPE or not label.strip():
+            continue
+        size = sizes[cls]
+        w = len(label) * size * builder.TYPE[cls][2] * .9      # fits() pads its advances
+        x = float(el.attrib['x']) + dx - {'middle': w / 2, 'end': w}.get(el.attrib.get('text-anchor'), 0)
+        y = float(el.attrib['y']) + dy
+        labels.append((label, x, y - size * .72, x + w, y + size * .2))
+    hits = set()
+    for el, dx, dy in _placed(root, 'path'):
+        if not re.fullmatch(r'w\d+', el.attrib.get('id', '')):
+            continue
+        for px, py in _wire_points(el.attrib['d']):
+            for label, x0, y0, x1, y1 in labels:
+                if x0 < px + dx < x1 and y0 < py + dy < y1:
+                    hits.add((el.attrib['id'], label))
+    return hits
+
+
+def test_no_connector_runs_through_a_label():
+    """A stroke behind words is the overlap a reader sees first.
+
+    Text is measured with the builder's own advances, so this needs no browser
+    and no font; the second half proves the check can fail.
+    """
+    builder = _builder()
+    for name in builder.DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        assert not _connector_label_collisions(builder, root), name
+    d = builder.D('probe', 'a label with a connector drawn straight through it')
+    d.text(100, 100, 'Execution', 'm')
+    d.wire('M60 96H240')
+    assert _connector_label_collisions(builder, ET.fromstring(d.render(200))) == {('w1', 'Execution')}
+
+
+def test_fan_arrows_land_on_the_node_they_point_at():
+    """A curved branch ends where a straight one does: at the node, not short of it."""
+    d = _builder().D('probe', 'one straight and one curved connector to the same edge')
+    d.down(40, 10, 100)
+    d.curve(80, 10, 120, 100)
+    ends = [re.findall(r'-?\d+(?:\.\d+)?', el.attrib['d'])[-1]
+            for el in ET.fromstring(d.render(200)).iter(f'{SVG}path') if el.attrib.get('id')]
+    assert ends == ['98', '98']
 
 
 def test_rsi_overview_has_side_regions_and_a_bottom_return_lane():
@@ -146,7 +217,7 @@ def test_peer_nodes_do_not_touch_or_overlap():
     for name in _builder().DIAGRAMS:
         root = ET.parse(ROOT / 'site/assets' / name).getroot()
         nodes = []
-        for el, dx, dy in _placed_rects(root):
+        for el, dx, dy in _placed(root, 'rect'):
             # Highlights are light on a node, not nodes: the list sweep, the glass sheen.
             if el.attrib.get('class', '').split()[-1:] in (['sweep'], ['sheen']):
                 continue
