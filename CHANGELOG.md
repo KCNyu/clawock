@@ -13,6 +13,66 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.3.1] — 2026-10-07
+
+A maintenance release for the Python package and `clawock-dsh`, with corrected
+session accounting, clearer evidence and delivery readouts, and task-panel
+improvements. **Restart DeepSeek Harness after upgrading `clawock-dsh`** so its
+host methods and client bundle come from the same version.
+
+### Added
+
+- **`clawock-dsh`: `/dispatch-list` for OpenClaw**, sharing the sidebar's
+  provider balances, task queue, recent completions and patrol view (#2168).
+- **`clawock-dsh`: task timelines, append history and patrol coverage**, with
+  readable findings, links to full task logs and Markdown chat layouts
+  (#2425, #2426, #2443, #2518, #2529).
+
+### Changed
+
+- **Dependency updates:** Python now requires `requests>=2.32.4` to include
+  the credential-leak fix; the DSH protocol, client store and UI slots move
+  to the `0.2.0-rc.2` line (#2165, #2578).
+- **The README and its diagrams explain the complete workflow before setup**,
+  with separate US/HK return curves, evidence and judgment feedback loops,
+  and consistent icons and flow types (#2664, #2735, #2736, #2740, #2749).
+
+### Fixed
+
+- **Portfolio accounting follows each market's trading session.** Per-lot
+  daily P&L handles same-session buys; malformed ledger rows are reported;
+  unknown sessions fail the integrity check without crashing; quote refreshes
+  preserve concurrent ledger edits and previous closes (#2355, #2400, #2408,
+  #2505, #2650). Leveraged bars are checked against their underlying where
+  evidence is available, and suspect settlement marks carry refusal reasons
+  (#2357, #2601).
+- **Lifecycle CLI flags match the selected phase and report mode**, optional
+  dependency errors name the required extra, and brief fallback honors the
+  selected workspace (#2554, #2619, #2651, #2734).
+- **Brief and intraday evidence checks use complete, dated sources.** News
+  windows follow publication time, stale-news checks cover all reference
+  families, trigger text and currency totals are grounded in source data,
+  and scorecard provenance detects rewritten rows (#2236, #2257, #2357,
+  #2475, #2584, #2598).
+- **Delivery and health checks preserve failures and recovery evidence.**
+  Watchdogs wait for an in-flight attempt, WeChat backstops deduplicate across
+  checkouts, due slots with no record are counted, and rollups retain actual
+  delivery timestamps and degradation reasons (#2237, #2314, #2483, #2487,
+  #2602, #2648, #2649, #2718).
+- **Dashboard tabs and financial readouts are reliable on first use.**
+  Inactive panels are inert; tab switching no longer waits on a failed load;
+  negative amounts keep their sign; return windows, exposure bases, sample
+  counts, source dates and holding sessions are labelled consistently
+  (#2511, #2513, #2555, #2581, #2582, #2583, #2600, #2611, #2697, #2719).
+- **`clawock-dsh` reports unreadable balances and queues as unavailable**,
+  expires trace caches, and re-renders changed FX provenance instead of
+  retaining stale labels (#2184, #2319, #2360, #2586, #2659, #2696).
+- **Published Markdown rejects unsafe link targets and escapes model HTML**;
+  public workflow records redact host paths (#2192, #2235, #2314, #2356).
+- **Release npm verification tolerates registry propagation** and compares
+  the served package with a fresh build in a separate readback job, allowing
+  the GitHub Release after both registries accept publication (#2156, #2319).
+
 ## [0.3.0] — 2026-09-29
 
 A minor bump: a new public command, new intraday harness surfaces and a new
