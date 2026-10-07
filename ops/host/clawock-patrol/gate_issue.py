@@ -210,6 +210,22 @@ if _debt_block or _declares_debt:
     if _nums and not _held:
         die(f"`先例:` 给的 {', '.join('#' + n for n in _nums[:3])} 不存在，或提到它的提交没有改过 "
             f"{' , '.join(_paths_named[:6])}。删掉这行并写「无先例」，或换成真的碰过这段代码的修复。")
+    if DEBT_KIND == "structure":
+        # The file's fix count was written against one function in #2741/#2743/#2744/#2745; the contract
+        # now carries the function's own, recounted by debt_check from `git log -L`.
+        if "fixes" not in _contract:
+            die("structure 契约要带 `fixes`：这个函数体近 60 天的 fix 提交数。`debt_check.py --candidates` 的 fix= 就是这个数；"
+                "判据按 git log -L 重数，对不上会印出实测的每一条。")
+        _body_fixes = int(re.search(r"body-fixes-\d+d=(\d+)", _measured).group(1))
+        _said = {int(a or b) for a, b in re.findall(
+            r"fix\s*(?:_?commits?(?:_60d)?|\s*提交数?)\s*[=:：]?\s*(\d+)|(\d+)\s*(?:个|次|条)\s*fix", body, re.I)}
+        if _said - {_body_fixes}:
+            die(f"正文写的 fix 提交数（{sorted(_said - {_body_fixes})}）不是这个函数的：判据按函数体历史量到 {_body_fixes}。"
+                "整个文件的 fix 数不能记到一个函数上；只写函数体的数，别的函数出的事不算这段代码的缺陷面。", _measured)
+        _loose = [n for n in _nums if int(n) not in _contract["precedent"]]
+        if _loose:
+            die(f"`先例:` 的 {', '.join('#' + n for n in _loose[:3])} 不在契约的 precedent 里。structure 的先例由判据按函数体历史核"
+                "（提到 #N 的提交要改过这个函数体，改同文件别的函数不算）；核不过就删掉并写「无先例」。")
     if not _held and not (DEBT_KIND == "structure" and _contract["precedent"]) and "无先例" not in body:
         die("这条债务没有成立的先例：正文要明写「无先例」（预防性，最高 P3），不能让读的人以为它出过事。")
     DEBT_VERIFIED = True

@@ -7,6 +7,8 @@ The gate calls this same evaluator before granting a debt-only precedent exempti
 `structure` is the one check that reads a size: it recomputes the measure for every
 function at this HEAD and only accepts a symbol at or above that distribution's p99.
 The cut-off is measured on each run and printed; it is never a number in this file.
+Its history is the function's own: fix counts and precedents are read from the commits
+whose diff reached the function body (`git log -L`), never from the file it lives in.
 
 `--candidates` lists where to read (tail functions, renamed copies, unreferenced
 symbols). It is a search aid for the round, not evidence: a candidate becomes a
@@ -15,6 +17,7 @@ finding only through one contract evaluated above.
 import ast
 import collections
 import copy
+import datetime
 import json
 from pathlib import Path
 import re
@@ -27,6 +30,7 @@ CHECKS = ('duplicate-python', 'import-cycle', 'undeclared-import', 'unreferenced
 MEASURES = ('cc', 'length', 'nesting')
 SCOPE = ('src/clawock', 'ops')    # the population a structure measure is ranked against
 TAIL = 0.99
+WINDOW = 60    # days of history a fix count covers
 FUNC = (ast.FunctionDef, ast.AsyncFunctionDef)
 BRANCH = (ast.If, ast.For, ast.AsyncFor, ast.While, ast.ExceptHandler, ast.IfExp, ast.comprehension, ast.match_case)
 BLOCK = (ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try, ast.With, ast.Match)
@@ -247,6 +251,31 @@ def precedent_touches(root, number, paths):
     return ''
 
 
+def body_history(root, path, fn, grep=None):
+    """Commits whose diff reached fn's own lines, newest first, as (sha, date, subject).
+
+    git follows the line range back from HEAD, so a fix to a neighbour in the same file is
+    not this function's history (#2741, #2743, #2744, #2745 each carried the file's count).
+    The range is read from the committed file: an edited one would shift it.
+    """
+    if subprocess.run(['git', 'diff', '--quiet', 'HEAD', '--', path], cwd=root, timeout=60).returncode:
+        raise ValueError(f'{path} differs from HEAD: the history of a line range can only be read from a committed file')
+    start = min([fn.lineno] + [d.lineno for d in fn.decorator_list])
+    args = ['log', '-s', '--date=short', '--format=%h%x09%ad%x09%s']
+    if grep is not None:
+        args += ['-E', f'--grep=#{int(grep)}([^0-9]|$)']
+    code, out = git(root, *args, f'-L{start},{fn.end_lineno}:{path}')
+    if code:
+        raise ValueError(f'cannot read the history of {path}:{start}-{fn.end_lineno}')
+    return [tuple(line.split('\t', 2)) for line in out.splitlines() if line]
+
+
+def recent_fixes(history, today=None):
+    """The `fix` commits of a body history inside WINDOW days, as 'sha subject' lines."""
+    since = ((today or datetime.date.today()) - datetime.timedelta(days=WINDOW)).isoformat()
+    return [f'{sha} {subject}' for sha, date, subject in history if date >= since and subject.lower().startswith('fix')]
+
+
 class Alpha(ast.NodeTransformer):
     """Rename what the function itself binds (parameters, assigned names) by first appearance.
 
@@ -340,11 +369,20 @@ def structure(contract, root):
         sites = references(root, symbol, trees)
         if len(sites) != callers:
             raise ValueError(f'callers={callers} claimed, measured {len(sites)}: {sites}')
-        unrelated = [n for n in precedent if not precedent_touches(root, n, [path])]
+        history = body_history(root, path, node)
+        fixed = recent_fixes(history)
+        claimed = contract.get('fixes')
+        if claimed is not None and (isinstance(claimed, bool) or claimed != len(fixed)):
+            raise ValueError(f'fixes={claimed} claimed, measured {len(fixed)} fix commits on the body of {symbol} in '
+                             f'{WINDOW} days: {fixed} (the count for the whole file is not this function\'s)')
+        unrelated = [n for n in precedent if not body_history(root, path, node, grep=n)]
         if unrelated:
-            raise ValueError(f'precedent {unrelated} never changed {path} (git log --grep "#N" -- {path} is empty)')
+            raise ValueError(f'precedent {unrelated} never changed the body of {symbol} '
+                             f'(git log --grep "#N" -L{node.lineno},{node.end_lineno}:{path} is empty; '
+                             'a fix elsewhere in the file is not a precedent for this function)')
         return True, (f'structure: claim=full {symbol} {kind}={value} target<={after} {scale} '
-                      f'callers={callers} precedent={precedent or "none"} landing={landing}'), [path]
+                      f'callers={callers} body-fixes-{WINDOW}d={len(fixed)} body-last-changed={history[0][1] if history else "never"} '
+                      f'precedent={precedent or "none"} landing={landing}'), [path]
     # The original is at or under the target, or gone. That is a repair only if the body went
     # where the contract said and none of the pieces is as bad as what it replaced.
     if absent:
@@ -479,21 +517,22 @@ def candidates(root, top=25):
     trees = list(population(root))
     funcs = [(p, n) for p, t in trees for n in ast.walk(t) if isinstance(n, FUNC)]
     cut = {k: tail_cutoff([measure(n, k) for _, n in funcs]) for k in MEASURES}
-    _, log = git(root, 'log', '--since=60 days ago', '--format=@%s', '--name-only', '--', *SCOPE)
-    fixes, subject = collections.Counter(), ''
-    for line in log.splitlines():
-        if line.startswith('@'):
-            subject = line[1:]
-        elif line and subject.lower().startswith('fix'):
-            fixes[line] += 1
     print(f'# measured at this HEAD over {len(trees)} modules / {len(funcs)} functions; p99: ' +
           ' '.join(f'{k}={v}' for k, v in cut.items()))
-    print('## tail functions (module-level, cc or length at/above p99; fix = fix commits on the file, 60 days)')
-    tail = [(measure(n, 'cc'), measure(n, 'length'), measure(n, 'nesting'), p, n) for p, t in trees for n in t.body
-            if isinstance(n, FUNC) and (measure(n, 'cc') >= cut['cc'] or measure(n, 'length') >= cut['length'])]
-    for cc, length, nest, p, n in sorted(tail, key=lambda r: (-fixes[r[3]], -r[0]))[:top]:
-        print(f'{p}:{n.lineno} {n.name} cc={cc} length={length} nesting={nest} fix={fixes[p]} '
-              f'callers={len(references(root, p + "::" + n.name, trees))}')
+    print(f'## tail functions (module-level, cc or length at/above p99; fix = fix commits whose diff reached '
+          f'this function body in {WINDOW} days, last = its newest change of any kind; neither is the file\'s)')
+    tail = []
+    for p, t in trees:
+        for n in t.body:
+            if isinstance(n, FUNC) and (measure(n, 'cc') >= cut['cc'] or measure(n, 'length') >= cut['length']):
+                try:
+                    history = body_history(root, p, n)
+                except ValueError:
+                    continue
+                tail.append((len(recent_fixes(history)), measure(n, 'cc'), history[0][1] if history else 'never', p, n))
+    for fix, cc, last, p, n in sorted(tail, key=lambda r: (-r[0], -r[1]))[:top]:
+        print(f'{p}:{n.lineno} {n.name} cc={cc} length={measure(n, "length")} nesting={measure(n, "nesting")} '
+              f'fix={fix} last={last} callers={len(references(root, p + "::" + n.name, trees))}')
     print('## renamed copies across modules (normalize=alpha, >=5 lines)')
     groups = collections.defaultdict(list)
     for p, t in trees:
