@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T23:22:53.526076+00:00",
+  "generated_at": "2026-10-07T00:55:08.873721+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -27,15 +27,8 @@
       "ticker": "CRCL",
       "name": "Circle Internet Group Inc-A",
       "region": "us_stocks",
-      "reddit_mentions_7d": 1,
-      "reddit_posts": [
-        {
-          "sub": "InvestingCanada",
-          "title": "Upsized by C$1M on Investor Demand: Corcel Exploration (CRCL.c, CRLEF) Takes Its Placement to C$2.5M Ahead of an Oct 8 Close, With Three Undrilled Arizona Copper Targets Behind It",
-          "url": "https://www.reddit.com/r/InvestingCanada/comments/1wzeb9q/upsized_by_c1m_on_investor_demand_corcel/",
-          "created": "2026-10-06T21:06:32+00:00"
-        }
-      ],
+      "reddit_mentions_7d": 0,
+      "reddit_posts": [],
       "reddit_status": "ok",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
@@ -44,16 +37,10 @@
       ],
       "google_news_en": [
         {
-          "title": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
-          "source": "Stocktwits",
-          "published": "Mon, 05 Oct 2026 07:22:44 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
-        },
-        {
-          "title": "Circle (CRCL) Stock Looks Fairly Valued Despite Fresh USDC Partnership News",
+          "title": "MSTR, COIN, CRCL, BMNR Stocks Rally With Bitcoin Within $500 Of September Peak",
           "source": "Yahoo Finance",
-          "published": "Wed, 30 Sep 2026 16:11:47 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPTFUzbHQ0WGhoV1VOX2lRenlSQkIyemN3THJvaDBYUktzdWIwQ1dnNHFhTUlSV1Robm9uYjZ0YXEwdkpUV00tcUJRSDVSTi1ycUhoWFNCVjMyMEFrb2NrVFQ5b2kxWVhSallZY1Y3VnFJdXJST2NRZjgxamZCQWhnQ0p0c1I2UENSdWFaVmJ3aVUzcXJNRC1lQXU4OA?oc=5"
+          "published": "Mon, 05 Oct 2026 11:04:10 GMT",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPUHdnTkRaM3RoN3pRS0VvY296OUpid0w1dFZrRDJmd1RMSzlILW5teE1sTENlamZ4ZEc5a1JVUFZjREU0M1BLWC03a1VDUWtpWkZyQkhQYzFoUjY5N3FYRTd6cWJmRVFBSlBsZ09Fd3ZaRDlrRW81QnZxODFxa09PVGphNVdqVTd2MERDUXpaQkN3TGd6bEE?oc=5"
         },
         {
           "title": "Circle Internet Group (NYSE:CRCL) Stock: Insider Jeremy Fox-Geen Sells 4,238 Shares",
@@ -74,10 +61,16 @@
           "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOcld2OXc4QU9xck1zX19WSkpOZTNzTEZzdU5fNWJBYmg0SVpsVjZUSWtGekk1NXJONkFBLS1qM1huTWxyRnFYYk5XTlR6akRhOVJ4ZmZxS2hULUVySnowVlBTTTExaGJDcjZ0dzRhdTA0U193WTlBUDNMaVhiTWZkRThZMHRoUElzc0tDSE53N01JVDBoNmtEbjhRMURiTjJLTFJfOTB1RjFuOXAyR1FPVkNTRHJ3RU1sWFoxZ3dWOWlnTzJMMGZaUFZqU0NSdC1tUi13?oc=5"
         },
         {
-          "title": "CRCL Stock Shrugs Off Q2 Miss – Circle CEO Is Betting On Growth Beyond USDC Stablecoin",
-          "source": "Stocktwits",
-          "published": "Sun, 04 Oct 2026 23:02:13 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNTzFzZHdsSGZsTy04WmNBcUxZZXlXQ3RaRlZyNlUyMERCcFhXSHdpcTJkYmxuQ3hyRkVCakgzdnRKa2JVSE1rM0s2M3hVTFdaRnQyUl9pbHhpOVVYZUY0UkpiVUU3cy05UU9lUEJyN2pRMWJtRGstaUY0YUcwWUJCSmMwVGVnMW4xNllhNHJWNUFvV2V5QnFxd29vRUt0NnpCUk81dkRiTEozc1dySkZJS1F6WGNhT0J2NHQ4RkdYT0YwNldxZDRzMkpNRlg1UFJ1b3Rj?oc=5"
+          "title": "Circle (CRCL) Stock Looks Fairly Valued Despite Fresh USDC Partnership News",
+          "source": "Yahoo Finance",
+          "published": "Wed, 30 Sep 2026 16:11:47 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPTFUzbHQ0WGhoV1VOX2lRenlSQkIyemN3THJvaDBYUktzdWIwQ1dnNHFhTUlSV1Robm9uYjZ0YXEwdkpUV00tcUJRSDVSTi1ycUhoWFNCVjMyMEFrb2NrVFQ5b2kxWVhSallZY1Y3VnFJdXJST2NRZjgxamZCQWhnQ0p0c1I2UENSdWFaVmJ3aVUzcXJNRC1lQXU4OA?oc=5"
+        },
+        {
+          "title": "Under a trading plan, Circle Internet Group (CRCL) accounting chief sells 1,194 shares at $85.78 each.",
+          "source": "Stock Titan",
+          "published": "Mon, 05 Oct 2026 21:01:29 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPU3lLY20zWGk5TDNndDkyVmZpSDNCeU1hbHlDQmVfN3Y0MTJaZVhCTFNWZFNXQWxoSzZRbW14bVZBc3Q0WjE2akZlVkdNYllXUFVmT3ktMXBIRXhuMEs2WVZkRlZUYlNkNmdpVUVMR2ctZ25sVlNJVGt0WS1WZUFzSDZ2cXhmWC1QZWtfejNBNm9MYl9XaXMtWTlYdGdOdldJVzRSd2Eta0MyTGlNelpob3pxeFVTX0Z6R1Vj?oc=5"
         }
       ],
       "google_news_zh": []
@@ -86,15 +79,8 @@
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us_stocks",
-      "reddit_mentions_7d": 1,
-      "reddit_posts": [
-        {
-          "sub": "trading212",
-          "title": "Does it get better ?",
-          "url": "https://www.reddit.com/r/trading212/comments/1wzezhu/does_it_get_better/",
-          "created": "2026-10-06T21:33:51+00:00"
-        }
-      ],
+      "reddit_mentions_7d": 0,
+      "reddit_posts": [],
       "reddit_status": "ok",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
@@ -145,8 +131,14 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 6,
+      "reddit_mentions_7d": 4,
       "reddit_posts": [
+        {
+          "sub": "SpaceInvestorsDaily",
+          "title": "$SPCX reportedly seeking $40 billion to buy Nvidia chips",
+          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1wzhy2f/spcx_reportedly_seeking_40_billion_to_buy_nvidia/",
+          "created": "2026-10-06T23:48:24+00:00"
+        },
         {
           "sub": "wallstreetbets",
           "title": "SpaceX looks to raise $40bn to buy Nvidia chips in financing led by Apollo",
@@ -164,24 +156,6 @@
           "title": "Musk called Anthropic 'evil'; SpaceX's deal with it nearly doubled",
           "url": "https://www.reddit.com/r/NowInFinance/comments/1wzfr1n/musk_called_anthropic_evil_spacexs_deal_with_it/",
           "created": "2026-10-06T22:06:26+00:00"
-        },
-        {
-          "sub": "10xPennyStocks",
-          "title": "Hypercall took 10% of on-chain options notional in a month. Two public companies are already picking a side.",
-          "url": "https://www.reddit.com/r/10xPennyStocks/comments/1wzfa9v/hypercall_took_10_of_onchain_options_notional_in/",
-          "created": "2026-10-06T21:46:29+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "SpaceX Plans to Build a Massive Cargo Hub in Louisiana",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1wzf8mv/spacex_plans_to_build_a_massive_cargo_hub_in/",
-          "created": "2026-10-06T21:44:38+00:00"
-        },
-        {
-          "sub": "stocks",
-          "title": "Why do people keep spouting it's a bubble when there are no technical indicators of that?",
-          "url": "https://www.reddit.com/r/stocks/comments/1wzdr0a/why_do_people_keep_spouting_its_a_bubble_when/",
-          "created": "2026-10-06T20:44:05+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -198,16 +172,16 @@
           "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNUlJrQmVheXc3UkxUdFlIbUkzbS1qVFVuX2hLM1Q0R3k0UXRvQkRCalNXdjFNemh1WFFMY051Tk5ZRGphUlB1N1d5ZG5VX25LSXlsV1hWSWkzWmhiQWk3RFdEdHlvYTg2ejVEaXBzS1htd0ZWSDBwYmFNN3owVi1kUEtiWnVhYzdlRTVHSmlvMHRhdUFCcFR4N2pZd3dtUUdoU0xTdjU2aXhlbm_SAbABQVVfeXFMUGh6enN6SWk2dGtadEhKSHJuMVU4SHJHVndIalhhczNOVkc2QVp3bU1fcWc3cWgyemRqb3pGaHF0djhOa3ZieTdMQWZMOGVLbFN6NURKN0w3MTJ3bFFKTmk3V001ZEw3VXE0Z3VJNmdMR3ZmLWtwVzM0bG5jN1ZjS2syTFFKc2RyZEpnWkJVdjVTc3pWaDNLTUpuNE1kRjM3dkd6QjhzUzNRSWlWQlpGVk8?oc=5"
         },
         {
-          "title": "SpaceX stock climbs to highest since June, returning Musk to trillionaire status",
-          "source": "CNBC",
-          "published": "Mon, 05 Oct 2026 20:04:38 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOS3hETWlsS2FCZ3FMTFNUazJaNl9SSmxyRmtjTkhuYWM4aC1xQV9YQV9WZHlhWkZtc0V4SllmQzR0emtveDVSc2VWWl9xUXkyamJrUUJJakNYVjZCenY4QU5GNEE0cHBPdlY5YXpIZGV3Y2trUFFidVFoLWdUUlN1ejEyOHdUczd5YW9NZ18xVzFEZ2NxcHFnX1lmU1B3ZVdtc1RuZWN2eFNpZ9IBrwFBVV95cUxNRkd5Q0xBRGY1SXluT1BuOEVGMEFFQngzTUkzaTNvRThoS1BNQTBJSm5ibThDSi1PZGlraWhUVkZDTEtJNzlsU1p2b3JqQUJ3UkVEUUZmWGplbk5DZ2I2ZGdhYTRsTkdzZlJDVWpwTzV6WDR1Z29KLWtJN2ZTS1E5YnpyMTA1T3NIQkthbFNsamNIRXZpc1dGV3ZVR2hTODI3clVNWnIzQ0w0Ujk3bWhr?oc=5"
+          "title": "SpaceX Stock (SPCX) Climbs Almost 2% Ahead of a NASA Livestream This Week",
+          "source": "TipRanks",
+          "published": "Tue, 06 Oct 2026 19:04:04 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNQmZ3Z0k0ZlhOUlN6QjczWFd6WEpKX0xleDZnN2lsZnVid25KQVN0Zzl2YXFDYTNiQ2ctU0lsclpaOXZjdWxMcDkyMjlGMkRvdXlWNF9EMUlZckR5eWVRb2plQjk4QlJ0bXNKbVhKUGktbDlraklhRkRnX3lET3RXa3hpYlNQSENjbUp2WUVncnFCbFpJelhNVXlxT2U0dURmS0E?oc=5"
         },
         {
-          "title": "SpaceX stock climbs again, hits another multimonth closing high",
+          "title": "SPCX Stock Slips After-Hours As SpaceX Reportedly Seeks $40B For Nvidia Chips",
           "source": "Yahoo Finance",
-          "published": "Tue, 06 Oct 2026 20:19:55 GMT",
-          "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPZUJlV2ViWnZxdDM2Tzl1OGRIWklwbXIxUTJIWGpYLUgySnRyMzJ5aDZEcldJdGVod05YcG52OGsyWUVjdjdOa1hkc1ExRksycWVpRGVYamNHSFdHcXBVSktGVHdZRVNJWFM1ek4zaGI4WUk1aFJhaC0yVnZ4UEpBb0FjWGJuU0xDN1VCNnFpQzVoVzlnWERGZjhSUnZtREFUNHFNOEMzWVpNM1lqSVBSc3BqUWZmNGZLLXVLSzZ3cTBuZm9I?oc=5"
+          "published": "Tue, 06 Oct 2026 23:48:23 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQVXBBWFdGdERkRHZ5WHRaU3I0S3NYaWVzejBJYWtaU1Z4UjJiVl8tdm05cU5tSzVLUzRETGtVZ2oxbHdVa3l6QmtrVG1ZczMycmZhc0NUV1pMbnQ4WVBTTXk2NlExVjRLQzhTZGFheHZ5YzRBck4xT3djVTRoenhOaGoyOFE0WWlYbUU0djI3VEoxYXdjVXBDMWtR?oc=5"
         },
         {
           "title": "SpaceX stock is on the rise again: What’s behind the rocket and AI company’s October rally?",
@@ -216,16 +190,16 @@
           "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQV2RIeU5tc0VtOEstYkpMNVVnd0tJOElFaG8xUVlMZ0d2SEVROFljMV83NVpjZnVjUjRUVTR3WEtqMEJ5eGhCaUR1RVZuRHN2eGRxSkFmNDZtcVdQVEYzeWNzdjJmRjdyeXVVUTVTYV9TYndQUXRiWVFZbzZiWGZrZHAzMnJhMWZxTmFqaHZJMVJ6WWpvQzJuOA?oc=5"
         },
         {
+          "title": "SpaceX Stock Surges as Morgan Stanley Says Stock ‘Cheap and Getting Cheaper’",
+          "source": "Investopedia",
+          "published": "Mon, 05 Oct 2026 16:54:53 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQSlRLSzlzUlFGZDNHRzl4RlVMakljY3pfWE8tcjk0QjFhSHRSR1RwQTJLcHk5VkhMMUF5azkyb3praWhqQkgxOWpxdzlqcTdTMUJUUWgxUU1KdS01UFp6WHJFb09ZUExsM3dVdUs4UW5IQldieXJ3VHNIMDNxR2RNbHNMeDVGMXZqMUF3NXpNMHN5ZHd3SDJHZ3kwSGxTX0Jybko2Z3BoM2F6ZVdjM0g5RVdUZUdvcTdP?oc=5"
+        },
+        {
           "title": "SpaceX Bags Massive AI Compute Deal With Anthropic. What That Means for SPCX Stock.",
           "source": "Barchart.com",
           "published": "Sat, 03 Oct 2026 13:34:05 GMT",
           "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOVmJyVkNiT2hCdmFVRkVTY2JrN2VPTXVYMkdtbjBoMDNSeXVHMk0xNXJ2S2d5WW1CcGdyeHFDSXVMUldZWkN2VHhfdWhkWnlfUUFrYmM2ajhiSm1uSjFnUkV0NEtrT2prWjdEbEF2NTRDZmR1MVhlVFBDSjBZaFlaby1US3BnemJjSGtjVlprWm5oX1RkZmw0c1JyWU8teG1MMXU4Tl93UmpoUjVUSWdqcnJ0cWxnVG9Fb1FwanFMejQtQWs?oc=5"
-        },
-        {
-          "title": "4 stocks to watch on Monday: IOT, SPCX, DKNG, and NGG (NGG:NYSE)",
-          "source": "Seeking Alpha",
-          "published": "Mon, 05 Oct 2026 12:51:48 GMT",
-          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPeGdDVlJwaERHR1hDOVY5aWszYjJuTEctVlVaMjdfeTZ0S2d5Y1dqMmZDQTIzUUo0VC03YjVDa0FrX3p6SVFqbk5neWNwbDVGRi16OFdBNjBpeUF5aVdYQThIRFNQcktoV2xvQ3AtUzFQRDllN25fcGVPeUd0dU9HeHoxY2Y5SnprbWRRUXhGTzk?oc=5"
         }
       ],
       "google_news_zh": []
@@ -234,8 +208,14 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 6,
+      "reddit_mentions_7d": 4,
       "reddit_posts": [
+        {
+          "sub": "SpaceInvestorsDaily",
+          "title": "$SPCX reportedly seeking $40 billion to buy Nvidia chips",
+          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1wzhy2f/spcx_reportedly_seeking_40_billion_to_buy_nvidia/",
+          "created": "2026-10-06T23:48:24+00:00"
+        },
         {
           "sub": "wallstreetbets",
           "title": "SpaceX looks to raise $40bn to buy Nvidia chips in financing led by Apollo",
@@ -253,24 +233,6 @@
           "title": "Musk called Anthropic 'evil'; SpaceX's deal with it nearly doubled",
           "url": "https://www.reddit.com/r/NowInFinance/comments/1wzfr1n/musk_called_anthropic_evil_spacexs_deal_with_it/",
           "created": "2026-10-06T22:06:26+00:00"
-        },
-        {
-          "sub": "10xPennyStocks",
-          "title": "Hypercall took 10% of on-chain options notional in a month. Two public companies are already picking a side.",
-          "url": "https://www.reddit.com/r/10xPennyStocks/comments/1wzfa9v/hypercall_took_10_of_onchain_options_notional_in/",
-          "created": "2026-10-06T21:46:29+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "SpaceX Plans to Build a Massive Cargo Hub in Louisiana",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1wzf8mv/spacex_plans_to_build_a_massive_cargo_hub_in/",
-          "created": "2026-10-06T21:44:38+00:00"
-        },
-        {
-          "sub": "stocks",
-          "title": "Why do people keep spouting it's a bubble when there are no technical indicators of that?",
-          "url": "https://www.reddit.com/r/stocks/comments/1wzdr0a/why_do_people_keep_spouting_its_a_bubble_when/",
-          "created": "2026-10-06T20:44:05+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -332,28 +294,28 @@
       ],
       "google_news_en": [
         {
-          "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
-          "source": "Longbridge",
-          "published": "Tue, 27 Jan 2026 08:22:58 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
-        },
-        {
           "title": "MiniMax Plunges Nearly 20% on First Day of Lockup Expiry, Testing Hong Kong's AI Sector Liquidity",
           "source": "BigGo Finance",
           "published": "Wed, 08 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE85VTktWTVoaUNBbk9fWFZ2RUlhZkpoMGpIUlgxY09IcWhpMk9SYlBMOS1VYkVwYWsxRkllRlFXd2lnNXg2UkdpQkVIOVdhblBWZE9KV2RSUTFnZUE1dU1xNlJSMk5HVE9iQ1hHcWppWWd2TzdvR3c?oc=5"
         },
         {
+          "title": "MINIMAX-W (00100) Stock Forum and Discussion",
+          "source": "Moomoo",
+          "published": "Mon, 05 Jan 2026 02:33:45 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE5veldhTjdSd2FQMkNQQThuU24wS2VISEdfUGNPbXlfSC1JNG82eS1XR1F3RGxQazM1dzZMNkhWbFB0QVJ2RmRoRk5NRFBRZk9jQ01IRnBjUUd5YTQ?oc=5"
+        },
+        {
+          "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
+          "source": "Longbridge",
+          "published": "Tue, 27 Jan 2026 08:22:58 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
+        },
+        {
           "title": "Major Brokerage Cuts MiniMax (00100.HK) Target Price to HK$760, Maintains 'Hold' Rating; Impending Lock-up Expiry and Peer IPOs to Dampen Scarcity Premium",
           "source": "富途牛牛",
           "published": "Wed, 03 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOZ1pZNWdoMEcxaWpuNEpSbThHakpTVHdPWnJ2QW11VTk2clVjbzdDdnFDRTdLMDJRTGZVTXZLNk5sYmRVZTh5S25nMkFHdDVXRW94UkNpRWJjRjFud2lld2h3WUhSSzdodlVYeGtYdmZiZmNKMHNGWjFSLWNMQjFYeDdqck9HU1B5bGhCVFNUN3RiVV9DZkpmR3g0SFBJdw?oc=5"
-        },
-        {
-          "title": "Hong Kong Stock Market Midday Review | Hang Seng Index rose 0.82% in the morning session, with AI applications surging across the board.",
-          "source": "Moomoo",
-          "published": "Sun, 19 Apr 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQTlRMd0NhUkE4MFpCcXJ1cUNjczdQS05EWFJtZmVfMFIxX1pkNVk0aEhlSk1vZzdPZXAwcW5zXzYtQnluT0xud0NLV0FYYVRkcTIzeF9qaG16UmNnZ292MVpwdHp1M1RySXdtb21fX25POHFSejlCeDZROUlsMUoxWTVFbnY0RmV1VnZGdC1iYWRacnZWc2I4NWFtLUhlY09t?oc=5"
         }
       ],
       "google_news_zh": [
@@ -382,10 +344,10 @@
           "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE5zSHBiVnRINkZ6T04tRmFMd2p0T1VySExnY3V0d2FRTGlCdWhTdi0xT0s4ckJYUTJ5cmNNQ2RBLWstNzRUU3hXY2ZHZURvQnQwaWxSem9ibmVuSWZTY2E4cXY2NW1WS0RhdGc?oc=5"
         },
         {
-          "title": "港股異動| MINIMAX-W(00100)早盤漲超3% 最新文本模型M3.1-Flash-Preview上線MiniMax Code平臺作者智通財經 - Investing.com 香港",
+          "title": "MINIMAX-W(00100)授出合共209.2萬份獎勵 作者 智通財經 - Investing.com 香港",
           "source": "Investing.com 香港 - 股市報價& 財經新聞",
-          "published": "Wed, 30 Sep 2026 03:03:34 GMT",
-          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9FXzVCVnZRSzJCVFlJai1ycjhCcmxEbW44UE90YV9aQnBscUJlSmo3U1daYTlIdkdMekNzVnRHUnMtUU9hd1ZLLVFwblNRci0ycHBKMnFyVUt0cC1aZy1jV2paWm5ITE5rTkNNRkVoa1E?oc=5"
+          "published": "Tue, 29 Sep 2026 13:40:08 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9vUmJmR280VGJMSEtmQmJkVFo5MDJvakstODdlTzJhR2VrajNCb3VjcGtlVGVXWmk3bHRoUlUtcW5wV1NzYkJDbjA5czdJbE9Lb29sRGV1Z21LeWkwVGxfUzAyak53UVhTRWlaSGUzOVE?oc=5"
         },
         {
           "title": "MiniMax-W（0100.HK）遭摩根香港大舉拋售，背後是誰主導？",
@@ -440,10 +402,10 @@
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
         {
-          "title": "財律指揮｜中美科技處處角力 金風科技不只做風電 火箭概念有排炒｜曲鳴",
+          "title": "【大行報告】大摩升金風科技目標價40%",
           "source": "Yahoo 財經",
-          "published": "Sun, 11 Jan 2026 08:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiywNBVV95cUxNLThUME1aUm5lQU9nSUpVdlJKem9NT2stQzB4MzFtVWVqaUNKYTZCdmJuODlYOWFCYTNRbUhRVFl2Z1MwLTFsLXZGalM4ZlVCcWlHbENvRzZvVlprN3JHSlJMQTVBeTlTQUZzX0MyOUNGOTI1Y196R3NrSTZaUjBCOXFzdnd4ZkVkQjREZDJVMXhlOEtjaWZZSGt5R0NkYzBPVll3bmdFLTVSMU9ZOHA2dEttTWFZeVE3bUhrbF84RHJXMzdWWTFCLUtGWWJHQmk0N2tXQldCTGdEb2J1ZzdoTVpGemtVZHBoUHY3ZVg4d29ENmszajZ4TmxFOVE3NFJrcURHNk1aUXEwcmJNVVhxX2VKREFwZUl3STlVMWN0bEtGQ21EaW01cWl6dWEwUnI2bkxLU1ppckhwXzlKZDEyMWVHMmpTVmthc0RBSTk3YlBnLWxKRnVCWXM0ZGdlZ01LR3NjYzZUVzJ2OVI5YzZTeGdJOEx0bGJpdVhTWGRDOUswdC1ybHBvdmdIQ1p1Nk9tNzlKejBMRkd2UGlGVW1yUFRLTGdQcGVBc1JBLUc5N0dMb2Q5OU5yNHo2WVEtUmhGQXBmUDEwQmtRT1U?oc=5"
+          "published": "Mon, 19 Jan 2026 08:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPbEFJVElQdTdOeWdTODBRT1BzODJCSTltYzNJMnZHNWVRNFBUWFBiWmlGWTRvdmNZNWxZUEZseld1UDhONzZfTUh1bGx0X2dGMjBNUHFPN1dUQUxBN0p4eEtONFY1UVhscGtreXlwUF9FOFJqMUhpSlhzNGJfSXYwMldXSmxHR2dGSWRoT3I1Q19Nam9vUW9NbXN4TEZBcS1EbDFDcDlsQ01QSnNobGt2VDhyWklDMWlrOGE4QldBQnQ4N1dmY2hIZVQ1TWczbTVGOWQ0QWVQZlJBUGJENTAxRHRxWkRTbndHUkJtRVVqd1VJVTh2Y1dRWHlaM0FGbTI2QUtGSEZlcGxXeEE?oc=5"
         },
         {
           "title": "歐盟宣佈對中國清潔能源巨頭金風科技展開反補貼深入調查",
@@ -458,16 +420,16 @@
           "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBCT09sWm9zbm55QVNZeEk3ODZEdjdIbmQ1ZjRFcTdZODYtcHRyS1lCc1NVeTlTalR0Q0VGRDBhZTE4YTNZeWNnRWZ4TXMzQnRQYkhVdmVlSVF6NDNWUkNBQmNhUmRMNTRRQXFZYXFGSkU5MnZXbU1N?oc=5"
         },
         {
-          "title": "全球裝機續壯大 金風科技乘勢上",
-          "source": "信報網站",
-          "published": "Wed, 06 May 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMigwNBVV95cUxOT1Z1Mk5QWTV4RUdUS1FKTUo4M0RJSXVEbVk0UGxmRTZFNkg1SDBXUHVnVmlnRVNoNl95LW0zbzVvNzhJNW00LV9BMFkyVENBZS1WR3liUU1SeXBRVG9qWi1GZE51NmMzZUk3bWt0Y1VnT2oxM3RiSjd5WEVnZW1iZ0doUWdJRW1vN09nOUMzVVc5V0dnRng3b29jUDVYWE1uSm5nOHdUcVJkdjdwQ3pYNjNCeGh0N09yMmpTRjFpelNYOFh6TElsaXpteUYxWDd5NHNJdEFtUFNnSWFra1N3TkVXV1ZPSzZYMmZUUWRBeEVzbzYzZVpTMG1oRmpkVDE1eVM5eno1cTc0dk9XLW9sWHZtSVBKa2NBeVByQS1rWE4yY2xMMHM5bWNoOFBDSllNUVA2TUJwRjZmWFIxYjl5R3pUYjRtaGhhRHJlRDNyOEVMamJjZUVCblJaOHlJNUdHQ0F5WWIzb2UwSXM5aVk2ekxNMFZxX2czOWxyMzB4Q2hnRW8?oc=5"
-        },
-        {
           "title": "中方回應歐盟調查金風科技 敦促歐方停止濫用單邊經貿工具",
           "source": "香港01",
           "published": "Wed, 04 Feb 2026 08:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMirwNBVV95cUxOLWdlMFhPeHhUdDdNZ0d4ekc0YWNLRmFVUUFoVFBVZkZvSTh1M2JlSzhvWGpsNTJiamg2V2RJbjhOTXltQ2ZBTkQ3Tko2LUxubC1kc0dEUWl0MkdGWHduYTdpbmJqVm9QVHhHOEl1VHhTejBIZFRrTmNBN2FFOE0wY2x5VmlqVkVVTHVidEl0N0hlUEZiQlpVRFhMX0s2VDdqR3hBTm83SjRGTmVrYkZPcHlpeWt1bXZYcDFGYTdOVXJ1bnFYbEJjWlgzSGJVdm5tblU3RDAxVGdDVUduV1dhWVlaSUJDRkQ0SzRGdUNSeHlSTHdtdU9nU0RqTXZaUnRrVE8tdEUyTUkzSnlkZE92QkYzamJEYWF0S3lHMWR1RkxlUGVCZ19mdFR2ZnRDTXlfa2FKb01Ici1lZ21VUXZLeGZmYlBXNTFUS1VsSjZqNHhiMEw2RHYtZWtleklsU3JhUFcyM3l6RjJKZXc2ZG0zRXFsd3N5Qy1SX3BsNXZ2dEtGUkd1Zm9mUTltcVZKRjhNd2Z3NDBMcnJNOHN6R3BxRG8tY2FwYUZpUHdVSl9Jdw?oc=5"
+        },
+        {
+          "title": "金風科技(02208) 海外監管公告-營運業績最新情況",
+          "source": "信報網站",
+          "published": "Tue, 25 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMizgJBVV95cUxOalBRLWhEUEZ0bG9KRlFDLWdzZ2UwcHNDTjJWcmZSOG1Vc1J5b0IxOVZLZ3JKVnBOemNxVTRwNjljbGZWR0NPX2VOY0RoYUY2UU4wcmZ4NUR5VUlsa0pTU0llVjFqb1htcTEwNWtFVXdjUm0xMjJ3UFJfd2MtNzBCQVVyOUxqeERjSVN6NDQtRGxMMXF6OW16cWhxald5ajFQTEJsQl9PS2dnZTkxbURDMk1yV054dUhvUFdJMEVBckRncE94Yk0zVEJrWWpfbkZiSkdObTJBQ1hQeTdUTEFwQ0k4VEdOSDg1ZUdFaXc3U2lBVmludGZIUFNVWEZYQnZkNGtuTUR3WURuQ29JT3VocTBTWHZLbXRjT2JDRDVWdkJGRTY1SjdkUUR1eXhudHJ5WGl2czdlLU8yc3ZlMjdpa1diMnExMzc0a2REQjdR?oc=5"
         }
       ]
     },
@@ -491,16 +453,16 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9QTHVQaUdIUlBkeVlyOE9DeVFBdVJGMWxzTTEtZlRHcE4wR3FyTS1FeklqNGxuemhxd1dwbjk1WTFvZHl3OUZ1MXlWV1h1VERJR1VZejJ3?oc=5"
         },
         {
-          "title": "ETF Daily Report (Oct 2) | Macro and Industrial Resonance Lifts Korean Equity ETFs Against the Trend; High U.S. Treasury Yields Weigh on Hang Seng Tech Index",
-          "source": "Moomoo",
-          "published": "Fri, 02 Oct 2026 09:55:29 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPSFBzUFBIZ2NCOWZVRExqbTlXM0lKdG9iZ2o3RHpPODN0akw2V1ZzMmhjZ2FnOWx5dGdsdmZTU050R2NjMzVETG9ZeW5aVDd0OXNhb0xtLTUtTXB0ZWRxOUROQ1NjTEJlSHhKaVA1bU56Z3ZJYnBOSnc1STFYNWh1ZWJSV01PSmFvZzRtQWNNSVVBXzkxcnNUcmNKU25xWGNDQXJBYUVB?oc=5"
-        },
-        {
           "title": "Hang Seng Investment Index Funds Series - Hang Seng Tech Index ETF (3032.HK) stock price, news, quote and history",
           "source": "Yahoo Finance UK",
           "published": "Mon, 18 Jun 2018 07:39:27 GMT",
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9LZllEUnRkNWxFODN1NlpIbG1JWFhYdzQ5MTRwUGgwLTY0ZWdubGZ3NTFaQ19HR1pLR0FuMmlaZ0F4YUNyR2dITmx6Z19UQmxRWk15a0VB?oc=5"
+        },
+        {
+          "title": "GF Securities: Optimistic about the rebound opportunities for Hong Kong stocks in the second quarter, particularly in April and May.",
+          "source": "Moomoo",
+          "published": "Sun, 12 Apr 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOaHhVVl9ncktZVzliaTZEQWhkaVFSc0tyRWdoelJWTk5TUVlEU3dHaGQ3VWhMUDZBZXVtQWhHUHlEQU9iMDRleWhkQXBlN0MxczZIdlpvN0w0ZHRWS1RwSEx1Mm12SFFmWndJc01QVS1FbHRIbmVWNnV4V0pVMDdvUGV2aWZDeVpNT0J6eTVEZlR6czFiMHNtajBqMUc0WFFTTlFDb2h6LW1jRUY4VEZrREhn?oc=5"
         },
         {
           "title": "New funds are channeling into the Hong Kong stock market via funds, with the number of newly issued products doubling and existing ETFs attracting 61.1 billion yuan.",
