@@ -9,6 +9,10 @@
 <link rel="icon" type="image/png" sizes="64x64" href="{{ '/assets/icons/favicon-64.png' | relative_url }}">
 <link rel="apple-touch-icon" href="{{ '/assets/icons/apple-touch-icon.png' | relative_url }}">
 {% seo %}
+<link rel="describedby" type="text/plain" href="{{ '/llms.txt' | relative_url }}">
+{% if page.path == 'faq.md' %}
+<link rel="alternate" type="text/markdown" href="{{ '/faq.html.md' | relative_url }}">
+{% endif %}
 <!-- One stylesheet, not two copies of one.
 
      This layout used to inline a hand-copied excerpt of the dashboard's design
@@ -377,7 +381,8 @@
     <a href="https://github.com/KCNyu/clawock">clawock</a> ·
     <a href="{{ '/' | relative_url }}">Dashboard</a> ·
     <a href="{{ '/briefs.html' | relative_url }}">Briefs</a> ·
-    <a href="{{ '/faq.html' | relative_url }}">FAQ</a>
+    <a href="{{ '/faq.html' | relative_url }}">FAQ</a> ·
+    <a href="{{ '/llms.txt' | relative_url }}">Agent docs</a>
   </p>
   <p class="disclaimer">
     Not investment advice. Real positions shown. Point-in-time data. Past performance ≠ future results.

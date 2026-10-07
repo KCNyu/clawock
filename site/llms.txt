@@ -16,6 +16,9 @@ negative, every loss on the page, every number reproducible from
 
 ## Key pages
 
+- [Complete agent reference](https://kcnyu.github.io/clawock/llms-full.txt): overview, FAQ and external-agent invocation protocol in one Markdown file; generated from the maintained documents on every Pages build
+- [FAQ in Markdown](https://kcnyu.github.io/clawock/faq.html.md): the same questions and answers as the human FAQ, without navigation or scripts
+- [External agent invocation protocol](https://kcnyu.github.io/clawock/docs/architecture/runtime-protocol.md): prepare, validate, publish, evaluate and bounded improvement; clawock does not call or own the model
 - [GitHub repository](https://github.com/KCNyu/clawock): source, issues, PRs
 - [Live dashboard](https://kcnyu.github.io/clawock/): positions, risk, self-graded scorecard
 - [Daily briefs](https://kcnyu.github.io/clawock/briefs.html): published morning reads (Chinese; the bilingual part is the data coverage behind them)

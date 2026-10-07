@@ -36,8 +36,10 @@ def _public_repo_paths(tmp_path):
         if not file.is_file():
             continue
         rel = file.relative_to(staged).as_posix()
-        # Jekyll renders a staged .md page to .html; artifact_include names the output.
-        served = rel[:-3] + ".html" if rel.endswith(".md") else rel
+        # Only Markdown with front matter is a Jekyll page. Generated Markdown
+        # alternates are static files and must be checked under their actual URL.
+        is_page = rel.endswith(".md") and file.read_text(encoding="utf-8").startswith("---")
+        served = rel[:-3] + ".html" if is_page else rel
         if not any(fnmatch.fnmatch(served, pat) for pat in PAGES["artifact_include"]):
             continue
         if any(fnmatch.fnmatch(served, pat) for pat in PAGES.get("repository_only", [])):

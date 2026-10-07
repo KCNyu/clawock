@@ -10,6 +10,7 @@ repository root double as the website source directory.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import sys
@@ -142,6 +143,29 @@ def _copy(source: Path, destination: Path) -> None:
         shutil.copy2(source, destination)
 
 
+def _write_machine_docs(output_dir: Path, source_root: Path) -> None:
+    """Publish a small, explicit set of product docs, never runtime context.
+
+    The FAQ's front matter makes Jekyll emit HTML, so its Markdown alternate
+    needs a separate filename. Generate both that alternate and the one-fetch
+    reference during staging to keep them in step with the human documentation.
+    """
+    site_url = json.loads((source_root / "config/pages-public.json").read_text())["site_url"]
+    faq = (source_root / "site/faq.md").read_text(encoding="utf-8")
+    if faq.startswith("---\n"):
+        faq = faq.split("\n---\n", 1)[1].lstrip()
+    (output_dir / "faq.html.md").write_text(faq, encoding="utf-8")
+    overview = (source_root / "site/llms.txt").read_text(encoding="utf-8")
+    protocol = (source_root / "docs/architecture/runtime-protocol.md").read_text(encoding="utf-8")
+    full = (
+        overview.rstrip()
+        + f"\n\n---\n\nSource: {site_url}/faq.html\n\n" + faq.rstrip()
+        + f"\n\n---\n\nSource: {site_url}/docs/architecture/runtime-protocol.md\n\n"
+        + protocol.rstrip() + "\n"
+    )
+    (output_dir / "llms-full.txt").write_text(full, encoding="utf-8")
+
+
 def stage(output_dir: Path, *, source_root: Path = ROOT) -> Path:
     output_dir = output_dir.resolve()
     source_root = source_root.resolve()
@@ -165,6 +189,7 @@ def stage(output_dir: Path, *, source_root: Path = ROOT) -> Path:
     _copy(source_root / "memory" / "weekly", output_dir / "memory" / "weekly")
     _write_weekly_index(output_dir, source_root)
     _write_daily_index(output_dir, source_root)
+    _write_machine_docs(output_dir, source_root)
 
     print(f"staged Jekyll source: {site_source} + public runtime inputs -> {output_dir}")
     return output_dir
