@@ -35,9 +35,11 @@
 
 clawock gives the AI agent you already use a continuing investment workflow for a HK + US stock book: **collect information → argue both sides → settle in code → feed the result into the next decision**. You still place the orders.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="clawock on one page: eight source layers arrive through fallback routes; Python reconciles the book and certifies one context pack; Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI argues a bull and a bear case over it; code holds six risk limits, currency rules and evidence requirements; the plan reaches you and you place the orders; code settles each call as a win, a loss or ungradeable; history, earlier-date calibration and reviewed proposals return to the next judgment"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="clawock on one page: eight source layers arrive through fallback routes; Python reconciles the book and certifies one context pack; Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI argues a bull and a bear case over it; code holds six risk limits, records what happens when one breaks and enforces evidence requirements; the plan reaches you and you place the orders; code settles each call as a win, a loss or ungradeable; the record returns around two loops, one into the next judgment through history and earlier-date calibration, one into the evidence rules through a bounded proposal and a named review; on the author’s host patrol rounds, a filing gate, background agents and required CI maintain the desk’s own code, watched from DeepSeek Harness"></p>
 
 **RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
+
+Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
 
 ## Information in: sources before opinions
 
@@ -112,9 +114,79 @@ Use the same **`investment-decision` skill and artifact contract in Claude Code 
 ## What the model is not allowed to do
 
 The model writes opinions. The arithmetic that could corrupt the record runs in
-Python and is unit-tested. The six risk limits, the currency rules and the evidence requirements are panel 04 of the overview at the top.
+Python and is unit-tested. The six risk limits, what happens when one breaks, and the evidence requirements are panel 04 of the overview at the top.
 
 [All twelve rules, and what the code does for each](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#what-the-code-enforces).
+
+## Harness views and background work
+
+**The DeepSeek Harness desk views and background queue**
+
+**Delegate a task, leave the chat, come back to a result.** `clawock-dsh` brings
+an investment-decision skill, a Decision Mind tab and a provider panel into the
+dsh web GUI. On a host with clawock's **agent-dispatch** runner, that panel also
+puts your Claude Code, Codex and OpenCode background team within reach: you ask
+in chat for a repository change with its delivery contract, the runner keeps the
+task alive, and the plugin lets you see and steer it.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="1016" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
+
+- **See what is happening.** Subscription use and reset times, provider balances, each agent's real queue, model, elapsed time and API-price cost estimate share one panel.
+- **Change course while it runs.** Move waiting work up, change the next attempt's model where allowed, adjust deadlines and retry budgets, cancel a task or retry an unfinished session.
+- **Keep the result in reach.** A completed task with a failed send stays visible; a missing message does not erase the work.
+
+The author’s host runs its own maintenance through the same queue (panel 09 of the overview): a patrol round audits what the desk published, a filing gate opens an issue only for a finding it could prove, a background agent takes the fix through a PR and required CI, and an issue closed as noise lowers that kind of finding next time.
+
+**The full-size queue capture** — the real plugin on a live host
+
+<br>
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="Full live-host provider panel: Claude and Codex quota windows above their queues, DeepSeek and MiniMax balances, OpenCode free pool, recently ended tasks with notification receipts, patrol rounds with readable filed counts, severity and issue links, and the ops version footer"></p>
+
+[Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) ·
+[runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
+
+**A task's history** — append instructions and the progress timeline
+
+<br>
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png" width="380" alt="Complete live dsh task detail in a phone layout: a finished repository task, numbered append instruction with delivery status, and timestamped progress from dispatch and execution-lock waiting through attempts, instruction delivery, continuation and notification receipts"></p>
+
+Ask “Can I add to 0700.HK?” and the investment skill takes the agent through
+evidence, a bull/bear debate and a bounded decision. **Decision Mind** then lets
+you open a real fill and follow **plan → execution → T+1 → P&L**. Missing plans
+and ungraded fills say so, USD and HKD stay separate, and you place the orders.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" width="820" alt="Decision Mind inside the real dsh web GUI: fills grouped by day with paired plans and T+1 verdicts; an expanded trace follows the plan, actual execution and outcome"></p>
+
+```bash
+python -m pip install clawock
+dsh plugin --profile web add clawock-dsh
+mkdir -p ~/.dsh/skills
+cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
+```
+
+Restart the web profile to load it. Queue controls also need the host runner;
+without it the panel still shows provider allowances and balances.
+[npm package](https://www.npmjs.com/package/clawock-dsh) ·
+[installation and queue setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md).
+
+## Under the hood
+
+How the same loop runs on the author’s real stock book:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg" width="1016" alt="KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop"></p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-pipeline.svg" width="1016" alt="One clawock trading day, end to end — Python collects quotes through ordered fallback chains (HK Tencent + Eastmoney, then stooq, then yfinance; US Nasdaq first through a seven-route chain; USD/HKD Frankfurter, exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, Reddit and influencer sentiment, and macro and catalyst calendars; it reconciles the book, computes portfolio risk, per-leg concentration, the leverage regime dial, quant factors, cross-sectional ranks and peer residuals behind a backtest gate, and holds risk caps, the entry gate, earnings quality, thesis drift and the news evidence graph as code gates; a preflight hands the agents one context pack, where four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge write plan.json; a Python postflight validates it, books it in memory/decisions.jsonl, renders the brief card, sends WeChat and Telegram and publishes the dashboard; then code records what was executed with mark-followed, settles each episode on canonical bars, calibrates confidence, replays a shadow portfolio against buy-and-hold and publishes the scorecard, which the next brief reads; in dsh, Decision Mind shows real fills beside their plans and T+1 verdicts for a follow-up, while execution stays human"></p>
+
+The author's desk sends the pre-open plan at **08:03 HKT** and runs this unattended on OpenClaw. Each job is
+`clawock … preflight`, then the model writes, then `clawock … postflight`:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="OpenClaw's live cron list on the desk host: nine clawock jobs (pre-open brief, HK and US session reports, intraday check-ins) with their cron expressions, the clawock preflight → postflight lifecycle each one runs, last status ok and run time" width="820"></p>
+
+<sub>Rendered from the host's real <code>openclaw cron list --json</code> by <code>site/tools/shoot_openclaw_cron.js</code>; job ids, delivery targets and prompts are left out. The full timetable is the <a href="https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md">generated schedule</a>.</sub>
+
+[How the desk works](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md) covers the information layers, run context, settlement rules and code gates.
 
 ## Try it in five minutes
 
@@ -170,74 +242,6 @@ Here is the whole run inside Claude Code, from the
 [`examples/claude-code`](https://github.com/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md) instruction:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code running the investment-decision workflow end to end: clawock init, clawock run prepare, Claude writing decision.json, clawock run publish returning status: published" width="820"></p>
-
-## Harness views and background work
-
-**The DeepSeek Harness desk views and background queue**
-
-**Delegate a task, leave the chat, come back to a result.** `clawock-dsh` brings
-an investment-decision skill, a Decision Mind tab and a provider panel into the
-dsh web GUI. On a host with clawock's **agent-dispatch** runner, that panel also
-puts your Claude Code, Codex and OpenCode background team within reach: you ask
-in chat for a repository change with its delivery contract, the runner keeps the
-task alive, and the plugin lets you see and steer it.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="1016" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
-
-- **See what is happening.** Subscription use and reset times, provider balances, each agent's real queue, model, elapsed time and API-price cost estimate share one panel.
-- **Change course while it runs.** Move waiting work up, change the next attempt's model where allowed, adjust deadlines and retry budgets, cancel a task or retry an unfinished session.
-- **Keep the result in reach.** A completed task with a failed send stays visible; a missing message does not erase the work.
-
-**The full-size queue capture** — the real plugin on a live host
-
-<br>
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="Full live-host provider panel: Claude and Codex quota windows above their queues, DeepSeek and MiniMax balances, OpenCode free pool, recently ended tasks with notification receipts, patrol rounds with readable filed counts, severity and issue links, and the ops version footer"></p>
-
-[Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) ·
-[runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
-
-**A task's history** — append instructions and the progress timeline
-
-<br>
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png" width="380" alt="Complete live dsh task detail in a phone layout: a finished repository task, numbered append instruction with delivery status, and timestamped progress from dispatch and execution-lock waiting through attempts, instruction delivery, continuation and notification receipts"></p>
-
-Ask “Can I add to 0700.HK?” and the investment skill takes the agent through
-evidence, a bull/bear debate and a bounded decision. **Decision Mind** then lets
-you open a real fill and follow **plan → execution → T+1 → P&L**. Missing plans
-and ungraded fills say so, USD and HKD stay separate, and you place the orders.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" width="820" alt="Decision Mind inside the real dsh web GUI: fills grouped by day with paired plans and T+1 verdicts; an expanded trace follows the plan, actual execution and outcome"></p>
-
-```bash
-python -m pip install clawock
-dsh plugin --profile web add clawock-dsh
-mkdir -p ~/.dsh/skills
-cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
-```
-
-Restart the web profile to load it. Queue controls also need the host runner;
-without it the panel still shows provider allowances and balances.
-[npm package](https://www.npmjs.com/package/clawock-dsh) ·
-[installation and queue setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md).
-
-## Under the hood
-
-How the same loop runs on the author’s real stock book:
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/architecture.svg" width="1016" alt="KCNyu live-desk architecture — Python builds reconciled market context, OpenClaw agents debate the trade, clawock contracts gate the decision, and a public scorecard closes the loop"></p>
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-pipeline.svg" width="1016" alt="One clawock trading day, end to end — Python collects quotes through ordered fallback chains (HK Tencent + Eastmoney, then stooq, then yfinance; US Nasdaq first through a seven-route chain; USD/HKD Frankfurter, exchangerate.host, Yahoo), SEC and HKEX filings, Eastmoney capital flow, bilingual news, Reddit and influencer sentiment, and macro and catalyst calendars; it reconciles the book, computes portfolio risk, per-leg concentration, the leverage regime dial, quant factors, cross-sectional ranks and peer residuals behind a backtest gate, and holds risk caps, the entry gate, earnings quality, thesis drift and the news evidence graph as code gates; a preflight hands the agents one context pack, where four analyst lenses, a bull and a bear who must disagree, three risk voices and a judge write plan.json; a Python postflight validates it, books it in memory/decisions.jsonl, renders the brief card, sends WeChat and Telegram and publishes the dashboard; then code records what was executed with mark-followed, settles each episode on canonical bars, calibrates confidence, replays a shadow portfolio against buy-and-hold and publishes the scorecard, which the next brief reads; in dsh, Decision Mind shows real fills beside their plans and T+1 verdicts for a follow-up, while execution stays human"></p>
-
-The author's desk sends the pre-open plan at **08:03 HKT** and runs this unattended on OpenClaw. Each job is
-`clawock … preflight`, then the model writes, then `clawock … postflight`:
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="OpenClaw's live cron list on the desk host: nine clawock jobs (pre-open brief, HK and US session reports, intraday check-ins) with their cron expressions, the clawock preflight → postflight lifecycle each one runs, last status ok and run time" width="820"></p>
-
-<sub>Rendered from the host's real <code>openclaw cron list --json</code> by <code>site/tools/shoot_openclaw_cron.js</code>; job ids, delivery targets and prompts are left out. The full timetable is the <a href="https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md">generated schedule</a>.</sub>
-
-[How the desk works](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md) covers the information layers, run context, settlement rules and code gates.
 
 ## Explore
 
