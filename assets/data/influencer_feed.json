@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T18:39:14.839553+00:00",
+  "generated_at": "2026-10-07T00:59:31.143419+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,10 +24,10 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 21,
+    "total": 22,
     "held_hits": 0,
-    "new_ideas": 13,
-    "sector_hits": 3
+    "new_ideas": 11,
+    "sector_hits": 4
   },
   "items": [
     {
@@ -45,38 +45,71 @@
       ],
       "sectors": [
         "医疗器械",
-        "制造业",
-        "美国供应链"
+        "美国制造业",
+        "供应链本地化"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特朗普称医疗器械公司BD将在美国投资30亿美元扩大本土生产，涉及针头、注射器及实验室产品等供应链。"
+      "relevance": 88,
+      "summary_cn": "Trump 强调 BD 将投资30亿美元扩大美国本土关键医疗产品生产，并称这是美国制造回流和供应链安全的重大胜利。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-05 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 47,947 股 / ARKG 42,766 股（最大单只 ETF 占比 0.39%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-05T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.387,
+      "author": "Musk",
+      "text": "Wall Street says Elon Musk's Terafab talks with TSMC could spell bad news for Intel",
+      "url": "",
+      "published": "Tue, 06 Oct 2026 17:16:35 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [
-        "TWST"
+        "TSM",
+        "INTC"
       ],
       "held": [],
       "new_ideas": [
-        "TWST"
+        "INTC",
+        "TSM"
       ],
       "sectors": [
-        "基因测序",
-        "生物科技",
-        "医疗"
+        "半导体",
+        "AI基础设施",
+        "晶圆代工"
       ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest于2026年10月5日卖出Twist Bioscience的ARKK股份47,947股和ARKG股份42,766股，最大单只ETF占比0.39%。"
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "媒体称 Musk 旗下 Terafab 与 TSMC 的潜在合作可能削弱 Intel 的代工业务，凸显 AI 芯片制造竞争加剧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is a Trillionaire Again Thanks to Recent Tesla, SpaceX Rally",
+      "url": "",
+      "published": "Tue, 06 Oct 2026 14:29:42 GMT",
+      "origin": "gnews-rss",
+      "source": "Investopedia",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据报道，Tesla 和 SpaceX 近期上涨推动 Elon Musk 身家重回万亿美元级别，市场继续将 Musk 旗下资产视为高增长交易标的。"
     },
     {
       "author": "洪灏",
@@ -93,8 +126,9 @@
         "NVDA"
       ],
       "sectors": [
-        "人工智能",
-        "半导体"
+        "AI芯片",
+        "半导体",
+        "人工智能基础设施"
       ],
       "sector_holdings": [
         "00100",
@@ -103,32 +137,8 @@
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据报道，私募大佬但斌认为英伟达股价仍可能上涨一倍，释放对AI芯片龙头的看多判断。"
-    },
-    {
-      "author": "Musk",
-      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
-      "url": "",
-      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体",
-        "人工智能",
-        "芯片制造"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "媒体报道称Musk与Intel的交易挫折导致Intel股价下跌，并认为投资者不应因此过度恐慌。"
+      "relevance": 78,
+      "summary_cn": "据报道，私募大佬但斌认为英伟达股价仍可能再上涨一倍，继续看好 AI 芯片需求和 NVIDIA 的成长性。"
     },
     {
       "author": "Cathie Wood",
@@ -146,60 +156,39 @@
         "VCYT"
       ],
       "sectors": [
-        "基因测序",
+        "基因检测",
         "精准医疗",
-        "医疗"
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月5日买入Veracyte的ARKG股份115,472股，单只ETF占比0.24%。"
+      "relevance": 76,
+      "summary_cn": "ARK Invest 于2026年10月5日买入 Veracyte 115,472股，最大单只ETF占比0.24%。"
     },
     {
-      "author": "Burry",
-      "text": "‘The Big Short’ Investor Michael Burry Justifies Lululemon Tax-Loss Sale: ‘I Am Not Throwing In The Towel’",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOckZfMlR2U1lGNTVBaVhVTFBBMU9IdkNsYmwyYnZWTU1uZmNtdjN1RVJ5eTV4OE5vdV9sNWhoY0hMdTRUWmFQZjdUMi1wZW15SVE4TDg5NzA1cmNvNWR4NGE3T2VwYTNaRmY2c2t2Q0ZGU3VpSzZqXzhfeXFzLUlPSzhDQlhtSGdBd2dnRDdmVzZXcG5rMXM4Nk91YUxOUQ?oc=5",
-      "published": "2026-10-06T05:38:54+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-05 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 47,947 股 / ARKG 42,766 股（最大单只 ETF 占比 0.39%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-05T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.387,
       "tickers": [
-        "LULU"
+        "TWST"
       ],
       "held": [],
       "new_ideas": [
-        "LULU"
+        "TWST"
       ],
       "sectors": [
-        "消费",
-        "服装零售"
+        "基因编辑",
+        "合成生物学",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 70,
-      "summary_cn": "据报道，Michael Burry以税收损失卖出策略清仓Lululemon，并称这不代表放弃投资。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk vowed Tesla would never raise money again in 2012 — then came 29 funding rounds and a $465M federal loan",
-      "url": "",
-      "published": "Tue, 06 Oct 2026 10:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据媒体转述，Musk曾宣称特斯拉不会再融资，但之后公司经历29轮融资并获得4.65亿美元联邦贷款，报道对其资本运作提出质疑。"
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKK 和 ARKG 合计卖出 Twist Bioscience 90,713股，单只ETF最大占比0.39%。"
     },
     {
       "author": "Cathie Wood",
@@ -218,13 +207,12 @@
       ],
       "sectors": [
         "基因测序",
-        "生物科技",
-        "医疗"
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest于2026年10月5日卖出10x Genomics的ARKG股份27,277股，单只ETF占比0.12%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKG 卖出 10x Genomics 27,277股，占比0.12%。"
     },
     {
       "author": "Musk",
@@ -243,12 +231,16 @@
       "sectors": [
         "电动车",
         "航天",
-        "私人市场"
+        "Musk概念"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "媒体报道称SpaceX与特斯拉的股价表现越来越像一只受Musk影响的股票，凸显其私人航天与电动车资产的市场联动。"
+      "relevance": 65,
+      "summary_cn": "媒体将 Tesla 和 SpaceX 视为同一类 Musk 资产交易，说明两者股价联动性和 Musk 风险偏好可能上升。"
     },
     {
       "author": "Cathie Wood",
@@ -266,14 +258,19 @@
         "RXRX"
       ],
       "sectors": [
+        "AI制药",
         "药物研发",
-        "人工智能",
         "生物科技"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "buy",
-      "relevance": 58,
-      "summary_cn": "ARK Invest于2026年10月5日买入Recursion Pharmaceuticals的ARKK股份1,189,265股和ARKG股份293,092股，最大单只ETF占比0.06%。"
+      "relevance": 59,
+      "summary_cn": "ARK Invest 于2026年10月5日合计买入 Recursion Pharmaceuticals 1,482,357股，但最大单只ETF占比仅0.06%。"
     },
     {
       "author": "Cathie Wood",
@@ -292,13 +289,13 @@
       ],
       "sectors": [
         "器官移植",
-        "精准医疗",
-        "医疗"
+        "基因检测",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 56,
-      "summary_cn": "ARK Invest于2026年10月5日卖出CareDx的ARKG股份22,271股，单只ETF占比0.07%。"
+      "relevance": 52,
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKG 卖出 CareDx 22,271股，占比0.07%，属于常规规模的生物科技减持。"
     },
     {
       "author": "Cathie Wood",
@@ -316,38 +313,40 @@
         "FRNM"
       ],
       "sectors": [
-        "癌症筛查",
-        "基因测序",
-        "医疗"
+        "肿瘤早筛",
+        "基因检测",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 56,
-      "summary_cn": "ARK Invest于2026年10月5日买入Freenome的ARKG股份47,084股，单只ETF占比0.03%。"
+      "relevance": 48,
+      "summary_cn": "ARK Invest 于2026年10月5日买入 Freenome 47,084股，最大单只ETF占比0.03%，属于小规模常规再平衡。"
     },
     {
       "author": "Burry",
-      "text": "Is Michael Burry Right About MercadoLibre?",
-      "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQVm96a3pNSkIxSktRLW5mRVpSVmh5eWZsbGFJSUJob3g4SDdtN0IxOGIydEtOeGM5VTRqUWZDYlhLNmJJZU90V281elJSemZ1OGsxbTMya3lkS2t5bmVnVlFNVzhQNWt4QlVPZDdKdXJlWUZPZmlqMHJmZk1OOEtQaXEtMHZoZDlaRjVScw?oc=5",
-      "published": "2026-10-06T04:05:00+00:00",
+      "text": "Michael Burry warns Wall Street has been inflating tech earnings by 42% for a decade — and you're paying for it",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQRkMtamtWUUM2T2FtVTliOXFjQ3NiZm95Nmk4NldrbE41eFNDYmpXVnAtN2RLSGJ4NDFsVVVaWDkwTGpHUXJ0RlJaUzZNSHBUTS14SXJqVEFMX1doYS1ZVlpLZ1FFQ3p2U0V0bk54Ym40cm9ZLXYwMFk5VG5uUTBiQ2pieTQtOU8tVzlLN1RfUWNxUmpJR1AzMjdORUo?oc=5",
+      "published": "2026-10-06T10:45:00+00:00",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "MELI"
-      ],
+      "source": "Yahoo Finance",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "MELI"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "电商",
-        "金融科技",
-        "拉丁美洲市场"
+        "人工智能",
+        "科技股",
+        "企业盈利",
+        "AI估值"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "媒体讨论Michael Burry对MercadoLibre的看法是否正确，但未提供明确的新交易或方向性结论。"
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry 称华尔街过去十年将科技企业盈利虚增约42%，投资者正在为 AI 相关盈利质量支付过高价格。"
     },
     {
       "author": "Burry",
@@ -362,7 +361,8 @@
       "sectors": [
         "人工智能",
         "科技股",
-        "半导体"
+        "AI估值",
+        "市场风险"
       ],
       "sector_holdings": [
         "00100",
@@ -371,30 +371,33 @@
         "07226"
       ],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry认为市场仍否认AI交易可能结束，并对AI资产持偏空看法。"
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry 看空 AI 交易，认为市场仍未充分意识到 AI 资产估值和商业周期的结束风险。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX stock climbs to highest since June, returning Musk to trillionaire status",
+      "text": "Elon Musk’s xAI Wins Block of Minnesota’s AI ‘Nudification’ Ban",
       "url": "",
-      "published": "Mon, 05 Oct 2026 20:04:38 GMT",
+      "published": "Tue, 06 Oct 2026 18:41:53 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Law Commentary",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私人市场"
+        "人工智能",
+        "AI监管",
+        "科技政策"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCX"
+        "00100",
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "媒体报道称SpaceX股价升至去年6月以来最高水平，并推动Musk财富重新达到万亿美元级别。"
+      "summary_cn": "媒体报道 xAI 在明尼苏达州针对人工智能图像生成监管的诉讼中胜诉，反映美国 AI 监管争议仍可能影响 AI 企业运营。"
     },
     {
       "author": "Musk",
@@ -411,32 +414,37 @@
         "航天"
       ],
       "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
         "RKLX",
+        "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，Musk表示将把SpaceXAI更名为SpaceXSI，涉及航天与人工智能业务的整合或品牌调整，但相关公司未上市。"
+      "relevance": 48,
+      "summary_cn": "据报道，Musk 表示将 SpaceXAI 更名为 SpaceXSI，属于未上市 AI 与航天资产的战略整合或品牌调整。"
     },
     {
       "author": "Pelosi",
       "text": "Gridlock looms on congressional stock trade ban as parties clash over divestment",
       "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOckZpTHdzcHF0anVXaDR3Z2NwZnFnbkpBYjg3Z2ltU3ZUWnFnUVZvblFPWVpJN1MwMmRaaElqV29rU3pwa2RPS3JNY3YzN0k3aVpCSVlxNmgzQjZZU0tuNjZsdDJKYzYzYWVDMmI3NUVFdTBEMl9GRmJlb0Z6MUhTWFZNdzh5d2VLa2ZXVGJFQVBZdWduaE9FQjM0OXBXYzRITWJXa0pxclo1VkZkRVlxUU1IdVAyaklGWHk5UklB?oc=5",
-      "published": "2026-10-06T15:46:58+00:00",
+      "published": "2026-10-06T19:24:56+00:00",
       "origin": "gnews-rss",
       "source": "Baltimore Sun",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国国会",
+        "国会监管",
         "金融监管",
-        "议员交易限制"
+        "内幕交易"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "报道称美国国会两党围绕限制国会议员股票交易的议案陷入僵局，核心分歧集中在是否强制资产剥离。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "报道称美国国会在国会议员股票交易禁令及资产剥离规则上陷入僵局，相关监管政策仍存在较大不确定性。"
     },
     {
       "author": "洪灏",
@@ -449,14 +457,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "全球贸易",
-        "金融市场"
+        "全球经济",
+        "宏观市场",
+        "资产配置"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "洪灏称全球经济呈现类似“O形环”的结构性疲态，市场参与者对潜在风险集体缺乏充分警觉。"
+      "relevance": 57,
+      "summary_cn": "相关评论认为全球经济呈 O 型环结构性疲劳且市场参与者对其风险缺乏警觉，构成偏空的宏观警示。"
     },
     {
       "author": "Trump",
@@ -468,14 +476,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国财政",
-        "中期选举",
-        "宏观经济"
+        "税收",
+        "财政政策",
+        "美国经济"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普表示若共和党在2026年中期选举中赢得国会，将向美国成年公民发放5000美元，潜在影响财政预期和市场情绪。"
+      "summary_cn": "Trump 宣称若共和党赢得2026年中期选举，将向美国成年公民每人发放5000美元，涉及潜在财政刺激和消费影响。"
     },
     {
       "author": "Trump",
@@ -489,13 +497,32 @@
       "sectors": [
         "税收",
         "监管",
-        "美国能源",
-        "制造业"
+        "能源",
+        "美国制造业"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普为田纳西州议员候选人Johnny Garrett背书，提及减税、放松监管、推动美国制造和能源优势等政策立场。"
+      "relevance": 52,
+      "summary_cn": "Trump 为 Johnny Garrett 竞选背书，提到减税、放松监管、扩大美国能源优势和推动 Made in USA 等政策议题。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi invests in commercial real estate via REOF XXX, LLC By Investing.com",
+      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNZm4yYXVycHE2eV9HQm1kbThoMTZnLW91d05WVmJrUlJEaWpEd3ExYUJhYkVFcnR0WnZXZEpISjFVdUNKS2MyU0prTjYzWlZxQ1pZb3hIbFVtVEhPekhrLWpVTmxJaW1sdGROYWMya1NUaXg2Y2RrTkdDaVlwQUczZHZRNGp1NWlCQmpZSHJhTXRTSWoxSEU3Rm5xNGJfVXFLcmNSWGF5emJfRGt6bHZKbkN0Tk9NRk9POFZ6Vg?oc=5",
+      "published": "2026-10-05T19:07:28+00:00",
+      "origin": "gnews-rss",
+      "source": "Investing.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "商业地产",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道，Nancy Pelosi 通过 REOF XXX LLC 参与商业地产投资，交易通过实体持有而非直接买入上市股票。"
     },
     {
       "author": "Trump",
@@ -509,13 +536,32 @@
       "sectors": [
         "税收",
         "监管",
-        "美国能源",
-        "制造业"
+        "能源",
+        "美国制造业"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "特朗普为怀俄明州前州长Chuck Gray竞选国会背书，强调减税、放松监管、美国制造及能源 dominance 等政策。"
+      "summary_cn": "Trump 为 Chuck Gray 竞选背书，提及减税、放松监管、扩大能源优势和推动美国制造等政策方向。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi Discloses New $1 Million Transaction, But This Time It's Not a Stock",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOb1I4ZE9SWjRDazk3U1NTWlBrNmpqLWY3bzgwMVMzVU1qbEMyYlgxbzVzTU1NMWI4S3V0VDd6REFqS0NITW1TX3JBN1FGWjZwMllSRWxJSGNiVldjb01wbzdqUVNGN01SM3BERmtfOFBRa3JoNGlOdHpFTjhtcDJ6Ukh5S3UwQl8zblRMSEZVZ0d5SVFhOFlXLUlzWTVjN2FOSmhwQ3ZQczdSM1V5?oc=5",
+      "published": "2026-10-05T20:06:57+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "房地产",
+        "政治人物交易披露"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Nancy Pelosi 的最新国会披露涉及一笔100万美元级非股票交易，交易性质并非公开市场股票买卖。"
     }
   ],
   "held_hits": [],
@@ -535,38 +581,71 @@
       ],
       "sectors": [
         "医疗器械",
-        "制造业",
-        "美国供应链"
+        "美国制造业",
+        "供应链本地化"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特朗普称医疗器械公司BD将在美国投资30亿美元扩大本土生产，涉及针头、注射器及实验室产品等供应链。"
+      "relevance": 88,
+      "summary_cn": "Trump 强调 BD 将投资30亿美元扩大美国本土关键医疗产品生产，并称这是美国制造回流和供应链安全的重大胜利。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-05 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 47,947 股 / ARKG 42,766 股（最大单只 ETF 占比 0.39%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-05T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.387,
+      "author": "Musk",
+      "text": "Wall Street says Elon Musk's Terafab talks with TSMC could spell bad news for Intel",
+      "url": "",
+      "published": "Tue, 06 Oct 2026 17:16:35 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [
-        "TWST"
+        "TSM",
+        "INTC"
       ],
       "held": [],
       "new_ideas": [
-        "TWST"
+        "INTC",
+        "TSM"
       ],
       "sectors": [
-        "基因测序",
-        "生物科技",
-        "医疗"
+        "半导体",
+        "AI基础设施",
+        "晶圆代工"
       ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest于2026年10月5日卖出Twist Bioscience的ARKK股份47,947股和ARKG股份42,766股，最大单只ETF占比0.39%。"
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "媒体称 Musk 旗下 Terafab 与 TSMC 的潜在合作可能削弱 Intel 的代工业务，凸显 AI 芯片制造竞争加剧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is a Trillionaire Again Thanks to Recent Tesla, SpaceX Rally",
+      "url": "",
+      "published": "Tue, 06 Oct 2026 14:29:42 GMT",
+      "origin": "gnews-rss",
+      "source": "Investopedia",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据报道，Tesla 和 SpaceX 近期上涨推动 Elon Musk 身家重回万亿美元级别，市场继续将 Musk 旗下资产视为高增长交易标的。"
     },
     {
       "author": "洪灏",
@@ -583,8 +662,9 @@
         "NVDA"
       ],
       "sectors": [
-        "人工智能",
-        "半导体"
+        "AI芯片",
+        "半导体",
+        "人工智能基础设施"
       ],
       "sector_holdings": [
         "00100",
@@ -593,32 +673,8 @@
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据报道，私募大佬但斌认为英伟达股价仍可能上涨一倍，释放对AI芯片龙头的看多判断。"
-    },
-    {
-      "author": "Musk",
-      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
-      "url": "",
-      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体",
-        "人工智能",
-        "芯片制造"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "媒体报道称Musk与Intel的交易挫折导致Intel股价下跌，并认为投资者不应因此过度恐慌。"
+      "relevance": 78,
+      "summary_cn": "据报道，私募大佬但斌认为英伟达股价仍可能再上涨一倍，继续看好 AI 芯片需求和 NVIDIA 的成长性。"
     },
     {
       "author": "Cathie Wood",
@@ -636,60 +692,39 @@
         "VCYT"
       ],
       "sectors": [
-        "基因测序",
+        "基因检测",
         "精准医疗",
-        "医疗"
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月5日买入Veracyte的ARKG股份115,472股，单只ETF占比0.24%。"
+      "relevance": 76,
+      "summary_cn": "ARK Invest 于2026年10月5日买入 Veracyte 115,472股，最大单只ETF占比0.24%。"
     },
     {
-      "author": "Burry",
-      "text": "‘The Big Short’ Investor Michael Burry Justifies Lululemon Tax-Loss Sale: ‘I Am Not Throwing In The Towel’",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOckZfMlR2U1lGNTVBaVhVTFBBMU9IdkNsYmwyYnZWTU1uZmNtdjN1RVJ5eTV4OE5vdV9sNWhoY0hMdTRUWmFQZjdUMi1wZW15SVE4TDg5NzA1cmNvNWR4NGE3T2VwYTNaRmY2c2t2Q0ZGU3VpSzZqXzhfeXFzLUlPSzhDQlhtSGdBd2dnRDdmVzZXcG5rMXM4Nk91YUxOUQ?oc=5",
-      "published": "2026-10-06T05:38:54+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-05 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 47,947 股 / ARKG 42,766 股（最大单只 ETF 占比 0.39%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-05T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.387,
       "tickers": [
-        "LULU"
+        "TWST"
       ],
       "held": [],
       "new_ideas": [
-        "LULU"
+        "TWST"
       ],
       "sectors": [
-        "消费",
-        "服装零售"
+        "基因编辑",
+        "合成生物学",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 70,
-      "summary_cn": "据报道，Michael Burry以税收损失卖出策略清仓Lululemon，并称这不代表放弃投资。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk vowed Tesla would never raise money again in 2012 — then came 29 funding rounds and a $465M federal loan",
-      "url": "",
-      "published": "Tue, 06 Oct 2026 10:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据媒体转述，Musk曾宣称特斯拉不会再融资，但之后公司经历29轮融资并获得4.65亿美元联邦贷款，报道对其资本运作提出质疑。"
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKK 和 ARKG 合计卖出 Twist Bioscience 90,713股，单只ETF最大占比0.39%。"
     },
     {
       "author": "Cathie Wood",
@@ -708,13 +743,12 @@
       ],
       "sectors": [
         "基因测序",
-        "生物科技",
-        "医疗"
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest于2026年10月5日卖出10x Genomics的ARKG股份27,277股，单只ETF占比0.12%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKG 卖出 10x Genomics 27,277股，占比0.12%。"
     },
     {
       "author": "Musk",
@@ -733,12 +767,16 @@
       "sectors": [
         "电动车",
         "航天",
-        "私人市场"
+        "Musk概念"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "媒体报道称SpaceX与特斯拉的股价表现越来越像一只受Musk影响的股票，凸显其私人航天与电动车资产的市场联动。"
+      "relevance": 65,
+      "summary_cn": "媒体将 Tesla 和 SpaceX 视为同一类 Musk 资产交易，说明两者股价联动性和 Musk 风险偏好可能上升。"
     },
     {
       "author": "Cathie Wood",
@@ -756,17 +794,73 @@
         "RXRX"
       ],
       "sectors": [
+        "AI制药",
         "药物研发",
-        "人工智能",
+        "生物科技"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 59,
+      "summary_cn": "ARK Invest 于2026年10月5日合计买入 Recursion Pharmaceuticals 1,482,357股，但最大单只ETF占比仅0.06%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-05 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 22,271 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-05T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0699,
+      "tickers": [
+        "CDNA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CDNA"
+      ],
+      "sectors": [
+        "器官移植",
+        "基因检测",
         "生物科技"
       ],
       "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 58,
-      "summary_cn": "ARK Invest于2026年10月5日买入Recursion Pharmaceuticals的ARKK股份1,189,265股和ARKG股份293,092股，最大单只ETF占比0.06%。"
+      "stance": "sell",
+      "relevance": 52,
+      "summary_cn": "ARK Invest 于2026年10月5日从 ARKG 卖出 CareDx 22,271股，占比0.07%，属于常规规模的生物科技减持。"
     }
   ],
   "sector_hits": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry warns Wall Street has been inflating tech earnings by 42% for a decade — and you're paying for it",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQRkMtamtWUUM2T2FtVTliOXFjQ3NiZm95Nmk4NldrbE41eFNDYmpXVnAtN2RLSGJ4NDFsVVVaWDkwTGpHUXJ0RlJaUzZNSHBUTS14SXJqVEFMX1doYS1ZVlpLZ1FFQ3p2U0V0bk54Ym40cm9ZLXYwMFk5VG5uUTBiQ2pieTQtOU8tVzlLN1RfUWNxUmpJR1AzMjdORUo?oc=5",
+      "published": "2026-10-06T10:45:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "科技股",
+        "企业盈利",
+        "AI估值"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry 称华尔街过去十年将科技企业盈利虚增约42%，投资者正在为 AI 相关盈利质量支付过高价格。"
+    },
     {
       "author": "Burry",
       "text": "Michael Burry's Bearish View. The Market Is In 'Denial' About The End Of The AI Trade.",
@@ -780,7 +874,8 @@
       "sectors": [
         "人工智能",
         "科技股",
-        "半导体"
+        "AI估值",
+        "市场风险"
       ],
       "sector_holdings": [
         "00100",
@@ -789,30 +884,33 @@
         "07226"
       ],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry认为市场仍否认AI交易可能结束，并对AI资产持偏空看法。"
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry 看空 AI 交易，认为市场仍未充分意识到 AI 资产估值和商业周期的结束风险。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX stock climbs to highest since June, returning Musk to trillionaire status",
+      "text": "Elon Musk’s xAI Wins Block of Minnesota’s AI ‘Nudification’ Ban",
       "url": "",
-      "published": "Mon, 05 Oct 2026 20:04:38 GMT",
+      "published": "Tue, 06 Oct 2026 18:41:53 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Law Commentary",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私人市场"
+        "人工智能",
+        "AI监管",
+        "科技政策"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCX"
+        "00100",
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "媒体报道称SpaceX股价升至去年6月以来最高水平，并推动Musk财富重新达到万亿美元级别。"
+      "summary_cn": "媒体报道 xAI 在明尼苏达州针对人工智能图像生成监管的诉讼中胜诉，反映美国 AI 监管争议仍可能影响 AI 企业运营。"
     },
     {
       "author": "Musk",
@@ -829,12 +927,17 @@
         "航天"
       ],
       "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
         "RKLX",
+        "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，Musk表示将把SpaceXAI更名为SpaceXSI，涉及航天与人工智能业务的整合或品牌调整，但相关公司未上市。"
+      "relevance": 48,
+      "summary_cn": "据报道，Musk 表示将 SpaceXAI 更名为 SpaceXSI，属于未上市 AI 与航天资产的战略整合或品牌调整。"
     }
   ]
 }
