@@ -226,14 +226,14 @@ def test_structure_is_red_only_in_the_tail_of_the_distribution_measured_now(tmp_
     # The same function, untouched, stops being evidence once the rest of the repository has grown
     # past it: the cut-off is this HEAD's p99, not a number anyone wrote down.
     (root / 'src/clawock/huge.py').write_text('def huge(x):\n' + ''.join(f'    if x == {i}:\n        x += 1\n' for i in range(70)) + '    return x\n')
-    subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+    commit(root, 'feat: huge')
     with pytest.raises(ValueError, match=r'cc=31 is below the tail \(cc p99 at this HEAD=71\)'):
         debt_check.evaluate(STRUCTURE, root)
     # with enough functions the cut-off sits below the worst ones, and a target that would
     # leave the function above it is not a repair
     (root / 'src/clawock/many.py').write_text(''.join(f'def g{i}(x):\n    return x\n\n\n' for i in range(120)))
     (root / 'src/clawock/worse.py').write_text('def worse(x):\n' + ''.join(f'    if x == {i}:\n        x += 1\n' for i in range(90)) + '    return x\n')
-    subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+    commit(root, 'feat: worse')
     huge = dict(STRUCTURE, symbol='src/clawock/huge.py::huge', callers=0)
     with pytest.raises(ValueError, match=r'after=40 leaves the function in the tail \(cc p99 at this HEAD=31\)'):
         debt_check.evaluate(dict(huge, after=40), root)
@@ -250,12 +250,43 @@ def test_structure_recounts_callers_and_precedents(tmp_path):
     assert debt_check.precedent_touches(root, 7, ['src/clawock/big.py']).endswith(' src/clawock/big.py')
     assert debt_check.precedent_touches(root, 7, ['src/clawock/later.py']) == ''     # #70 is not #7
     assert debt_check.precedent_touches(root, 8, ['src/clawock/later.py'])           # an issue named in the fix
-    with pytest.raises(ValueError, match=r'precedent \[8\] never changed src/clawock/big.py'):
+    with pytest.raises(ValueError, match=r'precedent \[8\] never changed the body of src/clawock/big.py::big'):
         debt_check.evaluate(dict(STRUCTURE, precedent=[7, 8]), root)
     for bad in (dict(measure='lines_in_module'), dict(landing=['src/clawock/big.py::_first']), dict(benefit='much cleaner code'),
                 dict(precedent=None), dict(after=0)):
         with pytest.raises(ValueError):
             debt_check.evaluate(dict(STRUCTURE, **bad), root)
+
+
+def test_structure_history_is_the_function_body_not_the_file(tmp_path):
+    """#2741/#2743/#2744/#2745: the file's fix count and a neighbour's fix were written against one function."""
+    root = tail_repository(tmp_path)
+    big = root / 'src/clawock/big.py'
+    for n in (11, 12, 13):          # three fixes to a neighbour in the same file
+        big.write_text(big.read_text() + f'\n\ndef neighbour{n}(x):\n    return x + {n}\n')
+        commit(root, f'fix: neighbour off by {n} (#{n})')
+    _, log = debt_check.git(root, 'log', '--format=%s', '--', 'src/clawock/big.py')
+    assert sum(line.startswith('fix') for line in log.splitlines()) == 4     # what the file would say
+    red, output, _ = debt_check.evaluate(dict(STRUCTURE, fixes=1, precedent=[7]), root)
+    assert red and 'body-fixes-60d=1' in output and 'body-last-changed=' in output
+    with pytest.raises(ValueError, match=r'fixes=4 claimed, measured 1 fix commits on the body of src/clawock/big.py::big'):
+        debt_check.evaluate(dict(STRUCTURE, fixes=4), root)
+    # #11 named a fix and changed big.py, which is all the file-level check asks; it never reached big()
+    assert debt_check.precedent_touches(root, 11, ['src/clawock/big.py'])
+    with pytest.raises(ValueError, match=r'precedent \[11\] never changed the body of src/clawock/big.py::big'):
+        debt_check.evaluate(dict(STRUCTURE, precedent=[11]), root)
+    # a fix that does reach the body moves the count, and an old one leaves the window
+    big.write_text(big.read_text().replace('x == 3:', 'x == 33:'))
+    commit(root, 'fix(big): third branch compared the wrong value (#14)')
+    assert 'body-fixes-60d=2' in debt_check.evaluate(dict(STRUCTURE, fixes=2, precedent=[14]), root)[1]
+    history = debt_check.body_history(root, 'src/clawock/big.py', debt_check.top_level(root, STRUCTURE['symbol']))
+    assert [subject.split(':')[0] for _, _, subject in history] == ['fix(big)', 'fix']
+    later = debt_check.datetime.date.today() + debt_check.datetime.timedelta(days=debt_check.WINDOW + 1)
+    assert debt_check.recent_fixes(history, today=later) == []
+    # the range is read from the committed file
+    big.write_text('# moved\n' + big.read_text())
+    with pytest.raises(ValueError, match='differs from HEAD'):
+        debt_check.evaluate(STRUCTURE, root)
 
 
 def test_structure_repair_must_cut_the_body_not_move_it(tmp_path):
@@ -372,7 +403,7 @@ def structure_draft(contract, note='无先例，本次为预防性。'):
     return body[:start] + '<!-- RED-CHECK\n' + debt_check.red_command(contract, TOOL) + '\n-->' + body[end:]
 
 
-GATE_STRUCTURE = dict(STRUCTURE, symbol='src/clawock/money.py::total', measure='length', callers=0,
+GATE_STRUCTURE = dict(STRUCTURE, symbol='src/clawock/money.py::total', measure='length', callers=0, fixes=1,
                       landing=['src/clawock/money.py::_rows', 'src/clawock/money.py::_sum'])
 
 
@@ -388,6 +419,31 @@ def test_structure_contract_opens_the_gate_for_debt_with_no_precedent_only_when_
     r = run_gate(tmp_path / 'd', structure_draft(dict(GATE_STRUCTURE, precedent=[41]), note='先例: #41'))
     assert r.returncode == 0, r.stderr
     assert '先例=#41' in r.stderr
+
+
+def test_gate_recounts_the_fix_commits_of_the_function_itself(tmp_path):
+    def neighbours(wt):         # the file collects fixes that never reach total()
+        money = wt / 'src/clawock/money.py'
+        for n in (51, 52):
+            money.write_text(money.read_text() + f'\n\ndef other{n}(x):\n    return x + {n}\n')
+            commit(wt, f'fix: other{n} rounding (#{n})')
+    no_count = {k: v for k, v in GATE_STRUCTURE.items() if k != 'fixes'}
+    r = run_gate(tmp_path, structure_draft(no_count), neighbours)
+    assert r.returncode == 2 and '`fixes`' in r.stderr
+    r = run_gate(tmp_path / 'b', structure_draft(dict(GATE_STRUCTURE, fixes=3)), neighbours)
+    assert r.returncode == 2 and 'fixes=3 claimed, measured 1' in r.stderr
+    # the contract is right, the prose still carries the file's number
+    for prose in ('近 60 天 money.py 3 个 fix 提交。', '量化: callers=0、fix_commits_60d=3', '对照数字：fix提交数=3'):
+        r = run_gate(tmp_path / prose[:6].strip().replace(' ', '_'), structure_draft(GATE_STRUCTURE, note='无先例，本次为预防性。' + prose), neighbours)
+        assert r.returncode == 2 and '不是这个函数的' in r.stderr and '量到 1' in r.stderr, r.stderr
+    # a precedent that fixed the neighbour: refused in the contract, and in the prose
+    r = run_gate(tmp_path / 'c', structure_draft(dict(GATE_STRUCTURE, precedent=[51]), note='先例: #51'), neighbours)
+    assert r.returncode == 2 and 'precedent [51] never changed the body' in r.stderr
+    r = run_gate(tmp_path / 'd', structure_draft(dict(GATE_STRUCTURE, precedent=[41]), note='先例: #41 #51'), neighbours)
+    assert r.returncode == 2 and '#51 不在契约的 precedent 里' in r.stderr
+    r = run_gate(tmp_path / 'e', structure_draft(dict(GATE_STRUCTURE, precedent=[41]), note='先例: #41；这个函数体 1 个 fix 提交。'), neighbours)
+    assert r.returncode == 0, r.stderr
+    assert 'body-fixes-60d=1' in r.stderr
 
 
 def test_gate_refuses_a_structure_claim_the_measurement_does_not_carry(tmp_path):
@@ -431,5 +487,6 @@ def test_prompt_and_lens_allow_precedented_refactors_and_keep_the_guards():
     lens = next(line for line in (TOOL / 'axes.tsv').read_text().splitlines() if line.startswith('debt\t'))
     for text in (prompt, lens):
         assert 'debt_check.py --candidates' in text and '落点' in text and '收益' in text and '无先例' in text
+        assert '函数体' in text
     assert '审美重构/拆分' not in prompt and '只把代码换个文件' in prompt
     assert '禁只换文件位置' in lens and '本轮不提独立拆文件' in lens and lens.count('\t') == 2
