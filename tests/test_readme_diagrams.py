@@ -452,3 +452,101 @@ def test_each_kind_of_flow_keeps_its_own_line_when_nothing_moves():
         for el in root.iter(f'{SVG}use'):
             # An <img> loads nothing from outside the file, so a packet is drawn from its own <defs>.
             assert el.attrib['href'][0] == '#' and el.attrib['href'][1:] in ids, (name, el.attrib['href'])
+
+
+# A word in a node's label, and the one glyph that stands for it in every diagram.
+ROLE_WORDS = {
+    'Bull': 'up', 'aggressive': 'up', 'Bear': 'down', 'bear case': 'down', 'conservative': 'shield',
+    'neutral': 'even', 'Judge': 'judge', 'Postflight': 'checks', 'Code gate': 'checks',
+    'Watchdog': 'alarm', 'Backtest gate': 'gate', 'Filing gate': 'gate', 'Backtest': 'replay', 'shadow': 'replay', 'sentiment': 'pulse',
+    'Filings': 'filing', 'SEC': 'filing', 'Capital flow': 'bars', 'news': 'news', 'Quotes': 'market',
+    'quotes': 'market', 'Macro': 'calendar', 'Brief': 'sunrise', 'dashboard': 'dashboard',
+    'scorecard': 'dashboard', 'Settle': 'balance', 'settle': 'balance', 'Verdict': 'balance',
+    'Grade': 'balance', 'Calibrat': 'factor', 'Record': 'record', 'History': 'record', 'Ledger': 'record',
+    'Trigger': 'candles', 'Price alone': 'candles', 'Execution': 'followed', 'mark-followed': 'followed',
+    'Evidence pack': 'pack', 'context.json': 'pack', 'Certified': 'seal',
+    'CI': 'ci', 'receipts': 'receipt', 'Patrol': 'scan', 'closed issue': 'closed', 'source layers': 'layers',
+    'Two sources': 'layers', 'WeChat': 'chat', 'USD/HKD': 'fx', 'Your agent': 'terminal',
+}
+
+
+def _icon_labels(root):
+    """Each node glyph with its label: just right of it on its line, or under it in a tile."""
+    icons, texts = [], []
+
+    def walk(node, dx, dy):
+        for el in node:
+            move = re.match(r'translate\((\S+) (\S+)\)(?: scale\((\S+)\))?$', el.attrib.get('transform', ''))
+            if el.tag == f'{SVG}text' and el.attrib.get('text-anchor') is None:
+                texts.append((float(el.attrib['x']) + dx, float(el.attrib['y']) + dy, ''.join(el.itertext())))
+            if el.tag != f'{SVG}g' or not move and el.attrib.get('transform'):
+                continue
+            x, y = dx + float(move[1] if move else 0), dy + float(move[2] if move else 0)
+            if 'data-icon' in el.attrib:
+                icons.append((el.attrib['data-icon'], x, y, 24 * float(move[3])))
+            else:
+                walk(el, x, y)
+    walk(root, 0, 0)
+    for name, x, y, size in icons:
+        beside = [label for tx, ty, label in texts if 0 <= tx - (x + size) <= 12 and y <= ty <= y + size + 4]
+        beside = beside or [label for tx, ty, label in texts if abs(tx - x) < 1 and 8 <= ty - (y + size) <= 30]
+        if len(beside) == 1:
+            yield name, beside[0]
+
+
+def test_one_role_keeps_one_glyph_in_every_diagram():
+    """A glyph is a word: the same thing drawn two ways, or two things one way, reads as noise.
+
+    Where a node's label names a role, its glyph is that role's glyph, whichever
+    diagram it is in. A new node reuses the role it belongs to, and a role that
+    is new gets a row here with its own glyph.
+    """
+    builder = _builder()
+    assert set(ROLE_WORDS.values()) <= builder.ICON.keys()
+    seen, wrong = set(), []
+    for name in builder.DIAGRAMS:
+        for glyph, label in _icon_labels(ET.parse(ROOT / 'site/assets' / name).getroot()):
+            for word, role in ROLE_WORDS.items():
+                # A lower-case row also reads the word where it opens a label.
+                if re.search(rf'(?<![A-Za-z])(?:{re.escape(word)}|{re.escape(word[0].upper() + word[1:])})', label):
+                    seen.add(word)
+                    if glyph != role:
+                        wrong.append((name, label, glyph, role))
+                    break
+    assert not wrong, wrong
+    assert seen == set(ROLE_WORDS), sorted(set(ROLE_WORDS) - seen)   # no row left that checks nothing
+    # Every glyph in the table is drawn somewhere, on a node or as what a connector carries.
+    drawn = set()
+    for name in builder.DIAGRAMS:
+        for el in ET.parse(ROOT / 'site/assets' / name).getroot().iter(f'{SVG}g'):
+            drawn.add(el.attrib.get('data-icon') or el.attrib.get('id', '').rpartition('-')[2])
+    assert builder.ICON.keys() <= drawn, sorted(builder.ICON.keys() - drawn)
+
+
+def test_an_arrowhead_is_one_shape_and_its_tip_lands_on_the_node():
+    """Two chevrons a unit apart print as one smudged double triangle at 1.6 stroke.
+
+    The strokes of a head stay clear of each other, and the money head, which
+    closes over the ends of its two rails, still puts its tip where the others do.
+    """
+    builder = _builder()
+    for head, (path, _, _) in builder.HEAD.items():
+        spans = sorted((min(xs), max(xs)) for xs in (
+            [float(v) for v in re.findall(r'(?:[ML]|^)(-?[\d.]+) ', 'M' + sub)] for sub in path.split('M')[1:]))
+        for (_, right), (left, _) in zip(spans, spans[1:]):
+            assert left - right >= 1.6 + 1, (head, path)
+    d = builder.D('probe', 'a money connector and a plain one to the same edge')
+    d.down(40, 10, 100, kind='money')
+    d.wire('M300 60H102', kind='money')
+    d.down(80, 10, 100)
+    root = ET.fromstring(d.render(200))
+    ref = {m.attrib['id']: float(m.attrib['refX']) for m in root.iter(f'{SVG}marker')}
+    tips = []
+    for el in root.iter(f'{SVG}path'):
+        if 'id' in el.attrib:
+            kind = el.attrib['data-kind']
+            reach = max(float(v) for v in re.findall(r'[ML](-?[\d.]+) ', builder.HEAD[builder.KIND[kind][5]][0])) - ref[f'arr-{kind}']
+            (x0, y0), (x1, y1) = builder.path_points(el.attrib['d'])[-2:]
+            step = math.dist((x0, y0), (x1, y1))
+            tips.append((round(x1 + (x1 - x0) / step * reach, 1), round(y1 + (y1 - y0) / step * reach, 1)))
+    assert tips == [(40, 98.5), (101.5, 60), (80, 98.5)], tips
