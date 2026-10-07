@@ -74,7 +74,7 @@ def test_main_passes_the_untruncated_prompt_to_chat(tmp_path, monkeypatch):
                 + '\n```')
 
     monkeypatch.setenv('TODAY', today)
-    monkeypatch.chdir(ws)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(ws))
     monkeypatch.setattr(brief_fallback, 'chat', fake_chat)
     # An empty decisions list fails schema validation by design; chat() has
     # already been called by then, which is the moment under test.
@@ -105,7 +105,7 @@ def test_a_plan_dated_another_day_is_refused_before_anything_is_written(
                 'action': 'hold_and_watch', 'condition': {'type': 'open'},
                 'confidence': 0.6, 'driven_by': 'technical'}
     monkeypatch.setenv('TODAY', today)
-    monkeypatch.chdir(ws)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(ws))
     monkeypatch.setattr(brief_fallback, 'chat', lambda **_kw: (
         'prose\n```json\n'
         + json.dumps({'schema_version': 2, 'date': '2026-09-20',
