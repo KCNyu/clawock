@@ -19,7 +19,7 @@
   <path d="M322 198.4H694" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
   <path d="M309.5 211V245" stroke="#6f64a8" stroke-width="4" stroke-linecap="round"/>
   <text x="508" y="235" class="h" text-anchor="middle"><tspan fill="#151a21">Start where you are</tspan></text>
-  <path id="w1" d="M508 259C508 284 180 284 180 299" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w1" d="M508 259C508 284 180 284 180 307" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-blue)"><animateMotion dur="2.2s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#3f82b5"><animateMotion dur="2.2s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
   <path d="M34 538H326L334 554H26Z" fill="url(#lift)"/>
@@ -28,13 +28,13 @@
   <path d="M38 310.4H322" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
   <path d="M25.5 323V525" stroke="#3f82b5" stroke-width="4" stroke-linecap="round"/>
   <text x="42" y="341" class="kick"><tspan fill="#3f82b5">YOUR BOOK</tspan></text>
-  <text x="42" y="373" class="h"><tspan fill="#5b6875">I trade my own HK + US book</tspan></text>
-  <text x="42" y="421" class="m"><tspan fill="#5b6875">a plan before the open, cards</tspan></text>
-  <text x="42" y="443" class="m"><tspan fill="#5b6875">through the session, a grade after</tspan></text>
-  <text x="42" y="465" class="m"><tspan fill="#5b6875">the close</tspan></text>
+  <text x="42" y="373" class="h"><tspan fill="#151a21">I trade my own HK + US book</tspan></text>
+  <text x="42" y="421" class="m"><tspan fill="#5b6875">a plan before the open,</tspan></text>
+  <text x="42" y="443" class="m"><tspan fill="#5b6875">cards through the session,</tspan></text>
+  <text x="42" y="465" class="m"><tspan fill="#5b6875">a grade after the close</tspan></text>
   <rect x="40" y="495" width="280" height="28" rx="9" fill="#f2f5f8" fill-opacity=".62" stroke="url(#rim)"/>
   <text x="180" y="514" class="code" text-anchor="middle"><tspan fill="#3f82b5">clawock init ./my-book</tspan></text>
-  <path id="w2" d="M508 259C508 284 508 284 508 299" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w2" d="M508 259C508 284 508 284 508 307" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-slate)"><animateMotion dur="2.2s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#5d7487"><animateMotion dur="2.2s" begin="-0.80s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w2" xlink:href="#w2"/></animateMotion></circle>
   <path d="M362 538H654L662 554H354Z" fill="url(#lift)"/>
@@ -43,13 +43,13 @@
   <path d="M366 310.4H650" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
   <path d="M353.5 323V525" stroke="#5d7487" stroke-width="4" stroke-linecap="round"/>
   <text x="370" y="341" class="kick"><tspan fill="#5d7487">YOUR AGENT</tspan></text>
-  <text x="370" y="373" class="h"><tspan fill="#5b6875">I already run an agent</tspan></text>
-  <text x="370" y="421" class="m"><tspan fill="#5b6875">it keeps the model call; clawock</tspan></text>
-  <text x="370" y="443" class="m"><tspan fill="#5b6875">adds the decision contract around</tspan></text>
-  <text x="370" y="465" class="m"><tspan fill="#5b6875">it</tspan></text>
+  <text x="370" y="373" class="h"><tspan fill="#151a21">I already run an agent</tspan></text>
+  <text x="370" y="421" class="m"><tspan fill="#5b6875">it keeps the model call;</tspan></text>
+  <text x="370" y="443" class="m"><tspan fill="#5b6875">clawock adds the decision</tspan></text>
+  <text x="370" y="465" class="m"><tspan fill="#5b6875">contract around it</tspan></text>
   <rect x="368" y="495" width="280" height="28" rx="9" fill="#f2f5f8" fill-opacity=".62" stroke="url(#rim)"/>
   <text x="508" y="514" class="code" text-anchor="middle"><tspan fill="#5d7487">clawock workflow install …</tspan></text>
-  <path id="w3" d="M508 259C508 284 836 284 836 299" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w3" d="M508 259C508 284 836 284 836 307" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-green)"><animateMotion dur="2.2s" begin="-1.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w3" xlink:href="#w3"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#13865f"><animateMotion dur="2.2s" begin="-1.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w3" xlink:href="#w3"/></animateMotion></circle>
   <path d="M690 538H982L990 554H682Z" fill="url(#lift)"/>
@@ -58,19 +58,19 @@
   <path d="M694 310.4H978" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
   <path d="M681.5 323V525" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <text x="698" y="341" class="kick"><tspan fill="#13865f">NO INSTALL</tspan></text>
-  <text x="698" y="373" class="h"><tspan fill="#5b6875">Show me the record first</tspan></text>
-  <text x="698" y="421" class="m"><tspan fill="#5b6875">every call settled by code, on a</tspan></text>
-  <text x="698" y="443" class="m"><tspan fill="#5b6875">real account, with the losses left</tspan></text>
-  <text x="698" y="465" class="m"><tspan fill="#5b6875">in</tspan></text>
+  <text x="698" y="373" class="h"><tspan fill="#151a21">Show me the record first</tspan></text>
+  <text x="698" y="421" class="m"><tspan fill="#5b6875">every call settled by</tspan></text>
+  <text x="698" y="443" class="m"><tspan fill="#5b6875">code, on a real account,</tspan></text>
+  <text x="698" y="465" class="m"><tspan fill="#5b6875">with the losses left in</tspan></text>
   <rect x="696" y="495" width="280" height="28" rx="9" fill="#f2f5f8" fill-opacity=".62" stroke="url(#rim)"/>
   <text x="836" y="514" class="code" text-anchor="middle"><tspan fill="#13865f">kcnyu.github.io/clawock</tspan></text>
-  <path id="w4" d="M180 539C180 568 508 568 508 587" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w4" d="M180 539C180 568 508 568 508 595" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-violet)"><animateMotion dur="2.2s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#6f64a8"><animateMotion dur="2.2s" begin="-0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w4" xlink:href="#w4"/></animateMotion></circle>
-  <path id="w5" d="M508 539C508 568 508 568 508 587" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w5" d="M508 539C508 568 508 568 508 595" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-violet)"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#6f64a8"><animateMotion dur="2.2s" begin="-0.60s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w5" xlink:href="#w5"/></animateMotion></circle>
-  <path id="w6" d="M836 539C836 568 508 568 508 587" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w6" d="M836 539C836 568 508 568 508 595" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-violet)"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#6f64a8"><animateMotion dur="2.2s" begin="-1.20s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w6" xlink:href="#w6"/></animateMotion></circle>
   <path d="M34 706H982L990 722H26Z" fill="url(#lift)"/>

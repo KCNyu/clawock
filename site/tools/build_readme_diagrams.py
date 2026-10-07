@@ -8,14 +8,14 @@ glass cards with a thin role-coloured accent bar, system sans type on a fixed
 scale, graphite ink with blue kept for data and dispatch flow, green for code
 gates and warm red for isolation / arbitration.
 
-Every diagram is built twice from one description. `<name>.svg` is the desktop
-layout usually uses a 1016-unit canvas. Detailed desk flows read down two
-472-unit columns; the RSI overview uses a 1440-unit canvas with source/ownership
-sidebars, central stages and a bottom feedback lane. Source matrices, branching
-routes, feedback wheels, state machines and control panels have their own
-reading shapes. `<name>-narrow.svg` carries the same words on a 520-unit canvas.
-The README picks between them with `<picture>`. Shared primitives draw the
-material; each diagram owns the arrangement that best explains its content.
+Every diagram is one composition, served at every width: the README's `<img>`
+scales the same file down for a phone, so the picture a desktop reader sees is the
+picture a phone reader sees. Most diagrams use a 1016-unit canvas. Detailed desk
+flows read down two 472-unit columns; the RSI overview uses a 1440-unit canvas with
+source/ownership sidebars, central stages and a bottom feedback lane. Source
+matrices, branching routes, feedback loops, state machines and control panels have
+their own reading shapes. Shared primitives draw the material; each diagram owns
+the arrangement that best explains its content.
 
 The glass is drawn, not filtered: an image has no backdrop to blur. A card is a
 white fill at partial opacity over the colour fields, a sheen that fades down
@@ -38,16 +38,15 @@ build refuses to write while it does.
 import base64
 import struct
 import sys
-from functools import partial
 from pathlib import Path
 from xml.sax.saxutils import escape
 
 ASSETS = Path(__file__).resolve().parents[1] / 'assets'
 W, M = 520, 24          # one column's width, outer margin
 CW = W - 2 * M          # content width of a column
-GUTTER = 24             # between the two columns of the wide layout
+GUTTER = 24             # between the two columns
 COL2 = CW + GUTTER      # x offset of the second column
-WIDE = W + COL2         # canvas width of the wide layout
+WIDE = W + COL2         # canvas width
 DESKTOP_WIDTHS = {'rsi-loop': 1440}  # the total-to-parts overview needs side regions
 
 SANS = ('-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,'
@@ -93,12 +92,14 @@ def width(text, cls):
 class D:
     """One diagram: collects SVG fragments on a fixed-width canvas."""
 
-    def __init__(self, title, desc, wide=False):
+    def __init__(self, title, desc, wide=True):
+        # `wide=False` is the 520-unit single column. No diagram here uses it;
+        # build_readme_book_charts.py still draws the hero's phone card on it.
         self.title, self.desc, self.wide = title, desc, wide
         self.pw = WIDE if wide else W          # page width
         self.parts, self.n, self.h = [], 0, 0
-        # Wide layout: drawing happens in column coordinates and each run of it
-        # is a group translated into place. `dx, dy` is the current group's
+        # Column flows draw in column coordinates and each run of them is a
+        # group translated into place. `dx, dy` is the current group's
         # offset; `bottoms` collects where each closed group ended on the page.
         self.dx = self.dy = 0
         self.group, self.bottoms = None, []
@@ -106,7 +107,7 @@ class D:
     def add(self, s):
         (self.parts if self.group is None else self.group).append(s)
 
-    # --- wide layout -------------------------------------------------------
+    # --- column flow -------------------------------------------------------
     def at(self, x, y):
         """Page coordinates of a point given in the current column's coordinates."""
         return x + self.dx, y + self.dy
@@ -121,11 +122,10 @@ class D:
     def flow(self, y):
         """Start the first column; `y` is where its content begins."""
         self.top = y
-        if self.wide:
-            self.group = []
+        self.group = []
 
     def place(self, col, first, page_y, bottom):
-        """Wide only: continue in column `col`, with column-y `first` at `page_y`.
+        """Continue in column `col`, with column-y `first` at `page_y`.
 
         `bottom` is where the content drawn so far ends, in its own coordinates.
         """
@@ -140,18 +140,16 @@ class D:
         self.wire(d, **kw)
         self.group, self.dx, self.dy = group, dx, dy
 
-    def turn(self, x, top, end, *, first, enter, reach=M, leave=None, tail=26, **kw):
-        """The connector between two consecutive blocks, and the wide layout's turn.
+    def turn(self, x, top, *, first, enter, reach=M, leave=None, tail=26, **kw):
+        """The connector from the foot of the first column into the second.
 
-        Narrow: a plain `down(x, top, end)`. Wide: the first column ends at
-        `top`; the flow leaves it, runs up the gutter and enters the second
-        column from the left at column-y `enter`, stopping at column-x `reach`.
-        `first` is the column-y that lines up with the top of the first column,
-        `leave` an exit point on a node's right edge instead of straight down,
-        and `tail` how far below `top` the first column still draws.
+        The first column ends at `top`; the flow leaves it, runs up the gutter
+        and enters the second column from the left at column-y `enter`, stopping
+        at column-x `reach`. `first` is the column-y that lines up with the top
+        of the first column, `leave` an exit point on a node's right edge
+        instead of straight down, and `tail` how far below `top` the first
+        column still draws.
         """
-        if not self.wide:
-            return self.down(x, top, end, **kw)
         x0, y0 = self.at(*(leave or (x, top)))
         self.place(1, first, self.top, top + tail)
         lane = COL2 + M - GUTTER / 2
@@ -170,8 +168,7 @@ class D:
     # --- building blocks -------------------------------------------------
     def header(self, kicker, title, sub, legend, title_lh=30):
         room = self.pw - 2 * M
-        if self.wide:           # one line each: the canvas is wide enough
-            title, sub = [' '.join(title)], [' '.join(sub)]
+        title, sub = [' '.join(title)], [' '.join(sub)]     # one line each
         self.text(M, 46, kicker, 'kick', fill=ROLE['blue'])
         y = 80
         for line in title:
@@ -381,7 +378,8 @@ class D:
 
     def curve(self, x1, y1, x2, y2, **kw):
         ym = (y1 + y2) / 2
-        self.wire(f'M{x1:g} {y1:g}C{x1:g} {ym:g} {x2:g} {ym:g} {x2:g} {y2 - 10:g}', **kw)
+        # Like down(): the arrowhead lands on the node it points at, not short of it.
+        self.wire(f'M{x1:g} {y1:g}C{x1:g} {ym:g} {x2:g} {ym:g} {x2:g} {y2 - 2:g}', **kw)
 
     def render(self, h):
         style = (
@@ -479,7 +477,7 @@ def sweep(d, x, y, w, rows, lh=22, period=None):
 
 
 # ---------------------------------------------------------------------------
-def harnesses(wide=False):
+def harnesses():
     """site/assets/harnesses.svg — dsh user story, from delegation to a delivered result."""
     d = D('The clawock-dsh plugin — delegate, watch, steer, ship, hear back',
           'On a host configured with agent-dispatch, a user can ask in dsh chat to delegate '
@@ -492,8 +490,7 @@ def harnesses(wide=False):
           'squash merge and host refresh; these are its delivery instructions, not automatic '
           'plugin actions. The runner records the report and sends best-effort WeChat and '
           'Telegram notifications, with delivery receipts visible in the panel. The queue '
-          'image is an existing full-frame capture from a live host, not an example result.',
-          wide=wide)
+          'image is an existing full-frame capture from a live host, not an example result.')
     d.logo('deepseek-harness', d.pw - M - 34, 26)
     y = d.header('CLAWOCK-DSH · YOUR BACKGROUND TEAM',
                  ['Delegate the work.', 'Keep the controls.'],
@@ -547,14 +544,13 @@ def harnesses(wide=False):
     for i, x in enumerate(xs):
         d.curve(x + cw / 2, top, W / 2, y - 38, pulses=(i * .6,), pulse=ROLE['slate'])
 
-    if d.wide:
-        # The panel watches the work while it runs, so on a wide canvas it
-        # stands beside the story instead of interrupting it.
-        merge = d.at(W / 2, y - 38)[1]
-        side = d.at(W - M, runner)
-        d.place(1, y - 26, d.top, y - 38)
-        d.page_wire(f'M{side[0]:g} {side[1]:g}H{COL2 + M - 2:g}', pulses=(.3,), dur=1.4,
-                    pulse=ROLE['violet'])
+    # The panel watches the work while it runs, so it stands beside the story
+    # instead of interrupting it.
+    merge = d.at(W / 2, y - 38)[1]
+    side = d.at(W - M, runner)
+    d.place(1, y - 26, d.top, y - 38)
+    d.page_wire(f'M{side[0]:g} {side[1]:g}H{COL2 + M - 2:g}', pulses=(.3,), dur=1.4,
+                pulse=ROLE['violet'])
     d.section(y - 12, '03 · WATCH AND STEER FROM THE SIDEBAR')
     shot_w = 224
     shot_iw, shot_ih = struct.unpack('>II', (ASSETS / 'dsh-dispatch-queue.png').read_bytes()[16:24])
@@ -577,16 +573,13 @@ def harnesses(wide=False):
     for i, (icon, title, rows, role) in enumerate(facts):
         yy = y + 68 + i * 112
         d.icon(icon, tx, yy, role, size=24)
-        d.text(tx, yy + 44, title, 'b')
+        d.text(tx, yy + 42, title, 'b')
         fits(title, 'b', room, 'queue title')
-        d.lines(tx, yy + 65, room, rows, cls='m', lh=19, where='queue detail')
+        d.lines(tx, yy + 61, room, rows, cls='m', lh=18, where='queue detail')
     d.text(M + 20, y + h - 20, 'Existing screenshot · open the full-size capture below', 'm', fill=MUT)
     top = y + h
     y = top + 76
-    if d.wide:
-        d.place(0, y - 26, merge + 12, top)
-    else:
-        d.down(W / 2, top, y - 38, pulses=(0, 1.1), pulse=ROLE['green'])
+    d.place(0, y - 26, merge + 12, top)
 
     d.section(y - 12, '04 · THE REPO TASK SHIPS WHAT YOU REQUESTED')
     h = 138
@@ -632,7 +625,7 @@ def harnesses(wide=False):
 
 
 # ---------------------------------------------------------------------------
-def information_flow(wide=False):
+def information_flow():
     """site/assets/information-flow.svg — the live desk's data flow, end to end."""
     d = D('clawock data flow — sources, fetch fallback, portfolio and risk, three cadences, '
           'agent, postflight, data plane and delivery',
@@ -645,8 +638,7 @@ def information_flow(wide=False):
           'blocks that run can use; the agent reads those files and never fetches; a Python '
           'postflight validates and publishes to master, to the data-plane branch the dashboard '
           'polls, and to WeChat and Telegram. An LLM-free crontab watchdog checks every slot and '
-          'mirrors to Telegram when the send is not confirmed.',
-          wide=wide)
+          'mirrors to Telegram when the send is not confirmed.')
     y = d.header('DATA FLOW · HK + US',
                  ['From eight source layers', 'to a delivered card'],
                  ['Python fetches, computes and settles; the model', 'only reads the files a run assembles.'],
@@ -709,7 +701,7 @@ def information_flow(wide=False):
     top = y + h
     y = top + 30
     label = 'preflight · only the blocks this run can use'
-    d.turn(W / 2, top, y - 22, first=y - 14, enter=y - 3, reach=W / 2 - width(label, 'm') / 2 - 6,
+    d.turn(W / 2, top, first=y - 14, enter=y - 3, reach=W / 2 - width(label, 'm') / 2 - 6,
            pulses=(0,), pulse=ROLE['green'], arrow=False)
     d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' · only the blocks this run can use', MUT)],
            'm', anchor='middle')
@@ -785,7 +777,7 @@ def information_flow(wide=False):
 
 
 # ---------------------------------------------------------------------------
-def architecture(wide=False):
+def architecture():
     """site/assets/architecture.svg — the KCNyu live desk: argue, gate, publish, settle, loop."""
     d = D('KCNyu live investment instance built with clawock contracts',
           'This is the KCNyu deployment, not the reusable clawock product architecture. Python '
@@ -795,8 +787,7 @@ def architecture(wide=False):
           'flags any risk breach the plan ignores, before the ledger, brief and dashboard publish '
           'it. On the return path code triggers each call against canonical unadjusted daily bars, '
           'groups repeated calls into episodes, grades them against a directional baseline and '
-          'publishes the scorecard, which feeds the next brief.',
-          wide=wide)
+          'publishes the scorecard, which feeds the next brief.')
     y = d.header('KCNYU LIVE DESK · HK + US',
                  ['How this deployment turns', 'a claim into a public record'],
                  ['OpenClaw argues the call. Code gates it, the', 'bars settle it, and the score feeds tomorrow.'],
@@ -855,7 +846,7 @@ def architecture(wide=False):
                                       [('action · trigger · confidence → plan.json', MUT)]], lh=21, where='judge')
     top = y + h
     y = top + 50
-    d.turn(M + IW / 2, top, y, first=y - 26, enter=y + 28, pulses=(0, 1.6), pulse=ROLE['green'])
+    d.turn(M + IW / 2, top, first=y - 26, enter=y + 28, pulses=(0, 1.6), pulse=ROLE['green'])
     d.section(y - 14, '03 · DECISION CONTRACT')
     h = 134
     d.card(M, y, IW, h, 'green')
@@ -898,27 +889,21 @@ def architecture(wide=False):
             d.add(f'<path d="M{M + 30:g} {yy - 30:g}V{yy - 18:g}" stroke="{LINE}" stroke-width="1.5"/>')
     bottom = y + h
     # the loop: the scorecard feeds the next brief's evidence
-    if d.wide:
-        # Up the second column's rail, over both columns, down the first one's.
-        x1, yb = d.at(M + IW, bottom - 30)
-        r1, over = d.at(RAIL, 0)[0], d.top - 12
-        d.page_wire(f'M{x1:g} {yb:g}H{r1 - 8:g}Q{r1:g} {yb:g} {r1:g} {yb - 8:g}V{over + 8:g}'
-                    f'Q{r1:g} {over:g} {r1 - 8:g} {over:g}H{RAIL + 8:g}Q{RAIL:g} {over:g} {RAIL:g} {over + 8:g}'
-                    f'V{ey + 24:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
-                    pulses=(0, 3.5), dur=7, color='#b8c9d8')
-        ty = d.top + (yb - d.top) / 2 - d.dy
-    else:
-        d.wire(f'M{M + IW:g} {bottom - 30:g}H{RAIL - 8:g}Q{RAIL:g} {bottom - 30:g} {RAIL:g} {bottom - 38:g}'
-               f'V{ey + 40:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
-               pulses=(0, 2.5), dur=5, color='#b8c9d8')
-        ty = (ey + bottom) / 2
+    # Up the second column's rail, over both columns, down the first one's.
+    x1, yb = d.at(M + IW, bottom - 30)
+    r1, over = d.at(RAIL, 0)[0], d.top - 12
+    d.page_wire(f'M{x1:g} {yb:g}H{r1 - 8:g}Q{r1:g} {yb:g} {r1:g} {yb - 8:g}V{over + 8:g}'
+                f'Q{r1:g} {over:g} {r1 - 8:g} {over:g}H{RAIL + 8:g}Q{RAIL:g} {over:g} {RAIL:g} {over + 8:g}'
+                f'V{ey + 24:g}Q{RAIL:g} {ey + 32:g} {RAIL - 8:g} {ey + 32:g}H{M + IW + 4:g}',
+                pulses=(0, 3.5), dur=7, color='#b8c9d8')
+    ty = d.top + (yb - d.top) / 2 - d.dy
     d.add(f'<text x="{W - M - 2:g}" y="{ty:g}" class="kick" fill="{ROLE["blue"]}" '
           f'transform="rotate(90 {W - M - 2:g} {ty:g})" text-anchor="middle">FEEDS THE NEXT BRIEF</text>')
     return d.render(bottom + M)
 
 
 # ---------------------------------------------------------------------------
-def product_architecture(wide=False):
+def product_architecture():
     """site/assets/product-architecture.svg — runtime / package / instance ownership."""
     d = D('clawock product architecture',
           'External agent runtimes own the model, conversation, memory, planning, tools, permissions '
@@ -927,8 +912,7 @@ def product_architecture(wide=False):
           'deterministic money and foreign-exchange reconciliation, outcome evaluation, receipts, '
           'and bounded proposal review and rollback. User instances own strategy, evidence, ledgers, '
           'schedules, delivery and user interfaces. Every harness drives the same three steps: '
-          'clawock run prepare, the agent writes decision.json, clawock run publish.',
-          wide=wide)
+          'clawock run prepare, the agent writes decision.json, clawock run publish.')
     y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
                  ['The runtime thinks.', 'clawock keeps it reconciled.'],
                  ['Three owners, one contract between them:', 'skill + CLI + JSON in, adapter-owned I/O out.'],
@@ -970,8 +954,8 @@ def product_architecture(wide=False):
         d.text(M + 78, yy + 20, cmd, 'code', fill=ROLE['green'])
     top = y + h
     y = top + 44
-    d.text(W / 2 + 14, top + (40 if d.wide else 26), 'adapter-owned I/O', 'm', fill=MUT)
-    d.turn(W / 2, top, y, first=y - 26, enter=y + 28, tail=48, pulses=(0,), pulse=ROLE['violet'])
+    d.text(W / 2 + 14, top + 40, 'adapter-owned I/O', 'm', fill=MUT)
+    d.turn(W / 2, top, first=y - 26, enter=y + 28, tail=48, pulses=(0,), pulse=ROLE['violet'])
     h = 118
     d.card(M, y, CW, h, 'violet')
     d.icon('book', M + 20, y + 14, 'violet')
@@ -1003,7 +987,7 @@ def product_architecture(wide=False):
 
 
 # ---------------------------------------------------------------------------
-def debate_flow(wide=False):
+def debate_flow():
     """site/assets/debate-flow.svg — the three-tier debate inside the pre-open brief."""
     d = D('Inside the clawock multi-agent debate',
           "A pipeline. One shared evidence pack feeds four analyst lenses that merge into a single "
@@ -1011,8 +995,7 @@ def debate_flow(wide=False):
           "they disagree, so unanimous agreement reads as a flag. Three risk voices then stress every "
           "call and a judge names the strategy frame driving each decision, resolving the argument "
           "into plan.json — which enters the next session's grading pipeline, where code, not the "
-          "model, settles the score.",
-          wide=wide)
+          "model, settles the score.")
     y = d.header('THE DEBATE · HK + US',
                  ['Disagreement is required.', 'The resolution is attributed.'],
                  ['Protocol rules set in the brief prompt; code only', 'checks that each tier was written.'],
@@ -1063,7 +1046,7 @@ def debate_flow(wide=False):
     d.text(W / 2, y + 22, [('OPPOSING CASE REQUIRED', ROLE['warm'])], 'tag', anchor='middle')
     top = y + 34
     fy = top + 48
-    d.turn(W / 2, top, fy, first=top + 22, enter=fy, reach=W / 2 + 2, tail=20,
+    d.turn(W / 2, top, first=top + 22, enter=fy, reach=W / 2 + 2, tail=20,
            pulses=(0,), pulse=ROLE['slate'], arrow=False)
     d.section(top + 34, 'TIER 3 · RISK + JUDGE')
     y = fy + 40
@@ -1100,7 +1083,7 @@ def debate_flow(wide=False):
     return d.render(y + 20 + M)
 
 # ---------------------------------------------------------------------------
-def decision_pipeline(wide=False):
+def decision_pipeline():
     """site/assets/decision-pipeline.svg — README hero: one trading day, raw data to a graded call."""
     d = D('clawock decision pipeline — collect, compute and gate, debate, deliver, settle and calibrate',
           'Every trading day Python collects quotes through ordered fallback chains (HK Tencent plus '
@@ -1119,8 +1102,7 @@ def decision_pipeline(wide=False):
           'replays a shadow portfolio against buy and hold and publishes the scorecard, which the next '
           "brief reads. In dsh, Decision Mind shows real fills beside their plans and T+1 verdicts; "
           "the trader can ask a follow-up and record a conversation verdict. Execution stays human, "
-          "the trace is read-only, and the model never grades itself.",
-          wide=wide)
+          "the trace is read-only, and the model never grades itself.")
     d.logo('clawock', d.pw - M - 34, 26)
     y = d.header('EVERY TRADING DAY · HK + US',
                  ['Raw market data in,', 'graded decisions out'],
@@ -1225,7 +1207,7 @@ def decision_pipeline(wide=False):
     top = y + 14
     node = d.at(W / 2, top)
     y = top + 76
-    d.turn(W / 2, top, y - 36, first=y - 26, enter=y + 28, leave=(W - 92, loop_y), tail=40,
+    d.turn(W / 2, top, first=y - 26, enter=y + 28, leave=(W - 92, loop_y), tail=40,
            pulses=(0, 1.6), pulse=ROLE['slate'])
 
     # 03 decide
@@ -1329,18 +1311,13 @@ def decision_pipeline(wide=False):
     d.text(M + 20, y + 264, [('↺ ', ROLE['blue']), ('tomorrow’s brief reads the record', MUT)], 'm')
     fits('↺ tomorrow’s brief reads the record', 'm', CW - 36, 'loop note')
     # the loop: the settled record returns to the next run's preflight
-    if d.wide:
-        # Across to the first column, under everything it draws, and up into
-        # the preflight node from below.
-        x1, y1 = d.at(M, y + 256)
-        y1 = max(y1, node[1] + 22)
-        d.page_wire(f'M{x1:g} {y1:g}H{node[0] + 8:g}Q{node[0]:g} {y1:g} {node[0]:g} {y1 - 8:g}V{node[1] + 4:g}',
-                    pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
-        d.bottoms.append(y1 + 4)
-    else:
-        gx = W - 11
-        d.wire(f'M{W - M:g} {y + 256:g}H{gx:g}V{loop_y:g}H{W - 92 + 8:g}',
-               pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+    # Across to the first column, under everything it draws, and up into the
+    # preflight node from below.
+    x1, y1 = d.at(M, y + 256)
+    y1 = max(y1, node[1] + 22)
+    d.page_wire(f'M{x1:g} {y1:g}H{node[0] + 8:g}Q{node[0]:g} {y1:g} {node[0]:g} {y1 - 8:g}V{node[1] + 4:g}',
+                pulses=(0,), dur=4.5, dash=True, color='#9fc0da')
+    d.bottoms.append(y1 + 4)
     # dsh is the interactive view of the same real fills, not an execution engine.
     top = y + h
     y = top + 76
@@ -1357,7 +1334,7 @@ def decision_pipeline(wide=False):
     return d.render(y + h + M)
 
 # ---------------------------------------------------------------------------
-def start_here(wide=False):
+def start_here():
     """site/assets/start-here.svg — three readers, where each one starts."""
     d = D('Where to start with clawock',
           'Three readers and where each one starts. If you trade your own Hong Kong and US book, you '
@@ -1367,8 +1344,7 @@ def start_here(wide=False):
           'model call. If you want to see the record first, the live dashboard shows every call '
           'settled by code with the losses included. Underneath all three sits one contract: '
           'certified evidence, a required opposing case, checked money arithmetic and an outcome '
-          'linked back to the decision.',
-          wide=wide)
+          'linked back to the decision.')
     y = d.header('START HERE · THREE ROUTES', ['What brings you here?', 'Choose your route.'],
                  ['Your book, your agent or the public record:', 'the same contract meets you there.'],
                  [], title_lh=34) + 30
@@ -1383,37 +1359,36 @@ def start_here(wide=False):
          ['every call settled by code, on a real account, with the losses left in'],
          'kcnyu.github.io/clawock'),
     ]
-    root_x, root_w = ((308, 400) if wide else (M, CW))
+    root_x, root_w = 308, 400
     d.card(root_x, y, root_w, 62, 'violet')
     d.text(root_x + root_w / 2, y + 38, 'Start where you are', 'h', anchor='middle')
     branch_y = y + 112
     h = 230
-    positions = [(M + i * 328, branch_y, 312) for i in range(3)] if wide else [
-        (M, branch_y + i * (h + 36), CW) for i in range(3)]
+    positions = [(M + i * 328, branch_y, 312) for i in range(3)]
     for i, ((role, tag, title, body, cmd), (x, yy, w)) in enumerate(zip(readers, positions)):
         d.curve(root_x + root_w / 2, y + 62, x + w / 2, yy, pulses=(i * .8,),
                 pulse=ROLE[role])
         d.card(x, yy, w, h, role)
         d.text(x + 18, yy + 32, tag, 'kick', fill=ROLE[role])
-        _words(d, x + 18, yy + 64, w - 36, [title], cls='h', lh=24)
+        _words(d, x + 18, yy + 64, w - 36, [title], cls='h', lh=24, fill=INK)
         _words(d, x + 18, yy + 112, w - 36, body, lh=22)
         d.chip(x + 16, yy + h - 44, w - 32, cmd, cls='code', fill=ROLE[role], h=28)
     top = max(yy + h for _, yy, _ in positions)
     yy = top + 58
     for i, (x, py, w) in enumerate(positions):
         d.curve(x + w / 2, py + h, d.pw / 2, yy, pulses=(i * .6,), pulse=ROLE['violet'])
-    contract_h = 110 if wide else 250
+    contract_h = 110
     d.card(M, yy, d.pw - 2 * M, contract_h, 'violet')
     d.text(M + 20, yy + 32, 'THE SAME CONTRACT', 'kick', fill=ROLE['violet'])
     labels = ['Certified evidence', 'Required opposing case', 'Checked money + FX', 'Outcome linked back']
     for i, label in enumerate(labels):
-        x, py, w = (M + 16 + i * 236, yy + 56, 224) if wide else (M + 20, yy + 58 + i * 44, CW - 40)
+        x, py, w = M + 16 + i * 236, yy + 56, 224
         d.chip(x, py, w, label, fill=ROLE['violet'], h=30)
     return d.render(yy + contract_h + M)
 
 
 
-def scorecard(wide=False):
+def scorecard():
     """site/assets/scorecard.svg — how one call becomes a public grade."""
     d = D('How clawock grades a call',
           'The model writes a versioned decision with its strategy, condition, regime, size and '
@@ -1423,8 +1398,7 @@ def scorecard(wide=False):
           'open. Repeated calls on one thesis collapse into one episode. Code settles the outcome and '
           'scores it against a plain directional baseline, then publishes wins, losses and the cases '
           'that cannot be graded, which stay visible and out of the win-rate denominator. The record '
-          'is a diagnostic, not proof of return.',
-          wide=wide)
+          'is a diagnostic, not proof of return.')
     y = d.header('SCORECARD · A SETTLEMENT STATE MACHINE',
                  ['One recorded call.', 'Every possible verdict stays.'],
                  ['Separate a model opinion from code-owned settlement.',
@@ -1436,40 +1410,37 @@ def scorecard(wide=False):
         ('green', 'EPISODE', ['One thesis, one episode', 'Reaffirmations do not add samples',
                             'Code grades against a plain baseline']),
     ]
-    h = 176
-    positions = [(M + i * 328, y, 312) for i in range(3)] if wide else [
-        (M, y + i * (h + 50), CW) for i in range(3)]
+    h = 160
+    positions = [(M + i * 328, y, 312) for i in range(3)]
     for i, ((role, label, rows), (x, yy, w)) in enumerate(zip(states, positions)):
         d.card(x, yy, w, h, role)
         d.text(x + 18, yy + 32, label, 'kick', fill=ROLE[role])
         _words(d, x + 18, yy + 64, w - 36, rows, lh=23)
         if i:
-            if wide:
-                d.wire(f'M{x-16} {yy+h/2}H{x-2}', pulses=(0,), pulse=ROLE['green'])
-            else:
-                d.down(x + w / 2, yy - 50, yy, pulses=(0,), pulse=ROLE['green'])
+            d.wire(f'M{x-16} {yy+h/2}H{x-2}', pulses=(0,), pulse=ROLE['green'])
     top = max(yy + h for _, yy, _ in positions)
     isolation_y = top + 30
     d.card(M, isolation_y, d.pw - 2 * M, 42, 'warm')
     d.text(d.pw / 2, isolation_y + 27, 'NO MODEL WRITES THE EVALUATION', 'kick',
            anchor='middle', fill=ROLE['warm'])
-    verdict_y = isolation_y + 118
     # A branching diamond expresses eligibility rather than a fourth identical card.
-    cx, cy = d.pw / 2, isolation_y + 79
+    # It hangs from the isolation bar, and the fan below it has room to turn.
+    cx, cy = d.pw / 2, isolation_y + 42 + 18 + 25
+    verdict_y = cy + 25 + 54
+    d.add(f'<path d="M{cx} {isolation_y + 42}V{cy - 25}" stroke="{LINE}" stroke-width="1.5"/>')
     d.add(f'<path d="M{cx} {cy-25}L{cx+38} {cy}L{cx} {cy+25}L{cx-38} {cy}Z" '
           f'fill="{TINT["green"]}" stroke="{ROLE["green"]}"/>')
     d.text(cx, cy + 5, 'grade?', 'm', anchor='middle')
     verdicts = [('green', 'WIN', 'Settled result, published'),
                 ('warm', 'LOSS', 'Settled result, published'),
                 ('slate', 'UNGRADEABLE', 'Visible; outside the win rate')]
-    vpos = [(M + i * 328, verdict_y, 312) for i in range(3)] if wide else [
-        (M, verdict_y + i * 144, CW) for i in range(3)]
+    vpos = [(M + i * 328, verdict_y, 312) for i in range(3)]
     for i, ((role, label, body), (x, yy, w)) in enumerate(zip(verdicts, vpos)):
         d.curve(cx, cy + 25, x + w / 2, yy, pulses=(i * .7,), pulse=ROLE[role])
-        d.card(x, yy, w, 108, role)
-        d.text(x + 20, yy + 34, label, 'h', fill=ROLE[role])
-        _words(d, x + 20, yy + 67, w - 40, [body], lh=22)
-    bottom = max(yy + 108 for _, yy, _ in vpos)
+        d.card(x, yy, w, 92, role)
+        d.text(x + 20, yy + 36, label, 'h', fill=ROLE[role])
+        _words(d, x + 20, yy + 66, w - 40, [body], lh=22)
+    bottom = max(yy + 92 for _, yy, _ in vpos)
     note = ['Nothing is hand-tuned after the fact. A diagnostic, not proof of return.',
             'Isolation cannot make the data or metric definitions correct.']
     bottom = _words(d, M + 20, bottom + 42, d.pw - 2 * M - 40, note, lh=23)
@@ -1477,7 +1448,7 @@ def scorecard(wide=False):
 
 
 
-def guardrails(wide=False):
+def guardrails():
     """site/assets/guardrails.svg — the lines the code holds whatever the model writes."""
     d = D('What clawock code enforces',
           'The model writes opinions; the limits are code. Risk caps are checked in every brief: a '
@@ -1488,8 +1459,7 @@ def guardrails(wide=False):
           'before anything is pushed, and return is measured on peak principal. Evidence rules: an '
           'add needs two independent evidence families, a thesis moves only on new evidence and '
           'never on price alone, a published research number needs two sources, and a decision '
-          'without a bear case is rejected. Execution stays human.',
-          wide=wide)
+          'without a bear case is rejected. Execution stays human.')
     y = d.header('GUARDRAILS · A CODE CONTROL PANEL', ['The model proposes.', 'Code holds the boundary.'],
                  ['Limits, ledger identities and evidence requirements',
                   'are different controls, checked together.'], [], title_lh=34) + 30
@@ -1509,13 +1479,13 @@ def guardrails(wide=False):
                   f'rx="3.5" fill="{ROLE["warm"]}" fill-opacity=".5"/>')
     _words(d, M + 20, y + 414, CW - 40,
            ['35–60% core review band', 'A breach freezes same-risk adds until compliant'], lh=23)
-    x2, yy = (COL2 + M, y) if wide else (M, y + risk_h + 52)
+    x2, yy = COL2 + M, y
     d.card(x2, yy, CW, 196, 'green')
     d.text(x2 + 20, yy + 32, 'MONEY · TWO CURRENCIES', 'kick', fill=ROLE['green'])
     d.chip(x2 + 20, yy + 56, 140, 'USD', fill=ROLE['green'], h=32)
     d.chip(x2 + CW - 160, yy + 56, 140, 'HKD', fill=ROLE['green'], h=32)
-    d.wire(f'M{x2+174} {yy+72}H{x2+CW-174}', pulses=(0,), pulse=ROLE['green'])
-    d.text(x2 + CW / 2, yy + 72, 'FX', 'm', anchor='middle')
+    d.wire(f'M{x2+160} {yy+72}H{x2+CW-162}', pulses=(0,), pulse=ROLE['green'])
+    d.text(x2 + CW / 2, yy + 64, 'FX', 'm', anchor='middle', fill=MUT)
     _words(d, x2 + 20, yy + 120, CW - 40,
            ['Currencies never sum directly', 'A book that fails to reconcile is not pushed',
             'Return is measured on peak principal'], lh=22)
@@ -1536,36 +1506,51 @@ def guardrails(wide=False):
 
 
 
-def _words(d, x, y, room, rows, cls='m', lh=21, scale=1):
-    """Wrap labels without changing the words between desktop and narrow."""
+def _wrap(row, cls, room, scale=1):
+    # A separator stays with the word before it: no line opens on "·" or "/".
+    tokens = []
+    for word in row.split():
+        if word in ('·', '/', '+', '→') and tokens:
+            tokens[-1] += ' ' + word
+        else:
+            tokens.append(word)
+    lines = ['']
+    for word in tokens:
+        candidate = f'{lines[-1]} {word}'.strip()
+        if lines[-1] and width(candidate, cls) * scale > room:
+            lines.append(word)
+        else:
+            lines[-1] = candidate
+    return lines
+
+
+def _words(d, x, y, room, rows, cls='m', lh=21, scale=1, anchor='start', fill=MUT):
+    """Wrap labels into `room`, balancing the lines so none ends on a stray word."""
     for row in rows:
-        line = ''
-        for word in row.split():
-            candidate = f'{line} {word}'.strip()
-            if line and width(candidate, cls) * scale > room:
-                d.text(x, y, line, cls, fill=MUT)
-                y += lh
-                line = word
-            else:
-                line = candidate
-        d.text(x, y, line, cls, fill=MUT)
-        y += lh
+        lines = _wrap(row, cls, room, scale)
+        # The narrowest measure that still takes this many lines evens them out.
+        even = room
+        while even > 40 and len(_wrap(row, cls, even - 6, scale)) == len(lines):
+            even -= 6
+        for line in _wrap(row, cls, even, scale):
+            d.text(x, y, line, cls, anchor=anchor, fill=fill)
+            y += lh
     return y
 
 
-def rsi_loop(wide=False):
+def rsi_loop():
     """A large overview with source/scope sidebars and a feedback floor."""
     d = D('RSI: one stock book, a continuing decision loop',
           'A total-to-parts overview: information sources at left; evidence, opposing-case '
           'decision and code-settled feedback at centre; runtime, human, code and review ownership '
           'at right; history, earlier-date calibration and reviewed evidence requirements return '
           'along the bottom to the next context. The human executes. Content certification is '
-          'not a truth guarantee and measured feedback is not a promise of return.', wide=wide)
-    if wide:
-        d.pw = DESKTOP_WIDTHS['rsi-loop']
-        # Larger type survives the GitHub column's downscale; shared glass is unchanged.
-        d.add('<style>.title{font-size:38px}.h{font-size:26px}.m{font-size:20px}'
-              '.b{font-size:21px}.code{font-size:17px}</style>')
+          'not a truth guarantee and measured feedback is not a promise of return.')
+    d.pw = DESKTOP_WIDTHS['rsi-loop']
+    # Larger type survives the GitHub column's downscale; shared glass is unchanged.
+    d.add('<style>.title{font-size:38px}.h{font-size:26px}.m{font-size:20px}'
+          '.b{font-size:21px}.code{font-size:16px}</style>')
+    scale = 1.35            # .m is drawn at 20px here, against the 14.5 fits() assumes
     y = d.header('RSI · THE WHOLE STORY', ['One stock book.', 'A continuing decision loop.'],
                  ['Information → decision → outcome, with side constraints',
                   'and a return path into the next judgment.'], [], title_lh=44) + 42
@@ -1578,10 +1563,10 @@ def rsi_loop(wide=False):
           'Context + pack hashes'], ['request.json']),
         ('decision', 'slate', 'DECISION',
          ['Argue both sides', 'Supporting evidence', 'Opposing evidence',
-          'Action + invalidation'], ['plan.json / decision.json']),
+          'Action + invalidation'], ['plan.json', 'decision.json']),
         ('outcome', 'green', 'FEEDBACK',
          ['Code settles', 'Trigger', 'Outcome', 'Calibrate', 'Losses stay visible'],
-         ['ledger / evaluation.json']),
+         ['ledger', 'evaluation.json']),
         ('owners', 'warm', 'WHO HOLDS THE KEYS',
          ['Your agent', 'model · tools · memory', 'You', 'orders and execution',
           'Python', 'money and grading', 'Review', 'bounded changes only'], []),
@@ -1589,15 +1574,13 @@ def rsi_loop(wide=False):
          ['Past evidence + outcomes', 'Earlier-date calibration', 'Reviewed evidence rules'],
          ['next context', 'No promise of returns']),
     ]
-    if wide:
-        regions = [(24, y, 232, 440), (288, y, 256, 440), (576, y, 256, 440),
-                   (864, y, 256, 440), (1152, y, 264, 440), (24, y + 492, 1392, 228)]
-    else:
-        heights = [280, 232, 370, 280, 310, 240]
-        regions, yy = [], y
-        for h in heights:
-            regions.append((M, yy, CW, h))
-            yy += h + 38
+    h, gap, floor_h = 440, 24, 212
+    widths = [232, 284, 264, 248, 268]
+    regions, x = [], M
+    for w in widths:
+        regions.append((x, y, w, h))
+        x += w + gap
+    regions.append((M, y + h + 52, d.pw - 2 * M, floor_h))
     for (kind, role, title, rows, chips), (x, yy, w, h) in zip(panels, regions):
         d.add(f'<g data-region="{kind}">')
         d.card(x, yy, w, h, role)
@@ -1606,78 +1589,70 @@ def rsi_loop(wide=False):
         if kind == 'decision':
             d.text(x + 18, yy + 78, rows[0], 'h')
             for j, label in enumerate(rows[1:3]):
-                by = yy + 116 + j * 82
-                d.card(x + 16, by, w - 32, 72, 'blue' if j == 0 else 'warm')
-                _words(d, x + 30, by + 36, w - 60, [label], lh=25, scale=1.35 if wide else 1)
-            _words(d, x + 18, yy + 306, w - 36, [rows[3]],
-                   lh=26, scale=1.35 if wide else 1)
+                by = yy + 104 + j * 70
+                d.card(x + 16, by, w - 32, 58, 'blue' if j == 0 else 'warm')
+                d.text(x + 32, by + 36, label, 'm')
+                fits(label, 'm', (w - 64) / scale, 'rsi decision side')
+            d.text(x + 18, yy + 282, rows[3], 'm', fill=MUT)
         elif kind == 'outcome':
             d.text(x + 18, yy + 78, rows[0], 'h')
-            cx, cy = x + w / 2, yy + (206 if wide else 158)
-            r = 70 if wide else 54
+            cx, cy, r = x + w / 2, yy + 180, 68
             d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="{r:g}" fill="none" '
                   f'stroke="{ROLE[role]}" stroke-opacity=".25" stroke-width="15"/>')
             d.wire(f'M{cx:g} {cy-r:g}A{r:g} {r:g} 0 1 1 {cx-1:g} {cy-r:g}',
                    pulses=(0, 1.8), dur=6, pulse=ROLE[role], arrow=False)
             for j, label in enumerate(rows[1:4]):
-                d.text(cx, cy - 24 + j * 25, label, 'm', anchor='middle')
-            _words(d, x + 18, yy + (328 if wide else 230), w - 36, [rows[4]],
-                   lh=26, scale=1.35 if wide else 1)
-        elif kind == 'return' and wide:
-            line_y = yy + 110
-            d.wire(f'M{1310:g} {line_y:g}H130', pulses=(0, 2.4), dur=8,
-                   pulse=ROLE['violet'])
-            for xx, label in zip((220, 720, 1220), rows):
-                d.add(f'<circle cx="{xx}" cy="{line_y}" r="9" fill="{ROLE[role]}"/>')
-                d.text(xx, line_y - 28, label, 'm', anchor='middle')
-            d.text(x + 22, yy + 176, chips[0], 'code', fill=ROLE[role])
-            d.text(x + w - 22, yy + 176, chips[1], 'm', anchor='end')
+                d.text(cx, cy - 18 + j * 25, label, 'm', anchor='middle')
+            d.text(x + 18, yy + 296, rows[4], 'm', fill=MUT)
+        elif kind == 'return':
+            # One line carries the record leftwards and leaves the pane as the
+            # return path, so the floor and the loop read as a single stroke.
+            line_y = yy + 116
+            d.add(f'<path d="M{x + w - 40:g} {line_y:g}H{x:g}" stroke="{LINE}" stroke-width="1.5"/>')
+            for xx, label in zip((x + w * f for f in (.2, .5, .8)), rows):
+                d.add(f'<circle cx="{xx:g}" cy="{line_y:g}" r="9" fill="{ROLE[role]}"/>')
+                d.text(xx, line_y - 30, label, 'm', anchor='middle')
+            d.text(x + 22, yy + 172, chips[0], 'code', fill=ROLE[role])
+            d.text(x + w - 22, yy + 172, chips[1], 'm', anchor='end', fill=MUT)
         elif kind == 'owners':
             for j in range(0, len(rows), 2):
-                ry = yy + 84 + j / 2 * (84 if wide else 56)
+                ry = yy + 92 + j / 2 * 92
                 d.text(x + 18, ry, rows[j], 'h')
-                _words(d, x + 18, ry + 26, w - 36, [rows[j + 1]], lh=24,
-                       scale=1.35 if wide else 1)
+                d.text(x + 18, ry + 30, rows[j + 1], 'm', fill=MUT)
+                fits(rows[j + 1], 'm', (w - 36) / scale, 'rsi owner')
+        elif kind == 'input':
+            d.text(x + 18, yy + 78, rows[0], 'h')
+            for j, label in enumerate(rows[1:]):
+                ry = yy + 136 + j * 54
+                d.icon('checks', x + 18, ry - 17, role, size=20)
+                d.text(x + 46, ry, label, 'm', fill=MUT)
+                fits(label, 'm', (w - 64) / scale, 'rsi input')
         else:
-            ry = yy + 78
-            for label in rows:
-                if kind == 'input' and label == rows[0]:
-                    d.text(x + 18, ry, label, 'h')
-                    ry += 48 if wide else 30
-                else:
-                    ry = _words(d, x + 18, ry, w - 36, [label], lh=27 if wide else 23,
-                                scale=1.35 if wide else 1) + (14 if wide else 0)
-        if kind != 'return' or not wide:
+            for j, label in enumerate(rows):
+                d.text(x + 18, yy + 82 + j * 40, label, 'm', fill=MUT)
+                fits(label, 'm', (w - 36) / scale, 'rsi source')
+        if kind != 'return':
             for j, chip in enumerate(chips):
-                if wide:
-                    py = yy + h - 60 - (len(chips) - 1 - j) * 58
-                    d.chip(x + 16, py, w - 32, '', cls='code', h=48)
-                    _words(d, x + 26, py + 20, w - 52, [chip], cls='code', lh=22, scale=1.3)
-                else:
-                    d.chip(x + 16, yy + h - 36 - (len(chips) - 1 - j) * 32,
-                           w - 32, chip, cls='code', fill=ROLE[role], h=25)
+                d.chip(x + 16, yy + h - 52 - (len(chips) - 1 - j) * 44, w - 32, chip,
+                       cls='code', fill=ROLE[role], h=36)
         d.add('</g>')
-    if wide:
-        for x in (544, 832):
-            d.wire(f'M{x} {y+216}H{x+30}', pulses=(0, 1.4), pulse=ROLE['green'])
-        # Return at the edge of the source and core zones, not across their text.
-        d.wire(f'M46 {y+692}H12V{y+216}H22', pulses=(0, 3.5), dur=10,
-               pulse=ROLE['violet'])
-        return d.render(y + 744)
-    for i in range(len(regions) - 1):
-        x, yy, w, h = regions[i]
-        d.down(x + w / 2, yy + h, regions[i + 1][1], pulses=(0,), pulse=ROLE['violet'])
-    return d.render(regions[-1][1] + regions[-1][3] + M)
+    for (x, yy, w, h), role in zip(regions[:3], ('blue', 'blue', 'green')):
+        d.wire(f'M{x + w:g} {yy + h / 2:g}H{x + w + gap - 2:g}', pulses=(0, 1.4), pulse=ROLE[role])
+    # The return leaves the floor's left edge on the timeline and re-enters the
+    # sources pane from outside, clear of every label.
+    x, yy, w, _ = regions[-1]
+    d.wire(f'M{x:g} {yy + 116:g}H{x - 12:g}V{y + h / 2:g}H{x - 2:g}', pulses=(0, 3.5), dur=10,
+           pulse=ROLE['violet'])
+    return d.render(yy + floor_h + M)
 
 
-def evidence_receipt(wide=False):
+def evidence_receipt():
     """A source-to-output matrix restores the full information-layer view."""
     d = D('Evidence matrix: source, output, check',
           'Eight information families as a matrix, not a sequential feed: market, filings, flow, '
           'news, macro/sentiment, quant/risk, book/FX and backtest/calibration. Each source maps to '
           'an output and a check. Source provenance is distinct from content certification; '
-          'context and pack hashes identify input, not truth. Credentials stay with the runtime.',
-          wide=wide)
+          'context and pack hashes identify input, not truth. Credentials stay with the runtime.')
     y = d.header('INFORMATION · THE SOURCE MATRIX', ['Many sources.', 'One traceable context.'],
                  ['Read across: information family → source → usable output.',
                   'Missing or stale evidence stays labelled.'], [], title_lh=34) + 30
@@ -1692,28 +1667,16 @@ def evidence_receipt(wide=False):
         ('Book + FX', 'Holdings ledger · FX feeds', 'Reconciliation · currencies'),
         ('Backtest + calibration', 'Local snapshots · bars', 'Earlier-date diagnostics'),
     ]
-    if wide:
-        xs, widths = [M + 20, 296, 662], [238, 338, 306]
-        for x, label in zip(xs, headings):
-            d.text(x, y, label, 'kick', fill=FAINT)
-        for i, row in enumerate(rows):
-            yy = y + 24 + i * 64
-            d.card(M, yy, d.pw - 2 * M, 52, 'blue' if i < 5 else 'green')
-            for x, room, label in zip(xs, widths, row):
-                fits(label, 'm', room, 'matrix cell')
-                d.text(x, yy + 32, label, 'm')
-        bottom = y + 24 + len(rows) * 64
-    else:
-        for i, label in enumerate(headings):
-            d.text(M + 20, y + i * 20, label, 'kick', fill=FAINT)
-        y += 74
-        for i, row in enumerate(rows):
-            yy = y + i * 136
-            d.card(M, yy, CW, 118, 'blue' if i < 5 else 'green')
-            d.text(M + 20, yy + 31, row[0], 'h')
-            d.text(M + 20, yy + 60, row[1], 'm')
-            d.text(M + 20, yy + 91, row[2], 'm')
-        bottom = y + len(rows) * 136
+    xs, widths = [M + 20, 296, 662], [238, 338, 306]
+    for x, label in zip(xs, headings):
+        d.text(x, y, label, 'kick', fill=FAINT)
+    for i, row in enumerate(rows):
+        yy = y + 24 + i * 64
+        d.card(M, yy, d.pw - 2 * M, 52, 'blue' if i < 5 else 'green')
+        for x, room, label in zip(xs, widths, row):
+            fits(label, 'm', room, 'matrix cell')
+            d.text(x, yy + 32, label, 'm')
+    bottom = y + 24 + len(rows) * 64
     d.wire(f'M{M+20} {bottom+8}H{d.pw-M-20}', pulses=(0, 1.8), arrow=False,
            pulse=ROLE['blue'], dur=7)
     note = ['Source + timestamp → core + references → request.json / manifest.json',
@@ -1722,14 +1685,14 @@ def evidence_receipt(wide=False):
     return d.render(bottom + M)
 
 
-def feedback_learning(wide=False):
+def feedback_learning():
     """A live feedback wheel beside a portable proposal state machine."""
     d = D('Feedback: a live learning wheel and a portable adoption state machine',
           'Left: a live loop connects execution evidence, canonical-bar episodes, history and '
           'earlier-date calibration back to the next brief. Right: portable source-linked '
           'outcome and directional evaluation can trigger a bounded proposal; exact-hash named '
           'review accepts or rejects it, accepted changes apply with rollback records. Only '
-          'evidence/provenance strictness changes, not strategy. Neither path promises returns.', wide=wide)
+          'evidence/provenance strictness changes, not strategy. Neither path promises returns.')
     y = d.header('FEEDBACK · TWO WAYS TO CARRY THE RECORD', ['A live learning loop.',
                  'A reviewed adoption path.'], ['Different mechanisms, the same continuity:',
                  'keep evidence and outcome with the next judgment.'], [], title_lh=34) + 30
@@ -1741,51 +1704,37 @@ def feedback_learning(wide=False):
                 ('Bounded proposal', 'evaluation or rejection → propose'),
                 ('Named review', 'accept exact hash / reject'),
                 ('Adopt with a way back', 'apply → recorded prior values → rollback')]
-    if wide:
-        x2, cy, r = COL2 + M, y + 250, 156
-        d.card(M, y, CW, 506, 'blue')
-        d.text(M + 20, y + 32, 'LIVE DESK', 'kick', fill=ROLE['blue'])
-        cx = W / 2
-        d.add(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{ROLE["blue"]}" '
-              'stroke-width="18" stroke-opacity=".13"/>')
-        d.wire(f'M{cx} {cy-r}A{r} {r} 0 1 1 {cx-1} {cy-r}', pulses=(0, 2.1), dur=8,
-               pulse=ROLE['blue'], arrow=False)
-        # Clockwise stations surround the next brief, rather than forming
-        # another vertical chain with a decorative circle behind it.
-        positions = [(142, y + 130), (374, y + 130), (374, y + 350), (142, y + 350)]
-        for (heading, body), (xx, yy) in zip(live, positions):
-            d.chip(xx - 92, yy - 24, 184, heading, fill=ROLE['blue'], h=32)
-            _words(d, xx - 90, yy + 31, 180, [body], lh=21)
-        d.chip(cx - 62, cy - 18, 124, 'Next brief', fill=ROLE['blue'], h=36)
-        d.card(x2, y, CW, 506, 'warm')
-        d.text(x2 + 20, y + 32, 'PORTABLE WORKFLOW', 'kick', fill=ROLE['warm'])
-        for i, (heading, body) in enumerate(portable):
-            yy = y + 78 + i * 102
-            d.tag(x2 + 20, yy + 4, ('observe', 'propose', 'review', 'apply')[i], 'warm')
-            d.text(x2 + 126, yy + 4, heading, 'h')
-            d.text(x2 + 20, yy + 37, body, 'm')
-            if i < 3:
-                d.down(x2 + 36, yy + 52, yy + 80, pulses=(0,), pulse=ROLE['warm'])
-        bottom = y + 506
-    else:
-        yy = y
-        for title, role, nodes in [('LIVE DESK', 'blue', live), ('PORTABLE WORKFLOW', 'warm', portable)]:
-            d.text(M + 20, yy, title, 'kick', fill=ROLE[role])
-            yy += 22
-            for heading, body in nodes:
-                d.card(M, yy, CW, 90, role)
-                d.text(M + 20, yy + 30, heading, 'h')
-                d.text(M + 20, yy + 62, body, 'm')
-                yy += 114
-            if title == 'PORTABLE WORKFLOW':
-                # Match the state labels carried by the desktop tags.
-                for j, label in enumerate(('observe', 'propose', 'review', 'apply')):
-                    d.tag(M + 20 + j * 105, yy, label, 'warm')
-            else:
-                d.chip(M + 20, yy, 124, 'Next brief', fill=ROLE['blue'], h=36)
-            yy += 28
-        bottom = yy
-        d.wire(f'M{M+10} {y+100}V{bottom-30}', pulses=(0,), pulse=ROLE['blue'], arrow=False)
+    x2, h = COL2 + M, 452
+    d.card(M, y, CW, h, 'blue')
+    d.text(M + 20, y + 32, 'LIVE DESK', 'kick', fill=ROLE['blue'])
+    # Four stations at the corners of a loop that closes around the next brief.
+    # Every leg starts and ends on a station, so no stroke runs behind a label.
+    left, right, top, low, cw, ch = M + 26, W - M - 26 - 184, y + 76, y + 300, 184, 32
+    feet = {}
+    for (heading, body), (xx, yy) in zip(live, ((left, top), (right, top), (right, low), (left, low))):
+        d.chip(xx, yy, cw, heading, fill=ROLE['blue'], h=ch)
+        feet[heading] = _words(d, xx + cw / 2, yy + ch + 26, cw - 4, [body], lh=21, anchor='middle') - 21
+    legs = [f'M{left + cw} {top + ch / 2}H{right - 2}',
+            f'M{right + cw / 2} {feet["Settle"] + 12}V{low - 2}',
+            f'M{right} {low + ch / 2}H{left + cw + 2}',
+            f'M{left + cw / 2} {low}V{feet["Execution"] + 14}']
+    for i, leg in enumerate(legs):
+        d.wire(leg, pulses=(i * .5,), dur=2.4, pulse=ROLE['blue'])
+    cx, cy = W / 2, (feet['Execution'] + low) / 2 + 6
+    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="46" fill="none" stroke="{ROLE["blue"]}" '
+          'stroke-width="12" stroke-opacity=".13"/>')
+    d.text(cx, cy - 3, 'Next', 'b', anchor='middle', fill=ROLE['blue'])
+    d.text(cx, cy + 16, 'brief', 'b', anchor='middle', fill=ROLE['blue'])
+    d.card(x2, y, CW, h, 'warm')
+    d.text(x2 + 20, y + 32, 'PORTABLE WORKFLOW', 'kick', fill=ROLE['warm'])
+    for i, (heading, body) in enumerate(portable):
+        yy = y + 78 + i * 94
+        d.tag(x2 + 20, yy + 4, ('observe', 'propose', 'review', 'apply')[i], 'warm')
+        d.text(x2 + 126, yy + 4, heading, 'h')
+        d.text(x2 + 20, yy + 37, body, 'm')
+        if i < 3:
+            d.wire(f'M{x2 + 36} {yy + 50}V{yy + 76}', pulses=(0,), pulse=ROLE['warm'])
+    bottom = y + h
     note = ['Directional evaluation is not realized P&L. Only evidence / provenance rules change.',
             'No silent strategy edits. No promise of returns.']
     bottom = _words(d, M + 20, bottom + 40, d.pw - 2 * M - 40, note, lh=23)
@@ -1806,13 +1755,8 @@ LAYOUTS = {
     'scorecard': scorecard,
     'guardrails': guardrails,
 }
-#: Every file this builder owns: the wide layout under the diagram's name, the
-#: single column beside it. A `partial` keeps `build()` the whole interface.
-DIAGRAMS = {
-    f'{name}{suffix}.svg': partial(draw, wide=wide)
-    for name, draw in LAYOUTS.items()
-    for suffix, wide in (('', True), ('-narrow', False))
-}
+#: Every file this builder owns: one composition per diagram, at every width.
+DIAGRAMS = {f'{name}.svg': draw for name, draw in LAYOUTS.items()}
 
 
 def main(argv):

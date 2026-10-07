@@ -51,10 +51,10 @@
   <text x="610" y="274" class="m" text-anchor="middle"><tspan fill="#13865f">USD</tspan></text>
   <rect x="832" y="253" width="140" height="32" rx="9" fill="#f2f5f8" fill-opacity=".62" stroke="url(#rim)"/>
   <text x="902" y="274" class="m" text-anchor="middle"><tspan fill="#13865f">HKD</tspan></text>
-  <path id="w1" d="M694 269H818" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path id="w1" d="M680 269H830" fill="none" stroke="#a9b6c2" stroke-width="1.5" marker-end="url(#arr)"/>
   <circle class="pulse" r="7" fill="url(#glow-green)"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
   <circle class="pulse" r="3.4" fill="#13865f"><animateMotion dur="2.2s" begin="0.00s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1"><mpath href="#w1" xlink:href="#w1"/></animateMotion></circle>
-  <text x="756" y="269" class="m" text-anchor="middle"><tspan fill="#151a21">FX</tspan></text>
+  <text x="756" y="261" class="m" text-anchor="middle"><tspan fill="#5b6875">FX</tspan></text>
   <text x="540" y="317" class="m"><tspan fill="#5b6875">Currencies never sum directly</tspan></text>
   <text x="540" y="339" class="m"><tspan fill="#5b6875">A book that fails to reconcile is not pushed</tspan></text>
   <text x="540" y="361" class="m"><tspan fill="#5b6875">Return is measured on peak principal</tspan></text>
