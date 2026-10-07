@@ -297,7 +297,11 @@ def main():
     # a manual `gh workflow run` is exactly how the first one gets bypassed.)
     raw_ctx = ctx_path.read_text()
     try:
-        if json.loads(raw_ctx).get('status') == 'market_closed':
+        status = json.loads(raw_ctx).get('status')
+        if status == 'price_refresh_failed':
+            print(f'FATAL: {context_relative} reports price_refresh_failed', file=sys.stderr)
+            sys.exit(1)
+        if status == 'market_closed':
             print(f'  skip: {context_relative} is a market_closed sentinel — no brief was due')
             return
     except (ValueError, AttributeError):

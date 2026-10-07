@@ -31,6 +31,7 @@ from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import day_pnl, ledger_date, ledger_rows, session_date
+from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -392,21 +393,6 @@ def _hk_prev_close_session(now):
     return trading_calendar.previous_trading_day('hk', _hk_quote_session(now))
 
 
-def _hk_active_and_zero_closed(region):
-    active = [h for h in ledger_rows(region['holdings']) if h.get('shares', 0) > 0]
-
-    # Zero out snapshot fields on closed positions — refresh skips shares==0
-    # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in ledger_rows(region['holdings']):
-        if h.get('shares', 0) == 0:
-            for k in ('current_value', 'pnl_abs', 'pnl_percent',
-                      'today_change', 'today_change_pct'):
-                if h.get(k):
-                    h[k] = 0
-
-    return active
-
-
 def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     code = h['ticker']
     c    = q['c']
@@ -596,7 +582,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
 
     hk_key, us = region_book(data, 'HK')
     region_before_fetch = copy.deepcopy(us)
-    active = _hk_active_and_zero_closed(us)
+    active = active_and_zero_closed(us)
     codes = [h['ticker'] for h in active]
 
     print(f"\n{'═'*60}")

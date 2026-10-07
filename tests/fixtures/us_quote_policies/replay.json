@@ -6134,5 +6134,1714 @@
       "stderr": "",
       "per_ticker_calls": []
     }
+  },
+  {
+    "name": "tickers_override-subset",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ],
+      "RKLB": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "RKLB",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "tickers_override": [
+      "RKLB"
+    ],
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 44.82,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-04",
+                "day_high": 45.71,
+                "day_low": 36.265,
+                "day_open": 36.98,
+                "stale_price_repair": {
+                  "old": true
+                },
+                "quote_incomplete": true
+              },
+              {
+                "ticker": "RKLB",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 800,
+            "total_current_value": 860.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 7.5,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "active_holdings": [
+                "RKLB"
+              ],
+              "updated": [
+                "RKLB"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 44.82,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-04",
+                "day_high": 45.71,
+                "day_low": 36.265,
+                "day_open": 36.98,
+                "stale_price_repair": {
+                  "old": true
+                },
+                "quote_incomplete": true
+              },
+              {
+                "ticker": "RKLB",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 800,
+            "total_current_value": 860.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 7.5,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "active_holdings": [
+                "RKLB"
+              ],
+              "updated": [
+                "RKLB"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: RKLB\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n       \u2713 RKLB: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  RKLB     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    860.00  (cost: $800.00)\n  Total P&L:      +$    60.00  (+7.50%)\n  Today change:   $    +11.80\n  Updated:        RKLB\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "tickers_override-empty-preserves-all",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ],
+      "RKLB": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "RKLB",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "tickers_override": [],
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "RKLB",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 800,
+            "total_current_value": 920.0,
+            "total_pnl": 120.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 23.6,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "active_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "updated": [
+                "PLTU",
+                "RKLB"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 2
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 2x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "RKLB",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 800,
+            "total_current_value": 920.0,
+            "total_pnl": 120.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 23.6,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "active_holdings": [
+                "PLTU",
+                "RKLB"
+              ],
+              "updated": [
+                "PLTU",
+                "RKLB"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 2
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 2x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU, RKLB\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n       \u2713 RKLB: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n  RKLB     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    920.00  (cost: $800.00)\n  Total P&L:      +$   120.00  (+15.00%)\n  Today change:   $    +23.60\n  Updated:        PLTU, RKLB\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "dry_run",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "dry_run": true,
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT"
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/05 23:00 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 44.82,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-04",
+                "day_high": 45.71,
+                "day_low": 36.265,
+                "day_open": 36.98,
+                "stale_price_repair": {
+                  "old": true
+                },
+                "quote_incomplete": true
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 5,
+                "pnl_abs": 1,
+                "pnl_percent": 1,
+                "today_change": 1,
+                "today_change_pct": 1
+              }
+            ]
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    460.00  (cost: $400.00)\n  Total P&L:      +$    60.00  (+15.00%)\n  Today change:   $    +11.80\n  Updated:        PLTU\n\n  [dry-run] portfolio.json NOT written.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "indices_snapshot-real",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "index_providers": {
+      "tencent": {
+        "usINX": {
+          "c": 6000,
+          "pc": 5900,
+          "dp": 1.695
+        }
+      }
+    },
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 6000,
+                "prev_close": 5900,
+                "change_pct": 1.695,
+                "source": "Tencent usINX index @ 2026-08-05 12:01 ET"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 6000,
+                "prev_close": 5900,
+                "change_pct": 1.695,
+                "source": "Tencent usINX index @ 2026-08-05 12:01 ET"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    460.00  (cost: $400.00)\n  Total P&L:      +$    60.00  (+15.00%)\n  Today change:   $    +11.80\n  Updated:        PLTU\n  Indices:        SPX 6000 (+1.70%)\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "indices_snapshot-yfinance",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "index_providers": {
+      "yfinance": {
+        "^GSPC": {
+          "c": 6000,
+          "pc": 5900,
+          "dp": 1.695
+        }
+      }
+    },
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 6000,
+                "prev_close": 5900,
+                "change_pct": 1.695,
+                "source": "yfinance ^GSPC @ 2026-08-05 12:01 ET"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 6000,
+                "prev_close": 5900,
+                "change_pct": 1.695,
+                "source": "yfinance ^GSPC @ 2026-08-05 12:01 ET"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    460.00  (cost: $400.00)\n  Total P&L:      +$    60.00  (+15.00%)\n  Today change:   $    +11.80\n  Updated:        PLTU\n  Indices:        SPX 6000 (+1.70%)\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "indices_snapshot-etf-proxy",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "index_providers": {
+      "nasdaq": {
+        "SPY": {
+          "c": 600,
+          "pc": 590,
+          "dp": 1.695
+        }
+      }
+    },
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 600,
+                "prev_close": 590,
+                "change_pct": 1.695,
+                "source": "Nasdaq API SPY ETF proxy @ 2026-08-05 12:01 ET",
+                "is_etf_proxy": "SPY",
+                "note": "\u70b9\u4f4d\u4e3a SPY ETF \u4ef7\uff08\u771f\u5b9e\u6307\u6570\u6e90\u4e0d\u53ef\u7528\uff09\uff0c\u4ec5\u6da8\u8dcc%\u8fd1\u4f3c\u6307\u6570"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "indices_snapshot": {
+              "SPX": {
+                "name": "S&P 500",
+                "price": 600,
+                "prev_close": 590,
+                "change_pct": 1.695,
+                "source": "Nasdaq API SPY ETF proxy @ 2026-08-05 12:01 ET",
+                "is_etf_proxy": "SPY",
+                "note": "\u70b9\u4f4d\u4e3a SPY ETF \u4ef7\uff08\u771f\u5b9e\u6307\u6570\u6e90\u4e0d\u53ef\u7528\uff09\uff0c\u4ec5\u6da8\u8dcc%\u8fd1\u4f3c\u6307\u6570"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    460.00  (cost: $400.00)\n  Total P&L:      +$    60.00  (+15.00%)\n  Today change:   $    +11.80\n  Updated:        PLTU\n  Indices:        SPX 600 (+1.70%)\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
+  },
+  {
+    "name": "indices_snapshot-unavailable",
+    "now": "2026-08-05T12:01:00-04:00",
+    "keys": {
+      "POLYGON_API_KEY": "fixture"
+    },
+    "quote": {
+      "c": 46.0,
+      "pc": 44.82,
+      "dp": 2.63,
+      "h": 46.76,
+      "l": 42.61,
+      "o": 44.9,
+      "source": "Finnhub",
+      "volume": 100
+    },
+    "grouped": {
+      "PLTU": [
+        44.82,
+        "2026-08-04"
+      ]
+    },
+    "rate_limited": false,
+    "snapshot_valid": true,
+    "per_ticker": null,
+    "portfolio": {
+      "last_updated": "2026/08/05 23:00 HKT",
+      "portfolios": {
+        "us_stocks": {
+          "currency": "USD",
+          "holdings": [
+            {
+              "ticker": "PLTU",
+              "shares": 10,
+              "cost_basis": 40,
+              "cost": 400,
+              "current_price": 44.82,
+              "prev_close": 44.82,
+              "prev_close_date": "2026-08-04",
+              "day_session_date": "2026-08-04",
+              "day_high": 45.71,
+              "day_low": 36.265,
+              "day_open": 36.98,
+              "stale_price_repair": {
+                "old": true
+              },
+              "quote_incomplete": true
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 5,
+              "cost": 0,
+              "current_value": 5,
+              "pnl_abs": 1,
+              "pnl_percent": 1,
+              "today_change": 1,
+              "today_change_pct": 1
+            }
+          ]
+        },
+        "hk_stocks": {
+          "currency": "HKD",
+          "holdings": [],
+          "unrelated": "preserve"
+        }
+      }
+    },
+    "index_providers": {},
+    "expected": {
+      "returned": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve",
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        }
+      },
+      "written": {
+        "last_updated": "2026/08/06 00:01 HKT",
+        "portfolios": {
+          "us_stocks": {
+            "currency": "USD",
+            "holdings": [
+              {
+                "ticker": "PLTU",
+                "shares": 10,
+                "cost_basis": 40,
+                "cost": 400,
+                "current_price": 46.0,
+                "prev_close": 44.82,
+                "prev_close_date": "2026-08-04",
+                "day_session_date": "2026-08-05",
+                "day_high": 46.76,
+                "day_low": 42.61,
+                "day_open": 44.9,
+                "today_change_pct": 2.6328,
+                "current_value": 460.0,
+                "pnl_abs": 60.0,
+                "pnl_percent": 15.0,
+                "today_change": 11.8,
+                "volume": 100,
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 5,
+                "cost": 0,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 400,
+            "total_current_value": 460.0,
+            "total_pnl": 60.0,
+            "total_pnl_percent": 15.0,
+            "today_total_change": 11.8,
+            "open_fetch_status": {
+              "attempted_all_holdings": [
+                "PLTU"
+              ],
+              "active_holdings": [
+                "PLTU"
+              ],
+              "updated": [
+                "PLTU"
+              ],
+              "missing_after_fallback": [],
+              "source_counts": {
+                "Finnhub": 1
+              },
+              "updated_at": "2026-08-05 12:01 EDT",
+              "note": "Multi-provider fetch. Sources: 1x Finnhub"
+            },
+            "last_open_attempted": "2026-08-05 12:01 EDT",
+            "realized_pnl": 0,
+            "realized_note": ""
+          },
+          "hk_stocks": {
+            "currency": "HKD",
+            "holdings": [],
+            "unrelated": "preserve"
+          }
+        }
+      },
+      "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  US Portfolio Price Refresh\n  ET:  2026-08-05 12:01 EDT  |  HKT: 2026/08/06 00:01 HKT\n  Tickers: PLTU\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  [PC] Polygon prev-close (grouped)...\n       \u2713 PLTU: $44.8200 (2026-08-04)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  PLTU     $44.8200 \u2191 $46.0000  (+2.63%)  P&L: +$60.00 (+15.00%)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total value:    $    460.00  (cost: $400.00)\n  Total P&L:      +$    60.00  (+15.00%)\n  Today change:   $    +11.80\n  Updated:        PLTU\n\n  \u2705 Saved \u2192 <portfolio>\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n",
+      "stderr": "",
+      "per_ticker_calls": []
+    }
   }
 ]
