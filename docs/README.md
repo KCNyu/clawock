@@ -48,6 +48,9 @@ belongs here.
 - [`skills-store-policy.md`](operations/skills-store-policy.md) — registry
   discovery and installation policy.
 
+- [`agent-discovery.md`](operations/agent-discovery.md) — public machine documentation,
+  documented engine discovery paths and a bounded citation measurement protocol.
+
 ## Reference
 
 - [`commands.md`](reference/commands.md) — the generated command inventory plus

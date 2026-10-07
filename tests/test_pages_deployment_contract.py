@@ -117,6 +117,10 @@ def test_llms_txt_is_required_public_and_linked():
     assert "llms.txt" in CONTRACT["required_pages"]
     assert "llms.txt" in CONTRACT["artifact_include"]
     assert "faq.html" in (ROOT / "site" / "llms.txt").read_text()
+    for name in ("llms-full.txt", "faq.html.md"):
+        assert name in CONTRACT["required_pages"]
+        assert name in CONTRACT["artifact_include"]
+        assert name in (ROOT / "site/llms.txt").read_text()
     assert WORKFLOW.count("'site/**'") == 2
 
 
@@ -551,6 +555,11 @@ def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
 
     assert (output / "index.html").is_file()
     assert (output / "_config.yml").is_file()
+    faq = (ROOT / "site/faq.md").read_text().split("\n---\n", 1)[1].lstrip()
+    assert (output / "faq.html.md").read_text() == faq
+    full = (output / "llms-full.txt").read_text()
+    assert faq.rstrip() in full
+    assert (ROOT / "docs/architecture/runtime-protocol.md").read_text().rstrip() in full
     assert (output / "assets/js/dashboard.core.js").is_file()
     # A runtime input that is TRACKED, so the join is proven from a clean
     # checkout. This used to assert `overview.json`, which is gitignored (the
@@ -566,6 +575,35 @@ def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
             "the data plane is materialised in this checkout but staging dropped it")
     assert (output / "docs/architecture/harness.md").is_file()
     assert not (output / "portfolio.json").exists()
+
+
+def test_machine_docs_follow_source_edits_and_exclude_unselected_files(tmp_path):
+    import stage_site
+
+    source = tmp_path / "repo"
+    (source / "site").mkdir(parents=True)
+    (source / "docs/architecture").mkdir(parents=True)
+    (source / "config").mkdir()
+    (source / "config/pages-public.json").write_text('{"site_url":"https://example.org/project"}')
+    (source / "site/llms.txt").write_text("# Overview\n")
+    faq = source / "site/faq.md"
+    faq.write_text("---\ntitle: hidden metadata\n---\n\n# FAQ\n\n## Why?\n\nAn answer.\n")
+    (source / "docs/architecture/runtime-protocol.md").write_text("# Protocol\n")
+    (source / "portfolio.json").write_text('"PRIVATE SENTINEL"')
+    (source / "site/unselected.txt").write_text("UNSELECTED SENTINEL")
+    output = tmp_path / "out"
+    output.mkdir()
+    stage_site._write_machine_docs(output, source)
+    first = (output / "llms-full.txt").read_text()
+    assert "hidden metadata" not in first
+    assert "SENTINEL" not in first
+    assert "https://example.org/project/faq.html" in first
+    faq.write_text("# FAQ\n\n## Why?\n\nA changed answer.\n")
+    stage_site._write_machine_docs(output, source)
+    assert (output / "faq.html.md").read_text() == faq.read_text()
+    second = (output / "llms-full.txt").read_text()
+    assert "A changed answer." in second
+    assert "An answer." not in second
 
 
 def _github_path_filter(pattern):
