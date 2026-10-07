@@ -327,3 +327,128 @@ def test_no_label_crowds_what_shares_its_line():
     builder.WARN.clear()                   # the chip's own fits() warning is the builder's, not this gate's
     crowded = {(a, b.split()[0]) for a, b, _ in _text_crowding(builder, ET.fromstring(d.render(200)))}
     assert crowded == {('You decide', 'rect'), ('HK session', 'Bull'), ('a label wider than its chip', 'rect')}
+
+
+def _packet_trouble(builder, root, clear=4.0):
+    """(connector id, what it meets) wherever a running packet has too little room.
+
+    A packet is a disc of `PACKET_R` that travels the stretch of its connector
+    named by `keyPoints`. Along all of it the disc keeps `clear` from set text,
+    inlined marks and glyphs, and never sits across the edge of a box: it is
+    either inside the pane it runs in or outside the node it runs past.
+    """
+    r, texts, boxes = builder.PACKET_R, [], []
+    for el, dx, dy in _placed(root, 'text'):
+        label, cls = ''.join(el.itertext()), el.attrib.get('class', 'b')
+        if 'style' in el.attrib or not label.strip():
+            continue
+        size, _, advance = builder.TYPE[cls]
+        w, x, y = len(label) * size * advance, float(el.attrib['x']) + dx, float(el.attrib['y']) + dy
+        if el.attrib.get('transform', '').startswith('rotate(90 '):     # a margin note, read downwards
+            texts.append((label, x - size * .2, y - w / 2, x + size * .72, y + w / 2))
+            continue
+        x -= {'middle': w / 2, 'end': w}.get(el.attrib.get('text-anchor'), 0)
+        # A kicker in capitals stands on its baseline; mixed case hangs descenders under it.
+        texts.append((label, x, y - size * .72, x + w, y + (0 if label == label.upper() else size * .2)))
+    for tag in ('svg', 'image'):
+        for el, dx, dy in _placed(root, tag):
+            x, y, w, h = (float(el.attrib.get(k, 0)) for k in ('x', 'y', 'width', 'height'))
+            texts.append((tag, x + dx, y + dy, x + dx + w, y + dy + h))
+
+    def glyphs(node, dx, dy):
+        for el in node:
+            move = re.match(r'translate\((\S+) (\S+)\)(?: scale\((\S+)\))?$', el.attrib.get('transform', ''))
+            if el.tag != f'{SVG}g' or not move and el.attrib.get('transform'):
+                continue
+            x, y = dx + float(move[1] if move else 0), dy + float(move[2] if move else 0)
+            if 'data-icon' in el.attrib:
+                texts.append((f'glyph {el.attrib["data-icon"]}', x, y, x + 24 * float(move[3]), y + 24 * float(move[3])))
+            else:
+                glyphs(el, x, y)
+    glyphs(root, 0, 0)
+    for el, dx, dy in _placed(root, 'rect'):
+        if el.attrib.get('class', '').split()[-1:] in (['sweep'], ['sheen']):
+            continue
+        x, y, w, h = (float(el.attrib.get(k, 0)) for k in ('x', 'y', 'width', 'height'))
+        if w >= 20 and h >= 14:
+            boxes.append((f'rect {w:g}x{h:g}', x + dx, y + dy, x + dx + w, y + dy + h))
+    wires = {el.attrib['id']: (el.attrib['d'], dx, dy) for el, dx, dy in _placed(root, 'path') if 'id' in el.attrib}
+    found, packets = set(), 0
+    for el, _, _ in _placed(root, 'use'):
+        packets += 1
+        motion = el.find(f'{SVG}animateMotion')
+        wire = motion.find(f'{SVG}mpath').attrib['href'][1:]
+        first, last = map(float, motion.attrib['keyPoints'].split(';'))
+        d, dx, dy = wires[wire]
+        points, along = builder.path_points(d, 2), [0.0]
+        for a, b in zip(points, points[1:]):
+            along.append(along[-1] + math.dist(a, b))
+        for (px, py), s in zip(points, along):
+            if not first <= s / along[-1] <= last:
+                continue
+            px, py = px + dx, py + dy
+            for what, x0, y0, x1, y1 in texts:
+                if max(x0 - px, px - x1, y0 - py, py - y1) - r < clear:
+                    found.add((wire, what))
+            for what, x0, y0, x1, y1 in boxes:
+                inside = x0 <= px - r and px + r <= x1 and y0 <= py - r and py + r <= y1
+                outside = max(x0 - px, px - x1, y0 - py, py - y1) >= r
+                if not inside and not outside:
+                    found.add((wire, what.split()[0]))
+    return found, packets
+
+
+def test_no_running_packet_brushes_a_label_or_rides_a_box_edge():
+    """A packet is an icon the size of a letter, moving: it needs the room a label does.
+
+    The stroke gate above only asks whether the line itself passes behind words.
+    A packet is 16 units across, so a line that clears a label by 6 still drags
+    its icon over the descenders, and a fan curve that leaves a card sideways
+    carries it along under the card's edge. The probe shows both can fail.
+    """
+    builder = _builder()
+    for name in builder.DIAGRAMS:
+        trouble, packets = _packet_trouble(builder, ET.parse(ROOT / 'site/assets' / name).getroot())
+        assert not trouble, (name, sorted(trouble))
+        assert packets, f'{name}: no connector is long enough to carry a packet'
+    d = builder.D('probe', 'a packet under a label, one along a card edge, one in the open')
+    d.card(40, 40, 200, 80, 'blue')
+    d.text(60, 160, 'Settled', 'm')
+    d.wire('M30 172H300')                  # the line clears the word; its packet does not
+    d.wire('M20 124H300', kind='money')    # along the card's lower edge
+    d.wire('M20 260H300', kind='task')
+    trouble, packets = _packet_trouble(builder, ET.fromstring(d.render(320)))
+    assert trouble == {('w1', 'Settled'), ('w2', 'rect')} and packets == 3
+    assert not _connector_label_collisions(builder, ET.fromstring(d.render(320)))
+
+
+def test_each_kind_of_flow_keeps_its_own_line_when_nothing_moves():
+    """Reduced motion hides every packet; the line and its arrowhead still say what is carried.
+
+    Colour is left out of the comparison on purpose: two kinds that differ only
+    in hue are one kind to a reader who cannot tell the hues apart.
+    """
+    builder = _builder()
+    d = builder.D('probe', 'one connector of every kind')
+    for i, kind in enumerate(builder.KIND):
+        d.wire(f'M40 {40 + i * 30}H400', kind=kind)
+    root = ET.fromstring(d.render(320))
+    heads = {m.attrib['id']: (m[0].attrib['d'], m[0].attrib['fill'] != 'none') for m in root.iter(f'{SVG}marker')}
+    paths = [el for el in root.iter(f'{SVG}path') if 'id' in el.attrib or 'marker-end' in el.attrib]
+    looks = {}
+    for kind in builder.KIND:
+        own = [el for el in paths if el.attrib.get('data-kind') == kind]
+        rails = [el for el in paths if el.attrib.get('marker-end') == f'url(#arr-{kind})']
+        assert len(own) == 1 and len(rails) == 1, kind
+        looks[kind] = (own[0].attrib.get('stroke-dasharray'), own[0].attrib['stroke-width'],
+                       own[0] is not rails[0], heads[f'arr-{kind}'])
+    assert len(set(looks.values())) == len(builder.KIND) >= 8, looks
+    for name in builder.DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        ids = {el.attrib['id'] for el in root.iter() if 'id' in el.attrib}
+        for el, _, _ in _placed(root, 'path'):
+            if re.fullmatch(r'w\d+', el.attrib.get('id', '')):
+                assert el.attrib.get('data-kind') in builder.KIND, (name, el.attrib['id'])
+        for el in root.iter(f'{SVG}use'):
+            # An <img> loads nothing from outside the file, so a packet is drawn from its own <defs>.
+            assert el.attrib['href'][0] == '#' and el.attrib['href'][1:] in ids, (name, el.attrib['href'])
