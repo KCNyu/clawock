@@ -1175,138 +1175,76 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
     holding['day_session_date'] = today_et_date
 
 
-def update_us_portfolio(
-    portfolio_path: str = PORTFOLIO_PATH,
-    dry_run: bool = False,
-    tickers_override: Optional[List[str]] = None,
-) -> Dict:
-    """
-    Fetch latest US stock prices and write them back to portfolio.json.
-
-    Args:
-        portfolio_path:   path to portfolio.json
-        dry_run:          if True, print prices but don't write to file
-        tickers_override: if given, only fetch these tickers (must still exist in portfolio)
-    """
-    with open(portfolio_path, encoding='utf-8') as f:
-        data = json.load(f)
-
-    keys = load_api_keys()
-    us_key, us = region_book(data, 'US')
-    region_before_fetch = copy.deepcopy(us)
-
-    active_holdings = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
-    all_active      = [h['ticker'] for h in active_holdings]
-    tickers         = tickers_override if tickers_override else all_active
+def _us_active_and_zero_closed(region):
+    active = [h for h in ledger_rows(region['holdings']) if h.get('shares', 0) > 0]
 
     # Zero out snapshot fields on closed positions — refresh skips shares==0
     # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in ledger_rows(us['holdings']):
+    for h in ledger_rows(region['holdings']):
         if h.get('shares', 0) == 0:
             for k in ('current_value', 'pnl_abs', 'pnl_percent',
                       'today_change', 'today_change_pct'):
                 if h.get(k):
                     h[k] = 0
 
-    # Timezone helpers
-    et_tz = trading_calendar.ET
-    hkt_tz = trading_calendar.HKT
-    now_et  = datetime.now(et_tz)
-    now_hkt = datetime.now(hkt_tz)
+    return active
 
-    # The quote's session can differ from the wall-clock date before 09:30 ET,
-    # on weekends, and after holidays. Every range/prev-close date below is keyed
-    # to the quote session, never to midnight.
-    today_et_date = _us_quote_session_date(now_et)
-    expected_prev_session = _prev_trading_day(today_et_date)
 
-    et_str  = now_et.strftime('%Y-%m-%d %H:%M %Z')
-    hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
+def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_prev_session):
+    t = holding['ticker']
+    old_price = holding.get('current_price', 0)
+    cost = holding['cost_basis']
+    shrs = holding['shares']
 
-    print(f"\n{'═'*62}")
-    print("  US Portfolio Price Refresh")
-    print(f"  ET:  {et_str}  |  HKT: {hkt_str}")
-    print(f"  Tickers: {', '.join(tickers)}")
-    print(f"{'═'*62}")
+    c, pc, pc_date = _resolve_prev_close(
+        q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
+        expected_prev_session=expected_prev_session)
 
-    quotes = fetch_us_quotes(tickers, keys)
-    missing_quotes = [t for t in tickers if not quotes.get(t)]
-    if missing_quotes:
-        raise RuntimeError('US quote refresh incomplete: ' + ', '.join(missing_quotes))
+    c, stale_repair = _stale_last_price_guard(
+        q, c, pc, pc_date, ticker=t, today_et_date=today_et_date, now_et=now_et)
 
-    prev_closes = _polygon_prev_closes(
-        tickers, keys.get('POLYGON_API_KEY', ''),
-        today_et_date=today_et_date, expected_prev_session=expected_prev_session)
+    _warn_degenerate_range(q, now_et, ticker=t)
 
-    print(f"\n{'─'*62}")
-    updated: List[str] = []
-    missing: List[str] = []
-    source_counts: Dict[str, int] = {}
+    holding['current_price']    = round(c, 4)
+    holding['prev_close']       = round(pc, 4)
+    holding['prev_close_date']  = pc_date
+    # Quality flags travel with the holding so downstream gates and the
+    # dashboard can see a repaired/incomplete quote instead of inferring
+    # health from numbers that were made to agree with each other.
+    if stale_repair:
+        holding['stale_price_repair'] = stale_repair
+    else:
+        holding.pop('stale_price_repair', None)
+    if q.get('incomplete'):
+        holding['quote_incomplete'] = True
+    else:
+        holding.pop('quote_incomplete', None)
+    amount, base = day_pnl(holding, today_et_date, current=c, market='us')
+    holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
+    holding.pop('today_change_abs', None)
 
-    for holding in ledger_rows(us['holdings']):
-        t = holding['ticker']
-        if t not in tickers:
-            continue
-        q = quotes.get(t)
-        if not q:
-            missing.append(t)
-            print(f"  ✗ {t}: no data from any provider")
-            continue
+    _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
+    holding['current_value']    = round(c * shrs, 2)
+    holding['pnl_abs']          = round((c - cost) * shrs, 2)
+    # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
+    # one zero-cost lot must not abort the whole region's refresh.
+    holding['pnl_percent']      = _pct(c, cost)
+    holding['today_change']     = round(amount, 2)
+    if q.get('volume'):
+        holding['volume'] = q['volume']
 
-        old_price = holding.get('current_price', 0)
-        cost = holding['cost_basis']
-        shrs = holding['shares']
+    ts = now_et.strftime('%b %d, %Y %H:%M ET')
+    holding['data_source'] = f"{q['source']} {ts}"
 
-        c, pc, pc_date = _resolve_prev_close(
-            q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
-            expected_prev_session=expected_prev_session)
+    arrow = '↑' if c >= old_price else '↓'
+    pnl_sign = '+' if holding['pnl_abs'] >= 0 else ''
+    print(f"  {t:7s}  ${old_price:.4f} {arrow} ${c:.4f}  "
+          f"({holding['today_change_pct']:+.2f}%)  "
+          f"P&L: {pnl_sign}${holding['pnl_abs']:.2f} ({pnl_sign}{holding['pnl_percent']:.2f}%)")
 
-        c, stale_repair = _stale_last_price_guard(
-            q, c, pc, pc_date, ticker=t, today_et_date=today_et_date, now_et=now_et)
 
-        _warn_degenerate_range(q, now_et, ticker=t)
-
-        holding['current_price']    = round(c, 4)
-        holding['prev_close']       = round(pc, 4)
-        holding['prev_close_date']  = pc_date
-        # Quality flags travel with the holding so downstream gates and the
-        # dashboard can see a repaired/incomplete quote instead of inferring
-        # health from numbers that were made to agree with each other.
-        if stale_repair:
-            holding['stale_price_repair'] = stale_repair
-        else:
-            holding.pop('stale_price_repair', None)
-        if q.get('incomplete'):
-            holding['quote_incomplete'] = True
-        else:
-            holding.pop('quote_incomplete', None)
-        amount, base = day_pnl(holding, today_et_date, current=c, market='us')
-        holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
-        holding.pop('today_change_abs', None)
-
-        _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
-        holding['current_value']    = round(c * shrs, 2)
-        holding['pnl_abs']          = round((c - cost) * shrs, 2)
-        # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
-        # one zero-cost lot must not abort the whole region's refresh.
-        holding['pnl_percent']      = _pct(c, cost)
-        holding['today_change']     = round(amount, 2)
-        if q.get('volume'):
-            holding['volume'] = q['volume']
-
-        ts = now_et.strftime('%b %d, %Y %H:%M ET')
-        holding['data_source'] = f"{q['source']} {ts}"
-
-        src = q['source']
-        source_counts[src] = source_counts.get(src, 0) + 1
-        updated.append(t)
-
-        arrow = '↑' if c >= old_price else '↓'
-        pnl_sign = '+' if holding['pnl_abs'] >= 0 else ''
-        print(f"  {t:7s}  ${old_price:.4f} {arrow} ${c:.4f}  "
-              f"({holding['today_change_pct']:+.2f}%)  "
-              f"P&L: {pnl_sign}${holding['pnl_abs']:.2f} ({pnl_sign}{holding['pnl_percent']:.2f}%)")
-
+def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, tickers,
+                        updated, missing, source_counts):
     # Recompute portfolio totals from all active holdings
     all_active_h = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
     total_cost  = sum(h['cost_basis'] * h['shares'] for h in all_active_h)
@@ -1365,6 +1303,83 @@ def update_us_portfolio(
             print(f"  Indices:        {summary}")
     except Exception as e:
         print(f"  ⚠ US indices fetch failed (non-fatal): {e}")
+
+
+def update_us_portfolio(
+    portfolio_path: str = PORTFOLIO_PATH,
+    dry_run: bool = False,
+    tickers_override: Optional[List[str]] = None,
+) -> Dict:
+    """
+    Fetch latest US stock prices and write them back to portfolio.json.
+
+    Args:
+        portfolio_path:   path to portfolio.json
+        dry_run:          if True, print prices but don't write to file
+        tickers_override: if given, only fetch these tickers (must still exist in portfolio)
+    """
+    with open(portfolio_path, encoding='utf-8') as f:
+        data = json.load(f)
+
+    keys = load_api_keys()
+    us_key, us = region_book(data, 'US')
+    region_before_fetch = copy.deepcopy(us)
+
+    all_active = [h['ticker'] for h in _us_active_and_zero_closed(us)]
+    tickers    = tickers_override if tickers_override else all_active
+
+    # Timezone helpers
+    et_tz = trading_calendar.ET
+    hkt_tz = trading_calendar.HKT
+    now_et  = datetime.now(et_tz)
+    now_hkt = datetime.now(hkt_tz)
+
+    # The quote's session can differ from the wall-clock date before 09:30 ET,
+    # on weekends, and after holidays. Every range/prev-close date below is keyed
+    # to the quote session, never to midnight.
+    today_et_date = _us_quote_session_date(now_et)
+    expected_prev_session = _prev_trading_day(today_et_date)
+
+    et_str  = now_et.strftime('%Y-%m-%d %H:%M %Z')
+    hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
+
+    print(f"\n{'═'*62}")
+    print("  US Portfolio Price Refresh")
+    print(f"  ET:  {et_str}  |  HKT: {hkt_str}")
+    print(f"  Tickers: {', '.join(tickers)}")
+    print(f"{'═'*62}")
+
+    quotes = fetch_us_quotes(tickers, keys)
+    missing_quotes = [t for t in tickers if not quotes.get(t)]
+    if missing_quotes:
+        raise RuntimeError('US quote refresh incomplete: ' + ', '.join(missing_quotes))
+
+    prev_closes = _polygon_prev_closes(
+        tickers, keys.get('POLYGON_API_KEY', ''),
+        today_et_date=today_et_date, expected_prev_session=expected_prev_session)
+
+    print(f"\n{'─'*62}")
+    updated: List[str] = []
+    missing: List[str] = []
+    source_counts: Dict[str, int] = {}
+
+    for holding in ledger_rows(us['holdings']):
+        t = holding['ticker']
+        if t not in tickers:
+            continue
+        q = quotes.get(t)
+        if not q:
+            missing.append(t)
+            print(f"  ✗ {t}: no data from any provider")
+            continue
+        _us_apply_quote(holding, q, prev_closes, now_et=now_et, today_et_date=today_et_date,
+                        expected_prev_session=expected_prev_session)
+        source_counts[q['source']] = source_counts.get(q['source'], 0) + 1
+        updated.append(t)
+
+    _us_finalize_region(data, us, now_et=now_et, et_str=et_str, hkt_str=hkt_str,
+                        all_active=all_active, tickers=tickers, updated=updated,
+                        missing=missing, source_counts=source_counts)
 
     if dry_run:
         print("\n  [dry-run] portfolio.json NOT written.\n")
