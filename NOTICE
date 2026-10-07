@@ -16,5 +16,16 @@ This product includes modified code adapted from:
   Vendored as a tree-shaken custom build in site/assets/js/echarts.min.js
   (how it is built: ops/pages/echarts-custom-bundle.md).
 
+  Lucide 1.52.0 (icons)
+  Copyright 2026 Lucide Icons and Contributors
+  https://lucide.dev/
+  Licensed under the ISC License; triangle-alert derives from Feather
+  (Copyright 2013-present Cole Bemis, MIT License).
+  Eight outlines (file-text, scale, shield-check, clipboard-check,
+  circle-dollar-sign, send, rotate-ccw, triangle-alert) are inlined, with a
+  fill added, as the connector packets of the README diagrams by
+  site/tools/build_readme_diagrams.py.
+
 The adapted source files identify their origin in their source headers. A copy of
-the Apache License 2.0 is provided at THIRD_PARTY_LICENSES/Apache-2.0.txt.
+the Apache License 2.0 is provided at THIRD_PARTY_LICENSES/Apache-2.0.txt, and of
+the Lucide license at THIRD_PARTY_LICENSES/Lucide-ISC.txt.
