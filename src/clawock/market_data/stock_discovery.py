@@ -241,7 +241,7 @@ def candidate_lines(discovery, *, limit=3):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog="clawock discover-stocks", description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="emit structured research candidates")
     args = parser.parse_args(argv)
     result = collect(workspace_root())
