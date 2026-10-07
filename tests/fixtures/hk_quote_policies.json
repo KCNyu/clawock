@@ -1,0 +1,1867 @@
+[
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "healthy",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": true,
+    "name": "dry-run",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05",
+                "lot_size": 500,
+                "volume": 38060,
+                "day_high": 323.6,
+                "day_low": 290.4
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 100,
+                "pnl_abs": 10,
+                "pnl_percent": 10,
+                "today_change": 5,
+                "today_change_pct": 5
+              }
+            ]
+          }
+        },
+        "last_updated": "old"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  [dry-run] Not written.\n\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "stooq",
+        "_pc_quality": "open-as-pc"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "approx-current",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-09-01",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "stooq",
+        "_pc_quality": "open-as-pc"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "approx-old",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-09-01",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-09-01",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "stooq",
+        "_pc_quality": "open-as-pc"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "approx-absent",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": 0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "quote_incomplete": true,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "stooq Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": 0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (当日涨跌未知)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$       +0\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 280,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "bad-range",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 280,
+                "current_value": 28000,
+                "pnl_abs": -2000,
+                "pnl_percent": -6.67,
+                "today_change_pct": -4.04,
+                "today_change": -3220.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 28000,
+            "total_pnl": -2000,
+            "total_pnl_percent": -6.67,
+            "today_total_change": -3220.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 280,
+                "current_value": 28000,
+                "pnl_abs": -2000,
+                "pnl_percent": -6.67,
+                "today_change_pct": -4.04,
+                "today_change": -3220.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 28000,
+            "total_pnl": -2000,
+            "total_pnl_percent": -6.67,
+            "today_total_change": -3220.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$280.000  (-4.04%)  P&L: HK$-2000 (-6.7%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   28,000  (cost HK$30,000)\n  P&L:     HK$  -2,000  (-6.7%)\n  Today:   HK$   -3,220\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "\n  ⚠️  当日区间越界告警（疑似坏 tick，请核对 / 用同标的 2x 验向）：\n     - 00100 MINIMA: current 280 越出当日区间 [290.4, 323.6]（prev_close 312.2，疑似坏 tick — 280.0 below quoted low 290.4）\n",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": null,
+        "h": null,
+        "l": null,
+        "lot_size": null,
+        "volume": null,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "missing-metadata",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 500,
+                "volume": 38060,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 500,
+                "volume": 38060,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT"
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4,
+              "trades": [
+                {
+                  "action": "buy",
+                  "date": "2026-10-06",
+                  "shares": 100,
+                  "price": 300
+                }
+              ]
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "new-buy",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "trades": [
+                  {
+                    "action": "buy",
+                    "date": "2026-10-06",
+                    "shares": 100,
+                    "price": 300
+                  }
+                ],
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "trades": [
+                  {
+                    "action": "buy",
+                    "date": "2026-10-06",
+                    "shares": 100,
+                    "price": 300
+                  }
+                ],
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-04T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {},
+    "dry_run": false,
+    "name": "closed-day",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-01T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-02T10:00:00+08:00",
+                "data_source": "Tencent Oct 04 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/04 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-01T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-02T10:00:00+08:00",
+                "data_source": "Tencent Oct 04 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/04 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-04 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": {
+      "r_hkHSI": {
+        "label": "HSI",
+        "c": 20000,
+        "pc": 19900,
+        "dp": 0.503
+      }
+    },
+    "dry_run": false,
+    "name": "indices",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "indices_snapshot": {
+              "HSI": {
+                "name": "HSI",
+                "price": 20000,
+                "prev_close": 19900,
+                "chg_pct": 0.503,
+                "source": "Tencent qt.gtimg.cn 2026/10/06 10:00 HKT"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "indices_snapshot": {
+              "HSI": {
+                "name": "HSI",
+                "price": 20000,
+                "prev_close": 19900,
+                "chg_pct": 0.503,
+                "source": "Tencent qt.gtimg.cn 2026/10/06 10:00 HKT"
+              }
+            },
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {
+      "00100": {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 20,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent"
+      }
+    },
+    "indices": "failed",
+    "dry_run": false,
+    "name": "indices-failed",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05T10:00:00+08:00",
+                "lot_size": 20,
+                "volume": 12136215,
+                "day_high": 323.6,
+                "day_low": 290.4,
+                "current_price": 299.6,
+                "current_value": 29960.0,
+                "pnl_abs": -40.0,
+                "pnl_percent": -0.13,
+                "today_change_pct": -4.04,
+                "today_change": -1260.0,
+                "stock_name": "MINIMAX-W",
+                "day_session_date": "2026-10-06T10:00:00+08:00",
+                "data_source": "Tencent Oct 06 10:00 HKT",
+                "day_open": 312
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 0,
+                "pnl_abs": 0,
+                "pnl_percent": 0,
+                "today_change": 0,
+                "today_change_pct": 0
+              }
+            ],
+            "total_cost": 30000,
+            "total_current_value": 29960.0,
+            "total_pnl": -40.0,
+            "total_pnl_percent": -0.13,
+            "today_total_change": -1260.0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 1/1 prices from Tencent gtimg\n  00100 MINIMA  HK$299.600  (-4.04%)  P&L: HK$-40 (-0.1%)\n  ⚠ HK indices snapshot failed (non-fatal): index provider down\n────────────────────────────────────────────────────────────\n  Total:   HK$   29,960  (cost HK$30,000)\n  P&L:     HK$     -40  (-0.1%)\n  Today:   HK$   -1,260\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": [
+            {
+              "ticker": "00100",
+              "shares": 100,
+              "cost_basis": 300,
+              "prev_close": 312.2,
+              "prev_close_date": "2026-10-05",
+              "lot_size": 500,
+              "volume": 38060,
+              "day_high": 323.6,
+              "day_low": 290.4
+            },
+            {
+              "ticker": "CLOSED",
+              "shares": 0,
+              "cost_basis": 10,
+              "current_value": 100,
+              "pnl_abs": 10,
+              "pnl_percent": 10,
+              "today_change": 5,
+              "today_change_pct": 5
+            }
+          ]
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {},
+    "indices": {},
+    "dry_run": false,
+    "name": "missing-quote",
+    "expected": {
+      "returned": null,
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [
+              {
+                "ticker": "00100",
+                "shares": 100,
+                "cost_basis": 300,
+                "prev_close": 312.2,
+                "prev_close_date": "2026-10-05",
+                "lot_size": 500,
+                "volume": 38060,
+                "day_high": 323.6,
+                "day_low": 290.4
+              },
+              {
+                "ticker": "CLOSED",
+                "shares": 0,
+                "cost_basis": 10,
+                "current_value": 100,
+                "pnl_abs": 10,
+                "pnl_percent": 10,
+                "today_change": 5,
+                "today_change_pct": 5
+              }
+            ]
+          }
+        },
+        "last_updated": "old"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: 00100\n════════════════════════════════════════════════════════════\n  Fetched 0/1 prices from Tencent gtimg\n",
+      "stderr": "",
+      "error": "HK quote refresh incomplete: 00100"
+    }
+  },
+  {
+    "now": "2026-10-06T10:00:00+08:00",
+    "portfolio": {
+      "portfolios": {
+        "hk_stocks": {
+          "currency": "HKD",
+          "cash_hkd": 1000,
+          "holdings": []
+        }
+      },
+      "last_updated": "old"
+    },
+    "quotes": {},
+    "indices": {},
+    "dry_run": false,
+    "name": "empty-book",
+    "expected": {
+      "returned": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [],
+            "total_cost": 0,
+            "total_current_value": 0,
+            "total_pnl": 0,
+            "total_pnl_percent": 0,
+            "today_total_change": 0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "written": {
+        "portfolios": {
+          "hk_stocks": {
+            "currency": "HKD",
+            "cash_hkd": 1000,
+            "holdings": [],
+            "total_cost": 0,
+            "total_current_value": 0,
+            "total_pnl": 0,
+            "total_pnl_percent": 0,
+            "today_total_change": 0,
+            "realized_pnl": 0,
+            "realized_note": ""
+          }
+        },
+        "last_updated": "2026/10/06 10:00 HKT"
+      },
+      "stdout": "\n════════════════════════════════════════════════════════════\n  HK Portfolio Price Refresh   2026-10-06 10:00 HKT\n  Holdings: \n════════════════════════════════════════════════════════════\n  Fetched 0/0 prices from Tencent gtimg\n────────────────────────────────────────────────────────────\n  Total:   HK$        0  (cost HK$0)\n\n  Today:   HK$       +0\n  ✅ Saved → <portfolio>\n════════════════════════════════════════════════════════════\n\n",
+      "stderr": "",
+      "error": null
+    }
+  }
+]

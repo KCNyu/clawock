@@ -156,3 +156,51 @@ def test_negative_retention_env_is_rejected_at_import(monkeypatch, tmp_path):
         assert "negative" in str(exc)
     else:
         raise AssertionError("negative retention must abort the module")
+
+
+def test_tmp_gc_expires_only_old_dated_bundles(monkeypatch, tmp_path):
+    import os
+    import time
+
+    _point_dirs(monkeypatch, tmp_path)
+    now = time.time()
+    old = now - (gc.KEEP_TMP_DAYS + 1) * 86400
+    dead = gc.WORKSPACE_TMP / 'brief-context-2026-08-01'
+    fresh_child = gc.WORKSPACE_TMP / 'brief-context-2026-08-02'
+    unknown = gc.WORKSPACE_TMP / 'polygon-prev-close'
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'keep').write_text('valuable')
+    linked = gc.WORKSPACE_TMP / 'brief-context-2026-08-03'
+    linked.symlink_to(outside, target_is_directory=True)
+    nested_link = gc.WORKSPACE_TMP / 'brief-context-2026-08-04'
+    for directory in [dead, fresh_child, unknown, nested_link]:
+        directory.mkdir()
+        (directory / 'core.json').write_text('{}')
+        os.utime(directory / 'core.json', (old, old))
+    (nested_link / 'outside').symlink_to(outside, target_is_directory=True)
+    for directory in [dead, fresh_child, unknown, nested_link, outside]:
+        os.utime(directory, (old, old))
+    (fresh_child / 'reference.json').write_text('new')
+    os.utime(fresh_child, (old, old))
+    assert gc.gc_workspace_tmp(now, True) == (1, 2)
+    assert dead.exists()
+    assert gc.gc_workspace_tmp(now, False) == (1, 2)
+    assert not dead.exists()
+    assert all(p.exists() for p in [fresh_child, unknown, linked, nested_link])
+    assert (outside / 'keep').read_text() == 'valuable'
+
+
+def test_tmp_gc_refuses_a_future_clock(monkeypatch, tmp_path):
+    import time
+
+    _point_dirs(monkeypatch, tmp_path)
+    fresh = gc.WORKSPACE_TMP / 'brief-context-2026-08-01'
+    fresh.mkdir()
+    try:
+        gc.gc_workspace_tmp(time.time() + 86400, False)
+    except ValueError as exc:
+        assert 'future clock' in str(exc)
+    else:
+        raise AssertionError('future clock must be refused')
+    assert fresh.exists()

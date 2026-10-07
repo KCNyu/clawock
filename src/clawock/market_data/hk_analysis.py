@@ -392,168 +392,134 @@ def _hk_prev_close_session(now):
     return trading_calendar.previous_trading_day('hk', _hk_quote_session(now))
 
 
-def update_hk_portfolio(dry_run: bool = False) -> Dict:
-    with open(PORTFOLIO_PATH, encoding='utf-8') as f:
-        data = json.load(f)
-
-    hkt_tz = trading_calendar.HKT
-    now_hkt = datetime.now(hkt_tz)
-    hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
-
-    hk_key, us = region_book(data, 'HK')
-    region_before_fetch = copy.deepcopy(us)
-    active = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
-    codes  = [h['ticker'] for h in active]
+def _hk_active_and_zero_closed(region):
+    active = [h for h in ledger_rows(region['holdings']) if h.get('shares', 0) > 0]
 
     # Zero out snapshot fields on closed positions — refresh skips shares==0
     # holdings, so without this they keep stale cv/pnl from the pre-close run.
-    for h in ledger_rows(us['holdings']):
+    for h in ledger_rows(region['holdings']):
         if h.get('shares', 0) == 0:
             for k in ('current_value', 'pnl_abs', 'pnl_percent',
                       'today_change', 'today_change_pct'):
                 if h.get(k):
                     h[k] = 0
 
-    print(f"\n{'═'*60}")
-    print(f"  HK Portfolio Price Refresh   {now_hkt.strftime('%Y-%m-%d %H:%M HKT')}")
-    print(f"  Holdings: {', '.join(codes)}")
-    print(f"{'═'*60}")
+    return active
 
-    quotes = fetch_hk_quotes(codes)
-    print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
 
-    missing = [code for code in codes if code not in quotes]
-    if missing:
-        # Fail before mutating/persisting the leg: partial totals understate assets.
-        raise RuntimeError('HK quote refresh incomplete: ' + ', '.join(missing))
+def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
+    code = h['ticker']
+    c    = q['c']
+    pc   = q['pc']
+    cost = h['cost_basis']
+    shrs = h['shares']
 
-    # A prior close belongs to the PRIOR HK session, never today. Stamping
-    # today_date here (the old behaviour) produced holdings whose
-    # prev_close_date equalled the session date — an impossible state that also
-    # switched off integrity's STALE_PRICE gate for exactly the rows that needed
-    # it. Align with the US path (us_quotes.py) and use the HK trading calendar.
-    # On a closed day the quote itself is the last completed session's close and
-    # its `pc` the close before that, so fold the closed day back first (the
-    # same two folds as `us_quotes._us_quote_session_date`); one fold alone
-    # stamps the prior close with the quote's own session (#2270).
-    hk_prev_session = _hk_prev_close_session(now_hkt).isoformat()
-    updated, missing, range_warns = [], [], []
+    # A fallback that cannot supply a prior close must not be allowed to
+    # invent one. stooq returns OHLC only, and `_fetch_stooq` fills `pc`
+    # with the session OPEN — writing that through stamps an open as
+    # `prev_close`, dates it to the previous HK session, and prints an
+    # intraday move as the daily change. Every downstream gate then agrees
+    # with it: TODAY_LEG reconciles (it checks arithmetic, not provenance)
+    # and STALE_PRICE stays quiet (an open rarely equals the close). That is
+    # the shape this repository keeps paying for — a degraded fetch that
+    # publishes as a healthy one (#1116).
+    #
+    # The prior close is a stored fact, not something today's quote has to
+    # carry. So the approximation is dropped and the holding's own
+    # `prev_close` is used, keeping its real `prev_close_date`: the day
+    # change then remains arithmetically consistent with what is published
+    # (TODAY_LEG still reconciles) while the date says which session it is
+    # measured from. When that stored close is older than the session we
+    # should be comparing against — or absent entirely — the day change is
+    # not today's, and the holding says so through the same
+    # `quote_incomplete` flag the US path already sets and integrity
+    # already surfaces.
+    approximated_pc = q.get('_pc_quality') == 'open-as-pc'
+    raw_pc = h.get('prev_close')
+    stored_pc = float(raw_pc) if isinstance(raw_pc, (int, float)) and raw_pc > 0 else None
+    if approximated_pc and stored_pc:
+        pc = stored_pc
+        q = dict(q, pc=pc, dp=_pct(c, pc))
 
-    for h in active:
-        code = h['ticker']
-        q = quotes.get(code)
-        if not q:
-            missing.append(code)
-            continue
+    # 越界闸：current 必须落在本次行情自带的当日 [low, high] 内（同一条 gtimg 行，
+    # 同源才有可比性 — 别拿可能陈旧的 h['day_low/high'] 残留值来判）。破位 = 供应商
+    # 坏 tick（如 2026-06-15 03033 现价 4.5 跌破区间 [4.644,4.696]，与同标的 2x 的
+    # 07226 +2.64% 方向相反）。非致命：照常写入但收集告警，刷新结束打印汇总，靠人工
+    # 体检 / dashboard 异常卡兜底（kcn 不要单次 cron 即时推送告警）。
+    lo_q, hi_q = q.get('l'), q.get('h')
+    # 判据搬到 bar_checks（同一套容差、同一套定义），策略仍留在这里：告警不致命。
+    breach = bar_checks.price_outside_quoted_range(c, lo_q, hi_q)
+    if breach:
+        range_warns.append(
+            f"{code} {q.get('name','')[:6]}: current {c} 越出当日区间 "
+            f"[{lo_q}, {hi_q}]（prev_close {pc}，疑似坏 tick — {breach}）")
 
-        c    = q['c']
-        pc   = q['pc']
-        cost = h['cost_basis']
-        shrs = h['shares']
-
-        # A fallback that cannot supply a prior close must not be allowed to
-        # invent one. stooq returns OHLC only, and `_fetch_stooq` fills `pc`
-        # with the session OPEN — writing that through stamps an open as
-        # `prev_close`, dates it to the previous HK session, and prints an
-        # intraday move as the daily change. Every downstream gate then agrees
-        # with it: TODAY_LEG reconciles (it checks arithmetic, not provenance)
-        # and STALE_PRICE stays quiet (an open rarely equals the close). That is
-        # the shape this repository keeps paying for — a degraded fetch that
-        # publishes as a healthy one (#1116).
-        #
-        # The prior close is a stored fact, not something today's quote has to
-        # carry. So the approximation is dropped and the holding's own
-        # `prev_close` is used, keeping its real `prev_close_date`: the day
-        # change then remains arithmetically consistent with what is published
-        # (TODAY_LEG still reconciles) while the date says which session it is
-        # measured from. When that stored close is older than the session we
-        # should be comparing against — or absent entirely — the day change is
-        # not today's, and the holding says so through the same
-        # `quote_incomplete` flag the US path already sets and integrity
-        # already surfaces.
-        approximated_pc = q.get('_pc_quality') == 'open-as-pc'
-        raw_pc = h.get('prev_close')
-        stored_pc = float(raw_pc) if isinstance(raw_pc, (int, float)) and raw_pc > 0 else None
-        if approximated_pc and stored_pc:
-            pc = stored_pc
-            q = dict(q, pc=pc, dp=_pct(c, pc))
-
-        # 越界闸：current 必须落在本次行情自带的当日 [low, high] 内（同一条 gtimg 行，
-        # 同源才有可比性 — 别拿可能陈旧的 h['day_low/high'] 残留值来判）。破位 = 供应商
-        # 坏 tick（如 2026-06-15 03033 现价 4.5 跌破区间 [4.644,4.696]，与同标的 2x 的
-        # 07226 +2.64% 方向相反）。非致命：照常写入但收集告警，刷新结束打印汇总，靠人工
-        # 体检 / dashboard 异常卡兜底（kcn 不要单次 cron 即时推送告警）。
-        lo_q, hi_q = q.get('l'), q.get('h')
-        # 判据搬到 bar_checks（同一套容差、同一套定义），策略仍留在这里：告警不致命。
-        breach = bar_checks.price_outside_quoted_range(c, lo_q, hi_q)
-        if breach:
-            range_warns.append(
-                f"{code} {q.get('name','')[:6]}: current {c} 越出当日区间 "
-                f"[{lo_q}, {hi_q}]（prev_close {pc}，疑似坏 tick — {breach}）")
-
-        h['current_price']    = round(c, 3)
-        h['current_value']    = round(c * shrs, 2)
-        h['pnl_abs']          = round((c - cost) * shrs, 2)
-        h['pnl_percent']      = round((c - cost) / cost * 100, 2) if cost else 0
-        if approximated_pc:
-            # Everything above comes from the price the fallback did give. The
-            # four fields below are the ones that need a prior close.
-            if stored_pc:
-                h['today_change_pct'] = round(q['dp'], 2)
-                h['today_change']     = round((c - pc) * shrs, 2)
-            incomplete = not stored_pc or h.get('prev_close_date') != hk_prev_session
-            if incomplete:
-                h['quote_incomplete'] = True
-            else:
-                h.pop('quote_incomplete', None)
-        else:
-            h['prev_close']       = round(pc, 3)
-            h['prev_close_date']  = hk_prev_session
+    h['current_price']    = round(c, 3)
+    h['current_value']    = round(c * shrs, 2)
+    h['pnl_abs']          = round((c - cost) * shrs, 2)
+    h['pnl_percent']      = round((c - cost) / cost * 100, 2) if cost else 0
+    if approximated_pc:
+        # Everything above comes from the price the fallback did give. The
+        # four fields below are the ones that need a prior close.
+        if stored_pc:
             h['today_change_pct'] = round(q['dp'], 2)
             h['today_change']     = round((c - pc) * shrs, 2)
-            # A healthy fetch clears it; a flag nobody retires is its own defect.
+        incomplete = not stored_pc or h.get('prev_close_date') != hk_prev_session
+        if incomplete:
+            h['quote_incomplete'] = True
+        else:
             h.pop('quote_incomplete', None)
-        if not approximated_pc or stored_pc:
-            quote_day = _hk_quote_session(now_hkt)
-            amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')
-            h['today_change'] = round(amount, 2)
-            # With no new lot, the vendor percentage retains its quote precision.
-            # Same folded session as `day_pnl` and `aggregates`: a fill dated
-            # on a closed day belongs to the session before it (#2630).
-            if any(t.get('action') == 'buy'
-                   and session_date('hk', ledger_date(t.get('date'))) == quote_day.isoformat()
-                   for t in ledger_rows(h.get('trades'))):
-                h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
-        h.pop('today_change_abs', None)
-        h['stock_name']       = q.get('name', h.get('stock_name', code))
-        h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
-        h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
-        # Fallback sources do not consistently expose board lots. Preserve a
-        # prior verified lot when absent, but never invent a one-share HK lot.
-        if q.get('lot_size'):
-            h['lot_size'] = int(q['lot_size'])
-        # Volume: Tencent primary carries traded volume (parts[6]); fallback
-        # sources generally do not. Overwrite when present, else preserve the
-        # prior verified value — never invent a volume.
-        if q.get('volume'):
-            h['volume'] = int(q['volume'])
+    else:
+        h['prev_close']       = round(pc, 3)
+        h['prev_close_date']  = hk_prev_session
+        h['today_change_pct'] = round(q['dp'], 2)
+        h['today_change']     = round((c - pc) * shrs, 2)
+        # A healthy fetch clears it; a flag nobody retires is its own defect.
+        h.pop('quote_incomplete', None)
+    if not approximated_pc or stored_pc:
+        quote_day = _hk_quote_session(now_hkt)
+        amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')
+        h['today_change'] = round(amount, 2)
+        # With no new lot, the vendor percentage retains its quote precision.
+        # Same folded session as `day_pnl` and `aggregates`: a fill dated
+        # on a closed day belongs to the session before it (#2630).
+        if any(t.get('action') == 'buy'
+               and session_date('hk', ledger_date(t.get('date'))) == quote_day.isoformat()
+               for t in ledger_rows(h.get('trades'))):
+            h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
+    h.pop('today_change_abs', None)
+    h['stock_name']       = q.get('name', h.get('stock_name', code))
+    h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
+    h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
+    # Fallback sources do not consistently expose board lots. Preserve a
+    # prior verified lot when absent, but never invent a one-share HK lot.
+    if q.get('lot_size'):
+        h['lot_size'] = int(q['lot_size'])
+    # Volume: Tencent primary carries traded volume (parts[6]); fallback
+    # sources generally do not. Overwrite when present, else preserve the
+    # prior verified value — never invent a volume.
+    if q.get('volume'):
+        h['volume'] = int(q['volume'])
 
-        # 日内区间 — 仅当本次行情带 open/high/low 时覆盖，避免旧交易日残留值
-        # （Tencent 主源有；stooq/yfinance fallback 没有则保持上次真值不写脏数据）
-        if q.get('o'): h['day_open'] = round(q['o'], 3)
-        if q.get('h'): h['day_high'] = round(q['h'], 3)
-        if q.get('l'): h['day_low']  = round(q['l'], 3)
+    # 日内区间 — 仅当本次行情带 open/high/low 时覆盖，避免旧交易日残留值
+    # （Tencent 主源有；stooq/yfinance fallback 没有则保持上次真值不写脏数据）
+    if q.get('o'): h['day_open'] = round(q['o'], 3)
+    if q.get('h'): h['day_high'] = round(q['h'], 3)
+    if q.get('l'): h['day_low']  = round(q['l'], 3)
 
-        updated.append(code)
-        pnl_s = '+' if h['pnl_abs'] >= 0 else ''
-        # 没有可信前收时这一格就是空的，不拿别的数顶上（顶上去的那一刻它就
-        # 和一个真的当日涨跌长得一模一样了）。
-        day = h.get('today_change_pct')
-        day_s = f"{day:+.2f}%" if isinstance(day, (int, float)) else "当日涨跌未知"
-        print(f"  {code} {q.get('name','')[:6]:6s}  HK${c:.3f}  "
-              f"({day_s})  "
-              f"P&L: {pnl_s}HK${h['pnl_abs']:.0f} ({pnl_s}{h['pnl_percent']:.1f}%)")
+    pnl_s = '+' if h['pnl_abs'] >= 0 else ''
+    # 没有可信前收时这一格就是空的，不拿别的数顶上（顶上去的那一刻它就
+    # 和一个真的当日涨跌长得一模一样了）。
+    day = h.get('today_change_pct')
+    day_s = f"{day:+.2f}%" if isinstance(day, (int, float)) else "当日涨跌未知"
+    print(f"  {code} {q.get('name','')[:6]:6s}  HK${c:.3f}  "
+          f"({day_s})  "
+          f"P&L: {pnl_s}HK${h['pnl_abs']:.0f} ({pnl_s}{h['pnl_percent']:.1f}%)")
 
+
+def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
+                        range_warns, missing, dry_run):
+    us = data['portfolios'][hk_key]
     if range_warns:
         print("\n  ⚠️  当日区间越界告警（疑似坏 tick，请核对 / 用同标的 2x 验向）：", file=sys.stderr)
         for w in range_warns:
@@ -618,6 +584,58 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         print(f"  ✅ Saved → {PORTFOLIO_PATH}")
 
     print(f"{'═'*60}\n")
+
+
+def update_hk_portfolio(dry_run: bool = False) -> Dict:
+    with open(PORTFOLIO_PATH, encoding='utf-8') as f:
+        data = json.load(f)
+
+    hkt_tz = trading_calendar.HKT
+    now_hkt = datetime.now(hkt_tz)
+    hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
+
+    hk_key, us = region_book(data, 'HK')
+    region_before_fetch = copy.deepcopy(us)
+    active = _hk_active_and_zero_closed(us)
+    codes = [h['ticker'] for h in active]
+
+    print(f"\n{'═'*60}")
+    print(f"  HK Portfolio Price Refresh   {now_hkt.strftime('%Y-%m-%d %H:%M HKT')}")
+    print(f"  Holdings: {', '.join(codes)}")
+    print(f"{'═'*60}")
+
+    quotes = fetch_hk_quotes(codes)
+    print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
+
+    missing = [code for code in codes if code not in quotes]
+    if missing:
+        # Fail before mutating/persisting the leg: partial totals understate assets.
+        raise RuntimeError('HK quote refresh incomplete: ' + ', '.join(missing))
+
+    # A prior close belongs to the PRIOR HK session, never today. Stamping
+    # today_date here (the old behaviour) produced holdings whose
+    # prev_close_date equalled the session date — an impossible state that also
+    # switched off integrity's STALE_PRICE gate for exactly the rows that needed
+    # it. Align with the US path (us_quotes.py) and use the HK trading calendar.
+    # On a closed day the quote itself is the last completed session's close and
+    # its `pc` the close before that, so fold the closed day back first (the
+    # same two folds as `us_quotes._us_quote_session_date`); one fold alone
+    # stamps the prior close with the quote's own session (#2270).
+    hk_prev_session = _hk_prev_close_session(now_hkt).isoformat()
+    updated, missing, range_warns = [], [], []
+
+    for h in active:
+        code = h['ticker']
+        q = quotes.get(code)
+        if not q:
+            missing.append(code)
+            continue
+
+        _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns)
+        updated.append(code)
+
+    _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
+                        range_warns, missing, dry_run)
     return data
 
 

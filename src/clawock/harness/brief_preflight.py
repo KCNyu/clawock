@@ -1204,6 +1204,8 @@ def fx_rate():
     fx = fetch_fx_rate()
     if 'error' in fx:
         issues.append(f'FX fallback used: {fx["error"][-200:]}')
+    elif fx.get('fallback_used') or fx.get('warning'):
+        issues.append(f'FX fallback used: {fx["source"]}: {fx.get("warning") or "secondary provider"}')
     print(f'   USDHKD = {fx["rate"]}  ({fx["source"]})')
     return fx, issues
 
