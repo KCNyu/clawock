@@ -102,7 +102,7 @@
     <text x="102" y="495" class="code"><tspan fill="#13865f">workflow install</tspan></text>
     <circle cx="56" cy="522" r="11" fill="#e6f4ee"/>
     <text x="56" y="527" class="tag" text-anchor="middle"><tspan fill="#13865f">02</tspan></text>
-    <g class="hero-icon" data-icon="checks" transform="translate(76 512) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="seal" transform="translate(76 512) scale(0.75)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l2 2 3-4M8.5 14L7 22l5-3 5 3-1.5-8"/></g>
     <text x="102" y="527" class="m"><tspan fill="#151a21">Certify</tspan><tspan fill="#8794a1"> · </tspan><tspan fill="#5b6875">pinned input · context hashes</tspan></text>
     <text x="102" y="547" class="code"><tspan fill="#13865f">run prepare</tspan></text>
     <circle cx="56" cy="574" r="11" fill="#e6f4ee"/>
@@ -143,7 +143,7 @@
     <rect class="sheen" x="25" y="944" width="143.333" height="64" rx="13" fill="url(#sheen)"/>
     <path d="M38 944.4H155.333" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
     <path d="M25.5 957V1039" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
-    <g class="hero-icon" data-icon="checks" transform="translate(40 955) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/></g>
+    <g class="hero-icon" data-icon="seal" transform="translate(40 955) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l2 2 3-4M8.5 14L7 22l5-3 5 3-1.5-8"/></g>
     <text x="40" y="1007" class="b"><tspan fill="#151a21">run prepare</tspan></text>
     <text x="40" y="1031" class="m"><tspan fill="#5b6875">→ request.json</tspan></text>
     <path d="M197.333 1052H322.667L330.667 1068H189.333Z" fill="url(#lift)"/>
