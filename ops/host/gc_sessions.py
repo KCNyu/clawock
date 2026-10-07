@@ -11,6 +11,8 @@ This script removes:
   - sessions/*.jsonl (plain)        older than KEEP_SESSION_DAYS
   - sessions/*.json (non-jsonl)     older than KEEP_SESSION_DAYS
   - sessions/bak-* / pre-cleanup-*  older than KEEP_BAK_DAYS
+  - workspace memory/.tmp files and dated brief-context-* bundles older than
+    KEEP_TMP_DAYS (shared cache directories and bundles with fresh entries stay)
   - gateway-supervisor-restart-handoff.json if expired
 
 and trims (does not delete) the workspace's append-only cron logs back to their
@@ -27,6 +29,8 @@ Idempotent + dry-run via --dry-run. Failures non-fatal (prints + exits 0).
 import argparse
 import json
 import os
+import re
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -135,6 +139,42 @@ def gc_files(pattern_predicate, cutoff_ts, label, dry_run, dirpath=None):
                 print(f'  skip {p.name}: {e}', file=sys.stderr)
     print(f'  {label}: {n_files} files, {humansize(n_bytes)}')
     return n_files, n_bytes
+
+
+
+def gc_workspace_tmp(now_ts, dry_run):
+    """Expire scratch files and dated brief bundles; keep shared cache directories.
+
+    A bundle is eligible only when every entry is old. Never follow symlinks
+    or remove an unknown directory (e.g. polygon-prev-close is a shared cache).
+    """
+    if now_ts > time.time() + 60:
+        raise ValueError('gc_workspace_tmp refuses a future clock')
+    cutoff = now_ts - KEEP_TMP_DAYS * 86400
+    total_files, total_bytes = gc_files(
+        lambda n: True, cutoff, f'workspace .tmp (> {KEEP_TMP_DAYS}d)',
+        dry_run, dirpath=WORKSPACE_TMP)
+    if not WORKSPACE_TMP.exists():
+        return total_files, total_bytes
+    for bundle in WORKSPACE_TMP.iterdir():
+        if (bundle.is_symlink() or not bundle.is_dir()
+                or not re.fullmatch(r'brief-context-\d{4}-\d{2}-\d{2}', bundle.name)):
+            continue
+        try:
+            entries = [bundle, *bundle.rglob('*')]
+            if any(p.is_symlink() or p.stat().st_mtime >= cutoff for p in entries):
+                continue
+            files = [p for p in entries if p.is_file()]
+            size = sum(p.stat().st_size for p in files)
+            if not dry_run:
+                shutil.rmtree(bundle)
+        except OSError as exc:
+            print(f'  skip {bundle.name}: {exc}', file=sys.stderr)
+            continue
+        total_files += len(files)
+        total_bytes += size
+        print(f'  brief bundle {bundle.name}: {len(files)} files, {humansize(size)}')
+    return total_files, total_bytes
 
 
 def gc_sessions_dir(now_ts, dry_run, allow_future=False):
@@ -286,17 +326,8 @@ def main():
 
     total_files, total_bytes = gc_sessions_dir(now, args.dry_run)
 
-    # workspace memory/.tmp — preflight contexts / sidecars / scratch PNGs.
-    # Everything here is per-date scratch that builders read by "newest mtime"
-    # or with a max-age guard (load_tmp_sidecar), so anything ≥ KEEP_TMP_DAYS
-    # old is dead weight. Before 2026-06-10 nothing GC'd this dir (231 stale
-    # files incl. ~470KB PNGs after 3 weeks of cron traffic).
-    f, b = gc_files(
-        lambda n: True,
-        now - KEEP_TMP_DAYS * 86400,
-        f'workspace .tmp (> {KEEP_TMP_DAYS}d)', args.dry_run,
-        dirpath=WORKSPACE_TMP,
-    )
+    # The same retention covers nested dated context bundles as well as files.
+    f, b = gc_workspace_tmp(now, args.dry_run)
     total_files += f
     total_bytes += b
 
