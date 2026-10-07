@@ -218,7 +218,8 @@ jobs:
       # second checkout: smoke-data-fetch skips unless code changed.
       code: ${{ steps.changes.outputs.code }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Cold browser setup plus the full test/coverage lane exceeded 10 minutes.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
