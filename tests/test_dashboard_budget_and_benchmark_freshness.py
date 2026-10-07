@@ -133,13 +133,19 @@ def test_a_writer_that_publishes_no_freshness_block_is_itself_the_warning(
     assert "freshness" in message
 
 
-def test_the_writer_publishes_the_block(system_check):
+def test_the_writer_publishes_the_block(system_check, monkeypatch):
+    from datetime import date
+    from clawock import sessions
+
+    # Measure the incident's two-session gap, not the wall clock: after 30
+    # sessions the writer deliberately returns an unknown lag for old input.
+    monkeypatch.setattr(sessions, 'latest_completed_session', lambda market: date(2026, 8, 25))
     benchmarks = pytest.importorskip("clawock.market_data.benchmarks")
     rows = benchmarks._freshness({"SPY": [{"date": "2026-08-21", "close": 1.0}]})
     assert rows["SPY"]["market"] == "us"
     assert rows["SPY"]["last_session"] == "2026-08-21"
     assert rows["SPY"]["expected_lag_sessions"] == 1
-    assert isinstance(rows["SPY"]["sessions_behind"], int)
+    assert rows["SPY"]["sessions_behind"] == 2
 
 
 # ── the cap was a tripwire, not a gate (#1215) ──────────────────────────────
