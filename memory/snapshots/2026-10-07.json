@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/10/07 12:03 HKT",
+  "last_updated": "2026/10/07 13:33 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -1121,18 +1121,18 @@
           "ticker_finnhub": "0100.HK",
           "shares": 140,
           "cost_basis": 508.4714285714286,
-          "current_price": 236.2,
-          "current_value": 33068.0,
-          "pnl_percent": -53.55,
-          "data_source": "Tencent Oct 07 12:03 HKT",
-          "today_change": -1820.0,
-          "today_change_pct": -5.22,
-          "pnl_abs": -38118.0,
+          "current_price": 235.4,
+          "current_value": 32956.0,
+          "pnl_percent": -53.7,
+          "data_source": "Tencent Oct 07 13:33 HKT",
+          "today_change": -1932.0,
+          "today_change_pct": -5.54,
+          "pnl_abs": -38230.0,
           "day_open": 249.2,
           "day_high": 249.2,
           "day_low": 232.6,
           "prev_close": 249.2,
-          "volume": 1339055,
+          "volume": 1423855,
           "lot_size": 20,
           "note": "2026-04-16 买入 20 股,2026-04-24 869 加仓 20 股,2026-04-27 700 加仓 20 股,2026-07-09 360 T+0加仓20股(解禁日回踩),2026-07-10 260 加仓20股(解禁二次探底),2026-09-16 240.8 加仓20股,做 MiniMax 短线仓",
           "trades": [
@@ -1197,18 +1197,18 @@
           "ticker_finnhub": "2208.HK",
           "shares": 400,
           "cost_basis": 14.084,
-          "current_price": 8.605,
-          "current_value": 3442.0,
-          "pnl_percent": -38.9,
-          "data_source": "Tencent Oct 07 12:03 HKT",
-          "today_change": -86.0,
-          "today_change_pct": -2.44,
-          "pnl_abs": -2191.6,
+          "current_price": 8.635,
+          "current_value": 3454.0,
+          "pnl_percent": -38.69,
+          "data_source": "Tencent Oct 07 13:33 HKT",
+          "today_change": -74.0,
+          "today_change_pct": -2.1,
+          "pnl_abs": -2179.6,
           "day_open": 8.82,
           "day_high": 8.82,
           "day_low": 8.52,
           "prev_close": 8.82,
-          "volume": 1938800,
+          "volume": 2197400,
           "trades": [
             {
               "date": "2025-12-23",
@@ -1244,18 +1244,18 @@
           "ticker_finnhub": "3032.HK",
           "shares": 200,
           "cost_basis": 5.405,
-          "current_price": 4.186,
-          "current_value": 837.2,
-          "pnl_percent": -22.55,
-          "data_source": "Tencent Oct 07 12:03 HKT",
-          "today_change": -6.0,
-          "today_change_pct": -0.71,
-          "pnl_abs": -243.8,
+          "current_price": 4.182,
+          "current_value": 836.4,
+          "pnl_percent": -22.63,
+          "data_source": "Tencent Oct 07 13:33 HKT",
+          "today_change": -6.8,
+          "today_change_pct": -0.81,
+          "pnl_abs": -244.6,
           "day_open": 4.214,
           "day_high": 4.218,
           "day_low": 4.154,
           "prev_close": 4.216,
-          "volume": 7291625,
+          "volume": 9455445,
           "turnover": 13722674.0,
           "prev_close_date": "2026-10-06",
           "stock_name": "恒生科技ETF",
@@ -1268,10 +1268,10 @@
           "ticker_finnhub": "7226.HK",
           "shares": 7200,
           "cost_basis": 4.1175,
-          "current_price": 2.648,
-          "current_value": 19065.6,
-          "pnl_percent": -35.69,
-          "data_source": "Tencent Oct 07 12:03 HKT",
+          "current_price": 2.644,
+          "current_value": 19036.8,
+          "pnl_percent": -35.79,
+          "data_source": "Tencent Oct 07 13:33 HKT",
           "trades": [
             {
               "date": "2025-12-23",
@@ -1300,14 +1300,14 @@
               "note": "加仓1000股@2.594(kcn 口头确认 2026-10-02 10:38 HKT)"
             }
           ],
-          "today_change": -288.0,
-          "today_change_pct": -1.49,
-          "pnl_abs": -10580.4,
+          "today_change": -316.8,
+          "today_change_pct": -1.64,
+          "pnl_abs": -10609.2,
           "day_open": 2.666,
           "day_high": 2.694,
           "day_low": 2.61,
           "prev_close": 2.688,
-          "volume": 103812320,
+          "volume": 107213320,
           "turnover": 45110333.4,
           "prev_close_date": "2026-10-06",
           "stock_name": "南方2倍做多恒科",
@@ -1320,18 +1320,18 @@
           "ticker_finnhub": "3033.HK",
           "shares": 1000,
           "cost_basis": 5.14,
-          "current_price": 4.104,
-          "current_value": 4104.0,
-          "pnl_percent": -20.16,
-          "data_source": "Tencent Oct 07 12:03 HKT",
-          "today_change": -36.0,
-          "today_change_pct": -0.87,
-          "pnl_abs": -1036.0,
+          "current_price": 4.102,
+          "current_value": 4102.0,
+          "pnl_percent": -20.19,
+          "data_source": "Tencent Oct 07 13:33 HKT",
+          "today_change": -38.0,
+          "today_change_pct": -0.92,
+          "pnl_abs": -1038.0,
           "day_open": 4.122,
           "day_high": 4.142,
           "day_low": 4.074,
           "prev_close": 4.14,
-          "volume": 379612214,
+          "volume": 482225814,
           "turnover": 126176969.0,
           "prev_close_date": "2026-10-06",
           "stock_name": "南方恒生科技",
@@ -1514,7 +1514,7 @@
         }
       ],
       "total_cost": 112686.6,
-      "total_current_value": 60516.8,
+      "total_current_value": 60385.2,
       "cash_hkd": 10187.0,
       "cash_reconciled": 34597,
       "cash_reconciled_date": "2026-07-07",
@@ -1527,27 +1527,27 @@
         }
       ],
       "cash_hkd_note": "港股现金余额(HKD)。权威值改为从 cash_reconciled 基线派生(见 cash_reconciled_note),此字段仅供展示。真实总资产 = total_current_value + cash_hkd。",
-      "total_pnl": -52169.8,
-      "total_pnl_percent": -46.3,
+      "total_pnl": -52301.4,
+      "total_pnl_percent": -46.41,
       "realized_pnl": 7259.16,
       "realized_note": "07709 100股@33.14(+144.86) + 07709 100股@34.2(+250.86) + 07747 100股@85(+315) + 07709 100股@33.5(+243.38) + 07709 100股@31.76(+226.7) + 07747 100股@83.58(+173) + 07709 100股@31.5(+196.52) + 07709 100股@36(+646.52) + 07709 100股@36.02(+648.52) + 07709 100股@38.7(+916.52) + 07709 400股@36.98(+2978.08) + 02208 200股@16.68(+519.2)",
-      "today_total_change": -2236.0,
+      "today_total_change": -2367.6,
       "last_updated": "2026/06/18 16:00 HKT (close; Jun 19 休市)",
       "last_close_attempted": "2026/05/11 16:00 HKT",
       "indices_snapshot": {
         "HSI": {
           "name": "恒生指数",
-          "price": 24151.9,
+          "price": 24136.07,
           "prev_close": 24280.56,
-          "chg_pct": -0.53,
-          "source": "Tencent qt.gtimg.cn 2026/10/07 12:03 HKT"
+          "chg_pct": -0.6,
+          "source": "Tencent qt.gtimg.cn 2026/10/07 13:33 HKT"
         },
         "HSTECH": {
           "name": "恒生科技",
-          "price": 4184.74,
+          "price": 4182.81,
           "prev_close": 4223.08,
-          "chg_pct": -0.91,
-          "source": "Tencent qt.gtimg.cn 2026/10/07 12:03 HKT"
+          "chg_pct": -0.95,
+          "source": "Tencent qt.gtimg.cn 2026/10/07 13:33 HKT"
         }
       },
       "last_midday_attempted": "2026-05-07 12:00:00 HKT",
@@ -1559,14 +1559,14 @@
   },
   "market_context": {},
   "gold_dca": {
+    "principal_invested": 17299.0,
+    "fund_code": "000217",
     "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "fund_name": "华安黄金ETF联接C",
-    "fund_code": "000217",
+    "units_held": 4854.55,
+    "currency": "CNY",
     "start_date": "2026-01-22",
     "reconciled_date": "2026-06-09",
-    "currency": "CNY",
-    "principal_invested": 17299.0,
-    "units_held": 4854.55,
     "daily_amount": 200,
     "nav": 3.0478,
     "nav_date": "2026-09-30",
@@ -2191,7 +2191,7 @@
         3.0478
       ]
     ],
-    "last_updated": "2026-10-06T15:50:27.536053Z",
+    "last_updated": "2026-10-07T05:25:29.386692Z",
     "domestic_gold": {
       "symbol": "Au99.99",
       "price_cny_g": 907.32,
@@ -2202,23 +2202,23 @@
       "change_pct": 1.09,
       "weighted_avg_cny_g": 903.69,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-10-06T15:50:23.041966Z",
+      "fetched_at": "2026-10-07T05:25:24.187931Z",
       "breakeven_cny_g": 990.05,
       "breakeven_upside_pct": 9.12,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 4168.29,
-      "xau_change_pct": 0.68,
-      "xau_high": 4179.49,
-      "xau_low": 4105.17,
-      "xau_prev_close": 4140.28,
-      "xau_date": "2026-10-06",
+      "xau_usd": 4132.66,
+      "xau_change_pct": -0.75,
+      "xau_high": 4169.79,
+      "xau_low": 4131.25,
+      "xau_prev_close": 4163.78,
+      "xau_date": "2026-10-07",
       "usdcny": 6.7046,
-      "oz_equiv": 1.085,
-      "grams_equiv": 33.8,
+      "oz_equiv": 1.095,
+      "grams_equiv": 34.1,
       "intl_value_usd": 4524.19,
-      "fund_breakeven_usd_oz": 4548.36,
+      "fund_breakeven_usd_oz": 4509.48,
       "fund_breakeven_upside_pct": 9.12,
       "compare_series": [
         [
@@ -2678,44 +2678,44 @@
         "grams_held": 29.2,
         "avg_cost_usd_oz": 4399.99,
         "avg_cost_cny_g": 959.66,
-        "spot_usd_oz": 4168.29,
-        "breakeven_upside_pct": 5.56,
-        "current_value_cny": 26215.74,
-        "pnl_abs": -1784.26,
-        "pnl_pct": -6.37,
+        "spot_usd_oz": 4132.66,
+        "breakeven_upside_pct": 6.47,
+        "current_value_cny": 25991.65,
+        "pnl_abs": -2008.35,
+        "pnl_pct": -7.17,
         "days": 140,
-        "daily_grams": 0.223,
+        "daily_grams": 0.225,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4369.32,
-            "breakeven_upside_pct": 4.82
+            "avg_cost_usd_oz": 4364.34,
+            "breakeven_upside_pct": 5.61
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4345.82,
-            "breakeven_upside_pct": 4.26
+            "avg_cost_usd_oz": 4337.07,
+            "breakeven_upside_pct": 4.95
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4327.24,
-            "breakeven_upside_pct": 3.81
+            "avg_cost_usd_oz": 4315.55,
+            "breakeven_upside_pct": 4.43
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4289.25,
-            "breakeven_upside_pct": 2.9
+            "avg_cost_usd_oz": 4271.65,
+            "breakeven_upside_pct": 3.36
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4247.99,
-            "breakeven_upside_pct": 1.91
+            "avg_cost_usd_oz": 4224.1,
+            "breakeven_upside_pct": 2.21
           }
         ]
       },
       "hist_source": {
         "name": "sina_global_futures_xau",
-        "points": 183
+        "points": 184
       },
       "hist_series": [
         [
@@ -3332,7 +3332,11 @@
         ],
         [
           "2026-10-06",
-          4166.6
+          4163.78
+        ],
+        [
+          "2026-10-07",
+          4132.56
         ]
       ],
       "fx_hist_source": {
@@ -3950,7 +3954,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-10-06T15:50:27.536819Z"
+      "last_updated": "2026-10-07T05:25:29.387407Z"
     }
   }
 }
