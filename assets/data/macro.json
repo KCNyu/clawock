@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T23:20:20.675648+00:00",
+  "generated_at": "2026-10-07T01:01:03.908735+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 15.01,
@@ -19,34 +19,34 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.845,
+    "price": 101.943,
     "prev": 101.833,
-    "change_pct": 0.01,
+    "change_pct": 0.11,
     "source": "yahoo",
-    "as_of": 1791324296
+    "as_of": 1791334263
   },
   "fear_greed": {
     "score": 47.4,
     "rating": "neutral",
     "prev_close": 43.0,
     "prev_1_week": 28.9,
-    "as_of": "2026-10-06T23:03:59+00:00"
+    "as_of": "2026-10-06T23:59:49+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
     "price": 24280.56,
-    "prev": 24040.34,
-    "change_pct": 1.0,
+    "prev": 24280.56,
+    "change_pct": null,
     "source": "tencent",
-    "as_of": "2026-10-06"
+    "as_of": "2026-10-07"
   },
   "hstech": {
     "symbol": "^HSTECH",
     "price": 4223.08,
-    "prev": 4183.68,
-    "change_pct": 0.94,
+    "prev": 4223.08,
+    "change_pct": null,
     "source": "tencent",
-    "as_of": "2026-10-06"
+    "as_of": "2026-10-07"
   },
   "spx": {
     "symbol": "^GSPC",
