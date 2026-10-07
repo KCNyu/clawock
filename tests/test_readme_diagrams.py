@@ -262,3 +262,68 @@ def test_peer_nodes_do_not_touch_or_overlap():
                 assert dy >= 5.99, (name, a, b, 'vertical gap', dy)
             elif dy < 0:
                 assert dx >= 5.99, (name, a, b, 'horizontal gap', dx)
+
+
+def _text_crowding(builder, root, clear=8.0):
+    """(label, what it crowds, gap) wherever set text shares a line with something too near.
+
+    A label is boxed with the builder's advances at full pad, wider than any face
+    in the stack draws it. What it may crowd: another label, any rect (a card, a
+    chip, a tag pill, a legend swatch) and any inlined mark. A box that wholly
+    contains the label is its own container, not a neighbour.
+    """
+    texts, shapes = [], []
+    for el, dx, dy in _placed(root, 'text'):
+        label, cls = ''.join(el.itertext()), el.attrib.get('class', 'b')
+        # Rotated margin notes and the lettering inside a wordmark tile are not set text.
+        if 'transform' in el.attrib or 'style' in el.attrib or not label.strip():
+            continue
+        size, _, advance = builder.TYPE[cls]
+        w = len(label) * size * advance
+        x = float(el.attrib['x']) + dx - {'middle': w / 2, 'end': w}.get(el.attrib.get('text-anchor'), 0)
+        y = float(el.attrib['y']) + dy
+        texts.append((label, x, y - size * .72, x + w, y + size * .2))
+    for tag in ('rect', 'svg', 'image'):
+        for el, dx, dy in _placed(root, tag):
+            if 'transform' in el.attrib or el.attrib.get('class', '').split()[-1:] in (['sweep'], ['sheen']):
+                continue
+            x, y, w, h = (float(el.attrib.get(k, 0)) for k in ('x', 'y', 'width', 'height'))
+            shapes.append((f'{tag} {w:g}x{h:g} at {x + dx:g},{y + dy:g}', x + dx, y + dy, x + dx + w, y + dy + h))
+    found = []
+    for i, a in enumerate(texts):
+        for b in texts[i + 1:] + shapes:
+            if b[1] <= a[1] and b[2] <= a[2] and b[3] >= a[3] and b[4] >= a[4]:
+                continue
+            if min(a[4], b[4]) - max(a[2], b[2]) <= 0:
+                continue                   # not on the same line: stacked rows are leading, not crowding
+            gap = max(a[1], b[1]) - min(a[3], b[3])
+            # A swatch or bullet belongs to the label it sits beside.
+            if gap < (5.0 if b[3] - b[1] <= 12 and b[4] - b[2] <= 12 else clear):
+                found.append((a[0], b[0], round(gap, 1)))
+    return found
+
+
+def test_no_label_crowds_what_shares_its_line():
+    """Words that run into the pill, chip or words beside them read as one smear.
+
+    The box gate above sees rects of node size only, so a heading could grow into
+    the tag on its own baseline unnoticed: "You decide" stood 2 units from HUMAN.
+    Labels set side by side on purpose pass by keeping the same clearance.
+    """
+    builder = _builder()
+    for name in builder.DIAGRAMS:
+        root = ET.parse(ROOT / 'site/assets' / name).getroot()
+        assert len(list(_placed(root, 'text'))) > 30, f'{name}: did the walk break?'
+        assert not _text_crowding(builder, root), name
+    d = builder.D('probe', 'a heading against its tag, two labels run together, one label out of its chip')
+    d.card(40, 40, 200, 120, 'warm')
+    d.text(60, 72, 'You decide', 'h')
+    d.tag(224, 70, 'HUMAN', 'warm', anchor='end')
+    d.text(60, 110, 'HK session', 'm')
+    d.text(130, 112, 'Bull', 'h')
+    d.chip(300, 40, 80, 'a label wider than its chip')
+    d.text(60, 128, 'Stacked rows', 'm')
+    d.text(60, 149, 'in one card are fine', 'm')
+    builder.WARN.clear()                   # the chip's own fits() warning is the builder's, not this gate's
+    crowded = {(a, b.split()[0]) for a, b, _ in _text_crowding(builder, ET.fromstring(d.render(200)))}
+    assert crowded == {('You decide', 'rect'), ('HK session', 'Bull'), ('a label wider than its chip', 'rect')}

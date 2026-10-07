@@ -1583,7 +1583,7 @@ def rsi_loop():
     c_bottom = y + ch
     y = c_bottom + 48
     dh = 208
-    w1, w2 = 292, 200
+    w1, w2 = 292, 224
     x2 = M + w1 + gap
     x3 = x2 + w2 + gap
     w3 = M + full - x3
@@ -1601,7 +1601,8 @@ def rsi_loop():
     d.section(y - 12, '06 · YOUR CALL', x=x2)
     d.card(x2, y, w2, dh, 'warm', tint=True)
     d.text(x2 + 20, y + 32, 'You decide', 'h')
-    d.tag(x2 + w2 - 16, y + 30, 'HUMAN', 'warm', anchor='end')
+    fits('You decide', 'h', w2 - 46 - d.tag(x2 + w2 - 16, y + 30, 'HUMAN', 'warm', anchor='end'),
+         'your call')
     d.lines(x2 + 20, top + 6, w2 - 36, ['You place orders.', 'You mark each call',
                                         'followed or not.'], cls='m', lh=24, where='you')
     d.chip(x2 + 16, y + dh - 46, w2 - 32, 'mark-followed', cls='code', fill=ROLE['warm'])
@@ -1657,7 +1658,7 @@ def rsi_loop():
         d.text(mid, cy + 18, cadence, 'm', anchor='middle', fill=MUT)
         for row, edge, names in ((out, ty, (0, 1)), (back, ty + th, (1, 0))):
             for (name, body), slot in zip(row, names):
-                xx = x0 + s * (101 + slot * 174)
+                xx = x0 + s * (97 + slot * 184)
                 d.add(f'<circle cx="{xx:g}" cy="{edge:g}" r="6.5" fill="{ROLE["violet"]}" stroke="#ffffff" '
                       f'stroke-width="2"/>')
                 base = edge - 50 if edge == ty else edge + 28
@@ -1665,7 +1666,7 @@ def rsi_loop():
                 fits(name, 'b', 170, 'loop station')
                 for j, line in enumerate(body):
                     d.text(xx, base + 20 + j * 20, line, 'm', anchor='middle', fill=MUT)
-                    fits(line, 'm', 178, 'loop station body')
+                    fits(line, 'm', 176, 'loop station body')
         # Which way round: one chevron on the outbound edge, one on the way back.
         for xx, edge, way in ((mid, ty, s), (mid, ty + th, -s)):
             d.add(f'<path d="M{xx - way * 4:g} {edge - 5:g}L{xx + way * 3:g} {edge:g}L{xx - way * 4:g} {edge + 5:g}" '
