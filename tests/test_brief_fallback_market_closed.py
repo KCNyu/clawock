@@ -23,7 +23,7 @@ SENTINEL = {'status': 'market_closed', 'date': TODAY,
 @pytest.fixture
 def workspace(tmp_path, monkeypatch):
     (tmp_path / 'memory' / '.tmp').mkdir(parents=True)
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setenv('TODAY', TODAY)
     return tmp_path
 
@@ -44,7 +44,7 @@ def test_manual_fallback_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
     (tmp_path / 'memory' / '.tmp').mkdir(parents=True)
     (tmp_path / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(
         json.dumps(SENTINEL, ensure_ascii=False))
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.delenv('TODAY', raising=False)
     monkeypatch.setattr(brief_fallback.sessions, 'hkt_today',
                         lambda: date.fromisoformat(TODAY))

@@ -13,13 +13,13 @@ import os
 import re
 import sys
 from copy import deepcopy
-from pathlib import Path
 
 from clawock import sessions
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import escape_raw_html, validate_sections
 from clawock.decision import ledger as decision_v2
 from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.workspace import workspace_root
 
 # Output budget for the single-turn brief. Thinking is enabled, and _call_provider
 # takes its reasoning budget out of this same allowance, so the usable prose budget is
@@ -282,9 +282,11 @@ def build_system_prompt(soul: str, bootstrap: str) -> str:
 
 def main():
     today = (os.environ.get('TODAY') or sessions.hkt_today().isoformat()).strip()
-    ctx_path = Path(f'memory/.tmp/brief-context-{today}.json')
+    root = workspace_root()
+    context_relative = f'memory/.tmp/brief-context-{today}.json'
+    ctx_path = root / context_relative
     if not ctx_path.exists():
-        print(f'FATAL: no preflight context at {ctx_path}', file=sys.stderr)
+        print(f'FATAL: no preflight context at {context_relative}', file=sys.stderr)
         sys.exit(1)
     # A closed-market sentinel is not an incomplete context — it is a context
     # that says nothing was due. Falling through would hand `fail_closed_artifacts`
@@ -296,7 +298,7 @@ def main():
     raw_ctx = ctx_path.read_text()
     try:
         if json.loads(raw_ctx).get('status') == 'market_closed':
-            print(f'  skip: {ctx_path} is a market_closed sentinel — no brief was due')
+            print(f'  skip: {context_relative} is a market_closed sentinel — no brief was due')
             return
     except (ValueError, AttributeError):
         pass  # malformed context is prepare_context's problem, not this gate's
@@ -304,15 +306,15 @@ def main():
     prepared = prepare_context(raw_ctx)
     if not prepared['complete']:
         md, plan = fail_closed_artifacts(today, prepared)
-        safe_write_text(f'memory/{today}-pre-open.md', md)
-        safe_write_json(f'memory/{today}-plan.json', plan)
+        safe_write_text(root / 'memory' / f'{today}-pre-open.md', md)
+        safe_write_json(root / 'memory' / f'{today}-plan.json', plan)
         print('  fail-closed: required context incomplete; wrote zero-action artifacts')
         return
     context = prepared['serialized']
 
-    skill = Path('skills/daily-deep-brief/SKILL.md').read_text()
-    soul = Path('SOUL.md').read_text()
-    bootstrap = Path('BOOTSTRAP.md').read_text()
+    skill = (root / 'skills/daily-deep-brief/SKILL.md').read_text()
+    soul = (root / 'SOUL.md').read_text()
+    bootstrap = (root / 'BOOTSTRAP.md').read_text()
 
     system = build_system_prompt(soul, bootstrap)
     user = (
@@ -393,8 +395,8 @@ def main():
                       required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)
     # Atomic (#1493): a truncated pre-open.md still trips the workflow's skip gate,
     # and a half-written plan.json would be committed by the publish sweep.
-    safe_write_text(f'memory/{today}-pre-open.md', md_with_fm)
-    safe_write_json(f'memory/{today}-plan.json', plan)
+    safe_write_text(root / 'memory' / f'{today}-pre-open.md', md_with_fm)
+    safe_write_json(root / 'memory' / f'{today}-plan.json', plan)
     print(f'  wrote pre-open.md + plan.json ({len(plan.get("decisions", []))} decisions)')
 
 
