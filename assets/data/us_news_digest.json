@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T18:42:15.897872+00:00",
+  "generated_at": "2026-10-07T19:09:04.029980+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**：Morgan Stanley 重申 300 美元目标价，Goldman 因 AI 基础设施变现前景转乐观；SPCX 三日累涨 20%、一周涨 17%。  \n  **对 kcn：** 持有 **SPCH（2x SPCX）**，分析师重估将放大净值弹性，但当前催化偏估值与情绪，2x 也会放大回撤。\n- **RKLB**：NASA 正准备批量采购发射服务以支持月球基地计划，潜在订单成为近期最强公司级催化。  \n  **对 kcn：** 持有 **RKLX（2x RKLB）**，订单落地可同时推升基本面预期和杠杆净值，但目前仅处于“临近公布”阶段。\n- **SPCX**：Musk 称今年约 90% 收入来自商业业务，并预计第四季度政府收入占比低于 5%。  \n  **对 kcn：** **SPCH（2x SPCX）** 将放大收入结构去政府依赖的重估，但该表态并非正式财务指引。\n- **RKLB**：SpaceX 停止销售 2028 年后的新 Falcon 9 拼车任务，可能形成中型发射供给缺口。  \n  **对 kcn：** **RKLX（2x RKLB）** 获得长期可选性催化，但兑现依赖 Neutron 按期交付，短期订单贡献尚未确立。\n- **CRCL**：OKX 与 ICE 计划推出 24/7 代币化美股交易；与此同时，新稳定币 OUSD 上线并直接挑战 Circle、Tether。  \n  **对 kcn：** 对 CRCL 持仓构成“代币化赛道验证＋稳定币竞争加剧”的混合信号，暂无 Circle 收入或订单确认。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**：代币化交易基础设施继续扩张，但 OUSD 进入市场，短期行业利好与份额竞争并存。\n- **RKLB**：NASA 潜在批量采购是最重要催化；Falcon 9 退出构成 Neutron 的长期机会，RKLX 的 2x 将放大订单及执行波动。\n- **SPCX**：投行上调预期叠加商业收入占比表态支持重估，SPCH 的 2x 放大近期涨势及估值回撤风险。\n\n### 风险 watch (若有)\n- **RKLB**：NASA 采购尚未正式披露，金额、供应商及时间表未确认；Neutron 延期或性能不及预期会放大 RKLX 波动。\n- **SPCX**：收入结构数据来自 Musk 表态而非正式 guidance，且近期涨幅主要由分析师目标驱动，SPCH 存在快速反转风险。\n- **CRCL**：OUSD 构成直接产品竞争；银行团体起诉 OCC 加密信托牌照框架虽未点名 Circle，但增加行业监管不确定性。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX** — **Fact:** 多篇报道重复称 SpaceX/SPCX 拟融资 **$40B** 购买 Nvidia AI 芯片；若落实将支持算力扩张，但目前仍是 reported/may，融资结构与确定性未确认。  \n  **Implication（kcn）:** 通过 **SPCH（2x）** 持有，2x 会同时放大算力叙事的上行与融资、杠杆风险；确认前不把计划金额计入收入。\n- **RKLB** — **Fact:** Seeking Alpha 称 RKLB 终止 **$3.6B bridge loan**、未实际借款，Iridium 交易据称已获得全额资金；融资执行悬念下降，EBITDA 增厚仍待兑现。  \n  **Implication（kcn）:** 通过 **RKLX（2x）** 持有，2x 会放大交易重估的上行，也会放大 Neutron 延迟或整合不及预期的回撤。\n- **CRCL** — **Fact:** Tereina 与 Circle 合作，将 **USDC/EURC** 接入其企业支付基础设施，扩展稳定币分发与支付入口。  \n  **Implication:** 对 CRCL 仓位构成温和 adoption 利好，但未披露合同金额、上线时间或收入分成，暂不足以支持盈利上修。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: Tereina 合作为主要商业化催化；Circle 参与 OKX **$25B** 估值 extension round 属于次级生态验证，未披露对 CRCL 的直接经济收益。\n- **RKLB**: Iridium 交易全额 funding、取消桥接贷款是核心正面事件；评论稿同时指出公司仍亏损且 Neutron 尚未飞行，叠加航天板块抛售，波动风险仍高。\n- **SPCX**: 核心新闻是据称融资 **$40B** 采购 AI 芯片；重复报道均未提供已确认的融资条款或完成时间。\n\n### 风险 watch (若有)\n- **SPCX / SPCH**: **$40B 融资仍属报道/传闻**；若采用债务或大规模股权融资，可能带来杠杆、稀释及资本开支执行风险，SPCH 的 2x 会放大相关波动。\n- **RKLB / RKLX**: 盈利依赖 Neutron 成功 flies 及其他执行里程碑；当前亏损、未飞行状态和 Iridium 整合风险均可能触发 RKLX 放大回撤。\n- **CRCL**: “post-CLARITY deregulation”仅出现在行业评论中，本批新闻没有已落地监管决定或 financial guidance；合作项目的商业化与政策敏感度仍未量化。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "OKX and ICE Plan 24/7 Trading for Tokenized U.S. Stocks",
-        "datetime": 1791223260,
-        "source": "Yahoo",
+        "headline": "NODE Monthly Commentary: September 2026",
+        "datetime": 1791364200,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=37631e2d2b7c068be1530b46a20dc41aa0568f703ccca87cf0859f6c90de1d0d"
+        "url": "https://finnhub.io/api/news?id=c86e6dd9ba2c5c13f586f8863bb0dca37790234fcca403ac3418c8973994619a"
       },
       {
-        "headline": "Strategy buys 334 more bitcoin and $176M of STRC stock",
-        "datetime": 1791216701,
-        "source": "Yahoo",
+        "headline": "Tereina, Circle Internet Group Collaborate To Integrate USDC, EURC Into Tereina’s Payments Infrastructure",
+        "datetime": 1791360385,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f408f261dddcd6b74e368e7b670d60de7468bf662c798403a2c44a48efe18fba"
+        "url": "https://finnhub.io/api/news?id=3bee2981e6d5ae14afefb62678fcad2ffe39171efb4e495421781ff0bfb07305"
       },
       {
-        "headline": "New Stablecoin Open USD (OUSD) Goes Live With Plans to Take on Circle and Tether. Here's What Crypto Investors Need to Know.",
-        "datetime": 1791207720,
+        "headline": "Tracking Stablecoin Supply, Circulation",
+        "datetime": 1791315958,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=30334cad5e4bb6fb82a93297ccef2a8ac4dbeaf7c8efa2c642ab7eca9c284f40"
+        "url": "https://finnhub.io/api/news?id=9c4bdda8bc0409ae77abed02c1b9d2cbcf2c8f49b4c01aca236fc209a303ff5e"
       },
       {
-        "headline": "Banks Sue Over Crypto Charters as Tom Lee Backs $10K ETH, Citi Eyes $150K Bitcoin",
-        "datetime": 1791198735,
+        "headline": "OKX maintains $25B valuation in extension round - Bloomberg",
+        "datetime": 1791296401,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c8b1043374ccf8989bca9e271cc5b8aafa24c9e4c8a9e08b009c1198a775ecf7"
+        "url": "https://finnhub.io/api/news?id=842127342c70a06b4fb15afa1efa44deba1aeba1959472e8c9a346fe7563a73a"
       },
       {
-        "headline": "MSTR, COIN, CRCL, BMNR Stocks Rally With Bitcoin Within $500 Of September Peak",
-        "datetime": 1791198250,
+        "headline": "Applied Digital to Post Q1 Earnings: Is It Time to Hold or Fold?",
+        "datetime": 1791296400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5d0cd4ec4e84fa0aa2df6decd1486f3d636e7641d46609293d5897b5f21b3a4f"
+        "url": "https://finnhub.io/api/news?id=2344189f982a35886bbcecca3523d20c5a05ebb57d69d642bcc6372854beb571"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Stock Pops Tuesday: What's Going On?",
-        "datetime": 1791298672,
+        "headline": "Intuitive Machines Falls 7% Despite Scaling Up Satellite Manufacturing; Rocket Lab and Redwire Drop 5%",
+        "datetime": 1791395654,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=03e2817be320773ed173d2001c4b9abf13c89589c6f8d2389f983630dc198a72"
+        "url": "https://finnhub.io/api/news?id=025b1b937c93e369ab0a44f5485a9f2720bb90ac0c2b152ff6efd4bf1b68bf9a"
       },
       {
-        "headline": "SpaceX Gains 2% as Morgan Stanley Sees a Closing Window; AST SpaceMobile Surges 8%, Rocket Lab Rises 5%",
-        "datetime": 1791298421,
+        "headline": "Should You Sell Your RKLB Stock Now, Before Neutron Flies?",
+        "datetime": 1791388179,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=95932a4e727a2d75334bc9682481ebb29041a96cfb69abc53c5bc4b3fd1c4a37"
+        "url": "https://finnhub.io/api/news?id=83e5d4d8c8ddf6e4fbcd650275697ff07b14e64b22bd7a2ad52f2620fad96ad0"
       },
       {
-        "headline": "Rocket Lab Gains 13.6% in a Month: Should Investors Buy the Stock Now?",
-        "datetime": 1791293940,
+        "headline": "Rocket Lab: Iridium Could Explode EBITDA, But A Wildcard Decides If It's Worth It",
+        "datetime": 1791380233,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f417cc8ee9793e31f38cd70279ec893877ee27bfe2b748ac0eff8bdc5aefbf88"
+      },
+      {
+        "headline": "SpaceX Slips 2% on a Reported $40 Billion Chip Financing Plan; Rocket Lab Eases, AST SpaceMobile Falls 3%",
+        "datetime": 1791379161,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d0f3f0f0dd063ad1bb3f560a31b26b0cb099acb13d8f830d1d410629dc31944a"
+        "url": "https://finnhub.io/api/news?id=06511fd459cddef1214d6be32e824bed77ae950ad756a42d8b47fe0eb15d66c6"
       },
       {
-        "headline": "Can Rocket Lab Capitalize on Falcon 9’s Exit Before Neutron Slips Again",
-        "datetime": 1791286901,
+        "headline": "Is LUNR Scaling Into a High-Volume Satellite Manufacturer?",
+        "datetime": 1791377400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=680d3b0e71464fa1c166e47f6d9eac1ea56d09b6287cb535e351a91e75a2d0fc"
-      },
-      {
-        "headline": "Cathie Wood Buys Rocket Lab as ARK Sees SpaceX's Starship Shift Squeezing Launch Capacity",
-        "datetime": 1791277448,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b7f114cd7b574e7c8f648cb6dbf993b46a9c9119f9c48b741e1bfe04d230e58c"
+        "url": "https://finnhub.io/api/news?id=8a78551decd16cc17986b32667324e88fc97a5ccc5bfd063846431482aafe7c5"
       }
     ],
     "SPCX": [
       {
-        "headline": "Anduril Wins $4.7 Billion In Defense Contracts After Luckey Takes Key Role",
-        "datetime": 1791308101,
+        "headline": "Is SpaceX About to Hand Nvidia a $40 Billion Payday? Here's What it Could Mean for Investors.",
+        "datetime": 1791396095,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5e183c5f0690a08811663d5325e60c22bf4f352381a2cdc096cd015bc1384093"
+        "url": "https://finnhub.io/api/news?id=3b36349995b3660a2396f6b02d8849e963ad9fbf5f7f69be659c0b431850370b"
       },
       {
-        "headline": "Analyst Sees 75% Upside Potential for SpaceX: “We Are Seeing the Very Beginning” Declares Investor",
-        "datetime": 1791307420,
+        "headline": "How SpaceX's big Nvidia buy could contribute to 'structural changes' to the economy",
+        "datetime": 1791395134,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6b1fa72330e0253fcff1931d42a1133fed29e07504a0ff4bc93af257ca493e40"
+        "url": "https://finnhub.io/api/news?id=6c1ed6c5e141480c22661da4e8d36ba79c4772667f3658f12f6fbd4e283dfaa1"
       },
       {
-        "headline": "Musk Fires Back: SpaceX’s Government Revenue Will Be “Less Than 5%” in Q4",
-        "datetime": 1791306918,
+        "headline": "Sector Update: Tech Stocks Decline Wednesday Afternoon",
+        "datetime": 1791394626,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1595b317ba9b85453c30f1e5d3d9319f782fb6f7fad91c60e8ad13105e1f34fe"
+        "url": "https://finnhub.io/api/news?id=43667df2dade71ec4cdf495d7bafd69f50b8147a7dbe05aa9f695f9643a4d17e"
       },
       {
-        "headline": "SPCX Stock Rallies 20% In Three Sessions – Why Does Goldman See Another 30% Upside?",
-        "datetime": 1791306782,
+        "headline": "Robinhood buys $25 million in bitcoin",
+        "datetime": 1791394200,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=20b257029da68e6579136754950cb3898eabee62b3b4815db1f6cce49141e5d3"
+        "url": "https://finnhub.io/api/news?id=cb6a00580523fa2fc81f91cc95851227cb2a1f6d3844bc5c2172b3fde1d6e738"
       },
       {
-        "headline": "Three Defense Stocks That Could Benefit From Modern Warfare",
-        "datetime": 1791303180,
+        "headline": "SpaceX Reportedly Wants $40 Billion to Buy Artificial Intelligence (AI) Chips. Here's Why That's Huge News for Nvidia Investors.",
+        "datetime": 1791393600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9e9f77e98ec05832a6d574671f01633a276a13af8867e35d0bbf405882a23fa3"
+        "url": "https://finnhub.io/api/news?id=3c0f69c2b6f6c8ccf9caa7124e0d2ebc12ebca713131ac0cc2369efad8789180"
       }
     ]
   },
