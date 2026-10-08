@@ -218,7 +218,7 @@ def test_every_subcommand_the_parser_offers_can_actually_be_dispatched():
 
 
 FORWARDED_FLAGS = {"--market", "--phase", "--context-id", "--text-file", "--date",
-                   "--dry-run", "--judgment-packet"}
+                   "--dry-run", "--judgment-packet", "--page-url"}
 
 
 def _flags_the_phase_module_declares(workflow, phase):
@@ -255,7 +255,8 @@ def test_every_flag_a_lifecycle_help_prints_is_accepted_by_a_phase_it_names(monk
     samples = {"--market": ["--market", "hk"], "--phase": ["--phase", "open"],
                "--context-id": ["--context-id", "c1"], "--text-file": ["--text-file", "p.md"],
                "--date": ["--date", "2026-10-05"], "--dry-run": ["--dry-run"],
-               "--judgment-packet": ["--judgment-packet"]}
+               "--judgment-packet": ["--judgment-packet"],
+               "--page-url": ["--page-url", "https://example.com/brief"]}
     for workflow in ("brief", "report", "intraday"):
         phases = [phase for name, phase in cli.PHASE_FLAGS if name == workflow]
         offered = set()
@@ -381,3 +382,15 @@ def test_docstring_help_lists_every_flag_the_module_reads():
         if undocumented:
             missing[command] = undocumented
     assert missing == {}, f"flags read from argv but absent from --help: {missing}"
+
+
+def test_brief_render_forwards_custom_footer_url(monkeypatch):
+    from clawock.harness import runner
+
+    seen = []
+    monkeypatch.setattr(runner, "run_phase",
+                        lambda *args, **kwargs: seen.append(args) or 0)
+    assert main(["brief", "render", "--page-url", "https://example.com/brief",
+                 "--dry-run"]) == 0
+    assert seen == [("brief", "render",
+                     ["--page-url", "https://example.com/brief", "--dry-run"])]

@@ -802,3 +802,23 @@ def test_calibration_count_matches_active_brier_and_missing_count_is_not_borrowe
     rendered = calibration_section({'decision_metrics': metrics}, {})
     assert '主动校准样本 **18**' not in rendered
     assert '主动校准样本未填满' in rendered
+
+
+def test_cli_render_writes_the_custom_card_footer(tmp_path):
+    from clawock.cli import main
+
+    cache = tmp_path / "memory" / ".tmp"
+    cache.mkdir(parents=True)
+    for name, data in (("context", CONTEXT), ("judgment", _judgment())):
+        (cache / f"brief-{name}-2026-08-31.json").write_text(json.dumps(data))
+    (tmp_path / "memory" / "2026-08-31-plan.json").write_text(json.dumps(PLAN))
+    profile = tmp_path / "config/profiles/kcnyu/profile.json"
+    profile.parent.mkdir(parents=True)
+    profile.write_text((ROOT / "config/profiles/kcnyu/profile.json").read_text())
+    assert main(["brief", "render", "--workspace", str(tmp_path),
+                 "--profile", "kcnyu",
+                 "--date", "2026-08-31", "--page-url",
+                 "https://example.invalid/custom-brief"]) == 0
+    card = (cache / "brief-card-2026-08-31.txt").read_text()
+    assert card.rstrip().endswith("https://example.invalid/custom-brief")
+    assert (tmp_path / "memory" / "2026-08-31-pre-open.md").exists()

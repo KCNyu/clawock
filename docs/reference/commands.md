@@ -214,7 +214,7 @@ These are installed commands too. They are listed here so the catalog is the who
 
 **Daily deep brief**（08:03 HKT cron）
 - **`clawock brief preflight`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`
-- **`clawock brief render`**：从 `brief-context-{date}.json` + `brief-judgment-{date}.json` + `{date}-plan.json` 渲染 `memory/{date}-pre-open.md` 与 `memory/.tmp/brief-card-{date}.txt`。模型只写 judgment 里的判断文字，标题/表格/排序/数字格式全在代码里（`--dry-run` 打到 stdout 不写盘）。postflight 会自己跑一次，日常不用手动调
+- **`clawock brief render`**：从 `brief-context-{date}.json` + `brief-judgment-{date}.json` + `{date}-plan.json` 渲染 `memory/{date}-pre-open.md` 与 `memory/.tmp/brief-card-{date}.txt`。模型只写 judgment 里的判断文字，标题/表格/排序/数字格式全在代码里（`--date YYYY-MM-DD` 选择产物日期，默认 HKT 当天；`--dry-run` 打到 stdout 不写盘；`--page-url URL` 自定义卡片页脚链接，默认该日发布页）。postflight 会自己跑一次，日常不用手动调
 - **`clawock brief postflight`**：校验 plan schema + judgment overlay，用校验后的 plan 渲染报告与微信卡，再校验产物（段标记 / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit
 
 **Mode 6 briefing**（HK 开/午/午后/收盘 + US 开/收盘 — 6 个 cron 共享）
@@ -223,7 +223,7 @@ These are installed commands too. They are listed here so the catalog is the who
 - **`clawock-report-watchdog --market {hk|us} --phase {phase} --job-name "{cron名}"`**：系统 crontab 的 LLM-free 投递兜底。覆盖 HK 4 班 + US 开/收 2 班；读取 postflight delivery marker，两路分开判：Telegram 未确认时补投 Telegram；本 slot marker 明确记录微信失败（`sent_ok=false`）时补发微信一次，再失败就 Telegram 告警。marker 缺失/过期/对不上 slot 时不重发 WeChat。
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜最后一档始终是 02:33 HKT）
-- **`clawock intraday preflight --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
+- **`clawock intraday preflight --market {hk|us} [--judgment-packet]`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；落盘完整的 `memory/.tmp/intraday-context-{market}-latest.json`。`--judgment-packet` 使 stdout 输出判断核心包与 `index.references`；peer_scan/t0/雷达/信号明细/上次状态/information_full 等参考层留在完整 context，按需用 `clawock tool intraday_reference --arg market=hk --arg context_id=ID --arg entry=NAME [--arg ticker=TICKER]` 读取，不能把核心包当作全量参考层。
 - **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。`--context-id` 必填：legacy 整报告输入形态（模型交整篇、事后 verbatim 校验数据块）已在 #1279 删除，省略即 argparse 报错退出 2。
 
 **共通设计点**：
@@ -247,6 +247,488 @@ These are installed commands too. They are listed here so the catalog is the who
 - **`clawock-{brief-fallback,weekly-review,news-digest}`**：3 个 GitHub Actions installed commands，共用上述 package-owned client。
 - **`ops/publish/safe_push.sh`**：共享 git push 防 conflict 死循环工具。3 次 retry + 每次 rebase 失败 → `git rebase --abort` + exit 2（不死循环 push）。所有写文件的 GH Action workflow 用 `bash ops/publish/safe_push.sh` 替代原本的 push loop；adapter 的 `_harness_common.push_with_rebase_retry` **直接委托本脚本**（2026-06-10 统一，自动获得 rebase.autoStash + 冲突标记硬闸），全体 committer 单一 push 路径。
 - **`clawock reconcile`**：手工成交后的唯一收口。先把成交写进对应 `holdings[].trades[]`（`action/date/shares/price`，卖出另记 `realized_pnl`），同步 broker 真值叶子（`shares` / `cost_basis`；新仓建 holding、平仓保留历史行并置 `shares=0`；存取款写 `cash_adjustments[]`），再运行本命令重算 aggregates / cash / realized P&L 并执行完整性闸。它只派生和校验，不会替你猜成交。
+
+### 参数速查 / Utility arguments
+
+下列参数以各命令的 `--help` 为准；`[...]` 表示可选，未加方括号的参数必填。
+子命令也可用 `clawock COMMAND SUBCOMMAND --help` 查看。这里只记录调用与参数，不运行采集或账本写入。
+
+#### live-sources
+
+**`clawock live-sources`**
+
+```text
+clawock live-sources [--market {hk,us,both}] [--sources SOURCES] [--fresh-since {session_open,last_close}] [--window-minutes WINDOW_MINUTES] [--budget-s BUDGET_S] [--timeout-s TIMEOUT_S] [--per-ticker PER_TICKER] [--json]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--market {hk,us,both}` | 采集市场，默认 both。 |
+| `--sources SOURCES` | comma-separated subset of hkexnews,sec_fulltext,google_news,yahoo_rss,ths_724,em_724 (default: all) |
+| `--fresh-since {session_open,last_close}` | 资讯新鲜度口径，默认 session_open；last_close 以上次收盘为起点。 |
+| `--window-minutes WINDOW_MINUTES` | 采集时间窗口（分钟），默认 1440。 |
+| `--budget-s BUDGET_S` | 整批采集预算（秒）。 |
+| `--timeout-s TIMEOUT_S` | 单次请求超时（秒）。 |
+| `--per-ticker PER_TICKER` | 每票摘要最多保留条数，默认 4。 |
+| `--json` | accepted for symmetry; output is JSON |
+
+#### mover-evidence
+
+**`clawock mover-evidence`**
+
+```text
+clawock mover-evidence --market {us,hk} --tickers TICKERS [--window-minutes WINDOW_MINUTES]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--market {us,hk}` | 必填市场。 |
+| `--tickers TICKERS` | comma-separated movers |
+| `--window-minutes WINDOW_MINUTES` | 资讯窗口（分钟）。 |
+
+#### news-evidence
+
+**`clawock news-evidence`**
+
+```text
+clawock news-evidence [--no-sec] [--policy POLICY]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--no-sec` | skip live SEC metadata refresh |
+| `--policy POLICY` | 资讯证据政策 JSON 路径。 |
+
+#### cross-factor
+
+**`clawock cross-factor`**
+
+```text
+clawock cross-factor [--no-fundamentals] [--config CONFIG] [--backfill-history-ranks]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--no-fundamentals` | use a valid cache only; do not refresh SEC facts |
+| `--config CONFIG` | 因子配置 JSON 路径。 |
+| `--backfill-history-ranks` | reconstruct sector-neutral constituent ranks for registered snapshots that predate their persistence (#1133), print the fidelity check, and exit without touching the live snapshot |
+
+#### peer-residual
+
+**`clawock peer-residual`**
+
+```text
+clawock peer-residual [--rules RULES]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--rules RULES` | 同业残差规则 JSON 路径。 |
+
+#### t0
+
+**`clawock t0`**
+
+`--intraday`：等同 `T0_INTRADAY=1`，开盘时补 VWAP/ORB；默认不抓分钟数据。
+
+#### validate-regime-dial
+
+**`clawock validate-regime-dial`**
+
+```text
+clawock validate-regime-dial [--folds FOLDS] [--permutations PERMUTATIONS] [--groups GROUPS] [--no-card]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--folds FOLDS` | walk-forward 折数，默认 4。 |
+| `--permutations PERMUTATIONS` | 置换检验次数，默认 2000。 |
+| `--groups GROUPS` | CSCV groups; every symmetric half-split is scored |
+| `--no-card` | skip writing a run card (for ad-hoc exploration) |
+
+#### validate-regime-hmm
+
+**`clawock validate-regime-hmm`**
+
+```text
+clawock validate-regime-hmm [--states STATES] [--warmup WARMUP] [--step STEP] [--permutations PERMUTATIONS] [--restarts RESTARTS] [--floor FLOOR] [--json] [--no-card]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--states STATES` | fix the state count; default selects it by BIC |
+| `--warmup WARMUP` | sessions before the first walk-forward label |
+| `--step STEP` | sessions between refits |
+| `--permutations PERMUTATIONS` | 置换检验次数。 |
+| `--restarts RESTARTS` | EM restarts per fit; fewer is faster and more likely to report a local optimum as the model |
+| `--floor FLOOR` | exposure at full risk-off probability; the production dial reaches 0.0, so --floor 0 equalises the range |
+| `--json` | emit the full result instead of the report |
+| `--no-card` | skip writing a run card (for ad-hoc exploration) |
+
+#### evaluate-add-shapes
+
+**`clawock evaluate-add-shapes`**
+
+```text
+clawock evaluate-add-shapes [--json] [--no-card] [--campaigns] [--source {store,tencent}] [--split SPLIT]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--json` | emit the summary as JSON |
+| `--no-card` | skip the run card |
+| `--campaigns` | run the campaign simulation (right / left / combined, IS vs OOS) |
+| `--source {store,tencent}` | bars: memory/bars (default) or a longer Tencent fetch (MA200 needs ~200 sessions before the left side can fire) |
+| `--split SPLIT` | first out-of-sample signal date |
+
+#### dashboard-build
+
+**`clawock dashboard-build`**
+
+```text
+clawock dashboard-build [--previous PATH | --no-previous] [--out-dir DIR] [--skip-if-unchanged]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--previous PATH` | dashboard payload to restore card values from when their source context is absent from this checkout. Opt-in: a build that is going to be published from a checkout without the memory/.tmp sidecars passes the published dashboard.json here |
+| `--no-previous` | build from the workspace alone; no output may come from a previously published file. This is the default — pass it to state the guarantee explicitly |
+| `--out-dir DIR` | write the five outputs of this generation into DIR instead of the published location. Beats the BUILD_DASHBOARD_OUT / DECISION_AUDIT_OUT / SHADOW_PORTFOLIO_OUT redirects |
+| `--skip-if-unchanged` | hash the projection inputs first and skip the whole build when they match the last build's fingerprint (stored under .cache/dashboard-input.json). The 20-minute publisher uses this so an unchanged desk does not reparse ~12MB of JSON every tick (#846). |
+
+#### decision-map
+
+**`clawock decision-map`**
+
+```text
+clawock decision-map [--out OUT] [--stdout]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--out OUT` | 输出 JSON 路径，默认 assets/data/decision_map.json。 |
+| `--stdout` | 只打印 JSON，不写输出文件。 |
+
+#### dashboard-outputs
+
+**`clawock dashboard-outputs`**
+
+```text
+clawock dashboard-outputs [--root ROOT] [--keep-clock-only] [--baseline-dir BASELINE_DIR]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--root ROOT` | 待比较的工作区根目录。 |
+| `--keep-clock-only` | do not restore outputs changed only by build clocks |
+| `--baseline-dir BASELINE_DIR` | compare against a directory holding the last published generation instead of this repository's HEAD (the outputs are no longer tracked, #314) |
+
+#### run-card
+
+**`clawock run-card`**
+
+```text
+clawock run-card [--list] [--run-id RUN_ID] [--diff RUN_ID RUN_ID] [--verify RUN_ID]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--list` | list stored run cards |
+| `--run-id RUN_ID` | print one card |
+| `--diff RUN_ID RUN_ID` | say which recorded input differs between two cards |
+| `--verify RUN_ID` | compare a card against the environment running now |
+
+#### claim-provenance
+
+**`clawock claim-provenance`**
+
+```text
+clawock claim-provenance [--check]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--check` | exit non-zero on problems |
+
+#### signal-panel
+
+**`clawock signal-panel`**
+
+```text
+clawock signal-panel [--horizon {t1,t5,t20}] [--json] [--panel] [--no-card]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--horizon {t1,t5,t20}` | horizon for the printed table (default t5) |
+| `--json` | print the full result |
+| `--panel` | print the panel rows instead of the scorecard |
+| `--no-card` | 跳过 run card 写入。 |
+
+#### scorecard-provenance
+
+**`clawock scorecard-provenance`**
+
+```text
+clawock scorecard-provenance [--check] [--recompute] [--metrics METRICS] [--ledger LEDGER] [--ref REF] [--json]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--check` | recompute the digests and compare with the published block |
+| `--recompute` | also re-derive the headline counts at the recorded cutoff |
+| `--metrics METRICS` | published payload to read (default assets/data/dashboard.json) |
+| `--ledger LEDGER` | ledger to verify against (default memory/decisions.jsonl) |
+| `--ref REF` | read the ledger from this git ref instead of the working copy |
+| `--json` | print JSON, not text |
+
+#### provenance
+
+**`clawock provenance`**
+
+```text
+clawock provenance {calc,market-cap,verify-manifest} ...
+```
+
+| 参数 | 用途 |
+|---|---|
+| `{calc,market-cap,verify-manifest}` | 选择精确计算、市值核验或 manifest 核验；调用形式见下方各子命令。 |
+
+#### record
+
+**`clawock record`**
+
+```text
+clawock record [--ledger LEDGER] [--source {claude,cli,codex,conversation,openclaw}] --subject SUBJECT [--market MARKET] [--currency CURRENCY] --action {abstain,add,buy,hold,reject,sell,trim,watch} --confidence CONFIDENCE [--driven-by {fundamental,mixed,sentiment,technical}] --bull BULL --bear BEAR [--bull-evidence BULL_EVIDENCE] [--bear-evidence BEAR_EVIDENCE] [--thesis THESIS] --invalidation INVALIDATION [--emotion {averaging_down,calm,euphoria,fear,fomo,mixed,revenge}] [--note NOTE]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--ledger LEDGER` | decisions.jsonl path (default: the workspace ledger) |
+| `--source {claude,cli,codex,conversation,openclaw}` | which harness produced this verdict (conversation=DSH) |
+| `--subject SUBJECT` | ticker, e.g. 00100 |
+| `--market MARKET` | market, e.g. HK or US |
+| `--currency CURRENCY` | quote currency |
+| `--action {abstain,add,buy,hold,reject,sell,trim,watch}` | 必填裁决动作。 |
+| `--confidence CONFIDENCE` | 必填置信度，0–1。 |
+| `--driven-by {fundamental,mixed,sentiment,technical}` | 判断驱动因素，默认 mixed。 |
+| `--bull BULL` | supporting case summary |
+| `--bear BEAR` | opposing case summary (mandatory) |
+| `--bull-evidence BULL_EVIDENCE` | 支持证据引用，可重复。 |
+| `--bear-evidence BEAR_EVIDENCE` | 反对证据引用，可重复。 |
+| `--thesis THESIS` | 关联 thesis。 |
+| `--invalidation INVALIDATION` | observable falsification condition; repeatable |
+| `--emotion {averaging_down,calm,euphoria,fear,fomo,mixed,revenge}` | 裁决时的情绪，默认 calm。 |
+| `--note NOTE` | 附注。 |
+
+必填：`--subject`、`--action`、`--confidence`（0–1）、`--bull`、`--bear`、`--invalidation`。
+`--invalidation`、`--bull-evidence`、`--bear-evidence` 可重复；默认 market/currency 为 HK/HKD，美股须显式指定 US/USD。
+这是向裁决账本追加已做出的判断，不会下单或采集证据。示例：
+
+```bash
+clawock record --subject AAPL --market US --currency USD --action watch \
+  --confidence 0.7 --bull "现金流稳定" --bear "估值偏高" \
+  --invalidation "下一季营收同比转负"
+```
+
+#### risk
+
+**`clawock risk`**
+
+```text
+clawock risk [--ledger LEDGER] {list,ack,override,confirm} ...
+```
+
+| 参数 | 用途 |
+|---|---|
+| `{list,ack,override,confirm}` | 列出、确认已知晓、限时覆盖或证据确认；见下方子命令。 |
+| `--ledger LEDGER` | 风险账本路径；放在子命令之前。 |
+
+#### thesis
+
+**`clawock thesis`**
+
+```text
+clawock thesis {validate,drift} ...
+```
+
+| 参数 | 用途 |
+|---|---|
+| `{validate,drift}` | 校验 thesis JSON 或比较前后证据漂移。 |
+
+#### entry-gate
+
+**`clawock entry-gate`**
+
+```text
+clawock entry-gate {validate,assess} ...
+```
+
+| 参数 | 用途 |
+|---|---|
+| `{validate,assess}` | 校验研究 gate JSON 或评估是否满足入场研究条件。 |
+
+#### plan-context
+
+**`clawock plan-context`**
+
+```text
+clawock plan-context [--leg {HK,US}] [--date DATE]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--leg {HK,US}` | 只取指定市场的未结束裁决。 |
+| `--date DATE` | 查询日期（YYYY-MM-DD），默认当天。 |
+
+#### research
+
+**`clawock research`**
+
+```text
+clawock research [--check]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--check` | integrity only: exit 1 when an artifact is invalid |
+
+#### provenance calc
+
+**`clawock provenance calc`**
+
+```text
+clawock provenance calc --expr EXPR
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--expr EXPR` | 必填算术表达式。 |
+
+#### provenance market-cap
+
+**`clawock provenance market-cap`**
+
+```text
+clawock provenance market-cap --price PRICE --shares SHARES --reported REPORTED --currency CURRENCY [--tolerance-pct TOLERANCE_PCT]
+```
+
+| 参数 | 用途 |
+|---|---|
+| `--price PRICE` | 必填股价。 |
+| `--shares SHARES` | 必填股数。 |
+| `--reported REPORTED` | 必填待核验市值。 |
+| `--currency CURRENCY` | 必填报价币种。 |
+| `--tolerance-pct TOLERANCE_PCT` | 容许差异百分比，默认 1。 |
+
+#### provenance verify-manifest
+
+**`clawock provenance verify-manifest`**
+
+```text
+clawock provenance verify-manifest path
+```
+
+| 参数 | 用途 |
+|---|---|
+| `path` | 必填 manifest JSON 文件路径。 |
+
+#### risk list
+
+**`clawock risk list`**
+
+```text
+clawock risk list
+```
+
+#### risk ack
+
+**`clawock risk ack`**
+
+```text
+clawock risk ack --note NOTE breach_id
+```
+
+| 参数 | 用途 |
+|---|---|
+| `breach_id` | 必填风险事件 ID。 |
+| `--note NOTE` | 必填知晓说明。 |
+
+#### risk override
+
+**`clawock risk override`**
+
+```text
+clawock risk override --reason REASON --ttl-hours TTL_HOURS breach_id
+```
+
+| 参数 | 用途 |
+|---|---|
+| `breach_id` | 必填风险事件 ID。 |
+| `--reason REASON` | 必填覆盖理由。 |
+| `--ttl-hours TTL_HOURS` | 必填覆盖有效时长（小时）。 |
+
+#### risk confirm
+
+**`clawock risk confirm`**
+
+```text
+clawock risk confirm --evidence EVIDENCE breach_id
+```
+
+| 参数 | 用途 |
+|---|---|
+| `breach_id` | 必填风险事件 ID。 |
+| `--evidence EVIDENCE` | 必填确认依据。 |
+
+#### thesis validate
+
+**`clawock thesis validate`**
+
+```text
+clawock thesis validate path
+```
+
+| 参数 | 用途 |
+|---|---|
+| `path` | 必填 thesis JSON 文件路径。 |
+
+#### thesis drift
+
+**`clawock thesis drift`**
+
+```text
+clawock thesis drift old new
+```
+
+| 参数 | 用途 |
+|---|---|
+| `old` | 必填旧 thesis JSON 路径。 |
+| `new` | 必填新 thesis JSON 路径。 |
+
+#### entry-gate validate
+
+**`clawock entry-gate validate`**
+
+```text
+clawock entry-gate validate path
+```
+
+| 参数 | 用途 |
+|---|---|
+| `path` | 必填 entry gate JSON 路径。 |
+
+#### entry-gate assess
+
+**`clawock entry-gate assess`**
+
+```text
+clawock entry-gate assess path
+```
+
+| 参数 | 用途 |
+|---|---|
+| `path` | 必填 entry gate JSON 路径。 |
 
 ### Cron map
 

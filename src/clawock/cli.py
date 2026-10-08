@@ -240,7 +240,7 @@ def _report(args) -> int:
 PHASE_FLAGS = {
     ("brief", "preflight"): (),
     ("brief", "postflight"): ("--dry-run",),
-    ("brief", "render"): ("--date", "--dry-run"),
+    ("brief", "render"): ("--date", "--dry-run", "--page-url"),
     ("report", "preflight"): ("--market", "--phase"),
     ("report", "postflight"): ("--market", "--phase", "--context-id", "--text-file"),
     ("intraday", "preflight"): ("--market", "--judgment-packet"),
@@ -268,6 +268,7 @@ def _harness(args, workflow=None) -> int:
         ("--context-id", getattr(args, "context_id", None)),
         ("--text-file", getattr(args, "text_file", None)),
         ("--date", getattr(args, "date", None)),
+        ("--page-url", getattr(args, "page_url", None)),
     ):
         if value is not None:
             given.append(flag)
@@ -692,6 +693,7 @@ def build_parser() -> argparse.ArgumentParser:
             ("--context-id", {}),
             ("--text-file", {"type": Path}),
             ("--date", {"help": "artifact date, default today in HKT"}),
+            ("--page-url", {"help": "URL printed at the foot of the card"}),
             ("--dry-run", {"action": "store_true"}),
             ("--judgment-packet", {
                 "action": "store_true",
