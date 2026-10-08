@@ -6,37 +6,45 @@
 # Every entry must be in the Zen catalog (`opencode models opencode`) and cost nothing. The runner
 # allows 2 attempts per pool line, so a dead entry is two wasted attempts per failing round.
 #
-# 2026-10-08 reorder, from the patrol run logs of 10-07..10-08 (307 attempts in 45 rounds) and a
-# tool probe of the whole catalog at 20:41. What decides the order is still how a model behaves
-# while the free tier throttles it (HTTP 429 FreeUsageLimitError, "Rate limit exceeded"): the
-# limit is per model, and a model that hides it costs the runner's full 300s stall timer.
-#   * longcat-2.5-preview-free and nemotron-3-ultra-free stay first. They finish the morning
-#     rounds (10-08 08:47-14:00, attempt 1 or 2) and mostly surface the 429 afterwards, so a
-#     throttled try ends in about 80s (longcat 49 of 49 failures, nemotron 19 of 33 with 11 stalls).
-#   * fledge-alpha-free (1M context) moves from 8th to 3rd. It finished all 9 rounds of
-#     10-07 21:08-10-08 00:55 and 10-08 16:10-20:20, each time as attempt 8, after about 25 minutes
-#     spent on the seven lines ahead of it. Those rounds read as "ok" in rounds.tsv.
-#   * ling-3.1-flash-free moves from 9th to 4th: probe OK, and its only daytime-quality run
-#     worked for 40 minutes before a 503. It was reached 6 times, all inside a dead window.
-#   * space-bunny-free and mimo-v2.6-flash-free retry the 429 silently (74 stalls, 6 finished
-#     rounds in two days), so they sit behind every model that fails fast or works.
-#   * removed: muse-spark-1.3-contributor-free (0 of 43 attempts since 10-06, 39 stalls) and
-#     ling-3.0-flash-fin-free (0 of 29, all stalls). Each cost 300s per failing pass. exo-free
-#     answers "Endpoint is unavailable" (15 of 15) but fails in 90s, so it stays as the last
-#     line, where it is free to return. Earlier removals: mimo-v2.5-free, union-alpha.
-#   * left out on purpose: big-pickle (2025 stealth, 200k context) and nemotron-3.5-lightning-free
-#     (small fast tier) - kcn wants good models first. opencode-go is not an option: the key in
-#     ~/.local/share/opencode/auth.json has no active subscription.
+# 2026-10-08 order. Two things decide it, in this order:
 #
-# Some windows have no working model at all (10-07 00:50-07:57 and 16:48-19:56, 10-08
-# 01:06-07:57: 0 finished attempts out of 163); no order helps there, and the patrol supervisor
-# backs off by itself. Both nights ended at 07:57 (23:57 UTC), which points at a daily reset.
-# This order went stale within a day once already. Re-probe before trusting it:
-#   /root/tools/agent-dispatch/probe-free-models.sh --tool $(sed 's/#.*//' <this file>)
+# 1. What the model's rounds are worth. Patrol issues of 10-01..10-08 by the model that finished
+#    the round, and what became of them after verification (fixed / closed not planned or noise):
+#      space-bunny-free           147 rounds   274 / 8
+#      mimo-v2.6-flash-free         8 rounds    14 / 0
+#      longcat-2.5-preview-free    14 rounds    14 / 0
+#      fledge-alpha-free            9 rounds     3 / 0
+#      nemotron-3-ultra-free       22 rounds    12 / 38
+#    nemotron-3-ultra-free is removed for that: three of four issues it filed were false, and each
+#    one cost a paid agent a verification. It had been 2nd since 10-07.
+# 2. How the model behaves while the free tier throttles it (HTTP 429 FreeUsageLimitError). The
+#    limit is per model. Since 10-06 evening the models run dry one after another during the day
+#    (10-08: longcat until 09:30, space-bunny 14:00-16:00, fledge 16:10-20:20), and from about
+#    01:00 to 07:57 nothing answers at all (0 of 163 attempts in three such windows; both nights
+#    ended at 23:57 UTC, which points at a daily reset). So the day's rounds are bounded by the
+#    quota, not by time: a failed try costs minutes and no quota, and every model with quota left
+#    gets used whatever the order. The order only has to offer the best models first.
+#      * longcat-2.5-preview-free surfaces the 429 (59 of 59 failures end in about 80s): first.
+#      * space-bunny-free and mimo-v2.6-flash-free retry the 429 silently, so a throttled try burns
+#        the runner's 300s stall timer (85 stalls in four days). They are still next: they are the
+#        two best models here and 10 minutes is cheaper than leaving their quota unused.
+#      * fledge-alpha-free (1M context) finished every round of 10-07 21:08-10-08 00:55 and
+#        10-08 16:10-20:20 as attempt 8 of the old order. Few findings, none false.
+#      * ling-3.1-flash-free has not finished a round yet (7 tries, all ended by a 503, two of them
+#        after 10 and 40 minutes of real work). Unproven, so behind everything proven.
+#      * exo-free answers "Endpoint is unavailable" (16 of 16) in 90s; last line, free to return.
+#   removed earlier: muse-spark-1.3-contributor-free (0 of 44, 40 stalls), ling-3.0-flash-fin-free
+#   (0 of 30, all stalls), mimo-v2.5-free and union-alpha (out of the catalog).
+#   left out on purpose: big-pickle (2025 stealth, 200k context) and nemotron-3.5-lightning-free
+#   (small fast tier) - kcn wants good models first. opencode-go is not an option: the key in
+#   ~/.local/share/opencode/auth.json has no active subscription.
+#
+# Before adding a model or moving one up, check what its issues became (label `patrol`, closed as
+# not planned / `patrol:noise`), not only whether it answers:
+#   /root/tools/agent-dispatch/probe-free-models.sh --tool <model>
 opencode/longcat-2.5-preview-free
-opencode/nemotron-3-ultra-free
-opencode/fledge-alpha-free
-opencode/ling-3.1-flash-free
 opencode/space-bunny-free
 opencode/mimo-v2.6-flash-free
+opencode/fledge-alpha-free
+opencode/ling-3.1-flash-free
 opencode/exo-free

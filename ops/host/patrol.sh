@@ -42,6 +42,8 @@ AGENT_SLOTS="${AGENT_DISPATCH_MAX_RUNNING_OPENCODE:-${MAX_RUNNING_OPENCODE:-1}}"
 ROUND_GAP="${PATROL_ROUND_GAP:-600}"        # pause after a finished round
 ROUND_DEADLINE_H="${PATROL_ROUND_HOURS:-3}"  # whole round incl. retries
 ATTEMPT_TIMEOUT="${PATROL_ATTEMPT_TIMEOUT:-5400}"
+AXIS_RETRIES="${PATROL_AXIS_RETRIES:-2}"      # times an unfinished area is dispatched again before the rotation moves on
+[[ $AXIS_RETRIES =~ ^[0-9]+$ ]] || AXIS_RETRIES=2
 PREEMPT_GRACE="${PATROL_PREEMPT_GRACE:-300}"  # wrap-up time a preempted round gets; 0 = cancel at once
 [[ $PREEMPT_GRACE =~ ^[0-9]+$ ]] || PREEMPT_GRACE=300
 mkdir -p "$STATE/drafts" "$STATE/filed"
@@ -233,6 +235,40 @@ for i in rows:
 }
 
 ROUND_ID=""
+# A round that did not finish (free tier out of quota, preempted) keeps its place in the rotation:
+# the next round takes the same area again. The rotation is about one pass a day and the free
+# tier's dead hours fall at the same time every night, so without this the same areas were lost
+# every day (money on 10-07 twice and on 10-08). $STATE/rotation-hold is "<slots held back so
+# far> <area being retried> <times retried>"; round numbers stay unique. After AXIS_RETRIES
+# retries the area gives up its slot, so one area that cannot finish does not stop the rest.
+rotation_hold() {  # prints "<skew> <axis> <tries>", zeros when the file is missing or damaged
+  local skew="" held="" tries=""
+  read -r skew held tries <"$STATE/rotation-hold" 2>/dev/null || true
+  [[ $skew =~ ^[0-9]+$ ]] || skew=0
+  [[ $tries =~ ^[0-9]+$ ]] || tries=0
+  echo "$skew ${held:--} $tries"
+}
+
+rotation_axis() {  # <round number>
+  local axes skew _
+  read -r -a axes <<<"${PATROL_ROTATION:-$(sed 's/#.*//' "$TOOL/rotation" | xargs)}"
+  read -r skew _ < <(rotation_hold)
+  echo "${axes[$(( ((($1 - 1 - skew) % ${#axes[@]}) + ${#axes[@]}) % ${#axes[@]} ))]}"
+}
+
+settle_slot() {  # <axis> finished|unfinished
+  local skew held tries
+  read -r skew held tries < <(rotation_hold)
+  [ "$held" = "$1" ] || tries=0
+  if [ "$2" = unfinished ] && [ "$tries" -lt "$AXIS_RETRIES" ]; then
+    echo "$((skew + 1)) $1 $((tries + 1))" >"$STATE/rotation-hold"
+    log "$1 did not finish; it keeps its rotation slot (retry $((tries + 1))/$AXIS_RETRIES)"
+  else
+    [ "$2" = finished ] || log "$1 did not finish $((tries + 1)) times in a row; the rotation moves on"
+    echo "$skew - 0" >"$STATE/rotation-hold"
+  fi
+}
+
 run_round() {  # returns 0 when the round finished (whatever it found), 1 when it failed/was preempted
   local n axis title body since start rid state reason
   rid=$(current_round)
@@ -246,8 +282,7 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     log "adopting round R$n ($axis): $rid"
   else
     n=$(( $(cat "$STATE/round-no" 2>/dev/null || echo 0) + 1 ))
-    read -r -a axes <<<"${PATROL_ROTATION:-$(sed 's/#.*//' "$TOOL/rotation" | xargs)}"
-    axis=${axes[$(( (n - 1) % ${#axes[@]} ))]}
+    axis=$(rotation_axis "$n")
     IFS=$'\t' read -r _ title body < <(grep -P "^$axis\t" "$TOOL/axes.tsv")
     [ -n "${title:-}" ] || { log "unknown axis $axis"; return 1; }
   
@@ -337,13 +372,15 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     printf '%s R%s %s\n' "$(date '+%F %T')" "$n" "$bad" >>"$STATE/ungated.log"
     notify "⚠️ clawock 巡检 R$n 绕过闸直接开了 issue：$bad"
   fi
-  [ -z "$reason" ] || return 1
+  [ -z "$reason" ] || { settle_slot "$axis" unfinished; return 1; }
   case "$state" in
     ok*|partial*|unverified*)
+      settle_slot "$axis" finished
       # A round cut short never finished its review, whatever its last line claims.
       [ "$axis" = recent ] && [ "$state" = ok/DONE ] && [ -z "$yield_at" ] && date -d "@$start" '+%F %T' >"$STATE/recent-since"
       return 0 ;;
   esac
+  settle_slot "$axis" unfinished
   return 1
 }
 

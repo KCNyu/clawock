@@ -233,6 +233,7 @@ rm -f "$PATROL_STATE_DIR/active"
     assert (tmp_path / "actions").read_text() == f"cancel {OWN_ROUND}\n"
     assert "preempted:cancelled" in (tmp_path / "rounds.tsv").read_text()
     assert (tmp_path / "recent-since").read_text() == "older\n"
+    assert (tmp_path / "rotation-hold").read_text() == "1 render 1\n"
     assert not (tmp_path / "current-round").exists()
 
 
@@ -266,6 +267,46 @@ def test_only_a_done_recent_round_advances_the_review_cursor(patrol, tmp_path, r
         env=patrol.env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stdout + result.stderr
     assert (tmp_path / "recent-since").read_text() == cursor
+
+
+# ---- an unfinished round keeps its place in the rotation ---------------------------------
+
+def _end_round(patrol, tmp_path, rid, n, result_env):
+    task = tmp_path / "tasks" / rid
+    task.mkdir()
+    (task / "meta.env").write_text("CREATED='2026-09-21 12:00:00'\n")
+    (task / "result.env").write_text(result_env)
+    (tmp_path / "round-no").write_text(f"{n}\n")
+    (tmp_path / "current-round").write_text(rid + "\n")
+    return subprocess.run(
+        ["bash", "-c", 'source "$1"; round_active() { return 1; }; ' + RUN_ROUND, "test", str(SCRIPT)],
+        env=patrol.env, capture_output=True, text=True, timeout=10)
+
+
+def _axis(patrol, n):
+    return subprocess.run(["bash", "-c", 'source "$1"; rotation_axis "$2"', "test", str(SCRIPT), str(n)],
+                          env=dict(patrol.env, PATROL_ROTATION="recent logic money site"),
+                          capture_output=True, text=True, timeout=5).stdout.strip()
+
+
+def test_a_failed_round_takes_the_same_area_again_until_the_retries_run_out(patrol, tmp_path):
+    assert [_axis(patrol, n) for n in (1, 2, 3, 4, 5)] == ["recent", "logic", "money", "site", "recent"]
+    # R3 (money) and both of its retries fail: R4 and R5 are money again, R6 moves on to site.
+    for n, day in ((3, "20260921"), (4, "20260922"), (5, "20260923")):
+        assert _axis(patrol, n) == "money"
+        assert _end_round(patrol, tmp_path, f"patrol-money-{day}-120000", n, "STATE=failed\n").returncode == 1
+    assert _axis(patrol, 6) == "site"
+    assert (tmp_path / "rotation-hold").read_text() == "2 - 0\n"
+    # A finished round uses its slot, and the next area gets its own retries.
+    assert _end_round(patrol, tmp_path, "patrol-site-20260924-120000", 6, "STATE=ok\nOUTCOME=DONE\n").returncode == 0
+    assert _axis(patrol, 7) == "recent"
+    assert _end_round(patrol, tmp_path, "patrol-recent-20260925-120000", 7, "STATE=timeout\n").returncode == 1
+    assert _axis(patrol, 8) == "recent"
+
+
+def test_a_damaged_hold_file_falls_back_to_the_plain_rotation(patrol, tmp_path):
+    (tmp_path / "rotation-hold").write_text("garbage\n")
+    assert _axis(patrol, 3) == "money"
 
 
 # ---- graceful preemption: a round that has to give way first lands its findings --------
