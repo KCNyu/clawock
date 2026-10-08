@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-07T08:03:37.252077+08:00",
+  "generated_at": "2026-10-08T08:03:37.786460+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-07",
-  "window_end": "2026-10-21",
+  "window_start": "2026-10-08",
+  "window_end": "2026-10-22",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -25,6 +25,6 @@
     "macro_count": 1,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": null
+    "highest_impact_within_7d": "CPI 2026-10-15"
   }
 }
