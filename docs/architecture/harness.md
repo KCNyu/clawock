@@ -326,12 +326,13 @@ parameters and what reaches their model.
 | Capability | Owner | Consumers | What an entry passes |
 |---|---|---|---|
 | analyzer run and its stdout (holdings table, signals, ≥3% movers) | `market_data/{hk,us}_analysis` via `_harness_common.run_analyze`; parsers `_harness_common.parse_signal_lines` / `parse_holdings_anomalies` / `parse_holdings_rows` | report, intraday | market |
-| active holdings and closed-position snapshot clearing | `portfolio/refresh.active_and_zero_closed` | HK/US quote writers | region book; preparation mutates the in-memory snapshot only |
+| active holdings and closed-position snapshot clearing | `portfolio/refresh.active_and_zero_closed` | HK/US quote writers | region book; numeric active selection from `portfolio/math.active_holdings`; preparation mutates the in-memory snapshot only |
 | quote freshness (which holdings this run's fetch actually stamped) | `_harness_common.quote_coverage` over each holding's `data_source` | report (context + a `⛔` line in the block, #2176), intraday | market, portfolio path, run start |
 | holding-independent stock discovery | `market_data/stock_discovery.collect` / `screen_snapshot` | `discover-stocks`, brief WAVE1, decision packet + summary, full brief and delivery/backstop card | workspace portfolio/registry exclusions and `config/stock-discovery.json`; one free US snapshot, research only; see [stock discovery](stock-discovery.md) |
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
 | provenance code identity | `code_identity.git_commit` / `file_digest` | run cards, scorecard provenance | explicit workspace / file; short commit or null, sha256 prefix unchanged; `tests/test_code_identity.py` pins one owner |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
+| HSTECH dated daily closes | `market_data/hstech.fetch_hstech` | live regime, regime evaluations | start/end/count; malformed rows skipped, research fetch errors propagate, live caller degrades to unknown |
 | history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
 | Tencent per-symbol news/announcements | `market_data/tencent_news` | `primary_disclosures` (type 0), `mover_evidence` (type 1) | symbol, feed type, window, `http` |
@@ -436,7 +437,9 @@ portfolio values or a decision packet. The other market may already have refresh
 its portfolio region; that partial book is not published as a brief. Off-host
 fallback refuses generation, and postflight writes a closed publish gate and exits
 2 before normalization, rendering, commits or delivery. Other collection warnings
-still produce the normal context with explicit `issues`.
+still produce the normal context with explicit `issues`. Dashboard context selection
+skips both `market_closed` and `price_refresh_failed` stubs to preserve last-good
+brief-derived cards.
 
 OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat
 injects the five identity/tool bootstrap files plus `HEARTBEAT.md` and

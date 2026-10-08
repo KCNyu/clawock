@@ -91,3 +91,26 @@ def test_fallback_pushes_any_commit_ahead_of_origin_not_only_a_dirty_index():
         'commit step does not push a commit that is ahead of the remote (maybe_commit '
         'push-failure would be discarded)')
     assert 'safe_push.sh' in commit_run, 'commit step no longer pushes via safe_push'
+
+
+def test_fallback_push_branch_propagates_fetch_and_revision_failures(tmp_path):
+    import subprocess
+
+    body = _workflow_step_run('Commit + push')
+    # Exercise the actual final publish block, without real git/network/credentials.
+    block = body[body.index('if ! git fetch origin master -q; then'):]
+    helper = tmp_path / 'ops' / 'publish' / 'safe_push.sh'
+    helper.parent.mkdir(parents=True)
+    helper.write_text('echo PUSHED\n')
+    cases = [(1, 0, '', False), (0, 1, '', False),
+             (0, 0, '', False), (0, 0, 'local-commit', True)]
+    for fetch_rc, revision_rc, ahead, pushed in cases:
+        fake_git = (f'git() {{ if [ "$1" = fetch ]; then return {fetch_rc}; '
+                    f'else echo "{ahead}"; return {revision_rc}; fi; }}\n')
+        result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', fake_git + block],
+                                cwd=tmp_path, capture_output=True, text=True)
+        assert (result.returncode == 0) == (fetch_rc == revision_rc == 0)
+        assert ('PUSHED' in result.stdout) == pushed
+        if fetch_rc:
+            assert '::error::' in result.stdout
+            assert 'nothing to push' not in result.stdout

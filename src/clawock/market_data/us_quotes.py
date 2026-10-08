@@ -34,7 +34,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import day_pnl, ledger_rows
+from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
@@ -1180,7 +1180,7 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     t = holding['ticker']
     old_price = holding.get('current_price', 0)
     cost = holding['cost_basis']
-    shrs = holding['shares']
+    shrs = number(holding['shares'])
 
     c, pc, pc_date = _resolve_prev_close(
         q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
@@ -1232,9 +1232,9 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
 def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, tickers,
                         updated, missing, source_counts):
     # Recompute portfolio totals from all active holdings
-    all_active_h = [h for h in ledger_rows(us['holdings']) if h.get('shares', 0) > 0]
-    total_cost  = sum(h['cost_basis'] * h['shares'] for h in all_active_h)
-    total_value = sum(h.get('current_value', h['cost_basis'] * h['shares']) for h in all_active_h)
+    all_active_h = active_holdings(us['holdings'])
+    total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in all_active_h)
+    total_value = sum(h.get('current_value', h['cost_basis'] * number(h['shares'])) for h in all_active_h)
     total_pnl   = total_value - total_cost
     today_chg   = sum(h.get('today_change', 0) for h in all_active_h)
 

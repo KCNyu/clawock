@@ -19,30 +19,14 @@ import argparse
 from datetime import date
 from pathlib import Path
 
-import requests
-
 from clawock.decision import regime as compute_regime
 from clawock.evaluation.series import rvol as realized_vol, sma
 from clawock.evidence import run_card
+from clawock.market_data.hstech import fetch_hstech
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
-TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
-
-def fetch_hstech(start='2021-01-01', end=None, lim=2000):
-    end = end or date.today().isoformat()
-    url = f'{TENCENT}?param=hkHSTECH,day,{start},{end},{lim}'
-    d = requests.get(url, timeout=20).json()
-    rows = (d.get('data') or {}).get('hkHSTECH', {})
-    series = rows.get('day') or rows.get('qfqday') or []
-    out = []
-    for r in series:
-        try:
-            out.append((r[0], float(r[2])))  # (date, close)
-        except (IndexError, ValueError):
-            continue
-    return out
 
 
 def max_drawdown(nav, dates=None):

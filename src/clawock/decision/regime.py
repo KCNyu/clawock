@@ -72,13 +72,13 @@ from datetime import date, datetime, timezone
 import requests
 
 from clawock.instruments import INSTRUMENTS
+from clawock.market_data import hstech
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
 OUT_FILE = WS / 'assets' / 'data' / 'lev_regime.json'
 PORTFOLIO = WS / 'portfolio.json'
-TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 TENCENT_FQ = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get'
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
@@ -106,23 +106,13 @@ US_VOL_HOT = 0.70    # single stocks run hot; only >70% annualised counts as "�
 SHORT_MA_WINDOW = 5  # 新上市杠杆名不足 200DMA 时的「右侧确认」短均线（仅趋势方向、非完整 regime）
 SHORT_MA_MIN = 5     # 短均线至少需要的 bar 数，再少则 unknown
 
-def fetch_hstech(start='2021-01-01', lim=2000):
-    end = date.today().isoformat()
-    url = f'{TENCENT}?param=hkHSTECH,day,{start},{end},{lim}'
+def fetch_hstech(start='2021-01-01', lim=2000, *, end=None):
+    """Live regime degrades to unknown when the shared fetch fails."""
     try:
-        d = requests.get(url, timeout=20).json()
+        return hstech.fetch_hstech(start=start, end=end, lim=lim)
     except Exception as e:
         print(f'  warn: HSTECH fetch failed: {e}', file=sys.stderr)
         return []
-    rows = (d.get('data') or {}).get('hkHSTECH', {})
-    series = rows.get('day') or rows.get('qfqday') or []
-    out = []
-    for r in series:
-        try:
-            out.append((r[0], float(r[2])))
-        except (IndexError, ValueError):
-            continue
-    return out
 
 
 class DatedCloses(list):
