@@ -47,3 +47,15 @@ def run_case(module, case, monkeypatch, path, capsys):
 @pytest.mark.parametrize('case', CASES, ids=lambda case: case['name'])
 def test_writer_replays_pre_extraction_results(case, monkeypatch, tmp_path, capsys):
     assert run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys) == case['expected']
+
+
+def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp_path, capsys):
+    case = copy.deepcopy(CASES[0])
+    for h in case['portfolio']['portfolios']['hk_stocks']['holdings']:
+        h['shares'] = str(h['shares'])
+    actual = run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys)
+    expected = copy.deepcopy(case['expected'])
+    for key in ('returned', 'written'):
+        for h in expected[key]['portfolios']['hk_stocks']['holdings']:
+            h['shares'] = str(h['shares'])
+    assert actual == expected

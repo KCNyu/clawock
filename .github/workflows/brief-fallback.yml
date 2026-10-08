@@ -314,11 +314,15 @@ jobs:
           # Compare against FETCH_HEAD (always set by the fetch) rather than the
           # remote-tracking ref origin/master, which `git fetch origin master` only
           # updates opportunistically.
-          if git fetch origin master -q && \
-             [ -n "$(git rev-list FETCH_HEAD..HEAD 2>/dev/null)" ]; then
+          if ! git fetch origin master -q; then
+            echo "::error::Unable to fetch origin/master; committed brief may remain unpublished"
+            exit 1
+          fi
+          ahead="$(git rev-list FETCH_HEAD..HEAD)"
+          if [ -n "$ahead" ]; then
             bash ops/publish/safe_push.sh
           else
-            echo "nothing to push — HEAD not ahead of origin/master (or fetch failed)"
+            echo "nothing to push — HEAD not ahead of origin/master"
           fi
 
       - name: Record which branch this run took

@@ -2069,14 +2069,15 @@ def _latest_brief_context():
     caller's `bool(brief_ctx)` presence test, and the merge-not-overwrite guard
     would therefore NOT restore the last good values — publishing the risk and
     add-side cards empty on a holiday, as if the brief had run and found
-    nothing. Skipping the sentinel returns the last real context, or (None, None)
+    nothing. Both market-closed and price-refresh-failed stubs are skipped.
+    Skipping the sentinel returns the last real context, or (None, None)
     when there is none, which is the state the restore path is built for.
     """
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / 'brief-context-*.json'))
         for path in sorted(paths, key=os.path.getmtime, reverse=True):
             context = load_json(path)
-            if isinstance(context, dict) and context.get('status') == 'market_closed':
+            if isinstance(context, dict) and context.get('status') in {'market_closed', 'price_refresh_failed'}:
                 continue
             return path, context
         return None, None

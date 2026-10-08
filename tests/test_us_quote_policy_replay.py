@@ -123,3 +123,15 @@ def test_override_rejects_non_active_holdings_before_fetch(
         quotes.update_us_portfolio(str(path), tickers_override=['PLTU', ticker])
     assert calls == []
     assert (path.read_bytes(), path.stat().st_mtime_ns) == before
+
+
+def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp_path, capsys):
+    case = copy.deepcopy(CASES[0])
+    for h in case['portfolio']['portfolios']['us_stocks']['holdings']:
+        h['shares'] = str(h['shares'])
+    actual = run_case(case, monkeypatch, tmp_path / 'portfolio.json', capsys)
+    expected = copy.deepcopy(case['expected'])
+    for key in ('returned', 'written'):
+        for h in expected[key]['portfolios']['us_stocks']['holdings']:
+            h['shares'] = str(h['shares'])
+    assert actual == expected

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from clawock.instruments import INSTRUMENTS
+from clawock.portfolio.math import active_holdings
 
 
 def region_book(portfolio: dict, region: str) -> tuple[str, dict]:
@@ -26,10 +27,7 @@ def region_book(portfolio: dict, region: str) -> tuple[str, dict]:
     for name, book in books.items():
         if not isinstance(book, dict):
             continue
-        active = [
-            holding for holding in (book.get("holdings") or [])
-            if isinstance(holding, dict) and (holding.get("shares") or 0) > 0
-        ]
+        active = active_holdings(book.get('holdings'))
         regions = {
             (INSTRUMENTS.get(str(holding.get("ticker") or "")) or {}).get("region")
             for holding in active
