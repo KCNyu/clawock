@@ -7,6 +7,8 @@ or prose renderer.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import hashlib
 import json
 from dataclasses import dataclass
@@ -99,7 +101,7 @@ def active_issuer_scope(portfolio: dict, market: str, *, registry) -> list[dict]
     holdings = ((portfolio.get("portfolios") or {}).get(leg) or {}).get("holdings") or []
     by_issuer = {}
     for holding in holdings:
-        if not isinstance(holding, dict) or (holding.get("shares") or 0) <= 0:
+        if not isinstance(holding, dict) or (_share_number(holding.get("shares")) or 0) <= 0:
             continue
         ticker = str(holding.get("ticker") or "")
         target = default_instruments.look_through(ticker, registry=registry)

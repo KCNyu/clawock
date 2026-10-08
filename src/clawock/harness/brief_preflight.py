@@ -27,6 +27,8 @@ Output (stdout): step-by-step progress; final summary with issue count.
 Exit: 0 if no issues, 1 if any data leg failed.
 """
 
+from clawock.safe_io import to_number as _share_number
+
 from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
     GUARDRAIL_CAPS,
     LEV_1X_SWAP,
@@ -331,7 +333,7 @@ def collect_us_fundamentals(portfolio):
     single process keeps the desk's request rate the one it declares.
     """
     tickers = [h['ticker'] for h in portfolio['portfolios']['us_stocks']['holdings']
-               if h.get('shares', 0) > 0 and not _is_leveraged_etf(h)]
+               if (_share_number(h.get('shares', 0)) or 0) > 0 and not _is_leveraged_etf(h)]
     if not tickers:
         return {}
     # 单只时保持原来的单只形状；两只以上走 batch。超时按只数给，别让第五只
@@ -667,7 +669,7 @@ def compute_reflections(portfolio):
     rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
 
     held = {h['ticker'] for leg in ('hk_stocks', 'us_stocks')
-            for h in ledger_rows(portfolio['portfolios'][leg]['holdings']) if h.get('shares', 0) > 0}
+            for h in ledger_rows(portfolio['portfolios'][leg]['holdings']) if (_share_number(h.get('shares', 0)) or 0) > 0}
     out = {}
     for tk in sorted(held):
         settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss')]
@@ -1389,7 +1391,7 @@ def cross_factor_node(portfolio):
                 h.get('ticker')
                 for book in portfolio.get('portfolios', {}).values()
                 for h in book.get('holdings', [])
-                if h.get('shares', 0) > 0
+                if (_share_number(h.get('shares', 0)) or 0) > 0
             }
             signal_names = {
                 str((get_instrument(ticker) or {}).get('signal_symbol') or '')
@@ -1461,7 +1463,7 @@ def peer_residual_node(portfolio):
                 h.get('ticker')
                 for book in portfolio.get('portfolios', {}).values()
                 for h in book.get('holdings', [])
-                if h.get('shares', 0) > 0
+                if (_share_number(h.get('shares', 0)) or 0) > 0
             }
             signal_names = {
                 str((get_instrument(ticker) or {}).get('signal_symbol') or '')
@@ -2128,7 +2130,7 @@ def main(argv=None):
         str(holding.get('ticker'))
         for region in ('hk_stocks', 'us_stocks')
         for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
-        if holding.get('shares', 0) > 0
+        if (_share_number(holding.get('shares', 0)) or 0) > 0
     ]
     thesis_registry_ctx = thesis_registry.registry_summary(
         WS / 'memory' / 'theses', active_tickers

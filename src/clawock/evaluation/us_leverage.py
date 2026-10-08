@@ -16,6 +16,8 @@ Outputs:
 
 Run: clawock evaluate-us-leverage   (needs the charting extra: pip install 'clawock[evaluation]')
 """
+
+from clawock.safe_io import to_number as _share_number
 from clawock.evaluation.series import mdd, rvol, sma, underwater
 import argparse
 import json
@@ -48,7 +50,7 @@ def held_symbols():
     except (OSError, ValueError):
         return set()
     return {h.get('ticker') for leg in port.get('portfolios', {}).values()
-            for h in (leg.get('holdings') or []) if (h.get('shares') or 0) > 0}
+            for h in (leg.get('holdings') or []) if (_share_number(h.get('shares')) or 0) > 0}
 # The hot-vol line is production's own (`compute_regime.US_VOL_HOT`): a copy
 # here had drifted to 0.80 against 0.70 and graded a rule nobody runs (#2276).
 MA_WIN, VOL_WIN, VOL_CAP = 200, 20, compute_regime.US_VOL_HOT

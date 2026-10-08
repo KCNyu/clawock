@@ -3880,6 +3880,37 @@ async function testAStaleSidecarDoesNotHoldAPaintedTabOnTheNetwork(browser, base
   await page.close();
 }
 
+async function testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const snapshots = [
+    { date: "2026-10-07", us_asof: "2026-10-07", hk_asof: "2026-10-07", us_today_change: 90, hk_today_change: -100, us_total_value: 1000, hk_total_value: 2000 },
+    { date: "2026-10-08", us_asof: "2026-10-07", hk_asof: "2026-10-08", us_today_change: -100, hk_today_change: 300, us_total_value: 1000, hk_total_value: 2000 },
+  ];
+  try {
+    await stubLiveOrigin(page, { patch: (name, payload) => ["dashboard.json", "overview.json"].includes(name)
+      ? { ...payload, snapshots, snapshots_columns: null, fx: { ...(payload.fx || {}), usdhkd: 2 } } : null });
+    await page.goto(base);
+    await waitForData(page);
+    await clickTab(page, "reflect");
+    await waitForTab(page, "reflect");
+    await page.waitForFunction(() => window.echarts?.getInstanceByDom(document.getElementById("chart-daily-pnl")));
+    const values = await page.evaluate(() => {
+      const chart = window.echarts.getInstanceByDom(document.getElementById("chart-daily-pnl")).getOption();
+      return { dates: chart.xAxis[0].data, bars: chart.series[0].data.map(v => v.value),
+        cumulative: chart.series[1].data,
+        wins: document.getElementById("kpi-windays-sub").textContent,
+        best: document.getElementById("kpi-bestday-date").textContent,
+        worst: document.getElementById("kpi-worstday-date").textContent };
+    });
+    assert.deepEqual(values.dates, ["2026-10-07", "2026-10-08"]);
+    assert.deepEqual(values.bars, [-150, 150]);
+    assert.deepEqual(values.cumulative, [-150, 0]);
+    assert.match(values.wins, /1\/2/);
+    assert.match(values.best, /10-08/);
+    assert.match(values.worst, /10-07/);
+  } finally { await page.close(); }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3897,6 +3928,7 @@ async function main() {
     await fn();
   };
   try {
+    await run("testDailyPnlUsesOneLatestReadingPerMarketSession", () => testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base));
     await run("testOnlyActivePanelAcceptsFocus", () => testOnlyActivePanelAcceptsFocus(browser, base));
     await run("runtime", () => testRuntime(browser, base));
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));

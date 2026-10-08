@@ -80,6 +80,7 @@ harness -> utilities
 harness -> workflows
 harness -> workspace
 history_store -> safe_io
+instruments -> safe_io
 instruments -> workspace
 market_data -> adapters
 market_data -> bar_conflicts

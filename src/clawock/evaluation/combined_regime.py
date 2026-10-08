@@ -18,6 +18,8 @@ Dial (matches production compute_regime):
 Outputs: results table + memory/.tmp/combined_*.png
 Run: clawock evaluate-combined-regime   (needs the charting extra: pip install 'clawock[evaluation]')
 """
+
+from clawock.safe_io import to_number as _share_number
 from clawock.evaluation.series import mdd, rvol, sma, underwater
 import json
 import argparse
@@ -27,6 +29,8 @@ from pathlib import Path
 
 import requests
 
+from clawock.market_data.hstech import fetch_hstech
+from clawock.market_data.tencent_daily import fetch_hk_daily_closes, parse_daily_closes
 from clawock import instruments
 from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
@@ -71,22 +75,16 @@ HOLDING_MAP = {
 
 def fetch(kind, sym, cnt=1800):
     if kind == 'hk':
-        # The window ends today, like the sibling readers (`decision/regime`,
-        # `hstech_regime`). A literal end froze the HK legs — 95% of the modelled
-        # book — while the union calendar kept forward-filling them (#2177).
-        end = date.today().isoformat()
-        url = f'https://web.ifzq.gtimg.cn/appstock/app/kline/kline?param={sym},day,2020-01-01,{end},{cnt}'
-    else:
-        url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={sym},day,,,{cnt},qfq'
+        if sym == 'hkHSTECH':
+            return dict(fetch_hstech(start='2020-01-01', lim=cnt))
+        return dict(fetch_hk_daily_closes(
+            sym, '2020-01-01', lim=cnt, headers={'User-Agent': UA},
+            adjusted_first=True))
+    url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={sym},day,,,{cnt},qfq'
     d = requests.get(url, headers={'User-Agent': UA}, timeout=20).json()
     node = (d.get('data') or {}).get(sym, {})
     rows = node.get('qfqday') or node.get('day') or []
-    return {r[0]: float(r[2]) for r in rows if len(r) >= 3}
-
-
-
-
-
+    return dict(parse_daily_closes(rows))
 
 
 
@@ -147,7 +145,7 @@ def book_weights(port):
     usd, specs, unmodelled = {}, {}, []
     for leg, ccy in (('hk_stocks', fx), ('us_stocks', 1.0)):
         for h in port['portfolios'][leg]['holdings']:
-            if not h.get('shares', 0) > 0:
+            if not (_share_number(h.get('shares', 0)) or 0) > 0:
                 continue
             value = h.get('current_value', 0) * ccy
             spec = holding_spec(h.get('ticker'))

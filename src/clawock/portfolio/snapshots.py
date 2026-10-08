@@ -16,6 +16,8 @@ The same-day share check uses the running balance *after* the sell, so a sell is
 only counted once the holding has actually been drawn down to (or below) it. The
 strict date-`<` branch handles later sell→rebuy cycles without false negatives.
 """
+
+from clawock.safe_io import to_number as _share_number
 from clawock.portfolio.math import ledger_date, ledger_rows, session_date
 
 
@@ -34,7 +36,7 @@ def _ledger_sells(holdings):
         trades = list(enumerate(ledger_rows(h.get('trades'))))
         trades.sort(key=lambda it: (ledger_date(it[1].get('date')), it[0]))
         for seq, t in trades:
-            shares = t.get('shares', 0) or 0
+            shares = _share_number(t.get('shares')) or 0
             if t.get('action') == 'buy':
                 bal += shares
             else:  # sell (or any realizing action)

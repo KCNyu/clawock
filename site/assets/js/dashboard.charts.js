@@ -945,44 +945,9 @@
     const fx = rawFx != null && Number.isFinite(Number(rawFx)) && Number(rawFx) > 0
       ? Number(rawFx) : null;
     const cur = view === "hk" ? "HK$" : "$";
-    // Per-market daily change: US/combined in USD, HK in native HKD.
-    const pnlOf = s => {
-      if (view === "us") return s.us_today_change != null ? s.us_today_change : 0;
-      if (view === "hk") return s.hk_today_change != null ? s.hk_today_change : 0;
-      if (fx == null) return null;
-      return (s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx);
-    };
-    const snaps = (safe(DATA, "snapshots") || [])
-      .filter(s => s.us_today_change != null || s.hk_today_change != null);
-    const byDate = new Map();
-    snaps.forEach(s => byDate.set(s.date, s));
-    let series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-    // Collapse consecutive snapshots that belong to the SAME trading session, keeping
-    // the last (most-settled) one. Two reasons a session repeats across snapshots:
-    //  1) weekend/holiday copies (Sat+Sun+Mon all carry Fri's move);
-    //  2) a US session straddles HK midnight → lands in two HK-dated snapshots
-    //     (the 2026-06-08/09 bug: US Jun-8 counted at both 6/8 and 6/9).
-    // Key on session date (us_asof/hk_asof) per the active view so US sessions collapse
-    // by US calendar, HK by HK calendar; fall back to today_change value if asof absent.
-    const sameSession = (a, b) => {
-      if (view === "us") return !!a.us_asof && a.us_asof === b.us_asof;
-      if (view === "hk") return !!a.hk_asof && a.hk_asof === b.hk_asof;
-      return !!a.us_asof && a.us_asof === b.us_asof && a.hk_asof === b.hk_asof;
-    };
-    series = series.filter((s, i) => {
-      const next = series[i + 1];
-      if (!next) return true;
-      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) return !sameSession(s, next);
-      return !(s.us_today_change === next.us_today_change && s.hk_today_change === next.hk_today_change);
-    });
-
-    // Per-market views label the x-axis by the true session date (≠ filename date).
-    const dates = series.map(s =>
-      view === "us" ? (s.us_asof || s.date) : view === "hk" ? (s.hk_asof || s.date) : s.date);
-    const dailyPnl = series.map(s => {
-      const pnl = pnlOf(s);
-      return pnl == null ? null : Math.round(pnl * 100) / 100;
-    });
+    const series = sessionDailyPnl(safe(DATA, "snapshots") || [], view, fx);
+    const dates = series.map(s => s.date);
+    const dailyPnl = series.map(s => s.pnl == null ? null : Math.round(s.pnl * 100) / 100);
     // Cumulative running sum
     let running = 0;
     const cumulative = dailyPnl.map(v => {

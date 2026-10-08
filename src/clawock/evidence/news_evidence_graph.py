@@ -10,6 +10,8 @@ Writes:
   assets/data/news_evidence_history.jsonl
 """
 
+from clawock.safe_io import to_number as _share_number
+
 import argparse
 import hashlib
 import json
@@ -533,7 +535,7 @@ def _active_us_underlyings(portfolio, underlying):
     for holding in (
         portfolio.get('portfolios', {}).get('us_stocks', {}).get('holdings', [])
     ):
-        if holding.get('shares', 0) <= 0:
+        if (_share_number(holding.get('shares', 0)) or 0) <= 0:
             continue
         ticker = underlying.get(holding.get('ticker'), holding.get('ticker'))
         if ticker and ticker not in tickers:
@@ -793,7 +795,7 @@ def _portfolio_holdings(portfolio):
         for holding in (
             portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
         )
-        if holding.get('shares', 0) > 0
+        if (_share_number(holding.get('shares', 0)) or 0) > 0
     }
 
 

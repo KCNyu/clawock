@@ -9,6 +9,8 @@ events, source health) plus the leverage regime and risk-alert state.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import argparse
 import hashlib
 import json
@@ -200,7 +202,7 @@ def _active_holdings(market):
     return [
         holding for holding in
         portfolio.get("portfolios", {}).get(leg, {}).get("holdings", [])
-        if (holding.get("shares") or 0) > 0
+        if (_share_number(holding.get("shares")) or 0) > 0
     ]
 
 

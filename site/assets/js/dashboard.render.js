@@ -2375,10 +2375,7 @@
     const series = collapseSameSession(
       Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date)));
 
-    const dailyPnl = series.map(s => ({
-      date: s.date,
-      pnl: fx == null ? null : ((s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx)),
-    }));
+    const dailyPnl = sessionDailyPnl(snaps, "combined", fx);
     // equity basis (持仓市值 + 已实现现金) so sells don't punch a fake cliff into the curve
     const bookUsd = series.map(s => fx == null
       ? null : (s.us_equity ?? 0) + ((s.hk_equity ?? 0) / fx));

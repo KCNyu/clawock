@@ -6,6 +6,8 @@ These rules affect intraday copy, never the underlying portfolio risk ledger.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import json
 from datetime import datetime
 
@@ -24,7 +26,7 @@ def load(workspace, market):
                 'strategy_note': row.get('strategy_note'),
                 'risk_escalation_triggers': row.get('risk_escalation_triggers'),
             }
-            for row in rows if row.get('ticker') and row.get('shares', 0) > 0
+            for row in rows if row.get('ticker') and (_share_number(row.get('shares', 0)) or 0) > 0
             and row.get('strategy') in policies}
 
 

@@ -17,6 +17,8 @@ Usage:
   clawock analyze-hk --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
+from clawock.safe_io import to_number as _share_number
+
 import copy
 import json
 import sys
@@ -634,7 +636,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     now_hkt = datetime.now(hkt_tz)
 
     _, us = region_book(data, 'HK')
-    active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active  = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
 
     # Indices
     indices = fetch_indices()
@@ -740,7 +742,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     now_hkt = datetime.now(hkt_tz)
 
     _, us = region_book(data, 'HK')
-    active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active  = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
     indices = fetch_indices()
 
     total_cost  = us.get('total_cost', 0)
@@ -876,7 +878,7 @@ def main(argv=None) -> int:
         finnhub_key = keys.get('FINNHUB_API_KEY', '')
         _, hk_book = region_book(data, 'HK')
         active_codes = [h['ticker'] for h in hk_book['holdings']
-                        if h.get('shares', 0) > 0]
+                        if (_share_number(h.get('shares', 0)) or 0) > 0]
         if finnhub_key:
             if not wechat:
                 print("  [新闻] Finnhub 7天新闻...")

@@ -17,6 +17,8 @@ brief context and as a warning, and never block a publish.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 from clawock.portfolio.math import ledger_rows
 
 import argparse
@@ -167,7 +169,7 @@ def active_positions(portfolio: dict) -> list[dict]:
     for region in ("us_stocks", "hk_stocks"):
         leg = (portfolio.get("portfolios") or {}).get(region) or {}
         for holding in ledger_rows(leg.get("holdings")):
-            if (holding.get("shares") or 0) <= 0:
+            if (_share_number(holding.get("shares")) or 0) <= 0:
                 continue
             buys = [
                 _parse_date(trade.get("date"))

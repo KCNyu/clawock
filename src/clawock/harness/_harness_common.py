@@ -5,6 +5,8 @@ Extracted to avoid duplicating _git / rebuild_dashboard / push retry logic
 across multiple postflight scripts. All functions accept the workspace root
 as path argument or default to the resolved workspace root.
 """
+
+from clawock.safe_io import to_number as _share_number
 from clawock.utilities import PACKAGED_UTILITIES
 import hashlib
 import json
@@ -689,7 +691,7 @@ def quote_coverage(market, portfolio_path, *, now=None, started_at=None,
         leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
         active = [
             row for row in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
-            if (row.get('shares') or 0) > 0
+            if (_share_number(row.get('shares')) or 0) > 0
         ]
     except (OSError, json.JSONDecodeError, TypeError):
         return {'refreshed': 0, 'active': 0, 'unrefreshed': []}

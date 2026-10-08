@@ -13,6 +13,8 @@ News source chain (per-ticker fallback):
 
 Env: MINIMAX_API_KEY required; FINNHUB_API_KEY optional.
 """
+
+from clawock.safe_io import to_number as _share_number
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -242,7 +244,7 @@ def build_user_prompt(news_payload, held_via):
 def main():
     pf = json.load(open(workspace_root() / 'portfolio.json'))
     held = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
-            if h.get('shares', 0) > 0]
+            if (_share_number(h.get('shares', 0)) or 0) > 0]
     # Ask about the company, not the fund. A 2x single-stock ETF publishes nothing:
     # Finnhub returned success_empty for PLTU/RKLX/SPCH every day and Google News
     # filled the gap with ETF marketing copy, which the digest then dutifully

@@ -15,6 +15,8 @@ Usage:
   clawock analyze-us --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
+from clawock.safe_io import to_number as _share_number
+
 import json, sys
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
@@ -317,7 +319,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     # Risk summary
     print(f"\n{'─'*w}")
     print("  风险摘要")
-    active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
     lev_val   = sum(h.get('current_value', 0) for h in active
                     if is_leveraged_holding(h))
     lev_pct   = lev_val / tv * 100 if tv else 0
@@ -413,7 +415,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
         lines.extend(alerts)
 
     # Risk
-    active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
     lev_val = sum(h.get('current_value', 0) for h in active
                   if is_leveraged_holding(h))
     lev_pct = lev_val / tv * 100 if tv else 0
@@ -473,7 +475,7 @@ def run_analysis(fetch: bool = True, include_news: bool = True, argv=None):
 
     keys    = load_api_keys()
     _, us = region_book(data, 'US')
-    active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
+    active  = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
 
     _say("[ 2/3 ] 拉取技术指标 (Polygon RSI-14 / MA)...")
     tickers = [h['ticker'] for h in active]

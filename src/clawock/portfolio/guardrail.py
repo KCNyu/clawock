@@ -13,6 +13,8 @@ several tests refer to them there.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 from clawock.portfolio.math import ledger_rows
 
 import math
@@ -26,16 +28,16 @@ def _is_leveraged_etf(holding):
 
 def compute_concentration(holdings):
     """HHI + Top2 + per-holding weights for one leg."""
-    active = [h for h in ledger_rows(holdings) if h.get('shares', 0) > 0]
+    active = [h for h in ledger_rows(holdings) if (_share_number(h.get('shares', 0)) or 0) > 0]
     if not active:
         return {}
-    total = sum(h.get('current_value', h['cost_basis'] * h['shares']) for h in active)
+    total = sum(h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0)) for h in active)
     if not total:
         return {'error': 'leg has zero total value'}
 
     weights = []
     for h in active:
-        v = h.get('current_value', h['cost_basis'] * h['shares'])
+        v = h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0))
         weights.append({
             'ticker':     h['ticker'],
             'value':      round(v, 2),
@@ -97,12 +99,12 @@ LEV_1X_SWAP = one_x_swap_map()
 def _swap_suggestions(holdings):
     """持有中的杠杆 ETF → 「2x→1x」换仓建议串，如 "07226→03033、ROBN→HOOD"。"""
     return '、'.join(f"{h['ticker']}→{LEV_1X_SWAP[h['ticker']]}" for h in holdings
-                     if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                     if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
                      and h.get('ticker') in LEV_1X_SWAP)
 
 
 def _holding_pnl_pct(h):
-    cost = h.get('cost_basis', 0) * h.get('shares', 0)
+    cost = h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)
     cur  = h.get('current_value', cost)
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
@@ -180,8 +182,8 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
 
         # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
         # is_leveraged_etf flag (which concentration weights mirror and is often unset)
-        lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * h.get('shares', 0))
-                      for h in hold if h.get('shares', 0) > 0 and _is_leveraged_etf(h))
+        lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0))
+                      for h in hold if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h))
         # HK leg cap tightened by HSTECH dial; US leg stays at base (its risk is handled
         # per-name below — verified: a single US index mult over-cuts calm names like MSFT).
         leg_mult = hk_mult if leg == 'HK' else 1.0
@@ -208,14 +210,14 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                     'target_pct': eff_lev_cap,
                     'target_tickers': [
                         h.get('ticker') for h in hold
-                        if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                        if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
                     ],
                 },
             })
 
         # hard-stop watch on individual leveraged ETFs
         for h in hold:
-            if h.get('shares', 0) <= 0 or not _is_leveraged_etf(h):
+            if (_share_number(h.get('shares', 0)) or 0) <= 0 or not _is_leveraged_etf(h):
                 continue
             pnl = _holding_pnl_pct(h)
             if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
@@ -236,7 +238,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                         'minimum_shares': h.get('shares'),
                         'minimum_value': (
                             h.get('current_value')
-                            or h.get('cost_basis', 0) * h.get('shares', 0)),
+                            or h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)),
                         'currency': ccy,
                         'target_tickers': [h['ticker']],
                         'swap_to': LEV_1X_SWAP.get(h['ticker']),
@@ -247,11 +249,11 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     # trend-off AND vol hot) becomes a forced directive; 'watch' (calm) stays advisory.
     us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
     if isinstance(us_reg, dict):
-        held_us = {h.get('ticker') for h in us_holdings if h.get('shares', 0) > 0}
+        held_us = {h.get('ticker') for h in us_holdings if (_share_number(h.get('shares', 0)) or 0) > 0}
         for nm in us_reg.get('names', []):
             if nm.get('state') == 'cut' and nm.get('etf') in held_us:
                 holding = next(h for h in us_holdings if h.get('ticker') == nm['etf']
-                               and h.get('shares', 0) > 0)
+                               and (_share_number(h.get('shares', 0)) or 0) > 0)
                 vol = nm.get('vol_annualized')
                 if vol is None:
                     basis = nm.get('regime_basis') or 'short_ma'
@@ -288,7 +290,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                         'swap_to': nm['underlying'],
                         'minimum_shares': holding.get('shares'),
                         'minimum_value': (holding.get('current_value')
-                                          or holding.get('cost_basis', 0) * holding.get('shares', 0)),
+                                          or holding.get('cost_basis', 0) * (_share_number(holding.get('shares', 0)) or 0)),
                         'currency': 'USD',
                     },
                 })
@@ -305,7 +307,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
         float(w.get('current_value') or 0)
         * (1.0 if leg == 'US' else fx_hkd_to_usd)
         for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
-        for w in holdings if w.get('shares', 0) > 0
+        for w in holdings if (_share_number(w.get('shares', 0)) or 0) > 0
     )
     if (not correlation.get('reason') and isinstance(coverage, (int, float))
             and coverage >= caps['correlation_min_coverage_pct']
@@ -368,7 +370,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                 'target_beta': caps['us_beta_max'],
                 'target_tickers': [
                     h.get('ticker') for h in us_holdings
-                    if h.get('shares', 0) > 0 and _is_leveraged_etf(h)
+                    if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
                 ],
             },
         })
@@ -403,12 +405,12 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
     rows = []
     for leg, hold in (('HK', hk_holdings), ('US', us_holdings)):
         for h in hold:
-            if h.get('shares', 0) <= 0:
+            if (_share_number(h.get('shares', 0)) or 0) <= 0:
                 continue
             pnl = _holding_pnl_pct(h)
             if pnl is None or pnl >= 0:
                 continue
-            cost = h.get('cost_basis', 0) * h['shares']
+            cost = h.get('cost_basis', 0) * (_share_number(h['shares']) or 0)
             cur  = h.get('current_value', cost)
             if not cur:
                 continue

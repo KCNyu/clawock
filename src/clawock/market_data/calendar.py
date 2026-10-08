@@ -19,6 +19,8 @@ Modes:
   clawock catalysts --json     # print final JSON to stdout and write file
   clawock catalysts --days 30  # custom window
 """
+
+from clawock.safe_io import to_number as _share_number
 import argparse
 import json
 import sys
@@ -71,7 +73,7 @@ def us_earnings_tickers(portfolio=None):
         for holding in (book or {}).get('holdings') or []:
             ticker = holding.get('ticker')
             meta = instrument_registry.get(ticker) or {}
-            if (holding.get('shares') or 0) <= 0 or meta.get('region') != 'US':
+            if (_share_number(holding.get('shares')) or 0) <= 0 or meta.get('region') != 'US':
                 continue
             issuer = earnings_issuer(ticker)
             if issuer and issuer not in out:

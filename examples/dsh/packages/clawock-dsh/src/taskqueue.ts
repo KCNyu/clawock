@@ -135,7 +135,6 @@ export const systemDeps: TaskQueueDeps = {
   async patrolIssues() {
     const now = Date.now()
     if (issueCache !== null && now - issueFetchedAt < 300000) return issueCache
-    issueFetchedAt = now
     const { out, failed } = await new Promise<RunResult>((resolve) => {
       execFile('gh', ['issue', 'list', '-R', 'KCNyu/clawock', '--label', 'patrol', '--state', 'open', '--limit', '1000', '--json', 'labels'],
         { timeout: COMMAND_TIMEOUT_MS, maxBuffer: 4 << 20 }, (error, stdout) => resolve({ out: String(stdout ?? ''), failed: error === null ? null : error.message }))
@@ -145,7 +144,12 @@ export const systemDeps: TaskQueueDeps = {
       // A saturated result cannot establish exact counts. Failure is unknown, never zero.
       if (failed !== null || !Array.isArray(rows) || rows.length >= 1000 || rows.some((r) => !Array.isArray(r.labels) || r.labels.some((l: { name?: unknown }) => typeof l.name !== 'string'))) throw new Error('incomplete labels')
       issueCache = { labels: rows.map((r) => r.labels.map((l: { name: string }) => l.name)), asOf: new Date(now).toISOString() }
-    } catch { issueCache = { labels: null, asOf: '' } }
+    } catch (cause) {
+      // Keep the last success and let the queue service expose its stale/failed
+      // channel. Failed reads never acquire the five-minute success TTL.
+      throw new Error('gh patrol issues: ' + (failed ?? String(cause)))
+    }
+    issueFetchedAt = now
     return issueCache
   },
   runOps: runOpsProcess,
@@ -463,7 +467,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   }
   const [activeIds, service, log, opsRead, issues] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
-    deps.patrolIssues?.().catch(() => ({ labels: null, asOf: '' })) ?? Promise.resolve({ labels: null, asOf: '' }),
+    deps.patrolIssues?.() ?? Promise.resolve({ labels: null, asOf: '' }),
   ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
   // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was

@@ -5,6 +5,8 @@ Run as ``clawock validate-sidecar <name>``.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import csv
 import argparse
 import json
@@ -136,7 +138,7 @@ def validate_sentiment(
         holding['ticker']
         for region in ('us_stocks', 'hk_stocks')
         for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
-        if holding.get('shares', 0) > 0
+        if (_share_number(holding.get('shares', 0)) or 0) > 0
     }
 
     tickers = data.get('tickers')
@@ -421,7 +423,7 @@ def validate_eod_archive(
             holding
             for region in ('us_stocks', 'hk_stocks')
             for holding in portfolio['portfolios'].get(region, {}).get('holdings', [])
-            if holding.get('shares', 0) > 0
+            if (_share_number(holding.get('shares', 0)) or 0) > 0
         ]
         expected = {h['ticker'] for h in held}
         if not expected and not Path(csv_path).is_file():
@@ -841,7 +843,7 @@ def _assert_dashboard_money_reconciles(
             source_rows = {
                 row.get('ticker') or row.get('code'): row
                 for row in source_leg.get('holdings', [])
-                if isinstance(row, dict) and (row.get('shares') or 0) > 0
+                if isinstance(row, dict) and (_share_number(row.get('shares')) or 0) > 0
             }
             assert set(public_by_ticker) == set(source_rows), (
                 f'holdings.{leg} ticker coverage mismatch: '
