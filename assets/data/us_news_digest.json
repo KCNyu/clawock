@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T19:09:04.029980+00:00",
+  "generated_at": "2026-10-08T19:04:45.482718+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX** — **Fact:** 多篇报道重复称 SpaceX/SPCX 拟融资 **$40B** 购买 Nvidia AI 芯片；若落实将支持算力扩张，但目前仍是 reported/may，融资结构与确定性未确认。  \n  **Implication（kcn）:** 通过 **SPCH（2x）** 持有，2x 会同时放大算力叙事的上行与融资、杠杆风险；确认前不把计划金额计入收入。\n- **RKLB** — **Fact:** Seeking Alpha 称 RKLB 终止 **$3.6B bridge loan**、未实际借款，Iridium 交易据称已获得全额资金；融资执行悬念下降，EBITDA 增厚仍待兑现。  \n  **Implication（kcn）:** 通过 **RKLX（2x）** 持有，2x 会放大交易重估的上行，也会放大 Neutron 延迟或整合不及预期的回撤。\n- **CRCL** — **Fact:** Tereina 与 Circle 合作，将 **USDC/EURC** 接入其企业支付基础设施，扩展稳定币分发与支付入口。  \n  **Implication:** 对 CRCL 仓位构成温和 adoption 利好，但未披露合同金额、上线时间或收入分成，暂不足以支持盈利上修。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: Tereina 合作为主要商业化催化；Circle 参与 OKX **$25B** 估值 extension round 属于次级生态验证，未披露对 CRCL 的直接经济收益。\n- **RKLB**: Iridium 交易全额 funding、取消桥接贷款是核心正面事件；评论稿同时指出公司仍亏损且 Neutron 尚未飞行，叠加航天板块抛售，波动风险仍高。\n- **SPCX**: 核心新闻是据称融资 **$40B** 采购 AI 芯片；重复报道均未提供已确认的融资条款或完成时间。\n\n### 风险 watch (若有)\n- **SPCX / SPCH**: **$40B 融资仍属报道/传闻**；若采用债务或大规模股权融资，可能带来杠杆、稀释及资本开支执行风险，SPCH 的 2x 会放大相关波动。\n- **RKLB / RKLX**: 盈利依赖 Neutron 成功 flies 及其他执行里程碑；当前亏损、未飞行状态和 Iridium 整合风险均可能触发 RKLX 放大回撤。\n- **CRCL**: “post-CLARITY deregulation”仅出现在行业评论中，本批新闻没有已落地监管决定或 financial guidance；合作项目的商业化与政策敏感度仍未量化。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: American Airlines 计划为逾 1,000 架主线飞机部署 Starlink Wi‑Fi；kcn 持有 SPCH（2x SPCX），2x 杠杆将放大该商业落地消息及股价反应。\n- SPCX: SpaceX 获监管方允许绕过无线运营商连接普通手机；SPCH 的 2x 杠杆将放大这项监管胜带来的直接连接业务重估。\n- CRCL: Circle 与 Tereina 合作，将 USDC/EURC 接入 SAP Cloud ERP 工作流；对 kcn 的 CRCL 持仓构成企业采用利好，但未披露收入贡献。\n- RKLB: SpaceX 的监管突破带动资金偏好转移，RKLB 同步下跌 4%；kcn 持有 RKLX（2x RKLB），2x 杠杆会放大相对估值压力。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: SAP Cloud ERP 集成扩大企业稳定币分发渠道，偏正面；CFO 交接与董事会改组构成治理观察项。\n- RKLB: 股价受 SpaceX 监管进展拖累，叠加此前业绩miss与增发压力，短线情绪偏弱。\n- SPCX: 美国航空逾千架飞机部署计划叠加普通手机直连许可，商业与监管双重催化。\n\n### 风险 watch (若有)\n- CRCL: CFO 交接及董事会改组临近，管理层 continuity 存在过渡风险。\n- RKLB: 股价较 52 周高点低逾 50%，近期增发与财报失误仍是基本面压力；“翻倍目标价”仅属单一分析师观点，RKLX 的 2x 杠杆会放大回撤。\n- SPCX: American Airlines 项目未披露合同金额与部署时间；监管消息未说明具体监管方、附带条件或执行节奏。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "NODE Monthly Commentary: September 2026",
-        "datetime": 1791364200,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c86e6dd9ba2c5c13f586f8863bb0dca37790234fcca403ac3418c8973994619a"
-      },
-      {
-        "headline": "Tereina, Circle Internet Group Collaborate To Integrate USDC, EURC Into Tereina’s Payments Infrastructure",
-        "datetime": 1791360385,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3bee2981e6d5ae14afefb62678fcad2ffe39171efb4e495421781ff0bfb07305"
-      },
-      {
-        "headline": "Tracking Stablecoin Supply, Circulation",
-        "datetime": 1791315958,
+        "headline": "DJ Khaled said 'Another one' and the internet brought up the last one",
+        "datetime": 1791416072,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9c4bdda8bc0409ae77abed02c1b9d2cbcf2c8f49b4c01aca236fc209a303ff5e"
+        "url": "https://finnhub.io/api/news?id=7a9ada15d4811509139d6b6e31d22c001602b3225f2cb8ca273d7b9474b1e6ea"
       },
       {
-        "headline": "OKX maintains $25B valuation in extension round - Bloomberg",
-        "datetime": 1791296401,
+        "headline": "What Is Drawing Attention To Circle Internet Group (CRCL)?",
+        "datetime": 1791407493,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=842127342c70a06b4fb15afa1efa44deba1aeba1959472e8c9a346fe7563a73a"
+        "url": "https://finnhub.io/api/news?id=9a176671f7673b59603efa03e65072622643b259a7661e9f0fb7067aacfe83a8"
       },
       {
-        "headline": "Applied Digital to Post Q1 Earnings: Is It Time to Hold or Fold?",
-        "datetime": 1791296400,
+        "headline": "2 Fintech Stocks to Buy After Losing Over Half Their Value",
+        "datetime": 1791404340,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2344189f982a35886bbcecca3523d20c5a05ebb57d69d642bcc6372854beb571"
+        "url": "https://finnhub.io/api/news?id=da08aff84d177177b029d9c5327c739d5950f49398d0d79eef1ae694793a2fa7"
+      },
+      {
+        "headline": "Crypto heavyweights bet big on OKX",
+        "datetime": 1791399600,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f2022cda2680a27e02086a68d8f4bbc5effbefc6b8893e1fd28e21f15fea158a"
+      },
+      {
+        "headline": "Can USDC Adoption Reshape Coinbase's Long-Term Growth Profile?",
+        "datetime": 1791390600,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=41a33ba172f2515f5e0063dbc32469fbc323e2adff9bb60fb71107ace2e9c069"
       }
     ],
     "RKLB": [
       {
-        "headline": "Intuitive Machines Falls 7% Despite Scaling Up Satellite Manufacturing; Rocket Lab and Redwire Drop 5%",
-        "datetime": 1791395654,
+        "headline": "Rocket Lab Fell Hard Over The Last 3 Months: Wall Street Pro Predicts It Doubles From Today",
+        "datetime": 1791477901,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=025b1b937c93e369ab0a44f5485a9f2720bb90ac0c2b152ff6efd4bf1b68bf9a"
+        "url": "https://finnhub.io/api/news?id=b8aafc70af9e26966a9a809b89435cdd157870fbab0162ebebef30fbc0ecc0d2"
       },
       {
-        "headline": "Should You Sell Your RKLB Stock Now, Before Neutron Flies?",
-        "datetime": 1791388179,
+        "headline": "AST SpaceMobile Sinks 7% as Satellite Rival Clears Regulatory Hurdle; Rocket Lab Drops 4%, Planet Labs Falls 5%",
+        "datetime": 1791477811,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=83e5d4d8c8ddf6e4fbcd650275697ff07b14e64b22bd7a2ad52f2620fad96ad0"
+        "url": "https://finnhub.io/api/news?id=f036c6be9c02f5c0b58dad1a69fa77d65b646c1ea7e8290548d1e508d9376ddc"
       },
       {
-        "headline": "Rocket Lab: Iridium Could Explode EBITDA, But A Wildcard Decides If It's Worth It",
-        "datetime": 1791380233,
-        "source": "SeekingAlpha",
+        "headline": "Space Stocks’ Double-Digit Rally Masks Narrow Leadership as Scale and Profits Win",
+        "datetime": 1791461163,
+        "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f417cc8ee9793e31f38cd70279ec893877ee27bfe2b748ac0eff8bdc5aefbf88"
+        "url": "https://finnhub.io/api/news?id=965ba9f45ed5ae5121d508a4a044152108718260943fa4519eeb5feeedb77790"
       },
       {
-        "headline": "SpaceX Slips 2% on a Reported $40 Billion Chip Financing Plan; Rocket Lab Eases, AST SpaceMobile Falls 3%",
-        "datetime": 1791379161,
+        "headline": "Not SpaceX. Not Blue Origin. The Space Titan That Morgan Stanley Calls an Undervalued Launch Play.",
+        "datetime": 1791458400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=06511fd459cddef1214d6be32e824bed77ae950ad756a42d8b47fe0eb15d66c6"
+        "url": "https://finnhub.io/api/news?id=f8841e80acfdea76c82005f8ca0fd09f1520f1b1ca2a36504f307409300af5bf"
       },
       {
-        "headline": "Is LUNR Scaling Into a High-Volume Satellite Manufacturer?",
-        "datetime": 1791377400,
+        "headline": "Jim Cramer Draws a Line Between Rocket Lab (RKLB)  and SpaceX (SPCX)",
+        "datetime": 1791431142,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8a78551decd16cc17986b32667324e88fc97a5ccc5bfd063846431482aafe7c5"
+        "url": "https://finnhub.io/api/news?id=418d396fee84cee71ea859d363a749070224483485d33ed43d0c05c2c1650038"
       }
     ],
     "SPCX": [
       {
-        "headline": "Is SpaceX About to Hand Nvidia a $40 Billion Payday? Here's What it Could Mean for Investors.",
-        "datetime": 1791396095,
+        "headline": "Oracle stock falls on more debt to fund AI chip buying, Open AI revenue disclosure",
+        "datetime": 1791482553,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3b36349995b3660a2396f6b02d8849e963ad9fbf5f7f69be659c0b431850370b"
+        "url": "https://finnhub.io/api/news?id=365876ff2d29ee64f387574fd6b7079725dc7c9d226fdb59c768e438d32400b5"
       },
       {
-        "headline": "How SpaceX's big Nvidia buy could contribute to 'structural changes' to the economy",
-        "datetime": 1791395134,
+        "headline": "Nvidia and SpaceX: Top Analyst Daniel Ives Says These 2 AI Giants Have More Room to Run",
+        "datetime": 1791480000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6c1ed6c5e141480c22661da4e8d36ba79c4772667f3658f12f6fbd4e283dfaa1"
+        "url": "https://finnhub.io/api/news?id=bd9f326fe88bdbdccb4ed56c3ec60228c02d912931c67f7f41734ea34075573c"
       },
       {
-        "headline": "Sector Update: Tech Stocks Decline Wednesday Afternoon",
-        "datetime": 1791394626,
+        "headline": "American Airlines to equip over 1,000 aircraft with SpaceX’s Starlink Wi-Fi",
+        "datetime": 1791479522,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=43667df2dade71ec4cdf495d7bafd69f50b8147a7dbe05aa9f695f9643a4d17e"
+        "url": "https://finnhub.io/api/news?id=6dafe28b7733d04efa97c398c15285d87a53104e316cd781325bc1ab0f792e58"
       },
       {
-        "headline": "Robinhood buys $25 million in bitcoin",
-        "datetime": 1791394200,
+        "headline": "AST SpaceMobile Sinks 7% as Satellite Rival Clears Regulatory Hurdle; Rocket Lab Drops 4%, Planet Labs Falls 5%",
+        "datetime": 1791477811,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cb6a00580523fa2fc81f91cc95851227cb2a1f6d3844bc5c2172b3fde1d6e738"
+        "url": "https://finnhub.io/api/news?id=f036c6be9c02f5c0b58dad1a69fa77d65b646c1ea7e8290548d1e508d9376ddc"
       },
       {
-        "headline": "SpaceX Reportedly Wants $40 Billion to Buy Artificial Intelligence (AI) Chips. Here's Why That's Huge News for Nvidia Investors.",
-        "datetime": 1791393600,
+        "headline": "Chipotle, Starbucks, Palantir, Intel, SpaceX, Wolfspeed, and More Stocks That Explain Today’s Market",
+        "datetime": 1791477480,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3c0f69c2b6f6c8ccf9caa7124e0d2ebc12ebca713131ac0cc2369efad8789180"
+        "url": "https://finnhub.io/api/news?id=2b8797c240c040153f37eb29a69a6ef97c497a4fd948366170ac851986f840c2"
       }
     ]
   },
