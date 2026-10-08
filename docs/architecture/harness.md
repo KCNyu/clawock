@@ -502,3 +502,13 @@ investment-decision/
 and is the runtime-facing procedure; references and assets are loaded
 progressively. Python validators remain package code so neither a runtime nor a
 profile can silently edit financial or provenance invariants by changing prose.
+
+### Canonical plan revisions
+
+Brief postflight reconciles the complete decision set for the plan date under
+the ledger lock. Replaced or removed pending decisions are removed from the
+ledger so every scored row still traces to the canonical authored plan. Other
+dates and conversation mind records remain intact. A revision that would remove
+a decision with recorded execution or a completed evaluation is refused before
+any ledger mutation; those records require explicit historical reconciliation.
+An unchanged retry preserves the existing evaluation and execution fields.

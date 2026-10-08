@@ -1330,3 +1330,68 @@ def test_trigger_window_keeps_a_halted_session_and_a_suspect_one_apart():
         got = dv2._trigger_window(row, ticker="AAA", leg="US",
                                   candidate_sessions=["2026-07-01"], today="2026-07-09")
         assert dv2._window_refusal(got, ticker="AAA", leg="US")["not_evaluable_reason"] == "degenerate_bar"
+
+
+def test_plan_revision_replaces_pending_rows_without_orphans(tmp_path):
+    path = tmp_path / "decisions.jsonl"
+    day = "2026-10-08"
+    def row(action, date=day, ticker="02208"):
+        return dv2.legacy_action_to_decision(
+            {"ticker": ticker, "action": action, "strategy_id": "tactical_entry"}, date)
+
+    previous = row("hold_and_watch", "2026-10-07")
+    old = row("add_only_on_trigger")
+    removed = row("watch", ticker="SPCH")
+    unchanged = row("hold_and_watch", ticker="CRCL")
+    unchanged["execution"]["status"] = "followed"
+    mind = {"schema_version": 0, "decision_id": "mind-test", "plan_date": day}
+    dv2.write_decisions([previous, old, removed, unchanged, mind], path)
+    replacement = row("watch")
+    plan = {"date": day, "decisions": [replacement, row("hold_and_watch", ticker="CRCL")]}
+    assert dv2.upsert_plan_decisions(plan, path=path) == (1, 1)
+    result = dv2.load_decisions(path)
+    assert {d["decision_id"] for d in result} == {
+        previous["decision_id"], replacement["decision_id"], unchanged["decision_id"], "mind-test"}
+    assert next(d for d in result if d["ticker"] == "CRCL")["execution"]["status"] == "followed"
+    before = path.read_text()
+    assert dv2.upsert_plan_decisions(plan, path=path) == (0, 2)
+    assert path.read_text() == before
+
+
+def test_plan_revision_refuses_to_remove_recorded_decisions(tmp_path):
+    import pytest
+
+    path = tmp_path / "decisions.jsonl"
+    for state in ["followed", "not_followed", "settled"]:
+        old = dv2.legacy_action_to_decision({"ticker": "02208", "action": "watch"}, "2026-10-08")
+        if state == "settled":
+            old["evaluation"]["status"] = state
+        else:
+            old["execution"]["status"] = state
+        dv2.write_decisions([old], path)
+        before = path.read_text()
+        ledger = dv2.load_decisions(path)
+        replacement = dv2.legacy_action_to_decision(
+            {"ticker": "02208", "action": "hold_and_watch"}, "2026-10-08")
+        plan = {"date": "2026-10-08", "decisions": [replacement]}
+        with pytest.raises(ValueError, match="recorded decisions"):
+            dv2.upsert_plan_decisions(plan, path=path, ledger=ledger, write=False)
+        assert ledger == [old]
+        assert path.read_text() == before
+        with pytest.raises(ValueError, match="recorded decisions"):
+            dv2.upsert_plan_decisions(plan, path=path)
+        assert path.read_text() == before
+
+
+def test_plan_revision_cannot_prune_with_an_empty_or_wrong_date_plan(tmp_path):
+    import pytest
+
+    path = tmp_path / "decisions.jsonl"
+    old = dv2.legacy_action_to_decision({"ticker": "02208", "action": "watch"}, "2026-10-08")
+    dv2.write_decisions([old], path)
+    before = path.read_text()
+    wrong = dv2.legacy_action_to_decision({"ticker": "02208", "action": "watch"}, "2026-10-07")
+    for decisions in [[], [wrong]]:
+        with pytest.raises(ValueError, match="empty or date-mismatched"):
+            dv2.upsert_plan_decisions({"date": "2026-10-08", "decisions": decisions}, path=path)
+        assert path.read_text() == before

@@ -813,6 +813,27 @@ def upsert_plan_decisions(
             f"{unkeyed} have no decision_id; run normalize_authored_plan first"
         )
     existing = ledger if ledger is not None else load_decisions(path)
+    # A plan is the complete authored set for its date, not an append-only
+    # batch. A correction can change an action (and therefore its id) or drop
+    # a decision; keeping the old row would orphan it from the canonical plan.
+    # Reconcile before any mutation so a protected execution refuses the whole
+    # revision without changing the caller's in-memory ledger or disk.
+    plan_date = plan.get("date")
+    incoming = plan.get("decisions") or []
+    if plan_date and (not incoming or any(d.get("plan_date") != plan_date for d in incoming)):
+        raise ValueError("refusing to reconcile an empty or date-mismatched plan")
+    incoming_ids = {d["decision_id"] for d in incoming}
+    superseded = [d for d in existing
+                  if plan_date and d.get("schema_version") == SCHEMA_VERSION
+                  and d.get("plan_date") == plan_date
+                  and d.get("decision_id") not in incoming_ids]
+    protected = [d["decision_id"] for d in superseded
+                 if (d.get("execution") or {}).get("status") not in {None, "unknown"}
+                 or (d.get("evaluation") or {}).get("status") not in {None, "pending"}]
+    if protected:
+        raise ValueError(f"refusing to supersede recorded decisions: {protected}")
+    superseded_ids = {d["decision_id"] for d in superseded}
+    existing[:] = [d for d in existing if d.get("decision_id") not in superseded_ids]
     by_id = {d.get("decision_id"): d for d in existing}
     inserted = updated = 0
     for d in plan.get("decisions") or []:
