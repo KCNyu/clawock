@@ -2,8 +2,10 @@
 """
 clawock analyze-hk — HK portfolio price refresh + news + signal generation
 
-Provider: Tencent qt.gtimg.cn (no key, real-time, works outside HK)
-Indices:  r_hkHSI / r_hkHSTECH via same API
+Provider: Tencent qt.gtimg.cn + Eastmoney HK (parallel dual-source reconciliation;
+          prefer Tencent when both succeed, Eastmoney when Tencent misses)
+Fallbacks: stooq → yfinance for codes still missing (yfinance needs clawock[market])
+Indices:  r_hkHSI / r_hkHSTECH via Tencent API
 News:     Finnhub (needs FINNHUB_API_KEY in .api_keys)
 
 Usage:
