@@ -23,6 +23,8 @@ LLM 引用纪律：技术面判断只准引用本表数字，不得自创（SKIL
 诚实口径：这些是风控/纪律因子不是 alpha——动量/趋势有大量文献支撑但都会被洗(whipsaw)；
 它们的作用是把「该不该持有/该多大仓位/何处离场」从感觉变成数字，效果靠 calibration 回头验。
 """
+
+from clawock.safe_io import to_number as _share_number
 import json
 import math
 import sys
@@ -403,7 +405,7 @@ def universe_details(errors=None, portfolio=None):
         if not isinstance(book, dict):
             continue
         for h in book.get('holdings', []):
-            if h.get('shares', 0) <= 0:
+            if (_share_number(h.get('shares', 0)) or 0) <= 0:
                 continue
             t = h.get('ticker')
             try:

@@ -4368,3 +4368,50 @@ test('patrol coverage: full recorded lens history stays separate from eight rows
     assert.ok(missing.progress.areas.every(a => a.open === null));
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
+
+test("patrol issue failures preserve the last good queue, disclose stale and retry immediately", async () => {
+  const cp = await import('node:child_process');
+  const { syncBuiltinESMExports } = await import('node:module');
+  const original = cp.default.execFile;
+  const originalNow = Date.now;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'clawock-patrol-cache-'));
+  let now = 2000000000000;
+  let fail = false;
+  let calls = 0;
+  cp.default.execFile = (cmd, args, opts, cb) => {
+    assert.equal(cmd, 'gh'); calls++;
+    cb(fail ? new Error('temporary gh failure') : null, fail ? '' : '[{"labels":[{"name":"area:dsh"}]}]');
+  };
+  syncBuiltinESMExports();
+  Date.now = () => now;
+  try {
+    const tq = await import(pathToFileURL(path.join(PLUGIN, 'lib/taskqueue.js')).href + '?patrol-cache-test');
+    const service = tq.createTaskQueueService({ logDir: root, patrolDir: root }, {
+      activeTaskIds: async () => [], patrolService: async () => 'active', patrolLog: async () => [],
+      patrolIssues: tq.systemDeps.patrolIssues,
+    });
+    const good = await service.get(true);
+    assert.equal(good.status, 'fresh');
+    assert.equal(good.patrol.progress.areas.find(r => r.name === 'dsh').open, 1);
+    now += 301000; fail = true;
+    const stale = await service.get(true);
+    assert.equal(stale.status, 'stale');
+    assert.match(stale.message, /gh patrol issues/);
+    assert.deepEqual(stale.patrol.progress, good.patrol.progress);
+    await assert.rejects(tq.systemDeps.patrolIssues(), /temporary gh failure/);
+    fail = false;
+    assert.equal((await service.get(true)).status, 'fresh');
+    assert.equal(calls, 4);
+    // With no previous snapshot a failed read is explicitly failed, never empty/fresh.
+    now += 301000; fail = true;
+    const empty = tq.createTaskQueueService({ logDir: root, patrolDir: root }, {
+      activeTaskIds: async () => [], patrolService: async () => 'active', patrolLog: async () => [],
+      patrolIssues: tq.systemDeps.patrolIssues,
+    });
+    assert.equal((await empty.get(true)).status, 'failed');
+  } finally {
+    Date.now = originalNow;
+    cp.default.execFile = original; syncBuiltinESMExports();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

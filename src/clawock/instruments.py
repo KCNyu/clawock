@@ -8,6 +8,8 @@ module and CI intentionally installs only the project's minimal dependencies.
 
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import json
 import re
 from pathlib import Path
@@ -179,7 +181,7 @@ def validate_active_holdings(
     for bucket, expected_region in (("us_stocks", "US"), ("hk_stocks", "HK")):
         holdings = portfolio.get("portfolios", {}).get(bucket, {}).get("holdings", [])
         for holding in holdings:
-            if (holding.get("shares") or 0) <= 0:
+            if (_share_number(holding.get("shares")) or 0) <= 0:
                 continue
             symbol = holding.get("ticker")
             meta = registry.get(symbol)
@@ -367,7 +369,7 @@ def compute_lookthrough_exposure(portfolio: dict) -> dict[str, dict]:
         # Foundation module: keep the row guard local instead of importing a
         # portfolio consumer and reintroducing the instruments/portfolio cycle.
         active = [h for h in portfolio["portfolios"][region].get("holdings", [])
-                  if isinstance(h, dict) and (h.get("shares") or 0) > 0]
+                  if isinstance(h, dict) and (_share_number(h.get("shares")) or 0) > 0]
         by_factor: dict[str, dict] = {}
         by_sector: dict[str, dict] = {}
         capital_total = sum(float(h.get("current_value") or 0) for h in active)
@@ -444,7 +446,7 @@ def main() -> int:
         1
         for bucket in ("us_stocks", "hk_stocks")
         for holding in portfolio["portfolios"][bucket]["holdings"]
-        if (holding.get("shares") or 0) > 0
+        if (_share_number(holding.get("shares")) or 0) > 0
     )
     print(
         f"instrument registry OK: {len(INSTRUMENTS)} instruments, "

@@ -106,3 +106,10 @@ def test_holding_quote_session_is_the_fetchers_session_not_the_fetch_clock():
     assert us_status["quote_sessions"] == {"OWN": "2026-10-02", "STAMP": "2026-10-02"}
     assert hk_status["newest_quote_session"] == hk_status["expected_completed_session"]
     assert us_status["fresh"] is True and hk_status["fresh"] is True
+
+
+def test_daily_pnl_counts_market_sessions_independently():
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run(['node', '--test', 'tests/dashboard_daily_sessions.spec.js'], cwd=root, check=True)

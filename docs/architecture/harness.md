@@ -332,7 +332,7 @@ parameters and what reaches their model.
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
 | provenance code identity | `code_identity.git_commit` / `file_digest` | run cards, scorecard provenance | explicit workspace / file; short commit or null, sha256 prefix unchanged; `tests/test_code_identity.py` pins one owner |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
-| HSTECH dated daily closes | `market_data/hstech.fetch_hstech` | live regime, regime evaluations | start/end/count; malformed rows skipped, research fetch errors propagate, live caller degrades to unknown |
+| HSTECH dated daily closes | `market_data/hstech.fetch_hstech` | live regime, regime evaluations (including combined regime) | start/end/count; shared `market_data/tencent_daily` request/parser; malformed rows skipped, research fetch errors propagate, live caller degrades to unknown |
 | history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
 | Tencent per-symbol news/announcements | `market_data/tencent_news` | `primary_disclosures` (type 0), `mover_evidence` (type 1) | symbol, feed type, window, `http` |

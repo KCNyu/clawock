@@ -119,7 +119,6 @@ const systemDeps = {
 	async patrolIssues() {
 		const now = Date.now();
 		if (issueCache !== null && now - issueFetchedAt < 3e5) return issueCache;
-		issueFetchedAt = now;
 		const { out, failed } = await new Promise((resolve) => {
 			execFile("gh", [
 				"issue",
@@ -149,12 +148,10 @@ const systemDeps = {
 				labels: rows.map((r) => r.labels.map((l) => l.name)),
 				asOf: new Date(now).toISOString()
 			};
-		} catch {
-			issueCache = {
-				labels: null,
-				asOf: ""
-			};
+		} catch (cause) {
+			throw new Error("gh patrol issues: " + (failed ?? String(cause)));
 		}
+		issueFetchedAt = now;
 		return issueCache;
 	},
 	runOps: runOpsProcess
@@ -590,10 +587,7 @@ async function readTaskQueue(config, deps) {
 		deps.patrolService(),
 		deps.patrolLog(),
 		readOps(config, deps),
-		deps.patrolIssues?.().catch(() => ({
-			labels: null,
-			asOf: ""
-		})) ?? Promise.resolve({
+		deps.patrolIssues?.() ?? Promise.resolve({
 			labels: null,
 			asOf: ""
 		})

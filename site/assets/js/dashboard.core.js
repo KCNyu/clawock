@@ -129,3 +129,28 @@
     shadowPortfolioUsd: null, shadowPortfolioHkd: null,
   };
 
+
+  // Daily P&L is a flow: each market session contributes its latest reading
+  // once, even when the other market has moved to its next session. Equity
+  // and total-profit snapshots are stocks and keep their separate collapse.
+  function sessionDailyPnl(snapshots, view, fx) {
+    const byDate = new Map();
+    snapshots.forEach(s => byDate.set(s.date, s));
+    const rows = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+    const legs = view === "us" ? ["us"] : view === "hk" ? ["hk"] : ["us", "hk"];
+    const latest = new Map();
+    rows.forEach(s => legs.forEach(leg => {
+      if (s[leg + "_today_change"] == null) return;
+      const date = s[leg + "_asof"] || s.date;
+      latest.set(leg + ":" + date, { leg, date, value: Number(s[leg + "_today_change"]) });
+    }));
+    const days = new Map();
+    latest.forEach(({ leg, date, value }) => {
+      const pnl = view === "combined" && fx == null ? null
+        : view === "combined" && leg === "hk" ? value / fx : value;
+      const previous = days.get(date) || 0;
+      days.set(date, pnl == null ? null : previous + pnl);
+    });
+    return Array.from(days, ([date, pnl]) => ({ date, pnl }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }

@@ -17,6 +17,8 @@ lines get delisted), so two guards live here rather than in the caller:
     is dropped from the comparison rather than read as a flat session.
 """
 
+from clawock.safe_io import to_number as _share_number
+
 import json
 import re
 import subprocess
@@ -86,7 +88,7 @@ def collect(portfolio, log=print, legs=None):
     books = portfolio.get('portfolios') or {}
     for book_key in (legs or tuple(books)):
         for h in books.get(book_key, {}).get('holdings', []):
-            if h.get('shares', 0) > 0:
+            if (_share_number(h.get('shares', 0)) or 0) > 0:
                 instrument = get_instrument(h.get('ticker')) or {}
                 market = str(instrument.get('region') or '').lower()
                 h_by_ticker[h['ticker']] = {

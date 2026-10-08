@@ -2049,3 +2049,28 @@ def test_a_mover_note_carries_the_time_it_was_written(monkeypatch):
     assert noted['note'] == '现价 167.07 在当日高位'
     assert noted['note_at'] == '2026-10-05T18:33:55Z'
     assert 'note' not in bare and 'note_at' not in bare
+
+
+@pytest.mark.parametrize('shares', [100, '100', 'invalid', None, '0'])
+def test_dashboard_share_reads_keep_ledger_value_and_do_not_crash(shares):
+    import copy
+    from clawock import sessions as trading_calendar
+    from clawock.portfolio import risk
+    from clawock.market_data.calendar import us_earnings_tickers
+    holding = {'ticker': 'MSFU', 'shares': shares, 'current_value': 1000,
+               'current_price': 10, 'cost_basis': 10, 'trades': [],
+               'data_source': 'Nasdaq API Jul 24, 2026 16:00 ET'}
+    portfolio = _portfolio(us={'holdings': [holding]})
+    before = copy.deepcopy(portfolio)
+    active = shares in (100, '100')
+    assert dashboard.trim_holding(holding, 'USD')['is_active'] == active
+    status = dashboard._market_leg_freshness(
+        portfolio['portfolios']['us_stocks'], 'us',
+        trading_calendar,
+        at=datetime(2026, 7, 24, 17, 0, tzinfo=ZoneInfo('America/New_York')))
+    assert ('MSFU' in status['quote_sessions']) == active
+    assert bool(risk.active_holdings(portfolio, 'us_stocks')) == active
+    assert risk._shares_on(holding, '2026-07-24') == (100 if active else 0)
+    assert bool(us_earnings_tickers(portfolio)) == active
+    assert dashboard.compute_guardrail_outputs(portfolio, risk={})['risk_guardrail'].get('computed') is not False
+    assert portfolio == before

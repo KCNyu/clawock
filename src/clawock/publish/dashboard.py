@@ -8,6 +8,8 @@ Outputs: assets/data/overview.json, assets/data/dashboard.json,
 
 Run ``clawock dashboard-build`` after each portfolio mutation.
 """
+
+from clawock.safe_io import to_number as _share_number
 import argparse
 import copy
 import glob
@@ -260,7 +262,7 @@ def compile_overview_projection(dashboard):
     for region in leg_keys:
         for holding in (dashboard.get('holdings') or {}).get(region, []):
             if (holding.get('is_active', True) is False
-                    or (holding.get('shares') or 0) <= 0):
+                    or (_share_number(holding.get('shares')) or 0) <= 0):
                 continue
             watch_holdings.append({
                 **_fields(holding, ('ticker', 'current_price')),
@@ -884,7 +886,7 @@ def trim_holding(h, currency):
         'day_low': round(h.get('day_low') or 0, 4),
         'pnl_abs': round(h.get('pnl_abs') or 0, 2),
         'pnl_percent': round(h.get('pnl_percent') or 0, 2),
-        'is_active': (h.get('shares') or 0) > 0,
+        'is_active': (_share_number(h.get('shares')) or 0) > 0,
         'trades_count': len(h.get('trades') or []),
         # The row's own session, as the fetcher assigned it. The holdings table's
         # 场次 cell reads it first; without it every row showed its leg's first
@@ -1073,7 +1075,7 @@ def _session_asof(region_pf, snapshot_date, market=None):
     HK filename date — stops the same session being counted twice (2026-06-08/09 bug).
     Formats seen: 'Nasdaq API (stocks) Jun 08, 2026 13:23 ET', 'Tencent Jun 08 16:00 HKT'."""
     for h in (region_pf.get('holdings', []) or []):
-        if (h.get('shares', 0) or 0) <= 0:
+        if (_share_number(h.get('shares', 0)) or 0) <= 0:
             continue
         session = _holding_session(h, snapshot_date, market)
         if session:
@@ -1294,7 +1296,7 @@ def build_decision_traces(limit=40, workspace=None):
         for h in (book.get('holdings') or []):
             if not isinstance(h, dict):
                 continue
-            if (h.get('shares') or h.get('quantity') or 0) > 0 and h.get('pnl_percent') is not None:
+            if (_share_number(h.get('shares') or h.get('quantity')) or 0) > 0 and h.get('pnl_percent') is not None:
                 held_pnl[h.get('ticker')] = h.get('pnl_percent')
     # Flatten all trades with market/currency context.
     traces = []
@@ -2942,7 +2944,7 @@ def compute_weight_confidence(portfolio, window_days=30):
         for leg in resolve_legs(portfolio):
             region_label = leg.key
             pf = (portfolio.get('portfolios') or {}).get(leg.bucket, {}) or {}
-            holdings = [h for h in pf.get('holdings', []) if (h.get('shares') or 0) > 0]
+            holdings = [h for h in pf.get('holdings', []) if (_share_number(h.get('shares')) or 0) > 0]
             total = sum((h.get('current_value') or 0) for h in holdings)
             if total <= 0:
                 continue
@@ -3267,7 +3269,7 @@ def compute_sector_exposure(portfolio):
         for leg in legs:
             r_key = leg.key
             holdings = portfolio['portfolios'][leg.bucket].get('holdings', [])
-            active = [h for h in ledger_rows(holdings) if h.get('shares', 0) > 0]
+            active = [h for h in ledger_rows(holdings) if (_share_number(h.get('shares', 0)) or 0) > 0]
             total_value = sum(h.get('current_value', 0) or 0 for h in active)
             if total_value <= 0:
                 continue
@@ -3345,9 +3347,9 @@ def compute_leveraged_etf_exposure(portfolio, fx_rate):
     try:
         us_book, hk_book = leg_books(portfolio)
         us_active = [h for h in us_book.get('holdings', [])
-                     if h.get('shares', 0) > 0]
+                     if (_share_number(h.get('shares', 0)) or 0) > 0]
         hk_active = [h for h in hk_book.get('holdings', [])
-                     if h.get('shares', 0) > 0]
+                     if (_share_number(h.get('shares', 0)) or 0) > 0]
 
         us_total = sum(h.get('current_value', 0) or 0 for h in us_active)
         hk_total = sum(h.get('current_value', 0) or 0 for h in hk_active)
@@ -3382,7 +3384,7 @@ def compute_today_ranges(portfolio, top_n=8):
         for leg in resolve_legs(portfolio):
             r_key = leg.key
             for h in portfolio['portfolios'][leg.bucket].get('holdings', []):
-                if h.get('shares', 0) <= 0:
+                if (_share_number(h.get('shares', 0)) or 0) <= 0:
                     continue
                 hi = h.get('day_high'); lo = h.get('day_low'); cur = h.get('current_price')
                 if hi is None or lo is None or cur is None or cur <= 0:
@@ -3808,7 +3810,7 @@ def _market_leg_freshness(portfolio_leg, market, calendar, at=None):
     expected = _latest_completed_session(market, calendar, at=at)
     active = [
         holding for holding in portfolio_leg.get('holdings', [])
-        if (holding.get('shares') or 0) > 0
+        if (_share_number(holding.get('shares')) or 0) > 0
     ]
     quotes = {}
     missing = []
@@ -4652,8 +4654,8 @@ def build_projection(previous_source=None, shadow_previous=None):
             # their trades[] in portfolio.json for realized-P&L, but the frontend never
             # renders them (every consumer filters is_active), so excluding them here just
             # trims dashboard.json. Intermediate us_h/hk_h above stay full for compute_hhi.
-            base_leg.key: [h for h in us_h if (h.get('shares') or 0) > 0],
-            quote_leg.key: [h for h in hk_h if (h.get('shares') or 0) > 0],
+            base_leg.key: [h for h in us_h if (_share_number(h.get('shares')) or 0) > 0],
+            quote_leg.key: [h for h in hk_h if (_share_number(h.get('shares')) or 0) > 0],
         },
         'snapshots': snapshots,
         'snapshots_total': total_snapshots_count(),

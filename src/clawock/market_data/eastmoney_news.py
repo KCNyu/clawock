@@ -12,6 +12,8 @@ Pulls, into assets/data/em_news.json:
 
 Fail-soft: any source error -> that slice is empty, never raises.
 """
+
+from clawock.safe_io import to_number as _share_number
 import argparse
 import json
 import re
@@ -126,7 +128,7 @@ def active_hk_names(portfolio_path: Path, registry_path: Path):
             ticker = holding.get('ticker')
             meta = registry.get(ticker) or {}
             name = holding.get('name') or meta.get('name') or ticker
-            if ((holding.get('shares') or 0) > 0
+            if ((_share_number(holding.get('shares')) or 0) > 0
                     and meta.get('region') == 'HK'
                     and (meta.get('leverage_multiple') or 1) <= 1
                     and not _is_lev(name)):

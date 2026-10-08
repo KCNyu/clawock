@@ -35,6 +35,8 @@ Two things the RSS endpoint changes about the numbers:
 
 Writes: assets/data/sentiment.json
 """
+
+from clawock.safe_io import to_number as _share_number
 import argparse
 import json
 import re
@@ -147,7 +149,7 @@ def load_tickers(workspace):
     out = []
     for region in ('us_stocks', 'hk_stocks'):
         for h in p['portfolios'].get(region, {}).get('holdings', []):
-            if h.get('shares', 0) > 0:
+            if (_share_number(h.get('shares', 0)) or 0) > 0:
                 out.append({
                     'ticker': h['ticker'],
                     'name':   h.get('name', ''),

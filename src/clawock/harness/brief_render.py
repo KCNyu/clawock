@@ -23,6 +23,8 @@ day, in the same place on the page.
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _share_number
+
 import argparse
 import json
 import re
@@ -234,7 +236,7 @@ def _holdings(context, leg):
     portfolios = ((context.get("portfolio") or {}).get("portfolios") or {})
     book = portfolios.get(f"{leg}_stocks") or {}
     held = [{**row, 'name': (instrument_registry.get(row.get('ticker')) or {}).get('name') or row.get('name')}
-            for row in ledger_rows(book.get('holdings')) if (row.get('shares') or 0) > 0]
+            for row in ledger_rows(book.get('holdings')) if (_share_number(row.get('shares')) or 0) > 0]
     return book, held
 
 

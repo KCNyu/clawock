@@ -14,6 +14,8 @@ Finance v8 for every active ticker + benchmarks (^GSPC, ^HSI), and computes:
 
 Writes: assets/data/risk.json
 """
+
+from clawock.safe_io import to_number as _share_number
 import argparse
 import json
 import math
@@ -345,7 +347,7 @@ def active_holdings(portfolio: dict, key: str):
     bucket = portfolio.get('portfolios', {}).get(key, {})
     out = []
     for h in ledger_rows(bucket.get('holdings')):
-        shares = h.get('shares') or 0
+        shares = _share_number(h.get('shares')) or 0
         cv = h.get('current_value') or 0
         if shares <= 0 or cv <= 0:
             continue
@@ -401,12 +403,12 @@ def _date_close_map(series):
 
 def _shares_on(holding: dict, as_of: str) -> float:
     """Reconstruct close-of-day shares from today's shares and later trades."""
-    shares = float(holding.get('shares') or 0)
+    shares = (_share_number(holding.get('shares')) or 0)
     for trade in holding.get('trades') or []:
         trade_date = str(trade.get('date') or '')[:10]
         if not trade_date or trade_date <= as_of:
             continue
-        qty = float(trade.get('shares') or 0)
+        qty = (_share_number(trade.get('shares')) or 0)
         action = str(trade.get('action') or '').lower()
         if action in ('buy', 'bought'):
             shares -= qty
@@ -581,7 +583,7 @@ def build_dynamic_return_stream(holdings: list, fetched: dict,
         if ticker not in fetched or ticker not in include:
             continue
         normalized = dict(holding)
-        if float(normalized.get('shares') or 0) <= 0:
+        if float(_share_number(normalized.get('shares')) or 0) <= 0:
             closes = _date_close_map(fetched[ticker])
             reference_price = (
                 float(normalized.get('current_price') or 0)
@@ -616,7 +618,7 @@ def build_dynamic_return_stream(holdings: list, fetched: dict,
             if latest_prior:
                 estimated_value = shares * close_maps[ticker][latest_prior]
             else:
-                current_shares = float(holding.get('shares') or 0)
+                current_shares = (_share_number(holding.get('shares')) or 0)
                 estimated_value = (
                     holding['current_value'] * shares / current_shares
                     if current_shares > 0 else 0.0

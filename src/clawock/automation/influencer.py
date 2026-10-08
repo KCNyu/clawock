@@ -39,6 +39,8 @@ JSON) nothing unscored is published: the previous run's scored items that are
 still inside the lookback window stay up, marked `retained_from_previous`, and
 `llm_filter_status` says `failed_kept_previous`.
 """
+
+from clawock.safe_io import to_number as _share_number
 import html
 import json
 import os
@@ -493,7 +495,7 @@ def load_holdings():
     held = []
     for region in ('us_stocks', 'hk_stocks'):
         for h in p['portfolios'].get(region, {}).get('holdings', []):
-            if h.get('shares', 0) > 0:
+            if (_share_number(h.get('shares', 0)) or 0) > 0:
                 row = {
                     'ticker': h['ticker'],
                     'name':   h.get('name', ''),
