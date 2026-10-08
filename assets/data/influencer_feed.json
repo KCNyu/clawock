@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T19:05:51.622517+00:00",
+  "generated_at": "2026-10-08T01:15:19.416259+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,7 +16,7 @@
     "musk": "success",
     "ark": "success",
     "serenity": "failed",
-    "duan": "success_empty",
+    "duan": "success",
     "honghao": "success",
     "burry": "success",
     "pelosi": "success"
@@ -24,110 +24,34 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 23,
-    "held_hits": 4,
-    "new_ideas": 11,
-    "sector_hits": 4
+    "total": 26,
+    "held_hits": 0,
+    "new_ideas": 14,
+    "sector_hits": 10
   },
   "items": [
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Space Exploration Technologies Corp(SPCX) 卖出 ARKW 54,873 股（最大单只 ETF 占比 0.44%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4382,
+      "author": "Trump",
+      "text": "HUGE INVESTMENT WIN for NEBRASKA AND THE U.S.!Beckton Dickenson (BD), one of the largest Medical Device Manufacturers, has agreed to an Investment of 3 BILLION DOLLARS to Onshore Manufacturing of Essential Medical Products (syringes, needles, lab kits, and more) that American Patients and Hospitals depend on. The biggest expansion will be in NEBRASKA (I am heading there today!) where BD will Invest over 1 BILLION DOLLARS to ramp up production of numerous products, including needles made with American Steel. No one likes needles — But, if you need one, it should be made of American Steel in the",
+      "url": "https://www.trumpstruth.org/statuses/42176",
+      "published": "2026-10-06T03:18:50+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "SPCX"
+        "BD"
       ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "sell",
-      "relevance": 91,
-      "summary_cn": "ARK Invest当日在ARKW中卖出SpaceX股份54873股，单只ETF占比0.44%，属于较大规模机构减仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX in Talks to Borrow $40 Billion to Buy Nvidia Chips",
-      "url": "",
-      "published": "Tue, 06 Oct 2026 22:57:42 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [
-        "NVDA",
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
+      "held": [],
       "new_ideas": [
-        "NVDA"
+        "BD"
       ],
       "sectors": [
-        "半导体",
-        "AI算力",
-        "航天"
+        "医疗器械",
+        "美国制造",
+        "供应链本土化"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "据报道，SpaceX正洽谈借款400亿美元购买英伟达芯片，显示其AI算力基础设施资本开支和融资需求上升。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Loses $21 Billion In A Morning As SpaceX Shares Slip",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 15:44:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，SpaceX股价在一个早盘时段下跌，导致马斯克身家减少210亿美元，反映SpaceX估值承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Breakingviews - COMMENTARY: Elon Musk readies his signature gambit at SpaceX",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 17:57:12 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Breakingviews评论称马斯克正为SpaceX筹划其标志性战略举措，释放公司可能推进重大扩张或业务调整的信号。"
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "特朗普称BD医疗斥资30亿美元扩大注射器、针头和实验室用品的美国本土制造，释放制造业回流和供应链本土化利好。"
     },
     {
       "author": "Musk",
@@ -145,83 +69,66 @@
       ],
       "sectors": [
         "半导体",
-        "芯片制造"
+        "AI",
+        "特斯拉自动驾驶"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "据报道，马斯克对芯片制造商英特尔提出不利安排，导致英特尔股价下跌，市场担忧其代工和AI芯片业务竞争地位。"
+      "relevance": 77,
+      "summary_cn": "据报道Musk的表态对英特尔造成打击并引发股价下跌，显示特斯拉相关决策可能削弱英特尔作为相关芯片供应方的预期。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Clarifies TSMC's Terafab Role; Grok Adds Rival Models",
+      "text": "SpaceX in Talks to Borrow $40 Billion to Buy Nvidia Chips",
       "url": "",
-      "published": "Wed, 07 Oct 2026 15:05:00 GMT",
+      "published": "Tue, 06 Oct 2026 22:57:42 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "Bloomberg.com",
       "tickers": [
-        "TSM"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "TSM"
+        "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI芯片"
+        "数据中心"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "据报道，马斯克澄清台积电Terafab的定位，同时Grok增加竞争模型，凸显AI芯片代工和模型竞争升温。"
+      "stance": "buy",
+      "relevance": 76,
+      "summary_cn": "据报道SpaceX正洽谈借款400亿美元购买英伟达芯片，若落地将显示超大规模AI算力需求强劲，但也会加剧融资压力。"
     },
     {
-      "author": "Musk",
-      "text": "Musk welcomes German backing for Tesla driver assistance tech as group chases EU approval",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 10:34:07 GMT",
+      "author": "段永平",
+      "text": "段永平出手 佈局騰訊",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1uWjI4eC1ZRVJqTHF2elFnOENHV05JOWhCTlR2aGQ2OEFELTlaZVEwdFZtUlZXSWs5NVItRzhUTDIxTFVSdTFTeGNabkZBMi1BQ3YyUzZLRDR4ejZBRUU0SUtIT25DVHA3bmc?oc=5",
+      "published": "2026-10-07T14:28:25+00:00",
       "origin": "gnews-rss",
-      "source": "Tacoma News Tribune",
+      "source": "TradingView",
       "tickers": [
-        "TSLA"
+        "0700"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "0700"
       ],
       "sectors": [
-        "电动车",
-        "自动驾驶",
-        "汽车科技",
-        "欧盟监管"
+        "中国互联网",
+        "港股",
+        "游戏",
+        "社交"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 79,
-      "summary_cn": "据报道，马斯克欢迎德国支持特斯拉驾驶辅助技术，并寻求欧盟批准，显示其自动驾驶业务获得潜在监管背书。"
-    },
-    {
-      "author": "Trump",
-      "text": "HUGE INVESTMENT WIN for NEBRASKA AND THE U.S.!Beckton Dickenson (BD), one of the largest Medical Device Manufacturers, has agreed to an Investment of 3 BILLION DOLLARS to Onshore Manufacturing of Essential Medical Products (syringes, needles, lab kits, and more) that American Patients and Hospitals depend on. The biggest expansion will be in NEBRASKA (I am heading there today!) where BD will Invest over 1 BILLION DOLLARS to ramp up production of numerous products, including needles made with American Steel. No one likes needles — But, if you need one, it should be made of American Steel in the",
-      "url": "https://www.trumpstruth.org/statuses/42176",
-      "published": "2026-10-06T03:18:50+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BD"
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
       ],
-      "held": [],
-      "new_ideas": [
-        "BD"
-      ],
-      "sectors": [
-        "医疗器械",
-        "制造业回流",
-        "美国投资"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "特朗普称医疗器械制造商BD计划在美国投资30亿美元扩大注射器、针头和实验室套件等关键医疗产品的本土制造。"
+      "stance": "buy",
+      "relevance": 76,
+      "summary_cn": "据报道段永平出手布局腾讯，为港股互联网及恒生科技相关资产提供直接交易线索。"
     },
     {
       "author": "Cathie Wood",
@@ -240,109 +147,15 @@
       ],
       "sectors": [
         "半导体",
-        "工业自动化"
+        "工业自动化",
+        "机器人",
+        "ARKQ",
+        "ARKX"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 76,
-      "summary_cn": "ARK Invest当日在ARKQ和ARKX中合计卖出Teradyne股份，其中单只ETF最大占比达1.13%，属于较大规模减仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
-      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
-      "published": "2026-10-07T06:08:31+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "SFM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SFM"
-      ],
-      "sectors": [
-        "消费",
-        "必需消费",
-        "股票市场"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry将SFM持仓提高至3%，并认为尽管短期承压，公司仍有较长的长期发展空间。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 720,299 股（最大单只 ETF 占比 0.48%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4829,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "基因检测",
-        "医疗科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKG中卖出Personalis股份720299股，单只ETF占比0.48%，属于较大规模减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：DraftKings Inc.(DKNG) 卖出 ARKF 196,727 股（最大单只 ETF 占比 0.44%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4368,
-      "tickers": [
-        "DKNG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "DKNG"
-      ],
-      "sectors": [
-        "在线博彩",
-        "博彩"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKF中卖出DraftKings股份196727股，单只ETF占比0.44%，属于较大规模机构减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Amazon.com Inc(AMZN) 买入 ARKW 36,050 股（最大单只 ETF 占比 0.42%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4204,
-      "tickers": [
-        "AMZN"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AMZN"
-      ],
-      "sectors": [
-        "云计算",
-        "电商",
-        "AI基础设施"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKW中买入亚马逊股份36050股，单只ETF占比0.42%，属于较大规模机构加仓。"
+      "summary_cn": "ARK Invest于2026年10月6日从ARKQ卖出51,524股、ARKX卖出10,023股Teradyne，最大单只ETF占比1.13%，属于较大规模减仓。"
     },
     {
       "author": "Burry",
@@ -360,12 +173,119 @@
       ],
       "sectors": [
         "户外服饰",
-        "消费"
+        "消费",
+        "美股"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry建立了Deckers Outdoor股票的新仓位，显示其对DECK持看多态度。"
+      "relevance": 75,
+      "summary_cn": "据报道Michael Burry新建Deckers Outdoor股票仓位，显示其对户外服饰消费标的转为看多。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk welcomes German backing for Tesla driver assistance tech as group chases EU approval",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:08:55 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "监管",
+        "欧洲"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道Musk欢迎德国支持特斯拉驾驶辅助技术，并正争取欧盟批准，对特斯拉自动驾驶业务构成监管利好。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Amazon.com Inc(AMZN) 买入 ARKW 36,050 股（最大单只 ETF 占比 0.42%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-06T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4204,
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "AI",
+        "ARKW"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKW买入36,050股亚马逊，占比0.42%，显示机构增加电商及云计算复合资产敞口。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Clarifies TSMC's Terafab Role; Grok Adds Rival Models",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSM"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "晶圆制造",
+        "大模型"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道Musk澄清台积电Terafab在相关AI项目中的角色，同时Grok增加竞争模型，显示AI晶圆制造与大模型竞争继续升温。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
+      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
+      "published": "2026-10-07T06:08:31+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "SFM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SFM"
+      ],
+      "sectors": [],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道Michael Burry将SFM持仓提高至3%，认为其仍有较长上升空间，但在短期可能承受压力。"
     },
     {
       "author": "Cathie Wood",
@@ -384,457 +304,13 @@
       ],
       "sectors": [
         "基因检测",
-        "医疗科技"
+        "精准医疗",
+        "ARKG"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 67,
-      "summary_cn": "ARK Invest当日买入Veracyte股份389509股，单只ETF占比0.75%，属于超过常规规模的加仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry warns the stock market is in the first stage of a crash — with just 6 to 9 months to go until Stage 2",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNeFljVEJxbzRPNEJyUGhwRm9wdUE0ZmlYbGVnaUlrSXEwNktCOWdkMEVVV29pV1duZ3BERFU1OHVGNjJRRUtFelRfWFd1dEVfOThrNWhoWGc5Yk10RW81aGZrNE5DQTdFekZpM2lfemNneHVETFNnVlktUkxwZWY2OG1iVlJrUTNHRWppb1dWZU8xeWZ5ajRTZmFmVG14Zw?oc=5",
-      "published": "2026-10-06T23:30:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "股票市场"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry警告股票市场可能已处于崩盘第一阶段，距离第二阶段或仅剩6至9个月。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry's Bearish View. The Market Is In 'Denial' About The End Of The AI Trade.",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPbUgxM0RjaWphN09PaHFJV1dJZVEybS1LcmhFQUZIYWpRSGlOMHgwUjdkVDdOSlpxc3VQNklKdldKREp5SWlVQTk5TUZzZUUxOWVQeUpJNnZNWjZTbnlnY0toazBWX2JpVEpTeFNZWXpBUmI3SVRwSzVTU0ozTnBzZTZyb3BJMW14QWtyZDRtM01mSFhXQ3JFS18zZnBnRVZv?oc=5",
-      "published": "2026-10-06T15:03:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI交易",
-        "科技股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 67,
-      "summary_cn": "据报道，Michael Burry认为投资者仍在否认AI交易即将结束，市场对AI资产可能面临的风险定价不足。"
-    },
-    {
-      "author": "洪灏",
-      "text": "環球經濟「O形環」現結構疲勞 市場集體裝睡",
-      "url": "https://news.google.com/rss/articles/CBMixAJBVV95cUxOTVVhTlFhMmhjQnF5aHZIRlFjenpyTUYySmV0aDZxSlpEeGlZX2FzYmdjalU1NXZsaHBWdEVScVg2dGJZdUozWkFEeDd2QWRkNHh1ZlVqVjFzTGJ4c2hZX3hDa3YtZlNqNXVOUHk4UWNaU1Excjl0Y0dLWTRSb2VkQUVLTDRPUUFKd1k5VzUxZlU0OUhwd1FsLS1KemszRTh6LTJ6SnVkUHpZX2dtMWd6Zy04Z2hRaFFScjluTXU0YzlTSGJSd2lpTUNYSC05MnNGeXJhSFo5X3pmRkppR0g0ZGFUdm5YYmV1Ry01WF8yOGkzNVZpNy1NRldZTWVzTFFweW5xUlVEclZTdkhsLUo1VDJTWGdYeVloZUNieUljMXB1OWZpY0pwXzZxUUZXOVM2QVByd3h5YWxOZFA1N2Jpbkt0dWs?oc=5",
-      "published": "2026-10-06T13:29:14+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "全球经济",
-        "风险资产"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "据报道，洪灏指出全球经济呈O形环结构性疲劳，市场仍在集体忽视相关风险。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗 | 專題透視 - 新聞",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUDMzenpkcE5fTEFHT01QbTd0dzRkY3pJRncwcHZxTURoRTNiRTlUSHdfNG1tazJpT1FqSE1qbFZxdzYzTlViMVMweWJxUkhYb2V3TzAzZ21uY050bUJHU0x4VjRXdWVxd21hUDVxYjVvWWtzLXNLczJjRXJWdzZFUHBQYTFHX3pVdUNsVmpjX2xGZmoxc2FMVmxoVmpvSnZwQ2lLZUpB?oc=5",
-      "published": "2026-10-07T08:48:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "科技股",
-        "基建投资",
-        "香港股市"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灏认为软科技公司不宜盲目投入基建，但预计本季香港股市将迎来多重利好。"
-    },
-    {
-      "author": "Trump",
-      "text": "If Republicans win the House of Representatives and the Senate in the 2026 Midterm Elections, I’m going to give all Adult Citizens in the United States of America, $5,000. Thank you for your attention to this matter, and I look forward to signing those checks! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42170",
-      "published": "2026-10-05T22:00:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "财政政策",
-        "美国经济"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称若共和党赢得2026年中期选举，将向美国成年公民发放每人5000美元，释放潜在财政刺激信号。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Gridlock looms on congressional stock trade ban as parties clash over divestment",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOckZpTHdzcHF0anVXaDR3Z2NwZnFnbkpBYjg3Z2ltU3ZUWnFnUVZvblFPWVpJN1MwMmRaaElqV29rU3pwa2RPS3JNY3YzN0k3aVpCSVlxNmgzQjZZU0tuNjZsdDJKYzYzYWVDMmI3NUVFdTBEMl9GRmJlb0Z6MUhTWFZNdzh5d2VLa2ZXVGJFQVBZdWduaE9FQjM0OXBXYzRITWJXa0pxclo1VkZkRVlxUU1IdVAyaklGWHk5UklB?oc=5",
-      "published": "2026-10-06T19:24:56+00:00",
-      "origin": "gnews-rss",
-      "source": "Baltimore Sun",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国国会",
-        "交易监管",
-        "股票交易"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，美国国会两党在限制国会议员股票交易及资产剥离问题上陷入僵局，相关监管改革进展受阻。"
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse Highly Respected State Representative Johnny Garrett, who is running to represent the Wonderful People of Tennessee’s 6th Congressional District!   A Seventh-Generation Goodlettsvillian and Proven Conservative Leader, Johnny has served as a State Representative since 2019, championing our AMERICA FIRST Policies. As your next Congressman, he will fight tirelessly to Grow the Economy, Promote our Amazing Farmers and Ranchers, Cut Taxes and Regulations, Unleash American Energy DOMINANCE, Champion MADE IN THE U.S.A., Keep our Border SECURE, Stop Migrant Crime, Stren",
-      "url": "https://www.trumpstruth.org/statuses/42174",
-      "published": "2026-10-06T02:55:20+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "税收监管",
-        "能源",
-        "美国制造"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "特朗普为田纳西州国会候选人背书，宣称其将推动经济增长、减税放松监管、扩大美国制造和能源优势。"
-    },
-    {
-      "author": "Trump",
-      "text": "Chuck Gray has been a tremendous Secretary of State for the Great State of Wyoming, a place I love and WON BIG in 2016, 2020, and 2024!An America First Patriot, and true friend of MAGA, Chuck is now running for Congress, where I know he will continue to do a fantastic job! As your next Congressman, Chuck will fight tirelessly to Grow the Economy, Cut Taxes and Regulations, Support our Amazing Farmers and Ranchers, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Advance Election Integrity, and Defend o",
-      "url": "https://www.trumpstruth.org/statuses/42172",
-      "published": "2026-10-06T02:54:14+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "税收监管",
-        "能源",
-        "美国制造"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "特朗普为怀俄明州国会候选人背书，政策主张包括减税放松监管、支持美国制造和能源及强化边境安全。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Space Exploration Technologies Corp(SPCX) 卖出 ARKW 54,873 股（最大单只 ETF 占比 0.44%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4382,
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "sell",
-      "relevance": 91,
-      "summary_cn": "ARK Invest当日在ARKW中卖出SpaceX股份54873股，单只ETF占比0.44%，属于较大规模机构减仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX in Talks to Borrow $40 Billion to Buy Nvidia Chips",
-      "url": "",
-      "published": "Tue, 06 Oct 2026 22:57:42 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [
-        "NVDA",
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "半导体",
-        "AI算力",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "据报道，SpaceX正洽谈借款400亿美元购买英伟达芯片，显示其AI算力基础设施资本开支和融资需求上升。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Loses $21 Billion In A Morning As SpaceX Shares Slip",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 15:44:59 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私募市场"
-      ],
-      "sector_holdings": [
-        "SPCH"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，SpaceX股价在一个早盘时段下跌，导致马斯克身家减少210亿美元，反映SpaceX估值承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Breakingviews - COMMENTARY: Elon Musk readies his signature gambit at SpaceX",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 17:57:12 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Breakingviews评论称马斯克正为SpaceX筹划其标志性战略举措，释放公司可能推进重大扩张或业务调整的信号。"
-    }
-  ],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
-      "url": "",
-      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体",
-        "芯片制造"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "据报道，马斯克对芯片制造商英特尔提出不利安排，导致英特尔股价下跌，市场担忧其代工和AI芯片业务竞争地位。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Clarifies TSMC's Terafab Role; Grok Adds Rival Models",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 15:05:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSM"
-      ],
-      "sectors": [
-        "半导体",
-        "AI芯片"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 82,
-      "summary_cn": "据报道，马斯克澄清台积电Terafab的定位，同时Grok增加竞争模型，凸显AI芯片代工和模型竞争升温。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk welcomes German backing for Tesla driver assistance tech as group chases EU approval",
-      "url": "",
-      "published": "Wed, 07 Oct 2026 10:34:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Tacoma News Tribune",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "汽车科技",
-        "欧盟监管"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 79,
-      "summary_cn": "据报道，马斯克欢迎德国支持特斯拉驾驶辅助技术，并寻求欧盟批准，显示其自动驾驶业务获得潜在监管背书。"
-    },
-    {
-      "author": "Trump",
-      "text": "HUGE INVESTMENT WIN for NEBRASKA AND THE U.S.!Beckton Dickenson (BD), one of the largest Medical Device Manufacturers, has agreed to an Investment of 3 BILLION DOLLARS to Onshore Manufacturing of Essential Medical Products (syringes, needles, lab kits, and more) that American Patients and Hospitals depend on. The biggest expansion will be in NEBRASKA (I am heading there today!) where BD will Invest over 1 BILLION DOLLARS to ramp up production of numerous products, including needles made with American Steel. No one likes needles — But, if you need one, it should be made of American Steel in the",
-      "url": "https://www.trumpstruth.org/statuses/42176",
-      "published": "2026-10-06T03:18:50+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BD"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BD"
-      ],
-      "sectors": [
-        "医疗器械",
-        "制造业回流",
-        "美国投资"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "特朗普称医疗器械制造商BD计划在美国投资30亿美元扩大注射器、针头和实验室套件等关键医疗产品的本土制造。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Teradyne, Inc.(TER) 卖出 ARKQ 51,524 股 / ARKX 10,023 股（最大单只 ETF 占比 1.13%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 1.1346,
-      "tickers": [
-        "TER"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TER"
-      ],
-      "sectors": [
-        "半导体",
-        "工业自动化"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest当日在ARKQ和ARKX中合计卖出Teradyne股份，其中单只ETF最大占比达1.13%，属于较大规模减仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
-      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
-      "published": "2026-10-07T06:08:31+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "SFM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SFM"
-      ],
-      "sectors": [
-        "消费",
-        "必需消费",
-        "股票市场"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry将SFM持仓提高至3%，并认为尽管短期承压，公司仍有较长的长期发展空间。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 720,299 股（最大单只 ETF 占比 0.48%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-06T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4829,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "基因检测",
-        "医疗科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
       "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKG中卖出Personalis股份720299股，单只ETF占比0.48%，属于较大规模减仓。"
+      "summary_cn": "ARK Invest于2026年10月6日买入389,509股Veracyte，占ARKG的0.75%，显示机构增加基因检测方向配置。"
     },
     {
       "author": "Cathie Wood",
@@ -853,37 +329,474 @@
       ],
       "sectors": [
         "在线博彩",
-        "博彩"
+        "ARKF"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKF中卖出DraftKings股份196727股，单只ETF占比0.44%，属于较大规模机构减仓。"
+      "summary_cn": "ARK Invest于2026年10月6日从ARKF卖出196,727股DraftKings，占比0.44%，构成在线博彩标的的机构减仓。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Amazon.com Inc(AMZN) 买入 ARKW 36,050 股（最大单只 ETF 占比 0.42%）",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 720,299 股（最大单只 ETF 占比 0.48%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-06T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4829,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "基因检测",
+        "精准医疗",
+        "ARKG"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKG卖出720,299股Personalis，占比0.48%，属于可见规模的机构减仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump awarding medals to Musk, Dell, Nadella and other tech execs at science summit",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 21:31:23 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [
+        "DELL",
+        "MSFT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DELL",
+        "MSFT"
+      ],
+      "sectors": [
+        "科技",
+        "AI"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道特朗普将向Musk、Dell和微软CEO等科技企业高管颁发科学奖章，体现美国政府对科技产业的公开支持。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Space Exploration Technologies Corp(SPCX) 卖出 ARKW 54,873 股（最大单只 ETF 占比 0.44%）",
       "url": "https://www.ark-funds.com/funds/arkw/",
       "published": "2026-10-06T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4204,
+      "etf_percent": 0.4382,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "ARKW"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "sell",
+      "relevance": 80,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKW卖出54,873股SpaceX，占比0.44%，表明其在私人航天标的上的仓位下降；SpaceX未上市，不作为可交易ticker。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry's Bearish View. The Market Is In 'Denial' About The End Of The AI Trade.",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPbUgxM0RjaWphN09PaHFJV1dJZVEybS1LcmhFQUZIYWpRSGlOMHgwUjdkVDdOSlpxc3VQNklKdldKREp5SWlVQTk5TUZzZUUxOWVQeUpJNnZNWjZTbnlnY0toazBWX2JpVEpTeFNZWXpBUmI3SVRwSzVTU0ozTnBzZTZyb3BJMW14QWtyZDRtM01mSFhXQ3JFS18zZnBnRVZv?oc=5",
+      "published": "2026-10-06T15:03:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "人工智能",
+        "科技股",
+        "美股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 77,
+      "summary_cn": "据报道Michael Burry认为市场仍在否认AI交易即将结束，并对当前AI热潮持看空态度。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Predicts Investors Have Less Than 270 Days To Prepare For Next Phase Of 2008 Style Crash",
+      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxObF9ROEdiY0ZoT3gwNU0tSUJJZy1YajRiRU94am9EQnNRR01Pc08zaXU0UlRHVmdHTjdIWGRqTFlHOUFuRTNMSmJWdkhmTFVxUF9NSzIyOWxLWFo2cGIxRzE0ekJyMFUzc19qbXRWcjdydmVKY2FScXFrQVVzaHZSOWtEazVxdzBDRmlqSU5Yb3lwRDZEM2h1dXdCR0E3WnpsZlhuZw?oc=5",
+      "published": "2026-10-07T10:17:57+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "全球股市",
+        "信贷风险",
+        "系统性风险"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据报道Michael Burry警告投资者留给下一轮类似2008年崩盘的准备时间不足270天，暗示系统性风险可能快速逼近。"
+    },
+    {
+      "author": "Burry",
+      "text": "Short Thoughts: The AI Cloud Oligopoly, Stages of Grief & a Flashing Bear Market Indicator",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE1NXzROdmlJOENqTmdzdU1DYXpWbXZMaS1FQ0lGRS0wYmtaVjcxb24waXR5Z0NUQ2lXNmxRRGlMc3VPemVKT3FxZ3pESUNWT0FrZ0J2WWx2WlNMOF90Z1pnQzJXUzNma2otNHZtNkhNZ1dfWFA1MjhINFJxLVJpM2s?oc=5",
+      "published": "2026-10-08T00:05:38+00:00",
+      "origin": "gnews-rss",
+      "source": "Cassandra Unchained | Michael Burry",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "云计算",
+        "科技股",
+        "美股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "据报道Michael Burry认为AI云计算市场趋向寡头化，并提及看跌市场指标，对AI基础设施和科技股估值发出警报。"
+    },
+    {
+      "author": "洪灏",
+      "text": "環球經濟「O形環」現結構疲勞 市場集體裝睡",
+      "url": "https://news.google.com/rss/articles/CBMixAJBVV95cUxOTVVhTlFhMmhjQnF5aHZIRlFjenpyTUYySmV0aDZxSlpEeGlZX2FzYmdjalU1NXZsaHBWdEVScVg2dGJZdUozWkFEeDd2QWRkNHh1ZlVqVjFzTGJ4c2hZX3hDa3YtZlNqNXVOUHk4UWNaU1Excjl0Y0dLWTRSb2VkQUVLTDRPUUFKd1k5VzUxZlU0OUhwd1FsLS1KemszRTh6LTJ6SnVkUHpZX2dtMWd6Zy04Z2hRaFFScjluTXU0YzlTSGJSd2lpTUNYSC05MnNGeXJhSFo5X3pmRkppR0g0ZGFUdm5YYmV1Ry01WF8yOGkzNVZpNy1NRldZTWVzTFFweW5xUlVEclZTdkhsLUo1VDJTWGdYeVloZUNieUljMXB1OWZpY0pwXzZxUUZXOVM2QVByd3h5YWxOZFA1N2Jpbkt0dWs?oc=5",
+      "published": "2026-10-06T13:29:14+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "全球经济",
+        "宏观",
+        "风险资产"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据报道洪灏指全球经济呈类似“O形环”的结构性疲态且市场集体忽视风险，对全球风险资产持谨慎态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk is a Trillionaire Again Thanks to SpaceX Stock",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 20:30:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道SpaceX股票升值使Musk重新成为万亿美元富豪，反映私人航天企业估值和Musk纸面财富显著上升。"
+    },
+    {
+      "author": "洪灏",
+      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUDMzenpkcE5fTEFHT01QbTd0dzRkY3pJRncwcHZxTURoRTNiRTlUSHdfNG1tazJpT1FqSE1qbFZxdzYzTlViMVMweWJxUkhYb2V3TzAzZ21uY050bUJHU0x4VjRXdWVxd21hUDVxYjVvWWtzLXNLczJjRXJWdzZFUHBQYTFHX3pVdUNsVmpjX2xGZmoxc2FMVmxoVmpvSnZwQ2lLZUpB?oc=5",
+      "published": "2026-10-07T08:48:00+00:00",
+      "origin": "gnews-rss",
+      "source": "etnet 經濟通",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "软科技",
+        "人工智能",
+        "港股",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 61,
+      "summary_cn": "据报道洪灏认为不宜盲目追逐软科技基础设施，但本季股市有多重利好，对港股科技板块整体偏乐观。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Loses $21 Billion In A Morning As SpaceX Shares Slip",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:44:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道SpaceX股价在一个上午下跌，令Musk身家缩水约210亿美元，对私人航天企业估值构成负面信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am grateful to my friend and Advisor on Aging Healthcare, Howard Kessler. He is doing incredible work for Americans 65 and older — Our GREAT SENIORS! Howard is a tremendously successful entrepreneur and innovator who helped transform the financial services industry, and now he is bringing that same vision, energy, and experience to Healthcare. He is working with my Administration to drive Healthcare Innovation, LOWER COSTS, harness new technologies, bring together the best Doctors, Researchers, Healthcare Providers, and Technology Companies, and make sure our Seniors receive the GREAT CARE t",
+      "url": "https://www.trumpstruth.org/statuses/42175",
+      "published": "2026-10-06T03:04:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医疗",
+        "监管",
+        "科技"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 54,
+      "summary_cn": "特朗普称其政府正推动医疗技术创新、降低成本并整合医生、研究机构和科技企业，可能影响医疗科技及监管政策。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump Expected to Award Science Medal to SpaceX's Elon Musk, Fox News Reports",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 19:45:41 GMT",
+      "origin": "gnews-rss",
+      "source": "GV Wire",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "科技政策"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据媒体报道特朗普预计向SpaceX的Musk颁发科学奖章，属于政府层面的公开认可，但缺乏具体商业影响。"
+    },
+    {
+      "author": "洪灏",
+      "text": "花旗：內房洗牌只會剩下15間",
+      "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxPcFEtTEJ4bEI1UkwxZ04yV0NIbzU4RVpYd3VtN01TVTFhRkZoUG5OYjhnTXN3a2ZzdGRnNjFTVDBpWWFYX1JvX0FrRHZISnRrR0hCR2xnNUczWjczRDYwUEZQdzNReFZuTW5Rd2p3azNER20tUEFnclhuSnlxVHlYeHAtWnEyaHBfVEhIQ1gtTWJZM0lWRGY1VC1WSUNLUm8xVEFod1VjSTZIOXNQNXFaVEhycWxSRFhFZmtpNzhCT0U2TDdJdmN1RTVEYkNnUEhPQW05a1o3bjNnLTdmYTJFN2o3bThSd2g0Nnc?oc=5",
+      "published": "2026-10-07T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国房地产",
+        "港股",
+        "信用风险"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 64,
+      "summary_cn": "据报道洪灏转述花旗观点称中国房地产行业将继续洗牌、最终仅约15家开发商存活，暗示行业集中度上升但信用与经营风险仍高。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Gridlock looms on congressional stock trade ban as parties clash over divestment",
+      "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxOMG5PN3M2V1JjUi14T1Vub1liZFE3YjJDQTh2MzQzOUJlZ2Zkam9oZlc4Z0gtLTN0RDAxSGp5NVQta2Uyei1tRTBNT0hlSlVwdUNIb3VrVGlmcG56T0NucFVNNnhkZUZGMFhaYVRUMXlrN01zM2MzZHU5dlhFSzBPV2ZfRUlZaUNHNmpTS2JURzg5SEhtRWJRZ3FWOTdBUEROZTFWVTdnd0NuVmVUV0dkUUU3VGp4SHNlc1ZyWmx3dV9fRXBQNmMxOWEwM0Y5ZF9OZGh4WERxUUpRb0NHZnJNNDMxYjA3SzRVU2h5UjRsRmE?oc=5",
+      "published": "2026-10-06T02:18:45+00:00",
+      "origin": "gnews-rss",
+      "source": "WCIV",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国国会",
+        "金融监管",
+        "议员交易"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道美国国会两党围绕议员股票交易禁令及资产剥离规定陷入僵局，相关监管前景仍不明朗。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "HUGE INVESTMENT WIN for NEBRASKA AND THE U.S.!Beckton Dickenson (BD), one of the largest Medical Device Manufacturers, has agreed to an Investment of 3 BILLION DOLLARS to Onshore Manufacturing of Essential Medical Products (syringes, needles, lab kits, and more) that American Patients and Hospitals depend on. The biggest expansion will be in NEBRASKA (I am heading there today!) where BD will Invest over 1 BILLION DOLLARS to ramp up production of numerous products, including needles made with American Steel. No one likes needles — But, if you need one, it should be made of American Steel in the",
+      "url": "https://www.trumpstruth.org/statuses/42176",
+      "published": "2026-10-06T03:18:50+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "AMZN"
+        "BD"
       ],
       "held": [],
       "new_ideas": [
-        "AMZN"
+        "BD"
       ],
       "sectors": [
-        "云计算",
-        "电商",
-        "AI基础设施"
+        "医疗器械",
+        "美国制造",
+        "供应链本土化"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "特朗普称BD医疗斥资30亿美元扩大注射器、针头和实验室用品的美国本土制造，释放制造业回流和供应链本土化利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Intel Stock Drops as Elon Musk Deals a Setback to the Chip Maker. Why You Shouldn’t Panic.",
+      "url": "",
+      "published": "Mon, 05 Oct 2026 20:13:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "INTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "INTC"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "特斯拉自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 77,
+      "summary_cn": "据报道Musk的表态对英特尔造成打击并引发股价下跌，显示特斯拉相关决策可能削弱英特尔作为相关芯片供应方的预期。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX in Talks to Borrow $40 Billion to Buy Nvidia Chips",
+      "url": "",
+      "published": "Tue, 06 Oct 2026 22:57:42 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "数据中心"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest当日在ARKW中买入亚马逊股份36050股，单只ETF占比0.42%，属于较大规模机构加仓。"
+      "relevance": 76,
+      "summary_cn": "据报道SpaceX正洽谈借款400亿美元购买英伟达芯片，若落地将显示超大规模AI算力需求强劲，但也会加剧融资压力。"
+    },
+    {
+      "author": "段永平",
+      "text": "段永平出手 佈局騰訊",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1uWjI4eC1ZRVJqTHF2elFnOENHV05JOWhCTlR2aGQ2OEFELTlaZVEwdFZtUlZXSWs5NVItRzhUTDIxTFVSdTFTeGNabkZBMi1BQ3YyUzZLRDR4ejZBRUU0SUtIT25DVHA3bmc?oc=5",
+      "published": "2026-10-07T14:28:25+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [
+        "0700"
+      ],
+      "held": [],
+      "new_ideas": [
+        "0700"
+      ],
+      "sectors": [
+        "中国互联网",
+        "港股",
+        "游戏",
+        "社交"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 76,
+      "summary_cn": "据报道段永平出手布局腾讯，为港股互联网及恒生科技相关资产提供直接交易线索。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Teradyne, Inc.(TER) 卖出 ARKQ 51,524 股 / ARKX 10,023 股（最大单只 ETF 占比 1.13%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-10-06T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 1.1346,
+      "tickers": [
+        "TER"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TER"
+      ],
+      "sectors": [
+        "半导体",
+        "工业自动化",
+        "机器人",
+        "ARKQ",
+        "ARKX"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 76,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKQ卖出51,524股、ARKX卖出10,023股Teradyne，最大单只ETF占比1.13%，属于较大规模减仓。"
     },
     {
       "author": "Burry",
@@ -901,37 +814,144 @@
       ],
       "sectors": [
         "户外服饰",
-        "消费"
+        "消费",
+        "美股"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry建立了Deckers Outdoor股票的新仓位，显示其对DECK持看多态度。"
-    }
-  ],
-  "sector_hits": [
+      "relevance": 75,
+      "summary_cn": "据报道Michael Burry新建Deckers Outdoor股票仓位，显示其对户外服饰消费标的转为看多。"
+    },
     {
-      "author": "Burry",
-      "text": "Michael Burry warns the stock market is in the first stage of a crash — with just 6 to 9 months to go until Stage 2",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNeFljVEJxbzRPNEJyUGhwRm9wdUE0ZmlYbGVnaUlrSXEwNktCOWdkMEVVV29pV1duZ3BERFU1OHVGNjJRRUtFelRfWFd1dEVfOThrNWhoWGc5Yk10RW81aGZrNE5DQTdFekZpM2lfemNneHVETFNnVlktUkxwZWY2OG1iVlJrUTNHRWppb1dWZU8xeWZ5ajRTZmFmVG14Zw?oc=5",
-      "published": "2026-10-06T23:30:00+00:00",
+      "author": "Musk",
+      "text": "Musk welcomes German backing for Tesla driver assistance tech as group chases EU approval",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:08:55 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
+      "source": "Reuters",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "宏观经济",
-        "股票市场"
+        "电动车",
+        "自动驾驶",
+        "监管",
+        "欧洲"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道Musk欢迎德国支持特斯拉驾驶辅助技术，并正争取欧盟批准，对特斯拉自动驾驶业务构成监管利好。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Amazon.com Inc(AMZN) 买入 ARKW 36,050 股（最大单只 ETF 占比 0.42%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-06T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4204,
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "AI",
+        "ARKW"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry警告股票市场可能已处于崩盘第一阶段，距离第二阶段或仅剩6至9个月。"
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKW买入36,050股亚马逊，占比0.42%，显示机构增加电商及云计算复合资产敞口。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Clarifies TSMC's Terafab Role; Grok Adds Rival Models",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSM"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "晶圆制造",
+        "大模型"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道Musk澄清台积电Terafab在相关AI项目中的角色，同时Grok增加竞争模型，显示AI晶圆制造与大模型竞争继续升温。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
+      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
+      "published": "2026-10-07T06:08:31+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "SFM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SFM"
+      ],
+      "sectors": [],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道Michael Burry将SFM持仓提高至3%，认为其仍有较长上升空间，但在短期可能承受压力。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-06 调仓：Space Exploration Technologies Corp(SPCX) 卖出 ARKW 54,873 股（最大单只 ETF 占比 0.44%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-10-06T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4382,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "ARKW"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "sell",
+      "relevance": 80,
+      "summary_cn": "ARK Invest于2026年10月6日从ARKW卖出54,873股SpaceX，占比0.44%，表明其在私人航天标的上的仓位下降；SpaceX未上市，不作为可交易ticker。"
     },
     {
       "author": "Burry",
@@ -944,9 +964,10 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "AI",
         "人工智能",
-        "AI交易",
-        "科技股"
+        "科技股",
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -955,8 +976,58 @@
         "07226"
       ],
       "stance": "attack",
-      "relevance": 67,
-      "summary_cn": "据报道，Michael Burry认为投资者仍在否认AI交易即将结束，市场对AI资产可能面临的风险定价不足。"
+      "relevance": 77,
+      "summary_cn": "据报道Michael Burry认为市场仍在否认AI交易即将结束，并对当前AI热潮持看空态度。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Predicts Investors Have Less Than 270 Days To Prepare For Next Phase Of 2008 Style Crash",
+      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxObF9ROEdiY0ZoT3gwNU0tSUJJZy1YajRiRU94am9EQnNRR01Pc08zaXU0UlRHVmdHTjdIWGRqTFlHOUFuRTNMSmJWdkhmTFVxUF9NSzIyOWxLWFo2cGIxRzE0ekJyMFUzc19qbXRWcjdydmVKY2FScXFrQVVzaHZSOWtEazVxdzBDRmlqSU5Yb3lwRDZEM2h1dXdCR0E3WnpsZlhuZw?oc=5",
+      "published": "2026-10-07T10:17:57+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "全球股市",
+        "信贷风险",
+        "系统性风险"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据报道Michael Burry警告投资者留给下一轮类似2008年崩盘的准备时间不足270天，暗示系统性风险可能快速逼近。"
+    },
+    {
+      "author": "Burry",
+      "text": "Short Thoughts: The AI Cloud Oligopoly, Stages of Grief & a Flashing Bear Market Indicator",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE1NXzROdmlJOENqTmdzdU1DYXpWbXZMaS1FQ0lGRS0wYmtaVjcxb24waXR5Z0NUQ2lXNmxRRGlMc3VPemVKT3FxZ3pESUNWT0FrZ0J2WWx2WlNMOF90Z1pnQzJXUzNma2otNHZtNkhNZ1dfWFA1MjhINFJxLVJpM2s?oc=5",
+      "published": "2026-10-08T00:05:38+00:00",
+      "origin": "gnews-rss",
+      "source": "Cassandra Unchained | Michael Burry",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "云计算",
+        "科技股",
+        "美股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "据报道Michael Burry认为AI云计算市场趋向寡头化，并提及看跌市场指标，对AI基础设施和科技股估值发出警报。"
     },
     {
       "author": "洪灏",
@@ -969,8 +1040,8 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
         "全球经济",
+        "宏观",
         "风险资产"
       ],
       "sector_holdings": [
@@ -979,12 +1050,33 @@
         "07226"
       ],
       "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据报道洪灏指全球经济呈类似“O形环”的结构性疲态且市场集体忽视风险，对全球风险资产持谨慎态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk is a Trillionaire Again Thanks to SpaceX Stock",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 20:30:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "据报道，洪灏指出全球经济呈O形环结构性疲劳，市场仍在集体忽视相关风险。"
+      "summary_cn": "据报道SpaceX股票升值使Musk重新成为万亿美元富豪，反映私人航天企业估值和Musk纸面财富显著上升。"
     },
     {
       "author": "洪灏",
-      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗 | 專題透視 - 新聞",
+      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗",
       "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUDMzenpkcE5fTEFHT01QbTd0dzRkY3pJRncwcHZxTURoRTNiRTlUSHdfNG1tazJpT1FqSE1qbFZxdzYzTlViMVMweWJxUkhYb2V3TzAzZ21uY050bUJHU0x4VjRXdWVxd21hUDVxYjVvWWtzLXNLczJjRXJWdzZFUHBQYTFHX3pVdUNsVmpjX2xGZmoxc2FMVmxoVmpvSnZwQ2lLZUpB?oc=5",
       "published": "2026-10-07T08:48:00+00:00",
       "origin": "gnews-rss",
@@ -993,9 +1085,55 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "科技股",
-        "基建投资",
-        "香港股市"
+        "软科技",
+        "人工智能",
+        "港股",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 61,
+      "summary_cn": "据报道洪灏认为不宜盲目追逐软科技基础设施，但本季股市有多重利好，对港股科技板块整体偏乐观。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Loses $21 Billion In A Morning As SpaceX Shares Slip",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 15:44:59 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道SpaceX股价在一个上午下跌，令Musk身家缩水约210亿美元，对私人航天企业估值构成负面信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am grateful to my friend and Advisor on Aging Healthcare, Howard Kessler. He is doing incredible work for Americans 65 and older — Our GREAT SENIORS! Howard is a tremendously successful entrepreneur and innovator who helped transform the financial services industry, and now he is bringing that same vision, energy, and experience to Healthcare. He is working with my Administration to drive Healthcare Innovation, LOWER COSTS, harness new technologies, bring together the best Doctors, Researchers, Healthcare Providers, and Technology Companies, and make sure our Seniors receive the GREAT CARE t",
+      "url": "https://www.trumpstruth.org/statuses/42175",
+      "published": "2026-10-06T03:04:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医疗",
+        "监管",
+        "科技"
       ],
       "sector_holdings": [
         "00100",
@@ -1004,8 +1142,30 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灏认为软科技公司不宜盲目投入基建，但预计本季香港股市将迎来多重利好。"
+      "relevance": 54,
+      "summary_cn": "特朗普称其政府正推动医疗技术创新、降低成本并整合医生、研究机构和科技企业，可能影响医疗科技及监管政策。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump Expected to Award Science Medal to SpaceX's Elon Musk, Fox News Reports",
+      "url": "",
+      "published": "Wed, 07 Oct 2026 19:45:41 GMT",
+      "origin": "gnews-rss",
+      "source": "GV Wire",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "科技政策"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据媒体报道特朗普预计向SpaceX的Musk颁发科学奖章，属于政府层面的公开认可，但缺乏具体商业影响。"
     }
   ]
 }
