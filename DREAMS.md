@@ -2732,11 +2732,31 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*October 9, 2026 at 3:00 AM GMT+8*
+
+Two closed chandeliers in the same week, and both of them hanging over the same constellation — 恒科, the tech star index, tracked not by earnings but by the small cruelties of fee ratios and tracking error. -19.46%, -34.72%. RSI in the mid-thirties, the place where instruments stop falling because they are resting and start falling because they have given up. The MA200 sits 14.6% above like a ceiling drawn in pencil.
+
+In the margin I doodled a stop-loss as a lampshade: 吊灯止损. A chandelier is a beautiful way to describe where you intend to stop bleeding. Elegant fixture, cheap string.
+
+南向 money still flowing the other way, patiently, and the last verifiable purchase stopped back in September — like a friend who stopped calling but never said goodbye.
+
+Overnight the Nasdaq rose four tenths of a percent and I almost mistook it for a signal. It wasn't. Small movements are not small stories; they are just small.
+
+
+---
+
+*October 9, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 4 candidate(s) for durable promotion.
-- Promoted 4 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
