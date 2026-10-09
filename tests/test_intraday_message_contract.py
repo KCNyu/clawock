@@ -10,8 +10,8 @@ from clawock.decision import intraday_policy as policy
 from clawock.harness import validation as val
 
 
-def test_mode7_named_context_fields_reach_model():
-    """A new prompt field cannot be silently dropped by the model packet."""
+def _produced_fields():
+    """The keys of the context a slot writes (the largest dict literal in preflight)."""
     root = Path(__file__).resolve().parents[1]
     source = (root / 'src/clawock/harness/intraday_preflight.py').read_text()
     dicts = [node for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Dict)]
@@ -20,6 +20,32 @@ def test_mode7_named_context_fields_reach_model():
         and isinstance(key.value, str)
     } for node in dicts), key=len)
     produced.add('context_id')  # appended after the result dict is complete
+    return produced
+
+
+def test_every_context_field_declares_its_layer():
+    """#2806: a field reaches the model because someone said so, not because it
+    was left off the reference list. Run control stays on disk; the add-side
+    and strategy material is core — never a tool call away."""
+    from clawock.context import intraday_layers as layers
+
+    tables = (layers.CORE_FIELDS, layers.REFERENCE_ENTRIES, layers.CONTROL_ENTRIES)
+    assert sum(map(len, tables)) == len(set().union(*tables))
+    assert set().union(*tables) == _produced_fields()
+
+    reads = {'rows': [{'ticker': '07226', 'verdict': 'wait'}]}
+    packet = pre.judgment_packet(
+        {**{key: None for key in _produced_fields()}, 'add_side_reads': reads})
+    assert set(packet) - {'index'} == set(layers.CORE_FIELDS)
+    assert {'add_side_reads', 'holding_policies', 'strategy_checks', 'strategy_conflicts',
+            'strategy_escalations', 'policy_evidence_errors'} <= set(packet)
+    assert packet['add_side_reads'] is reads  # the value itself, not a pointer
+
+
+def test_mode7_named_context_fields_reach_model():
+    """A new prompt field cannot be silently dropped by the model packet."""
+    root = Path(__file__).resolve().parents[1]
+    produced = _produced_fields()
     # What a slot loads: the thin payload and the one shared Mode 7 body (#2807).
     documents = [(root / 'config/cron-payloads/intraday.md').read_text(),
                  (root / 'skills/_shared/intraday-mode7.md').read_text()]
