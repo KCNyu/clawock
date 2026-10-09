@@ -26,12 +26,16 @@ every number from its inputs — the rules below are the ones already written do
   leveraged product needs more than soft evidence.
 * **A confirmed technical breakout can promote on its own; a primary
   filing upgrades the wording.** `candidate` requires a radar row in the
-  `breakout` state (close > prior 20-day high, not overheated) — the one add
-  shape the 8-month bars backtest (#819) measured with a positive edge at every
-  horizon (T+1/5/10/20 hit 52.5/54.0/52.5/55.9%, avg fwd +16.25% at T+20; HK
-  T+20 59.4%). This module only ever runs in the intraday slot, where "close"
+  `breakout` state (close > prior 20-day high, not overheated) — the add
+  shape #819 chose over deep-dip buying. What the bar store supports is
+  narrower than the sentence this module used to print (#2837): counted per
+  session the shape beats the baseline at every horizon, but those windows
+  overlap and the T+20 mean rides a few outsized moves; with one event per
+  name per horizon the next-day hit rate stays above half and T+5/T+20 sit
+  near half on small samples (`clawock evaluate-add-shapes` prints both
+  tables). This module only ever runs in the intraday slot, where "close"
   is the live print and the close itself is still pending — rows say so
-  explicitly, and the backtest numbers are quoted as close-confirmed. Near-
+  explicitly, and the backtest is quoted as close-confirmed. Near-
   breakout/at-high without a primary filing stay `wait`
   (no standalone edge). Soft news and sentiment remain colour, never an
   active-operation reason.
@@ -382,9 +386,9 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             needs = "先把纪律动作走完,再谈加仓"
         elif radar_row and radar_row.get("state") in IN_PLAY_STATES and (
                 radar_row.get("state") == "breakout" or primary):
-            # #819: the breakout state alone carries the measured edge
-            # (8-month bars backtest: hit >50% at T+1/5/10/20, avg fwd positive;
-            # deep-dip adds failed all four horizons — the original 逢低 assumption).
+            # #819: the breakout state promotes on its own; deep-dip adds showed
+            # no edge over the baseline. How strong the breakout evidence is, and
+            # is not, is in the module docstring (#2837).
             # Promotion shape: breakout promotes by itself; a primary filing is
             # the promotion key only for near_breakout/at_high, where it never
             # substitutes for the level — the ask stays "get above prior_20d_high".
@@ -408,10 +412,10 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 # 的收盘事实。简报档（brief_preflight）读的就是已收的日线，措辞
                 # 因此不同：同一个判据，两种确认程度，各说各的那一种。
                 why = (f"技术面{state_zh}:收盘站上前 20 日高且未过热(收盘确认;"
-                       f"回测口径同为收盘确认:四个周期命中率均>50%)"
+                       f"回测口径同为收盘确认:次日命中过半,T+5/T+20 按非重叠样本约五成、未达显著)"
                        if close_confirmed else
                        f"技术面{state_zh}:现价站上前 20 日高且未过热(盘中、收盘未确认;"
-                       f"回测口径为收盘确认:四个周期命中率均>50%)")
+                       f"回测口径为收盘确认:次日命中过半,T+5/T+20 按非重叠样本约五成、未达显著)")
                 lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
                 needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
         elif (support and level and level.get("prior_5d_low") is not None

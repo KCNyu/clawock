@@ -1478,3 +1478,45 @@ def test_the_system_sizes_the_full_position_cut_the_writer_left_unsized():
         assert packet_mod.bind_full_position_cuts(stated, packet) == stated
     standing = _hard_stop_packet(adaptive={"may_stand": True})
     assert packet_mod.bind_full_position_cuts(_cuts(None), standing) == _cuts(None)
+
+
+def test_a_durable_override_opens_the_hold_the_packet_used_to_refuse():
+    """Postflight exempted an overridden hard stop; the packet still allowed
+    only `cut`, so the plan could not write the hold kcn had granted."""
+    def risk(**over):
+        return {"kind": "hard_stop", "breach_id": "risk-hs", "adaptive": {},
+                "required_reduction": {"minimum_shares": 10}, **over}
+
+    forced = packet_mod._constraints(10, [risk()], [], {}, {})
+    assert forced["allowed_actions"] == ["cut"] and forced["forced_action_one_of"] == ["cut"]
+    declined = packet_mod._constraints(10, [risk(override_active=True)], [], {}, {})
+    assert declined["forced_action_one_of"] == []
+    assert "hold_and_watch" in declined["allowed_actions"]
+    assert "add_only_on_trigger" not in declined["allowed_actions"], (
+        "declining a cut is not permission to buy more of the breach")
+
+    context = _context()
+    context["risk_guardrail"] = {"breach_count": 1, "breaches": [], "hard_stop_watch": [{
+        "ticker": "LEVX", "breach_id": "risk-hs", "type": "leveraged_hard_stop",
+        "required_reduction": {"minimum_shares": 10}}]}
+    assert packet_mod._risk_map(context, {"LEVX"})["LEVX"][0]["override_active"] is False
+    context["risk_discipline"] = {"records": [{
+        "breach_id": "risk-hs", "status": "overridden",
+        "override": {"status": "active", "reason": "holding through the swap",
+                     "expires_at": "2099-01-01T00:00:00+08:00"}}]}
+    assert packet_mod._risk_map(context, {"LEVX"})["LEVX"][0]["override_active"] is True
+    # An override that has lapsed, or carries no reason, forces the cut again.
+    context["risk_discipline"]["records"][0]["override"]["expires_at"] = "2020-01-01T00:00:00+08:00"
+    assert packet_mod._risk_map(context, {"LEVX"})["LEVX"][0]["override_active"] is False
+
+
+def test_a_policy_file_without_the_exploration_cap_falls_back_instead_of_crashing():
+    context = _context()
+    policy = dict(packet_mod._add_alpha_policy(context))
+    policy.pop("exploration_max_book_pct", None)
+    context["add_alpha_policy"] = policy
+    import unittest.mock as mock
+    with mock.patch.object(packet_mod, "_add_alpha_policy", return_value=policy):
+        packet = packet_mod.compile_packet(
+            context, brief_context.compute_generation_id(context))
+    assert packet["tickers"]

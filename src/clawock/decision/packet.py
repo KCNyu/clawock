@@ -399,6 +399,7 @@ EXPLORATION_TIERS = add_policy.EXPLORATION_TIERS
 # Bound here because several functions below take the loaded policy dict as a
 # parameter named `add_policy`, which hides the module inside them.
 is_authorised_tier = add_policy.is_authorised_tier
+READ_DEFAULTS = add_policy.READ_DEFAULTS
 TARGET_TRANCHE_LEVEL = add_policy.TARGET_TRANCHE_LEVEL
 
 
@@ -732,6 +733,14 @@ def _adaptive_view(adaptive: dict | None) -> dict:
 def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
     guardrail = context.get("risk_guardrail") or {}
     out = {ticker: [] for ticker in active}
+    # A breach kcn declined on the record (`risk override --reason --ttl-hours`)
+    # is exempt in postflight, and was still `forced` here: the packet allowed
+    # only the cut, so the plan could not write the hold the override granted.
+    overridden = {
+        row.get("breach_id")
+        for row in (context.get("risk_discipline") or {}).get("records") or []
+        if risk_ledger.override_is_active(row)
+    }
     for row in guardrail.get("breaches") or []:
         reduction = row.get("required_reduction") or {}
         targets = set(str(x) for x in reduction.get("target_tickers") or [])
@@ -754,6 +763,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
                 # acknowledge or an override (#1075).
                 "standing": row.get("standing") or {},
                 "adaptive": _adaptive_view(row.get("adaptive")),
+                "override_active": row.get("breach_id") in overridden,
                 "required_reduction": {
                     key: reduction.get(key)
                     for key in (
@@ -782,6 +792,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             "action_text": row.get("action"),
             "standing": row.get("standing") or {},
             "adaptive": _adaptive_view(row.get("adaptive")),
+            "override_active": row.get("breach_id") in overridden,
             "required_reduction": {
                 key: reduction.get(key)
                 for key in (
@@ -897,7 +908,11 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     # A breach the book has kept declining may stand (risk.py `_adaptive`): the plan
     # writer chooses between raising it again and holding, and only the breaches that
     # are NOT allowed to stand still force an action.
-    loud = [row for row in risks if not (row.get("adaptive") or {}).get("may_stand")]
+    # So may a breach under a durable, unexpired override: declining it was kcn's
+    # decision, and it is the same freedom with a different author.
+    loud = [row for row in risks
+            if not (row.get("adaptive") or {}).get("may_stand")
+            and not row.get("override_active")]
     hard_stop = any(row.get("kind") == "hard_stop" for row in loud)
     direct_risk = bool(risks)
     if hard_stop:
@@ -1171,7 +1186,7 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
             exploration_max_book_pct=(
                 float(raw_exploration_book)
                 if raw_exploration_book is not None
-                else add_policy.READ_DEFAULTS["exploration_max_book_pct"]
+                else READ_DEFAULTS["exploration_max_book_pct"]
             ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
@@ -1952,6 +1967,7 @@ def _full_position_stops(row: dict, exempt_breach_ids=frozenset()) -> list[float
     for risk in row.get("risk") or []:
         if (risk.get("kind") != "hard_stop"
                 or (risk.get("adaptive") or {}).get("may_stand")
+                or risk.get("override_active")
                 or risk.get("breach_id") in exempt_breach_ids):
             continue
         minimum = _number(

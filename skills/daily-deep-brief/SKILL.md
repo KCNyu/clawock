@@ -323,13 +323,12 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 #### 🎚️ 分层 confidence 校准与 sizing（REQUIRED）
 
-原始 `confidence` 只保留为作者当时判断的审计字段，不能直接当胜率或仓位倍数。主动 call 必须在 `context.decision_metrics.hierarchical_calibration.current_group_calibrators` 中匹配 `action + driver + condition + regime`；该表由严格按 `plan_date` 前向、同日整体延后更新的 beta-binomial 校准器产生，稀疏小组会收缩到更宽层级。
+原始 `confidence` 只保留为作者当时判断的审计字段，不是胜率。`context.decision_metrics.hierarchical_calibration.current_group_calibrators` 是这本账自己的战绩：每个 `action + driver + condition + regime` 组的校准概率、CI、`edge_supported` 和 `signal_size_multiplier`，由严格按 `plan_date` 前向更新的 beta-binomial 校准器产生，稀疏小组收缩到更宽层级。
 
-- `abstain=true`：历史证据不足，`signal_size_multiplier=0`。一般信号不得扩仓；唯一的冷启动例外是 packet 批准、thesis gate 通过且仍有 `remaining_tranches` 的技术 setup，可做 **一个 `min_tranche_shares` 探索批次**来积累前瞻样本，不能放大到 `suggested/max`，也不能连开第二批。
-- 找不到完全匹配行：按 abstain 处理，不得自行拿相邻小组的点估计冒充。**该表只装 `evidence_sufficient=true` 的行**（证据不足的整批省略，避免每轮重发一张全是 abstain 的后验表）；省略了多少、分别因为什么，看同级的 `current_group_calibrator_count` / `current_group_calibrators_omitted` / `omitted_abstain_reasons`。表变短说明证据变薄，不是数据丢了。上述最小探索批次是为了打破“没有样本所以永远不能产生样本”的闭环，不是把缺证据说成有 edge。
-- `edge_supported=false`：证据已够但 95% 下界未过 50%，不得再用冷启动例外，也不得用它扩大主动仓位。
-- 只有 `edge_supported=true` 才能把原拟主动股数乘以 `signal_size_multiplier`；报告同时公开 calibrated probability、CI 和 resolved level。
-- 组合硬闸的 `risk_rebalance + risk_rule` 是政策执行，不是预测；即使校准器 abstain，也必须执行硬闸要求的降集中/降杠杆动作，禁止拿“无择时 edge”否决风控。
+- **匹配由 postflight 做，不用你做**：每条主动决策写完后，系统按它自己的四个字段查表，把命中的那一行盖在该决策的 `calibration` 字段上（没有命中 = 该组证据不足，照此标注）。不要在 plan 里自己写 `calibration`，也不要手工换算倍数。
+- **这张表是事实，不是尺寸公式**（kcn 2026-10-10）。股数由你在 packet 的 `max_add_shares` / `max_sell_shares` / setup 边界内自己定：战绩说「这类 call 过去没跑赢」时，你可以缩小、可以照做、也可以认为今天不同而加码——在 `rationale` 里说出你怎么看这条战绩，尤其是逆着它下注的时候。它之后和结果一起被复盘，这就是你改进自己的材料。
+- 表里只装 `evidence_sufficient=true` 的行；省略了多少、分别因为什么，看同级的 `current_group_calibrator_count` / `current_group_calibrators_omitted` / `omitted_abstain_reasons`。表变短说明证据变薄，不是数据丢了。不要拿相邻小组的点估计冒充本组，也不要把缺证据说成有 edge。
+- 组合硬闸的 `risk_rebalance + risk_rule` 是政策执行，不是预测；校准战绩不能用来否决硬闸要求的动作。
 
 #### 🌡️ 牛 / 熊 / 震荡 regime（REQUIRED，保留）
 

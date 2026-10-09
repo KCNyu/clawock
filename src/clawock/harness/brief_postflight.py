@@ -531,6 +531,10 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             normalized = brief_decision_packet.bind_full_position_cuts(
                 normalized, decision_packet
             )
+        normalized = decision_v2.bind_plan_calibration(
+            normalized,
+            ((context or {}).get('decision_metrics') or {}).get('hierarchical_calibration'),
+        )
         dropped_frames = _dropped_debate_frames(authored)
         if dropped_frames:
             # Counted, not silenced. Normalization deletes these (that is the
