@@ -44,7 +44,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 | 明确让 Claude Code / Codex / OpenCode 做任务，或追加已有任务 | `agent-dispatch`（host skill） | 入口见 AGENTS.md § Delegation；已派发 worker 自己完成，不再派发 |
 | issue / PR / CI run / gh api | `github` | 走 `gh` CLI;仓库改动仍遵守 AGENTS.md 的 worktree→PR 规矩,别直接推 master |
 
-`skills/_shared/` 不是 skill，是 hk/us 共用的片段（盘中 status sidecar 规范）——改盘中横幅只改那一份。
+`skills/_shared/` 不是 skill，是 hk/us 共用的片段（盘中 Mode 7 正文 `intraday-mode7.md`、status sidecar 规范）——盘中 cron 直接读这两份，改盘中规则或横幅只改那一份。
 
 研究生命周期各环节跑多勤（每天 / 按事件 / 每次 push）见 `docs/operations/research-cadence.md`。
 

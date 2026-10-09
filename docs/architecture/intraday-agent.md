@@ -11,8 +11,12 @@ same PR as the code it describes; the status column says what is live.
 Code: `src/clawock/harness/intraday_preflight.py`, `intraday_postflight.py`,
 `intraday_watchdog.py`, `src/clawock/decision/add_side.py`; config
 `config/intraday-delivery.json`, `config/intraday-strategy-policies.json`;
-prompt `config/cron-payloads/intraday.md` and the Mode 7 section of both market
-SKILLs. The ownership and silence history is in
+prompt `config/cron-payloads/intraday.md` (the thin per-market entry: market,
+paths, tool and delivery plumbing) and the one shared Mode 7 body
+`skills/_shared/intraday-mode7.md` with its declared dependency
+`skills/_shared/intraday-status-sidecar.md`. The slot reads both shared files in
+its first tool batch; the Mode 7 section of each market SKILL is a route to the
+body and is not loaded by the cron. The ownership and silence history is in
 [`harness.md`](harness.md#intraday-decision-and-delivery-boundary).
 
 ## 1. Objective
@@ -52,6 +56,22 @@ cron slot ─► preflight ───────────► model ───�
 | delivery | harness via OpenClaw channels | WeChat (primary), Telegram (mirror and backstop), each retried on its own | a failed channel is recorded per channel; the other still sends |
 | watchdog | harness (`intraday_watchdog`) | checks the exact slot marker; resends the channel that did not land | WeChat-failed alert to Telegram at most once per market per day (#1861) |
 | ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
+
+### Prompt files a slot loads
+
+| File | Role | Loaded |
+|---|---|---|
+| `config/cron-payloads/intraday.md` | thin market entry, rendered per job with `market` / `market_name` / `skill`: the first-batch reads, CLI lines, artifact paths, exec/poll and delivery plumbing | the cron message itself |
+| `skills/_shared/intraday-mode7.md` | the one Mode 7 body for HK and US: delivery-mode branches, reading order, add-side and strategy rules, attribution, and the only text of the `下一触发` level rule | `read` in the first tool batch |
+| `skills/_shared/intraday-status-sidecar.md` | sidecar schema and length contract, a declared dependency of the body | `read` in the first tool batch |
+| `skills/{hk,us}-stock-analysis/SKILL.md` | interactive Modes 1–6; its Mode 7 section is a route to the body | not loaded by the slot |
+
+The skills catalog is an index: naming a file loads nothing, so the payload
+orders the reads by absolute path
+(`test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency`). A rule
+that applies to both markets is written once in the body; a market difference is
+a line under the body's 市场差异, and strategy thresholds stay in
+`holding_policies` / `strategy_checks`.
 
 The model never computes a number the harness can compute, never renders a data
 block, and never sends a message. The harness never writes judgment: it does not
@@ -293,6 +313,7 @@ as live.
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |
 | information lane tier 2: live free sources every slot, started before the analyzer, bounded (`test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_gaps`, `test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_time`, `test_nothing_waits_past_the_budget`); the same module feeds the brief and the report (`test_intraday_brief_and_report_all_go_through_the_one_collect`) | live (#1935) |
 | tier 0 cites carry each item's own publication time, or explicitly mark missing precision (`test_a_morning_item_uses_its_own_date_not_the_file_write_time`) | live (#2103) |
+| one shared Mode 7 body + thin market entry; the market SKILL is no longer loaded by the slot (`test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency`, `test_one_mode7_body_carries_the_add_side_rules_for_both_markets`) | live (#2807 step 1); `required_substrings` slimming is the open second step |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10

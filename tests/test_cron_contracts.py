@@ -626,8 +626,7 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
     intraday = cron_contract.render_payload_message(data, jobs['美股盘中盯盘'])
     assert (
         '并行调用 `read` 读取 '
-        '`/root/.openclaw/workspace/skills/us-stock-analysis/SKILL.md` '
-        '与 Step 1 preflight'
+        '`/root/.openclaw/workspace/skills/_shared/intraday-mode7.md`'
     ) in intraday
 
     brief = cron_contract.render_payload_message(data, jobs['盘前深度简报'])
@@ -641,6 +640,38 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
         'skills catalog 只有索引，不含 SKILL.md 正文' in message
         for message in (report, intraday, brief)
     )
+
+
+def test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency():
+    """One Mode 7 body for both markets, loaded by path in the first batch (#2807).
+
+    The market SKILL used to be read whole — Modes 1–6 included — and each one
+    carried its own Mode 7 copy, so a rule changed in one place survived in two
+    others. What the slot is told to read is now the closure: the shared body
+    and the sidecar spec the body depends on. A path that names no file would
+    send the model improvising, and a market SKILL back in the first batch is
+    the old load returning.
+    """
+    data = contract()
+    prefix = '/root/.openclaw/workspace/'
+    first_batches = {}
+    for job in data['jobs']:
+        if job.get('payload_profile') != 'intraday':
+            continue
+        message = cron_contract.render_payload_message(data, job)
+        first_batch = next(line for line in message.splitlines()
+                           if line.startswith('第一轮并行调用 `read`'))
+        first_batches[job['name']] = re.findall(
+            rf'`{re.escape(prefix)}(skills/[^`]+\.md)`', first_batch)
+        assert f"market={job['payload_vars']['market']}" in first_batch
+    assert len(first_batches) == 3
+    for name, paths in first_batches.items():
+        assert paths == ['skills/_shared/intraday-mode7.md',
+                         'skills/_shared/intraday-status-sidecar.md'], name
+        assert all((ROOT / path).is_file() for path in paths), name
+    body = (ROOT / 'skills/_shared/intraday-mode7.md').read_text()
+    for path in re.findall(r'`(skills/[^`{]+\.md)`', body):
+        assert (ROOT / path).is_file(), f'the Mode 7 body names a missing {path}'
 
 
 def test_brief_repair_uses_whole_file_write_instead_of_brittle_edit():

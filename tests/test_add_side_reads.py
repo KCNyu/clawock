@@ -237,15 +237,27 @@ def test_the_live_context_shape_still_feeds_it():
     assert all(r["verdict"] in add_side.VERDICTS for r in out["rows"])
 
 
-def test_both_market_skills_require_the_line_in_the_same_words():
-    """Two hand-written templates that must not drift (#739's lesson)."""
-    texts = [(ROOT / "skills" / f"{market}-stock-analysis" / "SKILL.md").read_text()
-             for market in ("hk", "us")]
-    for text in texts:
-        assert "add_side_reads" in text
-        assert "三态都不是下单授权" in text
-    hk, us = (t.split("add_side_reads", 1)[1][:400] for t in texts)
-    assert hk == us, "the hk and us Mode 7 add-side instructions have drifted"
+def test_one_mode7_body_carries_the_add_side_rules_for_both_markets():
+    """Two hand-written templates drifted (#739); since #2807 there is one body.
+
+    The move must not drop what only the SKILL copies said: the three states are
+    not an order, a left-side row is observed and never sized, a proxy level is
+    not the leveraged product's own price, and a discipline conflict comes first.
+    A market SKILL that grows its own add-side text again is the drift returning.
+    """
+    body = (ROOT / "skills" / "_shared" / "intraday-mode7.md").read_text()
+    for rule in ("三态都不是下单授权",
+                 "`kind=left_scale_in` 是左侧观察档",
+                 "不给尺寸，不得写成加仓建议、股数或「可以低吸」的授权",
+                 "不得把代理价位当成杠杆产品自身价格",
+                 "有纪律冲突先说阻断条件",
+                 "`unavailable` 只说证据未取到"):
+        assert rule in body, rule
+    for market in ("hk", "us"):
+        skill = (ROOT / "skills" / f"{market}-stock-analysis" / "SKILL.md").read_text()
+        route = skill.split("### Mode 7", 1)[1].split("### Mode 6", 1)[0]
+        assert "skills/_shared/intraday-mode7.md" in route
+        assert "add_side_reads" not in route, f"{market} SKILL restates the add-side rules"
 
 
 # --- #759: the falsifier must survive a selloff ------------------------------
