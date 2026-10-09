@@ -144,23 +144,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-06)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-01 周四 08:03 HKT: 港股今天休市，港股数字停在 9 月 30 日收盘；美股则用一场星舰入轨任务把最好的一天给了我们最大的那笔敞口。今晚基调只有一句：这不是一个该加仓的组合，是一个该把决策权收回来的组合。九成账面亏损不是选股问题而是仓位结构问题——港股段 57.79% 压在 00100，美股段 86.11% 压在 SPCH，两段 HHI 分别是 0.421 和 0.748。四条仓位硬闸加两条杠杆硬止损同时亮着，其中两条已站 49 天和 78 天而账本上一次执行、一次确认、一次豁免都没有。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-01 周四 08:03 HKT: **反方**：最强反方会说：四条硬闸全在恒科与纳指同向下跌的那三周生成，现在恐惧贪婪 31.6、波动率只有 16，从没见过这么干净的反弹窗口；SPCH 今天涨 2.24% 领涨全组合，此时砍仓就是把最好的消息卖在最低价。它有一半对——今天确实不该砍。但它混淆了两件事：星舰成功是印证型消息，按纪律从来不能成为减仓理由；反过来我要减的从来不是这个故事，而是 3501 美元账户里 3015 美元是同一只 2x 杠杆 ETF。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-01 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-01：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-01-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-01 周四 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-01-pre-open.md:9-9]
-
 ## Promoted From Short-Term Memory (2026-10-07)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:11:11 -->
@@ -184,3 +167,16 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 六张全过，我给了排序表让它别平均用力: **判据脚本必须一次跑全部六张**，输出每张各自的相交数 / 终点归属 / 最小间距 / 纵向节奏。而且要求它**复用 #2424 的 `measurements.json` 测量基础，只换判据**（从「距离」换成「相交 / 终点归属 / 扇出目标」），别从零重写。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:23-23]
 <!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:25:25 -->
 - 六张全过，我给了排序表让它别平均用力: 一句我写进去了：**哪张本来就干净，如实报「零缺陷」并给判据输出，不要为了显得做了事去改。** [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-03-2214.md:25-25]
+
+## Promoted From Short-Term Memory (2026-10-10)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-24-pre-open.md:49:58 -->
+- **理由** 硬止损 -33.3% ≤ -18% 站 42 天 breach ledger 持续；HK 杠杆 ETF 27.7% > amber 25% cap 双闸并发。adaptive.may_stand=true stance=declined 42d 同期他处有成交 kcn 选保留敞口让 HSTECH 反弹修复；swap_mandate 03033 (max 18042 HKD) 仍 open 但 kcn 实际不触发（风险增仓冻结需 proven risk-reducing pair，03033 packet technical_setup_ids=[] 无 alpha_confirmation/oversold_reclaim 等技术 setup，schema 校验 add_only_on_trigger 必填 technical_setup_id 走不通，故 buy 腿不出现在 plan）。Breakeven 49.9% (1x 6m 含 drag 23.4%)，标的 HSTECH 现 4379 距 4669 高 -6.2%，反弹需 +6.6%。9/24 vs 9/15 last_reissued (9 天) 无实质变化：HK AI 9/23 智谱 -12% / MINIMAX -3.98% 板块回踩，HSI -1.01% / HSTECH -1.33%，07226 -2.61% 跟随。维持 3.0 反弹减仓窗口 **判定**... [score=0.883 recalls=5 avg=0.483 source=memory/2026-09-24-pre-open.md:49-58]
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:160:176 -->
+- **MSFU 7/29 财报**：Bull 看 buying opportunity；Bear 看短期 selloff + FOMC 双重事件 - **RKLX swap 时机**：Bull 看纪律 swap 不等价位；Bear 看"再忍一天等 SPCX 解禁前后整个板块反弹" ## ▎Tier 3 — 3 个 Risk Voice + Judge ### Aggressive（抓 upside，risk-on 立场） **立场**：纪律 swap 是无条件动作；但 SKHY 加仓窗口在 7/30 后打开（不是今天）。MSFT 7/29 财报如果 capex 指引温和 = +MSFU 反弹 alpha 在。 - **会做的事**：① 5 个 swap（SPCH→SPCX 150 / RKLX→RKLB 10 / PLTU→PLTR 14 / MSFU→MSFT 20 / 07226→03033 1000）**全部 09:30 HKT/ET 开盘市价成交**；② 00100 trim 20 股借反弹（if high > 215）→ 03929 → 实际是把 00100 单名 39.54% → 36% 收窄 - **会忽略的风险**：7/29 FOMC 加息概率 37.9% — 因为本子已 50% 浮亏，再跌空间有限（hard cap -100%） ### Conservative（保本 derisk，risk-off 立场） **立场**：纪律 swap +... [score=0.869 recalls=5 avg=0.437 source=memory/2026-07-27-pre-open.md:160-176]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-05-1854.md:15:18 -->
+- 其余风险: #2595 会让公开胜率在下一次结算时变动 19 行，这是修复本身。; #2560 的卡片今天仍不展示（当天的 sidecar 是旧契约写的），要等下一份盘前简报按新契约写出第一张；模型是否守约只能事后观察。; #2603 只改标题，已有的 25 个归档提交不回填。; 巡检还在运行，随时可能再开新 issue；0 是 CI 结束那一刻的读数。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-05-1854.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-05-1854.md:19:19 -->
+- 其余风险: 本机导航已更新并记录了复核基线；live checkout 里三个未提交的 `assets/data` 文件是定时发布写的，没动。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-05-1854.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-05-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-10-05 周一 08:03 HKT: 两条腿走反了方向：美股上周五 risk-on 收在高位、航天这条线一天涨 9% 到 15%，港股却跌出 52 周低位、恒科只剩 4158。今天的主基调不是找新机会，是把 2x 敞口一层层剥掉：美股两笔 2x 敞口在反弹位全清，1x 由 SPCX 继续承担；港股 07226 先减两成回 25% 上限之内。做完之后组合里只剩一条 2x，而且港股那条留下了两个新问题：减两成会把 00100 推到约 59.4%、离 60% 的强制线只剩不到一个百分点；而 1x 承接腿今天落不了纸，卖出所得只能停在现金。真正没有解法的还是 00100 —— 它占港股段 55.6%、贡献全组合 54.7% 的风险份额，规则只授权持有。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-05-pre-open.md:11-11]
