@@ -117,7 +117,7 @@ SOURCE_ROOTS = ('src/clawock', 'ops')
 GATED_CALL_SITES = {
     # The reply is JSON now (#2817): the plan schema is the gate, and the
     # judgment is checked against the packet before either file is written.
-    ('src/clawock/automation/brief_fallback.py', 'main'): 'validate_plan',
+    ('src/clawock/automation/brief_fallback.py', 'main'): 'checked_reply',
     # generate_review, not main: it returns only text that passed the gate (one
     # repair turn included), and main writes nothing else.
     ('src/clawock/automation/weekly_review.py', 'generate_review'): 'validate_sections',

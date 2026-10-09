@@ -14,10 +14,12 @@ import hashlib
 import json
 import os
 import sys
+import time
 from copy import deepcopy
 
 from clawock import sessions
 from clawock.automation.llm import chat
+from clawock.automation.llm import DEADLINE_ENV
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as decision_packet
 from clawock.safe_io import safe_write_json, safe_write_text
@@ -50,17 +52,17 @@ def split_plan_and_judgment(out):
 
     `_extract_last_json` does the finding, so a fence, a preamble or an
     unbalanced brace in surrounding prose does not lose a good reply. Anything
-    that is not one object with both members is refused before a file is
-    written; a wrong grab is still rejected downstream by the plan schema and
-    the judgment overlay check.
+    that is not one object with both members raises ValueError before a file
+    is written; a wrong grab is still rejected downstream by the plan schema
+    and the judgment overlay check.
     """
     raw, start = _extract_last_json(out)
     if start is None:
-        raise SystemExit('model reply carries no JSON object')
+        raise ValueError('model reply carries no JSON object')
     payload = json.loads(raw)
     plan, judgment = payload.get('plan'), payload.get('judgment')
     if not isinstance(plan, dict) or not isinstance(judgment, dict):
-        raise SystemExit(
+        raise ValueError(
             'model reply must be one JSON object with "plan" and "judgment" objects')
     return plan, judgment
 
@@ -342,6 +344,64 @@ def verify_receipt(root, today):
                   + ' · '.join(f'{name} {size} bytes' for name, size in sizes.items()))
 
 
+#: The least wall clock worth starting the repair turn with; the first real
+#: reply took 188s (2026-10-09 rehearsal).
+REPAIR_MIN_SECONDS = 240
+
+
+class ReplyRejected(Exception):
+    """The reply cannot be written as it stands; the message says why."""
+
+
+def checked_reply(out, today, packet):
+    """(plan, judgment, advisories) ready to write, or `ReplyRejected`.
+
+    Everything postflight would fail the brief for and that this side can see
+    is a rejection: the reply's shape, the plan schema, the harness's action
+    bounds, a judgment with nothing to render. Judgment overlay findings come
+    back as advisories — postflight publishes those as a warning.
+    """
+    generation_id = (packet.get('_meta') or {}).get('generation_id')
+    try:
+        plan, judgment = split_plan_and_judgment(out)
+    except ValueError as exc:
+        raise ReplyRejected(str(exc))
+    if 'actions' in plan:
+        raise ReplyRejected('plan uses the forbidden v1 `actions` field; use `decisions`')
+    plan['date'] = plan.get('date') or today
+    plan['context_generation_id'] = generation_id
+    try:
+        plan = decision_v2.normalize_authored_plan(plan)
+    except Exception as exc:  # noqa: BLE001
+        raise ReplyRejected(f'plan cannot be normalized: {exc}')
+    # The filename is what binds the plan to its date (#1915): `or today` only
+    # fills a missing date, and a model-written wrong one would otherwise land
+    # as memory/<today>-plan.json and derive every id from the wrong day.
+    errors = list(decision_v2.validate_plan(plan, f'memory/{today}-plan.json'))
+    errors += decision_packet.validate_plan_constraints(plan, packet)
+    if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
+        errors.append('judgment carries no ticker_judgments')
+    if errors:
+        raise ReplyRejected('; '.join(errors))
+    # The two pins are the harness's to write, like the plan's above: the model
+    # copying a hash wrong must not cost the day its brief.
+    judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
+    judgment['context_generation_id'] = generation_id
+    return plan, judgment, decision_packet.validate_judgment_overlay(packet, judgment)
+
+
+def repair_prompt(user, out, reason):
+    """The first prompt, the rejected reply and why — for the one repair turn."""
+    return (
+        f"{user}\n\n"
+        f"你上一次的回复：\n{out}\n\n"
+        f"它没有通过写盘前的校验：\n{reason}\n\n"
+        "只改被指出的地方，其余内容原样保留，重新输出完整的 "
+        '{"plan": {...}, "judgment": {...}} 这一个 JSON 对象。'
+        "拿不到 harness 授权或必填字段的加仓决策，改成 packet 允许的动作，不要硬凑字段。"
+    )
+
+
 def main(argv=None):
     """Generate today's fallback brief; `--verify-receipt` only checks one was written.
 
@@ -427,19 +487,23 @@ def main(argv=None):
     # recovery path could not physically emit a complete brief.
     # timeout=900: the full-context brief prefills ~116KB and thinks before emitting
     # ~20K tokens; the 180s default timed out 3x on 2026-07-16 and killed the run.
+    def report_chain(stats):
+        # C-F3a: one grep-able line saying which leg won and what each cost —
+        # before this, the job log had per-attempt token lines but nothing that
+        # answered "did the fallback write today's brief, and how slow was it?".
+        legs = stats.get('legs') or []
+        if legs:
+            print('LLM chain: ' + ' | '.join(
+                f"{l['provider']} {'OK' if l['ok'] else 'FAIL'} "
+                f"attempts={l['attempts']} {l['wall_s']}s"
+                + (f" ({l.get('error', '')[:60]})" if not l['ok'] else '')
+                for l in legs))
+
+    started = time.monotonic()
     stats = {}
     out = chat(system=system, user=user, max_tokens=BRIEF_MAX_TOKENS,
                temperature=0.6, timeout=BRIEF_LLM_TIMEOUT_SECONDS, stats_out=stats)
-    # C-F3a: one grep-able line saying which leg won and what each cost —
-    # before this, the job log had per-attempt token lines but nothing that
-    # answered "did the fallback write today's brief, and how slow was it?".
-    legs = stats.get('legs') or []
-    if legs:
-        print('LLM chain: ' + ' | '.join(
-            f"{l['provider']} {'OK' if l['ok'] else 'FAIL'} "
-            f"attempts={l['attempts']} {l['wall_s']}s"
-            + (f" ({l.get('error', '')[:60]})" if not l['ok'] else '')
-            for l in legs))
+    report_chain(stats)
 
     # VALIDATE BEFORE WRITING ANYTHING (2026-07-16). This used to write pre-open.md
     # first and validate after, so a vendor that returns 200 with junk (MiniMax does:
@@ -449,29 +513,31 @@ def main(argv=None):
     # keys on pre-open.md existing — one junk file and every later fallback self-skips.
     # Nothing may touch memory/ until the plan and the judgment are known usable.
     try:
-        plan, judgment = split_plan_and_judgment(out)
-    except ValueError as e:
-        raise SystemExit(f'model reply JSON parse failed: {e}')
-    if 'actions' in plan:
-        raise SystemExit('LLM returned forbidden v1 actions field')
-    plan['date'] = plan.get('date') or today
-    plan['context_generation_id'] = generation_id
-    plan = decision_v2.normalize_authored_plan(plan)
-    # The filename is what binds the plan to its date (#1915): `or today` only
-    # fills a missing date, and a model-written wrong one would otherwise land
-    # as memory/<today>-plan.json and derive every id from the wrong day.
-    errors = decision_v2.validate_plan(plan, f'memory/{today}-plan.json')
-    if errors:
-        raise SystemExit('plan.json v2 validation failed: ' + '; '.join(errors))
-    # The two pins are the harness's to write, like the plan's above: the model
-    # copying a hash wrong must not cost the day its brief.
-    judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
-    judgment['context_generation_id'] = generation_id
-    if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
-        raise SystemExit('judgment carries no ticker_judgments: nothing to render the debate from')
-    # Postflight publishes a judgment with overlay findings as a warning (the
-    # report renders what is there), so they are reported here, not fatal.
-    for issue in decision_packet.validate_judgment_overlay(packet, judgment):
+        plan, judgment, advisories = checked_reply(out, today, packet)
+    except ReplyRejected as rejected:
+        # One repair turn. The host brief gets this for free — postflight says
+        # `fail`, the model fixes the named field and reruns — and a single turn
+        # had no equivalent: the first real run of this contract (rehearsal
+        # 2026-10-09) lost a whole brief to one `add` decision missing its
+        # setup fields. It spends what the first call left of the job's LLM
+        # budget, never a second full one.
+        budget = float(os.environ.get(DEADLINE_ENV) or BRIEF_LLM_TIMEOUT_SECONDS)
+        left = budget - (time.monotonic() - started)
+        print(f'  reply rejected: {rejected}')
+        if left < REPAIR_MIN_SECONDS:
+            raise SystemExit(f'model reply rejected with {left:.0f}s left, no repair turn: {rejected}')
+        print(f'  one repair turn ({left:.0f}s left of {budget:.0f}s)')
+        stats = {}
+        repaired = chat(system=system, user=repair_prompt(user, out, rejected),
+                        max_tokens=BRIEF_MAX_TOKENS, temperature=0.2,
+                        timeout=BRIEF_LLM_TIMEOUT_SECONDS, deadline_seconds=left,
+                        stats_out=stats)
+        report_chain(stats)
+        try:
+            plan, judgment, advisories = checked_reply(repaired, today, packet)
+        except ReplyRejected as again:
+            raise SystemExit(f'model reply rejected after the repair turn: {again}')
+    for issue in advisories:
         print(f'  warn: judgment: {issue}')
 
     # Atomic (#1493): the publish sweep would commit a half-written plan.json.
