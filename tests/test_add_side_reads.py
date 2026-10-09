@@ -542,6 +542,8 @@ def test_a_technical_breakout_alone_is_a_candidate():
     # 本模块只在盘中档运行：现价触发必须说成未确认，不得断言已收盘（#1051）
     assert "收盘未确认" in row["why"], row["why"]
     assert "收盘确认" in row["why"], row["why"]
+    # #2837: the claim the bar store does not support is gone from the card.
+    assert "四个周期" not in row["why"] and "未达显著" in row["why"], row["why"]
     assert row["needs"].startswith("守住 11.72"), row["needs"]
     assert out["candidate_count"] == 1
 

@@ -142,3 +142,18 @@ def test_marginal_names_a_sleeve_that_only_adds_more_of_the_same():
     weights = cell["right_plus_left_at_weight"]
     assert cell["right_alone"]["sharpe"] > weights["0.25"]["sharpe"] > weights["1.0"]["sharpe"]
     assert add_shapes._marginal({"2025-01-01": 0.01}, {}) == {"sessions": 1}
+
+
+def test_a_hit_rate_is_also_counted_once_per_name_per_horizon():
+    """#2837: a breakout that holds prints the shape every session, and at T+20
+    those rows are nearly the same return. The per-session table said 61% on
+    n=93 where one event per window said 53% on n=30."""
+    summary = add_shapes.summarise(add_shapes.collect(
+        {"UP": _rising()}, no_chase_z=99.0))
+    seat = summary["shapes"]["breakout"]
+    apart = seat["non_overlapping"]
+    assert apart["t1"]["n"] == seat["t1"]["n"], "one-session windows never overlap"
+    assert apart["t20"]["n"] < seat["t20"]["n"]
+    assert apart["t20"]["n"] == -(-seat["t20"]["n"] // 20)
+    text = add_shapes.render(summary)
+    assert "non-overlapping windows per name" in text and "median" in text

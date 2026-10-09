@@ -147,7 +147,7 @@ def collect(bars_by_name: dict[str, list[dict]], *, no_chase_z: float) -> dict:
             shape = classify_shape(window, prior_high, zscore, no_chase_z=no_chase_z)
             if shape:
                 shapes.setdefault(shape, []).append(
-                    {"name": name, "date": bars[i]["date"], **forward})
+                    {"name": name, "date": bars[i]["date"], "session": i, **forward})
     return {"shapes": shapes, "baseline": baseline, "names": names}
 
 
@@ -167,9 +167,30 @@ def _summarise(rows: list[dict] | list[float]) -> dict:
     return out
 
 
+def _non_overlapping(rows: list[dict], horizon: int) -> list[dict]:
+    """Events whose forward windows do not share a session, per name.
+
+    A breakout that holds prints the shape on consecutive sessions, and at T+20
+    those rows are nineteen-twentieths the same return. Keeping an event only
+    once the previous one for that name has run its horizon is what "n" has to
+    mean before a hit rate is read as a rate (#2837).
+    """
+    kept, next_free = [], {}
+    for row in sorted(rows, key=lambda r: (r["name"], r["session"])):
+        if horizon in row and row["session"] >= next_free.get(row["name"], 0):
+            kept.append(row)
+            next_free[row["name"]] = row["session"] + horizon
+    return kept
+
+
 def summarise(collected: dict) -> dict:
     shapes = {name: _summarise(rows)
               for name, rows in sorted(collected["shapes"].items())}
+    for name, rows in collected["shapes"].items():
+        shapes[name]["non_overlapping"] = {
+            f"t{h}": _summarise(_non_overlapping(rows, h)).get(f"t{h}")
+            for h in HORIZONS
+        }
     baseline = {}
     for h in HORIZONS:
         values = collected["baseline"][h]
@@ -201,10 +222,22 @@ def render(summary: dict) -> str:
                 cell["n"], cell["hit_rate"] * 100, cell["mean_pct"])
                 if cell else "  —".ljust(24))
         lines.append(line)
+    lines += ["", "non-overlapping windows per name",
+              f"{'shape':22s}" + "".join(f"  T+{h:<2d} hit / median".ljust(24) for h in HORIZONS)]
+    for name, seat in rows[:-1]:
+        line = f"{name:22s}"
+        for h in HORIZONS:
+            cell = (seat.get("non_overlapping") or {}).get(f"t{h}")
+            line += ("  n=%-4d %5.1f%% %+6.2f%%   " % (
+                cell["n"], cell["hit_rate"] * 100, cell["median_pct"])
+                if cell else "  —".ljust(24))
+        lines.append(line)
     lines += [
         "",
-        "Event counts overlap heavily (every session of every name is a candidate),",
-        "the universe is survivorship-limited to names the desk still follows, and the",
+        "The first table counts every session (events overlap heavily) and its mean is",
+        "carried by a few outsized moves; the second keeps one event per name per horizon",
+        "and shows the median. Quote the second when a hit rate is meant as a rate.",
+        "The universe is survivorship-limited to names the desk still follows, and the",
         "window is one up-market regime. Read the rows against the baseline, never alone.",
     ]
     return "\n".join(lines)

@@ -701,11 +701,11 @@ def trim_abstaining_calibrators(metrics):
     already drops the same block from the public payload (#102); the brief, which
     pays for it far more often, kept shipping all of it.
 
-    Dropping the abstaining rows is behaviour-preserving because both skills that
-    read this table define a missing row and an abstaining row as the same outcome:
-    "找不到完全匹配行：按 abstain 处理" (daily-deep-brief), "A missing exact row,
-    `abstain=true`, or `edge_supported=false` means the signal contributes zero
-    incremental size" (portfolio-swarm-review).
+    Dropping the abstaining rows is behaviour-preserving because every reader
+    defines a missing row and an abstaining row as the same fact: the skills say
+    a group absent from the table has too little evidence, and
+    `decision_v2.bind_plan_calibration` stamps an unmatched decision as
+    `abstain_insufficient_evidence`.
 
     The filter is `evidence_sufficient`, not `edge_supported`, on purpose.
     decision_v2 defines `edge_supported = not abstain and ci[0] > 0.5` while

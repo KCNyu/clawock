@@ -1445,3 +1445,37 @@ def test_a_rerun_keeps_the_execution_the_ledger_recorded(tmp_path):
         assert dv2.upsert_plan_decisions(rerun, path=path) == (0, 1)
         assert dv2.load_decisions(path)[0]["execution"] == {
             "status": "followed", "source": "manual", "detected_at": None}
+
+
+def test_the_system_looks_up_the_calibrator_row_and_the_plan_cannot_supply_one():
+    """#2834: both skills had the model match action+driver+condition+regime by
+    hand and multiply its size. The lookup is a fact the system stamps; the
+    size stays the plan writer's."""
+    def authored(action, **extra):
+        return dv2.legacy_action_to_decision({
+            "ticker": "AAA", "action": action, "strategy_id": "tactical_entry",
+            "driven_by": "technical", "regime": "neutral",
+            "condition": {"type": "open"}, **extra}, "2026-10-08")
+
+    row = {"action": "cut", "driver": "technical", "condition": "open",
+           "regime": "neutral", "calibrated_probability": 0.4765,
+           "ci95": [0.28, 0.68], "resolved_level": "action_driver_condition",
+           "resolved_level_n": 17, "prior_episodes": 58, "evidence_sufficient": True,
+           "edge_supported": False, "signal_size_multiplier": 0.0,
+           "sizing_status": "no_positive_edge", "posterior_alpha": 11.9}
+    plan = {"date": "2026-10-08", "decisions": [
+        authored("cut"), authored("trim_on_rebound"), authored("hold_and_watch")]}
+    plan["decisions"][2]["calibration"] = {"matched": True, "edge_supported": True}
+    table = {"current_group_calibrators": [row]}
+
+    hit, miss, passive = dv2.bind_plan_calibration(plan, table)["decisions"]
+    assert hit["calibration"] == {"matched": True} | {
+        key: row[key] for key in dv2.CALIBRATION_STAMP_FIELDS}
+    assert miss["calibration"] == {
+        "matched": False, "evidence_sufficient": False, "edge_supported": False,
+        "signal_size_multiplier": 0.0, "sizing_status": "abstain_insufficient_evidence"}
+    assert "calibration" not in passive, "a typed stamp does not survive"
+    assert hit["size"] == plan["decisions"][0]["size"], "the size is not touched"
+    # No table this run: nothing is claimed either way.
+    assert all("calibration" not in d
+               for d in dv2.bind_plan_calibration(plan, None)["decisions"])

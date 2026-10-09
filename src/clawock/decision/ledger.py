@@ -1993,6 +1993,59 @@ def _calibration_dimensions(row: dict) -> dict[str, str]:
     }
 
 
+#: What a decision keeps of the calibrator row it matched. The posterior's
+#: internals stay in `decision_metrics`; this is what a later reader needs to
+#: ask "what did the record say when this size was chosen".
+CALIBRATION_STAMP_FIELDS = (
+    "calibrated_probability", "ci95", "resolved_level", "resolved_level_n",
+    "prior_episodes", "evidence_sufficient", "edge_supported",
+    "signal_size_multiplier", "sizing_status",
+)
+
+
+def bind_plan_calibration(plan: dict, calibration: dict | None) -> dict:
+    """Stamp each active decision with the calibrator row its own fields select.
+
+    The join is `action + driver + condition + regime` against
+    `current_group_calibrators` — a lookup, which both skills used to ask the
+    model to do by hand and then multiply its size by the result (#2834). The
+    lookup is the system's; what the record is worth to today's size is the
+    plan writer's, inside the packet's bounds. A group absent from the table
+    is one the calibrator abstained on (`trim_abstaining_calibrators` omits
+    those rows), and is stamped as that rather than left blank.
+
+    Any `calibration` the plan arrived with is replaced or removed: like
+    `signal_provenance`, it is evidence about the decision, not part of it.
+    """
+    bound = copy.deepcopy(plan)
+    groups = (calibration or {}).get("current_group_calibrators")
+    table = None
+    if isinstance(groups, list):
+        table = {
+            tuple(str(row.get(key)) for key in ("action", "driver", "condition", "regime")): row
+            for row in groups if isinstance(row, dict)
+        }
+    for decision in bound.get("decisions") or []:
+        if not isinstance(decision, dict):
+            continue
+        decision.pop("calibration", None)
+        if table is None or decision.get("action") not in ACTIVE_ACTIONS:
+            continue
+        dims = _calibration_dimensions(decision)
+        row = table.get(tuple(dims[key] for key in ("action", "driver", "condition", "regime")))
+        if row is None:
+            decision["calibration"] = {
+                "matched": False, "evidence_sufficient": False,
+                "edge_supported": False, "signal_size_multiplier": 0.0,
+                "sizing_status": "abstain_insufficient_evidence",
+            }
+        else:
+            decision["calibration"] = {"matched": True} | {
+                key: row.get(key) for key in CALIBRATION_STAMP_FIELDS
+            }
+    return bound
+
+
 def _calibration_keys(row: dict) -> list[tuple[str, tuple[str, ...]]]:
     d = _calibration_dimensions(row)
     return [
