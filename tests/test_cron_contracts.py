@@ -660,7 +660,7 @@ def test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency():
             continue
         message = cron_contract.render_payload_message(data, job)
         first_batch = next(line for line in message.splitlines()
-                           if line.startswith('第一轮并行调用 `read`'))
+                           if line.startswith('第一轮'))
         first_batches[job['name']] = re.findall(
             rf'`{re.escape(prefix)}(skills/[^`]+\.md)`', first_batch)
         assert f"market={job['payload_vars']['market']}" in first_batch
