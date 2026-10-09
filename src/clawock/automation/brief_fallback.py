@@ -3,55 +3,67 @@
 KCNyu off-host brief fallback, called by the repository workflow.
 
 Single-turn vendor call (MiniMax M3, no second provider) to generate today's brief
-if openclaw cron failed to produce one by the 08:25 HKT check. Reads
-brief-context-{date}.json from preflight, writes pre-open.md + plan.json.
+if openclaw cron failed to produce one by the 08:25 HKT check. Reads the preflight
+context and decision packet of today's generation and writes what the host brief
+writes: plan.json and the judgment overlay. The report and the card are rendered
+from those by `brief_render`, here and again by postflight.
 
 Env: MINIMAX_API_KEY required
 """
+import hashlib
 import json
 import os
-import re
 import sys
 from copy import deepcopy
 
 from clawock import sessions
 from clawock.automation.llm import chat
-from clawock.automation.output_validate import escape_raw_html, validate_sections
 from clawock.decision import ledger as decision_v2
+from clawock.decision import packet as decision_packet
+from clawock.harness import brief_render
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
 # Output budget for the single-turn brief. Thinking is enabled, and _call_provider
 # takes its reasoning budget out of this same allowance, so the usable prose budget is
-# BRIEF_MAX_TOKENS minus up to 16000. Sized against the real artifact: briefs run ~33KB
-# (~20K tokens) plus the trailing plan.json block, so this leaves roughly 4x headroom
-# and stays well under MiniMax M3's 131072 cap. See the call site for why 32000 failed.
+# BRIEF_MAX_TOKENS minus up to 16000. Sized when the reply was a ~33KB markdown brief
+# (~20K tokens) plus a plan block; the plan + judgment JSON it is now is no larger, so
+# this still leaves roughly 4x headroom and stays well under MiniMax M3's 131072 cap.
+# See the call site for why 32000 failed.
 BRIEF_MAX_TOKENS = 96000
 BRIEF_LLM_TIMEOUT_SECONDS = 900
 
-# Structural anchors every SKILL.md brief carries, matched as substrings so the
-# model's own heading decoration does not fail a good brief.
-from clawock.brief_contract import REQUIRED_MARKDOWN_SECTIONS
-BRIEF_REQUIRED_SECTIONS = tuple(REQUIRED_MARKDOWN_SECTIONS.values())
+#: What the single turn is told on top of the skill. The skill is an interactive
+#: manual: it has the model query tools, write files and run postflight. Handing
+#: it over with "output markdown + a plan block" — the contract until #2817 —
+#: asked for artifacts the skill forbids and omitted the judgment postflight
+#: requires, so a perfect reply still failed the next step. Every place the two
+#: differ is resolved here, once, in the direction of the skill's own artifacts.
+SINGLE_TURN_ADAPTER = """你在离机兜底环境里单轮生成今天的盘前深度简报：没有任何工具，不能查询、不能写文件、不能跑命令。
+分析方法、plan 的 schema（Step 4 的 B）和 judgment 的字段规则（Step 4 的 C）以下面的 SKILL.md 为准；SKILL.md 里凡是要求调用工具、查询 packet、读写文件或跑 preflight/postflight 的地方，在这里一律按下面三条执行：
+1. 输入已经全部内联：本次 generation 的 decision packet（SKILL 所说的 summary 与逐票查询的全部内容）和完整 preflight context。数字只取自这两份，取不到就写进 data_holes，不要编。
+2. 只输出一个 JSON 对象：{"plan": {...}, "judgment": {...}}。不要输出 markdown 报告、微信卡、insights 或任何客套话——报告与微信卡由 harness 从 plan 和 judgment 渲染。
+3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。"""
 
 
-def split_brief_and_plan(out):
-    """(markdown, plan_json_str) from the model output.
+def split_plan_and_judgment(out):
+    """(plan, judgment) from the model's reply: one JSON object holding both.
 
-    The plan is the LAST valid JSON object in the output. _extract_last_json finds
-    it regardless of fence case/spacing, an EARLIER ```json example, or unbalanced
-    braces in the prose — the exact lowercase ` ```json ` split discarded a valid
-    plan the moment the model shifted case/spacing, defeating the last automatic
-    brief-recovery path (2026-07 audit). Markdown = everything before the plan,
-    with a trailing ```json/``` fence trimmed. A wrong grab is still rejected
-    downstream by plan schema validation, so this never publishes junk.
+    `_extract_last_json` does the finding, so a fence, a preamble or an
+    unbalanced brace in surrounding prose does not lose a good reply. Anything
+    that is not one object with both members is refused before a file is
+    written; a wrong grab is still rejected downstream by the plan schema and
+    the judgment overlay check.
     """
-    plan, start = _extract_last_json(out)
+    raw, start = _extract_last_json(out)
     if start is None:
-        return out, '{}'
-    md = out[:start]
-    md = re.sub(r'```[ \t]*json\b[ \t]*\n?$', '', md, flags=re.IGNORECASE)
-    return md.rstrip().rstrip('`').rstrip(), plan
+        raise SystemExit('model reply carries no JSON object')
+    payload = json.loads(raw)
+    plan, judgment = payload.get('plan'), payload.get('judgment')
+    if not isinstance(plan, dict) or not isinstance(judgment, dict):
+        raise SystemExit(
+            'model reply must be one JSON object with "plan" and "judgment" objects')
+    return plan, judgment
 
 
 def _extract_last_json(text):
@@ -280,9 +292,72 @@ def build_system_prompt(soul: str, bootstrap: str) -> str:
     return f"You are Rick, kcn's stock analyst. {soul.strip()}\n\n{bootstrap.strip()}"
 
 
-def main():
+def _sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def receipt_path(root, today):
+    return root / 'memory' / '.tmp' / f'brief-fallback-receipt-{today}.json'
+
+
+def artifact_paths(root, today):
+    """What one successful fallback run writes, keyed as the receipt names them."""
+    rendered = brief_render.artifact_paths(root, today)
+    return {
+        'plan': root / 'memory' / f'{today}-plan.json',
+        'judgment': rendered['judgment'],
+        'brief': rendered['brief'],
+    }
+
+
+def verify_receipt(root, today):
+    """(ok, message): did a fallback run in this workspace write today's brief?
+
+    A file existing answers a different question. The weekly rehearsal runs on
+    days the primary brief is healthy, so the checkout already carries today's
+    pre-open.md; on 2026-10-07 every provider attempt failed and the drill
+    still reported "produced 44612 bytes" off that committed file (#2818). The
+    receipt is written last, by the run that wrote the artifacts, and pins
+    their hashes and the generation they were written against.
+    """
+    path = receipt_path(root, today)
+    try:
+        receipt = json.loads(path.read_text(encoding='utf-8'))
+    except FileNotFoundError:
+        return False, 'no receipt: this run did not generate a brief'
+    except (OSError, ValueError) as exc:
+        return False, f'receipt unreadable: {exc}'
+    manifest = root / 'memory' / '.tmp' / f'brief-context-{today}' / 'manifest.json'
+    try:
+        generation_id = json.loads(manifest.read_text(encoding='utf-8')).get('generation_id')
+    except (OSError, ValueError) as exc:
+        return False, f'context manifest unreadable: {exc}'
+    if receipt.get('context_generation_id') != generation_id:
+        return False, (f"receipt is for generation {receipt.get('context_generation_id')}, "
+                       f'the context is now {generation_id}')
+    sizes = {}
+    for name, target in artifact_paths(root, today).items():
+        expected = (receipt.get('artifacts') or {}).get(name)
+        if not target.is_file() or expected != _sha256(target):
+            return False, f'{name} is not the file this run wrote'
+        sizes[name] = target.stat().st_size
+    return True, ('generation ' + str(generation_id) + ' · '
+                  + ' · '.join(f'{name} {size} bytes' for name, size in sizes.items()))
+
+
+def main(argv=None):
+    """Generate today's fallback brief; `--verify-receipt` only checks one was written.
+
+    Exit 0 from `--verify-receipt` means a fallback run in this workspace wrote
+    today's plan, judgment and rendered brief; it generates nothing.
+    """
+    argv = sys.argv[1:] if argv is None else argv
     today = (os.environ.get('TODAY') or sessions.hkt_today().isoformat()).strip()
     root = workspace_root()
+    if '--verify-receipt' in argv:
+        ok, message = verify_receipt(root, today)
+        print(message)
+        return 0 if ok else 1
     context_relative = f'memory/.tmp/brief-context-{today}.json'
     ctx_path = root / context_relative
     if not ctx_path.exists():
@@ -316,17 +391,31 @@ def main():
         return
     context = prepared['serialized']
 
+    # The same generation's packet postflight will validate against. Without it
+    # there is no judgment template to fill and nothing to bind the plan to, and
+    # postflight would refuse the result anyway (`decision packet 不可用`).
+    manifest_path = ctx_path.with_suffix('') / 'manifest.json'
+    try:
+        packet = decision_packet.read_packet(manifest_path)
+    except Exception as exc:  # noqa: BLE001
+        raise SystemExit(f'decision packet unavailable for {today}: {exc}')
+    generation_id = (packet.get('_meta') or {}).get('generation_id')
+
     skill = (root / 'skills/daily-deep-brief/SKILL.md').read_text()
     soul = (root / 'SOUL.md').read_text()
     bootstrap = (root / 'BOOTSTRAP.md').read_text()
 
     system = build_system_prompt(soul, bootstrap)
+    template = json.dumps(decision_packet.judgment_template(packet), ensure_ascii=False)
     user = (
-        f"按下面 SKILL.md 规则跑 daily-deep-brief, 输出完整 markdown + 末尾 ```json``` block 给 plan.json schema.\n\n"
+        f"{SINGLE_TURN_ADAPTER}\n\n"
         f"SKILL.md:\n{skill}\n\n"
+        f"Decision packet (harness 编译的事实、风险与 action bounds):\n"
+        f"```json\n{_compact(packet)}\n```\n\n"
+        f"judgment 模板:\n```json\n{template}\n```\n\n"
         f"Preflight context (deterministic data, 数字以此为准；含 section manifest):\n"
         f"```json\n{context}\n```\n\n"
-        f"格式: 1) 完整 brief markdown (按 SKILL); 2) 末尾 ```json``` plan.json. 直接出 brief, 不要客套."
+        '只输出 {"plan": {...}, "judgment": {...}} 这一个 JSON 对象。'
     )
 
     # BRIEF_MAX_TOKENS, not 32000: that old number was mimo-v2.5-pro's cap, left behind
@@ -355,33 +444,21 @@ def main():
             + (f" ({l.get('error', '')[:60]})" if not l['ok'] else '')
             for l in legs))
 
-    # Split markdown + plan.json (see split_brief_and_plan for the tolerance rules).
-    md_part, json_part = split_brief_and_plan(out)
-
-    desc = (f"clawock 盘前深度简报 {today}：港股 + 美股真实持仓的多空辩论、量化因子、"
-            f"风控硬闸与 AI 自评战绩（诚实公开，主动建议平均方向分为负）。")
-    md_with_fm = (
-        f"---\nlayout: default\ntitle: 盘前深度简报 · {today} (off-host fallback)\n"
-        f'description: "{desc}"\n---\n\n'
-        + escape_raw_html(md_part.strip())
-    )
-
     # VALIDATE BEFORE WRITING ANYTHING (2026-07-16). This used to write pre-open.md
     # first and validate after, so a vendor that returns 200 with junk (MiniMax does:
     # 2026-07-16 gave "121 in / 80 out (stop=end_turn)" then failed validation) left a
     # junk pre-open.md on disk. Two ways that bites: the repo's publish cron sweeps
     # memory/ every 20 min and would commit it, and brief-fallback.yml's own skip gate
     # keys on pre-open.md existing — one junk file and every later fallback self-skips.
-    # Nothing may touch memory/ until the plan is known good.
+    # Nothing may touch memory/ until the plan and the judgment are known usable.
     try:
-        plan = json.loads(json_part)
-    except Exception as e:
-        raise SystemExit(f'plan.json parse failed: {e}')
+        plan, judgment = split_plan_and_judgment(out)
+    except ValueError as e:
+        raise SystemExit(f'model reply JSON parse failed: {e}')
     if 'actions' in plan:
         raise SystemExit('LLM returned forbidden v1 actions field')
     plan['date'] = plan.get('date') or today
-    if prepared['payload'].get('generation_id'):
-        plan['context_generation_id'] = prepared['payload']['generation_id']
+    plan['context_generation_id'] = generation_id
     plan = decision_v2.normalize_authored_plan(plan)
     # The filename is what binds the plan to its date (#1915): `or today` only
     # fills a missing date, and a model-written wrong one would otherwise land
@@ -389,20 +466,35 @@ def main():
     errors = decision_v2.validate_plan(plan, f'memory/{today}-plan.json')
     if errors:
         raise SystemExit('plan.json v2 validation failed: ' + '; '.join(errors))
-    # The markdown half was never checked (#1262): a reply that carried a valid
-    # plan.json after an empty or stub brief published a blank pre-open.md, and
-    # the workflow's own skip gate keys on that file existing, so every later
-    # fallback that day self-skipped. Anchors are SKILL.md sections that survive
-    # the model's own heading style (`## ▎仓位明细 (HK)` matches `仓位明细`);
-    # the floor is ~1/10th of the real artifact (2026-07-16 ran 26KB).
-    validate_sections(md_part, label='brief markdown',
-                      required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)
-    # Atomic (#1493): a truncated pre-open.md still trips the workflow's skip gate,
-    # and a half-written plan.json would be committed by the publish sweep.
-    safe_write_text(root / 'memory' / f'{today}-pre-open.md', md_with_fm)
-    safe_write_json(root / 'memory' / f'{today}-plan.json', plan)
-    print(f'  wrote pre-open.md + plan.json ({len(plan.get("decisions", []))} decisions)')
+    # The two pins are the harness's to write, like the plan's above: the model
+    # copying a hash wrong must not cost the day its brief.
+    judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
+    judgment['context_generation_id'] = generation_id
+    if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
+        raise SystemExit('judgment carries no ticker_judgments: nothing to render the debate from')
+    # Postflight publishes a judgment with overlay findings as a warning (the
+    # report renders what is there), so they are reported here, not fatal.
+    for issue in decision_packet.validate_judgment_overlay(packet, judgment):
+        print(f'  warn: judgment: {issue}')
+
+    # Atomic (#1493): the publish sweep would commit a half-written plan.json.
+    paths = artifact_paths(root, today)
+    receipt_path(root, today).unlink(missing_ok=True)
+    safe_write_json(paths['plan'], plan)
+    safe_write_json(paths['judgment'], judgment)
+    # The report is the harness's, here as on the host: the same renderer
+    # postflight runs again after it has normalized the plan.
+    _, body = brief_render.render_from_workspace(root, today, plan=plan)
+    if not body:
+        raise SystemExit('brief render produced no report from the written plan and judgment')
+    safe_write_json(receipt_path(root, today), {
+        'date': today,
+        'context_generation_id': generation_id,
+        'artifacts': {name: _sha256(path) for name, path in paths.items()},
+    })
+    print(f'  wrote plan.json + judgment + rendered pre-open.md '
+          f'({len(plan.get("decisions", []))} decisions, generation {generation_id})')
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

@@ -181,19 +181,25 @@ jobs:
           fi
 
       - name: Call off-host LLM to generate brief
+        id: generate
         if: steps.check.outputs.skip != 'true'
         env:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: clawock-brief-fallback
 
-      - name: Rehearsal — did the chain actually produce a brief?
-        # A rehearsal stops here, before postflight. postflight validates AND
-        # commits AND pushes (its maybe_commit does all three), so letting a
-        # rehearsal reach it would risk publishing a brief nobody asked for —
-        # the exact opposite of a safe drill. What a rehearsal has to answer is
-        # narrower and is fully answered by this point: can the provider chain
-        # generate today's brief inside the job's budget. Postflight is
-        # exercised for real by the primary path every trading day.
+      - name: Rehearsal — did this run produce a publishable brief?
+        # A rehearsal never reaches the real postflight: that one validates AND
+        # commits AND pushes (its maybe_commit does all three), so a drill that
+        # got there could publish a brief nobody asked for. It answers its
+        # question with the two side-effect-free halves instead: the receipt
+        # the generation writes last (this run wrote these files, against this
+        # generation), and `postflight --dry-run` as the consumer (would the
+        # real one have published them).
+        #
+        # Not "does today's pre-open.md exist". The drill runs on days the
+        # primary brief is healthy, so the checkout already carries that file:
+        # on 2026-10-07 every provider attempt failed and this step still
+        # reported "produced 44612 bytes" off the committed brief (#2818).
         #
         # `always()`: without it this step is itself `skipped` whenever the
         # generation chain fails — i.e. in precisely the case it exists to
@@ -203,27 +209,45 @@ jobs:
         # #1230: the branch that runs only when something is wrong is not
         # exercised by a green run.
         if: always() && steps.check.outputs.branch == 'rehearsal'
+        env:
+          GENERATION_OUTCOME: ${{ steps.generate.outcome }}
         run: |
-          set -euo pipefail
-          TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
-          target="memory/${TODAY}-pre-open.md"
-          if [ ! -s "$target" ]; then
-            echo "::error::rehearsal produced no brief at $target — the backstop would NOT have worked today"
+          # The step shell is `bash -e`; every command below is judged by hand.
+          set +e
+          set -uo pipefail
+          not_verified() {
+            echo "::error::rehearsal did not verify the backstop: $1"
             {
               echo "### Rehearsal"
               echo
-              echo "**The backstop would NOT have worked today.** The generation"
-              echo "chain did not produce \`$target\`. See the step log above for"
-              echo "which providers failed and why."
+              echo "**Not verified — the backstop would NOT have worked today.**"
+              echo "$1. Any brief already in the checkout is the primary path's,"
+              echo "not this run's. See the step logs above."
             } >> "$GITHUB_STEP_SUMMARY"
+            git checkout -- . 2>/dev/null || true
+            git clean -fd memory assets/data 2>/dev/null || true
             exit 1
+          }
+          if [ "$GENERATION_OUTCOME" != "success" ]; then
+            not_verified "The generation step ended as '${GENERATION_OUTCOME:-not run}' and wrote no brief"
           fi
-          bytes=$(wc -c < "$target")
-          echo "rehearsal produced $bytes bytes at $target"
+          if ! receipt="$(clawock-brief-fallback --verify-receipt)"; then
+            not_verified "No brief from this run: $receipt"
+          fi
+          echo "this run wrote: $receipt"
+          rm -f logs/brief_postflight_status.json
+          clawock brief postflight --dry-run > "${RUNNER_TEMP:-/tmp}/rehearsal-postflight.log" 2>&1
+          code=$?
+          tail -20 "${RUNNER_TEMP:-/tmp}/rehearsal-postflight.log"
+          ok=$(python3 -c "import json;print(json.load(open('logs/brief_postflight_status.json'))['publish_ok'])" 2>/dev/null || echo "None")
+          if [ "$code" -ge 2 ] || [ "$ok" != "True" ]; then
+            not_verified "This run wrote a brief ($receipt) but postflight --dry-run would not publish it (exit $code, publish_ok=$ok)"
+          fi
           {
             echo "### Rehearsal"
             echo
-            echo "The generation chain produced **${bytes} bytes**. Discarding it."
+            echo "This run generated today's brief: **$receipt**."
+            echo "\`postflight --dry-run\` would publish it (exit $code). Discarding."
           } >> "$GITHUB_STEP_SUMMARY"
           # Leave nothing behind that a later step or a human could mistake for
           # a real brief.

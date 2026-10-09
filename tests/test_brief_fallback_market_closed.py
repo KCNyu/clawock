@@ -34,7 +34,7 @@ def test_a_market_closed_sentinel_writes_no_artifacts(workspace, monkeypatch):
     monkeypatch.setattr(brief_fallback, 'chat',
                         lambda *a, **kw: pytest.fail('vendor call on a closed day'))
 
-    brief_fallback.main()
+    brief_fallback.main([])
 
     assert not (workspace / 'memory' / f'{TODAY}-pre-open.md').exists()
     assert not (workspace / 'memory' / f'{TODAY}-plan.json').exists()
@@ -49,7 +49,7 @@ def test_manual_fallback_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
     monkeypatch.setattr(brief_fallback.sessions, 'hkt_today',
                         lambda: date.fromisoformat(TODAY))
 
-    brief_fallback.main()
+    brief_fallback.main([])
 
     assert not (tmp_path / 'memory' / f'{TODAY}-plan.json').exists()
 
@@ -61,7 +61,7 @@ def test_an_ordinary_incomplete_context_still_fails_closed(workspace, monkeypatc
     monkeypatch.setattr(brief_fallback, 'chat',
                         lambda *a, **kw: pytest.fail('vendor call on a broken context'))
 
-    brief_fallback.main()
+    brief_fallback.main([])
 
     assert (workspace / 'memory' / f'{TODAY}-pre-open.md').exists()
     assert (workspace / 'memory' / f'{TODAY}-plan.json').exists()
@@ -81,7 +81,7 @@ def test_failed_price_refresh_never_calls_model_or_overwrites_brief(workspace, m
                         lambda *a, **kw: pytest.fail('model call after price refresh failure'))
 
     with pytest.raises(SystemExit) as exit:
-        brief_fallback.main()
+        brief_fallback.main([])
     assert exit.value.code == 1
     for path, before in old.items():
         assert (path.read_bytes(), path.stat().st_mtime_ns) == before
