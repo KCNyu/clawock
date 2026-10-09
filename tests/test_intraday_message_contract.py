@@ -56,6 +56,7 @@ def test_mode7_named_context_fields_reach_model():
              if '_' in token or token == 'anomalies'}
     non_fields = {'commit_ok', 'market_closed', 'full_delta', 'no_change',
                   'review_candidate',
+                  'index',  # the core packet's own index (`index.rule_outputs`)
                   'no_recent_filing', 'index_fund_no_issuer', 'suppressed_noise'}
     assert named - non_fields <= produced
     # Reachable: in the core packet, or listed in its index (reference layer).

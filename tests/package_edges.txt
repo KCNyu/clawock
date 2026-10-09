@@ -117,6 +117,7 @@ scorecard_provenance -> code_identity
 scorecard_provenance -> workspace
 tools -> context
 tools -> decision
+tools -> market_data
 tools -> sessions
 workflows -> publish
 workflows -> runtime_model

@@ -10,6 +10,9 @@ belongs here.
 
 - [`harness.md`](architecture/harness.md) — package/profile/runtime boundaries,
   CLI lifecycle, context injection contract, and generation-pinned artifacts.
+- [`decision-architecture.md`](architecture/decision-architecture.md) — who owns
+  observations, computation, rule outputs, the hypothesis and the accounting; the
+  `observations` and `compute` tools and their receipts.
 - [`intraday-agent.md`](architecture/intraday-agent.md) — the intraday agent
   contract: context layering, card blocks, workflow ownership, objective and
   which rules are gates.

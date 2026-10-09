@@ -89,6 +89,7 @@ from clawock.harness.validation import (
     postflight_exit_code,
     product_status,
     split_advisory,
+    with_compute_receipts,
 )
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
@@ -426,7 +427,7 @@ def main(argv=None):
     issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
                f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
               if stale_generation
-              else validate(text, ctx, model_text))
+              else validate(text, with_compute_receipts(ctx, WS), model_text))
     status = categorize(issues) if not stale_generation else 'fail'
 
     # The banner counts and lists ESCALATING issues only; advisory findings get

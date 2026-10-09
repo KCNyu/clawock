@@ -1504,6 +1504,26 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
                 "facts", "technical", "quant", "sentiment collection",
                 "evidence IDs", "risk", "status", "constraints",
             ],
+            # Harness-owned is not the same as measured (#2843). These are the
+            # parts of a row where a registered rule already drew a conclusion:
+            # true as a record of what the rule said, arguable as a reading of
+            # the market. Everything else in a row is a measurement or a record.
+            "rule_outputs": {
+                "technical": ["tag", "trend", "rsi_state", "stop_state", "setups"],
+                "quant.factor": ["composite_score", "market_percentile",
+                                 "usable_for_decisions"],
+                "quant.peer_residual": ["triggered_rules", "usable_rules",
+                                        "usable_for_decisions"],
+                "quant": ["add_authority", "early_trend", "left_side"],
+                "information": ["signed_score", "attention_score", "sizing_tilt",
+                                "usable_for_decisions"],
+                "status": ["label", "state", "rank"],
+                "how_to_read": (
+                    "weigh them, depart from them when the observations say "
+                    "otherwise, and name the departure; `clawock tool observations` "
+                    "returns the measurements underneath and `clawock tool compute` "
+                    "computes a feature you define"),
+            },
         },
         "add_alpha_policy": {
             **{

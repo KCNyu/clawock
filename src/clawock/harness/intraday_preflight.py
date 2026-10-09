@@ -1328,7 +1328,10 @@ def collect_peers(market):
 # packet's index and fetched by name (`intraday_reference` tool), and a test
 # holds core ∪ references to the whole context.
 from clawock.context.intraday_layers import (  # noqa: E402
-    CONTROL_ENTRIES, REFERENCE_ENTRIES, REFERENCE_TOOL)
+    CONTROL_ENTRIES, REFERENCE_ENTRIES, REFERENCE_TOOL,
+    MIXED_FIELDS,
+    POLICY_FIELDS,
+)
 
 
 def _reference_tickers(value):
@@ -1388,6 +1391,13 @@ def judgment_packet(ctx):
         'last_delivered': {'session': prior.get('session'),
                            'breaches_seen': len(prior.get('breaches_seen') or [])},
         'references': reference_index(ctx),
+        # Which fields are a registered rule's conclusion rather than a
+        # measurement (`intraday_layers.field_semantics`): weigh them, and say
+        # so when the judgment departs from one.
+        'rule_outputs': {
+            'policy': [field for field in POLICY_FIELDS if field in ctx],
+            'mixed': [field for field in MIXED_FIELDS if field in ctx],
+        },
         'slice': ('参考层用 fetch 命令取整份；加 --arg ticker=<代码> 只取一只票，'
                   '加 --arg since=HH:MM 只取该时刻之后的条目'),
     }
