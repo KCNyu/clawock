@@ -1283,16 +1283,17 @@ def main(argv=None):
     # macro/sentiment) while the ledger still recorded success.
     ctx_path = WS / 'memory' / '.tmp' / f'brief-context-{today}.json'
     context, context_issue = load_preflight_context(ctx_path)
-    if context and context.get('status') == 'price_refresh_failed':
-        write_publish_gate('fail', today, reason='price_refresh_failed')
+    if context and context.get('status') in {'price_refresh_failed', 'preflight_timeout'}:
+        failure_reason = context['status']
+        write_publish_gate('fail', today, reason=failure_reason)
         workflow_outcomes.record_stage(
             job_name, 'postflight', 'failed', slot=slot, dry_run=args.dry_run,
-            reason='price_refresh_failed',
+            reason=failure_reason,
         )
         print(json.dumps({'status': 'fail', 'date': today,
                           'issues': context.get('issues', []),
                           'publication_ready': False,
-                          'reason': 'price_refresh_failed'}, ensure_ascii=False))
+                          'reason': failure_reason}, ensure_ascii=False))
         return 2
 
     issues = []

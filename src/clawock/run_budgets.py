@@ -53,3 +53,12 @@ POST_DELIVERY_STEPS = {
 }
 POST_DELIVERY_BUDGET_SECONDS = sum(POST_DELIVERY_STEPS.values())
 PRE_DELIVERY_RESERVE_SECONDS = 300
+
+# The preflight has many per-node ceilings and two workers; their sum is not
+# the turn reservation. Its public entry supervises the WHOLE process group.
+BRIEF_PREFLIGHT_TIMEOUT_SECONDS = 600
+
+
+def pre_delivery_reserve_seconds(profile):
+    return PRE_DELIVERY_RESERVE_SECONDS + (
+        BRIEF_PREFLIGHT_TIMEOUT_SECONDS if profile == 'brief' else 0)

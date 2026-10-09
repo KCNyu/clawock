@@ -28,6 +28,9 @@ Exit: 0 if no issues, 1 if any data leg failed.
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.harness.artifacts import refresh_json, clawock_argv
+from clawock.harness.deadline import run_bounded
+from clawock.run_budgets import BRIEF_PREFLIGHT_TIMEOUT_SECONDS
 
 from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
     GUARDRAIL_CAPS,
@@ -101,20 +104,6 @@ def _run(script, args=None, timeout=120):
         return r.stdout, r.returncode == 0
     except Exception as e:
         return f'{type(e).__name__}: {e}', False
-
-
-def clawock_argv(command, *args):
-    """argv for one package command, run through *this* interpreter (#918).
-
-    Spawning the bare console script makes every one of these steps depend on
-    whatever is on PATH — and the failure mode is quiet: under the user
-    crontab's ``PATH=/usr/bin:/bin`` the entry point is simply not there,
-    ``FileNotFoundError`` gets swallowed by the callers' broad excepts, and the
-    step reports that it did nothing wrong. ``sys.executable -m clawock`` runs
-    the package that is actually imported here, so there is no second install
-    to keep in sync and no PATH to get wrong.
-    """
-    return [sys.executable, '-m', 'clawock', command, *args]
 
 
 def _run_clawock(command, args=None, timeout=120):
@@ -1281,35 +1270,20 @@ def daily_bars_node():
 
 
 def portfolio_risk_node():
-    # [10] Risk metrics — Tier 2: β / vol / DD / Sharpe / margin sim
-    issues = []
-    print('[11/14] Risk metrics')
+    # Risk metrics share the successful-refresh gate with the leverage dial.
     risk = {}
+    print('[11/14] Risk metrics')
     try:
-        r = subprocess.run(clawock_argv('portfolio-risk'), cwd=WS,
-                           capture_output=True, text=True, timeout=180, check=False)
-        if r.returncode != 0:
-            tail = (r.stderr or r.stdout or '')[-500:]
-            print(f'   ⚠ risk metrics exited {r.returncode}: ...{tail}')
-        risk_path = WS / 'assets' / 'data' / 'risk.json'
-        if risk_path.exists():
-            risk = json.loads(risk_path.read_text())
-            # Freshness check — silent failures can leave a stale file in place
-            from datetime import datetime as _dt, timezone as _tz
-            gen = risk.get('generated_at', '')
-            try:
-                age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(gen.replace('Z','+00:00'))).total_seconds() / 3600
-                if age_h > 26:  # daily refresh; >1 day = stale
-                    print(f'   ⚠ risk.json stale: generated_at={gen} ({age_h:.0f}h ago)')
-            except Exception:
-                pass
-            alerts = risk.get('alerts', [])
-            print(f'   US β={risk.get("us",{}).get("beta_spx","?")}, combined vol={risk.get("combined",{}).get("vol_30d_annualized","?")}, alerts={len(alerts)}')
-            for a in alerts[:5]:
-                print(f'   ⚠ {a["type"]:18s} ({a["severity"]:6s}) {a["detail"][:80]}')
+        risk = refresh_json('portfolio-risk', WS / 'assets/data/risk.json',
+                            timeout=180, cwd=WS)
+        alerts = risk.get('alerts', [])
+        print(f'   US β={risk.get("us",{}).get("beta_spx","?")}, combined vol={risk.get("combined",{}).get("vol_30d_annualized","?")}, alerts={len(alerts)}')
+        for alert in alerts[:5]:
+            print(f'   ⚠ {alert["type"]:18s} ({alert["severity"]:6s}) {alert["detail"][:80]}')
     except Exception as e:
+        risk = {}
         print(f'   ⚠ risk metrics failed: {e}')
-    return risk, issues
+    return risk, []
 
 
 def regime_node():
@@ -1317,13 +1291,15 @@ def regime_node():
     issues = []
     lev_regime = None
     try:
-        subprocess.run(clawock_argv('regime'),
-                       capture_output=True, text=True, timeout=60, check=False)
-        lr_path = WS / 'assets' / 'data' / 'lev_regime.json'
-        if lr_path.exists():
-            lev_regime = json.loads(lr_path.read_text())
-            print(f'   🧭 lev_regime: {lev_regime.get("tier")} (×{lev_regime.get("lev_cap_mult")}) — {lev_regime.get("label","")}')
+        lev_regime = refresh_json('regime', WS / 'assets/data/lev_regime.json',
+                                  timeout=60, cwd=WS)
+        expected = trading_calendar.latest_completed_session('hk')
+        if expected is None or lev_regime.get('as_of') != expected.isoformat():
+            lev_regime = None
+            raise ValueError('regime is not from the latest completed HK session')
+        print(f'   🧭 lev_regime: {lev_regime.get("tier")} (×{lev_regime.get("lev_cap_mult")}) — {lev_regime.get("label","")}')
     except Exception as e:
+        lev_regime = None
         print(f'   ⚠ lev_regime compute failed: {e}')
     return lev_regime, issues
 
@@ -1334,18 +1310,15 @@ def quant_node():
     issues = []
     quant_signals = {}
     try:
-        subprocess.run(clawock_argv('quant'),
-                       capture_output=True, text=True, timeout=120, check=True)
-        qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
-        if qs_path.exists():
-            quant_signals = json.loads(qs_path.read_text())
-            tags = {k: v.get('tag') for k, v in (quant_signals.get('rows') or {}).items()
-                    if v.get('status') in (None, 'fresh')}
-            nonfresh = [k for k, v in (quant_signals.get('rows') or {}).items()
-                        if v.get('status') not in (None, 'fresh')]
-            print(f'   📊 quant_signals: {len(tags)} fresh symbols'
-                  f' / {len(nonfresh)} unavailable — '
-                  + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
+        quant_signals = refresh_json('quant', WS / 'assets/data/quant_signals.json',
+                                     timeout=120, cwd=WS)
+        tags = {k: v.get('tag') for k, v in (quant_signals.get('rows') or {}).items()
+                if v.get('status') in (None, 'fresh')}
+        nonfresh = [k for k, v in (quant_signals.get('rows') or {}).items()
+                    if v.get('status') not in (None, 'fresh')]
+        print(f'   📊 quant_signals: {len(tags)} fresh symbols'
+              f' / {len(nonfresh)} unavailable — '
+              + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
     except Exception as e:
         # Optional data: omit on failure rather than consuming yesterday's fresh
         # rows. Like stale macro, this must not enter issues (fatal to the brief).
@@ -1362,13 +1335,11 @@ def quant_review_node():
     issues = []
     quant_review = {}
     try:
-        subprocess.run(clawock_argv('quant-review'),
-                       capture_output=True, text=True, timeout=60, check=False)
-        qr_path = WS / 'assets' / 'data' / 'quant_signal_review.json'
-        if qr_path.exists():
-            quant_review = json.loads(qr_path.read_text())
-            print(f'   📐 factor edge: {quant_review.get("summary", "")[:80]}')
+        quant_review = refresh_json('quant-review', WS / 'assets/data/quant_signal_review.json',
+                                    timeout=60, cwd=WS)
+        print(f'   📐 factor edge: {quant_review.get("summary", "")[:80]}')
     except Exception as e:
+        quant_review = {}
         print(f'   ⚠ quant_signal_review failed: {e}')
     return quant_review, issues
 
@@ -1382,49 +1353,45 @@ def cross_factor_node(portfolio):
     cross_sectional_factor = {}
     cross_sectional_factor_ctx = {}
     try:
-        subprocess.run(
-            clawock_argv('cross-factor'),
-            capture_output=True, text=True, timeout=240, check=False,
+        cross_sectional_factor = refresh_json('cross-factor', WS / 'assets/data/cross_sectional_factor.json',
+                                              timeout=240, cwd=WS)
+        activation = cross_sectional_factor.get('activation') or {}
+        rankings = cross_sectional_factor.get('live_rankings') or {}
+        held = {
+            h.get('ticker')
+            for book in portfolio.get('portfolios', {}).values()
+            for h in book.get('holdings', [])
+            if (_share_number(h.get('shares', 0)) or 0) > 0
+        }
+        signal_names = {
+            str((get_instrument(ticker) or {}).get('signal_symbol') or '')
+            for ticker in held
+        }
+        held_rows = {
+            ticker: row for ticker, row in rankings.items()
+            if ticker in held or ticker in signal_names
+        }
+        leaders = sorted(
+            rankings.items(),
+            key=lambda item: item[1].get('composite_score') or -999,
+            reverse=True,
+        )[:8]
+        cross_sectional_factor_ctx = {
+            'as_of': cross_sectional_factor.get('as_of'),
+            'activation': activation,
+            'validation': cross_sectional_factor.get('validation'),
+            'held_rankings': held_rows,
+            'sector_leaders': dict(leaders),
+            'leveraged_proxy_decay': cross_sectional_factor.get(
+                'leveraged_proxy_decay'
+            ),
+        }
+        print(
+            f'   🧪 cross-sectional: active={activation.get("active", False)}, '
+            f'blockers={",".join(activation.get("blockers") or [])}'
         )
-        cs_path = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
-        if cs_path.exists():
-            cross_sectional_factor = json.loads(cs_path.read_text())
-            activation = cross_sectional_factor.get('activation') or {}
-            rankings = cross_sectional_factor.get('live_rankings') or {}
-            held = {
-                h.get('ticker')
-                for book in portfolio.get('portfolios', {}).values()
-                for h in book.get('holdings', [])
-                if (_share_number(h.get('shares', 0)) or 0) > 0
-            }
-            signal_names = {
-                str((get_instrument(ticker) or {}).get('signal_symbol') or '')
-                for ticker in held
-            }
-            held_rows = {
-                ticker: row for ticker, row in rankings.items()
-                if ticker in held or ticker in signal_names
-            }
-            leaders = sorted(
-                rankings.items(),
-                key=lambda item: item[1].get('composite_score') or -999,
-                reverse=True,
-            )[:8]
-            cross_sectional_factor_ctx = {
-                'as_of': cross_sectional_factor.get('as_of'),
-                'activation': activation,
-                'validation': cross_sectional_factor.get('validation'),
-                'held_rankings': held_rows,
-                'sector_leaders': dict(leaders),
-                'leveraged_proxy_decay': cross_sectional_factor.get(
-                    'leveraged_proxy_decay'
-                ),
-            }
-            print(
-                f'   🧪 cross-sectional: active={activation.get("active", False)}, '
-                f'blockers={",".join(activation.get("blockers") or [])}'
-            )
     except Exception as e:
+        cross_sectional_factor_ctx = {}
         print(f'   ⚠ cross-sectional factor failed: {e}')
     return cross_sectional_factor_ctx, issues
 
@@ -1455,44 +1422,40 @@ def peer_residual_node(portfolio):
     issues = []
     peer_residual_ctx = {}
     try:
-        subprocess.run(
-            clawock_argv('peer-residual'),
-            capture_output=True, text=True, timeout=180, check=False,
+        peer_residual = refresh_json('peer-residual', WS / 'assets/data/peer_residual.json',
+                                     timeout=180, cwd=WS)
+        peer_live = peer_residual.get('live') or {}
+        held = {
+            h.get('ticker')
+            for book in portfolio.get('portfolios', {}).values()
+            for h in book.get('holdings', [])
+            if (_share_number(h.get('shares', 0)) or 0) > 0
+        }
+        signal_names = {
+            str((get_instrument(ticker) or {}).get('signal_symbol') or '')
+            for ticker in held
+        }
+        peer_residual_ctx = {
+            'as_of': peer_residual.get('as_of'),
+            'taxonomy': peer_residual.get('taxonomy'),
+            'calibration': peer_residual.get('calibration'),
+            'rule_activation': peer_residual.get('rule_activation'),
+            'held': {
+                ticker: row for ticker, row in peer_live.items()
+                if ticker in held or ticker in signal_names
+            },
+        }
+        active_peer_rules = [
+            rule for rule, state in
+            (peer_residual.get('rule_activation') or {}).items()
+            if state.get('active')
+        ]
+        print(
+            f'   🧭 peer residual: active_rules='
+            f'{",".join(active_peer_rules) or "none"}, HK_auto=false'
         )
-        pr_path = WS / 'assets' / 'data' / 'peer_residual.json'
-        if pr_path.exists():
-            peer_residual = json.loads(pr_path.read_text())
-            peer_live = peer_residual.get('live') or {}
-            held = {
-                h.get('ticker')
-                for book in portfolio.get('portfolios', {}).values()
-                for h in book.get('holdings', [])
-                if (_share_number(h.get('shares', 0)) or 0) > 0
-            }
-            signal_names = {
-                str((get_instrument(ticker) or {}).get('signal_symbol') or '')
-                for ticker in held
-            }
-            peer_residual_ctx = {
-                'as_of': peer_residual.get('as_of'),
-                'taxonomy': peer_residual.get('taxonomy'),
-                'calibration': peer_residual.get('calibration'),
-                'rule_activation': peer_residual.get('rule_activation'),
-                'held': {
-                    ticker: row for ticker, row in peer_live.items()
-                    if ticker in held or ticker in signal_names
-                },
-            }
-            active_peer_rules = [
-                rule for rule, state in
-                (peer_residual.get('rule_activation') or {}).items()
-                if state.get('active')
-            ]
-            print(
-                f'   🧭 peer residual: active_rules='
-                f'{",".join(active_peer_rules) or "none"}, HK_auto=false'
-            )
     except Exception as e:
+        peer_residual_ctx = {}
         print(f'   ⚠ peer residual engine failed: {e}')
     return peer_residual_ctx, issues
 
@@ -1503,15 +1466,13 @@ def t0_node():
     issues = []
     t0_setups = {}
     try:
-        subprocess.run(clawock_argv('t0'),
-                       capture_output=True, text=True, timeout=60, check=False)
-        t0_path = WS / 'assets' / 'data' / 't0_setups.json'
-        if t0_path.exists():
-            t0_setups = json.loads(t0_path.read_text())
-            chase = [k for k, v in (t0_setups.get('rows') or {}).items() if v.get('grade') == '🔴']
-            print(f'   🎯 T+0 牌面: {len(t0_setups.get("rows", {}))} 票'
-                  + (f' — 🔴 追高: {", ".join(chase)}' if chase else ''))
+        t0_setups = refresh_json('t0', WS / 'assets/data/t0_setups.json',
+                                 timeout=60, cwd=WS)
+        chase = [k for k, v in (t0_setups.get('rows') or {}).items() if v.get('grade') == '🔴']
+        print(f'   🎯 T+0 牌面: {len(t0_setups.get("rows", {}))} 票'
+              + (f' — 🔴 追高: {", ".join(chase)}' if chase else ''))
     except Exception as e:
+        t0_setups = {}
         print(f'   ⚠ t0_setups compute failed: {e}')
     return t0_setups, issues
 
@@ -1522,13 +1483,11 @@ def t0_review_node():
     issues = []
     t0_review = {}
     try:
-        subprocess.run(clawock_argv('t0-review'),
-                       capture_output=True, text=True, timeout=60, check=False)
-        tr_path = WS / 'assets' / 'data' / 't0_setup_review.json'
-        if tr_path.exists():
-            t0_review = json.loads(tr_path.read_text())
-            print(f'   🎯 T+0 牌面背书: {t0_review.get("summary", "")[:80]}')
+        t0_review = refresh_json('t0-review', WS / 'assets/data/t0_setup_review.json',
+                                 timeout=60, cwd=WS)
+        print(f'   🎯 T+0 牌面背书: {t0_review.get("summary", "")[:80]}')
     except Exception as e:
+        t0_review = {}
         print(f'   ⚠ t0_setup_review failed: {e}')
     return t0_review, issues
 
@@ -1774,7 +1733,7 @@ def _run_wave(nodes, *, max_workers=2):
     return results
 
 
-def main(argv=None):
+def _collect(argv=None):
     # This script took no arguments at all, so `--help` was not "unsupported" —
     # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
     # Tavily. A probe meant to cost nothing did a minutes-long real run.
@@ -2282,6 +2241,28 @@ def main(argv=None):
         step_timings=step_timings,  # additive detail: per-node ok/wall_s (#916 §1.5)
     )
     return 0 if not issues else 1
+
+
+def main(argv=None):
+    # Parse in the caller as well: help and bad flags must never start collection.
+    argparse.ArgumentParser(description='Deterministic daily brief preflight.').parse_args(argv)
+    today = os.environ.get('TODAY') or trading_calendar.hkt_today().isoformat()
+    command = [sys.executable, '-u', '-c',
+               'from clawock.harness.brief_preflight import _collect; '
+               'raise SystemExit(_collect([]))']
+    try:
+        return run_bounded(command, timeout=BRIEF_PREFLIGHT_TIMEOUT_SECONDS, cwd=WS,
+                           env={**os.environ, 'TODAY': today})
+    except subprocess.TimeoutExpired:
+        ctx_path = TMP_DIR / f'brief-context-{today}.json'
+        failure = {'status': 'preflight_timeout', 'date': today,
+                   'issues': [f'brief preflight exceeded {BRIEF_PREFLIGHT_TIMEOUT_SECONDS}s']}
+        brief_context.write_run_bundle(failure, ctx_path)
+        workflow_outcomes.record_stage(
+            '盘前深度简报', 'preflight', 'failed', reason='preflight_timeout',
+            context_path=os.path.relpath(ctx_path, WS), issue_count=1)
+        print(json.dumps(failure, ensure_ascii=False))
+        return 1
 
 
 if __name__ == '__main__':

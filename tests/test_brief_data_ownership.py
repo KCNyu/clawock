@@ -65,6 +65,7 @@ def test_preflight_writes_are_committed():
     staged = _postflight_add_list()
     # Paths preflight (or a script it runs) writes, taken from the source itself.
     written = set(re.findall(r"WS / 'assets' / 'data' / '([^']+)'", PREFLIGHT))
+    written |= set(re.findall(r"WS / 'assets/data/([^']+)'", PREFLIGHT))
     written |= {'catalysts.json', 't0_setups.json', 't0_setups_history.jsonl',
                 'quant_signals.json', 'quant_signals_history.jsonl', 'em_news.json',
                 'left_side_history.jsonl'}
@@ -81,12 +82,14 @@ def _preflight_utilities():
 
     The spawn shape moved twice: `scripts/data/<name>.py` → `['clawock', cmd]`
     (#429) → `clawock_argv(cmd)` (#918, so the command runs through *this*
-    interpreter instead of whatever the PATH has). Both times the pattern had
+    interpreter instead of whatever the PATH has), then `refresh_json(cmd, path)`
+    for checked artifact refreshes. Each time the pattern had
     to follow, and the failure mode of not following is this discovery quietly
     returning nothing — which is what the anti-vacuity assertion below exists
     to catch.
     """
-    return sorted(set(re.findall(r"clawock_argv\(\s*'([a-z0-9-]+)'", PREFLIGHT)))
+    return sorted(set(re.findall(
+        r"(?:clawock_argv|refresh_json)\(\s*'([a-z0-9-]+)'", PREFLIGHT)))
 
 
 def _utility_outputs():

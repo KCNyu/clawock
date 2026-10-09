@@ -13,7 +13,7 @@ sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.scheduling import host_trigger, load_contract, parse_cron_slots, runtime_enabled  # noqa: E402
 from clawock.run_budgets import (  # noqa: E402
-    POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS,
+    BRIEF_PREFLIGHT_TIMEOUT_SECONDS, POST_DELIVERY_BUDGET_SECONDS, PRE_DELIVERY_RESERVE_SECONDS,
 )
 
 WS = workspace_root(_CHECKOUT)
@@ -199,11 +199,13 @@ def render(contract: dict) -> str:
         "",
         "## Whole-turn budget / 回合预算",
         "",
-        "Report and intraday turns allow 28 minutes; the brief allows 30. The shared",
+        "Report and intraday turns allow 28 minutes; the brief allows 40. The shared",
         f"post-delivery network/build retry chain reserves {POST_DELIVERY_BUDGET_SECONDS} seconds plus {PRE_DELIVERY_RESERVE_SECONDS} seconds",
-        "for preflight, judgment, delivery and local work. The contract rejects a turn",
+        "for judgment, delivery and local work. Brief preflight has an additional",
+        f"{BRIEF_PREFLIGHT_TIMEOUT_SECONDS}-second process-group deadline; a timeout replaces the context with a failure",
+        "generation and closes the delivery gate. The contract rejects a turn",
         "limit that cannot cover that reservation. These are ceilings, not expected",
-        "durations; a late preflight can still consume its own whole-turn deadline.",
+        "durations. Brief collection cannot spend the time reserved for judgment and publication.",
         "Report/intraday watchdogs fire 20 minutes after the slot and wait up to 10",
         "minutes for an in-flight attempt, so their verdict clears the 28-minute limit.",
         "The intraday turn plus the 30-second retry backoff still clears the next slot.",

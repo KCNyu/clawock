@@ -25,11 +25,13 @@ watchdogs. The overnight monitor's last slot is 02:33 HKT in both seasons, ahead
 
 ## Whole-turn budget / 回合预算
 
-Report and intraday turns allow 28 minutes; the brief allows 30. The shared
+Report and intraday turns allow 28 minutes; the brief allows 40. The shared
 post-delivery network/build retry chain reserves 1373 seconds plus 300 seconds
-for preflight, judgment, delivery and local work. The contract rejects a turn
+for judgment, delivery and local work. Brief preflight has an additional
+600-second process-group deadline; a timeout replaces the context with a failure
+generation and closes the delivery gate. The contract rejects a turn
 limit that cannot cover that reservation. These are ceilings, not expected
-durations; a late preflight can still consume its own whole-turn deadline.
+durations. Brief collection cannot spend the time reserved for judgment and publication.
 Report/intraday watchdogs fire 20 minutes after the slot and wait up to 10
 minutes for an in-flight attempt, so their verdict clears the 28-minute limit.
 The intraday turn plus the 30-second retry backoff still clears the next slot.
@@ -41,7 +43,7 @@ The intraday turn plus the 30-second retry backoff still clears the next slot.
 | 美股盘中盯盘-overnight | `3,33 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `23,53 0-2 * * 2-6` · Asia/Hong_Kong |
 | Memory Dreaming Promotion | `0 3 * * *` · host HKT | memory-core | `—` | — |
 | 美股收盘报告 | EDT `3 4 * * 2-6`<br>EST `3 5 * * 2-6` | Mode 6 | `report --us close` | EDT `23 4 * * 2-6`<br>EST `23 5 * * 2-6` |
-| 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `36 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:36 is inside the landing window) |
+| 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `46 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:46 is inside the landing window) |
 | 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `53 9 * * 1-5` · Asia/Hong_Kong |
 | 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `23,53 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `23 12 * * 1-5` · Asia/Hong_Kong |
@@ -58,7 +60,7 @@ The intraday turn plus the 30-second retry backoff still clears the next slot.
 - 11 watchdog crontab entries are tracked: 6 report, 3 intraday and
   2 brief. An entry is not one pass a day: the intraday entries fire
   18 times under the EDT schedule (16 under EST) on a full trading day, and the brief
-  uses an 08:36 delivery backstop plus a 09:05 post-window miss detector.
+  uses an 08:46 delivery backstop plus a 09:05 post-window miss detector.
 - Market payloads use deterministic preflight/postflight, `delivery.mode=none`,
   a unique WeChat path, Telegram mirror, and an ordered unique subset of the
   fixed model candidates defined by the contract. Runtime rotations must remain

@@ -34,6 +34,8 @@ import requests
 
 from clawock import sessions as trading_calendar
 from clawock import history_store
+from clawock.market_data.daily_prices import clean_bars
+from clawock.market_data.tencent_daily import parse_daily_bars
 from clawock.instruments import require as require_instrument
 from clawock.safe_io import load_json_cached, safe_write_json
 from clawock.workspace import workspace_root
@@ -52,16 +54,8 @@ SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化�
 MAX_STALE_DAYS = 7
 RETIRED_RETENTION_DAYS = 7
 
-def _parse_bars(rows):
-    """Tencent kline 行 = [date, open, close, high, low, ...] → list of dict（含 OHLC）。"""
-    out = []
-    for r in rows:
-        try:
-            out.append({'date': r[0], 'open': float(r[1]), 'close': float(r[2]),
-                        'high': float(r[3]), 'low': float(r[4])})
-        except (IndexError, ValueError, TypeError, KeyError):
-            continue
-    return out
+# Compatibility entry point; Tencent parsing is owned by the market-data layer.
+_parse_bars = parse_daily_bars
 
 
 def fetch_bars(code, cnt=400):
@@ -122,6 +116,7 @@ def _atr14(bars, n=14):
 
 
 def compute_signals(bars):
+    bars = clean_bars(bars)
     closes = [b['close'] for b in bars]
     if len(closes) < 30:
         return None
@@ -277,6 +272,7 @@ def compute_short_history_signals(bars):
     None, so a short name can never masquerade as a mature factor row. It
     answers None below 20 bars, where even the short view is not computable.
     """
+    bars = clean_bars(bars)
     closes = [b['close'] for b in bars]
     if len(closes) < 20:
         return None
@@ -499,7 +495,7 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
         if not old_as_of and old and not old.get('status'):
             old_as_of = previous_as_of
         last_good_as_of = old_as_of or old.get('last_good_as_of')
-        bars = fetcher(detail['code'])
+        bars = clean_bars(fetcher(detail['code']) or [])
         expected = expected_sessions.get(detail['region'])
         # Some providers publish a moving daily candle before the exchange has
         # closed. It is not a completed session and must not create a setup.

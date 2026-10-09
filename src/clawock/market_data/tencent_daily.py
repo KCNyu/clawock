@@ -3,6 +3,8 @@ from datetime import date
 
 import requests
 
+from .daily_prices import clean_bars, positive_price
+
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 
@@ -11,10 +13,24 @@ def parse_daily_closes(rows):
     out = []
     for row in rows:
         try:
-            out.append((row[0], float(row[2])))
+            close = positive_price(row[2])
+            if close is not None:
+                out.append((row[0], close))
         except (IndexError, ValueError, TypeError, KeyError):
             continue
     return out
+
+
+def parse_daily_bars(rows):
+    """Tencent [date, open, close, high, low, ...] using the daily-price policy."""
+    out = []
+    for row in rows:
+        try:
+            out.append({'date': row[0], 'open': row[1], 'close': row[2],
+                        'high': row[3], 'low': row[4]})
+        except (IndexError, ValueError, TypeError, KeyError):
+            continue
+    return clean_bars(out)
 
 
 def fetch_hk_daily_closes(sym, start, end=None, lim=2000, *, headers=None,

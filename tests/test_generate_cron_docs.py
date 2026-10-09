@@ -34,7 +34,8 @@ def test_real_brief_primary_and_0905_extra_watchdogs_render():
 
     text = watchdog_text(brief)
 
-    assert '`36 8 * * 1-5` · Asia/Hong_Kong' in text
+    primary = brief['watchdog']['schedule']
+    assert f"`{primary['expr']}` · {primary['tz']}" in text
     assert '`5 9 * * 1-5` · Asia/Hong_Kong' in text
     assert 'miss-detector: brief never written' in text
 

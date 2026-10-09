@@ -298,8 +298,8 @@ def main():
     raw_ctx = ctx_path.read_text()
     try:
         status = json.loads(raw_ctx).get('status')
-        if status == 'price_refresh_failed':
-            print(f'FATAL: {context_relative} reports price_refresh_failed', file=sys.stderr)
+        if status in {'price_refresh_failed', 'preflight_timeout'}:
+            print(f'FATAL: {context_relative} reports {status}', file=sys.stderr)
             sys.exit(1)
         if status == 'market_closed':
             print(f'  skip: {context_relative} is a market_closed sentinel — no brief was due')

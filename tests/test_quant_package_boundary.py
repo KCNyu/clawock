@@ -1,6 +1,7 @@
 """The quant/regime/T0 loop belongs to the wheel, not one checkout layout."""
 
 import json
+from datetime import date
 from pathlib import Path
 
 from clawock.decision import signals as quant
@@ -31,10 +32,11 @@ def test_t0_held_leverage_reads_lookthrough_quant_row(tmp_path, monkeypatch):
     }]}})
     quant_path = tmp_path / "quant.json"
     quant_path.write_text(json.dumps({"rows": {"HSTECH": {
-        "status": "fresh", "atr14_pct": 1.0, "rsi14": 72,
+        "status": "fresh", "row_as_of": "2026-10-08", "atr14_pct": 1.0, "rsi14": 72,
     }}}))
     monkeypatch.setattr(t0, "PORTFOLIO", portfolio)
     monkeypatch.setattr(t0, "QUANT", quant_path)
+    monkeypatch.setattr(t0.tc, "latest_completed_session", lambda _: date(2026, 10, 8))
     row = t0.compute()["rows"]["07226"]
     assert row["rsi14"] == 72
     assert row["atr14_pct"] == 1.0

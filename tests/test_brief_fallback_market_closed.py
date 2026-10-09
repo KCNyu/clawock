@@ -67,9 +67,10 @@ def test_an_ordinary_incomplete_context_still_fails_closed(workspace, monkeypatc
     assert (workspace / 'memory' / f'{TODAY}-plan.json').exists()
 
 
-def test_failed_price_refresh_never_calls_model_or_overwrites_brief(workspace, monkeypatch):
+@pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])
+def test_failed_price_refresh_never_calls_model_or_overwrites_brief(workspace, monkeypatch, failure):
     (workspace / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(
-        json.dumps({'status': 'price_refresh_failed', 'date': TODAY,
+        json.dumps({'status': failure, 'date': TODAY,
                     'issues': ['US refresh failed']}))
     old = {}
     for suffix in ('pre-open.md', 'plan.json'):
