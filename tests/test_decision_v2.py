@@ -1395,3 +1395,53 @@ def test_plan_revision_cannot_prune_with_an_empty_or_wrong_date_plan(tmp_path):
         with pytest.raises(ValueError, match="empty or date-mismatched"):
             dv2.upsert_plan_decisions({"date": "2026-10-08", "decisions": decisions}, path=path)
         assert path.read_text() == before
+
+
+def _authored(day, **execution):
+    item = {"ticker": "02208", "action": "watch", "strategy_id": "tactical_entry",
+            "confidence": 0.6, "regime": "neutral", "condition": {"type": "manual"}}
+    if execution:
+        item["execution"] = execution
+    return {"date": day, "decisions": [item]}
+
+
+def test_a_new_plan_cannot_report_its_own_execution(tmp_path):
+    """#2832: `execution: followed / manual` typed into a new plan rode the
+    insert into the ledger, survived settlement, and was skipped by the trade
+    detector, which only looks at `unknown`."""
+    path = tmp_path / "decisions.jsonl"
+    day = "2026-10-08"
+    for status in ("followed", "not_followed"):
+        plan = dv2.normalize_authored_plan(
+            _authored(day, status=status, source="manual",
+                      detected_at="2026-10-08T09:00:00+08:00"), path)
+        assert dv2.validate_plan(plan, check_book=False) == []
+        assert plan["decisions"][0]["execution"] == {
+            "status": "unknown", "detected_at": None, "source": None}
+
+    # The ledger's own door holds without the normalizer in front of it.
+    forged = dv2.normalize_authored_plan(_authored(day), path)
+    forged["decisions"][0]["execution"] = {
+        "status": "followed", "source": "manual", "detected_at": None}
+    ledger = []
+    assert dv2.upsert_plan_decisions(forged, ledger=ledger, write=False) == (1, 0)
+    dv2.settle_decisions(ledger)
+    assert ledger[0]["execution"]["status"] == "unknown"
+
+
+def test_a_rerun_keeps_the_execution_the_ledger_recorded(tmp_path):
+    path = tmp_path / "decisions.jsonl"
+    day = "2026-10-08"
+    plan = dv2.normalize_authored_plan(_authored(day), path)
+    assert dv2.upsert_plan_decisions(plan, path=path) == (1, 0)
+    rows = dv2.load_decisions(path)
+    rows[0]["execution"] = {"status": "followed", "source": "manual", "detected_at": None}
+    dv2.write_decisions(rows, path)
+
+    # The plan on disk still says `unknown`; a copy that claims otherwise is
+    # no more believed than the first one was.
+    for claim in ({}, {"status": "not_followed", "source": "manual"}):
+        rerun = dv2.normalize_authored_plan(_authored(day, **claim), path)
+        assert dv2.upsert_plan_decisions(rerun, path=path) == (0, 1)
+        assert dv2.load_decisions(path)[0]["execution"] == {
+            "status": "followed", "source": "manual", "detected_at": None}

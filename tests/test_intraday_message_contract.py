@@ -888,3 +888,55 @@ def test_clock_only_headlines_also_wrap_with_the_overnight_slot():
     from clawock.tools.context_tools import slice_reference
     lines = ['21:59 old', '22:00 boundary', '23:30 last night', '00:10 this morning']
     assert slice_reference(lines, since='22:00', as_of='2026-10-01T02:33:00+08:00') == lines[1:]
+
+
+def test_a_changed_read_on_a_watched_name_is_a_change():
+    """#2835: T+0 regraded 「低位/超卖（观察）」→「追高低质」 and an add-side read
+    moved wait → candidate on new evidence, and the slot said 「本档没有新条件」:
+    the seen set keyed on ticker/kind and never saw the add-side read."""
+    from clawock.harness import intraday_delta as delta
+
+    session = 'us:2026-10-09'
+    low = [{'ticker': 'TEST', 'kind': 't0_quality', 'grade': '低位/超卖（观察）', 'range_pos': 10}]
+    high = [{'ticker': 'TEST', 'kind': 't0_quality', 'grade': '追高低质', 'range_pos': 90}]
+    wait = {'rows': [{'ticker': 'TEST', 'verdict': 'wait', 'kind': None}]}
+    pullback = {'rows': [{'ticker': 'TEST', 'verdict': 'candidate', 'kind': 'pullback'}]}
+    breakout = {'rows': [{'ticker': 'TEST', 'verdict': 'candidate', 'kind': 'breakout'}]}
+
+    def slot(previous, soft, reads):
+        seen, previous = pre.soft_seen_set(session, previous, soft, reads)
+        current = {'session': session, 'soft_candidates_seen': seen,
+                   'judgment_identities': True}
+        change = delta.compare_semantic_states(current, previous)
+        return current, change, pre.delta_lead(
+            change, current=current, previous=previous, soft_candidates=soft)
+
+    first, _, _ = slot({}, low, wait)
+    # Same slot again: nothing.
+    _, same, lead = slot(first, low, wait)
+    assert not same['changed'] and lead == '变化：无（与上次送达相比，本档没有新条件）'
+    # The grade changes on a name already watched.
+    regraded, change, lead = slot(first, high, wait)
+    assert change['components'] == ['soft_candidates_seen']
+    assert lead == '变化：TEST T+0 评级变为追高低质（此前 低位/超卖（观察））'
+    # Back to a grade already delivered today is not said twice.
+    _, back, _ = slot(regraded, low, wait)
+    assert not back['changed']
+    # Evidence turns the add-side read into a candidate; said once.
+    candidate, change, lead = slot(regraded, high, pullback)
+    assert change['changed'] and lead == '变化：TEST 首次成为加仓侧候选（回踩）'
+    _, again, _ = slot(candidate, high, wait)
+    assert not again['changed']
+    assert not slot(candidate, high, pullback)[1]['changed']
+    # A candidacy the quote alone produced stays folded (#610).
+    assert not slot(regraded, high, breakout)[1]['changed']
+    # A first T+0 sighting is one line, not two.
+    _, _, opening = slot({'session': session, 'judgment_identities': True}, high, wait)
+    assert opening == '变化：TEST T+0 形态首次进入观察（追高低质）'
+    # The first slot after this shipped is the baseline, not a list of news.
+    legacy = {'session': session, 'soft_candidates_seen': [
+        {'ticker': 'TEST', 'kind': 't0_quality'}]}
+    assert not slot(legacy, high, pullback)[1]['changed']
+    # A new trading session starts from an empty seen set.
+    seen, _ = pre.soft_seen_set('us:2026-10-12', candidate, low, wait)
+    assert {'ticker': 'TEST', 'kind': 't0_grade', 'band': '追高低质'} not in seen

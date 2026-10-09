@@ -15,6 +15,7 @@ manifest, Pages contract); no network, no send.
 import json
 
 from clawock.scheduling import BRIEF_SLOT_HKT
+from clawock.decision import add_policy
 from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
 
@@ -74,7 +75,7 @@ def _early_candidate_section(packet):
     observed = [
         row for row in candidates
         if (row.get('early_trend') or {}).get('observed')
-        or row.get('tier') in {'exploration', 'validated'}
+        or add_policy.is_authorised_tier(row.get('tier'))
     ]
     by_source = {}
     for row in observed:

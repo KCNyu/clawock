@@ -1360,3 +1360,121 @@ def test_the_health_check_reads_the_budgets_off_the_latest_generation(monkeypatc
     monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", summary + 10)
     name, severity, message = verdict()
     assert severity == system_check.WARNING and "summary near budget" in message
+
+
+# ── #2831: a forced reduction is an amount, not an action name ───────────────
+
+def _hard_stop_packet(*, holding=10, minimum=10, adaptive=None):
+    return {"tickers": {"TEST": {
+        "constraints": {"allowed_actions": ["cut"], "forced_action_one_of": ["cut"],
+                        "max_sell_shares": holding},
+        "risk": [{"kind": "hard_stop", "breach_id": "risk-hs",
+                  "adaptive": adaptive or {},
+                  "required_reduction": {"kind": "full_leveraged_position",
+                                         "minimum_shares": minimum}}],
+    }}}
+
+
+def _cuts(*sizes):
+    return {"decisions": [
+        {"ticker": "TEST", "action": "cut", "strategy_id": "risk_rebalance",
+         "driven_by": "risk_rule", "condition": {"type": "manual"},
+         "size": {} if shares is None else {"shares": shares}}
+        for shares in sizes
+    ]}
+
+
+@pytest.mark.parametrize("shares", [0, -10, 2.5, None])
+def test_a_forced_cut_that_sells_nothing_is_not_a_cut(shares):
+    issues = packet_mod.validate_plan_constraints(_cuts(shares), _hard_stop_packet())
+    assert any("sell leg requires positive integer size.shares" in issue
+               for issue in issues), issues
+
+
+def test_a_hard_stop_is_answered_by_the_position_not_by_one_share():
+    packet = _hard_stop_packet()
+    short = packet_mod.validate_plan_constraints(_cuts(1), packet)
+    assert short == ["TEST: hard stop requires cutting the full position "
+                     "(10 shares, required_reduction.minimum_shares); plan cuts 1"]
+    assert packet_mod.validate_plan_constraints(_cuts(10), packet) == []
+    # Split across conditions, the legs are one reduction.
+    assert packet_mod.validate_plan_constraints(_cuts(4, 6), packet) == []
+    assert packet_mod.validate_plan_constraints(_cuts(4, 5), packet) != []
+
+
+def test_a_breach_that_may_stand_or_is_overridden_sets_no_minimum():
+    standing = _hard_stop_packet(adaptive={"may_stand": True})
+    assert packet_mod.validate_plan_constraints(_cuts(1), standing) == []
+    assert packet_mod.validate_plan_constraints(
+        _cuts(1), _hard_stop_packet(), exempt_breach_ids={"risk-hs"}) == []
+    # A stale minimum cannot ask for more than the book holds.
+    assert packet_mod.validate_plan_constraints(
+        _cuts(10), _hard_stop_packet(holding=10, minimum=12)) == []
+
+
+def test_a_cap_breach_stays_a_tranche_decision_and_an_unsized_free_trim_advisory():
+    packet = {"tickers": {"CORE": {
+        "constraints": {"allowed_actions": ["trim_on_rebound", "cut"],
+                        "forced_action_one_of": ["trim_on_rebound", "cut"],
+                        "max_sell_shares": 100},
+        "risk": [{"kind": "breach", "breach_id": "risk-cap",
+                  "required_reduction": {"kind": "market_value",
+                                         "minimum_value": 5000}}],
+    }, "FREE": {
+        "constraints": {"allowed_actions": ["hold_and_watch", "trim_on_rebound"],
+                        "forced_action_one_of": [], "max_sell_shares": 50},
+        "risk": [],
+    }}}
+    plan = {"decisions": [
+        {"ticker": "CORE", "action": "trim_on_rebound", "size": {"shares": 5}},
+        {"ticker": "FREE", "action": "trim_on_rebound", "size": {}},
+    ]}
+    assert packet_mod.validate_plan_constraints(plan, packet) == []
+    plan["decisions"][1]["size"] = {"shares": 0}
+    assert packet_mod.validate_plan_constraints(plan, packet) == [
+        "decision[1] FREE: sell leg requires positive integer size.shares"]
+
+
+# ── #2833: one list says which tiers are add candidates ─────────────────────
+
+def _with_tier(tier):
+    packet = copy.deepcopy(_compiled())
+    ticker = next(iter(packet["tickers"]))
+    quant = packet["tickers"][ticker].setdefault("quant", {})
+    quant["add_authority"] = {**(quant.get("add_authority") or {}), "tier": tier}
+    quant["early_trend"] = {**(quant.get("early_trend") or {}), "observed": False}
+    overlay = _valid_overlay(packet)
+    row = next(r for r in overlay["ticker_judgments"] if r["ticker"] == ticker)
+    row["disposition"] = "candidate"
+    return packet, overlay, ticker
+
+
+@pytest.mark.parametrize("tier", ["validated", "exploration", "exploration_cold_start"])
+def test_every_authorised_tier_may_be_judged_a_candidate(tier):
+    """`exploration_cold_start` opened `add_only_on_trigger` upstream and was
+    then refused the word "candidate" by a list that predated it."""
+    packet, overlay, ticker = _with_tier(tier)
+    assert not [issue for issue in packet_mod.validate_judgment_overlay(packet, overlay)
+                if "cannot upgrade" in issue]
+    projected = next(row for row in packet_mod.compile_pages_projection(
+        packet, overlay)["tickers"] if row["ticker"] == ticker)
+    assert projected["candidate_disposition"]["effective"] == "candidate"
+
+
+def test_no_authority_is_still_not_a_candidate():
+    packet, overlay, _ = _with_tier("none")
+    assert any("cannot upgrade a deterministic non-candidate" in issue
+               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+
+
+def test_the_system_sizes_the_full_position_cut_the_writer_left_unsized():
+    """kcn 2026-10-10: a number the system can write does not go through the
+    model. Stated sizes are judged, never rewritten."""
+    packet = _hard_stop_packet()
+    bound = packet_mod.bind_full_position_cuts(_cuts(None), packet)
+    assert bound["decisions"][0]["size"] == {"shares": 10}
+    assert packet_mod.validate_plan_constraints(bound, packet) == []
+    for stated in (_cuts(0), _cuts(1), _cuts(None, None), _cuts(4, None)):
+        assert packet_mod.bind_full_position_cuts(stated, packet) == stated
+    standing = _hard_stop_packet(adaptive={"may_stand": True})
+    assert packet_mod.bind_full_position_cuts(_cuts(None), standing) == _cuts(None)
