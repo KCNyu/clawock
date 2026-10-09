@@ -6,7 +6,7 @@ Single-turn vendor call (MiniMax M3, no second provider) to generate today's bri
 if openclaw cron failed to produce one by the 08:25 HKT check. Reads the preflight
 context and decision packet of today's generation and writes what the host brief
 writes: plan.json and the judgment overlay. The report and the card are rendered
-from those by `brief_render`, here and again by postflight.
+from those by the harness (`clawock brief postflight`), as on the host.
 
 Env: MINIMAX_API_KEY required
 """
@@ -20,7 +20,6 @@ from clawock import sessions
 from clawock.automation.llm import chat
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as decision_packet
-from clawock.harness import brief_render
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
@@ -302,11 +301,9 @@ def receipt_path(root, today):
 
 def artifact_paths(root, today):
     """What one successful fallback run writes, keyed as the receipt names them."""
-    rendered = brief_render.artifact_paths(root, today)
     return {
         'plan': root / 'memory' / f'{today}-plan.json',
-        'judgment': rendered['judgment'],
-        'brief': rendered['brief'],
+        'judgment': root / 'memory' / '.tmp' / f'brief-judgment-{today}.json',
     }
 
 
@@ -317,8 +314,8 @@ def verify_receipt(root, today):
     days the primary brief is healthy, so the checkout already carries today's
     pre-open.md; on 2026-10-07 every provider attempt failed and the drill
     still reported "produced 44612 bytes" off that committed file (#2818). The
-    receipt is written last, by the run that wrote the artifacts, and pins
-    their hashes and the generation they were written against.
+    receipt is written last, by the run that wrote the plan and the judgment,
+    and pins their hashes and the generation they were written against.
     """
     path = receipt_path(root, today)
     try:
@@ -349,7 +346,7 @@ def main(argv=None):
     """Generate today's fallback brief; `--verify-receipt` only checks one was written.
 
     Exit 0 from `--verify-receipt` means a fallback run in this workspace wrote
-    today's plan, judgment and rendered brief; it generates nothing.
+    today's plan and judgment; it generates nothing.
     """
     argv = sys.argv[1:] if argv is None else argv
     today = (os.environ.get('TODAY') or sessions.hkt_today().isoformat()).strip()
@@ -478,21 +475,18 @@ def main(argv=None):
         print(f'  warn: judgment: {issue}')
 
     # Atomic (#1493): the publish sweep would commit a half-written plan.json.
+    # No pre-open.md here: the report is the harness's to render, from these
+    # two files, in the postflight step that follows.
     paths = artifact_paths(root, today)
     receipt_path(root, today).unlink(missing_ok=True)
     safe_write_json(paths['plan'], plan)
     safe_write_json(paths['judgment'], judgment)
-    # The report is the harness's, here as on the host: the same renderer
-    # postflight runs again after it has normalized the plan.
-    _, body = brief_render.render_from_workspace(root, today, plan=plan)
-    if not body:
-        raise SystemExit('brief render produced no report from the written plan and judgment')
     safe_write_json(receipt_path(root, today), {
         'date': today,
         'context_generation_id': generation_id,
         'artifacts': {name: _sha256(path) for name, path in paths.items()},
     })
-    print(f'  wrote plan.json + judgment + rendered pre-open.md '
+    print(f'  wrote plan.json + judgment '
           f'({len(plan.get("decisions", []))} decisions, generation {generation_id})')
 
 

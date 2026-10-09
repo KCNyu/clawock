@@ -90,7 +90,10 @@ def test_a_good_reply_yields_the_artifacts_postflight_consumes(workspace, monkey
     plan = json.loads(paths['plan'].read_text())
     judgment = json.loads(paths['judgment'].read_text())
     assert plan['context_generation_id'] == judgment['context_generation_id'] == generation
-    assert paths['brief'].read_text().startswith('---')
+    # The report is rendered by the harness from exactly these two files.
+    from clawock.harness import brief_render
+    issues, body = brief_render.render_from_workspace(workspace, TODAY, write=False)
+    assert body.startswith('---') and brief_render.SECTOR_SCAN_MISSING in issues
 
     # The consumer's own gates, on the files as written.
     read_back = packet_mod.read_packet(
@@ -127,9 +130,9 @@ def test_a_receipt_stops_vouching_once_a_file_is_replaced(workspace, monkeypatch
     bf.main([])
     assert bf.verify_receipt(workspace, TODAY)[0]
 
-    bf.artifact_paths(workspace, TODAY)['brief'].write_text('someone else wrote this\n')
+    bf.artifact_paths(workspace, TODAY)['judgment'].write_text('{"someone": "else"}\n')
     ok, message = bf.verify_receipt(workspace, TODAY)
-    assert not ok and 'brief' in message
+    assert not ok and 'judgment' in message
 
 
 @pytest.mark.parametrize('reply', [

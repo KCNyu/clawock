@@ -40,7 +40,8 @@ def test_explicit_workspace_owns_inputs_and_artifacts(tmp_path, monkeypatch, com
     bf.main([])
     plan = json.loads((root / 'memory' / f'{TODAY}-plan.json').read_text())
     assert bool(plan['decisions']) == complete
-    assert (root / 'memory' / f'{TODAY}-pre-open.md').exists()
+    # Fail-closed still writes its own notice; a real brief leaves the page to postflight.
+    assert (root / 'memory' / f'{TODAY}-pre-open.md').exists() != complete
     assert (root / 'memory' / '.tmp' / f'brief-judgment-{TODAY}.json').exists() == complete
     assert not (away / 'memory' / f'{TODAY}-pre-open.md').exists()
     assert not (away / 'memory' / f'{TODAY}-plan.json').exists()

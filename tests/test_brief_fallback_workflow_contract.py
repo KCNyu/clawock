@@ -133,8 +133,10 @@ def test_the_rehearsal_judges_this_run_not_the_checkout(job):
 
     assert f"steps.{generate['id']}.outcome" in str(rehearsal.get("env")), (
         "the verdict must read whether the generation step itself succeeded")
-    assert "clawock-brief-fallback --verify-receipt" in run
-    assert "clawock brief postflight --dry-run" in run
+    order = [run.index(command) for command in (
+        "clawock-brief-fallback --verify-receipt", "clawock brief render",
+        "clawock brief postflight --dry-run")]
+    assert order == sorted(order), "receipt, then render, then the consumer check"
     assert not re.search(r"-[sfe] \S*pre-open\.md", run), (
         "a file-exists test cannot tell this run's brief from the checkout's")
 

@@ -191,10 +191,11 @@ jobs:
         # A rehearsal never reaches the real postflight: that one validates AND
         # commits AND pushes (its maybe_commit does all three), so a drill that
         # got there could publish a brief nobody asked for. It answers its
-        # question with the two side-effect-free halves instead: the receipt
-        # the generation writes last (this run wrote these files, against this
-        # generation), and `postflight --dry-run` as the consumer (would the
-        # real one have published them).
+        # question with the side-effect-free halves instead: the receipt the
+        # generation writes last (this run wrote this plan and judgment, against
+        # this generation), `brief render` (the harness step that turns them
+        # into the report, as the real postflight does), and `postflight
+        # --dry-run` as the consumer (would the real one have published them).
         #
         # Not "does today's pre-open.md exist". The drill runs on days the
         # primary brief is healthy, so the checkout already carries that file:
@@ -235,18 +236,21 @@ jobs:
             not_verified "No brief from this run: $receipt"
           fi
           echo "this run wrote: $receipt"
+          if ! clawock brief render; then
+            not_verified "This run wrote a plan and judgment ($receipt) but the report could not be rendered from them"
+          fi
           rm -f logs/brief_postflight_status.json
           clawock brief postflight --dry-run > "${RUNNER_TEMP:-/tmp}/rehearsal-postflight.log" 2>&1
           code=$?
           tail -20 "${RUNNER_TEMP:-/tmp}/rehearsal-postflight.log"
           ok=$(python3 -c "import json;print(json.load(open('logs/brief_postflight_status.json'))['publish_ok'])" 2>/dev/null || echo "None")
           if [ "$code" -ge 2 ] || [ "$ok" != "True" ]; then
-            not_verified "This run wrote a brief ($receipt) but postflight --dry-run would not publish it (exit $code, publish_ok=$ok)"
+            not_verified "This run wrote a plan and judgment ($receipt) but postflight --dry-run would not publish them (exit $code, publish_ok=$ok)"
           fi
           {
             echo "### Rehearsal"
             echo
-            echo "This run generated today's brief: **$receipt**."
+            echo "This run generated today's plan and judgment: **$receipt**."
             echo "\`postflight --dry-run\` would publish it (exit $code). Discarding."
           } >> "$GITHUB_STEP_SUMMARY"
           # Leave nothing behind that a later step or a human could mistake for
