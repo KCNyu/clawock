@@ -26,15 +26,21 @@ clawock report postflight --market {{market}} --phase {{phase}} --context-id <St
 `--context-id` 必须照抄 Step 1 打印的那个。pass/warn 自动拼装+发送+刷新 snapshot/dashboard+提交推送。
 这是**唯一微信路径**，并同步 Telegram；本 cron 配 `--no-deliver`，不会再 announce 你的回复文本。
 
-⚠️ **postflight 不设超时、不 kill、不因为「已经发出去了」就收尾。** 它是「先投递、后提交」两段（#765），提交那一段要刷 snapshot/dashboard 再 push，几十秒到几分钟。**杀在中间会留下「投递成功但没提交」**——微信/TG 都到了，`portfolio: {{market_name}}{{phase}}价格更新` 那个 commit 却不存在，而所有腿看到的都是成功，所以没有任何东西会重跑。2026-08-31 与 09-01 的港股开盘报告就是这样各丢了一次提交（父壳超时 SIGTERM，模型据此判「子进程早已完成发送，不再重跑」）。判完成只看 postflight 自己返回的 `status` + `commit_ok`。
+⚠️ **postflight 不设超时、不 kill、不因为「已经发出去了」就收尾。** 它是「先投递、后提交」两段（#765），提交那一段要刷 snapshot/dashboard 再 push，几十秒到几分钟。**杀在中间会留下「投递成功但没提交」**——微信/TG 都到了，`portfolio: {{market_name}}{{phase}}价格更新` 那个 commit 却不存在，而所有腿看到的都是成功，所以没有任何东西会重跑。2026-08-31 与 09-01 的港股开盘报告就是这样各丢了一次提交（父壳超时 SIGTERM，模型据此判「子进程早已完成发送，不再重跑」）。
+
+**完成判据只有一条：postflight 自己返回的 `status` + `commit_ok`。** SKILL.md Mode 6 不另写收尾规则，超时后按这里走：
+- exec 超时 / SIGTERM 只杀命令外壳，postflight 可能还在跑：exec 返回 `Command still running` 或给了 session 时，只用 `process` poll 等它返回结果 JSON，不新开命令。
+- 进程已经退出而你没拿到带 `commit_ok` 的结果 JSON：用**同一条** postflight 命令重跑一次。发送有幂等闸——已投递的渠道会跳过，输出里的 `send_claim` 会写明——所以重跑只补做提交，不会双发。
+- `memory/.tmp/report-sent-*.json` 只证明「投出去了」，不证明提交完成：不要读它来判完成，也不要因为它存在就收尾。
 
 **Step 4 - 输出**
 把 postflight 返回的 `status` + `issues` 作为本回合最终文本回复（仅留痕）。
 ❌ **禁用 message/send 工具** —— postflight 已经发过了，你再手动调会撞成双发（2026-06-03 教训）。
 
+{{include:_exec-contract.md}}
+
 **铁律**：
 - ⚠️ 数据缺口必说，禁止编造（postflight 扫敷衍词）
-- **探测「东西在不在」的命令必须整条链退出 0。** `ls`/`grep`/`head`/`test` 找不到东西时退非零，`;` 链的退出码是**最后一条**的退出码，而 `2>/dev/null` 只吞 stderr、不改退出码 —— 于是「今天的还没写」这个**正确答案**会以 `Exec failed` 的形式回来，把整轮记成 error。写成 `ls X 2>/dev/null || true`，或者把存在性检查放在链首而不是链尾。2026-09-02 的简报就是这么判红的：`ls …/2026-09-01*; echo ---; ls …/2026-09-02*` 退 2，而那天 08:08 简报已写好、postflight pass、微信已投。
 - 不简单复述数字，必须做模型自己的解读
 - {{market_rule}}
 - 直接回复文本

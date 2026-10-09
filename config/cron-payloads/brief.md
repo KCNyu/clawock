@@ -11,62 +11,37 @@
 ```
 clawock brief preflight
 ```
-内部会刷 US/HK 价 + FX + 快照 + HHI + SEC EDGAR + retrospective，输出 `memory/.tmp/brief-context-{date}.json`。
+内部会刷 US/HK 价 + FX + 快照 + HHI + SEC EDGAR + retrospective，编译本次 generation 的 context 与 decision packet。
 
-**Step 2 - 读 context.json**
-**持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只从这个 JSON 取，不要凭空造。
-**板块全景/同行涨幅榜/当日催化** context.json 没覆盖 — Step 3 用 tavily-search 拉实时。
+**Step 2 - 输入：只按 SKILL.md「Step 2 / Step 2.5」读**
+输入协议只有 SKILL.md 那一份，这里不另写：常驻输入是 decision packet summary，分析某票时按票 / section 查询，bundle 按需取。**不要整份读 `memory/.tmp/brief-context-{date}.json`**（审计全量，供 postflight 校验）。
+**持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只取自本次 generation 的 packet / bundle，不要凭空造。
+**板块全景/同行涨幅榜/当日催化** packet 没覆盖 — Step 3 用 tavily-search 拉实时。
 
 **跑命令的硬约束（同属「工具报错=整轮记 error」那一族）**
 - 脚本路径**照抄 SKILL.md，不要猜**。猜错了不许全盘扫描：`find /` 会被转入后台会话，而**主动 `process kill` 掉它的 toolResult 带 isError**，整个 cron 会被记成 error —— 2026-08-21 的简报就是这样在两个渠道都投递成功之后仍然判红的。
 - 任何可能长跑的命令自己用 `timeout` 包住（如 `timeout 20 <cmd>`），让它自己结束，这样就永远不需要 kill。
-- **探测「东西在不在」的命令必须整条链退出 0。** `ls`/`grep`/`head`/`test` 找不到东西时退非零，`;` 链的退出码是**最后一条**的退出码，而 `2>/dev/null` 只吞 stderr、不改退出码 —— 于是「今天的还没写」这个**正确答案**会以 `Exec failed` 的形式回来，把整轮记成 error。写成 `ls X 2>/dev/null || true`，或者把存在性检查放在链首而不是链尾。2026-09-02 的简报就是这么判红的：`ls …/2026-09-01*; echo ---; ls …/2026-09-02*` 退 2，而那天 08:08 简报已写好、postflight pass、微信已投。
-- **`clawock brief postflight` 是这条规则的例外：绝不给它包 `timeout`，也不要 kill 它。** 它是「先投递、后提交」两段（#765 的顺序），提交那一段要跑 log_decisions + 重建 dashboard + push，几十秒到几分钟，在机器吃紧时更久。杀在中间的结果是**投递成功了但简报没入库**：`memory/{date}-pre-open.md` 与 `plan.json` 留在工作区不进 git，公开页 404，决策台账整天不动（日更简报的 commit 是那个台账唯一的搬运工）。2026-09-01 就是这样丢的：`timeout 90` 退出码 124，而 `brief-sent-*.json` 已经写好，于是看起来完全成功。
+- **`clawock brief postflight` 是「自己用 `timeout` 包住」的例外：绝不给它包 `timeout`，也不要 kill 它。** 它是「先投递、后提交」两段（#765 的顺序），提交那一段要跑 log_decisions + 重建 dashboard + push，几十秒到几分钟，在机器吃紧时更久。杀在中间的结果是**投递成功了但简报没入库**：`memory/{date}-pre-open.md` 与 `plan.json` 留在工作区不进 git，公开页 404，决策台账整天不动（日更简报的 commit 是那个台账唯一的搬运工）。2026-09-01 就是这样丢的：`timeout 90` 退出码 124，而 `brief-sent-*.json` 已经写好，于是看起来完全成功。
 - **看到 `memory/.tmp/brief-sent-{date}.json` 只说明「投出去了」，不说明 postflight 跑完了。** 判完成看它自己那份 JSON 里的 `commit_ok`；`commit_ok: false` 就是没入库，要把 postflight 重跑到底，不要收尾。
+
+{{include:_exec-contract.md}}
 
 **Step 3 - Swarm 分析（你的创造性工作）**
 - ⚡ **板块全景**（必跑 tavily-search）：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓动态，不要写死任何 ticker），每个板块拉今日 Top 涨幅榜 + 你持仓在榜单的位置（领涨/落后/中位）+ 1 句归因（催化时点/早盘抛压/β 错配）
-- Regime（US/HK 分开打 tag）
-- Tier 1: 4 个 analyst 合并成一张大表（Market/Fundamentals/Sentiment/Cross-Market）
-- Tier 2: Bull vs Bear，各 80-120 字，必须真分歧
-- Tier 3: Aggressive/Conservative/Neutral 三声 + Judge；按 strategy 输出 decisions，同股同日可多策略
-- Confidence calls + Next-session plan（可交易，不是观察清单）
+- Regime、Tier 1 四个 analyst、Tier 2 Bull vs Bear、Tier 3 三声 + Judge、Confidence、Next-session plan 的做法与字数都按 SKILL.md「Step 3」；结论只通过 Step 4 的产物进入报告
 
-**Step 4 - 写三份输出**
+**Step 4 - 写产物：文件集合与 schema 只按 SKILL.md「Step 4」**
+- 你写 plan、受限 judgment 和 insights 三份 JSON；**报告 markdown 与微信卡由 postflight 渲染，不要手写**（写了会被覆盖）。
 - 首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换。若 postflight 返回 fail，先 `read` 当前文件，根据 issues 在内存中修正，再用 `write` 一次覆盖完整文件后重跑 postflight；一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error。
-- `memory/{date}-pre-open.md` — 完整 markdown（含 Header/Tier 1/Tier 2/Tier 3/Judge/Confidence/Next-Session 段标记，**显式提 HHI + FX**）
-- `memory/{date}-plan.json` — 结构化 plan，schema v2 见 SKILL.md（顶层 decisions；strategy_id/action/condition/confidence enum 严格；禁止 actions）
-- `memory/.tmp/brief-card-{date}.txt` — **微信卡**（投递脚本会原样发这个文件，所以要自洽完整）。格式：
-```
-📊 盘前深度简报｜{日期 周X} 08:03 HKT  (USDHKD={rate})
-
-▎核心结论
-{1-2 句最关键的判断 + 今日主基调}
-
-▎Book
-USD${total} | HK leg {hk}HKD | US leg {us}USD
-
-▎今日动作（driven_by=...）
-1. ... 2. ... 3. ...
-
-▎触发位
-• ...
-
-📈 完整深度报告：
-https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
-```
 
 **Step 5 - Postflight（验证 + commit + 自动投递微信）**
 ```
 clawock brief postflight
 ```
-postflight 会校验、pass/warn 时自动 commit，并用 **fresh token 把 brief-card 自动投到微信**（这是唯一微信路径，并同步 Telegram；你不用自己发）。返回 JSON 含 `status` (pass/warn/fail) + `wechat_sent`。
+postflight 会校验、渲染报告与微信卡、pass/warn 时自动 commit，并用 **fresh token 把微信卡自动投到微信**（这是唯一微信路径，并同步 Telegram；你不用自己发）。返回 JSON 含 `status` (pass/warn/fail) + `wechat_sent`。
 
 **铁律**：
-- ⚠️ **投递已解耦**：cron 不 announce，你**绝不要**调 message 工具、也**不要**在回复里贴卡片当投递——`brief_postflight` 是**唯一微信路径**，并同步 Telegram。你只负责产出 Step 4 的三个文件 + 跑 postflight。
-- ⚠️ 微信卡**务必**写进 `memory/.tmp/brief-card-{date}.txt`；万一漏写，postflight 会从 plan.json 兜底生成一张（信息更少），所以别漏。
-- ⚠️ **持仓数字**（FX/HHI/RSI/MA/PnL）只从 context.json 取；不要重新跑 preflight/数据脚本。**板块/同行/催化/叙事**鼓励用 tavily-search 抓当日实时（context 不覆盖）
-- ⚠️ HKD + USD 不能直接相加；book total 必须 USD-base + HKD-base 双视角
-- ⚠️ Concentration 段必须引 context.json 的 `concentration.{hk,us}.verdict`
-- ⚠️ Retrospective 必须基于 context.json 的 retrospective 字段写
+- ⚠️ **投递已解耦**：cron 不 announce，你**绝不要**调 message 工具、也**不要**在回复里贴卡片当投递——`brief_postflight` 是**唯一微信路径**，并同步 Telegram。你只负责产出 Step 4 的产物 + 跑 postflight。
+- ⚠️ **持仓数字**（FX/HHI/RSI/MA/PnL）只取自本次 generation 的 packet / bundle；不要重新跑 preflight/数据脚本。**板块/同行/催化/叙事**鼓励用 tavily-search 抓当日实时（packet 不覆盖）
+- ⚠️ HKD + USD 不能直接相加；book、集中度、Retrospective 的数字由 harness 从 context 渲染，你在 judgment 里的解读必须与它们一致
 - Bull/Bear/Aggressive/Conservative 必须真不同观点

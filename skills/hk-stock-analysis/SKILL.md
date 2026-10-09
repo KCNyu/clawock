@@ -154,7 +154,9 @@ clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 c
 ```
 `--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ **看到 SIGTERM / exec 超时 ≠ 报告没发出去，别原样再跑一遍。** exec 的 overall-timeout 只杀命令外壳，postflight 子进程还在继续跑，通常微信早发出去了。先读 `memory/.tmp/report-sent-hk-{phase}-{今天}.json`：有 `sent_ok` / `tg_ok` 就是已投递，直接把它当 Step 3 的结果输出。（2026-08-13 09:30 港股开盘就是这么让微信收到两条的，#508。postflight 现在有发送前 claim 会挡住第二次真发，输出里会写 `send_claim`，但那一跑仍然是白跑。）
+⏱ **exec 超时 / SIGTERM 之后怎么收尾**：只按任务消息 Step 3 的规则走（源文件
+`config/cron-payloads/report.md`，六个报告任务共用，本节不另写）。完成判据是 postflight 自己返回的
+`status` + `commit_ok`；`report-sent-*` marker 只证明投递，不能据此收尾。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
