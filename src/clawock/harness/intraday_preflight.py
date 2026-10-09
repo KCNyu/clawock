@@ -1190,6 +1190,15 @@ def leverage_lines(legs, unrefreshed=None):
     return lines
 
 
+def open_order_lines(plan_context):
+    """Status-block rows: the plan's sized orders still waiting to fill.
+
+    Standing state, so they sit with the leverage legs rather than in this
+    slot's news. The values are the ledger's; the prose never restates a size.
+    """
+    return [f'未成交计划：{line}' for line in plan_surface.order_lines(plan_context)]
+
+
 def _split_generic_news(block):
     card, feed = [], []
     in_news = False
@@ -1865,7 +1874,8 @@ def main(argv=None):
             fresh_tickers=fresh_tickers,
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals=intraday_delta.seen_signal_identities(semantic_state, prior_state),
-            status_lines=leverage_lines(leverage, coverage.get('unrefreshed')))
+            status_lines=[*leverage_lines(leverage, coverage.get('unrefreshed')),
+                          *open_order_lines(plan_ctx)])
         # Last, and exactly as before #2808 (kcn 2026-10-09: 「千万不要影响到
         # 我们的加仓侧」): its own block, header and rows untouched by layout A.
         raw_block = append_add_side_section(raw_block, add_side_reads, gaps)

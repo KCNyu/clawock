@@ -277,24 +277,95 @@ def test_intraday_preflight_publishes_plan_context(intraday_preflight, monkeypat
 @pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
 def test_skill_instructs_the_turn_to_reconcile(skill):
     # A bare `"plan_context" in text` check passes on a passing mention in a
-    # changelog line. What has to exist is the instruction: the key, the ban on
-    # contradicting a risk_rule decision, and the order to quote the size.
+    # changelog line. What has to exist is the instruction: the key and the ban
+    # on contradicting a risk_rule decision.
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
     assert text.count("`plan_context`") >= 2, "context key not named in both modes"
     assert "driven_by=risk_rule" in text, "no rule against re-timing a discipline action"
-    assert "照抄" in text, "no instruction to quote the plan's own size"
+
+
+# ── the card prints the orders (#2840) ────────────────────────────────────
+# The skill used to tell the model to copy `open[].shares` into its prose,
+# because no block on the card carried the size. A value the model can copy
+# the harness can print.
+
+
+def test_order_lines_print_the_ledger_size_and_condition(ps):
+    context = {"plan_date": TODAY, "open": [
+        ps._entry(decision()),
+        ps._entry(decision(ticker="00100", action="trim_on_rebound", plan_date="2026-07-24",
+                           condition={"type": "price_above", "price": 365.0},
+                           size={"shares": 200, "pct": 50.0})),
+        ps._entry(decision(ticker="02208", action="hold_and_watch", driven_by="technical",
+                           condition={"type": "price_below", "price": 8.52},
+                           size={"shares": None, "pct": None})),
+    ]}
+    assert ps.order_lines(context) == [
+        "07226 清仓 1000股｜开盘｜风控纪律",
+        "00100 反弹减仓 200股｜≥365｜风控纪律｜2026-07-24 挂起",
+    ]
+
+
+def test_a_stance_without_shares_is_not_printed_as_a_pending_trade(ps):
+    watch = ps._entry(decision(action="hold_and_watch", size={"shares": 0, "pct": None}))
+    assert ps.order_lines({"plan_date": TODAY, "open": [watch]}) == []
+    assert ps.order_lines({}) == []
+    assert ps.order_lines({"error": "ValueError: bad ledger"}) == []
+    assert ps.append_order_block("🇭🇰 港股开盘", {"open": [watch]}) == "🇭🇰 港股开盘"
+
+
+def test_order_lines_say_how_many_were_left_out(ps):
+    rows = [ps._entry(decision(ticker=f"0000{i}")) for i in range(ps.MAX_ORDER_LINES + 2)]
+    lines = ps.order_lines({"plan_date": TODAY, "open": rows})
+    assert len(lines) == ps.MAX_ORDER_LINES + 1
+    assert lines[-1] == "另有 2 条未列出"
+
+
+def test_report_block_carries_the_orders_under_the_analyzer_block(
+        ps, monkeypatch, tmp_path, isolated_workflow_ledger):
+    from clawock.harness import report_preflight as module
+    plan = {"plan_date": TODAY, "open": [ps._entry(decision())], "carried_over": 0}
+    monkeypatch.setattr(module, "TMP", tmp_path)
+    monkeypatch.setattr(module, "run_analyze", lambda market: (0, "🇭🇰 港股开盘 | data", ""))
+    monkeypatch.setattr(module, "collect_peers", lambda market: {})
+    monkeypatch.setattr(module.research_surface, "movers_thesis_context", lambda *a, **k: {})
+    monkeypatch.setattr(module.mover_news, "probe", lambda *a, **k: {})
+    monkeypatch.setattr(module.live_sources, "collect", lambda *a, **k: {
+        "as_of": None, "sources": {}, "summary": {}, "degraded": []})
+    monkeypatch.setattr(module.plan_surface, "open_decisions_context", lambda **kwargs: plan)
+    monkeypatch.setattr(module, "_market_closed_reason", lambda *a: None)
+    monkeypatch.setattr(sys, "argv", ["report_preflight.py", "--market", "hk", "--phase", "open"])
+
+    assert module.main() == 0
+    written = json.loads(next(tmp_path.glob("report-context-hk-open-*.json")).read_text())
+    block = written["raw_wechat_block"].splitlines()
+    assert block[0] == "🇭🇰 港股开盘 | data"
+    assert block[-3:] == ["", ps.ORDER_BLOCK_HEADER, "  ◆ 07226 清仓 1000股｜开盘｜风控纪律"]
+
+
+def test_intraday_status_block_carries_the_orders(ps):
+    from clawock.harness import intraday_preflight
+    context = {"plan_date": TODAY, "open": [ps._entry(decision())]}
+    assert intraday_preflight.open_order_lines(context) == [
+        "未成交计划：07226 清仓 1000股｜开盘｜风控纪律"]
+    card = intraday_preflight.mark_card_changes(
+        "🇭🇰 港股盯盘\n| 07226 | 4.1 |", fresh_tickers=set(), unrefreshed=[],
+        seen_signals=set(),
+        status_lines=intraday_preflight.open_order_lines(context)).splitlines()
+    assert card[-2:] == [intraday_preflight.STATUS_HEADER,
+                         "未成交计划：07226 清仓 1000股｜开盘｜风控纪律"]
 
 
 @pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
-def test_the_two_share_rules_do_not_read_as_contradictory(skill):
-    """Two rules land in the same file: quote `plan_context.shares`, and never
-    restate a position's share count. On 2026-07-27 those were the same ticker on
-    the same day with different numbers (07226: 6200 held, 1000 swapped), so the
-    prompt has to say which is which or the model picks one at random."""
+def test_skill_does_not_ask_the_model_to_restate_a_printed_size(skill):
+    """On 2026-07-27 the same ticker carried two share counts on the same day
+    (07226: 6200 held, 1000 swapped). Both are printed by the harness now, so
+    the prose restates neither and no exception to that rule exists."""
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
     assert "禁止重述持仓股数" in text
-    assert "例外且仅此一个" in text, "the exception for plan sizes is not stated"
-    assert "6200" in text and "1000" in text, "the concrete pair is not shown"
+    assert "📋 未成交计划" in text, "the skill does not point at the printed order block"
+    assert "例外且仅此一个" not in text
+    assert "照抄 `shares`" not in text
 
 
 # ── the condition's own price (2026-09-07) ────────────────────────────────

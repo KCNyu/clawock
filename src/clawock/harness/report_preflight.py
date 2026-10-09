@@ -396,12 +396,14 @@ def main(argv=None):
         leg='HK' if args.market == 'hk' else 'US', today=today,
     )
 
+    # The orders themselves are printed under the analyzer block, so the prose
+    # reconciles against them without restating a size (#2840).
+    raw_wechat_block = plan_surface.append_order_block(raw_wechat_block, plan_ctx)
+
     # Which of those conditions this phase's quotes already satisfy. Data only
-    # here, deliberately: this harness's `raw_wechat_block` is the analyzer's
-    # stdout verbatim (postflight prepends it), so there is no harness-assembled
-    # block to append a section to — the report's prose is written from this
-    # context. intraday_preflight, which does assemble its block, also renders
-    # the section and wakes on it.
+    # here: the block above lists the orders, not whether a price was met —
+    # the report's prose is written from this context. intraday_preflight also
+    # renders the met conditions as a section and wakes on it.
     plan_triggers = plan_surface.triggered_conditions(
         plan_ctx,
         {row['ticker']: row['price']
