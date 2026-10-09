@@ -102,6 +102,13 @@ named call away — not truncation.
 | `information` | the information lane summary (§6): per source `as_of`, stale flag, top items; `live` — tier 2 rows per holding with the publisher's own time |
 | source health | `quote_coverage`, source errors, degraded issuers |
 
+Which layer a field is in is declared, not inferred: `context/intraday_layers.py`
+lists every context field in exactly one of `CORE_FIELDS`, `REFERENCE_ENTRIES`
+or `CONTROL_ENTRIES`. Run control (`card_marks`, `heartbeat`) stays in the
+context on disk for postflight and delivery and is not printed to the model;
+the slot it carries is `index.slot`. `add_side_reads`, `holding_policies` and
+the `strategy_*` fields are core by declaration and may not become references.
+
 ### Reference layer (addressable, same generation)
 
 `clawock tool intraday_reference --arg market=<hk|us> --arg context_id=<id>
@@ -131,7 +138,9 @@ Gates: `test_every_reference_the_core_packet_names_resolves_to_the_same_content`
 (every index entry resolves through the tool to the on-disk content, pinned to
 the context_id; slices are subsets; `analyzer_block` is never a reference),
 `test_judgment_packet_preserves_every_decision_field` (core ∪ references is the
-whole context, disjoint), `test_mode7_named_context_fields_reach_model` (every
+whole context, disjoint), `test_every_context_field_declares_its_layer` (every
+field preflight writes is in one of the three tables; run control is not in the
+packet; the add-side and strategy fields are), `test_mode7_named_context_fields_reach_model` (every
 field the prompt names is in the core or the index).
 
 ## 4. Card blocks (what kcn reads)
@@ -292,6 +301,7 @@ as live.
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
+| every context field declares its layer; run control (`card_marks`, `heartbeat`) is not printed to the model | live (#2806) |
 | `signals_detail` belongs only to the reference layer; signal reasons remain in core `analyzer_block` | live (#2107) |
 | add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077) |

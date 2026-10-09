@@ -1253,7 +1253,8 @@ def collect_peers(market):
 # and signal provenance with no way back; every entry here is listed in the
 # packet's index and fetched by name (`intraday_reference` tool), and a test
 # holds core ∪ references to the whole context.
-from clawock.context.intraday_layers import REFERENCE_ENTRIES, REFERENCE_TOOL  # noqa: E402
+from clawock.context.intraday_layers import (  # noqa: E402
+    CONTROL_ENTRIES, REFERENCE_ENTRIES, REFERENCE_TOOL)
 
 
 def _reference_tickers(value):
@@ -1303,7 +1304,8 @@ def reference_index(ctx):
 def judgment_packet(ctx):
     """The core packet: every field that can change this slot's judgment, plus
     the index that makes the rest addressable. Brevity belongs to delivery;
-    this only moves attention-diluting detail one named call away."""
+    this only moves attention-diluting detail one named call away. Run control
+    (`CONTROL_ENTRIES`) stays in the context on disk."""
     prior = ctx.get('prior_semantic_state') or {}
     index = {
         'context_id': ctx.get('context_id'),
@@ -1316,7 +1318,8 @@ def judgment_packet(ctx):
                   '加 --arg since=HH:MM 只取该时刻之后的条目'),
     }
     return {'index': index,
-            **{key: value for key, value in ctx.items() if key not in REFERENCE_ENTRIES}}
+            **{key: value for key, value in ctx.items()
+               if key not in REFERENCE_ENTRIES and key not in CONTROL_ENTRIES}}
 
 
 def can_silence(ctx, *, allow_soft_review=False):
