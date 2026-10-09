@@ -356,9 +356,13 @@ def verify_receipt(root, today):
                   + ' · '.join(f'{name} {size} bytes' for name, size in sizes.items()))
 
 
-#: The least wall clock worth starting the repair turn with; the first real
+#: The least wall clock worth starting a repair turn with; the first real
 #: reply took 188s (2026-10-09 rehearsal).
 REPAIR_MIN_SECONDS = 240
+#: Real replies have failed twice over — malformed JSON first, then a refused
+#: decision in the repaired text — so one turn is not always enough. The
+#: budget, not this number, is what usually ends it.
+MAX_REPAIR_TURNS = 2
 
 
 class ReplyRejected(Exception):
@@ -394,13 +398,30 @@ def checked_reply(out, today, packet):
     if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
         errors.append('judgment carries no ticker_judgments')
     if errors:
-        # Name the rows the errors point at: `decision[8]` alone tells neither
-        # the model in the repair turn nor whoever reads the job log which
-        # ticker and action were refused.
+        # Name the rows the errors point at, with the harness facts they have
+        # to agree with: `decision[8]` alone tells neither the model in the
+        # repair turn nor whoever reads the job log which ticker was refused,
+        # and "add requires technical_setup_id" does not say which id. The
+        # third real run named SPCX and the repair still left the fields out.
         decisions = plan.get('decisions') if isinstance(plan.get('decisions'), list) else []
         named = sorted({int(index) for index in re.findall(r'decision\[(\d+)\]', ' '.join(errors))})
-        rows = [f"decision[{index}] is {decisions[index].get('ticker')} {decisions[index].get('action')}"
-                for index in named if index < len(decisions) and isinstance(decisions[index], dict)]
+        rows = []
+        for index in named:
+            row = decisions[index] if index < len(decisions) else None
+            if not isinstance(row, dict):
+                continue
+            ticker = str(row.get('ticker'))
+            facts = (packet.get('tickers') or {}).get(ticker)
+            if facts is None:
+                rows.append(f"decision[{index}] is {ticker} {row.get('action')}: "
+                            'not a holding in the packet, so it cannot be a decision')
+                continue
+            setups = (facts.get('technical') or {}).get('setups') or []
+            rows.append(
+                f"decision[{index}] is {ticker} {row.get('action')}: packet allowed_actions="
+                f"{_compact((facts.get('constraints') or {}).get('allowed_actions'))}, "
+                + (f'technical.setups={_compact(setups)}' if setups else
+                   'no technical.setups, so no add is available for it'))
         raise ReplyRejected('; '.join(errors + rows))
     # The two pins are the harness's to write, like the plan's above: the model
     # copying a hash wrong must not cost the day its brief.
@@ -417,7 +438,9 @@ def repair_prompt(user, out, reason):
         f"它没有通过写盘前的校验：\n{reason}\n\n"
         "只改被指出的地方，其余内容原样保留，重新输出完整的 "
         '{"plan": {...}, "judgment": {...}} 这一个 JSON 对象。'
-        "拿不到 harness 授权或必填字段的加仓决策，改成 packet 允许的动作，不要硬凑字段。"
+        "被点名的 decision：上面列出了该票 packet 的 allowed_actions 与 technical.setups。"
+        "加仓决策照抄 setup 里的 setup_id、campaign_id、invalidation_price 等字段（见 SKILL.md Step 4 B 的 add 规则）；"
+        "packet 没有给 setup 的，改成 allowed_actions 里的其他动作。"
     )
 
 
@@ -531,31 +554,31 @@ def main(argv=None):
     # memory/ every 20 min and would commit it, and brief-fallback.yml's own skip gate
     # keys on pre-open.md existing — one junk file and every later fallback self-skips.
     # Nothing may touch memory/ until the plan and the judgment are known usable.
-    try:
-        plan, judgment, advisories = checked_reply(out, today, packet)
-    except ReplyRejected as rejected:
-        # One repair turn. The host brief gets this for free — postflight says
-        # `fail`, the model fixes the named field and reruns — and a single turn
-        # had no equivalent: the first real run of this contract (rehearsal
-        # 2026-10-09) lost a whole brief to one `add` decision missing its
-        # setup fields. It spends what the first call left of the job's LLM
-        # budget, never a second full one.
-        budget = float(os.environ.get(DEADLINE_ENV) or BRIEF_LLM_TIMEOUT_SECONDS)
-        left = budget - (time.monotonic() - started)
-        print(f'  reply rejected: {rejected}')
-        if left < REPAIR_MIN_SECONDS:
-            raise SystemExit(f'model reply rejected with {left:.0f}s left, no repair turn: {rejected}')
-        print(f'  one repair turn ({left:.0f}s left of {budget:.0f}s)')
-        stats = {}
-        repaired = chat(system=system, user=repair_prompt(user, out, rejected),
-                        max_tokens=BRIEF_MAX_TOKENS, temperature=0.2,
-                        timeout=BRIEF_LLM_TIMEOUT_SECONDS, deadline_seconds=left,
-                        stats_out=stats)
-        report_chain(stats)
+    # Repair turns. The host brief gets this for free — postflight says `fail`,
+    # the model fixes the named field and reruns — and a single turn had no
+    # equivalent: the first real run of this contract (rehearsal 2026-10-09)
+    # lost a whole brief to one `add` decision missing its setup fields. They
+    # spend what is left of the job's LLM budget, never a second full one.
+    budget = float(os.environ.get(DEADLINE_ENV) or BRIEF_LLM_TIMEOUT_SECONDS)
+    for turn in range(MAX_REPAIR_TURNS + 1):
         try:
-            plan, judgment, advisories = checked_reply(repaired, today, packet)
-        except ReplyRejected as again:
-            raise SystemExit(f'model reply rejected after the repair turn: {again}')
+            plan, judgment, advisories = checked_reply(out, today, packet)
+            break
+        except ReplyRejected as rejected:
+            left = budget - (time.monotonic() - started)
+            print(f'  reply rejected: {rejected}')
+            if turn == MAX_REPAIR_TURNS:
+                raise SystemExit(f'model reply rejected after {turn} repair turn(s): {rejected}')
+            if left < REPAIR_MIN_SECONDS:
+                raise SystemExit(
+                    f'model reply rejected with {left:.0f}s left, no repair turn: {rejected}')
+            print(f'  repair turn {turn + 1} ({left:.0f}s left of {budget:.0f}s)')
+            stats = {}
+            out = chat(system=system, user=repair_prompt(user, out, rejected),
+                       max_tokens=BRIEF_MAX_TOKENS, temperature=0.2,
+                       timeout=BRIEF_LLM_TIMEOUT_SECONDS, deadline_seconds=left,
+                       stats_out=stats)
+            report_chain(stats)
     for issue in advisories:
         print(f'  warn: judgment: {issue}')
 
