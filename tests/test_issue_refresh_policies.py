@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -170,9 +171,20 @@ def test_deadline_kills_nested_writer(tmp_path):
         deadline.run_bounded([sys.executable, '-c', code], timeout=.5, cwd=tmp_path)
     assert pid_path.exists()
     stat = Path('/proc') / pid_path.read_text() / 'stat'
-    # A killed grandchild can briefly remain a zombie awaiting init's reap.
-    if stat.exists():
-        assert stat.read_text().split()[2] == 'Z'
+
+    def state():
+        try:
+            return stat.read_text().split()[2]
+        except (FileNotFoundError, ProcessLookupError):
+            return None  # reaped
+
+    # SIGKILL is delivered asynchronously: right after `run_bounded` returns the
+    # grandchild can still read as running, then as a zombie awaiting init's
+    # reap. It must be dead within seconds; one that survives stays 'S'.
+    deadline_at = time.monotonic() + 5
+    while state() not in (None, 'Z') and time.monotonic() < deadline_at:
+        time.sleep(.05)
+    assert state() in (None, 'Z')
 
 
 def test_brief_contract_rejects_old_turn_that_cannot_hold_supervised_preflight(tmp_path):

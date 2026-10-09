@@ -240,8 +240,8 @@ line and holdings table **byte for byte**, one `↑` pointer line naming the
 rows with a new move/trigger, the signal block with only the signals new
 today, the candidate sections, then `▎持续状态`: signals already delivered
 this session as one `今日已报、仍在` line, the book risk line, each held
-leveraged leg against its underlying's move with the gap in pp, and the
-add-side reads — then the model's `▎我的看法` after the whole data block, and
+leveraged leg against its underlying's move with the gap in pp — then the
+`🛰️ 加仓侧` block exactly as before, the model's `▎我的看法` after the whole data block, and
 advisory checker findings last. `⛔` is only data
 health and `⚠️` only the analyzer's signal header. All of this is copy only:
 the model still reads the full `signals_detail`, `source_signals_detail`,

@@ -634,10 +634,10 @@ def test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner(
     ctx = run(copy.deepcopy(current))
 
     lines = ctx["raw_wechat_block"].splitlines()
-    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见加仓侧）"
-    assert "· SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
-    assert lines.index(preflight.STATUS_HEADER) < lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
-        "· SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
+    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 🛰️ 加仓侧）"
+    assert "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
+    assert lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
+        "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["policy_evidence_errors"] == ["SPCH: quote not freshly verified"]
 
@@ -702,7 +702,10 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
     lines = ctx["raw_wechat_block"].splitlines()
     head = lines.index(preflight.ADD_SIDE_HEADER)
     word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
-    assert lines[head + 1].startswith(f"· SPCH {word}：")
+    assert lines[head + 1].startswith(f"  · SPCH {word}：")
+    # The add-side block closes the data block, after ▎持续状态 when there is one.
+    assert lines[head - 1] == "" and head + 1 == len(lines) - 1
+    assert preflight.STATUS_HEADER not in lines[head:]
 
 
 def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet(
