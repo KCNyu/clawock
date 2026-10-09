@@ -20,10 +20,9 @@ def test_mode7_named_context_fields_reach_model():
         and isinstance(key.value, str)
     } for node in dicts), key=len)
     produced.add('context_id')  # appended after the result dict is complete
-    documents = [(root / 'config/cron-payloads/intraday.md').read_text()]
-    for market in ('hk', 'us'):
-        skill = (root / f'skills/{market}-stock-analysis/SKILL.md').read_text()
-        documents.append(skill.split('### Mode 7', 1)[1].split('### Mode 6', 1)[0])
+    # What a slot loads: the thin payload and the one shared Mode 7 body (#2807).
+    documents = [(root / 'config/cron-payloads/intraday.md').read_text(),
+                 (root / 'skills/_shared/intraday-mode7.md').read_text()]
     tokens = set()
     for document in documents:
         tokens.update(re.findall(r'`([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)`', document))

@@ -260,9 +260,12 @@ def test_both_skills_bound_how_the_block_may_be_used():
         skill = (ROOT / "skills" / name / "SKILL.md").read_text()
         assert "mover_news" in skill, name
         assert "no_recent_filing" in skill, name
-        assert "primary" in skill and "supporting" in skill, name
-        # Tavily must stay out of the intraday catalyst path
-        assert "禁止 Tavily" in skill or "禁止Tavily" in skill, name
+        assert "primary" in skill, name
+    # The intraday half lives in the one Mode 7 body both markets load (#2807).
+    mode7 = (ROOT / "skills" / "_shared" / "intraday-mode7.md").read_text()
+    assert "mover_news" in mode7 and "supporting" in mode7
+    # Tavily must stay out of the intraday catalyst path
+    assert "禁止 Tavily" in mode7 or "禁止Tavily" in mode7
 
 
 # --- filing triage, calibrated on this book's real filings --------------------
@@ -452,16 +455,15 @@ def test_hk_slots_do_not_call_the_us_halt_feed():
 # --- the report actually consumes it -----------------------------------------
 
 def test_mode_7_requires_attribution_in_the_view_section():
-    for name in ("us-stock-analysis", "hk-stock-analysis"):
-        skill = (ROOT / "skills" / name / "SKILL.md").read_text()
-        view = skill.split("▎我的看法", 1)[1].split("#### Step 2.5", 1)[0]
-        assert "异动归因" in view, name
-        assert "signal=interrupt" in view, name
-        # every honest-failure state has a prescribed sentence
-        for state in ("no_recent_filing", "index_fund_no_issuer", "degraded"):
-            assert state in view, (name, state)
-        # counters stay out of the report
-        assert "suppressed_noise" in view and "不要写进报告" in view, name
+    body = (ROOT / "skills" / "_shared" / "intraday-mode7.md").read_text()
+    view = body.split("▎我的看法", 1)[1]
+    assert "异动归因" in view
+    assert "signal=interrupt" in view
+    # every honest-failure state has a prescribed sentence
+    for state in ("no_recent_filing", "index_fund_no_issuer", "degraded"):
+        assert state in view, state
+    # counters stay out of the report
+    assert "suppressed_noise" in view and "不要写进报告" in view
 
 
 def test_the_movers_sidecar_quotes_the_same_evidence():

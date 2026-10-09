@@ -1,7 +1,7 @@
-# 共享规范：intraday 状态横幅 sidecar（hk + us Mode 7 Step 2.5 共用，单一来源）
+# 共享规范：intraday 状态横幅 sidecar（hk + us Mode 7 共用，单一来源）
 
-> 抽出来避免 hk/us 两个 SKILL 各写一份导致 drift（2026-05-31）。两边 Mode 7 的
-> Step 2.5 只放一个指针 + 本市场杠杆 ticker 例子，规范以本文件为准。
+> 抽出来避免 hk/us 两个 SKILL 各写一份导致 drift（2026-05-31）。调用方是共享的 Mode 7 正文
+> `skills/_shared/intraday-mode7.md` 第 4 步；盘中 cron 第一轮就读本文件，规范以本文件为准。
 
 `build_dashboard` 读它刷新 dashboard **顶部状态横幅** + **Today's Movers 每条归因**（缺失/解析失败容错，横幅自动隐藏；非关键，漏写不影响 WeChat 报告投递）。**只填下面 `status_banner` 与 `movers` 两个字段的文本，不写其他字段。**
 
@@ -17,7 +17,7 @@
 - 横幅写**本档新变化**及下一触发点；`delivery_mode=no_change` 不改写 sidecar，
   不能把上一档的判断盖上新时间。超过 160/120 字时 harness 与发布侧按同一契约截断；字段类型错误时拒收 sidecar，
   盘中微信仍正常投递。
-- `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**（本市场杠杆 ticker 见调用方 Step 2.5）。
+- `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**。
 - **催化优先引 `context.mover_news`**：该票有 `signal=interrupt` 的条目就用它的标题要点 + `age_minutes` 写归因；`halts` 命中先写停牌；`no_recent_filing` / `index_fund_no_issuer` / `degraded` 各自照实说（分别是「无一手公告」「指数基金无发行人」「催化源未取到」）。
 - **只用 context.json 的真实数字**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
 - SPCH 按无限子弹流处理；不在横幅或归因里重复一般止损/减仓提示。
