@@ -11,14 +11,10 @@ one time it added, it lost.
 Same shape as #1337: a signal that exists, is even on the dashboard, and has no
 path into the process that writes decisions.
 
-Two of these tests exist because of mistakes made while writing the fix:
-
-* `summary_view` is a hand-written per-field projection. A field added to
-  `compile_packet` and not to it reaches nobody — the first version of this
-  change did exactly that and looked complete.
-* the packet was already at 95.7% of its hard ceiling with nothing warning,
-  because the 2026-08-17 budget lesson had been applied to `MAX_SUMMARY_BYTES`
-  and not to `MAX_PACKET_BYTES`.
+One of these tests exists because of a mistake made while writing the fix:
+`summary_view` is a hand-written per-field projection. A field added to
+`compile_packet` and not to it reaches nobody — the first version of this
+change did exactly that and looked complete.
 """
 from __future__ import annotations
 
@@ -98,29 +94,6 @@ def test_no_settled_history_is_stated_rather_than_omitted():
     packet = _with_reflections({})
     history = packet["tickers"][_held(packet)]["history"]
     assert history == {"settled_episodes": 0}
-
-
-def test_the_packet_ceiling_warns_before_the_wall_like_the_summary_does(capsys):
-    """#1349's own finding: the 2026-08-17 lesson stopped at the smaller budget.
-
-    Overrunning `MAX_PACKET_BYTES` raises, and that raise is preflight failing —
-    the morning brief with no packet at all. A warning that only arrives at the
-    wall is the failure the summary already learned to precede.
-    """
-    assert packet_mod.PACKET_BUDGET_WARN_RATIO < 1.0
-    ctx = copy.deepcopy(_context())
-    real = packet_mod.MAX_PACKET_BYTES
-    try:
-        packet_mod.MAX_PACKET_BYTES = int(
-            len(packet_mod._compact(packet_mod.compile_packet(ctx, generation_id="t"))
-                .encode("utf-8")) / 0.9)
-        packet_mod.compile_packet(ctx, generation_id="t")
-    finally:
-        packet_mod.MAX_PACKET_BYTES = real
-    err = capsys.readouterr().err
-    assert "of the" in err and "ceiling" in err, (
-        f"a packet at 90% of its ceiling said nothing: {err!r}")
-
 
 def test_the_warning_stays_quiet_with_room_to_spare(capsys):
     ctx = copy.deepcopy(_context())

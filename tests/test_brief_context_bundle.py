@@ -142,22 +142,31 @@ def test_new_feature_cannot_silently_create_an_unbounded_lazy_load(tmp_path):
         brief_context.write_run_bundle(source, tmp_path / "bundle-oversize.json")
 
 
-def test_tool_artifact_cannot_create_an_unbounded_query_source(tmp_path):
+def test_tool_artifact_is_bounded_by_a_runaway_guard_not_a_model_budget(tmp_path):
+    """The model never loads a tool artifact whole — its tool answers bounded
+    queries — so a packet past the bundle budget must still be written (#2816:
+    71 bytes over stopped the 2026-10-09 generation). Only a runaway is refused.
+    """
     source = _fixture()
     generation_id = brief_context.compute_generation_id(source)
-    tool = {
-        "_meta": {
-            "schema_version": 1,
-            "kind": "test",
-            "generation_id": generation_id,
-        },
-        "payload": "T" * (brief_context.SINGLE_BUNDLE_BUDGET_BYTES + 1),
-    }
-    with pytest.raises(ValueError, match="tool artifact exceeds"):
+
+    def tool(size):
+        return {
+            "_meta": {"schema_version": 1, "kind": "test", "generation_id": generation_id},
+            "payload": "T" * size,
+        }
+
+    _, manifest = brief_context.write_run_bundle(
+        source, tmp_path / "tool-large.json",
+        tool_artifacts={"test": tool(brief_context.SINGLE_BUNDLE_BUDGET_BYTES + 1)},
+    )
+    assert manifest["tools"]["test"]["bytes"] > brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+
+    with pytest.raises(ValueError, match="tool artifact exceeds the runaway guard"):
         brief_context.write_run_bundle(
             source,
             tmp_path / "tool-oversize.json",
-            tool_artifacts={"test": tool},
+            tool_artifacts={"test": tool(brief_context.TOOL_ARTIFACT_RUNAWAY_BYTES + 1)},
         )
 
 

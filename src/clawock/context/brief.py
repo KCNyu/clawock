@@ -19,6 +19,13 @@ from pathlib import Path
 SCHEMA_VERSION = 1
 ALWAYS_LOADED_BUDGET_BYTES = 128 * 1024
 SINGLE_BUNDLE_BUDGET_BYTES = 96 * 1024
+#: A tool artifact is never loaded whole by the model: the tool that owns it
+#: answers bounded queries and enforces a budget per read (the decision packet's
+#: are in `decision/packet.py`). Its stored size therefore has no model budget.
+#: It shared `SINGLE_BUNDLE_BUDGET_BYTES` until #2816, when a nine-holding
+#: packet 71 bytes over that line stopped the whole generation. What remains is
+#: a runaway guard at roughly ten times a real packet, for the disk's sake.
+TOOL_ARTIFACT_RUNAWAY_BYTES = 1024 * 1024
 TARGET_REDUCTION_PCT = 60.0
 
 # These fields are required for every decision. They are copied byte-for-byte
@@ -213,10 +220,10 @@ def _tool_artifact(path: Path, payload: dict, generation_id: str):
         raise ValueError(f"brief tool artifact generation mismatch: {path.name}")
     text = _compact(payload) + "\n"
     size = len(text.encode("utf-8"))
-    if size > SINGLE_BUNDLE_BUDGET_BYTES:
+    if size > TOOL_ARTIFACT_RUNAWAY_BYTES:
         raise ValueError(
-            "daily brief tool artifact exceeds per-query source budget "
-            f"({SINGLE_BUNDLE_BUDGET_BYTES} bytes): {path.name}={size}"
+            "daily brief tool artifact exceeds the runaway guard "
+            f"({TOOL_ARTIFACT_RUNAWAY_BYTES} bytes): {path.name}={size}"
         )
     _write_immutable(path, text)
     return {

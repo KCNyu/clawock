@@ -105,7 +105,13 @@ def test_real_consumer_path_packet_summary_report_card_and_reinjection():
     assert compiled['stock_discovery'] == discovery
     assert packet.validate_plan_constraints({'decisions': [
         {'ticker': 'MED', 'action': 'add_only_on_trigger', 'size': {'shares': 1}}]}, compiled)
-    assert packet.summary_view(compiled)['stock_discovery'] == discovery
+    # The resident summary states what every candidate shares once (#2816);
+    # putting it back on each row gives the stored rows, so nothing is dropped.
+    resident = packet.summary_view(compiled)['stock_discovery']
+    shared = resident.get('candidate_shared', {})
+    assert [{**shared, **row} for row in resident['candidates']] == discovery['candidates']
+    assert {k: v for k, v in resident.items() if k not in ('candidates', 'candidate_shared')} \
+        == {k: v for k, v in discovery.items() if k != 'candidates'}
     report = brief_render.stock_discovery_section(compiled)
     assert 'MED' in report and 'ENE' in report and '时间未核验' in report
     first = brief_card._inject_early_candidate_section('intro\n📈 report', compiled)
