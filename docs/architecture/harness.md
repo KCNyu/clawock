@@ -346,6 +346,7 @@ parameters and what reaches their model.
 | mover evidence | `market_data/mover_evidence.probe` | report, intraday | tickers, market |
 | add side | § Add-side strategy | brief, intraday | `add_policy.ENTRY_PROFILES[entry]` |
 | open plans and their triggers | `decision/plans` (`open_decisions_context`, `triggered_conditions`) | brief, report, intraday | leg, today, quotes |
+| risk swap buy contract | `decision/actions.is_risk_swap_buy` / `paired_swap_sells` (shape); `decision/packet._swap_leg_issues` (authorization) | plan schema, brief postflight, off-host fallback | setup-free risk-rule buy needs a sell in the same group; both legs need positive integer shares; only the packet can authorize its source/target, amount and lot; ordinary adds retain technical traces. Prompt owner: daily-deep-brief SKILL, fallback adapter/repair only route to it |
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
 | trading-prose vocabulary | `prose_validation` (pure identifier/pipeline checks); `automation/output_validate.validate_sections(trading_prose=True)` | weekly generation/repair and harness postflights | text, label; harness preserves its advisory policy |
 | placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |

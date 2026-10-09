@@ -28,7 +28,7 @@ data block at send time, so the block never makes a round trip through the model
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
   2. 总长度闸与 Mode 6 共用 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
-  3. 若 preflight should_alert=true：正文须提到至少一个异动票，且（有 ALERT/WATCH/STOP/TRIM 信号时）至少一个信号票
+  3. 若 preflight should_alert=true：正文须提到至少一个异动票，且（有本交易日未报的 ALERT/WATCH/STOP/TRIM 信号时）至少一个新信号票
   4. 无敷衍 phrases
 
 Note: for every usable preflight context, including a slot whose prose is
@@ -565,16 +565,20 @@ def validate(text, ctx, model_text):
     # Two independent requirements, not a fallback chain. An alert slot can
     # carry anomalies AND signals; the signal check used to live in an `elif`
     # under "no anomalies", so naming one mover let every STOP/ALERT line go
-    # unmentioned (#1630). Levels come from the one list decide_alert counts.
+    # unmentioned (#1630). Only unseen signal identities need new prose; the
+    # card keeps delivered signals in its standing-state block (#2829).
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]
         mentioned = [t for t in anomaly_tickers if mentions_ticker(checked, t)]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
+        seen_signals = intraday_delta.seen_signal_identities(
+            ctx.get('semantic_state') or {}, ctx.get('prior_semantic_state') or {})
         signal_tickers = [
             row.get('ticker') for row in (ctx.get('signals_detail') or [])
             if row.get('ticker') and str(row.get('level', '')).upper()
             in SIGNAL_LEVELS
+            and (row.get('level'), row.get('ticker')) not in seen_signals
         ]
         if signal_tickers and not any(
                 mentions_ticker(checked, ticker) for ticker in signal_tickers):

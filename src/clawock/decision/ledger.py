@@ -42,6 +42,8 @@ from clawock.decision.actions import (
     PASSIVE_ACTIONS,
     SELL_ACTIONS,
     STRATEGY_FRAMES,
+    is_risk_swap_buy,
+    paired_swap_sells,
 )
 from clawock import scorecard_provenance
 from clawock.safe_io import temp_dir_lock, jsonl_line
@@ -389,7 +391,8 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
             ) or 1,
         },
         "size": {
-            "shares": _int(authored_size.get("shares")) if authored_size else _int(action.get("size_shares")),
+            "shares": (_float if is_risk_swap_buy(action) else _int)(
+                authored_size.get("shares") if authored_size else action.get("size_shares")),
             "pct": _float(authored_size.get("pct")) if authored_size else _float(action.get("size_pct")),
             "note": authored_size.get("note") or action.get("size_note") or "",
         },
@@ -574,7 +577,15 @@ def validate_decision(d: dict) -> list[str]:
         errors.append("technical_trace_version must be 1 when present")
     if setup_id is not None and (not isinstance(setup_id, str) or not setup_id):
         errors.append("technical_setup_id must be null or non-empty text")
-    if trace_version == 1 and d.get("action") in ADD_ACTIONS:
+    if trace_version == 1 and is_risk_swap_buy(d):
+        # Shape is not authorization: validate_plan checks the pair, and
+        # packet.validate_plan_constraints checks the mandate, amount and lot.
+        if not d.get("decision_group_id"):
+            errors.append("swap buy leg requires decision_group_id")
+        shares = _float((d.get("size") or {}).get("shares"))
+        if shares is None or not math.isfinite(shares) or shares <= 0 or int(shares) != shares:
+            errors.append("swap buy leg requires positive integer size.shares")
+    elif trace_version == 1 and d.get("action") in ADD_ACTIONS:
         prefix = "technical add" if d.get("driven_by") == "technical" else "add"
         if not setup_id:
             errors.append(f"{prefix} requires technical_setup_id")
@@ -679,6 +690,9 @@ def validate_plan(plan: dict, path: str | Path | None = None, *, check_book=True
     for i, d in enumerate(decisions):
         for err in validate_decision(d):
             errors.append(f"decision[{i}] {err}")
+        if d.get("technical_trace_version") == 1 and is_risk_swap_buy(d):
+            if not paired_swap_sells(d, decisions):
+                errors.append(f"decision[{i}] swap buy leg must share decision_group_id with a sell leg")
         did = d.get("decision_id")
         if did in seen:
             errors.append(f"duplicate decision_id {did}")

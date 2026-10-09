@@ -152,6 +152,20 @@ def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
     }
 
 
+def prior_session_breaches(current, previous):
+    """Only identities already delivered in this trading session count as seen."""
+    if not current.get("session") or previous.get("session") != current["session"]:
+        return []
+    return previous.get("breaches_seen") or previous.get("breaches") or []
+
+
+def seen_signal_identities(current, previous):
+    """The same (level, ticker) set for card folding and prose coverage."""
+    return {(row.get("level"), row.get("ticker"))
+            for row in prior_session_breaches(current, previous)
+            if row.get("kind") == "signal"}
+
+
 def compare_semantic_states(current, previous):
     previous = previous if isinstance(previous, dict) else {}
     keys = ("session", "breaches", "setups", "plans", "primary_events",

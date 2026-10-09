@@ -181,7 +181,8 @@ _UNIT_KEY_HINTS = {
     'percent': re.compile(r'(?:^|_)(?:pct|percent|percentage|range_pos)(?:_|$)'
                           r'|^mom_(?:1m|3m|6m|12_1)$'),
     'pp': re.compile(r'(?:^|_)(?:pp|percentage_points?)(?:_|$)'),
-    'multiple': re.compile(r'(?:^|_)(?:multiple|multiplier|leverage|leverage_ratio)(?:_|$)'),
+    'multiple': re.compile(r'(?:^|_)(?:multiple|multiplier|leverage|leverage_ratio)(?:_|$)'
+                           r'|^range_used_atr$'),
     'sigma': re.compile(r'(?:^|_)(?:sigma|z_?score\d*)(?:_|$)'),
 }
 # A hypothetical percentage is not a claim about current evidence. Keep the

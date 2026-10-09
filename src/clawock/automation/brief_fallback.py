@@ -46,7 +46,7 @@ SINGLE_TURN_ADAPTER = """你在离机兜底环境里单轮生成今天的盘前�
 1. 输入已经全部内联：本次 generation 的 decision packet（SKILL 所说的 summary 与逐票查询的全部内容）和完整 preflight context。数字只取自这两份，取不到就写进 data_holes，不要编。
 2. 只输出一个 JSON 对象：{"plan": {...}, "judgment": {...}}。不要输出 markdown 报告、微信卡、insights 或任何客套话——报告与微信卡由 harness 从 plan 和 judgment 渲染。
 3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。
-4. plan 的每条 decision 只能用该票 packet 里 `constraints.allowed_actions` 列出的动作。加仓类动作只有 packet 给出 `technical.setups` 时才能写，并照抄其中的 setup 字段；packet 没有授权就不写加仓。持仓外的标的（stock_discovery、watch_list）不进 decisions。"""
+4. plan 的动作边界与两类买腿按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的 add 规则执行；所需的 `constraints`、`technical` 已在内联 packet 中。持仓外的标的（stock_discovery、watch_list）不进 decisions。"""
 
 
 def _json_objects(text):
@@ -417,11 +417,12 @@ def checked_reply(out, today, packet):
                             'not a holding in the packet, so it cannot be a decision')
                 continue
             setups = (facts.get('technical') or {}).get('setups') or []
+            constraints = facts.get('constraints') or {}
             rows.append(
                 f"decision[{index}] is {ticker} {row.get('action')}: packet allowed_actions="
-                f"{_compact((facts.get('constraints') or {}).get('allowed_actions'))}, "
-                + (f'technical.setups={_compact(setups)}' if setups else
-                   'no technical.setups, so no add is available for it'))
+                f"{_compact(constraints.get('allowed_actions'))}, "
+                f"technical.setups={_compact(setups)}, "
+                f"swap_mandate={_compact(constraints.get('swap_mandate'))}")
         raise ReplyRejected('; '.join(errors + rows))
     # The two pins are the harness's to write, like the plan's above: the model
     # copying a hash wrong must not cost the day its brief.
@@ -438,9 +439,8 @@ def repair_prompt(user, out, reason):
         f"它没有通过写盘前的校验：\n{reason}\n\n"
         "只改被指出的地方，其余内容原样保留，重新输出完整的 "
         '{"plan": {...}, "judgment": {...}} 这一个 JSON 对象。'
-        "被点名的 decision：上面列出了该票 packet 的 allowed_actions 与 technical.setups。"
-        "加仓决策照抄 setup 里的 setup_id、campaign_id、invalidation_price 等字段（见 SKILL.md Step 4 B 的 add 规则）；"
-        "packet 没有给 setup 的，改成 allowed_actions 里的其他动作。"
+        "被点名的 decision：上面列出了该票 packet 的 allowed_actions、technical.setups 与 swap_mandate。"
+        "按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的 add 规则修正买腿；不要编 setup 或扩大授权。"
     )
 
 
