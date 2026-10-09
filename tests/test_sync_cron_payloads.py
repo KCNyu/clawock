@@ -117,7 +117,7 @@ def test_rendering_changes_only_double_brace_contract_tokens():
 
     assert "{{" not in intraday_message
     assert "{CTXID}" in intraday_message
-    assert "${total}" in brief_message
+    assert "brief-sent-{date}.json" in brief_message
 
     missing = copy.deepcopy(intraday)
     missing["payload_vars"].pop("market_name")
