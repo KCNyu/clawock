@@ -182,7 +182,9 @@ def test_one_rejected_reply_gets_one_repair_turn_naming_what_failed(workspace, m
     assert len(prompts) == 2
     repair = prompts[1]['user']
     assert prompts[0]['user'] in repair and json.dumps(bad, ensure_ascii=False) in repair
-    assert 'add' in repair.split('它没有通过写盘前的校验')[1]
+    reason = repair.split('它没有通过写盘前的校验')[1]
+    ticker = bad['plan']['decisions'][0]['ticker']
+    assert f'decision[0] is {ticker} add_only_on_trigger' in reason
     assert prompts[1]['deadline_seconds'] <= bf.BRIEF_LLM_TIMEOUT_SECONDS
     assert bf.main(['--verify-receipt']) == 0
 
