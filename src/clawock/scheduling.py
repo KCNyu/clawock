@@ -30,6 +30,11 @@ BRIEF_JOB_NAME = '盘前深度简报'
 BRIEF_SLOT_HKT = '08:03'
 
 TEMPLATE_TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")
+#: `{{include:<name>.md}}` on a line of its own pulls a sibling fragment into a
+#: payload template. A rule several cron jobs must all obey has one text and is
+#: rendered into each live payload, instead of one hand-kept copy per template
+#: (the exec exit-code rule had four, and they had drifted apart — #2819).
+TEMPLATE_INCLUDE = re.compile(r"^\{\{include:(_[a-z0-9-]+\.md)\}\}$", re.MULTILINE)
 
 
 class ScheduleContract(dict):
@@ -430,10 +435,20 @@ def render_payload_message(contract: dict, expected_job: dict) -> str | None:
         path.relative_to(workspace.resolve())
     except ValueError as exc:
         raise ValueError(f"{profile_name}: message template escapes workspace") from exc
+    def include(match):
+        try:
+            return (path.parent / match.group(1)).read_text().rstrip("\n")
+        except OSError as exc:
+            raise ValueError(
+                f"{profile_name}: cannot read template fragment: {exc}") from exc
+
     try:
         template = path.read_text().rstrip("\n")
     except OSError as exc:
         raise ValueError(f"{profile_name}: cannot read message template: {exc}") from exc
+    template = TEMPLATE_INCLUDE.sub(include, template)
+    if "{{include:" in template:
+        raise ValueError(f"{profile_name}: malformed or nested template include")
 
     variables = expected_job.get("payload_vars") or {}
     tokens = set(TEMPLATE_TOKEN.findall(template))

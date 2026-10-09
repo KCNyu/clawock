@@ -25,6 +25,8 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
 `clawock intraday postflight --market {{market}} --context-id {CTXID} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md`
 若 postflight 返回 `status: revise`：什么都还没发，按它给的 `issues` 改写 prose 文件（只改被指出的地方），然后用同一条 postflight 命令再调用一次；只会要求改这一次，第二次无论结果都会投递；不要重跑 preflight。postflight 不设超时、不 kill，等它返回 `commit_ok`；投递与 dashboard 提交是两段。只有它是唯一微信路径，同步 Telegram；禁用 message/send，本 cron `--no-deliver`。
 
-最终回复只写 postflight 的 status、wechat_sent、telegram_sent、commit_ok，供 cron 留痕；不要再输出整条微信或散文。探测「东西在不在」的命令必须整条链退出 0。
-`2>/dev/null` 只吞 stderr、不改退出码；找不到文件是正常答案时，整条探测链用 `|| true` 收尾。postflight 返回后禁止再读、搜或重建临时文件来确认送达。
+最终回复只写 postflight 的 status、wechat_sent、telegram_sent、commit_ok，供 cron 留痕；不要再输出整条微信或散文。postflight 返回后禁止再读、搜或重建临时文件来确认送达。
+
+{{include:_exec-contract.md}}
+
 拼装后的全文只有防复读上限：>5000 warn、>6000 fail；判断段 >600 warn、>900 仍 warn（保留判断；整条消息 >6000 才 fail），目标是简短准确。

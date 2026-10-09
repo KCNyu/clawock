@@ -77,7 +77,10 @@ artifact generation + delivery receipt + watchdog state
 ```
 
 The tracked payload templates in `config/cron-payloads/` are the reviewable
-instruction source. Live rows must preserve model/fallback/thinking/timeout,
+instruction source. A rule several jobs share has one text: a `_*.md` fragment
+pulled in with `{{include:_name.md}}` and rendered into each live payload
+(`_exec-contract.md`, the exec exit-code rule, is in all three strategy
+payloads). A skill points at the payload rule instead of restating it. Live rows must preserve model/fallback/thinking/timeout,
 full tool policy, `--no-deliver` versus postflight delivery ownership,
 context/generation IDs, retry/idempotency, watchdog behavior and market-session
 no-overlap windows. OpenClaw's managed memory-dreaming job is also runtime state;

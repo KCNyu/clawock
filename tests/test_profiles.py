@@ -46,6 +46,59 @@ def test_schedule_templates_resolve_in_the_selected_profile_workspace(tmp_path):
     )
 
 
+def test_a_payload_fragment_is_rendered_into_every_template_that_includes_it(tmp_path):
+    """One text for a rule several jobs must obey (#2819): the exec exit-code
+    rule had a copy per payload plus a wider one in the brief skill, and the
+    wide copy is what told the model to end a failed preflight with `; true`.
+    """
+    profile_dir = tmp_path / "config/profiles/paper"
+    profile_dir.mkdir(parents=True)
+    payloads = tmp_path / "config/cron-payloads"
+    payloads.mkdir(parents=True)
+    (payloads / "_rule.md").write_text("shared rule for {{market}}\n")
+    (payloads / "intraday.md").write_text("head\n{{include:_rule.md}}\ntail\n")
+    (tmp_path / "config/schedule.json").write_text(json.dumps({
+        "schema_version": 2,
+        "payload_profiles": {
+            "intraday": {"message_template": "config/cron-payloads/intraday.md"}
+        },
+        "jobs": [{
+            "name": "paper slot",
+            "schedule": {"expr": "0 * * * *", "tz": "UTC"},
+            "payload_profile": "intraday",
+            "payload_vars": {"market": "paper"},
+        }],
+        "dst_sync": {"schedule": {"expr": "0 0 * * *"}, "command": "true"},
+    }))
+    source = json.loads((ROOT / "examples/profiles/minimal/profile.json").read_text())
+    source["id"] = "paper"
+    (profile_dir / "profile.json").write_text(json.dumps(source))
+
+    contract = scheduling.load_contract(workspace=tmp_path, profile="paper")
+    job = contract["jobs"][0]
+    assert scheduling.render_payload_message(contract, job) == (
+        "head\nshared rule for paper\ntail")
+
+    (payloads / "_rule.md").unlink()
+    try:
+        scheduling.render_payload_message(contract, job)
+    except ValueError as exc:
+        assert "template fragment" in str(exc)
+    else:
+        raise AssertionError("a missing fragment rendered a payload without its rule")
+
+
+def test_the_three_strategy_payloads_carry_the_same_exec_contract():
+    contract = scheduling.load_contract(workspace=ROOT, profile="kcnyu")
+    fragment = (ROOT / "config/cron-payloads/_exec-contract.md").read_text().rstrip("\n")
+    rendered = {
+        job["payload_profile"]: scheduling.render_payload_message(contract, job)
+        for job in contract["jobs"]
+    }
+    for profile in ("brief", "report", "intraday"):
+        assert rendered[profile].count(fragment) == 1, profile
+
+
 def test_profile_rejects_unknown_code_shaped_configuration(tmp_path):
     source = json.loads((ROOT / "examples/profiles/minimal/profile.json").read_text())
     source["python_module"] = "customer.strategy"
