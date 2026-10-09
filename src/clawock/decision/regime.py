@@ -73,7 +73,7 @@ import requests
 
 from clawock.instruments import INSTRUMENTS
 from clawock.market_data import hstech
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, to_number as _share_number
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -159,7 +159,7 @@ def _held_us_lev_etfs():
         for holding in book.get('holdings', []):
             ticker = holding.get('ticker')
             meta = INSTRUMENTS.get(ticker, {})
-            if (holding.get('shares', 0) > 0
+            if ((_share_number(holding.get('shares', 0)) or 0) > 0
                     and meta.get('region') == 'US'
                     and ticker in US_2X_MAP):
                 held.append(ticker)

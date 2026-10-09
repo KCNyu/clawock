@@ -59,7 +59,7 @@ def _parse_bars(rows):
         try:
             out.append({'date': r[0], 'open': float(r[1]), 'close': float(r[2]),
                         'high': float(r[3]), 'low': float(r[4])})
-        except (IndexError, ValueError):
+        except (IndexError, ValueError, TypeError, KeyError):
             continue
     return out
 
