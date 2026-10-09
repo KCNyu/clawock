@@ -28,6 +28,7 @@ import requests
 
 from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
+from clawock.market_data.tencent_daily import parse_daily_closes
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -104,13 +105,7 @@ def fetch(sym, cnt=1800):
     d = requests.get(url, headers={'User-Agent': UA}, timeout=20).json()
     node = (d.get('data') or {}).get(sym, {})
     rows = node.get('qfqday') or node.get('day') or []
-    out = []
-    for r in rows:
-        try:
-            out.append((r[0], float(r[2])))
-        except (IndexError, ValueError):
-            continue
-    return out
+    return parse_daily_closes(rows)
 
 
 

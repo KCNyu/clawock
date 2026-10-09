@@ -1335,7 +1335,7 @@ def quant_node():
     quant_signals = {}
     try:
         subprocess.run(clawock_argv('quant'),
-                       capture_output=True, text=True, timeout=120, check=False)
+                       capture_output=True, text=True, timeout=120, check=True)
         qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
         if qs_path.exists():
             quant_signals = json.loads(qs_path.read_text())
@@ -1347,7 +1347,11 @@ def quant_node():
                   f' / {len(nonfresh)} unavailable — '
                   + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
     except Exception as e:
-        print(f'   ⚠ quant_signals compute failed: {e}')
+        # Optional data: omit on failure rather than consuming yesterday's fresh
+        # rows. Like stale macro, this must not enter issues (fatal to the brief).
+        quant_signals = {}
+        detail = (e.stderr or '').strip()[-500:] if isinstance(e, subprocess.CalledProcessError) else str(e)
+        print(f'   ⚠ quant_signals compute failed: {detail or str(e)} — omitting from brief (non-fatal)')
     return quant_signals, issues
 
 

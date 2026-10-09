@@ -692,6 +692,7 @@
     "catalysts.json": "催化剂日程",
     "cross_sectional_factor.json": "横截面因子",
     "em_news.json": "港股中文消息",
+    "evidence.json": "验证台账",
     "influencer_feed.json": "影响力雷达",
     "lev_regime.json": "杠杆刻度盘",
     "macro.json": "宏观指标",
