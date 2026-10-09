@@ -507,3 +507,21 @@ def test_brief_block_owner_survives_an_inline_peer_reference():
     assert issues and 'RKLX 自己是 11 个 / 45%' in issues[0]
     assert not check_numeric_claims(prose.replace('13 个 episode 胜率 62%',
                                                  '11 个 episode 胜率 45%'), ctx)
+
+
+@pytest.mark.parametrize('prose', ['今日振幅已用 1.24 倍 ATR', '今日振幅已用 1.24x ATR'])
+def test_a_harness_derived_atr_multiple_is_a_source(hc, prose):
+    ctx = {'t0_setups': {'rows': {'CRCL': {'range_used_atr': 1.24}}}}
+    assert hc.check_numeric_claims(prose, ctx) == []
+
+
+@pytest.mark.parametrize('row', [{}, {'range_used_atr': 1.23}, {'move_pct': 1.24},
+                                  {'ratio': 1.24}, {'range_pos': 1.24}])
+def test_an_atr_multiple_needs_the_matching_multiple_source(hc, row):
+    ctx = {'t0_setups': {'rows': {'CRCL': row}}}
+    assert hc.check_numeric_claims('今日振幅已用 1.24 倍 ATR', ctx)
+
+
+def test_an_atr_multiple_does_not_authorize_a_percentage(hc):
+    ctx = {'t0_setups': {'rows': {'CRCL': {'range_used_atr': 1.24}}}}
+    assert hc.check_numeric_claims('今日涨幅 1.24%', ctx)

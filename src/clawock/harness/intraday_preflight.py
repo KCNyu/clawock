@@ -1716,8 +1716,7 @@ def main(argv=None):
     # on 2026-09-25 flipped move medium/high and STOP/WATCH every slot) must
     # not re-wake a full card for a state kcn already got this session. Only
     # an identity first seen today counts; the current set stays for audit.
-    old_breaches = ((prior_state.get('breaches_seen') or prior_state.get('breaches') or [])
-                    if prior_state.get('session') == semantic_state.get('session') else [])
+    old_breaches = intraday_delta.prior_session_breaches(semantic_state, prior_state)
     semantic_state['breaches_seen'] = sorted(
         {json.dumps(row, sort_keys=True, ensure_ascii=False): row
          for row in [*old_breaches, *semantic_state['breaches']]}.values(),
@@ -1805,8 +1804,7 @@ def main(argv=None):
             raw_block,
             fresh_tickers=fresh_tickers,
             unrefreshed=coverage.get('unrefreshed'),
-            seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
-                          if row.get('kind') == 'signal'},
+            seen_signals=intraday_delta.seen_signal_identities(semantic_state, prior_state),
             status_lines=leverage_lines(leverage, coverage.get('unrefreshed')))
         # Last, and exactly as before #2808 (kcn 2026-10-09: 「千万不要影响到
         # 我们的加仓侧」): its own block, header and rows untouched by layout A.

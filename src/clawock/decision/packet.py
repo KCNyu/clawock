@@ -20,7 +20,7 @@ import re
 import sys
 from pathlib import Path
 
-from clawock.decision.actions import ACTIVE_ACTIONS
+from clawock.decision.actions import ACTIVE_ACTIONS, SWAP_SELL_ACTIONS, paired_swap_sells
 from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
@@ -1885,9 +1885,6 @@ def _catalyst_evidence_issues(tag: str, decision: dict, row: dict) -> list[str]:
     return []
 
 
-SWAP_SELL_ACTIONS = ("cut", "trim_on_rebound")
-
-
 def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
                      decisions: list[dict]) -> list[str] | None:
     """Judge an add on a swap target against its mandate, or None if it is not one.
@@ -1903,20 +1900,13 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
         str(item.get("from_ticker"))
         for item in mandate.get("all_mandates") or [mandate]
     }
-    group = decision.get("decision_group_id")
-    paired = bool(group) and any(
-        other is not decision
-        and str(other.get("ticker") or "") in sources
-        and other.get("action") in SWAP_SELL_ACTIONS
-        and other.get("decision_group_id") == group
-        for other in decisions
-    )
+    paired = bool(paired_swap_sells(decision, decisions, sources=sources))
     if not paired:
         if decision.get("technical_setup_id"):
             return None  # an ordinary setup add on this name; judged as one
         return [
             f"{tag}: swap buy leg must share decision_group_id with a "
-            f"{'/'.join(SWAP_SELL_ACTIONS)} of {'/'.join(sorted(sources))}"
+            f"positive integer-sized {'/'.join(SWAP_SELL_ACTIONS)} of {'/'.join(sorted(sources))}"
         ]
     issues = []
     shares = _number((decision.get("size") or {}).get("shares"), 0)

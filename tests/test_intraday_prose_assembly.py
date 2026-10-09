@@ -659,3 +659,58 @@ def test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers(
     rc, out = run_main(PROSE, context_id='abc123def457',
                        ctx=_ctx(context_id='abc123def457'))
     assert out['status'] == 'pass' and len(sent['messages']) == 1
+
+
+@pytest.mark.parametrize('case, needs_signal', [
+    ('first', True), ('seen', False), ('flicker', False), ('upgraded', True),
+    ('next_session', True), ('missing_session', True),
+])
+def test_only_a_new_signal_identity_requires_new_prose(pf, case, needs_signal):
+    from clawock.harness import intraday_preflight as preflight
+    from clawock.harness.intraday_delta import seen_signal_identities
+    stop = {'ticker': 'RKLX', 'kind': 'signal', 'level': 'STOP'}
+    prior = {'session': 'us:2026-10-09', 'breaches': [stop]}
+    current = {'session': 'us:2026-10-09', 'breaches': [stop]}
+    level = 'STOP'
+    if case == 'first':
+        prior = {}
+    elif case == 'flicker':
+        prior.update(breaches=[], breaches_seen=[stop])
+    elif case == 'upgraded':
+        level = 'ALERT'
+        current['breaches'] = [{**stop, 'level': level}]
+    elif case == 'next_session':
+        current['session'] = 'us:2026-10-12'
+    elif case == 'missing_session':
+        prior.pop('session')
+        current.pop('session')
+    analyzer = BLOCK + f'\n⚠️ 信号\n  ▼ {level} RKLX | 浮-65.6%\n'
+    block = preflight.mark_card_changes(
+        analyzer, fresh_tickers={'CRCL'}, unrefreshed=[],
+        seen_signals=seen_signal_identities(current, prior))
+    prose = '▎我的看法\n' + 'CRCL 本档出现异动，等待量价和信息确认，按既定纪律观察，不追高。' * 3
+    prose += '\n下一触发：CRCL 守住 64.13\n'
+    ctx = _ctx(raw_wechat_block=block, anomalies=[{'ticker': 'CRCL'}],
+               signals_detail=[{'ticker': 'RKLX', 'level': level}],
+               semantic_state=current, prior_semantic_state=prior)
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+    assert bool([i for i in issues if '未提任何信号票' in i]) == needs_signal
+    if not needs_signal:
+        assert '▎持续状态' in block and f'今日已报、仍在：{level} RKLX' in block
+        assert pf.categorize(issues) == 'pass', issues
+    else:
+        named = prose + '\nRKLX 的信号需要按纪律处理。'
+        assert not [i for i in pf.validate(pf.assemble_message(ctx, named), ctx, named)
+                    if '未提任何信号票' in i]
+
+
+def test_naming_an_old_signal_cannot_cover_a_new_signal(pf):
+    prior = {'session': 'us:2026-10-09', 'breaches': [
+        {'ticker': 'RKLX', 'kind': 'signal', 'level': 'STOP'}]}
+    ctx = _ctx(anomalies=[], semantic_state={'session': prior['session']},
+               prior_semantic_state=prior, signals_detail=[
+                   {'ticker': 'RKLX', 'level': 'STOP'}, {'ticker': 'CRCL', 'level': 'TRIM'}])
+    prose = '▎我的看法\n' + 'RKLX 继续等待纪律动作，当前走势未提供新的判断依据。' * 3
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+    missed = [i for i in issues if '未提任何信号票' in i]
+    assert len(missed) == 1 and 'CRCL' in missed[0] and 'RKLX' not in missed[0]

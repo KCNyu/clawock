@@ -26,7 +26,7 @@ from test_brief_decision_packet import _context
 TODAY = '2026-07-28'
 
 
-def write_generation(root, today=TODAY):
+def write_generation(root, today=TODAY, *, ticker_rows=None):
     """A workspace holding one real preflight generation; returns its packet."""
     (root / 'memory' / '.tmp').mkdir(parents=True, exist_ok=True)
     (root / 'skills' / 'daily-deep-brief').mkdir(parents=True, exist_ok=True)
@@ -35,6 +35,8 @@ def write_generation(root, today=TODAY):
     context = _context()
     context['date'] = today
     packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    if ticker_rows is not None:
+        packet['tickers'] = ticker_rows
     brief_context.write_run_bundle(
         context, root / 'memory' / '.tmp' / f'brief-context-{today}.json',
         tool_artifacts={'decision_packet': packet})
@@ -229,3 +231,96 @@ def test_a_decision_on_a_name_outside_the_book_is_told_so(workspace, monkeypatch
                                      'action': 'add_only_on_trigger'})
     with pytest.raises(bf.ReplyRejected, match='NVDA add_only_on_trigger: not a holding'):
         bf.checked_reply(json.dumps(bad, ensure_ascii=False), TODAY, packet)
+
+
+def swap_reply(packet, *, shares=4000):
+    from test_risk_swap_leg import _legs
+    reply = json.loads(model_reply(packet).split('```json\n')[1].split('\n```')[0])
+    plan = _legs(shares=shares)
+    for row in plan['decisions']:
+        row.update(strategy_id='risk_rebalance', driven_by='risk_rule', confidence=0.6, regime='neutral')
+        row['condition'] = {'type': 'open'}
+    reply['plan'] = {'schema_version': 2, 'date': TODAY, **plan}
+    return reply
+
+
+def test_a_setup_free_swap_writes_both_artifacts_and_passes_the_host_gate(workspace, monkeypatch):
+    from clawock.decision import ledger
+    from test_risk_swap_leg import _swap_packet
+    packet = write_generation(workspace, ticker_rows=_swap_packet()['tickers'])
+    reply = swap_reply(packet)
+    calls = []
+    monkeypatch.setattr(bf, 'chat', lambda **kw: calls.append(kw) or json.dumps(reply))
+    bf.main([])
+    assert len(calls) == 1
+    paths = bf.artifact_paths(workspace, TODAY)
+    plan = json.loads(paths['plan'].read_text())
+    assert ledger.validate_plan(plan, paths['plan']) == []
+    assert packet_mod.validate_plan_constraints(plan, packet) == []
+    assert not plan['decisions'][1]['technical_setup_id']
+    assert brief_postflight.validate_plan_json(paths['plan'], decision_packet=packet) == []
+    assert paths['judgment'].exists() and bf.main(['--verify-receipt']) == 0
+
+
+@pytest.mark.parametrize('bad, expected', [
+    ('unpaired', 'decision_group_id'),
+    ('wrong_source', '07226'),
+    ('wrong_target', 'outside current decision packet'),
+    ('over_value', 'max_value'),
+    ('odd_lot', 'board-lot'),
+    ('fractional', 'positive integer'),
+    ('zero', 'positive integer'),
+    ('no_mandate', 'approved technical setup'),
+    ('technical', 'technical_setup_id'),
+    ('strategy_only', 'technical_setup_id'),
+    ('invented_setup', 'technical_campaign_id'),
+    ('empty_sell', 'decision_group_id'),
+    ('zero_sell', 'decision_group_id'),
+])
+def test_swap_labels_never_bypass_the_packet_or_technical_contract(workspace, bad, expected):
+    from test_risk_swap_leg import _swap_packet
+    packet = _swap_packet()
+    reply = swap_reply(packet)
+    sell, buy = reply['plan']['decisions']
+    if bad == 'unpaired':
+        buy['decision_group_id'] = 'unpaired'
+    elif bad == 'wrong_source':
+        sell['ticker'] = 'UNRELATED'
+        packet['tickers']['UNRELATED'] = packet['tickers']['07226']
+    elif bad == 'wrong_target':
+        buy['ticker'] = 'UNRELATED'
+    elif bad == 'over_value':
+        buy['size']['shares'] = 5000
+    elif bad == 'odd_lot':
+        buy['size']['shares'] = 4100
+    elif bad == 'fractional':
+        buy['size']['shares'] = 4000.5
+    elif bad == 'zero':
+        buy['size']['shares'] = 0
+    elif bad == 'no_mandate':
+        packet['tickers']['03033']['constraints']['swap_mandate'] = None
+    elif bad == 'technical':
+        buy.update(strategy_id='tactical_entry', driven_by='technical')
+    elif bad == 'strategy_only':
+        buy['driven_by'] = 'technical'
+    elif bad == 'invented_setup':
+        buy['technical_setup_id'] = 'invented'
+    elif bad == 'empty_sell':
+        sell['size'] = {}
+    elif bad == 'zero_sell':
+        sell['size']['shares'] = 0
+    with pytest.raises(bf.ReplyRejected, match=expected):
+        bf.checked_reply(json.dumps(reply), TODAY, packet)
+
+
+def test_a_swap_repair_is_given_the_mandate_instead_of_told_to_drop_the_buy(workspace):
+    from test_risk_swap_leg import _swap_packet
+    packet = _swap_packet()
+    reply = swap_reply(packet, shares=5000)
+    with pytest.raises(bf.ReplyRejected) as rejected:
+        bf.checked_reply(json.dumps(reply), TODAY, packet)
+    repair = bf.repair_prompt('initial', json.dumps(reply), str(rejected.value))
+    assert 'swap_mandate=' in repair and '"from_ticker":"07226"' in repair
+    assert 'max_value' in repair and '换仓的买腿怎么写' in repair
+    assert 'no add is available' not in repair
+    assert 'packet 没有给 setup 的，改成' not in repair

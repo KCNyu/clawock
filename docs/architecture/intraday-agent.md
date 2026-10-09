@@ -286,11 +286,11 @@ written down.
 | block order, symbols, table bytes | gate | `test_card_layout_contract`, `test_preflight_main_never_rewrites_the_analyzer_table` | the harness renders it; there is no model step to comply |
 | a slot always sends | gate | `always_full` + `test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly` | kcn final decision |
 | `analyzer_block` stays in the model's view | gate | `test_the_model_packet_keeps_reason_lines_the_card_folded` | #1862 once removed it |
-| alert slot names its movers and signal tickers | gate (escalating) | `intraday_postflight.validate` | naming what fired is what the slot is for |
+| alert slot names its movers and at least one new signal ticker when present | gate (escalating) | `intraday_postflight.validate`; `intraday_delta.seen_signal_identities` also drives card folding | signal identity is (level, ticker), compared with this trading session’s delivered seen set; repeated signals stay in block 10 without forced prose (#2829) |
 | no field names / enum values in prose | gate (escalating) | `check_identifier_leak` | 2026-09-25 14:33 `semantic_unchanged`; an identifier is never trading language |
 | fixable findings (identifiers, `下一触发`, stale headline without time, a `▎我的看法` marker that does not open a line — #2049) are handed back **once** before sending | gate (revise-once) | `REVISABLE` in postflight; `test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers` | a banner only labels the breach on kcn's card; one rewrite removes it, and the second call always delivers so the slot is never lost |
 | pipeline words (`harness`, `packet`) | prompt + advisory | `check_pipeline_self_reference` | the sentence is usually a correct read in the wrong words; failing it would cost the analysis |
-| numbers come from the context | advisory | `check_numeric_claims` | cannot tell a real number attached to the wrong thing |
+| numbers come from the context | advisory | `check_numeric_claims` | explicit units apply to core and reference fields alike; `range_used_atr` is a harness-derived multiple, not a percentage; cannot tell a real number attached to the wrong thing |
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
 | `下一触发` names and levels are subject-scoped; proposed levels within ±5% of that subject's current quote are allowed — every such line, merged into one (#2077) | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment`, `test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
@@ -323,6 +323,8 @@ as live.
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |
+| signal prose coverage and card folding share the session’s delivered identities; new levels still require prose | live (#2829) |
+| T+0 `range_used_atr` is an explicit multiple source for numeric claims | live (#2828) |
 | stale-title matching respects full cited titles and timestamped live duplicates | live (#2106) |
 | stale-quote gate reads full morning and live ticker rows, beyond the summary cap (`test_a_stale_live_title_beyond_the_summary_cap_is_held_to_the_label_rule`) | live (#2228) |
 | reference since windows compare publication instants in HKT on the slot date, including overnight wrap (`test_reference_since_uses_hkt_dates_and_combines_the_ticker_filter`, `test_reference_since_wraps_the_us_slot_across_midnight`) | live (#2229) |
