@@ -184,12 +184,13 @@ def test_one_rejected_reply_gets_one_repair_turn_naming_what_failed(workspace, m
     assert prompts[0]['user'] in repair and json.dumps(bad, ensure_ascii=False) in repair
     reason = repair.split('它没有通过写盘前的校验')[1]
     ticker = bad['plan']['decisions'][0]['ticker']
-    assert f'decision[0] is {ticker} add_only_on_trigger' in reason
+    assert f'decision[0] is {ticker} add_only_on_trigger: packet allowed_actions=' in reason
+    assert 'technical.setups' in reason
     assert prompts[1]['deadline_seconds'] <= bf.BRIEF_LLM_TIMEOUT_SECONDS
     assert bf.main(['--verify-receipt']) == 0
 
 
-def test_a_second_rejection_writes_nothing(workspace, monkeypatch):
+def test_rejections_past_the_repair_turns_write_nothing(workspace, monkeypatch):
     packet = write_generation(workspace)
     good = model_reply(packet)
     bad = json.loads(good[good.index('{'):good.rindex('}') + 1])
@@ -201,9 +202,9 @@ def test_a_second_rejection_writes_nothing(workspace, monkeypatch):
         return json.dumps(bad, ensure_ascii=False)
 
     monkeypatch.setattr(bf, 'chat', chat)
-    with pytest.raises(SystemExit, match='after the repair turn'):
+    with pytest.raises(SystemExit, match='repair turn'):
         bf.main([])
-    assert len(calls) == 2
+    assert len(calls) == 1 + bf.MAX_REPAIR_TURNS
     assert not any(path.exists() for path in bf.artifact_paths(workspace, TODAY).values())
     assert bf.main(['--verify-receipt']) == 1
 
@@ -218,3 +219,13 @@ def test_no_repair_turn_is_started_without_budget_left(workspace, monkeypatch):
     with pytest.raises(SystemExit, match='no repair turn'):
         bf.main([])
     assert len(calls) == 1 and packet
+
+
+def test_a_decision_on_a_name_outside_the_book_is_told_so(workspace, monkeypatch):
+    packet = write_generation(workspace)
+    good = model_reply(packet)
+    bad = json.loads(good[good.index('{'):good.rindex('}') + 1])
+    bad['plan']['decisions'].append({**bad['plan']['decisions'][0], 'ticker': 'NVDA',
+                                     'action': 'add_only_on_trigger'})
+    with pytest.raises(bf.ReplyRejected, match='NVDA add_only_on_trigger: not a holding'):
+        bf.checked_reply(json.dumps(bad, ensure_ascii=False), TODAY, packet)
