@@ -347,8 +347,7 @@ def confirmation_setup(
     ticker: str,
 ) -> dict | None:
     """Build a multi-session, gap-aware execution intent for one campaign."""
-    if authority.get("tier") not in {"exploration", "validated",
-                                     "exploration_cold_start"}:
+    if not add_policy.is_authorised_tier(authority.get("tier")):
         return None
     if not technical.get("usable") or technical.get("stop_state") != "intact":
         return None

@@ -167,6 +167,21 @@ def size_cap_text(policy: dict | None) -> str | None:
 
 EXPLORATION_TIERS = ("exploration", "exploration_cold_start")
 
+#: Every tier `add_alpha.classify_authority` grants. Whether a name "is an add
+#: candidate" is asked in several layers — the campaign builder, the judgment
+#: validator, the pages projection, the brief card — and each used to spell the
+#: set out for itself. The cold-start tier was added to the builder's copy only,
+#: so a name the packet had opened `add_only_on_trigger` for was still refused
+#: the word "candidate" one layer down (#2833; #2827 was the same shape in the
+#: off-host fallback). A new tier is added to `TARGET_TRANCHE_LEVEL` and
+#: nowhere else.
+AUTHORISED_TIERS = tuple(TARGET_TRANCHE_LEVEL)
+
+
+def is_authorised_tier(tier) -> bool:
+    """True for a tier that carries add authority; False for `none`/absent."""
+    return tier in AUTHORISED_TIERS
+
 #: Concentration ceiling for one name inside its market's invested book, and the
 #: stricter one for daily-reset leveraged names. Same numbers as
 #: `portfolio.guardrail.GUARDRAIL_CAPS` (`single_name_mandatory_pct`,

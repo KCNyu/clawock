@@ -633,6 +633,55 @@ def _soft_identity(row):
                        if row.get(key) is not None}, sort_keys=True, ensure_ascii=False)
 
 
+#: Add-side candidates that exist because of evidence, not because the quote
+#: crossed a level. `breakout` is the price state #610 folded on purpose.
+EVIDENCE_CANDIDATE_KINDS = {'pullback': '回踩', 'primary_approach': '一手公告+临近突破'}
+
+
+def judgment_identities(soft_candidates, add_side_reads):
+    """Seen-set identities for a read that changed on a name already watched.
+
+    `soft_candidates_seen` keyed a T+0 row on ticker and kind, and the add-side
+    read was not in the delta at all: a holding regraded from 「低位/超卖」 to
+    「追高低质」, or moved wait → candidate by a newly graded item, left the slot
+    "unchanged" and the card saying 「本档没有新条件」 (#2835). These join the
+    same seen set, so each grade and each evidence-driven candidacy counts once
+    per session and a flicker back to a state already delivered counts never.
+    """
+    rows = [{'ticker': row['ticker'], 'kind': 't0_grade', 'band': row['grade']}
+            for row in soft_candidates or []
+            if row.get('kind') == 't0_quality' and row.get('ticker') and row.get('grade')]
+    rows += [{'ticker': row['ticker'], 'kind': 'add_side', 'band': row['kind']}
+             for row in (add_side_reads or {}).get('rows') or []
+             if row.get('verdict') == 'candidate' and row.get('ticker')
+             and row.get('kind') in EVIDENCE_CANDIDATE_KINDS]
+    return rows
+
+
+def soft_seen_set(session, prior_state, soft_candidates, add_side_reads):
+    """This session's seen set after this slot, and the cursor to compare it with.
+
+    The set only grows inside a trading session and starts empty in a new one.
+    A same-session cursor written before `judgment_identities` existed cannot
+    say which of them it already delivered, so this slot is their baseline: they
+    are added to the returned cursor too and nothing about them reads as news.
+    """
+    def unique(rows):
+        return sorted({json.dumps(row, sort_keys=True, ensure_ascii=False): row
+                       for row in rows}.values(),
+                      key=lambda row: json.dumps(row, sort_keys=True))
+
+    judged = judgment_identities(soft_candidates, add_side_reads)
+    current = [{key: row.get(key) for key in ('ticker', 'kind', 'band')
+                if row.get(key) is not None} for row in soft_candidates or []] + judged
+    same_session = prior_state.get('session') == session
+    old = (prior_state.get('soft_candidates_seen') or []) if same_session else []
+    if same_session and not prior_state.get('judgment_identities'):
+        old = unique([*old, *judged])
+        prior_state = {**prior_state, 'soft_candidates_seen': old}
+    return unique([*old, *current]), prior_state
+
+
 def soft_candidate_changes(current, previous, soft_candidates):
     """What `soft_candidates_seen` gained this slot, in card words (#2804).
 
@@ -643,10 +692,12 @@ def soft_candidate_changes(current, previous, soft_candidates):
     """
     seen = previous.get('soft_candidates_seen') or []
     old = {_soft_identity(row) for row in seen}
-    bands = {}
+    bands, grades = {}, {}
     for row in seen:
         if row.get('kind') == 'soft_move' and row.get('band'):
             bands.setdefault(row.get('ticker'), []).append(row['band'])
+        elif row.get('kind') == 't0_grade' and row.get('band'):
+            grades.setdefault(row.get('ticker'), []).append(row['band'])
     live = {_soft_identity(row): row for row in soft_candidates or []}
     out = []
     for row in current.get('soft_candidates_seen') or []:
@@ -654,6 +705,16 @@ def soft_candidate_changes(current, previous, soft_candidates):
         if key in old or not row.get('ticker'):
             continue
         ticker, now = row['ticker'], live.get(key) or {}
+        if row.get('kind') == 't0_grade':
+            if grades.get(ticker):
+                out.append(f"{ticker} T+0 评级变为{row.get('band')}"
+                           f"（此前 {'、'.join(sorted(grades[ticker]))}）")
+            # A first grade is said by the `t0_quality` row that carries it.
+            continue
+        if row.get('kind') == 'add_side':
+            out.append(f"{ticker} 首次成为加仓侧候选"
+                       f"（{EVIDENCE_CANDIDATE_KINDS.get(row.get('band'), row.get('band'))}）")
+            continue
         if row.get('kind') == 'soft_move':
             pct = now.get('pct_1d')
             move = f'日内 {pct:+.1f}%' if isinstance(pct, (int, float)) else None
@@ -1704,14 +1765,9 @@ def main(argv=None):
         })
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
     prior_state = (prior_doc.get('state') or {}) if isinstance(prior_doc, dict) else {}
-    current_soft = [{key: row.get(key) for key in ('ticker', 'kind', 'band')
-                     if row.get(key) is not None} for row in soft_candidates]
-    old_soft = (prior_state.get('soft_candidates_seen') or []
-                if prior_state.get('session') == semantic_state.get('session') else [])
-    semantic_state['soft_candidates_seen'] = sorted(
-        {json.dumps(row, sort_keys=True, ensure_ascii=False): row
-         for row in [*old_soft, *current_soft]}.values(),
-        key=lambda row: json.dumps(row, sort_keys=True))
+    semantic_state['soft_candidates_seen'], prior_state = soft_seen_set(
+        semantic_state.get('session'), prior_state, soft_candidates, add_side_reads)
+    semantic_state['judgment_identities'] = True
     # Same rule for breaches: a ticker sitting on a bucket edge (07226 at -5%
     # on 2026-09-25 flipped move medium/high and STOP/WATCH every slot) must
     # not re-wake a full card for a state kcn already got this session. Only

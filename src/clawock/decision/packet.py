@@ -20,7 +20,9 @@ import re
 import sys
 from pathlib import Path
 
-from clawock.decision.actions import ACTIVE_ACTIONS, SWAP_SELL_ACTIONS, paired_swap_sells
+from clawock.decision.actions import (
+    ACTIVE_ACTIONS, SELL_ACTIONS, SWAP_SELL_ACTIONS, paired_swap_sells,
+)
 from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
@@ -394,6 +396,10 @@ def _thesis_view(context: dict, ticker: str) -> dict:
 
 
 EXPLORATION_TIERS = add_policy.EXPLORATION_TIERS
+# Bound here because several functions below take the loaded policy dict as a
+# parameter named `add_policy`, which hides the module inside them.
+is_authorised_tier = add_policy.is_authorised_tier
+TARGET_TRANCHE_LEVEL = add_policy.TARGET_TRANCHE_LEVEL
 
 
 def _execution_view(holding: dict, leg: str, capital: float, cash: float,
@@ -1285,8 +1291,9 @@ def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
             "state": state,
             "tier": tier,
             "target_tranche_level": (
-                0.25 if tier == "exploration" or early_ready
-                else 1.0 if tier == "validated" else 0.0
+                TARGET_TRANCHE_LEVEL["validated"] if tier == "validated"
+                else TARGET_TRANCHE_LEVEL["exploration"] if early_ready
+                else TARGET_TRANCHE_LEVEL.get(tier, 0.0)
             ),
             "sources": sorted(set(
                 list(authority.get("sources") or [])
@@ -1429,18 +1436,18 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
             "allowed_candidate_count": sum(bool(row["allowed"]) for row in candidates),
             "observed_candidate_count": sum(
                 bool((row.get("early_trend") or {}).get("observed"))
-                or row["tier"] in {"exploration", "validated"}
+                or is_authorised_tier(row["tier"])
                 for row in candidates
             ),
             "observed_idea_count": len({
                 row.get("source_ticker") or row["ticker"]
                 for row in candidates
                 if bool((row.get("early_trend") or {}).get("observed"))
-                or row["tier"] in {"exploration", "validated"}
+                or is_authorised_tier(row["tier"])
             }),
             "observed_candidate_rate": round(sum(
                 bool((row.get("early_trend") or {}).get("observed"))
-                or row["tier"] in {"exploration", "validated"}
+                or is_authorised_tier(row["tier"])
                 for row in candidates
             ) / len(tickers), 4) if tickers else 0,
             "early_exploration_ready_count": sum(
@@ -1830,7 +1837,7 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
         authority = ((deterministic.get("quant") or {}).get("add_authority") or {})
         early = ((deterministic.get("quant") or {}).get("early_trend") or {})
         can_be_candidate = bool(
-            authority.get("tier") in {"exploration", "validated"}
+            is_authorised_tier(authority.get("tier"))
             or early.get("observed")
         )
         if disposition == "candidate" and not can_be_candidate:
@@ -1930,7 +1937,90 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
     return issues
 
 
-def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
+def _whole_shares(decision: dict) -> int | None:
+    """A leg's size as a positive whole share count, else None."""
+    shares = _number((decision.get("size") or {}).get("shares"), 4)
+    if shares is None or shares <= 0 or int(shares) != shares:
+        return None
+    return int(shares)
+
+
+def _full_position_stops(row: dict, exempt_breach_ids=frozenset()) -> list[float]:
+    """Share counts the row's hard stops still require, capped at the holding."""
+    holding = _number((row.get("constraints") or {}).get("max_sell_shares"), 4)
+    out = []
+    for risk in row.get("risk") or []:
+        if (risk.get("kind") != "hard_stop"
+                or (risk.get("adaptive") or {}).get("may_stand")
+                or risk.get("breach_id") in exempt_breach_ids):
+            continue
+        minimum = _number(
+            (risk.get("required_reduction") or {}).get("minimum_shares"), 4)
+        if minimum is not None and minimum > 0:
+            out.append(min(minimum, holding) if holding is not None else minimum)
+    return out
+
+
+def bind_full_position_cuts(plan: dict, packet: dict) -> dict:
+    """Size the one unsized cut that answers a hard stop, from the packet.
+
+    The amount is the position; there is nothing for the plan writer to decide
+    and so nothing for it to copy (kcn 2026-10-10: a number the system can write
+    should not pass through the model). A size the writer did state is left
+    alone and judged by `validate_plan_constraints`.
+    """
+    bound = copy.deepcopy(plan)
+    decisions = [d for d in bound.get("decisions") or [] if isinstance(d, dict)]
+    for ticker, row in (packet.get("tickers") or {}).items():
+        required = _full_position_stops(row)
+        cuts = [d for d in decisions
+                if str(d.get("ticker") or "") == ticker and d.get("action") == "cut"]
+        if not required or len(cuts) != 1:
+            continue
+        size = cuts[0].get("size") if isinstance(cuts[0].get("size"), dict) else {}
+        full = max(required)
+        if size.get("shares") is None and int(full) == full:
+            cuts[0]["size"] = {**size, "shares": int(full)}
+    return bound
+
+
+def _full_position_shortfalls(decisions: list[dict], rows: dict,
+                              exempt_breach_ids=frozenset()) -> list[str]:
+    """Hard stops whose cut legs do not add up to the position they must close.
+
+    `required_reduction.minimum_shares` has been in the packet since the hard
+    stop got a row of its own, and nothing read it: the forced action was
+    checked by name, so `cut` with `size.shares: 0` on a ten-share position
+    answered a full-position stop (#2831). The legs are summed per ticker, so a
+    cut split across conditions still counts once it covers the position.
+
+    Only the full-position kind is a per-plan minimum. A `minimum_value` on a
+    cap breach is the distance to the cap, and the same row tells the writer to
+    work it off in tranches (「借反弹分批、勿在新低日一次砍」) — holding one
+    plan to the whole distance would overrule that. A hard stop with no cut at
+    all is postflight's finding, which also knows the durable overrides.
+    """
+    issues = []
+    for ticker, row in rows.items():
+        cuts = [
+            d for d in decisions
+            if str(d.get("ticker") or "") == ticker and d.get("action") == "cut"
+        ]
+        if not cuts:
+            continue
+        cut_shares = sum(_whole_shares(d) or 0 for d in cuts)
+        for minimum in _full_position_stops(row, exempt_breach_ids):
+            if cut_shares < minimum:
+                issues.append(
+                    f"{ticker}: hard stop requires cutting the full position "
+                    f"({minimum:g} shares, required_reduction.minimum_shares); "
+                    f"plan cuts {cut_shares:g}"
+                )
+    return issues
+
+
+def validate_plan_constraints(plan: dict, packet: dict, *,
+                              exempt_breach_ids=frozenset()) -> list[str]:
     issues = []
     rows = packet.get("tickers") or {}
     decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
@@ -1958,6 +2048,14 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
             and shares > max_sell
         ):
             issues.append(f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}")
+        if action in SELL_ACTIONS and _whole_shares(decision) is None and (
+            (decision.get("size") or {}).get("shares") is not None
+            or action in (constraints.get("forced_action_one_of") or [])
+        ):
+            # An unsized sell stays advisory (`missing_size_warnings`); a zero,
+            # negative or fractional one is not a sell, and a leg that answers a
+            # forced action has to say how much it reduces.
+            issues.append(f"{tag}: sell leg requires positive integer size.shares")
         swap_issues = (
             _swap_leg_issues(tag, decision, row, constraints["swap_mandate"], decisions)
             if action == "add_only_on_trigger" and constraints.get("swap_mandate")
@@ -2010,6 +2108,7 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
                 issues.append(
                     f"{tag}: add condition validity does not match approved setup"
                 )
+    issues.extend(_full_position_shortfalls(decisions, rows, exempt_breach_ids))
     return issues
 
 
@@ -2034,7 +2133,7 @@ def compile_pages_projection(
         authority = ((row.get("quant") or {}).get("add_authority") or {})
         early = ((row.get("quant") or {}).get("early_trend") or {})
         deterministic_candidate = bool(
-            authority.get("tier") in {"exploration", "validated"}
+            is_authorised_tier(authority.get("tier"))
             or early.get("observed")
         )
         effective_disposition = (

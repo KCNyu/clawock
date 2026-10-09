@@ -528,6 +528,9 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             normalized = brief_decision_packet.bind_plan_provenance(
                 normalized, decision_packet
             )
+            normalized = brief_decision_packet.bind_full_position_cuts(
+                normalized, decision_packet
+            )
         dropped_frames = _dropped_debate_frames(authored)
         if dropped_frames:
             # Counted, not silenced. Normalization deletes these (that is the
@@ -574,6 +577,16 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
     return _normalization_result([], normalized, return_plan)
 
 
+def _durable_override_ids(context):
+    """Breaches kcn declined on the record, with a reason and an unexpired TTL."""
+    discipline = (context or {}).get('risk_discipline') or {}
+    return {
+        row.get('breach_id')
+        for row in discipline.get('records') or []
+        if risk_discipline.override_is_active(row)
+    }
+
+
 def validate_plan_json(path, context=None, decision_packet=None, *,
                        normalized=True):
     """Validate the plan on disk.
@@ -602,7 +615,8 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
         issues += [
             f'plan.json harness: {item}'
             for item in brief_decision_packet.validate_plan_constraints(
-                plan, decision_packet
+                plan, decision_packet,
+                exempt_breach_ids=_durable_override_ids(context),
             )
         ]
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
@@ -675,11 +689,7 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
         trims = [d for d in decisions if d.get('action') in TRIM and d.get('strategy_id') == 'risk_rebalance']
         trim_tickers = {d.get('ticker') for d in trims}
         trim_legs = {_leg(d.get('ticker')) for d in trims}
-        durable_overrides = {
-            row.get('breach_id')
-            for row in discipline.get('records') or []
-            if risk_discipline.override_is_active(row)
-        }
+        durable_overrides = _durable_override_ids(context)
         for b in gr.get('breaches', []):
             tk, leg = b.get('ticker'), b.get('leg')
             # A breach the book keeps declining may stand today — holding it is the

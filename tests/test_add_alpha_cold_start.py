@@ -194,3 +194,19 @@ def test_a_cold_start_slice_is_its_own_campaign_not_a_validated_one():
     assert ":cold_start:" in ids["exploration_cold_start"]
     assert ":validated:" not in ids["exploration_cold_start"]
     assert len(set(ids.values())) == 3
+
+
+def test_every_tier_the_classifier_grants_is_one_the_policy_knows():
+    """#2833: the tier list lived in each consumer, and the cold-start tier
+    reached only one of them. Every tier that authorises has size terms, and
+    `none` has neither."""
+    from clawock.decision import add_policy
+
+    cold = _authority(technical=_one_family_technical())["tier"]
+    assert cold == "exploration_cold_start"
+    assert add_policy.is_authorised_tier(cold)
+    assert not add_policy.is_authorised_tier("none")
+    assert not add_policy.is_authorised_tier(None)
+    for tier in add_policy.AUTHORISED_TIERS:
+        assert add_policy.tier_terms(POLICY, tier)["target_tranche_level"] > 0
+    assert set(add_policy.EXPLORATION_TIERS) < set(add_policy.AUTHORISED_TIERS)

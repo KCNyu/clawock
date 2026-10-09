@@ -441,9 +441,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
             "benefit_t1_pct": None, "benefit_t5_pct": None, "outcome": "pending",
             "capital": None,
         },
-        "execution": action.get("execution") or {
-            "status": "unknown", "detected_at": None, "source": None,
-        },
+        "execution": action.get("execution") or _unknown_execution(),
         "migration": action.get("migration") or {"source": "plan_v1"},
     }
 
@@ -721,7 +719,12 @@ def _harness_owned_ids(item: dict, plan_date: str, own_ids: set) -> dict:
     the upsert would then overwrite) is re-derived. episode_id is always
     re-derived: continuity is the ledger's to decide, from the rows it holds.
     """
-    out = {k: v for k, v in item.items() if k != "episode_id"}
+    # `execution` is not identity, but it is the ledger's in the same way: what
+    # kcn did with a call is recorded by `mark-followed` or the trade detector,
+    # never by the plan that made the call. An authored `followed` used to ride
+    # a new row into the ledger, survive settlement, and be skipped by the
+    # detector, which only looks at `unknown` (#2832).
+    out = {k: v for k, v in item.items() if k not in ("episode_id", "execution")}
     did = out.get("decision_id")
     if did and (did, plan_date, str(out.get("ticker") or "").strip()) not in own_ids:
         out.pop("decision_id")
@@ -786,6 +789,10 @@ def write_decisions(decisions: list[dict], path: Path = LEDGER) -> None:
     finally:
         if os.path.exists(tmp):
             os.unlink(tmp)
+
+
+def _unknown_execution() -> dict:
+    return {"status": "unknown", "detected_at": None, "source": None}
 
 
 def upsert_plan_decisions(
@@ -860,10 +867,12 @@ def upsert_plan_decisions(
             old.update(d)
             if evaluation:
                 old["evaluation"] = evaluation
-            if execution:
-                old["execution"] = execution
+            old["execution"] = execution or _unknown_execution()
             updated += 1
         else:
+            # A row the ledger has never held has no execution history, whatever
+            # the plan says about itself (#2832).
+            d = {**d, "execution": _unknown_execution()}
             existing.append(d)
             by_id[did] = d
             inserted += 1

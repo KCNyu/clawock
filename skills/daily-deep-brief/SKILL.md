@@ -778,7 +778,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
 - 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：「packet 锁定 [hold_and_watch, watch]，不允许 trim」→「风控只允许持有观察，不减」。postflight 会以 advisory 标出。
-- 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出股数不得超过 `max_sell_shares`，catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
+- 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出腿的 `size.shares` 是正整数且不得超过 `max_sell_shares`；`risk[].kind=hard_stop`（非 `may_stand`）的 cut 是整仓：只写一条 cut 时 `size.shares` 可以留空，postflight 按该行 `required_reduction.minimum_shares` 填；自己写股数（含拆成几条不同条件的腿）则合计要达到它。cap 类 breach 的 `minimum_value` 是到上限的总距离，分几批由你判断，catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `add_on_breakout`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）

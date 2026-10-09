@@ -394,6 +394,7 @@ def checked_reply(out, today, packet):
     # fills a missing date, and a model-written wrong one would otherwise land
     # as memory/<today>-plan.json and derive every id from the wrong day.
     errors = list(decision_v2.validate_plan(plan, f'memory/{today}-plan.json'))
+    plan = decision_packet.bind_full_position_cuts(plan, packet)
     errors += decision_packet.validate_plan_constraints(plan, packet)
     if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
         errors.append('judgment carries no ticker_judgments')
