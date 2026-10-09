@@ -323,7 +323,8 @@ as live.
 | `🔗` leveraged leg vs underlying (`test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap`, `test_preflight_prints_the_leverage_line_from_the_t0_map`) | live (#1902) |
 | information lane tier 2: live free sources every slot, started before the analyzer, bounded (`test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_gaps`, `test_live_items_reach_the_lane_apart_from_the_morning_rows_with_their_own_time`, `test_nothing_waits_past_the_budget`); the same module feeds the brief and the report (`test_intraday_brief_and_report_all_go_through_the_one_collect`) | live (#1935) |
 | tier 0 cites carry each item's own publication time, or explicitly mark missing precision (`test_a_morning_item_uses_its_own_date_not_the_file_write_time`) | live (#2103) |
-| one shared Mode 7 body + thin market entry; the market SKILL is no longer loaded by the slot (`test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency`, `test_one_mode7_body_carries_the_add_side_rules_for_both_markets`) | live (#2807 step 1); `required_substrings` slimming is the open second step |
+| one shared Mode 7 body + thin market entry; the market SKILL is no longer loaded by the slot (`test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency`, `test_one_mode7_body_carries_the_add_side_rules_for_both_markets`) | live (#2807 step 1) |
+| intraday `required_substrings`: 32 kept, each an interface token or an instruction nothing else checks before delivery; three wording locks dropped (an explanatory clause and two field names whose presence in the packet is declared in `intraday_layers.py`). Rules stated in both the cron payload and the shared body stay in the payload, where the live cron message is compared verbatim | closed (#2807 step 2) |
 
 First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
 previous US night, same classifier): judgments with field names 7/9 → 1/10
