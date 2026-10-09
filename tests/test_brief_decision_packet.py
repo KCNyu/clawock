@@ -211,7 +211,6 @@ def test_compiler_owns_proxy_join_risk_status_and_action_bounds():
     assert hk["constraints"]["max_add_shares"] % 20 == 0
     assert "add_only_on_trigger" in hk["constraints"]["allowed_actions"]
     assert hk["quant"]["add_authority"]["tier"] == "none"
-    assert len(packet_mod._compact(packet).encode()) < packet_mod.MAX_PACKET_BYTES
     # The summary has its own budget: it is the brief's always-resident input and
     # grows with the book, unlike a per-ticker section query.
     assert len(
@@ -1100,28 +1099,25 @@ def test_the_summary_budget_is_measured_against_a_real_sized_book():
         f"{report['bytes']} / {report['budget']}"
     )
     # And it must still be a *summary* — not the whole packet under a new name.
-    assert report["bytes"] < packet_mod.MAX_PACKET_BYTES
+    assert report["bytes"] < len(packet_mod._compact(packet).encode())
 
 
 def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
     """The warning existed and nothing ever asked for it.
 
-    `summary_budget_report` and `SUMMARY_BUDGET_WARN_RATIO` were written after
+    `summary_budget_report` and its warn ratio were written after
     2026-08-17, when the summary crossed its cap silently and
     `decision_packet_summary` — Step 2's 唯一常驻输入 — began refusing. Both
     were then called only from this file: `near_budget`, described one test
     below as "the signal that has to fire while there is still room", had
-    nowhere to fire. The packet's own ceiling got its warning in #1349 and its
-    comment credits this one with the lesson, which is how the gap stayed
-    invisible.
+    nowhere to fire.
 
-    Both budgets are crossed by the same act — buying a stock — so the check
-    belongs where the packet's does: in the one function that runs on every
-    generation.
+    The read budgets are crossed by buying a stock, not by a code change, so
+    the check belongs in the one function that runs on every generation.
     """
     context = _book_with(2)
     packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
-    assert "summary at" not in capsys.readouterr().err, (
+    assert "`summary` at" not in capsys.readouterr().err, (
         "a small book must not warn, or the signal is noise by the second week")
 
     # Same code path, a book big enough to be near the line.
@@ -1130,7 +1126,7 @@ def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
         context, brief_context.compute_generation_id(context))
     near = int(
         packet_mod.summary_budget_report(packet)["bytes"]
-        / packet_mod.SUMMARY_BUDGET_WARN_RATIO
+        / packet_mod.READ_BUDGET_WARN_RATIO
     ) - 1
     original = packet_mod.MAX_SUMMARY_BYTES
     packet_mod.MAX_SUMMARY_BYTES = near
@@ -1141,8 +1137,7 @@ def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
     finally:
         packet_mod.MAX_SUMMARY_BYTES = original
 
-    assert "summary at" in warned, warned
-    assert "resident input" in warned or "refuses outright" in warned, warned
+    assert "`summary` at" in warned and "before the next holding lands" in warned, warned
 
 
 def test_a_section_query_keeps_the_tight_cap_the_summary_does_not_use():
@@ -1182,7 +1177,7 @@ def test_the_budget_report_warns_before_it_refuses():
     assert 0 < small["ratio"] < 1
 
     # Same shape, near the ceiling: near_budget must lead over_budget.
-    assert packet_mod.SUMMARY_BUDGET_WARN_RATIO < 1.0
+    assert packet_mod.READ_BUDGET_WARN_RATIO < 1.0
 
 
 def test_live_items_reach_the_brief_packet_and_a_gap_reads_as_a_gap():
@@ -1293,27 +1288,75 @@ def test_each_candidate_state_is_reachable_on_its_own(row, state):
     assert candidates[0]["target_tranche_level"] == (1.0 if tier == "validated" else 0.0)
 
 
-def test_the_packet_budget_refuses_over_the_line_and_warns_near_it(monkeypatch, capsys):
-    monkeypatch.setattr(packet_mod, "summary_budget_report", lambda packet: {
-        "over_budget": False, "near_budget": False})
-    packet = {"blob": "x" * 1000}
-    size = len(packet_mod._compact(packet).encode("utf-8"))
+def test_one_read_over_budget_does_not_take_the_packet_down(capsys):
+    """#2816: on 2026-10-09 a nine-holding packet was 71 bytes over a 96KiB
+    ceiling on the whole stored artifact, `compile_packet` raised, and the day
+    had no brief — while every read the model would have made was inside its
+    own budget. The stored packet is only read whole by harness code; the
+    budgets belong to the reads, and one read overrunning refuses that read.
+    """
+    context = _book_with(30)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    report = packet_mod.read_budget_report(packet)
 
-    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size * 10)
-    packet_mod._packet_budget_warnings(packet, {})
-    assert capsys.readouterr().err == ""
+    assert report["packet_bytes"] > 96 * 1024, "the fixture must pass the old ceiling"
+    assert report["over_budget"] == ["summary"], report
+    assert "`summary` at" in capsys.readouterr().err
 
-    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size + 1)
-    packet_mod._packet_budget_warnings(packet, {"A": {}, "B": {}})
-    err = capsys.readouterr().err
-    assert f"decision packet at {size} bytes" in err and "(2 tickers)" in err
+    with pytest.raises(ValueError, match="query exceeds"):
+        packet_mod.bounded_payload(
+            packet_mod.summary_view(packet), packet_mod.MAX_SUMMARY_BYTES)
+    row = packet_mod.query_view(packet, "TK07", "constraints")
+    assert row["_meta"]["generation_id"] == packet["_meta"]["generation_id"]
+    assert packet_mod.bounded_payload(row)
+    assert packet_mod.bounded_payload(packet_mod.judgment_template(packet))
 
-    monkeypatch.setattr(packet_mod, "summary_budget_report", lambda packet: {
-        "over_budget": False, "near_budget": True, "bytes": 7, "ratio": 0.9,
-        "budget": 8, "tickers": 2})
-    packet_mod._packet_budget_warnings(packet, {})
-    assert err.count("warn:") == 1 and capsys.readouterr().err.count("warn:") == 2
 
-    monkeypatch.setattr(packet_mod, "MAX_PACKET_BYTES", size - 1)
-    with pytest.raises(ValueError, match="decision packet exceeds"):
-        packet_mod._packet_budget_warnings(packet, {})
+def test_the_read_budget_report_names_the_largest_ticker_reads(monkeypatch):
+    context = _book_with(3)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    report = packet_mod.read_budget_report(packet)
+    reads = {row["read"].split(":")[0]: row for row in report["reads"]}
+    assert set(reads) == {"summary", "judgment_template", "ticker"}
+    assert report["near_budget"] == [] and report["over_budget"] == []
+
+    whole_row = next(row for row in report["reads"] if row["read"].count(":") == 1)
+    monkeypatch.setattr(packet_mod, "MAX_QUERY_BYTES", whole_row["bytes"] + 10)
+    squeezed = packet_mod.read_budget_report(packet)
+    assert whole_row["read"] in squeezed["near_budget"]
+    assert squeezed["over_budget"] == []
+
+
+
+def test_the_health_check_reads_the_budgets_off_the_latest_generation(monkeypatch, tmp_path):
+    """The near-budget warning used to live only on preflight's stderr at 08:03.
+
+    It fired on 2026-10-06, 07 and 08 and the 9th had no brief (#2816): a
+    signal with no reader. The daily health check measures the latest stored
+    generation instead, so a filling read is a standing warning.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "sc_read_budget", Path(__file__).resolve().parents[1] / "ops" / "system_check.py")
+    system_check = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(system_check)
+    monkeypatch.setattr(system_check, "WS", tmp_path)
+
+    def verdict():
+        result = system_check.Result()
+        system_check.check_brief_read_budgets(result)
+        return result.checks[-1]
+
+    assert verdict()[1] == system_check.OK and "skipped" in verdict()[2]
+
+    context = _book_with(3)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    brief_context.write_run_bundle(
+        context, tmp_path / "memory" / ".tmp" / "brief-context-2026-10-09.json",
+        tool_artifacts={"decision_packet": packet})
+    assert verdict()[1] == system_check.OK and "2026-10-09 · " in verdict()[2]
+
+    summary = packet_mod.summary_budget_report(packet)["bytes"]
+    monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", summary + 10)
+    name, severity, message = verdict()
+    assert severity == system_check.WARNING and "summary near budget" in message

@@ -2224,6 +2224,10 @@ def _collect(argv=None):
             bundle_manifest['source_section_bytes'].items(),
             key=lambda item: item[1], reverse=True):
         print(f'  context bytes {section}: {size:,}')
+    read_budget = brief_decision_packet.read_budget_report(decision_packet)
+    for row in read_budget['reads']:
+        print(f"  model read {row['read']}: {row['bytes']:,} / {row['budget']:,} bytes "
+              f"({row['ratio']:.0%})" + (' ⚠️ near budget' if row['near_budget'] else ''))
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')
@@ -2238,6 +2242,11 @@ def _collect(argv=None):
         context_path=os.path.relpath(ctx_path, WS),
         context_generation_id=context['generation_id'],
         model_context_bytes=bundle_manifest['budget']['always_loaded_bytes'],
+        # How full each model-facing packet read is (#2816): the same numbers
+        # `ops/system_check.py` warns on, kept per slot so growth has a trend.
+        packet_read_ratios={row['read'].split(':')[0] if row['read'].count(':') != 2
+                            else 'ticker_section': row['ratio']
+                            for row in read_budget['reads']},
         step_timings=step_timings,  # additive detail: per-node ok/wall_s (#916 §1.5)
     )
     return 0 if not issues else 1

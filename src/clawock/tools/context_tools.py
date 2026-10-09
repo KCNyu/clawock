@@ -85,20 +85,13 @@ class DecisionPacketQuery(BaseTool):
             raise ToolError(
                 f"unknown section {section!r}; expected one of {', '.join(SECTIONS)}")
         packet = brief_decision_packet.read_packet(_manifest(workspace, manifest))
-        value = (packet.get("tickers") or {}).get(str(ticker))
-        if value is None:
-            raise ToolError(f"unknown ticker: {ticker}")
-        # `_meta` carries the generation_id, and a narrowed payload must keep it:
-        # the whole protocol is generation-pinned and postflight validates a report
-        # against the exact generation the model read. The CLI path has always
-        # attached it here; the tool dropped it, so every section query through the
-        # registry was silently un-pinned (found by wiring the first real consumer,
-        # #266 — nothing else would have shown it).
-        payload = value if section is None else {
-            "_meta": packet.get("_meta"),
-            "ticker": str(ticker),
-            section: value.get(section),
-        }
+        # `query_view` owns the payload shape, `_meta` generation pin included:
+        # this tool once dropped it, so every section query through the registry
+        # was silently un-pinned (found by wiring the first real consumer, #266).
+        try:
+            payload = brief_decision_packet.query_view(packet, ticker, section)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
         # The budget is applied here, not on a print path — that is the bug this
         # layer exists to close: every non-CLI caller used to bypass the cap.
         return brief_decision_packet.bounded_payload(payload)

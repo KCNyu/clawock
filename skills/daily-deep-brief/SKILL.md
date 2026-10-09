@@ -133,7 +133,9 @@ reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirma
 ```
 
 summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队列。它只有
-`needs_entry_gate`、`allowed=false` 的候选，不提供建仓授权。简报和投递卡由 harness
+`needs_entry_gate`、`allowed=false` 的候选，不提供建仓授权。所有候选取值相同的字段
+（来源 `evidence`、`missing_evidence`、`next_action` 等）只在 `candidate_shared` 写一次，
+对每个候选都成立；`candidates` 各行只列自己不同的字段。简报和投递卡由 harness
 固定展示；不要把候选改写成 add/swap 决策。可说明下一步研究哪个行业、要核什么
 一手披露。`snapshot_metrics` 不是实时价格，`observed_at=null` 必须保留「时点未核」。
 先用 `quote_request` 经 `clawock fetch-peers` 核验报价，再遵循 entry-gate 的人工研究

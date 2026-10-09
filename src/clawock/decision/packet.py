@@ -30,28 +30,35 @@ from clawock.workspace import workspace_root
 SCHEMA_VERSION = 1
 JUDGMENT_SCHEMA_VERSION = 3
 PAGES_SCHEMA_VERSION = 1
-MAX_PACKET_BYTES = 96 * 1024
 MAX_QUERY_BYTES = 24 * 1024
 # The whole-book summary is a different animal from a per-ticker section query
 # and needs its own budget. One constant served both until 2026-08-17, when the
-# book reached 10 active holdings: the summary is O(holdings) (~2.6KB each on
-# top of ~3KB fixed) and crossed 24KB at 33,543 bytes. `decision_packet_summary`
-# then failed outright — and it is the brief's Step 2 "唯一常驻输入", so the
-# 盘前深度简报 agent had no way into the analysis and burned its whole turn on
-# tool help before ending "ok" with nothing written. Nothing warned on the way
-# past the line, because the trigger was portfolio growth, not a code change.
-# 48KB carries ~17 holdings; SUMMARY_BUDGET_WARN_RATIO is what keeps the next
-# crossing from being a surprise.
-MAX_SUMMARY_BYTES = 48 * 1024
-SUMMARY_BUDGET_WARN_RATIO = 0.8
-#: The packet ceiling needs the same early word as the summary's; see
-#: the note at the raise in `compile_packet` for why it was missing.
-PACKET_BUDGET_WARN_RATIO = 0.8
+# book reached 10 active holdings: the summary is O(holdings) and crossed 24KB
+# at 33,543 bytes. `decision_packet_summary` then failed outright — and it is
+# the brief's Step 2 "唯一常驻输入", so the 盘前深度简报 agent had no way into
+# the analysis and burned its whole turn on tool help before ending "ok" with
+# nothing written. Nothing warned on the way past the line, because the trigger
+# was portfolio growth, not a code change.
+#
+# Sized from the measured cost, not from a round number: on 2026-10-08 a row
+# was ~3.5KB of the printed summary and the book-level blocks ~8KB, so nine
+# holdings printed 44KB. 64KB carries ~16, and `READ_BUDGET_WARN_RATIO` speaks
+# up at ~12 — three holdings of notice instead of the 700 bytes that were left
+# under the old 48KB line (#2816).
+MAX_SUMMARY_BYTES = 64 * 1024
+#: How full a model-facing read may get before `read_budget_report` calls it
+#: near its budget. The budgets bound what one tool call puts in front of the
+#: model; the stored packet itself is only ever read whole by harness code, so
+#: it has no ceiling of its own. It had one until #2816: 96KiB over the whole
+#: artifact, which on 2026-10-09 refused a nine-holding packet for 71 bytes and
+#: left the day without a brief, while every read the model would have made was
+#: inside its own budget.
+READ_BUDGET_WARN_RATIO = 0.8
 
 #: The per-event arithmetic behind `information`'s scores. #1039 tiered these
 #: out of the persisted ledger provenance as "zero-reader bulk"; the same two
-#: lists were still copied into the packet itself, where the cap is hard and a
-#: crossing is a `ValueError` that takes the whole pre-open brief down.
+#: lists were still copied into the packet itself, where they rode along in every
+#: `information` query the model made.
 INFORMATION_COLD_KEYS = ("attention_components", "event_components")
 
 
@@ -1300,45 +1307,24 @@ def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
     return candidates, tier_counts, blocker_counts
 
 
-def _packet_budget_warnings(packet: dict, tickers: dict) -> None:
-    """Refuse a packet over the byte budget; warn when it or its summary nears it."""
-    size = len(_compact(packet).encode("utf-8"))
-    if size > MAX_PACKET_BYTES:
-        raise ValueError(f"decision packet exceeds {MAX_PACKET_BYTES} bytes: {size}")
-    if size > MAX_PACKET_BYTES * PACKET_BUDGET_WARN_RATIO:
-        # 2026-08-17 taught this about the *summary* budget: "Nothing warned on
-        # the way past the line, because the trigger was portfolio growth, not a
-        # code change." `SUMMARY_BUDGET_WARN_RATIO` was the answer — and the
-        # packet's own ceiling never got one, so the lesson stopped at the
-        # smaller of the two numbers.
-        #
-        # Measured 2026-09-06 while adding `history`: the packet was already at
-        # 94,071 of 98,304 bytes (95.7%), i.e. past where the summary's warning
-        # would have fired, with nothing anywhere saying so. Overrunning it is a
-        # hard ValueError in preflight, which is the morning brief getting no
-        # packet at all — so the warning has to arrive while there is still room
-        # to act, not at the wall.
-        print(f"warn: decision packet at {size} bytes is "
-              f"{size / MAX_PACKET_BYTES:.1%} of the {MAX_PACKET_BYTES}-byte "
-              f"ceiling ({len(tickers)} tickers) — overrunning it fails preflight "
-              f"outright, so trim a projection before the next holding lands",
-              file=sys.stderr)
-    # …and the summary's own warning, which is the one the comment above credits
-    # with the lesson. `SUMMARY_BUDGET_WARN_RATIO` and `summary_budget_report`
-    # were written for 2026-08-17 and then never called outside the tests, so
-    # `near_budget` — "the signal that has to fire while there is still room" —
-    # had nowhere to fire. Both budgets are crossed by the same act (buying a
-    # stock), so both belong on the same alarm, at the one place that runs on
-    # every generation.
-    summary = summary_budget_report(packet)
-    if summary["over_budget"] or summary["near_budget"]:
-        print(f"warn: decision packet summary at {summary['bytes']} bytes is "
-              f"{summary['ratio']:.1%} of the {summary['budget']}-byte ceiling "
-              f"({summary['tickers']} tickers) — "
-              + ("`decision_packet_summary` is already refusing, and it is the "
-                 "brief's only resident input"
-                 if summary["over_budget"] else
-                 "`decision_packet_summary` refuses outright at the line"),
+def _warn_read_budgets(packet: dict) -> None:
+    """Say on stderr which model-facing reads are near or over their budget.
+
+    Never refuses the packet. The reads refuse at their own budget when they are
+    made (`bounded_payload`); a compile that raised instead would take the audit
+    context and every in-budget read down with the one that overran.
+    """
+    report = read_budget_report(packet)
+    for row in report["reads"]:
+        if not (row["near_budget"] or row["over_budget"]):
+            continue
+        print(f"warn: decision packet read `{row['read']}` at {row['bytes']} bytes is "
+              f"{row['ratio']:.1%} of its {row['budget']}-byte budget "
+              f"({report['tickers']} tickers) — "
+              + ("the tool refuses this read as it stands"
+                 if row["over_budget"] else
+                 "trim a projection or move reference detail behind a query "
+                 "before the next holding lands"),
               file=sys.stderr)
 
 
@@ -1556,7 +1542,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         context, generation_id, add_policy=add_policy, alpha_activation=alpha_activation, blocker_counts=blocker_counts,
         candidates=candidates, swap_mandates=swap_mandates, tickers=tickers, tier_counts=tier_counts,
     )
-    _packet_budget_warnings(packet, tickers)
+    _warn_read_budgets(packet)
     return packet
 
 
@@ -1620,9 +1606,38 @@ def bind_plan_provenance(plan: dict, packet: dict) -> dict:
     return bound
 
 
+def _discovery_summary(discovery: dict) -> dict:
+    """`stock_discovery` with what every candidate shares stated once.
+
+    The screen stamps each candidate with the same source evidence, missing
+    evidence list, next action and research route, so six candidates printed
+    six copies. Nothing is dropped: a key moves to `candidate_shared` only when
+    all candidates carry the identical value, and the stored packet keeps the
+    rows whole for the renderers.
+    """
+    candidates = discovery.get("candidates")
+    if (not isinstance(candidates, list) or len(candidates) < 2
+            or not all(isinstance(row, dict) for row in candidates)):
+        return discovery
+    shared = {
+        key: value for key, value in candidates[0].items()
+        if all(key in row and row[key] == value for row in candidates[1:])
+    }
+    if not shared:
+        return discovery
+    return {
+        **{key: value for key, value in discovery.items() if key != "candidates"},
+        "candidate_shared": shared,
+        "candidates": [
+            {key: value for key, value in row.items() if key not in shared}
+            for row in candidates
+        ],
+    }
+
+
 def summary_view(packet: dict) -> dict:
     return {
-        "stock_discovery": packet.get("stock_discovery") or {},
+        "stock_discovery": _discovery_summary(packet.get("stock_discovery") or {}),
         "_meta": packet.get("_meta"),
         "date": packet.get("date"),
         "integrity": packet.get("integrity"),
@@ -2285,6 +2300,42 @@ def bounded_payload(value, limit: int = MAX_QUERY_BYTES) -> str:
     return text
 
 
+def query_view(packet: dict, ticker: str, section: str | None = None):
+    """What a ticker query returns: the whole row, or one section of it.
+
+    `_meta` carries the generation_id, and a narrowed payload must keep it: the
+    protocol is generation-pinned and postflight validates a report against the
+    exact generation the model read. Owned here so the CLI, the tool registry
+    and `read_budget_report` measure and print the same bytes.
+    """
+    row = (packet.get("tickers") or {}).get(str(ticker))
+    if row is None:
+        raise ValueError(f"unknown ticker: {ticker}")
+    if section is None:
+        return row
+    return {
+        "_meta": packet.get("_meta"),
+        "ticker": str(ticker),
+        section: row.get(section),
+    }
+
+
+def _printed_bytes(value) -> int:
+    return len((json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
+
+def _budget_row(read: str, value, budget: int) -> dict:
+    size = _printed_bytes(value)
+    return {
+        "read": read,
+        "bytes": size,
+        "budget": budget,
+        "ratio": round(size / budget, 3),
+        "over_budget": size > budget,
+        "near_budget": size > budget * READ_BUDGET_WARN_RATIO,
+    }
+
+
 def summary_budget_report(packet) -> dict:
     """How close the whole-book summary is to its budget.
 
@@ -2293,14 +2344,41 @@ def summary_budget_report(packet) -> dict:
     run: adding a holding is what moves it, and adding a holding is not a change
     anybody thinks to run the packet tests for.
     """
-    size = len(json.dumps(summary_view(packet), ensure_ascii=False, indent=2).encode("utf-8")) + 1
     return {
-        "bytes": size,
-        "budget": MAX_SUMMARY_BYTES,
-        "ratio": round(size / MAX_SUMMARY_BYTES, 3),
+        **_budget_row("summary", summary_view(packet), MAX_SUMMARY_BYTES),
         "tickers": len(packet.get("tickers") or {}),
-        "over_budget": size > MAX_SUMMARY_BYTES,
-        "near_budget": size > MAX_SUMMARY_BYTES * SUMMARY_BUDGET_WARN_RATIO,
+    }
+
+
+def read_budget_report(packet: dict) -> dict:
+    """Every read the model can make of this packet, against that read's budget.
+
+    One row for the summary, one for the judgment template, and the largest
+    whole-row and single-section ticker queries. This is the budget surface:
+    `ops/system_check.py` reads it off the latest generation every day, so a
+    read that is filling up is a standing warning well before the tool refuses.
+    """
+    tickers = packet.get("tickers") or {}
+    reads = [
+        _budget_row("summary", summary_view(packet), MAX_SUMMARY_BYTES),
+        _budget_row("judgment_template", judgment_template(packet), MAX_QUERY_BYTES),
+    ]
+    rows = [_budget_row(f"ticker:{ticker}", query_view(packet, ticker), MAX_QUERY_BYTES)
+            for ticker in tickers]
+    sections = [
+        _budget_row(f"ticker:{ticker}:{section}",
+                    query_view(packet, ticker, section), MAX_QUERY_BYTES)
+        for ticker in tickers for section in QUERYABLE_SECTIONS
+    ]
+    for group in (rows, sections):
+        if group:
+            reads.append(max(group, key=lambda row: row["bytes"]))
+    return {
+        "packet_bytes": len(_compact(packet).encode("utf-8")),
+        "tickers": len(tickers),
+        "reads": reads,
+        "near_budget": [row["read"] for row in reads if row["near_budget"]],
+        "over_budget": [row["read"] for row in reads if row["over_budget"]],
     }
 
 
@@ -2329,15 +2407,7 @@ def main() -> int:
     elif args.judgment_template:
         value = judgment_template(packet)
     else:
-        value = (packet.get("tickers") or {}).get(str(args.ticker))
-        if value is None:
-            raise ValueError(f"unknown ticker: {args.ticker}")
-        if args.section:
-            value = {
-                "_meta": packet.get("_meta"),
-                "ticker": str(args.ticker),
-                args.section: value.get(args.section),
-            }
+        value = query_view(packet, args.ticker, args.section)
     _print_bounded(value, limit)
     return 0
 

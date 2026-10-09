@@ -1672,6 +1672,44 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+def check_brief_read_budgets(r):
+    """The brief's model-facing packet reads, before one of them refuses.
+
+    Each read has a byte budget the tool registry enforces, and the resident
+    summary grows with the book: buying a stock is what crosses the line, and
+    nobody runs the packet tests for a portfolio edit. Preflight prints the same
+    numbers to a log nobody reads at 08:03; on 2026-10-06..08 that warning fired
+    three mornings running and the fourth had no brief (#2816). Measured here
+    off the latest generation so it is a standing line in the health output.
+    """
+    from clawock.decision import packet as decision_packet
+
+    manifests = sorted((WS / 'memory' / '.tmp').glob('brief-context-*/manifest.json'))
+    if not manifests:
+        r.add('brief read budgets', OK, 'no brief generation on disk (skipped)')
+        return
+    latest = manifests[-1]
+    try:
+        report = decision_packet.read_budget_report(decision_packet.read_packet(latest))
+    except Exception as e:  # noqa: BLE001
+        # A failed generation (timeout, price refresh) has no packet; that is
+        # the brief watchdog's finding, not a budget one.
+        r.add('brief read budgets', OK, f'{latest.parent.name}: no readable packet ({e})'[:160])
+        return
+    fullest = max(report['reads'], key=lambda row: row['ratio'])
+    detail = (f"{latest.parent.name[len('brief-context-'):]} · {report['tickers']} tickers · "
+              f"fullest read {fullest['read']} {fullest['bytes']:,}/{fullest['budget']:,} "
+              f"({fullest['ratio']:.0%})")
+    flagged = report['over_budget'] or report['near_budget']
+    if flagged:
+        state = 'over budget, the tool refuses it' if report['over_budget'] else 'near budget'
+        r.add('brief read budgets', WARNING,
+              f"{detail} — {', '.join(flagged)} {state}; trim a projection or move "
+              'reference detail behind a query (src/clawock/decision/packet.py)')
+    else:
+        r.add('brief read budgets', OK, detail)
+
+
 def check_trading_calendar_horizon(r):
     """The holiday table is hand-extended each December; warn before it lapses.
 
@@ -2139,6 +2177,7 @@ def main():
         check_delivery_chain_shape,
         check_generated_cron_docs,
         check_research_artifacts,
+        check_brief_read_budgets,
         check_trading_calendar_horizon,
         check_macro_calendar_horizon,
         check_memory_index,

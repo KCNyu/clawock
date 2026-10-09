@@ -20,7 +20,7 @@ clawock 的 `discover-stocks` 从免费美股全市场快照生成跨板块的**
 | 确定性筛选 | `stock_discovery.screen_snapshot` | 快照 + `config/stock-discovery.json` + 实际 portfolio/registry → 最多 6 个研究候选、淘汰计数、规则版本与证据时间字段 |
 | 排除已有暴露 | `stock_discovery.excluded_exposure` | 活跃持仓及 registry 的 underlying / one_x_substitute / signal_symbol → 排除集合；读不到账本或活跃持仓元数据时拒绝推荐 |
 | 简报装配 | `harness/brief_preflight.stock_discovery_node` | WAVE1 有界子进程 → 当代 context；失败是候选源降级，不使持仓判断失败 |
-| 判断上下文 | `decision/packet._packet_payload` / `summary_view` | context → 同代 packet 与常驻 summary 的 `stock_discovery`；不进入持仓加仓授权表 |
+| 判断上下文 | `decision/packet._packet_payload` / `summary_view` | context → 同代 packet 与常驻 summary 的 `stock_discovery`（summary 把各候选相同的字段合并到 `candidate_shared`，packet 保留整行）；不进入持仓加仓授权表 |
 | 用户出口 | `harness/brief_render.stock_discovery_section`、`brief_card._early_candidate_section` | `stock_discovery.candidate_lines` → 完整报告与主投/兜底卡；模型省略不能藏掉队列或源失败 |
 | 研究交接 | `quote_request` → `fetch-peers`，随后 `entry-gate` | 独立报价核验 + 人工收集一手披露/商业模式/估值/否决项 → entry-gate artifact → 原有单票深研 |
 
