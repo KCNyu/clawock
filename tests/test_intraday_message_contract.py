@@ -937,6 +937,11 @@ def test_a_changed_read_on_a_watched_name_is_a_change():
     legacy = {'session': session, 'soft_candidates_seen': [
         {'ticker': 'TEST', 'kind': 't0_quality'}]}
     assert not slot(legacy, high, pullback)[1]['changed']
+    # Watched before, neutral at the baseline, graded again now: named, never
+    # the bare 「边缘候选」 label (live 2026-10-10 01:33, SPCH and SPCX).
+    base, _, _ = slot(legacy, [], wait)
+    _, change, lead = slot(base, low, wait)
+    assert change['changed'] and lead == '变化：TEST T+0 评级 低位/超卖（观察）'
     # A new trading session starts from an empty seen set.
     seen, _ = pre.soft_seen_set('us:2026-10-12', candidate, low, wait)
     assert {'ticker': 'TEST', 'kind': 't0_grade', 'band': '追高低质'} not in seen

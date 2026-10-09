@@ -709,7 +709,11 @@ def soft_candidate_changes(current, previous, soft_candidates):
             if grades.get(ticker):
                 out.append(f"{ticker} T+0 评级变为{row.get('band')}"
                            f"（此前 {'、'.join(sorted(grades[ticker]))}）")
-            # A first grade is said by the `t0_quality` row that carries it.
+            elif _soft_identity({'ticker': ticker, 'kind': 't0_quality'}) in old:
+                # Watched earlier, ungraded since (it went neutral, or the
+                # sighting predates this identity): still a named change.
+                out.append(f"{ticker} T+0 评级 {row.get('band')}")
+            # Otherwise the `t0_quality` row that carries the grade says it.
             continue
         if row.get('kind') == 'add_side':
             out.append(f"{ticker} 首次成为加仓侧候选"
