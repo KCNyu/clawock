@@ -1733,6 +1733,44 @@ def _run_wave(nodes, *, max_workers=2):
     return results
 
 
+def swap_target_quotes(guardrail, portfolio, *, today, fetch_hk=None):
+    """Price and board lot of each HK swap target the book does not hold.
+
+    The decision packet writes the buy leg of a hard-stop or regime swap against
+    a row of its own when the target is not a holding (`packet._swap_target_rows`).
+    A US target is priced there from the quant table and trades in single shares;
+    an HK one needs its board lot, which only arrives with a quote. Fails soft:
+    a target with no quote keeps an unsized row and the packet refuses the leg.
+    """
+    held = {
+        str(row.get('ticker'))
+        for book in (portfolio.get('portfolios') or {}).values()
+        for row in ledger_rows((book or {}).get('holdings') or [])
+        if (_share_number(row.get('shares', 0)) or 0) > 0
+    }
+    targets = sorted({
+        str((row.get('required_reduction') or {}).get('swap_to') or '')
+        for key in ('breaches', 'hard_stop_watch')
+        for row in guardrail.get(key) or []
+    } - held - {''})
+    codes = [code for code in targets if code.isdigit()]
+    if not codes:
+        return {}
+    if fetch_hk is None:
+        from clawock.market_data.hk_analysis import fetch_hk_quotes as fetch_hk
+    try:
+        quotes = fetch_hk(codes) or {}
+    except Exception as exc:  # noqa: BLE001 — a missing quote is a refused leg, not a red brief
+        print(f'   ⚠ swap target quotes failed: {type(exc).__name__}')
+        return {}
+    return {
+        code: {'price': quote.get('c'), 'lot_size': quote.get('lot_size'),
+               'name': quote.get('name') or '', 'as_of': today}
+        for code, quote in quotes.items()
+        if code in codes and isinstance(quote, dict) and (quote.get('c') or 0) > 0
+    }
+
+
 def _collect(argv=None):
     # This script took no arguments at all, so `--help` was not "unsupported" —
     # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
@@ -2159,6 +2197,7 @@ def _collect(argv=None):
         'live_information': _brief_live_projection(live_information),
         'thesis_registry': thesis_registry_ctx,
         'open_decisions': open_decisions,
+        'swap_target_quotes': swap_target_quotes(guardrail, portfolio, today=today),
         # The add side. Sits next to open_decisions deliberately: the discipline
         # half of the same question has been in this context since the start.
         'opportunity': opportunity,

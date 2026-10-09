@@ -112,7 +112,8 @@ def _holding_pnl_pct(h):
 def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                            lev_regime=None):
     """Pure function of current state → concrete, capped trim/cut directives.
-    The brief LLM must emit a disciplinary action for EVERY breach (not optional).
+    A hard stop and a regime de-lever oblige a sell; the four caps
+    (`decision.risk.RESPOND_ONLY_TYPES`) oblige an answer.
 
     lev_regime (lev_regime.json, optional): the HSTECH trend+vol leverage dial.
     When present and hostile (amber/red), it TIGHTENS the leveraged-ETF leg cap by
@@ -378,8 +379,10 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     n = len(breaches) + len(hard_stops)
     if n:
         directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
-                     "每条必须在 Judge 段出一个对应动作(driven_by=risk_rule,纪律性再平衡,"
-                     "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
+                     "硬止损与 regime_delever 必须在 Judge 段出对应动作(driven_by=risk_rule,"
+                     "纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；"
+                     "单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，"
+                     "超限期间不得加仓；其余主动 call 仍按 regime guard。"
                      "杠杆ETF解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
     else:
         directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"

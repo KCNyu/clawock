@@ -412,10 +412,11 @@ def checked_reply(out, today, packet):
             if not isinstance(row, dict):
                 continue
             ticker = str(row.get('ticker'))
-            facts = (packet.get('tickers') or {}).get(ticker)
+            facts = decision_packet.decision_row(packet, ticker)
             if facts is None:
                 rows.append(f"decision[{index}] is {ticker} {row.get('action')}: "
-                            'not a holding in the packet, so it cannot be a decision')
+                            'not a holding or a swap target in the packet, '
+                            'so it cannot be a decision')
                 continue
             setups = (facts.get('technical') or {}).get('setups') or []
             constraints = facts.get('constraints') or {}

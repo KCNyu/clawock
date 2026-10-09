@@ -62,6 +62,7 @@ CODE_ONLY_FIELDS = (
     # Compiled into the decision packet by `decision/packet.py`.
     "open_decisions",
     "technical_setup_usage",
+    "swap_target_quotes",
     # Rendered by the harness, not read by a prompt: `harness/brief_render.py`
     # prints all three into the brief and `publish/dashboard.py` puts them on the
     # add-side card (#1337-#1341). The model reaches the same facts through the
