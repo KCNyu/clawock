@@ -130,7 +130,8 @@ empty.
 | 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
 | 8 | `⚠️ 信号` | signals new today, in full with their reason lines | no signal is new today (ones already sent are block 10's) | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
-| 10 | `▎持续状态` | standing state, plain lines without icons, in this order: `今日已报、仍在：STOP? a、b；STOP-LOSS c` (signals delivered earlier this session, the level said once); the analyzer's `📉` book line (`亏损持仓 n/m｜…`); one row per held leveraged leg (map = `t0_setups.rows.<t>.leveraged`) — `<leg>：<underlying> x% → 2x 应 y%，实测 z%，差 d pp`, the underlying's move from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request), written with commas in the validator's derived-figure form (a `；` would end the sentence the gap is checked in); `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs`; then `加仓侧（三态都不是下单授权）` and the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | nothing standing: no folded signal, risk line, leveraged holding, add-side row or evidence gap | analyzer + harness |
+| 10 | `▎持续状态` | standing state, plain lines without icons, in this order: `今日已报、仍在：STOP? a、b；STOP-LOSS c` (signals delivered earlier this session, the level said once); the analyzer's `📉` book line (`亏损持仓 n/m｜…`); one row per held leveraged leg (map = `t0_setups.rows.<t>.leveraged`) — `<leg>：<underlying> x% → 2x 应 y%，实测 z%，差 d pp`, the underlying's move from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request), written with commas in the validator's derived-figure form (a `；` would end the sentence the gap is checked in); `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs` | nothing standing: no folded signal, risk line or leveraged holding | analyzer + harness |
+| 10b | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap Not part of layout A: header, icon, rows and position (the last data block) are as before it (kcn 2026-10-09: 「千万不要影响到我们的加仓侧」) | harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
 | 13 | `ℹ️ 校验提示` | advisory checker findings | none | harness |
@@ -272,7 +273,7 @@ as live.
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
 | `signals_detail` belongs only to the reference layer; signal reasons remain in core `analyzer_block` | live (#2107) |
-| add-side line (block 10; primary information moved to `📑`) | live (#1872) |
+| add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |

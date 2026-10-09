@@ -779,7 +779,7 @@ def coverage_warning(coverage, gaps=None):
 
     One line, not three (kcn 2026-09-25): the names, since when they are
     carried, and — as a bare pointer — holdings whose strategy evidence is
-    incomplete; the reason for those sits on their 加仓侧 row.
+    incomplete; the reason for those sits on their 🛰️ row.
     """
     missing = coverage.get('unrefreshed') or []
     parts = []
@@ -789,7 +789,7 @@ def coverage_warning(coverage, gaps=None):
         parts.append('、'.join(missing) + f' 行情未证实（沿用上一笔{carried}）')
     if gaps:
         parts.append('、'.join(gaps) + ' 策略升级证据未取全'
-                     + ('' if missing else '（原因见加仓侧）'))
+                     + ('' if missing else '（原因见 🛰️ 加仓侧）'))
     return DEGRADED + ' · '.join(parts) if parts else None
 
 
@@ -827,11 +827,13 @@ def prepend_coverage_warning(block, coverage):
 #  10 ▎持续状态      standing state, no icons (kcn 2026-10-09, #2805 layout A):
 #                    「今日已报、仍在：」 signals one line, level said once; the
 #                    analyzer's 📉 book line; held leveraged legs vs their
-#                    underlying and the gap in pp (`leverage_legs`); then
-#                    `add_side_reads` per ticker: verdict copied, why/needs
+#                    underlying and the gap in pp (`leverage_legs`)
+# 10b 🛰️ 加仓侧      `add_side_reads` per ticker: verdict copied, why/needs
 #                    clipped, at most MAX_ADD_SIDE_ROWS (#755; the model's
 #                    prose no longer has to carry it to reach kcn); a holding
-#                    with incomplete strategy evidence gets its reason here
+#                    with incomplete strategy evidence gets its reason here.
+#                    Not part of layout A: header, icon, rows and position
+#                    (last data block) are as before it (kcn 2026-10-09)
 #  11 ▎我的看法      model judgment — postflight appends it after the whole
 #                    data block, below the table (kcn 2026-09-25: #1863 had
 #                    put it above the table and kcn read that as the table
@@ -895,7 +897,7 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals,
     Signals delivered earlier leave `⚠️ 信号` (the header goes with them when
     none is new) and open the `▎持续状态` block at the end of the card as one
     line per level. The analyzer's `📉` book line and `status_lines` (leverage
-    legs, add-side reads) follow it there, so everything above that block is
+    legs) follow it there, so everything above that block is
     this slot's news and everything in it is standing state.
     """
     stale = [t for t in (unrefreshed or [])]
@@ -963,7 +965,7 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals,
     return '\n'.join(lines)
 
 
-ADD_SIDE_HEADER = '加仓侧（三态都不是下单授权）'
+ADD_SIDE_HEADER = '🛰️ 加仓侧（三态都不是下单授权）'
 ADD_SIDE_WORDS = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝'}
 MAX_ADD_SIDE_ROWS = 4
 ADD_SIDE_WHY_CHARS = 44
@@ -985,8 +987,8 @@ def _clip(text, limit):
 EVIDENCE_WAIT_WORD = '观望'
 
 
-def add_side_lines(reads, gaps=None):
-    """Status-block rows: the add-side read per ticker, rendered by the harness.
+def append_add_side_section(block, reads, gaps=None):
+    """Card block 10: the add-side read per ticker, rendered by the harness.
 
     `add_side_reads` was only in the model's context, and on 2026-08-17 a +6.4%
     move with three near-breakout rows produced prose about nothing but holdings
@@ -1003,25 +1005,25 @@ def add_side_lines(reads, gaps=None):
     rows = (reads or {}).get('rows') or []
     gaps = dict(gaps or {})
     if not rows and not gaps:
-        return []
-    lines = [ADD_SIDE_HEADER]
+        return block
+    lines = ['', ADD_SIDE_HEADER]
     for row in rows[:MAX_ADD_SIDE_ROWS]:
         word = ADD_SIDE_WORDS.get(row.get('verdict'), row.get('verdict'))
-        text = f"· {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
+        text = f"  · {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
         if row.get('needs'):
             text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
         lines.append(text)
         if row.get('ticker') in gaps:
-            lines.append(f"  ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
+            lines.append(f"    ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
     listed = {row.get('ticker') for row in rows}
     for ticker, reasons in gaps.items():
         # A ticker whose own row is past the cap has a verdict; don't relabel it.
         word = '' if ticker in listed else f' {EVIDENCE_WAIT_WORD}'
-        lines.append(f"· {ticker}{word}：策略升级证据未取全"
+        lines.append(f"  · {ticker}{word}：策略升级证据未取全"
                      f"（{'；'.join(reasons)}）→ 本档不给尺寸")
     if len(rows) > MAX_ADD_SIDE_ROWS:
-        lines.append(f'…另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
-    return lines
+        lines.append(f'  …另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
+    return block + '\n' + '\n'.join(lines)
 
 
 # ── leveraged leg vs its underlying (kcn 2026-09-25 preview) ─────────────
@@ -1671,7 +1673,7 @@ def main(argv=None):
         alert_reasons.append('策略升级条件')
     # The add-side read over the three lanes below (#755). They were all
     # computed and none of them reached the prose; the card now prints it
-    # (block 10) and the model reads the same rows.
+    # (block 10b) and the model reads the same rows.
     add_side_reads = add_side.read_rows(
         anomalies=anomalies, radar=opportunity_radar,
         levels=opportunity_radar.get('levels'),
@@ -1802,8 +1804,10 @@ def main(argv=None):
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
                           if row.get('kind') == 'signal'},
-            status_lines=[*leverage_lines(leverage, coverage.get('unrefreshed')),
-                          *add_side_lines(add_side_reads, gaps)])
+            status_lines=leverage_lines(leverage, coverage.get('unrefreshed')))
+        # Last, and exactly as before #2808 (kcn 2026-10-09: 「千万不要影响到
+        # 我们的加仓侧」): its own block, header and rows untouched by layout A.
+        raw_block = append_add_side_section(raw_block, add_side_reads, gaps)
         raw_block = compose_card(
             raw_block, p0_lines=p0_lines,
             lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state,
@@ -1860,7 +1864,7 @@ def main(argv=None):
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
-        # Printed on the card in ▎持续状态 (`add_side_lines`).
+        # Printed on the card as block 10b (`append_add_side_section`).
         'add_side_reads': add_side_reads,
         # Carried on BOTH paths, receipt included: the JSON is the audit trail
         # for what the slot knew, and a receipt slot that knew a trigger was

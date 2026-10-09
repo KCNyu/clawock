@@ -89,13 +89,14 @@ def test_strategy_evidence_gaps_land_on_their_add_side_row():
         [{'holding': 'SPCH', 'ticker': 'SPCH'}, {'holding': 'SPCH', 'ticker': 'SPCX'}])
     assert gaps == {'SPCH': ['行情未证实刷新', 'SPCX 今日涨跌缺失']}
     reads = {'rows': [{'ticker': 'RKLX', 'verdict': 'wait', 'why': '窗口内无一手公告'}]}
-    lines = pre.add_side_lines(reads, gaps)
-    assert lines[-1] == ('· SPCH 观望：策略升级证据未取全（行情未证实刷新；SPCX 今日涨跌缺失）'
+    lines = pre.append_add_side_section('x', reads, gaps).splitlines()
+    assert lines[-1] == ('  · SPCH 观望：策略升级证据未取全（行情未证实刷新；SPCX 今日涨跌缺失）'
                          '→ 本档不给尺寸')
     # A holding with its own row keeps its verdict; the gap goes under it.
-    on_row = pre.add_side_lines(reads, {'RKLX': ['行情未证实刷新']})
-    assert on_row[-2].startswith('· RKLX 等待：')
-    assert on_row[-1] == '  ↳ 策略升级证据未取全（行情未证实刷新）'
+    on_row = pre.append_add_side_section(
+        'x', reads, {'RKLX': ['行情未证实刷新']}).splitlines()
+    assert on_row[-2].startswith('  · RKLX 等待：')
+    assert on_row[-1] == '    ↳ 策略升级证据未取全（行情未证实刷新）'
 
 
 def test_change_line_names_the_soft_candidate_and_what_changed():
@@ -506,11 +507,11 @@ def _reads(n):
 
 
 def test_add_side_line_copies_every_verdict_and_sits_before_the_judgment():
-    """Card block 10: non-empty `add_side_reads.rows` ⇒ the card carries the
+    """Card block 10b: non-empty `add_side_reads.rows` ⇒ the card carries the
     add-side line, row for row (ticker and three-state copied, never
     rewritten), with the caveat, a fixed cap and clipped why/needs."""
     reads = _reads(6)
-    block = _card(status_lines=pre.add_side_lines(reads))
+    block = pre.append_add_side_section(_card(), reads)
     msg = post.assemble_message({'raw_wechat_block': block}, '▎我的看法\n先看 07226。')
     lines = msg.splitlines()
     head = lines.index(pre.ADD_SIDE_HEADER)
@@ -524,11 +525,21 @@ def test_add_side_line_copies_every_verdict_and_sits_before_the_judgment():
         ticker, rest = line.strip().removeprefix('· ').split(' ', 1)
         assert ticker == row['ticker']
         assert inverse[rest.split('：', 1)[0]] == row['verdict']
-    assert lines[head + 1 + pre.MAX_ADD_SIDE_ROWS] == '…另有 2 条'
+    assert lines[head + 1 + pre.MAX_ADD_SIDE_ROWS] == '  …另有 2 条'
     assert all(len(line.split('：', 1)[1].split(' → ')[0]) <= pre.ADD_SIDE_WHY_CHARS
                for line in shown)
     # Empty rows: no block, byte-identical card.
-    assert pre.add_side_lines({'rows': []}) == []
+    assert pre.append_add_side_section(_card(), {'rows': []}) == _card()
+    # kcn 2026-10-09 「千万不要影响到我们的加仓侧」: layout A (#2805) leaves
+    # this block alone — its own header with the icon and the caveat, the
+    # indented rows with why → needs, after ▎持续状态 and last in the data.
+    assert pre.ADD_SIDE_HEADER == '🛰️ 加仓侧（三态都不是下单授权）'
+    one = {'rows': [{'ticker': '07226', 'verdict': 'wait',
+                     'why': '窗口内无一手公告、技术面未接近突破',
+                     'needs': '等一手催化或技术面进入突破区'}]}
+    tail = pre.append_add_side_section(_card(), one).splitlines()[-3:]
+    assert tail == ['', '🛰️ 加仓侧（三态都不是下单授权）',
+                    '  · 07226 等待：窗口内无一手公告、技术面未接近突破 → 等一手催化或技术面进入突破区']
     # ⚠️ stays the signal header alone.
     assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
 
