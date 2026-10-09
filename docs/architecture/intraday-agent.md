@@ -123,18 +123,21 @@ empty.
 |---|---|---|---|---|
 | 1 | title | which market, which slot | never | analyzer |
 | 2 | `P0：…` | did a strategy escalation newly fire | no new escalation (no separate top "conclusion" line) | harness |
-| 3 | `变化：…` | why this slot differs from the last delivered one | never; unchanged slots say `变化：无（与上次送达相比…）` | harness |
-| 4 | `⛔ 数据降级：…` | can I trust this card's data: unverified quotes once, with `（沿用上一笔，自 HH:MM 起）` while the same names carry over in the session (`carry_quote_gap`); holdings with incomplete strategy evidence only as a pointer; T+0 / information / search faults | all sources healthy | harness |
+| 3 | `变化：…` | why this slot differs from the last delivered one; a soft candidate first seen this slot is named with what changed about it — `首次进入观察区间`, or `进入另一观察区间（日内 x%，此前报过 … 档）` for a ticker already watched today (`soft_candidate_changes`), never as a bare category | never; unchanged slots say `变化：无（与上次送达相比…）` | harness |
+| 4 | `⛔ 数据降级：…` | can I trust this card's data: unverified quotes once, with `（沿用上一笔，自 HH:MM 起）` while the same names carry over in the session (`carry_quote_gap`); holdings with incomplete strategy evidence only as a pointer; T+0 / search faults; an unread information source is its own `⛔ 资讯缺口：<source> 未取到（不是无消息）` line, without the exception class (`information_gap_line`; the labels as collected stay in `information_full.degraded`) | all sources healthy | harness |
 | 5 | index strip + `📊` | market and book | never | analyzer |
 | 6 | holdings table | positions | never; **bytes never change** | analyzer |
 | 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
-| 7b | `🔗 杠杆腿 vs 标的：…` | is it the underlying moving or the leverage: each held leg (map = `t0_setups.rows.<t>.leveraged`) with its underlying's move — from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request) — the multiple times it, the leg's move and 差 in pp, written in the validator's derived-figure form; `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs` | no leveraged holding | harness |
-| 8 | `⚠️ 信号` | signals new today; ones already sent fold into `今日已报、仍在：…` | no signals | analyzer + harness fold |
+| 8 | `⚠️ 信号` | signals new today, in full with their reason lines | no signal is new today (ones already sent are block 10's) | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
-| 10 | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap | harness |
+| 10 | `▎持续状态` | standing state, plain lines without icons, in this order: `今日已报、仍在：STOP? a、b；STOP-LOSS c` (signals delivered earlier this session, the level said once); the analyzer's `📉` book line (`亏损持仓 n/m｜…`); one row per held leveraged leg (map = `t0_setups.rows.<t>.leveraged`) — `<leg>：<underlying> x% → 2x 应 y%，实测 z%，差 d pp`, the underlying's move from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request), written with commas in the validator's derived-figure form (a `；` would end the sentence the gap is checked in); `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs`; then `加仓侧（三态都不是下单授权）` and the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | nothing standing: no folded signal, risk line, leveraged holding, add-side row or evidence gap | analyzer + harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
 | 13 | `ℹ️ 校验提示` | advisory checker findings | none | harness |
+
+Blocks 7–9 are this slot's news and block 10 is what stands (kcn 2026-10-09,
+layout A of #2805): nothing in block 10 is dropped for being old, it is only
+said once and without an icon per line.
 
 Rules: `⛔` is only data health and `⚠️` only the analyzer's signal header (one
 symbol, one meaning); the add-side line carries `三态都不是下单授权`; it lists at
@@ -253,7 +256,7 @@ written down.
 | `下一触发` names and levels are subject-scoped; proposed levels within ±5% of that subject's current quote are allowed — every such line, merged into one (#2077) | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment`, `test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
 | stale information is labelled | gate (escalating) | every item carries its `cite` with a time or explicit time gap; `check_stale_citation` matches the cited title, not a ticker prefix (`test_quoting_a_stale_headline_without_its_time_is_flagged`, `test_a_live_timestamped_title_does_not_collide_with_old_same_ticker_title`); the market-level reference families carry the same `cite` and are in the gate's title list (`test_market_level_reference_rows_carry_a_cite_and_reach_the_label_gate`) | a 08:10 headline at 23:00 must not read as live |
-| an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
+| an unreadable information source is stated | gate | `⛔ 资讯缺口` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
 | a live item is labelled with its own time | gate | tier 2 cite: publisher time + `盘中实时`/`开盘前旧闻`; a pre-open live title falls under `check_stale_citation` like the morning files | a headline fetched at 14:00 may have been written at 06:00 |
 
 Compliance is measured on a fixed sample (HK 11:33 / 14:03 / 14:33, US 02:33,
