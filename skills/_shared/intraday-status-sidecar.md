@@ -3,7 +3,7 @@
 > 抽出来避免 hk/us 两个 SKILL 各写一份导致 drift（2026-05-31）。两边 Mode 7 的
 > Step 2.5 只放一个指针 + 本市场杠杆 ticker 例子，规范以本文件为准。
 
-`build_dashboard` 读它刷新 dashboard **顶部状态横幅** + **Today's Movers 每条归因**（缺失/解析失败容错，横幅自动隐藏；非关键，漏写不影响 WeChat 报告投递）。**只输出文本，绝不写任何 key。**
+`build_dashboard` 读它刷新 dashboard **顶部状态横幅** + **Today's Movers 每条归因**（缺失/解析失败容错，横幅自动隐藏；非关键，漏写不影响 WeChat 报告投递）。**只填下面 `status_banner` 与 `movers` 两个字段的文本，不写其他字段。**
 
 写 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`：
 ```json
