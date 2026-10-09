@@ -112,5 +112,5 @@ def test_an_unbalanced_brace_in_the_preamble_does_not_poison_the_reply():
     '```json\n{"plan": {"decisions": []}, "judgment": []}\n```',
 ])
 def test_a_reply_that_is_not_plan_plus_judgment_is_refused(out):
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError):
         fallback.split_plan_and_judgment(out)

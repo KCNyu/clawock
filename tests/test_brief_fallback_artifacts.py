@@ -159,3 +159,60 @@ def test_a_context_without_its_packet_is_refused_before_the_model_is_called(work
     monkeypatch.setattr(bf, 'chat', lambda **_kw: pytest.fail('model called without a packet'))
     with pytest.raises(SystemExit, match='decision packet unavailable'):
         bf.main([])
+
+
+def test_one_rejected_reply_gets_one_repair_turn_naming_what_failed(workspace, monkeypatch):
+    """The first real run of the plan + judgment contract (rehearsal 2026-10-09)
+    returned a well-formed reply whose ninth decision was an `add` without its
+    setup fields, and the whole brief was discarded. The host brief gets a fix-
+    and-rerun from postflight; the single turn gets exactly one."""
+    packet = write_generation(workspace)
+    good = model_reply(packet)
+    bad = json.loads(good[good.index('{'):good.rindex('}') + 1])
+    bad['plan']['decisions'][0]['action'] = 'add_only_on_trigger'
+    prompts = []
+
+    def chat(**kwargs):
+        prompts.append(kwargs)
+        return json.dumps(bad, ensure_ascii=False) if len(prompts) == 1 else good
+
+    monkeypatch.setattr(bf, 'chat', chat)
+    bf.main([])
+
+    assert len(prompts) == 2
+    repair = prompts[1]['user']
+    assert prompts[0]['user'] in repair and json.dumps(bad, ensure_ascii=False) in repair
+    assert 'add' in repair.split('它没有通过写盘前的校验')[1]
+    assert prompts[1]['deadline_seconds'] <= bf.BRIEF_LLM_TIMEOUT_SECONDS
+    assert bf.main(['--verify-receipt']) == 0
+
+
+def test_a_second_rejection_writes_nothing(workspace, monkeypatch):
+    packet = write_generation(workspace)
+    good = model_reply(packet)
+    bad = json.loads(good[good.index('{'):good.rindex('}') + 1])
+    bad['plan']['decisions'][0]['action'] = 'add_only_on_trigger'
+    calls = []
+
+    def chat(**kwargs):
+        calls.append(kwargs)
+        return json.dumps(bad, ensure_ascii=False)
+
+    monkeypatch.setattr(bf, 'chat', chat)
+    with pytest.raises(SystemExit, match='after the repair turn'):
+        bf.main([])
+    assert len(calls) == 2
+    assert not any(path.exists() for path in bf.artifact_paths(workspace, TODAY).values())
+    assert bf.main(['--verify-receipt']) == 1
+
+
+def test_no_repair_turn_is_started_without_budget_left(workspace, monkeypatch):
+    """Two full provider budgets do not fit the job: the repair turn spends
+    what the first call left, and is skipped when that is too little."""
+    packet = write_generation(workspace)
+    monkeypatch.setenv(bf.DEADLINE_ENV, str(bf.REPAIR_MIN_SECONDS - 1))
+    calls = []
+    monkeypatch.setattr(bf, 'chat', lambda **kw: calls.append(kw) or '没有 JSON')
+    with pytest.raises(SystemExit, match='no repair turn'):
+        bf.main([])
+    assert len(calls) == 1 and packet
