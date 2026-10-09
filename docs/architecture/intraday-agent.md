@@ -126,6 +126,15 @@ choice; the parameter is `entry`). Entries: `signals_detail`,
 `active_information_candidates` stay in the core: they attribute this slot's
 movers.
 
+When to fetch is a rule, not "everything, every slot": `peer_scan` for a peer
+or sector divergence/rotation read (one ticker's slice; the whole entry only
+for a book-wide comparison), `source_signals_detail` to trace a signal before
+strategy filtering or explain a strategy conflict (ordinary signal reasons are
+in the core `analyzer_block`), `information_full` to check a source, time or
+original text the summary does not carry, the rest by the judgment at hand. An
+entry that was not fetched is not material the prose may conclude from. The
+rule is written once, in step 2 of `skills/_shared/intraday-mode7.md`.
+
 ### Invariants (gates)
 
 - Every entry named in `index.references` resolves through the tool, and its
@@ -302,6 +311,7 @@ as live.
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
 | every context field declares its layer; run control (`card_marks`, `heartbeat`) is not printed to the model | live (#2806) |
+| reference entries have stated fetch conditions; the prompt no longer asks for the whole of `peer_scan` / `source_signals_detail` every slot while calling the layer on-demand | live (#2806) |
 | `signals_detail` belongs only to the reference layer; signal reasons remain in core `analyzer_block` | live (#2107) |
 | add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
