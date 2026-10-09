@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T01:22:51.468378+00:00",
+  "generated_at": "2026-10-09T18:32:33.135090+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,235 +24,111 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 17,
-    "held_hits": 0,
-    "new_ideas": 11,
-    "sector_hits": 5
+    "total": 20,
+    "held_hits": 3,
+    "new_ideas": 10,
+    "sector_hits": 4
   },
   "items": [
     {
-      "author": "Burry",
-      "text": "Michael Burry says Microsoft uses spending metrics ‘as a lever’ to get its way (MSFT:NASDAQ)",
-      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNZzV5c21vSkdDeGtabnhHVzBNcHJfQTZpN3QtMjEyVnBuakdwSFROZV9QLUVhTmUxZC16M05wSHJzOFU5UW1YODFFeVhpa3JHLXJsR0ZpUk5yQ29HeGFQTllqS3JYdjJQWnpBWmhDX2xZUXlmUFBVUHotWDFkMjBKWFliczNXdWFhcDhHXzhDZ0tOaGNvSU1Hb1h1MEh6Zlg2b1VpY3d2S0ZCUHBMcTRLcXVISXY?oc=5",
-      "published": "2026-10-08T08:03:45+00:00",
+      "author": "Musk",
+      "text": "SpaceX takes major step toward offering cell service, putting big telecom on edge",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 16:26:00 GMT",
       "origin": "gnews-rss",
-      "source": "Seeking Alpha",
+      "source": "New York Post",
       "tickers": [
-        "MSFT"
+        "SPCX",
+        "T",
+        "VZ",
+        "TMUS"
       ],
-      "held": [],
+      "held": [
+        "SPCX"
+      ],
       "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "大型科技",
-        "云计算",
-        "AI",
-        "资本开支"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry指微软利用特定支出指标影响决策和资源配置，对公司的资本配置方式提出批评。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Intuitive Machines Inc(LUNR) 买入 ARKQ 172,760 股 / ARKX 171,268 股（最大单只 ETF 占比 0.32%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.3168,
-      "tickers": [
-        "LUNR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LUNR"
+        "T",
+        "TMUS",
+        "VZ"
       ],
       "sectors": [
         "航天",
-        "月球与行星探索"
+        "卫星通信",
+        "电信"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "SPCH"
       ],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年10月7日合计买入344,028股Intuitive Machines（LUNR），涉及ARKQ和ARKX单只ETF约0.32%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：CoreWeave, Inc.(CRWV) 买入 ARKK 143,673 股 / ARKW 70,916 股（最大单只 ETF 占比 0.28%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.2751,
-      "tickers": [
-        "CRWV"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CRWV"
-      ],
-      "sectors": [
-        "AI算力",
-        "云计算",
-        "数据中心"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年10月7日合计买入214,589股CoreWeave（CRWV），涉及ARKK和ARKW单只ETF约0.28%的持仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "‘The Big Short’ Investor Michael Burry Justifies Lululemon Tax-Loss Sale: ‘I Am Not Throwing In The Towel’",
-      "url": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQNmpMUjRpbG5mZ3lDRGkwbGVEN0xIem9WN2x3QmdDeFBBMl9lRU9PUnFXeUthZFZyMEp4UjkxbEVERmlBc3VuTEtzb2ZZQWgzdHpoeFhaQ01QSXBNZjk0UXIyTmRUcGd6aFJUeUw5cGlnOWNLc0hsYUlSeHpNYWNiV0w0Y1NvSWtEdHItaVljbFpsZ1Jjc3VuT3FXRDdjYjVMZUlObEsydDRRZWFWSm9NQmVZZ0gwWV9jTzNzRG9uNmpoa1lFajB6MmZ0TFB1U3NSTUdMQnJSMUdIeFpCQktJbUlBMVhCZEdKSVk5Q2dxVEh6TTUxSHRCUw?oc=5",
-      "published": "2026-10-08T18:34:40+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "LULU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LULU"
-      ],
-      "sectors": [
-        "消费零售",
-        "运动服饰",
-        "税务亏损"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry出售Lululemon（LULU）股票以实现税务亏损，并称此举不代表放弃投资。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Teradyne, Inc.(TER) 卖出 ARKQ 21,143 股 / ARKX 5,923 股（最大单只 ETF 占比 0.43%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4346,
-      "tickers": [
-        "TER"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TER"
-      ],
-      "sectors": [
-        "半导体",
-        "半导体测试设备"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "ARK Invest于2026年10月7日合计卖出27,066股Teradyne（TER），涉及ARKQ和ARKX单只ETF约0.43%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 749,510 股（最大单只 ETF 占比 0.54%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5382,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "精准医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月7日卖出749,510股Personalis（PSNL），涉及ARKG单只ETF约0.54%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：DraftKings Inc.(DKNG) 卖出 ARKF 247,616 股（最大单只 ETF 占比 0.52%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5249,
-      "tickers": [
-        "DKNG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "DKNG"
-      ],
-      "sectors": [
-        "在线博彩",
-        "体育娱乐"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月7日卖出247,616股DraftKings（DKNG），涉及ARKF单只ETF约0.52%的持仓。"
-    },
-    {
-      "author": "段永平",
-      "text": "中國巴菲特｜騰訊又跌了 段永平「先賣點put吧」 收208萬期權金",
-      "url": "https://news.google.com/rss/articles/CBMiiwNBVV95cUxOMXY3cGhxUWFUdmVUUXN1amFfSHZ4Sl9seVh5blEzbFJUVnFOT3M3SDRkY1ZySnI5bHZ4eUY5S0dWdkZvVG5wajlZelozTkNIWV9Oc2tNOHVKbDRxYTVoMENFT3RoLXJISTlMV3c4T19aaFNhcEdqbzJNOVRjR0R1akNLcWNIQ2pYSHFxclNWbWZhNWl0SFFhWUxxRkp0US0wTjFZZkRWcFBGbmkydkZOVE5zbUhscmhNaXEyZEs2YVVxRHhoa1IteHNaU2J4YVdWVEpfXzE5TzJQZEctR2pzQ0Zmc0ZNOUZ1NFRLa002ZF9yWmxUb2dheU1mQWtwTjVuOFg3VEQzU2I1TGM0Z0kzUkhvcDlVdF9QLV9iOE15ckR3MDFSc0UzLVEyNGdaLV9wb0ZuM3M3cmo2M1JCZGFkcXJ6OXZSY1VWR3ZZY2lxS3VGNVZuVDhVb2NBRUZRUVp4UWtuQ3VMOC1LWjB6cEZtbDFTMkNtbDM2N2FYdEVDS0JvcVVNNGxVR2VLNA?oc=5",
-      "published": "2026-10-09T00:24:49+00:00",
-      "origin": "gnews-rss",
-      "source": "香港01",
-      "tickers": [
-        "0700"
-      ],
-      "held": [],
-      "new_ideas": [
-        "0700"
-      ],
-      "sectors": [
-        "中国互联网",
-        "港股",
-        "期权"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据媒体称，段永平在腾讯股价下跌后卖出认沽期权并收取约208万港元期权金，表达对腾讯期权收入的操作而非公开看空。"
+      "relevance": 88,
+      "summary_cn": "据报道，SpaceX正推进直接提供手机服务，令传统无线运营商AT&T、Verizon和T-Mobile面临竞争压力，同时利好SpaceX的电信业务扩张。"
     },
     {
       "author": "Musk",
-      "text": "Musk Loses Trillionaire Status As SpaceX And Tesla Drop Wipes Out $36 Billion",
+      "text": "Elon Musk’s growing SpaceX empire sends AT&T, Verizon and T-Mobile shares plunging",
       "url": "",
-      "published": "Thu, 08 Oct 2026 17:41:21 GMT",
+      "published": "Fri, 09 Oct 2026 17:55:48 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "NBC News",
+      "tickers": [
+        "SPCX",
+        "T",
+        "VZ",
+        "TMUS"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "T",
+        "TMUS",
+        "VZ"
+      ],
+      "sectors": [
+        "航天",
+        "卫星通信",
+        "电信"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "buy",
+      "relevance": 84,
+      "summary_cn": "据媒体报道，Musk旗下SpaceX的版图扩张导致AT&T、Verizon和T-Mobile股价下跌，反映市场担忧卫星通信服务对传统运营商构成冲击。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump awards SpaceX founder Elon Musk National Medal of Science",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 13:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政府支持",
+        "国防科技"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道，Trump向SpaceX创始人Musk授予美国国家科学奖章，强化SpaceX获得政府认可的信号。"
+    },
+    {
+      "author": "洪灏",
+      "text": "【TSLA】Tesla上海超級工廠2026年9月交付9.5萬輛 交付量及銷量齊創今年高",
+      "url": "https://news.google.com/rss/articles/CBMinwNBVV95cUxPYVZNWV94bFdzejY0RjBfRkplaHpCZlBQQUNfQm9jUm9URXI0a1F1dVBHekptN1BYeXE5T3Z0UjVtWTlmYkhqbnBQdDBQZnFmVlJXNmxuT0sySm9PWjVESHRFaXcyR3lzVGU3Vm9qWGpqRWdNWVFoMTBtNXZWYlRWZDlycWxpMHNUUjdtYnRrbHJyd2JVSFZEUmFFTldyLUpsVlo5ZVdSbGxWSF9ZRlYwRUY2V0JXWGJUeDd3Uzh2S3FkeUtySVJKdl9zM0l3eUxlR1JLUVBJaHBFTUJ1RGNad01HaGd4X0Zuc2RNQTNXMnVET2ZxN1M3WnpSSWNJcU5VVGcxVHh3djFKMFRVR2xmeW9rbTI5Q3p4dXl4MFJtX082N1JfT3IzMWdSeXpiVFF3YVk5QnJINUV4anpIS2dDRVJoLUV6Qkx2QkVRTFFBMjlyMThRalBQekZwdmZxQk5hRFlkMlJnZzd1ekNBOFdoNXR4M190eVpDNTFBbTVoOTJ3Nk84S2VZdjBvbGVnazFjdUFmLXMwMHMtZnFNYXk4?oc=5",
+      "published": "2026-10-09T13:39:22+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
       "tickers": [
         "TSLA"
       ],
@@ -262,25 +138,208 @@
       ],
       "sectors": [
         "电动车",
-        "航天"
+        "汽车制造",
+        "中国汽车市场"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "02208"
       ],
+      "stance": "endorse",
+      "relevance": 81,
+      "summary_cn": "据报道，Tesla上海超级工厂9月交付量达到9.5万辆，交付与销量均创年内新高，显示其中国市场表现改善。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warns of AI stock crash: The case for Amazon stock",
+      "url": "https://news.google.com/rss/articles/CBMickFVX3lxTE9CRGhWaTB2OGxrQVBFVERybTJ5ODI4M2FEVVlOd2E4ZGo5NlZZWlFGRnhWend3Qmx4VHg3QUcyaU5PdjdjS2RDRWJhMko3WUVBR0ttMFFqOGt2TFp0RUFDN0RrbkxNQUs5QmdSXy1CQTEtUQ?oc=5",
+      "published": "2026-10-09T11:21:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Beinsure",
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "人工智能",
+        "云计算",
+        "电商",
+        "AI基础设施"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 69,
-      "summary_cn": "据报道，SpaceX与特斯拉市值下跌合计抹去约360亿美元，导致马斯克暂时失去 trillionaire 身份。"
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry警告AI股票可能崩盘，并以Amazon为例讨论高估值AI敞口带来的风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Stock Rises as Elon Musk Asserts Control Over Terafab Chip Project",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 14:23:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "半导体",
+        "AI芯片",
+        "制造业"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "据报道，Musk宣称控制Tesla的Terafab芯片项目并推动股价上涨，强化其对汽车制造及自研AI芯片产业链的主导权。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Genius Sports Ltd(GENI) 买入 ARKF 656,920 股（最大单只 ETF 占比 0.45%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-07T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Illumina Inc(ILMN) 卖出 ARKK 105,321 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4502,
+      "etf_percent": 0.298,
+      "tickers": [
+        "ILMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ILMN"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序",
+        "医疗科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "ARK Invest卖出ARKK中105,321股Illumina，占该ETF约0.30%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Shopify Inc.(SHOP) 卖出 ARKK 138,032 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2447,
+      "tickers": [
+        "SHOP"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SHOP"
+      ],
+      "sectors": [
+        "电商",
+        "金融科技",
+        "软件"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 77,
+      "summary_cn": "ARK Invest卖出ARKK中138,032股Shopify，占该ETF约0.24%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Robinhood Markets, Inc.(HOOD) 卖出 ARKK 202,825 股（最大单只 ETF 占比 0.23%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2343,
+      "tickers": [
+        "HOOD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "HOOD"
+      ],
+      "sectors": [
+        "金融科技",
+        "加密货币交易",
+        "券商"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 77,
+      "summary_cn": "ARK Invest卖出ARKK中202,825股Robinhood Markets，占该ETF约0.23%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：DraftKings Inc.(DKNG) 卖出 ARKF 106,134 股（最大单只 ETF 占比 0.23%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.231,
+      "tickers": [
+        "DKNG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DKNG"
+      ],
+      "sectors": [
+        "在线博彩",
+        "体育博彩",
+        "消费互联网"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 76,
+      "summary_cn": "ARK Invest卖出ARKF中106,134股DraftKings，占该ETF约0.23%，属于较大规模减仓。"
+    },
+    {
+      "author": "段永平",
+      "text": "「中國股神」段永平做Short Put 行權變相420蚊掃騰訊？",
+      "url": "https://news.google.com/rss/articles/CBMiywJBVV95cUxQSDlpUFdkTVVhcGlpbmV5c0V4WUtHb2s0SUY0aTJTQzIzazBSamZ1NnRwOGs5VmxrRnJTLTh2NkhnSHVXMU5rbzJGNTdfNTNlVmpjYmFXQkhOMlNaRFNGRXVaamIzQzlva1k0eXdBNFBYZ2ZsUlBOc25uVzJSOTN5MXFiTndab05zaHVjOV83dkhIb2ZaZlh1aFA5QXRJaHlKb2x1WGhwejVRVnhtRWRudjE4dUh5dWhtbk4tY0VLY1g2UDlZZEtmTjREeE9xWWN5NlI5UVhKc2YxbGVncktaY3lxTnZpTVNfLUdrTWVkZ1czYkt1RHdsUktiaF9JQ1k4blZTTXREWUFDb25iWHZPV2NnTlhjNnFJZFBiSndEUkpaMFJXeFRXNkxmRUZTRkFxZjdHNW5yRkhvb1N3YmIwSFVLMlpsS2d1emxF?oc=5",
+      "published": "2026-10-08T09:37:10+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [
+        "0700"
+      ],
+      "held": [],
+      "new_ideas": [
+        "0700"
+      ],
+      "sectors": [
+        "互联网",
+        "游戏",
+        "中国科技股",
+        "期权"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "sell",
+      "relevance": 76,
+      "summary_cn": "据报道，段永平卖出腾讯认沽期权并收取约208.4万港元期权金，意味着其愿意在约420港元附近接货腾讯股份。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Genius Sports Ltd(GENI) 买入 ARKF 347,777 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2435,
       "tickers": [
         "GENI"
       ],
@@ -290,33 +349,102 @@
       ],
       "sectors": [
         "体育博彩",
-        "体育数据"
+        "体育科技",
+        "预测市场"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 69,
-      "summary_cn": "ARK Invest于2026年10月7日买入656,920股Genius Sports（GENI），涉及ARKF单只ETF约0.45%的持仓。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest买入ARKF中347,777股Genius Sports，占该ETF约0.24%，显示其增加对体育数据与博彩相关公司的敞口。"
     },
     {
-      "author": "洪灏",
-      "text": "熙特爾延攬Astera Labs甘博隆出任董事 股臨會通過轉板現增案",
-      "url": "https://news.google.com/rss/articles/CBMi9gJBVV95cUxPU0JIRnpYMkl4V1cwQjh6VHdZcTBfSldPbldhYlE2VHRyQVVTQXN2QVQ2U2tvZjItWlNKeWptZi1BZlhMU2d4djRkMms0ZmFWNmdic0R4UGJZNFlwQWhDa0tBQjNHTnUtX2RkaHlFY2NQUHZkSVFSbWkyU2pkR256N1FuZ3RfelpRMzRaVGhrNi1wOGw3aXN1RkJ3YWU3M3lKODlNMU80Y0dIc0c4emZDM1pIc25QeW9Sel9VYUxQcHJrZG80cWJleVh5b0VDLTZkNW9mWlFJMzJNeWhwREZadDlVYWlBelkzUk8wMkIyZmZqZk5ROFBMV1BMUEVtaHNPeVVrN0VjenAwc056dWkycDVseGlIVVF6dE53QXFBU2FIUzAxVDBSOERPSFUtYlNzUWduc29zMWc1UjBsQUZaR0JWSF9sd19XWXZGcHU5ckNGTEZyYTllQlZsdEhqUl9ZWVlZNmFvWVUtN0hNSWRCTnlrQktUQQ?oc=5",
-      "published": "2026-10-08T11:01:09+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo 財經",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Kymera Therapeutics, Inc.(KYMR) 买入 ARKG 43,453 股（最大单只 ETF 占比 0.22%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2156,
       "tickers": [
-        "2228",
-        "ALAB"
+        "KYMR"
       ],
       "held": [],
       "new_ideas": [
-        "2228",
-        "ALAB"
+        "KYMR"
       ],
       "sectors": [
-        "半导体",
-        "AI芯片",
-        "公司治理"
+        "生物科技",
+        "创新药"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 75,
+      "summary_cn": "ARK Invest买入ARKG中43,453股Kymera Therapeutics，占该ETF约0.22%，加仓靶向蛋白降解相关创新药公司。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says His Puts Give Him 'Far More Upside' In A Crash As He Pulls His AI Bubble Timeline Forward",
+      "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNQzJpU19qR21TbDRWb09ZRkowUUxKOFNpLWl0ejBrY0lUUmktdVpOcC1NdnRCa20zamxDR09ZVzJTZ0pJQWhFbVEyZmVtczRlUHRnLWFQM0NWcG5MeGNveEFtUmZNb2hYT2ltLVpJZjEwX0ZrOUFkS2ozMmZoOS1ucG10T1ljTkRwYkVTcWNfZGpKMk82cFhxMmEtaHhoZlgzWUVoUWZmYVlWTC16aWxNN2dqN0RxYko5SjlidDJXWXJyNjFNVmUtdjl3WTVKd0YyRnBj?oc=5",
+      "published": "2026-10-09T10:43:30+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "AI股票",
+        "宏观风险"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 86,
+      "summary_cn": "据报道，Michael Burry称其看跌期权在市场崩盘中可提供更大收益，并提前了AI泡沫破裂的时间判断，表达对AI估值的强烈警惕。"
+    },
+    {
+      "author": "Musk",
+      "text": "'Real boss of India?': Elon Musk takes aim at Indian billionaire Ambani as Starlink launch stalls",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 04:02:13 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星通信",
+        "电信",
+        "印度市场"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "据报道，Musk在Starlink发射延期之际公开针对印度富豪Ambani，令印度卫星通信业务竞争及项目执行风险受到关注。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Here Are The Members Of Congress With The Most Invested In The AI Data Center Boom",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNbkt5LXRIZUJ3LW00SWdwTjdKVElsTW8yRUN5OFB0NmpHRGZibjBEOEtCb2RPTU9HQ0RLWEZTaVdLSElyTjcySmFfUC1xRHpST2gtVThlWXU3RlFfSzMtOWM2bkYybTZES19DVk1DckI0cEg4TThpOFZGQWQybXdKQzlaSDJIcG9Rbk9zWXhTcy1yTVJqNzAwODlrYV9fdkQ5dlRPUVlUYmM4VzYwQmh5RlBWR3U2OUxvcVE?oc=5",
+      "published": "2026-10-09T10:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "AI数据中心",
+        "美国国会",
+        "政治交易"
       ],
       "sector_holdings": [
         "00100",
@@ -325,123 +453,21 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据媒体称，熙特尔延揽Astera Labs高管甘博隆出任董事，并获股东会通过转板及增发议案。"
+      "relevance": 64,
+      "summary_cn": "据报道，多名美国国会议员披露了规模最大的AI数据中心主题投资组合，显示该主题继续获得政界资金关注。"
     },
     {
-      "author": "Musk",
-      "text": "SpaceX takes aim at US wireless carriers with spectrum acquisition",
-      "url": "",
-      "published": "Thu, 08 Oct 2026 20:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "author": "Trump",
+      "text": "The White House considers anyone that uses the term, “Artificial Intelligence,” as opposed to the highly accepted new and more accurate term, “Super Intelligence,” THE ENEMY! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42201",
+      "published": "2026-10-08T16:14:43+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电信",
-        "频谱"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道，SpaceX收购无线频谱并准备进军美国无线通信市场，可能直接挑战传统电信运营商。"
-    },
-    {
-      "author": "洪灏",
-      "text": "【大行看法】信銀國際：料美國10年期長債息率或見5.5厘 下調恒指今年目標價至27000點",
-      "url": "https://news.google.com/rss/articles/CBMiggRBVV95cUxQT3o5cHIyckczNTh4OF8yazI0bDRlbmhydkMzYTBfTHVmNldCNUM1eE5GX0ZDLWtVQXVlX25HN2c1dmFhNmV6QU94NUZYM0ozc0pldUFuNktGUW9SeF9pUEZZQWtVcmI1R3N1bGZfRHBkTERMOWQ1N2dlRTBlRkZXdkJnUXlLdF9JVkFYSmdFRWZpa25qY0UwbEJ2UTRZOGU1TERFVkY4VUdMYjF5ZkJSWkRmN2JfRHVVbTk2NC1YNFNaTDgwZ0lWc2RNOURIdjJMcFNlN3ZGWUJzTk5ncW5XWmZHdmpYb0c5NEt1U0NPQzdGZW1jMVBCX1lRY09nbW1icFZFZVFReENEeGdfLUM4dVlWNW1UekpKbkpyOUVUTG10d3JEU3N4dHNQcF84M0tveEIxS1BKNEVQaWdpaDVBU1I1RjZmWkhjWFJNUEt2ZHJnQmdEX0tQbUtTU24zN3huTi1OWERTcjZadXdvUDdEMTJsNEhwRjBzZHZQU2lfUGZNVlVNLVhSTnRUVzhwQmp2clRyekVjYWlUUFRFbjBLWGp3WXZuWk9HMkYwUU9BWjJnbVBrSEVtb3NrOThHeVQ2bGN3NkNGcW5HWDV5bmFpeGI5RVJjT3RvYmhsbUc2bXYzRG93MC0xM1hwLUVqR3Y0SDRXaFMzZmtzQ19nT0sxTEZ3?oc=5",
-      "published": "2026-10-08T15:17:52+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美债利率",
-        "港股",
-        "恒生指数",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据媒体称，信银国际预计美国10年期国债收益率可能升至5.5%，并将恒生指数今年目标价下调至27,000点。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Can’t Get Starlink in India. What It Means for SpaceX Stock.",
-      "url": "",
-      "published": "Thu, 08 Oct 2026 20:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网",
-        "印度监管"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，SpaceX的Starlink尚未获准进入印度，构成其卫星互联网扩张面临的监管障碍。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Has Called 12 of the Last 3 Market Crashes — Now He Says Stocks Are in ‘Denial’",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOd01RT2xmNFVPLWg3a3d5aEI1TmIxYnV3SjByWEhKWkdiM1MxcHVheDFoT2tmTl9XdU4wMFhOZG5kUFEtcFlMZU93aXFGSTdvdXlrNE96YU1QbV9hLTlKY1NRQWJmam5CLXRGbVNXQXJkV3VuRHZlMEdXRWRjOXhTX3d6MUVOcmduWHA3dzNYY0xSQXZfeDFqSw?oc=5",
-      "published": "2026-10-08T15:39:28+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美股",
-        "市场风险",
-        "宏观"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "CRCL"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据媒体称，Michael Burry认为当前股票市场处于“否认”状态，并再次警示潜在的市场崩盘风险。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUDMzenpkcE5fTEFHT01QbTd0dzRkY3pJRncwcHZxTURoRTNiRTlUSHdfNG1tazJpT1FqSE1qbFZxdzYzTlViMVMweWJxUkhYb2V3TzAzZ21uY050bUJHU0x4VjRXdWVxd21hUDVxYjVvWWtzLXNLczJjRXJWdzZFUHBQYTFHX3pVdUNsVmpjX2xGZmoxc2FMVmxoVmpvSnZwQ2lLZUpB?oc=5",
-      "published": "2026-10-07T08:48:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "软件",
-        "香港股市",
-        "AI"
+        "人工智能",
+        "AI监管"
       ],
       "sector_holdings": [
         "00100",
@@ -449,9 +475,9 @@
         "03033",
         "07226"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "据媒体称，洪灏认为香港应拓软件不应盲目押注基础设施，并对本季香港股市持相对积极看法。"
+      "stance": "neutral",
+      "relevance": 56,
+      "summary_cn": "特朗普称白宫倾向于以“超级智能”取代“人工智能”，显示美国政府正在调整AI政策与监管话语。"
     },
     {
       "author": "Trump",
@@ -463,242 +489,159 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "伊朗局势",
         "原油",
-        "霍尔木兹海峡",
-        "能源"
+        "能源",
+        "地缘政治",
+        "伊朗"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "特朗普称伊朗经济与军事状况不佳、封锁将继续，同时表示中期选举前不会攻击伊朗，并强调伊朗不能拥有核武器。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Burry",
-      "text": "Michael Burry says Microsoft uses spending metrics ‘as a lever’ to get its way (MSFT:NASDAQ)",
-      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNZzV5c21vSkdDeGtabnhHVzBNcHJfQTZpN3QtMjEyVnBuakdwSFROZV9QLUVhTmUxZC16M05wSHJzOFU5UW1YODFFeVhpa3JHLXJsR0ZpUk5yQ29HeGFQTllqS3JYdjJQWnpBWmhDX2xZUXlmUFBVUHotWDFkMjBKWFliczNXdWFhcDhHXzhDZ0tOaGNvSU1Hb1h1MEh6Zlg2b1VpY3d2S0ZCUHBMcTRLcXVISXY?oc=5",
-      "published": "2026-10-08T08:03:45+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "MSFT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MSFT"
-      ],
-      "sectors": [
-        "大型科技",
-        "云计算",
-        "AI",
-        "资本开支"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry指微软利用特定支出指标影响决策和资源配置，对公司的资本配置方式提出批评。"
+      "relevance": 91,
+      "summary_cn": "特朗普称美伊正进行谈判、暂时不会在中期选举前攻击伊朗，并强调霍尔木兹海峡封锁及原油运输，释放短期地缘风险缓和但供应封锁延续的信号。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Intuitive Machines Inc(LUNR) 买入 ARKQ 172,760 股 / ARKX 171,268 股（最大单只 ETF 占比 0.32%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.3168,
-      "tickers": [
-        "LUNR"
-      ],
+      "author": "Trump",
+      "text": "The Fake and Artificial News is out there trying to say that I’m inviting the enemy to bomb San Diego and Los Angeles when, in actuality, what I was talking about was that a temporary increase in the price of Gasoline is a small price to pay for Iran not having a Nuclear Weapon and, if you want to see a big price, can you imagine what it would be like if they bombed San Diego and/or Los Angeles? All I was doing was making a comparison between paying a little more, for a short time, for Gasoline, versus the bombing of our Major Cities. Everybody knew that, the Fake News knew it as well, but the",
+      "url": "https://www.trumpstruth.org/statuses/42204",
+      "published": "2026-10-08T18:59:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
       "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "汽油",
+        "能源",
+        "伊朗"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "特朗普表示，为阻止伊朗获得核武器，美国可接受汽油价格短期小幅上升，涉及能源价格与中东冲突风险。"
+    },
+    {
+      "author": "洪灏",
+      "text": "【數字銀行】平安數字銀行推私募基金、提供半流動性基金 與摩根資管及安本資管合作",
+      "url": "https://news.google.com/rss/articles/CBMipARBVV95cUxQVUwybEtyeUtOMjM3RjJhbF9ZY2RHYXVSS3ItVk94TFZkV1BHT2JEVU1oaVBxNjNuWEZvNFhkTTFZRVYtUFVwOV9Nb1lSZjZTUVhJWVlyY3VJWGlqLUF2VDhBTzFqWUF1S2hnS0M2N0t1Y1hJN1EwNkJHLTJ3TE9PbHk4Mk5SUktWRG0zR3JqQzl2S2ZENUZnQW5IQy12dWVlbm5sblhEV0x6VXR3dnNibkltQktLb0JBZ3hEZUtRS2NUN1JnczhJRU1RUXFQVHFCM3FtdXNEYnQ5N2xOTmRTMUtrNTVnYm5BZXpwOGxGbzBIdzBieDlJLUVfdDN2aHRBQzhFQUIwUEFhSTM2bGJPSDhDc1RoR0k1aDJGWjYzbV9CaWMyLVBSMW11bWxacnVlbHJOTTYwN3k0SXpRQ1ZFRDRubTNOVmJBT3JfUWJSZWVIdkxtSzNEekR0TF9iMjZyMHEyMkkxb1k3NkJnXzZMb3JSR2NpVklNRHY4QjFhRDgzekFfUXlrTzU0T2xxbFpGZ0JPNUdMSDM0X2hVM3B2djdkR0RCY2NLeW81S18tMVp6WWNyWXhFZ3Q0aEZVX3lPa2d3V0pmRk9DUVFtX1VJNlJpMV9ORHR6V2NXakZ5YnBoUzdoYnJTZV8zNENGLUFfN1RqQlp0TXhYc2tLc0t6RUtUZXR0UVoxVnZrTlNJVVdjckFCYks0OEZzS3BFdUVsa1dCbA?oc=5",
+      "published": "2026-10-09T05:45:50+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数字银行",
+        "私募基金",
+        "半流动性基金",
+        "财富管理"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道，平安数字银行与摩根资管、安本资管合作推出私募及半流动性基金，显示香港数字银行加速拓展财富管理业务。"
+    }
+  ],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX takes major step toward offering cell service, putting big telecom on edge",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 16:26:00 GMT",
+      "origin": "gnews-rss",
+      "source": "New York Post",
+      "tickers": [
+        "SPCX",
+        "T",
+        "VZ",
+        "TMUS"
+      ],
+      "held": [
+        "SPCX"
+      ],
       "new_ideas": [
-        "LUNR"
+        "T",
+        "TMUS",
+        "VZ"
       ],
       "sectors": [
         "航天",
-        "月球与行星探索"
+        "卫星通信",
+        "电信"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "SPCH"
       ],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年10月7日合计买入344,028股Intuitive Machines（LUNR），涉及ARKQ和ARKX单只ETF约0.32%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：CoreWeave, Inc.(CRWV) 买入 ARKK 143,673 股 / ARKW 70,916 股（最大单只 ETF 占比 0.28%）",
-      "url": "https://www.ark-funds.com/funds/arkw/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.2751,
-      "tickers": [
-        "CRWV"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CRWV"
-      ],
-      "sectors": [
-        "AI算力",
-        "云计算",
-        "数据中心"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "ARK Invest于2026年10月7日合计买入214,589股CoreWeave（CRWV），涉及ARKK和ARKW单只ETF约0.28%的持仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "‘The Big Short’ Investor Michael Burry Justifies Lululemon Tax-Loss Sale: ‘I Am Not Throwing In The Towel’",
-      "url": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQNmpMUjRpbG5mZ3lDRGkwbGVEN0xIem9WN2x3QmdDeFBBMl9lRU9PUnFXeUthZFZyMEp4UjkxbEVERmlBc3VuTEtzb2ZZQWgzdHpoeFhaQ01QSXBNZjk0UXIyTmRUcGd6aFJUeUw5cGlnOWNLc0hsYUlSeHpNYWNiV0w0Y1NvSWtEdHItaVljbFpsZ1Jjc3VuT3FXRDdjYjVMZUlObEsydDRRZWFWSm9NQmVZZ0gwWV9jTzNzRG9uNmpoa1lFajB6MmZ0TFB1U3NSTUdMQnJSMUdIeFpCQktJbUlBMVhCZEdKSVk5Q2dxVEh6TTUxSHRCUw?oc=5",
-      "published": "2026-10-08T18:34:40+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "LULU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LULU"
-      ],
-      "sectors": [
-        "消费零售",
-        "运动服饰",
-        "税务亏损"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry出售Lululemon（LULU）股票以实现税务亏损，并称此举不代表放弃投资。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Teradyne, Inc.(TER) 卖出 ARKQ 21,143 股 / ARKX 5,923 股（最大单只 ETF 占比 0.43%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4346,
-      "tickers": [
-        "TER"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TER"
-      ],
-      "sectors": [
-        "半导体",
-        "半导体测试设备"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "ARK Invest于2026年10月7日合计卖出27,066股Teradyne（TER），涉及ARKQ和ARKX单只ETF约0.43%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 749,510 股（最大单只 ETF 占比 0.54%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5382,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "精准医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月7日卖出749,510股Personalis（PSNL），涉及ARKG单只ETF约0.54%的持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：DraftKings Inc.(DKNG) 卖出 ARKF 247,616 股（最大单只 ETF 占比 0.52%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-07T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5249,
-      "tickers": [
-        "DKNG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "DKNG"
-      ],
-      "sectors": [
-        "在线博彩",
-        "体育娱乐"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年10月7日卖出247,616股DraftKings（DKNG），涉及ARKF单只ETF约0.52%的持仓。"
-    },
-    {
-      "author": "段永平",
-      "text": "中國巴菲特｜騰訊又跌了 段永平「先賣點put吧」 收208萬期權金",
-      "url": "https://news.google.com/rss/articles/CBMiiwNBVV95cUxOMXY3cGhxUWFUdmVUUXN1amFfSHZ4Sl9seVh5blEzbFJUVnFOT3M3SDRkY1ZySnI5bHZ4eUY5S0dWdkZvVG5wajlZelozTkNIWV9Oc2tNOHVKbDRxYTVoMENFT3RoLXJISTlMV3c4T19aaFNhcEdqbzJNOVRjR0R1akNLcWNIQ2pYSHFxclNWbWZhNWl0SFFhWUxxRkp0US0wTjFZZkRWcFBGbmkydkZOVE5zbUhscmhNaXEyZEs2YVVxRHhoa1IteHNaU2J4YVdWVEpfXzE5TzJQZEctR2pzQ0Zmc0ZNOUZ1NFRLa002ZF9yWmxUb2dheU1mQWtwTjVuOFg3VEQzU2I1TGM0Z0kzUkhvcDlVdF9QLV9iOE15ckR3MDFSc0UzLVEyNGdaLV9wb0ZuM3M3cmo2M1JCZGFkcXJ6OXZSY1VWR3ZZY2lxS3VGNVZuVDhVb2NBRUZRUVp4UWtuQ3VMOC1LWjB6cEZtbDFTMkNtbDM2N2FYdEVDS0JvcVVNNGxVR2VLNA?oc=5",
-      "published": "2026-10-09T00:24:49+00:00",
-      "origin": "gnews-rss",
-      "source": "香港01",
-      "tickers": [
-        "0700"
-      ],
-      "held": [],
-      "new_ideas": [
-        "0700"
-      ],
-      "sectors": [
-        "中国互联网",
-        "港股",
-        "期权"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据媒体称，段永平在腾讯股价下跌后卖出认沽期权并收取约208万港元期权金，表达对腾讯期权收入的操作而非公开看空。"
+      "relevance": 88,
+      "summary_cn": "据报道，SpaceX正推进直接提供手机服务，令传统无线运营商AT&T、Verizon和T-Mobile面临竞争压力，同时利好SpaceX的电信业务扩张。"
     },
     {
       "author": "Musk",
-      "text": "Musk Loses Trillionaire Status As SpaceX And Tesla Drop Wipes Out $36 Billion",
+      "text": "Elon Musk’s growing SpaceX empire sends AT&T, Verizon and T-Mobile shares plunging",
       "url": "",
-      "published": "Thu, 08 Oct 2026 17:41:21 GMT",
+      "published": "Fri, 09 Oct 2026 17:55:48 GMT",
       "origin": "gnews-rss",
-      "source": "Forbes",
+      "source": "NBC News",
+      "tickers": [
+        "SPCX",
+        "T",
+        "VZ",
+        "TMUS"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "T",
+        "TMUS",
+        "VZ"
+      ],
+      "sectors": [
+        "航天",
+        "卫星通信",
+        "电信"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "buy",
+      "relevance": 84,
+      "summary_cn": "据媒体报道，Musk旗下SpaceX的版图扩张导致AT&T、Verizon和T-Mobile股价下跌，反映市场担忧卫星通信服务对传统运营商构成冲击。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump awards SpaceX founder Elon Musk National Medal of Science",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 13:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政府支持",
+        "国防科技"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道，Trump向SpaceX创始人Musk授予美国国家科学奖章，强化SpaceX获得政府认可的信号。"
+    }
+  ],
+  "new_ideas": [
+    {
+      "author": "洪灏",
+      "text": "【TSLA】Tesla上海超級工廠2026年9月交付9.5萬輛 交付量及銷量齊創今年高",
+      "url": "https://news.google.com/rss/articles/CBMinwNBVV95cUxPYVZNWV94bFdzejY0RjBfRkplaHpCZlBQQUNfQm9jUm9URXI0a1F1dVBHekptN1BYeXE5T3Z0UjVtWTlmYkhqbnBQdDBQZnFmVlJXNmxuT0sySm9PWjVESHRFaXcyR3lzVGU3Vm9qWGpqRWdNWVFoMTBtNXZWYlRWZDlycWxpMHNUUjdtYnRrbHJyd2JVSFZEUmFFTldyLUpsVlo5ZVdSbGxWSF9ZRlYwRUY2V0JXWGJUeDd3Uzh2S3FkeUtySVJKdl9zM0l3eUxlR1JLUVBJaHBFTUJ1RGNad01HaGd4X0Zuc2RNQTNXMnVET2ZxN1M3WnpSSWNJcU5VVGcxVHh3djFKMFRVR2xmeW9rbTI5Q3p4dXl4MFJtX082N1JfT3IzMWdSeXpiVFF3YVk5QnJINUV4anpIS2dDRVJoLUV6Qkx2QkVRTFFBMjlyMThRalBQekZwdmZxQk5hRFlkMlJnZzd1ekNBOFdoNXR4M190eVpDNTFBbTVoOTJ3Nk84S2VZdjBvbGVnazFjdUFmLXMwMHMtZnFNYXk4?oc=5",
+      "published": "2026-10-09T13:39:22+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
       "tickers": [
         "TSLA"
       ],
@@ -708,25 +651,208 @@
       ],
       "sectors": [
         "电动车",
-        "航天"
+        "汽车制造",
+        "中国汽车市场"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "02208"
       ],
+      "stance": "endorse",
+      "relevance": 81,
+      "summary_cn": "据报道，Tesla上海超级工厂9月交付量达到9.5万辆，交付与销量均创年内新高，显示其中国市场表现改善。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warns of AI stock crash: The case for Amazon stock",
+      "url": "https://news.google.com/rss/articles/CBMickFVX3lxTE9CRGhWaTB2OGxrQVBFVERybTJ5ODI4M2FEVVlOd2E4ZGo5NlZZWlFGRnhWend3Qmx4VHg3QUcyaU5PdjdjS2RDRWJhMko3WUVBR0ttMFFqOGt2TFp0RUFDN0RrbkxNQUs5QmdSXy1CQTEtUQ?oc=5",
+      "published": "2026-10-09T11:21:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Beinsure",
+      "tickers": [
+        "AMZN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN"
+      ],
+      "sectors": [
+        "人工智能",
+        "云计算",
+        "电商",
+        "AI基础设施"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 69,
-      "summary_cn": "据报道，SpaceX与特斯拉市值下跌合计抹去约360亿美元，导致马斯克暂时失去 trillionaire 身份。"
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry警告AI股票可能崩盘，并以Amazon为例讨论高估值AI敞口带来的风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Stock Rises as Elon Musk Asserts Control Over Terafab Chip Project",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 14:23:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "半导体",
+        "AI芯片",
+        "制造业"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "据报道，Musk宣称控制Tesla的Terafab芯片项目并推动股价上涨，强化其对汽车制造及自研AI芯片产业链的主导权。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-07 调仓：Genius Sports Ltd(GENI) 买入 ARKF 656,920 股（最大单只 ETF 占比 0.45%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-07T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Illumina Inc(ILMN) 卖出 ARKK 105,321 股（最大单只 ETF 占比 0.30%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.4502,
+      "etf_percent": 0.298,
+      "tickers": [
+        "ILMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ILMN"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序",
+        "医疗科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "ARK Invest卖出ARKK中105,321股Illumina，占该ETF约0.30%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Shopify Inc.(SHOP) 卖出 ARKK 138,032 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2447,
+      "tickers": [
+        "SHOP"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SHOP"
+      ],
+      "sectors": [
+        "电商",
+        "金融科技",
+        "软件"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 77,
+      "summary_cn": "ARK Invest卖出ARKK中138,032股Shopify，占该ETF约0.24%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Robinhood Markets, Inc.(HOOD) 卖出 ARKK 202,825 股（最大单只 ETF 占比 0.23%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2343,
+      "tickers": [
+        "HOOD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "HOOD"
+      ],
+      "sectors": [
+        "金融科技",
+        "加密货币交易",
+        "券商"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 77,
+      "summary_cn": "ARK Invest卖出ARKK中202,825股Robinhood Markets，占该ETF约0.23%，属于较大规模减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：DraftKings Inc.(DKNG) 卖出 ARKF 106,134 股（最大单只 ETF 占比 0.23%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.231,
+      "tickers": [
+        "DKNG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DKNG"
+      ],
+      "sectors": [
+        "在线博彩",
+        "体育博彩",
+        "消费互联网"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 76,
+      "summary_cn": "ARK Invest卖出ARKF中106,134股DraftKings，占该ETF约0.23%，属于较大规模减仓。"
+    },
+    {
+      "author": "段永平",
+      "text": "「中國股神」段永平做Short Put 行權變相420蚊掃騰訊？",
+      "url": "https://news.google.com/rss/articles/CBMiywJBVV95cUxQSDlpUFdkTVVhcGlpbmV5c0V4WUtHb2s0SUY0aTJTQzIzazBSamZ1NnRwOGs5VmxrRnJTLTh2NkhnSHVXMU5rbzJGNTdfNTNlVmpjYmFXQkhOMlNaRFNGRXVaamIzQzlva1k0eXdBNFBYZ2ZsUlBOc25uVzJSOTN5MXFiTndab05zaHVjOV83dkhIb2ZaZlh1aFA5QXRJaHlKb2x1WGhwejVRVnhtRWRudjE4dUh5dWhtbk4tY0VLY1g2UDlZZEtmTjREeE9xWWN5NlI5UVhKc2YxbGVncktaY3lxTnZpTVNfLUdrTWVkZ1czYkt1RHdsUktiaF9JQ1k4blZTTXREWUFDb25iWHZPV2NnTlhjNnFJZFBiSndEUkpaMFJXeFRXNkxmRUZTRkFxZjdHNW5yRkhvb1N3YmIwSFVLMlpsS2d1emxF?oc=5",
+      "published": "2026-10-08T09:37:10+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [
+        "0700"
+      ],
+      "held": [],
+      "new_ideas": [
+        "0700"
+      ],
+      "sectors": [
+        "互联网",
+        "游戏",
+        "中国科技股",
+        "期权"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "sell",
+      "relevance": 76,
+      "summary_cn": "据报道，段永平卖出腾讯认沽期权并收取约208.4万港元期权金，意味着其愿意在约420港元附近接货腾讯股份。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Genius Sports Ltd(GENI) 买入 ARKF 347,777 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2435,
       "tickers": [
         "GENI"
       ],
@@ -736,129 +862,54 @@
       ],
       "sectors": [
         "体育博彩",
-        "体育数据"
+        "体育科技",
+        "预测市场"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 69,
-      "summary_cn": "ARK Invest于2026年10月7日买入656,920股Genius Sports（GENI），涉及ARKF单只ETF约0.45%的持仓。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest买入ARKF中347,777股Genius Sports，占该ETF约0.24%，显示其增加对体育数据与博彩相关公司的敞口。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-08 调仓：Kymera Therapeutics, Inc.(KYMR) 买入 ARKG 43,453 股（最大单只 ETF 占比 0.22%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-08T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2156,
+      "tickers": [
+        "KYMR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "KYMR"
+      ],
+      "sectors": [
+        "生物科技",
+        "创新药"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 75,
+      "summary_cn": "ARK Invest买入ARKG中43,453股Kymera Therapeutics，占该ETF约0.22%，加仓靶向蛋白降解相关创新药公司。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "SpaceX takes aim at US wireless carriers with spectrum acquisition",
-      "url": "",
-      "published": "Thu, 08 Oct 2026 20:19:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电信",
-        "频谱"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道，SpaceX收购无线频谱并准备进军美国无线通信市场，可能直接挑战传统电信运营商。"
-    },
-    {
-      "author": "洪灏",
-      "text": "【大行看法】信銀國際：料美國10年期長債息率或見5.5厘 下調恒指今年目標價至27000點",
-      "url": "https://news.google.com/rss/articles/CBMiggRBVV95cUxQT3o5cHIyckczNTh4OF8yazI0bDRlbmhydkMzYTBfTHVmNldCNUM1eE5GX0ZDLWtVQXVlX25HN2c1dmFhNmV6QU94NUZYM0ozc0pldUFuNktGUW9SeF9pUEZZQWtVcmI1R3N1bGZfRHBkTERMOWQ1N2dlRTBlRkZXdkJnUXlLdF9JVkFYSmdFRWZpa25qY0UwbEJ2UTRZOGU1TERFVkY4VUdMYjF5ZkJSWkRmN2JfRHVVbTk2NC1YNFNaTDgwZ0lWc2RNOURIdjJMcFNlN3ZGWUJzTk5ncW5XWmZHdmpYb0c5NEt1U0NPQzdGZW1jMVBCX1lRY09nbW1icFZFZVFReENEeGdfLUM4dVlWNW1UekpKbkpyOUVUTG10d3JEU3N4dHNQcF84M0tveEIxS1BKNEVQaWdpaDVBU1I1RjZmWkhjWFJNUEt2ZHJnQmdEX0tQbUtTU24zN3huTi1OWERTcjZadXdvUDdEMTJsNEhwRjBzZHZQU2lfUGZNVlVNLVhSTnRUVzhwQmp2clRyekVjYWlUUFRFbjBLWGp3WXZuWk9HMkYwUU9BWjJnbVBrSEVtb3NrOThHeVQ2bGN3NkNGcW5HWDV5bmFpeGI5RVJjT3RvYmhsbUc2bXYzRG93MC0xM1hwLUVqR3Y0SDRXaFMzZmtzQ19nT0sxTEZ3?oc=5",
-      "published": "2026-10-08T15:17:52+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美债利率",
-        "港股",
-        "恒生指数",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据媒体称，信银国际预计美国10年期国债收益率可能升至5.5%，并将恒生指数今年目标价下调至27,000点。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Can’t Get Starlink in India. What It Means for SpaceX Stock.",
-      "url": "",
-      "published": "Thu, 08 Oct 2026 20:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网",
-        "印度监管"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，SpaceX的Starlink尚未获准进入印度，构成其卫星互联网扩张面临的监管障碍。"
-    },
-    {
       "author": "Burry",
-      "text": "Michael Burry Has Called 12 of the Last 3 Market Crashes — Now He Says Stocks Are in ‘Denial’",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOd01RT2xmNFVPLWg3a3d5aEI1TmIxYnV3SjByWEhKWkdiM1MxcHVheDFoT2tmTl9XdU4wMFhOZG5kUFEtcFlMZU93aXFGSTdvdXlrNE96YU1QbV9hLTlKY1NRQWJmam5CLXRGbVNXQXJkV3VuRHZlMEdXRWRjOXhTX3d6MUVOcmduWHA3dzNYY0xSQXZfeDFqSw?oc=5",
-      "published": "2026-10-08T15:39:28+00:00",
+      "text": "Michael Burry Says His Puts Give Him 'Far More Upside' In A Crash As He Pulls His AI Bubble Timeline Forward",
+      "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNQzJpU19qR21TbDRWb09ZRkowUUxKOFNpLWl0ejBrY0lUUmktdVpOcC1NdnRCa20zamxDR09ZVzJTZ0pJQWhFbVEyZmVtczRlUHRnLWFQM0NWcG5MeGNveEFtUmZNb2hYT2ltLVpJZjEwX0ZrOUFkS2ozMmZoOS1ucG10T1ljTkRwYkVTcWNfZGpKMk82cFhxMmEtaHhoZlgzWUVoUWZmYVlWTC16aWxNN2dqN0RxYko5SjlidDJXWXJyNjFNVmUtdjl3WTVKd0YyRnBj?oc=5",
+      "published": "2026-10-09T10:43:30+00:00",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Stocktwits",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "市场风险",
-        "宏观"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "CRCL"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据媒体称，Michael Burry认为当前股票市场处于“否认”状态，并再次警示潜在的市场崩盘风险。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝專訪 | 香港應拓軟科技忌盲搞基建，本季股市多重利好迎勝仗",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUDMzenpkcE5fTEFHT01QbTd0dzRkY3pJRncwcHZxTURoRTNiRTlUSHdfNG1tazJpT1FqSE1qbFZxdzYzTlViMVMweWJxUkhYb2V3TzAzZ21uY050bUJHU0x4VjRXdWVxd21hUDVxYjVvWWtzLXNLczJjRXJWdzZFUHBQYTFHX3pVdUNsVmpjX2xGZmoxc2FMVmxoVmpvSnZwQ2lLZUpB?oc=5",
-      "published": "2026-10-07T08:48:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "软件",
-        "香港股市",
-        "AI"
+        "人工智能",
+        "AI股票",
+        "宏观风险"
       ],
       "sector_holdings": [
         "00100",
@@ -866,9 +917,82 @@
         "03033",
         "07226"
       ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "据媒体称，洪灏认为香港应拓软件不应盲目押注基础设施，并对本季香港股市持相对积极看法。"
+      "stance": "attack",
+      "relevance": 86,
+      "summary_cn": "据报道，Michael Burry称其看跌期权在市场崩盘中可提供更大收益，并提前了AI泡沫破裂的时间判断，表达对AI估值的强烈警惕。"
+    },
+    {
+      "author": "Musk",
+      "text": "'Real boss of India?': Elon Musk takes aim at Indian billionaire Ambani as Starlink launch stalls",
+      "url": "",
+      "published": "Fri, 09 Oct 2026 04:02:13 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星通信",
+        "电信",
+        "印度市场"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "据报道，Musk在Starlink发射延期之际公开针对印度富豪Ambani，令印度卫星通信业务竞争及项目执行风险受到关注。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Here Are The Members Of Congress With The Most Invested In The AI Data Center Boom",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNbkt5LXRIZUJ3LW00SWdwTjdKVElsTW8yRUN5OFB0NmpHRGZibjBEOEtCb2RPTU9HQ0RLWEZTaVdLSElyTjcySmFfUC1xRHpST2gtVThlWXU3RlFfSzMtOWM2bkYybTZES19DVk1DckI0cEg4TThpOFZGQWQybXdKQzlaSDJIcG9Rbk9zWXhTcy1yTVJqNzAwODlrYV9fdkQ5dlRPUVlUYmM4VzYwQmh5RlBWR3U2OUxvcVE?oc=5",
+      "published": "2026-10-09T10:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "AI数据中心",
+        "美国国会",
+        "政治交易"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 64,
+      "summary_cn": "据报道，多名美国国会议员披露了规模最大的AI数据中心主题投资组合，显示该主题继续获得政界资金关注。"
+    },
+    {
+      "author": "Trump",
+      "text": "The White House considers anyone that uses the term, “Artificial Intelligence,” as opposed to the highly accepted new and more accurate term, “Super Intelligence,” THE ENEMY! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42201",
+      "published": "2026-10-08T16:14:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "AI监管"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 56,
+      "summary_cn": "特朗普称白宫倾向于以“超级智能”取代“人工智能”，显示美国政府正在调整AI政策与监管话语。"
     }
   ]
 }
