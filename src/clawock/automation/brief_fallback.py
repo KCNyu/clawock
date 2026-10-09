@@ -13,6 +13,7 @@ Env: MINIMAX_API_KEY required
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from copy import deepcopy
@@ -44,52 +45,63 @@ SINGLE_TURN_ADAPTER = """你在离机兜底环境里单轮生成今天的盘前�
 分析方法、plan 的 schema（Step 4 的 B）和 judgment 的字段规则（Step 4 的 C）以下面的 SKILL.md 为准；SKILL.md 里凡是要求调用工具、查询 packet、读写文件或跑 preflight/postflight 的地方，在这里一律按下面三条执行：
 1. 输入已经全部内联：本次 generation 的 decision packet（SKILL 所说的 summary 与逐票查询的全部内容）和完整 preflight context。数字只取自这两份，取不到就写进 data_holes，不要编。
 2. 只输出一个 JSON 对象：{"plan": {...}, "judgment": {...}}。不要输出 markdown 报告、微信卡、insights 或任何客套话——报告与微信卡由 harness 从 plan 和 judgment 渲染。
-3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。"""
+3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。
+4. plan 的每条 decision 只能用该票 packet 里 `constraints.allowed_actions` 列出的动作。加仓类动作只有 packet 给出 `technical.setups` 时才能写，并照抄其中的 setup 字段；packet 没有授权就不写加仓。持仓外的标的（stock_discovery、watch_list）不进 decisions。"""
+
+
+def _json_objects(text):
+    """Every top-level JSON object in `text`, in order.
+
+    `raw_decode` at each '{' is string-aware (braces inside JSON strings are the
+    decoder's problem) and immune to an unmatched '{' in surrounding prose — a
+    hand-rolled depth counter is not (2026-07 review).
+    """
+    decoder = json.JSONDecoder()
+    found, idx = [], 0
+    while True:
+        start = text.find('{', idx)
+        if start == -1:
+            return found
+        try:
+            value, end = decoder.raw_decode(text, start)
+        except json.JSONDecodeError:
+            idx = start + 1
+            continue
+        if isinstance(value, dict):
+            found.append(value)
+        idx = end
 
 
 def split_plan_and_judgment(out):
-    """(plan, judgment) from the model's reply: one JSON object holding both.
+    """(plan, judgment) from the model's reply.
 
-    `_extract_last_json` does the finding, so a fence, a preamble or an
-    unbalanced brace in surrounding prose does not lose a good reply. Anything
-    that is not one object with both members raises ValueError before a file
-    is written; a wrong grab is still rejected downstream by the plan schema
-    and the judgment overlay check.
+    Asked for as one object `{"plan", "judgment"}`. The first real reply under
+    that contract (rehearsal 2026-10-09) was 31K tokens and was not that shape,
+    so the two halves are also accepted as separate objects, wrapped or bare:
+    the last object carrying each wins, as the last plan block always has. A
+    fence, a preamble or an unbalanced brace in surrounding prose does not lose
+    a good reply. Raises ValueError, naming the shapes it did find, before a
+    file is written; a wrong grab is still rejected downstream by the plan
+    schema and the judgment overlay check.
     """
-    raw, start = _extract_last_json(out)
-    if start is None:
-        raise ValueError('model reply carries no JSON object')
-    payload = json.loads(raw)
-    plan, judgment = payload.get('plan'), payload.get('judgment')
-    if not isinstance(plan, dict) or not isinstance(judgment, dict):
+    plan = judgment = None
+    objects = _json_objects(out)
+    for value in objects:
+        if isinstance(value.get('plan'), dict):
+            plan = value['plan']
+        elif isinstance(value.get('decisions'), list):
+            plan = value
+        if isinstance(value.get('judgment'), dict):
+            judgment = value['judgment']
+        elif isinstance(value.get('ticker_judgments'), list):
+            judgment = value
+    if plan is None or judgment is None:
+        shapes = [sorted(value)[:6] for value in objects[-4:]]
         raise ValueError(
-            'model reply must be one JSON object with "plan" and "judgment" objects')
+            'model reply must carry a "plan" object and a "judgment" object; '
+            f'found {len(objects)} JSON object(s), the last with keys {shapes}')
     return plan, judgment
 
-
-def _extract_last_json(text):
-    """(last_valid_top_level_JSON_object_str, start_index) or ('{}', None).
-
-    Uses json.raw_decode at each '{', keeping the LAST that parses — so it is
-    string-aware (braces inside JSON strings are handled by the decoder), skips an
-    earlier ```json example, and is immune to unbalanced braces in the surrounding
-    prose (a hand-rolled depth counter is not — an unmatched '{' in Markdown
-    poisons it; 2026-07 review)."""
-    decoder = json.JSONDecoder()
-    last, last_start = '{}', None
-    idx = 0
-    while True:
-        b = text.find('{', idx)
-        if b == -1:
-            break
-        try:
-            _, end = decoder.raw_decode(text, b)
-        except json.JSONDecodeError:
-            idx = b + 1
-            continue
-        last, last_start = text[b:end], b
-        idx = end
-    return last, last_start
 
 # Send the WHOLE preflight context. This was context[:30000] until 2026-07-16 — a cap
 # sized for an older, smaller context that had since grown to 194KB, so the brief got
@@ -382,7 +394,14 @@ def checked_reply(out, today, packet):
     if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
         errors.append('judgment carries no ticker_judgments')
     if errors:
-        raise ReplyRejected('; '.join(errors))
+        # Name the rows the errors point at: `decision[8]` alone tells neither
+        # the model in the repair turn nor whoever reads the job log which
+        # ticker and action were refused.
+        decisions = plan.get('decisions') if isinstance(plan.get('decisions'), list) else []
+        named = sorted({int(index) for index in re.findall(r'decision\[(\d+)\]', ' '.join(errors))})
+        rows = [f"decision[{index}] is {decisions[index].get('ticker')} {decisions[index].get('action')}"
+                for index in named if index < len(decisions) and isinstance(decisions[index], dict)]
+        raise ReplyRejected('; '.join(errors + rows))
     # The two pins are the harness's to write, like the plan's above: the model
     # copying a hash wrong must not cost the day its brief.
     judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION

@@ -107,10 +107,23 @@ def test_an_unbalanced_brace_in_the_preamble_does_not_poison_the_reply():
 
 
 @pytest.mark.parametrize('out', [
+    json.dumps(REPLY['plan']) + '\n\n' + json.dumps({'judgment': REPLY['judgment']}),
+    '计划：\n```json\n' + json.dumps({'plan': REPLY['plan']}) + '\n```\n判断：\n```json\n'
+    + json.dumps({'ticker_judgments': [], 'note': 'a } b {'}) + '\n```',
+])
+def test_the_two_halves_are_accepted_as_separate_objects(out):
+    """The first real reply under the plan + judgment contract was not one
+    object (rehearsal 2026-10-09); losing a brief to the wrapping is the same
+    mistake as losing it to the fence."""
+    plan, judgment = fallback.split_plan_and_judgment(out)
+    assert plan == REPLY['plan'] and judgment['note'] == 'a } b {'
+
+
+@pytest.mark.parametrize('out', [
     '# 简报\n只有正文，没有计划。',
     '```json\n{"decisions": [], "as_of": "plan only"}\n```',
     '```json\n{"plan": {"decisions": []}, "judgment": []}\n```',
 ])
 def test_a_reply_that_is_not_plan_plus_judgment_is_refused(out):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='found'):
         fallback.split_plan_and_judgment(out)
