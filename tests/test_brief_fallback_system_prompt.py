@@ -49,29 +49,28 @@ def test_system_prompt_preserves_the_final_lines_of_each_file():
     assert SOUL_TEXT.strip() in prompt
 
 
+def _workspace_with_generation(ws, today):
+    from test_brief_fallback_artifacts import write_generation
+
+    packet = write_generation(ws, today)
+    (ws / 'SOUL.md').write_text(SOUL_TEXT, encoding='utf-8')
+    (ws / 'BOOTSTRAP.md').write_text(BOOTSTRAP_TEXT, encoding='utf-8')
+    return packet
+
+
 def test_main_passes_the_untruncated_prompt_to_chat(tmp_path, monkeypatch):
     """Wiring test: whatever main() sends as `system` must be the whole-file
     build, proven end-to-end through the real file reads."""
     today = '2026-08-25'
     ws = tmp_path
-    (ws / 'memory' / '.tmp').mkdir(parents=True)
-    (ws / 'skills' / 'daily-deep-brief').mkdir(parents=True)
-    (ws / 'SOUL.md').write_text(SOUL_TEXT, encoding='utf-8')
-    (ws / 'BOOTSTRAP.md').write_text(BOOTSTRAP_TEXT, encoding='utf-8')
-    (ws / 'skills' / 'daily-deep-brief' / 'SKILL.md').write_text(
-        '# skill\n', encoding='utf-8')
-    context = {'portfolio': {'portfolios': {'hk_stocks': {}, 'us_stocks': {}}}}
-    (ws / 'memory' / '.tmp' / f'brief-context-{today}.json').write_text(
-        json.dumps(context), encoding='utf-8')
+    _workspace_with_generation(ws, today)
 
     captured = {}
 
     def fake_chat(**kwargs):
         captured.update(kwargs)
-        return ('prose\n```json\n'
-                + json.dumps({'schema_version': 2, 'date': today,
-                              'decisions': []})
-                + '\n```')
+        return json.dumps({'plan': {'schema_version': 2, 'date': today, 'decisions': []},
+                           'judgment': {}})
 
     monkeypatch.setenv('TODAY', today)
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(ws))
@@ -79,7 +78,7 @@ def test_main_passes_the_untruncated_prompt_to_chat(tmp_path, monkeypatch):
     # An empty decisions list fails schema validation by design; chat() has
     # already been called by then, which is the moment under test.
     with pytest.raises(SystemExit):
-        brief_fallback.main()
+        brief_fallback.main([])
 
     system = captured['system']
     assert "## Operating mode (this workspace)" in system
@@ -90,28 +89,16 @@ def test_a_plan_dated_another_day_is_refused_before_anything_is_written(
         tmp_path, monkeypatch):
     """#1915: the fallback kept the model's `date` and validated without the
     filename, so a plan dated 09-20 was written as today's plan.json."""
+    from test_brief_fallback_artifacts import model_reply
+
     today = '2026-09-26'
     ws = tmp_path
-    (ws / 'memory' / '.tmp').mkdir(parents=True)
-    (ws / 'skills' / 'daily-deep-brief').mkdir(parents=True)
-    (ws / 'SOUL.md').write_text(SOUL_TEXT, encoding='utf-8')
-    (ws / 'BOOTSTRAP.md').write_text(BOOTSTRAP_TEXT, encoding='utf-8')
-    (ws / 'skills' / 'daily-deep-brief' / 'SKILL.md').write_text(
-        '# skill\n', encoding='utf-8')
-    context = {'portfolio': {'portfolios': {'hk_stocks': {}, 'us_stocks': {}}}}
-    (ws / 'memory' / '.tmp' / f'brief-context-{today}.json').write_text(
-        json.dumps(context), encoding='utf-8')
-    decision = {'ticker': 'AAA', 'strategy_id': 'core_position',
-                'action': 'hold_and_watch', 'condition': {'type': 'open'},
-                'confidence': 0.6, 'driven_by': 'technical'}
+    packet = _workspace_with_generation(ws, today)
     monkeypatch.setenv('TODAY', today)
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(ws))
-    monkeypatch.setattr(brief_fallback, 'chat', lambda **_kw: (
-        'prose\n```json\n'
-        + json.dumps({'schema_version': 2, 'date': '2026-09-20',
-                      'decisions': [decision]})
-        + '\n```'))
+    monkeypatch.setattr(brief_fallback, 'chat',
+                        lambda **_kw: model_reply(packet, today, date='2026-09-20'))
 
     with pytest.raises(SystemExit, match='must match filename'):
-        brief_fallback.main()
+        brief_fallback.main([])
     assert not (ws / 'memory' / f'{today}-plan.json').exists()

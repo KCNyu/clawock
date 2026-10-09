@@ -94,9 +94,11 @@ def test_a_rehearsal_exists_and_can_never_publish(job):
     rehearsal = next((n for n in steps if "Rehearsal" in n), None)
     assert rehearsal, "there must be a way to exercise the generation chain on purpose"
 
+    # `postflight --dry-run` is the drill's own consumer check: it validates
+    # and writes nothing outside the runner. Every other postflight publishes.
     publishing = [name for name, step in steps.items()
                   if "safe_push" in str(step.get("run", ""))
-                  or "postflight" in str(step.get("run", ""))
+                  or re.search(r"brief postflight(?! --dry-run)", str(step.get("run", "")))
                   or "Commit" in name]
     assert publishing, "this test is worthless if it stops matching the publishing steps"
     for name in publishing:
@@ -114,6 +116,29 @@ def test_the_rehearsal_fails_when_the_chain_produces_nothing(job):
     assert "::error::" in run and "exit 1" in run, (
         "the rehearsal must go red when no brief was produced"
     )
+
+
+def test_the_rehearsal_judges_this_run_not_the_checkout(job):
+    """#2818: the drill runs when the primary brief is healthy, so today's
+    pre-open.md is already in the checkout. On 2026-10-07 all three provider
+    attempts failed and the step reported "produced 44612 bytes" off that file.
+    The verdict has to come from the generation step's own outcome and from
+    what that run wrote, never from a file being present.
+    """
+    steps = _steps_by_name(job)
+    generate = next(step for step in job["steps"]
+                    if step.get("run", "").strip() == "clawock-brief-fallback")
+    rehearsal = next(step for name, step in steps.items() if "Rehearsal" in name)
+    run = rehearsal["run"]
+
+    assert f"steps.{generate['id']}.outcome" in str(rehearsal.get("env")), (
+        "the verdict must read whether the generation step itself succeeded")
+    order = [run.index(command) for command in (
+        "clawock-brief-fallback --verify-receipt", "clawock brief render",
+        "clawock brief postflight --dry-run")]
+    assert order == sorted(order), "receipt, then render, then the consumer check"
+    assert not re.search(r"-[sfe] \S*pre-open\.md", run), (
+        "a file-exists test cannot tell this run's brief from the checkout's")
 
 
 def test_the_rehearsal_runs_on_a_trading_day(triggers):

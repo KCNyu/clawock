@@ -19,13 +19,16 @@ from pathlib import Path
 
 import pytest
 
-from clawock.automation import brief_fallback, news_digest, weekly_review
+from clawock.automation import news_digest, weekly_review
+from clawock.brief_contract import REQUIRED_MARKDOWN_SECTIONS
 from clawock.automation.output_validate import (
     LLMOutputError,
     coerce_scored_items,
     validate_sections,
 )
 from clawock.workspace import workspace_root
+
+BRIEF_REQUIRED_SECTIONS = tuple(REQUIRED_MARKDOWN_SECTIONS.values())
 
 WS = workspace_root()
 
@@ -78,9 +81,9 @@ def test_anchor_match_is_case_insensitive_and_substring():
 
 def test_real_committed_artifacts_pass_their_own_anchors():
     """Regression guard against over-strict anchors — the expensive direction."""
-    brief = _read('memory/2026-07-16-pre-open.md')      # last fallback-authored brief
+    brief = _read('memory/2026-07-16-pre-open.md')      # last model-authored brief page
     validate_sections(brief, label='brief markdown',
-                      required=brief_fallback.BRIEF_REQUIRED_SECTIONS,
+                      required=BRIEF_REQUIRED_SECTIONS,
                       min_chars=2000)
 
     review = _read('memory/weekly/2026-W34.md')
@@ -112,7 +115,9 @@ def test_real_committed_artifacts_pass_their_own_anchors():
 # call site now fails this test until it is either gated or listed.
 SOURCE_ROOTS = ('src/clawock', 'ops')
 GATED_CALL_SITES = {
-    ('src/clawock/automation/brief_fallback.py', 'main'): 'validate_sections',
+    # The reply is JSON now (#2817): the plan schema is the gate, and the
+    # judgment is checked against the packet before either file is written.
+    ('src/clawock/automation/brief_fallback.py', 'main'): 'validate_plan',
     # generate_review, not main: it returns only text that passed the gate (one
     # repair turn included), and main writes nothing else.
     ('src/clawock/automation/weekly_review.py', 'generate_review'): 'validate_sections',
@@ -120,7 +125,8 @@ GATED_CALL_SITES = {
     ('src/clawock/automation/influencer.py', 'llm_filter'): 'coerce_scored_items',
 }
 # Anything that puts the model's words somewhere another job will read them.
-WRITE_CALLS = {'write_text', 'write_bytes', '_write_artifact', 'dump', 'dumps'}
+WRITE_CALLS = {'write_text', 'write_bytes', '_write_artifact', 'dump', 'dumps',
+               'safe_write_json', 'safe_write_text'}
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -311,8 +317,8 @@ def test_unmatched_digest_bullets_are_counted(capsys, monkeypatch):
 
 
 def test_fallback_anchors_accept_current_prompt_concepts_without_renderer_heading():
-    text = '\n'.join(aliases[0] for aliases in brief_fallback.BRIEF_REQUIRED_SECTIONS) + '\n' + 'evidence ' * 300
+    text = '\n'.join(aliases[0] for aliases in BRIEF_REQUIRED_SECTIONS) + '\n' + 'evidence ' * 300
     assert '仓位明细' not in text
-    validate_sections(text, label='brief markdown', required=brief_fallback.BRIEF_REQUIRED_SECTIONS, min_chars=2000)
+    validate_sections(text, label='brief markdown', required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)
     with pytest.raises(LLMOutputError, match='多空对辩'):
-        validate_sections(text.replace('多空对辩', ''), label='brief markdown', required=brief_fallback.BRIEF_REQUIRED_SECTIONS, min_chars=2000)
+        validate_sections(text.replace('多空对辩', ''), label='brief markdown', required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)

@@ -5,7 +5,6 @@
 # A removed edge must be deleted here too, so the list never claims coupling that is gone.
 (root) -> workspace
 __main__ -> cli
-automation -> brief_contract
 automation -> decision
 automation -> instruments
 automation -> market_data

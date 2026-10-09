@@ -81,52 +81,36 @@ def test_missing_required_section_produces_zero_actions_and_explicit_brief():
 import pytest
 
 
+REPLY = {'plan': {'decisions': [], 'as_of': 'real'}, 'judgment': {'note': 'a } b {'}}
+
+
 @pytest.mark.parametrize('fence', ['```json', '```JSON', '``` json', '```\tjson'])
-def test_split_brief_and_plan_tolerates_fence_case_and_spacing(fence):
+def test_the_reply_object_is_found_whatever_the_fence_looks_like(fence):
     """2026-07 audit: pinning the exact lowercase ```json discarded a valid plan
     the moment the model shifted case/spacing, killing the last brief-recovery."""
-    out = f'# 盘前简报\n正文……\n\n{fence}\n{{"decisions": [], "as_of": "x"}}\n```\n'
-    md, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan) == {'decisions': [], 'as_of': 'x'}
-    assert '盘前简报' in md and '```' not in md
+    out = f'好的，结果如下：\n\n{fence}\n{json.dumps(REPLY)}\n```\n'
+    assert fallback.split_plan_and_judgment(out) == (REPLY['plan'], REPLY['judgment'])
 
 
-def test_split_brief_and_plan_uses_last_fence_not_first():
-    """Markdown may itself contain a ```json example; the plan is the LAST fence."""
-    out = ('示例：```json\n{"example": true}\n```\n正文\n\n'
-           '```json\n{"decisions": [1], "as_of": "real"}\n```')
-    _, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan) == {'decisions': [1], 'as_of': 'real'}
+def test_the_reply_object_is_the_last_one_not_an_earlier_example():
+    """A preamble may itself contain a ```json example; the reply is the LAST object."""
+    out = ('示例：```json\n{"plan": {"example": true}, "judgment": {}}\n```\n正文\n\n'
+           + json.dumps(REPLY))
+    assert fallback.split_plan_and_judgment(out)[0] == REPLY['plan']
 
 
-def test_split_brief_and_plan_recovers_a_bare_trailing_plan():
-    out = '# 简报\n正文 {行内 brace 不是 plan}\n\n{"decisions": [], "as_of": "bare"}'
-    _, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan)['as_of'] == 'bare'
+def test_an_unbalanced_brace_in_the_preamble_does_not_poison_the_reply():
+    out = '说明 { 未闭合花括号\n\n```json\n' + json.dumps(REPLY) + '\n```'
+    plan, judgment = fallback.split_plan_and_judgment(out)
+    # String-aware too: the braces inside the judgment text survive.
+    assert plan == REPLY['plan'] and judgment['note'] == 'a } b {'
 
 
-def test_split_brief_and_plan_returns_empty_object_when_no_json():
-    _, plan = fallback.split_brief_and_plan('# 简报\n只有正文，没有计划。')
-    assert plan == '{}'
-
-
-def test_split_recovers_bare_plan_after_an_earlier_fenced_example():
-    """2026-07 review: an earlier ```json example must not steal the plan when the
-    real plan is a bare trailing object — the LAST valid object wins."""
-    out = ('示例：\n```json\n{"example": 1}\n```\n正文\n\n'
-           '{"decisions": [], "as_of": "real"}')
-    _, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan)['as_of'] == 'real'
-
-
-def test_split_survives_unbalanced_brace_in_prose():
-    """An unmatched { in Markdown must not poison extraction of a valid trailing plan."""
-    out = '正文 { 未闭合花括号\n\n```json\n{"decisions": [], "as_of": "d"}\n```'
-    _, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan)['as_of'] == 'd'
-
-
-def test_split_is_string_aware_for_braces_inside_json_values():
-    out = '```json\n{"note": "a } b {", "as_of": "e"}\n```'
-    _, plan = fallback.split_brief_and_plan(out)
-    assert json.loads(plan) == {'note': 'a } b {', 'as_of': 'e'}
+@pytest.mark.parametrize('out', [
+    '# 简报\n只有正文，没有计划。',
+    '```json\n{"decisions": [], "as_of": "plan only"}\n```',
+    '```json\n{"plan": {"decisions": []}, "judgment": []}\n```',
+])
+def test_a_reply_that_is_not_plan_plus_judgment_is_refused(out):
+    with pytest.raises(SystemExit):
+        fallback.split_plan_and_judgment(out)
