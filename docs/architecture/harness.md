@@ -332,6 +332,10 @@ parameters and what reaches their model.
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
 | provenance code identity | `code_identity.git_commit` / `file_digest` | run cards, scorecard provenance | explicit workspace / file; short commit or null, sha256 prefix unchanged; `tests/test_code_identity.py` pins one owner |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
+| valid daily prices and Tencent bad rows | `market_data/daily_prices` (`positive_price`, `clean_bars`), `market_data/tencent_daily` (`parse_daily_closes`, `parse_daily_bars`) | quant, regime, peers, regime evaluations | provider rows or OHLC dictionaries; skip malformed, non-finite and non-positive prices |
+| successful artifact refresh | `harness/artifacts.refresh_json` | brief quant, regime, risk, factor/peer research and setup/review nodes | command, path, timeout, workspace; nonzero, timeout or no rewrite omits the optional result, retaining recovery files |
+| persisted quant session | `decision/freshness.quant_row_for_session` | T+0 setups | signal symbol and latest completed market session; stale/undated rows contribute no ATR/RSI/z-score, source date and availability remain visible in the artifact |
+| brief preflight deadline | `harness/deadline.run_bounded`, `run_budgets.BRIEF_PREFLIGHT_TIMEOUT_SECONDS` | brief public preflight entry, cron and fallback budget contracts | 600-second process-group ceiling; timeout replaces context/manifest with `preflight_timeout`, fallback and postflight refuse it |
 | HSTECH dated daily closes | `market_data/hstech.fetch_hstech` | live regime, regime evaluations (including combined regime) | start/end/count; shared `market_data/tencent_daily` request/parser; malformed rows skipped, research fetch errors propagate, live caller degrades to unknown |
 | history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
@@ -438,7 +442,7 @@ its portfolio region; that partial book is not published as a brief. Off-host
 fallback refuses generation, and postflight writes a closed publish gate and exits
 2 before normalization, rendering, commits or delivery. Other collection warnings
 still produce the normal context with explicit `issues`. Dashboard context selection
-skips both `market_closed` and `price_refresh_failed` stubs to preserve last-good
+skips `market_closed`, `price_refresh_failed` and `preflight_timeout` stubs to preserve last-good
 brief-derived cards.
 
 OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat

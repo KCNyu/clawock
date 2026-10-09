@@ -783,7 +783,7 @@ def test_every_twenty_minutes_timeline_label_is_not_every_hour():
     assert timeline.time_label(mins, hours) == '每20分钟'
 
 
-def _brief_live_payload(data, *, timeout=1800):
+def _brief_live_payload(data, *, timeout=2400):
     """A live 盘前深度简报 job that satisfies every other clause of its profile."""
     expected = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
     profile = data['payload_profiles']['brief']
@@ -834,7 +834,7 @@ def test_brief_timeout_lands_before_the_next_cron_window():
 
 
 def test_every_brief_watchdog_runs_after_the_brief_timeout_boundary():
-    """The 09:05 miss detector is bound by the timeout as much as 08:36 (#1638)."""
+    """The 09:05 miss detector is bound by the timeout as much as 08:46 (#1638)."""
     data = contract()
     timeout = data['payload_profiles']['brief']['timeout_seconds']
     brief = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
@@ -848,12 +848,12 @@ def test_every_brief_watchdog_runs_after_the_brief_timeout_boundary():
         assert int(expr[1]) * 60 + int(expr[0]) > start_min + timeout / 60, expr
 
 
-@pytest.mark.parametrize('timeout_minutes', [34, 62, 90])
+@pytest.mark.parametrize('timeout_minutes', [44, 62, 90])
 def test_raising_the_brief_timeout_past_a_watchdog_fails_the_contract(
         tmp_path, timeout_minutes):
     """Timeout and watchdog times are checked together at load (#1625).
 
-    34 min passes 08:36, 62 min reaches the 09:05 miss detector, 90 min both.
+    44 min passes 08:46, 62 min reaches the 09:05 miss detector, 90 min both.
     """
     data = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
     data['payload_profiles']['brief']['timeout_seconds'] = timeout_minutes * 60
@@ -876,7 +876,7 @@ def test_every_strategy_profile_pins_a_run_timeout():
     assert {name: profiles[name].get('timeout_seconds') for name in profiles} == {
         'report': 1680,
         'intraday': 1680,
-        'brief': 1800,
+        'brief': 2400,
         'memory': None,
     }
 
@@ -925,7 +925,7 @@ def test_watchdog_wait_budgets_match_the_watchdogs():
                 kinds.setdefault(job['payload_profile'], set()).add(
                     cron_contract.watchdog_inflight_wait_s(watchdog))
     # Every report/intraday watchdog is recognised as waiting; the brief ones
-    # (08:36 and the 09:05 miss detector) judge the minute they fire.
+    # (08:46 and the 09:05 miss detector) judge the minute they fire.
     assert kinds == {'report': {600}, 'intraday': {600}, 'brief': {0}}
 
 
@@ -1233,7 +1233,8 @@ def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
     data = contract()
     minimum = budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.PRE_DELIVERY_RESERVE_SECONDS
     for name in ('brief', 'report', 'intraday'):
-        assert data['payload_profiles'][name]['timeout_seconds'] > minimum
+        assert data['payload_profiles'][name]['timeout_seconds'] > (
+            budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.pre_delivery_reserve_seconds(name))
     data['payload_profiles']['intraday']['timeout_seconds'] = minimum
     path = tmp_path / 'config/cron-schedules.json'
     path.parent.mkdir()

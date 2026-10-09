@@ -12,6 +12,8 @@ import json
 import os
 import time
 
+import pytest
+
 from clawock.publish import dashboard
 
 
@@ -70,16 +72,18 @@ def test_a_normal_day_still_picks_the_newest_context(tmp_path, monkeypatch):
     assert context['date'] == '2026-12-24'
 
 
-def test_failed_price_refresh_preserves_last_good_context(tmp_path, monkeypatch):
+@pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])
+def test_failed_price_refresh_preserves_last_good_context(tmp_path, monkeypatch, failure):
     monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
     real = _write(tmp_path, 'brief-context-2026-12-24.json', REAL, 1)
     _write(tmp_path, 'brief-context-2026-12-25.json',
-           {'status': 'price_refresh_failed', 'date': '2026-12-25'}, 2)
+           {'status': failure, 'date': '2026-12-25'}, 2)
     assert dashboard._latest_brief_context() == (str(real), REAL)
 
 
-def test_only_failed_refresh_is_absent_for_card_restore(tmp_path, monkeypatch):
+@pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])
+def test_only_failed_refresh_is_absent_for_card_restore(tmp_path, monkeypatch, failure):
     monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
     _write(tmp_path, 'brief-context-2026-12-25.json',
-           {'status': 'price_refresh_failed', 'date': '2026-12-25'}, 2)
+           {'status': failure, 'date': '2026-12-25'}, 2)
     assert dashboard._latest_brief_context() == (None, None)

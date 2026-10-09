@@ -2079,7 +2079,7 @@ def _latest_brief_context():
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / 'brief-context-*.json'))
         for path in sorted(paths, key=os.path.getmtime, reverse=True):
             context = load_json(path)
-            if isinstance(context, dict) and context.get('status') in {'market_closed', 'price_refresh_failed'}:
+            if isinstance(context, dict) and context.get('status') in {'market_closed', 'price_refresh_failed', 'preflight_timeout'}:
                 continue
             return path, context
         return None, None

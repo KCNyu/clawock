@@ -217,7 +217,7 @@ class _Timeline:
 
 
 def run_stubbed_preflight(tmp_path, monkeypatch, *, plan=None, delays=None):
-    """Drive the real brief_preflight.main() against a stubbed workspace."""
+    """Drive the real brief_preflight._collect() against a stubbed workspace."""
     ws = _build_workspace(Path(tmp_path))
 
     # Workspace switch without reload(): importlib.reload would re-execute the
@@ -304,7 +304,7 @@ def _run_with_reloaded_modules(ws, monkeypatch, *, plan, delays):
 
     monkeypatch.setattr(workflow_outcomes, 'record_stage', _stage_spy)
 
-    exit_code = pf.main([])
+    exit_code = pf._collect([])
     ctx_path = ws / 'memory' / '.tmp' / f'brief-context-{TODAY}.json'
     context = json.loads(ctx_path.read_text())
     return SimpleNamespace(exit_code=exit_code, context=context,

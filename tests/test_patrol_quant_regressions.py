@@ -67,7 +67,10 @@ def test_quant_success_consumes_current_rows(tmp_path, monkeypatch, capsys):
     payload = {'rows': {'TEST': {'status': 'fresh', 'tag': 'current'}}}
     path.write_text(json.dumps(payload))
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
-    monkeypatch.setattr(brief_preflight.subprocess, 'run',
-                        lambda *a, **k: subprocess.CompletedProcess(a[0], 0))
+    def run(*a, **k):
+        path.unlink()
+        path.write_text(json.dumps(payload))
+        return subprocess.CompletedProcess(a[0], 0)
+    monkeypatch.setattr(brief_preflight.subprocess, 'run', run)
     assert brief_preflight.quant_node() == (payload, [])
     assert '1 fresh symbols' in capsys.readouterr().out

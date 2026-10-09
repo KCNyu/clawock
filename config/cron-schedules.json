@@ -136,7 +136,7 @@
       ]
     },
     "brief": {
-      "timeout_seconds": 1800,
+      "timeout_seconds": 2400,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3.1-Flash-Preview",
       "model_candidates": [
@@ -278,14 +278,14 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-        "expr": "36 8 * * 1-5",
+        "expr": "46 8 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-brief-watchdog >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       },
       "extra_watchdogs": [
         {
-        "purpose": "miss-detector: brief never written (08:36 is inside the landing window)",
+        "purpose": "miss-detector: brief never written (08:46 is inside the landing window)",
           "schedule": {
             "kind": "cron",
             "expr": "5 9 * * 1-5",

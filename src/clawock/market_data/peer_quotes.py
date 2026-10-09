@@ -42,6 +42,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+from .tencent_daily import parse_daily_closes
+
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
 HEADERS = {'User-Agent': UA}
 TIMEOUT = 8
@@ -123,7 +125,7 @@ def tencent_closes(sym: str, sessions: int = 8, deadline=None):
     if not isinstance(node, dict):
         return []
     rows = node.get('qfqday') or node.get('day') or []
-    return [float(row[2]) for row in rows if len(row) > 2]
+    return [close for _, close in parse_daily_closes(rows)]
 
 
 def _apply_quote_age(out: Dict, parts) -> None:

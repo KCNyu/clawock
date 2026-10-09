@@ -71,6 +71,9 @@ from datetime import date, datetime, timezone
 
 import requests
 
+from clawock.market_data.daily_prices import positive_price
+from clawock.market_data.tencent_daily import parse_daily_closes
+
 from clawock.instruments import INSTRUMENTS
 from clawock.market_data import hstech
 from clawock.safe_io import safe_write_json, to_number as _share_number
@@ -133,16 +136,13 @@ def fetch_us(sym, cnt=400):
     node = (d.get('data') or {}).get(sym, {})
     rows = node.get('qfqday') or node.get('day') or []
     out = DatedCloses()
-    for r in rows:
+    for raw_date, close in parse_daily_closes(rows):
         try:
-            close = float(r[2])
-            bar_date = date.fromisoformat(r[0]).isoformat()
-            if not math.isfinite(close) or close <= 0:
-                continue
-            out.append(close)
-            out.as_of = bar_date
-        except (IndexError, ValueError, TypeError):
+            bar_date = date.fromisoformat(raw_date).isoformat()
+        except (ValueError, TypeError):
             continue
+        out.append(close)
+        out.as_of = bar_date
     return out
 
 
@@ -310,7 +310,7 @@ _US_PROXY_LABEL = None
 
 
 def compute(closes):
-    closes = [c for c in closes if c is not None and c > 0]
+    closes = [v for c in closes if (v := positive_price(c)) is not None]
     if not closes:
         return None, None
     n = len(closes)
@@ -354,7 +354,8 @@ def main(argv=None):
     # them, but the latest close and the history below read this series too:
     # one 0 inside the momentum window raised ZeroDivisionError before the
     # write, and a 0 as the last bar classified as trend-off (#1906).
-    data = [(d, c) for d, c in (fetch_hstech() or []) if c is not None and c > 0]
+    data = [(d, v) for d, c in (fetch_hstech() or [])
+            if (v := positive_price(c)) is not None]
     if not data:
         # merge-not-overwrite: never clobber a good prior file on a transient empty fetch
         if OUT_FILE.exists():
@@ -414,7 +415,8 @@ def main(argv=None):
     # series this workspace holds, so the 200DMA answer arrives on its own the
     # session the history is long enough instead of never (#US-trend).
     us_dates, us_closes = load_spy_series()
-    us_valid = [(d, c) for d, c in zip(us_dates, us_closes) if c is not None and c > 0]
+    us_valid = [(d, v) for d, c in zip(us_dates, us_closes)
+                if (v := positive_price(c)) is not None]
     us_dates, us_closes = [d for d, _ in us_valid], [c for _, c in us_valid]
     us_label = _US_PROXY_LABEL or 'none'
     us_note = ('trend_on=200日线；US 用 %s，共 %d 根' % (us_label, len(us_closes))

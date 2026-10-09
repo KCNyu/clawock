@@ -84,8 +84,8 @@ jobs:
     # The job has to hold both chains it runs: the provider chain
     # (CLAWOCK_LLM_DEADLINE_SECONDS below) and the postflight's rebuild-and-push
     # chain, whose own worst case is run_budgets.POST_DELIVERY_BUDGET_SECONDS
-    # (1368s). At 20 minutes the second did not fit even alone (#2354).
-    timeout-minutes: 45
+    # plus the supervised preflight (600s) and local reserve (300s).
+    timeout-minutes: 55
     env:
       CLAWOCK_PROFILE: kcnyu
       CLAWOCK_WORKSPACE: ${{ github.workspace }}

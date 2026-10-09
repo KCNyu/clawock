@@ -29,6 +29,7 @@ import sys
 from datetime import datetime
 
 from clawock import sessions as tc
+from clawock.decision.freshness import quant_row_for_session
 from clawock.instruments import INSTRUMENTS
 from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
@@ -169,13 +170,14 @@ def compute(intraday=False):
     quant = {}
     if QUANT.exists():
         try:
-            quant = (json.loads(QUANT.read_text()).get('rows') or {})
+            quant = json.loads(QUANT.read_text())
         except Exception:
             pass
 
     rows = {}
     market_closed = {}
     session_date = {}
+    quant_sessions = {}
     for port in pf.get('portfolios', {}).values():
         if not isinstance(port, dict):
             continue
@@ -201,9 +203,13 @@ def compute(intraday=False):
             do_intraday = intraday and market_closed.get(market) is False
             cur = _num(h.get('current_price'))
             signal_symbol = (INSTRUMENTS.get(t) or {}).get('signal_symbol') or t
-            qrow = quant.get(signal_symbol, {})
-            if qrow.get('status') not in (None, 'fresh'):
-                qrow = {}
+            if market not in quant_sessions:
+                try:
+                    quant_sessions[market] = tc.latest_completed_session(market) if market else None
+                except Exception:
+                    quant_sessions[market] = None
+            qrow, quant_as_of = quant_row_for_session(
+                quant, signal_symbol, quant_sessions[market])
             if market and market not in session_date:
                 try:
                     day = tc.latest_completed_session(market)
@@ -214,7 +220,8 @@ def compute(intraday=False):
                     session_date[market] = day.isoformat() if day else None
                 except Exception:
                     session_date[market] = None
-            m = {'market': market}
+            m = {'market': market, 'quant_as_of': quant_as_of,
+                 'quant_status': 'fresh' if qrow else 'unavailable'}
             m.update(holding_metrics(h, qrow))
             if t in LEVERAGED:
                 u, x = LEVERAGED[t]

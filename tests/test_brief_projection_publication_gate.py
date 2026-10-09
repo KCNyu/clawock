@@ -46,7 +46,7 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
     context_path.parent.mkdir(parents=True)
     context = {'generation_id': 'generation-fixture'}
     if price_refresh_failed:
-        context.update(status='price_refresh_failed', issues=['US refresh failed'])
+        context.update(status=price_refresh_failed, issues=['US refresh failed'])
     context_path.write_text(json.dumps(context))
     (context_path.parent / f'brief-judgment-{today}.json').write_text(
         json.dumps(_filled_judgment(), ensure_ascii=False))
@@ -170,14 +170,15 @@ def test_written_deterministic_projection_releases_existing_publish_route(
     assert [stage for _, stage, _, _ in stages].count('preflight') == 0
 
 
+@pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])
 def test_failed_price_refresh_blocks_publication_before_normalization_or_delivery(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, failure
 ):
     code, result, gate, commits, stages = _run_postflight(
-        tmp_path, monkeypatch, capsys, price_refresh_failed=True)
+        tmp_path, monkeypatch, capsys, price_refresh_failed=failure)
     assert code == 2
     assert result['status'] == 'fail' and result['publication_ready'] is False
-    assert result['reason'] == 'price_refresh_failed'
-    assert gate['publish_ok'] is False and gate['reason'] == 'price_refresh_failed'
+    assert result['reason'] == failure
+    assert gate['publish_ok'] is False and gate['reason'] == failure
     assert commits == []
     assert [(stage, state) for _, stage, state, _ in stages] == [('postflight', 'failed')]
