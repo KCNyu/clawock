@@ -48,7 +48,7 @@ No run gets everything: each job's preflight assembles only the blocks it can ac
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:03 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 42 | 19 | 47 |
+| **Blocks** | 43 | 19 | 47 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block, naming any row this run could not refresh | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups, the close-confirmed opportunity radar (which names closed above their prior 20-day high, and why an empty add side is empty) | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags, entry setups and early-trend candidates re-run on the open bar, price-surface opportunity radar |
@@ -132,7 +132,7 @@ That path is covered by a large unit-test suite — it's what keeps the system s
 | Rule | What the code does |
 |---|---|
 | **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
-| **Risk caps, checked every brief** | Single name: leveraged ≤35% hard; non-leveraged core ≤60% hard with a 35–60% review band (advisory, never a forced sale). Correlated cluster ≤70% (measured correlation clusters, applied when coverage is sufficient), leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
+| **Risk caps, checked every brief** | Single name: leveraged ≤35% hard; non-leveraged core ≤60% hard with a 35–60% review band (advisory, never a forced sale). Correlated cluster ≤70% (measured correlation clusters, applied when coverage is sufficient), leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Exceeding a cap is never a forced sale: the brief must answer each one (a trim, or a hold with its reason); only the −18% stop and a leverage-regime swap, the two rules that name where the money goes, are mandatory. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book; top2 is the combined weight of the two largest holdings. The brief uses HHI alone, taking the first matching bucket: `≤0.15` ✅ · `≤0.25` 🟡 · `≤0.40` 🟠 · otherwise 🔴. The dashboard takes the first matching pair: `HHI<0.15 and top2<40%` ✅ · `HHI<0.25 and top2<60%` 🟡 · `HHI<0.40 and top2<75%` 🟠 · otherwise 🔴. Never blended across currencies. |
 | **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0) as a risk-budget control, not a timing signal — its measured value is less exposure in hostile regimes, and its timing cannot be distinguished from chance (see the testing section); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits when both legs track them; a missing leg falls back to `cost − realized`, with the mixed basis shown beside the result. |

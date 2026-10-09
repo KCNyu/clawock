@@ -627,6 +627,27 @@ def _adaptive(record: dict, portfolio: dict, now: datetime) -> dict:
     }
 
 
+#: Caps whose reduction has nowhere to go: the row names an amount to shed and
+#: no instrument to move it into, so obeying it is "sell and hold the cash".
+#: 335 such sells were issued through 2026-10-08 and three carried a buy leg;
+#: the names that were sold (PLTU / MSFU / ROBN) were not replaced and rose
+#: 55–80% afterwards (#2839). These must be answered every day — a trim, or a
+#: hold with its reason on the record — and never force the sell. A hard stop
+#: and a regime de-lever name their destination (`swap_to`) and stay forced.
+#: Adds on a breaching name stay shut either way.
+RESPOND_ONLY_TYPES = frozenset(
+    {"single_name", "leveraged_exposure", "factor_concentration", "beta"})
+
+
+def forces_action(row: dict) -> bool:
+    """True when this breach's type obliges a sell, before stand and override.
+
+    An unknown type forces: a new rule has to opt out of the obligation here,
+    not inherit the exemption by being unlisted.
+    """
+    return row.get("type") not in RESPOND_ONLY_TYPES
+
+
 def may_stand(row: dict) -> bool:
     """True when today's plan may hold this breach instead of re-issuing its cut."""
     return bool((row.get("adaptive") or {}).get("may_stand"))
@@ -635,7 +656,7 @@ def may_stand(row: dict) -> bool:
 def _record_stances_unlocked(
     path: Path, plan_date: str, decisions: list[dict]
 ) -> list[dict]:
-    """File what today's plan did with each eligible breach. Harness-written.
+    """File what today's plan did with each breach it could hold. Harness-written.
 
     `reissue` when the plan carries a cut/trim on one of the breach's targets, which
     also re-anchors both rails; otherwise `stand`, with the call's own rationale as the
@@ -648,7 +669,10 @@ def _record_stances_unlocked(
     filed = []
     for record in ledger["records"]:
         adaptive = record.get("adaptive") or {}
-        if record.get("status") != "open" or not adaptive.get("eligible"):
+        # A respond-only cap is answered every day from its first, so its
+        # answers are filed whether or not the book has made it eligible.
+        if record.get("status") != "open" or not (
+                adaptive.get("eligible") or not forces_action(record)):
             continue
         mine = [d for t in sorted(_targets(record)) for d in by_ticker.get(t, [])]
         cuts = [d for d in mine if d.get("action") in ("cut", "trim_on_rebound")]
@@ -845,7 +869,21 @@ def _risk_reducing_swap(decision: dict, decisions: list[dict],
         add_shares = float(add_shares)
     except (TypeError, ValueError):
         return False
-    target_price = _holding_price(holdings.get(target) or {})
+    # A target the book does not hold has no quote on the book; the leg's own
+    # entry price is what its size was held to (`packet._swap_leg_issues`).
+    # A closed row still carries the price of the day it was sold, so only an
+    # active holding prices itself.
+    held = holdings.get(target) or {}
+    try:
+        target_price = (_holding_price(held)
+                        if float(held.get("shares") or 0) > 0 else None)
+    except (TypeError, ValueError):
+        target_price = None
+    if not target_price:
+        try:
+            target_price = float((decision.get("condition") or {}).get("price"))
+        except (TypeError, ValueError):
+            target_price = None
     for source, underlying in leverage_pairs.items():
         if underlying != target:
             continue

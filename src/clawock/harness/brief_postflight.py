@@ -677,8 +677,9 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
                     f'不能驱动 {d.get("ticker")}'
                 )
 
-    # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的每条 breach / hard_stop
-    # 必须在 plan 里有对应的减仓动作，否则 LLM 忽略了硬闸。见 SKILL「🚦 仓位/杠杆硬闸」。
+    # 仓位/杠杆硬闸闭环 (warn): context.risk_guardrail 的硬止损与 regime_delever
+    # 必须在 plan 里有对应的减仓动作；四类上限（risk.RESPOND_ONLY_TYPES）必须有一条
+    # 带理由的回应。见 SKILL「🚦 仓位/杠杆硬闸」。
     gr = (context or {}).get('risk_guardrail') or {}
     discipline = (context or {}).get('risk_discipline') or {}
     portfolio = (context or {}).get('portfolio') or {}
@@ -699,6 +700,19 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
             # A breach the book keeps declining may stand today — holding it is the
             # plan writer's call, not an omission (risk.py `_adaptive`).
             if b.get('breach_id') in durable_overrides or risk_discipline.may_stand(b):
+                continue
+            if not risk_discipline.forces_action(b):
+                # A cap with no destination is answered, not obeyed (#2839):
+                # a decision on one of its names that says why it trims or holds.
+                names = set((b.get('required_reduction') or {}).get('target_tickers') or [])
+                if tk:
+                    names.add(tk)
+                if not any(d.get('ticker') in names and str(d.get('rationale') or '').strip()
+                           for d in decisions):
+                    issues.append(
+                        f'仓位超限未回应: {b["type"]} {tk or leg} ({b["detail"]}) — '
+                        f'plan 里 {"/".join(sorted(map(str, names)))} 没有一条带理由的决策'
+                        '（减仓或写明理由的持有都算回应）')
                 continue
             if tk and tk not in trim_tickers:
                 issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '

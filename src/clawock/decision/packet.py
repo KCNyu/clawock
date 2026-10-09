@@ -722,7 +722,10 @@ def _adaptive_view(adaptive: dict | None) -> dict:
     adaptive = risk_ledger.adaptive_view(adaptive)
     if not adaptive.get("eligible"):
         return {"eligible": False,
-                "not_eligible_because": adaptive.get("not_eligible_because") or []}
+                "not_eligible_because": adaptive.get("not_eligible_because") or [],
+                # A respond-only cap files a choice from its first day.
+                **({"recent_choices": adaptive["recent_choices"]}
+                   if adaptive.get("recent_choices") else {})}
     return {
         key: adaptive.get(key)
         for key in ("eligible", "may_stand", "must_reissue", "must_reason", "stance",
@@ -755,6 +758,10 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
                 "scope": "ticker",
                 "breach_id": row.get("breach_id"),
                 "type": row.get("type"),
+                # `forced`: the plan must sell. `respond`: the plan must answer
+                # (a trim, or a hold with its reason) and may not add.
+                "enforcement": ("forced" if risk_ledger.forces_action(row)
+                                else "respond"),
                 "severity": row.get("severity") or "high",
                 "detail": row.get("detail"),
                 "action_text": row.get("action"),
@@ -787,6 +794,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             # `type` at all — one name here, another in the rendered table, and
             # nothing citable in between.
             "type": row.get("type") or "leveraged_hard_stop",
+            "enforcement": "forced",
             "severity": "critical",
             "detail": row.get("detail"),
             "action_text": row.get("action"),
@@ -886,11 +894,78 @@ def _swap_mandate_view(mandates: list[dict], risks: list[dict]) -> dict | None:
     }
 
 
+def _swap_target_rows(swap_mandates: dict, held: set, context: dict,
+                      quant_rows: dict) -> dict:
+    """A minimal row for each swap target the book does not hold.
+
+    `tickers` is the holdings, so a prescription into a name that was cleared
+    (RKLX → RKLB, 10 packets running) had no row and its buy leg was refused as
+    "outside current decision packet": the only writable half of the swap was
+    the sell (#2839). These rows carry what the buy leg is judged by — a price,
+    the order unit and the mandate — and nothing a holding's row implies: no
+    technical setup, no add budget, no judgment slot.
+
+    The price is a quote preflight fetched for this purpose, else the last
+    completed session's close from the quant table; either way its basis and
+    date are stated, and a leg written against no price at all is refused by
+    `_swap_leg_issues`.
+    """
+    quotes = context.get("swap_target_quotes") or {}
+    rows = {}
+    for target, mandates in sorted(swap_mandates.items()):
+        if target in held:
+            continue
+        leg = "HK" if target.isdigit() else "US"
+        quote = quotes.get(target) or {}
+        bar = quant_rows.get(target) or {}
+        price, basis, as_of = _number(quote.get("price"), 4), "quote", quote.get("as_of")
+        if not price:
+            fresh = bar.get("status") in (None, "fresh")
+            price = _number(bar.get("close"), 4) if fresh else None
+            basis, as_of = "last_close", bar.get("row_as_of")
+        if not price:
+            price, basis, as_of = None, None, None
+        lot = 1 if leg == "US" else quote.get("lot_size")
+        rows[target] = {
+            "ticker": target,
+            "name": quote.get("name") or "",
+            "leg": leg,
+            "held": False,
+            "facts": {
+                "shares": 0,
+                "current_price": price,
+                "price_basis": basis,
+                "price_as_of": as_of,
+            },
+            "risk": [],
+            "constraints": {
+                "allowed_actions": ["add_only_on_trigger"],
+                "forced_action_one_of": [],
+                "max_sell_shares": 0,
+                "swap_mandate": _swap_mandate_view(mandates, []),
+                "max_add_shares": 0,
+                "technical_setup_ids": [],
+                "order_unit": "board_lot" if leg == "HK" else "integer_share",
+                "lot_size": lot,
+            },
+        }
+    return rows
+
+
+def decision_row(packet: dict, ticker) -> dict | None:
+    """The row a plan decision on `ticker` is judged against: a holding's, or
+    that of a swap target the book does not hold."""
+    return ((packet.get("tickers") or {}).get(str(ticker))
+            or (packet.get("swap_targets") or {}).get(str(ticker)))
+
+
 def _status(technical: dict, risks: list[dict]) -> dict:
     if any(item.get("kind") == "hard_stop" for item in risks):
         return {"rank": 0, "label": "止损/换1x", "state": "critical"}
-    if any(item.get("scope") == "ticker" for item in risks):
+    if any(item.get("enforcement") != "respond" for item in risks):
         return {"rank": 1, "label": "减仓", "state": "elevated"}
+    if risks:
+        return {"rank": 1, "label": "超限", "state": "elevated"}
     if technical.get("trend") == "on":
         return {"rank": 4, "label": "趋势ON", "state": "positive"}
     if technical.get("rsi_state") == "oversold":
@@ -910,8 +985,11 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     # are NOT allowed to stand still force an action.
     # So may a breach under a durable, unexpired override: declining it was kcn's
     # decision, and it is the same freedom with a different author.
+    # And a cap with no destination never forces (`risk.RESPOND_ONLY_TYPES`):
+    # the plan answers it, with a trim or with a hold and its reason.
     loud = [row for row in risks
-            if not (row.get("adaptive") or {}).get("may_stand")
+            if row.get("enforcement") != "respond"
+            and not (row.get("adaptive") or {}).get("may_stand")
             and not row.get("override_active")]
     hard_stop = any(row.get("kind") == "hard_stop" for row in loud)
     direct_risk = bool(risks)
@@ -922,8 +1000,9 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
         allowed = ["trim_on_rebound", "cut"]
         forced = ["trim_on_rebound", "cut"]
     elif direct_risk:
-        # Every breach on this name may stand. Adds stay shut — `can_add` below still
-        # reads `risks` — so standing never turns into buying more of a breach.
+        # Every breach on this name may stand or only asks for an answer. Adds stay
+        # shut — `can_add` below still reads `risks` — so holding never turns into
+        # buying more of a breach.
         allowed = ["hold_and_watch", "watch", "trim_on_rebound", "cut"]
         forced = []
     else:
@@ -960,6 +1039,13 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     return {
         "allowed_actions": list(dict.fromkeys(allowed)),
         "forced_action_one_of": forced,
+        # Caps the plan has to answer by name: a decision on this ticker whose
+        # rationale says why it trims or why it holds.
+        "respond_to_breach_ids": [
+            row.get("breach_id") for row in risks
+            if row.get("enforcement") == "respond" and not row.get("override_active")
+            and row.get("breach_id")
+        ],
         "max_sell_shares": shares,
         "active_action_requires_evidence": True,
         "actionable_evidence_ids": actionable_ids,
@@ -1371,7 +1457,7 @@ def _book_totals(portfolios: dict) -> tuple[dict, dict]:
     return invested, cash
 
 
-def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blocker_counts, candidates, swap_mandates, tickers, tier_counts) -> dict:
+def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blocker_counts, candidates, swap_mandates, swap_targets, tickers, tier_counts) -> dict:
     """The packet literal: every section the brief reads, in its published key order."""
     return {
         "_meta": {
@@ -1496,6 +1582,8 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
             for target, mandates in sorted(swap_mandates.items())
             for mandate in mandates
         ],
+        # The rows those unheld targets are written against (`_swap_target_rows`).
+        "swap_targets": swap_targets,
     }
 
 
@@ -1559,10 +1647,12 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         swap_mandates=swap_mandates,
     )
     candidates, tier_counts, blocker_counts = _candidate_rows(tickers)
+    swap_targets = _swap_target_rows(swap_mandates, set(tickers), context, quant_rows)
 
     packet = _packet_payload(
         context, generation_id, add_policy=add_policy, alpha_activation=alpha_activation, blocker_counts=blocker_counts,
-        candidates=candidates, swap_mandates=swap_mandates, tickers=tickers, tier_counts=tier_counts,
+        candidates=candidates, swap_mandates=swap_mandates, swap_targets=swap_targets,
+        tickers=tickers, tier_counts=tier_counts,
     )
     _warn_read_budgets(packet)
     return packet
@@ -1696,6 +1786,9 @@ def summary_view(packet: dict) -> dict:
             }
             for row in packet.get("tickers", {}).values()
         ],
+        # Swap targets the book does not hold: writable as the buy leg of
+        # their mandate, and nothing else.
+        "swap_targets": packet.get("swap_targets") or {},
         "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
     }
@@ -1939,6 +2032,11 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
     if lot and int(shares) % int(lot) != 0:
         issues.append(
             f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}")
+    elif not lot and row.get("held") is False:
+        # A holding's lot arrives with its quote; an unheld HK target has one
+        # only when preflight fetched it. One share is not assumed to be a lot.
+        issues.append(f"{tag}: board lot of unheld swap target is unknown; "
+                      "the buy leg cannot be sized")
     max_value = _number(mandate.get("max_value"), 2)
     price = (_number((decision.get("condition") or {}).get("price"), 4)
              or _number((row.get("facts") or {}).get("current_price"), 4))
@@ -2043,7 +2141,7 @@ def validate_plan_constraints(plan: dict, packet: dict, *,
     for index, decision in enumerate(plan.get("decisions") or []):
         ticker = str(decision.get("ticker") or "")
         tag = f"decision[{index}] {ticker}"
-        row = rows.get(ticker)
+        row = decision_row(packet, ticker)
         if not row:
             issues.append(f"{tag}: ticker is outside current decision packet")
             continue
@@ -2193,6 +2291,9 @@ def compile_pages_projection(
                 "action": (
                     {"kind": "stop", "label": "止损"}
                     if hard else {"kind": "trim", "label": "减仓"}
+                    if any(item.get("enforcement") != "respond" for item in risks)
+                    # Same chip as a trim on the dashboard; only the word differs.
+                    else {"kind": "trim", "label": "超限"}
                     if direct else None
                 ),
                 "breach_ids": [

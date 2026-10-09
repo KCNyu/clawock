@@ -354,7 +354,10 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - `context.risk_discipline.records[]`（core，常驻）— 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence；`adaptive.recent_choices` 是最近几次 stand/reissue（完整理由留在账本）。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
-- **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条。
+- **强制与回应分两类**,看每条风险行的 `risk[].enforcement`(#2839):
+  - `forced`(杠杆硬止损、`regime_delever`):规则自己给了去处(`required_reduction.swap_to`),必须在 Judge 段落出对应动作(cut,或 regime 的 trim/cut),不准"观望"。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条,以及 durable override 生效的。
+  - `respond`(`single_name` / `leveraged_exposure` / `factor_concentration` / `beta` 四类上限):规则只说要减多少、没说钱去哪,所以**不强制卖**。每条都要回应:减仓(trim/cut),或 `hold_and_watch` 并在 rationale 写明今天为什么不减、什么情况下会减。不许不提,也不许只写一句「继续观察」。**超限期间该票加仓关闭**,持有不等于可以加。postflight 把这次选择记进风险账本。
+  - 卖出不是默认答案。先问「卖了之后这笔钱去哪」:没有去处的减仓等于卖出并持有现金,这是另一个判断,要单独给理由。
 - 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；未确认的老 breach 要明确升级，不得每天当新提醒重写。
 - 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `/root/.local/bin/clawock risk override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `risk ack ... --note '...'`，成交证据用 `risk confirm ... --evidence '...'`；这些命令只记账，绝不下单。
 - 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
@@ -368,9 +371,14 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   别因为它没有 setup 就退回 hold。三条硬约束:①只能买 mandate 指名的那一只 ②金额不超
   `max_value` ③**两条腿必须共享同一个 `decision_group_id`**(ledger 只按这个字段配对换仓;
   写成别的字段名会在归一化时丢掉),否则 postflight 拒收买腿、decision_audit 也会把它当成裸买。两腿股数必须为正整数，买腿满足目标票的 `lot_size` 整手。目标票自己也在 breach 时 mandate 为 `null`——那就是不许换过去。
-- **目标已清仓的处方也要写出来**:packet 顶层 `swap_mandates` 列出全部处方,含 `target_held:false`
-  的(例:RKLX→RKLB,RKLB 6/13 已清)。它们在 `tickers` 里没有行,但**必须在本段点名**——
-  一条看不见的处方,没人能有意否决它。
+- **目标没持有的处方同样可以写买腿**:packet 顶层 `swap_mandates` 列出全部处方,含 `target_held:false`
+  的(例:RKLX→RKLB,RKLB 6/13 已清)。这些目标在 `tickers` 里没有行,在 `swap_targets.<票>` 里有:
+  `facts.current_price`(连同 `price_basis`:`quote` 是今天取的报价,`last_close` 是最近一场收盘,
+  `price_as_of` 是它的日期)、`constraints.lot_size` 与 `constraints.swap_mandate`。买腿写法与持有的
+  目标完全一样(`add_only_on_trigger`、同一个 `decision_group_id`、金额不超 `max_value`、整手);
+  `current_price` 为 null 时必须自己在 `condition.price` 写入场价,港股目标 `lot_size` 为 null 时这条
+  买腿写不了,在本段说明「目标整手未取到」。`swap_targets` 里的票只能作为处方的买腿出现,
+  不需要也不允许写 `ticker_judgments` 行。
 - **standing 判词**:每条 breach 的 `risk[].standing`。`decision_overdue=true` 表示它已经站了
   ≥`threshold_days` 天而 execute / acknowledge / override **三个出口一个都没走过**。这时不要
   再写第 N 遍同样的提醒,写成一个要求:要么执行,要么用 `risk ack` 留痕"看见了、接受它继续开着",
@@ -777,7 +785,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
 - 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：「packet 锁定 [hold_and_watch, watch]，不允许 trim」→「风控只允许持有观察，不减」。postflight 会以 advisory 标出。
-- 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出腿的 `size.shares` 是正整数且不得超过 `max_sell_shares`；`risk[].kind=hard_stop`（非 `may_stand`）的 cut 是整仓：只写一条 cut 时 `size.shares` 可以留空，postflight 按该行 `required_reduction.minimum_shares` 填；自己写股数（含拆成几条不同条件的腿）则合计要达到它。cap 类 breach 的 `minimum_value` 是到上限的总距离，分几批由你判断，catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
+- 每条 `action` 必须出现在该 ticker packet 的 `constraints.allowed_actions`；卖出腿的 `size.shares` 是正整数且不得超过 `max_sell_shares`；`risk[].kind=hard_stop`（非 `may_stand`）的 cut 是整仓：只写一条 cut 时 `size.shares` 可以留空，postflight 按该行 `required_reduction.minimum_shares` 填；自己写股数（含拆成几条不同条件的腿）则合计要达到它。cap 类 breach（`enforcement=respond`）不强制卖出：`minimum_value` 是到上限的总距离，减不减、分几批由你判断，`constraints.respond_to_breach_ids` 非空的票必须有一条带理由的决策。catalyst 只能引用 `actionable_evidence_ids`。postflight 会二次校验，模型不能扩大边界。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `add_on_breakout`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
 - `driven_by` ∈ {`technical`, `catalyst`, `sentiment`, `influencer`, `macro`, `peer`, `risk_rule`}（每个 decision 必填）
