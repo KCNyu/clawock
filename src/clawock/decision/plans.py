@@ -173,6 +173,62 @@ def _entry(row):
 PRICE_CONDITIONS = {"price_above": "≥", "price_below": "≤"}
 
 
+# Printed by the harness on the report and intraday cards (#2840). An order's
+# size used to reach the reader only through the model's prose, which the skill
+# told it to copy from `open[].shares`; anything the model can copy the card
+# can print.
+ORDER_BLOCK_HEADER = "📋 未成交计划（账本原样，不是新建议）"
+ORDER_ACTION_WORDS = {
+    "cut": "清仓", "trim_on_rebound": "反弹减仓", "t_only": "做T",
+    "add_only_on_trigger": "触发加仓", "add_on_breakout": "突破加仓",
+}
+ORDER_CONDITION_WORDS = {
+    "open": "开盘", "index_breakdown": "指数破位", "event": "事件触发",
+    "manual": "手动", "always": "随时",
+}
+MAX_ORDER_LINES = 6
+
+
+def order_lines(plan_context):
+    """One line per open order: ticker, action, shares, condition.
+
+    An order is an open decision with a positive share count. `hold_and_watch`
+    / `watch` rows carry no size and are a stance, not something waiting to
+    fill, so they are not printed as pending trades. Every value is the
+    ledger's own; nothing is derived here.
+    """
+    context = plan_context or {}
+    today = context.get("plan_date")
+    lines = []
+    orders = [row for row in context.get("open") or []
+              if isinstance(row.get("shares"), (int, float))
+              and not isinstance(row.get("shares"), bool) and row["shares"] > 0]
+    for row in orders[:MAX_ORDER_LINES]:
+        action = ORDER_ACTION_WORDS.get(row.get("action"), row.get("action"))
+        kind, price = row.get("condition"), row.get("condition_price")
+        if kind in PRICE_CONDITIONS and isinstance(price, (int, float)):
+            condition = f"{PRICE_CONDITIONS[kind]}{price:g}"
+        else:
+            condition = ORDER_CONDITION_WORDS.get(kind, "条件见简报")
+        bits = [f"{row.get('ticker')} {action} {row['shares']:g}股", condition]
+        if row.get("driven_by") == "risk_rule":
+            bits.append("风控纪律")
+        if today and row.get("plan_date") and row["plan_date"] != today:
+            bits.append(f"{row['plan_date']} 挂起")
+        lines.append("｜".join(bits))
+    if len(orders) > MAX_ORDER_LINES:
+        lines.append(f"另有 {len(orders) - MAX_ORDER_LINES} 条未列出")
+    return lines
+
+
+def append_order_block(block, plan_context):
+    """`block` with the open orders under their own header; unchanged when none."""
+    lines = order_lines(plan_context)
+    if not lines or not block:
+        return block
+    return "\n".join([block, "", ORDER_BLOCK_HEADER, *(f"  ◆ {line}" for line in lines)])
+
+
 def triggered_conditions(plan_context, prices):
     """Which of the plan's open price conditions this quote set satisfies.
 
