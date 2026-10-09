@@ -46,7 +46,7 @@ def test_delta_header_names_new_trigger_before_table():
         {'components': ['breaches', 'plans']}, current=current,
         previous={'breaches': []},
     )
-    assert block.splitlines()[1] == '变化：信号/触发档位、未成交计划（新触发：00100）'
+    assert block.splitlines()[1] == '变化：信号/触发档位（新触发：00100）、未成交计划'
     assert block.index('变化：') < block.index('| 代码')
 
 
@@ -89,14 +89,68 @@ def test_strategy_evidence_gaps_land_on_their_add_side_row():
         [{'holding': 'SPCH', 'ticker': 'SPCH'}, {'holding': 'SPCH', 'ticker': 'SPCX'}])
     assert gaps == {'SPCH': ['行情未证实刷新', 'SPCX 今日涨跌缺失']}
     reads = {'rows': [{'ticker': 'RKLX', 'verdict': 'wait', 'why': '窗口内无一手公告'}]}
-    lines = pre.append_add_side_section('x', reads, gaps).splitlines()
-    assert lines[-1] == ('  · SPCH 观望：策略升级证据未取全（行情未证实刷新；SPCX 今日涨跌缺失）'
+    lines = pre.add_side_lines(reads, gaps)
+    assert lines[-1] == ('· SPCH 观望：策略升级证据未取全（行情未证实刷新；SPCX 今日涨跌缺失）'
                          '→ 本档不给尺寸')
     # A holding with its own row keeps its verdict; the gap goes under it.
-    on_row = pre.append_add_side_section(
-        'x', reads, {'RKLX': ['行情未证实刷新']}).splitlines()
-    assert on_row[-2].startswith('  · RKLX 等待：')
-    assert on_row[-1] == '    ↳ 策略升级证据未取全（行情未证实刷新）'
+    on_row = pre.add_side_lines(reads, {'RKLX': ['行情未证实刷新']})
+    assert on_row[-2].startswith('· RKLX 等待：')
+    assert on_row[-1] == '  ↳ 策略升级证据未取全（行情未证实刷新）'
+
+
+def test_change_line_names_the_soft_candidate_and_what_changed():
+    """#2804, 2026-10-09 HK 11:33: 「变化：边缘候选」 for 00100 crossing from the
+    2.5-3 band into 1.5-2.5 — a real new identity the card did not explain."""
+    seen = [{'ticker': '00100', 'kind': 'soft_move', 'band': '2.5-3'},
+            {'ticker': 'HSTECH', 'kind': 'near_20d_high'}]
+    previous = {'session': 'hk:2026-10-09', 'soft_candidates_seen': seen}
+    delta = {'components': ['soft_candidates_seen']}
+    moved = {'ticker': '00100', 'kind': 'soft_move', 'band': '1.5-2.5'}
+
+    def lead(new, rows, prev=previous, components=delta):
+        return pre.delta_lead(components, previous=prev, soft_candidates=rows, current={
+            'soft_candidates_seen': [*prev['soft_candidates_seen'], *new]})
+
+    # Same ticker, another band: said as that, with this slot's move.
+    assert lead([moved], [{**moved, 'pct_1d': -2.0}]) == \
+        '变化：00100 进入另一观察区间（日内 -2.0%，此前报过 2.5-3% 档）'
+    # A ticker not watched before today is a first entry, not a band change.
+    first = {'ticker': '02208', 'kind': 'soft_move', 'band': '1.5-2.5'}
+    assert lead([first], [{**first, 'pct_1d': 1.6}]) == '变化：02208 首次进入观察区间（日内 +1.6%）'
+    # Several at once are each named; the other kinds say what they are.
+    high = {'ticker': 'RKLB', 'kind': 'near_20d_high'}
+    many = lead([moved, first, high], [{**moved, 'pct_1d': -2.0}, {**first, 'pct_1d': 1.6},
+                                       {**high, 'pct_from_high': -1.2}])
+    assert many.count('；') == 2 and '00100 进入另一观察区间' in many
+    assert '02208 首次进入观察区间' in many and 'RKLB 首次进入距20日高 3% 内（-1.2%）' in many
+    # Crossing back into a band already delivered today adds no identity: the
+    # seen set is unchanged, so the slot says nothing is new.
+    assert pre.delta_lead({'components': []}, current=previous, previous=previous,
+                          soft_candidates=[{**seen[0], 'pct_1d': -2.6}]) == \
+        '变化：无（与上次送达相比，本档没有新条件）'
+    # Alongside a hard trigger, the trigger keeps its own label and names.
+    both = pre.delta_lead(
+        {'components': ['breaches', 'soft_candidates_seen']}, soft_candidates=[],
+        current={'breaches': [{'ticker': '07226', 'kind': 'move', 'level': 'high'}],
+                 'soft_candidates_seen': [*seen, moved]},
+        previous={**previous, 'breaches_seen': []})
+    assert both == '变化：信号/触发档位（新触发：07226）、00100 进入另一观察区间（此前报过 2.5-3% 档）'
+    # A new session's first comparison does not list the whole candidate set.
+    opening = lead([moved], [], components={'components': ['session', 'soft_candidates_seen']})
+    assert opening == '变化：本交易日首档、边缘候选'
+
+
+def test_information_gap_line_keeps_the_fact_and_drops_the_exception_name():
+    """#2805: 「同花顺7×24（URLError）」 put an exception class on kcn's card.
+    The gap stays a ⛔ line; a count or a reason in card words stays with it."""
+    assert pre.information_gap_line(['同花顺7×24（URLError）']) == \
+        '⛔ 资讯缺口：同花顺7×24 未取到（不是无消息）'
+    assert pre.information_gap_line(
+        ['东财7×24（empty_or_failed）', 'sentiment_snapshot（unreadable: JSONDecodeError）',
+         'Yahoo RSS（2/5 URLError、超时）', 'Google News（超出请求预算）']) == (
+        '⛔ 资讯缺口：东财7×24、sentiment_snapshot、Yahoo RSS（2/5 超时）、'
+        'Google News（超出请求预算） 未取到（不是无消息）')
+    assert pre.information_gap_line([]) is None
 
 
 def test_generic_headline_feed_is_not_repeated_in_intraday_card():
@@ -130,10 +184,11 @@ ANALYZER = """🇭🇰 港股盯盘 | 09/25 11:33 HKT
 TABLE = [line for line in ANALYZER.splitlines() if line.startswith('|')]
 
 
-def _card(fresh=('07226',), stale=('03032',), p0=True):
+def _card(fresh=('07226',), stale=('03032',), p0=True, status_lines=(),
+          seen=(('STOP', '00100'),)):
     block = pre.mark_card_changes(ANALYZER, fresh_tickers=set(fresh),
                                   unrefreshed=list(stale),
-                                  seen_signals={('STOP', '00100')})
+                                  seen_signals=set(seen), status_lines=status_lines)
     return pre.compose_card(
         block, p0_lines=['P0：07226 单日 -16.0%，07226 策略是否继续？'] if p0 else [],
         lead='变化：信号/触发档位（新触发：07226）',
@@ -151,10 +206,11 @@ def test_card_layout_contract():
     assert lines[start:start + len(TABLE)] == TABLE
     def at(prefix):
         return next(i for i, line in enumerate(lines) if line.startswith(prefix))
-    # 2. Block order: title, P0, 变化, ⛔, strip/book, table, pointer, signals,
-    #    risk line, then the judgment below the whole data block.
+    # 2. Block order: title, P0, 变化, ⛔, strip/book, table, pointer, new
+    #    signals, standing state, then the judgment below the whole data block.
     order = [0, at('P0：'), at('变化：'), at('⛔'), at('  恒指'),
-             at('📊'), start, at('↑ '), at('⚠️ 信号'), at('📉'), at('▎我的看法')]
+             at('📊'), start, at('↑ '), at('⚠️ 信号'), at('▎持续状态'),
+             at('今日已报、仍在：'), at('亏损持仓'), at('▎我的看法')]
     assert order == sorted(order) and lines[0].startswith('🇭🇰 港股盯盘')
     # 3. One pointer, after a blank line, naming only the kinds present.
     # An unverified row is named once, in ⛔ — not again next to the table.
@@ -168,9 +224,19 @@ def test_card_layout_contract():
     # 4. ⛔ is only data health; ⚠️ only heads the analyzer's signal block.
     assert all(line.startswith('⛔') for line in lines if '数据降级' in line)
     assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
-    # 5. Repeated signals fold; a new one stays whole with its reason.
-    assert '  · 今日已报、仍在：STOP? 00100' in lines
+    # 5. Repeated signals fold into the standing-state block; a new one stays
+    #    whole with its reason. The analyzer's risk line moves there, icon off.
+    assert lines[at('▎持续状态') + 1:at('▎持续状态') + 3] == [
+        '今日已报、仍在：STOP? 00100', '亏损持仓 3/3｜2x杠杆敞口 27%']
     assert 'STOP? 00100 MINIMA' not in msg and '警惕止损' in msg
+    assert not any(line.startswith('📉') for line in lines)
+    # 6. #2805 layout A: with every signal already delivered the ⚠️ header goes
+    #    too, the level is said once, and no blank line is left doubled.
+    told = _card(fresh=(), stale=(), p0=False,
+                 seen=(('STOP', '00100'), ('STOP', '07226'))).splitlines()
+    assert not any(line.startswith('⚠️') for line in told) and '警惕止损' not in told
+    assert told[told.index(TABLE[-1]) + 1:] == [
+        '', '▎持续状态', '今日已报、仍在：STOP? 00100、07226', '亏损持仓 3/3｜2x杠杆敞口 27%']
     # kcn 2026-09-25 「表格位置怎么倒置了？」: the judgment never precedes the
     # table, with or without P0/⛔ lines.
     quiet = post.assemble_message({'raw_wechat_block': _card(stale=(), p0=False)}, '▎我的看法\nx')
@@ -440,27 +506,29 @@ def _reads(n):
 
 
 def test_add_side_line_copies_every_verdict_and_sits_before_the_judgment():
-    """Card block 9b: non-empty `add_side_reads.rows` ⇒ the card carries the
+    """Card block 10: non-empty `add_side_reads.rows` ⇒ the card carries the
     add-side line, row for row (ticker and three-state copied, never
     rewritten), with the caveat, a fixed cap and clipped why/needs."""
     reads = _reads(6)
-    block = pre.append_add_side_section(_card(), reads)
+    block = _card(status_lines=pre.add_side_lines(reads))
     msg = post.assemble_message({'raw_wechat_block': block}, '▎我的看法\n先看 07226。')
     lines = msg.splitlines()
     head = lines.index(pre.ADD_SIDE_HEADER)
     assert '三态都不是下单授权' in lines[head]
-    assert lines.index(TABLE[-1]) < next(i for i, x in enumerate(lines) if x.startswith('📉')) < head < lines.index('▎我的看法')
+    assert (lines.index(TABLE[-1]) < lines.index('▎持续状态')
+            < next(i for i, x in enumerate(lines) if x.startswith('亏损持仓'))
+            < head < lines.index('▎我的看法'))
     shown = lines[head + 1:head + 1 + pre.MAX_ADD_SIDE_ROWS]
     inverse = {word: verdict for verdict, word in pre.ADD_SIDE_WORDS.items()}
     for line, row in zip(shown, reads['rows']):
         ticker, rest = line.strip().removeprefix('· ').split(' ', 1)
         assert ticker == row['ticker']
         assert inverse[rest.split('：', 1)[0]] == row['verdict']
-    assert lines[head + 1 + pre.MAX_ADD_SIDE_ROWS] == '  …另有 2 条'
+    assert lines[head + 1 + pre.MAX_ADD_SIDE_ROWS] == '…另有 2 条'
     assert all(len(line.split('：', 1)[1].split(' → ')[0]) <= pre.ADD_SIDE_WHY_CHARS
                for line in shown)
     # Empty rows: no block, byte-identical card.
-    assert pre.append_add_side_section(_card(), {'rows': []}) == _card()
+    assert pre.add_side_lines({'rows': []}) == []
     # ⚠️ stays the signal header alone.
     assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
 
@@ -651,17 +719,19 @@ def test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap():
                            {}, bars=lambda *_a: [], session_date='2026-09-25')
     assert [(r['ticker'], r['underlying_pct'], r['source'], r['gap_pp']) for r in hk] == [
         ('07226', -1.31, 'index_strip', -0.18)]
-    line = pre.append_leverage_line(ANALYZER, hk).splitlines()
-    assert '🔗 杠杆腿 vs 标的：07226 2x HSTECH（恒科 -1.31% → 2x 应 -2.62%，实测 -2.8%，差 -0.18pp）' \
-        in line
-    # Right under the table, the table itself untouched.
+    text = '07226：恒科 -1.31% → 2x 应 -2.62%，实测 -2.8%，差 -0.18pp'
+    assert pre.leverage_lines(hk) == [text]
+    # In the standing-state block, the table itself untouched.
+    line = _card(status_lines=pre.leverage_lines(hk)).splitlines()
     start = line.index(TABLE[0])
     assert line[start:start + len(TABLE)] == TABLE
-    assert line[start + len(TABLE):start + len(TABLE) + 2] == ['', line[start + len(TABLE) + 1]]
-    assert line[start + len(TABLE) + 1].startswith('🔗')
-    text = next(x for x in line if x.startswith('🔗'))
+    assert line.index('▎持续状态') < line.index(text)
+    # The whole row is one sentence to the validator: a ； before 实测 would
+    # leave the gap with one operand and a judgment repeating it flagged.
     at = text.index('-0.18pp')
     assert val._derived_in_sentence(text, at, 'pp', '-0.18')
+    assert not val._derived_in_sentence(
+        text.replace('%，实测', '%；实测'), at, 'pp', '-0.18')
 
     us = [{'ticker': 'RKLX', 'pct_1d': -1.4}, {'ticker': 'SPCX', 'pct_1d': -1.0},
           {'ticker': 'SPCH', 'pct_1d': -2.3}]
@@ -676,13 +746,13 @@ def test_a_leveraged_leg_sits_next_to_its_underlying_with_the_gap():
         'close': 73.13, 'pct_from_high': -3.09}}}, bars=lambda code, _n: bars,
         session_date='2026-09-28', codes={'RKLB': 'usRKLB.OQ'})
     assert stale[0]['gap_pp'] is None and stale[0]['missing']
-    shown = pre.append_leverage_line('| a |', stale, ['SPCH']).splitlines()
-    assert shown[2] == ('🔗 杠杆腿 vs 标的：RKLX 2x RKLB（RKLB 今日涨跌本档未取到，不算差值，'
-                        '现价 73.13，距前高 -3.1%）｜SPCH 2x SPCX（标的 -1.0% → 2x 应 -2.0%，'
-                        '实测 -2.3%，差 -0.30pp）')
-    assert shown[3] == '   ↳ 行情未证实：SPCH（见上方 ⛔ 行，差值仅作参考）'
-    assert val._derived_in_sentence(shown[2], shown[2].index('-0.30pp'), 'pp', '-0.30')
-    assert pre.append_leverage_line('x', []) == 'x'
+    shown = pre.leverage_lines(stale, ['SPCH'])
+    assert shown == [
+        'RKLX：2x RKLB 今日涨跌本档未取到，不算差值（现价 73.13，距前高 -3.1%）',
+        'SPCH：SPCX -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp',
+        '  ↳ 行情未证实：SPCH（见上方 ⛔ 行，差值仅作参考）']
+    assert val._derived_in_sentence(shown[1], shown[1].index('-0.30pp'), 'pp', '-0.30')
+    assert pre.leverage_lines([]) == []
 
 
 def test_the_judgment_marker_named_inside_a_sentence_is_missing_and_revisable():

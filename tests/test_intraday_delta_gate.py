@@ -404,8 +404,12 @@ def test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_g
     packet = json.loads(out.getvalue())
 
     banner = [line for line in packet["raw_wechat_block"].splitlines()
-              if line.startswith("⛔ 数据降级：资讯源未取到")]
-    assert banner and "Yahoo财经（TimeoutError）" in banner[0] and banner[0].endswith("（不是无消息）")
+              if line.startswith("⛔ 资讯缺口：")]
+    assert banner and "Yahoo财经" in banner[0] and banner[0].endswith("未取到（不是无消息）")
+    # The exception class is for the audit trail, not for the reader (#2805).
+    assert "TimeoutError" not in packet["raw_wechat_block"]
+    stored = json.loads((preflight.TMP / "intraday-context-us-latest.json").read_text())
+    assert "Yahoo财经（TimeoutError）" in stored["information_full"]["degraded"]
     rows = packet["information"]["live"]["SPCH"]
     assert rows[0]["title"] == "SpaceX wins contract"
     assert rows[0]["cite"].endswith("（Google新闻·Reuters，08-14 01:03 HKT 发布，盘中实时）")
@@ -630,10 +634,10 @@ def test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner(
     ctx = run(copy.deepcopy(current))
 
     lines = ctx["raw_wechat_block"].splitlines()
-    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 🛰️ 加仓侧）"
-    assert "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
-    assert lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
-        "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
+    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见加仓侧）"
+    assert "· SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
+    assert lines.index(preflight.STATUS_HEADER) < lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
+        "· SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["policy_evidence_errors"] == ["SPCH: quote not freshly verified"]
 
@@ -698,7 +702,7 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
     lines = ctx["raw_wechat_block"].splitlines()
     head = lines.index(preflight.ADD_SIDE_HEADER)
     word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
-    assert lines[head + 1].startswith(f"  · SPCH {word}：")
+    assert lines[head + 1].startswith(f"· SPCH {word}：")
 
 
 def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet(
@@ -718,7 +722,7 @@ def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet
     with redirect_stdout(out):
         assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
-    assert "⛔ 数据降级：资讯源未取到：东财7×24（empty_or_failed）（不是无消息）" in \
+    assert "⛔ 资讯缺口：东财7×24 未取到（不是无消息）" in \
         packet["raw_wechat_block"].splitlines()
     assert packet["delivery_mode"] == "full_delta"
     assert "information" in packet and "information_full" not in packet
@@ -756,8 +760,8 @@ def test_preflight_prints_the_leverage_line_from_the_t0_map(monkeypatch, tmp_pat
     ctx = run(copy.deepcopy(current))
     lines = ctx["raw_wechat_block"].splitlines()
     assert lines[lines.index(table[0]):lines.index(table[0]) + 2] == table
-    assert ("🔗 杠杆腿 vs 标的：SPCH 2x SPCX（标的 -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp）"
-            in lines)
+    assert lines[lines.index(preflight.STATUS_HEADER) + 1:] == [
+        "亏损持仓 1/2", "SPCH：SPCX -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp"]
     assert ctx["leverage_legs"][0]["gap_pp"] == -0.3
     assert ctx["analyzer_block"] == block
 

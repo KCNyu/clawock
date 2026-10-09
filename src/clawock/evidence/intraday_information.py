@@ -402,6 +402,9 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None, live=None):
         full['live'] = {'tickers': live_rows, 'flashes': live.get('flashes') or [],
                         'requests': live.get('requests') or [],
                         'elapsed_s': live.get('elapsed_s'), 'as_of': live.get('as_of')}
+    # The card names an unread source without its error (`information_gap_line`);
+    # the labels as collected, exception class included, stay here for audit.
+    full['degraded'] = list(degraded)
     return {'summary': summary, 'full': full, 'degraded': degraded}
 
 

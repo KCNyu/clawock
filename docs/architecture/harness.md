@@ -232,15 +232,17 @@ constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 A full card follows a fixed layout contract (the block list lives above
 `compose_card` in `intraday_preflight.py`; `test_card_layout_contract` and
 `test_preflight_main_never_rewrites_the_analyzer_table` enforce it): title, a
-P0 line only when one newly fired, the 变化 line, `⛔ 数据降级` lines
-(unverified quotes said once, with since when the same names have been
-carried), then the analyzer's market strip, book line and holdings table
-**byte for byte**, one `↑` pointer line naming the rows with a new
-move/trigger, the `🔗` line setting each held leveraged leg against its
-underlying's move and the gap in pp, the signal block with signals already
-delivered this session folded into one `今日已报、仍在` line, the candidate
-sections, the model's `▎我的看法` after the whole data block, and advisory
-checker findings last. `⛔` is only data
+P0 line only when one newly fired, the 变化 line (naming the ticker and what
+changed for a soft candidate), `⛔` lines (unverified quotes said once, with
+since when the same names have been carried; an unread information source by
+name, without the exception class), then the analyzer's market strip, book
+line and holdings table **byte for byte**, one `↑` pointer line naming the
+rows with a new move/trigger, the signal block with only the signals new
+today, the candidate sections, then `▎持续状态`: signals already delivered
+this session as one `今日已报、仍在` line, the book risk line, each held
+leveraged leg against its underlying's move with the gap in pp, and the
+add-side reads — then the model's `▎我的看法` after the whole data block, and
+advisory checker findings last. `⛔` is only data
 health and `⚠️` only the analyzer's signal header. All of this is copy only:
 the model still reads the full `signals_detail`, `source_signals_detail`,
 `full_holdings` and `quote_coverage`.

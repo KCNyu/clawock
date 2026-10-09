@@ -625,17 +625,67 @@ DELTA_LABELS = {
 }
 
 
-def delta_lead(delta, *, current, previous):
-    """The 变化 line: why this slot is a full card, naming first-seen breaches."""
+MAX_LEAD_NAMES = 4
+
+
+def _soft_identity(row):
+    return json.dumps({key: row.get(key) for key in ('ticker', 'kind', 'band')
+                       if row.get(key) is not None}, sort_keys=True, ensure_ascii=False)
+
+
+def soft_candidate_changes(current, previous, soft_candidates):
+    """What `soft_candidates_seen` gained this slot, in card words (#2804).
+
+    The seen set only grows inside a session, so the difference is exactly the
+    identities first seen now. A ticker whose move crossed into another band
+    is said as that — it was already being watched — never as a new name.
+    Figures are this slot's `soft_candidates` rows; nothing is computed here.
+    """
+    seen = previous.get('soft_candidates_seen') or []
+    old = {_soft_identity(row) for row in seen}
+    bands = {}
+    for row in seen:
+        if row.get('kind') == 'soft_move' and row.get('band'):
+            bands.setdefault(row.get('ticker'), []).append(row['band'])
+    live = {_soft_identity(row): row for row in soft_candidates or []}
+    out = []
+    for row in current.get('soft_candidates_seen') or []:
+        key = _soft_identity(row)
+        if key in old or not row.get('ticker'):
+            continue
+        ticker, now = row['ticker'], live.get(key) or {}
+        if row.get('kind') == 'soft_move':
+            pct = now.get('pct_1d')
+            move = f'日内 {pct:+.1f}%' if isinstance(pct, (int, float)) else None
+            if bands.get(ticker):
+                notes = [move, f"此前报过 {'、'.join(sorted(bands[ticker]))}% 档"]
+                out.append(f"{ticker} 进入另一观察区间（{'，'.join(n for n in notes if n)}）")
+            else:
+                out.append(f'{ticker} 首次进入观察区间' + (f'（{move}）' if move else ''))
+        elif row.get('kind') == 'near_20d_high':
+            pct = now.get('pct_from_high')
+            out.append(f'{ticker} 首次进入距20日高 3% 内'
+                       + (f'（{pct:+.1f}%）' if isinstance(pct, (int, float)) else ''))
+        elif row.get('kind') == 'zscore_watch':
+            z = now.get('zscore20')
+            out.append(f'{ticker} 20日z值首次到观察线'
+                       + (f'（{z:g}）' if isinstance(z, (int, float)) else ''))
+        elif row.get('kind') == 't0_quality':
+            out.append(f'{ticker} T+0 形态首次进入观察'
+                       + (f"（{now['grade']}）" if now.get('grade') else ''))
+        else:
+            out.append(f'{ticker} 首次进入边缘候选')
+    return out
+
+
+def delta_lead(delta, *, current, previous, soft_candidates=None):
+    """The 变化 line: why this slot is a full card, naming what is first seen."""
     if not previous:
         return '变化：本交易日首档，建立对照'
     if not delta.get('components'):
         # Only reachable with always_full on: say plainly that nothing changed
         # instead of the old '决策条件' fallback, which read as a change.
         return '变化：无（与上次送达相比，本档没有新条件）'
-    labels = [DELTA_LABELS[key] for key in delta.get('components', [])
-              if key in DELTA_LABELS]
-    lead = '变化：' + '、'.join(labels or ['决策条件'])
     old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
            for row in (previous.get('breaches_seen')
                        or previous.get('breaches') or [])}
@@ -643,17 +693,31 @@ def delta_lead(delta, *, current, previous):
              if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
     names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
                                if row.get('ticker')))
-    if names:
-        lead += '（新触发：' + '、'.join(names[:4]) + '）'
+    triggered = '（新触发：' + '、'.join(names[:MAX_LEAD_NAMES]) + '）' if names else ''
+    # A new session's seen set starts empty: every candidate would read as new.
+    soft = ([] if 'session' in delta['components']
+            else soft_candidate_changes(current, previous, soft_candidates))
+    labels = []
+    for key in delta['components']:
+        if key == 'soft_candidates_seen' and soft:
+            more = len(soft) - MAX_LEAD_NAMES
+            labels.append('；'.join(soft[:MAX_LEAD_NAMES])
+                          + (f' 等另 {more} 项' if more > 0 else ''))
+        elif key in DELTA_LABELS:
+            labels.append(DELTA_LABELS[key] + (triggered if key == 'breaches' else ''))
+    lead = '变化：' + '、'.join(labels or ['决策条件'])
+    if triggered and 'breaches' not in delta['components']:
+        lead += triggered
     return lead
 
 
-def prepend_delta_lead(block, delta, *, current, previous):
+def prepend_delta_lead(block, delta, *, current, previous, soft_candidates=None):
     """Put the reason for a full card before the holdings table on both legs."""
     lines = block.splitlines()
     if not lines:
         return block
-    return '\n'.join([lines[0], delta_lead(delta, current=current, previous=previous),
+    return '\n'.join([lines[0], delta_lead(delta, current=current, previous=previous,
+                                           soft_candidates=soft_candidates),
                       *lines[1:]])
 
 
@@ -715,7 +779,7 @@ def coverage_warning(coverage, gaps=None):
 
     One line, not three (kcn 2026-09-25): the names, since when they are
     carried, and — as a bare pointer — holdings whose strategy evidence is
-    incomplete; the reason for those sits on their 🛰️ row.
+    incomplete; the reason for those sits on their 加仓侧 row.
     """
     missing = coverage.get('unrefreshed') or []
     parts = []
@@ -725,7 +789,7 @@ def coverage_warning(coverage, gaps=None):
         parts.append('、'.join(missing) + f' 行情未证实（沿用上一笔{carried}）')
     if gaps:
         parts.append('、'.join(gaps) + ' 策略升级证据未取全'
-                     + ('' if missing else '（原因见 🛰️ 加仓侧）'))
+                     + ('' if missing else '（原因见加仓侧）'))
     return DEGRADED + ' · '.join(parts) if parts else None
 
 
@@ -745,28 +809,34 @@ def prepend_coverage_warning(block, coverage):
 #
 #   1 title          analyzer's first line — the watchdog's slot anchor
 #   2 P0 line        only when a strategy escalation newly fired
-#   3 变化 line      why this slot woke: components + first-seen tickers
+#   3 变化 line      why this slot woke: components + first-seen tickers; a
+#                    soft candidate is named with what changed about it
+#                    (`soft_candidate_changes`, #2804)
 #   4 ⛔ lines       data faults, each once: unverified quotes (with since
 #                    when, `carry_quote_gap`) plus a pointer to holdings whose
-#                    strategy evidence is incomplete; T+0, information, search
+#                    strategy evidence is incomplete; T+0, search; `⛔ 资讯缺口`
+#                    names unread information sources without the exception
+#                    class (that stays in `information_full.degraded`)
 #   5 index + 📊     analyzer's market strip and book line
 #   6 table          analyzer's holdings table, byte for byte
 #   7 ↑ pointer      one line naming the rows with a new move/trigger;
 #                    omitted when there is none (unverified rows are block 4's)
-#  7b 🔗 leverage    held leveraged legs vs their underlying and the gap in
-#                    pp (`leverage_legs`); omitted with no leveraged holding
-#   8 ⚠️ 信号        signals new today in full; ones already delivered this
-#                    session fold into one 「今日已报、仍在」 line
+#   8 ⚠️ 信号        signals new today in full; omitted when every signal
+#                    was already delivered this session
 #   9 candidates     setups / trend / radar / primary info / plan triggers
-#  9b 🛰️ 加仓侧      `add_side_reads` per ticker: verdict copied, why/needs
+#  10 ▎持续状态      standing state, no icons (kcn 2026-10-09, #2805 layout A):
+#                    「今日已报、仍在：」 signals one line, level said once; the
+#                    analyzer's 📉 book line; held leveraged legs vs their
+#                    underlying and the gap in pp (`leverage_legs`); then
+#                    `add_side_reads` per ticker: verdict copied, why/needs
 #                    clipped, at most MAX_ADD_SIDE_ROWS (#755; the model's
 #                    prose no longer has to carry it to reach kcn); a holding
 #                    with incomplete strategy evidence gets its reason here
-#  10 ▎我的看法      model judgment — postflight appends it after the whole
+#  11 ▎我的看法      model judgment — postflight appends it after the whole
 #                    data block, below the table (kcn 2026-09-25: #1863 had
 #                    put it above the table and kcn read that as the table
 #                    being out of place)
-#  11 ℹ️ footnote    advisory checker findings, last (postflight)
+#  12 ℹ️ footnote    advisory checker findings, last (postflight)
 #
 # Why: the header (2–4) answers "what changed, can I trust it" before the
 # table; the table keeps the position kcn reads it in. Marks sit next to the
@@ -776,10 +846,32 @@ def prepend_coverage_warning(block, coverage):
 # header — one symbol, one meaning. Card only: the model reads the complete
 # context (analyzer_block, signals_detail, full_holdings, …) regardless.
 DEGRADED = '⛔ 数据降级：'
+INFO_GAP = '⛔ 资讯缺口：'
+STATUS_HEADER = '▎持续状态'
 POINTER = '↑ '
 # Unverified quotes are said once, in block 4 with their start time; the
 # pointer no longer repeats them (kcn 2026-09-25: one fact, one line).
 POINTER_KINDS = (('new', '新异动/触发'),)
+
+
+def information_gap_line(degraded):
+    """Block 4's information line, in reader words.
+
+    Each label is `<source>（<reason>）`. A reason that is only a status token
+    or an exception class (`URLError`, `empty_or_failed`, `unreadable: …`) says
+    nothing to the reader and is dropped; a count or a reason already in card
+    words (`3/5 超时`) stays. The labels as collected are kept in
+    `information_full.degraded`.
+    """
+    names = []
+    for label in degraded or []:
+        source, _, reason = str(label).rstrip('）').partition('（')
+        reason = re.sub(r'[A-Za-z_][A-Za-z0-9_.: ]*', '', reason)
+        reason = re.sub(r'(^|\s)、|、$', r'\1', reason).strip()
+        names.append(f'{source}（{reason}）' if reason else source)
+    if not names:
+        return None
+    return INFO_GAP + '、'.join(dict.fromkeys(names)) + ' 未取到（不是无消息）'
 
 
 def compose_card(block, *, p0_lines, lead, degraded):
@@ -791,19 +883,35 @@ def compose_card(block, *, p0_lines, lead, degraded):
                       *[line for line in degraded if line], *lines[1:]])
 
 
-def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
-    """Point at the rows that matter and fold what was already said today.
+def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals,
+                      status_lines=()):
+    """Point at the rows that matter and gather what was already said today.
 
     Never edits a table line. `fresh_tickers` are holdings with a
     move/trigger breach first seen this session; `seen_signals` are
     `(level, ticker)` signal identities delivered earlier this session.
     `unrefreshed` only keeps a stale row out of `new`: block 4 names it.
+
+    Signals delivered earlier leave `⚠️ 信号` (the header goes with them when
+    none is new) and open the `▎持续状态` block at the end of the card as one
+    line per level. The analyzer's `📉` book line and `status_lines` (leverage
+    legs, add-side reads) follow it there, so everything above that block is
+    this slot's news and everything in it is standing state.
     """
     stale = [t for t in (unrefreshed or [])]
     fresh = [t for t in sorted(fresh_tickers or []) if t not in stale]
-    out, folded = [], []
+    out, folded, risk = [], {}, []
     in_signals = skip_reasons = False
-    last_table_row = None
+    last_table_row = header_at = None
+    kept = 0
+
+    def close_signals():
+        nonlocal in_signals, header_at
+        in_signals = False
+        if header_at is not None and not kept:
+            del out[header_at]
+        header_at = None
+
     for line in block.splitlines():
         stripped = line.strip()
         if stripped.startswith('|') and stripped.endswith('|'):
@@ -811,15 +919,12 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
             last_table_row = len(out)
             continue
         if stripped == '⚠️ 信号':
-            in_signals = True
+            in_signals, header_at, kept = True, len(out), 0
             out.append(line)
             continue
         if in_signals:
             if not stripped or stripped.startswith(('📉', '📰', '🕯️', '🎯', '🛰️', '📑', '⚡')):
-                in_signals = False
-                if folded:
-                    out.append('  · 今日已报、仍在：' + '、'.join(folded))
-                    folded = []
+                close_signals()
             else:
                 if skip_reasons and stripped.startswith('·'):
                     continue
@@ -828,12 +933,16 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
                 if level and (level, ticker) in seen_signals:
                     word = (stripped.split()[1]
                             if stripped.split()[0] in intraday_policy.SIGNAL_MARKERS else level)
-                    folded.append(f'{word} {ticker}')
+                    folded.setdefault(word, []).append(ticker)
                     skip_reasons = True
                     continue
+                kept += 1
+        if stripped.startswith('📉'):
+            risk.append(re.sub(r'\s+\|\s+', '｜', stripped.lstrip('📉').strip()))
+            continue
         out.append(line)
-    if folded:
-        out.append('  · 今日已报、仍在：' + '、'.join(folded))
+    if in_signals:
+        close_signals()
     named = dict(POINTER_KINDS)
     parts = [f"{named[kind]} {'、'.join(rows)}"
              for kind, rows in (('new', fresh),) if rows]
@@ -841,10 +950,20 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
         # A blank line first: GFM reads a pipe-less line right under a table
         # as one more row.
         out[last_table_row:last_table_row] = ['', POINTER + '　'.join(parts)]
-    return '\n'.join(out)
+    status = [*(['今日已报、仍在：' + '；'.join(
+        f"{word} {'、'.join(tickers)}" for word, tickers in folded.items())]
+                if folded else []), *risk, *status_lines]
+    # Lifting lines out leaves their separators behind: one blank at most.
+    lines = [line for i, line in enumerate(out)
+             if line.strip() or (i and out[i - 1].strip())]
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if status:
+        lines += ['', STATUS_HEADER, *status]
+    return '\n'.join(lines)
 
 
-ADD_SIDE_HEADER = '🛰️ 加仓侧（三态都不是下单授权）'
+ADD_SIDE_HEADER = '加仓侧（三态都不是下单授权）'
 ADD_SIDE_WORDS = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝'}
 MAX_ADD_SIDE_ROWS = 4
 ADD_SIDE_WHY_CHARS = 44
@@ -866,8 +985,8 @@ def _clip(text, limit):
 EVIDENCE_WAIT_WORD = '观望'
 
 
-def append_add_side_section(block, reads, gaps=None):
-    """Card block 10: the add-side read per ticker, rendered by the harness.
+def add_side_lines(reads, gaps=None):
+    """Status-block rows: the add-side read per ticker, rendered by the harness.
 
     `add_side_reads` was only in the model's context, and on 2026-08-17 a +6.4%
     move with three near-breakout rows produced prose about nothing but holdings
@@ -884,28 +1003,28 @@ def append_add_side_section(block, reads, gaps=None):
     rows = (reads or {}).get('rows') or []
     gaps = dict(gaps or {})
     if not rows and not gaps:
-        return block
-    lines = ['', ADD_SIDE_HEADER]
+        return []
+    lines = [ADD_SIDE_HEADER]
     for row in rows[:MAX_ADD_SIDE_ROWS]:
         word = ADD_SIDE_WORDS.get(row.get('verdict'), row.get('verdict'))
-        text = f"  · {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
+        text = f"· {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
         if row.get('needs'):
             text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
         lines.append(text)
         if row.get('ticker') in gaps:
-            lines.append(f"    ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
+            lines.append(f"  ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
     listed = {row.get('ticker') for row in rows}
     for ticker, reasons in gaps.items():
         # A ticker whose own row is past the cap has a verdict; don't relabel it.
         word = '' if ticker in listed else f' {EVIDENCE_WAIT_WORD}'
-        lines.append(f"  · {ticker}{word}：策略升级证据未取全"
+        lines.append(f"· {ticker}{word}：策略升级证据未取全"
                      f"（{'；'.join(reasons)}）→ 本档不给尺寸")
     if len(rows) > MAX_ADD_SIDE_ROWS:
-        lines.append(f'  …另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
-    return block + '\n' + '\n'.join(lines)
+        lines.append(f'…另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
+    return lines
 
 
-# ── 🔗 leveraged leg vs its underlying (kcn 2026-09-25 preview) ─────────────
+# ── leveraged leg vs its underlying (kcn 2026-09-25 preview) ─────────────
 #
 # The map is the one the T+0 card already carries (`t0_setups.rows.<t>.leveraged`,
 # built from the instrument registry: RKLX=2x RKLB, SPCH=2x SPCX, 07226=2x
@@ -920,7 +1039,7 @@ def append_add_side_section(block, reads, gaps=None):
 # work (the pp difference of two figures earlier in the same sentence): the
 # underlying's move, the multiple times it, the leg's move, then 差 in pp — so a
 # judgment that repeats the line is verified, not flagged as invented.
-LEVERAGE_HEADER = '🔗 杠杆腿 vs 标的：'
+# Since #2805 the rows sit in the ▎持续状态 block, without a header of their own.
 INDEX_STRIP = {'HSTECH': ('hstech_pct', '恒科'), 'HSI': ('hsi_pct', '恒指')}
 
 
@@ -976,42 +1095,32 @@ def leverage_legs(market, full_holdings, t0_setups, stdout, radar, *, bars,
     return legs
 
 
-def append_leverage_line(block, legs, unrefreshed=None):
-    """Put the 🔗 line right under the holdings table (after the ↑ pointer)."""
-    if not legs:
-        return block
-    parts = []
-    for row in legs:
+def leverage_lines(legs, unrefreshed=None):
+    """Status-block rows: one per held leveraged leg against its underlying."""
+    lines = []
+    for row in legs or []:
         mult = f"{row['multiple']:g}x"
-        head = f"{row['ticker']} {mult} {row['underlying']}"
         if row.get('gap_pp') is None:
-            bits = [f"{row['underlying']} 今日涨跌本档未取到，不算差值"]
-            if row.get('close') is not None:
-                bits.append(f"现价 {row['close']:g}")
+            bits = [f"现价 {row['close']:g}"] if row.get('close') is not None else []
             if row.get('pct_from_high') is not None:
                 bits.append(f"距前高 {row['pct_from_high']:+.1f}%")
-            parts.append(f"{head}（{'，'.join(bits)}）")
+            lines.append(f"{row['ticker']}：{mult} {row['underlying']} 今日涨跌本档未取到，"
+                         '不算差值' + (f"（{'，'.join(bits)}）" if bits else ''))
             continue
         digits = row['decimals']
-        name = row.get('label') or '标的'
-        parts.append(
-            f"{head}（{name} {row['underlying_pct']:+.{digits}f}% → {mult} 应 "
+        name = row.get('label') or row['underlying']
+        # Commas, not ；: `_sentence_operands` ends a sentence at ；, and the
+        # gap is only verified with both operands in the sentence it closes.
+        lines.append(
+            f"{row['ticker']}：{name} {row['underlying_pct']:+.{digits}f}% → {mult} 应 "
             f"{row['expected_pct']:+.{digits}f}%，实测 {row['leg_pct']:+.1f}%，"
-            f"差 {row['gap_pp']:+.2f}pp）")
-    lines = ['', LEVERAGE_HEADER + '｜'.join(parts)]
-    stale = [t for row in legs for t in (row['ticker'], row['underlying'])
+            f"差 {row['gap_pp']:+.2f}pp")
+    stale = [t for row in legs or [] for t in (row['ticker'], row['underlying'])
              if t in (unrefreshed or [])]
     if stale:
-        lines.append(f"   ↳ 行情未证实：{'、'.join(dict.fromkeys(stale))}"
+        lines.append(f"  ↳ 行情未证实：{'、'.join(dict.fromkeys(stale))}"
                      '（见上方 ⛔ 行，差值仅作参考）')
-    out = block.splitlines()
-    last = max((i for i, line in enumerate(out)
-                if line.strip().startswith('|') and line.strip().endswith('|')),
-               default=None)
-    if last is None:
-        return block + '\n' + '\n'.join(lines)
-    out[last + 1:last + 1] = lines
-    return '\n'.join(out)
+    return lines
 
 
 def _split_generic_news(block):
@@ -1540,7 +1649,7 @@ def main(argv=None):
     except Exception as exc:
         universe = []
         active_information_ctx['policy_evidence_error'] = f'{type(exc).__name__}: {exc}'[:200]
-    # 🔗 line: held leveraged legs against their underlying (T+0 map, this
+    # Leverage rows: held leveraged legs against their underlying (T+0 map, this
     # slot's readings; the bars are the radar's, already cached).
     try:
         leverage = leverage_legs(
@@ -1664,7 +1773,6 @@ def main(argv=None):
             raw_block, holding_policies)
         # After the policy strip: that pass reads '·' lines as signal reasons.
         gaps = evidence_gaps(policy_evidence_errors, strategy_checks)
-        raw_block = append_add_side_section(raw_block, add_side_reads, gaps)
         prior_escalations = {(row.get('ticker'), row.get('level'))
                              for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
@@ -1688,23 +1796,23 @@ def main(argv=None):
                           if t not in (coverage.get('unrefreshed') or [])),
             'stale': list(coverage.get('unrefreshed') or []),
         }
-        raw_block = append_leverage_line(
-            raw_block, leverage, coverage.get('unrefreshed'))
         raw_block = mark_card_changes(
             raw_block,
             fresh_tickers=fresh_tickers,
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
-                          if row.get('kind') == 'signal'})
+                          if row.get('kind') == 'signal'},
+            status_lines=[*leverage_lines(leverage, coverage.get('unrefreshed')),
+                          *add_side_lines(add_side_reads, gaps)])
         raw_block = compose_card(
             raw_block, p0_lines=p0_lines,
-            lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state),
+            lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state,
+                            soft_candidates=soft_candidates),
             degraded=[
                 coverage_warning(coverage, gaps),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
                  if t0_setups.get('error') else None),
-                (DEGRADED + '资讯源未取到：' + '、'.join(information['degraded'])
-                 + '（不是无消息）' if information['degraded'] else None),
+                information_gap_line(information['degraded']),
                 (DEGRADED + '异动检索：' + '、'.join(anomaly_search.degraded_lines(
                     anomaly_search_ctx)) + '（不是无消息）'
                  if anomaly_search.degraded_lines(anomaly_search_ctx) else None),
@@ -1740,7 +1848,7 @@ def main(argv=None):
         # the headline feed; the judgment must still see all of it.
         'analyzer_block': stdout.strip(),
         'soft_candidates': soft_candidates,
-        # The 🔗 line's rows: leg move, underlying move and its source
+        # The leverage rows of ▎持续状态: leg move, underlying move and its source
         # (holdings_table / index_strip / slot_daily_bar), 2x-expected, gap pp;
         # `missing` when the underlying's move was not in this slot.
         'leverage_legs': leverage,
@@ -1752,7 +1860,7 @@ def main(argv=None):
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
-        # Printed on the card as block 10 (`append_add_side_section`).
+        # Printed on the card in ▎持续状态 (`add_side_lines`).
         'add_side_reads': add_side_reads,
         # Carried on BOTH paths, receipt included: the JSON is the audit trail
         # for what the slot knew, and a receipt slot that knew a trigger was
