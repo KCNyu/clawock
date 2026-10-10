@@ -595,10 +595,15 @@ def main(argv=None):
     receipt_path(root, today).unlink(missing_ok=True)
     safe_write_json(paths['plan'], plan)
     safe_write_json(paths['judgment'], judgment)
+    winner = next((leg for leg in stats.get('legs') or [] if leg.get('ok')), {})
     safe_write_json(receipt_path(root, today), {
         'date': today,
         'context_generation_id': generation_id,
         'artifacts': {name: _sha256(path) for name, path in paths.items()},
+        # Which provider's reply became the plan: postflight records it as the
+        # proposals' author (`decision.proposals.authorship`).
+        'author_model': winner.get('model'),
+        'author_provider': winner.get('provider'),
     })
     print(f'  wrote plan.json + judgment '
           f'({len(plan.get("decisions", []))} decisions, generation {generation_id})')

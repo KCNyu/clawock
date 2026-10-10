@@ -198,3 +198,77 @@ objection (see above), not as a refusal.
 | `intraday-strategy-policies.json` | 2 | the two P0 escalation thresholds |
 | `research-governance.json` | 4 | review windows and staleness |
 | `stock-discovery.json` | 7 | screen thresholds and queue limits |
+
+## Method records and evaluation
+
+Postflight appends every normalized proposal, including refused plans, to
+`memory/proposals.jsonl`. Each record freezes the method text and derived
+`method_version`, hypothesis, forecast, alternatives, planned allocation,
+author model (unknown unless the runner identifies it), prompt/code digest,
+review findings and cited compute receipts. The generation's packet is kept
+once by content hash in `memory/proposal-inputs/`; a reference in each proposal
+preserves its observations after temporary context cleanup. Revisions append
+records; they do not rewrite earlier forecasts. An unterminated log blocks an
+append and preserves the original for recovery. Proposal logging failure is
+reported without blocking brief delivery.
+
+`clawock evaluate-methods` reports method-specific episode payoffs after the
+registered cost assumptions, alongside probability scores and all proposal,
+refusal, publication, trigger and execution denominators. Method changes within
+an episode are kept separate. Policy-agreed and policy-objected groups are
+**observational groups**, not randomized experiment arms: their selection
+probabilities are unknown. Execution flags do not prove realized profit.
+The report cannot promote a method or change its allocation.
+
+A machine-scoreable forecast adds `metric: close_above|close_below` and a
+positive `level` to `probability` and `horizon_sessions`. Session one is the
+plan date if it trades, otherwise the next trading session. The event is the
+close of the final session, not a touch anywhere inside the window. Worded
+forecasts are retained as unscoreable; missing bars remain pending. Brier and
+payoff stay in separate columns. Calibration's `edge_supported` means only a
+hit-rate lower bound above one half; its gross payoff distribution can disagree.
+The method report's net distribution additionally accounts for assumed costs.
+
+### Frozen prospective comparisons
+
+`evaluate-methods --register spec.json` creates an immutable trial under
+`memory/method-trials/trial-<digest>/`. The spec contains:
+
+- `start_date` strictly after today's UTC date, and `end_date`;
+- `portfolio`, `observations` (measured inputs only), `policy_reference` (the
+  old rule outputs), and optionally `leg_config` in the `shadow_books` shape
+  from `config/portfolio-derivations.json`;
+- `arms` with exactly `old_policy`, `observations_only`, `policy_reference`.
+  Each declares `method`, `model`, and the exact `prompt` before results exist.
+
+The evaluator freezes its own protocol, source fingerprints and cost model.
+Its explicit objective is upside participation with opportunity cost and
+adverse tails visible; old trading thresholds do not define that objective.
+The observation-only worker's input excludes the policy reference. Obtain each
+worker's frozen input with `--trial ID --arm ARM`. Run the three declared
+methods independently on those inputs and submit each original response before
+the start date with `--trial ID --arm ARM --submission response.json`.
+The response has `status: ok|failed|refused`, `raw_response`, `tool_receipts`,
+and (for `ok`) a `plan` dated at the start with `decisions`. Empty plans are
+valid no-action arms. Submissions are single assignment; retries can only
+repeat identical content. The command does not itself invoke providers.
+
+`--trial ID [--as-of YYYY-MM-DD]` replays completed dates through the frozen
+end date with the registered evaluator. Settlement and `decision/shadow.py`
+are reused: every arm has the same initial cash/inventory, dates, prices and
+costs, plus its own untouched buy-and-hold counterfactual. A no-action arm
+still has a curve. Each native currency reports net benefit, upside capture,
+missed gain against holding, drawdown, turnover and idle cash. Missing marks
+stay missing, including delisted names; failed and absent arms remain visible.
+The report retains settlement bars, original responses and tool receipts for
+replay; changed bars produce a new content-addressed report. No live decision
+or broker execution record is changed.
+
+Reports count registered trials and label comparisons descriptive. Date-cluster
+intervals in the observational report do not remove overlapping-window,
+issuer-dependence or multiple-testing risk in prospective trials. A short
+engineering observation window does not unlock deployment. Human review of
+frozen, genuinely forward evidence is required to select a method; the system
+never claims causal superiority, automatically promotes a method, or rewrites
+history to roll one back. Stop submitting to a trial to stop it; its archives
+remain intact. Legacy records without a stated method stay `unknown`.

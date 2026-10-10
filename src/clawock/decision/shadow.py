@@ -733,10 +733,11 @@ def simulate_leg(
     matched: dict[str, dict] | None = None,
     leg_config: dict[str, dict[str, str]] | None = None,
     cost_model: costs.CostModel | None = None,
+    include_idle: bool = False,
 ) -> dict | None:
     cfg = _leg_cfg(portfolio, leg, leg_config)
     active = _active_triggered(decisions, leg)
-    if not active:
+    if not active and not (include_idle and start_date):
         return None
     start_date = start_date or min(_event_session(row) for _, row in active)
     seed = reconstruct_initial_book(
@@ -892,8 +893,10 @@ def simulate_leg(
             "followed_sim": round(followed_value, 2),
             "buy_and_hold": round(baseline_value, 2),
             "cumulative_diff": round(followed_value - baseline_value, 2),
+            **({"followed_cash": round(followed["cash"], 2)} if include_idle else {}),
         }
-        events[-1]["mark"] = yield_point if events and events[-1]["date"] == day else None
+        if events and events[-1]["date"] == day:
+            events[-1]["mark"] = yield_point
 
     # Re-mark in a simple second pass to keep the curve independent from event
     # serialization details and to include quiet sessions.
@@ -987,6 +990,7 @@ def simulate_leg(
                 "followed_sim": round(followed_value, 2),
                 "buy_and_hold": round(baseline_value, 2),
                 "cumulative_diff": round(followed_value - baseline_value, 2),
+            **({"followed_cash": round(followed["cash"], 2)} if include_idle else {}),
             })
         return curve, missing_marks, charged
 
@@ -1107,6 +1111,7 @@ def build_shadow_portfolio(
     matched: dict[str, dict] | None = None,
     leg_config: dict[str, dict[str, str]] | None = None,
     cost_model: costs.CostModel | None = None,
+    include_idle: bool = False,
 ) -> dict:
     """Build native-currency curves without adding unlike currencies."""
     as_of = as_of or datetime.now().astimezone().isoformat(timespec="seconds")
@@ -1120,7 +1125,13 @@ def build_shadow_portfolio(
             cost_model = None
     matched = matched if matched is not None else decision_v2.match_real_executions(
         decisions, portfolio)
-    configured = resolve_leg_config(portfolio, decisions, leg_config)
+    selection = decisions
+    if include_idle:
+        idle_legs = (list(leg_config) if leg_config else [
+            book.get("decision_leg") for book in portfolio.get("portfolios", {}).values()
+            if book.get("decision_leg")])
+        selection = [*decisions, *({"leg": leg} for leg in idle_legs)]
+    configured = resolve_leg_config(portfolio, selection, leg_config)
     curves = {}
     for leg, cfg in configured.items():
         result = simulate_leg(
@@ -1134,6 +1145,7 @@ def build_shadow_portfolio(
             matched=matched,
             leg_config=configured,
             cost_model=cost_model,
+            include_idle=include_idle,
         )
         if result:
             curves[result["currency"]] = result

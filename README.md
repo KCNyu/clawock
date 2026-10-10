@@ -101,6 +101,8 @@ re-settles the whole ledger.
 [How the grading handles the hard cases](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#the-public-scorecard) ·
 [what we tested, and what failed](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#what-we-tested-and-what-failed).
 
+Method proposals now retain frozen inputs and versioned forecasts; [method evaluation](docs/architecture/decision-architecture.md#method-records-and-evaluation) separates payoff from hit rate and supports prospective comparisons without automatic promotion.
+
 ## Any harness, one decision contract that accumulates evidence
 
 Use the same **`investment-decision` skill and artifact contract in Claude Code / Codex / OpenClaw / DeepSeek Harness / any runtime that can read and write files and call a CLI**. Your agent keeps its model, conversation, memory, research tools, credentials and permissions. clawock certifies inputs, validates outputs, evaluates outcomes and records improvement; it does not launch another model.

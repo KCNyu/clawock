@@ -3911,6 +3911,24 @@ async function testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base) {
   } finally { await page.close(); }
 }
 
+
+async function testButtonDefaultsDoNotOverrideComponentFonts(browser) {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 900 } });
+  try {
+    await page.setContent('<button id="plain">plain</button><button class="refresh-btn">↻</button>' +
+      '<div class="dm-drawer"><button class="dm-close">×</button></div>' +
+      '<button class="dbt-more">more</button><button class="pt-expand">expand</button>');
+    await page.addStyleTag({ path: path.join(ROOT, 'site/assets/css/dashboard.css') });
+    const sizes = () => page.evaluate(() => Object.fromEntries(
+      ['#plain', '.refresh-btn', '.dm-close', '.dbt-more', '.pt-expand'].map(selector =>
+        [selector, getComputedStyle(document.querySelector(selector)).fontSize])));
+    assert.deepEqual(await sizes(), { '#plain': '12px', '.refresh-btn': '15px',
+      '.dm-close': '19px', '.dbt-more': '11px', '.pt-expand': '10px' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal((await sizes())['.dm-close'], '26px');
+  } finally { await page.close(); }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3984,6 +4002,7 @@ async function main() {
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
     await run("testEveryControlAnswersAPress", () => testEveryControlAnswersAPress(browser, base));
+    await run("testButtonDefaultsDoNotOverrideComponentFonts", () => testButtonDefaultsDoNotOverrideComponentFonts(browser));
     await run("testRelativeAgeLabelsKeepTheirGlyphsApart", () => testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base));
     await run("testNoBlockIsPaintedTheColourOfWhatItSitsOn", () => testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base));
   } finally {

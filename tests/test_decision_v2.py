@@ -1472,7 +1472,9 @@ def test_the_system_looks_up_the_calibrator_row_and_the_plan_cannot_supply_one()
            "ci95": [0.28, 0.68], "resolved_level": "action_driver_condition",
            "resolved_level_n": 17, "prior_episodes": 58, "evidence_sufficient": True,
            "edge_supported": False, "signal_size_multiplier": 0.0,
-           "sizing_status": "no_positive_edge", "posterior_alpha": 11.9}
+           "sizing_status": "hit_rate_edge_unsupported", "posterior_alpha": 11.9,
+           "payoff": {"reading": "positive_expectancy", "n": 17,
+                      "mean_benefit_pct": 1.2, "ci95": [0.1, 2.3]}}
     plan = {"date": "2026-10-08", "decisions": [
         authored("cut"), authored("trim_on_rebound"), authored("hold_and_watch")]}
     plan["decisions"][2]["calibration"] = {"matched": True, "edge_supported": True}

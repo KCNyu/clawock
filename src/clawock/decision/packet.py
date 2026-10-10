@@ -2243,11 +2243,11 @@ def _whole_shares(decision: dict) -> int | None:
 
 
 def _full_position_stops(row: dict, exempt_breach_ids=frozenset()) -> list[float]:
-    """Share counts the row's hard stops still require, capped at the holding."""
+    """Share counts the row's full-position obligations still require, capped at the holding."""
     holding = _number((row.get("constraints") or {}).get("max_sell_shares"), 4)
     out = []
     for risk in row.get("risk") or []:
-        if (risk.get("kind") != "hard_stop"
+        if ((risk.get("required_reduction") or {}).get("kind") != "full_leveraged_position"
                 or (risk.get("adaptive") or {}).get("may_stand")
                 or risk.get("override_active")
                 or risk.get("breach_id") in exempt_breach_ids):
@@ -2302,7 +2302,7 @@ def _full_position_shortfalls(decisions: list[dict], rows: dict,
     for ticker, row in rows.items():
         cuts = [
             d for d in decisions
-            if str(d.get("ticker") or "") == ticker and d.get("action") == "cut"
+            if str(d.get("ticker") or "") == ticker and d.get("action") in SELL_ACTIONS
         ]
         if not cuts:
             continue
@@ -2310,7 +2310,7 @@ def _full_position_shortfalls(decisions: list[dict], rows: dict,
         for minimum in _full_position_stops(row, exempt_breach_ids):
             if cut_shares < minimum:
                 issues.append(
-                    f"{ticker}: hard stop requires cutting the full position "
+                    f"{ticker}: risk obligation requires cutting the full position "
                     f"({minimum:g} shares, required_reduction.minimum_shares); "
                     f"plan cuts {cut_shares:g}"
                 )

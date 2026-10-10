@@ -772,7 +772,16 @@ def compute_decision_metrics():
                                   'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
         decision_v2.settle_decisions(decisions)
         decision_v2.write_decisions(decisions)
-    return trim_abstaining_calibrators(decision_v2.compute_metrics(decisions))
+    metrics = trim_abstaining_calibrators(decision_v2.compute_metrics(decisions))
+    # By method and by whether the registered policy agreed (#2844). A report,
+    # never a gate: a failure here leaves the brief without it, not red.
+    try:
+        from clawock.decision import method_evaluation, proposals
+        metrics['method_evaluation'] = method_evaluation.brief_view(
+            method_evaluation.evaluate(decisions, proposals.load(WS)))
+    except Exception as exc:  # noqa: BLE001
+        print(f'   ⚠ method evaluation failed: {type(exc).__name__}: {exc}')
+    return metrics
 
 
 def refresh_daily_bars():
