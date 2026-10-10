@@ -47,7 +47,7 @@ from clawock.decision.actions import (
     paired_swap_sells,
 )
 from clawock import scorecard_provenance
-from clawock.safe_io import temp_dir_lock, jsonl_line
+from clawock.safe_io import temp_dir_lock, jsonl_line, to_strict_finite_number
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -428,12 +428,13 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
     authored_condition = action.get("condition") if isinstance(action.get("condition"), dict) else {}
     authored_size = action.get("size") if isinstance(action.get("size"), dict) else {}
     condition_type = authored_condition.get("type") or action.get("trigger_type") or "manual"
-    condition_price = _float(authored_condition.get("price"))
+    condition_price = to_strict_finite_number(authored_condition.get("price"))
     if condition_price is None:
-        condition_price = _float(action.get("trigger_price"))
+        condition_price = to_strict_finite_number(action.get("trigger_price"))
     if condition_type not in CONDITION_TYPES:
         condition_type = "manual"
-    if condition_type in ("price_above", "price_below") and condition_price is None:
+    if (not authored_condition and condition_type in ("price_above", "price_below")
+            and condition_price is None):
         condition_type = "manual"  # legacy row had an unscorable price condition
     decision_id = action.get("decision_id") or _stable_id(
         "dec", plan_date, ticker, strategy, act, condition_type, condition_price, ordinal
@@ -462,7 +463,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
             ) or 1,
         },
         "size": {
-            "shares": (_float if is_risk_swap_buy(action) else _int)(
+            "shares": (to_strict_finite_number if is_risk_swap_buy(action) else _int)(
                 authored_size.get("shares") if authored_size else action.get("size_shares")),
             "pct": _float(authored_size.get("pct")) if authored_size else _float(action.get("size_pct")),
             "note": authored_size.get("note") or action.get("size_note") or "",
@@ -490,7 +491,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "debate": normalize_debate(action.get("debate")),
         "technical_setup_id": action.get("technical_setup_id"),
         "technical_campaign_id": action.get("technical_campaign_id"),
-        "invalidation_price": _float(action.get("invalidation_price")),
+        "invalidation_price": to_strict_finite_number(action.get("invalidation_price")),
         # How far, not just which way. `None` when the plan did not say, which
         # is most of them today — the coverage series says how many (#1159).
         "expected_move_pct": normalize_expected_move(action.get("expected_move_pct")),
@@ -633,7 +634,7 @@ def validate_decision(d: dict) -> list[str]:
     condition = d.get("condition") or {}
     if condition.get("type") not in CONDITION_TYPES:
         errors.append(f"bad condition.type {condition.get('type')!r}")
-    if condition.get("type") in ("price_above", "price_below") and _float(condition.get("price")) is None:
+    if condition.get("type") in ("price_above", "price_below") and to_strict_finite_number(condition.get("price")) is None:
         errors.append("price condition requires condition.price")
     valid_for_sessions = _int(condition.get("valid_for_sessions")) or 1
     if not 1 <= valid_for_sessions <= 10:
@@ -660,12 +661,12 @@ def validate_decision(d: dict) -> list[str]:
         # packet.validate_plan_constraints checks the mandate, amount and lot.
         if not d.get("decision_group_id"):
             errors.append("swap buy leg requires decision_group_id")
-        shares = _float((d.get("size") or {}).get("shares"))
+        shares = to_strict_finite_number((d.get("size") or {}).get("shares"))
         if shares is None or not math.isfinite(shares) or shares <= 0 or int(shares) != shares:
             errors.append("swap buy leg requires positive integer size.shares")
     elif trace_version == 1 and d.get("action") in ADD_ACTIONS:
         prefix = "technical add" if d.get("driven_by") == "technical" else "add"
-        if _float(d.get("invalidation_price")) is None:
+        if to_strict_finite_number(d.get("invalidation_price")) is None:
             errors.append(f"{prefix} requires invalidation_price")
         if setup_id:
             # An add that claims a registered setup carries that setup's trace.

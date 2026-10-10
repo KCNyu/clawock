@@ -141,7 +141,7 @@ def _near_duplicate(title, others):
 
 
 def _morning_files(ws, market, now):
-    """Read this leg's morning files and the sentiment snapshot.
+    """Read this leg's consumed morning sources.
 
     Returns `(loaded, sources, degraded)`: the documents that parsed, each
     source's status and freshness, and one degraded label per unreadable file.
@@ -160,15 +160,9 @@ def _morning_files(ws, market, now):
         sources[name] = {'status': 'ok', **freshness(written, market, now)}
         loaded[name] = doc
 
-    snap_date = now.astimezone(HKT).date().isoformat()
-    snap, error = _read(ws / 'assets' / 'data' / 'factor-snapshots' / 'sentiment'
-                        / f'{snap_date}.json')
-    if error:
-        sources['sentiment_snapshot'] = {'status': error}
-        degraded.append(f'sentiment_snapshot（{error}）')
-    else:
-        sources['sentiment_snapshot'] = {
-            'status': 'ok', **freshness(_parse_time(snap.get('generated_at')), market, now)}
+    # factor-snapshots is an audit archive, not an input to this lane. Its
+    # morning publication schedule cannot establish live source availability.
+    # sentiment.json above is the consumed source and owns the health status.
     return loaded, sources, degraded
 
 

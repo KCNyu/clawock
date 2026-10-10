@@ -355,6 +355,7 @@ def alert_brief_missing(today, dry_run, issues=None):
 
     state['issues'] = list(issues)
     rerun_queued = False
+    rerun_inflight = bool(state.get('rerun_inflight'))
     if not state.get('fallback_dispatch_attempted'):
         # Second on-host chance before the off-host fallback (#550): the 08:36
         # re-run can itself fail (2026-08-12), and a local re-run is cheaper
@@ -368,7 +369,13 @@ def alert_brief_missing(today, dry_run, issues=None):
         failed = cron_run_ended_in_failure(job, today)
         if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
             rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
-        if rerun_queued:
+        rerun_inflight = bool(
+            isinstance(job, dict) and _rerun_count(today) > 0
+            and (job.get('status') == 'running'
+                 or (job.get('state') or {}).get('runningAtMs') is not None))
+        if rerun_inflight:
+            log({'tag': 'brief', 'action': 'skip-offhost-inflight'})
+        if rerun_queued or rerun_inflight:
             # #606: the queued local re-run writes the same brief artifacts the
             # GHA fallback would; dispatching both made two LLMs race on the
             # same files with per-environment delivery markers → duplicate
@@ -379,6 +386,7 @@ def alert_brief_missing(today, dry_run, issues=None):
         else:
             dispatched, out = dispatch_brief_fallback(dry_run)
         state.update({
+            'rerun_inflight': rerun_inflight or rerun_queued,
             'fallback_dispatch_attempted': True,
             'fallback_dispatch_succeeded': bool(dispatched),
             'dispatch_attempted_at': datetime.now(HKT).isoformat(),
@@ -398,7 +406,11 @@ def alert_brief_missing(today, dry_run, issues=None):
         'plan_invalid': f'plan 无效：memory/{today}-plan.json 无法解析或没有非空动作数组',
     }
     issue_text = '\n'.join(f'- {labels[x]}' for x in issues)
-    if rerun_queued:
+    if rerun_inflight:
+        recovery_note = (
+            '🔄 先前排队的本地重跑仍在执行，off-host 兜底已跳过（防双写）。'
+            '请等本地运行结束；若未落地，10:00 HKT 前可手动：gh workflow run brief-fallback.yml\n')
+    elif rerun_queued:
         recovery_note = (
             '🔄 已排队本地重跑(attempt 2)，off-host 兜底已跳过（防双写）。'
             '若重跑未落地，10:00 HKT 前可手动：gh workflow run brief-fallback.yml\n')

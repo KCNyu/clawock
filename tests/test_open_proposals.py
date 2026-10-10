@@ -422,3 +422,13 @@ def test_a_decision_records_the_authorisation_version_it_was_reviewed_under():
                "AUTH_EXCEEDS_ROOM", "AUTH_SWAP_MANDATE", "AUTH_NO_SWAP_MANDATE",
                "AUTH_OBLIGATION_SHORTFALL"}
     assert emitted == {code for code, _, _ in receipts.AUTHORIZATIONS}
+
+
+@pytest.mark.parametrize("field", ["price", "invalidation_price"])
+def test_boolean_authored_price_is_blocking(field):
+    decision = _add()
+    if field == "price":
+        decision["condition"]["price"] = True
+    else:
+        decision[field] = True
+    assert packet_mod.validate_plan_constraints({"decisions": [decision]}, _compile())

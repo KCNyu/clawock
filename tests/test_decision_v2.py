@@ -1491,3 +1491,13 @@ def test_the_system_looks_up_the_calibrator_row_and_the_plan_cannot_supply_one()
     # No table this run: nothing is claimed either way.
     assert all("calibration" not in d
                for d in dv2.bind_plan_calibration(plan, None)["decisions"])
+
+
+def test_authored_boolean_prices_remain_invalid_after_normalizing():
+    plan = dv2.normalize_authored_plan({"date": "2026-07-02", "decisions": [{
+        "ticker": "AAA", "action": "add_only_on_trigger", "strategy_id": "tactical_entry",
+        "condition": {"type": "price_above", "price": True},
+        "invalidation_price": True, "confidence": 0.6, "hypothesis": "growth"}]})
+    errors = dv2.validate_plan(plan, check_book=False)
+    assert any("requires condition.price" in e for e in errors)
+    assert any("requires invalidation_price" in e for e in errors)
