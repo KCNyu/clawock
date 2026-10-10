@@ -106,3 +106,13 @@ def test_miss_detector_without_schedule_still_alerts(monkeypatch, tmp_path):
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
 
     assert spy.get("reruns") is None
+
+
+def test_previous_rerun_still_running_suppresses_offhost(monkeypatch, tmp_path):
+    spy = _watch(monkeypatch, tmp_path, job=_job(runningAtMs=1))
+    flag = watchdog.rerun_flag_path(TODAY)
+    flag.parent.mkdir(parents=True, exist_ok=True)
+    flag.write_text("1")
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+    assert not spy.get("fallbacks") and not spy.get("reruns")
+    assert any(e.get("action") == "skip-offhost-inflight" for e in spy["logs"])

@@ -2223,7 +2223,7 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
         issues.append(f"{tag}: board lot of unheld swap target is unknown; "
                       "the buy leg cannot be sized")
     max_value = _number(mandate.get("max_value"), 2)
-    price = (_number((decision.get("condition") or {}).get("price"), 4)
+    price = (to_strict_finite_number((decision.get("condition") or {}).get("price"))
              or _number((row.get("facts") or {}).get("current_price"), 4))
     if max_value is not None:
         if not price:
@@ -2379,12 +2379,12 @@ def _add_findings(tag: str, decision: dict, row: dict) -> list[tuple[str, str, s
         out.append((receipts.STRATEGY, "STRAT_SIZE_ABOVE_POLICY_TRANCHE",
                     f"{tag}: size.shares {shares:g} is above the registered policy's "
                     f"tranche of {max_add:g} (max_add_shares)"))
-    price = _number(condition.get("price"), 4)
+    price = to_strict_finite_number(condition.get("price"))
     if condition.get("type") in ("price_above", "price_below") and (
             price is None or price <= 0):
         out.append((receipts.FACT, "FACT_ENTRY_PRICE_MISSING",
                     f"{tag}: a price condition needs a positive condition.price"))
-    invalidation = _number(decision.get("invalidation_price"), 4)
+    invalidation = to_strict_finite_number(decision.get("invalidation_price"))
     if invalidation is None or invalidation <= 0:
         out.append((feas, "FEAS_NO_INVALIDATION_PRICE",
                     f"{tag}: add requires invalidation_price, the level at which it is wrong"))
@@ -2509,7 +2509,7 @@ def review_plan(plan: dict, packet: dict, *,
                 "prescribes buying this name", index, ticker)
         claimed = _number(decision.get("simulated_entry_price"), 4)
         observed = {_number((row.get("facts") or {}).get("current_price"), 4),
-                    _number((decision.get("condition") or {}).get("price"), 4)} - {None}
+                    to_strict_finite_number((decision.get("condition") or {}).get("price"))} - {None}
         if claimed is not None and observed and claimed not in observed:
             # A trigger level is the plan's to choose; a price it says was
             # observed has to be one the packet carries.
@@ -2549,7 +2549,7 @@ def review_plan(plan: dict, packet: dict, *,
                 add_sizes.setdefault(ticker, []).append(whole)
             for channel, code, message in _add_findings(tag, decision, row):
                 add(channel, code, message, index, ticker)
-            price = (_number((decision.get("condition") or {}).get("price"), 4)
+            price = (to_strict_finite_number((decision.get("condition") or {}).get("price"))
                      or _number((row.get("facts") or {}).get("current_price"), 4))
             if shares and shares > 0 and price:
                 leg = str(row.get("leg") or "")

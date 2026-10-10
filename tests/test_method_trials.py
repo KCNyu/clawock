@@ -75,7 +75,8 @@ def test_three_arms_use_the_same_capital_and_completed_terminal_session(tmp_path
     tid = mt.register(tmp_path, snapshot, now=NOW)["trial_id"]
     buy = {"ticker": "AAA", "leg": "US", "action": "add_only_on_trigger",
            "strategy_id": "tactical_entry", "condition": {"type": "open"},
-           "size": {"shares": 10}}
+           "size": {"shares": 10}, "confidence": 0.6,
+           "invalidation_price": 9, "hypothesis": "growth"}
     for arm, rows in zip(mt.ARMS, ([], [buy], [buy])):
         mt.submit(tmp_path, tid, arm, {"status": "ok", "raw_response": "frozen",
                   "plan": {"date": "2026-07-02", "decisions": rows}}, now=NOW)
@@ -106,3 +107,16 @@ def test_missing_terminal_marks_do_not_report_an_earlier_value_as_trial_payoff(t
     assert metrics["status"] == "missing_marks"
     assert metrics["missing_marks"]
     assert "net_benefit" not in metrics
+
+
+@pytest.mark.parametrize("shares", [True, 3.5, float("inf")])
+def test_invalid_swap_size_is_rejected_before_freezing(tmp_path, shares):
+    tid = mt.register(tmp_path, spec(), now=NOW)["trial_id"]
+    buy = {"ticker": "AAA", "action": "add_only_on_trigger",
+           "strategy_id": "risk_rebalance", "driven_by": "risk_rule",
+           "decision_group_id": "swap", "condition": {"type": "open"},
+           "size": {"shares": shares}, "confidence": 0.6}
+    with pytest.raises(ValueError, match="positive integer size.shares"):
+        mt.submit(tmp_path, tid, "old_policy", {"status": "ok", "raw_response": "buy",
+                  "plan": {"date": "2026-07-02", "decisions": [buy]}}, now=NOW)
+    assert not (mt._directory(tmp_path, tid) / "old_policy.json").exists()

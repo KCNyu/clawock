@@ -145,6 +145,10 @@ def submit(workspace, trial_id, arm, submission, *, now=None):
     # Keep the raw response alongside normalization, so invalid proposals and
     # model omissions are auditable even when no executable plan exists.
     normalized = ledger.normalize_authored_plan(plan, Path(workspace) / "nonexistent-trial-ledger")
+    if submission["status"] == "ok" and normalized.get("decisions"):
+        errors = ledger.validate_plan(normalized, check_book=False)
+        if errors:
+            raise ValueError("invalid trial plan: " + "; ".join(errors))
     for row in normalized.get("decisions") or []:
         row["method"] = trial["arms"][arm]["method"]
         row["method_version"] = proposals.method_version(row["method"])

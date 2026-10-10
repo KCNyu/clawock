@@ -112,10 +112,10 @@ def test_an_unreadable_source_is_named_not_silent(tmp_path):
     assert out['degraded'] == ['news_evidence_graph（missing）', '东财7×24（empty_or_failed）']
 
 
-def test_missing_snapshot_is_degraded_and_future_snapshot_is_not_fresh(tmp_path):
+def test_missing_archive_is_not_a_source_gap_and_future_source_is_not_fresh(tmp_path):
     missing = info.collect(_workspace(tmp_path, drop=('sentiment_snapshot',)), 'us',
                            [], now=NOW, fast_news=lambda limit: [])
-    assert 'sentiment_snapshot（missing）' in missing['degraded']
+    assert not any('sentiment_snapshot' in label for label in missing['degraded'])
     future = datetime(2026, 9, 26, 7, 57, tzinfo=HKT)
     assert info.freshness(future, 'us', NOW)['stale'] is True
 
