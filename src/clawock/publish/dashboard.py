@@ -4767,7 +4767,7 @@ def build_projection(previous_source=None, shadow_previous=None):
         _basis_values)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
-    _decisions, _source_ref = scorecard_provenance.committed_source(WS_ROOT)
+    _decisions, _source_ref = scorecard_provenance.dashboard_source(WS_ROOT)
     _source_decisions = copy.deepcopy(_decisions)
     _settlement_day = hkt_today().isoformat()
     decision_v2.settle_decisions(_decisions, now_date=_settlement_day)

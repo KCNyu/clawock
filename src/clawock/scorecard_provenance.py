@@ -254,6 +254,15 @@ def committed_source(workspace, ref='HEAD'):
     return [json.loads(line) for line in raw.splitlines() if line.strip()], commit
 
 
+def dashboard_source(workspace):
+    """Portable desks without Git keep an explicitly unversioned source."""
+    if git_commit(workspace) is not None:
+        return committed_source(workspace)
+    path = Path(workspace) / LEDGER_PATH
+    text = path.read_text(encoding='utf-8') if path.exists() else ''
+    return [json.loads(line) for line in text.splitlines() if line.strip()], None
+
+
 def verify_committed_source(provenance, workspace):
     """The artifact gate checks source identity without re-grading against newer bars."""
     ledger = provenance.get('ledger') or {}
@@ -272,6 +281,7 @@ def record_settlement_view(provenance, source_rows, *, settlement_day=None, sour
     """Bind the effective in-memory scorecard to its unmodified public source."""
     ledger = provenance['ledger']
     window = provenance['window']
+    ledger['source_kind'] = 'committed' if source_ref else 'unversioned_working_copy'
     if source_ref:
         ledger['source_ref'] = source_ref
     ledger['view'] = 'in_memory_settled'

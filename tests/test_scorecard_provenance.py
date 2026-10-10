@@ -371,3 +371,23 @@ def test_verification_defaults_to_pinned_ref_but_allows_explicit_ledger(monkeypa
     assert reads[-1] == (None, 'a' * 40)
     assert scorecard_verify.main(['--check', '--ledger', 'other.jsonl', '--json']) == 0
     assert reads[-1] == ('other.jsonl', None)
+
+
+def test_portable_source_is_explicitly_unversioned(tmp_path, monkeypatch):
+    monkeypatch.setattr(prov, 'git_commit', lambda _: None)
+    rows, ref = prov.dashboard_source(tmp_path)
+    assert rows == [] and ref is None
+    path = tmp_path / prov.LEDGER_PATH
+    path.parent.mkdir()
+    path.write_text(json.dumps(decision('2026-07-02')) + '\n')
+    rows, ref = prov.dashboard_source(tmp_path)
+    block = metrics_for(rows)['provenance']
+    prov.record_settlement_view(block, rows, source_ref=ref)
+    assert block['ledger']['source_kind'] == 'unversioned_working_copy'
+
+
+def test_git_source_failure_never_falls_back_to_dirty_file(tmp_path, monkeypatch):
+    import subprocess
+    monkeypatch.setattr(prov, 'git_commit', lambda _: 'a' * 40)
+    with pytest.raises(subprocess.CalledProcessError):
+        prov.dashboard_source(tmp_path)

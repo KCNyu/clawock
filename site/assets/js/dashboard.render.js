@@ -2708,7 +2708,8 @@
       provEl.textContent = led.slice_digest
         ? `这些数出自 ${led.path} 的 ${numText(led.slice_rows)} 行`
           + `（${win.first_plan_date} → ${win.last_plan_date}）`
-          + (led.source_ref ? ` · 账本 ${led.source_ref.slice(0, 12)}（仅已提交记录）` : "")
+          + (led.source_ref ? ` · 账本 ${led.source_ref.slice(0, 12)}（仅已提交记录）`
+             : (led.source_kind === "unversioned_working_copy" ? " · 账本：未版本化工作副本" : ""))
           + ` · 代码 ${prov.code_commit || "—"}`
           + ` · 切片指纹 ${led.slice_digest}`
           + ` · 自己复算：${prov.verify || "clawock scorecard-provenance --check"}`
