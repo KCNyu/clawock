@@ -1,0 +1,1136 @@
+[
+  {
+    "inputs": [
+      [
+        {
+          "ticker": "07226",
+          "name": "07226",
+          "shares": 100,
+          "cost_basis": 9.333333333333334,
+          "current_value": 700
+        },
+        {
+          "ticker": "00700",
+          "name": "00700",
+          "shares": 100,
+          "cost_basis": 3.0,
+          "current_value": 300
+        }
+      ],
+      [
+        {
+          "ticker": "TQQQ",
+          "name": "TQQQ",
+          "shares": 100,
+          "cost_basis": 10.0,
+          "current_value": 800
+        },
+        {
+          "ticker": "MSFT",
+          "name": "MSFT",
+          "shares": 100,
+          "cost_basis": 2.0,
+          "current_value": 200
+        }
+      ],
+      {
+        "hhi": 0.58,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "07226",
+            "value": 700,
+            "weight_pct": 70.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "00700",
+            "value": 300,
+            "weight_pct": 30.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "hhi": 0.68,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "TQQQ",
+            "value": 800,
+            "weight_pct": 80.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "MSFT",
+            "value": 200,
+            "weight_pct": 20.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "us": {
+          "beta_spx": 4.5
+        },
+        "meta": {
+          "fx_hkd_to_usd_used": 0.128
+        },
+        "correlation": {
+          "covered_weight_pct": 100,
+          "cluster_rho": 0.8,
+          "clusters": [
+            {
+              "tickers": [
+                "TQQQ",
+                "07226"
+              ]
+            }
+          ]
+        }
+      },
+      null
+    ],
+    "expected": {
+      "caps": {
+        "single_name_review_pct": 35,
+        "single_name_mandatory_pct": 60,
+        "leveraged_single_name_pct": 35,
+        "correlated_cluster_pct": 70,
+        "correlation_min_coverage_pct": 80,
+        "lev_etf_leg_pct": 50,
+        "us_beta_max": 3.0,
+        "lev_etf_stop_pct": -18
+      },
+      "breaches": [
+        {
+          "type": "single_name",
+          "leg": "HK",
+          "ticker": "07226",
+          "severity": "high",
+          "detail": "07226 = 70.0% of HK (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim 07226 → ≤35% (减约 538.46 HKD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 538.46,
+            "currency": "HKD",
+            "target_pct": 35,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "HK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "HK 杠杆 ETF = 70.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 200.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 200.0,
+            "currency": "HKD",
+            "target_pct": 50,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "single_name",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "TQQQ = 80.0% of US (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim TQQQ → ≤35% (减约 692.31 USD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 692.31,
+            "currency": "USD",
+            "target_pct": 35,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US 杠杆 ETF = 80.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 300.0 USD 的 2x 换成 1x 同因子(TQQQ→QQQ)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 300.0,
+            "currency": "USD",
+            "target_pct": 50,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "factor_concentration",
+          "leg": "BOOK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "Measured cluster ['TQQQ', '07226'] = 78.87% of book (cap 70%, |rho|≥0.8)",
+          "action": "可说明理由后持有；登记策略建议把相关集群 TQQQ, 07226 降到 ≤70%，优先降其中杠杆仓",
+          "required_reduction": {
+            "kind": "factor_market_value",
+            "minimum_value": 333.33,
+            "currency": "USD",
+            "target_pct": 70,
+            "target_tickers": [
+              "TQQQ",
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "beta",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US β vs S&P = 4.5 (cap 3.0) — 大盘 −1% 本子约 −4.5%",
+          "action": "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
+          "required_reduction": {
+            "kind": "beta",
+            "target_beta": 3.0,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        }
+      ],
+      "hard_stop_watch": [
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "07226",
+          "leg": "HK",
+          "pnl_pct": -25.0,
+          "severity": "critical",
+          "detail": "07226 浮亏 -25.0% ≤ 硬止损线 -18%",
+          "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 700,
+            "currency": "HKD",
+            "target_tickers": [
+              "07226"
+            ],
+            "swap_to": "03033"
+          }
+        },
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "TQQQ",
+          "leg": "US",
+          "pnl_pct": -20.0,
+          "severity": "critical",
+          "detail": "TQQQ 浮亏 -20.0% ≤ 硬止损线 -18%",
+          "action": "TQQQ 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 QQQ（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ"
+          }
+        }
+      ],
+      "concentration_reviews": [],
+      "breach_count": 8,
+      "directive": "⛔ 6 仓位硬闸 + 2 杠杆止损触发。硬止损与 regime_delever 在无 may_stand 或有效 durable override 时，必须在 Judge 段出对应动作(driven_by=risk_rule,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，超限期间不得加仓；regime 对其余主动 call 只是策略参考。登记策略倾向2x→1x 同因子换仓，也可说明理由后卖出持有现金；买腿遵守处方(见各 action)。",
+      "reentry_rule": "1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。",
+      "lev_regime": null,
+      "eff_lev_caps": {
+        "HK": 50,
+        "US": 50
+      }
+    }
+  },
+  {
+    "inputs": [
+      [
+        {
+          "ticker": "07226",
+          "name": "07226",
+          "shares": 100,
+          "cost_basis": 9.333333333333334,
+          "current_value": 700
+        },
+        {
+          "ticker": "00700",
+          "name": "00700",
+          "shares": 100,
+          "cost_basis": 3.0,
+          "current_value": 300
+        }
+      ],
+      [
+        {
+          "ticker": "TQQQ",
+          "name": "TQQQ",
+          "shares": 100,
+          "cost_basis": 10.0,
+          "current_value": 800
+        },
+        {
+          "ticker": "MSFT",
+          "name": "MSFT",
+          "shares": 100,
+          "cost_basis": 2.0,
+          "current_value": 200
+        }
+      ],
+      {
+        "hhi": 0.58,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "07226",
+            "value": 700,
+            "weight_pct": 70.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "00700",
+            "value": 300,
+            "weight_pct": 30.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "hhi": 0.68,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "TQQQ",
+            "value": 800,
+            "weight_pct": 80.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "MSFT",
+            "value": 200,
+            "weight_pct": 20.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "us": {
+          "beta_spx": 4.5
+        },
+        "meta": {
+          "fx_hkd_to_usd_used": 0.128
+        },
+        "correlation": {
+          "covered_weight_pct": 100,
+          "cluster_rho": 0.8,
+          "clusters": [
+            {
+              "tickers": [
+                "TQQQ",
+                "07226"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "lev_cap_mult": 0.5,
+        "tier": "amber"
+      }
+    ],
+    "expected": {
+      "caps": {
+        "single_name_review_pct": 35,
+        "single_name_mandatory_pct": 60,
+        "leveraged_single_name_pct": 35,
+        "correlated_cluster_pct": 70,
+        "correlation_min_coverage_pct": 80,
+        "lev_etf_leg_pct": 50,
+        "us_beta_max": 3.0,
+        "lev_etf_stop_pct": -18
+      },
+      "breaches": [
+        {
+          "type": "single_name",
+          "leg": "HK",
+          "ticker": "07226",
+          "severity": "high",
+          "detail": "07226 = 70.0% of HK (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim 07226 → ≤35% (减约 538.46 HKD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 538.46,
+            "currency": "HKD",
+            "target_pct": 35,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "HK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "HK 杠杆 ETF = 70.0% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，）",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 450.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 450.0,
+            "currency": "HKD",
+            "target_pct": 25,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "single_name",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "TQQQ = 80.0% of US (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim TQQQ → ≤35% (减约 692.31 USD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 692.31,
+            "currency": "USD",
+            "target_pct": 35,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US 杠杆 ETF = 80.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 300.0 USD 的 2x 换成 1x 同因子(TQQQ→QQQ)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 300.0,
+            "currency": "USD",
+            "target_pct": 50,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "factor_concentration",
+          "leg": "BOOK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "Measured cluster ['TQQQ', '07226'] = 78.87% of book (cap 70%, |rho|≥0.8)",
+          "action": "可说明理由后持有；登记策略建议把相关集群 TQQQ, 07226 降到 ≤70%，优先降其中杠杆仓",
+          "required_reduction": {
+            "kind": "factor_market_value",
+            "minimum_value": 333.33,
+            "currency": "USD",
+            "target_pct": 70,
+            "target_tickers": [
+              "TQQQ",
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "beta",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US β vs S&P = 4.5 (cap 3.0) — 大盘 −1% 本子约 −4.5%",
+          "action": "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
+          "required_reduction": {
+            "kind": "beta",
+            "target_beta": 3.0,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        }
+      ],
+      "hard_stop_watch": [
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "07226",
+          "leg": "HK",
+          "pnl_pct": -25.0,
+          "severity": "critical",
+          "detail": "07226 浮亏 -25.0% ≤ 硬止损线 -18%",
+          "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 700,
+            "currency": "HKD",
+            "target_tickers": [
+              "07226"
+            ],
+            "swap_to": "03033"
+          }
+        },
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "TQQQ",
+          "leg": "US",
+          "pnl_pct": -20.0,
+          "severity": "critical",
+          "detail": "TQQQ 浮亏 -20.0% ≤ 硬止损线 -18%",
+          "action": "TQQQ 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 QQQ（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ"
+          }
+        }
+      ],
+      "concentration_reviews": [],
+      "breach_count": 8,
+      "directive": "⛔ 6 仓位硬闸 + 2 杠杆止损触发。硬止损与 regime_delever 在无 may_stand 或有效 durable override 时，必须在 Judge 段出对应动作(driven_by=risk_rule,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，超限期间不得加仓；regime 对其余主动 call 只是策略参考。登记策略倾向2x→1x 同因子换仓，也可说明理由后卖出持有现金；买腿遵守处方(见各 action)。",
+      "reentry_rule": "1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。",
+      "lev_regime": {
+        "lev_cap_mult": 0.5,
+        "tier": "amber"
+      },
+      "eff_lev_caps": {
+        "HK": 25,
+        "US": 50
+      }
+    }
+  },
+  {
+    "inputs": [
+      [
+        {
+          "ticker": "07226",
+          "name": "07226",
+          "shares": 100,
+          "cost_basis": 9.333333333333334,
+          "current_value": 700
+        },
+        {
+          "ticker": "00700",
+          "name": "00700",
+          "shares": 100,
+          "cost_basis": 3.0,
+          "current_value": 300
+        }
+      ],
+      [
+        {
+          "ticker": "TQQQ",
+          "name": "TQQQ",
+          "shares": 100,
+          "cost_basis": 10.0,
+          "current_value": 800
+        },
+        {
+          "ticker": "MSFT",
+          "name": "MSFT",
+          "shares": 100,
+          "cost_basis": 2.0,
+          "current_value": 200
+        }
+      ],
+      {
+        "hhi": 0.58,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "07226",
+            "value": 700,
+            "weight_pct": 70.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "00700",
+            "value": 300,
+            "weight_pct": 30.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "hhi": 0.68,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "TQQQ",
+            "value": 800,
+            "weight_pct": 80.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "MSFT",
+            "value": 200,
+            "weight_pct": 20.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "us": {
+          "beta_spx": 4.5
+        },
+        "meta": {
+          "fx_hkd_to_usd_used": 0.128
+        },
+        "correlation": {
+          "covered_weight_pct": 100,
+          "cluster_rho": 0.8,
+          "clusters": [
+            {
+              "tickers": [
+                "TQQQ",
+                "07226"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "us": {
+          "names": [
+            {
+              "state": "cut",
+              "etf": "TQQQ",
+              "underlying": "QQQ",
+              "vol_annualized": 0.8,
+              "dist_ma_pct": -5
+            }
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "caps": {
+        "single_name_review_pct": 35,
+        "single_name_mandatory_pct": 60,
+        "leveraged_single_name_pct": 35,
+        "correlated_cluster_pct": 70,
+        "correlation_min_coverage_pct": 80,
+        "lev_etf_leg_pct": 50,
+        "us_beta_max": 3.0,
+        "lev_etf_stop_pct": -18
+      },
+      "breaches": [
+        {
+          "type": "single_name",
+          "leg": "HK",
+          "ticker": "07226",
+          "severity": "high",
+          "detail": "07226 = 70.0% of HK (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim 07226 → ≤35% (减约 538.46 HKD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 538.46,
+            "currency": "HKD",
+            "target_pct": 35,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "HK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "HK 杠杆 ETF = 70.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 200.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 200.0,
+            "currency": "HKD",
+            "target_pct": 50,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "single_name",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "TQQQ = 80.0% of US (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim TQQQ → ≤35% (减约 692.31 USD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 692.31,
+            "currency": "USD",
+            "target_pct": 35,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US 杠杆 ETF = 80.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 300.0 USD 的 2x 换成 1x 同因子(TQQQ→QQQ)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 300.0,
+            "currency": "USD",
+            "target_pct": 50,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "regime_delever",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "🧭 TQQQ=2xQQQ 标的破200线 (-5%)+波动 80% 过热 → 杠杆制度 red",
+          "action": "TQQQ 2x→QQQ 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；QQQ 收复200线(green)再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD"
+          }
+        },
+        {
+          "type": "factor_concentration",
+          "leg": "BOOK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "Measured cluster ['TQQQ', '07226'] = 78.87% of book (cap 70%, |rho|≥0.8)",
+          "action": "可说明理由后持有；登记策略建议把相关集群 TQQQ, 07226 降到 ≤70%，优先降其中杠杆仓",
+          "required_reduction": {
+            "kind": "factor_market_value",
+            "minimum_value": 333.33,
+            "currency": "USD",
+            "target_pct": 70,
+            "target_tickers": [
+              "TQQQ",
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "beta",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US β vs S&P = 4.5 (cap 3.0) — 大盘 −1% 本子约 −4.5%",
+          "action": "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
+          "required_reduction": {
+            "kind": "beta",
+            "target_beta": 3.0,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        }
+      ],
+      "hard_stop_watch": [
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "07226",
+          "leg": "HK",
+          "pnl_pct": -25.0,
+          "severity": "critical",
+          "detail": "07226 浮亏 -25.0% ≤ 硬止损线 -18%",
+          "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 700,
+            "currency": "HKD",
+            "target_tickers": [
+              "07226"
+            ],
+            "swap_to": "03033"
+          }
+        },
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "TQQQ",
+          "leg": "US",
+          "pnl_pct": -20.0,
+          "severity": "critical",
+          "detail": "TQQQ 浮亏 -20.0% ≤ 硬止损线 -18%",
+          "action": "TQQQ 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 QQQ（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ"
+          }
+        }
+      ],
+      "concentration_reviews": [],
+      "breach_count": 9,
+      "directive": "⛔ 7 仓位硬闸 + 2 杠杆止损触发。硬止损与 regime_delever 在无 may_stand 或有效 durable override 时，必须在 Judge 段出对应动作(driven_by=risk_rule,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，超限期间不得加仓；regime 对其余主动 call 只是策略参考。登记策略倾向2x→1x 同因子换仓，也可说明理由后卖出持有现金；买腿遵守处方(见各 action)。",
+      "reentry_rule": "1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。",
+      "lev_regime": {
+        "us": {
+          "names": [
+            {
+              "state": "cut",
+              "etf": "TQQQ",
+              "underlying": "QQQ",
+              "vol_annualized": 0.8,
+              "dist_ma_pct": -5
+            }
+          ]
+        }
+      },
+      "eff_lev_caps": {
+        "HK": 50,
+        "US": 50
+      }
+    }
+  },
+  {
+    "inputs": [
+      [
+        {
+          "ticker": "07226",
+          "name": "07226",
+          "shares": 100,
+          "cost_basis": 9.333333333333334,
+          "current_value": 700
+        },
+        {
+          "ticker": "00700",
+          "name": "00700",
+          "shares": 100,
+          "cost_basis": 3.0,
+          "current_value": 300
+        }
+      ],
+      [
+        {
+          "ticker": "TQQQ",
+          "name": "TQQQ",
+          "shares": 100,
+          "cost_basis": 10.0,
+          "current_value": 800
+        },
+        {
+          "ticker": "MSFT",
+          "name": "MSFT",
+          "shares": 100,
+          "cost_basis": 2.0,
+          "current_value": 200
+        }
+      ],
+      {
+        "hhi": 0.58,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "07226",
+            "value": 700,
+            "weight_pct": 70.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "00700",
+            "value": 300,
+            "weight_pct": 30.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "hhi": 0.68,
+        "top2_pct": 100.0,
+        "verdict": "🔴 危险集中",
+        "leg_total": 1000,
+        "weights": [
+          {
+            "ticker": "TQQQ",
+            "value": 800,
+            "weight_pct": 80.0,
+            "leveraged": true
+          },
+          {
+            "ticker": "MSFT",
+            "value": 200,
+            "weight_pct": 20.0,
+            "leveraged": false
+          }
+        ]
+      },
+      {
+        "us": {
+          "beta_spx": 4.5
+        },
+        "meta": {
+          "fx_hkd_to_usd_used": 0.128
+        },
+        "correlation": {
+          "covered_weight_pct": 100,
+          "cluster_rho": 0.8,
+          "clusters": [
+            {
+              "tickers": [
+                "TQQQ",
+                "07226"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "us": {
+          "names": [
+            {
+              "state": "cut",
+              "etf": "TQQQ",
+              "underlying": "QQQ",
+              "vol_annualized": null,
+              "dist_ma_pct": -5
+            }
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "caps": {
+        "single_name_review_pct": 35,
+        "single_name_mandatory_pct": 60,
+        "leveraged_single_name_pct": 35,
+        "correlated_cluster_pct": 70,
+        "correlation_min_coverage_pct": 80,
+        "lev_etf_leg_pct": 50,
+        "us_beta_max": 3.0,
+        "lev_etf_stop_pct": -18
+      },
+      "breaches": [
+        {
+          "type": "single_name",
+          "leg": "HK",
+          "ticker": "07226",
+          "severity": "high",
+          "detail": "07226 = 70.0% of HK (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim 07226 → ≤35% (减约 538.46 HKD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 538.46,
+            "currency": "HKD",
+            "target_pct": 35,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "HK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "HK 杠杆 ETF = 70.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 200.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 200.0,
+            "currency": "HKD",
+            "target_pct": 50,
+            "target_tickers": [
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "single_name",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "TQQQ = 80.0% of US (mandatory cap 35%; 2x/3x)",
+          "action": "可说明理由后持有；登记策略建议纪律性 trim TQQQ → ≤35% (减约 692.31 USD，借反弹分批、勿在新低日一次砍)",
+          "required_reduction": {
+            "kind": "market_value",
+            "minimum_value": 692.31,
+            "currency": "USD",
+            "target_pct": 35,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "leveraged_exposure",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US 杠杆 ETF = 80.0% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+          "action": "可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 300.0 USD 的 2x 换成 1x 同因子(TQQQ→QQQ)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+          "required_reduction": {
+            "kind": "leveraged_market_value",
+            "minimum_value": 300.0,
+            "currency": "USD",
+            "target_pct": 50,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        },
+        {
+          "type": "regime_delever",
+          "leg": "US",
+          "ticker": "TQQQ",
+          "severity": "high",
+          "detail": "🧭 TQQQ=2xQQQ 完整波动率不可用；短日均线偏离 -5%，按 short_ma 右侧确认制度为 cut",
+          "action": "TQQQ 2x→QQQ 现货换仓(driven_by=risk_rule,规则非择时)：完整波动率不可用，当前仅按 short_ma：标的仍在短均线下，2x 暂换现货；短均线重新确认后再评估",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD"
+          }
+        },
+        {
+          "type": "factor_concentration",
+          "leg": "BOOK",
+          "ticker": null,
+          "severity": "high",
+          "detail": "Measured cluster ['TQQQ', '07226'] = 78.87% of book (cap 70%, |rho|≥0.8)",
+          "action": "可说明理由后持有；登记策略建议把相关集群 TQQQ, 07226 降到 ≤70%，优先降其中杠杆仓",
+          "required_reduction": {
+            "kind": "factor_market_value",
+            "minimum_value": 333.33,
+            "currency": "USD",
+            "target_pct": 70,
+            "target_tickers": [
+              "TQQQ",
+              "07226"
+            ]
+          }
+        },
+        {
+          "type": "beta",
+          "leg": "US",
+          "ticker": null,
+          "severity": "high",
+          "detail": "US β vs S&P = 4.5 (cap 3.0) — 大盘 −1% 本子约 −4.5%",
+          "action": "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
+          "required_reduction": {
+            "kind": "beta",
+            "target_beta": 3.0,
+            "target_tickers": [
+              "TQQQ"
+            ]
+          }
+        }
+      ],
+      "hard_stop_watch": [
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "07226",
+          "leg": "HK",
+          "pnl_pct": -25.0,
+          "severity": "critical",
+          "detail": "07226 浮亏 -25.0% ≤ 硬止损线 -18%",
+          "action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 700,
+            "currency": "HKD",
+            "target_tickers": [
+              "07226"
+            ],
+            "swap_to": "03033"
+          }
+        },
+        {
+          "type": "leveraged_hard_stop",
+          "ticker": "TQQQ",
+          "leg": "US",
+          "pnl_pct": -20.0,
+          "severity": "critical",
+          "detail": "TQQQ 浮亏 -20.0% ≤ 硬止损线 -18%",
+          "action": "TQQQ 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 QQQ（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+          "required_reduction": {
+            "kind": "full_leveraged_position",
+            "minimum_shares": 100,
+            "minimum_value": 800,
+            "currency": "USD",
+            "target_tickers": [
+              "TQQQ"
+            ],
+            "swap_to": "QQQ"
+          }
+        }
+      ],
+      "concentration_reviews": [],
+      "breach_count": 9,
+      "directive": "⛔ 7 仓位硬闸 + 2 杠杆止损触发。硬止损与 regime_delever 在无 may_stand 或有效 durable override 时，必须在 Judge 段出对应动作(driven_by=risk_rule,纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，超限期间不得加仓；regime 对其余主动 call 只是策略参考。登记策略倾向2x→1x 同因子换仓，也可说明理由后卖出持有现金；买腿遵守处方(见各 action)。",
+      "reentry_rule": "1x→2x 换回闸：HK=HSTECH 收复 200日线且 20日波动<50%(🧭green ×1.0)；US=各标的自身收复 200日线且波动<70%。green 之前不加任何 2x。",
+      "lev_regime": {
+        "us": {
+          "names": [
+            {
+              "state": "cut",
+              "etf": "TQQQ",
+              "underlying": "QQQ",
+              "vol_annualized": null,
+              "dist_ma_pct": -5
+            }
+          ]
+        }
+      },
+      "eff_lev_caps": {
+        "HK": 50,
+        "US": 50
+      }
+    }
+  }
+]

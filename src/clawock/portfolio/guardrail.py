@@ -108,143 +108,142 @@ def _holding_pnl_pct(h):
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
 
-def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
-                           lev_regime=None):
-    """Pure function of current state → concrete, capped trim/cut directives.
-    A hard stop and a regime de-lever oblige a sell; the four caps
-    (`decision.risk.RESPOND_ONLY_TYPES`) oblige an answer.
+def _directive(*, type, leg, ticker, severity, detail, action, required_reduction, **extra):
+    """One shape for executable risk directives; policy identity is mandatory."""
+    return dict(type=type, leg=leg, ticker=ticker, severity=severity, detail=detail,
+                action=action, required_reduction=required_reduction, **extra)
 
-    lev_regime (lev_regime.json, optional): the HSTECH trend+vol leverage dial.
-    When present and hostile (amber/red), it TIGHTENS the leveraged-ETF leg cap by
-    its multiplier (green 1.0 / amber 0.5 / red 0.0). Backtest-verified: the lever
-    that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
+
+def _single_name_policy(leg, ws, hold, total, ccy):
     caps = GUARDRAIL_CAPS
-    breaches, hard_stops, reviews = [], [], []
-    # Leveraged-ETF leg cap is tightened PER LEG: the HK leg by the HSTECH dial
-    # (lev_regime top-level / hk), the US leg by its own per-name dial (not HSTECH).
-    hk_mult = 1.0
-    if isinstance(lev_regime, dict) and isinstance(lev_regime.get('lev_cap_mult'), (int, float)):
-        hk_mult = lev_regime['lev_cap_mult']
-    eff_caps = {}
-
-    for leg, conc, hold in (('HK', hk_conc, hk_holdings), ('US', us_conc, us_holdings)):
-        if not conc or not conc.get('weights'):
-            continue
-        total = conc['leg_total'] or 0
-        ccy   = 'HKD' if leg == 'HK' else 'USD'
-        ws    = conc['weights']
-
-        # Single-name policy: concentration is allowed for a high-conviction
-        # non-leveraged core. 35-60% is visible review state, not a mandatory
-        # trim; >60% is the hard construction boundary. A leveraged single name
-        # retains the strict 35% cap.
-        for w in ws:
-            holding = next((h for h in hold if h.get('ticker') == w['ticker']), {})
-            leveraged = _is_leveraged_etf(holding)
-            mandatory_cap = (
-                caps['leveraged_single_name_pct'] if leveraged
-                else caps['single_name_mandatory_pct']
+    breaches, reviews = [], []
+    # Single-name policy: concentration is allowed for a high-conviction
+    # non-leveraged core. 35-60% is visible review state, not a mandatory
+    # trim; >60% is the hard construction boundary. A leveraged single name
+    # retains the strict 35% cap.
+    for w in ws:
+        holding = next((h for h in hold if h.get('ticker') == w['ticker']), {})
+        leveraged = _is_leveraged_etf(holding)
+        mandatory_cap = (
+            caps['leveraged_single_name_pct'] if leveraged
+            else caps['single_name_mandatory_pct']
+        )
+        if w['weight_pct'] > mandatory_cap and total:
+            # Selling changes both the position and the leg denominator.
+            # Solve (value - sell) / (total - sell) <= target rather than
+            # subtracting the current excess from an unchanged denominator.
+            target = mandatory_cap / 100
+            trim_val = round(
+                (w['value'] - target * total) / (1 - target), 2
             )
-            if w['weight_pct'] > mandatory_cap and total:
-                # Selling changes both the position and the leg denominator.
-                # Solve (value - sell) / (total - sell) <= target rather than
-                # subtracting the current excess from an unchanged denominator.
-                target = mandatory_cap / 100
-                trim_val = round(
-                    (w['value'] - target * total) / (1 - target), 2
-                )
-                breaches.append({
-                    'type': 'single_name', 'leg': leg, 'ticker': w['ticker'],
-                    'severity': 'high',
-                    'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg} "
-                               f"(mandatory cap {mandatory_cap}%; "
-                               f"{'2x/3x' if leveraged else 'non-leveraged core'})"),
-                    'action': (f"可说明理由后持有；登记策略建议纪律性 trim {w['ticker']} → ≤{mandatory_cap}% "
-                               f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
-                    'required_reduction': {
-                        'kind': 'market_value',
-                        'minimum_value': trim_val,
-                        'currency': ccy,
-                        'target_pct': mandatory_cap,
-                        'target_tickers': [w['ticker']],
-                    },
-                })
-            elif (not leveraged
-                  and w['weight_pct'] > caps['single_name_review_pct']):
-                reviews.append({
-                    'type': 'single_name_review', 'leg': leg,
-                    'ticker': w['ticker'], 'severity': 'advisory',
-                    'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}; "
-                               f"inside the {caps['single_name_review_pct']}-"
-                               f"{caps['single_name_mandatory_pct']}% concentrated-core "
-                               "review band, no mandatory trim"),
-                })
-
-        # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
-        # is_leveraged_etf flag (which concentration weights mirror and is often unset)
-        lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0))
-                      for h in hold if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h))
-        # HK leg cap tightened by HSTECH dial; US leg stays at base (its risk is handled
-        # per-name below — verified: a single US index mult over-cuts calm names like MSFT).
-        leg_mult = hk_mult if leg == 'HK' else 1.0
-        eff_lev_cap = round(caps['lev_etf_leg_pct'] * leg_mult)
-        eff_caps[leg] = eff_lev_cap
-        lev_pct = round(lev_val / total * 100, 1) if total else 0
-        if lev_pct > eff_lev_cap and total:
-            trim_val = round(lev_val - eff_lev_cap / 100 * total, 2)
-            tightened = eff_lev_cap < caps['lev_etf_leg_pct']
-            hk_tier = (lev_regime.get('hk') or lev_regime).get('tier') if isinstance(lev_regime, dict) else None
-            regime_note = (f"（🧭HK制度 {hk_tier}：基准 {caps['lev_etf_leg_pct']}% ×"
-                           f"{leg_mult:g} → {eff_lev_cap}%，{(lev_regime.get('hk') or lev_regime).get('label','')}）"
-                           if tightened and leg == 'HK' and isinstance(lev_regime, dict) else '')
-            breaches.append({
-                'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
-                'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
-                'action': (f"可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
-                           f"({_swap_suggestions(hold) or '同因子 1x/标的现货'})，"
-                           f"敞口不变、停 decay；🧭转 green 后可换回 2x"),
-                'required_reduction': {
-                    'kind': 'leveraged_market_value',
+            breaches.append(_directive(
+                type='single_name', leg=leg, ticker=w['ticker'],
+                severity='high',
+                detail=(f"{w['ticker']} = {w['weight_pct']}% of {leg} "
+                           f"(mandatory cap {mandatory_cap}%; "
+                           f"{'2x/3x' if leveraged else 'non-leveraged core'})"),
+                action=(f"可说明理由后持有；登记策略建议纪律性 trim {w['ticker']} → ≤{mandatory_cap}% "
+                           f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
+                required_reduction={
+                    'kind': 'market_value',
                     'minimum_value': trim_val,
                     'currency': ccy,
-                    'target_pct': eff_lev_cap,
-                    'target_tickers': [
-                        h.get('ticker') for h in hold
-                        if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
-                    ],
+                    'target_pct': mandatory_cap,
+                    'target_tickers': [w['ticker']],
                 },
+            ))
+        elif (not leveraged
+              and w['weight_pct'] > caps['single_name_review_pct']):
+            reviews.append({
+                'type': 'single_name_review', 'leg': leg,
+                'ticker': w['ticker'], 'severity': 'advisory',
+                'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}; "
+                           f"inside the {caps['single_name_review_pct']}-"
+                           f"{caps['single_name_mandatory_pct']}% concentrated-core "
+                           "review band, no mandatory trim"),
             })
 
-        # hard-stop watch on individual leveraged ETFs
-        for h in hold:
-            if (_share_number(h.get('shares', 0)) or 0) <= 0 or not _is_leveraged_etf(h):
-                continue
-            pnl = _holding_pnl_pct(h)
-            if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
-                hard_stops.append({
-                    # Every other guardrail row names its own kind; this one
-                    # did not, and a row without a `type` is a row a debate
-                    # cannot cite (#1141 resolves `risk:<type>[:<ticker>]`
-                    # against exactly this field).
-                    'type': 'leveraged_hard_stop',
-                    'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
-                    'severity': 'critical',
-                    'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
-                    'action': (f"{h['ticker']} 触发杠杆 ETF 硬止损 → 换仓 "
-                               f"{('1x 同因子 ' + LEV_1X_SWAP[h['ticker']]) if h.get('ticker') in LEV_1X_SWAP else '同因子 1x/标的现货'}"
-                               f"（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"),
-                    'required_reduction': {
-                        'kind': 'full_leveraged_position',
-                        'minimum_shares': h.get('shares'),
-                        'minimum_value': (
-                            h.get('current_value')
-                            or h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)),
-                        'currency': ccy,
-                        'target_tickers': [h['ticker']],
-                        'swap_to': LEV_1X_SWAP.get(h['ticker']),
-                    },
-                })
+    return breaches, reviews
 
+
+def _leveraged_leg_policy(leg, hold, total, ccy, hk_mult, lev_regime):
+    caps = GUARDRAIL_CAPS
+    breaches = []
+    # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
+    # is_leveraged_etf flag (which concentration weights mirror and is often unset)
+    lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0))
+                  for h in hold if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h))
+    # HK leg cap tightened by HSTECH dial; US leg stays at base (its risk is handled
+    # per-name below — verified: a single US index mult over-cuts calm names like MSFT).
+    leg_mult = hk_mult if leg == 'HK' else 1.0
+    eff_lev_cap = round(caps['lev_etf_leg_pct'] * leg_mult)
+    lev_pct = round(lev_val / total * 100, 1) if total else 0
+    if lev_pct > eff_lev_cap and total:
+        trim_val = round(lev_val - eff_lev_cap / 100 * total, 2)
+        tightened = eff_lev_cap < caps['lev_etf_leg_pct']
+        hk_tier = (lev_regime.get('hk') or lev_regime).get('tier') if isinstance(lev_regime, dict) else None
+        regime_note = (f"（🧭HK制度 {hk_tier}：基准 {caps['lev_etf_leg_pct']}% ×"
+                       f"{leg_mult:g} → {eff_lev_cap}%，{(lev_regime.get('hk') or lev_regime).get('label','')}）"
+                       if tightened and leg == 'HK' and isinstance(lev_regime, dict) else '')
+        breaches.append(_directive(
+            type='leveraged_exposure', leg=leg, ticker=None, severity='high',
+            detail=f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
+            action=(f"可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
+                       f"({_swap_suggestions(hold) or '同因子 1x/标的现货'})，"
+                       f"敞口不变、停 decay；🧭转 green 后可换回 2x"),
+            required_reduction={
+                'kind': 'leveraged_market_value',
+                'minimum_value': trim_val,
+                'currency': ccy,
+                'target_pct': eff_lev_cap,
+                'target_tickers': [
+                    h.get('ticker') for h in hold
+                    if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
+                ],
+            },
+        ))
+
+    return breaches, eff_lev_cap
+
+
+def _hard_stop_watch(leg, hold, ccy):
+    caps = GUARDRAIL_CAPS
+    hard_stops = []
+    # hard-stop watch on individual leveraged ETFs
+    for h in hold:
+        if (_share_number(h.get('shares', 0)) or 0) <= 0 or not _is_leveraged_etf(h):
+            continue
+        pnl = _holding_pnl_pct(h)
+        if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
+            hard_stops.append(_directive(
+                # Every other guardrail row names its own kind; this one
+                # did not, and a row without a `type` is a row a debate
+                # cannot cite (#1141 resolves `risk:<type>[:<ticker>]`
+                # against exactly this field).
+                type='leveraged_hard_stop',
+                ticker=h['ticker'], leg=leg, pnl_pct=pnl,
+                severity='critical',
+                detail=f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",
+                action=(f"{h['ticker']} 触发杠杆 ETF 硬止损 → 换仓 "
+                           f"{('1x 同因子 ' + LEV_1X_SWAP[h['ticker']]) if h.get('ticker') in LEV_1X_SWAP else '同因子 1x/标的现货'}"
+                           f"（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x"),
+                required_reduction={
+                    'kind': 'full_leveraged_position',
+                    'minimum_shares': h.get('shares'),
+                    'minimum_value': (
+                        h.get('current_value')
+                        or h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)),
+                    'currency': ccy,
+                    'target_tickers': [h['ticker']],
+                    'swap_to': LEV_1X_SWAP.get(h['ticker']),
+                },
+            ))
+
+    return hard_stops
+
+
+def _regime_delever_policy(us_holdings, lev_regime):
+    breaches = []
     # US per-name leverage dial (lev_regime['us']) — only the 'cut' state (underlying
     # trend-off AND vol hot) becomes a forced directive; 'watch' (calm) stays advisory.
     us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
@@ -277,14 +276,14 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                         "2x 日内重置在下杀里放大衰减；"
                         f"{nm['underlying']} 收复200线(green)再换回 2x"
                     )
-                breaches.append({
-                    'type': 'regime_delever', 'leg': 'US', 'ticker': nm['etf'], 'severity': 'high',
-                    'detail': detail,
-                    'action': (
+                breaches.append(_directive(
+                    type='regime_delever', leg='US', ticker=nm['etf'], severity='high',
+                    detail=detail,
+                    action=(
                         f"{nm['etf']} 2x→{nm['underlying']} 现货换仓"
                         f"(driven_by=risk_rule,规则非择时)：{action_reason}"
                     ),
-                    'required_reduction': {
+                    required_reduction={
                         'kind': 'full_leveraged_position',
                         'target_tickers': [nm['etf']],
                         'swap_to': nm['underlying'],
@@ -293,8 +292,14 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                                           or holding.get('cost_basis', 0) * (_share_number(holding.get('shares', 0)) or 0)),
                         'currency': 'USD',
                     },
-                })
+                ))
 
+    return breaches
+
+
+def _factor_concentration_policy(hk_holdings, us_holdings, risk):
+    caps = GUARDRAIL_CAPS
+    breaches = []
     # Measured correlation clusters replace the old Top2 proxy. The x-ray is
     # cross-market/USD weighted, so evaluate once at book level. A one-name
     # cluster is simply a concentrated name and must never be called a factor.
@@ -330,23 +335,29 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
             factor_trim = max(0, round(
                 (cluster_value_usd - target * book_value_usd) / (1 - target), 2
             ))
-            breaches.append({
-                'type': 'factor_concentration', 'leg': 'BOOK', 'ticker': None,
-                'severity': 'high',
-                'detail': (f"Measured cluster {tickers} = {weight_pct:.2f}% of book "
+            breaches.append(_directive(
+                type='factor_concentration', leg='BOOK', ticker=None,
+                severity='high',
+                detail=(f"Measured cluster {tickers} = {weight_pct:.2f}% of book "
                            f"(cap {caps['correlated_cluster_pct']}%, "
                            f"|rho|≥{correlation.get('cluster_rho')})"),
-                'action': (f"可说明理由后持有；登记策略建议把相关集群 {', '.join(tickers)} 降到 "
+                action=(f"可说明理由后持有；登记策略建议把相关集群 {', '.join(tickers)} 降到 "
                            f"≤{caps['correlated_cluster_pct']}%，优先降其中杠杆仓"),
-                'required_reduction': {
+                required_reduction={
                     'kind': 'factor_market_value',
                     'minimum_value': factor_trim,
                     'currency': 'USD',
                     'target_pct': caps['correlated_cluster_pct'],
                     'target_tickers': tickers,
                 },
-            })
+            ))
 
+    return breaches
+
+
+def _beta_policy(us_holdings, risk):
+    caps = GUARDRAIL_CAPS
+    breaches = []
     # portfolio-level β from risk.json
     us_risk = risk.get('us') or {}
     us_beta = us_risk.get('beta_spx')
@@ -361,11 +372,11 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     )
     if (beta_eligible and isinstance(us_beta, (int, float))
             and us_beta > caps['us_beta_max']):
-        breaches.append({
-            'type': 'beta', 'leg': 'US', 'ticker': None, 'severity': 'high',
-            'detail': f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
-            'action': "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
-            'required_reduction': {
+        breaches.append(_directive(
+            type='beta', leg='US', ticker=None, severity='high',
+            detail=f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
+            action="可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
+            required_reduction={
                 'kind': 'beta',
                 'target_beta': caps['us_beta_max'],
                 'target_tickers': [
@@ -373,7 +384,48 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                     if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h)
                 ],
             },
-        })
+        ))
+
+    return breaches
+
+
+def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
+                           lev_regime=None):
+    """Pure function of current state → concrete, capped trim/cut directives.
+    A hard stop and a regime de-lever oblige a sell; the four caps
+    (`decision.risk.RESPOND_ONLY_TYPES`) oblige an answer.
+
+    lev_regime (lev_regime.json, optional): the HSTECH trend+vol leverage dial.
+    When present and hostile (amber/red), it TIGHTENS the leveraged-ETF leg cap by
+    its multiplier (green 1.0 / amber 0.5 / red 0.0). Backtest-verified: the lever
+    that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
+    caps = GUARDRAIL_CAPS
+    breaches, hard_stops, reviews = [], [], []
+    # Leveraged-ETF leg cap is tightened PER LEG: the HK leg by the HSTECH dial
+    # (lev_regime top-level / hk), the US leg by its own per-name dial (not HSTECH).
+    hk_mult = 1.0
+    if isinstance(lev_regime, dict) and isinstance(lev_regime.get('lev_cap_mult'), (int, float)):
+        hk_mult = lev_regime['lev_cap_mult']
+    eff_caps = {}
+
+    for leg, conc, hold in (('HK', hk_conc, hk_holdings), ('US', us_conc, us_holdings)):
+        if not conc or not conc.get('weights'):
+            continue
+        total = conc['leg_total'] or 0
+        ccy   = 'HKD' if leg == 'HK' else 'USD'
+        ws    = conc['weights']
+
+        single, advisory = _single_name_policy(leg, ws, hold, total, ccy)
+        breaches.extend(single)
+        reviews.extend(advisory)
+        leveraged, eff_caps[leg] = _leveraged_leg_policy(
+            leg, hold, total, ccy, hk_mult, lev_regime)
+        breaches.extend(leveraged)
+        hard_stops.extend(_hard_stop_watch(leg, hold, ccy))
+
+    breaches.extend(_regime_delever_policy(us_holdings, lev_regime))
+    breaches.extend(_factor_concentration_policy(hk_holdings, us_holdings, risk))
+    breaches.extend(_beta_policy(us_holdings, risk))
 
     n = len(breaches) + len(hard_stops)
     if n:
