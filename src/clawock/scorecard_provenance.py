@@ -45,6 +45,7 @@ from __future__ import annotations
 import hashlib
 from clawock.code_identity import git_commit, file_digest as _file_digest
 import json
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -242,10 +243,37 @@ def settlement_source_digest(rows):
     return hashlib.sha256('\n'.join(sorted(projected)).encode()).hexdigest()
 
 
-def record_settlement_view(provenance, source_rows, *, settlement_day=None):
+def committed_source(workspace, ref='HEAD'):
+    """Read one immutable ledger generation; never consume uncommitted execution edits."""
+    commit = subprocess.run(
+        ['git', 'rev-parse', '--verify', '--end-of-options', f'{ref}^{{commit}}'], cwd=workspace,
+        capture_output=True, text=True, timeout=15, check=True).stdout.strip()
+    raw = subprocess.run(
+        ['git', 'show', f'{commit}:{LEDGER_PATH}'], cwd=workspace,
+        capture_output=True, text=True, timeout=15, check=True).stdout
+    return [json.loads(line) for line in raw.splitlines() if line.strip()], commit
+
+
+def verify_committed_source(provenance, workspace):
+    """The artifact gate checks source identity without re-grading against newer bars."""
+    ledger = provenance.get('ledger') or {}
+    if not ledger.get('source_ref'):
+        return  # Legacy generations predate the pinned-source contract.
+    rows, _ = committed_source(workspace, ledger['source_ref'])
+    if settlement_source_digest(rows) != ledger.get('source_digest'):
+        raise ValueError('ledger.source_digest does not match source_ref')
+    window = provenance['window']
+    sliced = slice_rows(rows, window['cutoff'], window.get('last_plan_date'))
+    if settlement_source_digest(sliced) != ledger.get('source_slice_digest'):
+        raise ValueError('ledger.source_slice_digest does not match source_ref')
+
+
+def record_settlement_view(provenance, source_rows, *, settlement_day=None, source_ref=None):
     """Bind the effective in-memory scorecard to its unmodified public source."""
     ledger = provenance['ledger']
     window = provenance['window']
+    if source_ref:
+        ledger['source_ref'] = source_ref
     ledger['view'] = 'in_memory_settled'
     ledger['settlement_day'] = settlement_day or provenance['generated_at'][:10]
     ledger['source_projection'] = 'all_non_evaluation_fields'
@@ -253,7 +281,8 @@ def record_settlement_view(provenance, source_rows, *, settlement_day=None):
     ledger['source_slice_digest'] = settlement_source_digest(slice_rows(
         source_rows, window['cutoff'], window.get('last_plan_date')))
     provenance['note'] = (
-        'The source is the public decision ledger. Metrics use an in-memory '
+        'The source is the committed decision ledger at source_ref when present; '
+        'uncommitted execution edits await their runtime commit. Metrics use an in-memory '
         'settled view, not a committed re-grade. Verification checks the source '
         'input identity (all non-evaluation fields; evaluation is re-derived), '
         'replays settlement from canonical bars, then checks the '
