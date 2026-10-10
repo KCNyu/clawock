@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import inspect
 import json
 import math
 import re
@@ -205,6 +206,12 @@ class _Evaluator:
         if handler is None:
             raise ComputeError(
                 f"unknown function {name!r}; available: {', '.join(function_names())}")
+        try:
+            inspect.signature(handler).bind(*args)
+        except TypeError as exc:
+            raise ComputeError(f"{name}: invalid arguments ({exc})") from exc
+        if name in {"min", "max"} and not args:
+            raise ComputeError(f"{name} needs at least one argument")
         return handler(*args)
 
     @staticmethod
@@ -384,6 +391,27 @@ def _default_loader(ticker):
     from clawock.market_data import bars  # noqa: PLC0415 — keeps the pure path import-light
 
     return bars.load_bars(ticker)
+
+
+def workspace_loader(workspace):
+    """Bind calculation/replay to the tool's workspace, not an import-time root."""
+    root = Path(workspace) / "memory" / "bars"
+
+    def load(ticker):
+        if not _TICKER.fullmatch(str(ticker)):
+            raise ComputeError("invalid ticker")
+        path = root / f"{ticker}.json"
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return {}
+        except (OSError, ValueError) as exc:
+            raise ComputeError(f"cannot read daily bars for {ticker}") from exc
+        if not isinstance(doc, dict):
+            raise ComputeError(f"invalid daily bars for {ticker}")
+        return doc
+
+    return load
 
 
 def _input_rows(evaluator) -> list[dict]:

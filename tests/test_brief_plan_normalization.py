@@ -541,14 +541,7 @@ def test_a_brief_with_nothing_new_is_idempotent_whatever_else_is_dirty(monkeypat
 
 
 def test_off_menu_debate_frames_do_not_block_the_whole_plan(tmp_path, monkeypatch):
-    """2026-09-16, decision[7]: one out-of-menu `debate.frames` value on one
-    decision left all nine that day without machine-owned ids.
-
-    `normalize_debate` discards unknown frames by design and SKILL.md promises
-    the model exactly that, but the whole-plan gate in `normalize_plan_json` ran
-    first and bailed, so the per-field leniency never executed. The frame must be
-    dropped and every other decision normalized.
-    """
+    """A new mechanism remains in the plan and every decision receives its IDs."""
     monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     path = tmp_path / "2026-07-30-plan.json"
     path.write_text(json.dumps({
@@ -559,7 +552,7 @@ def test_off_menu_debate_frames_do_not_block_the_whole_plan(tmp_path, monkeypatc
             _authored_decision(ticker="BBB", debate={
                 "bull": "still cheap",
                 "bear": "lost the 200MA",
-                # `regime_shift` is invented; `risk_rule` is a `driven_by` value.
+                # New labels are authored mechanisms, not a closed enumeration.
                 "frames": ["technical_breakdown", "regime_shift", "risk_rule"],
             }),
         ],
@@ -572,27 +565,27 @@ def test_off_menu_debate_frames_do_not_block_the_whole_plan(tmp_path, monkeypatc
     assert all(d["decision_id"].startswith("dec-") for d in decisions)
     assert all(d["episode_id"].startswith("ep-") for d in decisions)
     # The menu value survives; the two off-menu ones are gone, not defaulted.
-    assert decisions[1]["debate"]["frames"] == ["technical_breakdown"]
+    assert decisions[1]["debate"]["frames"] == ["technical_breakdown", "regime_shift", "risk_rule"]
     assert decisions[1]["debate"]["bear"] == "lost the 200MA"
     assert brief_postflight.validate_plan_json(path) == []
 
 
 def test_discarded_frames_are_counted_rather_than_silenced(tmp_path, monkeypatch):
     """Leniency must not become invisibility: the model drifted off this menu on
-    four separate days in two weeks, and a dropped value that nothing counts is
+    four separate days in two weeks; empty/non-text values still need a count, which is
     how that goes unnoticed."""
     monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     noted = []
     monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
                         lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
     path = _write_authored_plan(tmp_path, _authored_decision(
-        debate={"bear": "lost the 200MA", "frames": ["risk_rule"]}))
+        debate={"bear": "lost the 200MA", "frames": [42]}))
 
     assert brief_postflight.normalize_plan_json(
         path, tmp_path / "decisions.jsonl") == []
 
-    assert [k for k, _ in noted] == ["debate_frames_off_menu"]
-    assert "risk_rule" in noted[0][1]
+    assert [k for k, _ in noted] == ["debate_frames_invalid"]
+    assert "42" in noted[0][1]
 
 
 def test_action_and_condition_errors_still_refuse_normalization(tmp_path):

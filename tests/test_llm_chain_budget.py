@@ -250,6 +250,7 @@ def test_stats_out_records_a_failed_call(keys, monkeypatch):
         llm.chat(user="hi", timeout=30, deadline_seconds=20.0, stats_out=stats)
 
     (leg,) = stats["legs"]
+    assert leg["model"] == llm.MINIMAX_MODEL
     assert leg["provider"] == "minimax" and leg["ok"] is False
     assert leg["attempts"] == llm.MAX_RETRIES and "error" in leg
 
@@ -275,7 +276,8 @@ def test_stats_out_over_the_real_provider_signature(keys, monkeypatch):
     assert llm.chat(user="hi", timeout=10, temperature=0.5, stats_out=stats) == "ok"
 
     leg = stats["legs"][0]
-    assert leg == {"provider": "minimax", "ok": True, "attempts": 1,
+    assert leg["model"] == llm.MINIMAX_MODEL
+    assert leg == {"provider": "minimax", "model": llm.MINIMAX_MODEL, "ok": True, "attempts": 1,
                    "wall_s": leg["wall_s"]}
 
 

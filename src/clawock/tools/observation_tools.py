@@ -70,7 +70,9 @@ class Compute(BaseTool):
     def execute(self, workspace, *, expression: str, as_of: str | None = None,
                 unit: str | None = None) -> str:
         try:
-            receipt = calculator.evaluate(expression, as_of=as_of or None, unit=unit or None)
+            receipt = calculator.evaluate(
+                expression, as_of=as_of or None, unit=unit or None,
+                load=calculator.workspace_loader(workspace))
         except calculator.ComputeError as exc:
             raise ToolError(str(exc)) from exc
         calculator.save_receipt(workspace, receipt)

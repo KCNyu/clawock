@@ -1,6 +1,6 @@
 # 港美股双向技术战法与执行边界
 
-维护日期：2026-08-12。用于生成 `tactical_entry`；不是收益承诺，也不替代 packet 硬约束。
+这些是登记策略的参考形态，用于比较与复盘；模型可在 `open_actions` 内提出自定入场，不要求先匹配形态。现金、库存、整手和已有授权边界仍由 packet 校验。
 
 ## 研究来源与可迁移机制
 
@@ -17,7 +17,7 @@
 
 1. `trend_pullback`：多头趋势成立，当日触及并收复 MA20，收阳且高于前收。第一次加一小批，失效线为 MA50/ATR/吊灯线中更严格的有效线；最多两批。
 2. `confirmed_breakout`：收盘突破此前 20 日高，1 个月动量为正且吊灯止损未破。第一次只加小批；跌回 MA20/吊灯线即失效；最多两批。
-3. `oversold_reclaim`：前一日 RSI≤35 且 20 日 z≤−1，次日收复前一日高点。它是唯一允许降低均价的 setup，只加一批 5%，跌破此前 5 日低点失效。
+3. `oversold_reclaim`：前一日 RSI≤35 且 20 日 z≤−1，次日收复前一日高点。它是登记策略用于降低均价的 setup，只加一批 5%，跌破此前 5 日低点失效。
 
 `alpha_confirmation` 只能由 packet 生成，模型不能自己创建。它先要求两个独立
 family：factor/peer residual 合并为 `price_relative`，新闻方向 surprise 或相对自身
@@ -33,13 +33,13 @@ MA200 底线和闸门状态，但不进 `technical.setups`、不给股数。原�
 持有、并入右侧只增加同一批风险（证据与待 kcn 拍板的开闸条件见
 `docs/architecture/harness.md` § Left side (observe mode)）。不得把它写成摊低成本的授权。
 
-`亏损`、`比成本低`、`今天翻红`、`利好新闻`都不是 setup。不得把它们单独包装成摊低成本。
+`亏损`、`比成本低`、`今天翻红`、`利好新闻`都不是 setup。它们本身不构成登记 setup；自主提案须说明机制与失效条件。
 
 ## 分批与集中
 
-- 非杠杆高确信 core 可集中。35–60% 是 review band，不强制卖；超过 60% 才是单票 mandatory cap。
+- 非杠杆高确信 core 可集中。35–60% 是 review band，不强制卖；超过 60% 须回应但不强卖，加仓仍受仓位授权约束。
 - 2×/3× 日内重置产品继续执行严格上限，永不走均值回归补仓；需要保留敞口时走 2×→1×。
-- 每个 setup 必须给 entry、invalidation、单批股数、目标最大权重和剩余批次数。一次计划只授权一批，不预先把后续批次当成已批准订单。
+- 每个 setup 必须给 entry、invalidation、单批股数、目标最大权重和剩余批次数。登记策略建议一次一批；模型可提出不同尺寸并留下策略异议，拆单不能重复使用现金或仓位空间。
 - 同一 ticker 可同时有 `core_position=hold` 与 `tactical_entry=add`；不得将 tactical add 改写成 core 无限摊平。
 
 ## 港股执行
@@ -56,4 +56,4 @@ MA200 底线和闸门状态，但不进 `technical.setups`、不给股数。原�
 
 ## 生成纪律
 
-只使用 packet 的 `technical.setups`。逐字匹配 setup 的 `entry_type + entry_price`，股数服从 `execution` 和 `constraints`；无法满足时输出 core hold/watch，而不是自己发明价位。
+可引用 packet 的真实 `technical.setups`，也可不引用形态而自定触发价。引用形态但改变入场、失效或批次时如实记录差异；自定入场写 `hypothesis` 与 `invalidation_price`。股数遵守现金、整手和 `position_room_shares`，超过 `max_add_shares` 只是登记策略异议。登记形态不存在时不要伪造 ID，也不必因此退回 hold/watch。

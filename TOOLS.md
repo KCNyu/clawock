@@ -37,7 +37,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 | 抓需 JS 渲染 / 反爬的页面（雪球评论 / Futu 社区 / Reddit 深页） | 当前会话的浏览器工具；`scrapling` 仅在 catalog 可用时 | 仓库有 `skills/scrapling/` 不代表本会话已加载；不可用时明说抓取缺口 |
 | Web 搜索（新闻 / X / 中文社区 / 政策） | 当前会话的内置搜索；`tavily` 仅在 catalog 可用且已配置时 | `tavily-search` 目录中的 skill 名是 `tavily`，本机目前禁用。已配置的脚本调用仍必带 `--bucket`（brief/report/intraday/research/extract），免费档 1000 credits/月共享；盘中用 harness 的 `anomaly_search`，不由模型另搜 |
 | openclaw 升级后健康检查 / 磁盘膨胀 | `openclaw-tune` | 不动股票 |
-| 「这票值不值得研究」/ 建仓前先筛新标的 | `entry-gate` | 信息分级 A/B/C 与投资质量分开;四条硬否决先于任何计分;C 级只判 gray 不判死;产物 `memory/entry-gates/` |
+| 「这票值不值得研究」/ 建仓前先筛新标的 | `entry-gate` | 信息分级 A/B/C 与投资质量分开;登记筛查保留四条否决;可另记 research_judgment 继续研究、不授权买入;C 级只判 gray 不判死;产物 `memory/entry-gates/` |
 | 「财报出了 / 复盘这个季度 / 当初承诺兑现了吗」 | `earnings-review` | 一手 filing/港交所公告优先,盈利质量由代码算,承诺账本跨期滚动;事件驱动、不进 cron;产物 `memory/earnings/` |
 | 盘前深度简报（cron 自动跑，非人工入口） | `daily-deep-brief` | preflight 出 context → swarm 分析 → plan.json;人工别手动触发,改它先读 SKILL 的 postflight schema |
 | openclaw 升级 / 依赖迁移 | `openclaw-upgrade` | 升级后核对 cron contract 与 host trigger；不动股票 |

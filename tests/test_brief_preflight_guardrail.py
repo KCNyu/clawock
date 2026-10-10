@@ -644,3 +644,11 @@ def test_an_empty_or_zero_value_leg_logs_na_instead_of_crashing(preflight):
         {'ticker': 'A', 'shares': 1, 'cost_basis': 1, 'current_value': 3},
         {'ticker': 'B', 'shares': 1, 'cost_basis': 1, 'current_value': 1}]))
     assert line.startswith('HHI=0.625 ') and '(Top2 100.0%)' in line
+
+
+def test_cap_action_text_allows_a_reasoned_hold(preflight):
+    result = _evaluate(preflight, risk={"us": {"beta_spx": 3.01}},
+                       us=[_holding("A", 80), _holding("B", 20)])
+    assert {b["type"] for b in result["breaches"]} == {"single_name", "beta"}
+    assert all("可说明理由后持有" in b["action"] for b in result["breaches"])
+    assert "may_stand" in result["directive"] and "durable override" in result["directive"]

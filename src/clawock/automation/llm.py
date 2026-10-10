@@ -315,7 +315,7 @@ def chat(system: str = '', user: str = '', messages: list = None,
     CLAWOCK_LLM_DEADLINE_SECONDS. `timeout` alone cannot keep the retries inside
     the job that contains them — timeout x MAX_RETRIES is the real budget.
 
-    stats_out: when given, receives {'legs': [{provider, ok, attempts, wall_s,
+    stats_out: when given, receives {'legs': [{provider, model, ok, attempts, wall_s,
     error?}]} so a job log can say what the call actually cost (C-F3a).
 
     thinking_effort: 'low' / 'medium' / 'high' for a thinking call on a model
@@ -365,13 +365,13 @@ def chat(system: str = '', user: str = '', messages: list = None,
     except Exception as e:
         if stats_out is not None:
             stats_out.setdefault('legs', []).append(
-                {'provider': 'minimax', 'ok': False,
+                {'provider': 'minimax', 'model': MINIMAX_MODEL, 'ok': False,
                  'attempts': attempts[-1] if attempts else 0,
                  'wall_s': round(time.monotonic() - t0, 2), 'error': str(e)[:160]})
         raise RuntimeError(f'all LLM providers failed: minimax[{e}]') from e
     if stats_out is not None:
         stats_out.setdefault('legs', []).append(
-            {'provider': 'minimax', 'ok': True,
+            {'provider': 'minimax', 'model': MINIMAX_MODEL, 'ok': True,
              'attempts': attempts[-1] if attempts else 0,
              'wall_s': round(time.monotonic() - t0, 2)})
     return out

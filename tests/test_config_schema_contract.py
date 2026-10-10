@@ -63,7 +63,7 @@ CONTRACTS = [
      "properties/delivery/properties/targets/additionalProperties",
      profiles._TARGET_FIELDS, {"source"}),
     ("thesis.schema.json", "", theses.THESIS_FIELDS, None),
-    ("entry_gate.schema.json", "", entry.ARTIFACT_FIELDS, None),
+    ("entry_gate.schema.json", "", (*entry.ARTIFACT_FIELDS, "research_judgment"), entry.ARTIFACT_FIELDS),
     ("entry_gate.schema.json", "properties/information",
      set(entry.grade_information([])), None),
     ("earnings_review.schema.json", "", earnings.ARTIFACT_FIELDS, None),

@@ -344,3 +344,9 @@ delivered (3/10 first drafts; two were sent back once and passed on rewrite);
 block-contract breaks 9/9 → 1/10 (22:03, the `⚠️` banner before #1874 went
 live); every slot delivered on Telegram. The HK leg is first measured on the
 next HK session.
+
+
+Numeric sources include compute receipts created during the current run, through
+`validation.with_compute_receipts`. The cron payload and shared Mode 7 body allow
+those values; the model chooses the formula and quotes the result with its meaning.
+This does not waive the existing source, generation or next-trigger price checks.

@@ -454,6 +454,8 @@ def movers_thesis_context(tickers, *, now=None, thesis_dir=THESIS_DIR,
         if gate_docs and gate_docs[-1]["verdict"] == "reject":
             entry["entry_gate"] = {
                 "verdict": "reject", "gate_id": gate_docs[-1]["gate_id"],
+                **({"research_judgment": gate_docs[-1]["research_judgment"]}
+                   if gate_docs[-1].get("research_judgment") else {}),
             }
         out[ticker] = entry
     return out
@@ -496,7 +498,8 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
          "where_to_look": item["where_to_look"]}
         for docs in gates.values() if docs
         for item in (docs[-1].get("next_evidence") or [])
-        if docs[-1]["verdict"] == "gray_needs_evidence"
+        if (docs[-1]["verdict"] == "gray_needs_evidence"
+            or (docs[-1].get("research_judgment") or {}).get("verdict") == "gray_needs_evidence")
     ]
     return {
         "status": "invalid" if errors else "ready",
@@ -517,6 +520,11 @@ def summarize(*, portfolio=None, catalysts=None, today=None, now=None,
             "verdicts": dict(sorted(verdicts.items())),
             "open_questions": open_questions,
             "ungated_positions": ungated,
+            "research_judgments": [
+                {"ticker": docs[-1]["ticker"], "policy_verdict": docs[-1]["verdict"],
+                 **docs[-1]["research_judgment"]}
+                for docs in gates.values() if docs and docs[-1].get("research_judgment")
+            ],
         },
         "theses": {"count": len(theses)},
         "errors": errors,

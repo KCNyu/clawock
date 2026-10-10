@@ -519,7 +519,7 @@ def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
     for name in ("us-stock-analysis", "hk-stock-analysis"):
         skill = (ROOT / "skills" / name / "SKILL.md").read_text()
         assert "mover_thesis" in skill, name
-        assert "catalyst-gate" in skill, name
+        assert "catalyst 评级只是登记策略意见" in skill, name
 
 
 def test_calendar_coverage_is_reported_per_market():
@@ -675,3 +675,15 @@ def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
     resolved = instrument_registry.look_through(symbol)
     assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)
     assert instrument_registry.issuer_for(symbol) == issuer
+
+
+def test_research_judgment_reaches_brief_without_erasing_rejected_position(dirs):
+    doc = json.loads(GATE_FIXTURE.read_text())
+    doc["checks"][0]["verdict"] = "fail"
+    doc["verdict"] = "reject"
+    doc["research_judgment"] = {"verdict": "pass_to_deep_research", "rationale": "Check the turnaround."}
+    write_gate(dirs, doc)
+    surface = rs.summarize(portfolio=portfolio(), catalysts={}, today=TODAY, now=NOW, **dirs)
+    assert surface["entry_gates"]["research_judgments"] == [{
+        "ticker": "USTEST", "policy_verdict": "reject", **doc["research_judgment"]}]
+    assert surface["entry_gates"]["ungated_positions"][0]["issue"] == "held after a reject verdict"

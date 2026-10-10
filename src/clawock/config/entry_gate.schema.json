@@ -26,6 +26,16 @@
     "routing"
   ],
   "properties": {
+    "research_judgment": {
+      "description": "Optional model-owned research decision; never changes the computed screening verdict or authorizes exposure.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "rationale"],
+      "properties": {
+        "verdict": {"enum": ["pass_to_deep_research", "reject", "gray_needs_evidence"]},
+        "rationale": {"type": "string", "minLength": 1, "maxLength": 1200}
+      }
+    },
     "schema_version": {"const": 1},
     "gate_id": {"type": "string", "minLength": 1},
     "ticker": {"type": "string", "minLength": 1},
