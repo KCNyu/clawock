@@ -87,7 +87,7 @@ free and open source (MIT).
 
 ## Where does the data come from?
 
-45 fetch and compute modules across 8 layers: Tencent, Yahoo, Eastmoney,
+46 fetch and compute modules across 8 layers: Tencent, Yahoo, Eastmoney,
 Polygon, SEC EDGAR, HKEX, Finnhub, Frankfurter, Reddit, Google News and more —
 bilingual HK + US coverage, with multi-source fallback on critical paths. The
 influencer radar scans Trump (Truth Social primary feed) and Musk (news
