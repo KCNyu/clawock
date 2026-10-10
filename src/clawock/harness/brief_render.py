@@ -31,6 +31,7 @@ import re
 from datetime import date as _date
 from pathlib import Path
 
+from clawock.decision import receipts
 from clawock import sessions as _cal, instruments as instrument_registry
 from clawock.portfolio.math import ledger_rows
 from clawock.automation.output_validate import escape_raw_html
@@ -699,6 +700,15 @@ def judge_section(plan, judgment=None):
             fields.append(("判定", text(extra)))
         if row.get("falsifier"):
             fields.append(("证伪条件", text(row.get("falsifier"))))
+        if decision.get("hypothesis"):
+            fields.append(("假设", text(decision.get("hypothesis"))))
+        if decision.get("method"):
+            fields.append(("方法", text(decision.get("method"))))
+        departures = receipts.review_words(decision.get("policy_review"))
+        if departures:
+            # The plan's call is printed as written; this says which registered
+            # rule it departs from, so the reader weighs both.
+            fields.append(("与登记策略不同", text("；".join(departures))))
         title = f"**{text(ticker)}** · **{text(decision.get('action'))}**"
         if confidence is not None:
             title += f" · 信心 {confidence_pct(confidence)}"
@@ -1186,6 +1196,9 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
                 f"{f' {num(size, 0)} 股' if size else ''}"
                 f" (driven_by={text(decision.get('driven_by'))},"
                 f" conf {confidence_pct(decision.get('confidence'))})")
+            departures = receipts.review_words(decision.get("policy_review"))
+            if departures:
+                lines.append(f"   ↳ 与登记策略不同：{'；'.join(departures)}")
     else:
         lines.append("无主动动作。")
     if holds:

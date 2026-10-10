@@ -531,6 +531,12 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             normalized = brief_decision_packet.bind_full_position_cuts(
                 normalized, decision_packet
             )
+            # Where the plan departs from the registered policy, said on the
+            # decision itself. The departure is kept; nothing is rewritten.
+            normalized = brief_decision_packet.bind_policy_review(
+                normalized, decision_packet,
+                exempt_breach_ids=_durable_override_ids(context),
+            )
         normalized = decision_v2.bind_plan_calibration(
             normalized,
             ((context or {}).get('decision_metrics') or {}).get('hierarchical_calibration'),
@@ -591,6 +597,39 @@ def _durable_override_ids(context):
     }
 
 
+def tool_receipt_issues(decisions, plan_date, workspace=None):
+    """Computations a decision cites that are not what it says they are.
+
+    A cited receipt has to exist, replay on the stored bars, and stand at a
+    session no later than the plan's date: a number computed from a later bar
+    is not something the plan could have known. These are fact errors — the
+    reference is false — whatever the decision built on it.
+    """
+    from clawock.market_data import compute
+
+    root = Path(workspace) if workspace else WS
+    issues = []
+    for index, decision in enumerate(decisions or []):
+        if not isinstance(decision, dict):
+            continue
+        tag = f'decision[{index}] {decision.get("ticker", "?")}'
+        for receipt_id in decision.get('tool_receipts') or []:
+            receipt = compute.load_receipt(root, receipt_id)
+            if receipt is None:
+                issues.append(f'{tag}: tool receipt {receipt_id} does not exist '
+                              '[FACT_UNKNOWN_RECEIPT]')
+                continue
+            if plan_date and str(receipt.get('as_of') or '') > str(plan_date):
+                issues.append(f'{tag}: tool receipt {receipt_id} is as of '
+                              f'{receipt.get("as_of")}, after the plan date {plan_date} '
+                              '[FACT_RECEIPT_FROM_THE_FUTURE]')
+                continue
+            for problem in compute.verify(receipt):
+                issues.append(f'{tag}: tool receipt {receipt_id} {problem} '
+                              '[FACT_RECEIPT_DOES_NOT_REPLAY]')
+    return issues
+
+
 def validate_plan_json(path, context=None, decision_packet=None, *,
                        normalized=True):
     """Validate the plan on disk.
@@ -624,13 +663,20 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
             )
         ]
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
+    issues += [f'plan.json harness: {x}'
+               for x in tool_receipt_issues(decisions, plan.get('date'))]
     # Unpriceable calls score for direction but never reach the money chart.
     issues += [f'plan.json size: {x}' for x in decision_v2.missing_size_warnings(decisions)]
     issues += [
         f'plan.json calibration: {x}'
         for x in decision_v2.missing_regime_warnings(decisions)
     ]
-    for i, d in enumerate(decisions):
+    # With a packet, whether an active call has a catalyst and whether its
+    # event was escalated are the packet review's findings: a real but
+    # unescalated event is a strategy objection kept on the decision, a
+    # reference to no event is a fact error (`packet.review_plan`). The two
+    # gates below are the pre-packet rules and apply only when there is none.
+    for i, d in enumerate(decisions if decision_packet is None else []):
         tag = f'plan.json decision[{i}] ({d.get("ticker", "?")}/{d.get("strategy_id", "?")})'
         # Active timing calls need either a hard catalyst or a harness-approved
         # technical tactical-entry setup. The packet validator above owns the

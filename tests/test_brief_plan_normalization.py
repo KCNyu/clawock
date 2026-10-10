@@ -123,7 +123,7 @@ def test_harness_constraint_still_fails_after_normalization(tmp_path):
         path, decision_packet=packet
     )
     assert any(
-        "plan.json harness" in issue and "outside harness allowed_actions" in issue
+        "plan.json harness" in issue and "is not open on this name" in issue
         for issue in issues
     )
     assert brief_postflight.categorize(issues) == "fail"

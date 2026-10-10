@@ -186,7 +186,7 @@ def test_one_rejected_reply_gets_one_repair_turn_naming_what_failed(workspace, m
     assert prompts[0]['user'] in repair and json.dumps(bad, ensure_ascii=False) in repair
     reason = repair.split('它没有通过写盘前的校验')[1]
     ticker = bad['plan']['decisions'][0]['ticker']
-    assert f'decision[0] is {ticker} add_only_on_trigger: packet allowed_actions=' in reason
+    assert f'decision[0] is {ticker} add_only_on_trigger: packet open_actions=' in reason
     assert 'technical.setups' in reason
     assert prompts[1]['deadline_seconds'] <= bf.BRIEF_LLM_TIMEOUT_SECONDS
     assert bf.main(['--verify-receipt']) == 0
@@ -270,7 +270,7 @@ def test_a_setup_free_swap_writes_both_artifacts_and_passes_the_host_gate(worksp
     ('odd_lot', 'board-lot'),
     ('fractional', 'positive integer'),
     ('zero', 'positive integer'),
-    ('no_mandate', 'approved technical setup'),
+    ('no_mandate', 'AUTH_NO_SWAP_MANDATE'),
     ('technical', 'technical_setup_id'),
     ('strategy_only', 'technical_setup_id'),
     ('invented_setup', 'technical_campaign_id'),

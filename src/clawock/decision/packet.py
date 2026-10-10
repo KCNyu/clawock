@@ -4,8 +4,10 @@ The expensive producers remain authoritative for prices, technical indicators,
 quant factors, evidence and risk.  This module only projects those results into
 a compact contract:
 
-* code owns facts, classifications and action bounds;
-* the model owns a small judgment overlay made only of opinions;
+* code owns facts, arithmetic, feasibility and the authorisations already
+  given; the registered rules' classifications travel as their opinion;
+* the model owns the hypothesis, the trade-off and the proposal, and a rule
+  that disagrees is recorded beside it rather than applied to it (#2842);
 * Pages receives a stable view-model and never re-implements the joins.
 """
 from __future__ import annotations
@@ -18,13 +20,17 @@ import math
 import os
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 from clawock.decision.actions import (
     ACTIVE_ACTIONS, SELL_ACTIONS, SWAP_SELL_ACTIONS, paired_swap_sells,
 )
 from clawock.decision import add_alpha, add_policy, early_trend, left_side
+from clawock.decision import add_policy as add_policy_module
+from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
+from clawock.decision.actions import is_risk_swap_buy
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
 
@@ -910,7 +916,7 @@ def _swap_target_rows(swap_mandates: dict, held: set, context: dict,
     date are stated, and a leg written against no price at all is refused by
     `_swap_leg_issues`.
     """
-    quotes = context.get("swap_target_quotes") or {}
+    quotes = context.get("unheld_quotes") or {}
     rows = {}
     for target, mandates in sorted(swap_mandates.items()):
         if target in held:
@@ -940,6 +946,8 @@ def _swap_target_rows(swap_mandates: dict, held: set, context: dict,
             "risk": [],
             "constraints": {
                 "allowed_actions": ["add_only_on_trigger"],
+                "open_actions": ["add_only_on_trigger"],
+                "closed_actions": {},
                 "forced_action_one_of": [],
                 "max_sell_shares": 0,
                 "swap_mandate": _swap_mandate_view(mandates, []),
@@ -952,11 +960,81 @@ def _swap_target_rows(swap_mandates: dict, held: set, context: dict,
     return rows
 
 
+#: A stored bar older than this many calendar days does not price a proposal.
+UNIVERSE_MAX_BAR_AGE_DAYS = 7
+ENTRY_GATE_REQUIRED = "entry_gate_required"
+
+
+def _proposal_universe(context: dict, held: set) -> dict:
+    """Names the book does not hold that a plan may still propose buying.
+
+    A proposal has to be evaluable, so the universe is exactly the names with
+    stored daily bars (`context.proposal_universe`, read by preflight from
+    `memory/bars`): those are the ones settlement can score. Each row carries
+    the last completed close with its date, the order unit, and the standing
+    fact that the name has not been through the entry gate — an authorisation
+    still pending, printed with the proposal, not a reason to refuse it.
+
+    There is no setup, tier or candidate state here: which unheld name is
+    worth proposing is the model's question.
+    """
+    quotes = context.get("unheld_quotes") or {}
+    today = str(context.get("date") or "")
+    rows = {}
+    for ticker, bar in sorted((context.get("proposal_universe") or {}).items()):
+        if ticker in held or not isinstance(bar, dict):
+            continue
+        leg = str(bar.get("leg") or ("HK" if ticker.isdigit() else "US"))
+        quote = quotes.get(ticker) or {}
+        price, basis, as_of = _number(quote.get("price"), 4), "quote", quote.get("as_of")
+        if not price:
+            price, basis, as_of = _number(bar.get("close"), 4), "last_close", bar.get("session")
+        try:
+            age = (date.fromisoformat(today) - date.fromisoformat(str(as_of))).days
+        except (TypeError, ValueError):
+            age = None
+        if not price or age is None or age > UNIVERSE_MAX_BAR_AGE_DAYS:
+            continue
+        lot = 1 if leg == "US" else quote.get("lot_size")
+        closed = {}
+        open_actions = ["watch"]
+        if lot:
+            open_actions.append("add_only_on_trigger")
+        else:
+            closed["add_only_on_trigger"] = {
+                "channel": receipts.FEASIBILITY, "code": "FEAS_BOARD_LOT_UNKNOWN",
+                "reason": "the board lot of this unheld name was not fetched"}
+        rows[ticker] = {
+            "ticker": ticker,
+            "leg": leg,
+            "held": False,
+            "facts": {"shares": 0, "current_price": price,
+                      "price_basis": basis, "price_as_of": as_of},
+            "risk": [],
+            "evidence": [],
+            "constraints": {
+                "allowed_actions": ["watch"],
+                "open_actions": open_actions,
+                "closed_actions": closed,
+                "forced_action_one_of": [],
+                "max_sell_shares": 0,
+                "max_add_shares": 0,
+                "technical_setup_ids": [],
+                "actionable_evidence_ids": [],
+                "lot_size": lot,
+                "authorization": ENTRY_GATE_REQUIRED,
+            },
+        }
+    return rows
+
+
 def decision_row(packet: dict, ticker) -> dict | None:
-    """The row a plan decision on `ticker` is judged against: a holding's, or
-    that of a swap target the book does not hold."""
+    """The row a plan decision on `ticker` is judged against: a holding's, that
+    of a swap target the book does not hold, or an unheld name's in the
+    proposal universe."""
     return ((packet.get("tickers") or {}).get(str(ticker))
-            or (packet.get("swap_targets") or {}).get(str(ticker)))
+            or (packet.get("swap_targets") or {}).get(str(ticker))
+            or (packet.get("proposal_universe") or {}).get(str(ticker)))
 
 
 def _status(technical: dict, risks: list[dict]) -> dict:
@@ -975,6 +1053,68 @@ def _status(technical: dict, risks: list[dict]) -> dict:
     if technical.get("usable"):
         return {"rank": 3, "label": "趋势off·观望", "state": "neutral"}
     return {"rank": 5, "label": "数据不足", "state": "neutral"}
+
+
+def _open_envelope(shares: int, risks: list[dict], forced: list[str],
+                   execution: dict, swap_mandate: dict | None) -> tuple[list, dict]:
+    """The actions a plan may write for a holding, and why the rest are closed.
+
+    Three things close an action, and none of them is a registered rule's
+    opinion: an obligation in force (`forced`), an authorisation kcn has not
+    given (adding to a breaching name, adding to a leveraged product without
+    validated evidence) and plain feasibility (no board lot, no price, no cash
+    or concentration room for one unit, an add already open). Whether the
+    policy would have picked the action is `allowed_actions` and is judged
+    separately, as an objection.
+    """
+    every = ("hold_and_watch", "watch", "trim_on_rebound", "cut", "t_only",
+             "add_only_on_trigger", "add_on_breakout")
+    if forced:
+        why = {"channel": receipts.FEASIBILITY, "code": "AUTH_OBLIGATION_IN_FORCE",
+               "reason": "an obligation in force on this name requires "
+                         + " or ".join(forced)}
+        return list(forced), {action: why for action in every if action not in forced}
+    open_actions, closed = ["hold_and_watch", "watch"], {}
+    no_inventory = {"channel": receipts.FEASIBILITY, "code": "FEAS_NOTHING_TO_SELL",
+                    "reason": "the book holds no shares of this name"}
+    if shares > 0:
+        open_actions += ["trim_on_rebound", "cut"]
+    else:
+        closed.update({action: no_inventory for action in ("trim_on_rebound", "cut", "t_only")})
+    blockers = set(execution.get("blockers") or [])
+    unit = execution.get("lot_size") or 1
+    if risks:
+        add_closed = ("AUTH_ADD_FROZEN_BY_BREACH",
+                      "adds are frozen while a risk breach is open on this name")
+    elif "leveraged_requires_validated_evidence" in blockers:
+        add_closed = ("AUTH_LEVERAGED_ADD",
+                      "adding to a leveraged product needs validated evidence")
+    elif "open_add_order" in blockers:
+        add_closed = ("FEAS_ADD_ALREADY_OPEN", "an earlier add on this name is still open")
+    elif "board_lot_missing" in blockers:
+        add_closed = ("FEAS_BOARD_LOT_UNKNOWN", "the board lot is unknown")
+    elif "price_missing" in blockers:
+        add_closed = ("FEAS_PRICE_MISSING", "there is no price to size against")
+    elif (execution.get("position_room_shares") or 0) < unit:
+        add_closed = ("FEAS_NO_ROOM",
+                      "no cash or concentration room for one tradable unit")
+    else:
+        add_closed = None
+    if add_closed is None:
+        open_actions += (["t_only"] if shares > 0 else []) + [
+            "add_only_on_trigger", "add_on_breakout"]
+    else:
+        why = {"channel": receipts.FEASIBILITY, "code": add_closed[0],
+               "reason": add_closed[1]}
+        closed.update({action: why for action in ("add_only_on_trigger", "add_on_breakout")})
+        if shares > 0:
+            if risks:
+                closed["t_only"] = why
+            else:
+                open_actions.append("t_only")
+    if swap_mandate and "add_only_on_trigger" not in open_actions:
+        open_actions.append("add_only_on_trigger")
+    return open_actions, closed
 
 
 def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
@@ -1036,8 +1176,16 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     swap_mandate = _swap_mandate_view(swap_mandates or [], risks)
     if swap_mandate:
         allowed += ["add_only_on_trigger"]
+    open_actions, closed_actions = _open_envelope(
+        shares, risks, forced, execution, swap_mandate)
     return {
+        # What the registered policy would do. Departing from it is an
+        # objection on the record, not a refusal (`review_plan`).
         "allowed_actions": list(dict.fromkeys(allowed)),
+        # What can be written at all: obligations, explicit authorisations
+        # and feasibility. Nothing here is a view about the market.
+        "open_actions": open_actions,
+        "closed_actions": closed_actions,
         "forced_action_one_of": forced,
         # Caps the plan has to answer by name: a decision on this ticker whose
         # rationale says why it trims or why it holds.
@@ -1457,7 +1605,7 @@ def _book_totals(portfolios: dict) -> tuple[dict, dict]:
     return invested, cash
 
 
-def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blocker_counts, candidates, swap_mandates, swap_targets, tickers, tier_counts) -> dict:
+def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blocker_counts, candidates, cash, swap_mandates, swap_targets, tickers, tier_counts) -> dict:
     """The packet literal: every section the brief reads, in its published key order."""
     return {
         "_meta": {
@@ -1475,6 +1623,8 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
         },
         "portfolio": {
             "book_totals": context.get("book_totals") or {},
+            # Cash per leg in its own currency: what a plan's adds are held to.
+            "cash_available": {leg: _number(value, 2) for leg, value in sorted(cash.items())},
             "concentration": context.get("concentration") or {},
             "risk_directive": (context.get("risk_guardrail") or {}).get("directive"),
             "regime": {
@@ -1604,6 +1754,13 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
         ],
         # The rows those unheld targets are written against (`_swap_target_rows`).
         "swap_targets": swap_targets,
+        # The authorisations every decision in this generation is held to.
+        "authorization": receipts.authorization_set(
+            caps=(context.get("risk_guardrail") or {}).get("caps"),
+            respond_only=list(risk_ledger.RESPOND_ONLY_TYPES),
+            target_max_pct=add_policy_module.TARGET_MAX_PCT),
+        # Unheld names a plan may propose (`_proposal_universe`).
+        "proposal_universe": _proposal_universe(context, set(tickers)),
     }
 
 
@@ -1671,8 +1828,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
 
     packet = _packet_payload(
         context, generation_id, add_policy=add_policy, alpha_activation=alpha_activation, blocker_counts=blocker_counts,
-        candidates=candidates, swap_mandates=swap_mandates, swap_targets=swap_targets,
-        tickers=tickers, tier_counts=tier_counts,
+        candidates=candidates, cash=cash, swap_mandates=swap_mandates,
+        swap_targets=swap_targets, tickers=tickers, tier_counts=tier_counts,
     )
     _warn_read_budgets(packet)
     return packet
@@ -1802,13 +1959,37 @@ def summary_view(packet: dict) -> dict:
                 "live": [item.get("cite") for item in
                          ((row.get("information") or {}).get("live") or [])[:2]],
                 "risk_count": len(row.get("risk") or []),
-                "constraints": row.get("constraints"),
+                # Closed actions by code; the reason is in the row
+                # (`--section constraints`).
+                "constraints": {
+                    **(row.get("constraints") or {}),
+                    "closed_actions": {
+                        action: why.get("code") for action, why in
+                        ((row.get("constraints") or {}).get("closed_actions") or {}).items()
+                    },
+                },
             }
             for row in packet.get("tickers", {}).values()
         ],
         # Swap targets the book does not hold: writable as the buy leg of
         # their mandate, and nothing else.
         "swap_targets": packet.get("swap_targets") or {},
+        # Unheld names with stored bars: proposable, priced at the stated
+        # close, and not yet through the entry gate.
+        # One line per name: this is read every morning and the full rows are
+        # what the plan review uses, not this.
+        "proposal_universe": {
+            "columns": "ticker leg price price_as_of price_basis lot_size",
+            "rows": [
+                " ".join(str(value) for value in (
+                    row["ticker"], row["leg"], row["facts"]["current_price"],
+                    row["facts"]["price_as_of"], row["facts"]["price_basis"],
+                    row["constraints"]["lot_size"] or "unknown"))
+                for row in (packet.get("proposal_universe") or {}).values()
+            ],
+            "open": "watch; add_only_on_trigger where lot_size is known",
+            "authorization": ENTRY_GATE_REQUIRED,
+        },
         "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
     }
@@ -1961,17 +2142,8 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
         disposition = row.get("disposition")
         if disposition not in DISPOSITIONS:
             issues.append(f"{label} invalid disposition {disposition!r}")
-        deterministic = (packet.get("tickers") or {}).get(ticker) or {}
-        authority = ((deterministic.get("quant") or {}).get("add_authority") or {})
-        early = ((deterministic.get("quant") or {}).get("early_trend") or {})
-        can_be_candidate = bool(
-            is_authorised_tier(authority.get("tier"))
-            or early.get("observed")
-        )
-        if disposition == "candidate" and not can_be_candidate:
-            issues.append(
-                f"{label} disposition candidate cannot upgrade a deterministic non-candidate"
-            )
+        # `candidate` on a name the add policy does not rate is the model's
+        # nomination. It is not refused: `judgment_departures` reports it.
         confidence = _number(row.get("confidence"))
         if confidence is None or not 0 <= confidence <= 1:
             issues.append(f"{label} confidence must be in [0,1]")
@@ -1986,37 +2158,29 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
     return issues
 
 
-def _catalyst_evidence_issues(tag: str, decision: dict, row: dict) -> list[str]:
-    """Evidence check for a decision the model attributed to a catalyst.
+def _catalyst_evidence_findings(tag: str, decision: dict,
+                                row: dict) -> list[tuple[str, str, str]]:
+    """Evidence check for a decision attributed to a catalyst: (channel, code, message).
 
-    Two tiers, because `actionable_evidence_ids` only ever holds events flagged
-    `actionable_escalation` — the escalation set, not the set of real events:
-
-    * an ACTIVE action must point at an escalated event.  That is the harness
-      rule named by the sibling constraint `active_action_requires_evidence`:
-      you do not trade on a catalyst the harness did not escalate.
-    * a PASSIVE stance only has to point at a real event for this ticker.
-      "I'm watching CRCL because it reported Q2 yesterday" is a legitimate
-      attribution, and requiring escalation there left the model no way to
-      record it — the only ways past the gate were to relabel `driven_by` or to
-      drop `evidence_event_id`, both of which destroy the attribution that
-      `by_driver` win-rate bucketing reads.
-
-    Both tiers still reject an id that matches no event, so a fabricated
-    reference is caught either way.
+    Two different questions. Whether the cited event exists for this ticker is
+    a fact: an id that matches nothing is a fabricated reference and blocks,
+    for an active call and a passive stance alike. Whether the event was
+    *escalated* is the news-evidence policy's opinion of it
+    (`actionable_escalation`): trading on a real event the policy did not
+    escalate is a departure from that policy, recorded as an objection.
     """
     evidence_id = decision.get("evidence_event_id")
-    action = decision.get("action")
-    if action in ACTIVE_ACTIONS:
-        if evidence_id not in ((row.get("constraints") or {}).get("actionable_evidence_ids") or []):
-            return [f"{tag}: evidence_event_id is outside harness evidence gate"]
-        return []
     known_ids = {
         event.get("event_id") for event in (row.get("evidence") or [])
         if event.get("event_id")
     }
     if evidence_id not in known_ids:
-        return [f"{tag}: evidence_event_id does not match any event for this ticker"]
+        return [(receipts.FACT, "FACT_UNKNOWN_EVENT",
+                 f"{tag}: evidence_event_id does not match any event for this ticker")]
+    if (decision.get("action") in ACTIVE_ACTIONS and evidence_id not in (
+            (row.get("constraints") or {}).get("actionable_evidence_ids") or [])):
+        return [(receipts.STRATEGY, "STRAT_EVENT_NOT_ESCALATED",
+                 f"{tag}: the news-evidence policy did not escalate {evidence_id}")]
     return []
 
 
@@ -2153,35 +2317,217 @@ def _full_position_shortfalls(decisions: list[dict], rows: dict,
     return issues
 
 
-def validate_plan_constraints(plan: dict, packet: dict, *,
-                              exempt_breach_ids=frozenset()) -> list[str]:
-    issues = []
+def _policy_objections(tag: str, action: str, row: dict) -> list[tuple[str, str]]:
+    """Why the registered policy would not have taken an action that is open:
+    (code, message) pairs.
+
+    Read from the same row fields the policy read; the wording names the rule,
+    so the reader of the card can tell which opinion was departed from.
+    """
+    constraints = row.get("constraints") or {}
+    if action in (constraints.get("allowed_actions") or []):
+        return []
+    execution = row.get("execution") or {}
+    if action in SELL_ACTIONS:
+        return [("STRAT_SELL_WITHOUT_ESCALATED_EVENT",
+                 f"{tag}: the registered policy opens a discretionary {action} only on an "
+                 "escalated event; none is escalated for this name")]
+    reasons = []
+    blockers = set(execution.get("blockers") or [])
+    tier = (((row.get("quant") or {}).get("add_authority") or {}).get("tier")) or "none"
+    if execution.get("thesis_gate") == "blocked":
+        reasons.append("the thesis registry marks this thesis as weakened or broken")
+    if "no_approved_setup" in blockers or not constraints.get("technical_setup_ids"):
+        reasons.append("no registered technical setup is active")
+    if not is_authorised_tier(tier):
+        reasons.append(f"the add-evidence policy rates this name `{tier}`")
+    if action == "add_on_breakout" and "confirmed_breakout" not in (
+            constraints.get("technical_setup_ids") or []):
+        reasons.append("no confirmed breakout is registered")
+    if not reasons:
+        reasons.append("the registered policy sizes this add at zero")
+    return [("STRAT_ADD_OUTSIDE_POLICY",
+             f"{tag}: {action} departs from the registered add policy: " + "; ".join(reasons))]
+
+
+def _add_findings(tag: str, decision: dict, row: dict) -> list[tuple[str, str, str]]:
+    """Size and entry of an add that is not a swap leg: (channel, code, message)."""
+    constraints = row.get("constraints") or {}
+    condition = decision.get("condition") or {}
+    out = []
+    # Four digits, not zero: rounding first would turn 20.5 shares into 20.
+    shares = _number((decision.get("size") or {}).get("shares"), 4)
+    lot = _number(constraints.get("lot_size"), 0)
+    room = _number(constraints.get("position_room_shares"), 0)
+    max_add = _number(constraints.get("max_add_shares"), 0) or 0
+    feas = receipts.FEASIBILITY
+    if shares is None or shares <= 0:
+        out.append((feas, "FEAS_SIZE_NOT_POSITIVE_INTEGER",
+                    f"{tag}: add requires positive integer size.shares"))
+    elif int(shares) != shares:
+        out.append((feas, "FEAS_FRACTIONAL_SHARES",
+                    f"{tag}: fractional shares are not supported"))
+    elif lot and int(shares) % int(lot) != 0:
+        out.append((feas, "FEAS_NOT_A_BOARD_LOT",
+                    f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}"))
+    elif room is not None and shares > room:
+        out.append((feas, "AUTH_EXCEEDS_ROOM",
+                    f"{tag}: size.shares {shares:g} exceeds the cash and concentration "
+                    f"room of {room:g} shares (position_room_shares)"))
+    elif shares > max_add:
+        out.append((receipts.STRATEGY, "STRAT_SIZE_ABOVE_POLICY_TRANCHE",
+                    f"{tag}: size.shares {shares:g} is above the registered policy's "
+                    f"tranche of {max_add:g} (max_add_shares)"))
+    price = _number(condition.get("price"), 4)
+    if condition.get("type") in ("price_above", "price_below") and (
+            price is None or price <= 0):
+        out.append((receipts.FACT, "FACT_ENTRY_PRICE_MISSING",
+                    f"{tag}: a price condition needs a positive condition.price"))
+    invalidation = _number(decision.get("invalidation_price"), 4)
+    if invalidation is None or invalidation <= 0:
+        out.append((feas, "FEAS_NO_INVALIDATION_PRICE",
+                    f"{tag}: add requires invalidation_price, the level at which it is wrong"))
+    setup_id = decision.get("technical_setup_id")
+    setups = (row.get("technical") or {}).get("setups") or []
+    named = [setup for setup in setups if setup.get("setup_id") == setup_id]
+    if setup_id and not named:
+        # Claiming a registered setup that the packet does not carry is a
+        # false reference, not a different strategy.
+        out.append((receipts.FACT, "FACT_UNKNOWN_SETUP",
+                    f"{tag}: technical_setup_id {setup_id!r} is not a setup in this packet"))
+    elif named:
+        approved = [
+            setup for setup in named
+            if setup.get("campaign_id") == decision.get("technical_campaign_id")
+            and setup.get("setup_id") in (constraints.get("technical_setup_ids") or [])
+            and setup.get("entry_type") == condition.get("type")
+            and _number(setup.get("entry_price"), 4) == price
+            and _number(setup.get("invalidation_price"), 4) == invalidation
+            and setup.get("next_tranche_number") == decision.get("tranche_number")
+            and (decision.get("action") != "add_on_breakout"
+                 or setup.get("setup_id") == "confirmed_breakout")
+        ]
+        if not approved:
+            out.append((receipts.STRATEGY, "STRAT_ENTRY_DIFFERS_FROM_SETUP",
+                        f"{tag}: entry, invalidation or tranche differs from the registered "
+                        f"setup {setup_id!r} it names"))
+        elif int(condition.get("valid_for_sessions") or 1) != int(
+                approved[0].get("valid_for_sessions") or 1):
+            out.append((receipts.STRATEGY, "STRAT_VALIDITY_DIFFERS_FROM_SETUP",
+                        f"{tag}: validity differs from the registered setup {setup_id!r}"))
+    else:
+        out.append((receipts.STRATEGY, "STRAT_NOT_A_REGISTERED_SETUP",
+                    f"{tag}: the entry is the plan's own; it matches no registered setup"))
+    return out
+
+
+def _review_row(packet: dict, decision: dict) -> dict | None:
+    """The row a decision is judged against (see `decision_row`).
+
+    A swap target the book does not hold is writable as the paired buy leg; an
+    open add on the same name is a proposal on an unheld name and is judged as
+    one.
+    """
+    ticker = str(decision.get("ticker") or "")
+    held = (packet.get("tickers") or {}).get(ticker)
+    if held:
+        return held
+    swap = (packet.get("swap_targets") or {}).get(ticker)
+    universe = (packet.get("proposal_universe") or {}).get(ticker)
+    if swap and (is_risk_swap_buy(decision) or not universe):
+        return swap
+    return universe
+
+
+def review_plan(plan: dict, packet: dict, *,
+                exempt_breach_ids=frozenset()) -> list[dict]:
+    """Every finding about the plan, each in its own channel (`receipts`).
+
+    `fact` and `feasibility` findings block; `strategy` findings are the
+    registered policy's objections and are kept with the decision. Nothing here
+    changes the plan.
+    """
+    out: list[dict] = []
     rows = packet.get("tickers") or {}
     decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
+    leg_spend: dict[str, float] = {}
+
+    def add(channel, code, message, index, ticker):
+        out.append(receipts.finding(channel, code, message, index=index, ticker=ticker))
+
     for index, decision in enumerate(plan.get("decisions") or []):
+        if not isinstance(decision, dict):
+            continue
         ticker = str(decision.get("ticker") or "")
         tag = f"decision[{index}] {ticker}"
-        row = decision_row(packet, ticker)
+        row = _review_row(packet, decision)
         if not row:
-            issues.append(f"{tag}: ticker is outside current decision packet")
+            add(receipts.FACT, "FACT_TICKER_NOT_PRICEABLE",
+                f"{tag}: ticker is outside current decision packet "
+                "(not a holding, a swap target or a name with stored daily bars)",
+                index, ticker)
             continue
         constraints = row.get("constraints") or {}
         action = decision.get("action")
-        if action not in (constraints.get("allowed_actions") or []):
-            issues.append(
-                f"{tag}: action {action!r} outside harness allowed_actions "
-                f"{constraints.get('allowed_actions') or []}"
-            )
+        mandate = constraints.get("swap_mandate")
+        swap_issues = (
+            _swap_leg_issues(tag, decision, row, mandate, decisions)
+            if action == "add_only_on_trigger" and mandate
+            and (is_risk_swap_buy(decision) or row.get("held") is False
+                 or "add_only_on_trigger" in (constraints.get("closed_actions") or {}))
+            else None
+        )
+        open_actions = constraints.get("open_actions")
+        if open_actions is None:
+            # A packet compiled before the envelope existed: the policy list
+            # is the only bound it carries.
+            open_actions = constraints.get("allowed_actions") or []
+        if swap_issues is not None:
+            for message in swap_issues:
+                add(receipts.FEASIBILITY, "AUTH_SWAP_MANDATE", message, index, ticker)
+        elif action not in open_actions:
+            closed = (constraints.get("closed_actions") or {}).get(action) or {}
+            add(closed.get("channel") or receipts.FEASIBILITY,
+                closed.get("code") or "FEAS_ACTION_NOT_OPEN",
+                f"{tag}: action {action!r} is not open on this name"
+                + (f": {closed['reason']}" if closed.get("reason") else "")
+                + f" (open: {open_actions})",
+                index, ticker)
+        else:
+            for code, message in _policy_objections(tag, action, row):
+                add(receipts.STRATEGY, code, message, index, ticker)
+        if (swap_issues is None and is_risk_swap_buy(decision)
+                and action in open_actions):
+            # The label is a claim: `risk_rule` says a breach prescribes this
+            # buy. An open add is welcome under its own name, not under a
+            # mandate nobody issued.
+            add(receipts.FEASIBILITY, "AUTH_NO_SWAP_MANDATE",
+                f"{tag}: a risk_rule buy leg needs a swap mandate and no open breach "
+                "prescribes buying this name", index, ticker)
+        claimed = _number(decision.get("simulated_entry_price"), 4)
+        observed = {_number((row.get("facts") or {}).get("current_price"), 4),
+                    _number((decision.get("condition") or {}).get("price"), 4)} - {None}
+        if claimed is not None and observed and claimed not in observed:
+            # A trigger level is the plan's to choose; a price it says was
+            # observed has to be one the packet carries.
+            add(receipts.FACT, "FACT_PRICE_NOT_OBSERVED",
+                f"{tag}: simulated_entry_price {claimed:g} is neither the packet's price "
+                "for this name nor the plan's own trigger", index, ticker)
         if decision.get("driven_by") == "catalyst":
-            issues.extend(_catalyst_evidence_issues(tag, decision, row))
+            for channel, code, message in _catalyst_evidence_findings(tag, decision, row):
+                add(channel, code, message, index, ticker)
+        elif (action in ACTIVE_ACTIONS and swap_issues is None
+              and decision.get("strategy_id") != "risk_rebalance"
+              and not decision.get("technical_setup_id")):
+            add(receipts.STRATEGY, "STRAT_ACTIVE_WITHOUT_CATALYST",
+                f"{tag}: the registered policy takes an active {action} only on a "
+                "catalyst, a registered setup or a risk rule", index, ticker)
         shares = _number((decision.get("size") or {}).get("shares"), 0)
         max_sell = _number(constraints.get("max_sell_shares"), 0)
-        if (
-            shares is not None and max_sell is not None
-            and action in {"cut", "trim_on_rebound", "t_only"}
-            and shares > max_sell
-        ):
-            issues.append(f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}")
+        if (shares is not None and max_sell is not None
+                and action in SELL_ACTIONS and shares > max_sell):
+            add(receipts.FEASIBILITY, "FEAS_SELL_EXCEEDS_HOLDING",
+                f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}", index, ticker)
         if action in SELL_ACTIONS and _whole_shares(decision) is None and (
             (decision.get("size") or {}).get("shares") is not None
             or action in (constraints.get("forced_action_one_of") or [])
@@ -2189,61 +2535,62 @@ def validate_plan_constraints(plan: dict, packet: dict, *,
             # An unsized sell stays advisory (`missing_size_warnings`); a zero,
             # negative or fractional one is not a sell, and a leg that answers a
             # forced action has to say how much it reduces.
-            issues.append(f"{tag}: sell leg requires positive integer size.shares")
-        swap_issues = (
-            _swap_leg_issues(tag, decision, row, constraints["swap_mandate"], decisions)
-            if action == "add_only_on_trigger" and constraints.get("swap_mandate")
-            else None
-        )
-        if swap_issues is not None:
-            issues.extend(swap_issues)
-        elif action in {"add_only_on_trigger", "add_on_breakout"}:
-            max_add = _number(constraints.get("max_add_shares"), 0) or 0
-            lot = _number(constraints.get("lot_size"), 0)
-            if shares is None or shares <= 0:
-                issues.append(f"{tag}: add requires positive integer size.shares")
-            elif int(shares) != shares:
-                issues.append(f"{tag}: fractional shares are not supported")
-            elif lot and int(shares) % int(lot) != 0:
-                issues.append(
-                    f"{tag}: size.shares {shares:g} is not a board-lot multiple of {lot:g}"
-                )
-            elif shares > max_add:
-                issues.append(
-                    f"{tag}: size.shares {shares:g} exceeds max_add_shares {max_add:g}"
-                )
+            add(receipts.FEASIBILITY, "FEAS_SELL_NOT_POSITIVE_INTEGER",
+                f"{tag}: sell leg requires positive integer size.shares", index, ticker)
+        if swap_issues is None and action in {"add_only_on_trigger", "add_on_breakout"} \
+                and action in open_actions:
+            for channel, code, message in _add_findings(tag, decision, row):
+                add(channel, code, message, index, ticker)
+            price = (_number((decision.get("condition") or {}).get("price"), 4)
+                     or _number((row.get("facts") or {}).get("current_price"), 4))
+            if shares and shares > 0 and price:
+                leg = str(row.get("leg") or "")
+                leg_spend[leg] = leg_spend.get(leg, 0.0) + shares * price
+    cash = (packet.get("portfolio") or {}).get("cash_available") or {}
+    for leg, spend in sorted(leg_spend.items()):
+        available = _number(cash.get(leg), 2)
+        if available is not None and spend > available:
+            add(receipts.FEASIBILITY, "FEAS_EXCEEDS_CASH",
+                f"{leg}: the plan's adds need {spend:,.2f} and the leg holds "
+                f"{available:,.2f} in cash", None, None)
+    for message in _full_position_shortfalls(decisions, rows, exempt_breach_ids):
+        add(receipts.FEASIBILITY, "AUTH_OBLIGATION_SHORTFALL", message, None, None)
+    return out
 
-            condition = decision.get("condition") or {}
-            price = _number(condition.get("price"), 4)
-            setups = (row.get("technical") or {}).get("setups") or []
-            approved = [
-                setup for setup in setups
-                if setup.get("setup_id") == decision.get("technical_setup_id")
-                and setup.get("campaign_id") == decision.get("technical_campaign_id")
-                and setup.get("setup_id") in (constraints.get("technical_setup_ids") or [])
-                and setup.get("entry_type") == condition.get("type")
-                and _number(setup.get("entry_price"), 4) == price
-                and _number(setup.get("invalidation_price"), 4)
-                    == _number(decision.get("invalidation_price"), 4)
-                and setup.get("next_tranche_number") == decision.get("tranche_number")
-            ]
-            if action == "add_on_breakout":
-                approved = [
-                    setup for setup in approved
-                    if setup.get("setup_id") == "confirmed_breakout"
-                ]
-            if not approved:
-                issues.append(
-                    f"{tag}: add condition does not match an approved technical setup"
-                )
-            elif int(condition.get("valid_for_sessions") or 1) != int(
-                approved[0].get("valid_for_sessions") or 1
-            ):
-                issues.append(
-                    f"{tag}: add condition validity does not match approved setup"
-                )
-    issues.extend(_full_position_shortfalls(decisions, rows, exempt_breach_ids))
-    return issues
+
+def validate_plan_constraints(plan: dict, packet: dict, *,
+                              exempt_breach_ids=frozenset()) -> list[str]:
+    """What stops this plan from being filed: facts and feasibility only."""
+    return [
+        receipts.tagged(item) for item in receipts.blocking(
+            review_plan(plan, packet, exempt_breach_ids=exempt_breach_ids))
+    ]
+
+
+def bind_policy_review(plan: dict, packet: dict, *,
+                       exempt_breach_ids=frozenset()) -> dict:
+    """Stamp each decision with the registered policy's objections to it.
+
+    Harness-written, like `signal_provenance`: an authored `policy_review` is
+    replaced. The proposal itself is left exactly as written — an objection is
+    printed beside it, never applied to it.
+    """
+    bound = copy.deepcopy(plan)
+    by_index: dict[int, list[dict]] = {}
+    for item in review_plan(bound, packet, exempt_breach_ids=exempt_breach_ids):
+        if item.get("index") is not None:
+            by_index.setdefault(item["index"], []).append(item)
+    for index, decision in enumerate(bound.get("decisions") or []):
+        if not isinstance(decision, dict):
+            continue
+        review = receipts.review_of(by_index.get(index, []))
+        row = _review_row(packet, decision) or {}
+        pending = (row.get("constraints") or {}).get("authorization")
+        if pending and decision.get("action") in ACTIVE_ACTIONS:
+            review["authorization"] = pending
+        review["authorization_version"] = (packet.get("authorization") or {}).get("version")
+        decision["policy_review"] = review
+    return bound
 
 
 def compile_pages_projection(
@@ -2270,11 +2617,10 @@ def compile_pages_projection(
             is_authorised_tier(authority.get("tier"))
             or early.get("observed")
         )
-        effective_disposition = (
-            judgment.get("disposition") if judgment and deterministic_candidate
-            else "reject" if judgment and judgment.get("disposition") == "reject"
-            else "wait"
-        )
+        # The judgment's disposition as written. It used to be replaced with
+        # `wait` whenever the add policy had not nominated the name — a
+        # conclusion changed on the way to the page with nothing saying so.
+        effective_disposition = (judgment or {}).get("disposition") or "wait"
         rows.append({
             "ticker": ticker,
             "name": row.get("name"),
@@ -2325,7 +2671,11 @@ def compile_pages_projection(
             "candidate_disposition": {
                 "deterministic_candidate": deterministic_candidate,
                 "effective": effective_disposition,
-                "discipline": "judgment may downgrade or reject; it cannot create authority",
+                "departs_from_policy": bool(
+                    effective_disposition == "candidate" and not deterministic_candidate),
+                "discipline": ("the judgment's disposition is shown as written; "
+                               "`deterministic_candidate` is the add policy's own "
+                               "nomination, and neither is an order"),
             },
         })
     rows.sort(
@@ -2524,6 +2874,25 @@ def bounded_payload(value, limit: int = MAX_QUERY_BYTES) -> str:
     if size > limit:
         raise ValueError(f"decision packet query exceeds {limit} bytes: {size}")
     return text
+
+
+def judgment_departures(packet: dict, overlay: dict) -> list[str]:
+    """Tickers the judgment nominates as candidates against the add policy.
+
+    The registered policy nominates a name only on an authorised evidence tier
+    or an observed early trend. A judgment may nominate another; that is a
+    strategy departure to be shown, not an error (#2842).
+    """
+    out = []
+    for row in (overlay or {}).get("ticker_judgments") or []:
+        if not isinstance(row, dict) or row.get("disposition") != "candidate":
+            continue
+        ticker = str(row.get("ticker") or "")
+        quant = ((packet.get("tickers") or {}).get(ticker) or {}).get("quant") or {}
+        if not (is_authorised_tier((quant.get("add_authority") or {}).get("tier"))
+                or (quant.get("early_trend") or {}).get("observed")):
+            out.append(ticker)
+    return out
 
 
 def query_view(packet: dict, ticker: str, section: str | None = None):

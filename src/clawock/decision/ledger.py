@@ -349,6 +349,60 @@ def normalize_expected_move(raw) -> float | None:
     return round(value, 3)
 
 
+PROPOSAL_TEXT_CHARS = {"hypothesis": 400, "method": 240}
+MAX_ALTERNATIVES = 3
+MAX_TOOL_RECEIPTS = 8
+MAX_FORECAST_HORIZON_SESSIONS = 20
+
+
+def _clean_text(value, limit: int) -> str | None:
+    text = " ".join(str(value).split()) if isinstance(value, str) else ""
+    return text[:limit] or None
+
+
+def normalize_proposal(action: dict) -> dict:
+    """The model-owned proposal fields of a decision, coerced to their shape.
+
+    `hypothesis` is what the model believes; `method` is how it got there —
+    free text, not a menu, so a new method needs no registration. `forecast`
+    is a checkable claim (an event, a probability, a horizon). `alternatives`
+    are what it weighed and did not choose, holding included. `tool_receipts`
+    cite computations by id. Anything malformed becomes absent rather than
+    being repaired into something the model did not say.
+    """
+    forecast = action.get("forecast")
+    clean_forecast = None
+    if isinstance(forecast, dict):
+        probability = _float(forecast.get("probability"))
+        horizon = _int(forecast.get("horizon_sessions"))
+        event = _clean_text(forecast.get("event"), 200)
+        if (event and probability is not None and 0 <= probability <= 1
+                and horizon and 1 <= horizon <= MAX_FORECAST_HORIZON_SESSIONS):
+            clean_forecast = {"event": event, "probability": probability,
+                              "horizon_sessions": horizon}
+    alternatives = []
+    for item in action.get("alternatives") if isinstance(
+            action.get("alternatives"), list) else []:
+        if not isinstance(item, dict):
+            continue
+        option = _clean_text(item.get("option"), 80)
+        why_not = _clean_text(item.get("why_not"), 200)
+        if option and why_not:
+            alternatives.append({"option": option, "why_not": why_not})
+    receipts_cited = [
+        ref for ref in (action.get("tool_receipts") if isinstance(
+            action.get("tool_receipts"), list) else [])
+        if isinstance(ref, str) and re.fullmatch(r"cr-[0-9a-f]{16}", ref)
+    ]
+    return {
+        "hypothesis": _clean_text(action.get("hypothesis"), PROPOSAL_TEXT_CHARS["hypothesis"]),
+        "method": _clean_text(action.get("method"), PROPOSAL_TEXT_CHARS["method"]),
+        "forecast": clean_forecast,
+        "alternatives": alternatives[:MAX_ALTERNATIVES] or None,
+        "tool_receipts": list(dict.fromkeys(receipts_cited))[:MAX_TOOL_RECEIPTS] or None,
+    }
+
+
 def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) -> dict:
     ticker = str(action.get("ticker") or "").strip()
     act = action.get("action") or action.get("bucket") or "watch"
@@ -424,6 +478,15 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         # is most of them today — the coverage series says how many (#1159).
         "expected_move_pct": normalize_expected_move(action.get("expected_move_pct")),
         "tranche_number": _int(action.get("tranche_number")),
+        # The proposal behind the decision, in the model's words (#2842): what
+        # it believes, how it got there, what it expects and what else it
+        # weighed. None when the plan did not say.
+        **normalize_proposal(action),
+        # Written by postflight from the packet review; an authored value is
+        # replaced there. Kept so the ledger shows which decisions departed
+        # from the registered policy.
+        "policy_review": action.get("policy_review")
+        if isinstance(action.get("policy_review"), dict) else None,
         # Additive contract marker: pre-2026-08 plans remain valid/readable, while
         # every newly normalized plan is subject to the technical trace rules.
         "technical_trace_version": 1,
@@ -585,14 +648,18 @@ def validate_decision(d: dict) -> list[str]:
             errors.append("swap buy leg requires positive integer size.shares")
     elif trace_version == 1 and d.get("action") in ADD_ACTIONS:
         prefix = "technical add" if d.get("driven_by") == "technical" else "add"
-        if not setup_id:
-            errors.append(f"{prefix} requires technical_setup_id")
-        if not isinstance(campaign_id, str) or not campaign_id:
-            errors.append(f"{prefix} requires technical_campaign_id")
         if _float(d.get("invalidation_price")) is None:
             errors.append(f"{prefix} requires invalidation_price")
-        if (_int(d.get("tranche_number")) or 0) < 1:
-            errors.append(f"{prefix} requires tranche_number >= 1")
+        if setup_id:
+            # An add that claims a registered setup carries that setup's trace.
+            if not isinstance(campaign_id, str) or not campaign_id:
+                errors.append(f"{prefix} requires technical_campaign_id")
+            if (_int(d.get("tranche_number")) or 0) < 1:
+                errors.append(f"{prefix} requires tranche_number >= 1")
+        elif not d.get("hypothesis"):
+            # An add on the plan's own entry has no setup to point at, so it
+            # states what it is betting on (#2842).
+            errors.append(f"{prefix} without a technical_setup_id requires hypothesis")
     if d.get("regime", "unknown") not in REGIMES:
         errors.append(f"bad regime {d.get('regime')!r}")
     override = d.get("override") or {}
