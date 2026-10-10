@@ -104,6 +104,10 @@ clawock 把你已经在用的 AI Agent 接成一套围绕港美股持仓连续�
 
 方法提案保留冻结输入和版本化预测；[方法评估](https://github.com/KCNyu/clawock/blob/master/docs/architecture/decision-architecture.md#method-records-and-evaluation) 分开收益与命中率，支持前瞻对照，不自动晋升方法。
 
+**从开放提案，到可核对的方法证据**
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/proposal-review.svg" width="1016" alt="三路审查：事实与可行性错误可以阻止发布，策略异议随提案保留。被拒绝和未发布的提案也记账。按 episode 统计的收益、预测评分与冻结的前瞻对照分开，不自动晋升方法或下单。"></p>
+
 ## 任何 harness，同一套会积累的决策契约
 
 你可以在 **Claude Code / Codex / OpenClaw / DeepSeek Harness / 任意能读写文件并调用 CLI 的运行时**里继续用同一套 `investment-decision` skill 与产物契约。模型、对话、记忆、研究工具、凭证与权限跟着你的 Agent；clawock 负责认证输入、核验输出、评估结果和记录改进，不启动另一个模型。

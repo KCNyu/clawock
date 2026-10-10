@@ -2039,7 +2039,67 @@ def feedback_learning():
     return d.render(bottom + 58 + M)
 
 
+def proposal_review():
+    """Three review channels and the evidence each proposal leaves behind."""
+    d = D('Open proposals: three checks, one durable record',
+          'The model proposes an action from observations and replayable computations. '
+          'Fact and feasibility errors block publication; strategy objections stay beside '
+          'the proposal. Refused and unpublished proposals also enter the method record. '
+          'Episode payoffs and forecast scores are separate from frozen prospective trials. '
+          'Neither report automatically promotes a method or places an order.')
+    y = d.header('CLAWOCK · PROPOSALS AND EVIDENCE',
+                 ['A different strategy can still be a valid proposal.'],
+                 ['Code checks facts and authority. The model owns the hypothesis.'],
+                 [('observations', 'blue'), ('blocking checks', 'green'),
+                  ('strategy opinion', 'warm'), ('method record', 'violet')]) + 28
+    full = WIDE - 2 * M
+    top = y
+    body = _panel(d, M, y, full, 112, 'blue', 'lens', 'Observe, compute, propose')
+    d.text(M + 20, body, 'Measured inputs + replayable calculations → hypothesis, action, size and forecast.')
+    d.text(M + 20, body + 24, 'Registered setups and scores remain available as policy opinions.', 'm', fill=MUT)
+    y += 172
+    col = (full - 2 * 24) / 3
+    checks = [
+        ('green', 'filing', 'Facts', ['Real citations and prices;', 'computations that replay.'], 'False claims block.'),
+        ('green', 'balance', 'Feasibility', ['Cash, shares, lots and', 'authorisations in force.'], 'Infeasible actions block.'),
+        ('warm', 'judge', 'Strategy', ['Does the registered policy', 'agree with this proposal?'], 'Objections do not block.'),
+    ]
+    for index, (role, icon, title, lines, result) in enumerate(checks):
+        x = M + index * (col + 24)
+        center = x + col / 2
+        d.wire(f'M{center:g} {top + 112:g}V{y:g}', kind='decision')
+        body = _panel(d, x, y, col, 150, role, icon, title)
+        for n, line in enumerate(lines):
+            fits(line, 'b', col - 40, title)
+            d.text(x + 20, body + n * 24, line)
+        fits(result, 'm', col - 40, title)
+        d.text(x + 20, body + 64, result, 'm', fill=ROLE[role])
+        d.wire(f'M{center:g} {y + 150:g}V{y + 210:g}', kind='data')
+    y += 210
+    body = _panel(d, M, y, full, 112, 'violet', 'book', 'Keep the proposal and its review')
+    d.text(M + 20, body, 'Frozen inputs, method text, forecasts and receipts; revisions append to the record.')
+    d.text(M + 20, body + 24, 'Refused and unpublished proposals remain counted. Passing review is not execution.', 'm', fill=MUT)
+    for center in (M + CW / 2, M + COL2 + CW / 2):
+        d.wire(f'M{center:g} {y + 112:g}V{y + 172:g}', kind='feedback')
+    y += 172
+    for x, title, lines in (
+        (M, 'Observe the track record', ['One episode per group, net of assumed costs.',
+                                       'Forecast scores stay separate from payoff.',
+                                       'Policy agreement is not a causal comparison.']),
+        (M + COL2, 'Freeze a prospective comparison', ['Old policy · observations · policy reference.',
+                                                    'Same starting capital and declared costs.',
+                                                    'Missing marks and failed arms stay visible.']),
+    ):
+        body = _panel(d, x, y, CW, 150, 'violet', 'replay', title)
+        for n, line in enumerate(lines):
+            fits(line, 'b', CW - 40, title)
+            d.text(x + 20, body + n * 25, line)
+    d.text(M + 20, y + 188, 'Evidence for human review: no automatic method promotion, sizing or order placement.', 'm', fill=MUT)
+    return d.render(y + 212)
+
+
 LAYOUTS = {
+    'proposal-review': proposal_review,
     'rsi-loop': rsi_loop,
     'feedback-learning': feedback_learning,
     'decision-pipeline': decision_pipeline,
