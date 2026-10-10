@@ -224,6 +224,13 @@ def _swap(buy_shares=4, *, group="swap-1", price=None, target="BASE", source="LE
     return {"decisions": [cut, buy]}
 
 
+def test_swap_buy_does_not_round_fractional_shares_into_authority():
+    compiled = _compile(_unheld_target_context())
+    for shares in (3.5, 4.1, 3.999999, True):
+        issues = packet.validate_plan_constraints(_swap(shares), compiled)
+        assert any("positive integer" in issue for issue in issues)
+
+
 def test_an_unheld_swap_target_has_a_row_of_its_own():
     compiled = _compile(_unheld_target_context())
     assert "BASE" not in compiled["tickers"]

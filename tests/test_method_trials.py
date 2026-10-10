@@ -86,3 +86,23 @@ def test_three_arms_use_the_same_capital_and_completed_terminal_session(tmp_path
     assert curves["observations_only"]["net"]["followed_sim"] > 1000
     assert curves["observations_only"]["net"] == curves["policy_reference"]["net"]
     assert report["settlement_bars"] == bars
+
+
+def test_missing_terminal_marks_do_not_report_an_earlier_value_as_trial_payoff(tmp_path, monkeypatch):
+    from clawock.decision import ledger
+
+    snapshot = spec()
+    snapshot["end_date"] = "2026-07-06"
+    snapshot["portfolio"]["portfolios"]["us_stocks"]["holdings"] = [
+        {"ticker": "AAA", "shares": 10}]
+    bars = {"2026-07-02": {"open": 10, "high": 10, "low": 10, "close": 10}}
+    monkeypatch.setattr(ledger, "bar", lambda ticker, day: bars.get(day))
+    monkeypatch.setattr(ledger, "load_ticker_bars", lambda ticker: bars)
+    tid = mt.register(tmp_path, snapshot, now=NOW)["trial_id"]
+    mt.submit(tmp_path, tid, "old_policy", {"status": "ok", "raw_response": "hold",
+              "plan": {"date": snapshot["start_date"], "decisions": []}}, now=NOW)
+    result = mt.replay(tmp_path, tid, now=LATER)
+    metrics = result["arms"]["old_policy"]["metrics"]["USD"]
+    assert metrics["status"] == "missing_marks"
+    assert metrics["missing_marks"]
+    assert "net_benefit" not in metrics

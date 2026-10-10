@@ -32,6 +32,7 @@ from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
 from clawock.decision.actions import is_risk_swap_buy
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
+from clawock.safe_io import to_strict_finite_number
 from clawock.workspace import workspace_root
 
 
@@ -2208,7 +2209,7 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
             f"positive integer-sized {'/'.join(SWAP_SELL_ACTIONS)} of {'/'.join(sorted(sources))}"
         ]
     issues = []
-    shares = _number((decision.get("size") or {}).get("shares"), 0)
+    shares = _whole_shares(decision)
     lot = _number((row.get("constraints") or {}).get("lot_size"), 0)
     if shares is None or shares <= 0 or int(shares) != shares:
         issues.append(f"{tag}: swap buy leg requires positive integer size.shares")
@@ -2236,7 +2237,7 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
 
 def _whole_shares(decision: dict) -> int | None:
     """A leg's size as a positive whole share count, else None."""
-    shares = _number((decision.get("size") or {}).get("shares"), 4)
+    shares = to_strict_finite_number((decision.get("size") or {}).get("shares"))
     if shares is None or shares <= 0 or int(shares) != shares:
         return None
     return int(shares)
@@ -2355,8 +2356,8 @@ def _add_findings(tag: str, decision: dict, row: dict) -> list[tuple[str, str, s
     constraints = row.get("constraints") or {}
     condition = decision.get("condition") or {}
     out = []
-    # Four digits, not zero: rounding first would turn 20.5 shares into 20.
-    shares = _number((decision.get("size") or {}).get("shares"), 4)
+    # Validate the authored number, without rounding it into an integer.
+    shares = to_strict_finite_number((decision.get("size") or {}).get("shares"))
     lot = _number(constraints.get("lot_size"), 0)
     room = _number(constraints.get("position_room_shares"), 0)
     max_add = _number(constraints.get("max_add_shares"), 0) or 0
@@ -2451,6 +2452,8 @@ def review_plan(plan: dict, packet: dict, *,
     rows = packet.get("tickers") or {}
     decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
     leg_spend: dict[str, float] = {}
+    sell_sizes: dict[str, list[int]] = {}
+    add_sizes: dict[str, list[int]] = {}
 
     def add(channel, code, message, index, ticker):
         out.append(receipts.finding(channel, code, message, index=index, ticker=ticker))
@@ -2537,8 +2540,13 @@ def review_plan(plan: dict, packet: dict, *,
             # forced action has to say how much it reduces.
             add(receipts.FEASIBILITY, "FEAS_SELL_NOT_POSITIVE_INTEGER",
                 f"{tag}: sell leg requires positive integer size.shares", index, ticker)
+        whole = _whole_shares(decision)
+        if whole is not None and action in SELL_ACTIONS:
+            sell_sizes.setdefault(ticker, []).append(whole)
         if swap_issues is None and action in {"add_only_on_trigger", "add_on_breakout"} \
                 and action in open_actions:
+            if whole is not None:
+                add_sizes.setdefault(ticker, []).append(whole)
             for channel, code, message in _add_findings(tag, decision, row):
                 add(channel, code, message, index, ticker)
             price = (_number((decision.get("condition") or {}).get("price"), 4)
@@ -2546,6 +2554,19 @@ def review_plan(plan: dict, packet: dict, *,
             if shares and shares > 0 and price:
                 leg = str(row.get("leg") or "")
                 leg_spend[leg] = leg_spend.get(leg, 0.0) + shares * price
+    # Conditions are independent orders, not an OCO contract. Splitting a
+    # position into several legs cannot multiply its inventory or add room.
+    for sizes_by_ticker, bound, code in (
+        (sell_sizes, "max_sell_shares", "FEAS_SELL_EXCEEDS_HOLDING"),
+        (add_sizes, "position_room_shares", "AUTH_EXCEEDS_ROOM"),
+    ):
+        for ticker, sizes in sizes_by_ticker.items():
+            row = decision_row(packet, ticker) or {}
+            limit = _number((row.get("constraints") or {}).get(bound), 0)
+            if len(sizes) > 1 and limit is not None and sum(sizes) > limit:
+                add(receipts.FEASIBILITY, code,
+                    f"{ticker}: the plan's combined {sum(sizes)} shares exceed "
+                    f"{bound} {limit:g}", None, ticker)
     cash = (packet.get("portfolio") or {}).get("cash_available") or {}
     for leg, spend in sorted(leg_spend.items()):
         available = _number(cash.get(leg), 2)

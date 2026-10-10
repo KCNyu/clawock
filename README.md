@@ -103,6 +103,10 @@ re-settles the whole ledger.
 
 Method proposals now retain frozen inputs and versioned forecasts; [method evaluation](https://github.com/KCNyu/clawock/blob/master/docs/architecture/decision-architecture.md#method-records-and-evaluation) separates payoff from hit rate and supports prospective comparisons without automatic promotion.
 
+**From an open proposal to evidence about the method**
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/proposal-review.svg" width="1016" alt="Three review channels: facts and feasibility can block; strategy objections stay with the proposal. Refused and unpublished proposals remain in the record. Episode payoff and forecast scores stay separate from frozen prospective comparisons; no automatic promotion or orders."></p>
+
 ## Any harness, one decision contract that accumulates evidence
 
 Use the same **`investment-decision` skill and artifact contract in Claude Code / Codex / OpenClaw / DeepSeek Harness / any runtime that can read and write files and call a CLI**. Your agent keeps its model, conversation, memory, research tools, credentials and permissions. clawock certifies inputs, validates outputs, evaluates outcomes and records improvement; it does not launch another model.

@@ -108,6 +108,7 @@ def test_an_authored_review_is_replaced_not_trusted():
     ({"size": {"shares": 21}}, "FEAS_NOT_A_BOARD_LOT"),
     ({"size": {"shares": 0}}, "FEAS_SIZE_NOT_POSITIVE_INTEGER"),
     ({"size": {"shares": 20.5}}, "FEAS_FRACTIONAL_SHARES"),
+    ({"size": {"shares": 20.000001}}, "FEAS_FRACTIONAL_SHARES"),
     # (0.6 × 2200 − 1100) / 0.4 = 550 of room; 550 // (11 × 20) = 2 lots.
     ({"size": {"shares": 60}}, "AUTH_EXCEEDS_ROOM"),
     ({"invalidation_price": None}, "FEAS_NO_INVALIDATION_PRICE"),
@@ -140,6 +141,18 @@ def test_the_legs_adds_together_cannot_spend_more_than_its_cash():
     packet["portfolio"]["cash_available"]["HK"] = 500.0
     issues = _blocked(plan, packet)
     assert len(issues) == 1 and "FEAS_EXCEEDS_CASH" in issues[0] and "840.00" in issues[0]
+
+
+def test_split_orders_share_the_same_inventory_and_position_room():
+    packet = _compile()
+    sell = {"ticker": "HK2", "action": "cut", "size": {"shares": 60}}
+    # Two independently triggerable orders cannot both spend the same shares.
+    assert "FEAS_SELL_EXCEEDS_HOLDING" in _codes(
+        {"decisions": [sell, {**sell, "action": "trim_on_rebound"}]}, packet)
+    assert _blocked({"decisions": [sell, {**sell, "size": {"shares": 40}}]}, packet) == []
+    assert "AUTH_EXCEEDS_ROOM" in _codes(
+        {"decisions": [_add(shares=40), _add(shares=20, price=10.6)]}, packet)
+    assert _blocked({"decisions": [_add(), _add(price=10.6)]}, packet) == []
 
 
 def test_an_open_breach_freezes_the_add_and_leaves_the_hold_open():
@@ -406,4 +419,3 @@ def test_a_decision_records_the_authorisation_version_it_was_reviewed_under():
                "AUTH_EXCEEDS_ROOM", "AUTH_SWAP_MANDATE", "AUTH_NO_SWAP_MANDATE",
                "AUTH_OBLIGATION_SHORTFALL"}
     assert emitted == {code for code, _, _ in receipts.AUTHORIZATIONS}
-
