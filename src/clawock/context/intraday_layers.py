@@ -58,3 +58,41 @@ CORE_FIELDS = {
     'anomaly_search': 'evidence', 'active_information_candidates': 'evidence',
     'known_catalysts': 'evidence',
 }
+
+
+# What kind of statement each field makes (#2843). The layers above say where a
+# field is read; this says how far it may be argued with.
+#
+#   observation — measured or recorded: a quote, a filing, a plan row, a clock.
+#   policy      — the output of a rule that screens, scores or nominates:
+#                 someone's registered opinion about the observations.
+#   mixed       — observations carrying such labels inside them.
+#   control     — run plumbing the judgment never reads.
+#
+# A policy or mixed field is evidence of what a registered rule concluded, not
+# of what is true: the judgment may weigh it, depart from it and say why. It is
+# never grounds for withholding the observation underneath. A field is listed
+# once; `test_every_context_field_declares_its_semantics` holds the tables
+# together.
+POLICY_FIELDS = (
+    'anomalies', 'signals_detail', 'source_signals_detail', 't0_setups',
+    'early_trend_candidates', 'opportunity_radar', 'provisional_setups',
+    'strategy_checks', 'strategy_escalations', 'add_side_reads', 'soft_candidates',
+)
+MIXED_FIELDS = (
+    'analyzer_block', 'raw_wechat_block', 'semantic_state', 'semantic_delta',
+    'prior_semantic_state', 'mover_thesis', 'mover_news', 'anomaly_search',
+    'active_information_candidates',
+)
+
+
+def field_semantics(field):
+    """`observation`, `policy`, `mixed` or `control` for a context field."""
+    if field in CONTROL_ENTRIES:
+        return 'control'
+    if field in POLICY_FIELDS:
+        return 'policy'
+    if field in MIXED_FIELDS:
+        return 'mixed'
+    return 'observation'
+

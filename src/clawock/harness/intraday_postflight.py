@@ -56,6 +56,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
+    with_compute_receipts,
     check_pipeline_self_reference,
     has_section_marker,
     is_hard_char_limit,
@@ -610,7 +611,7 @@ def validate(text, ctx, model_text):
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
     # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
-    issues.extend(check_numeric_claims(checked, ctx))
+    issues.extend(check_numeric_claims(checked, with_compute_receipts(ctx, WS)))
 
     # 下一触发 —— escalating，见 check_next_trigger
     issues.extend(check_next_trigger(checked, ctx))

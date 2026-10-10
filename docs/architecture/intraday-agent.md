@@ -90,7 +90,7 @@ named call away — not truncation.
 
 | Field | What it answers |
 |---|---|
-| `index` | this slot's id and time, the last delivered slot, and the **reference list**: every reference entry's name, how to fetch it, a one-line description and its size |
+| `index` | this slot's id and time, the last delivered slot, the **reference list** (every reference entry's name, how to fetch it, a one-line description and its size), and `rule_outputs`: which fields present in the slot are a registered rule's conclusion (`policy`) or observations carrying such labels (`mixed`), from `intraday_layers.field_semantics`. The judgment may depart from a rule output and says why; the measurements underneath are reachable with `clawock tool observations` and a feature of the model's own with `clawock tool compute` (`decision-architecture.md`) |
 | `analyzer_block` | the analyzer's stdout exactly — the only place signal reason lines live after the card folds them |
 | `raw_wechat_block` | the card as kcn will read it (do not restate it) |
 | `full_holdings` | every holding: price, day move, quote freshness, distance to plan trigger lines |

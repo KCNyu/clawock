@@ -486,6 +486,26 @@ def _episode_claim_mismatches(text, ctx):
     return episode_claim_mismatches(text, (ctx or {}).get('reflections'))
 
 
+def with_compute_receipts(ctx, workspace):
+    """`ctx` plus the receipts the model computed during this run.
+
+    A number from `clawock tool compute` is not in the preflight context — the
+    model asked for it afterwards — so the gate below would report a correctly
+    quoted result as one "the context never states". The receipts carry their
+    unit in the key (`value_pct`, `value_sigma`, …) like every other source.
+    """
+    if not isinstance(ctx, dict):
+        return ctx
+    from clawock.market_data import compute  # noqa: PLC0415
+
+    receipts = compute.receipts_since(workspace, ctx.get('generated_at'))
+    if not receipts:
+        return ctx
+    return {**ctx, 'compute_receipts': [
+        {key: value for key, value in receipt.items() if key != 'inputs'}
+        for receipt in receipts]}
+
+
 def check_numeric_claims(text, ctx):
     """Flag unit-bearing magnitudes the context never states, and impossible
     percentage ranges.

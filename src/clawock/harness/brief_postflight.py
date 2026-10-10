@@ -834,6 +834,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
+    with_compute_receipts,
     check_md_table_column_consistency,
     check_pipeline_self_reference,
     mentions_ticker,
@@ -1273,7 +1274,7 @@ def _brief_numeric_issues(judgment_path, plan, context):
     if own_fields and isinstance(context, dict):
         context = {**context, 'plan_decision_sizes': own_fields}
     return check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
-                                context)
+                                with_compute_receipts(context, WS))
 
 
 def main(argv=None):

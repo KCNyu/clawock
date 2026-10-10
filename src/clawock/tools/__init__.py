@@ -41,10 +41,11 @@ import json
 
 def build_registry(workspace, tools=None) -> ToolRegistry:
     """Registry for a workspace, skipping tools whose dependencies are absent."""
-    from clawock.tools import context_tools
+    from clawock.tools import context_tools, observation_tools
 
     registry = ToolRegistry(workspace)
-    for tool in (tools if tools is not None else context_tools.TOOLS):
+    for tool in (tools if tools is not None
+                 else (*context_tools.TOOLS, *observation_tools.TOOLS)):
         registry.register(tool() if isinstance(tool, type) else tool)
     return registry
 

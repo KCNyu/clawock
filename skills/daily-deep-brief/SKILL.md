@@ -174,7 +174,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 ### Step 3: Swarm 分析（你的创造性工作）
 
-按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询或确有必要时加载的 bundle 取；技术指标、因子分数、风险分类和 action bounds 一律引用 harness 结果，不重新计算。
+按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询、确有必要时加载的 bundle、或本次运行内 `clawock tool compute` / `observations` 的返回取；风险分类和 action bounds 引用 harness 结果。packet 给的技术指标和因子分数是固定窗口下的一种算法，你可以用 `compute` 换窗口、换比较对象或定义新的量，但不心算。
 
 #### Required reads
 
@@ -402,9 +402,20 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   - 选择由 postflight 记进账本(`adaptive.stances`),你不写账本、不编 id。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
 - **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
-- **技术面判断只准引用 `context.quant_signals` 中 `status=fresh` 的行**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 的因子只能当背景展示不入决策；`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面同样只在 `sample_sufficient=true AND edge_supported=true` 时可入决策；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
-- **跨截面因子只读 `context.cross_sectional_factor`**。这是同行/1x 标的的行业中性研究层；只有 `activation.usable_for_decisions=true` 才能影响动作。为 false 时，排名、杠杆 decay 对比和回溯结果只能作为明确标注的研究背景，不得写进 Judge 理由、不得改变 confidence；尤其禁止用 retrospective CI 代替预注册后的 prospective 证据。
-- **同行残差只读 `context.peer_residual`**。leader continuation、laggard avoidance、mean reversion 三条规则分别看 `rule_activation.<rule>.usable_for_decisions`，不得互相借样本；为 false 时，即使 `held.<ticker>.triggered_rules` 有触发也不得用于换股/加减仓。港股 peer 只能来自人工 `peer-map.json`，禁止补写或调用自动 HK 同行发现。
+- **技术面判断只准引用 `context.quant_signals` 中 `status=fresh` 的行**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 说明这条规则的前瞻对账不支持它，引用时必须写明；它不妨碍你使用同一组观测形成自己的判断。`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面的评级同理：`sample_sufficient=true AND edge_supported=true` 之外的评级是未获对账支持的规则意见，引用时写明；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得据此自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
+- **跨截面因子读 `context.cross_sectional_factor`**。这是同行/1x 标的的行业中性研究层。`activation.usable_for_decisions` 说的是**那个预注册 composite 的前瞻验证有没有通过**，不是其中每个测量值能不能用：单项测量（动量、相对强度、波动、回撤、质量）是核实过的观测，可以进入你的判断；composite 分数和排名是一种登记过的加权意见。为 false 时，引用 composite 或排名必须同句写明「该组合打分未通过前瞻验证」，不得把 retrospective CI 说成 prospective 证据，也不得把它写成已验证的优势。
+- **同行残差读 `context.peer_residual`**。leader continuation、laggard avoidance、mean reversion 三条规则各自的 `rule_activation.<rule>.usable_for_decisions` 说的是那条规则的样本够不够，不得互相借样本。残差本身是测量值，可以用；规则未激活时引用它的触发要写明「该规则样本未达标」，由你判断这次是否仍然成立并给出理由。港股 peer 只能来自人工 `peer-map.json`，禁止补写或调用自动 HK 同行发现。
+- **规则产出与观测分开读（#2843）**：packet 的 `judgment_contract.rule_outputs` 列出每个 section 里哪些字段是登记规则的结论（`technical.tag` / `setups`、composite、`add_authority`、`status.label` 等）。它们如实记录了规则说了什么，但不是市场事实：可以采纳，可以不同意，不同意时写明依据。规则没有点名的观测不因此不能用。
+- **需要 packet 里没有的量，就让系统算，不要心算**：
+
+  ```bash
+  # 你定义的特征：窗口、比较对象、公式都由你选；返回数值和回执（receipt_id、as_of、读了哪些日线）
+  /root/.local/bin/clawock tool compute --workspace /root/.openclaw/workspace --arg 'expression=zscore(close("RKLX") / close("RKLB"), 20)'
+  # 规则结论底下的原始观测：日线 / 因子逐项测量 / 全部事件（含未升级的）
+  /root/.local/bin/clawock tool observations --workspace /root/.openclaw/workspace --arg ticker=RKLB --arg kind=factors
+  ```
+
+  `compute` 可用函数见 `clawock tool --list`（`close/open/high/low`、`sma`、`ema`、`ret`、`vol`、`zscore`、`atr`、`atr_pct`、`rsi`、`range_pos`、`drawdown`、`beta`、`corr`、`highest`、`lowest`、`last`、`lag`，序列之间可加减乘除），ticker 写成带引号的字符串，持仓外的 registry 标的同样可算。结果的数值原样引用，并在该句写出它是什么（「RKLX/RKLB 比值的 20 日 z 值 -0.74」）；postflight 认本次运行内算出的回执。回执只证明输入存在、没读 `as_of` 之后的数据、算术可重放，**不证明你的假设成立**。日线从 2025-12 起存，窗口不够会直接报「insufficient history」，照实写，不换个说法补一个数。
 
 > 心智:driven_by 三档管"该信哪个信号",仓位硬闸管"不管信号多强,单名/单因子/杠杆都不许超过这条线"。后者是回撤的真正解药。
 
