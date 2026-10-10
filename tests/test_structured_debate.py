@@ -85,16 +85,16 @@ def test_a_malformed_block_is_normalized_rather_than_failing_the_morning():
     assert dv2.validate_decision(row) == []
 
 
-def test_frames_outside_the_judges_menu_are_discarded():
+def test_frames_outside_the_suggested_menu_are_preserved():
     row = normalized(debate={"bear": "b", "frames": ["momentum", "vibes", "breakout"]})
 
-    assert row["debate"]["frames"] == ["momentum", "breakout"]
+    assert row["debate"]["frames"] == ["momentum", "vibes", "breakout"]
     assert "vibes" not in STRATEGY_FRAMES
 
 
 def test_a_debate_block_with_nothing_in_it_is_recorded_as_absent():
     """Otherwise an empty object inflates the coverage number it is measured by."""
-    for empty in ({}, {"bull": "   "}, {"frames": ["nonsense"]}, "not a dict", None):
+    for empty in ({}, {"bull": "   "}, {"frames": [None, " "]}, "not a dict", None):
         assert dv2.normalize_debate(empty) is None
 
 
@@ -113,8 +113,8 @@ def test_a_hand_written_plan_with_an_unreadable_block_is_refused():
     row["debate"] = {"bear": "b", "smuggled": "x"}
     assert any("unknown debate field" in e for e in dv2.validate_decision(row))
 
-    row["debate"] = {"bear": "b", "frames": ["vibes"]}
-    assert any("strategy frames" in e for e in dv2.validate_decision(row))
+    row["debate"] = {"bear": "b", "frames": [42]}
+    assert any("text labels" in e for e in dv2.validate_decision(row))
 
     row["debate"] = {}
     assert "debate must be null or a non-empty object" in dv2.validate_decision(row)

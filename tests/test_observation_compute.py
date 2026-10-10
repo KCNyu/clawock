@@ -324,3 +324,29 @@ def test_the_documented_parameter_counts_match_the_configs():
         assert len(counted) == int(stated), f"{name}: {len(counted)} numeric leaves"
         total += len(counted)
     assert f"hold {total} numeric leaves" in doc
+
+
+@pytest.mark.parametrize("expression", [
+    'ret(close("AAA"))', 'sma(close("AAA"), 2, 3)', 'last()', 'atr("AAA")',
+    'min()', 'max()',
+])
+def test_bad_function_arity_is_a_readable_refusal(expression):
+    with pytest.raises(compute.ComputeError, match="argument"):
+        compute.evaluate(expression, load=load)
+
+
+def test_compute_uses_the_requested_workspace_not_an_import_time_root(workspace, monkeypatch):
+    def wrong_root(_ticker):
+        raise AssertionError("must not read the process-global store")
+    monkeypatch.setattr(compute, "_default_loader", wrong_root)
+    receipt = json.loads(build_registry(workspace).call("compute", expression='last(close("AAA"))'))
+    assert receipt["value"] == 20
+    assert compute.verify(receipt, load=compute.workspace_loader(workspace)) == []
+    from clawock.harness.brief_postflight import tool_receipt_issues
+    assert tool_receipt_issues([{"ticker": "AAA", "tool_receipts": [receipt["receipt_id"]]}],
+                               "2026-01-10", workspace=workspace) == []
+
+
+def test_bad_arity_reaches_the_model_as_a_tool_error(workspace):
+    with pytest.raises(ToolError, match="invalid arguments"):
+        build_registry(workspace).call("compute", expression='sma(close("AAA"))')

@@ -381,7 +381,7 @@ def test_evidence_cannot_be_observed_in_the_future(us):
 def test_schema_document_and_validator_agree(us):
     schema = json.loads(eg.SCHEMA_FILE.read_text())
     assert set(schema["required"]) == set(eg.ARTIFACT_FIELDS)
-    assert set(schema["properties"]) == set(eg.ARTIFACT_FIELDS)
+    assert set(schema["properties"]) == set(eg.ARTIFACT_FIELDS) | {"research_judgment"}
     assert set(schema["properties"]["verdict"]["enum"]) == eg.VERDICTS
     assert set(schema["properties"]["quote"]["properties"]["source_class"]["enum"]) == eg.QUOTE_SOURCES
     assert set(schema["properties"]["vetoes"]["items"]["properties"]["id"]["enum"]) == set(eg.VETOES)
@@ -425,3 +425,26 @@ def test_cli_fails_closed_on_unreadable_artifact(tmp_path, capsys):
     path.write_text("{nope")
     assert eg.main(["assess", str(path)]) == 1
     assert json.loads(capsys.readouterr().out)["status"] == "fail"
+
+
+def test_research_disagreement_is_filed_without_overriding_screening(us):
+    us["checks"][0]["verdict"] = "fail"
+    us["verdict"] = "reject"
+    us["research_judgment"] = {
+        "verdict": "pass_to_deep_research",
+        "rationale": "The failed quality check may reflect a temporary transition; verify contracts.",
+    }
+    result = eg.assess(us, now=NOW)
+    assert result["status"] == "pass"
+    assert result["verdict"] == "reject"
+    assert result["research_verdict"] == "pass_to_deep_research"
+    assert result["research_departs_from_policy"] is True
+    assert result["research_judgment"] == us["research_judgment"]
+    assert result["authorizes_exposure"] is False
+    us["evidence"][0]["observed_at"] = "2027-01-01T00:00:00+00:00"
+    assert eg.assess(us, now=NOW)["status"] == "fail"
+
+
+def test_research_disagreement_requires_a_reason(us):
+    us["research_judgment"] = {"verdict": "reject", "rationale": " "}
+    assert any("research_judgment.rationale" in e for e in eg.validate_artifact(us, now=NOW))

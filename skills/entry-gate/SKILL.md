@@ -9,15 +9,19 @@ Manual, run once per candidate name. It is cheap on purpose: it decides whether 
 expensive work is worth doing, and its output routes straight into the full-report
 mode of the market's analysis skill.
 
-Write `memory/entry-gates/<TICKER>-<YYYY-MM-DD>.json` and let the script decide.
-You supply findings and evidence; the verdict is computed.
+Write `memory/entry-gates/<TICKER>-<YYYY-MM-DD>.json`. The script computes the
+registered screening policy's `verdict`; you decide whether more research is worth
+it. To disagree, add `research_judgment: {"verdict": "pass_to_deep_research",
+"rationale": "why the concern warrants investigation and what would change my view"}`.
+`assess` returns your `research_verdict` and `research_departs_from_policy` alongside
+the original policy result. Neither result grants permission to open a position.
 
-## What the script computes, and will overrule you on
+## What the script verifies
 
 - `information.grade` (A/B/C) from the evidence source classes you cite;
 - `quote_freshness` from `quote.as_of` against `assessed_at`;
 - `verdict` and `routing` — a stated verdict that disagrees with the computed one is
-  a validation error, not a note;
+  a false claim about the policy; put a differing research choice in `research_judgment`;
 - whether a hard veto's industry exception is actually encoded for this sector.
 
 Vetoes are resolved **before** any check is counted, so `checks_passed` can never
@@ -28,8 +32,7 @@ rescue a vetoed name.
 Use the workspace pipelines, never a web price:
 
 ```bash
-clawock analyze-us {TICKER}   # US
-clawock analyze-hk {TICKER}   # HK
+clawock fetch-peers --help   # fetch verified quotes for an unheld name; use the documented JSON stdin request
 ```
 
 `quote.source_class` must be one of the pipeline names, or validation fails outright.
@@ -73,7 +76,7 @@ infrastructure). An exception applies only when the artifact's `sector` matches 
 encoded one and the exception cites its own evidence row. Integrity and
 unintelligible-mechanism encode none — there is no sector where they are acceptable.
 
-## Step 5 — mirror test and verdict
+## Step 5 — mirror test and research judgment
 
 Exactly five distinct sentences: what it does, why it earns, what must stay true,
 what would break it, and what you would do then.
@@ -83,17 +86,19 @@ clawock entry-gate validate memory/entry-gates/<TICKER>-<date>.json
 clawock entry-gate assess   memory/entry-gates/<TICKER>-<date>.json
 ```
 
+Follow `assess.research_verdict` (your stated judgment, or the policy default):
+
 - `pass_to_deep_research` → go run `us-stock-analysis` / `hk-stock-analysis`
   **Mode 4 (Full Report)**, or the leverage look-through path for a leveraged ETF.
   Carry `key_variables` in as the questions the report must answer.
 - `gray_needs_evidence` → `next_evidence` must name the question and where to look.
-  Nothing else happens until that evidence exists.
-- `reject` → record it and stop. Thin sourcing alone never lands here; a `C` grade
+  State what research would resolve the gap.
+- `reject` → record the research decision and its reason. Thin sourcing alone never lands here; a `C` grade
   is gray, because information richness is not investment quality.
 
 ## Hard limits
 
 - A `C` information grade describes the sources, never the company.
-- No aggregate score, no persona voting, no "average" that can dilute a veto.
+- A research disagreement preserves the veto evidence and policy verdict; do not erase a concern to justify further research.
 - This gate opens no position and changes no thesis. A qualified name goes to full
   research; exposure still goes through the decision, risk, and settlement chain.

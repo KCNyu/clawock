@@ -316,6 +316,9 @@ def test_a_cited_receipt_must_exist_replay_and_predate_the_plan(tmp_path, monkey
     store = {"AAA": {"source": "fixture", "adjustment": "raw", "bars": {
         f"2026-07-{20 + i}": {"close": 10 + i} for i in range(9)}}}
     monkeypatch.setattr(bars_store, "load_bars", lambda ticker: store.get(ticker, {}))
+    bar_dir = tmp_path / "memory" / "bars"
+    bar_dir.mkdir(parents=True)
+    (bar_dir / "AAA.json").write_text(json.dumps(store["AAA"]))
     known = compute.evaluate('ret(close("AAA"), 3)', as_of="2026-07-27")
     later = compute.evaluate('ret(close("AAA"), 3)', as_of="2026-07-28")
     forged = {**compute.evaluate('last(close("AAA"))', as_of="2026-07-27"), "value": 99.0}

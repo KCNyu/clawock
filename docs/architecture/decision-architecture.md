@@ -94,6 +94,9 @@ value.
 Limits are a service contract, not a trading rule: 400 characters, 80 syntax
 nodes, windows of 1–400 sessions. The store starts in 2025-12 and holds no
 volume; a window longer than the history is refused with `insufficient history`.
+Bad function arity returns a concise tool refusal, including empty `min`/`max`.
+Tool calculation and plan-receipt replay bind their bar loader to the requested
+workspace, independent of an earlier import in the same process.
 
 ## Proposals and the three checks
 
@@ -137,6 +140,8 @@ What closes an action:
 Split sell legs also share one `max_sell_shares` inventory limit. Conditions
 are independently triggerable; they do not declare mutually exclusive orders.
 Swap buys must have positive integer shares before any board-lot or value check.
+A reduction obligation does not require a buy leg: cash is a possible reasoned
+destination. Claiming a risk-rule swap buy still binds that leg to its mandate.
 
 The packet carries the set as `authorization`: each rule's code, what it
 binds, the parameter it reads, the current caps and a `version` hashed from all
@@ -183,6 +188,49 @@ An add that names no registered setup must state `hypothesis` and
 no later than the plan date (`brief_postflight.tool_receipt_issues`).
 `simulated_entry_price`, when given, must be the packet's price for the name or
 the plan's own trigger.
+
+## Judgment across entry points
+
+The daily brief, technical playbook, manual portfolio review and report skills
+use the same distinction: setups, catalyst escalation, sentiment weights and
+regime defaults are registered opinions. They cannot silently reinstate an
+`allowed_actions` veto after `open_actions` admitted the proposal. A model may
+choose an entry, size or evidence weighting that differs and retain its real
+`driven_by`. The intraday payload accepts this run's compute receipts as numeric
+sources, as its postflight does.
+
+`debate.frames` are model-owned text labels. The eight familiar labels in
+`decision/actions.py` are examples, not an enumeration used to delete other
+mechanisms. Normalization keeps up to three labels under the existing text
+budget; it drops empty/non-text values and reports `debate_frames_invalid`.
+Actions, condition types and strategy IDs still use the settlement vocabulary.
+
+Entry screening keeps the deterministic `verdict`, evidence grading and encoded
+vetoes in `decision/entry.py`. Whether a concern deserves further research is a
+separate judgment: the optional artifact field `research_judgment` contains a
+`verdict` and non-empty `rationale`. `entry-gate assess` returns `research_verdict`,
+`research_departs_from_policy` and `authorizes_exposure: false`. Research follows
+that judgment; the original screen is never rewritten. The research surface
+carries both, and a holding after a rejected screen remains visible. This does
+not remove `entry_gate_required` from unheld proposals.
+
+Remaining restrictions have distinct owners:
+
+| Boundary | Owner and purpose |
+|---|---|
+| Identity, prices, references, timestamps, currency arithmetic | Ledger, packet, market-data integrity and numeric validation; prevent false records |
+| Cash, inventory, lots, paired swap amounts | Packet feasibility review; prevent impossible order sizes |
+| Stops, regime obligations, exposure freezes, concentration room | Versioned authorizations above; deliberate risk choices, not market facts |
+| Holding an in-force obligation | `risk.forces_action`, `may_stand`, active durable override; a plan-local override is not authorization |
+| Respond-only caps | `risk.RESPOND_ONLY_TYPES`; reissue timers do not convert a cap into a forced sale |
+| User-selected intraday holding policies | `intraday_policy` and its config; affect advice presentation, not the risk ledger |
+| Evaluation and promotion | Calibration and method trials record evidence; no automatic live-method promotion or broker order |
+| Input budgets, supported expressions, artifact shape, delivery freshness | Tool/runtime contracts; finite resources and reproducible publication |
+| Portable workflow evidence contract | Prepared workflow version and parameters; separate opt-in artifact protocol, not a new brief veto |
+
+Thus the system still has explicit authorization and runtime contracts. It does
+not claim that every remaining check is arithmetic. Ordinary policy dissent is
+recorded without changing these contracts.
 
 ## Fixed parameters in policy configuration
 

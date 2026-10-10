@@ -492,7 +492,8 @@ def test_mode_6_reports_must_attribute_their_anomalies(skill_name):
     for state in ("no_recent_filing", "index_fund_no_issuer", "degraded"):
         assert state in prose, state
     # a red line is context for the move, never permission to act
-    assert "mover_thesis" in prose and "catalyst-gate" in prose
+    assert "mover_thesis" in prose and "这是归因语境，不是操作许可" in prose
+    assert "catalyst 评级只是登记策略意见" in prose
     # and when space runs out, the attribution is not what gets cut
     assert "先砍板块全景" in prose
 

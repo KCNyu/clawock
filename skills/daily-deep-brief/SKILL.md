@@ -74,7 +74,7 @@ preflight。fallback 会拒绝生成，postflight 也会阻止发布。其他资
 
 - `memory/.tmp/brief-context-{date}.json` —— 完整、不可裁剪的审计事实；供 postflight 校验，**不要整份 cat 进模型上下文**。
 - `memory/.tmp/brief-context-{date}/manifest.json` + `core.json` + feature bundles —— 同一 `generation_id` 下的模型输入边界。manifest 记录路径、hash、字段、逐 section 大小和预算。
-- manifest 的 `tools.decision_packet` —— harness 编译的 typed 决策边界；技术分类、量化可用性、风险动作、证据 ID 与 action bounds 都由代码拥有。
+- manifest 的 `tools.decision_packet` —— harness 编译的 typed 决策边界；证据 ID、算术和授权边界由代码拥有；技术分类、量化评级与候选是登记策略的意见。
 
 ### Step 2: 只读 decision packet summary（唯一常驻输入）
 
@@ -118,7 +118,7 @@ reference 的三种技术 staged setup 和 packet 编译出的 `alpha_confirmati
 (H20 55.9% avg +16.25%；港股 H20 59.4% avg +38.7%)，此前只喂给盘中消息、
 对决策没有任何权重。
 
-三条边界不许越：**门槛仍是两族**(突破单独不授权任何东西)；突破**不算 validated**
+登记策略的三条判据：**门槛仍是两族**(突破单独不获该策略提名；自定提案走 `open_actions`)；突破**不算 validated**
 (validated 仍要两侧都有 `usable_for_decisions` 的证据)；因此**杠杆腿不会被价格形态
 提拔**，`leveraged_requires_validated_evidence` 照旧。授权成立时
 `add_authority.technical_reasons` 会写明是哪一次突破——**引用它，不要自己重算价位**。
@@ -187,7 +187,7 @@ bundle 路由：
 - `market`: `macro`, `sentiment`, `influencer`, `em_news`, `watch_list`
 - `calibration`: `retrospective`, `decision_metrics`, `reflections`
 
-`market.watch_list`（#556）：非持仓 AI 观察池（智谱 02513 / 迅策 03317 等）的**价格面观察**——仅当突破/接近突破/5d 大涨时才有行。写「新机会」节时读取它，但**观察池名字绝不产生 add 授权、绝不进决策**（不进 plan / `_constraints`）。
+`market.watch_list`（#556）：非持仓 AI 观察池（智谱 02513 / 迅策 03317 等）的**价格面观察**——仅当突破/接近突破/5d 大涨时才有行。写「新机会」节时读取它，但**观察池本身不产生 add 授权**；同名标的若在 `proposal_universe` 中，可按其边界写可评估提案，否则先补报价与 registry。
 
 manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 core；只有下面明确要求消费该字段时才读。任一 bundle 的 `_meta.generation_id` 与 manifest 不同，立即停止，不得把不同 preflight run 的事实拼在一起。
 
@@ -369,20 +369,20 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
-- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% mandatory；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
+- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% 须回应、不强卖；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
 - `context.risk_discipline.records[]`（core，常驻）— 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence；`adaptive.recent_choices` 是最近几次 stand/reissue（完整理由留在账本）。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
 - **强制与回应分两类**,看每条风险行的 `risk[].enforcement`(#2839):
   - `forced`(杠杆硬止损、`regime_delever`):规则自己给了去处(`required_reduction.swap_to`),必须在 Judge 段落出对应动作(cut,或 regime 的 trim/cut),不准"观望"。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条,以及 durable override 生效的。
   - `respond`(`single_name` / `leveraged_exposure` / `factor_concentration` / `beta` 四类上限):规则只说要减多少、没说钱去哪,所以**不强制卖**。每条都要回应:减仓(trim/cut),或 `hold_and_watch` 并在 rationale 写明今天为什么不减、什么情况下会减。不许不提,也不许只写一句「继续观察」。**超限期间该票加仓关闭**,持有不等于可以加。postflight 把这次选择记进风险账本。
-  - 卖出不是默认答案。先问「卖了之后这笔钱去哪」:没有去处的减仓等于卖出并持有现金,这是另一个判断,要单独给理由。
+  - 卖出不是默认答案。比较减仓后持有现金与换仓的机会成本；现金也可以是有理由的选择。强制义务只核应减数量，不强迫同时写买腿。引用 `risk_rule` 换仓买腿时，仍须遵守指定目标与配对金额。
 - 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；未确认的老 breach 要明确升级，不得每天当新提醒重写。
 - 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `/root/.local/bin/clawock risk override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `risk ack ... --note '...'`，成交证据用 `risk confirm ... --evidence '...'`；这些命令只记账，绝不下单。
 - 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
 - 这些减仓及其风控换仓买腿 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。
-- **这是 risk_on HOLD 默认的唯一豁免**:证伪铁律已写明纪律性再平衡正常走;别因为 regime=risk_on 就把降杠杆/降集中也按住。牛市里恰恰要借强减杠杆,不是等回调后。
-- **降 β/降杠杆优先削杠杆 ETF**(β 的主要来源),不要去砍高信念单票的 thesis。
+- **risk_on 的 HOLD 是策略默认，不是动作禁令**：纪律性再平衡与自主的策略异议都按实际证据说明，不能只因 regime 标签否决。
+- 登记策略通常优先削杠杆 ETF 来降 β；具体选择由模型比较敞口、机会成本与 thesis，使用风控处方时遵守该处方。
 - **杠杆ETF解套口径(kcn 2026-06-11 定)**:杠杆 ETF 的 breach/hard_stop 动作 = **2x→1x 同因子换仓而非清仓**(映射在 `brief_preflight.LEV_1X_SWAP`:07226→03033、PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)——敞口不变、反弹一点不踏空,但停掉日内重置 decay;`context.risk_guardrail.reentry_rule` 满足(🧭转 green,标的收复 200 线)才允许 1x→2x 换回。**现货(非杠杆)套牢 kcn 方针=持有等待合法**(现货等待免费,2x 等待收费),对现货超限的最低要求是"不补仓、借反弹分批",别反复催清仓。
 - **换仓的买腿怎么写(#1075)**:2x→1x 是**一砍一买两条腿**,买腿由**风控规则**授权,不需要
   技术 setup。目标票的 `constraints.swap_mandate` 就是那份授权(`from_ticker` / `breach_id` /
@@ -416,12 +416,12 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   - 选**维持**时,rationale 不要再写第 N 遍「应该砍」。kcn 的做法已经摆在 `stance` 里
     (例:SPCH 是「无限子弹流继续摊本」):在他选的打法里给有用的话——这个仓位最该盯的位、
     什么情况下这套打法本身不成立。**加仓仍然冻结**,维持不等于可以加。
-  - `must_reissue=true` → 护栏到了,你关不掉:照常出 cut/trim,rationale 引 `must_reason`
+  - `must_reissue=true` → 按 `risk[].enforcement` 回应：`forced` 才要求 cut/trim；`respond` 仍可说明理由后持有，不因重提计时器变成强卖。rationale 引 `must_reason`
     (再深 10pp / 需减额 1.5 倍 / 严重度升级,或距上次重提满 28 天)。
   - 选择由 postflight 记进账本(`adaptive.stances`),你不写账本、不编 id。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
 - **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
-- **技术面判断只准引用 `context.quant_signals` 中 `status=fresh` 的行**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 说明这条规则的前瞻对账不支持它，引用时必须写明；它不妨碍你使用同一组观测形成自己的判断。`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面的评级同理：`sample_sufficient=true AND edge_supported=true` 之外的评级是未获对账支持的规则意见，引用时写明；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得据此自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
+- **技术面数值引用 `context.quant_signals` 中 `status=fresh` 的行，或本次 compute 的带日期回执**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 说明这条规则的前瞻对账不支持它，引用时必须写明；它不妨碍你使用同一组观测形成自己的判断。`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面的评级同理：`sample_sufficient=true AND edge_supported=true` 之外的评级是未获对账支持的规则意见，引用时写明；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得据此自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
 - **跨截面因子读 `context.cross_sectional_factor`**。这是同行/1x 标的的行业中性研究层。`activation.usable_for_decisions` 说的是**那个预注册 composite 的前瞻验证有没有通过**，不是其中每个测量值能不能用：单项测量（动量、相对强度、波动、回撤、质量）是核实过的观测，可以进入你的判断；composite 分数和排名是一种登记过的加权意见。为 false 时，引用 composite 或排名必须同句写明「该组合打分未通过前瞻验证」，不得把 retrospective CI 说成 prospective 证据，也不得把它写成已验证的优势。
 - **同行残差读 `context.peer_residual`**。leader continuation、laggard avoidance、mean reversion 三条规则各自的 `rule_activation.<rule>.usable_for_decisions` 说的是那条规则的样本够不够，不得互相借样本。残差本身是测量值，可以用；规则未激活时引用它的触发要写明「该规则样本未达标」，由你判断这次是否仍然成立并给出理由。港股 peer 只能来自人工 `peer-map.json`，禁止补写或调用自动 HK 同行发现。
 - **规则产出与观测分开读（#2843）**：packet 的 `judgment_contract.rule_outputs` 列出每个 section 里哪些字段是登记规则的结论（`technical.tag` / `setups`、composite、`add_authority`、`status.label` 等）。它们如实记录了规则说了什么，但不是市场事实：可以采纳，可以不同意，不同意时写明依据。规则没有点名的观测不因此不能用。
@@ -436,27 +436,24 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
   `compute` 可用函数见 `clawock tool --list`（`close/open/high/low`、`sma`、`ema`、`ret`、`vol`、`zscore`、`atr`、`atr_pct`、`rsi`、`range_pos`、`drawdown`、`beta`、`corr`、`highest`、`lowest`、`last`、`lag`，序列之间可加减乘除），ticker 写成带引号的字符串，持仓外的 registry 标的同样可算。结果的数值原样引用，并在该句写出它是什么（「RKLX/RKLB 比值的 20 日 z 值 -0.74」）；postflight 认本次运行内算出的回执。回执只证明输入存在、没读 `as_of` 之后的数据、算术可重放，**不证明你的假设成立**。日线从 2025-12 起存，窗口不够会直接报「insufficient history」，照实写，不换个说法补一个数。
 
-> 心智:driven_by 三档管"该信哪个信号",仓位硬闸管"不管信号多强,单名/单因子/杠杆都不许超过这条线"。后者是回撤的真正解药。
+> `driven_by` 如实记录主导证据；风险行区分强制义务与回应义务。超限不自动等于卖出，观点和减仓选择不能从阈值直接推出。
 
 #### ⚖️ 消息面权重：硬催化 vs 软情绪（登记策略的默认做法）
 
 本节和下一节「证伪不证实」是登记策略对消息的处理方式，来自牛市里反复 churn 的教训。默认照做。你有具体证据认为这次不同时可以不照做：把依据写进 `hypothesis`，把认错条件写进 `thesis_invalidation`，harness 会在这条决策上标出它偏离了哪条规则。**不能做的是另外两件事**：引用不存在或对不上票的事件（事实错误），以及为了躲标注而改 `driven_by`。
 
-不是所有消息面都等价。**硬催化是真信号,软情绪是高噪声、均值回归。** 两者对决策的权限不同:
+登记资讯策略更重视一手硬催化，对标题情绪、热度与名人言论采取保守权重。这是待检验的策略，不是事实层对动作的许可表：
 
-| 类别 | 包含 | 对决策的权限 |
+| 类别 | 例子 | 登记策略的意见 |
 |---|---|---|
-| **硬催化** (hard) | 财报/指引 surprise、SEC/调查、EDGAR 文件、M&A、产品发布/召回、评级机构正式上下调、明确的政策落地 | **可以翻 bucket**(hold→cut 等),可作为主导 `driven_by` |
-| **软情绪** (soft) | Reddit 提及数/热度、Google News 标题情绪、散户温度、Trump/Musk 喊话(无落地)、"看好/看空"类口风 | **只能动 confidence ±10pp,不能单独翻 bucket** |
+| 硬催化 | 财报/指引、监管文件、合同、明确政策落地 | 可作为主要驱动，仍要核对原文、时点与价格反应 |
+| 软情绪 | 标题情绪、热度、无落地的名人言论 | 通常只作佐证；是否足以改变动作、权重与信心由模型说明 |
 
-硬性规则:
-- **`context.news_evidence_graph` 存在时，只有 `actionable_escalation=true` 的事件能驱动主动 catalyst 动作**，并把其 `event_id` 原样写入 plan 的 `evidence_event_id`。事件必须是一手/可靠、仍有效、足够新颖、负面证伪且获价量或已校准同行残差确认；任一 blocker 存在就只能 display/watch —— 但落成 `watch`/`hold_and_watch` 时**仍然可以**把该事件的 `event_id` 写进 `evidence_event_id` 并保留 `driven_by=catalyst`（被动档只要求事件真实，见 plan.json 字段表）。
-- 同一 novelty cluster 的重复摘要不会增加 conviction；过期事件不能复活。`positive/confirming` 事件一律 hold-only。
-- Tavily 新闻搜索只准处理 `tavily_resolution_queue` 里列出的 event ID 和 query；队列外的日常旧闻/低影响摘要不得消耗 Tavily。未解决不等于可交易，搜索结果仍需下一轮图谱门控。
-- **软情绪单独存在时,bucket 必须维持技术面/基本面给出的那个**;软情绪只允许把该 action 的 confidence 上下微调最多 ±10pp,且要在 rationale 写明"软情绪佐证/背离,confidence ±X"。
-- **只有硬催化能驱动一次 bucket 翻转**(尤其翻成 cut/trim/add)。若你想下主动 call 但手里只有软情绪 → 降级为 `hold_and_watch` + 设触发价观察,别直接动手。
-- influencer(Trump/Musk/段永平/洪灏/Burry/Pelosi/ARK/Serenity)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。Serenity 是 KOL 选股(常为微盘/光通信小票),按 [[serenity-skill]] 的证据阶梯属"弱证据线索",只动 confidence、需一手来源(财报/合同/公告)证实后才可加权。**ARK 日度调仓**是机构一手成交数据(不是言论),但它是"别人在调仓"而非公司事件,同样只算软情绪/佐证,不得单独驱动 bucket。
-- 自检:若某 action 的 `driven_by` 是 `sentiment` 或 `influencer` 且 bucket ∈ {cut,trim_on_rebound,add_only_on_trigger} → 这偏离了本节的默认做法。要么改回 hold_and_watch 或换硬证据，要么保留并在 `hypothesis` 写明为什么软情绪这次足以出手、什么情况说明你错了。
+- `actionable_escalation=true` 是资讯策略的升级结论。引用未升级的真实事件也可提出主动动作，并保留策略异议；`evidence_event_id` 必须真实且属于该票。
+- 重复摘要不等于独立证据，过期事件不可冒充新消息。`positive/confirming` 是证据方向，不自动规定 hold。
+- Tavily 预算与调用范围仍按 `tavily_resolution_queue`；结果的可信度、与原事件的关系及是否改变判断由模型解释，不把搜索成功当成交易许可。
+- 不再规定软情绪只能调整 confidence ±10pp，也不规定只有硬催化能翻转动作。采用情绪、名人或机构调仓线索时，说明机制、来源局限与认错条件；ARK 的交易是别人的交易，不能冒充公司事件。
+- 按真正主导证据填写 `driven_by`，不为迎合登记策略改标签。自定主动提案用 `hypothesis` 说明为什么值得做。
 - **前瞻事件的日期只能引用 `context.catalysts`，禁止推测。** 财报/FOMC/宏观在 `earnings`/`fomc`/`macro_events`；公司级预定事件（港股通生效日、解禁日、mainnet 上线、指数调整生效日）在 **`scheduled_events`**（真源 `memory/scheduled_catalysts.json`，手工维护）。
   - `date_confidence=confirmed` → 可直接写该日期；`estimated` → 写日期但必须标「预计」；**`date` 为 `null`（`unconfirmed`）→ 只能写「生效日未确认」，不准用「下周一」「下个月」「9 月」这类自己推出来的说法**。
   - `scheduled_events` 里没有的公司级预定事件 → **当作日期未知处理**，同时在 `▎待补` 提示把它加进 `memory/scheduled_catalysts.json`，别在正文里编一个。
@@ -464,21 +461,13 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### 🛡️ 消息面证伪不证实（登记策略的默认做法，牛市最关键）
 
-牛市里你已经满仓在涨。**利好新闻 ≠ 该动作**——你已经持有,继续骑就行;利好不需要你"为了兑现它"去减仓。**唯一该让你主动出手的是利空的个股级硬催化。**
+登记策略偏向让已有趋势继续，担心利好引发反复买卖的成本。模型仍须比较继续持有、减仓、加仓的证据与机会成本；正面消息不必然已在价，负面消息也不必然值得卖。
 
-每条进入决策的新闻先打一个标签(在 ▎社交舆情速读 / ▎名人异动 段标注):
-- **confirming**(印证你已有持仓方向的利好)→ **不触发任何 cut/trim/add**。最多维持 hold,别拿它当减仓"锁利"或加仓"追高"的理由。
-- **disconfirming**(动摇持仓 thesis 的利空)→ 只有当它是**硬催化**(见上节)时,才允许驱动 cut/trim。
+进入决策的新闻标记 `confirming`（印证当前 thesis）或 `disconfirming`（挑战 thesis），方便复盘。标签描述证据关系，不决定可写的动作。若判断利好、估值或情绪足以支持动作，保留真实归因并写假设与失效条件；不要改成 `technical` 或 `risk_rule` 来避开异议。纪律性动作只有在确实依据风险规则时才标 `risk_rule`。
 
-硬性规则:
-- **不准用利好新闻 justify 主动减仓/加仓**(牛市 churn 的头号来源)。"催化已兑现/已在价"是观望理由,不是出手理由——若真要动,driven_by 必须是 `technical`(估值/技术过热),不能挂成 catalyst。
-- 想加仓(add)同样要硬触发:明确回踩支撑价 + 量价确认,不是"利好所以追"。
-- 一条新闻若你判为 confirming 又想据此出手 → 先停：默认改 hold_and_watch。坚持出手就按偏离处理，写清假设与认错条件。
-- 例外:止盈/再平衡这类**纪律性**减仓与新闻无关，走 `strategy_id=risk_rebalance` + `driven_by=risk_rule`，rationale 写明是纪律不是消息。
+#### Strategy frame 示例 — Judge 写明主导机制
 
-#### Strategy frame menu — Judge 段必须显式选 1-3 个 per action
-
-让 Judge 明示哪个 strategy frame 在驱动每个 action（traceability，错了能反推），从下面 8 个里选：
+让 Judge 明示哪个 strategy frame 在驱动每个 action，便于事后检验。下面 8 个是示例，也可以写自己的简短名称（最多保留三个标签，长论证写在 judge / method）：
 
 | Frame | 触发条件举例 |
 |---|---|
@@ -503,11 +492,11 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 | RKLB | cut | mean_reversion | RSI 78 + 浮+82% |
 ```
 
-**禁止**：模糊"综合判断"/"基本面看好"。每个 action 必须落到具体 frame + 数值。
+说明具体机制与证据，不用空泛的“综合判断”代替论证；定性证据可以成立，不为填表编造数值。
 
-⚠️ **只有上表这 8 个值是 frame，别从邻近 enum 里借词**。这张表描述的是「价格/市场结构上什么在驱动这个 action」，不是「这个 action 归谁管」。`risk_rule`、`macro`、`peer` 是 `driven_by` 的值；`risk_rebalance`、`core_position`、`tactical_entry` 是 `strategy_id` 的值 —— 它们写进 `frames` 一律非法，`regime_shift` 这类自造词同理。
+`frames` 是模型自定的文本标签，归一化保留新名称；`driven_by` 与 `strategy_id` 仍分别记录证据来源和账本策略，标签不能替代这些字段。
 
-纪律型减仓（`strategy_id=risk_rebalance` + `driven_by=risk_rule`）是最容易踩的一个：它**按定义**不由上面任何技术 frame 驱动，所以不要为了凑数再补一个 `risk_rule` 上去。只有当某个价格结构**也独立支持或定时这次 action** 时才填对应 frame（如跌破 200MA 支持此刻减仓，填 `technical_breakdown`）；只是「当下恰好处在某种结构」不算驱动理由。一个都不贴切就**把 `frames` 整个省掉** —— `debate` 是选填的，少一个 frame 只影响覆盖率曲线，编一个不在菜单里的值会被直接丢弃。
+纪律型减仓如实说明政策依据，不必硬套技术机制；`frames` 可省略，也可用自定名称表达真实机制。不要为了覆盖率编造观点。
 
 #### Confidence calls
 
@@ -599,7 +588,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 🧭 Regime: {label}({reasons 拼接}) → {该 regime 下的决策默认}
 ```
 据 regime 收敛主动操作：
-- **risk_on** → core_position 默认 HOLD；择时 cut/trim 需要 disconfirming 硬催化。`risk_rebalance` 是独立策略，可因组合政策在 risk_on 中减杠杆，不与 core thesis 混为一谈。
+- **risk_on** → core_position 默认 HOLD；择时 cut/trim 要说明证据与机会成本，偏离登记策略照收照档。`risk_rebalance` 是独立策略，可因组合政策在 risk_on 中减杠杆，不与 core thesis 混为一谈。
 - **neutral** → 正常按 frame 判断,无额外封顶。
 - **risk_off** → 防御优先,cut/trim 门槛放宽(可信度提高),add 需更强触发;杠杆仓位优先减。
 - regime 缺失(null,数据 stale)→ 写"regime 未知,主动操作按常规谨慎"并跳过封顶。
@@ -627,7 +616,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - **近5日列**取自 `context.sentiment.tickers[].recent_move`(`px_pct` over `n_sessions`,可能为 null=无快照)。**price-in 判断必做**:利好 + 该票近5日已大涨 → 多半"已在价",追/不减都行但别当新理由出手;利好 + 近5日没动 → 才有"未反应"的可操作空间;利空 + 已大跌 = 部分消化,利空 + 没跌 = 风险未释放要警惕
 - 新闻关键词只抽 2-3 个动词/名词短语，不要复制全标题
 - 信号判断必须连到**你今天对这个票的具体 strategy/action**（一致 / 矛盾要点出来）
-- **每条信号判断结尾标 `[confirming]` 或 `[disconfirming]`**（见"消息面证伪不证实"铁律）：confirming 利好**不得**驱动 cut/trim/add；只有 disconfirming 的硬催化能驱动减仓
+- 每条信号判断可标 `[confirming]` 或 `[disconfirming]` 说明它与 thesis 的关系；两者都不限制动作，异议按「谁决定什么」记账
 - "异常关注"段：扫所有 ticker 的 news_top + reddit_top 文本，命中负面关键词 (`miss/SEC/probe/fraud/lawsuit/downgrade/halt/recall/short report`) 必列；无命中写"无"
 - sentiment 数据 age_hours > 36 整段写"⚠️ sentiment 数据 stale, 跳过本段"
 
@@ -820,7 +809,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 合法 enum：
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
-- 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：「packet 锁定 [hold_and_watch, watch]，不允许 trim」→「风控只允许持有观察，不减」。postflight 会以 advisory 标出。
+- 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：不要把登记策略偏好写成风控禁令；说明真实限制或自己的判断。postflight 会以 advisory 标出。
 - 每条 `action` 必须在该票的 `constraints.open_actions` 里（持仓外的票看 `swap_targets` / `proposal_universe` 那一行）；不在的动作 `closed_actions` 写了原因，改不了。在 `open_actions` 里而不在 `allowed_actions` 里的动作可以写，会被记成策略异议。卖出腿的 `size.shares` 是正整数且不得超过 `max_sell_shares`；`risk[].kind=hard_stop`（非 `may_stand`）的 cut 是整仓：只写一条 cut 时 `size.shares` 可以留空，postflight 按该行 `required_reduction.minimum_shares` 填；自己写股数（含拆成几条不同条件的腿）则合计要达到它。cap 类 breach（`enforcement=respond`）不强制卖出：`minimum_value` 是到上限的总距离，减不减、分几批由你判断，`constraints.respond_to_breach_ids` 非空的票必须有一条带理由的决策。同一条腿的全部加仓金额合计不得超过 `portfolio.cash_available` 里该腿的现金。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `add_on_breakout`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
@@ -846,7 +835,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 - `debate`（object，主动 call 应填，`hold_and_watch`/`watch` 选填）：**把已经发生的辩论落成可核对的结构**（#1117）。Bull/Bear/devil's advocate/Judge frame 这四件事你本来就在 markdown 里写，但读者只能看到结论，无法核对反方是否真的存在——「我们辩过」在没有记录之前只是一句自述。字段：
   - `bull` / `bear`：这条 decision 上双方最强的一句话（各 ≤600 字符，超出截断）。`bear` 是这块的重点：赢的那面本来就在 `rationale` 里。
   - `attacked_consensus`：本轮 devil's advocate（见 § Tier 2 铁律）点名攻击的那条最强共识。与该票无关时可省略，别为了填而编。
-  - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。只认这 8 个：`momentum`、`mean_reversion`、`breakout`、`relative_strength`、`earnings_setup`、`sentiment_shift`、`technical_breakdown`、`sector_rotation`。**`driven_by` 和 `strategy_id` 的值（`risk_rule`、`risk_rebalance` 等）不是 frame**，纪律型减仓也不例外（见 § Strategy frame menu 末尾）；贴不上就整个省掉，别自造。
+  - `frames`：最多三个简短文本标签，可以沿用上述示例或自定。字段不要求技术机制；没有贴切标签可省略，论证写进 `judge` / `method`。
   - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
   - `evidence_ids`（≤6 条，选填）：这场辩论**站在**哪几条 context 证据上（#1141）。只认三个能被解析的命名空间，postflight 逐条对着本次 context 核，**核不上的直接丢掉并记一条 degradation**（不会让流水线变红，但会被数出来）：
     - `news:…` —— **照抄那一条事件的 `evidence_id` 字段**。`context.news_evidence_graph.events` 每一行都自带一条，形如 `news:evt_3ffdc891b1dd9eb52b84`；你不需要拼，也不要拼。
@@ -857,12 +846,12 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
       - resolver 另外接受**那一行所在 list 的键名**作为同一行的别名（`risk:hard_stop_watch:RKLX` == `risk:leveraged_hard_stop:RKLX`），**仅限该 list 里所有行 type 相同时**——`breaches` 装着四种 type，拿它当名字说不清指的是哪一行，照样被丢。这是给「抄了外层键名」兜底的，不是第二种写法：**照抄 `evidence_id` 仍然是唯一该做的事。**
     - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）。**只有 `rows` 里真有的 ticker 能引**：杠杆 ETF 通常没有自己的行（07226 没有，它的底层 HSTECH 有），要引就引你真正读的那一行
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
-  - **菜单外 frame 或不合规的 `evidence_ids` 不会让盘前简报流水线变红**：postflight 的 normalizer 会丢弃它们，并另计一条 degradation（`debate_frames_off_menu` / `debate_citation_unresolved`）。超长文本会被裁剪；其他 `debate` schema 错误（如未知键、非文本的 Bull/Bear）仍会打回 plan，不要依赖 normalizer 猜意图。整块为空时按「没写」计覆盖率；dashboard 的 `debate_coverage.bear_case_pct` 会显示这种缺席。**这两类豁免只覆盖 `debate.frames` / `debate.evidence_ids`**：`action`、`condition`、`strategy_id` 这些会被塞进默认值的字段写错仍然整份 plan 打回重写。
+  - **自定 frame 原样保留**；空或非文本标签会丢弃并计 `debate_frames_invalid`。不合规的 `evidence_ids` 被丢弃并计 `debate_citation_unresolved`，不伪造引用。文本与标签数量仍有长度预算；`action`、`condition`、`strategy_id` 等执行字段写错仍须修正。整块为空时按未写计入 `debate_coverage`。
 - `expected_move_pct`（number，选填，带符号，单位 %）：**这条 decision 预期这只票走多远**（#1159）。`confidence` 说的是「多有把握」，`invalidation_price` 说的是「论点在哪死」，**没有一个字段说「走多远」**——所以「方向对、幅度错了四倍」这句话这本账本目前对自己讲不出来。填了之后按 t1 对 `underlying_return_t1_pct` 打分（这只票自己的收益，不是 `benefit_t1_pct` 那个相对不动的反事实）。
   - 是**预测**不是目标价，也不是止损距离：写 `-8` 表示「我预期它跌 8%」。`0` 是合法且可打分的预测（「预期它不动」），和不填不是一回事。
   - |值| > 100 会被丢弃（打字过滤，不是风控），丢弃不会让流水线变红。
   - **没有把握就不要填**：这条和 `debate.evidence_ids` 同一条纪律——编一个数比不填更糟，它看起来像预测。覆盖率发布在 dashboard 的 `magnitude_metrics.coverage_pct`，必填与否以后对着这条序列谈。
-- `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
+- `thesis_invalidation`（string，主动 cut/trim/add 写明；hold 可选）：什么可观察的证据会推翻这条决策？可写价格结构、基本面、事件或假设机制失效，不限定为硬催化，也不要求失效先发生才能提出动作。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。
 
 **condition.type 详解**（决定 retrospective 怎么算触发）：
@@ -910,7 +899,7 @@ portfolio_counterargument/narrative/ticker_judgments`。
   "next_evidence": "下一步要找的一手披露或价格确认",
   "fundamentals": "Tier 1 · 基本面格：EDGAR/财报/ETF 标的口径",
   "cross_market": "Tier 1 · 跨市场格：跟随还是背离",
-  "sentiment_read": "Tier 1 · 情绪格：这条消息面对决策的权限（硬催化/软情绪）",
+  "sentiment_read": "Tier 1 · 情绪格：这条消息面的性质、权重与局限（硬催化/软情绪）",
   "peer_read": "同行扫描那一行的判断：领先/落后说明什么"
 }
 ```

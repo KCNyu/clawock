@@ -95,8 +95,9 @@ Sort positions into:
 - **Add only on trigger** — define the trigger explicitly (price, MA cross, earnings, policy)
 
 Keep `core_position`, `tactical_entry`, and `risk_rebalance` separate. A concentrated
-non-leveraged core may remain held while one packet-approved tactical tranche is added;
-loss alone never qualifies. For HK, state board lots and use whole-lot multiples; missing
+non-leveraged core may remain held while a tactical add is proposed. Registered setups
+are suggestions: a self-defined entry states a hypothesis and invalidation price, and
+policy-tranche departures are recorded. Loss alone is not evidence of a good entry. For HK, state board lots and use whole-lot multiples; missing
 `lot_size` blocks an add. For US, use integer shares under the current ledger contract.
 
 ## Output structure

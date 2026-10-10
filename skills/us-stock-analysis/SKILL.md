@@ -103,14 +103,14 @@ clawock report preflight --market us --phase {open|close}
 用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `plan_context`（盘前简报还没执行完的决策，见下）/ `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）/ `live_information`（每只持仓的实时公告与新闻：`summary.<票>` 每条照抄 `cite`，含发布时间与「盘中实时」/「开盘前旧闻」；`degraded` 里的源是没取到，写「X 未取到」，不等于没有消息）/ `quote_coverage`（`unrefreshed` 里的票本次没刷到行情，表里是上次的价与涨跌；`anomalies`/`plan_triggers` 里这些票带 `quote_fresh: false`）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成本时段的数。
 
 ⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 盘前简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
-- **不许给同一只票提相反的建议**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报（issue #119）。要推翻必须明写理由和新证据。
+- **新建议与旧计划不同，要明确说明变了什么**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报（issue #119）。要推翻必须明写理由和新证据。
 - `exec_mode.today_override` 说了 MOO 就不许改写成限价单口径。
 - 每条带股数的未成交决策，harness 已在数据块的「📋 未成交计划」里印出票、动作、股数、条件和挂起日期。散文只写对账结论（哪条仍挂着、今天怎么执行、有没有新证据改变它），**不重述股数和比例**。
 - `plan_context` 为 `{}` 说明今天本腿没有未完成决策，按正常写，不要编一个计划出来。
 - `plan_context` 里带 `error` 字段说明**计划没读出来，不是今天没有计划**（issue #136）。此时必须在 ▎操作建议 开头写一行「今日计划未取到（{error}），以下建议未与 盘前简报对账」，并且**不许**顺势断言「今天没有未完成决策」。
 - 可选键（#605/#609）：`overridden_by_user` = 用户已 override 的 risk_rule 砍单（已隐藏并结案，**不要再提「该砍未砍」**）；`reinvest_candidates` = 砍/trim 的弹药去向候选（仅当 `open[]` 真有 cut/trim 时出现；是观察不是授权，配对话术照抄候选 ticker 与 trigger，不许虚构「砍 X 的弹药」当 `open[]` 里没有 X）。
 
-🔢 **数字铁律（postflight 会查，见 `check_numeric_claims`）**：散文里出现的每个金额/股数**必须是 context 里已有的数字**，照抄不换算。
+🔢 **数字铁律（postflight 会查，见 `check_numeric_claims`）**：散文里出现的每个金额/股数**必须来自 context 或本次 compute 回执**，照抄不换算。
 - **禁止重述持仓股数、持仓市值、浮盈金额** —— 这些 postflight 已经拼在消息开头了，重述一遍只会多一次说错的机会（2026-07-27 就把 6200 股的仓位写成 1000 股）。这一单动多少股由数据块的「📋 未成交计划」给出，散文同样不重述：07226 持仓 6200 股、当日 swap 单 1000 股，同一天同一只票，两个数都不该出现在散文里。
 - 前瞻性数字（「再跌 2% 会亏多少」）要么**别写**，要么写出算式让人能验；拍一个量级出来是 2026-07-27「再伤 1.5-2 万 HK$」（真实约 1 千）那条 issue #120 的原型。
 - 需要 context 里没有的量（别的窗口的涨跌、波动、两只票的比值或相关性）用 `clawock tool compute --arg 'expression=ret(close("<票>"), 20)'` 让系统在日线上算，原样引用返回值并说明它是什么；postflight 认本次运行内算出的结果。
@@ -121,7 +121,7 @@ clawock report preflight --market us --phase {open|close}
 ▎情绪面 里的**异动归因**（`anomalies` 非空时必写，最多 2 行，写在该段最前）：
 - 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {来源的中文说法}）」。`source_class` 只用来选说法，不照抄：`exchange_filing`/`hkexnews_filing`→交易所公告，`sec_filing`/`sec_filing_mirror`/`sec_fulltext`→SEC 文件，`finnhub_filing`→公司公告（Finnhub），`market_flash`→市场快讯，其余取值同样换成中文。
 - `halts` 命中该票 → 先写停牌（停牌原因用中文说 + 复牌时间，`reason_code` 不照抄）。
-- `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，能不能动手仍由 catalyst-gate 与风控契约决定。
+- `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，动作由模型判断，遵守事实、可行性与已有授权；catalyst 评级只是登记策略意见。
 - 没有 interrupt：`no_recent_filing` 先查 `known_catalysts[票]`；有则写「窗口内无新公告；沿用今早已知催化：…」，没有才写「窗口内无新公告，且无已知催化，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
 - 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
 

@@ -80,6 +80,8 @@ def test_a_good_reply_yields_the_artifacts_postflight_consumes(workspace, monkey
 
     def chat(**kwargs):
         seen.update(kwargs)
+        kwargs["stats_out"].setdefault("legs", []).append(
+            {"provider": "fixture-provider", "model": "fixture-model", "ok": True, "attempts": 1, "wall_s": 0})
         return model_reply(packet)
 
     monkeypatch.setattr(bf, 'chat', chat)
@@ -105,6 +107,9 @@ def test_a_good_reply_yields_the_artifacts_postflight_consumes(workspace, monkey
     assert packet_mod.validate_plan_constraints(plan, read_back) == []
     assert brief_postflight.categorize(gaps) == 'pass'
 
+    receipt = json.loads(bf.receipt_path(workspace, TODAY).read_text())
+    assert receipt["author_model"] == "fixture-model"
+    assert receipt["author_provider"] == "fixture-provider"
     assert bf.main(['--verify-receipt']) == 0
 
 

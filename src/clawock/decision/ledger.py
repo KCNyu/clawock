@@ -42,7 +42,7 @@ from clawock.decision.actions import (
     ADD_ACTIONS,
     PASSIVE_ACTIONS,
     SELL_ACTIONS,
-    STRATEGY_FRAMES,
+    STRATEGY_FRAMES as STRATEGY_FRAMES,  # compatibility: examples, not a gate
     is_risk_swap_buy,
     paired_swap_sells,
 )
@@ -253,7 +253,7 @@ def normalize_debate(raw) -> dict | None:
     field is written by a model, inside a cron that must produce a brief every
     morning: a strict schema here buys structure by adding a new way for the
     08:00 pipeline to go red. So unknown keys are dropped, values are coerced
-    and trimmed, unknown frames are discarded, and a block with nothing in it
+    and trimmed, free-text frames are retained, and a block with nothing in it
     becomes ``None`` rather than an empty object that would inflate coverage.
 
     Nothing is silenced by that leniency: `compute_debate_metrics` publishes how
@@ -275,8 +275,8 @@ def normalize_debate(raw) -> dict | None:
     if isinstance(frames, list):
         kept = []
         for frame in frames:
-            name = str(frame or "").strip()
-            if name in STRATEGY_FRAMES and name not in kept:
+            name = frame.strip()[:DEBATE_TEXT_CHARS] if isinstance(frame, str) else ""
+            if name and name not in kept:
                 kept.append(name)
         if kept:
             out["frames"] = kept[:3]
@@ -709,8 +709,8 @@ def validate_decision(d: dict) -> list[str]:
             frames = debate.get("frames")
             if frames is not None and (
                     not isinstance(frames, list)
-                    or any(frame not in STRATEGY_FRAMES for frame in frames)):
-                errors.append("debate.frames must be strategy frames from the menu")
+                    or any(not isinstance(frame, str) or not frame.strip() for frame in frames)):
+                errors.append("debate.frames must be non-empty text labels")
     return errors
 
 

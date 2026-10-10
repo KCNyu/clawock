@@ -14,7 +14,9 @@ rather than requested in prose:
 
 The gate recomputes the verdict from the artifact's own checks and vetoes and
 rejects an artifact whose stated verdict disagrees. A hard veto is decided before
-any check is counted, so a high tally can never average one away.
+any check is counted, so a high tally can never average one away. An optional
+research_judgment records the model's separate choice to continue research; it
+never changes this policy verdict or authorises exposure.
 """
 from __future__ import annotations
 
@@ -279,7 +281,8 @@ def validate_artifact(doc: dict, *, now=None) -> list[str]:
     errors: list[str] = []
     if not isinstance(doc, dict):
         return ["artifact must be an object"]
-    _exact_fields(doc, ARTIFACT_FIELDS, "artifact", errors)
+    fields = (*ARTIFACT_FIELDS, "research_judgment") if "research_judgment" in doc else ARTIFACT_FIELDS
+    _exact_fields(doc, fields, "artifact", errors)
     if doc.get("schema_version") != SCHEMA_VERSION:
         errors.append(f"schema_version must be {SCHEMA_VERSION}")
     for field in ("gate_id", "ticker", "sector", "mechanism"):
@@ -451,6 +454,19 @@ def validate_artifact(doc: dict, *, now=None) -> list[str]:
         ):
             errors.append(f"{prefix} needs a question and where to look")
 
+    judgment = doc.get("research_judgment")
+    if "research_judgment" in doc:
+        if _exact_fields(judgment, ("verdict", "rationale"), "research_judgment", errors):
+            if judgment.get("verdict") not in VERDICTS:
+                errors.append("research_judgment.verdict must be a research verdict")
+            rationale = judgment.get("rationale")
+            if not isinstance(rationale, str) or not rationale.strip():
+                errors.append("research_judgment.rationale must be non-empty text")
+            elif len(rationale) > 1200:
+                errors.append("research_judgment.rationale must stay under 1200 characters")
+            if judgment.get("verdict") == "gray_needs_evidence" and not next_evidence:
+                errors.append("a gray research judgment must name the next evidence needed")
+
     if doc.get("verdict") not in VERDICTS:
         errors.append(f"verdict must be one of {sorted(VERDICTS)}")
     if not errors:
@@ -478,8 +494,15 @@ def validate_artifact(doc: dict, *, now=None) -> list[str]:
 def assess(doc: dict, *, now=None) -> dict:
     errors = validate_artifact(doc, now=now)
     computed = decide(doc) if isinstance(doc, dict) else {}
+    judgment = doc.get("research_judgment") if isinstance(doc, dict) else None
+    research_verdict = (judgment.get("verdict") if isinstance(judgment, dict)
+                        else computed.get("verdict"))
     return {
         "status": "pass" if not errors else "fail",
+        "research_verdict": research_verdict,
+        "research_judgment": judgment,
+        "research_departs_from_policy": research_verdict != computed.get("verdict"),
+        "authorizes_exposure": False,
         "gate_id": doc.get("gate_id") if isinstance(doc, dict) else None,
         "ticker": doc.get("ticker") if isinstance(doc, dict) else None,
         "instrument_kind": doc.get("instrument_kind") if isinstance(doc, dict) else None,

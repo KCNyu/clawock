@@ -238,13 +238,9 @@ _NORMALIZATION_OWNED_PLAN_ERRORS = (
     ),
     re.compile(r'^decision\[\d+\] schema_version must be 2$'),
     # `debate` sub-fields whose normalizer never substitutes a plausible value.
-    # `normalize_debate` drops frames outside `STRATEGY_FRAMES` (and accepts a
-    # scalar spelling of one frame); `normalize_debate_evidence` drops refs in
-    # no resolvable namespace, dedupes, caps at `DEBATE_EVIDENCE_MAX`, and wraps
-    # a scalar ref as a list. Both validators fire exactly when normalization
-    # would make one of those deterministic, annotation-only changes.
+    # Frame labels are model-owned; normalization only repairs their shape.
     re.compile(
-        r'^decision\[\d+\] debate\.frames must be strategy frames from the menu$'
+        r'^decision\[\d+\] debate\.frames must be non-empty text labels$'
     ),
     re.compile(
         r'^decision\[\d+\] debate\.evidence_ids must be unique refs in '
@@ -296,7 +292,7 @@ def _dropped_debate_frames(authored):
             continue
         dropped += [
             str(frame) for frame in frames
-            if str(frame or '').strip() not in decision_v2.STRATEGY_FRAMES
+            if not isinstance(frame, str) or not frame.strip()
         ]
     return dropped
 
@@ -543,16 +539,11 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
         )
         dropped_frames = _dropped_debate_frames(authored)
         if dropped_frames:
-            # Counted, not silenced. Normalization deletes these (that is the
-            # promise SKILL.md makes), so without a series here the model could
-            # drift off the menu every morning and nothing would say so. Same
-            # contract as the unresolved-citation note below: never red, always
-            # counted.
             workflow_outcomes.note_degradation(
-                None, 'debate_frames_off_menu',
-                f"{len(dropped_frames)} debate frame(s) outside STRATEGY_FRAMES "
+                None, 'debate_frames_invalid',
+                f"{len(dropped_frames)} empty or non-text debate frame(s) "
                 f"were discarded: " + ', '.join(sorted(set(dropped_frames))[:5]),
-                group='off_menu')
+                group='invalid_shape')
         dropped_evidence = _dropped_debate_evidence(authored)
         if dropped_evidence:
             # These values are gone before context resolution, so the prune
@@ -663,7 +654,7 @@ def tool_receipt_issues(decisions, plan_date, workspace=None):
                               f'{receipt.get("as_of")}, after the plan date {plan_date} '
                               '[FACT_RECEIPT_FROM_THE_FUTURE]')
                 continue
-            for problem in compute.verify(receipt):
+            for problem in compute.verify(receipt, load=compute.workspace_loader(root)):
                 issues.append(f'{tag}: tool receipt {receipt_id} {problem} '
                               '[FACT_RECEIPT_DOES_NOT_REPLAY]')
     return issues

@@ -71,9 +71,8 @@ def compute_concentration(holdings):
 # Backing: the 2026-06 drawdown was a *construction* problem (US β≈4.4, 73%
 # leveraged ETFs, HK 85% one factor), not a signal problem — no driven_by face
 # called it ahead. These caps turn risk.json + concentration from read-only
-# dashboard cards into actionable, capped trim/cut directives the brief MUST act
-# on. The trims are driven_by=risk_rule (disciplinary rebalancing), which the
-# 证伪 rule explicitly exempts from the risk_on HOLD default.
+# dashboard cards into explicit risk responses. Caps allow a reasoned hold;
+# stops/regime obligations follow the durable standing and override contracts.
 GUARDRAIL_CAPS = {
     # A concentrated non-leveraged core is a review item from 35%, not a forced
     # sale. Only >60% is mandatory. Leveraged single names remain on the strict
@@ -160,7 +159,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                     'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg} "
                                f"(mandatory cap {mandatory_cap}%; "
                                f"{'2x/3x' if leveraged else 'non-leveraged core'})"),
-                    'action': (f"纪律性 trim {w['ticker']} → ≤{mandatory_cap}% "
+                    'action': (f"可说明理由后持有；登记策略建议纪律性 trim {w['ticker']} → ≤{mandatory_cap}% "
                                f"(减约 {trim_val} {ccy}，借反弹分批、勿在新低日一次砍)"),
                     'required_reduction': {
                         'kind': 'market_value',
@@ -201,7 +200,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
             breaches.append({
                 'type': 'leveraged_exposure', 'leg': leg, 'ticker': None, 'severity': 'high',
                 'detail': f"{leg} 杠杆 ETF = {lev_pct}% (cap {eff_lev_cap}%) — 2x 日内重置，下杀崩/震荡衰减{regime_note}",
-                'action': (f"降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
+                'action': (f"可说明理由后持有；登记策略建议降杠杆=换仓非清仓：把约 {trim_val} {ccy} 的 2x 换成 1x 同因子"
                            f"({_swap_suggestions(hold) or '同因子 1x/标的现货'})，"
                            f"敞口不变、停 decay；🧭转 green 后可换回 2x"),
                 'required_reduction': {
@@ -337,7 +336,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                 'detail': (f"Measured cluster {tickers} = {weight_pct:.2f}% of book "
                            f"(cap {caps['correlated_cluster_pct']}%, "
                            f"|rho|≥{correlation.get('cluster_rho')})"),
-                'action': (f"把相关集群 {', '.join(tickers)} 降到 "
+                'action': (f"可说明理由后持有；登记策略建议把相关集群 {', '.join(tickers)} 降到 "
                            f"≤{caps['correlated_cluster_pct']}%，优先降其中杠杆仓"),
                 'required_reduction': {
                     'kind': 'factor_market_value',
@@ -365,7 +364,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
         breaches.append({
             'type': 'beta', 'leg': 'US', 'ticker': None, 'severity': 'high',
             'detail': f"US β vs S&P = {us_beta} (cap {caps['us_beta_max']}) — 大盘 −1% 本子约 −{us_beta:.1f}%",
-            'action': "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis",
+            'action': "可说明理由后持有；登记策略建议降 US β：优先削杠杆 ETF(β 主要来源)，比较单票 thesis",
             'required_reduction': {
                 'kind': 'beta',
                 'target_beta': caps['us_beta_max'],
@@ -379,11 +378,12 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     n = len(breaches) + len(hard_stops)
     if n:
         directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
-                     "硬止损与 regime_delever 必须在 Judge 段出对应动作(driven_by=risk_rule,"
+                     "硬止损与 regime_delever 在无 may_stand 或有效 durable override 时，"
+                     "必须在 Judge 段出对应动作(driven_by=risk_rule,"
                      "纪律性再平衡,不算听消息、不受 risk_on HOLD 默认约束)；"
                      "单名/杠杆敞口/相关集群/β 四类上限必须逐条回应：减仓，或写明理由的持有，"
-                     "超限期间不得加仓；其余主动 call 仍按 regime guard。"
-                     "杠杆ETF解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
+                     "超限期间不得加仓；regime 对其余主动 call 只是策略参考。"
+                     "登记策略倾向2x→1x 同因子换仓，也可说明理由后卖出持有现金；买腿遵守处方(见各 action)。")
     else:
         directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"
 
