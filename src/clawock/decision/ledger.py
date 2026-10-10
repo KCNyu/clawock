@@ -30,6 +30,7 @@ from pathlib import Path
 
 from clawock import seeds
 from clawock import sessions as _cal
+from clawock.decision import proposals
 from clawock.decision.mind_record import validate_mind_record
 from clawock.decision.book import plan_totals, validate_plan_book
 # One implementation of the interval, not a second copy of the algebra: the
@@ -353,6 +354,9 @@ PROPOSAL_TEXT_CHARS = {"hypothesis": 400, "method": 240}
 MAX_ALTERNATIVES = 3
 MAX_TOOL_RECEIPTS = 8
 MAX_FORECAST_HORIZON_SESSIONS = 20
+#: What the stored bars can check at the horizon: the close on that session
+#: against a level the forecast named.
+FORECAST_METRICS = ("close_above", "close_below")
 
 
 def _clean_text(value, limit: int) -> str | None:
@@ -376,10 +380,16 @@ def normalize_proposal(action: dict) -> dict:
         probability = _float(forecast.get("probability"))
         horizon = _int(forecast.get("horizon_sessions"))
         event = _clean_text(forecast.get("event"), 200)
-        if (event and probability is not None and 0 <= probability <= 1
+        # A forecast the bars can score names a level and a side; one that
+        # only a person can judge keeps its words. Either is a forecast.
+        metric = forecast.get("metric") if forecast.get("metric") in FORECAST_METRICS else None
+        level = _float(forecast.get("level"))
+        scoreable = metric is not None and level is not None and level > 0
+        if ((event or scoreable) and probability is not None and 0 <= probability <= 1
                 and horizon and 1 <= horizon <= MAX_FORECAST_HORIZON_SESSIONS):
             clean_forecast = {"event": event, "probability": probability,
-                              "horizon_sessions": horizon}
+                              "horizon_sessions": horizon,
+                              **({"metric": metric, "level": level} if scoreable else {})}
     alternatives = []
     for item in action.get("alternatives") if isinstance(
             action.get("alternatives"), list) else []:
@@ -394,9 +404,16 @@ def normalize_proposal(action: dict) -> dict:
             action.get("tool_receipts"), list) else [])
         if isinstance(ref, str) and re.fullmatch(r"cr-[0-9a-f]{16}", ref)
     ]
+    hypothesis = _clean_text(action.get("hypothesis"), PROPOSAL_TEXT_CHARS["hypothesis"])
+    method = _clean_text(action.get("method"), PROPOSAL_TEXT_CHARS["method"])
     return {
-        "hypothesis": _clean_text(action.get("hypothesis"), PROPOSAL_TEXT_CHARS["hypothesis"]),
-        "method": _clean_text(action.get("method"), PROPOSAL_TEXT_CHARS["method"]),
+        "hypothesis": hypothesis,
+        # Derived from the text, never authored: two methods cannot share an
+        # identity by being given the same label, and one cannot be renamed
+        # after its results are in (#2844).
+        "hypothesis_id": proposals.hypothesis_id(action.get("ticker"), hypothesis),
+        "method": method,
+        "method_version": proposals.method_version(method),
         "forecast": clean_forecast,
         "alternatives": alternatives[:MAX_ALTERNATIVES] or None,
         "tool_receipts": list(dict.fromkeys(receipts_cited))[:MAX_TOOL_RECEIPTS] or None,
@@ -2066,7 +2083,7 @@ def _calibration_dimensions(row: dict) -> dict[str, str]:
 CALIBRATION_STAMP_FIELDS = (
     "calibrated_probability", "ci95", "resolved_level", "resolved_level_n",
     "prior_episodes", "evidence_sufficient", "edge_supported",
-    "signal_size_multiplier", "sizing_status",
+    "signal_size_multiplier", "sizing_status", "payoff",
 )
 
 
@@ -2181,11 +2198,79 @@ def _hierarchical_posterior(
     return alpha, beta, resolved_level, resolved_n, support
 
 
+#: A payoff reading needs at least this many settled episodes at one level.
+PAYOFF_MIN_EPISODES = CALIBRATION_MIN_PRIOR_EPISODES
+
+
+def _payoff_update(payoffs: dict, key, benefit: float) -> None:
+    """Fold one settled benefit (percent) into a level's running payoff sums."""
+    row = payoffs.setdefault(key, [0, 0.0, 0.0, 0, 0.0, 0, 0.0])
+    row[0] += 1
+    row[1] += benefit
+    row[2] += benefit * benefit
+    if benefit > 0:
+        row[3] += 1
+        row[4] += benefit
+    elif benefit < 0:
+        row[5] += 1
+        row[6] += benefit
+
+
+def _payoff_view(row: dict, payoffs: dict | None) -> dict:
+    """How much, not how often: the return distribution of this group.
+
+    A hit rate reads only wins and losses. A method that wins 40% of the time
+    at four units and loses 60% at one has no hit-rate edge and a positive
+    expectancy; one that wins 60% at one and loses 40% at four has the edge
+    and loses money (#2844). So the calibrator carries both readings, side by
+    side, and neither stands in for the other.
+
+    Read at the most specific level of the hierarchy that has
+    `PAYOFF_MIN_EPISODES` settled episodes. The interval is the normal
+    approximation on the mean; with fewer episodes than the minimum at every
+    level the reading is `insufficient`, not zero.
+    """
+    payoffs = payoffs or {}
+    chosen = None
+    for level, key in reversed(_calibration_keys(row)):
+        stats = payoffs.get((level, key))
+        if stats and stats[0] >= PAYOFF_MIN_EPISODES:
+            chosen = (level, stats)
+            break
+    if chosen is None:
+        return {"reading": "insufficient", "level": None, "n": 0,
+                "mean_benefit_pct": None, "ci95": None, "payoff_ratio": None,
+                "expectancy_supported": False}
+    level, (n, total, squares, n_win, win_sum, n_loss, loss_sum) = chosen
+    mean = total / n
+    variance = max(0.0, (squares - n * mean * mean) / (n - 1)) if n > 1 else 0.0
+    half = 1.96 * math.sqrt(variance / n)
+    ci = [round(mean - half, 4), round(mean + half, 4)]
+    avg_win = win_sum / n_win if n_win else None
+    avg_loss = loss_sum / n_loss if n_loss else None
+    reading = ("positive_expectancy" if ci[0] > 0
+               else "negative_expectancy" if ci[1] < 0 else "inconclusive")
+    return {
+        "reading": reading,
+        "level": level,
+        "n": n,
+        "mean_benefit_pct": round(mean, 4),
+        "ci95": ci,
+        "avg_win_pct": round(avg_win, 4) if avg_win is not None else None,
+        "avg_loss_pct": round(avg_loss, 4) if avg_loss is not None else None,
+        "payoff_ratio": (round(avg_win / abs(avg_loss), 4)
+                         if avg_win is not None and avg_loss else None),
+        "expectancy_supported": reading == "positive_expectancy",
+        "basis": "benefit_t1_pct, gross of costs",
+    }
+
+
 def _calibration_prediction(
         row: dict,
         counts: dict[tuple[str, tuple[str, ...]], list[int]],
         prior_dates: set[str],
         seed_suffix: str,
+        payoffs: dict | None = None,
 ) -> dict:
     alpha, beta, level, level_n, support = _hierarchical_posterior(row, counts)
     probability = alpha / (alpha + beta)
@@ -2220,13 +2305,18 @@ def _calibration_prediction(
         "evidence_sufficient": not abstain,
         "abstain": abstain,
         "abstain_reason": abstain_reason,
+        # A statement about direction only: the lower bound of the hit rate
+        # is above one half. It says nothing about how much is won or lost;
+        # `payoff` does.
         "edge_supported": edge_supported,
+        "edge_basis": "hit_rate",
         "signal_size_multiplier": round(size_multiplier, 3),
         "sizing_status": (
             "abstain_insufficient_evidence" if abstain
             else "edge_supported" if edge_supported
-            else "no_positive_edge"
+            else "hit_rate_edge_unsupported"
         ),
+        "payoff": _payoff_view(row, payoffs),
     }
 
 
@@ -2256,6 +2346,7 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
         updates_by_date[available_date].append(row)
 
     counts: dict[tuple[str, tuple[str, ...]], list[int]] = {}
+    payoffs: dict = {}
     prior_dates: set[str] = set()
     traces = []
     timeline = sorted(set(by_date) | set(updates_by_date))
@@ -2271,6 +2362,7 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
                 row, counts, prior_dates,
                 f"prequential:{plan_date}:"
                 f"{'|'.join(dimensions.values())}",
+                payoffs,
             )
             global_n, global_wins = counts.get(("global", ()), [0, 0])
             outcome = 1 if (row.get("evaluation") or {}).get("outcome") == "win" else 0
@@ -2296,10 +2388,13 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
         # authored before that close on D.
         for row in updates_by_date[plan_date]:
             outcome = 1 if (row.get("evaluation") or {}).get("outcome") == "win" else 0
+            benefit = _float((row.get("evaluation") or {}).get("benefit_t1_pct"))
             for key in _calibration_keys(row):
                 current = counts.setdefault(key, [0, 0])
                 current[0] += 1
                 current[1] += outcome
+                if benefit is not None:
+                    _payoff_update(payoffs, key, benefit)
             prior_dates.add(str(row.get("plan_date") or "unknown"))
 
     def _score(scored: list[dict]) -> dict:
@@ -2369,7 +2464,7 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
             "regime": dims["regime"],
         }
         pred = _calibration_prediction(
-            probe, counts, all_dates, f"current:{'|'.join(values)}")
+            probe, counts, all_dates, f"current:{'|'.join(values)}", payoffs)
         current_groups.append({**dims, **pred})
 
     scored_after_warmup = [r for r in traces if r["evidence_sufficient"]]
@@ -2391,7 +2486,9 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
         },
         "sizing_rule": (
             "signal_size_multiplier=max(0,(ci95.lower-0.5)/0.2), capped at 1; "
-            "zero when evidence is insufficient or positive edge is unsupported"
+            "zero when evidence is insufficient or the hit-rate edge is "
+            "unsupported. It reads direction only: `payoff` carries the return "
+            "distribution of the same group and the two can disagree"
         ),
         "all_predictions": _score(traces),
         "after_warmup": _score(scored_after_warmup),

@@ -597,6 +597,45 @@ def _durable_override_ids(context):
     }
 
 
+def record_proposals(plan, decision_packet, context, status, workspace=None):
+    """Append this plan's proposals to the immutable log (`decision.proposals`).
+
+    Refused and unpublished proposals are recorded too: they are the
+    denominator a later method comparison needs, and the ledger never sees
+    them. A failure here must not cost the brief — the log is evidence about
+    the day, not part of delivering it.
+    """
+    from clawock.decision import proposals
+    from clawock.market_data import compute
+
+    root = Path(workspace) if workspace else WS
+    if not isinstance(plan, dict) or not plan.get('decisions'):
+        return []
+    try:
+        findings = (brief_decision_packet.review_plan(
+            plan, decision_packet, exempt_breach_ids=_durable_override_ids(context))
+            if decision_packet else [])
+        # The off-host fallback knows which provider answered and says so in
+        # its receipt; the host cron's model is chosen by the runtime and is
+        # recorded only when the runner exports it.
+        model = None
+        try:
+            fallback = json.loads((root / 'memory' / '.tmp' /
+                                   f'brief-fallback-receipt-{plan.get("date")}.json').read_text())
+            if fallback.get('context_generation_id') == plan.get('context_generation_id'):
+                model = fallback.get('author_model')
+        except (OSError, ValueError):
+            pass
+        return proposals.record(
+            root, plan, findings, plan_status=status,
+            author=proposals.authorship(root, model=model),
+            load_receipt=lambda receipt_id: compute.load_receipt(root, receipt_id),
+            observation_snapshot=decision_packet, reviewed=bool(decision_packet))
+    except Exception as exc:  # noqa: BLE001 — see docstring
+        print(f'warn: proposal log not written: {type(exc).__name__}: {exc}', file=sys.stderr)
+        return []
+
+
 def tool_receipt_issues(decisions, plan_date, workspace=None):
     """Computations a decision cites that are not what it says they are.
 
@@ -732,7 +771,7 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
     issues += [
         f'风险增仓冻结: {issue}'
         for issue in risk_discipline.validate_exposure_increases(
-            decisions, discipline, portfolio)
+            decisions, discipline, portfolio, decision_packet=decision_packet)
     ]
     if gr.get('breach_count'):
         TRIM = {'trim_on_rebound', 'cut'}
@@ -1455,6 +1494,8 @@ def main(argv=None):
     )
 
     status = categorize(issues)
+    if not args.dry_run:
+        record_proposals(normalized_plan, decision_packet, context, status)
     # A present context means the preflight ran and filed its own stage —
     # status (warning included), issue_count, generation id, step_timings.
     # Rewriting it here replaced all of that with {success, context_present}

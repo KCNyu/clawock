@@ -364,3 +364,20 @@ def test_a_swap_into_an_unheld_target_is_not_frozen_as_a_naked_add(tmp_path):
     # Priced from the stale closed row, 300 shares would have passed as 300.
     assert len(risk.validate_exposure_increases([cut, buy(300, 130.0)], summary, book)) == 1
     assert len(risk.validate_exposure_increases([cut, buy(3, None)], summary, book)) == 1
+
+
+def test_open_swap_uses_packet_quote_and_still_needs_reduction():
+    book = {"portfolios": {"us_stocks": {"holdings": [
+        {"ticker": "PLTU", "shares": 10, "current_price": 20}]}}}
+    cut = {"ticker": "PLTU", "action": "cut", "strategy_id": "risk_rebalance",
+           "size": {"shares": 10}}
+    buy = {"ticker": "PLTR", "action": "add_only_on_trigger", "leg": "US",
+           "size": {"shares": 3}, "condition": {"type": "open"}}
+    discipline = {"records": [{"type": "hard_stop", "ticker": "PLTU", "leg": "US",
+                               "severity": "critical", "status": "open", "breach_id": "stop"}]}
+    packet = {"swap_targets": {"PLTR": {"facts": {"current_price": 130}}}}
+    assert risk.validate_exposure_increases([cut, buy], discipline, book, packet) == []
+    assert risk.validate_exposure_increases([cut, buy], discipline, book)
+    assert risk.validate_exposure_increases([buy], discipline, book, packet)
+    too_large = {**buy, "size": {"shares": 4}}
+    assert risk.validate_exposure_increases([cut, too_large], discipline, book, packet)

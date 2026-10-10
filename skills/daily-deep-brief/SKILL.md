@@ -838,7 +838,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 - **提案字段**（主动 call 应填；它们让这条决策之后能按自己的方法被复盘，#2842/#2844）：
   - `hypothesis`（≤400 字）：你认为什么成立、为什么它现在重要。不是 `rationale` 的复述：`rationale` 说做什么，`hypothesis` 说你相信什么。
   - `method`（≤240 字）：你怎么得出来的——用了哪些观测、哪个窗口、哪种比较。自由文本，不需要是菜单里的词；同一种方法尽量用同样的写法，系统按这段文字给方法编号，之后按编号统计它的结果。
-  - `forecast`：`{"event": "5 个交易日内收在 11.5 上方", "probability": 0.55, "horizon_sessions": 5}`。一个到期能判对错的陈述。没有把握就不填，不要编概率。
+  - `forecast`：`{"event": "第 5 个交易日收在 11.5 上方", "metric": "close_above", "level": 11.5, "probability": 0.55, "horizon_sessions": 5}`。一个到期能判对错的陈述。没有把握就不填，不要编概率。
   - `alternatives`（≤3 条）：`[{"option": "hold_and_watch", "why_not": "…"}]`，你权衡过而没选的做法，包括「不动」和换成别的标的。
   - `tool_receipts`：本次运行里 `clawock tool compute` 返回的 `receipt_id` 列表（形如 `cr-…`）。只引真的算过的：不存在的回执、重放不出来的回执、`as_of` 晚于今天的回执都是事实错误。
   - `policy_review` 由 harness 写，你不写；写了会被替换。

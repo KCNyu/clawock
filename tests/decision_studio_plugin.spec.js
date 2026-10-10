@@ -535,7 +535,9 @@ test("client: P&L formatting matches the dashboard", async () => {
 
   assert.equal(api._fmtMoney(99.99, "USD"), "$99.99");
   assert.equal(api._fmtMoney(1234.56, "USD"), "$1,235");
-  assert.equal(api._fmtMoney(-99.99, "HKD"), "HK$-99.99");
+  assert.equal(api._fmtMoney(-99.99, "HKD"), "−HK$99.99");
+  assert.equal(api._fmtMoney(-7269, "USD"), "−$7,269");
+  assert.equal(api._fmtPct(6.86, 1), "+6.9%");
   assert.equal(api._fmtMoney(null, "USD"), "—");
   assert.equal(api._fmtPct(12.345), "+12.35%");
   assert.equal(api._fmtPct(0.5), "+0.50%");

@@ -1411,7 +1411,7 @@ def test_a_forced_cut_that_sells_nothing_is_not_a_cut(shares):
 def test_a_hard_stop_is_answered_by_the_position_not_by_one_share():
     packet = _hard_stop_packet()
     short = packet_mod.validate_plan_constraints(_cuts(1), packet)
-    assert short == ["TEST: hard stop requires cutting the full position "
+    assert short == ["TEST: risk obligation requires cutting the full position "
                      "(10 shares, required_reduction.minimum_shares); plan cuts 1 "
                      "[AUTH_OBLIGATION_SHORTFALL]"]
     assert packet_mod.validate_plan_constraints(_cuts(10), packet) == []
@@ -1540,3 +1540,25 @@ def test_a_policy_file_without_the_exploration_cap_falls_back_instead_of_crashin
         packet = packet_mod.compile_packet(
             context, brief_context.compute_generation_id(context))
     assert packet["tickers"]
+
+
+@pytest.mark.parametrize("override", [False, True])
+def test_regime_delever_full_position_is_sized_and_enforced(override):
+    packet = _hard_stop_packet()
+    risk = packet["tickers"]["TEST"]["risk"][0]
+    risk.update(kind="breach", type="regime_delever", override_active=override)
+    assert bool(packet_mod.validate_plan_constraints(_cuts(1), packet)) is not override
+    bound = packet_mod.bind_full_position_cuts(_cuts(None), packet)
+    assert bound["decisions"][0]["size"].get("shares") == (None if override else 10)
+    assert packet_mod.validate_plan_constraints(_cuts(10), packet) == []
+
+
+def test_regime_delever_cannot_evade_the_minimum_by_naming_a_trim():
+    packet = _hard_stop_packet()
+    row = packet["tickers"]["TEST"]
+    row["risk"][0].update(kind="breach", type="regime_delever")
+    row["constraints"]["allowed_actions"] = ["cut", "trim_on_rebound"]
+    plan = _cuts(1)
+    plan["decisions"][0]["action"] = "trim_on_rebound"
+    assert any("AUTH_OBLIGATION_SHORTFALL" in issue for issue in
+               packet_mod.validate_plan_constraints(plan, packet))

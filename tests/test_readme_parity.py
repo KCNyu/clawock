@@ -239,11 +239,11 @@ def test_hero_is_unchanged_apart_from_weekly_metrics():
     """The confirmed first 33 lines stay byte-identical except refreshed CW_M values."""
     import hashlib
 
-    # The stock-discovery utility changes the taxonomy count from 44 to 45;
+    # The method-evaluation utility changes the taxonomy count from 45 to 46;
     # the protected hero layout and all other wording stay pinned.
     for md, expected in (
-        (EN, "444c7141845010a0d26ebe3cdfc6d80658f9d50011550d34cc97b77986e49fa4"),
-        (ZH, "9dd04aae7b501cccbd51de01cca1689bba4f2b93726277565bc00d76b3c82702"),
+        (EN, "22c3419d2e9f36cfac016ae80312947068988e3daa28989061c86a23213c5d6f"),
+        (ZH, "ff54e850bd901e1a3c4c8403599125c879231ae86a329d56f4fbad898050bfae"),
     ):
         hero = ''.join(md.splitlines(keepends=True)[:33])
         hero = re.sub(r'(<!-- CW_M:\w+ -->).*?(<!-- /CW_M:\w+ -->)', r'\1\2', hero)

@@ -861,7 +861,8 @@ def _holding_price(holding: dict) -> float | None:
 
 
 def _risk_reducing_swap(decision: dict, decisions: list[dict],
-                        portfolio: dict, leverage_pairs: dict[str, str]) -> bool:
+                        portfolio: dict, leverage_pairs: dict[str, str],
+                        decision_packet: dict | None = None) -> bool:
     target = str(decision.get("ticker") or "")
     holdings = _holding_map(portfolio)
     add_shares = (decision.get("size") or {}).get("shares")
@@ -879,6 +880,10 @@ def _risk_reducing_swap(decision: dict, decisions: list[dict],
                         if float(held.get("shares") or 0) > 0 else None)
     except (TypeError, ValueError):
         target_price = None
+    if not target_price:
+        # Same-generation packet quotes also price an unheld swap target.
+        target_row = ((decision_packet or {}).get("swap_targets") or {}).get(target) or {}
+        target_price = _holding_price(target_row.get("facts") or {})
     if not target_price:
         try:
             target_price = float((decision.get("condition") or {}).get("price"))
@@ -914,6 +919,7 @@ def validate_exposure_increases(
     decisions: list[dict],
     discipline: dict,
     portfolio: dict,
+    decision_packet: dict | None = None,
 ) -> list[str]:
     """Freeze same-risk adds while a non-overridden hard breach is open."""
     open_records = [
@@ -934,7 +940,7 @@ def validate_exposure_increases(
         instrument = get_instrument(ticker) or {}
         leg = decision.get("leg") or instrument.get("region")
         if _risk_reducing_swap(
-            decision, decisions, portfolio, leverage_pairs
+            decision, decisions, portfolio, leverage_pairs, decision_packet
         ):
             continue
         blockers = []

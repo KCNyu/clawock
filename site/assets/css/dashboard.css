@@ -4551,7 +4551,7 @@
     min-width: 0; overflow-wrap: anywhere;
   }
   /* 没写字号的按钮会掉到浏览器默认 13.3333px，落在字阶之外（#880） */
-  .trace-more, button:not([class*="tab"]):not(.rf) { font-size: var(--fs-sm); }
+  .trace-more, :where(button:not([class*="tab"]):not(.rf)) { font-size: var(--fs-sm); }
   /* 日收益热力：与持仓主表同序的行网格（#881） */
   .book-heat {
     --heat-cols: 7;

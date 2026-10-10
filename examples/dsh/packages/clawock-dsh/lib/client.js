@@ -9039,7 +9039,9 @@ function t1ChipClass(tone) {
 /** Dashboard-parity money formatter (test seam). */
 function _fmtMoney(value, currency = "") {
 	if (value === null || !isFinite(value)) return "—";
-	return (currency === "USD" ? "$" : currency === "HKD" ? "HK$" : "") + (Math.abs(value) >= 1e3 ? value.toLocaleString("en-US", { maximumFractionDigits: 0 }) : value.toLocaleString("en-US", { maximumFractionDigits: 2 }));
+	const symbol = currency === "USD" ? "$" : currency === "HKD" ? "HK$" : "";
+	const formatted = Math.abs(value) >= 1e3 ? Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 0 }) : Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
+	return (value < 0 ? "−" : "") + symbol + formatted;
 }
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
 function fmtPrice(value, sym = "") {
@@ -9081,7 +9083,7 @@ function TraceDetail(props) {
 	const act = (code) => code === null ? "" : ACT[code] === void 0 ? code : t(ACT[code]);
 	const fillText = act(trace.action) + " " + trace.shares + t("trace.sharesAt") + fmtPrice(trace.price, sym);
 	if (decision === null) {
-		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + verdictOf(t, trace.t1)));
+		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, _fmtPct(trace.t1.delta, 1) + " · " + verdictOf(t, trace.t1)));
 		return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, t("trace.titleNoPlan")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, t("trace.planThen")), h("div", {
 			className: cx("v"),
 			style: { color: "var(--cap)" }
@@ -9101,7 +9103,7 @@ function TraceDetail(props) {
 		className: cx("pc"),
 		key: "e"
 	}, t("trace.selfGrade") + (EXE[decision.execution] === void 0 ? decision.execution : t(EXE[decision.execution]))));
-	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + verdictOf(t, trace.t1)));
+	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, _fmtPct(trace.t1.delta, 1) + " · " + verdictOf(t, trace.t1)));
 	let pnlText;
 	let pnlTone;
 	let pnlLabel;
@@ -9110,7 +9112,7 @@ function TraceDetail(props) {
 		pnlTone = trace.realizedPnl >= 0 ? "win" : "loss";
 		pnlLabel = t("trace.realized");
 	} else if (trace.holdPnl !== null) {
-		pnlText = _fmtPct(trace.holdPnl);
+		pnlText = _fmtPct(trace.holdPnl, 1);
 		pnlTone = trace.holdPnl >= 0 ? "win" : "loss";
 		pnlLabel = t("trace.floating", { ticker: trace.ticker });
 	} else {
@@ -9125,12 +9127,12 @@ function TraceCell(props) {
 	const trace = props.trace;
 	let pnl;
 	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, _fmtMoney(trace.realizedPnl, trace.currency));
-	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, t("trace.holding")), _fmtPct(trace.holdPnl));
+	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, t("trace.holding")), _fmtPct(trace.holdPnl, 1));
 	else pnl = h("span", { className: cx("pnl", "na") }, "—");
 	let t1tag;
 	if (trace.t1 !== null) {
 		const tone = t1ChipClass(trace.t1.tone);
-		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% " + verdictOf(t, trace.t1);
+		const label = "T+1 " + _fmtPct(trace.t1.delta, 1) + " " + verdictOf(t, trace.t1);
 		t1tag = h("span", {
 			className: cx("t1", tone),
 			"data-tone": tone

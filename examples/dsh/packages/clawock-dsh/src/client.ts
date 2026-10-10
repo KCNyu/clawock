@@ -232,9 +232,9 @@ export function _fmtMoney(value: number | null, currency = ''): string {
   if (value === null || !isFinite(value)) return '—'
   const symbol = currency === 'USD' ? '$' : currency === 'HKD' ? 'HK$' : ''
   const formatted = Math.abs(value) >= 1000
-    ? value.toLocaleString('en-US', { maximumFractionDigits: 0 })
-    : value.toLocaleString('en-US', { maximumFractionDigits: 2 })
-  return symbol + formatted
+    ? Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 2 })
+  return (value < 0 ? '−' : '') + symbol + formatted
 }
 
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
@@ -317,7 +317,7 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
     const t1miss = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
       h('div', { className: cx('tw') }, trace.t1.date),
       h('div', { className: cx('n') }, t('trace.t1Close')),
-      h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + verdictOf(t, trace.t1)))
+      h('div', { className: cx('v') }, _fmtPct(trace.t1.delta, 1) + ' · ' + verdictOf(t, trace.t1)))
     return h('div', { className: cx('dbody') },
       h('div', { className: cx('trhead') }, t('trace.titleNoPlan')),
       h('div', { className: cx('trace') },
@@ -353,7 +353,7 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
     h('div', { className: cx('tw') }, trace.t1.date),
     h('div', { className: cx('n') }, t('trace.t1Close')),
     h('div', { className: cx('v') },
-      (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + verdictOf(t, trace.t1)))
+      _fmtPct(trace.t1.delta, 1) + ' · ' + verdictOf(t, trace.t1)))
   // 本笔已实现 and 该持仓浮动 are different quantities — one belongs to this
   // fill, the other to the whole position — so they never share a label.
   let pnlText: string
@@ -364,7 +364,7 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
     pnlTone = trace.realizedPnl >= 0 ? 'win' : 'loss'
     pnlLabel = t('trace.realized')
   } else if (trace.holdPnl !== null) {
-    pnlText = _fmtPct(trace.holdPnl)
+    pnlText = _fmtPct(trace.holdPnl, 1)
     pnlTone = trace.holdPnl >= 0 ? 'win' : 'loss'
     pnlLabel = t('trace.floating', { ticker: trace.ticker })
   } else {
@@ -413,7 +413,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // A floating percent belongs to the whole position, not to this fill. The
     // 持仓 prefix is what stops it reading as "this trade lost 28%".
     pnl = h('span', { className: cx('pnl', trace.holdPnl >= 0 ? 'up' : 'down') },
-      h('span', { className: cx('pnlk') }, t('trace.holding')), _fmtPct(trace.holdPnl))
+      h('span', { className: cx('pnlk') }, t('trace.holding')), _fmtPct(trace.holdPnl, 1))
   } else {
     pnl = h('span', { className: cx('pnl', 'na') }, '—')
   }
@@ -425,7 +425,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // `action === 'sell'` used to drop it for cut/trim/trim_on_rebound and
     // forced the client to keep its own copy of the action set — the kind of
     // duplicate that drifted apart in #739.
-    const label = 'T+1 ' + (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% ' + verdictOf(t, trace.t1)
+    const label = 'T+1 ' + _fmtPct(trace.t1.delta, 1) + ' ' + verdictOf(t, trace.t1)
     // data-tone carries the host's reading into the DOM: it is what the
     // regression spec reads, so hashed class names cannot hide a chip that
     // stopped following `t1.tone` (#713).

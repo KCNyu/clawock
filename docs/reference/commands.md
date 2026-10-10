@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**83 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 60 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (71 subcommands). 45 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**84 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 61 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (72 subcommands). 46 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -147,6 +147,7 @@ Sources: local snapshots + canonical bars
 | `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha, gross and net of the pre-registered cost model |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
 | `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |
+| `clawock evaluate-methods` | `clawock.decision.method_evaluation` | method payoff and probability reports; frozen prospective three-arm shadow trials |
 | `clawock evaluate-add-shapes` | `clawock.evaluation.add_shapes` | descriptive pass over the bar store: what each add-side entry shape has been worth against the unconditional baseline; not walk-forward |
 
 ### Not information collection / 不属于信息收集

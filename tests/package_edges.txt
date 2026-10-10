@@ -26,6 +26,7 @@ cli -> workflows
 cli -> workspace
 costs -> market_data
 costs -> workspace
+decision -> code_identity
 decision -> costs
 decision -> history_store
 decision -> instruments
