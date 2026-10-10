@@ -253,7 +253,7 @@ def test_the_buy_leg_into_an_unheld_target_is_judged_by_its_mandate():
                for issue in packet.validate_plan_constraints(_swap(4, group="other"), compiled))
     hold = copy.deepcopy(_swap(4))
     hold["decisions"][1]["action"] = "hold_and_watch"
-    assert any("outside harness allowed_actions" in issue
+    assert any("is not open on this name" in issue
                for issue in packet.validate_plan_constraints(hold, compiled))
     stranger = _swap(4, target="NVDA")
     assert any("NVDA: ticker is outside current decision packet" in issue
@@ -272,7 +272,7 @@ def test_a_stale_bar_is_not_a_price_and_the_leg_must_state_its_own():
 
 
 def _hk_context(quotes):
-    context = _unheld_target_context(swap_target_quotes=quotes)
+    context = _unheld_target_context(unheld_quotes=quotes)
     context["portfolio"] = {"portfolios": {"hk_stocks": {"holdings": [{
         "ticker": "07226", "shares": 1000, "lot_size": 100, "current_price": 4.0,
         "current_value": 4000}]}}}
@@ -324,7 +324,7 @@ def test_preflight_quotes_only_the_hk_targets_the_book_does_not_hold():
         asked.append(list(codes))
         return {"03033": {"c": 4.0, "lot_size": 100, "name": "南方恒生科技"}}
 
-    assert brief_preflight.swap_target_quotes(
+    assert brief_preflight.unheld_quotes(
         guardrail, book, today="2026-07-28", fetch_hk=fetch) == {"03033": {
             "price": 4.0, "lot_size": 100, "name": "南方恒生科技", "as_of": "2026-07-28"}}
     assert asked == [["03033"]]
@@ -332,10 +332,10 @@ def test_preflight_quotes_only_the_hk_targets_the_book_does_not_hold():
     def broken(codes):
         raise OSError("no route")
 
-    assert brief_preflight.swap_target_quotes(
+    assert brief_preflight.unheld_quotes(
         guardrail, book, today="2026-07-28", fetch_hk=broken) == {}
     # Nothing to ask for: the fetcher is never reached.
-    assert brief_preflight.swap_target_quotes(
+    assert brief_preflight.unheld_quotes(
         {"breaches": [], "hard_stop_watch": []}, book, today="2026-07-28",
         fetch_hk=broken) == {}
 

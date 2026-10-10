@@ -47,7 +47,7 @@ def test_technical_add_trace_fields_survive_normalization_and_validate():
     assert dv2.validate_decision(row) == []
 
 
-def test_technical_add_without_setup_trace_is_invalid():
+def test_an_add_on_its_own_entry_states_what_it_bets_on_and_where_it_is_wrong():
     row = dv2.legacy_action_to_decision({
         "ticker": "AAA", "strategy_id": "tactical_entry",
         "action": "add_only_on_trigger",
@@ -59,10 +59,20 @@ def test_technical_add_without_setup_trace_is_invalid():
 
     issues = dv2.validate_decision(row)
 
-    assert "technical add requires technical_setup_id" in issues
-    assert "technical add requires technical_campaign_id" in issues
-    assert "technical add requires invalidation_price" in issues
-    assert "technical add requires tranche_number >= 1" in issues
+    # No registered setup is required (#2842); a hypothesis and the level at
+    # which the add is wrong are.
+    assert issues == [
+        "technical add requires invalidation_price",
+        "technical add without a technical_setup_id requires hypothesis",
+    ]
+    row.update(invalidation_price=9.0, hypothesis="站回 20 日线说明抛压出清")
+    assert dv2.validate_decision(row) == []
+    # Naming a registered setup still carries that setup's trace.
+    row["technical_setup_id"] = "trend_pullback"
+    assert dv2.validate_decision(row) == [
+        "technical add requires technical_campaign_id",
+        "technical add requires tranche_number >= 1",
+    ]
 
 
 def test_legacy_technical_add_remains_readable_without_new_trace_contract():

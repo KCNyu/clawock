@@ -461,15 +461,17 @@ def test_judgment_schema_allows_opinions_but_rejects_market_fields():
     )
 
 
-def test_judgment_can_downgrade_but_cannot_invent_a_candidate():
+def test_judgment_may_nominate_a_candidate_the_policy_did_not():
+    """The add policy nominates on tier or early trend; the judgment may
+    nominate another name. That is a departure to show, not an error (#2842)."""
     packet = _compiled()
     overlay = _valid_overlay(packet)
+    assert packet_mod.judgment_departures(packet, overlay) == []
     lev = next(row for row in overlay["ticker_judgments"] if row["ticker"] == "LEVX")
     lev["disposition"] = "candidate"
 
-    issues = packet_mod.validate_judgment_overlay(packet, overlay)
-
-    assert any("cannot upgrade" in issue for issue in issues)
+    assert packet_mod.validate_judgment_overlay(packet, overlay) == []
+    assert packet_mod.judgment_departures(packet, overlay) == ["LEVX"]
 
 
 def test_judgment_prose_may_not_carry_layout():
@@ -765,8 +767,11 @@ def test_plan_is_constrained_by_harness_actions_evidence_and_inventory():
         }]
     }
     issues = packet_mod.validate_plan_constraints(bad, packet)
-    assert any("allowed_actions" in issue for issue in issues)
-    assert any("evidence gate" in issue for issue in issues)
+    # A hard stop is in force: only the cut is open. And the event is invented.
+    assert any("is not open on this name" in issue and "AUTH_OBLIGATION_IN_FORCE" in issue
+               for issue in issues)
+    assert any("does not match any event" in issue and "FACT_UNKNOWN_EVENT" in issue
+               for issue in issues)
 
 
 def test_technical_add_requires_approved_trigger_and_hk_board_lot():
@@ -789,10 +794,17 @@ def test_technical_add_requires_approved_trigger_and_hk_board_lot():
     issues = packet_mod.validate_plan_constraints(odd_lot, packet)
     assert any("board-lot multiple" in issue for issue in issues)
 
-    invented = json.loads(json.dumps(good))
-    invented["decisions"][0]["condition"]["price"] = 10.5
-    issues = packet_mod.validate_plan_constraints(invented, packet)
-    assert any("approved technical setup" in issue for issue in issues)
+    # A different entry is a different strategy, not an arithmetic error: it
+    # is filed, with the registered setup's objection on the record (#2842).
+    own_entry = json.loads(json.dumps(good))
+    own_entry["decisions"][0]["condition"]["price"] = 10.5
+    assert packet_mod.validate_plan_constraints(own_entry, packet) == []
+    review = packet_mod.bind_policy_review(own_entry, packet)["decisions"][0]["policy_review"]
+    assert review["agrees_with_policy"] is False
+    assert [item["code"] for item in review["objections"]] == [
+        "STRAT_ENTRY_DIFFERS_FROM_SETUP"]
+    agreed = packet_mod.bind_policy_review(good, packet)["decisions"][0]["policy_review"]
+    assert agreed["agrees_with_policy"] is True and agreed["objections"] == []
 
 
 def test_leveraged_or_broken_thesis_never_gets_add_authority():
@@ -1032,12 +1044,17 @@ def test_passive_catalyst_still_rejects_an_event_id_that_matches_nothing():
     assert any("does not match any event" in issue for issue in issues)
 
 
-def test_active_catalyst_still_requires_an_escalated_event():
-    """The escalation gate is the point of the active tier — it must not move."""
+def test_an_unescalated_event_is_an_objection_and_an_invented_one_is_an_error():
+    """Whether an event exists is a fact. Whether it was escalated is the
+    news-evidence policy's opinion of it."""
     packet = _compiled()
-    issues = packet_mod.validate_plan_constraints(_catalyst("cut", "evt_quiet"), packet)
-    assert any("evidence gate" in issue for issue in issues)
-    assert packet_mod.validate_plan_constraints(_catalyst("cut", "evt_good"), packet) == []
+    quiet = _catalyst("cut", "evt_quiet")
+    assert packet_mod.validate_plan_constraints(quiet, packet) == []
+    codes = [item["code"] for item in packet_mod.review_plan(quiet, packet)]
+    assert "STRAT_EVENT_NOT_ESCALATED" in codes
+    assert packet_mod.review_plan(_catalyst("cut", "evt_good"), packet) == []
+    invented = packet_mod.validate_plan_constraints(_catalyst("cut", "evt_fake"), packet)
+    assert len(invented) == 1 and "FACT_UNKNOWN_EVENT" in invented[0]
 
 
 def test_pages_prefers_projection_and_keeps_a_backward_fallback():
@@ -1395,7 +1412,8 @@ def test_a_hard_stop_is_answered_by_the_position_not_by_one_share():
     packet = _hard_stop_packet()
     short = packet_mod.validate_plan_constraints(_cuts(1), packet)
     assert short == ["TEST: hard stop requires cutting the full position "
-                     "(10 shares, required_reduction.minimum_shares); plan cuts 1"]
+                     "(10 shares, required_reduction.minimum_shares); plan cuts 1 "
+                     "[AUTH_OBLIGATION_SHORTFALL]"]
     assert packet_mod.validate_plan_constraints(_cuts(10), packet) == []
     # Split across conditions, the legs are one reduction.
     assert packet_mod.validate_plan_constraints(_cuts(4, 6), packet) == []
@@ -1432,7 +1450,8 @@ def test_a_cap_breach_stays_a_tranche_decision_and_an_unsized_free_trim_advisory
     assert packet_mod.validate_plan_constraints(plan, packet) == []
     plan["decisions"][1]["size"] = {"shares": 0}
     assert packet_mod.validate_plan_constraints(plan, packet) == [
-        "decision[1] FREE: sell leg requires positive integer size.shares"]
+        "decision[1] FREE: sell leg requires positive integer size.shares "
+        "[FEAS_SELL_NOT_POSITIVE_INTEGER]"]
 
 
 # ── #2833: one list says which tiers are add candidates ─────────────────────
@@ -1461,10 +1480,11 @@ def test_every_authorised_tier_may_be_judged_a_candidate(tier):
     assert projected["candidate_disposition"]["effective"] == "candidate"
 
 
-def test_no_authority_is_still_not_a_candidate():
+def test_no_authority_is_a_departure_when_the_judgment_nominates_it():
     packet, overlay, _ = _with_tier("none")
-    assert any("cannot upgrade a deterministic non-candidate" in issue
-               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+    assert not any("candidate" in issue
+                   for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+    assert packet_mod.judgment_departures(packet, overlay)
 
 
 def test_the_system_sizes_the_full_position_cut_the_writer_left_unsized():

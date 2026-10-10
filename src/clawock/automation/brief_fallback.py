@@ -46,7 +46,7 @@ SINGLE_TURN_ADAPTER = """你在离机兜底环境里单轮生成今天的盘前�
 1. 输入已经全部内联：本次 generation 的 decision packet（SKILL 所说的 summary 与逐票查询的全部内容）和完整 preflight context。数字只取自这两份，取不到就写进 data_holes，不要编。
 2. 只输出一个 JSON 对象：{"plan": {...}, "judgment": {...}}。不要输出 markdown 报告、微信卡、insights 或任何客套话——报告与微信卡由 harness 从 plan 和 judgment 渲染。
 3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。
-4. plan 的动作边界与两类买腿按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的 add 规则执行；所需的 `constraints`、`technical` 已在内联 packet 中。持仓外的标的（stock_discovery、watch_list）不进 decisions。"""
+4. plan 的动作边界与两类买腿按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的 add 规则执行；所需的 `constraints`、`technical` 已在内联 packet 中。每条动作必须在该票的 `open_actions` 里；偏离登记策略（`allowed_actions`、setup、事件升级）是允许的，会被记成异议。持仓外的标的只有内联 packet 的 `swap_targets` 与 `proposal_universe` 里的可以进 decisions，stock_discovery、watch_list 里不在这两处的不进。"""
 
 
 def _json_objects(text):
@@ -396,6 +396,7 @@ def checked_reply(out, today, packet):
     errors = list(decision_v2.validate_plan(plan, f'memory/{today}-plan.json'))
     plan = decision_packet.bind_full_position_cuts(plan, packet)
     errors += decision_packet.validate_plan_constraints(plan, packet)
+    plan = decision_packet.bind_policy_review(plan, packet)
     if not isinstance(judgment.get('ticker_judgments'), list) or not judgment['ticker_judgments']:
         errors.append('judgment carries no ticker_judgments')
     if errors:
@@ -421,8 +422,9 @@ def checked_reply(out, today, packet):
             setups = (facts.get('technical') or {}).get('setups') or []
             constraints = facts.get('constraints') or {}
             rows.append(
-                f"decision[{index}] is {ticker} {row.get('action')}: packet allowed_actions="
-                f"{_compact(constraints.get('allowed_actions'))}, "
+                f"decision[{index}] is {ticker} {row.get('action')}: packet open_actions="
+                f"{_compact(constraints.get('open_actions') or constraints.get('allowed_actions'))}, "
+                f"closed_actions={_compact(constraints.get('closed_actions'))}, "
                 f"technical.setups={_compact(setups)}, "
                 f"swap_mandate={_compact(constraints.get('swap_mandate'))}")
         raise ReplyRejected('; '.join(errors + rows))
@@ -441,8 +443,10 @@ def repair_prompt(user, out, reason):
         f"它没有通过写盘前的校验：\n{reason}\n\n"
         "只改被指出的地方，其余内容原样保留，重新输出完整的 "
         '{"plan": {...}, "judgment": {...}} 这一个 JSON 对象。'
-        "被点名的 decision：上面列出了该票 packet 的 allowed_actions、technical.setups 与 swap_mandate。"
-        "按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的 add 规则修正买腿；不要编 setup 或扩大授权。"
+        "被点名的 decision：上面列出了该票 packet 的 open_actions、closed_actions、technical.setups 与 swap_mandate。"
+        "错误末尾方括号里是代码：FACT_ 是引用或数字不实，FEAS_/AUTH_ 是做不了或没有授权，按原因改；"
+        "按 SKILL.md 的风控「换仓的买腿怎么写」及 Step 4 B 的两类 add 规则修正买腿；"
+        "不要编 setup、事件或回执，也不要为了过校验而放弃你的判断。"
     )
 
 

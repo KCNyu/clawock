@@ -95,12 +95,98 @@ Limits are a service contract, not a trading rule: 400 characters, 80 syntax
 nodes, windows of 1–400 sessions. The store starts in 2025-12 and holds no
 volume; a window longer than the history is refused with `insufficient history`.
 
+## Proposals and the three checks
+
+A plan decision is a proposal. It is checked in three channels
+(`decision/receipts.py`), and each finding carries a code from its own channel.
+
+| Channel | Codes | Question | Effect |
+|---|---|---|---|
+| fact | `FACT_*` | Is the artifact true? A cited event, setup or receipt that does not exist; a price nobody observed; a receipt computed after the plan date. | refuses the plan |
+| feasibility and authorisation | `FEAS_*`, `AUTH_*` | Can it be done as written? Cash, inventory, board lots, an add already open, an obligation in force, an authorisation not given. | refuses the action |
+| strategy | `STRAT_*` | Would the registered policy have done it? | recorded as an objection; never refuses |
+
+`packet.review_plan` returns every finding. `validate_plan_constraints` is its
+blocking subset. `bind_policy_review` stamps the strategy channel onto each
+decision as `policy_review` (`agrees_with_policy`, `objections[]`, and a pending
+`authorization` where one applies). The proposal is filed as written. The page
+and the card print the departure beside the call under 「与登记策略不同」.
+
+### What a row opens
+
+Each ticker row carries two lists.
+
+| Field | Meaning |
+|---|---|
+| `constraints.open_actions` | actions a plan may write. Bounded by obligations, existing authorisations and feasibility |
+| `constraints.closed_actions` | for each closed action: channel, code and reason |
+| `constraints.allowed_actions` | actions the registered policy would take. Writing an open action outside this list is a strategy objection |
+
+What closes an action:
+
+| Code | Condition |
+|---|---|
+| `AUTH_OBLIGATION_IN_FORCE` | a hard stop or regime de-lever is forced on the name; only its actions are open |
+| `AUTH_ADD_FROZEN_BY_BREACH` | any risk breach is open on the name: adds and T trades are closed |
+| `AUTH_LEVERAGED_ADD` | a daily-reset leveraged product without validated evidence |
+| `AUTH_EXCEEDS_ROOM` | an add larger than `position_room_shares` (cash and the single-name cap) |
+| `AUTH_NO_SWAP_MANDATE` | a buy labelled `risk_rule` on a name no breach prescribes |
+| `FEAS_ADD_ALREADY_OPEN`, `FEAS_BOARD_LOT_UNKNOWN`, `FEAS_PRICE_MISSING`, `FEAS_NO_ROOM`, `FEAS_NOTHING_TO_SELL` | the order cannot be formed |
+| `FEAS_EXCEEDS_CASH` | the adds of one leg together exceed that leg's cash |
+
+The packet carries the set as `authorization`: each rule's code, what it
+binds, the parameter it reads, the current caps and a `version` hashed from all
+of them. Every reviewed decision records `policy_review.authorization_version`,
+so changing a cap or a rule is a visible change of version.
+
+The authorisations above are the ones that existed before this split. None was
+added, loosened or removed by it: the split changed which channel a rule
+reports in, and stopped registered strategy rules from refusing.
+
+What is now an objection instead of a refusal: an entry that matches no
+registered setup, or differs from the one it names; a size above the policy's
+tranche; a discretionary sell with no escalated event; an active call without a
+catalyst, setup or risk rule; a catalyst call citing a real event the
+news-evidence policy did not escalate; a judgment that nominates a candidate
+the add policy did not.
+
+### Names the book does not hold
+
+| Section | Who is in it | What can be written |
+|---|---|---|
+| `swap_targets` | the target of a hard-stop or regime swap | the paired buy leg of that mandate |
+| `proposal_universe` | every unheld name with stored daily bars no older than 7 days | `watch`, or `add_only_on_trigger` as a proposal |
+
+A proposal on an unheld name is priced at the stated close or quote, sized in
+whole shares or board lots, and held to the leg's cash. Its review carries
+`authorization: entry_gate_required`: it is an evaluable proposal, not an
+order. A name without stored bars cannot be settled and cannot be a decision.
+
+### Proposal fields
+
+Model-owned, optional, normalised by `ledger.normalize_proposal`.
+
+| Field | Content |
+|---|---|
+| `hypothesis` | what the model believes and why it matters now |
+| `method` | how it got there, in free text; not a menu |
+| `forecast` | `{event, probability, horizon_sessions}`: a statement that can be scored |
+| `alternatives` | options weighed and not chosen, holding included |
+| `tool_receipts` | ids of `compute` receipts the decision stands on |
+
+An add that names no registered setup must state `hypothesis` and
+`invalidation_price`. A cited receipt must exist, replay, and stand at a session
+no later than the plan date (`brief_postflight.tool_receipt_issues`).
+`simulated_entry_price`, when given, must be the packet's price for the name or
+the plan's own trigger.
+
 ## Fixed parameters in policy configuration
 
 Eight strategy-related config files hold 127 numeric leaves (thresholds,
 weights, sizes, windows), not counting `schema_version` and the leverage multiple
 of an instrument, which is product metadata. They parameterise the registered
-rules. They are not facts about the market.
+rules. They are not facts about the market. A registered rule's output reaches a decision as an
+objection (see above), not as a refusal.
 
 | Config | Leaves | Role |
 |---|---:|---|

@@ -53,6 +53,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime, date, timezone, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
@@ -1733,27 +1734,61 @@ def _run_wave(nodes, *, max_workers=2):
     return results
 
 
-def swap_target_quotes(guardrail, portfolio, *, today, fetch_hk=None):
-    """Price and board lot of each HK swap target the book does not hold.
-
-    The decision packet writes the buy leg of a hard-stop or regime swap against
-    a row of its own when the target is not a holding (`packet._swap_target_rows`).
-    A US target is priced there from the quant table and trades in single shares;
-    an HK one needs its board lot, which only arrives with a quote. Fails soft:
-    a target with no quote keeps an unsized row and the packet refuses the leg.
-    """
-    held = {
+def _held_tickers(portfolio):
+    return {
         str(row.get('ticker'))
         for book in (portfolio.get('portfolios') or {}).values()
         for row in ledger_rows((book or {}).get('holdings') or [])
         if (_share_number(row.get('shares', 0)) or 0) > 0
     }
-    targets = sorted({
+
+
+def proposal_universe(portfolio, *, bars_dir=None):
+    """Unheld names with stored daily bars: `{ticker: {leg, close, session}}`.
+
+    A plan may propose buying a name the book does not hold only if the
+    proposal can later be scored, and settlement scores from `memory/bars`. So
+    the store is the universe; the packet prices each name at this last close
+    (`packet._proposal_universe`). A retired or empty file is skipped, as is
+    one that does not parse — a broken bar file must not red the brief.
+    """
+    directory = Path(bars_dir) if bars_dir else WS / 'memory' / 'bars'
+    held = _held_tickers(portfolio)
+    rows = {}
+    for path in sorted(directory.glob('*.json')):
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        ticker = str(doc.get('ticker') or path.stem)
+        bars = doc.get('bars') if isinstance(doc, dict) else None
+        if ticker in held or doc.get('retired') or not isinstance(bars, dict) or not bars:
+            continue
+        session = max(bars)
+        close = (bars[session] or {}).get('close') if isinstance(bars[session], dict) else None
+        if isinstance(close, (int, float)) and not isinstance(close, bool) and close > 0:
+            rows[ticker] = {'leg': doc.get('leg') or ('HK' if ticker.isdigit() else 'US'),
+                            'close': close, 'session': session}
+    return rows
+
+
+def unheld_quotes(guardrail, portfolio, *, today, universe=(), fetch_hk=None):
+    """Price and board lot of each HK name the plan may buy without holding it.
+
+    Two kinds of unheld name can be written into a plan: the target of a
+    hard-stop or regime swap (`packet._swap_target_rows`) and a name in the
+    proposal universe. A US name is priced from stored closes and trades in
+    single shares; an HK one needs its board lot, which only arrives with a
+    quote. Fails soft: a name with no quote keeps an unsized row and the
+    packet refuses the leg.
+    """
+    held = _held_tickers(portfolio)
+    targets = {
         str((row.get('required_reduction') or {}).get('swap_to') or '')
         for key in ('breaches', 'hard_stop_watch')
         for row in guardrail.get(key) or []
-    } - held - {''})
-    codes = [code for code in targets if code.isdigit()]
+    } | {str(ticker) for ticker in universe}
+    codes = sorted(code for code in targets - held - {''} if code.isdigit())
     if not codes:
         return {}
     if fetch_hk is None:
@@ -1761,7 +1796,7 @@ def swap_target_quotes(guardrail, portfolio, *, today, fetch_hk=None):
     try:
         quotes = fetch_hk(codes) or {}
     except Exception as exc:  # noqa: BLE001 — a missing quote is a refused leg, not a red brief
-        print(f'   ⚠ swap target quotes failed: {type(exc).__name__}')
+        print(f'   ⚠ unheld quotes failed: {type(exc).__name__}')
         return {}
     return {
         code: {'price': quote.get('c'), 'lot_size': quote.get('lot_size'),
@@ -2155,6 +2190,7 @@ def _collect(argv=None):
     )
 
     open_decisions = decision_plans.open_decisions_context(today=today)
+    universe = proposal_universe(portfolio)
     opportunity = _opportunity_reads(open_decisions, portfolio)
     track_record = _action_track_record()
     _c = opportunity['counts']
@@ -2197,7 +2233,8 @@ def _collect(argv=None):
         'live_information': _brief_live_projection(live_information),
         'thesis_registry': thesis_registry_ctx,
         'open_decisions': open_decisions,
-        'swap_target_quotes': swap_target_quotes(guardrail, portfolio, today=today),
+        'proposal_universe': universe,
+        'unheld_quotes': unheld_quotes(guardrail, portfolio, today=today, universe=universe),
         # The add side. Sits next to open_decisions deliberately: the discipline
         # half of the same question has been in this context since the start.
         'opportunity': opportunity,
