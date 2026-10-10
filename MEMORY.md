@@ -144,19 +144,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-07)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-02 周五 08:03 HKT: 今天不是预测日，是执行日。港股段 57.8% 押在 MINIMAX 单一标的上、美股段 85.6% 押在 SPCH 2x 上，两条腿同时危险集中，而今晚 20:30 有非农。唯一有实质变化的不是行情而是账：SPCH 浮亏重新击穿硬止损线，允许动作从反弹减仓收窄为直接清掉换成 1x。MINIMAX 昨天涨 3.65% 领涨港股 AI，但中期报告刚在盘后披露，今天是它第一次被定价，先看再动。维持 07226 与 RKLX 现有打法，不重发第 N 遍。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-02 周五 08:03 HKT: **反方**：反过来看，今天唯一确定要做的动作，是把一笔在正股反弹里刚刚走强的 2x 敞口清掉，而这件事的动机不是价格而是账上的规则；同一天账户刚因为拒绝对同一条敞口执行了 79 天而把敞口买得更大。星舰成功、正股月涨 4.1%，在一个上升叙事里执行纪律性削减，很可能是减在情绪最好的一天。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-02 周五 08:03 HKT description: "clawock 盘前深度简报 2026-10-02：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-02-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-02 周五 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-02-pre-open.md:9-9]
-
 ## Promoted From Short-Term Memory (2026-10-08)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-03-2214.md:14:17 -->
@@ -180,3 +167,16 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 其余风险: 本机导航已更新并记录了复核基线；live checkout 里三个未提交的 `assets/data` 文件是定时发布写的，没动。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-05-1854.md:19-19]
 <!-- openclaw-memory-promotion:memory:memory/2026-10-05-pre-open.md:11:11 -->
 - 盘前深度简报｜2026-10-05 周一 08:03 HKT: 两条腿走反了方向：美股上周五 risk-on 收在高位、航天这条线一天涨 9% 到 15%，港股却跌出 52 周低位、恒科只剩 4158。今天的主基调不是找新机会，是把 2x 敞口一层层剥掉：美股两笔 2x 敞口在反弹位全清，1x 由 SPCX 继续承担；港股 07226 先减两成回 25% 上限之内。做完之后组合里只剩一条 2x，而且港股那条留下了两个新问题：减两成会把 00100 推到约 59.4%、离 60% 的强制线只剩不到一个百分点；而 1x 承接腿今天落不了纸，卖出所得只能停在现金。真正没有解法的还是 00100 —— 它占港股段 55.6%、贡献全组合 54.7% 的风险份额，规则只授权持有。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-05-pre-open.md:11-11]
+
+## Promoted From Short-Term Memory (2026-10-11)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-10-06 周二 08:03 HKT: 今天只有一笔该动手的：美股那个 2x 敞口占到整段 92.2%、单票占 87.93%，昨天正股一天涨 7.6% 把 2x 推到 5 日 +36.1%，是把重置层换成 1x 最好的价，砍掉的是衰减不是 SpaceX 这门生意。港股这边反过来，恒科在 200 日线下方 15.6%，2x 硬止损开了 54 天但减额门槛没跨过重新发起的线，维持；00100 在智谱靠产品级催化涨 6.15% 的日子里只涨 0.58%，落后的不是估值是它自己拿不出催化，所以持有观察、不加仓。今日基调是纪律优先：一条执行、六条按住，指数在高位而账户在低位。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-10-06 周二 08:03 HKT: **反方**：最强反方是：把最热的一条腿在单日 +15% 的当天砍掉，等于把八天以来最好的一次兑现窗口让出去，而这笔减仓在账上已经开了 83 天、执行 0 次、对这只票的买入却有 13 次。回看历史，这只票过去三次减仓三次都对，说明砍在强头上确实是这套打法里赚钱的那一半。反方还指出两件被低估的事：一是 SpaceX 的三发连中与摩根士丹利的 300 美元目标价都在同一天确认，杀伤力和催化同源；二是砍掉 2x 只解决衰减，不解决 87.93% 的单名集中——真正的分散要等 1x 承接腿拿到授权，而这笔单子执行之后美股段会剩 187 美元现金和 1 股 SPCX，单名集中反而更极端。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-10-06 周二 08:03 HKT description: "clawock 盘前深度简报 2026-10-06：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:23-23]
