@@ -224,7 +224,7 @@ def test_arms_separate_what_the_policy_agreed_with_from_what_it_objected_to():
     assert objected["payoff"]["mean_net_benefit_pct"] == round((6 * 4 - 8) / 14, 4)
     assert objected["payoff"]["payoff_ratio"] == 4.0
     assert report["arms"]["unreviewed"]["payoff"]["reading"] == "negative_expectancy"
-    assert "hold arm is zero by construction" in report["benefit"]
+    assert "hold reference is zero by construction" in report["benefit"]
     assert report["overall"]["hit_rate"]["n"] == 42
 
 

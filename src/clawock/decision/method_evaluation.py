@@ -6,12 +6,11 @@ condition / regime right". Three questions it cannot answer are answered here:
 
 * by **method** — proposals carry `method_version`, a hash of how the model
   said it reached the call, so a change of method is a change of group;
-* by **arm** — every reviewed decision records whether the registered policy
-  agreed with it. `policy_agreed` is what the old rules would have allowed,
-  `policy_objected` is what only the open contract let through, and the
-  comparison between them is the evidence for or against having opened it.
-  Not acting is the third arm and is zero by construction: a benefit is
-  already the action's return against holding;
+* by **policy group** — `policy_agreed` and `policy_objected` describe
+  observed proposals, not independently generated experiment arms. Selection
+  probabilities are unknown, so their difference is not a causal estimate.
+  Benefit is measured against not acting; that reference is zero by
+  construction. Prospective three-arm trials live in `method_trials`;
 * in **money terms** — mean, median, tails and payoff ratio of the net
   benefit, next to the hit rate and never folded into it.
 
@@ -263,7 +262,7 @@ def evaluate(decisions: list[dict], proposed: list[dict] | None = None, *,
         "selection_bias": "observational groups; unknown selection probabilities; no causal claim",
         "realized_returns": "not computed here; execution flags are not broker fills",
         "benefit": ("benefit_t1_pct of one representative per episode: the action's return "
-                    "against not acting, so the hold arm is zero by construction"),
+                    "against not acting, so the hold reference is zero by construction"),
         "cost_model": model.as_dict(),
         "protocol": {
             "min_episodes": MIN_EPISODES,
