@@ -280,6 +280,21 @@ def test_costs_come_off_every_acted_leg():
     assert payoff["mean_net_benefit_pct"] == -0.01 and payoff["reading"] == "negative_expectancy"
 
 
+def test_episode_costs_average_the_calls_not_their_capital():
+    model = costs.CostModel(assumed_commission_bps={"us": 0},
+                            assumed_minimum_commission={"us": 1},
+                            spread_bps_by_leg={"us": 0})
+    small = _settled("AAA", "2026-07-01", 0.3, method="A")
+    large = _settled("AAA", "2026-07-01", 0.3, method="A")
+    small["evaluation"]["capital"] = 100
+    large["evaluation"]["capital"] = 1000
+    payoff = me.evaluate([small, large], cost_model=model)["overall"]["payoff"]
+    # The minimum costs 1% and 0.1%, not 1 / average(100, 1000).
+    assert payoff["n"] == 1
+    assert payoff["mean_cost_pct"] == 0.55
+    assert payoff["mean_net_benefit_pct"] == -0.25
+
+
 def test_forecasts_are_scored_on_the_close_at_their_horizon():
     closes = {("AAA", "2026-07-07"): 12.0, ("BBB", "2026-07-07"): 9.0}
 
@@ -366,6 +381,19 @@ def test_changing_method_inside_one_episode_does_not_blend_returns():
     result = me.evaluate([a, b], cost_model=FREE)
     assert {r["method"]: r["payoff"]["mean_net_benefit_pct"] for r in result["methods"]} == {
         "A": 5, "B": -3}
+    assert result["overall"]["payoff"]["n"] == 1
+    assert result["overall"]["payoff"]["mean_net_benefit_pct"] == 1
+    assert result["arms"]["unreviewed"]["payoff"]["n"] == 1
+
+
+def test_policy_change_does_not_duplicate_an_episode_inside_one_method():
+    rows = [_settled("AAA", "2026-07-01", 5, method="A", agrees=True),
+            _settled("AAA", "2026-07-01", -3, method="A", agrees=False)]
+    result = me.evaluate(rows, cost_model=FREE)
+    assert result["methods"][0]["payoff"]["n"] == 1
+    assert result["methods"][0]["payoff"]["mean_net_benefit_pct"] == 1
+    assert result["arms"]["policy_agreed"]["payoff"]["mean_net_benefit_pct"] == 5
+    assert result["arms"]["policy_objected"]["payoff"]["mean_net_benefit_pct"] == -3
 
 
 def test_torn_log_cannot_consume_the_next_proposal(tmp_path):

@@ -129,10 +129,14 @@ What closes an action:
 | `AUTH_OBLIGATION_IN_FORCE` | a hard stop or regime de-lever is forced on the name; only its actions are open |
 | `AUTH_ADD_FROZEN_BY_BREACH` | any risk breach is open on the name: adds and T trades are closed |
 | `AUTH_LEVERAGED_ADD` | a daily-reset leveraged product without validated evidence |
-| `AUTH_EXCEEDS_ROOM` | an add larger than `position_room_shares` (cash and the single-name cap) |
+| `AUTH_EXCEEDS_ROOM` | adds on one name together larger than `position_room_shares` (cash and the single-name cap) |
 | `AUTH_NO_SWAP_MANDATE` | a buy labelled `risk_rule` on a name no breach prescribes |
 | `FEAS_ADD_ALREADY_OPEN`, `FEAS_BOARD_LOT_UNKNOWN`, `FEAS_PRICE_MISSING`, `FEAS_NO_ROOM`, `FEAS_NOTHING_TO_SELL` | the order cannot be formed |
 | `FEAS_EXCEEDS_CASH` | the adds of one leg together exceed that leg's cash |
+
+Split sell legs also share one `max_sell_shares` inventory limit. Conditions
+are independently triggerable; they do not declare mutually exclusive orders.
+Swap buys must have positive integer shares before any board-lot or value check.
 
 The packet carries the set as `authorization`: each rule's code, what it
 binds, the parameter it reads, the current caps and a `version` hashed from all
@@ -215,7 +219,9 @@ reported without blocking brief delivery.
 `clawock evaluate-methods` reports method-specific episode payoffs after the
 registered cost assumptions, alongside probability scores and all proposal,
 refusal, publication, trigger and execution denominators. Method changes within
-an episode are kept separate. Policy-agreed and policy-objected groups are
+an episode are kept separate in method groups. Overall and policy-group
+statistics independently deduplicate their own populations by episode; they
+do not add up method-group sample counts. Policy-agreed and policy-objected groups are
 **observational groups**, not randomized experiment arms: their selection
 probabilities are unknown. Execution flags do not prove realized profit.
 The report cannot promote a method or change its allocation.
@@ -228,6 +234,8 @@ forecasts are retained as unscoreable; missing bars remain pending. Brier and
 payoff stay in separate columns. Calibration's `edge_supported` means only a
 hit-rate lower bound above one half; its gross payoff distribution can disagree.
 The method report's net distribution additionally accounts for assumed costs.
+Costs are computed per settled call before averaging within an episode, so a
+minimum commission is applied to each call's own capital.
 
 ### Frozen prospective comparisons
 
@@ -260,6 +268,8 @@ costs, plus its own untouched buy-and-hold counterfactual. A no-action arm
 still has a curve. Each native currency reports net benefit, upside capture,
 missed gain against holding, drawdown, turnover and idle cash. Missing marks
 stay missing, including delisted names; failed and absent arms remain visible.
+Any missing mark withholds that currency's comparison metrics, while the partial
+simulation curve and missing-date list remain available for inspection.
 The report retains settlement bars, original responses and tool receipts for
 replay; changed bars produce a new content-addressed report. No live decision
 or broker execution record is changed.

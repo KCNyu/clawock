@@ -162,10 +162,14 @@ def submit(workspace, trial_id, arm, submission, *, now=None):
 
 def _metrics(curve):
     points = (curve.get("net") or {}).get("curve") or []
+    missing = (curve.get("mark_coverage") or {}).get("skipped_dates") or []
     valid = [p for p in points if p.get("followed_sim") is not None
              and p.get("buy_and_hold") is not None]
-    if not valid:
-        return {"status": "missing_marks"}
+    if not valid or missing:
+        # Dropping a missing final mark would present an earlier payoff as the
+        # trial result; interior gaps also hide drawdowns and upside moves.
+        # Keep the partial curve in simulation, withhold comparable metrics.
+        return {"status": "missing_marks", "missing_marks": missing}
     peak = valid[0]["followed_sim"]
     drawdown = 0.0
     gains, captured = 0.0, 0.0
@@ -186,7 +190,7 @@ def _metrics(curve):
             "max_drawdown": drawdown,
             "turnover": sum(c.get("notional", 0) for c in charges) / initial if initial > 0 else None,
             "idle_cash": [p.get("followed_cash") for p in valid],
-            "missing_marks": curve.get("missing_marks") or []}
+            "missing_marks": missing}
 
 
 def replay(workspace, trial_id, *, as_of=None, now=None):

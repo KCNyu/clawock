@@ -227,26 +227,30 @@ def evaluate(decisions: list[dict], proposed: list[dict] | None = None, *,
               if row.get("schema_version") == ledger.SCHEMA_VERSION
               and row.get("action") in ACTIVE_ACTIONS]
     proposed = [row for row in (proposed or []) if row.get("action") in ACTIVE_ACTIONS]
-    # A method switch inside an existing ticker episode must not blend
-    # its return into whichever method happened to be first.
-    identities = defaultdict(list)
-    for row in active:
-        identities[(row.get("method_version") or UNKNOWN, arm_of(row))].append(row)
-    reps = [rep for group in identities.values()
-            for rep in ledger.episode_representatives(group, "t1")]
-    for row in reps:
-        gross = ledger._float((row.get("evaluation") or {}).get("benefit_t1_pct")) or 0.0
-        cost = cost_pct(row, model)
-        row["_gross"], row["_cost"], row["_net"] = gross, cost, gross - cost
+    def representatives(rows):
+        reps = ledger.episode_representatives(rows, "t1")
+        costs_by_episode = defaultdict(list)
+        for row in ledger._episode_settled(rows, "benefit_t1_pct"):
+            costs_by_episode[row.get("episode_id")].append(cost_pct(row, model))
+        for row in reps:
+            gross = ledger._float((row.get("evaluation") or {}).get("benefit_t1_pct")) or 0.0
+            # Minimum commissions are nonlinear in capital. Charge each call
+            # before taking the same episode mean used for gross benefit.
+            cost = statistics.mean(costs_by_episode[row.get("episode_id")])
+            row["_gross"], row["_cost"], row["_net"] = gross, cost, gross - cost
+        return reps
 
     def split(key_fn, proposal_key_fn):
         buckets = defaultdict(lambda: ([], [], []))
         for row in active:
             buckets[key_fn(row)][0].append(row)
-        for row in reps:
-            buckets[key_fn(row)][1].append(row)
         for row in proposed:
             buckets[proposal_key_fn(row)][2].append(row)
+        # Deduplicate inside the population being described. Method returns
+        # stay separate, but their representatives are not independent samples
+        # that can be concatenated into the overall or policy-group report.
+        for decisions, reps, _ in buckets.values():
+            reps.extend(representatives(decisions))
         return buckets
 
     arms = split(arm_of, arm_of)
@@ -275,7 +279,7 @@ def evaluate(decisions: list[dict], proposed: list[dict] | None = None, *,
                      "positive reading is not a finding; this report promotes, demotes and "
                      "sizes nothing"),
         },
-        "overall": _group(active, reps, proposed, scorer),
+        "overall": _group(active, representatives(active), proposed, scorer),
         "arms": {arm: _group(*arms[arm], scorer) for arm in ARMS if arm in arms},
         "methods": [
             {"method_version": key, "method": texts.get(key),
