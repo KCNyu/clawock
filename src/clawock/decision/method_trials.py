@@ -217,7 +217,8 @@ def replay(workspace, trial_id, *, as_of=None, now=None):
         result["arms"][arm] = summary
         if saved["status"] != "ok" or as_of < trial["start_date"]:
             continue
-        ledger.settle_decisions(rows, now_date=as_of)
+        ledger.settle_decisions(rows, now_date=(
+            date.fromisoformat(as_of) + timedelta(days=1)).isoformat())
         simulation = shadow.build_shadow_portfolio(
             trial["portfolio"], rows, as_of=as_of + "T23:59:59+00:00",
             start_dates={leg: trial["start_date"] for leg in trial["leg_config"]},

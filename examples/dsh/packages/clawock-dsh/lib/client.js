@@ -9039,7 +9039,9 @@ function t1ChipClass(tone) {
 /** Dashboard-parity money formatter (test seam). */
 function _fmtMoney(value, currency = "") {
 	if (value === null || !isFinite(value)) return "—";
-	return (value < 0 ? "−" : "") + (currency === "USD" ? "$" : currency === "HKD" ? "HK$" : "") + (Math.abs(value) >= 1e3 ? Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 0 }) : Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 2 }));
+	const symbol = currency === "USD" ? "$" : currency === "HKD" ? "HK$" : "";
+	const formatted = Math.abs(value) >= 1e3 ? Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 0 }) : Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
+	return (value < 0 ? "−" : "") + symbol + formatted;
 }
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
 function fmtPrice(value, sym = "") {
