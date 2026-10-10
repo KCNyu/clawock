@@ -23,7 +23,7 @@
 
 <a href="https://kcnyu.github.io/clawock/#drill"><picture><source media="(max-width: 700px)" srcset="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/books-narrow.svg"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/books.svg" width="820" alt="US book and Hong Kong book, side by side: each book's return, the basis that return is divided by, and its daily P&amp;L curve in its own currency; the combined return sits underneath on a mixed basis"></picture></a>
 
-| **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **45** | **5** | **0** |
+| **<!-- CW_M:days -->142<!-- /CW_M:days -->** | **<!-- CW_M:rows -->985<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->159<!-- /CW_M:settled -->** | **46** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
@@ -101,7 +101,7 @@ re-settles the whole ledger.
 [How the grading handles the hard cases](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#the-public-scorecard) ·
 [what we tested, and what failed](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#what-we-tested-and-what-failed).
 
-Method proposals now retain frozen inputs and versioned forecasts; [method evaluation](docs/architecture/decision-architecture.md#method-records-and-evaluation) separates payoff from hit rate and supports prospective comparisons without automatic promotion.
+Method proposals now retain frozen inputs and versioned forecasts; [method evaluation](https://github.com/KCNyu/clawock/blob/master/docs/architecture/decision-architecture.md#method-records-and-evaluation) separates payoff from hit rate and supports prospective comparisons without automatic promotion.
 
 ## Any harness, one decision contract that accumulates evidence
 
