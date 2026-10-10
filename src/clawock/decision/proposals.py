@@ -84,7 +84,7 @@ def authorship(workspace, *, model: str | None = None,
 
 
 def _record(decision: dict, *, plan: dict, findings: list[dict], plan_status: str,
-            author: dict, load_receipt, observation_snapshot=None) -> dict:
+            author: dict, load_receipt, observation_snapshot=None, reviewed=True) -> dict:
     blocking = receipts.blocking(findings)
     cited = []
     for receipt_id in decision.get("tool_receipts") or []:
@@ -123,7 +123,7 @@ def _record(decision: dict, *, plan: dict, findings: list[dict], plan_status: st
         "plan_status": plan_status,
         "refusals": [{"channel": item["channel"], "code": item["code"]} for item in blocking],
         "objections": [item["code"] for item in receipts.objections(findings)],
-        "agrees_with_policy": not receipts.objections(findings),
+        "agrees_with_policy": not receipts.objections(findings) if reviewed else None,
         "authorization_version": (decision.get("policy_review") or {}).get(
             "authorization_version"),
         "authorship": author,
@@ -139,18 +139,24 @@ def load(workspace) -> list[dict]:
     rows = []
     if not path.exists():
         return rows
-    for line in path.read_text(encoding="utf-8").splitlines():
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if not line.strip():
+            continue
         try:
             row = json.loads(line)
-        except ValueError:
-            continue
-        if isinstance(row, dict) and row.get("record_id"):
-            rows.append(row)
+        except ValueError as exc:
+            if index == len(lines) - 1 and not line.endswith("\n"):
+                continue
+            raise ValueError(f"corrupt proposal log at line {index + 1}") from exc
+        if not isinstance(row, dict) or not row.get("record_id"):
+            raise ValueError(f"invalid proposal record at line {index + 1}")
+        rows.append(row)
     return rows
 
 
 def record(workspace, plan: dict, findings: list[dict], *, plan_status: str,
-           author: dict | None = None, load_receipt=None, now=None, observation_snapshot=None) -> list[dict]:
+           author: dict | None = None, load_receipt=None, now=None, observation_snapshot=None, reviewed=True) -> list[dict]:
     """Append this plan's proposals; returns the records that were new.
 
     `findings` is `packet.review_plan`'s output for the same plan (an empty
@@ -185,7 +191,7 @@ def record(workspace, plan: dict, findings: list[dict], *, plan_status: str,
                 continue
             row = _record(decision, plan=plan, findings=by_index.get(index, []),
                           plan_status=plan_status, author=author, load_receipt=load_receipt,
-                          observation_snapshot=observation_snapshot)
+                          observation_snapshot=observation_snapshot, reviewed=reviewed)
             if row["record_id"] in seen:
                 continue
             seen.add(row["record_id"])

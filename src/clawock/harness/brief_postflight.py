@@ -630,7 +630,7 @@ def record_proposals(plan, decision_packet, context, status, workspace=None):
             root, plan, findings, plan_status=status,
             author=proposals.authorship(root, model=model),
             load_receipt=lambda receipt_id: compute.load_receipt(root, receipt_id),
-            observation_snapshot=decision_packet)
+            observation_snapshot=decision_packet, reviewed=bool(decision_packet))
     except Exception as exc:  # noqa: BLE001 — see docstring
         print(f'warn: proposal log not written: {type(exc).__name__}: {exc}', file=sys.stderr)
         return []

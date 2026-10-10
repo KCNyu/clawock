@@ -377,3 +377,18 @@ def test_torn_log_cannot_consume_the_next_proposal(tmp_path):
     with pytest.raises(ValueError, match="unterminated"):
         proposals.record(tmp_path, _plan(_decision("BBB")), [], plan_status="pass", author=AUTHOR)
     assert path.read_bytes() == before
+
+
+def test_corrupt_interior_log_is_not_reported_as_a_smaller_denominator(tmp_path):
+    proposals.record(tmp_path, _plan(_decision()), [], plan_status="pass", author=AUTHOR)
+    path = proposals.log_path(tmp_path)
+    path.write_text("broken record\n" + path.read_text())
+    with pytest.raises(ValueError, match="corrupt proposal log"):
+        proposals.load(tmp_path)
+
+
+def test_absent_packet_is_unreviewed_not_policy_agreement(tmp_path):
+    row = proposals.record(tmp_path, _plan(_decision()), [], plan_status="fail",
+                           author=AUTHOR, reviewed=False)[0]
+    assert row["agrees_with_policy"] is None
+    assert me.arm_of(row) == "unreviewed"
