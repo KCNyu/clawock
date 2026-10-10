@@ -232,7 +232,7 @@ The watchdog's backstop resend is the plain card on both channels.
 
 | Tier | Path | Covers | Requests per slot | Freshness | Failure |
 |---|---|---|---|---|---|
-| 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json`, `factor-snapshots/sentiment/<HKT-date>.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | source health uses file write time; each headline's cite uses its own publication time; date-only or missing time is labelled unknown and old | missing/unreadable file → `⛔` line |
+| 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | source health uses file write time; each headline's cite uses its own publication time; date-only or missing time is labelled unknown and old | missing/unreadable file → `⛔` line |
 | 1 | existing free fetchers: `mover_evidence` (Tencent, SEC, exchange, Nasdaq halts), Eastmoney 7×24 flashes | mover catalysts; market-level flashes | a handful, movers only (7×24: 1, fetched inside the tier 2 lane) | live | per-ticker `degraded`, never "no news" |
 | 2 | live free sources through `clawock.evidence.live_sources` (table below): HKEXnews, SEC EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24 | every slot, every holding (kcn 2026-09-26: 实时越多越好 — not gated on a gap) | per market: one filing query (HKEXnews or EDGAR full-text) + one Google News query per issuer or theme, and one Yahoo RSS per US issuer + the two market-wide 7×24 feeds; HK index-fund legs share one theme query (`live_sources.plan()` prints the plan for the current book) | each item carries its publisher's time: `盘中实时` after the session open, `开盘前旧闻` before it | per source on the ⛔ line (`资讯源未取到：Google新闻（1/3 超时）…（不是无消息）`) and in `information.sources` |
 | 3 | Tavily (`skills/tavily-search`, `--bucket intraday`) | an anomaly's cause | only when `anomalies` is non-empty, once per ticker per session | live | `unavailable`/quota → `⛔ 源降级`, never "no news" |
@@ -316,6 +316,7 @@ as live.
 | add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
+| sentiment archive is not a consumed source and cannot cause a news gap (`test_missing_archive_is_not_a_source_gap_and_future_source_is_not_fresh`) | live (#2859) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
 | Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887) |
