@@ -193,8 +193,8 @@ def test_neutral_regime_badge_label_meets_aa_in_both_themes(theme):
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("chip, row", [
-    (".infl-who.musk", ".infl-row"),
-    (".drv-chip.drv-peer", ".plan-action"),
+    (".infl-who", ".infl-row"),
+    (".drv-chip", ".plan-action"),
 ])
 def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
     """#1583: the Musk author badge (`#3b82f6`) and the 同行 driver chip
@@ -202,7 +202,11 @@ def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
     row they sit in, that was 2.83:1 / 1.55:1 in light and 3.72:1 for Musk in
     dark. The hued tokens their siblings use don't clear AA on that row in
     light either (`--accent` 3.91, `--positive` 4.28), so the text follows
-    #1580 onto `--text-secondary` and the tint keeps the hue."""
+    #1580 onto `--text-secondary`.
+
+    Author and driver badges are one neutral badge each now (a source is a
+    category, and three of them had borrowed the gain / loss / warning hues),
+    so the pair is checked on the shared rule rather than on one person's."""
     css = CSS.read_text(encoding="utf-8")
     tokens = _theme_tokens(css)[theme]
     row_bg = _paint(_rule_value(css, row, "background"), tokens, None)
@@ -255,8 +259,8 @@ def test_every_tinted_chip_meets_aa_on_every_surface_in_both_themes():
     selectors = {selector for selector, _, _ in chips}
     # The parser finding nothing would pass vacuously; the chips #1585 was
     # opened for must be among what it found.
-    assert {".infl-who.trump", ".drv-chip.drv-catalyst", ".drv-chip.drv-macro",
-            ".infl-who.duan, .infl-who.honghao"} <= selectors, sorted(selectors)
+    assert {".infl-stance.down", ".infl-chip.held", ".tier.poor",
+            ".outcome.loss"} <= selectors, sorted(selectors)
     assert len(chips) >= 40, f"only {len(chips)} tinted chips found; the parser broke"
 
     failures = []

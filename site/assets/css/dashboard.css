@@ -63,6 +63,33 @@
     --accent-ink: #49ABFF;
     --warning-ink: #E3A640;
     --focus: #8ED0FF;
+    /* 实色强调面上的字／高光兑色（按钮渐变往白里兑的那一端）。 */
+    --on-accent: #FFFFFF;
+    /* ── 图表分类色（docs/design/design-system.md §1.6）────────────────
+       「系列 A / 系列 B」是类别，不是状态：涨跌色、告警色不许拿来当类别用，
+       否则一条琥珀色的基准线读成「这条线在告警」。类别色只有这一组，全部
+       落在品牌蓝—靛—灰蓝这一段冷色相里，彼此靠明度拉开；图表之外不许用。 */
+    --viz-1: #7C8CF2;
+    --viz-2: #9C75C9;
+    --viz-3: #5675B7;
+    --viz-4: #7C91A8;
+    --viz-5: #BAA5D5;
+    --viz-6: #5B7BA3;
+    --viz-warm: #E3A640;   /* 冷色系列旁边唯一的暖色对照线；值与 --warning 相同只是巧合，两者不互为别名 */
+    /* ── 影与光的浓度档 ───────────────────────────────────────────
+       压在面上的暗（内阴影、滚动边、遮罩）与打在面上的亮（高光边、反光）
+       此前逐条手写 alpha：.10/.38/.42/.45/.5/.55/.72 七个值说的是四件事。
+       两个主题的墨不同：暗色用纯黑，亮色用和 --shadow-card 同一支藏青墨，
+       所以组件规则只写档位，不写颜色。 */
+    --shade-1: rgba(0,0,0,.10);   /* 凹槽里的一线暗 */
+    --shade-2: rgba(0,0,0,.42);   /* 遮罩、滚动边提示 */
+    --shade-3: rgba(0,0,0,.55);   /* 贴着面的接触影 */
+    --shade-4: rgba(0,0,0,.72);   /* 浮层的远影 */
+    --gloss-1: rgba(255,255,255,.4);    /* 小色块顶上的一线反光 */
+    --gloss-2: rgba(255,255,255,.55);
+    /* 牌面的斜向反光与自画光池（.deck-card）。 */
+    --glare: linear-gradient(115deg, rgba(255,255,255,.085), rgba(255,255,255,.02) 30%, transparent 52%);
+    --pool: rgba(255,255,255,.05);
 
     /* Compatibility aliases: keep legacy selectors stable while removing the
        former purple/HK/LLM meaning from accent-2. */
@@ -183,11 +210,44 @@
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   
-  /* 动效 tokens（#873）：全站 transition 只引用这四个，禁裸曲线 */
-  --ease-out: cubic-bezier(.23, 1, .32, 1);
-  --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+  /* ── 动效 tokens（#873 起；docs/design/design-system.md §2）───────────
+     全站 transition / animation 只引用这里的名字，禁裸时长、禁裸曲线
+     （tests/test_dashboard_component_language.py 是闸）。
+
+     时长按「这件事离手指多远」分档，不按组件分：
+       instant   手指底下的反馈：按下、松开
+       fast      小东西换状态：颜色、图标、箭头、hover
+       standard  一块内容进来或换位：卡内展开、状态条换色、条形图到位
+       slow      只给「数据刚变过」这类要留一眼的提示；交互本身不许用
+     enter / exit 是角色别名：出场比进场快一档（系统的回应要利落）。 */
+  --duration-instant: 100ms;
   --duration-fast: 150ms;
   --duration-standard: 240ms;
+  --duration-slow: 400ms;
+  --duration-enter: var(--duration-standard);
+  --duration-exit: var(--duration-fast);
+  /* 「数据刚变过」的记号停留多久（见 .is-changed）。它是提示不是过渡，
+     所以单列，不进上面那条交互时长阶。 */
+  --duration-mark: 1600ms;
+  /* 曲线按「它在做什么」选，不按好不好看选：
+       out       进场 / 出场 / 对用户动作的回应 —— 默认就是它
+       in-out    已经在屏幕上的东西从 A 挪到 B
+       standard  只换颜色 / 透明度、位置不动（即 CSS 的 ease，写成 token）
+       drawer    整块贴边滑入的面板（决策地图抽屉）
+       spring    只给「确认」这一类罕见的完成反馈，过冲 1.5%；常规控件不许用
+       linear    匀速的东西：转圈、进度线
+     没有 ease-in：它把起步拖慢，而起步正是眼睛盯着的那一刻。 */
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+  --ease-standard: cubic-bezier(.25, .1, .25, 1);
+  --ease-drawer: cubic-bezier(.32, .72, 0, 1);
+  --ease-linear: linear;
+  /* 阻尼比 0.8 的弹簧（apple-design §4 的动量档）按 1/20 步长采样成 linear()。
+     不支持 linear() 的浏览器里这个值无效，过渡退回浏览器默认曲线，不影响终态。 */
+  --ease-spring: linear(0, 0.074, 0.233, 0.415, 0.583, 0.723, 0.829, 0.906, 0.956,
+    0.987, 1.005, 1.013, 1.015, 1.014, 1.012, 1.009, 1.007, 1.004, 1.003, 1.002, 1);
+  /* 进场位移只有这一个量：从哪边来就往哪边偏这么多，再配透明度。 */
+  --enter-shift: 6px;
   /* 一个焦点环，写一次。实测此前 var(--focus) 10 条 / var(--accent) 9 条，
      offset 有 1/2/3/5/-2px 五种：同一个键盘可见性两套视觉语言。
      外描边一律 2px offset，画在元素内侧时 -2px。 */
@@ -278,6 +338,21 @@
       --accent-ink: #035D9A;
       --warning-ink: #7A5102;
       --focus: #0078C9;
+      --viz-1: #5564D6;
+      --viz-2: #7F56B3;
+      --viz-3: #3E5FA8;
+      --viz-4: #5B7189;
+      --viz-5: #9A82BD;
+      --viz-6: #33506F;
+      --viz-warm: #805400;
+      --shade-1: rgba(18,33,48,.06);
+      --shade-2: rgba(18,33,48,.18);
+      --shade-3: rgba(18,33,48,.24);
+      --shade-4: rgba(18,33,48,.30);
+      --gloss-1: rgba(255,255,255,.5);
+      --gloss-2: rgba(255,255,255,.7);
+      --glare: linear-gradient(115deg, rgba(255,255,255,.8), rgba(255,255,255,.22) 30%, transparent 52%);
+      --pool: rgba(0,110,184,.045);
       /* Light inverts the recipe: the sheen becomes a barely-there warm
          wash and the specular edge becomes near-white, while the shadow
          is what does the separating (it reads fine on a light page). */
@@ -364,7 +439,13 @@
   summary:active,
   [role="button"]:active {
     transform: scale(var(--press-scale));
+    /* 按下比松开快一档：手指落下的那一下要立刻有回应，松开可以从容。 */
+    transition-duration: var(--duration-instant);
   }
+  /* 点按不等双击判定（iOS 上那 ~300ms）。 */
+  a, button, summary, [role="button"], label, select { touch-action: manipulation; }
+  /* 有 scale 反馈的控件不再叠系统的灰色闪块；链接没有 scale，灰块留着。 */
+  button, summary, [role="button"] { -webkit-tap-highlight-color: transparent; }
   /* 手机（≤560px）blur 减半保 saturate（#995 同款判据）：小屏上大面积
      blur 的渲染代价与玻璃读感不成比例，半径减半、饱和保留——色度差才是
      「这是玻璃」的真凭据。 */
@@ -384,6 +465,60 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+
+  /* =========================================================
+     动效基线（docs/design/design-system.md §2）
+     这里只放「跨组件的同一件事」。组件自己的过渡写在组件旁边，但时长和
+     曲线一律取 token。每一条都写了三样：为什么动、多久看见一次、减少动态
+     效果时变成什么。
+     ========================================================= */
+
+  /* ① 数据刚变过。后台每分钟核一次新一代数据，换代时整块 DOM 重画，数字是
+     瞬间换掉的 —— 盯着屏幕也看不出哪个数动了。换代后文字确实变了的读数
+     底下多一道强调色的线，慢慢退掉。
+     · 数字本身不滚动、不插值：金融读数的中间值是假的，屏幕上任何时刻印的
+       都必须是真值。
+     · 线是「变了」，不是「涨了 / 跌了」：方向已经由数字自己的符号和涨跌色
+       承担；亏损收窄是「向上」却仍是负数，拿涨色去闪会被读反。
+     · 只画线、不铺底：强调色的底哪怕只有 7%，也会把压在上面的跌色数字从
+       4.67:1 拉到 4.17:1（实测，暗色 inset 面），35% 时是 2.7:1。「数字压在
+       色底上看不清」比「没看出它变了」严重，所以记号不许碰字的背景。
+     · 减少动态效果：不渐隐，线静止停留同样长再撤掉。 */
+  .is-changed {
+    animation: value-mark var(--duration-mark) var(--ease-out) both;
+  }
+  @keyframes value-mark {
+    from, 35% { box-shadow: 0 2px 0 var(--accent); }
+    to { box-shadow: 0 2px 0 transparent; }
+  }
+  /* ② 首屏读数落位。占位的「—」换成真数时整块跳一下；三段依次淡入，每页
+     只在第一次拿到数据时放一遍。只动透明度、不动位置：这三段是首屏最大的
+     内容块，版式断言和读者的眼睛都要在第一帧就拿到终位。 */
+  .is-first-paint .hero-deck-lead,
+  .is-first-paint .hero-today,
+  .is-first-paint .hero-rail {
+    animation: enter-fade var(--duration-enter) var(--ease-out) backwards;
+  }
+  .is-first-paint .hero-today { animation-delay: 40ms; }
+  .is-first-paint .hero-rail { animation-delay: 80ms; }
+  @keyframes enter-fade { from { opacity: 0; } }
+  /* 从无到有的小块（报错框、提示条）：淡入并上移一个 --enter-shift。 */
+  @keyframes enter-rise {
+    from { opacity: 0; transform: translateY(var(--enter-shift)); }
+  }
+  /* ③ 折叠块展开。布局一步到位（不做高度动画：它每帧重排，且尺子类的断言
+     要在点击后立刻量到终态），只有内容淡入。只在用户亲手点开时放 ——
+     重画出来的已展开块不放，否则每次换代所有展开块一起闪。收起是瞬时的。 */
+  details[data-opening][open] > :not(summary) {
+    animation: enter-fade var(--duration-enter) var(--ease-out) backwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-changed { animation: none; box-shadow: 0 2px 0 var(--accent); }
+    .is-first-paint .hero-deck-lead,
+    .is-first-paint .hero-today,
+    .is-first-paint .hero-rail,
+    details[data-opening][open] > :not(summary) { animation: none; }
   }
   /* OS-level reduced transparency: drop the frosted surfaces back to solid
      (apple-design skill: frostier/solid, blur off).
@@ -590,7 +725,7 @@
     font-size: var(--fs-lg); cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     flex: 0 0 auto;
-    transition: color var(--duration-fast) var(--ease-out),
+    transition: color var(--duration-fast) var(--ease-standard),
                 transform var(--duration-fast) var(--ease-out);
   }
   /* 44px of finger, 0px of paint. Centred on the glyph, and narrower than the
@@ -608,13 +743,18 @@
     /* Hover is a tint on the mark, not a disc appearing under it. */
     .refresh-btn:hover { color: var(--text); }
   }
-  .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
+  .refresh-btn.is-loading .ic { animation: spin 0.8s var(--ease-linear) infinite; }
   /* Nothing new: the ↻ stays and takes a green tint. New generation: the icon
      morphs to ✓ in accent — two outcomes differ by shape, not colour alone. */
   .refresh-btn.ok-flash { color: var(--positive); }
   .refresh-btn.fresh-flash { color: var(--accent); }
   .refresh-btn.fresh-flash .ic { font-size: 0; }
-  .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: var(--fs-md); }
+  .refresh-btn.fresh-flash .ic::after {
+    content: "✓"; font-size: var(--fs-md); display: inline-block;
+    /* 全页唯一用弹簧的地方：「新数据到了」是一次完成确认，每二十分钟至多一回。 */
+    animation: confirm-pop var(--duration-standard) var(--ease-spring) backwards;
+  }
+  @keyframes confirm-pop { from { opacity: 0; transform: scale(.9); } }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -837,6 +977,9 @@
      therefore looked exactly like a panel with nothing in it — card chrome, a
      table header, no rows, which reads as "you hold nothing". */
   .panel[aria-busy="true"] > * { opacity: .55; }
+  /* 数据到位时压暗是退掉的，不是跳掉的。卡片自带 transition 简写，所以它那
+     一条里也点了 opacity（同一份清单被整条覆盖的坑，见按压基线的说明）。 */
+  .panel > * { transition: opacity var(--duration-standard) var(--ease-standard); }
   /* Dimmed chrome alone cannot be told from a page that stopped responding, so
      the state needs a second mark. It used to be a boxed sentence in the middle
      of the page (kcn 2026-10-11: ugly, and far more words than the state needs).
@@ -852,7 +995,7 @@
     position: sticky; top: 0; z-index: 2;
     display: block; width: 30%; height: 2px; margin: 0 0 -2px;
     border-radius: 999px; background: var(--accent);
-    animation: panel-busy-note var(--duration-fast) linear .25s both,
+    animation: panel-busy-note var(--duration-fast) var(--ease-linear) .25s both,
                panel-busy 1.1s var(--ease-in-out) infinite alternate;
   }
   @keyframes panel-busy-note { from { opacity: 0; } to { opacity: 1; } }
@@ -876,6 +1019,8 @@
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-dim); font-size: var(--fs-sm);
+    /* 报错框是从无到有，不是从载入线「变」出来的：淡入上移一步。 */
+    animation: enter-rise var(--duration-enter) var(--ease-out) backwards;
   }
   .panel-load-retry {
     font: inherit; color: var(--text); cursor: pointer;
@@ -1095,7 +1240,8 @@
        套规则。 */
     margin: 0;
     transition: transform var(--duration-fast) var(--ease-out),
-                box-shadow var(--duration-fast) var(--ease-out);
+                box-shadow var(--duration-fast) var(--ease-out),
+                opacity var(--duration-standard) var(--ease-standard);
   }
   @media (hover: hover) and (pointer: fine) {
     .panel.active > .card:hover {
@@ -1104,6 +1250,15 @@
     }
   }
   .card.is-pending { visibility: hidden; }
+  /* 卡里的一块（配方见 docs/design/design-system.md §4.2）。渲染器里此前
+     用内联样式给这类块各调一个色底：国内金价是涨色底、伦敦金是告警色底、
+     待布局弹药是强调色底 —— 三块都只是「一段并列的读数」，没有一块在报
+     状态。块就是块：inset 面 + 细边，状态留给里面的数字自己说。 */
+  .inset-block {
+    background: var(--fill-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
   .card h3 {
     margin: 0 0 var(--space-3);
     font-size: var(--fs-sm); font-weight: 600;
@@ -1132,7 +1287,7 @@
     }
     .card.fold-m > h3::after {
       content: "›"; position: absolute; right: 2px; top: 50%;
-      transform: translateY(-50%) rotate(90deg); transition: transform var(--duration-fast);
+      transform: translateY(-50%) rotate(90deg); transition: transform var(--duration-fast) var(--ease-out);
       color: var(--text-faint); font-size: var(--fs-lg); font-weight: 400;
     }
     .card.fold-m.open > h3 { margin-bottom: var(--space-3); }
@@ -1213,7 +1368,7 @@
   .catalyst-row .ticker { font-family: var(--mono); font-weight: 600; color: var(--accent); }
   .catalyst-row .detail { color: var(--text); }
   .catalyst-row.fomc .ticker { color: var(--accent-2); }
-  .catalyst-row.macro .ticker { color: var(--warning); }
+  .catalyst-row.macro .ticker { color: var(--text-secondary); }
 
   /* News digest markdown */
   .news-digest { font-size: var(--fs-md); line-height: 1.5; max-height: 360px; overflow-y: auto; }
@@ -1296,27 +1451,23 @@
   .infl-feed { display: flex; flex-direction: column; gap: var(--space-2); max-height: 420px; overflow-y: auto; }
   .infl-summary { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: 4px; font-size: var(--fs-xs); }
   .infl-chip { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
-  .infl-chip.held { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
-  .infl-chip.idea { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  /* 「提到了我的持仓 / 一个新标的」是类别，不是盈亏也不是告警：持仓用强调色
+     （这是和我有关的那一类），新标的用中性色。涨跌色只留给 .infl-stance。 */
+  .infl-chip.held { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
+  .infl-chip.idea { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
   .infl-chip.sect { background: var(--fill-inset); color: var(--text-dim); }
   .infl-row {
     background: var(--fill-inset); border-radius: var(--radius-sm);
     padding: var(--space-2) var(--space-3); border-left: 3px solid var(--text-dim);
   }
-  .infl-row.is-held { border-left-color: var(--negative); }
-  .infl-row.is-idea { border-left-color: var(--warning); }
+  .infl-row.is-held { border-left-color: var(--accent); }
+  .infl-row.is-idea { border-left-color: var(--border-strong); }
   .infl-hdr { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; font-size: var(--fs-xs); flex-wrap: wrap; }
-  .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs); }
-  .infl-who.trump { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
-  /* 字色不用 --accent：它在这块蓝底 + card-2 行上浅色只有 3.91，不到 AA；
-     --text-secondary 两主题都过线，蓝底保留来源色（#1583，tests/test_dashboard_contrast.py 钉住）。 */
-  .infl-who.musk  { background: rgba(59,130,246,0.16); color: var(--text-secondary); }
-  .infl-who.serenity { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
-  .infl-who.ark   { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
-  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
-  .infl-who.burry, .infl-who.pelosi { background: var(--card); color: var(--text-dim); }
-  /* 未登记的作者（加源时忘了在这里登记）也要有可读的徽章，不能因为没样式而隐形 */
-  .infl-who.other { background: var(--card); color: var(--text-dim); }
+  /* 作者徽标只有一种：谁说的由名字承担。此前每个人一个颜色，其中三个借的是
+     涨 / 跌 / 告警色 —— 同一行里「红色的人」挨着「红色的看空」，颜色说了两件事。
+     字色走 --text-secondary：它在这块底 + inset 行上两个主题都过 AA（#1583）。 */
+  .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs);
+    background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
   .infl-stance { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.04em;
     padding: 2px 8px; border-radius: 3px; font-weight: 700; }
   .infl-stance.up   { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
@@ -1326,8 +1477,8 @@
   .infl-sum { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
   .infl-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; font-size: var(--fs-micro); }
   .infl-tag { padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-  .infl-tag.held { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
-  .infl-tag.idea { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .infl-tag.held { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
+  .infl-tag.idea { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
   .infl-tag.sect { background: var(--card); color: var(--text-dim); font-weight: 500; }
   .infl-meta { color: var(--text-dim); font-size: var(--fs-micro); margin-top: 4px; }
 
@@ -1603,7 +1754,7 @@
     background: var(--fill-inset-2); color: var(--text);
   }
   .tier.excellent { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
-  .tier.good { background: rgba(91,141,239,.15); color: var(--accent-ink); }
+  .tier.good { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
   .tier.fair { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   .tier.poor { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
 
@@ -1614,7 +1765,7 @@
     container-type: inline-size;
     background:
       linear-gradient(to right, transparent, var(--card) 80%) 100% 0,
-      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.38), transparent) 100% 0;
+      radial-gradient(farthest-side at 100% 50%, var(--shade-2), transparent) 100% 0;
     background-repeat: no-repeat;
     background-size: 30px 100%, 13px 100%;
     background-attachment: local, scroll;
@@ -1650,7 +1801,7 @@
      `.is-scrolled` 由 JS 在 scrollLeft > 0 时加在 .table-wrap 上。 */
   .table-wrap.is-scrolled .holdings-table th:first-child,
   .table-wrap.is-scrolled .holdings-table td:first-child {
-    box-shadow: 8px 0 12px -8px rgba(0,0,0,.55);
+    box-shadow: 8px 0 12px -8px var(--shade-3);
   }
   /* 名称列原来恒定 max-width:140px + ellipsis，1024-1280 宽下把
      「Leverage Shares 2X Long SpaceX Daily ETF」截成一半，而那几档的表格
@@ -1792,7 +1943,7 @@
   }
   .outcome.win { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
   .outcome.loss { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
-  .outcome.pending { background: rgba(107,118,145,.15); color: var(--text-secondary); }
+  .outcome.pending { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
   .outcome.flat { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   .outcome.not_triggered { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary); }
   .outcome.unknown { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
@@ -1827,7 +1978,7 @@
   .add-campaign-row > div:nth-child(2) { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
   .campaign-tier, .campaign-state, .campaign-blockers span {
     display: inline-flex; padding: 2px 6px; border-radius: 999px;
-    font: 600 var(--fs-micro) var(--mono); background: rgba(107,118,145,.14); color: var(--text-dim);
+    font: 600 var(--fs-micro) var(--mono); background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-dim);
   }
   .campaign-state.state-eligible { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
   .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); }
@@ -1871,20 +2022,16 @@
     display: inline-block; margin-left: 8px; padding: 2px 8px;
     border-radius: var(--radius-sm); font-size: var(--fs-micro); font-weight: 600;
     vertical-align: middle; white-space: nowrap;
+    /* 信号来源是类别：一种徽标，字说是哪一类。此前催化=涨色、情绪=告警色，
+       和旁边真正的输赢徽标撞色（design-system.md §1.1）。 */
+    background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); color: var(--text-secondary);
   }
-  .drv-chip.drv-catalyst   { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
-  .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--text-secondary); }
-  .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
-  .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
-  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
-  /* 字色同 .infl-who.musk（#1583）：--accent / --positive 在浅色 card-2 行上都不到 AA，青色留在底上。 */
-  .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: var(--text-secondary); }
   @media (max-width: 600px) {
     .drv-chip { font-size: var(--fs-micro); padding: 1px 5px; margin-left: 4px; }
   }
 
   /* ── LLM narrative cards (behavioral review / bear cases / hidden concentration) ── */
-  .llm-card { border-left: 3px solid rgba(167,139,250,.55); }
+  .llm-card { border-left: 3px solid var(--border-strong); }
   .llm-tag {
     text-transform: none; letter-spacing: 0; font-weight: 500; font-size: var(--fs-xs);
     color: var(--accent);
@@ -2007,7 +2154,7 @@
   .hc-bar { flex: 1 1 auto; height: 10px; background: var(--fill-inset); border-radius: 5px; overflow: hidden; }
   .hc-bar-fill {
     height: 100%; border-radius: 5px;
-    background: linear-gradient(90deg, rgba(124,140,242,.7), color-mix(in srgb, var(--negative) 80%, transparent));
+    background: color-mix(in srgb, var(--negative) 80%, transparent);
   }
   .hc-pct { flex: 0 0 auto; font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
   .hc-detail { font-size: var(--fs-sm); line-height: 1.55; color: var(--text-dim); }
@@ -2026,10 +2173,14 @@
     -webkit-backdrop-filter: blur(12px) saturate(150%);
     backdrop-filter: blur(12px) saturate(150%);
     font-size: var(--fs-md); line-height: 1.45;
+    /* 判定换档（正常 → 告警）时底和边一起换色，不是跳色。 */
+    transition: background-color var(--duration-standard) var(--ease-standard),
+                border-color var(--duration-standard) var(--ease-standard);
   }
   .status-banner .sb-pulse {
     flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%;
     background: var(--accent);
+    transition: background-color var(--duration-standard) var(--ease-standard);
   }
   .status-banner .sb-text { flex: 1 1 auto; font-weight: 500; color: var(--text); }
   .status-banner .sb-time { flex: 0 0 auto; font-size: var(--fs-micro); color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
@@ -2197,7 +2348,7 @@
   .pt-row .pt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .pt-row .pt-conf {
     font-size: var(--fs-xs); padding: 2px 8px; border-radius: 999px;
-    background: rgba(91,141,239,.12); color: var(--accent-ink); font-weight: 600;
+    background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); font-weight: 600;
     font-family: var(--mono);
   }
   .pt-row .pt-followed-true { color: var(--positive); font-size: var(--fs-micro); font-weight: 600; }
@@ -2264,8 +2415,8 @@
   }
   .ext-region .ext-name { font-size: var(--fs-md); font-weight: 700; letter-spacing: .04em; }
   .ext-region .ext-flag { font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-  .ext-region .ext-flag.low { background: rgba(229,72,77,.16); color: var(--negative-ink); }
-  .ext-region .ext-flag.ok  { background: rgba(48,164,108,.16); color: var(--positive-ink); }
+  .ext-region .ext-flag.low { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
+  .ext-region .ext-flag.ok  { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
   .ext-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
   .ext-row .k { font-size: var(--fs-xs); color: var(--text-dim); }
   .ext-row .v { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); }
@@ -2365,7 +2516,7 @@
   .shadow-toggle::after {
     content: "›"; grid-column: 2; grid-row: 1 / span 2;
     color: var(--text-faint); font-size: var(--fs-xl);
-    transform: rotate(90deg); transition: transform var(--duration-fast);
+    transform: rotate(90deg); transition: transform var(--duration-fast) var(--ease-out);
   }
   .shadow-toggle[aria-expanded="true"]::after { transform: rotate(-90deg); }
   .shadow-summary {
@@ -2376,8 +2527,8 @@
   .shadow-sim-label {
     display: inline-flex; align-items: center; gap: var(--space-2);
     margin: 0 0 var(--space-3); padding: 4px 12px;
-    border: 1px solid rgba(229,72,77,.55); border-radius: 999px;
-    background: rgba(229,72,77,.14); color: var(--negative-ink);
+    border: 1px solid color-mix(in srgb, var(--negative) var(--tint-edge), transparent); border-radius: 999px;
+    background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink);
     font-size: var(--fs-sm); font-weight: 700; letter-spacing: .08em;
   }
   .shadow-estimand {
@@ -2580,7 +2731,7 @@
   .build-status {
     display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
     justify-content: center; margin: 0 auto 12px; padding: 5px 12px;
-    border: 1px solid var(--border, #2a2f3a); border-radius: 999px;
+    border: 1px solid var(--border-subtle); border-radius: 999px;
     font-size: var(--fs-xs); color: var(--text-dim); cursor: help; max-width: 92%;
   }
   .build-status .bs-label { color: var(--text); }
@@ -2653,8 +2804,8 @@
        接触线（#995 同款厚度语言）。 */
     box-shadow: inset 0 1px 0 var(--spec-2),
                 var(--edge-bottom),
-                0 1px 2px -1px rgba(0,0,0,.5),
-                0 12px 30px -16px rgba(0,0,0,.72);
+                0 1px 2px -1px var(--shade-3),
+                0 12px 30px -16px var(--shade-4);
   }
   /* A soft pool of light under the headline number. Not a coloured box and
      not a glow on the glyphs — an ambient lift behind the focal point, which
@@ -2729,7 +2880,7 @@
     box-shadow:
       inset 0 1px 0 var(--spec-1),
       inset 0 0 0 1px color-mix(in srgb, var(--border-subtle) 55%, transparent),
-      inset 0 -14px 24px -22px rgba(0, 0, 0, .45);
+      inset 0 -14px 24px -22px var(--shade-2);
   }
   .hero-spark-svg { display: block; width: 100%; height: 100%; }
   .hero-spark-svg.pos { color: var(--positive); }
@@ -2921,13 +3072,13 @@
     height: 6px; border-radius: 3px; overflow: hidden; max-width: 220px;
     margin: 21px 0 12px;
     background: color-mix(in srgb, var(--text-primary) 7%, transparent);
-    box-shadow: inset 0 1px 1.5px rgba(0, 0, 0, .10), inset 0 0 0 1px var(--spec-1);
+    box-shadow: inset 0 1px 1.5px var(--shade-1), inset 0 0 0 1px var(--spec-1);
   }
   .rc-meter > i {
     display: block; height: 100%; border-radius: 3px;
     background: linear-gradient(180deg,
-      color-mix(in srgb, var(--accent) 72%, #fff), var(--accent));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+      color-mix(in srgb, var(--accent) 72%, var(--on-accent)), var(--accent));
+    box-shadow: inset 0 1px 0 var(--gloss-2);
   }
   /* 每日盈亏柱：零轴居中，正上负下。柱子小、面积小，所以用满彩度的涨跌色
      ——「小面积要彩度才看得见，大面积要收彩度才不吵」是同一条规矩的两端。 */
@@ -2947,7 +3098,7 @@
        一排随机色块）。封顶 9px 并按槽位中心对齐：疏密随宽度变，柱子本身
        的粗细不变。 */
     max-width: 9px; transform: translateX(-50%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4);
+    box-shadow: inset 0 1px 0 var(--gloss-1);
   }
   .rc-bars > i.up { background: var(--positive); }
   .rc-bars > i.down { background: var(--negative); }
@@ -3490,7 +3641,7 @@
     box-shadow: var(--shadow-card);
     padding: 16px 18px 40px; overflow-y: auto; z-index: 60;
     transform: translateX(100%);
-    transition: transform var(--duration-standard) var(--ease-out); }
+    transition: transform var(--duration-standard) var(--ease-drawer); }
   .dm-drawer.is-open { transform: none; }
   .dm-drawer h3 { margin: 0 0 2px; font-size: var(--fs-lg); overflow-wrap: anywhere; }
   .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
@@ -3508,7 +3659,7 @@
   }
   .dm-hits em { font-style: normal; color: var(--text-dim);
     font-family: var(--mono); font-size: var(--fs-xs); }
-  .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
+  .dm-scrim { position: fixed; inset: 0; background: var(--shade-2); z-index: 55; }
   [hidden] { display: none !important; }
 
   @media (max-width: 640px) {
@@ -3692,40 +3843,22 @@
        blur —— 玻璃里再糊玻璃是泥（#937）。 */
     background: var(--surface-1);
     background:
-      linear-gradient(115deg, rgba(255,255,255,.085), rgba(255,255,255,.02) 30%, transparent 52%),
-      var(--sheen-1), var(--glass-card);
+      var(--glare), var(--sheen-1), var(--glass-card);
     -webkit-backdrop-filter: var(--blur-card);
     backdrop-filter: var(--blur-card);
     box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.055),
+      inset 0 0 0 1px var(--spec-1),
       inset 0 1px 0 var(--spec-2),
       var(--edge-bottom), var(--shadow-card);
     /* 换牌动画只动 transform/opacity；transform 由 JS 逐帧写入
        （弹簧积分），CSS 不再另给 transition 免得双重插值。 */
     will-change: transform;
   }
-  @media (prefers-color-scheme: light) {
-    .deck-card {
-      background:
-        linear-gradient(115deg, rgba(255,255,255,.8), rgba(255,255,255,.22) 30%, transparent 52%),
-        var(--sheen-1), var(--glass-card);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.95),
-        inset 0 1px 0 var(--spec-2),
-        var(--edge-bottom), var(--shadow-card);
-    }
-  }
   .deck-card::before {
     content: ""; position: absolute; inset: 0; z-index: -1;
     border-radius: inherit; pointer-events: none;
     background: radial-gradient(540px 210px at 14% -30px,
-      rgba(255,255,255,.05), transparent 70%);
-  }
-  @media (prefers-color-scheme: light) {
-    .deck-card::before {
-      background: radial-gradient(540px 210px at 14% -30px,
-        rgba(0,110,184,.045), transparent 70%);
-    }
+      var(--pool), transparent 70%);
   }
   /* 指示点：自动轮播撤掉之后它不再兼任进度条，26px 的条状点也就没有
      理由了 —— 收成 5px 圆点，跟同一张牌里的硬闸点阵（.gt-dot）同一套
@@ -3765,6 +3898,10 @@
   .deck-card > * { transition: opacity var(--duration-standard) var(--ease-out),
                 transform var(--duration-standard) var(--ease-out); }
   .deck-card.deck-preenter > * { transition: none; opacity: 0; transform: translateY(6px); }
+  /* 压在下面的牌只露一条边，它的字不该从上面那张玻璃里透出来（1440 宽
+     实拍：顶牌的判词底下叠着一行「触发中的硬闸」的虚影）。`aria-hidden` 由
+     换牌引擎在半程处翻转，所以内容跟着同一个节拍淡出 / 淡入。 */
+  .deck-card[aria-hidden="true"] > * { opacity: 0; }
   .deck-card.deck-enter > *:nth-child(1) { transition-delay: 30ms; }
   .deck-card.deck-enter > *:nth-child(2) { transition-delay: 55ms; }
   .deck-card.deck-enter > *:nth-child(n+3) { transition-delay: 80ms; }
@@ -4337,7 +4474,7 @@
 .tr-row summary:active { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); }
 .tr-row[open] summary { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); box-shadow: inset 3px 0 0 var(--accent); }
 .tr-row[open] summary::after { transform: rotate(180deg); }
-.tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: var(--fs-micro); transition: transform var(--duration-fast); }
+.tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: var(--fs-micro); transition: transform var(--duration-fast) var(--ease-out); }
 .tr-row summary > .tr-dot { grid-area: 1 / 2; }
 .tr-row summary > .tr-tk { grid-area: 1 / 3; }
 .tr-row summary > .tr-act { grid-area: 1 / 4; justify-self: start; }

@@ -448,8 +448,68 @@ def test_no_transition_or_entrance_invents_its_own_timing(source, stylesheet):
         if "cubic-bezier" in value:
             strays.append(f"{prop}: {value.strip()[:70]} (bare curve)")
     assert strays == [], (
-        source + ": use var(--duration-fast|--duration-standard) and "
-        "var(--ease-out|--ease-in-out):\n  " + "\n  ".join(sorted(set(strays))))
+        source + ": take the duration and the curve from the motion tokens "
+        "(docs/design/design-system.md §2):\n  " + "\n  ".join(sorted(set(strays))))
+
+
+def _token_blocks_removed(css: str) -> str:
+    return re.sub(r":root\s*\{[^{}]*\}", " ", css)
+
+
+#: Colour literals that are not paint, or that a test needs to read as a value.
+COLOUR_LITERAL_EXCEPTIONS = {
+    # A mask's colour is its alpha channel: #000 is "fully shown", not black.
+    "#000": "mask-image stops",
+    # The light-theme faded timestamp; test_dashboard_contrast resolves the
+    # cascade to this literal, and a var() there is what it reports as a loss.
+    "#263848": ".muted.asof-faded",
+}
+
+
+def test_a_colour_is_written_once_in_the_palette_and_named_everywhere_else():
+    """`docs/design/design-system.md` §6: a rule names a role, the palette holds
+    the value. Before this gate the sheet carried 37 colour literals outside
+    its token blocks — four reds, three blues and seven shadow strengths that
+    were each one decision written several times, and that no theme switch or
+    palette change could reach."""
+    strays = sorted({
+        literal for literal in re.findall(
+            r"#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)", _token_blocks_removed(CSS))
+        if literal not in COLOUR_LITERAL_EXCEPTIONS})
+    assert strays == [], (
+        "name a token (or add one to :root in both themes) instead of: "
+        + ", ".join(strays))
+
+
+def test_chart_colours_come_from_the_palette_too():
+    """A canvas cannot read a custom property, so the chart layer copies one —
+    and a copy with a `|| "#36A3FF"` beside it is a second palette that only
+    the dark theme agrees with (the tooltip was a fixed dark box on the light
+    page for exactly that reason)."""
+    charts = (ROOT / "site/assets/js/dashboard.charts.js").read_text(encoding="utf-8")
+    code = re.sub(r"//.*", "", charts)
+    strays = sorted(set(re.findall(r"""["'`]#[0-9a-fA-F]{3,8}["'`]|rgba?\(\d[^)]*\)""", code)))
+    assert strays == [], "read these through getCSS(\"--token\"): " + ", ".join(strays)
+    core = (ROOT / "site/assets/js/dashboard.core.js").read_text(encoding="utf-8")
+    keys = set(re.findall(r'"(--[\w-]+)"', core[core.index("THEME_CSS_KEYS"):core.index("];", core.index("THEME_CSS_KEYS"))]))
+    asked = set(re.findall(r'getCSS\("(--[\w-]+)"\)', charts)) | {
+        "--viz-" + str(n) for n in range(1, 7) if 'getCSS("--viz-" + n)' in charts}
+    assert asked <= keys, (
+        "getCSS() only knows the names in THEME_CSS_KEYS; these come back "
+        "empty: " + ", ".join(sorted(asked - keys)))
+
+
+def test_the_motion_scale_is_complete_and_nothing_eases_in():
+    """The scale a new component picks from. `ease-in` is not on it: it delays
+    the first frames, which are the ones the eye is on."""
+    for token in ("--duration-instant", "--duration-fast", "--duration-standard",
+                  "--duration-slow", "--duration-enter", "--duration-exit",
+                  "--ease-out", "--ease-in-out", "--ease-standard", "--ease-drawer",
+                  "--ease-spring", "--ease-linear"):
+        assert re.search(rf"(?<![\w-]){token}\s*:", CSS), f"{token} left the motion scale"
+    assert not re.search(r"ease-in(?!-out)", CSS), "ease-in is not a curve this site uses"
+    assert not re.search(r"transition\s*:\s*all\b", CSS + LAYOUT_CSS), (
+        "`transition: all` animates properties nobody chose; name them")
 
 
 def test_container_corners_come_off_the_corner_scale():

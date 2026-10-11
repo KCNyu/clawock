@@ -182,8 +182,8 @@
     // The card's non-chart renderer already shows "数据不足". Avoid initializing
     // ECharts inside its hidden content when the sidecar is missing or empty.
     if (!hasData) return;
-    const accent = getCSS("--accent") || "#36A3FF";
-    const baseline = getCSS("--warning") || "#E3A640";
+    const accent = getCSS("--accent");
+    const baseline = getCSS("--warning");
     const isMobile = window.innerWidth < 1024;
     const configs = [
       { currency: "USD", id: "chart-shadow-usd", key: "shadowPortfolioUsd" },
@@ -264,21 +264,21 @@
   function chartTooltip(trigger = "axis", pointerType = "cross") {
     return {
       trigger,
-      backgroundColor: "#111925",
-      borderColor: "#31445A",
+      backgroundColor: getCSS("--overlay"),
+      borderColor: getCSS("--border-strong"),
       borderWidth: 1,
       padding: [8, 12],
       textStyle: {
-        color: "#F2F6FB",
+        color: getCSS("--text-primary"),
         fontFamily: getCSS("--mono"),
         fontSize: 11,
       },
-      extraCssText: "border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.28);",
+      extraCssText: `border-radius:8px;box-shadow:0 12px 32px ${getCSS("--shade-2")};`,
       axisPointer: {
         type: pointerType,
-        lineStyle: { color: getCSS("--focus") || "#8ED0FF", width: 1 },
-        crossStyle: { color: getCSS("--focus") || "#8ED0FF", width: 1 },
-        shadowStyle: { color: "rgba(54,163,255,.08)" },
+        lineStyle: { color: getCSS("--focus"), width: 1 },
+        crossStyle: { color: getCSS("--focus"), width: 1 },
+        shadowStyle: { color: echarts.color.modifyAlpha(getCSS("--accent"), .08) },
       },
     };
   }
@@ -303,7 +303,7 @@
   }
 
   function chartDataZoom(start) {
-    const accent = getCSS("--accent") || "#36A3FF";
+    const accent = getCSS("--accent");
     return {
       type: "slider", start, end: 100, height: 16, bottom: 6,
       borderColor: chartGridColor(),
@@ -319,7 +319,7 @@
       },
       handleStyle: { color: accent, borderColor: accent },
       moveHandleStyle: { color: accent, opacity: .55 },
-      emphasis: { handleStyle: { color: getCSS("--accent-strong") || "#1687E8" } },
+      emphasis: { handleStyle: { color: getCSS("--accent-strong") } },
       handleSize: "120%",
       textStyle: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono") },
     };
@@ -393,8 +393,8 @@
       + `<tbody>${benchmarkRows.join("")}</tbody></table></div>`
       + `<p>先按同期 call 配对，再按 episode 平均；部分 episode 只计可配 call。缺开盘/结算基准、盘中触发时间未知时显示未覆盖，不补值。</p>`;
     if (!window.echarts) return;
-    const green = getCSS("--positive") || "#28C08D";
-    const dim = getCSS("--text-tertiary") || "#6E7D90";
+    const green = getCSS("--positive");
+    const dim = getCSS("--text-tertiary");
     const isMobile = window.innerWidth < 1024;
 
     // A separate chart because win rate and money are different quantities: being
@@ -415,7 +415,7 @@
       // Colour encodes which line you're reading, not whether it's any good. The two
       // lines are different sample pools and must not be read as active-vs-hold: 全量
       // mixes in the passive stances. The 50% line is the only reference here.
-      const activeWrColor = getCSS("--accent") || "#36A3FF";
+      const activeWrColor = getCSS("--accent");
       charts.aiWinRate.setOption({
         ...baseChartOpts(),
         grid: { left: isMobile ? 42 : 52, right: isMobile ? 16 : 24, top: 34, bottom: wrDates.length > 6 ? 48 : 26 },
@@ -660,7 +660,7 @@
       if (hoverIndex != null && hoverIndex >= start) {
         const local = hoverIndex - start;
         const x = xAt(local);
-        ctx.strokeStyle = getCSS("--focus") || "#8ED0FF";
+        ctx.strokeStyle = getCSS("--focus");
         ctx.globalAlpha = .65;
         ctx.beginPath();
         ctx.moveTo(x, top);
@@ -773,7 +773,7 @@
   const FX_MISSING_NOTE = "⚠ 汇率缺失（fx.usdhkd 无值），合计口径不出数";
   const fxMissingGraphic = (text, pos = { left: "center", top: "middle" }) => [{
     type: "text", ...pos,
-    style: { text, fill: getCSS("--warning") || "#E3A640", fontSize: 12, opacity: 0.9 },
+    style: { text, fill: getCSS("--warning"), fontSize: 12, opacity: 0.9 },
   }];
 
   function renderEquityChart() {
@@ -930,12 +930,14 @@
       ? r2(eq[hst.bIdx] * (hstech200 / hst.bClose)) : null;
     const reclaimPct = (hstech200 && hstechClose) ? (hstech200 / hstechClose - 1) * 100 : null;
 
-    const accent = getCSS("--accent") || "#36A3FF";
-    const red = getCSS("--negative") || "#F05B67";
-    const green = getCSS("--positive") || "#28C08D";
-    const dim = getCSS("--text-tertiary") || "#6E7D90";
-    const benchColor = "#7C8CF2";
-    const hkColor = getCSS("--warning") || "#E3A640";
+    const accent = getCSS("--accent");
+    const red = getCSS("--negative");
+    const green = getCSS("--positive");
+    const dim = getCSS("--text-tertiary");
+    const benchColor = getCSS("--viz-1");
+    // A series is a category, not a state: its hue comes off the chart palette,
+    // so the HK line does not read as "this one is warning".
+    const hkColor = getCSS("--viz-warm");
 
     const lines = [
       { name: "总利润", values: profit, color: green, width: 2.6 },
@@ -991,9 +993,9 @@
         ? ` 累计线从 ${dates[0]} 起算（窗口内 ${dates.length} 根）${outside}。` : "";
     }
 
-    const accent = getCSS("--accent") || "#36A3FF";
-    const green = getCSS("--positive") || "#28C08D";
-    const red = getCSS("--negative") || "#F05B67";
+    const accent = getCSS("--accent");
+    const green = getCSS("--positive");
+    const red = getCSS("--negative");
 
     const bars = dailyPnl.map(v => ({
       value: v,
@@ -1082,7 +1084,7 @@
     }
 
     // Categories carry identity; health colors belong to state-bearing charts.
-    const palette = ["#7c8cf2", "#9c75c9", "#5675b7", "#7c91a8", "#baa5d5", "#455f80"];
+    const palette = [1, 2, 3, 4, 5, 6].map(n => getCSS("--viz-" + n));
 
     const opt = {
       ...baseChartOpts(),
@@ -1090,7 +1092,7 @@
         ...chartTooltip("item", "line"),
         formatter: (p) => {
           const members = p.data._members?.length
-            ? `<br><span style="color:#A6B2C1">${p.data._members.join(" · ")}</span>`
+            ? `<br><span style="color:${getCSS("--text-secondary")}">${p.data._members.join(" · ")}</span>`
             : "";
           return `${p.name}<br>${p.value.toLocaleString()} (${p.data._pct?.toFixed(1)}%)${members}`;
         },
@@ -1107,7 +1109,7 @@
         radius: ["38%", "62%"],
         center: window.innerWidth >= 1024 ? ["38%", "50%"] : ["50%", "44%"],
         data: combined,
-        itemStyle: { borderColor: getCSS("--surface-1") || "#0F1620", borderWidth: 2 },
+        itemStyle: { borderColor: getCSS("--surface-1"), borderWidth: 2 },
         label: { show: false },
         emphasis: { label: { show: true, formatter: "{b}\n{d}%", color: chartTextColor(), fontSize: 11 } },
         color: palette,
@@ -1146,8 +1148,8 @@
       cb.unrealized,
     ];
 
-    const green = getCSS("--positive") || "#28C08D";
-    const accent = getCSS("--accent") || "#36A3FF";
+    const green = getCSS("--positive");
+    const accent = getCSS("--accent");
 
     const opt = {
       ...baseChartOpts(),
@@ -1203,11 +1205,11 @@
 
     const list = safe(DATA, "weight_confidence") || [];
     const quadrantColor = {
-      high_risk:      getCSS("--negative") || "#F05B67",
-      conviction:     getCSS("--accent") || "#36A3FF",
-      low_conv_small: getCSS("--warning") || "#E3A640",
-      comfort:        getCSS("--positive") || "#28C08D",
-      no_data:        getCSS("--neutral") || "#7E8DA1",
+      high_risk:      getCSS("--negative"),
+      conviction:     getCSS("--accent"),
+      low_conv_small: getCSS("--warning"),
+      comfort:        getCSS("--positive"),
+      no_data:        getCSS("--neutral"),
     };
     const points = list.map(p => ({
       name: p.ticker,
