@@ -1672,6 +1672,41 @@ def check_generated_cron_docs(r):
               (result.stdout + result.stderr).strip()[-300:])
 
 
+BRIEF_COVERAGE_DAYS = 7
+
+
+def check_brief_coverage(r, today=None):
+    """Every recent brief day has a plan, or the day is named here until it ages out.
+
+    2026-10-09: the 08:03 run ended "ok" with no plan (preflight refused the packet,
+    #2816) and the off-host fallback was rejected too (#2817). The watchdog said so
+    twice on Telegram at 09:05, and after that nothing did: the scheduler showed the
+    run as ok, the published due-without-record count looks back 36 hours, and two
+    days later a patrol round met the gap by accident. A missed brief is also a day
+    the decision ledger has no calls for, so it stays a standing line for a week.
+    Today is left to the watchdog; a missing day is never back-filled, only named.
+    """
+    from datetime import timedelta
+
+    from clawock import sessions
+
+    memory = WS / 'memory'
+    if not any(memory.glob('20??-??-??-plan.json')):
+        r.add('brief coverage', OK, 'no brief plans in this workspace (skipped)')
+        return
+    today = today or sessions.hkt_today()
+    due = [day for day in (today - timedelta(days=n) for n in range(BRIEF_COVERAGE_DAYS, 0, -1))
+           if not all(sessions.brief_closed_reasons(day))]
+    missing = [day.isoformat() for day in due if not (memory / f'{day.isoformat()}-plan.json').is_file()]
+    if missing:
+        r.add('brief coverage', WARNING,
+              f"no brief plan for {', '.join(missing)} ({len(due) - len(missing)}/{len(due)} brief days "
+              f'of the last {BRIEF_COVERAGE_DAYS} have one): the ledger has no calls for that day; '
+              'find why in `ops/host/cron_runs.py --job 盘前 --full` and the watchdog log, do not back-fill')
+    else:
+        r.add('brief coverage', OK, f'{len(due)}/{len(due)} brief days of the last {BRIEF_COVERAGE_DAYS} have a plan')
+
+
 def check_brief_read_budgets(r):
     """The brief's model-facing packet reads, before one of them refuses.
 
@@ -2177,6 +2212,7 @@ def main():
         check_delivery_chain_shape,
         check_generated_cron_docs,
         check_research_artifacts,
+        check_brief_coverage,
         check_brief_read_budgets,
         check_trading_calendar_horizon,
         check_macro_calendar_horizon,

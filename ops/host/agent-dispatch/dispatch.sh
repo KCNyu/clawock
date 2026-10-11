@@ -208,9 +208,14 @@ case "$AGENT" in
     # Default opencode tasks take both the primary and the fallback pool from the pool file
     # (one model per line, # comments), read at dispatch time so the patrol service picks up
     # changes without a restart. An explicit --model still wins; the file then only supplies
-    # fallbacks. A retired model may stay as the LAST line: the runner only reaches it after
-    # every live model failed, so it costs nothing and picks the model up if it returns.
+    # fallbacks. 2026-10-10: dead entries still waste two attempts per failed round;
+    # reject restored retired models and non-free entries before creating a task.
     POOL=/root/tools/agent-dispatch/opencode-fallback-models
+    # The checker is the one installed next to this script; a host without a pool file has
+    # nothing to check and falls through to the explicit --model path below.
+    if [ -z "$FALLBACK_MODELS" ] && [ -r "$POOL" ]; then
+      python3 "$(dirname "$(readlink -f "$0")")/check-free-pool.py" "$POOL" || exit 2
+    fi
     if [ -z "$FALLBACK_MODELS" ] && [ -r "$POOL" ]; then
       mapfile -t POOL_MODELS < <(sed 's/#.*//' "$POOL" | tr -s ' \t' '\n' | grep -v '^$')
       if [ -z "$MODEL" ] && [ "${#POOL_MODELS[@]}" -gt 0 ]; then

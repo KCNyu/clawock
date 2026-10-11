@@ -28,6 +28,7 @@ FILES=(
   quota.mjs
   resource-pressure.sh
   probe-free-models.sh
+  check-free-pool.py
   opencode-fallback-models
   templates/review.md
   tests/run-tests.sh

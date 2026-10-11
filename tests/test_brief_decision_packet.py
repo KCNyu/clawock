@@ -1564,3 +1564,32 @@ def test_regime_delever_cannot_evade_the_minimum_by_naming_a_trim():
     plan["decisions"][0]["action"] = "trim_on_rebound"
     assert any("AUTH_OBLIGATION_SHORTFALL" in issue for issue in
                packet_mod.validate_plan_constraints(plan, packet))
+
+
+def test_the_health_check_names_a_brief_day_that_has_no_plan(monkeypatch, tmp_path):
+    """2026-10-09 had no brief and, after the 09:05 alert, no standing line said so."""
+    import importlib.util
+    from datetime import date
+    spec = importlib.util.spec_from_file_location(
+        "sc_brief_coverage", Path(__file__).resolve().parents[1] / "ops" / "system_check.py")
+    system_check = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(system_check)
+    monkeypatch.setattr(system_check, "WS", tmp_path)
+
+    def verdict(today):
+        result = system_check.Result()
+        system_check.check_brief_coverage(result, today=today)
+        return result.checks[-1]
+
+    sunday = date(2026, 10, 11)
+    assert verdict(sunday)[1] == system_check.OK and "skipped" in verdict(sunday)[2]
+    (tmp_path / "memory").mkdir()
+    for day in ("05", "06", "07", "08"):                       # Mon-Thu; Friday the 9th is the gap
+        (tmp_path / "memory" / f"2026-10-{day}-plan.json").write_text("{}")
+    name, severity, detail = verdict(sunday)
+    assert severity == system_check.WARNING
+    assert "2026-10-09" in detail and "4/5" in detail and "2026-10-10" not in detail   # the weekend is not owed
+    (tmp_path / "memory" / "2026-10-09-plan.json").write_text("{}")
+    assert verdict(sunday)[1] == system_check.OK and "5/5" in verdict(sunday)[2]
+    # the day itself belongs to the watchdog: Monday morning does not accuse Monday
+    assert "2026-10-12" not in verdict(date(2026, 10, 12))[2]

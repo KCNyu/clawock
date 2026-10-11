@@ -82,3 +82,23 @@ def test_check_names_a_limits_key_the_host_lacks(tmp_path):
     r = run(dest, "--check")
     assert r.returncode == 3 and "QUEUE_FAIR_WAIT_SEC" in r.stderr
     assert run(dest, "--check-files").returncode == 0
+
+
+def test_the_tracked_free_pool_passes_its_own_dispatch_check_and_dropped_models_cannot_return(tmp_path):
+    """The host pool was once restored from stale repository bytes (2026-10-10). The repository
+    copy is now the pool that runs, and the dispatch-time check refuses the models it dropped."""
+    import importlib.util
+    src = Path(__file__).resolve().parents[1] / "ops" / "host" / "agent-dispatch"
+    spec = importlib.util.spec_from_file_location("check_free_pool", src / "check-free-pool.py")
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    pool = checker.check(src / "opencode-fallback-models")
+    assert pool and pool[0] == "opencode/space-bunny-free" and not set(pool) & checker.RETIRED
+    for bad in ("opencode/nemotron-3.5-lightning-free", "opencode/exo-free", "opencode-go/some-paid-model"):
+        stale = tmp_path / "pool"
+        stale.write_text("\n".join(pool + [bad]) + "\n")
+        try:
+            checker.check(stale)
+        except ValueError:
+            continue
+        raise AssertionError(f"{bad} was accepted")

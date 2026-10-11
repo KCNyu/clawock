@@ -5,13 +5,13 @@
       prints the round prompt's「反馈与提报」block and rewrites feedback.json (the categories the
       gate demotes). The supervisor runs it before every dispatch; failure leaves a one-line note.
   patrol_intel.py round-yield --task <task id>
-      prints what one round routed, e.g. `P1#2240 P2#2241 +1 comment +2 held`, for rounds.tsv.
+      prints what one round routed, e.g. `P1#2240 P2#2241 +1 comment +2 candidate`, for rounds.tsv.
 
 Three loops, each borrowed from a tool that already runs one:
 - precision per detector (CodeQL query precision + dismissal reasons): every lens's recent issues
   counted as fixed / noise (closed not planned, or labelled patrol:noise/duplicate/invalid/
   wontfix); an (area, kind) pair closed as noise 3+ times in 14 days, and at least as often as
-  it was fixed, has its P2 findings held as P3 by the gate until that stops (P0/P1 are never
+  it was fixed, has its P2 findings lowered to P3 by the gate until that stops (P0/P1 are never
   touched: they carry today's real artifact);
 - regression detection (Sentry's resolved → regressed): a fixed patrol issue kept its RED-CHECK
   in the draft; when a commit in the recent window touches a file that issue cited, the recent
@@ -124,10 +124,10 @@ def filing_line(now):
     day = [r for r in index if r.get("route") == "issue" and now - r.get("ts", 0) < 86400]
     by = Counter(r.get("severity") for r in day)
     pending = len(triage.read_jsonl(LOGDIR / "digest" / "pending.jsonl"))
-    held = sum(r.get("route") == "hold" and now - r.get("ts", 0) < 86400 for r in index)
+    back = sum(r.get("route") == "candidate" and now - r.get("ts", 0) < 86400 for r in index)
     return (f"- 24 小时内单独开了 {len(day)} 条（P0 {by['P0']} / P1 {by['P1']} / "
-            f"P2 {by['P2']} / P3 {by['P3']}），另有 {held} 条 P3 被闸留下没开 issue。"
-            "P0–P2 数量不限，同根因补充到已有 issue；P3 不开 issue，别把一轮花在它上面。"
+            f"P2 {by['P2']} / P3 {by['P3']}），另有 {back} 条 P3 因没写不修的代价退回候选。"
+            "各级提报数量不限，同根因补充到已有 issue；要提高的是 P0/P1 在其中的比例。"
             + (f"旧汇总待发 {pending} 条，下次收尾提报。" if pending else ""))
 
 
@@ -194,7 +194,7 @@ def brief(axis, since, issues_path=None, now=None):
         lines.append("- 最近被判误报/不值得修（同形态别再提，拿不准先 `gh issue view <N> -R KCNyu/clawock --comments` 看关闭理由）：")
         lines += [f"  - #{r['number']} `{r['area']}/{r['kind']}` {r['title'][9:90]}" for r in lessons]
     if noisy:
-        lines.append("- 降权中（这些类别最近被关成误报的不少于修掉的；闸会把其中的 P2 压到 P3、不开 issue，"
+        lines.append("- 降权中（这些类别最近被关成误报的不少于修掉的；闸会把其中的 P2 压到 P3，"
                      "带今天真实产物的 P0/P1 不受影响）：" + "、".join(f"{a}/{k}" for a, k in noisy))
     if axis == "recent":
         watch = regression_watch(rows, since, task_by_issue())
@@ -212,13 +212,13 @@ def round_yield(task):
     parts = [f"{r.get('severity')}#{r.get('number')}" for r in rows if r.get("route") == "issue"]
     digest = sum(r.get("route") == "digest" for r in rows)
     comment = sum(r.get("route") == "comment" for r in rows)
-    held = sum(r.get("route") == "hold" for r in rows)
+    back = sum(r.get("route") == "candidate" for r in rows)
     if digest:
         parts.append(f"+{digest} digest")
     if comment:
         parts.append(f"+{comment} comment")
-    if held:
-        parts.append(f"+{held} held")
+    if back:
+        parts.append(f"+{back} candidate")
     return " ".join(parts)
 
 

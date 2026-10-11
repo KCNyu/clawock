@@ -1,50 +1,69 @@
 # Free models a default `dispatch.sh opencode` task (and every clawock-patrol round) tries, in
-# order. The first line is the primary; the rest are the fallback pool the runner rotates through
-# (after the last one it wraps back to the first). The pool is read at dispatch time, so edits
-# apply without restarting the patrol service.
+# order: one attempt per line, then a second lap (the runner allows 2 attempts per pool line).
+# The pool is read at dispatch time, so edits apply without restarting the patrol service.
 #
-# Every entry must be in the Zen catalog (`opencode models opencode`) and cost nothing. The runner
-# allows 2 attempts per pool line, so a dead entry is two wasted attempts per failing round.
+# Rules for this file
+# - Free only (kcn 2026-10-11: "记得别付费的就行"). Every entry must be in the Zen catalog
+#   (`opencode models opencode`) with zero cost in https://opencode.ai/zen/v1/models.
+#   check-free-pool.py runs at every dispatch and refuses a non-free name or a retired model.
+# - This host copy is immutable (chattr +i). To change it: chattr -i, back up, write a temp file,
+#   run check-free-pool.py on it, rename it over this one, verify catalog and cost, chattr +i.
+#   The repository copy (ops/host/agent-dispatch/) carries the same bytes, so the installer and
+#   refresh_live.sh see nothing to restore; change both in the same PR.
+# - The order is by what a model's finished rounds turned into, not by whether a probe answers.
+#   No switching on output quality at run time (kcn 2026-10-11): the runner moves to the next
+#   line only when an attempt stalls or errors.
+# - There is no "last resort" position. A model that is only kept because it answers when the
+#   others are throttled finishes the round with nothing, and a finished round gives up the
+#   area's rotation slot (a failed one keeps it for two retries) and counts in the denominator
+#   of P0+P1 per finished round. A model is either good enough to go first or it is not here.
 #
-# 2026-10-08 order. Two things decide it, in this order:
+# Record, 10-01..10-11 (patrol issues by the model that finished the round; "rejected" = closed
+# not planned or patrol:noise; "answered" = attempts of 10-09..10-11 that were not a stall/error):
 #
-# 1. What the model's rounds are worth. Patrol issues of 10-01..10-08 by the model that finished
-#    the round, and what became of them after verification (fixed / closed not planned or noise):
-#      space-bunny-free           147 rounds   274 / 8
-#      mimo-v2.6-flash-free         8 rounds    14 / 0
-#      longcat-2.5-preview-free    14 rounds    14 / 0
-#      fledge-alpha-free            9 rounds     3 / 0
-#      nemotron-3-ultra-free       22 rounds    12 / 38
-#    nemotron-3-ultra-free is removed for that: three of four issues it filed were false, and each
-#    one cost a paid agent a verification. It had been 2nd since 10-07.
-# 2. How the model behaves while the free tier throttles it (HTTP 429 FreeUsageLimitError). The
-#    limit is per model. Since 10-06 evening the models run dry one after another during the day
-#    (10-08: longcat until 09:30, space-bunny 14:00-16:00, fledge 16:10-20:20), and from about
-#    01:00 to 07:57 nothing answers at all (0 of 163 attempts in three such windows; both nights
-#    ended at 23:57 UTC, which points at a daily reset). So the day's rounds are bounded by the
-#    quota, not by time: a failed try costs minutes and no quota, and every model with quota left
-#    gets used whatever the order. The order only has to offer the best models first.
-#      * longcat-2.5-preview-free surfaces the 429 (59 of 59 failures end in about 80s): first.
-#      * space-bunny-free and mimo-v2.6-flash-free retry the 429 silently, so a throttled try burns
-#        the runner's 300s stall timer (85 stalls in four days). They are still next: they are the
-#        two best models here and 10 minutes is cheaper than leaving their quota unused.
-#      * fledge-alpha-free (1M context) finished every round of 10-07 21:08-10-08 00:55 and
-#        10-08 16:10-20:20 as attempt 8 of the old order. Few findings, none false.
-#      * ling-3.1-flash-free has not finished a round yet (7 tries, all ended by a 503, two of them
-#        after 10 and 40 minutes of real work). Unproven, so behind everything proven.
-#      * exo-free answers "Endpoint is unavailable" (16 of 16) in 90s; last line, free to return.
-#   removed earlier: muse-spark-1.3-contributor-free (0 of 44, 40 stalls), ling-3.0-flash-fin-free
-#   (0 of 30, all stalls), mimo-v2.5-free and union-alpha (out of the catalog).
-#   left out on purpose: big-pickle (2025 stealth, 200k context) and nemotron-3.5-lightning-free
-#   (small fast tier) - kcn wants good models first. opencode-go is not an option: the key in
-#   ~/.local/share/opencode/auth.json has no active subscription.
+#   model                      finished  P0+P1  per round  empty rounds  rejected/closed  answered
+#   space-bunny-free              155      31     0.20        10%            8/289          8/61
+#   mimo-v2.6-flash-free            9       3     0.33        11%            0/16           1/53
+#   longcat-2.5-preview-free       16       2     0.12        50%            0/13           2/63
+#   step-5-preview-free             8       0     0.00        12%            0/6            8/29
+#   nemotron-3.5-lightning-free    14       1     0.07        86%            0/4           14/16   (removed)
+#   ling-3.1-flash-free             2       0     0.00        50%            0/1            1/52   (removed)
+#   nemotron-3-ultra-free          22       1     0.05        27%           38/50             -     (removed 10-08)
+#
+# 2026-10-11 order and why:
+# 1. space-bunny-free: the only large sample, and the best one (0.20 P0+P1 per finished round over
+#    155 rounds, 8 of 289 closed issues rejected). Same area, same day, same code on 10-11: the
+#    round nemotron-3.5 finished filed nothing, the one space-bunny finished filed a P1 and a P2.
+#    It is throttled most of the day now (8 of 61 attempts answered); being first costs one
+#    stalled attempt when it is, and gets the round when it is not.
+# 2. step-5-preview-free: answers most often of the four (8 of 29) and nothing it filed was
+#    rejected, but 8 finished rounds with no P0/P1 is a small sample, not a quality record.
+#    kcn put it first on 10-10 ("it is the newest model, it should go forward") and on 10-11
+#    left the order to be decided on the record; it goes back to first when its P0+P1 per
+#    finished round passes space-bunny's over at least 20 rounds.
+# 3. mimo-v2.6-flash-free: best rate, 9 rounds, almost never answering (1 of 53).
+# 4. longcat-2.5-preview-free: 0.12 over 16 rounds, half of them empty; 2 of 63 answered.
+# Removed 2026-10-11:
+#   * nemotron-3.5-lightning-free: answered 14 of 16 times, i.e. it finished the rounds nobody
+#     else could start (five silent stalls ahead of it, then a fresh session of its own, not a
+#     damaged one), and 12 of those 14 rounds filed nothing. Those were money, logic, automation
+#     and recent slots. Without it such a round fails and the area keeps its slot.
+#   * ling-3.1-flash-free: 1 of 52 attempts answered in three days; 2 finished rounds ever.
+# Removed earlier (check-free-pool.py refuses them): exo-free (HTTP 410 ModelDeprecated),
+# fledge-alpha-free (out of the catalog), nemotron-3-ultra-free (38 of 50 issues rejected),
+# muse-spark-1.3-contributor-free, ling-3.0-flash-fin-free, mimo-v2.5-free, union-alpha.
+# Left out on purpose: big-pickle (silent for 45s in a probe, 200k context). opencode-go is not
+# an option: no active subscription, and it is paid.
+#
+# Free-tier behaviour (unchanged, for whoever reads a slow day): the limit is per model (HTTP 429
+# FreeUsageLimitError); space-bunny and mimo retry it silently, so a throttled attempt is only
+# ended by the runner's first-event stall limit (210s since 10-11). From about 01:00 to 08:00
+# nothing useful answers. There is no verified reset time; do not promise one.
 #
 # Before adding a model or moving one up, check what its issues became (label `patrol`, closed as
 # not planned / `patrol:noise`), not only whether it answers:
 #   /root/tools/agent-dispatch/probe-free-models.sh --tool <model>
-opencode/longcat-2.5-preview-free
 opencode/space-bunny-free
+opencode/step-5-preview-free
 opencode/mimo-v2.6-flash-free
-opencode/fledge-alpha-free
-opencode/ling-3.1-flash-free
-opencode/exo-free
+opencode/longcat-2.5-preview-free

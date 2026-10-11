@@ -183,7 +183,6 @@ def _precedents():
 # Structural debt gets an exemption only from the two precedent requirements.
 # Evidence comes from the fixed read-only checker, not arbitrary assert False.
 DEBT_VERIFIED = False
-DEBT_PRECEDENT = False   # a fix already touched this code: the debt that is filed even at P3
 DEBT_KIND = ""
 _debt_block = re.search(r"<!--\s*DEBT-CHECK\s*\n(.*?)\n\s*-->", body, re.S)
 _declares_debt = triage.parse_declared(body)["kind"] == "debt"
@@ -230,7 +229,6 @@ if _debt_block or _declares_debt:
     if not _held and not (DEBT_KIND == "structure" and _contract["precedent"]) and "无先例" not in body:
         die("这条债务没有成立的先例：正文要明写「无先例」（预防性，最高 P3），不能让读的人以为它出过事。")
     DEBT_VERIFIED = True
-    DEBT_PRECEDENT = bool(_held) or (DEBT_KIND == "structure" and bool(_contract["precedent"]))
     print("gate: measured debt: " + _measured + (" 先例=" + " ".join(_held) if _held else ""), file=sys.stderr)
 
 # ── 0.7 shapes that were closed again and again (closed-lessons.md) ─────────
@@ -656,8 +654,8 @@ if hits:
 
 # ── 3.5 triage: severity, labels, and where the finding goes ────────────────────────────────
 # Never a rejection: the finding is true by now. A level the evidence does not carry is lowered
-# and the reason is written into the issue. P0–P2 are filed without a count limit; a P3 is held
-# in the state directory instead of becoming an issue (triage.route).
+# and the reason is written into the issue; every severity is filed without a count limit. A P3
+# also has to say what leaving it costs, or it goes back as a ledger candidate (triage.route).
 index_rows = triage.read_jsonl(INDEX)
 closed_nums, open_nums = set(), set()
 for _i in existing:
@@ -683,7 +681,7 @@ if target is None and verdict.severity != "P0":
     if target:
         verdict.notes.append(f"与 open 的 #{target} 同一处代码（{fp}）")
 where, why = (("comment", f"同根因，补充到 #{target}") if target
-              else triage.route(verdict, debt_precedent=DEBT_PRECEDENT))
+              else triage.route(verdict, cost=triage.stated_cost(body)))
 print(f"gate: triage {verdict.severity} area:{verdict.area} kind:{verdict.kind} lens:{verdict.lens} → {where}"
       + (f"（{why}）" if why else "") + "".join(f"\n  - {n}" for n in verdict.notes)
       + (f"\n  （草稿没写 {'/'.join(verdict.inferred)}，按规则推断；以后在 `## 分级` 里写明）" if verdict.inferred else ""),
@@ -720,7 +718,7 @@ final.write_text(validate(sanitize(body[title_match.end():].lstrip() + triage_bl
 
 if os.environ.get("GATE_DRY_RUN"):
     _what = {"issue": "单独提", "comment": f"补充到 #{target}", "digest": "放进汇总",
-             "hold": "留下不开 issue"}[where]
+             "candidate": "退回 ledger 候选（P3 缺 `代价:`）"}[where]
     print(f"gate: DRY RUN — 会{_what}："
           f"{title}\n  labels: {' '.join(verdict.labels())}\n  body: {final}", file=sys.stderr)
     sys.exit(0)
@@ -739,13 +737,13 @@ if where == "comment":
     print(f"gate: PASS — 同根因，补充到 #{target}：{url}")
     sys.exit(0)
 
-if where == "hold":
-    # True, and not worth an issue. The draft stays where later drafts dedupe against it, so the
-    # same finding is not written up again next round; nothing is posted and nobody is paged.
-    (LOGDIR / "filed" / DRAFT.name).write_text(body, encoding="utf-8")
-    record("hold")
-    print(f"gate: HELD — {verdict.severity}，{why}。这条是真的，但不值得一条 issue：在 ledger「本轮」记一行"
-          f"（草稿 {DRAFT.name}），不要改写分级重交，把剩下的时间用在会让人读错数、漏收成品或让闸失明的候选上。")
+if where == "candidate":
+    # True, graded P3, and silent on what leaving it costs. Not filed and not lost: the draft stays
+    # in drafts/ (not in filed/, so the same draft with the line added is not its own duplicate).
+    record("candidate")
+    print(f"gate: CANDIDATE — {verdict.severity}，{why}。\n"
+          "在 `## 分级` 加一行 `代价: <不修会怎样——谁会照着它看错、做错或多做什么；内部的代价也算>` 后重交即可开 issue；"
+          f"写不出代价就把它记进 ledger「候选」（草稿 {DRAFT.name}），不要改写严重度。")
     sys.exit(0)
 
 labels = verdict.labels()

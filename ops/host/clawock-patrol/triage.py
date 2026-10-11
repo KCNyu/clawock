@@ -6,9 +6,10 @@ The filing gate (`gate_issue.py`) proves a finding is *true*. This module decide
 comment on an issue that already holds the same root cause. Legacy digests remain readable.
 
 Quality is enforced by runtime evidence, severity and root-cause deduplication. There is no
-per-round, daily or weekly issue-count ceiling (kcn 2026-10-01), but a P3 does not become an
-issue (kcn 2026-10-11: findings that could as well stay unfixed dilute the ones that cost money
-or blind a gate). The gate keeps a held P3 in the patrol state directory and tells the round so.
+per-round, daily or weekly issue-count ceiling (kcn 2026-10-01), and a P3 is filed like any
+other level. What a P3 owes is one more line of evidence: what leaving it costs (kcn 2026-10-11:
+raise the share of issues worth fixing, do not stop filing). A P3 that cannot say so goes back to
+the round as a ledger candidate; nothing is dropped and it can be filed once the line is there.
 
 Borrowed shapes, and from where:
 - labels as prefixed dimensions (`kind/`, `area/`, `priority/`): Kubernetes prow triage;
@@ -38,7 +39,7 @@ SEVERITY_TEXT = {
     "P0": "kcn 今天看到/收到的钱、仓位、决策数字是错的，或成品丢了/发重了/发不出去，或公开泄露凭证",
     "P1": "会放过 P0 的闸/检测/watchdog 在真实数据上失明或 fail-open，或让人学会忽略告警的假红",
     "P2": "今天还没让人读错，但输入可达：真实数据里还没出现的边界崩溃/错数、会误导判断的陈旧或反向读数、CI 触发盲区",
-    "P3": "不改变任何人读到的数字、状态或告警：文档/注释漂移、样式、标签与格式措辞、内部卫生（不开 issue）",
+    "P3": "内部卫生：文档/注释漂移、样式、标签与格式措辞；事实确凿并写得出不修的代价才开 issue",
 }
 
 AREAS = {
@@ -315,20 +316,34 @@ def cluster_target(index_rows, fp, area, open_numbers, now=None):
     return None
 
 
-HOLD_WHY = "P3 不开 issue（kcn 2026-10-11：宁可少而真），留在巡检状态目录"
+CANDIDATE_WHY = "P3 没写不修的代价：先记 ledger 候选，补上 `代价:` 一行再交就开 issue"
+# "No cost" written out is not a cost. The line is free text otherwise: an internal cost (the next
+# edit will follow the stale comment; the list will miss its next member) counts as much as a
+# reader's — a P3 is hygiene, so it is judged on being true and specific, not on having a victim.
+_NO_COST = re.compile(r"^\s*(无|没有|暂无|不适用|不清楚|未知|none|n/?a|-+|—+)\s*[。.]?\s*$", re.I)
+COST_MIN_CHARS = 12
 
 
-def route(v, index_rows=(), now=None, debt_precedent=False):
-    """P0–P2 each get an issue, regardless of previous filing counts; a P3 is held, not filed.
+def stated_cost(body):
+    """What the draft says leaving this unfixed costs: `代价:` in `## 分级`, or a debt draft's
+    `反证:` (不改会怎样). '' when the line is missing, says "none", or is too short to mean anything."""
+    for name in ("代价", "不修的代价", "cost", "反证"):
+        text = _field(body, [name])
+        if text and not _NO_COST.match(text) and len(text) >= COST_MIN_CHARS:
+            return text
+    return ""
 
-    The one P3 that is still filed is structural debt on code that already produced a bug
-    (`debt_precedent`: a fix that touched this very code): kcn asked for that debt to be paid
-    down (2026-10-05), and the precedent is what separates it from hygiene.
+
+def route(v, index_rows=(), now=None, cost=""):
+    """Every evidence-backed severity gets an issue, regardless of previous filing counts.
+
+    A P3 additionally has to say what leaving it costs (`stated_cost`); without that line it is
+    returned to the round as a ledger candidate rather than filed or dropped.
     The optional history arguments remain accepted for callers replaying old findings.
     Root-cause grouping is handled separately by the gate.
     """
-    if v.severity == "P3" and not (v.kind == "debt" and debt_precedent):
-        return "hold", HOLD_WHY
+    if v.severity == "P3" and not cost:
+        return "candidate", CANDIDATE_WHY
     return "issue", ""
 
 
