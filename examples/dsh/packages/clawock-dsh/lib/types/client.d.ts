@@ -170,6 +170,10 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
     /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
     t: Translate;
 };
+/** How often the rail's badge is checked while no reading is on screen (see `useProviderBalances`). */
+export declare const BALANCE_BADGE_MS: number;
+/** The poll interval for a surface: the host's cadence while its numbers are read, the badge's otherwise. */
+export declare function _balanceCadence(reading: boolean, refreshMs: number | undefined): number;
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export declare const BALANCE_PANEL = "clawock-provider-balance";

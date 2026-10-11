@@ -93,7 +93,17 @@ async function probe() {
   }
   // The chip speaks in used percent; the notification answers "how much is left".
   const parts = windows.map((w) => `${w.label} 剩 ${100 - w.percent}%` + (w.resetAt ? `（${w.resetAt} 重置）` : ''))
-  return { line: '额度：' + parts.join(' · ') + (result.snapshot.isAvailable ? '' : ' · 当前不可用'), ok: true }
+  return { line: '额度：' + parts.join(' · ') + (result.snapshot.isAvailable ? '' : ' · ' + unavailable(windows)), ok: true }
+}
+
+// Why the account cannot be used right now. This line used to end in a bare 「当前不可用」, which
+// reads like a broken login; the windows were just read with that login, so say what it is.
+function unavailable(windows) {
+  const spent = windows.filter((w) => w.percent >= 100)
+  if (spent.length === 0) return '当前不可用（窗口未用尽，是账号侧限用；登录正常）'
+  // The account is back when the LAST exhausted window resets.
+  const last = spent.reduce((a, b) => ((b.resetAtMs ?? 0) > (a.resetAtMs ?? 0) ? b : a))
+  return `${spent.map((w) => w.label).join('、')}额度已用尽` + (last.resetAt ? `，${last.resetAt} 恢复` : '') + '（登录正常，不用重新登录）'
 }
 
 const raw = loadCache()

@@ -258,7 +258,8 @@ interface ClaudeCredentials {
 /**
  * Read Claude Code's OAuth credentials. The file belongs to Claude Code —
  * this service only READS it; rotating/refreshing stays their job, so an
- * expired token surfaces as a failed row telling kcn to run claude once.
+ * expired access token surfaces as a failed row saying the next claude run
+ * renews it (a missing refresh token is the only case that asks for a login).
  */
 export declare function readClaudeCredentials(path: string): {
     creds: ClaudeCredentials;

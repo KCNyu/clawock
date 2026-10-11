@@ -2054,7 +2054,18 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
       { credentialsPath: credsPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
     ).get(true);
     assert.equal(expired.status, "failed");
-    assert.match(expired.message, /过期/);
+    // The access token ages out whenever nobody runs claude for a few hours. With a refresh
+    // token on file that is not a lost login, and the row must not read like one.
+    assert.match(expired.message, /访问令牌到期/);
+    assert.match(expired.message, /不是登录失效/);
+    assert.match(expired.message, /自动续期/);
+    assert.doesNotMatch(expired.message, /重新登录|登录已过期/);
+    fsMod.writeFileSync(credsPath, JSON.stringify({ claudeAiOauth: { accessToken: "stale", expiresAt: past } }));
+    const loggedOut = await createClaudeService(
+      { credentials: { resolve: async () => undefined } },
+      { credentialsPath: credsPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
+    ).get(true);
+    assert.match(loggedOut.message, /登录已过期.*重新登录/, "no refresh token: only then is a login asked for");
 
     // Missing file entirely → in-band no-key.
     const none = await createClaudeService(
@@ -2464,6 +2475,162 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.equal(popover(render()).props["data-open"], "false");
   assert.deepEqual(selected, [], "the foot never navigates the main column");
   disposeReactEffects();
+});
+
+test("client: the rail keeps only its badge current, and reading the numbers reads them now", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  assert.equal(api._balanceCadence(true, 60000), 60000, "numbers on screen follow the host's cadence");
+  assert.equal(api._balanceCadence(true, 5000), 60000, "never faster than a minute");
+  assert.equal(api._balanceCadence(false, 60000), api.BALANCE_BADGE_MS, "the rail's badge is checked far less often");
+  assert.ok(api.BALANCE_BADGE_MS >= 10 * 60000);
+  assert.equal(api._balanceCadence(false, 3600000), 3600000, "a host slower than the badge still decides");
+
+  let calls = 0;
+  let forced = 0;
+  const remoteFace = {
+    balance: async (force) => { calls += 1; if (force) forced += 1; return { ok: true, value: BALANCES_OK }; },
+    taskQueue: async () => ({ ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "", state: "unknown", rounds: [] } } }),
+  };
+  const ctx = {
+    effect() {},
+    locale: { register() { return () => {}; } },
+    get() { return remoteFace; },
+    layout: { selectPanel() {} },
+    slots: {
+      inject(name, fn) { (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  const store = makeBalanceStoreStub();
+  const face = action.definition.inject();
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  // The interval each render arms for the balance channel (the queue's own 15s poll is the other one).
+  const realSetInterval = globalThis.setInterval;
+  const realNow = Date.now;
+  let armed = [];
+  let clock = realNow();
+  globalThis.setInterval = (fn, ms) => { armed.push(ms); return realSetInterval(() => {}, 1 << 30); };
+  Date.now = () => clock;
+  try {
+    // The stub runs every effect on every render, so each render repeats the mount read once:
+    // a render that costs TWO requests is one where "became read" fetched as well.
+    const render = async (wide) => {
+      armed = [];
+      const before = calls;
+      reactStub._resetCursor();
+      action.Component({ wide, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
+      await tick(); await tick();
+      return { balanceInterval: armed.find((ms) => ms !== 15000), requests: calls - before };
+    };
+    assert.deepEqual(await render(false), { balanceInterval: api.BALANCE_BADGE_MS, requests: 1 },
+      "rail: one read at mount, then the badge cadence — not a request a minute");
+    assert.deepEqual(await render(true), { balanceInterval: 60000, requests: 1 },
+      "widening right after an answer arms the reading cadence without a second request");
+    assert.deepEqual(await render(false), { balanceInterval: api.BALANCE_BADGE_MS, requests: 1 });
+    clock += 59000;
+    assert.equal((await render(true)).requests, 1, "an answer younger than a poll would leave it is not re-read");
+    await render(false);
+    clock += 61000;
+    assert.deepEqual(await render(true), { balanceInterval: 60000, requests: 2 },
+      "became read with an older answer on hand: read now, do not wait a minute for the first poll");
+    assert.equal((await render(true)).requests, 1, "staying read is not a transition");
+    assert.equal(forced, 0, "none of this forces past the host's TTLs: only the refresh button does");
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    Date.now = realNow;
+    disposeReactEffects();
+  }
+});
+
+test("balance: every face asking at once is one upstream request, and another only after the window", async () => {
+  // The lazy cadence adds askers (the badge tick, "became read", a sibling surface, the chat
+  // command) — the bound on upstream traffic is still the service's, not the callers' restraint.
+  const { createClaudeService } = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-join-"));
+  const credsPath = path.join(tmp, "creds.json");
+  fs.writeFileSync(credsPath, JSON.stringify({ claudeAiOauth: { accessToken: "t", refreshToken: "r", expiresAt: Date.now() + 3600000 } }));
+  let upstream = 0;
+  let release = null;
+  const originalFetch = globalThis.fetch;
+  const realNow = Date.now;
+  globalThis.fetch = async () => {
+    upstream += 1;
+    await new Promise((resolve) => { release = resolve; });
+    return new Response(JSON.stringify({ five_hour: { utilization: 10, resets_at: null }, seven_day: { utilization: 20, resets_at: null } }),
+      { status: 200, headers: { "content-type": "application/json" } });
+  };
+  const settle = async () => { for (let i = 0; i < 20 && release === null; i++) await new Promise((r) => setImmediate(r)); const go = release; release = null; go(); };
+  try {
+    const service = createClaudeService({ credentials: { resolve: async () => undefined } }, { credentialsPath: credsPath });
+    // Cold: a badge tick, the panel opening and two more faces, all before the first answer.
+    const cold = Promise.all([service.get(false), service.get(false), service.get(false), service.get(false)]);
+    await settle();
+    assert.deepEqual((await cold).map((r) => r.status), ["fresh", "fresh", "fresh", "fresh"]);
+    assert.equal(upstream, 1, "four concurrent readers, one request");
+    // Inside the window any number of non-forced reads costs nothing.
+    for (let i = 0; i < 10; i++) assert.equal((await service.get(false)).status, "cached");
+    assert.equal(upstream, 1);
+    // A manual click landing on top of a burst of non-forced reads: exactly one more request.
+    const burst = Promise.all([service.get(false), service.get(true), service.get(false), service.get(true)]);
+    await settle();
+    await burst;
+    assert.equal(upstream, 2, "a forced refresh amid polls is one request, not one per caller");
+    // After the window a burst is again exactly one.
+    const later = realNow() + 61000;
+    Date.now = () => later;
+    const next = Promise.all([service.get(false), service.get(false), service.get(false)]);
+    await settle();
+    await next;
+    assert.equal(upstream, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = realNow;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("quota line: an exhausted window says quota, names when it is back, and rules out the login", async () => {
+  // ops/host/agent-dispatch/quota.mjs is the notification's reader. Its line used to end in a bare
+  // 「当前不可用」; read on a phone that is indistinguishable from a broken login.
+  const { execFileSync } = require("node:child_process");
+  const QUOTA = path.join(__dirname, "..", "ops", "host", "agent-dispatch", "quota.mjs");
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-quota-"));
+  const lib = path.join(tmp, "balance.mjs");
+  fs.writeFileSync(lib, "const answer = JSON.parse(process.env.FAKE_QUOTA_RESULT)\n"
+    + "export const createClaudeService = () => ({ get: async () => answer })\n"
+    + "export const createCodexService = createClaudeService\n");
+  let n = 0;
+  const line = (result, agent = "claude") => execFileSync(process.execPath, [QUOTA, agent], {
+    encoding: "utf8",
+    env: { ...process.env, AGENT_DISPATCH_BALANCE_LIB: lib, AGENT_DISPATCH_QUOTA_CACHE_DIR: path.join(tmp, "c" + (n += 1)), FAKE_QUOTA_RESULT: JSON.stringify(result) },
+  }).trim();
+  const win = (label, percent, resetAt, resetAtMs) => ({ label, percent, resetAt, resetAtMs });
+  const fresh = (windows, isAvailable) => ({ status: "fresh", message: null, snapshot: { isAvailable, windows } });
+  try {
+    assert.equal(line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 1, "10/18 周日 20:00", 9000)], true)),
+      "额度：5h 剩 83%（今天 22:19 重置） · 周 剩 99%（10/18 周日 20:00 重置）", "a usable account gains no words");
+    const weekOut = line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 100, "今天 19:59", 1000)], false));
+    assert.match(weekOut, /周 剩 0%（今天 19:59 重置） · 周额度已用尽，今天 19:59 恢复（登录正常，不用重新登录）$/);
+    assert.doesNotMatch(weekOut, /当前不可用/);
+    const bothOut = line(fresh([win("5h", 100, "今天 21:58", 1000), win("周", 100, "10/18 周日 11:57", 9000)], false), "codex");
+    assert.match(bothOut, /5h、周额度已用尽，10\/18 周日 11:57 恢复/, "back when the LAST exhausted window resets");
+    assert.match(line(fresh([win("5h", 40, "今天 21:58", 1000)], false), "codex"), /当前不可用（窗口未用尽，是账号侧限用；登录正常）$/,
+      "a vendor-side stop with room left in the windows is not called exhaustion");
+    // A login problem stays a login problem, in the reader's own words.
+    assert.equal(line({ status: "failed", message: "Claude 登录无效或已过期", snapshot: null }), "额度：读取失败（Claude 登录无效或已过期）");
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test("client: a balance fetch that fails says so instead of loading forever (#1553)", async () => {

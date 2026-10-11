@@ -584,7 +584,8 @@ function createCodexService(deps, config = {}) {
 /**
 * Read Claude Code's OAuth credentials. The file belongs to Claude Code —
 * this service only READS it; rotating/refreshing stays their job, so an
-* expired token surfaces as a failed row telling kcn to run claude once.
+* expired access token surfaces as a failed row saying the next claude run
+* renews it (a missing refresh token is the only case that asks for a login).
 */
 function readClaudeCredentials(path) {
 	const creds = readJsonFile(path)?.claudeAiOauth;
@@ -616,7 +617,7 @@ function createClaudeService(deps, config = {}) {
 			if (entry === void 0) throw new Error("Claude 登录文件不存在或已损坏");
 			const { creds } = entry;
 			if (typeof creds.accessToken !== "string" || creds.accessToken === "") throw new Error("Claude 登录文件里没有 accessToken");
-			if (typeof creds.expiresAt === "number" && Date.now() > creds.expiresAt) throw new Error("Claude 登录已过期,请在终端跑一次 claude 刷新登录");
+			if (typeof creds.expiresAt === "number" && Date.now() > creds.expiresAt) throw new Error(typeof creds.refreshToken === "string" && creds.refreshToken !== "" ? "Claude 访问令牌到期了(不是登录失效,也不是额度用尽):下次运行 claude 会自动续期,在那之前读不到额度" : "Claude 登录已过期,请在终端跑一次 claude 重新登录");
 			return parseClaudeUsage(await fetchJson(usageUrl, {
 				authorization: `Bearer ${creds.accessToken}`,
 				"anthropic-beta": "oauth-2025-04-20"

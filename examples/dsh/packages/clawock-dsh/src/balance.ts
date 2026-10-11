@@ -873,7 +873,8 @@ interface ClaudeCredentials {
 /**
  * Read Claude Code's OAuth credentials. The file belongs to Claude Code —
  * this service only READS it; rotating/refreshing stays their job, so an
- * expired token surfaces as a failed row telling kcn to run claude once.
+ * expired access token surfaces as a failed row saying the next claude run
+ * renews it (a missing refresh token is the only case that asks for a login).
  */
 export function readClaudeCredentials(path: string): { creds: ClaudeCredentials } | undefined {
   const parsed = readJsonFile(path)
@@ -919,7 +920,12 @@ export function createClaudeService(
         throw new Error('Claude 登录文件里没有 accessToken')
       }
       if (typeof creds.expiresAt === 'number' && Date.now() > creds.expiresAt) {
-        throw new Error('Claude 登录已过期,请在终端跑一次 claude 刷新登录')
+        // `expiresAt` dates the short-lived ACCESS token. Claude Code renews it from the
+        // refresh token the next time it runs, so with one on file this is "nobody has run
+        // claude for a while", not a lost login — and it used to read as the latter.
+        throw new Error(typeof creds.refreshToken === 'string' && creds.refreshToken !== ''
+          ? 'Claude 访问令牌到期了(不是登录失效,也不是额度用尽):下次运行 claude 会自动续期,在那之前读不到额度'
+          : 'Claude 登录已过期,请在终端跑一次 claude 重新登录')
       }
       const body = await fetchJson(usageUrl, {
         authorization: `Bearer ${creds.accessToken}`,
