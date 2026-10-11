@@ -652,3 +652,25 @@ def test_cap_action_text_allows_a_reasoned_hold(preflight):
     assert {b["type"] for b in result["breaches"]} == {"single_name", "beta"}
     assert all("可说明理由后持有" in b["action"] for b in result["breaches"])
     assert "may_stand" in result["directive"] and "durable override" in result["directive"]
+
+
+def test_policy_split_matches_frozen_original_outputs(preflight):
+    cases = json.loads((ROOT / 'tests/fixtures/guardrail_policy_replay.json').read_text())
+    kinds = set()
+    for case in cases:
+        actual = preflight.compute_risk_guardrail(*case['inputs'])
+        assert actual == case['expected']
+        for row in actual['breaches'] + actual['hard_stop_watch']:
+            assert row['type'] and row['severity'] and row['required_reduction']
+            kinds.add(row['type'])
+    assert kinds == {'single_name', 'leveraged_exposure', 'leveraged_hard_stop',
+                     'regime_delever', 'factor_concentration', 'beta'}
+
+
+def test_directive_requires_identity_severity_and_reduction():
+    from clawock.portfolio.guardrail import _directive
+    fields = dict(type='beta', leg='US', ticker=None, severity='high',
+                  detail='risk', action='respond', required_reduction={'kind': 'beta'})
+    for required in ('type', 'severity', 'required_reduction'):
+        with pytest.raises(TypeError, match=required):
+            _directive(**{k: v for k, v in fields.items() if k != required})

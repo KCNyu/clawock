@@ -326,3 +326,68 @@ def test_equal_digest_does_not_accuse_rewrites(ledger):
     assert check['status'] == 'pass'
     assert 'unchanged' in check['detail']
     assert 'rewritten' not in check['detail']
+
+
+def test_committed_source_ignores_dirty_execution_and_verifies_ref(tmp_path):
+    import subprocess
+
+    def git(*args):
+        return subprocess.check_output(['git', *args], cwd=tmp_path, text=True).strip()
+
+    git('init', '-q')
+    path = tmp_path / prov.LEDGER_PATH
+    path.parent.mkdir()
+    original = decision('2026-07-02')
+    path.write_text(json.dumps(original) + '\n')
+    git('add', prov.LEDGER_PATH)
+    git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
+        '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'source')
+    dirty = copy.deepcopy(original)
+    dirty['execution'] = {'status': 'followed'}
+    path.write_text(json.dumps(dirty) + '\n')
+    rows, ref = prov.committed_source(tmp_path)
+    assert rows == [original] and ref == git('rev-parse', 'HEAD')
+    block = metrics_for(rows)['provenance']
+    prov.record_settlement_view(block, rows, source_ref=ref)
+    prov.verify_committed_source(block, tmp_path)
+    assert json.loads(path.read_text()) == dirty
+    block['ledger']['source_digest'] = prov.settlement_source_digest([dirty])
+    with pytest.raises(ValueError, match='source_digest'):
+        prov.verify_committed_source(block, tmp_path)
+
+
+def test_verification_defaults_to_pinned_ref_but_allows_explicit_ledger(monkeypatch, ledger):
+    block = metrics_for(ledger)['provenance']
+    block['ledger']['source_ref'] = 'a' * 40
+    monkeypatch.setattr(scorecard_verify, 'load_provenance', lambda _: block)
+    reads = []
+
+    def load(path, ref):
+        reads.append((path, ref))
+        return ledger
+
+    monkeypatch.setattr(scorecard_verify, 'load_ledger', load)
+    assert scorecard_verify.main(['--check', '--json']) == 0
+    assert reads[-1] == (None, 'a' * 40)
+    assert scorecard_verify.main(['--check', '--ledger', 'other.jsonl', '--json']) == 0
+    assert reads[-1] == ('other.jsonl', None)
+
+
+def test_portable_source_is_explicitly_unversioned(tmp_path, monkeypatch):
+    monkeypatch.setattr(prov, 'git_commit', lambda _: None)
+    rows, ref = prov.dashboard_source(tmp_path)
+    assert rows == [] and ref is None
+    path = tmp_path / prov.LEDGER_PATH
+    path.parent.mkdir()
+    path.write_text(json.dumps(decision('2026-07-02')) + '\n')
+    rows, ref = prov.dashboard_source(tmp_path)
+    block = metrics_for(rows)['provenance']
+    prov.record_settlement_view(block, rows, source_ref=ref)
+    assert block['ledger']['source_kind'] == 'unversioned_working_copy'
+
+
+def test_git_source_failure_never_falls_back_to_dirty_file(tmp_path, monkeypatch):
+    import subprocess
+    monkeypatch.setattr(prov, 'git_commit', lambda _: 'a' * 40)
+    with pytest.raises(subprocess.CalledProcessError):
+        prov.dashboard_source(tmp_path)

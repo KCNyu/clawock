@@ -339,3 +339,12 @@ def test_atomic_generation_outputs_do_not_invalidate_the_next_build(tmp_path):
     # The external audit evidence remains a real input.
     (ws / 'assets/data/evidence.json').write_text('{}')
     assert dashboard_input_fingerprint(ws) != before
+
+
+def test_committing_the_same_working_files_moves_source_fingerprint(tmp_path, monkeypatch):
+    from clawock import scorecard_provenance
+    ws = _desk(tmp_path)
+    monkeypatch.setattr(scorecard_provenance, 'git_commit', lambda _: 'old')
+    before = dashboard_input_fingerprint(ws)
+    monkeypatch.setattr(scorecard_provenance, 'git_commit', lambda _: 'new')
+    assert dashboard_input_fingerprint(ws) != before

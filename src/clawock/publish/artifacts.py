@@ -14,6 +14,7 @@ import math
 import os
 import re
 import sys
+import subprocess
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -1082,6 +1083,11 @@ def validate_dashboard(
         'every snapshot must decode to a row with a date')
     assert isinstance(data['decision_metrics'], dict), (
         'decision_metrics must be an object')
+    from clawock.scorecard_provenance import verify_committed_source
+    try:
+        verify_committed_source(data['decision_metrics'].get('provenance') or {}, ROOT)
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        raise AssertionError(f'scorecard source verification failed: {exc}') from exc
     assert isinstance(data['decision_delta'], dict), (
         'decision_delta must be an object')
 

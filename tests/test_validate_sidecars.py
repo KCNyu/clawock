@@ -1148,3 +1148,17 @@ def test_eod_rejects_duplicates_outside_the_requested_date(tmp_path):
     portfolio = write_portfolio(tmp_path / 'portfolio.json', ('AAPL',))
     with pytest.raises(AssertionError, match='duplicate EOD rows in archive'):
         validators.validate_eod_archive(archive, portfolio, snapshot_date='2026-07-17')
+
+
+def test_dashboard_artifact_gate_checks_pinned_scorecard_source(tmp_path, monkeypatch):
+    from clawock import scorecard_provenance
+    payload = dashboard_payload()
+    payload['decision_metrics']['provenance'] = {'ledger': {'source_ref': 'bad'}}
+    path = tmp_path / 'dashboard.json'
+    path.write_text(json.dumps(payload))
+    def reject(block, workspace):
+        assert block['ledger']['source_ref'] == 'bad'
+        raise ValueError('ledger.source_digest does not match source_ref')
+    monkeypatch.setattr(scorecard_provenance, 'verify_committed_source', reject)
+    with pytest.raises(AssertionError, match='scorecard source verification failed'):
+        validators.validate_dashboard(path)

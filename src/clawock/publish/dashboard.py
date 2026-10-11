@@ -4209,6 +4209,9 @@ FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 def dashboard_input_fingerprint(ws: Path, now=None, *, previous_source=None,
                                 output_paths=None) -> str:
     h = hashlib.sha1()
+    # Committing an already-dirty ledger changes the public scorecard input
+    # even if none of the working files change their stat metadata.
+    h.update(f'committed_source:{scorecard_provenance.git_commit(ws)}\n'.encode())
     # Build options are inputs too: the same workspace can restore an older
     # card or write to a different generation directory.
     h.update(('outputs:' + json.dumps(
@@ -4764,7 +4767,7 @@ def build_projection(previous_source=None, shadow_previous=None):
         _basis_values)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
-    _decisions = decision_v2.load_decisions()
+    _decisions, _source_ref = scorecard_provenance.dashboard_source(WS_ROOT)
     _source_decisions = copy.deepcopy(_decisions)
     _settlement_day = hkt_today().isoformat()
     decision_v2.settle_decisions(_decisions, now_date=_settlement_day)
@@ -4781,7 +4784,10 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_metrics'] = trim_decision_metrics(
         decision_v2.compute_metrics(_decisions))
     scorecard_provenance.record_settlement_view(
-        out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day)
+        out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day,
+        source_ref=_source_ref)
+    scorecard_provenance.verify_committed_source(
+        out['decision_metrics']['provenance'], WS_ROOT)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of
     # this file could make: dashboard.json is public, so the retired figure was still

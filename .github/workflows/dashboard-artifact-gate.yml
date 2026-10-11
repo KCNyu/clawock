@@ -28,6 +28,8 @@ jobs:
     timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the published ledger source_ref may predate this checkout
 
       # The payload under validation is the published one, so it is fetched
       # rather than read out of the checkout — the checkout no longer carries it,
