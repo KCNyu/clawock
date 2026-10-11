@@ -3313,32 +3313,43 @@
       el.classList.toggle("is-low", atLow);
       // 最大回撤 %: 仅利润全程为正时有意义(见 _profit_extremes 守卫)；港股利润为负→null。
       const ddPct = (p && p.max_dd_pct != null) ? p.max_dd_pct.toFixed(1) + "%" : null;
-      // 回撤恢复 — 用「金额」算 → 不论利润正负都成立(港股深套也能给恢复%):
-      //   recovery = (当前 − 最深谷) / (起跌峰 − 最深谷)，0%=仍在坑底，100%=已回到峰。
-      //   US:(1945−1221)/(2148−1221)=78%; 港股:(−22913−(−25864))/(4811−(−25864))≈10%。
-      let recovery = null;
-      if (p && p.max_dd_peak_val != null && p.max_dd_trough_val != null) {
-        const span = p.max_dd_peak_val - p.max_dd_trough_val;   // 跌幅 $ (>0)
-        const curV = p.current && p.current.value;
-        if (span > 0 && curV != null) {
-          recovery = Math.max(0, Math.min(100, (curV - p.max_dd_trough_val) / span * 100));
-        }
+      // 回撤有两件事，各有自己的峰/谷，发布端分别结算（`_drawdown_episodes`），这里只照印:
+      //   open_dd    = 进行中的这一轮：起点就是历史最高利润，所以它和「距利润峰值」
+      //                是同一个峰——还差着峰值时它不可能读成 100%。
+      //   deepest_dd = 历史上最深的那一次；收复过就是已结清的历史，不代表现在在峰值。
+      // 收回% 是金额比金额 (当前−谷)/(峰−谷)，利润为负也成立；不截断，也不在这里重算。
+      const open = p && p.open_dd, deep = p && p.deepest_dd;
+      const span = (ep) => `${signed(ep.peak.value, cur)}（${dstr(ep.peak.date)}）→ ${signed(ep.trough.value, cur)}（${dstr(ep.trough.date)}）`;
+      const pctTxt = (v) => (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
+      let openBlock = "";
+      if (open && open.status === "none") {
+        openBlock = `
+          <div class="span">当前利润就是历史最高，没有进行中的回撤。</div>`;
+      } else if (open) {
+        const rec = open.recovery_pct;
+        let tier = "poor", txt = "刚反弹一点，仍接近本轮最低";
+        if (open.status === "at_trough") txt = "现处本轮最低点，尚无反弹";
+        else if (rec >= 70) { tier = "good"; txt = "已收回大部分，但尚未回到峰值"; }
+        else if (rec >= 30) { tier = "mid"; txt = "部分收回"; }
+        openBlock = `
+          <div class="ext-row"><span class="k">本轮回撤已收回</span><span class="v"><b class="rec-${tier}">${pctTxt(rec)}</b></span></div>
+          <div class="dd-bar"><div class="dd-bar-fill ${tier}" style="--fill:${(rec / 100).toFixed(3)}"></div></div>
+          <div class="span">${txt}。本轮 = ${span(open)}，共回落 ${signed(open.depth_abs, cur)}；收回% = 从本轮最低点涨回这个峰值的比例，和上面「距利润峰值」是同一个峰，到 100% 时差额才为 0。</div>`;
       }
-      let recTier = "mid", recTxt = "无回撤数据";
-      if (recovery != null) {
-        if (recovery >= 70) { recTier = "good"; recTxt = recovery >= 95 ? "几乎完全恢复 ✓" : "已反弹大部分"; }
-        else if (recovery >= 30) { recTier = "mid"; recTxt = "部分恢复中"; }
-        else { recTier = "poor"; recTxt = recovery < 5 ? "贴底无反弹 — 谨慎" : "刚反弹一点 — 仍接近最低"; }
+      let deepNote = "";
+      if (deep && deep.status === "reclaimed") {
+        const over = deep.to_peak_abs;
+        deepNote = `${span(deep)}，已于 ${dstr(deep.reclaimed_date)} 收复。` + (over >= 0
+          ? `当前比那次的起跌峰高 ${signed(over, cur)}。`
+          : `之后又回落，当前比那次的起跌峰低 ${signed(over, cur)}（相当于那次跌幅的 ${pctTxt(deep.recovery_pct)} 处）。`)
+          + "这是已结清的历史，不等于现在回到了峰值。";
+      } else if (deep && deep.status !== "none") {
+        deepNote = `${span(deep)}，尚未收复——就是上面进行中的这一轮。`;
+      } else if (deep) {
+        deepNote = "样本内没有出现过回撤。";
       }
-      const recPctTxt = recovery == null ? DASH : (recovery > 0 && recovery < 1) ? "<1%" : recovery.toFixed(0) + "%";
       // 港股利润为负、回撤%无意义 → 显示金额跌幅；否则显示 %。
       const ddMain = ddPct ? `${ddPct}<small>${signed(p && p.max_dd_abs, cur)}</small>` : signed(p && p.max_dd_abs, cur);
-      const recoveryBlock = `
-        <div class="ext-dd">
-          <div class="ext-row"><span class="k">从坑底恢复</span><span class="v"><b class="rec-${recTier}">${recPctTxt}</b></span></div>
-          <div class="dd-bar"><div class="dd-bar-fill ${recTier}" style="--fill:${recovery == null ? 0 : (recovery / 100).toFixed(3)}"></div></div>
-          <div class="span">${recTxt}（恢复% = 从最深谷反弹回历史利润峰的比例，100%＝已回峰值）</div>
-        </div>`;
       const profitPrimary = p ? `
         <div class="ext-head">
           <span class="ext-name">${r.name}</span>
@@ -3348,10 +3359,13 @@
         <div class="ext-row"><span class="k">历史最低利润</span><span class="v ${(p.trough && p.trough.value) < 0 ? "neg" : ""}">${signed(p.trough && p.trough.value, cur)}<small>${dstr(p.trough && p.trough.date)}</small></span></div>
         <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}<small>${dstr(p.current && p.current.date)}</small></span></div>
         <div class="ext-dd">
-          <div class="ext-row"><span class="k">最大回撤</span><span class="v neg">${ddMain}</span></div>
-          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>
+          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>${openBlock}
+        </div>
+        <div class="ext-dd">
+          <div class="ext-row"><span class="k">历史最深回撤</span><span class="v neg">${ddMain}</span></div>
+          ${deepNote ? `<div class="span">${deepNote}</div>` : ""}
           <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
-        </div>${recoveryBlock}` : `
+        </div>` : `
         <div class="ext-head"><span class="ext-name">${r.name}</span></div>
         <div class="muted" style="margin-top:8px">无利润口径数据</div>`;
       // SECONDARY = 真实总资产（持仓市值 + 现金余额）。这是 trade-invariant 的"现在值多少钱"

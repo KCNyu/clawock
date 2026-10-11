@@ -2074,3 +2074,147 @@ def test_dashboard_share_reads_keep_ledger_value_and_do_not_crash(shares):
     assert bool(us_earnings_tickers(portfolio)) == active
     assert dashboard.compute_guardrail_outputs(portfolio, risk={})['risk_guardrail'].get('computed') is not False
     assert portfolio == before
+
+
+# kcn's 2026-10-11 card: the deepest decline (06-17 high → 07-29 low) had been
+# regained, profit then made a new high on 10-06 and fell back. One recovery
+# number was measured against the old bracket and labelled as the new high.
+_NEW_HIGH_THEN_PULLBACK = [
+    ("2026-06-17", 1865.66),   # high the deepest decline started from
+    ("2026-07-29", -21.05),    # its low
+    ("2026-10-05", 1990.00),   # first close back over that high
+    ("2026-10-06", 2420.77),   # new all-time high
+    ("2026-10-08", 1800.00),   # low of the decline in progress
+    ("2026-10-09", 1870.33),
+]
+
+
+def _says_back_at_the_high(block):
+    """True when a reader of `block` is told the high has been regained."""
+    open_dd = block["open_dd"]
+    return (block["from_peak_abs"] >= 0 or open_dd["status"] == "none"
+            or (open_dd["recovery_pct"] or 0) >= 100)
+
+
+def test_below_the_high_and_recovered_cannot_both_be_published():
+    result = dashboard._profit_extremes(_NEW_HIGH_THEN_PULLBACK)
+    deepest, open_dd = result["deepest_dd"], result["open_dd"]
+
+    assert result["from_peak_abs"] == -550.44
+    # The decline in progress is measured from the same high as that gap…
+    assert open_dd["peak"] == result["peak"] == {"value": 2420.77, "date": "2026-10-06"}
+    assert open_dd["to_peak_abs"] == result["from_peak_abs"]
+    assert open_dd["trough"] == {"value": 1800.0, "date": "2026-10-08"}
+    assert open_dd["depth_abs"] == -620.77
+    # …so it reads 11%, not the 100% the old bracket produced.
+    assert open_dd["status"] == "recovering"
+    assert open_dd["recovery_pct"] == 11.33
+    assert open_dd["reclaimed_date"] is None
+
+    # The deepest decline is a different, settled question with its own bracket.
+    assert deepest["peak"] == {"value": 1865.66, "date": "2026-06-17"}
+    assert deepest["trough"] == {"value": -21.05, "date": "2026-07-29"}
+    assert deepest["status"] == "reclaimed"
+    assert deepest["reclaimed_date"] == "2026-10-05"
+    # Today is over that episode's own start high, and the overflow is kept.
+    assert deepest["recovery_pct"] == 100.25
+    assert deepest["to_peak_abs"] == 4.67
+
+
+def test_reclaimed_deepest_decline_can_sit_back_under_its_own_high():
+    result = dashboard._profit_extremes(
+        _NEW_HIGH_THEN_PULLBACK + [("2026-10-12", 1500.0)])
+    deepest, open_dd = result["deepest_dd"], result["open_dd"]
+
+    assert deepest["status"] == "reclaimed"
+    assert deepest["to_peak_abs"] == -365.66 and deepest["recovery_pct"] == 80.62
+    assert open_dd["status"] == "at_trough" and open_dd["recovery_pct"] == 0.0
+    assert open_dd["to_peak_abs"] == result["from_peak_abs"] == -920.77
+
+
+def test_new_high_reanchors_the_open_decline():
+    series = _NEW_HIGH_THEN_PULLBACK[:4]
+    at_high = dashboard._profit_extremes(series)
+    assert at_high["from_peak_abs"] == 0.0
+    assert at_high["open_dd"]["status"] == "none"
+    assert at_high["open_dd"]["recovery_pct"] is None
+
+    after = dashboard._profit_extremes(series + [("2026-10-07", 2400.0)])
+    assert after["open_dd"]["peak"]["date"] == "2026-10-06"
+    assert after["open_dd"]["status"] == "at_trough"
+    assert after["deepest_dd"] == at_high["deepest_dd"] | {
+        "to_peak_abs": 534.34, "recovery_pct": 128.32}
+
+
+def test_unrecovered_deepest_decline_is_the_open_one_even_below_zero():
+    # HK leg shape: the high itself is a loss, and the series never comes back.
+    result = dashboard._profit_extremes([
+        ("d1", -20000.0), ("d2", -13820.68), ("d3", -50304.24), ("d4", -48309.84),
+    ])
+
+    assert result["max_dd_pct"] is None and result["current_dd_pct"] is None
+    assert result["deepest_dd"] == result["open_dd"]
+    assert result["open_dd"]["status"] == "recovering"
+    assert result["open_dd"]["recovery_pct"] == 5.47      # 1994.40 / 36483.56
+    assert result["open_dd"]["to_peak_abs"] == result["from_peak_abs"] == -34489.16
+    # Money over money: shifting the whole series does not change the share.
+    shifted = dashboard._profit_extremes([
+        ("d1", 80000.0), ("d2", 86179.32), ("d3", 49695.76), ("d4", 51690.16)])
+    assert shifted["open_dd"]["recovery_pct"] == 5.47
+
+
+def test_drawdown_contract_never_pairs_a_gap_with_a_recovered_reading():
+    import random
+    from clawock.publish.artifacts import _assert_drawdown_episodes
+
+    rng = random.Random(20261011)
+    for _ in range(400):
+        level, series = rng.uniform(-500, 500), []
+        for day in range(rng.randint(1, 40)):
+            level += rng.choice([-1, 1]) * rng.choice([0.0, 0.01, 5.0, 80.0, 400.0])
+            series.append((f"d{day:02d}", round(level, 2)))
+        equity = [(d, v + 5000.0) for d, v in series]
+        blocks = {"us": dashboard._series_extremes(equity),
+                  "profit": {"us": dashboard._profit_extremes(series)}}
+        for block in (blocks["us"], blocks["profit"]["us"]):
+            below = block["from_peak_abs"] < 0
+            assert below != _says_back_at_the_high(block), (series, block)
+            deepest = block["deepest_dd"]
+            # Today can never be under the deepest low: that would be the new deepest.
+            assert deepest["recovery_pct"] is None or deepest["recovery_pct"] >= 0
+        _assert_drawdown_episodes({"drawdown": blocks})
+
+
+def test_publish_gate_rejects_a_recovered_reading_under_the_high():
+    from clawock.publish.artifacts import _assert_drawdown_episodes
+
+    block = dashboard._profit_extremes(_NEW_HIGH_THEN_PULLBACK)
+    _assert_drawdown_episodes({"drawdown": {"profit": {"us": block}}})
+    _assert_drawdown_episodes({"drawdown": {"us": None, "profit": {"basis": "x"}}})
+
+    # The defect as it shipped: the open reading taken from the deepest bracket.
+    wrong = dict(block, open_dd=dict(block["deepest_dd"], recovery_pct=100.0))
+    with pytest.raises(AssertionError, match="same high"):
+        _assert_drawdown_episodes({"drawdown": {"profit": {"us": wrong}}})
+    wrong = dict(block, open_dd=dict(block["open_dd"], recovery_pct=100.0))
+    with pytest.raises(AssertionError, match="under the high"):
+        _assert_drawdown_episodes({"drawdown": {"profit": {"us": wrong}}})
+
+
+def test_compute_drawdown_publishes_both_episodes_for_every_leg_and_basis():
+    from types import SimpleNamespace
+
+    snapshots = [
+        {"date": d, "us_equity": 5000 + v, "us_profit": v,
+         "hk_equity": 60000 - v, "hk_profit": -v - 100}
+        for d, v in _NEW_HIGH_THEN_PULLBACK
+    ]
+    legs = [SimpleNamespace(key="hk", currency="HKD"),
+            SimpleNamespace(key="us", currency="USD")]
+    result = dashboard.compute_drawdown(snapshots, fx_rate=7.8, legs=legs)
+
+    for block in (result["us"], result["hk"], result["combined"],
+                  *(result["profit"][k] for k in ("us", "hk", "combined"))):
+        assert block["open_dd"]["to_peak_abs"] == block["from_peak_abs"]
+        assert (block["from_peak_abs"] < 0) != _says_back_at_the_high(block)
+    assert result["profit"]["us"]["open_dd"]["recovery_pct"] == 11.33
