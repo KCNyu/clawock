@@ -3312,7 +3312,7 @@
 
     const profitDd = (dd.profit) || {};
     const signed = (v, cur) => (v != null && isFinite(v) ? (v >= 0 ? "+" : "−") + money(Math.abs(v), cur) : DASH);
-    const pctTxt = (v) => (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
+    const pctTxt = (v) => (v == null || !isFinite(v)) ? DASH : (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
     const neg = v => (v < 0 ? " neg" : "");
     regions.forEach(r => {
       const el = document.getElementById(`ext-region-${r.key}`);
@@ -3355,8 +3355,8 @@
           </div>
           <div class="pr-ruler"></div>
           <div class="pr-ends">
-            <span><b class="${neg(lo)}">${signed(lo, cur)}</b><small>最低 ${dstr(p.trough.date)}</small></span>
-            <span><b class="${neg(hi)}">${signed(hi, cur)}</b><small>最高 ${dstr(p.peak.date)}</small></span>
+            <span><b class="${neg(lo)}">${signed(lo, cur)}</b><small>最低 ${dstr(p.trough && p.trough.date)}</small></span>
+            <span><b class="${neg(hi)}">${signed(hi, cur)}</b><small>最高 ${dstr(p.peak && p.peak.date)}</small></span>
           </div>
         </div>`;
         }
@@ -3379,7 +3379,7 @@
           ${at ? `<span class="pr-pos"><b>${at.label}</b><small>最低→最高</small></span>` : ""}
         </div>
         <div class="pr-now-k">当前利润 · ${dstr(p.current && p.current.date)}</div>${scale}
-        <div class="pr-gap"><span>距最高 <b class="${neg(p.from_peak_abs)}">${signed(p.from_peak_abs, cur)}</b></span><span>距最低 <b>${signed(now - lo, cur)}</b></span></div>`;
+        <div class="pr-gap"><span>距最高 <b class="${neg(p.from_peak_abs)}">${signed(p.from_peak_abs, cur)}</b></span><span>距最低 <b>${at ? signed(now - lo, cur) : DASH}</b></span></div>`;
         foldRows = openRow + deepRow;
       }
       // SECONDARY = 真实总资产（持仓市值 + 现金余额）。这是 trade-invariant 的"现在值多少钱"
