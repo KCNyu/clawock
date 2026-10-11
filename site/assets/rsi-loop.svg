@@ -227,31 +227,31 @@
   <path d="M38 926.4H978" stroke="#ffffff" stroke-opacity=".95" stroke-linecap="round"/>
   <path d="M25.5 939V1197" stroke="#13865f" stroke-width="4" stroke-linecap="round"/>
   <g class="hero-icon" data-icon="gate" transform="translate(44 939) scale(0.916667)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h16v17M8 4v17m8-17v17M4 12h16M10 8l2 2 3-3"/></g>
-  <text x="74" y="957" class="h"><tspan fill="#151a21">The model proposes. Code holds the line.</tspan></text>
+  <text x="74" y="957" class="h"><tspan fill="#151a21">Code enforces stops / regime delever; *strategy exemptions apply.</tspan></text>
   <rect x="772.8" y="941" width="203.2" height="20" rx="10" fill="#e6f4ee" stroke="#13865f" stroke-opacity=".16"/>
   <text x="874.4" y="955" class="tag" text-anchor="middle"><tspan fill="#13865f">PYTHON · UNIT-TESTED</tspan></text>
-  <text x="44" y="987" class="kick"><tspan fill="#b8524a">RISK LIMITS</tspan></text>
-  <text x="44" y="1017" class="m"><tspan fill="#151a21">leveraged single name</tspan></text>
-  <text x="374" y="1017" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 35%</tspan></text>
+  <text x="44" y="987" class="kick"><tspan fill="#b8524a">RISK POLICY</tspan></text>
+  <text x="44" y="1017" class="m"><tspan fill="#151a21">single name &gt;35%</tspan></text>
+  <text x="374" y="1017" class="b" text-anchor="end"><tspan fill="#b8524a">review</tspan></text>
   <rect x="44" y="1024" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
   <rect x="44" y="1024" width="115.5" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
-  <text x="44" y="1049" class="m"><tspan fill="#151a21">core single name</tspan></text>
-  <text x="374" y="1049" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 60%</tspan></text>
+  <text x="44" y="1049" class="m"><tspan fill="#151a21">name / cluster caps</tspan></text>
+  <text x="374" y="1049" class="b" text-anchor="end"><tspan fill="#b8524a">100%</tspan></text>
   <rect x="44" y="1056" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
-  <rect x="44" y="1056" width="198" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
-  <text x="44" y="1081" class="m"><tspan fill="#151a21">correlated cluster</tspan></text>
-  <text x="374" y="1081" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 70%</tspan></text>
+  <rect x="44" y="1056" width="330" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
+  <text x="44" y="1081" class="m"><tspan fill="#151a21">ETF sleeve base cap</tspan></text>
+  <text x="374" y="1081" class="b" text-anchor="end"><tspan fill="#b8524a">100%</tspan></text>
   <rect x="44" y="1088" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
-  <rect x="44" y="1088" width="231" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
-  <text x="44" y="1113" class="m"><tspan fill="#151a21">leverage-ETF sleeve</tspan></text>
-  <text x="374" y="1113" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 50%</tspan></text>
+  <rect x="44" y="1088" width="330" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
+  <text x="44" y="1113" class="m"><tspan fill="#151a21">HK sleeve</tspan></text>
+  <text x="374" y="1113" class="b" text-anchor="end"><tspan fill="#b8524a">× regime</tspan></text>
   <rect x="44" y="1120" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
-  <rect x="44" y="1120" width="165" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
-  <text x="44" y="1145" class="m"><tspan fill="#151a21">portfolio β</tspan></text>
-  <text x="374" y="1145" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 3.0</tspan></text>
+  <rect x="44" y="1120" width="231" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
+  <text x="44" y="1145" class="m"><tspan fill="#151a21">US portfolio β</tspan></text>
+  <text x="374" y="1145" class="b" text-anchor="end"><tspan fill="#b8524a">≤ 6.0</tspan></text>
   <rect x="44" y="1152" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
-  <rect x="44" y="1152" width="99" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
-  <text x="44" y="1177" class="m"><tspan fill="#151a21">stop</tspan></text>
+  <rect x="44" y="1152" width="198" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
+  <text x="44" y="1177" class="m"><tspan fill="#151a21">ETF hard stop*</tspan></text>
   <text x="374" y="1177" class="b" text-anchor="end"><tspan fill="#b8524a">−18%</tspan></text>
   <rect x="44" y="1184" width="330" height="5" rx="2.5" fill="#f2f5f8"/>
   <rect x="44" y="1184" width="59.4" height="5" rx="2.5" fill="#b8524a" fill-opacity=".5"/>
@@ -264,7 +264,7 @@
   <circle cx="409" cy="1059" r="6" fill="#13865f" stroke="#13865f" stroke-width="1.5"/>
   <text x="428" y="1064" class="m"><tspan fill="#151a21">Same-risk adds freeze</tspan></text>
   <circle cx="409" cy="1099" r="6" fill="#13865f" stroke="#13865f" stroke-width="1.5"/>
-  <text x="428" y="1104" class="m"><tspan fill="#151a21">Any override expires</tspan></text>
+  <text x="428" y="1104" class="m"><tspan fill="#151a21">Strategy exemptions apply*</tspan></text>
   <circle cx="409" cy="1139" r="6" fill="#ffffff" stroke="#13865f" stroke-width="1.5"/>
   <text x="428" y="1144" class="m"><tspan fill="#5b6875">Execution stays human</tspan></text>
   <g class="hero-icon" data-icon="gate" transform="translate(399 1163) scale(0.833333)" fill="none" stroke="#13865f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h16v17M8 4v17m8-17v17M4 12h16M10 8l2 2 3-3"/></g>

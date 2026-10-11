@@ -46,6 +46,7 @@ def test_quant_failure_omits_old_fresh_rows(tmp_path, monkeypatch, capsys, failu
     original = json.dumps({'rows': {'TEST': {'status': 'fresh', 'tag': 'old'}}})
     path.write_text(original)
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
 
     def run(cmd, **kwargs):
         assert kwargs['check'] is True
@@ -67,6 +68,7 @@ def test_quant_success_consumes_current_rows(tmp_path, monkeypatch, capsys):
     payload = {'rows': {'TEST': {'status': 'fresh', 'tag': 'current'}}}
     path.write_text(json.dumps(payload))
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     def run(*a, **k):
         path.unlink()
         path.write_text(json.dumps(payload))

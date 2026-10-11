@@ -74,13 +74,14 @@ def test_quant_no_usable_bars_publishes_missing_row():
     ('cross_factor_node', 'cross_sectional_factor.json', {}),
     ('peer_residual_node', 'peer_residual.json', {}),
 ])
-@pytest.mark.parametrize('failure', ['exit', 'timeout', 'no_write'])
+@pytest.mark.parametrize('failure', ['exit', 'timeout', 'no_write', 'invalid_json', 'non_object'])
 def test_artifact_nodes_do_not_consume_recovery_files(tmp_path, monkeypatch, node, file, empty, failure):
     path = tmp_path / 'assets/data' / file
     path.parent.mkdir(parents=True)
     original = json.dumps({'tier': 'amber', 'lev_cap_mult': .5, 'as_of': '2026-10-07'})
     path.write_text(original)
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
 
     def run(cmd, **kw):
         assert kw['check'] is True
@@ -88,22 +89,41 @@ def test_artifact_nodes_do_not_consume_recovery_files(tmp_path, monkeypatch, nod
             raise subprocess.CalledProcessError(1, cmd, stderr='fixture error')
         if failure == 'timeout':
             raise subprocess.TimeoutExpired(cmd, kw['timeout'])
+        if failure in {'invalid_json', 'non_object'}:
+            path.write_text('broken' if failure == 'invalid_json' else '[]')
         return subprocess.CompletedProcess(cmd, 0)
 
     monkeypatch.setattr(artifacts.subprocess, 'run', run)
     args = ({'portfolios': {}},) if node in {'cross_factor_node', 'peer_residual_node'} else ()
     assert getattr(brief_preflight, node)(*args) == (empty, [])
-    assert path.read_text() == original
+    if failure not in {'invalid_json', 'non_object'}:
+        assert path.read_text() == original
+    records = list((tmp_path / 'memory/.tmp').glob('brief-checkpoint-*.json'))
+    assert len(records) == 1
+    record = json.loads(records[0].read_text())
+    assert record['status'] == 'failed'
+    from clawock.automation import workflow_outcomes
+    from clawock.publish.outcomes import degradations_of
+    published = degradations_of(workflow_outcomes.load_ledger())
+    assert any(row['kind'] == 'brief_check_failed' and row['group'] == record['command']
+               for row in published)
+    # Consecutive failures remain countable instead of replacing one stdout line.
+    getattr(brief_preflight, node)(*args)
+    published = degradations_of(workflow_outcomes.load_ledger())
+    assert next(row for row in published if row['group'] == record['command'])['count'] == 2
 
 
 @pytest.mark.parametrize('as_of,accepted', [('2026-10-08', True), ('2026-10-07', False), (None, False)])
 def test_regime_rewrite_also_requires_latest_completed_session(tmp_path, monkeypatch, as_of, accepted):
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setattr(brief_preflight.trading_calendar, 'latest_completed_session',
                         lambda _: date(2026, 10, 8))
     payload = {'as_of': as_of, 'tier': 'amber', 'lev_cap_mult': .5}
     monkeypatch.setattr(brief_preflight, 'refresh_json', lambda *a, **k: payload)
     assert brief_preflight.regime_node() == (payload if accepted else None, [])
+    records = list((tmp_path / 'memory/.tmp').glob('brief-checkpoint-*.json'))
+    assert json.loads(records[0].read_text())['status'] == ('success' if accepted else 'failed')
 
 
 @pytest.mark.parametrize('region,symbol,holding,expected', [
@@ -143,6 +163,7 @@ def test_t0_atr_uses_signal_symbol_and_completed_market_session(
 
 def test_preflight_timeout_replaces_success_generation(tmp_path, monkeypatch):
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setattr(brief_preflight, 'TMP_DIR', tmp_path / 'memory/.tmp')
     monkeypatch.setenv('TODAY', '2026-10-09')
     path = tmp_path / 'memory/.tmp/brief-context-2026-10-09.json'
