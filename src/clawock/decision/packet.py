@@ -1465,7 +1465,8 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
         if experiment is not None:
             technical["setups"].append(experiment)
             technical = _apply_setup_usage(technical, ticker_usage)
-            execution_tier = preposition.TIER
+            if execution_tier != "validated":
+                execution_tier = preposition.TIER
         raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,

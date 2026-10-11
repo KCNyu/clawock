@@ -12,7 +12,7 @@
     "status": "user_authorized_prospective_experiment",
     "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
     "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline.",
-    "does_not_support": "Leveraged results were negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+    "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
     "live_sized_samples_at_registration": 0,
     "historical_unleveraged_oos_campaigns": 141
   }
