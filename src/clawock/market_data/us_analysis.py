@@ -46,7 +46,8 @@ def get_daily_closes_polygon(ticker: str, api_key: str, days: int = 90) -> List[
     try:
         r = SESSION.get(
             f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}",
-            params={'adjusted': 'true', 'sort': 'asc', 'limit': 150, 'apiKey': api_key},
+            params={'adjusted': 'true', 'sort': 'asc', 'limit': 150},
+            headers={'Authorization': f'Bearer {api_key}'},
             timeout=TIMEOUT,
         )
         return [x['c'] for x in r.json().get('results', [])]

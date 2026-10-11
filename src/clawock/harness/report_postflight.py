@@ -268,7 +268,7 @@ def maybe_commit(status, commit_msg):
     snap_date = snapshot_date_for_now()
     # logs/dashboard_build_status.json rides along: its only scheduled reader is
     # the GHA cron-health runner (fresh checkout), so it must reach origin.
-    # The four dashboard outputs are NOT staged: #314 took them out of the
+    # The manifest-listed dashboard outputs are NOT staged: #314 took them out of the
     # repository, and `git add` on a gitignored path FAILS rather than skipping
     # — which would abort this commit and take portfolio.json and the snapshot
     # down with it. The rebuild above still refreshes them in the worktree; the

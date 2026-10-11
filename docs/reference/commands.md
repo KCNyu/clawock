@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**84 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 61 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (72 subcommands). 46 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**85 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 62 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (73 subcommands). 47 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -145,6 +145,7 @@ Sources: local snapshots + canonical bars
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
 | `clawock validate-regime-hmm` | `clawock.evaluation.regime_hmm` | posterior regimes with a duration, scored on the dial's own circular-shift null |
 | `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha, gross and net of the pre-registered cost model |
+| `clawock decision-audit` | `clawock.decision.audit` | absolute and broad-market-relative direction scores with exact-window coverage |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
 | `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |
 | `clawock evaluate-methods` | `clawock.decision.method_evaluation` | method payoff and probability reports; frozen prospective three-arm shadow trials |

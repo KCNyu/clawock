@@ -1,0 +1,14 @@
+name: Clawock Node toolchain
+description: Pin Node and npm for every plugin install, build and publish.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: examples/dsh/packages/clawock-dsh/package-lock.json
+        registry-url: https://registry.npmjs.org
+    # Pin the publishing tool: runner-bundled npm previously crashed mid-release.
+    - shell: bash
+      run: npm install -g npm@10.9.8

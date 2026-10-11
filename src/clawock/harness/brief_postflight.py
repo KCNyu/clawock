@@ -1085,7 +1085,7 @@ def maybe_commit(status, today, dry_run=False):
     # silently lost samples on every fresh checkout. macro/sentiment/influencer/
     # us_news_digest are deliberately NOT here: GH Actions own those, preflight only
     # reads them, and committing them from this side would fight the workflow.
-    # The four dashboard outputs are deliberately absent: #314 untracked them,
+    # The manifest-listed dashboard outputs are deliberately absent: #314 untracked them,
     # and `git add` on a gitignored path fails rather than skipping — it would
     # abort this entire commit, which carries portfolio.json, the decision
     # ledger and the whole preflight write set.

@@ -116,7 +116,7 @@ def main():
         print('  刷新净值 + 重建 dashboard…')
         subprocess.run(
             [sys.executable, '-m', 'clawock.market_data.gold.fetch'], check=False)
-        # Rebuilt so this host's copy is current; NOT staged. The four outputs
+        # Rebuilt so this host's copy is current; NOT staged. The manifest-listed outputs
         # left the repository in #314 — the scheduled publisher puts them on the
         # data branch, at most 20 minutes behind this commit.
         subprocess.run([sys.executable, '-m', 'clawock', 'dashboard-build'],
