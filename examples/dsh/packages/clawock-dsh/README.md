@@ -159,11 +159,16 @@ title 与详情层）。额度在面板上、任务在底板上，两级不混�
   Claude 行的「请求过于频繁,请稍后再试」就是 `/api/oauth/usage` 被问得太勤的
   429(本机的派发通知 `quota.mjs` 也读这个端点),**额度读不到不代表任务异常**,
   不要据此判断派发任务卡死;
-- Claude 的 OAuth token 归 Claude Code 所有,本插件**只读不刷新**——过期时
-  面板显示「请在终端跑一次 claude 刷新登录」;
+- Claude 的 OAuth token 归 Claude Code 所有,本插件**只读不刷新**——访问令牌
+  到期(几小时没跑过 claude)时面板写明「不是登录失效,下次运行 claude 自动续期」;
+  只有登录文件里没有 refresh token 才提示重新登录;
 - 宿主侧每 provider TTL 缓存、并发合并:DeepSeek/MiniMax/Claude 60s,Codex 跟
   `codexRefreshMs`(默认 5 分钟——每次读额度要拉起一个 app-server 进程);
-  客户端静默轮询 ≥60s;手动 ↻ 强制拉新,不走缓存。
+  手动 ↻ 强制拉新,不走缓存;
+- 客户端按「读数有没有印在屏幕上」定节奏:侧栏展开(折叠行印着数)或面板打开时
+  静默轮询 ≥60s;收成 56px 窄栏时只剩一枚阈值徽标,改为 15 分钟核一次
+  (`BALANCE_BADGE_MS`)。打开面板/展开侧栏的那一刻立即读一次(手上的答案不足
+  一个轮询周期时不重复读),所以看到的数最多旧一个宿主 TTL。隐藏的标签页不轮询。
 
 可选配置(profile 的 `cordis.patch.yml` 行内,改后重启 dsh 生效):
 `balanceBaseUrl` / `balanceThreshold` / `balanceRefreshMs` /

@@ -607,6 +607,15 @@ function renderAllowance(detail: AllowanceDetail): React.ReactElement | null {
         })))))
 }
 
+/** How often the rail's badge is checked while no reading is on screen (see `useProviderBalances`). */
+export const BALANCE_BADGE_MS = 15 * 60000
+
+/** The poll interval for a surface: the host's cadence while its numbers are read, the badge's otherwise. */
+export function _balanceCadence(reading: boolean, refreshMs: number | undefined): number {
+  const host = Math.max(60000, refreshMs ?? 60000)
+  return reading ? host : Math.max(BALANCE_BADGE_MS, host)
+}
+
 /**
  * The balance channel every surface shares: cached-first state, the mount
  * fetch, the refreshMs poll, the #870 refresh flash and the pinned headline.
@@ -616,9 +625,24 @@ function renderAllowance(detail: AllowanceDetail): React.ReactElement | null {
  * constant. A registration that supplies `subscribeBalances` also hears
  * answers fetched by its sibling surface (the panel's manual refresh updates
  * the foot button at once).
+ *
+ * `reading` is whether a number is on screen for someone to read. A surface
+ * that prints the readings (the folded lines, the open panel, the header chip)
+ * keeps them current at the host's cadence. The 56px rail prints none — one
+ * glyph and a threshold badge — so it only keeps the badge honest, at
+ * `BALANCE_BADGE_MS`: on a phone the rail is on screen for as long as the page
+ * is, and polling it every minute read all four providers 480 times in eight
+ * hours nobody opened the panel (measured, 2026-10-11). Becoming read (the
+ * panel opens, the sidebar widens) reads at once, so what is looked at is the
+ * host's current answer rather than the badge's last one.
  */
-function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> & { t: Translate }, pollKey: string) {
+function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> & { t: Translate }, pollKey: string, reading = true) {
   const mountedRef = useRef(true)
+  // When the last answer arrived (any surface's), and whether the previous render was read:
+  // together they turn "became read" into one fetch, and only when the answer on hand is
+  // older than the host would serve anyway.
+  const answeredAtRef = useRef(0)
+  const wasReadingRef = useRef(reading)
   // `error` is why the last fetch never answered (transport/RPC failure — a
   // provider's own failure arrives inside `result` as a stale/failed row).
   // Without it a cold panel whose fetch failed kept saying 正在读取 forever,
@@ -634,6 +658,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
   const runBalances = (force: boolean): void => {
     props.fetchBalances(force).then((result) => {
       if (!mountedRef.current) return
+      answeredAtRef.current = Date.now()
       setData({ result, loading: false, error: null })
       if (force) {
         // #870 语义:拉到新数据 → ✓(品牌色),命中缓存 → ↻ 变绿,1.2s 回落。
@@ -654,7 +679,9 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
     const unsubscribe = props.subscribeBalances === undefined
       ? null
       : props.subscribeBalances((result) => {
-        if (mountedRef.current) setData((current) => ({ ...current, result, error: null }))
+        if (!mountedRef.current) return
+        answeredAtRef.current = Date.now()
+        setData((current) => ({ ...current, result, error: null }))
       })
     return () => {
       mountedRef.current = false
@@ -664,10 +691,17 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
   }, [pollKey])
 
   useEffect(() => {
-    const intervalMs = Math.max(60000, data.result?.refreshMs ?? 60000)
+    const intervalMs = _balanceCadence(reading, data.result?.refreshMs)
     // Hidden tabs do not poll; on return the host's per-provider TTL decides whether a fetch
     // happens at all (non-forced), so coming back never refreshes every provider at once.
     const visible = (): boolean => typeof document === 'undefined' || document.visibilityState === 'visible'
+    // Became read: fetch now unless the answer on hand is as young as a poll would leave it —
+    // opening and closing the panel repeatedly costs one request per host window, not one each.
+    if (reading && !wasReadingRef.current && Date.now() - answeredAtRef.current >= _balanceCadence(true, data.result?.refreshMs)) {
+      setData((current) => ({ ...current, loading: true }))
+      runBalances(false)
+    }
+    wasReadingRef.current = reading
     let hiddenSince = 0
     const timer = setInterval(() => { if (visible()) runBalances(false) }, intervalMs)
     const onVisibility = (): void => {
@@ -680,7 +714,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
       clearInterval(timer)
       if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [data.result?.refreshMs, pollKey])
+  }, [data.result?.refreshMs, pollKey, reading])
 
   const now = Date.now()
   const rows = balanceRows(data.result, props.t, now)
@@ -1910,7 +1944,6 @@ export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & T
  */
 export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.ReactElement {
   const t = props.t
-  const balanceState = useProviderBalances(props, BALANCE_PANEL)
   const queueState = useTaskQueue(props)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -1947,6 +1980,8 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     return true
   }
   const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
+  // The folded lines and the open panel print the readings; the rail prints only its badge.
+  const balanceState = useProviderBalances(props, BALANCE_PANEL, props.wide || open)
   const instanceId = useId()
   useEffect(() => {
     if (open) return

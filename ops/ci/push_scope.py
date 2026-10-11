@@ -129,7 +129,9 @@ DATA_GLOBS = [
 UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
          r"site/decimap/|src/clawock/publish/decision_map\.py$|"
          r"tests/(dashboard_tab_runtime|site_layout_mobile|decimap_board)\.spec\.js$)")
-DSPLUGIN_RE = r"^(.github/actions/clawock-node/|examples/dsh/|tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)"
+# `quota.mjs` imports the package's built lib/balance.js and the plugin spec pins its wording.
+DSPLUGIN_RE = (r"^(.github/actions/clawock-node/|examples/dsh/|ops/host/agent-dispatch/quota\.mjs$|"
+               r"tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)")
 
 WORKFLOWS_PREFIX = ".github/workflows/"
 

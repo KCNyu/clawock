@@ -9244,6 +9244,13 @@ function renderAllowance(detail) {
 		"data-balance-state": w.state
 	})))));
 }
+/** How often the rail's badge is checked while no reading is on screen (see `useProviderBalances`). */
+const BALANCE_BADGE_MS = 9e5;
+/** The poll interval for a surface: the host's cadence while its numbers are read, the badge's otherwise. */
+function _balanceCadence(reading, refreshMs) {
+	const host = Math.max(6e4, refreshMs ?? 6e4);
+	return reading ? host : Math.max(BALANCE_BADGE_MS, host);
+}
 /**
 * The balance channel every surface shares: cached-first state, the mount
 * fetch, the refreshMs poll, the #870 refresh flash and the pinned headline.
@@ -9253,9 +9260,21 @@ function renderAllowance(detail) {
 * constant. A registration that supplies `subscribeBalances` also hears
 * answers fetched by its sibling surface (the panel's manual refresh updates
 * the foot button at once).
+*
+* `reading` is whether a number is on screen for someone to read. A surface
+* that prints the readings (the folded lines, the open panel, the header chip)
+* keeps them current at the host's cadence. The 56px rail prints none — one
+* glyph and a threshold badge — so it only keeps the badge honest, at
+* `BALANCE_BADGE_MS`: on a phone the rail is on screen for as long as the page
+* is, and polling it every minute read all four providers 480 times in eight
+* hours nobody opened the panel (measured, 2026-10-11). Becoming read (the
+* panel opens, the sidebar widens) reads at once, so what is looked at is the
+* host's current answer rather than the badge's last one.
 */
-function useProviderBalances(props, pollKey) {
+function useProviderBalances(props, pollKey, reading = true) {
 	const mountedRef = useRef(true);
+	const answeredAtRef = useRef(0);
+	const wasReadingRef = useRef(reading);
 	const [data, setData] = useState(() => ({
 		result: props.cachedBalances(),
 		loading: false,
@@ -9270,6 +9289,7 @@ function useProviderBalances(props, pollKey) {
 	const runBalances = (force) => {
 		props.fetchBalances(force).then((result) => {
 			if (!mountedRef.current) return;
+			answeredAtRef.current = Date.now();
 			setData({
 				result,
 				loading: false,
@@ -9296,7 +9316,9 @@ function useProviderBalances(props, pollKey) {
 		mountedRef.current = true;
 		runBalances(false);
 		const unsubscribe = props.subscribeBalances === void 0 ? null : props.subscribeBalances((result) => {
-			if (mountedRef.current) setData((current) => ({
+			if (!mountedRef.current) return;
+			answeredAtRef.current = Date.now();
+			setData((current) => ({
 				...current,
 				result,
 				error: null
@@ -9309,8 +9331,16 @@ function useProviderBalances(props, pollKey) {
 		};
 	}, [pollKey]);
 	useEffect(() => {
-		const intervalMs = Math.max(6e4, data.result?.refreshMs ?? 6e4);
+		const intervalMs = _balanceCadence(reading, data.result?.refreshMs);
 		const visible = () => typeof document === "undefined" || document.visibilityState === "visible";
+		if (reading && !wasReadingRef.current && Date.now() - answeredAtRef.current >= _balanceCadence(true, data.result?.refreshMs)) {
+			setData((current) => ({
+				...current,
+				loading: true
+			}));
+			runBalances(false);
+		}
+		wasReadingRef.current = reading;
 		let hiddenSince = 0;
 		const timer = setInterval(() => {
 			if (visible()) runBalances(false);
@@ -9328,7 +9358,11 @@ function useProviderBalances(props, pollKey) {
 			clearInterval(timer);
 			if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVisibility);
 		};
-	}, [data.result?.refreshMs, pollKey]);
+	}, [
+		data.result?.refreshMs,
+		pollKey,
+		reading
+	]);
 	const now = Date.now();
 	const rows = balanceRows(data.result, props.t, now);
 	const primary = rows.find((row) => row.provider === selected) ?? rows[0];
@@ -11012,7 +11046,6 @@ const CONFIRM_MS = 5e3;
 */
 function ProviderPanelSidebarAction(props) {
 	const t = props.t;
-	const balanceState = useProviderBalances(props, BALANCE_PANEL);
 	const queueState = useTaskQueue(props);
 	const [detailId, setDetailId] = useState(null);
 	const [busy, setBusy] = useState(null);
@@ -11055,6 +11088,7 @@ function ProviderPanelSidebarAction(props) {
 		return true;
 	};
 	const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail);
+	const balanceState = useProviderBalances(props, BALANCE_PANEL, props.wide || open);
 	const instanceId = useId();
 	useEffect(() => {
 		if (open) return;
@@ -11790,7 +11824,7 @@ async function apply(ctx) {
 }
 //#endregion
 
-    Object.assign(exports, { BALANCE_PANEL, DETAIL_ACTIONS, DETAIL_FIELDS, DETAIL_FOLDED, DETAIL_SECTIONS, DecisionMind, FACT_CELL, FACT_ORDER, LOCALE_NS, ProviderBalanceChip, ProviderPanelSidebarAction, RESIDENT_CHIPS, ROW_KINDS, STATE_ROLES, _agentLabel, _balanceNote, _costOf, _describeAction, _displayEntry, _endedState, _fmtMoney, _fmtPct, _fmtTokens, _modelView, _notifyState, _panelSources, _patrolReason, _poolPosition, _queueHeadline, _queueState, _rowDisplay, _sessionFileAddress, _slotLanes, _slotOf, _taskState, _taskStatus, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, createTranslator, dictionaries, inject, resetStampOf, roundFiled, t1ChipClass, t1NodeClass, verdictOf, windowLabelOf, windowsOf });
+    Object.assign(exports, { BALANCE_BADGE_MS, BALANCE_PANEL, DETAIL_ACTIONS, DETAIL_FIELDS, DETAIL_FOLDED, DETAIL_SECTIONS, DecisionMind, FACT_CELL, FACT_ORDER, LOCALE_NS, ProviderBalanceChip, ProviderPanelSidebarAction, RESIDENT_CHIPS, ROW_KINDS, STATE_ROLES, _agentLabel, _balanceCadence, _balanceNote, _costOf, _describeAction, _displayEntry, _endedState, _fmtMoney, _fmtPct, _fmtTokens, _modelView, _notifyState, _panelSources, _patrolReason, _poolPosition, _queueHeadline, _queueState, _rowDisplay, _sessionFileAddress, _slotLanes, _slotOf, _taskState, _taskStatus, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, createTranslator, dictionaries, inject, resetStampOf, roundFiled, t1ChipClass, t1NodeClass, verdictOf, windowLabelOf, windowsOf });
     return module.exports;
   }
 });
