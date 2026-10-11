@@ -203,6 +203,20 @@ def _broker_evidence(record: dict, portfolio: dict) -> list[dict]:
     return evidence
 
 
+#: A breach that clears and trips again inside this window is the same episode:
+#: its age, acknowledgement, override and standing carry over. Measured
+#: 2026-07-15..10-09: SPCH's regime de-lever (a 5-day-average rule) opened nine
+#: times and its hard stop six, each reopening restarted the ten undecided days,
+#: and the cut was forced on 30 of 62 mornings against a book that bought the
+#: name 23 times and sold it none. A breach gone longer than this is a new one.
+SAME_EPISODE_DAYS = 30
+
+
+def _same_episode(record: dict, now: datetime) -> bool:
+    resolved = _parse_stamp((record.get("resolution") or {}).get("resolved_at"))
+    return bool(resolved and (now.date() - resolved.date()).days <= SAME_EPISODE_DAYS)
+
+
 def _age_days(opened_at: str | None, now: datetime) -> int:
     opened = _parse_stamp(opened_at)
     return max(0, (now.date() - opened.date()).days) if opened else 0
@@ -281,20 +295,21 @@ def _reconcile_guardrail_unlocked(
             if record.get("status") == "resolved":
                 record["recurrence_count"] = int(
                     record.get("recurrence_count") or 1) + 1
-                record["current_opened_at"] = stamp
-                record["acknowledgement"] = {
-                    "status": "unacknowledged",
-                    "acknowledged_at": None,
-                    "note": "",
-                }
-                record["override"] = {
-                    "status": "none", "reason": "",
-                    "created_at": None, "expires_at": None,
-                }
-                record["execution"] = {
-                    "status": "pending", "confirmed_at": None,
-                    "evidence": [],
-                }
+                if not _same_episode(record, current_time):
+                    record["current_opened_at"] = stamp
+                    record["acknowledgement"] = {
+                        "status": "unacknowledged",
+                        "acknowledged_at": None,
+                        "note": "",
+                    }
+                    record["override"] = {
+                        "status": "none", "reason": "",
+                        "created_at": None, "expires_at": None,
+                    }
+                    record["execution"] = {
+                        "status": "pending", "confirmed_at": None,
+                        "evidence": [],
+                    }
                 record["resolution"] = None
             if record.get("fingerprint") != fingerprint:
                 record["last_changed_at"] = stamp
@@ -585,7 +600,11 @@ def _adaptive(record: dict, portfolio: dict, now: datetime) -> dict:
         blockers.append("execution confirmed")
     if int(record.get("age_days") or 0) < STANDING_DECISION_DAYS:
         blockers.append(f"open {record.get('age_days') or 0}d < {STANDING_DECISION_DAYS}d")
-    if stance["stance"] not in ("declined", "contrary"):
+    # `silent` cannot make a breach eligible, and it does not take eligibility
+    # away either: a month without a trade is not a change of mind about a cut
+    # the book already declined. Selling the name (`acting`) still ends it.
+    held = stance["stance"] == "silent" and prev.get("eligible")
+    if stance["stance"] not in ("declined", "contrary") and not held:
         blockers.append(f"stance={stance['stance']}")
     stances = list(prev.get("stances") or [])[-10:]
     if blockers:

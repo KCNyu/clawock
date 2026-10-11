@@ -922,7 +922,9 @@ def test_completed_tranches_exhaust_setup_authority():
     )
 
 
-def test_add_room_solves_the_post_trade_60_percent_boundary():
+def test_add_room_solves_the_post_trade_60_percent_boundary(monkeypatch):
+    # The room arithmetic under a target below the whole leg (60% until 2026-10-11).
+    monkeypatch.setattr("clawock.decision.add_policy.TARGET_MAX_PCT", 60.0)
     context = _context()
     hk_book = context["portfolio"]["portfolios"]["hk_stocks"]
     hk_book["cash_hkd"] = 10_000

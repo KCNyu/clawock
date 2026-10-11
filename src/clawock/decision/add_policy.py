@@ -186,8 +186,9 @@ def is_authorised_tier(tier) -> bool:
 #: stricter one for daily-reset leveraged names. Same numbers as
 #: `portfolio.guardrail.GUARDRAIL_CAPS` (`single_name_mandatory_pct`,
 #: `leveraged_single_name_pct`): an add must never size into a mandatory trim.
-TARGET_MAX_PCT = 60.0
-LEVERAGED_TARGET_MAX_PCT = 35.0
+#: Both are the whole leg since 2026-10-11, so room is cash.
+TARGET_MAX_PCT = 100.0
+LEVERAGED_TARGET_MAX_PCT = 100.0
 
 #: How a setup's authority tier names its size in `sizing.tranche_book_pct`.
 #: Plain technical setups (trend_pullback / confirmed_breakout /
@@ -198,6 +199,10 @@ TECHNICAL = "technical"
 def _room_shares(*, target_pct, capital, current_value, cash, cash_is_cap,
                  price, lot):
     fraction = target_pct / 100
+    if fraction >= 1:
+        # The name may be the whole leg: no concentration bound, so cash is the room.
+        room_value = max(cash, 0.0)
+        return int(room_value // (price * lot)) * lot if price and lot else 0
     # Solve (position + add) / (invested_book + add) <= target.
     room_value = max(0.0, (fraction * capital - (current_value or 0)) / (1 - fraction))
     max_value = min(max(cash, 0.0), room_value) if cash_is_cap else room_value

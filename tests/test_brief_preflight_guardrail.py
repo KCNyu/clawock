@@ -84,17 +84,83 @@ def _only_breach(result, expected_type):
     return breach
 
 
+TIGHT_CAPS = {
+    "single_name_mandatory_pct": 60,
+    "leveraged_single_name_pct": 35,
+    "correlated_cluster_pct": 70,
+    "lev_etf_leg_pct": 50,
+    "us_beta_max": 3.0,
+}
+
+
+@pytest.fixture
+def tight_caps(preflight, monkeypatch):
+    """The cap arithmetic under caps that bind below a whole leg (the values
+    in force until 2026-10-11), so each rule's operator and sizing stay pinned."""
+    for key, value in TIGHT_CAPS.items():
+        monkeypatch.setitem(preflight.GUARDRAIL_CAPS, key, value)
+
+
 def test_guardrail_cap_definitions_are_locked(preflight):
     assert preflight.GUARDRAIL_CAPS == {
         "single_name_review_pct": 35,
-        "single_name_mandatory_pct": 60,
-        "leveraged_single_name_pct": 35,
-        "correlated_cluster_pct": 70,
+        "single_name_mandatory_pct": 100,
+        "leveraged_single_name_pct": 100,
+        "correlated_cluster_pct": 100,
         "correlation_min_coverage_pct": 80,
-        "lev_etf_leg_pct": 50,
-        "us_beta_max": 3.0,
+        "lev_etf_leg_pct": 100,
+        "us_beta_max": 6.0,
         "lev_etf_stop_pct": -18,
     }
+
+
+def test_one_name_may_be_the_whole_leg_leveraged_or_not(preflight):
+    """kcn 2026-10-11: concentration is allowed, one name included. A leg held
+    in one 2x product and a β of 4.6 are review state, not breaches."""
+    result = _evaluate(preflight, risk={"us": {"beta_spx": 4.64}}, us=[
+        _holding("SPCH", 88, leveraged=True), _holding("CRCL", 12)])
+    assert result["breaches"] == [] and result["breach_count"] == 0
+    assert [(row["type"], row["ticker"]) for row in result["concentration_reviews"]] == [
+        ("single_name_review", "SPCH")]
+
+    alone = _evaluate(preflight, hk=[_holding("00100", 100)])
+    assert alone["breaches"] == []
+    assert alone["concentration_reviews"][0]["ticker"] == "00100"
+
+
+def test_the_hk_regime_dial_still_tightens_the_leveraged_leg(preflight):
+    held = [_holding("07226", 60, leveraged=True), _holding("00100", 40)]
+    assert _evaluate(preflight, hk=held)["breaches"] == []
+    amber = _evaluate(preflight, hk=held, lev_regime={"lev_cap_mult": 0.5, "tier": "amber"})
+    assert _only_breach(amber, "leveraged_exposure")["required_reduction"]["target_pct"] == 50
+
+
+def test_a_holding_whose_strategy_forbids_reduce_advice_gets_no_forced_row(preflight):
+    """SPCH runs `infinite_ammo_dca`: bought on the way down by declaration, so
+    neither the hard stop nor the regime dial tells the brief to sell it. The
+    same loss on a holding without the strategy still trips both."""
+    regime = {"us": {"names": [
+        {"etf": "SPCH", "underlying": "SPCX", "state": "cut", "dist_ma_pct": -3.3,
+         "ma_window": 5, "regime_basis": "short_ma_5"},
+        {"etf": "RKLX", "underlying": "RKLB", "state": "cut", "dist_ma_pct": -3.3,
+         "ma_window": 5, "regime_basis": "short_ma_5"}]}}
+    us = [{**_holding("SPCH", 50, leveraged=True, pnl_pct=-30), "strategy": "infinite_ammo_dca"},
+          _holding("RKLX", 50, leveraged=True, pnl_pct=-30)]
+    result = preflight.compute_risk_guardrail(
+        [], us, None, preflight.compute_concentration(us), {}, regime,
+        reduce_exempt_strategies=frozenset({"infinite_ammo_dca"}))
+    assert [row["ticker"] for row in result["hard_stop_watch"]] == ["RKLX"]
+    assert [(row["type"], row["ticker"]) for row in result["breaches"]] == [
+        ("regime_delever", "RKLX")]
+
+    without = preflight.compute_risk_guardrail(
+        [], us, None, preflight.compute_concentration(us), {}, regime)
+    assert {row["ticker"] for row in without["hard_stop_watch"]} == {"SPCH", "RKLX"}
+
+
+def test_the_shipped_policy_names_the_exempt_strategy():
+    from clawock.decision import intraday_policy
+    assert intraday_policy.reduce_exempt_strategies(ROOT) == frozenset({"infinite_ammo_dca"})
 
 
 def test_guardrail_history_is_committed_through_atomic_writer(
@@ -156,7 +222,7 @@ def test_nonleveraged_single_name_45_percent_is_review_not_forced_trim(preflight
     assert result["concentration_reviews"][0]["ticker"] == "BIG"
 
 
-def test_nonleveraged_single_name_above_60_percent_is_mandatory_trim(preflight):
+def test_nonleveraged_single_name_above_60_percent_is_mandatory_trim(preflight, tight_caps):
     result = _evaluate(preflight, hk=[
         _holding("BIG", 61), _holding("MID", 20), _holding("SMALL", 19),
     ])
@@ -186,7 +252,7 @@ def test_single_name_exactly_35_percent_is_compliant(preflight):
     assert result["breach_count"] == 0
 
 
-def test_measured_multi_name_cluster_above_70_percent_is_factor_breach(preflight):
+def test_measured_multi_name_cluster_above_70_percent_is_factor_breach(preflight, tight_caps):
     holdings = [_holding("A", 40), _holding("B", 31), _holding("C", 29)]
     risk = {"correlation": {
         "covered_weight_pct": 100, "cluster_rho": 0.8,
@@ -230,7 +296,7 @@ def test_correlation_cluster_is_advisory_when_coverage_is_thin(preflight):
     )
 
 
-def test_leveraged_sleeve_above_50_percent_emits_one_high_us_swap(preflight):
+def test_leveraged_sleeve_above_50_percent_emits_one_high_us_swap(preflight, tight_caps):
     result = _evaluate(preflight, us=[
         _holding("PLTU", 26, leveraged=True),
         _holding("MSFU", 25, leveraged=True),
@@ -247,7 +313,7 @@ def test_leveraged_sleeve_above_50_percent_emits_one_high_us_swap(preflight):
     assert "MSFU→MSFT" in breach["action"]
 
 
-def test_leveraged_sleeve_exactly_50_percent_is_compliant_because_operator_is_strict_gt(preflight):
+def test_leveraged_sleeve_exactly_50_percent_is_compliant_because_operator_is_strict_gt(preflight, tight_caps):
     result = _evaluate(preflight, us=[
         _holding("PLTU", 25, leveraged=True),
         _holding("MSFU", 25, leveraged=True),
@@ -260,7 +326,7 @@ def test_leveraged_sleeve_exactly_50_percent_is_compliant_because_operator_is_st
     assert result["breach_count"] == 0
 
 
-def test_us_beta_above_3_emits_one_high_beta_breach(preflight):
+def test_us_beta_above_3_emits_one_high_beta_breach(preflight, tight_caps):
     result = _evaluate(preflight, risk={"us": {"beta_spx": 3.01}})
 
     breach = _only_breach(result, "beta")
@@ -270,14 +336,14 @@ def test_us_beta_above_3_emits_one_high_beta_breach(preflight):
     assert "降 US β" in breach["action"]
 
 
-def test_us_beta_exactly_3_is_compliant_because_operator_is_strict_gt(preflight):
+def test_us_beta_exactly_3_is_compliant_because_operator_is_strict_gt(preflight, tight_caps):
     result = _evaluate(preflight, risk={"us": {"beta_spx": 3.0}})
 
     assert result["breaches"] == []
     assert result["breach_count"] == 0
 
 
-def test_us_beta_action_is_withheld_when_risk_window_is_ineligible(preflight):
+def test_us_beta_action_is_withheld_when_risk_window_is_ineligible(preflight, tight_caps):
     result = _evaluate(
         preflight,
         risk={"us": {
@@ -291,7 +357,7 @@ def test_us_beta_action_is_withheld_when_risk_window_is_ineligible(preflight):
     assert result["breach_count"] == 0
 
 
-def test_us_beta_action_is_withheld_when_benchmark_overlap_is_ineligible(preflight):
+def test_us_beta_action_is_withheld_when_benchmark_overlap_is_ineligible(preflight, tight_caps):
     result = _evaluate(
         preflight,
         risk={"us": {
@@ -307,7 +373,7 @@ def test_us_beta_action_is_withheld_when_benchmark_overlap_is_ineligible(preflig
     assert result["breach_count"] == 0
 
 
-def test_us_beta_action_is_withheld_while_the_block_is_stale_revived(preflight):
+def test_us_beta_action_is_withheld_while_the_block_is_stale_revived(preflight, tight_caps):
     """#1036: a revived block carries β of unknown age — the flag itself says
     this run failed to measure it, so it must not source a HIGH trim directive."""
     result = _evaluate(
@@ -459,7 +525,7 @@ def test_regime_non_cut_state_is_compliant(preflight, state):
     assert result["breach_count"] == 0
 
 
-def test_every_triggered_directive_is_tagged_as_risk_rule(preflight):
+def test_every_triggered_directive_is_tagged_as_risk_rule(preflight, tight_caps):
     result = _evaluate(
         preflight,
         risk={"us": {"beta_spx": 3.01}},
@@ -646,7 +712,7 @@ def test_an_empty_or_zero_value_leg_logs_na_instead_of_crashing(preflight):
     assert line.startswith('HHI=0.625 ') and '(Top2 100.0%)' in line
 
 
-def test_cap_action_text_allows_a_reasoned_hold(preflight):
+def test_cap_action_text_allows_a_reasoned_hold(preflight, tight_caps):
     result = _evaluate(preflight, risk={"us": {"beta_spx": 3.01}},
                        us=[_holding("A", 80), _holding("B", 20)])
     assert {b["type"] for b in result["breaches"]} == {"single_name", "beta"}

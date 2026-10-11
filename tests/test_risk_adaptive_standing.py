@@ -86,12 +86,14 @@ def test_selling_the_target_means_acting_and_the_rule_stays_loud(tmp_path):
     assert not adaptive["eligible"] and "stance=acting" in adaptive["not_eligible_because"]
 
 
-def test_a_month_without_any_trade_turns_it_loud_again(tmp_path):
-    """Declining is judged on recent behaviour; a book gone quiet for 30 days is
-    treated as someone away, and the rule goes back to being raised every day."""
+def test_a_month_without_any_trade_does_not_take_the_stand_back(tmp_path):
+    """A book gone quiet cannot make a breach eligible (the test above), and it
+    does not undo a decline already on the record: the cut was forced on every
+    morning of a quiet month against a position the book had chosen to keep."""
     assert _adaptive(_run(tmp_path, "2026-09-11T00:00:00+00:00"))["may_stand"]
     later = _adaptive(_run(tmp_path, "2026-09-25T00:00:00+00:00"))
-    assert not later["eligible"] and "stance=silent" in later["not_eligible_because"]
+    assert later["stance"]["stance"] == "silent"
+    assert later["eligible"] and later["may_stand"]
 
 
 def test_ten_days_first(tmp_path):

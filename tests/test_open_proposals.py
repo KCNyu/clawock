@@ -119,7 +119,9 @@ def test_an_authored_review_is_replaced_not_trusted():
     ({"driven_by": "catalyst", "evidence_event_id": "evt_fake"}, "FACT_UNKNOWN_EVENT"),
     ({"strategy_id": "risk_rebalance", "driven_by": "risk_rule"}, "AUTH_NO_SWAP_MANDATE"),
 ])
-def test_a_false_or_infeasible_add_is_refused_with_its_code(change, code):
+def test_a_false_or_infeasible_add_is_refused_with_its_code(change, code, monkeypatch):
+    # The room arithmetic under a target below the whole leg (60% until 2026-10-11).
+    monkeypatch.setattr("clawock.decision.add_policy.TARGET_MAX_PCT", 60.0)
     packet = _compile()
     issues = _blocked({"decisions": [_add(**change)]}, packet)
     assert len(issues) == 1 and issues[0].endswith(f"[{code}]"), issues
@@ -143,7 +145,9 @@ def test_the_legs_adds_together_cannot_spend_more_than_its_cash():
     assert len(issues) == 1 and "FEAS_EXCEEDS_CASH" in issues[0] and "840.00" in issues[0]
 
 
-def test_split_orders_share_the_same_inventory_and_position_room():
+def test_split_orders_share_the_same_inventory_and_position_room(monkeypatch):
+    # The room arithmetic under a target below the whole leg (60% until 2026-10-11).
+    monkeypatch.setattr("clawock.decision.add_policy.TARGET_MAX_PCT", 60.0)
     packet = _compile()
     sell = {"ticker": "HK2", "action": "cut", "size": {"shares": 60}}
     # Two independently triggerable orders cannot both spend the same shares.

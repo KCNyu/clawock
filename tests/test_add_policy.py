@@ -72,7 +72,17 @@ def test_exploration_one_unit_rule_uses_the_market_book_cap():
     assert plan["suggested_shares"] == 1
 
 
-def test_validated_keeps_one_market_unit_inside_the_concentration_room():
+def test_a_name_may_fill_the_leg_so_room_is_cash():
+    plan = add_policy.tranche_plan(
+        tier="validated", price=10.0, lot=100, shares=9000, current_value=90000.0,
+        capital=100000.0, cash=2500.0, setup_pcts=[0.075])
+    assert plan["target_max_pct"] == 100.0
+    assert plan["position_room_shares"] == 200
+
+
+def test_validated_keeps_one_market_unit_inside_the_concentration_room(monkeypatch):
+    # The room arithmetic under a target below the whole leg (60% until 2026-10-11).
+    monkeypatch.setattr("clawock.decision.add_policy.TARGET_MAX_PCT", 60.0)
     plan = add_policy.tranche_plan(
         tier="validated", price=10.0, lot=100, shares=1000, current_value=10000.0,
         capital=100000.0, cash=50000.0, setup_pcts=[0.075])

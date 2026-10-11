@@ -2,7 +2,9 @@
 
 The engine is ticker agnostic. A holding selects a strategy in portfolio.json;
 config/intraday-strategy-policies.json supplies that strategy's exception rules.
-These rules affect intraday copy, never the underlying portfolio risk ledger.
+These rules shape intraday copy. One of them reaches the risk guardrail:
+a strategy that sets `forbid_reduce_advice` exempts its holdings from the
+hard stop and the regime de-lever (`reduce_exempt_strategies`).
 """
 from __future__ import annotations
 
@@ -28,6 +30,13 @@ def load(workspace, market):
             }
             for row in rows if row.get('ticker') and (_share_number(row.get('shares', 0)) or 0) > 0
             and row.get('strategy') in policies}
+
+
+def reduce_exempt_strategies(workspace):
+    """Names of the strategies whose holdings are not told to reduce."""
+    policies = json.loads((workspace / 'config' / 'intraday-strategy-policies.json').read_text())
+    return frozenset(name for name, policy in policies.items()
+                     if isinstance(policy, dict) and policy.get('forbid_reduce_advice'))
 
 
 def _resolve_rule(holding, rule):

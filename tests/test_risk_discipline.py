@@ -81,12 +81,23 @@ def test_breach_age_change_resolution_and_recurrence_are_durable(tmp_path):
     saved = discipline.load_ledger(tmp_path / "risk.json")
     assert saved["records"][0]["status"] == "resolved"
 
+    # Back the next day: the same episode, so its age carries on.
     recurrent = _reconcile(
         tmp_path, _guardrail(), "2026-07-05T00:00:00+00:00")
     record = recurrent["records"][0]
     assert record["status"] == "open"
     assert record["recurrence_count"] == 2
-    assert record["age_days"] == 0
+    assert record["age_days"] == 4
+
+    # Gone for longer than SAME_EPISODE_DAYS: a new breach, counted from zero.
+    _reconcile(
+        tmp_path, {"breaches": [], "hard_stop_watch": [], "breach_count": 0},
+        "2026-07-06T00:00:00+00:00",
+    )
+    fresh = _reconcile(
+        tmp_path, _guardrail(), "2026-08-20T00:00:00+00:00")["records"][0]
+    assert fresh["recurrence_count"] == 3
+    assert fresh["age_days"] == 0
 
 
 def test_acknowledgement_and_override_expiry_persist(tmp_path):

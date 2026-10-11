@@ -686,6 +686,7 @@ def _guardrail_sections(portfolio, risk, lev_regime=None):
         compute_concentration,
         compute_risk_guardrail,
     )
+    from clawock.decision import intraday_policy
 
     us_book = portfolio['portfolios']['us_stocks']
     hk_book = portfolio['portfolios']['hk_stocks']
@@ -695,6 +696,7 @@ def _guardrail_sections(portfolio, risk, lev_regime=None):
         hk_holdings, us_holdings,
         compute_concentration(hk_holdings), compute_concentration(us_holdings),
         risk or {}, lev_regime=lev_regime,
+        reduce_exempt_strategies=intraday_policy.reduce_exempt_strategies(WS_ROOT),
     )
     breakeven = compute_breakeven_math(
         hk_holdings, us_holdings, lev_regime=lev_regime)
