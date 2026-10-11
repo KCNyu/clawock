@@ -1,6 +1,6 @@
 """clawock-patrol triage (2026-10-01): severity is backed by evidence, filing counts
 never limit findings, one root cause is one issue, and the round's
-yield is readable by the dsh panel. Since 2026-10-11 a P3 is held instead of filed.
+yield is readable by the dsh panel. Since 2026-10-11 a P3 owes a line on what leaving it costs.
 Unit tests on the pure half plus gate runs against a stub `gh`."""
 import json
 import os
@@ -71,19 +71,29 @@ def test_noise_feedback_never_touches_a_finding_shown_on_todays_artifact():
         assert v.severity == sev and not v.notes
 
 
-def test_filing_counts_never_limit_p0_to_p2_and_a_p3_is_held():
+def test_filing_counts_never_limit_any_severity_and_a_p3_owes_its_cost():
     now = time.time()
     rows = [{"route": "issue", "ts": now - 60, "severity": "P2", "kind": "feature"}] * 2000
     for severity in ("P0", "P1", "P2"):
         for kind in ("bug", "feature"):
             assert triage.route(triage.Verdict(severity, "data", kind, "peers"), rows, now) == ("issue", "")
     assert not hasattr(triage, "BUDGET")
-    for kind in ("bug", "drift", "regression", "debt"):
-        where, why = triage.route(triage.Verdict("P3", "docs", kind, "docs"))
-        assert where == "hold" and "P3" in why
-    # the one P3 that is filed: debt on code a fix already had to touch
-    assert triage.route(triage.Verdict("P3", "debt", "debt", "debt"), debt_precedent=True) == ("issue", "")
-    assert triage.route(triage.Verdict("P3", "docs", "drift", "docs"), debt_precedent=True)[0] == "hold"
+    # a P3 is filed like the rest once the draft says what leaving it costs; otherwise it goes back
+    p3 = triage.Verdict("P3", "docs", "drift", "docs")
+    assert triage.route(p3, rows, now, cost="下一个按注释找输出的人会漏掉第五个文件") == ("issue", "")
+    where, why = triage.route(p3, rows, now)
+    assert where == "candidate" and "代价" in why
+
+
+def test_the_cost_line_is_free_text_but_none_is_not_a_cost():
+    grade = "## 分级\n严重度: P3\n领域: docs\n类型: drift\n关联: 无\n"
+    assert triage.stated_cost(grade) == ""
+    for empty in ("无", "没有。", "N/A", "none", "—", "不一致"):          # the last one is just too short to mean anything
+        assert triage.stated_cost(grade + f"代价: {empty}\n") == "", empty
+    # internal cost counts: a P3 is judged on being true and specific, not on having a victim
+    assert "第五个" in triage.stated_cost(grade + "代价: 下一个按注释找输出的人会漏掉第五个文件，#2543 就是这么来的\n")
+    # a debt draft already answers it in 反证
+    assert triage.stated_cost("## 落点与收益\n反证: 无先例，本次为预防性；不改的话每加一条政策都要改 285 行的同一个函数\n")
 
 
 def test_fingerprint_groups_by_enclosing_function(tmp_path):
@@ -245,11 +255,13 @@ def test_gate_dry_run_reports_triage_and_route(tmp_path):
     assert "labels: patrol severity:P0 area:data kind:bug lens:money" in r.stderr
     r = _gate(tmp_path, DRAFT.format(sev="P3"), name="b")
     assert r.returncode == 0, r.stderr
-    assert "triage P3 area:data kind:bug lens:money → hold" in r.stderr
-    assert "会留下不开 issue" in r.stderr
+    assert "triage P3 area:data kind:bug lens:money → candidate" in r.stderr
+    r = _gate(tmp_path, DRAFT.format(sev="P3").replace("关联: 无\n", "关联: 无\n代价: 面板总市值每天少算两行，看盘的人按错的总数判断仓位\n"), name="c")
+    assert r.returncode == 0, r.stderr
+    assert "triage P3 area:data kind:bug lens:money → issue" in r.stderr
 
 
-def test_gate_holds_a_p3_without_filing_and_the_round_yield_counts_it(tmp_path, monkeypatch):
+def test_gate_files_a_p3_that_states_its_cost_and_returns_one_that_does_not(tmp_path, monkeypatch):
     # A real (not dry) run, with a `gh` that records what it is asked: reads answer empty, any write fails.
     bin_dir, calls = tmp_path / "bin", tmp_path / "gh.calls"
     bin_dir.mkdir()
@@ -261,18 +273,20 @@ def test_gate_holds_a_p3_without_filing_and_the_round_yield_counts_it(tmp_path, 
     env = {"GATE_DRY_RUN": "", "PATH": f"{bin_dir}:{os.environ['PATH']}"}
     r = _gate(tmp_path, DRAFT.format(sev="P3"), env_extra=env)
     assert r.returncode == 0, r.stderr
-    assert "gate: HELD" in r.stdout and "P3" in r.stdout
+    assert "gate: CANDIDATE" in r.stdout and "代价" in r.stdout
     state = tmp_path / "a" / "state"
     rows = triage.read_jsonl(state / "filed" / "index.jsonl")
-    assert [(row["route"], row["number"], row["severity"]) for row in rows] == [("hold", None, "P3")]
-    assert (state / "filed" / "R1-x.md").is_file()        # later drafts dedupe against the held one
+    assert [(row["route"], row["number"], row["severity"]) for row in rows] == [("candidate", None, "P3")]
+    # not kept under filed/: the same draft with the line added must not be its own duplicate
+    assert not (state / "filed" / "R1-x.md").exists()
     asked = calls.read_text() if calls.exists() else ""
     assert "issue create" not in asked and "issue comment" not in asked
     monkeypatch.setattr(patrol_intel, "LOGDIR", state)
-    assert patrol_intel.round_yield("patrol-money-20261001-010203") == "+1 held"
-    assert "另有 1 条 P3 被闸留下没开 issue" in patrol_intel.filing_line(time.time())
-    # the same draft declared P2 goes on to be filed: the stub refuses, so the gate dies at create
-    r = _gate(tmp_path, DRAFT.format(sev="P2"), name="c", env_extra=env)
+    assert patrol_intel.round_yield("patrol-money-20261001-010203") == "+1 candidate"
+    assert "另有 1 条 P3 因没写不修的代价退回候选" in patrol_intel.filing_line(time.time())
+    # the same P3 with its cost goes on to be filed: the stub refuses, so the gate dies at create
+    costed = DRAFT.format(sev="P3").replace("关联: 无\n", "关联: 无\n代价: 面板总市值每天少算两行，看盘的人按错的总数判断仓位\n")
+    r = _gate(tmp_path, costed, name="c", env_extra=env)
     assert r.returncode != 0 and "issue create" in calls.read_text()
 
 

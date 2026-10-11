@@ -98,7 +98,10 @@ INBOX="$DIR/inbox"
 # TIMEOUT, which stays long on purpose (real tasks run for hours). See wait_attempt.
 # opencode: of 238 patrol attempts the healthy ones printed their first event within 35s (p90,
 # slowest 127s) and never went quiet for more than 523s (370 attempts); its tools are capped at
-# 10 minutes. claude/codex give up on a silent API stream themselves well before 30 minutes.
+# 10 minutes. First-event limit 300 -> 210 on 2026-10-11: over the 436 October patrol attempts (10-01..10-11)
+# that printed anything, the first event came within 92s (p99) and 164s at the latest, while a
+# throttled free model prints nothing at all and was waited on for the full 300s 57 times that
+# day alone (one per pool model per round, before the round reaches a model that answers). claude/codex give up on a silent API stream themselves well before 30 minutes.
 # STALL_TOOL: how long one tool (a command the CLI started) can keep an attempt alive, by
 # working or - codex only - by being a command codex is still waiting on; after that only the
 # idle limit is left. Bounds a busy leftover (a spinning background job) and a hung command.
@@ -108,7 +111,7 @@ INBOX="$DIR/inbox"
 # and opencode's tools stop at 10 minutes; a process of theirs older than that is a leftover.
 # STALL_FIRST_SEC / STALL_IDLE_SEC / STALL_TOOL_SEC override every agent (test seam; 0 disables).
 case "$AGENT" in
-  opencode) STALL_FIRST=300 STALL_IDLE=900 STALL_TOOL=900 ;;
+  opencode) STALL_FIRST=210 STALL_IDLE=900 STALL_TOOL=900 ;;
   codex) STALL_FIRST=1800 STALL_IDLE=1800 STALL_TOOL=3600 ;;
   *) STALL_FIRST=1800 STALL_IDLE=1800 STALL_TOOL=1800 ;;
 esac

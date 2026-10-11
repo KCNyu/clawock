@@ -122,11 +122,11 @@ def test_axis_lens_labels_rotation_and_caps():
     assert triage.lens_of('patrol-debt-20261003-000000') == 'debt'
     assert 'lens:debt' in triage.label_taxonomy(triage.lenses_from_axes(TOOL / 'axes.tsv'))
     rotation = [w for line in (TOOL / 'rotation').read_text().splitlines() if not line.startswith('#') for w in line.split()]
-    # 2026-10-11: two passes; the areas whose rounds turned into P0/P1 get the slots, and the ones
-    # that never did (docs, site, debt: 0 in their rounds of 10-01..10-11) run once per two passes.
+    # 2026-10-11: two passes, weighted only by how often an area's finished rounds produced a P0/P1.
+    # The areas that produced none in 10-01..10-11 run once per two passes; none is dropped.
     assert len(rotation) == 44 and rotation.count('recent') == 10
     assert min(rotation.count(a) for a in ('logic', 'money', 'automation')) >= 6
-    assert all(rotation.count(a) == 1 for a in ('debt', 'docs', 'site', 'peers')) and 'style' not in rotation
+    assert all(rotation.count(a) == 1 for a in ('debt', 'docs', 'style', 'site', 'ops', 'peers'))
     assert set(rotation) <= set(triage.lenses_from_axes(TOOL / 'axes.tsv'))
 
 
