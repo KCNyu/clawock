@@ -17,7 +17,8 @@ from pathlib import Path
 
 from clawock import code_identity, costs
 from clawock.decision import ledger, proposals, shadow
-from clawock.safe_io import safe_write_json, temp_dir_lock
+from clawock.decision.actions import PASSIVE_ACTIONS, positive_whole_shares
+from clawock.safe_io import safe_write_json, temp_dir_lock, to_strict_finite_number
 
 ARMS = ("old_policy", "observations_only", "policy_reference")
 PROTOCOL = {
@@ -142,6 +143,15 @@ def submit(workspace, trial_id, arm, submission, *, now=None):
     if submission["status"] == "ok":
         if plan.get("date") != trial["start_date"] or not isinstance(plan.get("decisions"), list):
             raise ValueError("plan must contain decisions and the registered start date")
+    if submission["status"] == "ok":
+        for index, row in enumerate(plan["decisions"]):
+            size = row.get("size") if isinstance(row.get("size"), dict) else {}
+            shares = size.get("shares") if size else row.get("size_shares")
+            passive = (row.get("action") or row.get("bucket")) in PASSIVE_ACTIONS | {"hold"}
+            if shares is None or (passive and to_strict_finite_number(shares) == 0):
+                continue  # Unsized proposals and zero-sized watch rows do not trade.
+            if positive_whole_shares(shares) is None:
+                raise ValueError(f"decision[{index}] requires positive integer size.shares")
     # Keep the raw response alongside normalization, so invalid proposals and
     # model omissions are auditable even when no executable plan exists.
     normalized = ledger.normalize_authored_plan(plan, Path(workspace) / "nonexistent-trial-ledger")

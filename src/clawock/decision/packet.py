@@ -30,7 +30,7 @@ from clawock.decision import add_alpha, add_policy, early_trend, left_side
 from clawock.decision import add_policy as add_policy_module
 from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
-from clawock.decision.actions import is_risk_swap_buy
+from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.safe_io import to_strict_finite_number
 from clawock.workspace import workspace_root
@@ -2237,10 +2237,7 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
 
 def _whole_shares(decision: dict) -> int | None:
     """A leg's size as a positive whole share count, else None."""
-    shares = to_strict_finite_number((decision.get("size") or {}).get("shares"))
-    if shares is None or shares <= 0 or int(shares) != shares:
-        return None
-    return int(shares)
+    return positive_whole_shares((decision.get("size") or {}).get("shares"))
 
 
 def _full_position_stops(row: dict, exempt_breach_ids=frozenset()) -> list[float]:

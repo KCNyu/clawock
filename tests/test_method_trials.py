@@ -120,3 +120,27 @@ def test_invalid_swap_size_is_rejected_before_freezing(tmp_path, shares):
         mt.submit(tmp_path, tid, "old_policy", {"status": "ok", "raw_response": "buy",
                   "plan": {"date": "2026-07-02", "decisions": [buy]}}, now=NOW)
     assert not (mt._directory(tmp_path, tid) / "old_policy.json").exists()
+
+
+@pytest.mark.parametrize('action', ['add_only_on_trigger', 'cut', 'buy'])
+@pytest.mark.parametrize('shares', [True, False, 3.5, 3.999999, float('inf'), '3.5'])
+@pytest.mark.parametrize('size_field', ['size', 'size_shares'])
+def test_authored_order_size_is_checked_before_normalization(tmp_path, action, shares, size_field):
+    tid = mt.register(tmp_path, spec(), now=NOW)['trial_id']
+    row = {'ticker': 'AAA', 'action': action, 'strategy_id': 'tactical_entry',
+           'confidence': 0.6, 'condition': {'type': 'open'},
+           'invalidation_price': 9, 'hypothesis': 'growth'}
+    row[size_field] = {'shares': shares} if size_field == 'size' else shares
+    with pytest.raises(ValueError, match=r'decision\[0\] requires positive integer size.shares'):
+        mt.submit(tmp_path, tid, 'old_policy', {'status': 'ok', 'raw_response': 'proposal',
+                  'plan': {'date': '2026-07-02', 'decisions': [row]}}, now=NOW)
+    assert not (mt._directory(tmp_path, tid) / 'old_policy.json').exists()
+
+
+def test_zero_share_watch_remains_non_executable(tmp_path):
+    tid = mt.register(tmp_path, spec(), now=NOW)['trial_id']
+    row = {'ticker': 'AAA', 'action': 'watch', 'strategy_id': 'core_position',
+           'confidence': 0.6, 'condition': {'type': 'open'}, 'size': {'shares': 0}}
+    frozen = mt.submit(tmp_path, tid, 'old_policy', {'status': 'ok', 'raw_response': 'watch',
+                       'plan': {'date': '2026-07-02', 'decisions': [row]}}, now=NOW)
+    assert frozen['plan']['decisions'][0]['size']['shares'] == 0
