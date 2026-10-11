@@ -3010,48 +3010,121 @@ def compute_plan_timeline(plans, limit=15):
         return []
 
 
+def _episode(peak, trough, cur, reclaimed_date=None):
+    """One drawdown episode read against today's value: the high the decline
+    started from, the low it reached, and where today sits inside that bracket.
+
+    `recovery_pct` is money over money — (today − trough) / (peak − trough) — so
+    it holds when the series is negative or crosses zero (a translation of the
+    whole series leaves it unchanged; the % *of peak* figures do not survive
+    that, which is why they are guarded separately). It is NOT clamped: above
+    100 means today is over this episode's own start high, and `to_peak_abs`
+    says by how much.
+
+    `status`: `none` (no decline to measure) · `at_trough` · `recovering` ·
+    `reclaimed` (the start high was regained on `reclaimed_date`; today may
+    since be above it or back below it — `to_peak_abs` carries the sign).
+    """
+    (peak_date, peak_val), (trough_date, trough_val) = peak, trough
+    depth = trough_val - peak_val
+    to_peak = cur - peak_val
+    if depth >= 0:
+        status, recovery = 'none', None
+    else:
+        recovery = round((cur - trough_val) / -depth * 100, 2)
+        if reclaimed_date is not None:
+            status = 'reclaimed'
+        elif cur <= trough_val:
+            status = 'at_trough'
+        else:
+            status = 'recovering'
+            # Still under the start high: rounding may not print it as regained.
+            recovery = min(recovery, 99.99)
+    return {
+        'peak': {'value': round(peak_val, 2), 'date': peak_date},
+        'trough': {'value': round(trough_val, 2), 'date': trough_date},
+        'depth_abs': round(min(depth, 0.0), 2),   # peak→trough drop (≤0)
+        'to_peak_abs': round(to_peak, 2),         # today vs THIS episode's start high
+        'recovery_pct': recovery,                 # unclamped; None when status is `none`
+        'reclaimed_date': reclaimed_date,
+        'status': status,
+    }
+
+
+def _drawdown_episodes(pts, relative=False):
+    """The two drawdown questions a series can be asked, settled separately.
+
+    `deepest`: the worst peak→trough decline on record (by money, or by % of the
+    start high when `relative`). Its bracket is history and only moves when a
+    deeper decline replaces it.
+
+    `open`: the decline in progress — from the series high (the last date the
+    series stood at it) to the lowest point since. A new high re-anchors it, so
+    its start high IS the all-time high and its `to_peak_abs` is today's gap to
+    that high. By construction today is never above its peak nor below its
+    trough, and its recovery reaches 100 only when that gap is zero — at which
+    point there is no open decline and `status` is `none`.
+
+    One number answered both questions before; `deepest` could read "fully
+    recovered" while the series sat well under a newer high.
+    """
+    cur = pts[-1][1]
+    anchor = low = pts[0]
+    worst_metric = 0.0
+    worst = None            # (peak point, trough point, index of trough)
+    for i, pt in enumerate(pts):
+        v = pt[1]
+        if v >= anchor[1]:
+            anchor = low = pt
+        elif v < low[1]:
+            low = pt
+        gap = v - anchor[1]
+        if relative:
+            if anchor[1] <= 0:
+                continue
+            gap = gap / anchor[1] * 100
+        if gap < worst_metric:
+            worst_metric = gap
+            worst = (anchor, pt, i)
+    if worst is None:
+        deepest = _episode(pts[0], pts[0], cur)
+    else:
+        w_peak, w_trough, at = worst
+        reclaimed = next((d for d, v in pts[at + 1:] if v >= w_peak[1]), None)
+        deepest = _episode(w_peak, w_trough, cur, reclaimed)
+    return deepest, _episode(anchor, low, cur), worst_metric
+
+
 def _series_extremes(series):
     """series = list of (date, value). Returns all-time peak / trough and the
     worst peak-to-trough drawdown (with the dates that bracket it).
 
     `current` is the last point; `current_dd_pct` is its retracement from the
     running peak; `at_low` flags that today IS the lowest point in the series.
+    `deepest_dd` / `open_dd` → see `_drawdown_episodes`; the `max_dd_*` keys
+    restate `deepest_dd`.
     """
     pts = [(d, float(v)) for d, v in series if v is not None]
     if not pts:
         return None
-    peak = pts[0][1]
-    peak_date = pts[0][0]
-    worst = 0.0
-    worst_trough_date = pts[0][0]
-    worst_peak_date = pts[0][0]
-    for d, v in pts:
-        if v > peak:
-            peak = v
-            peak_date = d
-        if peak > 0:
-            dd = (v - peak) / peak * 100
-            if dd < worst:
-                worst = dd
-                worst_trough_date = d
-                worst_peak_date = peak_date
+    deepest, open_dd, worst = _drawdown_episodes(pts, relative=True)
     hi = max(pts, key=lambda x: x[1])
     lo = min(pts, key=lambda x: x[1])
     cur_date, cur = pts[-1]
-    cur_dd = round((cur - peak) / peak * 100, 2) if peak > 0 else None
-    peak_at_worst = next((v for d, v in pts if d == worst_peak_date), None)
-    trough_at_worst = next((v for d, v in pts if d == worst_trough_date), None)
-    max_dd_abs = (round(peak_at_worst - trough_at_worst, 2)
-                  if peak_at_worst is not None and trough_at_worst is not None else None)
+    peak_raw = max(v for _, v in pts)
+    cur_dd = round((cur - peak_raw) / peak_raw * 100, 2) if peak_raw > 0 else None
     return {
         'peak': {'value': round(hi[1], 2), 'date': hi[0]},
         'trough': {'value': round(lo[1], 2), 'date': lo[0]},
         'current': {'value': round(cur, 2), 'date': cur_date},
+        'from_peak_abs': round(cur - peak_raw, 2),  # today's shortfall vs running peak (≤0)
         'current_dd_pct': cur_dd,           # retracement of today from running peak
         'max_dd_pct': round(worst, 2),
-        'max_dd_abs': max_dd_abs,
-        'max_dd_peak_date': worst_peak_date,
-        'max_dd_trough_date': worst_trough_date,
+        'max_dd_abs': abs(deepest['depth_abs']),
+        'max_dd_peak_date': deepest['peak']['date'],
+        'max_dd_trough_date': deepest['trough']['date'],
+        'deepest_dd': deepest,              # worst decline on record, vs today
+        'open_dd': open_dd,                 # decline in progress from the series high
         'at_low': abs(cur - lo[1]) < 1e-6,  # today == all-time low in window
     }
 
@@ -3063,28 +3136,17 @@ def _profit_extremes(series):
     −25.9k would read −637%), so this reports money only: all-time peak / trough,
     today's value, and today's shortfall from the running peak in absolute terms
     (`from_peak_abs`, ≤ 0). No percentages — the equity series owns the % axis.
+    The one exception is `recovery_pct` inside `deepest_dd` / `open_dd`
+    (see `_drawdown_episodes`): a share of the episode's own money span, which a
+    negative series does not break.
     """
     pts = [(d, float(v)) for d, v in series if v is not None]
     if not pts:
         return None
-    peak = pts[0][1]
-    worst_abs = 0.0
-    worst_trough_date = pts[0][0]
-    worst_peak_date = pts[0][0]
-    worst_peak_val = pts[0][1]      # running peak at the worst drawdown (for the % guard)
-    worst_trough_val = pts[0][1]
-    peak_date = pts[0][0]
-    for d, v in pts:
-        if v > peak:
-            peak = v
-            peak_date = d
-        gap = v - peak
-        if gap < worst_abs:
-            worst_abs = gap
-            worst_trough_date = d
-            worst_peak_date = peak_date
-            worst_peak_val = peak
-            worst_trough_val = v
+    deepest, open_dd, worst_abs = _drawdown_episodes(pts)
+    peak = max(v for _, v in pts)
+    worst_peak_val = deepest['peak']['value']      # start high of the worst DD (for the % guard)
+    worst_trough_val = deepest['trough']['value']
     hi = max(pts, key=lambda x: x[1])
     lo = min(pts, key=lambda x: x[1])
     cur_date, cur = pts[-1]
@@ -3103,10 +3165,12 @@ def _profit_extremes(series):
         'current_dd_pct': cur_dd_pct,                # % give-back from running peak (None if profit ≤0)
         'max_dd_abs': round(worst_abs, 2),           # deepest peak→trough drop ($, ≤0)
         'max_dd_pct': max_dd_pct,                    # deepest drop as % of peak (None if profit crossed ≤0)
-        'max_dd_peak_date': worst_peak_date,
-        'max_dd_trough_date': worst_trough_date,
-        'max_dd_peak_val': round(worst_peak_val, 2),     # profit at the peak that started the worst DD
-        'max_dd_trough_val': round(worst_trough_val, 2), # profit at the deepest trough
+        'max_dd_peak_date': deepest['peak']['date'],
+        'max_dd_trough_date': deepest['trough']['date'],
+        'max_dd_peak_val': worst_peak_val,           # profit at the peak that started the worst DD
+        'max_dd_trough_val': worst_trough_val,       # profit at the deepest trough
+        'deepest_dd': deepest,                       # worst decline on record, vs today
+        'open_dd': open_dd,                          # decline in progress from the profit high
         'at_low': abs(cur - lo[1]) < 1e-6,
     }
 

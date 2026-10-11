@@ -969,6 +969,48 @@ def _assert_dashboard_derived_money(data: dict) -> None:
             f'concentration prints {weights[ticker] * 100:.2f}% for the same position')
 
 
+def _assert_drawdown_episodes(data: dict) -> None:
+    """`drawdown` answers "how far under the high are we" and "how much of the
+    decline is recovered" in the same block, and the page prints both in one
+    card. They are only allowed to agree: the open episode is measured from the
+    same high as `from_peak_abs`, so a payload that is under its high may not
+    also report that episode as recovered.
+
+    Generations written before the episodes existed carry neither key.
+    """
+    drawdown = data.get('drawdown')
+    if not isinstance(drawdown, dict):
+        return
+    profit = drawdown.get('profit') if isinstance(drawdown.get('profit'), dict) else {}
+    blocks = [(f'drawdown.{key}', block) for key, block in drawdown.items()]
+    blocks += [(f'drawdown.profit.{key}', block) for key, block in profit.items()]
+    for where, block in blocks:
+        if not isinstance(block, dict) or 'open_dd' not in block:
+            continue
+        open_dd, deepest, gap = block['open_dd'], block['deepest_dd'], block['from_peak_abs']
+        assert open_dd['to_peak_abs'] == gap, (
+            f'{where}: open_dd is {open_dd["to_peak_abs"]} from its start high but '
+            f'from_peak_abs is {gap} — they must be the same high')
+        assert open_dd['peak']['value'] == block['peak']['value'], (
+            f'{where}: open_dd does not start at the series high')
+        assert open_dd['status'] != 'reclaimed' and open_dd['reclaimed_date'] is None, (
+            f'{where}: a regained high re-anchors open_dd; it cannot be reclaimed')
+        if gap < 0:
+            assert (open_dd['status'] in ('at_trough', 'recovering')
+                    and 0 <= open_dd['recovery_pct'] < 100), (
+                f'{where}: {gap} under the high, yet open_dd reads '
+                f'{open_dd["status"]} / {open_dd["recovery_pct"]}%')
+        if open_dd['status'] == 'none':
+            assert gap == 0 and open_dd['recovery_pct'] is None, (
+                f'{where}: open_dd reports no decline but from_peak_abs is {gap}')
+        assert (deepest['status'] == 'reclaimed') == (deepest['reclaimed_date'] is not None), (
+            f'{where}: deepest_dd status and reclaimed_date disagree')
+        if deepest['status'] in ('at_trough', 'recovering'):
+            # Never regained means no newer high: it IS the decline in progress.
+            assert deepest == open_dd, (
+                f'{where}: deepest_dd is unrecovered but is not the open episode')
+
+
 def validate_dashboard_companions(manifest: Path | str) -> None:
     outputs = json.loads(Path(manifest).read_text())['outputs']
     checked = {'assets/data/dashboard.json', 'assets/data/overview.json'}
@@ -1141,6 +1183,7 @@ def validate_dashboard(
         assert overview['overview_equity'], 'Overview equity projection is empty'
 
     _assert_dashboard_derived_money(data)
+    _assert_drawdown_episodes(data)
 
     suffix = ' + money reconciliation' if portfolio_path is not None else ''
     print(f'dashboard structural validation{suffix} OK: {path}')
