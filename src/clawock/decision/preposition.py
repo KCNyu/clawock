@@ -84,6 +84,7 @@ def measurements(workspace, portfolio, *, at=None):
     from pathlib import Path
     from clawock.sessions import latest_completed_session
     from clawock.decision.signals import compute_signals
+    from clawock.market_data.integrity import check_bar
 
     result = {}
     for key, book in portfolio.get("portfolios", {}).items():
@@ -101,7 +102,8 @@ def measurements(workspace, portfolio, *, at=None):
                 if doc.get("retired") or not bars or expected is None or max(bars) != expected.isoformat():
                     continue
                 rows = [{"date": d, **bars[d]} for d in sorted(bars)[-220:]]
-                if any(r.get("implausible_move") or r.get("degenerate") for r in rows[-30:]):
+                if any(r.get("implausible_move") or r.get("degenerate")
+                       or check_bar(r)["fatal"] or check_bar(r)["flags"] for r in rows[-30:]):
                     unavailable["reason"] = "suspect_own_instrument_bars"
                     continue
                 computed = compute_signals(rows)

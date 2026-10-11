@@ -160,3 +160,17 @@ def test_own_archive_freshness_and_positive_overlay_size(tmp_path):
         'US', 9500, 10000, row['technical'], row['thesis'], True,
         authority_tier=preposition.TIER, overlay={'sizing_multiplier': 1.2})
     assert sized['max_add_shares'] == 12
+
+
+def test_corrupt_latest_bar_is_not_silently_replaced_by_an_older_signal(tmp_path):
+    from datetime import datetime, timezone, timedelta
+    bars = tmp_path / 'memory/bars'
+    bars.mkdir(parents=True)
+    end = datetime(2026, 7, 20, tzinfo=timezone.utc)
+    rows = {(end - timedelta(days=i)).date().isoformat():
+            {'open': 94, 'high': 100, 'low': 92, 'close': 95} for i in range(35)}
+    rows['2026-07-20']['close'] = None
+    (bars / 'SPCH.json').write_text(json.dumps({'bars': rows}))
+    result = preposition.measurements(tmp_path, context()['portfolio'],
+                                     at=datetime(2026, 7, 21, 0, tzinfo=timezone.utc))
+    assert result['SPCH']['reason'] == 'suspect_own_instrument_bars'
