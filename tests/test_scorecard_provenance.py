@@ -391,3 +391,46 @@ def test_git_source_failure_never_falls_back_to_dirty_file(tmp_path, monkeypatch
     monkeypatch.setattr(prov, 'git_commit', lambda _: 'a' * 40)
     with pytest.raises(subprocess.CalledProcessError):
         prov.dashboard_source(tmp_path)
+
+
+def test_live_snapshot_replays_after_ledger_and_bars_change(tmp_path, monkeypatch, ledger):
+    block = metrics_for(ledger)['provenance']
+    prov.record_live_snapshot(block, ledger, tmp_path)
+    assert block['ledger']['source_kind'] == 'live_snapshot'
+    assert prov.load_live_snapshot(block, tmp_path) == ledger
+    payload = tmp_path / 'brief.json'
+    payload.write_text(json.dumps({'decision_metrics': {'provenance': block}}))
+    (tmp_path / 'memory/decisions.jsonl').write_text('{}\n')
+    monkeypatch.setattr(scorecard_verify, 'WS', tmp_path)
+    def forbidden(*a, **kw):
+        pytest.fail('snapshot verification must not re-settle with newer bars')
+    monkeypatch.setattr(dv2, 'settle_decisions', forbidden)
+    assert scorecard_verify.main(['--metrics', str(payload), '--check', '--recompute']) == 0
+    snapshot = tmp_path / block['ledger']['source_ref']
+    snapshot.write_text('{}\n')
+    with pytest.raises(ValueError, match='digest mismatch'):
+        prov.load_live_snapshot(block, tmp_path)
+
+
+def test_brief_score_names_its_execution_writeback(tmp_path, monkeypatch, ledger):
+    from contextlib import nullcontext
+    from clawock.harness import brief_preflight as pf
+    from clawock.decision import method_evaluation
+    monkeypatch.setattr(pf, 'WS', tmp_path)
+    monkeypatch.setattr(dv2, 'ledger_lock', nullcontext)
+    monkeypatch.setattr(dv2, 'load_decisions', lambda: copy.deepcopy(ledger))
+    written = []
+    monkeypatch.setattr(dv2, 'write_decisions', lambda rows: written.extend(copy.deepcopy(rows)))
+    monkeypatch.setattr(dv2, 'settle_decisions', lambda rows: None)
+    monkeypatch.setattr(pf, '_detect_followed', lambda row: 'true')
+    monkeypatch.setattr(method_evaluation, 'evaluate', lambda *a: {})
+    for row in ledger:
+        row['execution'] = {'status': 'unknown'}
+    metrics = pf.compute_decision_metrics()
+    assert written and all(row['execution']['status'] == 'followed' for row in written)
+    block = metrics['provenance']
+    assert prov.load_live_snapshot(block, tmp_path) == written
+    before = block['ledger']['writeback_input']
+    assert before['settlement_source_digest'] == prov.settlement_source_digest(ledger)
+    assert (tmp_path / before['source_ref']).exists()
+    assert prov.verify(block, written)['ok']

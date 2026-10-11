@@ -87,6 +87,8 @@ logs/*
 # Preflight transient context (regenerated every brief run)
 memory/.tmp/
 memory/.tmp-*
+# Immutable local inputs for brief score replay (copied with exported contexts).
+memory/scorecard-inputs/
 
 # OpenClaw memory system internals (not for public consumption)
 memory/.dreams/

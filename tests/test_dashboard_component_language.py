@@ -415,11 +415,24 @@ def test_one_focus_ring():
         "stay in FOCUS_OFFSET_EXCEPTIONS:\n  " + "\n  ".join(wrong))
 
 
-def test_no_transition_or_entrance_invents_its_own_timing():
+def site_stylesheets():
+    for path in sorted((ROOT / "site").rglob("*")):
+        if path.suffix == ".css":
+            yield str(path.relative_to(ROOT)), path.read_text(encoding="utf-8")
+        elif path.suffix == ".html":
+            for index, block in enumerate(re.findall(
+                    r"<style\b[^>]*>(.*?)</style>", path.read_text(encoding="utf-8"),
+                    flags=re.DOTALL | re.IGNORECASE)):
+                yield f"{path.relative_to(ROOT)}:style[{index}]", block
+
+
+@pytest.mark.parametrize("source, stylesheet", list(site_stylesheets()))
+def test_no_transition_or_entrance_invents_its_own_timing(source, stylesheet):
     """The palette's own comment says "全站 transition 只引用这四个，禁裸曲线".
     It was true of 22 declarations and false of 23."""
+    stylesheet = re.sub(r"/\*.*?\*/", " ", stylesheet, flags=re.DOTALL)
     strays = []
-    for match in re.finditer(r"(transition(?:-duration|-timing-function)?|animation)\s*:\s*([^;{}]+);", CSS):
+    for match in re.finditer(r"(transition(?:-duration|-timing-function)?|animation)\s*:\s*([^;{}]+);", stylesheet):
         prop, value = match.group(1), match.group(2)
         if prop == "animation" and ("infinite" in value or re.search(r"\b\d\d+s\b", value)):
             continue  # spinners and marquees are not interaction timing
@@ -435,7 +448,7 @@ def test_no_transition_or_entrance_invents_its_own_timing():
         if "cubic-bezier" in value:
             strays.append(f"{prop}: {value.strip()[:70]} (bare curve)")
     assert strays == [], (
-        "use var(--duration-fast|--duration-standard) and "
+        source + ": use var(--duration-fast|--duration-standard) and "
         "var(--ease-out|--ease-in-out):\n  " + "\n  ".join(sorted(set(strays))))
 
 

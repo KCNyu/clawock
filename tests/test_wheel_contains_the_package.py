@@ -238,3 +238,4 @@ def test_the_wheel_carries_the_metadata_pypi_indexes_on(tmp_path):
     )
     assert {"Homepage", "Source", "Issues"} <= set(urls), urls
     assert metadata["Description-Content-Type"], "README would render as plain text"
+    assert metadata.get_payload(decode=True).decode("utf-8").rstrip() == (ROOT / "README.md").read_text().rstrip()

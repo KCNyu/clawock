@@ -171,9 +171,13 @@ def main(argv=None) -> int:
         print(json.dumps(provenance, indent=2, ensure_ascii=False))
         return 0
 
-    source_ref = args.ref or (None if args.ledger else
-                              (provenance.get('ledger') or {}).get('source_ref'))
-    decisions = load_ledger(args.ledger, source_ref)
+    ledger = provenance.get('ledger') or {}
+    snapshot = ledger.get('source_kind') == 'live_snapshot'
+    source_ref = args.ref or (None if args.ledger or snapshot else ledger.get('source_ref'))
+    if snapshot and not args.ledger and not args.ref:
+        decisions = prov.load_live_snapshot(provenance, WS)
+    else:
+        decisions = load_ledger(args.ledger, source_ref)
     decisions, source_checks = materialize_view(provenance, decisions)
     result = prov.verify(provenance, decisions)
     result['checks'] = source_checks + result['checks']
@@ -185,7 +189,7 @@ def main(argv=None) -> int:
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
-        source = source_ref or (args.ledger or LEDGER_PATH)
+        source = source_ref or args.ledger or (ledger.get('source_ref') if snapshot else LEDGER_PATH)
         _print_checks(
             f'scorecard provenance: generated_at={provenance.get("generated_at")} '
             f'commit={provenance.get("code_commit")} vs {source}', result)

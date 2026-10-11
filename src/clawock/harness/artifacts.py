@@ -31,3 +31,34 @@ def refresh_json(command, path, *, timeout, cwd):
     if not isinstance(data, dict):
         raise ValueError(f'{path.name} is not an object')
     return data
+
+
+def record_checkpoint(workspace, command, *, error=None):
+    """Persist every optional check; failures also feed published health outcomes.
+
+    One atomic file per attempt avoids lost updates across concurrent DAG nodes.
+    The normal workspace temporary-artifact retention policy applies.
+    """
+    from datetime import datetime, timezone
+    from uuid import uuid4
+    from clawock.automation import workflow_outcomes
+    from clawock.safe_io import safe_write_json
+    from clawock.workspace import without_host_paths
+
+    now = datetime.now(timezone.utc).isoformat()
+    detail = None
+    if error is not None:
+        stderr = getattr(error, 'stderr', None)
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode('utf-8', errors='replace')
+        detail = without_host_paths(f'{command}: {type(error).__name__}: {stderr or error}')[-600:]
+        workflow_outcomes.note_degradation(
+            None, 'brief_check_failed', detail, group=command)
+    row = {'command': command, 'checked_at': now,
+           'status': 'failed' if error is not None else 'success', 'detail': detail}
+    path = workspace / 'memory/.tmp' / f'brief-checkpoint-{now[:10]}-{uuid4().hex}.json'
+    try:
+        safe_write_json(str(path), row)
+    except OSError as exc:
+        workflow_outcomes.note_degradation(
+            None, 'brief_checkpoint_write_failed', str(exc), group=command)

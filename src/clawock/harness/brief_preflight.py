@@ -28,7 +28,7 @@ Exit: 0 if no issues, 1 if any data leg failed.
 """
 
 from clawock.safe_io import to_number as _share_number
-from clawock.harness.artifacts import refresh_json, clawock_argv
+from clawock.harness.artifacts import refresh_json, clawock_argv, record_checkpoint
 from clawock.harness.deadline import run_bounded
 from clawock.run_budgets import BRIEF_PREFLIGHT_TIMEOUT_SECONDS
 
@@ -46,6 +46,7 @@ from clawock.portfolio.math import ledger_rows
 
 import argparse
 import concurrent.futures
+import copy
 import json
 import os
 import re
@@ -754,6 +755,7 @@ def compute_decision_metrics():
     # would otherwise be erased by this run's stale copy.
     with decision_v2.ledger_lock():
         decisions = decision_v2.load_decisions()
+        writeback_input = copy.deepcopy(decisions)
         # Preserve execution ground truth while migrating; prospective detection is
         # applied only to triggered decisions whose execution is still unknown.
         for d in decisions:
@@ -772,7 +774,10 @@ def compute_decision_metrics():
                                   'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
         decision_v2.settle_decisions(decisions)
         decision_v2.write_decisions(decisions)
+    from clawock import scorecard_provenance
     metrics = trim_abstaining_calibrators(decision_v2.compute_metrics(decisions))
+    scorecard_provenance.record_live_snapshot(
+        metrics['provenance'], decisions, WS, writeback_input=writeback_input)
     # By method and by whether the registered policy agreed (#2844). A report,
     # never a gate: a failure here leaves the brief without it, not red.
     try:
@@ -1290,7 +1295,9 @@ def portfolio_risk_node():
         print(f'   US β={risk.get("us",{}).get("beta_spx","?")}, combined vol={risk.get("combined",{}).get("vol_30d_annualized","?")}, alerts={len(alerts)}')
         for alert in alerts[:5]:
             print(f'   ⚠ {alert["type"]:18s} ({alert["severity"]:6s}) {alert["detail"][:80]}')
+        record_checkpoint(WS, 'portfolio-risk')
     except Exception as e:
+        record_checkpoint(WS, 'portfolio-risk', error=e)
         risk = {}
         print(f'   ⚠ risk metrics failed: {e}')
     return risk, []
@@ -1308,7 +1315,9 @@ def regime_node():
             lev_regime = None
             raise ValueError('regime is not from the latest completed HK session')
         print(f'   🧭 lev_regime: {lev_regime.get("tier")} (×{lev_regime.get("lev_cap_mult")}) — {lev_regime.get("label","")}')
+        record_checkpoint(WS, 'regime')
     except Exception as e:
+        record_checkpoint(WS, 'regime', error=e)
         lev_regime = None
         print(f'   ⚠ lev_regime compute failed: {e}')
     return lev_regime, issues
@@ -1329,7 +1338,9 @@ def quant_node():
         print(f'   📊 quant_signals: {len(tags)} fresh symbols'
               f' / {len(nonfresh)} unavailable — '
               + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
+        record_checkpoint(WS, 'quant')
     except Exception as e:
+        record_checkpoint(WS, 'quant', error=e)
         # Optional data: omit on failure rather than consuming yesterday's fresh
         # rows. Like stale macro, this must not enter issues (fatal to the brief).
         quant_signals = {}
@@ -1348,7 +1359,9 @@ def quant_review_node():
         quant_review = refresh_json('quant-review', WS / 'assets/data/quant_signal_review.json',
                                     timeout=60, cwd=WS)
         print(f'   📐 factor edge: {quant_review.get("summary", "")[:80]}')
+        record_checkpoint(WS, 'quant-review')
     except Exception as e:
+        record_checkpoint(WS, 'quant-review', error=e)
         quant_review = {}
         print(f'   ⚠ quant_signal_review failed: {e}')
     return quant_review, issues
@@ -1400,7 +1413,9 @@ def cross_factor_node(portfolio):
             f'   🧪 cross-sectional: active={activation.get("active", False)}, '
             f'blockers={",".join(activation.get("blockers") or [])}'
         )
+        record_checkpoint(WS, 'cross-factor')
     except Exception as e:
+        record_checkpoint(WS, 'cross-factor', error=e)
         cross_sectional_factor_ctx = {}
         print(f'   ⚠ cross-sectional factor failed: {e}')
     return cross_sectional_factor_ctx, issues
@@ -1464,7 +1479,9 @@ def peer_residual_node(portfolio):
             f'   🧭 peer residual: active_rules='
             f'{",".join(active_peer_rules) or "none"}, HK_auto=false'
         )
+        record_checkpoint(WS, 'peer-residual')
     except Exception as e:
+        record_checkpoint(WS, 'peer-residual', error=e)
         peer_residual_ctx = {}
         print(f'   ⚠ peer residual engine failed: {e}')
     return peer_residual_ctx, issues
@@ -1481,7 +1498,9 @@ def t0_node():
         chase = [k for k, v in (t0_setups.get('rows') or {}).items() if v.get('grade') == '🔴']
         print(f'   🎯 T+0 牌面: {len(t0_setups.get("rows", {}))} 票'
               + (f' — 🔴 追高: {", ".join(chase)}' if chase else ''))
+        record_checkpoint(WS, 't0')
     except Exception as e:
+        record_checkpoint(WS, 't0', error=e)
         t0_setups = {}
         print(f'   ⚠ t0_setups compute failed: {e}')
     return t0_setups, issues
@@ -1496,7 +1515,9 @@ def t0_review_node():
         t0_review = refresh_json('t0-review', WS / 'assets/data/t0_setup_review.json',
                                  timeout=60, cwd=WS)
         print(f'   🎯 T+0 牌面背书: {t0_review.get("summary", "")[:80]}')
+        record_checkpoint(WS, 't0-review')
     except Exception as e:
+        record_checkpoint(WS, 't0-review', error=e)
         t0_review = {}
         print(f'   ⚠ t0_setup_review failed: {e}')
     return t0_review, issues

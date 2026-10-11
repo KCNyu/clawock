@@ -333,7 +333,7 @@ parameters and what reaches their model.
 | brief packet read budgets | `decision/packet.py` (`MAX_SUMMARY_BYTES`, `MAX_QUERY_BYTES`, `query_view`, `bounded_payload`, `read_budget_report`) | `clawock tool decision_packet_*` (refuses a read over its budget), brief preflight (prints and records each read's ratio), `ops/system_check.py` (`brief read budgets`, warns from 80%) | the stored packet; budgets bound what one tool call shows the model, never the stored artifact, so one oversized read cannot stop the generation |
 | holding-independent stock discovery | `market_data/stock_discovery.collect` / `screen_snapshot` | `discover-stocks`, brief WAVE1, decision packet + summary, full brief and delivery/backstop card | workspace portfolio/registry exclusions and `config/stock-discovery.json`; one free US snapshot, research only; see [stock discovery](stock-discovery.md) |
 | peer scan | `market_data/peer_scan.collect` | brief, report, intraday, dashboard, context tools | portfolio, legs |
-| scorecard source identity | `scorecard_provenance.committed_source` / `verify_committed_source` | dashboard builder, published artifact gate | Git-backed desks consume the committed ledger at a pinned `source_ref` (portable desks without Git explicitly report `unversioned_working_copy`); uncommitted runtime execution edits appear after their normal commit. The verification CLI defaults to that ref; `--ledger` explicitly checks another source. Settlement is replayed against available canonical bars, so bar revisions remain visible as mismatches |
+| scorecard source identity | `scorecard_provenance.committed_source` / `record_live_snapshot` / `verify_committed_source` | dashboard builder, published artifact gate | Git-backed desks consume the committed ledger at a pinned `source_ref` (portable desks without Git explicitly report `unversioned_working_copy`); uncommitted runtime execution edits appear after their normal commit. The verification CLI defaults to that ref; `--ledger` explicitly checks another source. Dashboard settlement is replayed against available canonical bars, so bar revisions remain visible as mismatches. Brief execution writeback instead records `source_kind=live_snapshot`: complete settled rows in local `memory/scorecard-inputs/<sha256>.jsonl`, with `source_ref` and full/slice digests; `writeback_input` also preserves the before-writeback snapshot and its non-evaluation digest. `scorecard-provenance --metrics <brief-context> --check --recompute` reads that snapshot without re-settling newer bars; the snapshot must accompany the context when transferred |
 | provenance code identity | `code_identity.git_commit` / `file_digest` | run cards, scorecard provenance | explicit workspace / file; short commit or null, sha256 prefix unchanged; `tests/test_code_identity.py` pins one owner |
 | daily bars | settled raw store `market_data/bars.py` (`memory/bars`); live forward-adjusted series `decision/signals.fetch_bars` | ledger settlement, add-side radar, regime, quant refresh | symbol, count |
 | valid daily prices and Tencent bad rows | `market_data/daily_prices` (`positive_price`, `clean_bars`), `market_data/tencent_daily` (`parse_daily_closes`, `parse_daily_bars`) | quant, regime, peers, regime evaluations | provider rows or OHLC dictionaries; skip malformed, non-finite and non-positive prices |
@@ -532,3 +532,15 @@ dates and conversation mind records remain intact. A revision that would remove
 a decision with recorded execution or a completed evaluation is refused before
 any ledger mutation; those records require explicit historical reconciliation.
 An unchanged retry preserves the existing evaluation and execution fields.
+
+### Optional brief checkpoints
+
+The eight `refresh_json` nodes persist each success or failure in
+`memory/.tmp/brief-checkpoint-<UTC-date>-<attempt-id>.json`. Checks cover subprocess
+exit/timeout, actual artifact replacement, JSON object shape and the regime's
+completed-session validation. Failures also enter workflow outcomes as
+`brief_check_failed`, grouped by command, retaining recurrence counts and times
+for the published health card and daily health report. They still omit optional
+context and do not add fatal preflight issues. A later success leaves earlier
+failure evidence intact. Attempt files follow the host's temporary-file retention
+(default 14 days); the outcome ledger retains its existing rolling health window.

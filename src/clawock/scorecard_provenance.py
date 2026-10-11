@@ -263,9 +263,62 @@ def dashboard_source(workspace):
     return [json.loads(line) for line in text.splitlines() if line.strip()], None
 
 
+def record_live_snapshot(provenance, rows, workspace, *, writeback_input=None):
+    """Pin brief scores after execution writeback to a content-addressed input.
+
+    Store complete settled rows: later execution edits or bar corrections must
+    not destroy the evidence used for this brief. This is local runtime data.
+    """
+    from clawock.safe_io import safe_write_text
+
+    def persist(source):
+        raw = ''.join(_canonical(row) + '\n' for row in source)
+        digest = hashlib.sha256(raw.encode()).hexdigest()
+        ref = f'memory/scorecard-inputs/{digest}.jsonl'
+        safe_write_text(str(Path(workspace) / ref), raw)
+        return ref, digest
+
+    ref, digest = persist(rows)
+    ledger = provenance['ledger']
+    ledger.update(source_kind='live_snapshot', source_ref=ref,
+                  view='snapshot_settled', source_digest=digest,
+                  source_projection='complete_settled_rows',
+                  source_slice_digest=rows_digest(slice_rows(
+                      rows, provenance['window']['cutoff'],
+                      provenance['window'].get('last_plan_date'))))
+    if writeback_input is not None:
+        before_ref, before_digest = persist(writeback_input)
+        ledger['writeback_input'] = {
+            'source_ref': before_ref, 'source_digest': before_digest,
+            'settlement_source_digest': settlement_source_digest(writeback_input),
+        }
+    provenance['note'] = (
+        'Brief execution detection and settlement have been written back. '
+        'source_ref preserves the exact settled input locally; source_digest is '
+        'the SHA-256 of that snapshot. Verification does not re-settle newer bars.')
+    return provenance
+
+
+def load_live_snapshot(provenance, workspace):
+    ledger = provenance['ledger']
+    ref = ledger['source_ref']
+    digest = ledger['source_digest']
+    if (not isinstance(digest, str) or len(digest) != 64
+            or any(c not in '0123456789abcdef' for c in digest)
+            or ref != f'memory/scorecard-inputs/{digest}.jsonl'):
+        raise ValueError('invalid scorecard snapshot reference')
+    raw = (Path(workspace) / ref).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError('scorecard snapshot digest mismatch')
+    return [json.loads(line) for line in raw.splitlines() if line.strip()]
+
+
 def verify_committed_source(provenance, workspace):
     """The artifact gate checks source identity without re-grading against newer bars."""
     ledger = provenance.get('ledger') or {}
+    if ledger.get('source_kind') == 'live_snapshot':
+        load_live_snapshot(provenance, workspace)
+        return
     if not ledger.get('source_ref'):
         return  # Legacy generations predate the pinned-source contract.
     rows, _ = committed_source(workspace, ledger['source_ref'])

@@ -1735,13 +1735,13 @@ def rsi_loop():
     ch = 286
     d.down(bx2 + bw2 / 2, b_bottom, y, pulses=(0, 1.3), kind='decision')
     d.section(y - 12, '04 · CODE HOLDS THE BOUNDARY')
-    top = _panel(d, M, y, full, ch, 'green', 'gate', 'The model proposes. Code holds the line.',
+    top = _panel(d, M, y, full, ch, 'green', 'gate', 'Code enforces stops / regime delever; *strategy exemptions apply.',
                  'PYTHON · UNIT-TESTED')
     cx, cw1 = M + 20, 330
-    d.text(cx, top, 'RISK LIMITS', 'kick', fill=ROLE['warm'])
-    caps = [('leveraged single name', '≤ 35%', .35), ('core single name', '≤ 60%', .60),
-            ('correlated cluster', '≤ 70%', .70), ('leverage-ETF sleeve', '≤ 50%', .50),
-            ('portfolio β', '≤ 3.0', .30), ('stop', '−18%', .18)]
+    d.text(cx, top, 'RISK POLICY', 'kick', fill=ROLE['warm'])
+    caps = [('single name >35%', 'review', .35), ('name / cluster caps', '100%', 1),
+            ('ETF sleeve base cap', '100%', 1), ('HK sleeve', '× regime', .7),
+            ('US portfolio β', '≤ 6.0', .6), ('ETF hard stop*', '−18%', .18)]
     for i, (label, limit, part) in enumerate(caps):
         yy = top + 30 + i * 32
         d.text(cx, yy, label, 'm')
@@ -1756,7 +1756,7 @@ def rsi_loop():
     # What happens after a cap is crossed: a short track, not a fourth list.
     d.text(mx, top, 'WHEN A LIMIT BREAKS', 'kick', fill=ROLE['green'])
     track = [('Breach recorded with its age', INK), ('Same-risk adds freeze', INK),
-             ('Any override expires', INK), ('Execution stays human', MUT)]
+             ('Strategy exemptions apply*', INK), ('Execution stays human', MUT)]
     d.add(f'<path d="M{mx + 7:g} {top + 32:g}V{top + 32 + 40 * (len(track) - 1):g}" stroke="{LINE}" '
           f'stroke-width="1.5"/>')
     for i, (label, fill) in enumerate(track):
