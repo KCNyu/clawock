@@ -1648,7 +1648,7 @@ def test_the_legacy_drawdown_keys_keep_their_quote_leg_first_order():
 
 
 def test_an_explicit_out_dir_keeps_the_generation_together(monkeypatch, tmp_path):
-    """#262 slice 3 step 4. The four outputs are one generation, so the thing
+    """#262 slice 3 step 4. The manifest-listed outputs are one generation, so the thing
     that can actually break here is not "does --out-dir work" but "can a stray
     environment variable move one of the four somewhere else".
 

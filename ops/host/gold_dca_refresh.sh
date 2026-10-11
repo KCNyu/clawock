@@ -22,7 +22,7 @@ cd "$WS" || exit 1
 # a bare `clawock` here is a nightly "command not found", the same reason
 # publish_dashboard.sh spells the launcher out.
 /root/.local/bin/clawock-gold-fetch    || { echo "$(date -Is) gold fetch 失败"; exit 1; }
-# 重建本机副本,但不再入库:四个产物已随 #314 迁到 data-plane 分支,
+# 重建本机副本,但不再入库:清单内产物已随 #314 迁到 data-plane 分支,
 # 由定时 publisher 发布(最多落后 20 分钟)。这里再 `git add` 它们会因为
 # .gitignore 直接失败,而不是静默跳过。
 # --skip-if-unchanged (#846): 节假日/重复值之夜指纹不变就跳过整场 ~12MB 重建,

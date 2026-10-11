@@ -160,3 +160,13 @@ def test_a_failed_fetch_still_returns_a_list_so_the_prior_series_survives(monkey
 
     assert benchmarks.fetch_polygon_daily('SPY', 60, 'key') == []
     assert benchmarks.fetch_tencent_hk_daily('hkHSI', 60) == []
+
+
+def test_index_opens_are_preserved_for_same_window_scores(monkeypatch):
+    monkeypatch.setattr(benchmarks.requests, 'get', lambda *a, **kw: _Response(
+        payload={'results': [{'t': 1_788_000_000_000, 'o': 690, 'c': 700.5}]}))
+    assert benchmarks._polygon_once('SPY', 60, 'key')[0]['open'] == 690
+    monkeypatch.setattr(benchmarks.requests, 'get', lambda *a, **kw: _Response(
+        payload={'data': {'hkHSI': {'day': [['2026-08-28', '24000', '24100']]}}}))
+    assert benchmarks._tencent_hk_once('hkHSI', 60) == [
+        {'date': '2026-08-28', 'open': 24000, 'close': 24100}]

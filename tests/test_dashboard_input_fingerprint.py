@@ -148,7 +148,7 @@ def test_fingerprint_covers_every_data_plane_file_the_build_reads(monkeypatch):
         name.split('/')[-1] for name in dashboard.FINGERPRINT_FILES
         if name.startswith('assets/data/')
     }
-    # The build's own four outputs are read as the previous generation, never as
+    # The build's own manifest-listed outputs are read as the previous generation, never as
     # an input; fingerprinting them would make every build invalidate the next
     # tick's gate.
     outputs = {'dashboard.json', 'overview.json', 'decision_audit.json',

@@ -20,9 +20,8 @@ column apart on the same data:
 `followed` is `passive` plus six episodes. The significant negative was beta.
 The question it looked like it answered has n=6 and a CI straddling zero.
 
-A benchmark-relative benefit for the passive legs would be the richer fix and is
-not available: `benchmark.json` keeps a 60-day window (from 2026-06-29) while the
-episodes start 2026-05-17.
+Benchmark-relative scores now pair only exact call windows with available index
+opens and closes; absent history lowers coverage, never changes absolute scores.
 """
 from __future__ import annotations
 

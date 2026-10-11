@@ -343,7 +343,7 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None,
 
 
 def rebuild_dashboard(ws=None):
-    """Run the installed dashboard builder to refresh its four public outputs.
+    """Run the installed dashboard builder to refresh its manifest-listed public outputs.
 
     Refreshes today's snapshot AND syncs GH Action-managed data files first, so
     the equity curve reflects latest portfolio state and the embedded sentiment/
@@ -430,9 +430,9 @@ def rebuild_dashboard(ws=None):
         publish_ok = None
         full = r.stdout + r.stderr
         # The decision map rides the same cadence but deliberately not the same
-        # generation: `clawock.publish.outputs` owns a five-file write set that
-        # is swapped in atomically, and a sixth file whose failure is survivable
-        # does not belong inside a contract whose whole point is that all five
+        # generation: `clawock.publish.outputs` owns the config/dashboard-outputs.json write set that
+        # is swapped in atomically, and an additional file whose failure is survivable
+        # does not belong inside a contract whose whole point is that all outputs
         # land or none do. It is a read-only view — a broken one costs a page,
         # not a number — so its return code is recorded and never gates the
         # publish.

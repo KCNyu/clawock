@@ -371,6 +371,27 @@
     // the card's visibility keys off the win-rate record that it still shows.
     const hasRecord = safe(episodeBacktest(), "horizons", "t1") != null;
     card.style.display = hasRecord ? "" : "none";
+    let benchmarkTable = card.querySelector(".benchmark-scorecard");
+    if (!benchmarkTable) {
+      benchmarkTable = document.createElement("div");
+      benchmarkTable.className = "benchmark-scorecard";
+      card.appendChild(benchmarkTable);
+    }
+    const formatScore = value => Number.isFinite(value) ? value.toFixed(2) : "—";
+    const labels = { all: "全部", active: "主动", passive: "持有/观察", followed: "已跟随", followed_active: "已跟随主动" };
+    const benchmarkRows = Object.entries(episodeBacktest().horizons || {}).flatMap(([horizon, buckets]) =>
+      Object.entries(labels).map(([key, label]) => {
+        const score = buckets[key] || {};
+        return `<tr><td>${escapeHtml(horizon.toUpperCase())} ${label}</td>`
+          + `<td>${formatScore(score.avg_benefit_pct)}%</td>`
+          + `<td>${formatScore(score.excess_benefit_pct)}pp</td>`
+          + `<td>${formatScore(score.benchmark_coverage_pct)}% (${score.benchmark_n_episodes || 0}/${score.n_episodes || 0})</td>`
+          + `<td>${formatScore(score.benchmark_call_coverage_pct)}% (${score.benchmark_paired_calls || 0}/${score.benchmark_settled_calls || 0})</td></tr>`;
+      }));
+    benchmarkTable.innerHTML = `<p>大盘相对方向分 · US→SPY / HK→HSI · 不调杠杆，非组合 alpha 或决策增益。</p>`
+      + `<div style="overflow-x:auto"><table><thead><tr><th>全历史 episode</th><th>绝对方向分</th><th>大盘相对</th><th>episode 覆盖</th><th>call 覆盖</th></tr></thead>`
+      + `<tbody>${benchmarkRows.join("")}</tbody></table></div>`
+      + `<p>先按同期 call 配对，再按 episode 平均；部分 episode 只计可配 call。缺开盘/结算基准、盘中触发时间未知时显示未覆盖，不补值。</p>`;
     if (!window.echarts) return;
     const green = getCSS("--positive") || "#28C08D";
     const dim = getCSS("--text-tertiary") || "#6E7D90";

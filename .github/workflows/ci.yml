@@ -357,7 +357,7 @@ jobs:
         if: steps.changes.outputs.ui == 'true'
         uses: ./.github/actions/clawock-playwright
 
-      # The dashboard's four outputs and two sidecars live on the data branch,
+      # The dashboard's manifest-listed outputs and two sidecars live on the data branch,
       # not on master (#314), so a checkout does not carry them. The browser
       # contract loads the real page and would time out waiting for a Hero that
       # never receives its projection.
@@ -385,14 +385,7 @@ jobs:
 
       - name: Set up Node for Decision Studio plugin contract
         if: steps.changes.outputs.dsplugin == 'true'
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          # The package has a committed lockfile, so the npm content cache is
-          # keyed on it — the reproducibility gate below reinstalls the same
-          # dependency set every run.
-          cache: npm
-          cache-dependency-path: examples/dsh/packages/clawock-dsh/package-lock.json
+        uses: ./.github/actions/clawock-node
 
       # The committed lib/ is what CI and the live DSH profile consume, so it
       # has to be a function of src/ alone — not of whoever last remembered to
