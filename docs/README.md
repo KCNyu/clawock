@@ -39,6 +39,9 @@ belongs here.
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
   visual rules and the tests that enforce them.
+- [`design-system.md`](design/design-system.md) — the dashboard's colour layers
+  (semantic vs. everything else), motion scale, component recipes and the list of
+  what a new component may not do, each with the gate that checks it.
 
 ## Operations
 

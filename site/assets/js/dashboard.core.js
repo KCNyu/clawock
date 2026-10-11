@@ -99,9 +99,12 @@
   // =========================================================
   const isDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
   const THEME_CSS_KEYS = [
-    "--accent", "--accent-strong", "--border-subtle", "--focus", "--font",
-    "--mono", "--negative", "--neutral", "--positive", "--surface-1",
-    "--text-primary", "--text-tertiary", "--warning",
+    "--accent", "--accent-strong", "--border-strong", "--border-subtle", "--focus",
+    "--font", "--mono", "--negative", "--neutral", "--overlay", "--positive",
+    "--shade-2", "--surface-1", "--text-primary", "--text-secondary",
+    "--text-tertiary", "--warning",
+    // Chart-only categorical hues (docs/design/design-system.md §1.6).
+    "--viz-1", "--viz-2", "--viz-3", "--viz-4", "--viz-5", "--viz-6", "--viz-warm",
   ];
   let _themeCSS = null;
   function readThemeCSS() {

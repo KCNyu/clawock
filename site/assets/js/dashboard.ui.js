@@ -215,8 +215,109 @@
   }
 
   document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => goToTab(btn.dataset.tab));
+    btn.addEventListener("click", () => {
+      // Tapping the tab you are already on takes that page back to its top —
+      // the status-bar tap of an app with tabs. On the phone each panel is its
+      // own vertical scroller; on desktop the window is.
+      if (btn.dataset.tab === currentTab()) {
+        const panel = document.querySelector(`.panel[data-panel="${btn.dataset.tab}"]`);
+        (pagerLive() && panel ? panel : window).scrollTo({ top: 0, behavior: SCROLL_BEHAVIOR });
+      }
+      goToTab(btn.dataset.tab);
+    });
   });
+
+  // A fold the reader opens fades its content in (`details[data-opening]` in
+  // the stylesheet). Marked on the click rather than on `toggle`: `toggle` also
+  // fires for every already-open <details> a re-render inserts, and those must
+  // not all flash each time a new generation lands.
+  document.addEventListener("click", event => {
+    const summary = event.target.closest?.("summary");
+    const fold = summary?.parentElement;
+    if (!fold || fold.tagName !== "DETAILS" || fold.open) return;
+    fold.setAttribute("data-opening", "");
+    setTimeout(() => fold.removeAttribute("data-opening"), 400);
+  });
+
+  // =========================================================
+  // "This number just changed"
+  // =========================================================
+  // A new generation replaces the DOM in one frame, so a reader looking at the
+  // page cannot tell which figures moved. Snapshot the active panel's figures
+  // before the repaint, compare after, and mark the ones whose text differs
+  // (`.is-changed`). The figure itself is never tweened: every value on screen
+  // is a real one. The mark says "changed", not which way — the sign and the
+  // gain/loss colour of the figure already say that.
+  const MARK_SKIP = "time, .muted, .sr-only, [class*='asof'], [class*='-time'], [class*='-age'], #last-updated";
+  const MARK_LIMIT = 24;
+  // The text an element prints itself, without its children's: `+$337.18` of
+  // `<div>+$337.18 <span>+2.67%</span></div>` is one figure and the span another.
+  function _ownText(el) {
+    let text = "";
+    for (const node of el.childNodes) if (node.nodeType === 3) text += node.nodeValue;
+    return text.trim();
+  }
+  function _figures(panel) {
+    const figures = new Map();
+    if (!panel) return figures;
+    const seen = new Map();
+    panel.querySelectorAll("*").forEach(el => {
+      if (!/\d/.test(_ownText(el))) return;
+      if (el.matches(MARK_SKIP) || el.closest("svg, canvas, [aria-hidden='true'], .sr-only")) return;
+      // Addressed by the nearest id plus tag order beneath it, so a figure is
+      // compared with what now stands in the same place.
+      const anchor = el.closest("[id]");
+      const base = (anchor ? anchor.id : "") + ">" + el.tagName + "." + el.className;
+      const n = seen.get(base) || 0;
+      seen.set(base, n + 1);
+      figures.set(base + "#" + n, el);
+    });
+    return figures;
+  }
+  function _snapshotFigures(panel) {
+    const before = new Map();
+    _figures(panel).forEach((el, key) => before.set(key, _ownText(el)));
+    return before;
+  }
+  // The landing tab paints in stages across several tasks, and a later render
+  // can replace nodes an earlier one drew — taking any mark with them. So the
+  // comparison is not a single moment: it runs once now and again after each
+  // burst of changes for the next two seconds, and a figure that was redrawn
+  // is simply found changed again.
+  let _markWatch = null;
+  function _markWhenPainted(panel, before) {
+    if (_markWatch) _markWatch();
+    if (!panel || typeof MutationObserver !== "function") return;
+    let quiet = null;
+    const compare = () => _markChangedFigures(panel, before);
+    const observer = new MutationObserver(() => {
+      clearTimeout(quiet);
+      quiet = setTimeout(compare, 120);
+    });
+    const stop = () => {
+      observer.disconnect(); clearTimeout(quiet); clearTimeout(deadline);
+      _markWatch = null;
+    };
+    const deadline = setTimeout(stop, 2000);
+    _markWatch = stop;
+    observer.observe(panel, { childList: true, subtree: true, characterData: true });
+    compare();
+  }
+  let _markClear = null;
+  function _markChangedFigures(panel, before) {
+    const changed = [];
+    _figures(panel).forEach((el, key) => {
+      if (before.has(key) && before.get(key) !== _ownText(el)) changed.push(el);
+    });
+    // When most of a page moved, marking all of it marks nothing.
+    if (!changed.length || changed.length > MARK_LIMIT) return;
+    const fresh = changed.filter(el => !el.classList.contains("is-changed"));
+    if (!fresh.length) return;
+    fresh.forEach(el => el.classList.add("is-changed"));
+    clearTimeout(_markClear);
+    _markClear = setTimeout(() => panel.querySelectorAll(".is-changed").forEach(
+      el => el.classList.remove("is-changed")), 1700);
+  }
 
   // =========================================================
   // Site menu — a native <details>, plus the two things it does not do
@@ -960,7 +1061,18 @@
       if (firstLoad || hasNew) {
         DATA = landing === "hero" ? json : FULL_DASHBOARD;
         _applySidecars(DATA);
+        const livePanel = document.querySelector(`.panel[data-panel="${landing}"]`);
+        const figuresBefore = firstLoad ? null : _snapshotFigures(livePanel);
         render();
+        if (figuresBefore) _markWhenPainted(livePanel, figuresBefore);
+        if (firstLoad) {
+          // The placeholders give way to figures once; ease that one swap.
+          const command = document.querySelector(".overview-command");
+          if (command && landing === "hero") {
+            command.classList.add("is-first-paint");
+            setTimeout(() => command.classList.remove("is-first-paint"), 600);
+          }
+        }
         // render() just painted this tab from a complete pair. A message left
         // by an earlier failed activation would now sit above the very content
         // it says did not load.

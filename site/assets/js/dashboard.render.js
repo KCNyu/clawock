@@ -2003,7 +2003,7 @@
     if (p.us_cash_usd != null) bits.push(`US $${num(p.us_cash_usd, 0)}`);
     if (p.hk_cash_hkd != null) bits.push(`HK $${num(p.hk_cash_hkd, 0)}`);
     document.getElementById('reentry-powder').innerHTML =
-      `<div style="padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent)">
+      `<div class="inset-block" style="padding:8px 12px">
          <span class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">待布局弹药</span>
          <div style="font-size:var(--fs-lg);font-weight:700;margin-top:2px">${bits.join('  ·  ') || DASH}</div>
          <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${numText(r.triggered_count)}/${numText(r.total)} 已触发 · 触发=收盘站回均线,右侧再布局</div>
@@ -2022,13 +2022,13 @@
       const mkt = w.market === 'HK' ? '🇭🇰' : '🇺🇸';
       const nameLine = w.etf ? `${w.name} <span class="muted" style="font-size:var(--fs-micro)">(${w.etf} 2x)</span>` : w.name;
       return `
-        <div style="padding:8px 0;border-top:1px solid var(--border,#2a2a2a)">
+        <div style="padding:8px 0;border-top:1px solid var(--border-subtle)">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
             <span style="font-weight:700;font-size:var(--fs-md)">${mkt} ${nameLine}</span>
             <span style="font-size:var(--fs-sm)">${badge}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            <div style="flex:1;height:5px;border-radius:3px;background:var(--border,#2a2a2a);position:relative;overflow:hidden">
+            <div style="flex:1;height:5px;border-radius:3px;background:var(--border-subtle);position:relative;overflow:hidden">
               <div style="position:absolute;left:0;top:0;bottom:0;width:${prox.toFixed(0)}%;background:${color};opacity:0.55"></div>
             </div>
             <span style="font-size:var(--fs-xs);color:${color};min-width:52px;text-align:right">${dist != null ? (dist > 0 ? '+' : '') + dist.toFixed(1) + '%' : DASH}</span>

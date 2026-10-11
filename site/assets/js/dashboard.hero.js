@@ -1876,7 +1876,7 @@
         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">${label}</div>
         <div style="font-size:var(--fs-lg);font-weight:700;margin-top:1px">${val}</div></div>`;
     document.getElementById('gold-stats').innerHTML =
-      `<div style="display:flex;flex-wrap:wrap;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border,#2a2a2a)">
+      `<div style="display:flex;flex-wrap:wrap;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border-subtle)">
         ${cell('累计投入', '¥' + num(g.principal_effective != null ? g.principal_effective : g.principal_invested))}
         ${cell('平均成本', num(g.avg_cost, 4))}
         ${cell('当前净值', num(g.nav, 4) + navChgStr)}
@@ -1907,12 +1907,12 @@
           ? `成本线上方 <b style="color:${dgBeColor}">${num(-(dg.breakeven_upside_pct || 0), 2)}%</b>`
           : `距回本 <b style="color:${dgBeColor}">${dg.breakeven_upside_pct == null ? DASH : '+' + num(dg.breakeven_upside_pct, 2) + '%'}</b>`;
         goldDomestic.innerHTML =
-          `<div style="margin:12px 0 4px;padding:12px;border-radius:6px;background:color-mix(in srgb,var(--positive) 6%,transparent);border:1px solid color-mix(in srgb,var(--positive) 24%,transparent)">
+          `<div class="inset-block" style="margin:12px 0 4px;padding:12px">
              <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">国内基准 · 上金所 Au99.99</div>
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
-               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--text-secondary)">/克</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:var(--fs-micro)">我的回本价</div><div style="font-size:var(--fs-xl);font-weight:700;color:${dgBeColor};white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">我的回本价</div><div style="font-size:var(--fs-xl);font-weight:700;color:${dgBeColor};white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--text-secondary)">/克</span></div></div>
              </div>
              <div class="muted" style="font-size:var(--fs-xs);margin-top:7px;text-transform:none;letter-spacing:0">
                ${dgBeTxt}
@@ -1948,12 +1948,12 @@
           : `距回本 <b style="color:${fundBeColor}">${fundBePct == null ? DASH : '+' + num(fundBePct, 2) + '%'}</b>`;
         // 伦敦金保留为国际辅助口径，显式区分现价与真基金回本映射。
         let html =
-          `<div style="margin:12px 0 4px;padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--warning) 7%,transparent);border:1px solid color-mix(in srgb,var(--warning) 25%,transparent)">
+          `<div class="inset-block" style="margin:12px 0 4px;padding:8px 12px">
              <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">国际辅助 · 伦敦金 XAU/USD</div>
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
-               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:var(--fs-xs);color:var(--text-secondary)">/oz</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:var(--fs-micro)">按当前汇率回本</div><div style="font-size:var(--fs-xl);font-weight:700;color:${fundBeColor};white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">按当前汇率回本</div><div style="font-size:var(--fs-xl);font-weight:700;color:${fundBeColor};white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:var(--fs-xs);color:var(--text-secondary)">/oz</span></div></div>
              </div>
              <div class="muted" style="font-size:var(--fs-xs);margin-top:5px;text-transform:none;letter-spacing:0">
                ${fundBeTxt}${xchgStr}
@@ -1985,11 +1985,11 @@
                <summary class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;cursor:pointer">模拟对照 · 若每个基金交易日直接买伦敦金</summary>
                <div style="margin-top:6px">
                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
-                 <span style="font-size:var(--fs-lg);font-weight:700">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:var(--fs-xs);font-weight:600;color:var(--muted,#999)">/oz</span></span>
-                 <span style="font-size:var(--fs-sm);font-weight:700;color:var(--muted,#999)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
+                 <span style="font-size:var(--fs-lg);font-weight:700">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary)">/oz</span></span>
+                 <span style="font-size:var(--fs-sm);font-weight:700;color:var(--text-secondary)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
                </div>
                <div class="muted" style="font-size:var(--fs-xs);margin-top:3px;text-transform:none;letter-spacing:0">
-                 现货 <b style="color:var(--text,#eee)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
+                 现货 <b style="color:var(--text-primary)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
                  ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>
              </div>`;
@@ -2027,7 +2027,7 @@
           const fColor = fLast >= 100 ? 'var(--positive)' : 'var(--negative)';
           html +=
             `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:8px">
-               <line x1="0" y1="${y(100).toFixed(1)}" x2="${W}" y2="${y(100).toFixed(1)}" stroke="var(--border,#3a3a3a)" stroke-width="0.8" stroke-dasharray="2 2"/>
+               <line x1="0" y1="${y(100).toFixed(1)}" x2="${W}" y2="${y(100).toFixed(1)}" stroke="var(--border-subtle)" stroke-width="0.8" stroke-dasharray="2 2"/>
                <polyline points="${lineL}" fill="none" stroke="var(--warning)" stroke-width="1.6"/>
                <polyline points="${lineF}" fill="none" stroke="${fColor}" stroke-width="1.6" stroke-dasharray="4 2"/>
              </svg>
