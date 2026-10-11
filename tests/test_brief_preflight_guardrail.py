@@ -720,7 +720,7 @@ def test_cap_action_text_allows_a_reasoned_hold(preflight, tight_caps):
     assert "may_stand" in result["directive"] and "durable override" in result["directive"]
 
 
-def test_policy_split_matches_frozen_original_outputs(preflight):
+def test_policy_split_matches_frozen_original_outputs(preflight, tight_caps):
     cases = json.loads((ROOT / 'tests/fixtures/guardrail_policy_replay.json').read_text())
     kinds = set()
     for case in cases:
