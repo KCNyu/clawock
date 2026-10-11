@@ -196,7 +196,8 @@ def _fetch_polygon_history(ticker: str, days: int = 60):
     try:
         r = requests.get(
             f'https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}',
-            params={'adjusted': 'true', 'sort': 'asc', 'limit': 200, 'apiKey': key},
+            params={'adjusted': 'true', 'sort': 'asc', 'limit': 200},
+            headers={'Authorization': f'Bearer {key}'},
             timeout=TIMEOUT,
         )
         if r.status_code != 200:

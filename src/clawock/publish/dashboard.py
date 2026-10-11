@@ -594,7 +594,7 @@ def build_decision_audit_payload(decisions, portfolio):
     ``episode_backtest`` is rendered only on Reflect, whose existing
     ``decision_audit.json`` dependency is already fetched before that tab
     paints. Keeping it here avoids taxing every other tab while preserving one
-    logical dashboard build and the existing five-output publication contract.
+    logical dashboard build and the existing manifest-defined publication contract.
     """
     payload = decision_v2.build_audit_sidecar(
         decisions, portfolio, include_records=False

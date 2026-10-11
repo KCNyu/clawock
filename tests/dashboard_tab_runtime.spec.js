@@ -3929,6 +3929,36 @@ async function testButtonDefaultsDoNotOverrideComponentFonts(browser) {
   } finally { await page.close(); }
 }
 
+async function testBenchmarkScoresShowBothDenominators(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  try {
+    await stubLiveOrigin(page, { patch: (name, payload) => {
+      if (name !== "decision_audit.json") return payload;
+      payload.episode_backtest = { horizons: { t1: {
+        passive: { avg_benefit_pct: -3, excess_benefit_pct: 2, n_episodes: 4,
+          benchmark_n_episodes: 2, benchmark_coverage_pct: 50,
+          benchmark_paired_calls: 3, benchmark_settled_calls: 10,
+          benchmark_call_coverage_pct: 30 },
+        followed_active: { avg_benefit_pct: 1, excess_benefit_pct: null,
+          n_episodes: 2, benchmark_n_episodes: 0, benchmark_coverage_pct: 0,
+          benchmark_paired_calls: 0, benchmark_settled_calls: 2,
+          benchmark_call_coverage_pct: 0 },
+      } } };
+      return payload;
+    } });
+    await page.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
+    await waitForTab(page, "reflect");
+    await page.waitForSelector(".benchmark-scorecard tbody tr");
+    const rows = await page.locator(".benchmark-scorecard tbody tr").allTextContents();
+    assert.equal(rows.length, 5);
+    assert.match(rows[2], /-3\.00%2\.00pp50\.00% \(2\/4\)30\.00% \(3\/10\)/);
+    assert.match(rows[4], /1\.00%—pp0\.00% \(0\/2\)/);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -3946,6 +3976,7 @@ async function main() {
     await fn();
   };
   try {
+    await run("testBenchmarkScoresShowBothDenominators", () => testBenchmarkScoresShowBothDenominators(browser, base));
     await run("testDailyPnlUsesOneLatestReadingPerMarketSession", () => testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base));
     await run("testOnlyActivePanelAcceptsFocus", () => testOnlyActivePanelAcceptsFocus(browser, base));
     await run("runtime", () => testRuntime(browser, base));

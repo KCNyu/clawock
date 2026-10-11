@@ -2979,10 +2979,91 @@ def compute_money_impact(decisions: list[dict], horizon: str = "t1") -> dict:
     }
 
 
-def compute_backtest(decisions: list[dict]) -> dict:
+def _benchmark_pairs(decisions, reps, horizon, benchmark):
+    """Pair actual call windows, then average paired calls within each episode.
+
+    A daily index open cannot price an intraday trigger. Those calls, legacy
+    evaluations and missing exact endpoint bars remain explicitly uncovered.
+    The broad-market comparator is fixed by market, never chosen after returns.
+    """
+    key = f"benefit_{horizon}_pct"
+    series = benchmark.get("series") or {}
+    if not isinstance(series, dict):
+        series = {}
+    prices = {symbol: {r["date"]: r for r in rows
+                       if isinstance(r, dict) and isinstance(r.get("date"), str)}
+              for symbol, rows in series.items() if isinstance(rows, list)}
+    grouped = defaultdict(list)
+    for d in decisions:
+        grouped[d.get("episode_id")].append(d)
+    for rep in reps:
+        settled = _episode_settled(grouped[rep.get("episode_id")], key)
+        paired, missing = [], Counter()
+        for d in settled:
+            ev = d.get("evaluation") or {}
+            symbol = {"US": "SPY", "HK": "HSI"}.get(d.get("leg"))
+            reason = None
+            if not symbol:
+                reason = "unknown_market"
+            elif ev.get("mark_horizon") != "open_of_session_to_close_of_next_session":
+                reason = "unknown_window"
+            elif d.get("action") in PASSIVE_ACTIONS:
+                if ev.get("reference_reason") != "first_tradable_price_after_publication":
+                    reason = "unknown_reference"
+            elif ev.get("fill_reason") not in {"session_open", "gap_through"}:
+                reason = "intraday_or_unknown_fill"
+            start, end = ev.get("trigger_session"), ev.get(f"mark_{horizon}_session")
+            if not reason and (not start or not end or end <= start):
+                reason = "missing_window"
+            bars = prices.get(symbol, {})
+            opening = to_strict_finite_number((bars.get(start) or {}).get("open"))
+            closing = to_strict_finite_number((bars.get(end) or {}).get("close"))
+            if not reason and (opening is None or closing is None or opening <= 0 or closing <= 0):
+                reason = "missing_benchmark_endpoints"
+            if reason:
+                missing[reason] += 1
+                continue
+            index_return = (closing / opening - 1) * 100
+            sign = -1 if d.get("action") in SELL_ACTIONS else 1
+            paired.append(_float(ev[key]) - sign * index_return)
+        rep["benchmark_pair"] = {
+            "excess": sum(paired) / len(paired) if paired else None,
+            "paired_calls": len(paired), "settled_calls": len(settled),
+            "excluded_calls": dict(missing),
+        }
+
+
+def _benchmark_aggregate(rows):
+    pairs = [r["benchmark_pair"] for r in rows]
+    values = [p["excess"] for p in pairs if p["excess"] is not None]
+    calls = sum(p["settled_calls"] for p in pairs)
+    paired_calls = sum(p["paired_calls"] for p in pairs)
+    reasons = Counter()
+    for p in pairs:
+        reasons.update(p["excluded_calls"])
+    return {
+        "excess_benefit_pct": round(sum(values) / len(values), 4) if values else None,
+        "benchmark_n_episodes": len(values),
+        "benchmark_coverage_pct": round(100 * len(values) / len(rows), 1) if rows else None,
+        "benchmark_paired_calls": paired_calls,
+        "benchmark_settled_calls": calls,
+        "benchmark_call_coverage_pct": round(100 * paired_calls / calls, 1) if calls else None,
+        "benchmark_excluded_calls": dict(reasons),
+    }
+
+
+def compute_backtest(decisions: list[dict], *, benchmark: dict | None = None) -> dict:
+    if benchmark is None:
+        try:
+            benchmark = json.loads((WS / "assets/data/benchmark.json").read_text())
+        except (OSError, ValueError):
+            benchmark = {}
+    if not isinstance(benchmark, dict):
+        benchmark = {}
     horizons = {}
     for horizon, key in (("t1", "benefit_t1_pct"), ("t5", "benefit_t5_pct")):
         reps = episode_representatives(decisions, horizon)
+        _benchmark_pairs(decisions, reps, horizon, benchmark)
         active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
         followed = [r for r in reps if (r.get("execution") or {}).get("status") == "followed"]
         passive = [r for r in reps if r.get("action") in PASSIVE_ACTIONS]
@@ -3015,12 +3096,7 @@ def compute_backtest(decisions: list[dict]) -> dict:
             "followed_curve": _compounded_curve(followed, key),
             "all_win_rate_curve": _cumulative_win_rate_curve(reps, key),
             "active_win_rate_curve": _cumulative_win_rate_curve(active, key),
-            # Named per column, because the columns do NOT answer the same
-            # question and nothing on the surface said so. A benchmark-relative
-            # benefit for the passive legs would be the richer fix and is not
-            # available: `benchmark.json` keeps a 60-day window (from
-            # 2026-06-29) while the episodes start 2026-05-17, so six weeks of
-            # the sample have no benchmark to be relative to.
+            # Absolute direction scores retain their original populations.
             "measures": {
                 "all": "every episode, active and passive — AI track record",
                 "active": "cut/trim/add timing only — the alpha question",
@@ -3029,12 +3105,25 @@ def compute_backtest(decisions: list[dict]) -> dict:
                 "followed_active": "executed episodes that were a decision to act",
             },
         }
+        for name, rows in (("all", reps), ("active", active), ("passive", passive),
+                           ("followed", followed), ("followed_active", followed_active)):
+            horizons[horizon][name].update(_benchmark_aggregate(rows))
     return {
         "schema_version": SCHEMA_VERSION,
         "method": ("one synthetic representative per strategy episode carrying that episode's mean benefit; "
                    "an episode is consecutive reaffirmations of the same (ticker, strategy, action) within a "
                    "4-calendar-day gap — a moved trigger or changed condition does NOT start a new episode; "
                    "daily capital-weighted benefit is compounded, never arithmetically summed across calls"),
+        "benchmark_method": {
+            "markets": {"US": "SPY", "HK": "HSI"},
+            "measure": "directional broad-market excess in percentage points; not portfolio alpha or decision value",
+            "formula": "benefit - direction * (benchmark mark close / trigger-session open - 1) * 100; direction=-1 for sells, +1 otherwise",
+            "aggregation": "mean paired calls per episode, then equal-weight mean of covered episodes; partial episodes allowed",
+            "coverage": "covered episodes / settled episodes; call coverage and exclusions reported separately",
+            "leverage": "unscaled broad index; no beta, factor, leverage, fee or dividend adjustment",
+            "source_generated_at": benchmark.get("generated_at"),
+            "source_sha256": hashlib.sha256(json.dumps(benchmark, sort_keys=True).encode()).hexdigest(),
+        },
         "horizons": horizons,
     }
 

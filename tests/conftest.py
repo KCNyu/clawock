@@ -285,7 +285,7 @@ def _attribute_writes_to_the_test_that_made_them(request):
     function-scoped one: the session rebuild would happen outside a
     before/after pair and be missed entirely. That was the first version of
     this fixture, and it reported a clean run against a module that definitely
-    rewrites four files.
+    rewrites the manifest-listed files.
 
     This records rather than forbids. Attribution first, cleanup second —
     guessing at the writer is what let this sit unexplained through two
@@ -391,7 +391,7 @@ def _offenders(entries) -> set[str]:
     fix that:
 
     * the session dashboard rebuild ran in one worker and a test in the OTHER
-      worker reported the same four payloads as `created` — its window merely
+      worker reported the same manifest-listed payloads as `created` — its window merely
       overlapped the build, and it was named `<-- NEW`;
     * scoping the verdict to "paths no tolerated writer touched" removes that
       false accusation and immediately buys the opposite one: a deliberately
@@ -508,7 +508,7 @@ def _restore_publish_owned(before):
     the write guard above watches (size, mtime_ns). The fixture below is
     session-scoped, and under `-n` a session is a WORKER — so the restore ran
     while the other workers were still running tests, and their windows recorded
-    the four payloads changing. CI named a different innocent module on each run
+    the manifest-listed payloads changing. CI named a different innocent module on each run
     (2026-09-06, PR #1369), and only on branches that touch `site/**` or the UI,
     because those are the ones where `fetch_data_plane.py` puts these files in
     the checkout in the first place.

@@ -3,7 +3,7 @@
 2026-09-06: two tests in here passed only because of a side effect.
 `test_builder_stages_only_public_consumers` and
 `test_site_staging_joins_owned_source_and_runtime_inputs` both needed
-`assets/data/overview.json`, which is gitignored — the four dashboard payloads
+`assets/data/overview.json`, which is gitignored — the manifest-listed dashboard payloads
 left master in #314 — so a clean checkout does not carry it. What supplied it
 was `tests/test_dashboard_payload_size.py`, which sorts earlier by path and
 rebuilds against the real tree on purpose (it is the single entry in conftest's
@@ -300,7 +300,7 @@ def _stage_publishable_site(site):
         (site / path).write_text("ok")
     # The preparer refuses to publish an artifact missing a required page, and
     # both `required_pages` and `browser_data` name runtime outputs a clean
-    # checkout does not carry (the four dashboard payloads left master in #314
+    # checkout does not carry (the manifest-listed dashboard payloads left master in #314
     # and are gitignored). Write them here so this fixture stands on its own:
     # what is under test is the contract — every required page present, every
     # repository_only path excluded — not whether a previous test happened to
@@ -346,7 +346,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
         (site / path).write_text("ok")
     # The preparer refuses to publish an artifact missing a required page, and
     # both `required_pages` and `browser_data` name runtime outputs a clean
-    # checkout does not carry (the four dashboard payloads left master in #314
+    # checkout does not carry (the manifest-listed dashboard payloads left master in #314
     # and are gitignored). Write them here so this fixture stands on its own:
     # what is under test is the contract — every required page present, every
     # repository_only path excluded — not whether a previous test happened to
@@ -563,7 +563,7 @@ def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
     assert (output / "assets/js/dashboard.core.js").is_file()
     # A runtime input that is TRACKED, so the join is proven from a clean
     # checkout. This used to assert `overview.json`, which is gitignored (the
-    # four dashboard outputs left master in #314) — so the assertion only held
+    # manifest-listed dashboard outputs left master in #314) — so the assertion only held
     # when something else had already written it into the checkout, and the
     # something else was `test_dashboard_payload_size.py`, which sorts earlier by
     # path and rebuilds against the real tree on purpose. Run this file alone and

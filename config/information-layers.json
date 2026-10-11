@@ -277,6 +277,10 @@
           "note": "replays triggered calls against buy-and-hold to measure simulated timing alpha, gross and net of the pre-registered cost model"
         },
         {
+          "command": "decision-audit",
+          "note": "absolute and broad-market-relative direction scores with exact-window coverage"
+        },
+        {
           "command": "audit-resettle",
           "note": "dry-run bar-based re-settle that reports every verdict it would change"
         },

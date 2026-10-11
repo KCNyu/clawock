@@ -58,6 +58,9 @@ jobs:
             exit 1
           }
 
+      - uses: ./.github/actions/clawock-node
+        if: startsWith(github.ref, 'refs/tags/v')
+
       - name: Refuse what github-release would refuse, before anything is published
         # github-release re-checks both of these, but it runs after PyPI and npm
         # have accepted the version: a stale lib/ or a missing CHANGELOG section
@@ -206,23 +209,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          registry-url: https://registry.npmjs.org
-
-      # setup-node ships whatever npm rides with the Node release. On
-      # 2026-08-17 that npm crashed with `Exit handler never called!` on
-      # `npm install --include=dev`, twice, and took the v0.1.6 npm publish
-      # with it while PyPI had already accepted 0.1.6 — a half-released
-      # version. The same install is clean on npm 10.9.8. Pin the tool that
-      # does the publishing rather than letting a runner image change decide
-      # whether a release completes.
-      - name: Pin npm to a version this publish is known to work on
-        run: |
-          echo "runner default: npm $(npm --version)"
-          npm install -g npm@10.9.8
-          echo "pinned to:      npm $(npm --version)"
+      - uses: ./.github/actions/clawock-node
 
       - name: Publish clawock-dsh to npm
         env:
@@ -264,13 +251,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          registry-url: https://registry.npmjs.org
-
-      - name: Pin npm to the version the publish used
-        run: npm install -g npm@10.9.8
+      - uses: ./.github/actions/clawock-node
 
       - name: Compare the registry copy with this build
         run: |
@@ -298,6 +279,8 @@ jobs:
         with:
           name: distributions
           path: dist/
+
+      - uses: ./.github/actions/clawock-node
 
       - name: Pack the DSH skill package for the release
         # Idempotent bump: `npm version <same>` exits non-zero (#617). When the

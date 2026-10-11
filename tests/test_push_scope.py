@@ -158,3 +158,8 @@ def test_main_json_mode(monkeypatch, capsys):
     assert payload["code"] is True
     assert payload["ui"] is False
     assert payload["analysable"] is True
+
+
+def test_node_toolchain_change_runs_the_plugin_build():
+    lanes = push_scope.classify([".github/actions/clawock-node/action.yml"])
+    assert lanes["dsplugin"] and lanes["code"]

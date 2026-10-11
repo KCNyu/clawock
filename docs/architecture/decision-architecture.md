@@ -330,3 +330,31 @@ frozen, genuinely forward evidence is required to select a method; the system
 never claims causal superiority, automatically promotes a method, or rewrites
 history to roll one back. Stop submitting to a trial to stop it; its archives
 remain intact. Legacy records without a stated method stay `unknown`.
+
+## Broad-market relative direction scores
+
+`clawock decision-audit [--json]` and Reflect's episode scorecard show absolute
+scores beside `excess_benefit_pct` (percentage points). The comparator is fixed:
+US uses SPY, HK uses HSI for every instrument, including technology and leveraged
+products. It is an unscaled broad-market comparison, not factor-matched alpha,
+portfolio return or the value of following advice. Concentration, leverage and
+buying after a fall are not scored as policy violations by this metric.
+
+For each settled call, subtract the signed benchmark return from the existing
+benefit: `benefit - direction * (mark_close / trigger_open - 1) * 100`, with
+`direction=-1` for cut/trim and `+1` otherwise. The benchmark must have the exact
+trigger-session open and horizon-session close. Passive stances, session-open
+fills and gap-through fills qualify; intraday crossings have no known index
+price at their trigger time and remain uncovered. Legacy evaluations without
+an explicit window also remain uncovered. Close-only history is never used as
+an opening-price proxy. `clawock benchmark` retains provider opens alongside
+closes; an old close-only series gains coverage when successfully refreshed.
+
+Average paired calls within each episode, then equally average covered episodes.
+A partially covered episode contributes only its paired calls. Report both
+`benchmark_coverage_pct` (covered / settled episodes) and
+`benchmark_call_coverage_pct` (paired / settled calls), their counts, and exclusion
+reasons. No matched data means null, not zero. Existing absolute scores retain
+all their settled calls. Benchmark provenance includes the source timestamp and
+content digest. The data file's rolling window limits coverage; it never blocks
+calculation on the intersection or justifies inventing historical prices.

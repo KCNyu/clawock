@@ -268,6 +268,8 @@ def test_finnhub_accepted_time_is_read_as_us_market_time_not_utc():
 
     def http(url, **_kwargs):
         assert urlsplit(url).hostname == "finnhub.io"
+        assert "test-key" not in url and "token=" not in url
+        assert _kwargs["headers"] == {"X-Finnhub-Token": "test-key"}
         return [{"form": "8-K", "filedDate": "2026-08-13 00:00:00",
                  "acceptedDate": "2026-08-13 07:10:48",
                  "reportUrl": "https://sec.test/rklb-8k", "symbol": "RKLB"}]

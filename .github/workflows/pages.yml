@@ -80,7 +80,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # The four dashboard outputs are published to an orphan data branch, not
+      # The manifest-listed dashboard outputs are published to an orphan data branch, not
       # to master (#314). The staging step reads them from the checkout, so they
       # have to arrive first. Loud on failure: falling back to whatever the
       # checkout happened to carry is how a site serves a stale generation with

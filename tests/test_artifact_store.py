@@ -224,7 +224,7 @@ def test_a_materialised_generation_is_readable_by_whoever_serves_it(repo, tmp_pa
 
 
 def test_a_generation_the_branch_does_not_carry_is_refused(repo, tmp_path):
-    """Materialising three of four outputs would leave the fourth as whatever the
+    """Materialising three of manifest-listed outputs would leave the fourth as whatever the
     checkout already had — one page serving two generations, with nothing in the
     logs. The reader asserts the whole set."""
     GitBranchStore(repo, "data-plane").publish(GENERATION, label="x")

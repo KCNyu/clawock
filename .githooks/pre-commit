@@ -95,7 +95,7 @@ fi
 # ──────────────────────────────────────────────────────────────────────────
 # 3. Dashboard public outputs — no longer this hook's business
 #    They were rebuilt and staged here so a portfolio.json commit could not
-#    drift from the generated views it implies. Since #314 the four outputs are
+#    drift from the generated views it implies. Since #314 the manifest-listed outputs are
 #    not tracked at all: they go to the data branch, published by whoever
 #    publishes, at most 20 minutes behind. There is no drift left for a commit
 #    to carry, and `git add` on an ignored path fails rather than skipping, so

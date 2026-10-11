@@ -396,8 +396,8 @@ def fetch_finnhub_filings(issuer, *, now, window_minutes, http=None, api_key=Non
         session_lookback_minutes if session_lookback_minutes is not None
         else max(window_minutes, SESSION_LOOKBACK_MINUTES)
     )
-    query = urllib.parse.urlencode({"symbol": str(issuer).upper(), "token": key})
-    payload = http(f"{FINNHUB_FILINGS}?{query}")
+    query = urllib.parse.urlencode({"symbol": str(issuer).upper()})
+    payload = http(f"{FINNHUB_FILINGS}?{query}", headers={"X-Finnhub-Token": key})
     rows = payload if isinstance(payload, list) else []
     items = []
     for row in rows:

@@ -95,12 +95,16 @@ def test_the_release_pins_the_npm_that_publishes():
     The same install is clean on the pinned version.
     """
     workflow = WORKFLOW.read_text()
-    assert "npm install -g npm@" in workflow, (
-        "the npm job must pin the npm it publishes with"
-    )
-    pin_at = workflow.index("npm install -g npm@")
-    publish_at = workflow.index("publish_dsh_plugin.sh")
-    assert pin_at < publish_at, "the pin has to come before the publish, not after"
+    action = (ROOT / ".github/actions/clawock-node/action.yml").read_text()
+    assert "npm install -g npm@10.9.8" in action
+    for name in ("build", "npm", "npm-readback", "github-release"):
+        job = re.split(r"\n  [a-z][a-z-]*:", workflow.split(f"\n  {name}:\n", 1)[1])[0]
+        assert "uses: ./.github/actions/clawock-node" in job
+    assert workflow.index("uses: ./.github/actions/clawock-node") < workflow.index("publish_dsh_plugin.sh")
+    ci = (ROOT / ".github/workflows/ci.yml").read_text()
+    validate = ci.split("\n  validate:", 1)[1]
+    assert validate.index("uses: ./.github/actions/clawock-node") < validate.index("npm install --include=dev")
+
 
 def test_the_release_tgz_is_rebuilt_from_source_and_refuses_a_stale_tree():
     """The release asset and the npm tarball carry the same version number, so

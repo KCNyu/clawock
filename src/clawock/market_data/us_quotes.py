@@ -512,7 +512,8 @@ def get_polygon_quote(ticker: str, api_key: str) -> Optional[Dict]:
     try:
         r = SESSION.get(
             f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev",
-            params={'adjusted': 'true', 'apiKey': api_key},
+            params={'adjusted': 'true'},
+            headers={'Authorization': f'Bearer {api_key}'},
             timeout=TIMEOUT,
         )
         results = r.json().get('results', [])
@@ -622,7 +623,8 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
     try:
         r = SESSION.get(
             f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev",
-            params={'adjusted': 'true', 'apiKey': api_key},
+            params={'adjusted': 'true'},
+            headers={'Authorization': f'Bearer {api_key}'},
             timeout=TIMEOUT,
         )
         raw = r.json()
@@ -639,7 +641,7 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
             date_str = (datetime.now(trading_calendar.ET) - timedelta(days=1)).strftime('%Y-%m-%d')
         return (close, date_str)
     except Exception as e:
-        print(f"  ⚠ Polygon prev-close {ticker} failed: {type(e).__name__}: {e}",
+        print(f"  ⚠ Polygon prev-close {ticker} failed: {type(e).__name__}",
               file=sys.stderr)
         return None
 
@@ -737,7 +739,8 @@ def get_prev_closes_polygon_grouped(
         try:
             r = SESSION.get(
                 f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{session_date}",
-                params={'adjusted': 'true', 'apiKey': api_key},
+                params={'adjusted': 'true'},
+                headers={'Authorization': f'Bearer {api_key}'},
                 timeout=max(TIMEOUT, 30),
             )
             if r.status_code == 429:
@@ -750,7 +753,7 @@ def get_prev_closes_polygon_grouped(
             if r.status_code != 200:
                 print(
                     f"  ⚠ Polygon grouped {session_date}: HTTP {r.status_code} "
-                    f"{getattr(r, 'text', '')[:120]} — cache unchanged",
+                    "— cache unchanged",
                     file=sys.stderr,
                 )
                 return {}, False, False
@@ -758,7 +761,7 @@ def get_prev_closes_polygon_grouped(
         except Exception as exc:
             print(
                 f"  ⚠ Polygon grouped {session_date} failed: "
-                f"{type(exc).__name__}: {exc} — cache unchanged",
+                f"{type(exc).__name__} — cache unchanged",
                 file=sys.stderr,
             )
             return {}, False, False

@@ -1,7 +1,7 @@
 """Publication ownership and semantic diffs for generated JSON write sets.
 
 The algorithm ships in the wheel. Output paths, clock-only fields and generation
-groups are workspace configuration, so an installed package never inherits one
+groups are defined by config/dashboard-outputs.json (the sole membership source), so an installed package never inherits one
 desk's artifact names or publication layout.
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ def output_paths(root: Path | str = ROOT) -> tuple[str, ...]:
 
 
 # `write_generation` is re-exported from `clawock.publish`, not defined here.
-# "Publish N files as one write set" stopped being specific to these four the
+# "Publish N files as one write set" stopped being specific to the manifest-listed outputs the
 # moment the generation could go somewhere other than this worktree (#314), and
 # `FilesystemStore` is the same operation with a directory in front of it. Two
 # copies of a staging-then-swap loop is exactly the shape that drifts.

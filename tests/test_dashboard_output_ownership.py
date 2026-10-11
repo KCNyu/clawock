@@ -1,4 +1,4 @@
-"""One build, five public outputs, one semantic publication contract."""
+"""One build, manifest-listed public outputs, one semantic publication contract."""
 import json
 import os
 import re
@@ -178,7 +178,7 @@ def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
 
 
 def test_nothing_stages_the_outputs_into_a_commit_any_more():
-    """#314 untracked the four outputs, so every path that added them to a commit
+    """#314 untracked the manifest-listed outputs, so every path that added them to a commit
     had to stop. `git add` on a gitignored path FAILS rather than skipping, and
     these commits carry `portfolio.json`, the decision ledger and the daily
     snapshot — so a leftover stager does not publish a stale dashboard, it stops
@@ -276,7 +276,7 @@ def test_an_unreachable_data_plane_does_not_stop_the_publish():
 
 
 def test_a_failed_write_set_publishes_nothing(tmp_path):
-    """#262 slice 3 step 3: the four outputs are one generation, so a failure
+    """#262 slice 3 step 3: the manifest-listed outputs are one generation, so a failure
     part-way must leave the old generation intact rather than mix them.
 
     `safe_write_text` is atomic per file, which is why this is not already true:
@@ -314,10 +314,10 @@ def test_a_complete_write_set_swaps_every_file(tmp_path):
 
 
 def _generation(directory, *, clock, value):
-    """One generation of the four outputs, each stamped with its own clock field.
+    """One generation of the manifest-listed outputs, each stamped with its own clock field.
 
-    overview/dashboard carry `generated_at`; the two sidecars carry `as_of`.
-    Using one field for all four would make the sidecars look semantically
+    overview/dashboard carry `generated_at`; the sidecars carry `as_of`.
+    Using one field for all outputs would make the sidecars look semantically
     changed and quietly stop the test from exercising the clock-only path.
     """
     directory.mkdir(parents=True, exist_ok=True)

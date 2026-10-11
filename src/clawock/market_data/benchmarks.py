@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-fetch_benchmark_history.py — daily-close history for SPY (US) + HSI/HSTECH (HK).
+fetch_benchmark_history.py — daily open/close history for SPY (US) + HSI/HSTECH (HK).
 
-Used by the Equity Curve widget to overlay a normalized benchmark line so kcn
+Opens support exact-window decision diagnostics; closes are used by the Equity Curve widget to overlay a normalized benchmark line so kcn
 can see the portfolio's cumulative alpha at a glance.
 
 Sources:
@@ -35,7 +35,7 @@ from typing import Dict, List
 import requests
 
 from clawock.market_data.us_quotes import load_api_keys
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, to_strict_finite_number
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -95,7 +95,9 @@ def _polygon_once(ticker: str, days: int, api_key: str) -> List[Dict]:
         close = x.get('c')
         if not close:
             continue
+        opening = to_strict_finite_number(x.get('o'))
         out.append({
+            **({'open': round(opening, 4)} if opening is not None and opening > 0 else {}),
             'date':  datetime.fromtimestamp(ts, timezone.utc).strftime('%Y-%m-%d'),
             'close': round(float(close), 4),
         })
@@ -188,7 +190,9 @@ def _tencent_hk_once(sym: str, days: int) -> List[Dict]:
             close = float(row[2])
         except (TypeError, ValueError):
             continue
-        out.append({'date': row[0], 'close': round(close, 4)})
+        opening = to_strict_finite_number(row[1])
+        out.append({'date': row[0], 'close': round(close, 4),
+                    **({'open': round(opening, 4)} if opening is not None and opening > 0 else {})})
     return out
 
 

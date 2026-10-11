@@ -7,7 +7,7 @@ than in source history.
 
 This is the instance wiring, not the mechanism — `clawock.publish.GitBranchStore`
 is the mechanism, and its default sibling `FilesystemStore` is what a third party
-gets without configuring a remote. What lives here is the choice of *these four
+gets without configuring a remote. What lives here is the choice of *the manifest-listed
 files, this branch, this repository*.
 
 Reads the outputs from the worktree exactly as they stand, so whatever the
