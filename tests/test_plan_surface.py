@@ -356,6 +356,25 @@ def test_intraday_status_block_carries_the_orders(ps):
                          "未成交计划：07226 清仓 1000股｜开盘｜风控纪律"]
 
 
+def test_intraday_status_block_omits_a_cut_the_holding_strategy_forbids(ps):
+    """SPCH runs `infinite_ammo_dca` (`forbid_reduce_advice`): the intraday
+    postflight refuses a model sentence telling kcn to cut it, so the harness
+    must not print the plan's cut on the same card. Other orders still print.
+    """
+    from clawock.harness import intraday_preflight
+    context = {"plan_date": TODAY, "open": [
+        ps._entry(decision(ticker="SPCH", leg="US", size={"shares": 300})),
+        ps._entry(decision(ticker="SPCH", leg="US", action="add_only_on_trigger",
+                           size={"shares": 10})),
+        ps._entry(decision()),
+    ]}
+    policies = {"SPCH": {"strategy": "infinite_ammo_dca", "forbid_reduce_advice": True}}
+    lines = intraday_preflight.open_order_lines(context, policies)
+    assert [line.split("｜")[0] for line in lines] == [
+        "未成交计划：SPCH 触发加仓 10股", "未成交计划：07226 清仓 1000股"]
+    assert len(intraday_preflight.open_order_lines(context)) == 3
+
+
 @pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
 def test_skill_does_not_ask_the_model_to_restate_a_printed_size(skill):
     """On 2026-07-27 the same ticker carried two share counts on the same day

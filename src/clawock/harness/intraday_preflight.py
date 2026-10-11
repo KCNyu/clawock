@@ -1190,13 +1190,24 @@ def leverage_lines(legs, unrefreshed=None):
     return lines
 
 
-def open_order_lines(plan_context):
+def open_order_lines(plan_context, holding_policies=None):
     """Status-block rows: the plan's sized orders still waiting to fill.
 
     Standing state, so they sit with the leverage legs rather than in this
     slot's news. The values are the ledger's; the prose never restates a size.
+
+    A cut or trim on a holding whose intraday strategy forbids reduce advice is
+    left out: the postflight already refuses that sentence from the model, and
+    a printed line would say it on every slot instead. The disagreement stays
+    in `strategy_conflicts`.
     """
-    return [f'未成交计划：{line}' for line in plan_surface.order_lines(plan_context)]
+    held_back = {
+        (row['ticker'], row['plan_action'])
+        for row in intraday_policy.plan_conflicts(holding_policies or {}, plan_context)}
+    context = {**(plan_context or {}), 'open': [
+        row for row in (plan_context or {}).get('open') or []
+        if (row.get('ticker'), row.get('action')) not in held_back]}
+    return [f'未成交计划：{line}' for line in plan_surface.order_lines(context)]
 
 
 def _split_generic_news(block):
@@ -1885,7 +1896,7 @@ def main(argv=None):
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals=intraday_delta.seen_signal_identities(semantic_state, prior_state),
             status_lines=[*leverage_lines(leverage, coverage.get('unrefreshed')),
-                          *open_order_lines(plan_ctx)])
+                          *open_order_lines(plan_ctx, holding_policies)])
         # Last, and exactly as before #2808 (kcn 2026-10-09: 「千万不要影响到
         # 我们的加仓侧」): its own block, header and rows untouched by layout A.
         raw_block = append_add_side_section(raw_block, add_side_reads, gaps)
