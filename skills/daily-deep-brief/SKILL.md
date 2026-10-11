@@ -139,7 +139,7 @@ summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队�
 `needs_entry_gate`、`allowed=false` 的候选，不提供建仓授权。所有候选取值相同的字段
 （来源 `evidence`、`missing_evidence`、`next_action` 等）只在 `candidate_shared` 写一次，
 对每个候选都成立；`candidates` 各行只列自己不同的字段。简报和投递卡由 harness
-固定展示；不要把候选改写成 add/swap 决策。可说明下一步研究哪个行业、要核什么
+固定展示；只有同时进入 `proposal_universe` 的票才可写 add 提案，检查该票 `authorization`：`entry_gate_cleared` 表示已读取并验证研究闸；`entry_gate_required` 仍是待研究提案，不能说已获建仓授权。`proposal_availability=unavailable` 的票不得写买单。可说明下一步研究哪个行业、要核什么
 一手披露。`snapshot_metrics` 不是实时价格，`observed_at=null` 必须保留「时点未核」。
 先用 `quote_request` 经 `clawock fetch-peers` 核验报价，再遵循 entry-gate 的人工研究
 流程；不要用 `analyze-us TICKER` 查新票（该命令当前只刷新持仓）。候选源失败写
@@ -1114,3 +1114,15 @@ US: HHI 0.171 偏集中 | SOXL 22.2% + ROBN 21.1% = Top2 43.3%
 ```
 
 历史教训：2026-05-16 那次"合计 -4,423"直接把 -4936 HKD 和 +513 USD 相加 → 毫无意义。kcn 当场指出。
+
+### 提前埋点与左侧分档
+
+逐票检查 `quant.preposition` / `technical.setups` 的 `preposition_scale_in`，不要只找突破。
+这是 kcn 授权的前瞻试验，不是已验证 alpha。可按给出的 `price_below`、失效位、campaign、
+下一档编号和 `execution.max_add_shares` 写 `add_only_on_trigger`；须写可证伪的 hypothesis
+和 method，说明尺寸取自持仓比例×资讯倾斜，以及 `evidence_strength` 中支持/不支持的范围。
+unknown 论点不冒充 intact；已有 damaged/broken 状态不自动洗白。两档成交后不因换日重置。
+每个可用试验候选必须明确选择：写有尺寸的单，或在该票判断中说明本次不买的原因，
+不能无声退回“等突破”。硬止损、制度降杠杆、现金、整手和未成交单闸优先。
+持仓外研究同时考虑 sentiment、资讯事件、同业/因子与 entry-gate 的供应链机制；
+没有数据就写缺口，不凭板块相同捏造上下游关系。

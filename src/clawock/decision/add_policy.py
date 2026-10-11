@@ -106,6 +106,7 @@ def entry_profile(entry: str) -> dict:
 
 #: Tranche level each tier reaches, as a share of a full validated campaign.
 TARGET_TRANCHE_LEVEL = {
+    "user_experiment": 0.25,
     "validated": 1.0,
     "exploration": 0.25,
     "exploration_cold_start": 0.125,

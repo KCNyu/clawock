@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "version": "kcn-20261011-v1",
+  "authorization": "kcn 2026-10-11: 提前埋点、跌了加和杠杆均可；保留硬止损及制度降杠杆",
+  "tranche_pct_of_position": 0.1,
+  "max_tranches": 2,
+  "min_depth_atr": 2.0,
+  "rung_spacing_atr": 1.0,
+  "invalidation_atr": 3.0,
+  "valid_for_sessions": 1,
+  "evidence": {
+    "status": "user_authorized_prospective_experiment",
+    "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+    "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline.",
+    "does_not_support": "Leveraged results were negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+    "live_sized_samples_at_registration": 0,
+    "historical_unleveraged_oos_campaigns": 141
+  }
+}

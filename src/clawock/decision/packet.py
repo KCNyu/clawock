@@ -26,7 +26,7 @@ from pathlib import Path
 from clawock.decision.actions import (
     ACTIVE_ACTIONS, SELL_ACTIONS, SWAP_SELL_ACTIONS, paired_swap_sells,
 )
-from clawock.decision import add_alpha, add_policy, early_trend, left_side
+from clawock.decision import add_alpha, add_policy, early_trend, left_side, preposition
 from clawock.decision import add_policy as add_policy_module
 from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
@@ -433,11 +433,16 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     if lot is not None and lot <= 0:
         lot = None
 
+    experimental = next((s for s in technical.get("setups") or []
+                         if s.get("setup_id") == preposition.SETUP_ID
+                         and s.get("remaining_tranches", 0) > 0), None)
     setup_pcts = [
         row.get("tranche_pct_of_position")
         for row in technical.get("setups") or []
         if row.get("tranche_pct_of_position")
     ]
+    if experimental:
+        setup_pcts = [experimental["tranche_pct_of_position"]]
     overlay = overlay or {}
     plan = add_policy.tranche_plan(
         tier=authority_tier, price=price, lot=lot, shares=shares,
@@ -473,7 +478,7 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         thesis_gate = "exploration_only"
 
     blockers = []
-    if leveraged and authority_tier != "validated":
+    if leveraged and authority_tier != "validated" and not experimental:
         blockers.append("leveraged_requires_validated_evidence")
     if open_add:
         blockers.append("open_add_order")
@@ -509,6 +514,9 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "target_max_pct": target_max_pct,
         "thesis_gate": thesis_gate,
         "information_overlay": overlay,
+        "preposition_authorized": bool(experimental),
+        "preposition_required": bool(leveraged and authority_tier != "validated" and experimental),
+        "sizing_basis": ("position_fraction_times_information_overlay" if experimental else "registered_setup"),
         "blockers": sorted(set(blockers)),
     }
 
@@ -966,6 +974,36 @@ UNIVERSE_MAX_BAR_AGE_DAYS = 7
 ENTRY_GATE_REQUIRED = "entry_gate_required"
 
 
+def _discovery_availability(context, held):
+    discovery = copy.deepcopy(context.get("stock_discovery") or {})
+    universe = _proposal_universe(context, held)
+    for candidate in discovery.get("candidates") or []:
+        ticker = candidate.get("ticker")
+        row = universe.get(ticker)
+        candidate["proposal_availability"] = (
+            {"status": "available", "authorization": row["constraints"]["authorization"]}
+            if row else {"status": "unavailable", "reason": "no recent usable daily-bar archive; settlement cannot price this candidate",
+                         "next": "archive canonical daily OHLC and run entry-gate before proposing"})
+    return discovery
+
+
+def _unheld_research(context, ticker):
+    """Attach the existing independent sources, with absence visible, not scored as zero."""
+    graph = context.get("news_evidence_graph") or {}
+    cross = context.get("cross_sectional_factor") or {}
+    peer = context.get("peer_residual") or {}
+    sentiment = (context.get("sentiment") or {}).get("tickers") or []
+    return {
+        "sentiment": next((r for r in sentiment if r.get("ticker") == ticker), None),
+        "factor": _factor_view((cross.get("live_rankings") or {}).get(ticker)),
+        "peer_residual": _peer_view((peer.get("live") or {}).get(ticker)),
+        "information": _information_view(graph, ticker, ticker),
+        "events": [_event_view(e) for e in graph.get("events") or []
+                   if ticker in {e.get("ticker"), e.get("reported_ticker")}][:6],
+        "supply_chain": "Use cited events and entry_gate.mechanism/key_variables; no inferred link is a verified supply-chain relationship.",
+    }
+
+
 def _proposal_universe(context: dict, held: set) -> dict:
     """Names the book does not hold that a plan may still propose buying.
 
@@ -981,6 +1019,7 @@ def _proposal_universe(context: dict, held: set) -> dict:
     """
     quotes = context.get("unheld_quotes") or {}
     today = str(context.get("date") or "")
+    _, cash = _book_totals((context.get("portfolio") or {}).get("portfolios") or {})
     rows = {}
     for ticker, bar in sorted((context.get("proposal_universe") or {}).items()):
         if ticker in held or not isinstance(bar, dict):
@@ -994,7 +1033,7 @@ def _proposal_universe(context: dict, held: set) -> dict:
             age = (date.fromisoformat(today) - date.fromisoformat(str(as_of))).days
         except (TypeError, ValueError):
             age = None
-        if not price or age is None or age > UNIVERSE_MAX_BAR_AGE_DAYS:
+        if not price or age is None or age < 0 or age > UNIVERSE_MAX_BAR_AGE_DAYS:
             continue
         lot = 1 if leg == "US" else quote.get("lot_size")
         closed = {}
@@ -1005,25 +1044,31 @@ def _proposal_universe(context: dict, held: set) -> dict:
             closed["add_only_on_trigger"] = {
                 "channel": receipts.FEASIBILITY, "code": "FEAS_BOARD_LOT_UNKNOWN",
                 "reason": "the board lot of this unheld name was not fetched"}
+        gate = bar.get("entry_gate") or {}
+        cleared = gate.get("cleared") is True
+        room = int(max(0, cash.get(leg, 0)) // (price * lot)) * lot if lot else 0
         rows[ticker] = {
             "ticker": ticker,
             "leg": leg,
             "held": False,
+            "entry_gate": gate,
+            "research": _unheld_research(context, ticker),
             "facts": {"shares": 0, "current_price": price,
                       "price_basis": basis, "price_as_of": as_of},
             "risk": [],
             "evidence": [],
             "constraints": {
-                "allowed_actions": ["watch"],
+                "allowed_actions": open_actions if cleared else ["watch"],
                 "open_actions": open_actions,
                 "closed_actions": closed,
                 "forced_action_one_of": [],
                 "max_sell_shares": 0,
-                "max_add_shares": 0,
+                "max_add_shares": room if cleared else 0,
+                "position_room_shares": room,
                 "technical_setup_ids": [],
                 "actionable_evidence_ids": [],
                 "lot_size": lot,
-                "authorization": ENTRY_GATE_REQUIRED,
+                "authorization": "entry_gate_cleared" if cleared else ENTRY_GATE_REQUIRED,
             },
         }
     return rows
@@ -1411,6 +1456,16 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
             thesis_state=thesis.get("state"),
             blockers=alpha_authority.get("blockers") or [])
             if technical.get("usable") else None)
+        experiment = preposition.setup(
+            (context.get("preposition_inputs") or quant_rows).get(ticker) or {}, information_view,
+            context.get("preposition_policy", preposition.load_policy()),
+            ticker=ticker, leg=leg, usage=ticker_usage,
+            cost_basis=holding.get("cost_basis"), leveraged=leveraged,
+            thesis_state=thesis.get("state"))
+        if experiment is not None:
+            technical["setups"].append(experiment)
+            technical = _apply_setup_usage(technical, ticker_usage)
+            execution_tier = preposition.TIER
         raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
@@ -1449,6 +1504,8 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
                 "add_authority": alpha_authority,
                 "early_trend": early_candidate,
                 **({"left_side": left_view} if left_view else {}),
+                "preposition": experiment,
+                "preposition_input": (context.get("preposition_inputs") or {}).get(ticker),
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})
@@ -1527,7 +1584,13 @@ def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
             ),
             None,
         )
-        active_setup = setup or early_setup
+        experiment = next((s for s in (row.get("technical") or {}).get("setups") or []
+                           if s.get("setup_id") == preposition.SETUP_ID), None)
+        if experiment:
+            tier_counts[tier] -= 1
+            tier = preposition.TIER
+            tier_counts[tier] = tier_counts.get(tier, 0) + 1
+        active_setup = experiment or setup or early_setup
         constraints = row.get("constraints") or {}
         execution = row.get("execution") or {}
         allowed = "add_only_on_trigger" in (constraints.get("allowed_actions") or [])
@@ -1547,10 +1610,12 @@ def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
             ),
             "sources": sorted(set(
                 list(authority.get("sources") or [])
+                + (list(experiment.get("authority_sources") or []) if experiment else [])
                 + (["early_trend", "information"] if early_ready else [])
             )),
             "evidence_families": sorted(set(
                 list(authority.get("evidence_families") or [])
+                + (list(experiment.get("evidence_families") or []) if experiment else [])
                 + (list(early.get("evidence_families") or []) if early_ready else [])
             )),
             "authority_blockers": list(authority.get("blockers") or []),
@@ -1560,6 +1625,7 @@ def _candidate_rows(tickers: dict) -> tuple[list, dict, dict]:
             "allowed": allowed,
             "execution_blockers": list(execution.get("blockers") or []),
             "early_trend": early,
+            "evidence_strength": (experiment or {}).get("evidence_strength"),
         })
     return candidates, tier_counts, blocker_counts
 
@@ -1614,7 +1680,7 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
             "kind": "brief_decision_packet",
             "generation_id": generation_id,
         },
-        "stock_discovery": context.get("stock_discovery") or {},
+        "stock_discovery": _discovery_availability(context, set(tickers)),
         "date": context.get("date"),
         "generated_at": context.get("generated_at"),
         "integrity": {
@@ -1866,6 +1932,7 @@ def _decision_provenance(packet: dict, ticker: str) -> dict | None:
         "observed_at": packet.get("generated_at"),
         "information": information,
         "sizing": copy.deepcopy(execution.get("information_overlay") or {}),
+        "preposition": copy.deepcopy(quant.get("preposition")),
         "authority": {
             "max_add_shares": (row.get("constraints") or {}).get("max_add_shares"),
             "position_room_shares": (
@@ -1925,8 +1992,24 @@ def _discovery_summary(discovery: dict) -> dict:
     }
 
 
+def _summary_technical(technical):
+    view = {key: technical.get(key) for key in
+            ("source_ticker", "is_proxy", "as_of", "tag", "trend",
+             "rsi_state", "stop_state", "setups", "usable")}
+    view["setups"] = [
+        {**{k: v for k, v in s.items() if k != "evidence_strength"},
+         "evidence_strength_ref": "preposition_evidence"}
+        if s.get("setup_id") == preposition.SETUP_ID else s
+        for s in technical.get("setups") or []]
+    return view
+
+
 def summary_view(packet: dict) -> dict:
+    evidence = next((s["evidence_strength"] for r in (packet.get("tickers") or {}).values()
+                     for s in (r.get("technical") or {}).get("setups") or []
+                     if s.get("setup_id") == preposition.SETUP_ID), None)
     return {
+        "preposition_evidence": evidence,
         "stock_discovery": _discovery_summary(packet.get("stock_discovery") or {}),
         "_meta": packet.get("_meta"),
         "date": packet.get("date"),
@@ -1938,11 +2021,7 @@ def summary_view(packet: dict) -> dict:
                 "name": row.get("name"),
                 "leg": row.get("leg"),
                 "status": row.get("status"),
-                "technical": {
-                    key: (row.get("technical") or {}).get(key)
-                    for key in ("source_ticker", "is_proxy", "as_of", "tag", "trend",
-                                "rsi_state", "stop_state", "setups", "usable")
-                },
+                "technical": _summary_technical(row.get("technical") or {}),
                 "thesis": row.get("thesis"),
                 "execution": row.get("execution"),
                 "quant_usable": {
@@ -1989,7 +2068,8 @@ def summary_view(packet: dict) -> dict:
                 for row in (packet.get("proposal_universe") or {}).values()
             ],
             "open": "watch; add_only_on_trigger where lot_size is known",
-            "authorization": ENTRY_GATE_REQUIRED,
+            "authorization": {t: r["constraints"]["authorization"]
+                              for t, r in (packet.get("proposal_universe") or {}).items()},
         },
         "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
@@ -2388,6 +2468,26 @@ def _add_findings(tag: str, decision: dict, row: dict) -> list[tuple[str, str, s
     setup_id = decision.get("technical_setup_id")
     setups = (row.get("technical") or {}).get("setups") or []
     named = [setup for setup in setups if setup.get("setup_id") == setup_id]
+    experimental = setup_id == preposition.SETUP_ID
+    required = (row.get("execution") or {}).get("preposition_required")
+    if required and not experimental:
+        out.append((feas, "AUTH_LEVERAGED_ADD",
+                    f"{tag}: this leveraged exception only authorizes its bounded preposition setup"))
+    if experimental:
+        expected = named[0] if named else {}
+        exact = (expected and condition.get("type") == expected.get("entry_type")
+                 and price == expected.get("entry_price")
+                 and invalidation == expected.get("invalidation_price")
+                 and decision.get("technical_campaign_id") == expected.get("campaign_id")
+                 and decision.get("tranche_number") == expected.get("next_tranche_number")
+                 and condition.get("valid_for_sessions", 1) == expected.get("valid_for_sessions")
+                 and expected.get("remaining_tranches", 0) > 0)
+        if not exact or shares is None or shares > max_add:
+            out.append((feas, "AUTH_PREPOSITION_TERMS",
+                        f"{tag}: experimental add must keep its entry, stop, next tranche, validity and size"))
+        if not decision.get("hypothesis") or not decision.get("method"):
+            out.append((feas, "FEAS_PREPOSITION_THESIS",
+                        f"{tag}: experimental add needs a falsifiable hypothesis and method"))
     if setup_id and not named:
         # Claiming a registered setup that the packet does not carry is a
         # false reference, not a different strategy.
@@ -2564,6 +2664,12 @@ def review_plan(plan: dict, packet: dict, *,
                 add(receipts.FEASIBILITY, code,
                     f"{ticker}: the plan's combined {sum(sizes)} shares exceed "
                     f"{bound} {limit:g}", None, ticker)
+    for ticker in add_sizes:
+        experimental = [d for d in decisions if d.get("ticker") == ticker
+                        and d.get("technical_setup_id") == preposition.SETUP_ID]
+        if len(experimental) > 1:
+            add(receipts.FEASIBILITY, "AUTH_PREPOSITION_TERMS",
+                f"{ticker}: only one experimental tranche may be open per plan", None, ticker)
     cash = (packet.get("portfolio") or {}).get("cash_available") or {}
     for leg, spend in sorted(leg_spend.items()):
         available = _number(cash.get(leg), 2)
@@ -2634,6 +2740,7 @@ def compile_pages_projection(
         deterministic_candidate = bool(
             is_authorised_tier(authority.get("tier"))
             or early.get("observed")
+            or (row.get("quant") or {}).get("preposition")
         )
         # The judgment's disposition as written. It used to be replaced with
         # `wait` whenever the add policy had not nominated the name — a
@@ -2908,7 +3015,8 @@ def judgment_departures(packet: dict, overlay: dict) -> list[str]:
         ticker = str(row.get("ticker") or "")
         quant = ((packet.get("tickers") or {}).get(ticker) or {}).get("quant") or {}
         if not (is_authorised_tier((quant.get("add_authority") or {}).get("tier"))
-                or (quant.get("early_trend") or {}).get("observed")):
+                or (quant.get("early_trend") or {}).get("observed")
+                or quant.get("preposition")):
             out.append(ticker)
     return out
 
@@ -2921,7 +3029,9 @@ def query_view(packet: dict, ticker: str, section: str | None = None):
     exact generation the model read. Owned here so the CLI, the tool registry
     and `read_budget_report` measure and print the same bytes.
     """
-    row = (packet.get("tickers") or {}).get(str(ticker))
+    row = ((packet.get("tickers") or {}).get(str(ticker))
+           or (packet.get("proposal_universe") or {}).get(str(ticker))
+           or (packet.get("swap_targets") or {}).get(str(ticker)))
     if row is None:
         raise ValueError(f"unknown ticker: {ticker}")
     if section is None:
