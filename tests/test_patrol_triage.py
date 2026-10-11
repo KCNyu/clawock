@@ -1,6 +1,7 @@
 """clawock-patrol triage (2026-10-01): severity is backed by evidence, filing counts
 never limit findings, one root cause is one issue, and the round's
-yield is readable by the dsh panel. Unit tests on the pure half plus one gate dry run."""
+yield is readable by the dsh panel. Since 2026-10-11 a P3 is held instead of filed.
+Unit tests on the pure half plus gate runs against a stub `gh`."""
 import json
 import os
 import subprocess
@@ -61,13 +62,28 @@ def test_noise_feedback_demotes_the_category():
     assert v.severity == "P3" and "反馈回路" in v.notes[-1]
 
 
-def test_filing_counts_never_limit_any_severity_or_feature():
+def test_noise_feedback_never_touches_a_finding_shown_on_todays_artifact():
+    # data/bug was "noisy" on 10-11 (4 rejected among 22 fixed): a wrong P&L number filed that day
+    # would have been labelled P3. Other drafts being rejected does not make this one less true.
+    red = "python3 -c \"import json; d=json.load(open('assets/data/dashboard.json'))\""
+    for sev in ("P0", "P1"):
+        v = assess(body=f"严重度: {sev}\n领域: data\n类型: bug\n", red=red, noisy={("data", "bug")})
+        assert v.severity == sev and not v.notes
+
+
+def test_filing_counts_never_limit_p0_to_p2_and_a_p3_is_held():
     now = time.time()
     rows = [{"route": "issue", "ts": now - 60, "severity": "P2", "kind": "feature"}] * 2000
-    for severity in triage.SEVERITIES:
+    for severity in ("P0", "P1", "P2"):
         for kind in ("bug", "feature"):
             assert triage.route(triage.Verdict(severity, "data", kind, "peers"), rows, now) == ("issue", "")
     assert not hasattr(triage, "BUDGET")
+    for kind in ("bug", "drift", "regression", "debt"):
+        where, why = triage.route(triage.Verdict("P3", "docs", kind, "docs"))
+        assert where == "hold" and "P3" in why
+    # the one P3 that is filed: debt on code a fix already had to touch
+    assert triage.route(triage.Verdict("P3", "debt", "debt", "debt"), debt_precedent=True) == ("issue", "")
+    assert triage.route(triage.Verdict("P3", "docs", "drift", "docs"), debt_precedent=True)[0] == "hold"
 
 
 def test_fingerprint_groups_by_enclosing_function(tmp_path):
@@ -131,6 +147,26 @@ def test_feedback_counts_only_labelled_noise(tmp_path, monkeypatch):
     text, noisy = patrol_intel.brief("render", "", str(saved), now)
     assert noisy == [("dashboard", "bug")]
     assert "本范围（render）单独开 3 条" in text and "#4" in text
+
+
+def test_feedback_is_a_rate_so_a_busy_category_is_not_silenced_by_three_rejections(tmp_path, monkeypatch):
+    monkeypatch.setattr(patrol_intel, "LOGDIR", tmp_path)
+    now = time.time()
+    iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 3600))
+
+    def issue(n, area, reason):
+        return {"number": n, "title": "[patrol] x", "state": "CLOSED", "stateReason": reason,
+                "labels": [{"name": f"area:{area}"}, {"name": "kind:bug"}], "createdAt": iso, "closedAt": iso}
+
+    issues = ([issue(n, "data", "NOT_PLANNED") for n in range(1, 5)]            # 4 rejected
+              + [issue(n, "data", "COMPLETED") for n in range(10, 32)]          # among 22 fixed
+              + [issue(n, "dsh", "NOT_PLANNED") for n in range(40, 43)]         # 3 rejected
+              + [issue(n, "dsh", "COMPLETED") for n in range(50, 53)])          # as many as were fixed
+    saved = tmp_path / "issues.json"
+    saved.write_text(json.dumps(issues))
+    text, noisy = patrol_intel.brief("logic", "", str(saved), now)
+    assert noisy == [("dsh", "bug")]
+    assert "dsh/bug" in text and "data/bug" not in text.split("降权中")[1]
 
 
 def test_round_yield_is_a_slash_free_field(tmp_path, monkeypatch):
@@ -209,7 +245,35 @@ def test_gate_dry_run_reports_triage_and_route(tmp_path):
     assert "labels: patrol severity:P0 area:data kind:bug lens:money" in r.stderr
     r = _gate(tmp_path, DRAFT.format(sev="P3"), name="b")
     assert r.returncode == 0, r.stderr
-    assert "triage P3 area:data kind:bug lens:money → issue" in r.stderr
+    assert "triage P3 area:data kind:bug lens:money → hold" in r.stderr
+    assert "会留下不开 issue" in r.stderr
+
+
+def test_gate_holds_a_p3_without_filing_and_the_round_yield_counts_it(tmp_path, monkeypatch):
+    # A real (not dry) run, with a `gh` that records what it is asked: reads answer empty, any write fails.
+    bin_dir, calls = tmp_path / "bin", tmp_path / "gh.calls"
+    bin_dir.mkdir()
+    (bin_dir / "gh").write_text(
+        f"#!/bin/sh\necho \"$@\" >> {calls}\n"
+        "case \"$1 $2\" in 'issue create'|'issue comment'|'label create') exit 1;; esac\n"
+        "case \"$*\" in *--json*) echo '[]';; esac\nexit 0\n")
+    (bin_dir / "gh").chmod(0o755)
+    env = {"GATE_DRY_RUN": "", "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+    r = _gate(tmp_path, DRAFT.format(sev="P3"), env_extra=env)
+    assert r.returncode == 0, r.stderr
+    assert "gate: HELD" in r.stdout and "P3" in r.stdout
+    state = tmp_path / "a" / "state"
+    rows = triage.read_jsonl(state / "filed" / "index.jsonl")
+    assert [(row["route"], row["number"], row["severity"]) for row in rows] == [("hold", None, "P3")]
+    assert (state / "filed" / "R1-x.md").is_file()        # later drafts dedupe against the held one
+    asked = calls.read_text() if calls.exists() else ""
+    assert "issue create" not in asked and "issue comment" not in asked
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    assert patrol_intel.round_yield("patrol-money-20261001-010203") == "+1 held"
+    assert "另有 1 条 P3 被闸留下没开 issue" in patrol_intel.filing_line(time.time())
+    # the same draft declared P2 goes on to be filed: the stub refuses, so the gate dies at create
+    r = _gate(tmp_path, DRAFT.format(sev="P2"), name="c", env_extra=env)
+    assert r.returncode != 0 and "issue create" in calls.read_text()
 
 
 def test_gate_refuses_a_feature_outside_the_peers_lens(tmp_path):

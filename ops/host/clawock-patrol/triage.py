@@ -6,7 +6,9 @@ The filing gate (`gate_issue.py`) proves a finding is *true*. This module decide
 comment on an issue that already holds the same root cause. Legacy digests remain readable.
 
 Quality is enforced by runtime evidence, severity and root-cause deduplication. There is no
-per-round, daily or weekly issue-count ceiling (kcn 2026-10-01).
+per-round, daily or weekly issue-count ceiling (kcn 2026-10-01), but a P3 does not become an
+issue (kcn 2026-10-11: findings that could as well stay unfixed dilute the ones that cost money
+or blind a gate). The gate keeps a held P3 in the patrol state directory and tells the round so.
 
 Borrowed shapes, and from where:
 - labels as prefixed dimensions (`kind/`, `area/`, `priority/`): Kubernetes prow triage;
@@ -35,8 +37,8 @@ SEVERITIES = ("P0", "P1", "P2", "P3")
 SEVERITY_TEXT = {
     "P0": "kcn 今天看到/收到的钱、仓位、决策数字是错的，或成品丢了/发重了/发不出去，或公开泄露凭证",
     "P1": "会放过 P0 的闸/检测/watchdog 在真实数据上失明或 fail-open，或让人学会忽略告警的假红",
-    "P2": "看得到但不改变决策：标签/格式错、非金额的陈旧文案、CI 触发盲区、真实数据里还没出现的边界崩溃",
-    "P3": "文档错字/顺序、样式与对比度、无害的标签不一致、内部卫生",
+    "P2": "今天还没让人读错，但输入可达：真实数据里还没出现的边界崩溃/错数、会误导判断的陈旧或反向读数、CI 触发盲区",
+    "P3": "不改变任何人读到的数字、状态或告警：文档/注释漂移、样式、标签与格式措辞、内部卫生（不开 issue）",
 }
 
 AREAS = {
@@ -243,8 +245,10 @@ def assess(*, title, body, surface, infra_label, refs, red, lens, noisy=None):
                     "判据和 文件:行 里一处都没有")
     if v.severity == "P0" and v.area not in ("data", "risk", "delivery", "security"):
         lower("P1", "P0 只留给钱/决策数字、投递与泄露")
-    if noisy and (v.area, v.kind) in noisy:
-        lower("P3", f"最近 14 天 {v.area}/{v.kind} 类被多次按误报/不值得修关闭（反馈回路）")
+    # The loop only settles borderline findings. A P0/P1 that got here already showed today's real
+    # artifact; other people's rejected drafts in the same category do not make it less true.
+    if noisy and (v.area, v.kind) in noisy and v.severity == "P2":
+        lower("P3", f"最近 14 天 {v.area}/{v.kind} 类被关成误报/不值得修的不少于修掉的（反馈回路）")
     return v
 
 
@@ -311,12 +315,20 @@ def cluster_target(index_rows, fp, area, open_numbers, now=None):
     return None
 
 
-def route(v, index_rows=(), now=None):
-    """Every evidence-backed severity gets an issue, regardless of previous filing counts.
+HOLD_WHY = "P3 不开 issue（kcn 2026-10-11：宁可少而真），留在巡检状态目录"
 
+
+def route(v, index_rows=(), now=None, debt_precedent=False):
+    """P0–P2 each get an issue, regardless of previous filing counts; a P3 is held, not filed.
+
+    The one P3 that is still filed is structural debt on code that already produced a bug
+    (`debt_precedent`: a fix that touched this very code): kcn asked for that debt to be paid
+    down (2026-10-05), and the precedent is what separates it from hygiene.
     The optional history arguments remain accepted for callers replaying old findings.
     Root-cause grouping is handled separately by the gate.
     """
+    if v.severity == "P3" and not (v.kind == "debt" and debt_precedent):
+        return "hold", HOLD_WHY
     return "issue", ""
 
 

@@ -10,7 +10,7 @@
 | 文件 | 读者 | 时机 |
 |---|---|---|
 | `round-prompt.md` | 每轮模型 | 每轮注入（`patrol.sh render` 替换 `{{ROUND}}` `{{AXIS_TITLE}}` `{{AXIS_BODY}}` `{{HEAD}}` `{{STEER}}`） |
-| `closed-lessons.md` | 每轮模型 | 开工必读的九类核对清单；编号被 `gate_issue.py` 的拒绝信息引用，改编号要同步 |
+| `closed-lessons.md` | 每轮模型 | 开工必读的十类核对清单；编号被 `gate_issue.py` 的拒绝信息引用，改编号要同步 |
 | `hunting-patterns.md` | 每轮模型 | 开工必读：修掉的 issue 反复出在哪八类地方、每类的探针；recent 轮的修复兄弟项核查 |
 | `closed-lessons-examples.md` | 模型 | 按需：写「对照已关」或拿不准时 |
 | `investigation-guide.md` | 模型 | 按需：调查卡住、判断值不值得提 |
@@ -29,17 +29,19 @@
 ## 分级与路由（2026-10-01）
 
 闸保证一条发现**是真的**；`triage.py` 标明严重度和领域，并与已有同根因 issue 去重。
-提报数量不限：不按每轮、24 小时、每周或 issue 总数压制发现，P3 也正常提报。
+P0–P2 提报数量不限：不按每轮、24 小时、每周或 issue 总数压制发现。**P3 不开 issue**（kcn 2026-10-11：
+可修可不修的发现在稀释真金，宁可少而真）：闸回 `HELD`，草稿留在状态目录供查重，`rounds.tsv` 记 `+N held`。
 
 - **分级**：草稿写 `## 分级`（严重度 / 领域 / 类型 / 关联），缺了按标题推断。闸只降不拒：P0/P1 必须拿今天的真实产物
-  作证，文档与纯样式压到 P3，基础设施面最高 P2，最近被反复按误报关闭的类别压到 P3。规则表在 `issue-format.md`。
-- **去向**：P0–P3 都单独开 issue；`关联:` 指向 open issue 或与 14 天内 open 的巡检 issue
+  作证，文档与纯样式压到 P3，基础设施面最高 P2；14 天内被关成误报的不少于修掉的类别（至少 3 条），其 P2 压到 P3，
+  P0/P1 不受反馈回路影响。规则表在 `issue-format.md`。
+- **去向**：P0–P2 单独开 issue，P3 留下不开（先例成立的代码债务除外）；`关联:` 指向 open issue 或与 14 天内 open 的巡检 issue
   同一「文件 + 函数 + 领域」时，作为补充评论挂过去（Sentry 式指纹）。取消数量限制前留下的
   `/root/logs/clawock-patrol/digest/pending.jsonl` 下次收尾立即提报，不等条数或年龄。
 - **标签**：`patrol`、`severity:P0–P3`、`area:*`、`kind:*`、`lens:<axis>`、`patrol:digest`，以及给关闭者用的
   `patrol:noise`。`filing.py ensure-labels` 建全套，`filing.py backfill` 给存量补标签。
 - **反馈回路**：`patrol_intel.py brief` 每轮统计各范围 14 天内的修复/误报，列最近被判误报的 issue，
-  把被多次按 not planned / `patrol:noise` 关闭的「领域/类型」写进 `feedback.json`，闸据此降权；recent 轮另附
+  把被关成 not planned / `patrol:noise` 不少于修掉的「领域/类型」写进 `feedback.json`，闸据此降权；recent 轮另附
   「回归观察」：窗口内非运行时、非 tests/ 编辑碰过的、已修 issue 引用的文件，连同那条 issue 当时的 RED-CHECK（`regress/<N>.sh`）。
 - **peers 轮**：每天一轮读 `peers.json` 里的开源同类项目，只能提 `类型: feature` 的提案（最高 P2，数量不限），
   闸核来源仓库仍活跃、痛点 #N 真实存在、不越产品边界。
@@ -50,3 +52,17 @@
 
 提报到 GitHub 的第三方引用由 `github_text.py` 强制清理并验证，覆盖标题、正文、评论及旧汇总。
 项目名用纯文本，借鉴机制用自己的话说明；外部链接只留在仓库文档/peers.json，来源活跃核验仍在私下进行。
+
+## 产出质量怎么量（2026-10-11）
+
+目标是真金（钱/仓位/决策数字错、成品没发、闸假绿/假红）的条数，不是 issue 总数。三个读数都从 `gh issue list` 和
+`rounds.tsv` 算，基线是改动前的 10-01..10-11：
+
+| 读数 | 怎么算 | 改动前 | 期望 |
+|---|---|---|---|
+| 新 issue 里 P3 占比 | `label:patrol` 按创建日，`severity:P3` / 全部 | 30%（119/400） | 低于 10%，剩下的只该是有先例的债务 |
+| P0+P1 每完成轮 | `severity:P0,P1` 条数 / `rounds.tsv` 里 ok、unverified 的轮数 | 0.16（37/235） | 不低于基线；轮换往 logic/money/automation 倾斜后应更高 |
+| P0–P2 被关成误报 | 已关的 P0–P2 里 not planned 或 `patrol:noise` 的占比 | 10-01..06 9%，10-07..11 24% | 不高于 10%；升高先查是哪个模型收尾的轮次 |
+
+第二行同时受模型影响：同一范围同一天，弱模型收尾的轮次 0 条而强模型提出 P1（10-11 logic：R643 对 R653）。
+读数变差时先按 `result.env` 的 `MODEL_USED` 拆开看，再怀疑 prompt。

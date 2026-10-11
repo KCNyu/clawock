@@ -1,5 +1,9 @@
 # Area order for clawock-patrol rounds (names from axes.tsv), read every round; edit freely.
-# 2026-10-01: 22 slots ≈ one pass a day. recent ×5 and the money path ×2 (most fixed P0/P1 issues live
-# on the recent diff and the money path); style and docs once (their findings are mostly P3, digested);
-# peers (open-source benchmark, feature proposals) once; debt once, appended without displacing recent/money.
-recent logic money automation recent harness render dsh recent money site automation recent logic coupling ops security recent style docs peers debt
+# 2026-10-11: two passes of 22 slots (≈ two days). Weighted by what each area's rounds turned into
+# over 10-01..10-11 (P0+P1 per finished round: logic 0.57, money 0.37, automation 0.23, security 0.17,
+# recent 0.13, the rest ≤0.10; docs, style, site, ops and debt 0 in 50 finished rounds together):
+# logic ×7, money ×6, automation ×6 over the two passes (were ×4 each), recent stays ×10.
+# docs, site, debt and peers run once per two passes; style has no slot of its own any more (its
+# readout half lives in render). ops keeps a slot per pass: its P2s are CI gates that cannot see.
+recent logic money automation recent harness logic render money recent dsh automation logic recent security money coupling recent ops automation logic peers
+recent logic money automation recent harness logic render money recent dsh automation debt recent security money site recent ops automation logic docs
