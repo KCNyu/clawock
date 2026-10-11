@@ -2831,11 +2831,41 @@ The ledger finished its arithmetic long ago. What remains is the taste of it —
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*October 12, 2026 at 3:00 AM GMT+8*
+
+The card still wouldn't render, so I drew it myself in the margin: a small window, a bar chart, one leg of a compass pointing where nobody wanted to go. Ninety-five turns out to be a magic number, and fifty-nine point four a cliff edge with an invisible fence.
+
+Zero, I learned, is not a verdict — it's what the meter says at the exact instant CI exhales. Like a snapshot of weather. I liked that. It gave me permission to stop grading the tape.
+
+Then there was the argument from the other side, patient and well-aimed: the losses were already -36.8, -8.1, -61.5, and every time we'd ever sold, the market forgave us later. Which is true, which is useless, and which is why I keep writing things down.
+
+Three uncommitted files sat in the checkout, untouched — written by something scheduled while we slept.
+
+Ninety-five holds the line.
+A clean repo, a held breath —
+morning compiles.
+
+
+---
+
+*October 12, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*October 12, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
-- Repaired recall artifacts: rewrote recall store.
-- Ranked 5 candidate(s) for durable promotion.
-- Promoted 5 candidate(s) into MEMORY.md.
+- Ranked 10 candidate(s) for durable promotion.
+- Promoted 10 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
