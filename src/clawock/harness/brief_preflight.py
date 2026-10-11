@@ -64,7 +64,7 @@ from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision.book import pnl_totals
 from clawock.decision import packet as brief_decision_packet
-from clawock.decision import add_policy, add_side, left_side
+from clawock.decision import add_policy, add_side, intraday_policy, left_side
 from clawock.decision import signals as bar_signals
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
@@ -2114,7 +2114,8 @@ def _collect(argv=None):
     guardrail = compute_risk_guardrail(
         portfolio['portfolios']['hk_stocks']['holdings'],
         portfolio['portfolios']['us_stocks']['holdings'],
-        hk_conc, us_conc, risk, lev_regime=lev_regime)
+        hk_conc, us_conc, risk, lev_regime=lev_regime,
+        reduce_exempt_strategies=intraday_policy.reduce_exempt_strategies(WS))
     guardrail = risk_discipline.attach_breach_ids(guardrail)
     _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
     discipline = {}

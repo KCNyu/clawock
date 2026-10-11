@@ -74,16 +74,24 @@ def compute_concentration(holdings):
 # dashboard cards into explicit risk responses. Caps allow a reasoned hold;
 # stops/regime obligations follow the durable standing and override contracts.
 GUARDRAIL_CAPS = {
-    # A concentrated non-leveraged core is a review item from 35%, not a forced
-    # sale. Only >60% is mandatory. Leveraged single names remain on the strict
-    # 35% construction cap because daily reset makes concentration nonlinear.
+    # kcn 2026-10-11: 「集中度未必是坏事，可以单调一只甚至都可以」「偏激进甚至可以杠杆」.
+    # Measured the same week: the single-name, leveraged-leg, cluster and β caps
+    # stood open for up to 86 days, were answered with 0 sells on the four names
+    # still held, and froze adds on the names the book bought 24 times anyway.
+    # So construction is state to look at, not a breach: one name, leveraged or
+    # not, may be the whole leg (a `single_name_review` row from 35%), a leg may
+    # be all leveraged ETFs, and one cluster may be the whole book. What stays a
+    # rule is what a daily-reset product loses by waiting: the hard stop and the
+    # regime dial, which also still halves or zeroes the HK leveraged-leg cap.
     'single_name_review_pct': 35,
-    'single_name_mandatory_pct': 60,
-    'leveraged_single_name_pct': 35,
-    'correlated_cluster_pct': 70,
+    'single_name_mandatory_pct': 100,
+    'leveraged_single_name_pct': 100,
+    'correlated_cluster_pct': 100,
     'correlation_min_coverage_pct': 80,
-    'lev_etf_leg_pct':   50,    # leveraged ETFs as % of a leg
-    'us_beta_max':       3.0,   # US β vs S&P 500
+    'lev_etf_leg_pct':   100,   # leveraged ETFs as % of a leg, before the regime multiplier
+    # A leg held entirely in a 2x product on a β≈3 stock runs β 6; above that
+    # the book is levered beyond anything a 2x ETF alone can build.
+    'us_beta_max':       6.0,   # US β vs S&P 500
     'lev_etf_stop_pct': -18,    # hard-stop line for one leveraged ETF (vs cost)
 }
 
@@ -117,10 +125,9 @@ def _directive(*, type, leg, ticker, severity, detail, action, required_reductio
 def _single_name_policy(leg, ws, hold, total, ccy):
     caps = GUARDRAIL_CAPS
     breaches, reviews = [], []
-    # Single-name policy: concentration is allowed for a high-conviction
-    # non-leveraged core. 35-60% is visible review state, not a mandatory
-    # trim; >60% is the hard construction boundary. A leveraged single name
-    # retains the strict 35% cap.
+    # Single-name policy: concentration is allowed. Above the review line a
+    # name is visible review state, leveraged or not; the mandatory caps
+    # (`GUARDRAIL_CAPS`) no longer bind below the whole leg.
     for w in ws:
         holding = next((h for h in hold if h.get('ticker') == w['ticker']), {})
         leveraged = _is_leveraged_etf(holding)
@@ -152,15 +159,14 @@ def _single_name_policy(leg, ws, hold, total, ccy):
                     'target_tickers': [w['ticker']],
                 },
             ))
-        elif (not leveraged
-              and w['weight_pct'] > caps['single_name_review_pct']):
+        elif w['weight_pct'] > caps['single_name_review_pct']:
             reviews.append({
                 'type': 'single_name_review', 'leg': leg,
                 'ticker': w['ticker'], 'severity': 'advisory',
-                'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}; "
-                           f"inside the {caps['single_name_review_pct']}-"
-                           f"{caps['single_name_mandatory_pct']}% concentrated-core "
-                           "review band, no mandatory trim"),
+                'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}"
+                           f"{' (2x/3x)' if leveraged else ''}; above the "
+                           f"{caps['single_name_review_pct']}% review line, "
+                           "no mandatory trim"),
             })
 
     return breaches, reviews
@@ -206,12 +212,19 @@ def _leveraged_leg_policy(leg, hold, total, ccy, hk_mult, lev_regime):
     return breaches, eff_lev_cap
 
 
-def _hard_stop_watch(leg, hold, ccy):
+def _reduce_exempt(holding, strategies):
+    """True when the holding runs a strategy whose policy forbids reduce advice."""
+    return bool(holding.get('strategy')) and holding.get('strategy') in strategies
+
+
+def _hard_stop_watch(leg, hold, ccy, reduce_exempt_strategies=frozenset()):
     caps = GUARDRAIL_CAPS
     hard_stops = []
     # hard-stop watch on individual leveraged ETFs
     for h in hold:
         if (_share_number(h.get('shares', 0)) or 0) <= 0 or not _is_leveraged_etf(h):
+            continue
+        if _reduce_exempt(h, reduce_exempt_strategies):
             continue
         pnl = _holding_pnl_pct(h)
         if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
@@ -242,7 +255,7 @@ def _hard_stop_watch(leg, hold, ccy):
     return hard_stops
 
 
-def _regime_delever_policy(us_holdings, lev_regime):
+def _regime_delever_policy(us_holdings, lev_regime, reduce_exempt_strategies=frozenset()):
     breaches = []
     # US per-name leverage dial (lev_regime['us']) — only the 'cut' state (underlying
     # trend-off AND vol hot) becomes a forced directive; 'watch' (calm) stays advisory.
@@ -253,6 +266,8 @@ def _regime_delever_policy(us_holdings, lev_regime):
             if nm.get('state') == 'cut' and nm.get('etf') in held_us:
                 holding = next(h for h in us_holdings if h.get('ticker') == nm['etf']
                                and (_share_number(h.get('shares', 0)) or 0) > 0)
+                if _reduce_exempt(holding, reduce_exempt_strategies):
+                    continue
                 vol = nm.get('vol_annualized')
                 if vol is None:
                     basis = nm.get('regime_basis') or 'short_ma'
@@ -390,7 +405,7 @@ def _beta_policy(us_holdings, risk):
 
 
 def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
-                           lev_regime=None):
+                           lev_regime=None, *, reduce_exempt_strategies=frozenset()):
     """Pure function of current state → concrete, capped trim/cut directives.
     A hard stop and a regime de-lever oblige a sell; the four caps
     (`decision.risk.RESPOND_ONLY_TYPES`) oblige an answer.
@@ -398,7 +413,13 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     lev_regime (lev_regime.json, optional): the HSTECH trend+vol leverage dial.
     When present and hostile (amber/red), it TIGHTENS the leveraged-ETF leg cap by
     its multiplier (green 1.0 / amber 0.5 / red 0.0). Backtest-verified: the lever
-    that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing."""
+    that mattered in the 2021-22 crash was leverage (2x→1x→cash), not timing.
+
+    reduce_exempt_strategies: holding strategies whose policy sets
+    `forbid_reduce_advice` (`decision.intraday_policy.reduce_exempt_strategies`).
+    A holding on one of them gets no hard-stop and no regime de-lever row: its
+    owner declared it is bought on the way down, and its own escalations are
+    the intraday strategy rules. Its weight still shows as a review row."""
     caps = GUARDRAIL_CAPS
     breaches, hard_stops, reviews = [], [], []
     # Leveraged-ETF leg cap is tightened PER LEG: the HK leg by the HSTECH dial
@@ -421,9 +442,10 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
         leveraged, eff_caps[leg] = _leveraged_leg_policy(
             leg, hold, total, ccy, hk_mult, lev_regime)
         breaches.extend(leveraged)
-        hard_stops.extend(_hard_stop_watch(leg, hold, ccy))
+        hard_stops.extend(_hard_stop_watch(leg, hold, ccy, reduce_exempt_strategies))
 
-    breaches.extend(_regime_delever_policy(us_holdings, lev_regime))
+    breaches.extend(_regime_delever_policy(
+        us_holdings, lev_regime, reduce_exempt_strategies))
     breaches.extend(_factor_concentration_policy(hk_holdings, us_holdings, risk))
     breaches.extend(_beta_policy(us_holdings, risk))
 

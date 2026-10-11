@@ -369,7 +369,7 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
-- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% 须回应、不强卖；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
+- `directive` — 本次总指令；`caps` — 当前阈值（2026-10-11 kcn：集中与杠杆 ETF 敞口不设上限。单名超过 35% 只进 `concentration_reviews`，杠杆与否都不算 breach；单名、相关 cluster、杠杆 ETF 占比上限都是整段 100%，杠杆 ETF 占比仍按港股制度乘数收紧；US β 6.0；杠杆止损 −18%）。持仓策略带 `forbid_reduce_advice` 的票（现为 `infinite_ammo_dca`）不出硬止损和 `regime_delever` 行。Top2 仅展示，不再冒充同因子。
 - `context.risk_discipline.records[]`（core，常驻）— 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence；`adaptive.recent_choices` 是最近几次 stand/reissue（完整理由留在账本）。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
@@ -408,7 +408,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   harness 已经从账本和成交记录算好了证据,你不用、也不许自己推断 kcn 想不想做:
   - `eligible=true` = 挂 ≥10 天 + kcn 明确没照做:`stance.stance=declined`(同期在别的票有成交,
     这几只一股没减)或 `contrary`(被要求减的时候反向买入,`buys_on_target` 次)。`silent`(最近
-    没交易,可能不在)**不算**表态,照常出动作。
+    没交易,可能不在)**不算**表态,不能让一条 breach 变成 eligible;已经 eligible 的不因此收回。
+    同一条 breach 平掉后 30 天内再开算同一轮,天数和搁置资格延续。
   - `may_stand=true` → 今天由你选:**重提**(照常出 cut/trim)或**维持**(出 `hold_and_watch`,
     `strategy_id=risk_rebalance`、`driven_by=risk_rule`)。默认维持;**只有今天和上次重提时比
     有实质不同**才重提——跌穿关键位、新的一手催化、制度切换、临近事件(FOMC/财报)——
