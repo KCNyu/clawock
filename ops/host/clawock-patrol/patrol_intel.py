@@ -5,13 +5,14 @@
       prints the round prompt's「反馈与提报」block and rewrites feedback.json (the categories the
       gate demotes). The supervisor runs it before every dispatch; failure leaves a one-line note.
   patrol_intel.py round-yield --task <task id>
-      prints what one round routed, e.g. `P1#2240 P2#2241 +1 digest +1 comment`, for rounds.tsv.
+      prints what one round routed, e.g. `P1#2240 P2#2241 +1 comment +2 held`, for rounds.tsv.
 
 Three loops, each borrowed from a tool that already runs one:
 - precision per detector (CodeQL query precision + dismissal reasons): every lens's recent issues
   counted as fixed / noise (closed not planned, or labelled patrol:noise/duplicate/invalid/
-  wontfix); an (area, kind) pair closed as noise 3+ times in 14 days is classified as P3
-  by the gate until it stops being closed that way;
+  wontfix); an (area, kind) pair closed as noise 3+ times in 14 days, and at least as often as
+  it was fixed, has its P2 findings held as P3 by the gate until that stops (P0/P1 are never
+  touched: they carry today's real artifact);
 - regression detection (Sentry's resolved → regressed): a fixed patrol issue kept its RED-CHECK
   in the draft; when a commit in the recent window touches a file that issue cited, the recent
   round is told to re-run that exact check (it must stay green);
@@ -107,9 +108,13 @@ def feedback(rows, now):
         c["open"] += r["state"] == "OPEN"
     # Only labelled issues count toward a demotion: the keyword guess is good enough to describe
     # history, not to silence a category (an inferred `ops/bug` is where every unknown lands).
-    noise_pairs = Counter((r["area"], r["kind"]) for r in rows
-                          if r["noise"] and r["labelled"] and now - r["closed"] < WINDOW_S)
-    noisy = sorted(pair for pair, n in noise_pairs.items() if n >= 3)
+    closed = [r for r in rows if r["labelled"] and r["closed"] and now - r["closed"] < WINDOW_S]
+    noise_pairs = Counter((r["area"], r["kind"]) for r in closed if r["noise"])
+    fixed_pairs = Counter((r["area"], r["kind"]) for r in closed if r["fixed"])
+    # A rate, not a count: the categories that carry the money path are also the busiest, so
+    # three rejected drafts among thirty fixes (data/bug on 10-11: 4 against 22) say nothing
+    # about the category. It is noisy when rejections are at least as common as fixes.
+    noisy = sorted(pair for pair, n in noise_pairs.items() if n >= 3 and n >= fixed_pairs[pair])
     lessons = sorted((r for r in rows if r["noise"] and now - r["closed"] < WINDOW_S), key=lambda r: -r["closed"])[:6]
     return per_lens, noisy, lessons
 
@@ -119,10 +124,11 @@ def filing_line(now):
     day = [r for r in index if r.get("route") == "issue" and now - r.get("ts", 0) < 86400]
     by = Counter(r.get("severity") for r in day)
     pending = len(triage.read_jsonl(LOGDIR / "digest" / "pending.jsonl"))
+    held = sum(r.get("route") == "hold" and now - r.get("ts", 0) < 86400 for r in index)
     return (f"- 24 小时内单独开了 {len(day)} 条（P0 {by['P0']} / P1 {by['P1']} / "
-            f"P2 {by['P2']} / P3 {by['P3']}）；提报数量不限。"
-            "各级发现都按证据和严重度提报，同根因补充到已有 issue；功能提案没有周数量上限。"
-            f"旧汇总待发 {pending} 条，下次收尾立即提报，不等待数量或年龄门槛。")
+            f"P2 {by['P2']} / P3 {by['P3']}），另有 {held} 条 P3 被闸留下没开 issue。"
+            "P0–P2 数量不限，同根因补充到已有 issue；P3 不开 issue，别把一轮花在它上面。"
+            + (f"旧汇总待发 {pending} 条，下次收尾提报。" if pending else ""))
 
 
 def regression_watch(rows, since, tasks, limit=6):
@@ -188,8 +194,8 @@ def brief(axis, since, issues_path=None, now=None):
         lines.append("- 最近被判误报/不值得修（同形态别再提，拿不准先 `gh issue view <N> -R KCNyu/clawock --comments` 看关闭理由）：")
         lines += [f"  - #{r['number']} `{r['area']}/{r['kind']}` {r['title'][9:90]}" for r in lessons]
     if noisy:
-        lines.append("- 降权中（闸会把这些类别压到 P3 进汇总，直到不再被这样关）："
-                     + "、".join(f"{a}/{k}" for a, k in noisy))
+        lines.append("- 降权中（这些类别最近被关成误报的不少于修掉的；闸会把其中的 P2 压到 P3、不开 issue，"
+                     "带今天真实产物的 P0/P1 不受影响）：" + "、".join(f"{a}/{k}" for a, k in noisy))
     if axis == "recent":
         watch = regression_watch(rows, since, task_by_issue())
         if watch:
@@ -206,10 +212,13 @@ def round_yield(task):
     parts = [f"{r.get('severity')}#{r.get('number')}" for r in rows if r.get("route") == "issue"]
     digest = sum(r.get("route") == "digest" for r in rows)
     comment = sum(r.get("route") == "comment" for r in rows)
+    held = sum(r.get("route") == "hold" for r in rows)
     if digest:
         parts.append(f"+{digest} digest")
     if comment:
         parts.append(f"+{comment} comment")
+    if held:
+        parts.append(f"+{held} held")
     return " ".join(parts)
 
 
