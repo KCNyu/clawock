@@ -12,6 +12,14 @@ PASSIVE_ACTIONS = {"hold_and_watch", "watch"}
 SWAP_SELL_ACTIONS = ("cut", "trim_on_rebound")
 
 
+def positive_whole_shares(value):
+    """Authored order size, before normalization can truncate or coerce it."""
+    shares = to_strict_finite_number(value)
+    if shares is None or shares <= 0 or int(shares) != shares:
+        return None
+    return int(shares)
+
+
 def is_risk_swap_buy(decision):
     """A risk-rule buy's shape, not permission to buy (the packet owns that)."""
     return (decision.get("action") == "add_only_on_trigger"
