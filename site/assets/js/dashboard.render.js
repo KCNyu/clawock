@@ -3275,6 +3275,20 @@
     document.getElementById('breakeven-note').textContent = bm.note || '';
   }
 
+  // Where one value sits between a low and a high, as the single number both the
+  // marker and the printed percentage read: two derivations of the same position
+  // are how a gap to the high came to read as "recovered" (#2881). `zero` is the
+  // break-even line on the same scale — inside it, or off one end.
+  function rangePosition(low, high, now) {
+    if (![low, high, now].every(Number.isFinite) || high <= low) return null;
+    const at = v => Math.min(1, Math.max(0, (v - low) / (high - low)));
+    const pos = at(now);
+    const pct = Math.round(pos * 100);
+    // 100% and 0% are claims ("at the high", "at the low"); rounding may not make them.
+    const label = pos > 0 && pct === 0 ? "<1%" : pos < 1 && pct === 100 ? ">99%" : pct + "%";
+    return { pos, label, zero: low > 0 ? "below" : high < 0 ? "above" : at(0) };
+  }
+
   function renderHistoricalExtremes() {
     const dd = safe(DATA, "drawdown") || {};
     const regions = [
@@ -3282,11 +3296,12 @@
       { key: "us", name: "美股 (USD)", data: dd.us },
       { key: "hk", name: "港股 (HKD)", data: dd.hk },
     ];
+    const dstr = d => d ? d.slice(5) : "";  // MM-DD
     // window hint: span of the embedded snapshot series
     const snaps = safe(DATA, "snapshots") || [];
     const hintEl = document.getElementById("extremes-window");
     if (hintEl && snaps.length) {
-      hintEl.textContent = `样本窗口 ${snaps[0].date} → ${snaps[snaps.length-1].date}（共 ${snaps.length} 个交易日快照）。`;
+      hintEl.textContent = ` · ${dstr(snaps[0].date)} → ${dstr(snaps[snaps.length-1].date)}`;
     }
 
     const money = (v, cur) => {
@@ -3294,80 +3309,79 @@
       const sym = cur === "USD" ? "$" : "HK$";
       return sym + Math.round(v).toLocaleString("en-US");
     };
-    const dstr = d => d ? d.slice(5) : "";  // MM-DD
 
     const profitDd = (dd.profit) || {};
     const signed = (v, cur) => (v != null && isFinite(v) ? (v >= 0 ? "+" : "−") + money(Math.abs(v), cur) : DASH);
+    const pctTxt = (v) => (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
+    const neg = v => (v < 0 ? " neg" : "");
     regions.forEach(r => {
       const el = document.getElementById(`ext-region-${r.key}`);
       if (!el) return;
       const e = r.data;
       if (!e) { el.innerHTML = `<div class="ext-name">${r.name}</div><div class="muted" style="margin-top:8px">无数据</div>`; return; }
       const cur = e.currency;
-      // PRIMARY = 总利润口径 (净化本金) — trade-invariant: 加减仓不会虚抬/虚降它，
-      // 所以它的峰值才是"真·赚最多"那天。净值(市值+已实现)会被买入抬高(花掉的现金
-      // 不计入)，故只作参考。p 缺失时退回 equity 作主显示。
+      // 口径 = 总利润 (净化本金) — trade-invariant: 加减仓不会虚抬/虚降它，
+      // 所以它的峰值才是"真·赚最多"那天。
       const p = profitDd[r.key];
-      const head = p || e;                 // who drives the headline + at_low flag
-      const atLow = !!head.at_low;
-      el.classList.toggle("is-low", atLow);
-      // 最大回撤 %: 仅利润全程为正时有意义(见 _profit_extremes 守卫)；港股利润为负→null。
-      const ddPct = (p && p.max_dd_pct != null) ? p.max_dd_pct.toFixed(1) + "%" : null;
-      // 回撤有两件事，各有自己的峰/谷，发布端分别结算（`_drawdown_episodes`），这里只照印:
-      //   open_dd    = 进行中的这一轮：起点就是历史最高利润，所以它和「距利润峰值」
-      //                是同一个峰——还差着峰值时它不可能读成 100%。
-      //   deepest_dd = 历史上最深的那一次；收复过就是已结清的历史，不代表现在在峰值。
-      // 收回% 是金额比金额 (当前−谷)/(峰−谷)，利润为负也成立；不截断，也不在这里重算。
-      const open = p && p.open_dd, deep = p && p.deepest_dd;
-      const span = (ep) => `${signed(ep.peak.value, cur)}（${dstr(ep.peak.date)}）→ ${signed(ep.trough.value, cur)}（${dstr(ep.trough.date)}）`;
-      const pctTxt = (v) => (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
-      let openBlock = "";
-      if (open && open.status === "none") {
-        openBlock = `
-          <div class="span">当前利润就是历史最高，没有进行中的回撤。</div>`;
-      } else if (open) {
-        const rec = open.recovery_pct;
-        let tier = "poor", txt = "刚反弹一点，仍接近本轮最低";
-        if (open.status === "at_trough") txt = "现处本轮最低点，尚无反弹";
-        else if (rec >= 70) { tier = "good"; txt = "已收回大部分，但尚未回到峰值"; }
-        else if (rec >= 30) { tier = "mid"; txt = "部分收回"; }
-        openBlock = `
-          <div class="ext-row"><span class="k">本轮回撤已收回</span><span class="v"><b class="rec-${tier}">${pctTxt(rec)}</b></span></div>
-          <div class="dd-bar"><div class="dd-bar-fill ${tier}" style="--fill:${(rec / 100).toFixed(3)}"></div></div>
-          <div class="span">${txt}。本轮 = ${span(open)}，共回落 ${signed(open.depth_abs, cur)}；收回% = 从本轮最低点涨回这个峰值的比例，和上面「距利润峰值」是同一个峰，到 100% 时差额才为 0。</div>`;
-      }
-      let deepNote = "";
-      if (deep && deep.status === "reclaimed") {
-        const over = deep.to_peak_abs;
-        deepNote = `${span(deep)}，已于 ${dstr(deep.reclaimed_date)} 收复。` + (over >= 0
-          ? `当前比那次的起跌峰高 ${signed(over, cur)}。`
-          : `之后又回落，当前比那次的起跌峰低 ${signed(over, cur)}（相当于那次跌幅的 ${pctTxt(deep.recovery_pct)} 处）。`)
-          + "这是已结清的历史，不等于现在回到了峰值。";
-      } else if (deep && deep.status !== "none") {
-        deepNote = `${span(deep)}，尚未收复——就是上面进行中的这一轮。`;
-      } else if (deep) {
-        deepNote = "样本内没有出现过回撤。";
-      }
-      // 港股利润为负、回撤%无意义 → 显示金额跌幅；否则显示 %。
-      const ddMain = ddPct ? `${ddPct}<small>${signed(p && p.max_dd_abs, cur)}</small>` : signed(p && p.max_dd_abs, cur);
-      const profitPrimary = p ? `
-        <div class="ext-head">
-          <span class="ext-name">${r.name}</span>
-          <span class="ext-flag ${atLow ? "low" : "ok"}">${atLow ? "● 现处历史最低利润" : "未创利润新低"}</span>
-        </div>
-        <div class="ext-row"><span class="k">历史最高利润</span><span class="v">${signed(p.peak && p.peak.value, cur)}<small>${dstr(p.peak && p.peak.date)}</small></span></div>
-        <div class="ext-row"><span class="k">历史最低利润</span><span class="v ${(p.trough && p.trough.value) < 0 ? "neg" : ""}">${signed(p.trough && p.trough.value, cur)}<small>${dstr(p.trough && p.trough.date)}</small></span></div>
-        <div class="ext-row"><span class="k">当前利润</span><span class="v ${(p.current && p.current.value) < 0 ? "neg" : ""}">${signed(p.current && p.current.value, cur)}<small>${dstr(p.current && p.current.date)}</small></span></div>
-        <div class="ext-dd">
-          <div class="ext-row"><span class="k">距利润峰值</span><span class="v ${(p.from_peak_abs ?? 0) < 0 ? "neg" : ""}">${signed(p.from_peak_abs, cur)}</span></div>${openBlock}
-        </div>
-        <div class="ext-dd">
-          <div class="ext-row"><span class="k">历史最深回撤</span><span class="v neg">${ddMain}</span></div>
-          ${deepNote ? `<div class="span">${deepNote}</div>` : ""}
-          <div class="span">口径＝总利润（浮盈＋已实现，净化本金）；加减仓不影响它</div>
-        </div>` : `
+      el.classList.toggle("is-low", !!(p || e).at_low);
+      let foldRows = "";
+      let profitPrimary = `
         <div class="ext-head"><span class="ext-name">${r.name}</span></div>
         <div class="muted" style="margin-top:8px">无利润口径数据</div>`;
+      if (p) {
+        // 一把从历史最低到历史最高的尺，当前利润标在上面。两端就是那两个极值本身，
+        // 无论盈亏：港股段整段在 0 以下，尺照画，盈亏线标在尺外的那一侧。
+        const lo = p.trough && p.trough.value, hi = p.peak && p.peak.value;
+        const now = p.current && p.current.value;
+        const at = rangePosition(lo, hi, now);
+        const x = v => (v * 100).toFixed(2) + "%";
+        let scale = `<div class="muted">样本内利润没有波动，画不出区间。</div>`;
+        if (at) {
+          const inside = typeof at.zero === "number";
+          // 亏损段 = 尺上 0 以左的那一截；0 在尺内时画一条盈亏线，不在时指向它所在的一侧。
+          const loss = inside ? at.zero : at.zero === "above" ? 1 : 0;
+          const zero = inside
+            ? `<span class="pr-zero" style="left:${x(at.zero)}">0</span>`
+            : `<span class="pr-zero off-${at.zero}" title="盈亏线不在这段区间内">${at.zero === "above" ? "0 →" : "← 0"}</span>`;
+          const where = inside ? `盈亏线 0 在 ${x(at.zero)} 处`
+            : at.zero === "above" ? "整段在 0 以下" : "整段在 0 以上";
+          scale = `
+        <div class="pr-scale" role="img" aria-label="利润区间：最低 ${signed(lo, cur)}，最高 ${signed(hi, cur)}，当前 ${signed(now, cur)}，位于最低到最高的 ${at.label}；${where}">
+          <div class="pr-zeros">${zero}</div>
+          <div class="pr-track">
+            <i class="pr-loss" style="width:${x(loss)}"></i>
+            ${inside ? `<i class="pr-zero-line" style="left:${x(at.zero)}"></i>` : ""}
+            <i class="pr-dot" style="left:${x(at.pos)}"></i>
+          </div>
+          <div class="pr-ruler"></div>
+          <div class="pr-ends">
+            <span><b class="${neg(lo)}">${signed(lo, cur)}</b><small>最低 ${dstr(p.trough.date)}</small></span>
+            <span><b class="${neg(hi)}">${signed(hi, cur)}</b><small>最高 ${dstr(p.peak.date)}</small></span>
+          </div>
+        </div>`;
+        }
+        const flag = !at ? "" : at.pos === 0 ? `<span class="ext-flag low">历史最低</span>`
+          : at.pos === 1 ? `<span class="ext-flag ok">历史最高</span>` : "";
+        // 回撤的两件事各有自己的峰/谷，发布端分别结算（`_drawdown_episodes`），这里只照印:
+        //   open_dd    = 进行中的这一轮，锚在历史最高利润上；
+        //   deepest_dd = 历史上最深的那一次，收复过就是已结清的历史。
+        const open = p.open_dd, deep = p.deepest_dd;
+        const openRow = open && open.status !== "none"
+          ? `<div class="ext-row"><span class="k">本轮回撤</span><span class="v neg">${signed(open.depth_abs, cur)}<small>已收回 ${pctTxt(open.recovery_pct)}</small></span></div>` : "";
+        const deepRow = deep && deep.status !== "none"
+          ? `<div class="ext-row"><span class="k">历史最深回撤</span><span class="v neg">${signed(deep.depth_abs, cur)}<small>${deep.status === "reclaimed" ? "已收复 " + dstr(deep.reclaimed_date) : "未收复"}</small></span></div>` : "";
+        profitPrimary = `
+        <div class="ext-head">
+          <span class="ext-name">${r.name}</span>${flag}
+        </div>
+        <div class="pr-now">
+          <span class="pr-now-v${neg(now)}">${signed(now, cur)}</span>
+          ${at ? `<span class="pr-pos"><b>${at.label}</b><small>最低→最高</small></span>` : ""}
+        </div>
+        <div class="pr-now-k">当前利润 · ${dstr(p.current && p.current.date)}</div>${scale}
+        <div class="pr-gap"><span>距最高 <b class="${neg(p.from_peak_abs)}">${signed(p.from_peak_abs, cur)}</b></span><span>距最低 <b>${signed(now - lo, cur)}</b></span></div>`;
+        foldRows = openRow + deepRow;
+      }
       // SECONDARY = 真实总资产（持仓市值 + 现金余额）。这是 trade-invariant 的"现在值多少钱"
       // ——买入只是现金→股票、总额不变，不像旧"净值口径"会被加仓虚抬。只有当前值(没存历史
       // 每日现金，做不了曲线)。港股现金未跟踪 → 标注。
@@ -3403,12 +3417,14 @@
             <div class="ext-row"><span class="k">＝合计(USD)</span><span class="v" style="color:var(--accent)">${money(usTot + hkTotUsd, "USD")}${partial ? "<small>偏低·缺现金</small>" : ""}</span></div>`;
         }
       }
-      const assetSecondary = taLine ? `
-        <div class="ext-dd">
-          <div class="span" style="margin-top:0"><b>真实总资产</b>（持仓市值 ＋ 现金，加减仓不影响）</div>
-          ${taLine}
-        </div>` : "";
-      el.innerHTML = profitPrimary + assetSecondary;
+      // 尺上读不出来的那几个数收在一处折叠里，默认不占版面。
+      const fold = (foldRows || taLine) ? `
+        <details class="chart-note pr-more">
+          <summary>回撤与资产明细</summary>
+          ${foldRows ? `<div class="ext-dd">${foldRows}</div>` : ""}
+          ${taLine ? `<div class="ext-dd">${taLine}</div>` : ""}
+        </details>` : "";
+      el.innerHTML = profitPrimary + fold;
     });
   }
 

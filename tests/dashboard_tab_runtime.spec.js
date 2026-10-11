@@ -389,6 +389,69 @@ async function testAStaleFxRateSaysSoOnTheHero(browser, base) {
   await freshContext.close();
 }
 
+// The profit card is a ruler from the lowest profit on record to the highest,
+// with today marked on it. Its two ends are those two numbers whatever their
+// sign, and the percentage printed beside it is the marker's own position: a
+// second derivation of "where am I" is how a gap to the high once read as
+// recovered (#2881).
+async function testTheProfitRulerPrintsThePositionItDraws(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  const leg = (low, high, now, currency) => ({
+    peak: { value: high, date: "2026-10-06" }, trough: { value: low, date: "2026-07-29" },
+    current: { value: now, date: "2026-10-09" }, from_peak_abs: now - high, at_low: now === low, currency,
+  });
+  await stubLiveOrigin(page, {
+    patch: (_name, payload) => payload.drawdown ? ({
+      ...payload,
+      drawdown: { ...payload.drawdown, profit: {
+        us: leg(-21.05, 2420.77, 1870.33, "USD"),          // crosses break-even
+        hk: leg(-50304.24, -13820.68, -48309.84, "HKD"),   // never above zero
+        combined: leg(-40000, -2000, -2100, "HKD"),        // a hair under the high
+      } },
+    }) : null,
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "risk");
+  await waitForTab(page, "risk");
+  const read = key => page.evaluate(id => {
+    const root = document.getElementById(id);
+    const track = root.querySelector(".pr-track").getBoundingClientRect();
+    const dot = root.querySelector(".pr-dot").getBoundingClientRect();
+    const loss = root.querySelector(".pr-loss").getBoundingClientRect();
+    return {
+      at: (dot.left + dot.width / 2 - track.left) / track.width,
+      loss: loss.width / track.width,
+      printed: root.querySelector(".pr-pos b").textContent,
+      ends: [...root.querySelectorAll(".pr-ends b")].map(node => node.textContent),
+      zero: root.querySelector(".pr-zero").textContent,
+      zeroLine: !!root.querySelector(".pr-zero-line"),
+      flag: root.querySelector(".ext-flag")?.textContent || "",
+    };
+  }, `ext-region-${key}`);
+
+  const us = await read("us");
+  assert.deepEqual(us.ends, ["−$21", "+$2,421"], "the ruler's ends are not the two extremes");
+  assert.equal(us.printed, "77%");
+  assert(Math.abs(us.at - 0.7746) < 0.01, `the marker sits at ${us.at}, the card prints ${us.printed}`);
+  assert(us.zeroLine && us.zero === "0" && us.loss > 0 && us.loss < 0.02,
+    "break-even is inside this range and was not drawn where it falls");
+
+  const hk = await read("hk");
+  assert.deepEqual(hk.ends, ["−HK$50,304", "−HK$13,821"],
+    "a high that is still a loss must be drawn as itself, not dropped or zeroed");
+  assert.equal(hk.printed, "5%");
+  assert(Math.abs(hk.at - 0.0547) < 0.01, `the marker sits at ${hk.at}, the card prints ${hk.printed}`);
+  assert(!hk.zeroLine && hk.zero === "0 →" && hk.loss > 0.99,
+    "a range wholly below zero must say break-even lies off its high end");
+
+  const combined = await read("combined");
+  assert.equal(combined.printed, ">99%", "rounding claimed the high while a gap to it remains");
+  assert.equal(combined.flag, "", "the card flagged a record high it has not reached");
+  await context.close();
+}
+
 async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -3983,6 +4046,7 @@ async function main() {
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
     await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
+    await run("testTheProfitRulerPrintsThePositionItDraws", () => testTheProfitRulerPrintsThePositionItDraws(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));

@@ -657,7 +657,7 @@ layout: null
     <div class="card lead desktop-wide profit-extremes-card" id="recovery-card">
       <div class="card-head"><div>
         <div class="overview-card-kicker">回撤与回本</div>
-        <h3>还差多少回到峰值</h3>
+        <h3>利润现在在哪儿</h3>
       </div></div>
       <div class="sub-block" id="breakeven-card" style="display:none">
         <div class="sub-block-head">解套数学 <span class="muted">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></div>
@@ -667,9 +667,8 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">历史利润极值 &amp; 回撤恢复 <span class="muted">峰值 / 谷底 / 本轮回撤 / 历史最深回撤</span></div>
+        <div class="sub-block-head">最低 → 当前 → 最高 <span class="muted">总利润＝浮盈＋已实现<span id="extremes-window"></span></span></div>
       
-      <p class="chart-hint">主口径 = <b>总利润（浮盈＋已实现，净化本金）</b>：<b>加减仓不会影响它</b>，所以它的<b>峰值才是"真·赚最多"那天</b>。<b>历史最高/最低利润</b> = 有快照以来的利润峰值与谷底；<b>距利润峰值</b> = 今天离历史最高利润还差多少；<b>本轮回撤已收回</b> = 从这个峰值跌下来的这一轮里，自本轮最低点涨回了多少（0%＝仍在本轮最低，100%＝回到峰值、差额为 0——两个数用的是同一个峰）；<b>历史最深回撤</b> = 有快照以来最深的一次峰→谷跌幅（% 仅在利润全程为正时给出，否则只报金额），它是否已收复单独写明，与今天离峰值多远无关。<br>下半区灰色 = <b>净值口径（市值＋已实现）</b>，<b>仅供参考</b>：买入会把它抬高（花掉的现金不计入净值），所以它常显示"假新高"——别把它当真峰值。<span id="extremes-window" class="muted"></span></p>
       <div class="ext-grid" id="ext-grid">
         <div class="ext-region" id="ext-region-combined"></div>
         <div class="ext-region" id="ext-region-us"></div>
@@ -970,14 +969,14 @@ layout: null
         class="dm-onlynarrow">列是你选的那类<b>动作</b></span>，
         格是「这个源站在那类动作旁边多少次 · 之后的中位收益」。</p>
       <div class="decimap" id="decimap">
-        <div class="dm-kpi" id="dm-kpi">载入中…</div>
+        <div class="dm-kpi" id="dm-kpi"><i class="dm-skel-bar" aria-hidden="true"></i><i class="dm-skel-bar" aria-hidden="true"></i><i class="dm-skel-bar" aria-hidden="true"></i></div>
         <div class="dm-controls">
           <button type="button" id="dm-expand">展开全部</button>
           <button type="button" id="dm-reset">重置</button>
         </div>
         <div class="dm-actionbar" id="dm-actions" role="group" aria-label="动作" hidden></div>
         <p class="dm-sub dm-actionnote" id="dm-actionnote" hidden></p>
-        <div class="dm-board-wrap"><table class="dm-board" id="dm-board"></table></div>
+        <div class="dm-board-wrap"><table class="dm-board" id="dm-board"></table><div class="dm-skel" aria-hidden="true"><div></div><div></div><div></div><div></div></div></div>
         <div class="dm-scalenote" id="dm-scale"></div>
         <details class="chart-note">
           <summary>怎么读 · 为什么它不是因果</summary>

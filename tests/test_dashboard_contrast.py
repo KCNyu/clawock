@@ -334,7 +334,8 @@ def test_heatmap_and_drawdown_small_text_use_readable_text_steps():
     css = CSS.read_text(encoding="utf-8")
     assert _rule_value(css, ".dm-cell .dm-m", "color") == "var(--text)"
     assert _rule_value(css, ".ext-region .ext-dd .k", "color") == "var(--text)"
-    assert _rule_value(css, ".ext-region .ext-dd .span", "color") == "var(--text)"
+    assert _rule_value(css, ".pr-pos small, .pr-ends small", "color") == "var(--text)"
+    assert _rule_value(css, ".pr-now-k", "color") == "var(--text)"
 
 
 def test_the_installed_app_opens_on_a_colour_the_site_actually_uses():
