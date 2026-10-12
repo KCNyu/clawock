@@ -327,6 +327,9 @@
     "signal-panel": {
       "reason": "measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection"
     },
+    "strategy-lab": {
+      "reason": "mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over stored bars; it prints a proposal that never carries live permission — evaluation, not collection"
+    },
     "scorecard-provenance": {
       "reason": "names the ledger slice and code a published scorecard number came from — provenance, not a measurement"
     },

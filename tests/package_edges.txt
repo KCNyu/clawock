@@ -118,6 +118,12 @@ scheduling -> workspace
 scorecard_provenance -> code_identity
 scorecard_provenance -> safe_io
 scorecard_provenance -> workspace
+strategies -> decision
+strategies -> evaluation
+strategies -> evidence
+strategies -> market_data
+strategies -> seeds
+strategies -> workspace
 tools -> context
 tools -> decision
 tools -> market_data
