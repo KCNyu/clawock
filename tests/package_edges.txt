@@ -120,6 +120,7 @@ scorecard_provenance -> code_identity
 scorecard_provenance -> safe_io
 scorecard_provenance -> workspace
 strategies -> market_data
+strategies -> sessions
 strategies -> workspace
 strategy_lab -> code_identity
 strategy_lab -> costs

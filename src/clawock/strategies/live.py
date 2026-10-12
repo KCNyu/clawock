@@ -27,6 +27,8 @@ CONFIG = Path('config') / 'strategy-plugins.json'
 DEFAULT_ROWS = (
     {'id': 'factors', 'module': 'clawock.strategies.plugins.quant_factors',
      'config': {'sigma_target': 0.25}},
+    {'id': 'daily-bars', 'module': 'clawock.strategies.plugins.daily_bars',
+     'config': {'adjustment': 'qfq'}},
 )
 
 
@@ -65,4 +67,9 @@ def kernel() -> Kernel:
 
 
 def service(name: str):
-    return kernel().get(name)
+    mounted = kernel()
+    if name not in mounted.services():
+        raise ValueError(
+            f'{workspace_root() / CONFIG}: no live row provides {name!r}; '
+            f'provided: {sorted(mounted.services())}')
+    return mounted.get(name)

@@ -17,11 +17,27 @@ clawock strategy-lab ledger          # recorded verdicts across runs
 ## Live composition
 
 `clawock.strategies.live` mounts the `live` rows once per process and hands out
-their services. One row is shipped:
+their services:
 
 | Service | Provider | Contract | Read by |
 |---|---|---|---|
 | `factors` | `strategies/plugins/quant_factors.py` | `signals(bars)`, `short_history(bars)`, `rsi(closes, period)`, `atr(bars, period)`; config `sigma_target` | `decision/signals.compute_signals` and `compute_short_history_signals`, and through them the quant refresh, both radars, the watch list, the brief's add side, the pre-position lane and `evaluate-add-shapes` |
+| `daily_bars` | `strategies/plugins/daily_bars.py` | `fetch(code, cnt)`; config `adjustment` (`qfq` or `raw`) | `decision/signals.fetch_bars`, and through it the quant refresh, both radars, the provisional setups, the watch list, the strategy escalations and `evaluate-add-shapes --source tencent` |
+
+### Adjusted bars on the live path
+
+Until 2026-10-12 `fetch_bars` asked two endpoints that both return raw prices:
+`kline/kline` for Hong Kong, and the market-less `fqkline/get` for US names,
+which answers a `qfq` request under `day`. A name that split inside the
+400-session window had a factor row computed across the split. `daily_bars`
+asks the per-market endpoint, `{hk,us}fqkline/get`, instead.
+
+`memory/bars` is unchanged and stays raw: it settles nominal trigger prices.
+The brief's add side and the pre-position lane compute from that store, so
+they still read raw bars.
+
+To go back, set the row's `adjustment` to `raw`. That restores the two
+requests exactly; `tests/test_live_daily_bars.py` holds the URLs.
 
 `decision.signals` keeps the two function names and delegates. The arithmetic
 it held before is still there as `legacy_compute_signals` and
@@ -71,11 +87,19 @@ Two plugins provide `bars`, and a composition mounts one:
 
 - `adjusted_bars` fetches Tencent's forward-adjusted daily series
   (`{hk,us}fqkline/get`) for the names in `memory/bars`, cut at each name's last
-  settled session. It reports `corporate_actions_adjusted: true` only for
-  series the provider sent under `qfqday`. A name answered under `day` is left
-  out and listed in `left_out`: the provider does that for names with no
-  corporate action on record and for names it did not adjust, and the answer
-  does not say which. The series is not stored; `describe()` carries its digest.
+  settled session. Each answer is read as one of three bases
+  (`market_data/tencent_daily.fetch_daily_with_basis` documents the shapes):
+
+  | Basis | The answer | Served |
+  |---|---|---|
+  | `adjusted` | under `qfqday` | yes |
+  | `no_action_on_record` | under `day`, every row carrying the provider's corporate-action slot, all of them empty: the raw series is the adjusted one | yes, listed apart in `basis` |
+  | `unconfirmed` | under `day` without that record, or with an action on record the series was not adjusted for | no, listed in `left_out` |
+
+  `no_action_on_record` is one provider's record of actions, not a second
+  source. `corporate_actions_adjusted` is true when at least one series is
+  served; an unconfirmed name is never part of the sample it describes. The
+  series is not stored; `describe()` carries its digest.
 - `ledger_bars` reads `memory/bars`, which is raw, and reports
   `corporate_actions_adjusted: false`. It needs no network.
 

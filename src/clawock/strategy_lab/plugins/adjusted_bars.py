@@ -8,12 +8,20 @@ from Tencent's forward-adjusted daily series, for the same names.
 
 What it claims, and how it knows
 --------------------------------
-`corporate_actions_adjusted` is true only when every series it serves arrived
-under the provider's `qfqday` key. A name answered under `day` is left out and
-listed: the provider does that both for a name with no corporate action on
-record and for one it did not adjust, and nothing in the answer tells the two
-apart. A name it did not answer is left out the same way, so the claim is never
-an average over a mix.
+Each answer is one of three bases, read from the answer itself
+(`market_data.tencent_daily.fetch_daily_with_basis` documents the shapes):
+
+* `adjusted`: the series arrived under the provider's `qfqday` key. Served.
+* `no_action_on_record`: it arrived under `day` and every row carries the
+  provider's corporate-action slot, empty. With no action in the window the raw
+  series is the adjusted one. Served, and listed apart from the adjusted names:
+  it rests on one provider's record of actions, not on a second source.
+* `unconfirmed`: it arrived under `day` without that record, or with an action
+  on record the series was not adjusted for. Left out and listed.
+
+`corporate_actions_adjusted` is true when at least one series is served, and
+every series served is one of the first two. A name the provider did not
+answer is left out the same way, so the claim is never an average over a mix.
 
 The series is fetched per run and not stored, so two runs can see different
 bars: a forward adjustment rewrites history every time a name pays a dividend.
@@ -34,13 +42,16 @@ name = 'adjusted-bars'
 
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
+#: The bases a return can be computed on without measuring a corporate action.
+SERVED = (tencent_daily.ADJUSTED, tencent_daily.NO_ACTION_ON_RECORD)
 #: Closes within this ratio are the same price; the provider prints 2-3 decimals.
 SAME_PRICE = 5e-4
 
 
 def _fetch(symbol: str, count: int):
-    return tencent_daily.fetch_adjusted_daily_bars(
+    bars, basis, _ = tencent_daily.fetch_daily_with_basis(
         symbol, count, headers={'User-Agent': UA})
+    return bars, basis
 
 
 class AdjustedBars:
@@ -50,6 +61,7 @@ class AdjustedBars:
         self._loaded: dict[str, list[dict]] | None = None
         self._legs: dict[str, str] = {}
         self._left_out: dict[str, str] = {}
+        self._basis: dict[str, str] = {}
         self._differs = 0
 
     def _load(self) -> dict[str, list[dict]]:
@@ -66,12 +78,12 @@ class AdjustedBars:
                 self._left_out[ticker] = 'retired or not in the settled store'
                 continue
             try:
-                rows, adjusted = self._fetch(doc['tencent'], self._sessions)
+                rows, basis = self._fetch(doc['tencent'], self._sessions)
             except Exception as exc:  # one name's outage must not pass as coverage
                 self._left_out[ticker] = f'fetch failed: {type(exc).__name__}'
                 continue
-            if not adjusted:
-                self._left_out[ticker] = 'provider sent no adjusted series'
+            if basis not in SERVED:
+                self._left_out[ticker] = 'answered raw without an empty action record'
                 continue
             last = max(settled)
             rows = [bar for bar in rows if bar['date'] <= last]
@@ -79,6 +91,7 @@ class AdjustedBars:
                 self._left_out[ticker] = 'no adjusted session up to the settled store'
                 continue
             self._loaded[ticker] = rows
+            self._basis[ticker] = basis
             self._legs[ticker] = str(doc.get('leg') or '')
             self._differs += any(
                 bar['date'] in settled
@@ -104,6 +117,8 @@ class AdjustedBars:
             'tickers': len(loaded),
             'adjustment': 'qfq',
             'corporate_actions_adjusted': bool(loaded),
+            'basis': {basis: sorted(t for t in loaded if self._basis[t] == basis)
+                      for basis in SERVED},
             'left_out': dict(sorted(self._left_out.items())),
             'differs_from_raw': self._differs,
             'digest': run_card.series_digest(

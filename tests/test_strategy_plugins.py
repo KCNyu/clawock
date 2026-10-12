@@ -351,13 +351,14 @@ def _bar(day, close):
     return {'date': day, 'open': close, 'high': close, 'low': close, 'close': close}
 
 
-def test_adjusted_bars_claim_adjustment_only_for_what_the_provider_adjusted(
+def test_adjusted_bars_serve_adjusted_and_no_action_names_and_leave_out_the_unconfirmed(
         tmp_path, monkeypatch):
     settled = {'2026-01-05': _bar('2026-01-05', 100.0), '2026-01-06': _bar('2026-01-06', 51.0)}
     _store(tmp_path, monkeypatch, {
         'SPLIT': {'leg': 'US', 'tencent': 'usSPLIT.OQ', 'bars': settled},
         'FLAT': {'leg': 'HK', 'tencent': 'hk00001', 'bars': settled},
         'RAW': {'leg': 'US', 'tencent': 'usRAW.N', 'bars': settled},
+        'QUIET': {'leg': 'US', 'tencent': 'usQUIET.N', 'bars': settled},
         'DOWN': {'leg': 'US', 'tencent': 'usDOWN.N', 'bars': settled},
         'GONE': {'leg': 'US', 'tencent': 'usGONE.N', 'retired': True, 'bars': settled},
     })
@@ -369,18 +370,21 @@ def test_adjusted_bars_claim_adjustment_only_for_what_the_provider_adjusted(
         rows = [_bar('2026-01-05', first), _bar('2026-01-06', 51.0),
                 # The session in progress: not in the settled store.
                 _bar('2026-01-07', 52.0)]
-        return rows, symbol != 'usRAW.N'
+        return rows, {'usRAW.N': 'unconfirmed',
+                      'usQUIET.N': 'no_action_on_record'}.get(symbol, 'adjusted')
 
     bars = adjusted_bars.AdjustedBars(fetch=fetch)
-    assert bars.tickers() == ['FLAT', 'SPLIT']
+    assert bars.tickers() == ['FLAT', 'QUIET', 'SPLIT']
     assert [bar['date'] for bar in bars.series('SPLIT')] == ['2026-01-05', '2026-01-06']
     assert bars.series('SPLIT')[0]['close'] == 50.0 and bars.leg('FLAT') == 'HK'
     described = bars.describe()
     assert described['corporate_actions_adjusted'] is True
     assert described['differs_from_raw'] == 1
+    assert described['basis'] == {
+        'adjusted': ['FLAT', 'SPLIT'], 'no_action_on_record': ['QUIET']}
     assert described['left_out'] == {
         'DOWN': 'fetch failed: OSError', 'GONE': 'retired or not in the settled store',
-        'RAW': 'provider sent no adjusted series'}
+        'RAW': 'answered raw without an empty action record'}
 
     nothing = adjusted_bars.AdjustedBars(['RAW'], fetch=fetch).describe()
     assert nothing['corporate_actions_adjusted'] is False and nothing['tickers'] == 0
@@ -414,6 +418,9 @@ def test_the_live_composition_is_the_shipped_rows_and_refuses_a_broken_list(tmp_
     assert live.rows(ROOT / live.CONFIG) == [dict(row) for row in live.DEFAULT_ROWS]
     assert live.rows(tmp_path / 'absent.json') == [dict(row) for row in live.DEFAULT_ROWS]
     assert live.service('factors').describe() == {'sigma_target': 0.25}
+    assert live.service('daily_bars').describe() == {'adjustment': 'qfq'}
+    with pytest.raises(ValueError, match="no live row provides 'absent'"):
+        live.service('absent')
 
     config = tmp_path / 'rows.json'
     config.write_text(json.dumps({'schema_version': 1, 'plugins': []}))
