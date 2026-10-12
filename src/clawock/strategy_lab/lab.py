@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import sys
 from pathlib import Path
 
 from clawock.strategy_lab import ledger
@@ -74,7 +75,14 @@ def _print_proposal(report: dict) -> None:
     for alternate in report['alternate_gates']:
         verdict = ('would pass' if alternate['would_pass'] else
                    f"would refuse on {alternate['would_refuse_because']}")
-        print(f"  alternate gate {alternate['id']} (not binding): {verdict}")
+        print(f"  alternate gate {alternate['id']} (not binding, effect "
+              f"{alternate['effect']}): {verdict}")
+    review = report['live_review']
+    print(f"  live review: {'cleared for registration' if review['cleared'] else 'not cleared'}"
+          f" (objections {review['objections'] or 'none'}; live_permission stays false)")
+    for trial in report['prospective']:
+        print(f"  registered {trial['params']} after {trial['after_session']}: "
+              f"{trial['sessions']} prospective sessions, mean IC {trial['mean_ic']}")
 
 
 def _print_ledger(stats: dict) -> None:
@@ -83,11 +91,39 @@ def _print_ledger(stats: dict) -> None:
     for strategy, entry in stats['strategies'].items():
         print(f"{strategy}: {entry['candidates']} candidate of "
               f"{entry['distinct_inputs']} distinct inputs ({entry['runs']} runs), "
-              f"refused on {entry['refused_by_check'] or 'nothing'}")
+              f"{entry['cleared']} cleared, "
+              f"refused on {entry['refused_by_check'] or 'nothing'}, "
+              f"objected to by {entry['objections'] or 'nothing'}")
         for identifier, tally in entry['alternate_gates'].items():
             print(f"  alternate gate {identifier} (not binding): would pass "
                   f"{tally['would_pass']} of {tally['judged']}, disagrees with the "
                   f"registered gate on {tally['disagrees_with_registered']}")
+
+
+def record(kernel) -> int:
+    """The scheduled run: every mounted strategy, into the ledger.
+
+    One strategy failing does not stop the others; the exit status says
+    whether any did.
+    """
+    known, failed = ledger.registrations(), 0
+    for strategy in kernel.get('strategies').names():
+        try:
+            report = kernel.get('optimizer').run(strategy, registrations=[
+                row for row in known if row['strategy'] == strategy])
+        except Exception as exc:
+            failed += 1
+            print(f'{strategy}: not recorded ({type(exc).__name__}: {exc})', file=sys.stderr)
+            continue
+        ledger.append(report)
+        registered = ledger.register(report)
+        review = report['live_review']
+        print(f"{strategy}: {report['status']}"
+              f"{' on ' + str(report['refused_because']) if report['refused_because'] else ''}, "
+              f"objections {review['objections'] or 'none'}, "
+              f"{'registered ' + str(registered['params']) if registered else 'nothing registered'}, "
+              f"{len(report['prospective'])} earlier registration(s) scored")
+    return 1 if failed else 0
 
 
 def main(argv=None) -> int:
@@ -104,6 +140,9 @@ def main(argv=None) -> int:
     optimize.add_argument('--output', type=Path, help='also write the proposal here')
     optimize.add_argument('--no-ledger', action='store_true',
                           help='do not record this run in the lab ledger')
+    sub.add_parser(
+        'record', help='optimise every mounted strategy, record the verdicts, '
+                       'register what is cleared')
     history = sub.add_parser(
         'ledger', help='recorded verdicts: yield per strategy, alternates beside the gate')
     history.add_argument('--json', action='store_true')
@@ -139,6 +178,8 @@ def main(argv=None) -> int:
         if 'optimizer' not in kernel.services():
             pending = {fiber.name: fiber.missing for fiber in kernel.fibers if fiber.missing}
             parser.exit(2, f'no optimizer is mounted; waiting plugins: {pending}\n')
+        if args.action == 'record':
+            return record(kernel)
         try:
             report = kernel.get('optimizer').run(args.strategy)
         except (KeyError, ValueError) as exc:

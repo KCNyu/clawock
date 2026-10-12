@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import random
 import types
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -431,3 +432,134 @@ def test_the_live_composition_is_the_shipped_rows_and_refuses_a_broken_list(tmp_
         live.rows(config)
     with pytest.raises(ValueError, match='sigma_target'):
         Kernel().plugin(quant_factors, {'sigma_target': 0})
+
+
+NET = {'id': 'net-of-cost', 'rationale': 'after costs', 'effect': 'live',
+       'gate': {'oos_net_excess_ci95_lower_gt': 0.0}}
+
+
+def test_a_live_alternate_can_object_and_cannot_set_the_verdict_or_grant_permission():
+    free = optimise(Tape(persistence=0.6), gate_alternates=[NET])
+    assert free['status'] == 'candidate'
+    assert free['live_review'] == {
+        'alternates': ['net-of-cost'], 'objections': [], 'cleared': True}
+
+    # The same edge, charged more than it earns: the registered gate reads a
+    # gross IC and still passes; the live alternate objects.
+    costly = optimise(Tape(persistence=0.6), costs=flat_costs(5000.0), gate_alternates=[NET])
+    assert costly['status'] == 'candidate' and costly['refused_because'] == []
+    assert costly['live_review'] == {
+        'alternates': ['net-of-cost'], 'objections': ['net-of-cost'], 'cleared': False}
+    [alternate] = costly['alternate_gates']
+    assert alternate['binding'] is False and alternate['effect'] == 'live'
+    assert costly['live_permission'] is False and free['live_permission'] is False
+
+
+def test_nothing_clears_what_the_registered_gate_refuses():
+    drop = {'id': 'statistics-only', 'rationale': 'raw store',
+            'gate': {'corporate_actions_adjusted': False}}
+    raw = optimise(Tape(persistence=0.6, adjusted=False), gate_alternates=[drop, NET])
+    assert [a['would_pass'] for a in raw['alternate_gates']] == [True, False]
+    assert raw['alternate_gates'][0]['effect'] == 'record'
+    assert raw['status'] == 'refused'
+    assert raw['live_review'] == {
+        'alternates': ['net-of-cost'], 'objections': ['net-of-cost'], 'cleared': False}
+
+
+@pytest.mark.parametrize('gate, loosened', [
+    ({'corporate_actions_adjusted': False}, 'corporate_actions_adjusted'),
+    ({'pbo_lt': 0.9}, 'pbo_lt'),
+    ({'min_oos_sessions': 10}, 'min_oos_sessions'),
+    ({'oos_ic_ci95_lower_gt': -0.1}, 'oos_ic_ci95_lower_gt'),
+])
+def test_an_alternate_with_live_effect_may_only_add_or_tighten_a_check(gate, loosened):
+    row = {'id': 'a', 'rationale': 'r', 'effect': 'live', 'gate': gate}
+    with pytest.raises(ValueError, match=f'has live effect and loosens .*{loosened}'):
+        optimise(Tape(persistence=0.0), gate_alternates=[row])
+    # The same thresholds are a legitimate thing to keep on record.
+    optimise(Tape(persistence=0.0), gate_alternates=[dict(row, effect='record')])
+    with pytest.raises(ValueError, match='effect must be one of'):
+        optimise(Tape(persistence=0.0), gate_alternates=[dict(row, gate={}, effect='binding')])
+    tighter = {'pbo_lt': 0.2, 'min_oos_sessions': 80, 'oos_net_excess_ci95_lower_gt': 0.0}
+    optimise(Tape(persistence=0.0), gate_alternates=[dict(row, gate=tighter)])
+
+
+def _lab(tape, **settings):
+    kernel = Kernel()
+    kernel.plugin(provider('costs', flat_costs(0.0)))
+    kernel.plugin(walkforward, {'bootstrap_samples': 300, 'gate_alternates': [NET], **settings})
+    kernel.plugin(plugin('trend', trend, inject=('strategies',)))
+    kernel.plugin(provider('bars', tape))
+    kernel.plugin(registry)
+    return kernel
+
+
+def test_the_scheduled_run_records_registers_once_and_scores_only_later_sessions(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'lab' / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'lab' / 'registrations.jsonl')
+
+    assert lab.record(_lab(Tape(persistence=0.6, sessions=200))) == 0
+    [registered] = ledger.registrations()
+    assert registered['strategy'] == 'trend' and registered['params']['sign'] == 1
+    assert registered['after_session'] == 'd0199' and registered['live_permission'] is False
+    assert registered['cleared_by'] == {'gate': 'registered', 'live_alternates': ['net-of-cost']}
+    [first] = ledger.load()
+    assert first['live_review']['cleared'] is True and first['prospective'] == []
+    assert 'registered' in capsys.readouterr().out
+
+    # The same tape, 40 sessions on: the registration is not repeated, and its
+    # parameters are scored on the sessions after d0199 only.
+    assert lab.record(_lab(Tape(persistence=0.6, sessions=240))) == 0
+    assert len(ledger.registrations()) == 1
+    [trial] = ledger.load()[-1]['prospective']
+    assert trial['params'] == registered['params'] and trial['after_session'] == 'd0199'
+    # Signal sessions d0200..d0233: the last six have no closed forward return.
+    assert trial['sessions'] == 34 and trial['mean_ic'] > 0
+    [entry] = ledger.statistics(ledger.load())['strategies'].values()
+    assert entry['cleared'] == 2 and entry['objections'] == {}
+
+    # Noise is recorded and registers nothing.
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'lab' / 'none.jsonl')
+    assert lab.record(_lab(Tape(persistence=0.0))) == 0
+    assert ledger.registrations() == [] and ledger.load()[-1]['status'] == 'refused'
+
+
+def test_one_strategy_failing_does_not_stop_the_scheduled_run(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    kernel = _lab(Tape(persistence=0.6))
+
+    def broken(ctx, config):
+        spec = registry.StrategySpec(name='broken', params={'n': 1}, space={'n': [2]},
+                                     score=lambda bars, params: None)
+        ctx.effect(lambda: ctx.get('strategies').register(spec), 'strategy(broken)')
+    kernel.plugin(plugin('broken', broken, inject=('strategies',)))
+    assert lab.record(kernel) == 1
+    assert 'broken: not recorded' in capsys.readouterr().err
+    assert [row['strategy'] for row in ledger.load()] == ['trend']
+
+
+def test_the_brief_runs_the_lab_after_delivery_and_never_fails_on_it(monkeypatch, capsys):
+    from clawock.harness import brief_postflight
+    assert brief_postflight.record_strategy_lab() is False  # disabled for the suite
+
+    monkeypatch.delenv('CLAWOCK_STRATEGY_LAB_RECORD_DISABLED')
+    seen = []
+
+    def run(command, **kwargs):
+        seen.append((command[1:], kwargs['timeout']))
+        return SimpleNamespace(returncode=0, stdout='rsi: candidate\n', stderr='')
+    monkeypatch.setattr(brief_postflight.subprocess, 'run', run)
+    assert brief_postflight.record_strategy_lab() is True
+    assert seen == [(['-m', 'clawock', 'strategy-lab', 'record'], 300)]
+    assert 'strategy lab: rsi: candidate' in capsys.readouterr().out
+
+    def hang(command, **kwargs):
+        raise brief_postflight.subprocess.TimeoutExpired(command, kwargs['timeout'])
+    monkeypatch.setattr(brief_postflight.subprocess, 'run', hang)
+    assert brief_postflight.record_strategy_lab() is False
+    monkeypatch.setattr(brief_postflight.subprocess, 'run', lambda *a, **k: SimpleNamespace(
+        returncode=1, stdout='', stderr='boom'))
+    assert brief_postflight.record_strategy_lab() is False
+    assert 'strategy lab exited 1: boom' in capsys.readouterr().err

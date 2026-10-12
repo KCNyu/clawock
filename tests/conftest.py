@@ -47,6 +47,9 @@ import pytest
 os.environ["CLAWOCK_DELIVERY_DISABLED"] = "1"
 # The host-wide backstop dedupe flag lives under $HOME; tests opt in per test.
 os.environ["CLAWOCK_DELIVERY_STATE_DIR"] = ""
+# The brief's post-delivery chain runs the strategy lab: a minute of network and
+# arithmetic that no test of that chain is about.
+os.environ["CLAWOCK_STRATEGY_LAB_RECORD_DISABLED"] = "1"
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
