@@ -138,6 +138,12 @@ BASE_POOL=("${MODEL_POOL[@]}")
 FALLBACK_WAIT="${FALLBACK_WAIT:-60}"
 [ "${#MODEL_POOL[@]}" -gt 1 ] && MAX_ATTEMPTS=$(( MAX_ATTEMPTS > 2 * ${#MODEL_POOL[@]} ? MAX_ATTEMPTS : 2 * ${#MODEL_POOL[@]} ))
 STATE=queued RC="" SESSION="${RESUME:-}" ATTEMPTS=0 OUTCOME="" STARTED=$(ts) FINAL_TEXT="" WAITING="" APPENDS=0
+FAILURE_REASON="" LAST_MODEL=$CUR_MODEL
+# Only a fresh patrol whose entire pool has produced no events can skip the second lap.
+# Never abandon a resumable task or infer availability from another task's probe.
+declare -A COLD_MODELS=()
+POOL_COLD=1
+[ -n "$SESSION" ] && POOL_COLD=0
 SLOT=""   # set by acquire_slot while this attempt holds a run slot; published in result.env
 # QUEUED_AT: epoch when this task first waited for its agent lock (the queue's order, not dir
 # mtime). WAKE_AT: epoch a quota/retry wait ends. NOTIFIED / NOTIFY_FAILED: the legs of the
@@ -150,7 +156,8 @@ write_result() {
   {
     printf 'QUOTA_RESUMES_USED=%q\nSTALLS=%q\n' "$QUOTA_RESUMES_USED" "$STALLS"
     printf 'STATE=%q\nRC=%q\nOUTCOME=%q\nSESSION=%q\nATTEMPTS=%q\nAPPENDS=%q\nWAITING=%q\nSLOT=%q\nMODEL_USED=%q\nSTARTED=%q\nUPDATED=%q\n' \
-      "$STATE" "$RC" "$OUTCOME" "$SESSION" "$ATTEMPTS" "$APPENDS" "$WAITING" "$SLOT" "$CUR_MODEL" "$STARTED" "$(ts)"
+      "$STATE" "$RC" "$OUTCOME" "$SESSION" "$ATTEMPTS" "$APPENDS" "$WAITING" "$SLOT" "$LAST_MODEL" "$STARTED" "$(ts)"
+    printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
     printf 'EFFORT_USED=%q\nQUEUED_AT=%q\nWAKE_AT=%q\nNOTIFIED=%q\nNOTIFY_FAILED=%q\nNOTIFY_AT=%q\nRUNNER_API=%q\n' \
       "$EFFORT" "$QUEUED_AT" "$WAKE_AT" "$NOTIFIED" "$NOTIFY_FAILED" "$NOTIFY_AT" "$RUNNER_API"
     printf 'DEADLINE_EPOCH=%q\nMAX_ATTEMPTS=%q\nQUOTA_RESUMES=%q\n' "$DEADLINE_EPOCH" "$MAX_ATTEMPTS" "$QUOTA_RESUMES"
@@ -825,6 +832,7 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
 NEXT_KIND=task INTERRUPT_NOTE="" RUN_NO=0
 run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|error), ATEXT, INTERRUPTED, SESSION when learned
   local cap=$1 alog prompt block="" resumable=""
+  NO_EVENTS=0
   RUN_NO=$((RUN_NO + 1)); alog="$DIR/attempt$RUN_NO"
   { session_exists || [ -n "${RESUME:-}" ]; } && resumable=1
   if block=$(take_inbox); then
@@ -900,6 +908,7 @@ PY
       >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
     CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
     # opencode 1.18 exits 0 even when the model call failed; the run's `error` events decide.
+    [ -s "$alog.jsonl" ] || NO_EVENTS=1
     eval "$(python3 - "$alog.jsonl" <<'PY'
 import json, shlex, sys
 session, texts, order, errors = '', {}, [], []
@@ -929,12 +938,13 @@ PY
 )"
     [ -n "$ASESSION" ] && SESSION=$ASESSION
     # Free-tier rate limits carry no reset time, so they are plain errors retried after RETRY_WAIT.
-    if [ "$ARC" -eq 0 ] && [ -z "$AERR" ]; then
+    if [ "$ARC" -eq 0 ] && [ -z "$AERR" ] && [[ $ATEXT =~ [^[:space:]] ]]; then
       AKIND=ok
     else
       AKIND=error; [ -n "$AERR" ] && ATEXT="${ATEXT:+$ATEXT
 }$AERR"
       [ -z "$ATEXT" ] && ATEXT=$(tail -n 5 "$alog.err" 2>/dev/null)
+      [ -n "$ATEXT" ] || ATEXT="opencode exited without response text"
     fi
   else
     local sub=(exec) tail_args=()
@@ -1012,6 +1022,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   kind=$NEXT_KIND
   [ "$kind" = append ] || ATTEMPTS=$((ATTEMPTS + 1))
   apply_override
+  LAST_MODEL=$CUR_MODEL
   write_result
   echo "---- $(ts) attempt $ATTEMPTS/$MAX_ATTEMPTS ($kind) cap=${cap}s session=${SESSION:--} model=$CUR_MODEL${EFFORT:+/$EFFORT}"
   run_attempt "$cap"
@@ -1044,6 +1055,20 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
       NEXT_KIND=append; continue
     fi
     STATE=ok; break
+  fi
+  if [ "$NO_EVENTS" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
+  if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] && [ "$POOL_COLD" = 1 ] \
+     && [ -z "$SESSION" ] && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
+    pool_unavailable=1
+    for pool_model in "${MODEL_POOL[@]}"; do
+      [ "${COLD_MODELS[$pool_model]:-0}" = 1 ] || pool_unavailable=0
+    done
+    if [ "$pool_unavailable" = 1 ]; then
+      FAILURE_REASON=pool_no_response STATE=failed
+      FINAL_TEXT="No events from any patrol pool model; deferring to supervisor cooldown. $ATEXT"
+      echo "---- $(ts) $FAILURE_REASON: skipping the second pool lap"
+      break
+    fi
   fi
   [ "$ARC" -eq 124 ] && echo "---- attempt hit its timeout"
   NEXT_KIND=continue

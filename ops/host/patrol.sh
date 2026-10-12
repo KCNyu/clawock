@@ -44,6 +44,7 @@ ROUND_DEADLINE_H="${PATROL_ROUND_HOURS:-3}"  # whole round incl. retries
 ATTEMPT_TIMEOUT="${PATROL_ATTEMPT_TIMEOUT:-5400}"
 AXIS_RETRIES="${PATROL_AXIS_RETRIES:-2}"      # times an unfinished area is dispatched again before the rotation moves on
 [[ $AXIS_RETRIES =~ ^[0-9]+$ ]] || AXIS_RETRIES=2
+POOL_COOLDOWN=3600  # elapsed time, never a guessed provider reset hour
 PREEMPT_GRACE="${PATROL_PREEMPT_GRACE:-300}"  # wrap-up time a preempted round gets; 0 = cancel at once
 [[ $PREEMPT_GRACE =~ ^[0-9]+$ ]] || PREEMPT_GRACE=300
 mkdir -p "$STATE/drafts" "$STATE/filed"
@@ -256,17 +257,31 @@ rotation_axis() {  # <round number>
   echo "${axes[$(( ((($1 - 1 - skew) % ${#axes[@]}) + ${#axes[@]}) % ${#axes[@]} ))]}"
 }
 
-settle_slot() {  # <axis> finished|unfinished
+settle_slot() {  # <axis> finished|unfinished|unavailable
   local skew held tries
   read -r skew held tries < <(rotation_hold)
   [ "$held" = "$1" ] || tries=0
-  if [ "$2" = unfinished ] && [ "$tries" -lt "$AXIS_RETRIES" ]; then
+  if [ "$2" = unavailable ]; then
+    echo "$((skew + 1)) $1 $tries" >"$STATE/rotation-hold"
+    log "$1 never started; preserving its rotation slot without spending an area retry"
+  elif [ "$2" = unfinished ] && [ "$tries" -lt "$AXIS_RETRIES" ]; then
     echo "$((skew + 1)) $1 $((tries + 1))" >"$STATE/rotation-hold"
     log "$1 did not finish; it keeps its rotation slot (retry $((tries + 1))/$AXIS_RETRIES)"
   else
     [ "$2" = finished ] || log "$1 did not finish $((tries + 1)) times in a row; the rotation moves on"
     echo "$skew - 0" >"$STATE/rotation-hold"
   fi
+}
+
+# Persist the circuit across supervisor restarts. An adopted round always runs to
+# settlement first. Expiry admits a real round, so recovery needs no probe session.
+pool_cooldown_remaining() {
+  local until left
+  until=$(cat "$STATE/pool-cooldown-until" 2>/dev/null) || until=0
+  [[ $until =~ ^[0-9]{1,12}$ ]] || until=0
+  left=$((until - $(now)))
+  [ "$left" -gt 0 ] || left=0
+  echo "$left"
 }
 
 run_round() {  # returns 0 when the round finished (whatever it found), 1 when it failed/was preempted
@@ -373,6 +388,15 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     notify "⚠️ clawock 巡检 R$n 绕过闸直接开了 issue：$bad"
   fi
   [ -z "$reason" ] || { settle_slot "$axis" unfinished; return 1; }
+  local failure
+  failure=$( FAILURE_REASON=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "$FAILURE_REASON" )
+  if [ "$state" = failed ] && [ "$failure" = pool_no_response ]; then
+    echo "$(( $(now) + POOL_COOLDOWN ))" >"$STATE/pool-cooldown-until"
+    log "pool_no_response: cooling down for ${POOL_COOLDOWN}s before retrying $axis"
+    settle_slot "$axis" unavailable
+    return 1
+  fi
+  rm -f "$STATE/pool-cooldown-until"
   case "$state" in
     ok*|partial*|unverified*)
       settle_slot "$axis" finished
@@ -401,6 +425,14 @@ loop() {
   local fails=0 wait reason alerted=0
   log "patrol loop started ($ROUND_AGENT slots: $AGENT_SLOTS; rotation: $(sed 's/#.*//' "$TOOL/rotation" | xargs))"
   while :; do
+    if [ -z "$(current_round)" ]; then
+      wait=$(pool_cooldown_remaining)
+      if [ "$wait" -gt 0 ]; then
+        log "pool_no_response: cooldown has ${wait}s left"
+        sleep "$wait" & wait $!
+        continue
+      fi
+    fi
     # An adopted worker already holds its slot. Monitor it first so a waiting
     # user task can preempt it; waiting here would leave both sides blocked.
     reason=""
@@ -421,6 +453,8 @@ loop() {
       fi
     fi
     prune
+    reason=$(pool_cooldown_remaining)
+    [ "$reason" -le "$wait" ] || wait=$reason
     log "next round in ${wait}s"
     sleep "$wait" & wait $!
   done
@@ -447,6 +481,7 @@ case "${1:-}" in
   status)
     echo "service: $(systemctl is-active "$UNIT" 2>/dev/null) / $(systemctl is-enabled "$UNIT" 2>/dev/null)"
     rid=$(current_round); echo "current round: ${rid:-none}"
+    echo "pool cooldown remaining: $(pool_cooldown_remaining)s"
     [ -s "$STATE/yielding" ] && echo "wrapping up since $(date -d "@$(cut -d' ' -f2 "$STATE/yielding")" '+%F %T') to give way"
     [ -n "$rid" ] && "$DISPATCH" status "$rid" | grep -E '^(STATE|ATTEMPTS|SESSION|WAITING)=|^unit:'
     echo "--- last rounds"; tail -n 8 "$STATE/rounds.tsv" 2>/dev/null

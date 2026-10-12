@@ -7,7 +7,7 @@
 set -euo pipefail
 T=$(cd "$(dirname "$0")" && pwd)
 R=${AGENT_DISPATCH_RUNNER:-/root/tools/agent-dispatch/run-agent.sh}  # a staged copy can be tested before install
-WORK=$(mktemp -d /tmp/agent-dispatch-tests.XXXXXX)
+WORK=$(mktemp -d "${TMPDIR:-/tmp}/agent-dispatch-tests.XXXXXX")
 export FAKE_DIR=$WORK/state AGENT_DISPATCH_LOCKDIR=$WORK/locks AGENT_DISPATCH_PATH_PREFIX=$T/bin
 export AGENT_DISPATCH_NOTIFY_CONF=$WORK/notify.env CODEX_HOME=$WORK/codex CLAUDE_CONFIG_DIR=$WORK/claude
 export MIN_RUN_SEC=30 RETRY_WAIT=20 AGENT_DISPATCH_POLL_SEC=1 AGENT_DISPATCH_QUOTA_CMD=$T/bin/fake-quota
@@ -52,6 +52,40 @@ EOF
   echo "$d"
 }
 reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
+
+if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
+  echo '=== patrol pool outage, recovery, and empty CLI exits'
+  for mode in silent empty; do
+    reset_fake opencode "$mode"
+    d=$(mk "patrol-cold-$mode" opencode 900 300)
+    echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+    e=0
+    STALL_FIRST_SEC=2 STALL_CHECK_SEC=1 FALLBACK_WAIT=0 RETRY_WAIT=0 bash "$R" "$d" || e=$?
+    expect "$mode pool stops after one lap" "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 1/failed/2/pool_no_response
+    expect "$mode reports the actual final model" "$(field "$d" MODEL_USED)" other
+    expect "$mode has no session" "$(field "$d" SESSION)" ''
+    expect "$mode leaves no running CLI" "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
+  done
+  reset_fake opencode silent-then-ok
+  d=$(mk patrol-recovers opencode 900 300)
+  echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+  e=0
+  STALL_FIRST_SEC=2 STALL_CHECK_SEC=1 FALLBACK_WAIT=0 bash "$R" "$d" || e=$?
+  expect 'a responsive fallback finishes the patrol' "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 0/ok/2/
+  for scenario in manual progressed resumed; do
+    reset_fake opencode empty
+    name=patrol-$scenario
+    [ "$scenario" != manual ] || name=manual-empty
+    [ "$scenario" != progressed ] || echo event-then-empty >"$FAKE_DIR/opencode.mode"
+    d=$(mk "$name" opencode 900 300)
+    echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+    [ "$scenario" != resumed ] || echo 'RESUME=ses_existing' >>"$d/meta.env"
+    e=0
+    FALLBACK_WAIT=0 RETRY_WAIT=0 bash "$R" "$d" || e=$?
+    expect "$scenario retains the normal retry budget, empty is never success" "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 1/failed/4/
+    expect "$scenario final model is not the unused next model" "$(field "$d" MODEL_USED)" other
+  done
+fi
 
 if [ "${DISPATCH_TEST_CASES:-}" = cancel-barrier ]; then
   echo '=== durable cancellation and wake/launch barriers (fake agents only)'

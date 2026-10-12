@@ -29,9 +29,17 @@ prev=""
 for a in "$@"; do [ "$prev" = -s ] && sid=$a; prev=$a; done
 # Like the real CLI, the part repeats the sessionID on the same line.
 ev() { printf '{"type":"%s","timestamp":1,"sessionID":"%s"%s}\n' "$1" "$sid" "${2/\"part\":\{/\"part\":{\"sessionID\":\"$sid\",}"; }
+case "$mode" in
+  empty) exit 0 ;;
+  silent) sleep 3600; exit 0 ;;
+  event-then-empty) [ "$n" != 1 ] && exit 0 ;;
+esac
 if [ "$mode" = silent-then-ok ] && [ "$n" = 1 ]; then sleep "${FAKE_SILENT:-120}"; fi
 ev step_start ',"part":{"type":"step-start","messageID":"msg_1"}'
 case "$mode" in
+  event-then-empty)
+    ev error ',"error":{"name":"APIError","data":{"message":"temporary error"}}'
+    exit 0 ;;
   silent-mid) [ "$n" = 1 ] && sleep 3600 ;;
   slow-steady)
     for i in $(seq "${FAKE_STEPS:-8}"); do

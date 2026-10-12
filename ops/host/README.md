@@ -152,6 +152,19 @@ round is cancelled at once, when:
 a supervisor restart during the grace does not append the instruction twice;
 `patrol.sh status` shows it.
 
+When every model in a fresh patrol's pool returns no events, the runner stops
+after one lap with `STATE=failed`, `FAILURE_REASON=pool_no_response`. It still
+allows 210 seconds for a first event; a session that has made progress retains
+the normal retry budget. An empty OpenCode exit is an error, never a finished
+review. `MODEL_USED` names the last attempted model, not the next fallback.
+
+The supervisor records the failed round, preserves its area without spending an
+area retry, and waits one hour. `pool-cooldown-until` persists this wait across
+restarts; `status` reports the remaining seconds. Expiry admits a normal round
+with the same pool and gates, which also tests recovery. This is an elapsed-time
+cooldown, not a claim about provider quota reset times. Other failures keep the
+existing retry/backoff policy. No availability probe advances the review cursor.
+
 `PATROL_DISPATCH_DIR` can point tests at fixture policy/helpers; production uses
 `/root/tools/agent-dispatch`. Run the focused supervisor coverage with
 `env -u CLAWOCK_WORKSPACE PYTHONPATH="$PWD/src" python3 -m pytest -q tests/test_patrol_audit.py tests/test_patrol_supervisor.py`.
