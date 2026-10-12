@@ -90,6 +90,23 @@ memory/.tmp-*
 # Immutable local inputs for brief score replay (copied with exported contexts).
 memory/scorecard-inputs/
 
+# Runtime JSON hygiene (2026-10-13): keep full experiment/replay bundles local.
+# evaluate-methods --register/--trial freezes inputs, raw responses and large
+# simulation reports here; no scheduled brief/report/intraday path runs trials.
+# Preserve these files for replay; ignoring them is not a retention/deletion rule.
+memory/method-trials/
+# Brief postflight DOES write these content-addressed full decision packets.
+# proposals.jsonl keeps their hash/path plus the compact proposal/review evidence;
+# evaluation reads that ledger, not the packet files. Like scorecard-inputs above,
+# copy the local snapshots separately when exporting a complete replay archive.
+memory/proposal-inputs/
+# Keep memory/proposals.jsonl and memory/strategy-lab/*.jsonl eligible for the
+# brief's runtime commits: method denominators, research verdicts and prospective
+# registrations are durable evidence. Existing *.jsonl.lock rules exclude locks.
+# Likewise keep assets/data/t0_setups_history.jsonl (bounded observation history,
+# read by setup review and signal scoring; not a data-plane dashboard output).
+# memory/backtests/ run cards remain tracked evidence for published claims.
+
 # OpenClaw memory system internals (not for public consumption)
 memory/.dreams/
 memory/dreaming/
