@@ -155,8 +155,13 @@ Ask in this order; stop at the first "no".
    **a figure is never tweened or rolled.** Every value on screen at every
    instant is a real one; an interpolated P&L is a number that was never true.
    A figure that changed is *marked*, not animated (§2.4).
+   Two things are not tweening, and are allowed: **uncovering** a series that
+   is already drawn (every pixel shown is a value that was true; the first
+   screen's curve does this once per page load), and **reading a series under
+   the pointer**, where the mark snaps to the nearest real point and follows
+   the hand with no easing of its own.
 4. **Can it run on `transform` and `opacity` alone?** Layout is not animated.
-   Colour may transition (it repaints, it does not reflow).
+   Colour and `clip-path` may animate (they repaint, they do not reflow).
 
 ### 2.2 Durations
 
@@ -168,6 +173,7 @@ Ask in this order; stop at the first "no".
 | `--duration-slow` | 400ms | reserved; an interaction never uses it |
 | `--duration-enter` / `--duration-exit` | standard / fast | role aliases — leaving is one step quicker than arriving |
 | `--duration-mark` | 1600ms | how long a change mark stays; a notice, not a transition |
+| `--duration-draw` | 900ms | a time series uncovering itself in time order, once per page load; answers no action, so it is off the interaction scale |
 
 Loops (`infinite`) state their own period and are the only place a literal time
 may appear.
@@ -204,6 +210,9 @@ same query. Where the motion carried information, a static form replaces it.
 | Panel loaded | no jump | content returns to full opacity, `standard` | instant |
 | Panel load error | no jump | box fades in and rises `--enter-shift` | appears |
 | First figures on the first screen | no jump | three blocks fade in 40ms apart, once per page load | appear |
+| First-screen curve | origin — it was walked a day at a time | uncovered left to right over `--duration-draw`, `--ease-standard`, once per page load; never on a refresh | appears |
+| First-screen daily bars and share meters | origin | bars rise from the zero line one after another, meters fill from their left end, `standard`; once per page load | appear |
+| Reading the first-screen curve (hover, press-and-drag, arrow keys) | feedback | hairline, dot and readout sit on the nearest day and follow the hand; no transition of their own | the same — nothing here is animated |
 | A figure changed in a refresh | state | accent underline under the changed figure, held then faded over `--duration-mark` | the underline holds, then is removed, no fade |
 | Verdict banner changes tone | state | fill and border cross to the new colour, `standard` | instant |
 | Refresh in flight / landed | feedback | spinner; then ✓ pops with `--ease-spring` | spinner still; ✓ appears |
@@ -280,7 +289,18 @@ rule of this form by itself; nothing needs registering.
 - **Error** — `.panel-load-error` with a real `<button class="panel-load-retry">`.
   It says what is being shown instead ("the last loaded content").
 
-### 4.6 Any control
+### 4.6 A series that can be read by pointing
+
+The first-screen curve is the pattern (`.hs-scrub` in `dashboard.css`,
+`heroScrubShow` in `dashboard.hero.js`). A `role="slider"` layer lies over the
+plot as a sibling of the drawing, so the drawing keeps its own summary label.
+Pointer, finger and arrow keys all land on real points only; the readout prints
+that day's stored value and its date, floats outside the plot edge the finger
+does not cover, and takes no room when it appears. The page's headline figure
+does not change while a past day is being read: the lines under it are true of
+today only.
+
+### 4.7 Any control
 
 Use a `<button>`, `<summary>` or `role="button"`. Focus ring, press and touch
 target then come from the baselines. If the rule writes its own `transition`,

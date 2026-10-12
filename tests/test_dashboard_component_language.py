@@ -504,6 +504,7 @@ def test_the_motion_scale_is_complete_and_nothing_eases_in():
     the first frames, which are the ones the eye is on."""
     for token in ("--duration-instant", "--duration-fast", "--duration-standard",
                   "--duration-slow", "--duration-enter", "--duration-exit",
+                  "--duration-mark", "--duration-draw",
                   "--ease-out", "--ease-in-out", "--ease-standard", "--ease-drawer",
                   "--ease-spring", "--ease-linear"):
         assert re.search(rf"(?<![\w-]){token}\s*:", CSS), f"{token} left the motion scale"

@@ -229,6 +229,10 @@
   /* 「数据刚变过」的记号停留多久（见 .is-changed）。它是提示不是过渡，
      所以单列，不进上面那条交互时长阶。 */
   --duration-mark: 1600ms;
+  /* 一条时间序列按时间顺序露出来要多久（首屏走势，每次打开页面一遍）。
+     同样不是交互时长：它不回应任何动作，只是把「这条线是一天一天走出来的」
+     演一遍；交互阶上最长的 400ms 扫过一张 700px 的图只是一闪。 */
+  --duration-draw: 900ms;
   /* 曲线按「它在做什么」选，不按好不好看选：
        out       进场 / 出场 / 对用户动作的回应 —— 默认就是它
        in-out    已经在屏幕上的东西从 A 挪到 B
@@ -503,6 +507,35 @@
   .is-first-paint .hero-today { animation-delay: 40ms; }
   .is-first-paint .hero-rail { animation-delay: 80ms; }
   @keyframes enter-fade { from { opacity: 0; } }
+  /* ②b 首屏的三件图形按各自的读法到位，同样每页只放一遍（换代重画不放，
+     否则每分钟整屏重演一次）：
+     · 走势从左到右露出来 —— 时间序列的阅读方向。是「揭开」不是「插值」：
+       裁剪框经过的每一段都是已经画好的真值，没有一帧画的是不存在的数。
+       clip-path 只重绘、不重排，图的盒子从第一帧就是终位。
+     · 每日柱从零轴长到各自的高度，一根接一根（--i 是柱的序号）。
+     · 占比条从左端填到各自的比例。
+     柱与条用 transform 缩放：原点分别钉在零轴和左端，终态就是它本来的样子。 */
+  .is-first-paint .hero-spark-svg {
+    animation: series-draw var(--duration-draw) var(--ease-standard) backwards;
+  }
+  /* 终点必须写出来：缺省的终点是 none，而 inset() 到 none 不可插值，整段
+     会在半程一步跳完。 */
+  @keyframes series-draw {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+  .is-first-paint .rc-bars > i {
+    animation: bar-rise var(--duration-standard) var(--ease-out) backwards;
+    animation-delay: calc(240ms + var(--i, 0) * 22ms);
+  }
+  .rc-bars > i.up, .rc-bars > i.flat { transform-origin: 50% 100%; }
+  .rc-bars > i.down { transform-origin: 50% 0; }
+  @keyframes bar-rise { from { transform: translateX(-50%) scaleY(0); } }
+  .is-first-paint .rc-meter > i {
+    transform-origin: 0 50%;
+    animation: meter-fill var(--duration-standard) var(--ease-out) 320ms backwards;
+  }
+  @keyframes meter-fill { from { transform: scaleX(0); } }
   /* 从无到有的小块（报错框、提示条）：淡入并上移一个 --enter-shift。 */
   @keyframes enter-rise {
     from { opacity: 0; transform: translateY(var(--enter-shift)); }
@@ -518,6 +551,9 @@
     .is-first-paint .hero-deck-lead,
     .is-first-paint .hero-today,
     .is-first-paint .hero-rail,
+    .is-first-paint .hero-spark-svg,
+    .is-first-paint .rc-bars > i,
+    .is-first-paint .rc-meter > i,
     details[data-opening][open] > :not(summary) { animation: none; }
   }
   /* OS-level reduced transparency: drop the frosted surfaces back to solid
@@ -2860,7 +2896,9 @@
      16px 占掉，所以文字一写进去不会产生位移。 */
   .hero-spark {
     position: relative; min-width: 0; margin-top: 18px;
-    display: grid; grid-template-rows: 56px 16px; row-gap: 8px;
+    /* 手机上的画布 56 → 84px：它现在是可以按住拖读的图，不只是一条形状；
+       56px 的画布整个压在拇指底下，线的起伏也只有二十几像素可用。 */
+    display: grid; grid-template-rows: 84px 16px; row-gap: 8px;
   }
   @media (min-width: 1024px) {
     /* 长走势条配更高的画布：宽度放大后 108px 会把形状压扁。主数收到 56px 之后
@@ -2907,6 +2945,44 @@
     stroke: var(--border-strong); stroke-width: 1; opacity: .45;
     vector-effect: non-scaling-stroke;
   }
+  /* 拖读层：盖满画布的一层滑块。横向拖动归它（pan-y 只把纵向滚动留给
+     页面，和判定牌组同一个取舍：从这块起手不翻 tab）。光标线与圆点跟手
+     直接到位，不带过渡 —— 跟手的东西一旦有缓动就是「拖着一根橡皮筋」。
+     圆点是 DOM 元素不是 SVG 圆：viewBox 被横向拉伸，SVG 里的正圆会变椭圆。 */
+  .hs-scrub {
+    position: absolute; inset: 0; border-radius: inherit;
+    touch-action: pan-y; cursor: crosshair;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  }
+  .hs-scrub:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+  .hs-cursor, .hs-dot { position: absolute; pointer-events: none; visibility: hidden; }
+  .hs-cursor {
+    left: var(--sx, 100%); top: 0; bottom: 0; width: 1px; margin-left: -.5px;
+    background: var(--text-secondary);
+  }
+  .hs-dot {
+    left: var(--sx, 100%); top: var(--sy, 50%);
+    width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
+    background: var(--accent-strong);
+    box-shadow: 0 0 0 2px var(--surface-1), 0 1px 3px var(--shade-3);
+  }
+  .is-scrubbing .hs-cursor, .is-scrubbing .hs-dot { visibility: visible; }
+  /* 拖读时最低点竖线让位：两条竖线并排会分不清哪条是光标。 */
+  .is-scrubbing .hs-low { visibility: hidden; }
+  /* 读数牌浮在画布上缘之外：手机上手指盖住的正是画布和它下面的脚注，
+     能看见的只有上方。绝对定位，不占行，出现和消失都不推任何东西。 */
+  .hs-read {
+    position: absolute; left: 0; bottom: 100%; margin-bottom: 3px;
+    padding: 1px 6px; border-radius: var(--radius-sm);
+    background: var(--overlay); box-shadow: var(--shadow-card);
+    font: 500 var(--fs-xs)/1.4 var(--mono); color: var(--text-secondary);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    pointer-events: none; visibility: hidden;
+  }
+  .hs-read b { font-weight: 700; color: var(--text-primary); }
+  .hs-read b.pos { color: var(--positive); }
+  .hs-read b.neg { color: var(--negative); }
+  .is-scrubbing .hs-read { visibility: visible; }
   /* 脚注：把「多长、最低到过哪、从那以后回来多少」写成字。大数字只回答
      「现在亏多少」，这一行回答的是它是怎么走到这儿的 —— 首屏原来没有
      任何一处给得出这三个数。 */

@@ -389,6 +389,75 @@ async function testAStaleFxRateSaysSoOnTheHero(browser, base) {
   await freshContext.close();
 }
 
+// The first-screen curve can be read day by day: hover, press-and-drag, or the
+// arrow keys. What it prints must be a day the page already states — parked on
+// the low-point marker it has to print the footnote's own 最低, and at the right
+// edge the headline itself. A readout that interpolated between snapshots, or
+// mapped the pointer onto a different series, would print neither.
+async function testTheHeroCurveReadsOutTheDayUnderThePointer(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await context.newPage();
+  const state = observe(page);
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#hero-spark .hs-scrub");
+  const at = await page.evaluate(() => {
+    const host = document.getElementById("hero-spark");
+    const plot = host.querySelector(".hs-scrub").getBoundingClientRect();
+    const low = host.querySelector(".hs-low").getBoundingClientRect();
+    return {
+      lowX: low.left + low.width / 2, rightX: plot.right - 1, y: plot.top + plot.height / 2,
+      foot: host.querySelector(".hs-foot-low").textContent,
+      headline: document.getElementById("hero-pnl").textContent.trim(),
+      idle: getComputedStyle(host.querySelector(".hs-read")).visibility,
+    };
+  });
+  assert.equal(at.idle, "hidden", "the readout shows before anything points at the curve");
+  const readout = () => page.evaluate(() => {
+    const host = document.getElementById("hero-spark");
+    const read = host.querySelector(".hs-read"), plot = host.querySelector(".hs-scrub");
+    const r = read.getBoundingClientRect(), p = plot.getBoundingClientRect();
+    return {
+      text: read.textContent.trim(),
+      visible: getComputedStyle(read).visibility,
+      inside: r.left >= p.left - 0.5 && r.right <= p.right + 0.5,
+      spoken: plot.getAttribute("aria-valuetext"),
+    };
+  });
+  const footLow = /最低\s*(\S+?)（(\d\d-\d\d)）/.exec(at.foot);
+  assert(footLow, `no 最低 in the footnote to compare with: ${at.foot}`);
+
+  await page.mouse.move(at.lowX, at.y);
+  const onLow = await readout();
+  assert.equal(onLow.visible, "visible", "hovering the curve shows no readout");
+  assert.equal(onLow.text, `${footLow[2]} ${footLow[1]}`,
+    "on the low-point marker the readout disagrees with the footnote's 最低");
+  assert.equal(onLow.spoken, onLow.text, "the slider announces a different day than it prints");
+
+  await page.mouse.move(at.rightX, at.y);
+  const onLast = await readout();
+  assert(onLast.text.endsWith(" " + at.headline),
+    `at the right edge the readout (${onLast.text}) is not the headline (${at.headline})`);
+  assert(onLast.inside, "the readout runs past the edge of the plot");
+
+  await page.mouse.move(at.rightX, at.y + 400);
+  assert.equal((await readout()).visible, "hidden", "the readout stays after the pointer left");
+
+  // Keyboard: one day back from today, and Escape puts it away.
+  await page.focus("#hero-spark .hs-scrub");
+  await page.keyboard.press("ArrowLeft");
+  const stepped = await readout();
+  assert.equal(stepped.visible, "visible", "ArrowLeft on the curve reads nothing");
+  assert.notEqual(stepped.text, onLast.text, "ArrowLeft did not leave today");
+  await page.keyboard.press("ArrowRight");
+  assert.equal((await readout()).text, onLast.text, "ArrowRight did not return to today");
+  await page.keyboard.press("Escape");
+  assert.equal((await readout()).visible, "hidden", "Escape left the readout up");
+  assert.deepEqual(state.errors, []);
+  await context.close();
+}
+
 // The profit card is a ruler from the lowest profit on record to the highest,
 // with today marked on it. Its two ends are those two numbers whatever their
 // sign, and the percentage printed beside it is the marker's own position: a
@@ -4045,6 +4114,8 @@ async function main() {
     await run("runtime", () => testRuntime(browser, base));
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
     await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));
+    await run("testTheHeroCurveReadsOutTheDayUnderThePointer", () =>
+      testTheHeroCurveReadsOutTheDayUnderThePointer(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
     await run("testTheProfitRulerPrintsThePositionItDraws", () => testTheProfitRulerPrintsThePositionItDraws(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));

@@ -1070,7 +1070,9 @@
           const command = document.querySelector(".overview-command");
           if (command && landing === "hero") {
             command.classList.add("is-first-paint");
-            setTimeout(() => command.classList.remove("is-first-paint"), 600);
+            // Long enough for the slowest entrance it gates (the curve's
+            // --duration-draw plus the bars' stagger).
+            setTimeout(() => command.classList.remove("is-first-paint"), 2000);
           }
         }
         // render() just painted this tab from a complete pair. A message left
