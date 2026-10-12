@@ -28,11 +28,16 @@ from clawock.safe_io import file_lock, jsonl_line
 from clawock.workspace import workspace_root
 
 LEDGER = Path('memory') / 'strategy-lab' / 'ledger.jsonl'
+REGISTRATIONS = Path('memory') / 'strategy-lab' / 'registrations.jsonl'
 SCHEMA_VERSION = 1
 
 
 def ledger_path() -> Path:
     return workspace_root() / LEDGER
+
+
+def registrations_path() -> Path:
+    return workspace_root() / REGISTRATIONS
 
 
 def input_digest(report: dict) -> str:
@@ -78,7 +83,45 @@ def row(report: dict) -> dict:
              'agrees_with_registered': alternate['agrees_with_registered'],
              'would_refuse_because': alternate['would_refuse_because']}
             for alternate in report['alternate_gates']],
+        'live_review': report.get('live_review'),
+        'prospective': report.get('prospective', []),
     }
+
+
+def registrations(path: Path | None = None) -> list[dict]:
+    """Cleared parameters, each with the last session its run was served."""
+    return load(path or registrations_path())
+
+
+def register(report: dict, path: Path | None = None) -> dict | None:
+    """Write a cleared candidate's selected parameters down, once.
+
+    Registering starts prospective scoring: later runs score these parameters
+    on the sessions after `after_session` only. It grants nothing else; the
+    row says `live_permission: false` like the proposal it came from.
+    """
+    review = report.get('live_review') or {}
+    if not review.get('cleared') or not report.get('selected_params'):
+        return None
+    path = path or registrations_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        'schema_version': SCHEMA_VERSION,
+        'registered_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        'strategy': report['strategy'],
+        'params': report['selected_params'],
+        'after_session': report['sample']['last_bar'],
+        'input_digest': input_digest(report),
+        'cleared_by': {'gate': 'registered', 'live_alternates': review['alternates']},
+        'live_permission': False,
+    }
+    with file_lock(str(path)):
+        if any(known['strategy'] == record['strategy'] and known['params'] == record['params']
+               for known in registrations(path)):
+            return None
+        with path.open('a', encoding='utf-8') as handle:
+            handle.write(jsonl_line(record, label='strategy-lab registrations'))
+    return record
 
 
 def append(report: dict, path: Path | None = None) -> dict:
@@ -118,10 +161,16 @@ def statistics(rows: list[dict]) -> dict:
     out = {}
     for (strategy, _), record in latest.items():
         entry = out.setdefault(strategy, {
-            'runs': runs[strategy], 'distinct_inputs': 0, 'candidates': 0,
-            'refused': 0, 'refused_by_check': {}, 'alternate_gates': {}})
+            'runs': runs[strategy], 'distinct_inputs': 0, 'candidates': 0, 'cleared': 0,
+            'refused': 0, 'refused_by_check': {}, 'objections': {}, 'alternate_gates': {}})
         entry['distinct_inputs'] += 1
         entry['candidates' if record['status'] == 'candidate' else 'refused'] += 1
+        # Rows written before alternates had live effect carry no review.
+        review = record.get('live_review') or {}
+        entry['cleared'] += bool(review.get('cleared'))
+        if record['status'] == 'candidate':
+            for identifier in review.get('objections', []):
+                entry['objections'][identifier] = entry['objections'].get(identifier, 0) + 1
         for check in record['refused_because']:
             entry['refused_by_check'][check] = entry['refused_by_check'].get(check, 0) + 1
         for alternate in record['alternate_gates']:

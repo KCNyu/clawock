@@ -51,7 +51,8 @@
           },
           {
             "id": "net-of-cost",
-            "rationale": "The registered gate reads a gross rank IC. This alternate adds one check: the better-half basket's excess over the equal-weight of all names, after the registered cost model, must have a bootstrap interval above zero.",
+            "effect": "live",
+            "rationale": "The registered gate reads a gross rank IC. This alternate adds one check: the better-half basket's excess over the equal-weight of all names, after the registered cost model, must have a bootstrap interval above zero. It has live effect: a candidate it would refuse is not cleared for prospective registration.",
             "gate": {"oos_net_excess_ci95_lower_gt": 0.0}
           }
         ]

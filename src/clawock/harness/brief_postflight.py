@@ -27,7 +27,9 @@ Side effects:
 """
 
 import json
+import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -1048,6 +1050,38 @@ def _existing(*paths):
     """The paths that exist under the workspace (for an optional `git add`)."""
     return [path for path in paths if (WS / path).exists()]
 
+#: The whole research run: 28 adjusted series fetched, then the walk-forward.
+#: About a minute on the host; the bound is for a provider that hangs.
+STRATEGY_LAB_TIMEOUT_SECONDS = 300
+
+
+def record_strategy_lab():
+    """Run the strategy lab on the bars this brief just settled, into its ledger.
+
+    `memory/bars` gained yesterday's sessions in preflight, so this is the
+    first moment the lab can see them. The run appends one row per mounted
+    strategy to `memory/strategy-lab/ledger.jsonl` (and registers a cleared
+    candidate); the `memory/` pathspec of the commit below publishes both.
+    Research evidence must not cost the brief its commit: any failure is a
+    warning on stderr.
+    """
+    if os.environ.get('CLAWOCK_STRATEGY_LAB_RECORD_DISABLED') == '1':
+        return False
+    try:
+        done = subprocess.run(
+            [sys.executable, '-m', 'clawock', 'strategy-lab', 'record'], cwd=str(WS),
+            capture_output=True, text=True, timeout=STRATEGY_LAB_TIMEOUT_SECONDS)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print(f'  warn: strategy lab not recorded: {type(exc).__name__}', file=sys.stderr)
+        return False
+    for line in done.stdout.splitlines():
+        print(f'  strategy lab: {line}')
+    if done.returncode:
+        print(f'  warn: strategy lab exited {done.returncode}: {done.stderr.strip()[-300:]}',
+              file=sys.stderr)
+    return done.returncode == 0
+
+
 def maybe_commit(status, today, dry_run=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
@@ -1067,6 +1101,7 @@ def maybe_commit(status, today, dry_run=False):
     if not log_decisions(today):
         return False, 'ledger booking blocked: plan.json decisions were not booked (see stderr)'
     record_risk_stances(today)
+    record_strategy_lab()
     rebuild_dashboard()
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''

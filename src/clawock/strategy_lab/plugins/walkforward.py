@@ -106,6 +106,23 @@ def _thresholds(overrides, label: str) -> dict:
     return {**DEFAULTS['gate'], **(overrides or {})}
 
 
+#: What an alternate's verdict does. `record`: it is written beside the verdict
+#: and nothing reads it. `live`: its refusal is an objection that keeps a
+#: candidate from being cleared for prospective registration.
+EFFECTS = ('record', 'live')
+
+
+def _loosens(check: str, registered, value) -> bool:
+    """Whether `value` asks less of a proposal than the registered threshold."""
+    if check == 'corporate_actions_adjusted':
+        return bool(registered) and not value
+    if registered is None:
+        return False  # a check the registered gate does not make
+    if value is None:
+        return True
+    return value > registered if check.endswith('_lt') else value < registered
+
+
 def _alternates(rows, registered: dict) -> list[dict]:
     out, seen = [], set()
     for row in rows or []:
@@ -117,8 +134,20 @@ def _alternates(rows, registered: dict) -> list[dict]:
         seen.add(identifier)
         # An alternate states only what it changes; the rest is the registered gate.
         _thresholds(row.get('gate'), f'gate alternate {identifier!r}')
-        out.append({'id': identifier, 'rationale': rationale,
-                    'gate': {**registered, **(row.get('gate') or {})}})
+        effect = row.get('effect', 'record')
+        if effect not in EFFECTS:
+            raise ValueError(
+                f'gate alternate {identifier!r}: effect must be one of {EFFECTS}, got {effect!r}')
+        gate = {**registered, **(row.get('gate') or {})}
+        # An alternate with live effect may only add or tighten a check. One
+        # that dropped the adjustment check, or lowered a bar, would otherwise
+        # be a way to clear what the registered gate refuses.
+        loosened = sorted(check for check in gate if _loosens(check, registered[check], gate[check]))
+        if effect == 'live' and loosened:
+            raise ValueError(
+                f'gate alternate {identifier!r} has live effect and loosens {loosened}; '
+                'a live alternate may only add or tighten a check')
+        out.append({'id': identifier, 'rationale': rationale, 'effect': effect, 'gate': gate})
     return out
 
 
@@ -287,7 +316,10 @@ class Optimizer:
         self.strategies, self.bars, self.costs = strategies, bars, costs
         self.settings = settings
 
-    def run(self, strategy: str) -> dict:
+    def run(self, strategy: str, registrations=()) -> dict:
+        """One proposal. `registrations` are earlier cleared parameters of this
+        strategy (`ledger.registrations`); each is scored on the sessions after
+        the one it was registered on."""
         spec = self.strategies.get(strategy)
         settings = self.settings
         horizon = settings['horizon_sessions']
@@ -342,6 +374,19 @@ class Optimizer:
                 'would_refuse_because': [
                     item['check'] for item in verdict if not item['passed']],
                 'checks': verdict})
+        objections = [alternate['id'] for alternate in alternates
+                      if alternate['effect'] == 'live' and not alternate['would_pass']]
+        prospective = []
+        for registered in registrations:
+            if registered['params'] not in configs:
+                continue  # the space no longer holds it; nothing to score it on
+            column = configs.index(registered['params'])
+            later = [row[column] for day, row in zip(sessions, matrix)
+                     if day > registered['after_session']]
+            prospective.append({
+                'params': registered['params'], 'after_session': registered['after_session'],
+                'sessions': len(later),
+                'mean_ic': round(statistics.fmean(later), 4) if later else None})
         selected = configs[_best(matrix, range(len(matrix)), default)] if matrix else None
         surface = sorted(
             ({'params': configs[c],
@@ -368,12 +413,25 @@ class Optimizer:
             'refused_because': [item['check'] for item in checks if not item['passed']],
             # Second opinions. None of them feeds `status` above.
             'alternate_gates': alternates,
+            # What the alternates with live effect do: object. A candidate no
+            # live alternate objects to is cleared to be registered and scored
+            # on the sessions that follow. Not a permission to trade.
+            'live_review': {
+                'alternates': [a['id'] for a in alternates if a['effect'] == 'live'],
+                'objections': objections,
+                'cleared': passed and not objections},
+            # Earlier cleared parameters, scored only on sessions after their
+            # registration.
+            'prospective': prospective,
             'objective': (f'mean daily rank IC against the {horizon}-session forward '
                           'return, gross; net_of_cost holds the same picks as a basket'),
             'search': {'space': spec.space, 'configurations': len(configs)},
             'sample': {'sessions': len(sessions),
                        'first': sessions[0] if sessions else None,
                        'last': sessions[-1] if sessions else None,
+                       # The latest bar the run was served, scored or not.
+                       'last_bar': max((self.bars.series(ticker)[-1]['date']
+                                        for ticker in self.bars.tickers()), default=None),
                        'bars': source},
             'walk_forward': {
                 'embargo_sessions': embargo,

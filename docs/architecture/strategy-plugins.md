@@ -11,6 +11,7 @@ compositions:
 ```bash
 clawock strategy-lab list            # mounted plugins, services, strategies
 clawock strategy-lab optimize rsi    # walk-forward search → a proposal
+clawock strategy-lab record          # every strategy, into the ledger (the brief runs this)
 clawock strategy-lab ledger          # recorded verdicts across runs
 ```
 
@@ -202,7 +203,8 @@ The registered gate does not read `net_of_cost`. The check
 `oos_net_excess_ci95_lower_gt` exists for alternates only.
 
 A `candidate` is a reason to pre-register the parameters and score them
-prospectively. Changing the registered parameters is an edit to the row,
+prospectively; the scheduled run does that for a candidate no live alternate
+objects to (see below). Changing the registered parameters is an edit to the row,
 reviewed like any configuration change. The rule is the one
 `config/factor-universe.json` states for the factor universe: never infer live
 permission from a retrospective backtest.
@@ -215,26 +217,73 @@ checks it changes, inheriting the rest from the registered gate.
 
 Every proposal is judged by each alternate beside the registered gate. The
 result is in `alternate_gates`: `would_pass`, `would_refuse_because`,
-`agrees_with_registered`, and `binding: false`. An alternate never sets
-`status`, and nothing outside `strategy-lab` reads it. Promoting one is an edit
-that moves its thresholds into `gate`.
+`agrees_with_registered`, `effect`, and `binding: false`. An alternate never
+sets `status`. Promoting one is an edit that moves its thresholds into `gate`.
 
-Two are shipped. `statistics-only` drops `corporate_actions_adjusted`, so a run
-on a source that cannot claim adjustment still records what the statistics
-alone would have concluded. `net-of-cost` adds `oos_net_excess_ci95_lower_gt: 0`.
+### Live effect
+
+An alternate's `effect` is `record` (the default) or `live`.
+
+- `record`: the verdict is written beside the proposal and nothing acts on it.
+- `live`: a refusal is an objection. The proposal's `live_review` lists the
+  live alternates, their `objections`, and `cleared`, which is true only when
+  the registered gate passed and no live alternate objects.
+
+A live alternate may only add a check or tighten one. A row with `effect:
+live` that drops `corporate_actions_adjusted`, raises `pbo_lt`, or lowers any
+other bar is refused at mount. So a live alternate can keep a candidate from
+being cleared and cannot clear what the registered gate refuses.
+
+What `cleared` leads to is registration, below. It does not change `status`,
+and `live_permission` stays `false` on the proposal and on the registration.
+
+Two alternates are shipped. `statistics-only` (`record`) drops
+`corporate_actions_adjusted`, so a run on a source that cannot claim adjustment
+still records what the statistics alone would have concluded. `net-of-cost`
+(`live`) adds `oos_net_excess_ci95_lower_gt: 0`.
+
+## The scheduled run
+
+`clawock strategy-lab record` optimises every mounted strategy, appends each
+verdict to the ledger, and registers what is cleared. One strategy failing does
+not stop the others.
+
+The daily brief runs it after delivery, before its commit
+(`brief_postflight.record_strategy_lab`). Preflight has by then appended the
+sessions that closed since the last brief to `memory/bars`, and the adjusted
+series are cut at that store, so each run sees completed sessions only. The
+brief's commit stages `memory/`, which publishes the ledger and the
+registrations. The run is bounded at 300 seconds and a failure is a warning: it
+never blocks the commit. It does not run on a dry run or when the brief's
+status is `fail`.
+
+### Registration and prospective scoring
+
+A cleared candidate's selected parameters are written once to
+`memory/strategy-lab/registrations.jsonl`, with `after_session`: the latest bar
+that run was served. Every later run scores each registration on the signal
+sessions after `after_session` only and reports it in `prospective` (sessions
+and mean rank IC). Those sessions did not exist when the parameters were
+chosen, which is the measurement a retrospective search cannot give.
+
+Nothing reads `prospective` to change a parameter. Changing the registered
+parameters is still an edit to the row.
 
 ## Ledger
 
-Each `optimize` appends one row to `memory/strategy-lab/ledger.jsonl`: status,
-failed checks, every alternate's verdict, the measured intervals, and the
-digest of the bars served. `--no-ledger` skips it. The file sits beside
-`memory/backtests` as run-time evidence of research; `memory/proposals.jsonl`
-is the book's decision proposals and is a different record.
+`optimize` and `record` append one row per proposal to
+`memory/strategy-lab/ledger.jsonl`: status, failed checks, every alternate's
+verdict, `live_review`, `prospective`, the measured intervals, and the digest
+and basis of the bars served. `optimize --no-ledger` skips it. The file sits
+beside `memory/backtests` as run-time evidence of research;
+`memory/proposals.jsonl` is the book's decision proposals and is a different
+record.
 
-`strategy-lab ledger` reports, per strategy, candidates over distinct inputs,
-refusals by check, and for each alternate how often it would have passed and
-how often it disagreed with the registered gate. A rerun of the same strategy,
-parameters, space, settings and bars counts once, by its latest row.
+`strategy-lab ledger` reports, per strategy, candidates and cleared candidates
+over distinct inputs, refusals by check, objections by live alternate, and for
+each alternate how often it would have passed and how often it disagreed with
+the registered gate. A rerun of the same strategy, parameters, space, settings
+and bars counts once, by its latest row.
 
 A gate or alternate naming a check that does not exist is refused at mount.
 
