@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-12T23:20:29.033059+00:00",
+  "vix": {
+    "symbol": "^VIX",
+    "price": 15.21,
+    "prev": 14.84,
+    "change_pct": 2.49,
+    "source": "yahoo",
+    "as_of": 1791836101
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 5.24,
+    "prev": 5.244,
+    "change_pct": -0.08,
+    "source": "yahoo",
+    "as_of": 1791831593,
+    "yield_pct": 5.24
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 102.572,
+    "prev": 102.589,
+    "change_pct": -0.02,
+    "source": "yahoo",
+    "as_of": 1791842699
+  },
+  "fear_greed": {
+    "score": 45.7,
+    "rating": "neutral",
+    "prev_close": 45.0,
+    "prev_1_week": 43.7,
+    "as_of": "2026-10-12T23:00:30+00:00"
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 24271.2,
+    "prev": 24211.35,
+    "change_pct": 0.25,
+    "source": "tencent",
+    "as_of": "2026-10-12"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 4169.57,
+    "prev": 4197.84,
+    "change_pct": -0.67,
+    "source": "tencent",
+    "as_of": "2026-10-12"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7807.24,
+    "prev": 7811.54,
+    "change_pct": -0.06,
+    "source": "yahoo",
+    "as_of": 1791837301
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 27245.9,
+    "prev": 27366.17,
+    "change_pct": -0.44,
+    "source": "tencent",
+    "as_of": "2026-10-12"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-09",
+      "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm"
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Federal Reserve Board announces enforcement action against American Express Company to address, among other things, the firm’s failure to sufficiently detect and report certain suspicious activity rel",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Minutes of the Federal Open Market Committee, September 15-16, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261007a.htm"
+    }
+  ]
+}
