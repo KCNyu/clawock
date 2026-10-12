@@ -45,7 +45,7 @@ Everything that computes is [a plugin mounted by one configuration row](#everyth
 
 What goes into your harness is small: one skill, one CLI and a JSON contract. Your agent keeps its model, its conversation and its tools. Inside clawock, everything that computes a reading is a **plugin mounted by one row of configuration**: the factor table, the bar estimators, the sentiment read, the daily-bar source, the add-side and intraday policies. To change what the desk computes, change a row.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Plugins: eleven live rows sit in sockets round a kernel that offers provide, inject, effect and event, grouped as signal sources, data and policies. The brief, the session reports and the intraday check-ins ask it for a service by name, and a row that fails stops only its own readers. Below, the research rows feed a walk-forward optimiser; its result meets a registered gate whose floor is set in code, the verdict is candidate or refused with live permission false either way, and every verdict goes to the lab ledger. No path leads from the ledger back to a live row."></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Plugins: twelve live rows sit round one kernel like the hours of a clock, five signal sources, one data source and six policies, each providing a service to a kernel that offers provide, inject, effect and event. Three statements follow: readers ask the kernel for a service by name and never import a plugin; a row that does not mount stops only its own readers and is named; settlement, the gate and the record are not rows, so swapping a row cannot change what a result may do."></p>
 
 **Where the boundary is.** A plugin publishes a service or names the ones it needs. That is all a row can do. It cannot grade a call, publish a decision or give itself permission:
 
@@ -62,7 +62,8 @@ That is why a strategy can be swapped while its results stay comparable: the cod
 | `factors` | factor | trend, momentum, RSI, volatility and the exit line per name, from daily bars | the field is null; below 30 bars there is no row |
 | `bar-signals` | technical | liquidity and volatility estimators per session | null, never zero: undefined is not the same as liquid |
 | `sentiment` | sentiment | Reddit mentions over seven days and statements by named figures, read from two morning scans | the reading is left out, and its status says missing, stale or unreadable |
-| `rsi` | strategy | a signed score the strategy lab ranks; no live path reads it | null, and the name is not ranked that session |
+| `rsi` | strategy | a signed score the strategy lab ranks | null, and the name is not ranked that session |
+| `strategy-scores` | strategy | each lab strategy's score and rank per holding under the row's registered parameters, with the lab's standing; the brief reads it as reference | the reading says unavailable and why |
 
 **A broken row fails alone.** If a row does not mount, the runs that read its service stop and name it. The others carry on.
 
@@ -165,10 +166,13 @@ A strategy plugin declares the parameters it runs with and the grid it may be se
 
 The figure is one real run. On 2026-10-12 the RSI plugin, registered as a 14-session reversal reading, was searched over twelve configurations on the desk's 28 names. The search preferred a 28-session momentum reading, the gate passed it, and it was registered. **The same search on the 16 names the provider confirmed as adjusted is refused.** The candidate depends on 12 names for which one provider's record holds no corporate action, with no second source to check it against. Every proposal now carries that second search, so a candidate says for itself whether it survives it.
 
-What has not happened: no later session has been scored yet, the row still holds the registered parameters, and no live path reads this strategy's score. Changing the row is an edit someone reviews. Nothing proposes that edit on its own; that link is not built.
+Both ends of that chain are attached. The brief reads each strategy's score **under the parameters its row registers**, so a candidate changes nothing there until the row is edited. And when a registration has scored on at least 60 later sessions, with an interval above zero and a verdict that survives the check above, the lab writes a **proposed row edit**: from which parameters, to which, on what evidence. Proposed is all it can be. Changing the row is an edit someone reviews, and the lab has no code that applies one.
+
+What has not happened yet: no later session has been scored, so nothing has been proposed, and this candidate would not be while it fails that check.
 
 ```bash
 clawock strategy-lab evolution rsi   # each run, what changed, each registration and its score since
+clawock strategy-lab row-edits       # row edits the lab has proposed, for review
 clawock strategy-lab verify          # the ledger against the lab's limits
 ```
 
