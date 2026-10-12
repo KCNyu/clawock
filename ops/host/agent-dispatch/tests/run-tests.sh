@@ -578,8 +578,7 @@ W=${AGENT_DISPATCH_WAKE_CMD:-$(dirname "$R")/wake-session.py}
 export AGENT_DISPATCH_WAKE_CMD=$W AGENT_DISPATCH_WAKE_SPAWN=inline AGENT_DISPATCH_WAKE_OFF=$WORK/wake.off
 export AGENT_DISPATCH_SESSIONS_GLOB="$WORK/sessions-*.json"
 SA=agent:main:chan-a:direct:peer-a SB=agent:main:chan-b:direct:peer-b
-echo "{\"$SA\": {\"status\": \"done\", \"lastChannel\": \"chan-a\"}}" >"$WORK/sessions-1.json"
-wakes() { cat "$FAKE_DIR/openclaw.wakes" 2>/dev/null | xargs; }
+wakes() { cat "$FAKE_DIR/wake.turns" 2>/dev/null | xargs; }
 again() {  # <task dir> <event>: the runner's own call, repeated
   echo again >"$WORK/again.txt"; PATH="$T/bin:$PATH" python3 "$W" enqueue "$1" "$2" "$WORK/again.txt"
 }
@@ -588,13 +587,13 @@ d41=$(mk wake-dual claude 900 300 weixin,telegram); echo "ORIGIN_SESSION=$SA" >>
 e41=0; bash "$R" "$d41" || e41=$?
 expect "exit/state and both legs" "$e41/$(field "$d41" STATE)/$(field "$d41" NOTIFIED)" "0/ok/weixin,telegram"
 expect "one turn, in the dispatching session, delivered to its channel" "$(wakes)" "$SA deliver"
-expect_grep "the turn was given the task's notice" "委派任务 wake-dual" "$FAKE_DIR/openclaw.wake-messages"
+expect_grep "the turn was given the task's notice" "委派任务 wake-dual" "$FAKE_DIR/wake.messages"
 expect_grep "run.log has the outcome" "wake: turn ok in agent:main:chan-a:direct:…" "$d41/run.log"
 again "$d41" end
 expect "the same (session, task, event) never wakes twice" "$(wakes)" "$SA deliver"
 expect_grep "and says why" "wake: skipped (end): this session was already told" "$d41/run.log"
 again "$d41" quota; again "$d41" quota
-expect "a quota wait wakes once more, a second one does not" "$(wc -l <"$FAKE_DIR/openclaw.wakes")" 2
+expect "a quota wait wakes once more, a second one does not" "$(wc -l <"$FAKE_DIR/wake.turns")" 2
 
 echo; echo "=== [42] where no turn is started ($(date +%T))"
 reset_fake claude slow-ok
@@ -611,9 +610,9 @@ again "$d42d" end
 expect "no origin, wake.off, --notify none, chain depth 2, a cron session: no turn" "$(wakes)" ""
 expect_grep "the switch is logged" "wake: skipped (end): wake.off is present" "$d42/run.log"
 again "$d42" end
-expect "with the switch gone, the other session gets its turn (no channel: not delivered)" "$(wakes)" "$SB quiet"
+expect "with the switch gone, the other session gets its turn" "$(wakes)" "$SB deliver"
 for i in 1 2 3 4 5 6; do d=$(mk "wake-cap-$i" claude 900 300 weixin); echo "ORIGIN_SESSION=$SB" >>"$d/meta.env"; again "$d" end; done
-expect "the seventh turn of a session within the hour is dropped" "$(wc -l <"$FAKE_DIR/openclaw.wakes")" 6
+expect "the seventh turn of a session within the hour is dropped" "$(wc -l <"$FAKE_DIR/wake.turns")" 6
 expect_grep "and logged" "wake: dropped: 6 turns in the last hour" "$d/run.log"
 
 echo; echo "=== [43] dispatch.sh records the session that dispatched, and nothing outside a turn ($(date +%T))"

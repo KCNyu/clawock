@@ -6,7 +6,7 @@
 set -u
 FAKE_DIR=${FAKE_DIR:?}
 # `openclaw agent --session-key <key> --message-file <f> ...` (wake-session.py): one line per turn
-# in $FAKE_DIR/openclaw.wakes, "<key> <deliver|quiet>", and the message in openclaw.wake-messages.
+# in $FAKE_DIR/wake.turns, "<key> <deliver|quiet>", and the message in wake.messages.
 if [ "${1:-}" = agent ]; then
   key="" file="" deliver=quiet prev=""
   for a in "$@"; do
@@ -14,8 +14,8 @@ if [ "${1:-}" = agent ]; then
     [ "$a" = --deliver ] && deliver=deliver
     prev=$a
   done
-  echo "$key $deliver" >>"$FAKE_DIR/openclaw.wakes"
-  cat "$file" >>"$FAKE_DIR/openclaw.wake-messages"
+  echo "$key $deliver" >>"$FAKE_DIR/wake.turns"
+  cat "$file" >>"$FAKE_DIR/wake.messages"
   echo '{"runId":"fake-run","status":"ok"}'
   exit 0
 fi

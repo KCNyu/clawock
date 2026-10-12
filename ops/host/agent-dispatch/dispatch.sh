@@ -277,6 +277,7 @@ EOF
 # reports back where it was dispatched). Prints ORIGIN_SESSION= and WAKE_DEPTH=; empty when this
 # is not a chat turn, or the helper is missing: the task then only sends its messages.
 ORIGIN_SESSION="" WAKE_DEPTH=0
+export AGENT_DISPATCH_SESSIONS_GLOB="${AGENT_DISPATCH_SESSIONS_GLOB:-/root/.openclaw/agents/*/sessions/sessions.json}"
 eval "$(python3 "$(dirname "$(readlink -f "$0")")/wake-session.py" origin 2>/dev/null | grep -E '^(ORIGIN_SESSION|WAKE_DEPTH)=[A-Za-z0-9@._:+'"'"'-]*$')" || true
 
 cat >"$DIR/meta.env" <<EOF

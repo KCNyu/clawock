@@ -29,6 +29,7 @@ Every bound is here, so a turn that dispatches a task that wakes a turn cannot r
 Off without touching code: `touch /root/tools/agent-dispatch/wake.off` (read at every event).
 """
 import fcntl
+import glob
 import hashlib
 import json
 import os
@@ -42,7 +43,8 @@ HERE = Path(__file__).resolve().parent
 # Same seam as the runner's locks and queue, so the tests never touch live state.
 STATE = Path(os.environ.get("AGENT_DISPATCH_LOCKDIR", "/root/logs/agent-dispatch")) / ".wake"
 OFF = Path(os.environ.get("AGENT_DISPATCH_WAKE_OFF", HERE / "wake.off"))
-SESSIONS = os.environ.get("AGENT_DISPATCH_SESSIONS_GLOB", "/root/.openclaw/agents/*/sessions/sessions.json")
+# The gateway's session index files; dispatch.sh, the host's entry point, says where they are.
+SESSIONS = os.environ.get("AGENT_DISPATCH_SESSIONS_GLOB", "")
 # A conversation somebody reads: the agent's main session or a direct chat. Cron, dreaming and
 # probe sessions are isolated runs with no reader, so a turn there would be wasted.
 WAKEABLE = re.compile(r"^agent:[a-z0-9_-]+:(main|[a-z0-9_-]+:direct:[A-Za-z0-9@._:+-]+)$")
@@ -107,9 +109,8 @@ def under_gateway():
 
 
 def running_sessions():
-    import glob
     keys = []
-    for path in glob.glob(SESSIONS):
+    for path in glob.glob(SESSIONS) if SESSIONS else []:
         try:
             for key, row in json.loads(Path(path).read_text()).items():
                 if isinstance(row, dict) and row.get("status") == "running" and WAKEABLE.match(key):
@@ -202,18 +203,6 @@ RULES = """\
 - 不要把这条事件记进 MEMORY.md 或 memory/；只有任务结果改变了长期事实或决定时，才按平常的记忆规则处理。"""
 
 
-def deliverable(key):
-    import glob
-    for path in glob.glob(SESSIONS):
-        try:
-            row = json.loads(Path(path).read_text()).get(key) or {}
-        except (OSError, ValueError):
-            continue
-        if row.get("route") or row.get("lastChannel"):
-            return True
-    return False
-
-
 def cmd_drain(name):
     box = STATE / name
     box.mkdir(parents=True, exist_ok=True)
@@ -253,7 +242,7 @@ def cmd_drain(name):
             {"depth": max(e["depth"] for e in entries), "ids": [e["id"] for e in entries], "since": int(now)}))
         cmd = ["timeout", "-k", "10", str(turn_timeout + 120), "openclaw", "agent", "--session-key", key,
                "--message-file", str(msg), "--timeout", str(turn_timeout), "--json"]
-        if deliverable(key):
+        if ":direct:" in key:  # a chat has a channel to answer on; the bare main session has none
             cmd.append("--deliver")
         started = time.time()
         try:
