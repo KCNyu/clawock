@@ -366,7 +366,16 @@
     });
     const compact = document.getElementById("dr-compact");
     if (compact) {
-      compact.textContent = `持仓市值 ${values[0][1]} · US ${values[1][1]} · HK ${values[2][1]} · Followed ${values[3][1]} · Brier ${values[4][1]}`;
+      // One span per reading: a narrow rail drops whole readings off the end
+      // of its single line instead of cutting a figure in half.
+      const readings = [`持仓市值 ${values[0][1]}`, `US ${values[1][1]}`, `HK ${values[2][1]}`,
+        `Followed ${values[3][1]}`, `Brier ${values[4][1]}`];
+      compact.replaceChildren(...readings.flatMap((text, i) => {
+        const seg = document.createElement("span");
+        seg.className = "dr-seg";
+        seg.textContent = i ? "· " + text : text;
+        return i ? [" ", seg] : [seg];
+      }));
       compact.title = compact.textContent;
     }
   }

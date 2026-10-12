@@ -7,8 +7,8 @@ def test_weight_axis_contains_current_positions_and_ghosts():
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const source = fs.readFileSync('site/assets/js/dashboard.charts.js', 'utf8');
-const begin = source.indexOf('  function renderWeightConfidence()');
-const end = source.indexOf('\n  }', begin) + 4;
+const begin = source.indexOf('  function placeBubbleLabels(');
+const end = source.indexOf('\n  }', source.indexOf('  function renderWeightConfidence()')) + 4;
 for (const weight of [0, 57, 86.64, 100]) {
   for (const confidence of [null, 0.71]) {
     let option;

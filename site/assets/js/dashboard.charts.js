@@ -423,7 +423,8 @@
           textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
         tooltip: { ...chartTooltip("axis", "cross"), valueFormatter: v => v == null ? "—" : v.toFixed(1) + "%" },
         xAxis: chartAxis({ type: "category", data: wrDates, boundaryGap: false,
-          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: wrDates.length > 6 ? 35 : 0 } }),
+          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: wrDates.length > 6 ? 35 : 0,
+            hideOverlap: true, formatter: (v) => (v || "").slice(5) } }),
         yAxis: chartAxis({ type: "value", min: 0, max: 100, interval: 25,
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: v => v + "%" } }),
         series: [
@@ -1008,10 +1009,14 @@
     // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
     const manyPts = dates.length > 30;
     const zoomStart = manyPts ? Math.max(0, (1 - 30 / dates.length) * 100) : 0;
+    // The legend and the two axis titles share the strip above the plot. On a
+    // phone that strip is narrower than the three of them, so the legend takes
+    // a row of its own there. The right-hand title names the unit only: the
+    // window is already on the series and in the sentence above the chart.
     const opt = {
       ...baseChartOpts(),
-      grid: { left: isMobile ? 56 : 70, right: isMobile ? 56 : 70, top: 34, bottom: manyPts ? 58 : 36 },
-      legend: { data: ["每日 P&L", cumName], textStyle: { color: chartTextColor(), fontSize: 10 }, top: 4, itemGap: 10 },
+      grid: { left: isMobile ? 56 : 70, right: isMobile ? 56 : 70, top: isMobile ? 52 : 34, bottom: manyPts ? 58 : 36 },
+      legend: { data: ["每日 P&L", cumName], textStyle: { color: chartTextColor(), fontSize: 10 }, top: isMobile ? 0 : 4, itemGap: 10 },
       tooltip: {
         ...chartTooltip("axis", "cross"),
         formatter: (params) => {
@@ -1037,7 +1042,7 @@
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
         }),
         chartAxis({
-          type: "value", name: `${cumName} ${cur}`, position: "right",
+          type: "value", name: `累计 ${cur}`, position: "right",
           splitLine: { show: false },
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
         }),
@@ -1085,6 +1090,7 @@
 
     // Categories carry identity; health colors belong to state-bearing charts.
     const palette = [1, 2, 3, 4, 5, 6].map(n => getCSS("--viz-" + n));
+    const wide = window.innerWidth >= 1024;
 
     const opt = {
       ...baseChartOpts(),
@@ -1097,17 +1103,21 @@
           return `${p.name}<br>${p.value.toLocaleString()} (${p.data._pct?.toFixed(1)}%)${members}`;
         },
       },
-      legend: {
-        type: "scroll",
-        orient: window.innerWidth >= 1024 ? "vertical" : "horizontal",
-        right: window.innerWidth >= 1024 ? 8 : "center",
-        top: window.innerWidth >= 1024 ? "center" : "bottom",
+      // Beside the donut on a wide card. On a phone a one-row scrolling legend
+      // shows one clipped name out of all of them, so the names wrap under a
+      // smaller donut instead and every slice is named without a tap.
+      legend: wide ? {
+        type: "scroll", orient: "vertical", right: 8, top: "center",
+        textStyle: { color: chartTextColor(), fontSize: 10 },
+      } : {
+        type: "plain", orient: "horizontal", left: "center", bottom: 0,
+        itemWidth: 12, itemHeight: 10, itemGap: 8,
         textStyle: { color: chartTextColor(), fontSize: 10 },
       },
       series: [{
         type: "pie",
-        radius: ["38%", "62%"],
-        center: window.innerWidth >= 1024 ? ["38%", "50%"] : ["50%", "44%"],
+        radius: wide ? ["38%", "62%"] : ["32%", "52%"],
+        center: wide ? ["38%", "50%"] : ["50%", "36%"],
         data: combined,
         itemStyle: { borderColor: getCSS("--surface-1"), borderWidth: 2 },
         label: { show: false },
@@ -1153,7 +1163,7 @@
 
     const opt = {
       ...baseChartOpts(),
-      grid: { left: 70, right: 50, top: 34, bottom: 28 },
+      grid: { left: window.innerWidth < 1024 ? 44 : 70, right: 50, top: 34, bottom: 28 },
       legend: { data: ["已实现", "浮动"], textStyle: { color: chartTextColor(), fontSize: 10 }, top: 4, itemGap: 10 },
       tooltip: {
         ...chartTooltip("axis", "shadow"),
@@ -1167,7 +1177,7 @@
       },
       xAxis: chartAxis({
         type: "value",
-        axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"),
+        axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), hideOverlap: true,
           formatter: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v) },
       }),
       yAxis: chartAxis({
@@ -1198,6 +1208,45 @@
   // =========================================================
   // Weight × Confidence Scatter (Drill, ECharts)
   // =========================================================
+  // Small positions pile up in one corner and their names land on each other,
+  // on a neighbour's bubble, or on the axis figures. The trimmed ECharts bundle
+  // carries no label layout, so each name takes the first side of its bubble
+  // that is still free — largest position first — and one with no free side is
+  // left to the tooltip.
+  function placeBubbleLabels(chart, data, sizeOf) {
+    if (typeof chart.convertToPixel !== "function" || !data.length) return;
+    const at = value => chart.convertToPixel({ seriesIndex: 0 }, [value[0], value[1]]);
+    const origin = at([0, data[0].value[1]]);
+    if (!origin) return;
+    const minX = origin[0] + 2, maxX = chart.getWidth() - 2;
+    const bubbles = data.map(d => { const [x, y] = at(d.value); return { d, x, y, r: sizeOf(d.value) / 2 }; });
+    const taken = [];
+    const hits = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    const onBubble = (box, b) => {
+      const dx = Math.max(box.x0 - b.x, 0, b.x - box.x1), dy = Math.max(box.y0 - b.y, 0, b.y - box.y1);
+      return dx * dx + dy * dy < b.r * b.r;
+    };
+    const gap = 4, height = 12;
+    bubbles.slice().sort((a, b) => b.r - a.r).forEach(b => {
+      const width = String(b.d.name).length * 6.4 + 2;
+      const sides = {
+        bottom: { x0: b.x - width / 2, y0: b.y + b.r + gap },
+        right: { x0: b.x + b.r + gap, y0: b.y - height / 2 },
+        top: { x0: b.x - width / 2, y0: b.y - b.r - gap - height },
+        left: { x0: b.x - b.r - gap - width, y0: b.y - height / 2 },
+      };
+      const side = Object.keys(sides).find(name => {
+        const box = sides[name];
+        box.x1 = box.x0 + width; box.y1 = box.y0 + height;
+        return box.x0 >= minX && box.x1 <= maxX && !taken.some(t => hits(box, t)) &&
+          !bubbles.some(other => other !== b && onBubble(box, other));
+      });
+      if (side) taken.push(sides[side]);
+      b.d.label = side ? { position: side } : { show: false };
+    });
+    chart.setOption({ series: [{ data }] });
+  }
+
   function renderWeightConfidence() {
     const el = document.getElementById("chart-weight-conf");
     if (!el || !window.echarts) return;
@@ -1231,6 +1280,7 @@
     // Reserve 20% of the axis for the capped bubble radius and ticker label.
     const maxWeight = Math.max(0, ...list.map(p => Number(p.weight_pct) || 0));
     const weightAxisMax = Math.max(70, Math.ceil(maxWeight / 0.8 / 10) * 10);
+    const bubbleSize = (v) => Math.max(14, Math.min(42, 14 + v[0] * 0.6));
     const opt = {
       ...baseChartOpts(),
       grid: { left: 50, right: 30, top: 30, bottom: 50, containLabel: true },
@@ -1265,7 +1315,7 @@
       series: [{
         type: "scatter",
         // Radius is capped; axis headroom follows the largest current weight.
-        symbolSize: (v) => Math.max(14, Math.min(42, 14 + v[0] * 0.6)),
+        symbolSize: bubbleSize,
         data: [...points, ...ghosts],
         label: {
           // bottom position avoids label colliding with neighbouring bubbles
@@ -1274,6 +1324,7 @@
           fontSize: 10, color: chartTextColor(),
           formatter: (p) => p.data.name,
         },
+
         markLine: {
           silent: true,
           symbol: "none",
@@ -1298,4 +1349,5 @@
       }];
     }
     charts.weightConf.setOption(opt, true);
+    placeBubbleLabels(charts.weightConf, opt.series[0].data, bubbleSize);
   }
