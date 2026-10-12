@@ -152,10 +152,12 @@ round is cancelled at once, when:
 a supervisor restart during the grace does not append the instruction twice;
 `patrol.sh status` shows it.
 
-When every model in a fresh patrol's pool returns no events, the runner stops
+When every model in a fresh patrol's pool returns only errors or no events, the runner stops
 after one lap with `STATE=failed`, `FAILURE_REASON=pool_no_response`. It still
 allows 210 seconds for a first event; a session that has made progress retains
-the normal retry budget. An empty OpenCode exit is an error, never a finished
+the normal retry budget. A session ID on a provider error alone is not progress;
+any non-error event (including `step_start`) preserves the normal budget, as
+does resuming an existing session. An empty OpenCode exit is an error, never a finished
 review. `MODEL_USED` names the last attempted model, not the next fallback.
 
 The supervisor records the failed round, preserves its area without spending an

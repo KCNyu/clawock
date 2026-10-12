@@ -139,7 +139,7 @@ FALLBACK_WAIT="${FALLBACK_WAIT:-60}"
 [ "${#MODEL_POOL[@]}" -gt 1 ] && MAX_ATTEMPTS=$(( MAX_ATTEMPTS > 2 * ${#MODEL_POOL[@]} ? MAX_ATTEMPTS : 2 * ${#MODEL_POOL[@]} ))
 STATE=queued RC="" SESSION="${RESUME:-}" ATTEMPTS=0 OUTCOME="" STARTED=$(ts) FINAL_TEXT="" WAITING="" APPENDS=0
 FAILURE_REASON="" LAST_MODEL=$CUR_MODEL
-# Only a fresh patrol whose entire pool has produced no events can skip the second lap.
+# Only a fresh patrol whose entire pool has produced no non-error events can skip the second lap.
 # Never abandon a resumable task or infer availability from another task's probe.
 declare -A COLD_MODELS=()
 POOL_COLD=1
@@ -832,7 +832,7 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
 NEXT_KIND=task INTERRUPT_NOTE="" RUN_NO=0
 run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|error), ATEXT, INTERRUPTED, SESSION when learned
   local cap=$1 alog prompt block="" resumable=""
-  NO_EVENTS=0
+  NO_RESPONSE=0
   RUN_NO=$((RUN_NO + 1)); alog="$DIR/attempt$RUN_NO"
   { session_exists || [ -n "${RESUME:-}" ]; } && resumable=1
   if block=$(take_inbox); then
@@ -908,10 +908,10 @@ PY
       >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
     CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
     # opencode 1.18 exits 0 even when the model call failed; the run's `error` events decide.
-    [ -s "$alog.jsonl" ] || NO_EVENTS=1
     eval "$(python3 - "$alog.jsonl" <<'PY'
 import json, shlex, sys
 session, texts, order, errors = '', {}, [], []
+responded = False
 for line in open(sys.argv[1], errors='replace'):
     line = line.strip()
     if not line.startswith('{'):
@@ -921,6 +921,9 @@ for line in open(sys.argv[1], errors='replace'):
     except ValueError:
         continue
     session = session or e.get('sessionID') or ''
+    # A terminal provider error can carry a sessionID without having run any
+    # part of the review. Preserve every other event, even just step_start.
+    responded = responded or bool(e.get('type') and e['type'] != 'error')
     part = e.get('part') or {}
     if e.get('type') == 'text':
         mid = part.get('messageID') or ''
@@ -934,6 +937,7 @@ for line in open(sys.argv[1], errors='replace'):
 print('ASESSION=' + shlex.quote(session))
 print('ATEXT=' + shlex.quote('\n'.join(texts[order[-1]]) if order else ''))
 print('AERR=' + shlex.quote(errors[-1] if errors else ''))
+print('NO_RESPONSE=' + ('0' if responded else '1'))
 PY
 )"
     [ -n "$ASESSION" ] && SESSION=$ASESSION
@@ -1056,16 +1060,16 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
     fi
     STATE=ok; break
   fi
-  if [ "$NO_EVENTS" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
+  if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
   if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] && [ "$POOL_COLD" = 1 ] \
-     && [ -z "$SESSION" ] && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
+     && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
     pool_unavailable=1
     for pool_model in "${MODEL_POOL[@]}"; do
       [ "${COLD_MODELS[$pool_model]:-0}" = 1 ] || pool_unavailable=0
     done
     if [ "$pool_unavailable" = 1 ]; then
       FAILURE_REASON=pool_no_response STATE=failed
-      FINAL_TEXT="No events from any patrol pool model; deferring to supervisor cooldown. $ATEXT"
+      FINAL_TEXT="No response from any patrol pool model (only errors or silence); deferring to supervisor cooldown. $ATEXT"
       echo "---- $(ts) $FAILURE_REASON: skipping the second pool lap"
       break
     fi

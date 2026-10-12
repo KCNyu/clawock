@@ -55,7 +55,7 @@ reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
 
 if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
   echo '=== patrol pool outage, recovery, and empty CLI exits'
-  for mode in silent empty; do
+  for mode in silent empty error-only; do
     reset_fake opencode "$mode"
     d=$(mk "patrol-cold-$mode" opencode 900 300)
     echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
@@ -63,7 +63,11 @@ if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
     STALL_FIRST_SEC=2 STALL_CHECK_SEC=1 FALLBACK_WAIT=0 RETRY_WAIT=0 bash "$R" "$d" || e=$?
     expect "$mode pool stops after one lap" "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 1/failed/2/pool_no_response
     expect "$mode reports the actual final model" "$(field "$d" MODEL_USED)" other
-    expect "$mode has no session" "$(field "$d" SESSION)" ''
+    if [ "$mode" = error-only ]; then
+      expect 'provider error sessionID is retained but is not review progress' "$(field "$d" SESSION)" ses_fake0001
+    else
+      expect "$mode has no session" "$(field "$d" SESSION)" ''
+    fi
     expect "$mode leaves no running CLI" "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
   done
   reset_fake opencode silent-then-ok
