@@ -309,6 +309,56 @@ def test_a_damaged_hold_file_falls_back_to_the_plain_rotation(patrol, tmp_path):
     assert _axis(patrol, 3) == "money"
 
 
+def test_pool_outage_preserves_area_retries_and_cooldown_survives_restart(patrol, tmp_path):
+    # One genuine unfinished review, then a prolonged outage. Infrastructure
+    # failures must not spend the remaining area retry or skip the unseen area.
+    assert _end_round(patrol, tmp_path, "patrol-money-20261012-120000", 3, "STATE=failed\n").returncode == 1
+    for n in range(4, 8):
+        assert _axis(patrol, n) == "money"
+        result = _end_round(patrol, tmp_path, f"patrol-money-20261012-12000{n}", n,
+                            "STATE=failed\nFAILURE_REASON=pool_no_response\n")
+        assert result.returncode == 1
+        assert (tmp_path / "rotation-hold").read_text().endswith("money 1\n")
+    # A new shell stands for a restarted supervisor; no in-memory circuit state.
+    until = int((tmp_path / "pool-cooldown-until").read_text())
+    def remaining(at):
+        return subprocess.run(
+            ["bash", "-c", 'source "$1"; now() { echo "$AT"; }; pool_cooldown_remaining',
+             "test", str(SCRIPT)], env=dict(patrol.env, AT=str(at)),
+            capture_output=True, text=True, timeout=5).stdout.strip()
+    assert remaining(until - 3600) == "3600"
+    assert remaining(until + 1) == "0"
+    assert _end_round(patrol, tmp_path, "patrol-money-20261012-120008", 8,
+                      "STATE=ok\nOUTCOME=DONE\n").returncode == 0
+    assert _axis(patrol, 9) == "site"
+    assert not (tmp_path / "pool-cooldown-until").exists()
+    rows = (tmp_path / "rounds.tsv").read_text().splitlines()
+    assert len(rows) == 6  # failures are preserved, not rewritten as skipped/success
+    assert sum("\tfailed\t" in row for row in rows) == 5
+
+
+@pytest.mark.parametrize("adopt", [False, True])
+def test_cooldown_blocks_new_dispatch_but_not_adoption(patrol, tmp_path, adopt):
+    (tmp_path / "pool-cooldown-until").write_text("200\n")
+    (tmp_path / "rotation").write_text("money\n")
+    if adopt:
+        (tmp_path / "current-round").write_text("patrol-money-20261012-120000\n")
+    script = '''source "$1"
+now() { echo 100; }
+others_need_slot() { :; }
+prune() { :; }
+run_round() { touch "$STATE/dispatched"; return 0; }
+sleep() { echo "$1" >"$STATE/slept"; kill -TERM "$$"; }
+loop
+'''
+    result = subprocess.run(["bash", "-c", script, "test", str(SCRIPT)],
+                            env=dict(patrol.env, PATROL_TOOL_DIR=str(tmp_path)),
+                            capture_output=True, text=True, timeout=5)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "dispatched").exists() == adopt
+    assert (tmp_path / "slept").read_text().strip() == ("600" if adopt else "100")
+
+
 # ---- graceful preemption: a round that has to give way first lands its findings --------
 
 SESSION = "SESSION=ses_f2ba4c4e3ffe1By3CJODcDSEQj\n"
