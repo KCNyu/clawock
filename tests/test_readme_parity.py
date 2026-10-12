@@ -38,19 +38,23 @@ def _first_emoji(text):
     return None
 
 EN_H2 = [
-    "What you get", "Information in: sources before opinions",
+    "What you get",
+    "Everything that computes is a plugin; what a result may do is not",
+    "Any harness, one decision contract that accumulates evidence",
+    "Information in: sources before opinions",
     "Decision out: both sides read the same evidence",
     "After the close: results feed the next decision",
-    "Any harness, one decision contract that accumulates evidence",
-    "Strategies plug in; a gate decides what they may do",
+    "A strategy can search its own parameters; adopting them is a reviewed edit",
     "What the model is not allowed to do",
     "Harness views and background work", "Under the hood", "Try it in five minutes", "Explore",
     "Scope, disclaimer, and license",
 ]
 ZH_H2 = [
-    "你能得到什么", "信息进来：先有来源，再有观点", "决策出来：多空同读一份证据",
-    "收盘后：结果回到下一次判断", "任何 harness，同一套会积累的决策契约",
-    "策略即插件；能做什么由闸决定",
+    "你能得到什么", "能算的都是插件；结果能做什么不是",
+    "任何 harness，同一套会积累的决策契约",
+    "信息进来：先有来源，再有观点", "决策出来：多空同读一份证据",
+    "收盘后：结果回到下一次判断",
+    "策略可以搜索自己的参数；采纳是一次要 review 的改动",
     "模型不被允许做的事", "Harness 界面与后台工作",
     "引擎盖下面", "五分钟跑起来", "接着看", "范围、免责与许可",
 ]

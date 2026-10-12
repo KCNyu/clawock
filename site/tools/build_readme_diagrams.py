@@ -18,6 +18,12 @@ limit bars beside a breach track, verdict tiles, two return loops through one
 record, and the maintenance loop around the dsh panel. Shared primitives draw the
 material; each diagram owns the arrangement that best explains its content.
 
+A form is chosen for what it has to show, and a card is only one of them. Rows
+mounted on a kernel are sockets on a ring (`_disc`, `_socket`); a gate is a
+pillar in the way and a record is a stack of sheets (`_slab`); a parameter grid
+is a heat map; a threshold, an interval and a run of sessions are drawn on an
+axis (`_whisker`). `strategy-evolution` draws one dated real run from `RSI_RUN`.
+
 The glass is drawn, not filtered: an image has no backdrop to blur. A card is a
 white fill at partial opacity over the colour fields, a sheen that fades down
 its top third, a rim that is bright where the light lands (top) and darker
@@ -2040,132 +2046,510 @@ def feedback_learning():
 
 
 def proposal_review():
-    """Three review channels and the evidence each proposal leaves behind."""
-    d = D('Open proposals: three checks, one durable record',
-          'The model proposes an action from observations and replayable computations. '
-          'Fact and feasibility errors block publication; strategy objections stay beside '
-          'the proposal. Refused and unpublished proposals also enter the method record. '
-          'Episode payoffs and forecast scores are separate from frozen prospective trials. '
-          'Neither report automatically promotes a method or places an order.')
+    """Two checks stand in a proposal's way, one opinion rides along, and every outcome is kept."""
+    d = D('Open proposals: two checks can stop one, an objection cannot, and all of them are kept',
+          'A proposal carries a hypothesis, an action, a size and a forecast. It passes two '
+          'barriers that can stop it: facts, and feasibility. A strategy objection is pinned to '
+          'it and does not stop it. Published, refused and unpublished proposals all go to the '
+          'method record. From that record, payoff and forecast score are read on two separate '
+          'axes, and a frozen prospective trial runs three arms from the same starting capital, '
+          'with missing marks left visible. Nothing is promoted and no order is placed.')
     y = d.header('CLAWOCK · PROPOSALS AND EVIDENCE',
                  ['A different strategy can still be a valid proposal.'],
                  ['Code checks facts and authority. The model owns the hypothesis.'],
-                 [('observations', 'blue'), ('blocking checks', 'green'),
-                  ('strategy opinion', 'warm'), ('method record', 'violet')]) + 28
-    full = WIDE - 2 * M
-    top = y
-    body = _panel(d, M, y, full, 112, 'blue', 'lens', 'Observe, compute, propose')
-    d.text(M + 20, body, 'Measured inputs + replayable calculations → hypothesis, action, size and forecast.')
-    d.text(M + 20, body + 24, 'Registered setups and scores remain available as policy opinions.', 'm', fill=MUT)
-    y += 172
-    col = (full - 2 * 24) / 3
-    checks = [
-        ('green', 'filing', 'Facts', ['Real citations and prices;', 'computations that replay.'], 'False claims block.'),
-        ('green', 'balance', 'Feasibility', ['Cash, shares, lots and', 'authorisations in force.'], 'Infeasible actions block.'),
-        ('warm', 'judge', 'Strategy', ['Does the registered policy', 'agree with this proposal?'], 'Objections do not block.'),
-    ]
-    for index, (role, icon, title, lines, result) in enumerate(checks):
-        x = M + index * (col + 24)
-        center = x + col / 2
-        d.wire(f'M{center:g} {top + 112:g}V{y:g}', kind='decision')
-        body = _panel(d, x, y, col, 150, role, icon, title)
+                 [('the proposal', 'blue'), ('checks that can stop it', 'green'),
+                  ('strategy opinion', 'warm'), ('method record', 'violet')]) + 30
+
+    # --- the beam: one proposal, two barriers, one rider -------------------
+    d.section(y, 'ONE PROPOSAL ON ITS WAY TO PUBLICATION')
+    beam = y + 132
+    ox = M + 62
+    _disc(d, ox, beam, 54, 'blue')
+    d.icon('lens', ox - 11, beam - 30, 'blue')
+    d.text(ox, beam + 12, 'Proposal', 'h', anchor='middle')
+    d.text(M, beam + 86, 'hypothesis · action', 'm', fill=MUT)
+    d.text(M, beam + 105, 'size · forecast', 'm', fill=MUT)
+    px = (212, 440)
+    end = 742
+    d.add(f'<path d="M{ox + 56:g} {beam:g}H{end - 4:g}" stroke="{ROLE["blue"]}" stroke-opacity=".28" '
+          f'stroke-width="12" stroke-linecap="round"/>')
+    d.wire(f'M{ox + 60:g} {beam:g}H{px[0] - 4:g}', kind='data', packet=False)
+    barriers = [('filing', 'Facts', ['real citations,', 'replayable sums']),
+                ('balance', 'Feasibility', ['cash, shares, lots,', 'authority in force'])]
+    for x, (icon, title, lines) in zip(px, barriers):
+        d.card(x, beam - 74, 64, 148, 'green', tint=True)
+        d.icon(icon, x + 21, beam - 60, 'green')
+        for offset in (-18, 0, 18):
+            d.add(f'<path d="M{x + 14:g} {beam + offset:g}H{x + 50:g}" stroke="{ROLE["green"]}" '
+                  f'stroke-width="2.4" stroke-linecap="round"/>')
+        d.text(x + 78, beam - 56, title, 'h')
         for n, line in enumerate(lines):
-            fits(line, 'b', col - 40, title)
-            d.text(x + 20, body + n * 24, line)
-        fits(result, 'm', col - 40, title)
-        d.text(x + 20, body + 64, result, 'm', fill=ROLE[role])
-        d.wire(f'M{center:g} {y + 150:g}V{y + 210:g}', kind='data')
-    y += 210
-    body = _panel(d, M, y, full, 112, 'violet', 'book', 'Keep the proposal and its review')
-    d.text(M + 20, body, 'Frozen inputs, method text, forecasts and receipts; revisions append to the record.')
-    d.text(M + 20, body + 24, 'Refused and unpublished proposals remain counted. Passing review is not execution.', 'm', fill=MUT)
-    for center in (M + CW / 2, M + COL2 + CW / 2):
-        d.wire(f'M{center:g} {y + 112:g}V{y + 172:g}', kind='feedback')
-    y += 172
-    for x, title, lines in (
-        (M, 'Observe the track record', ['One episode per group, net of assumed costs.',
-                                       'Forecast scores stay separate from payoff.',
-                                       'Policy agreement is not a causal comparison.']),
-        (M + COL2, 'Freeze a prospective comparison', ['Old policy · observations · policy reference.',
-                                                    'Same starting capital and declared costs.',
-                                                    'Missing marks and failed arms stay visible.']),
-    ):
-        body = _panel(d, x, y, CW, 150, 'violet', 'replay', title)
-        for n, line in enumerate(lines):
-            fits(line, 'b', CW - 40, title)
-            d.text(x + 20, body + n * 25, line)
-    d.text(M + 20, y + 188, 'Evidence for human review: no automatic method promotion, sizing or order placement.', 'm', fill=MUT)
-    return d.render(y + 212)
+            d.text(x + 78, beam - 34 + n * 19, line, 'm', fill=MUT)
+        d.wire(f'M{x + 32:g} {beam + 76:g}V{beam + 124:g}', kind='gate', packet=False)
+        d.add(f'<rect x="{x - 18:g}" y="{beam + 128:g}" width="100" height="32" rx="16" fill="{TINT["warm"]}" '
+              f'stroke="{ROLE["warm"]}" stroke-opacity=".4"/>')
+        d.text(x + 32, beam + 149, [('refused', ROLE['warm'])], 'm', anchor='middle')
+    d.wire(f'M{px[0] + 66:g} {beam:g}H{px[1] - 4:g}', kind='data', packet=False)
+    d.wire(f'M{px[1] + 66:g} {beam:g}H{end - 4:g}', kind='data', dur=3.0)
+    # The strategy opinion is pinned to the proposal; it is not in its way.
+    fx = 690
+    d.add(f'<path d="M{fx:g} {beam - 8:g}V{beam - 50:g}" stroke="{ROLE["warm"]}" stroke-width="1.8" '
+          f'stroke-dasharray="3 4" stroke-linecap="round"/>')
+    _disc(d, fx, beam - 72, 22, 'warm')
+    d.icon('judge', fx - 10, beam - 82, 'warm', size=20)
+    d.text(fx + 34, beam - 78, 'Strategy objection', 'h')
+    d.text(fx + 34, beam - 58, 'pinned on; does not stop it', 'm', fill=MUT)
+    d.add(f'<rect x="{end:g}" y="{beam - 17:g}" width="112" height="34" rx="17" fill="{TINT["green"]}" '
+          f'stroke="{ROLE["green"]}" stroke-opacity=".4"/>')
+    d.text(end + 56, beam + 5, [('published', ROLE['green'])], 'm', anchor='middle')
+    d.wire(f'M{end - 26:g} {beam + 8:g}C{end - 26:g} {beam + 90:g} {end + 56:g} {beam + 60:g} {end + 56:g} {beam + 124:g}',
+           kind='decision', packet=False)
+    d.add(f'<rect x="{end:g}" y="{beam + 128:g}" width="112" height="32" rx="16" fill="{TINT["slate"]}" '
+          f'stroke="{ROLE["slate"]}" stroke-opacity=".4"/>')
+    d.text(end + 56, beam + 149, [('unpublished', ROLE['slate'])], 'm', anchor='middle')
+
+    # --- everything lands in the record ------------------------------------
+    sx, sw, sy = 884, 108, beam + 232
+    low = beam + 196
+    for x in (px[0] + 32, px[1] + 32, end + 56):
+        d.add(f'<path d="M{x:g} {beam + 162:g}V{low:g}" stroke="{KIND["feedback"][1]}" stroke-width="1.5" '
+              f'stroke-dasharray="9 3 1.5 3"/>')
+    d.wire(f'M{px[0] + 32:g} {low:g}H{sx - 40:g}C{sx - 16:g} {low:g} {sx - 30:g} {sy - 14:g} {sx - 4:g} {sy - 14:g}',
+           kind='feedback', dur=3.6)
+    d.wire(f'M{end + 114:g} {beam:g}H{sx + sw / 2 + 5:g}V{sy - 62:g}', kind='feedback', packet=False)
+    for index in range(4):
+        _slab(d, sx, sy - index * 14, sw, 'violet')
+    d.text(sx + sw / 2, sy + 46, 'Method record', 'h', anchor='middle')
+    d.text(WIDE - M, sy + 66, 'refused ones count too', 'm', anchor='end', fill=MUT)
+
+    # --- two readings of the record ----------------------------------------
+    y = sy + 116
+    d.add(f'<path d="M{M} {y - 26:g}H{WIDE - M}" stroke="url(#rule)"/>')
+    d.section(y, 'READ THE TRACK RECORD ON TWO AXES')
+    d.section(y, 'FREEZE A COMPARISON GOING FORWARD', x=M + COL2)
+    ax0, ax1 = M + 132, M + CW - 8
+    dots = ((.18, .62, .40, .77, .55), (.70, .30, .58, .22, .46))
+    for row, (label, note, role) in enumerate((('payoff', 'per episode, after assumed costs', 'blue'),
+                                               ('forecast score', 'was the stated probability right', 'violet'))):
+        ay = y + 52 + row * 78
+        d.text(M, ay + 5, label, 'm')
+        d.add(f'<path d="M{ax0} {ay:g}H{ax1}" stroke="{LINE}" stroke-width="1.5" stroke-linecap="round"/>')
+        d.add(f'<path d="M{(ax0 + ax1) / 2:g} {ay - 9:g}v18" stroke="{LINE}" stroke-width="1.5"/>')
+        for index, at in enumerate(dots[row]):
+            d.add(f'<circle cx="{ax0 + at * (ax1 - ax0):.1f}" cy="{ay:g}" r="6.5" fill="{ROLE[role]}" '
+                  f'fill-opacity=".8" stroke="#ffffff" stroke-width="1.5"/>')
+        d.text(ax0, ay + 30, note, 'm', fill=MUT)
+    d.text(M, y + 196, 'A call can be right and lose money. The two are never merged.', 'm')
+    lx = M + COL2
+    start = lx + 150
+    d.add(f'<path d="M{start:g} {y + 28:g}V{y + 172:g}" stroke="{ROLE["violet"]}" stroke-width="3" '
+          f'stroke-linecap="round"/>')
+    d.text(start + 12, y + 30, 'same capital, same costs', 'm', fill=MUT)
+    for row, (label, missing) in enumerate((('old policy', ()), ('observations', (3,)),
+                                            ('policy reference', (1, 4)))):
+        ay = y + 66 + row * 44
+        d.add(f'<rect x="{lx:g}" y="{ay - 16:g}" width="138" height="32" rx="9" fill="{CHIP}" '
+              f'fill-opacity=".62" stroke="url(#rim)"/>')
+        d.text(lx + 69, ay + 5, label, 'm', anchor='middle')
+        d.add(f'<path d="M{start:g} {ay:g}H{WIDE - M - 6:g}" stroke="{ROLE["violet"]}" stroke-opacity=".4" '
+              f'stroke-width="1.5" stroke-linecap="round"/>')
+        for index in range(7):
+            gone = index in missing
+            d.add(f'<circle cx="{start + 34 + index * 36:g}" cy="{ay:g}" r="6.5" '
+                  f'fill="{"#ffffff" if gone else ROLE["violet"]}" fill-opacity="{".7" if gone else ".8"}" '
+                  f'stroke="{ROLE["violet"] if gone else "#ffffff"}" stroke-width="1.5"'
+                  + (' stroke-dasharray="3 3"' if gone else '') + '/>')
+    d.text(lx, y + 196, 'A missing mark stays a hole in its arm.', 'm')
+    d.text(M, y + 232, 'Evidence for human review: no automatic method promotion, sizing or order placement.',
+           'm', fill=MUT)
+    return d.render(y + 256)
+
+
+def _polar(cx, cy, r, deg):
+    """A point on a circle, degrees counter-clockwise from three o'clock."""
+    t = math.radians(deg)
+    return cx + r * math.cos(t), cy - r * math.sin(t)
+
+
+def _arc(cx, cy, r, a0, a1):
+    """The counter-clockwise arc from `a0` to `a1` degrees, as a path."""
+    (x0, y0), (x1, y1) = _polar(cx, cy, r, a0), _polar(cx, cy, r, a1)
+    return f'M{x0:.1f} {y0:.1f}A{r:g} {r:g} 0 {int(a1 - a0 > 180)} 0 {x1:.1f} {y1:.1f}'
+
+
+def _disc(d, cx, cy, r, role, tint=True):
+    """A round pane of the same glass as `D.card`: shadow, body, rim, top light."""
+    body = f'url(#glass-{role})' if tint else 'url(#glass)'
+    d.add(f'<ellipse cx="{cx:g}" cy="{cy + r + 4:g}" rx="{r * .8:g}" ry="{max(4, r * .12):g}" '
+          f'fill="#1c2b3a" fill-opacity=".08"/>')
+    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="{r:g}" fill="{body}" stroke="url(#rim)" stroke-width="1.2"/>')
+    d.add(f'<path d="{_arc(cx, cy, r - 1.6, 35, 145)}" fill="none" stroke="#ffffff" stroke-opacity=".95" '
+          f'stroke-linecap="round"/>')
+    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="{r - 4:g}" fill="none" stroke="{ROLE[role]}" '
+          f'stroke-opacity=".5" stroke-width="1.5"/>')
+
+
+def _socket(d, cx, cy, role, icon, r=20):
+    """One mounted row: a small disc holding its glyph."""
+    _disc(d, cx, cy, r, role)
+    d.icon(icon, cx - 10, cy - 10, role, size=20)
+
+
+def _slab(d, x, y, w, role, depth=10, h=20):
+    """One sheet of a stack, seen from above and a little to the side."""
+    d.add(f'<path d="M{x + depth:g} {y:g}H{x + w:g}L{x + w - depth:g} {y + h:g}H{x:g}Z" '
+          f'fill="{TINT[role]}" fill-opacity=".92" stroke="{ROLE[role]}" stroke-opacity=".45" '
+          f'stroke-linejoin="round"/>')
 
 
 def strategy_plugins():
-    """One kernel, two compositions: what production computes, and what research may propose."""
-    d = D('Strategy plugins: a row mounts one, a gate decides what it may do',
-          'Strategies, the bars they read, the cost model and the evaluator are separate plugins '
-          'mounted by configuration rows on one kernel. The live rows provide the factor service '
-          'the brief, report and intraday paths compute with. The research rows search a declared '
-          'parameter grid walking forward and produce a proposal that is a candidate or refused, '
-          'never live permission. Alternate gates are recorded beside the verdict and do not bind.')
-    y = d.header('CLAWOCK · STRATEGY PLUGINS',
-                 ['Add, swap or retune a strategy by editing a row.'],
-                 ['A plugin can compute. Only a registered gate lets a proposal through.'],
-                 [('rows and kernel', 'violet'), ('live code', 'green'),
-                  ('research plugins', 'blue'), ('gate', 'warm')]) + 28
-    full = WIDE - 2 * M
-    body = _panel(d, M, y, full, 136, 'violet', 'pack', 'One kernel, one row per plugin')
-    d.text(M + 20, body, 'A plugin provides a service or declares the ones it needs; mount order does not matter.')
-    d.text(M + 20, body + 24, 'Everything it registers is undone when it is unmounted. New settings restart it.', 'm', fill=MUT)
-    d.text(M + 20, body + 48, 'The module behind a row may live outside this package.', 'm', fill=MUT)
-    for center in (M + CW / 2, M + COL2 + CW / 2):
-        d.wire(f'M{center:g} {y + 136:g}V{y + 196:g}', kind='task')
-    y += 196
-    top = y
-    body = _panel(d, M, y, CW, 174, 'green', 'factor', 'Live rows', tag='PRODUCTION')
-    for n, line in enumerate(['Factor service: trend, momentum, RSI,',
-                              'volatility, exit line, three setups.',
-                              'Brief, report and intraday read it.']):
-        fits(line, 'b', CW - 40, 'live rows')
-        d.text(M + 20, body + n * 24, line)
-    d.text(M + 20, body + 84, 'Identical output to the code it replaced.', 'm', fill=ROLE['green'])
-    x = M + COL2
-    body = _panel(d, x, y, CW, 174, 'blue', 'lens', 'Research rows', tag='STRATEGY LAB')
-    for n, line in enumerate(['Adjusted bars · registered costs',
-                              'A strategy with its declared grid',
-                              'Walk-forward optimiser']):
-        fits(line, 'b', CW - 40, 'research rows')
-        d.text(x + 20, body + n * 24, line)
-    d.text(x + 20, body + 84, 'Refits only on returns already realised.', 'm', fill=MUT)
-    d.wire(f'M{x + CW / 2:g} {top + 174:g}V{top + 234:g}', kind='decision')
-    y += 234
-    body = _panel(d, x, y, CW, 198, 'warm', 'gate', 'Registered gate', tag='DECIDES')
-    for n, line in enumerate(['Enough out-of-sample sessions',
-                              'Edge and lift intervals above zero',
-                              'Overfitting probability below half',
-                              'Bars adjusted for corporate actions']):
-        fits(line, 'b', CW - 40, 'gate')
-        d.text(x + 20, body + n * 24, line)
-    d.text(x + 20, body + 108, 'Candidate or refused. Never live permission.', 'm', fill=ROLE['warm'])
-    body = _panel(d, M, y, CW, 198, 'slate', 'twin', 'Alternate gates', tag='NOT BINDING')
-    for n, line in enumerate(['Other thresholds judge the same run:',
-                              'statistics only · net of cost.',
-                              'Each records would-pass and why not.']):
-        fits(line, 'b', CW - 40, 'alternates')
-        d.text(M + 20, body + n * 24, line)
-    d.text(M + 20, body + 84, 'A second opinion kept beside the verdict.', 'm', fill=MUT)
-    # The alternates judge the run the registered gate judged, not a second one.
-    d.wire(f'M{x:g} {y + 150:g}H{M + CW:g}', kind='decision')
-    for center in (M + CW / 2, x + CW / 2):
-        d.wire(f'M{center:g} {y + 198:g}V{y + 258:g}', kind='feedback')
-    y += 258
-    body = _panel(d, M, y, full, 112, 'violet', 'book', 'Lab ledger')
-    d.text(M + 20, body, 'Every run leaves its verdict, each alternate\'s verdict and the digest of the bars it read.')
-    d.text(M + 20, body + 24, 'Yield is counted over distinct inputs. Registering new parameters is an edit to a row.', 'm', fill=MUT)
-    d.text(M + 20, y + 150, 'Research output is evidence for review: it places no order and changes no live parameter.', 'm', fill=MUT)
-    return d.render(y + 174)
+    """What can be swapped and what cannot: rows round a kernel, a gate that is not a row."""
+    d = D('Plugins: every computation is a row on one kernel; what a result may do is not',
+          'Eleven live rows sit in sockets around a kernel that offers four primitives: provide, '
+          'inject, effect and event. They are grouped as signal sources, data and policies. '
+          'The brief, the session reports and the intraday check-ins ask the kernel for a service '
+          'by name. A row that fails stops only its own readers. Below, the research rows feed a '
+          'walk-forward optimiser whose result meets a registered gate with a floor set in code; '
+          'the verdict is candidate or refused, with live permission false either way, and goes '
+          'to the lab ledger. No path leads from the ledger back to a live row.')
+    y0 = d.header('CLAWOCK · PLUGINS',
+                  ['Swap what computes. Not what a result is allowed to do.'],
+                  ['Every signal, policy and data source is a row. The gate and the record are not.'],
+                  [('signal sources', 'blue'), ('data', 'violet'), ('policies', 'slate'),
+                   ('readers and checks', 'green'), ('gate', 'warm')]) + 30
+    cx, cy, R = 300, y0 + 262, 170
+
+    # --- the wheel: live rows in sockets round the kernel ------------------
+    d.section(y0, 'LIVE ROWS · ONE SOCKET EACH')
+    rows = [('sentiment', 'blue', 'pulse'), ('signal-panel', 'blue', 'sector'),
+            ('bar-signals', 'blue', 'bars'), ('factors', 'blue', 'factor'),
+            ('daily-bars', 'violet', 'candles'), ('add-policy', 'slate', 'layers'),
+            ('add-alpha', 'slate', 'branch'), ('left-side', 'slate', 'commit'),
+            ('add-side', 'slate', 'lens'), ('preposition', 'slate', 'clock'),
+            ('intraday-policy', 'slate', 'scan')]
+    step = 26
+    angles = [50 + step * i for i in range(len(rows))]
+    for role, first, last in (('blue', 0, 3), ('violet', 4, 4), ('slate', 5, 10)):
+        d.add(f'<path d="{_arc(cx, cy, R, angles[first] - 9, angles[last] + 9)}" fill="none" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".28" stroke-width="7" stroke-linecap="round"/>')
+    for (label, role, icon), deg in zip(rows, angles):
+        x0, y0s = _polar(cx, cy, 68, deg)
+        x1, y1 = _polar(cx, cy, R - 22, deg)
+        d.add(f'<path d="M{x0:.1f} {y0s:.1f}L{x1:.1f} {y1:.1f}" stroke="{ROLE[role]}" '
+              f'stroke-opacity=".35" stroke-width="1.2" stroke-dasharray="2 4" stroke-linecap="round"/>')
+    for index, ((label, role, icon), deg) in enumerate(zip(rows, angles)):
+        nx, ny = _polar(cx, cy, R, deg)
+        _socket(d, nx, ny, role, icon)
+        cos, sin = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        if abs(cos) < .45:                       # above or below: centred, every other one further out
+            away = 36 + (18 if index % 2 else 0)
+            d.text(nx, ny - away + 4 if sin > 0 else ny + away + 6, label, 'm', anchor='middle')
+        else:
+            lx, ly = _polar(cx, cy, R + 30, deg)
+            d.text(lx, ly + 4, label, 'm', anchor='start' if cos > 0 else 'end')
+    _disc(d, cx, cy, 64, 'green')
+    d.text(cx, cy - 12, 'Kernel', 'h', anchor='middle')
+    d.text(cx, cy + 8, 'provide · inject', 'm', anchor='middle', fill=MUT)
+    d.text(cx, cy + 26, 'effect · event', 'm', anchor='middle', fill=MUT)
+    for label, role, deg, r in (('SIGNAL SOURCES', 'blue', 89, 112), ('DATA', 'violet', 154, 116),
+                                ('POLICIES', 'slate', 245, 114)):
+        tx, ty = _polar(cx, cy, r, deg)
+        d.tag(tx - (width(label, 'tag') + 16) / 2, ty + 5, label, role)
+
+    # --- who reads it ------------------------------------------------------
+    rx, rw = 612, WIDE - M - 612
+    top = cy - 252
+    d.card(rx, top, rw, 92, 'violet', tint=True)
+    d.text(rx + 20, top + 28, 'One row mounts one plugin', 'h')
+    d.text(rx + 20, top + 52, '{"id": "sentiment", "module": "…",', 'code', fill=MUT)
+    d.text(rx + 20, top + 72, ' "config": {…}, "signal_source": true}', 'code', fill=MUT)
+    d.section(cy - 138, 'READERS ASK BY NAME', x=rx)
+    readers = [('sunrise', 'Brief', 'packet · add side · pre-position · mood'),
+               ('clipboard', 'Session reports', 'factor row · strategy policies'),
+               ('clock', 'Intraday check-ins', 'radars · add-side reads · policies')]
+    d.text(cx + 84, cy - 20, 'a service, by name', 'm', fill=MUT)
+    for index, (icon, title, line) in enumerate(readers):
+        ty = cy - 122 + index * 88
+        d.card(rx, ty, rw, 72, 'green')
+        d.icon(icon, rx + 18, ty + 12, 'green')
+        d.text(rx + 48, ty + 30, title, 'h')
+        fits(line, 'm', rw - 40, title)
+        d.text(rx + 20, ty + 56, line, 'm', fill=MUT)
+        mid = ty + 36
+        d.wire(f'M{cx + 66:g} {cy:g}H{rx - 110:g}C{rx - 56:g} {cy:g} {rx - 56:g} {mid:g} {rx - 2:g} {mid:g}',
+               pulses=(index * .7,), dur=3.0, kind='data', packet=index == 1)
+    # A row that fails: three sockets, one of them out, and what that costs.
+    fy = cy + 168
+    for index in range(4):
+        out = index == 2
+        d.add(f'<circle cx="{rx + 14 + index * 30:g}" cy="{fy:g}" r="10" fill="{TINT["warm" if out else "green"]}" '
+              f'stroke="{ROLE["warm" if out else "green"]}" stroke-width="1.5"'
+              + (' stroke-dasharray="3 3"' if out else '') + '/>')
+    d.add(f'<path d="M{rx + 69:g} {fy - 5:g}l10 10m0 -10l-10 10" stroke="{ROLE["warm"]}" stroke-width="1.8" '
+          f'stroke-linecap="round"/>')
+    d.text(rx + 126, fy - 4, 'A failed row stops only', 'm')
+    d.text(rx + 126, fy + 15, 'its own readers, by name.', 'm', fill=MUT)
+
+    # --- research rows, the gate and the record ----------------------------
+    yb = cy + 330
+    d.add(f'<path d="M{M} {yb - 34:g}H{WIDE - M}" stroke="url(#rule)"/>')
+    d.section(yb, 'RESEARCH ROWS · THE STRATEGY LAB')
+    lab = [('rsi', 'blue', 'factor', 66, yb + 62), ('strategies', 'violet', 'pack', 176, yb + 62),
+           ('bars', 'violet', 'candles', 66, yb + 162), ('costs', 'violet', 'receipt', 176, yb + 162)]
+    ox, oy = 290, yb + 112
+    for label, role, icon, x, y in lab:
+        d.add(f'<path d="M{x:g} {y:g}L{ox:g} {oy:g}" stroke="{ROLE[role]}" stroke-opacity=".4" '
+              f'stroke-width="1.2" stroke-dasharray="2 4" stroke-linecap="round"/>')
+    for label, role, icon, x, y in lab:
+        _socket(d, x, y, role, icon)
+        d.text(x, y + 40, label, 'm', anchor='middle')
+    _disc(d, ox, oy, 30, 'blue')
+    d.icon('replay', ox - 11, oy - 11, 'blue')
+    d.text(ox, oy + 50, 'optimiser', 'm', anchor='middle')
+    d.text(ox, oy + 68, 'walks the grid forward', 'm', anchor='middle', fill=MUT)
+    gx, gw, gh = 392, 64, 206
+    d.wire(f'M{ox + 32:g} {oy:g}H{gx - 2:g}', kind='decision', packet=False)
+    d.card(gx, yb + 16, gw, gh, 'warm', tint=True)
+    d.icon('gate', gx + 21, yb + 30, 'warm')
+    checks = ['60 sessions out of sample', 'edge interval above zero',
+              'lift over the row above zero', 'overfitting odds below half',
+              'bars are adjusted']
+    d.text(gx + gw + 20, yb + 34, 'Registered gate', 'h')
+    d.tag(gx + gw + 20 + width('Registered gate', 'h') + 12, yb + 32, 'FLOOR IN CODE', 'warm')
+    for index, line in enumerate(checks):
+        ly = yb + 64 + index * 26
+        d.add(f'<path d="M{gx + 12:g} {ly - 4:g}H{gx + gw + 12:g}" stroke="{ROLE["warm"]}" stroke-width="2" '
+              f'stroke-linecap="round"/>')
+        d.text(gx + gw + 20, ly, line, 'm')
+    d.icon('twin', gx + gw + 18, yb + 190, 'slate', size=18)
+    d.text(gx + gw + 44, yb + 204, 'alternates may object,', 'm', fill=MUT)
+    d.text(gx + gw + 44, yb + 222, 'and only be stricter', 'm', fill=MUT)
+    vx = 742
+    for label, role, vy in (('candidate', 'green', yb + 60), ('refused', 'warm', yb + 132)):
+        d.wire(f'M{gx + gw + 240:g} {yb + 112:g}C{vx - 22:g} {yb + 112:g} {vx - 34:g} {vy + 17:g} {vx - 2:g} {vy + 17:g}',
+               kind='gate', packet=False)
+        d.add(f'<rect x="{vx:g}" y="{vy:g}" width="104" height="34" rx="17" fill="{TINT[role]}" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".4"/>')
+        d.text(vx + 52, vy + 22, [(label, ROLE[role])], 'm', anchor='middle')
+    d.text(vx + 52, yb + 196, 'live permission', 'm', anchor='middle', fill=MUT)
+    d.text(vx + 52, yb + 214, 'false, either way', 'm', anchor='middle')
+    sx, sw = 878, 114
+    for index in range(4):
+        _slab(d, sx, yb + 132 - index * 14, sw, 'violet')
+    for vy in (yb + 77, yb + 149):
+        d.wire(f'M{vx + 106:g} {vy:g}H{sx - 4:g}', kind='feedback', packet=False)
+    d.text(sx + sw / 2, yb + 178, 'Lab ledger', 'h', anchor='middle')
+    d.text(sx + sw / 2, yb + 198, 'every verdict kept', 'm', anchor='middle', fill=MUT)
+    # No way back: the record does not reach the wheel.
+    bx, by = sx + sw / 2 + 5, yb - 52
+    d.add(f'<path d="M{bx:g} {yb + 82:g}V{by + 6:g}" fill="none" stroke="{KIND["feedback"][1]}" '
+          f'stroke-width="1.5" stroke-dasharray="2 6" stroke-linecap="round"/>')
+    d.add(f'<path d="M{bx - 26:g} {by:g}H{bx + 26:g}" stroke="{ROLE["warm"]}" stroke-width="4" '
+          f'stroke-linecap="round"/>')
+    d.text(WIDE - M, by - 14, 'No path back to a live row.', 'm', anchor='end')
+    d.text(WIDE - M, by - 32, 'Changing a row is a reviewed edit.', 'm', anchor='end', fill=MUT)
+    return d.render(yb + 262)
+
+
+#: One real run of `clawock strategy-lab optimize rsi`, 2026-10-12, on the
+#: desk's 28 names. The figure draws this run and nothing else; a later run
+#: reads differently, and `strategy-lab evolution rsi` prints the current one.
+RSI_RUN = {
+    'date': '2026-10-12',
+    'periods': (5, 7, 9, 14, 21, 28),
+    # Mean rank IC of each configuration; reversion is the same score, signed.
+    'momentum': (.0424, .0486, .0538, .0646, .0680, .0694),
+    'registered': ('reversion', 14),
+    'selected': ('momentum', 28),
+    'sessions': 771, 'oos_sessions': 705,
+    'edge': (.0177, .1125), 'lift': (.0414, .2198), 'pbo': 0.0,
+    'net': (.000491, .009011),
+    'all': (28, .0656, (.0177, .1125)),
+    'adjusted': (16, .0042, (-.0448, .0502)),
+    'after_session': '2026-10-09',
+}
+
+
+def _outline(d, x, y, w, h, r, **look):
+    """A rounded outline round something already drawn; a mark, not a node."""
+    attrs = ''.join(f' {key.replace("_", "-")}="{value}"' for key, value in look.items())
+    d.add(f'<path d="M{x + r:g} {y:g}H{x + w - r:g}Q{x + w:g} {y:g} {x + w:g} {y + r:g}V{y + h - r:g}'
+          f'Q{x + w:g} {y + h:g} {x + w - r:g} {y + h:g}H{x + r:g}Q{x:g} {y + h:g} {x:g} {y + h - r:g}'
+          f'V{y + r:g}Q{x:g} {y:g} {x + r:g} {y:g}Z" fill="none"{attrs}/>')
+
+
+def _whisker(d, x0, x1, y, role, mid=None):
+    """An interval on an axis: a bar between its ends, capped, with its centre marked."""
+    ink = ROLE[role]
+    d.add(f'<path d="M{x0:.1f} {y:g}H{x1:.1f}M{x0:.1f} {y - 7:g}v14M{x1:.1f} {y - 7:g}v14" fill="none" '
+          f'stroke="{ink}" stroke-width="2.4" stroke-linecap="round"/>')
+    if mid is not None:
+        d.add(f'<circle cx="{mid:.1f}" cy="{y:g}" r="5.5" fill="{ink}" stroke="#ffffff" stroke-width="1.5"/>')
+
+
+def strategy_evolution():
+    """A strategy searching its own parameters, drawn from one real run, and where that stops."""
+    run = RSI_RUN
+    d = D('A strategy proposes its next parameters and cannot adopt them: one real run',
+          'RSI on 2026-10-12. Panel 1: the declared grid of six periods and two directions, '
+          'shaded by mean rank IC; the registered point is reversion with period 14 and the '
+          'search selects momentum with period 28. Panel 2: the registered gate check by check, '
+          'each observed value against its threshold, all passed, and the live alternate after '
+          'costs does not object. Panel 3: the same search on the 16 names the provider answered '
+          'adjusted, without the 12 it only has no corporate action on record for, is refused: '
+          'its interval spans zero. Panel 4: registration starts scoring on later sessions only; '
+          'none has been scored yet, and the configuration row still holds the registered '
+          'parameters until someone edits it.')
+    y = d.header('CLAWOCK · A STRATEGY THAT SEARCHES ITSELF',
+                 ['It may propose its next parameters. It cannot adopt them.'],
+                 [f'One real run, drawn as it came out: RSI on {run["date"]}.'],
+                 [('searched', 'blue'), ('gate', 'warm'), ('kept on record', 'violet'),
+                  ('scored on later sessions', 'green')]) + 30
+
+    # --- 01 the declared grid, as a heat map -------------------------------
+    d.section(y, '01 · THE GRID IT DECLARED')
+    gx, gy, cw, ch, gap = 128, y + 46, 62, 56, 8
+    peak = max(run['momentum'])
+    for col, period in enumerate(run['periods']):
+        d.text(gx + col * (cw + gap) + cw / 2, gy - 12, str(period), 'm', anchor='middle', fill=MUT)
+    d.text(M, gy - 12, 'period', 'm', fill=FAINT)
+    for row, (direction, sign) in enumerate((('momentum', 1), ('reversion', -1))):
+        cy = gy + row * (ch + gap)
+        d.text(M, cy + ch / 2 + 5, direction, 'm')
+        for col, value in enumerate(run['momentum']):
+            x = gx + col * (cw + gap)
+            role = 'blue' if sign > 0 else 'warm'
+            d.add(f'<rect x="{x:g}" y="{cy:g}" width="{cw}" height="{ch}" rx="9" fill="{ROLE[role]}" '
+                  f'fill-opacity="{.10 + .42 * value / peak:.2f}" stroke="url(#rim)"/>')
+            d.text(x + cw / 2, cy + ch / 2 + 5, f'{sign * value:+.3f}'.replace('-', '−'), 'm',
+                   anchor='middle')
+    def cell(direction, period):
+        return (gx + run['periods'].index(period) * (cw + gap),
+                gy + (direction == 'reversion') * (ch + gap))
+    sx, sy = cell(*run['selected'])
+    _outline(d, sx - 4, sy - 4, cw + 8, ch + 8, 12, stroke=ROLE['green'], stroke_width=2.4)
+    rx, ry = cell(*run['registered'])
+    _outline(d, rx - 4, ry - 4, cw + 8, ch + 8, 12, stroke=ROLE['slate'], stroke_width=2,
+             stroke_dasharray='5 4')
+    ky = gy + 2 * ch + gap + 34
+    _outline(d, M, ky - 13, 18, 16, 5, stroke=ROLE['slate'], stroke_width=2, stroke_dasharray='4 3')
+    d.text(M + 28, ky, 'the row today: reversion / 14', 'm')
+    _outline(d, M + 262, ky - 13, 18, 16, 5, stroke=ROLE['green'], stroke_width=2.4)
+    d.text(M + 290, ky, 'the search picks: momentum / 28', 'm')
+    d.text(M, ky + 30, f'Mean rank IC over {run["sessions"]} sessions and 28 names.', 'm', fill=MUT)
+    d.text(M, ky + 49, 'The grid is declared before the search, so all 12 trials are counted.', 'm', fill=MUT)
+
+    # --- 02 the gate, one gauge per check ----------------------------------
+    px = 600
+    d.section(y, '02 · THE REGISTERED GATE', x=px)
+    ax0, ax1 = px + 118, px + 268
+    gauges = [('sessions', (0, 800), 60, run['oos_sessions'], '705'),
+              ('edge', (-.05, .25), 0, run['edge'], '0.018 to 0.113'),
+              ('lift', (-.05, .25), 0, run['lift'], '0.041 to 0.220'),
+              ('overfitting', (0, 1), .5, run['pbo'], '0.0')]
+    for index, (label, (lo, hi), threshold, seen, value) in enumerate(gauges):
+        ly = y + 44 + index * 36
+        def at(v, lo=lo, hi=hi):
+            return ax0 + (v - lo) / (hi - lo) * (ax1 - ax0)
+        d.text(px, ly + 5, label, 'm')
+        d.add(f'<path d="M{ax0} {ly:g}H{ax1}" stroke="{LINE}" stroke-width="1.5" stroke-linecap="round"/>')
+        d.add(f'<path d="M{at(threshold):.1f} {ly - 11:g}v22" stroke="{ROLE["warm"]}" stroke-width="3" '
+              f'stroke-linecap="round"/>')
+        if isinstance(seen, tuple):
+            _whisker(d, at(seen[0]), at(seen[1]), ly, 'green')
+        else:
+            d.add(f'<circle cx="{at(seen):.1f}" cy="{ly:g}" r="6" fill="{ROLE["green"]}" stroke="#ffffff" '
+                  f'stroke-width="1.5"/>')
+        d.text(WIDE - M, ly + 5, value, 'm', anchor='end', fill=MUT)
+    ly = y + 44 + 4 * 36
+    d.text(px, ly + 5, 'adjusted bars', 'm')
+    d.add(f'<path d="M{ax0 + 2:g} {ly:g}l6 6 12 -13" fill="none" stroke="{ROLE["green"]}" stroke-width="2.6" '
+          f'stroke-linecap="round" stroke-linejoin="round"/>')
+    d.text(WIDE - M, ly + 5, 'the source says yes', 'm', anchor='end', fill=MUT)
+    ly += 28
+    d.add(f'<path d="M{px} {ly:g}H{WIDE - M}" stroke="{LINE}" stroke-dasharray="2 5" stroke-linecap="round"/>')
+    ly += 26
+    d.icon('twin', px - 2, ly - 12, 'slate', size=20)
+    d.text(px + 26, ly + 5, 'after costs', 'm')
+    lo, hi = -.005, .015
+    d.add(f'<path d="M{ax0} {ly:g}H{ax1}" stroke="{LINE}" stroke-width="1.5" stroke-linecap="round"/>')
+    zero = ax0 + (0 - lo) / (hi - lo) * (ax1 - ax0)
+    d.add(f'<path d="M{zero:.1f} {ly - 11:g}v22" stroke="{ROLE["slate"]}" stroke-width="3" stroke-linecap="round"/>')
+    _whisker(d, ax0 + (run['net'][0] - lo) / (hi - lo) * (ax1 - ax0),
+             ax0 + (run['net'][1] - lo) / (hi - lo) * (ax1 - ax0), ly, 'green')
+    d.text(WIDE - M, ly + 5, 'no objection', 'm', anchor='end', fill=MUT)
+    d.text(px, ly + 36, 'An alternate may object. It cannot pass', 'm', fill=MUT)
+    d.text(px, ly + 55, 'what the gate refuses.', 'm', fill=MUT)
+    d.wire(f'M{gx + 6 * (cw + gap) + 4:g} {gy + ch + gap / 2:g}H{px - 16:g}', kind='decision', dur=2.6)
+    y = ly + 96
+
+    # --- 03 the same search without the single-source names ----------------
+    d.add(f'<path d="M{M} {y - 22:g}H{WIDE - M}" stroke="url(#rule)"/>')
+    d.section(y + 8, '03 · THE SAME SEARCH WITHOUT THE NAMES ONE PROVIDER VOUCHES FOR')
+    wy = y + 44
+    for index in range(28):
+        col, row = index % 7, index // 7
+        solid = index < 16
+        d.add(f'<circle cx="{M + 12 + col * 26:g}" cy="{wy + 8 + row * 26:g}" r="9" '
+              f'fill="{ROLE["blue"] if solid else "#ffffff"}" fill-opacity="{".85" if solid else ".7"}" '
+              f'stroke="{ROLE["blue"]}" stroke-width="1.5"' + ('' if solid else ' stroke-dasharray="3 3"') + '/>')
+    d.text(M, wy + 122, '16 answered adjusted', 'm')
+    d.text(M, wy + 141, '12 raw, no action on record', 'm', fill=MUT)
+    ix0, ix1, lo, hi = 420, 880, -.08, .14
+    def ic(v):
+        return ix0 + (v - lo) / (hi - lo) * (ix1 - ix0)
+    d.add(f'<path d="M{ix0} {wy + 100:g}H{ix1}" stroke="{LINE}" stroke-width="1.5" stroke-linecap="round"/>')
+    for tick in (-.05, 0, .05, .10):
+        d.add(f'<path d="M{ic(tick):.1f} {wy + 96:g}v8" stroke="{LINE}" stroke-width="1.5"/>')
+        d.text(ic(tick), wy + 122, f'{tick:+.2f}'.replace('-', '−') if tick else '0', 'm', anchor='middle',
+               fill=MUT)
+    d.add(f'<path d="M{ic(0):.1f} {wy - 8:g}V{wy + 96:g}" stroke="{ROLE["warm"]}" stroke-width="2" '
+          f'stroke-dasharray="4 4" stroke-linecap="round"/>')
+    for row, (key, role, verdict) in enumerate((('all', 'green', 'candidate'),
+                                                ('adjusted', 'warm', 'refused'))):
+        names, mean, (low, high) = run[key]
+        ry = wy + 14 + row * 44
+        d.text(ix0 - 16, ry + 5, f'{names} names', 'm', anchor='end')
+        _whisker(d, ic(low), ic(high), ry, role, ic(mean))
+        d.add(f'<rect x="{ix1 + 18:g}" y="{ry - 15:g}" width="94" height="30" rx="15" fill="{TINT[role]}" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".4"/>')
+        d.text(ix1 + 65, ry + 5, [(verdict, ROLE[role])], 'm', anchor='middle')
+    d.text(ix0, wy + 150, 'Edge interval. Across zero is no edge:', 'm', fill=MUT)
+    d.text(ix0, wy + 169, 'the candidate rests on those 12 names.', 'm')
+    y = wy + 212
+
+    # --- 04 what registration starts, on a time axis -----------------------
+    d.add(f'<path d="M{M} {y - 22:g}H{WIDE - M}" stroke="url(#rule)"/>')
+    d.section(y + 8, '04 · WHAT REGISTRATION STARTS, AND WHERE IT STOPS')
+    ty = y + 92
+    t0, treg, tend = M + 16, 540, 760
+    d.add(f'<path d="M{t0} {ty:g}H{treg - 10:g}" stroke="{ROLE["blue"]}" stroke-opacity=".45" stroke-width="12" '
+          f'stroke-linecap="round"/>')
+    d.text(t0, ty - 22, f'{run["sessions"]} sessions it searched, walking forward', 'm')
+    d.text(t0, ty + 32, 'the past: a retrospective result', 'm', fill=MUT)
+    d.add(f'<path d="M{treg} {ty - 44:g}V{ty + 44:g}" stroke="{ROLE["violet"]}" stroke-width="3" '
+          f'stroke-linecap="round"/>')
+    d.add(f'<circle cx="{treg}" cy="{ty:g}" r="8" fill="{ROLE["violet"]}" stroke="#ffffff" stroke-width="2"/>')
+    d.text(treg, ty - 54, f'registered after {run["after_session"]}', 'm', anchor='middle')
+    for index in range(7):
+        d.add(f'<circle cx="{treg + 34 + index * 27:g}" cy="{ty:g}" r="8" fill="#ffffff" fill-opacity=".7" '
+              f'stroke="{ROLE["green"]}" stroke-width="1.5" stroke-dasharray="3 3"/>')
+    d.wire(f'M{treg + 12:g} {ty + 26:g}H{tend - 30:g}', kind='feedback', dur=3.0)
+    d.text(treg + 22, ty + 54, 'sessions it has not seen:', 'm')
+    d.text(treg + 22, ty + 73, 'scored from here on, 0 so far', 'm', fill=MUT)
+    bx = tend + 28
+    d.add(f'<path d="M{bx} {ty - 40:g}V{ty + 40:g}" stroke="{ROLE["warm"]}" stroke-width="4" '
+          f'stroke-linecap="round"/>')
+    d.card(bx + 22, ty - 36, WIDE - M - bx - 22, 72, 'slate')
+    d.text(bx + 40, ty - 8, 'the row still says', 'm', fill=MUT)
+    d.text(bx + 40, ty + 14, 'reversion / 14', 'h')
+    d.text(WIDE - M, ty - 50, 'Editing it is a reviewed change.', 'm', anchor='end', fill=MUT)
+    return d.render(ty + 104)
 
 
 LAYOUTS = {
     'strategy-plugins': strategy_plugins,
+    'strategy-evolution': strategy_evolution,
     'proposal-review': proposal_review,
     'rsi-loop': rsi_loop,
     'feedback-learning': feedback_learning,
