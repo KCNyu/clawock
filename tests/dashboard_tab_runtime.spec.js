@@ -1793,17 +1793,21 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
     await page.waitForSelector("#today-movers .hl-movers", { timeout: 5000 });
-    // The top card's contents arrive from 6px low (`.deck-enter`, 450ms). This
-    // measures where they come to rest: sampled inside that window it reads
-    // the entrance offset as overflow (-6px), and whether it lands inside is
-    // decided by how long the first frame took, not by the layout. Waiting and
-    // measuring are one evaluation, so a repaint that restarts the entrance
-    // cannot slip in between them.
+    // The top card's contents arrive from 6px low (`.deck-enter`). This
+    // measures where they come to rest: sampled while they travel it reads the
+    // entrance offset as overflow (-6px), and whether it lands inside that
+    // window is decided by how long the first frames took, not by the layout.
+    // The class alone is not the end of it — it comes off on a 450ms timer,
+    // while the transition counts from the first frame painted after it went
+    // on, so on a starved renderer the class is gone and the contents are
+    // still 6px low. Wait for the travel itself to finish. Waiting and
+    // measuring are one evaluation, so nothing can restart it in between.
     const fill = await (await page.waitForFunction(() => {
-      if (document.querySelector(".verdict-deck .deck-card.deck-enter")) return null;
       const card = document.querySelector(".verdict-deck .deck-card");
       const movers = document.querySelector("#today-movers .hl-movers");
       if (!card || !movers) return null;
+      if (card.classList.contains("deck-enter")
+        || card.getAnimations({ subtree: true }).length) return null;
       const bars = document.querySelectorAll("#today-movers .hl-mv-bar i");
       const cs = getComputedStyle(card);
       const inner = card.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
