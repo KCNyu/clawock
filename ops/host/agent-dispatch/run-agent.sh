@@ -383,10 +383,12 @@ notify() {  # <message> [send timeout in seconds, default 60]
 # batching, the hourly cap, chain depth, the wake.off switch); a task without ORIGIN_SESSION,
 # i.e. one not dispatched from a chat turn, stops here. Like notify(), it never changes a
 # task's state, and it returns in a second: the turn itself runs in a unit of its own.
-wake_origin() {  # <event: end|quota> <message>
+# It is handed the notice's headline only: the session gets a pointer to the report, not a
+# second copy of the text the WeChat leg just put in the same chat.
+wake_origin() {  # <event: end|quota> <notice>
   [ -n "${ORIGIN_SESSION:-}" ] && [ -r "$WAKE_CMD" ] || return 0
   local f; f=$(mktemp "$DIR/.wake.XXXXXX") || return 0
-  printf '%s' "$2" | redact | clip head 900 >"$f"
+  printf '%s' "${2%%$'\n'*}" | redact | clip head 300 >"$f"
   timeout 15 python3 "$WAKE_CMD" enqueue "$DIR" "$1" "$f" || echo "wake: enqueue failed ($1)"
   rm -f "$f"
   return 0

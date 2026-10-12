@@ -9,8 +9,13 @@ its end only when kcn next writes. This helper closes that gap (kcn 2026-10-12: 
   wake-session.py origin            dispatch.sh: which session is dispatching, and how deep in a
                                     chain of wake turns (prints ORIGIN_SESSION= / WAKE_DEPTH=)
   wake-session.py enqueue <dir> <event> <text-file>
-                                    run-agent.sh: one event (`end` or `quota`) of one task
+                                    run-agent.sh: one event (`end` or `quota`) of one task;
+                                    only the first line of the text is kept
   wake-session.py drain <hash>      one turn for everything spooled for that session
+
+The turn's message is a pointer, not the notice: one line saying what happened to which task
+and the command that prints its report. The notice itself already went out on the legs, and the
+WeChat leg lands in this same chat, so repeating it showed kcn the same text twice (2026-10-12).
 
 The turn is `openclaw agent --session-key <origin> --deliver`: the gateway's own authenticated
 RPC. The gateway is published through Tailscale Funnel, so enabling its HTTP hooks
@@ -49,6 +54,7 @@ SESSIONS = os.environ.get("AGENT_DISPATCH_SESSIONS_GLOB", "")
 # probe sessions are isolated runs with no reader, so a turn there would be wasted.
 WAKEABLE = re.compile(r"^agent:[a-z0-9_-]+:(main|[a-z0-9_-]+:direct:[A-Za-z0-9@._:+-]+)$")
 EVENTS = ("end", "quota")
+DISPATCH = "/root/tools/agent-dispatch/dispatch.sh"
 
 
 def limit(name, default):
@@ -145,6 +151,12 @@ def cmd_origin():
 
 # ---- enqueue: one event of one task --------------------------------------------------------
 
+def first_line(text):
+    """The notice's headline. A runner that started before this rule still hands over the whole
+    notice; the rest of it is exactly what must not be repeated."""
+    return (text.strip().splitlines() or [""])[0][:300]
+
+
 def cmd_enqueue(task_dir, event, text_file):
     meta = read_env(Path(task_dir) / "meta.env")
     key, tid = meta.get("ORIGIN_SESSION", ""), meta.get("ID", "")
@@ -170,7 +182,7 @@ def cmd_enqueue(task_dir, event, text_file):
         log(task_dir, f"skipped ({event}): this session was already told")
         return 0
     entry = {"id": tid, "event": event, "dir": str(task_dir), "depth": depth, "session": key,
-             "text": Path(text_file).read_text(errors="replace")[:1200], "at": int(time.time())}
+             "text": first_line(Path(text_file).read_text(errors="replace")), "at": int(time.time())}
     tmp = box / "spool" / f".{tid}.{event}.tmp"
     tmp.write_text(json.dumps(entry, ensure_ascii=False))
     os.chmod(tmp, 0o600)
@@ -196,8 +208,8 @@ def cmd_enqueue(task_dir, event, text_file):
 
 RULES = """\
 规则：
-- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。kcn 已另外收到同样内容的通知，不要复述通知原文。
-- 接着做本会话里依赖这个结果的事：核对结果（`/root/tools/agent-dispatch/dispatch.sh result <id>`），向 kcn 说结论或下一步。
+- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。通知全文 kcn 已经收到，这里只给指针，不要复述通知。
+- 接着做本会话里依赖这个结果的事：需要细节就用上面的报告命令查，向 kcn 说结论或下一步。
 - 没有 kcn 已经交代的后续，就不要因为这条事件新派任务。
 - 没有值得告诉 kcn 的，只回复 NO_REPLY。
 - 不要把这条事件记进 MEMORY.md 或 memory/；只有任务结果改变了长期事实或决定时，才按平常的记忆规则处理。"""
@@ -233,7 +245,8 @@ def cmd_drain(name):
                 log(d, f"dropped: {why}")
             return 0
         (box / "history").write_text("\n".join(f"{x:.0f}" for x in history + [now]))
-        body = "\n\n".join(e["text"].strip() for e in entries)
+        body = "\n\n".join(f"{first_line(e['text'])}\n  id：{e['id']} · 报告：{DISPATCH} result {e['id']}"
+                           for e in entries)
         head = ("[agent-dispatch 事件] 你在本会话派发的任务有了结果：" if len(entries) == 1
                 else f"[agent-dispatch 事件] 你在本会话派发的任务有 {len(entries)} 条新结果：")
         msg = box / "message.md"
