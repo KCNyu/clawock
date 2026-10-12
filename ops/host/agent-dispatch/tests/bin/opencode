@@ -31,6 +31,9 @@ for a in "$@"; do [ "$prev" = -s ] && sid=$a; prev=$a; done
 ev() { printf '{"type":"%s","timestamp":1,"sessionID":"%s"%s}\n' "$1" "$sid" "${2/\"part\":\{/\"part\":{\"sessionID\":\"$sid\",}"; }
 case "$mode" in
   empty) exit 0 ;;
+  error-only)
+    ev error ',"error":{"name":"APIError","data":{"message":"Upstream request failed: Invalid credential","statusCode":401}}'
+    exit 1 ;;
   silent) sleep 3600; exit 0 ;;
   event-then-empty) [ "$n" != 1 ] && exit 0 ;;
 esac
