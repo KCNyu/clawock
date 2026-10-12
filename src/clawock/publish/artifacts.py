@@ -889,8 +889,16 @@ def _assert_dashboard_money_reconciles(
             'weight': round(row['current_value'] / total, 4),
         } for row in positive] if total > 0 else []
         positions.sort(key=lambda row: -row['weight'])
-        expected_hhi = round(sum(row['weight'] ** 2 for row in positions), 4)
-        expected_top2 = round(sum(row['weight'] for row in positions[:2]), 4)
+        # HHI and Top2 are rounded once, from the unrounded weights, exactly as
+        # the publisher does. Summing the 4-decimal display weights instead
+        # rounds twice and lands one unit away whenever the true value sits
+        # near a rounding boundary (US book of 2026-10-12: 0.77160 published,
+        # 0.77167 from the display weights).
+        raw_weights = sorted(
+            (row['current_value'] / total for row in positive), reverse=True,
+        ) if total > 0 else []
+        expected_hhi = round(sum(weight ** 2 for weight in raw_weights), 4)
+        expected_top2 = round(sum(raw_weights[:2]), 4)
         concentration = data['concentration'][leg]
         same_number(concentration.get('total'), round(total, 2),
                     f'concentration.{leg}.total')

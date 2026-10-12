@@ -325,6 +325,45 @@ def test_dashboard_money_reconciliation_rejects_public_drift(
             dashboard, portfolio_path=ROOT / 'portfolio.json')
 
 
+@pytest.mark.parametrize('values,published', (
+    # The US book of 2026-10-12. True HHI 0.77160; the 4-decimal display
+    # weights (0.8755, 0.0427, 0.0415, 0.0403) square-sum to 0.77167.
+    ((166.74, 157.3, 162.06, 3417.0), {'hhi': 0.7716, 'top2': 0.9182}),
+    # Same boundary on Top2: 0.50004 + 0.30004 is 0.8001, the display weights
+    # add to 0.8000.
+    ((50004.0, 30004.0, 19992.0), {'hhi': 0.38, 'top2': 0.8001}),
+))
+def test_concentration_on_a_rounding_boundary_reconciles_to_its_own_holdings(
+        tmp_path, freshly_built_dashboard, values, published):
+    """The card is rounded once from unrounded weights. A gate that re-derives
+    it from the published 4-decimal weights rounds twice and disagrees by one
+    unit on these books, which reddened the gate on a correct payload."""
+    from clawock.publish.dashboard import compute_hhi
+
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    payload = json.loads(freshly_built_dashboard.read_text())
+    # A later book generation: the rows are compared with each other, not with
+    # the committed book.
+    payload['last_updated'] = _same_day(portfolio, '23:59')
+    template = payload['holdings']['us'][0]
+    rows = [{**template, 'ticker': f'EDGE{index}', 'current_value': value}
+            for index, value in enumerate(values)]
+    payload['holdings']['us'] = rows
+    payload['concentration']['us'] = compute_hhi(rows)
+    payload['anomalies'] = []
+    assert {field: payload['concentration']['us'][field]
+            for field in published} == published
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    validators.validate_dashboard(dashboard, portfolio_path=ROOT / 'portfolio.json')
+
+    payload['concentration']['us']['hhi'] += 0.0001
+    with pytest.raises(AssertionError, match=r'concentration\.us\.hhi=.*does not reconcile'):
+        validators.validate_dashboard(
+            write_json(tmp_path / 'drifted.json', payload),
+            portfolio_path=ROOT / 'portfolio.json')
+
+
 def _book(payload, stamp):
     payload['last_updated'] = stamp
     return payload
