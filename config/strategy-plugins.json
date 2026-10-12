@@ -28,7 +28,14 @@
           "oos_lift_ci95_lower_gt": 0.0,
           "pbo_lt": 0.5,
           "corporate_actions_adjusted": true
-        }
+        },
+        "gate_alternates": [
+          {
+            "id": "statistics-only",
+            "rationale": "memory/bars is raw by contract, so the registered gate refuses every run on it whatever the statistics say. This alternate drops only that check, to keep on record what the statistics alone would have concluded.",
+            "gate": {"corporate_actions_adjusted": false}
+          }
+        ]
       }
     }
   ]

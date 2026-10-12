@@ -70,6 +70,24 @@ reviewed like any configuration change. The rule is the one
 `config/factor-universe.json` states for the factor universe: never infer live
 permission from a retrospective backtest.
 
+## Alternate gates
+
+The gate can be adjusted without editing it. `gate_alternates` in the optimiser
+row lists other threshold sets; each has an `id`, a `rationale` and only the
+checks it changes, inheriting the rest from the registered gate.
+
+Every proposal is judged by each alternate beside the registered gate. The
+result is in `alternate_gates`: `would_pass`, `would_refuse_because`,
+`agrees_with_registered`, and `binding: false`. An alternate never sets
+`status`, and nothing outside `strategy-lab` reads it. Promoting one is an edit
+that moves its thresholds into `gate`.
+
+`statistics-only` is the one shipped: it drops `corporate_actions_adjusted`,
+which the raw bar store fails on every run, so the record shows what the
+statistics alone would have concluded.
+
+A gate or alternate naming a check that does not exist is refused at mount.
+
 ## Adding a strategy
 
 1. Write a module with `inject = ('strategies',)` and an `apply` that registers

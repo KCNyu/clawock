@@ -184,6 +184,39 @@ def test_the_same_edge_on_unadjusted_bars_is_refused():
     assert report['refused_because'] == ['corporate_actions_adjusted']
 
 
+def test_an_alternate_gate_is_recorded_beside_the_verdict_and_never_sets_it():
+    drop_adjustment = {'id': 'statistics-only', 'rationale': 'raw store',
+                       'gate': {'corporate_actions_adjusted': False}}
+    report = optimise(Tape(persistence=0.6, adjusted=False),
+                      gate_alternates=[drop_adjustment])
+    [alternate] = report['alternate_gates']
+    assert alternate['would_pass'] is True and alternate['binding'] is False
+    assert alternate['agrees_with_registered'] is False
+    # The alternate inherits every registered check it does not override.
+    assert alternate['gate']['pbo_lt'] == 0.5
+    assert report['status'] == 'refused' and report['live_permission'] is False
+    assert report['refused_because'] == ['corporate_actions_adjusted']
+
+    stricter = {'id': 'long-sample', 'rationale': 'want a year',
+                'gate': {'min_oos_sessions': 250}}
+    report = optimise(Tape(persistence=0.6), gate_alternates=[stricter])
+    assert report['status'] == 'candidate'
+    assert report['alternate_gates'][0]['would_refuse_because'] == ['min_oos_sessions']
+
+
+@pytest.mark.parametrize('settings, message', [
+    ({'gate': {'pbo_below': 0.4}}, 'unknown gate check'),
+    ({'gate_alternates': [{'id': 'a', 'rationale': 'r', 'gate': {'pbo': 0.4}}]},
+     'unknown gate check'),
+    ({'gate_alternates': [{'id': 'a', 'gate': {}}]}, 'needs a rationale'),
+    ({'gate_alternates': [{'id': 'a', 'rationale': 'r'}, {'id': 'a', 'rationale': 'r'}]},
+     'unique id'),
+])
+def test_a_gate_row_that_does_not_say_what_it_means_is_refused_at_mount(settings, message):
+    with pytest.raises(ValueError, match=message):
+        optimise(Tape(persistence=0.0, sessions=5), **settings)
+
+
 def test_a_sample_too_short_to_measure_selection_is_refused_not_waved_through():
     report = optimise(Tape(persistence=0.6, sessions=45), min_train_sessions=10,
                       test_sessions=10, pbo_groups=20,

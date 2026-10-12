@@ -34,6 +34,16 @@ scoring:
 A refusal lists every check it failed. Changing the registered parameters is
 then an edit to the row in `config/strategy-plugins.json`, reviewed like any
 other configuration change.
+
+Alternate gates
+---------------
+The gate itself may be wrong, and the way to find out is not to edit it.
+`gate_alternates` in the row names other threshold sets, each with the reason
+it exists. Every proposal is judged by all of them beside the registered gate
+and the verdicts are reported in `alternate_gates`. An alternate never sets
+`status`: it is a second opinion kept on the record, so a threshold can be
+argued from what it would have concluded before it is allowed to conclude
+anything.
 """
 from __future__ import annotations
 
@@ -58,6 +68,7 @@ DEFAULTS = {
     'test_sessions': 20,
     'pbo_groups': 8,
     'bootstrap_samples': 2000,
+    'gate_alternates': [],
     'gate': {
         'min_oos_sessions': 60,
         'oos_ic_ci95_lower_gt': 0.0,
@@ -66,6 +77,35 @@ DEFAULTS = {
         'corporate_actions_adjusted': True,
     },
 }
+
+
+def _thresholds(overrides, label: str) -> dict:
+    """The registered defaults with `overrides` applied; unknown keys refused.
+
+    A misspelt threshold that fell back to its default would be a gate that
+    reads as tightened or loosened and is neither.
+    """
+    unknown = sorted(set(overrides or {}) - set(DEFAULTS['gate']))
+    if unknown:
+        raise ValueError(
+            f'{label}: unknown gate check(s) {unknown}; known: {sorted(DEFAULTS["gate"])}')
+    return {**DEFAULTS['gate'], **(overrides or {})}
+
+
+def _alternates(rows, registered: dict) -> list[dict]:
+    out, seen = [], set()
+    for row in rows or []:
+        identifier, rationale = row.get('id'), row.get('rationale')
+        if not isinstance(identifier, str) or not identifier or identifier in seen:
+            raise ValueError(f'gate alternate needs a unique id, got {identifier!r}')
+        if not isinstance(rationale, str) or not rationale.strip():
+            raise ValueError(f'gate alternate {identifier!r} needs a rationale')
+        seen.add(identifier)
+        # An alternate states only what it changes; the rest is the registered gate.
+        _thresholds(row.get('gate'), f'gate alternate {identifier!r}')
+        out.append({'id': identifier, 'rationale': rationale,
+                    'gate': {**registered, **(row.get('gate') or {})}})
+    return out
 
 
 def configurations(space: dict) -> list[dict]:
@@ -206,11 +246,21 @@ class Optimizer:
                 'status': 'insufficient_sample', 'pbo': None,
                 'reason': 'no session ranked every configuration'}
         source = self.bars.describe()
-        checks = _gate(
-            settings['gate'], oos_sessions=len(walk['days']), ic_ci=ic_ci,
-            lift_ci=lift_ci, pbo=pbo.get('pbo'),
-            adjusted=source.get('corporate_actions_adjusted'))
+        measured = dict(
+            oos_sessions=len(walk['days']), ic_ci=ic_ci, lift_ci=lift_ci,
+            pbo=pbo.get('pbo'), adjusted=source.get('corporate_actions_adjusted'))
+        checks = _gate(settings['gate'], **measured)
         passed = all(item['passed'] for item in checks)
+        alternates = []
+        for alternate in settings['gate_alternates']:
+            verdict = _gate(alternate['gate'], **measured)
+            would_pass = all(item['passed'] for item in verdict)
+            alternates.append({
+                **alternate, 'binding': False, 'would_pass': would_pass,
+                'agrees_with_registered': would_pass == passed,
+                'would_refuse_because': [
+                    item['check'] for item in verdict if not item['passed']],
+                'checks': verdict})
         selected = configs[_best(matrix, range(len(matrix)), default)] if matrix else None
         surface = sorted(
             ({'params': configs[c],
@@ -235,6 +285,8 @@ class Optimizer:
             'selected_params': selected,
             'gate': checks,
             'refused_because': [item['check'] for item in checks if not item['passed']],
+            # Second opinions. None of them feeds `status` above.
+            'alternate_gates': alternates,
             'objective': (f'mean daily rank IC against the {horizon}-session forward '
                           'return; gross, no trades are simulated'),
             'search': {'space': spec.space, 'configurations': len(configs)},
@@ -263,5 +315,7 @@ class Optimizer:
 
 
 def apply(ctx, config):
-    settings = {**DEFAULTS, **config, 'gate': {**DEFAULTS['gate'], **(config.get('gate') or {})}}
+    gate = _thresholds(config.get('gate'), 'gate')
+    settings = {**DEFAULTS, **config, 'gate': gate,
+                'gate_alternates': _alternates(config.get('gate_alternates'), gate)}
     ctx.provide('optimizer', Optimizer(ctx.get('strategies'), ctx.get('bars'), settings))
