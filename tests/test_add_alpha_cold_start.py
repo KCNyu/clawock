@@ -208,5 +208,7 @@ def test_every_tier_the_classifier_grants_is_one_the_policy_knows():
     assert not add_policy.is_authorised_tier("none")
     assert not add_policy.is_authorised_tier(None)
     for tier in add_policy.AUTHORISED_TIERS:
-        assert add_policy.tier_terms(POLICY, tier)["target_tranche_level"] > 0
+        from clawock.decision import preposition
+        terms = add_policy.tier_terms(POLICY, tier, experiment_policy=preposition.load_policy())
+        assert terms["target_tranche_level"] > 0
     assert set(add_policy.EXPLORATION_TIERS) < set(add_policy.AUTHORISED_TIERS)

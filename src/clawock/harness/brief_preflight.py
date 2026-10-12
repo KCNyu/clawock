@@ -1801,7 +1801,7 @@ def proposal_universe(portfolio, *, bars_dir=None, today=None):
         if isinstance(close, (int, float)) and not isinstance(close, bool) and close > 0:
             rows[ticker] = {'leg': doc.get('leg') or ('HK' if ticker.isdigit() else 'US'),
                             'close': close, 'session': session,
-                            'entry_gate': gates.get(ticker)}
+                            **({'entry_gate': gates[ticker]} if ticker in gates else {})}
     return rows
 
 

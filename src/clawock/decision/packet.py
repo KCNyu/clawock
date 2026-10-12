@@ -1064,7 +1064,6 @@ def _proposal_universe(context: dict, held: set) -> dict:
                 "forced_action_one_of": [],
                 "max_sell_shares": 0,
                 "max_add_shares": room if cleared else 0,
-                "position_room_shares": room,
                 "technical_setup_ids": [],
                 "actionable_evidence_ids": [],
                 "lot_size": lot,
@@ -1461,7 +1460,8 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
             context.get("preposition_policy", preposition.load_policy()),
             ticker=ticker, leg=leg, usage=ticker_usage,
             cost_basis=holding.get("cost_basis"), leveraged=leveraged,
-            thesis_state=thesis.get("state"))
+            thesis_state=thesis.get("state"),
+            hard_stop_pct=((context.get("risk_guardrail") or {}).get("caps") or {}).get("lev_etf_stop_pct"))
         if experiment is not None:
             technical["setups"].append(experiment)
             technical = _apply_setup_usage(technical, ticker_usage)

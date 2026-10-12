@@ -19,6 +19,7 @@ def context():
             {'ticker': 'SPCH', 'shares': 100, 'cost_basis': 100, 'current_price': 95,
              'current_value': 9500}]}}},
         'preposition_policy': POLICY,
+        'risk_guardrail': {'caps': {'lev_etf_stop_pct': -18}},
         'preposition_inputs': {'SPCH': {'status': 'fresh', 'row_as_of': '2026-07-20',
                                       'close': 95, 'atr14_pct': 3, 'prior_20d_high': 110}},
         'open_decisions': {'open_add_tickers': []},
@@ -93,7 +94,7 @@ def test_retained_risk_obligations_block_the_experiment(kind):
     c = context()
     risk = {'ticker': 'SPCH', 'type': 'regime_delever', 'required_reduction': {
         'kind': 'full_leveraged_position', 'minimum_shares': 100, 'target_tickers': ['SPCH']}}
-    c['risk_guardrail'] = {'hard_stop_watch' if kind == 'hard_stop' else 'breaches': [risk]}
+    c['risk_guardrail'] = {'caps': {'lev_etf_stop_pct': -18}, 'hard_stop_watch' if kind == 'hard_stop' else 'breaches': [risk]}
     p = packet.compile_packet(c)
     assert 'add_only_on_trigger' not in p['tickers']['SPCH']['constraints']['open_actions']
     assert packet.validate_plan_constraints({'decisions': [decision(p)]}, p)
@@ -101,7 +102,7 @@ def test_retained_risk_obligations_block_the_experiment(kind):
 
 def test_positive_information_can_enter_without_a_dip_and_negative_cannot():
     row = context()['preposition_inputs']['SPCH'] | {'prior_20d_high': 96}
-    args = dict(ticker='SPCH', leg='US', usage={}, leveraged=True, cost_basis=100)
+    args = dict(ticker='SPCH', leg='US', usage={}, leveraged=True, cost_basis=100, hard_stop_pct=-18)
     assert preposition.setup(row, {}, POLICY, **args) is None
     assert preposition.setup(row, {'usable_for_decisions': True, 'sizing_tilt': 'positive'}, POLICY, **args)
     assert preposition.setup(row | {'prior_20d_high': 110},

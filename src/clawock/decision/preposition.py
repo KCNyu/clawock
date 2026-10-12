@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from clawock.safe_io import to_strict_finite_number as number
 from clawock.workspace import workspace_root
+from clawock.decision import add_policy
 
 SETUP_ID = "preposition_scale_in"
 TIER = "user_experiment"
@@ -22,7 +23,7 @@ def load_policy():
 
 
 def setup(row, information, policy, *, ticker, leg, usage, cost_basis=None,
-          leveraged=False, thesis_state="unknown"):
+          leveraged=False, thesis_state="unknown", hard_stop_pct=None):
     """Own-instrument levels only; never use an underlying's price for a 2x ETF."""
     if not policy.get("enabled") or row.get("status") != "fresh":
         return None
@@ -54,8 +55,10 @@ def setup(row, information, policy, *, ticker, leg, usage, cost_basis=None,
             return None
         # Independent of any holding-strategy exemption: this experimental
         # lane never adds beyond the retained product hard-stop line.
-        from clawock.portfolio.guardrail import GUARDRAIL_CAPS
-        stop = max(stop, cost * (1 + GUARDRAIL_CAPS["lev_etf_stop_pct"] / 100))
+        hard_stop_pct = number(hard_stop_pct)
+        if hard_stop_pct is None or not -100 < hard_stop_pct < 0:
+            return None
+        stop = max(stop, cost * (1 + hard_stop_pct / 100))
     if not 0 < stop < entry:
         return None
     return {
@@ -63,8 +66,7 @@ def setup(row, information, policy, *, ticker, leg, usage, cost_basis=None,
         "label": "提前埋点/左侧分档（前瞻试验）",
         "entry_type": "price_below", "entry_price": round(entry, 4),
         "invalidation_price": round(stop, 4),
-        "max_tranches": policy["max_tranches"],
-        "tranche_pct_of_position": policy["tranche_pct_of_position"],
+        **add_policy.tier_terms({}, TIER, experiment_policy=policy),
         "valid_for_sessions": policy["valid_for_sessions"],
         "signal_date": row.get("row_as_of"), "authority_tier": TIER,
         "authority_sources": ["explicit_user_authorization"],
