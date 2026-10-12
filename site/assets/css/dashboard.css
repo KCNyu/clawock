@@ -2339,11 +2339,15 @@
     color: var(--text-tertiary); font: 700 var(--fs-micro)/1 var(--mono);
     letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
   }
+  /* 一行高、可换行、超出隐藏：放不下的读数整项落到看不见的第二行，
+     不会把 `HK$644` 切成 `HK…`。完整内容在展开后的 rail 里。 */
   .dr-compact {
-    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0; overflow: hidden;
+    display: flex; flex-wrap: wrap; column-gap: .6ch; height: 1.3em;
     color: var(--text-secondary); font: 600 var(--fs-xs)/1.3 var(--mono);
     font-variant-numeric: tabular-nums;
   }
+  .dr-seg { flex: 0 0 auto; white-space: nowrap; }
   .dr-chevron {
     width: 7px; height: 7px; border-right: 1.5px solid var(--text-tertiary);
     border-bottom: 1.5px solid var(--text-tertiary);
@@ -3625,7 +3629,8 @@
     border: 0; background: none; margin: 2px 0 10px;
     font-family: var(--mono); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
   .dm-kpi b { font-weight: 600; color: var(--text); font-size: var(--fs-md); }
-  .dm-kpi span { color: var(--text-dim); white-space: nowrap; }
+  /* 整项先换行；单独一项仍比卡宽（320px 上的日期范围）才允许项内折行。 */
+  .dm-kpi span { color: var(--text-dim); min-width: 0; }
   .dm-kpi .dm-warn { white-space: normal; }
   /* 板还没画出来时的占位：几条静止的灰条，形状就是将要出现的行。它不自己动——
      「还在载入」由面板顶上那条线说，一页只留一处动。表一有内容或换成报错就消失。 */

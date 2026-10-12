@@ -4055,6 +4055,130 @@ async function testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base) {
 }
 
 
+// Remembers every string painted on a canvas, as the quad it covers in CSS px.
+// A full-canvas clearRect starts a new frame, so what is left is the last one.
+function recordCanvasText() {
+  const proto = CanvasRenderingContext2D.prototype;
+  const frames = new WeakMap();
+  window.__canvasText = canvas => (frames.get(canvas) || []).slice();
+  const clearRect = proto.clearRect;
+  proto.clearRect = function (x, y, w, h) {
+    const m = this.getTransform();
+    if (Math.abs(w * m.a * h * m.d) >= this.canvas.width * this.canvas.height * 0.9) frames.set(this.canvas, []);
+    return clearRect.apply(this, arguments);
+  };
+  const fillText = proto.fillText;
+  proto.fillText = function (text, x, y) {
+    const canvas = this.canvas;
+    if (canvas && String(text).trim() && this.globalAlpha > 0.05) {
+      const m = this.getTransform();
+      const size = parseFloat((this.font.match(/([\d.]+)px/) || [0, 10])[1]);
+      const width = this.measureText(text).width;
+      const x0 = this.textAlign === "center" ? x - width / 2
+        : (this.textAlign === "right" || this.textAlign === "end") ? x - width : x;
+      const y0 = (this.textBaseline === "top" || this.textBaseline === "hanging") ? y
+        : this.textBaseline === "middle" ? y - size / 2
+        : this.textBaseline === "bottom" ? y - size : y - size * 0.8;
+      const k = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
+      const at = (px, py) => [(m.a * px + m.c * py + m.e) / k, (m.b * px + m.d * py + m.f) / k];
+      if (!frames.has(canvas)) frames.set(canvas, []);
+      frames.get(canvas).push({ text: String(text),
+        quad: [at(x0, y0), at(x0 + width, y0), at(x0 + width, y0 + size), at(x0, y0 + size)] });
+    }
+    return fillText.apply(this, arguments);
+  };
+}
+
+// The last painted frame of every chart in the open view: which strings sit on
+// each other, and which run off the canvas.
+function chartTextFaults() {
+  const overlap = (a, b) => [a, b].every(quad => [0, 1].every(i => {
+    const [x1, y1] = quad[i], [x2, y2] = quad[i + 1];
+    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+    const along = q => q.map(([x, y]) => (x * -(y2 - y1) + y * (x2 - x1)) / length);
+    const pa = along(a), pb = along(b);
+    return Math.min(Math.max(...pa), Math.max(...pb)) - Math.max(Math.min(...pa), Math.min(...pb)) >= 1.5;
+  }));
+  const faults = [], painted = {};
+  for (const canvas of document.querySelectorAll(".panel.active canvas")) {
+    if (!canvas.clientWidth || !canvas.getClientRects().length) continue;
+    const name = canvas.closest("[id]").id;
+    const texts = window.__canvasText(canvas);
+    painted[name] = texts.map(t => t.text);
+    texts.forEach((t, i) => {
+      const xs = t.quad.map(p => p[0]), ys = t.quad.map(p => p[1]);
+      if (Math.min(...xs) < -1.5 || Math.max(...xs) > canvas.clientWidth + 1.5 ||
+          Math.min(...ys) < -1.5 || Math.max(...ys) > canvas.clientHeight + 1.5) {
+        faults.push(`${name}: "${t.text}" runs off the canvas`);
+      }
+      texts.slice(i + 1).forEach(u => {
+        const sameSpot = u.text === t.text && Math.hypot(u.quad[0][0] - t.quad[0][0], u.quad[0][1] - t.quad[0][1]) < 1;
+        if (!sameSpot && overlap(t.quad, u.quad)) faults.push(`${name}: "${t.text}" is painted over "${u.text}"`);
+      });
+    });
+  }
+  return { faults, painted };
+}
+
+async function testNoChartPaintsOneLabelOverAnother(browser, base) {
+  // Shapes that used to collide, whatever today's book looks like: a long
+  // cumulative window on the daily chart, and small positions sharing a corner
+  // of the weight × confidence plot (two of them on the same spot).
+  const columns = ["date", "us_total_value", "us_today_change", "hk_total_value", "hk_today_change", "us_asof", "hk_asof"];
+  const day = i => new Date(Date.UTC(2026, 5, 9) + i * 86400000).toISOString().slice(0, 10);
+  const snapshots = Array.from({ length: 89 }, (_, i) =>
+    [day(i), 3000, Math.round(900 * Math.sin(i * 1.7)), 60000, Math.round(-2600 * Math.cos(i * 0.9)), day(i), day(i)]);
+  const book = [["BIG", 86, 0.63], ["MID", 52, 0.53], ["AAAA", 3, 0.5], ["BBBB", 3, 0.5], ["CCCC", 5, 0.46],
+    ["DDDD", 2, 0.41], ["EEEE", 6, 0.38], ["FFFF", 4, 0.58]].map(([ticker, weight_pct, avg_confidence]) =>
+    ({ ticker, region: "us", weight_pct, avg_confidence, n_actions: 2, quadrant: weight_pct >= 20 ? "high_risk" : "low_conv_small" }));
+  for (const width of [320, 390, 1280]) {
+    const context = await browser.newContext({ viewport: { width, height: 844 } });
+    await context.addInitScript(recordCanvasText);
+    const page = await context.newPage();
+    try {
+      await stubLiveOrigin(page, { patch: (name, payload) => ["dashboard.json", "overview.json"].includes(name)
+        ? { ...payload, snapshots, snapshots_columns: columns, snapshots_total: 109, weight_confidence: book } : null });
+      await page.goto(base);
+      await waitForData(page);
+      const seen = {};
+      for (const tab of ["drill", "risk", "reflect"]) {
+        await page.evaluate(t => document.querySelector(`.tab-btn[data-tab="${t}"]`).click(), tab);
+        await waitForTab(page, tab);
+        // Bars and their value labels travel during the entry animation; judge
+        // the frame they come to rest on.
+        let before = "", result = null;
+        for (let i = 0; i < 40; i++) {
+          await page.waitForTimeout(250);
+          result = await page.evaluate(chartTextFaults);
+          const now = JSON.stringify(result);
+          if (i >= 4 && now === before) break;
+          before = now;
+        }
+        assert.deepEqual(result.faults, [], `${width}px ${tab}`);
+        Object.assign(seen, result.painted);
+      }
+      // The gate measured something: each chart painted the labels it is about.
+      for (const chart of ["chart-weight-conf", "chart-sector", "chart-ai-winrate", "chart-realized", "chart-daily-pnl"]) {
+        assert.ok((seen[chart] || []).length >= 4, `${width}px: ${chart} painted ${JSON.stringify(seen[chart])}`);
+      }
+      assert.ok(seen["chart-daily-pnl"].includes("累计（近 89 根）"), "the daily chart lost its windowed legend entry");
+      assert.ok(seen["chart-daily-pnl"].some(text => /^累计 \S+$/.test(text)), "the right-hand axis lost its title");
+      assert.ok(seen["chart-weight-conf"].includes("BIG"), "the largest position lost its name");
+
+      // The desk pulse drops whole readings, never half of one.
+      const rail = await page.evaluate(() => {
+        const box = document.getElementById("dr-compact").getBoundingClientRect();
+        return [...document.querySelectorAll("#dr-compact .dr-seg")].map(seg => {
+          const r = seg.getBoundingClientRect();
+          return { text: seg.textContent, shown: r.top < box.bottom - 1, whole: r.right <= box.right + 0.5 };
+        });
+      });
+      assert.ok(rail.length >= 3 && rail[0].shown, `${width}px: the desk pulse shows ${JSON.stringify(rail)}`);
+      assert.deepEqual(rail.filter(seg => seg.shown && !seg.whole), [], `${width}px: a desk-pulse reading is cut`);
+    } finally { await context.close(); }
+  }
+}
+
 async function testButtonDefaultsDoNotOverrideComponentFonts(browser) {
   const page = await browser.newPage({ viewport: { width: 1000, height: 900 } });
   try {
@@ -4121,6 +4245,7 @@ async function main() {
   try {
     await run("testBenchmarkScoresShowBothDenominators", () => testBenchmarkScoresShowBothDenominators(browser, base));
     await run("testDailyPnlUsesOneLatestReadingPerMarketSession", () => testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base));
+    await run("testNoChartPaintsOneLabelOverAnother", () => testNoChartPaintsOneLabelOverAnother(browser, base));
     await run("testOnlyActivePanelAcceptsFocus", () => testOnlyActivePanelAcceptsFocus(browser, base));
     await run("runtime", () => testRuntime(browser, base));
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
