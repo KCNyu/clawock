@@ -65,6 +65,10 @@ def _print_proposal(report: dict) -> None:
     for item in report['gate']:
         print(f"  [{'pass' if item['passed'] else 'FAIL'}] {item['check']}: "
               f"{item['observed']} (required {item['required']})")
+    for alternate in report['alternate_gates']:
+        verdict = ('would pass' if alternate['would_pass'] else
+                   f"would refuse on {alternate['would_refuse_because']}")
+        print(f"  alternate gate {alternate['id']} (not binding): {verdict}")
 
 
 def main(argv=None) -> int:
