@@ -850,7 +850,7 @@
         // 各留半个槽位。此前用 i/n 对齐，第一根柱的中心正好压在容器左缘，
         // 9px 柱的一半（4.5px）被推出容器外 —— 疏密随宽度变、粗细不变
         // 的规矩不动，动的只是柱在槽内的落点。
-        return `<i class="${cls}" style="left:${((i + 0.5) * w).toFixed(2)}%;`
+        return `<i class="${cls}" style="--i:${i};left:${((i + 0.5) * w).toFixed(2)}%;`
           + `width:${Math.max(1.2, w * 0.58).toFixed(2)}%;${pos};height:${h.toFixed(1)}%"></i>`;
       }).join("");
       const up = d.filter(x => x.v > 0).length;
@@ -985,7 +985,8 @@
     if (!host) return;
     const pts = heroProfitSeries();
     // 两点以下画不出趋势。容器高度由 CSS 占住，所以这里清空不会让页面跳。
-    if (pts.length < 3) { host.replaceChildren(); return; }
+    host.classList.remove("is-scrubbing");
+    if (pts.length < 3) { heroScrub = null; host.replaceChildren(); return; }
 
     // Historical snapshots round each currency leg to cents. The last point
     // must use this generation's headline value, or a half-dollar boundary
@@ -1049,12 +1050,116 @@
       + ` x2="${x(li).toFixed(1)}" y2="${y(lowest).toFixed(1)}"/>`
       + `<path class="hs-line" d="${line}"/>`
       + `</svg>`
+      // 拖读层：盖在图上的一层滑块。它和 svg 是兄弟而不是父子 —— slider 的
+      // 子节点对读屏是不存在的，套上去会把 svg 那句走势摘要吃掉。
+      + `<div class="hs-scrub" role="slider" tabindex="0" aria-label="总盈亏逐日读数"`
+      + ` aria-valuemin="0" aria-valuemax="${vals.length - 1}"`
+      + ` aria-valuenow="${vals.length - 1}"`
+      + ` aria-valuetext="${escapeHtml(heroSparkDay(pts[pts.length - 1].date))} `
+      + `${escapeHtml(heroMoney(last, "USD"))}">`
+      + `<i class="hs-cursor"></i><i class="hs-dot"></i></div>`
       // 零轴刻度已去掉（kcn 2026-08-24：「大图的 0 可以不要」）。零轴那条线
       // 本身留着 —— 它是曲线读正负的唯一参照，标签只是给它写名字，而这条线
       // 在一张只有一个量纲的图里不需要名字。
       + `</div>`
+      + `<output class="hs-read" aria-hidden="true"></output>`
       + `<div class="hs-foot">${foot}</div>`;
       // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
+    // 拖读用的几何与序列：和上面画线的是同一组 x()/y()，不另算一遍。
+    heroScrub = {
+      pts,
+      fx: pts.map((_, i) => x(i) / W),
+      fy: vals.map(v => y(v) / H),
+      at: -1,
+    };
+    bindHeroScrub(host);
+  }
+
+  // ── 首屏走势的拖读 ───────────────────────────────────────────────────
+  // 按住（触屏）或悬停（鼠标）在走势上，读那一天的总盈亏；左右键逐日走。
+  // 读数只落在真实的数据点上：光标吸附到最近的那一天，印的是那天的快照值，
+  // 两点之间不插值 —— 屏幕上任何时刻印的都必须是一个真的数。主数本身不动：
+  // 它下面的「已实现 / 浮动」只对今天成立，把历史值换进去会让一行里的三个
+  // 数属于两个日期。
+  let heroScrub = null;
+  function heroScrubShow(host, i) {
+    const s = heroScrub;
+    const layer = host.querySelector(".hs-scrub");
+    const read = host.querySelector(".hs-read");
+    if (!s || !layer || !read) return;
+    i = Math.max(0, Math.min(s.pts.length - 1, i));
+    if (i === s.at && host.classList.contains("is-scrubbing")) return;
+    s.at = i;
+    const p = s.pts[i];
+    const day = heroSparkDay(p.date), money = heroMoney(p.v, "USD");
+    layer.style.setProperty("--sx", (s.fx[i] * 100).toFixed(2) + "%");
+    layer.style.setProperty("--sy", (s.fy[i] * 100).toFixed(2) + "%");
+    layer.setAttribute("aria-valuenow", String(i));
+    layer.setAttribute("aria-valuetext", `${day} ${money}`);
+    read.innerHTML = `${escapeHtml(day)} <b class="${pnlClass(p.v)}">${escapeHtml(money)}</b>`;
+    host.classList.add("is-scrubbing");
+    // 读数牌跟着光标走，但整块留在图的左右缘之内。
+    const w = layer.clientWidth, rw = read.offsetWidth;
+    const left = Math.max(0, Math.min(w - rw, s.fx[i] * w - rw / 2));
+    read.style.transform = `translateX(${left.toFixed(1)}px)`;
+  }
+  function heroScrubHide(host) {
+    host.classList.remove("is-scrubbing");
+    if (!heroScrub) return;
+    heroScrub.at = -1;
+    const layer = host.querySelector(".hs-scrub");
+    const s = heroScrub, n = s.pts.length - 1;
+    if (!layer) return;
+    layer.setAttribute("aria-valuenow", String(n));
+    layer.setAttribute("aria-valuetext",
+      `${heroSparkDay(s.pts[n].date)} ${heroMoney(s.pts[n].v, "USD")}`);
+  }
+  // 监听挂在宿主上、只挂一次：每次换代 innerHTML 整块重画，挂在里层的
+  // 监听会跟着节点一起丢。
+  function bindHeroScrub(host) {
+    if (host.dataset.scrubBound) return;
+    host.dataset.scrubBound = "1";
+    const layerOf = e => e.target.closest && e.target.closest(".hs-scrub");
+    const indexAt = (layer, clientX) => {
+      const r = layer.getBoundingClientRect(), s = heroScrub;
+      const f = r.width ? (clientX - r.left) / r.width : 0;
+      const first = s.fx[0], step = (s.fx[s.fx.length - 1] - first) / (s.fx.length - 1);
+      return Math.round((f - first) / step);
+    };
+    host.addEventListener("pointerdown", e => {
+      const layer = layerOf(e);
+      if (!layer || !heroScrub) return;
+      // 手指一旦落在图上，后续移动都归这次拖读，滑出图外也不断。
+      // （捕获拿不到不影响读数，只是滑出图外会断。）
+      if (e.pointerType !== "mouse") { try { layer.setPointerCapture(e.pointerId); } catch (_) {} }
+      heroScrubShow(host, indexAt(layer, e.clientX));
+    });
+    host.addEventListener("pointermove", e => {
+      const layer = layerOf(e);
+      if (!layer || !heroScrub) return;
+      // 触屏只在按住时读；鼠标悬停即读。
+      if (e.pointerType !== "mouse" && !host.classList.contains("is-scrubbing")) return;
+      heroScrubShow(host, indexAt(layer, e.clientX));
+    });
+    const end = e => {
+      if (e.type === "pointerleave" && e.pointerType !== "mouse") return;
+      heroScrubHide(host);
+    };
+    host.addEventListener("pointerup", e => { if (e.pointerType !== "mouse") end(e); });
+    host.addEventListener("pointercancel", end);
+    host.addEventListener("pointerleave", end, true);
+    host.addEventListener("focusout", () => heroScrubHide(host));
+    host.addEventListener("keydown", e => {
+      if (!layerOf(e) || !heroScrub) return;
+      const n = heroScrub.pts.length - 1;
+      const at = heroScrub.at < 0 ? n : heroScrub.at;
+      const to = { ArrowLeft: at - 1, ArrowRight: at + 1, ArrowDown: at - 1, ArrowUp: at + 1,
+        PageDown: at - 5, PageUp: at + 5, Home: 0, End: n }[e.key];
+      if (e.key === "Escape") { heroScrubHide(host); return; }
+      if (to == null) return;
+      e.preventDefault();
+      heroScrubShow(host, to);
+    });
   }
 
   // ── 数据健康 ─────────────────────────────────────────────────────────
