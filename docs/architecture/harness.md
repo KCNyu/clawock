@@ -109,15 +109,15 @@ implementation but no user's portfolio or generated state.
 
 The add side (evidence tiers, triggers, tranche sizing) has one implementation.
 The policy **data** is `config/add-alpha-policy.json`; the **code** is pure
-functions under `src/clawock/decision/` that read no file, clock or network —
+functions in plugins under `src/clawock/strategies/plugins/` (the `decision.*` import paths are views of them) that read no file, clock or network —
 each caller loads the policy and the context it already holds and passes them in.
 
 | Piece | Owner | Consumers |
 |---|---|---|
-| defaults for omitted keys, entry profiles, per-tier size, tranche sizing | `decision/add_policy.py` (`READ_DEFAULTS`, `ENTRY_PROFILES`, `read_params`, `tier_terms`, `tranche_plan`) | brief packet, brief opportunity read, intraday add-side read |
-| evidence families and authority tier | `decision/add_alpha.py` (`classify_authority`, `confirmation_setup`) | brief packet; `evaluate-add-alpha` walk-forward |
-| opportunity radar and the three-state reads | `decision/add_side.py` (`radar`, `read_through`, `read_rows`) | `brief_preflight._opportunity_reads` (entry `brief`), `intraday_preflight` (entry `intraday`) |
-| left-side scale-in ladder (rungs under the 20-day high, MA200 permission, invalidation) and its gates, **observe mode** | `decision/left_side.py` (`ladder`, `observe`, `record_history`); rule data `config/left-side-policy.json` | both radars (`left_policy`), brief packet `quant.left_side`, `assets/data/left_side_history.jsonl`, `evaluate-add-shapes --campaigns` |
+| defaults for omitted keys, entry profiles, per-tier size, tranche sizing | `strategies/plugins/add_policy.py` (`READ_DEFAULTS`, `ENTRY_PROFILES`, `read_params`, `tier_terms`, `tranche_plan`) | brief packet, brief opportunity read, intraday add-side read |
+| evidence families and authority tier | `strategies/plugins/add_alpha.py` (`classify_authority`, `confirmation_setup`) | brief packet; `evaluate-add-alpha` walk-forward |
+| opportunity radar and the three-state reads | `strategies/plugins/add_side.py` (`radar`, `read_through`, `read_rows`) | `brief_preflight._opportunity_reads` (entry `brief`), `intraday_preflight` (entry `intraday`) |
+| left-side scale-in ladder (rungs under the 20-day high, MA200 permission, invalidation) and its gates, **observe mode** | `strategies/plugins/left_side.py` (`ladder`, `observe`, `record_history`); rule data `config/left-side-policy.json` | both radars (`left_policy`), brief packet `quant.left_side`, `assets/data/left_side_history.jsonl`, `evaluate-add-shapes --campaigns` |
 | setup detection over bars | the `factors` service, `strategies/plugins/quant_factors.py`, mounted by the `live` rows of `config/strategy-plugins.json`; `decision/signals.compute_signals` is the name callers use and delegates to it | quant refresh, both radars, `evaluate-add-shapes` |
 
 Entries differ only through `add_policy.ENTRY_PROFILES` and their inputs, never
@@ -355,7 +355,7 @@ parameters and what reaches their model.
 | plan review channels | `decision/receipts` (channels, codes); `decision/packet.review_plan` / `validate_plan_constraints` / `bind_policy_review` | brief postflight, off-host fallback, page and card render | plan, packet; fact and feasibility findings refuse, strategy findings are stamped on the decision as `policy_review` and never refuse; see `decision-architecture.md` § Proposals and the three checks |
 | unheld proposals | `harness/brief_preflight.proposal_universe` / `unheld_quotes`; `decision/packet._proposal_universe` | packet `proposal_universe`, plan review | names with stored daily bars; priced at the stated close or quote; `authorization: entry_gate_required` |
 | method evidence and prospective comparisons | `decision/proposals`, `method_evaluation`, `method_trials` | brief pre/postflight, `evaluate-methods` | frozen proposal inputs and receipts; method payoff separate from probability; three independently submitted arms share capital, horizon and costs; descriptive shadow reports never select a live method |
-| strategy plugins and parameter proposals | `strategies/kernel` (mount, services, reversible effects); `strategy_lab/plugins/walkforward` (search and gate) | `clawock strategy-lab` only; no brief, report or intraday entry mounts the research rows | rows in `config/strategy-plugins.json`; a proposal is `candidate` or `refused` and always `live_permission: false`; see [strategy plugins](strategy-plugins.md) |
+| strategy plugins and parameter proposals | `plugin_host/kernel` (mount, services, reversible effects); `strategy_lab/plugins/walkforward` (search and gate) | `clawock strategy-lab` only; no brief, report or intraday entry mounts the research rows | rows in `config/strategy-plugins.json`; a proposal is `candidate` or `refused` and always `live_permission: false`; see [strategy plugins](strategy-plugins.md) |
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
 | trading-prose vocabulary | `prose_validation` (pure identifier/pipeline checks); `automation/output_validate.validate_sections(trading_prose=True)` | weekly generation/repair and harness postflights | text, label; harness preserves its advisory policy |
 | placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |

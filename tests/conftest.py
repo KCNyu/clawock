@@ -599,3 +599,24 @@ def freshly_built_dashboard(freshly_built_generation):
     exactly what `test_dashboard_payload_size` was still doing for `overview`.
     """
     return freshly_built_generation / "dashboard.json"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _migrated_plugins_are_shadowed_by_the_code_they_replaced():
+    """See `tests/legacy_shadow.py`: every call into a migrated plugin is also
+    made into its `legacy_*` module."""
+    sys.path.insert(0, str(Path(__file__).parent))
+    import legacy_shadow
+    disarm = legacy_shadow.arm()
+    yield
+    disarm()
+
+
+@pytest.fixture(autouse=True)
+def _a_migrated_plugin_that_departs_from_legacy_fails_the_test_that_saw_it():
+    import legacy_shadow
+    del legacy_shadow.mismatches[:]
+    yield
+    seen = list(legacy_shadow.mismatches)
+    del legacy_shadow.mismatches[:]
+    assert not seen, "a migrated plugin and its legacy module disagree:\n" + "\n".join(seen)

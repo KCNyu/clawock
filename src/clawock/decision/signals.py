@@ -36,7 +36,7 @@ from clawock.market_data.daily_prices import clean_bars
 from clawock.market_data.tencent_daily import parse_daily_bars
 from clawock.instruments import require as require_instrument
 from clawock.safe_io import load_json_cached, safe_write_json
-from clawock.strategies import live as live_plugins
+from clawock.plugin_host import live as live_plugins
 from clawock.workspace import workspace_root
 
 WS = workspace_root()

@@ -1,0 +1,612 @@
+"""What an intraday anomaly means for the add side — read, not authorization.
+
+kcn, 2026-08-17: "我的诉求就是盘中能捕捉到因为情绪消息异动/股价异动分析出来的加仓信号."
+
+Everything this needs was already computed and already in the intraday packet, and
+none of it reached the message: `opportunity_radar` (a technical approach to the
+20-day high), `early_trend_candidates`, `anomalies` (the price move), `mover_news`
+(what filed, already triaged into interrupt/context) and `mover_thesis` (whether a
+red line is live). The prose template named the first three of those nowhere, so a
++6.4% move with three near-breakout rows beside it produced a report about
+holdings and open orders and nothing about adding (#755).
+
+This module only **joins** those answers and states a disposition in the vocabulary
+the rest of the desk already uses (`candidate` / `wait` / `reject`, as in
+`active_information.scan`). It invents no threshold, computes no size, and copies
+every number from its inputs — the rules below are the ones already written down:
+
+* **Discipline first.** A live thesis breach makes it `reject`. An unexecuted
+  `risk_rule` action (not a 0-share hold) **downgrades** the read to `wait` and
+  says why (kcn 2026-09-25: 「降级 + 说明理由」, no longer reject-only).
+* **A fall is not a veto (kcn 2026-09-25).** Below the 20-day high but still
+  above the prior 5-day low, with supporting news the evidence graph marks
+  positive (or a primary interrupt), a name is a `pullback` candidate; the
+  5-day low is its invalidation and the configured exploration tranche its
+  size cap. Evidence is graded primary > authoritative > soft; a daily-reset
+  leveraged product needs more than soft evidence.
+* **A confirmed technical breakout can promote on its own; a primary
+  filing upgrades the wording.** `candidate` requires a radar row in the
+  `breakout` state (close > prior 20-day high, not overheated) — the add
+  shape #819 chose over deep-dip buying. What the bar store supports is
+  narrower than the sentence this module used to print (#2837): counted per
+  session the shape beats the baseline at every horizon, but those windows
+  overlap and the T+20 mean rides a few outsized moves; with one event per
+  name per horizon the next-day hit rate stays above half and T+5/T+20 sit
+  near half on small samples (`clawock evaluate-add-shapes` prints both
+  tables). This module only ever runs in the intraday slot, where "close"
+  is the live print and the close itself is still pending — rows say so
+  explicitly, and the backtest is quoted as close-confirmed. Near-
+  breakout/at-high without a primary filing stay `wait`
+  (no standalone edge). Soft news and sentiment remain colour, never an
+  active-operation reason.
+* **Everything else is `wait`, with what would change it.** A price anomaly with no
+  primary catalyst is the common case (02208 +6.4% on 2026-08-17), and the useful
+  output there is the falsifier — the level or the session that would settle it —
+  not a shrug.
+
+Still absent: attention counts from `sentiment.json` as a trigger. They carry
+no direction and no intraday threshold; feeding them in would mean inventing
+one here. News reaches the rows through the graph's own `positive` direction.
+"""
+from __future__ import annotations
+
+import sys
+
+from clawock.strategies.plugins import add_policy, left_side
+from clawock.instruments import INSTRUMENTS
+
+VERDICTS = ("candidate", "wait", "reject")
+
+# How a plan action reads to kcn. Same words as the intraday card's plan
+# trigger section; both entry points read this decision-layer mapping.
+ACTION_WORDS = {
+    "trim_on_rebound": "反弹减仓", "cut": "清仓", "add_only_on_trigger": "触发加仓",
+    "add_on_breakout": "突破加仓", "hold_and_watch": "持有观察",
+}
+
+# Marks a radar row reached through a proxy label (an index standing in for the
+# tradable product). Private to this module: it never reaches a row's evidence,
+# which carries `proxy_label` instead.
+PROXY_KEY = "_proxy_label"
+
+# The technical states `opportunity_radar` emits that mean "the breakout is in
+# play". Anything else (a name deep inside its range) is not an add-side read at
+# all and produces no row.
+IN_PLAY_STATES = ("breakout", "near_breakout", "at_high")
+
+# States that get a row at all (#819). `wait_rebreak` — an uptrend pulling
+# back — is NOT in play: it stays out of the promotion gate below, but it is a
+# real read (unlike a name deep inside its range), and before this split it was
+# dropped wholesale, so the desk never collected a single sample to test
+# whether "buy the dip inside an uptrend" holds. It now produces `wait` rows
+# with their state logged; whether it ever joins IN_PLAY_STATES is a
+# measurement decision, not a naming one.
+ROW_STATES = IN_PLAY_STATES + ("wait_rebreak",)
+
+
+# One definition of "where is this name against its 20-day high", used by both
+# readers. `intraday_preflight.collect_opportunity_radar` classifies the live
+# print with it; `daily_radar` below classifies the settled close. Two copies of
+# these four comparisons is exactly the shape that lets a brief and a slot
+# disagree about the same name on the same day.
+def classify_level(close, prior_20d_high, zscore20, *, near_pct, no_chase_z):
+    """(state, state_zh) for one name, or None when it is not an add-side read.
+
+    `breakout` is the only state the #819 backtest measured an edge on, and the
+    overheat check is why it is not simply `close > prior`: a name that gapped
+    far above its 20-day mean is a chase, not a breakout, so it degrades to
+    `wait_rebreak` rather than promoting.
+    """
+    if close is None or prior_20d_high is None or prior_20d_high <= 0:
+        return None
+    if close > prior_20d_high and (zscore20 is None or zscore20 < no_chase_z):
+        return "breakout", "机会·突破"
+    if close > prior_20d_high:
+        return "wait_rebreak", "机会·等回踩"
+    if close >= prior_20d_high * (1 - near_pct / 100):
+        return "near_breakout", "机会·接近"
+    return None
+
+
+def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
+          confirmed_at_close=True, left_policy=None):
+    """`{rows, levels}` for every label with a computable 20-day level.
+
+    The one builder of the opportunity radar, used by both entries
+    (`add_policy.ENTRY_PROFILES`): the daily brief passes signals computed over
+    settled bars (`confirmed_at_close=True`, the quantity #819 measured); the
+    intraday slot passes signals computed over bars that end in the live print
+    (`confirmed_at_close=False`). It used to be written twice — once here and
+    once inline in `intraday_preflight` — which is exactly the shape that lets
+    a brief and a slot disagree about the same name. `left_policy`
+    (`left_side.load_policy()`) adds the left-side ladder's first rung and
+    invalidation to each label's level.
+
+    `signals_by_label` maps a label to the output of
+    `signals.compute_signals` (or its short-history view), so every number here
+    is copied from that one computation. `holdings_of` maps a label to the
+    holdings it stands for (an index proxy such as HSTECH → 07226); a label
+    without an entry stands for itself. No fetch, no threshold of its own: both
+    thresholds come from `add_policy.read_params`.
+
+    Why the brief needs it at all: between 2026-07-20 and 2026-09-05 the bar
+    store held 48 close-confirmed breakouts across 18 names and the ledger
+    recorded zero add decisions, because the breakout was computed only in the
+    intraday slot, which cannot write one.
+    """
+    rows, levels = [], {}
+    for label, sig in sorted((signals_by_label or {}).items()):
+        if not sig:
+            continue
+        close, prior = sig.get("close"), sig.get("prior_20d_high")
+        if close is None or prior is None or prior <= 0:
+            continue
+        pct_from_high = round((close / prior - 1) * 100, 2)
+        # Keyed by the label alone, never by the holdings it stands for: a
+        # proxy's 20-day high is in a different price scale entirely (#761).
+        levels.setdefault(label, {
+            "holdings": list((holdings_of or {}).get(label) or [label]),
+            "prior_20d_high": prior, "close": close,
+            "pct_from_high": pct_from_high,
+            # The pullback read's invalidation (contract §5).
+            "prior_5d_low": sig.get("prior_5d_low")})
+        # Left side (observe mode): the packet's own ladder, so both entries
+        # name the same first rung and invalidation.
+        left = left_side.ladder(sig, left_policy) if left_policy else None
+        if left and not any(t in INSTRUMENTS and
+                            INSTRUMENTS[t].get("leverage_multiple", 1) > 1
+                            for t in levels[label]["holdings"]):
+            levels[label].update({"left_rung": left["rungs"][0],
+                                  "left_invalidation": left["invalidation_price"],
+                                  "left_trend_floor": left["trend_floor"],
+                                  "left_depth_atr": left["depth_atr"]})
+        state = classify_level(close, prior, sig.get("zscore20"),
+                               near_pct=near_pct, no_chase_z=no_chase_z)
+        if state is None:
+            continue
+        rows.append({
+            "label": label,
+            "setup_id": f"opportunity:{state[0]}",
+            "state": state[0],
+            "state_zh": state[1],
+            "holdings": list((holdings_of or {}).get(label) or [label]),
+            "close": close,
+            "prior_20d_high": prior,
+            "pct_from_high": pct_from_high,
+            "zscore20": sig.get("zscore20"),
+        })
+    rows.sort(key=lambda row: row["pct_from_high"], reverse=True)
+    return {"rows": rows, "levels": levels,
+            "confirmed_at_close": bool(confirmed_at_close)}
+
+
+def read_through(labels, signal_symbol_of):
+    """`holdings_of` for `radar`: which labels a product is read through.
+
+    A daily-reset leveraged product is read through its registry
+    `signal_symbol` (RKLX through RKLB, SPCH through SPCX) — the rule
+    `signals.universe_details` already applies to the intraday universe. When
+    the underlying has no series of its own among `labels`, the product keeps
+    its own chart. Returns `(holdings_of, read_through)` where `read_through`
+    is the set of product labels that are represented by their underlying and
+    must not also produce a row of their own.
+    """
+    labels = set(labels or ())
+    holdings_of, through = {}, set()
+    for product, underlying in sorted((signal_symbol_of or {}).items()):
+        if (product in labels and underlying and underlying != product
+                and underlying in labels):
+            holdings_of.setdefault(underlying, []).append(product)
+            through.add(product)
+    return holdings_of, through
+
+
+def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
+                left_policy=None):
+    """The brief entry's radar: `radar` over settled bars."""
+    return radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z,
+                 holdings_of=holdings_of, confirmed_at_close=True,
+                 left_policy=left_policy)
+
+
+def _radar_index(radar):
+    """holdings ticker -> radar row. A row can cover several holdings (an index
+    proxy: HSTECH covers 07226), so both the label and every holding map to it.
+
+    #761: the mapping stays — 07226 *is* the 2x HSTECH product, so the index
+    approaching its high is real information about it. What must not survive the
+    hop is the *attribution* of the numbers: 4948.5 is a Hang Seng Tech index
+    level, and 07226 trades near 3.5 HKD. Rows reached through a proxy are
+    tagged here, and every place that renders a number checks the tag.
+    """
+    rows = [row for row in (radar or {}).get("rows", []) or []
+            if row.get("state") in ROW_STATES]
+    index = {}
+    # Two passes, and the order matters: a name that has a row of its own must
+    # win over any proxy that also covers it, whatever order the radar sorted
+    # its rows into (it sorts by `pct_from_high`, so a single pass would decide
+    # attribution by today's prices). Nothing in the universe hits this today —
+    # 07226 and SPCH have no rows of their own — but "which numbers this ticker
+    # gets" must not be a function of the sort order the day one appears.
+    for row in rows:
+        if row.get("label"):
+            index.setdefault(row["label"], row)
+    for row in rows:
+        label = row.get("label")
+        for key in row.get("holdings") or []:
+            if key:
+                index.setdefault(key, row if key == label
+                                 else {**row, PROXY_KEY: label})
+    return index
+
+
+def _proxy_of(radar_row):
+    """The label a row was reached through, or None when it is the row's own."""
+    return (radar_row or {}).get(PROXY_KEY)
+
+
+def _level(levels, ticker):
+    """The plain 20-day level for a name the radar does not carry (#759).
+
+    `opportunity_radar` only keeps in-play states, so in a selloff every row it
+    would have carried disappears — exactly when a `wait` most needs to say
+    where the question gets settled. `levels` is the same pass's arithmetic for
+    every name, so the falsifier survives the sell-off. It is a sentence source,
+    never a promotion input: see `read_rows`, where a level cannot add a trigger
+    or a technical `state`.
+    """
+    row = (levels or {}).get(ticker) or {}
+    return row if row.get("prior_20d_high") is not None else None
+
+
+def _needs_level(row):
+    """The one wording for 'what would settle it', used by radar and level alike.
+
+    A proxy row names the thing the level belongs to, because the bare sentence
+    reads as the holding's own price and the two are not in the same scale
+    (#761).
+    """
+    proxy = _proxy_of(row)
+    pct = row.get('pct_from_high')
+    if isinstance(pct, (int, float)) and pct > 0:
+        # Already above the level (wait_rebreak: overheated breakout). 「站上」
+        # a level the price is over reads as a condition not yet met; the open
+        # question is whether the pullback holds it (RKLB 2026-09-25 02:33).
+        lead = f"{proxy} 回踩守住 " if proxy else "回踩守住 "
+        return f"{lead}{row.get('prior_20d_high')}(现高于前高 {pct}%)"
+    lead = f"{proxy} 站上 " if proxy else "站上 "
+    return (f"{lead}{row.get('prior_20d_high')}"
+            f"(现距高 {pct}%)")
+
+
+def _primary_interrupt(news, ticker):
+    """The one item class the catalyst gate lets promote a read."""
+    entry = ((news or {}).get("tickers") or {}).get(ticker) or {}
+    for item in entry.get("items") or []:
+        if item.get("signal") == "interrupt" and item.get("tier") == "primary":
+            return item
+    return None
+
+
+def _soft_news(news, ticker):
+    entry = ((news or {}).get("tickers") or {}).get(ticker) or {}
+    items = entry.get("items") or []
+    soft = [i for i in items if i.get("signal") != "interrupt"
+            or i.get("tier") != "primary"]
+    return soft[0] if soft else None
+
+
+def _breach(thesis, ticker):
+    row = (thesis or {}).get(ticker) or {}
+    if row.get("status") in ("triggered", "breached"):
+        return row.get("reason") or row.get("status")
+    for line in row.get("triggered") or []:
+        if isinstance(line, dict):
+            return line.get("required_action") or line.get("label") or "thesis red line"
+        if line:
+            return str(line)
+    return None
+
+
+# A risk_rule decision that asks for no trade. 「持有观察 0 股」 is the plan
+# saying "do nothing", so it cannot be an unfinished discipline action — it
+# used to block every add-side read of 07226 on 2026-09-25 as
+# 「纪律动作未了结:hold_and_watch 0 股」.
+NON_ACTIONS = ("hold_and_watch",)
+
+
+GRADE_ORDER = ("primary", "authoritative", "soft")
+GRADE_WORDS = {"primary": "一手", "authoritative": "权威消息", "soft": "软消息/情绪"}
+
+
+def _support(ticker, mover_news, information):
+    """Evidence *for* adding, graded (contract §5): a primary interrupt from
+    the mover probe, and information-lane items the evidence graph marks
+    `positive`. Direction is required — an item of unknown direction is colour,
+    not support — so this adds no threshold; the graph already classified it."""
+    sources = []
+    primary = _primary_interrupt(mover_news, ticker)
+    if primary:
+        sources.append({"grade": "primary", "source": "mover_news",
+                        "title": primary.get("title") or primary.get("headline")})
+    for row in ((information or {}).get("tickers") or {}).get(ticker) or []:
+        if row.get("direction") == "positive":
+            sources.append({"grade": row.get("grade") or "soft", "source": "information",
+                            "title": row.get("title"), "cite": row.get("cite")})
+    sources.sort(key=lambda r: GRADE_ORDER.index(r["grade"])
+                 if r["grade"] in GRADE_ORDER else len(GRADE_ORDER))
+    return sources
+
+
+def _size_cap(policy):
+    """The exploration tranche the desk configured, quoted from the same
+    `add_policy.tier_terms` the packet sizes with — never a number of this
+    module's own."""
+    return add_policy.size_cap_text(policy)
+
+
+def _open_risk_action(plan_context, ticker):
+    for row in (plan_context or {}).get("open", []) or []:
+        if row.get("ticker") != ticker or row.get("action") in NON_ACTIONS:
+            continue
+        if row.get("driven_by") == "risk_rule":
+            return row
+    return None
+
+
+def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
+              mover_news=None, mover_thesis=None, plan_context=None,
+              close_confirmed=False, information=None, leveraged=(), policy=None):
+    """Join the packet's own answers into add-side reads, most acute first.
+
+    Every field is copied from an input; nothing here is derived arithmetic, so a
+    number that appears in a row can always be pointed at in the context.
+    """
+    radar_by_ticker = _radar_index(radar)
+    rows = []
+    seen = set()
+
+    def add(ticker, triggers, evidence):
+        if not ticker or ticker in seen:
+            return
+        seen.add(ticker)
+        breach = _breach(mover_thesis, ticker)
+        risk_action = _open_risk_action(plan_context, ticker)
+        primary = _primary_interrupt(mover_news, ticker)
+        soft = _soft_news(mover_news, ticker)
+        radar_row = radar_by_ticker.get(ticker)
+
+        support = _support(ticker, mover_news, information)
+        grade = support[0]["grade"] if support else None
+        level = _level(levels, ticker)
+        kind = None
+        extra = {}
+        if breach:
+            # A live thesis red line: the idea itself is in question.
+            verdict = "reject"
+            why = f"thesis 红线在触发状态:{breach}"
+            needs = "先把纪律动作走完,再谈加仓"
+        elif radar_row and radar_row.get("state") in IN_PLAY_STATES and (
+                radar_row.get("state") == "breakout" or primary):
+            # #819: the breakout state promotes on its own; deep-dip adds showed
+            # no edge over the baseline. How strong the breakout evidence is, and
+            # is not, is in the module docstring (#2837).
+            # Promotion shape: breakout promotes by itself; a primary filing is
+            # the promotion key only for near_breakout/at_high, where it never
+            # substitutes for the level — the ask stays "get above prior_20d_high".
+            verdict = "candidate"
+            kind = "breakout" if radar_row.get("state") == "breakout" else "primary_approach"
+            if primary:
+                why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
+                       f":{primary.get('title') or primary.get('headline') or 'primary filing'}")
+                if radar_row.get("state") == "breakout":
+                    lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
+                    needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
+                else:
+                    # near_breakout/at_high with a primary filing: the price is
+                    # still below the level, so the ask is to get above it.
+                    lead = f"{_proxy_of(radar_row)} 站上 " if _proxy_of(radar_row) else "站上 "
+                    needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
+            else:
+                state_zh = radar_row.get('state_zh') or radar_row.get('state')
+                # 盘中档（intraday_preflight）的 close 是实时价，收盘未确认——
+                # #819 回测度量的是收盘确认的突破，文案不得把现价触发说成已确认
+                # 的收盘事实。简报档（brief_preflight）读的就是已收的日线，措辞
+                # 因此不同：同一个判据，两种确认程度，各说各的那一种。
+                why = (f"技术面{state_zh}:收盘站上前 20 日高且未过热(收盘确认;"
+                       f"回测口径同为收盘确认:次日命中过半,T+5/T+20 按非重叠样本约五成、未达显著)"
+                       if close_confirmed else
+                       f"技术面{state_zh}:现价站上前 20 日高且未过热(盘中、收盘未确认;"
+                       f"回测口径为收盘确认:次日命中过半,T+5/T+20 按非重叠样本约五成、未达显著)")
+                lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
+                needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
+        elif (support and level and level.get("prior_5d_low") is not None
+              and level.get("close") is not None
+              and (level.get("pct_from_high") or 0) <= 0
+              and level["close"] > level["prior_5d_low"]
+              and not (ticker in set(leveraged or ()) and grade == "soft")):
+            # 跌不等于不能加 (kcn 2026-09-25): below the 20-day high, still above
+            # the prior 5-day low it could have broken, with supporting news.
+            # The 5-day low is the invalidation — below it the pullback is a
+            # breakdown. A daily-reset leveraged product needs more than soft
+            # evidence (add-alpha-policy discipline).
+            verdict, kind = "candidate", "pullback"
+            low = level["prior_5d_low"]
+            title = str(support[0].get("title") or "")[:14]
+            why = f"回踩候选:{GRADE_WORDS.get(grade, grade)}支持《{title}》,守在5日低 {low} 上"
+            cap = _size_cap(policy)
+            needs = f"跌破 {low} 失效" + (f";{cap}" if cap else "")
+            extra = {"invalidation": low, "size_cap": cap}
+            if evidence.get("prior_20d_high") is None:
+                evidence = {**evidence, "prior_20d_high": level.get("prior_20d_high"),
+                            "close": level.get("close"),
+                            "pct_from_high": level.get("pct_from_high"),
+                            "prior_5d_low": low}
+        else:
+            verdict = "wait"
+            missing = []
+            if not primary:
+                missing.append("窗口内无一手公告" if soft is None else "只有软消息/情绪面")
+            if not radar_row:
+                missing.append("技术面未接近突破")
+            elif radar_row.get("state") not in IN_PLAY_STATES:
+                # #819: wait_rebreak rows now exist and say what they are —
+                # an uptrend pulling back, logged as state, not a silent drop.
+                missing.append(f"技术面{radar_row.get('state_zh') or radar_row.get('state')}")
+            if support and ticker in set(leveraged or ()) and grade == "soft":
+                missing.append("杠杆产品需一手/权威证据")
+            why = "、".join(missing) or "条件不齐"
+            level = radar_row or _level(levels, ticker)
+            # #759: a level the radar dropped still answers "跌到哪才算机会".
+            # Only the wording changes — `verdict`, `triggers` and
+            # `evidence["state"]` are decided above and stay untouched, so a far
+            # level can never read as an approach.
+            needs = (_needs_level(level) if level
+                     else "等一手催化或技术面进入突破区")
+            own = (levels or {}).get(ticker) or {}
+            if own.get("left_rung") is not None and ticker not in set(leveraged or ()):
+                # Left side, observe mode (kcn 2026-09-27; `left_side`): the
+                # ladder is printed so it can be seen and measured, never sized.
+                # Its price rule alone carried no edge over holding and no
+                # diversification over the right side; the thesis/information
+                # gates are the packet's and are recorded there.
+                kind = "left_scale_in"
+                floor = own.get("left_trend_floor")
+                # Card block 10 clips why/needs at ~40 chars: the words that
+                # must survive («观察», «不给尺寸», the rung) come first.
+                why = (f"左侧观察(不给尺寸):低于前 20 日高 {own.get('left_depth_atr')} ATR"
+                       + (",在 MA200 上方" if floor else "") + f";{why}")
+                needs = (f"首档 ≤{own['left_rung']};盘中破 {own['left_invalidation']}"
+                         + (f" 或收盘破 MA200 {floor}" if floor else "") + " 失效")
+                extra = {**extra, "invalidation": own["left_invalidation"]}
+                evidence = {**evidence, "left_rung": own["left_rung"]}
+            if level and evidence.get("prior_20d_high") is None:
+                # The number quoted in `needs` has to be pointable-at in the
+                # packet, not only inside a sentence (数字只能引用 context).
+                evidence = {**evidence,
+                            "prior_20d_high": level.get("prior_20d_high"),
+                            "close": level.get("close"),
+                            "pct_from_high": level.get("pct_from_high")}
+
+        if risk_action and verdict != "reject":
+            # kcn 2026-09-25: an unfinished risk_rule action downgrades the read
+            # and says why; it no longer turns the lane into reject-only.
+            action = risk_action.get('action')
+            discipline = (f"纪律动作未了结:{ACTION_WORDS.get(action, action)} "
+                          f"{risk_action.get('shares')} 股(风控规则)")
+            if verdict == "candidate":
+                why = f"{discipline},{ {'pullback': '回踩', 'breakout': '突破'}.get(kind, '')}候选降级"
+            else:
+                why = f"{discipline};{why}"
+            verdict = "wait"
+            needs = "先把纪律动作走完,再谈加仓" + (f"(之后:{needs})" if needs else "")
+            extra = {**extra, "discipline_downgraded": True}
+
+        proxy = _proxy_of(radar_row)
+        if proxy:
+            # #761: the level came from the proxy, so it must not sit under the
+            # bare key the template is told to copy («数字照抄 evidence 的
+            # prior_20d_high»). The relationship is kept — the row exists, its
+            # `state` still feeds the promotion gate — only the numbers are
+            # re-attributed to the thing they actually measure.
+            evidence = {**evidence, "proxy_label": proxy}
+            for key in ("prior_20d_high", "pct_from_high", "close", "zscore20"):
+                if evidence.get(key) is not None:
+                    evidence[f"proxy_{key}"] = evidence.pop(key)
+
+        rows.append({
+            "ticker": ticker,
+            "triggers": triggers,
+            "verdict": verdict,
+            "why": why,
+            "needs": needs,
+            "evidence": {k: v for k, v in evidence.items() if v is not None},
+            # Contract §5: the grade of the best supporting evidence, its
+            # sources, and for a pullback the invalidation level and size cap.
+            "kind": kind,
+            "evidence_grade": grade,
+            "sources": support[:3],
+            **{k: v for k, v in extra.items() if v is not None},
+            # Stated, not implied: this lane never sizes or authorises. The desk's
+            # add decisions stay with kcn; #755 asked for visibility, not a trader.
+            "authorization": None,
+        })
+
+    for anomaly in anomalies or []:
+        ticker = anomaly.get("ticker")
+        radar_row = radar_by_ticker.get(ticker)
+        triggers = ["price_anomaly"]
+        if _soft_news(mover_news, ticker) is not None:
+            triggers.append("news")
+        if radar_row:
+            triggers.append("near_breakout")
+        add(ticker, triggers, {
+            "move_pct": anomaly.get("move_pct"),
+            "severity": anomaly.get("severity"),
+            "state": (radar_row or {}).get("state"),
+            "close": (radar_row or {}).get("close"),
+            "zscore20": (radar_row or {}).get("zscore20"),
+            "pct_from_high": (radar_row or {}).get("pct_from_high"),
+            "prior_20d_high": (radar_row or {}).get("prior_20d_high"),
+        })
+
+    for row in (early_trend or {}).get("rows", []) or []:
+        add(row.get("label"), ["early_trend"], {
+            "state": row.get("state"),
+            "disposition": row.get("disposition"),
+        })
+
+    for ticker, radar_row in radar_by_ticker.items():
+        # Holdings-only: the radar also carries index labels (HSTECH) whose
+        # holdings row is the tradable one, and it was already added above.
+        if ticker in seen or ticker not in (radar_row.get("holdings") or []):
+            continue
+        add(ticker, ["near_breakout"], {
+            "state": radar_row.get("state"),
+            "close": radar_row.get("close"),
+            "zscore20": radar_row.get("zscore20"),
+            "pct_from_high": radar_row.get("pct_from_high"),
+            "prior_20d_high": radar_row.get("prior_20d_high"),
+        })
+
+    for label, level in sorted((levels or {}).items()):
+        # Left-side weakness has no radar row (it is far under the high), so it
+        # gets its own pass — only for a label that reads its own chart, never
+        # for a proxy standing in for a leveraged product.
+        if (level.get("left_rung") is None or label in seen
+                or label in set(leveraged or ())
+                or label not in (level.get("holdings") or [label])):
+            continue
+        add(label, ["left_weakness"], {
+            "close": level.get("close"),
+            "prior_20d_high": level.get("prior_20d_high"),
+            "pct_from_high": level.get("pct_from_high"),
+        })
+
+    order = {"candidate": 0, "reject": 1, "wait": 2}
+    rows.sort(key=lambda r: (order[r["verdict"]],
+                             -abs(r["evidence"].get("move_pct") or 0)))
+    return {
+        "rows": rows,
+        "candidate_count": sum(r["verdict"] == "candidate" for r in rows),
+        "wait_count": sum(r["verdict"] == "wait" for r in rows),
+        "reject_count": sum(r["verdict"] == "reject" for r in rows),
+        "discipline_downgraded_count": sum(bool(r.get("discipline_downgraded")) for r in rows),
+        "confirmed_at_close": bool(close_confirmed),
+        "policy": (("技术突破(收盘站上前 20 日高且未过热,收盘确认)即 candidate,"
+                    if close_confirmed else
+                    "技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,")
+                   + "一手公告升级措辞;回踩中(低于 20 日高、守在 5 日低上)有正向消息支持"
+                     "也可 candidate,跌破 5 日低即失效,仓位不超探索档;证据分级 一手>权威>软消息/情绪,"
+                     "杠杆产品只凭软消息不升级;thesis 红线触发 reject,纪律动作未了结降级为 wait 并写明;"
+                     "左侧(低于 20 日高 ≥2 ATR、MA200 上方、非杠杆)只作观察 wait,给首档与失效位、不给尺寸。"
+                     "三态都不是下单授权。"),
+    }
+
+
+name = 'add-side'
+
+
+def apply(ctx, config):
+    """Mount this module as the `add_side` service."""
+    ctx.provide('add_side', sys.modules[__name__])

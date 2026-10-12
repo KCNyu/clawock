@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 
 from clawock.strategy_lab import ledger
-from clawock.strategies.kernel import Kernel
+from clawock.plugin_host.kernel import Kernel
 from clawock.workspace import workspace_root
 
 CONFIG = Path('config') / 'strategy-plugins.json'

@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 from clawock.decision import signals
-from clawock.strategies import live
+from clawock.plugin_host import live
 from clawock.strategies.plugins import quant_factors
 
 BARS = sorted((Path(__file__).resolve().parents[1] / 'memory' / 'bars').glob('*.json'))

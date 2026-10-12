@@ -14,7 +14,7 @@ import requests
 
 from clawock.decision import signals
 from clawock.market_data import tencent_daily
-from clawock.strategies.kernel import Kernel
+from clawock.plugin_host.kernel import Kernel
 from clawock.strategies.plugins import daily_bars
 
 SPLIT = {'qfqday': [

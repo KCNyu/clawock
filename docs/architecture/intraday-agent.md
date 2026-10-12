@@ -9,7 +9,7 @@ are enforced by code rather than asked for in a prompt. It is updated in the
 same PR as the code it describes; the status column says what is live.
 
 Code: `src/clawock/harness/intraday_preflight.py`, `intraday_postflight.py`,
-`intraday_watchdog.py`, `src/clawock/decision/add_side.py`; config
+`intraday_watchdog.py`, `src/clawock/strategies/plugins/add_side.py`; config
 `config/intraday-delivery.json`, `config/intraday-strategy-policies.json`;
 prompt `config/cron-payloads/intraday.md` (the thin per-market entry: market,
 paths, tool and delivery plumbing) and the one shared Mode 7 body

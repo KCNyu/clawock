@@ -119,7 +119,7 @@ def test_every_first_party_import_is_classified():
     """Either it decides what `evaluate` returns — and is fingerprinted — or it
     provably cannot. An import in neither tuple is an unanswered question about
     whether the memo can go stale."""
-    source = (ROOT / "src" / "clawock" / "evaluation" / "signal_panel.py")
+    source = (ROOT / "src" / "clawock" / "strategy_lab" / "plugins" / "signal_panel.py")
     tree = ast.parse(source.read_text(encoding="utf-8"))
     imported = set()
     for node in ast.walk(tree):

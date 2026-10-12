@@ -22,23 +22,23 @@ Each entry has four fields:
 | EN | 中文 | 一句话 | First defined |
 |---|---|---|---|
 | composite factor | 复合因子 | Weighted average of sector-neutral ranks; weights must sum to 1 and equal `RAW_FACTORS` (adding a component is a re-registration, not a code change). | `market_data/factors.py::RAW_FACTORS` |
-| composite score | 综合得分 | The numeric output of the composite factor for one name on one session; the rank the rest of the decision chain sorts by. | `evaluation/signal_panel.py` |
+| composite score | 综合得分 | The numeric output of the composite factor for one name on one session; the rank the rest of the decision chain sorts by. | `strategy_lab/plugins/signal_panel.py` |
 | composite polarity | 复合因子极性 | Diagnostic table showing each component's declared sign vs measured IC sign; classified as `polarity_suspect` (one component is wrong) or `regime` (many components are wrong together). | PR #1198 |
 | polarity suspect | 极性可疑 | A single component carries almost all the negative IC — verdict that the factor is broken, not the regime. | PR #1198 |
 | regime | 行情状态 | What this stretch of the market rewards (risk-on / risk-off / trend / mean-revert / high-vol / low-vol), **not** whether the market is up or down. | `decision/regime.py` |
 | sector-neutral rank | 行业中性排名 | Rank within each sector first, then merge across sectors — prevents industry β from contaminating cross-sectional scores. | `market_data/factors.py` |
-| IC (Information Coefficient) | 信息系数 | Spearman rank correlation between today's ordering and `h`-session-ahead returns. ~0.05 industry-floor, 0.10 good, 0.15+ top-tier. | `evaluation/signal_panel.py` |
-| mean IC | 平均 IC | Average IC across recent sessions; one number, masks more than it reveals. | `evaluation/signal_panel.py` |
-| forward return | 远期收益 | Return from today to `h` sessions later — `h ∈ {t1, t5, t20}` for the daily bars. | `evaluation/signal_panel.py` |
+| IC (Information Coefficient) | 信息系数 | Spearman rank correlation between today's ordering and `h`-session-ahead returns. ~0.05 industry-floor, 0.10 good, 0.15+ top-tier. | `strategy_lab/plugins/signal_panel.py` |
+| mean IC | 平均 IC | Average IC across recent sessions; one number, masks more than it reveals. | `strategy_lab/plugins/signal_panel.py` |
+| forward return | 远期收益 | Return from today to `h` sessions later — `h ∈ {t1, t5, t20}` for the daily bars. | `strategy_lab/plugins/signal_panel.py` |
 | triple barrier | 三重屏障 | López de Prado labeling: upper (take-profit), lower (trailing stop), time cap. First touched wins. | `labeling/triple_barrier.py` |
 | chandelier stop | 吊灯止损 | Trailing stop at `N`-day high minus `K × ATR`; the lower barrier of the triple-barrier scheme. | `labeling/triple_barrier.py` |
-| fixed-horizon | 固定期 | Label that closes a position only at `h`-session close — the **old** panel column, used as a comparator. | `evaluation/signal_panel.py` |
+| fixed-horizon | 固定期 | Label that closes a position only at `h`-session close — the **old** panel column, used as a comparator. | `strategy_lab/plugins/signal_panel.py` |
 | path-aware | 路径感知 | Label that exits when the trailing stop is hit intraday — the **new** panel column. | `labeling/triple_barrier.py` |
 | ambiguous bar | 模糊 K 线 | A bar where both upper and lower barriers were touched in the same period; verdict is the unfavorable one. | `labeling/triple_barrier.py` |
-| circular against barrier | 对屏障循环 | A signal whose measured IC is mostly restating the barrier rule itself (e.g. `stop_distance_pct`); flagged `CIRCULAR_AGAINST_BARRIER`. | `evaluation/signal_panel.py` |
-| quantile structure | 分位结构 | Per-session split into three buckets (not five — too few names), then per-bucket forward return averaged across sessions. Splits into `top − middle` and `middle − bottom` to identify selection-list vs avoidance-list vs two-sided signals. | `evaluation/signal_panel.py` |
-| persistence | 持久性 | Turnover (`1 − Jaccard(top bucket)` between adjacent sessions) + rank autocorrelation of the signal. | `evaluation/signal_panel.py` |
-| turnover | 换手率 | Fraction of the top bucket that differs between two adjacent registration sessions. | `evaluation/signal_panel.py` |
+| circular against barrier | 对屏障循环 | A signal whose measured IC is mostly restating the barrier rule itself (e.g. `stop_distance_pct`); flagged `CIRCULAR_AGAINST_BARRIER`. | `strategy_lab/plugins/signal_panel.py` |
+| quantile structure | 分位结构 | Per-session split into three buckets (not five — too few names), then per-bucket forward return averaged across sessions. Splits into `top − middle` and `middle − bottom` to identify selection-list vs avoidance-list vs two-sided signals. | `strategy_lab/plugins/signal_panel.py` |
+| persistence | 持久性 | Turnover (`1 − Jaccard(top bucket)` between adjacent sessions) + rank autocorrelation of the signal. | `strategy_lab/plugins/signal_panel.py` |
+| turnover | 换手率 | Fraction of the top bucket that differs between two adjacent registration sessions. | `strategy_lab/plugins/signal_panel.py` |
 
 ## Methodology — validation
 
@@ -63,14 +63,14 @@ Each entry has four fields:
 
 | EN | 中文 | 一句话 | First defined |
 |---|---|---|---|
-| Amihud illiquidity | Amihud 非流动性 | Absolute return divided by volume as a proxy for the price impact per dollar traded. | `market_data/bar_signals.py` |
-| Roll spread | Roll 点差 | Implicit bid-ask spread estimated from the covariance of adjacent price changes; valid only when that covariance is negative. | `market_data/bar_signals.py` |
-| Corwin–Schultz spread | Corwin–Schultz 点差 | Bid-ask spread inferred from intraday high–low ratios; rejects negative estimates from gap days. | `market_data/bar_signals.py` |
-| EWMA volatility | EWMA 波动率 | Exponentially weighted moving average with RiskMetrics λ = 0.94. | `market_data/bar_signals.py` |
-| GARCH(1,1) | GARCH(1,1) | Variance-targeting GARCH with refined grid; refuses below 200 observations. | `market_data/bar_signals.py` |
-| realised volatility | 已实现波动率 | Standard deviation of recent log returns. | `market_data/bar_signals.py` |
-| realised skew / kurtosis | 已实现偏度/峰度 | Higher moments of the return distribution; reported alongside vol-of-vol. | `market_data/bar_signals.py` |
-| vol of vol | 波动率的波动 | Variance of recent volatility estimates — a regime indicator, not a return predictor. | `market_data/bar_signals.py` |
+| Amihud illiquidity | Amihud 非流动性 | Absolute return divided by volume as a proxy for the price impact per dollar traded. | `strategies/plugins/bar_signals.py` |
+| Roll spread | Roll 点差 | Implicit bid-ask spread estimated from the covariance of adjacent price changes; valid only when that covariance is negative. | `strategies/plugins/bar_signals.py` |
+| Corwin–Schultz spread | Corwin–Schultz 点差 | Bid-ask spread inferred from intraday high–low ratios; rejects negative estimates from gap days. | `strategies/plugins/bar_signals.py` |
+| EWMA volatility | EWMA 波动率 | Exponentially weighted moving average with RiskMetrics λ = 0.94. | `strategies/plugins/bar_signals.py` |
+| GARCH(1,1) | GARCH(1,1) | Variance-targeting GARCH with refined grid; refuses below 200 observations. | `strategies/plugins/bar_signals.py` |
+| realised volatility | 已实现波动率 | Standard deviation of recent log returns. | `strategies/plugins/bar_signals.py` |
+| realised skew / kurtosis | 已实现偏度/峰度 | Higher moments of the return distribution; reported alongside vol-of-vol. | `strategies/plugins/bar_signals.py` |
+| vol of vol | 波动率的波动 | Variance of recent volatility estimates — a regime indicator, not a return predictor. | `strategies/plugins/bar_signals.py` |
 
 ## Methodology — portfolio and risk
 

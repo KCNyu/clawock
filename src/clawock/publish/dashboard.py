@@ -321,7 +321,7 @@ def compile_overview_projection(dashboard):
                 'pending', 'cold_start', 'counts', 'why_no_candidate',
             )),
             # `rows` is sorted for the Plan-tab table (verdict tier, then move
-            # size — decision/add_side.py), not by distance to the 20-day
+            # size — strategies/plugins/add_side.py), not by distance to the 20-day
             # high. Picking rows[0] here shipped whichever ticker moved most,
             # mislabelled as "距 20 日高" (nearest to the high) on the Hero
             # chip. Re-select by actual distance so the label matches the row.
