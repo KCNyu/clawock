@@ -39,7 +39,7 @@ clawock gives the AI agent you already use a continuing investment workflow for 
 
 **RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
 
-Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
+Strategies are [plugins mounted by configuration rows](#strategies-plug-in-a-gate-decides-what-they-may-do); a parameter search can only produce a proposal. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
 
 ## Information in: sources before opinions
 
@@ -116,6 +116,27 @@ Use the same **`investment-decision` skill and artifact contract in Claude Code 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="1016" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
 
 [Portable invocation and feedback protocol](https://github.com/KCNyu/clawock/blob/master/docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [Workflow improvement boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/harness.md#ownership).
+
+## Strategies plug in; a gate decides what they may do
+
+A strategy is a plugin. So are the bars it reads, the cost model it is charged, and the evaluator that scores it. One row of configuration mounts one plugin on a small kernel with the primitives the [dsh plugin](https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md) is built on: a plugin **provides** a service or **injects** the ones it needs, every registration records its undo, and new settings restart it. Adding a strategy, swapping its data source or retuning it is an edit to a row.
+
+The same file carries two compositions:
+
+- **Live rows** provide what the brief, report and intraday runs compute with. The factor row behind the quant table, both radars and the add side is one of them; a test holds it to identical output with the code it replaced.
+- **Research rows** are the strategy lab. A strategy declares its parameter grid, the optimiser walks it forward on adjusted bars, and the result is a **proposal**: `candidate` or `refused`, with every failed check listed, and `live_permission: false` in both cases.
+
+```bash
+clawock strategy-lab list            # mounted plugins, services, strategies
+clawock strategy-lab optimize rsi    # walk-forward search → a proposal
+clawock strategy-lab ledger          # verdicts across runs, alternates beside the gate
+```
+
+Only the registered gate sets a proposal's status. **Alternate gates** judge the same run under other thresholds, such as statistics only or net of the registered costs, and are recorded beside the verdict as `binding: false`, so a threshold can be argued from what it would have concluded before it is allowed to conclude anything.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Strategy plugins: one kernel mounts one row per plugin. Live rows provide the factor service the brief, report and intraday paths read. Research rows hold adjusted bars, registered costs, a strategy with its declared grid and a walk-forward optimiser. The registered gate decides candidate or refused and never grants live permission; alternate gates judge the same run and do not bind; every run is kept in the lab ledger."></p>
+
+[Strategy plugins: primitives, services, gate and ledger](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md).
 
 ## What the model is not allowed to do
 

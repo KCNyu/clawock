@@ -2098,7 +2098,74 @@ def proposal_review():
     return d.render(y + 212)
 
 
+def strategy_plugins():
+    """One kernel, two compositions: what production computes, and what research may propose."""
+    d = D('Strategy plugins: a row mounts one, a gate decides what it may do',
+          'Strategies, the bars they read, the cost model and the evaluator are separate plugins '
+          'mounted by configuration rows on one kernel. The live rows provide the factor service '
+          'the brief, report and intraday paths compute with. The research rows search a declared '
+          'parameter grid walking forward and produce a proposal that is a candidate or refused, '
+          'never live permission. Alternate gates are recorded beside the verdict and do not bind.')
+    y = d.header('CLAWOCK · STRATEGY PLUGINS',
+                 ['Add, swap or retune a strategy by editing a row.'],
+                 ['A plugin can compute. Only a registered gate lets a proposal through.'],
+                 [('rows and kernel', 'violet'), ('live code', 'green'),
+                  ('research plugins', 'blue'), ('gate', 'warm')]) + 28
+    full = WIDE - 2 * M
+    body = _panel(d, M, y, full, 136, 'violet', 'pack', 'One kernel, one row per plugin')
+    d.text(M + 20, body, 'A plugin provides a service or declares the ones it needs; mount order does not matter.')
+    d.text(M + 20, body + 24, 'Everything it registers is undone when it is unmounted. New settings restart it.', 'm', fill=MUT)
+    d.text(M + 20, body + 48, 'The module behind a row may live outside this package.', 'm', fill=MUT)
+    for center in (M + CW / 2, M + COL2 + CW / 2):
+        d.wire(f'M{center:g} {y + 136:g}V{y + 196:g}', kind='task')
+    y += 196
+    top = y
+    body = _panel(d, M, y, CW, 174, 'green', 'factor', 'Live rows', tag='PRODUCTION')
+    for n, line in enumerate(['Factor service: trend, momentum, RSI,',
+                              'volatility, exit line, three setups.',
+                              'Brief, report and intraday read it.']):
+        fits(line, 'b', CW - 40, 'live rows')
+        d.text(M + 20, body + n * 24, line)
+    d.text(M + 20, body + 84, 'Identical output to the code it replaced.', 'm', fill=ROLE['green'])
+    x = M + COL2
+    body = _panel(d, x, y, CW, 174, 'blue', 'lens', 'Research rows', tag='STRATEGY LAB')
+    for n, line in enumerate(['Adjusted bars · registered costs',
+                              'A strategy with its declared grid',
+                              'Walk-forward optimiser']):
+        fits(line, 'b', CW - 40, 'research rows')
+        d.text(x + 20, body + n * 24, line)
+    d.text(x + 20, body + 84, 'Refits only on returns already realised.', 'm', fill=MUT)
+    d.wire(f'M{x + CW / 2:g} {top + 174:g}V{top + 234:g}', kind='decision')
+    y += 234
+    body = _panel(d, x, y, CW, 198, 'warm', 'gate', 'Registered gate', tag='DECIDES')
+    for n, line in enumerate(['Enough out-of-sample sessions',
+                              'Edge and lift intervals above zero',
+                              'Overfitting probability below half',
+                              'Bars adjusted for corporate actions']):
+        fits(line, 'b', CW - 40, 'gate')
+        d.text(x + 20, body + n * 24, line)
+    d.text(x + 20, body + 108, 'Candidate or refused. Never live permission.', 'm', fill=ROLE['warm'])
+    body = _panel(d, M, y, CW, 198, 'slate', 'twin', 'Alternate gates', tag='NOT BINDING')
+    for n, line in enumerate(['Other thresholds judge the same run:',
+                              'statistics only · net of cost.',
+                              'Each records would-pass and why not.']):
+        fits(line, 'b', CW - 40, 'alternates')
+        d.text(M + 20, body + n * 24, line)
+    d.text(M + 20, body + 84, 'A second opinion kept beside the verdict.', 'm', fill=MUT)
+    # The alternates judge the run the registered gate judged, not a second one.
+    d.wire(f'M{x:g} {y + 150:g}H{M + CW:g}', kind='decision')
+    for center in (M + CW / 2, x + CW / 2):
+        d.wire(f'M{center:g} {y + 198:g}V{y + 258:g}', kind='feedback')
+    y += 258
+    body = _panel(d, M, y, full, 112, 'violet', 'book', 'Lab ledger')
+    d.text(M + 20, body, 'Every run leaves its verdict, each alternate\'s verdict and the digest of the bars it read.')
+    d.text(M + 20, body + 24, 'Yield is counted over distinct inputs. Registering new parameters is an edit to a row.', 'm', fill=MUT)
+    d.text(M + 20, y + 150, 'Research output is evidence for review: it places no order and changes no live parameter.', 'm', fill=MUT)
+    return d.render(y + 174)
+
+
 LAYOUTS = {
+    'strategy-plugins': strategy_plugins,
     'proposal-review': proposal_review,
     'rsi-loop': rsi_loop,
     'feedback-learning': feedback_learning,
