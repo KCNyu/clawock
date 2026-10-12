@@ -8,9 +8,7 @@ out — and it is mounted as a plugin so that what the live paths compute is a
 row in `config/strategy-plugins.json` rather than an import.
 
 `decision.signals` keeps the names the callers use and delegates here through
-`clawock.plugin_host.live`. The implementation it used to hold stays there as
-`legacy_*` until nothing reads it; `tests/test_live_factors_equivalence.py`
-holds the two to identical output on every prefix of every stored series.
+`clawock.plugin_host.live`. This is the only implementation.
 
 Config: `sigma_target`, the portfolio volatility the vol-target weight sizes
 against (0.25 annualised, kcn 2026-06-11).
