@@ -563,3 +563,30 @@ def test_the_brief_runs_the_lab_after_delivery_and_never_fails_on_it(monkeypatch
         returncode=1, stdout='', stderr='boom'))
     assert brief_postflight.record_strategy_lab() is False
     assert 'strategy lab exited 1: boom' in capsys.readouterr().err
+
+
+def test_the_old_import_paths_are_views_of_the_mounted_plugins(monkeypatch):
+    import importlib
+    for path, service in [
+            ('clawock.decision.add_policy', 'add_policy'),
+            ('clawock.decision.add_alpha', 'add_alpha'),
+            ('clawock.decision.left_side', 'left_side'),
+            ('clawock.decision.add_side', 'add_side'),
+            ('clawock.decision.preposition', 'preposition'),
+            ('clawock.decision.intraday_policy', 'intraday_policy'),
+            ('clawock.market_data.bar_signals', 'bar_signals'),
+            ('clawock.evaluation.signal_panel', 'signal_panel')]:
+        facade, mounted = importlib.import_module(path), live.service(service)
+        assert mounted.__name__.endswith(f'.plugins.{service}')
+        public = [name for name, value in vars(mounted).items()
+                  if isinstance(value, types.FunctionType) and not name.startswith('_')]
+        assert public and all(getattr(facade, name) is getattr(mounted, name) for name in public)
+        with pytest.raises(AttributeError):
+            facade.not_a_name_the_plugin_has
+    # Setting through the old path sets the plugin's global, and is undone there.
+    from clawock.decision import add_policy
+    mounted = live.service('add_policy')
+    monkeypatch.setattr(add_policy, 'TARGET_MAX_PCT', 60.0)
+    assert mounted.TARGET_MAX_PCT == 60.0
+    monkeypatch.undo()
+    assert mounted.TARGET_MAX_PCT == 100.0
