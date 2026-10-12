@@ -1,6 +1,6 @@
-import { delimiter, join } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { delimiter, dirname, join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 //#region src/balance.ts
 /**
@@ -30,6 +30,11 @@ import { spawn } from "node:child_process";
 * unless the client forces a refresh; a failed refresh keeps the last good
 * snapshot and reports 'stale' instead of dropping a real number for a
 * transient 429. Keys are never logged, shipped, or stored anywhere here.
+*
+* A host may also give a service a `lastGoodPath`: the last good snapshot is
+* then kept in that file as well, so a process that has not read anything yet
+* (a restarted gateway, the OpenClaw command's own process) still has a
+* reading to fall back on when its first read fails.
 *
 * All error reporting is in-band: `get()` never throws — statuses
 * 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
@@ -320,6 +325,32 @@ function readOpenclawProviderKey(configPath, provider) {
 	const key = (((cfg?.models ?? {}).providers ?? {})[provider] ?? {}).apiKey;
 	return typeof key === "string" && key !== "" ? key : void 0;
 }
+/** The last good snapshot a process left at `path`; null when there is none or it is not one. */
+function readLastGood(path) {
+	const raw = readJsonFile(path)?.snapshot;
+	if (typeof raw !== "object" || raw === null) return null;
+	const strings = [
+		raw.unit,
+		raw.currency,
+		raw.totalBalance,
+		raw.grantedBalance,
+		raw.toppedUpBalance,
+		raw.asOf,
+		raw.note
+	];
+	if (typeof raw.isAvailable !== "boolean" || strings.some((value) => typeof value !== "string")) return null;
+	if (!Array.isArray(raw.windows) || isNaN(Date.parse(raw.asOf))) return null;
+	return raw;
+}
+/** Written by rename: the dsh gateway and the OpenClaw gateway share the file and must never read half of it. */
+function writeLastGood(path, snapshot) {
+	try {
+		mkdirSync(dirname(path), { recursive: true });
+		const tmp = `${path}.${process.pid}.tmp`;
+		writeFileSync(tmp, JSON.stringify({ snapshot }), { mode: 384 });
+		renameSync(tmp, path);
+	} catch {}
+}
 const numberOr = (value, fallback) => typeof value === "number" && isFinite(value) ? value : fallback;
 /** GET a JSON endpoint with the shared timeout and the shared Chinese error wording. */
 async function fetchJson(url, headers, vendor, statusMessages = {}) {
@@ -358,11 +389,22 @@ function createQuotaService(deps, spec) {
 		threshold: spec.threshold,
 		refreshMs: spec.refreshMs
 	});
+	const recall = () => {
+		if (spec.lastGoodPath === void 0) return;
+		const kept = readLastGood(spec.lastGoodPath);
+		if (kept === null) return;
+		const at = Date.parse(kept.asOf);
+		if (at > Date.now() || snapshot !== null && at <= fetchedAt) return;
+		snapshot = kept;
+		fetchedAt = at;
+		lastError = null;
+	};
 	const run = async (apiKey) => {
 		try {
 			snapshot = await spec.fetchFresh(apiKey);
 			fetchedAt = Date.now();
 			lastError = null;
+			if (spec.lastGoodPath !== void 0) writeLastGood(spec.lastGoodPath, snapshot);
 			return answer("fresh", null);
 		} catch (cause) {
 			const message = cause instanceof Error ? cause.message : String(cause);
@@ -371,6 +413,7 @@ function createQuotaService(deps, spec) {
 		}
 	};
 	const exec = async (force) => {
+		recall();
 		let apiKey;
 		try {
 			apiKey = await spec.resolveApiKey(deps);
@@ -432,6 +475,7 @@ function createBalanceService(deps, config = {}) {
 		noKeyMessage: "未配置 DeepSeek API Key(设置 → 模型 → DeepSeek)",
 		threshold,
 		refreshMs: numberOr(config.refreshMs, DEFAULT_BALANCE_REFRESH_MS),
+		lastGoodPath: config.lastGoodPath,
 		async fetchFresh(apiKey) {
 			const snapshot = parseBalancePayload(await fetchJson(`${baseUrl}/user/balance`, { authorization: `Bearer ${apiKey}` }, "余额", {
 				401: "API Key 无效或已过期",
@@ -454,6 +498,7 @@ function createMinimaxService(deps, config = {}) {
 		noKeyMessage: "未配置 MiniMax API Key(凭据缝 / 环境变量 / openclaw 配置均无)",
 		threshold: lowPct,
 		refreshMs: DEFAULT_BALANCE_REFRESH_MS,
+		lastGoodPath: config.lastGoodPath,
 		async fetchFresh(apiKey) {
 			const body = await fetchJson(`${baseUrl}/v1/token_plan/remains`, { authorization: `Bearer ${apiKey}` }, "MiniMax");
 			const raw = typeof body === "object" && body !== null ? body : {};
@@ -575,6 +620,7 @@ function createCodexService(deps, config = {}) {
 		threshold: lowPct,
 		refreshMs,
 		ttlMs: refreshMs,
+		lastGoodPath: config.lastGoodPath,
 		async fetchFresh(executable) {
 			return parseCodexRateLimits(await readCodexRateLimits(executable), (/* @__PURE__ */ new Date()).toISOString());
 		},
@@ -612,6 +658,7 @@ function createClaudeService(deps, config = {}) {
 		noKeyMessage: "未找到 Claude 登录(~/.claude/.credentials.json)",
 		threshold: lowPct,
 		refreshMs: DEFAULT_BALANCE_REFRESH_MS,
+		lastGoodPath: config.lastGoodPath,
 		async fetchFresh() {
 			const entry = readClaudeCredentials(credentialsPath);
 			if (entry === void 0) throw new Error("Claude 登录文件不存在或已损坏");
@@ -631,4 +678,4 @@ function createClaudeService(deps, config = {}) {
 	});
 }
 //#endregion
-export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, toEpochMs, windowLabel, windowUsedPercent };
+export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, readLastGood, toEpochMs, windowLabel, windowUsedPercent };

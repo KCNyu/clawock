@@ -165,6 +165,11 @@ title 与详情层）。额度在面板上、任务在底板上，两级不混�
 - 宿主侧每 provider TTL 缓存、并发合并:DeepSeek/MiniMax/Claude 60s,Codex 跟
   `codexRefreshMs`(默认 5 分钟——每次读额度要拉起一个 app-server 进程);
   手动 ↻ 强制拉新,不走缓存;
+- 每个 provider 最近一次读成功的读数另存一份在 `~/.cache/clawock-dsh/balance-<provider>.json`
+  (只有读数,没有凭据;`CLAWOCK_DSH_STATE_DIR` 可改目录)。dsh gateway 与 OpenClaw 的
+  `/dispatch-list` 是两个进程,都读写这一份:刚重启、还没读成功过的进程第一次就读失败时
+  (夜里没人跑 claude,访问令牌到期),照样显示上次读数并标明「刷新失败,显示 … 的读数」,
+  而不是一个「—」;
 - 客户端按「读数有没有印在屏幕上」定节奏:侧栏展开(折叠行印着数)或面板打开时
   静默轮询 ≥60s;收成 56px 窄栏时只剩一枚阈值徽标,改为 15 分钟核一次
   (`BALANCE_BADGE_MS`)。打开面板/展开侧栏的那一刻立即读一次(手上的答案不足
