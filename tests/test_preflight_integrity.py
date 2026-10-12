@@ -27,8 +27,11 @@ def pi():
 def run_check(pi, monkeypatch):
     """Run the real gate against JSON held entirely in memory."""
 
-    def run(data, *, last_session="2026-07-17", previous_cash=None, bars=None):
-        bars = bars or {}
+    def run(data, *, last_session="2026-07-17", previous_cash=None, bars=None, config_path=None):
+        if bars is None:
+            bars = {(h['ticker'], h.get('prev_close_date')): h.get('prev_close')
+                    for p in data.get('portfolios', {}).values() if isinstance(p, dict) for h in p.get('holdings', [])
+                    if isinstance(h, dict)}
         payload = json.dumps(data)
         # `summarize_bar_conflicts` is the one collaborator that still reaches
         # the filesystem: with no explicit log it resolves
@@ -45,6 +48,7 @@ def run_check(pi, monkeypatch):
         # Same reach, same reason: the coverage check reads the desk's real
         # `memory/bars/`, where one refused bar is a finding about the desk.
         monkeypatch.setattr(pi, "summarize_bar_gaps", lambda *a, **k: [])
+        monkeypatch.setattr(pi, "summarize_bar_staleness", lambda *a, **k: [])
         monkeypatch.setattr(
             pi,
             "Path",
@@ -55,7 +59,7 @@ def run_check(pi, monkeypatch):
         monkeypatch.setattr(
             pi, "_prev_snapshot_cash", lambda _region, _field: previous_cash
         )
-        return pi.check("in-memory-only")
+        return pi.check("in-memory-only", config_path=config_path)
 
     return run
 
@@ -290,7 +294,6 @@ def test_fully_coherent_portfolio_has_no_findings(run_check):
     [
         {},
         {"portfolios": {}},
-        {"portfolios": {"ignored_region": None}},
         {
             "portfolios": {
                 "us_stocks": {
@@ -712,7 +715,9 @@ def test_prev_close_stamped_with_the_wrong_session_is_reported(run_check):
     assert wrong["ok"]
     right = run_check(data, bars={("00100", "2026-07-16"): 241.4})
     assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in right["findings"])
-    unknown = run_check(data)
+    unknown = run_check(data, bars={})
+    assert unknown["prev_close_coverage"]["checked"] == 0
+    assert unknown["prev_close_coverage"]["missing"][0]["ticker"] == "00100"
     assert not any(f["code"] == "PREV_CLOSE_SESSION" for f in unknown["findings"])
 
 
@@ -916,3 +921,34 @@ def test_hk_mixed_sessions_block_publication(run_check):
     report = run_check(book, last_session=None)
     assert not report["ok"]
     assert any(f["code"] == "HK_ASOF" and f["level"] == "ERROR" for f in report["findings"])
+
+
+def test_unknown_invalid_book_is_not_silently_ignored(run_check):
+    report = run_check({"portfolios": {"ignored_region": None}})
+    assert not report["ok"]
+    assert all(f["code"] == "BOOK_GATE_CONFIG" for f in report["findings"])
+
+
+@pytest.mark.parametrize("region,new_name", [("us_stocks", "america"), ("hk_stocks", "hong_kong")])
+def test_renaming_keeps_all_market_money_and_direction_gates(run_check, tmp_path, region, new_name):
+    rows = [_holding(ticker="07226", today_change_pct=2),
+            _holding(ticker="03033", today_change_pct=-2)]
+    rows[0]['day_session_date'] = '2026-07-16'
+    rows[1]['day_session_date'] = '2026-07-17'
+    data = _portfolio_data(region=region, holdings=rows)
+    port = data['portfolios'][region]
+    port['currency'] = 'WRONG'
+    port['cash_usd' if region == 'us_stocks' else 'cash_hkd'] += 500
+    baseline = run_check(data, last_session='2026-07-20')
+    config = json.loads((WS / 'config/portfolio-derivations.json').read_text())
+    config['risk_books']['us' if region == 'us_stocks' else 'hk']['portfolio_key'] = new_name
+    config['cash_field_by_book'][new_name] = config['cash_field_by_book'].pop(region)
+    cfg = tmp_path / 'derivations.json'
+    cfg.write_text(json.dumps(config))
+    data['portfolios'][new_name] = data['portfolios'].pop(region)
+    renamed = run_check(data, last_session='2026-07-20', config_path=cfg)
+    codes = {f['code'] for f in renamed['findings']}
+    assert {'CASH_RECON', 'FX_TAG', 'STALENESS', 'LEV_DIRECTION',
+            'US_ASOF' if region == 'us_stocks' else 'HK_ASOF'} <= codes
+    assert codes == {f['code'] for f in baseline['findings']}
+    assert renamed['error_count'] == baseline['error_count']

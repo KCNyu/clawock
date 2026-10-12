@@ -13,6 +13,7 @@ publish, because the bars were not written and nothing downstream is wrong.
 """
 
 import json
+from pathlib import Path
 from datetime import datetime, timezone
 
 
@@ -210,7 +211,7 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
     book = tmp_path / 'portfolio.json'
     book.write_text(json.dumps({'portfolios': {}}))
 
-    clean = integrity.check(book)
+    clean = integrity.check(book, config_path=Path(__file__).resolve().parents[1] / 'config/portfolio-derivations.json')
     assert clean['bar_conflicts']['total'] == 0
     assert not [f for f in clean['findings'] if f['code'] == 'BAR_CONFLICT']
 
@@ -219,7 +220,7 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
         'by_ticker': {'00100': 3}, 'last_seen_at': '2026-01-29T08:00:00+08:00',
         'log': 'bar-conflicts.jsonl',
     })
-    noisy = integrity.check(book)
+    noisy = integrity.check(book, config_path=Path(__file__).resolve().parents[1] / 'config/portfolio-derivations.json')
 
     finding = [f for f in noisy['findings'] if f['code'] == 'BAR_CONFLICT']
     assert len(finding) == 1
@@ -238,7 +239,7 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
         'by_ticker': {'SPCX': 3}, 'last_seen_at': '2026-01-29T08:00:00+08:00',
         'log': 'bar-conflicts.jsonl',
     })
-    benign = integrity.check(book)
+    benign = integrity.check(book, config_path=Path(__file__).resolve().parents[1] / 'config/portfolio-derivations.json')
     finding = [f for f in benign['findings'] if f['code'] == 'BAR_CONFLICT']
     assert [f['level'] for f in finding] == ['INFO']
     assert benign['warn_count'] == clean['warn_count']
@@ -376,7 +377,7 @@ def test_a_refused_bar_is_named_as_the_hole_it_leaves(tmp_path, monkeypatch):
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     book = tmp_path / 'portfolio.json'
     book.write_text(json.dumps({'portfolios': {}}))
-    report = integrity.check(book)
+    report = integrity.check(book, config_path=Path(__file__).resolve().parents[1] / 'config/portfolio-derivations.json')
     finding = [f for f in report['findings'] if f['code'] == 'BAR_COVERAGE']
     assert len(finding) == 1 and finding[0]['level'] == 'WARN'
     assert 'RKLX' in finding[0]['msg'] and '2026-10-05' in finding[0]['msg']
@@ -385,4 +386,4 @@ def test_a_refused_bar_is_named_as_the_hole_it_leaves(tmp_path, monkeypatch):
 
     # The hole closes when the bar lands; the log's history does not matter.
     _bar_file(bars, 'RKLX', 'US', week)
-    assert not [f for f in integrity.check(book)['findings'] if f['code'] == 'BAR_COVERAGE']
+    assert not [f for f in integrity.check(book, config_path=Path(__file__).resolve().parents[1] / 'config/portfolio-derivations.json')['findings'] if f['code'] == 'BAR_COVERAGE']

@@ -76,6 +76,12 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
                    判据是「缺失股数」不是「余额转负」：再卖一笔只让低点更深、
                    改不了缺多少，而 07226 缺 5200 股却一次都没转负。
 
+  BOOK_GATE_CONFIG 配置市场/币种/现金映射必须覆盖实际账本                ERROR
+                 → 未知市场、未知账本、缺失/冲突的映射拒绝发布，不能静默跳过
+  BAR_STALENESS canonical bar 最新场次必须追上独立交易日历               WARN
+                 → 整腿/空库同样可见，面板 healthy=false；不阻断产品投递
+  PREV_CLOSE_COVERAGE 前收核验缺少 canonical bar 时计数并点名             WARN
+
   BAR_COVERAGE   每只票的 canonical bar 覆盖它那条腿最近的每个 session     WARN
                  → 结构闸拒掉的 bar 不入库：RKLX 2026-10-05 腾讯给的 high 低于
                    open，那一格就空着，两条决策读成 bar_missing，而体检只把它数进
@@ -94,7 +100,7 @@ from pathlib import Path
 
 from clawock.bar_conflicts import BENIGN_KINDS, classify_conflict
 from clawock.workspace import workspace_root
-from clawock.sessions import hkt_today
+from clawock.sessions import hkt_today, is_trading_day, latest_completed_session
 
 WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
@@ -403,6 +409,85 @@ def summarize_bar_gaps(bars_dir=None, *, sessions=BAR_COVERAGE_SESSIONS,
     return gaps
 
 
+def summarize_bar_staleness(bars_dir=None, *, markets=(), now=None):
+    """Compare the store with an independent calendar, even for an empty leg.
+
+    Only completed sessions count. Retired symbols do not make a stopped active
+    leg look current. An absent/empty store is unknown, never zero missing bars.
+    """
+    root = pathlib.Path(bars_dir) if bars_dir is not None else (
+        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars')
+    held = {market: set() for market in markets}
+    for path in sorted(root.glob('*.json')):
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(doc, dict) or doc.get('retired'):
+            continue
+        market = str(doc.get('leg', '')).lower()
+        if market not in ('hk', 'us'):
+            continue
+        dates = held.setdefault(market, set())
+        bars = doc.get('bars')
+        if not isinstance(bars, dict):
+            continue
+        for day in bars:
+            try:
+                parsed = date.fromisoformat(day)
+            except (TypeError, ValueError):
+                continue
+            if is_trading_day(market, parsed):
+                dates.add(parsed)
+    rows = []
+    for market, dates in sorted(held.items()):
+        last = latest_completed_session(market, at=now)
+        completed = [day for day in dates if last and day <= last]
+        newest = max(completed) if completed else None
+        if last and newest == last:
+            continue
+        missing = []
+        if newest and last:
+            probe = newest + timedelta(days=1)
+            while probe <= last:
+                if is_trading_day(market, probe):
+                    missing.append(probe.isoformat())
+                probe += timedelta(days=1)
+        rows.append({'market': market, 'newest_bar': newest.isoformat() if newest else None,
+                     'last_completed_session': last.isoformat() if last else None,
+                     'missing_sessions': missing if newest and last else None,
+                     'status': 'behind' if newest and last else 'unavailable'})
+    return rows
+
+
+def _book_gate_config(config_path, portfolios):
+    """Fail closed when the configured books exceed the gates' known domains."""
+    path = pathlib.Path(config_path) if config_path is not None else (
+        workspace_root() / 'config' / 'portfolio-derivations.json')
+    config = json.loads(path.read_text(encoding='utf-8'))
+    books, cash = config['risk_books'], config['cash_field_by_book']
+    if not isinstance(books, dict) or not books or not isinstance(cash, dict):
+        raise ValueError('risk_books / cash_field_by_book must be nonempty mappings')
+    markets, currencies = {}, {}
+    supported = {'us': 'USD', 'hk': 'HKD'}
+    for market, spec in books.items():
+        if market not in supported:
+            raise ValueError(f'unsupported risk book market: {market}')
+        key = spec.get('portfolio_key') if isinstance(spec, dict) else None
+        if not isinstance(key, str) or not key or key in markets:
+            raise ValueError(f'invalid or duplicate portfolio_key: {key!r}')
+        ccy = supported[market]
+        if cash.get(key) != f'cash_{ccy.lower()}':
+            raise ValueError(f'{key}: cash mapping does not match {market}/{ccy}')
+        markets[key], currencies[key] = market, ccy
+    if set(cash) != set(markets):
+        raise ValueError('cash_field_by_book and risk_books disagree')
+    unknown = set(portfolios) - set(markets)
+    if unknown:
+        raise ValueError(f'books without gate coverage: {sorted(unknown)}')
+    return markets, currencies, cash
+
+
 def _refused_bars(log_path=None) -> dict:
     """(ticker, date) -> fetched OHLC for every structural refusal on the log."""
     path = pathlib.Path(log_path) if log_path is not None else (
@@ -507,7 +592,7 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     return summary
 
 
-def check(portfolio_path=PORTFOLIO):
+def check(portfolio_path=PORTFOLIO, *, config_path=None):
     data = json.loads(Path(portfolio_path).read_text())
     P = data.get('portfolios', {})
     findings = []  # {code, level, region, ticker, msg}
@@ -517,11 +602,22 @@ def check(portfolio_path=PORTFOLIO):
                          'ticker': ticker, 'msg': msg})
 
     quote_ledger = {}
-    region_market = {'us_stocks': 'us', 'hk_stocks': 'hk'}
-    region_ccy = {'us_stocks': 'USD', 'hk_stocks': 'HKD'}
+    region_market, region_ccy, cash_fields = {}, {}, {}
+    try:
+        region_market, region_ccy, cash_fields = _book_gate_config(config_path, P)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        add('BOOK_GATE_CONFIG', 'ERROR', f'账本闸覆盖配置无效：{exc}；市场/币种/现金闸不能完成')
+    prev_close_coverage = {'checked': 0, 'missing': []}
+    bar_staleness = summarize_bar_staleness(markets=set(region_market.values()))
+    for row in bar_staleness:
+        add('BAR_STALENESS', 'WARN',
+            f"canonical bar store behind calendar: {row['market'].upper()} newest bar "
+            f"{row['newest_bar']} vs last closed session {row['last_completed_session']}; "
+            f"missing sessions={row['missing_sessions']} ({row['status']})")
 
     for region, port in P.items():
         if not isinstance(port, dict):
+            add('BOOK_GATE_CONFIG', 'ERROR', f'{region}: 账本不是对象，无法校验', region)
             continue
         market = region_market.get(region)
         holdings = port.get('holdings', []) or []
@@ -820,6 +916,10 @@ def check(portfolio_path=PORTFOLIO):
             pcd = h.get('prev_close_date')
             if prev is not None and sh and isinstance(pcd, str):
                 bar_close = _bar_close(t, pcd)
+                if bar_close is None:
+                    prev_close_coverage['missing'].append({'region': region, 'ticker': t, 'date': pcd})
+                else:
+                    prev_close_coverage['checked'] += 1
                 if bar_close is not None and abs(prev - bar_close) > max(
                         0.005, abs(bar_close) * 0.0005):
                     add('PREV_CLOSE_SESSION', 'WARN',
@@ -881,7 +981,7 @@ def check(portfolio_path=PORTFOLIO):
                         f'现金流账本重算（它是「净本金回报率」分母，过期则回报率虚高）', region)
 
         # CASH_SANITY：手填现金 fat-finger 闸（既有 ERROR 校验只看持仓，抓不到现金笔误）
-        cash_field = {'us_stocks': 'cash_usd', 'hk_stocks': 'cash_hkd'}.get(region)
+        cash_field = cash_fields.get(region)
         if cash_field and port.get(cash_field) is not None:
             raw = port.get(cash_field)
             cash = _num(raw)
@@ -927,6 +1027,11 @@ def check(portfolio_path=PORTFOLIO):
                         f'{cash_field}={stated:.2f} ≠ 派生值 {derived:.2f}'
                         f'（基线 {baseline:.2f}@{bdate} + 此后 {n_tr} 笔成交现金流，差 '
                         f'{stated - derived:+.2f}）；改/补 trades 后须跑 clawock cash', region)
+
+    if prev_close_coverage['missing']:
+        add('PREV_CLOSE_COVERAGE', 'WARN',
+            f"前收 canonical bar 核验 {prev_close_coverage['checked']} 条，"
+            f"缺失 {len(prev_close_coverage['missing'])} 条：{prev_close_coverage['missing']}")
 
     # GOLD_RECON：黄金定投手填对账值闸（隐含均价 vs NAV，抓填错/单位反）
     g = data.get('gold_dca') or {}
@@ -990,6 +1095,8 @@ def check(portfolio_path=PORTFOLIO):
         'quote_sources': quote_ledger,
         'bar_conflicts': bar_conflicts,
         'bar_gaps': bar_gaps,
+        'bar_staleness': bar_staleness,
+        'prev_close_coverage': prev_close_coverage,
     }
     return report
 

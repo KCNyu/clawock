@@ -2218,3 +2218,23 @@ def test_compute_drawdown_publishes_both_episodes_for_every_leg_and_basis():
         assert block["open_dd"]["to_peak_abs"] == block["from_peak_abs"]
         assert (block["from_peak_abs"] < 0) != _says_back_at_the_high(block)
     assert result["profit"]["us"]["open_dd"]["recovery_pct"] == 11.33
+
+
+def test_calendar_bar_outage_makes_otherwise_fresh_dashboard_unhealthy(monkeypatch, tmp_path):
+    at = datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    rows = [{'market': 'us', 'newest_bar': '2026-07-29',
+             'last_completed_session': '2026-07-31', 'status': 'behind',
+             'missing_sessions': ['2026-07-30', '2026-07-31']}]
+    monkeypatch.setitem(sys.modules, 'clawock.portfolio.integrity', SimpleNamespace(check=lambda: {
+        'ok': True, 'error_count': 0, 'warn_count': 1,
+        'findings': [{'code': 'BAR_STALENESS', 'level': 'WARN', 'msg': 'bar store behind calendar'}],
+        'bar_staleness': rows,
+    }))
+    import clawock.portfolio
+    monkeypatch.setattr(clawock.portfolio, 'integrity', sys.modules['clawock.portfolio.integrity'], raising=False)
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    assert status['stale_files'] == status['stale_markets'] == []
+    assert not status['healthy']
+    assert status['integrity']['bar_staleness'] == rows
+    assert status['integrity']['top'][0]['code'] == 'BAR_STALENESS'

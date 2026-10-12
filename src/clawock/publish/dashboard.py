@@ -4006,6 +4006,8 @@ def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
         rep = _pi.check()
         integrity = {'ok': rep['ok'], 'error_count': rep['error_count'],
                      'warn_count': rep['warn_count'],
+                     'bar_staleness': rep.get('bar_staleness', []),
+                     'prev_close_coverage': rep.get('prev_close_coverage', {}),
                      'top': [{'code': f['code'], 'level': f['level'], 'msg': f['msg']}
                              for f in rep['findings']][:6]}
     except Exception as e:
@@ -4020,7 +4022,7 @@ def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
     stale_markets = [market for market, state in markets.items()
                      if not state.get('fresh')]
     healthy = (not stale_files) and (not stale_markets) and bool(
-        integrity.get('ok'))
+        integrity.get('ok')) and not integrity.get('bar_staleness')
     return {'generated_at': now.isoformat(timespec='seconds'), 'healthy': healthy,
             'stale_files': stale_files, 'stale_markets': stale_markets,
             'files': files, 'markets': markets,
