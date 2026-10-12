@@ -9,9 +9,10 @@ Usage
   clawock strategy-lab list                  # what is mounted and what it provides
   clawock strategy-lab optimize rsi          # walk-forward search; prints a proposal
   clawock strategy-lab optimize rsi --json --output proposal.json
+  clawock strategy-lab ledger                # yield per strategy, alternates beside the gate
 
-`optimize` is research. It reads stored bars, writes only the file `--output`
-names, and its proposal never carries live permission.
+`optimize` is research. It writes the file `--output` names and one row in the
+lab ledger (`--no-ledger` skips it); its proposal never carries live permission.
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ import importlib
 import json
 from pathlib import Path
 
+from clawock.strategies import ledger
 from clawock.strategies.kernel import Kernel
 from clawock.workspace import workspace_root
 
@@ -61,6 +63,10 @@ def _print_proposal(report: dict) -> None:
           f"selected IC {walk['oos_mean_ic_selected']} {walk['oos_ic_ci95']}, "
           f"registered IC {walk['oos_mean_ic_registered']}, "
           f"lift {walk['oos_mean_lift']} {walk['oos_lift_ci95']}")
+    net = report['net_of_cost']
+    print(f"  net of cost: excess {net['oos_mean_net_excess']} per session "
+          f"{net['oos_net_excess_ci95']} (gross {net['oos_mean_gross_excess']}, "
+          f"turnover {net['mean_turnover_per_tranche']})")
     print(f"  PBO {report['pbo'].get('pbo')} ({report['pbo'].get('status')})")
     for item in report['gate']:
         print(f"  [{'pass' if item['passed'] else 'FAIL'}] {item['check']}: "
@@ -69,6 +75,19 @@ def _print_proposal(report: dict) -> None:
         verdict = ('would pass' if alternate['would_pass'] else
                    f"would refuse on {alternate['would_refuse_because']}")
         print(f"  alternate gate {alternate['id']} (not binding): {verdict}")
+
+
+def _print_ledger(stats: dict) -> None:
+    if not stats['strategies']:
+        print('the lab ledger is empty: no optimisation has been recorded')
+    for strategy, entry in stats['strategies'].items():
+        print(f"{strategy}: {entry['candidates']} candidate of "
+              f"{entry['distinct_inputs']} distinct inputs ({entry['runs']} runs), "
+              f"refused on {entry['refused_by_check'] or 'nothing'}")
+        for identifier, tally in entry['alternate_gates'].items():
+            print(f"  alternate gate {identifier} (not binding): would pass "
+                  f"{tally['would_pass']} of {tally['judged']}, disagrees with the "
+                  f"registered gate on {tally['disagrees_with_registered']}")
 
 
 def main(argv=None) -> int:
@@ -83,7 +102,20 @@ def main(argv=None) -> int:
     optimize.add_argument('strategy')
     optimize.add_argument('--json', action='store_true')
     optimize.add_argument('--output', type=Path, help='also write the proposal here')
+    optimize.add_argument('--no-ledger', action='store_true',
+                          help='do not record this run in the lab ledger')
+    history = sub.add_parser(
+        'ledger', help='recorded verdicts: yield per strategy, alternates beside the gate')
+    history.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
+
+    if args.action == 'ledger':
+        stats = ledger.statistics(ledger.load())
+        if args.json:
+            print(json.dumps(stats, ensure_ascii=False, indent=2))
+        else:
+            _print_ledger(stats)
+        return 0
 
     config = args.config or workspace_root() / CONFIG
     if not config.exists():
@@ -111,6 +143,8 @@ def main(argv=None) -> int:
             report = kernel.get('optimizer').run(args.strategy)
         except (KeyError, ValueError) as exc:
             parser.exit(2, f'{exc.args[0]}\n')
+        if not args.no_ledger:
+            ledger.append(report)
         if args.output:
             args.output.write_text(
                 json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

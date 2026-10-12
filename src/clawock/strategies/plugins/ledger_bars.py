@@ -35,6 +35,9 @@ class LedgerBars:
                 for day, bar in sorted((self._doc(ticker).get('bars') or {}).items())]
         return clean_bars(rows)
 
+    def leg(self, ticker: str) -> str:
+        return str(self._doc(ticker).get('leg') or '')
+
     def describe(self) -> dict:
         tickers = self.tickers()
         adjustments = sorted({str(self._doc(ticker).get('adjustment') or 'unknown')

@@ -9,9 +9,11 @@ from pathlib import Path
 import pytest
 
 from clawock.decision import signals
-from clawock.strategies import lab, registry
+from clawock.costs import CostModel
+from clawock.strategies import lab, ledger, registry
 from clawock.strategies.kernel import ACTIVE, PENDING, Kernel, KernelError
-from clawock.strategies.plugins import ledger_bars, rsi, walkforward
+from clawock.strategies.plugins import (
+    adjusted_bars, ledger_bars, registered_costs, rsi, walkforward)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -122,6 +124,7 @@ class Tape:
     def __init__(self, *, persistence, sessions=200, tickers=12, adjusted=True, seed=7):
         rnd = random.Random(seed)
         self._series, self._adjusted = {}, adjusted
+        self._digest = f'tape-{persistence}-{sessions}-{tickers}-{adjusted}-{seed}'
         for t in range(tickers):
             close, previous, rows = 100.0, 0.0, []
             for day in range(sessions):
@@ -136,9 +139,12 @@ class Tape:
     def series(self, ticker):
         return self._series[ticker]
 
+    def leg(self, ticker):
+        return 'US'
+
     def describe(self):
         return {'source': 'generated', 'adjustment': 'qfq' if self._adjusted else 'raw',
-                'corporate_actions_adjusted': self._adjusted}
+                'corporate_actions_adjusted': self._adjusted, 'digest': self._digest}
 
 
 def trend(ctx, config):
@@ -154,8 +160,14 @@ def trend(ctx, config):
     ctx.effect(lambda: ctx.get('strategies').register(spec), 'strategy(trend)')
 
 
-def optimise(tape, **settings):
+def flat_costs(bps):
+    return registered_costs.Costs(CostModel(
+        assumed_commission_bps={'us': bps}, spread_source='off'))
+
+
+def optimise(tape, costs=None, **settings):
     kernel = Kernel()
+    kernel.plugin(provider('costs', costs or flat_costs(0.0)))
     # Mounted before anything it depends on, on purpose.
     kernel.plugin(walkforward, {'bootstrap_samples': 300, **settings})
     kernel.plugin(plugin('trend', trend, inject=('strategies',)))
@@ -240,7 +252,7 @@ def test_refits_only_use_sessions_whose_forward_return_had_closed():
 
 def test_shipped_rows_mount_with_nothing_left_waiting(tmp_path, capsys):
     kernel = lab.mount(lab.load_rows(ROOT / lab.CONFIG))
-    assert [fiber.missing for fiber in kernel.fibers] == [[], [], [], []]
+    assert [fiber.missing for fiber in kernel.fibers] == [[], [], [], [], []]
     spec = kernel.get('strategies').get('rsi')
     assert spec.params in walkforward.configurations(spec.space)
     kernel.dispose()
@@ -270,3 +282,119 @@ def test_ledger_bars_reads_the_store_and_reports_it_as_raw(tmp_path, monkeypatch
     assert [(bar['date'], bar['close']) for bar in bars.series('AAA')] == [
         ('2026-01-05', 1.5), ('2026-01-06', 2.0)]
     assert bars.describe()['corporate_actions_adjusted'] is False
+
+
+def test_costs_come_off_the_excess_and_only_an_alternate_gate_reads_them():
+    free = optimise(Tape(persistence=0.6))['net_of_cost']
+    assert free['oos_mean_net_excess'] == free['oos_mean_gross_excess'] > 0
+
+    net_gate = {'id': 'net-of-cost', 'rationale': 'must survive trading',
+                'gate': {'oos_net_excess_ci95_lower_gt': 0.0}}
+    cheap = optimise(Tape(persistence=0.6), flat_costs(1.0), gate_alternates=[net_gate])
+    net = cheap['net_of_cost']
+    assert 0 < net['oos_mean_net_excess'] < net['oos_mean_gross_excess']
+    assert 0 < net['mean_turnover_per_tranche'] <= 1
+    assert cheap['alternate_gates'][0]['would_pass'] is True
+
+    # Costs no edge survives: the registered gate does not read them, so the
+    # verdict stands, and the alternate that does read them says no.
+    dear = optimise(Tape(persistence=0.6), flat_costs(5000.0), gate_alternates=[net_gate])
+    assert dear['net_of_cost']['oos_mean_net_excess'] < 0
+    assert dear['status'] == 'candidate'
+    assert [check['check'] for check in dear['gate']] == [
+        'min_oos_sessions', 'oos_ic_ci95_lower_gt', 'oos_lift_ci95_lower_gt',
+        'pbo_lt', 'corporate_actions_adjusted']
+    assert dear['alternate_gates'][0]['would_refuse_because'] == [
+        'oos_net_excess_ci95_lower_gt']
+    assert dear['alternate_gates'][0]['binding'] is False
+
+
+def test_a_tranche_pays_for_the_names_it_replaces():
+    def cell(order):
+        return [(ticker, 4.0 - rank, 0.01 * (4 - rank)) for rank, ticker in enumerate(order)]
+
+    # One configuration, horizon 1. Session 0 holds A,B; session 1 keeps them;
+    # session 2 swaps B for C.
+    cells = [[cell('ABCD')], [cell('ABCD')], [cell('ACBD')]]
+    out = walkforward.net_excess(cells, [0, 0, 0], [0, 1, 2], horizon=1,
+                                 side_bps=lambda ticker: 10.0)
+    assert out['turnover'] == [1.0, 0.0, 0.5]
+    costs = [round(g - n, 6) for g, n in zip(out['gross'], out['net'])]
+    # Full entry at 10 bps; nothing; one of two names sold and one bought.
+    assert costs == [0.001, 0.0, 0.001]
+
+
+def test_registered_costs_are_the_cost_model_per_side():
+    costs = registered_costs.Costs(CostModel.load(ROOT / 'config' / 'cost-model.json'))
+    assert costs.side_bps('HK') == 3.0 + 12.0 * 0.5
+    assert costs.side_bps('us') == 1.0 + 4.0 * 0.5
+    assert registered_costs.Costs(CostModel.free()).side_bps('hk') == 0.0
+
+
+def _store(tmp_path, monkeypatch, docs):
+    monkeypatch.setattr(adjusted_bars.bar_store, 'BARS_DIR', tmp_path)
+    for ticker, doc in docs.items():
+        (tmp_path / f'{ticker}.json').write_text(json.dumps({'ticker': ticker, **doc}))
+
+
+def _bar(day, close):
+    return {'date': day, 'open': close, 'high': close, 'low': close, 'close': close}
+
+
+def test_adjusted_bars_claim_adjustment_only_for_what_the_provider_adjusted(
+        tmp_path, monkeypatch):
+    settled = {'2026-01-05': _bar('2026-01-05', 100.0), '2026-01-06': _bar('2026-01-06', 51.0)}
+    _store(tmp_path, monkeypatch, {
+        'SPLIT': {'leg': 'US', 'tencent': 'usSPLIT.OQ', 'bars': settled},
+        'FLAT': {'leg': 'HK', 'tencent': 'hk00001', 'bars': settled},
+        'RAW': {'leg': 'US', 'tencent': 'usRAW.N', 'bars': settled},
+        'DOWN': {'leg': 'US', 'tencent': 'usDOWN.N', 'bars': settled},
+        'GONE': {'leg': 'US', 'tencent': 'usGONE.N', 'retired': True, 'bars': settled},
+    })
+
+    def fetch(symbol, count):
+        if symbol == 'usDOWN.N':
+            raise OSError('reset')
+        first = 50.0 if symbol == 'usSPLIT.OQ' else 100.0
+        rows = [_bar('2026-01-05', first), _bar('2026-01-06', 51.0),
+                # The session in progress: not in the settled store.
+                _bar('2026-01-07', 52.0)]
+        return rows, symbol != 'usRAW.N'
+
+    bars = adjusted_bars.AdjustedBars(fetch=fetch)
+    assert bars.tickers() == ['FLAT', 'SPLIT']
+    assert [bar['date'] for bar in bars.series('SPLIT')] == ['2026-01-05', '2026-01-06']
+    assert bars.series('SPLIT')[0]['close'] == 50.0 and bars.leg('FLAT') == 'HK'
+    described = bars.describe()
+    assert described['corporate_actions_adjusted'] is True
+    assert described['differs_from_raw'] == 1
+    assert described['left_out'] == {
+        'DOWN': 'fetch failed: OSError', 'GONE': 'retired or not in the settled store',
+        'RAW': 'provider sent no adjusted series'}
+
+    nothing = adjusted_bars.AdjustedBars(['RAW'], fetch=fetch).describe()
+    assert nothing['corporate_actions_adjusted'] is False and nothing['tickers'] == 0
+
+
+def test_the_ledger_counts_a_repeated_question_once(tmp_path, monkeypatch):
+    path = tmp_path / 'strategy-lab' / 'ledger.jsonl'
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: path)
+    drop = {'id': 'statistics-only', 'rationale': 'raw store',
+            'gate': {'corporate_actions_adjusted': False}}
+    raw = optimise(Tape(persistence=0.6, adjusted=False), gate_alternates=[drop])
+    ledger.append(raw)
+    ledger.append(raw)
+    record = ledger.append(optimise(Tape(persistence=0.0), gate_alternates=[drop]))
+    assert record['live_permission'] is False
+    assert record['alternate_gates'][0]['binding'] is False
+
+    [entry] = ledger.statistics(ledger.load()).pop('strategies').values()
+    assert entry['runs'] == 3 and entry['distinct_inputs'] == 2
+    assert entry['candidates'] == 0 and entry['candidate_rate'] == 0.0
+    assert entry['refused_by_check']['corporate_actions_adjusted'] == 1
+    assert entry['alternate_gates']['statistics-only'] == {
+        'binding': False, 'judged': 2, 'would_pass': 1, 'disagrees_with_registered': 1}
+
+    path.write_text(path.read_text() + '{"torn":\n')
+    with pytest.raises(ValueError, match='unreadable ledger row'):
+        ledger.load()

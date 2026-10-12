@@ -31,6 +31,17 @@ scoring:
   overfitting is below one half (`evaluation.cscv`);
 * the bars are adjusted for corporate actions.
 
+What it costs
+-------------
+The rank IC is gross: it says the ordering carried information, not that
+anything survives being traded. So each session's scores are also held as a
+portfolio — the better half of the names, equal-weighted, against all of them
+— and charged the registered cost model (`costs` service) on the names that
+enter and leave when the tranche formed `horizon` sessions earlier is replaced.
+`net_of_cost` reports that excess before and after the charge and the turnover
+behind it. The registered gate does not read it; an alternate may, through
+`oos_net_excess_ci95_lower_gt`.
+
 A refusal lists every check it failed. Changing the registered parameters is
 then an edit to the row in `config/strategy-plugins.json`, reviewed like any
 other configuration change.
@@ -57,7 +68,7 @@ from clawock.evaluation import bootstrap, cscv
 from clawock.evaluation.signal_panel import _spearman
 
 name = 'walkforward-optimizer'
-inject = ('strategies', 'bars')
+inject = ('strategies', 'bars', 'costs')
 
 DEFAULTS = {
     # Forward horizon in sessions; `signal_panel` scores 1, 5 and 20.
@@ -75,6 +86,9 @@ DEFAULTS = {
         'oos_lift_ci95_lower_gt': 0.0,
         'pbo_lt': 0.5,
         'corporate_actions_adjusted': True,
+        # Not part of the registered gate. An alternate sets a number here to
+        # ask whether the edge is still there after the registered costs.
+        'oos_net_excess_ci95_lower_gt': None,
     },
 }
 
@@ -115,11 +129,13 @@ def configurations(space: dict) -> list[dict]:
             for values in itertools.product(*(space[key] for key in keys))]
 
 
-def ic_matrix(spec, bars, configs, *, horizon: int, min_cross_section: int):
-    """(sessions, matrix[session][config]) of daily rank ICs.
+def panel(spec, bars, configs, *, horizon: int, min_cross_section: int):
+    """(sessions, matrix[session][config], cells[session][config]).
 
-    Only sessions where every configuration could be ranked are kept: a chooser
-    can only choose between candidates scored on the same day.
+    `matrix` holds the daily rank ICs; `cells` the (ticker, score, forward
+    return) triples each one was computed from. Only sessions where every
+    configuration could be ranked are kept: a chooser can only choose between
+    candidates scored on the same day.
     """
     pairs = defaultdict(lambda: [[] for _ in configs])
     for ticker in bars.tickers():
@@ -132,15 +148,61 @@ def ic_matrix(spec, bars, configs, *, horizon: int, min_cross_section: int):
             for column, params in enumerate(configs):
                 value = spec.score(history, params)
                 if value is not None:
-                    pairs[series[index]['date']][column].append((value, forward))
-    sessions, matrix = [], []
+                    pairs[series[index]['date']][column].append((ticker, value, forward))
+    sessions, matrix, cells = [], [], []
     for day in sorted(pairs):
-        row = [_spearman(cell) if len(cell) >= min_cross_section else None
+        row = [_spearman([triple[1:] for triple in cell])
+               if len(cell) >= min_cross_section else None
                for cell in pairs[day]]
         if all(value is not None for value in row):
             sessions.append(day)
             matrix.append(row)
-    return sessions, matrix
+            cells.append(pairs[day])
+    return sessions, matrix, cells
+
+
+def ic_matrix(spec, bars, configs, *, horizon: int, min_cross_section: int):
+    """(sessions, matrix[session][config]) of daily rank ICs."""
+    return panel(spec, bars, configs, horizon=horizon,
+                 min_cross_section=min_cross_section)[:2]
+
+
+def _basket(cell) -> list[str]:
+    """The better half by score; ties broken by ticker so a rerun agrees."""
+    ranked = sorted(cell, key=lambda triple: (-triple[1], triple[0]))
+    return [triple[0] for triple in ranked[:(len(ranked) + 1) // 2]]
+
+
+def net_excess(cells, picks, positions, *, horizon: int, side_bps) -> dict:
+    """Per-session excess of the better-half basket, before and after costs.
+
+    `picks[k]` is the configuration in force at `positions[k]`. A tranche is
+    held `horizon` sessions, so the one formed at session i replaces the one
+    formed at i - horizon: names that leave are sold and names that enter are
+    bought, each at `side_bps(ticker)` on its weight. The first tranches have
+    nothing to replace and pay a full entry. The equal-weight comparison is
+    charged nothing, which leans against the strategy.
+    """
+    chosen = dict(zip(positions, picks))
+    gross, net, turnover = [], [], []
+    for position, pick in zip(positions, picks):
+        cell = cells[position][pick]
+        forward = {ticker: value for ticker, _, value in cell}
+        basket = _basket(cell)
+        before = position - horizon
+        previous = (_basket(cells[before][chosen.get(before, pick)])
+                    if before >= 0 else [])
+        bought = [ticker for ticker in basket if ticker not in previous]
+        sold = [ticker for ticker in previous if ticker not in basket]
+        cost = sum(side_bps(ticker) for ticker in bought) / len(basket)
+        if previous:
+            cost += sum(side_bps(ticker) for ticker in sold) / len(previous)
+        excess = (statistics.fmean(forward[ticker] for ticker in basket)
+                  - statistics.fmean(forward.values()))
+        gross.append(excess)
+        net.append(excess - cost / 10_000)
+        turnover.append(len(bought) / len(basket))
+    return {'gross': gross, 'net': net, 'turnover': turnover}
 
 
 def _best(matrix, rows, default: int) -> int:
@@ -173,7 +235,7 @@ def walk_forward(sessions, matrix, default: int, *, min_train: int,
             'default': default_ics}
 
 
-def mean_ci(values, *, min_block: int, samples: int, seed: int):
+def mean_ci(values, *, min_block: int, samples: int, seed: int, digits: int = 4):
     """95% stationary-bootstrap interval for the mean of a dependent series.
 
     Forward returns over `horizon` sessions overlap, so adjacent daily ICs
@@ -187,11 +249,12 @@ def mean_ci(values, *, min_block: int, samples: int, seed: int):
         statistics.fmean(values[i] for i in
                          bootstrap.stationary_bootstrap_indices(len(values), block, rnd))
         for _ in range(samples))
-    return [round(draws[int(0.025 * (samples - 1))], 4),
-            round(draws[int(0.975 * (samples - 1))], 4)]
+    return [round(draws[int(0.025 * (samples - 1))], digits),
+            round(draws[int(0.975 * (samples - 1))], digits)]
 
 
-def _gate(thresholds: dict, *, oos_sessions, ic_ci, lift_ci, pbo, adjusted) -> list[dict]:
+def _gate(thresholds: dict, *, oos_sessions, ic_ci, lift_ci, pbo, adjusted,
+          net_ci=None) -> list[dict]:
     def check(key, observed, passed, required):
         return {'check': key, 'observed': observed, 'required': required,
                 'passed': bool(passed)}
@@ -212,12 +275,17 @@ def _gate(thresholds: dict, *, oos_sessions, ic_ci, lift_ci, pbo, adjusted) -> l
     ]
     if thresholds.get('corporate_actions_adjusted'):
         checks.append(check('corporate_actions_adjusted', adjusted, adjusted is True, True))
+    floor = thresholds.get('oos_net_excess_ci95_lower_gt')
+    if floor is not None:
+        checks.append(check('oos_net_excess_ci95_lower_gt', net_ci and net_ci[0],
+                            net_ci is not None and net_ci[0] > floor, f'> {floor}'))
     return checks
 
 
 class Optimizer:
-    def __init__(self, strategies, bars, settings: dict):
-        self.strategies, self.bars, self.settings = strategies, bars, settings
+    def __init__(self, strategies, bars, costs, settings: dict):
+        self.strategies, self.bars, self.costs = strategies, bars, costs
+        self.settings = settings
 
     def run(self, strategy: str) -> dict:
         spec = self.strategies.get(strategy)
@@ -229,7 +297,7 @@ class Optimizer:
                 f'{strategy}: registered params {spec.params} are not a point of '
                 'the declared space, so the search has no baseline')
         default = configs.index(spec.params)
-        sessions, matrix = ic_matrix(
+        sessions, matrix, cells = panel(
             spec, self.bars, configs, horizon=horizon,
             min_cross_section=settings['min_cross_section'])
         embargo = horizon + 1
@@ -240,6 +308,18 @@ class Optimizer:
         ci = dict(min_block=horizon, samples=settings['bootstrap_samples'], seed=seed)
         lift = [a - b for a, b in zip(walk['chosen'], walk['default'])]
         ic_ci, lift_ci = mean_ci(walk['chosen'], **ci), mean_ci(lift, **ci)
+        index_of = {day: i for i, day in enumerate(sessions)}
+        positions = [index_of[day] for day in walk['days']]
+        picks = [fold['chosen'] for fold in walk['folds']
+                 for _ in range(fold['test_sessions'])]
+
+        def side_bps(ticker):
+            return self.costs.side_bps(self.bars.leg(ticker))
+
+        traded = net_excess(cells, picks, positions, horizon=horizon, side_bps=side_bps)
+        baseline = net_excess(cells, [default] * len(positions), positions,
+                              horizon=horizon, side_bps=side_bps)
+        net_ci = mean_ci(traded['net'], **ci, digits=6)
         pbo = cscv.probability_of_backtest_overfitting(
             matrix, statistics.fmean, n_groups=settings['pbo_groups'],
             embargo=embargo) if matrix else {
@@ -248,7 +328,8 @@ class Optimizer:
         source = self.bars.describe()
         measured = dict(
             oos_sessions=len(walk['days']), ic_ci=ic_ci, lift_ci=lift_ci,
-            pbo=pbo.get('pbo'), adjusted=source.get('corporate_actions_adjusted'))
+            pbo=pbo.get('pbo'), adjusted=source.get('corporate_actions_adjusted'),
+            net_ci=net_ci)
         checks = _gate(settings['gate'], **measured)
         passed = all(item['passed'] for item in checks)
         alternates = []
@@ -268,8 +349,8 @@ class Optimizer:
              for c in range(len(configs))),
             key=lambda item: -item['mean_ic']) if matrix else []
 
-        def mean(values):
-            return round(statistics.fmean(values), 4) if values else None
+        def mean(values, digits=4):
+            return round(statistics.fmean(values), digits) if values else None
 
         return {
             'schema_version': 1,
@@ -288,7 +369,7 @@ class Optimizer:
             # Second opinions. None of them feeds `status` above.
             'alternate_gates': alternates,
             'objective': (f'mean daily rank IC against the {horizon}-session forward '
-                          'return; gross, no trades are simulated'),
+                          'return, gross; net_of_cost holds the same picks as a basket'),
             'search': {'space': spec.space, 'configurations': len(configs)},
             'sample': {'sessions': len(sessions),
                        'first': sessions[0] if sessions else None,
@@ -305,6 +386,18 @@ class Optimizer:
                 'folds': [dict(fold, chosen=configs[fold['chosen']])
                           for fold in walk['folds']],
             },
+            # Per session, in return units over the horizon: the better-half
+            # basket less the equal-weight of every scored name.
+            'net_of_cost': {
+                'portfolio': (f'better half by score, equal-weighted, held {horizon} '
+                              'sessions, against the equal-weight of all scored names'),
+                'oos_mean_gross_excess': mean(traded['gross'], 6),
+                'oos_mean_net_excess': mean(traded['net'], 6),
+                'oos_net_excess_ci95': net_ci,
+                'oos_mean_net_excess_registered': mean(baseline['net'], 6),
+                'mean_turnover_per_tranche': mean(traded['turnover']),
+                'costs': self.costs.describe(),
+            },
             'pbo': {key: pbo.get(key) for key in
                     ('status', 'pbo', 'n_splits', 'reason',
                      'mean_out_of_sample_degradation') if key in pbo},
@@ -318,4 +411,5 @@ def apply(ctx, config):
     gate = _thresholds(config.get('gate'), 'gate')
     settings = {**DEFAULTS, **config, 'gate': gate,
                 'gate_alternates': _alternates(config.get('gate_alternates'), gate)}
-    ctx.provide('optimizer', Optimizer(ctx.get('strategies'), ctx.get('bars'), settings))
+    ctx.provide('optimizer', Optimizer(
+        ctx.get('strategies'), ctx.get('bars'), ctx.get('costs'), settings))

@@ -166,7 +166,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock run-card` | `clawock.evidence.run_card` | records that a backtest ran and against what — provenance, not a measurement |
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |
 | `clawock signal-panel` | `clawock.evaluation.signal_panel` | measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection |
-| `clawock strategy-lab` | `clawock.strategies.lab` | mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over stored bars; it prints a proposal that never carries live permission — evaluation, not collection |
+| `clawock strategy-lab` | `clawock.strategies.lab` | mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over adjusted daily bars; it prints a proposal that never carries live permission and records each verdict in its own ledger — evaluation, not collection |
 | `clawock scorecard-provenance` | `clawock.evidence.scorecard_verify` | names the ledger slice and code a published scorecard number came from — provenance, not a measurement |
 | `clawock provenance` | `clawock.provenance` | gate: a published research figure needs two independent sources |
 | `clawock mark-followed` | `clawock.decision.execution` | writes execution ground truth into the decision ledger |
