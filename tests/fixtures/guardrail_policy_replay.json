@@ -1023,8 +1023,8 @@
           "leg": "US",
           "ticker": "TQQQ",
           "severity": "high",
-          "detail": "🧭 TQQQ=2xQQQ 完整波动率不可用；短日均线偏离 -5%，按 short_ma 右侧确认制度为 cut",
-          "action": "TQQQ 2x→QQQ 现货换仓(driven_by=risk_rule,规则非择时)：完整波动率不可用，当前仅按 short_ma：标的仍在短均线下，2x 暂换现货；短均线重新确认后再评估",
+          "detail": "🧭 TQQQ=2xQQQ 200日均线不足；完整波动率不可用；短日均线偏离 -5%，按 short_ma 右侧确认制度为 cut",
+          "action": "TQQQ 2x→QQQ 现货换仓(driven_by=risk_rule,规则非择时)：200日均线不足，当前仅按 short_ma：标的仍在短均线下，2x 暂换现货；短均线重新确认后再评估",
           "required_reduction": {
             "kind": "full_leveraged_position",
             "target_tickers": [

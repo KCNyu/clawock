@@ -55,7 +55,8 @@
         return { cur, ccy:"%", who: isUs ? "账面 US" : "账面 HK",
                  strip:["book","hk","us","pct"], isPct:true };
       }
-      const tok = key.split(/[_\-]/)[0];
+      const tokens = key.split(/[_\-]/);
+      const tok = tokens.find(t => hmap[t.toUpperCase()]) || tokens[0];
       const h = hmap[tok.toUpperCase()];
       // spch_breakdown_pct: -4 is a percent threshold whose base the key does
       // not name (cost? today's open?), so it gets no current value and no

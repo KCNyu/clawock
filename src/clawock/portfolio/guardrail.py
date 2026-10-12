@@ -26,6 +26,16 @@ def _is_leveraged_etf(holding):
     return is_leveraged_holding(holding)
 
 
+def hhi_verdict(hhi, top2):
+    if hhi < 0.15 and top2 < 0.40:
+        return {'level': 'healthy', 'label': '健康'}
+    if hhi < 0.25 and top2 < 0.60:
+        return {'level': 'moderate', 'label': '偏集中'}
+    if hhi < 0.40 and top2 < 0.75:
+        return {'level': 'concentrated', 'label': '集中风险'}
+    return {'level': 'danger', 'label': '危险集中'}
+
+
 def compute_concentration(holdings):
     """HHI + Top2 + per-holding weights for one leg."""
     active = [h for h in ledger_rows(holdings) if (_share_number(h.get('shares', 0)) or 0) > 0]
@@ -46,21 +56,18 @@ def compute_concentration(holdings):
         })
     weights.sort(key=lambda x: -x['weight_pct'])
 
-    hhi  = sum((w['weight_pct'] / 100) ** 2 for w in weights)
-    top2 = sum(w['weight_pct'] for w in weights[:2])
+    raw_weights = sorted((h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0))
+                          / total for h in active), reverse=True)
+    hhi = sum(w ** 2 for w in raw_weights)
+    top2 = sum(raw_weights[:2])
 
-    if hhi > 0.40:
-        verdict = '🔴 危险集中'
-    elif hhi > 0.25:
-        verdict = '⚠️ 集中风险'
-    elif hhi > 0.15:
-        verdict = '偏集中'
-    else:
-        verdict = '✅ 健康'
+    rating = hhi_verdict(hhi, top2)
+    icon = {'healthy': '✅ ', 'moderate': '', 'concentrated': '⚠️ ', 'danger': '🔴 '}
+    verdict = icon[rating['level']] + rating['label']
 
     return {
         'hhi':        round(hhi, 3),
-        'top2_pct':   round(top2, 1),
+        'top2_pct':   round(top2 * 100, 1),
         'verdict':    verdict,
         'leg_total':  round(total, 2),
         'weights':    weights,
@@ -269,15 +276,17 @@ def _regime_delever_policy(us_holdings, lev_regime, reduce_exempt_strategies=fro
                 if _reduce_exempt(holding, reduce_exempt_strategies):
                     continue
                 vol = nm.get('vol_annualized')
-                if vol is None:
-                    basis = nm.get('regime_basis') or 'short_ma'
+                basis = nm.get('regime_basis') or ('short_ma' if vol is None else 'ma_200_and_20d_realized_vol')
+                if basis.startswith('short_ma') or vol is None:
+                    vol_note = (nm.get('vol_unavailable_reason') or '完整波动率不可用'
+                                if vol is None else f'20日年化波动 {vol * 100:.1f}%')
                     detail = (
-                        f"🧭 {nm['etf']}=2x{nm['underlying']} 完整波动率不可用；"
+                        f"🧭 {nm['etf']}=2x{nm['underlying']} 200日均线不足；{vol_note}；"
                         f"{nm.get('ma_window') or '短'}日均线偏离 "
                         f"{nm.get('dist_ma_pct')}%，按 {basis} 右侧确认制度为 cut"
                     )
                     action_reason = (
-                        f"完整波动率不可用，当前仅按 {basis}：标的仍在短均线下，"
+                        f"200日均线不足，当前仅按 {basis}：标的仍在短均线下，"
                         "2x 暂换现货；短均线重新确认后再评估"
                     )
                 else:
@@ -477,7 +486,8 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
     （β 也是 2x）——换 1x 买的是「横盘不失血 + 再跌少挨一半」，不是「回本更快」。
     LLM 报解套/回本相关数字时必须引用这里，不准心算。"""
     us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
-    us_vols = {n.get('etf'): n.get('vol_annualized') for n in (us_reg or {}).get('names', [])}
+    us_names = {n.get('etf'): n for n in (us_reg or {}).get('names', [])}
+    us_vols = {etf: n.get('vol_annualized') for etf, n in us_names.items()}
     hk_dial = (lev_regime.get('hk') or lev_regime) if isinstance(lev_regime, dict) else {}
     rows = []
     for leg, hold in (('HK', hk_holdings), ('US', us_holdings)):
@@ -499,7 +509,7 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
                 row['swap_1x'] = LEV_1X_SWAP.get(h['ticker'])
                 row['underlying_need_if_1x_pct'] = round(need, 1)
                 sigma = us_vols.get(h['ticker']) if leg == 'US' else hk_dial.get('vol_annualized')
-                if isinstance(sigma, (int, float)) and sigma > 0:
+                if isinstance(sigma, (int, float)) and sigma >= 0:
                     drag_y = sigma ** 2                     # k=2 → (k²−k)/2·σ² = σ²
                     x_2x = math.sqrt((1 + need / 100) * math.exp(drag_y * 0.5)) - 1
                     row.update({
@@ -508,6 +518,9 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
                         'underlying_need_2x_6m_pct': round(x_2x * 100, 1),
                         'underlying_need_if_1x_pct': round(need, 1),
                     })
+                else:
+                    dial = us_names.get(h['ticker'], {}) if leg == 'US' else hk_dial
+                    row['vol_unavailable_reason'] = dial.get('vol_unavailable_reason') or '标的波动率不可用'
             rows.append(row)
     rows.sort(key=lambda r: r['pnl_pct'])
     return {

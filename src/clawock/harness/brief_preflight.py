@@ -122,12 +122,11 @@ def _run_clawock(command, args=None, timeout=120):
 def _action_track_record():
     """How each kind of advice has actually settled, for the brief to print.
 
-    The brief tells kcn to cut 700 shares at confidence 0.92 and says nothing
-    about how the last two hundred cuts went. They went 112–101 (52.6%) at T+1,
-    which is a coin flip, and a reader who knew that would read the same
-    sentence differently. Counting is all this does: the outcomes were already
-    written by `settle_decisions`, and `not_triggered` is kept separate because
-    a conditional order that never filled is not a wrong call.
+    Count the whole ledger's T+1 evaluation outcomes by action. The hit rate is
+    win / (win + loss + flat); it is None when no calls have settled. These
+    counts change as `settle_decisions` writes outcomes, so the returned values
+    are the source, not a frozen example. Keep `not_triggered` separate: a
+    conditional order that never filled is not a wrong call.
     """
     try:
         rows = decision_v2.load_decisions()

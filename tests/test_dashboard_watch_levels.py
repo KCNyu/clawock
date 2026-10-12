@@ -124,3 +124,18 @@ def test_an_unheld_subject_is_named_once_and_its_words_translated(bundle):
                                   "hstech_breakdown": 4246})
     labels = {(r["who"], r["label"]) for r in rows}
     assert labels == {("RKLB", "200日线 收复"), ("US", "10年 收益率 预警"), ("恒科", "破位")}
+
+
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_market_prefix_resolves_the_actual_holding_token(bundle):
+    rows = _ordered_rows(bundle, {"hk_07226_breakdown": 2.516, "hk_00100_trim_trigger": 225}, [
+        {"ticker": "07226", "current_price": 2.646, "region": "hk"},
+        {"ticker": "00100", "current_price": 213, "region": "hk"},
+    ])
+    by_name = {r["who"]: r for r in rows}
+    assert set(by_name) == {"07226", "00100"}
+    assert by_name["07226"]["cur"] == 2.646
+    assert by_name["07226"]["dist"] == pytest.approx(5.16693, abs=.00001)
+    assert by_name["00100"]["cur"] == 213
+    assert by_name["00100"]["dist"] == pytest.approx(-5.33333, abs=.00001)
+    assert all(r["ccy"] == "HKD" for r in rows)
