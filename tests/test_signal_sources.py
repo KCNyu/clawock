@@ -191,21 +191,19 @@ def test_a_name_reddit_did_not_answer_for_is_kept_as_unknown_not_dropped_as_quie
     assert answer['detail']['unanswered'] == 1
 
 
-def _both(tmp_path, monkeypatch, capsys, moves=_moves):
-    """(new, legacy), each as (reading, issues, console)."""
+def _loaders(tmp_path, monkeypatch, capsys, moves=_moves):
+    """What the brief's two loaders return, the issues they raise and what they print."""
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
     monkeypatch.setattr(brief_preflight, '_recent_price_moves', moves)
-    sent_path = tmp_path / 'assets' / 'data' / 'sentiment.json'
-    out = []
-    for attention, statements in (
-            (brief_preflight._sentiment_reading, brief_preflight.load_influencer_feed),
-            (brief_preflight._legacy_sentiment_reading,
-             brief_preflight._legacy_load_influencer_feed)):
-        issues = []
-        capsys.readouterr()
-        readings = (attention(sent_path, 36, issues), statements(issues))
-        out.append((readings, issues, capsys.readouterr().out))
-    return out
+    issues = []
+    capsys.readouterr()
+    readings = [brief_preflight._sentiment_reading(
+        tmp_path / 'assets' / 'data' / 'sentiment.json', 36, issues),
+        brief_preflight.load_influencer_feed(issues)]
+    for reading in readings:
+        reading.pop('as_of', None)  # the stamp is set relative to now by the fixture
+    return json.loads(json.dumps({'readings': readings, 'issues': issues,
+                                  'console': capsys.readouterr().out}, ensure_ascii=False))
 
 
 def _raises(tickers):
@@ -239,18 +237,28 @@ CASES = {
 }
 
 
+LOADERS = FIXTURES / 'brief_loaders.json'
+
+
 @pytest.mark.parametrize('case', sorted(CASES))
-def test_the_brief_loaders_answer_as_the_code_they_replaced(case, tmp_path, monkeypatch, capsys):
+def test_the_brief_loaders_answer_as_recorded(case, tmp_path, monkeypatch, capsys):
+    """The readings, issues and console lines these loaders gave on 2026-10-12,
+    when the code they replaced was still in the tree and answered the same."""
     _workspace(tmp_path, **CASES[case])
-    new, legacy = _both(tmp_path, monkeypatch, capsys)
-    assert new == legacy
+    answered = _loaders(tmp_path, monkeypatch, capsys)
+    recorded = json.loads(LOADERS.read_text())
+    if os.environ.get('CLAWOCK_WRITE_GOLDENS') == '1':
+        recorded[case] = answered
+        LOADERS.write_text(json.dumps(recorded, ensure_ascii=False, indent=1, sort_keys=True) + '\n')
+    assert answered == recorded[case]
 
 
-def test_a_failing_price_lookup_is_reported_the_same_way(tmp_path, monkeypatch, capsys):
+def test_a_failing_price_lookup_is_an_issue_and_an_empty_reading(tmp_path, monkeypatch, capsys):
     _workspace(tmp_path, attention=_scan('sentiment.json'))
-    new, legacy = _both(tmp_path, monkeypatch, capsys, moves=_raises)
-    assert new == legacy
-    assert new[1] == ['sentiment load exception: RuntimeError', 'influencer feed missing']
+    answered = _loaders(tmp_path, monkeypatch, capsys, moves=_raises)
+    assert answered['readings'] == [{}, {}]
+    assert answered['issues'] == ['sentiment load exception: RuntimeError', 'influencer feed missing']
+    assert 'sentiment load failed: bars store unreadable' in answered['console']
 
 
 # ── a row that fails ────────────────────────────────────────────────────────

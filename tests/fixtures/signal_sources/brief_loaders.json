@@ -1,0 +1,1075 @@
+{
+ "an empty scan": {
+  "console": "   sentiment: 0/0 tickers have reddit/news signal\n   influencer: 0 held-hits, 0 new-ideas, 0 sector\n",
+  "issues": [],
+  "readings": [
+   {
+    "age_hours": 1.2,
+    "sources": [],
+    "tickers": []
+   },
+   {
+    "age_hours": 1.2,
+    "counts": {},
+    "held_hits": [],
+    "llm_filter_status": null,
+    "new_ideas": [],
+    "sector_hits": [],
+    "source_status": {},
+    "sources": {}
+   }
+  ]
+ },
+ "both a day and a half old": {
+  "console": "   ⚠ sentiment stale/unknown (37h, cutoff 36h) — omitting from brief (non-fatal)\n   ⚠ influencer feed stale/unknown (37h) — omitting from brief (non-fatal)\n",
+  "issues": [],
+  "readings": [
+   {},
+   {}
+  ]
+ },
+ "both absent": {
+  "console": "   ⚠ sentiment.json missing — sentiment-scan never ran\n   ⚠ influencer_feed.json missing — influencer-scan never ran\n",
+  "issues": [
+   "sentiment snapshot missing",
+   "influencer feed missing"
+  ],
+  "readings": [
+   {},
+   {}
+  ]
+ },
+ "just inside the window": {
+  "console": "   sentiment: 9/9 tickers have reddit/news signal\n   influencer: 0 held-hits, 14 new-ideas, 7 sector\n",
+  "issues": [],
+  "readings": [
+   {
+    "age_hours": 35.4,
+    "sources": [
+     "reddit-search-rss",
+     "google-news-rss"
+    ],
+    "tickers": [
+     {
+      "name": "Circle Internet Group Inc-A",
+      "news_top": [
+       "COIN, CRCL Stocks Have ‘Outsized’ Bitcoin Recovery Leverage, Says William Blair",
+       "CRCL Oct 2026 89.000 put (CRCL261016P00089000) Stock Price, News, Quote & History",
+       "Circle Internet Group (NYSE:CRCL) Stock Rating Cut to \"Strong Sell\" at Wall Street Zen"
+      ],
+      "recent_move": {
+       "n_sessions": 5,
+       "px_pct": 4.0
+      },
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "us_stocks",
+      "ticker": "CRCL"
+     },
+     {
+      "name": "Defiance Daily Target 2X Long R",
+      "news_top": [
+       "RKLX Feb 2027 50.000 call (RKLX270219C00050000) Stock Price, News, Quote & History",
+       "Technical Reactions to RKLX Trends in Macro Strategies",
+       "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation"
+      ],
+      "recent_move": {
+       "n_sessions": 5,
+       "px_pct": 4.0
+      },
+      "reddit_mentions_7d": 1,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "Interstage and Stage 1 Tank Failures & Remediations",
+        "url": "https://www.reddit.com/r/RKLBInvestors/comments/1x3myg6/interstage_and_stage_1_tank_failures_remediations/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "RKLX"
+     },
+     {
+      "name": "SpaceX",
+      "news_top": [
+       "SPCX Stock Quote Price and Forecast",
+       "SPCX Stock Eyes Another Green Week: Analyst Warns Traders To ‘Divorce’ SpaceX Rally From Fundamentals",
+       "SPCX Stock Slips After-Hours As SpaceX Reportedly Seeks $40B For Nvidia Chips"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 2,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "AI Investment Boom Sparks Bubble Fears as SpaceX, SoftBank and CFOs Collide on Costs",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3kk5o/ai_investment_boom_sparks_bubble_fears_as_spacex/"
+       },
+       {
+        "title": "Amazon in Talks to Acquire AI Startup Decart for Around $7 Billion",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3k3t6/amazon_in_talks_to_acquire_ai_startup_decart_for/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "SPCX"
+     },
+     {
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "news_top": [
+       "SPCH: Leverage Shares 2x Long SPCX Daily ETF Latest Stock Price, Analysis, News and Trading Ideas",
+       "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$",
+       "SPCH Oct 2026 11.000 call (SPCH261009C00011000) Stock Price, News, Quote & History"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 2,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "AI Investment Boom Sparks Bubble Fears as SpaceX, SoftBank and CFOs Collide on Costs",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3kk5o/ai_investment_boom_sparks_bubble_fears_as_spacex/"
+       },
+       {
+        "title": "Amazon in Talks to Acquire AI Startup Decart for Around $7 Billion",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3k3t6/amazon_in_talks_to_acquire_ai_startup_decart_for/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "SPCH"
+     },
+     {
+      "name": "MINIMAX-W",
+      "news_top": [
+       "MiniMax Shares Plunge 80% From Peak; Founder Halts Salary, Donates 5% Stake to Shore Up Confidence",
+       "MINIMAX-W (00100.HK) Stock Price, Quote & News",
+       "Major Brokerage Cuts MiniMax (00100.HK) Target Price to HK$760, Maintains 'Hold' Rating; Impending Lock-up Expiry and Peer IPOs to Dampen Scarcity Premium"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "00100"
+     },
+     {
+      "name": "金风科技",
+      "news_top": [
+       "Zhitong HK Stock Short Position Statistics | September 25",
+       "Goldwind Science&Technology Co., Ltd. (2208.HK) stock price, news, quote and history",
+       "Goldwind Science & Technology (02208) has cumulatively repurchased 13.0166 million A-shares as of the end of September."
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "02208"
+     },
+     {
+      "name": "恒生科技ETF",
+      "news_top": [
+       "Hang Seng TECH Index ETF (3032.HK) stock price, news, quote and history",
+       "Hang Seng Investment Index Funds Series - Hang Seng Tech Index ETF (3032.HK) stock price, news, quote and history",
+       "GF Securities: Optimistic about the rebound opportunities for Hong Kong stocks in the second quarter, particularly in April and May."
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "03032"
+     },
+     {
+      "name": "XL二南方恒科",
+      "news_top": [
+       "CSOP Leveraged and Inverse Series - CSOP Hang Seng TECH Index Daily (2x) Leveraged Product (7226.HK)",
+       "ETF Market Movement | CSOP FTSE China Tech 2x Leveraged ETF (07226) rises over 6% as the Hang Seng Tech Index gains more than 3%, surpassing the 5,100-point mark",
+       "HK Stock Market Morning Brief | Hang Seng TECH Index to Expand Constituents to 50; OpenAI Rolls Out GPT-6 Globally"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "07226"
+     },
+     {
+      "name": "南方恒生科技",
+      "news_top": [
+       "Zhitong HK Stock Connect Holdings Analysis | August 26",
+       "CSOP ETF Series - CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
+       "Southbound Flows Net Buy Just HK$15 Million in a Single Day; AIA Gets HK$809 Million Boost While Akeso Hit by Sell-Off"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "03033"
+     }
+    ]
+   },
+   {
+    "age_hours": 35.4,
+    "counts": {
+     "held_hits": 0,
+     "new_ideas": 14,
+     "sector_hits": 7,
+     "total": 24
+    },
+    "held_hits": [],
+    "llm_filter_status": "ok",
+    "new_ideas": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "ARKF"
+      ],
+      "relevance": 78,
+      "sector_holdings": [
+       "CRCL"
+      ],
+      "sectors": [
+       "比特币",
+       "加密货币",
+       "ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，基金卖出ARKB/ARKF相关比特币ETF 350,270股，占比1.07%，为较大规模机构减仓。"
+     },
+     {
+      "author": "段永平",
+      "held": [],
+      "new_ideas": [
+       "BABA",
+       "PDD"
+      ],
+      "relevance": 72,
+      "sector_holdings": [
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "中国互联网",
+       "电商"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，段永平相关持仓在Shein上市后股价持续下跌之际转向阿里和拼多多，显示其偏好中国互联网及电商资产。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [
+       "TSLA"
+      ],
+      "relevance": 70,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电动车"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk预计SpaceX股价未来升至极高水平，并再度作出类似Tesla的乐观估值判断，利好商业航天主题但不代表可直接交易。"
+     },
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "DKNG"
+      ],
+      "relevance": 70,
+      "sector_holdings": [],
+      "sectors": [
+       "博彩",
+       "在线娱乐"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出DraftKings 394,834股，占ETF比重0.33%，属于有一定规模的机构减仓。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "1211.HK"
+      ],
+      "relevance": 68,
+      "sector_holdings": [],
+      "sectors": [
+       "电动车",
+       "中国汽车"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，Michael Burry买入比亚迪股票，表达对中国电动车及新能源汽车产业的投资偏好。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "LULU"
+      ],
+      "relevance": 67,
+      "sector_holdings": [],
+      "sectors": [
+       "消费",
+       "服装零售",
+       "税务"
+      ],
+      "stance": "sell",
+      "summary_cn": "据报道，Michael Burry以税损卖出Lululemon并解释这是投资组合管理而非放弃看多，属于对LULU的实际减持动作。"
+     }
+    ],
+    "sector_hits": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 85,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网",
+       "ARK ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出SpaceX相关持仓22,276股，占比0.15%；SpaceX本身未上市，但该动作与kcn航天主题敞口相关。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 68,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk认为SpaceX未来估值可能远超全球经济体，释放出对卫星互联网及商业航天长期增长的高度乐观预期。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 64,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电信",
+       "印度市场"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk承诺在印度推出更便宜的Starlink服务，或加剧当地电信竞争并利好卫星互联网渗透。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 62,
+      "sector_holdings": [
+       "00100",
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "半导体",
+       "AI"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk称Terrafab工厂将生产“优于任何竞争者”的芯片，强化市场对AI及半导体制造扩张的预期。"
+     }
+    ],
+    "source_status": {
+     "ark": "success",
+     "burry": "success",
+     "duan": "success",
+     "honghao": "success",
+     "musk": "success",
+     "pelosi": "success",
+     "serenity": "failed",
+     "trump": "success"
+    },
+    "sources": {
+     "ark": "arkfunds.io/api/v2/etf/trades (ARK 日度调仓, 一手)",
+     "burry": "google-news-rss en-US (Burry 报道, 二手)",
+     "duan": "google-news-rss zh-HK (段永平 报道, 二手)",
+     "honghao": "google-news-rss zh-HK (洪灏 报道, 二手)",
+     "musk": "google-news-rss (proxy)",
+     "pelosi": "google-news-rss en-US (Pelosi 报道, 二手)",
+     "serenity": "aleabitoreddit.substack.com/feed (public posts)",
+     "trump": "trumpstruth.org/feed (primary)"
+    }
+   }
+  ]
+ },
+ "not json": {
+  "console": "   ⚠ sentiment load failed: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\n   ⚠ influencer feed load failed: Expecting value: line 1 column 1 (char 0)\n",
+  "issues": [
+   "sentiment load exception: JSONDecodeError",
+   "influencer load exception: JSONDecodeError"
+  ],
+  "readings": [
+   {},
+   {}
+  ]
+ },
+ "reddit silent on every name": {
+  "console": "   sentiment: 1/3 tickers have reddit/news signal; reddit did not answer for 1\n   influencer: 0 held-hits, 0 new-ideas, 0 sector\n",
+  "issues": [],
+  "readings": [
+   {
+    "age_hours": 1.2,
+    "sources": [
+     "reddit-search-rss",
+     "google-news-rss"
+    ],
+    "tickers": [
+     {
+      "name": null,
+      "news_top": [],
+      "recent_move": null,
+      "reddit_mentions_7d": null,
+      "reddit_status": "failed",
+      "reddit_top": [],
+      "region": null,
+      "ticker": "A"
+     },
+     {
+      "name": null,
+      "news_top": [
+       "标题"
+      ],
+      "recent_move": {
+       "n_sessions": 5,
+       "px_pct": 1.0
+      },
+      "reddit_mentions_7d": 3,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "t",
+        "url": "u"
+       }
+      ],
+      "region": null,
+      "ticker": "C"
+     }
+    ]
+   },
+   {
+    "age_hours": 1.2,
+    "counts": {},
+    "held_hits": [],
+    "llm_filter_status": "ok",
+    "new_ideas": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "ARKF"
+      ],
+      "relevance": 78,
+      "sector_holdings": [
+       "CRCL"
+      ],
+      "sectors": [
+       "比特币",
+       "加密货币",
+       "ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，基金卖出ARKB/ARKF相关比特币ETF 350,270股，占比1.07%，为较大规模机构减仓。"
+     },
+     {
+      "author": "段永平",
+      "held": [],
+      "new_ideas": [
+       "BABA",
+       "PDD"
+      ],
+      "relevance": 72,
+      "sector_holdings": [
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "中国互联网",
+       "电商"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，段永平相关持仓在Shein上市后股价持续下跌之际转向阿里和拼多多，显示其偏好中国互联网及电商资产。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [
+       "TSLA"
+      ],
+      "relevance": 70,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电动车"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk预计SpaceX股价未来升至极高水平，并再度作出类似Tesla的乐观估值判断，利好商业航天主题但不代表可直接交易。"
+     },
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "DKNG"
+      ],
+      "relevance": 70,
+      "sector_holdings": [],
+      "sectors": [
+       "博彩",
+       "在线娱乐"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出DraftKings 394,834股，占ETF比重0.33%，属于有一定规模的机构减仓。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "1211.HK"
+      ],
+      "relevance": 68,
+      "sector_holdings": [],
+      "sectors": [
+       "电动车",
+       "中国汽车"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，Michael Burry买入比亚迪股票，表达对中国电动车及新能源汽车产业的投资偏好。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "LULU"
+      ],
+      "relevance": 67,
+      "sector_holdings": [],
+      "sectors": [
+       "消费",
+       "服装零售",
+       "税务"
+      ],
+      "stance": "sell",
+      "summary_cn": "据报道，Michael Burry以税损卖出Lululemon并解释这是投资组合管理而非放弃看多，属于对LULU的实际减持动作。"
+     }
+    ],
+    "sector_hits": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 85,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网",
+       "ARK ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出SpaceX相关持仓22,276股，占比0.15%；SpaceX本身未上市，但该动作与kcn航天主题敞口相关。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 68,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk认为SpaceX未来估值可能远超全球经济体，释放出对卫星互联网及商业航天长期增长的高度乐观预期。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 64,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电信",
+       "印度市场"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk承诺在印度推出更便宜的Starlink服务，或加剧当地电信竞争并利好卫星互联网渗透。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 62,
+      "sector_holdings": [
+       "00100",
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "半导体",
+       "AI"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk称Terrafab工厂将生产“优于任何竞争者”的芯片，强化市场对AI及半导体制造扩张的预期。"
+     }
+    ],
+    "source_status": {
+     "ark": "success",
+     "burry": "success",
+     "duan": "success",
+     "honghao": "success",
+     "musk": "success",
+     "pelosi": "success",
+     "serenity": "failed",
+     "trump": "success"
+    },
+    "sources": {
+     "ark": "arkfunds.io/api/v2/etf/trades (ARK 日度调仓, 一手)",
+     "burry": "google-news-rss en-US (Burry 报道, 二手)",
+     "duan": "google-news-rss zh-HK (段永平 报道, 二手)",
+     "honghao": "google-news-rss zh-HK (洪灏 报道, 二手)",
+     "musk": "google-news-rss (proxy)",
+     "pelosi": "google-news-rss en-US (Pelosi 报道, 二手)",
+     "serenity": "aleabitoreddit.substack.com/feed (public posts)",
+     "trump": "trumpstruth.org/feed (primary)"
+    }
+   }
+  ]
+ },
+ "stamped in the future": {
+  "console": "   ⚠ sentiment stale/unknown (-2h, cutoff 36h) — omitting from brief (non-fatal)\n   ⚠ influencer feed stale/unknown (-2h) — omitting from brief (non-fatal)\n",
+  "issues": [],
+  "readings": [
+   {},
+   {}
+  ]
+ },
+ "the scans as committed": {
+  "console": "   sentiment: 9/9 tickers have reddit/news signal\n   influencer: 0 held-hits, 14 new-ideas, 7 sector\n",
+  "issues": [],
+  "readings": [
+   {
+    "age_hours": 1.2,
+    "sources": [
+     "reddit-search-rss",
+     "google-news-rss"
+    ],
+    "tickers": [
+     {
+      "name": "Circle Internet Group Inc-A",
+      "news_top": [
+       "COIN, CRCL Stocks Have ‘Outsized’ Bitcoin Recovery Leverage, Says William Blair",
+       "CRCL Oct 2026 89.000 put (CRCL261016P00089000) Stock Price, News, Quote & History",
+       "Circle Internet Group (NYSE:CRCL) Stock Rating Cut to \"Strong Sell\" at Wall Street Zen"
+      ],
+      "recent_move": {
+       "n_sessions": 5,
+       "px_pct": 4.0
+      },
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "us_stocks",
+      "ticker": "CRCL"
+     },
+     {
+      "name": "Defiance Daily Target 2X Long R",
+      "news_top": [
+       "RKLX Feb 2027 50.000 call (RKLX270219C00050000) Stock Price, News, Quote & History",
+       "Technical Reactions to RKLX Trends in Macro Strategies",
+       "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation"
+      ],
+      "recent_move": {
+       "n_sessions": 5,
+       "px_pct": 4.0
+      },
+      "reddit_mentions_7d": 1,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "Interstage and Stage 1 Tank Failures & Remediations",
+        "url": "https://www.reddit.com/r/RKLBInvestors/comments/1x3myg6/interstage_and_stage_1_tank_failures_remediations/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "RKLX"
+     },
+     {
+      "name": "SpaceX",
+      "news_top": [
+       "SPCX Stock Quote Price and Forecast",
+       "SPCX Stock Eyes Another Green Week: Analyst Warns Traders To ‘Divorce’ SpaceX Rally From Fundamentals",
+       "SPCX Stock Slips After-Hours As SpaceX Reportedly Seeks $40B For Nvidia Chips"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 2,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "AI Investment Boom Sparks Bubble Fears as SpaceX, SoftBank and CFOs Collide on Costs",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3kk5o/ai_investment_boom_sparks_bubble_fears_as_spacex/"
+       },
+       {
+        "title": "Amazon in Talks to Acquire AI Startup Decart for Around $7 Billion",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3k3t6/amazon_in_talks_to_acquire_ai_startup_decart_for/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "SPCX"
+     },
+     {
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "news_top": [
+       "SPCH: Leverage Shares 2x Long SPCX Daily ETF Latest Stock Price, Analysis, News and Trading Ideas",
+       "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$",
+       "SPCH Oct 2026 11.000 call (SPCH261009C00011000) Stock Price, News, Quote & History"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 2,
+      "reddit_status": "ok",
+      "reddit_top": [
+       {
+        "title": "AI Investment Boom Sparks Bubble Fears as SpaceX, SoftBank and CFOs Collide on Costs",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3kk5o/ai_investment_boom_sparks_bubble_fears_as_spacex/"
+       },
+       {
+        "title": "Amazon in Talks to Acquire AI Startup Decart for Around $7 Billion",
+        "url": "https://www.reddit.com/r/MarketFluxHub/comments/1x3k3t6/amazon_in_talks_to_acquire_ai_startup_decart_for/"
+       }
+      ],
+      "region": "us_stocks",
+      "ticker": "SPCH"
+     },
+     {
+      "name": "MINIMAX-W",
+      "news_top": [
+       "MiniMax Shares Plunge 80% From Peak; Founder Halts Salary, Donates 5% Stake to Shore Up Confidence",
+       "MINIMAX-W (00100.HK) Stock Price, Quote & News",
+       "Major Brokerage Cuts MiniMax (00100.HK) Target Price to HK$760, Maintains 'Hold' Rating; Impending Lock-up Expiry and Peer IPOs to Dampen Scarcity Premium"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "00100"
+     },
+     {
+      "name": "金风科技",
+      "news_top": [
+       "Zhitong HK Stock Short Position Statistics | September 25",
+       "Goldwind Science&Technology Co., Ltd. (2208.HK) stock price, news, quote and history",
+       "Goldwind Science & Technology (02208) has cumulatively repurchased 13.0166 million A-shares as of the end of September."
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "02208"
+     },
+     {
+      "name": "恒生科技ETF",
+      "news_top": [
+       "Hang Seng TECH Index ETF (3032.HK) stock price, news, quote and history",
+       "Hang Seng Investment Index Funds Series - Hang Seng Tech Index ETF (3032.HK) stock price, news, quote and history",
+       "GF Securities: Optimistic about the rebound opportunities for Hong Kong stocks in the second quarter, particularly in April and May."
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "03032"
+     },
+     {
+      "name": "XL二南方恒科",
+      "news_top": [
+       "CSOP Leveraged and Inverse Series - CSOP Hang Seng TECH Index Daily (2x) Leveraged Product (7226.HK)",
+       "ETF Market Movement | CSOP FTSE China Tech 2x Leveraged ETF (07226) rises over 6% as the Hang Seng Tech Index gains more than 3%, surpassing the 5,100-point mark",
+       "HK Stock Market Morning Brief | Hang Seng TECH Index to Expand Constituents to 50; OpenAI Rolls Out GPT-6 Globally"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "07226"
+     },
+     {
+      "name": "南方恒生科技",
+      "news_top": [
+       "Zhitong HK Stock Connect Holdings Analysis | August 26",
+       "CSOP ETF Series - CSOP Hang Seng TECH Index ETF (3033.HK) stock price, news, quote and history",
+       "Southbound Flows Net Buy Just HK$15 Million in a Single Day; AIA Gets HK$809 Million Boost While Akeso Hit by Sell-Off"
+      ],
+      "recent_move": null,
+      "reddit_mentions_7d": 0,
+      "reddit_status": "ok",
+      "reddit_top": [],
+      "region": "hk_stocks",
+      "ticker": "03033"
+     }
+    ]
+   },
+   {
+    "age_hours": 1.2,
+    "counts": {
+     "held_hits": 0,
+     "new_ideas": 14,
+     "sector_hits": 7,
+     "total": 24
+    },
+    "held_hits": [],
+    "llm_filter_status": "ok",
+    "new_ideas": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "ARKF"
+      ],
+      "relevance": 78,
+      "sector_holdings": [
+       "CRCL"
+      ],
+      "sectors": [
+       "比特币",
+       "加密货币",
+       "ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，基金卖出ARKB/ARKF相关比特币ETF 350,270股，占比1.07%，为较大规模机构减仓。"
+     },
+     {
+      "author": "段永平",
+      "held": [],
+      "new_ideas": [
+       "BABA",
+       "PDD"
+      ],
+      "relevance": 72,
+      "sector_holdings": [
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "中国互联网",
+       "电商"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，段永平相关持仓在Shein上市后股价持续下跌之际转向阿里和拼多多，显示其偏好中国互联网及电商资产。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [
+       "TSLA"
+      ],
+      "relevance": 70,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电动车"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk预计SpaceX股价未来升至极高水平，并再度作出类似Tesla的乐观估值判断，利好商业航天主题但不代表可直接交易。"
+     },
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [
+       "DKNG"
+      ],
+      "relevance": 70,
+      "sector_holdings": [],
+      "sectors": [
+       "博彩",
+       "在线娱乐"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出DraftKings 394,834股，占ETF比重0.33%，属于有一定规模的机构减仓。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "1211.HK"
+      ],
+      "relevance": 68,
+      "sector_holdings": [],
+      "sectors": [
+       "电动车",
+       "中国汽车"
+      ],
+      "stance": "buy",
+      "summary_cn": "据报道，Michael Burry买入比亚迪股票，表达对中国电动车及新能源汽车产业的投资偏好。"
+     },
+     {
+      "author": "Burry",
+      "held": [],
+      "new_ideas": [
+       "LULU"
+      ],
+      "relevance": 67,
+      "sector_holdings": [],
+      "sectors": [
+       "消费",
+       "服装零售",
+       "税务"
+      ],
+      "stance": "sell",
+      "summary_cn": "据报道，Michael Burry以税损卖出Lululemon并解释这是投资组合管理而非放弃看多，属于对LULU的实际减持动作。"
+     }
+    ],
+    "sector_hits": [
+     {
+      "author": "Cathie Wood",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 85,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网",
+       "ARK ETF"
+      ],
+      "stance": "sell",
+      "summary_cn": "ARK Invest每日调仓数据显示，ARKW卖出SpaceX相关持仓22,276股，占比0.15%；SpaceX本身未上市，但该动作与kcn航天主题敞口相关。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 68,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "卫星互联网"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk认为SpaceX未来估值可能远超全球经济体，释放出对卫星互联网及商业航天长期增长的高度乐观预期。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 64,
+      "sector_holdings": [
+       "RKLX",
+       "SPCH"
+      ],
+      "sectors": [
+       "航天",
+       "电信",
+       "印度市场"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk承诺在印度推出更便宜的Starlink服务，或加剧当地电信竞争并利好卫星互联网渗透。"
+     },
+     {
+      "author": "Musk",
+      "held": [],
+      "new_ideas": [],
+      "relevance": 62,
+      "sector_holdings": [
+       "00100",
+       "03032",
+       "03033",
+       "07226"
+      ],
+      "sectors": [
+       "半导体",
+       "AI"
+      ],
+      "stance": "endorse",
+      "summary_cn": "据报道，Musk称Terrafab工厂将生产“优于任何竞争者”的芯片，强化市场对AI及半导体制造扩张的预期。"
+     }
+    ],
+    "source_status": {
+     "ark": "success",
+     "burry": "success",
+     "duan": "success",
+     "honghao": "success",
+     "musk": "success",
+     "pelosi": "success",
+     "serenity": "failed",
+     "trump": "success"
+    },
+    "sources": {
+     "ark": "arkfunds.io/api/v2/etf/trades (ARK 日度调仓, 一手)",
+     "burry": "google-news-rss en-US (Burry 报道, 二手)",
+     "duan": "google-news-rss zh-HK (段永平 报道, 二手)",
+     "honghao": "google-news-rss zh-HK (洪灏 报道, 二手)",
+     "musk": "google-news-rss (proxy)",
+     "pelosi": "google-news-rss en-US (Pelosi 报道, 二手)",
+     "serenity": "aleabitoreddit.substack.com/feed (public posts)",
+     "trump": "trumpstruth.org/feed (primary)"
+    }
+   }
+  ]
+ },
+ "the wrong shape": {
+  "console": "   ⚠ sentiment load failed: 'list' object has no attribute 'get'\n   ⚠ influencer feed load failed: 'int' object has no attribute 'get'\n",
+  "issues": [
+   "sentiment load exception: AttributeError",
+   "influencer load exception: AttributeError"
+  ],
+  "readings": [
+   {},
+   {}
+  ]
+ },
+ "unstamped": {
+  "console": "   ⚠ sentiment stale/unknown (unknown-age (no generated_at), cutoff 36h) — omitting from brief (non-fatal)\n   ⚠ influencer feed stale/unknown (unknown-age (no generated_at)) — omitting from brief (non-fatal)\n",
+  "issues": [],
+  "readings": [
+   {},
+   {}
+  ]
+ }
+}
