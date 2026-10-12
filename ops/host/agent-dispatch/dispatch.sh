@@ -33,6 +33,9 @@
 #   --deadline <datetime>  absolute end for the whole task, Asia/Shanghai (default: now + 24h, max 72h)
 #   --notify <channels>    comma list of weixin|telegram for the completion message
 #                          (default weixin,telegram; patrol rounds pass none)
+#   --origin-session <key> the OpenClaw session that gets a turn when the task ends or runs out of
+#                          quota. Default: the chat turn running this command (wake-session.py
+#                          finds it); nothing when no turn is. `none` asks for no turn.
 set -euo pipefail
 export TZ=Asia/Shanghai
 
@@ -128,13 +131,16 @@ case "$cmd" in
       # patrol- prefix was reserved (e.g. patrol-source-sync-*), continues under a manual name.
       if [[ "$NAME" == patrol-* ]] && [ "${AGENT_DISPATCH_PATROL:-}" != 1 ]; then NAME=task-$NAME; NAME=${NAME:0:40}; fi
       args=("$AGENT" --name "$NAME" --cwd "$CWD" --resume "$SESSION" --model "$MODEL" --notify "$NOTIFY" --prompt-file "$tmp")
+      # Whoever continues the task hears about it; continued from outside a chat turn, the
+      # session that dispatched it still does.
+      export AGENT_DISPATCH_ORIGIN_FALLBACK="${ORIGIN_SESSION:-}"
       [ -n "$EFFORT" ] && args+=(--effort "$EFFORT")
       [ -n "${FALLBACK_MODELS:-}" ] && args+=(--fallback-models "$FALLBACK_MODELS")
       echo "task $id has ended ($(show_state "$d")); continuing session $SESSION as a new task"
       rc=0; "$0" "${args[@]}" || rc=$?; rm -f "$tmp"; exit "$rc" )
     exit $? ;;
   claude|codex|opencode) AGENT=$cmd ;;
-  *) sed -n '2,31p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,38p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -162,6 +168,7 @@ while [ $# -gt 0 ]; do
     --timeout) TIMEOUT=$2; shift 2 ;;
     --deadline) DEADLINE=$2; shift 2 ;;
     --notify) NOTIFY=$2; shift 2 ;;
+    --origin-session) export AGENT_DISPATCH_ORIGIN_SESSION=$2; shift 2 ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
 done
@@ -266,6 +273,12 @@ cat >>"$DIR/prompt.md" <<'EOF'
 结束时用中文写简短报告：做了什么，改了哪些文件或 commit，验证了什么，还有什么没做或有什么风险。最后单独一行输出 `STATUS: DONE`、`STATUS: PARTIAL` 或 `STATUS: BLOCKED`。
 EOF
 
+# Which session dispatched this, and how deep in a chain of wake turns (kcn 2026-10-12: the task
+# reports back where it was dispatched). Prints ORIGIN_SESSION= and WAKE_DEPTH=; empty when this
+# is not a chat turn, or the helper is missing: the task then only sends its messages.
+ORIGIN_SESSION="" WAKE_DEPTH=0
+eval "$(python3 "$(dirname "$(readlink -f "$0")")/wake-session.py" origin 2>/dev/null | grep -E '^(ORIGIN_SESSION|WAKE_DEPTH)=[A-Za-z0-9@._:+'"'"'-]*$')" || true
+
 cat >"$DIR/meta.env" <<EOF
 ID=$(printf %q "$ID")
 AGENT=$AGENT
@@ -280,6 +293,8 @@ QUOTA_RESUMES=$QUOTA_RESUMES
 DEADLINE=$(printf %q "$DEADLINE")
 DEADLINE_EPOCH=$DEADLINE_EPOCH
 NOTIFY=$NOTIFY
+ORIGIN_SESSION=$(printf %q "$ORIGIN_SESSION")
+WAKE_DEPTH=$WAKE_DEPTH
 CREATED=$(printf %q "$(date '+%F %T')")
 EOF
 
@@ -292,6 +307,7 @@ systemd-run --unit "agent-dispatch-$ID" --collect --quiet \
 echo "dispatched $ID"
 echo "  unit:     agent-dispatch-$ID.service ($AGENT $MODEL${EFFORT:+/$EFFORT}, cwd $CWD)"
 echo "  deadline: $DEADLINE"
+[ -z "$ORIGIN_SESSION" ] || echo "  wake:     this session gets a turn when it ends (off: --origin-session none)"
 echo "  log:      $DIR/run.log"
 echo "  status:   /root/tools/agent-dispatch/dispatch.sh status $ID"
 echo "  append:   /root/tools/agent-dispatch/dispatch.sh append $ID < more.md   (change the task without cancelling it)"

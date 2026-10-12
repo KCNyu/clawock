@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
-# Fake `openclaw message send ... -m <msg>` for run-agent.sh tests: appends each message to
+# Fake `openclaw message send ... -m <msg>` and `openclaw agent` for run-agent.sh tests: appends each message to
 # $FAKE_DIR/openclaw.messages, after sleeping $FAKE_DIR/openclaw.sleep seconds if that file exists.
 # Each send also appends "<channel> <target>" to $FAKE_DIR/openclaw.sends; a channel listed in
 # $FAKE_DIR/openclaw.fail (one per line) fails like WeChat's `ret=-2 prepare failed`, exit 1.
 set -u
 FAKE_DIR=${FAKE_DIR:?}
+# `openclaw agent --session-key <key> --message-file <f> ...` (wake-session.py): one line per turn
+# in $FAKE_DIR/openclaw.wakes, "<key> <deliver|quiet>", and the message in openclaw.wake-messages.
+if [ "${1:-}" = agent ]; then
+  key="" file="" deliver=quiet prev=""
+  for a in "$@"; do
+    case "$prev" in --session-key) key=$a ;; --message-file) file=$a ;; esac
+    [ "$a" = --deliver ] && deliver=deliver
+    prev=$a
+  done
+  echo "$key $deliver" >>"$FAKE_DIR/openclaw.wakes"
+  cat "$file" >>"$FAKE_DIR/openclaw.wake-messages"
+  echo '{"runId":"fake-run","status":"ok"}'
+  exit 0
+fi
 sleep "$(cat "$FAKE_DIR/openclaw.sleep" 2>/dev/null || echo 0)"
 prev="" channel="" target=""
 for a in "$@"; do

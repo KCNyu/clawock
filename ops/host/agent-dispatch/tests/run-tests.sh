@@ -570,6 +570,65 @@ expect "cancel with two slow legs: exit/state" "$e39/$(field "$d39" STATE)" 143/
 expect "both legs delivered" "$(field "$d39" NOTIFIED)" "weixin,telegram"
 expect "the two 8s sends overlapped (well under 16s)" "$(( $(date +%s) - t39 < 14 ))" 1
 expect_grep "the end line is still written" "end state=cancelled" "$d39/run.log"
+
+# kcn 2026-10-12: the session that dispatched a task gets a turn when it ends. The turn is per
+# event, not per leg, and every way it must stay silent is a rule of wake-session.py.
+echo; echo "=== [41] a task with an origin session: two legs, one turn, in that session ($(date +%T))"
+W=${AGENT_DISPATCH_WAKE_CMD:-$(dirname "$R")/wake-session.py}
+export AGENT_DISPATCH_WAKE_CMD=$W AGENT_DISPATCH_WAKE_SPAWN=inline AGENT_DISPATCH_WAKE_OFF=$WORK/wake.off
+export AGENT_DISPATCH_SESSIONS_GLOB="$WORK/sessions-*.json"
+SA=agent:main:chan-a:direct:peer-a SB=agent:main:chan-b:direct:peer-b
+echo "{\"$SA\": {\"status\": \"done\", \"lastChannel\": \"chan-a\"}}" >"$WORK/sessions-1.json"
+wakes() { cat "$FAKE_DIR/openclaw.wakes" 2>/dev/null | xargs; }
+again() {  # <task dir> <event>: the runner's own call, repeated
+  echo again >"$WORK/again.txt"; PATH="$T/bin:$PATH" python3 "$W" enqueue "$1" "$2" "$WORK/again.txt"
+}
+reset_fake claude slow-ok; echo 1 >"$FAKE_DIR/claude.slow"
+d41=$(mk wake-dual claude 900 300 weixin,telegram); echo "ORIGIN_SESSION=$SA" >>"$d41/meta.env"
+e41=0; bash "$R" "$d41" || e41=$?
+expect "exit/state and both legs" "$e41/$(field "$d41" STATE)/$(field "$d41" NOTIFIED)" "0/ok/weixin,telegram"
+expect "one turn, in the dispatching session, delivered to its channel" "$(wakes)" "$SA deliver"
+expect_grep "the turn was given the task's notice" "委派任务 wake-dual" "$FAKE_DIR/openclaw.wake-messages"
+expect_grep "run.log has the outcome" "wake: turn ok in agent:main:chan-a:direct:…" "$d41/run.log"
+again "$d41" end
+expect "the same (session, task, event) never wakes twice" "$(wakes)" "$SA deliver"
+expect_grep "and says why" "wake: skipped (end): this session was already told" "$d41/run.log"
+again "$d41" quota; again "$d41" quota
+expect "a quota wait wakes once more, a second one does not" "$(wc -l <"$FAKE_DIR/openclaw.wakes")" 2
+
+echo; echo "=== [42] where no turn is started ($(date +%T))"
+reset_fake claude slow-ok
+d42=$(mk wake-none claude 900 300 weixin,telegram)
+again "$d42" end
+echo "ORIGIN_SESSION=$SB" >>"$d42/meta.env"; touch "$WORK/wake.off"
+again "$d42" end; rm -f "$WORK/wake.off"
+d42b=$(mk wake-silent claude 900 300 none); echo "ORIGIN_SESSION=$SB" >>"$d42b/meta.env"
+again "$d42b" end
+d42c=$(mk wake-deep claude 900 300 weixin); printf 'ORIGIN_SESSION=%s\nWAKE_DEPTH=2\n' "$SB" >>"$d42c/meta.env"
+again "$d42c" end
+d42d=$(mk wake-cron claude 900 300 weixin); echo "ORIGIN_SESSION=agent:main:cron:abc" >>"$d42d/meta.env"
+again "$d42d" end
+expect "no origin, wake.off, --notify none, chain depth 2, a cron session: no turn" "$(wakes)" ""
+expect_grep "the switch is logged" "wake: skipped (end): wake.off is present" "$d42/run.log"
+again "$d42" end
+expect "with the switch gone, the other session gets its turn (no channel: not delivered)" "$(wakes)" "$SB quiet"
+for i in 1 2 3 4 5 6; do d=$(mk "wake-cap-$i" claude 900 300 weixin); echo "ORIGIN_SESSION=$SB" >>"$d/meta.env"; again "$d" end; done
+expect "the seventh turn of a session within the hour is dropped" "$(wc -l <"$FAKE_DIR/openclaw.wakes")" 6
+expect_grep "and logged" "wake: dropped: 6 turns in the last hour" "$d/run.log"
+
+echo; echo "=== [43] dispatch.sh records the session that dispatched, and nothing outside a turn ($(date +%T))"
+o43() { env -u AGENT_DISPATCH_TASK_ID -u OPENCLAW_MCP_SESSION_KEY "$@" python3 "$W" origin | xargs; }
+expect "outside a chat turn" "$(o43)" "ORIGIN_SESSION= WAKE_DEPTH=0"
+expect "a CLI backend turn names its session" "$(o43 OPENCLAW_MCP_SESSION_KEY=$SA)" "ORIGIN_SESSION=$SA WAKE_DEPTH=0"
+echo "{\"$SA\": {\"status\": \"running\"}, \"agent:main:cron:x\": {\"status\": \"running\"}}" >"$WORK/sessions-1.json"
+expect "an embedded turn: the one chat marked running" "$(o43 AGENT_DISPATCH_ASSUME_GATEWAY=1)" "ORIGIN_SESSION=$SA WAKE_DEPTH=0"
+echo "{\"$SB\": {\"status\": \"running\"}}" >"$WORK/sessions-2.json"
+expect "two chats mid-turn: nobody" "$(o43 AGENT_DISPATCH_ASSUME_GATEWAY=1)" "ORIGIN_SESSION= WAKE_DEPTH=0"
+expect "--origin-session none wins" "$(o43 OPENCLAW_MCP_SESSION_KEY=$SA AGENT_DISPATCH_ORIGIN_SESSION=none)" "ORIGIN_SESSION= WAKE_DEPTH=0"
+expect "a continued task falls back to who dispatched it" "$(o43 AGENT_DISPATCH_ORIGIN_FALLBACK=$SB)" "ORIGIN_SESSION=$SB WAKE_DEPTH=0"
+h43=$(python3 -c 'import hashlib,sys; print(hashlib.sha1(sys.argv[1].encode()).hexdigest()[:12])' "$SA")
+mkdir -p "$AGENT_DISPATCH_LOCKDIR/.wake/$h43"; echo '{"depth": 1}' >"$AGENT_DISPATCH_LOCKDIR/.wake/$h43/inflight"
+expect "dispatched from inside a wake turn: one step deeper" "$(o43 OPENCLAW_MCP_SESSION_KEY=$SA)" "ORIGIN_SESSION=$SA WAKE_DEPTH=2"
 fi
 
 if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,queue,* ]]; then
