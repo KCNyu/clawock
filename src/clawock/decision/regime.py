@@ -172,9 +172,10 @@ def compute_us():
     for etf in _held_us_lev_etfs():
         underlying, sym = US_2X_MAP[etf]
         closes = fetch_us(sym)
-        if len(closes) < MA_WINDOW + 1:
+        ma, vol = compute(closes)
+        if len(closes) < MA_WINDOW:
             # 新上市标的不够 200DMA：用短均线做「右侧确认」回退（kcn 口径：逆市不上 2x，
-            # 趋势确认了再上）。仅判趋势方向、不算 vol；短均线之下=左侧逆市→保守 cut。
+            # 趋势确认了再上）。判档仅看趋势，独立保留可算的 vol；短均线之下→保守 cut。
             if len(closes) >= SHORT_MA_MIN:
                 w = min(SHORT_MA_WINDOW, len(closes))
                 short_ma = sum(closes[-w:]) / w
@@ -184,7 +185,11 @@ def compute_us():
                     'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None),
                     'close': round(close, 2), 'ma': round(short_ma, 2), 'ma_window': w,
                     'dist_ma_pct': round((close / short_ma - 1) * 100, 1),
-                    'vol_annualized': None, 'trend_on': trend_on,
+                    'vol_annualized': round(vol, 4) if vol is not None else None,
+                    'vol_n_returns': min(VOL_WINDOW, len(closes) - 1),
+                    'vol_unavailable_reason': (f'收益样本不足 {VOL_WINDOW} 根（仅 {len(closes) - 1} 根）'
+                                               if vol is None else None),
+                    'trend_on': trend_on,
                     'state': 'ok' if trend_on else 'cut',
                     'regime_basis': f'short_ma_{w}',
                     'note': (f'{underlying} 新上市仅 {len(closes)} bars，不足 200DMA → 用 {w}日均线'
@@ -196,7 +201,6 @@ def compute_us():
                 names.append({'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None), 'state': 'unknown',
                               'note': f'insufficient history ({len(closes)} bars)'})
             continue
-        ma, vol = compute(closes)
         close = closes[-1]
         trend_on = ma is not None and close > ma
         vol_hot = vol is not None and vol >= US_VOL_HOT
@@ -210,7 +214,7 @@ def compute_us():
             'etf': etf, 'underlying': underlying, 'as_of': getattr(closes, 'as_of', None),
             'close': round(close, 2), 'ma': round(ma, 2), 'ma_window': MA_WINDOW,
             'dist_ma_pct': round((close / ma - 1) * 100, 1),
-            'vol_annualized': round(vol, 4) if vol else None,
+            'vol_annualized': round(vol, 4) if vol is not None else None,
             'vol_n_returns': min(VOL_WINDOW, len(closes) - 1),
             'vol_hot_cap': US_VOL_HOT, 'trend_on': trend_on, 'vol_hot': vol_hot,
             'state': state, 'regime_basis': 'ma_200_and_20d_realized_vol',
@@ -394,7 +398,7 @@ def main(argv=None):
         'ma': round(ma, 2) if ma else None,
         'dist_ma_pct': dist,
         'vol_window': VOL_WINDOW,
-        'vol_annualized': round(vol, 4) if vol else None,
+        'vol_annualized': round(vol, 4) if vol is not None else None,
         'vol_cap': VOL_CAP,
         'trend_on': trend_on,
         'vol_ok': vol_ok,

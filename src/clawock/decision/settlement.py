@@ -18,7 +18,7 @@ import argparse
 import contextlib
 import copy
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 
 from clawock.decision import ledger as dv2
 
@@ -110,33 +110,15 @@ def _resettle(args) -> int:
     print(f"   settled episodes {m['settled_episodes']} | brier {m['brier']} vs baseline {m['brier_baseline_loo']}")
     print()
 
-    # Coverage must be episode-level: the win rate's denominator is episodes, so
-    # counting unresolved *decisions* against it compares two different units.
-    by_ep = defaultdict(list)
-    for d in decisions:
-        if d.get("action") in dv2.ACTIVE_ACTIONS and d.get("episode_id"):
-            by_ep[d["episode_id"]].append(d)
-    graded = partial = fully_unresolved = 0
-    for rows in by_ep.values():
-        ok = [r for r in rows if (r.get("evaluation") or {}).get("benefit_t1_pct") is not None]
-        bad = [r for r in rows if (r.get("evaluation") or {}).get("status") == "not_evaluable"]
-        if not ok:
-            fully_unresolved += 1
-        elif bad:
-            partial += 1
-        else:
-            graded += 1
-    total_ep = len(by_ep)
-    print("--- active episode coverage (the win rate's own denominator)")
-    print(f"   fully graded            {graded:4}")
-    print(f"   partially graded        {partial:4}  (some members dropped → episode mean shifts)")
-    print(f"   fully unresolved        {fully_unresolved:4}  (excluded from the rate entirely)")
-    print(f"   total active episodes   {total_ep:4}")
-    unresolved_d = [d for d in decisions
-                    if d.get("action") in dv2.ACTIVE_ACTIONS
-                    and (d.get("evaluation") or {}).get("status") == "not_evaluable"]
-    reasons = Counter((d.get("evaluation") or {}).get("not_evaluable_reason") for d in unresolved_d)
-    print(f"   ({len(unresolved_d)} active decisions unresolved: {dict(reasons)})")
+    # Use the headline's window and episode owner, including pending reasons.
+    coverage = m["coverage_active"]
+    print("--- active episode coverage, last 30d (the win rate's own denominator)")
+    print(f"   fully graded            {coverage['episodes_graded']:4}")
+    print(f"   partially graded        {coverage['episodes_partial']:4}  (some members dropped → episode mean shifts)")
+    print(f"   fully unresolved        {coverage['episodes_unresolved']:4}  (excluded from the rate entirely)")
+    print(f"   total active episodes   {coverage['episodes_total']:4}")
+    print(f"   graded coverage         {coverage['graded_pct']}%")
+    print(f"   unresolved episode reasons: {coverage['unresolved_reasons']}")
     print("   Excluding hard cases is exactly how a record gets prettier for free, so")
     print("   the coverage is published next to the rate rather than rounded away.")
 

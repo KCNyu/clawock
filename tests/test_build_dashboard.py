@@ -1253,6 +1253,7 @@ def test_hhi_empty_and_all_zero_books_have_zero_concentration(holdings):
         "top2": 0,
         "positions": [],
         "total": 0,
+        "verdict": {"level": "healthy", "label": "健康"},
     }
 
 

@@ -1264,6 +1264,7 @@
       name: p.ticker,
       value: [p.weight_pct, (p.avg_confidence != null ? p.avg_confidence * 100 : null), p.n_actions],
       itemStyle: { color: quadrantColor[p.quadrant] || quadrantColor.no_data },
+      _confidence: p.avg_confidence * 100,
       _quad: p.quadrant,
       _region: p.region,
     })).filter(p => p.value[1] != null);
@@ -1273,6 +1274,7 @@
       name: p.ticker,
       value: [p.weight_pct, 50, 0],
       itemStyle: { color: quadrantColor.no_data, opacity: 0.6 },
+      _confidence: null,
       _quad: "no_data",
       _region: p.region,
     }));
@@ -1294,7 +1296,7 @@
                   : "No data";
           return `<b>${p.data.name}</b> (${p.data._region.toUpperCase()})<br>
             weight within ${p.data._region.toUpperCase()} leg: ${p.value[0]}%<br>
-            conf: ${p.value[1] == null ? "n/a" : p.value[1].toFixed(1) + "%"}<br>
+            conf: ${p.data._confidence == null ? "n/a" : p.data._confidence.toFixed(1) + "%"}<br>
             n_actions: ${p.value[2]}<br>
             <span style="color:${p.color}">${q}</span>`;
         },

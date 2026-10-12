@@ -527,6 +527,9 @@ def breakeven_section(context):
         return ""
     out = ["### 回本测算", "",
            table(["Ticker", "浮%", "2x chop drag/月", "回本需", "半年窗含 drag 等效标的需"], rows)]
+    for row in (math_block.get("rows") or []):
+        if row.get("vol_unavailable_reason"):
+            out += ["", f"{text(row.get('ticker'))}：{text(row['vol_unavailable_reason'])}"]
     note = math_block.get("note")
     if note:
         out += ["", f"注：{text(note)}"]

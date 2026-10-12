@@ -36,6 +36,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
+from clawock.portfolio.guardrail import hhi_verdict
 from clawock.portfolio.math import number as portfolio_number, ledger_rows
 
 def benchmark_staleness(benchmark):
@@ -902,7 +903,7 @@ def compute_hhi(holdings):
     active = [h for h in ledger_rows(holdings) if h['is_active'] and h['current_value'] > 0]
     total = sum(h['current_value'] for h in active)
     if total <= 0:
-        return {'hhi': 0, 'top2': 0, 'positions': [], 'total': 0}
+        return {'hhi': 0, 'top2': 0, 'positions': [], 'total': 0, 'verdict': hhi_verdict(0, 0)}
     weights = []
     for h in active:
         w = h['current_value'] / total
@@ -913,19 +914,11 @@ def compute_hhi(holdings):
             'weight': round(w, 4),
         })
     weights.sort(key=lambda x: -x['weight'])
-    hhi = round(sum(w['weight'] ** 2 for w in weights), 4)
-    top2 = round(sum(w['weight'] for w in weights[:2]), 4)
-    return {'hhi': hhi, 'top2': top2, 'positions': weights, 'total': round(total, 2)}
-
-
-def hhi_verdict(hhi, top2):
-    if hhi < 0.15 and top2 < 0.40:
-        return {'level': 'healthy', 'label': '健康'}
-    if hhi < 0.25 and top2 < 0.60:
-        return {'level': 'moderate', 'label': '偏集中'}
-    if hhi < 0.40 and top2 < 0.75:
-        return {'level': 'concentrated', 'label': '集中风险'}
-    return {'level': 'danger', 'label': '危险集中'}
+    raw_weights = sorted((h['current_value'] / total for h in active), reverse=True)
+    hhi = sum(w ** 2 for w in raw_weights)
+    top2 = sum(raw_weights[:2])
+    return {'hhi': round(hhi, 4), 'top2': round(top2, 4), 'positions': weights,
+            'total': round(total, 2), 'verdict': hhi_verdict(hhi, top2)}
 
 
 def build_holdings_history(snapshot_paths, days=8):
@@ -4693,8 +4686,6 @@ def build_projection(previous_source=None, shadow_previous=None):
 
     us_conc = compute_hhi(us_h)
     hk_conc = compute_hhi(hk_h)
-    us_conc['verdict'] = hhi_verdict(us_conc['hhi'], us_conc['top2'])
-    hk_conc['verdict'] = hhi_verdict(hk_conc['hhi'], hk_conc['top2'])
 
     # Offline by design: refreshing the cache belongs to the upstream fetches.
     # Stale or missing is published and warned, never passed off as fresh (#1781).
