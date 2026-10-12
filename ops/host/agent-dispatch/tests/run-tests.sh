@@ -586,13 +586,13 @@ reset_fake claude slow-ok; echo 1 >"$FAKE_DIR/claude.slow"
 d41=$(mk wake-dual claude 900 300 weixin,telegram); echo "ORIGIN_SESSION=$SA" >>"$d41/meta.env"
 e41=0; bash "$R" "$d41" || e41=$?
 expect "exit/state and both legs" "$e41/$(field "$d41" STATE)/$(field "$d41" NOTIFIED)" "0/ok/weixin,telegram"
-expect "one turn, in the dispatching session, delivered to its channel" "$(wakes)" "$SA deliver"
+expect "one turn, in the dispatching session; its reply is not sent to the chat" "$(wakes)" "$SA quiet"
 expect_grep "the turn was told which task ended, and how" "委派任务 wake-dual（claude）：ok / 模型自报 DONE" "$FAKE_DIR/wake.messages"
 expect_grep "and where its report is" "dispatch.sh result wake-dual" "$FAKE_DIR/wake.messages"
 expect "the legs carried the report; the turn's message repeats none of it" "$(grep -c 'call 1 done' "$FAKE_DIR/openclaw.messages")/$(grep -c 'call 1 done\|额度：\|日志：' "$FAKE_DIR/wake.messages")" 2/0
 expect_grep "run.log has the outcome" "wake: turn ok in agent:main:chan-a:direct:…" "$d41/run.log"
 again "$d41" end
-expect "the same (session, task, event) never wakes twice" "$(wakes)" "$SA deliver"
+expect "the same (session, task, event) never wakes twice" "$(wakes)" "$SA quiet"
 expect_grep "and says why" "wake: skipped (end): this session was already told" "$d41/run.log"
 again "$d41" quota; again "$d41" quota
 expect "a quota wait wakes once more, a second one does not" "$(wc -l <"$FAKE_DIR/wake.turns")" 2
@@ -612,7 +612,7 @@ again "$d42d" end
 expect "no origin, wake.off, --notify none, chain depth 2, a cron session: no turn" "$(wakes)" ""
 expect_grep "the switch is logged" "wake: skipped (end): wake.off is present" "$d42/run.log"
 again "$d42" end
-expect "with the switch gone, the other session gets its turn" "$(wakes)" "$SB deliver"
+expect "with the switch gone, the other session gets its turn" "$(wakes)" "$SB quiet"
 for i in 1 2 3 4 5 6; do d=$(mk "wake-cap-$i" claude 900 300 weixin); echo "ORIGIN_SESSION=$SB" >>"$d/meta.env"; again "$d" end; done
 expect "the seventh turn of a session within the hour is dropped" "$(wc -l <"$FAKE_DIR/wake.turns")" 6
 expect_grep "and logged" "wake: dropped: 6 turns in the last hour" "$d/run.log"
