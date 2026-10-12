@@ -39,6 +39,7 @@ SEEDS = {
     'block_bootstrap': 20260830,
     'drift_session_permutation': 20260830,
     'signal_panel_placebo_permutation': 20260831,
+    'strategy_walkforward_bootstrap': 20261012,
 }
 
 

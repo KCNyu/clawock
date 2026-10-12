@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-10-12",
+  "purpose": "Research composition of strategy plugins. A row mounts code and registers parameters and a search space; it never grants live permission, and a retrospective optimisation only ever produces a proposal.",
+  "plugins": [
+    {"id": "strategies", "module": "clawock.strategies.registry"},
+    {"id": "bars", "module": "clawock.strategies.plugins.ledger_bars"},
+    {
+      "id": "rsi",
+      "module": "clawock.strategies.plugins.rsi",
+      "config": {
+        "params": {"period": 14, "direction": "reversion"},
+        "space": {"period": [5, 7, 9, 14, 21, 28], "direction": ["momentum", "reversion"]}
+      }
+    },
+    {
+      "id": "optimizer",
+      "module": "clawock.strategies.plugins.walkforward",
+      "config": {
+        "horizon_sessions": 5,
+        "min_cross_section": 6,
+        "min_train_sessions": 60,
+        "test_sessions": 20,
+        "pbo_groups": 8,
+        "gate": {
+          "min_oos_sessions": 60,
+          "oos_ic_ci95_lower_gt": 0.0,
+          "oos_lift_ci95_lower_gt": 0.0,
+          "pbo_lt": 0.5,
+          "corporate_actions_adjusted": true
+        }
+      }
+    }
+  ]
+}

@@ -24,6 +24,8 @@ belongs here.
   agent runtime invokes clawock.
 - [`task-queue.md`](architecture/task-queue.md) — the agent-dispatch queue behind
   the dsh task chip: who owns which layer, the versioned ops entry, queue order.
+- [`strategy-plugins.md`](architecture/strategy-plugins.md) — strategies, bars and
+  the optimiser as plugins composed by config rows; what a parameter search may conclude.
 
 ## Product surfaces
 

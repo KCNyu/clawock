@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**85 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 62 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (73 subcommands). 47 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**86 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 63 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (74 subcommands). 47 of the registry commands collect or compute information and appear under the layer they feed; the remaining 28 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -166,6 +166,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock run-card` | `clawock.evidence.run_card` | records that a backtest ran and against what — provenance, not a measurement |
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |
 | `clawock signal-panel` | `clawock.evaluation.signal_panel` | measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection |
+| `clawock strategy-lab` | `clawock.strategies.lab` | mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over stored bars; it prints a proposal that never carries live permission — evaluation, not collection |
 | `clawock scorecard-provenance` | `clawock.evidence.scorecard_verify` | names the ledger slice and code a published scorecard number came from — provenance, not a measurement |
 | `clawock provenance` | `clawock.provenance` | gate: a published research figure needs two independent sources |
 | `clawock mark-followed` | `clawock.decision.execution` | writes execution ground truth into the decision ledger |
