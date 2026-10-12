@@ -39,7 +39,7 @@ clawock 把你已经在用的 AI Agent 接成一套围绕港美股持仓连续�
 
 **RSI 指递归自我改进（Recursive Self-Improvement）闭环**：每次判断留下证据与结果，下次接着这份记录往前走。**不承诺收益。** 主动建议尚未显出优势；可核验、能积累的判断才是你拿到的东西。
 
-想先跑起来？[五分钟跑起来](#五分钟跑起来)。
+策略是[由配置行挂载的插件](#策略即插件能做什么由闸决定)，参数搜索只能产出提案。想先跑起来？[五分钟跑起来](#五分钟跑起来)。
 
 ## 信息进来：先有来源，再有观点
 
@@ -117,6 +117,27 @@ clawock 把你已经在用的 AI Agent 接成一套围绕港美股持仓连续�
 <p align="center"><img src="site/assets/product-architecture.svg" width="1016" alt="clawock 产品架构 —— 外部运行时拥有模型、对话、记忆与工具;包提供可迁移工作流、认证上下文、确定性对账、评估和有边界改进"></p>
 
 [通用调用与反馈协议](docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [工作流的改进边界](docs/architecture/harness.md#ownership).
+
+## 策略即插件；能做什么由闸决定
+
+一个策略是一个插件，它读的 bar、被计的成本模型、给它打分的评估器也都是。一行配置挂载一个插件，底下是一个很小的内核，用的是 [dsh 插件](examples/dsh/README.md)所基于的那几个原语：插件**提供**（provide）一个服务，或**声明**（inject）它需要的服务；每一次注册都记下怎么撤销；改配置等于重启。加一个策略、换数据源、调参数，都是改一行。
+
+同一份文件里有两套组合：
+
+- **现网行（live）**提供简报、报告和盘中运行实际用来计算的东西。量化因子表、两个雷达和加仓侧背后的那一行因子就在其中；有测试保证它与被替换的代码输出逐位一致。
+- **研究行**是策略实验室。策略声明自己的参数网格，优化器在复权 bar 上走步向前搜索，产出的是一份**提案**：`candidate` 或 `refused`，列出每一项没过的检查，两种情况下 `live_permission` 都是 `false`。
+
+```bash
+clawock strategy-lab list            # 已挂载的插件、服务、策略
+clawock strategy-lab optimize rsi    # 走步搜索 → 一份提案
+clawock strategy-lab ledger          # 历次结论，备选闸并排
+```
+
+只有已注册的闸能决定提案的状态。**备选闸**用另一组阈值判同一次运行（例如只看统计、或扣除已登记成本之后），结论以 `binding: false` 记在正式结论旁边：一个阈值先凭「它本来会怎么判」被讨论，之后才谈得上让它判。
+
+<p align="center"><img src="site/assets/strategy-plugins.svg" width="1016" alt="策略插件：一个内核，每个插件一行配置。现网行提供简报、报告、盘中路径读取的因子服务；研究行包含复权 bar、已登记成本、带参数网格的策略和走步优化器。正式闸判定 candidate 或 refused，从不给现网许可；备选闸判同一次运行但不具约束力；每次运行都记入实验室台账。"></p>
+
+[策略插件：原语、服务、闸与台账](docs/architecture/strategy-plugins.md)。
 
 ## 模型不被允许做的事
 

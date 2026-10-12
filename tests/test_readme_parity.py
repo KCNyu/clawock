@@ -42,6 +42,7 @@ EN_H2 = [
     "Decision out: both sides read the same evidence",
     "After the close: results feed the next decision",
     "Any harness, one decision contract that accumulates evidence",
+    "Strategies plug in; a gate decides what they may do",
     "What the model is not allowed to do",
     "Harness views and background work", "Under the hood", "Try it in five minutes", "Explore",
     "Scope, disclaimer, and license",
@@ -49,6 +50,7 @@ EN_H2 = [
 ZH_H2 = [
     "你能得到什么", "信息进来：先有来源，再有观点", "决策出来：多空同读一份证据",
     "收盘后：结果回到下一次判断", "任何 harness，同一套会积累的决策契约",
+    "策略即插件；能做什么由闸决定",
     "模型不被允许做的事", "Harness 界面与后台工作",
     "引擎盖下面", "五分钟跑起来", "接着看", "范围、免责与许可",
 ]

@@ -5,14 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "clawock"
 version = "0.3.1"
-description = "Agent-native decision-workflow plugin with a verifiable harness"
+description = "Agent-native decision workflow with a verifiable harness and pluggable strategies whose parameter searches can only propose"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Shengyu Li" }]
 keywords = [
     "agent", "llm", "decision-workflow", "harness", "portfolio", "provenance",
-    "reconciliation", "evidence", "audit", "mcp",
+    "reconciliation", "evidence", "audit", "mcp", "plugins", "strategy",
+    "walk-forward",
 ]
 # Trove classifiers are how PyPI's own search and category filters see this
 # package. Without them it is unlisted everywhere a prospective user would
