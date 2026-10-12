@@ -25,6 +25,7 @@ from pathlib import Path
 
 from clawock import code_identity
 from clawock.safe_io import file_lock, jsonl_line
+from clawock.strategy_lab import boundaries
 from clawock.workspace import workspace_root
 
 LEDGER = Path('memory') / 'strategy-lab' / 'ledger.jsonl'
@@ -85,6 +86,11 @@ def row(report: dict) -> dict:
             for alternate in report['alternate_gates']],
         'live_review': report.get('live_review'),
         'prospective': report.get('prospective', []),
+        # The same search without the names the provider only has no action on
+        # record for; null when the source does not split them.
+        'coverage_sensitivity': report.get('coverage_sensitivity'),
+        'gate_requires_adjusted': bool(
+            report['settings']['gate'].get('corporate_actions_adjusted')),
     }
 
 
@@ -115,6 +121,7 @@ def register(report: dict, path: Path | None = None) -> dict | None:
         'cleared_by': {'gate': 'registered', 'live_alternates': review['alternates']},
         'live_permission': False,
     }
+    boundaries.check_registration(record, report)
     with file_lock(str(path)):
         if any(known['strategy'] == record['strategy'] and known['params'] == record['params']
                for known in registrations(path)):
@@ -127,6 +134,7 @@ def register(report: dict, path: Path | None = None) -> dict | None:
 def append(report: dict, path: Path | None = None) -> dict:
     path = path or ledger_path()
     path.parent.mkdir(parents=True, exist_ok=True)
+    boundaries.check_proposal(report)
     record = row(report)
     with file_lock(str(path)):
         with path.open('a', encoding='utf-8') as handle:

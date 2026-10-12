@@ -284,6 +284,71 @@ def compute_short_history_signals(bars):
     return sig
 
 
+def _out(field, unit, window, missing):
+    return {'field': field, 'unit': unit, 'window': window, 'missing': missing}
+
+
+#: What this source reads, every field it can put in a row, and what each
+#: holds when it cannot be measured (`plugin_host.declarations`).
+SIGNAL_SOURCE = {
+    'id': 'factors',
+    'family': 'factor',
+    'summary': 'One row per name from its daily bars: trend, momentum, mean '
+               'reversion, volatility, the chandelier exit and the technical setups.',
+    'inputs': [
+        {'name': 'bars', 'what': 'daily open/high/low/close, oldest first; rows without '
+                                 'a finite positive price are dropped before anything is computed',
+         'source': 'the daily_bars service (Tencent, forward-adjusted) on the quant refresh '
+                   'and the radars; memory/bars (raw) on the brief add side and pre-position lane'},
+        {'name': 'sigma_target', 'what': 'annualised portfolio volatility the weight sizes against',
+         'source': 'row config, 0.25'},
+    ],
+    'outputs': [
+        _out('close', 'price, quote currency', 'latest bar', 'never null in a row'),
+        _out('prev_close', 'price, quote currency', 'previous bar', 'never null in a row'),
+        _out('ma20', 'price', '20 sessions', 'never null in a row'),
+        _out('ma50', 'price', '50 sessions', 'null below 50 bars; always null in the short-history row'),
+        _out('ma200', 'price', '200 sessions', 'null below 200 bars; always null in the short-history row'),
+        _out('prior_20d_high', 'price', '20 sessions before the latest', 'null below 21 bars'),
+        _out('prior_20d_low', 'price', '20 sessions before the latest', 'null below 21 bars'),
+        _out('prior_5d_high', 'price', '5 sessions before the latest', 'never null in a row'),
+        _out('prior_5d_low', 'price', '5 sessions before the latest', 'never null in a row'),
+        _out('dist_ma200_pct', 'percent', '200 sessions', 'null without ma200'),
+        _out('golden_cross', 'true/false', '50 against 200 sessions', 'null without ma50 and ma200'),
+        _out('trend_on', 'true/false', '50 and 200 sessions', 'null without ma200, tagged 趋势未知'),
+        _out('mom_1m', 'percent return', '21 sessions',
+             'null below 22 bars and when the return is exactly zero; always null in the short-history row'),
+        _out('mom_3m', 'percent return', '63 sessions',
+             'null below 64 bars and when the return is exactly zero; always null in the short-history row'),
+        _out('mom_6m', 'percent return', '126 sessions',
+             'null below 127 bars and when the return is exactly zero; always null in the short-history row'),
+        _out('mom_12_1', 'percent return', '252 sessions less the latest 21', 'null below 253 bars'),
+        _out('rsi14', 'index 0-100', '14 sessions, Wilder smoothing', 'null below 15 closes'),
+        _out('zscore20', 'standard deviations', '20 sessions', 'null when the 20 closes do not vary'),
+        _out('vol20_annualized', 'annualised fraction (0.25 is 25%)', '20 daily returns',
+             'null when the returns do not vary; always null in the short-history row'),
+        _out('atr14_pct', 'percent of close', '14 sessions, Wilder smoothing', 'null below 15 bars'),
+        _out('chandelier_stop', 'price', '22-session high less 3 ATR', 'null below 22 bars or without ATR'),
+        _out('stop_distance_pct', 'percent', '22 sessions', 'null without a positive chandelier stop'),
+        _out('vol_target_weight', 'fraction of book, capped at 1', '20 daily returns',
+             'null without vol20_annualized'),
+        _out('pct_52w_range', 'percent of range', '252 sessions, or every bar when there are fewer',
+             'null when high equals low; always null in the short-history row'),
+        _out('bars', 'count', 'bars used', 'never null in a row'),
+        _out('technical_setups', 'list of setups', 'the row above',
+             'empty list when no setup qualifies; that is a measured none'),
+        _out('tag', 'text', 'the row above', 'never null in a row'),
+    ],
+    'missing': {
+        'policy': 'null',
+        'detail': 'signals() answers None below 30 usable bars and short_history() below 20; '
+                  'above that a field that cannot be measured is null in the row. Nothing is '
+                  'carried over from an earlier session.',
+        'serves_stale': False,
+    },
+}
+
+
 class Factors:
     def __init__(self, sigma_target: float):
         self.sigma_target = sigma_target
