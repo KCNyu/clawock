@@ -14,6 +14,7 @@ clawock strategy-lab optimize rsi    # walk-forward search → a proposal
 clawock strategy-lab record          # every strategy, into the ledger (the brief runs this)
 clawock strategy-lab ledger          # recorded verdicts across runs
 clawock strategy-lab evolution rsi   # one strategy's record, run by run
+clawock strategy-lab row-edits       # row edits the lab has proposed, for review
 clawock strategy-lab verify          # the ledger against the lab's boundaries
 clawock strategy-lab sources         # what each signal source declares
 ```
@@ -29,6 +30,8 @@ their services:
 | `daily_bars` | `strategies/plugins/daily_bars.py` | `fetch(code, cnt)`; config `adjustment` (`qfq` or `raw`) | `decision/signals.fetch_bars`, and through it the quant refresh, both radars, the provisional setups, the watch list, the strategy escalations and `evaluate-add-shapes --source tencent` |
 
 | `sentiment` | `strategies/plugins/sentiment.py` | `attention(workspace, recent_moves)`, `statements(workspace)`, each answering `{status, reading, age_hours, detail}`; config `stale_after_hours` | `harness/brief_preflight.load_macro_and_sentiment` and `load_influencer_feed` |
+
+| `strategy_scores` | `strategy_lab/plugins/strategy_scores.py` | `read(workspace, tickers)`: each lab strategy's score and rank per stored name under the row's registered parameters, with the lab's standing; `status` is `ok` or `unavailable` | `harness/brief_preflight`, which puts it in the brief context's `research` bundle as `strategy_scores` |
 
 ### Adjusted bars on the live path
 
@@ -439,11 +442,35 @@ run scores that registration on sessions it had not seen.
 run's verdict, what changed against the run before, each registration and its
 score so far.
 
-Two links are not built. Nothing proposes the row edit when a registration
-has scored well for long enough, and no live path reads a strategy's score:
-`rsi` is ranked by the lab and by nothing else. Until those exist, what
-evolves is the record of which parameters would have been chosen and how they
-have done since.
+Both ends of that chain are attached.
+
+**A proposed row edit.** The `promoter` row (`strategy_lab/plugins/row_edits.py`)
+reads each registration's prospective score after every scheduled run. When
+a registration whose parameters differ from the row's has at least
+`min_prospective_sessions` (60) scored since it was registered, a bootstrap
+interval of its mean rank IC above `prospective_ic_ci95_lower_gt` (0), and a
+latest verdict that survives without the single-source names (below), the lab
+writes one row to `memory/strategy-lab/row-edits.jsonl`: the parameters to move
+from and to, the evidence, each check, `status: proposed` and
+`live_permission: false`. `clawock strategy-lab row-edits` lists them. The lab
+has no code that applies one; applying it is an edit to the row in
+`config/strategy-plugins.json` that someone reviews. The two thresholds may be
+raised in the row and not lowered below `boundaries.PROMOTION_FLOOR`.
+
+**A production reader.** The live row `strategy-scores` scores every stored
+series on its latest bar under each strategy's *registered* parameters, ranks
+the cross-section, and attaches the lab's standing: latest verdict, whether it
+survives the coverage check, each registration's score since, and proposed
+row edits. The brief's preflight puts the held names' rows in the context's
+`research` bundle. It is a reading with `live_permission: false`; no add, cut
+or size is computed from it. Because it reads the registered parameters only,
+a candidate changes what production sees on the day the row is edited and not
+before. The research rows are mounted when it is first read, so a research
+plugin that does not import leaves this reading `unavailable` and every other
+live row untouched.
+
+What is still a person's step is the edit itself: reading the proposal,
+changing the row, and review.
 
 ### Coverage sensitivity
 
@@ -475,6 +502,8 @@ apply it on every write, and `strategy-lab verify` (and the end of every
 | a row may tighten the registered gate and never lower it below `walkforward.FLOOR` | `walkforward.apply` at mount |
 | a candidate was measured on bars that say they are adjusted, when the gate asks | `check_proposal`; `verify` |
 | a registration belongs to a cleared candidate and carries its parameters | `check_registration`; `verify` |
+| a row edit is only ever `proposed`, for a registration, on at least `PROMOTION_FLOOR` of prospective evidence, and not for a verdict that fails the coverage check | `check_row_edit` in `ledger.propose_row_edit`; `verify`; `promotion_thresholds` at mount |
+| the production reader scores registered parameters only | `strategy_scores.read`; `tests/test_strategy_plugins.py` |
 | a prospective score counts sessions after the registration only | `check_proposal`; `verify` |
 | the lab writes no row and no live service | `tests/test_strategy_plugins.py`; `tests/package_edges.txt` has no edge into `strategy_lab` |
 

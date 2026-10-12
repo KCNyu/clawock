@@ -395,7 +395,9 @@ class Optimizer:
                 'sessions': len(later),
                 'first_session': days[0] if days else None,
                 'last_session': days[-1] if days else None,
-                'mean_ic': round(statistics.fmean(later), 4) if later else None})
+                'mean_ic': round(statistics.fmean(later), 4) if later else None,
+                # Too few sessions to bootstrap reads None, not an interval.
+                'ic_ci95': mean_ci(later, **ci)})
         selected = configs[_best(matrix, range(len(matrix)), default)] if matrix else None
         surface = sorted(
             ({'params': configs[c],

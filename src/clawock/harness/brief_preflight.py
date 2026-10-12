@@ -1075,6 +1075,28 @@ def load_macro_and_sentiment(today, issues):
     return macro_trim, sentiment_trim
 
 
+def _strategy_scores(portfolio):
+    """What each lab strategy says about the holdings, under its registered parameters.
+
+    Reference for the research bundle, never an issue: a lab that cannot be
+    mounted leaves the block saying so and the brief runs without it.
+    """
+    held = sorted({detail['label'] for detail in bar_signals.universe_details(portfolio=portfolio)}
+                  | {member for detail in bar_signals.universe_details(portfolio=portfolio)
+                     for member in detail.get('source_holdings') or []})
+    try:
+        reading = live_plugins.service('strategy_scores').read(WS, held)
+    except Exception as exc:  # noqa: BLE001 — the row itself did not mount
+        reading = {'status': 'unavailable', 'reason': f'{type(exc).__name__}: {exc}',
+                   'live_permission': False, 'strategies': {}}
+    if reading['status'] != 'ok':
+        print(f"   ⚠ strategy scores unavailable: {reading.get('reason')} — omitted (non-fatal)")
+    else:
+        print('   strategy scores: ' + ', '.join(
+            f"{name} ranks {block['ranked']} names" for name, block in reading['strategies'].items()))
+    return reading
+
+
 def _sentiment_reading(sent_path, stale_cutoff_h, issues):
     """The attention scan through the `sentiment` service, reported as before."""
     answer = live_plugins.service('sentiment').attention(WS, _recent_price_moves)
@@ -2232,6 +2254,7 @@ def _collect(argv=None):
         # ("cut 700 股, confidence 0.92") is printed in the brief.
         'action_track_record': track_record,
         'technical_setup_usage': _technical_setup_usage(),
+        'strategy_scores': _strategy_scores(portfolio),
         'preposition_inputs': preposition.measurements(WS, portfolio),
         'preposition_policy': preposition.load_policy(),
         'research_surface': research_surface_ctx,

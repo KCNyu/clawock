@@ -86,6 +86,7 @@ BUNDLE_FIELDS = {
     "research": (
         "quant_signals",
         "quant_signal_review",
+        "strategy_scores",
         "cross_sectional_factor",
         "peer_residual",
         "t0_setups",

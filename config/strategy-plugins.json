@@ -13,13 +13,19 @@
     {"id": "intraday-policy", "module": "clawock.strategies.plugins.intraday_policy"},
     {"id": "bar-signals", "module": "clawock.strategies.plugins.bar_signals", "signal_source": true},
     {"id": "signal-panel", "module": "clawock.strategy_lab.plugins.signal_panel"},
-    {"id": "sentiment", "module": "clawock.strategies.plugins.sentiment", "config": {"stale_after_hours": 36}, "signal_source": true}
+    {"id": "sentiment", "module": "clawock.strategies.plugins.sentiment", "config": {"stale_after_hours": 36}, "signal_source": true},
+    {"id": "strategy-scores", "module": "clawock.strategy_lab.plugins.strategy_scores", "signal_source": true}
   ],
   "plugins": [
     {"id": "strategies", "module": "clawock.strategies.registry"},
     {"id": "factors", "module": "clawock.strategies.plugins.quant_factors", "config": {"sigma_target": 0.25}},
     {"id": "bars", "module": "clawock.strategy_lab.plugins.adjusted_bars", "config": {"sessions": 800}},
     {"id": "costs", "module": "clawock.strategy_lab.plugins.registered_costs"},
+    {
+      "id": "promoter",
+      "module": "clawock.strategy_lab.plugins.row_edits",
+      "config": {"min_prospective_sessions": 60, "prospective_ic_ci95_lower_gt": 0.0}
+    },
     {
       "id": "rsi",
       "module": "clawock.strategies.plugins.rsi",

@@ -182,7 +182,7 @@ bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供�
 bundle 路由：
 
 - `risk_detail`: `breakeven_math`, `risk_metrics`
-- `research`: `quant_signals`, `cross_sectional_factor`, `peer_residual`, `t0_setups`, `us_fundamentals`, `peer_scan` 及对应 review
+- `research`: `quant_signals`, `cross_sectional_factor`, `peer_residual`, `t0_setups`, `us_fundamentals`, `peer_scan` 及对应 review；`strategy_scores` 是策略实验室每个策略按**已登记参数**给各持仓的分数与排名，连同实验室对该策略的结论（`standing`）。它只是参考读数：`live_permission` 恒为 false，不是加仓、减仓或尺寸的依据；`status` 不是 `ok` 时写明未取到，不要当成没有信号
 - `evidence`: `catalysts`, `news_evidence_graph`
 - `market`: `macro`, `sentiment`, `influencer`, `em_news`, `watch_list`
 - `calibration`: `retrospective`, `decision_metrics`, `reflections`
