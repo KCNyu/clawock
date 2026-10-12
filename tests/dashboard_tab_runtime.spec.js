@@ -4141,11 +4141,9 @@ async function testNoChartPaintsOneLabelOverAnother(browser, base) {
       await page.goto(base);
       await waitForData(page);
       const seen = {};
-      for (const tab of ["drill", "risk", "reflect"]) {
-        await page.evaluate(t => document.querySelector(`.tab-btn[data-tab="${t}"]`).click(), tab);
-        await waitForTab(page, tab);
-        // Bars and their value labels travel during the entry animation; judge
-        // the frame they come to rest on.
+      // Bars and their value labels travel during the entry animation; judge
+      // the frame they come to rest on.
+      const settled = async () => {
         let before = "", result = null;
         for (let i = 0; i < 40; i++) {
           await page.waitForTimeout(250);
@@ -4154,8 +4152,53 @@ async function testNoChartPaintsOneLabelOverAnother(browser, base) {
           if (i >= 4 && now === before) break;
           before = now;
         }
+        return result;
+      };
+      // Every position is named without a tap: on the plot, or in the line
+      // under it when no side of its bubble is free.
+      const unnamed = async painted => {
+        const note = await page.evaluate(() => {
+          const el = document.getElementById("wc-unlabelled");
+          return el.hidden ? "" : el.textContent;
+        });
+        return book.map(row => row.ticker).filter(ticker => !painted.includes(ticker) && !note.includes(ticker));
+      };
+      for (const tab of ["drill", "risk", "reflect"]) {
+        await page.evaluate(t => document.querySelector(`.tab-btn[data-tab="${t}"]`).click(), tab);
+        await waitForTab(page, tab);
+        const result = await settled();
         assert.deepEqual(result.faults, [], `${width}px ${tab}`);
+        if (tab === "drill") {
+          assert.deepEqual(await unnamed(result.painted["chart-weight-conf"]), [], `${width}px: a position has no name`);
+          if (width < 1024) {
+            // Turning the phone moves every bubble; the names are placed again
+            // for the new plot instead of staying where the old one put them.
+            await page.setViewportSize({ width: 844, height: width });
+            const turned = await settled();
+            assert.deepEqual(turned.faults, [], `${width}px drill, turned`);
+            assert.deepEqual(await unnamed(turned.painted["chart-weight-conf"]), [], `${width}px turned: a position has no name`);
+            await page.setViewportSize({ width, height: 844 });
+            await settled();
+          }
+        }
         Object.assign(seen, result.painted);
+      }
+      if (width < 1024) {
+        // Nothing inside a view is wider than the view: a card that pushes
+        // past its column gives the whole page a sideways scroll.
+        for (const tab of ["plan", "reflect"]) {
+          await page.evaluate(t => document.querySelector(`.tab-btn[data-tab="${t}"]`).click(), tab);
+          await waitForTab(page, tab);
+          await page.waitForTimeout(400);
+          const extra = await page.evaluate(() => {
+            const panel = document.querySelector(".panel.active");
+            const events = document.getElementById("timing-events");
+            return { panel: panel.scrollWidth - panel.clientWidth,
+                     events: events && events.clientWidth ? events.scrollWidth - events.clientWidth : 0 };
+          });
+          assert.ok(extra.panel <= 1, `${width}px ${tab}: the view scrolls ${extra.panel}px sideways`);
+          if (width >= 390) assert.ok(extra.events <= 1, `${width}px ${tab}: the timing table scrolls ${extra.events}px sideways`);
+        }
       }
       // The gate measured something: each chart painted the labels it is about.
       for (const chart of ["chart-weight-conf", "chart-sector", "chart-ai-winrate", "chart-realized", "chart-daily-pnl"]) {

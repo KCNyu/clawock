@@ -2042,6 +2042,13 @@
   .add-family-bar i { display: block; height: 100%; background: var(--accent); }
   .add-family-detail { color: var(--text-faint); font-family: var(--mono); text-align: right; }
   .add-family-detail.is-on { color: var(--positive); }
+  @media (max-width: 480px) {
+    /* 三列的下限之和（9em + 60px + 7em + 两道间距）比 320px 屏上的卡片内宽
+       多出十几像素，把整页撑出一段横向滚动。窄屏上各列可以收到零，长的
+       状态词自己折行。 */
+    .add-family { grid-template-columns: minmax(0, 1.2fr) minmax(36px, .8fr) minmax(0, auto); gap: var(--space-2); }
+    .add-family-detail { overflow-wrap: anywhere; }
+  }
   .add-table .add-why-cell {
     white-space: normal; line-height: 1.45; font-size: var(--fs-micro); color: var(--text-dim);
   }
@@ -2775,6 +2782,12 @@
   .sect-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .timing-events { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
   .timing-events table { min-width: 560px; width: 100%; font-size: var(--fs-micro); }
+  @media (max-width: 600px) {
+    /* 五列短读数在手机上放得下：不留最小宽度，让日期那一行自己折，
+       这张表就不用横向滚动。 */
+    .timing-events table { min-width: 0; }
+    .timing-events th, .timing-events td { padding-left: 4px; padding-right: 4px; }
+  }
 
   /* KPI strip — broker-style summary cards (Reflect tab top row) */
   .kpi-grid {
@@ -4918,7 +4931,9 @@
     display: flex; align-items: center; height: 26px; font-size: var(--fs-xs);
     font-variant-numeric: tabular-nums;
   }
-  .book-heat .bh-tk { padding-right: 8px; }
+  /* 标的列冻结：热力格横向滚过去时，每一行仍然说得出自己是谁。底色必须
+     不透明，否则滚过去的格子会从名字底下透出来（同持仓主表的冻结列）。 */
+  .book-heat .bh-tk { padding-right: 8px; position: sticky; left: 0; z-index: 1; background-color: var(--surface-1); }
   .book-heat .bh-c { justify-content: center; border-radius: 3px; color: var(--text-secondary); font-size: var(--fs-micro); }
   .book-heat .bh-c.is-empty { background: color-mix(in srgb, var(--text) 5%, transparent); }
   .book-heat .bh-v { justify-content: flex-end; padding-left: 10px; }
@@ -4981,6 +4996,8 @@
     border-top: 1px dashed var(--border);
     font-size: var(--fs-sm); line-height: 1.6; color: var(--text-secondary);
   }
+  /* 判读里的命令和路径是一个不带空格的长串，不许折就会顶出卡片。 */
+  .lg-reading code { overflow-wrap: anywhere; }
   @media (max-width: 640px) {
     /* 窄屏一列：两列在 390px 上会把右边的数字压成每行两三个字符。 */
     .lg-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
