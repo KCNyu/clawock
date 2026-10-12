@@ -121,6 +121,9 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 - cron 运行状态在 SQLite。`~/.openclaw/cron/jobs.json` 是迁移 fallback，不是真值。
 - 查 cron / dreaming：`openclaw cron list --json`。
+- coding agent 额度（2026-10-12 实测）：codex 周额度已用尽，恢复 2026-10-18 11:57 HKT；
+  claude-opus-5-5 当时正常。派发前看 `/dispatch-list`，额度耗尽的 worker 会 `state=quota`
+  直接收尾且没有报告 —— 派发授权要一次写全（含合并/部署），别指望它第二轮补。
 - 跨调度源的 HKT 时间线：`bash ops/host/check_crons.sh --timeline`。
 - 查 gateway：`curl http://127.0.0.1:18789/health`。
 - cron contract 是 `config/cron-schedules.json`，它驱动 DST 同步、payload / watchdog 校验
@@ -182,3 +185,8 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 派发后必须验证「真的送达」: 验证方法：追加后确认 inbox 消息移入 `inbox/delivered/` 且 `APPENDS` 递增。**没验证就不要说已送达。** [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07.md:15-15]
 <!-- openclaw-memory-promotion:memory:memory/2026-10-07.md:19:22 -->
 - 今天被我判断错、由 worker 推翻的（别重复）: | 我的说法 | 实际 | |---|---| | 没有 running icon（grep `@keyframes` 只有 2 个） | `animateMotion` 有 195 处，SMIL 不用 CSS | | icon 重复率 82% | 82% 是跨八图合并去重；**逐图 28.7%** | [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07.md:19-22]
+
+## Promoted From Short-Term Memory (2026-10-13)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:478:507 -->
+- | SPCX | hold_and_watch | core_position | — | 45% | pending | </div> <div class="brief-card" markdown="1"> ### 同行扫描 <div class="brief-entries" markdown="1"> - **00100** · 上一场收盘 +2.05% · 差距 -5.54pp <span class="entry-meta">HK AI 大模型 · 最强同行 02513 智谱 +7.59%</span> **判断** 落后。智谱涨 7.59%、00100 涨 2.05%，差 5.5 个百分点，归因是解禁砸量与消息落点不同，不是题材证伪；按同行扫描的判断模板，这属于题材强而自己弱，值得考虑切换但没有一条可执行的切换路径。 - **02208** · 上一场收盘 +0.17% · 差距 -3.35pp <span class="entry-meta">风电 · 最强同行 00916 龙源电力 +3.52%</span> **判断** 落后。龙源电力涨 3.52%、大唐新能源涨 1.50%、东方电气跌 0.33%，它只涨 0.17%，3.4 个百分点的差距归因是 beta 错配，题材与设备端都还没轮到她。 - **03032** · 上一场收盘 +1.05% · 差距 -0.12pp <span class="entry-meta">HK 科技指数... [score=0.819 recalls=5 avg=0.456 source=memory/2026-10-07-pre-open.md:478-507]
