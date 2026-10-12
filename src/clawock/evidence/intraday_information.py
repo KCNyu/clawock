@@ -27,13 +27,13 @@ card states on a ⛔ line (not fetched is not "no news").
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 
 from clawock.evidence import live_sources
 from clawock.evidence.live_sources import parse_time as _parse_time, session_open
+from clawock.plugin_host import live as live_plugins
 from clawock.sessions import HKT
 
 MAX_ITEMS_PER_TICKER = 3
@@ -41,25 +41,18 @@ MAX_MARKET_ITEMS = 5
 MAX_FLASH_ITEMS = 6
 FLASH_WINDOW_MINUTES = 240
 
-FILES = {
-    'em_news': 'assets/data/em_news.json',
-    'us_news_digest': 'assets/data/us_news_digest.json',
-    'sentiment': 'assets/data/sentiment.json',
-    'macro': 'assets/data/macro.json',
-    'news_evidence_graph': 'assets/data/news_evidence_graph.json',
-}
+#: The scans this lane consumes. Where each lives is the `scans` service's.
+CONSUMED = ('em_news', 'us_news_digest', 'sentiment', 'macro', 'news_evidence_graph')
 # Which market each file serves; None = both.
 FILE_MARKET = {'em_news': 'hk', 'us_news_digest': 'us'}
 
 
 def _read(path):
-    try:
-        value = json.loads(Path(path).read_text(encoding='utf-8'))
-    except FileNotFoundError:
-        return None, 'missing'
-    except (OSError, ValueError) as exc:
-        return None, f'unreadable: {type(exc).__name__}'
-    return (value, None) if isinstance(value, dict) else (None, 'unreadable: not an object')
+    """(document, None) or (None, why not), through the `scans` service."""
+    found = live_plugins.service('scans').document(path)
+    if found['status'] == 'ok':
+        return found['payload'], None
+    return None, 'missing' if found['status'] == 'missing' else f"unreadable: {found['error']}"
 
 
 def freshness(written_at, market, now):
@@ -148,10 +141,11 @@ def _morning_files(ws, market, now):
     """
     sources, degraded = {}, []
     loaded = {}
-    for name, rel in FILES.items():
+    scans = live_plugins.service('scans')
+    for name in CONSUMED:
         if FILE_MARKET.get(name) not in (None, market):
             continue
-        doc, error = _read(ws / rel)
+        doc, error = _read(scans.path(ws, name))
         if error:
             degraded.append(f'{name}（{error}）')
             sources[name] = {'status': error}

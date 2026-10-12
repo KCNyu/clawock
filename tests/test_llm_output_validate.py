@@ -308,8 +308,8 @@ def test_unmatched_digest_bullets_are_counted(capsys, monkeypatch):
         '- **HOOD** - dash 不是 colon\n'  # ditto
         '普通散文行\n'                     # not a bullet: legitimately skipped
     )}
-    policy = graph.load_policy()          # before _load is stubbed: it uses it too
-    monkeypatch.setattr(graph, '_load', lambda *a, **k: payload)
+    policy = graph.load_policy()
+    monkeypatch.setattr(graph, '_scan', lambda path: payload)   # scan files are read through `scans`
     events = graph.collect_us_news_events(policy, {})
     assert len(events) == 1
     err = capsys.readouterr().err

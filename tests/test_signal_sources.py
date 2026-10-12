@@ -22,7 +22,7 @@ import pytest
 from clawock.harness import brief_preflight
 from clawock.plugin_host import declarations, live, rows
 from clawock.plugin_host.kernel import Kernel, KernelError
-from clawock.strategies.plugins import bar_signals, quant_factors, rsi, sentiment
+from clawock.strategies.plugins import bar_signals, morning_scans, quant_factors, rsi, sentiment
 from clawock.strategy_lab.plugins import strategy_scores
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +30,8 @@ FIXTURES = Path(__file__).parent / 'fixtures' / 'signal_sources'
 GOLDENS = FIXTURES / 'goldens.json'
 BARS = json.loads((FIXTURES / 'bars.json').read_text())['series']
 SOURCES = {'factors': quant_factors, 'bar-signals': bar_signals, 'rsi': rsi,
-           'sentiment': sentiment, 'strategy-scores': strategy_scores}
+           'sentiment': sentiment, 'strategy-scores': strategy_scores,
+           'morning-scans': morning_scans}
 
 
 # ── declarations ────────────────────────────────────────────────────────────
@@ -46,7 +47,8 @@ def test_every_shipped_signal_source_row_carries_a_complete_declaration():
         declaration = declarations.of(module)
         assert declaration['id'] == identifier
         assert declaration['missing']['serves_stale'] is False
-    assert set(live.signal_sources()) == {'factors', 'bar-signals', 'sentiment', 'strategy-scores'}
+    assert set(live.signal_sources()) == {'factors', 'bar-signals', 'sentiment', 'strategy-scores',
+                                          'morning-scans'}
 
 
 @pytest.mark.parametrize('damage, gap', [
@@ -260,6 +262,88 @@ def test_a_failing_price_lookup_is_an_issue_and_an_empty_reading(tmp_path, monke
     assert answered['readings'] == [{}, {}]
     assert answered['issues'] == ['sentiment load exception: RuntimeError', 'influencer feed missing']
     assert 'sentiment load failed: bars store unreadable' in answered['console']
+
+
+# ── the scans service ───────────────────────────────────────────────────────
+
+MORNING = FIXTURES / 'brief_morning_scans.json'
+MORNING_CASES = {
+    'the scans as committed': lambda: dict(macro=_scan('macro.json'), em_news=_scan('em_news.json')),
+    'both absent': dict,
+    'both a day and a half old': lambda: dict(macro=_scan('macro.json', 36.5),
+                                               em_news=_scan('em_news.json', 36.5)),
+    'stamped in the future': lambda: dict(macro=_scan('macro.json', -2.5),
+                                           em_news=_scan('em_news.json', -2.5)),
+    'unstamped': lambda: dict(macro={'vix': {'price': 20}}, em_news={'market_724': [{'title': 't'}]}),
+    'not json': lambda: dict(macro='{', em_news='nope'),
+    'the wrong shape': lambda: dict(macro=[1], em_news={'generated_at': _stamp(1.2),
+                                                        'holdings_news': [1]}),
+    'an empty scan': lambda: dict(macro={'generated_at': _stamp(1.2)},
+                                  em_news={'generated_at': _stamp(1.2)}),
+    'a degraded scan and a close without a day change': lambda: dict(
+        macro=_scan('macro.json', vix={'price': 21.5, 'change_pct': None, 'as_of': '2026-10-09',
+                                       'source': 's'}),
+        em_news=_scan('em_news.json', degraded=['a', 'b'])),
+}
+
+
+@pytest.mark.parametrize('case', sorted(MORNING_CASES))
+def test_the_brief_reads_macro_and_eastmoney_news_as_recorded(case, tmp_path, monkeypatch, capsys):
+    """Recorded on 2026-10-12 from the loaders as they were before they read
+    through `scans`. One case was re-recorded on purpose: a macro file that
+    holds a list is now reported as "not an object", where the old loader
+    reported the AttributeError it ran into."""
+    data = tmp_path / 'assets' / 'data'
+    data.mkdir(parents=True)
+    for name, payload in MORNING_CASES[case]().items():
+        (data / f'{name}.json').write_text(payload if isinstance(payload, str) else json.dumps(payload))
+    monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    issues = []
+    capsys.readouterr()
+    macro, _ = brief_preflight.load_macro_and_sentiment(None, issues)
+    news = brief_preflight.load_em_news(issues)
+    for reading in (macro, news):
+        reading.pop('as_of', None)
+        reading.pop('generated_at', None)
+    answered = json.loads(json.dumps({
+        'macro': macro, 'em_news': news,
+        'issues': [issue for issue in issues if 'sentiment' not in issue],
+        'console': [line for line in capsys.readouterr().out.splitlines() if 'sentiment' not in line],
+    }, ensure_ascii=False))
+    assert answered == json.loads(MORNING.read_text())[case]
+
+
+def test_a_scan_file_is_a_document_or_a_reason_and_never_a_guess(tmp_path):
+    scans = live.service('scans')
+    assert scans.path(tmp_path, 'macro') == tmp_path / 'assets' / 'data' / 'macro.json'
+    with pytest.raises(KeyError, match="no scan named 'weather'"):
+        scans.path(tmp_path, 'weather')
+    target = tmp_path / 'scan.json'
+    assert scans.document(target) == {'status': 'missing', 'payload': None, 'error': None}
+    target.write_text('{"generated_at": "x"}')
+    assert scans.document(target) == {'status': 'ok', 'payload': {'generated_at': 'x'}, 'error': None}
+    for text, error in (('{', 'JSONDecodeError'), ('[1, 2]', 'not an object'), ('7', 'not an object')):
+        target.write_text(text)
+        found = scans.document(target)
+        assert (found['status'], found['payload'], found['error']) == ('unreadable', None, error)
+
+
+def test_every_reader_of_a_scan_says_the_same_thing_about_a_file_it_cannot_use(tmp_path):
+    from clawock.evidence import intraday_information, news_evidence_graph
+    broken = tmp_path / 'em_news.json'
+    assert intraday_information._read(broken) == (None, 'missing')
+    assert news_evidence_graph._scan_status(broken) == 'missing'
+    broken.write_text('{')
+    assert intraday_information._read(broken) == (None, 'unreadable: JSONDecodeError')
+    # The evidence graph used to call any file that existed "loaded".
+    assert news_evidence_graph._scan_status(broken) == 'unreadable'
+    assert news_evidence_graph._scan(broken) == {}
+    broken.write_text('[]')
+    assert intraday_information._read(broken) == (None, 'unreadable: not an object')
+    assert news_evidence_graph._scan(broken) == {}
+    broken.write_text('{"a": 1}')
+    assert intraday_information._read(broken) == ({'a': 1}, None)
+    assert news_evidence_graph._scan_status(broken) == 'loaded'
 
 
 # ── a row that fails ────────────────────────────────────────────────────────

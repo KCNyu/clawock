@@ -10,6 +10,7 @@ Writes:
   assets/data/news_evidence_history.jsonl
 """
 
+from clawock.plugin_host import live as live_plugins
 from clawock.safe_io import to_number as _share_number
 
 import argparse
@@ -70,6 +71,17 @@ def _load(path, default=None):
         return json.loads(Path(path).read_text())
     except Exception:
         return {} if default is None else default
+
+
+def _scan(path):
+    """A scheduled scan's document through the `scans` service; {} when there is none."""
+    return live_plugins.service('scans').document(path)['payload'] or {}
+
+
+def _scan_status(path):
+    """`loaded`, `missing`, or `unreadable` for a file that is there and cannot be used."""
+    status = live_plugins.service('scans').document(path)['status']
+    return 'loaded' if status == 'ok' else status
 
 
 def load_policy(path=POLICY):
@@ -334,7 +346,7 @@ def _underlying_map():
 
 
 def collect_em_events(policy, underlying):
-    payload = _load(EM_NEWS)
+    payload = _scan(EM_NEWS)
     events = []
     for reported, block in (payload.get('holdings_news') or {}).items():
         ticker = underlying.get(reported, reported)
@@ -366,7 +378,7 @@ _BULLET_RE = re.compile(r'\s*[-*\u2022]\s+\S')
 
 
 def collect_us_news_events(policy, underlying):
-    payload = _load(US_NEWS)
+    payload = _scan(US_NEWS)
     events = []
     evidence = payload.get('raw_news_evidence') or {}
     for reported, items in evidence.items():
@@ -417,7 +429,7 @@ def collect_us_news_events(policy, underlying):
 
 def collect_sentiment_news_events(policy, underlying):
     """Import Google News headline metadata, including HK exchange results."""
-    payload = _load(SENTIMENT)
+    payload = _scan(SENTIMENT)
     events = []
     for block in payload.get('tickers') or []:
         reported = block.get('ticker')
@@ -459,7 +471,7 @@ def collect_influencer_events(policy, underlying):
     tier keeps secondary Musk coverage weak and direct Trump/Substack URLs
     auditable rather than promoting every mention to primary evidence.
     """
-    payload = _load(INFLUENCER)
+    payload = _scan(INFLUENCER)
     events = []
     seen = set()
     for item in payload.get('items') or []:
@@ -1554,10 +1566,10 @@ def main(argv=None):
         'graph': build_graph(events),
         'source_status': {
             'sec': sec_status,
-            'eastmoney': 'loaded' if EM_NEWS.exists() else 'missing',
-            'us_news_digest': 'loaded' if US_NEWS.exists() else 'missing',
-            'sentiment_news': 'loaded' if SENTIMENT.exists() else 'missing',
-            'influencer_feed': 'loaded' if INFLUENCER.exists() else 'missing',
+            'eastmoney': _scan_status(EM_NEWS),
+            'us_news_digest': _scan_status(US_NEWS),
+            'sentiment_news': _scan_status(SENTIMENT),
+            'influencer_feed': _scan_status(INFLUENCER),
             'catalysts': 'loaded' if CATALYSTS.exists() else 'missing',
             'peer_residual': 'loaded' if PEER_RESIDUAL.exists() else 'missing',
         },

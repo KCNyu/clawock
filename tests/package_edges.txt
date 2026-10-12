@@ -54,6 +54,7 @@ evidence -> decision
 evidence -> history_store
 evidence -> instruments
 evidence -> market_data
+evidence -> plugin_host
 evidence -> portfolio
 evidence -> safe_io
 evidence -> scorecard_provenance
@@ -111,6 +112,7 @@ publish -> instruments
 publish -> intraday_status
 publish -> json_repair
 publish -> market_data
+publish -> plugin_host
 publish -> portfolio
 publish -> safe_io
 publish -> scorecard_provenance

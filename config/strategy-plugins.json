@@ -14,6 +14,7 @@
     {"id": "bar-signals", "module": "clawock.strategies.plugins.bar_signals", "signal_source": true},
     {"id": "signal-panel", "module": "clawock.strategy_lab.plugins.signal_panel"},
     {"id": "sentiment", "module": "clawock.strategies.plugins.sentiment", "config": {"stale_after_hours": 36}, "signal_source": true},
+    {"id": "morning-scans", "module": "clawock.strategies.plugins.morning_scans", "config": {"stale_after_hours": 36}, "signal_source": true},
     {"id": "strategy-scores", "module": "clawock.strategy_lab.plugins.strategy_scores", "signal_source": true}
   ],
   "plugins": [
