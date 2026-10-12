@@ -10,10 +10,11 @@ import pytest
 
 from clawock.decision import signals
 from clawock.costs import CostModel
-from clawock.strategies import live, registry
+from clawock.plugin_host import live
+from clawock.strategies import registry
 from clawock.strategies.plugins import quant_factors, rsi
 from clawock.strategy_lab import lab, ledger
-from clawock.strategies.kernel import ACTIVE, PENDING, Kernel, KernelError
+from clawock.plugin_host.kernel import ACTIVE, PENDING, Kernel, KernelError
 from clawock.strategy_lab.plugins import (
     adjusted_bars, ledger_bars, registered_costs, walkforward)
 

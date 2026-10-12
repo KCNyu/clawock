@@ -18,7 +18,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from clawock.strategies.kernel import Kernel
+from clawock.plugin_host.kernel import Kernel
 from clawock.workspace import workspace_root
 
 CONFIG = Path('config') / 'strategy-plugins.json'
@@ -29,6 +29,14 @@ DEFAULT_ROWS = (
      'config': {'sigma_target': 0.25}},
     {'id': 'daily-bars', 'module': 'clawock.strategies.plugins.daily_bars',
      'config': {'adjustment': 'qfq'}},
+    {'id': 'add-policy', 'module': 'clawock.strategies.plugins.add_policy'},
+    {'id': 'add-alpha', 'module': 'clawock.strategies.plugins.add_alpha'},
+    {'id': 'left-side', 'module': 'clawock.strategies.plugins.left_side'},
+    {'id': 'add-side', 'module': 'clawock.strategies.plugins.add_side'},
+    {'id': 'preposition', 'module': 'clawock.strategies.plugins.preposition'},
+    {'id': 'intraday-policy', 'module': 'clawock.strategies.plugins.intraday_policy'},
+    {'id': 'bar-signals', 'module': 'clawock.strategies.plugins.bar_signals'},
+    {'id': 'signal-panel', 'module': 'clawock.strategy_lab.plugins.signal_panel'},
 )
 
 

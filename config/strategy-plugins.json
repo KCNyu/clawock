@@ -4,7 +4,15 @@
   "purpose": "Two compositions of strategy plugins. `live` is what the brief, report and intraday paths compute with: each row provides a service those paths read. `plugins` is the research composition strategy-lab mounts: a row there registers parameters and a search space, never grants live permission, and a retrospective optimisation only ever produces a proposal.",
   "live": [
     {"id": "factors", "module": "clawock.strategies.plugins.quant_factors", "config": {"sigma_target": 0.25}},
-    {"id": "daily-bars", "module": "clawock.strategies.plugins.daily_bars", "config": {"adjustment": "qfq"}}
+    {"id": "daily-bars", "module": "clawock.strategies.plugins.daily_bars", "config": {"adjustment": "qfq"}},
+    {"id": "add-policy", "module": "clawock.strategies.plugins.add_policy"},
+    {"id": "add-alpha", "module": "clawock.strategies.plugins.add_alpha"},
+    {"id": "left-side", "module": "clawock.strategies.plugins.left_side"},
+    {"id": "add-side", "module": "clawock.strategies.plugins.add_side"},
+    {"id": "preposition", "module": "clawock.strategies.plugins.preposition"},
+    {"id": "intraday-policy", "module": "clawock.strategies.plugins.intraday_policy"},
+    {"id": "bar-signals", "module": "clawock.strategies.plugins.bar_signals"},
+    {"id": "signal-panel", "module": "clawock.strategy_lab.plugins.signal_panel"}
   ],
   "plugins": [
     {"id": "strategies", "module": "clawock.strategies.registry"},

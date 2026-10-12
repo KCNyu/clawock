@@ -16,7 +16,7 @@ clawock strategy-lab ledger          # recorded verdicts across runs
 
 ## Live composition
 
-`clawock.strategies.live` mounts the `live` rows once per process and hands out
+`clawock.plugin_host.live` mounts the `live` rows once per process and hands out
 their services:
 
 | Service | Provider | Contract | Read by |
@@ -46,17 +46,71 @@ it held before is still there as `legacy_compute_signals` and
 identical output on every prefix of every series in `memory/bars` and on
 generated series long enough for every setup to fire.
 
-A workspace with no file, or no `live` list, runs the shipped rows. A `live`
-list that is present and malformed, or leaves a plugin waiting for a service,
-is an error at first use.
+### The migrated modules
 
-`clawock.strategies` imports only `market_data` and `workspace`, so `decision`
-can depend on it. The research plugins need `evaluation` and `evidence`, which
-depend on `decision`; they live in `clawock.strategy_lab`.
+Eight modules are plugins mounted by `live` rows. Each row provides the module
+itself as a service of the same name:
+
+| Service | Plugin | The import path its readers keep |
+|---|---|---|
+| `add_policy` | `strategies/plugins/add_policy.py` | `decision.add_policy` |
+| `add_alpha` | `strategies/plugins/add_alpha.py` | `decision.add_alpha` |
+| `left_side` | `strategies/plugins/left_side.py` | `decision.left_side` |
+| `add_side` | `strategies/plugins/add_side.py` | `decision.add_side` |
+| `preposition` | `strategies/plugins/preposition.py` | `decision.preposition` |
+| `intraday_policy` | `strategies/plugins/intraday_policy.py` | `decision.intraday_policy` |
+| `bar_signals` | `strategies/plugins/bar_signals.py` | `market_data.bar_signals` |
+| `signal_panel` | `strategy_lab/plugins/signal_panel.py` | `evaluation.signal_panel` |
+
+The old import paths are views of the mounted service
+(`plugin_host/facade.py`): reading `decision.add_policy.tranche_plan` reads the
+service's attribute, and setting one sets the service's. The readers are
+unchanged and run whatever module the row names. The policy files
+(`config/add-alpha-policy.json`, `left-side-policy.json`,
+`preposition-policy.json`, `intraday-strategy-policies.json`) are read by the
+same code as before and are not part of the row.
+
+Inside the plugin package, `add_alpha`, `add_side` and `preposition` import
+`add_policy` and `left_side` as sibling modules, not through the kernel, so
+replacing the `add_policy` row replaces what the readers call and not what
+`add_side` calls internally. `preposition` reads the `factors` service.
+
+The code each module held before the move is `legacy_<module>.py` in its old
+package, unchanged apart from importing its legacy siblings. Nothing in
+production reads it. `tests/legacy_shadow.py` wraps every public function of
+the eight plugins for the whole test run: an outermost call into a plugin is
+also made into the legacy function on a copy of the same arguments, and the
+two must agree on the value (floats exact), the error, and the state they
+leave their arguments in. `tests/test_migrated_plugins_equivalence.py` checks
+the shadow itself and drives the plugins over the stored bars, the policy
+files and the holdings. The legacy modules, the shadow and that test are
+removed together in a separate change, once the plugins have run in
+production.
+
+A workspace with no file, or no `live` list, runs the shipped rows. A `live`
+list that is present and malformed, leaves a plugin waiting for a service, or
+omits a service a reader asks for, is an error at first use. Every live row is
+mounted when the first service is read, so a row that fails to import stops
+every reader of the composition.
+
+### Where the kernel sits
+
+`clawock.plugin_host` holds the kernel, the live composition and the facade.
+It imports only `workspace`, so any package may read a service from it:
+`market_data.bar_signals` and `evaluation.signal_panel` could not have read a
+kernel that lived beside the plugins, because `strategies` imports
+`market_data` and `strategy_lab` imports `evaluation`. Plugins are imported by
+name from the row, so the import graph in `tests/package_edges.txt` shows the
+readers depending on `plugin_host`, not on `strategies`. What a reader runs at
+run time is decided by the row.
+
+`clawock.strategies` holds plugins that need nothing above `market_data`. The
+research plugins need `evaluation`, `evidence` and `decision`; they live in
+`clawock.strategy_lab`.
 
 ## Primitives
 
-`src/clawock/strategies/kernel.py` restates the Cordis primitives the dsh plugin
+`src/clawock/plugin_host/kernel.py` restates the Cordis primitives the dsh plugin
 under `examples/dsh/` is built on. Strategies stay in Python because they have
 to run inside this package's data and gates.
 
@@ -114,7 +168,7 @@ it cannot read ahead however it is written.
 
 `optimize` scores every point of the declared grid by daily rank IC against the
 forward return (entry at the first close after the signal session, as in
-`evaluation/signal_panel.py`), then walks forward: each refit sees only sessions
+`strategy_lab/plugins/signal_panel.py`), then walks forward: each refit sees only sessions
 whose forward return had closed, and is scored on the next block against the
 registered parameters.
 

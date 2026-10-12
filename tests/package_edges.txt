@@ -3,6 +3,7 @@
 # exactly this list. A new edge is a design decision (kcn 2026-09-12:「注意我们是好不容易
 # 解耦的」) — add its line in the same PR and say in the PR why the dependency is right.
 # A removed edge must be deleted here too, so the list never claims coupling that is gone.
+# Stdlib-only ceilings: contracts and callers share budget arithmetic, not implementations.
 (root) -> workspace
 __main__ -> cli
 automation -> decision
@@ -31,12 +32,12 @@ decision -> costs
 decision -> history_store
 decision -> instruments
 decision -> market_data
+decision -> plugin_host
 decision -> provenance
 decision -> safe_io
 decision -> scorecard_provenance
 decision -> seeds
 decision -> sessions
-decision -> strategies
 decision -> workspace
 evaluation -> decision
 evaluation -> evidence
@@ -44,6 +45,7 @@ evaluation -> history_store
 evaluation -> instruments
 evaluation -> labeling
 evaluation -> market_data
+evaluation -> plugin_host
 evaluation -> portfolio
 evaluation -> safe_io
 evaluation -> seeds
@@ -89,11 +91,13 @@ market_data -> bar_conflicts
 market_data -> credentials
 market_data -> history_store
 market_data -> instruments
+market_data -> plugin_host
 market_data -> portfolio
 market_data -> safe_io
 market_data -> seeds
 market_data -> sessions
 market_data -> workspace
+plugin_host -> workspace
 portfolio -> bar_conflicts
 portfolio -> credentials
 portfolio -> instruments
@@ -119,17 +123,25 @@ scheduling -> workspace
 scorecard_provenance -> code_identity
 scorecard_provenance -> safe_io
 scorecard_provenance -> workspace
+strategies -> history_store
+strategies -> instruments
 strategies -> market_data
+strategies -> plugin_host
+strategies -> safe_io
 strategies -> sessions
 strategies -> workspace
 strategy_lab -> code_identity
 strategy_lab -> costs
+strategy_lab -> decision
 strategy_lab -> evaluation
 strategy_lab -> evidence
+strategy_lab -> history_store
+strategy_lab -> instruments
+strategy_lab -> labeling
 strategy_lab -> market_data
+strategy_lab -> plugin_host
 strategy_lab -> safe_io
 strategy_lab -> seeds
-strategy_lab -> strategies
 strategy_lab -> workspace
 tools -> context
 tools -> decision
@@ -137,7 +149,6 @@ tools -> market_data
 tools -> sessions
 workflows -> publish
 workflows -> runtime_model
-# Stdlib-only ceilings: contracts and callers share budget arithmetic, not implementations.
 harness -> run_budgets
 publish -> run_budgets
 scheduling -> run_budgets

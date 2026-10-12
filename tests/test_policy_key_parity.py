@@ -81,7 +81,7 @@ def test_early_trend_and_radar_policy_keys_all_present_in_config():
         "early_trend.py": (ROOT / "src" / "clawock" / "decision" / "early_trend.py"),
         # The radar thresholds are read by `add_policy`, the one reader both
         # the brief and the intraday slot go through.
-        "add_policy.py": (ROOT / "src" / "clawock" / "decision" / "add_policy.py"),
+        "add_policy.py": (ROOT / "src" / "clawock" / "strategies" / "plugins" / "add_policy.py"),
         # #640/#643: the watch-list 5d gate and the short-history window are
         # config consumers too — their keys must exist or edits do nothing.
         "watch_list.py": (ROOT / "src" / "clawock" / "decision" / "watch_list.py"),

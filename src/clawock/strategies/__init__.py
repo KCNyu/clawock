@@ -1,1 +1,1 @@
-"""Strategies as plugins: `kernel` holds the primitives, `live` the composition production runs on."""
+"""Strategies as plugins. The kernel and the live composition are in `clawock.plugin_host`."""
