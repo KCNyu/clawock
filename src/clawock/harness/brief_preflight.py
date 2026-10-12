@@ -58,6 +58,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
+from clawock.plugin_host import live as live_plugins
 from clawock import sessions as trading_calendar
 from clawock import history_store
 from clawock.safe_io import safe_write_text
@@ -1069,6 +1070,63 @@ def load_macro_and_sentiment(today, issues):
         print(f'   ⚠ macro load failed: {e}')
         issues.append(f'macro load exception: {type(e).__name__}')
 
+    sentiment_trim = _sentiment_reading(sent_path, stale_cutoff_h, issues)
+
+    return macro_trim, sentiment_trim
+
+
+def _sentiment_reading(sent_path, stale_cutoff_h, issues):
+    """The attention scan through the `sentiment` service, reported as before."""
+    answer = live_plugins.service('sentiment').attention(WS, _recent_price_moves)
+    status, age, detail = answer['status'], answer['age_hours'], answer['detail']
+    if status == 'missing':
+        print('   ⚠ sentiment.json missing — sentiment-scan never ran')
+        issues.append('sentiment snapshot missing')
+    elif status == 'stale':
+        # Omit stale/unknown sentiment (non-fatal — see macro note above).
+        print(f'   ⚠ sentiment stale/unknown ({_age_str(age)}, cutoff '
+              f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
+    elif status == 'unreadable':
+        print(f"   ⚠ sentiment load failed: {detail['message']}")
+        issues.append(f"sentiment load exception: {detail['error']}")
+    else:
+        unanswered = detail['unanswered']
+        print(f"   sentiment: {detail['with_signal']}/{detail['scanned']} tickers "
+              f'have reddit/news signal'
+              + (f'; reddit did not answer for {unanswered}' if unanswered else ''))
+    return answer['reading']
+
+
+def load_influencer_feed(issues):
+    """Read GH-Action-produced influencer_feed.json (Trump/Musk/ARK/人物雷达).
+
+    Written by influencer-scan.yml before the brief. Stale (>36h)/missing → warn,
+    brief still runs without the 名人异动 section. Returns trimmed dict or {}.
+    The read, the staleness rule and the trim are the `sentiment` service's.
+    """
+    answer = live_plugins.service('sentiment').statements(WS)
+    status, detail = answer['status'], answer['detail']
+    if status == 'missing':
+        print('   ⚠ influencer_feed.json missing — influencer-scan never ran')
+        issues.append('influencer feed missing')
+    elif status == 'stale':
+        # Omit stale/unknown influencer feed (non-fatal — see macro note above);
+        # brief runs without the 名人异动 section rather than on stale statements.
+        print(f"   ⚠ influencer feed stale/unknown ({_age_str(answer['age_hours'])}) "
+              f'— omitting from brief (non-fatal)')
+    elif status == 'unreadable':
+        print(f"   ⚠ influencer feed load failed: {detail['message']}")
+        issues.append(f"influencer load exception: {detail['error']}")
+    else:
+        c = answer['reading']['counts']
+        print(f'   influencer: {c.get("held_hits",0)} held-hits, '
+              f'{c.get("new_ideas",0)} new-ideas, {c.get("sector_hits",0)} sector')
+    return answer['reading']
+
+
+def _legacy_sentiment_reading(sent_path, stale_cutoff_h, issues):
+    """The code `_sentiment_reading` replaced, kept for one comparison
+    (`tests/test_sentiment_plugin.py`) and removed in the change that follows."""
     sentiment_trim = {}
     try:
         if not sent_path.exists():
@@ -1128,10 +1186,10 @@ def load_macro_and_sentiment(today, issues):
         print(f'   ⚠ sentiment load failed: {e}')
         issues.append(f'sentiment load exception: {type(e).__name__}')
 
-    return macro_trim, sentiment_trim
+    return sentiment_trim
 
 
-def load_influencer_feed(issues):
+def _legacy_load_influencer_feed(issues):
     """Read GH-Action-produced influencer_feed.json (Trump/Musk/ARK/人物雷达).
 
     Written by influencer-scan.yml before the brief. Stale (>36h)/missing → warn,

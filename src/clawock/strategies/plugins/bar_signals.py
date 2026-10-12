@@ -356,6 +356,58 @@ def availability(rows: dict) -> dict:
     }
 
 
+def _out(field, unit, window, missing):
+    return {'field': field, 'unit': unit, 'window': window, 'missing': missing}
+
+
+#: What this source reads, every field `bar_signal_row` can produce, and what
+#: each holds when it cannot be measured (`plugin_host.declarations`).
+SIGNAL_SOURCE = {
+    'id': 'bar-signals',
+    'family': 'technical',
+    'summary': 'Liquidity and volatility estimators from daily bars, per name and session.',
+    'inputs': [
+        {'name': 'bars', 'what': 'daily open/high/low/close/volume, oldest first',
+         'source': 'memory/bars, raw, as registered point-in-time by the factor panel'},
+        {'name': 'index', 'what': 'position of the session the row is for; later bars are not read',
+         'source': 'the caller'},
+    ],
+    'outputs': [
+        _out('amihud_illiquidity', 'absolute return per 1e9 of quote currency traded', '20 sessions',
+             'null below 20 earlier sessions or when volume is missing on more than a third of them'),
+        _out('roll_spread_pct', 'percent of price', '20 sessions',
+             'null when the serial covariance of price changes is not negative: '
+             'the model does not apply, which is not a zero spread'),
+        _out('corwin_schultz_spread_pct', 'percent of price', '20 sessions',
+             'null when no two-day pair gives a non-negative estimate'),
+        _out('volume_ratio', 'ratio to own median', '20 sessions against 60',
+             'null below 60 earlier sessions or when volume is missing on half of either window'),
+        _out('ewma_volatility', 'annualised fraction', 'up to 250 daily returns, decay 0.94',
+             'null below 20 returns'),
+        _out('realised_volatility_20d', 'annualised fraction', '20 daily returns', 'null below 19 returns'),
+        _out('garch_forecast_volatility', 'annualised fraction', 'up to 250 daily returns',
+             'null below 200 returns or when the fit is not stationary'),
+        _out('garch_vol_expansion', 'ratio, forecast over realised', 'up to 250 daily returns',
+             'null without both the forecast and realised_volatility_20d'),
+        _out('garch_persistence', 'alpha plus beta, below 1', 'up to 250 daily returns',
+             'null without a fit'),
+        _out('vol_of_vol', 'coefficient of variation', '60 sessions of 20-session volatility',
+             'null below 80 earlier sessions'),
+        _out('realised_skew', 'dimensionless', '60 daily returns',
+             'absent from the row, not null, below 30 returns or when they do not vary'),
+        _out('realised_kurtosis', 'dimensionless, not excess', '60 daily returns',
+             'absent from the row, not null, below 30 returns or when they do not vary'),
+    ],
+    'missing': {
+        'policy': 'null',
+        'detail': 'An estimator that is undefined on a name is null in its row, never zero, and '
+                  'availability() publishes how many names each one was defined for. The two '
+                  'moments are left out of the row instead.',
+        'serves_stale': False,
+    },
+}
+
+
 name = 'bar-signals'
 
 

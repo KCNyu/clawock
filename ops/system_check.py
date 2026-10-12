@@ -1745,6 +1745,30 @@ def check_brief_read_budgets(r):
         r.add('brief read budgets', OK, detail)
 
 
+def check_live_plugin_rows(r):
+    """Every live plugin row, before a reader finds out one did not mount.
+
+    A row that fails stops only the readers of its own service
+    (`clawock.plugin_host.live`), so the brief can run for days without the
+    section a broken row fed. This is where that row is named.
+    """
+    from clawock.plugin_host import live
+
+    try:
+        health = live.health()
+    except Exception as e:  # noqa: BLE001
+        r.add('live plugin rows', WARNING, f'composition unreadable: {e}'[:200])
+        return
+    down = [row for row in health if row['state'] != 'mounted']
+    if down:
+        r.add('live plugin rows', WARNING, '; '.join(
+            f"{row['id'] or row['module']}: {row['error'] or 'waiting for ' + str(row['waiting_for'])}"
+            for row in down)[:300])
+    else:
+        r.add('live plugin rows', OK,
+              f"{len(health)} rows mounted, {len(live.signal_sources())} declared signal sources")
+
+
 def check_trading_calendar_horizon(r):
     """The holiday table is hand-extended each December; warn before it lapses.
 
@@ -2214,6 +2238,7 @@ def main():
         check_research_artifacts,
         check_brief_coverage,
         check_brief_read_budgets,
+        check_live_plugin_rows,
         check_trading_calendar_horizon,
         check_macro_calendar_horizon,
         check_memory_index,

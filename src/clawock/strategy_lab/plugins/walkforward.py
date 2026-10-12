@@ -93,6 +93,12 @@ DEFAULTS = {
 }
 
 
+#: The least a registered gate may ask. A row may tighten any of these; a row
+#: that asks for less is refused at mount, so lowering a bar is a change to
+#: this file and not to a config row.
+FLOOR = {key: value for key, value in DEFAULTS['gate'].items() if value is not None}
+
+
 def _thresholds(overrides, label: str) -> dict:
     """The registered defaults with `overrides` applied; unknown keys refused.
 
@@ -316,7 +322,7 @@ class Optimizer:
         self.strategies, self.bars, self.costs = strategies, bars, costs
         self.settings = settings
 
-    def run(self, strategy: str, registrations=()) -> dict:
+    def run(self, strategy: str, registrations=(), sensitivity=True) -> dict:
         """One proposal. `registrations` are earlier cleared parameters of this
         strategy (`ledger.registrations`); each is scored on the sessions after
         the one it was registered on."""
@@ -381,11 +387,14 @@ class Optimizer:
             if registered['params'] not in configs:
                 continue  # the space no longer holds it; nothing to score it on
             column = configs.index(registered['params'])
+            days = [day for day in sessions if day > registered['after_session']]
             later = [row[column] for day, row in zip(sessions, matrix)
                      if day > registered['after_session']]
             prospective.append({
                 'params': registered['params'], 'after_session': registered['after_session'],
                 'sessions': len(later),
+                'first_session': days[0] if days else None,
+                'last_session': days[-1] if days else None,
                 'mean_ic': round(statistics.fmean(later), 4) if later else None})
         selected = configs[_best(matrix, range(len(matrix)), default)] if matrix else None
         surface = sorted(
@@ -397,7 +406,7 @@ class Optimizer:
         def mean(values, digits=4):
             return round(statistics.fmean(values), digits) if values else None
 
-        return {
+        report = {
             'schema_version': 1,
             'kind': 'strategy-parameter-proposal',
             'strategy': strategy,
@@ -463,10 +472,72 @@ class Optimizer:
             'settings': settings,
             'seed': {'strategy_walkforward_bootstrap': seed},
         }
+        report['coverage_sensitivity'] = (
+            coverage_sensitivity(self, strategy, report) if sensitivity else None)
+        return report
+
+
+class _Subset:
+    """A bars service restricted to some of its names."""
+
+    def __init__(self, bars, tickers):
+        self._bars, self._tickers = bars, sorted(tickers)
+
+    def tickers(self):
+        return list(self._tickers)
+
+    def series(self, ticker):
+        return self._bars.series(ticker)
+
+    def leg(self, ticker):
+        return self._bars.leg(ticker)
+
+    def describe(self):
+        return {**self._bars.describe(), 'tickers': len(self._tickers)}
+
+
+def coverage_sensitivity(optimizer: 'Optimizer', strategy: str, report: dict):
+    """The same search on the names the source answered adjusted, alone.
+
+    A source may serve two kinds of name: those it answered adjusted, and those
+    it answered raw because its own record holds no corporate action for them.
+    The second kind rests on one provider's record. This reruns the proposal
+    without them and reports whether the verdict survives, so a candidate that
+    depends on them says so in its own row. It decides nothing.
+    """
+    basis = (optimizer.bars.describe().get('basis') or {})
+    confirmed, on_record = basis.get('adjusted') or [], basis.get('no_action_on_record') or []
+    if not confirmed or not on_record:
+        return None
+    try:
+        narrow = Optimizer(optimizer.strategies, _Subset(optimizer.bars, confirmed),
+                           optimizer.costs, optimizer.settings).run(strategy, sensitivity=False)
+    except Exception as exc:
+        return {'question': 'adjusted names only', 'tickers': len(confirmed),
+                'left_out': sorted(on_record), 'error': f'{type(exc).__name__}: {exc}'}
+    walk = narrow['walk_forward']
+    return {
+        'question': 'adjusted names only',
+        'tickers': len(confirmed),
+        'left_out': sorted(on_record),
+        'status': narrow['status'],
+        'refused_because': narrow['refused_because'],
+        'selected_params': narrow['selected_params'],
+        'oos_mean_ic_selected': walk['oos_mean_ic_selected'],
+        'oos_ic_ci95': walk['oos_ic_ci95'],
+        'pbo': narrow['pbo'].get('pbo'),
+        'verdict_survives': narrow['status'] == report['status'],
+    }
 
 
 def apply(ctx, config):
     gate = _thresholds(config.get('gate'), 'gate')
+    lowered = sorted(check for check, floor in FLOOR.items() if _loosens(check, floor, gate[check]))
+    if lowered:
+        raise ValueError(
+            f'the registered gate asks less than the floor on {lowered} '
+            f'(floor {({check: FLOOR[check] for check in lowered})}); a row may tighten '
+            'the gate, and lowering a floor is a change to the optimiser, not to a row')
     settings = {**DEFAULTS, **config, 'gate': gate,
                 'gate_alternates': _alternates(config.get('gate_alternates'), gate)}
     ctx.provide('optimizer', Optimizer(

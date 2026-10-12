@@ -10,14 +10,21 @@ rows shipped here, so a book that never configured plugins computes what it
 always did. A `live` list that is present and wrong is an error at first use:
 a production path that silently fell back would be running something other
 than what the file says.
+
+Rows fail one at a time. A row whose module does not import, whose config is
+refused or whose declaration is incomplete is recorded with its error and the
+rest are mounted; `service()` then raises for the services that row would have
+provided, and for those of any plugin that declared it needed them, naming the
+row and the error. A reader of an unaffected service is not stopped by it.
+`health()` lists every row, so a broken one can be seen before a reader asks.
 """
 from __future__ import annotations
 
-import importlib
 import json
 from functools import lru_cache
 from pathlib import Path
 
+from clawock.plugin_host import declarations, rows as composition
 from clawock.plugin_host.kernel import Kernel
 from clawock.workspace import workspace_root
 
@@ -26,7 +33,7 @@ CONFIG = Path('config') / 'strategy-plugins.json'
 #: What runs when the workspace declares no live rows.
 DEFAULT_ROWS = (
     {'id': 'factors', 'module': 'clawock.strategies.plugins.quant_factors',
-     'config': {'sigma_target': 0.25}},
+     'config': {'sigma_target': 0.25}, 'signal_source': True},
     {'id': 'daily-bars', 'module': 'clawock.strategies.plugins.daily_bars',
      'config': {'adjustment': 'qfq'}},
     {'id': 'add-policy', 'module': 'clawock.strategies.plugins.add_policy'},
@@ -35,8 +42,11 @@ DEFAULT_ROWS = (
     {'id': 'add-side', 'module': 'clawock.strategies.plugins.add_side'},
     {'id': 'preposition', 'module': 'clawock.strategies.plugins.preposition'},
     {'id': 'intraday-policy', 'module': 'clawock.strategies.plugins.intraday_policy'},
-    {'id': 'bar-signals', 'module': 'clawock.strategies.plugins.bar_signals'},
+    {'id': 'bar-signals', 'module': 'clawock.strategies.plugins.bar_signals',
+     'signal_source': True},
     {'id': 'signal-panel', 'module': 'clawock.strategy_lab.plugins.signal_panel'},
+    {'id': 'sentiment', 'module': 'clawock.strategies.plugins.sentiment',
+     'config': {'stale_after_hours': 36}, 'signal_source': True},
 )
 
 
@@ -53,19 +63,44 @@ def rows(path: Path | None = None) -> list[dict]:
     return declared
 
 
+class Mounted:
+    """The kernel, and what became of each row."""
+
+    def __init__(self, path: str):
+        self.kernel = Kernel()
+        self.rows: list[dict] = []
+        for row in rows(Path(path)):
+            entry = {'id': row.get('id'), 'module': row['module'], 'error': None, 'fiber': None}
+            self.rows.append(entry)
+            try:
+                entry['fiber'] = composition.mount(self.kernel, row)
+            except Exception as exc:
+                # The row is out; what it had registered was rolled back by the
+                # kernel. The others are mounted as if it were not listed.
+                entry['error'] = f'{type(exc).__name__}: {exc}'
+
+    def health(self) -> list[dict]:
+        providers = self.kernel.services()
+        out = []
+        for entry in self.rows:
+            fiber = entry['fiber']
+            waiting = list(fiber.missing) if fiber else []
+            out.append({
+                'id': entry['id'], 'module': entry['module'],
+                'state': 'failed' if entry['error'] else 'waiting' if waiting else 'mounted',
+                'error': entry['error'], 'waiting_for': waiting,
+                'provides': sorted(name for name, owner in providers.items()
+                                   if fiber and owner == fiber.name),
+            })
+        return out
+
+
 @lru_cache(maxsize=4)
-def _mounted(path: str, stamp) -> Kernel:
-    kernel = Kernel()
-    for row in rows(Path(path)):
-        kernel.plugin(importlib.import_module(row['module']), row.get('config'))
-    waiting = {fiber.name: fiber.missing for fiber in kernel.fibers if fiber.missing}
-    if waiting:
-        raise ValueError(f'{path}: live plugins are waiting for services nobody provides: {waiting}')
-    return kernel
+def _mounted(path: str, stamp) -> Mounted:
+    return Mounted(path)
 
 
-def kernel() -> Kernel:
-    """The mounted live composition, remounted when the file changes."""
+def _current() -> Mounted:
     path = workspace_root() / CONFIG
     try:
         stamp = path.stat().st_mtime_ns
@@ -74,10 +109,33 @@ def kernel() -> Kernel:
     return _mounted(str(path), stamp)
 
 
+def kernel() -> Kernel:
+    """The mounted live composition, remounted when the file changes."""
+    return _current().kernel
+
+
+def health() -> list[dict]:
+    """Every live row: mounted, waiting for a service, or failed and why."""
+    return _current().health()
+
+
+def signal_sources() -> dict[str, dict]:
+    """{row id: its declaration} for the mounted rows that are signal sources."""
+    out = {}
+    for entry in _current().rows:
+        declaration = entry['fiber'] and declarations.of(entry['fiber'].plugin)
+        if declaration:
+            out[entry['id']] = declaration
+    return out
+
+
 def service(name: str):
-    mounted = kernel()
-    if name not in mounted.services():
+    mounted = _current()
+    if name not in mounted.kernel.services():
+        unhealthy = {row['id'] or row['module']: row['error'] or f"waiting for {row['waiting_for']}"
+                     for row in mounted.health() if row['state'] != 'mounted'}
         raise ValueError(
             f'{workspace_root() / CONFIG}: no live row provides {name!r}; '
-            f'provided: {sorted(mounted.services())}')
-    return mounted.get(name)
+            f'provided: {sorted(mounted.kernel.services())}'
+            + (f'; rows not mounted: {unhealthy}' if unhealthy else ''))
+    return mounted.kernel.get(name)

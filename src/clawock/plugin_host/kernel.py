@@ -23,8 +23,18 @@ Python because strategies have to run inside this package's data and gates:
 * **update** — a new config restarts the fiber. A parameter change is the same
   operation as unmount + mount, never a mutation of a running strategy.
 
-What is deliberately absent: Cordis's event dispatch (`emit`, `waterfall`, …),
-async fibers and scoped service isolation. Nothing here needs them yet.
+* **event** — `ctx.on(event, handler)` listens, as an effect, so a stopped
+  fiber hears nothing more. `ctx.emit(event, payload)` calls every listener in
+  the order they registered and returns what they returned. A plugin may only
+  emit the events it names in `emits`, for the reason it may only read the
+  services it names in `inject`: what a plugin can set in motion is readable
+  from its declaration. Dispatch is synchronous and a listener's exception
+  reaches the emitter, so a listener can refuse what it is told about; it has
+  no way to make the emitter do more than it was going to.
+
+What is deliberately absent: Cordis's `waterfall` and `bail` dispatch, async
+fibers and scoped service isolation. Every path that mounts plugins is one
+bounded, single-threaded process, so nothing here has anything to await.
 """
 from __future__ import annotations
 
@@ -69,6 +79,18 @@ class Context:
         return self.effect(lambda: self.fiber.kernel._provide(name, service, self.fiber),
                            f'provide({name})')
 
+    def on(self, event: str, handler: Callable[[Any], Any]) -> Disposer:
+        """Listen for an event until this fiber stops."""
+        return self.effect(lambda: self.fiber.kernel.on(event, handler), f'on({event})')
+
+    def emit(self, event: str, payload: Any = None) -> list:
+        """Tell every listener; returns their answers in registration order."""
+        if event not in self.fiber.emits:
+            raise KernelError(
+                f'{self.fiber.name!r} emits {event!r} without declaring it in '
+                f'emits {sorted(self.fiber.emits)}')
+        return self.fiber.kernel.emit(event, payload)
+
     def plugin(self, plugin: Any, config: dict | None = None) -> 'Fiber':
         """Mount a child plugin that lives no longer than this fiber."""
         child = self.fiber.kernel.plugin(plugin, config)
@@ -84,6 +106,7 @@ class Fiber:
         self.plugin = plugin
         self.name = str(getattr(plugin, 'name', None) or getattr(plugin, '__name__', plugin))
         self.inject = tuple(getattr(plugin, 'inject', ()) or ())
+        self.emits = tuple(getattr(plugin, 'emits', ()) or ())
         self.config = dict(config or {})
         self.state = PENDING
         self._effects: list[tuple[str, Disposer]] = []
@@ -146,6 +169,7 @@ class Kernel:
 
     def __init__(self):
         self._services: dict[str, tuple[Any, Fiber]] = {}
+        self._listeners: dict[str, list[Callable[[Any], Any]]] = {}
         self.fibers: list[Fiber] = []
 
     def plugin(self, plugin: Any, config: dict | None = None) -> Fiber:
@@ -161,6 +185,24 @@ class Kernel:
     def get(self, name: str) -> Any:
         """A service, for the host that mounted the plugins."""
         return self._services[name][0]
+
+    def on(self, event: str, handler: Callable[[Any], Any]) -> Disposer:
+        """Listen for an event; the returned disposer stops listening."""
+        listeners = self._listeners.setdefault(event, [])
+        listeners.append(handler)
+
+        def stop():
+            if handler in listeners:
+                listeners.remove(handler)
+        return stop
+
+    def emit(self, event: str, payload: Any = None) -> list:
+        """An event from the host that mounted the plugins.
+
+        Synchronous: every listener has answered, or one has raised, before
+        this returns.
+        """
+        return [handler(payload) for handler in list(self._listeners.get(event, ()))]
 
     def services(self) -> dict[str, str]:
         """{service name: the fiber providing it}."""

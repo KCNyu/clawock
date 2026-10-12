@@ -14,7 +14,7 @@ from clawock.costs import CostModel
 from clawock.plugin_host import live
 from clawock.strategies import registry
 from clawock.strategies.plugins import quant_factors, rsi
-from clawock.strategy_lab import lab, ledger
+from clawock.strategy_lab import boundaries, lab, ledger
 from clawock.plugin_host.kernel import ACTIVE, PENDING, Kernel, KernelError
 from clawock.strategy_lab.plugins import (
     adjusted_bars, ledger_bars, registered_costs, walkforward)
@@ -241,7 +241,9 @@ def test_a_gate_row_that_does_not_say_what_it_means_is_refused_at_mount(settings
         optimise(Tape(persistence=0.0, sessions=5), **settings)
 
 
-def test_a_sample_too_short_to_measure_selection_is_refused_not_waved_through():
+def test_a_sample_too_short_to_measure_selection_is_refused_not_waved_through(monkeypatch):
+    # The short tape needs a lower session bar than a row is allowed to set.
+    monkeypatch.setitem(walkforward.FLOOR, 'min_oos_sessions', 10)
     report = optimise(Tape(persistence=0.6, sessions=45), min_train_sessions=10,
                       test_sessions=10, pbo_groups=20,
                       gate={'min_oos_sessions': 10})
@@ -590,3 +592,173 @@ def test_the_old_import_paths_are_views_of_the_mounted_plugins(monkeypatch):
     assert mounted.TARGET_MAX_PCT == 60.0
     monkeypatch.undo()
     assert mounted.TARGET_MAX_PCT == 100.0
+
+
+# ── the boundaries of the evolution chain ───────────────────────────────────
+
+@pytest.mark.parametrize('gate, lowered', [
+    ({'corporate_actions_adjusted': False}, 'corporate_actions_adjusted'),
+    ({'pbo_lt': 0.6}, 'pbo_lt'),
+    ({'min_oos_sessions': 59}, 'min_oos_sessions'),
+    ({'oos_ic_ci95_lower_gt': -0.01}, 'oos_ic_ci95_lower_gt'),
+    ({'oos_lift_ci95_lower_gt': -0.01}, 'oos_lift_ci95_lower_gt'),
+])
+def test_a_row_may_tighten_the_registered_gate_and_never_lower_it(gate, lowered):
+    with pytest.raises(ValueError, match=f'asks less than the floor on .*{lowered}'):
+        optimise(Tape(persistence=0.0), gate=gate)
+    optimise(Tape(persistence=0.0), gate={'pbo_lt': 0.3, 'min_oos_sessions': 90,
+                                          'oos_net_excess_ci95_lower_gt': 0.0})
+
+
+def _candidate():
+    return optimise(Tape(persistence=0.6), gate_alternates=[NET])
+
+
+def _set(path, value):
+    def change(report):
+        target = report
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = value
+    return change
+
+
+@pytest.mark.parametrize('tamper, said', [
+    (_set(['live_permission'], True), 'live_permission is True'),
+    (_set(['status'], 'approved'), "status 'approved'"),
+    (_set(['gate', 0, 'passed'], False), "not the registered gate's verdict"),
+    (_set(['alternate_gates', 0, 'binding'], True), 'is marked binding'),
+    (_set(['alternate_gates', 0, 'would_pass'], False), 'live_review.objections is not'),
+    (_set(['sample', 'bars', 'corporate_actions_adjusted'], False), 'do not say they are adjusted'),
+])
+def test_a_proposal_that_claims_more_than_the_gate_concluded_is_not_recorded(
+        tamper, said, tmp_path, monkeypatch):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    report = _candidate()
+    assert boundaries.proposal_violations(report) == []
+    tamper(report)
+    with pytest.raises(boundaries.BoundaryError, match=said):
+        ledger.append(report)
+    with pytest.raises(boundaries.BoundaryError):
+        ledger.register(report)
+    assert ledger.load() == [] and ledger.registrations() == []
+
+
+def test_a_refused_proposal_cannot_be_registered_by_marking_it_cleared(tmp_path, monkeypatch):
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    report = optimise(Tape(persistence=0.0), gate_alternates=[NET])
+    assert report['status'] == 'refused' and ledger.register(report) is None
+    report['live_review']['cleared'] = True
+    with pytest.raises(boundaries.BoundaryError, match='live_review.cleared is not'):
+        ledger.register(report)
+    assert ledger.registrations() == []
+
+
+def test_the_ledger_is_read_back_against_the_boundaries(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    assert lab.record(_lab(Tape(persistence=0.6, sessions=200))) == 0
+    assert lab.record(_lab(Tape(persistence=0.6, sessions=240))) == 0
+    assert boundaries.verify(ledger.load(), ledger.registrations()) == []
+    assert lab.main(['verify']) == 0
+    assert '2 ledger rows, 1 registrations: within the boundaries' in capsys.readouterr().out
+    [trial] = ledger.load()[-1]['prospective']
+    assert trial['first_session'] == 'd0200' > trial['after_session']
+
+    # Rows that reached the files some other way are found on the next read.
+    rows, [registration] = ledger.load(), ledger.registrations()
+    forged = [dict(rows[0], live_permission=True),
+              dict(rows[0], status='candidate', refused_because=['pbo_lt']),
+              dict(rows[1], prospective=[dict(trial, first_session='d0199')])]
+    stray = dict(registration, input_digest='0' * 16, live_permission=True)
+    found = boundaries.verify(forged, [stray])
+    assert [line.split(': ', 1)[1] for line in found] == [
+        'live_permission is not false',
+        'status disagrees with refused_because',
+        'prospective score counts a session not after d0199',
+        'live_permission is not false',
+        'no cleared ledger row with its input digest']
+    with (tmp_path / 'registrations.jsonl').open('a') as handle:
+        handle.write(json.dumps(stray) + '\n')
+    assert lab.main(['verify']) == 1
+
+
+def test_a_listener_may_refuse_a_registration_and_cannot_cause_one(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    heard = []
+
+    def objector(ctx, config):
+        ctx.on(lab.PROPOSAL, lambda report: heard.append(('proposal', report['status'])))
+
+        def refuse(report):
+            heard.append(('registration', report['strategy']))
+            raise ValueError('one provider is not enough')
+        ctx.on(lab.REGISTRATION, refuse)
+
+    kernel = _lab(Tape(persistence=0.6))
+    fiber = kernel.plugin(plugin('objector', objector))
+    assert lab.record(kernel) == 1
+    assert heard == [('proposal', 'candidate'), ('registration', 'trend')]
+    # The proposal is on record; the registration it objected to is not.
+    assert [row['status'] for row in ledger.load()] == ['candidate']
+    assert ledger.registrations() == []
+    assert 'not recorded (ValueError: one provider is not enough)' in capsys.readouterr().err
+
+    # A listener that answers yes to everything changes nothing for noise.
+    fiber.dispose()
+    noise = _lab(Tape(persistence=0.0))
+    noise.plugin(plugin('eager', lambda ctx, config: ctx.on(lab.PROPOSAL, lambda report: True)))
+    assert lab.record(noise) == 0
+    assert ledger.registrations() == [] and ledger.load()[-1]['status'] == 'refused'
+
+
+def test_recording_a_candidate_changes_no_row_and_no_live_service(tmp_path, monkeypatch):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    config = ROOT / 'config' / 'strategy-plugins.json'
+    before = config.read_bytes()
+    closes = [100 + (i * 7) % 13 for i in range(60)]
+    published = live.service('factors').rsi(closes, 14)
+    kernel = _lab(Tape(persistence=0.6))
+    assert lab.record(kernel) == 0
+    [registered] = ledger.registrations()
+    spec = kernel.get('strategies').get('trend')
+    # The run selected other parameters and registered them; the strategy still
+    # runs with the ones its row declares, and the live factor row is untouched.
+    assert registered['params'] != spec.params == {'lookback': 3, 'sign': -1}
+    assert config.read_bytes() == before
+    assert live.service('factors').rsi(closes, 14) == published
+
+
+class SplitTape(Tape):
+    """A tape whose source says half its names rest on an empty action record."""
+
+    def describe(self):
+        names = self.tickers()
+        return {**super().describe(),
+                'basis': {'adjusted': names[:6], 'no_action_on_record': names[6:]}}
+
+
+def test_a_candidate_says_whether_it_survives_without_the_single_source_names(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ledger, 'ledger_path', lambda: tmp_path / 'ledger.jsonl')
+    monkeypatch.setattr(ledger, 'registrations_path', lambda: tmp_path / 'registrations.jsonl')
+    assert optimise(Tape(persistence=0.6))['coverage_sensitivity'] is None
+    kernel = _lab(SplitTape(persistence=0.6, tickers=12))
+    report = kernel.get('optimizer').run('trend')
+    narrow = report['coverage_sensitivity']
+    assert narrow['tickers'] == 6 and narrow['left_out'] == [f'T{n:02d}' for n in range(6, 12)]
+    assert narrow['verdict_survives'] is (narrow['status'] == report['status'])
+    # It is written beside the verdict and decides nothing.
+    assert report['status'] == 'candidate' and report['live_review']['cleared'] is True
+    assert lab.record(kernel) == 0
+    assert ledger.load()[-1]['coverage_sensitivity'] == narrow
+    view = lab.evolution('trend', ledger.load(), ledger.registrations())
+    assert view['live_permission'] is False and len(view['steps']) == 1
+    assert view['steps'][0]['names_by_basis'] == {'adjusted': 6, 'no_action_on_record': 6}
+    [trial] = view['registrations']
+    assert trial['latest'] is None and trial['scored_runs'] == 0
+    assert lab.main(['evolution', 'trend']) == 0
+    assert 'adjusted names alone' in capsys.readouterr().out

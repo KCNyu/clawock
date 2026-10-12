@@ -10,6 +10,9 @@ Usage
   clawock strategy-lab optimize rsi          # walk-forward search; prints a proposal
   clawock strategy-lab optimize rsi --json --output proposal.json
   clawock strategy-lab ledger                # yield per strategy, alternates beside the gate
+  clawock strategy-lab evolution rsi         # one strategy's record, run by run
+  clawock strategy-lab verify                # the ledger against the lab's boundaries
+  clawock strategy-lab sources               # what each signal source declares
 
 `optimize` is research. It writes the file `--output` names and one row in the
 lab ledger (`--no-ledger` skips it); its proposal never carries live permission.
@@ -17,12 +20,13 @@ lab ledger (`--no-ledger` skips it); its proposal never carries live permission.
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 import sys
 from pathlib import Path
 
-from clawock.strategy_lab import ledger
+from clawock.plugin_host import declarations, live
+from clawock.strategy_lab import boundaries, ledger
+from clawock.plugin_host import rows as composition
 from clawock.plugin_host.kernel import Kernel
 from clawock.workspace import workspace_root
 
@@ -44,7 +48,7 @@ def mount(rows) -> Kernel:
     """One fiber per row. Row order is not load order: `inject` decides that."""
     kernel = Kernel()
     for row in rows:
-        kernel.plugin(importlib.import_module(row['module']), row.get('config'))
+        composition.mount(kernel, row)
     return kernel
 
 
@@ -100,30 +104,135 @@ def _print_ledger(stats: dict) -> None:
                   f"registered gate on {tally['disagrees_with_registered']}")
 
 
+#: What the lab tells the plugins mounted beside it. A listener hears each
+#: one before the write it announces and may refuse it by raising: the row is
+#: then not written and the strategy is reported as failed. A listener cannot
+#: cause a write, because the lab's own checks run whatever it answers.
+PROPOSAL = 'strategy-lab/proposal'
+REGISTRATION = 'strategy-lab/registration'
+
+
+def keep(kernel, report: dict) -> dict | None:
+    """Record one proposal and register it if cleared; the registration or None."""
+    kernel.emit(PROPOSAL, report)
+    ledger.append(report)
+    if (report.get('live_review') or {}).get('cleared'):
+        kernel.emit(REGISTRATION, report)
+    return ledger.register(report)
+
+
 def record(kernel) -> int:
     """The scheduled run: every mounted strategy, into the ledger.
 
     One strategy failing does not stop the others; the exit status says
-    whether any did.
+    whether any did, or whether the ledger read back afterwards breaks a
+    boundary.
     """
     known, failed = ledger.registrations(), 0
     for strategy in kernel.get('strategies').names():
         try:
             report = kernel.get('optimizer').run(strategy, registrations=[
                 row for row in known if row['strategy'] == strategy])
+            registered = keep(kernel, report)
         except Exception as exc:
             failed += 1
             print(f'{strategy}: not recorded ({type(exc).__name__}: {exc})', file=sys.stderr)
             continue
-        ledger.append(report)
-        registered = ledger.register(report)
         review = report['live_review']
         print(f"{strategy}: {report['status']}"
               f"{' on ' + str(report['refused_because']) if report['refused_because'] else ''}, "
               f"objections {review['objections'] or 'none'}, "
               f"{'registered ' + str(registered['params']) if registered else 'nothing registered'}, "
               f"{len(report['prospective'])} earlier registration(s) scored")
-    return 1 if failed else 0
+    broken = boundaries.verify(ledger.load(), ledger.registrations())
+    for line in broken:
+        print(f'boundary: {line}', file=sys.stderr)
+    return 1 if failed or broken else 0
+
+
+def evolution(strategy: str, rows: list[dict], registrations: list[dict]) -> dict:
+    """One strategy's record in the order it was written.
+
+    Each run is a step: what the gate concluded, on which bars, and what
+    changed against the step before. A registration is where a cleared
+    candidate started being scored on sessions it had not seen; the latest
+    prospective score of each registration is the measurement so far.
+    """
+    steps, previous = [], None
+    for row in rows:
+        if row['strategy'] != strategy:
+            continue
+        bars = row.get('bars') or {}
+        step = {
+            'recorded_at': row['recorded_at'], 'code': row.get('code'),
+            'status': row['status'], 'refused_because': row['refused_because'],
+            'registered_params': row['registered_params'],
+            'selected_params': row['selected_params'],
+            'tickers': bars.get('tickers'), 'bars_digest': bars.get('digest'),
+            'names_by_basis': {basis: len(names)
+                               for basis, names in (bars.get('basis') or {}).items()},
+            'oos_ic_ci95': row['measured']['oos_ic_ci95'],
+            'cleared': bool((row.get('live_review') or {}).get('cleared')),
+            'coverage_sensitivity': row.get('coverage_sensitivity'),
+            'changed': [] if previous is None else [
+                key for key in ('status', 'selected_params', 'registered_params', 'tickers',
+                                'bars_digest')
+                if previous[key] != (row[key] if key in row else bars.get(
+                    'digest' if key == 'bars_digest' else key))],
+        }
+        steps.append(step)
+        previous = step
+    trials = []
+    for registration in registrations:
+        if registration['strategy'] != strategy:
+            continue
+        scores = [trial for row in rows if row['strategy'] == strategy
+                  for trial in row.get('prospective') or []
+                  if trial['params'] == registration['params']
+                  and trial['after_session'] == registration['after_session']]
+        trials.append({
+            'params': registration['params'], 'registered_at': registration['registered_at'],
+            'after_session': registration['after_session'],
+            'cleared_by': registration['cleared_by'], 'live_permission': False,
+            'scored_runs': len(scores),
+            'latest': scores[-1] if scores else None})
+    return {'strategy': strategy, 'live_permission': False, 'steps': steps,
+            'registrations': trials}
+
+
+def _print_evolution(view: dict) -> None:
+    if not view['steps']:
+        print(f"{view['strategy']}: nothing recorded")
+    for step in view['steps']:
+        why = f" on {step['refused_because']}" if step['refused_because'] else ''
+        print(f"{step['recorded_at']}  {step['status']}{why}  selected {step['selected_params']}  "
+              f"IC {step['oos_ic_ci95']}  {step['tickers']} names {step['names_by_basis'] or ''}"
+              f"{'  changed: ' + ', '.join(step['changed']) if step['changed'] else ''}")
+        narrow = step['coverage_sensitivity']
+        if narrow and 'status' in narrow:
+            print(f"    on the {narrow['tickers']} adjusted names alone: {narrow['status']}"
+                  f"{' on ' + str(narrow['refused_because']) if narrow['refused_because'] else ''}"
+                  f", IC {narrow['oos_ic_ci95']} "
+                  f"({'the verdict survives' if narrow['verdict_survives'] else 'the verdict does not survive'}"
+                  f" without {len(narrow['left_out'])} names the provider has no action on record for)")
+    for trial in view['registrations']:
+        latest = trial['latest']
+        scored = (f"{latest['sessions']} sessions after it, mean IC {latest['mean_ic']}"
+                  if latest else 'not scored yet')
+        print(f"registered {trial['params']} after {trial['after_session']} "
+              f"(live_permission false): {scored}")
+
+
+def _print_sources(found: dict) -> None:
+    for identifier, declaration in found.items():
+        print(f"{identifier} ({declaration['family']}): {declaration['summary']}")
+        for item in declaration['inputs']:
+            print(f"  reads {item['name']}: {item['what']} — {item['source']}")
+        for item in declaration['outputs']:
+            print(f"  {item['field']}: {item['unit']}; {item['window']}; "
+                  f"missing: {item['missing']}")
+        print(f"  without its inputs ({declaration['missing']['policy']}): "
+              f"{declaration['missing']['detail']}")
 
 
 def main(argv=None) -> int:
@@ -146,6 +255,14 @@ def main(argv=None) -> int:
     history = sub.add_parser(
         'ledger', help='recorded verdicts: yield per strategy, alternates beside the gate')
     history.add_argument('--json', action='store_true')
+    story = sub.add_parser(
+        'evolution', help="one strategy's record: each run, each registration, its score since")
+    story.add_argument('strategy')
+    story.add_argument('--json', action='store_true')
+    sub.add_parser('verify', help="the ledger and registrations against the lab's boundaries")
+    described = sub.add_parser(
+        'sources', help='every mounted signal source: inputs, outputs, units, missing data')
+    described.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
 
     if args.action == 'ledger':
@@ -155,6 +272,21 @@ def main(argv=None) -> int:
         else:
             _print_ledger(stats)
         return 0
+    if args.action == 'evolution':
+        view = evolution(args.strategy, ledger.load(), ledger.registrations())
+        if args.json:
+            print(json.dumps(view, ensure_ascii=False, indent=2))
+        else:
+            _print_evolution(view)
+        return 0
+    if args.action == 'verify':
+        rows, registered = ledger.load(), ledger.registrations()
+        broken = boundaries.verify(rows, registered)
+        for line in broken:
+            print(line, file=sys.stderr)
+        print(f'{len(rows)} ledger rows, {len(registered)} registrations: '
+              f"{str(len(broken)) + ' boundary violations' if broken else 'within the boundaries'}")
+        return 1 if broken else 0
 
     config = args.config or workspace_root() / CONFIG
     if not config.exists():
@@ -162,6 +294,17 @@ def main(argv=None) -> int:
         parser.exit(2, f'no strategy plugins are configured: {config} does not exist\n')
     kernel = mount(load_rows(config))
     try:
+        if args.action == 'sources':
+            found = dict(live.signal_sources())
+            for fiber in kernel.fibers:
+                declaration = declarations.of(fiber.plugin)
+                if declaration:
+                    found.setdefault(declaration['id'], declaration)
+            if args.json:
+                print(json.dumps(found, ensure_ascii=False, indent=2))
+            else:
+                _print_sources(found)
+            return 0
         if args.action == 'list':
             providers = kernel.services()
             for fiber in kernel.fibers:
@@ -185,7 +328,7 @@ def main(argv=None) -> int:
         except (KeyError, ValueError) as exc:
             parser.exit(2, f'{exc.args[0]}\n')
         if not args.no_ledger:
-            ledger.append(report)
+            ledger.append(report)  # recorded, not registered: only `record` registers
         if args.output:
             args.output.write_text(
                 json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

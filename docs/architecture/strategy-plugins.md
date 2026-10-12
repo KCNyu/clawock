@@ -13,6 +13,9 @@ clawock strategy-lab list            # mounted plugins, services, strategies
 clawock strategy-lab optimize rsi    # walk-forward search → a proposal
 clawock strategy-lab record          # every strategy, into the ledger (the brief runs this)
 clawock strategy-lab ledger          # recorded verdicts across runs
+clawock strategy-lab evolution rsi   # one strategy's record, run by run
+clawock strategy-lab verify          # the ledger against the lab's boundaries
+clawock strategy-lab sources         # what each signal source declares
 ```
 
 ## Live composition
@@ -24,6 +27,8 @@ their services:
 |---|---|---|---|
 | `factors` | `strategies/plugins/quant_factors.py` | `signals(bars)`, `short_history(bars)`, `rsi(closes, period)`, `atr(bars, period)`; config `sigma_target` | `decision/signals.compute_signals` and `compute_short_history_signals`, and through them the quant refresh, both radars, the watch list, the brief's add side, the pre-position lane and `evaluate-add-shapes` |
 | `daily_bars` | `strategies/plugins/daily_bars.py` | `fetch(code, cnt)`; config `adjustment` (`qfq` or `raw`) | `decision/signals.fetch_bars`, and through it the quant refresh, both radars, the provisional setups, the watch list, the strategy escalations and `evaluate-add-shapes --source tencent` |
+
+| `sentiment` | `strategies/plugins/sentiment.py` | `attention(workspace, recent_moves)`, `statements(workspace)`, each answering `{status, reading, age_hours, detail}`; config `stale_after_hours` | `harness/brief_preflight.load_macro_and_sentiment` and `load_influencer_feed` |
 
 ### Adjusted bars on the live path
 
@@ -75,17 +80,45 @@ replacing the `add_policy` row replaces what the readers call and not what
 `add_side` calls internally. `preposition` reads the `factors` service.
 
 The code each module held before the move stayed in its old package as
-`legacy_<module>.py` until the plugins had run in production. While it did,
-every call the test suite made into a plugin was also made into the legacy
-function, and the two had to agree on the value (floats exact), the error and
-the state of their arguments. It has since been removed: the plugins are the
-only implementation.
+`legacy_<module>.py`, and every call the test suite made into a plugin was also
+made into the legacy function: the two had to agree on the value (floats
+exact), the error and the state of their arguments. The legacy modules and that
+comparison were removed on 2026-10-12, before `add_alpha`, `preposition` and
+`bar_signals` had run in a production brief; the last comparison was a replay
+of the stored 2026-10-12 brief context and the 28 stored bar series. The
+plugins are the only implementation.
+
+Removing the second implementation removed the comparison with it. What
+checks these modules now:
+
+- the four signal sources have recorded outputs (see *Recorded outputs*
+  below), compared exactly on every run of the suite;
+- the six policy modules (`add_policy`, `add_alpha`, `left_side`, `add_side`,
+  `preposition`, `intraday_policy`) and `signal_panel` have their own unit
+  tests and nothing recorded. A change that those tests do not exercise is no
+  longer caught by a second copy disagreeing.
+
+### A row that fails
 
 A workspace with no file, or no `live` list, runs the shipped rows. A `live`
-list that is present and malformed, leaves a plugin waiting for a service, or
-omits a service a reader asks for, is an error at first use. Every live row is
-mounted when the first service is read, so a row that fails to import stops
-every reader of the composition.
+list that is present and malformed is an error at first use.
+
+Rows are mounted together when the first service is read, and they fail one at
+a time. A row whose module does not import, whose config is refused, or whose
+declaration is incomplete is recorded with its error; the others are mounted
+as if it were not listed. Reading a service that row would have provided
+raises and names the row and the error. So does reading the service of a
+plugin that declared, in `inject`, that it needs the failed one: it is left
+waiting. A reader of any other service is not affected.
+
+This does not cover a plugin that imports a sibling module directly:
+`add_side` imports `add_policy`, so if `add_policy` does not import, neither
+does `add_side`, and both rows fail.
+
+`plugin_host.live.health()` lists every row as `mounted`, `waiting` or
+`failed`, and `ops/system_check.py` prints it as `live plugin rows`. A reader
+that asks for a missing service still fails loudly: nothing falls back to
+another implementation.
 
 ### Where the kernel sits
 
@@ -116,10 +149,143 @@ to run inside this package's data and gates.
 | `ctx.effect()` | `ctx.effect(execute, label)` | every registration records its undo; unmounting runs them in reverse |
 | `fiber.update(config)` | `Fiber.update(config)` | a parameter change is a restart under the new config |
 
+| `ctx.on()` / `ctx.emit()` | `ctx.on(event, handler)`, `ctx.emit(event, payload)`, module-level `emits = (...)` | a listener is an effect; an emitter names its events as it names its services |
+
 A plugin is any importable module with `apply(ctx, config)` and, optionally,
-`name` and `inject`. `ctx.get()` refuses a service the plugin did not declare.
-Event dispatch (`emit`, `waterfall`), async fibers and scoped services are not
-implemented.
+`name`, `inject`, `emits` and `SIGNAL_SOURCE`. `ctx.get()` refuses a service
+the plugin did not declare, and `ctx.emit()` an event it did not declare.
+
+### Events
+
+Dispatch is synchronous: `emit` calls every listener in the order they
+registered and returns their answers. A listener's exception reaches the
+emitter. That is the whole of it; Cordis's `waterfall` and `bail`, async fibers
+and scoped services are not implemented, because every path that mounts
+plugins is one bounded, single-threaded process with nothing to await.
+
+Services are pulled: a plugin can be asked, and cannot be told. Events exist
+for the one place that needed telling. The lab announces two things to
+whatever is mounted beside it:
+
+| Event | When | A listener may |
+|---|---|---|
+| `strategy-lab/proposal` | before a proposal is written to the ledger | observe it, or raise to keep it off the record |
+| `strategy-lab/registration` | before a cleared candidate's parameters are registered | observe it, or raise to refuse the registration |
+
+A listener can refuse and cannot grant. The lab's own checks run whatever a
+listener answers, so no plugin can make the lab register something its gate
+did not clear. No listener is shipped.
+
+## Signal sources
+
+A signal source is a plugin whose readings reach a decision. Each carries a
+module-level `SIGNAL_SOURCE`, and a row marked `"signal_source": true` is not
+mounted unless that declaration passes `plugin_host/declarations.validate`.
+Four are shipped, one per family:
+
+| Row | Family | Reads | Without its inputs |
+|---|---|---|---|
+| `factors` (live) | `factor` | daily bars from `daily_bars` (forward-adjusted) or `memory/bars` (raw) | `signals()` is `None` below 30 usable bars, `short_history()` below 20; above that an unmeasurable field is null |
+| `bar-signals` (live) | `technical` | daily bars and the index of the session | an undefined estimator is null, never zero; the two moments are left out of the row |
+| `rsi` (research) | `strategy` | closes up to the signal session, `period` and `direction` from the row | null below `period + 1` closes; the name is not ranked that session |
+| `sentiment` (live) | `sentiment` | `sentiment.json` and `influencer_feed.json`, produced off-host | the reading is empty and `status` says `missing`, `stale` or `unreadable` |
+
+The shape is the same for every family:
+
+```python
+SIGNAL_SOURCE = {
+    'id': 'factors',
+    'family': 'factor',            # factor | technical | strategy | sentiment
+    'summary': '...',
+    'inputs': [{'name': 'bars', 'what': '...', 'source': '...'}],
+    'outputs': [{'field': 'rsi14', 'unit': 'index 0-100',
+                 'window': '14 sessions, Wilder smoothing',
+                 'missing': 'null below 15 closes'}],
+    'missing': {'policy': 'null',  # null | omitted | refused
+                'detail': '...', 'serves_stale': False},
+}
+```
+
+Every output states its unit, its window and what it holds when it cannot be
+measured. `missing.serves_stale` must be `False`: a source may answer null,
+leave the reading out or refuse, and none of the three policies is "the last
+value". `clawock strategy-lab sources` prints every mounted declaration.
+
+One shape serves the four families because a reader asks the same three
+questions of each. What differs between them is in `inputs` and in the
+service's own methods, which the declaration does not try to describe.
+
+The declarations are checked against what the code returns:
+`tests/test_signal_sources.py` holds the factor row and the estimator row to
+exactly the declared fields, and to the declared nulls on short series.
+
+### Sentiment
+
+The attention scan (`market_data/sentiment.py`) and the statement radar
+(`automation/influencer.py`) run off-host and commit a file each. They stay
+where they are: they are scheduled producers, not part of a composition a
+brief mounts. The plugin is the other end, the read that decides whether a
+file can be used today.
+
+It has an interface of its own rather than a view of the old module. The
+eight migrated modules each had many readers and a wide surface, so keeping
+their import paths was the smaller change. This lane had two call sites and
+one property worth a contract: an answer of `{}` could not say whether the
+scan found nothing, did not run, or was too old. The service returns `status`
+beside the reading. `brief_preflight` keeps its two function names, calls the
+service, and prints the line and appends the issue it always did.
+
+A reading older than `stale_after_hours` (36) is not served; the age is the
+payload's own `generated_at`, never the file's mtime. `macro.json` and
+`em_news.json` are read by `brief_preflight` as before and are not rows.
+`evidence/intraday_information.py`, `evidence/news_evidence_graph.py` and the
+dashboard read `sentiment.json` directly for other purposes and are unchanged.
+
+### Recorded outputs
+
+`tests/fixtures/signal_sources/` holds three daily series and the two scan
+files, copied from the workspace on 2026-10-12, and `goldens.json`: the factor
+row at eight history lengths, the estimator row at four sessions, the RSI
+score over the whole registered grid, and both sentiment readings. The suite
+recomputes them and compares exactly, floats included. A deliberate change to
+a source re-records the file (`CLAWOCK_WRITE_GOLDENS=1`), and the diff is the
+statement of what moved.
+
+Recording them found one thing the legacy comparison could not have: the
+factor row depends on the interpreter. Python 3.12 made `sum` of floats
+compensated, and a 20-session average that lands on a rounding boundary reads
+one unit in its third decimal differently under 3.11. In the three recorded
+series, 11 `ma20` cells do. The desk host runs 3.12 and CI runs 3.11, so the
+file records both: `outputs` for the compensated sum, and `naive_sum` for the
+cells that differ without it. The suite checks the interpreter it runs on and
+the left-to-right sum on every run. The arithmetic itself is unchanged.
+
+## Writing a plugin outside this repository
+
+A row's `module` is an import path, so a plugin can be any installed package.
+
+1. Write a module with `apply(ctx, config)`. Publish a service with
+   `ctx.provide(name, service)`; name the services it reads in `inject` and the
+   events it emits in `emits`. Register anything else through `ctx.effect` so
+   that unmounting undoes it.
+2. If its readings reach a decision, give it a `SIGNAL_SOURCE` and mark the row
+   `"signal_source": true`.
+3. Install it into the environment clawock runs in and add the row:
+   `{"id": "my-source", "module": "my_package.source", "config": {...}}`.
+4. `clawock strategy-lab list` shows whether it mounted and what it waits for;
+   `clawock strategy-lab sources` prints its declaration.
+
+What mounting does not give it:
+
+- A research row cannot reach the live composition. `plugins` is mounted by
+  `strategy-lab` only, and no production module imports that package.
+- A strategy's score is ranked by the optimiser on history cut at the signal
+  session; the plugin never sees a later bar.
+- An optimiser's proposal is written through `strategy_lab/ledger.py`, which
+  applies the boundaries below whoever produced it.
+- A live row replaces what a production path computes. Adding or changing one
+  is an edit to `config/strategy-plugins.json`, reviewed like any change to
+  configuration; nothing mounts a live row on its own.
 
 ## Services
 
@@ -262,12 +428,65 @@ chosen, which is the measurement a retrospective search cannot give.
 Nothing reads `prospective` to change a parameter. Changing the registered
 parameters is still an edit to the row.
 
+### How far the loop goes
+
+The chain that runs every morning is: the optimiser searches the declared
+grid, the registered gate judges the result, live alternates may object, the
+ledger records the verdict, a cleared candidate is registered, and every later
+run scores that registration on sessions it had not seen.
+
+`clawock strategy-lab evolution <name>` reads that record back in order: each
+run's verdict, what changed against the run before, each registration and its
+score so far.
+
+Two links are not built. Nothing proposes the row edit when a registration
+has scored well for long enough, and no live path reads a strategy's score:
+`rsi` is ranked by the lab and by nothing else. Until those exist, what
+evolves is the record of which parameters would have been chosen and how they
+have done since.
+
+### Coverage sensitivity
+
+`adjusted_bars` serves two kinds of name: those the provider answered
+adjusted, and those it answered raw because its own record holds no corporate
+action for them. The second kind rests on one provider. When a source reports
+both, each proposal also carries `coverage_sensitivity`: the same search on
+the adjusted names alone, with its status, interval and `verdict_survives`.
+It is recorded beside the verdict and decides nothing.
+
+On 2026-10-12 `rsi` was a candidate on 28 names (rank IC interval
+[0.0171, 0.1117]) and was registered as momentum / 28. On the 16 adjusted
+names alone the same search is refused, with an interval that spans zero. The
+candidate depends on the 12 names with no action on record.
+
+## Boundaries
+
+`strategy_lab/boundaries.py` holds what the lab may never write down. It is
+not a plugin and no row turns it off. `ledger.append` and `ledger.register`
+apply it on every write, and `strategy-lab verify` (and the end of every
+`record`) reads the files back and applies it again.
+
+| Boundary | Where it is enforced |
+|---|---|
+| a proposal and a registration say `live_permission: false` | `boundaries.check_proposal`, `check_registration`; `verify` |
+| `status` is the registered gate's verdict and nothing else | `check_proposal` |
+| an alternate gate is never binding; a live one may only object | `check_proposal`; `walkforward._alternates` at mount |
+| a live alternate may only add a check or tighten one | `walkforward._alternates` at mount |
+| a row may tighten the registered gate and never lower it below `walkforward.FLOOR` | `walkforward.apply` at mount |
+| a candidate was measured on bars that say they are adjusted, when the gate asks | `check_proposal`; `verify` |
+| a registration belongs to a cleared candidate and carries its parameters | `check_registration`; `verify` |
+| a prospective score counts sessions after the registration only | `check_proposal`; `verify` |
+| the lab writes no row and no live service | `tests/test_strategy_plugins.py`; `tests/package_edges.txt` has no edge into `strategy_lab` |
+
+Lowering a floor is a change to `walkforward.py`, reviewed as code. A config
+row cannot do it.
+
 ## Ledger
 
 `optimize` and `record` append one row per proposal to
 `memory/strategy-lab/ledger.jsonl`: status, failed checks, every alternate's
-verdict, `live_review`, `prospective`, the measured intervals, and the digest
-and basis of the bars served. `optimize --no-ledger` skips it. The file sits
+verdict, `live_review`, `prospective`, `coverage_sensitivity`, the measured
+intervals, and the digest and basis of the bars served. `optimize --no-ledger` skips it. The file sits
 beside `memory/backtests` as run-time evidence of research;
 `memory/proposals.jsonl` is the book's decision proposals and is a different
 record.

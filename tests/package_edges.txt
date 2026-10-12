@@ -70,6 +70,7 @@ harness -> history_store
 harness -> instruments
 harness -> intraday_status
 harness -> market_data
+harness -> plugin_host
 harness -> portfolio
 harness -> prose_validation
 harness -> providers
