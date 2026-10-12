@@ -74,17 +74,12 @@ Inside the plugin package, `add_alpha`, `add_side` and `preposition` import
 replacing the `add_policy` row replaces what the readers call and not what
 `add_side` calls internally. `preposition` reads the `factors` service.
 
-The code each module held before the move is `legacy_<module>.py` in its old
-package, unchanged apart from importing its legacy siblings. Nothing in
-production reads it. `tests/legacy_shadow.py` wraps every public function of
-the eight plugins for the whole test run: an outermost call into a plugin is
-also made into the legacy function on a copy of the same arguments, and the
-two must agree on the value (floats exact), the error, and the state they
-leave their arguments in. `tests/test_migrated_plugins_equivalence.py` checks
-the shadow itself and drives the plugins over the stored bars, the policy
-files and the holdings. The legacy modules, the shadow and that test are
-removed together in a separate change, once the plugins have run in
-production.
+The code each module held before the move stayed in its old package as
+`legacy_<module>.py` until the plugins had run in production. While it did,
+every call the test suite made into a plugin was also made into the legacy
+function, and the two had to agree on the value (floats exact), the error and
+the state of their arguments. It has since been removed: the plugins are the
+only implementation.
 
 A workspace with no file, or no `live` list, runs the shipped rows. A `live`
 list that is present and malformed, leaves a plugin waiting for a service, or

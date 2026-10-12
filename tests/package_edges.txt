@@ -43,7 +43,6 @@ evaluation -> decision
 evaluation -> evidence
 evaluation -> history_store
 evaluation -> instruments
-evaluation -> labeling
 evaluation -> market_data
 evaluation -> plugin_host
 evaluation -> portfolio

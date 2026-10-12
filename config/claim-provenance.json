@@ -3,7 +3,6 @@
   "surfaces": [
     "src/clawock/decision/regime.py",
     "src/clawock/strategies/plugins/left_side.py",
-    "src/clawock/decision/legacy_left_side.py",
     "src/clawock/evaluation/regime_validation.py",
     "src/clawock/evaluation/regime_hmm.py",
     "src/clawock/evidence/build_evidence.py",
