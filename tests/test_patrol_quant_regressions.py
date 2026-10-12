@@ -4,6 +4,7 @@ import subprocess
 from types import SimpleNamespace
 
 import pytest
+import requests
 
 from clawock.decision import regime, signals
 from clawock.evaluation import us_leverage
@@ -19,7 +20,7 @@ ROWS = [
 
 
 def test_quant_and_evaluation_skip_bad_kline_rows(monkeypatch):
-    monkeypatch.setattr(signals.requests, 'get', lambda *a, **k: SimpleNamespace(
+    monkeypatch.setattr(requests, 'get', lambda *a, **k: SimpleNamespace(
         json=lambda: {'data': {'usTEST': {'qfqday': ROWS}}}))
     assert signals.fetch_bars('usTEST') == [
         {'date': '2026-10-06', 'open': 1.1, 'close': 1.9, 'high': 2.0, 'low': 1.0}]

@@ -133,13 +133,14 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
         path.write_text("{}")
         os.utime(path, (at.timestamp(), at.timestamp()))
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
-    monkeypatch.setitem(
-        sys.modules,
-        "clawock.portfolio.integrity",
-        SimpleNamespace(check=lambda: {
-            "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
-        }),
-    )
+    integrity = SimpleNamespace(check=lambda: {
+        "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
+    })
+    monkeypatch.setitem(sys.modules, "clawock.portfolio.integrity", integrity)
+    # `from clawock.portfolio import integrity` reads the package attribute once
+    # any earlier test has imported the real module, and the real check judges
+    # this checkout's `memory/bars` against the wall clock.
+    monkeypatch.setattr(sys.modules["clawock.portfolio"], "integrity", integrity, raising=False)
     return _portfolio(), data_dir
 
 

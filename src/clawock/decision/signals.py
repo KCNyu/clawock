@@ -30,8 +30,6 @@ import math
 import sys
 from datetime import date, datetime, timezone
 
-import requests
-
 from clawock import sessions as trading_calendar
 from clawock import history_store
 from clawock.market_data.daily_prices import clean_bars
@@ -46,11 +44,6 @@ PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'quant_signals.json'
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
 
-TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
-TENCENT_FQ = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get'
-UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-      '(KHTML, like Gecko) Chrome/121.0 Safari/537.36')
-
 SIGMA_TARGET = 0.25   # vol-target sizing 的组合级目标波动（25% 年化）
 MAX_STALE_DAYS = 7
 RETIRED_RETENTION_DAYS = 7
@@ -60,20 +53,8 @@ _parse_bars = parse_daily_bars
 
 
 def fetch_bars(code, cnt=400):
-    """日 K（qfq 优先）。HK 走 kline 带日期窗，US 走 fqkline。"""
-    today = trading_calendar.hkt_today().isoformat()
-    if code.startswith('hk'):
-        url = f'{TENCENT}?param={code},day,2024-01-01,{today},{cnt}'
-    else:
-        url = f'{TENCENT_FQ}?param={code},day,,,{cnt},qfq'
-    try:
-        d = requests.get(url, headers={'User-Agent': UA}, timeout=20).json()
-    except Exception as e:
-        print(f'  warn: {code} fetch failed: {e}', file=sys.stderr)
-        return []
-    node = (d.get('data') or {}).get(code, {})
-    rows = node.get('qfqday') or node.get('day') or []
-    return _parse_bars(rows)
+    """日 K，来自挂载的 `daily_bars` 插件（现网行为前复权；请求失败返回 []）。"""
+    return live_plugins.service('daily_bars').fetch(code, cnt)
 
 
 def _ma(closes, n):

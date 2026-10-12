@@ -62,7 +62,8 @@ def row(report: dict) -> dict:
         'registered_params': report['registered_params'],
         'selected_params': report['selected_params'],
         'bars': {key: bars.get(key) for key in
-                 ('source', 'adjustment', 'corporate_actions_adjusted', 'tickers', 'digest')},
+                 ('source', 'adjustment', 'corporate_actions_adjusted', 'tickers', 'digest',
+                  'basis')},
         'measured': {
             'oos_sessions': walk['oos_sessions'],
             'oos_ic_ci95': walk['oos_ic_ci95'],
