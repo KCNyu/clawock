@@ -334,6 +334,7 @@ the tracked files and checks install, `--check` and `--rollback` in a temp direc
 | `limits.env` | live policy with three readers: the runner (`MAX_RUNNING_<AGENT>`), the ops entry (`QUEUE_FAIR_WAIT_SEC`) and clawock-patrol (`MAX_RUNNING_OPENCODE`, `PATROL_MIN_AVAILABLE_KB`, `PATROL_MAX_MEMORY_FULL_AVG60`). Its values are this host's decisions, sized for its 2 GB, and are changed in place. A versioned copy would either overwrite a live change on the next install, or sit in the repository as a second, stale truth. The installer checks that the keys exist and never writes the file. The CI job writes its own fixture with the values the suite asserts |
 | `task_queue_ops.py`, `model_prices.json` | versioned, but under `ops/host/` with their own installer (`install_task_queue_ops.sh`) |
 | `*.before-update`, `.install-agent-dispatch.last` | rollback state of the last install on this host |
+| `wake.off` | the switch for [waking the dispatching session](#a-turn-in-the-session-that-dispatched): present means off |
 | `__pycache__/` | bytecode Python writes next to the helpers |
 
 And everything under `/root/logs/agent-dispatch/` (task dirs, `run.log`, `result.env`,
@@ -365,6 +366,41 @@ What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.lo
   30 s. Neither the configuration nor the network was the cause. The quota-wait notice has
   had 60 s since #2057; a cancel notice keeps 30 s, the most the unit's stop budget
   (`on_signal`) leaves, so on a busy host a cancel can still go unannounced on Telegram.
+
+### A turn in the session that dispatched
+
+The legs tell kcn. OpenClaw also mirrors each message into the chat's transcript, so the
+assistant there has the text, but nothing starts a turn: it learns that its task ended only when
+kcn next writes. So a task also reports to the OpenClaw session it was dispatched from, as one
+turn in that session (kcn 2026-10-12: notify where the task was dispatched, in the same
+session). `wake-session.py` owns all of it; the runner calls it once next to `notify()`.
+
+| Question | Rule |
+|---|---|
+| Which session | `ORIGIN_SESSION` in `meta.env`, recorded by `dispatch.sh`: `--origin-session <key>`; else `OPENCLAW_MCP_SESSION_KEY` (a CLI-backend turn has it); else, when `dispatch.sh` is a descendant of the gateway process, the one chat whose `sessions.json` row says `running`. Two chats mid-turn is ambiguous and records nothing. A task continued with `append` reports to whoever continued it, else to its first origin |
+| No session | dsh, a terminal, cron, patrol: the task sends its messages and starts no turn. There is no conversation to continue, and a turn in the main session would arrive without context |
+| Which sessions can be woken | `agent:<id>:main` and `agent:<id>:<channel>:direct:<peer>`. Cron, dreaming and other isolated sessions have no reader |
+| Which events | the end of a task (every state but `cancelled`: somebody stopped it on purpose) and its first quota wait. `--notify none` tasks (patrol rounds) never wake |
+| How | `openclaw agent --session-key <origin> --message-file … --deliver`, in a transient unit `agent-dispatch-wake-<hash>-…`, because the turn outlives the runner. For a direct chat the reply is delivered to that chat (`--deliver`); the assistant answers `NO_REPLY` when it has nothing to add |
+| Once per event | the call sits beside `notify()`, not in its per-leg loop: two legs, one turn. A marker per (session, task, event) under `/root/logs/agent-dispatch/.wake/<hash>/seen/` makes `end` and `quota` each wake once per task, across unit restarts |
+| Bursts | events that arrive while a turn runs are spooled; the next turn takes all of them. At most `WAKE_MAX_PER_HOUR` (6) turns per session in a rolling hour; the rest are dropped with a `wake: dropped` line |
+| Chains | a task dispatched while a wake turn runs in its session gets `WAKE_DEPTH` + 1, and a task at `WAKE_MAX_DEPTH` (2) does not wake. So kcn's instruction can be followed by two automatic hops, not by a loop |
+| Failure | never retried and never the task's problem: `wake: turn FAILED …` in `run.log` |
+| Off | `touch /root/tools/agent-dispatch/wake.off`; `rm` it to turn it back on. Read at every event, so it also stops tasks already running. The three numbers can be set in `limits.env` (`WAKE_MAX_PER_HOUR`, `WAKE_MAX_DEPTH`, `WAKE_TURN_TIMEOUT_SEC`) |
+
+The gateway's HTTP hooks (`/hooks/wake`, `/hooks/agent`) are not used. `/hooks/wake` only
+reaches the fixed main session. `/hooks/agent` needs `hooks.allowRequestSessionKey`, and this
+gateway is published through Tailscale Funnel, so that endpoint would be on the internet with
+one bearer token between a caller and a turn in kcn's chat. The CLI uses the gateway's existing
+authenticated RPC: no configuration change, no restart.
+
+Scheduled jobs do not wake a session. Each already is an agent turn that delivers its own
+report, and that report is mirrored into the chat transcript like any message, so the chat
+knows what was sent. A second turn after it would produce a second message about the first.
+A job that fails is the watchdogs' and cron-health's business.
+
+`run.log` lines, in order: `wake: queued (end) for agent:main:<channel>:direct:…`, then
+`wake: turn ok in … (rc=0 status=ok run=<id> 41s, 1 event(s) in this turn)`.
 
 ## Version skew
 

@@ -475,6 +475,11 @@ HOST_OWNED_SHELL = {
     "ops/host/agent-dispatch/tests/bin/openclaw": (
         4, "the fake `openclaw` CLI the notification leg is tested against: it "
            "writes the same $FAKE_DIR/openclaw.* fixture files and nothing else"),
+    "ops/host/agent-dispatch/dispatch.sh": (
+        1, "records which OpenClaw chat session dispatched a task, so the task "
+           "can report back there: the default for the gateway's session index "
+           "files, handed to wake-session.py, which names no runtime path "
+           "itself; AGENT_DISPATCH_SESSIONS_GLOB overrides it"),
     "ops/host/install_agent_dispatch.sh": (
         1, "its manifest lists the fake CLI tests/bin/openclaw by name; the "
            "installer never reads or writes the runtime's files"),

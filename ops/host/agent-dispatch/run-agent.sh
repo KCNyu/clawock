@@ -72,6 +72,7 @@ QUEUE_POLL_SEC="${AGENT_DISPATCH_QUEUE_POLL_SEC:-3}"
 # More test seams of the same kind: notification config, codex rollouts, claude transcripts.
 NOTIFY_CONF="${AGENT_DISPATCH_NOTIFY_CONF:-/root/tools/agent-dispatch/notify.env}"
 QUOTA_CMD="${AGENT_DISPATCH_QUOTA_CMD:-node /root/tools/agent-dispatch/quota.mjs}"
+WAKE_CMD="${AGENT_DISPATCH_WAKE_CMD:-/root/tools/agent-dispatch/wake-session.py}"
 CODEX_HOME_DIR="${CODEX_HOME:-/root/.codex}"
 CLAUDE_HOME_DIR="${CLAUDE_CONFIG_DIR:-/root/.claude}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-3}"
@@ -375,6 +376,22 @@ notify() {  # <message> [send timeout in seconds, default 60]
   return 0
 }
 
+# The legs above reach kcn's phone; this gives the OpenClaw session that dispatched the task a
+# turn about it, so the assistant there can carry on without waiting for kcn to write
+# (kcn 2026-10-12). Once per event, whatever the number of legs: it is called next to notify(),
+# never inside its per-leg loop. wake-session.py owns the rules (which sessions, de-duplication,
+# batching, the hourly cap, chain depth, the wake.off switch); a task without ORIGIN_SESSION,
+# i.e. one not dispatched from a chat turn, stops here. Like notify(), it never changes a
+# task's state, and it returns in a second: the turn itself runs in a unit of its own.
+wake_origin() {  # <event: end|quota> <message>
+  [ -n "${ORIGIN_SESSION:-}" ] && [ -r "$WAKE_CMD" ] || return 0
+  local f; f=$(mktemp "$DIR/.wake.XXXXXX") || return 0
+  printf '%s' "$2" | redact | clip head 900 >"$f"
+  timeout 15 python3 "$WAKE_CMD" enqueue "$DIR" "$1" "$f" || echo "wake: enqueue failed ($1)"
+  rm -f "$f"
+  return 0
+}
+
 # Remaining subscription quota as "\n额度：…", read the same way as the dsh balance chip
 # (quota.mjs); empty for opencode. Also logged as a `quota |` line. Bounded below the on_signal
 # budget: 20s attempt stop + 18s here + 30s notify < 80s kill-after.
@@ -416,11 +433,15 @@ finish() {
 查看会话：在 $CWD 下 opencode -s $SESSION"
   fi
   local quota; quota=$(quota_line)
-  notify "$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}
+  local notice="$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}
 $(printf '%s' "$FINAL_TEXT" | clip tail 500)
 ${resume_hint}${open_hint}${quota}
 id：$ID
-日志：$DIR/run.log" "${FINISH_NOTIFY_TIMEOUT:-60}"
+日志：$DIR/run.log"
+  notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
+  # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
+  # on the attempt stop, the quota line and the legs.
+  [ "$STATE" = cancelled ] || wake_origin end "$notice"
   echo "==================== $(ts) $ID end state=$STATE outcome=${OUTCOME:--} rc=${RC:--} ===================="
 }
 
@@ -1079,9 +1100,11 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
     # notices on 2026-09-26/27, each exactly at the limit. Nothing else bounds this wait (the
     # cancel path's 30s is bounded by the stop budget; this is not that path); the agent lock
     # is released right after it.
-    notify "⏳ 委派任务 $NAME（$AGENT）额度用尽，$(date -d "@$wake" '+%m-%d %H:%M') 自动在同一会话续跑（第 $QUOTA_RESUMES_USED/$QUOTA_RESUMES 次，会重放历史上下文，缓存读取也有成本）。任务没卡住，不用取消。$(quota_line)
+    QUOTA_NOTICE="⏳ 委派任务 $NAME（$AGENT）额度用尽，$(date -d "@$wake" '+%m-%d %H:%M') 自动在同一会话续跑（第 $QUOTA_RESUMES_USED/$QUOTA_RESUMES 次，会重放历史上下文，缓存读取也有成本）。任务没卡住，不用取消。$(quota_line)
 id：$ID
-日志：$DIR/run.log" 60
+日志：$DIR/run.log"
+    notify "$QUOTA_NOTICE" 60
+    wake_origin quota "$QUOTA_NOTICE"
     # The wait releases the agent lock (kcn 2026-09-26: a claude task asleep on its 5h reset held
     # claude.lock for 4 hours while three others queued). The session lock stays, so nothing else
     # can resume this session meanwhile. The hint tells the next task of this agent that the
