@@ -358,3 +358,47 @@ reasons. No matched data means null, not zero. Existing absolute scores retain
 all their settled calls. Benchmark provenance includes the source timestamp and
 content digest. The data file's rolling window limits coverage; it never blocks
 calculation on the intersection or justifies inventing historical prices.
+
+## Pre-breakout proposals
+
+`decision.preposition` reads `config/preposition-policy.json`. This is explicit
+user authorization for a prospective experiment, separate from the historical
+`left-side-policy.json` experiment (which remains observe-only). It does not
+change RSI, factor calculation, or their activation thresholds.
+
+A holding can get `preposition_scale_in` from weakness of at least two ATRs
+below its prior twenty-session high, or from an activated positive information
+`sizing_tilt`. It uses the traded instrument's own archived OHLC, including for
+leveraged ETFs; no underlying price is used as an ETF limit. Missing, suspect or
+stale archives cannot generate this setup. MA200 is not an entry requirement.
+An unknown thesis stays unknown and requires an authored hypothesis and method;
+a recorded weakening/damaged/broken thesis cannot generate this setup.
+
+The first daily limit is the latest close; the second is one ATR below the
+then-current close. Orders last one session and are repriced, not permanent
+resting orders. Each targets ten percent of current shares times the existing
+information overlay, rounded to whole shares/board lots (one lot is the minimum,
+which can exceed that fraction), within available cash. A stable policy-version
+campaign id allows two broker-followed tranches, with no daily reset. An open
+add blocks another; a plan cannot duplicate its experimental tranche. The
+experiment's entry, stop, validity and tranche size are enforced together.
+
+The invalidation is three ATRs below the entry, or the retained leveraged
+product hard-stop line if higher. A leveraged entry at/below that line gets no
+experimental authority, including holdings whose strategy exempts ordinary
+reduce advice. Existing hard-stop and regime-delever obligations take precedence.
+No concentration or leveraged allocation ceiling is reintroduced.
+
+This is not a validated alpha tier. `evidence_strength` identifies the historical
+reference and its limited relevance, and records zero sized prospective samples
+at registration. The model must state its hypothesis, method, and evidence
+limitations. `signal_provenance.preposition` freezes the exact setup. Existing
+`price_below` settlement handles gap fills and records `benefit_t1_pct` and
+`benefit_t5_pct` once their bars exist; a bar crossing invalidation cancels the
+entry conservatively. These are the existing horizon mark returns, not a claim
+that a broker executed or that a stop order filled intraday.
+
+`evaluate-methods` already runs inside each brief's decision-metrics stage;
+postflight records filed and refused proposals. A prospective method trial
+requires registration and three arm submissions before its UTC start date.
+Registration alone is not an evaluated result, and absent arms remain missing.

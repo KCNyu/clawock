@@ -106,18 +106,25 @@ def entry_profile(entry: str) -> dict:
 
 #: Tranche level each tier reaches, as a share of a full validated campaign.
 TARGET_TRANCHE_LEVEL = {
+    "user_experiment": 0.25,
     "validated": 1.0,
     "exploration": 0.25,
     "exploration_cold_start": 0.125,
 }
 
 
-def tier_terms(policy: dict, tier: str) -> dict:
+def tier_terms(policy: dict, tier: str, *, experiment_policy: dict | None = None) -> dict:
     """``max_tranches`` / ``tranche_pct_of_position`` / level for one tier.
 
     The single place that maps an authority tier to its size, read by the
     packet's alpha and early-trend setups and quoted by the add-side reads.
     """
+    if tier == "user_experiment":
+        if not experiment_policy:
+            raise ValueError("user_experiment requires its separate preposition policy")
+        return {"max_tranches": int(experiment_policy["max_tranches"]),
+                "tranche_pct_of_position": float(experiment_policy["tranche_pct_of_position"]),
+                "target_tranche_level": TARGET_TRANCHE_LEVEL[tier]}
     if tier == "validated":
         return {
             "max_tranches": int(policy["validated_max_tranches"]),

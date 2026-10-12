@@ -62,6 +62,8 @@ CODE_ONLY_FIELDS = (
     # Compiled into the decision packet by `decision/packet.py`.
     "open_decisions",
     "technical_setup_usage",
+    "preposition_inputs",
+    "preposition_policy",
     "unheld_quotes",
     "proposal_universe",
     # Rendered by the harness, not read by a prompt: `harness/brief_render.py`

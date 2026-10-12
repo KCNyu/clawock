@@ -65,7 +65,7 @@ from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision.book import pnl_totals
 from clawock.decision import packet as brief_decision_packet
-from clawock.decision import add_policy, add_side, intraday_policy, left_side
+from clawock.decision import add_policy, add_side, intraday_policy, left_side, preposition
 from clawock.decision import signals as bar_signals
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
@@ -1773,7 +1773,7 @@ def _held_tickers(portfolio):
     }
 
 
-def proposal_universe(portfolio, *, bars_dir=None):
+def proposal_universe(portfolio, *, bars_dir=None, today=None):
     """Unheld names with stored daily bars: `{ticker: {leg, close, session}}`.
 
     A plan may propose buying a name the book does not hold only if the
@@ -1783,6 +1783,8 @@ def proposal_universe(portfolio, *, bars_dir=None):
     one that does not parse — a broken bar file must not red the brief.
     """
     directory = Path(bars_dir) if bars_dir else WS / 'memory' / 'bars'
+    from clawock.decision.entry import proposal_authorizations
+    gates = proposal_authorizations(directory.parent.parent, today=today) if today else {}
     held = _held_tickers(portfolio)
     rows = {}
     for path in sorted(directory.glob('*.json')):
@@ -1798,7 +1800,8 @@ def proposal_universe(portfolio, *, bars_dir=None):
         close = (bars[session] or {}).get('close') if isinstance(bars[session], dict) else None
         if isinstance(close, (int, float)) and not isinstance(close, bool) and close > 0:
             rows[ticker] = {'leg': doc.get('leg') or ('HK' if ticker.isdigit() else 'US'),
-                            'close': close, 'session': session}
+                            'close': close, 'session': session,
+                            **({'entry_gate': gates[ticker]} if ticker in gates else {})}
     return rows
 
 
@@ -2221,7 +2224,7 @@ def _collect(argv=None):
     )
 
     open_decisions = decision_plans.open_decisions_context(today=today)
-    universe = proposal_universe(portfolio)
+    universe = proposal_universe(portfolio, today=today)
     opportunity = _opportunity_reads(open_decisions, portfolio)
     track_record = _action_track_record()
     _c = opportunity['counts']
@@ -2283,6 +2286,8 @@ def _collect(argv=None):
         # ("cut 700 股, confidence 0.92") is printed in the brief.
         'action_track_record': track_record,
         'technical_setup_usage': _technical_setup_usage(),
+        'preposition_inputs': preposition.measurements(WS, portfolio),
+        'preposition_policy': preposition.load_policy(),
         'research_surface': research_surface_ctx,
         'macro':         macro_trim,
         'sentiment':     sentiment_trim,

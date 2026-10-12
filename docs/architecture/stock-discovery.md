@@ -79,3 +79,27 @@ analyst 目标价和评级没有可靠源，明确缺失。没有增加 LLM 调�
 - FinRobot 固定版本 `2717499b8e30f242640af08c4ad9afd1113c2d45`：
   [同业筛选](https://github.com/AI4Finance-Foundation/FinRobot/blob/2717499b8e30f242640af08c4ad9afd1113c2d45/finrobot_desktop/finrobot/engine/compute/operators/peer_screen.py)。
 - 本功能的免费数据接口：[Nasdaq screener](https://api.nasdaq.com/api/screener/stocks?download=true)。
+
+## From discovery to a priceable proposal
+
+Brief preflight reads the latest `memory/entry-gates/*.json` artifact per ticker,
+revalidates it, and attaches its receipt to archived-bar candidates. A valid
+`pass_to_deep_research` no older than seven calendar days changes the packet's
+`entry_gate_required` to `entry_gate_cleared`. A later rejection, malformed
+artifact, unresolved check, future date or stale assessment cannot revive an
+older pass. A model's separate `research_judgment` cannot clear this prerequisite.
+This clears research for a proposal; it does not place a trade or waive cash,
+board-lot, hypothesis, invalidation or risk review.
+
+The packet joins existing sentiment, information-event, factor and peer evidence
+for unheld candidates. Entry-gate mechanism/key variables carry researched
+supply-chain reasoning; inferred links must not be described as verified supply
+relationships. Absent coverage is visible rather than counted as neutral data.
+Use `decision_packet_query --ticker <candidate>` for the full unheld row.
+
+Discovery candidates without a recent usable `memory/bars` archive are explicitly
+`proposal_availability.status=unavailable`: the existing evaluator cannot price
+them. Discovery snapshot prices never substitute for settlement OHLC. This
+version does not auto-register or backfill newly discovered securities. Once an
+instrument has a reviewed registry mapping, `clawock daily-bars --ticker SYMBOL`
+archives its canonical bars; reassess its entry gate and regenerate preflight.

@@ -43,7 +43,7 @@ AUTHORIZATIONS = (
     ("AUTH_ADD_FROZEN_BY_BREACH",
      "no add or T trade on a name with an open risk breach", "risk_guardrail breaches"),
     ("AUTH_LEVERAGED_ADD",
-     "no add to a daily-reset leveraged product without validated evidence",
+     "a daily-reset leveraged add needs validated evidence or the bounded user-authorized preposition experiment",
      "add-alpha-policy"),
     ("AUTH_EXCEEDS_ROOM",
      "an add stays inside cash and the single-name target", "target_max_pct"),

@@ -541,5 +541,54 @@ def main(argv=None) -> int:
     return 0 if result["status"] == "pass" else 1
 
 
+
+def proposal_authorizations(workspace, *, today, now=None):
+    """Read the latest gate per ticker, including rejects; never revive an old pass.
+
+    Passing removes the research prerequisite on a *proposal*. Cash, lots,
+    hypothesis, invalidation and portfolio obligations still belong to packet.
+    Research judgments alone cannot override a veto or clear this prerequisite.
+    """
+    from datetime import date, time
+
+    cutoff = datetime.combine(date.fromisoformat(today), time.max, tzinfo=timezone.utc)
+    cutoff = min(cutoff, now or datetime.now(timezone.utc))
+    latest, stamps = {}, {}
+    unreadable = False
+    for path in sorted((Path(workspace) / "memory/entry-gates").glob("*.json")):
+        try:
+            doc = json.loads(path.read_text())
+            ticker = doc.get("ticker")
+            if not isinstance(ticker, str) or not ticker:
+                continue
+            errors = []
+            stamp = _parse_time(doc.get("assessed_at"), "assessed_at", errors)
+            # An undatable assessment cannot silently fall behind a valid pass.
+            stamp = stamp or datetime.max.replace(tzinfo=timezone.utc)
+            if ticker not in stamps or stamp >= stamps[ticker]:
+                latest[ticker], stamps[ticker] = doc, stamp
+        except (OSError, ValueError, AttributeError):
+            unreadable = True
+            continue
+    result = {}
+    for ticker, doc in latest.items():
+        try:
+            report = assess(doc, now=cutoff)
+            age = (cutoff.date() - date.fromisoformat(doc["assessed_at"][:10])).days
+            cleared = (not unreadable and report["status"] == "pass" and report["verdict"] == "pass_to_deep_research"
+                       and 0 <= age <= 7)
+            result[ticker] = {
+                "gate_id": doc.get("gate_id"), "assessed_at": doc.get("assessed_at"),
+                "cleared": cleared, "verdict": report["verdict"],
+                "reason": ("validated research gate; proposal still requires plan review" if cleared
+                           else "invalid/unreadable, rejected, unresolved or older than seven days"),
+                "errors": report["errors"],
+                "mechanism": doc.get("mechanism"), "key_variables": doc.get("key_variables"),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError):
+            result[ticker] = {"cleared": False, "reason": "malformed entry-gate artifact"}
+    return result
+
+
 if __name__ == "__main__":
     sys.exit(main())
