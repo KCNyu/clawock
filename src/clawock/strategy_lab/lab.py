@@ -1,6 +1,6 @@
 """Mount the strategy plugins a config declares, and ask them questions.
 
-`config/strategy-plugins.json` is the composition: each row names a module and
+The `plugins` list of `config/strategy-plugins.json` is the composition: each row names a module and
 its config, the way a row in `cordis.patch.yml` names a package for dsh. A row's
 module may live outside this package; anything importable that exposes
 `apply(ctx, config)` (and optionally `name` and `inject`) is a plugin.
@@ -21,7 +21,7 @@ import importlib
 import json
 from pathlib import Path
 
-from clawock.strategies import ledger
+from clawock.strategy_lab import ledger
 from clawock.strategies.kernel import Kernel
 from clawock.workspace import workspace_root
 

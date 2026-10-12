@@ -1,15 +1,42 @@
 # Strategy plugins
 
 A strategy, the bars it reads and the evaluator that scores it are separate
-plugins, composed by rows in `config/strategy-plugins.json`. The layer is
-research: nothing in the brief, report or intraday paths mounts it, and nothing
-it produces carries live permission.
+plugins, composed by rows in `config/strategy-plugins.json`. The file holds two
+compositions:
+
+- `live` is what the brief, report and intraday paths compute with.
+- `plugins` is research. `strategy-lab` mounts it, and nothing it produces
+  carries live permission.
 
 ```bash
 clawock strategy-lab list            # mounted plugins, services, strategies
 clawock strategy-lab optimize rsi    # walk-forward search → a proposal
 clawock strategy-lab ledger          # recorded verdicts across runs
 ```
+
+## Live composition
+
+`clawock.strategies.live` mounts the `live` rows once per process and hands out
+their services. One row is shipped:
+
+| Service | Provider | Contract | Read by |
+|---|---|---|---|
+| `factors` | `strategies/plugins/quant_factors.py` | `signals(bars)`, `short_history(bars)`, `rsi(closes, period)`, `atr(bars, period)`; config `sigma_target` | `decision/signals.compute_signals` and `compute_short_history_signals`, and through them the quant refresh, both radars, the watch list, the brief's add side, the pre-position lane and `evaluate-add-shapes` |
+
+`decision.signals` keeps the two function names and delegates. The arithmetic
+it held before is still there as `legacy_compute_signals` and
+`legacy_compute_short_history_signals`, read only by
+`tests/test_live_factors_equivalence.py`, which holds plugin and legacy to
+identical output on every prefix of every series in `memory/bars` and on
+generated series long enough for every setup to fire.
+
+A workspace with no file, or no `live` list, runs the shipped rows. A `live`
+list that is present and malformed, or leaves a plugin waiting for a service,
+is an error at first use.
+
+`clawock.strategies` imports only `market_data` and `workspace`, so `decision`
+can depend on it. The research plugins need `evaluation` and `evidence`, which
+depend on `decision`; they live in `clawock.strategy_lab`.
 
 ## Primitives
 
@@ -34,10 +61,11 @@ implemented.
 
 | Service | In-tree provider | Contract |
 |---|---|---|
+| `factors` | `strategies/plugins/quant_factors.py` | the same module the live rows mount |
 | `strategies` | `strategies/registry.py` | `register(StrategySpec)`; a spec is `score(bars, params) -> float \| None` (higher is more bullish), its registered `params` and the `space` an optimiser may search |
-| `bars` | `strategies/plugins/adjusted_bars.py` (mounted), `strategies/plugins/ledger_bars.py` | `tickers()`, `series(ticker)`, `leg(ticker)`, `describe()` |
-| `costs` | `strategies/plugins/registered_costs.py` | `side_bps(leg)`, `describe()`; `config/cost-model.json` through `clawock.costs.CostModel` |
-| `optimizer` | `strategies/plugins/walkforward.py` | `run(strategy) -> proposal` |
+| `bars` | `strategy_lab/plugins/adjusted_bars.py` (mounted), `strategy_lab/plugins/ledger_bars.py` | `tickers()`, `series(ticker)`, `leg(ticker)`, `describe()` |
+| `costs` | `strategy_lab/plugins/registered_costs.py` | `side_bps(leg)`, `describe()`; `config/cost-model.json` through `clawock.costs.CostModel` |
+| `optimizer` | `strategy_lab/plugins/walkforward.py` | `run(strategy) -> proposal` |
 
 Two plugins provide `bars`, and a composition mounts one:
 
@@ -52,7 +80,7 @@ Two plugins provide `bars`, and a composition mounts one:
   `corporate_actions_adjusted: false`. It needs no network.
 
 `strategies/plugins/rsi.py` is the one strategy shipped. Its arithmetic is
-`decision.signals._rsi14`; the plugin adds the registered parameters
+the `factors` service's RSI; the plugin adds the registered parameters
 (`period: 14`, `direction: reversion`), the grid and the orientation.
 
 A strategy is handed the history up to its signal session and nothing later, so

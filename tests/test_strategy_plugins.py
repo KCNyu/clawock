@@ -10,10 +10,12 @@ import pytest
 
 from clawock.decision import signals
 from clawock.costs import CostModel
-from clawock.strategies import lab, ledger, registry
+from clawock.strategies import live, registry
+from clawock.strategies.plugins import quant_factors, rsi
+from clawock.strategy_lab import lab, ledger
 from clawock.strategies.kernel import ACTIVE, PENDING, Kernel, KernelError
-from clawock.strategies.plugins import (
-    adjusted_bars, ledger_bars, registered_costs, rsi, walkforward)
+from clawock.strategy_lab.plugins import (
+    adjusted_bars, ledger_bars, registered_costs, walkforward)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -89,6 +91,7 @@ def test_undeclared_and_duplicate_services_are_refused():
 def test_a_config_update_replaces_the_registered_strategy():
     kernel = Kernel()
     kernel.plugin(registry)
+    kernel.plugin(quant_factors)
     fiber = kernel.plugin(rsi, {'params': {'period': 14}})
     strategies = kernel.get('strategies')
     assert strategies.get('rsi').params == {'period': 14, 'direction': 'reversion'}
@@ -106,13 +109,20 @@ def test_rsi_plugin_is_the_published_rsi_and_rejects_a_bad_row():
     for _ in range(60):
         closes.append(closes[-1] * (1 + rnd.gauss(0, 0.02)))
     bars = [{'close': close} for close in closes]
-    published = signals._rsi14(closes)
-    assert rsi.score(bars, {'period': 14, 'direction': 'momentum'}) == published - 50
-    assert rsi.score(bars, {'period': 14, 'direction': 'reversion'}) == 50 - published
-    assert rsi.score(bars[:10], {'period': 14, 'direction': 'momentum'}) is None
+    published = signals.legacy_compute_signals(
+        [{'open': c, 'high': c, 'low': c, 'close': c} for c in closes])['rsi14']
+    kernel = Kernel()
+    kernel.plugin(registry)
+    kernel.plugin(quant_factors)
+    kernel.plugin(rsi)
+    score = kernel.get('strategies').get('rsi').score
+    assert score(bars, {'period': 14, 'direction': 'momentum'}) == published - 50
+    assert score(bars, {'period': 14, 'direction': 'reversion'}) == 50 - published
+    assert score(bars[:10], {'period': 14, 'direction': 'momentum'}) is None
 
     kernel = Kernel()
     kernel.plugin(registry)
+    kernel.plugin(quant_factors)
     with pytest.raises(ValueError, match='period'):
         kernel.plugin(rsi, {'space': {'period': [1, 14]}})
     assert kernel.get('strategies').names() == []
@@ -252,7 +262,7 @@ def test_refits_only_use_sessions_whose_forward_return_had_closed():
 
 def test_shipped_rows_mount_with_nothing_left_waiting(tmp_path, capsys):
     kernel = lab.mount(lab.load_rows(ROOT / lab.CONFIG))
-    assert [fiber.missing for fiber in kernel.fibers] == [[], [], [], [], []]
+    assert [fiber.missing for fiber in kernel.fibers] == [[], [], [], [], [], []]
     spec = kernel.get('strategies').get('rsi')
     assert spec.params in walkforward.configurations(spec.space)
     kernel.dispose()
@@ -398,3 +408,18 @@ def test_the_ledger_counts_a_repeated_question_once(tmp_path, monkeypatch):
     path.write_text(path.read_text() + '{"torn":\n')
     with pytest.raises(ValueError, match='unreadable ledger row'):
         ledger.load()
+
+
+def test_the_live_composition_is_the_shipped_rows_and_refuses_a_broken_list(tmp_path):
+    assert live.rows(ROOT / live.CONFIG) == [dict(row) for row in live.DEFAULT_ROWS]
+    assert live.rows(tmp_path / 'absent.json') == [dict(row) for row in live.DEFAULT_ROWS]
+    assert live.service('factors').describe() == {'sigma_target': 0.25}
+
+    config = tmp_path / 'rows.json'
+    config.write_text(json.dumps({'schema_version': 1, 'plugins': []}))
+    assert live.rows(config) == [dict(row) for row in live.DEFAULT_ROWS]
+    config.write_text(json.dumps({'live': [{'id': 'factors'}]}))
+    with pytest.raises(ValueError, match='live must be a list of rows'):
+        live.rows(config)
+    with pytest.raises(ValueError, match='sigma_target'):
+        Kernel().plugin(quant_factors, {'sigma_target': 0})

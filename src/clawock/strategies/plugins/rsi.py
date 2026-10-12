@@ -1,6 +1,6 @@
 """RSI as a strategy plugin.
 
-The arithmetic is `decision.signals._rsi14`, the Wilder RSI the quant table
+The arithmetic is the `factors` service's Wilder RSI, the one the quant table
 already publishes; this plugin adds no second copy of it. What it adds is the
 declaration around it: the registered parameters, the grid an optimiser may
 search, and an orientation. `signal_panel` scores `rsi14` unsigned because
@@ -9,11 +9,10 @@ the direction is a searched parameter here rather than an assumption.
 """
 from __future__ import annotations
 
-from clawock.decision import signals
 from clawock.strategies.registry import StrategySpec
 
 name = 'rsi'
-inject = ('strategies',)
+inject = ('strategies', 'factors')
 
 DIRECTIONS = {'reversion': -1.0, 'momentum': 1.0}
 #: 14-session Wilder RSI read as exhaustion (>70 overbought, <30 oversold):
@@ -32,11 +31,13 @@ def _check(params: dict) -> dict:
     return {'period': period, 'direction': direction}
 
 
-def score(bars, params):
-    value = signals._rsi14([bar['close'] for bar in bars], params['period'])
-    if value is None:
-        return None
-    return DIRECTIONS[params['direction']] * (value - 50.0)
+def scorer(factors):
+    def score(bars, params):
+        value = factors.rsi([bar['close'] for bar in bars], params['period'])
+        if value is None:
+            return None
+        return DIRECTIONS[params['direction']] * (value - 50.0)
+    return score
 
 
 def apply(ctx, config):
@@ -46,6 +47,6 @@ def apply(ctx, config):
         for direction in space['direction']:
             _check({'period': period, 'direction': direction})
     spec = StrategySpec(
-        name='rsi', params=params, space=space, score=score,
+        name='rsi', params=params, space=space, score=scorer(ctx.get('factors')),
         description='Wilder RSI centred on 50, signed by direction')
     ctx.effect(lambda: ctx.get('strategies').register(spec), 'strategy(rsi)')

@@ -1,11 +1,15 @@
 {
   "schema_version": 1,
   "registered_at": "2026-10-12",
-  "purpose": "Research composition of strategy plugins. A row mounts code and registers parameters and a search space; it never grants live permission, and a retrospective optimisation only ever produces a proposal.",
+  "purpose": "Two compositions of strategy plugins. `live` is what the brief, report and intraday paths compute with: each row provides a service those paths read. `plugins` is the research composition strategy-lab mounts: a row there registers parameters and a search space, never grants live permission, and a retrospective optimisation only ever produces a proposal.",
+  "live": [
+    {"id": "factors", "module": "clawock.strategies.plugins.quant_factors", "config": {"sigma_target": 0.25}}
+  ],
   "plugins": [
     {"id": "strategies", "module": "clawock.strategies.registry"},
-    {"id": "bars", "module": "clawock.strategies.plugins.adjusted_bars", "config": {"sessions": 800}},
-    {"id": "costs", "module": "clawock.strategies.plugins.registered_costs"},
+    {"id": "factors", "module": "clawock.strategies.plugins.quant_factors", "config": {"sigma_target": 0.25}},
+    {"id": "bars", "module": "clawock.strategy_lab.plugins.adjusted_bars", "config": {"sessions": 800}},
+    {"id": "costs", "module": "clawock.strategy_lab.plugins.registered_costs"},
     {
       "id": "rsi",
       "module": "clawock.strategies.plugins.rsi",
@@ -16,7 +20,7 @@
     },
     {
       "id": "optimizer",
-      "module": "clawock.strategies.plugins.walkforward",
+      "module": "clawock.strategy_lab.plugins.walkforward",
       "config": {
         "horizon_sessions": 5,
         "min_cross_section": 6,

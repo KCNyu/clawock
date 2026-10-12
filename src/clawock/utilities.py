@@ -71,7 +71,7 @@ PACKAGED_UTILITIES = {
     "sentiment": "clawock.market_data.sentiment",
     "shadow": "clawock.decision.shadow",
     "signal-panel": "clawock.evaluation.signal_panel",
-    "strategy-lab": "clawock.strategies.lab",
+    "strategy-lab": "clawock.strategy_lab.lab",
     "t0": "clawock.decision.setups",
     "t0-review": "clawock.decision.setup_review",
     "thesis": "clawock.decision.theses",

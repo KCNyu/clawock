@@ -38,6 +38,7 @@ from clawock.market_data.daily_prices import clean_bars
 from clawock.market_data.tencent_daily import parse_daily_bars
 from clawock.instruments import require as require_instrument
 from clawock.safe_io import load_json_cached, safe_write_json
+from clawock.strategies import live as live_plugins
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -115,7 +116,7 @@ def _atr14(bars, n=14):
     return atr
 
 
-def compute_signals(bars):
+def legacy_compute_signals(bars):
     bars = clean_bars(bars)
     closes = [b['close'] for b in bars]
     if len(closes) < 30:
@@ -261,7 +262,7 @@ def compute_signals(bars):
     return sig
 
 
-def compute_short_history_signals(bars):
+def legacy_compute_short_history_signals(bars):
     """Reduced technical view for 20–29-bar names (early-trend lane only).
 
     Newly listed names cannot compute MA200, so the mature `compute_signals`
@@ -333,6 +334,16 @@ def compute_short_history_signals(bars):
         tags.append('已破吊灯止损')
     sig['tag'] = ' · '.join(tags)
     return sig
+
+
+def compute_signals(bars):
+    """The mature factor row, from the mounted `factors` plugin."""
+    return live_plugins.service('factors').signals(bars)
+
+
+def compute_short_history_signals(bars):
+    """The 20-29-bar view, from the mounted `factors` plugin."""
+    return live_plugins.service('factors').short_history(bars)
 
 
 # A name with ≥30 sessions since listing can reach the mature 30-bar gate; the
