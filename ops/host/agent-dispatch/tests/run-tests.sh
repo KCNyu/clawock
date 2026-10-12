@@ -652,8 +652,8 @@ expect_grep "the switch is logged" "wake: skipped (end): wake.off is present" "$
 again "$d42" end
 expect "with the switch gone, the other session gets its turn" "$(wakes)" "$SB quiet"
 for i in 1 2 3 4 5 6; do d=$(mk "wake-cap-$i" claude 900 300 weixin); echo "ORIGIN_SESSION=$SB" >>"$d/meta.env"; again "$d" end; done
-expect "the seventh turn of a session within the hour is dropped" "$(wc -l <"$FAKE_DIR/wake.turns")" 6
-expect_grep "and logged" "wake: dropped: 6 turns in the last hour" "$d/run.log"
+expect "the seventh turn of a session within the hour is skipped" "$(wc -l <"$FAKE_DIR/wake.turns")" 6
+expect_grep "and logged, with its event retained" "wake: skipped: 6 turns in the last hour" "$d/run.log"
 
 # The legs never wait on the turn: with the switch off the task still tells both channels.
 reset_fake claude slow-ok; echo 1 >"$FAKE_DIR/claude.slow"; touch "$WORK/wake.off"

@@ -35,6 +35,7 @@ FILES=(
   tests/run-tests.sh
   tests/test_limits.py
   tests/test_read_result.py
+  tests/test_wake_session.py
   tests/bin/claude
   tests/bin/codex
   tests/bin/fake-quota

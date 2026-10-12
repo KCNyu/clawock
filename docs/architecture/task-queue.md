@@ -369,8 +369,9 @@ What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.lo
 
 ### A turn in the session that dispatched
 
-The legs tell kcn. OpenClaw also mirrors each message into the chat's transcript, so the
-assistant there has the text, but nothing starts a turn: it learns that its task ended only when
+The legs tell kcn. OpenClaw mirrors the WeChat send into this chat's transcript; Telegram
+goes to its own target and does not enter this session. Neither send starts a turn: without
+wake, the assistant learns that its task ended only when
 kcn next writes. So a task also reports to the OpenClaw session it was dispatched from, as one
 turn in that session (kcn 2026-10-12: notify where the task was dispatched, in the same
 session). `wake-session.py` owns all of it; the runner calls it once next to `notify()`.
@@ -383,10 +384,11 @@ session). `wake-session.py` owns all of it; the runner calls it once next to `no
 | Which events | the end of a task (every state but `cancelled`: somebody stopped it on purpose) and its first quota wait. `--notify none` tasks (patrol rounds) never wake |
 | How | `openclaw agent --session-key <origin> --message-file …`, in a transient unit `agent-dispatch-wake-<hash>-…`, because the turn outlives the runner. The reply is not delivered to the chat: the legs are the one message kcn gets about an event, and a delivered reply was a second message about the same task in the same WeChat chat. When the assistant carried on with work kcn had asked for, it says so with its own message tool |
 | What the turn is told | a pointer: the notice's first line (task, agent, state, the model's own status), the task id and `dispatch.sh result <id>`. Not the notice: the legs carried that, and the WeChat leg lands in the same chat, so a copy in the turn showed kcn the same text twice. The legs never depend on the turn: `wake.off`, the hourly cap and the chain depth only decide whether a turn starts |
-| Once per event | the call sits beside `notify()`, not in its per-leg loop: two legs, one turn. A marker per (session, task, event) under `/root/logs/agent-dispatch/.wake/<hash>/seen/` makes `end` and `quota` each wake once per task, across unit restarts |
-| Bursts | events that arrive while a turn runs are spooled; the next turn takes all of them. At most `WAKE_MAX_PER_HOUR` (6) turns per session in a rolling hour; the rest are dropped with a `wake: dropped` line |
+| Once per event | the call sits beside `notify()`, not in its per-leg loop: two legs, one turn. Pending copies coalesce. Only a successful turn (`rc=0`, `status=ok`) writes the marker per (session, task, event) under `/root/logs/agent-dispatch/.wake/<hash>/seen/` and removes its spool files. Acknowledged `end` and `quota` events do not wake again, across unit restarts |
+| Bursts | events that arrive while a turn runs are spooled; the next turn takes all of them. At most `WAKE_MAX_PER_HOUR` (6) attempts per session in a rolling hour, including failures and explicit retries; the rest stay pending with a `wake: skipped` line, without scheduling another attempt |
 | Chains | a task dispatched while a wake turn runs in its session gets `WAKE_DEPTH` + 1, and a task at `WAKE_MAX_DEPTH` (2) does not wake. So kcn's instruction can be followed by two automatic hops, not by a loop |
-| Failure | never retried and never the task's problem: `wake: turn FAILED …` in `run.log` |
+| Failure | never the task's problem: `wake: turn FAILED …` in `run.log`, followed by the retry command. Its batch stays in `spool/`; repeat `wake-session.py enqueue <task-dir> <event> <text-file>` or explicitly run `wake-session.py drain <hash>` to retry under the same guards. No automatic retry: a failed turn may already have acted, so replay can repeat work |
+| Turn budget | `WAKE_TURN_TIMEOUT_SEC` defaults to 600. The pointer tells the assistant its budget and to finish currently available follow-up work without sleeping or polling for other tasks, cooldowns or CI |
 | Off | `touch /root/tools/agent-dispatch/wake.off`; `rm` it to turn it back on. Read at every event, so it also stops tasks already running. The three numbers can be set in `limits.env` (`WAKE_MAX_PER_HOUR`, `WAKE_MAX_DEPTH`, `WAKE_TURN_TIMEOUT_SEC`) |
 
 The gateway's HTTP hooks (`/hooks/wake`, `/hooks/agent`) are not used. `/hooks/wake` only
@@ -394,6 +396,13 @@ reaches the fixed main session. `/hooks/agent` needs `hooks.allowRequestSessionK
 gateway is published through Tailscale Funnel, so that endpoint would be on the internet with
 one bearer token between a caller and a turn in kcn's chat. The CLI uses the gateway's existing
 authenticated RPC: no configuration change, no restart.
+
+`wake.off` is the host owner's switch. The hourly attempt cap prevents repeated failures
+or retries from causing unlimited turns; the successful-event marker prevents duplicate
+wakes; the depth cap prevents recursive wake chains. A switch or hourly-cap skip during
+drain preserves queued events for explicit retry. Existing empty `seen/` markers retain
+their legacy deduplication behavior on upgrade; installation does not reconstruct or replay
+events already lost by older versions.
 
 Scheduled jobs do not wake a session. Each already is an agent turn that delivers its own
 report, and that report is mirrored into the chat transcript like any message, so the chat

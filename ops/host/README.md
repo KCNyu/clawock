@@ -50,6 +50,12 @@ runs in CI (`dispatch-runner.yml`, groups and timings in its header), and on the
 staged copy:
 `AGENT_DISPATCH_RUNNER=<copy>/run-agent.sh DISPATCH_TEST_CASES=<groups> bash <copy>/tests/run-tests.sh`.
 
+Wake events stay spooled until the turn succeeds. Failure recovery, explicit retry commands,
+the four silence guards and the turn budget are described in
+[the wake contract](../../docs/architecture/task-queue.md#a-turn-in-the-session-that-dispatched).
+The focused acknowledgment tests run with
+`python3 -m unittest discover -s ops/host/agent-dispatch/tests -p test_wake_session.py -v`.
+
 ## Patrol supervisor
 
 `patrol.sh` is the versioned source for this host's existing
