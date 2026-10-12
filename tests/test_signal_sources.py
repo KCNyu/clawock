@@ -12,6 +12,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import sys
 import types
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -359,12 +360,69 @@ def _recorded(tmp_path):
     return json.loads(json.dumps(out, ensure_ascii=False))
 
 
-def test_every_signal_source_still_computes_its_recorded_outputs(tmp_path):
+def _naive_sum(values, start=0):
+    """`sum` as Python 3.11 computes it: left to right, no compensation."""
+    total = start
+    for value in values:
+        total += value
+    return total
+
+
+def _flat(node, path=()):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield from _flat(value, path + (key,))
+    else:
+        yield '/'.join(path), node
+
+
+def _expected(naive: bool):
+    """The recorded outputs for this interpreter's `sum`.
+
+    Python 3.12 made `sum` of floats compensated. The factor row rounds moving
+    averages to three places, and a sum that lands on a rounding boundary goes
+    one way under 3.11 and the other from 3.12 on. The desk host runs 3.12 and
+    CI runs 3.11, so both are recorded: `goldens.json` is the compensated sum,
+    and `naive_sum` lists the cells that read differently without it.
+    """
+    document = json.loads(GOLDENS.read_text())
+    expected = document['outputs']
+    if naive:
+        for pointer, value in document['naive_sum'].items():
+            *parents, leaf = pointer.split('/')
+            node = expected
+            for key in parents:
+                node = node[key]
+            node[leaf] = value
+    return expected
+
+
+COMPENSATED = sys.version_info >= (3, 12)
+
+
+def test_every_signal_source_still_computes_its_recorded_outputs(tmp_path, monkeypatch):
     recorded = _recorded(tmp_path)
+    monkeypatch.setattr(quant_factors, 'sum', _naive_sum, raising=False)
+    naive = _recorded(tmp_path)
+    monkeypatch.undo()
     if os.environ.get('CLAWOCK_WRITE_GOLDENS') == '1':
-        GOLDENS.write_text(json.dumps(recorded, ensure_ascii=False, indent=1, sort_keys=True) + '\n')
-    expected = json.loads(GOLDENS.read_text())
-    for source in expected:
-        for key in expected[source]:
-            assert recorded[source][key] == expected[source][key], f'{source} {key} moved'
-    assert recorded == expected
+        assert COMPENSATED, 'record on the interpreter the desk host runs (3.12 or later)'
+        differs = {pointer: value for (pointer, value), (_, native)
+                   in zip(_flat(naive), _flat(recorded)) if value != native}
+        GOLDENS.write_text(json.dumps({'outputs': recorded, 'naive_sum': differs},
+                                      ensure_ascii=False, indent=1, sort_keys=True) + '\n')
+    for label, got, expected in (('this interpreter', recorded, _expected(not COMPENSATED)),
+                                 ('left-to-right sum', naive, _expected(True))):
+        for source in expected:
+            for key in expected[source]:
+                assert got[source][key] == expected[source][key], f'{label}: {source} {key} moved'
+        assert got == expected, label
+
+
+def test_the_two_summations_differ_only_in_the_last_place_of_a_rounded_average():
+    document = json.loads(GOLDENS.read_text())
+    assert document['naive_sum'], 'no cell depends on the summation: drop the second record'
+    recorded = dict(_flat(document['outputs']))
+    for pointer, value in document['naive_sum'].items():
+        assert pointer.split('/')[0] == 'factors', pointer
+        assert abs(value - recorded[pointer]) <= 0.0011, (pointer, value, recorded[pointer])
