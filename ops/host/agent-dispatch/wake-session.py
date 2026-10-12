@@ -17,7 +17,13 @@ The turn's message is a pointer, not the notice: one line saying what happened t
 and the command that prints its report. The notice itself already went out on the legs, and the
 WeChat leg lands in this same chat, so repeating it showed kcn the same text twice (2026-10-12).
 
-The turn is `openclaw agent --session-key <origin> --deliver`: the gateway's own authenticated
+The turn's reply is NOT delivered to the chat. The legs are the one message kcn gets about an
+event; a delivered reply was a second message about the same task in the same WeChat chat, and
+kcn read it as the system repeating itself (2026-10-12, twice). The turn exists so the session
+knows and can carry on with what kcn already asked for; when it did carry on, the assistant
+tells kcn with its own message tool. Nothing about the legs depends on the turn.
+
+The turn is `openclaw agent --session-key <origin>`: the gateway's own authenticated
 RPC. The gateway is published through Tailscale Funnel, so enabling its HTTP hooks
 (`/hooks/agent`) would put a caller-selected-session endpoint on the internet behind one token;
 this needs no gateway configuration and no restart.
@@ -208,10 +214,10 @@ def cmd_enqueue(task_dir, event, text_file):
 
 RULES = """\
 规则：
-- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。通知全文 kcn 已经收到，这里只给指针，不要复述通知。
-- 接着做本会话里依赖这个结果的事：需要细节就用上面的报告命令查，向 kcn 说结论或下一步。
-- 没有 kcn 已经交代的后续，就不要因为这条事件新派任务。
-- 没有值得告诉 kcn 的，只回复 NO_REPLY。
+- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。kcn 已经在手机上收到这件事的完整通知。
+- 你这一轮的回复不会发给 kcn，只留在本会话里。任务结束、结果如何，通知已经说过，不要再用消息工具向 kcn 重复。
+- 这一轮是让你知道结果、接着做 kcn 之前在本会话里已经交代的后续（需要细节就用上面的报告命令查）。只有你确实接着做了事，才用消息工具给 kcn 发一条，只说你做了什么。
+- 没有已交代的后续就什么都不用做，也不要因为这条事件新派任务。
 - 不要把这条事件记进 MEMORY.md 或 memory/；只有任务结果改变了长期事实或决定时，才按平常的记忆规则处理。"""
 
 
@@ -255,8 +261,6 @@ def cmd_drain(name):
             {"depth": max(e["depth"] for e in entries), "ids": [e["id"] for e in entries], "since": int(now)}))
         cmd = ["timeout", "-k", "10", str(turn_timeout + 120), "openclaw", "agent", "--session-key", key,
                "--message-file", str(msg), "--timeout", str(turn_timeout), "--json"]
-        if ":direct:" in key:  # a chat has a channel to answer on; the bare main session has none
-            cmd.append("--deliver")
         started = time.time()
         try:
             run = subprocess.run(cmd, capture_output=True, text=True)
