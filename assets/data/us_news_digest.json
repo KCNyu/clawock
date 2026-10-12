@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T18:35:29.498364+00:00",
+  "generated_at": "2026-10-12T21:29:18.552053+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,122 +14,115 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: SpaceX 锁定全国低频段频谱组合，直接卫星通信竞争者 AST SpaceMobile 跌 6%，Rocket Lab 与 Planet Labs 同步承压。  \n  **对 kcn 的持仓**：通过 **SPCH（2x）** 持有；2x 会放大消息后的波动，战略壁垒偏利好，但交易金额与盈利影响未披露。\n- RKLB: Rocket Lab 两日跌近 9%，受太空股走弱及 SpaceX 频谱动作拖累；Barclays 新覆盖并称其为“mini-SpaceX”，仅形成有限情绪对冲。  \n  **对 kcn 的持仓**：通过 **RKLX（2x）** 持有；2x 会放大近期回撤和板块联动，短线风险偏高。\n- CRCL: 报道指 Samsung Wallet 支持 USDC 转账，为 Circle 稳定币增加分发与使用入口。  \n  **对 kcn 的持仓**：对 CRCL 持仓是温和的采用率利好，但尚无交易量、收入或财务指引支持短期盈利弹性。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: Samsung Wallet 增加 USDC 转账支持——生态采用信号偏正面，但暂无量化财务贡献。\n- RKLB: 两日跌近 9%且太空板块承压——短线偏空，RKLX 的 2x 杠杆会放大回撤。\n- SPCX: 完成低频段频谱布局、强化 Starlink/直连手机战略——SPCH 的 2x 杠杆会放大事件波动。\n\n### 风险 watch (若有)\n- CRCL: 监管仍是变量；报道提到 Clarity Act 受挫及 CFTC/SEC 介入，但本批未见 CRCL 特有新规或执法行动。\n- SPCX: 频谱交易带来资本配置、竞争加剧及潜在监管审查风险；交易规模和财务回报未披露。\n- SPCX: Blue Origin IPO 目前仅为讨论，未给出确定时间表，不应当作已落地催化剂。\n- 本批新闻未见明确的 financial guidance、大股东减持或失败合约。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: SpaceX 频谱动作提升 Starlink 直连手机的商业化预期，T-Mobile 已出现单日大跌后反弹 3% 的反应。  \n  - kcn implication: 持有 **SPCH（2x）**；2x 会放大消息兑现或反转的波动，频谱优势尚不等于已确认收入。\n- RKLB: NASA 正考虑为估算 **$30B** 的月球基地计划批量采购火箭，Neutron 的潜在需求上升。  \n  - kcn implication: 持有 **RKLX（2x）**；潜在订单会放大上行，但目前仍是采购设想，不是已确认 backlog。\n- CRCL: Circle 稳定币采用继续扩张，但网络增长快于盈利；2027 年收入激增情景依赖 Arc 上线与利率上行。  \n  - kcn implication: CRCL 仓位短期更像估值/盈利转化交易；报道时股价 $80.84 已计入平台转型预期。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: 采用增长与盈利脱钩 — 估值风险上升，需等待网络增长转化为收入和利润。\n- RKLB: NASA 月球计划带来 Neutron 期权价值 — 催化剂仍属预期驱动，RKLX 2x 放大波动。\n- SPCX: 频谱取得强化 Starlink 移动竞争 — SPCH 2x 同时放大商业化上行与执行回撤。\n\n### 风险 watch (若有)\n- CRCL: “2027 revenue surge” 是分析情景而非管理层 financial guidance；网络增速持续领先盈利可能触发估值回撤。\n- RKLB: NASA 采购尚未确认，时间表、订单及项目执行均存在不确定性。\n- SPCX: 频谱策略可能引发运营商竞争反应及潜在监管审查，直接手机业务收入与经济性尚未披露。\n- 本批未见明确的大股东减持、失败合约或已落地监管处罚。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 4,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Michael Saylor Calls Elon Musk’s SpaceX Vision ‘Bullish’: Could Bitcoin Benefit?",
-        "datetime": 1791542506,
+        "headline": "Circle: Stablecoin Adoption Is Real, But Network Growth Is Still Outpacing Earnings",
+        "datetime": 1791800600,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e9cb5179ea364c45d44c3ed53af7c396dd627c0b12fccd67a102d35894d8bc32"
+      },
+      {
+        "headline": "Circle Internet: Looking For Revenue Growth Surge",
+        "datetime": 1791794400,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=1a46d8e780942327e18f8c87c4c43191b65b87dc6e72944fd12c43e41dcd5c8a"
+      },
+      {
+        "headline": "Stellar Now Hosts More Tokenized Assets Than the XRP Ledger. Why Is XRP Still Worth Nearly 13 Times More?",
+        "datetime": 1791756852,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b6ac0a03e40b994326cff97901fa22ce98c171df55e31ebe923d1f7810db2983"
+      },
+      {
+        "headline": "Bitcoin, XRP Get the Spotlight—Could These 5 Altcoins Be Next?",
+        "datetime": 1791712823,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5b8577abc8184bc8980daacc1e4cf5a508ab414b5596f2602ffeb64ec12ca3ff"
-      },
-      {
-        "headline": "The Age of Tokenized Trading Is Dawning. How Companies and Customers Could Win.",
-        "datetime": 1791522000,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3b5de6494aff26235be8dbb44dbe06b365e9969b5fd291c462935379d6af24bc"
-      },
-      {
-        "headline": "Securitize Stock Jumps After Hours As It Launches Tokenized Apple, Nvidia, Tesla Shares On Solana",
-        "datetime": 1791502056,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=413233843013b38dd1cadc4a77d42efa5a769d8336ffd92a18cca1c6ee07c161"
-      },
-      {
-        "headline": "Crypto And The Midterms: What It Will Take To Reach $100k Bitcoin",
-        "datetime": 1791480621,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5d69e387ce0ad2836b62c7cd607bb5005e8756e85a39ed7a1d364671b1599381"
-      },
-      {
-        "headline": "Samsung wallet embraces stablecoins with USDC transfers",
-        "datetime": 1791478800,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dd21fa43252bd28ddc36a6838c962d37864b887140baa3e4c351a7ed78ce7b6e"
+        "url": "https://finnhub.io/api/news?id=011571cccd9b8c39a81bc46756d0bd4f94e6b073453f20876ad71f3f744d9226"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Lost Nearly 9% in Two Days as Space Stocks Slid. Here’s What SpaceX’s Spectrum Moves Mean for Iridium",
-        "datetime": 1791564833,
+        "headline": "Why SpaceX’s Spectrum Purchase Is Good for AST SpaceMobile Stock",
+        "datetime": 1791811740,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a7d8c234338d78cb23b28742fa8e2171a780dc1ec649e679c46c6a4d10c41a32"
+        "url": "https://finnhub.io/api/news?id=d4df0ef9eea7e58043e81659d8a1e987ae12f30be4fd5fd8400fdd2b0ece1928"
       },
       {
-        "headline": "Boeing and 10 More Buys for the ‘Modern-Day Industrial Revolution’",
-        "datetime": 1791562080,
+        "headline": "AST SpaceMobile Rallies 4% as Next BlueBird Satellites Reach Cape Canaveral; Rocket Lab and Intuitive Machines Hold Flat",
+        "datetime": 1791808470,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=98a1347461070c9e2ac5588b8b9316fcc4df663bb8afa650d9faf01b4ac06aeb"
+        "url": "https://finnhub.io/api/news?id=8207b5e87f40db5d5ed1c04148aff04e0fb81ebfa0c6f874fc5625402be85d8b"
       },
       {
-        "headline": "SpaceX initiated, Humana upgraded: Wall Street's top analyst calls",
-        "datetime": 1791553518,
+        "headline": "How Could RKLB Manage Orbital Collision Risks as Space Activity Grows?",
+        "datetime": 1791807900,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8019c880fe0c4a00f7e9abe7cfb5f19d0f21c3d8f821c1d3a92e1d163987cecd"
+        "url": "https://finnhub.io/api/news?id=92ba79d31497f70f9364e75f10f3a841e2c4ecbdfd69ce0d62fe42d1a59c5ad4"
       },
       {
-        "headline": "AST SpaceMobile Falls 6% as SpaceX Spectrum Deal Closes Off Low-Band Option; Rocket Lab and Planet Labs Slip",
-        "datetime": 1791553509,
-        "source": "Yahoo",
+        "headline": "Ondas Is Assembling A Defense Prime, Buy",
+        "datetime": 1791795147,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9fd1d27f006db27fbfb13c0a7f17abd1b9b00cf1a526f6ff7df6751eb22415ec"
+        "url": "https://finnhub.io/api/news?id=b2c595ea335599269eedad225fa1d4a492f1681e55b1b1b811ee7d80b63086ba"
       },
       {
-        "headline": "Here Are Friday’s Top Wall Street Analyst Research Calls: American Express, Archer Aviation, Fastly, Jack Henry & Associates, Joby Aviation, Lockheed Martin, Palantir, Rocket Lab, SpaceX and More",
-        "datetime": 1791547279,
+        "headline": "RKLB Stock Rises Overnight: NASA Chief Warns Moon Race With China Is ‘Months, Not Years’ As Neutron Opportunity Grows",
+        "datetime": 1791790021,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cb23929f585bd1ede4d3857386d5f7cd7cb2cfec3aa173112e5d0c728ff46463"
+        "url": "https://finnhub.io/api/news?id=9bfa4d5db95ecac642e717c7ccb4651725e818b060353f44e15b12b5296f5f30"
       }
     ],
     "SPCX": [
       {
-        "headline": "Stock Market Today: Dow Rallies 400 Points As These Energy Stocks Hit Highs (Live Coverage)",
-        "datetime": 1791568168,
+        "headline": "Trump Bought Coinbase Stock in July and Sold Some of It on August 10. The Same Day, He Bought More Strategy. Here Is What Both Have Done Since.",
+        "datetime": 1791835254,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cbe38f56101c893f3932ec6be25108dd15854eb678b9310edd35a4a786bc96e2"
+        "url": "https://finnhub.io/api/news?id=842b9c1743ec5f2a11ad18de32d330a0ef7055701ca279fec9539e382cf755cd"
       },
       {
-        "headline": "Elon Musk, Jensen Huang, and tech leaders receive White House National Medals",
-        "datetime": 1791567953,
+        "headline": "Why Apple May Have a SpaceX Problem",
+        "datetime": 1791828540,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=189c880b9208fee07e2dc21b40797cd24c20700ff3dbe64102a6e1e800bb4227"
+        "url": "https://finnhub.io/api/news?id=726d828e3de079416aa7fd098471fbe257a54e03ba80ecd9016de9b9cbc5f555"
       },
       {
-        "headline": "Sector Update: Tech Stocks Mixed Friday Afternoon",
-        "datetime": 1791567721,
+        "headline": "SpaceX's Starlink could pose 3 big risks to Apple, BofA warns",
+        "datetime": 1791827700,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=db78ea4c45139f1912790d8842a4288fd50d8b3cd3eaff45b709958875562ff7"
+        "url": "https://finnhub.io/api/news?id=5eccb285e7f29eb763538ab9731a0312c46160f6ee4d31f70cbb6840f78e4fd4"
       },
       {
-        "headline": "Jeff Bezos said a Blue Origin IPO is on the horizon. What could that mean for SpaceX?",
-        "datetime": 1791567710,
+        "headline": "T-Mobile Rebounds 3% After Record Drop on Starlink Spectrum Move; SpaceX Ticks Up, Verizon Edges Higher",
+        "datetime": 1791827496,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1ac305501614db3ccf86a697abd3f600e3da34718cda60b0e4fb61efc92778bf"
+        "url": "https://finnhub.io/api/news?id=a8486d54ec83986d0e2683bf5eec57c8a12383bca263d8a940727ebf70a7a383"
       },
       {
-        "headline": "Why T-Mobile Stock Just Crashed",
-        "datetime": 1791567684,
+        "headline": "Which AI stocks' valuations are outrunning reality?",
+        "datetime": 1791827199,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0861bf3e9bc6fba4652910ee42145c37881ce716765e3123af657460fe8534fc"
+        "url": "https://finnhub.io/api/news?id=d3be78de2a426521c5a1720230d87915f7e6d1a0b32e54019d1a3e21ee010997"
       }
     ]
   },
