@@ -136,6 +136,7 @@ node_modules/
 portfolio.json.lock
 portfolio.json.bak
 *.json.lock
+*.jsonl.lock
 *.json.bak
 
 # root-level scratch (cron report drafts) — never commit

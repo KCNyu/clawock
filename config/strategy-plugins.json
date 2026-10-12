@@ -4,7 +4,8 @@
   "purpose": "Research composition of strategy plugins. A row mounts code and registers parameters and a search space; it never grants live permission, and a retrospective optimisation only ever produces a proposal.",
   "plugins": [
     {"id": "strategies", "module": "clawock.strategies.registry"},
-    {"id": "bars", "module": "clawock.strategies.plugins.ledger_bars"},
+    {"id": "bars", "module": "clawock.strategies.plugins.adjusted_bars", "config": {"sessions": 800}},
+    {"id": "costs", "module": "clawock.strategies.plugins.registered_costs"},
     {
       "id": "rsi",
       "module": "clawock.strategies.plugins.rsi",
@@ -32,8 +33,13 @@
         "gate_alternates": [
           {
             "id": "statistics-only",
-            "rationale": "memory/bars is raw by contract, so the registered gate refuses every run on it whatever the statistics say. This alternate drops only that check, to keep on record what the statistics alone would have concluded.",
+            "rationale": "A bars source that cannot say it is adjusted — memory/bars, or the adjusted source on a day the provider answers raw — is refused by the registered gate whatever the statistics say. This alternate drops only that check, to keep on record what the statistics alone would have concluded.",
             "gate": {"corporate_actions_adjusted": false}
+          },
+          {
+            "id": "net-of-cost",
+            "rationale": "The registered gate reads a gross rank IC. This alternate adds one check: the better-half basket's excess over the equal-weight of all names, after the registered cost model, must have a bootstrap interval above zero.",
+            "gate": {"oos_net_excess_ci95_lower_gt": 0.0}
           }
         ]
       }

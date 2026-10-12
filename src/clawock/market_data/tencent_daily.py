@@ -45,3 +45,27 @@ def fetch_hk_daily_closes(sym, start, end=None, lim=2000, *, headers=None,
     node = (payload.get('data') or {}).get(sym, {})
     keys = ('qfqday', 'day') if adjusted_first else ('day', 'qfqday')
     return parse_daily_closes(node.get(keys[0]) or node.get(keys[1]) or [])
+
+
+TENCENT_ADJUSTED = 'https://web.ifzq.gtimg.cn/appstock/app/{market}fqkline/get'
+
+
+def fetch_adjusted_daily_bars(sym, count=800, *, headers=None):
+    """(bars, adjusted) from the per-market forward-adjusted endpoint.
+
+    `adjusted` is True only when the provider answered under `qfqday`. The
+    market-less `fqkline/get` path answers the same request under `day` with
+    raw prices, so the key is read as the provider's own statement of what it
+    sent rather than assumed from the request. Transport errors propagate.
+    """
+    market = sym[:2]
+    if market not in ('hk', 'us'):
+        raise ValueError(f'no adjusted daily endpoint for {sym!r}')
+    url = f'{TENCENT_ADJUSTED.format(market=market)}?param={sym},day,,,{count},qfq'
+    kwargs = {'timeout': 20}
+    if headers is not None:
+        kwargs['headers'] = headers
+    payload = requests.get(url, **kwargs).json()
+    node = (payload.get('data') or {}).get(sym) or {}
+    adjusted = bool(node.get('qfqday'))
+    return parse_daily_bars(node.get('qfqday') or node.get('day') or []), adjusted

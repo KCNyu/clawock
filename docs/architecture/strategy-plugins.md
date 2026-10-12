@@ -8,6 +8,7 @@ it produces carries live permission.
 ```bash
 clawock strategy-lab list            # mounted plugins, services, strategies
 clawock strategy-lab optimize rsi    # walk-forward search → a proposal
+clawock strategy-lab ledger          # recorded verdicts across runs
 ```
 
 ## Primitives
@@ -34,8 +35,21 @@ implemented.
 | Service | In-tree provider | Contract |
 |---|---|---|
 | `strategies` | `strategies/registry.py` | `register(StrategySpec)`; a spec is `score(bars, params) -> float \| None` (higher is more bullish), its registered `params` and the `space` an optimiser may search |
-| `bars` | `strategies/plugins/ledger_bars.py` | `tickers()`, `series(ticker)`, `describe()`; reads `memory/bars`, which is raw and reports `corporate_actions_adjusted: false` |
+| `bars` | `strategies/plugins/adjusted_bars.py` (mounted), `strategies/plugins/ledger_bars.py` | `tickers()`, `series(ticker)`, `leg(ticker)`, `describe()` |
+| `costs` | `strategies/plugins/registered_costs.py` | `side_bps(leg)`, `describe()`; `config/cost-model.json` through `clawock.costs.CostModel` |
 | `optimizer` | `strategies/plugins/walkforward.py` | `run(strategy) -> proposal` |
+
+Two plugins provide `bars`, and a composition mounts one:
+
+- `adjusted_bars` fetches Tencent's forward-adjusted daily series
+  (`{hk,us}fqkline/get`) for the names in `memory/bars`, cut at each name's last
+  settled session. It reports `corporate_actions_adjusted: true` only for
+  series the provider sent under `qfqday`. A name answered under `day` is left
+  out and listed in `left_out`: the provider does that for names with no
+  corporate action on record and for names it did not adjust, and the answer
+  does not say which. The series is not stored; `describe()` carries its digest.
+- `ledger_bars` reads `memory/bars`, which is raw, and reports
+  `corporate_actions_adjusted: false`. It needs no network.
 
 `strategies/plugins/rsi.py` is the one strategy shipped. Its arithmetic is
 `decision.signals._rsi14`; the plugin adds the registered parameters
@@ -64,6 +78,23 @@ failed checks listed:
 | `pbo_lt` | CSCV probability of backtest overfitting over the whole grid (`evaluation/cscv.py`); unmeasured fails |
 | `corporate_actions_adjusted` | the bars source must say it is adjusted |
 
+## Net of cost
+
+The rank IC is gross. Each proposal also carries `net_of_cost`: the same picks
+held as a portfolio — the better half of the scored names, equal-weighted, for
+the horizon — against the equal-weight of all of them. A tranche replaces the
+one formed a horizon earlier and pays `costs.side_bps` on each name that enters
+or leaves; the comparison is charged nothing. The block reports the mean excess
+per session before and after that charge, its bootstrap interval, the turnover,
+and the cost model used.
+
+The model is `config/cost-model.json`: an assumed commission plus half an
+assumed spread per side, no impact. The minimum commission is not applied,
+because a rank portfolio has no order size.
+
+The registered gate does not read `net_of_cost`. The check
+`oos_net_excess_ci95_lower_gt` exists for alternates only.
+
 A `candidate` is a reason to pre-register the parameters and score them
 prospectively. Changing the registered parameters is an edit to the row,
 reviewed like any configuration change. The rule is the one
@@ -82,9 +113,22 @@ result is in `alternate_gates`: `would_pass`, `would_refuse_because`,
 `status`, and nothing outside `strategy-lab` reads it. Promoting one is an edit
 that moves its thresholds into `gate`.
 
-`statistics-only` is the one shipped: it drops `corporate_actions_adjusted`,
-which the raw bar store fails on every run, so the record shows what the
-statistics alone would have concluded.
+Two are shipped. `statistics-only` drops `corporate_actions_adjusted`, so a run
+on a source that cannot claim adjustment still records what the statistics
+alone would have concluded. `net-of-cost` adds `oos_net_excess_ci95_lower_gt: 0`.
+
+## Ledger
+
+Each `optimize` appends one row to `memory/strategy-lab/ledger.jsonl`: status,
+failed checks, every alternate's verdict, the measured intervals, and the
+digest of the bars served. `--no-ledger` skips it. The file sits beside
+`memory/backtests` as run-time evidence of research; `memory/proposals.jsonl`
+is the book's decision proposals and is a different record.
+
+`strategy-lab ledger` reports, per strategy, candidates over distinct inputs,
+refusals by check, and for each alternate how often it would have passed and
+how often it disagreed with the registered gate. A rerun of the same strategy,
+parameters, space, settings and bars counts once, by its latest row.
 
 A gate or alternate naming a check that does not exist is refused at mount.
 
