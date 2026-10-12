@@ -626,7 +626,7 @@ echo "{\"$SB\": {\"status\": \"running\"}}" >"$WORK/sessions-2.json"
 expect "two chats mid-turn: nobody" "$(o43 AGENT_DISPATCH_ASSUME_GATEWAY=1)" "ORIGIN_SESSION= WAKE_DEPTH=0"
 expect "--origin-session none wins" "$(o43 OPENCLAW_MCP_SESSION_KEY=$SA AGENT_DISPATCH_ORIGIN_SESSION=none)" "ORIGIN_SESSION= WAKE_DEPTH=0"
 expect "a continued task falls back to who dispatched it" "$(o43 AGENT_DISPATCH_ORIGIN_FALLBACK=$SB)" "ORIGIN_SESSION=$SB WAKE_DEPTH=0"
-h43=$(python3 -c 'import hashlib,sys; print(hashlib.sha1(sys.argv[1].encode()).hexdigest()[:12])' "$SA")
+h43=$(python3 -c 'import hashlib,sys; print(hashlib.sha256(sys.argv[1].encode()).hexdigest()[:12])' "$SA")
 mkdir -p "$AGENT_DISPATCH_LOCKDIR/.wake/$h43"; echo '{"depth": 1}' >"$AGENT_DISPATCH_LOCKDIR/.wake/$h43/inflight"
 expect "dispatched from inside a wake turn: one step deeper" "$(o43 OPENCLAW_MCP_SESSION_KEY=$SA)" "ORIGIN_SESSION=$SA WAKE_DEPTH=2"
 fi

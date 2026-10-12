@@ -73,7 +73,7 @@ def read_env(path):
 
 
 def session_hash(key):
-    return hashlib.sha1(key.encode()).hexdigest()[:12]
+    return hashlib.sha256(key.encode()).hexdigest()[:12]
 
 
 def label(key):
