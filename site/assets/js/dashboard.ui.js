@@ -50,6 +50,44 @@
       setDeskRailExpanded(deskRailToggle.getAttribute("aria-expanded") !== "true", true));
   }
 
+  // A desktop tab switch swaps the whole view in place; the arriving panel's
+  // blocks fade in in turn (`.panel.is-entering`, dashboard.css ④). Not on the
+  // phone pager, where the finger already moves the page, and not before the
+  // first data: that paint has its own entrance.
+  let enteringTimer = 0;
+  function markPanelEntering(panel) {
+    if (!DATA || pagerLive()) return;
+    clearTimeout(enteringTimer);
+    PANELS.forEach(p => p.classList.remove("is-entering"));
+    panel.classList.add("is-entering");
+    // Count from the first frame the panel is actually painted in: rendering
+    // a detail tab can hold the main thread for longer than the entrance
+    // lasts, and a timer started here would take the class away before the
+    // animation had shown a frame.
+    requestAnimationFrame(() => {
+      clearTimeout(enteringTimer);
+      enteringTimer = setTimeout(() => panel.classList.remove("is-entering"), 700);
+    });
+  }
+
+  // The lit patch under the pointer on a hovered card (`--mx`/`--my`,
+  // dashboard.css `.card:where(:hover)`). One listener, one write per frame.
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let spotFrame = 0, spotEvent = null;
+    document.addEventListener("pointermove", e => {
+      spotEvent = e;
+      if (spotFrame) return;
+      spotFrame = requestAnimationFrame(() => {
+        spotFrame = 0;
+        const card = spotEvent.target.closest?.(".panel.active > .card");
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        card.style.setProperty("--mx", Math.round(spotEvent.clientX - r.left) + "px");
+        card.style.setProperty("--my", Math.round(spotEvent.clientY - r.top) + "px");
+      });
+    }, { passive: true });
+  }
+
   // Reflect the active tab in the button bar + a11y + desktop CSS. Does NOT move
   // the pager (the scroll position is the source of truth on mobile).
   function setActiveButton(t) {
@@ -64,6 +102,7 @@
     PANELS.forEach(p => {
       const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
       const on = panelIndex === activeIndex;
+      if (on && !p.classList.contains("active")) markPanelEntering(p);
       if (!on && p.contains(document.activeElement)) {
         document.querySelector(`.tab-btn[data-tab="${t}"]`)?.focus({ preventScroll: true });
       }

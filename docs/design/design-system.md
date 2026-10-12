@@ -66,18 +66,42 @@ Components do not pick a rung. They name a **role**:
 
 | Role token | Is | Use |
 |---|---|---|
-| `--fill-card` | a card | `.card` |
+| `--fill-card` | a card, opaque | the fallback and reduced-transparency form of `.card`; the card itself paints `--glass-panel` |
 | `--fill-inset` | a block inside a card | `.inset-block`, table headers, wells |
 | `--fill-inset-2` | a block inside a block | rare; if you need a fourth level, flatten the layout |
 
 Never fill a rounded block with the colour of what it sits on
 (`test_nothing_rounded_is_painted_the_colour_of_the_card_it_sits_on`).
 
-Glass (`--glass-deck` / `--glass-card` / `--glass-thin` with the matching
-`--blur-*`) is for the first screen's three surfaces, the top bar, the menu and
-drawers. A new card is not glass. Any frosted rule must be neutralised in the
-`prefers-reduced-transparency` block
-(`test_every_frosted_surface_turns_solid_under_reduced_transparency`).
+**Every card is glass, in one of two weights.**
+
+- *Frosted* — `--glass-deck` / `--glass-card` / `--glass-thin` with the
+  matching `--blur-*`: the first screen's three surfaces, the top bar, the menu
+  and drawers. These sit over things that move or scroll under them, so they
+  blur. A frosted rule must be neutralised in the
+  `prefers-reduced-transparency` block
+  (`test_every_frosted_surface_turns_solid_under_reduced_transparency`).
+- *Clear* — `--glass-panel`: every other `.card`. One translucent layer and
+  **no `backdrop-filter`**: what is behind a card is only the ambient field,
+  which is already a smooth gradient — blurring it returns the same picture,
+  and a few dozen cards each re-blurring per frame is cost with nothing to
+  show. Blocks *inside* a card stay on the opaque `--fill-inset` rungs:
+  translucent on translucent is where legibility goes.
+
+**The ambient field** (`body::before`, `--aura-1…3`) is what the glass is in
+front of: three wide pools of cool light fixed behind the page. Glass over a
+flat fill is a grey board, which is every past report of "the frosted look
+does not show". Its hues stay in the blue family (blue, indigo, sky). Green,
+red and amber are data on this page (§0) and may not appear in it; on the
+light theme the canvas itself stays neutral and the colour is only where a
+pool is. Under reduced transparency the field is removed and cards return to
+`--fill-card`.
+
+This replaces "a new card is not glass" (the rule until 2026-10-12). That rule
+was protecting two things — legibility under stacked translucency and the cost
+of blur — and both are still protected, by the two bullets above, rather than
+by keeping most of the page opaque. The owner asked for the material to be
+used across the site; the standard now says how, instead of saying no.
 
 ### 1.3 Text
 
@@ -145,9 +169,10 @@ and `--viz-warm` (the single warm contrast line).
 Ask in this order; stop at the first "no".
 
 1. **How often is it seen?** Something triggered from the keyboard or dozens of
-   times a session (switching tabs, sorting, hovering rows) gets no movement — a
-   colour change at most. Occasional things (opening a fold, a drawer, an error)
-   get the standard treatment. Only a rare completion gets anything more.
+   times a session (sorting, hovering rows, stepping through a list) gets no
+   movement — a colour change at most. Occasional things (opening a fold, a
+   drawer, an error, changing view) get the standard treatment. Only a rare
+   completion gets anything more.
 2. **Which of these is it for?** *Feedback* (the page heard you), *state* (this
    changed), *origin* (this came from there), *no jump* (this would otherwise
    teleport). "It looks alive" is not on the list.
@@ -176,7 +201,9 @@ Ask in this order; stop at the first "no".
 | `--duration-draw` | 900ms | a time series uncovering itself in time order, once per page load; answers no action, so it is off the interaction scale |
 
 Loops (`infinite`) state their own period and are the only place a literal time
-may appear.
+may appear. A loop is either a state that is in progress (the spinner, the
+loading line) or the ambient field's drift; nothing that carries a reading
+loops.
 
 ### 2.3 Curves
 
@@ -212,6 +239,11 @@ same query. Where the motion carried information, a static form replaces it.
 | First figures on the first screen | no jump | three blocks fade in 40ms apart, once per page load | appear |
 | First-screen curve | origin — it was walked a day at a time | uncovered left to right over `--duration-draw`, `--ease-standard`, once per page load; never on a refresh | appears |
 | First-screen daily bars and share meters | origin | bars rise from the zero line one after another, meters fill from their left end, `standard`; once per page load | appear |
+| Light crossing the first screen | origin — this surface is a material | one highlight sweeps the command deck, `--duration-draw`, with the curve; once per page load | absent |
+| Changing view (desktop) | no jump — the whole page is replaced in place | the arriving panel's blocks fade in one after another, 40ms apart, eight steps at most, `enter`; opacity only — they are the largest blocks on the page and hold their final position from the first frame | instant |
+| Changing view (phone) | — | the pager slides under the finger; no entrance on top of it | the same |
+| Ambient field | — it is the light the glass is read against | drifts on `transform`, 60s there and back, fine pointers only (on a phone it would make the three frosted surfaces re-blur every frame) | still |
+| Light under the pointer on a card | feedback | a soft patch follows the pointer (`--mx`/`--my`); no transition of its own | the same — it is not animated |
 | Reading the first-screen curve (hover, press-and-drag, arrow keys) | feedback | hairline, dot and readout sit on the nearest day and follow the hand; no transition of their own | the same — nothing here is animated |
 | A figure changed in a refresh | state | accent underline under the changed figure, held then faded over `--duration-mark` | the underline holds, then is removed, no fade |
 | Verdict banner changes tone | state | fill and border cross to the new colour, `standard` | instant |
@@ -220,8 +252,15 @@ same query. Where the motion carried information, a static form replaces it.
 | Decision-map drawer | origin | slides from its edge, `--ease-drawer` | appears |
 | Chart intro | — | ECharts default | duration 0 |
 
-Deliberately still: switching tabs, sorting a table, table rows on hover, the
-hero figure itself, anything on a timer that is not loading.
+Deliberately still: sorting a table, table rows on hover, the hero figure
+itself, any figure's value, anything on a timer that is not loading or the
+ambient field.
+
+Changing view used to be on that list as "seen too often to animate". It is
+the one place the page replaces everything at once with nothing to say so, and
+the owner asked for the site to move more (2026-10-12); it now gets the
+standard entrance on desktop. The frequency rule still decides everything
+smaller than a view.
 
 The change mark is an underline and not a fill for a measured reason: a 35%
 accent fill takes a loss figure on the dark card from 5.1:1 to 2.7:1.
@@ -250,8 +289,9 @@ it paints.
 
 ### 4.1 Card
 
-`<section class="card">` with an `<h3>`. Surface `--fill-card`, corner
-`--radius-lg`, `--shadow-card`, padding `--space-4`. No colour of its own; if a
+`<section class="card">` with an `<h3>`. Surface `--glass-panel` (clear glass,
+§1.2; `--fill-card` is its opaque fallback and its reduced-transparency form),
+corner `--radius-lg`, `--shadow-card`, padding `--space-4`. No colour of its own; if a
 card must announce a state, the state goes in a badge in its header.
 
 ### 4.2 Block inside a card

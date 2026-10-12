@@ -21,6 +21,18 @@
     --bg-glow: rgba(54,163,255,.26);
     --bg-glow-2: rgba(48,132,226,.11);
     --bg-glow-3: rgba(84,168,255,.08);
+    /* 环境光场（body::before）：三团很大的冷光，卡片的半透明面压在它上面
+       才读得出「玻璃」。仍然只在蓝一族里取色（蓝 / 靛蓝 / 天青）——上面那条
+       「光池不许带涨跌色相」的规矩不变：绿、红、琥珀在这页上是数据。 */
+    --aura-1: rgba(54,163,255,.30);
+    --aura-2: rgba(92,104,255,.28);
+    --aura-3: rgba(46,196,236,.18);
+    /* 卡片的玻璃面：一层半透明，底下是光场。不带 backdrop blur —— 光场本身
+       就是平滑渐变，糊一遍还是它自己；几十张卡每帧各糊一次只有代价。 */
+    --glass-panel: color-mix(in srgb, var(--surface-1) 66%, transparent);
+    /* 鼠标底下的一小片受光，以及首屏那一道掠过的高光。 */
+    --spot: rgba(120,180,255,.10);
+    --glint: rgba(255,255,255,.09);
     --surface-0: #0A0F17;
     --surface-1: #131E2C;
     /* 2026-09-20：原值 #141E2A 与 --surface-1 #131E2C 实测对比度 1.001
@@ -315,6 +327,14 @@
       --bg-glow: rgba(255,255,255,.45);
       --bg-glow-2: rgba(148,157,166,.09);
       --bg-glow-3: rgba(148,157,166,.07);
+      /* 亮色的光场只是几团淡彩，不是给整页上色：canvas 仍是中性白（上面
+         那条「整页读成蓝底」的教训不变），色只出现在光团所在的那几处。 */
+      --aura-1: rgba(96,165,250,.26);
+      --aura-2: rgba(129,140,248,.20);
+      --aura-3: rgba(56,189,248,.18);
+      --glass-panel: color-mix(in srgb, #FFFFFF 60%, transparent);
+      --spot: rgba(255,255,255,.9);
+      --glint: rgba(96,165,250,.14);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -536,6 +556,33 @@
     animation: meter-fill var(--duration-standard) var(--ease-out) 320ms backwards;
   }
   @keyframes meter-fill { from { transform: scaleX(0); } }
+  /* ②c 指挥台上掠过一道高光，和上面三件同一遍、同一个时长：玻璃被光扫到
+     一次，告诉眼睛这块面是材质。只在首次落数时存在，放完这个伪元素就没了。 */
+  .is-first-paint .hero-deck::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 38%, var(--glint) 50%, transparent 62%);
+    animation: glass-glint var(--duration-draw) var(--ease-standard) 160ms both;
+  }
+  @keyframes glass-glint {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+  /* ④ 换视图。桌面上点 tab 是整块内容原地换掉 —— 没有任何东西告诉眼睛
+     「这是另一页」。新视图的各块依次淡入，一拍 40ms，最多八拍。和首屏
+     落位同一条规矩：只动透明度、不动位置 —— 这些是页面上最大的块，版式
+     从第一帧就在终位（上移 6px 的那一版让判定卡在入场期间量出 -6px 的
+     错位）。手机不放：那里换视图是手指推着整页横滑，位移已经是真的。
+     .is-entering 由 dashboard.ui.js 在切换时加、放完即摘。 */
+  .panel.is-entering > * {
+    animation: enter-fade var(--duration-enter) var(--ease-out) backwards;
+  }
+  .panel.is-entering > :nth-child(2) { animation-delay: 40ms; }
+  .panel.is-entering > :nth-child(3) { animation-delay: 80ms; }
+  .panel.is-entering > :nth-child(4) { animation-delay: 120ms; }
+  .panel.is-entering > :nth-child(5) { animation-delay: 160ms; }
+  .panel.is-entering > :nth-child(6) { animation-delay: 200ms; }
+  .panel.is-entering > :nth-child(7) { animation-delay: 240ms; }
+  .panel.is-entering > :nth-child(n+8) { animation-delay: 280ms; }
   /* 从无到有的小块（报错框、提示条）：淡入并上移一个 --enter-shift。 */
   @keyframes enter-rise {
     from { opacity: 0; transform: translateY(var(--enter-shift)); }
@@ -554,7 +601,9 @@
     .is-first-paint .hero-spark-svg,
     .is-first-paint .rc-bars > i,
     .is-first-paint .rc-meter > i,
+    .panel.is-entering > *,
     details[data-opening][open] > :not(summary) { animation: none; }
+    .is-first-paint .hero-deck::after { display: none; }
   }
   /* OS-level reduced transparency: drop the frosted surfaces back to solid
      (apple-design skill: frostier/solid, blur off).
@@ -603,6 +652,9 @@
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
     body .card, body .hero-deck, body .overview-strip { background-image: none; }
+    /* 卡片的玻璃面与它背后的光场一起收回：实色卡、平底页。 */
+    body .card { background: var(--fill-card); }
+    html body::before { display: none; }
     body .hero-deck-lead::before { display: none; }
   }
   body {
@@ -616,8 +668,8 @@
        far dimmer counter-light low and off-centre so the lower half of a long
        page is not dead flat. Both are wide and low-contrast on purpose —
        visible as depth, never as a visible band. `background-attachment:
-       fixed` keeps them still while panels scroll (apple-design §14: no
-       full-viewport moving background).
+       fixed` keeps them still while panels scroll. (这三盏不动；会动的是
+       下面 body::before 那层光场，只在有鼠标的设备上，理由写在那里。)
        2026-08-24: key light 拉高到 860px —— 判定卡改成半透明毛玻璃后，它
        背后必须真的有光可糊（#887 判据）：原来的 620px 衰减在判定卡那一段
        已经归零，玻璃糊的是一片平色。拉高之后光穿过两张玻璃面，材质才读得
@@ -634,6 +686,28 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* 环境光场。固定在视口后面，比视口大一圈（漂移和旋转时四角不露底）。
+     · 为什么要它：卡片现在是半透明的玻璃面（见 .card），玻璃背后没有结构
+       就只是一块灰板 —— 这页上「毛玻璃看不出来」每一次都是这个原因。
+     · 为什么会动：只在有鼠标的设备上，60s 一个来回，只动 transform。
+       手机上它是静止的：光场一动，压在上面的三块 backdrop blur 每帧都要
+       重糊，那笔电不该花在一块背景上。
+     · 减少动态效果：全局开关把它停在终点，成为一张静止的光场。 */
+  body::before {
+    content: ""; position: fixed; z-index: -1; inset: -25%;
+    pointer-events: none;
+    background:
+      radial-gradient(36% 32% at 24% 30%, var(--aura-1), transparent 70%),
+      radial-gradient(32% 34% at 78% 24%, var(--aura-2), transparent 70%),
+      radial-gradient(40% 36% at 60% 80%, var(--aura-3), transparent 72%);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    body::before { animation: aura-drift 60s var(--ease-in-out) infinite alternate; }
+  }
+  @keyframes aura-drift {
+    from { transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1); }
+    to { transform: translate3d(5%, 4%, 0) rotate(16deg) scale(1.14); }
   }
   a { color: var(--accent); text-decoration: none; }
   /* 触屏上 :hover 会在点完之后粘住，所以全站的 hover 都关在这条查询里
@@ -1265,7 +1339,9 @@
      work, a fill-coloured border no longer has to hide the box, and one
      defined edge per card is what keeps a dense page readable. */
   .card {
+    /* 实色是给不认 color-mix 的浏览器的退路；认的用玻璃面。 */
     background: var(--sheen-1), var(--fill-card);
+    background: var(--sheen-1), var(--glass-panel);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
@@ -1283,6 +1359,15 @@
     .panel.active > .card:hover {
       transform: translateY(var(--hover-lift));
       box-shadow: inset 0 1px 0 var(--spec-2), var(--shadow-card-hover);
+    }
+    /* 鼠标光斑：悬停的那张卡在指针底下亮一小片，跟着指针走（--mx/--my 由
+       dashboard.ui.js 写）。它是材质的回应，不是过渡 —— 跟手的东西不带缓动。
+       :where() 把特异度压回一个类：自带背景的卡（指挥台、判定牌组）按源序
+       照旧赢，不会被这条冲掉自己的材质。 */
+    :where(.panel.active) > .card:where(:hover) {
+      background:
+        radial-gradient(480px circle at var(--mx, 50%) var(--my, 0px), var(--spot), transparent 64%),
+        var(--sheen-1), var(--glass-panel);
     }
   }
   .card.is-pending { visibility: hidden; }
