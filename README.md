@@ -39,7 +39,51 @@ clawock gives the AI agent you already use a continuing investment workflow for 
 
 **RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
 
-Strategies are [plugins mounted by configuration rows](#strategies-plug-in-a-gate-decides-what-they-may-do); a parameter search can only produce a proposal. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
+Everything that computes is [a plugin mounted by one configuration row](#everything-that-computes-is-a-plugin-what-a-result-may-do-is-not). A strategy can [search its own parameters](#a-strategy-can-search-its-own-parameters-adopting-them-is-a-reviewed-edit) and only ever produce a proposal. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
+
+## Everything that computes is a plugin; what a result may do is not
+
+What goes into your harness is small: one skill, one CLI and a JSON contract. Your agent keeps its model, its conversation and its tools. Inside clawock, everything that computes a reading is a **plugin mounted by one row of configuration**: the factor table, the bar estimators, the sentiment read, the daily-bar source, the add-side and intraday policies. To change what the desk computes, change a row.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Plugins: eleven live rows sit in sockets round a kernel that offers provide, inject, effect and event, grouped as signal sources, data and policies. The brief, the session reports and the intraday check-ins ask it for a service by name, and a row that fails stops only its own readers. Below, the research rows feed a walk-forward optimiser; its result meets a registered gate whose floor is set in code, the verdict is candidate or refused with live permission false either way, and every verdict goes to the lab ledger. No path leads from the ledger back to a live row."></p>
+
+**Where the boundary is.** A plugin publishes a service or names the ones it needs. That is all a row can do. It cannot grade a call, publish a decision or give itself permission:
+
+- Settlement is Python over canonical bars. No plugin and no model writes a score.
+- `clawock run publish` checks every decision against one schema and one validator, whichever harness wrote it.
+- A research plugin can produce a proposal. Whether that proposal is a candidate is the registered gate's verdict, and live permission is false either way.
+
+That is why a strategy can be swapped while its results stay comparable: the code that judges a result is not among the things that get swapped.
+
+**A signal source says what it measures.** A row marked as a signal source is not mounted until it declares its inputs, the unit and window of every output, and what each holds when it cannot be measured. No source may hand back an old reading as today's.
+
+| Source | Kind | Measures | When it cannot measure |
+|---|---|---|---|
+| `factors` | factor | trend, momentum, RSI, volatility and the exit line per name, from daily bars | the field is null; below 30 bars there is no row |
+| `bar-signals` | technical | liquidity and volatility estimators per session | null, never zero: undefined is not the same as liquid |
+| `sentiment` | sentiment | Reddit mentions over seven days and statements by named figures, read from two morning scans | the reading is left out, and its status says missing, stale or unreadable |
+| `rsi` | strategy | a signed score the strategy lab ranks; no live path reads it | null, and the name is not ranked that session |
+
+**A broken row fails alone.** If a row does not mount, the runs that read its service stop and name it. The others carry on.
+
+**Your own plugin.** A row's module is an import path, so a plugin can be any installed package: write `apply(ctx, config)`, declare what it reads, add the row. Mounting gives it a socket, not authority; the same gate and the same record apply to it.
+
+```bash
+clawock strategy-lab list       # every mounted row, what it provides and what it waits for
+clawock strategy-lab sources    # each signal source: inputs, units, windows, missing data
+```
+
+[Strategy plugins: kernel, rows, declarations, events and boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md) · [writing a plugin outside this repository](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#writing-a-plugin-outside-this-repository).
+
+## Any harness, one decision contract that accumulates evidence
+
+Use the same **`investment-decision` skill and artifact contract in Claude Code / Codex / OpenClaw / DeepSeek Harness / any runtime that can read and write files and call a CLI**. Your agent keeps its model, conversation, memory, research tools, credentials and permissions. clawock certifies inputs, validates outputs, evaluates outcomes and records improvement; it does not launch another model.
+
+“Smarter with use” has a record you can inspect: evidence links to decisions, decisions link to execution and outcomes, history enters the next context, earlier samples calibrate confidence, and changes to evidence requirements leave review and rollback records. To switch harnesses, keep the workspace artifacts and reconnect them to context; continuity lives in those files. A new workspace needs its own capability setup to gain the author's live data feeds, schedules and history.
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="1016" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
+
+[Portable invocation and feedback protocol](https://github.com/KCNyu/clawock/blob/master/docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [Workflow improvement boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/harness.md#ownership).
 
 ## Information in: sources before opinions
 
@@ -107,36 +151,28 @@ Method proposals now retain frozen inputs and versioned forecasts; [method evalu
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/proposal-review.svg" width="1016" alt="Three review channels: facts and feasibility can block; strategy objections stay with the proposal. Refused and unpublished proposals remain in the record. Episode payoff and forecast scores stay separate from frozen prospective comparisons; no automatic promotion or orders."></p>
 
-## Any harness, one decision contract that accumulates evidence
+## A strategy can search its own parameters; adopting them is a reviewed edit
 
-Use the same **`investment-decision` skill and artifact contract in Claude Code / Codex / OpenClaw / DeepSeek Harness / any runtime that can read and write files and call a CLI**. Your agent keeps its model, conversation, memory, research tools, credentials and permissions. clawock certifies inputs, validates outputs, evaluates outcomes and records improvement; it does not launch another model.
+A strategy plugin declares the parameters it runs with and the grid it may be searched over. Every morning after the brief, the strategy lab walks that grid forward on adjusted bars and writes down what it found. That is as far as "self-improving" goes without a person, and each step is held by code:
 
-“Smarter with use” has a record you can inspect: evidence links to decisions, decisions link to execution and outcomes, history enters the next context, earlier samples calibrate confidence, and changes to evidence requirements leave review and rollback records. To switch harnesses, keep the workspace artifacts and reconnect them to context; continuity lives in those files. A new workspace needs its own capability setup to gain the author's live data feeds, schedules and history.
+1. **Search.** The grid is declared before the run, so every configuration tried is counted.
+2. **Gate.** The registered gate asks for enough out-of-sample sessions, an edge and a lift whose intervals sit above zero, a low probability of overfitting, and adjusted bars. A configuration row can make the gate stricter. It cannot make it looser than the floor in the code.
+3. **Second opinions.** Alternate gates judge the same run under other thresholds. One with live effect may object. None can pass what the registered gate refused.
+4. **Record.** Every verdict goes to the lab ledger with the digest of the bars it read, and the ledger is read back against these rules on every run.
+5. **Later sessions.** A cleared candidate's parameters are registered, and from then on they are scored only on sessions that did not exist when they were chosen.
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="1016" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-evolution.svg" width="1016" alt="One real run of a strategy searching its own parameters, RSI on 2026-10-12: the declared grid of six periods and two directions shaded by mean rank IC, with the registered point and the selected one outlined; the registered gate check by check, all passed, and the live alternate after costs not objecting; the same search on the 16 names the provider answered adjusted, refused because its interval spans zero; and a time axis where registration starts scoring on later sessions only, none scored yet, while the configuration row still holds the registered parameters."></p>
 
-[Portable invocation and feedback protocol](https://github.com/KCNyu/clawock/blob/master/docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [Workflow improvement boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/harness.md#ownership).
+The figure is one real run. On 2026-10-12 the RSI plugin, registered as a 14-session reversal reading, was searched over twelve configurations on the desk's 28 names. The search preferred a 28-session momentum reading, the gate passed it, and it was registered. **The same search on the 16 names the provider confirmed as adjusted is refused.** The candidate depends on 12 names for which one provider's record holds no corporate action, with no second source to check it against. Every proposal now carries that second search, so a candidate says for itself whether it survives it.
 
-## Strategies plug in; a gate decides what they may do
-
-A strategy is a plugin. So are the bars it reads, the cost model it is charged, and the evaluator that scores it. One row of configuration mounts one plugin on a small kernel with the primitives the [dsh plugin](https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md) is built on: a plugin **provides** a service or **injects** the ones it needs, every registration records its undo, and new settings restart it. Adding a strategy, swapping its data source or retuning it is an edit to a row.
-
-The same file carries two compositions:
-
-- **Live rows** provide what the brief, report and intraday runs compute with. The factor row behind the quant table, both radars and the add side is one of them; a test holds it to identical output with the code it replaced.
-- **Research rows** are the strategy lab. A strategy declares its parameter grid, the optimiser walks it forward on adjusted bars, and the result is a **proposal**: `candidate` or `refused`, with every failed check listed, and `live_permission: false` in both cases.
+What has not happened: no later session has been scored yet, the row still holds the registered parameters, and no live path reads this strategy's score. Changing the row is an edit someone reviews. Nothing proposes that edit on its own; that link is not built.
 
 ```bash
-clawock strategy-lab list            # mounted plugins, services, strategies
-clawock strategy-lab optimize rsi    # walk-forward search → a proposal
-clawock strategy-lab ledger          # verdicts across runs, alternates beside the gate
+clawock strategy-lab evolution rsi   # each run, what changed, each registration and its score since
+clawock strategy-lab verify          # the ledger against the lab's limits
 ```
 
-Only the registered gate sets a proposal's status. **Alternate gates** judge the same run under other thresholds, such as statistics only or net of the registered costs, and are recorded beside the verdict as `binding: false`, so a threshold can be argued from what it would have concluded before it is allowed to conclude anything.
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Strategy plugins: one kernel mounts one row per plugin. Live rows provide the factor service the brief, report and intraday paths read. Research rows hold adjusted bars, registered costs, a strategy with its declared grid and a walk-forward optimiser. The registered gate decides candidate or refused and never grants live permission; alternate gates judge the same run and do not bind; every run is kept in the lab ledger."></p>
-
-[Strategy plugins: primitives, services, gate and ledger](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md).
+[What an optimisation may conclude, alternate gates and the lab's boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#boundaries).
 
 ## What the model is not allowed to do
 
