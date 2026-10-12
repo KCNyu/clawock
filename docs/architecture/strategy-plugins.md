@@ -40,11 +40,9 @@ To go back, set the row's `adjustment` to `raw`. That restores the two
 requests exactly; `tests/test_live_daily_bars.py` holds the URLs.
 
 `decision.signals` keeps the two function names and delegates. The arithmetic
-it held before is still there as `legacy_compute_signals` and
-`legacy_compute_short_history_signals`, read only by
-`tests/test_live_factors_equivalence.py`, which holds plugin and legacy to
-identical output on every prefix of every series in `memory/bars` and on
-generated series long enough for every setup to fire.
+it held before the move stayed in the module as `legacy_*` until 2026-10-12,
+compared with the plugin on every prefix of every stored series, and was then
+removed: the plugin is the only implementation.
 
 ### The migrated modules
 

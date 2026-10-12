@@ -110,7 +110,7 @@ def test_rsi_plugin_is_the_published_rsi_and_rejects_a_bad_row():
     for _ in range(60):
         closes.append(closes[-1] * (1 + rnd.gauss(0, 0.02)))
     bars = [{'close': close} for close in closes]
-    published = signals.legacy_compute_signals(
+    published = signals.compute_signals(
         [{'open': c, 'high': c, 'low': c, 'close': c} for c in closes])['rsi14']
     kernel = Kernel()
     kernel.plugin(registry)
