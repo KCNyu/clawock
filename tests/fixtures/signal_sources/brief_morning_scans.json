@@ -1,0 +1,423 @@
+{
+ "a degraded scan and a close without a day change": {
+  "console": [
+   "   macro: VIX 21.5, F&G 45 (fear), fed_press 3",
+   "   ⚠ em_news: 2 个中文消息源未取到"
+  ],
+  "em_news": {
+   "age_hours": 1.2,
+   "degraded": [
+    "a",
+    "b"
+   ],
+   "holdings_news": {
+    "00100": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "MINIMAX-W获南向资金连续3天净买入"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "港股大模型概念股走弱 MINIMAX-W跌超10%"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "港股大模型“双雄”走弱 MINIMAX-W一度跌超10%"
+      }
+     ],
+     "name": "MINIMAX-W"
+    },
+    "02208": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "金风科技：截至9月30日公司累计回购股份13016611股"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "美国银行在金风科技H股的持股比例于10月6日从3.24%升至5.62%"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "美国银行在金风科技H股的持股比例于10月5日从5.43%降至3.24%"
+      }
+     ],
+     "name": "金风科技"
+    },
+    "03032": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "港股强势拉升，恒生科技ETF华安(513580)跟踪指数大涨近3%！"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "日线周线双重底背离，恒生科技ETF南方（520570）或正处中长线底部"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "恒生科技指数更新编制方案，恒生科技ETF华泰柏瑞(513130)交投活跃"
+      }
+     ],
+     "name": "恒生科技ETF"
+    },
+    "03033": {
+     "items": [
+      {
+       "date": "2026-09-11",
+       "title": "南向资金 | 南方恒生科技获净买入9.37亿港元"
+      },
+      {
+       "date": "2026-09-11",
+       "title": "南向资金今日净买入44.31亿港元 南方恒生科技净买入9.37亿港元"
+      },
+      {
+       "date": "2026-09-11",
+       "title": "南向资金今日净买入超44亿港元 南方恒生科技获买入居前"
+      }
+     ],
+     "name": "南方恒生科技"
+    }
+   },
+   "market_724": [
+    {
+     "date": "2026-10-12 08:01",
+     "title": "韩国KOSPI指数开盘下跌0.72% 日本股市休市"
+    },
+    {
+     "date": "2026-10-12 08:00",
+     "title": "火箭装上“红色引擎”"
+    },
+    {
+     "date": "2026-10-12 07:59",
+     "title": "动力煤价格淡季站上千元关口 低库存下动力煤或进入涨价周期"
+    },
+    {
+     "date": "2026-10-12 07:58",
+     "title": "美国实施强制性AI安全事件报告要求 网络安全预算占比有望显著提升"
+    },
+    {
+     "date": "2026-10-12 07:57",
+     "title": "前沿模型能力加速跃升 AI治理迎来新考验"
+    }
+   ]
+  },
+  "issues": [],
+  "macro": {
+   "age_hours": 1.2,
+   "dxy": {
+    "change_pct": -0.08,
+    "price": 102.13,
+    "source": "yahoo"
+   },
+   "fear_greed": {
+    "as_of": "2026-10-09T23:59:54+00:00",
+    "prev_1_week": 40.0,
+    "prev_close": 37.9,
+    "rating": "fear",
+    "score": 45
+   },
+   "fed_press": [
+    {
+     "date": "2026-10-09",
+     "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm"
+    },
+    {
+     "date": "2026-10-08",
+     "title": "Federal Reserve Board announces enforcement action against American Express Company to address, among other things, the firm’s failure to sufficiently detect and report certain suspicious activity rel",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+    },
+    {
+     "date": "2026-10-07",
+     "title": "Minutes of the Federal Open Market Committee, September 15-16, 2026",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261007a.htm"
+    }
+   ],
+   "hsi": {
+    "change_pct": 1.79,
+    "price": 24211.35,
+    "source": "tencent"
+   },
+   "hstech": {
+    "change_pct": 3.06,
+    "price": 4197.84,
+    "source": "tencent"
+   },
+   "nasdaq": {
+    "change_pct": 0.64,
+    "price": 27366.17,
+    "source": "tencent"
+   },
+   "regime": {
+    "label": "neutral",
+    "reasons": [
+     "SPX+IXIC 同向上行"
+    ],
+    "score": 1
+   },
+   "spx": {
+    "change_pct": 0.59,
+    "price": 7811.54,
+    "source": "yahoo"
+   },
+   "treasury_10y_yield_pct": 5.244,
+   "vix": {
+    "change_pct": null,
+    "price": 21.5,
+    "session": "2026-10-09",
+    "source": "s"
+   }
+  }
+ },
+ "an empty scan": {
+  "console": [
+   "   macro: VIX ?, F&G ? (?), fed_press 0"
+  ],
+  "em_news": {
+   "age_hours": 1.2,
+   "holdings_news": {},
+   "market_724": []
+  },
+  "issues": [],
+  "macro": {
+   "age_hours": 1.2,
+   "dxy": null,
+   "fear_greed": null,
+   "fed_press": [],
+   "hsi": null,
+   "hstech": null,
+   "nasdaq": null,
+   "regime": null,
+   "spx": null,
+   "treasury_10y_yield_pct": null,
+   "vix": null
+  }
+ },
+ "both a day and a half old": {
+  "console": [
+   "   ⚠ macro stale/unknown (37h, cutoff 36h) — omitting from brief (non-fatal)",
+   "   ⚠ em_news stale/unknown (37h) — omitting from brief (non-fatal)"
+  ],
+  "em_news": {},
+  "issues": [],
+  "macro": {}
+ },
+ "both absent": {
+  "console": [],
+  "em_news": {},
+  "issues": [
+   "macro snapshot missing",
+   "em_news.json 缺失 — clawock em-news 未跑(中文消息源)"
+  ],
+  "macro": {}
+ },
+ "not json": {
+  "console": [
+   "   ⚠ macro load failed: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  ],
+  "em_news": {},
+  "issues": [
+   "macro load exception: JSONDecodeError",
+   "em_news.json 解析失败: Expecting value: line 1 column 1 (char 0)"
+  ],
+  "macro": {}
+ },
+ "stamped in the future": {
+  "console": [
+   "   ⚠ macro stale/unknown (-2h, cutoff 36h) — omitting from brief (non-fatal)",
+   "   ⚠ em_news stale/unknown (-2h) — omitting from brief (non-fatal)"
+  ],
+  "em_news": {},
+  "issues": [],
+  "macro": {}
+ },
+ "the scans as committed": {
+  "console": [
+   "   macro: VIX 14.84, F&G 45 (fear), fed_press 3"
+  ],
+  "em_news": {
+   "age_hours": 1.2,
+   "holdings_news": {
+    "00100": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "MINIMAX-W获南向资金连续3天净买入"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "港股大模型概念股走弱 MINIMAX-W跌超10%"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "港股大模型“双雄”走弱 MINIMAX-W一度跌超10%"
+      }
+     ],
+     "name": "MINIMAX-W"
+    },
+    "02208": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "金风科技：截至9月30日公司累计回购股份13016611股"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "美国银行在金风科技H股的持股比例于10月6日从3.24%升至5.62%"
+      },
+      {
+       "date": "2026-10-08",
+       "title": "美国银行在金风科技H股的持股比例于10月5日从5.43%降至3.24%"
+      }
+     ],
+     "name": "金风科技"
+    },
+    "03032": {
+     "items": [
+      {
+       "date": "2026-10-09",
+       "title": "港股强势拉升，恒生科技ETF华安(513580)跟踪指数大涨近3%！"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "日线周线双重底背离，恒生科技ETF南方（520570）或正处中长线底部"
+      },
+      {
+       "date": "2026-10-09",
+       "title": "恒生科技指数更新编制方案，恒生科技ETF华泰柏瑞(513130)交投活跃"
+      }
+     ],
+     "name": "恒生科技ETF"
+    },
+    "03033": {
+     "items": [
+      {
+       "date": "2026-09-11",
+       "title": "南向资金 | 南方恒生科技获净买入9.37亿港元"
+      },
+      {
+       "date": "2026-09-11",
+       "title": "南向资金今日净买入44.31亿港元 南方恒生科技净买入9.37亿港元"
+      },
+      {
+       "date": "2026-09-11",
+       "title": "南向资金今日净买入超44亿港元 南方恒生科技获买入居前"
+      }
+     ],
+     "name": "南方恒生科技"
+    }
+   },
+   "market_724": [
+    {
+     "date": "2026-10-12 08:01",
+     "title": "韩国KOSPI指数开盘下跌0.72% 日本股市休市"
+    },
+    {
+     "date": "2026-10-12 08:00",
+     "title": "火箭装上“红色引擎”"
+    },
+    {
+     "date": "2026-10-12 07:59",
+     "title": "动力煤价格淡季站上千元关口 低库存下动力煤或进入涨价周期"
+    },
+    {
+     "date": "2026-10-12 07:58",
+     "title": "美国实施强制性AI安全事件报告要求 网络安全预算占比有望显著提升"
+    },
+    {
+     "date": "2026-10-12 07:57",
+     "title": "前沿模型能力加速跃升 AI治理迎来新考验"
+    }
+   ]
+  },
+  "issues": [],
+  "macro": {
+   "age_hours": 1.2,
+   "dxy": {
+    "change_pct": -0.08,
+    "price": 102.13,
+    "source": "yahoo"
+   },
+   "fear_greed": {
+    "as_of": "2026-10-09T23:59:54+00:00",
+    "prev_1_week": 40.0,
+    "prev_close": 37.9,
+    "rating": "fear",
+    "score": 45
+   },
+   "fed_press": [
+    {
+     "date": "2026-10-09",
+     "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm"
+    },
+    {
+     "date": "2026-10-08",
+     "title": "Federal Reserve Board announces enforcement action against American Express Company to address, among other things, the firm’s failure to sufficiently detect and report certain suspicious activity rel",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+    },
+    {
+     "date": "2026-10-07",
+     "title": "Minutes of the Federal Open Market Committee, September 15-16, 2026",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261007a.htm"
+    }
+   ],
+   "hsi": {
+    "change_pct": 1.79,
+    "price": 24211.35,
+    "source": "tencent"
+   },
+   "hstech": {
+    "change_pct": 3.06,
+    "price": 4197.84,
+    "source": "tencent"
+   },
+   "nasdaq": {
+    "change_pct": 0.64,
+    "price": 27366.17,
+    "source": "tencent"
+   },
+   "regime": {
+    "label": "risk_on",
+    "reasons": [
+     "VIX 15 calm",
+     "SPX+IXIC 同向上行"
+    ],
+    "score": 2
+   },
+   "spx": {
+    "change_pct": 0.59,
+    "price": 7811.54,
+    "source": "yahoo"
+   },
+   "treasury_10y_yield_pct": 5.244,
+   "vix": {
+    "change_pct": -3.7,
+    "price": 14.84,
+    "source": "yahoo"
+   }
+  }
+ },
+ "the wrong shape": {
+  "console": [
+   "   ⚠ macro load failed: the file holds a list, not an object"
+  ],
+  "em_news": {},
+  "issues": [
+   "macro load exception: not an object",
+   "em_news.json 解析失败: 'list' object has no attribute 'items'"
+  ],
+  "macro": {}
+ },
+ "unstamped": {
+  "console": [
+   "   ⚠ macro stale/unknown (unknown-age (no generated_at), cutoff 36h) — omitting from brief (non-fatal)",
+   "   ⚠ em_news stale/unknown (unknown-age (no generated_at)) — omitting from brief (non-fatal)"
+  ],
+  "em_news": {},
+  "issues": [],
+  "macro": {}
+ }
+}

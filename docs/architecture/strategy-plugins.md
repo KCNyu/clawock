@@ -31,6 +31,7 @@ their services:
 
 | `sentiment` | `strategies/plugins/sentiment.py` | `attention(workspace, recent_moves)`, `statements(workspace)`, each answering `{status, reading, age_hours, detail}`; config `stale_after_hours` | `harness/brief_preflight.load_macro_and_sentiment` and `load_influencer_feed` |
 
+| `scans` | `strategies/plugins/morning_scans.py` | `path(workspace, scan)`, `document(path)` answering `{status, payload, error}`, and the brief's reads `macro(workspace)` and `em_news(workspace)`; config `stale_after_hours` | `harness/brief_preflight` (macro, Eastmoney news), `evidence/intraday_information`, `evidence/news_evidence_graph`, `publish/dashboard` (the regime badge) |
 | `strategy_scores` | `strategy_lab/plugins/strategy_scores.py` | `read(workspace, tickers)`: each lab strategy's score and rank per stored name under the row's registered parameters, with the lab's standing; `status` is `ok` or `unavailable` | `harness/brief_preflight`, which puts it in the brief context's `research` bundle as `strategy_scores` |
 
 ### Adjusted bars on the live path
@@ -184,7 +185,7 @@ did not clear. No listener is shipped.
 A signal source is a plugin whose readings reach a decision. Each carries a
 module-level `SIGNAL_SOURCE`, and a row marked `"signal_source": true` is not
 mounted unless that declaration passes `plugin_host/declarations.validate`.
-Four are shipped, one per family:
+Six are shipped:
 
 | Row | Family | Reads | Without its inputs |
 |---|---|---|---|
@@ -192,6 +193,8 @@ Four are shipped, one per family:
 | `bar-signals` (live) | `technical` | daily bars and the index of the session | an undefined estimator is null, never zero; the two moments are left out of the row |
 | `rsi` (research) | `strategy` | closes up to the signal session, `period` and `direction` from the row | null below `period + 1` closes; the name is not ranked that session |
 | `sentiment` (live) | `sentiment` | `sentiment.json` and `influencer_feed.json`, produced off-host | the reading is empty and `status` says `missing`, `stale` or `unreadable` |
+| `morning-scans` (live) | `sentiment` | `macro.json` and `em_news.json` for the brief; every scan file as a document for the other readers | the same four statuses; a file that cannot be parsed has no payload |
+| `strategy-scores` (live) | `strategy` | `memory/bars`, the research rows and the lab record | `status: unavailable` with the reason |
 
 The shape is the same for every family:
 
@@ -239,10 +242,31 @@ beside the reading. `brief_preflight` keeps its two function names, calls the
 service, and prints the line and appends the issue it always did.
 
 A reading older than `stale_after_hours` (36) is not served; the age is the
-payload's own `generated_at`, never the file's mtime. `macro.json` and
-`em_news.json` are read by `brief_preflight` as before and are not rows.
-`evidence/intraday_information.py`, `evidence/news_evidence_graph.py` and the
-dashboard read `sentiment.json` directly for other purposes and are unchanged.
+payload's own `generated_at`, never the file's mtime.
+
+### Scan files
+
+Six files are left by scheduled jobs and read by production paths: macro,
+Eastmoney news, the attention scan, the statement radar, the US news digest
+and the news evidence graph. The `morning-scans` row is the one read of them.
+`scans.path(workspace, name)` is where each lives, and `scans.document(path)`
+answers `ok` with the object, `missing`, or `unreadable` with the reason. A
+file that cannot be parsed has no payload.
+
+Before this row each reader decided for itself, and they disagreed: the
+brief's macro loader reported whatever exception it ran into, the intraday
+lane said `unreadable`, and the evidence graph recorded any file that existed
+as `loaded`. They now give the same answer about the same file.
+
+Freshness stays with the reader, because the readers differ on purpose. The
+brief refuses a scan older than `stale_after_hours`; `scans.macro()` and
+`scans.em_news()` apply that rule and do the brief's trimming. The intraday
+lane judges each source against the session's open and reads documents only.
+
+Not rows: the producers themselves (`market_data/sentiment.py`,
+`market_data/macro.py`, `automation/influencer.py` and the others), which are
+scheduled jobs, and `harness/_harness_common.GHA_DATA_FILES`, which is a list
+of git paths to sync and not a read.
 
 ### Recorded outputs
 

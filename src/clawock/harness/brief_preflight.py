@@ -82,7 +82,6 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 from clawock.automation import workflow_outcomes  # noqa: E402
-from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.instruments import get as get_instrument  # noqa: E402
 from clawock.instruments import is_leveraged_holding  # noqa: E402
 from clawock.instruments import compute_lookthrough_exposure  # noqa: E402
@@ -935,39 +934,25 @@ def load_em_news(issues):
 
     Widens the brief's information inputs where clawock is thinnest: HK-holding
     Chinese news + market 7x24 快讯. Catalyst-grade (dated, company-specific), so
-    it feeds the catalyst-gate. Stale/missing → {} (warn-only, never blocks)."""
-    path = WS / 'assets' / 'data' / 'em_news.json'
-    if not path.exists():
+    it feeds the catalyst-gate. Stale/missing → {} (warn-only, never blocks).
+    The read, the staleness rule and the trim are the `scans` service's."""
+    answer = live_plugins.service('scans').em_news(WS)
+    status, detail = answer['status'], answer['detail']
+    if status == 'missing':
         issues.append('em_news.json 缺失 — clawock em-news 未跑(中文消息源)')
-        return {}
-    try:
-        d = json.loads(path.read_text())
-        age = _payload_age_hours(d)
-        if _is_stale(age, 36):
-            # Same gate as macro / sentiment / influencer (#2081): a sidecar the
-            # fetch did not refresh must not reach the model as today's news.
-            # Omitted, not an issue — see the macro note in the sentiment loader.
-            print(f'   ⚠ em_news stale/unknown ({_age_str(age)}) '
-                  f'— omitting from brief (non-fatal)')
-            return {}
-        hold = {tk: {'name': v.get('name'),
-                     'items': [{'date': i.get('date'), 'title': i.get('title')}
-                               for i in (v.get('items') or [])[:3]]}
-                for tk, v in (d.get('holdings_news') or {}).items()}
-        mkt = [{'date': i.get('date'), 'title': i.get('title')}
-               for i in (d.get('market_724') or [])[:5]]
-        out = {'holdings_news': hold, 'market_724': mkt,
-               'generated_at': d.get('generated_at'),
-               'age_hours': round(age, 1) if age is not None else None}
-        if d.get('degraded'):
-            # Which sources did not answer — for the model to say the layer is
-            # thin today, not a preflight issue (same doctrine as live sources).
-            out['degraded'] = list(d['degraded'])[:8]
-            print(f"   ⚠ em_news: {len(d['degraded'])} 个中文消息源未取到")
-        return out
-    except Exception as e:
-        issues.append(f'em_news.json 解析失败: {e}')
-        return {}
+    elif status == 'stale':
+        # Same gate as macro / sentiment / influencer (#2081): a sidecar the
+        # fetch did not refresh must not reach the model as today's news.
+        # Omitted, not an issue — see the macro note in the sentiment loader.
+        print(f"   ⚠ em_news stale/unknown ({_age_str(answer['age_hours'])}) "
+              f'— omitting from brief (non-fatal)')
+    elif status == 'unreadable':
+        issues.append(f"em_news.json 解析失败: {detail['message']}")
+    elif answer['reading'].get('degraded'):
+        # Which sources did not answer — for the model to say the layer is
+        # thin today, not a preflight issue (same doctrine as live sources).
+        print(f"   ⚠ em_news: {len(answer['reading']['degraded'])} 个中文消息源未取到")
+    return answer['reading']
 
 
 def _payload_age_hours(payload):
@@ -1017,58 +1002,30 @@ def load_macro_and_sentiment(today, issues):
 
     Returns: (macro_trim, sentiment_trim) — either may be {} on miss.
     """
-    macro_path = WS / 'assets' / 'data' / 'macro.json'
     sent_path  = WS / 'assets' / 'data' / 'sentiment.json'
     stale_cutoff_h = 36
 
-    macro_trim = {}
-    try:
-        if not macro_path.exists():
-            print('   ⚠ macro.json missing — sentiment-scan never ran')
-            issues.append('macro snapshot missing')
-        else:
-            m = json.loads(macro_path.read_text())
-            age = _payload_age_hours(m)
-            if _is_stale(age, stale_cutoff_h):
-                # OMIT stale/unknown-age data — do NOT feed it as fresh, and do NOT
-                # append to `issues` (main() returns exit 1 on any issue, which
-                # under the fallback workflow's pipefail would hard-fail the entire
-                # brief — a worse outage than a missing macro section). The brief
-                # runs without macro; downstream postflight sees no macro context.
-                print(f'   ⚠ macro stale/unknown ({_age_str(age)}, cutoff '
-                      f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
-            else:
-                def _q(k):
-                    v = m.get(k)
-                    if not v: return None
-                    row = {'price': v.get('price'), 'change_pct': v.get('change_pct'),
-                           'source': v.get('source')}
-                    # A row without a day change is some session's close, not
-                    # this morning's print: say which (#2347).
-                    if v.get('change_pct') is None and isinstance(v.get('as_of'), str):
-                        row['session'] = v['as_of']
-                    return row
-                macro_trim = {
-                    'as_of':        m.get('generated_at'),
-                    'age_hours':    round(age, 1),
-                    'vix':          _q('vix'),
-                    'dxy':          _q('dxy'),
-                    'treasury_10y_yield_pct': (m.get('treasury_10y') or {}).get('yield_pct'),
-                    'fear_greed':   m.get('fear_greed'),
-                    'hsi':          _q('hsi'),
-                    'hstech':       _q('hstech'),
-                    'spx':          _q('spx'),
-                    'nasdaq':       _q('nasdaq'),
-                    'fed_press':    (m.get('fed_press') or [])[:3],
-                }
-                macro_trim['regime'] = _classify_regime(macro_trim)  # risk_on/neutral/risk_off
-                fg = macro_trim['fear_greed'] or {}
-                print(f'   macro: VIX {(macro_trim["vix"] or {}).get("price","?")}, '
-                      f'F&G {fg.get("score","?")} ({fg.get("rating","?")}), '
-                      f'fed_press {len(macro_trim["fed_press"])}')
-    except Exception as e:
-        print(f'   ⚠ macro load failed: {e}')
-        issues.append(f'macro load exception: {type(e).__name__}')
+    answer = live_plugins.service('scans').macro(WS)
+    status, detail, macro_trim = answer['status'], answer['detail'], answer['reading']
+    if status == 'missing':
+        print('   ⚠ macro.json missing — sentiment-scan never ran')
+        issues.append('macro snapshot missing')
+    elif status == 'stale':
+        # OMIT stale/unknown-age data — do NOT feed it as fresh, and do NOT
+        # append to `issues` (main() returns exit 1 on any issue, which
+        # under the fallback workflow's pipefail would hard-fail the entire
+        # brief — a worse outage than a missing macro section). The brief
+        # runs without macro; downstream postflight sees no macro context.
+        print(f"   ⚠ macro stale/unknown ({_age_str(answer['age_hours'])}, cutoff "
+              f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
+    elif status == 'unreadable':
+        print(f"   ⚠ macro load failed: {detail['message']}")
+        issues.append(f"macro load exception: {detail['error']}")
+    else:
+        fg = macro_trim['fear_greed'] or {}
+        print(f'   macro: VIX {(macro_trim["vix"] or {}).get("price","?")}, '
+              f'F&G {fg.get("score","?")} ({fg.get("rating","?")}), '
+              f'fed_press {len(macro_trim["fed_press"])}')
 
     sentiment_trim = _sentiment_reading(sent_path, stale_cutoff_h, issues)
 

@@ -4914,8 +4914,9 @@ def build_projection(previous_source=None, shadow_previous=None):
     # never break the build if the file or harness module is unavailable.
     out['regime'] = None
     try:
-        _macro_path = WS_ROOT / 'assets' / 'data' / 'macro.json'
-        _macro = json.loads(_macro_path.read_text()) if _macro_path.exists() else None
+        from clawock.plugin_host import live as live_plugins
+        _scans = live_plugins.service('scans')
+        _macro = _scans.document(_scans.path(WS_ROOT, 'macro'))['payload']
         if _macro:
             from clawock.market_data.macro import classify_regime
             out['regime'] = classify_regime(_macro)
