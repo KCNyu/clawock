@@ -121,7 +121,9 @@
       _chartBox.set(el, { width, height });
       stale.push(chart);
     });
-    stale.forEach(chart => { try { chart.resize(); } catch (error) {} });
+    // A chart whose labels were placed in pixels places them again for the
+    // new box: after a rotation the free sides are different ones.
+    stale.forEach(chart => { try { chart.resize(); if (chart.__relabel) chart.__relabel(); } catch (error) {} });
   }
   // Shadow is deliberately collapsed on every load, on both desktop and mobile.
   // Do not initialize ECharts while its body is hidden: that creates 0-width
@@ -1002,7 +1004,8 @@
       value: v,
       itemStyle: { color: v == null ? accent : (v >= 0 ? green : red), opacity: 0.85 },
     }));
-    const axisMoney = v => cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v);
+    const axisMoney = v => (v < 0 ? "-" : "") + cur +
+      (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1) + "k" : Math.abs(v));
     const tipMoney = v => cur + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
     const isMobile = window.innerWidth < 1024;
@@ -1043,6 +1046,10 @@
         }),
         chartAxis({
           type: "value", name: `累计 ${cur}`, position: "right",
+          // A level, not a flow: it has no reason to start at zero, and an axis
+          // pinned there leaves the line against one edge. The range is what is
+          // in view plus a margin on each side.
+          scale: true, boundaryGap: ["8%", "8%"],
           splitLine: { show: false },
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: axisMoney },
         }),
@@ -1211,9 +1218,12 @@
   // Small positions pile up in one corner and their names land on each other,
   // on a neighbour's bubble, or on the axis figures. The trimmed ECharts bundle
   // carries no label layout, so each name takes the first side of its bubble
-  // that is still free — largest position first — and one with no free side is
-  // left to the tooltip.
+  // that is still free — largest position first — stepping one and then two
+  // label heights out when the near sides are taken. A name with no free place
+  // at all is written in the line under the chart, so every position is named
+  // without a tap.
   function placeBubbleLabels(chart, data, sizeOf) {
+    const note = document.getElementById("wc-unlabelled");
     if (typeof chart.convertToPixel !== "function" || !data.length) return;
     const at = value => chart.convertToPixel({ seriesIndex: 0 }, [value[0], value[1]]);
     const origin = at([0, data[0].value[1]]);
@@ -1226,25 +1236,34 @@
       const dx = Math.max(box.x0 - b.x, 0, b.x - box.x1), dy = Math.max(box.y0 - b.y, 0, b.y - box.y1);
       return dx * dx + dy * dy < b.r * b.r;
     };
-    const gap = 4, height = 12;
+    const height = 12, maxY = chart.getHeight() - 2, unnamed = [];
     bubbles.slice().sort((a, b) => b.r - a.r).forEach(b => {
       const width = String(b.d.name).length * 6.4 + 2;
-      const sides = {
-        bottom: { x0: b.x - width / 2, y0: b.y + b.r + gap },
-        right: { x0: b.x + b.r + gap, y0: b.y - height / 2 },
-        top: { x0: b.x - width / 2, y0: b.y - b.r - gap - height },
-        left: { x0: b.x - b.r - gap - width, y0: b.y - height / 2 },
-      };
-      const side = Object.keys(sides).find(name => {
-        const box = sides[name];
-        box.x1 = box.x0 + width; box.y1 = box.y0 + height;
-        return box.x0 >= minX && box.x1 <= maxX && !taken.some(t => hits(box, t)) &&
-          !bubbles.some(other => other !== b && onBubble(box, other));
-      });
-      if (side) taken.push(sides[side]);
-      b.d.label = side ? { position: side } : { show: false };
+      let placed = null;
+      for (const gap of [4, 4 + height + 2, 4 + 2 * (height + 2)]) {
+        const sides = {
+          bottom: { x0: b.x - width / 2, y0: b.y + b.r + gap },
+          right: { x0: b.x + b.r + gap, y0: b.y - height / 2 },
+          top: { x0: b.x - width / 2, y0: b.y - b.r - gap - height },
+          left: { x0: b.x - b.r - gap - width, y0: b.y - height / 2 },
+        };
+        const side = Object.keys(sides).find(name => {
+          const box = sides[name];
+          box.x1 = box.x0 + width; box.y1 = box.y0 + height;
+          return box.x0 >= minX && box.x1 <= maxX && box.y0 >= 2 && box.y1 <= maxY &&
+            !taken.some(t => hits(box, t)) && !bubbles.some(other => other !== b && onBubble(box, other));
+        });
+        if (side) { placed = { position: side, distance: gap }; taken.push(sides[side]); break; }
+      }
+      if (!placed) unnamed.push(b.d);
+      b.d.label = placed || { show: false };
     });
     chart.setOption({ series: [{ data }] });
+    if (note) {
+      note.hidden = !unnamed.length;
+      note.textContent = unnamed.length ? "图上放不下名字的：" + unnamed.map(d =>
+        `${d.name}（${String(d._region || "").toUpperCase()} ${d.value[0]}%${d._quad === "no_data" ? "，无信心读数" : `，信心 ${Math.round(d.value[1])}%`}）`).join("、") : "";
+    }
   }
 
   function renderWeightConfidence() {
@@ -1351,5 +1370,6 @@
       }];
     }
     charts.weightConf.setOption(opt, true);
-    placeBubbleLabels(charts.weightConf, opt.series[0].data, bubbleSize);
+    charts.weightConf.__relabel = () => placeBubbleLabels(charts.weightConf, opt.series[0].data, bubbleSize);
+    charts.weightConf.__relabel();
   }
