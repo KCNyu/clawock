@@ -1793,10 +1793,17 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
     await page.waitForSelector("#today-movers .hl-movers", { timeout: 5000 });
-
-    const fill = await page.evaluate(() => {
+    // The top card's contents arrive from 6px low (`.deck-enter`, 450ms). This
+    // measures where they come to rest: sampled inside that window it reads
+    // the entrance offset as overflow (-6px), and whether it lands inside is
+    // decided by how long the first frame took, not by the layout. Waiting and
+    // measuring are one evaluation, so a repaint that restarts the entrance
+    // cannot slip in between them.
+    const fill = await (await page.waitForFunction(() => {
+      if (document.querySelector(".verdict-deck .deck-card.deck-enter")) return null;
       const card = document.querySelector(".verdict-deck .deck-card");
       const movers = document.querySelector("#today-movers .hl-movers");
+      if (!card || !movers) return null;
       const bars = document.querySelectorAll("#today-movers .hl-mv-bar i");
       const cs = getComputedStyle(card);
       const inner = card.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
@@ -1806,7 +1813,7 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
         bars: bars.length,
         widest: Math.max(0, ...[...bars].map(b => b.getBoundingClientRect().width)),
       };
-    });
+    })).jsonValue();
     // 反空转：没有柱就谈不上「柱区吃满」，这条断言必须有东西可量。
     assert(fill.bars > 0, `no mover bars rendered at ${width}px`);
     assert(fill.widest > 1, `mover bars have no width at ${width}px`);
