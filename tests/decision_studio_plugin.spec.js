@@ -23,6 +23,11 @@ const test = require("node:test");
 
 const PLUGIN = path.join(__dirname, "..", "examples", "dsh", "packages", "clawock-dsh");
 
+// The balance reader keeps each provider's last good reading under this directory so another
+// process can fall back on it. Tests must neither read this machine's readings nor leave theirs.
+process.env.CLAWOCK_DSH_STATE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-state-"));
+process.on("exit", () => fs.rmSync(process.env.CLAWOCK_DSH_STATE_DIR, { recursive: true, force: true }));
+
 // No `document` global here on purpose: the bundle must load with no DOM at
 // all (#729 — nothing may touch `document` at module scope). The CSS-contract
 // test below installs a scoped stub for the one assertion that needs the tag.
@@ -2595,6 +2600,96 @@ test("balance: every face asking at once is one upstream request, and another on
   } finally {
     globalThis.fetch = originalFetch;
     Date.now = realNow;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("balance: a process that never read anything falls back on the last reading another one left", async () => {
+  // dsh and the OpenClaw gateway restart; Claude's access token ages out when nobody runs claude
+  // overnight. The first read after both used to be a bare dash: the last good reading lived only
+  // in the memory of the process that took it, and since the rail stopped polling (#2882) a
+  // process can go hours without taking one.
+  const { createClaudeService, readLastGood } = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-lastgood-"));
+  const credsPath = path.join(tmp, "creds.json");
+  const login = (expiresAt) => fs.writeFileSync(credsPath,
+    JSON.stringify({ claudeAiOauth: { accessToken: "t", refreshToken: "r", expiresAt } }));
+  const config = { claudeCredentialsPath: credsPath, minimaxOpenclawConfigPath: path.join(tmp, "none.json"),
+    minimaxKeyRef: "LASTGOOD_NO_KEY", codexCommand: path.join(tmp, "no-codex") };
+  const credentials = { resolve: async () => undefined };
+  // The file both hosts' reader (desk.ts) gives the Claude service; a new service is a new process.
+  const kept = path.join(process.env.CLAWOCK_DSH_STATE_DIR, "balance-claude.json");
+  const processOf = () => createClaudeService({ credentials }, { credentialsPath: credsPath, lastGoodPath: kept });
+  const originalFetch = globalThis.fetch;
+  const realNow = Date.now;
+  const savedKey = process.env.DEEPSEEK_API_KEY;
+  delete process.env.DEEPSEEK_API_KEY;
+  let used = 36;
+  let upstream = 0;
+  globalThis.fetch = async () => {
+    upstream += 1;
+    return new Response(JSON.stringify({ five_hour: { utilization: used, resets_at: null }, seven_day: { utilization: 69, resets_at: null } }),
+      { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    fs.rmSync(kept, { force: true });
+    login(realNow() + 3600000);
+    // One process reads while the token is good.
+    const first = processOf();
+    assert.equal((await first.get(true)).status, "fresh");
+    assert.equal(readLastGood(kept).totalBalance, "36");
+    assert.doesNotMatch(fs.readFileSync(kept, "utf8"), /"t"|accessToken/, "the kept reading carries no credential");
+
+    // Hours later the token has aged out and a NEW process is asked first.
+    const later = realNow() + 9 * 3600000;
+    Date.now = () => later;
+    login(later - 1000);
+    const restarted = await processOf().get(false);
+    assert.equal(restarted.status, "stale", "the last reading is shown, marked stale");
+    assert.equal(restarted.snapshot.totalBalance, "36");
+    assert.match(restarted.message, /访问令牌到期/);
+    assert.equal(upstream, 1, "an aged-out token is not sent upstream");
+    // Without the kept reading the same read has nothing to show (the service's own behaviour).
+    const bare = await createClaudeService({ credentials }, { credentialsPath: credsPath }).get(false);
+    assert.equal(bare.status, "failed");
+    assert.equal(bare.snapshot, null);
+
+    // The OpenClaw command is a third process; its reply carries the number and says whose it is.
+    let command = null;
+    chat.default({
+      pluginConfig: { ...config, dispatchLogDir: path.join(tmp, "no-dispatch"), patrolStateDir: path.join(tmp, "no-patrol"),
+        dispatchLimitsPath: path.join(tmp, "limits.env"), taskQueueOpsPath: path.join(tmp, "ops.py") },
+      registerCommand: (registered) => { command = registered; },
+    });
+    const reply = (await command.handler({ args: "", config: { agents: { defaults: { workspace: tmp } } } })).text;
+    assert.match(reply, /36%/);
+    assert.match(reply, /刷新失败（.*访问令牌到期.*），显示 .* 的读数/);
+
+    // A long-lived process prefers a newer reading another process took over its own older one,
+    // and that reading is inside the TTL, so it is not fetched again. (Real clock from here: a
+    // reading is stamped with `new Date()`, and the two must be told apart.)
+    Date.now = realNow;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    login(realNow() + 3600000);
+    used = 52;
+    assert.equal((await processOf().get(true)).snapshot.totalBalance, "52");
+    const seen = upstream;
+    const adopted = await first.get(false);
+    assert.equal(adopted.snapshot.totalBalance, "52");
+    assert.equal(adopted.status, "cached");
+    assert.equal(upstream, seen);
+
+    // A file that is not a reading is ignored, not shown.
+    fs.writeFileSync(kept, JSON.stringify({ snapshot: { totalBalance: "99" } }));
+    assert.equal(readLastGood(kept), null);
+    login(realNow() - 1000);
+    assert.equal((await processOf().get(false)).status, "failed");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = realNow;
+    if (savedKey !== undefined) process.env.DEEPSEEK_API_KEY = savedKey;
+    fs.rmSync(kept, { force: true });
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });

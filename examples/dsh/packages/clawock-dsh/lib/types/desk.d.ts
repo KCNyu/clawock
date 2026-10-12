@@ -70,7 +70,7 @@ export declare const BALANCE_PROVIDERS: readonly {
     label: string;
     create(deps: {
         credentials: BalanceCredentials;
-    }, config: ClawockStudioConfig): BalanceService;
+    }, config: ClawockStudioConfig, lastGoodPath: string): BalanceService;
 }[];
 /** Every provider's balance, read together (each service keeps its own cache and TTL). */
 export type BalanceReader = {

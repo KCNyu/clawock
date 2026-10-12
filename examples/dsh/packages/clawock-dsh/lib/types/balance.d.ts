@@ -26,6 +26,11 @@
  * snapshot and reports 'stale' instead of dropping a real number for a
  * transient 429. Keys are never logged, shipped, or stored anywhere here.
  *
+ * A host may also give a service a `lastGoodPath`: the last good snapshot is
+ * then kept in that file as well, so a process that has not read anything yet
+ * (a restarted gateway, the OpenClaw command's own process) still has a
+ * reading to fall back on when its first read fails.
+ *
  * All error reporting is in-band: `get()` never throws — statuses
  * 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
  * verbatim.
@@ -73,6 +78,8 @@ export interface BalanceConfig {
     threshold?: number;
     /** Suggested client poll interval in ms. */
     refreshMs?: number;
+    /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+    lastGoodPath?: string;
 }
 export interface MinimaxConfig {
     /** Upstream base; the service appends /v1/token_plan/remains. */
@@ -91,6 +98,8 @@ export interface MinimaxConfig {
      * unset — kcn keeps provider keys at models.providers.<name>.apiKey there.
      */
     openclawConfigPath?: string;
+    /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+    lastGoodPath?: string;
 }
 export interface ClaudeConfig {
     /** Claude Code's OAuth credentials file (claudeAiOauth.accessToken). */
@@ -99,6 +108,8 @@ export interface ClaudeConfig {
     usageUrl?: string;
     /** Red dot watermark in REMAINING terms (default 20, i.e. ≥80% used). */
     lowPct?: number;
+    /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+    lastGoodPath?: string;
 }
 export interface CodexConfig {
     /** Codex CLI executable that owns ChatGPT auth and the app-server protocol. */
@@ -107,6 +118,8 @@ export interface CodexConfig {
     lowPct?: number;
     /** Codex app-server polling cadence; slower than HTTP-only providers by default. */
     refreshMs?: number;
+    /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+    lastGoodPath?: string;
 }
 /**
  * The credentials seam reference the official DeepSeek adapter resolves.
@@ -229,6 +242,8 @@ export type BalanceService = {
 };
 /** Tolerant JSON file read: missing/unreadable/invalid all yield undefined. */
 export declare function readJsonFile(path: string): Record<string, unknown> | undefined;
+/** The last good snapshot a process left at `path`; null when there is none or it is not one. */
+export declare function readLastGood(path: string): BalanceSnapshot | null;
 /** DeepSeek row: official money balance, CNY entry preferred. */
 export declare function createBalanceService(deps: {
     credentials: BalanceCredentials;

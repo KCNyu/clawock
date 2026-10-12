@@ -26,13 +26,18 @@
  * snapshot and reports 'stale' instead of dropping a real number for a
  * transient 429. Keys are never logged, shipped, or stored anywhere here.
  *
+ * A host may also give a service a `lastGoodPath`: the last good snapshot is
+ * then kept in that file as well, so a process that has not read anything yet
+ * (a restarted gateway, the OpenClaw command's own process) still has a
+ * reading to fall back on when its first read fails.
+ *
  * All error reporting is in-band: `get()` never throws — statuses
  * 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
  * verbatim.
  */
 
-import { delimiter, join } from 'node:path'
-import { existsSync, readFileSync } from 'node:fs'
+import { delimiter, dirname, join } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { spawn } from 'node:child_process'
 import type { BalanceResult, BalanceSnapshot, BalanceWindow } from './types.ts'
@@ -86,6 +91,8 @@ export interface BalanceConfig {
   threshold?: number
   /** Suggested client poll interval in ms. */
   refreshMs?: number
+  /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+  lastGoodPath?: string
 }
 
 export interface MinimaxConfig {
@@ -105,6 +112,8 @@ export interface MinimaxConfig {
    * unset — kcn keeps provider keys at models.providers.<name>.apiKey there.
    */
   openclawConfigPath?: string
+  /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+  lastGoodPath?: string
 }
 
 export interface ClaudeConfig {
@@ -114,6 +123,8 @@ export interface ClaudeConfig {
   usageUrl?: string
   /** Red dot watermark in REMAINING terms (default 20, i.e. ≥80% used). */
   lowPct?: number
+  /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+  lastGoodPath?: string
 }
 
 export interface CodexConfig {
@@ -123,6 +134,8 @@ export interface CodexConfig {
   lowPct?: number
   /** Codex app-server polling cadence; slower than HTTP-only providers by default. */
   refreshMs?: number
+  /** File that keeps the last good snapshot across processes; unset keeps it in memory only. */
+  lastGoodPath?: string
 }
 
 /**
@@ -502,6 +515,13 @@ interface QuotaServiceSpec {
   fetchFresh(apiKey: string): Promise<BalanceSnapshot>
   /** The low reading in the snapshot's own unit (money amount / percent). */
   isLow(snapshot: BalanceSnapshot): boolean
+  /**
+   * Where the last good snapshot is also kept on disk. The in-memory one dies
+   * with its process: after a gateway restart, or in a process that reads only
+   * when asked, a first read that fails (Claude's access token aged out
+   * overnight) had nothing to fall back on and the row lost its number.
+   */
+  lastGoodPath?: string
 }
 
 export type BalanceService = { get(force: boolean): Promise<BalanceResult> }
@@ -547,6 +567,26 @@ function readOpenclawProviderKey(configPath: string, provider: string): string |
   const entry = list[provider] ?? {}
   const key = entry.apiKey
   return typeof key === 'string' && key !== '' ? key : undefined
+}
+
+/** The last good snapshot a process left at `path`; null when there is none or it is not one. */
+export function readLastGood(path: string): BalanceSnapshot | null {
+  const raw = readJsonFile(path)?.snapshot as Partial<BalanceSnapshot> | null | undefined
+  if (typeof raw !== 'object' || raw === null) return null
+  const strings = [raw.unit, raw.currency, raw.totalBalance, raw.grantedBalance, raw.toppedUpBalance, raw.asOf, raw.note]
+  if (typeof raw.isAvailable !== 'boolean' || strings.some((value) => typeof value !== 'string')) return null
+  if (!Array.isArray(raw.windows) || isNaN(Date.parse(raw.asOf as string))) return null
+  return raw as BalanceSnapshot
+}
+
+/** Written by rename: the dsh gateway and the OpenClaw gateway share the file and must never read half of it. */
+function writeLastGood(path: string, snapshot: BalanceSnapshot): void {
+  try {
+    mkdirSync(dirname(path), { recursive: true })
+    const tmp = `${path}.${process.pid}.tmp`
+    writeFileSync(tmp, JSON.stringify({ snapshot }), { mode: 0o600 })
+    renameSync(tmp, path)
+  } catch { /* an unwritable state dir must not fail a read that succeeded */ }
 }
 
 const numberOr = (value: number | undefined, fallback: number): number =>
@@ -600,11 +640,27 @@ function createQuotaService(
     refreshMs: spec.refreshMs,
   })
 
+  // Take the reading on disk when it is newer than the one in memory (none at all in a new
+  // process). Another process's success counts as this one's: same TTL, and it clears the mark
+  // a failed refresh left here.
+  const recall = (): void => {
+    if (spec.lastGoodPath === undefined) return
+    const kept = readLastGood(spec.lastGoodPath)
+    if (kept === null) return
+    const at = Date.parse(kept.asOf)
+    // A stamp ahead of this clock would hold the TTL open; a reading cannot be from the future.
+    if (at > Date.now() || (snapshot !== null && at <= fetchedAt)) return
+    snapshot = kept
+    fetchedAt = at
+    lastError = null
+  }
+
   const run = async (apiKey: string): Promise<BalanceResult> => {
     try {
       snapshot = await spec.fetchFresh(apiKey)
       fetchedAt = Date.now()
       lastError = null
+      if (spec.lastGoodPath !== undefined) writeLastGood(spec.lastGoodPath, snapshot)
       return answer('fresh', null)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
@@ -614,6 +670,7 @@ function createQuotaService(
   }
 
   const exec = async (force: boolean): Promise<BalanceResult> => {
+    recall()
     let apiKey: string | undefined
     try {
       apiKey = await spec.resolveApiKey(deps)
@@ -693,6 +750,7 @@ export function createBalanceService(
     noKeyMessage: '未配置 DeepSeek API Key(设置 → 模型 → DeepSeek)',
     threshold,
     refreshMs: numberOr(config.refreshMs, DEFAULT_BALANCE_REFRESH_MS),
+    lastGoodPath: config.lastGoodPath,
     async fetchFresh(apiKey) {
       const body = await fetchJson(`${baseUrl}/user/balance`, { authorization: `Bearer ${apiKey}` }, '余额', {
         401: 'API Key 无效或已过期',
@@ -732,6 +790,7 @@ export function createMinimaxService(
     noKeyMessage: '未配置 MiniMax API Key(凭据缝 / 环境变量 / openclaw 配置均无)',
     threshold: lowPct,
     refreshMs: DEFAULT_BALANCE_REFRESH_MS,
+    lastGoodPath: config.lastGoodPath,
     async fetchFresh(apiKey) {
       const body = await fetchJson(`${baseUrl}/v1/token_plan/remains`, { authorization: `Bearer ${apiKey}` }, 'MiniMax')
       // A HTTP-200 body can still be a business failure (auth=1004); the
@@ -854,6 +913,7 @@ export function createCodexService(
     threshold: lowPct,
     refreshMs,
     ttlMs: refreshMs,
+    lastGoodPath: config.lastGoodPath,
     async fetchFresh(executable) {
       return parseCodexRateLimits(await readCodexRateLimits(executable), new Date().toISOString())
     },
@@ -912,6 +972,7 @@ export function createClaudeService(
     noKeyMessage: '未找到 Claude 登录(~/.claude/.credentials.json)',
     threshold: lowPct,
     refreshMs: DEFAULT_BALANCE_REFRESH_MS,
+    lastGoodPath: config.lastGoodPath,
     async fetchFresh() {
       const entry = readClaudeCredentials(credentialsPath)
       if (entry === undefined) throw new Error('Claude 登录文件不存在或已损坏')

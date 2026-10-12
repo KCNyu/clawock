@@ -5,6 +5,7 @@
  * OpenClaw `/dispatch-list` command (chat.ts) reads the same services in
  * its own process. Neither host builds its own list of providers or paths.
  */
+import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type { BalancesResult } from './types.ts'
 import {
@@ -85,19 +86,20 @@ export interface ClawockStudioConfig {
 export const BALANCE_PROVIDERS: readonly {
   id: string
   label: string
-  create(deps: { credentials: BalanceCredentials }, config: ClawockStudioConfig): BalanceService
+  create(deps: { credentials: BalanceCredentials }, config: ClawockStudioConfig, lastGoodPath: string): BalanceService
 }[] = [
   {
     id: 'deepseek',
     label: 'DeepSeek',
-    create: (deps, config) => createBalanceService(deps, {
-      baseUrl: config.balanceBaseUrl, threshold: config.balanceThreshold, refreshMs: config.balanceRefreshMs,
+    create: (deps, config, lastGoodPath) => createBalanceService(deps, {
+      baseUrl: config.balanceBaseUrl, threshold: config.balanceThreshold, refreshMs: config.balanceRefreshMs, lastGoodPath,
     }),
   },
   {
     id: 'minimax',
     label: 'MiniMax',
-    create: (deps, config) => createMinimaxService(deps, {
+    create: (deps, config, lastGoodPath) => createMinimaxService(deps, {
+      lastGoodPath,
       baseUrl: config.minimaxBaseUrl,
       keyRef: config.minimaxKeyRef,
       lowPct: config.minimaxLowPct,
@@ -107,24 +109,34 @@ export const BALANCE_PROVIDERS: readonly {
   {
     id: 'claude',
     label: 'Claude',
-    create: (deps, config) => createClaudeService(deps, {
-      credentialsPath: config.claudeCredentialsPath, usageUrl: config.claudeUsageUrl, lowPct: config.claudeLowPct,
+    create: (deps, config, lastGoodPath) => createClaudeService(deps, {
+      credentialsPath: config.claudeCredentialsPath, usageUrl: config.claudeUsageUrl, lowPct: config.claudeLowPct, lastGoodPath,
     }),
   },
   {
     id: 'codex',
     label: 'Codex',
-    create: (deps, config) => createCodexService(deps, {
-      command: config.codexCommand, lowPct: config.codexLowPct, refreshMs: config.codexRefreshMs,
+    create: (deps, config, lastGoodPath) => createCodexService(deps, {
+      command: config.codexCommand, lowPct: config.codexLowPct, refreshMs: config.codexRefreshMs, lastGoodPath,
     }),
   },
 ]
+
+/**
+ * Where each provider's last good reading is kept between processes (one file per provider,
+ * no secrets in it). Both hosts of the panel resolve the same directory, so the OpenClaw
+ * command falls back on what the dsh gateway last read and the other way round.
+ * `CLAWOCK_DSH_STATE_DIR` moves it (the spec points it at a temp dir).
+ */
+const balanceStateDir = (): string =>
+  process.env.CLAWOCK_DSH_STATE_DIR || join(homedir(), '.cache', 'clawock-dsh')
 
 /** Every provider's balance, read together (each service keeps its own cache and TTL). */
 export type BalanceReader = { get(force: boolean): Promise<BalancesResult> }
 
 export function createBalanceReader(credentials: BalanceCredentials, config: ClawockStudioConfig): BalanceReader {
-  const services = BALANCE_PROVIDERS.map((provider) => provider.create({ credentials }, config))
+  const dir = balanceStateDir()
+  const services = BALANCE_PROVIDERS.map((provider) => provider.create({ credentials }, config, join(dir, `balance-${provider.id}.json`)))
   return {
     async get(force) {
       const results = await Promise.all(services.map((service) => service.get(force)))

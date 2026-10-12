@@ -1,7 +1,7 @@
 import { n as taskQueueConfig, t as createBalanceReader } from "./desk.js";
 import { createTaskQueueService } from "./taskqueue.js";
-import { join } from "node:path";
 import { homedir } from "node:os";
+import { join } from "node:path";
 //#region src/copy.ts
 /**
 * This plugin's copy, in the locales the browser client ships (`zh`, `en` —
