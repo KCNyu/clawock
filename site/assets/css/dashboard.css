@@ -568,11 +568,13 @@
     to { transform: translateX(100%); }
   }
   /* ④ 换视图。桌面上点 tab 是整块内容原地换掉 —— 没有任何东西告诉眼睛
-     「这是另一页」。新视图的各块依次淡入并上移一个 --enter-shift，一拍 40ms，
-     最多八拍。手机不放：那里换视图是手指推着整页横滑，位移已经是真的。
+     「这是另一页」。新视图的各块依次淡入，一拍 40ms，最多八拍。和首屏
+     落位同一条规矩：只动透明度、不动位置 —— 这些是页面上最大的块，版式
+     从第一帧就在终位（上移 6px 的那一版让判定卡在入场期间量出 -6px 的
+     错位）。手机不放：那里换视图是手指推着整页横滑，位移已经是真的。
      .is-entering 由 dashboard.ui.js 在切换时加、放完即摘。 */
   .panel.is-entering > * {
-    animation: enter-rise var(--duration-enter) var(--ease-out) backwards;
+    animation: enter-fade var(--duration-enter) var(--ease-out) backwards;
   }
   .panel.is-entering > :nth-child(2) { animation-delay: 40ms; }
   .panel.is-entering > :nth-child(3) { animation-delay: 80ms; }

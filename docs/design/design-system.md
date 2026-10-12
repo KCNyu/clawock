@@ -240,7 +240,7 @@ same query. Where the motion carried information, a static form replaces it.
 | First-screen curve | origin — it was walked a day at a time | uncovered left to right over `--duration-draw`, `--ease-standard`, once per page load; never on a refresh | appears |
 | First-screen daily bars and share meters | origin | bars rise from the zero line one after another, meters fill from their left end, `standard`; once per page load | appear |
 | Light crossing the first screen | origin — this surface is a material | one highlight sweeps the command deck, `--duration-draw`, with the curve; once per page load | absent |
-| Changing view (desktop) | no jump — the whole page is replaced in place | the arriving panel's blocks fade in and rise `--enter-shift`, 40ms apart, eight steps at most, `enter` | instant |
+| Changing view (desktop) | no jump — the whole page is replaced in place | the arriving panel's blocks fade in one after another, 40ms apart, eight steps at most, `enter`; opacity only — they are the largest blocks on the page and hold their final position from the first frame | instant |
 | Changing view (phone) | — | the pager slides under the finger; no entrance on top of it | the same |
 | Ambient field | — it is the light the glass is read against | drifts on `transform`, 60s there and back, fine pointers only (on a phone it would make the three frosted surfaces re-blur every frame) | still |
 | Light under the pointer on a card | feedback | a soft patch follows the pointer (`--mx`/`--my`); no transition of its own | the same — it is not animated |

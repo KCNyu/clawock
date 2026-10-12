@@ -51,7 +51,7 @@
   }
 
   // A desktop tab switch swaps the whole view in place; the arriving panel's
-  // blocks fade up in turn (`.panel.is-entering`, dashboard.css ④). Not on the
+  // blocks fade in in turn (`.panel.is-entering`, dashboard.css ④). Not on the
   // phone pager, where the finger already moves the page, and not before the
   // first data: that paint has its own entrance.
   let enteringTimer = 0;
