@@ -47,6 +47,8 @@ DEFAULT_ROWS = (
     {'id': 'signal-panel', 'module': 'clawock.strategy_lab.plugins.signal_panel'},
     {'id': 'sentiment', 'module': 'clawock.strategies.plugins.sentiment',
      'config': {'stale_after_hours': 36}, 'signal_source': True},
+    {'id': 'strategy-scores', 'module': 'clawock.strategy_lab.plugins.strategy_scores',
+     'signal_source': True},
 )
 
 

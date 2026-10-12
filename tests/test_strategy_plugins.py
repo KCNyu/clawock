@@ -17,7 +17,7 @@ from clawock.strategies.plugins import quant_factors, rsi
 from clawock.strategy_lab import boundaries, lab, ledger
 from clawock.plugin_host.kernel import ACTIVE, PENDING, Kernel, KernelError
 from clawock.strategy_lab.plugins import (
-    adjusted_bars, ledger_bars, registered_costs, walkforward)
+    adjusted_bars, ledger_bars, registered_costs, row_edits, walkforward)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -266,7 +266,7 @@ def test_refits_only_use_sessions_whose_forward_return_had_closed():
 
 def test_shipped_rows_mount_with_nothing_left_waiting(tmp_path, capsys):
     kernel = lab.mount(lab.load_rows(ROOT / lab.CONFIG))
-    assert [fiber.missing for fiber in kernel.fibers] == [[], [], [], [], [], []]
+    assert [fiber.missing for fiber in kernel.fibers] == [[]] * 7
     spec = kernel.get('strategies').get('rsi')
     assert spec.params in walkforward.configurations(spec.space)
     kernel.dispose()
@@ -662,7 +662,7 @@ def test_the_ledger_is_read_back_against_the_boundaries(tmp_path, monkeypatch, c
     assert lab.record(_lab(Tape(persistence=0.6, sessions=240))) == 0
     assert boundaries.verify(ledger.load(), ledger.registrations()) == []
     assert lab.main(['verify']) == 0
-    assert '2 ledger rows, 1 registrations: within the boundaries' in capsys.readouterr().out
+    assert '2 ledger rows, 1 registrations, 0 row edits: within the boundaries' in capsys.readouterr().out
     [trial] = ledger.load()[-1]['prospective']
     assert trial['first_session'] == 'd0200' > trial['after_session']
 
@@ -762,3 +762,170 @@ def test_a_candidate_says_whether_it_survives_without_the_single_source_names(
     assert trial['latest'] is None and trial['scored_runs'] == 0
     assert lab.main(['evolution', 'trend']) == 0
     assert 'adjusted names alone' in capsys.readouterr().out
+
+
+# ── the two ends of the chain: a proposed row edit, and a production reader ──
+
+def _paths(tmp_path, monkeypatch):
+    for name in ('ledger', 'registrations', 'row_edits'):
+        monkeypatch.setattr(ledger, f'{name}_path', lambda name=name: tmp_path / f'{name}.jsonl')
+
+
+def _promoting(tape, **thresholds):
+    kernel = _lab(tape)
+    kernel.plugin(row_edits, thresholds)
+    return kernel
+
+
+def test_a_registration_that_keeps_scoring_earns_a_proposed_row_edit_and_nothing_more(
+        tmp_path, monkeypatch, capsys):
+    _paths(tmp_path, monkeypatch)
+    config = ROOT / 'config' / 'strategy-plugins.json'
+    before = config.read_bytes()
+    assert lab.record(_promoting(Tape(persistence=0.6, sessions=200))) == 0
+    [registered] = ledger.registrations()
+    # 34 sessions on: scored, and short of the floor.
+    assert lab.record(_promoting(Tape(persistence=0.6, sessions=240))) == 0
+    assert ledger.row_edits() == []
+    kernel = _promoting(Tape(persistence=0.6, sessions=300))
+    assert lab.record(kernel) == 0
+    [edit] = ledger.row_edits()
+    assert edit['from_params'] == {'lookback': 3, 'sign': -1}
+    assert edit['to_params'] == registered['params'] and edit['after_session'] == 'd0199'
+    assert edit['status'] == 'proposed' and edit['live_permission'] is False
+    assert edit['evidence']['sessions'] == 94 and edit['evidence']['ic_ci95'][0] > 0
+    assert edit['evidence']['first_session'] == 'd0200'
+    assert [item['passed'] for item in edit['checks']] == [True, True, True]
+    assert 'row edit proposed' in capsys.readouterr().out
+    # Proposed is where it ends: the strategy still runs its row, and no row moved.
+    assert kernel.get('strategies').get('trend').params == {'lookback': 3, 'sign': -1}
+    assert config.read_bytes() == before
+    # The same evidence again is not a second proposal.
+    assert lab.record(_promoting(Tape(persistence=0.6, sessions=300))) == 0
+    assert len(ledger.row_edits()) == 1
+    view = lab.evolution('trend', ledger.load(), ledger.registrations(), ledger.row_edits())
+    assert view['row_edits'] == [edit] and view['live_permission'] is False
+    assert lab.main(['row-edits']) == 0 and lab.main(['verify']) == 0
+    out = capsys.readouterr().out
+    assert 'applies by a reviewed edit' in out and '1 row edits: within the boundaries' in out
+
+
+def test_a_candidate_that_rests_on_single_source_names_is_not_proposed():
+    promoter = row_edits.Promoter(boundaries.promotion_thresholds({}))
+    trial = {'params': {'sign': 1}, 'after_session': 'd0199', 'sessions': 94,
+             'first_session': 'd0200', 'last_session': 'd0293', 'mean_ic': .2, 'ic_ci95': [.1, .3]}
+    report = {'strategy': 'trend', 'registered_params': {'sign': -1}, 'prospective': [trial],
+              'coverage_sensitivity': None}
+    assert len(promoter.review(report)) == 1
+    fragile = dict(report, coverage_sensitivity={'verdict_survives': False})
+    assert promoter.review(fragile) == []
+    assert [item['passed'] for item in promoter.judge(fragile, trial)] == [True, True, False]
+    assert promoter.review(dict(report, coverage_sensitivity={'verdict_survives': True}))
+    # The row already runs these parameters: nothing to propose.
+    assert promoter.review(dict(report, registered_params={'sign': 1})) == []
+    for weak in (dict(trial, sessions=59), dict(trial, ic_ci95=[-.01, .3]), dict(trial, ic_ci95=None)):
+        assert promoter.review(dict(report, prospective=[weak])) == []
+
+
+@pytest.mark.parametrize('config, said', [
+    ({'min_prospective_sessions': 20}, 'less than the floor'),
+    ({'prospective_ic_ci95_lower_gt': -0.1}, 'less than the floor'),
+    ({'min_sessions': 80}, 'unknown promotion check'),
+])
+def test_a_row_may_ask_more_of_a_row_edit_and_never_less(config, said):
+    with pytest.raises(ValueError, match=said):
+        Kernel().plugin(row_edits, config)
+    kernel = Kernel()
+    kernel.plugin(row_edits, {'min_prospective_sessions': 120, 'prospective_ic_ci95_lower_gt': .02})
+    assert kernel.get('promoter').describe()['min_prospective_sessions'] == 120
+
+
+@pytest.mark.parametrize('tamper, said', [
+    (_set(['live_permission'], True), 'live_permission is True'),
+    (_set(['status'], 'applied'), 'never applies one'),
+    (_set(['to_params'], {'lookback': 3, 'sign': -1}), 'changes nothing'),
+    (_set(['after_session'], 'd0100'), 'no registration carries'),
+    (_set(['evidence', 'sessions'], 59), 'under the floor'),
+    (_set(['evidence', 'ic_ci95'], [-0.01, 0.2]), 'does not sit above the floor'),
+    (_set(['evidence', 'first_session'], 'd0199'), 'not after the registration'),
+    (_set(['coverage_sensitivity'], {'verdict_survives': False}), 'does not survive'),
+])
+def test_a_row_edit_that_claims_more_than_its_evidence_is_not_written(
+        tamper, said, tmp_path, monkeypatch):
+    _paths(tmp_path, monkeypatch)
+    assert lab.record(_promoting(Tape(persistence=0.6, sessions=200))) == 0
+    report = _promoting(Tape(persistence=0.6, sessions=300)).get('optimizer').run(
+        'trend', registrations=ledger.registrations())
+    [proposal] = row_edits.Promoter(boundaries.promotion_thresholds({})).review(report)
+    assert boundaries.row_edit_violations(proposal, ledger.registrations()) == []
+    tamper(proposal)
+    with pytest.raises(boundaries.BoundaryError, match=said):
+        ledger.propose_row_edit(proposal)
+    assert ledger.row_edits() == []
+    # A stray row in the file is found when it is read back.
+    forged = dict(proposal, proposed_at='x', schema_version=1)
+    assert boundaries.verify([], ledger.registrations(), [forged])
+
+
+def _bar_store(tmp_path, monkeypatch, tape, retired=()):
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    store = tmp_path / 'memory' / 'bars'
+    store.mkdir(parents=True)
+    for ticker in tape.tickers():
+        store.joinpath(f'{ticker}.json').write_text(json.dumps({
+            'retired': ticker in retired,
+            'bars': {row['date']: {'close': row['close']} for row in tape.series(ticker)}}))
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'config' / 'strategy-plugins.json').write_bytes(
+        (ROOT / 'config' / 'strategy-plugins.json').read_bytes())
+
+
+def test_the_live_reader_scores_under_the_registered_row_and_says_where_the_lab_stands(
+        tmp_path, monkeypatch):
+    tape = Tape(persistence=0.6, sessions=40, tickers=8)
+    tape._series['T07'] = tape._series['T07'][:10]          # too short for a 14-session RSI
+    _bar_store(tmp_path, monkeypatch, tape, retired=('T06',))
+    reading = live.service('strategy_scores').read(tmp_path, ['T00', 'T07', 'T06', 'ABSENT'])
+    assert reading['status'] == 'ok' and reading['live_permission'] is False
+    assert reading['as_of'] == 'd0039'
+    block = reading['strategies']['rsi']
+    assert block['params'] == {'direction': 'reversion', 'period': 14}
+    assert block['ranked'] == 6 and set(block['rows']) == {'T00', 'T07'}
+    closes = [row['close'] for row in tape.series('T00')]
+    assert block['rows']['T00']['score'] == round(-(quant_factors._rsi14(closes, 14) - 50), 4)
+    assert 1 <= block['rows']['T00']['rank'] <= 6
+    assert block['rows']['T07'] == {'score': None, 'rank': None, 'last_bar': 'd0009'}
+    assert block['standing'] == {'status': 'no lab record'}
+
+    # A registered candidate with other parameters does not move the reader.
+    _paths(tmp_path, monkeypatch)
+    for name in ('ledger', 'registrations'):
+        (tmp_path / f'{name}.jsonl').write_text('')
+    ledger.ledger_path().write_text(json.dumps({
+        'strategy': 'rsi', 'status': 'candidate', 'recorded_at': 't', 'refused_because': [],
+        'selected_params': {'direction': 'momentum', 'period': 28},
+        'live_review': {'cleared': True}, 'coverage_sensitivity': {'verdict_survives': False},
+        'prospective': []}) + '\n')
+    ledger.registrations_path().write_text(json.dumps({
+        'strategy': 'rsi', 'params': {'direction': 'momentum', 'period': 28},
+        'after_session': 'd0039'}) + '\n')
+    again = live.service('strategy_scores').read(tmp_path, ['T00'])['strategies']['rsi']
+    assert again['params'] == block['params'] and again['rows']['T00'] == block['rows']['T00']
+    assert again['standing']['status'] == 'candidate'
+    assert again['standing']['survives_adjusted_only'] is False
+    assert again['standing']['registrations'] == [{
+        'params': {'direction': 'momentum', 'period': 28}, 'after_session': 'd0039',
+        'scored_since': None}]
+
+
+def test_the_live_reader_says_unavailable_when_the_research_rows_do_not_mount(tmp_path, monkeypatch):
+    _bar_store(tmp_path, monkeypatch, Tape(persistence=0.0, sessions=30, tickers=3))
+    path = tmp_path / 'config' / 'strategy-plugins.json'
+    config = json.loads(path.read_text())
+    config['plugins'].append({'id': 'broken', 'module': 'clawock.no_such_plugin'})
+    path.write_text(json.dumps(config))
+    reading = live.service('strategy_scores').read(tmp_path)
+    assert reading['status'] == 'unavailable' and 'no_such_plugin' in reading['reason']
+    assert reading['strategies'] == {} and reading['live_permission'] is False
+    # The live rows themselves are unaffected by a broken research row.
+    assert {row['state'] for row in live.health()} == {'mounted'}

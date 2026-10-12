@@ -30,6 +30,7 @@ from clawock.workspace import workspace_root
 
 LEDGER = Path('memory') / 'strategy-lab' / 'ledger.jsonl'
 REGISTRATIONS = Path('memory') / 'strategy-lab' / 'registrations.jsonl'
+ROW_EDITS = Path('memory') / 'strategy-lab' / 'row-edits.jsonl'
 SCHEMA_VERSION = 1
 
 
@@ -39,6 +40,35 @@ def ledger_path() -> Path:
 
 def registrations_path() -> Path:
     return workspace_root() / REGISTRATIONS
+
+
+def row_edits_path() -> Path:
+    return workspace_root() / ROW_EDITS
+
+
+def row_edits(path: Path | None = None) -> list[dict]:
+    """Row edits the lab has proposed. Proposed is all they ever are here."""
+    return load(path or row_edits_path())
+
+
+def propose_row_edit(proposal: dict, path: Path | None = None) -> dict | None:
+    """Write a proposed row edit down, once per registration.
+
+    The proposal is evidence for whoever reviews the row. It changes no row.
+    """
+    path = path or row_edits_path()
+    record = {'schema_version': SCHEMA_VERSION,
+              'proposed_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+              **proposal}
+    boundaries.check_row_edit(record, registrations())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with file_lock(str(path)):
+        if any(known['strategy'] == record['strategy'] and known['to_params'] == record['to_params']
+               and known['after_session'] == record['after_session'] for known in row_edits(path)):
+            return None
+        with path.open('a', encoding='utf-8') as handle:
+            handle.write(jsonl_line(record, label='strategy-lab row edits'))
+    return record
 
 
 def input_digest(report: dict) -> str:

@@ -17,6 +17,10 @@ row that reached the ledger some other way is found on the next scheduled run.
 * A registration exists only for a cleared candidate, carries the parameters
   that run selected and the last session it was served, and its prospective
   score counts sessions after that one only.
+* A row edit is proposed only for a registration, on at least
+  `PROMOTION_FLOOR` of prospective evidence, and only when the verdict survives
+  without the names one provider vouches for. It says `proposed` and
+  `live_permission: false`; the lab has no code that applies one.
 
 What the lab cannot do at all is outside this file because there is no code for
 it to guard: no module outside `strategy_lab` imports the ledger
@@ -27,6 +31,26 @@ lab reads and never writes.
 from __future__ import annotations
 
 STATUSES = ('candidate', 'refused')
+
+#: The least a proposed row edit must rest on. A row may ask for more.
+PROMOTION_FLOOR = {'min_prospective_sessions': 60, 'prospective_ic_ci95_lower_gt': 0.0}
+
+
+def promotion_thresholds(config: dict | None) -> dict:
+    """`PROMOTION_FLOOR` with a row's overrides; unknown or lower values refused."""
+    config = dict(config or {})
+    unknown = sorted(set(config) - set(PROMOTION_FLOOR))
+    if unknown:
+        raise ValueError(f'unknown promotion check(s) {unknown}; known: {sorted(PROMOTION_FLOOR)}')
+    merged = {**PROMOTION_FLOOR, **config}
+    lowered = sorted(key for key, floor in PROMOTION_FLOOR.items()
+                     if isinstance(merged[key], bool) or not isinstance(merged[key], (int, float))
+                     or merged[key] < floor)
+    if lowered:
+        raise ValueError(
+            f'a row edit may not be proposed on less than the floor: {lowered} '
+            f'(floor {({key: PROMOTION_FLOOR[key] for key in lowered})})')
+    return merged
 
 
 class BoundaryError(ValueError):
@@ -84,6 +108,42 @@ def registration_violations(record: dict, report: dict) -> list[str]:
     return found
 
 
+def row_edit_violations(record: dict, registrations: list[dict]) -> list[str]:
+    """What is wrong with a proposed row edit, against the floor and the registrations."""
+    found = []
+    if record.get('live_permission') is not False:
+        found.append(f"live_permission is {record.get('live_permission')!r}, must be false")
+    if record.get('status') != 'proposed':
+        found.append(f"status {record.get('status')!r}: the lab proposes a row edit and never applies one")
+    if record.get('to_params') == record.get('from_params'):
+        found.append('it changes nothing')
+    if not any(known.get('strategy') == record.get('strategy')
+               and known.get('params') == record.get('to_params')
+               and known.get('after_session') == record.get('after_session')
+               for known in registrations):
+        found.append('no registration carries these parameters from that session')
+    evidence = record.get('evidence') or {}
+    sessions, interval = evidence.get('sessions') or 0, evidence.get('ic_ci95')
+    if sessions < PROMOTION_FLOOR['min_prospective_sessions']:
+        found.append(f'{sessions} prospective sessions is under the floor')
+    if not interval or not interval[0] > PROMOTION_FLOOR['prospective_ic_ci95_lower_gt']:
+        found.append(f'prospective interval {interval} does not sit above the floor')
+    first = evidence.get('first_session')
+    if not (first and record.get('after_session') and first > record['after_session']):
+        found.append('its evidence counts a session not after the registration')
+    narrow = record.get('coverage_sensitivity')
+    if narrow is not None and narrow.get('verdict_survives') is not True:
+        found.append('the verdict does not survive without the single-source names')
+    return found
+
+
+def check_row_edit(record: dict, registrations: list[dict]) -> None:
+    found = row_edit_violations(record, registrations)
+    if found:
+        raise BoundaryError(
+            f"{record.get('strategy')}: row edit not proposed: " + '; '.join(found))
+
+
 def check_proposal(report: dict) -> None:
     found = proposal_violations(report)
     if found:
@@ -97,9 +157,12 @@ def check_registration(record: dict, report: dict) -> None:
             f"{record.get('strategy')}: registration not written: " + '; '.join(found))
 
 
-def verify(rows: list[dict], registrations: list[dict]) -> list[str]:
-    """Every violation in a ledger and its registrations as they are on disk."""
+def verify(rows: list[dict], registrations: list[dict], row_edits: list[dict] = ()) -> list[str]:
+    """Every violation in a ledger, its registrations and row edits as they are on disk."""
     found = []
+    for number, record in enumerate(row_edits, 1):
+        found.extend(f"row edit {number} ({record.get('strategy')}): {line}"
+                     for line in row_edit_violations(record, registrations))
     for number, row in enumerate(rows, 1):
         where = f"ledger row {number} ({row.get('strategy')})"
         if row.get('live_permission') is not False:

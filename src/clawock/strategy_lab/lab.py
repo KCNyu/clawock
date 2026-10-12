@@ -11,6 +11,7 @@ Usage
   clawock strategy-lab optimize rsi --json --output proposal.json
   clawock strategy-lab ledger                # yield per strategy, alternates beside the gate
   clawock strategy-lab evolution rsi         # one strategy's record, run by run
+  clawock strategy-lab row-edits             # row edits the lab has proposed, for review
   clawock strategy-lab verify                # the ledger against the lab's boundaries
   clawock strategy-lab sources               # what each signal source declares
 
@@ -112,6 +113,9 @@ PROPOSAL = 'strategy-lab/proposal'
 REGISTRATION = 'strategy-lab/registration'
 
 
+ROW_EDIT = 'strategy-lab/row-edit'
+
+
 def keep(kernel, report: dict) -> dict | None:
     """Record one proposal and register it if cleared; the registration or None."""
     kernel.emit(PROPOSAL, report)
@@ -119,6 +123,19 @@ def keep(kernel, report: dict) -> dict | None:
     if (report.get('live_review') or {}).get('cleared'):
         kernel.emit(REGISTRATION, report)
     return ledger.register(report)
+
+
+def propose(kernel, report: dict) -> list[dict]:
+    """Ask the promoter, if one is mounted, and write down what it proposes."""
+    if 'promoter' not in kernel.services():
+        return []
+    written = []
+    for proposal in kernel.get('promoter').review(report):
+        kernel.emit(ROW_EDIT, proposal)
+        record = ledger.propose_row_edit(proposal)
+        if record:
+            written.append(record)
+    return written
 
 
 def record(kernel) -> int:
@@ -134,6 +151,7 @@ def record(kernel) -> int:
             report = kernel.get('optimizer').run(strategy, registrations=[
                 row for row in known if row['strategy'] == strategy])
             registered = keep(kernel, report)
+            edits = propose(kernel, report)
         except Exception as exc:
             failed += 1
             print(f'{strategy}: not recorded ({type(exc).__name__}: {exc})', file=sys.stderr)
@@ -143,14 +161,17 @@ def record(kernel) -> int:
               f"{' on ' + str(report['refused_because']) if report['refused_because'] else ''}, "
               f"objections {review['objections'] or 'none'}, "
               f"{'registered ' + str(registered['params']) if registered else 'nothing registered'}, "
-              f"{len(report['prospective'])} earlier registration(s) scored")
-    broken = boundaries.verify(ledger.load(), ledger.registrations())
+              f"{len(report['prospective'])} earlier registration(s) scored"
+              + ''.join(f"; row edit proposed: {edit['from_params']} -> {edit['to_params']}"
+                        for edit in edits))
+    broken = boundaries.verify(ledger.load(), ledger.registrations(), ledger.row_edits())
     for line in broken:
         print(f'boundary: {line}', file=sys.stderr)
     return 1 if failed or broken else 0
 
 
-def evolution(strategy: str, rows: list[dict], registrations: list[dict]) -> dict:
+def evolution(strategy: str, rows: list[dict], registrations: list[dict],
+              row_edits: list[dict] = ()) -> dict:
     """One strategy's record in the order it was written.
 
     Each run is a step: what the gate concluded, on which bars, and what
@@ -197,7 +218,8 @@ def evolution(strategy: str, rows: list[dict], registrations: list[dict]) -> dic
             'scored_runs': len(scores),
             'latest': scores[-1] if scores else None})
     return {'strategy': strategy, 'live_permission': False, 'steps': steps,
-            'registrations': trials}
+            'registrations': trials,
+            'row_edits': [edit for edit in row_edits if edit['strategy'] == strategy]}
 
 
 def _print_evolution(view: dict) -> None:
@@ -221,6 +243,16 @@ def _print_evolution(view: dict) -> None:
                   if latest else 'not scored yet')
         print(f"registered {trial['params']} after {trial['after_session']} "
               f"(live_permission false): {scored}")
+    _print_row_edits(view['row_edits'])
+
+
+def _print_row_edits(edits) -> None:
+    for edit in edits:
+        evidence = edit['evidence']
+        print(f"row edit proposed {edit['proposed_at']} for {edit['strategy']}: "
+              f"{edit['from_params']} -> {edit['to_params']}  "
+              f"({evidence['sessions']} sessions since {edit['after_session']}, "
+              f"IC {evidence['ic_ci95']}); applies by {edit['applies_by']}")
 
 
 def _print_sources(found: dict) -> None:
@@ -260,6 +292,9 @@ def main(argv=None) -> int:
     story.add_argument('strategy')
     story.add_argument('--json', action='store_true')
     sub.add_parser('verify', help="the ledger and registrations against the lab's boundaries")
+    pending = sub.add_parser(
+        'row-edits', help='row edits the lab has proposed; applying one is a reviewed edit')
+    pending.add_argument('--json', action='store_true')
     described = sub.add_parser(
         'sources', help='every mounted signal source: inputs, outputs, units, missing data')
     described.add_argument('--json', action='store_true')
@@ -273,18 +308,28 @@ def main(argv=None) -> int:
             _print_ledger(stats)
         return 0
     if args.action == 'evolution':
-        view = evolution(args.strategy, ledger.load(), ledger.registrations())
+        view = evolution(args.strategy, ledger.load(), ledger.registrations(), ledger.row_edits())
         if args.json:
             print(json.dumps(view, ensure_ascii=False, indent=2))
         else:
             _print_evolution(view)
         return 0
+    if args.action == 'row-edits':
+        edits = ledger.row_edits()
+        if args.json:
+            print(json.dumps(edits, ensure_ascii=False, indent=2))
+        elif not edits:
+            print('no row edit has been proposed')
+        else:
+            _print_row_edits(edits)
+        return 0
     if args.action == 'verify':
         rows, registered = ledger.load(), ledger.registrations()
-        broken = boundaries.verify(rows, registered)
+        broken = boundaries.verify(rows, registered, ledger.row_edits())
         for line in broken:
             print(line, file=sys.stderr)
-        print(f'{len(rows)} ledger rows, {len(registered)} registrations: '
+        print(f'{len(rows)} ledger rows, {len(registered)} registrations, '
+              f'{len(ledger.row_edits())} row edits: '
               f"{str(len(broken)) + ' boundary violations' if broken else 'within the boundaries'}")
         return 1 if broken else 0
 
