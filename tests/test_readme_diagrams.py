@@ -550,3 +550,39 @@ def test_an_arrowhead_is_one_shape_and_its_tip_lands_on_the_node():
             step = math.dist((x0, y0), (x1, y1))
             tips.append((round(x1 + (x1 - x0) / step * reach, 1), round(y1 + (y1 - y0) / step * reach, 1)))
     assert tips == [(40, 98.5), (101.5, 60), (80, 98.5)], tips
+
+
+RULE_BOUND = ('strategy-plugins', 'strategy-evolution', 'proposal-review')
+
+
+def test_the_plugin_figures_keep_their_drawing_rules():
+    """The countable half of "Drawing rules for the plugin figures" in the builder.
+
+    Each line is a rule a reader of the figure can tick: one family and four
+    type roles, three role colours, two stroke weights, no hierarchy by
+    transparency, one material, one moving packet.
+    """
+    builder = _builder()
+    strokes = {'1.2', '4',                       # the shared pane: rim and accent bar
+               '1.7',                            # glyphs
+               f'{builder.HAIR:g}', f'{builder.BOLD:g}'}
+    for name in RULE_BOUND:
+        text = (ROOT / 'site/assets' / f'{name}.svg').read_text(encoding='utf-8')
+        body = text.split('</defs>', 1)[1]
+        root = ET.fromstring(text)
+        classes = {el.attrib.get('class', 'b') for el in root.iter(f'{SVG}text')}
+        assert classes <= {'kick', 'title', 'sub', 'h', 'b', 'c', 'm'}, (name, classes)      # T1, T2
+        panes = len(re.findall(r'fill="url\(#glass(?:-\w+)?\)" stroke="url\(#rim\)"', body))
+        assert 'url(#glass-' not in body, name                                               # C4: no tinted panes
+        # C2: the only translucent strokes are the top light of each pane and the header rule.
+        assert len(re.findall(r'(?:fill|stroke)-opacity=', body)) == \
+            len(re.findall(r'<rect [^>]*fill="url\(#glass\)"', body)), name
+        assert panes >= 3, name
+        used = {role for role, colour in builder.ROLE.items() if colour in body}
+        assert len(used) <= 3, (name, used)                                                  # C1
+        widths = set(re.findall(r'stroke-width="([\d.]+)"', body))
+        assert widths <= strokes, (name, widths - strokes)                                   # C3
+        assert len(re.findall(r'<animateMotion', body)) == 1, name                           # M1
+        assert 'class="breathe"' not in body and 'sweep' not in body, name
+        ends = [el for el in root.iter(f'{SVG}text') if el.attrib.get('text-anchor') == 'end']
+        assert not ends or name == 'strategy-plugins', (name, len(ends))                     # L4
