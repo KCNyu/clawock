@@ -460,11 +460,11 @@ ROLE_WORDS = {
     'neutral': 'even', 'Judge': 'judge', 'Postflight': 'checks', 'Code gate': 'checks',
     'Watchdog': 'alarm', 'Backtest gate': 'gate', 'Filing gate': 'gate', 'Backtest': 'replay', 'shadow': 'replay', 'sentiment': 'pulse',
     'Filings': 'filing', 'SEC': 'filing', 'Capital flow': 'bars', 'news': 'news', 'Quotes': 'market',
-    'Macro': 'calendar', 'Brief': 'sunrise', 'dashboard': 'dashboard',
-    'scorecard': 'dashboard', 'Settle': 'balance', 'settle': 'balance',
-    'Grade': 'balance', 'Calibrat': 'factor', 'History': 'record', 'Ledger': 'record',
-    'Price alone': 'candles', 'Execution': 'followed', 'mark-followed': 'followed',
-    'Evidence pack': 'pack', 'Certified': 'seal',
+    'quotes': 'market', 'Macro': 'calendar', 'Brief': 'sunrise', 'dashboard': 'dashboard',
+    'scorecard': 'dashboard', 'Settle': 'balance', 'settle': 'balance', 'Verdict': 'balance',
+    'Grade': 'balance', 'Calibrat': 'factor', 'Record': 'record', 'History': 'record', 'Ledger': 'record',
+    'Trigger': 'candles', 'Price alone': 'candles', 'Execution': 'followed', 'mark-followed': 'followed',
+    'Evidence pack': 'pack', 'context.json': 'pack', 'Certified': 'seal',
     'CI': 'ci', 'receipts': 'receipt', 'Patrol': 'scan', 'closed issue': 'closed', 'source layers': 'layers',
     'Two sources': 'layers', 'WeChat': 'chat', 'USD/HKD': 'fx', 'Your agent': 'terminal',
 }
@@ -472,15 +472,13 @@ ROLE_WORDS = {
 
 def _icon_labels(root):
     """Each node glyph with its label: just right of it on its line, or under it in a tile."""
-    icons, texts, centred = [], [], []
+    icons, texts = [], []
 
     def walk(node, dx, dy):
         for el in node:
             move = re.match(r'translate\((\S+) (\S+)\)(?: scale\((\S+)\))?$', el.attrib.get('transform', ''))
             if el.tag == f'{SVG}text' and el.attrib.get('text-anchor') is None:
                 texts.append((float(el.attrib['x']) + dx, float(el.attrib['y']) + dy, ''.join(el.itertext())))
-            if el.tag == f'{SVG}text' and el.attrib.get('text-anchor') == 'middle':
-                centred.append((float(el.attrib['x']) + dx, float(el.attrib['y']) + dy, ''.join(el.itertext())))
             if el.tag != f'{SVG}g' or not move and el.attrib.get('transform'):
                 continue
             x, y = dx + float(move[1] if move else 0), dy + float(move[2] if move else 0)
@@ -492,9 +490,6 @@ def _icon_labels(root):
     for name, x, y, size in icons:
         beside = [label for tx, ty, label in texts if 0 <= tx - (x + size) <= 12 and y <= ty <= y + size + 4]
         beside = beside or [label for tx, ty, label in texts if abs(tx - x) < 1 and 8 <= ty - (y + size) <= 30]
-        # A flat node carries its glyph in the middle and its label centred under it.
-        beside = beside or [label for tx, ty, label in centred
-                            if abs(tx - (x + size / 2)) < 1 and 8 <= ty - (y + size) <= 36]
         if len(beside) == 1:
             yield name, beside[0]
 
@@ -557,39 +552,117 @@ def test_an_arrowhead_is_one_shape_and_its_tip_lands_on_the_node():
     assert tips == [(40, 98.5), (101.5, 60), (80, 98.5)], tips
 
 
-RULE_BOUND = ('strategy-plugins', 'strategy-evolution', 'proposal-review', 'feedback-learning',
-              'product-architecture', 'debate-flow', 'information-flow')
+def _figure(builder, name):
+    """What the house-style rules count in one figure."""
+    text = (ROOT / 'site/assets' / f'{name}.svg').read_text(encoding='utf-8')
+    root, body = ET.fromstring(text), text.split('</defs>', 1)[1]
+    height = float(root.attrib['height'])
+    labels = [(el.attrib.get('class', 'b'), ''.join(el.itertext()), float(el.attrib['x']), float(el.attrib['y']))
+              for el, _, _ in _placed(root, 'text')]
+    panes = [tuple(map(float, pane)) for pane in re.findall(
+        r'<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="14" fill="url\(#glass', body)]
+    rows = {}
+    for x, y, w, _ in panes:
+        rows.setdefault(y, []).append((x, w))
+    return {
+        'labels': labels, 'panes': panes,
+        'kickers': [(label, x, y) for cls, label, x, y in labels if cls == 'kick'][1:],     # past the header's
+        'tags': [label for cls, label, _, _ in labels if cls == 'tag'],
+        'kinds': {el.attrib['data-kind'] for el in root.iter(f'{SVG}path') if 'data-kind' in el.attrib},
+        'cover': sum(w * h for _, _, w, h in panes) / (builder.WIDE * (height - 170)),
+        'motion': len(re.findall('<animateMotion', body)) / (builder.WIDE * height / 1e5),
+        'splits': tuple(tuple(w for _, w in sorted(rows[y])) for y in sorted(rows)),
+    }
 
 
-def test_the_plugin_figures_keep_their_drawing_rules():
-    """The countable half of "Drawing rules for the plugin figures" in the builder.
+PLUGIN_FIGURES = ('strategy-plugins', 'strategy-evolution', 'proposal-review')
 
-    Each line is a rule a reader of the figure can tick: one family and four
-    type roles, three role colours, two stroke weights, no hierarchy by
-    transparency, one material, one moving packet.
+
+def test_every_figure_keeps_the_house_style_the_overview_sets():
+    """The countable half of "House style" in the builder, for every figure.
+
+    The overview is measured by the same lines as the figures drawn to it: it
+    is the reference, and it is not exempt.
     """
     builder = _builder()
-    strokes = {'1.2', '4',                       # the shared pane: rim and accent bar
-               '1.7',                            # glyphs
-               f'{builder.HAIR:g}', f'{builder.BOLD:g}'}
-    for name in RULE_BOUND:
-        text = (ROOT / 'site/assets' / f'{name}.svg').read_text(encoding='utf-8')
-        body = text.split('</defs>', 1)[1]
-        body = re.sub(r'<svg\b.*?</svg>', '', body, flags=re.S)        # an inlined harness logo is a mark
-        root = ET.fromstring(text)
-        classes = {el.attrib.get('class', 'b') for el in root.iter(f'{SVG}text')}
-        assert classes <= {'kick', 'title', 'sub', 'h', 'b', 'c', 'm'}, (name, classes)      # T1, T2
-        panes = len(re.findall(r'fill="url\(#glass(?:-\w+)?\)" stroke="url\(#rim\)"', body))
-        assert 'url(#glass-' not in body, name                                               # C4: no tinted panes
-        # C2: the only translucent strokes are the top light of each pane and the header rule.
-        assert len(re.findall(r'(?:fill|stroke)-opacity=', body)) == \
-            len(re.findall(r'<rect [^>]*fill="url\(#glass\)"', body)), name
-        assert panes >= 3, name
-        used = {role for role, colour in builder.ROLE.items() if colour in body}
-        assert len(used) <= 3, (name, used)                                                  # C1
-        widths = set(re.findall(r'stroke-width="([\d.]+)"', body))
-        assert widths <= strokes, (name, widths - strokes)                                   # C3
-        assert len(re.findall(r'<animateMotion', body)) == 1, name                           # M1
-        assert 'class="breathe"' not in body and 'sweep' not in body, name
-        ends = [el for el in root.iter(f'{SVG}text') if el.attrib.get('text-anchor') == 'end']
-        assert not ends or name == 'strategy-plugins', (name, len(ends))                     # L4
+    for name in builder.LAYOUTS:
+        seen = _figure(builder, name)
+        assert seen['kickers'], (name, 'S1: panes are introduced by section kickers')
+        assert len(seen['tags']) >= 3, (name, 'S2: panes say who owns them')
+        assert len(seen['kinds']) >= 3, (name, seen['kinds'], 'S5: one kind of line is a pipeline')
+        assert seen['cover'] >= .45, (name, round(seen['cover'], 2), 'S4: panes fill the page')
+        assert seen['motion'] <= 2, (name, round(seen['motion'], 2), 'S7')
+
+
+def test_the_plugin_figures_are_drawn_the_way_the_overview_is():
+    """The three figures redrawn to the overview are held to its own numbers."""
+    builder = _builder()
+    overview = _figure(builder, 'rsi-loop')
+    figures = {name: _figure(builder, name) for name in PLUGIN_FIGURES}
+    for name, seen in {**figures, 'rsi-loop': overview}.items():
+        # S1: steps numbered from 01 without a gap, each standing over the corner of a pane.
+        steps = [(label, x, y) for label, x, y in seen['kickers'] if re.match(r'\d\d · ', label)]
+        assert [label[:2] for label, _, _ in steps] == [f'{n:02d}' for n in range(1, len(steps) + 1)], (name, steps)
+        assert len(steps) >= 5, (name, len(steps))
+        for label, x, y in steps:
+            assert any(px == x and py - y == 12 for px, py, _, _ in seen['panes']), (name, label)
+    for name, seen in figures.items():
+        assert seen['cover'] >= .7, (name, round(seen['cover'], 2))                            # S4
+        assert seen['motion'] <= overview['motion'], (name, round(seen['motion'], 2))          # S7
+        classes = {cls for cls, *_ in seen['labels']}
+        assert classes <= {'kick', 'title', 'sub', 'h', 'b', 'm', 'code', 'tag'}, (name, classes)   # S6
+        # S8: the words the text beside the figure no longer uses stay out of it.
+        for _, label, _, _ in seen['labels']:
+            assert not re.search(r'\b(?:kernel|provides?|out-of-sample|edge|lift)\b', label, re.I), (name, label)
+    # S4: no two of them, and neither of them and the overview, share a run of splits.
+    splits = [seen['splits'] for seen in figures.values()] + [overview['splits']]
+    assert len(set(splits)) == len(splits), splits
+
+
+def test_the_plugin_figures_print_what_the_committed_records_hold():
+    """A real example is only one while its numbers are the record's.
+
+    `CALL` is one decision on the public ledger and `RSI_RUN` one search in the
+    lab's; the rows are the live composition. Each field a figure prints is
+    read back from the file it came from.
+    """
+    import json
+
+    builder = _builder()
+    call, run = builder.CALL, builder.RSI_RUN
+    decision = next(row for row in map(json.loads, (ROOT / 'memory/decisions.jsonl').open(encoding='utf-8'))
+                    if row.get('decision_id') == call['id'])
+    assert (decision['ticker'], decision['action']) == ('02208', 'watch')
+    assert decision['created_at'].startswith(call['date'])
+    assert (decision['condition']['price'], decision['condition']['valid_for_sessions']) == (call['act'], call['sessions'])
+    assert (decision['invalidation_price'], decision['confidence']) == (call['dead'], call['confidence'])
+    assert decision['contested'] is True
+    marked = decision['evaluation']
+    assert (marked['reference_price'], marked['benefit_t1_pct'], marked['outcome']) == (
+        call['reference'], call['next_pct'], call['outcome'])
+    assert f'MA200 下方 {call["under_ma200_pct"]}%' in decision['debate']['bear']
+
+    config = json.loads((ROOT / 'config/strategy-plugins.json').read_text(encoding='utf-8'))
+    live = {row['id']: row.get('signal_source', False) for row in config['live']}
+    assert {name for name, _, _ in builder.READING_ROWS} == {name for name, source in live.items() if source}
+    assert {name for name, _, _ in builder.READING_ROWS} | set(builder.OTHER_ROWS) == set(live)
+    lab = {row['id']: row.get('config', {}) for row in config['plugins']}
+    assert (lab['rsi']['params']['direction'], lab['rsi']['params']['period']) == run['registered']
+    assert tuple(lab['rsi']['space']['period']) == run['periods']
+    assert set(lab['rsi']['space']['direction']) == set(run['directions'])
+    assert lab['optimizer']['gate']['min_oos_sessions'] == run['needs_sessions']
+    assert lab['promoter']['min_prospective_sessions'] == run['needs_sessions']
+
+    entries = [json.loads(line) for line in (ROOT / 'memory/strategy-lab/ledger.jsonl').open(encoding='utf-8')]
+    first = next(row for row in entries if row['strategy'] == 'rsi' and row['recorded_at'].startswith(run['date']))
+    assert (first['status'], first['refused_because'], first['live_review']['objections']) == ('candidate', [], [])
+    assert all(gate['would_pass'] for gate in first['alternate_gates'])
+    assert (first['selected_params']['direction'], first['selected_params']['period']) == run['selected']
+    measured = first['measured']
+    assert (tuple(measured['oos_ic_ci95']), tuple(measured['oos_lift_ci95'])) == (run['beats_chance'], run['beats_current'])
+    assert (measured['oos_sessions'], measured['pbo'], first['bars']['tickers']) == (
+        run['later_sessions'], run['fitted'], run['names'])
+    again = next(row['coverage_sensitivity'] for row in entries if row.get('coverage_sensitivity'))
+    assert (again['tickers'], tuple(again['oos_ic_ci95']), again['status']) == (*run['confirmed'], 'refused')
+    registered = [json.loads(line) for line in (ROOT / 'memory/strategy-lab/registrations.jsonl').open(encoding='utf-8')]
+    assert any(row['strategy'] == 'rsi' and row['after_session'] == run['after_session'] for row in registered)

@@ -18,59 +18,46 @@ limit bars beside a breach track, verdict tiles, two return loops through one
 record, and the maintenance loop around the dsh panel. Shared primitives draw the
 material; each diagram owns the arrangement that best explains its content.
 
-Drawing rules for the plugin figures
-------------------------------------
-`strategy-plugins`, `strategy-evolution`, `proposal-review`,
-`feedback-learning`, `product-architecture`, `debate-flow` and
-`information-flow` are drawn to the rules below, and
-`tests/test_readme_diagrams.py` checks the countable ones (`RULE_BOUND`).
-`rsi-loop`, `architecture`, `decision-pipeline` and `harnesses` are still the
-older card-and-column drawings and are not held to them yet.
+House style: the overview is the reference
+------------------------------------------
+`rsi-loop`, the first figure in the README, sets the style and every other
+figure is drawn to it. `tests/test_readme_diagrams.py` counts the parts of it
+that can be counted, for every figure, the overview included.
 
-Before the rules: say what the one thing is that a figure shows and the text
-beside it argues, and draw that. `strategy-plugins` is one real call across
-the line between rows and what is not a row; `feedback-learning` is the same
-call on its calendar; `debate-flow` is its two cases either side of the
-evidence both cite; `product-architecture` is two owners and the three files
-that cross between them; `information-flow` is a grid of what each run is
-handed. No two of them share a skeleton.
-They come from three references: hierarchy is built from size, weight and
-leading together, emphasis is weight and not a second face, and nothing is
-random (Apple, typography and craft); every element earns its place, and good
-defaults beat options (Kowalski); and a surface seen tens of times a day has
-its motion removed or drastically reduced, with "it looks cool" not a purpose
-(the animation frequency table).
+Before the style: say what the one thing is that a figure shows and the text
+beside it argues, and draw that. `strategy-plugins` follows one real call
+through five steps and rules a line above the two that are not rows;
+`strategy-evolution` follows one real search of a setting to the edit it may
+not make; `proposal-review` is three review channels and the record that keeps
+every outcome. A figure that only arranges the nouns of its section has failed.
 
-Layout
-  L1  One idea per figure, at most four blocks, read top-left to bottom-right.
-  L2  Left edges sit on the grid: 24 and 520 for halves, 24 / 352 / 680 for
-      thirds, and a block's text at its edge + 20. No free-floating notes.
-  L3  Gaps come from one set: 8, 12, 16, 24, 32, 48. Blocks are 24 apart,
-      bands 48.
-  L4  Text is left-aligned. It is centred only inside a symmetric mark (a
-      pill, a disc, a cell) or under one. It is set towards its mark, and so
-      ends at it, only for the labels on the left half of a ring.
-  L5  Marks of one kind share one size and one distance to their label.
-Type
-  T1  Four roles: heading 18/700, body 15/450, caption 13/500, kicker 12/700
-      capitals. A label is body; what explains it is a caption.
-  T2  One family. No monospace.
-  T3  Two inks, graphite and muted. A role colour on text only for a verdict.
-Colour and material
-  C1  At most three role colours in a figure, each with one meaning there.
-  C2  Hierarchy never comes from transparency: marks are solid tints and
-      solid strokes. Only the shared glass pane is translucent.
-  C3  Two stroke weights: 1.5 for lines and axes, 2.5 for the thing measured.
-  C4  One material. A pane of glass is the only surface with a sheen and a
-      shadow; discs, cells and pills are flat.
-Motion
-  M1  One moving packet per figure, on the connector the figure is about.
-      Everything else is still. No breathing, no sweeps.
-Forms
-  F1  A shape other than a pane is used where it is the data: a ring for
-      rows mounted on one kernel, a grid for a searched grid, an axis for a
-      threshold, an interval or a run of sessions.
-  F2  One axis style, one dot, one interval, one pill, in all three figures.
+  S1  A figure is read as numbered steps. Each pane sits under a kicker,
+      "01 · WHAT HAPPENS", in the order the text tells it.
+  S2  A pane says who owns it: a glyph, a heading, and a tag in the owner's
+      colour (PYTHON, LLM, HUMAN). The five role colours mean the same thing
+      in every figure.
+  S3  Inside a pane the content picks the form, and neighbours differ: a grid
+      of tinted tiles for peers, chips for names, a versus split for two
+      cases, bars or an axis for a limit and what was measured against it,
+      verdict tiles for an outcome. Not a paragraph in a box, and not the
+      same box three times.
+  S4  Panes fill the page. Rows split unevenly where the content is uneven,
+      and no two figures share the same run of splits.
+  S5  A connector says what it carries (`KIND`), and a figure uses at least
+      three kinds. A figure with one kind of line is a pipeline.
+  S6  Type is the shared scale and nothing else: `h` for a heading, `b` for a
+      name, `m` for what explains it, `code` only for something typed at a
+      prompt.
+  S7  Motion is packets on connectors, and fewer per unit of page than the
+      overview carries. The README is seen many times a day.
+  S8  A number in a figure is a committed record's number. `CALL` and
+      `RSI_RUN` are checked against the ledgers they quote, and the plugin
+      figures use the words the text beside them uses.
+
+`information-flow`, `feedback-learning`, `debate-flow` and
+`product-architecture` are their 2026-10-07 drawings, restored after a flatter
+redraw read worse beside the overview; the watchdog times in the first are
+kept in step with config/cron-schedules.json.
 
 A connector says what it carries. `KIND` gives each of eight kinds of flow its
 own line, arrowhead and packet: evidence is a solid line with a page running along
@@ -127,7 +114,8 @@ TYPE = {
     'kick': (12, 700, .74), 'title': (26, 750, .55), 'sub': (15, 450, .53),
     'h': (18, 700, .55), 'b': (15, 450, .53), 'm': (15, 450, .53),
     'code': (13, 500, .62), 'tag': (12, 700, .78),
-    # Secondary text in the rule-bound figures below: one clear step under body.
+    # No figure sets `c` any more. It stays declared so the shared style block, and with
+    # it every SVG this change did not redraw, is byte for byte what it was.
     'c': (13, 500, .56),
 }
 GOLD = '#a8791c'          # money on a connector; no card or label takes it
@@ -195,6 +183,7 @@ ICON = {
     'plane': '<path d="M2 11L22 3l-7 19-4-8ZM11 14L22 3"/>',
     'dashboard': '<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20M7 3v5M6 17l4-4 4 2 4-4"/>',
     'branch': '<circle cx="6" cy="4" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="20" r="2"/><path d="M6 6v12m0-4c8 0 12-2 12-6"/>',
+    'publish': '<path d="M12 15V3M7 8l5-5 5 5M4 14v7h16v-7"/>',
     'checks': '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8l2 2 3-4m2 3h3M7 16l2 2 3-4m2 3h3"/>',
     'clock': '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
     'terminal': '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 9l3 3-3 3m6 0h5"/>',
@@ -1651,24 +1640,448 @@ def rsi_loop():
     d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
     return d.render(bottom + 36 + M)
 
+def product_architecture():
+    """site/assets/product-architecture.svg — runtime / package / instance ownership."""
+    d = D('clawock product architecture',
+          'External agent runtimes own the model, conversation, memory, planning, tools, permissions '
+          'and credentials. They install a standard skill and call the clawock CLI using JSON. The '
+          'clawock package owns portable decision workflows, certified inputs, artifact contracts, '
+          'deterministic money and foreign-exchange reconciliation, outcome evaluation, receipts, '
+          'and bounded proposal review and rollback. User instances own strategy, evidence, ledgers, '
+          'schedules, delivery and user interfaces. Every harness drives the same three steps: '
+          'clawock run prepare, the agent writes decision.json, clawock run publish.')
+    y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
+                 ['The runtime thinks.', 'clawock keeps it reconciled.'],
+                 ['Three owners, one contract between them:', 'skill + CLI + JSON in, adapter-owned I/O out.'],
+                 [('external runtime', 'slate'), ('clawock package', 'green'), ('user instance', 'violet')], title_lh=34)
+    y += 30
+    d.flow(y - 12)
+    d.section(y, 'OWNED BY THE EXTERNAL RUNTIME')
+    y += 14
+    h = 124
+    d.card(M, y, CW, h, 'slate')
+    for i, name in enumerate(('openclaw', 'claude-code', 'codex', 'deepseek-harness', 'any-cli')):
+        d.logo(name, M + 20 + i * 42, y + 16)
+    d.lines(M + 20, y + 78, CW - 36, ['OpenClaw · Claude Code · Codex · DeepSeek Harness',
+                                      [('or your own CLI — each owns model, memory, tools', MUT)]], lh=21, where='runtime')
+    top = y + h
+    y = top + 54
+    # Two runs 24 apart with a label against each: dots, there is no room for packets.
+    d.wire(f'M{W / 2 - 12:g} {top:g}V{y - 2:g}', pulses=(0, 1.2), kind='task', packet=False)
+    d.wire(f'M{W / 2 + 12:g} {y:g}V{top + 2:g}', pulses=(.6, 1.8), kind='data', packet=False)
+    d.text(W / 2 - 24, top + 32, 'install skill · call CLI', 'm', anchor='end', fill=MUT)
+    d.text(W / 2 + 24, top + 32, 'JSON back', 'm', fill=MUT)
+    stages = [('Workflow', 'evidence + opposition, bounded', 'workflow install'),
+              ('Certify', 'pinned input · context hashes', 'run prepare'),
+              ('Reconcile', 'order · cash · FX · validation', 'run publish'),
+              ('Evaluate', 'observed price + FX · receipt', 'workflow evaluate'),
+              ('Improve', 'bounded proposal, exact diff', 'review · apply · rollback')]
+    h = 70 + len(stages) * 52 + 10
+    d.card(M, y, CW, h, 'green')
+    d.logo('clawock', M + 20, y + 16, size=30)
+    d.text(M + 60, y + 37, 'clawock package', 'h')
+    d.tag(W - M - 16, y + 36, 'IN THE WHEEL', 'green', anchor='end')
+    sweep(d, M + 12, y + 60, CW - 24, len(stages), lh=52, period=10)
+    for i, (name, what, cmd) in enumerate(stages):
+        yy = y + 86 + i * 52
+        d.add(f'<circle cx="{M + 32:g}" cy="{yy - 5:g}" r="11" fill="{TINT["green"]}"/>')
+        d.text(M + 32, yy, f'0{i + 1}', 'tag', anchor='middle', fill=ROLE['green'])
+        d.icon(('debate', 'seal', 'balance', 'dashboard', 'branch')[i], M + 52, yy - 15, 'green', size=18)
+        d.text(M + 78, yy, [(name, INK), (' · ', FAINT), (what, MUT)], 'm')
+        fits(name + ' · ' + what, 'm', CW - 94, 'stage')
+        d.text(M + 78, yy + 20, cmd, 'code', fill=ROLE['green'])
+    top = y + h
+    y = top + 44
+    d.text(W / 2 + 14, top + 40, 'adapter-owned I/O', 'm', fill=MUT)
+    d.turn(W / 2, top, first=y - 26, enter=y + 28, tail=48, pulses=(0,), kind='data')
+    h = 118
+    d.card(M, y, CW, h, 'violet')
+    d.icon('book', M + 20, y + 14, 'violet')
+    d.text(M + 50, y + 32, 'Your instance', 'h')
+    d.tag(W - M - 16, y + 30, 'NOT IN THE WHEEL', 'violet', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36, ['strategy, evidence, ledger, schedules, delivery, UI',
+                                      [('default store: FilesystemStore. KCNyu is one live', MUT)],
+                                      [('proof, not the product.', MUT)]], lh=20, where='instance')
+    top = y + h
+    y = top + 36
+    d.section(y, 'EVERY HARNESS, THE SAME THREE STEPS')
+    y += 16
+    xs, cw = columns(3, gap=18)
+    stepsb = [('run prepare', '→ request.json', 'green'), ('agent writes', 'decision.json', 'slate'),
+              ('run publish', '→ published', 'green')]
+    h = 110
+    for i, (x, (name, body, role)) in enumerate(zip(xs, stepsb)):
+        d.card(x, y, cw, h, role)
+        d.icon(('seal', 'terminal', 'publish')[i], x + 16, y + 12, role)
+        d.text(x + 16, y + 64, name, 'b')
+        fits(body, 'm', cw - 24, 'steps')
+        d.text(x + 16, y + 88, body, 'm', fill=MUT)
+        if i:
+            d.wire(f'M{x - 17:g} {y + h / 2:g}H{x - 3:g}', pulses=(i * .4,), dur=1.2, kind=('data', 'decision')[i - 1])
+    y += h + 26
+    d.lines(M, y, CW, ['Drop the opposing evidence from decision.json and',
+                       'publish refuses it with exit code 1.'], cls='m', lh=19, where='steps note')
+    return d.render(y + 20 + M)
 
-# --- the kit of the rule-bound figures (see "Drawing rules" in the module docstring) ---
-HAIR, BOLD = 1.5, 2.5          # C3: the two stroke weights
-GRID2 = (M, M + COL2)          # L2: halves
-GRID3 = (M, 352, 680)          # L2: thirds, 312 wide with a 16 gutter
-THIRD = 312
+
+def debate_flow():
+    """site/assets/debate-flow.svg — the three-tier debate inside the pre-open brief."""
+    d = D('Inside the clawock multi-agent debate',
+          "A pipeline. One shared evidence pack feeds four analyst lenses that merge into a single "
+          "table. Two researchers are asked to argue opposing bull and bear cases and to record where "
+          "they disagree, so unanimous agreement reads as a flag. Three risk voices then stress every "
+          "call and a judge names the strategy frame driving each decision, resolving the argument "
+          "into plan.json — which enters the next session's grading pipeline, where code, not the "
+          "model, settles the score.")
+    y = d.header('THE DEBATE · HK + US',
+                 ['Disagreement is required.', 'The resolution is attributed.'],
+                 ['Protocol rules set in the brief prompt; code only', 'checks that each tier was written.'],
+                 [('evidence · python', 'green'), ('agents · LLM', 'slate'), ('opposing case', 'warm'),
+                  ('grading', 'blue')], title_lh=34)
+    y += 30
+    d.flow(y - 12)
+    d.section(y, 'SHARED INPUT')
+    y += 14
+    h = 76
+    d.card(M, y, CW, h, 'green')
+    d.icon('pack', M + 20, y + 12, 'green')
+    d.text(M + 50, y + 30, [('context.json', INK)], 'h')
+    d.text(M + 20, y + 54, 'one immutable evidence pack; every claim cites it', 'm', fill=MUT)
+    top = y + h
+    d.section(top + 34, 'TIER 1 · ANALYST LENSES')
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(0,), kind='data', carry='pack')
+    h = 176
+    d.card(M, y, CW, h, 'slate')
+    d.text(M + 20, y + 32, 'Four analyst lenses', 'h')
+    d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
+    for i, name in enumerate(['Fundamental', 'Technical', 'Sentiment', 'Sector rotation']):
+        d.chip(xs[i % 2], y + 50 + (i // 2) * 48, cw, name, h=36,
+               icon=('lens', 'factor', 'pulse', 'sector')[i])
+    d.text(M + 20, y + h - 14, 'same context → one merged table', 'm', fill=MUT)
+    top = y + h
+    d.section(top + 34, 'TIER 2 · RESEARCHERS')
+    y = top + 48
+    d.down(W / 2, top, y, pulses=(0,), kind='decision')
+    h = 112
+    xs, cw = columns(2, gap=40)
+    for x, (name, body, sub, role) in zip(xs, (('Bull case', 'hold / add', 'cites the pack', 'green'),
+                                              ('Bear case', 'trim / cut', 'hits the strongest view', 'warm'))):
+        d.card(x, y, cw, h, role)
+        d.icon('up' if role == 'green' else 'down', x + 18, y + 14, role)
+        d.text(x + 48, y + 32, name, 'h', fill=ROLE[role])
+        d.text(x + 18, y + 56, body, 'b')
+        fits(sub, 'm', cw - 26, 'bullbear')
+        d.text(x + 18, y + 78, sub, 'm', fill=MUT)
+    mx = xs[0] + cw
+    d.wire(f'M{mx + 2:g} {y + 40:g}H{xs[1] - 4:g}', pulses=(0,), dur=1.3, kind='decision')
+    d.wire(f'M{xs[1] - 2:g} {y + 58:g}H{mx + 4:g}', pulses=(.65,), dur=1.3, kind='alert')
+    top = y + h
+    y = top + 14
+    d.add(f'<rect x="{M:g}" y="{y:g}" width="{CW:g}" height="34" rx="10" fill="{TINT["warm"]}"/>')
+    d.text(W / 2, y + 22, [('OPPOSING CASE REQUIRED', ROLE['warm'])], 'tag', anchor='middle')
+    top = y + 34
+    fy = top + 48
+    d.turn(W / 2, top, first=top + 22, enter=fy, reach=W / 2 + 2, tail=20,
+           pulses=(0,), arrow=False, kind='decision')
+    d.section(top + 34, 'TIER 3 · RISK + JUDGE')
+    y = fy + 40
+    xs, cw = columns(3, gap=10)
+    for i, (x, name) in enumerate(zip(xs, ('Aggressive', 'Conservative', 'Neutral'))):
+        d.curve(W / 2, fy, x + cw / 2, y, pulses=(i * .5,), dur=1.8, kind='decision',
+                carry=('up', 'shield', 'even')[i])
+        d.card(x, y, cw, 84, 'slate')
+        d.icon(('up', 'shield', 'even')[i], x + cw / 2 - 11, y + 15, 'slate')
+        fits(name, 'b', cw - 20, 'risk')
+        d.text(x + cw / 2 + 2, y + 65, name, 'b', anchor='middle')
+    top = y + 84
+    y = top + 46
+    for i, x in enumerate(xs):
+        d.curve(x + cw / 2, top, W / 2, y, pulses=(i * .5 + .3,), dur=1.8, kind='decision',
+                carry=('up', 'shield', 'even')[i])
+    h = 96
+    d.card(M, y, CW, h, 'slate')
+    d.icon('judge', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Judge', 'h')
+    d.tag(W - M - 16, y + 30, 'ATTRIBUTED', 'slate', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36, ['Names the strategy frame driving each call',
+                                      [('→ plan.json', ROLE['blue'])]], lh=21, where='judge')
+    top = y + h
+    y = top + 40
+    d.down(W / 2, top, y, pulses=(0, 1.1), kind='decision')
+    h = 76
+    d.card(M, y, CW, h, 'blue')
+    d.icon('balance', M + 20, y + 12)
+    d.text(M + 50, y + 30, "Next session's grading", 'h')
+    d.text(M + 20, y + 54, 'code, not the model, settles the score', 'm', fill=MUT)
+    y += h + 26
+    d.lines(M, y, CW, ['The bear attacks the strongest consensus, not the weakest;',
+                       'the first risk voice rotates every four trading days.'],
+            cls='m', lh=19, where='notes')
+    return d.render(y + 20 + M)
+
+
+def information_flow():
+    """site/assets/information-flow.svg — the live desk's data flow, end to end."""
+    d = D('clawock data flow — sources, fetch fallback, portfolio and risk, three cadences, '
+          'agent, postflight, data plane and delivery',
+          'Eight information layers feed ordered fetch-fallback routes (HK quotes Tencent plus '
+          'Eastmoney HK, then stooq, then yfinance; US quotes Nasdaq, Eastmoney, Finnhub, Yahoo, '
+          'yfinance, Alpha Vantage, Polygon; USDHKD Frankfurter, exchangerate.host, Yahoo; every '
+          'live Eastmoney call through one throttled gateway; an empty fetch keeps the prior value). '
+          'Python reconciles the book, runs the integrity gate and builds risk. The pre-open brief, '
+          'session reports and intraday check-ins each run a preflight that assembles only the '
+          'blocks that run can use; the agent reads those files and never fetches; a Python '
+          'postflight validates and publishes to master, to the data-plane branch the dashboard '
+          'polls, and to WeChat and Telegram. An LLM-free crontab watchdog checks every slot and '
+          'mirrors to Telegram when the send is not confirmed.')
+    y = d.header('DATA FLOW · HK + US',
+                 ['From eight source layers', 'to a delivered card'],
+                 ['Python fetches, computes and settles; the model', 'only reads the files a run assembles.'],
+                 [('source · fetch', 'blue'), ('python', 'green'), ('agent · LLM', 'slate'),
+                  ('gate · watchdog', 'warm')], title_lh=34)
+
+    y += 30
+    d.flow(y - 12)
+    d.section(y, '1 · SOURCES')
+    y += 14
+    h = 262
+    d.card(M, y, CW, h, 'blue')
+    d.text(M + 20, y + 32, '8 information layers', 'h')
+    d.tag(W - M - 16, y + 30, 'HK + US', 'blue', anchor='end')
+    xs, cw = columns(2, gap=12, x0=M + 16, w=CW - 32)
+    layers = ['L1 market', 'L2 SEC · HKEX', 'L3 capital flow', 'L4 news', 'L5 macro · mood',
+              'L6 quant · risk', 'L7 book · FX', 'L8 backtest']
+    for i, name in enumerate(layers):
+        col, row = i % 2, i // 2
+        d.chip(xs[col], y + 54 + row * 52, cw, name, h=36, role='blue',
+               icon=('market', 'filing', 'bars', 'news', 'calendar', 'shield', 'fx', 'replay')[i])
+    top = y + h
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(0, 1.1), kind='data', carry='layers')
+
+    h = 312
+    d.card(M, y, CW, h, 'blue')
+    d.icon('layers', M + 20, y + 14)
+    d.text(M + 50, y + 32, 'Fetch with fallback', 'h')
+    d.tag(W - M - 16, y + 30, 'ORDERED ROUTES', 'blue', anchor='end')
+    yy = y + 66
+    routes = [
+        ('HK quotes', [[('Tencent + Eastmoney HK', INK)], [('→ stooq → yfinance', MUT)]], 'market'),
+        ('US quotes', [[('Nasdaq', INK), (' → Eastmoney → Finnhub', MUT)],
+                       [('→ Yahoo → yfinance', MUT)], [('→ Alpha Vantage → Polygon', MUT)]], 'market'),
+        ('USD/HKD', [[('Frankfurter', INK), (' → exchangerate.host', MUT)], [('→ Yahoo', MUT)]], 'fx'),
+    ]
+    for key, values, icon in routes:
+        d.icon(icon, M + 20, yy - 15, size=18)
+        yy = d.kv(M + 48, yy, 100, CW - 64, [(key, values)], lh=22) + 12
+    d.add(f'<path d="M{M + 20:g} {yy - 6:g}H{W - M - 16:g}" stroke="{CARD_STROKE}"/>')
+    d.lines(M + 20, yy + 14, CW - 36, [[('One throttled gateway for every live Eastmoney', MUT)],
+                                       [('call; an empty fetch keeps the prior value.', MUT)]],
+            cls='m', lh=19, where='fetch note')
+    top = y + h
+    y = top + 44
+    d.down(W / 2, top, y, pulses=(.4, 1.5), kind='data', carry='bars')
+
+    h = 150
+    d.card(M, y, CW, h, 'green')
+    d.icon('shield', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Portfolio + risk', 'h')
+    d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
+    d.kv(M + 20, y + 60, 84, CW - 36, [
+        ('reconcile', ['recompute every money field']),
+        ('integrity', ['data-health gate on the book']),
+        ('fx', ['HK + US sum only through it']),
+        ('risk', ['β · vol · drawdown → risk.json']),
+    ])
+    top = y + h
+    y = top + 30
+    label = 'preflight · only the blocks this run can use'
+    d.turn(W / 2, top, first=y - 14, enter=y - 3, reach=W / 2 - width(label, 'm') / 2 - 6,
+           pulses=(0,), arrow=False, kind='gate')
+    d.text(W / 2, y + 2, [('preflight', ROLE['green']), (' · only the blocks this run can use', MUT)],
+           'm', anchor='middle')
+    fits(label, 'm', CW, 'preflight label')
+    y += 50
+    xs, cw = columns(3)
+    cad = [('Brief', ['pre-open', '08:03 HKT', 'weekdays', '→ plan.json']),
+           ('Report', ['HK open, mid,', 'pm, close', 'US open, close', 'fresh quotes']),
+           ('Intraday', ['every 30 min', 'while a market', 'is open', 'judgment packet'])]
+    h = 150
+    for i, (x, (name, body)) in enumerate(zip(xs, cad)):
+        d.curve(W / 2, y - 26, x + cw / 2, y, pulses=(i * .5,), dur=1.6, kind='data',
+                carry=('sunrise', None, 'clock')[i])
+        d.card(x, y, cw, h, 'green')
+        d.text(x + 16, y + 30, name, 'h')
+        d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='cadence')
+    top = y + h
+    y = top + 50
+    for i, x in enumerate(xs):
+        d.curve(x + cw / 2, top, W / 2, y, pulses=(i * .5 + .3,), dur=1.8, kind='data', carry='pack')
+
+    h = 96
+    d.card(M, y, CW, h, 'slate')
+    d.icon('debate', M + 20, y + 14, 'slate')
+    d.text(M + 50, y + 32, 'Agent', 'h')
+    d.tag(W - M - 16, y + 30, 'LLM', 'slate', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36, ['Reads the context files, never fetches;',
+                                      'the brief also writes plan.json.'], lh=21, where='agent')
+    top = y + h
+    y = top + 40
+    d.down(W / 2, top, y, pulses=(0, 1.1), kind='decision')
+    h = 96
+    d.card(M, y, CW, h, 'green')
+    d.icon('checks', M + 20, y + 14, 'green')
+    d.text(M + 50, y + 32, 'Postflight', 'h')
+    d.tag(W - M - 16, y + 30, 'PYTHON', 'green', anchor='end')
+    d.lines(M + 20, y + 58, CW - 36, ['Validates the output, then publishes;',
+                                      'sends WeChat and co-sends Telegram.'], lh=21, where='postflight')
+    top = y + h
+    y = top + 50
+    outs = [('Deliver', ['WeChat +', 'Telegram']),
+            ('data-plane', ['7 files, one', 'generation']),
+            ('master', ['ledger +', 'pre-push gate'])]
+    h = 132
+    for i, (x, (name, body)) in enumerate(zip(xs, outs)):
+        d.curve(W / 2, top, x + cw / 2, y, pulses=(i * .5,), dur=1.8, kind='deliver',
+                carry=(None, 'publish', 'commit')[i])
+        d.card(x, y, cw, h, 'blue')
+        d.text(x + 16, y + 30, name, 'h')
+        d.lines(x + 16, y + 56, cw - 24, body, cls='m', lh=20, where='outputs')
+        d.icon(('plane', 'publish', 'commit')[i], x + 16, y + 96, size=22)
+    top = deliver_bottom = y + h
+    d.lines(xs[1], top + 24, W - M - xs[1], [[('WeChat cannot confirm a send;', FAINT)],
+                                            [('Telegram can. The dashboard polls', FAINT)],
+                                            [('data-plane every 60 s; master', FAINT)],
+                                            [('takes only a reconciled book.', FAINT)]], cls='m', lh=19,
+            where='outputs note')
+    top += 16
+    top += 70
+    y = top + 40
+    d.wire(f'M{xs[0] + cw / 2:g} {y - 2:g}V{deliver_bottom + 4:g}', pulses=(0, 1.2), dur=2.4, kind='alert')
+    h = 136
+    d.card(M, y, CW, h, 'warm')
+    d.icon('alarm', M + 20, y + 14, 'warm')
+    d.text(M + 50, y + 32, 'Watchdog', 'h')
+    d.tag(W - M - 16, y + 30, 'CRONTAB · NO LLM', 'warm', anchor='end')
+    yy = d.kv(M + 20, y + 60, 84, CW - 36, [
+        ('brief', [[('08:46', INK), (' · miss check 09:05', MUT)]]),
+        ('report', ['20 min after its slot']),
+        ('intraday', [':23 and :53']),
+    ])
+    d.text(M + 20, yy + 2, 'Unconfirmed send → mirror to Telegram', 'm', fill=ROLE['warm'])
+    return d.render(y + h + M)
+
+
+def feedback_learning():
+    """site/assets/feedback-learning.svg — settlement, then the two ways the record returns."""
+    d = D('After the close: code settles the call and the record feeds the next one',
+          'Top: a call is recorded once by the model, checked against canonical daily bars on each '
+          'market’s own calendar, grouped so one thesis is one episode, and settled by code as a '
+          'win, a loss or ungradeable; all three stay published and ungradeable calls sit outside '
+          'the win rate. Lower left: on the live desk, execution status, settlement, history and '
+          'earlier-date calibration circle back into the next brief. Lower right: in any other '
+          'harness, an observed outcome can anchor a bounded proposal that a named review accepts '
+          'or rejects, applied with a rollback record. Only evidence requirements change, never '
+          'strategy. A directional evaluation is not realized P&L and nothing here promises returns.')
+    y = d.header('AFTER THE CLOSE · SETTLE, THEN LEARN',
+                 ['Code settles the call.', 'The record teaches the next one.'],
+                 ['Wins, losses and ungradeable calls all stay published;',
+                  'calibration only ever looks backwards.'],
+                 [('written by the model', 'slate'), ('settled by python', 'green'),
+                  ('live desk', 'blue'), ('portable workflow', 'warm')])
+    full, gap = d.pw - 2 * M, 24
+    y += 44
+    d.section(y - 12, 'ONE CALL, SETTLED IN THE OPEN')
+    xs, cw = columns(4, gap=gap, x0=M, w=full)
+    sh = 150
+    steps = [('slate', 'record', 'Record', ['the model submits once', 'no write access after']),
+             ('green', 'candles', 'Trigger', ['canonical daily bars', 'each market’s calendar']),
+             ('green', 'sector', 'Episode', ['one thesis, one episode', 'repeats add no samples'])]
+    for x, (role, icon, name, body) in zip(xs, steps):
+        top = _panel(d, x, y, cw, sh, role, icon, name)
+        d.lines(x + 20, top + 12, cw - 36, [[(row, MUT)] for row in body], cls='m', lh=24, where='settle step')
+    x = xs[3]
+    top = _panel(d, x, y, cw, sh, 'green', 'balance', 'Verdict')
+    used = d.tag(x + 20, top + 8, 'WIN', 'green')
+    d.tag(x + 26 + used, top + 8, 'LOSS', 'warm')
+    d.tag(x + 20, top + 36, 'UNGRADEABLE', 'slate')
+    d.text(x + 20, top + 64, 'all published', 'm', fill=MUT)
+    for i, x in enumerate(xs[:3]):
+        d.wire(f'M{x + cw:g} {y + sh / 2:g}H{x + cw + gap - 2:g}', pulses=(i * .4,), kind=('decision', 'gate', 'gate')[i])
+    s_bottom = y + sh
+
+    y = s_bottom + 52
+    lw = (full - gap) / 2
+    rx_ = M + lw + gap
+    h = 380
+    d.down(xs[1] + cw / 2, s_bottom, y, pulses=(0, 1.1), kind='feedback', carry='record')
+    d.down(xs[3] + cw / 2, s_bottom, y, pulses=(.5, 1.6), kind='feedback', carry='balance')
+    d.section(y - 12, 'ON THE LIVE DESK')
+    top = _panel(d, M, y, lw, h, 'blue', 'cycle', 'A loop around the next brief', 'EVERY DAY')
+    live = [('followed', 'Execution', 'followed / not-followed / unknown'),
+            ('balance', 'Settle', 'wins, losses and ungradeable kept'),
+            ('record', 'History', 'metrics + reviews in the next brief'),
+            ('factor', 'Calibrate', 'earlier dates only · shrink or abstain')]
+    # Four stations at the corners of a loop that closes around the next brief.
+    # Every leg starts and ends on a station, so no stroke runs behind a label.
+    sw_, ch = 168, 32
+    left, right, hi, low = M + 22, M + lw - 22 - sw_, top + 10, top + 202
+    feet = {}
+    for (icon, heading, body), (xx, yy) in zip(live, ((left, hi), (right, hi), (right, low), (left, low))):
+        d.chip(xx, yy, sw_, heading, fill=ROLE['blue'], icon=icon, role='blue', h=ch)
+        feet[heading] = _words(d, xx + sw_ / 2, yy + ch + 24, sw_, [body], lh=21, anchor='middle') - 21
+    legs = [f'M{left + sw_:g} {hi + ch / 2:g}H{right - 2:g}',
+            f'M{right + sw_ / 2:g} {feet["Settle"] + 12:g}V{low - 2:g}',
+            f'M{right:g} {low + ch / 2:g}H{left + sw_ + 2:g}',
+            f'M{left + sw_ / 2:g} {low:g}V{feet["Execution"] + 14:g}']
+    for i, leg in enumerate(legs):
+        d.wire(leg, pulses=(i * .5,), dur=2.4, kind=('money', 'data', 'data', 'feedback')[i],
+               carry=(None, 'balance', 'record', 'factor')[i])
+    cx, cy = M + lw / 2, (feet['Execution'] + low) / 2 + 6
+    d.add(f'<circle cx="{cx:g}" cy="{cy:g}" r="44" fill="{TINT["blue"]}" stroke="{ROLE["blue"]}" '
+          'stroke-width="10" stroke-opacity=".16"/>')
+    d.text(cx, cy - 3, [('Next', ROLE['blue'])], 'b', anchor='middle')
+    d.text(cx, cy + 16, [('brief', ROLE['blue'])], 'b', anchor='middle')
+
+    d.section(y - 12, 'IN ANY OTHER HARNESS', x=rx_)
+    top = _panel(d, rx_, y, lw, h, 'warm', 'branch', 'A reviewed adoption path', 'PORTABLE')
+    portable = [('observe', 'Observed outcome', 'outcome → directional evaluation'),
+                ('propose', 'Bounded proposal', 'evidence requirements only'),
+                ('review', 'Named review', 'accept the exact hash, or reject'),
+                ('apply', 'Adopt with a way back', 'prior values kept for rollback')]
+    # A staircase, not a list: each state sits one step right of the one before,
+    # and each connector drops out of its step and turns into the side of the next.
+    step_w = 286
+    for i, (verb, heading, body) in enumerate(portable):
+        xx, yy = rx_ + 20 + i * 44, top - 8 + i * 80
+        d.add(f'<rect x="{xx:g}" y="{yy:g}" width="{step_w}" height="62" rx="9" fill="{TINT["warm"]}" '
+              f'stroke="{ROLE["warm"]}" stroke-opacity=".18"/>')
+        d.text(xx + 14, yy + 26, heading, 'b')
+        d.tag(xx + step_w - 12, yy + 25, verb.upper(), 'warm', anchor='end')
+        d.text(xx + 14, yy + 48, body, 'm', fill=MUT)
+        fits(body, 'm', step_w - 26, 'adoption step')
+        if i < 3:
+            d.wire(f'M{xx + 22:g} {yy + 62:g}V{yy + 103:g}Q{xx + 22:g} {yy + 111:g} {xx + 30:g} {yy + 111:g}H{xx + 42:g}',
+                   pulses=(i * .4,), kind=('data', 'decision', 'gate')[i], carry=('balance', 'branch', None)[i])
+    bottom = y + h
+    note = ['A directional evaluation is not realized P&L. Only evidence requirements change: no silent strategy edits.',
+            'A diagnostic, not proof of return.']
+    for i, row in enumerate(note):
+        fits(row, 'm', full - 40, 'feedback note')
+        d.text(M + 20, bottom + 36 + i * 22, row, 'm', fill=MUT)
+    return d.render(bottom + 58 + M)
+
+
+# --- the plugin figures: drawn the way the overview is (see "House style") ---
+HAIR, BOLD = 1.5, 2.5          # an axis or a divider; the thing measured on it
 
 
 def _blend(role, share):
-    """A solid tint: `share` of the role colour over white (C2: no transparency)."""
+    """A solid tint: `share` of the role colour over white."""
     ink = ROLE[role].lstrip('#')
     return '#' + ''.join(f'{round(255 + (int(ink[i:i + 2], 16) - 255) * share):02x}' for i in (0, 2, 4))
-
-
-def _polar(cx, cy, r, deg):
-    """A point on a circle, degrees counter-clockwise from three o'clock."""
-    t = math.radians(deg)
-    return cx + r * math.cos(t), cy - r * math.sin(t)
 
 
 def _line(d, path, ink=LINE, width=HAIR):
@@ -1676,652 +2089,529 @@ def _line(d, path, ink=LINE, width=HAIR):
           f'stroke-linecap="round" stroke-linejoin="round"/>')
 
 
-def _node(d, cx, cy, role, icon, r=22):
-    """A flat disc holding a glyph (C4): solid tint, hairline in the role colour."""
-    d.add(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:g}" fill="{TINT[role]}" stroke="{ROLE[role]}" '
-          f'stroke-width="{HAIR:g}"/>')
-    d.icon(icon, cx - 10, cy - 10, role, size=20)
-
-
 def _dot(d, x, y, role, hollow=False, r=5.5):
     d.add(f'<circle cx="{x:.1f}" cy="{y:g}" r="{r:g}" fill="{"#ffffff" if hollow else ROLE[role]}" '
           f'stroke="{ROLE[role]}" stroke-width="{HAIR:g}"/>')
 
 
-def _interval(d, x0, x1, y, role, mid=None):
-    """What was measured, as a span on an axis (C3: the bold weight)."""
-    _line(d, f'M{x0:.1f} {y:g}H{x1:.1f}M{x0:.1f} {y - 6:g}v12M{x1:.1f} {y - 6:g}v12', ROLE[role], BOLD)
-    if mid is not None:
-        _dot(d, mid, y, role)
+def _span(d, x0, x1, y, role):
+    """What was measured, as a capped span on an axis."""
+    _line(d, f'M{x0:.1f} {y:g}H{x1:.1f}M{x0:.1f} {y - 5:g}v10M{x1:.1f} {y - 5:g}v10', ROLE[role], BOLD)
 
 
-def _threshold(d, x, y, role='warm'):
-    _line(d, f'M{x:.1f} {y - 10:g}v20', ROLE[role], BOLD)
+def _tile(d, x, y, w, h, role, strong=False):
+    """A tinted cell inside a pane. `strong` rims the one cell a figure follows."""
+    rim = 'stroke-width="1.5"' if strong else 'stroke-opacity=".18"'
+    d.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="9" fill="{TINT[role]}" '
+          f'stroke="{ROLE[role]}" {rim}/>')
 
 
-def _pill(d, x, y, w, label, role, h=30):
-    """A verdict: the one place a role colour sets text (T3)."""
-    d.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h}" rx="{h / 2:g}" fill="{TINT[role]}" '
-          f'stroke="{ROLE[role]}" stroke-width="{HAIR:g}"/>')
-    d.text(x + w / 2, y + h / 2 + 4.5, [(label, ROLE[role])], 'c', anchor='middle')
-
-
-def _pane(d, x, y, w, h, role, title, icon=None):
-    """A pane with its heading; returns the baseline of its first body line."""
-    d.card(x, y, w, h, role)
-    if icon:
-        d.icon(icon, x + 20, y + 16, role)
-    fits(title, 'h', w - (66 if icon else 40), f'pane {title}')
-    d.text(x + (50 if icon else 20), y + 34, title, 'h')
-    return y + 64
-
-
-def _captions(d, x, y, rows, lh=19):
-    for n, row in enumerate(rows):
-        d.text(x, y + n * lh, row, 'c', fill=MUT)
+def _said(d, x, y, room, rows, where, cls='m', fill=MUT, lh=20):
+    """Lines set as written, each checked against the room it has."""
+    for i, row in enumerate(rows):
+        fits(row, cls, room, where)
+        d.text(x, y + i * lh, row, cls, fill=fill)
     return y + len(rows) * lh
 
 
-def _arrow(d, x, y, towards, ink=LINE):
-    """A small open chevron at the end of a hairline: 1 points right, -1 left."""
-    _line(d, f'M{x - 7 * towards:g} {y - 5:g}L{x:g} {y:g}L{x - 7 * towards:g} {y + 5:g}', ink)
-
-
-def product_architecture():
-    """Three owners, and the three files that cross between two of them."""
-    d = D('clawock product architecture: what your runtime keeps, what clawock keeps, and the three '
-          'files that cross between them',
-          'On the left, what the external runtime keeps: the model, the conversation, memory, tools '
-          'and credentials, in OpenClaw, Claude Code, Codex, DeepSeek Harness or your own CLI. On the '
-          'right, what clawock keeps: the workflow, certified inputs, reconciliation, evaluation and '
-          'bounded improvement. Between them is one contract, and three files cross it: request.json '
-          'from clawock run prepare, decision.json written by the agent, and a receipt from clawock '
-          'run publish. Below, the user instance owns strategy, evidence, ledger, schedules, delivery '
-          'and interface. Drop the opposing evidence from decision.json and publish refuses it.')
-    y = d.header('PRODUCT ARCHITECTURE · RUNTIME NEUTRAL',
-                 ['The runtime thinks. clawock keeps it reconciled.'],
-                 ['Two sides, one contract between them, and three files that cross it.'],
-                 [('your runtime', 'slate'), ('clawock', 'green'), ('your instance', 'blue')]) + 32
-    h = 268
-    left, right = GRID3[0], GRID3[2]
-    top = _pane(d, left, y, THIRD, h, 'slate', 'Your runtime keeps')
-    for i, name in enumerate(('openclaw', 'claude-code', 'codex', 'deepseek-harness', 'any-cli')):
-        d.logo(name, left + 20 + i * 42, top - 8)
-    for n, row in enumerate(('the model', 'the conversation and memory', 'research tools', 'credentials and permissions')):
-        d.text(left + 20, top + 62 + n * 26, row, 'b')
-    d.text(left + 20, y + h - 22, 'clawock starts no model of its own.', 'c', fill=MUT)
-    top = _pane(d, right, y, THIRD, h, 'green', 'clawock keeps')
-    duties = (('Workflow', 'evidence and an opposing case'), ('Certify', 'pinned inputs, hashed'),
-              ('Reconcile', 'orders, cash and FX'), ('Evaluate', 'outcome against price'),
-              ('Improve', 'bounded, reviewed, reversible'))
-    for n, (label, note) in enumerate(duties):
-        d.text(right + 20, top + 2 + n * 38, label, 'b')
-        d.text(right + 20, top + 21 + n * 38, note, 'c', fill=MUT)
-    # The contract: a line down the middle, and the three files that cross it.
-    cx = (left + THIRD + right) / 2
-    x0, x1 = left + THIRD + 14, right - 14
-    _line(d, f'M{cx:g} {y + 8:g}V{y + h - 8:g}', INK, BOLD)
-    d.text(cx + 12, y + 20, 'THE CONTRACT', 'kick', fill=FAINT)
-    crossings = (('request.json', 'run prepare', -1), ('decision.json', 'the agent writes it', 1),
-                 ('a receipt', 'run publish', -1))
-    for n, (name, how, towards) in enumerate(crossings):
-        cy = y + 76 + n * 72
-        if n == 1:                                       # M1: the file the agent writes
-            d.wire(f'M{x0:g} {cy:g}H{x1 - 4:g}', kind='data', dur=3.2)
-        else:
-            _line(d, f'M{x0:g} {cy:g}H{x1:g}')
-            _arrow(d, x0, cy, -1)
-        d.text(x0 + 6, cy - 22, name, 'b')
-        d.text(x0 + 6, cy + 28, how, 'c', fill=MUT)
-    y += h + 24
-    body = _pane(d, M, y, WIDE - 2 * M, 124, 'blue', 'Your instance owns the rest', 'book')
-    d.text(M + 20, body, 'Strategy, evidence, ledger, schedules, delivery and interface, kept in your workspace.', 'b')
-    d.text(M + 20, body + 24, 'The author\'s desk is one live instance. It is proof, not the product.', 'c', fill=MUT)
-    y += 124
-    d.text(M, y + 34, 'Drop the opposing evidence from decision.json and publish refuses it, exit code 1.', 'c',
-           fill=MUT)
-    return d.render(y + 58)
-
-
-def debate_flow():
-    """One real debate: both sides over the same evidence, and a resolution with a name on it."""
-    d = D('The debate: both sides read the same evidence, and the resolution is attributed',
-          'One real debate, Goldwind on 2026-10-08. Four analyst lenses read one evidence pack. A bull '
-          'case and a bear case cite the same two pieces of evidence: the leveraged exposure of the '
-          'Hong Kong book and the distance from the 200-day average. The bear must name the consensus '
-          'it attacks. Three risk voices follow, aggressive, conservative and neutral, and a judge '
-          'names the frame behind the call, relative strength, and writes the plan: watch, act only '
-          'above 8.97, dead at 8.923, confidence 0.34, marked contested. Without an opposing case '
-          'that cites evidence, publication is refused.')
-    y = d.header('THE DEBATE · HK + US',
-                 ['Disagreement is required. The resolution is attributed.'],
-                 [f'One real debate: {CALL["name"]}, {CALL["date"]}.'],
-                 [('the evidence both cite', 'blue'), ('the case for', 'green'), ('the case against', 'warm')]) + 32
-    h = 232
-    top = _pane(d, GRID3[0], y, THIRD, h, 'green', 'Bull', 'up')
-    _captions(d, GRID3[0] + 20, top, ['The only peer with a confirmation', 'price you could act on. The book',
-                                      'holds little outside HK tech and AI.', 'One lot is under 3% of the HK',
-                                      'book: wrong would not hurt much.'])
-    top = _pane(d, GRID3[2], y, THIRD, h, 'warm', 'Bear', 'down')
-    _captions(d, GRID3[2] + 20, top, ['Trend off, 31.8% under the 200-day', 'average, and four risk limits',
-                                      'already tripped. New exposure here', 'trades the weakest position for',
-                                      'the weakest evidence.'])
-    d.text(GRID3[2] + 20, y + h - 22, 'It must name the consensus it attacks.', 'c', fill=MUT)
-    mx = GRID3[1] + THIRD / 2
-    d.text(GRID3[1] + 20, y + 20, 'BOTH CITE THE SAME EVIDENCE', 'kick', fill=FAINT)
-    for n, (icon, label, note) in enumerate((('shield', 'risk', 'leveraged exposure, HK book'),
-                                             ('factor', 'factor', 'distance from the 200-day average'))):
-        ey = y + 84 + n * 84
-        _line(d, f'M{GRID3[0] + THIRD + 6:g} {ey:g}H{mx - 24:g}')
-        if n:
-            _line(d, f'M{mx + 24:g} {ey:g}H{GRID3[2] - 6:g}')
-        else:                                            # M1: the evidence the bear case has to cite
-            d.wire(f'M{mx + 24:g} {ey:g}H{GRID3[2] - 4:g}', kind='data', dur=3.2)
-        _node(d, mx, ey, 'blue', icon)
-        d.text(mx, ey + 42, note, 'c', anchor='middle', fill=MUT)
-    y += h + 24
-    jh = 128
-    body = _pane(d, M, y, WIDE - 2 * M, jh, 'blue', 'Judge: watch, and pin the trigger before the price gets there',
-                 'judge')
-    d.text(M + 20, body, 'Act only above 8.97 within five sessions. Dead at 8.923. Confidence 0.34, marked contested.', 'b')
-    d.text(M + 20, body + 24, 'The judge names the frame behind the call: relative strength.', 'c', fill=MUT)
-    y += jh + 24
-    vh = 150
-    top = _pane(d, GRID2[0], y, CW, vh, 'blue', 'Four lenses read the pack first')
-    for n, (icon, label) in enumerate((('lens', 'Fundamental'), ('factor', 'Technical'),
-                                       ('pulse', 'Sentiment'), ('sector', 'Sector rotation'))):
-        lx, ly = GRID2[0] + 20 + (n % 2) * 216, top + 8 + (n // 2) * 40
-        d.icon(icon, lx, ly - 14, 'blue')
-        d.text(lx + 32, ly + 3, label, 'b')
-    top = _pane(d, GRID2[1], y, CW, vh, 'blue', 'Three risk voices speak before the judge')
-    for n, (icon, label) in enumerate((('up', 'Aggressive'), ('shield', 'Conservative'), ('even', 'Neutral'))):
-        lx = GRID2[1] + 20 + n * 144
-        d.icon(icon, lx, top - 6, 'blue')
-        d.text(lx + 32, top + 11, label, 'b')
-    d.text(GRID2[1] + 20, y + vh - 22, 'The first voice rotates every four trading days.', 'c', fill=MUT)
-    y += vh
-    d.text(M, y + 34, 'Without an opposing case that cites evidence, publication is refused.', 'c', fill=MUT)
-    return d.render(y + 58)
-
-
-def information_flow():
-    """Eight layers come in; no run is handed all of them; a source that fails says so."""
-    d = D('Information: eight layers come in, and no run is handed all of them',
-          'Eight information layers: market, filings, capital flow, news, macro and mood, quant and '
-          'risk, book and FX, backtest. Critical sources have fallbacks tried in order: Hong Kong '
-          'quotes from Tencent and Eastmoney, then stooq, then yfinance; US quotes from Nasdaq through '
-          'six further routes; USD/HKD from Frankfurter, then exchangerate.host, then Yahoo. A source '
-          'that fails is printed as not fetched, never as no news. A grid shows what each run is '
-          'handed: the pre-open brief receives every kind of block in full, while session reports and '
-          'intraday check-ins receive narrower cuts and no history. The model reads those files and '
-          'does not fetch; code checks the result before anything is sent.')
-    y = d.header('DATA FLOW · HK + US',
-                 ['Eight layers come in. No run is handed all of them.'],
-                 ['Code fetches, reconciles and decides what each run may read. The model reads; it does not fetch.'],
-                 [('a layer, a block', 'blue'), ('handed over in full', 'green'), ('not fetched', 'warm')]) + 32
-    full = WIDE - 2 * M
-
-    # --- eight layers --------------------------------------------------------
-    d.section(y, 'EIGHT LAYERS COME IN')
-    layers = (('market', 'Quotes'), ('filing', 'Filings'), ('bars', 'Capital flow'), ('news', 'News'),
-              ('calendar', 'Macro, mood'), ('factor', 'Quant, risk'), ('fx', 'USD/HKD, book'), ('replay', 'Backtest'))
-    pitch = full / 8
-    for index, (icon, label) in enumerate(layers):
-        nx, ny = M + pitch / 2 + index * pitch, y + 46
-        _node(d, nx, ny, 'blue', icon)
-        d.text(nx, ny + 44, label, 'c', anchor='middle')
-    y += 46 + 44 + 16
-    d.wire(f'M{M + pitch / 2:g} {y:g}V{y + 52:g}', kind='data', dur=3.2)
-    y += 56
-
-    # --- fallbacks, and what a failure looks like ----------------------------
-    h = 214
-    top = _pane(d, GRID2[0], y, CW, h, 'blue', 'Critical sources fall back, in order')
-    chains = (('HK quotes', 3, 'Tencent + Eastmoney, then stooq, yfinance'),
-              ('US quotes', 7, 'Nasdaq first, then six further routes'),
-              ('USD/HKD', 3, 'Frankfurter, exchangerate.host, Yahoo'))
-    for n, (label, count, note) in enumerate(chains):
-        ly = top + 6 + n * 46
-        d.text(GRID2[0] + 20, ly + 5, label, 'b')
-        x0 = GRID2[0] + 124
-        _line(d, f'M{x0:g} {ly:g}H{x0 + (count - 1) * 24:g}')
-        for k in range(count):
-            _dot(d, x0 + k * 24, ly, 'blue', hollow=k > 0)
-        d.text(x0 - 6, ly + 26, note, 'c', fill=MUT)
-    top = _pane(d, GRID2[1], y, CW, h, 'warm', 'A source that fails says so')
-    _pill(d, GRID2[1] + 20, top - 8, 108, 'not fetched', 'warm')
-    d.text(GRID2[1] + 144, top + 12, 'never printed as "no news"', 'b')
-    _captions(d, GRID2[1] + 20, top + 54, ['An empty fetch keeps the earlier value and says how old it is.',
-                                         'Old news is labelled apart from what is live.'], lh=24)
-    y += h + 24
-
-    # --- what each run is handed --------------------------------------------
-    rows = (('Position truth', 2, 2, 2), ('Risk', 2, 1, 1), ('Signals', 2, 1, 2), ('News and events', 2, 1, 1),
-            ('Research state', 2, 1, 1), ('History', 2, 0, 1), ('Today\'s plan', 2, 1, 1))
-    mh = 96 + len(rows) * 34 + 56
-    top = _pane(d, M, y, full, mh, 'green', 'What each run is handed')
-    cols = (M + 300, M + 520, M + 740)
-    for cx, (icon, label) in zip(cols, (('sunrise', 'Brief, pre-open'), ('clipboard', 'Session reports'),
-                                        ('clock', 'Intraday check-ins'))):
-        d.icon(icon, cx - 11, top - 8, 'blue')
-        d.text(cx + 19, top + 9, label, 'b')
-    for n, (label, *given) in enumerate(rows):
-        ry = top + 50 + n * 34
-        _line(d, f'M{M + 20:g} {ry + 17:g}H{M + full - 20:g}', CARD_STROKE)
-        d.text(M + 20, ry + 5, label, 'b')
-        for cx, level in zip(cols, given):
-            if level:
-                _dot(d, cx, ry, 'green', hollow=level == 1, r=7)
-            else:
-                _line(d, f'M{cx - 7:g} {ry:g}h14')
-    ky = y + mh - 24
-    _dot(d, M + 27, ky - 4, 'green', r=7)
-    d.text(M + 44, ky, 'in full', 'c', fill=MUT)
-    _dot(d, M + 127, ky - 4, 'green', hollow=True, r=7)
-    d.text(M + 144, ky, 'a narrower cut: flagged names, or only when signals ask', 'c', fill=MUT)
-    _line(d, f'M{M + 560:g} {ky - 4:g}h14')
-    d.text(M + 584, ky, 'not handed over', 'c', fill=MUT)
-    y += mh
-    d.text(M, y + 34, 'The model reads these files and does not fetch. Code checks the result before anything is sent.',
-           'c', fill=MUT)
-    return d.render(y + 58)
-
-
-def feedback_learning():
-    """One call on the calendar, the three things it can become, and where the verdict goes."""
-    call = CALL
-    d = D('After the close: code settles the call and the record feeds the next one',
-          'One real call on its market calendar: Goldwind, published 2026-10-08 by the model, '
-          'marked by code at the next close 4.22 percent lower and settled as a loss; its five and '
-          'twenty session marks are not reached yet. A call ends as a win, a loss or ungradeable, '
-          'and all three are published; an ungradeable call stays out of the hit rate instead of '
-          'being guessed. On the live desk execution, settlement, history and calibration feed the '
-          'next brief. In any other harness an observed outcome can anchor a bounded proposal that '
-          'a named review accepts or rejects, applied with a way back. A directional evaluation is '
-          'not realized P&L and nothing here promises returns.')
-    y = d.header('AFTER THE CLOSE · SETTLE, THEN LEARN',
-                 ['Code settles the call. The record teaches the next one.'],
-                 ['Wins, losses and the calls that cannot be graded all stay on the page.'],
-                 [('written once, by the model', 'blue'), ('a win', 'green'), ('a loss', 'warm')]) + 32
-    full = WIDE - 2 * M
-
-    # --- one call on its calendar -------------------------------------------
-    h = 204
-    top = _pane(d, M, y, full, h, 'blue', f'One call on the calendar: {call["name"]}', 'candles')
-    ay = top + 44
-    stops = [M + 60 + index * (full - 320) / 3 for index in range(4)]
-    _line(d, f'M{stops[0]:g} {ay:g}H{stops[3] + 40:g}')
-    marks = (('published', call['date'], 'blue', False), ('next close', '−4.22%', 'warm', False),
-             ('5 sessions', 'not reached', 'blue', True), ('20 sessions', 'not reached', 'blue', True))
-    for x, (label, value, role, hollow) in zip(stops, marks):
-        _dot(d, x, ay, role, hollow=hollow, r=7)
-        d.text(x - 7, ay - 22, label, 'b')
-        d.text(x - 7, ay + 30, value, 'c', fill=MUT)
-    _line(d, f'M{stops[0]:g} {ay:g}H{stops[1]:g}', ROLE['warm'], BOLD)
-    _dot(d, stops[0], ay, 'blue', r=7)
-    _dot(d, stops[1], ay, 'warm', r=7)
-    _pill(d, stops[1] + 84, ay + 10, 70, 'loss', 'warm')
-    d.text(M + 20, y + h - 22, 'The model wrote this call once. From there on, only code touches it.', 'c',
-           fill=MUT)
-    y += h + 24
-
-    # --- the three things a call becomes ------------------------------------
-    verdicts = (('green', 'closed', 'Win', ['It went the call\'s way by the mark.', 'Published.']),
-                ('warm', 'down', 'Loss', ['It did not. Published the same way,', 'on the same page.']),
-                ('blue', 'even', 'Ungradeable', ['No clean price to mark it on.', 'Published; kept out of the hit rate.']))
-    for x, (role, icon, title, lines) in zip(GRID3, verdicts):
-        body = _pane(d, x, y, THIRD, 116, role, title, icon)
-        _captions(d, x + 20, body, lines)
-    y += 116 + 24
-
-    # --- where the verdict goes ---------------------------------------------
-    h = 262
-    top = _pane(d, GRID2[0], y, CW, h, 'blue', 'On the desk, the next brief starts here', 'cycle')
-    steps = (('followed', 'Execution', 'followed, not followed or unknown'),
-             ('balance', 'Settle', 'wins, losses and ungradeable kept'),
-             ('record', 'History', 'metrics and past reviews'),
-             ('factor', 'Calibrate', 'on earlier dates only'))
-    lx = GRID2[0] + 64
-    for index, (icon, label, note) in enumerate(steps):
-        ly = top + 4 + index * 44
-        d.icon(icon, lx, ly - 12, 'blue')
-        d.text(lx + 32, ly + 5, label, 'b')
-        d.text(lx + 150, ly + 4.5, note, 'c', fill=MUT)
-    d.wire(f'M{lx - 8:g} {top + 4 + 3 * 44:g}H{lx - 30:g}V{top + 4:g}H{lx - 10:g}', kind='feedback', dur=3.6)
-    top = _pane(d, GRID2[1], y, CW, h, 'green', 'In any other harness, a reviewed change')
-    rx, ry = GRID2[1] + 36, top + 122
-    stairs = (('Observe', 'an outcome'), ('Propose', 'a bounded change'), ('Review', 'accept or reject'),
-              ('Apply', 'with a way back'))
-    path = f'M{rx:g} {ry:g}'
-    for index, (label, note) in enumerate(stairs):
-        sx, sy = rx + index * 104, ry - index * 36
-        path += f'H{sx + 104:g}' + (f'V{sy - 36:g}' if index < 3 else '')
-        _dot(d, sx + 8, sy, 'green', r=6)
-        d.text(sx + 2, sy - 18, label, 'b')
-        d.text(sx + 2, sy + 24, note, 'c', fill=MUT)
-    _line(d, path, ROLE['green'])
-    d.text(GRID2[1] + 20, y + h - 22, 'Only evidence requirements change. Strategy does not.', 'c', fill=MUT)
-    y += h
-    d.text(M, y + 34, 'A directional evaluation is not realized P&L. A diagnostic, not proof of return.', 'c',
-           fill=MUT)
-    return d.render(y + 58)
-
-
-def proposal_review():
-    """Two checks can stop a proposal, an objection cannot, and the record keeps all of them."""
-    d = D('Open proposals: two checks can stop one, an objection cannot, and all of them are kept',
-          'A proposal passes two checks that can stop it: facts, and feasibility. Each refusal '
-          'is a recorded outcome. A strategy objection stays attached to the proposal and does '
-          'not stop it. Published, refused and unpublished proposals all enter the method record. '
-          'From that record, payoff and forecast score are read on two separate axes, and a frozen '
-          'trial runs three arms forward from the same capital with missing marks left as holes. '
-          'Nothing is promoted and no order is placed.')
-    y = d.header('CLAWOCK · PROPOSALS AND EVIDENCE',
-                 ['A different strategy can still be a valid proposal.'],
-                 ['Code checks facts and authority. The model owns the hypothesis.'],
-                 [('the proposal', 'blue'), ('can stop it, or passes', 'green'),
-                  ('refused, or objected to', 'warm')]) + 32
-    full = WIDE - 2 * M
-
-    # --- one proposal on its way to publication ----------------------------
-    top = _pane(d, M, y, full, 296, 'blue', 'One proposal, two checks that can stop it', 'lens')
-    track = top + 62
-    x0, x1 = M + 40, M + full - 164
-    gates = ((M + 250, 'Facts', ['real citations and prices,', 'sums that replay']),
-             (M + 500, 'Feasibility', ['cash, shares, lots,', 'authority in force']))
-    _line(d, f'M{x0:g} {track:g}H{gates[1][0]:g}')
-    d.wire(f'M{gates[1][0]:g} {track:g}H{x1 - 4:g}', kind='data', dur=3.2)
-    _dot(d, x0, track, 'blue', r=7)
-    d.text(x0 - 16, track - 22, 'a proposal', 'b')
-    _captions(d, x0 - 16, track + 30, ['hypothesis, action,', 'size and forecast'])
-    for gx, title, lines in gates:
-        _line(d, f'M{gx:g} {track - 16:g}v32', ROLE['green'], BOLD)
-        d.text(gx + 14, track - 22, title, 'b')
-        _captions(d, gx + 14, track + 30, lines)
-        _line(d, f'M{gx:g} {track + 16:g}V{track + 82:g}')
-        _pill(d, gx - 42, track + 82, 84, 'refused', 'warm')
-    fx = M + 700
-    _line(d, f'M{fx:g} {track:g}V{track - 48:g}', ROLE['warm'])
-    _dot(d, fx, track - 48, 'warm', hollow=True)
-    d.text(fx + 14, track - 58, 'Strategy objection', 'b')
-    _captions(d, fx + 14, track - 39, ['stays attached; cannot stop it'])
-    _pill(d, x1, track - 14, 104, 'published', 'green')
-    _line(d, f'M{x1 + 52:g} {track + 14:g}V{track + 82:g}')
-    _pill(d, x1 - 2, track + 82, 108, 'unpublished', 'blue')
-    d.text(M + 20, y + 296 - 22, 'Every outcome enters the method record. A refused proposal still counts.', 'c',
-           fill=MUT)
-    y += 296 + 24
-
-    # --- two readings of the record ----------------------------------------
-    h = 226
-    left = _pane(d, GRID2[0], y, CW, h, 'blue', 'Read the record on two axes', 'record')
-    ax0, ax1 = GRID2[0] + 150, GRID2[0] + CW - 24
-    dots = ((.16, .58, .38, .80, .50), (.72, .28, .60, .20, .44))
-    for row, (label, note) in enumerate((('payoff', 'per episode, after assumed costs'),
-                                         ('forecast score', 'was the stated probability right'))):
-        ay = left + 12 + row * 62
-        d.text(GRID2[0] + 20, ay + 5, label, 'b')
-        _line(d, f'M{ax0:g} {ay:g}H{ax1:g}M{(ax0 + ax1) / 2:g} {ay - 6:g}v12')
-        for at in dots[row]:
-            _dot(d, ax0 + at * (ax1 - ax0), ay, 'blue')
-        _captions(d, ax0, ay + 26, [note])
-    d.text(GRID2[0] + 20, y + h - 22, 'A call can be right and lose money. The two are never merged.', 'c',
-           fill=MUT)
-    right = _pane(d, GRID2[1], y, CW, h, 'green', 'Freeze a comparison going forward', 'replay')
-    lx = GRID2[1] + 20
-    start = GRID2[1] + 170
-    for row, (label, missing) in enumerate((('old policy', ()), ('observations', (3,)),
-                                            ('policy reference', (1, 4)))):
-        ay = right + 8 + row * 38
-        d.text(lx, ay + 5, label, 'b')
-        _line(d, f'M{start:g} {ay:g}H{GRID2[1] + CW - 24:g}')
-        for index in range(7):
-            _dot(d, start + 22 + index * 38, ay, 'green', hollow=index in missing)
-    _line(d, f'M{start:g} {right - 10:g}V{right + 102:g}', INK)
-    d.text(lx, y + h - 22, 'Same capital and costs. A missing mark stays a hole.', 'c',
-           fill=MUT)
-    y += h
-    d.text(M, y + 34, 'Evidence for human review: no automatic method promotion, sizing or order placement.',
-           'c', fill=MUT)
-    return d.render(y + 58)
-
-
-#: The live rows: (row id, glyph). The first is the one the figure follows.
-LIVE_ROWS = (
-    ('factors', 'factor'), ('bar-signals', 'bars'), ('sentiment', 'pulse'),
-    ('morning-scans', 'news'), ('signal-panel', 'sector'), ('strategy-scores', 'lens'),
-    ('daily-bars', 'candles'), ('add-policy', 'layers'), ('add-alpha', 'branch'),
-    ('add-side', 'scan'), ('left-side', 'commit'), ('preposition', 'clock'),
-    ('intraday-policy', 'alarm'),
+#: The five rows whose readings reach a decision: (row id, glyph, what it measures).
+#: The first is the one the figure follows.
+READING_ROWS = (
+    ('factors', 'factor', 'trend · momentum'), ('bar-signals', 'candles', 'cost · likely move'),
+    ('sentiment', 'pulse', 'Reddit · statements'), ('morning-scans', 'news', 'macro · China news'),
+    ('strategy-scores', 'lens', 'rank per strategy'),
 )
+#: The other eight live rows in config/strategy-plugins.json: bars, the panel, the add-side policies.
+OTHER_ROWS = ('daily-bars', 'signal-panel', 'add-policy', 'add-alpha',
+              'add-side', 'left-side', 'preposition', 'intraday-policy')
 #: One real call, `dec-6d9e8bdc8817` in memory/decisions.jsonl: Goldwind, 2026-10-08.
-CALL = {'name': 'Goldwind · 02208', 'date': '2026-10-08', 'reading': 'trend off, 31.8% under its 200-day average',
-        'act': 8.97, 'dead': 8.923, 'reference': 8.645, 'next_pct': -4.2221, 'confidence': '0.34',
-        'id': 'dec-6d9e8bdc8817'}
+CALL = {'name': 'Goldwind · 02208', 'date': '2026-10-08', 'under_ma200_pct': 31.8,
+        'act': 8.97, 'dead': 8.923, 'sessions': 5, 'reference': 8.645, 'next_pct': -4.2221,
+        'confidence': 0.34, 'outcome': 'loss', 'id': 'dec-6d9e8bdc8817'}
 
 
 def strategy_plugins():
-    """One real call drawn across the line between what is a row and what is not."""
+    """One real call, step by step: the step that is a row, and the steps that are not."""
     call = CALL
-    d = D('Plugins: one real call, and the line between what you can swap and what judges it',
-          'Above a line, thirteen live rows, each in one socket; any of them can be swapped. One, '
-          'the factors row, computed a reading for Goldwind on 2026-10-08: trend off, 31.8 percent '
-          'under its 200-day average. In the middle, your agent argued a bull case and a bear case '
-          'over that reading and wrote a plan: watch, act only above 8.97 within five sessions, dead '
-          'at 8.923, confidence 0.34. Below the line is what is not a row: code took 8.645 as the '
-          'reference, the first tradable price after publication, marked the next close 4.22 percent '
-          'lower, called it a loss, and kept it on the public ledger. No row can change that part.')
+    d = D('Plugins: one real call, the step you can swap and the steps that judge it',
+          'Five numbered steps of one real call, Goldwind on 2026-10-08. One: thirteen live rows, '
+          'each in one socket, any of which can be swapped; five of them hand readings to a '
+          'decision, and the factors row computed Goldwind\'s: trend off, 31.8 percent under its '
+          '200-day average. Two: the model argued a bull case and a bear case over that reading. '
+          'Three: the plan on paper, watch, act only above 8.97 within five sessions, dead at '
+          '8.923, confidence 0.34. Below a line marked "not rows": four, code took 8.645 as the '
+          'reference, marked the next close 4.22 percent lower and called it a loss; five, the '
+          'loss went back onto the public ledger that the next brief reads. No row can mark its '
+          'own call, pick a kinder reference, change the outcome or keep it off the ledger.')
     y = d.header('CLAWOCK · PLUGINS',
                  ['Swap what computes. Not what a result is allowed to do.'],
-                 [f'One real call, {call["name"]}, {call["date"]}: what was a row, and what was not.'],
-                 [('rows and their readings', 'blue'), ('the case for; the trigger', 'green'),
-                  ('the case against; the loss', 'warm')]) + 32
+                 [f'One real call, {call["name"]}, {call["date"]}: which step was a row, and which were not.'],
+                 [('rows · swap any', 'blue'), ('agent · LLM', 'slate'), ('code · not a row', 'green'),
+                  ('the case against · the loss', 'warm'), ('the record', 'violet')])
+    full, gap = d.pw - 2 * M, 24
 
-    # --- above the line: rows, any of which can be swapped ------------------
-    d.section(y, 'ROWS · SWAP ANY OF THEM')
-    pitch, r = (WIDE - 2 * M) / 7, 22
-    first = None
-    for index, (label, icon) in enumerate(LIVE_ROWS):
-        col, row = index % 7, index // 7
-        # The second shelf sits half a pitch in, under the gaps of the first.
-        nx, ny = M + pitch / 2 + col * pitch + (pitch / 2 if row else 0), y + 46 + row * 92
-        _node(d, nx, ny, 'blue', icon, r)
-        if index == 0:
-            d.add(f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{r + 5:g}" fill="none" stroke="{ROLE["blue"]}" '
-                  f'stroke-width="{BOLD:g}"/>')
-            first = (nx, ny)
-        d.text(nx, ny + r + 22, label, 'c', anchor='middle')
-    fx, fy = first
-    y += 46 + 92 + r + 22 + 40
-    d.wire(f'M{fx - 44:.1f} {fy:.1f}H{M + 6:g}V{y + 30:g}H{M + 28:g}', kind='data', dur=3.6)
-    d.text(M + 40, y + 24, call['name'], 'h')
-    d.text(M + 40, y + 46, f'the factors row read its daily bars: {call["reading"]}', 'b')
+    # --- 01: the rows, and the one reading this call started from ----------------
+    y += 44
+    ah = 346
+    d.section(y - 12, '01 · A ROW COMPUTED ITS NUMBERS')
+    top = _panel(d, M, y, full, ah, 'blue', 'layers', 'Thirteen rows, one socket each', 'SWAP ANY OF THEM')
+    d.text(M + 20, top, 'READINGS THAT REACH A DECISION · 5', 'kick', fill=ROLE['blue'])
+    xs, cw = columns(5, gap=8, x0=M + 16, w=full - 32)
+    for i, (x, (name, icon, measures)) in enumerate(zip(xs, READING_ROWS)):
+        _tile(d, x, top + 14, cw, 76, 'blue', strong=not i)
+        d.icon(icon, x + 12, top + 23, 'blue', size=20)
+        d.text(x + 12, top + 62, name, 'b')
+        d.text(x + 12, top + 80, measures, 'm', fill=MUT)
+        fits(name, 'b', cw - 20, 'reading row')
+        fits(measures, 'm', cw - 20, 'reading row measures')
+    # What the first of them handed over, hung under it.
+    ry, rw = top + 136, 356
+    d.add(f'<path d="M{M + 40} {top + 90:g}V{ry - 4:g}" fill="none" stroke="{ROLE["blue"]}" stroke-width="1.5" '
+          f'marker-end="url(#arr)"/>')
+    d.text(M + 60, top + 120, 'WHAT FACTORS HANDED OVER', 'kick', fill=ROLE['blue'])
+    _tile(d, M + 16, ry, rw, 92, 'blue', strong=True)
+    d.text(M + 30, ry + 28, call['name'], 'h')
+    d.tag(M + 16 + rw - 14, ry + 26, 'TREND OFF', 'warm', anchor='end')
+    # The price as a share of its own 200-day average: the bar is the average.
+    bar = rw - 28
+    d.add(f'<rect x="{M + 30}" y="{ry + 42:g}" width="{bar}" height="5" rx="2.5" fill="#ffffff"/>')
+    d.add(f'<rect x="{M + 30}" y="{ry + 42:g}" width="{bar * (1 - call["under_ma200_pct"] / 100):g}" height="5" '
+          f'rx="2.5" fill="{ROLE["blue"]}" fill-opacity=".6"/>')
+    reading = f'price {call["under_ma200_pct"]}% under its 200-day average'
+    fits(reading, 'm', bar, 'reading')
+    d.text(M + 30, ry + 72, reading, 'm')
+    ox = M + 16 + rw + gap
+    d.text(ox, top + 120, 'BARS, THE PANEL AND THE ADD-SIDE POLICIES · 8', 'kick', fill=ROLE['blue'])
+    xs, cw = columns(4, gap=8, x0=ox, w=M + full - 16 - ox)
+    for i, name in enumerate(OTHER_ROWS):
+        d.chip(xs[i % 4], ry + (i // 4) * 38, cw, name)
+    _said(d, ox, ry + 90, M + full - 20 - ox,
+          ['A row turns inputs into a reading, and nothing more.'], 'row note')
+    _said(d, M + 20, y + ah - 22, full - 40,
+          ['A row declares its inputs, its units and what it holds when it cannot measure. A broken row fails alone.'],
+          'rows footer')
 
-    # --- the argument: your agent, over that reading -------------------------
-    y += 46 + 40
-    d.section(y, 'YOUR AGENT ARGUES OVER THE READING')
-    cases = (('green', 'up', 'Bull', ['The only peer with a confirmation', 'price you could act on, and the book',
-                                      'holds little outside HK tech and AI.']),
-             ('warm', 'down', 'Bear', ['Trend off, four risk limits already', 'tripped: the weakest position on',
-                                       'the weakest evidence.']),
-             ('blue', 'judge', 'Judge: the plan', ['Watch. Act only above 8.97 within', 'five sessions. Dead at 8.923.',
-                                                   'Confidence 0.34.']))
-    for x, (role, icon, title, lines) in zip(GRID3, cases):
-        body = _pane(d, x, y + 16, THIRD, 132, role, title, icon)
-        _captions(d, x + 20, body, lines)
-    y += 16 + 132 + 48
+    # --- 02 and 03: the argument over that reading, and the plan it left ---------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    bw = 584
+    bx2, bw2 = M + bw + gap, full - bw - gap
+    bull = ('The only one of its peers with a confirmation price you could act on, '
+            'and the book has almost nothing that is not Hong Kong tech or AI.')
+    bear = ('Trend off, 31.8% under the average, four risk limits already tripped: '
+            'adding the weakest position on the weakest evidence.')
+    xs, cw = columns(2, gap=12, x0=M + 16, w=bw - 32)
+    cases = [(name, icon, role, _wrap(case, 'm', cw - 28))
+             for name, icon, role, case in (('Bull', 'up', 'green', bull), ('Bear', 'down', 'warm', bear))]
+    th = 46 + 20 * max(len(lines) for *_, lines in cases)
+    bh = 62 + th + 58
+    d.down(M + 330, a_bottom, y, pulses=(0, 1.1), kind='data', carry='factor')
+    d.section(y - 12, '02 · THE MODEL ARGUED BOTH SIDES')
+    top = _panel(d, M, y, bw, bh, 'slate', 'debate', 'Two cases over one reading', 'LLM · READ ONLY')
+    for x, (name, icon, role, lines) in zip(xs, cases):
+        _tile(d, x, top - 12, cw, th, role)
+        d.icon(icon, x + cw - 36, top - 2, role)
+        d.text(x + 14, top + 14, [(name, ROLE[role])], 'h')
+        _said(d, x + 14, top + 38, cw - 28, lines, f'{name} case')
+    d.icon('judge', M + 20, y + bh - 40, 'slate', size=20)
+    verdict = ' watch, and write the trigger down before price gets there'
+    fits('Judge' + verdict, 'm', bw - 70, 'judge')
+    d.text(M + 50, y + bh - 24, [('Judge', INK), (verdict, MUT)], 'm')
+    d.section(y - 12, '03 · THE PLAN', x=bx2)
+    top = _panel(d, bx2, y, bw2, bh, 'slate', 'clipboard', 'Specific enough to be wrong')
+    rows = [('action', 'watch'), ('act only above', f'{call["act"]}'),
+            ('within', f'{call["sessions"]} sessions'), ('dead at', f'{call["dead"]}')]
+    for i, (key, value) in enumerate(rows):
+        yy = top + i * 30
+        d.text(bx2 + 20, yy, key, 'm', fill=MUT)
+        d.text(bx2 + bw2 - 20, yy, value, 'b', anchor='end')
+        d.add(f'<path d="M{bx2 + 20:g} {yy + 10:g}H{bx2 + bw2 - 20:g}" stroke="{CARD_STROKE}"/>')
+    yy = top + len(rows) * 30
+    d.text(bx2 + 20, yy, 'confidence', 'm', fill=MUT)
+    d.text(bx2 + bw2 - 20, yy, f'{call["confidence"]} · contested', 'b', anchor='end')
+    d.add(f'<rect x="{bx2 + 20:g}" y="{yy + 9:g}" width="{bw2 - 40:g}" height="5" rx="2.5" fill="{CHIP}"/>')
+    d.add(f'<rect x="{bx2 + 20:g}" y="{yy + 9:g}" width="{(bw2 - 40) * call["confidence"]:g}" height="5" rx="2.5" '
+          f'fill="{ROLE["slate"]}" fill-opacity=".6"/>')
+    _said(d, bx2 + 20, y + bh - 44, bw2 - 36,
+          ['A number the market can prove wrong,', 'on paper before the price gets there.'], 'plan note')
+    d.wire(f'M{M + bw:g} {y + bh / 2:g}H{bx2 - 2:g}', pulses=(0,), kind='decision')
 
-    # --- the line, and what is under it --------------------------------------
-    _line(d, f'M{M} {y:g}H{WIDE - M}', INK, BOLD)
-    d.section(y + 30, 'NOT ROWS · THE SAME CODE JUDGES EVERY STRATEGY')
-    y += 46
-    h = 208
-    top = _pane(d, GRID2[0], y, CW, h, 'warm', 'Code settled it', 'balance')
-    ax0, ax1, lo, hi = GRID2[0] + 36, GRID2[0] + CW - 36, 8.20, 9.05
+    # --- the line: from here down nothing is a row -------------------------------
+    b_bottom = y + bh
+    line = 'NOT ROWS FROM HERE DOWN · THE SAME CODE JUDGES EVERY STRATEGY'
+    edge = M + width(line, 'kick') + 14
+    d.text(M, b_bottom + 34, line, 'kick', fill=ROLE['green'])
+    _line(d, f'M{edge:g} {b_bottom + 30:g}H{d.pw - M}', ROLE['green'], BOLD)
+    y = b_bottom + 92
+    ch, w5 = 290, 400
+    x4, w4 = M + w5 + gap, full - w5 - gap
+    d.down(bx2 + bw2 / 2, b_bottom, y, pulses=(0, 1.3), kind='decision')
+
+    # --- 04: settled on a price axis, by code ------------------------------------
+    d.section(y - 12, '04 · CODE SETTLED IT', x=x4)
+    top = _panel(d, x4, y, w4, ch, 'green', 'balance', 'Code settled it', 'NOT THE MODEL · NOT THE ROW')
+    ax0, ax1, lo, hi = x4 + 36, x4 + w4 - 36, 8.20, 9.10
+
     def px(price):
         return ax0 + (price - lo) / (hi - lo) * (ax1 - ax0)
-    ay = top + 46
+    ay = top + 34
     close = call['reference'] * (1 + call['next_pct'] / 100)
     _line(d, f'M{ax0:g} {ay:g}H{ax1:g}')
-    _interval(d, px(close), px(call['reference']), ay, 'warm')
-    _dot(d, px(call['reference']), ay, 'blue')
+    _span(d, px(close), px(call['reference']), ay, 'warm')
+    _dot(d, px(call['reference']), ay, 'green')
     _dot(d, px(close), ay, 'warm')
-    _threshold(d, px(call['act']), ay, 'green')
-    _threshold(d, px(call['dead']), ay, 'warm')
-    d.text(px(call['reference']), ay - 20, 'reference 8.645', 'c', anchor='middle')
-    d.text(px(close), ay - 20, 'next close', 'c', anchor='middle')
-    d.text(px(close), ay + 28, '−4.22%', 'c', anchor='middle')
-    d.text(px(call['act']) + 8, ay - 20, 'act 8.97', 'c')
-    d.text(px(call['dead']) - 8, ay + 28, 'dead 8.923', 'c', anchor='middle')
-    d.text(GRID2[0] + 20, y + h - 44, 'The first tradable price after publication,', 'c', fill=MUT)
-    d.text(GRID2[0] + 20, y + h - 25, 'marked at the close of the next session.', 'c', fill=MUT)
-    top = _pane(d, GRID2[1], y, CW, h, 'warm', 'The record kept it', 'record')
-    _pill(d, GRID2[1] + 20, top - 6, 76, 'loss', 'warm')
-    d.text(GRID2[1] + 110, top + 14, call['id'], 'b')
-    _captions(d, GRID2[1] + 20, top + 52, ['On the public ledger, and counted by the', 'track record the next brief reads.'])
-    d.text(GRID2[1] + 20, y + h - 44, 'No row can mark its own call, move the', 'c', fill=MUT)
-    d.text(GRID2[1] + 20, y + h - 25, 'reference, change the outcome or leave it out.', 'c', fill=MUT)
-    return d.render(y + h + 32)
+    for level, role in ((call['act'], 'green'), (call['dead'], 'warm')):
+        _line(d, f'M{px(level):.1f} {ay - 10:g}v20', ROLE[role], BOLD)
+    d.text(px(call['reference']), ay - 20, f'reference {call["reference"]}', 'm', anchor='middle')
+    d.text(px(close), ay - 20, 'next close', 'm', anchor='middle')
+    d.text(px(close), ay + 30, f'{call["next_pct"]:.2f}%'.replace('-', '−'), 'm', anchor='middle',
+           fill=ROLE['warm'])
+    d.text(px(call['act']) + 8, ay - 20, f'act {call["act"]}', 'm')
+    d.text(px(call['dead']), ay + 30, f'dead {call["dead"]}', 'm', anchor='middle')
+    xs, cw = columns(3, gap=8, x0=x4 + 16, w=w4 - 32)
+    for x, (name, body, role) in zip(xs, (('Win', 'not this one', 'green'), ('Loss', 'this call', 'warm'),
+                                          ('Ungradeable', 'not this one', 'slate'))):
+        _tile(d, x, top + 86, cw, 58, role, strong=name.lower() == call['outcome'])
+        d.text(x + 12, top + 110, [(name, ROLE[role])], 'b')
+        d.text(x + 12, top + 132, body, 'm', fill=MUT)
+        fits(body, 'm', cw - 22, 'verdict body')
+    _said(d, x4 + 20, top + 174, w4 - 36,
+          ['Reference: the first price it could have traded at after',
+           'the plan was published. Marked at the next session’s close.'], 'settle note')
+
+    # --- 05: the loss on the record, and what no row can do about it --------------
+    d.section(y - 12, '05 · THE LOSS WENT BACK IN')
+    top = _panel(d, M, y, w5, ch, 'violet', 'record', 'The record kept it', 'LEDGER', tint=True)
+    d.chip(M + 16, top - 12, 200, call['id'], cls='code', fill=ROLE['violet'])
+    d.tag(M + 16 + 200 + 12, top + 8, call['outcome'].upper(), 'warm')
+    _said(d, M + 20, top + 44, w5 - 36, ['The track record the next brief reads', 'counts it.'], 'record note')
+    d.text(M + 20, top + 100, 'NO ROW CAN', 'kick', fill=ROLE['warm'])
+    for i, ban in enumerate(('mark its own call', 'pick a kinder reference price',
+                             'turn this loss into something else', 'keep it off the ledger')):
+        yy = top + 126 + i * 26
+        _line(d, f'M{M + 22} {yy - 9:g}l8 8M{M + 30} {yy - 9:g}l-8 8', ROLE['warm'], BOLD)
+        fits(ban, 'm', w5 - 66, 'ban')
+        d.text(M + 44, yy, ban, 'm')
+    d.wire(f'M{x4:g} {y + ch / 2:g}H{M + w5 + 2:g}', pulses=(0,), kind='feedback', carry='balance')
+    # Back up the margin to the next argument, clear of every pane.
+    d.wire(f'M{M} {y + ch / 2 + 40:g}H{M - 13}V{a_bottom + 48 + bh / 2:g}H{M - 2}', pulses=(0, 4), dur=10,
+           kind='feedback', packet=False)
+    bottom = y + ch
+    note = 'Replace the factors row and Goldwind’s line is computed another way. Steps 04 and 05 do not move.'
+    fits(note, 'm', full - 40, 'plugins note')
+    d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
+    return d.render(bottom + 36 + M)
 
 
-#: One real run of `clawock strategy-lab optimize rsi`, 2026-10-12, on the
-#: desk's 28 names. The figure draws this run and nothing else; a later run
-#: reads differently, and `strategy-lab evolution rsi` prints the current one.
+#: One real search, as memory/strategy-lab/ledger.jsonl and registrations.jsonl hold it:
+#: `rsi` recorded 2026-10-12 on the desk's 28 names, and the same search on the
+#: 16 confirmed-adjusted names that every later entry carries. The grid is the
+#: `space` the rsi row declares in config/strategy-plugins.json. The figure draws
+#: these records and nothing else; `strategy-lab evolution rsi` prints the current run.
 RSI_RUN = {
     'date': '2026-10-12',
-    'periods': (5, 7, 9, 14, 21, 28),
-    # Mean rank IC of each configuration; reversion is the same score, signed.
-    'momentum': (.0424, .0486, .0538, .0646, .0680, .0694),
+    'periods': (5, 7, 9, 14, 21, 28), 'directions': ('momentum', 'reversion'),
     'registered': ('reversion', 14),
     'selected': ('momentum', 28),
-    'sessions': 771, 'oos_sessions': 705,
-    'edge': (.0177, .1125), 'lift': (.0414, .2198), 'pbo': 0.0,
-    'net': (.000491, .009011),
-    'all': (28, .0656, (.0177, .1125)),
-    'adjusted': (16, .0042, (-.0448, .0502)),
-    'after_session': '2026-10-09',
+    'names': 28, 'later_sessions': 705, 'needs_sessions': 60,
+    'beats_chance': (.0171, .1117), 'beats_current': (.0408, .2195), 'fitted': 0.0,
+    'confirmed': (16, (-.043, .0529)),
+    'after_session': '2026-10-09', 'scored': 0,
 }
 
 
 def strategy_evolution():
-    """A strategy searching its own parameters, drawn from one real run, and where that stops."""
+    """A strategy searching its own setting, drawn from one real run, and where that stops."""
     run = RSI_RUN
-    d = D('A strategy proposes its next parameters and cannot adopt them: one real run',
-          'RSI on 2026-10-12. The declared grid of six periods and two directions, shaded by mean '
-          'rank IC: the row registers reversion with period 14 and the search picks momentum with '
-          'period 28. The registered gate, check by check: every observed value clears its '
-          'threshold, and the alternate after costs does not object. The same search on the 16 '
-          'names the provider answered adjusted, without the 12 it only has no corporate action on '
-          'record for, is refused: its interval spans zero. Registration starts scoring on later '
-          'sessions only; none is scored yet, and the row keeps its parameters until it is edited.')
+    d = D('A strategy proposes its next setting and cannot adopt it: one real run',
+          'RSI on 2026-10-12, in five numbered steps. One: the declared grid of six look-back '
+          'lengths and two ways of reading the number, twelve settings, every one tried; '
+          'the row today uses 14 sessions read as a rebound and the search picks '
+          '28 sessions read as strength continuing. Two: a gate judges the best of them on five '
+          'checks, all passed. Three: second opinions, after trading costs and on the statistics '
+          'alone, do not object. Four: the verdict is written to the ledger twice, a candidate on '
+          'all 28 names and refused on the 16 whose prices the provider confirmed as adjusted, '
+          'because its range crosses zero. Five: registration starts scoring on later sessions '
+          'only, none of the 60 it needs scored yet, and the row keeps its setting until a person '
+          'reviews an edit.')
     y = d.header('CLAWOCK · A STRATEGY THAT SEARCHES ITSELF',
-                 ['It may propose its next parameters. It cannot adopt them.'],
-                 [f'One real run, drawn as it came out: RSI on {run["date"]}.'],
-                 [('measured', 'blue'), ('threshold, refused', 'warm'), ('passes, candidate', 'green')]) + 32
-    full = WIDE - 2 * M
+                 ['It may propose its next setting. It cannot adopt it.'],
+                 [f'One real search, drawn from the ledger: RSI on {run["date"]}, {run["names"]} names, '
+                  'Goldwind among them.'],
+                 [('measured', 'blue'), ('code gate', 'green'), ('threshold · refused', 'warm'),
+                  ('second opinion', 'slate'), ('the ledger', 'violet')])
+    full, gap = d.pw - 2 * M, 24
 
-    # --- 01 the declared grid ----------------------------------------------
-    h1 = 284
-    top = _pane(d, GRID2[0], y, CW, h1, 'blue', 'The grid it declared')
-    gx, cw, ch, gap = GRID2[0] + 116, 50, 40, 6
-    peak = max(run['momentum'])
-    d.text(GRID2[0] + 20, top + 2, 'period', 'c', fill=MUT)
+    # --- 01: the declared grid ---------------------------------------------------
+    y += 44
+    ah, aw = 310, 544
+    ax2, aw2 = M + aw + gap, full - aw - gap
+    d.section(y - 12, '01 · IT TRIES ONLY WHAT WAS DECLARED')
+    top = _panel(d, M, y, aw, ah, 'blue', 'sector', 'Six look-backs, two readings', 'ALL 12 COUNTED')
+    gx, cw, ch, cg = M + 134, 60, 44, 6
+    d.text(M + 20, top + 2, 'sessions', 'm', fill=MUT)
     for col, period in enumerate(run['periods']):
-        d.text(gx + col * (cw + gap) + cw / 2, top + 2, str(period), 'c', anchor='middle', fill=MUT)
+        d.text(gx + col * (cw + cg) + cw / 2, top + 2, str(period), 'm', anchor='middle', fill=MUT)
+
     def cell(direction, period):
-        return (gx + run['periods'].index(period) * (cw + gap),
-                top + 16 + (direction == 'reversion') * (ch + gap))
-    for direction, sign, role in (('momentum', 1, 'blue'), ('reversion', -1, 'warm')):
-        for period, value in zip(run['periods'], run['momentum']):
+        return (gx + run['periods'].index(period) * (cw + cg),
+                top + 14 + run['directions'].index(direction) * (ch + cg))
+    marks = ((run['registered'], INK, HAIR, 'today', 'the row today: 14 sessions, read as a rebound'),
+             (run['selected'], ROLE['green'], BOLD, 'picked',
+              'the search picks: 28 sessions, read as strength continuing'))
+    named = {setting: word for setting, _, _, word, _ in marks}
+    for direction in run['directions']:
+        for period in run['periods']:
             x, cy = cell(direction, period)
-            d.add(f'<rect x="{x:g}" y="{cy:g}" width="{cw}" height="{ch}" rx="8" '
-                  f'fill="{_blend(role, .12 + .38 * value / peak)}"/>')
-            d.text(x + cw / 2, cy + ch / 2 + 4.5, f'{sign * value:+.3f}'.replace('-', '−'), 'c',
-                   anchor='middle')
-        d.text(GRID2[0] + 20, cell(direction, 5)[1] + ch / 2 + 5, direction, 'b')
-    for (direction, period), ink, width in ((run['registered'], INK, HAIR), (run['selected'], ROLE['green'], BOLD)):
+            d.add(f'<rect x="{x:g}" y="{cy:g}" width="{cw}" height="{ch}" rx="8" fill="{_blend("blue", .22)}"/>')
+            if (direction, period) in named:
+                d.text(x + cw / 2, cy + ch / 2 + 5, named[direction, period], 'm', anchor='middle')
+            else:                      # tried and counted, like every other cell
+                _dot(d, x + cw / 2, cy + ch / 2, 'blue', r=4)
+        d.text(M + 20, cell(direction, 5)[1] + ch / 2 + 5, direction, 'b')
+    for n, ((direction, period), ink, weight, _, label) in enumerate(marks):
         x, cy = cell(direction, period)
-        d.add(f'<path d="M{x + 8:g} {cy - 3:g}h{cw - 10:g}q5 0 5 5v{ch - 4:g}q0 5 -5 5h-{cw - 4:g}q-5 0 -5 -5'
-              f'v-{ch - 4:g}q0 -5 5 -5z" fill="none" stroke="{ink}" stroke-width="{width:g}"/>')
-    ky = top + 16 + 2 * ch + gap + 36
-    for n, (ink, width, label) in enumerate(((INK, HAIR, 'the row today: reversion, 14 sessions'),
-                                             (ROLE['green'], BOLD, 'the search picks: momentum, 28 sessions'))):
-        d.add(f'<rect x="{GRID2[0] + 20}" y="{ky - 12 + n * 24:g}" width="16" height="14" rx="4" fill="none" '
-              f'stroke="{ink}" stroke-width="{width:g}"/>')
-        d.text(GRID2[0] + 46, ky + n * 24, label, 'c')
-    d.text(GRID2[0] + 20, y + h1 - 22, f'Mean rank IC, {run["sessions"]} sessions, 28 names. All 12 trials counted.',
-           'c', fill=MUT)
+        d.add(f'<path d="M{x + 2:g} {cy - 3:g}h{cw - 4:g}q5 0 5 5v{ch - 4:g}q0 5 -5 5h-{cw - 4:g}q-5 0 -5 -5'
+              f'v-{ch - 4:g}q0 -5 5 -5z" fill="none" stroke="{ink}" stroke-width="{weight:g}"/>')
+        ky = top + 144 + n * 24
+        d.add(f'<path d="M{M + 24} {ky - 12:g}h8q4 0 4 4v6q0 4 -4 4h-8q-4 0 -4 -4v-6q0 -4 4 -4z" fill="none" '
+              f'stroke="{ink}" stroke-width="{weight:g}"/>')
+        fits(label, 'm', aw - 66, 'grid key')
+        d.text(M + 46, ky, label, 'm')
+    _said(d, M + 20, top + 204, aw - 40,
+          ['Twelve settings, declared before the search. All twelve are',
+           'counted, so a lucky one cannot pass as the only one tried.'], 'grid note')
 
-    # --- 02 the gate, one axis per check -----------------------------------
-    px = GRID2[1]
-    top = _pane(d, px, y, CW, h1, 'warm', 'The registered gate')
-    ax0, ax1, vx = px + 150, px + 320, px + 340
-    gauges = (('sessions', (0, 800), 60, run['oos_sessions'], '705, needs 60'),
-              ('edge', (-.05, .25), 0, run['edge'], 'above zero'),
-              ('lift', (-.05, .25), 0, run['lift'], 'above zero'),
-              ('overfitting', (0, 1), .5, run['pbo'], '0.0, under 0.5'),
-              ('after costs', (-.005, .015), 0, run['net'], 'no objection'))
-    for index, (label, (lo, hi), threshold, seen, value) in enumerate(gauges):
-        ly = top + 8 + index * 32 + (16 if index == 4 else 0)
+    # --- 02: the gate, one bar per check -------------------------------------------
+    d.section(y - 12, '02 · A GATE JUDGES THE BEST OF THEM', x=ax2)
+    top = _panel(d, ax2, y, aw2, ah, 'green', 'gate', 'Five checks, all passed', 'PYTHON')
+    g0, g1 = ax2 + 20, ax2 + aw2 - 20
+    checks = (('days it was not tuned on', f'{run["later_sessions"]} · needs {run["needs_sessions"]}',
+               (0, 800), run['needs_sessions'], run['later_sessions']),
+              ('its ranking beats chance', 'above zero', (-.05, .25), 0, run['beats_chance']),
+              ('and beats today’s setting', 'above zero', (-.05, .25), 0, run['beats_current']),
+              ('fitted to the past', f'{run["fitted"]} · under 0.5', (0, 1), .5, run['fitted']),
+              ('prices adjusted', 'yes', None, None, None))
+    for i, (label, value, scale, threshold, seen) in enumerate(checks):
+        ly = top + 2 + i * 38
+        d.text(g0, ly, label, 'm')
+        d.text(g1, ly, value, 'b', anchor='end', fill=ROLE['green'])
+        fits(label + value, 'm', aw2 - 56, 'gate check')
+        if scale is None:
+            _line(d, f'M{g0:g} {ly + 12:g}H{g1:g}', ROLE['green'], BOLD)
+            continue
+        lo, hi = scale
+
         def at(v, lo=lo, hi=hi):
-            return ax0 + (v - lo) / (hi - lo) * (ax1 - ax0)
-        d.text(px + 20, ly + 5, label, 'b')
-        _line(d, f'M{ax0:g} {ly:g}H{ax1:g}')
-        _threshold(d, at(threshold), ly)
+            return g0 + (v - lo) / (hi - lo) * (g1 - g0)
+        _line(d, f'M{g0:g} {ly + 12:g}H{g1:g}')
+        _line(d, f'M{at(threshold):.1f} {ly + 6:g}v12', ROLE['warm'], BOLD)
         if isinstance(seen, tuple):
-            _interval(d, at(seen[0]), at(seen[1]), ly, 'blue')
+            _span(d, at(seen[0]), at(seen[1]), ly + 12, 'blue')
         else:
-            _dot(d, at(seen), ly, 'blue')
-        d.text(vx, ly + 4.5, value, 'c', fill=MUT)
-    d.text(px + 20, top + 8 + 4 * 32 - 2, 'ALTERNATE GATE', 'kick', fill=FAINT)
-    d.text(px + 20, y + h1 - 22, 'Bars adjusted: yes. An alternate can object, not pass.', 'c',
-           fill=MUT)
-    y += h1 + 24
+            _dot(d, at(seen), ly + 12, 'blue')
+    _said(d, g0, top + 204, aw2 - 36,
+          ['A configuration line can make this gate', 'stricter, never looser than the code’s floor.'],
+          'gate note')
+    d.wire(f'M{M + aw:g} {y + ah / 2:g}H{ax2 - 2:g}', pulses=(0,), kind='data')
 
-    # --- 03 without the single-source names --------------------------------
-    h3 = 264
-    top = _pane(d, M, y, full, h3, 'warm', 'The same search without the names one provider vouches for')
-    for index in range(28):
-        _dot(d, M + 28 + (index % 7) * 24, top + 10 + (index // 7) * 24, 'blue', hollow=index >= 16, r=7)
-    _captions(d, M + 20, top + 112, ['16 answered adjusted,', '12 raw, no action on record'])
-    ix0, ix1, lo, hi = M + 400, M + 760, -.08, .14
+    # --- 03 and 04: second opinions, and the two entries on the ledger -------------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    bh, bw = 266, 312
+    bx2, bw2 = M + bw + gap, full - bw - gap
+    d.down(M + bw - 20, a_bottom, y, pulses=(.6,), kind='data', carry='sector')
+    d.down(ax2 + aw2 / 2, a_bottom, y, pulses=(0, 1.2), kind='gate')
+    d.section(y - 12, '03 · SECOND OPINIONS MAY OBJECT')
+    top = _panel(d, M, y, bw, bh, 'slate', 'review', 'Other thresholds')
+    for i, (name, verdict) in enumerate((('after trading costs', 'no objection'),
+                                         ('on the statistics alone', 'agrees with the gate'))):
+        yy = top - 10 + i * 72
+        _tile(d, M + 16, yy, bw - 32, 64, 'slate')
+        d.text(M + 30, yy + 27, name, 'b')
+        d.text(M + 30, yy + 48, verdict, 'm', fill=ROLE['green'])
+        fits(name, 'b', bw - 60, 'second opinion')
+    _said(d, M + 20, top + 160, bw - 36,
+          ['They can block. They cannot pass', 'what the gate refused.'], 'opinion note')
+    d.section(y - 12, '04 · THE VERDICT IS WRITTEN DOWN', x=bx2)
+    top = _panel(d, bx2, y, bw2, bh, 'violet', 'record', 'One run, two entries', 'LEDGER', tint=True)
+    confirmed, (low, high) = run['confirmed']
+    for index in range(run['names']):
+        _dot(d, bx2 + 28 + (index % 7) * 22, top + (index // 7) * 22, 'blue', hollow=index >= confirmed, r=7)
+    _said(d, bx2 + 20, top + 100, 200, [f'{confirmed} confirmed adjusted',
+                                        f'{run["names"] - confirmed} on one provider’s word'], 'names')
+    ix0, ix1, lo, hi = bx2 + 330, bx2 + 498, -.08, .14
+
     def ic(v):
         return ix0 + (v - lo) / (hi - lo) * (ix1 - ix0)
     base = top + 86
     _line(d, f'M{ix0:g} {base:g}H{ix1:g}')
-    for tick in (-.05, 0, .05, .10):
+    for tick in (-.05, 0, .10):
         _line(d, f'M{ic(tick):.1f} {base:g}v6')
-        d.text(ic(tick), base + 24, f'{tick:+.2f}'.replace('-', '−') if tick else '0', 'c', anchor='middle',
+        d.text(ic(tick), base + 24, f'{tick:+.2f}'.replace('-', '−') if tick else '0', 'm', anchor='middle',
                fill=MUT)
-    _line(d, f'M{ic(0):.1f} {top - 6:g}V{base:g}', ROLE['warm'], BOLD)
-    for row, (key, role, verdict) in enumerate((('all', 'green', 'candidate'), ('adjusted', 'warm', 'refused'))):
-        names, mean, (low, high) = run[key]
-        ry = top + 12 + row * 40
-        d.text(ix0 - 112, ry + 5, f'{names} names', 'b')
-        _interval(d, ic(low), ic(high), ry, 'blue', ic(mean))
-        _pill(d, ix1 + 24, ry - 14, 96, verdict, role)
-    d.text(M + 20, y + h3 - 22, 'An edge interval across zero is no edge: the candidate rests on those 12 names.',
-           'c', fill=MUT)
-    y += h3 + 24
+    _line(d, f'M{ic(0):.1f} {top - 8:g}V{base:g}', ROLE['warm'], BOLD)
+    entries = ((run['names'], run['beats_chance'], 'green', 'CANDIDATE'),
+               (confirmed, (low, high), 'warm', 'REFUSED'))
+    for row, (names, (low, high), role, verdict) in enumerate(entries):
+        ry = top + 10 + row * 40
+        d.text(bx2 + 240, ry + 5, f'{names} names', 'b')
+        _span(d, ic(low), ic(high), ry, 'blue')
+        d.tag(bx2 + bw2 - 20, ry + 5, verdict, role, anchor='end')
+    _said(d, bx2 + 20, top + 160, bw2 - 40,
+          ['On the 16 confirmed names, Goldwind among them, the search is refused:',
+           'its range crosses zero. The result leans on the other 12.'], 'ledger note')
+    d.wire(f'M{M + bw:g} {y + bh / 2:g}H{bx2 - 2:g}', pulses=(.4,), kind='decision')
 
-    # --- 04 what registration starts ---------------------------------------
-    h4 = 176
-    top = _pane(d, M, y, full, h4, 'green', 'What registration starts, and where it stops')
-    ty = top + 34
-    t0, treg, tend = M + 28, M + 500, M + 740
-    _line(d, f'M{t0:g} {ty:g}H{treg:g}', ROLE['blue'], BOLD)
-    d.text(t0, ty - 22, f'{run["sessions"]} sessions searched, walking forward', 'b')
-    _captions(d, t0, ty + 28, ['a result about the past'])
-    _line(d, f'M{treg:g} {ty - 16:g}v32', INK, BOLD)
-    d.text(treg + 14, ty - 22, f'registered after {run["after_session"]}', 'b')
-    d.wire(f'M{treg:g} {ty:g}H{tend - 4:g}', kind='data', dur=3.2)
-    for index in range(6):
-        _dot(d, treg + 40 + index * 30, ty, 'blue', hollow=True)
-    _captions(d, treg + 14, ty + 28, ['sessions it had not seen:', 'scored from here, 0 so far'])
-    _line(d, f'M{tend:g} {ty - 16:g}v32', ROLE['warm'], BOLD)
-    d.text(tend + 14, ty - 22, 'the row', 'b')
-    _captions(d, tend + 14, ty + 28, ['still reversion, 14.', 'Editing it is reviewed.'])
-    return d.render(y + h4 + 32)
+    # --- 05: what registration starts, and where it stops --------------------------
+    b_bottom = y + bh
+    y = b_bottom + 48
+    ch, cw1 = 206, 632
+    cx2, cw2 = M + cw1 + gap, full - cw1 - gap
+    d.down(bx2 + 200, b_bottom, y, pulses=(0, 1.2), kind='feedback', carry='record')
+    d.section(y - 12, '05 · THEN IT HAS TO KEEP WORKING')
+    top = _panel(d, M, y, cw1, ch, 'blue', 'clock', 'Scored only on days that had not happened',
+                 'LATER DAYS')
+    ty, t0, treg = top + 30, M + 20, M + 200
+    d.text(t0, ty - 16, f'{run["later_sessions"]} sessions judged', 'm')
+    d.add(f'<rect x="{t0}" y="{ty - 3:g}" width="{treg - t0 - 8}" height="6" rx="3" fill="{ROLE["blue"]}" '
+          f'fill-opacity=".6"/>')
+    d.text(t0, ty + 34, 'a result about the past', 'm', fill=MUT)
+    _line(d, f'M{treg} {ty - 12:g}v24', INK, BOLD)
+    d.text(treg + 14, ty - 16, f'registered after {run["after_session"]}', 'm')
+    for index in range(run['needs_sessions']):
+        d.add(f'<rect x="{treg + 14 + index * 6.6:g}" y="{ty - 6:g}" width="4.6" height="12" rx="1.5" fill="#ffffff" '
+              f'stroke="{ROLE["blue"]}"/>')
+    scored = f'{run["scored"]} of {run["needs_sessions"]} later sessions scored · nothing proposed yet'
+    d.text(treg + 14, ty + 34, scored, 'm', fill=MUT)
+    _said(d, M + 20, top + 100, cw1 - 40,
+          [f'After {run["needs_sessions"]} later sessions, and only if it passes the check it fails today,',
+           'the lab may propose an edit to the row. It cannot make one.'], 'registration note')
+    d.section(y - 12, 'YOUR REVIEW', x=cx2)
+    d.card(cx2, y, cw2, ch, 'warm', tint=True)
+    d.text(cx2 + 20, y + 32, 'The row stays yours', 'h')
+    fits('The row stays yours', 'h', cw2 - 46 - d.tag(cx2 + cw2 - 16, y + 30, 'HUMAN', 'warm', anchor='end'),
+         'your review')
+    d.lines(cx2 + 20, top + 6, cw2 - 36, ['Goldwind’s RSI the next morning:', 'still 14 sessions, read as a',
+                                         'rebound. Nothing changed.'], cls='m', lh=22, where='row')
+    d.chip(cx2 + 16, y + ch - 46, cw2 - 32, 'strategy-lab row-edits', cls='code', fill=ROLE['warm'])
+    d.wire(f'M{M + cw1:g} {y + ch / 2:g}H{cx2 - 2:g}', pulses=(0,), kind='decision')
+    bottom = y + ch
+    note = 'A search is a result about the past: it places no order and changes no live setting.'
+    fits(note, 'm', full - 40, 'evolution note')
+    d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
+    return d.render(bottom + 36 + M)
+
+
+def proposal_review():
+    """Three review channels, two that can refuse and one that cannot, and a record that keeps all of it."""
+    d = D('Open proposals: two channels can refuse one, a third can only object, and every outcome is kept',
+          'Five numbered steps. One: the model writes an open proposal, a hypothesis, an action, a '
+          'size and a forecast. Two: code reviews it on three channels; facts and feasibility can '
+          'refuse it, the strategy channel can only object. Three: every outcome is kept in the '
+          'method record, published, published over an objection, refused or unpublished. Four: '
+          'the record is read on two separate axes, payoff after assumed costs and whether the '
+          'stated probability was right. Five: a comparison of three arms is frozen before it '
+          'starts and run forward from the same capital, with missing marks left as holes. Nothing '
+          'is promoted and no order is placed.')
+    y = d.header('CLAWOCK · PROPOSALS AND EVIDENCE',
+                 ['A different strategy can still be a valid proposal.'],
+                 ['Code checks facts and authority. The model owns the hypothesis.'],
+                 [('the model’s proposal', 'slate'), ('code review · can refuse', 'green'),
+                  ('objection · refusal', 'warm'), ('the method record', 'violet'), ('evaluation', 'blue')])
+    full, gap = d.pw - 2 * M, 24
+
+    # --- 01 and 02: what is proposed, and the three channels it is read on ---------
+    y += 44
+    ah, aw = 256, 312
+    ax2, aw2 = M + aw + gap, full - aw - gap
+    d.section(y - 12, '01 · THE MODEL PROPOSES')
+    top = _panel(d, M, y, aw, ah, 'slate', 'lens', 'An open proposal', 'LLM')
+    xs, cw = columns(2, gap=8, x0=M + 16, w=aw - 32)
+    for i, (name, body) in enumerate((('Hypothesis', 'its own method'), ('Action', 'what to do'),
+                                      ('Size', 'how much'), ('Forecast', 'a probability'))):
+        x, yy = xs[i % 2], top - 12 + (i // 2) * 72
+        _tile(d, x, yy, cw, 64, 'slate')
+        d.text(x + 12, yy + 27, name, 'b')
+        d.text(x + 12, yy + 48, body, 'm', fill=MUT)
+        fits(body, 'm', cw - 22, 'proposal part')
+    _said(d, M + 20, top + 150, aw - 36,
+          ['Registered setups and scores stay', 'available as opinions.'], 'proposal note')
+    d.section(y - 12, '02 · CODE REVIEWS IT ON THREE CHANNELS', x=ax2)
+    top = _panel(d, ax2, y, aw2, ah, 'green', 'checks', 'Two can refuse it. One can only object.', 'PYTHON')
+    xs, cw = columns(3, gap=12, x0=ax2 + 16, w=aw2 - 32)
+    channels = (('filing', 'Facts', ['real citations', 'and prices; sums', 'that replay'], 'green', 'CAN REFUSE'),
+                ('book', 'Feasibility', ['cash, shares, lots;', 'authorisations', 'in force'], 'green', 'CAN REFUSE'),
+                ('judge', 'Strategy', ['does the registered', 'policy agree with', 'this proposal?'], 'warm',
+                 'CAN ONLY OBJECT'))
+    for x, (icon, name, lines, role, power) in zip(xs, channels):
+        _tile(d, x, top - 12, cw, 174, role)
+        d.icon(icon, x + 12, top - 2, role, size=20)
+        d.text(x + 12, top + 38, name, 'b')
+        _said(d, x + 12, top + 60, cw - 22, lines, f'channel {name}')
+        d.tag(x + 12, top + 142, power, role)
+    d.wire(f'M{M + aw:g} {y + ah / 2:g}H{ax2 - 2:g}', pulses=(0,), kind='decision')
+
+    # --- 03: the record keeps every outcome ---------------------------------------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    bh = 172
+    d.down(ax2 + aw2 / 2, a_bottom, y, pulses=(0, 1.2), kind='gate')
+    d.section(y - 12, '03 · EVERY OUTCOME IS KEPT')
+    top = _panel(d, M, y, full, bh, 'violet', 'record', 'Refused and unpublished proposals still count',
+                 'THE METHOD RECORD', tint=True)
+    xs, cw = columns(4, gap=12, x0=M + 16, w=full - 32)
+    for x, (name, body, role) in zip(xs, (('Published', 'both checks passed', 'green'),
+                                          ('Published over objection', 'objection stays attached', 'warm'),
+                                          ('Refused', 'false claim or infeasible', 'warm'),
+                                          ('Unpublished', 'still in the denominator', 'slate'))):
+        d.add(f'<rect x="{x:g}" y="{top - 12:g}" width="{cw:g}" height="66" rx="9" fill="#ffffff" '
+              f'stroke="{ROLE[role]}" stroke-opacity=".45"/>')
+        d.text(x + 12, top + 15, [(name, ROLE[role])], 'b')
+        d.text(x + 12, top + 37, body, 'm', fill=MUT)
+        fits(name, 'b', cw - 22, 'outcome')
+        fits(body, 'm', cw - 22, 'outcome body')
+    _said(d, M + 20, top + 86, full - 40,
+          ['Each record freezes the method text, forecast, inputs and review. '
+           'Revisions append; nothing is rewritten.'], 'record note')
+
+    # --- 04 and 05: two readings of that record ------------------------------------
+    b_bottom = y + bh
+    y = b_bottom + 48
+    ch = 218
+    x5 = M + COL2
+    d.down(M + 330, b_bottom, y, pulses=(0, 1.2), kind='feedback', carry='record')
+    d.down(x5 + 330, b_bottom, y, pulses=(.6, 1.8), kind='feedback', carry='record')
+    d.section(y - 12, '04 · READ ON TWO AXES')
+    top = _panel(d, M, y, CW, ch, 'blue', 'balance', 'Payoff and being right, scored apart')
+    ax0, ax1 = M + 150, M + CW - 24
+    dots = ((.16, .58, .38, .80, .50), (.72, .28, .60, .20, .44))
+    for row, (label, note) in enumerate((('payoff', 'per episode, after assumed costs'),
+                                         ('forecast score', 'was the stated probability right'))):
+        ay = top + 6 + row * 62
+        d.text(M + 20, ay + 5, label, 'b')
+        _line(d, f'M{ax0:g} {ay:g}H{ax1:g}M{(ax0 + ax1) / 2:g} {ay - 6:g}v12')
+        for at in dots[row]:
+            _dot(d, ax0 + at * (ax1 - ax0), ay, 'blue')
+        _said(d, ax0, ay + 26, ax1 - ax0, [note], 'axis note')
+    _said(d, M + 20, top + 132, CW - 40, ['A call can be right and still lose money. Schematic.'], 'axes note')
+    d.section(y - 12, '05 · FROZEN, THEN RUN FORWARD', x=x5)
+    top = _panel(d, x5, y, CW, ch, 'blue', 'replay', 'A comparison frozen before it starts')
+    start = x5 + 176
+    for row, (label, missing) in enumerate((('old policy', ()), ('observations only', (3,)),
+                                            ('policy reference', (1, 4)))):
+        ay = top + 8 + row * 40
+        d.text(x5 + 20, ay + 5, label, 'b')
+        _line(d, f'M{start:g} {ay:g}H{x5 + CW - 24:g}')
+        for index in range(7):
+            _dot(d, start + 22 + index * 36, ay, 'blue', hollow=index in missing)
+    _line(d, f'M{start:g} {top - 8:g}V{top + 104:g}', INK)
+    _said(d, x5 + 20, top + 132, CW - 40, ['Same capital, same costs. A missing mark stays a hole.'], 'trial note')
+    bottom = y + ch
+    note = 'Evidence for human review: no automatic method promotion, sizing or order placement.'
+    fits(note, 'm', full - 40, 'proposal footer')
+    d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
+    return d.render(bottom + 36 + M)
 
 
 LAYOUTS = {
