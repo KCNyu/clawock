@@ -33,17 +33,19 @@
 
 ## What you get
 
-clawock gives the AI agent you already use a continuing investment workflow for a HK + US stock book: **collect information → argue both sides → settle in code → feed the result into the next decision**. You still place the orders.
+You hold stocks in Hong Kong or the US, and you already use an AI agent such as Claude Code, Codex or OpenClaw. clawock gives that agent a daily routine around your positions. Each morning it reads what Python collected overnight, argues for and against every position, and hands you a plan: what to do, at what price, and at what price the idea is dead. **You place the orders.** After the close, code marks each plan right or wrong, and the next morning's plan is written with that result in front of it.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="clawock on one page: eight source layers arrive through fallback routes; Python reconciles the book and certifies one context pack; Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI argues a bull and a bear case over it; code reviews concentration and enforces the configured risk boundaries, records what happens when one breaks and enforces evidence requirements; the plan reaches you and you place the orders; code settles each call as a win, a loss or ungradeable; the record returns around two loops, one into the next judgment through history and earlier-date calibration, one into the evidence rules through a bounded proposal and a named review; on the author’s host patrol rounds, a filing gate, background agents and required CI maintain the desk’s own code, watched from DeepSeek Harness"></p>
 
-**RSI means Recursive Self-Improvement**: each decision leaves evidence and an outcome for the next one to build on. **No promise of returns.** The active calls have yet to show an edge; what you get is an accumulating record you can check.
+**That loop is what RSI, Recursive Self-Improvement, means here.** Every decision leaves behind the evidence it used and the result it got, and the next decision reads both. **It is not a promise of returns.** So far, the calls that told the author to act have not been shown to beat a coin flip. What you get is a record that keeps growing and that you can check line by line.
 
-Everything that computes is [a plugin mounted by one configuration row](#everything-that-computes-is-a-plugin-what-a-result-may-do-is-not). A strategy can [search its own parameters](#a-strategy-can-search-its-own-parameters-adopting-them-is-a-reviewed-edit) and only ever produce a proposal. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
+One real call runs through this page: Goldwind (`02208`, Hong Kong) on the morning of 2026-10-08. The plan said watch, and act only above 8.97. By the next close the stock was 4.22% lower, and the public ledger says `loss` beside it. The sections below keep coming back to that morning.
+
+Every number in that plan was computed by [a plugin, one line of configuration each](#everything-that-computes-is-a-plugin-what-a-result-may-do-is-not). A strategy may [search for better settings of its own](#a-strategy-can-search-its-own-parameters-adopting-them-is-a-reviewed-edit), but all it can produce is a proposal for a person to review. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
 
 ## Everything that computes is a plugin; what a result may do is not
 
-Take one real call. The desk holds 400 shares of Goldwind (`02208`, Hong Kong) at an average cost of 14.084. This is everything that happened to that name on the morning of 2026-10-08.
+Start with the Goldwind call. The author's account holds 400 shares of Goldwind (`02208`, Hong Kong) at an average cost of 14.084. Here is everything that happened to that stock on the morning of 2026-10-08. One word first: every number clawock computes comes from a plugin, and each plugin is one line in `config/strategy-plugins.json`. This page calls such a line a **row**.
 
 1. **A row computed its numbers.** The `factors` row read Goldwind's daily bars and produced one line about it: trend off, price 31.8% under its 200-day average. A row does this and nothing more. It turns inputs into a reading.
 2. **The model argued both sides over that reading.** Bull: it is the only one of its peers with a confirmation price you could act on, and the book has almost nothing that is not Hong Kong tech or AI. Bear: trend off, 31.8% under the average, in a book with four risk limits already tripped; that is adding the weakest position on the weakest evidence. The judge: watch, and write the trigger down before the price gets there.
@@ -69,7 +71,7 @@ Each row sits in one socket, and what goes into your harness stays small: one sk
 
 **A broken row fails alone.** If one row does not load, the runs that needed it stop and name it. The others carry on.
 
-**Your own row.** A row points at an installed Python module, so it can be yours: one `apply(ctx, config)` function, a declaration of what it reads, one line of configuration. That gets it a socket. It gets it no say over steps 4 and 5.
+**Your own row.** A row points at an installed Python module, so it can be yours: one `apply(ctx, config)` function, a declaration of what it reads, one line of configuration. That gets it a socket. It gets it no say over steps 4 and 5. A row is ordinary Python running with your own permissions, not a sandbox, so install only modules you trust.
 
 **The whole system is hot-pluggable, the way dsh is.** Twenty rows in one file: thirteen the brief, the report and the intraday check compute with, and seven the strategy lab mounts for research. Pull one out while the rest run and only the rows that said they need it stop and wait; push it back and they start by themselves. Change a row's setting and that row restarts under the new one. It is the design [dsh](https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md) plugins are built on, restated in Python.
 
@@ -84,9 +86,22 @@ clawock strategy-lab sources    # each row's inputs, units, windows and missing-
 
 ## Any harness, one decision contract that accumulates evidence
 
-Use the same **`investment-decision` skill and artifact contract in Claude Code / Codex / OpenClaw / DeepSeek Harness / any runtime that can read and write files and call a CLI**. Your agent keeps its model, conversation, memory, research tools, credentials and permissions. clawock certifies inputs, validates outputs, evaluates outcomes and records improvement; it does not launch another model.
+Say you use Claude Code today and switch to Codex next month. You do not start over, because clawock was never inside the chat. It is one skill (`investment-decision`), one command line tool and a handful of files in your workspace. Any agent that can read a file, write a file and run a command can pick them up: **Claude Code / Codex / OpenClaw / DeepSeek Harness / your own script**.
 
-“Smarter with use” has a record you can inspect: evidence links to decisions, decisions link to execution and outcomes, history enters the next context, earlier samples calibrate confidence, and changes to evidence requirements leave review and rollback records. To switch harnesses, keep the workspace artifacts and reconnect them to context; continuity lives in those files. A new workspace needs its own capability setup to gain the author's live data feeds, schedules and history.
+Your agent keeps what is its own: the model, the conversation, its memory, its research tools, your credentials and your permissions. clawock never starts a model. It does four jobs around your agent: it pins down what went in, checks what came out, marks the result later, and keeps the record.
+
+These are the files. You meet the first, second, fifth and sixth in your own harness. The other two are written by the author's daily setup.
+
+| File | Written by | What it holds |
+|---|---|---|
+| `request.json` | clawock, when you run `clawock run prepare` | the material for this decision, with a fingerprint of every document so it cannot be swapped afterwards |
+| `decision.json` | your agent | its answer: the case for, the case against, the action, and what would prove it wrong |
+| `plan.json` | the author's setup, every morning | the same answer for a whole portfolio, one entry per position |
+| `decisions.jsonl` | the author's setup | the public ledger: one line per decision, with the result added once code has marked it |
+| `outcome.json` | you, once the waiting period is over | the prices you saw and where you got them |
+| `evaluation.json` | clawock, when you run `clawock workflow evaluate` | whether the direction was right. It is not money made |
+
+**“Smarter with use” means this pile of files grows.** The model does not change. What changes is what the next decision can read: the evidence behind earlier decisions, what you actually did, how each one turned out, and how far earlier confidence figures could be trusted. When you switch agents, point the new one at the same workspace and it carries on from the same files. A brand-new workspace starts empty. It does not come with the author's data feeds, schedules or history; those you connect yourself.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="1016" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
 
@@ -94,11 +109,19 @@ Use the same **`investment-decision` skill and artifact contract in Claude Code 
 
 ## Information in: sources before opinions
 
-Before you open the morning brief, Python has collected quotes through fallback routes such as Tencent / Nasdaq, SEC / HKEX filings, Eastmoney capital flow, bilingual news, macro and sentiment, then reconciled your book, FX and risk. Old news is labelled separately from live information. A failed source says “not fetched,” never “no news.” Hong Kong has the base coverage, but **its research breadth is behind US**.
+It is 08:03 on 2026-10-08. The morning job has just started and no model has run yet. Python has already fetched Goldwind's daily bars from Tencent, looked for a company filing, and asked Google News for headlines about it. Four headlines came back. Two had nothing to do with Goldwind. The other two were published before the previous close, so they were labelled old news. No primary financial filing could be reached.
 
-**You get an evidence pack.** On the live desk, `preflight` writes the core needed for this judgment and reference layers the agent can load on demand. The agent can trace the batch without reconstructing it from chat. In your own harness, `run prepare` produces `request.json`, pinning per-file and whole-context SHA-256 hashes, the workflow version and the whole-pack certificate.
+The brief said exactly that, in two lines under `02208`. The primary financial disclosure was “not fetched”. And: “this stock has no usable news evidence today, so today's judgment rests entirely on price and relative strength.”
 
-**Certification pins what was used.** Citations carry the source and publication or observation time; hashes check content and generation, not whether a news story is true. Source access credentials and model API keys remain with your runtime, outside the public repository. The portable skill also lets your agent use its own research tools to add traceable evidence; scheduled desk jobs read the Python-assembled files.
+That is the rule this section is named after. **Sources are collected and labelled before anyone has an opinion.** In practice it comes down to three habits:
+
+- **Every source has a backup.** Quotes come through Tencent or Nasdaq first and fall through to the next provider when one fails. Filings come from the SEC and HKEX, capital flow from Eastmoney, and there is news in Chinese and English, macro data and sentiment. Python then reconciles your book, the exchange rate and the risk numbers.
+- **Old news is not passed off as new.** Anything published before the previous close is labelled as old.
+- **A failed source says “not fetched”, never “no news”.** Hong Kong has the basic coverage, but **its research breadth is behind US**.
+
+**What your agent receives is a pack of files.** On the author's setup, `preflight` writes the files this judgment needs, plus reference files the agent can open when it wants more. The Goldwind decision still carries the id of the pack it was made from, `c3f65a7beaebb24e`, so anyone can look up which batch of material stood behind it. In your own harness, `clawock run prepare` writes `request.json`: the same kind of pack, with a SHA-256 fingerprint of each document and of the whole, and the workflow version it was prepared for.
+
+**The fingerprint proves which material was used. It does not prove a news story is true.** Each citation carries its source and the time it was published or observed. The passwords for your data sources and your model API key stay in your own runtime and never enter the public repository. In your own harness, your agent may also add evidence from its own research tools, as long as it can be traced. The author's scheduled jobs read only the files Python assembled.
 
 **The live desk’s full information and delivery flow**
 
@@ -108,9 +131,11 @@ Before you open the morning brief, Python has collected quotes through fallback 
 
 ## Decision out: both sides read the same evidence
 
-Ask “Can I add to this position today?” The agent writes the supporting case, the opposing evidence that could overturn it, then an action, trigger, confidence and thesis invalidation conditions. On the live desk, analysts, bull/bear researchers, risk voices and a judge run that debate. The portable workflow takes the same evidence and opposing-case requirements into your current agent.
+The question that morning was simple: is it time to add to Goldwind? The agent is not allowed to answer with a feeling. It has to write the case for, then the strongest case against, and only then an action, the price that triggers it, a confidence figure and the condition under which it admits being wrong. Both sides argue from the same pack of files.
 
-**You get a plan and a receipt.** The desk leaves a daily brief and `plan.json`; intraday cards compare fresh quotes with the morning's triggers. A portable run produces `decision.json`. Python checks citations, opposing evidence, invalidation and order / FX arithmetic before returning a generation-pinned publication receipt. Without an opposing case it refuses publication. Conversation verdicts on the live desk enter the ledger through `clawock record --source <harness>`. You decide which orders to place.
+What reached you was one line in the 08:03 brief: after the 09:30 open, act on `02208` only above 8.97, valid for five sessions; back under 8.923, give up at once. During the session, intraday cards compare fresh quotes with that morning's trigger. Goldwind's high that day was 8.71. The price never got to 8.97, so there was nothing for you to do.
+
+**You get a plan and a receipt.** The author's setup leaves the daily brief and `plan.json`. In your own harness, your agent writes `decision.json` and you run `clawock run publish`. Python then checks four things: every claim points at a document in the pack, there is a case against, there is a condition that would prove the call wrong, and any order and currency arithmetic adds up. If all four hold, you get a receipt tied to that exact pack. If the case against is missing, publication is refused. A verdict reached in conversation on the author's setup enters the ledger with `clawock record --source <harness>`. Either way, you decide which orders to place.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-card-example.png" width="640" alt="A clawock decision receipt: the subject, a bull case and a bear case each citing evidence, the thesis, the invalidation condition, confidence and action, and a published run id with a pinned certificate"></p>
 
@@ -120,7 +145,7 @@ Ask “Can I add to this position today?” The agent writes the supporting case
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/debate-flow.svg" width="1016" alt="clawock's multi-agent debate — one evidence pack feeds four analyst lenses; two researchers argue opposing bull and bear cases and record where they disagree; three risk voices and a judge name the strategy frame and resolve it into plan.json, which enters the next session's grading loop"></p>
 
-The desk debate is adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents); the judge names the strategy frame behind each call.
+On the author's setup this debate is split between several roles: four analysts, a bull and a bear researcher, three risk voices, and a judge who names the strategy behind each call. It is adapted from [TradingAgents](https://github.com/TauricResearch/TradingAgents). In your own harness, the one agent you already have is held to the same two requirements: read the same evidence, and write a case against.
 
 ## After the close: results feed the next decision
 
