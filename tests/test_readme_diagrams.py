@@ -666,3 +666,48 @@ def test_the_plugin_figures_print_what_the_committed_records_hold():
     assert (again['tickers'], tuple(again['oos_ic_ci95']), again['status']) == (*run['confirmed'], 'refused')
     registered = [json.loads(line) for line in (ROOT / 'memory/strategy-lab/registrations.jsonl').open(encoding='utf-8')]
     assert any(row['strategy'] == 'rsi' and row['after_session'] == run['after_session'] for row in registered)
+
+
+def test_the_plugin_system_figure_shows_the_rows_and_the_hot_plug_the_host_really_does():
+    """The rack names every row in the file, and the pull it draws is one the kernel performs.
+
+    The figure says: pull the research row `bars`, its one registration is undone,
+    `optimizer` waits because it declared `bars`, and the other rows are never
+    stopped; push it back and `optimizer` starts by itself. That is mounted and
+    pulled here, on the real rows, so the picture cannot outlive the behaviour.
+    """
+    import json
+
+    from clawock.plugin_host import rows as composition
+    from clawock.plugin_host.kernel import ACTIVE, PENDING, Kernel
+
+    builder = _builder()
+    config = json.loads((ROOT / 'config/strategy-plugins.json').read_text(encoding='utf-8'))
+    for name, drawn in builder.HOST_ROWS.items():
+        assert [(row['id'], row['module'].rpartition('.')[2]) for row in config[name]] == list(drawn), name
+    labels = [''.join(el.itertext()) for el in ET.parse(ROOT / 'site/assets/plugin-system.svg').getroot().iter(f'{SVG}text')]
+    for drawn in builder.HOST_ROWS.values():
+        for row, module in drawn:
+            assert row in labels and module in labels, (row, module)
+    steps = [label for label in labels if re.match(r'0\d · ', label)]
+    assert [step[:2] for step in steps] == [f'0{n}' for n in range(1, len(steps) + 1)] and len(steps) == 7, steps
+
+    pull, kernel, fibers = builder.PULL, Kernel(), {}
+    for row in config['plugins']:
+        fibers[row['id']] = composition.mount(kernel, row)
+    assert fibers[pull['row']].effects == [pull['undone']]
+    assert fibers[pull['waits']].inject == pull['declared']
+    fibers[pull['row']].dispose()
+    assert (fibers[pull['waits']].state, fibers[pull['waits']].missing) == (PENDING, [pull['row']])
+    others = set(fibers) - {pull['row'], pull['waits']}
+    assert others == set(pull['untouched']) and all(fibers[name].state == ACTIVE for name in others)
+    composition.mount(kernel, next(row for row in config['plugins'] if row['id'] == pull['row']))
+    assert fibers[pull['waits']].state == ACTIVE
+
+    edit = builder.EDIT
+    row = next(row for row in config['live'] if row['id'] == edit['row'])
+    assert row['config'] == {edit['key']: edit['now']}
+    fiber = composition.mount(Kernel(), row)
+    assert fiber.effects == [edit['undone']]
+    fiber.update({edit['key']: edit['then']})
+    assert (fiber.state, fiber.config, fiber.effects) == (ACTIVE, {edit['key']: edit['then']}, [edit['undone']])

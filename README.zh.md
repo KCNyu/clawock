@@ -71,6 +71,10 @@ clawock 把你已经在用的 AI Agent 接成一套围绕港美股持仓连续�
 
 **你自己的行。** 行指向一个已安装的 Python 模块，所以它可以是你的：一个 `apply(ctx, config)` 函数、一份「我读什么」的声明、一行配置。这样它就有了一个插座。但第 4、5 步它依然说了不算。
 
+**整套系统可以热插拔，和 dsh 是同一种设计。** 一个文件里二十行：十三行是简报、报告和盘中检查计算时用的，七行是策略实验室做研究时挂载的。其余的行在跑的时候拔掉一行，只有声明过需要它的行会停下来等；插回去，它们自己重新启动。改一行的设置，这一行就在新设置下重启。这就是 [dsh](examples/dsh/README.md) 插件所基于的那套设计，用 Python 重写了一遍。
+
+<p align="center"><img src="site/assets/plugin-system.svg" width="1016" alt="整套插件系统，分七部分。01：无论哪个 Agent 在跑这张台子（Claude Code、Codex、OpenClaw、dsh 或任意 CLI），执行的都是 brief、report、intraday 和 strategy-lab 这几条命令。02：一个文件 strategy-plugins.json 列出全部的行：十三个现网行、七个研究行，每行是一个 id、一个模块和它的设置。03：宿主把每一行挂进一个插座；二十行全部按名字画出，研究行 bars 被从插座里拔了出来，另有一个空插座留给你自己的行。04：拔出 bars 会撤销它唯一的一次注册，声明过需要 bars 的 optimizer 行进入等待，其余五行从未停过；插回去，optimizer 自己重新启动。05：改一个设置，把 daily-bars 行的 adjustment 从 qfq 改成 raw，这一行停下并在新设置下重新启动。06：dsh 所基于的五个原语与它们在这里的名字并排：文件里的一行、fiber、provide 与 inject、effect、update。07：没有插座的东西：结算、账本和风控上限。"></p>
+
 ```bash
 clawock strategy-lab list       # 每一行、它提供什么、在等什么
 clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数据时的行为

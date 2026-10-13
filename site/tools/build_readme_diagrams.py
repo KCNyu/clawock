@@ -59,6 +59,13 @@ every outcome. A figure that only arranges the nouns of its section has failed.
 redraw read worse beside the overview; the watchdog times in the first are
 kept in step with config/cron-schedules.json.
 
+`plugin-system` is the plugin host as a system picture: who calls, the one file,
+the rack of twenty mounted rows, what pulling one does, and what has no socket.
+It is drawn from things as they are at run time, not from boxes: a terminal with
+the commands, the file's own lines, a row as a module with a grip, a plug and a
+status light, one of them pulled out of its socket. What it claims about the
+pull is what the kernel does to those rows, and the test performs it.
+
 A connector says what it carries. `KIND` gives each of eight kinds of flow its
 own line, arrowhead and packet: evidence is a solid line with a page running along
 it, an LLM judgment is dashed, a code gate ends on a bar, a task is a string of
@@ -208,6 +215,11 @@ ICON = {
     'alarm': '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M5 3L2 6M19 3l3 3"/>',
     'twin': '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>',
     'review': '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    # The plugin host: a plug, a rack of rows, the file that lists them, and what is bolted shut.
+    'plug': '<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0ZM12 18v4"/>',
+    'rows': '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>',
+    'config': '<path d="M6 3h8l4 4v14H6ZM14 3v5h4M10.5 12l-2 2.5 2 2.5M13.5 12l2 2.5-2 2.5"/>',
+    'lock': '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/>',
 }
 # Arrowheads, 10 units tall, tip half a unit past the reference point that sits
 # on the connector's end: (path, filled, reference x).
@@ -2614,7 +2626,312 @@ def proposal_review():
     return d.render(bottom + 36 + M)
 
 
+# --- the plugin host: things drawn as what they are at run time -----------------
+#: Both compositions in config/strategy-plugins.json, in file order: (row id, the
+#: last part of its `module`). The test reads them back from the file.
+HOST_ROWS = {
+    'live': (('factors', 'quant_factors'), ('daily-bars', 'daily_bars'), ('add-policy', 'add_policy'),
+             ('add-alpha', 'add_alpha'), ('left-side', 'left_side'), ('add-side', 'add_side'),
+             ('preposition', 'preposition'), ('intraday-policy', 'intraday_policy'),
+             ('bar-signals', 'bar_signals'), ('signal-panel', 'signal_panel'), ('sentiment', 'sentiment'),
+             ('morning-scans', 'morning_scans'), ('strategy-scores', 'strategy_scores')),
+    'plugins': (('strategies', 'registry'), ('factors', 'quant_factors'), ('bars', 'adjusted_bars'),
+                ('costs', 'registered_costs'), ('promoter', 'row_edits'), ('rsi', 'rsi'),
+                ('optimizer', 'walkforward')),
+}
+#: What the host does when one research row is pulled, as the kernel itself
+#: answers (the test mounts the rows and pulls it): the row's one registration is
+#: undone, the row that declared it waits, the others are not stopped.
+PULL = {'row': 'bars', 'undone': 'provide(bars)', 'waits': 'optimizer',
+        'declared': ('strategies', 'bars', 'costs'),
+        'untouched': ('strategies', 'factors', 'costs', 'promoter', 'rsi')}
+#: The one setting on the live `daily-bars` row, and the value its docs name as the way back.
+EDIT = {'row': 'daily-bars', 'key': 'adjustment', 'now': 'qfq', 'then': 'raw', 'undone': 'provide(daily_bars)'}
+LIGHTS = ('#e58a80', '#e2b65a', '#69bd96')        # a window's three title-bar lights
+
+
+def _json(line):
+    """One line of JSON as coloured runs: keys in ink, strings blue, numbers green."""
+    segs = []
+    for text, colon, number, rest in re.findall(r'("[^"]*")(\s*:)?|(-?\d[\d.]*)|([^"\d]+)', line):
+        if text:
+            segs.append((text, INK if colon else ROLE['blue']))
+            if colon:
+                segs.append((colon, MUT))
+        else:
+            segs.append((number or rest, ROLE['green'] if number else MUT))
+    return segs
+
+
+def _code(d, x, y, line, room, where, fill=None):
+    """A line set in the code face: JSON coloured by `_json`, or one ink."""
+    fits(line, 'code', room, where)
+    d.text(x, y, [(line, fill)] if fill else _json(line), 'code')
+
+
+def _window(d, x, y, w, h, name):
+    """An editor or terminal window: title bar, three lights, the file's name."""
+    d.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="10" fill="#ffffff" fill-opacity=".94" '
+          f'stroke="{CARD_STROKE}"/>')
+    d.add(f'<path d="M{x:g} {y + 26:g}V{y + 10:g}q0 -10 10 -10H{x + w - 10:g}q10 0 10 10V{y + 26:g}Z" '
+          f'fill="{CHIP}" stroke="{CARD_STROKE}"/>')
+    for i, light in enumerate(LIGHTS):
+        d.add(f'<circle cx="{x + 16 + i * 14:g}" cy="{y + 13:g}" r="4" fill="{light}"/>')
+    fits(name, 'code', w - 140, f'window {name}')
+    d.text(x + w / 2, y + 18, name, 'code', anchor='middle', fill=MUT)
+    return y + 26
+
+
+def _led(d, x, y, role, hollow=False, cls=None):
+    """A status light: lit in the role's colour, or an empty ring."""
+    look = f' class="{cls}"' if cls else ''
+    core = (f'fill="#ffffff" stroke="{ROLE[role]}" stroke-width="1.5"' if hollow else f'fill="{ROLE[role]}"')
+    d.add(f'<g{look}><circle cx="{x:g}" cy="{y:g}" r="8" fill="{"#ffffff" if hollow else ROLE[role]}" '
+          f'fill-opacity="{"1" if cls else ".18"}"/><circle cx="{x:g}" cy="{y:g}" r="4" {core}/></g>')
+
+
+BLADE = 46          # a mounted row's height in the rack
+
+
+def _blade(d, x, y, w, name, module, role='green', state=None, hollow=False):
+    """One mounted row: a module with a grip, its plug into the bus, and a status light."""
+    d.add(f'<path d="M{x - 12:g} {y + BLADE / 2:g}H{x:g}" stroke="{ROLE["green"]}" stroke-width="4" '
+          f'stroke-linecap="round"/>')
+    d.add(f'<rect x="{x:g}" y="{y:g}" width="{w:g}" height="{BLADE}" rx="9" fill="#ffffff" fill-opacity=".94" '
+          f'stroke="{ROLE[role]}" stroke-opacity=".45"/>')
+    d.add(f'<path d="M{x + 9:g} {y + 13:g}v20M{x + 14:g} {y + 13:g}v20" stroke="{LINE}" stroke-width="1.5" '
+          f'stroke-linecap="round"/>')
+    room = w - 26 - 30 - (width(state, 'm') + 10 if state else 0)
+    fits(name, 'b', room, f'row {name}')
+    fits(module, 'code', w - 56, f'module {module}')
+    d.text(x + 26, y + 20, name, 'b')
+    d.text(x + 26, y + 38, module, 'code', fill=MUT)
+    _led(d, x + w - 16, y + BLADE / 2, role, hollow=hollow)
+
+
+def _socket(d, x, y, w):
+    """An empty place in the rack, dashed."""
+    d.add(f'<path d="M{x + 9:g} {y:g}H{x + w - 9:g}q9 0 9 9V{y + BLADE - 9:g}q0 9 -9 9H{x + 9:g}q-9 0 -9 -9'
+          f'V{y + 9:g}q0 -9 9 -9Z" fill="none" stroke="{LINE}" stroke-width="1.5" stroke-dasharray="5 4"/>')
+
+
+def plugin_system():
+    """site/assets/plugin-system.svg — the whole plugin system as a rack you can pull a row out of."""
+    pull, edit = PULL, EDIT
+    live, lab = HOST_ROWS['live'], HOST_ROWS['plugins']
+    d = D('The plugin system: twenty rows in one file, on a host you can pull a row out of while it runs',
+          'A layered picture of the plugin system, in seven numbered parts. One: whatever agent runs '
+          'the desk, Claude Code, Codex, OpenClaw, dsh or any command line, calls the brief, report, '
+          'intraday and strategy-lab commands. Two: one file, strategy-plugins.json, lists every row: '
+          'thirteen live rows and seven research rows, each an id, a module and its settings. Three: '
+          'the host mounts every row into a socket; the picture shows all twenty by name, with the '
+          'research row called bars pulled out of its socket. Four: pulling bars undoes its one '
+          'registration, the optimizer row that declared it needs bars waits, and the other five '
+          'rows are not stopped; pushed back in, the optimizer starts by itself. Five: changing a '
+          'setting, here the adjustment on the daily-bars row from qfq to raw, stops that row, undoes '
+          'what it registered and starts it again under the new setting. Six: the same five primitives '
+          'dsh is built on, side by side: a row in a file, a fiber, provide and inject, effect, update. '
+          'Seven: what has no socket: settlement, the ledger and the risk limits.')
+    y = d.header('CLAWOCK · THE PLUGIN SYSTEM',
+                 ['Pull a row out. Everything else keeps running.'],
+                 ['Twenty rows in one file, mounted on a host built from the primitives dsh runs on.'],
+                 [('your agent', 'slate'), ('rows · the file', 'blue'), ('the host · code', 'green'),
+                  ('unplugged · waiting', 'warm'), ('the same in dsh', 'violet')])
+    d.logo('clawock', d.pw - M - 44, 30, 44)
+    full, gap = d.pw - 2 * M, 24
+    # The row that is pulled slides home and out again; what waits on it is lit while it is out.
+    d.add('<style>.plug{animation:plug 12s cubic-bezier(.77,0,.175,1) infinite}'
+          '.out{animation:out 12s cubic-bezier(.77,0,.175,1) infinite}'
+          '@keyframes plug{0%,38%{transform:translateX(0)}50%,88%{transform:translateX(-36px)}'
+          '100%{transform:translateX(0)}}'
+          '@keyframes out{0%,38%{opacity:1}50%,88%{opacity:0}100%{opacity:1}}'
+          '@media (prefers-reduced-motion:reduce){.plug,.out{animation:none}}</style>')
+
+    # --- 01 and 02: who asks, and the one file that says what is mounted ------------
+    y += 44
+    ah, aw = 318, 392
+    ax2, aw2 = M + aw + gap, full - aw - gap
+    d.section(y - 12, '01 · YOUR AGENT RUNS A COMMAND')
+    top = _panel(d, M, y, aw, ah, 'slate', 'terminal', 'Your agent asks', 'ANY HARNESS')
+    for i, logo in enumerate(('claude-code', 'codex', 'openclaw', 'deepseek-harness', 'any-cli')):
+        d.logo(logo, M + 20 + i * 52, top - 8, 40)
+    wy = _window(d, M + 16, top + 48, aw - 32, 132, 'your terminal')
+    for i, command in enumerate(('brief preflight', 'report preflight', 'intraday preflight',
+                                 'strategy-lab list')):
+        _code(d, M + 30, wy + 22 + i * 23, f'$ clawock {command}', aw - 60, 'command', fill=INK)
+    _said(d, M + 20, y + ah - 42, aw - 36,
+          ['Claude Code, Codex, OpenClaw, dsh, any CLI.', 'Each command reads a row by its name.'],
+          'callers note')
+
+    d.section(y - 12, '02 · ONE FILE SAYS WHAT IS MOUNTED', x=ax2)
+    top = _panel(d, ax2, y, aw2, ah, 'blue', 'config', 'A row is one line', f'{len(live) + len(lab)} ROWS')
+    wy = _window(d, ax2 + 16, top - 8, aw2 - 32, 252, 'strategy-plugins.json')
+    listing = (
+        (0, '"live": [', f'{len(live)} rows'),
+        (1, '{"id": "factors", …, "config": {"sigma_target": 0.25}},', None),
+        (1, '{"id": "daily-bars", …, "config": {"adjustment": "qfq"}},', None),
+        (1, '{"id": "add-policy", "module": "…plugins.add_policy"},', None),
+        (1, f'… {len(live) - 3} more', None),
+        (0, '],', None),
+        (0, '"plugins": [', f'{len(lab)} rows · research'),
+        (1, '{"id": "bars", …, "config": {"sessions": 800}},', None),
+        (1, '{"id": "rsi", …, "config": {"params": {"period": 14, …}}},', None),
+        (1, f'… {len(lab) - 2} more', None),
+        (0, ']', None),
+    )
+    for i, (indent, line, count) in enumerate(listing):
+        ly = wy + 24 + i * 19.5
+        _code(d, ax2 + 28 + indent * 12, ly, line, aw2 - 54 - indent * 12, 'listing')
+        if count:
+            d.text(ax2 + aw2 - 30, ly, count, 'code', anchor='end', fill=FAINT)
+
+    # --- 03: the rack ---------------------------------------------------------------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    rh = 492
+    d.down(M + aw - 60, a_bottom, y, pulses=(0, 1.2), kind='data', carry='terminal')
+    d.down(ax2 + aw2 / 2 + 40, a_bottom, y, pulses=(.5,), kind='task', carry='config')
+    d.section(y - 12, '03 · THE HOST MOUNTS EVERY ROW')
+    top = _panel(d, M, y, full, rh, 'green', 'rows', 'One host, twenty sockets', 'CODE · NOT A ROW')
+    by, pitch = top + 22, BLADE + 6
+    bays = ((M + 12, 630, 'blue', f'LIVE · {len(live)} ROWS · BRIEF, REPORT, INTRADAY'),
+            (M + 12 + 630 + 14, 300, 'violet', f'RESEARCH · {len(lab)} ROWS · THE LAB'))
+    for bx, bw, role, label in bays:
+        d.add(f'<rect x="{bx:g}" y="{top - 14:g}" width="{bw:g}" height="{7 * pitch + 38:g}" rx="12" '
+              f'fill="{TINT[role]}" fill-opacity=".7" stroke="{ROLE[role]}" stroke-opacity=".16"/>')
+        fits(label, 'kick', bw - 24, 'bay')
+        d.text(bx + 12, top + 6, label, 'kick', fill=ROLE[role])
+    lw, lx = 282, (M + 36, M + 36 + 282 + 24)
+    for col, x in enumerate(lx):
+        d.add(f'<path d="M{x - 12:g} {by + 6:g}V{by + 6 * pitch + BLADE - 6:g}" stroke="{ROLE["green"]}" '
+              f'stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>')
+        for row, (name, module) in enumerate(live[col * 7:col * 7 + 7]):
+            _blade(d, x, by + row * pitch, lw, name, module)
+    # The fourteenth socket is empty: a row may be a module of your own.
+    ex, ey = lx[1], by + 6 * pitch
+    _socket(d, ex, ey, lw)
+    d.text(ex + 26, ey + 20, 'your own row', 'b', fill=MUT)
+    d.text(ex + 26, ey + 38, 'apply(ctx, config)', 'code', fill=FAINT)
+    rx, rw = bays[1][0] + 26, 226
+    d.add(f'<path d="M{rx - 12:g} {by + 6:g}V{by + 6 * pitch + BLADE - 6:g}" stroke="{ROLE["green"]}" '
+          f'stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>')
+    for row, (name, module) in enumerate(lab):
+        ry = by + row * pitch
+        if name == pull['row']:
+            _socket(d, rx, ry, rw)
+            d.add('<g class="plug">')
+            _blade(d, rx + 36, ry, rw, name, module, role='slate', state='unplugged', hollow=True)
+            d.text(rx + 36 + rw - 30, ry + 20, 'unplugged', 'm', anchor='end', fill=MUT)
+            d.add('</g>')
+        elif name == pull['waits']:
+            _blade(d, rx, ry, rw, name, module, state='waiting')
+            d.add('<g class="out">')
+            _led(d, rx + rw - 16, ry + BLADE / 2, 'warm', cls='breathe')
+            d.text(rx + rw - 30, ry + 20, 'waiting', 'm', anchor='end', fill=ROLE['warm'])
+            d.add('</g>')
+        else:
+            _blade(d, rx, ry, rw, name, module)
+    ky = y + rh - 24
+    for kx, role, hollow, word in ((M + 28, 'green', False, 'mounted'), (M + 140, 'warm', False, 'waiting for a row it declared'),
+                                   (M + 400, 'slate', True, 'unplugged')):
+        _led(d, kx, ky - 5, role, hollow=hollow)
+        d.text(kx + 14, ky, word, 'm', fill=MUT)
+    note = 'Mount order does not matter. A broken row fails alone.'
+    fits(note, 'm', 440, 'rack note')
+    d.text(M + full - 20, ky, note, 'm', anchor='end', fill=MUT)
+
+    # --- 04 and 05: pull one out, change one setting ----------------------------------
+    r_bottom = y + rh
+    y = r_bottom + 48
+    ch = 262
+    d.down(M + aw - 60, r_bottom, y, pulses=(0,), kind='alert', carry='plug')
+    d.down(ax2 + aw2 / 2 + 40, r_bottom, y, pulses=(.8,), kind='deliver', carry='gear')
+    d.section(y - 12, '04 · PULL ONE OUT')
+    top = _panel(d, M, y, aw, ch, 'warm', 'plug', f'Pull {pull["row"]} out', 'NO RESTART')
+    steps = ((pull['row'], 'unplugged', MUT, 'slate', True, f'{pull["undone"]}  undone'),
+             (pull['waits'], f'waiting for {pull["row"]}', ROLE['warm'], 'warm', False,
+              'inject = (' + ', '.join(f"'{name}'" for name in pull['declared']) + ')'),
+             (f'the other {len(pull["untouched"])}', 'never stopped', ROLE['green'], 'green', False,
+              ' '.join(pull['untouched'])))
+    for i, (name, state, ink, role, hollow, detail) in enumerate(steps):
+        sy = top + i * 50
+        _led(d, M + 28, sy - 5, role, hollow=hollow)
+        d.text(M + 44, sy, name, 'b')
+        d.text(M + aw - 20, sy, state, 'm', anchor='end', fill=ink)
+        _code(d, M + 44, sy + 20, detail, aw - 64, 'pull detail', fill=MUT)
+    _said(d, M + 20, y + ch - 22, aw - 36, [f'Push it back in: {pull["waits"]} starts by itself.'], 'pull note')
+
+    d.section(y - 12, '05 · CHANGE ONE SETTING', x=ax2)
+    top = _panel(d, ax2, y, aw2, ch, 'blue', 'gear', 'A new setting restarts the row', 'NEVER PATCHED')
+    wy = _window(d, ax2 + 16, top - 8, aw2 - 32, 84, 'strategy-plugins.json')
+    for i, (sign, value, role) in enumerate((('−', edit['now'], 'warm'), ('+', edit['then'], 'green'))):
+        ly = wy + 22 + i * 24
+        d.add(f'<rect x="{ax2 + 22:g}" y="{ly - 15:g}" width="{aw2 - 44:g}" height="21" rx="4" fill="{TINT[role]}"/>')
+        d.text(ax2 + 30, ly, sign, 'code', fill=ROLE[role])
+        _code(d, ax2 + 50, ly, f'{{"id": "{edit["row"]}", …, "config": {{"{edit["key"]}": "{value}"}}}}',
+              aw2 - 90, 'edit line')
+    for i, (n, line) in enumerate((('1', f'the row stops, and {edit["undone"]} is undone'),
+                                   ('2', f'it starts again, now with {edit["key"]} {edit["then"]}'))):
+        sy = top + 108 + i * 26
+        d.text(ax2 + 20, sy, n, 'b', fill=ROLE['blue'])
+        fits(line, 'm', aw2 - 64, 'edit step')
+        d.text(ax2 + 44, sy, line, 'm')
+    _said(d, ax2 + 20, y + ch - 42, aw2 - 36,
+          ['The host reads the file again when it changes.', 'A change is a restart, never a patch.'], 'edit note')
+
+    # --- 06: the same primitives as dsh ------------------------------------------------
+    c_bottom = y + ch
+    y = c_bottom + 48
+    dh = 216
+    d.section(y - 12, '06 · THE SAME DESIGN AS dsh')
+    top = _panel(d, M, y, full, dh, 'violet', 'twin', 'Five primitives, the ones dsh is built on', 'CORDIS',
+                 tint=True)
+    d.logo('deepseek-harness', M + 22, top - 2, 26)
+    d.logo('clawock', M + 22, top + 26, 26)
+    pairs = (('cordis.patch.yml', 'strategy-plugins.json', 'one line mounts it', 220),
+             ('fiber', 'Fiber', 'a mounted plugin', 160), ('provide · inject', 'provide · inject', 'ask by name, wait', 160),
+             ('ctx.effect()', 'ctx.effect()', 'undo is recorded', 160),
+             ('fiber.update()', 'Fiber.update()', 'a clean restart', 160))
+    px = M + 60
+    for theirs, ours, meaning, pw in pairs:
+        d.add(f'<rect x="{px:g}" y="{top - 10:g}" width="{pw:g}" height="100" rx="9" fill="#ffffff" '
+              f'fill-opacity=".8" stroke="{ROLE["violet"]}" stroke-opacity=".3"/>')
+        _code(d, px + 12, top + 14, theirs, pw - 22, 'dsh term', fill=ROLE['violet'])
+        _code(d, px + 12, top + 40, ours, pw - 22, 'our term', fill=ROLE['green'])
+        d.add(f'<path d="M{px + 12:g} {top + 54:g}H{px + pw - 12:g}" stroke="{CARD_STROKE}"/>')
+        fits(meaning, 'm', pw - 22, 'primitive meaning')
+        d.text(px + 12, top + 76, meaning, 'm', fill=MUT)
+        px += pw + 8
+    _said(d, M + 20, y + dh - 40, full - 40,
+          ['Top line: what dsh calls it. Second line: what it is called here.',
+           'Restated in Python, because a row has to run inside this desk’s data and gates.'], 'dsh note')
+
+    # --- 07: what is bolted shut --------------------------------------------------------
+    y = y + dh + 48
+    eh = 168
+    d.section(y - 12, '07 · WHAT HAS NO SOCKET')
+    top = _panel(d, M, y, full, eh, 'green', 'lock', 'Bolted to the host', 'NOT A ROW')
+    xs, cw = columns(3, gap=12, x0=M + 16, w=full - 32)
+    for x, (icon, name, body) in zip(xs, (('balance', 'Settlement', 'win, loss or ungradeable'),
+                                          ('record', 'The ledger', 'every call, the losses too'),
+                                          ('shield', 'Risk limits', 'checked on every plan'))):
+        d.add(f'<rect x="{x:g}" y="{top - 12:g}" width="{cw:g}" height="62" rx="9" fill="{TINT["green"]}" '
+              f'stroke="{ROLE["green"]}" stroke-opacity=".35"/>')
+        for bx, byy in ((x + 9, top - 3), (x + cw - 9, top - 3), (x + 9, top + 41), (x + cw - 9, top + 41)):
+            d.add(f'<circle cx="{bx:g}" cy="{byy:g}" r="3.2" fill="#ffffff" stroke="{ROLE["green"]}"/>'
+                  f'<path d="M{bx - 2:g} {byy - 2:g}l4 4" stroke="{ROLE["green"]}"/>')
+        d.icon(icon, x + 22, top - 2, 'green')
+        d.text(x + 54, top + 14, name, 'b')
+        d.text(x + 54, top + 36, body, 'm', fill=MUT)
+        fits(body, 'm', cw - 76, 'bolted')
+    _said(d, M + 20, y + eh - 22, full - 40,
+          ['No row can mark its own call, pick a kinder reference price or keep a result off the record.'],
+          'bolted note')
+    return d.render(y + eh + M)
+
+
 LAYOUTS = {
+    'plugin-system': plugin_system,
     'strategy-plugins': strategy_plugins,
     'strategy-evolution': strategy_evolution,
     'proposal-review': proposal_review,
