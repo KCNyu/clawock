@@ -147,13 +147,13 @@
   <text x="312" y="584" class="b"><tspan fill="#151a21">28 names</tspan></text>
   <path d="M583.9 579H739.0M583.9 573v12M739.0 573v12" fill="none" stroke="#3f82b5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="662.3" cy="579" r="5.5" fill="#3f82b5" stroke="#3f82b5" stroke-width="1.5"/>
-  <rect x="808" y="565" width="96" height="28" rx="14" fill="#e6f4ee" stroke="#13865f" stroke-width="1.5"/>
-  <text x="856" y="583.5" class="c" text-anchor="middle"><tspan fill="#13865f">candidate</tspan></text>
+  <rect x="808" y="565" width="96" height="30" rx="15" fill="#e6f4ee" stroke="#13865f" stroke-width="1.5"/>
+  <text x="856" y="584.5" class="c" text-anchor="middle"><tspan fill="#13865f">candidate</tspan></text>
   <text x="312" y="624" class="b"><tspan fill="#151a21">16 names</tspan></text>
   <path d="M481.6 619H637.1M481.6 613v12M637.1 613v12" fill="none" stroke="#3f82b5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="561.8" cy="619" r="5.5" fill="#3f82b5" stroke="#3f82b5" stroke-width="1.5"/>
-  <rect x="808" y="605" width="96" height="28" rx="14" fill="#fbecea" stroke="#b8524a" stroke-width="1.5"/>
-  <text x="856" y="623.5" class="c" text-anchor="middle"><tspan fill="#b8524a">refused</tspan></text>
+  <rect x="808" y="605" width="96" height="30" rx="15" fill="#fbecea" stroke="#b8524a" stroke-width="1.5"/>
+  <text x="856" y="624.5" class="c" text-anchor="middle"><tspan fill="#b8524a">refused</tspan></text>
   <text x="44" y="745" class="c"><tspan fill="#5b6875">An edge interval across zero is no edge: the candidate rests on those 12 names.</tspan></text>
   <path d="M34 966H982L990 982H26Z" fill="url(#lift)"/>
   <rect x="24" y="791" width="968" height="176" rx="14" fill="url(#glass)" stroke="url(#rim)" stroke-width="1.2"/>

@@ -51,7 +51,7 @@ clawock 把你已经在用的 AI Agent 接成一套围绕港美股持仓连续�
 4. **结算由代码完成。** 不是模型，也不是那行插件。参考价 8.645，是计划发布之后第一个能成交的价格。到下一个交易日收盘，它又低了 4.22%。结果：`loss`。
 5. **这次亏损回到了记录里。** 它是公开账本上的 `dec-6d9e8bdc8817`，下一份简报读到的历史战绩把它算了进去。
 
-<p align="center"><img src="site/assets/strategy-plugins.svg" width="1016" alt="插件：十二个现网行像钟面上的十二个刻度一样围着一个内核，五个信号源、一个数据源、六个政策，各自向内核提供一个服务；内核给出 provide、inject、effect、event 四个原语。下面三句话：读者按名字向内核取服务，从不直接 import 插件；一行挂载失败只停掉读它的路径，并被点名；结算、闸和台账不是行，所以换掉一行改变不了结果能做什么。"></p>
+<p align="center"><img src="site/assets/strategy-plugins.svg" width="1016" alt="一次真实判断，画在一条线的两侧。线上方是十三个现网行，各占一个插座，任何一个都可以换；其中 factors 这一行在 2026-10-08 给金风算出读数：趋势关闭，在 200 日均线下方 31.8%。中间是 Agent 写的多方、空方和计划：观察，五个交易日内站上 8.97 才动手，8.923 作废，信心 0.34。线下方是不属于插件行的部分：代码取 8.645 为参考价，下一个收盘低了 4.22%，判为亏损，公开账本把它留了下来。任何一行都改不了这一部分。"></p>
 
 **能换的是第 1 步。** 把 `factors` 这一行换成你自己的，金风那一行结论就会按另一种方式算出来：换一条均线、换一个窗口、换一个数据源。第 4、5 步不会动，因为它们不是插件行。没有任何一行能给自己的判断打分、挑一个更好看的参考价、把那个 `loss` 改成别的，或者不让它进账本。两套不同的策略之所以能放在同一份记录上比较，原因就在这里：判这次判断的代码，也是判它们的代码。
 
@@ -84,7 +84,7 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 “越用越聪明”有可查的落点：证据连到决策，决策连到执行与结果，历史进入下一次上下文，置信度由更早样本校准，证据要求的改动留有审查与回滚记录。换 harness 时，保留工作区产物并接回上下文；连续性来自这些文件，不依赖某个聊天窗口。新工作区不会自动拥有作者的实盘数据源、排程和历史，需按能力检查配置。
 
-<p align="center"><img src="site/assets/product-architecture.svg" width="1016" alt="clawock 产品架构 —— 外部运行时拥有模型、对话、记忆与工具;包提供可迁移工作流、认证上下文、确定性对账、评估和有边界改进"></p>
+<p align="center"><img src="site/assets/product-architecture.svg" width="1016" alt="clawock 产品架构：左边是你的运行时保留的东西（模型、对话与记忆、研究工具、凭据），可以是 OpenClaw、Claude Code、Codex、DeepSeek Harness 或你自己的 CLI；右边是 clawock 负责的东西（工作流、认证输入、对账、评估、有边界的改进）；两者之间是一份契约，有三个文件跨过它：run prepare 给出的 request.json、Agent 写的 decision.json、run publish 返回的回执。下方，你的实例拥有策略、证据、账本、排程、投递与界面。"></p>
 
 [通用调用与反馈协议](docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) · [工作流的改进边界](docs/architecture/harness.md#ownership).
 
@@ -98,7 +98,7 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 **实盘完整信息流与投递路径**
 
-<p align="center"><img src="site/assets/information-flow.svg" width="1016" alt="clawock 数据流 —— 8 个信息层经有序的多源兜底抓取;Python 对账并计算风险;盘前简报、时段报告与盘中巡检各自跑 preflight,只组装本次能用的块;模型只读这些文件、从不自己抓数据;Python postflight 校验后发布到 master、仪表盘轮询的 data-plane 分支,并投递微信与 Telegram;不调用 LLM 的 crontab watchdog 兜底送达"></p>
+<p align="center"><img src="site/assets/information-flow.svg" width="1016" alt="八个信息层进来：行情、监管文件、资金流、新闻、宏观与情绪、量化与风险、汇率与账本、回测。关键来源按顺序兜底（港股行情先腾讯与东财，再 stooq、yfinance；美股行情从 Nasdaq 起还有六条后备；美元兑港元依次是 Frankfurter、exchangerate.host、Yahoo），取不到的来源写成「未取到」，绝不写成「没有消息」。一张网格画出每档运行拿到什么：盘前简报每类信息都拿全，时段报告和盘中盯盘拿到的是收窄的一份，时段报告没有历史。模型读这些文件，不自己抓。"></p>
 
 [信息层与来源目录](docs/how-the-desk-works.zh.md#信息层) · [认证协议](docs/architecture/runtime-protocol.md).
 
@@ -114,7 +114,7 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 **实盘完整多空辩论**
 
-<p align="center"><img src="site/assets/debate-flow.svg" width="1016" alt="clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环"></p>
+<p align="center"><img src="site/assets/debate-flow.svg" width="1016" alt="一次真实的对辩，2026-10-08 的金风：多方与空方分列两侧，中间是双方共同引用的两条证据——港股账本的杠杆敞口，以及与 200 日均线的距离；空方必须点明自己攻击的是哪条共识。裁决写下计划（五个交易日内站上 8.97 才动手，8.923 作废，信心 0.34，标记为有争议），并点名背后的框架：相对强弱。四个分析视角先读证据包，三个风险声音在裁决之前发言。没有引用证据的反方，就拒绝发布。"></p>
 
 多空辩论改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents)；裁判给每条判定写明策略框架。
 
@@ -126,7 +126,7 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 **换个 harness 也能继续反馈。** 可迁移工作流用带来源的 `outcome.json` 生成 `evaluation.json`（方向评估，不是已实现盈亏）；评估或拒收回执可触发有边界提案，经具名审查接受后应用，并保留回滚记录。目前只允许调整证据数量与无一手来源时的置信度上限，不能自行改策略、买卖规则或 skill。这是可审查的改进路径，不是自动变得更赚钱。
 
-<p align="center"><img src="site/assets/feedback-learning.svg" width="1016" alt="收盘之后：模型只提交一次判断，代码按各市场日历用基准日线核对触发，同一论点归为一个案例，结算为赢、输或无法打分并全部发布；实盘里执行、结算、历史与校准绕回下一份简报；换个 harness 时，观察到的结果可以触发有边界的提案，经具名审查接受或拒绝，应用时保留回滚记录"></p>
+<p align="center"><img src="site/assets/feedback-learning.svg" width="1016" alt="收盘之后，用一次真实判断来讲：金风在 2026-10-08 发布，代码在下一个收盘按低 4.22% 计价、结算为亏损；它的 5 日与 20 日计价点还没到。一次判断的结局是赢、输或无法打分，三种都公开，无法打分的不进胜率。在现网，执行、结算、历史与校准回到下一份简报；在其他 harness 里，一次观测到的结果可以引出一项有边界的改动，由具名 review 接受或拒绝，并留有退路。"></p>
 
 截至 <!-- CW_M:as_of -->2026-10<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->166<!-- /CW_M:settled --> 条判断**,全部由 Python 机械结算后发布:赢的、输的、没法打分的都在。
 
