@@ -149,11 +149,19 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 ## 收盘后：结果回到下一次判断
 
-收盘不是对话的终点。你用 `mark-followed` 标记跟随 / 未跟随的执行证据，代码按各市场自己的日历和标准日线检查触发与结果；同一论点的重复表态归为同一 episode，没法结算的也留在记录里。
+2026-10-09 早上，没有人去问模型「你昨天金风那次判断怎么样」。翻开日线的是代码。计划是 8 号开盘前发布的，在那之后第一个能成交的价格是 09:30 的开盘价 8.645，它就成了参考价。下一个交易日收在 8.28，低了 4.22%。代码在账本的这一行上写下 `loss`。
 
-**下一次从这份记录开始。** 实盘下一份简报读决策指标、历史复盘与置信度校准；校准只用更早日期，样本不足时收缩或弃权。失败判断连着原始证据留下来，Agent 可以复核昨天的理由，而不是每天重新讲一遍故事。
+这个分数靠三条规矩才算数，每条背后都有一个真实的例子：
 
-**换个 harness 也能继续反馈。** 可迁移工作流用带来源的 `outcome.json` 生成 `evaluation.json`（方向评估，不是已实现盈亏）；评估或拒收回执可触发有边界提案，经具名审查接受后应用，并保留回滚记录。目前只允许调整证据数量与无一手来源时的置信度上限，不能自行改策略、买卖规则或 skill。这是可审查的改进路径，不是自动变得更赚钱。
+- **每天说同一句话，只算一次。** 从 2026-07-29 到 2026-10-08，简报对金风说了 45 次「持有观察」。它们归成一个结果（`ep-f31982c6d511`），不是 45 个。
+- **打不了分的判断也留在账上。** 2026-10-01 的计划给金风设了触发价，但那天港股休市。这一行（`dec-143614125e34`）还在，标着 `not_evaluable`，原因是 `market_closed`。
+- **你做了什么，和计划说了什么，分开记。** `clawock mark-followed` 给每条判断标上「跟了」或「没跟」，因为账户的成绩是模型的建议加上你自己的选择。
+
+价格只认同一套标准日线，并且按各个市场自己的交易日历来读。
+
+**下一次判断从这份记录开始。** 2026-10-12 的简报在「昨日兑现（2026-10-08 的 plan）」这张表里，又把金风这次判断印了一遍，旁边写着 `loss`。同一份简报里，裁判对金风写的是：不动，十天后有三季报，猜方向不如等公告。模型还会读到它以前给的信心数字到底准不准。这项核对只用更早日期的数据；例子太少时，就少信这个数字一点，或者干脆不给读数。判断错了的那一条，仍然连着它当时依据的证据，所以 Agent 可以回头复核昨天的理由，而不是每天把故事从头讲一遍。
+
+**在你自己的 harness 里，同样的反馈分两步。** 观察期过了，你写一份 `outcome.json`：你看到的价格，以及价格是从哪里来的。然后 `clawock workflow evaluate` 把它变成 `evaluation.json`，告诉你方向对不对。它不是已经落袋的盈亏。如果结果一再指向同一个弱点，这份文件（或者一次被拒绝的发布）可以用来支持一份改规则的提案。提案由一个署名的人接受或拒绝。接受之后才生效，而且可以回滚。目前只有两样东西能这样改：一次判断至少要引用几条证据；没有一手来源时，信心最高能写到多少。策略、买卖规则和 skill 本身都不能这样改。这让改动可以被审查，不会让收益自动变高。
 
 <p align="center"><img src="site/assets/feedback-learning.svg" width="1016" alt="收盘之后：模型只提交一次判断，代码按各市场日历用基准日线核对触发，同一论点归为一个案例，结算为赢、输或无法打分并全部发布；实盘里执行、结算、历史与校准绕回下一份简报；换个 harness 时，观察到的结果可以触发有边界的提案，经具名审查接受或拒绝，应用时保留回滚记录"></p>
 
@@ -171,14 +179,14 @@ clawock strategy-lab sources    # 每一行的输入、单位、窗口与缺数�
 
 读这些数字,请带着四条限定:
 
-- **是诊断,不是收益证明。** 方向命中率与盈亏无关;区间包含 50% 时统计上还不能算优势,该是噪声的地方就标成噪声。
+- **量的是方向，不是钱。** 方向对了，不等于赚了钱。区间里还包含 50% 的时候，统计上不能算有优势，这里就照实把它标成噪声。
 - **真实账户另算。** 折美元合并 **<!-- CW_M:return_pct -->−26.91%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动;美股、港股分开看见页首的图),对比买入持有仍然落后。
 - **影子组合是模拟,不是实盘。** 跟随建议与买入持有在同一时间线上回放,见[持仓页](https://kcnyu.github.io/clawock/#drill)。
 - **账户成绩是人机混合的成绩。** 跟不跟由账户所有者决定:<!-- CW_M:rows -->1013<!-- /CW_M:rows --> 条记录里 followed <!-- CW_M:followed -->573<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->390<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->50<!-- /CW_M:unknown -->,每条都带执行状态。
 
 杠杆刻度盘的择时能力目前不可与随机区分,[Reflect](https://kcnyu.github.io/clawock/#reflect) 照实写着。战绩可以复算:`clawock audit-resettle` 重新结算整本决策账(默认不写入),`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。[原始账本全部公开](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl) · [打分硬规则](docs/how-the-desk-works.zh.md#战绩怎么打分硬规则) · [测了什么、什么没通过](docs/how-the-desk-works.zh.md#测了什么什么没通过)。
 
-方法提案保留冻结输入和版本化预测；[方法评估](https://github.com/KCNyu/clawock/blob/master/docs/architecture/decision-architecture.md#method-records-and-evaluation) 分开收益与命中率，支持前瞻对照，不自动晋升方法。
+一份提案不只看它赚没赚。2026-10-12，模型提出：MiniMax（`00100`）一个交易日内站上 225 就减 20 股；同时预测，第五个交易日收在 213 下方的概率是 0.55。代码把这份提案（`prop-7c966b4a33172e8c`）连同它当时用的输入、它自己写明的方法和两条异议一起存了下来。之后它被分开读两次：这笔交易赚没赚；0.55 这个概率给得准不准。[方法评估](https://github.com/KCNyu/clawock/blob/master/docs/architecture/decision-architecture.md#method-records-and-evaluation)两样都报，而且得分高的方法不会被自动采用。
 
 **从开放提案，到可核对的方法证据**
 
@@ -210,7 +218,15 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 ## 模型不被允许做的事
 
-分数不是模型自己打的,账也不是模型自己记的。可能把记录算坏的算术都在 Python 里,有单元测试钉着。 集中度复核、配置中的风控边界、越线处置与证据要求画在页首全景图的第 04 格。
+模型负责写观点。算术不归它，给自己打分也不归它；这两样都在 Python 里，有单元测试钉着。放到金风那个早上，就是模型做不了下面这些事：
+
+- **自己挑参考价。** 8.645 是代码里一条规则定的：计划发布之后第一个能成交的价格。
+- **给自己的判断打分。** `loss` 是结算代码照着日线写下的。写计划的那个模型碰不到这个字段。
+- **没有反方理由就发布。** 缺了反方证据的判断会被拒收，[五分钟跑起来](#五分钟跑起来)里有这个例子。
+- **把港币和美元直接相加。** 金风以港币计价。两种货币并排显示，带上汇率和取汇率的时间，不会被直接加在一起。
+- **决定风控线有没有被越过。** 每份简报都由代码检查这些线。那天早上它查出四条仓位线、两条杠杆止损被越过，简报一开头写的就是这件事。每次越线都留有带日期的记录，写明当时怎么处置：减仓，或者继续持有并写下理由。任何一条都不会自己去卖出。
+
+这些风控线、越线之后怎么处置、对证据的要求，都画在页首全景图里「Code holds the boundary」那一格。
 
 [全部 12 条,代码具体做什么](docs/how-the-desk-works.zh.md#代码强制执行的规矩)。
 
@@ -218,7 +234,9 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 **DeepSeek Harness 的实盘视图与后台队列**
 
-**交代任务、离开聊天、回来收结果。** `clawock-dsh` 把投资决策 skill、Decision Mind 标签页和 provider 面板带进 dsh 网页端。在装了 clawock **agent-dispatch** runner 的主机上,这块面板还让你随时看见并控制 Claude Code、Codex、OpenCode 这支后台团队:你在聊天里委派仓库改动并写明交付要求,runner 让任务独立跑完,插件让你随时看进度、改方向。
+**交代任务，离开聊天，回来收结果。** 你在 dsh 网页端的聊天里交代一件仓库改动，并写明要怎么交付。后台的一个 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干。等你回来，面板上能看到它做到了哪一步。
+
+这就是 `clawock-dsh` 给 dsh 加的东西：投资决策 skill、Decision Mind 标签页和 provider 面板。后台队列需要主机上装有 clawock 的 **agent-dispatch** runner。runner 负责让每个任务独立跑完，插件负责让你看得见、改得了方向。
 
 <p align="center"><img src="site/assets/harnesses.svg" width="1016" alt="你的 dsh 后台团队:在聊天中委派仓库任务,agent-dispatch 为 Claude Code、Codex 或 OpenCode 启动独立 systemd 任务;真实插件截图显示额度和队列,可以调整排队任务与预算;agent 按任务要求完成 PR、必需 CI、squash-merge 和本机刷新;runner 尽力经微信和 Telegram 回传报告,送达回执与任务结果分开显示"></p>
 
@@ -226,7 +244,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 - **任务在跑,也能改方向。** 把排队任务往前移,在允许时改下一次尝试的模型,调整截止时间与重试预算,取消任务或续跑未完成的会话。
 - **结果留得住。** 任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-作者的主机用同一条队列维护自己（页首全景图第 09 格）：巡检轮次核查实盘发布出去的东西，提报闸只为拿得出证据的发现开 issue，后台 agent 带着修复走完 PR 与必需 CI，被当作噪音关掉的 issue 会让同类发现下次降级。
+作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。巡检轮次核查已经发布出去的东西。提报闸只为拿得出证据的发现开 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。
 
 **完整队列截图** —— 真实主机上的插件
 
@@ -242,7 +260,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 <p align="center"><img src="site/assets/dsh-task-detail.png" width="380" alt="手机布局下的完整真实 dsh 任务详情:已结束的仓库任务,带编号与投递状态的追加指令,以及按时间排列的派发、等待执行锁、执行尝试、指令投递、续跑和通知回执"></p>
 
-问一句“0700.HK 能不能加点仓?”,投资 skill 会带着 agent 收集证据、做多空辩论、写出有边界的决策。**Decision Mind** 让你点开一笔真实成交,顺着**计划 → 执行 → T+1 → 盈亏**往下看。没有计划、尚未判定都明说,USD 与 HKD 分开,下单仍由你来。
+问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 是用来回头看的：点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
 
 <p align="center"><img src="site/assets/dsh-decision-mind.png" width="820" alt="真实 dsh 网页端里的 Decision Mind:成交按日期分组,旁边显示配对计划与 T+1 判定;展开轨迹能看到当时计划、实际执行和结果"></p>
 
@@ -257,13 +275,13 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 
 ## 引擎盖下面
 
-同一套闭环在作者的真实账本上怎么落地：
+上面说的这一切，在作者的真实账户上每天是这样跑的：
 
 <p align="center"><img src="site/assets/architecture.svg" width="1016" alt="KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环"></p>
 
 <p align="center"><img src="site/assets/decision-pipeline.svg" width="1016" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录;dsh 的 Decision Mind 展示真实成交、当时计划与 T+1 判定供追问,下单仍由人来"></p>
 
-作者自己的投研台在 **08:03 HKT** 送出盘前计划，用 OpenClaw 无人值守地跑这一套。每个任务都是 `clawock … preflight` → 模型写 → `clawock … postflight`:
+作者的盘前计划在 **08:03 HKT** 发出，没有人守着，定时由 OpenClaw 来跑。每个任务都是三步：`clawock … preflight` 备好文件，模型写，`clawock … postflight` 检查并发布它写的东西：
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="投研台主机上 OpenClaw 的真实 cron 列表:九个 clawock 任务(盘前简报、港美股场次报告、盘中盯盘),各自的 cron 表达式、所跑的 clawock preflight → postflight 生命周期、上次状态 ok 与耗时" width="820"></p>
 
@@ -347,7 +365,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 **为什么要开源、图什么:** 这套系统本来就在跑——这是作者自己的真实账户,亏盈都是自己的钱。开源是把账本和流程摊开,不收费、无付费版、无荐股群;你装不装、跟不跟,和作者的收入没有任何关系。
 
-本仓库包含**真实交易持仓**,是个人记录与可携带工作区——**不是投资建议、不是推荐、也不是跟单系统**。结算规则与方法学变更都在代码里版本化,任何一条结果都不是人工挑选的;主动建议至今没显出优势,你读到时每个数字都可能已经过时。
+本仓库包含**真实交易持仓**。它是一个人的记录，也是一个你可以带走的工作区。它**不是投资建议、不是推荐、也不是跟单系统**。没有哪条结果是人工挑出来的：结算规则和每次方法变更都在代码里留有版本。那些叫人「动手」的建议至今没有证明比抛硬币强，你读到时每个数字都可能已经过时。
 
 原创代码 [MIT](LICENSE);改编第三方代码保留原许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。行情、新闻、社交内容与 API 访问**不**被 MIT 重新授权,见[第三方数据与服务](docs/legal/third-party-data.md)。
 
