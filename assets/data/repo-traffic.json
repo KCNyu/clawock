@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T10:06:09Z",
+  "generated_at": "2026-10-13T11:02:56Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -322,6 +322,21 @@
       "timestamp": "2026-10-09T00:00:00Z",
       "count": 12,
       "uniques": 8
+    },
+    {
+      "timestamp": "2026-10-10T00:00:00Z",
+      "count": 4,
+      "uniques": 4
+    },
+    {
+      "timestamp": "2026-10-11T00:00:00Z",
+      "count": 10,
+      "uniques": 4
+    },
+    {
+      "timestamp": "2026-10-12T00:00:00Z",
+      "count": 14,
+      "uniques": 14
     }
   ],
   "clones": [
@@ -644,6 +659,21 @@
       "timestamp": "2026-10-09T00:00:00Z",
       "count": 1723,
       "uniques": 248
+    },
+    {
+      "timestamp": "2026-10-10T00:00:00Z",
+      "count": 929,
+      "uniques": 183
+    },
+    {
+      "timestamp": "2026-10-11T00:00:00Z",
+      "count": 1023,
+      "uniques": 140
+    },
+    {
+      "timestamp": "2026-10-12T00:00:00Z",
+      "count": 1843,
+      "uniques": 277
     }
   ],
   "referrers_snapshots": [
@@ -1159,6 +1189,52 @@
         },
         {
           "referrer": "kcnyu.github.io",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "vuink.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-10-13T11:02:56Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 7,
+          "uniques": 6
+        },
+        {
+          "referrer": "news.ycombinator.com",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "referrer": "kagi.com",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "referrer": "agentsmd.io",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "referrer": "Google",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "dshfind.com",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "search.brave.com",
           "count": 1,
           "uniques": 1
         },
@@ -2292,6 +2368,72 @@
           "uniques": 4
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-13T11:02:56Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 100,
+          "uniques": 45
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/how-the-desk-works.md",
+          "title": "/blob/master/docs/how-the-desk-works.md",
+          "count": 16,
+          "uniques": 16
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 11,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/discussions",
+          "title": "/discussions",
+          "count": 8,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/AGENTS.md",
+          "title": "/blob/master/AGENTS.md",
+          "count": 6,
+          "uniques": 6
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/dsh/README.md",
+          "title": "/blob/master/examples/dsh/README.md",
+          "count": 6,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/openclaw/SKILL.md",
+          "title": "/blob/master/examples/openclaw/SKILL.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/glossary.md",
+          "title": "/blob/master/docs/glossary.md",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/claude-code/CLAUDE.md",
+          "title": "/blob/master/examples/claude-code/CLAUDE.md",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/codex/AGENTS.md",
+          "title": "/blob/master/examples/codex/AGENTS.md",
+          "count": 4,
+          "uniques": 4
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -2392,6 +2534,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 6
+    },
+    {
+      "captured_at": "2026-10-13T11:02:56Z",
+      "stargazers": 19,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 11
     }
   ],
   "package_downloads": [
@@ -2578,6 +2727,19 @@
         "downloads": 6755,
         "start": "2026-09-09",
         "end": "2026-10-08"
+      }
+    },
+    {
+      "captured_at": "2026-10-13T11:02:56Z",
+      "pypi": {
+        "last_day": 23,
+        "last_month": 311,
+        "last_week": 170
+      },
+      "npm": {
+        "downloads": 6749,
+        "start": "2026-09-12",
+        "end": "2026-10-11"
       }
     }
   ]
