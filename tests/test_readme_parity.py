@@ -362,11 +362,8 @@ def test_the_weekly_metrics_placeholders_survive_a_rewrite():
         # The per-book and combined returns are printed by site/assets/books.svg,
         # which the same script redraws, so README.md carries no placeholder for them.
         "README.md": {"days", "rows", "settled"},
-        "README.zh.md": {
-            "as_of", "days", "rows", "settled", "return_pct", "active_pct",
-            "active_n", "hold_pct", "hold_n", "hi_pct", "hi_n", "active_ci",
-            "hi_ci", "followed", "not_followed", "unknown",
-        },
+        # Both languages now use the same charts and link to live score details.
+        "README.zh.md": {"days", "rows", "settled"},
     }
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         opened = re.findall(r"<!-- CW_M:(\w+) -->", md)
