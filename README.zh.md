@@ -115,7 +115,7 @@ clawock strategy-lab sources    # 输入、单位、观察期和缺数据时的�
 
 这一节的标题说的就是这条规矩：**先把来源收齐、标清楚，然后才轮到观点。** 落到实处是三个做法：
 
-- **每个来源都有后备。** 行情先走腾讯或 Nasdaq，一家取不到就换下一家。公告来自 SEC 和港交所，资金流来自东财，另有中英文新闻、宏观数据和情绪。然后 Python 把你的账本、汇率和风险数字核对一遍。
+- **行情来源有备用通道。** 在作者已配置好的投研台上，行情先走腾讯或 Nasdaq，一家取不到就换下一家。公告来自 SEC 和港交所，资金流来自东财，另有中英文新闻、宏观数据和情绪。然后 Python 把你的账本、汇率和风险数字核对一遍。
 - **旧闻不会被当成新消息。** 上一个收盘之前发布的内容，都标成旧闻。
 - **没取到就写「未取到」，不写「没有消息」。** 港股的基础覆盖是齐的，但**研究广度落后美股**。
 
@@ -231,7 +231,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 **DeepSeek Harness 的实盘视图与后台队列**
 
-**交代任务，离开聊天，回来收结果。** 你在 dsh 网页端的聊天里交代一件仓库改动，并写明要怎么交付。后台的一个 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干。等你回来，面板上能看到它做到了哪一步。
+**配置好 dsh 和主机 runner 后，你可以交代任务，之后回来收结果。** 在 dsh 网页端的聊天里说明仓库改动和交付要求。后台的一个 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干。等你回来，面板上能看到它做到了哪一步。
 
 这就是 `clawock-dsh` 给 dsh 加的东西：投资决策 skill、Decision Mind 标签页和 provider 面板。后台队列需要主机上装有 clawock 的 **agent-dispatch** runner。runner 负责让每个任务独立跑完，插件负责让你看得见、改得了方向。
 
@@ -241,7 +241,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 - **任务在跑,也能改方向。** 把排队任务往前移,在允许时改下一次尝试的模型,调整截止时间与重试预算,取消任务或续跑未完成的会话。
 - **结果留得住。** 任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。巡检轮次核查已经发布出去的东西。提报闸只为拿得出证据的发现开 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。
+作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。另外配置的巡检任务核查已发布的产物。发现问题后，程序先检查证据，符合提交条件才创建 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。安装 Python 包或 dsh 插件不会自动配置这些巡检任务。
 
 **完整队列截图** —— 真实主机上的插件
 
@@ -257,7 +257,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 <p align="center"><img src="site/assets/dsh-task-detail.png" width="380" alt="手机布局下的完整真实 dsh 任务详情:已结束的仓库任务,带编号与投递状态的追加指令,以及按时间排列的派发、等待执行锁、执行尝试、指令投递、续跑和通知回执"></p>
 
-问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 是用来回头看的：点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
+提供持仓和证据后，问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 读取工作区中已记录的成交和计划；新工作区没有成交历史可展示。点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
 
 <p align="center"><img src="site/assets/dsh-decision-mind.png" width="820" alt="真实 dsh 网页端里的 Decision Mind:成交按日期分组,旁边显示配对计划与 T+1 判定;展开轨迹能看到当时计划、实际执行和结果"></p>
 
@@ -272,13 +272,13 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 
 ## 引擎盖下面
 
-上面说的这一切，在作者的真实账户上每天是这样跑的：
+下面展示作者已配置好的实盘：行情访问、持仓、决策历史、定时任务和投递目标。安装 clawock 会提供命令和工作流；要复现这套每日服务，还需要配置这些输入和任务。
 
 <p align="center"><img src="site/assets/architecture.svg" width="1016" alt="KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环"></p>
 
 <p align="center"><img src="site/assets/decision-pipeline.svg" width="1016" alt="clawock 的一个交易日，从头到尾 —— Python 按顺序的兜底链抓行情（港股腾讯 + 东财，再 stooq，再 yfinance；美股 Nasdaq 打头的七路链；美元兑港元 Frankfurter、exchangerate.host、Yahoo），以及 SEC 与港交所公告、东财资金流、中英文新闻、Reddit 与影响者情绪、宏观与催化剂日历；对账后计算组合风险、分腿集中度、杠杆 regime 刻度盘、量化因子、横截面排名与同业残差，并过回测闸；风险上限、入场闸、盈利质量、论点漂移和新闻证据图都是代码闸；preflight 给 agent 一份上下文包，四位分析师、必须有分歧的多空研究员、三位风险官和一位裁判写出 plan.json；Python postflight 校验并记入 memory/decisions.jsonl，渲染简报卡片，发微信与 Telegram，发布仪表盘；随后由代码用 mark-followed 记录实际执行、按标准日线逐个 episode 结算、校准置信度、用影子组合对比买入持有并发布战绩，第二天的简报再读这份记录;dsh 的 Decision Mind 展示真实成交、当时计划与 T+1 判定供追问,下单仍由人来"></p>
 
-作者的盘前计划在 **08:03 HKT** 发出，没有人守着，定时由 OpenClaw 来跑。每个任务都是三步：`clawock … preflight` 备好文件，模型写，`clawock … postflight` 检查并发布它写的东西：
+作者的盘前任务由 OpenClaw 定时在 **08:03 HKT** 启动。每个任务都是三步：`clawock … preflight` 备好文件，模型写，`clawock … postflight` 检查并发布它写的东西：
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/openclaw-cron.png" alt="投研台主机上 OpenClaw 的真实 cron 列表:九个 clawock 任务(盘前简报、港美股场次报告、盘中盯盘),各自的 cron 表达式、所跑的 clawock preflight → postflight 生命周期、上次状态 ok 与耗时" width="820"></p>
 
@@ -288,7 +288,7 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 
 ## 五分钟跑起来
 
-选你正在用的 Agent,点 logo 打开对应 harness 的可运行示例:
+选择你正在用的 Agent，点 logo 打开对应接入示例。这是同一工作流的五种可选用法，安装包不会同时装上五个 Agent。
 
 <div align="center">
 <table>
@@ -302,9 +302,7 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 </table>
 </div>
 
-**最省事的办法:** 把本仓库地址丢给你的 Agent,让它 `python -m pip install clawock` 后跑 `bash examples/cli/minimal-run/run.sh`。不需要模型,也不需要任何 API 密钥,看到 `isolated run published <run_id>` 就是第一张被 Python 校验过的决策回执。
-
-**手动跑**(Python ≥ 3.11),从空目录到一条已发布决策:
+投资决策工作流需要 Python ≥ 3.11，以及能读写文件的 Agent。从空目录开始：
 
 ```bash
 pip install clawock
@@ -312,11 +310,15 @@ clawock workflow install investment-decision --workspace ./my-book
 clawock init ./my-book --workflow investment-decision
 cd my-book && mkdir -p .clawock/work
 clawock run prepare > .clawock/work/request.json
-# 你的 Agent 读取请求,写出 decision.json
+# 你的 Agent 读取已安装的 skill 和请求，再写出 decision.json
 clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
 ```
 
-模型调用留在你自己的运行时里,费用走你自己的 API key;clawock 本身免费开源。[这一段](examples/cli/workflow-run/run.sh)每个 PR 都在干净虚拟环境里只装 wheel 原样跑一遍。
+模型调用和费用留在你的运行时里，clawock 本身免费开源。真实投资判断需要你提供持仓和证据。上面的步骤创建工作区、校验决策，不会安装作者的数据源、历史或定时任务。CI 会在干净环境中只安装 wheel，用[预先准备的示例决策](examples/cli/workflow-run/run.sh)验证这些命令。
+
+如果只想测试准备与发布流程，可以克隆本仓库，在仓库根目录运行 `bash examples/cli/minimal-run/run.sh`。它不需要模型或凭证，会创建临时环境并发布固定测试答案；看到 `isolated run published <run_id>` 说明基础流程通过，不代表完成了投资分析。也可以打开 Codespace：
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/KCNyu/clawock)
 
 把 `decision.json` 里的反方证据删掉,`publish` 直接拒收(退出码 1):
 
@@ -360,13 +362,11 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 ## 范围、免责与许可
 
-**为什么要开源、图什么:** 这套系统本来就在跑——这是作者自己的真实账户,亏盈都是自己的钱。开源是把账本和流程摊开,不收费、无付费版、无荐股群;你装不装、跟不跟,和作者的收入没有任何关系。
+本仓库包含**真实交易持仓**。它是一个人的记录，也是一个你可以带走的工作区。它**不是投资建议、不是推荐、也不是跟单系统**。clawock 负责分析和提议，不替你下单。没有哪条结果是人工挑出来的：结算规则和每次方法变更都在代码里留有版本。那些叫人「动手」的建议至今没有证明比抛硬币强，你读到时每个数字都可能已经过时。
 
-本仓库包含**真实交易持仓**。它是一个人的记录，也是一个你可以带走的工作区。它**不是投资建议、不是推荐、也不是跟单系统**。没有哪条结果是人工挑出来的：结算规则和每次方法变更都在代码里留有版本。那些叫人「动手」的建议至今没有证明比抛硬币强，你读到时每个数字都可能已经过时。
+原创代码 [MIT](LICENSE);改编第三方代码保留原许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。行情、新闻、社交内容、公告、商标与 API 访问**不**被 MIT 重新授权,见[第三方数据与服务](docs/legal/third-party-data.md)。
 
-原创代码 [MIT](LICENSE);改编第三方代码保留原许可与署名,见 [NOTICE](NOTICE) 与 [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/)。行情、新闻、社交内容与 API 访问**不**被 MIT 重新授权,见[第三方数据与服务](docs/legal/third-party-data.md)。
-
-用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、Jekyll + GitHub Pages 与 Python 构建。
+用 [Claude Code](https://claude.com/claude-code)、[openclaw](https://openclaw.com) cron 守护进程、Jekyll + GitHub Pages 与 Python 构建。行情、新闻、宏观和情绪信息来自文档列出的公开来源，复用前请查看[第三方数据与服务条款](docs/legal/third-party-data.md)。
 
 <div align="center">
 <br>
