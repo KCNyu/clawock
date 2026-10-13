@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -55,17 +56,17 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     # FINNHUB_API_KEY = 'abc…', POLYGON_API_KEY: abc…, export X_TOKEN="…"
     ("named assignment", re.compile(
         r"\b([A-Za-z][A-Za-z0-9_]*_(?:API_?KEY|TOKEN|SECRET|APIKEY))\b['\"]?\s*[:=]\s*['\"]?"
-        + _VALUE + r"['\"]?(?=\s|$|[,;)&#])", re.IGNORECASE)),
+        + _VALUE + r"['\"]?(?=\s|$|[,;)&#}\]])", re.IGNORECASE)),
     # api_key = 'abc…' — a bare generic name only counts with a quoted literal.
     ("quoted credential literal", re.compile(
-        r"\b(api_?key|apikey|token|secret|access_?token)\s*[:=]\s*['\"]" + _VALUE + r"['\"]",
+        r"\b(api_?key|apikey|token|secret|access_?token)['\"]?\s*[:=]\s*['\"]" + _VALUE + r"['\"]",
         re.IGNORECASE)),
     # https://finnhub.io/api/v1/quote?symbol=X&token=abc…
     ("URL credential parameter", re.compile(
         r"[?&]((?:token|api_?key|apikey|access_?key|key))=" + _VALUE, re.IGNORECASE)),
     # - **Finnhub**: abc…   (the TOOLS.md shape)
     ("documented credential line", re.compile(
-        r"\*\*([A-Za-z][A-Za-z .]{2,24})\*\*\s*[:：]\s*`?([A-Za-z0-9]{16,})`?\s*$")),
+        r"\*\*([A-Za-z][A-Za-z .]{2,24})\*\*\s*[:：]\s*`?([A-Za-z0-9]{16,})`?(?=\s|$|['\",}\]])")),
     # Provider prefixes the pre-commit hook already treats as secrets.
     ("provider-prefixed token", re.compile(
         r"\b((?:sk|tp|tvly)-)([A-Za-z0-9]{20,})\b")),
@@ -128,6 +129,15 @@ def _unfilled(value: str) -> bool:
 
 
 def scan_line(line: str) -> list[tuple[str, str, str]]:
+    # Decode JSON string values too: tracked build logs embed assignments and
+    # Markdown in a JSON string, including escaped quotes and line breaks.
+    decoded = []
+    for match in re.finditer(r'"(?:[^"\\]|\\.)*"', line):
+        try:
+            decoded.append(json.loads(match.group()))
+        except (ValueError, TypeError):
+            pass
+    line = "\n".join([line, *decoded])
     hits, seen = [], set()
     for kind, pattern in PATTERNS:
         for match in pattern.finditer(line):
