@@ -62,17 +62,60 @@ def _module_level_clock_reads():
     for path in sorted(TESTS.glob("*.py")):
         if path.name == Path(__file__).name:
             continue
-        source = path.read_text(encoding="utf-8")
-        for node in ast.parse(source).body:      # module level only
-            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
-                continue
-            value = node.value
-            if value is None:
-                continue
-            if any(call in ast.unparse(value) for call in LIVE_CLOCK):
-                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-                names = [t.id for t in targets if isinstance(t, ast.Name)]
-                found.append(f"{path.name}::{names[0] if names else '<expr>'}")
+        found += [f"{path.name}::{name}"
+                  for name in _clock_constants(path.read_text(encoding="utf-8"))]
+    return found
+
+
+def _clock_helpers(tree):
+    """本模块里读时钟的函数名，含经由同模块函数间接读的。"""
+    functions = {node.name: node for node in ast.walk(tree)
+                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    helpers = set()
+    while True:
+        grown = {name for name, node in functions.items() if name not in helpers and (
+            any(call in ast.unparse(node) for call in LIVE_CLOCK)
+            or any(isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
+                   and inner.func.id in helpers for inner in ast.walk(node)))}
+        if not grown:
+            return helpers
+        helpers |= grown
+
+
+def _calls_now(value, helpers):
+    """`value` 求值时是否当场调用了 helpers 之一；lambda 体要等被调用才求值，不算。"""
+    stack = [value]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, ast.Lambda):
+            continue
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in helpers:
+            return True
+        stack.extend(ast.iter_child_nodes(node))
+    return False
+
+
+def _clock_constants(source):
+    """模块级常量里，值是时钟读数的那些名字。
+
+    直接写 `datetime.now(` 的看得见；藏在同模块 helper 后面的一样算。
+    2026-10-13 master 自己变红的那条就是后者：`CASES = {..., _stamp(1.2)}`
+    在 import 时打了时间戳，测试排到三分钟以后才跑，`age_hours` 从 1.2 进位
+    成 1.3。常量的表达式里没有 `datetime.now(`，只有 `_stamp(`。
+    """
+    tree = ast.parse(source)
+    helpers = _clock_helpers(tree)
+    found = []
+    for node in tree.body:      # module level only
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if value is None:
+            continue
+        if any(call in ast.unparse(value) for call in LIVE_CLOCK) or _calls_now(value, helpers):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [t.id for t in targets if isinstance(t, ast.Name)]
+            found.append(names[0] if names else '<expr>')
     return found
 
 
@@ -89,6 +132,18 @@ def test_the_module_level_scanner_can_actually_see_an_offender():
     node = ast.parse(sample).body[0]
 
     assert any(call in ast.unparse(node.value) for call in LIVE_CLOCK)
+
+
+def test_a_clock_read_behind_a_helper_is_still_a_module_level_read():
+    """2026-10-13 那条的原形：常量经 helper 读时钟。惰性构造（lambda）是修法，不算违例。"""
+    helper = (
+        "def _stamp(hours):\n"
+        "    return (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()\n"
+        "def _scan(hours=1.2):\n"
+        "    return {'generated_at': _stamp(hours)}\n"
+    )
+    assert _clock_constants(helper + "CASES = {'empty': dict(attention=_scan())}\n") == ["CASES"]
+    assert _clock_constants(helper + "CASES = {'empty': lambda: dict(attention=_scan())}\n") == []
 
 
 def test_the_module_level_scanner_leaves_frozen_constants_alone():
