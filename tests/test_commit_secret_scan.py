@@ -182,3 +182,25 @@ def test_master_pre_push_scans_a_pure_data_commit(tmp_path):
     assert result.returncode != 0
     assert "master update failed credential scan" in result.stdout
     assert KEY40 not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('name', ['finnhub_api_key', 'api_key', 'token', 'secret'])
+@pytest.mark.parametrize('indent', [None, 2])
+def test_json_credentials_and_embedded_logs(name, indent):
+    import json
+
+    for obj in ({name: KEY40}, {'before': 1, name: KEY40, 'after': 2},
+                {'tail': json.dumps({name: KEY40})},
+                {'tail': f'**Finnhub**: {KEY40}\nnext log line'}):
+        findings = scan.scan_diff(_patch('logs/dashboard_build_status.json',
+                                         *json.dumps(obj, indent=indent).splitlines()))
+        assert len(findings) == 1
+        assert findings[0].value == KEY40
+        assert KEY40 not in findings[0].describe()
+
+
+@pytest.mark.parametrize('value', ['YOUR_API_KEY_HERE', '${API_KEY}', 'get_finnhub_key'])
+def test_json_placeholders_stay_quiet(value):
+    import json
+
+    assert scan.scan_line(json.dumps({'api_key': value})) == []

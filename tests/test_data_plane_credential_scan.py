@@ -66,3 +66,15 @@ def test_the_hook_scans_a_data_plane_generation(tmp_path):
     assert leaked.returncode == 1
     assert "refs/heads/data-plane update failed credential scan" in leaked.stdout
     assert TOKEN not in leaked.stdout + leaked.stderr
+
+
+def test_publisher_refuses_unprefixed_json_credential():
+    import json
+
+    key = 'c9a7' * 10
+    findings = _publisher().credential_findings({
+        'assets/data/dashboard.json': json.dumps({'market_context': {
+            'provider_credentials': {'finnhub_api_key': key}}}),
+    })
+    assert findings == ['assets/data/dashboard.json: named assignment (finnhub_api_key)']
+    assert key not in str(findings)
