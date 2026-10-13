@@ -128,7 +128,7 @@ def test_influencer_producer_total_outage_is_rejected(tmp_path, monkeypatch):
         validate_sidecars.validate_influencer(output)
 
 
-def test_influencer_retains_only_fresh_items_with_original_timestamp(
+def test_influencer_failed_sources_do_not_republish_previous_items(
         tmp_path, monkeypatch):
     fresh = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
     stale = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
@@ -143,10 +143,9 @@ def test_influencer_retains_only_fresh_items_with_original_timestamp(
         _quiet_statuses(trump='failed', musk='failed'),
         previous=previous)
 
-    assert [(item['text'], item['published']) for item in payload['items']] == [
-        ('fresh statement', fresh),
-    ]
-    assert payload['items'][0]['retained_from_previous'] is True
+    assert payload['items'] == []
+    assert payload['source_status']['trump'] == 'failed'
+    assert payload['source_status']['musk'] == 'failed'
     validate_sidecars.validate_influencer(output)
 
 

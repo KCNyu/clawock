@@ -12,7 +12,6 @@ import json
 from clawock.safe_io import to_strict_finite_number as number
 from clawock.workspace import workspace_root
 from clawock.plugin_host import live as live_plugins
-from clawock.strategies.plugins import add_policy
 
 SETUP_ID = "preposition_scale_in"
 TIER = "user_experiment"
@@ -69,7 +68,7 @@ def setup(row, information, policy, *, ticker, leg, usage, cost_basis=None,
         "label": "提前埋点/左侧分档（前瞻试验）",
         "entry_type": "price_below", "entry_price": round(entry, 4),
         "invalidation_price": round(stop, 4),
-        **add_policy.tier_terms({}, TIER, experiment_policy=policy),
+        **live_plugins.service('add_policy').tier_terms({}, TIER, experiment_policy=policy),
         "valid_for_sessions": policy["valid_for_sessions"],
         "signal_date": row.get("row_as_of"), "authority_tier": TIER,
         "authority_sources": ["explicit_user_authorization"],
@@ -121,6 +120,54 @@ def measurements(workspace, portfolio, *, at=None):
 
 
 name = 'preposition'
+
+
+inject = ('add_policy', 'factors')
+
+
+SIGNAL_SOURCE = {'id': 'preposition',
+ 'family': 'technical',
+ 'summary': 'Own-instrument factor projection for the preposition policy; setups apply '
+            'declared policy, not new measured alpha.',
+ 'inputs': [{'name': 'bars',
+             'what': 'latest completed session OHLC for active holdings',
+             'source': 'workspace memory/bars, raw; current portfolio identities; factors '
+                       'service'},
+            {'name': 'policy and information',
+             'what': 'authorized policy, activated information direction, tranche usage, '
+                     'thesis state and cost_basis',
+             'source': 'caller and config/preposition-policy.json'}],
+ 'outputs': [{'field': 'measurements.<ticker>.close',
+              'unit': 'quote-currency price',
+              'window': 'latest completed session',
+              'missing': 'omitted with unavailable status/reason'},
+             {'field': 'measurements.<ticker>.atr14_pct',
+              'unit': 'percent of close',
+              'window': '14 sessions Wilder ATR on up to 220 bars',
+              'missing': 'null if factors cannot measure; setup refused'},
+             {'field': 'measurements.<ticker>.prior_20d_high',
+              'unit': 'quote-currency price',
+              'window': '20 sessions excluding latest',
+              'missing': 'null if not measurable'},
+             {'field': 'measurements.<ticker>.status / reason / row_as_of',
+              'unit': 'fresh or unavailable; text reason; ISO session date',
+              'window': 'this read',
+              'missing': 'unavailable with reason, date omitted'},
+             {'field': 'setup.entry_price / invalidation_price',
+              'unit': 'quote-currency price rounded to 4 decimals',
+              'window': 'policy valid_for_sessions; current tranche',
+              'missing': 'whole setup null if missing/blocked inputs'},
+             {'field': 'setup',
+              'unit': 'identity/text: setup_id,campaign_id,label,entry_type,detail,authority_tier; '
+                      'text lists: authority_sources,evidence_families; evidence_strength: label; '
+                      'signal_date: ISO session; valid_for_sessions/max_tranches/target_tranche_level: '
+                      'counts; tranche_pct_of_position: fraction (0.1 is 10%)',
+              'window': 'policy version and configured session validity',
+              'missing': 'null when no eligible setup'}],
+ 'missing': {'policy': 'omitted',
+             'detail': 'Missing/stale/suspect bars produce unavailable reason and no '
+                       'measurements; no previous row reused. Ineligible setup returns null.',
+             'serves_stale': False}}
 
 
 def apply(ctx, config):

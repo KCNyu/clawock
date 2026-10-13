@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import sys
 
-from clawock.strategies.plugins import add_policy
+from clawock.plugin_host import live as live_plugins
+
 from clawock.safe_io import to_number as _number
 import hashlib
 import json
@@ -349,7 +350,7 @@ def confirmation_setup(
     ticker: str,
 ) -> dict | None:
     """Build a multi-session, gap-aware execution intent for one campaign."""
-    if not add_policy.is_authorised_tier(authority.get("tier")):
+    if not live_plugins.service('add_policy').is_authorised_tier(authority.get("tier")):
         return None
     if not technical.get("usable") or technical.get("stop_state") != "intact":
         return None
@@ -390,7 +391,7 @@ def confirmation_setup(
         "invalidation_price": levels["invalidation_price"],
         # Per-tier size from the one table (`add_policy.tier_terms`), so the
         # packet and the add-side reads quote the same numbers.
-        **add_policy.tier_terms(policy, tier),
+        **live_plugins.service('add_policy').tier_terms(policy, tier),
         "authority_tier": tier,
         "authority_sources": list(authority.get("sources") or []),
         "evidence_families": list(authority.get("evidence_families") or []),
@@ -404,6 +405,9 @@ def confirmation_setup(
 
 
 name = 'add-alpha'
+
+
+inject = ('add_policy',)
 
 
 def apply(ctx, config):

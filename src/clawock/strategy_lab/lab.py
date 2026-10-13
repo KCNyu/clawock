@@ -48,8 +48,17 @@ def load_rows(path: Path) -> list[dict]:
 def mount(rows) -> Kernel:
     """One fiber per row. Row order is not load order: `inject` decides that."""
     kernel = Kernel()
-    for row in rows:
-        composition.mount(kernel, row)
+    try:
+        for row in rows:
+            composition.mount(kernel, row)
+    except Exception:
+        kernel.dispose()
+        raise
+    failed = [f"{fiber.name}: {fiber.error or fiber.missing}" for fiber in kernel.fibers
+              if fiber.error]
+    if failed:
+        kernel.dispose()
+        raise ValueError("research rows not mounted: " + "; ".join(failed))
     return kernel
 
 

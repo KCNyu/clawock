@@ -65,7 +65,7 @@ from collections import defaultdict
 
 from clawock import seeds
 from clawock.evaluation import bootstrap, cscv
-from clawock.strategy_lab.plugins.signal_panel import _spearman
+from clawock.evaluation.rank_correlation import spearman as _spearman
 
 name = 'walkforward-optimizer'
 inject = ('strategies', 'bars', 'costs')

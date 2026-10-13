@@ -22,13 +22,14 @@ row that reached the ledger some other way is found on the next scheduled run.
   without the names one provider vouches for. It says `proposed` and
   `live_permission: false`; the lab has no code that applies one.
 
-What the lab cannot do at all is outside this file because there is no code for
-it to guard: no module outside `strategy_lab` imports the ledger
-(`tests/package_edges.txt` has no edge into this package), and the registered
-parameters of a strategy are a row in `config/strategy-plugins.json` that the
-lab reads and never writes.
+The supported lab path never writes the configuration or adopts a candidate.
+The live strategy_scores service does read this historical ledger. These checks
+are not a sandbox against arbitrary Python or direct filesystem writes; plugins
+are trusted host code, and only supported ledger writes are validated here.
 """
 from __future__ import annotations
+
+import math
 
 STATUSES = ('candidate', 'refused')
 
@@ -45,7 +46,7 @@ def promotion_thresholds(config: dict | None) -> dict:
     merged = {**PROMOTION_FLOOR, **config}
     lowered = sorted(key for key, floor in PROMOTION_FLOOR.items()
                      if isinstance(merged[key], bool) or not isinstance(merged[key], (int, float))
-                     or merged[key] < floor)
+                     or not math.isfinite(merged[key]) or merged[key] < floor)
     if lowered:
         raise ValueError(
             f'a row edit may not be proposed on less than the floor: {lowered} '
@@ -124,9 +125,14 @@ def row_edit_violations(record: dict, registrations: list[dict]) -> list[str]:
         found.append('no registration carries these parameters from that session')
     evidence = record.get('evidence') or {}
     sessions, interval = evidence.get('sessions') or 0, evidence.get('ic_ci95')
-    if sessions < PROMOTION_FLOOR['min_prospective_sessions']:
+    if (isinstance(sessions, bool) or not isinstance(sessions, (int, float))
+            or not math.isfinite(sessions) or sessions < PROMOTION_FLOOR['min_prospective_sessions']):
         found.append(f'{sessions} prospective sessions is under the floor')
-    if not interval or not interval[0] > PROMOTION_FLOOR['prospective_ic_ci95_lower_gt']:
+    if (not isinstance(interval, (list, tuple)) or len(interval) != 2
+            or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                   or not math.isfinite(v) or not -1 <= v <= 1 for v in interval)
+            or interval[0] > interval[1]
+            or not interval[0] > PROMOTION_FLOOR['prospective_ic_ci95_lower_gt']):
         found.append(f'prospective interval {interval} does not sit above the floor')
     first = evidence.get('first_session')
     if not (first and record.get('after_session') and first > record['after_session']):

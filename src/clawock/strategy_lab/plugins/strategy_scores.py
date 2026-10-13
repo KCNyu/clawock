@@ -24,6 +24,9 @@ import json
 from pathlib import Path
 
 from clawock.strategy_lab import lab, ledger
+from clawock.sessions import latest_completed_session
+from clawock.safe_io import to_strict_finite_number
+from clawock.plugin_host import declarations
 
 name = 'strategy-scores'
 
@@ -41,7 +44,44 @@ SIGNAL_SOURCE = {
          'source': 'memory/strategy-lab, written by the scheduled lab run'},
     ],
     'outputs': [
-        {'field': 'strategies.<name>.rows.<ticker>.score', 'unit': 'the strategy\'s own score; higher is more bullish',
+        {'field': 'status / reason', 'unit': 'ok or unavailable; reason is text on unavailable', 'window': 'this read', 'missing': 'status always present; reason absent on ok'},
+        {'field': 'live_permission', 'unit': 'boolean false, never an authorization', 'window': 'this read', 'missing': 'always false'},
+        {'field': 'as_of / bars', 'unit': 'latest stored ISO session date and raw bar basis text', 'window': 'this read', 'missing': 'absent when unavailable'},
+        {'field': 'strategies.<name>.params / basis',
+         'unit': 'registered parameter mapping and explanation',
+         'window': 'current config row, never selected candidate parameters',
+         'missing': 'strategy absent when not registered'},
+        {'field': 'strategies.<name>.measurement',
+         'unit': 'SIGNAL_SOURCE with strategy-specific score unit, window and missing behavior',
+         'window': 'mounted strategy declaration',
+         'missing': 'whole reading unavailable for an undeclared strategy'},
+        {'field': 'strategies.<name>.rows.<ticker>.last_bar / reason',
+         'unit': 'ISO session date and text explaining null score',
+         'window': 'latest stored session; must equal latest completed market session to score',
+         'missing': 'last_bar null when no series; reason absent on measured score'},
+        {'field': 'strategies.<name>.standing.status / recorded_at / refused_because',
+         'unit': 'lab verdict, ISO recorded timestamp, failed-check labels',
+         'window': "latest recorded run, historical evidence not today's measurement",
+         'missing': 'no lab record status with no other fields'},
+        {'field': 'strategies.<name>.standing.selected_params / cleared_for_registration / '
+                  'survives_adjusted_only',
+         'unit': 'candidate parameter mapping and boolean gate/coverage verdicts',
+         'window': 'latest recorded run',
+         'missing': 'coverage null when not measured'},
+        {'field': 'strategies.<name>.standing.registrations',
+         'unit': 'parameter mappings, after_session ISO dates, scored_since trial objects',
+         'window': 'sessions strictly after registration; history not live permission',
+         'missing': 'empty list; scored_since null before a subsequent run'},
+        {'field': 'strategies.<name>.standing.registrations[].scored_since',
+         'unit': 'params; after/first/last_session dates; sessions count; mean_ic and ic_ci95 '
+                 'dimensionless rank correlations [-1,1]',
+         'window': 'prospective sessions after after_session, at latest recorded run',
+         'missing': 'null if no trial; statistics null with no measurable sessions'},
+        {'field': 'strategies.<name>.standing.row_edits_proposed',
+         'unit': 'to_params mappings and proposed_at ISO timestamps',
+         'window': 'all recorded proposals for strategy',
+         'missing': 'empty list'},
+        {'field': 'strategies.<name>.rows.<ticker>.score', 'unit': 'per-strategy measurement.outputs gives the score unit (RSI: -50 to 50 points); higher is bullish',
          'window': 'the strategy\'s registered parameters, on the name\'s latest bar',
          'missing': 'null when the strategy cannot score the name; it is then not ranked'},
         {'field': 'strategies.<name>.rows.<ticker>.rank', 'unit': 'position, 1 is the most bullish',
@@ -55,16 +95,16 @@ SIGNAL_SOURCE = {
     'missing': {
         'policy': 'omitted',
         'detail': 'When the research rows cannot be mounted or the bar store cannot be read, the '
-                  'reading is empty and status is unavailable with the reason. A name whose '
-                  'latest bar is older than the newest bar in the store is scored on its own '
-                  'latest bar and carries that date.',
+                  'reading is empty and status is unavailable with the reason. Missing, stale or '
+                  'unscorable names have null score and rank with a reason; only the latest '
+                  'completed session of each market can enter the cross-section.',
         'serves_stale': False,
     },
 }
 
 
-def _series(workspace: Path) -> dict[str, list[dict]]:
-    out = {}
+def _series(workspace: Path) -> tuple[dict[str, list[dict]], dict[str, str]]:
+    out, markets = {}, {}
     for path in sorted((Path(workspace) / 'memory' / 'bars').glob('*.json')):
         document = json.loads(path.read_text(encoding='utf-8'))
         if document.get('retired'):
@@ -74,12 +114,14 @@ def _series(workspace: Path) -> dict[str, list[dict]]:
                 if store[day].get('close') is not None]
         if rows:
             out[path.stem] = rows
-    return out
+            markets[path.stem] = str(document.get('leg') or '').lower()
+    return out, markets
 
 
-def standing(strategy: str) -> dict:
+def standing(strategy: str, workspace: Path | None = None) -> dict:
     """The lab's latest record for one strategy, in the terms a reader needs."""
-    rows = [row for row in ledger.load() if row['strategy'] == strategy]
+    rows = [row for row in ledger.load(workspace / ledger.LEDGER if workspace else None)
+            if row['strategy'] == strategy]
     if not rows:
         return {'status': 'no lab record'}
     latest = rows[-1]
@@ -97,10 +139,10 @@ def standing(strategy: str) -> dict:
             {'params': record['params'], 'after_session': record['after_session'],
              'scored_since': trials.get(
                  (json.dumps(record['params'], sort_keys=True), record['after_session']))}
-            for record in ledger.registrations() if record['strategy'] == strategy],
+            for record in ledger.registrations(workspace / ledger.REGISTRATIONS if workspace else None) if record['strategy'] == strategy],
         'row_edits_proposed': [
             {'to_params': edit['to_params'], 'proposed_at': edit['proposed_at']}
-            for edit in ledger.row_edits() if edit['strategy'] == strategy],
+            for edit in ledger.row_edits(workspace / ledger.ROW_EDITS if workspace else None) if edit['strategy'] == strategy],
     }
 
 
@@ -108,7 +150,7 @@ class StrategyScores:
     def __init__(self, config: Path | None = None):
         self._config = config
 
-    def read(self, workspace, tickers=None) -> dict:
+    def read(self, workspace, tickers=None, *, at=None) -> dict:
         """Scores under registered parameters. `tickers` limits the rows reported;
         the rank is always over every stored name."""
         workspace = Path(workspace)
@@ -118,27 +160,51 @@ class StrategyScores:
             return {'status': 'unavailable', 'reason': f'{type(exc).__name__}: {exc}',
                     'live_permission': False, 'strategies': {}}
         try:
-            series = _series(workspace)
+            waiting = {fiber.name: fiber.missing for fiber in kernel.fibers if fiber.missing}
+            if waiting:
+                raise ValueError(f'research rows waiting: {waiting}')
+            series, markets = _series(workspace)
+            if not series:
+                raise ValueError('no usable bar series in memory/bars')
             registry = kernel.get('strategies')
             strategies = {}
             for strategy in registry.names():
                 spec = registry.get(strategy)
-                scores = {}
+                scores, reasons = {}, {}
                 for ticker, rows in series.items():
-                    score = spec.score(rows, spec.params)
+                    market = markets[ticker]
+                    expected = latest_completed_session(market, at=at) if market in ('hk', 'us') else None
+                    if expected is None or rows[-1]['date'] != expected.isoformat():
+                        scores[ticker] = None
+                        reasons[ticker] = 'latest bar is not the latest completed market session'
+                        continue
+                    score = to_strict_finite_number(spec.score(rows, spec.params))
                     scores[ticker] = None if score is None else round(score, 4)
+                    if score is None:
+                        reasons[ticker] = 'strategy cannot measure a finite score from this series'
+
                 order = sorted((ticker for ticker, score in scores.items() if score is not None),
                                key=lambda ticker: (-scores[ticker], ticker))
                 rank = {ticker: place for place, ticker in enumerate(order, 1)}
-                wanted = sorted(series) if tickers is None else [t for t in tickers if t in series]
+                wanted = sorted(series) if tickers is None else list(tickers)
+                for ticker in wanted:
+                    if ticker not in series:
+                        scores[ticker] = None
+                        reasons[ticker] = 'no bar series for requested name'
+                declaration = next((declarations.of(f.plugin) for f in kernel.fibers
+                                    if getattr(f.plugin, 'SIGNAL_SOURCE', {}).get('id') == strategy), None)
+                if declaration is None:
+                    raise ValueError(f'strategy {strategy!r} has no signal-source declaration')
                 strategies[strategy] = {
                     'params': dict(sorted(spec.params.items())),
+                    'measurement': declaration,
                     'basis': 'the parameters the row registers; a candidate changes nothing here',
                     'ranked': len(order),
                     'rows': {ticker: {'score': scores[ticker], 'rank': rank.get(ticker),
-                                      'last_bar': series[ticker][-1]['date']}
+                                      'last_bar': series[ticker][-1]['date'] if ticker in series else None,
+                                      **({'reason': reasons[ticker]} if ticker in reasons else {})}
                              for ticker in wanted},
-                    'standing': standing(strategy),
+                    'standing': standing(strategy, workspace),
                 }
             return {'status': 'ok', 'live_permission': False,
                     'as_of': max((rows[-1]['date'] for rows in series.values()), default=None),

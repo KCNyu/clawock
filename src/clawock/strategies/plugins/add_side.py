@@ -52,7 +52,7 @@ from __future__ import annotations
 
 import sys
 
-from clawock.strategies.plugins import add_policy, left_side
+from clawock.plugin_host import live as live_plugins
 from clawock.instruments import INSTRUMENTS
 
 VERDICTS = ("candidate", "wait", "reject")
@@ -152,7 +152,7 @@ def radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None,
             "prior_5d_low": sig.get("prior_5d_low")})
         # Left side (observe mode): the packet's own ladder, so both entries
         # name the same first rung and invalidation.
-        left = left_side.ladder(sig, left_policy) if left_policy else None
+        left = live_plugins.service('left_side').ladder(sig, left_policy) if left_policy else None
         if left and not any(t in INSTRUMENTS and
                             INSTRUMENTS[t].get("leverage_multiple", 1) > 1
                             for t in levels[label]["holdings"]):
@@ -342,7 +342,7 @@ def _size_cap(policy):
     """The exploration tranche the desk configured, quoted from the same
     `add_policy.tier_terms` the packet sizes with — never a number of this
     module's own."""
-    return add_policy.size_cap_text(policy)
+    return live_plugins.service('add_policy').size_cap_text(policy)
 
 
 def _open_risk_action(plan_context, ticker):
@@ -605,6 +605,9 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
 
 
 name = 'add-side'
+
+
+inject = ('add_policy', 'left_side')
 
 
 def apply(ctx, config):

@@ -45,7 +45,7 @@ def test_successful_row_has_own_as_of_status_and_holding_coverage():
     assert rows["LIVE"]["max_age_days"] == 7
 
 
-def test_fetch_failure_retains_recent_row_as_explicit_stale():
+def test_fetch_failure_omits_even_recent_old_measurements():
     previous = {
         "LIVE": {
             "close": 10,
@@ -62,9 +62,9 @@ def test_fetch_failure_retains_recent_row_as_explicit_stale():
         fetcher=lambda _code: [],
     )
 
-    assert rows["LIVE"]["close"] == 10
-    assert rows["LIVE"]["status"] == "stale"
-    assert rows["LIVE"]["row_as_of"] == "2026-07-22"
+    assert "close" not in rows["LIVE"]
+    assert rows["LIVE"]["status"] == "missing"
+    assert rows["LIVE"]["last_good_as_of"] == "2026-07-22"
     assert "fetch failed" in rows["LIVE"]["stale_reason"]
 
 
@@ -182,3 +182,12 @@ def test_setup_campaign_persists_only_while_setup_is_continuously_present(monkey
         None,
         "trend_pullback:2026-07-27",
     ]
+
+
+def test_successful_fetch_of_old_bars_is_still_missing_current_measurement():
+    rows = quant.refresh_rows({}, [detail()], run_date=date(2026, 7, 24),
+                              expected_sessions={'US': date(2026, 7, 24)},
+                              fetcher=lambda _code: bars('2026-07-23'))
+    assert rows['LIVE']['status'] == 'missing'
+    assert 'close' not in rows['LIVE']
+    assert 'before expected session' in rows['LIVE']['stale_reason']

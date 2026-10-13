@@ -25,7 +25,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from clawock.plugin_host import declarations, rows as composition
-from clawock.plugin_host.kernel import Kernel
+from clawock.plugin_host.kernel import ACTIVE, DISPOSED, Kernel
 from clawock.workspace import workspace_root
 
 CONFIG = Path('config') / 'strategy-plugins.json'
@@ -35,12 +35,12 @@ DEFAULT_ROWS = (
     {'id': 'factors', 'module': 'clawock.strategies.plugins.quant_factors',
      'config': {'sigma_target': 0.25}, 'signal_source': True},
     {'id': 'daily-bars', 'module': 'clawock.strategies.plugins.daily_bars',
-     'config': {'adjustment': 'qfq'}},
+     'config': {'adjustment': 'qfq'}, 'signal_source': True},
     {'id': 'add-policy', 'module': 'clawock.strategies.plugins.add_policy'},
     {'id': 'add-alpha', 'module': 'clawock.strategies.plugins.add_alpha'},
     {'id': 'left-side', 'module': 'clawock.strategies.plugins.left_side'},
     {'id': 'add-side', 'module': 'clawock.strategies.plugins.add_side'},
-    {'id': 'preposition', 'module': 'clawock.strategies.plugins.preposition'},
+    {'id': 'preposition', 'module': 'clawock.strategies.plugins.preposition', 'signal_source': True},
     {'id': 'intraday-policy', 'module': 'clawock.strategies.plugins.intraday_policy'},
     {'id': 'bar-signals', 'module': 'clawock.strategies.plugins.bar_signals',
      'signal_source': True},
@@ -58,9 +58,12 @@ def rows(path: Path | None = None) -> list[dict]:
     path = Path(path) if path else workspace_root() / CONFIG
     if not path.exists():
         return [dict(row) for row in DEFAULT_ROWS]
-    declared = json.loads(path.read_text(encoding='utf-8')).get('live')
-    if declared is None:
+    document = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(document, dict):
+        raise ValueError(f'{path}: configuration must be an object')
+    if 'live' not in document:
         return [dict(row) for row in DEFAULT_ROWS]
+    declared = document['live']
     if not isinstance(declared, list) or not all(
             isinstance(row, dict) and isinstance(row.get('module'), str) for row in declared):
         raise ValueError(f'{path}: live must be a list of rows naming a module')
@@ -89,10 +92,12 @@ class Mounted:
         for entry in self.rows:
             fiber = entry['fiber']
             waiting = list(fiber.missing) if fiber else []
+            error = entry['error'] or (fiber.error if fiber else None)
             out.append({
                 'id': entry['id'], 'module': entry['module'],
-                'state': 'failed' if entry['error'] else 'waiting' if waiting else 'mounted',
-                'error': entry['error'], 'waiting_for': waiting,
+                'state': ('failed' if error else 'disposed' if fiber and fiber.state == DISPOSED
+                          else 'waiting' if waiting else 'mounted'),
+                'error': error, 'waiting_for': waiting,
                 'provides': sorted(name for name, owner in providers.items()
                                    if fiber and owner == fiber.name),
             })
@@ -127,7 +132,8 @@ def signal_sources() -> dict[str, dict]:
     """{row id: its declaration} for the mounted rows that are signal sources."""
     out = {}
     for entry in _current().rows:
-        declaration = entry['fiber'] and declarations.of(entry['fiber'].plugin)
+        fiber = entry['fiber']
+        declaration = fiber and fiber.state == ACTIVE and declarations.of(fiber.plugin)
         if declaration:
             out[entry['id']] = declaration
     return out

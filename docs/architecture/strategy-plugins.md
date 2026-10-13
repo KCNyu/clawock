@@ -34,6 +34,33 @@ their services:
 | `scans` | `strategies/plugins/morning_scans.py` | `path(workspace, scan)`, `document(path)` answering `{status, payload, error}`, and the brief's reads `macro(workspace)` and `em_news(workspace)`; config `stale_after_hours` | `harness/brief_preflight` (macro, Eastmoney news), `evidence/intraday_information`, `evidence/news_evidence_graph`, `publish/dashboard` (the regime badge) |
 | `strategy_scores` | `strategy_lab/plugins/strategy_scores.py` | `read(workspace, tickers)`: each lab strategy's score and rank per stored name under the row's registered parameters, with the lab's standing; `status` is `ok` or `unavailable` | `harness/brief_preflight`, which puts it in the brief context's `research` bundle as `strategy_scores` |
 
+### Which rows declare measurements
+
+There are thirteen live rows; classification follows the data the row emits,
+not whether it contains arithmetic. Measurement adapters declare their output
+too. Policy and evaluation services do not claim to be new measured signals.
+
+| Live row | Kind and boundary |
+|---|---|
+| `factors` | Signal source: factor values and technical setup measurements; declared field units and history windows |
+| `daily-bars` | Signal source: dated OHLC input adapter, qfq/raw basis; no volume output |
+| `add-policy` | Policy: tranche terms and caps, not a measured score |
+| `add-alpha` | Policy: gates and setup terms from supplied measurements |
+| `left-side` | Policy: configured observation ladder; no standalone measurement claim |
+| `add-side` | Policy projection: joins existing readings and classifies opportunity |
+| `preposition` | Signal source and policy: projects own-instrument factors, then applies authorized setup rules |
+| `intraday-policy` | Policy: holding-strategy exceptions and escalation rules |
+| `bar-signals` | Signal source: liquidity/volatility estimators, units and missing windows |
+| `signal-panel` | Historical evaluator: panel statistics, not a decision score or settlement owner |
+| `sentiment` | Signal source: measured attention and filtered statements with freshness/status |
+| `morning-scans` | Signal source: macro/news projections; raw document reads leave freshness to the reader |
+| `strategy-scores` | Signal source: registered strategy scores/ranks plus explicitly historical lab standing |
+
+A source declaration validates required text and uniqueness; it does not infer
+undocumented behavior from arbitrary Python. Recorded output tests and boundary
+regressions check the shipped implementations against the declarations. Malformed configured live lists are not silently replaced with defaults;
+only an absent file or absent `live` key uses the shipped defaults.
+
 ### Adjusted bars on the live path
 
 Until 2026-10-12 `fetch_bars` asked two endpoints that both return raw prices:
@@ -78,10 +105,11 @@ unchanged and run whatever module the row names. The policy files
 `preposition-policy.json`, `intraday-strategy-policies.json`) are read by the
 same code as before and are not part of the row.
 
-Inside the plugin package, `add_alpha`, `add_side` and `preposition` import
-`add_policy` and `left_side` as sibling modules, not through the kernel, so
-replacing the `add_policy` row replaces what the readers call and not what
-`add_side` calls internally. `preposition` reads the `factors` service.
+Inside the plugin package, `add_alpha`, `add_side` and `preposition` name
+`add_policy` (and `left_side` for `add_side`) through the live kernel, too.
+Their `inject` declarations stop those readers when a dependency is withdrawn.
+`preposition` also declares and reads `factors`. Replacing a policy row therefore
+changes its internal readers as well as the compatibility import path.
 
 The code each module held before the move stayed in its old package as
 `legacy_<module>.py`, and every call the test suite made into a plugin was also
@@ -242,7 +270,16 @@ beside the reading. `brief_preflight` keeps its two function names, calls the
 service, and prints the line and appends the issue it always did.
 
 A reading older than `stale_after_hours` (36) is not served; the age is the
-payload's own `generated_at`, never the file's mtime.
+payload's own `generated_at`, never the file's mtime. Exactly 36 hours is
+accepted; 36 hours and one second is stale. Exactly two hours ahead is tolerated;
+further ahead or an unreadable timestamp is stale. Both configured age limits
+must be positive finite numbers.
+
+A failed statement source contributes no retained items. A failed relevance
+filter publishes an empty feed with `llm_filter_status: failed`; the sentiment
+reader also rejects older `failed_kept_previous` payloads and removes items
+marked `retained_from_previous`. It reports source gaps in `degraded` rather
+than presenting an old score as a current observation.
 
 ### Scan files
 
@@ -304,8 +341,9 @@ A row's `module` is an import path, so a plugin can be any installed package.
 
 What mounting does not give it:
 
-- A research row cannot reach the live composition. `plugins` is mounted by
-  `strategy-lab` only, and no production module imports that package.
+- The research composition is mounted by `strategy-lab` and by the live
+  `strategy_scores` reader. The latter reads registered scores and the historical
+  lab ledger, never adopts candidate parameters or authorizes a trade.
 - A strategy's score is ranked by the optimiser on history cut at the signal
   session; the plugin never sees a later bar.
 - An optimiser's proposal is written through `strategy_lab/ledger.py`, which
@@ -348,8 +386,9 @@ Two plugins provide `bars`, and a composition mounts one:
 the `factors` service's RSI; the plugin adds the registered parameters
 (`period: 14`, `direction: reversion`), the grid and the orientation.
 
-A strategy is handed the history up to its signal session and nothing later, so
-it cannot read ahead however it is written.
+The evaluator hands a strategy only history up to its signal session. This
+prevents accidental look-ahead through the scoring interface; it does not restrict
+what trusted Python code could read from the filesystem.
 
 ## What an optimisation may conclude
 
@@ -481,12 +520,16 @@ has no code that applies one; applying it is an edit to the row in
 `config/strategy-plugins.json` that someone reviews. The two thresholds may be
 raised in the row and not lowered below `boundaries.PROMOTION_FLOOR`.
 
-**A production reader.** The live row `strategy-scores` scores every stored
-series on its latest bar under each strategy's *registered* parameters, ranks
+**A production reader.** The live row `strategy-scores` scores stored series
+only when their latest bar matches their market's latest completed session under each strategy's *registered* parameters, ranks
 the cross-section, and attaches the lab's standing: latest verdict, whether it
 survives the coverage check, each registration's score since, and proposed
 row edits. The brief's preflight puts the held names' rows in the context's
-`research` bundle. It is a reading with `live_permission: false`; no add, cut
+`research` bundle. Missing, stale and unscorable requested names have null score and rank plus a
+reason, and do not enter the ranking. An empty bar store is unavailable. The
+returned `measurement` is each strategy's own declaration of score units and
+window. Its historical lab standing is read from the same requested workspace
+as its bars. It is a reading with `live_permission: false`; no add, cut
 or size is computed from it. Because it reads the registered parameters only,
 a candidate changes what production sees on the day the row is edited and not
 before. The research rows are mounted when it is first read, so a research
@@ -503,7 +546,8 @@ adjusted, and those it answered raw because its own record holds no corporate
 action for them. The second kind rests on one provider. When a source reports
 both, each proposal also carries `coverage_sensitivity`: the same search on
 the adjusted names alone, with its status, interval and `verdict_survives`.
-It is recorded beside the verdict and decides nothing.
+It is recorded beside the registered verdict, which it does not change. A failed
+coverage check blocks the promoter from proposing a row edit.
 
 On 2026-10-12 `rsi` was a candidate on 28 names (rank IC interval
 [0.0171, 0.1117]) and was registered as momentum / 28. On the 16 adjusted
@@ -511,6 +555,23 @@ names alone the same search is refused, with an interval that spans zero. The
 candidate depends on the 12 names with no action on record.
 
 ## Boundaries
+
+### Trust and enforcement
+
+These are in-process Python plugins, running with the host's filesystem and
+import permissions. The kernel is not a sandbox. `inject` and ledger validators
+constrain supported interfaces, not arbitrary Python, direct file writes or
+monkey-patching. Install only trusted modules. The README's “no row can” claims
+refer to ownership of the supported decision/settlement path, not isolation from
+hostile code: reference prices, settlement outcomes and mandatory decision-ledger
+writes have no plugin extension point. A research proposal is a separate record;
+`optimize --no-ledger` does not bypass the production decision ledger.
+
+The ledger checks `proposed`, `live_permission: false`, registrations and the
+non-plugin promotion floor on every proposed-row write. It does not certify a
+plugin's submitted evidence independently against bars. Changing that trust model
+would require a separate process/permission boundary and independent replay.
+
 
 `strategy_lab/boundaries.py` holds what the lab may never write down. It is
 not a plugin and no row turns it off. `ledger.append` and `ledger.register`
@@ -529,7 +590,7 @@ apply it on every write, and `strategy-lab verify` (and the end of every
 | a row edit is only ever `proposed`, for a registration, on at least `PROMOTION_FLOOR` of prospective evidence, and not for a verdict that fails the coverage check | `check_row_edit` in `ledger.propose_row_edit`; `verify`; `promotion_thresholds` at mount |
 | the production reader scores registered parameters only | `strategy_scores.read`; `tests/test_strategy_plugins.py` |
 | a prospective score counts sessions after the registration only | `check_proposal`; `verify` |
-| the lab writes no row and no live service | `tests/test_strategy_plugins.py`; `tests/package_edges.txt` has no edge into `strategy_lab` |
+| the lab writes no row and no live service | `tests/test_strategy_plugins.py`; `tests/package_edges.txt` prohibits production imports; the host mounts `strategy_scores` by name |
 
 Lowering a floor is a change to `walkforward.py`, reviewed as code. A config
 row cannot do it.

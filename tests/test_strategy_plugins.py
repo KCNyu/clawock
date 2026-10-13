@@ -868,12 +868,15 @@ def test_a_row_edit_that_claims_more_than_its_evidence_is_not_written(
 
 
 def _bar_store(tmp_path, monkeypatch, tape, retired=()):
+    from clawock.strategy_lab.plugins import strategy_scores
+    monkeypatch.setattr(strategy_scores, 'latest_completed_session',
+                        lambda *a, **kw: SimpleNamespace(isoformat=lambda: 'd0039'))
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     store = tmp_path / 'memory' / 'bars'
     store.mkdir(parents=True)
     for ticker in tape.tickers():
         store.joinpath(f'{ticker}.json').write_text(json.dumps({
-            'retired': ticker in retired,
+            'retired': ticker in retired, 'leg': 'US',
             'bars': {row['date']: {'close': row['close']} for row in tape.series(ticker)}}))
     (tmp_path / 'config').mkdir()
     (tmp_path / 'config' / 'strategy-plugins.json').write_bytes(
@@ -890,11 +893,13 @@ def test_the_live_reader_scores_under_the_registered_row_and_says_where_the_lab_
     assert reading['as_of'] == 'd0039'
     block = reading['strategies']['rsi']
     assert block['params'] == {'direction': 'reversion', 'period': 14}
-    assert block['ranked'] == 6 and set(block['rows']) == {'T00', 'T07'}
+    assert block['ranked'] == 6 and set(block['rows']) == {'T00', 'T07', 'T06', 'ABSENT'}
     closes = [row['close'] for row in tape.series('T00')]
     assert block['rows']['T00']['score'] == round(-(quant_factors._rsi14(closes, 14) - 50), 4)
     assert 1 <= block['rows']['T00']['rank'] <= 6
-    assert block['rows']['T07'] == {'score': None, 'rank': None, 'last_bar': 'd0009'}
+    assert block['rows']['T07']['score'] is None
+    assert block['rows']['T07']['rank'] is None
+    assert 'latest completed' in block['rows']['T07']['reason']
     assert block['standing'] == {'status': 'no lab record'}
 
     # A registered candidate with other parameters does not move the reader.
@@ -909,6 +914,9 @@ def test_the_live_reader_scores_under_the_registered_row_and_says_where_the_lab_
     ledger.registrations_path().write_text(json.dumps({
         'strategy': 'rsi', 'params': {'direction': 'momentum', 'period': 28},
         'after_session': 'd0039'}) + '\n')
+    (tmp_path / ledger.LEDGER).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / ledger.LEDGER).write_bytes(ledger.ledger_path().read_bytes())
+    (tmp_path / ledger.REGISTRATIONS).write_bytes(ledger.registrations_path().read_bytes())
     again = live.service('strategy_scores').read(tmp_path, ['T00'])['strategies']['rsi']
     assert again['params'] == block['params'] and again['rows']['T00'] == block['rows']['T00']
     assert again['standing']['status'] == 'candidate'

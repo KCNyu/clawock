@@ -1564,6 +1564,9 @@
      "sector_hits": 7,
      "total": 24
     },
+    "degraded": [
+     "serenity"
+    ],
     "held_hits": [],
     "llm_filter_status": "ok",
     "new_ideas": [

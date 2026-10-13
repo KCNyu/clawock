@@ -76,8 +76,10 @@ class Context:
 
     def provide(self, name: str, service: Any) -> Disposer:
         """Publish a service; withdrawn when this fiber stops."""
-        return self.effect(lambda: self.fiber.kernel._provide(name, service, self.fiber),
-                           f'provide({name})')
+        dispose = self.effect(lambda: self.fiber.kernel._provide(name, service, self.fiber),
+                              f'provide({name})')
+        self.fiber.kernel._start_pending()
+        return dispose
 
     def on(self, event: str, handler: Callable[[Any], Any]) -> Disposer:
         """Listen for an event until this fiber stops."""
@@ -109,6 +111,7 @@ class Fiber:
         self.emits = tuple(getattr(plugin, 'emits', ()) or ())
         self.config = dict(config or {})
         self.state = PENDING
+        self.error: str | None = None
         self._effects: list[tuple[str, Disposer]] = []
 
     @property
@@ -133,17 +136,21 @@ class Fiber:
         return dispose
 
     def _start(self):
-        if self.state != PENDING or self.missing:
+        if self.state != PENDING or self.missing or self.error:
             return
         self.state = ACTIVE
+        self.kernel._applying += 1
         try:
             self.plugin.apply(Context(self), dict(self.config))
-        except BaseException:
+        except BaseException as exc:
+            self.error = f"{type(exc).__name__}: {exc}"
             # A half-applied plugin is the one state unmounting cannot undo
             # later, so what it did register is rolled back before the error
             # leaves.
             self._stop()
             raise
+        finally:
+            self.kernel._applying -= 1
 
     def _stop(self):
         while self._effects:
@@ -155,7 +162,9 @@ class Fiber:
         """Replace the config and restart: stop, then start under the new one."""
         self._stop()
         self.config = dict(config or {})
+        self.error = None
         self._start()
+        self.kernel._start_pending()
 
     def dispose(self) -> None:
         self._stop()
@@ -171,6 +180,8 @@ class Kernel:
         self._services: dict[str, tuple[Any, Fiber]] = {}
         self._listeners: dict[str, list[Callable[[Any], Any]]] = {}
         self.fibers: list[Fiber] = []
+        self._applying = 0
+        self._draining = False
 
     def plugin(self, plugin: Any, config: dict | None = None) -> Fiber:
         fiber = Fiber(self, plugin, config)
@@ -180,10 +191,35 @@ class Kernel:
         except BaseException:
             fiber.dispose()
             raise
+        self._start_pending()
         return fiber
+
+    def _start_pending(self):
+        # Start readers only after the provider has registered its disposer and
+        # finished apply. A bad reader belongs to its own fiber, not its source.
+        if self._applying or self._draining:
+            return
+        self._draining = True
+        try:
+            while True:
+                ready = [f for f in self.fibers
+                         if f.state == PENDING and not f.missing and not f.error]
+                if not ready:
+                    return
+                for fiber in ready:
+                    try:
+                        fiber._start()
+                    except Exception:
+                        pass  # _start rolled back and recorded the named failure
+        finally:
+            self._draining = False
 
     def get(self, name: str) -> Any:
         """A service, for the host that mounted the plugins."""
+        if name not in self._services:
+            failed = {fiber.name: fiber.error for fiber in self.fibers if fiber.error}
+            if failed:
+                raise ValueError(f'no service {name!r}; failed readers: {failed}')
         return self._services[name][0]
 
     def on(self, event: str, handler: Callable[[Any], Any]) -> Disposer:
@@ -214,8 +250,6 @@ class Kernel:
                 f'service {name!r} is already provided by '
                 f'{self._services[name][1].name!r}')
         self._services[name] = (service, owner)
-        for fiber in list(self.fibers):
-            fiber._start()
 
         def withdraw():
             # Dependents stop first: their disposers may still call the service.

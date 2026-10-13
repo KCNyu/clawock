@@ -22,6 +22,8 @@ The attention scan and the statement radar keep their own row, `sentiment`.
 """
 from __future__ import annotations
 
+import math
+
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -64,14 +66,48 @@ SIGNAL_SOURCE = {
          'source': 'their own scheduled jobs; read here as documents only'},
     ],
     'outputs': [
+        {'field': 'detail', 'unit': 'object with error and message for unreadable input', 'window': 'this read', 'missing': 'empty object otherwise'},
+        {'field': 'document.payload',
+         'unit': 'unmodified JSON object; document performs no freshness judgment',
+         'window': 'file at read time; downstream reader owns freshness',
+         'missing': 'null on missing/unreadable, with status/error/message'},
+        {'field': 'document.error / document.message',
+         'unit': 'error label and explanatory text',
+         'window': 'this read',
+         'missing': 'error null when ok/missing; message absent then'},
+        {'field': 'macro.as_of / em_news.generated_at', 'unit': 'ISO producer timestamp', 'window': 'scan time', 'missing': 'reading omitted if absent/unreadable'},
+        {'field': 'macro.age_hours / em_news.age_hours', 'unit': 'hours rounded to 0.1', 'window': 'since generated_at', 'missing': 'reading omitted if age unknown'},
+        {'field': 'macro.<index>.source / session',
+         'unit': 'source label and optional ISO session date',
+         'window': 'latest source quote',
+         'missing': 'source null if absent; session only on datestamped quotes without day '
+                    'change'},
+        {'field': 'macro.treasury_10y_yield_pct', 'unit': 'percent yield', 'window': 'scan latest 10-year Treasury observation', 'missing': 'null'},
+        {'field': 'macro.fear_greed',
+         'unit': 'object {score: index 0-100, rating: text, as_of: ISO timestamp, '
+                 'prev_close/prev_1_week: index points at prior close/week}',
+         'window': 'latest CNN observation',
+         'missing': 'null'},
+        {'field': 'macro.fed_press', 'unit': 'at most 3 {title, date, url} release records', 'window': '7 days before producer scan', 'missing': 'empty list'},
+        {'field': 'macro.regime.score',
+         'unit': 'integer sum of three directional checks, -3 to 3',
+         'window': 'current F&G, VIX and paired SPX/Nasdaq day changes',
+         'missing': 'parent null when no directional check contributes'},
+        {'field': 'macro.regime.reasons', 'unit': 'list of text naming contributing checks', 'window': 'snapshot', 'missing': 'parent null without a contributing check'},
+        {'field': 'em_news.holdings_news.<ticker>.name', 'unit': 'instrument display name', 'window': 'scan universe', 'missing': 'null'},
+        {'field': 'em_news.holdings_news.<ticker>.items[].date / title',
+         'unit': 'publication date string and title',
+         'window': 'up to 3 scan results per holding',
+         'missing': 'empty items list'},
+        {'field': 'em_news.market_724[].date / title', 'unit': 'publication date string and title', 'window': 'up to 5 scan results', 'missing': 'empty list'},
         _out('status', 'ok, missing, stale or unreadable', 'this read', 'never null'),
         _out('age_hours', 'hours since the payload\'s generated_at', 'this read',
              'null without a readable stamp, and the reading is then stale'),
-        _out('macro.<index>.price', 'index points, or percent for the yield', 'the scan\'s latest print',
+        _out('macro.<index>.price', 'index points (VIX, DXY, HSI, HSTECH, SPX, Nasdaq)', 'the scan\'s latest print',
              'null when the scan has no row for it'),
         _out('macro.<index>.change_pct', 'percent on the day', 'the scan\'s session',
              'null when the provider gave a close without a day change; the row then names its session'),
-        _out('macro.regime', 'risk_on, neutral or risk_off', 'the snapshot', 'classified from what is present'),
+        _out('macro.regime.label', 'risk_on, neutral or risk_off', 'the snapshot', 'parent null when no directional check contributes'),
         _out('em_news.holdings_news', 'up to 3 dated titles per holding', 'the scan', 'empty when none'),
         _out('em_news.market_724', 'up to 5 dated titles', 'the scan', 'empty when none'),
         _out('em_news.degraded', 'up to 8 source labels that did not answer', 'the scan',
@@ -205,6 +241,6 @@ class Scans:
 
 def apply(ctx, config):
     hours = config.get('stale_after_hours', STALE_AFTER_HOURS)
-    if isinstance(hours, bool) or not isinstance(hours, (int, float)) or not hours > 0:
+    if isinstance(hours, bool) or not isinstance(hours, (int, float)) or not math.isfinite(hours) or not hours > 0:
         raise ValueError(f'morning-scans stale_after_hours must be a positive number, got {hours!r}')
     ctx.provide('scans', Scans(hours))

@@ -317,17 +317,17 @@ SIGNAL_SOURCE = {
         _out('golden_cross', 'true/false', '50 against 200 sessions', 'null without ma50 and ma200'),
         _out('trend_on', 'true/false', '50 and 200 sessions', 'null without ma200, tagged 趋势未知'),
         _out('mom_1m', 'percent return', '21 sessions',
-             'null below 22 bars and when the return is exactly zero; always null in the short-history row'),
+             'null below 22 bars; a measured zero return is 0; always null in the short-history row'),
         _out('mom_3m', 'percent return', '63 sessions',
-             'null below 64 bars and when the return is exactly zero; always null in the short-history row'),
+             'null below 64 bars; a measured zero return is 0; always null in the short-history row'),
         _out('mom_6m', 'percent return', '126 sessions',
-             'null below 127 bars and when the return is exactly zero; always null in the short-history row'),
+             'null below 127 bars; a measured zero return is 0; always null in the short-history row'),
         _out('mom_12_1', 'percent return', '252 sessions less the latest 21', 'null below 253 bars'),
         _out('rsi14', 'index 0-100', '14 sessions, Wilder smoothing', 'null below 15 closes'),
         _out('zscore20', 'standard deviations', '20 sessions', 'null when the 20 closes do not vary'),
         _out('vol20_annualized', 'annualised fraction (0.25 is 25%)', '20 daily returns',
              'null when the returns do not vary; always null in the short-history row'),
-        _out('atr14_pct', 'percent of close', '14 sessions, Wilder smoothing', 'null below 15 bars'),
+        _out('atr14_pct', 'percent of close', '14 sessions, Wilder smoothing', 'null below 15 bars or when ATR is zero'),
         _out('chandelier_stop', 'price', '22-session high less 3 ATR', 'null below 22 bars or without ATR'),
         _out('stop_distance_pct', 'percent', '22 sessions', 'null without a positive chandelier stop'),
         _out('vol_target_weight', 'fraction of book, capped at 1', '20 daily returns',
@@ -336,7 +336,9 @@ SIGNAL_SOURCE = {
              'null when high equals low; always null in the short-history row'),
         _out('bars', 'count', 'bars used', 'never null in a row'),
         _out('technical_setups', 'list of setups', 'the row above',
-             'empty list when no setup qualifies; that is a measured none'),
+             'empty list when no setup qualifies; each setup has text setup_id/label/entry_type/detail, '
+             'entry_price/invalidation_price in quote currency, max_tranches as a count, and '
+             "tranche_pct_of_position as a fraction (0.10 is 10%); levels use this row's windows"),
         _out('tag', 'text', 'the row above', 'never null in a row'),
     ],
     'missing': {
@@ -373,6 +375,6 @@ class Factors:
 
 def apply(ctx, config):
     sigma = config.get('sigma_target', SIGMA_TARGET)
-    if isinstance(sigma, bool) or not isinstance(sigma, (int, float)) or not sigma > 0:
+    if isinstance(sigma, bool) or not isinstance(sigma, (int, float)) or not math.isfinite(sigma) or not sigma > 0:
         raise ValueError(f'quant-factors sigma_target must be a positive number, got {sigma!r}')
     ctx.provide('factors', Factors(float(sigma)))

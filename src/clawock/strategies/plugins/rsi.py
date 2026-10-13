@@ -27,10 +27,11 @@ SIGNAL_SOURCE = {
     'id': 'rsi',
     'family': 'strategy',
     'summary': 'Wilder RSI centred on 50 and signed by a registered direction; '
-               'scored by the optimiser, read by no live path.',
+               'evaluated by the optimiser and read under registered parameters by strategy_scores.',
     'inputs': [
         {'name': 'bars', 'what': 'daily closes up to and including the signal session, oldest first',
-         'source': 'the bars service of the composition (adjusted_bars in the shipped rows)'},
+         'source': 'research: the bars service (adjusted_bars in shipped rows); production: '
+                   'strategy_scores passes workspace memory/bars (raw)' },
         {'name': 'params', 'what': 'period (sessions) and direction (momentum or reversion)',
          'source': 'row config params; the grid an optimiser may search is row config space'},
     ],

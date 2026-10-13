@@ -17,8 +17,8 @@ Config: `adjustment`.
   market-less `fqkline/get` answers a `qfq` request under `day`. Setting the
   row back to `raw` is the rollback.
 
-A failed request is an empty list, as it always was: the callers keep the
-previous row rather than publish a blank one.
+A failed request is an empty list with a stderr reason. The quant refresh
+publishes an explicit missing row, without copying previous measurements.
 """
 from __future__ import annotations
 
@@ -73,6 +73,33 @@ class DailyBars:
 
     def describe(self) -> dict:
         return {'adjustment': self.adjustment}
+
+
+SIGNAL_SOURCE = {'id': 'daily-bars',
+ 'family': 'technical',
+ 'summary': 'Daily OHLC input adapter; no trading permission or volume output.',
+ 'inputs': [{'name': 'provider',
+             'what': 'daily OHLCV series',
+             'source': 'Tencent per-market qfq or raw endpoint selected by row adjustment'}],
+ 'outputs': [{'field': 'bars[].date',
+              'unit': 'ISO session date',
+              'window': 'oldest first, requested cnt (default 400); may include current '
+                        'candle',
+              'missing': 'no row when fetch fails'},
+             {'field': 'bars[].open / high / low / close',
+              'unit': 'quote-currency price; qfq or raw basis per config, unconfirmed raw '
+                      'basis named on stderr',
+              'window': 'each daily candle',
+              'missing': 'invalid price rows dropped; failed fetch is empty list with stderr '
+                         'reason'},
+             {'field': 'bars[].volume',
+              'unit': 'not supplied by this adapter',
+              'window': 'daily candle',
+              'missing': 'always omitted; adapter returns OHLC only'}],
+ 'missing': {'policy': 'omitted',
+             'detail': 'Failed fetch returns [] with stderr reason; caller must not reuse old '
+                       'numbers.',
+             'serves_stale': False}}
 
 
 def apply(ctx, config):
