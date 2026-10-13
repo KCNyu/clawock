@@ -15,23 +15,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: base-1, cov: '1'}
-          - {name: base-2, cov: '1'}
-          - {name: nocov-1}
-          - {name: nocov-2}
-          - {name: worksteal-cov, cov: '1', extra: '--dist worksteal'}
-          - {name: worksteal-nocov, extra: '--dist worksteal'}
-          - {name: late-400s, late: '400'}
-          - {name: sat, at: '2026-10-17 10:00:00'}
-          - {name: sun, at: '2026-10-18 10:00:00'}
-          - {name: plus-40d, at: '2026-11-23 10:00:00'}
-          - {name: plus-400d, at: '2027-11-18 10:00:00'}
-          - {name: straddle-utc-midnight, at: '2026-10-20 23:58:30'}
-          - {name: straddle-hkt-midnight, at: '2026-10-20 15:58:30'}
-          - {name: new-year, at: '2026-12-31 23:58:30'}
+          - {name: load-cov-1, cov: '1'}
+          - {name: load-cov-2, cov: '1'}
+          - {name: load-cov-3, cov: '1'}
+          - {name: load-cov-4, cov: '1'}
+          - {name: steal-cov-1, cov: '1', extra: '--dist worksteal'}
+          - {name: steal-cov-2, cov: '1', extra: '--dist worksteal'}
+          - {name: steal-cov-3, cov: '1', extra: '--dist worksteal'}
+          - {name: steal-cov-4, cov: '1', extra: '--dist worksteal'}
+          - {name: steal-nocov-1, extra: '--dist worksteal'}
+          - {name: steal-nocov-2, extra: '--dist worksteal'}
+          - {name: late-400s, late: '400', extra: '--dist worksteal'}
+          - {name: sat, at: '2026-10-17 03:00:00'}
+          - {name: split-day, at: '2026-10-20 17:00:00'}
+          - {name: plus-40d, at: '2026-11-23 03:00:00'}
+          - {name: plus-400d, at: '2027-11-18 03:00:00'}
+          - {name: new-year, at: '2027-01-01 02:00:00'}
     name: diag ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/clawock-python
         with:
           install: '.[test]'
@@ -39,7 +43,7 @@ jobs:
         env:
           COV: ${{ matrix.cov }}
           EXTRA: ${{ matrix.extra }}
-          AT: ${{ matrix.at }}
+          DIAG_AT: ${{ matrix.at }}
           DIAG_LATE: ${{ matrix.late }}
           DIAG_OUT: diag-timings.jsonl
         run: |
@@ -52,16 +56,13 @@ jobs:
           fi
           # shellcheck disable=SC2206
           [ -n "$EXTRA" ] && args+=($EXTRA)
-          wrap=()
-          if [ -n "$AT" ]; then
-            sudo apt-get install -y -qq faketime >/dev/null
-            off=$(( $(date -u -d "$AT" +%s) - $(date -u +%s) ))
-            wrap=(faketime -f "+${off}s")
-            export DONT_FAKE_MONOTONIC=1
-          fi
+          if [ -n "$DIAG_AT" ]; then pip install --quiet time-machine; fi
           start=$(date +%s)
-          "${wrap[@]}" python3 -m pytest "${args[@]}" 2>&1 | grep -v "^src/\|^ops/" | tail -150
-          echo "PYTEST_EXIT=${PIPESTATUS[0]} WALL=$(( $(date +%s) - start ))s"
+          set +e
+          python3 -m pytest "${args[@]}" -rfE > pytest-out.txt 2>&1
+          echo "PYTEST_EXIT=$? WALL=$(( $(date +%s) - start ))s"
+          grep -E "^(FAILED|ERROR) " pytest-out.txt | cut -c1-330
+          tail -1 pytest-out.txt
           python3 .diag/summarize.py diag-timings.jsonl
       - uses: actions/upload-artifact@v7
         if: always()

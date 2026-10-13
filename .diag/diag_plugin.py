@@ -4,6 +4,18 @@ import os
 import time
 
 ROWS = []
+_TRAVEL = None
+
+
+def pytest_configure(config):
+    global _TRAVEL
+    at = os.environ.get("DIAG_AT")
+    if at and _TRAVEL is None:
+        import datetime
+        import time_machine
+        dest = datetime.datetime.strptime(at, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+        _TRAVEL = time_machine.travel(dest, tick=True)
+        _TRAVEL.start()
 
 
 def pytest_collection_finish(session):
