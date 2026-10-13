@@ -460,11 +460,11 @@ ROLE_WORDS = {
     'neutral': 'even', 'Judge': 'judge', 'Postflight': 'checks', 'Code gate': 'checks',
     'Watchdog': 'alarm', 'Backtest gate': 'gate', 'Filing gate': 'gate', 'Backtest': 'replay', 'shadow': 'replay', 'sentiment': 'pulse',
     'Filings': 'filing', 'SEC': 'filing', 'Capital flow': 'bars', 'news': 'news', 'Quotes': 'market',
-    'quotes': 'market', 'Macro': 'calendar', 'Brief': 'sunrise', 'dashboard': 'dashboard',
-    'scorecard': 'dashboard', 'Settle': 'balance', 'settle': 'balance', 'Verdict': 'balance',
-    'Grade': 'balance', 'Calibrat': 'factor', 'Record': 'record', 'History': 'record', 'Ledger': 'record',
-    'Trigger': 'candles', 'Price alone': 'candles', 'Execution': 'followed', 'mark-followed': 'followed',
-    'Evidence pack': 'pack', 'context.json': 'pack', 'Certified': 'seal',
+    'Macro': 'calendar', 'Brief': 'sunrise', 'dashboard': 'dashboard',
+    'scorecard': 'dashboard', 'Settle': 'balance', 'settle': 'balance',
+    'Grade': 'balance', 'Calibrat': 'factor', 'History': 'record', 'Ledger': 'record',
+    'Price alone': 'candles', 'Execution': 'followed', 'mark-followed': 'followed',
+    'Evidence pack': 'pack', 'Certified': 'seal',
     'CI': 'ci', 'receipts': 'receipt', 'Patrol': 'scan', 'closed issue': 'closed', 'source layers': 'layers',
     'Two sources': 'layers', 'WeChat': 'chat', 'USD/HKD': 'fx', 'Your agent': 'terminal',
 }
@@ -472,13 +472,15 @@ ROLE_WORDS = {
 
 def _icon_labels(root):
     """Each node glyph with its label: just right of it on its line, or under it in a tile."""
-    icons, texts = [], []
+    icons, texts, centred = [], [], []
 
     def walk(node, dx, dy):
         for el in node:
             move = re.match(r'translate\((\S+) (\S+)\)(?: scale\((\S+)\))?$', el.attrib.get('transform', ''))
             if el.tag == f'{SVG}text' and el.attrib.get('text-anchor') is None:
                 texts.append((float(el.attrib['x']) + dx, float(el.attrib['y']) + dy, ''.join(el.itertext())))
+            if el.tag == f'{SVG}text' and el.attrib.get('text-anchor') == 'middle':
+                centred.append((float(el.attrib['x']) + dx, float(el.attrib['y']) + dy, ''.join(el.itertext())))
             if el.tag != f'{SVG}g' or not move and el.attrib.get('transform'):
                 continue
             x, y = dx + float(move[1] if move else 0), dy + float(move[2] if move else 0)
@@ -490,6 +492,9 @@ def _icon_labels(root):
     for name, x, y, size in icons:
         beside = [label for tx, ty, label in texts if 0 <= tx - (x + size) <= 12 and y <= ty <= y + size + 4]
         beside = beside or [label for tx, ty, label in texts if abs(tx - x) < 1 and 8 <= ty - (y + size) <= 30]
+        # A flat node carries its glyph in the middle and its label centred under it.
+        beside = beside or [label for tx, ty, label in centred
+                            if abs(tx - (x + size / 2)) < 1 and 8 <= ty - (y + size) <= 36]
         if len(beside) == 1:
             yield name, beside[0]
 
@@ -552,7 +557,8 @@ def test_an_arrowhead_is_one_shape_and_its_tip_lands_on_the_node():
     assert tips == [(40, 98.5), (101.5, 60), (80, 98.5)], tips
 
 
-RULE_BOUND = ('strategy-plugins', 'strategy-evolution', 'proposal-review')
+RULE_BOUND = ('strategy-plugins', 'strategy-evolution', 'proposal-review', 'feedback-learning',
+              'product-architecture', 'debate-flow', 'information-flow')
 
 
 def test_the_plugin_figures_keep_their_drawing_rules():
@@ -569,6 +575,7 @@ def test_the_plugin_figures_keep_their_drawing_rules():
     for name in RULE_BOUND:
         text = (ROOT / 'site/assets' / f'{name}.svg').read_text(encoding='utf-8')
         body = text.split('</defs>', 1)[1]
+        body = re.sub(r'<svg\b.*?</svg>', '', body, flags=re.S)        # an inlined harness logo is a mark
         root = ET.fromstring(text)
         classes = {el.attrib.get('class', 'b') for el in root.iter(f'{SVG}text')}
         assert classes <= {'kick', 'title', 'sub', 'h', 'b', 'c', 'm'}, (name, classes)      # T1, T2
