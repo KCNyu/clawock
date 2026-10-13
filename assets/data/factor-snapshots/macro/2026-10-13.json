@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T02:43:03.117376+00:00",
+  "generated_at": "2026-10-13T02:44:55.812511+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 15.21,
@@ -19,11 +19,11 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.415,
+    "price": 102.417,
     "prev": 102.589,
     "change_pct": -0.17,
     "source": "yahoo",
-    "as_of": 1791858781
+    "as_of": 1791858894
   },
   "fear_greed": {
     "score": 45.7,
@@ -34,15 +34,15 @@
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24042.98,
+    "price": 24041.04,
     "prev": 24271.2,
-    "change_pct": -0.94,
+    "change_pct": -0.95,
     "source": "tencent",
     "as_of": "2026-10-13"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4061.97,
+    "price": 4062.13,
     "prev": 4169.57,
     "change_pct": -2.58,
     "source": "tencent",
