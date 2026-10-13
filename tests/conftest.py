@@ -274,6 +274,23 @@ def pytest_sessionstart(session):
 
 
 @pytest.fixture(autouse=True)
+def _dashboard_ledger_caches_end_with_the_test():
+    """The dashboard's two process-lifetime ledger caches are emptied after every test.
+
+    `_ledger_legs()` and `_canonical_ledger()` read `WS_ROOT / 'portfolio.json'`
+    once per process. A test that points `WS_ROOT` at an empty directory and is
+    the first in its worker to ask leaves `[]` behind, and every later test in
+    that worker that reads the real book's legs fails with `KeyError: 'hk'`.
+    Which test asks first is decided by how xdist dealt the suite: 2 of 8
+    shuffled orders drew it (16 tests red), the alphabetical order never had.
+    """
+    yield
+    dashboard = sys.modules.get("clawock.publish.dashboard")
+    if dashboard is not None:
+        dashboard._LEDGER_CACHE = dashboard._LEDGER_LEGS_CACHE = None
+
+
+@pytest.fixture(autouse=True)
 def _attribute_writes_to_the_test_that_made_them(request):
     """Name the test that touched published state.
 
