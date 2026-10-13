@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T21:29:18.552053+00:00",
+  "generated_at": "2026-10-13T19:41:11.986082+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: SpaceX 频谱动作提升 Starlink 直连手机的商业化预期，T-Mobile 已出现单日大跌后反弹 3% 的反应。  \n  - kcn implication: 持有 **SPCH（2x）**；2x 会放大消息兑现或反转的波动，频谱优势尚不等于已确认收入。\n- RKLB: NASA 正考虑为估算 **$30B** 的月球基地计划批量采购火箭，Neutron 的潜在需求上升。  \n  - kcn implication: 持有 **RKLX（2x）**；潜在订单会放大上行，但目前仍是采购设想，不是已确认 backlog。\n- CRCL: Circle 稳定币采用继续扩张，但网络增长快于盈利；2027 年收入激增情景依赖 Arc 上线与利率上行。  \n  - kcn implication: CRCL 仓位短期更像估值/盈利转化交易；报道时股价 $80.84 已计入平台转型预期。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: 采用增长与盈利脱钩 — 估值风险上升，需等待网络增长转化为收入和利润。\n- RKLB: NASA 月球计划带来 Neutron 期权价值 — 催化剂仍属预期驱动，RKLX 2x 放大波动。\n- SPCX: 频谱取得强化 Starlink 移动竞争 — SPCH 2x 同时放大商业化上行与执行回撤。\n\n### 风险 watch (若有)\n- CRCL: “2027 revenue surge” 是分析情景而非管理层 financial guidance；网络增速持续领先盈利可能触发估值回撤。\n- RKLB: NASA 采购尚未确认，时间表、订单及项目执行均存在不确定性。\n- SPCX: 频谱策略可能引发运营商竞争反应及潜在监管审查，直接手机业务收入与经济性尚未披露。\n- 本批未见明确的大股东减持、失败合约或已落地监管处罚。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: FAA 开始审查 SpaceX 南德州扩张方案，目标为每年 456 次级别的 Starship 发射/回收；相关报道中股价跌 5%。  \n  对 kcn：持有 SPCX 的 2x ETF SPCH；审查不等于批准，若延迟或附带条件，2x 会放大回撤与波动。\n- RKLB: 报道显示已完成 18 次发射、还剩 9 次，并计划今年入轨卫星数较去年增加近 30%。  \n  对 kcn：通过 2x RKLX 持有 RKLB；2x 会放大发射节奏利好，但计划尚未等同订单或收入确认。\n- SPCX: SpaceX 直连手机/无线扩张引发机构分歧：Piper 下调 ASTS 至 Neutral，Bernstein 因 SpaceX 竞争下调 AT&T，RKLB 随板块走弱。  \n  对 kcn：2x SPCH 放大商业化叙事，2x RKLX 放大板块回撤；当前更像估值传导，未见 RKLB 经营受损确认。\n- CRCL: Circle 网络增长仍快于盈利；分析称 $80.84 已计入平台化转型，Arc 上线与利率环境是 2027 增长押注。  \n  对 kcn：CRCL 仓位暂无新指引或硬订单催化，估值、兑现与利率敏感度使短线偏谨慎。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: 网络扩张与盈利错位，估值被认为已反映转型；Arc/2027 增长属于前瞻观点而非公司指引，影响偏谨慎。\n- RKLB: 发射进度及近 30% 卫星增量计划偏利好，但 SpaceX 频谱威胁造成板块压；2x RKLX 放大波动。\n- SPCX: FAA 环评是扩张监管闸门；AT&T 降级显示无线竞争加剧，2x SPCH 放大监管与商业化两端的波动。\n\n### 风险 watch (若有)\n- SPCX/SPCH: FAA 审查可能拖延或限制扩张；分析另警示 2x SPCH 的波动衰减及标的财务质量风险。\n- RKLB/RKLX: SpaceX 直连手机带来竞争与板块估值风险；若发射计划延迟，2x RKLX 放大执行风险。\n- CRCL: 网络增长快于盈利且估值已计入转型；Arc/利率假设是分析师观点、非 company financial guidance，未兑现可能触发估值回撤。",
   "raw_news_counts": {
     "CRCL": 4,
     "RKLB": 5,
@@ -22,6 +22,20 @@
   },
   "raw_news_evidence": {
     "CRCL": [
+      {
+        "headline": "EXCLUSIVE: Tether Co-Founder Names Coinbase, Circle and Robinhood as His Top Blockchain Stocks",
+        "datetime": 1791888580,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9eae2e06ce215272147ba334028cc3ba885ce832b1652e00c407728e96b5c0d3"
+      },
+      {
+        "headline": "Trump Bought Coinbase Stock in July and Sold Some of It on August 10. The Same Day, He Bought More Strategy. Here Is What Both Have Done Since.",
+        "datetime": 1791835254,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=842b9c1743ec5f2a11ad18de32d330a0ef7055701ca279fec9539e382cf755cd"
+      },
       {
         "headline": "Circle: Stablecoin Adoption Is Real, But Network Growth Is Still Outpacing Earnings",
         "datetime": 1791800600,
@@ -35,94 +49,80 @@
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=1a46d8e780942327e18f8c87c4c43191b65b87dc6e72944fd12c43e41dcd5c8a"
-      },
-      {
-        "headline": "Stellar Now Hosts More Tokenized Assets Than the XRP Ledger. Why Is XRP Still Worth Nearly 13 Times More?",
-        "datetime": 1791756852,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b6ac0a03e40b994326cff97901fa22ce98c171df55e31ebe923d1f7810db2983"
-      },
-      {
-        "headline": "Bitcoin, XRP Get the Spotlight—Could These 5 Altcoins Be Next?",
-        "datetime": 1791712823,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=011571cccd9b8c39a81bc46756d0bd4f94e6b073453f20876ad71f3f744d9226"
       }
     ],
     "RKLB": [
       {
-        "headline": "Why SpaceX’s Spectrum Purchase Is Good for AST SpaceMobile Stock",
-        "datetime": 1791811740,
+        "headline": "AST SpaceMobile Sinks 9% as Piper Sandler Cuts to Neutral on SpaceX Direct-to-Cell Threat; Planet Labs Drops 4%, Rocket Lab Slips",
+        "datetime": 1791903557,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d4df0ef9eea7e58043e81659d8a1e987ae12f30be4fd5fd8400fdd2b0ece1928"
+        "url": "https://finnhub.io/api/news?id=1a94e911f954ee4f3faf126b9fb38098e85f933c92039bb17d91afb1c8a01ff3"
       },
       {
-        "headline": "AST SpaceMobile Rallies 4% as Next BlueBird Satellites Reach Cape Canaveral; Rocket Lab and Intuitive Machines Hold Flat",
-        "datetime": 1791808470,
+        "headline": "Air Launch Is Back on the Space Industry's Flight Plan",
+        "datetime": 1791899100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8207b5e87f40db5d5ed1c04148aff04e0fb81ebfa0c6f874fc5625402be85d8b"
+        "url": "https://finnhub.io/api/news?id=572c2038f17fbbdc5574fccd5e9e47e57d156908b685afd54112fe3469a5e9b1"
       },
       {
-        "headline": "How Could RKLB Manage Orbital Collision Risks as Space Activity Grows?",
-        "datetime": 1791807900,
+        "headline": "18 Launches Down, 9 More to Go for Rocket Lab. But That's Not the Big Story.",
+        "datetime": 1791890820,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=92ba79d31497f70f9364e75f10f3a841e2c4ecbdfd69ce0d62fe42d1a59c5ad4"
+        "url": "https://finnhub.io/api/news?id=9dabc7d6634ef4c531c5c62bba7d65fb8a4d44028a86df2875bd62a91c7240d6"
       },
       {
-        "headline": "Ondas Is Assembling A Defense Prime, Buy",
-        "datetime": 1791795147,
+        "headline": "SpaceX: A Long Game That SPCH's 2x Leverage Can Only Trade",
+        "datetime": 1791879300,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b2c595ea335599269eedad225fa1d4a492f1681e55b1b1b811ee7d80b63086ba"
+        "url": "https://finnhub.io/api/news?id=abb4d03d74817dcca6bc5f394c69bb6234dce0e0d9f4c6d79b27968667aae12e"
       },
       {
-        "headline": "RKLB Stock Rises Overnight: NASA Chief Warns Moon Race With China Is ‘Months, Not Years’ As Neutron Opportunity Grows",
-        "datetime": 1791790021,
+        "headline": "1 Industrials Stock on Our Buy List and 2 We Turn Down",
+        "datetime": 1791879064,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9bfa4d5db95ecac642e717c7ccb4651725e818b060353f44e15b12b5296f5f30"
+        "url": "https://finnhub.io/api/news?id=423b994625f5ec327069befcd0cff422ba89671f0913e302dfbfad9fc718a79a"
       }
     ],
     "SPCX": [
       {
-        "headline": "Trump Bought Coinbase Stock in July and Sold Some of It on August 10. The Same Day, He Bought More Strategy. Here Is What Both Have Done Since.",
-        "datetime": 1791835254,
+        "headline": "SPCX Stock Drops 5%: FAA Begins Environmental Review Of SpaceX’s Ambitious 456 Starships A Year Expansion",
+        "datetime": 1791913237,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=842b9c1743ec5f2a11ad18de32d330a0ef7055701ca279fec9539e382cf755cd"
+        "url": "https://finnhub.io/api/news?id=702ca1538ffb271ad4eb94aa6beb8f2121772fafcfcf6769e4e505e6c8637e7d"
       },
       {
-        "headline": "Why Apple May Have a SpaceX Problem",
-        "datetime": 1791828540,
+        "headline": "SpaceX stock slammed as AI-memory trade crumbles in South Korea",
+        "datetime": 1791906836,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=726d828e3de079416aa7fd098471fbe257a54e03ba80ecd9016de9b9cbc5f555"
+        "url": "https://finnhub.io/api/news?id=496462345c91d8ba8dd097574d681e06049e81e9b848d074b36e5dca123a80fa"
       },
       {
-        "headline": "SpaceX's Starlink could pose 3 big risks to Apple, BofA warns",
-        "datetime": 1791827700,
+        "headline": "AT&T Stock Rises Despite a Downgrade on SpaceX Competition",
+        "datetime": 1791905640,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5eccb285e7f29eb763538ab9731a0312c46160f6ee4d31f70cbb6840f78e4fd4"
+        "url": "https://finnhub.io/api/news?id=80d749d2b749fed11ce597465844eaf8b473955bb071e9f3f718e752013266d9"
       },
       {
-        "headline": "T-Mobile Rebounds 3% After Record Drop on Starlink Spectrum Move; SpaceX Ticks Up, Verizon Edges Higher",
-        "datetime": 1791827496,
+        "headline": "Anthropic's IPO Could Value It at $2 Trillion Even as Its Losses Hit $42 Billion",
+        "datetime": 1791905640,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8486d54ec83986d0e2683bf5eec57c8a12383bca263d8a940727ebf70a7a383"
+        "url": "https://finnhub.io/api/news?id=9027bd3d62398c0208074d80cfdf40b0dae45fb2ffc9b2e0461c56dda915a9ac"
       },
       {
-        "headline": "Which AI stocks' valuations are outrunning reality?",
-        "datetime": 1791827199,
+        "headline": "Paul Tudor Jones warns 2027 could be challenging for stocks",
+        "datetime": 1791904776,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d3be78de2a426521c5a1720230d87915f7e6d1a0b32e54019d1a3e21ee010997"
+        "url": "https://finnhub.io/api/news?id=72b69533f14e0e8511c1ef955865d0f114b6a233cf625465ae5146eebdff1f80"
       }
     ]
   },
