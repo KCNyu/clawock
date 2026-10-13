@@ -505,11 +505,9 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           set -euo pipefail
+          # One interpreter for the whole list: one per file was 11 s of start-up.
           find src ops site/tools -type f -name '*.py' -print0 |
-          while IFS= read -r -d '' f; do
-            echo "syntax check: $f"
-            python3 -m py_compile "$f"
-          done
+            xargs -0 python3 -m py_compile
 
       # The two Playwright tools are 22KB of JavaScript that only the weekly
       # screenshot cron executes, and it commits what they produce — so a syntax

@@ -49,6 +49,7 @@ adapter (target zero), while a host-owned shell script naming the host is
 correct and only has to stay on the list that says why.
 """
 import ast
+import functools
 import re
 import subprocess
 from pathlib import Path
@@ -244,8 +245,13 @@ def _modules():
                 yield path
 
 
+@functools.cache
 def coupling_sites() -> dict[str, list[int]]:
-    """Files outside the adapter that invoke OpenClaw or read its state."""
+    """Files outside the adapter that invoke OpenClaw or read its state.
+
+    Scanned once per process: four tests read the same answer, and each scan
+    parses every module under `CODE_ROOTS`.
+    """
     sites: dict[str, list[int]] = {}
     for path in _modules():
         if ADAPTER in path.parents:
