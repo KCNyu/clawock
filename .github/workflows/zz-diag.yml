@@ -15,22 +15,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: load-cov-1, cov: '1'}
-          - {name: load-cov-2, cov: '1'}
-          - {name: load-cov-3, cov: '1'}
-          - {name: load-cov-4, cov: '1'}
-          - {name: steal-cov-1, cov: '1', extra: '--dist worksteal'}
-          - {name: steal-cov-2, cov: '1', extra: '--dist worksteal'}
-          - {name: steal-cov-3, cov: '1', extra: '--dist worksteal'}
-          - {name: steal-cov-4, cov: '1', extra: '--dist worksteal'}
-          - {name: steal-nocov-1, extra: '--dist worksteal'}
-          - {name: steal-nocov-2, extra: '--dist worksteal'}
-          - {name: late-400s, late: '400', extra: '--dist worksteal'}
-          - {name: sat, at: '2026-10-17 03:00:00'}
-          - {name: split-day, at: '2026-10-20 17:00:00'}
-          - {name: plus-40d, at: '2026-11-23 03:00:00'}
-          - {name: plus-400d, at: '2027-11-18 03:00:00'}
-          - {name: new-year, at: '2027-01-01 02:00:00'}
+          - {name: base-1, cov: '1'}
+          - {name: base-2, cov: '1'}
+          - {name: base-3, cov: '1'}
+          - {name: base-4, cov: '1'}
+          - {name: n6-1, cov: '1', workers: '6'}
+          - {name: n6-2, cov: '1', workers: '6'}
+          - {name: n6-3, cov: '1', workers: '6'}
+          - {name: n6-4, cov: '1', workers: '6'}
+          - {name: py312-sysmon-1, cov: '1', python: '3.12', core: sysmon}
+          - {name: py312-sysmon-2, cov: '1', python: '3.12', core: sysmon}
+          - {name: py312-sysmon-3, cov: '1', python: '3.12', core: sysmon}
+          - {name: py312-sysmon-4, cov: '1', python: '3.12', core: sysmon}
+          - {name: shard0-of-3-r1, cov: '1', shard: '0/3'}
+          - {name: shard1-of-3-r1, cov: '1', shard: '1/3'}
+          - {name: shard2-of-3-r1, cov: '1', shard: '2/3'}
+          - {name: shard0-of-3-r2, cov: '1', shard: '0/3'}
+          - {name: shard1-of-3-r2, cov: '1', shard: '1/3'}
+          - {name: shard2-of-3-r2, cov: '1', shard: '2/3'}
     name: diag ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v7
@@ -39,6 +41,7 @@ jobs:
       - uses: ./.github/actions/clawock-python
         with:
           install: '.[test]'
+          python-version: ${{ matrix.python || '3.11' }}
       - name: Run
         env:
           COV: ${{ matrix.cov }}
@@ -46,11 +49,14 @@ jobs:
           DIAG_AT: ${{ matrix.at }}
           DIAG_LATE: ${{ matrix.late }}
           DIAG_OUT: diag-timings.jsonl
+          DIAG_SHARD: ${{ matrix.shard }}
+          COVERAGE_CORE: ${{ matrix.core }}
+          WORKERS: ${{ matrix.workers || 'auto' }}
         run: |
           set -uo pipefail
           nproc; free -m | sed -n 2p
           export PYTHONPATH="$PWD/.diag${PYTHONPATH:+:$PYTHONPATH}"
-          args=(tests/ -q -n auto --durations=20 -p diag_plugin)
+          args=(tests/ -q -n "$WORKERS" --durations=20 -p diag_plugin)
           if [ -n "$COV" ]; then
             args+=(--cov=clawock --cov=ops --cov-report=json:coverage-report.json)
           fi
@@ -63,7 +69,8 @@ jobs:
           echo "PYTEST_EXIT=$? WALL=$(( $(date +%s) - start ))s"
           grep -E "^(FAILED|ERROR) " pytest-out.txt | cut -c1-330
           tail -1 pytest-out.txt
-          python3 .diag/summarize.py diag-timings.jsonl
+          python3 .diag/summarize.py diag-timings.jsonl | head -14
+          [ -f coverage-report.json ] && python3 -c "import json;t=json.load(open('coverage-report.json'))['totals'];print('COVERAGE',t['num_statements'],t['covered_lines'],t['percent_covered'])"
       - uses: actions/upload-artifact@v7
         if: always()
         with:

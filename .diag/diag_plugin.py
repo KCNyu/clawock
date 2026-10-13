@@ -41,3 +41,13 @@ def pytest_sessionfinish(session):
         with open(out, "w") as handle:
             for row in ROWS:
                 handle.write(json.dumps(row) + "\n")
+
+
+def pytest_collection_modifyitems(config, items):
+    shard = os.environ.get("DIAG_SHARD")
+    if not shard:
+        return
+    import zlib
+    index, count = (int(part) for part in shard.split("/"))
+    keep = [item for item in items if zlib.crc32(item.nodeid.encode()) % count == index]
+    items[:] = keep
