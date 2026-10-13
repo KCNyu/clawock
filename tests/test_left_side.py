@@ -7,6 +7,7 @@ and the observe mode it runs in live (kcn 2026-09-27).
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from clawock.decision import left_side
@@ -144,13 +145,15 @@ def test_held_leveraged_product_has_no_left_ladder_or_weakness_row():
 
 def test_a_quiet_day_is_a_recorded_zero_and_a_rerun_replaces_it(tmp_path):
     path = tmp_path / "left_side_history.jsonl"
-    packet = {"_meta": {"generation_id": "g1"}, "date": "2026-09-28",
+    # Today's row: the store moves rows older than its hot window to an archive.
+    today = date.today().isoformat()
+    packet = {"_meta": {"generation_id": "g1"}, "date": today,
               "tickers": {"MSFT": {"leg": "US", "quant": {}}}}
     assert left_side.record_history(packet, path)["rows"] == {}
     fired = {**packet, "_meta": {"generation_id": "g2"}, "tickers": {"MSFT": {
         "leg": "US", "quant": {"left_side": _observe()}}}}
     left_side.record_history(fired, path)
     rows = [json.loads(line) for line in path.read_text().splitlines()]
-    assert [(r["as_of"], r["generation_id"]) for r in rows] == [("2026-09-28", "g2")]
+    assert [(r["as_of"], r["generation_id"]) for r in rows] == [(today, "g2")]
     assert rows[0]["rows"]["MSFT"]["gate"] is None
     assert rows[0]["rows"]["MSFT"]["leg"] == "US"
