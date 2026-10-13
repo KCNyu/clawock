@@ -271,11 +271,12 @@ def test_extract_iso_accepts_documented_dates_and_rejects_missing_or_invalid(pi,
     assert pi._extract_iso(raw) == expected
 
 
-def test_hk_yearless_quote_stamp_resolves_against_market_day(pi, run_check):
+def test_hk_yearless_quote_stamp_resolves_against_market_day(pi, run_check, monkeypatch):
     assert pi._extract_iso('Tencent Dec 31 16:00 HKT', ref=pi.date(2027, 1, 2)) == '2026-12-31'
     assert pi._extract_iso('Tencent Jan 02 13:33 HKT', ref=pi.date(2027, 1, 2)) == '2027-01-02'
     holding = _holding(ticker='00100')
     holding['data_source'] = 'Tencent Sep 25 13:33 HKT'
+    monkeypatch.setattr(pi, 'hkt_today', lambda: pi.date(2026, 9, 29))
     report = run_check(_portfolio_data(region='hk_stocks', holdings=[holding]),
                        last_session='2026-09-28')
     assert any(f['code'] == 'STALENESS' and f['ticker'] == '00100'

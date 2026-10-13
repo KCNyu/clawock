@@ -209,13 +209,16 @@ def commit_count_today(commit_pattern):
 
 def load_runtime_jobs(jobs_file=None):
     """Load cron jobs from an explicit tracked contract or the live CLI layer."""
+    # The season a seasonal schedule resolves in is read off this module's
+    # clock, the one `main()` judges slots by, not a second one of its own.
+    now = datetime.now(timezone.utc)
     if jobs_file:
         from clawock.scheduling import effective_schedule, load_contract
         data = load_contract(jobs_file)
         jobs = []
         for job in data['jobs']:
             resolved = dict(job)
-            resolved['schedule'] = effective_schedule(job)
+            resolved['schedule'] = effective_schedule(job, now)
             jobs.append(resolved)
         return jobs
 
@@ -238,7 +241,7 @@ def load_runtime_jobs(jobs_file=None):
         spec = contract.get(job.get('name'))
         if spec is not None and host_trigger(spec):
             job = {**job, 'enabled': spec.get('enabled', True),
-                   'schedule': effective_schedule(spec)}
+                   'schedule': effective_schedule(spec, now)}
         if spec is not None:
             # OpenClaw's job view lacks the harness phase; the same tracked
             # phase drives the producer's half-day gate (#2231).

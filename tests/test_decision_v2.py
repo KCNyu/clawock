@@ -96,7 +96,7 @@ def test_metrics_attribute_settled_technical_adds_to_the_named_setup():
     )
     row["technical_setup_id"] = "trend_pullback"
 
-    metrics = dv2.compute_metrics([row], window_days=365)
+    metrics = dv2.compute_metrics([row], cutoff="2026-01-01")
 
     assert metrics["by_technical_setup"]["trend_pullback"]["n_episodes"] == 1
     assert metrics["by_technical_setup"]["trend_pullback"]["avg_benefit_pct"] == 2.5
@@ -127,7 +127,7 @@ def test_metrics_attribute_packet_time_overlay_at_three_horizons():
     )
 
     overlay = dv2.compute_metrics(
-        [base, informed], window_days=365
+        [base, informed], cutoff="2026-01-01"
     )["information_overlay"]
 
     assert overlay["n_eligible_decisions"] == 2
@@ -709,7 +709,7 @@ class DecisionV2Test(unittest.TestCase):
         dv2.assign_episode_ids(rows)
         self.assertEqual(len({row["episode_id"] for row in reaffirmations}), 1)
 
-        coverage = dv2.compute_metrics(rows, window_days=365)["coverage_active"]
+        coverage = dv2.compute_metrics(rows, cutoff="2026-01-01")["coverage_active"]
         self.assertEqual(coverage["episodes_unresolved"], 1)
         self.assertEqual(coverage["unresolved_reasons"]["needs_human_evidence"], 1)
 
