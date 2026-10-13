@@ -1,19 +1,19 @@
 {
-  "checked_at": "2026-10-13T05:35:21Z",
+  "checked_at": "2026-10-13T06:06:41Z",
   "ok": true,
   "build_ok": true,
   "publish_ok": true,
   "lock_busy": false,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-10-13.json\n✓ wrote assets/data/overview.json (58,831 bytes)\n✓ wrote assets/data/dashboard.json (140,518 bytes)\n✓ wrote assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $3952\n  HK: 7 holdings, 5 active, value HK$56966\n  Snapshots: 90 embedded / 110 on disk\n  Plans: 5 embedded / 104 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8475 (Frankfurter)\ndecision_map: 1022 decisions · 34 signals · 17 tickers · 195289 bytes (recent_decisions_only)\n\n  ✓ data-plane: published 8 outputs as 2b26af74110a → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock",
+  "tail": "  brief-context source: brief-context-2026-10-13.json\n✓ wrote assets/data/overview.json (59,064 bytes)\n✓ wrote assets/data/dashboard.json (141,068 bytes)\n✓ wrote assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $3952\n  HK: 7 holdings, 5 active, value HK$56362\n  Snapshots: 90 embedded / 110 on disk\n  Plans: 5 embedded / 104 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8475 (Frankfurter)\ndecision_map: 1022 decisions · 34 signals · 17 tickers · 195289 bytes (recent_decisions_only)\n\n  ✓ data-plane: published 8 outputs as 3ffaf126e0e0 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock",
   "timings_s": {
-    "prepare_inputs": 1.073,
-    "fetch_data_plane": 0.879,
-    "workflow_outcomes": 0.612,
-    "dashboard_build": 3.154,
-    "decision_map": 5.305,
-    "publish_generation": 11.086,
+    "prepare_inputs": 0.863,
+    "fetch_data_plane": 1.038,
+    "workflow_outcomes": 1.787,
+    "dashboard_build": 5.76,
+    "decision_map": 39.873,
+    "publish_generation": 11.766,
     "skipped": false
   }
 }
