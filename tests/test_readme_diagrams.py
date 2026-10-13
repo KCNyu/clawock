@@ -642,10 +642,15 @@ def test_the_plugin_figures_print_what_the_committed_records_hold():
         call['reference'], call['next_pct'], call['outcome'])
     assert f'MA200 下方 {call["under_ma200_pct"]}%' in decision['debate']['bear']
 
+    bars = json.loads((ROOT / f'memory/bars/{call["ticker"]}.json').read_text(encoding='utf-8'))['bars']
+    for session, *prices in builder.CALL_BARS:
+        assert [bars[session][field] for field in ('open', 'high', 'low', 'close')] == prices, session
+    sessions = [session for session, *_ in builder.CALL_BARS]
+    assert sessions == [day for day in sorted(bars) if sessions[0] <= day <= sessions[-1]], 'no session left out'
+    assert sessions[-2] == call['date'] and builder.CALL_BARS[-2][1] == call['reference']
+    assert round((builder.CALL_BARS[-1][4] / call['reference'] - 1) * 100, 4) == call['next_pct']
+
     config = json.loads((ROOT / 'config/strategy-plugins.json').read_text(encoding='utf-8'))
-    live = {row['id']: row.get('signal_source', False) for row in config['live']}
-    assert {name for name, _, _ in builder.READING_ROWS} == {name for name, source in live.items() if source}
-    assert {name for name, _, _ in builder.READING_ROWS} | set(builder.OTHER_ROWS) == set(live)
     lab = {row['id']: row.get('config', {}) for row in config['plugins']}
     assert (lab['rsi']['params']['direction'], lab['rsi']['params']['period']) == run['registered']
     assert tuple(lab['rsi']['space']['period']) == run['periods']
@@ -657,6 +662,7 @@ def test_the_plugin_figures_print_what_the_committed_records_hold():
     first = next(row for row in entries if row['strategy'] == 'rsi' and row['recorded_at'].startswith(run['date']))
     assert (first['status'], first['refused_because'], first['live_review']['objections']) == ('candidate', [], [])
     assert all(gate['would_pass'] for gate in first['alternate_gates'])
+    assert {gate['id'] for gate in first['alternate_gates']} == {name for name, _ in run['second_opinions']}
     assert (first['selected_params']['direction'], first['selected_params']['period']) == run['selected']
     measured = first['measured']
     assert (tuple(measured['oos_ic_ci95']), tuple(measured['oos_lift_ci95'])) == (run['beats_chance'], run['beats_current'])
@@ -666,6 +672,36 @@ def test_the_plugin_figures_print_what_the_committed_records_hold():
     assert (again['tickers'], tuple(again['oos_ic_ci95']), again['status']) == (*run['confirmed'], 'refused')
     registered = [json.loads(line) for line in (ROOT / 'memory/strategy-lab/registrations.jsonl').open(encoding='utf-8')]
     assert any(row['strategy'] == 'rsi' and row['after_session'] == run['after_session'] for row in registered)
+
+    from clawock.decision import method_trials
+
+    prop, trial = builder.PROPOSAL, builder.TRIAL
+    proposals = [json.loads(line) for line in (ROOT / 'memory/proposals.jsonl').open(encoding='utf-8')]
+    kept = next(row for row in proposals if row['record_id'] == prop['id'])
+    assert (kept['decision_id'], kept['ticker'], kept['plan_date'], kept['action'], kept['status']) == (
+        prop['decision'], prop['ticker'], prop['date'], prop['action'], prop['status'])
+    assert (kept['size']['shares'], kept['confidence']) == (prop['shares'], prop['confidence'])
+    assert (kept['condition']['type'], kept['condition']['price'], kept['condition']['valid_for_sessions']) == (
+        'price_above', prop['above'], prop['within'])
+    forecast = kept['forecast']
+    assert (forecast['metric'], forecast['level'], forecast['horizon_sessions'], forecast['probability']) == (
+        'close_below', prop['under'], prop['horizon'], prop['probability'])
+    assert (tuple(kept['objections']), kept['refusals'], kept['agrees_with_policy']) == (prop['objections'], [], False)
+    assert [receipt['receipt_id'] for receipt in kept['tool_receipts']] == [prop['receipt']]
+    filed = next(row for row in map(json.loads, (ROOT / 'memory/decisions.jsonl').open(encoding='utf-8'))
+                 if row.get('decision_id') == prop['decision'])
+    assert (filed['evaluation']['outcome'], filed['evaluation']['fill_reason']) == (prop['outcome'], 'high_below_trigger')
+
+    def positions(node):
+        if isinstance(node, dict):
+            yield node
+        for child in node.values() if isinstance(node, dict) else node if isinstance(node, list) else ():
+            yield from positions(child)
+    book = json.loads((ROOT / 'portfolio.json').read_text(encoding='utf-8'))
+    assert prop['lot'] in {row.get('lot_size') for row in positions(book) if row.get('ticker') == prop['ticker']}
+    assert tuple(arm for arm, _ in trial['arms']) == method_trials.ARMS
+    assert min(row['plan_date'] for row in proposals
+               if row['plan_status'].startswith('shadow_trial:')) == trial['start']
 
 
 def test_the_plugin_system_figure_shows_the_rows_and_the_hot_plug_the_host_really_does():
