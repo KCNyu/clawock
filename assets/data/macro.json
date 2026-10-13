@@ -1,50 +1,50 @@
 {
-  "generated_at": "2026-10-13T02:44:55.812511+00:00",
+  "generated_at": "2026-10-13T23:20:26.232999+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.21,
+    "price": 15.27,
     "prev": 14.84,
-    "change_pct": 2.49,
+    "change_pct": 2.9,
     "source": "yahoo",
-    "as_of": 1791836101
+    "as_of": 1791922501
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 5.24,
-    "prev": 5.244,
-    "change_pct": -0.08,
+    "price": 5.217,
+    "prev": 5.24,
+    "change_pct": -0.44,
     "source": "yahoo",
-    "as_of": 1791831593,
-    "yield_pct": 5.24
+    "as_of": 1791917995,
+    "yield_pct": 5.217
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.417,
-    "prev": 102.589,
-    "change_pct": -0.17,
+    "price": 102.58,
+    "prev": 102.21,
+    "change_pct": 0.36,
     "source": "yahoo",
-    "as_of": 1791858894
+    "as_of": 1791777540
   },
   "fear_greed": {
-    "score": 45.7,
-    "rating": "neutral",
-    "prev_close": 45.0,
-    "prev_1_week": 43.7,
-    "as_of": "2026-10-12T23:59:52+00:00"
+    "score": 44.7,
+    "rating": "fear",
+    "prev_close": 45.7,
+    "prev_1_week": 46.8,
+    "as_of": "2026-10-13T23:02:29+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24041.04,
+    "price": 24345.22,
     "prev": 24271.2,
-    "change_pct": -0.95,
+    "change_pct": 0.3,
     "source": "tencent",
     "as_of": "2026-10-13"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4062.13,
+    "price": 4136.63,
     "prev": 4169.57,
-    "change_pct": -2.58,
+    "change_pct": -0.79,
     "source": "tencent",
     "as_of": "2026-10-13"
   },
@@ -54,17 +54,22 @@
     "prev": 7811.54,
     "change_pct": -0.06,
     "source": "yahoo",
-    "as_of": 1791837301
+    "as_of": 1791835200
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 27245.9,
-    "prev": 27366.17,
-    "change_pct": -0.44,
+    "price": 27204.38,
+    "prev": 27245.9,
+    "change_pct": -0.15,
     "source": "tencent",
-    "as_of": "2026-10-12"
+    "as_of": "2026-10-13"
   },
   "fed_press": [
+    {
+      "date": "2026-10-13",
+      "title": "Minutes of the Board's discount rate meetings on August 17, September 9, and September 16, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm"
+    },
     {
       "date": "2026-10-09",
       "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
