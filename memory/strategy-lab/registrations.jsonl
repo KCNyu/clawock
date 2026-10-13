@@ -1,0 +1,1 @@
+{"after_session": "2026-10-09", "cleared_by": {"gate": "registered", "live_alternates": ["net-of-cost"]}, "input_digest": "d05a8c2be2828d3c", "live_permission": false, "params": {"direction": "momentum", "period": 28}, "registered_at": "2026-10-12T11:09:59+00:00", "schema_version": 1, "strategy": "rsi"}
