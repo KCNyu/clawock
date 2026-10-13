@@ -121,9 +121,11 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 - cron 运行状态在 SQLite。`~/.openclaw/cron/jobs.json` 是迁移 fallback，不是真值。
 - 查 cron / dreaming：`openclaw cron list --json`。
-- coding agent 额度（2026-10-12 实测）：codex 周额度已用尽，恢复 2026-10-18 11:57 HKT；
-  claude-opus-5-5 当时正常。派发前看 `/dispatch-list`，额度耗尽的 worker 会 `state=quota`
-  直接收尾且没有报告 —— 派发授权要一次写全（含合并/部署），别指望它第二轮补。
+- coding agent 额度随时变，派发前先查，不要信 MEMORY.md 里的旧记录：
+  `cd /root/tools/agent-dispatch && node quota.mjs codex`（或 `claude`）。
+  额度耗尽的 worker 会 `state=quota` 直接收尾且没有报告 —— 派发授权要一次写全
+  （含合并/部署），别指望它第二轮补。大任务把 `--quota-resumes` 调高（默认 1 不够，
+  一个 README 重构轮就烧掉 3 次重试）。
 - 跨调度源的 HKT 时间线：`bash ops/host/check_crons.sh --timeline`。
 - 查 gateway：`curl http://127.0.0.1:18789/health`。
 - cron contract 是 `config/cron-schedules.json`，它驱动 DST 同步、payload / watchdog 校验
