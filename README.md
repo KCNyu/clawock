@@ -43,35 +43,37 @@ Everything that computes is [a plugin mounted by one configuration row](#everyth
 
 ## Everything that computes is a plugin; what a result may do is not
 
-What goes into your harness is small: one skill, one CLI and a JSON contract. Your agent keeps its model, its conversation and its tools. Inside clawock, everything that computes a reading is a **plugin mounted by one row of configuration**: the factor table, the bar estimators, the sentiment read, the daily-bar source, the add-side and intraday policies. To change what the desk computes, change a row.
+Take one real call. The desk holds 400 shares of Goldwind (`02208`, Hong Kong) at an average cost of 14.084. This is everything that happened to that name on the morning of 2026-10-08.
+
+1. **A row computed its numbers.** The `factors` row read Goldwind's daily bars and produced one line about it: trend off, price 31.8% under its 200-day average. A row does this and nothing more. It turns inputs into a reading.
+2. **The model argued both sides over that reading.** Bull: it is the only one of its peers with a confirmation price you could act on, and the book has almost nothing that is not Hong Kong tech or AI. Bear: trend off, 31.8% under the average, in a book with four risk limits already tripped; that is adding the weakest position on the weakest evidence. The judge: watch, and write the trigger down before the price gets there.
+3. **The plan was specific enough to be wrong.** Watch. Act only if it trades above 8.97 within five sessions. The idea is dead at 8.923. Confidence 0.34.
+4. **Code settled it.** Not the model, and not the row. The reference was 8.645, the first price it could have traded at after the plan was published. By the close of the next session it was 4.22% lower. Outcome: `loss`.
+5. **The loss went back in.** It is decision `dec-6d9e8bdc8817` on the public ledger, and the track record the next brief reads counts it.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="Plugins: twelve live rows sit round one kernel like the hours of a clock, five signal sources, one data source and six policies, each providing a service to a kernel that offers provide, inject, effect and event. Three statements follow: readers ask the kernel for a service by name and never import a plugin; a row that does not mount stops only its own readers and is named; settlement, the gate and the record are not rows, so swapping a row cannot change what a result may do."></p>
 
-**Where the boundary is.** A plugin publishes a service or names the ones it needs. That is all a row can do. It cannot grade a call, publish a decision or give itself permission:
+**What you can swap is step 1.** Replace the `factors` row with your own and Goldwind's line is computed another way: a different average, a different window, a different data source. Steps 4 and 5 do not move, because they are not rows. No row can mark its own call, pick a kinder reference price, turn that `loss` into something else or keep it off the ledger. Two strategies can be compared on one record for that reason: the code that judged this call is the code that would judge theirs.
 
-- Settlement is Python over canonical bars. No plugin and no model writes a score.
-- `clawock run publish` checks every decision against one schema and one validator, whichever harness wrote it.
-- A research plugin can produce a proposal. Whether that proposal is a candidate is the registered gate's verdict, and live permission is false either way.
+Each row sits in one socket, and what goes into your harness stays small: one skill, one CLI and a JSON contract. Your agent keeps its model, its conversation and its tools.
 
-That is why a strategy can be swapped while its results stay comparable: the code that judges a result is not among the things that get swapped.
+**A row has to say what it measures.** A row whose readings reach a decision is not mounted until it has declared its inputs, the unit and window of every output, and what it holds when it cannot measure. None may hand back yesterday's reading as today's.
 
-**A signal source says what it measures.** A row marked as a signal source is not mounted until it declares its inputs, the unit and window of every output, and what each holds when it cannot be measured. No source may hand back an old reading as today's.
+| Row | Measures | When it cannot measure |
+|---|---|---|
+| `factors` | trend, momentum, RSI, volatility and the exit line per name, from daily bars. Goldwind's "31.8% under" came from here | the field is empty; with fewer than 30 daily bars there is no line at all |
+| `bar-signals` | how costly a name is to trade and how much it is likely to move, per session | empty, never zero: "could not be estimated" is not "cheap to trade" |
+| `sentiment` | Reddit mentions over seven days, and statements by named public figures | the block is left out, and says whether the scan is missing, too old or unreadable |
+| `morning-scans` | the macro snapshot and Chinese-language news, and the one read of every scheduled scan file | the same: left out, with the reason |
+| `strategy-scores` | where each name ranks under each research strategy's current setting; reference only | says it is unavailable and why |
 
-| Source | Kind | Measures | When it cannot measure |
-|---|---|---|---|
-| `factors` | factor | trend, momentum, RSI, volatility and the exit line per name, from daily bars | the field is null; below 30 bars there is no row |
-| `bar-signals` | technical | liquidity and volatility estimators per session | null, never zero: undefined is not the same as liquid |
-| `sentiment` | sentiment | Reddit mentions over seven days and statements by named figures, read from two morning scans | the reading is left out, and its status says missing, stale or unreadable |
-| `rsi` | strategy | a signed score the strategy lab ranks | null, and the name is not ranked that session |
-| `strategy-scores` | strategy | each lab strategy's score and rank per holding under the row's registered parameters, with the lab's standing; the brief reads it as reference | the reading says unavailable and why |
+**A broken row fails alone.** If one row does not load, the runs that needed it stop and name it. The others carry on.
 
-**A broken row fails alone.** If a row does not mount, the runs that read its service stop and name it. The others carry on.
-
-**Your own plugin.** A row's module is an import path, so a plugin can be any installed package: write `apply(ctx, config)`, declare what it reads, add the row. Mounting gives it a socket, not authority; the same gate and the same record apply to it.
+**Your own row.** A row points at an installed Python module, so it can be yours: one `apply(ctx, config)` function, a declaration of what it reads, one line of configuration. That gets it a socket. It gets it no say over steps 4 and 5.
 
 ```bash
-clawock strategy-lab list       # every mounted row, what it provides and what it waits for
-clawock strategy-lab sources    # each signal source: inputs, units, windows, missing data
+clawock strategy-lab list       # every row, what it provides and what it is waiting for
+clawock strategy-lab sources    # each row's inputs, units, windows and missing-data rule
 ```
 
 [Strategy plugins: kernel, rows, declarations, events and boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md) · [writing a plugin outside this repository](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#writing-a-plugin-outside-this-repository).
@@ -154,29 +156,27 @@ Method proposals now retain frozen inputs and versioned forecasts; [method evalu
 
 ## A strategy can search its own parameters; adopting them is a reviewed edit
 
-A strategy plugin declares the parameters it runs with and the grid it may be searched over. Every morning after the brief, the strategy lab walks that grid forward on adjusted bars and writes down what it found. That is as far as "self-improving" goes without a person, and each step is held by code:
+Stay with Goldwind. One of the numbers the desk computes for it is RSI, and the row that computes it has a setting: look back 14 sessions, and read a low value as a rebound coming. Is that the right setting? Every morning after the brief, the strategy lab asks, on all 28 names it has prices for, Goldwind among them.
 
-1. **Search.** The grid is declared before the run, so every configuration tried is counted.
-2. **Gate.** The registered gate asks for enough out-of-sample sessions, an edge and a lift whose intervals sit above zero, a low probability of overfitting, and adjusted bars. A configuration row can make the gate stricter. It cannot make it looser than the floor in the code.
-3. **Second opinions.** Alternate gates judge the same run under other thresholds. One with live effect may object. None can pass what the registered gate refused.
-4. **Record.** Every verdict goes to the lab ledger with the digest of the bars it read, and the ledger is read back against these rules on every run.
-5. **Later sessions.** A cleared candidate's parameters are registered, and from then on they are scored only on sessions that did not exist when they were chosen.
+1. **It tries only what was declared.** The row lists its settings in advance: six look-back lengths, two ways of reading the number. Twelve in all, and all twelve are counted, so a lucky one cannot be passed off as the only one tried.
+2. **A gate judges the best of them.** It needs enough days it was not tuned on, a ranking that beats chance and beats the current setting by a margin that is not noise, a low chance of having been fitted to the past, and prices adjusted for splits and dividends. A configuration line can make this gate stricter. It cannot make it looser than the floor in the code.
+3. **Second opinions may object.** Other thresholds judge the same run, for example after trading costs. They can block. They cannot pass what the gate refused.
+4. **The verdict is written down.** Every run goes to a ledger, and the ledger is checked against these rules each time it is read.
+5. **Then it has to keep working.** A setting that passes is registered, and from then on it is scored only on days that had not happened when it was picked.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-evolution.svg" width="1016" alt="One real run of a strategy searching its own parameters, RSI on 2026-10-12: the declared grid of six periods and two directions shaded by mean rank IC, with the registered point and the selected one outlined; the registered gate check by check, all passed, and the live alternate after costs not objecting; the same search on the 16 names the provider answered adjusted, refused because its interval spans zero; and a time axis where registration starts scoring on later sessions only, none scored yet, while the configuration row still holds the registered parameters."></p>
 
-The figure is one real run. On 2026-10-12 the RSI plugin, registered as a 14-session reversal reading, was searched over twelve configurations on the desk's 28 names. The search preferred a 28-session momentum reading, the gate passed it, and it was registered. **The same search on the 16 names the provider confirmed as adjusted is refused.** The candidate depends on 12 names for which one provider's record holds no corporate action, with no second source to check it against. Every proposal now carries that second search, so a candidate says for itself whether it survives it.
+On 2026-10-12 the answer for RSI was: a 28-session look-back, read as "strength continues", would have ranked these names better. The gate passed it and it was registered. **The same search on the 16 names whose prices the provider confirmed as adjusted, Goldwind one of them, was refused.** The result leans on the other 12, where all the lab has is one provider's record showing no split or dividend, and no second source to check it against. Every run now carries that second search, so a passing setting says for itself whether it survives it.
 
-Both ends of that chain are attached. The brief reads each strategy's score **under the parameters its row registers**, so a candidate changes nothing there until the row is edited. And when a registration has scored on at least 60 later sessions, with an interval above zero and a verdict that survives the check above, the lab writes a **proposed row edit**: from which parameters, to which, on what evidence. Proposed is all it can be. Changing the row is an edit someone reviews, and the lab has no code that applies one.
-
-What has not happened yet: no later session has been scored, so nothing has been proposed, and this candidate would not be while it fails that check.
+**What did this change for Goldwind? Nothing.** The next brief still showed its RSI under 14 sessions, read as a rebound, because that is what the row says. Changing the row is an edit a person reviews. The most the lab can do is propose that edit, and only after the new setting has held up on at least 60 later sessions and passes the check it currently fails. So far it has been scored on none, and nothing has been proposed.
 
 ```bash
-clawock strategy-lab evolution rsi   # each run, what changed, each registration and its score since
-clawock strategy-lab row-edits       # row edits the lab has proposed, for review
+clawock strategy-lab evolution rsi   # each run, what changed, each registration and how it has done since
+clawock strategy-lab row-edits       # edits the lab has proposed, for review
 clawock strategy-lab verify          # the ledger against the lab's limits
 ```
 
-[What an optimisation may conclude, alternate gates and the lab's boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#boundaries).
+[What a search may conclude, second opinions and the lab's limits](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#boundaries).
 
 ## What the model is not allowed to do
 
