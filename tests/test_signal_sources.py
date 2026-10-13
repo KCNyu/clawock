@@ -212,24 +212,26 @@ def _raises(tickers):
     raise RuntimeError('bars store unreadable')
 
 
+# Each case is built when its test runs: a stamp taken at import is as old as
+# the wait for a worker by the time it is read, and `age_hours` rounds over.
 CASES = {
-    'the scans as committed': dict(attention=_scan('sentiment.json'),
-                                   statements=_scan('influencer_feed.json')),
-    'both absent': {},
-    'both a day and a half old': dict(attention=_scan('sentiment.json', hours=36.5),
-                                      statements=_scan('influencer_feed.json', hours=36.5)),
-    'just inside the window': dict(attention=_scan('sentiment.json', hours=35.4),
-                                   statements=_scan('influencer_feed.json', hours=35.4)),
-    'stamped in the future': dict(attention=_scan('sentiment.json', hours=-2.5),
-                                  statements=_scan('influencer_feed.json', hours=-2.5)),
-    'unstamped': dict(attention={'tickers': [{'ticker': 'X', 'reddit_mentions_7d': 5}]},
-                      statements={'counts': {'held_hits': 1}}),
-    'not json': dict(attention='{', statements='nope'),
-    'the wrong shape': dict(attention=[1, 2], statements={'generated_at': _stamp(1.2),
-                                                           'held_hits': [3]}),
-    'an empty scan': dict(attention={'generated_at': _stamp(1.2)},
-                          statements={'generated_at': _stamp(1.2)}),
-    'reddit silent on every name': dict(
+    'the scans as committed': lambda: dict(attention=_scan('sentiment.json'),
+                                           statements=_scan('influencer_feed.json')),
+    'both absent': dict,
+    'both a day and a half old': lambda: dict(attention=_scan('sentiment.json', hours=36.5),
+                                              statements=_scan('influencer_feed.json', hours=36.5)),
+    'just inside the window': lambda: dict(attention=_scan('sentiment.json', hours=35.4),
+                                           statements=_scan('influencer_feed.json', hours=35.4)),
+    'stamped in the future': lambda: dict(attention=_scan('sentiment.json', hours=-2.5),
+                                          statements=_scan('influencer_feed.json', hours=-2.5)),
+    'unstamped': lambda: dict(attention={'tickers': [{'ticker': 'X', 'reddit_mentions_7d': 5}]},
+                              statements={'counts': {'held_hits': 1}}),
+    'not json': lambda: dict(attention='{', statements='nope'),
+    'the wrong shape': lambda: dict(attention=[1, 2], statements={'generated_at': _stamp(1.2),
+                                                                   'held_hits': [3]}),
+    'an empty scan': lambda: dict(attention={'generated_at': _stamp(1.2)},
+                                  statements={'generated_at': _stamp(1.2)}),
+    'reddit silent on every name': lambda: dict(
         attention=_scan('sentiment.json', tickers=[
             {'ticker': 'A', 'reddit_mentions_7d': None, 'reddit_status': 'failed'},
             {'ticker': 'B', 'reddit_mentions_7d': 0, 'reddit_status': 'ok'},
@@ -246,7 +248,7 @@ LOADERS = FIXTURES / 'brief_loaders.json'
 def test_the_brief_loaders_answer_as_recorded(case, tmp_path, monkeypatch, capsys):
     """The readings, issues and console lines these loaders gave on 2026-10-12,
     when the code they replaced was still in the tree and answered the same."""
-    _workspace(tmp_path, **CASES[case])
+    _workspace(tmp_path, **CASES[case]())
     answered = _loaders(tmp_path, monkeypatch, capsys)
     recorded = json.loads(LOADERS.read_text())
     if os.environ.get('CLAWOCK_WRITE_GOLDENS') == '1':
