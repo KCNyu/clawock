@@ -15,14 +15,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: order-seed-1, extra: '-p random_order --random-order-bucket=global --random-order-seed=1'}
           - {name: order-seed-2, extra: '-p random_order --random-order-bucket=global --random-order-seed=2'}
-          - {name: order-seed-3, extra: '-p random_order --random-order-bucket=global --random-order-seed=3'}
           - {name: order-seed-4, extra: '-p random_order --random-order-bucket=global --random-order-seed=4'}
-          - {name: order-seed-5, extra: '-p random_order --random-order-bucket=global --random-order-seed=5'}
           - {name: order-seed-6, extra: '-p random_order --random-order-bucket=global --random-order-seed=6'}
-          - {name: order-module-seed-1, extra: '-p random_order --random-order-bucket=module --random-order-seed=1'}
+          - {name: order-seed-7, extra: '-p random_order --random-order-bucket=global --random-order-seed=7'}
+          - {name: order-seed-8, extra: '-p random_order --random-order-bucket=global --random-order-seed=8'}
+          - {name: order-seed-9, extra: '-p random_order --random-order-bucket=global --random-order-seed=9'}
+          - {name: order-seed-10, extra: '-p random_order --random-order-bucket=global --random-order-seed=10'}
+          - {name: order-seed-11, extra: '-p random_order --random-order-bucket=global --random-order-seed=11'}
           - {name: order-module-seed-2, extra: '-p random_order --random-order-bucket=module --random-order-seed=2'}
+          - {name: order-module-seed-3, extra: '-p random_order --random-order-bucket=module --random-order-seed=3'}
+          - {name: order-module-seed-4, extra: '-p random_order --random-order-bucket=module --random-order-seed=4'}
+          - {name: order-module-seed-5, extra: '-p random_order --random-order-bucket=module --random-order-seed=5'}
     name: diag ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v7
