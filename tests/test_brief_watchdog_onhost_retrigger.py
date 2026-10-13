@@ -186,3 +186,28 @@ def test_a_state_read_that_raises_still_dispatches_the_off_host_fallback(
     assert spy.get("reruns") is None
     assert spy.get("dispatched") == [1]
     assert "cron-state-unreadable" in _actions(spy)
+
+
+@pytest.mark.parametrize('pass_name', ['retrigger_or_wait', 'alert_brief_missing'])
+def test_ok_but_empty_finished_turn_is_retried(tmp_path, monkeypatch, pass_name):
+    spy = {}
+    _watch(monkeypatch, tmp_path, _job(lastStatus='ok', lastRunAtMs=_at('08:07')), spy)
+    monkeypatch.setattr(watchdog, 'send_telegram', lambda *_: (True, 'sent'))
+    monkeypatch.setattr(watchdog, 'dispatch_brief_fallback',
+                        lambda *_: pytest.fail('must not race the local retry'))
+    getattr(watchdog, pass_name)(TODAY, False)
+    assert spy['reruns'] == [JOB_ID]
+    assert any(e.get('run_evidence') == 'ended-with-nothing' for e in spy['logs'])
+
+
+@pytest.mark.parametrize('artifact', ['context', 'brief', 'plan'])
+def test_ok_with_artifacts_is_not_an_empty_attempt(tmp_path, monkeypatch, artifact):
+    spy = {}
+    _watch(monkeypatch, tmp_path, _job(lastStatus='ok', lastRunAtMs=_at('08:07')), spy)
+    path = (tmp_path / 'memory' / '.tmp' / f'brief-context-{TODAY}.json'
+            if artifact == 'context' else tmp_path / 'memory' /
+            (f'{TODAY}-pre-open.md' if artifact == 'brief' else f'{TODAY}-plan.json'))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('{}')
+    watchdog.retrigger_or_wait(TODAY, False)
+    assert not spy.get('reruns')

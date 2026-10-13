@@ -675,22 +675,15 @@
     // RS: our combined today_pct vs SPX/HSI (region-weighted)
     if (rsRow) {
       const delta = safe(DATA, "delta") || {};
-      const usMine = delta.us?.today_pct;
-      const hkMine = delta.hk?.today_pct;
-      const spx = idx.SPX?.change_pct;
-      const hsi = idx.HSI?.change_pct;
-      const parts = [];
-      if (usMine != null && spx != null) {
-        const rs = usMine - spx;
-        const cls = rs >= 0 ? "pos" : "neg";
-        parts.push(`US 组合 ${usMine.toFixed(2)}% vs SPY ${spx > 0 ? "+" : ""}${spx.toFixed(2)}% → <b class="${cls}">${rs > 0 ? "+" : ""}${rs.toFixed(2)}pp</b>`);
-      }
-      if (hkMine != null && hsi != null) {
-        const rs = hkMine - hsi;
-        const cls = rs >= 0 ? "pos" : "neg";
-        parts.push(`HK 组合 ${hkMine.toFixed(2)}% vs HSI ${hsi > 0 ? "+" : ""}${hsi.toFixed(2)}% → <b class="${cls}">${rs > 0 ? "+" : ""}${rs.toFixed(2)}pp</b>`);
-      }
-      rsRow.innerHTML = parts.length ? "RS: " + parts.join(" · ") : "";
+      const parts = [["us", "SPX", "SPY"], ["hk", "HSI", "HSI"]].map(([leg, key, label]) => {
+        const session = deltaSession(delta, leg);
+        const benchmark = idx[key]?.change_pct;
+        const prefix = `${leg.toUpperCase()} 组合 ${session.text}（${session.date}） vs ${label} ${fmtPct(benchmark)}`;
+        if (!Number.isFinite(session.value) || !Number.isFinite(benchmark)) return prefix;
+        const rs = session.value - benchmark;
+        return `${prefix} → <b class="${rs >= 0 ? "pos" : "neg"}">${rs > 0 ? "+" : ""}${rs.toFixed(2)}pp</b>`;
+      });
+      rsRow.innerHTML = "RS: " + parts.join(" · ");
     }
   }
 

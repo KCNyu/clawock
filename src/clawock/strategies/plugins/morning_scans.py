@@ -25,8 +25,11 @@ from __future__ import annotations
 import math
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
+
+from clawock.strategies.freshness import (
+    DEFAULT_STALE_AFTER_HOURS, is_stale, payload_age_hours,
+)
 
 from clawock.market_data.macro import classify_regime
 
@@ -40,8 +43,6 @@ FILES = {
     'us_news_digest': 'assets/data/us_news_digest.json',
     'news_evidence_graph': 'assets/data/news_evidence_graph.json',
 }
-STALE_AFTER_HOURS = 36
-CLOCK_SKEW_HOURS = 2
 
 OK, MISSING, STALE, UNREADABLE = 'ok', 'missing', 'stale', 'unreadable'
 
@@ -100,6 +101,8 @@ SIGNAL_SOURCE = {
          'window': 'up to 3 scan results per holding',
          'missing': 'empty items list'},
         {'field': 'em_news.market_724[].date / title', 'unit': 'publication date string and title', 'window': 'up to 5 scan results', 'missing': 'empty list'},
+        _out('detail.stale_after_hours', 'hours', 'this stale read',
+             'present on stale results; the configured cutoff used for this decision'),
         _out('status', 'ok, missing, stale or unreadable', 'this read', 'never null'),
         _out('age_hours', 'hours since the payload\'s generated_at', 'this read',
              'null without a readable stamp, and the reading is then stale'),
@@ -121,19 +124,6 @@ SIGNAL_SOURCE = {
         'serves_stale': False,
     },
 }
-
-
-def payload_age_hours(payload, now=None):
-    stamp = (payload or {}).get('generated_at')
-    if not stamp:
-        return None
-    try:
-        at = datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
-    except ValueError:
-        return None
-    if at.tzinfo is None:
-        at = at.replace(tzinfo=timezone.utc)
-    return ((now or datetime.now(timezone.utc)) - at).total_seconds() / 3600
 
 
 def _answer(status, reading=None, age=None, **detail):
@@ -167,7 +157,7 @@ class Scans:
         return {'status': OK, 'payload': value, 'error': None}
 
     def is_stale(self, age) -> bool:
-        return age is None or age > self.stale_after_hours or age < -CLOCK_SKEW_HOURS
+        return is_stale(age, self.stale_after_hours)
 
     def _reading(self, workspace, scan, build):
         found = self.document(self.path(workspace, scan))
@@ -177,7 +167,7 @@ class Scans:
             return _answer(UNREADABLE, error=found['error'], message=found['message'])
         age = payload_age_hours(found['payload'])
         if self.is_stale(age):
-            return _answer(STALE, age=age)
+            return _answer(STALE, age=age, stale_after_hours=self.stale_after_hours)
         try:
             return build(found['payload'], age)
         except Exception as exc:
@@ -240,7 +230,7 @@ class Scans:
 
 
 def apply(ctx, config):
-    hours = config.get('stale_after_hours', STALE_AFTER_HOURS)
+    hours = config.get('stale_after_hours', DEFAULT_STALE_AFTER_HOURS)
     if isinstance(hours, bool) or not isinstance(hours, (int, float)) or not math.isfinite(hours) or not hours > 0:
         raise ValueError(f'morning-scans stale_after_hours must be a positive number, got {hours!r}')
     ctx.provide('scans', Scans(hours))

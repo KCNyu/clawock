@@ -88,8 +88,7 @@ def test_unrecognized_book_configuration_fails_closed(tmp_path, monkeypatch, mut
     rep = report(tmp_path, monkeypatch, config, books)
     assert not rep['ok']
     assert any(f['code'] == 'BOOK_GATE_CONFIG' and f['level'] == 'ERROR' for f in rep['findings'])
-    from clawock.publish.artifacts import DASHBOARD_MONEY_INTEGRITY_CODES
-    assert 'BOOK_GATE_CONFIG' in DASHBOARD_MONEY_INTEGRITY_CODES
+    assert any(integrity.blocks_money_publication(f) for f in rep['findings'])
 
 
 def test_check_exposes_calendar_and_prev_close_coverage(tmp_path, monkeypatch):
@@ -113,3 +112,32 @@ def test_missing_or_malformed_gate_config_is_an_error(tmp_path, monkeypatch, raw
     rep = integrity.check(portfolio, config_path=path)
     assert not rep['ok']
     assert any(f['code'] == 'BOOK_GATE_CONFIG' for f in rep['findings'])
+
+
+@pytest.mark.parametrize('cost', [0, None])
+def test_dashboard_rejects_invalid_cost_even_when_payload_matches(tmp_path, monkeypatch, cost):
+    from clawock.publish.artifacts import _assert_dashboard_money_reconciles
+
+    book = {'currency': 'USD', 'total_pnl': 0, 'holdings': [
+        {'ticker': 'TEST', 'shares': 2, 'cost_basis': cost}]}
+    rep = report(tmp_path, monkeypatch, json.loads(CONFIG.read_text()),
+                 {'us_stocks': book, 'hk_stocks': {'currency': 'HKD', 'holdings': []}})
+    code = 'COST_ZERO' if cost == 0 else 'COST_MISSING'
+    assert {f['code'] for f in rep['findings'] if f['level'] == 'ERROR'} == {code}
+    from clawock.publish.dashboard import trim_holding
+    payload = {
+        'holdings': {'us': [trim_holding(book['holdings'][0], 'USD')], 'hk': []},
+        'totals': {'us': {'pnl_usd': 0}, 'hk': {}},
+        'concentration': {leg: {'total': 0, 'hhi': 0, 'top2': 0, 'positions': []}
+                          for leg in ('us', 'hk')},
+        'fx': {'usdhkd': None},
+        'build_status': {'integrity': {'ok': True, 'error_count': 0}},
+    }
+    with pytest.raises(AssertionError, match='portfolio money integrity failed:.*' + code):
+        _assert_dashboard_money_reconciles(payload, tmp_path / 'portfolio.json')
+
+
+def test_money_publication_covers_new_errors_but_not_freshness_warnings():
+    assert integrity.blocks_money_publication({'code': 'FUTURE_ERROR', 'level': 'ERROR'})
+    assert integrity.blocks_money_publication({'code': 'PNL_LEG', 'level': 'WARN'})
+    assert not integrity.blocks_money_publication({'code': 'STALENESS', 'level': 'WARN'})

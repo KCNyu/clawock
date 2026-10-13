@@ -200,8 +200,7 @@ def _loaders(tmp_path, monkeypatch, capsys, moves=_moves):
     monkeypatch.setattr(brief_preflight, '_recent_price_moves', moves)
     issues = []
     capsys.readouterr()
-    readings = [brief_preflight._sentiment_reading(
-        tmp_path / 'assets' / 'data' / 'sentiment.json', 36, issues),
+    readings = [brief_preflight._sentiment_reading(issues),
         brief_preflight.load_influencer_feed(issues)]
     for reading in readings:
         reading.pop('as_of', None)  # the stamp is set relative to now by the fixture
@@ -519,3 +518,33 @@ def test_the_two_summations_differ_only_in_the_last_place_of_a_rounded_average()
     for pointer, value in document['naive_sum'].items():
         assert pointer.split('/')[0] == 'factors', pointer
         assert abs(value - recorded[pointer]) <= 0.0011, (pointer, value, recorded[pointer])
+
+
+def test_preflight_prints_each_live_rows_actual_freshness_cutoff(tmp_path, monkeypatch, capsys):
+    config = json.loads((ROOT / 'config/strategy-plugins.json').read_text())
+    for row in config['live']:
+        if row['id'] in ('sentiment', 'morning-scans'):
+            row['config']['stale_after_hours'] = 7 if row['id'] == 'sentiment' else 9
+    path = tmp_path / 'config/strategy-plugins.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(config))
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    data = tmp_path / 'assets/data'
+    data.mkdir(parents=True)
+    for name in ('macro', 'sentiment'):
+        (data / f'{name}.json').write_text(json.dumps({'generated_at': _stamp(12)}))
+    assert brief_preflight.load_macro_and_sentiment(None, []) == ({}, {})
+    text = capsys.readouterr().out
+    assert 'macro stale/unknown' in text and 'cutoff 9h' in text
+    assert 'sentiment stale/unknown' in text and 'cutoff 7h' in text
+    assert 'cutoff 36h' not in text
+
+
+def test_scan_freshness_has_one_owner():
+    from clawock.strategies import freshness
+    assert sentiment.payload_age_hours is morning_scans.payload_age_hours is freshness.payload_age_hours
+    for age in (None, -3, -2, 0, 7, 7.1):
+        expected = freshness.is_stale(age, 7)
+        assert sentiment.Sentiment(7).is_stale(age) == expected
+        assert morning_scans.Scans(7).is_stale(age) == expected

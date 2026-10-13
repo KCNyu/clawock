@@ -592,6 +592,20 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     return summary
 
 
+# ERROR findings always block publication, including future integrity errors.
+# These accounting advisories also invalidate public money; market freshness
+# warnings remain visible without blocking publication.
+MONEY_WARNING_CODES = frozenset({
+    'PNL_PCT', 'PNL_LEG', 'TODAY_TOTAL', 'CASH_SANITY',
+    'REALIZED_SUM', 'TRUE_PRINCIPAL', 'GOLD_RECON',
+})
+
+
+def blocks_money_publication(finding):
+    return (finding.get('level') == 'ERROR'
+            or finding.get('code') in MONEY_WARNING_CODES)
+
+
 def check(portfolio_path=PORTFOLIO, *, config_path=None):
     data = json.loads(Path(portfolio_path).read_text())
     P = data.get('portfolios', {})

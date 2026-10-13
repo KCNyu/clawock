@@ -25,11 +25,7 @@ from clawock.workspace import workspace_root
 ROOT = workspace_root()
 DASHBOARD_MAX_BYTES = 200_000
 OVERVIEW_MAX_BYTES = 80_000
-DASHBOARD_MONEY_INTEGRITY_CODES = frozenset({
-    'BOOK_GATE_CONFIG', 'VALUE_LEG', 'TCV_SUM', 'COST_TOTAL', 'PNL_TOTAL', 'PNL_PCT',
-    'PNL_LEG', 'TODAY_LEG', 'TODAY_TOTAL', 'CASH_RECON', 'CASH_SANITY',
-    'REALIZED_SUM', 'COST_BASIS', 'FX_TAG', 'TRUE_PRINCIPAL', 'GOLD_RECON',
-})
+
 
 
 def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
@@ -739,7 +735,7 @@ def _assert_dashboard_money_reconciles(
     report = preflight_integrity.check(portfolio_path)
     money_findings = [
         finding for finding in report['findings']
-        if finding.get('code') in DASHBOARD_MONEY_INTEGRITY_CODES
+        if preflight_integrity.blocks_money_publication(finding)
     ]
     assert not money_findings, (
         'portfolio money integrity failed: '

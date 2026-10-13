@@ -905,8 +905,8 @@ def test_every_strategy_profile_pins_a_run_timeout():
     """
     profiles = contract()['payload_profiles']
     assert {name: profiles[name].get('timeout_seconds') for name in profiles} == {
-        'report': 1680,
-        'intraday': 1680,
+        'report': 1740,
+        'intraday': 1740,
         'brief': 2400,
         'memory': None,
     }
@@ -1264,8 +1264,9 @@ def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
     data = contract()
     minimum = budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.PRE_DELIVERY_RESERVE_SECONDS
     for name in ('brief', 'report', 'intraday'):
-        assert data['payload_profiles'][name]['timeout_seconds'] > (
-            budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.pre_delivery_reserve_seconds(name))
+        assert data['payload_profiles'][name]['timeout_seconds'] >= (
+            budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.pre_delivery_reserve_seconds(name)
+            + budgets.CRON_BUDGET_HEADROOM_SECONDS)
     data['payload_profiles']['intraday']['timeout_seconds'] = minimum
     path = tmp_path / 'config/cron-schedules.json'
     path.parent.mkdir()
@@ -1319,3 +1320,10 @@ def test_the_gha_sync_fallback_shares_one_deadline(tmp_path, monkeypatch):
     per_file = [t for cmd, t in calls if 'restore' in cmd and len(cmd) <= 7]
     assert len(per_file) == 1, 'a file that eats the deadline ends the fallback'
     assert per_file[0] <= common.GHA_SYNC_RESTORE_TIMEOUT_SECONDS
+
+
+def test_network_dial_ten_seconds_larger_keeps_contract_loadable(monkeypatch):
+    from clawock import run_budgets as budgets
+    monkeypatch.setattr(cron_contract, 'POST_DELIVERY_BUDGET_SECONDS',
+                        budgets.POST_DELIVERY_BUDGET_SECONDS + 10 * budgets.PUBLISH_NETWORK_CALLS)
+    cron_contract.load_contract()

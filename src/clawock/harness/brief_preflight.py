@@ -53,7 +53,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime, date, timezone, timedelta
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -955,40 +955,6 @@ def load_em_news(issues):
     return answer['reading']
 
 
-def _payload_age_hours(payload):
-    """Age in hours from the payload's own `generated_at`, or None if absent/unparseable.
-
-    WHY NOT file mtime (2026-07 audit): `actions/checkout` stamps every tracked
-    file with a fresh checkout time, so a committed-days-ago sidecar reads as
-    seconds old. The off-host brief fallback used st_mtime and therefore fed
-    stale macro/sentiment/influencer into a live trading brief while labelling it
-    fresh. The producer stamps `generated_at`; that is the only honest clock.
-    Callers treat None (missing/bad stamp) as STALE — an unprovable age is not a
-    fresh one.
-    """
-    gen = (payload or {}).get('generated_at')
-    if not gen:
-        return None
-    try:
-        t = datetime.fromisoformat(str(gen).replace('Z', '+00:00'))
-    except ValueError:
-        return None
-    if t.tzinfo is None:
-        t = t.replace(tzinfo=timezone.utc)
-    return (datetime.now(timezone.utc) - t).total_seconds() / 3600
-
-
-# A materially future generated_at (beyond clock skew) is as untrustworthy as an
-# old one — it means a broken producer clock, not fresh data.
-_CLOCK_SKEW_H = 2
-
-
-def _is_stale(age, cutoff_h):
-    """True if age (hours, or None) is unusable: unknown, too old, or from the
-    future beyond clock skew. Callers omit stale data rather than feed it."""
-    return age is None or age > cutoff_h or age < -_CLOCK_SKEW_H
-
-
 def _age_str(age):
     return f'{age:.0f}h' if age is not None else 'unknown-age (no generated_at)'
 
@@ -996,14 +962,12 @@ def _age_str(age):
 def load_macro_and_sentiment(today, issues):
     """Read GH-Action-produced macro.json + sentiment.json; trim to LLM-friendly subset.
 
-    Files are written daily by sentiment-scan.yml / macro-scan.yml. Stale (>36h)
+    Files are written daily by sentiment-scan.yml / macro-scan.yml. Stale (past the configured cutoff)
     or missing files emit a non-fatal warn — brief still runs, just without these
     sections.
 
     Returns: (macro_trim, sentiment_trim) — either may be {} on miss.
     """
-    sent_path  = WS / 'assets' / 'data' / 'sentiment.json'
-    stale_cutoff_h = 36
 
     answer = live_plugins.service('scans').macro(WS)
     status, detail, macro_trim = answer['status'], answer['detail'], answer['reading']
@@ -1017,7 +981,7 @@ def load_macro_and_sentiment(today, issues):
         # brief — a worse outage than a missing macro section). The brief
         # runs without macro; downstream postflight sees no macro context.
         print(f"   ⚠ macro stale/unknown ({_age_str(answer['age_hours'])}, cutoff "
-              f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
+              f"{detail['stale_after_hours']:g}h) — omitting from brief (non-fatal)")
     elif status == 'unreadable':
         print(f"   ⚠ macro load failed: {detail['message']}")
         issues.append(f"macro load exception: {detail['error']}")
@@ -1027,7 +991,7 @@ def load_macro_and_sentiment(today, issues):
               f'F&G {fg.get("score","?")} ({fg.get("rating","?")}), '
               f'fed_press {len(macro_trim["fed_press"])}')
 
-    sentiment_trim = _sentiment_reading(sent_path, stale_cutoff_h, issues)
+    sentiment_trim = _sentiment_reading(issues)
 
     return macro_trim, sentiment_trim
 
@@ -1054,7 +1018,7 @@ def _strategy_scores(portfolio):
     return reading
 
 
-def _sentiment_reading(sent_path, stale_cutoff_h, issues):
+def _sentiment_reading(issues):
     """The attention scan through the `sentiment` service, reported as before."""
     answer = live_plugins.service('sentiment').attention(WS, _recent_price_moves)
     status, age, detail = answer['status'], answer['age_hours'], answer['detail']
@@ -1064,7 +1028,7 @@ def _sentiment_reading(sent_path, stale_cutoff_h, issues):
     elif status == 'stale':
         # Omit stale/unknown sentiment (non-fatal — see macro note above).
         print(f'   ⚠ sentiment stale/unknown ({_age_str(age)}, cutoff '
-              f'{stale_cutoff_h}h) — omitting from brief (non-fatal)')
+              f"{detail['stale_after_hours']:g}h) — omitting from brief (non-fatal)")
     elif status == 'unreadable':
         print(f"   ⚠ sentiment load failed: {detail['message']}")
         issues.append(f"sentiment load exception: {detail['error']}")
@@ -1079,7 +1043,7 @@ def _sentiment_reading(sent_path, stale_cutoff_h, issues):
 def load_influencer_feed(issues):
     """Read GH-Action-produced influencer_feed.json (Trump/Musk/ARK/人物雷达).
 
-    Written by influencer-scan.yml before the brief. Stale (>36h)/missing → warn,
+    Written by influencer-scan.yml before the brief. Stale (past the configured cutoff)/missing → warn,
     brief still runs without the 名人异动 section. Returns trimmed dict or {}.
     The read, the staleness rule and the trim are the `sentiment` service's.
     """

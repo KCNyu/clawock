@@ -164,7 +164,7 @@ empty.
 | 3 | `变化：…` | why this slot differs from the last delivered one; a soft candidate first seen this slot is named with what changed about it — `首次进入观察区间`, or `进入另一观察区间（日内 x%，此前报过 … 档）` for a ticker already watched today (`soft_candidate_changes`), never as a bare category | never; unchanged slots say `变化：无（与上次送达相比…）` | harness |
 | 4 | `⛔ 数据降级：…` | can I trust this card's data: unverified quotes once, with `（沿用上一笔，自 HH:MM 起）` while the same names carry over in the session (`carry_quote_gap`); holdings with incomplete strategy evidence only as a pointer; T+0 / search faults; an unread information source is its own `⛔ 资讯缺口：<source> 未取到（不是无消息）` line, without the exception class (`information_gap_line`; the labels as collected stay in `information_full.degraded`) | all sources healthy | harness |
 | 5 | index strip + `📊` | market and book | never | analyzer |
-| 6 | holdings table | positions | never; **bytes never change** | analyzer |
+| 6 | holdings table | positions; source price and cost precision preserved by `adapters.mobile.price_text` | never; **bytes never change** | analyzer |
 | 7 | `↑ …` | which rows have a new move/trigger (unverified rows are block 4's, not repeated here) | no such row | harness |
 | 8 | `⚠️ 信号` | signals new today, in full with their reason lines | no signal is new today (ones already sent are block 10's) | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
