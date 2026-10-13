@@ -53,6 +53,11 @@ POST_DELIVERY_STEPS = {
 }
 POST_DELIVERY_BUDGET_SECONDS = sum(POST_DELIVERY_STEPS.values())
 PRE_DELIVERY_RESERVE_SECONDS = 300
+# Configuration headroom, tested separately from the hard feasibility bound.
+# Worst-case network retries dominate the sum; observed fast runs cannot justify
+# shrinking those ceilings. Leave room for a 10s dial change across five calls,
+# while keeping report/intraday below the watchdog's 1800s decision boundary.
+CRON_BUDGET_HEADROOM_SECONDS = 60
 
 # The preflight has many per-node ceilings and two workers; their sum is not
 # the turn reservation. Its public entry supervises the WHOLE process group.

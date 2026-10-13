@@ -196,12 +196,6 @@ def panel(spec, bars, configs, *, horizon: int, min_cross_section: int):
     return sessions, matrix, cells
 
 
-def ic_matrix(spec, bars, configs, *, horizon: int, min_cross_section: int):
-    """(sessions, matrix[session][config]) of daily rank ICs."""
-    return panel(spec, bars, configs, horizon=horizon,
-                 min_cross_section=min_cross_section)[:2]
-
-
 def _basket(cell) -> list[str]:
     """The better half by score; ties broken by ticker so a rerun agrees."""
     ranked = sorted(cell, key=lambda triple: (-triple[1], triple[0]))

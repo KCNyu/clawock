@@ -7,6 +7,8 @@ functions.  ``BRIEF_PREFLIGHT_UNDER_TEST`` is intentionally supported so the
 same assertions can mutation-test a scratch copy without editing product code.
 """
 
+from clawock.strategies import freshness
+
 import importlib
 import importlib.util
 import json
@@ -628,26 +630,26 @@ def test_empty_or_all_cash_portfolio_has_no_breaches_and_no_crash(
 def test_payload_age_uses_generated_at_not_file_mtime(preflight):
     from datetime import datetime, timezone, timedelta
     now = datetime.now(timezone.utc)
-    age = preflight._payload_age_hours(
+    age = freshness.payload_age_hours(
         {'generated_at': (now - timedelta(hours=50)).isoformat()})
     assert 49 < age < 51
 
 
 def test_payload_age_is_none_for_missing_or_bad_stamp(preflight):
     # None => callers treat as STALE; an unprovable age is not a fresh one.
-    assert preflight._payload_age_hours({}) is None
-    assert preflight._payload_age_hours({'generated_at': 'not-a-date'}) is None
-    assert preflight._payload_age_hours({'generated_at': ''}) is None
+    assert freshness.payload_age_hours({}) is None
+    assert freshness.payload_age_hours({'generated_at': 'not-a-date'}) is None
+    assert freshness.payload_age_hours({'generated_at': ''}) is None
 
 
 def test_payload_age_accepts_zulu_and_naive_timestamps(preflight):
     from datetime import datetime, timezone, timedelta
     now = datetime.now(timezone.utc)
-    zulu = preflight._payload_age_hours(
+    zulu = freshness.payload_age_hours(
         {'generated_at': (now - timedelta(hours=3)).isoformat().replace('+00:00', 'Z')})
     assert 2.5 < zulu < 3.5
     # a naive stamp is assumed UTC, not crashed
-    naive = preflight._payload_age_hours(
+    naive = freshness.payload_age_hours(
         {'generated_at': (now - timedelta(hours=3)).replace(tzinfo=None).isoformat()})
     assert 2.5 < naive < 3.5
 
@@ -697,8 +699,8 @@ def test_fresh_sidecar_is_fed_with_real_age(preflight, tmp_path, monkeypatch):
 def test_future_timestamp_beyond_skew_is_stale(preflight):
     from datetime import datetime, timezone, timedelta
     future = (datetime.now(timezone.utc) + timedelta(hours=10)).isoformat()
-    age = preflight._payload_age_hours({'generated_at': future})
-    assert age < 0 and preflight._is_stale(age, 36)  # negative age must not read as fresh
+    age = freshness.payload_age_hours({'generated_at': future})
+    assert age < 0 and freshness.is_stale(age, 36)  # negative age must not read as fresh
 
 
 def test_an_empty_or_zero_value_leg_logs_na_instead_of_crashing(preflight):

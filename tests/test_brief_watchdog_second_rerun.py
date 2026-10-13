@@ -64,10 +64,13 @@ def test_miss_detector_fires_second_rerun_before_fallback(monkeypatch, tmp_path)
 
 def test_miss_detector_with_healthy_run_skips_rerun_and_dispatches_fallback(monkeypatch, tmp_path):
     """#606: the 09:05 chance is evidence-gated. A run that ended OK today is
-    not a failed attempt — no extra queue entry, fallback goes straight out."""
+    with a context is not an empty attempt — fallback goes straight out."""
     ran_at = int(datetime(2026, 8, 12, 8, 5, tzinfo=HKT).timestamp() * 1000)
     spy = _watch(monkeypatch, tmp_path,
                  job=_job(lastStatus="ok", lastRunAtMs=ran_at))
+    context = tmp_path / 'memory/.tmp' / f'brief-context-{TODAY}.json'
+    context.parent.mkdir(parents=True, exist_ok=True)
+    context.write_text('{}')
 
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
 

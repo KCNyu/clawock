@@ -179,7 +179,8 @@ def _rerun_once(today, dry_run, attempt, job=None):
     log({'tag': 'brief', 'action': 'rerun-onhost', 'attempt': attempt,
          'dry_run': dry_run, 'queued_ok': ok,
          'job_id': job.get('id'), 'job_name': job.get('name'),
-         'reason': f'the {BRIEF_SLOT_HKT} run already ended in error; retry budget {verdict}',
+         'reason': f'the {BRIEF_SLOT_HKT} attempt ended; retry budget {verdict}',
+         'run_evidence': _brief_retry_evidence(job, today)[1],
          'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
          'out': out})
     return ok
@@ -192,6 +193,28 @@ def _safe_brief_cron_job_state():
     except Exception as exc:
         log({'tag': 'brief', 'action': 'cron-state-unreadable', 'error': str(exc)})
         return None
+
+
+def _brief_retry_evidence(job, today):
+    """Keep unknown/in-flight distinct from an ended, empty successful turn."""
+    failed = cron_run_ended_in_failure(job, today)
+    if failed is True:
+        return True, 'last run failed'
+    if failed is None:
+        return None, 'none'
+    artifacts = [WS / 'memory' / f'{today}-pre-open.md',
+                 WS / 'memory' / f'{today}-plan.json',
+                 WS / 'memory' / '.tmp' / f'brief-context-{today}.json']
+    try:
+        for path in artifacts:
+            try:
+                path.stat()
+                return False, 'last run ok'
+            except FileNotFoundError:
+                continue
+    except OSError:
+        return None, 'artifacts unreadable'
+    return True, 'ended-with-nothing'
 
 
 def retrigger_or_wait(today, dry_run):
@@ -212,19 +235,19 @@ def retrigger_or_wait(today, dry_run):
     9-19 minutes, so one started at 08:36 still lands before the 09:05 miss
     detector, which keeps its alert and its off-host dispatch either way.
 
-    Deliberately narrow: only a run that has already ended in failure *today*
+    Deliberately narrow: only a run that has already ended in failure or left no artifacts *today*
     triggers this. A running job, a job that has not run today, and an
     unreadable schedule all keep the old silence, because none of them is
     evidence that the attempt is over.
     """
     tag = 'brief'
     job = _safe_brief_cron_job_state()
-    failed = cron_run_ended_in_failure(job, today)
+    failed, evidence = _brief_retry_evidence(job, today)
     if not failed:
         log({'tag': tag, 'action': 'skip',
              'reason': 'no pre-open.md yet (inside 08:13-08:49 landing window; '
                        '09:05 --check-missing pass judges the miss)',
-             'run_evidence': 'none' if failed is None else 'last run ok'})
+             'run_evidence': evidence})
         return 0
 
     flag = rerun_flag_path(today)
@@ -366,7 +389,8 @@ def alert_brief_missing(today, dry_run, issues=None):
         # schedule must not stack another queue entry. The counter only caps
         # the number of chances.
         job = _safe_brief_cron_job_state()
-        failed = cron_run_ended_in_failure(job, today)
+        failed, evidence = _brief_retry_evidence(job, today)
+        state['run_evidence'] = evidence
         if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
             rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
         rerun_inflight = bool(
@@ -424,6 +448,7 @@ def alert_brief_missing(today, dry_run, issues=None):
     alert = (
         f'🔴 盘前深度简报产物不完整 — {today}\n\n'
         f'09:05 检查结果：\n{issue_text}\n\n'
+        + (f"重跑判据：{state['run_evidence']}\n" if state.get('run_evidence') else '')
         + retry_budget_note()
         + recovery_note
         + '\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '

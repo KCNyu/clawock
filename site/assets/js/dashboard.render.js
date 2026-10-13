@@ -382,8 +382,8 @@
     tbody.innerHTML = rows.map(([label, u, h]) => `
       <tr>
         <td>${label}</td>
-        <td class="${pnlClass(u)}">${fmtPct(u)}${label === "Session" ? `<div class="muted">${escapeHtml(safe(d, "us", "session_date") || "日期未核实")}</div>` : ""}</td>
-        <td class="${pnlClass(h)}">${fmtPct(h)}${label === "Session" ? `<div class="muted">${escapeHtml(safe(d, "hk", "session_date") || "日期未核实")}</div>` : ""}</td>
+        <td class="${pnlClass(u)}">${label === "Session" ? `${deltaSession(d, "us").text}<div class="muted">${deltaSession(d, "us").date}</div>` : fmtPct(u)}</td>
+        <td class="${pnlClass(h)}">${label === "Session" ? `${deltaSession(d, "hk").text}<div class="muted">${deltaSession(d, "hk").date}</div>` : fmtPct(h)}</td>
       </tr>
     `).join("");
   }

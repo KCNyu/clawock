@@ -12,7 +12,7 @@
   },
   "payload_profiles": {
     "report": {
-      "timeout_seconds": 1680,
+      "timeout_seconds": 1740,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3.1-Flash-Preview",
       "model_candidates": [
@@ -63,7 +63,7 @@
       ]
     },
     "intraday": {
-      "timeout_seconds": 1680,
+      "timeout_seconds": 1740,
       "payload_kind": "agentTurn",
       "model": "minimax/MiniMax-M3.1-Flash-Preview",
       "model_candidates": [

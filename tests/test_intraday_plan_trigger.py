@@ -168,3 +168,20 @@ def test_longer_registry_name_cannot_lend_its_level_to_a_shorter_name(monkeypatc
     ctx = {'watch_levels': {'minimax_other_low': 231.4}}
     assert 231.4 not in _subject_prices(ctx, '00100')[0]
     assert 231.4 in _subject_prices(ctx, 'OTHER')[0]
+
+
+def test_mobile_table_keeps_source_price_and_cost_precision():
+    from clawock.adapters.mobile import render_holdings_table
+
+    rows = [{'code': 'TEST', 'shares': 7200, 'cost': 4.1175,
+             'price': 2.504, 'today_pct': -4.2, 'pnl_pct': -39.2, 'pnl_abs': -11617.2}]
+    text = '\n'.join(render_holdings_table(rows, 'HKD'))
+    cells = [c.strip() for c in text.splitlines()[-1].split('|')]
+    assert float(cells[3].replace(',', '')) == 4.1175
+    parsed = harness_common.parse_holdings_rows(text)
+    assert parsed[0]['price'] == 2.504
+    # Rounded 2.50 would falsely breach this below condition.
+    from clawock.decision import plans
+    assert plans.triggered_conditions({'open': [{'ticker': 'TEST', 'action': 'cut',
+        'condition': 'price_below', 'condition_price': 2.502}]},
+        {r['ticker']: r['price'] for r in parsed}) == []

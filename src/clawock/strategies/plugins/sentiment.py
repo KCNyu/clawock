@@ -31,15 +31,16 @@ from __future__ import annotations
 import math
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
+
+from clawock.strategies.freshness import (
+    DEFAULT_STALE_AFTER_HOURS, is_stale, payload_age_hours,
+)
 
 name = 'sentiment'
 
-STALE_AFTER_HOURS = 36
 #: A stamp further ahead of now than this is a broken producer clock, not a
 #: fresh scan.
-CLOCK_SKEW_HOURS = 2
 
 ATTENTION_FILE = Path('assets') / 'data' / 'sentiment.json'
 STATEMENTS_FILE = Path('assets') / 'data' / 'influencer_feed.json'
@@ -99,6 +100,8 @@ SIGNAL_SOURCE = {
          'unit': 'lists of instrument/sector identities',
          'window': 'per published statement within 48 hours',
          'missing': 'null if absent'},
+        _out('detail.stale_after_hours', 'hours', 'this stale read',
+             'present on stale results; the configured cutoff used for this decision'),
         _out('status', 'ok, missing, stale or unreadable', 'this read', 'never null'),
         _out('age_hours', 'hours since the payload\'s generated_at', 'this read',
              'null when the payload carries no readable stamp, and the reading is then stale'),
@@ -128,20 +131,6 @@ SIGNAL_SOURCE = {
 }
 
 
-def payload_age_hours(payload, now=None):
-    """Hours since the payload's own `generated_at`; None when it has no readable one."""
-    stamp = (payload or {}).get('generated_at')
-    if not stamp:
-        return None
-    try:
-        at = datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
-    except ValueError:
-        return None
-    if at.tzinfo is None:
-        at = at.replace(tzinfo=timezone.utc)
-    return ((now or datetime.now(timezone.utc)) - at).total_seconds() / 3600
-
-
 def _answer(status, reading=None, age=None, **detail):
     return {'status': status, 'reading': reading or {}, 'age_hours': age, 'detail': detail}
 
@@ -158,7 +147,7 @@ class Sentiment:
 
     def is_stale(self, age) -> bool:
         """Unknown, too old, or from the future beyond clock skew."""
-        return age is None or age > self.stale_after_hours or age < -CLOCK_SKEW_HOURS
+        return is_stale(age, self.stale_after_hours)
 
     def _read(self, path, build):
         try:
@@ -167,7 +156,7 @@ class Sentiment:
             payload = json.loads(path.read_text())
             age = payload_age_hours(payload)
             if self.is_stale(age):
-                return _answer(STALE, age=age)
+                return _answer(STALE, age=age, stale_after_hours=self.stale_after_hours)
             return build(payload, age)
         except Exception as exc:
             return _answer(UNREADABLE, error=type(exc).__name__, message=str(exc))
@@ -252,7 +241,7 @@ class Sentiment:
 
 
 def apply(ctx, config):
-    hours = config.get('stale_after_hours', STALE_AFTER_HOURS)
+    hours = config.get('stale_after_hours', DEFAULT_STALE_AFTER_HOURS)
     if isinstance(hours, bool) or not isinstance(hours, (int, float)) or not math.isfinite(hours) or not hours > 0:
         raise ValueError(f'sentiment stale_after_hours must be a positive number, got {hours!r}')
     ctx.provide('sentiment', Sentiment(hours))

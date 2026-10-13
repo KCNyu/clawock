@@ -16,6 +16,7 @@ WeChat 移动端不渲染 markdown table，只显示原始 monospace 文本。CJ
     print('\\n'.join(render_holdings_table(rows, currency='HKD')))
 """
 
+from decimal import Decimal
 from typing import Dict, List
 
 
@@ -47,6 +48,18 @@ W_PRICE  = 6
 W_TODAY  = 6
 W_PNL_P  = 6
 W_PNL_A  = 7
+
+
+def price_text(value):
+    """Preserve the source's precision, with at least two display decimals.
+
+    Quote precision is already owned by portfolio derivations. Cost bases may
+    carry more decimals than quotes, so neither may be rounded by the renderer.
+    The table is also parsed by the intraday trigger evaluator.
+    """
+    price = Decimal(str(value))
+    places = max(2, -price.as_tuple().exponent)
+    return f'{price:,.{places}f}'
 
 
 def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
@@ -91,8 +104,8 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
         pnl_pct   = r.get('pnl_pct', 0.0)
         pnl_abs   = r.get('pnl_abs', 0.0)
 
-        cost_s  = f'{cost:,.2f}'   if cost  else '—'
-        price_s = f'{price:,.2f}'
+        cost_s  = price_text(cost)   if cost  else '—'
+        price_s = price_text(price)
         today_s = f'{today_pct:+.1f}%'
         pnlp_s  = f'{pnl_pct:+.1f}%'
         pnla_s  = f'{pnl_abs:+,.0f}'

@@ -20,6 +20,11 @@
     const s = v >= 0 ? "+" : "";
     return s + v.toFixed(digits) + "%";
   };
+  function deltaSession(delta, leg) {
+    const row = delta?.[leg] || {};
+    return { value: row.today_pct, text: fmtPct(row.today_pct),
+      date: escapeHtml(row.session_date || "日期未核实") };
+  }
   // A number printed as the producer wrote it, or DASH when it is missing. For the
   // places that interpolate a raw field (`${r.pnl_pct}%`) instead of formatting it:
   // there a missing field used to print "undefined%" / "null @ $null" (2026-09-12,
