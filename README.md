@@ -33,56 +33,56 @@
 
 ## What you get
 
-You hold stocks in Hong Kong or the US, and you already use an AI agent such as Claude Code, Codex or OpenClaw. clawock gives that agent a daily routine around your positions. Each morning it reads what Python collected overnight, argues for and against every position, and hands you a plan: what to do, at what price, and at what price the idea is dead. **You place the orders.** After the close, code marks each plan right or wrong, and the next morning's plan is written with that result in front of it.
+clawock helps your AI agent analyze your Hong Kong or US holdings and write a trading plan. On the author’s setup, each morning’s plan explains whether to buy, sell or wait, the reasons on both sides, and the prices that would change the recommendation. **You place the orders.** Code later checks the calls against market prices and saves the results for the agent to read next time.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/rsi-loop.svg" width="1016" alt="clawock on one page: eight source layers arrive through fallback routes; Python reconciles the book and certifies one context pack; Claude Code, Codex, OpenClaw, DeepSeek Harness or your own CLI argues a bull and a bear case over it; code reviews concentration and enforces the configured risk boundaries, records what happens when one breaks and enforces evidence requirements; the plan reaches you and you place the orders; code settles each call as a win, a loss or ungradeable; the record returns around two loops, one into the next judgment through history and earlier-date calibration, one into the evidence rules through a bounded proposal and a named review; on the author’s host patrol rounds, a filing gate, background agents and required CI maintain the desk’s own code, watched from DeepSeek Harness"></p>
 
-**That loop is what RSI, Recursive Self-Improvement, means here.** Every decision leaves behind the evidence it used and the result it got, and the next decision reads both. **It is not a promise of returns.** So far, the calls that told the author to act have not been shown to beat a coin flip. What you get is a record that keeps growing and that you can check line by line.
+**That loop is what RSI, Recursive Self-Improvement, means here.** The author’s daily jobs use connected data feeds, a scheduler and accumulated decision history. A new installation needs its own data and scheduling; you can start with the [single-run example](#try-it-in-five-minutes). Saving earlier evidence and results gives the agent something to review before its next decision. **It is not a promise of returns.** The calls that told the author to act have not been shown to beat a coin flip.
 
-One real call runs through this page: Goldwind (`02208`, Hong Kong) on the morning of 2026-10-08. The plan said watch, and act only above 8.97. By the next close the stock was 4.22% lower, and the public ledger says `loss` beside it. The sections below keep coming back to that morning.
+One real call runs through this page: Goldwind (`02208`, Hong Kong) on the morning of 2026-10-08. The plan said to keep holding and watch, with an add only above 8.97. The ledger records `loss` because the price fell by the next session’s close: it scores the holding judgment, not a purchase at 8.97. The sections below explain the evidence, plan and score.
 
-Every number in that plan was computed by [a plugin, one line of configuration each](#everything-that-computes-is-a-plugin-what-a-result-may-do-is-not). A strategy may [search for better settings of its own](#a-strategy-can-search-its-own-parameters-adopting-them-is-a-reviewed-edit), but all it can produce is a proposal for a person to review. Want to run it first? [Try it in five minutes](#try-it-in-five-minutes).
+The plan’s indicators came from [plugins](#everything-that-computes-is-a-plugin-what-a-result-may-do-is-not). A strategy may [search for better settings of its own](#a-strategy-can-search-its-own-parameters-adopting-them-is-a-reviewed-edit), but adopting them requires a person’s review. [Try it in five minutes](#try-it-in-five-minutes).
 
 ## Everything that computes is a plugin; what a result may do is not
 
-Start with the Goldwind call. The author's account holds 400 shares of Goldwind (`02208`, Hong Kong) at an average cost of 14.084. Here is everything that happened to that stock on the morning of 2026-10-08. One word first: every number clawock computes comes from a plugin, and each plugin is one line in `config/strategy-plugins.json`. This page calls such a line a **row**.
+On 2026-10-08, the author held 400 shares of Goldwind (`02208`, Hong Kong) at an average cost of 14.084. Here is how its indicators became a plan and then an evaluated judgment. Plugins compute the indicators; `config/strategy-plugins.json` selects the modules and their settings.
 
-1. **A row computed its numbers.** The `factors` row read Goldwind's daily bars and produced one line about it: trend off, price 31.8% under its 200-day average. A row does this and nothing more. It turns inputs into a reading.
-2. **The model argued both sides over that reading.** Bull: it is the only one of its peers with a confirmation price you could act on, and the book has almost nothing that is not Hong Kong tech or AI. Bear: trend off, 31.8% under the average, in a book with four risk limits already tripped; that is adding the weakest position on the weakest evidence. The judge: watch, and write the trigger down before the price gets there.
+1. **The `factors` plugin calculated Goldwind’s indicators from daily prices.** It reported no upward trend, with the price 31.8% below its 200-day average.
+2. **The model weighed those indicators with the other evidence.** Bull: Goldwind was the only peer with an actionable confirmation price, and the portfolio had little exposure outside Hong Kong tech and AI. Bear: its weak trend and four breached portfolio risk limits argued against adding. The conclusion was to watch and record the trigger before the price reached it.
 3. **The plan was specific enough to be wrong.** Watch. Act only if it trades above 8.97 within five sessions. The idea is dead at 8.923. Confidence 0.34.
-4. **Code settled it.** Not the model, and not the row. The reference was 8.645, the first price it could have traded at after the plan was published. By the close of the next session it was 4.22% lower. Outcome: `loss`.
-5. **The loss went back in.** It is decision `dec-6d9e8bdc8817` on the public ledger, and the track record the next brief reads counts it.
+4. **Code scored the decision to keep holding.** The reference price was 8.645, the first tradable price after publication. The next session closed 4.22% lower, so the outcome was `loss`. This record assumes no purchase at the add trigger.
+5. **The judgment and its result stayed in the record.** Decision `dec-6d9e8bdc8817` is on the public ledger and counts in the history the next brief reads.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/strategy-plugins.svg" width="1016" alt="One real call, Goldwind on 2026-10-08, in five numbered steps. 01: the factors row, drawn as a module in its socket with an empty socket beside it for a row of your own, computed one reading: trend off, 31.8% under its 200-day average. 02: the model argued a bull case and a bear case over that reading. 03: the plan on paper: watch, act only above 8.97 within five sessions, dead at 8.923, confidence 0.34, contested. A line marked &quot;not rows from here down&quot;. 04: Goldwind's eight daily bars to 2026-10-09 with the act and dead prices ruled across them; code took the open of 2026-10-08, 8.645, as the reference, marked the next close, 8.28, 4.22% lower and called it a loss. 05: the entry as the ledger stores it, dec-6d9e8bdc8817, outcome loss. No row can mark its own call, pick a kinder reference price, turn the loss into something else or keep it off the ledger."></p>
 
-**What you can swap is step 1.** Replace the `factors` row with your own and Goldwind's line is computed another way: a different average, a different window, a different data source. Steps 4 and 5 do not move, because they are not rows. No row can mark its own call, pick a kinder reference price, turn that `loss` into something else or keep it off the ledger. Two strategies can be compared on one record for that reason: the code that judged this call is the code that would judge theirs.
+**You can replace the plugin in step 1.** Your own plugin could use a different average, observation period or data source. Settlement and recordkeeping in steps 4 and 5 stay outside plugins: a plugin cannot score its own call, choose its reference price, change the result or omit it from the ledger. Strategies can therefore be compared under the same scoring rules.
 
-Each row sits in one socket, and what goes into your harness stays small: one skill, one CLI and a JSON contract. Your agent keeps its model, its conversation and its tools.
+To use clawock with your agent, you add one skill, a command line tool and a JSON file format for exchanging decisions. Your agent keeps its model, conversation and tools.
 
-**A row has to say what it measures.** A row whose readings reach a decision is not mounted until it has declared its inputs, the unit and window of every output, and what it holds when it cannot measure. None may hand back yesterday's reading as today's.
+**Plugins must identify their inputs and outputs.** Before a plugin’s results can reach a decision, it must declare its data sources, units, observation periods and missing-data behavior. Yesterday’s result cannot be presented as today’s.
 
-| Row | Measures | When it cannot measure |
+| Plugin | Measures | When data is missing |
 |---|---|---|
-| `factors` | trend, momentum, RSI, volatility and the exit line per name, from daily bars. Goldwind's "31.8% under" came from here | the field is empty; with fewer than 30 daily bars there is no line at all |
+| `factors` | trend, momentum, RSI, volatility and an exit price for each stock, from daily prices | the field is empty; fewer than 30 daily prices means no result for that stock |
 | `bar-signals` | how costly a name is to trade and how much it is likely to move, per session | empty, never zero: "could not be estimated" is not "cheap to trade" |
 | `sentiment` | Reddit mentions over seven days, and statements by named public figures | the block is left out, and says whether the scan is missing, too old or unreadable |
 | `morning-scans` | the macro snapshot and Chinese-language news, and the one read of every scheduled scan file | the same: left out, with the reason |
 | `strategy-scores` | where each name ranks under each research strategy's current setting; reference only | says it is unavailable and why |
 
-**A broken row fails alone.** If one row does not load, the runs that needed it stop and name it. The others carry on.
+**If a plugin fails to load, tasks that need it stop and name the failed plugin; other tasks keep running.**
 
-**Your own row.** A row points at an installed Python module, so it can be yours: one `apply(ctx, config)` function, a declaration of what it reads, one line of configuration. That gets it a socket. It gets it no say over steps 4 and 5. A row is ordinary Python running with your own permissions, not a sandbox, so install only modules you trust.
+**You can write your own plugin.** Register an installed Python module in the configuration file; the [plugin guide](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#writing-a-plugin-outside-this-repository) covers the interface and required declarations. Plugins run with your permissions, not in a sandbox, so install only modules you trust.
 
-**The whole system is hot-pluggable, the way dsh is.** Twenty rows in one file: thirteen the brief, the report and the intraday check compute with, and seven the strategy lab mounts for research. Pull one out while the rest run and only the rows that said they need it stop and wait; push it back and they start by themselves. Change a row's setting and that row restarts under the new one. It is the design [dsh](https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md) plugins are built on, restated in Python.
+**Plugins can be added, removed or reconfigured while others run.** Removing one pauses its dependents; restoring it restarts them. Changing a plugin’s settings restarts that plugin with the new values. This follows the [dsh](https://github.com/KCNyu/clawock/blob/master/examples/dsh/README.md) plugin design.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/plugin-system.svg" width="1016" alt="The whole plugin system in seven numbered parts. 01: whatever agent runs the desk, Claude Code, Codex, OpenClaw, dsh or any CLI, runs the brief, report, intraday and strategy-lab commands. 02: one file, strategy-plugins.json, lists every row: thirteen live rows and seven research rows, each an id, a module and its settings. 03: the host mounts every row in a socket; all twenty are shown by name, with the research row bars pulled out of its socket and one empty socket for a row of your own. 04: pulling bars undoes its one registration, the optimizer row that declared it needs bars waits, and the other five rows are never stopped; pushed back in, the optimizer starts by itself. 05: changing a setting, the adjustment on the daily-bars row from qfq to raw, stops that row and starts it again under the new setting. 06: the five primitives dsh is built on beside their names here: a row in a file, a fiber, provide and inject, effect, update. 07: what has no socket: settlement, the ledger and the risk limits."></p>
 
 ```bash
-clawock strategy-lab list       # every row, what it provides and what it is waiting for
-clawock strategy-lab sources    # each row's inputs, units, windows and missing-data rule
+clawock strategy-lab list       # plugins, their services and missing dependencies
+clawock strategy-lab sources    # inputs, units, observation periods and missing-data behavior
 ```
 
-[Strategy plugins: kernel, rows, declarations, events and boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md) · [writing a plugin outside this repository](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#writing-a-plugin-outside-this-repository).
+[Plugin configuration and boundaries](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md) · [Write your own plugin](https://github.com/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md#writing-a-plugin-outside-this-repository).
 
 ## Any harness, one decision contract that accumulates evidence
 
@@ -90,7 +90,7 @@ Say you use Claude Code today and switch to Codex next month. You do not start o
 
 Your agent keeps what is its own: the model, the conversation, its memory, its research tools, your credentials and your permissions. clawock never starts a model. It does four jobs around your agent: it pins down what went in, checks what came out, marks the result later, and keeps the record.
 
-These are the files. You meet the first, second, fifth and sixth in your own harness. The other two are written by the author's daily setup.
+With your own agent, you use `request.json`, `decision.json`, `outcome.json` and `evaluation.json`. The author’s daily setup also writes `plan.json` and `decisions.jsonl`.
 
 | File | Written by | What it holds |
 |---|---|---|
@@ -101,7 +101,7 @@ These are the files. You meet the first, second, fifth and sixth in your own har
 | `outcome.json` | you, once the waiting period is over | the prices you saw and where you got them |
 | `evaluation.json` | clawock, when you run `clawock workflow evaluate` | whether the direction was right. It is not money made |
 
-**“Smarter with use” means this pile of files grows.** The model does not change. What changes is what the next decision can read: the evidence behind earlier decisions, what you actually did, how each one turned out, and how far earlier confidence figures could be trusted. When you switch agents, point the new one at the same workspace and it carries on from the same files. A brand-new workspace starts empty. It does not come with the author's data feeds, schedules or history; those you connect yourself.
+**Before writing the next plan, the agent can review earlier judgments and their results.** The model itself does not change. The files preserve evidence, actions and outcomes; enough evaluated history also lets the author’s setup check how reliable earlier confidence estimates were. Switching agents does not erase that history if you keep the same workspace. A new workspace has no history of your decisions: you build it by recording decisions and evaluating them after their observation periods.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/product-architecture.svg" width="1016" alt="clawock product architecture — external runtimes own models, conversation, memory and tools while the package supplies portable workflows, certified context, deterministic reconciliation, evaluation and bounded improvement"></p>
 
@@ -133,7 +133,7 @@ That is the rule this section is named after. **Sources are collected and labell
 
 The question that morning was simple: is it time to add to Goldwind? The agent is not allowed to answer with a feeling. It has to write the case for, then the strongest case against, and only then an action, the price that triggers it, a confidence figure and the condition under which it admits being wrong. Both sides argue from the same pack of files.
 
-What reached you was one line in the 08:03 brief: after the 09:30 open, act on `02208` only above 8.97, valid for five sessions; back under 8.923, give up at once. During the session, intraday cards compare fresh quotes with that morning's trigger. Goldwind's high that day was 8.71. The price never got to 8.97, so there was nothing for you to do.
+The author’s 08:03 brief set an add trigger above 8.97, valid for five sessions, and an invalidation price of 8.923. Intraday cards compared fresh quotes with that trigger. Goldwind’s high that day was 8.71, so the add did not trigger that day. The existing holding remained subject to the separate holding-judgment score below.
 
 **You get a plan and a receipt.** The author's setup leaves the daily brief and `plan.json`. In your own harness, your agent writes `decision.json` and you run `clawock run publish`. Python then checks four things: every claim points at a document in the pack, there is a case against, there is a condition that would prove the call wrong, and any order and currency arithmetic adds up. If all four hold, you get a receipt tied to that exact pack. If the case against is missing, publication is refused. A verdict reached in conversation on the author's setup enters the ledger with `clawock record --source <harness>`. Either way, you decide which orders to place.
 
@@ -149,19 +149,21 @@ On the author's setup this debate is split between several roles: four analysts,
 
 ## After the close: results feed the next decision
 
-On the morning of 2026-10-09 nobody asked the model how its Goldwind call had gone. Code opened the daily bars instead. The plan had been published before the open on the 8th, and the first price anyone could have traded at after that was the 09:30 open, 8.645. That became the reference price. The next session closed at 8.28, which is 4.22% lower. Code wrote `loss` on that line of the ledger.
+For the 2026-10-08 Goldwind record, code evaluated the judgment to keep holding over the next trading session. It used 8.645, the first tradable price after publication, as the reference. The next session closed at 8.28, down 4.22%, so the record’s outcome is `loss`. The record is `watch`, evaluated as `passive_stance`, with `fill_assumed: false`: no purchase at the 8.97 trigger is assumed. This is a score for the holding judgment, not profit or loss from a new trade.
 
 Three rules keep that score honest, and each has a real case behind it:
 
 - **Saying the same thing every day counts once.** Between 2026-07-29 and 2026-10-08 the brief said “hold and watch” on Goldwind 45 times. Those are one result (`ep-f31982c6d511`), not 45.
-- **A call that cannot be graded stays on the ledger.** On 2026-10-01 the plan set a trigger price for Goldwind, but Hong Kong was closed that day. The line (`dec-143614125e34`) is still there, marked `not_evaluable` with the reason `market_closed`.
+- **A call that cannot be graded stays on the ledger.** On 2026-10-01 the plan set a trigger for Goldwind, but Hong Kong was closed. Record `dec-143614125e34` has an unknown result (`outcome: unknown`), cannot be evaluated (`status: not_evaluable`), and gives the session reason separately (`session_reason: market_closed`).
 - **What you did is recorded apart from what the plan said.** `clawock mark-followed` marks each call followed or not followed, because the account's result is the model's advice plus your own choices.
 
 Prices come from one standard set of daily bars, read on each market's own trading calendar.
 
 **The next decision starts from this record.** The brief of 2026-10-12 printed that Goldwind call again, in a table headed “Yesterday's results (the 2026-10-08 plan)”, with `loss` beside it. In the same brief the judge wrote about Goldwind: no move; the third-quarter report is ten days away, and waiting for the filing beats guessing a direction. The model also reads how reliable its earlier confidence figures turned out to be. That check uses earlier dates only, and when there are too few cases it trusts the figure less or gives no reading at all. A call that failed stays attached to the evidence it was made on, so the agent can go back over yesterday's reasoning instead of telling the story from scratch.
 
-**In your own harness the same feedback takes two steps.** When the waiting period is over, you write `outcome.json`: the prices you saw and where they came from. Then `clawock workflow evaluate` turns it into `evaluation.json`, which says whether the direction was right. It is not realized profit or loss. If results keep pointing at the same weakness, that file, or a refused publication, can back a proposal to change the rules. A named person accepts or rejects the proposal. An accepted one is applied and can be rolled back. Today only two things can be changed this way: how many pieces of evidence a decision must cite, and how confident it may be without a primary source. The strategy, the trading rules and the skill itself cannot. This makes changes reviewable. It does not make returns go up.
+**To evaluate a decision in your own harness,** put the observed prices and their sources in `outcome.json` after the observation period. Run `clawock workflow evaluate` to produce `evaluation.json`, which checks the direction of the call. It does not measure realized profit or loss.
+
+Results or a rejected publication can support a proposed change to evidence requirements. A reviewer’s name and decision are recorded before an accepted change is applied; it can be rolled back. This process permits only changes to the required evidence count and the confidence limit without a primary source. It cannot change strategies, trading rules or the skill itself. The [feedback protocol](https://github.com/KCNyu/clawock/blob/master/docs/architecture/runtime-protocol.md#evaluate-and-improve-without-owning-the-agent) explains the review and rollback steps.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/feedback-learning.svg" width="1016" alt="After the close: a call is recorded once by the model, checked against canonical daily bars on each market’s calendar, grouped into one episode per thesis and settled by code as a win, a loss or ungradeable, all published; on the live desk execution, settlement, history and calibration loop back into the next brief; in any other harness an observed outcome can anchor a bounded proposal that a named review accepts or rejects, applied with a rollback record"></p>
 
@@ -178,7 +180,7 @@ Read it with these limits in mind:
 - **The shadow portfolio is a simulation, not the account.** Its headline figure leaves out commission and spread. A second figure, with a cost deduction fixed in advance, is published beside it. Neither models what a large order would do to the price.
 - **The account's result is yours plus the model's.** The owner decides which calls to follow, and every call carries its status: followed, not followed or unknown.
 
-You can redo the sums yourself. `clawock scorecard-provenance --check` rebuilds each
+With ledger data available, you can redo the sums. `clawock scorecard-provenance --check` rebuilds each
 published headline number from `memory/decisions.jsonl`, and `clawock audit-resettle`
 settles the whole ledger again.
 [How the grading handles the hard cases](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#the-public-scorecard) ·
@@ -192,9 +194,9 @@ A proposal is scored on more than whether it paid. On 2026-10-12 the model propo
 
 ## A strategy can search its own parameters; adopting them is a reviewed edit
 
-Stay with Goldwind. One of the numbers the desk computes for it is RSI, and the row that computes it has a setting: look back 14 sessions, and read a low value as a rebound coming. Is that the right setting? Every morning after the brief, the strategy lab asks, on all 28 names it has prices for, Goldwind among them.
+Goldwind’s indicators include RSI, a measure of recent price gains and losses. The `rsi` plugin’s configuration uses a 14-session look-back and treats a low value as a possible rebound. On the author’s setup, the strategy lab runs after the morning brief to test other settings. The 2026-10-12 search used the 28 stocks with available price history, including Goldwind.
 
-1. **It tries only what was declared.** The row lists its settings in advance: six look-back lengths, two ways of reading the number. Twelve in all, and all twelve are counted, so a lucky one cannot be passed off as the only one tried.
+1. **It tries only declared settings.** The plugin’s configuration lists six look-back lengths and two interpretations in advance. All twelve combinations are counted, so a lucky result cannot be presented as the only one tried.
 2. **A gate judges the best of them.** It needs enough days it was not tuned on, a ranking that beats chance and beats the current setting by a margin that is not noise, a low chance of having been fitted to the past, and prices adjusted for splits and dividends. A configuration line can make this gate stricter. It cannot make it looser than the floor in the code.
 3. **Second opinions may object.** Other thresholds judge the same run, for example after trading costs. They can block. They cannot pass what the gate refused.
 4. **The verdict is written down.** Every run goes to a ledger, and the ledger is checked against these rules each time it is read.
@@ -204,11 +206,11 @@ Stay with Goldwind. One of the numbers the desk computes for it is RSI, and the 
 
 On 2026-10-12 the answer for RSI was: a 28-session look-back, read as "strength continues", would have ranked these names better. The gate passed it and it was registered. **The same search on the 16 names whose prices the provider confirmed as adjusted, Goldwind one of them, was refused.** The result leans on the other 12, where all the lab has is one provider's record showing no split or dividend, and no second source to check it against. Every run now carries that second search, so a passing setting says for itself whether it survives it.
 
-**What did this change for Goldwind? Nothing.** The next brief still showed its RSI under 14 sessions, read as a rebound, because that is what the row says. Changing the row is an edit a person reviews. The most the lab can do is propose that edit, and only after the new setting has held up on at least 60 later sessions and passes the check it currently fails. So far it has been scored on none, and nothing has been proposed.
+**The search did not change Goldwind’s RSI settings.** The next brief still used 14 sessions and the rebound interpretation. Adopting new settings requires a reviewed configuration change. The lab can propose it only after the candidate holds up over at least 60 later sessions and passes the check it currently fails. As of the 2026-10-12 run, no later session had been scored and no edit had been proposed.
 
 ```bash
 clawock strategy-lab evolution rsi   # each run, what changed, each registration and how it has done since
-clawock strategy-lab row-edits       # edits the lab has proposed, for review
+clawock strategy-lab row-edits       # proposed configuration changes, for review
 clawock strategy-lab verify          # the ledger against the lab's limits
 ```
 
