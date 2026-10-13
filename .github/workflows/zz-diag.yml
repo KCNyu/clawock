@@ -1,0 +1,71 @@
+name: zz-diag (throwaway, never merge)
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    if: github.head_ref == 'claude/ci-diagnostics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: base-1, cov: '1'}
+          - {name: base-2, cov: '1'}
+          - {name: nocov-1}
+          - {name: nocov-2}
+          - {name: worksteal-cov, cov: '1', extra: '--dist worksteal'}
+          - {name: worksteal-nocov, extra: '--dist worksteal'}
+          - {name: late-400s, late: '400'}
+          - {name: sat, at: '2026-10-17 10:00:00'}
+          - {name: sun, at: '2026-10-18 10:00:00'}
+          - {name: plus-40d, at: '2026-11-23 10:00:00'}
+          - {name: plus-400d, at: '2027-11-18 10:00:00'}
+          - {name: straddle-utc-midnight, at: '2026-10-20 23:58:30'}
+          - {name: straddle-hkt-midnight, at: '2026-10-20 15:58:30'}
+          - {name: new-year, at: '2026-12-31 23:58:30'}
+    name: diag ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/clawock-python
+        with:
+          install: '.[test]'
+      - name: Run
+        env:
+          COV: ${{ matrix.cov }}
+          EXTRA: ${{ matrix.extra }}
+          AT: ${{ matrix.at }}
+          DIAG_LATE: ${{ matrix.late }}
+          DIAG_OUT: diag-timings.jsonl
+        run: |
+          set -uo pipefail
+          nproc; free -m | sed -n 2p
+          export PYTHONPATH="$PWD/.diag${PYTHONPATH:+:$PYTHONPATH}"
+          args=(tests/ -q -n auto --durations=20 -p diag_plugin)
+          if [ -n "$COV" ]; then
+            args+=(--cov=clawock --cov=ops --cov-report=json:coverage-report.json)
+          fi
+          # shellcheck disable=SC2206
+          [ -n "$EXTRA" ] && args+=($EXTRA)
+          wrap=()
+          if [ -n "$AT" ]; then
+            sudo apt-get install -y -qq faketime >/dev/null
+            off=$(( $(date -u -d "$AT" +%s) - $(date -u +%s) ))
+            wrap=(faketime -f "+${off}s")
+            export DONT_FAKE_MONOTONIC=1
+          fi
+          start=$(date +%s)
+          "${wrap[@]}" python3 -m pytest "${args[@]}" 2>&1 | grep -v "^src/\|^ops/" | tail -150
+          echo "PYTEST_EXIT=${PIPESTATUS[0]} WALL=$(( $(date +%s) - start ))s"
+          python3 .diag/summarize.py diag-timings.jsonl
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: timings-${{ matrix.name }}
+          path: diag-timings.jsonl
+          retention-days: 3
