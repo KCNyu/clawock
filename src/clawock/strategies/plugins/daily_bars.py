@@ -77,7 +77,7 @@ class DailyBars:
 
 SIGNAL_SOURCE = {'id': 'daily-bars',
  'family': 'technical',
- 'summary': 'Daily OHLCV input adapter; no trading permission.',
+ 'summary': 'Daily OHLC input adapter; no trading permission or volume output.',
  'inputs': [{'name': 'provider',
              'what': 'daily OHLCV series',
              'source': 'Tencent per-market qfq or raw endpoint selected by row adjustment'}],
