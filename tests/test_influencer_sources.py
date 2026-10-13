@@ -5,7 +5,7 @@ Three properties matter and none of them is visible from the workflow contract:
 1. ARK's daily trades are aggregated per ticker for the LATEST session only
    (a fund that last traded last week must not smuggle an older date in), dust
    below the percent threshold is dropped, and a total interface failure is
-   `failed` (→ the producer retains the previous run) while a quiet session is
+   `failed` (→ the producer reports a missing reading) while a quiet session is
    `success_empty` (→ nothing is resurrected).
 2. Persona news items are second-hand headlines, so they must pass the same
    48h window as everything else even though Google News' own `when:2d`
@@ -162,8 +162,8 @@ def _quiet_sources(monkeypatch, persona_items):
 
 def test_a_failed_filter_never_publishes_unscored_items(tmp_path, monkeypatch):
     """Measured 2026-09-01..12: 5 of 19 feeds went out raw (relevance null, no
-    holding match) whenever MiniMax 429'd. A failed filter keeps the previous
-    run's scored items inside the window and publishes nothing unscored."""
+    holding match) whenever MiniMax 429'd. A failed filter publishes neither old
+    scored items nor unscored candidates."""
     out = tmp_path / 'influencer.json'
     monkeypatch.setattr(inf, 'OUT_FILE', str(out))
     monkeypatch.setattr(inf, 'load_holdings', lambda: [])
@@ -182,9 +182,8 @@ def test_a_failed_filter_never_publishes_unscored_items(tmp_path, monkeypatch):
     payload = json.loads(out.read_text(encoding='utf-8'))
 
     assert payload['llm_filtered'] is False
-    assert payload['llm_filter_status'] == 'failed_kept_previous'
-    assert [it['text'] for it in payload['items']] == ['scored and recent']
-    assert payload['items'][0]['retained_from_previous'] is True
+    assert payload['llm_filter_status'] == 'failed'
+    assert payload['items'] == []
     assert all(it.get('relevance') is not None for it in payload['items'])
 
 
@@ -215,7 +214,7 @@ def test_all_invalid_relevance_is_a_failed_filter(tmp_path, monkeypatch):
     })
     inf.main()
     payload = json.loads(out.read_text(encoding='utf-8'))
-    assert payload['llm_filter_status'] == 'failed_kept_previous'
+    assert payload['llm_filter_status'] == 'failed'
     assert payload['llm_filtered'] is False
 
 

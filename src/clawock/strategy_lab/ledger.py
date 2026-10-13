@@ -8,8 +8,8 @@ the identity of what was measured.
 It lives at `memory/strategy-lab/ledger.jsonl`, beside `memory/backtests`: both
 are evidence that a research run happened, written at run time and never part
 of a development change. It is not `memory/proposals.jsonl`, which records the
-book's decision proposals and is read by the brief; nothing on the brief,
-report or intraday path reads this file.
+book's decision proposals. The brief's strategy_scores service reads this
+lab history as standing, never as permission to adopt its candidates.
 
 Rerunning the same question is not new evidence. A row carries `input_digest`
 — strategy, registered parameters, search space, settings and the digest of the

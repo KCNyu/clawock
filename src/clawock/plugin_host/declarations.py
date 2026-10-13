@@ -59,8 +59,9 @@ def validate(declaration, where: str = 'SIGNAL_SOURCE') -> dict:
             named = row.get(keys[0]) if _text(row.get(keys[0])) else index
             gaps.extend(f'{label}[{named}].{key} is missing'
                         for key in keys if not _text(row.get(key)))
-    fields = [row.get('field') for row in declaration.get('outputs') or ()
-              if isinstance(row, dict)]
+    outputs = declaration.get('outputs')
+    fields = [row.get('field') for row in outputs if isinstance(row, dict)] \
+        if isinstance(outputs, (list, tuple)) else []
     repeated = sorted({field for field in fields if _text(field) and fields.count(field) > 1})
     if repeated:
         gaps.append(f'outputs repeat {repeated}')

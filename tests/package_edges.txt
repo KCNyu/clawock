@@ -144,6 +144,7 @@ strategy_lab -> market_data
 strategy_lab -> plugin_host
 strategy_lab -> safe_io
 strategy_lab -> seeds
+strategy_lab -> sessions
 strategy_lab -> workspace
 tools -> context
 tools -> decision

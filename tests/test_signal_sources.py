@@ -22,14 +22,14 @@ import pytest
 from clawock.harness import brief_preflight
 from clawock.plugin_host import declarations, live, rows
 from clawock.plugin_host.kernel import Kernel, KernelError
-from clawock.strategies.plugins import bar_signals, morning_scans, quant_factors, rsi, sentiment
+from clawock.strategies.plugins import bar_signals, daily_bars, morning_scans, preposition, quant_factors, rsi, sentiment
 from clawock.strategy_lab.plugins import strategy_scores
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = Path(__file__).parent / 'fixtures' / 'signal_sources'
 GOLDENS = FIXTURES / 'goldens.json'
 BARS = json.loads((FIXTURES / 'bars.json').read_text())['series']
-SOURCES = {'factors': quant_factors, 'bar-signals': bar_signals, 'rsi': rsi,
+SOURCES = {'daily-bars': daily_bars, 'preposition': preposition, 'factors': quant_factors, 'bar-signals': bar_signals, 'rsi': rsi,
            'sentiment': sentiment, 'strategy-scores': strategy_scores,
            'morning-scans': morning_scans}
 
@@ -47,7 +47,7 @@ def test_every_shipped_signal_source_row_carries_a_complete_declaration():
         declaration = declarations.of(module)
         assert declaration['id'] == identifier
         assert declaration['missing']['serves_stale'] is False
-    assert set(live.signal_sources()) == {'factors', 'bar-signals', 'sentiment', 'strategy-scores',
+    assert set(live.signal_sources()) == {'daily-bars', 'preposition', 'factors', 'bar-signals', 'sentiment', 'strategy-scores',
                                           'morning-scans'}
 
 

@@ -215,6 +215,9 @@
      "sector_hits": 7,
      "total": 24
     },
+    "degraded": [
+     "serenity"
+    ],
     "held_hits": [],
     "llm_filter_status": "ok",
     "new_ideas": [
@@ -471,6 +474,9 @@
    {
     "age_hours": 1.2,
     "counts": {},
+    "degraded": [
+     "serenity"
+    ],
     "held_hits": [],
     "llm_filter_status": "ok",
     "new_ideas": [
@@ -854,6 +860,9 @@
      "sector_hits": 7,
      "total": 24
     },
+    "degraded": [
+     "serenity"
+    ],
     "held_hits": [],
     "llm_filter_status": "ok",
     "new_ideas": [

@@ -30,14 +30,10 @@ Pipeline:
   that extracts {tickers, stance, relevance, held vs new-idea, CN summary} →
   split into held_hits / new_ideas → write assets/data/influencer_feed.json.
 
-Merge-not-overwrite: if a source returns empty (rate-limit / outage) we keep the
-previous run's items for that source so one bad fetch can't blank the card
-(see memory/openclaw-fetcher-merge-not-overwrite.md).
+A failed source publishes no replacement items; source_status names the gap.
+Env: MINIMAX_API_KEY. A failed relevance filter publishes no scored reading,
+sets llm_filter_status to failed, and never reuses the previous run's scores.
 
-Env: MINIMAX_API_KEY. When the relevance filter fails (no key, 429, timeout, bad
-JSON) nothing unscored is published: the previous run's scored items that are
-still inside the lookback window stay up, marked `retained_from_previous`, and
-`llm_filter_status` says `failed_kept_previous`.
 """
 
 from clawock.safe_io import to_number as _share_number
@@ -657,15 +653,6 @@ def main():
     print('  raw: ' + ' '.join(f"{spec['key']}={len(raw[spec['key']])}"
                                for spec in sources) + ' (after keyword pre-filter)')
 
-    # Load previous run for merge-not-overwrite per source.
-    prev = {}
-    if os.path.exists(OUT_FILE):
-        try:
-            prev = json.load(open(OUT_FILE, encoding='utf-8'))
-        except Exception:
-            prev = {}
-    prev_items = prev.get('items', [])
-
     # 每源先按自己的预算截断，再合并去重、整体封顶：新加一个源不能挤掉老源的
     # 名额，老源（Trump）也不能把整批吃掉。
     candidates = []
@@ -677,30 +664,13 @@ def main():
                     | {h['underlying'] for h in held if h.get('underlying')})
     scored = llm_filter(candidates, held)
 
-    # Filter failed (MiniMax 429 / timeout / bad JSON) with candidates in hand.
-    # This used to publish every candidate unscored — relevance null, no holding
-    # match — and the brief read that as the radar. Measured 2026-09-01..12: 5 of
-    # 19 published feeds were raw. Now the last feed's SCORED items that are still
-    # inside the lookback window stay up, marked as retained, and nothing unscored
-    # is ever published; when there is nothing scored to keep, the feed is empty
-    # and says why (kcn 2026-09-13).
+    # A failed scan cannot republish old scores under a fresh generated_at.
     filter_failed = bool(candidates) and (
         not scored or all(row.get('relevance') is None for row in scored.values())
     )
     items = []
     if filter_failed:
-        for prior in prev_items:
-            if prior.get('relevance') is None:
-                continue
-            published = _parse_published(prior.get('published'))
-            if published is None or published < cutoff:
-                continue
-            item = dict(prior)
-            item['retained_from_previous'] = True
-            items.append(item)
-        print(f'  ⚠️ relevance filter failed for {len(candidates)} candidates — '
-              f'publishing no unscored items; kept {len(items)} scored items '
-              f'from the previous run', file=sys.stderr)
+        print('  ⚠️ relevance filter failed — no scored reading available', file=sys.stderr)
 
     for i, c in enumerate(candidates if scored else []):
         s = scored.get(i)
@@ -739,34 +709,6 @@ def main():
         })
         items.append(c)
 
-    # Merge-not-overwrite: only when the raw FETCH failed (network/outage) do we
-    # retain a source's prior items. A source legitimately producing zero items
-    # because the LLM judged everything irrelevant is NOT an outage — don't
-    # resurrect stale (possibly unfiltered) posts in that case.
-    # Serenity is deliberately NOT retained (see `retain` in _sources): she posts
-    # publicly so rarely that an empty fetch is her normal state, not an outage —
-    # retaining would pin a weeks-old idea on the radar forever.
-    for spec in sources:
-        if filter_failed:
-            break  # the scored prior feed is already carried over above
-        if not spec['retain'] or source_status[spec['key']] != 'failed':
-            continue
-        retained = []
-        for prior in prev_items:
-            if prior.get('author') != spec['author']:
-                continue
-            published = _parse_published(prior.get('published'))
-            if published is None or published < cutoff:
-                continue
-            item = dict(prior)
-            item['retained_from_previous'] = True
-            retained.append(item)
-        if retained:
-            print(f"  ↻ {spec['author']} fetch failed — retaining "
-                  f'{len(retained)} prior items', file=sys.stderr)
-            items.extend(retained)
-
-    # Final guard: prior-item merge can re-introduce a post already in this run.
     items = dedup_items(items)
 
     # Rank by signal value, not recency: held-hit > new-idea > sector > general,
@@ -791,8 +733,8 @@ def main():
         'sources': {spec['key']: spec['desc'] for spec in sources},
         'source_status': source_status,
         'llm_filtered':  bool(scored) and not filter_failed,
-        # 'ok' | 'failed_kept_previous' (no unscored item published) | 'no_candidates'
-        'llm_filter_status': ('failed_kept_previous' if filter_failed
+        # 'ok' | 'failed' (no reading published) | 'no_candidates'
+        'llm_filter_status': ('failed' if filter_failed
                               else 'ok' if scored else 'no_candidates'),
         'counts': {
             'total':       len(items),

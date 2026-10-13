@@ -265,32 +265,17 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                 'max_age_days': MAX_STALE_DAYS,
             })
             if expected and row_as_of < expected:
-                sig['stale_reason'] = (
-                    f'latest bar {row_as_of} before expected session {expected}'
-                )
+                rows[label] = _missing_row(
+                    detail, f'latest bar {row_as_of} before expected session {expected}',
+                    row_as_of.isoformat())
+                continue
             if detail.get('note'):
                 sig['note'] = detail['note']
             rows[label] = sig
             continue
 
-        old_date = _as_date(old_as_of)
-        age_days = (run_date - old_date).days if old_date else None
-        if old and age_days is not None and age_days <= MAX_STALE_DAYS:
-            old.update({
-                'code': detail['code'],
-                'source_holdings': sorted(detail['source_holdings']),
-                'status': 'stale',
-                'row_as_of': old_date.isoformat(),
-                'stale_reason': 'fetch failed or returned insufficient bars',
-                'max_age_days': MAX_STALE_DAYS,
-            })
-            if detail.get('note'):
-                old['note'] = detail['note']
-            rows[label] = old
-        else:
-                rows[label] = _missing_row(
-                detail, 'fetch failed and no usable last-known-good row',
-                last_good_as_of)
+        rows[label] = _missing_row(
+            detail, 'fetch failed or returned insufficient bars', last_good_as_of)
 
     for label, old_value in previous.items():
         if label in current_labels:
