@@ -1823,6 +1823,9 @@ def test_the_price_series_is_session_closes_not_file_dated_snapshots(monkeypatch
     (tmp_path / "memory" / "bars" / "00100.json").write_text(json.dumps({"bars": {
         "2026-09-28": {"close": 250.2}, "2026-09-29": {"close": 241.4},
         "2026-09-30": {"close": 250.2}}}))
+    # The book whose legs the series is built over is this workspace's own.
+    (tmp_path / "portfolio.json").write_text(json.dumps({"portfolios": {"hk_stocks": {"holdings": [
+        {"ticker": "00100"}, {"ticker": "NOBARS"}]}}}))
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     paths = []
     for day, price, prev in (("2026-09-29", 241.4, 250.2), ("2026-09-30", 250.2, 241.4),
