@@ -46,9 +46,17 @@ def test_quant_direct_calls_and_refresh_share_bad_tick_policy(where, bad):
     rows = signals.refresh_rows({}, [detail], run_date=date(2026, 9, 15),
                                 expected_sessions={'US': date(2026, 9, 14)},
                                 fetcher=lambda _: raw)
-    assert rows['TEST']['close'] == clean[-1]['close']
-    assert rows['TEST']['row_as_of'] == clean[-1]['date']
-    assert rows['TEST']['status'] == ('stale' if where == 44 else 'fresh')
+    if where == 44:
+        # Dropping the invalid latest candle leaves no measurement for the
+        # expected session. Older valid numbers must not fill that gap.
+        assert rows['TEST']['status'] == 'missing'
+        assert 'close' not in rows['TEST']
+        assert rows['TEST']['last_good_as_of'] == clean[-1]['date']
+        assert 'before expected session' in rows['TEST']['stale_reason']
+    else:
+        assert rows['TEST']['close'] == clean[-1]['close']
+        assert rows['TEST']['row_as_of'] == clean[-1]['date']
+        assert rows['TEST']['status'] == 'fresh'
 
 
 def test_quant_no_usable_bars_publishes_missing_row():
