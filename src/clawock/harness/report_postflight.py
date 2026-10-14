@@ -332,6 +332,27 @@ def classify_data_plane(commit_ok, commit_msg):
     return 'published'
 
 
+def _skip_delivered_slot(args, today, failure, issue):
+    """A retry whose input broke after an earlier attempt delivered the slot.
+
+    openclaw re-runs the whole turn when its post-turn summary fails, so the
+    prose file may be stale or the context gone by the time the retry gets
+    here. Filing that as `llm`/`postflight` failed rewrote the delivered
+    attempt's stages and named the slot degraded with a fallback that never
+    ran (#2961); the attempt that sent the report already recorded them.
+    """
+    print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send '
+          f'({failure} on this retry: {issue})', file=sys.stderr)
+    result = {
+        'status': 'already_delivered', 'market': args.market, 'phase': args.phase,
+        'date': today, 'issues': [issue], 'wechat_prefix': '', 'wechat_sent': True,
+        'send_claim': 'not-required', 'commit_ok': False,
+        'commit_msg': f'skipped ({failure} on a delivered slot)',
+    }
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -360,7 +381,13 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
+    today = trading_calendar.hkt_today().isoformat()
+    report_marker = delivery_receipts.receipt_path(TMP, 'report', market=args.market,
+                                                   phase=args.phase, date=today)
+
     text, in_err = read_prose_text(args.market, args.phase, args.text_file)
+    if in_err and already_delivered(report_marker):
+        return _skip_delivered_slot(args, today, 'input_error', in_err)
     if in_err:
         workflow_outcomes.record_stage(
             job_name, 'llm', 'failed', slot=slot, reason=in_err
@@ -381,7 +408,6 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    today = trading_calendar.hkt_today().isoformat()
     ctx, ctx_err = load_context(args.market, args.phase, today)
 
     # A missing OR unusable context both mean "preflight did not produce data to
@@ -391,6 +417,8 @@ def main(argv=None):
     # message and then crash on ctx['commit_msg']. Reject before any send/commit,
     # non-zero, so the run record shows preflight is the breakage. (2026-07-24 review.)
     ctx_bad = ctx_err or _unusable_context(ctx)
+    if ctx_bad and already_delivered(report_marker):
+        return _skip_delivered_slot(args, today, 'preflight_error', ctx_bad)
     if ctx_bad:
         workflow_outcomes.record_stage(
             job_name, 'preflight', 'failed', slot=slot, reason=ctx_bad
@@ -480,8 +508,6 @@ def main(argv=None):
     # so if it already shows a delivery this is an openclaw auto-retry of a run that
     # errored only in post-turn summary-gen — the report already went out. Skip the
     # re-send (watchdog still backstops a genuine miss). See already_delivered.
-    report_marker = delivery_receipts.receipt_path(TMP, 'report', market=args.market,
-                                                   phase=args.phase, date=today)
     delivery_state = 'failed' if status == 'fail' else 'delivered'
     # WeChat and Telegram are judged separately (2026-09-17): a prior run that
     # landed only Telegram has not delivered this slot to WeChat, so it does not

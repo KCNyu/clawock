@@ -207,6 +207,40 @@ def test_report_rerun_after_wechat_failure_resends_wechat_only(tmp_path, monkeyp
     assert (rewritten['sent_ok'], rewritten['tg_ok']) == (True, True)
 
 
+@pytest.mark.parametrize('broken', ['input_error', 'preflight_error'])
+def test_a_retry_with_broken_input_keeps_the_delivered_slots_stages(
+        tmp_path, monkeypatch, broken):
+    """#2961: an auto-retry asks whether the slot shipped before it files a failure."""
+    from clawock.harness import report_postflight as postflight
+
+    writes = []
+    monkeypatch.setattr(postflight, 'TMP', tmp_path)
+    monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda *a, **kw: None)
+    monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
+                        lambda: datetime(2026, 10, 14).date())
+    monkeypatch.setattr(postflight.workflow_outcomes, 'slot_for_job',
+                        lambda job: '2026-10-14T09:33:00+08:00')
+    monkeypatch.setattr(postflight.workflow_outcomes, 'record_stage',
+                        lambda job, stage, status, **kw: writes.append((stage, status)))
+    monkeypatch.setattr(postflight, 'send_wechat',
+                        lambda *a, **kw: pytest.fail('a delivered slot must not be re-sent'))
+    prose = tmp_path / 'prose.md'
+    if broken == 'preflight_error':
+        prose.write_text('prose')
+        monkeypatch.setattr(postflight, 'load_context',
+                            lambda *a: (None, 'context missing'))
+    argv = ['--market', 'hk', '--phase', 'open', '--context-id', 'c1',
+            '--text-file', str(prose)]
+
+    assert postflight.main(argv) == 2
+    assert ('postflight', 'failed') in writes, 'a slot that never shipped still fails'
+
+    writes.clear()
+    _write(tmp_path / 'report-sent-hk-open-2026-10-14.json', {'ts': _now_ms(), 'sent_ok': True})
+    assert postflight.main(argv) == 0
+    assert writes == []
+
+
 # ── C. the watchdog WeChat backstop ──────────────────────────────────────────
 
 def _senders(wechat_ok=True):
