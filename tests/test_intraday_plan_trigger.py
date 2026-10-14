@@ -185,3 +185,43 @@ def test_mobile_table_keeps_source_price_and_cost_precision():
     assert plans.triggered_conditions({'open': [{'ticker': 'TEST', 'action': 'cut',
         'condition': 'price_below', 'condition_price': 2.502}]},
         {r['ticker']: r['price'] for r in parsed}) == []
+
+
+def test_mobile_table_prints_a_cost_basis_at_reading_precision():
+    """The card of 2026-10-14 read `| 00100 |   140 | 508.4714285714286 |`.
+
+    Seven 20-share lots average to that float. The ledger keeps it — the
+    COST_BASIS gate recomputes it from trades — and the cell is for a reader.
+    """
+    from clawock.adapters.mobile import W_COST, cost_text, render_holdings_table
+
+    lots = [899.5, 869, 700, 360, 260, 230, 240.8]
+    ledger_cost = sum(price * 20 for price in lots) / 140
+    assert str(ledger_cost) == '508.4714285714286'
+    assert cost_text(ledger_cost) == '508.47'
+    # Decimals past the second survive where the column has room for them: on
+    # a 4-dollar ETF they are a quarter of a percent of the position.
+    assert cost_text(4.1175) == '4.1175'
+    assert cost_text(49.123456) == '49.123'
+    assert cost_text(87) == '87.00'
+    assert cost_text(1234.56789) == '1,234.57'
+
+    rows = [
+        {'code': '00100', 'shares': 140, 'cost': ledger_cost, 'price': 215.0,
+         'today_pct': 1.4, 'pnl_pct': -57.7, 'pnl_abs': -41086},
+        {'code': '07226', 'shares': 7200, 'cost': 4.1175, 'price': 2.504,
+         'today_pct': -4.2, 'pnl_pct': -39.2, 'pnl_abs': -11617.2},
+    ]
+    table = render_holdings_table(rows, 'HKD')
+    header, _, long_cost, short_cost = table
+    cost_cell = [cell.strip() for cell in long_cost.split('|')][3]
+    assert cost_cell == '508.47'
+    assert len(cost_cell) <= W_COST
+    # A cost with a long tail no longer pushes its row out of the grid.
+    assert [i for i, c in enumerate(long_cost) if c == '|'] \
+        == [i for i, c in enumerate(short_cost) if c == '|']
+    # The quote beside it is still the ledger's, and still what the trigger
+    # evaluator reads back.
+    parsed = harness_common.parse_holdings_rows('\n'.join(table))
+    assert [(row['ticker'], row['price']) for row in parsed] \
+        == [('00100', 215.0), ('07226', 2.504)]

@@ -38,7 +38,9 @@ def pad_left(s: str, width: int) -> str:
 # Cell content widths (visual). Chosen to fit max expected portfolio values.
 # code: 5-char HK / 4-char US tickers
 # shares: up to 99999 (current max ~6200 on 07226)
-# cost/price: 999.99 fits in 6 chars; numbers ≥ 1000 use compact ',' format
+# cost/price: 999.99 fits in 6 chars; numbers ≥ 1000 use compact ',' format.
+#   A quote keeps its source precision even past the width; a cost does not
+#   (see price_text / cost_text).
 # today/pnl_pct: "+12.3%" 6 vw; "-100.0%" rare 7
 # pnl_abs: "-10,050" 7 vw
 W_CODE   = 5
@@ -51,15 +53,42 @@ W_PNL_A  = 7
 
 
 def price_text(value):
-    """Preserve the source's precision, with at least two display decimals.
+    """A quote at the precision its writer gave it, with at least two decimals.
 
-    Quote precision is already owned by portfolio derivations. Cost bases may
-    carry more decimals than quotes, so neither may be rounded by the renderer.
-    The table is also parsed by the intraday trigger evaluator.
+    Quote precision is owned by portfolio derivations (three places for HK,
+    four for US), and the intraday trigger evaluator reads this cell back as
+    the price it compares plan conditions against. Rounding it here moved a
+    2.504 quote across a 2.502 line (#2942).
     """
     price = Decimal(str(value))
     places = max(2, -price.as_tuple().exponent)
     return f'{price:,.{places}f}'
+
+
+# What the published dashboard rounds a cost basis to.
+COST_MAX_DECIMALS = 4
+
+
+def cost_text(value):
+    """A cost basis at reading precision: two to four decimals, as the column fits.
+
+    A cost basis is a quotient — the moving average of the fills — so the
+    ledger's float has no precision of its own to preserve: seven 20-share
+    lots of 00100 average to 508.4714285714286, and that is what the card
+    printed while this cell shared `price_text`. The ledger keeps every digit
+    because the integrity gate recomputes it from trades; a reader needs the
+    ones that move the row. So: never more than the dashboard publishes, and
+    past two decimals only while the cell still fits its column, which keeps a
+    4.1175 ETF exact and a 508.47 stock in line with the rows around it.
+
+    Nothing parses this cell. `parse_holdings_rows` reads the quote and the
+    day move; the cost column is for the reader only.
+    """
+    cost = Decimal(str(value))
+    places = min(max(2, -cost.as_tuple().exponent), COST_MAX_DECIMALS)
+    while places > 2 and len(f'{cost:,.{places}f}') > W_COST:
+        places -= 1
+    return f'{cost:,.{places}f}'
 
 
 def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
@@ -104,7 +133,7 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
         pnl_pct   = r.get('pnl_pct', 0.0)
         pnl_abs   = r.get('pnl_abs', 0.0)
 
-        cost_s  = price_text(cost)   if cost  else '—'
+        cost_s  = cost_text(cost)    if cost  else '—'
         price_s = price_text(price)
         today_s = f'{today_pct:+.1f}%'
         pnlp_s  = f'{pnl_pct:+.1f}%'
