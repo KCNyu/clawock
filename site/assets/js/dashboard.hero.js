@@ -240,7 +240,7 @@
       const fire = near.fired || near.ad < 2;
       const meter = near.fired ? 100 : Math.max(0, Math.min(100, 100 - near.ad * 10));
       const fmtVal = (v) => near.isPct ? fmtPct(v, 1) : fmtMoney(v, near.ccy);
-      const distTxt = near.isPct ? `${near.dist >= 0 ? "+" : ""}${near.dist.toFixed(1)}pp` : fmtPct(near.dist, 1);
+      const distTxt = near.isPct ? `${near.dist >= 0 ? "+" : ""}${fixed(near.dist, 1)}pp` : fmtPct(near.dist, 1);
       chips.push(chip(fire ? "bad" : near.ad < 5 ? "warn" : "flat",
         `${escapeHtml(near.who)}·${escapeHtml(near.label)}`,
         fmtVal(near.val),
@@ -284,9 +284,9 @@
       const brierN = safe(dm, "calibration", "active", "n");
       const thin = brierN == null || brierN < 8;
       const sample = brierN == null ? "样本量未知" : `n=${brierN}${thin ? " 样本少" : ""}`;
-      const baseline = dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`;
+      const baseline = dm.brier_baseline_loo == null ? "" : `基线 ${fixed(Number(dm.brier_baseline_loo), 3)}`;
       chips.push(chip(thin ? "flat" : dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
-        Number(dm.brier).toFixed(3), [baseline, sample].filter(Boolean).join(" · ")));
+        fixed(Number(dm.brier), 3), [baseline, sample].filter(Boolean).join(" · ")));
     }
 
     if (!chips.length && !movers.length) {
@@ -343,12 +343,12 @@
     // without `calibration.active.n`, on any panel the rail rides along (#2561).
     const brierN = safe(metrics, "calibration", "active", "n");
     const brierSample = brierN == null ? "样本量未知" : `n=${brierN}${brierN < 8 ? " 样本少" : ""}`;
-    const brierText = metrics.brier == null ? DASH : `${metrics.brier.toFixed(3)} · ${brierSample}`;
+    const brierText = metrics.brier == null ? DASH : `${fixed(metrics.brier, 3)} · ${brierSample}`;
     const values = [
       ["dr-book", fmtMoney(totalUsd, "USD"), ""],
       ["dr-pnl-us", fmtMoney(us.today_change_usd, "USD"), pnlClass(us.today_change_usd)],
       ["dr-pnl-hk", fmtMoney(hk.today_change_hkd, "HKD"), pnlClass(hk.today_change_hkd)],
-      ["dr-followed", activeExec.rate == null ? DASH : (activeExec.rate * 100).toFixed(1) + "%", "neutral"],
+      ["dr-followed", activeExec.rate == null ? DASH : fixed(activeExec.rate * 100, 1) + "%", "neutral"],
       ["dr-grade", brierText, ""],
     ];
     // Values and semantic classes are computed first, then committed together.
@@ -582,7 +582,7 @@
       const slot = (r.slot || '').replace('T', ' ').slice(5, 16);
       const readability = r.readability || {};
       const readabilityDetail = readability.status
-        ? ` / 可读性=${readability.status}${Number.isFinite(readability.bytes) ? ` ${(readability.bytes / 1000).toFixed(1)}KB` : ''}`
+        ? ` / 可读性=${readability.status}${Number.isFinite(readability.bytes) ? ` ${fixed(readability.bytes / 1000, 1)}KB` : ''}`
         : '';
       lines.push(`流程 ${r.job} ${slot}: 执行=${raw} / 成品=${final}${readabilityDetail}`);
     });
@@ -656,7 +656,7 @@
       const priceTxt = (r.price != null)
         ? r.price.toLocaleString("en-US", { maximumFractionDigits: r.price < 100 ? 2 : 0 })
         : DASH;
-      const pctTxt = (pct == null) ? DASH : `${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`;
+      const pctTxt = (pct == null) ? DASH : `${pct > 0 ? "+" : ""}${fixed(pct, 2)}%`;
       const srcShort = (r.source || "").split(/[@(]/, 1)[0].trim().slice(0, 22);
       return `
         <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(r.source || "")}">
@@ -681,7 +681,7 @@
         const prefix = `${leg.toUpperCase()} 组合 ${session.text}（${session.date}） vs ${label} ${fmtPct(benchmark)}`;
         if (!Number.isFinite(session.value) || !Number.isFinite(benchmark)) return prefix;
         const rs = session.value - benchmark;
-        return `${prefix} → <b class="${rs >= 0 ? "pos" : "neg"}">${rs > 0 ? "+" : ""}${rs.toFixed(2)}pp</b>`;
+        return `${prefix} → <b class="${rs >= 0 ? "pos" : "neg"}">${rs > 0 ? "+" : ""}${fixed(rs, 2)}pp</b>`;
       });
       rsRow.innerHTML = "RS: " + parts.join(" · ");
     }
@@ -894,12 +894,12 @@
     railEl.innerHTML = [
       cell("美股", withDelta(fmtMoney(us.value_usd, "USD"),
         `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd)),
-        railMeter(shareUs, `占账面 ${shareUs == null ? DASH : shareUs.toFixed(0) + "%"}`)),
+        railMeter(shareUs, `占账面 ${shareUs == null ? DASH : fixed(shareUs) + "%"}`)),
       cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
         `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd)),
-        railMeter(shareHk, `占账面 ${shareHk == null ? DASH : shareHk.toFixed(0) + "%"}`)),
+        railMeter(shareHk, `占账面 ${shareHk == null ? DASH : fixed(shareHk) + "%"}`)),
       peakCell,
-      cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
+      cell("遵守率 30d", ae.rate == null ? DASH : fixed(ae.rate * 100, 1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
         railMeter(ae.rate == null ? null : ae.rate * 100,
@@ -1954,9 +1954,9 @@
     card.classList.remove("is-pending");
     if (!g || g.nav == null || g.principal_invested == null) { card.style.display = 'none'; return; }
     card.style.display = '';
-    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d }).replace('-', MINUS));
     // 盈亏金额的负号放在 ¥ 外面，和 fmtMoney 一致：这张卡曾印 ¥-2,766，同页别的卡印 −$7,269。
-    const signedCny = (v) => (v == null ? DASH : (v < 0 ? '−' : '+') + '¥' + num(Math.abs(v)));
+    const signedCny = (v) => (v == null ? DASH : (v < 0 ? MINUS : '+') + '¥' + num(Math.abs(v)));
     const cur = g.currency || 'CNY';
     const loss = (g.pnl_abs || 0) < 0;
     const pnlColor = loss ? 'var(--negative)' : 'var(--positive)';
@@ -1979,7 +1979,7 @@
     // stats grid
     const navChg = g.nav_change_pct;
     const navChgStr = navChg == null ? '' :
-      ` <span style="color:${navChg >= 0 ? 'var(--positive)' : 'var(--negative)'};font-size:var(--fs-xs)">${navChg >= 0 ? '+' : ''}${navChg.toFixed(2)}%</span>`;
+      ` <span style="color:${navChg >= 0 ? 'var(--positive)' : 'var(--negative)'};font-size:var(--fs-xs)">${navChg >= 0 ? '+' : ''}${fixed(navChg, 2)}%</span>`;
     const cell = (label, val) => `<div style="flex:1 1 30%;min-width:90px;margin:5px 0">
         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">${label}</div>
         <div style="font-size:var(--fs-lg);font-weight:700;margin-top:1px">${val}</div></div>`;
@@ -2043,7 +2043,7 @@
       else {
         const xchg = ld.xau_change_pct;
         const xcolor = (xchg == null ? 'var(--neutral)' : (xchg >= 0 ? 'var(--positive)' : 'var(--negative)'));
-        const xchgStr = xchg == null ? '' : ` · 当日 <span style="color:${xcolor};font-size:var(--fs-xs)">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
+        const xchgStr = xchg == null ? '' : ` · 当日 <span style="color:${xcolor};font-size:var(--fs-xs)">${xchg >= 0 ? '+' : ''}${fixed(Number(xchg), 2)}%</span>`;
         const fundBeXau = ld.fund_breakeven_usd_oz != null
           ? ld.fund_breakeven_usd_oz
           : (g.nav ? ld.xau_usd * g.avg_cost / g.nav : null);
@@ -2207,7 +2207,7 @@
       : (g.reconciled_date ? ` · 已对账 ${g.reconciled_date}` : '');
     document.getElementById('gold-asof').textContent =
       `净值 ${g.nav_date || ''}` +
-      (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${rt.est_change_pct}%) @ ${(rt.est_time || '').slice(11)}` : '') +
+      (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${numText(rt.est_change_pct)}%) @ ${(rt.est_time || '').slice(11)}` : '') +
       auto +
       ` · 独立人民币卡，不并入跨币种总额`;
   }
@@ -2219,7 +2219,7 @@
     // 切换，不靠放大加重（大字报的根子就是拿字号当层级）。escapeHtml 之
     // 后再包：正则只命中 [+-0-9.%]，包出来的 span 无注入面。
     const verdictNums = s => escapeHtml(s)
-      .replace(/[+-]?\d+(?:\.\d+)?%/g, m => `<span class="sb-n">${m}</span>`);
+      .replace(/[+-]?\d+(?:\.\d+)?%/g, m => `<span class="sb-n">${m.replace("-", MINUS)}</span>`);
     const targets = [
       {
         banner: document.getElementById("status-banner"),

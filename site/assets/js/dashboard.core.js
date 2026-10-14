@@ -3,6 +3,14 @@
   // =========================================================
   const DASH = "—"; // em-dash for missing values
 
+  // The sign of a printed number has one owner, and it is this line. `toFixed`,
+  // `String()` and `toLocaleString` all write a loss with the ASCII hyphen, so
+  // a rate formatted in place read -7.27% under an amount that read −$7,269
+  // (#2957). Text the page formats goes through `fixed` / `numText` or a
+  // formatter built on them; a `toFixed` that feeds CSS or SVG stays as it is.
+  const MINUS = "−";
+  const fixed = (v, digits = 0) => v.toFixed(digits).replace("-", MINUS);
+
   const fmtMoney = (v, ccy) => {
     if (v == null || !isFinite(v)) return DASH;
     const sym = ccy === "USD" ? "$" : ccy === "HKD" ? "HK$" : "";
@@ -13,12 +21,12 @@
     // The minus goes outside the currency symbol, here and nowhere else: one
     // loss used to print as −$7,269 on the command deck and $-7,269 two cards
     // down (#2672).
-    return (v < 0 ? "−" : "") + sym + n;
+    return (v < 0 ? MINUS : "") + sym + n;
   };
   const fmtPct = (v, digits = 2) => {
     if (v == null || !isFinite(v)) return DASH;
     const s = v >= 0 ? "+" : "";
-    return s + v.toFixed(digits) + "%";
+    return s + fixed(v, digits) + "%";
   };
   function deltaSession(delta, leg) {
     const row = delta?.[leg] || {};
@@ -29,7 +37,8 @@
   // places that interpolate a raw field (`${r.pnl_pct}%`) instead of formatting it:
   // there a missing field used to print "undefined%" / "null @ $null" (2026-09-12,
   // found by rendering every tab with the numbers nulled out and then removed).
-  const numText = (v) => (v == null || (typeof v === "number" && !isFinite(v))) ? DASH : String(v);
+  const numText = (v) => (v == null || (typeof v === "number" && !isFinite(v))) ? DASH
+    : typeof v === "number" ? String(v).replace("-", MINUS) : String(v);
   // 「数据健康」那条读数行把每个事实包成一个 .dh-meta-bit（nowrap），折行只允许
   // 发生在 bit 之间。这条规则的前提是**每一段都比屏幕窄**：2026-09-12 的
   // crawl_visibility 一行四个事实挤成一段，390px 实测把整块牌顶宽 158px，顺带
@@ -50,7 +59,7 @@
   };
   const fmtNum = (v, digits = 2) => {
     if (v == null || !isFinite(v)) return DASH;
-    return v.toFixed(digits);
+    return fixed(v, digits);
   };
   const pnlClass = (v) => {
     if (v == null || !isFinite(v)) return "neutral";

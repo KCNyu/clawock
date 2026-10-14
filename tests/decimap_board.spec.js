@@ -132,7 +132,7 @@ async function noCellUsesColourAsItsOnlyChannel(browser, base) {
   assert(cells.length >= 10, `only ${cells.length} cells on the board`);
   for (const cell of cells) {
     assert(/^\d+$/.test(cell.n), `cell count is not a number: ${cell.n}`);
-    assert(/^[+-]/.test(cell.median) || cell.median === "—",
+    assert(/^[+−]/.test(cell.median) || cell.median === "—",
       `a tinted cell must print its sign, got "${cell.median}"`);
     assert(cell.label.includes("胜率"),
       "every cell carries its own numbers in an accessible label");
@@ -140,7 +140,7 @@ async function noCellUsesColourAsItsOnlyChannel(browser, base) {
   // And a tint actually happens, or the assertion above is vacuous.
   assert(cells.some(cell => cell.tinted !== cells[0].tinted)
     || cells.some(cell => cell.median.startsWith("+"))
-      && cells.some(cell => cell.median.startsWith("-")),
+      && cells.some(cell => cell.median.startsWith("−")),
     "no cell on the board is tinted at all");
   await context.close();
 }

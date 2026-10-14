@@ -1120,7 +1120,7 @@ function _rowDisplay(result, t, now = Date.now()) {
 	const symbol = isPct ? "" : snapshot.currency === "USD" ? "$" : snapshot.currency === "CNY" ? "¥" : "";
 	const pctWins = isPct && Array.isArray(snapshot.windows) ? snapshot.windows.filter((w) => w.percent !== null) : [];
 	const parsed = Number.parseFloat(snapshot.totalBalance);
-	const value = isFinite(parsed) ? isPct ? String(Math.round(parsed)) + "%" : symbol + parsed.toLocaleString(void 0, { maximumFractionDigits: 2 }) : pctWins.length > 0 ? String(Math.round(pctWins[0].percent)) + "%" : snapshot.totalBalance === "" ? "—" : symbol + snapshot.totalBalance;
+	const value = isFinite(parsed) ? isPct ? String(Math.round(parsed)) + "%" : (parsed < 0 ? "−" : "") + symbol + Math.abs(parsed).toLocaleString(void 0, { maximumFractionDigits: 2 }) : pctWins.length > 0 ? String(Math.round(pctWins[0].percent)) + "%" : snapshot.totalBalance === "" ? "—" : symbol + snapshot.totalBalance;
 	const second = pctWins.length > 1 ? pctWins[1] : null;
 	const wins = windowsOf(t, result, now);
 	const firstReset = wins.length > 0 ? wins[0].reset : "";

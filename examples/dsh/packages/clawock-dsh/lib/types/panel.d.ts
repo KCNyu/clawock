@@ -25,6 +25,12 @@ export type UsedLevel = 'ok' | 'mid' | 'low';
  */
 export declare function _usedLevel(percent: number | null, threshold: number): UsedLevel;
 /**
+ * The sign of a printed number: U+2212, outside the currency symbol. The
+ * dashboard's `fmtMoney` set the rule (#2672); the chip printed `$-12.34` and
+ * the rate formatter an ASCII hyphen until #2957.
+ */
+export declare const MINUS = "\u2212";
+/**
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.

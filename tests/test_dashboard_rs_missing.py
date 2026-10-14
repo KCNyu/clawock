@@ -15,7 +15,8 @@ def test_rs_keeps_both_legs_and_missing_session(us, hk):
     hero = (JS / 'dashboard.hero.js').read_text()
     render = re.search(r'^  function renderMarketSnapshot\(\) \{.*?^  \}', hero, re.M | re.S)[0]
     helpers = '\n'.join(re.findall(
-        r'^  (?:const fmtPct = .*?^  \};|function deltaSession\(.*?^  \})', core, re.M | re.S))
+        r'^  (?:const MINUS = [^\n]*|const fixed = [^\n]*|const fmtPct = .*?^  \};'
+        r'|function deltaSession\(.*?^  \})', core, re.M | re.S))
     data = {'delta': {'us': {'today_pct': us, 'session_date': '2026-10-12'},
                       'hk': {'today_pct': hk, 'session_date': '2026-10-13'}},
             'indices': {'SPX': {'change_pct': 0}, 'HSI': {'change_pct': -0.37}}}
