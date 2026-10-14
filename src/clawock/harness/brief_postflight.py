@@ -930,7 +930,7 @@ from ._harness_common import (  # noqa: E402
 from .brief_card import brief_url, build_brief_card  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    delivered_channels,
+    delivered_channels, slot_shipped,
     claim_send, log, send_per_policy, send_under_claim,
 )
 from clawock.harness import brief_render  # noqa: E402
@@ -1416,6 +1416,11 @@ def main(argv=None):
 
     md_path   = WS / 'memory' / f'{today}-pre-open.md'
     plan_path = WS / 'memory' / f'{today}-plan.json'
+    # Asked before anything below can fail or send: an attempt that runs after
+    # today's card went out (an openclaw retry, a later re-run) is not the one
+    # the slot's ledger row describes, so it files no stage over it (#2961's
+    # shape on this path; see slot_shipped).
+    shipped = slot_shipped(WS / 'memory' / '.tmp', 'brief', date=today)
 
     # Load preflight context (for cross-validation). Fail closed: a missing or
     # unparseable context would silently skip every context-dependent hard gate
@@ -1425,7 +1430,17 @@ def main(argv=None):
     context, context_issue = load_preflight_context(ctx_path)
     if context and context.get('status') in {'price_refresh_failed', 'preflight_timeout'}:
         failure_reason = context['status']
+        # What is on disk now is a failed generation, whoever shipped today:
+        # the off-host committer must not publish it either way.
         write_publish_gate('fail', today, reason=failure_reason)
+        if shipped:
+            print(f'idempotency: brief already delivered today — {failure_reason} on this '
+                  f'attempt is not filed over the delivered slot', file=sys.stderr)
+            print(json.dumps({'status': 'already_delivered', 'date': today,
+                              'issues': context.get('issues', []),
+                              'publication_ready': False, 'wechat_sent': True,
+                              'reason': failure_reason}, ensure_ascii=False))
+            return 0
         workflow_outcomes.record_stage(
             job_name, 'postflight', 'failed', slot=slot, dry_run=args.dry_run,
             reason=failure_reason,
@@ -1526,7 +1541,7 @@ def main(argv=None):
     # status (warning included), issue_count, generation id, step_timings.
     # Rewriting it here replaced all of that with {success, context_present}
     # (#1875). Only the absence is postflight's to record.
-    if not context:
+    if not context and not shipped:
         workflow_outcomes.record_stage(
             job_name,
             'preflight',
@@ -1542,17 +1557,23 @@ def main(argv=None):
     # What shipped, not what the checker noticed — the same correction #768 made
     # to final_product, applied to the stage and the commit subject (#1076).
     product = product_status(status, escalating)
-    workflow_outcomes.record_stage(
-        job_name,
-        'llm',
-        'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
-        slot=slot,
-        dry_run=args.dry_run,
-        issue_count=len(issues),
-        escalating_count=len(escalating),
-        advisory_count=len(advisories),
-        readability=readability,
-    )
+    # On a slot that already shipped this attempt's verdict is printed below
+    # and goes no further: the delivered card's own stages stand.
+    if shipped:
+        print(f'idempotency: brief already delivered today — this attempt ({status}) '
+              f'files no stage over the delivered slot', file=sys.stderr)
+    else:
+        workflow_outcomes.record_stage(
+            job_name,
+            'llm',
+            'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
+            slot=slot,
+            dry_run=args.dry_run,
+            issue_count=len(issues),
+            escalating_count=len(escalating),
+            advisory_count=len(advisories),
+            readability=readability,
+        )
     # Emit a CLOSED cross-process gate before anything else can raise.  A valid
     # brief is not yet a publishable generation: the deterministic Pages
     # projection below is part of that generation too.  Releasing pass/warn here
@@ -1746,34 +1767,35 @@ def main(argv=None):
             'pages_projection': str(projection_path),
         },
     }
-    workflow_outcomes.record_stage(
-        job_name,
-        'postflight',
-        ('success'
-         if (product == 'pass' and projection_ready
-             and data_plane_status in {'published', 'skipped'})
-         else ('warning'
-               if (product == 'warn' and projection_ready
-                   and data_plane_status in {'published', 'skipped'})
-               else 'failed')),
-        slot=slot,
-        dry_run=args.dry_run,
-        issue_count=len(issues),
-        escalating_count=len(escalating),
-        advisory_count=len(advisories),
-        commit_ok=commit_ok,
-        readability=readability,
-        # Same field the report leg records: without it the schedule board
-        # cannot say the dashboard publish is what degraded this slot (#2283).
-        data_plane_status=data_plane_status,
-        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
-        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
-    )
+    if not shipped:
+        workflow_outcomes.record_stage(
+            job_name,
+            'postflight',
+            ('success'
+             if (product == 'pass' and projection_ready
+                 and data_plane_status in {'published', 'skipped'})
+             else ('warning'
+                   if (product == 'warn' and projection_ready
+                       and data_plane_status in {'published', 'skipped'})
+                   else 'failed')),
+            slot=slot,
+            dry_run=args.dry_run,
+            issue_count=len(issues),
+            escalating_count=len(escalating),
+            advisory_count=len(advisories),
+            commit_ok=commit_ok,
+            readability=readability,
+            # Same field the report leg records: without it the schedule board
+            # cannot say the dashboard publish is what degraded this slot (#2283).
+            data_plane_status=data_plane_status,
+            unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+            unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
+        )
     # A declined claim process never sent, so it must not file the primary
     # verdict — the concurrent holder owns it, and a false `failed` written
     # after the holder's `success` would stand (reconciliation only fills
     # unknown stages) even though kcn got the card (#1006).
-    if not claim_declined:
+    if not shipped and not claim_declined:
         workflow_outcomes.record_primary_delivery(
             job_name,
             slot=slot,

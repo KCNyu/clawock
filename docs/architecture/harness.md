@@ -371,10 +371,19 @@ parameters and what reaches their model.
 | schedule contract | `scheduling.load_contract` (cron timeouts against watchdog judgement times) | ops, watchdogs, tests | — |
 
 A stage's `pending` start marker never replaces an outcome already recorded for
-that stage; the later run's own outcome does, so a re-run mapped to the same slot
-cannot erase the shipped attempt's preflight. A report postflight retry whose
-input broke after an earlier attempt delivered the slot leaves that attempt's
-stages as they are and exits as an idempotent skip.
+that stage. Beyond that, a slot's row belongs to the attempt that delivered it:
+every preflight and postflight (brief, report, intraday) asks
+`_watchdog_common.slot_shipped` once, before it can write or send, whether an
+earlier attempt already delivered the slot to WeChat. If so it files no stage or
+heartbeat for the slot, whatever its own outcome (input or preflight failure,
+rejected prose, fresh diagnostics, an intraday `no_change`), so a retry or a
+later re-run cannot erase or rewrite the delivered attempt's record. It still
+does its other work: a preflight writes its context and exit code, the brief
+early exit still closes the publish gate, the report and intraday postflights
+still commit the data plane. A postflight retry whose input or preflight broke
+exits as an idempotent skip (`already_delivered`, exit 0). The report upgrade
+(a fail-closed data block superseded by a validated report) delivers, so it
+records as before.
 
 Workflow outcomes use the published ledger only when the local ledger is absent.
 An existing but unreadable local ledger produces an empty view with

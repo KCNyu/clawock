@@ -66,6 +66,7 @@ from clawock.market_data import peer_scan
 WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
+from ._watchdog_common import slot_shipped  # noqa: E402
 from ._harness_common import (  # noqa: F401 — re-exported for callers/tests
     compute_context_id,
 )
@@ -311,7 +312,20 @@ def main(argv=None):
     today = trading_calendar.hkt_today().isoformat()
     job_name = workflow_outcomes.job_for(args.market, args.phase)
     slot = workflow_outcomes.slot_for_job(job_name)
-    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
+    # A re-run of a slot an earlier attempt already delivered still rebuilds the
+    # context, but files no preflight stage: the slot's row belongs to the
+    # attempt that delivered it (see slot_shipped).
+    shipped = slot_shipped(TMP, 'report', market=args.market, phase=args.phase, date=today)
+
+    def record_preflight(status, **details):
+        if shipped:
+            print(f'note: {args.market}-{args.phase} already delivered today — preflight '
+                  f'{status} not filed over it', file=sys.stderr)
+            return {}
+        return workflow_outcomes.record_stage(job_name, 'preflight', status, slot=slot,
+                                              **details)
+
+    record_preflight('pending')
 
     # --- Holiday/weekend gate (before any fetch): on a closed market, skip the
     # price refresh entirely (stale closes must NOT be written as a new session)
@@ -319,9 +333,7 @@ def main(argv=None):
     # watchdog treats a blockless context as "never ran" and won't re-send. ---
     reason = _market_closed_reason(args.market, args.phase)
     if reason:
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'skipped', slot=slot, reason=reason
-        )
+        record_preflight('skipped', reason=reason)
         result = {'status': 'market_closed', 'market': args.market,
                   'phase': args.phase, 'date': today, 'reason': reason, 'skip': True}
         TMP.mkdir(parents=True, exist_ok=True)
@@ -339,10 +351,7 @@ def main(argv=None):
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'failed', slot=slot,
-            return_code=rc,
-        )
+        record_preflight('failed', return_code=rc)
         result = {
             'status': 'preflight_failed',
             'market': args.market,
@@ -459,10 +468,7 @@ def main(argv=None):
     drop_stale_contexts(args.market, args.phase, today)
     out_path = context_path(args.market, args.phase, today)
     safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
-    workflow_outcomes.record_stage(
-        job_name, 'preflight', 'success', slot=slot,
-        context_id=result['context_id'],
-    )
+    record_preflight('success', context_id=result['context_id'])
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     announce_context_path(out_path)

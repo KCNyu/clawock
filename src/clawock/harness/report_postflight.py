@@ -100,7 +100,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    delivered_channels,
+    delivered_channels, slot_shipped,
     claim_send, log, send_per_policy, send_under_claim,
 )
 
@@ -384,9 +384,11 @@ def main(argv=None):
     today = trading_calendar.hkt_today().isoformat()
     report_marker = delivery_receipts.receipt_path(TMP, 'report', market=args.market,
                                                    phase=args.phase, date=today)
+    # Asked before this run can send: see slot_shipped.
+    shipped = slot_shipped(TMP, 'report', market=args.market, phase=args.phase, date=today)
 
     text, in_err = read_prose_text(args.market, args.phase, args.text_file)
-    if in_err and already_delivered(report_marker):
+    if in_err and shipped:
         return _skip_delivered_slot(args, today, 'input_error', in_err)
     if in_err:
         workflow_outcomes.record_stage(
@@ -417,7 +419,7 @@ def main(argv=None):
     # message and then crash on ctx['commit_msg']. Reject before any send/commit,
     # non-zero, so the run record shows preflight is the breakage. (2026-07-24 review.)
     ctx_bad = ctx_err or _unusable_context(ctx)
-    if ctx_bad and already_delivered(report_marker):
+    if ctx_bad and shipped:
         return _skip_delivered_slot(args, today, 'preflight_error', ctx_bad)
     if ctx_bad:
         workflow_outcomes.record_stage(
@@ -466,16 +468,6 @@ def main(argv=None):
     escalating, advisories = split_advisory(issues)
     # What shipped, not what the checker noticed — see product_status (#1076).
     product = product_status(status, escalating)
-    workflow_outcomes.record_stage(
-        job_name,
-        'llm',
-        'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
-        slot=slot,
-        context_id=ctx.get('context_id'),
-        issue_count=len(issues),
-        escalating_count=len(escalating),
-        advisory_count=len(advisories),
-    )
     if status == 'pass' or not escalating:
         banner = ''
     elif status == 'warn':
@@ -528,6 +520,26 @@ def main(argv=None):
                   f'data block with the validated report', file=sys.stderr)
             blocked = False
             upgrading = True
+
+    # From here the slot's stages belong to this run only if it is the one
+    # delivering (or upgrading) it. A retry of a slot that already went out
+    # still commits the data plane, but its verdict on its own prose is not
+    # what kcn received: filed, a rejected rewrite named the delivered report
+    # 「模型链失败后兜底出货」, the #2961 shape through the validation door.
+    if blocked:
+        print(f'idempotency: {args.market}-{args.phase} already delivered — this attempt '
+              f'({status}) files no stage over the delivered slot', file=sys.stderr)
+    else:
+        workflow_outcomes.record_stage(
+            job_name,
+            'llm',
+            'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
+            slot=slot,
+            context_id=ctx.get('context_id'),
+            issue_count=len(issues),
+            escalating_count=len(escalating),
+            advisory_count=len(advisories),
+        )
 
     send_claim = 'not-required'
     # True when claim_send refused this process the send right: it then holds no
@@ -594,7 +606,7 @@ def main(argv=None):
     # A declined claim process records nothing: the concurrent holder owns this
     # verdict, and a late false `failed` would stand forever because receipt
     # reconciliation only fills unknown stages (#1006).
-    if not claim_declined:
+    if not claim_declined and not blocked:
         _, telegram_ok = delivery_receipts.channels(
             delivery_receipts.read_receipt(report_marker))
         workflow_outcomes.record_primary_delivery(
@@ -634,21 +646,22 @@ def main(argv=None):
     # Even a rejected prose report can have a successful postflight: the harness
     # deliberately delivers its deterministic data block. Preserve that degraded
     # product instead of collapsing it into the LLM's failure.
-    workflow_outcomes.record_stage(
-        job_name,
-        'postflight',
-        'success'
-        if product == 'pass' and data_plane_status in {'published', 'current'}
-        else 'warning',
-        slot=slot,
-        delivered=result['delivered'],
-        data_plane_status=data_plane_status,
-        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
-        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
-        issue_count=len(issues),
-        escalating_count=len(escalating),
-        advisory_count=len(advisories),
-    )
+    if not blocked:
+        workflow_outcomes.record_stage(
+            job_name,
+            'postflight',
+            'success'
+            if product == 'pass' and data_plane_status in {'published', 'current'}
+            else 'warning',
+            slot=slot,
+            delivered=result['delivered'],
+            data_plane_status=data_plane_status,
+            unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+            unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
+            issue_count=len(issues),
+            escalating_count=len(escalating),
+            advisory_count=len(advisories),
+        )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if data_plane_status not in {'published', 'current'}:
         return 2

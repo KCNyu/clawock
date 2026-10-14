@@ -38,7 +38,8 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
     return overlay
 
 
-def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, price_refresh_failed=False):
+def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, price_refresh_failed=False,
+                    shipped=False, rejected=False):
     today = '2026-09-14'
     monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
                         lambda: date.fromisoformat(today))
@@ -50,6 +51,10 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
     context_path.write_text(json.dumps(context))
     (context_path.parent / f'brief-judgment-{today}.json').write_text(
         json.dumps(_filled_judgment(), ensure_ascii=False))
+    if shipped:
+        # An earlier attempt of today's brief delivered the card.
+        (context_path.parent / f'brief-sent-{today}.json').write_text(
+            json.dumps({'ts': 1, 'sent_ok': True, 'tg_ok': True}))
 
     stages = []
     commits = []
@@ -88,7 +93,10 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
         'normalize_plan_json',
         lambda *_a, **_k: ([], {'decisions': []}),
     )
-    monkeypatch.setattr(postflight, 'validate_plan_json', lambda *_a, **_k: [])
+    monkeypatch.setattr(postflight, 'validate_plan_json',
+                        lambda *_a, **_k: ['plan rejected (fixture)'] if rejected else [])
+    if rejected:
+        monkeypatch.setattr(postflight, 'categorize', lambda _issues: 'fail')
     monkeypatch.setattr(postflight, 'already_delivered', lambda _path: True)
 
     def maybe_commit(status, _today, dry_run=False):
@@ -182,3 +190,42 @@ def test_failed_price_refresh_blocks_publication_before_normalization_or_deliver
     assert gate['publish_ok'] is False and gate['reason'] == failure
     assert commits == []
     assert [(stage, state) for _, stage, state, _ in stages] == [('postflight', 'failed')]
+
+
+@pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])
+def test_a_failed_refresh_after_the_card_shipped_is_not_filed_over_it(
+    tmp_path, monkeypatch, capsys, failure
+):
+    """The early exit still refuses to publish; it just reads the receipt first.
+
+    A re-run after today's card went out (an openclaw retry of the turn, a
+    later manual run) used to file `postflight=failed` over the delivered
+    slot, the #2961 shape on the brief path.
+    """
+    code, result, gate, commits, stages = _run_postflight(
+        tmp_path, monkeypatch, capsys, price_refresh_failed=failure, shipped=True)
+
+    assert code == 0
+    assert result['status'] == 'already_delivered' and result['reason'] == failure
+    assert gate['publish_ok'] is False and gate['reason'] == failure
+    assert commits == []
+    assert stages == []
+
+
+def test_a_rejected_retry_after_the_card_shipped_files_no_stage(
+    tmp_path, monkeypatch, capsys
+):
+    """Not llm/postflight failed, and not primary_delivery=not_required either."""
+    code, result, gate, commits, stages = _run_postflight(
+        tmp_path, monkeypatch, capsys, rejected=True)
+    assert [(stage, state) for _, stage, state, _ in stages] == [
+        ('llm', 'failed'), ('postflight', 'failed'), ('primary_delivery', 'not_required')]
+
+    stages.clear()
+    commits.clear()
+    code, result, gate, commits, stages = _run_postflight(
+        tmp_path / 'shipped', monkeypatch, capsys, rejected=True, shipped=True)
+
+    assert result['status'] == 'fail' and gate['publish_ok'] is False
+    assert commits == [('fail', False)]
+    assert stages == []
