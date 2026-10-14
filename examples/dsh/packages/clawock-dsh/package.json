@@ -1,7 +1,7 @@
 {
   "name": "clawock-dsh",
   "version": "0.3.1",
-  "description": "Investment decision skills, trade-to-plan views, and a background task panel for DeepSeek Harness (dsh).",
+  "description": "Investment decision skill, trade-to-plan views, and a background task panel for DeepSeek Harness (dsh).",
   "license": "MIT",
   "repository": {
     "type": "git",
