@@ -475,9 +475,10 @@ def _expected(naive: bool):
 
     Python 3.12 made `sum` of floats compensated. The factor row rounds moving
     averages to three places, and a sum that lands on a rounding boundary goes
-    one way under 3.11 and the other from 3.12 on. The desk host runs 3.12 and
-    CI runs 3.11, so both are recorded: `goldens.json` is the compensated sum,
-    and `naive_sum` lists the cells that read differently without it.
+    one way under 3.11 and the other from 3.12 on. The desk host and CI run
+    3.12 and the package still installs on 3.11, so both are recorded:
+    `goldens.json` is the compensated sum, and `naive_sum` lists the cells that
+    read differently without it.
     """
     document = json.loads(GOLDENS.read_text())
     expected = document['outputs']

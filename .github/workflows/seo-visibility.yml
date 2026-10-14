@@ -46,7 +46,6 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.12'
           install: '.[seo]'
 
       - name: Query Search Console
