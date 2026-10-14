@@ -372,7 +372,9 @@ parameters and what reaches their model.
 
 A stage's `pending` start marker never replaces an outcome already recorded for
 that stage; the later run's own outcome does, so a re-run mapped to the same slot
-cannot erase the shipped attempt's preflight.
+cannot erase the shipped attempt's preflight. A report postflight retry whose
+input broke after an earlier attempt delivered the slot leaves that attempt's
+stages as they are and exits as an idempotent skip.
 
 Workflow outcomes use the published ledger only when the local ledger is absent.
 An existing but unreadable local ledger produces an empty view with
