@@ -33,6 +33,12 @@ def _builder():
 def test_committed_diagrams_match_their_builder():
     assert _builder().main(['--check']) == 0, (
         'run `python3 site/tools/build_readme_diagrams.py` and commit the SVGs')
+    spec = importlib.util.spec_from_file_location(
+        'build_dsh_task_tour', ROOT / 'site/tools/build_dsh_task_tour.py')
+    tour = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tour)
+    assert (ROOT / 'site/assets/dsh-task-tour.svg').read_text() == tour.render(), (
+        'run `python3 site/tools/build_dsh_task_tour.py` and commit the SVG')
 
 
 def test_rsi_views_share_the_house_style_and_stay_small():

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "clawock"
 version = "0.3.1"
-description = "Agent-native decision workflow with a verifiable harness and pluggable strategies whose parameter searches can only propose"
+description = "Investment workflows for AI agents: evidence, opposing cases, and outcomes checked by Python."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }

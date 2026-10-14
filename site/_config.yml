@@ -1,5 +1,5 @@
 title: clawock
-description: Agent-native investment decision workflows with deterministic reconciliation and a live HK + US proof
+description: "Investment workflows for AI agents: evidence, opposing cases, and outcomes checked by Python."
 url: https://kcnyu.github.io
 baseurl: /clawock
 # Site-root relative on purpose: jekyll-seo-tag prepends url+baseurl itself,
