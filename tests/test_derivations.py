@@ -291,8 +291,18 @@ class TestRecomputeAggregates:
         ra.recompute(d, dry_run=False, percent_rounding={"us_stocks": 4})
         us = d["portfolios"]["us_stocks"]
         assert us["total_cost"] == 230.0                   # 130 + 2*50
-        assert us["total_current_value"] == 180.0          # the row carries no value
+        # #2967: valued at its cost until a first quote, as the quote writers
+        # total it; at 0 its whole cost read as a loss in the leg's P&L.
+        assert us["total_current_value"] == 280.0          # 180 + 2*50
+        assert us["total_pnl"] == 50.0
         assert "current_value" not in us["holdings"][-1]
+
+    def test_a_row_whose_quote_dropped_keeps_the_value_it_carries(self):
+        d = self._book()
+        d["portfolios"]["us_stocks"]["holdings"].append(
+            {"ticker": "STALE", "shares": 2, "cost_basis": 50.0, "current_value": 90.0})
+        ra.recompute(d, dry_run=False, percent_rounding={"us_stocks": 4})
+        assert d["portfolios"]["us_stocks"]["total_current_value"] == 270.0
 
     def test_an_empty_book_agrees_with_the_quote_writers_and_converges(self):
         """#1856: us_quotes/hk_analysis write 0 on a zero-cost book; recompute

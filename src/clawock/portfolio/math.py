@@ -27,6 +27,21 @@ def active_holdings(holdings: Iterable[Mapping[str, Any]]) -> list[Mapping[str, 
             if (number(holding.get("shares")) or 0) > 0]
 
 
+def carried_value(holding: Mapping[str, Any]) -> float:
+    """An active row's market value as the book carries it.
+
+    Its `current_value`, or its cost until a first quote prices it: the rule
+    the quote writers and the guardrail already total by. Counting such a row's
+    cost while valuing it at 0 put a whole position's cost into the leg's P&L
+    as a loss (#2967).
+    """
+    value = number(holding.get("current_value"))
+    if value is not None:
+        return value
+    shares, cost = number(holding.get("shares")), number(holding.get("cost_basis"))
+    return shares * cost if shares is not None and cost is not None else 0
+
+
 def moving_average_cost(trades: Iterable[Mapping[str, Any]]) -> tuple[float | None, float]:
     """Replay buys/sells and return the remaining moving-average cost and shares."""
     shares = 0.0

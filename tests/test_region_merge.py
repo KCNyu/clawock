@@ -59,7 +59,7 @@ def test_a_trade_and_cash_written_during_the_fetch_survive_with_the_new_quote():
     # on the newer share count rather than carried over from the stale read.
     assert row["current_price"] == 9.0 and row["data_source"] == "synthetic 10:00"
     assert row["current_value"] == 135.0
-    assert region["total_current_value"] == 135.0
+    assert region["total_current_value"] == 137.0  # 135 + the quote-less row at cost (#2967)
     assert region["total_cost"] == 77.0          # 15 * 5 + the quote-less row's 1 * 2
 
 

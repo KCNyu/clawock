@@ -32,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-from clawock.portfolio.math import active_holdings, number, ledger_rows, day_pnl, holding_session, session_date, ledger_date
+from clawock.portfolio.math import active_holdings, carried_value, number, ledger_rows, day_pnl, holding_session, session_date, ledger_date
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -125,10 +125,11 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                 # No quote yet: nothing to derive, but the row is still in the
                 # book. Dropping it from the totals made this command write a
                 # total_cost its own COST_TOTAL gate then refused (#2628). Its
-                # value is whatever the row carries, as TCV_SUM reads it.
+                # value is the one it carries, or its cost before a first quote
+                # (#2967), as TCV_SUM reads it.
                 if cb is not None:
                     sum_cost += sh * cb
-                sum_cv += number(h.get('current_value')) or 0
+                sum_cv += carried_value(h)
                 continue
             cv = _r(sh * cp)
             sum_cv += cv
