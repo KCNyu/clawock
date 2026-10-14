@@ -213,12 +213,14 @@ did not clear. No listener is shipped.
 A signal source is a plugin whose readings reach a decision. Each carries a
 module-level `SIGNAL_SOURCE`, and a row marked `"signal_source": true` is not
 mounted unless that declaration passes `plugin_host/declarations.validate`.
-Six are shipped:
+Eight are shipped (`clawock strategy-lab sources` lists them):
 
 | Row | Family | Reads | Without its inputs |
 |---|---|---|---|
 | `factors` (live) | `factor` | daily bars from `daily_bars` (forward-adjusted) or `memory/bars` (raw) | `signals()` is `None` below 30 usable bars, `short_history()` below 20; above that an unmeasurable field is null |
+| `daily-bars` (live) | `technical` | Tencent daily OHLC, qfq or raw per the row's adjustment; no volume | a failed fetch is an empty list with the reason on stderr; invalid price rows are dropped; old numbers are never served |
 | `bar-signals` (live) | `technical` | daily bars and the index of the session | an undefined estimator is null, never zero; the two moments are left out of the row |
+| `preposition` (live) | `technical` | latest completed-session bars of the held names from `memory/bars` (raw), the `factors` service, and the authorised policy in `config/preposition-policy.json` | a name whose bars are missing, stale or suspect is `unavailable` with the reason; an unmeasurable field is null and its setup is refused; old numbers are never served |
 | `rsi` (research) | `strategy` | closes up to the signal session, `period` and `direction` from the row | null below `period + 1` closes; the name is not ranked that session |
 | `sentiment` (live) | `sentiment` | `sentiment.json` and `influencer_feed.json`, produced off-host | the reading is empty and `status` says `missing`, `stale` or `unreadable` |
 | `morning-scans` (live) | `sentiment` | `macro.json` and `em_news.json` for the brief; every scan file as a document for the other readers | the same four statuses; a file that cannot be parsed has no payload |

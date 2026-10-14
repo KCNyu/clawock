@@ -227,7 +227,7 @@ These are installed commands too. They are listed here so the catalog is the who
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜最后一档始终是 02:33 HKT）
 - **`clawock intraday preflight --market {hk|us} [--judgment-packet]`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；落盘完整的 `memory/.tmp/intraday-context-{market}-latest.json`。`--judgment-packet` 使 stdout 输出判断核心包与 `index.references`；peer_scan/t0/雷达/信号明细/上次状态/information_full 等参考层留在完整 context，按需用 `clawock tool intraday_reference --arg market=hk --arg context_id=ID --arg entry=NAME [--arg ticker=TICKER]` 读取，不能把核心包当作全量参考层。
-- **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。`--context-id` 必填：legacy 整报告输入形态（模型交整篇、事后 verbatim 校验数据块）已在 #1279 删除，省略即 argparse 报错退出 2。
+- **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；context 可用（`status: ok`）的每个 slot（含散文被拒、`no_change` 的 slot）都把 `portfolio.json`、当天 `memory/snapshots/<date>.json` 与 `logs/dashboard_build_status.json` 一起 commit + push 到 master（preflight 每档都刷新报价、改写账本，所以实际每档都有提交；#2325/#2355）；dashboard 产物只走 data plane，`dashboard-build --skip-if-unchanged` 在输入未变时跳过重建；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。`--context-id` 必填：legacy 整报告输入形态（模型交整篇、事后 verbatim 校验数据块）已在 #1279 删除，省略即 argparse 报错退出 2。
 
 **共通设计点**：
 - `raw_wechat_block`：**Mode 6 报告**（report_postflight）由 harness 自己拼进消息，LLM 只写散文、不碰数据块；**intraday**（intraday_postflight）同样由 harness 拼装，LLM 只写散文（模型 verbatim 拷贝数据块的 legacy 形态已在 #1279 删除）
@@ -743,8 +743,9 @@ clawock entry-gate assess path
 
 所有 harness preflight/postflight 的实现都在 `src/clawock/harness/`，统一从安装后的
 `clawock` CLI 调用。Mode 6 / brief / Mode 7 的 postflight
-都会重建 dashboard；Mode 7 不提交 `portfolio.json`，dashboard 只发布语义变化，但每个
-受监控 slot 的 heartbeat 都会发布并由 cron health 对账。
+都会重建 dashboard（输入未变时 `--skip-if-unchanged` 跳过）；Mode 7 每个 context 可用的 slot
+都把 `portfolio.json` 连同当天快照与 build status 提交并推送，每个受监控 slot 的
+heartbeat 都会发布并由 cron health 对账。
 
 cron payload 是真实执行面，会为隔离 session 自包含关键步骤；SKILL.md 是详细规范。完整 prompt
 模板在 `config/cron-payloads/`，job 变量、model/fallback/thinking/tools/schedule 则由
