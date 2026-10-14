@@ -547,6 +547,9 @@ test("client: P&L formatting matches the dashboard", async () => {
   assert.equal(api._fmtPct(12.345), "+12.35%");
   assert.equal(api._fmtPct(0.5), "+0.50%");
   assert.equal(api._fmtPct(null), "—");
+  // One loss, one glyph: the rate under an amount reads with the same minus (#2957).
+  assert.equal(api._fmtPct(-7.269), "−7.27%");
+  assert.equal(api._fmtPct(-7.26, 1), "−7.3%");
 });
 
 test("client: trace keys stay stable when a filter removes earlier same-day rows", async () => {
@@ -1737,6 +1740,10 @@ test("locale: a previous-version host omits the structured fields and still rend
     },
   };
   const t = api.createTranslator(api.dictionaries.en);
+  // An overdrawn balance keeps its minus outside the currency symbol (#2957).
+  const overdrawn = { ...legacy, snapshot: { ...legacy.snapshot, unit: "money", currency: "USD",
+    totalBalance: "-12.34", windows: [] } };
+  assert.equal(api._rowDisplay(overdrawn, t).value, "−$12.34");
   const row = api._rowDisplay(legacy, t);
   assert.match(row.title, /周 76% used/, "the host's label is passed through, not turned into NaN");
   assert.match(row.title, /resets 9\/21 周一 00:00/, "the host's stamp is passed through");

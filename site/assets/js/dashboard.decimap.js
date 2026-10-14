@@ -51,14 +51,14 @@
   }
   function fmt(value, digits) {
     if (value === null || value === undefined || isNaN(value)) return '—';
-    return Number(value).toFixed(digits === undefined ? 2 : digits);
+    return fixed(Number(value), digits === undefined ? 2 : digits);
   }
   function signed(value, digits) {
     if (value === null || value === undefined || isNaN(value)) return '—';
-    return (value >= 0 ? '+' : '') + Number(value).toFixed(digits === undefined ? 2 : digits);
+    return (value >= 0 ? '+' : '') + fixed(Number(value), digits === undefined ? 2 : digits);
   }
   function pct(value) {
-    return value === null || value === undefined ? '—' : (value * 100).toFixed(0) + '%';
+    return value === null || value === undefined ? '—' : fixed(value * 100) + '%';
   }
   function actionClass(action) {
     if (BUY[action]) return 'is-buy';
@@ -271,7 +271,7 @@
             + fmt(card.max_snapshot_age_sessions, 0) + ' session') + '">'
         + '<div class="dm-covbar"><i style="width:'
         + Math.min(100, card.decision_coverage_pct).toFixed(1) + '%"></i></div>'
-        + '<span class="dm-covtext">' + card.decision_coverage_pct.toFixed(1) + '% · '
+        + '<span class="dm-covtext">' + fixed(card.decision_coverage_pct, 1) + '% · '
         + card.decisions_joined + '</span></td>';
       actions.forEach(function (action) { body += cellHtml(row, action, horizon); });
       body += (showIc ? icHtml(row, horizon) : '') + '</tr>';
@@ -288,7 +288,7 @@
       + '<span style="background:color-mix(in oklab, var(--dm-pos) 62%, var(--card))"></span>'
       + '</span>'
       + '<span>底色 = 中位 ' + esc(horizon) + ' 收益，满色 ≥±'
-      + state.scale.toFixed(1) + '%；格里上行是决策条数 n。悬停看已结算条数与胜率。</span>';
+      + fixed(state.scale, 1) + '%；格里上行是决策条数 n。悬停看已结算条数与胜率。</span>';
 
     var caveat = (d.signal_panel || {}).interval_caveat;
     var selection = ((d.signal_panel || {}).selection || {})[horizon];
@@ -296,7 +296,7 @@
       + '可能是它促成了砍单，也可能是砍单那天恰好什么信号都在。';
     if (selection && selection.status === 'measured' && selection.pbo !== null
         && selection.pbo !== undefined) {
-      text += ' 在这个横期上挑赢家的过拟合概率 <b>PBO ' + selection.pbo.toFixed(2)
+      text += ' 在这个横期上挑赢家的过拟合概率 <b>PBO ' + fixed(selection.pbo, 2)
         + '</b>（' + selection.n_splits + ' 次对半切分）'
         + (selection.pbo >= 0.5 ? '——<b>还不能挑赢家</b>。' : '。');
     }

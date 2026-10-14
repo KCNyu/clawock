@@ -229,7 +229,8 @@
             color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"),
             formatter: value => {
               const symbol = currency === "USD" ? "$" : "HK$";
-              return symbol + (Math.abs(value) >= 1000 ? (value / 1000).toFixed(1) + "k" : Math.round(value));
+              return (value < 0 ? MINUS : "") + symbol
+                + (Math.abs(value) >= 1000 ? fixed(Math.abs(value) / 1000, 1) + "k" : Math.round(Math.abs(value)));
             },
           },
         }),
@@ -379,7 +380,7 @@
       benchmarkTable.className = "benchmark-scorecard";
       card.appendChild(benchmarkTable);
     }
-    const formatScore = value => Number.isFinite(value) ? value.toFixed(2) : "—";
+    const formatScore = value => Number.isFinite(value) ? fixed(value, 2) : "—";
     const labels = { all: "全部", active: "主动", passive: "持有/观察", followed: "已跟随", followed_active: "已跟随主动" };
     const benchmarkRows = Object.entries(episodeBacktest().horizons || {}).flatMap(([horizon, buckets]) =>
       Object.entries(labels).map(([key, label]) => {
@@ -423,7 +424,7 @@
         grid: { left: isMobile ? 42 : 52, right: isMobile ? 16 : 24, top: 34, bottom: wrDates.length > 6 ? 48 : 26 },
         legend: { data: ["全量AI胜率", "主动AI胜率", "50%参考"], top: 0,
           textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
-        tooltip: { ...chartTooltip("axis", "cross"), valueFormatter: v => v == null ? "—" : v.toFixed(1) + "%" },
+        tooltip: { ...chartTooltip("axis", "cross"), valueFormatter: v => v == null ? "—" : fixed(v, 1) + "%" },
         xAxis: chartAxis({ type: "category", data: wrDates, boundaryGap: false,
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: wrDates.length > 6 ? 35 : 0,
             hideOverlap: true, formatter: (v) => (v || "").slice(5) } }),
@@ -462,9 +463,10 @@
 
     const finite = v => v != null && Number.isFinite(Number(v));
     const moneyAxis = (v, cur) =>
-      cur + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : Math.round(v));
+      (v < 0 ? MINUS : "") + cur
+        + (Math.abs(v) >= 1000 ? fixed(Math.abs(v) / 1000, 1) + "k" : Math.round(Math.abs(v)));
     const moneyTip = (v, cur) =>
-      cur + Number(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+      (v < 0 ? MINUS : "") + cur + Math.abs(Number(v)).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
     function scheduleDraw() {
       if (frame) cancelAnimationFrame(frame);
@@ -548,7 +550,7 @@
       const ddDigits = ddStep >= 1 ? 0 : ddStep >= 0.2 ? 1 : 2;
       const ddLabel = v => {
         const snapped = Math.abs(v) < Math.pow(10, -ddDigits) / 2 ? 0 : v;
-        return snapped.toFixed(ddDigits) + "%";
+        return fixed(snapped, ddDigits) + "%";
       };
       for (let i = 0; i <= 4; i++) {
         const y = top + i * plotH / 4;
@@ -690,18 +692,18 @@
       const dd = model.dd[hoverIndex];
       const ddAbs = model.ddAbs[hoverIndex];
       let ddText = DASH;
-      if (finite(dd)) ddText = Number(dd).toFixed(2) + "%";
+      if (finite(dd)) ddText = fixed(Number(dd), 2) + "%";
       else if (finite(ddAbs)) {
         const amount = Number(ddAbs);
-        ddText = `${amount < 0 ? "−" : ""}${moneyTip(Math.abs(amount), model.cur)}` +
+        ddText = `${moneyTip(amount, model.cur)}` +
           ` <span class="muted">(% 不适用)</span>`;
       }
       rows.push(`<span style="color:${model.negative}">●</span> 回撤: <b>${ddText}</b>`);
       const change = model.change[hoverIndex];
       if (finite(change)) {
-        const sign = Number(change) >= 0 ? "+" : "-";
+        const sign = Number(change) >= 0 ? "+" : MINUS;
         const pct = model.changePct[hoverIndex];
-        const pctText = finite(pct) ? ` (${sign}${Math.abs(Number(pct)).toFixed(2)}%)` : "";
+        const pctText = finite(pct) ? ` (${sign}${fixed(Math.abs(Number(pct)), 2)}%)` : "";
         rows.push(`总利润较昨日: <b>${sign}${moneyTip(Math.abs(change), model.cur)}</b>${pctText}`);
       } else if (hoverIndex === 0) rows.push("总利润较昨日: <b>首日</b>");
       tooltip.innerHTML = `<b>${escapeHtml(model.dates[hoverIndex])}</b><br>${rows.join("<br>")}`;
@@ -953,7 +955,7 @@
       { name: "恒科等值", values: hst.line, color: hkColor, width: 1.4, opacity: .85 });
     const triggerLabel = triggerLvl == null ? "" :
       `恒科200线触发 ${Math.round(hstech200)}` +
-      (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${reclaimPct.toFixed(0)}%）` : "");
+      (reclaimPct != null ? `（需${reclaimPct >= 0 ? "+" : ""}${fixed(reclaimPct)}%）` : "");
     charts.equity.setModel({
       view, dates, lines, dd: ddPct, ddAbs, change: chg, changePct: chgPct, cur,
       positive: green, negative: red, warning: hkColor,
@@ -1004,9 +1006,10 @@
       value: v,
       itemStyle: { color: v == null ? accent : (v >= 0 ? green : red), opacity: 0.85 },
     }));
-    const axisMoney = v => (v < 0 ? "-" : "") + cur +
-      (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1) + "k" : Math.abs(v));
-    const tipMoney = v => cur + v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    const axisMoney = v => (v < 0 ? MINUS : "") + cur +
+      (Math.abs(v) >= 1000 ? fixed(Math.abs(v) / 1000, 1) + "k" : Math.abs(v));
+    const tipMoney = v => (v < 0 ? MINUS : "") + cur
+      + Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
     const isMobile = window.innerWidth < 1024;
     // 天数 >30 后启用底部缩放滑块，默认显示最近 ~30 天，可拖动看全程。
@@ -1107,7 +1110,7 @@
           const members = p.data._members?.length
             ? `<br><span style="color:${getCSS("--text-secondary")}">${p.data._members.join(" · ")}</span>`
             : "";
-          return `${p.name}<br>${p.value.toLocaleString()} (${p.data._pct?.toFixed(1)}%)${members}`;
+          return `${p.name}<br>${p.value.toLocaleString()} (${p.data._pct == null ? DASH : fixed(p.data._pct, 1)}%)${members}`;
         },
       },
       // Beside the donut on a wide card. On a phone a one-row scrolling legend
@@ -1185,7 +1188,8 @@
       xAxis: chartAxis({
         type: "value",
         axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), hideOverlap: true,
-          formatter: (v) => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : v) },
+          formatter: (v) => (v < 0 ? MINUS : "") + "$"
+            + (Math.abs(v) >= 1000 ? fixed(Math.abs(v) / 1000, 1) + "k" : Math.abs(v)) },
       }),
       yAxis: chartAxis({
         type: "category", data: cats, inverse: true,
@@ -1315,7 +1319,7 @@
                   : "No data";
           return `<b>${p.data.name}</b> (${p.data._region.toUpperCase()})<br>
             weight within ${p.data._region.toUpperCase()} leg: ${p.value[0]}%<br>
-            conf: ${p.data._confidence == null ? "n/a" : p.data._confidence.toFixed(1) + "%"}<br>
+            conf: ${p.data._confidence == null ? "n/a" : fixed(p.data._confidence, 1) + "%"}<br>
             n_actions: ${p.value[2]}<br>
             <span style="color:${p.color}">${q}</span>`;
         },

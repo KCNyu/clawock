@@ -34,6 +34,13 @@ export function _usedLevel(percent: number | null, threshold: number): UsedLevel
 }
 
 /**
+ * The sign of a printed number: U+2212, outside the currency symbol. The
+ * dashboard's `fmtMoney` set the rule (#2672); the chip printed `$-12.34` and
+ * the rate formatter an ASCII hyphen until #2957.
+ */
+export const MINUS = '−'
+
+/**
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.
@@ -59,7 +66,7 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
     : []
   const parsed = Number.parseFloat(snapshot.totalBalance)
   const value = isFinite(parsed)
-    ? (isPct ? String(Math.round(parsed)) + '%' : symbol + parsed.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+    ? (isPct ? String(Math.round(parsed)) + '%' : (parsed < 0 ? MINUS : '') + symbol + Math.abs(parsed).toLocaleString(undefined, { maximumFractionDigits: 2 }))
     : pctWins.length > 0
       ? String(Math.round(pctWins[0].percent as number)) + '%'
       : (snapshot.totalBalance === '' ? '—' : symbol + snapshot.totalBalance)

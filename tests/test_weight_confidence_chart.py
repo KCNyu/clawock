@@ -7,6 +7,8 @@ def test_weight_axis_contains_current_positions_and_ghosts():
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const source = fs.readFileSync('site/assets/js/dashboard.charts.js', 'utf8');
+const core = fs.readFileSync('site/assets/js/dashboard.core.js', 'utf8');
+const signOwner = core.match(/^  const MINUS = .*$/m)[0] + '\n' + core.match(/^  const fixed = .*$/m)[0] + '\n';
 const begin = source.indexOf('  function placeBubbleLabels(');
 const end = source.indexOf('\n  }', source.indexOf('  function renderWeightConfidence()')) + 4;
 for (const weight of [0, 57, 86.64, 100]) {
@@ -20,7 +22,7 @@ for (const weight of [0, 57, 86.64, 100]) {
       chartTooltip: () => ({}), chartAxis: x => x,
       chartGridColor: () => '', chartLabelColor: () => '', chartTextColor: () => '',
     };
-    new Function(...Object.keys(environment), source.slice(begin, end) + '\n;renderWeightConfidence();')(...Object.values(environment));
+    new Function(...Object.keys(environment), signOwner + source.slice(begin, end) + '\n;renderWeightConfidence();')(...Object.values(environment));
     assert.equal(option.series[0].data.length, 1);
     const point = option.series[0].data[0];
     const tip = option.tooltip.formatter({data: point, value: point.value});

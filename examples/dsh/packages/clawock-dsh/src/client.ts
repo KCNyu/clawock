@@ -34,7 +34,7 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, MINUS, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts'
 
@@ -234,7 +234,7 @@ export function _fmtMoney(value: number | null, currency = ''): string {
   const formatted = Math.abs(value) >= 1000
     ? Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 0 })
     : Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 2 })
-  return (value < 0 ? '−' : '') + symbol + formatted
+  return (value < 0 ? MINUS : '') + symbol + formatted
 }
 
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
@@ -246,7 +246,7 @@ function fmtPrice(value: number | null, sym = ''): string {
 /** Dashboard-parity percentage formatter (test seam). */
 export function _fmtPct(value: number | null, digits = 2): string {
   if (value === null || !isFinite(value)) return '—'
-  return (value >= 0 ? '+' : '') + value.toFixed(digits) + '%'
+  return (value >= 0 ? '+' : MINUS) + Math.abs(value).toFixed(digits) + '%'
 }
 
 /** One row of the list: the wire trade projected onto what the view renders. */

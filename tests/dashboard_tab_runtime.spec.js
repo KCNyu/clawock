@@ -2185,6 +2185,63 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
   }
 }
 
+async function testALossReadsWithOneMinusOnEveryTab(browser, base) {
+  // #2957: `−$7,269` sat on the float-rate card directly above `-7.27%` — the
+  // amount through `fmtMoney` (U+2212), the rate through `toFixed` (ASCII
+  // hyphen). A reader takes two glyphs for two kinds of number. The fix gave
+  // the sign one owner (`MINUS` / `fixed` in dashboard.core.js); this is what
+  // keeps the next formatter written in place from forking it again.
+  //
+  // Measured where a number is the whole cell: a KPI value, a table cell, a
+  // chip. A sentence is not judged — rationale, guardrail and narrative lines
+  // arrive in the payload as their producer wrote them, hyphens included, and
+  // a gate over quoted prose goes red on what somebody said, not on what the
+  // page formatted (the lesson VALUE_LEAK_PATTERNS records above).
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  const state = observe(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  const scan = () => page.evaluate(() => {
+    const NUMBER = /^-(?:HK\$|[$¥])?[\d.,]+\s*(?:%|pp|bps|k|×|x|σ|倍|股)?$|^(?:HK)?[$¥]-[\d.]/;
+    const out = { hits: [], signed: 0 };
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.parentElement.closest("script, style, noscript")) continue;
+      const text = node.textContent.trim();
+      if (/^−(?:HK\$|[$¥])?[\d.]/.test(text)) out.signed += 1;
+      if (!NUMBER.test(text)) continue;
+      const holder = node.parentElement.closest("[id]");
+      out.hits.push(`${holder ? holder.id : "?"}: ${text.slice(0, 40)}`);
+    }
+    return out;
+  });
+  const hits = [];
+  let signed = 0;
+  for (const tab of ["hero", ...TABS]) {
+    if (tab !== "hero") {
+      await clickTab(page, tab);
+      await waitForTab(page, tab);
+    }
+    // Rows that open on a tap and cards that fold are the page too.
+    await page.evaluate(() => {
+      document.querySelectorAll("details").forEach(d => { d.open = true; });
+      document.querySelectorAll('tr.book-row[data-open="0"]').forEach(row => row.click());
+    });
+    const found = await scan();
+    hits.push(...found.hits.map(hit => `${tab} · ${hit}`));
+    signed += found.signed;
+  }
+  assert.deepEqual([...new Set(hits)], [],
+    "a negative number was printed with an ASCII hyphen — format it with fixed/numText/fmtPct/fmtMoney");
+  // Vacuous on a book with no losses, so say so instead of passing.
+  assert(signed > 0, "no cell on any tab printed a negative number; the payload cannot exercise this contract");
+  assert.deepEqual(state.errors, [], "a renderer threw while every tab was walked");
+  await context.close();
+}
+
 // 验证台账（Reflect）。这张卡的可读性就是它的全部价值：判定分三种、样本/来源
 // 各一行、每节 6–9 个数字行、最后一段读数。原来的独立页把这些压进一张
 // markdown 表，所以这里断言的是**结构**——判定可见、tone 正确、读数里没有
@@ -4263,7 +4320,7 @@ async function testBenchmarkScoresShowBothDenominators(browser, base) {
     await page.waitForSelector(".benchmark-scorecard tbody tr");
     const rows = await page.locator(".benchmark-scorecard tbody tr").allTextContents();
     assert.equal(rows.length, 5);
-    assert.match(rows[2], /-3\.00%2\.00pp50\.00% \(2\/4\)30\.00% \(3\/10\)/);
+    assert.match(rows[2], /−3\.00%2\.00pp50\.00% \(2\/4\)30\.00% \(3\/10\)/);
     assert.match(rows[4], /1\.00%—pp0\.00% \(0\/2\)/);
     assert.deepEqual(errors, []);
   } finally { await page.close(); }
@@ -4331,6 +4388,7 @@ async function main() {
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
+    await run("testALossReadsWithOneMinusOnEveryTab", () => testALossReadsWithOneMinusOnEveryTab(browser, base));
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
     await run("testUncountedDueSlotsAreNotAllDelivered", () => testUncountedDueSlotsAreNotAllDelivered(browser, base));

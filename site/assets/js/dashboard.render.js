@@ -198,7 +198,7 @@
             `${escapeHtml(ADD_VERDICT_LABEL[row.verdict] || row.verdict || DASH)}</span></td>` +
             `<td class="add-why-cell">${escapeHtml(row.why || DASH)}</td>` +
             `<td class="add-why-cell">${escapeHtml(row.needs || DASH)}</td>` +
-            `<td class="num">${pct == null ? DASH : `${pct > 0 ? "+" : ""}${Number(pct).toFixed(2)}%`}</td></tr>`;
+            `<td class="num">${pct == null ? DASH : `${pct > 0 ? "+" : ""}${fixed(Number(pct), 2)}%`}</td></tr>`;
         }).join("") + `</tbody></table></div>`);
     }
 
@@ -206,7 +206,7 @@
     if (study && study.shapes) {
       const horizons = ["t1", "t5", "t20"];
       const cell = triple => triple
-        ? `${(triple[1] * 100).toFixed(1)}%<span class="muted"> ${triple[2] > 0 ? "+" : ""}${Number(triple[2]).toFixed(2)}%</span>`
+        ? `${fixed(triple[1] * 100, 1)}%<span class="muted"> ${triple[2] > 0 ? "+" : ""}${fixed(Number(triple[2]), 2)}%</span>`
         : DASH;
       const bodyRows = Object.keys(ADD_SHAPE_LABEL)
         .filter(name => study.shapes[name])
@@ -229,7 +229,7 @@
     const trackParts = Object.entries(track)
       .filter(([, seat]) => seat && seat.settled)
       .map(([action, seat]) =>
-        `<code>${escapeHtml(action)}</code> ${(seat.hit_rate * 100).toFixed(1)}% ` +
+        `<code>${escapeHtml(action)}</code> ${fixed(seat.hit_rate * 100, 1)}% ` +
         `<span class="muted">(${seat.win}胜/${seat.loss}负, n=${seat.settled})</span>`);
     if (trackParts.length) {
       parts.push(`<p class="chart-hint"><b>这几类建议的历史命中率</b>（T+1，假设成交）：` +
@@ -263,7 +263,7 @@
         const warn = row.fired || row.ad < 2;
         const cls = warn ? "near" : row.ad < 5 ? "mid" : "far";
         curHtml = `<span class="wl-cur">现 ${fmtVal(row.cur)}</span>`;
-        const distTxt = row.isPct ? `${row.dist >= 0 ? "+" : ""}${row.dist.toFixed(1)}pp` : fmtPct(row.dist, 1);
+        const distTxt = row.isPct ? `${row.dist >= 0 ? "+" : ""}${fixed(row.dist, 1)}pp` : fmtPct(row.dist, 1);
         distHtml = `<span class="wl-dist ${cls}">${distTxt}${row.fired ? " 已触发" : ""}${warn ? " ⚠️" : ""}</span>`;
       }
       return `<div class="wl-row"><span class="wl-who">${escapeHtml(row.who)}</span>` +
@@ -290,15 +290,15 @@
     const rows = [];
     const active = metrics.active || {};
     if (active.avg_benefit_pct != null) {
-      const ci = active.cluster_ci95 ? ` [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
-      rows.push(row("主动 episode 平均方向分", `${active.avg_benefit_pct >= 0 ? "+" : ""}${active.avg_benefit_pct.toFixed(2)}%${ci} · n=${active.n_episodes}`,
+      const ci = active.cluster_ci95 ? ` [${fixed(active.cluster_ci95[0], 2)}, ${fixed(active.cluster_ci95[1], 2)}]` : "";
+      rows.push(row("主动 episode 平均方向分", `${active.avg_benefit_pct >= 0 ? "+" : ""}${fixed(active.avg_benefit_pct, 2)}%${ci} · n=${active.n_episodes}`,
         active.avg_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     }
     // 同一队列的两行:这里曾把 30d 的平均收益和 episode_backtest 的**全量**资金加权
     // 并排显示,窗口不同、符号相反(-2.36% vs +0.83%),读者会当成"大仓位的 call 更准"。
     // 两行必须同源同窗;全量口径归金额曲线,那张图自己标了。
     if (active.capital_weighted_benefit_pct != null)
-      rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${active.capital_weighted_benefit_pct.toFixed(2)}%`,
+      rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${fixed(active.capital_weighted_benefit_pct, 2)}%`,
         active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
@@ -312,15 +312,15 @@
         mag.mean_error_pct == null
           ? `填了预期 ${mag.with_expected_move}/${mag.decisions} · 还没有可打分的 t1`
           : `填了预期 ${mag.with_expected_move}/${mag.decisions} · 平均偏差 `
-            + `${mag.mean_error_pct > 0 ? "+" : ""}${mag.mean_error_pct.toFixed(1)}% · n=${mag.scored_t1}`,
+            + `${mag.mean_error_pct > 0 ? "+" : ""}${fixed(mag.mean_error_pct, 1)}% · n=${mag.scored_t1}`,
         "var(--text-dim)"));
     const fe = [];
     // Every driver the ledger buckets, not a fixed list: risk_rule and
     // sentiment were added after this card and vanished from it (#2197).
     Object.keys(drv).sort().forEach(k => {
       const e = drv[k]; if (!e || e.win_rate == null) return;
-      const ci = e.cluster_ci95, band = ci ? `[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
-      fe.push(`${k} ${(e.win_rate * 100).toFixed(0)}% ${band}`);
+      const ci = e.cluster_ci95, band = ci ? `[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
+      fe.push(`${k} ${fixed(e.win_rate * 100)}% ${band}`);
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
     el.innerHTML = rows.join("")
@@ -423,13 +423,13 @@
       const pct = Math.min(100, Math.max(0, hhi / 0.5 * 100));
       ring.style.setProperty("--pct", pct.toFixed(1));
       ring.style.setProperty("--color", semanticColor);
-      inner.textContent = hhi.toFixed(3);
+      inner.textContent = fixed(hhi, 3);
     } else {
       inner.textContent = DASH;
     }
     verdictEl.textContent = verdict.label || DASH;
     verdictEl.style.color = semanticColor;
-    top2El.textContent = top2 != null ? "Top 2: " + (top2 * 100).toFixed(1) + "%" : DASH;
+    top2El.textContent = top2 != null ? "Top 2: " + fixed(top2 * 100, 1) + "%" : DASH;
   }
 
   function renderAnomalies() {
@@ -707,22 +707,21 @@
     }
     if (card) card.style.display = '';
     if (asOf) asOf.textContent = d.as_of ? `${d.as_of} 收盘 1d` : 'Peer Divergence';
-    const fmtPctSigned = (v) => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
     // divergence_pp > 0 → peer beat you (you lag); < 0 → you beat peer (you lead)
     const rows = items.map(it => {
       const gap = it.divergence_pp;
       const lag = (gap != null && gap > 0);
       const cls = lag ? 'lag' : 'lead';
       const gapTxt = gap == null ? '—'
-        : (lag ? `落后 ${Math.abs(gap).toFixed(1)}pp` : `领先 ${Math.abs(gap).toFixed(1)}pp`);
+        : (lag ? `落后 ${fixed(Math.abs(gap), 1)}pp` : `领先 ${fixed(Math.abs(gap), 1)}pp`);
       const peer = it.best_peer_name || it.best_peer || '同行';
       return `<div class="peer-div-row ${cls}">
         <div class="pd-top">
           <span class="pd-tk">${escapeHtml(it.ticker)}</span>
-          <span class="pd-self">${fmtPctSigned(it.self_pct_1d)}</span>
+          <span class="pd-self">${fmtPct(it.self_pct_1d, 1)}</span>
           <span class="pd-gap ${cls}">${gapTxt}</span>
         </div>
-        <div class="pd-vs">vs <b>${escapeHtml(peer)}</b> ${fmtPctSigned(it.peer_pct_1d)}</div>
+        <div class="pd-vs">vs <b>${escapeHtml(peer)}</b> ${fmtPct(it.peer_pct_1d, 1)}</div>
       </div>`;
     }).join('');
     wrap.innerHTML = rows +
@@ -799,7 +798,7 @@
       }
     }
     const cells = [];
-    const fmt = (v, suffix='') => v == null || isNaN(v) ? DASH : (Number(v).toFixed(2) + suffix);
+    const fmt = (v, suffix='') => v == null || isNaN(v) ? DASH : (fixed(Number(v), 2) + suffix);
     // Trend tag: 'up'/'down'/'' so .sub can be color-coded
     const trend = (chg) => chg == null ? '' : (chg > 0 ? 'up' : (chg < 0 ? 'down' : ''));
 
@@ -968,8 +967,8 @@
       if (vb.avg_benefit_pct != null) {
         const a = vb.avg_benefit_pct;
         const col = a > 0 ? "var(--green)" : (a < 0 ? "var(--red)" : "var(--gray)");
-        const ci = vb.cluster_ci95 ? ` · cluster CI [${vb.cluster_ci95[0].toFixed(2)}, ${vb.cluster_ci95[1].toFixed(2)}]` : "";
-        alphaEl.innerHTML = `主动决策 episode · <b style="color:${col}">${a > 0 ? "+" : ""}${a.toFixed(2)}%</b>`
+        const ci = vb.cluster_ci95 ? ` · cluster CI [${fixed(vb.cluster_ci95[0], 2)}, ${fixed(vb.cluster_ci95[1], 2)}]` : "";
+        alphaEl.innerHTML = `主动决策 episode · <b style="color:${col}">${a > 0 ? "+" : ""}${fixed(a, 2)}%</b>`
           + `<span style="color:var(--text-faint)">${ci} · n=${vb.n_episodes || 0}</span>`;
       } else {
         alphaEl.textContent = "LLM vs 全持有基线 · 数据不足";
@@ -990,9 +989,9 @@
     const bl = cal.brier_baseline_loo != null ? cal.brier_baseline_loo : cal.brier_baseline_constant;
     const br = cal.base_rate;
     const mc = cal.mean_confidence;
-    brierEl.textContent = b.toFixed(3);
+    brierEl.textContent = fixed(b, 3);
     metaEl.textContent = (bl != null && br != null)
-      ? `准度 ${b.toFixed(3)} · 闭眼总报 ${Math.round(br * 100)}% = ${bl.toFixed(3)} · ${population}`
+      ? `准度 ${fixed(b, 3)} · 闭眼总报 ${Math.round(br * 100)}% = ${fixed(bl, 3)} · ${population}`
       : `Brier · episodes ${population}`;
     let tier, cls;
     // "没信息量" would overclaim: the score still shows a little resolution, it is
@@ -1096,7 +1095,7 @@
     const cols = [];
     const kv = (k, v, cls) =>
       `<div class="bd-kv"><span class="k">${escapeHtml(k)}</span><span class="v ${cls || ""}">${v}</span></div>`;
-    const numOr = (v, suf) => v == null ? DASH : `${v}${suf || ""}`;
+    const numOr = (v, suf) => v == null ? DASH : `${numText(v)}${suf || ""}`;
 
     const tech = [];
     if (q.rsi14 != null) tech.push(kv("RSI 14", numOr(q.rsi14), q.rsi14 >= 70 ? "neg" : q.rsi14 <= 30 ? "pos" : ""));
@@ -1119,7 +1118,7 @@
       const span = (r.high - r.low) || 1;
       const p = Math.max(0, Math.min(100, ((r.current - r.low) / span) * 100));
       cols.push(`<div class="bd-col"><div class="bd-k">当日区间</div>`
-        + kv("振幅", r.range_pct == null ? DASH : r.range_pct.toFixed(1) + "%")
+        + kv("振幅", r.range_pct == null ? DASH : fixed(r.range_pct, 1) + "%")
         + kv("现价", fmtMoney(r.current, ccy))
         + `<div class="bd-pos"><span class="bd-pos-track"><i style="left:${p}%"></i></span>`
         + `<span class="bd-pos-ends"><span>${escapeHtml(String(r.low))}</span><span>${escapeHtml(String(r.high))}</span></span></div></div>`);
@@ -1142,7 +1141,7 @@
       e.conv.quadrant === "high_risk" ? "neg" : ""));
     if (e.peer && e.peer.divergence_pp != null) risk.push(kv(
       `同行 vs ${escapeHtml(e.peer.best_peer_name || e.peer.best_peer || "")}`,
-      (e.peer.divergence_pp > 0 ? "落后 " : "领先 ") + Math.abs(e.peer.divergence_pp).toFixed(1) + "pp",
+      (e.peer.divergence_pp > 0 ? "落后 " : "领先 ") + fixed(Math.abs(e.peer.divergence_pp), 1) + "pp",
       e.peer.divergence_pp > 0 ? "neg" : "pos"));
     if (risk.length) cols.push(`<div class="bd-col"><div class="bd-k">风险</div>${risk.join("")}</div>`);
 
@@ -1202,11 +1201,11 @@
     const n = Math.max(...cells.map(c => c.diffs.length));
     // 满量程夹在 [2.5%, 9%]：低波动的日子不该被拉成满色，高波动的也不该全部撞顶
     const full = Math.max(2.5, Math.min(9, Math.max(...cells.flatMap(c => c.diffs.map(Math.abs)))));
-    if (meta) meta.textContent = `收盘价序列 · 与上表同序 · 色深 = |当日涨跌| ÷ ${full.toFixed(1)}%`;
+    if (meta) meta.textContent = `收盘价序列 · 与上表同序 · 色深 = |当日涨跌| ÷ ${fixed(full, 1)}%`;
 
     const head = `<div class="bh-row bh-head"><div class="bh-tk">标的</div>`
       + Array.from({ length: n }, (_, i) =>
-          `<div class="bh-c">${i === n - 1 ? "最新" : "-" + (n - 1 - i)}</div>`).join("")
+          `<div class="bh-c">${i === n - 1 ? "最新" : MINUS + (n - 1 - i)}</div>`).join("")
       + `<div class="bh-v">8 日</div><div class="bh-s">走势</div></div>`;
 
     const body = cells.map(c => {
@@ -1217,7 +1216,7 @@
       const a = Math.pow(Math.min(Math.abs(d) / full, 1), 0.62) * 0.13 + 0.05;
         const rgb = d >= 0 ? "var(--heat-up)" : "var(--heat-down)";
         return `<div class="bh-c" style="background:color-mix(in srgb, ${rgb} ${(a * 100).toFixed(0)}%, transparent)"`
-          + ` title="${escapeHtml(c.ticker)} ${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(2)}%">${d.toFixed(1)}</div>`;
+          + ` title="${escapeHtml(c.ticker)} ${d >= 0 ? "+" : ""}${fixed(d, 2)}%">${fixed(d, 1)}</div>`;
       }).join("");
       return `<div class="bh-row"><div class="bh-tk"><span class="ticker region-${c.region}">${escapeHtml(c.ticker)}</span></div>`
         + blanks + heat
@@ -1511,16 +1510,16 @@
     const horizon = (market, key) => {
       const row = safe(run, "markets", market, key) || {};
       if (!row.n) return `<div class="campaign-horizon"><b>${key.toUpperCase()}</b><span>collecting · n=0</span></div>`;
-      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${(row.mean_return * 100).toFixed(2)}%`;
-      const hit = row.hit_rate == null ? "—" : `${(row.hit_rate * 100).toFixed(1)}%`;
+      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${fixed(row.mean_return * 100, 2)}%`;
+      const hit = row.hit_rate == null ? "—" : `${fixed(row.hit_rate * 100, 1)}%`;
       return `<div class="campaign-horizon"><b>${key.toUpperCase()}</b><span>n=${row.n} · mean ${ret} · hit ${hit}</span></div>`;
     };
     const market = key => `<section class="campaign-market"><h4>${key.toUpperCase()} interaction</h4>${horizon(key, "t1")}${horizon(key, "t5")}${horizon(key, "t20")}</section>`;
     const auth = coverage.authority_classifications || {};
     const earlyHorizon = (marketKey, horizonKey) => {
       const row = safe(run, "early_trend", marketKey, "observed", horizonKey) || {};
-      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${(row.mean_return * 100).toFixed(2)}%`;
-      const hit = row.hit_rate == null ? "—" : `${(row.hit_rate * 100).toFixed(1)}%`;
+      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${fixed(row.mean_return * 100, 2)}%`;
+      const hit = row.hit_rate == null ? "—" : `${fixed(row.hit_rate * 100, 1)}%`;
       return `${horizonKey.toUpperCase()} n=${row.n ?? 0} · mean ${ret} · hit ${hit}`;
     };
     const earlyCoverage = coverage.early_trend || {};
@@ -1545,7 +1544,7 @@
     empty.textContent = "数据不足";
     const signedMoney = (value, currency) => {
       if (value == null || !isFinite(value)) return DASH;
-      const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+      const sign = value > 0 ? "+" : value < 0 ? MINUS : "";
       return sign + fmtMoney(Math.abs(value), currency);
     };
     const curves = (sidecar && sidecar.curves) || {};
@@ -1568,7 +1567,7 @@
     const unrepresentative = safe(coverage, "representative") === false
       && Number.isFinite(fillRate) && Number.isFinite(fillFloor);
     const coverageText = unrepresentative
-      ? `成交 ${safe(coverage, "filled_legs")}/${(Number(safe(coverage, "filled_legs")) || 0) + (Number(safe(coverage, "skipped_legs")) || 0)} 条腿（${(fillRate * 100).toFixed(1)}%），低于 ${(fillFloor * 100).toFixed(0)}% 代表性门槛`
+      ? `成交 ${safe(coverage, "filled_legs")}/${(Number(safe(coverage, "filled_legs")) || 0) + (Number(safe(coverage, "skipped_legs")) || 0)} 条腿（${fixed(fillRate * 100, 1)}%），低于 ${fixed(fillFloor * 100)}% 代表性门槛`
       : "";
     const estimand = document.getElementById("shadow-estimand-headline");
     if (estimand) {
@@ -1660,14 +1659,14 @@
   function renderRiskMetrics() {
     const r = safe(DATA, "risk") || {};
     const us = r.us || {}, hk = r.hk || {}, combined = r.combined || {}, lev = r.leveraged_exposure || {};
-    const formatNumber = v => Number(v).toFixed(2);
+    const formatNumber = v => fixed(Number(v), 2);
     const setNum = (id, v, fmt = 'num') => {
       const el = document.getElementById(id);
       if (!el) return;
       if (v == null || isNaN(v)) { el.textContent = DASH; el.className = "val neutral"; return; }
       let text;
-      if (fmt === 'pct') text = (v * 100).toFixed(1) + '%';
-      else if (fmt === 'pct_signed') text = (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+      if (fmt === 'pct') text = fixed(v * 100, 1) + '%';
+      else if (fmt === 'pct_signed') text = (v >= 0 ? '+' : '') + fixed(v * 100, 1) + '%';
       else text = formatNumber(v);
       el.textContent = text;
       // Color by sign / threshold
@@ -1890,7 +1889,7 @@
   function t0Num(v, suf = '', signed = false) {
     if (v == null || !Number.isFinite(Number(v))) return v == null ? '—' : `${v}${suf}`;
     const n = +Number(v).toFixed(2);
-    return `${signed && n > 0 ? '+' : ''}${n}${suf}`;
+    return `${signed && n > 0 ? '+' : ''}${numText(n)}${suf}`;
   }
 
   // Which session the T+0 rows belong to, per market. One 「收盘牌面」 for the
@@ -1925,7 +1924,7 @@
       const r = rows[k];
       const lev = r.leveraged ? `<span class="muted" style="font-size:var(--fs-micro)"> ${r.leveraged}</span>` : '';
       const vw = (r.vs_vwap_pct != null)
-        ? `<div class="muted" style="font-size:var(--fs-micro)">VWAP ${r.vs_vwap_pct > 0 ? '+' : ''}${r.vs_vwap_pct}%</div>` : '';
+        ? `<div class="muted" style="font-size:var(--fs-micro)">VWAP ${r.vs_vwap_pct > 0 ? '+' : ''}${numText(r.vs_vwap_pct)}%</div>` : '';
       return `<tr><td><strong>${k}</strong>${lev}</td>` +
         `<td style="text-align:left;font-size:var(--fs-xs)">${r.grade} ${r.grade_label}` +
         `<div class="muted" style="font-size:var(--fs-micro)">${r.grade_reason || ''}</div>${vw}</td>` +
@@ -1964,9 +1963,9 @@
     const hkRe = reclaim(hk.close, hk.ma);
     if (hk.ma == null) { trigEl.innerHTML = ''; }
     else if (hk.trend_on) {
-      trigEl.innerHTML = `<span class="neutral">HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${(-hkRe).toFixed(0)}% 缓冲（杠杆解锁中）</span>`;
+      trigEl.innerHTML = `<span class="neutral">HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${fixed(-hkRe)}% 缓冲（杠杆解锁中）</span>`;
     } else {
-      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${hkRe.toFixed(0)}%）→ 杠杆上限放回 50%</span>`;
+      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${fixed(hkRe)}%）→ 杠杆上限放回 50%</span>`;
     }
     // US per-name rows
     const STATE = { cut: ['red', '砍杠杆'], watch: ['warn-text', '观察'], ok: ['neutral', '趋势ON'], unknown: ['neutral', '—'] };
@@ -1975,20 +1974,20 @@
     const rows = (us.names || []).map(n => {
       const [cls, tag] = STATE[n.state] || STATE.unknown;
       const sev = n.state === 'cut' ? 'high' : (n.state === 'watch' ? 'medium' : 'low');
-      const vol = n.vol_annualized != null ? (n.vol_annualized*100).toFixed(0)+'%' : '—';
+      const vol = n.vol_annualized != null ? fixed(n.vol_annualized*100)+'%' : '—';
       const re = reclaim(n.close, n.ma);
       // 短历史名(新上市)用短均线做右侧确认，标签随 ma_window 走，别误写"200线"
       const maLbl = (n.ma_window && n.ma_window < 200) ? `${n.ma_window}日均(右侧)` : '200线';
-      const trig = (n.trend_on || re == null) ? '' : ` · <span class="warn-text">站回 ${Math.round(n.ma)}（+${re.toFixed(0)}%）${n.ma_window && n.ma_window < 200 ? '右侧再上2x' : '解锁2x'}</span>`;
+      const trig = (n.trend_on || re == null) ? '' : ` · <span class="warn-text">站回 ${Math.round(n.ma)}（+${fixed(re)}%）${n.ma_window && n.ma_window < 200 ? '右侧再上2x' : '解锁2x'}</span>`;
       const basisNote = n.regime_basis && n.regime_basis.startsWith('short_ma')
         ? ` · <span class="muted">新上市不足200日线,短均线替代</span>` : '';
       return `<div class="risk-alert ${sev}"><span class="icon"></span>
         <div><strong>${n.etf}=2x ${n.underlying} <span class="${cls}">${tag}</span></strong>
-        <div class="muted" style="font-size:var(--fs-xs);margin-top:2px">距${maLbl} ${n.dist_ma_pct ?? '—'}% · 20日波动 ${vol}${trig}${basisNote} · 数据 ${escapeHtml(n.as_of || '日期未核实')}</div></div></div>`;
+        <div class="muted" style="font-size:var(--fs-xs);margin-top:2px">距${maLbl} ${numText(n.dist_ma_pct)}% · 20日波动 ${vol}${trig}${basisNote} · 数据 ${escapeHtml(n.as_of || '日期未核实')}</div></div></div>`;
     }).join('');
     usEl.innerHTML = rows || '<div class="muted" style="font-size:var(--fs-sm)">无持仓 2x 单股 ETF</div>';
     document.getElementById('lev-regime-asof').textContent =
-      `HSTECH ${r.as_of || ''} · 200日线 ${hk.ma ?? '?'} · HK波动 ${hk.vol_annualized != null ? (hk.vol_annualized*100).toFixed(0)+'%' : '?'} · US砍线 ${us.vol_hot_cap != null ? (us.vol_hot_cap*100).toFixed(0)+'%' : '?'}`;
+      `HSTECH ${r.as_of || ''} · 200日线 ${hk.ma ?? '?'} · HK波动 ${hk.vol_annualized != null ? fixed(hk.vol_annualized*100)+'%' : '?'} · US砍线 ${us.vol_hot_cap != null ? fixed(us.vol_hot_cap*100)+'%' : '?'}`;
   }
 
   function renderReentryRadar() {
@@ -1997,7 +1996,7 @@
     if (!card) return;
     if (!r || !(r.watches || []).length) { card.style.display = 'none'; return; }
     card.style.display = '';
-    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    const num = (v, d = 0) => (v == null ? DASH : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }).replace('-', MINUS));
     // 弹药(live 现金,不硬编码)
     const p = r.powder || {};
     const bits = [];
@@ -2018,7 +2017,7 @@
       const mw = (w.ma_window && w.ma_window >= 200) ? '200DMA' : ((w.ma_window || '?') + '日线');
       const badge = on
         ? `<span style="color:var(--positive);font-weight:700">已站回·可布局</span>`
-        : `<span style="color:${color}">还需 +${need != null ? need.toFixed(1) : '?'}% 站回${mw}</span>`;
+        : `<span style="color:${color}">还需 +${need != null ? fixed(need, 1) : '?'}% 站回${mw}</span>`;
       const prox = dist == null ? 0 : Math.max(0, Math.min(100, (1 + dist / 20) * 100));
       const mkt = w.market === 'HK' ? '🇭🇰' : '🇺🇸';
       const nameLine = w.etf ? `${w.name} <span class="muted" style="font-size:var(--fs-micro)">(${w.etf} 2x)</span>` : w.name;
@@ -2032,7 +2031,7 @@
             <div style="flex:1;height:5px;border-radius:3px;background:var(--border-subtle);position:relative;overflow:hidden">
               <div style="position:absolute;left:0;top:0;bottom:0;width:${prox.toFixed(0)}%;background:${color};opacity:0.55"></div>
             </div>
-            <span style="font-size:var(--fs-xs);color:${color};min-width:52px;text-align:right">${dist != null ? (dist > 0 ? '+' : '') + dist.toFixed(1) + '%' : DASH}</span>
+            <span style="font-size:var(--fs-xs);color:${color};min-width:52px;text-align:right">${dist != null ? (dist > 0 ? '+' : '') + fixed(dist, 1) + '%' : DASH}</span>
           </div>
           <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">
             数据 ${escapeHtml(w.as_of || '日期未核实')} · 现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
@@ -2049,7 +2048,7 @@
     const l = safe(DATA, "leveraged_etf") || {};
     const colorize = (v) => v == null ? "neutral" : (v >= 50 ? "neg" : (v >= 25 ? "warn-text" : "neutral"));
     // No leading + sign — these are exposure %s, not P&L gains
-    const fmt = (v) => v == null ? DASH : `${v.toFixed(1)}%`;
+    const fmt = (v) => v == null ? DASH : `${fixed(v, 1)}%`;
     const setNum = (id, v) => {
       const el = document.getElementById(id);
       el.textContent = fmt(v);
@@ -2073,8 +2072,8 @@
     if (wr < 45)      { cls = "wr-bad"; icon = "⚠"; }
     else if (wr < 60) { cls = "wr-mid"; icon = "~"; }
     const lowN = pb.n_episodes < 8 ? " wr-lown" : "";
-    const tip = pb.n_episodes < 8 ? "episode 样本少，参考性弱" : `该动作 episode 胜率 ${wr.toFixed(0)}%`;
-    return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${wr.toFixed(0)}%<span class="wr-n">n${pb.n_episodes}</span></span>`;
+    const tip = pb.n_episodes < 8 ? "episode 样本少，参考性弱" : `该动作 episode 胜率 ${fixed(wr)}%`;
+    return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${fixed(wr)}%<span class="wr-n">n${pb.n_episodes}</span></span>`;
   }
 
   // driven_by → which data source drove the call. Color encodes edge (catalyst has
@@ -2122,7 +2121,7 @@
     wrap.innerHTML = list.map(a => {
       const outcome = planOutcome(a.outcome);
       const oc = outcome.key;
-      const conf = a.confidence != null ? (a.confidence * 100).toFixed(0) + "%" : DASH;
+      const conf = a.confidence != null ? fixed(a.confidence * 100) + "%" : DASH;
       const pnl = a.benefit_t1_pct != null ? fmtPct(a.benefit_t1_pct) : DASH;
       const cond = a.condition || {};
       return `
@@ -2186,8 +2185,8 @@
       const dist = z.distribution_bps;
       return `<div class="timing-zone">
         <div class="muted">${ccy} · 严格配对 ${z.n_events || 0} 次 / ${z.n_blocks || 0} blocks</div>
-        <div class="median">${z.median_bps == null ? DASH : `${z.median_bps >= 0 ? "+" : ""}${z.median_bps} bps`}</div>
-        <div class="muted">paired CI ${ci ? `[${ci[0]}, ${ci[1]}] bps` : "—（blocks<3）"}</div>
+        <div class="median">${z.median_bps == null ? DASH : `${z.median_bps >= 0 ? "+" : ""}${numText(z.median_bps)} bps`}</div>
+        <div class="muted">paired CI ${ci ? `[${numText(ci[0])}, ${numText(ci[1])}] bps` : "—（blocks<3）"}</div>
         <div class="muted">${dist ? `分布 p10 ${numText(dist.p10)} · p25 ${numText(dist.p25)} · p50 ${numText(dist.median)} · p75 ${numText(dist.p75)} · p90 ${numText(dist.p90)}` : "暂无可唯一匹配的真实成交"}</div>
       </div>`;
     }).join("");
@@ -2201,7 +2200,7 @@
           <td>${e.direction === "sell" ? "卖" : "买"} ${numText(e.shares)}</td>
           <td class="num">${numText(e.ai_execution_price)}</td>
           <td class="num">${numText(e.same_day_close)}</td>
-          <td class="num ${pnlClass(e.improvement_bps)}">${e.improvement_bps == null ? DASH : `${e.improvement_bps >= 0 ? "+" : ""}${e.improvement_bps} bps`}<div class="muted">${fmtMoney(e.improvement_amount, e.currency)}</div></td>
+          <td class="num ${pnlClass(e.improvement_bps)}">${e.improvement_bps == null ? DASH : `${e.improvement_bps >= 0 ? "+" : ""}${numText(e.improvement_bps)} bps`}<div class="muted">${fmtMoney(e.improvement_amount, e.currency)}</div></td>
         </tr>`).join("")
         + `</tbody></table>`
       : '<div class="empty-state">暂无能按同票/同日/同方向/同股数唯一匹配的真实成交；不会拿 OHLC 假设成交冒充。</div>';
@@ -2497,11 +2496,11 @@
       const ccyMoney = (v, ccy, plus) => {
         if (v == null || !isFinite(v)) return DASH;
         const sym = ccy === "USD" ? "$" : "HK$";
-        const sign = v < 0 ? "−" : (plus ? "+" : "");
+        const sign = v < 0 ? MINUS : (plus ? "+" : "");
         return sign + sym + Math.abs(Math.round(v)).toLocaleString("en-US");
       };
       const signNum = v => (v == null || !isFinite(v)) ? DASH
-        : (v < 0 ? "−" : "+") + Math.abs(Math.round(v)).toLocaleString("en-US");
+        : (v < 0 ? MINUS : "+") + Math.abs(Math.round(v)).toLocaleString("en-US");
       const pct1 = v => (v != null ? fmtPct(v, 1) : DASH);
       const buildCard = (key, label, ccy) => {
         const r = safe(rv, key, "realized") ?? 0;
@@ -2575,7 +2574,7 @@
     } else {
       // Deliberately neutral, never red: ignoring these calls is not a failure —
       // the win-rate cell right next door says acting on them averaged -3%.
-      setVal("plan-followed", (act.rate * 100).toFixed(1) + "%");
+      setVal("plan-followed", fixed(act.rate * 100, 1) + "%");
       const passiveNote = pas.rate != null
         ? ` · 不用动的 hold ${Math.round(pas.rate * 100)}% 是坐着没动自动算听了`
         : "";
@@ -2606,14 +2605,14 @@
       // 分」的 cluster bootstrap 带。以前只印后者，就贴在胜率旁边 —— 读者会把
       // 一个不描述这个数的区间当成这个数的区间。所以两条都带标签。
       const wc = active.win_rate_ci95;
-      const wrCi = wc ? ` · 胜率95%CI ${(wc[0] * 100).toFixed(0)}–${(wc[1] * 100).toFixed(0)}%` : "";
-      const ci = active.cluster_ci95 ? ` · 方向分CI [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
-      setVal("plan-winrate", wr.toFixed(1) + "%");
+      const wrCi = wc ? ` · 胜率95%CI ${fixed(wc[0] * 100)}–${fixed(wc[1] * 100)}%` : "";
+      const ci = active.cluster_ci95 ? ` · 方向分CI [${fixed(active.cluster_ci95[0], 2)}, ${fixed(active.cluster_ci95[1], 2)}]` : "";
+      setVal("plan-winrate", fixed(wr, 1) + "%");
       const cov = calib.coverage_active || {};
       const covNote = cov.episodes_unresolved
         ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${Object.keys(cov.unresolved_reasons || {}).map(reason => unresolvedReasonLabel(reason)).join(" / ") || "原因未记录"}）`
         : "";
-      setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
+      setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + fixed(avg, 2) + "%"}${ci}${covNote}`);
       // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在
       // 统计上分不开，把它染绿就是在这本账最小的样本上宣布一个 edge —— 这正是
       // #1115 说的「容易被读成 edge」。同一判据在 by-driver 里已经用了
@@ -2624,7 +2623,7 @@
       const cell = document.getElementById("plan-winrate");
       if (cell) {
         cell.title = wc && decided === "neutral"
-          ? `95% 置信区间 ${(wc[0] * 100).toFixed(0)}–${(wc[1] * 100).toFixed(0)}% 跨过 50%：这个样本量下与抛硬币分不开，故不着色`
+          ? `95% 置信区间 ${fixed(wc[0] * 100)}–${fixed(wc[1] * 100)}% 跨过 50%：这个样本量下与抛硬币分不开，故不着色`
           : "";
       }
     }
@@ -2642,7 +2641,7 @@
       const hc = calib.high_confidence;
       setVal("plan-brier", (mc != null && br != null)
         ? `${Math.round(mc * 100)}% → ${Math.round(br * 100)}%`
-        : brier.toFixed(3));
+        : fixed(brier, 3));
       const hcNote = hc && hc.n
         ? ` · 最有把握的 ${hc.n} 次只对了 ${hc.wins} 次`
         : "";
@@ -2653,7 +2652,7 @@
       const sampleNote = calibN == null ? " · 校准样本量未知" : thin ? ` · 校准样本 n=${calibN} 样本少` : "";
       setSub("plan-brier-sub", ((mc != null && br != null)
         ? `说自己 ${Math.round(mc * 100)}% 把握，实际对 ${Math.round(br * 100)}%${hcNote}`
-        : `准度 ${brier.toFixed(3)}`) + sampleNote);
+        : `准度 ${fixed(brier, 3)}`) + sampleNote);
       setClass("plan-brier", thin ? "neutral"
                            : calib.brier_beats_baseline === true ? "pos"
                            : calib.brier_beats_baseline === false ? "neg" : "neutral");
@@ -2681,7 +2680,7 @@
         const winTxt = wr == null
           ? `<span class="muted">无 30d 样本</span>`
           : `<span class="n">win ${wr}%</span> <span class="muted">n${wn}</span>`;
-        const followTxt = r.cal.avg_benefit_pct != null ? ` · avg ${r.cal.avg_benefit_pct >= 0 ? "+" : ""}${r.cal.avg_benefit_pct.toFixed(2)}%` : "";
+        const followTxt = r.cal.avg_benefit_pct != null ? ` · avg ${r.cal.avg_benefit_pct >= 0 ? "+" : ""}${fixed(r.cal.avg_benefit_pct, 2)}%` : "";
         return `
           <div class="bucket-row">
             <div class="name">${bucketLabel(r.name)}</div>
@@ -2729,7 +2728,7 @@
     const list = trail("plan_timeline") || [];
     if (!list.length) { if (card) card.style.display = 'none'; return; }
     if (card) card.style.display = '';
-    const fmtConf = c => (c == null ? DASH : (c * 100).toFixed(0) + "%");
+    const fmtConf = c => (c == null ? DASH : fixed(c * 100) + "%");
     const fmtTriggerPrice = (p) => p == null ? "" : ` @ ${typeof p === "number" ? p.toLocaleString("en-US", { maximumFractionDigits: 4 }) : p}`;
     const fmtSize = (a) => {
       const parts = [];
@@ -2742,7 +2741,7 @@
       if (p == null) return "";
       const cls = p >= 0 ? "pos" : "neg";
       const s = p >= 0 ? "+" : "";
-      return `<div class="pt-pnl ${cls}" title="对下一个快照报价的方向分：正值表示这条建议的方向对了。报价时点不稳定，不等于 T+1 收益">方向分 ${s}${p.toFixed(2)}%</div>`;
+      return `<div class="pt-pnl ${cls}" title="对下一个快照报价的方向分：正值表示这条建议的方向对了。报价时点不稳定，不等于 T+1 收益">方向分 ${s}${fixed(p, 2)}%</div>`;
     };
     const cards = list.map((a, index) => {
       const outcome = planOutcome(a.outcome);
@@ -2943,7 +2942,7 @@
     const EXE = {followed:["已遵守","ok"],not_followed:["未执行","skip"],unknown:["未知","na"]};
     const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
     const esc = escapeHtml;
-    const realizedMoney = (t) => `${t.realizedPnl >= 0 ? "+" : "−"}${fmtMoney(Math.abs(t.realizedPnl), t.currency)}`;
+    const realizedMoney = (t) => `${t.realizedPnl >= 0 ? "+" : MINUS}${fmtMoney(Math.abs(t.realizedPnl), t.currency)}`;
 
     // T+1 tone ships with the data so this chip cannot colour a move the words
     // call 持平: the ±1% dead zone lives once, in build_decision_traces. `tone`
@@ -3170,11 +3169,11 @@
       const lossFrac = 1 - winFrac;
       const pendFrac = 0;
       const ci = e.cluster_ci95;
-      const ciTxt = ci ? ` avgCI[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
+      const ciTxt = ci ? ` avgCI[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const wrTxt = `${fixed(e.win_rate * 100)}%${ciTxt} n=${e.n_episodes}${edge}`;
       const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
-      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${e.avg_benefit_pct.toFixed(2)}%` : "";
+      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${fixed(e.avg_benefit_pct, 2)}%` : "";
       return `
         <div class="trig-row">
           <div class="trig-name">${escapeHtml(e.name)}</div>
@@ -3217,11 +3216,11 @@
       const lossFrac = 1 - winFrac;
       const pendFrac = 0;
       const ci = e.cluster_ci95;
-      const ciTxt = ci ? ` avgCI[${ci[0].toFixed(1)}–${ci[1].toFixed(1)}]` : "";
+      const ciTxt = ci ? ` avgCI[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = `${(e.win_rate * 100).toFixed(0)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const wrTxt = `${fixed(e.win_rate * 100)}%${ciTxt} n=${e.n_episodes}${edge}`;
       const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
-      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${e.avg_benefit_pct.toFixed(2)}%` : "";
+      const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${fixed(e.avg_benefit_pct, 2)}%` : "";
       return `
         <div class="trig-row">
           <div class="trig-name">${escapeHtml(e.name)}</div>
@@ -3269,7 +3268,7 @@
       }
       return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
          <span class="icon"></span>
-         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct == null ? DASH : r.pnl_pct + "%"} → 回本需 ${r.breakeven_need_pct == null ? DASH : "+" + r.breakeven_need_pct + "%"}${extra}</div>
+         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct == null ? DASH : numText(r.pnl_pct) + "%"} → 回本需 ${r.breakeven_need_pct == null ? DASH : "+" + r.breakeven_need_pct + "%"}${extra}</div>
        </div>`;
     }).join('');
     document.getElementById('breakeven-list').innerHTML = html;
@@ -3312,8 +3311,8 @@
     };
 
     const profitDd = (dd.profit) || {};
-    const signed = (v, cur) => (v != null && isFinite(v) ? (v >= 0 ? "+" : "−") + money(Math.abs(v), cur) : DASH);
-    const pctTxt = (v) => (v == null || !isFinite(v)) ? DASH : (v > 0 && v < 1) ? "<1%" : v.toFixed(0) + "%";
+    const signed = (v, cur) => (v != null && isFinite(v) ? (v >= 0 ? "+" : MINUS) + money(Math.abs(v), cur) : DASH);
+    const pctTxt = (v) => (v == null || !isFinite(v)) ? DASH : (v > 0 && v < 1) ? "<1%" : fixed(v) + "%";
     const neg = v => (v < 0 ? " neg" : "");
     regions.forEach(r => {
       const el = document.getElementById(`ext-region-${r.key}`);
