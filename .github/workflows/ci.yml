@@ -449,7 +449,15 @@ jobs:
         # enumerated the gap, so a new module joined the unmeasured side by
         # default (`decision/settlement.py`, `decision/add_alpha.py`,
         # `decision/regime.py`, `decision/plans.py`, `cli.py` all had).
+        #
+        # COVERAGE_CORE=sysmon: line coverage through sys.monitoring (PEP 669)
+        # instead of a trace function called on every line. Same executed
+        # lines, same report; the suite's wall time drops by about a third.
+        # Needs Python 3.12 and no branch measurement, both of which hold here.
+        # coverage.py warns and falls back to the C tracer if either stops.
         if: steps.changes.outputs.code == 'true'
+        env:
+          COVERAGE_CORE: sysmon
         run: |
           python3 -m pytest tests/ -q \
             -n auto \

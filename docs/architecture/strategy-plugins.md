@@ -319,8 +319,8 @@ Recording them found one thing the legacy comparison could not have: the
 factor row depends on the interpreter. Python 3.12 made `sum` of floats
 compensated, and a 20-session average that lands on a rounding boundary reads
 one unit in its third decimal differently under 3.11. In the three recorded
-series, 11 `ma20` cells do. The desk host runs 3.12 and CI runs 3.11, so the
-file records both: `outputs` for the compensated sum, and `naive_sum` for the
+series, 11 `ma20` cells do. The desk host and CI run 3.12 and the package still
+installs on 3.11, so the file records both: `outputs` for the compensated sum, and `naive_sum` for the
 cells that differ without it. The suite checks the interpreter it runs on and
 the left-to-right sum on every run. The arithmetic itself is unchanged.
 

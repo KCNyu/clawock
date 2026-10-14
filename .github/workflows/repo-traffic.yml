@@ -43,7 +43,6 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.12'
           install: none
 
       - name: Capture traffic and package downloads
