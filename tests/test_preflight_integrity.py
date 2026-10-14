@@ -333,7 +333,26 @@ def test_missing_optional_holding_fields_are_skipped_without_false_positive(run_
             }
         }
     }
-    _assert_clean(run_check(data))
+    _assert_only(run_check(data), "QUOTE_MISSING", "WARN", "SPARSE")
+
+
+def test_a_row_before_its_first_quote_is_named_and_totalled_at_cost(run_check):
+    # #2967: the gate summed the unquoted row at 0 like aggregates did, so a
+    # leg whose P&L had lost a whole position's cost reconciled clean.
+    data = _portfolio_data()
+    port = _port(data)
+    port["holdings"].append({"ticker": "NEW", "shares": 400, "cost_basis": 110.0})
+    port["total_cost"] += 44000.0
+    port["true_principal"] = port["total_cost"]
+    port["total_pnl"] -= 44000.0
+    port["total_pnl_percent"] = port["total_pnl"] / port["total_cost"] * 100
+    half = run_check(data)
+    assert {f["code"] for f in half["findings"] if f["level"] == "ERROR"} == {"TCV_SUM"}
+
+    port["total_current_value"] += 44000.0
+    port["total_pnl"] += 44000.0
+    port["total_pnl_percent"] = port["total_pnl"] / port["total_cost"] * 100
+    _assert_only(run_check(data), "QUOTE_MISSING", "WARN", "NEW")
 
 
 # Region and aggregate gates ---------------------------------------------------

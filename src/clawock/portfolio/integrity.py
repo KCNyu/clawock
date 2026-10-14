@@ -14,13 +14,16 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
 
 固化的不变量（每条都对应一次真实事故或链上一环）：
   VALUE_LEG      每只 current_value == shares×current_price               ERROR
-  TCV_SUM        total_current_value == Σ(活跃持仓 current_value)        ERROR
+  TCV_SUM        total_current_value == Σ(活跃持仓 current_value；首次报价前
+                 按成本 shares×cost_basis，与行情写入方同一口径）        ERROR
                  → 手工 T+0 卖出漏重算 TCV → equity 假新高 / 回撤归零（3a68822）
   COST_TOTAL     total_cost == Σ(活跃持仓 shares×cost_basis)             ERROR
   PNL_TOTAL      total_pnl == total_current_value − total_cost           ERROR
   PNL_PCT        total_pnl_percent == total_pnl/total_cost×100           WARN
   COST_ZERO      活跃持仓 cost_basis≠0（收益率无定义，0% 是伪精度）      ERROR
   COST_MISSING   活跃持仓 cost_basis 可读成数值（漏填会让成本/盈亏静默缺项） ERROR
+  QUOTE_MISSING  活跃持仓没有 current_price：逐只闸全部跳过它，市值按行内
+                 current_value 或成本计入，点名等行情刷新（#2967）       WARN
   SHARES_MISSING 每行 shares 有数值（缺失既不算活跃也不算清仓，逐只与
                  总额闸全部跳过它）                                      ERROR
   SHARES_INVALID 每行 shares 是非负的 JSON 数字（负数同样被合计跳过；
@@ -112,6 +115,7 @@ def out_path() -> Path:
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (
     active_holdings as _active,
+    carried_value as _carried_value,
     derive_cash,
     day_pnl,
     holding_session,
@@ -665,7 +669,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None):
 
         # TCV_SUM --------------------------------------------------------
         tcv = _num(port.get('total_current_value'))
-        sum_cv = sum(_num(h.get('current_value')) or 0 for h in active)
+        sum_cv = sum(_carried_value(h) for h in active)
         if tcv is not None and abs(tcv - sum_cv) > TCV_TOL:
             add('TCV_SUM', 'ERROR',
                 f'total_current_value={tcv:.2f} ≠ Σ活跃持仓 current_value={sum_cv:.2f} '
@@ -818,6 +822,15 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None):
                 add('COST_ZERO', 'ERROR',
                     f'{t} cost_basis=0 但 shares={sh:g}：收益率无定义，'
                     f'pnl_percent={rendered}；请修正成本基数', region, t)
+            # A row bought before its first quote: every per-row price gate
+            # below skips it, so name it rather than let the leg read clean (#2967).
+            if cur is None and sh:
+                carried = _num(h.get('current_value'))
+                basis = (f'市值沿用行内 current_value={carried:.2f}' if carried is not None
+                         else '市值按成本计入合计、盈亏记 0')
+                add('QUOTE_MISSING', 'WARN',
+                    f'{t} shares={sh:g} 还没有可用的 current_price：{basis}，逐只价格闸跳过它；'
+                    f'先跑一次{f" clawock analyze-{market}" if market else "行情刷新"}', region, t)
 
             # PRICE_RANGE
             if cur and lo and hi and lo > 0 and hi > 0:
