@@ -1,68 +1,68 @@
 {
-  "generated_at": "2026-10-14T00:39:51.379831+00:00",
+  "generated_at": "2026-10-14T23:20:22.194055+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.27,
-    "prev": 14.84,
-    "change_pct": 2.9,
+    "price": 16.87,
+    "prev": 15.27,
+    "change_pct": 10.48,
     "source": "yahoo",
-    "as_of": 1791922501
+    "as_of": 1792008901
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 5.217,
-    "prev": 5.24,
-    "change_pct": -0.44,
+    "price": 5.19,
+    "prev": 5.217,
+    "change_pct": -0.52,
     "source": "yahoo",
-    "as_of": 1791917995,
-    "yield_pct": 5.217
+    "as_of": 1792004394,
+    "yield_pct": 5.19
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.172,
-    "prev": 102.18,
-    "change_pct": -0.01,
+    "price": 102.528,
+    "prev": 102.553,
+    "change_pct": -0.02,
     "source": "yahoo",
-    "as_of": 1791937789
+    "as_of": 1792015499
   },
   "fear_greed": {
-    "score": 44.7,
+    "score": 32.4,
     "rating": "fear",
-    "prev_close": 45.7,
-    "prev_1_week": 46.8,
-    "as_of": "2026-10-13T23:59:52+00:00"
+    "prev_close": 44.7,
+    "prev_1_week": 42.1,
+    "as_of": "2026-10-14T23:02:43+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24345.22,
-    "prev": 24271.2,
-    "change_pct": 0.3,
+    "price": 24314.17,
+    "prev": 24345.22,
+    "change_pct": -0.13,
     "source": "tencent",
-    "as_of": "2026-10-13"
+    "as_of": "2026-10-14"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4136.63,
-    "prev": 4169.57,
-    "change_pct": -0.79,
+    "price": 4174.47,
+    "prev": 4136.63,
+    "change_pct": 0.91,
     "source": "tencent",
-    "as_of": "2026-10-13"
+    "as_of": "2026-10-14"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7805.45,
-    "prev": 7811.54,
-    "change_pct": -0.08,
+    "price": 7718.94,
+    "prev": 7805.45,
+    "change_pct": -1.11,
     "source": "yahoo",
-    "as_of": 1791923582
+    "as_of": 1792010168
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 27204.38,
-    "prev": 27245.9,
-    "change_pct": -0.15,
+    "price": 26692.87,
+    "prev": 27204.38,
+    "change_pct": -1.88,
     "source": "tencent",
-    "as_of": "2026-10-13"
+    "as_of": "2026-10-14"
   },
   "fed_press": [
     {
@@ -79,11 +79,6 @@
       "date": "2026-10-08",
       "title": "Federal Reserve Board announces enforcement action against American Express Company to address, among other things, the firm’s failure to sufficiently detect and report certain suspicious activity rel",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
-    },
-    {
-      "date": "2026-10-07",
-      "title": "Minutes of the Federal Open Market Committee, September 15-16, 2026",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261007a.htm"
     }
   ]
 }

@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-14T23:20:22.194055+00:00",
+  "vix": {
+    "symbol": "^VIX",
+    "price": 16.87,
+    "prev": 15.27,
+    "change_pct": 10.48,
+    "source": "yahoo",
+    "as_of": 1792008901
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 5.19,
+    "prev": 5.217,
+    "change_pct": -0.52,
+    "source": "yahoo",
+    "as_of": 1792004394,
+    "yield_pct": 5.19
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 102.528,
+    "prev": 102.553,
+    "change_pct": -0.02,
+    "source": "yahoo",
+    "as_of": 1792015499
+  },
+  "fear_greed": {
+    "score": 32.4,
+    "rating": "fear",
+    "prev_close": 44.7,
+    "prev_1_week": 42.1,
+    "as_of": "2026-10-14T23:02:43+00:00"
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 24314.17,
+    "prev": 24345.22,
+    "change_pct": -0.13,
+    "source": "tencent",
+    "as_of": "2026-10-14"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 4174.47,
+    "prev": 4136.63,
+    "change_pct": 0.91,
+    "source": "tencent",
+    "as_of": "2026-10-14"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7718.94,
+    "prev": 7805.45,
+    "change_pct": -1.11,
+    "source": "yahoo",
+    "as_of": 1792010168
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 26692.87,
+    "prev": 27204.38,
+    "change_pct": -1.88,
+    "source": "tencent",
+    "as_of": "2026-10-14"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-13",
+      "title": "Minutes of the Board's discount rate meetings on August 17, September 9, and September 16, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm"
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Federal Reserve Board announces enforcement action against American Express Company to address, among other things, the firm’s failure to sufficiently detect and report certain suspicious activity rel",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+    }
+  ]
+}
