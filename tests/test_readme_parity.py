@@ -246,10 +246,11 @@ def test_hero_is_unchanged_apart_from_weekly_metrics():
     import hashlib
 
     # The decision-audit utility changes the taxonomy count from 46 to 47;
+    # the jump bar drops its Evidence entry (Reflect holds it now);
     # the protected hero layout and all other wording stay pinned.
     for md, expected in (
-        (EN, "00171781205e69c5cf2bc777dec3534b1216a9c29cc3f58fb6fe98637198f95a"),
-        (ZH, "0456d4dce1d150dd4e59e56ae5a44e4ec0a51e4d6a835a7702ede5023a989f31"),
+        (EN, "2197524a0baef09e364c1643ff70cf304c3ef13cc70b97e395385965b52592fb"),
+        (ZH, "958506928330a041c529b0d36d4d6eda824ebd220cc8bdf6ca898092e6aa42c8"),
     ):
         hero = ''.join(md.splitlines(keepends=True)[:33])
         hero = re.sub(r'(<!-- CW_M:\w+ -->).*?(<!-- /CW_M:\w+ -->)', r'\1\2', hero)
