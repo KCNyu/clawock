@@ -13,6 +13,99 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.4.0] — 2026-10-14
+
+Strategies and signal sources become plugins. The computations the brief,
+report and intraday paths run are now mounted from declared rows, a research
+composition can search a strategy's parameters without ever gaining live
+permission, and each signal source states its units, windows and missing-data
+policy. A row is an import path, so a plugin can come from any installed
+package. **Restart DeepSeek Harness after upgrading `clawock-dsh`** so its
+host methods and client bundle come from the same version.
+
+### Added
+
+- **Plugin host for strategies and signal sources** (`clawock.plugin_host`).
+  The `live` list in `<workspace>/config/strategy-plugins.json` composes
+  thirteen rows — factors, daily bars, the add/left-side/pre-position and
+  intraday policies, bar estimators, the signal panel, sentiment, morning
+  scans and strategy scores. Without the file, or without a `live` key, the
+  shipped rows run; a malformed `live` list is an error rather than a silent
+  fallback. A row that fails to import or configure fails alone: reading its
+  service names the row and the error, and other services keep working
+  (#2897, #2907, #2913, #2919, #2925).
+- **Declared signal sources.** A row marked `"signal_source": true` mounts
+  only with a valid `SIGNAL_SOURCE`: inputs, every output's unit, window and
+  missing value, and a missing-data policy that may never serve a stale value.
+  Eight sources ship (#2919, #2923).
+- **`clawock strategy-lab`** — `list`, `sources`, `optimize`, `record`,
+  `ledger`, `evolution`, `row-edits` and `verify` over the research
+  composition declared in the same file's `plugins` list (without the file,
+  the commands that mount plugins exit as not set up). The walk-forward
+  optimiser reads forward-adjusted bars (or the raw store), scores the declared grid by
+  out-of-sample rank IC, reports cost-adjusted excess return and coverage
+  sensitivity, and judges each proposal by the registered gate and optional
+  alternate gates. Every verdict is kept in a ledger; a cleared candidate is
+  registered and scored on later sessions; a row edit may be proposed after
+  60 prospective sessions. Proposals, registrations and row edits always
+  carry `live_permission: false`, and nothing applies a row edit (#2897,
+  #2902, #2904, #2914, #2919, #2923).
+- **The brief context carries `strategy_scores`**: each lab strategy's score
+  and rank under its registered parameters, with null and a reason for
+  missing or stale names. No action or size is computed from it (#2923).
+- **Research and evaluation commands:** `clawock discover-stocks`
+  (holding-independent US candidates from a free snapshot, no trade
+  authority), `clawock evaluate-methods` (method payoff and probability
+  reports, frozen prospective shadow trials) and `clawock decision-audit`
+  (#2769, #2853, #2874).
+- **Model tools `compute` and `observations`**: restricted expressions with
+  replayable receipts that the numeric checks accept, and the dated rows a
+  verdict was built from (#2847).
+
+### Changed
+
+- **Risk caps are review state, not breaches.** Single-name, leveraged
+  single-name, correlated-cluster and leveraged-ETF sleeve caps default to
+  100% of a leg, a name above 35% becomes a concentration review row, the US
+  beta cap is 6.0 and add room is cash. The leveraged-ETF hard stop and the
+  regime de-lever remain enforced, and the HK regime multiplier still scales
+  the leveraged sleeve. Holdings on a strategy with `forbid_reduce_advice`
+  get neither reduction (#2846, #2873).
+- **Plan review has three channels.** Facts and feasibility can refuse a
+  plan; disagreement with the registered strategy is recorded as an objection
+  instead (#2850).
+- **Live daily factors use forward-adjusted bars** (`adjustment: qfq` on the
+  `daily-bars` row; `raw` restores the previous requests) (#2912).
+- **Report and intraday cards print open plan orders themselves**, and the
+  intraday card names what changed (#2808, #2845).
+- **Package metadata:** new PyPI and npm descriptions, and the Evidence link
+  points to the dashboard's Reflect tab (#2959, #2978).
+- **The public dashboard follows a written design system** with an
+  interactive first-screen curve and glass cards; phone layouts no longer
+  scroll sideways (#2888, #2891, #2895, #2900, #2906). The site is in the
+  repository, not the wheel.
+- **`clawock-dsh`: provider quotas refresh only while their numbers are on
+  screen**, the last good reading survives a restart, and an exhausted quota
+  is no longer worded as a lost login (#2882, #2892).
+
+### Fixed
+
+- **Brief off-host fallback writes the same plan and judgment as the host
+  brief**, with up to two bounded repair turns when a reply is rejected
+  (#2823, #2824, #2825, #2826).
+- **Integrity checks expose bar-store outages** and fail closed on
+  uncovered books; rows without a quote are valued at their carried value
+  in leg totals (#2890, #2972, #2975).
+- **Drawdown readouts settle the deepest and the in-progress episode
+  separately**, so a gap to the high cannot read as recovered (#2881, #2884).
+- **Public JSON payloads are scanned for credentials** before publication
+  (#2945).
+- **Losses print with one minus sign** across rates, bare numbers, chart axes
+  and the `clawock-dsh` balance chip (#2966).
+- **Preflight and delivery records keep their outcomes**: a crashed collector
+  is recorded, and a slot's outcome belongs to the attempt that delivered it
+  (#2970, #2971, #2974).
+
 ## [0.3.1] — 2026-10-07
 
 A maintenance release for the Python package and `clawock-dsh`, with corrected
