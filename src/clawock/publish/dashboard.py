@@ -10,6 +10,7 @@ Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 import argparse
 import copy
 import glob
@@ -882,7 +883,9 @@ def trim_holding(h, currency):
         'shares': h.get('shares', 0),
         'cost_basis': round(h.get('cost_basis') or 0, 4),
         'current_price': round(h.get('current_price') or 0, 4),
-        'current_value': round(h.get('current_value') or 0, 2),
+        # A row before its first quote is worth its cost, as the leg totals
+        # above it count it (#2967); 0 here split the row from its own leg.
+        'current_value': round(carried_value(h), 2),
         'today_change': today('today_change'),
         'today_change_pct': today('today_change_pct'),
         'day_high': round(h.get('day_high') or 0, 4),
@@ -2940,14 +2943,14 @@ def compute_weight_confidence(portfolio, window_days=30):
             region_label = leg.key
             pf = (portfolio.get('portfolios') or {}).get(leg.bucket, {}) or {}
             holdings = [h for h in pf.get('holdings', []) if (_share_number(h.get('shares')) or 0) > 0]
-            total = sum((h.get('current_value') or 0) for h in holdings)
+            total = sum(carried_value(h) for h in holdings)
             if total <= 0:
                 continue
             for h in holdings:
                 tk = h.get('ticker') or h.get('code')
                 if not tk:
                     continue
-                weight = (h.get('current_value') or 0) / total
+                weight = carried_value(h) / total
                 acc = conf_acc.get(tk)
                 avg_c = round(acc[0] / acc[1], 3) if acc and acc[1] > 0 else None
                 n = acc[1] if acc else 0
@@ -3329,7 +3332,7 @@ def compute_sector_exposure(portfolio):
             r_key = leg.key
             holdings = portfolio['portfolios'][leg.bucket].get('holdings', [])
             active = [h for h in ledger_rows(holdings) if (_share_number(h.get('shares', 0)) or 0) > 0]
-            total_value = sum(h.get('current_value', 0) or 0 for h in active)
+            total_value = sum(carried_value(h) for h in active)
             if total_value <= 0:
                 continue
             by_sector = {}
@@ -3337,7 +3340,7 @@ def compute_sector_exposure(portfolio):
                 meta = instrument_registry.get(h['ticker'])
                 sec = meta['sector'] if meta else 'Other'
                 bucket = by_sector.setdefault(sec, {'value': 0.0, 'tickers': []})
-                bucket['value'] += (h.get('current_value') or 0)
+                bucket['value'] += carried_value(h)
                 bucket['tickers'].append(h['ticker'])
             for sec, info in by_sector.items():
                 result[r_key].append({
@@ -3410,10 +3413,10 @@ def compute_leveraged_etf_exposure(portfolio, fx_rate):
         hk_active = [h for h in hk_book.get('holdings', [])
                      if (_share_number(h.get('shares', 0)) or 0) > 0]
 
-        us_total = sum(h.get('current_value', 0) or 0 for h in us_active)
-        hk_total = sum(h.get('current_value', 0) or 0 for h in hk_active)
-        us_lev   = sum(h.get('current_value', 0) or 0 for h in us_active if h['ticker'] in LEVERAGED_TICKERS)
-        hk_lev   = sum(h.get('current_value', 0) or 0 for h in hk_active if h['ticker'] in LEVERAGED_TICKERS)
+        us_total = sum(carried_value(h) for h in us_active)
+        hk_total = sum(carried_value(h) for h in hk_active)
+        us_lev   = sum(carried_value(h) for h in us_active if h['ticker'] in LEVERAGED_TICKERS)
+        hk_lev   = sum(carried_value(h) for h in hk_active if h['ticker'] in LEVERAGED_TICKERS)
 
         if us_total > 0: out['us_pct'] = round(us_lev / us_total * 100, 2)
         if hk_total > 0: out['hk_pct'] = round(hk_lev / hk_total * 100, 2)

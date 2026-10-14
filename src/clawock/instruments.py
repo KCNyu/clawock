@@ -9,6 +9,7 @@ module and CI intentionally installs only the project's minimal dependencies.
 from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 
 import json
 import re
@@ -372,10 +373,10 @@ def compute_lookthrough_exposure(portfolio: dict) -> dict[str, dict]:
                   if isinstance(h, dict) and (_share_number(h.get("shares")) or 0) > 0]
         by_factor: dict[str, dict] = {}
         by_sector: dict[str, dict] = {}
-        capital_total = sum(float(h.get("current_value") or 0) for h in active)
+        capital_total = sum(carried_value(h) for h in active)
         mapped_capital = 0.0
         for holding in active:
-            value = float(holding.get("current_value") or 0)
+            value = carried_value(holding)
             meta = get(holding["ticker"])
             if not meta:
                 factor = f"UNMAPPED:{holding['ticker']}"

@@ -16,6 +16,7 @@ Usage:
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 
 import json, sys
 from datetime import datetime, timedelta
@@ -321,7 +322,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"\n{'─'*w}")
     print("  风险摘要")
     active = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
-    lev_val   = sum(h.get('current_value', 0) for h in active
+    lev_val   = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct   = lev_val / tv * 100 if tv else 0
     losing    = [h for h in active if h.get('pnl_percent', 0) < 0]
@@ -417,7 +418,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
 
     # Risk
     active = [h for h in us['holdings'] if (_share_number(h.get('shares', 0)) or 0) > 0]
-    lev_val = sum(h.get('current_value', 0) for h in active
+    lev_val = sum(carried_value(h) for h in active
                   if is_leveraged_holding(h))
     lev_pct = lev_val / tv * 100 if tv else 0
     losing  = sum(1 for h in active if h.get('pnl_percent', 0) < 0)

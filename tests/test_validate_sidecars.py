@@ -419,6 +419,59 @@ def test_same_book_still_reconciles_field_by_field(tmp_path, freshly_built_dashb
             dashboard, portfolio_path=ROOT / 'portfolio.json')
 
 
+def _unquoted_book(tmp_path, freshly_built_dashboard):
+    """Today's book with one active US row as it is before its first quote,
+    and the payload the publisher builds from it."""
+    from clawock.portfolio import aggregates
+    from clawock.publish.dashboard import compute_hhi, leg_totals, resolve_legs, trim_holding
+
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    us = portfolio['portfolios']['us_stocks']
+    row = next(h for h in us['holdings'] if (h.get('shares') or 0) > 0)
+    for field in ('current_price', 'current_value', 'pnl_abs', 'pnl_percent',
+                  'today_change', 'today_change_pct', 'prev_close', 'day_high', 'day_low'):
+        row.pop(field, None)
+    aggregates.recompute(portfolio, dry_run=False, percent_rounding={'us_stocks': 4})
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+
+    payload = json.loads(freshly_built_dashboard.read_text())
+    leg = next(leg for leg in resolve_legs(portfolio) if leg.bucket == 'us_stocks')
+    payload['totals']['us'] = leg_totals(leg, us)
+    payload['holdings']['us'] = [
+        trim_holding(h, 'USD') for h in us['holdings'] if (h.get('shares') or 0) > 0]
+    payload['concentration']['us'] = compute_hhi(payload['holdings']['us'])
+    return source, payload, row
+
+
+def test_a_row_before_its_first_quote_publishes_the_value_its_leg_counts(
+        tmp_path, freshly_built_dashboard):
+    """#2967: the leg totalled the row at cost while the row itself said 0.
+
+    The row now carries the same `carried_value` as its leg, and the gate pins it
+    to that rule rather than to the absent leaf.
+    """
+    source, payload, row = _unquoted_book(tmp_path, freshly_built_dashboard)
+    public = next(h for h in payload['holdings']['us'] if h['ticker'] == row['ticker'])
+    cost = round(row['shares'] * row['cost_basis'], 2)
+
+    assert public['current_value'] == cost
+    assert round(sum(h['current_value'] for h in payload['holdings']['us']), 2) == round(
+        payload['totals']['us']['value_usd'], 2)
+    validators.validate_dashboard(
+        write_json(tmp_path / 'dashboard.json', payload), portfolio_path=source)
+
+
+def test_the_gate_still_rejects_a_quote_less_row_published_at_any_other_value(
+        tmp_path, freshly_built_dashboard):
+    """The pin keeps its purpose: the row reconciles to the source book."""
+    source, payload, row = _unquoted_book(tmp_path, freshly_built_dashboard)
+    public = next(h for h in payload['holdings']['us'] if h['ticker'] == row['ticker'])
+    public['current_value'] = 0
+    with pytest.raises(AssertionError, match=r'holdings\.us\..*\.current_value=0 does not reconcile'):
+        validators.validate_dashboard(
+            write_json(tmp_path / 'dashboard.json', payload), portfolio_path=source)
+
+
 def test_dashboard_money_reconciliation_rejects_source_integrity_failure(
         tmp_path, freshly_built_dashboard):
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())

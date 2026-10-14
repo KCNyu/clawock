@@ -33,6 +33,7 @@ from clawock.decision import risk as risk_ledger
 from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.safe_io import to_strict_finite_number
+from clawock.safe_io import carried_value
 from clawock.workspace import workspace_root
 
 
@@ -419,8 +420,11 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     price = _number(holding.get("current_price"), 4)
     shares = int(_number(holding.get("shares"), 0) or 0)
     current_value = _number(holding.get("current_value"), 2)
-    if current_value is None and price is not None:
-        current_value = price * shares
+    if current_value is None:
+        # Priced but not yet valued, or not yet priced: then it is worth its
+        # cost, as the book's totals count it (#2967).
+        current_value = (price * shares if price is not None
+                         else _number(carried_value(holding), 2))
 
     # The current brokerage ledger is integer-share only in the US. HK requires
     # the live board lot fetched with the quote; missing lot metadata blocks an
@@ -1656,12 +1660,12 @@ def _book_totals(portfolios: dict) -> tuple[dict, dict]:
     """Invested value and cash per leg, in the leg's own currency."""
     invested = {
         "HK": sum(
-            float(h.get("current_value") or 0)
+            carried_value(h)
             for h in (portfolios.get("hk_stocks") or {}).get("holdings") or []
             if (_number(h.get("shares")) or 0) > 0
         ),
         "US": sum(
-            float(h.get("current_value") or 0)
+            carried_value(h)
             for h in (portfolios.get("us_stocks") or {}).get("holdings") or []
             if (_number(h.get("shares")) or 0) > 0
         ),
