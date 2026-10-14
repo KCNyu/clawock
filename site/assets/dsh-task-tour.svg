@@ -25,7 +25,7 @@
 <svg x="536" y="235" width="440" height="223.483" viewBox="0 650 758 385" overflow="hidden"><use xlink:href="#detail"/></svg>
 <text x="536" y="502" class="head">04 / Follow the recorded events</text>
 <text x="536" y="534" class="body">Submission → continuation → delivery → end</text>
-<svg x="536" y="552" width="440" height="713.984" viewBox="0 1950 758 1230" overflow="hidden"><use xlink:href="#detail"/></svg>
+<svg x="536" y="552" width="440" height="754.617" viewBox="0 1950 758 1300" overflow="hidden"><use xlink:href="#detail"/></svg>
 <text x="32" y="1426" class="head">Completed work can still have a failed notification.</text>
 <text x="32" y="1458" class="body">This task finished; its timeline records WeChat sent and Telegram failed. Older tasks may have gaps.</text>
 </svg>

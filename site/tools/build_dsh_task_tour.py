@@ -49,7 +49,7 @@ def render():
     crop('detail', 536, 235, 650, 385, 758)
     text(536, 502, '04 / Follow the recorded events', 'head')
     text(536, 534, 'Submission → continuation → delivery → end')
-    crop('detail', 536, 552, 1950, 1230, 758)
+    crop('detail', 536, 552, 1950, 1300, 758)
     text(32, 1426, 'Completed work can still have a failed notification.', 'head')
     text(32, 1458, 'This task finished; its timeline records WeChat sent and Telegram failed. Older tasks may have gaps.', 'body')
     parts.append('</svg>')
