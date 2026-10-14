@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-13T08:03:34.281524+08:00",
+  "generated_at": "2026-10-14T08:03:32.222563+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-13",
-  "window_end": "2026-10-27",
+  "window_start": "2026-10-14",
+  "window_end": "2026-10-28",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -10,7 +10,13 @@
   ],
   "earnings": [],
   "recent_earnings": [],
-  "fomc": [],
+  "fomc": [
+    {
+      "date": "2026-10-28",
+      "type": "rate_decision",
+      "detail": "FOMC 2026-10-27 to 2026-10-28 meeting; rate decision + Powell presser on 2026-10-28"
+    }
+  ],
   "macro_events": [
     {
       "date": "2026-10-15",
@@ -21,7 +27,7 @@
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
-    "fomc_in_window": 0,
+    "fomc_in_window": 1,
     "macro_count": 1,
     "scheduled_count": 0,
     "scheduled_undated": 0,

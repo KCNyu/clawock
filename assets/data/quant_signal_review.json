@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-10-13",
-  "days_logged": 90,
+  "as_of": "2026-10-14",
+  "days_logged": 91,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 57,
   "closed_market_rows_excluded": 7,
@@ -16,18 +16,18 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 84,
+      "non_overlap_cap": 85,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 507,
-      "n_dates": 82,
+      "n_events": 513,
+      "n_dates": 83,
       "n_tickers": 10,
-      "hit_rate": 0.572,
+      "hit_rate": 0.575,
       "ci95": [
-        0.472,
+        0.474,
         0.673
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
@@ -35,7 +35,7 @@
       "reverse_edge_significant": false,
       "sample_sufficient": true,
       "min_n": 20,
-      "non_overlap_cap": 160,
+      "non_overlap_cap": 170,
       "decision_direction": null,
       "usable": false,
       "note": "聚类 CI 跨 50%，方向结论不入决策"
@@ -54,7 +54,7 @@
       "reverse_edge_significant": false,
       "sample_sufficient": true,
       "min_n": 20,
-      "non_overlap_cap": 128,
+      "non_overlap_cap": 136,
       "decision_direction": null,
       "usable": false,
       "note": "聚类 CI 跨 50%，方向结论不入决策"
@@ -73,7 +73,7 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 48,
+      "non_overlap_cap": 51,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
@@ -92,31 +92,31 @@
       "reverse_edge_significant": false,
       "sample_sufficient": true,
       "min_n": 20,
-      "non_overlap_cap": 80,
+      "non_overlap_cap": 85,
       "decision_direction": null,
       "usable": false,
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 358,
-      "n_dates": 71,
+      "n_events": 363,
+      "n_dates": 72,
       "n_tickers": 11,
-      "hit_rate": 0.589,
+      "hit_rate": 0.592,
       "ci95": [
         0.483,
-        0.689
+        0.687
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
       "reverse_edge_significant": false,
       "sample_sufficient": true,
       "min_n": 20,
-      "non_overlap_cap": 176,
+      "non_overlap_cap": 187,
       "decision_direction": null,
       "usable": false,
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（90 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（91 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

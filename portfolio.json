@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/10/14 04:50 HKT",
+  "last_updated": "2026/10/14 08:03 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -100,7 +100,7 @@
           "current_price": 84.27,
           "today_change_pct": 0.4769,
           "pnl_percent": -3.1379,
-          "data_source": "Eastmoney Oct 13, 2026 16:50 ET",
+          "data_source": "Eastmoney Oct 13, 2026 20:03 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -150,7 +150,7 @@
           "pnl_abs": -5.46,
           "today_change": 0.8,
           "name": "Circle Internet Group Inc-A",
-          "volume": 5904974,
+          "volume": 5945955,
           "prev_close_date": "2026-10-12",
           "day_session_date": "2026-10-13"
         },
@@ -478,7 +478,7 @@
           "current_price": 14.22,
           "today_change_pct": -4.8193,
           "pnl_percent": -71.3826,
-          "data_source": "Eastmoney (alt-prefix) Oct 13, 2026 16:50 ET",
+          "data_source": "Eastmoney (alt-prefix) Oct 13, 2026 20:03 ET",
           "day_high": 14.416,
           "day_low": 13.75,
           "day_open": 14.12,
@@ -535,7 +535,7 @@
             }
           ],
           "name": "Defiance Daily Target 2X Long R",
-          "volume": 1824208,
+          "volume": 1851303,
           "prev_close_date": "2026-10-12",
           "day_session_date": "2026-10-13"
         },
@@ -617,7 +617,7 @@
           "pnl_percent": 6.1288,
           "today_change": -6.88,
           "today_change_pct": -4.21,
-          "data_source": "Eastmoney (alt-prefix) Oct 13, 2026 16:50 ET",
+          "data_source": "Eastmoney (alt-prefix) Oct 13, 2026 20:03 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -648,7 +648,7 @@
           "day_low": 156.05,
           "day_open": 161.982,
           "day_session_date": "2026-10-13",
-          "volume": 68232347
+          "volume": 69022484
         },
         {
           "ticker": "SPCH",
@@ -659,7 +659,7 @@
           "current_value": 3180.0,
           "pnl_abs": -438.0,
           "pnl_percent": -12.1061,
-          "data_source": "Eastmoney Oct 13, 2026 16:50 ET",
+          "data_source": "Eastmoney Oct 13, 2026 20:03 ET",
           "today_change": -291.0,
           "today_change_pct": -8.3838,
           "trades": [
@@ -860,7 +860,7 @@
             "SPCH 单日跌幅 > 15%",
             "SPCX 正股单周跌幅 > 25%"
           ],
-          "volume": 16881308
+          "volume": 17128807
         },
         {
           "ticker": "MSFU",
@@ -971,26 +971,26 @@
           "price": 7805.45,
           "prev_close": 7807.24,
           "change_pct": -0.023,
-          "source": "Tencent usINX index @ 2026-10-13 16:50 ET"
+          "source": "Tencent usINX index @ 2026-10-13 20:03 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
           "price": 30569.48,
           "prev_close": 30664.7,
           "change_pct": -0.31,
-          "source": "Tencent usNDX index @ 2026-10-13 16:50 ET"
+          "source": "Tencent usNDX index @ 2026-10-13 20:03 ET"
         },
         "DJI": {
           "name": "Dow Jones",
           "price": 51670.1,
           "prev_close": 51850.55,
           "change_pct": -0.348,
-          "source": "Tencent usDJI index @ 2026-10-13 16:50 ET"
+          "source": "Tencent usDJI index @ 2026-10-13 20:03 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
       "last_afterhours_attempted": "2026-10-13 16:50 EDT",
-      "last_closed_attempted": "2026-10-13 02:04 EDT",
+      "last_closed_attempted": "2026-10-13 20:03 EDT",
       "last_premarket_attempted": "2026-08-25 05:54 EDT",
       "premarket_fetch_status": {
         "attempted_all_holdings": [
@@ -1099,7 +1099,7 @@
           "Eastmoney": 2,
           "Eastmoney (alt-prefix)": 2
         },
-        "updated_at": "2026-10-13 02:04 EDT",
+        "updated_at": "2026-10-13 20:03 EDT",
         "note": "Multi-provider fetch. Sources: 2x Eastmoney, 2x Eastmoney (alt-prefix)"
       },
       "cash_usd": 461.63,
@@ -1127,7 +1127,7 @@
           "current_price": 212.0,
           "current_value": 29680.0,
           "pnl_percent": -58.31,
-          "data_source": "Tencent+Eastmoney Oct 13 16:10 HKT",
+          "data_source": "Tencent+Eastmoney Oct 14 08:03 HKT",
           "today_change": -280.0,
           "today_change_pct": -0.93,
           "pnl_abs": -41506.0,
@@ -1203,7 +1203,7 @@
           "current_price": 7.955,
           "current_value": 3182.0,
           "pnl_percent": -43.52,
-          "data_source": "Tencent+Eastmoney Oct 13 16:10 HKT",
+          "data_source": "Tencent+Eastmoney Oct 14 08:03 HKT",
           "today_change": -86.0,
           "today_change_pct": -2.63,
           "pnl_abs": -2451.6,
@@ -1250,7 +1250,7 @@
           "current_price": 4.134,
           "current_value": 826.8,
           "pnl_percent": -23.52,
-          "data_source": "Tencent+Eastmoney Oct 13 16:10 HKT",
+          "data_source": "Tencent+Eastmoney Oct 14 08:03 HKT",
           "today_change": -5.6,
           "today_change_pct": -0.67,
           "pnl_abs": -254.2,
@@ -1274,7 +1274,7 @@
           "current_price": 2.58,
           "current_value": 18576.0,
           "pnl_percent": -37.34,
-          "data_source": "Tencent+Eastmoney Oct 13 16:10 HKT",
+          "data_source": "Tencent+Eastmoney Oct 14 08:03 HKT",
           "trades": [
             {
               "date": "2025-12-23",
@@ -1326,7 +1326,7 @@
           "current_price": 4.054,
           "current_value": 4054.0,
           "pnl_percent": -21.13,
-          "data_source": "Tencent+Eastmoney Oct 13 16:10 HKT",
+          "data_source": "Tencent+Eastmoney Oct 14 08:03 HKT",
           "today_change": -30.0,
           "today_change_pct": -0.73,
           "pnl_abs": -1086.0,
@@ -1543,14 +1543,14 @@
           "price": 24345.22,
           "prev_close": 24271.2,
           "chg_pct": 0.3,
-          "source": "Tencent qt.gtimg.cn 2026/10/13 16:10 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/10/14 08:03 HKT"
         },
         "HSTECH": {
           "name": "恒生科技",
           "price": 4136.63,
           "prev_close": 4169.57,
           "chg_pct": -0.79,
-          "source": "Tencent qt.gtimg.cn 2026/10/13 16:10 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/10/14 08:03 HKT"
         }
       },
       "last_midday_attempted": "2026-05-07 12:00:00 HKT",
