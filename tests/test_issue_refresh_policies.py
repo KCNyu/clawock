@@ -190,6 +190,26 @@ def test_preflight_timeout_replaces_success_generation(tmp_path, monkeypatch):
     assert (path.with_suffix('') / 'manifest.json').exists()
 
 
+@pytest.mark.parametrize('code, died', [(1, 'exit 1'), (-9, 'signal SIGKILL')])
+def test_a_collector_that_dies_still_files_a_preflight_outcome(monkeypatch, code, died):
+    # #2962: only the timeout branch used to record one, so a crashed or
+    # killed collector left the slot `pending` for good.
+    writes = []
+    monkeypatch.setattr(brief_preflight, 'run_bounded', lambda *a, **kw: code)
+    monkeypatch.setattr(brief_preflight.workflow_outcomes, 'record_stage',
+                        lambda *a, **kw: writes.append((a, kw)))
+    assert brief_preflight.main([]) == code
+    [(args, kw)] = writes
+    assert args == ('盘前深度简报', 'preflight', 'failed')
+    assert kw['reason'] == 'preflight_crashed' and died in kw['detail']
+    assert kw['unless_terminal_since'] is not None
+
+    writes.clear()
+    monkeypatch.setattr(brief_preflight, 'run_bounded', lambda *a, **kw: 0)
+    assert brief_preflight.main([]) == 0
+    assert writes == []
+
+
 @pytest.mark.skipif(os.name != 'posix', reason='process-group supervision on POSIX')
 def test_deadline_kills_nested_writer(tmp_path):
     pid_path = tmp_path / 'pid'

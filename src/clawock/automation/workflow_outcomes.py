@@ -91,6 +91,7 @@ STAGES = (
 STAGE_STATUSES = {
     "unknown", "pending", "success", "warning", "failed", "skipped", "not_required",
 }
+TERMINAL_STAGE_STATUSES = STAGE_STATUSES - {"unknown", "pending"}
 
 REPORT_JOBS = {
     ("hk", "open"): "港股开盘报告",
@@ -516,8 +517,28 @@ def _prune(records, now, ledger=None):
 WECHAT_BACKSTOP_KEYS = ("wechat_backstop_ok", "wechat_backstop")
 
 
-def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, **details):
-    """Atomically update one product stage; never lets observability break a job."""
+def _terminal_since(stage, since):
+    """Whether `stage` holds an outcome recorded at or after `since`."""
+    if stage.get("status") not in TERMINAL_STAGE_STATUSES:
+        return False
+    try:
+        return _now(datetime.fromisoformat(stage.get("at") or "")) >= _now(since)
+    except ValueError:
+        return False
+
+
+def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
+                 unless_terminal_since=None, **details):
+    """Atomically update one product stage; never lets observability break a job.
+
+    A `pending` write is a start marker and carries no outcome, so it never
+    replaces a stage that already holds one: a later preflight re-run maps to
+    the same daily slot and used to reset the shipped slot's preflight to a bare
+    `pending`, dropping its diagnostics and turning a `warning` slot into a clean
+    success (#2960). The re-run's own outcome still replaces it when it lands.
+    `unless_terminal_since` makes the write a backstop: it is skipped when the
+    stage already holds an outcome recorded at or after that instant (#2962).
+    """
     if dry_run:
         return {}
     try:
@@ -552,9 +573,13 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
             current.setdefault("stages", {name: _stage() for name in STAGES})
             for name in STAGES:
                 current["stages"].setdefault(name, _stage())
+            previous = current["stages"].get(stage) or {}
+            if ((status == "pending" and previous.get("status") in TERMINAL_STAGE_STATUSES)
+                    or (unless_terminal_since is not None
+                        and _terminal_since(previous, unless_terminal_since))):
+                return current
             # The ledger is published: a caller's reason or exception text
             # carries this host's absolute paths (#2334).
-            previous = current["stages"].get(stage) or {}
             current["stages"][stage] = _stage(
                 status, at=now.isoformat(), **_public(details)
             )
