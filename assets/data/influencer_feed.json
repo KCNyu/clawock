@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T19:34:47.124445+00:00",
+  "generated_at": "2026-10-14T00:33:53.776682+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,74 +24,12 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 24,
-    "held_hits": 1,
-    "new_ideas": 10,
-    "sector_hits": 8
+    "total": 25,
+    "held_hits": 0,
+    "new_ideas": 13,
+    "sector_hits": 5
   },
   "items": [
-    {
-      "author": "洪灏",
-      "text": "SpaceX狂彈55%！馬斯克神話再起？Nvidia、光通訊爆單 AI股繼續狂歡？",
-      "url": "https://news.google.com/rss/articles/CBMi_wJBVV95cUxNMFliM25qdlRGZEJkN2ppYi1pQTFyVmdtTVlJWHRRYWZ1LW9vdkJhdFU0NmdrcHd1ckNWX0RPbk0zV1dCcGk5d29veFJfZXlhaGx0VmVOZy1oMW5iR0tHYVROTmR2cV9KOXJ2czJHZ0JxY3lMN3VwVEJTNjQ1VWgybVBLbS1FblFzaG9YNHdPUTRRRkZjRmhMbENKdVVIQ0twQXZ4MjlDQ1V5ZVlYQVR6OENieTdNYmcyeDZ0blA3TjNQV2JtajEzVkdzOW9ENS1SSE1xWmctNE9iaXdRM1BKU1h1dmo5QW9xNjZQUE9IdGhyYTA1a1NMM2xVOUlYbnFsY3RyLTJZUVhvRnlaWkhkY2RTc0xxeXhtZ0xnaUROMEVpRDRBa3VtdDQ5X05YaEJ2SmpBWjZEMG5UaTZ0VWJtclFFTkNJWXpOZkJGSE9HWWVhb1FiN2NwQk9TYlM5VHduNEhNZ2NhdldKWktDWE1wREFXZEdzaUVzX0ZZVVpLNA?oc=5",
-      "published": "2026-10-12T12:30:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [
-        "SPCX",
-        "NVDA"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "航天",
-        "AI芯片",
-        "光通信",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 64,
-      "summary_cn": "据报道，SpaceX大跌55%引发对马斯克商业版图的重估，同时英伟达和光通信AI链订单继续受到关注。"
-    },
-    {
-      "author": "Musk",
-      "text": "Why Micron Stock (MU) Is Falling Today: Musk Flags China Chip Threat",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 18:29:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "存储芯片",
-        "美光科技",
-        "中国芯片竞争"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Elon Musk警示中国芯片威胁，媒体据此讨论美光股价下跌及存储芯片板块压力。"
-    },
     {
       "author": "Burry",
       "text": "Microsoft Stock Alert: Michael Burry Warns of $3 Trillion in AI Liabilities",
@@ -107,48 +45,121 @@
         "MSFT"
       ],
       "sectors": [
-        "人工智能",
+        "AI",
         "云计算",
-        "企业软件",
-        "AI资本开支"
+        "科技股"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 81,
-      "summary_cn": "据报道，Michael Burry警告AI相关业务可能形成3万亿美元负债风险，并提示关注微软的AI投资与资产负担。"
+      "relevance": 89,
+      "summary_cn": "据报道，Michael Burry警告微软可能承担3万亿美元AI相关负债，对大型科技公司的AI投资回报提出质疑。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns Fannie Mae and Freddie Mac Could Become ‘Worthless’ as Trump-Era Gains Collapse Under Fresh Pressure",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPWGMtYXFZTGFodWFyY3BGSV9VQTZjTk1ySWxoRFd4dnZYeVBMM3VwRDNHM3M4eEkxM0xvLThlVkNHNlVsYkZsNjZXSnZvRE1FNmhQSGk3bmJzSW1Ba3VEVnhOdWFIb09WNWNRb2xhSHliUFkzRkxFX0pxX1B4WUdwbV9CRUQ3TEM0NWtmVWU1a2NKWEtvWVE2WHh6aw?oc=5",
+      "published": "2026-10-13T22:30:05+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "FNF",
+        "FMCC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "FMCC",
+        "FNF"
+      ],
+      "sectors": [
+        "住房金融",
+        "债券",
+        "美国金融",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry警告房利美和房地美可能因特朗普任内收益失效而在持续压力下变得几乎一文不值。"
     },
     {
       "author": "洪灏",
       "text": "兩導火線引爆晶片股拋售 美早盤美光、SK海力士未止跌",
-      "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE5NcU80MzNRaXRTbF9WZkhHRkwzako3YlFQVk5vcVNJdXJ2NTFRMEZzc2hpcGdhNGhRS0NqdDJZT3kwNEdMMFRjaGVFWF80ajl1NV9KcTY5SEREcW95RVlV0gFkQVVfeXFMUHpGUzUyMHhNZ0JKWXlsV3JLODVadXZNVEJsRFUxb2hwZEczcEhwbWZEYXp0WTRBVFktT0t6Z0VnSmhSTy1tbVF6Q3lNU0ZMOENLZlhFckptNW5KV2d4dEw2cXFrMQ?oc=5",
-      "published": "2026-10-13T14:59:00+00:00",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE14S1BVb0NsQ3NReU1mQWx3eGtvejlDU1dwUDlVMnR6UmRMcXZma3JTY3RCVUpaazlYRlpuQ01ySWV3bFZERWdGNGpIdVBhalVIRy1wdlJkYlo?oc=5",
+      "published": "2026-10-13T00:06:00+00:00",
       "origin": "gnews-rss",
-      "source": "自由財經",
+      "source": "自由時報",
       "tickers": [
-        "MU"
+        "MU",
+        "000660"
       ],
       "held": [],
       "new_ideas": [
+        "000660",
         "MU"
       ],
       "sectors": [
         "半导体",
         "存储芯片",
-        "SK海力士",
-        "美光科技"
+        "芯片"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "据报道，两项利空消息引发芯片股抛售，美光与SK海力士早盘继续下跌，显示存储芯片板块风险偏好恶化。"
+    },
+    {
+      "author": "洪灏",
+      "text": "SpaceX狂彈55%！馬斯克神話再起？Nvidia、光通訊爆單 AI股繼續狂歡？",
+      "url": "https://news.google.com/rss/articles/CBMi_wJBVV95cUxNMFliM25qdlRGZEJkN2ppYi1pQTFyVmdtTVlJWHRRYWZ1LW9vdkJhdFU0NmdrcHd1ckNWX0RPbk0zV1dCcGk5d29veFJfZXlhaGx0VmVOZy1oMW5iR0tHYVROTmR2cV9KOXJ2czJHZ0JxY3lMN3VwVEJTNjQ1VWgybVBLbS1FblFzaG9YNHdPUTRRRkZjRmhMbENKdVVIQ0twQXZ4MjlDQ1V5ZVlYQVR6OENieTdNYmcyeDZ0blA3TjNQV2JtajEzVkdzOW9ENS1SSE1xWmctNE9iaXdRM1BKU1h1dmo5QW9xNjZQUE9IdGhyYTA1a1NMM2xVOUlYbnFsY3RyLTJZUVhvRnlaWkhkY2RTc0xxeXhtZ0xnaUROMEVpRDRBa3VtdDQ5X05YaEJ2SmpBWjZEMG5UaTZ0VWJtclFFTkNJWXpOZkJGSE9HWWVhb1FiN2NwQk9TYlM5VHduNEhNZ2NhdldKWktDWE1wREFXZEdzaUVzX0ZZVVpLNA?oc=5",
+      "published": "2026-10-12T12:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
+        "AI",
+        "半导体",
+        "光通信"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，两项利空消息引爆芯片股抛售，美光和SK海力士早盘均未能止跌。"
+      "stance": "neutral",
+      "relevance": 81,
+      "summary_cn": "据报道，SpaceX大跌55%引发对马斯克商业帝国的讨论，同时英伟达与光通信企业AI订单增长预期仍受关注。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-12 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 730,303 股（最大单只 ETF 占比 0.54%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-12T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5434,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "基因测序",
+        "精准医疗",
+        "生物科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest从ARKG卖出73.03万股Personalis，涉及金额占该ETF约0.54%，属于较显著的机构减仓。"
     },
     {
       "author": "Burry",
@@ -167,36 +178,13 @@
       "sectors": [
         "电动车",
         "特斯拉",
-        "汽车金融"
+        "做空交易",
+        "估值"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry最新建立的空头押注引发对特斯拉估值及投资逻辑的质疑。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-12 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 730,303 股（最大单只 ETF 占比 0.54%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-12T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5434,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "基因检测",
-        "精准医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在ARKG中卖出Personalis 730,303股，该股占ETF比重0.54%，为当日相关操作中规模最大。"
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry最新押注引发对特斯拉的质疑，焦点集中在公司估值及其相关交易风险。"
     },
     {
       "author": "Cathie Wood",
@@ -214,14 +202,14 @@
         "CDNA"
       ],
       "sectors": [
-        "器官移植",
         "基因检测",
-        "精准医疗"
+        "精准医疗",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKG中卖出CareDx 76,589股，该股占ETF比重0.23%。"
+      "summary_cn": "ARK Invest从ARKG卖出7.66万股CareDx，涉及金额占该ETF约0.23%，属于可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -240,12 +228,13 @@
       ],
       "sectors": [
         "在线博彩",
-        "数字娱乐"
+        "博彩",
+        "互联网消费"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKW中卖出DraftKings 227,944股，该股占ETF比重0.22%。"
+      "summary_cn": "ARK Invest从ARKW卖出22.79万股DraftKings，涉及金额占该ETF约0.22%，构成机构减仓信号。"
     },
     {
       "author": "Cathie Wood",
@@ -263,14 +252,14 @@
         "CMPS"
       ],
       "sectors": [
-        "神经科学",
-        "精神疾病治疗",
-        "生物科技"
+        "精神健康",
+        "生物科技",
+        "医疗服务"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在ARKG中买入Compass Pathways 284,019股，该股占ETF比重0.16%。"
+      "relevance": 67,
+      "summary_cn": "ARK Invest买入28.40万股Compass Pathways，涉及金额占ARKG约0.16%，体现机构增持精神健康生物科技敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -294,8 +283,8 @@
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 67,
-      "summary_cn": "ARK Invest在ARKG中买入Alamar Biosciences 101,154股，该股占ETF比重0.12%。"
+      "relevance": 65,
+      "summary_cn": "ARK Invest买入10.12万股Alamar Biosciences，涉及金额占ARKG约0.12%，显示机构小幅加仓生命科学工具公司。"
     },
     {
       "author": "Cathie Wood",
@@ -314,13 +303,93 @@
       ],
       "sectors": [
         "基因编辑",
-        "CRISPR",
-        "生物科技"
+        "生物科技",
+        "医药"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 66,
-      "summary_cn": "ARK Invest在ARKG中买入CRISPR Therapeutics 43,887股，该股占ETF比重0.11%。"
+      "relevance": 65,
+      "summary_cn": "ARK Invest买入4.39万股CRISPR Therapeutics，涉及金额占ARKG约0.11%，构成基因编辑板块的机构增持信号。"
+    },
+    {
+      "author": "段永平",
+      "text": "恒生指數倒升74點 滙控升逾1% 聯想逆市跌近4%",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9Pa3ZPd1dEcDlka3Q2aTBIelpPNUxqeHhMbVQ2NTJrbTg2bnpYQ2N5R2VMSVcweVZMSzhhSkhVMHlhMjFoWW1tNzFSd016SDZUOEE?oc=5",
+      "published": "2026-10-13T08:28:43+00:00",
+      "origin": "gnews-rss",
+      "source": "AM730",
+      "tickers": [
+        "0005",
+        "0992"
+      ],
+      "held": [],
+      "new_ideas": [
+        "0005",
+        "0992"
+      ],
+      "sectors": [
+        "港股",
+        "银行",
+        "消费电子"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道，恒生指数升74点，汇丰科技涨逾1%而联想跌近4%，反映港股金融与科技板块表现分化。"
+    },
+    {
+      "author": "Musk",
+      "text": "No single person has spent more money to harm EVs than Tesla CEO Elon Musk",
+      "url": "",
+      "published": "Mon, 12 Oct 2026 16:47:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Electrek",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "特斯拉",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道，相关文章抨击马斯克投入大量政治资金，并质疑其对电动车产业政策立场的影响。"
+    },
+    {
+      "author": "Burry",
+      "text": "'Consolidating the Big Short': Michael Burry unpacks his evolving bet against the AI trade",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQUy1kaW5VVUhtSm9KQlcxbVFQbXdua1k0bnJkblNkMDhrNTRiWllhUWF1V0dfb1pSVUdnblZBdU1oT1k2bUc1RDhicGVmZHJZNE5abFYwZVVycU9xQ0JzdU9VZHVDeGtoREZYQlFBR3pPLWRCeXF5a21ldmJDYmFKYnhYOV8yanBkMWxtS2NiN250WGxSTmc?oc=5",
+      "published": "2026-10-13T18:15:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "科技股",
+        "做空交易"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 91,
+      "summary_cn": "据报道，Michael Burry正在加大针对AI交易的空头押注，显示其对AI资本开支和估值风险持强烈看空态度。"
     },
     {
       "author": "Burry",
@@ -334,40 +403,96 @@
       "new_ideas": [],
       "sectors": [
         "美股",
-        "宏观风险"
+        "科技股",
+        "AI",
+        "宏观",
+        "市场风险"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "据报道，Michael Burry称市场接近重大顶部并可能发生类似1987年的下跌，继续维持看空美股观点。"
+      "relevance": 90,
+      "summary_cn": "据报道，Michael Burry认为市场接近重大顶部并可能发生类似1987年的暴跌，继续维持看空立场。"
     },
     {
-      "author": "Burry",
-      "text": "'Consolidating the Big Short': Michael Burry unpacks his evolving bet against the AI trade",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPUDZrT3Vtd0RPdzdiTmRITkR5RVpEak9kVWkyZTZvY3JRdGs3bF9wNU1pSEFfT1RRRjlPRGpyWkdnb2pFMEZnbklIaEk5bUlTaDFKVGZYU2dfc1RHb0NwZGRUZTJsMF9IeGlvb25qWHZteXM4THVjWDJCZWl5cHB6djZYX1NDeUVwZ1huMzNPc280WnFEYnB6dkZUX1JaY3N6WlNQZEw4YmM0bnJYX2RJV3ltOGNyS0lyWEVzbGZ3NmltQ25mRlFEMmlnakI?oc=5",
-      "published": "2026-10-13T18:15:47+00:00",
+      "author": "Musk",
+      "text": "Influential Hindu group urges India to block Starlink amid Musk-Ambani feud",
+      "url": "",
+      "published": "Tue, 13 Oct 2026 12:59:43 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider Africa",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "AI交易",
-        "做空"
+        "航天",
+        "卫星互联网",
+        "Starlink",
+        "监管"
       ],
       "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据报道，一个有影响力的印度教组织要求印度阻断Starlink，对马斯克的卫星互联网业务构成政策阻力。"
+    },
+    {
+      "author": "洪灏",
+      "text": "【大行看法】永豐金麥嘉嘉：強美元令投資者選股變挑剔 料港股第四季區間震盪",
+      "url": "https://news.google.com/rss/articles/CBMigARBVV95cUxNZ3dsSEszMHlHT1VoZERoUGdUcU0yX3hjOTZVMTJCUUZIUXZNa1hvYURvNDJMTS0zUE5LVmpDOEVTeUpDSHZneTZmVnZqZGFvNHZfWFdIT1pYVTNNRF84bGZ5eUQwRW5rcFZUT3JycXFQV2pzeTRQRUpWcXlOUC1FemdIQmY4cnhIdVNoNFZKZFE3RVBBSnlTX1pSTDdISFFRTjJnWGlQMWZmZVRyUVpFaS1DRTVnQ25RT1dRRjN3YTUyY2NSTlViQ3lfbTJseUc5TFZlTVRjTVIzV3FsZGhGZUhUXzBPMVhDSGxPbHVsNmpGOXBhM0ExUFRxYTNpX1RZcFViNkFJX3lTUEE5NHhsSFZpMDFSUWpIUzY0REVvU3B1VlZFem1MRUtuY0VSNHdNeHdlTzZnTDdTMHVwNnFFeXlRYV9UMFNuV2lkRFdMTWpPRkNPZk84b2l3OEhIQUpzNUJ3SGExdDFVNFNVbEVGMWxtSV9pYlRial8yT1FPNzRGaEhlb2RGaks3S0liS1V6aV9Lb0dYVG1XU05CVWhYekhtM0l4OGk2Wll6aGJvSjgyaXZMZ2NGTVpRLU9vQTU2bW1PZmpTU21YdHhaVEl5SjB4aGtqNEtzRXA1SkFmOEFtSDFGdEtmZ2k3cy1vbHNuNEZxa3NWdkhKQ0R1N0xfSQ?oc=5",
+      "published": "2026-10-12T07:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "港股",
+        "美元",
+        "利率",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "02208",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry正在加大针对AI交易的空头押注，认为其估值和潜在风险不容忽视。"
+      "stance": "neutral",
+      "relevance": 61,
+      "summary_cn": "据报道，强美元促使投资者选股趋于挑剔，机构预计港股第四季度区间震荡。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "How Congress Is Cashing In on the AI Boom",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE0xekNhZ0ZpbHVIYTZCaDVNTXF4X2tDd0hjcHpXYzhYZFZGa1l6N2FuNFFBVFZfQ0RuUDFxaVZqWlNhY1pzaWh0dlpCUXYxakxkWUk3OUk3RW04WjkyclQ0eWlCYkJFc2owWEpyTVZzV2J3SEVOTmVNQ3RGemXSAXxBVV95cUxNMXpDYWdGaWx1SGE2Qmg1TU1xeF9rQ3dIY3B6V2M4WGRWRmtZejdhbjRRQVRWX0NEblAxcWlWalpTYWNac2lodHZaQlF2MWpMZFlJNzlJN0VtOFo5MnJUNHlpQmJCRXNqMFhKck1Wc1did0hFTk5lTUN0Rnpl?oc=5",
+      "published": "2026-10-13T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Nation",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "美国国会",
+        "监管",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道，美国国会议员正在利用AI热潮获取利益，凸显政策制定者与AI资本扩张之间的潜在利益冲突。"
     },
     {
       "author": "Musk",
@@ -383,141 +508,33 @@
         "半导体",
         "芯片",
         "中国",
-        "AI基础设施"
+        "AI"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "据报道，马斯克就中国消息导致芯片股承压作出解释，关注科技供应链和政策风险。"
+    },
+    {
+      "author": "洪灏",
+      "text": "韓股重挫 博通CEO：AI融資比晶片短缺危險",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTFBXcVhtRzFIaGFwd0hYeGRMc09iVy1UWGFLQ1ZQYmxtcDVxMXlSdmIxZ1RNVzNrWHNYcXdtSzBQQXNDOERfWk5XSTA5ci03MVB0TC04dzRfZkk?oc=5",
+      "published": "2026-10-13T20:31:55+00:00",
+      "origin": "gnews-rss",
+      "source": "自由時報",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "韩国股市",
+        "半导体",
+        "AI",
+        "芯片"
       ],
+      "sector_holdings": [],
       "stance": "neutral",
       "relevance": 74,
-      "summary_cn": "据报道，Elon Musk就中国相关消息为何导致芯片股下跌作出解释，焦点集中于中国芯片威胁及半导体板块风险。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk No Longer A Trillionaire After Losing Over $28 Billion As SpaceX Shares Slide",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 14:39:40 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私人航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，SpaceX股价大跌导致Elon Musk个人财富减少超过280亿美元并跌破万亿美元门槛，反映私人航天资产估值波动。"
-    },
-    {
-      "author": "洪灏",
-      "text": "美國長債開始尋頂 | 陶冬天下 - 財富管理 - 生活",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNVWhXemJtdkxBelNQTnVoelB5cWdfc2tfRHBwd2JEYTFXcjAtRHFFTmFhWDQ4Y3VOYi1iVk5zdmh3aTg0eXZFRVZRczIyVXBidW5IcGdtcW1rMlZEd1RyMFFYTzhYNVdWbldMZDg4VEwwZ3lvdEJBcG4yam9lWkh1UnZ2V1prZzQ1X1VJQ1JHaFItX2xYYTRUaXBlcldYTDNJVGFRSlFFc2pIbjM5empLSTlvRUxfUDlxZVMyd2tR?oc=5",
-      "published": "2026-10-12T04:54:46+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国国债",
-        "长债",
-        "利率",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 69,
-      "summary_cn": "据报道，美国长期国债收益率开始寻找顶部，反映长端利率和全球资产估值面临调整压力。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "How Congress Is Cashing In on the AI Boom",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE0xekNhZ0ZpbHVIYTZCaDVNTXF4X2tDd0hjcHpXYzhYZFZGa1l6N2FuNFFBVFZfQ0RuUDFxaVZqWlNhY1pzaWh0dlpCUXYxakxkWUk3OUk3RW04WjkyclQ0eWlCYkJFc2owWEpyTVZzV2J3SEVOTmVNQ3RGemXSAXxBVV95cUxNMXpDYWdGaWx1SGE2Qmg1TU1xeF9rQ3dIY3B6V2M4WGRWRmtZejdhbjRRQVRWX0NEblAxcWlWalpTYWNac2lodHZaQlF2MWpMZFlJNzlJN0VtOFo5MnJUNHlpQmJCRXNqMFhKck1Wc1did0hFTk5lTUN0Rnpl?oc=5",
-      "published": "2026-10-13T13:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "The Nation",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI监管",
-        "国会",
-        "科技政策"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，美国国会议员正通过交易和制度安排参与AI热潮，凸显AI资产上涨带来的政策与利益冲突风险。"
-    },
-    {
-      "author": "Trump",
-      "text": "I see so many comments from the Radical Left Morons and Lunatics that China and Russia are helping the “wonderful” Islamic Republic of Iran. If they are, it’s at a very low level, but I don’t believe they are at all. They have too much to lose, and we would know about it, and know about it very fast! Thank you for your attention to this matter. President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42300",
-      "published": "2026-10-13T02:45:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国",
-        "俄罗斯",
-        "伊朗",
-        "中东地缘政治"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump否认中国和俄罗斯在实质帮助伊朗，并称若发现相关行动会迅速作出回应。"
-    },
-    {
-      "author": "洪灏",
-      "text": "【大行看法】永豐金麥嘉嘉：強美元令投資者選股變挑剔 料港股第四季區間震盪",
-      "url": "https://news.google.com/rss/articles/CBMigARBVV95cUxNZ3dsSEszMHlHT1VoZERoUGdUcU0yX3hjOTZVMTJCUUZIUXZNa1hvYURvNDJMTS0zUE5LVmpDOEVTeUpDSHZneTZmVnZqZGFvNHZfWFdIT1pYVTNNRF84bGZ5eUQwRW5rcFZUT3JycXFQV2pzeTRQRUpWcXlOUC1FemdIQmY4cnhIdVNoNFZKZFE3RVBBSnlTX1pSTDdISFFRTjJnWGlQMWZmZVRyUVpFaS1DRTVnQ25RT1dRRjN3YTUyY2NSTlViQ3lfbTJseUc5TFZlTVRjTVIzV3FsZGhGZUhUXzBPMVhDSGxPbHVsNmpGOXBhM0ExUFRxYTNpX1RZcFViNkFJX3lTUEE5NHhsSFZpMDFSUWpIUzY0REVvU3B1VlZFem1MRUtuY0VSNHdNeHdlTzZnTDdTMHVwNnFFeXlRYV9UMFNuV2lkRFdMTWpPRkNPZk84b2l3OEhIQUpzNUJ3SGExdDFVNFNVbEVGMWxtSV9pYlRial8yT1FPNzRGaEhlb2RGaks3S0liS1V6aV9Lb0dYVG1XU05CVWhYekhtM0l4OGk2Wll6aGJvSjgyaXZMZ2NGTVpRLU9vQTU2bW1PZmpTU21YdHhaVEl5SjB4aGtqNEtzRXA1SkFmOEFtSDFGdEtmZ2k3cy1vbHNuNEZxa3NWdkhKQ0R1N0xfSQ?oc=5",
-      "published": "2026-10-12T07:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "强美元",
-        "利率",
-        "外汇"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 67,
-      "summary_cn": "据报道，强美元令投资者选股趋于挑剔，并预计港股第四季度维持区间震荡。"
+      "summary_cn": "据报道，韩国股市大跌，市场关注AI融资风险及芯片供应瓶颈，半导体高估值资产承压。"
     },
     {
       "author": "Trump",
@@ -529,57 +546,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "中东局势",
         "原油",
-        "能源",
-        "中东地缘政治",
         "航运"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "Trump称胡塞武装正在袭击沙特并试图推高油价，将其归因于伊朗，凸显中东供应风险。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Flags ‘Bull Trap’ Risk, Holds Back On New Shorts — Why Trump’s Fannie-Freddie Call Matters To His Portfolio",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQaG9iVzhJN3dpMjhiQjBDUUpZNlBQYTdZcFpxelF2R3A3Uk8yY3pmRXQ2QTlNblpIMEx6TFdXdzV2QnlwTnU2TWdhdGs2NzNpbTRXaWVBOGlwZE5uaVkySFpkMy1SYkl4ODFCWVJYdFNwYUJ0RDNTN2NLRTBETXRPN25TU2ZMejJBRUJHaFpOWmJULWpLRzFrc1FR?oc=5",
-      "published": "2026-10-13T04:49:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美股",
-        "金融监管",
-        "房貸 Fannie Mae",
-        "房貸 Freddie Mac"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry警告市场处于“牛市陷阱”风险，同时暂缓新增空头，并讨论特朗普对Fannie Mae和Freddie Mac的政策表态及其组合影响。"
-    },
-    {
-      "author": "Trump",
-      "text": "Happy Birthday to the United States Navy! It is now 251 years of Victories, Old and New. What they’ve done with the impenetrable Steel Wall (Sometimes referred to as the Blockade) in the Hormuz Strait is another Historic Achievement, one of many. HAPPY BIRTHDAY U.S. NAVY! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42305",
-      "published": "2026-10-13T15:56:25+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "原油",
-        "能源",
-        "霍尔木兹海峡",
-        "航运",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "Trump将美国海军在霍尔木兹海峡实施的封锁称为历史性成就，强调该地区的能源运输和军事风险。"
+      "summary_cn": "特朗普称胡塞武装受伊朗指使袭击沙特并试图推高油价，对相关地缘风险和能源市场构成偏空压力。"
     },
     {
       "author": "Trump",
@@ -592,101 +566,77 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "欧洲天然气",
-        "俄乌冲突",
-        "对俄制裁"
+        "欧盟",
+        "俄罗斯",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 67,
-      "summary_cn": "Trump指责欧盟向俄罗斯支付2500亿美元能源费用，折射欧洲能源成本及对俄能源关系争议。"
+      "summary_cn": "特朗普指控欧盟向俄罗斯支付2500亿美元能源费用，凸显俄欧能源贸易关系争议。"
     },
     {
-      "author": "Musk",
-      "text": "Supreme Court sides with Trump administration in lawsuit seeking records on Elon Musk's DOGE",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 15:32:32 GMT",
-      "origin": "gnews-rss",
-      "source": "PBS",
+      "author": "Trump",
+      "text": "Happy Birthday to the United States Navy! It is now 251 years of Victories, Old and New. What they’ve done with the impenetrable Steel Wall (Sometimes referred to as the Blockade) in the Hormuz Strait is another Historic Achievement, one of many. HAPPY BIRTHDAY U.S. NAVY! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42305",
+      "published": "2026-10-13T15:56:25+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国政治",
-        "监管",
+        "中东局势",
+        "原油",
+        "航运"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "特朗普将美国海军在霍尔木兹海峡的封锁行动称为历史性成就，凸显当地原油与航运供应风险。"
+    },
+    {
+      "author": "Trump",
+      "text": "I see so many comments from the Radical Left Morons and Lunatics that China and Russia are helping the “wonderful” Islamic Republic of Iran. If they are, it’s at a very low level, but I don’t believe they are at all. They have too much to lose, and we would know about it, and know about it very fast! Thank you for your attention to this matter. President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42300",
+      "published": "2026-10-13T02:45:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国",
+        "俄罗斯",
+        "伊朗",
+        "地缘政治",
+        "原油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 54,
+      "summary_cn": "特朗普否认中国和俄罗斯正实质援助伊朗，反映其对相关地缘冲突及能源供应风险的判断。"
+    },
+    {
+      "author": "Musk",
+      "text": "Supreme Court Will Review Dispute Over Records From Elon Musk’s DOGE",
+      "url": "",
+      "published": "Tue, 13 Oct 2026 16:29:12 GMT",
+      "origin": "gnews-rss",
+      "source": "The New York Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政府监管",
         "DOGE"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，美国最高法院在要求调取Elon Musk旗下DOGE相关记录的诉讼中支持特朗普政府，涉及政府透明度与监管争议。"
+      "relevance": 52,
+      "summary_cn": "美国最高法院将审查有关马斯克主导的DOGE政府削减组织档案记录争议，增加政府开支与监管层面的不确定性。"
     }
   ],
-  "held_hits": [
-    {
-      "author": "洪灏",
-      "text": "SpaceX狂彈55%！馬斯克神話再起？Nvidia、光通訊爆單 AI股繼續狂歡？",
-      "url": "https://news.google.com/rss/articles/CBMi_wJBVV95cUxNMFliM25qdlRGZEJkN2ppYi1pQTFyVmdtTVlJWHRRYWZ1LW9vdkJhdFU0NmdrcHd1ckNWX0RPbk0zV1dCcGk5d29veFJfZXlhaGx0VmVOZy1oMW5iR0tHYVROTmR2cV9KOXJ2czJHZ0JxY3lMN3VwVEJTNjQ1VWgybVBLbS1FblFzaG9YNHdPUTRRRkZjRmhMbENKdVVIQ0twQXZ4MjlDQ1V5ZVlYQVR6OENieTdNYmcyeDZ0blA3TjNQV2JtajEzVkdzOW9ENS1SSE1xWmctNE9iaXdRM1BKU1h1dmo5QW9xNjZQUE9IdGhyYTA1a1NMM2xVOUlYbnFsY3RyLTJZUVhvRnlaWkhkY2RTc0xxeXhtZ0xnaUROMEVpRDRBa3VtdDQ5X05YaEJ2SmpBWjZEMG5UaTZ0VWJtclFFTkNJWXpOZkJGSE9HWWVhb1FiN2NwQk9TYlM5VHduNEhNZ2NhdldKWktDWE1wREFXZEdzaUVzX0ZZVVpLNA?oc=5",
-      "published": "2026-10-12T12:30:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [
-        "SPCX",
-        "NVDA"
-      ],
-      "held": [
-        "SPCX"
-      ],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "航天",
-        "AI芯片",
-        "光通信",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "SPCH"
-      ],
-      "stance": "neutral",
-      "relevance": 64,
-      "summary_cn": "据报道，SpaceX大跌55%引发对马斯克商业版图的重估，同时英伟达和光通信AI链订单继续受到关注。"
-    }
-  ],
+  "held_hits": [],
   "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Why Micron Stock (MU) Is Falling Today: Musk Flags China Chip Threat",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 18:29:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "存储芯片",
-        "美光科技",
-        "中国芯片竞争"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Elon Musk警示中国芯片威胁，媒体据此讨论美光股价下跌及存储芯片板块压力。"
-    },
     {
       "author": "Burry",
       "text": "Microsoft Stock Alert: Michael Burry Warns of $3 Trillion in AI Liabilities",
@@ -702,48 +652,121 @@
         "MSFT"
       ],
       "sectors": [
-        "人工智能",
+        "AI",
         "云计算",
-        "企业软件",
-        "AI资本开支"
+        "科技股"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 81,
-      "summary_cn": "据报道，Michael Burry警告AI相关业务可能形成3万亿美元负债风险，并提示关注微软的AI投资与资产负担。"
+      "relevance": 89,
+      "summary_cn": "据报道，Michael Burry警告微软可能承担3万亿美元AI相关负债，对大型科技公司的AI投资回报提出质疑。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns Fannie Mae and Freddie Mac Could Become ‘Worthless’ as Trump-Era Gains Collapse Under Fresh Pressure",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPWGMtYXFZTGFodWFyY3BGSV9VQTZjTk1ySWxoRFd4dnZYeVBMM3VwRDNHM3M4eEkxM0xvLThlVkNHNlVsYkZsNjZXSnZvRE1FNmhQSGk3bmJzSW1Ba3VEVnhOdWFIb09WNWNRb2xhSHliUFkzRkxFX0pxX1B4WUdwbV9CRUQ3TEM0NWtmVWU1a2NKWEtvWVE2WHh6aw?oc=5",
+      "published": "2026-10-13T22:30:05+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "FNF",
+        "FMCC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "FMCC",
+        "FNF"
+      ],
+      "sectors": [
+        "住房金融",
+        "债券",
+        "美国金融",
+        "房地产"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry警告房利美和房地美可能因特朗普任内收益失效而在持续压力下变得几乎一文不值。"
     },
     {
       "author": "洪灏",
       "text": "兩導火線引爆晶片股拋售 美早盤美光、SK海力士未止跌",
-      "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE5NcU80MzNRaXRTbF9WZkhHRkwzako3YlFQVk5vcVNJdXJ2NTFRMEZzc2hpcGdhNGhRS0NqdDJZT3kwNEdMMFRjaGVFWF80ajl1NV9KcTY5SEREcW95RVlV0gFkQVVfeXFMUHpGUzUyMHhNZ0JKWXlsV3JLODVadXZNVEJsRFUxb2hwZEczcEhwbWZEYXp0WTRBVFktT0t6Z0VnSmhSTy1tbVF6Q3lNU0ZMOENLZlhFckptNW5KV2d4dEw2cXFrMQ?oc=5",
-      "published": "2026-10-13T14:59:00+00:00",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE14S1BVb0NsQ3NReU1mQWx3eGtvejlDU1dwUDlVMnR6UmRMcXZma3JTY3RCVUpaazlYRlpuQ01ySWV3bFZERWdGNGpIdVBhalVIRy1wdlJkYlo?oc=5",
+      "published": "2026-10-13T00:06:00+00:00",
       "origin": "gnews-rss",
-      "source": "自由財經",
+      "source": "自由時報",
       "tickers": [
-        "MU"
+        "MU",
+        "000660"
       ],
       "held": [],
       "new_ideas": [
+        "000660",
         "MU"
       ],
       "sectors": [
         "半导体",
         "存储芯片",
-        "SK海力士",
-        "美光科技"
+        "芯片"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 83,
+      "summary_cn": "据报道，两项利空消息引发芯片股抛售，美光与SK海力士早盘继续下跌，显示存储芯片板块风险偏好恶化。"
+    },
+    {
+      "author": "洪灏",
+      "text": "SpaceX狂彈55%！馬斯克神話再起？Nvidia、光通訊爆單 AI股繼續狂歡？",
+      "url": "https://news.google.com/rss/articles/CBMi_wJBVV95cUxNMFliM25qdlRGZEJkN2ppYi1pQTFyVmdtTVlJWHRRYWZ1LW9vdkJhdFU0NmdrcHd1ckNWX0RPbk0zV1dCcGk5d29veFJfZXlhaGx0VmVOZy1oMW5iR0tHYVROTmR2cV9KOXJ2czJHZ0JxY3lMN3VwVEJTNjQ1VWgybVBLbS1FblFzaG9YNHdPUTRRRkZjRmhMbENKdVVIQ0twQXZ4MjlDQ1V5ZVlYQVR6OENieTdNYmcyeDZ0blA3TjNQV2JtajEzVkdzOW9ENS1SSE1xWmctNE9iaXdRM1BKU1h1dmo5QW9xNjZQUE9IdGhyYTA1a1NMM2xVOUlYbnFsY3RyLTJZUVhvRnlaWkhkY2RTc0xxeXhtZ0xnaUROMEVpRDRBa3VtdDQ5X05YaEJ2SmpBWjZEMG5UaTZ0VWJtclFFTkNJWXpOZkJGSE9HWWVhb1FiN2NwQk9TYlM5VHduNEhNZ2NhdldKWktDWE1wREFXZEdzaUVzX0ZZVVpLNA?oc=5",
+      "published": "2026-10-12T12:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
+        "AI",
+        "半导体",
+        "光通信"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，两项利空消息引爆芯片股抛售，美光和SK海力士早盘均未能止跌。"
+      "stance": "neutral",
+      "relevance": 81,
+      "summary_cn": "据报道，SpaceX大跌55%引发对马斯克商业帝国的讨论，同时英伟达与光通信企业AI订单增长预期仍受关注。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-12 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 730,303 股（最大单只 ETF 占比 0.54%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-12T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5434,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "基因测序",
+        "精准医疗",
+        "生物科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest从ARKG卖出73.03万股Personalis，涉及金额占该ETF约0.54%，属于较显著的机构减仓。"
     },
     {
       "author": "Burry",
@@ -762,36 +785,13 @@
       "sectors": [
         "电动车",
         "特斯拉",
-        "汽车金融"
+        "做空交易",
+        "估值"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry最新建立的空头押注引发对特斯拉估值及投资逻辑的质疑。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-12 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 730,303 股（最大单只 ETF 占比 0.54%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-12T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.5434,
-      "tickers": [
-        "PSNL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSNL"
-      ],
-      "sectors": [
-        "基因检测",
-        "精准医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在ARKG中卖出Personalis 730,303股，该股占ETF比重0.54%，为当日相关操作中规模最大。"
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry最新押注引发对特斯拉的质疑，焦点集中在公司估值及其相关交易风险。"
     },
     {
       "author": "Cathie Wood",
@@ -809,14 +809,14 @@
         "CDNA"
       ],
       "sectors": [
-        "器官移植",
         "基因检测",
-        "精准医疗"
+        "精准医疗",
+        "生物科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKG中卖出CareDx 76,589股，该股占ETF比重0.23%。"
+      "summary_cn": "ARK Invest从ARKG卖出7.66万股CareDx，涉及金额占该ETF约0.23%，属于可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -835,12 +835,13 @@
       ],
       "sectors": [
         "在线博彩",
-        "数字娱乐"
+        "博彩",
+        "互联网消费"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKW中卖出DraftKings 227,944股，该股占ETF比重0.22%。"
+      "summary_cn": "ARK Invest从ARKW卖出22.79万股DraftKings，涉及金额占该ETF约0.22%，构成机构减仓信号。"
     },
     {
       "author": "Cathie Wood",
@@ -858,14 +859,14 @@
         "CMPS"
       ],
       "sectors": [
-        "神经科学",
-        "精神疾病治疗",
-        "生物科技"
+        "精神健康",
+        "生物科技",
+        "医疗服务"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在ARKG中买入Compass Pathways 284,019股，该股占ETF比重0.16%。"
+      "relevance": 67,
+      "summary_cn": "ARK Invest买入28.40万股Compass Pathways，涉及金额占ARKG约0.16%，体现机构增持精神健康生物科技敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -889,36 +890,36 @@
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 67,
-      "summary_cn": "ARK Invest在ARKG中买入Alamar Biosciences 101,154股，该股占ETF比重0.12%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-12 调仓：CRISPR Therapeutics AG(CRSP) 买入 ARKG 43,887 股（最大单只 ETF 占比 0.11%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-12T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1077,
-      "tickers": [
-        "CRSP"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CRSP"
-      ],
-      "sectors": [
-        "基因编辑",
-        "CRISPR",
-        "生物科技"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 66,
-      "summary_cn": "ARK Invest在ARKG中买入CRISPR Therapeutics 43,887股，该股占ETF比重0.11%。"
+      "relevance": 65,
+      "summary_cn": "ARK Invest买入10.12万股Alamar Biosciences，涉及金额占ARKG约0.12%，显示机构小幅加仓生命科学工具公司。"
     }
   ],
   "sector_hits": [
+    {
+      "author": "Burry",
+      "text": "'Consolidating the Big Short': Michael Burry unpacks his evolving bet against the AI trade",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQUy1kaW5VVUhtSm9KQlcxbVFQbXdua1k0bnJkblNkMDhrNTRiWllhUWF1V0dfb1pSVUdnblZBdU1oT1k2bUc1RDhicGVmZHJZNE5abFYwZVVycU9xQ0JzdU9VZHVDeGtoREZYQlFBR3pPLWRCeXF5a21ldmJDYmFKYnhYOV8yanBkMWxtS2NiN250WGxSTmc?oc=5",
+      "published": "2026-10-13T18:15:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "科技股",
+        "做空交易"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 91,
+      "summary_cn": "据报道，Michael Burry正在加大针对AI交易的空头押注，显示其对AI资本开支和估值风险持强烈看空态度。"
+    },
     {
       "author": "Burry",
       "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
@@ -931,129 +932,10 @@
       "new_ideas": [],
       "sectors": [
         "美股",
-        "宏观风险"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "据报道，Michael Burry称市场接近重大顶部并可能发生类似1987年的下跌，继续维持看空美股观点。"
-    },
-    {
-      "author": "Burry",
-      "text": "'Consolidating the Big Short': Michael Burry unpacks his evolving bet against the AI trade",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPUDZrT3Vtd0RPdzdiTmRITkR5RVpEak9kVWkyZTZvY3JRdGs3bF9wNU1pSEFfT1RRRjlPRGpyWkdnb2pFMEZnbklIaEk5bUlTaDFKVGZYU2dfc1RHb0NwZGRUZTJsMF9IeGlvb25qWHZteXM4THVjWDJCZWl5cHB6djZYX1NDeUVwZ1huMzNPc280WnFEYnB6dkZUX1JaY3N6WlNQZEw4YmM0bnJYX2RJV3ltOGNyS0lyWEVzbGZ3NmltQ25mRlFEMmlnakI?oc=5",
-      "published": "2026-10-13T18:15:47+00:00",
-      "origin": "gnews-rss",
-      "source": "Business Insider Africa",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI交易",
-        "做空"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Michael Burry正在加大针对AI交易的空头押注，认为其估值和潜在风险不容忽视。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk explains why chip stocks are getting drilled on news out of China",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 09:04:47 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "芯片",
-        "中国",
-        "AI基础设施"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 74,
-      "summary_cn": "据报道，Elon Musk就中国相关消息为何导致芯片股下跌作出解释，焦点集中于中国芯片威胁及半导体板块风险。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk No Longer A Trillionaire After Losing Over $28 Billion As SpaceX Shares Slide",
-      "url": "",
-      "published": "Tue, 13 Oct 2026 14:39:40 GMT",
-      "origin": "gnews-rss",
-      "source": "Forbes",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私人航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，SpaceX股价大跌导致Elon Musk个人财富减少超过280亿美元并跌破万亿美元门槛，反映私人航天资产估值波动。"
-    },
-    {
-      "author": "洪灏",
-      "text": "美國長債開始尋頂 | 陶冬天下 - 財富管理 - 生活",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNVWhXemJtdkxBelNQTnVoelB5cWdfc2tfRHBwd2JEYTFXcjAtRHFFTmFhWDQ4Y3VOYi1iVk5zdmh3aTg0eXZFRVZRczIyVXBidW5IcGdtcW1rMlZEd1RyMFFYTzhYNVdWbldMZDg4VEwwZ3lvdEJBcG4yam9lWkh1UnZ2V1prZzQ1X1VJQ1JHaFItX2xYYTRUaXBlcldYTDNJVGFRSlFFc2pIbjM5empLSTlvRUxfUDlxZVMyd2tR?oc=5",
-      "published": "2026-10-12T04:54:46+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国国债",
-        "长债",
-        "利率",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 69,
-      "summary_cn": "据报道，美国长期国债收益率开始寻找顶部，反映长端利率和全球资产估值面临调整压力。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "How Congress Is Cashing In on the AI Boom",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE0xekNhZ0ZpbHVIYTZCaDVNTXF4X2tDd0hjcHpXYzhYZFZGa1l6N2FuNFFBVFZfQ0RuUDFxaVZqWlNhY1pzaWh0dlpCUXYxakxkWUk3OUk3RW04WjkyclQ0eWlCYkJFc2owWEpyTVZzV2J3SEVOTmVNQ3RGemXSAXxBVV95cUxNMXpDYWdGaWx1SGE2Qmg1TU1xeF9rQ3dIY3B6V2M4WGRWRmtZejdhbjRRQVRWX0NEblAxcWlWalpTYWNac2lodHZaQlF2MWpMZFlJNzlJN0VtOFo5MnJUNHlpQmJCRXNqMFhKck1Wc1did0hFTk5lTUN0Rnpl?oc=5",
-      "published": "2026-10-13T13:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "The Nation",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI监管",
-        "国会",
-        "科技政策"
+        "科技股",
+        "AI",
+        "宏观",
+        "市场风险"
       ],
       "sector_holdings": [
         "00100",
@@ -1061,33 +943,33 @@
         "03033",
         "07226"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，美国国会议员正通过交易和制度安排参与AI热潮，凸显AI资产上涨带来的政策与利益冲突风险。"
+      "stance": "attack",
+      "relevance": 90,
+      "summary_cn": "据报道，Michael Burry认为市场接近重大顶部并可能发生类似1987年的暴跌，继续维持看空立场。"
     },
     {
-      "author": "Trump",
-      "text": "I see so many comments from the Radical Left Morons and Lunatics that China and Russia are helping the “wonderful” Islamic Republic of Iran. If they are, it’s at a very low level, but I don’t believe they are at all. They have too much to lose, and we would know about it, and know about it very fast! Thank you for your attention to this matter. President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/42300",
-      "published": "2026-10-13T02:45:46+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Influential Hindu group urges India to block Starlink amid Musk-Ambani feud",
+      "url": "",
+      "published": "Tue, 13 Oct 2026 12:59:43 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国",
-        "俄罗斯",
-        "伊朗",
-        "中东地缘政治"
+        "航天",
+        "卫星互联网",
+        "Starlink",
+        "监管"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump否认中国和俄罗斯在实质帮助伊朗，并称若发现相关行动会迅速作出回应。"
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据报道，一个有影响力的印度教组织要求印度阻断Starlink，对马斯克的卫星互联网业务构成政策阻力。"
     },
     {
       "author": "洪灏",
@@ -1101,20 +983,45 @@
       "new_ideas": [],
       "sectors": [
         "港股",
-        "强美元",
+        "美元",
         "利率",
-        "外汇"
+        "宏观"
       ],
       "sector_holdings": [
-        "00100",
         "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 67,
-      "summary_cn": "据报道，强美元令投资者选股趋于挑剔，并预计港股第四季度维持区间震荡。"
+      "relevance": 61,
+      "summary_cn": "据报道，强美元促使投资者选股趋于挑剔，机构预计港股第四季度区间震荡。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "How Congress Is Cashing In on the AI Boom",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE0xekNhZ0ZpbHVIYTZCaDVNTXF4X2tDd0hjcHpXYzhYZFZGa1l6N2FuNFFBVFZfQ0RuUDFxaVZqWlNhY1pzaWh0dlpCUXYxakxkWUk3OUk3RW04WjkyclQ0eWlCYkJFc2owWEpyTVZzV2J3SEVOTmVNQ3RGemXSAXxBVV95cUxNMXpDYWdGaWx1SGE2Qmg1TU1xeF9rQ3dIY3B6V2M4WGRWRmtZejdhbjRRQVRWX0NEblAxcWlWalpTYWNac2lodHZaQlF2MWpMZFlJNzlJN0VtOFo5MnJUNHlpQmJCRXNqMFhKck1Wc1did0hFTk5lTUN0Rnpl?oc=5",
+      "published": "2026-10-13T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Nation",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "美国国会",
+        "监管",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道，美国国会议员正在利用AI热潮获取利益，凸显政策制定者与AI资本扩张之间的潜在利益冲突。"
     }
   ]
 }
