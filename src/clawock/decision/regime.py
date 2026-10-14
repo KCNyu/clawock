@@ -77,6 +77,7 @@ from clawock.market_data.tencent_daily import parse_daily_closes
 from clawock.instruments import INSTRUMENTS
 from clawock.market_data import hstech
 from clawock.safe_io import safe_write_json, to_number as _share_number
+from clawock.sessions import latest_completed_session
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -360,6 +361,14 @@ def main(argv=None):
     # write, and a 0 as the last bar classified as trend-off (#1906).
     data = [(d, v) for d, c in (fetch_hstech() or [])
             if (v := positive_price(c)) is not None]
+    # The live daily series carries today's bar from the 09:30 open, long before
+    # it is a close. The dial is defined on completed sessions, and the brief
+    # only accepts one stamped with the latest completed HK session; left in,
+    # that bar made every in-session run discard the dial and fall back to the
+    # looser ×1.0 cap (#2956).
+    completed = latest_completed_session('hk')
+    if completed is not None:
+        data = [(d, v) for d, v in data if d <= completed.isoformat()]
     if not data:
         # merge-not-overwrite: never clobber a good prior file on a transient empty fetch
         if OUT_FILE.exists():

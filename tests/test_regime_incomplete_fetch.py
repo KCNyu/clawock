@@ -98,3 +98,44 @@ def test_main_survives_a_zero_tick_the_way_compute_does(offline_dial, monkeypatc
     assert payload["close"] == clean[-1]
     assert payload["as_of"] == f"2026-01-{len(clean) if where == 'latest_bar' else len(bars):02d}"
     assert payload["regime_history"]["hk"]
+
+
+@pytest.mark.parametrize("clock", ["2026-10-13T08:03", "2026-10-13T14:05", "2026-10-13T16:40"])
+def test_dial_is_stamped_with_the_latest_completed_hk_session(offline_dial, monkeypatch, clock):
+    """#2956: Tencent's daily series shows today's bar from the open, so an
+    in-session run stamped the dial with a session `regime_node` can never
+    accept, and the brief dropped the dial for the looser ×1.0 cap. The real
+    session clock decides here; only the wall time is pinned."""
+    from datetime import date, datetime, timedelta
+    from zoneinfo import ZoneInfo
+
+    from clawock import sessions
+    from clawock.harness import brief_preflight
+
+    now = datetime.fromisoformat(clock).replace(tzinfo=ZoneInfo("Asia/Hong_Kong"))
+    real = sessions.latest_completed_session
+    monkeypatch.setattr(sessions, "latest_completed_session",
+                        lambda market, at=None: real(market, at=at or now))
+    monkeypatch.setattr(regime, "latest_completed_session", sessions.latest_completed_session,
+                        raising=False)
+    # 220 calendar days of rising closes ending 2026-10-12, then the live feed's
+    # view at `clock`: the 13th exists only once the market has opened, and
+    # trades far below the 200DMA.
+    days = [date(2026, 10, 12) - timedelta(days=i) for i in range(220)][::-1]
+    bars = [(d.isoformat(), 100.0 + i) for i, d in enumerate(days)]
+    if now.hour >= 10:
+        bars.append(("2026-10-13", 1.0))
+    monkeypatch.setattr(regime, "fetch_hstech", lambda: bars)
+    import contextlib
+    import io
+    with contextlib.redirect_stdout(io.StringIO()) as out:
+        regime.main(["--dry-run"])
+    payload = json.loads(out.getvalue())
+
+    assert payload["as_of"] == payload["hk"]["as_of"] == "2026-10-12"
+    assert payload["close"] == 319.0 and payload["tier"] == "green"
+    assert "2026-10-13" not in payload["regime_history"]["hk"]
+    # The consumer's own acceptance test, on the same clock, keeps the dial.
+    monkeypatch.setattr(brief_preflight, "refresh_json", lambda *a, **k: payload)
+    monkeypatch.setattr(brief_preflight, "record_checkpoint", lambda *a, **k: None)
+    assert brief_preflight.regime_node() == (payload, [])
