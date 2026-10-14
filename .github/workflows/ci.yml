@@ -149,7 +149,7 @@ jobs:
     outputs:
       analysable: ${{ steps.scope.outputs.analysable }}
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -211,6 +211,57 @@ jobs:
       # check waits forever.
       - name: Lint Python (ruff, correctness rules)
         run: pipx run --spec 'ruff==0.16.7' ruff check --output-format github .
+
+      # `requires-python` is what every `pip install clawock` is promised. Every
+      # other job runs the 3.12 the desk host trades on, so after #2964 moved the
+      # last of them off 3.11 the declared floor had nothing behind it. Ruff's
+      # `target-version` already rejects newer grammar; these steps check the rest
+      # of what a floor install meets: dependency resolution, and every module's
+      # import-time stdlib use. Here, not in a job of its own: `lint` is required
+      # and runs on every event, and this is about 30s beside a 3-minute validate.
+      # The version is read from pyproject, not restated, so it checks whatever
+      # floor is declared.
+      - name: Read the declared Python floor
+        id: floor
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import re
+          import tomllib
+          with open('pyproject.toml', 'rb') as handle:
+              spec = tomllib.load(handle)['project']['requires-python']
+          match = re.fullmatch(r'>=\s*(3\.\d+)', spec.strip())
+          assert match, f'requires-python must be a plain lower bound to be checked here: {spec!r}'
+          print(f'version={match.group(1)}')
+          PY
+
+      - name: Set up clawock on the floor
+        uses: ./.github/actions/clawock-python
+        with:
+          python-version: ${{ steps.floor.outputs.version }}
+
+      - name: Every module imports on the floor
+        env:
+          CLAWOCK_WORKSPACE: ${{ runner.temp }}/floor-workspace
+        run: |
+          python - <<'PY'
+          import importlib
+          import pkgutil
+          import sys
+
+          import clawock
+
+          failed = []
+          names = [m.name for m in pkgutil.walk_packages(clawock.__path__, 'clawock.')]
+          for name in names:
+              try:
+                  importlib.import_module(name)
+              except Exception as exc:  # every failure, not the first
+                  failed.append(f'{name}: {type(exc).__name__}: {exc}')
+          print(f'Python {sys.version.split()[0]}: {len(names) - len(failed)}/{len(names)} modules import')
+          for line in failed:
+              print(f'::error::{line}')
+          sys.exit(1 if failed else 0)
+          PY
 
   validate:
     outputs:

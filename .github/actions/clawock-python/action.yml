@@ -19,7 +19,8 @@ description: >-
 # 3.12 is the interpreter the desk host runs clawock on, so the gate measures
 # the one that trades. It moved from 3.11 together with `COVERAGE_CORE=sysmon`
 # in ci.yml: the suite is four fifths of `validate`, and sys.monitoring only
-# exists from 3.12. `requires-python` still admits 3.11; no job runs it.
+# exists from 3.12. The declared floor (`requires-python`) is installed and
+# import-checked by ci.yml's `lint` job, the one caller that overrides this.
 inputs:
   python-version:
     description: Python to install. Pinned in one place; override only with a reason.
