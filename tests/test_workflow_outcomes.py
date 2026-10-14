@@ -75,6 +75,59 @@ def test_preflight_failure_degrades_a_delivered_product(tmp_path, monkeypatch):
     assert record["final_product"]["status"] == "degraded"
 
 
+def test_a_later_preflight_start_cannot_reset_a_recorded_outcome(tmp_path, monkeypatch):
+    # #2960: a preflight re-run maps to the same daily slot; its start marker
+    # replaced the shipped slot's `warning` with a bare `pending`, dropping the
+    # diagnostics and filing the degraded slot as a clean success.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:03:00+08:00"
+    job = "盘前深度简报"
+
+    outcomes.record_stage(job, "preflight", "pending", slot=slot)
+    outcomes.record_stage(job, "preflight", "warning", slot=slot, issue_count=2,
+                          context_generation_id="g1")
+    outcomes.record_stage(job, "llm", "success", slot=slot)
+    outcomes.record_stage(job, "postflight", "success", slot=slot)
+    outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
+    record = outcomes.record_stage(job, "preflight", "pending", slot=slot,
+                                   at=FROZEN_NOW + timedelta(hours=6))
+
+    assert record["stages"]["preflight"]["status"] == "warning"
+    assert record["stages"]["preflight"]["context_generation_id"] == "g1"
+    assert record["final_product"]["status"] == "degraded"
+
+    # The re-run's own outcome is a new fact and still lands, failures included.
+    record = outcomes.record_stage(job, "preflight", "failed", slot=slot,
+                                   reason="preflight_timeout",
+                                   at=FROZEN_NOW + timedelta(hours=6, minutes=10))
+    assert record["stages"]["preflight"]["reason"] == "preflight_timeout"
+
+
+def test_a_backstop_outcome_never_replaces_the_runs_own(tmp_path, monkeypatch):
+    # #2962: the supervisor files a dead collector's outcome only when the run
+    # it supervised recorded none.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:03:00+08:00"
+    job = "盘前深度简报"
+    started = FROZEN_NOW
+
+    outcomes.record_stage(job, "preflight", "success", slot=slot,
+                          at=started - timedelta(hours=6))
+    outcomes.record_stage(job, "preflight", "pending", slot=slot, at=started)
+    record = outcomes.record_stage(job, "preflight", "failed", slot=slot,
+                                   reason="preflight_crashed", unless_terminal_since=started,
+                                   at=started + timedelta(minutes=1))
+    assert record["stages"]["preflight"]["reason"] == "preflight_crashed", (
+        "an earlier run's outcome must not hide that this one died")
+
+    outcomes.record_stage(job, "preflight", "failed", slot=slot, reason="context_budget",
+                          at=started + timedelta(minutes=2))
+    record = outcomes.record_stage(job, "preflight", "failed", slot=slot,
+                                   reason="preflight_crashed", unless_terminal_since=started,
+                                   at=started + timedelta(minutes=3))
+    assert record["stages"]["preflight"]["reason"] == "context_budget"
+
+
 def test_a_failed_postflight_degrades_a_delivered_product(tmp_path, monkeypatch):
     # #2283: the brief folds a data-plane push failure into postflight=failed;
     # the delivered slot stayed a green "success" on the schedule board.

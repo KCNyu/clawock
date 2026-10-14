@@ -50,10 +50,11 @@ import copy
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -2261,8 +2262,9 @@ def main(argv=None):
     command = [sys.executable, '-u', '-c',
                'from clawock.harness.brief_preflight import _collect; '
                'raise SystemExit(_collect([]))']
+    started = datetime.now(timezone.utc)
     try:
-        return run_bounded(command, timeout=BRIEF_PREFLIGHT_TIMEOUT_SECONDS, cwd=WS,
+        code = run_bounded(command, timeout=BRIEF_PREFLIGHT_TIMEOUT_SECONDS, cwd=WS,
                            env={**os.environ, 'TODAY': today})
     except subprocess.TimeoutExpired:
         ctx_path = TMP_DIR / f'brief-context-{today}.json'
@@ -2274,6 +2276,18 @@ def main(argv=None):
             context_path=os.path.relpath(ctx_path, WS), issue_count=1)
         print(json.dumps(failure, ensure_ascii=False))
         return 1
+    if code:
+        # `_collect` records its own outcome, including the failures it knows
+        # about. A collector that died (an uncaught exception, a SIGKILL from
+        # outside) recorded nothing, and its slot stayed `pending` for good
+        # (#2962), so it gets one here unless this run already has an outcome.
+        died = (f'signal {signal.Signals(-code).name}'
+                if -code in set(signal.Signals) else f'exit {code}')
+        workflow_outcomes.record_stage(
+            '盘前深度简报', 'preflight', 'failed', reason='preflight_crashed',
+            detail=f'collector ended without an outcome ({died})',
+            return_code=code, unless_terminal_since=started)
+    return code
 
 
 if __name__ == '__main__':
