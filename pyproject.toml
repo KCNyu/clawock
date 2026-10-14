@@ -105,7 +105,7 @@ Issues = "https://github.com/KCNyu/clawock/issues"
 # to show a user what a pending upgrade contains. Without it, "what changed
 # between 0.1.0 and 0.1.1" had no answer anywhere a package consumer could see.
 Changelog = "https://github.com/KCNyu/clawock/blob/master/CHANGELOG.md"
-Evidence = "https://kcnyu.github.io/clawock/evidence.html"
+Evidence = "https://kcnyu.github.io/clawock/#reflect"
 
 [project.scripts]
 clawock = "clawock.cli:main"

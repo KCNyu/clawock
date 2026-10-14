@@ -142,7 +142,7 @@ test('the npm page keeps its links back to the repository and the live proof', (
   const readme = readFileSync(join(PLUGIN, 'README.md'), 'utf8')
   for (const url of [
     'https://kcnyu.github.io/clawock/',
-    'https://kcnyu.github.io/clawock/evidence.html',
+    'https://kcnyu.github.io/clawock/#reflect',
     'https://github.com/KCNyu/clawock',
   ]) {
     assert.ok(readme.includes(url), `README.md must link to ${url}`)
