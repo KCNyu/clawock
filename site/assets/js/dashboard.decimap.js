@@ -415,7 +415,9 @@
   // `inert` on the siblings is how the main dashboard already does this
   // (dashboard.hero.js:1510, dashboard.render.js:2821): it removes the
   // background from the tab order and from the accessibility tree in one
-  // attribute, so the trap needs no keydown handler of its own to maintain.
+  // attribute. What it does not do is wrap: past the drawer's last control the
+  // next Tab has nowhere in the page to land, so focus leaves the document for
+  // the browser's own chrome — `wrapDrawerTab` below closes that edge.
   // The drawer and its scrim are children of #decimap too, so they are skipped
   // by identity rather than by making the whole container inert.
   let drawerReturnFocus = null;
@@ -438,6 +440,25 @@
         sibling.inert = on;
       }
     }
+  }
+
+  // `inert` empties the page behind the drawer; it does not make the drawer a
+  // loop. Tab on the last control (Shift+Tab on the first) walked focus out of
+  // the document — `document.activeElement` became <body>, the reader's next
+  // Tab started from the address bar. Which press did it depended on how many
+  // decisions the open bucket listed, so it showed up as a payload-dependent
+  // red: eleven rows plus 「×」 is exactly the twelve stops the contract tabbed.
+  function wrapDrawerTab(event) {
+    const drawer = el('dm-drawer');
+    const stops = [...drawer.querySelectorAll(
+      'a[href], button, input, select, textarea, [tabindex]')]
+      .filter(node => !node.disabled && node.tabIndex >= 0 && node.offsetParent !== null);
+    if (!stops.length) return;
+    const first = stops[0], last = stops[stops.length - 1];
+    const at = document.activeElement;
+    if (!drawer.contains(at)) { event.preventDefault(); first.focus(); return; }
+    if (event.shiftKey && at === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && at === last) { event.preventDefault(); first.focus(); }
   }
 
   function showDrawer(html) {
@@ -638,9 +659,9 @@
     el('dm-close').addEventListener('click', closeDrawer);
     el('dm-scrim').addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && el('dm-drawer').classList.contains('is-open')) {
-        closeDrawer();
-      }
+      if (!el('dm-drawer').classList.contains('is-open')) return;
+      if (event.key === 'Escape') closeDrawer();
+      else if (event.key === 'Tab') wrapDrawerTab(event);
     });
   }
 

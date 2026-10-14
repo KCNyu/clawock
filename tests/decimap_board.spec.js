@@ -206,10 +206,30 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
   assert.deepEqual(reachable, [],
     `these controls stayed in the tab order behind the open drawer: ${reachable.join(", ")}`);
 
-  for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
-  const stillInside = await page.evaluate(() =>
-    document.getElementById("dm-drawer").contains(document.activeElement));
-  assert(stillInside, "12 tabs walked focus out of the open drawer");
+  // An emptied background is not a loop. A fixed 12 tabs landed on <body> —
+  // out of the document, into the browser's chrome — on the day the first
+  // bucket listed eleven decisions (eleven rows + 「×」 = twelve stops), and on
+  // no other day. So the walk is sized by the drawer that is actually open:
+  // two full laps forward and one back, focus inside after every single press.
+  const stops = await page.evaluate(() =>
+    [...document.querySelectorAll("#dm-drawer button, #dm-drawer a[href]")]
+      .filter(el => el.offsetParent !== null).length);
+  assert(stops > 1, `the open drawer has ${stops} tab stop(s); nothing to walk`);
+  const focusLeft = async (key, presses) => {
+    for (let i = 1; i <= presses; i++) {
+      await page.keyboard.press(key);
+      const inside = await page.evaluate(() =>
+        document.getElementById("dm-drawer").contains(document.activeElement));
+      if (!inside) return i;
+    }
+    return 0;
+  };
+  let left = await focusLeft("Tab", stops * 2 + 1);
+  assert.equal(left, 0,
+    `Tab #${left} of ${stops * 2 + 1} walked focus out of the open drawer (${stops} stops)`);
+  left = await focusLeft("Shift+Tab", stops + 1);
+  assert.equal(left, 0,
+    `Shift+Tab #${left} of ${stops + 1} walked focus out of the open drawer (${stops} stops)`);
 
   await page.keyboard.press("Escape");
   await page.waitForTimeout(80);
