@@ -19,7 +19,7 @@ better-sounding paragraph.
 
 - **Live proof** — a real Hong Kong + US brokerage account, run this way every
   trading day: <https://kcnyu.github.io/clawock/>
-- **Evidence, wins and losses both** — <https://kcnyu.github.io/clawock/evidence.html>
+- **Evidence, wins and losses both** — <https://kcnyu.github.io/clawock/#reflect>
 - **Source and issues** — <https://github.com/KCNyu/clawock>
 
 ![Decision Mind tab inside the DSH web GUI](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png)

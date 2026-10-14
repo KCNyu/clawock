@@ -19,7 +19,7 @@ cat <<'TXT'
 
   Tests:               pytest -q tests/
   Live public instance: https://kcnyu.github.io/clawock/
-  Wins and losses:      https://kcnyu.github.io/clawock/evidence.html
+  Wins and losses:      https://kcnyu.github.io/clawock/#reflect
 
   Nothing here reaches a market or needs an API key. The parts that do — price
   feeds, disclosure pulls, delivery — are the instance's, not the package's.
