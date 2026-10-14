@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T23:20:26.232999+00:00",
+  "generated_at": "2026-10-14T00:36:52.380843+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 15.27,
@@ -19,18 +19,18 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.58,
-    "prev": 102.21,
-    "change_pct": 0.36,
+    "price": 102.175,
+    "prev": 102.18,
+    "change_pct": -0.0,
     "source": "yahoo",
-    "as_of": 1791777540
+    "as_of": 1791937611
   },
   "fear_greed": {
     "score": 44.7,
     "rating": "fear",
     "prev_close": 45.7,
     "prev_1_week": 46.8,
-    "as_of": "2026-10-13T23:02:29+00:00"
+    "as_of": "2026-10-13T23:59:52+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
@@ -50,11 +50,11 @@
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7807.24,
+    "price": 7805.45,
     "prev": 7811.54,
-    "change_pct": -0.06,
+    "change_pct": -0.08,
     "source": "yahoo",
-    "as_of": 1791835200
+    "as_of": 1791923582
   },
   "nasdaq": {
     "symbol": "^IXIC",
