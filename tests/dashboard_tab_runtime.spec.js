@@ -1947,7 +1947,7 @@ async function testVerdictDeckPagerTracksTheVisualCard(browser, base) {
 
   const addChip = page.locator("#today-highlights .hl-chip", { hasText: "加仓面" });
   assert.equal(await addChip.count(), 1, "the first-paint verdict lost its add-side input");
-  assert.match(await addChip.innerText(), /等 7.*QQQ.*-0\.4%/s,
+  assert.match(await addChip.innerText(), /等 7.*QQQ.*−0\.4%/s,
     "the compact add-side verdict lost its count or nearest actionable name");
   assert.match(await addChip.getAttribute("title"), /全部持仓未站上前 20 日高/,
     "the ellipsized add-side reason is not recoverable");
