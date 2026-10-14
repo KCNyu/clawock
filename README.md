@@ -246,20 +246,15 @@ That is what `clawock-dsh` adds to dsh: the investment-decision skill, a Decisio
 
 The author’s host looks after its own code through the same queue (the “The desk fixes itself the same way” panel of the overview). Separately configured patrol rounds check published outputs. The program checks each finding’s evidence before opening an issue. A background agent takes the fix through a PR and the required CI. An issue closed as noise makes that kind of finding count for less next time. Installing the Python package or dsh plugin does not set up these patrol rounds.
 
-**The full-size queue capture** — the real plugin on a live host
+**From the queue to a task’s history** — one annotated view
 
-<br>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-tour.svg" width="1016" alt="Annotated composite of real dsh captures, with original proportions preserved: the left column shows Claude allowance windows and a running task, then recently ended tasks with separate outcome and notification indicators; the right column shows a completed Codex task's numbered append and delivered status, followed by recorded append submission, continuation, delivery, attempt completion and notification events. The final receipt shows WeChat delivered and Telegram failed even though the task completed. These are excerpts from two different historical captures, not one task's synchronized state or a new desktop screenshot; links below open both complete originals."></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="Full live-host provider panel: Claude and Codex quota windows above their queues, DeepSeek and MiniMax balances, OpenCode free pool, recently ended tasks with notification receipts, patrol rounds with readable filed counts, severity and issue links, and the ops version footer"></p>
+Read the queue to find the work, then open a task to inspect its instructions and recorded progress. Appends are made through the host runner; the detail view shows whether they were delivered. **Task completion and message delivery are separate:** this finished task has a failed Telegram receipt.
 
-[Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) ·
-[runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
+The figure combines excerpts from two historical captures at their original proportions, with explanation alongside them. It is not a new desktop screenshot. [Full queue capture](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png) · [Full task history](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png).
 
-**A task's history** — append instructions and the progress timeline
-
-<br>
-
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png" width="380" alt="Complete live dsh task detail in a phone layout: a finished repository task, numbered append instruction with delivery status, and timestamped progress from dispatch and execution-lock waiting through attempts, instruction delivery, continuation and notification receipts"></p>
+[Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
 
 Once you have supplied holdings and evidence, ask “Can I add to 0700.HK?” and the investment skill walks the agent through the same steps as above: gather evidence, argue both sides, then write a decision with a trigger and a way to be wrong. **Decision Mind** reads your workspace’s recorded trades and plans; a new workspace has no trade history to show. Open a real fill and follow it through **plan → execution → T+1 → P&L**: what the plan said, what you did, where the price was one session later, and what it earned or lost. A fill with no plan behind it says so, and so does one that has not been graded yet. USD and HKD stay separate, and you place the orders.
 

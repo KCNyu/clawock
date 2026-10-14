@@ -243,19 +243,15 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。另外配置的巡检任务核查已发布的产物。发现问题后，程序先检查证据，符合提交条件才创建 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。安装 Python 包或 dsh 插件不会自动配置这些巡检任务。
 
-**完整队列截图** —— 真实主机上的插件
+**从队列到任务历史** —— 一张带讲解的合成图
 
-<br>
+<p align="center"><img src="site/assets/dsh-task-tour.svg" width="1016" alt="真实 dsh 截图的讲解合成图,截取内容保持原比例:左栏展示 Claude 额度窗口与运行中任务,以及最近结束任务各自独立的执行结果和通知状态;右栏展示已完成 Codex 任务的编号追加指令与 delivered 状态,随后是追加提交、续跑、投递、尝试结束和通知事件。末尾回执显示微信已送达、Telegram 失败,但任务本身已完成。图中内容来自两次不同的历史截图,不是同一任务的同步状态,也不是重新拍摄的桌面截图;下方链接可查看两张完整原图。"></p>
 
-<p align="center"><img src="site/assets/dsh-dispatch-queue.png" width="400" alt="真实主机上的完整 provider 面板:Claude 和 Codex 额度窗口及各自队列,DeepSeek 与 MiniMax 余额,OpenCode 免费池,带通知回执的最近结束任务,带可读提报数量、严重级别及 issue 链接的巡检轮次,以及 ops 版本页脚"></p>
+先在队列中找到工作，再打开任务核对指令和已有进展。追加指令通过主机 runner 提交，详情页显示是否投递。**任务完成与消息送达是两回事：**图中已完成任务的 Telegram 通知仍然失败。
+
+图中将两张历史截图的局部按原比例组合，并配上讲解；不是重新拍摄的桌面截图。[完整队列截图](site/assets/dsh-dispatch-queue.png) · [完整任务历史](site/assets/dsh-task-detail.png)。
 
 [队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
-
-**单个任务的历史** — 追加指令与进展时间线
-
-<br>
-
-<p align="center"><img src="site/assets/dsh-task-detail.png" width="380" alt="手机布局下的完整真实 dsh 任务详情:已结束的仓库任务,带编号与投递状态的追加指令,以及按时间排列的派发、等待执行锁、执行尝试、指令投递、续跑和通知回执"></p>
 
 提供持仓和证据后，问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 读取工作区中已记录的成交和计划；新工作区没有成交历史可展示。点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
 
