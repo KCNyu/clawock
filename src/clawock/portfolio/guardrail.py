@@ -16,6 +16,7 @@ from __future__ import annotations
 from clawock.safe_io import to_number as _share_number
 
 from clawock.portfolio.math import ledger_rows
+from clawock.portfolio.math import carried_value
 
 import math
 
@@ -333,7 +334,7 @@ def _factor_concentration_policy(hk_holdings, us_holdings, risk):
         ((risk or {}).get('meta') or {}).get('fx_hkd_to_usd_used') or 0
     )
     book_value_usd = sum(
-        float(w.get('current_value') or 0)
+        carried_value(w)
         * (1.0 if leg == 'US' else fx_hkd_to_usd)
         for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
         for w in holdings if (_share_number(w.get('shares', 0)) or 0) > 0
@@ -347,7 +348,7 @@ def _factor_concentration_policy(hk_holdings, us_holdings, risk):
             if len(tickers) < 2:
                 continue
             cluster_value_usd = sum(
-                float(w.get('current_value') or 0)
+                carried_value(w)
                 * (1.0 if leg == 'US' else fx_hkd_to_usd)
                 for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
                 for w in holdings if str(w.get('ticker')) in tickers

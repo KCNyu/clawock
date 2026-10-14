@@ -20,6 +20,7 @@ Run: clawock evaluate-combined-regime   (needs the charting extra: pip install '
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 from clawock.evaluation.series import mdd, rvol, sma, underwater
 import json
 import argparse
@@ -147,7 +148,7 @@ def book_weights(port):
         for h in port['portfolios'][leg]['holdings']:
             if not (_share_number(h.get('shares', 0)) or 0) > 0:
                 continue
-            value = h.get('current_value', 0) * ccy
+            value = carried_value(h) * ccy
             spec = holding_spec(h.get('ticker'))
             if spec is None:
                 unmodelled.append((h.get('ticker'), value))

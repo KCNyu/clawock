@@ -34,6 +34,7 @@ from clawock.portfolio import allocation as _allocation
 from clawock.portfolio import covariance as _covariance
 from clawock.portfolio import stress as _stress
 from clawock.portfolio.math import ledger_rows
+from clawock.portfolio.math import carried_value
 from clawock.portfolio.fx import get_usdhkd
 from clawock.instruments import get as get_instrument
 from clawock.instruments import leverage_map, require as require_instrument
@@ -349,7 +350,7 @@ def active_holdings(portfolio: dict, key: str):
     out = []
     for h in ledger_rows(bucket.get('holdings')):
         shares = _share_number(h.get('shares')) or 0
-        cv = h.get('current_value') or 0
+        cv = carried_value(h)
         if shares <= 0 or cv <= 0:
             continue
         ticker = h.get('ticker')
@@ -774,7 +775,7 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
         series_map = series_by_leg.get(leg) or {}
         for holding in holdings:
             ticker = holding['ticker']
-            value_usd = float(holding.get('current_value') or 0) * float(rate)
+            value_usd = carried_value(holding) * float(rate)
             if value_usd <= 0:
                 continue
             book_value += value_usd

@@ -6,6 +6,7 @@ Run as ``clawock validate-sidecar <name>``.
 from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 
 import csv
 import argparse
@@ -861,7 +862,13 @@ def _assert_dashboard_money_reconciles(
                 assert public.get('trades_count') == len(source.get('trades') or []), (
                     f'holdings.{leg}.{ticker}.trades_count does not reconcile')
                 for public_field, (source_field, places) in holding_fields.items():
-                    source_value = source.get(source_field)
+                    # Value is pinned to the book's own valuation rule, not to the
+                    # bare leaf: a row before its first quote has no
+                    # `current_value` and is worth its cost in the leg totals,
+                    # so its public row says so too (#2967). Every other field,
+                    # and a row whose leaf is present, still reconciles leaf for leaf.
+                    source_value = (carried_value(source) if public_field == 'current_value'
+                                    else source.get(source_field))
                     label = f'holdings.{leg}.{ticker}.{public_field}'
                     tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
                     if public_field in nullable_holding_fields:

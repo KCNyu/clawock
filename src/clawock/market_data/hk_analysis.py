@@ -18,6 +18,7 @@ Usage:
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import carried_value
 
 import copy
 import json
@@ -718,7 +719,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
                 print(f"       → {headline}  [{source}]")
 
     # Risk summary
-    lev_value = sum(h.get('current_value', 0) for h in active
+    lev_value = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
@@ -820,7 +821,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
         lines.extend(alerts)
 
     # Risk
-    lev_value = sum(h.get('current_value', 0) for h in active
+    lev_value = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)

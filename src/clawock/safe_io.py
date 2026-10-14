@@ -316,6 +316,24 @@ def to_number(value):
         return None
 
 
+def carried_value(holding):
+    """An active book row's market value as the book carries it.
+
+    Its `current_value`, or its cost (`shares × cost_basis`) until a first
+    quote prices it: the rule the quote writers and the guardrail total by.
+    Counting such a row's cost while valuing it at 0 put a whole position's
+    cost into the leg's P&L as a loss (#2967). It lives here, beside
+    `to_number`, so every package that values a row (publish, portfolio,
+    market_data, decision, instruments) reads one rule without an import edge
+    into `portfolio`.
+    """
+    value = to_number(holding.get("current_value"))
+    if value is not None:
+        return value
+    shares, cost = to_number(holding.get("shares")), to_number(holding.get("cost_basis"))
+    return shares * cost if shares is not None and cost is not None else 0
+
+
 def to_finite_number(value):
     """`to_number`, with `nan` and `inf` read as not-a-number too.
 
