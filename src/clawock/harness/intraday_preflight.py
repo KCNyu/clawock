@@ -55,6 +55,7 @@ WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import compute_context_id
+from ._watchdog_common import slot_shipped
 
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
@@ -1517,7 +1518,14 @@ def main(argv=None):
 
     now = datetime.now(trading_calendar.HKT)
     stamp = now.strftime('%Y-%m-%d_%H%M')
-    heartbeat = cron_heartbeat.record(args.market, 'started')
+    job_name, slot = cron_heartbeat.slot_for(args.market, now)
+    # A re-run of a slot an earlier attempt already delivered keeps building its
+    # context (the retry's postflight reads it) but files no heartbeat: the
+    # slot's row belongs to the attempt that delivered it (see slot_shipped).
+    shipped = slot_shipped(TMP, 'intraday', market=args.market, slot=slot)
+    heartbeat = ({'job': job_name, 'slot': slot} if shipped
+                 else cron_heartbeat.record(args.market, 'started',
+                                            job_name=job_name, slot=slot))
 
     # One fetch per code per slot: the three collectors share this slot's bars
     # through _fetch_bars_cached (#613).
@@ -1561,10 +1569,11 @@ def main(argv=None):
     rc, stdout, stderr = run_analyze(args.market)
 
     if rc != 0:
-        cron_heartbeat.record(
-            args.market, 'preflight_failed', job_name=heartbeat['job'],
-            slot=heartbeat['slot'], failure_stage='preflight', return_code=rc,
-        )
+        if not shipped:
+            cron_heartbeat.record(
+                args.market, 'preflight_failed', job_name=heartbeat['job'],
+                slot=heartbeat['slot'], failure_stage='preflight', return_code=rc,
+            )
         result = {
             'status': 'preflight_failed',
             'market': args.market,
@@ -1994,11 +2003,12 @@ def main(argv=None):
     # regenerated mid-turn. Must stay after the dict is otherwise complete.
     result['context_id'] = compute_context_id(result)
 
-    cron_heartbeat.record(
-        args.market, 'preflight_ok', job_name=heartbeat['job'],
-        slot=heartbeat['slot'], should_alert=should_alert,
-        anomaly_count=len(anomalies),
-    )
+    if not shipped:
+        cron_heartbeat.record(
+            args.market, 'preflight_ok', job_name=heartbeat['job'],
+            slot=heartbeat['slot'], should_alert=should_alert,
+            anomaly_count=len(anomalies),
+        )
 
     TMP.mkdir(parents=True, exist_ok=True)
     out_path = TMP / f'intraday-context-{args.market}-{stamp}.json'

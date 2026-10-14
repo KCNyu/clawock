@@ -27,6 +27,7 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+from clawock.automation import delivery_receipts
 from clawock.scheduling import HKT
 from clawock.workspace import workspace_root
 
@@ -896,6 +897,37 @@ def already_delivered(marker_path, within_ms=None, slot=None):
     `send_per_policy`.
     """
     return delivered_channels(marker_path, within_ms, slot)[0]
+
+
+# A retry of an intraday slot lands minutes after the first attempt; the next
+# legitimate slot is 30 minutes later (see `delivered_channels`).
+INTRADAY_RETRY_WINDOW_MS = 20 * 60 * 1000
+
+
+def slot_shipped(tmp, kind, *, market=None, phase=None, date=None, slot=None):
+    """Whether an EARLIER attempt already delivered this slot to WeChat.
+
+    The workflow-outcomes row of a slot describes the product that was
+    delivered, so it belongs to the attempt that delivered it. openclaw re-runs
+    a whole turn (preflight included) after a post-turn error, and kcn or a
+    watchdog can re-run a preflight later the same day; those attempts map to
+    the same slot. Each one used to file its own outcome — an input or
+    preflight failure, a rejected rewrite, a fresh preflight's diagnostics —
+    over the delivered attempt's stages, because it wrote the ledger before
+    (or without) reading the receipt: the report retry named a delivered slot
+    `degraded` (#2961), a preflight start marker emptied a delivered brief's
+    diagnostics (#2960). A preflight or postflight therefore asks this once,
+    at its start, and files no product stage when the answer is yes.
+
+    Read it before this process sends anything: afterwards the receipt also
+    shows this process's own send. WeChat-only, like `already_delivered` — a
+    slot only Telegram reached is still owed WeChat, and the attempt that
+    re-sends it is a delivering one.
+    """
+    marker = delivery_receipts.receipt_path(
+        tmp, kind, market=market, phase=phase, date=date)
+    within_ms = INTRADAY_RETRY_WINDOW_MS if kind == 'intraday' else None
+    return already_delivered(marker, within_ms=within_ms, slot=slot)
 
 
 HOST_FLAG_KEEP_DAYS = 7

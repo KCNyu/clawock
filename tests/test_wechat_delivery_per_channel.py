@@ -241,6 +241,45 @@ def test_a_retry_with_broken_input_keeps_the_delivered_slots_stages(
     assert writes == []
 
 
+
+def test_a_retry_whose_prose_is_rejected_files_no_stage_over_the_delivered_slot(
+        tmp_path, monkeypatch):
+    """#2961 through the validation door: a retry's rejected prose is not what shipped.
+
+    The stale-generation branch is the retry that re-ran preflight under prose
+    written for the delivered context. It still commits the data plane.
+    """
+    from clawock.harness import report_postflight as postflight
+
+    writes, commits = [], []
+    monkeypatch.setattr(postflight, 'TMP', tmp_path)
+    monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda *a, **kw: None)
+    monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
+                        lambda: datetime(2026, 10, 14).date())
+    monkeypatch.setattr(postflight.workflow_outcomes, 'slot_for_job',
+                        lambda job: '2026-10-14T09:33:00+08:00')
+    monkeypatch.setattr(postflight.workflow_outcomes, 'record_stage',
+                        lambda job, stage, status, **kw: writes.append((stage, status)))
+    monkeypatch.setattr(postflight, 'send_wechat',
+                        lambda *a, **kw: pytest.fail('a delivered slot must not be re-sent'))
+    monkeypatch.setattr(postflight, 'load_context', lambda *a: ({
+        'status': 'ok', 'context_id': 'rerun', 'title': 't', 'commit_msg': 'm',
+        'raw_wechat_block': 'block'}, None))
+    monkeypatch.setattr(postflight, 'maybe_commit',
+                        lambda product, msg: commits.append(product) or (True, 'committed'))
+    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_commits', lambda **kw: 0)
+    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_oldest_hours', lambda: 0)
+    prose = tmp_path / 'prose.md'
+    prose.write_text('prose')
+    _write(tmp_path / 'report-sent-hk-open-2026-10-14.json',
+           {'ts': _now_ms(), 'sent_ok': True, 'tg_ok': True, 'delivery_state': 'delivered'})
+
+    postflight.main(['--market', 'hk', '--phase', 'open', '--context-id', 'delivered',
+                     '--text-file', str(prose)])
+
+    assert commits == ['fail']
+    assert writes == []
+
 # ── C. the watchdog WeChat backstop ──────────────────────────────────────────
 
 def _senders(wechat_ok=True):

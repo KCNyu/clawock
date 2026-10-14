@@ -77,7 +77,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    delivered_channels,
+    delivered_channels, slot_shipped,
     claim_send, log, send_per_policy, send_under_claim,
 )
 
@@ -144,6 +144,17 @@ def read_report_text(market, text_file):
     return text, None
 
 
+def _skip_shipped_slot(market, slot, issue):
+    """A retry of a slot an earlier attempt already delivered: file nothing."""
+    print(f'idempotency: intraday {market} {slot} already delivered — this attempt '
+          f'files no outcome over it ({issue})', file=sys.stderr)
+    print(json.dumps({
+        'status': 'already_delivered', 'market': market, 'slot': slot,
+        'issues': [issue], 'wechat_sent': True, 'telegram_sent': None,
+    }, ensure_ascii=False, indent=2))
+    return 0
+
+
 def input_error(market, err):
     """Exit path for empty/stale/missing input: loud, single-cause, still non-zero."""
     # Attribute the failure to the slot the preflight context was built for, not to
@@ -154,8 +165,15 @@ def input_error(market, err):
     # input error must still be recorded when the context is missing too.
     ctx, _ = load_context(market)
     hb = (ctx or {}).get('heartbeat') or {}
+    # An earlier attempt of this slot already delivered it: that attempt's
+    # outcome stands, and this one's broken input is not the slot's (#2961).
+    job_name, slot = hb.get('job'), hb.get('slot')
+    if not slot:
+        job_name, slot = cron_heartbeat.slot_for(market)
+    if slot_shipped(TMP, 'intraday', market=market, slot=slot):
+        return _skip_shipped_slot(market, slot, err)
     cron_heartbeat.record(market, 'postflight_failed', failure_stage='input',
-                          job_name=hb.get('job'), slot=hb.get('slot'))
+                          job_name=job_name, slot=slot)
     print(f'error: {err}', file=sys.stderr)
     result = {
         'status':        'input_error',
@@ -754,7 +772,7 @@ def publish_data_plane(market):
         return 'publish_failed', False
 
 
-def finish_no_change(ctx, args, *, allow_soft_review=False):
+def finish_no_change(ctx, args, *, shipped=False, allow_soft_review=False):
     if args.context_id != ctx.get('context_id') or not can_silence(
             ctx, allow_soft_review=allow_soft_review):
         return input_error(args.market, 'no_change context 不匹配或健康闸未通过')
@@ -767,6 +785,11 @@ def finish_no_change(ctx, args, *, allow_soft_review=False):
     except OSError as exc:
         return input_error(args.market, f'no_change 语义游标写入失败: {exc}')
     heartbeat = ctx.get('heartbeat') or {}
+    if shipped:
+        # A retry after the delivering attempt persisted its cursor reads as
+        # "unchanged". Its quiet marker would overwrite the delivery receipt,
+        # and its heartbeat would file the delivered slot as no send owed.
+        return _skip_shipped_slot(args.market, heartbeat.get('slot'), 'no_change on a retry')
     marker = delivery_receipts.receipt_path(TMP, 'intraday', market=args.market)
     first = (ctx.get('raw_wechat_block') or '').splitlines()
     try:
@@ -817,8 +840,12 @@ def main(argv=None):
 
     ctx, err = load_context(args.market)
     if ctx is None:
+        job_name, slot = cron_heartbeat.slot_for(args.market)
+        if slot_shipped(TMP, 'intraday', market=args.market, slot=slot):
+            return _skip_shipped_slot(args.market, slot, err)
         cron_heartbeat.record(
             args.market, 'postflight_failed', failure_stage='context_load',
+            job_name=job_name, slot=slot,
         )
         result = {
             'status': 'fail',
@@ -828,15 +855,18 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
+    # Asked before this run can send: see slot_shipped.
+    shipped = slot_shipped(TMP, 'intraday', market=args.market,
+                           slot=(ctx.get('heartbeat') or {}).get('slot'))
     if ctx.get('delivery_mode') == 'no_change':
-        return finish_no_change(ctx, args)
+        return finish_no_change(ctx, args, shipped=shipped)
 
     if ctx.get('delivery_mode') == 'review_candidate':
         selection, selection_error = read_report_text(args.market, args.text_file)
         if selection_error:
             return input_error(args.market, selection_error)
         if selection.strip() == 'SILENT':
-            return finish_no_change(ctx, args, allow_soft_review=True)
+            return finish_no_change(ctx, args, shipped=shipped, allow_soft_review=True)
 
     receipt_only = ctx.get('delivery_mode') == 'unchanged_receipt'
     if receipt_only:
@@ -971,7 +1001,9 @@ def main(argv=None):
     this_slot = (ctx.get('heartbeat') or {}).get('slot')
     _, telegram_done = delivered_channels(
         marker, within_ms=20 * 60 * 1000, slot=this_slot)
-    if already_delivered(marker, within_ms=20 * 60 * 1000, slot=this_slot):
+    # Re-read at send time: a concurrent attempt may have finished since.
+    retry_of_shipped = already_delivered(marker, within_ms=20 * 60 * 1000, slot=this_slot)
+    if retry_of_shipped:
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
         wechat_sent = True
         tg_ok = telegram_done
@@ -1107,30 +1139,38 @@ def main(argv=None):
         heartbeat_state = 'publish_failed'
     else:
         heartbeat_state = 'postflight_failed'
-    cron_heartbeat.record(
-        args.market,
-        heartbeat_state,
-        job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
-        postflight_status=product, wechat_sent=wechat_sent,
-        # Only when it failed: a reason field on a send that worked is noise in
-        # a record read by eye, and the same rule the co-send log follows.
-        wechat_detail=(send_out or 'no output from the transport')[-200:]
-        if wechat_sent is False else None,
-        telegram_sent=tg_ok, dashboard_published=dashboard_published,
-        data_plane_status=data_plane_status,
-        insights_sidecar=insights_written, issue_count=len(issues),
-        # Published so a gate that runs elsewhere can see a lane only this
-        # machine can measure: commits made here that never reached the remote
-        # (#1241). `None` when it cannot be determined — never 0.
-        unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
-        unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
-        # The ledger needs the same escalating/advisory split the banner uses:
-        # an advisory-only slot delivered a clean report (#764).
-        escalating_count=len(escalating), advisory_count=len(advisories),
-        # None is dropped by record(): only a genuine decline carries the flag
-        # that tells the outcome bridge this process holds no delivery verdict.
-        send_claim_declined=send_claim_declined or None,
-    )
+    # The heartbeat projects into the slot's llm/postflight/primary stages, which
+    # belong to the attempt that delivered it; a retry's prose verdict is not
+    # what kcn received (#2961's shape on the intraday path).
+    if retry_of_shipped:
+        print(f'idempotency: intraday {args.market} already delivered — this attempt '
+              f'({status}, {heartbeat_state}) files no heartbeat over the delivered slot',
+              file=sys.stderr)
+    else:
+        cron_heartbeat.record(
+            args.market,
+            heartbeat_state,
+            job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
+            postflight_status=product, wechat_sent=wechat_sent,
+            # Only when it failed: a reason field on a send that worked is noise in
+            # a record read by eye, and the same rule the co-send log follows.
+            wechat_detail=(send_out or 'no output from the transport')[-200:]
+            if wechat_sent is False else None,
+            telegram_sent=tg_ok, dashboard_published=dashboard_published,
+            data_plane_status=data_plane_status,
+            insights_sidecar=insights_written, issue_count=len(issues),
+            # Published so a gate that runs elsewhere can see a lane only this
+            # machine can measure: commits made here that never reached the remote
+            # (#1241). `None` when it cannot be determined — never 0.
+            unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
+            unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
+            # The ledger needs the same escalating/advisory split the banner uses:
+            # an advisory-only slot delivered a clean report (#764).
+            escalating_count=len(escalating), advisory_count=len(advisories),
+            # None is dropped by record(): only a genuine decline carries the flag
+            # that tells the outcome bridge this process holds no delivery verdict.
+            send_claim_declined=send_claim_declined or None,
+        )
     result['heartbeat'] = {
         'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
         'state': heartbeat_state,

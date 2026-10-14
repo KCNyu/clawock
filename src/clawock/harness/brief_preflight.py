@@ -83,6 +83,7 @@ TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 
 from clawock.automation import workflow_outcomes  # noqa: E402
+from ._watchdog_common import slot_shipped  # noqa: E402
 from clawock.instruments import get as get_instrument  # noqa: E402
 from clawock.instruments import is_leveraged_holding  # noqa: E402
 from clawock.instruments import compute_lookthrough_exposure  # noqa: E402
@@ -1729,6 +1730,26 @@ def unheld_quotes(guardrail, portfolio, *, today, universe=(), fetch_hk=None):
     }
 
 
+
+BRIEF_JOB = '盘前深度简报'
+
+
+def _record_preflight(shipped, status, **details):
+    """File this run's preflight stage, unless today's brief already shipped.
+
+    A preflight re-run after the card went out (an openclaw retry of the whole
+    turn, a later manual run) maps to the same daily slot. Its start marker
+    once emptied a delivered brief's diagnostics (#2960); its own failure or
+    fresh diagnostics replace them just the same, and a warning slot then reads
+    as a clean success. The slot's row belongs to the attempt that delivered it
+    (see slot_shipped); this run still writes its context and exits as before.
+    """
+    if shipped:
+        print(f"note: today's brief already shipped — preflight {status} not filed "
+              f"over the delivered slot", file=sys.stderr)
+        return {}
+    return workflow_outcomes.record_stage(BRIEF_JOB, 'preflight', status, **details)
+
 def _collect(argv=None):
     # This script took no arguments at all, so `--help` was not "unsupported" —
     # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
@@ -1759,17 +1780,18 @@ def _collect(argv=None):
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     issues = []
-    job_name = '盘前深度简报'
+    job_name = BRIEF_JOB
     slot = workflow_outcomes.slot_for_job(job_name)
-    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
+    shipped = slot_shipped(TMP_DIR, 'brief', date=today)
+    _record_preflight(shipped, 'pending', slot=slot)
 
     # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
     # HK and US are closed (still runs if either trades). Both are asked about
     # the brief's own HKT day — see `sessions.brief_closed_reasons`.
     hk_closed, us_closed = trading_calendar.brief_closed_reasons()
     if hk_closed and us_closed:
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'skipped', slot=slot,
+        _record_preflight(
+            shipped, 'skipped', slot=slot,
             reason=f'港股{hk_closed}+美股{us_closed}',
         )
         result = {'status': 'market_closed', 'date': today,
@@ -1818,8 +1840,8 @@ def _collect(argv=None):
         ctx_path = TMP_DIR / f'brief-context-{today}.json'
         failure = {'status': 'price_refresh_failed', 'date': today, 'issues': issues}
         brief_context.write_run_bundle(failure, ctx_path)
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'failed', slot=slot,
+        _record_preflight(
+            shipped, 'failed', slot=slot,
             reason='price_refresh_failed', issue_count=len(issues),
             context_path=os.path.relpath(ctx_path, WS), step_timings=step_timings,
         )
@@ -2200,8 +2222,8 @@ def _collect(argv=None):
         )
     except Exception as exc:
         print(f'FATAL: brief context boundary failed: {exc}', file=sys.stderr)
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'failed', slot=slot,
+        _record_preflight(
+            shipped, 'failed', slot=slot,
             reason='context_budget', detail=str(exc),
         )
         return 2
@@ -2234,9 +2256,8 @@ def _collect(argv=None):
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')
-    workflow_outcomes.record_stage(
-        job_name,
-        'preflight',
+    _record_preflight(
+        shipped,
         'success' if not issues else 'warning',
         slot=slot,
         issue_count=len(issues),
@@ -2263,6 +2284,7 @@ def main(argv=None):
                'from clawock.harness.brief_preflight import _collect; '
                'raise SystemExit(_collect([]))']
     started = datetime.now(timezone.utc)
+    shipped = slot_shipped(TMP_DIR, 'brief', date=today)
     try:
         code = run_bounded(command, timeout=BRIEF_PREFLIGHT_TIMEOUT_SECONDS, cwd=WS,
                            env={**os.environ, 'TODAY': today})
@@ -2271,8 +2293,8 @@ def main(argv=None):
         failure = {'status': 'preflight_timeout', 'date': today,
                    'issues': [f'brief preflight exceeded {BRIEF_PREFLIGHT_TIMEOUT_SECONDS}s']}
         brief_context.write_run_bundle(failure, ctx_path)
-        workflow_outcomes.record_stage(
-            '盘前深度简报', 'preflight', 'failed', reason='preflight_timeout',
+        _record_preflight(
+            shipped, 'failed', reason='preflight_timeout',
             context_path=os.path.relpath(ctx_path, WS), issue_count=1)
         print(json.dumps(failure, ensure_ascii=False))
         return 1
@@ -2283,8 +2305,8 @@ def main(argv=None):
         # (#2962), so it gets one here unless this run already has an outcome.
         died = (f'signal {signal.Signals(-code).name}'
                 if -code in set(signal.Signals) else f'exit {code}')
-        workflow_outcomes.record_stage(
-            '盘前深度简报', 'preflight', 'failed', reason='preflight_crashed',
+        _record_preflight(
+            shipped, 'failed', reason='preflight_crashed',
             detail=f'collector ended without an outcome ({died})',
             return_code=code, unless_terminal_since=started)
     return code
