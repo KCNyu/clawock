@@ -2200,6 +2200,28 @@ def check_research_artifacts(r):
         r.add('research artifacts', OK, f'{tally} valid · no open research work')
 
 
+FREE_POOL_AUDIT = Path("/root/logs/clawock-patrol/free-pool-audit.json")
+FREE_POOL_INSTALLED = Path("/root/tools/agent-dispatch/opencode-fallback-models")
+
+
+def check_free_pool_audit(r):
+    """Read the supervisor's bounded audit; never put network work on a data push."""
+    if not FREE_POOL_INSTALLED.exists():
+        return  # CI and other hosts have no local patrol installation.
+    try:
+        report = json.loads(FREE_POOL_AUDIT.read_text())
+        age = time.time() - report["checked_at"]
+        if not 0 <= age <= 10 * 3600:
+            raise ValueError("audit is stale (more than 10h old or future timestamp)")
+        problems = report["issues"] + [f"{key}: {value}" for key, value in report["source_errors"].items()]
+        if report["status"] != "ok" or problems:
+            r.add('patrol free pool', WARNING, '; '.join(problems) or 'audit needs attention')
+        else:
+            r.add('patrol free pool', OK, f"catalog and free costs verified; audit age {age / 3600:.1f}h")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        r.add('patrol free pool', WARNING, f'audit unavailable: {exc}')
+
+
 def main():
     r = Result()
     # GitHub Secret Scanning + Push Protection own repository-wide credential
@@ -2232,6 +2254,7 @@ def main():
         check_fallback_chain_shape,
         check_codex_runtime,
         check_model_chain_health,
+        check_free_pool_audit,
         check_delivery_channel_health,
         check_delivery_chain_shape,
         check_generated_cron_docs,

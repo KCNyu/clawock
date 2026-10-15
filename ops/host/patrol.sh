@@ -420,11 +420,21 @@ on_stop() {
   exit 0
 }
 
+audit_free_pool() {
+  # Deterministic discovery, independent of whether any model answers. The helper's
+  # cache bounds network work to once per six hours (one hour after a source error).
+  # Failure reports stay visible but never alter admission, rotation or the pool.
+  timeout 50 python3 "$DISPATCH_DIR/audit-free-pool.py" --due \
+    --repo-pool "$LIVE/ops/host/agent-dispatch/opencode-fallback-models" \
+    --report "$STATE/free-pool-audit.json" || log "free pool audit needs attention (see free-pool-audit.json)"
+}
+
 loop() {
   trap on_stop TERM INT
   local fails=0 wait reason alerted=0
   log "patrol loop started ($ROUND_AGENT slots: $AGENT_SLOTS; rotation: $(sed 's/#.*//' "$TOOL/rotation" | xargs))"
   while :; do
+    audit_free_pool
     if [ -z "$(current_round)" ]; then
       wait=$(pool_cooldown_remaining)
       if [ "$wait" -gt 0 ]; then
@@ -482,6 +492,7 @@ case "${1:-}" in
     echo "service: $(systemctl is-active "$UNIT" 2>/dev/null) / $(systemctl is-enabled "$UNIT" 2>/dev/null)"
     rid=$(current_round); echo "current round: ${rid:-none}"
     echo "pool cooldown remaining: $(pool_cooldown_remaining)s"
+    python3 "$DISPATCH_DIR/audit-free-pool.py" --status --report "$STATE/free-pool-audit.json" || true
     [ -s "$STATE/yielding" ] && echo "wrapping up since $(date -d "@$(cut -d' ' -f2 "$STATE/yielding")" '+%F %T') to give way"
     [ -n "$rid" ] && "$DISPATCH" status "$rid" | grep -E '^(STATE|ATTEMPTS|SESSION|WAITING)=|^unit:'
     echo "--- last rounds"; tail -n 8 "$STATE/rounds.tsv" 2>/dev/null
