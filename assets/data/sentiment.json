@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T23:22:58.173342+00:00",
+  "generated_at": "2026-10-15T23:45:14.760446+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -79,19 +79,13 @@
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us_stocks",
-      "reddit_mentions_7d": 2,
+      "reddit_mentions_7d": 1,
       "reddit_posts": [
         {
           "sub": "stockstobuytoday",
           "title": "First time investing in Stocks.",
           "url": "https://www.reddit.com/r/stockstobuytoday/comments/1x6yhg3/first_time_investing_in_stocks/",
           "created": "2026-10-15T21:42:37+00:00"
-        },
-        {
-          "sub": "RKLBInvestors",
-          "title": "average $RKLB holder rn",
-          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1x6wumm/average_rklb_holder_rn/",
-          "created": "2026-10-15T20:35:33+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -114,16 +108,16 @@
           "url": "https://news.google.com/rss/articles/CBMiSkFVX3lxTE1STkxSVGNTdlZLR3h4OWxzN3JQY01FUXRPeWhvNnIzQXg4YVhrX0dKUmhiaHVDQnN3OUc2T194RmZmdkQ3TDFzQk5R?oc=5"
         },
         {
-          "title": "Technical Reactions to RKLX Trends in Macro Strategies",
-          "source": "Stock Traders Daily",
-          "published": "Thu, 08 Oct 2026 14:12:01 GMT",
-          "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPT2NsN1N4MTA5QTlsM05lb0FkUVRPVHVUQXBNclF2enhIdzR5YWVtMnQ2ODlNSWxSM3RJX1Z5Y0pVN2FMTjRzSFhPSFJHajF2eVJNWFFfWmVWVUZuaEhOUTVMMUd2V29XekRJcDkwWG9BOGtFMThiZExNNC1DenFyakFPVFN4aFhWQ1Q2UEdiVkszR1FJNlgwOEJBNUh1MTBYS0Q4a0ZaeTc3bHpSVlV5OHdqQ3l2eFVXWkdMa2dvLXNRc0g1RTFoSUNfOFpxOWc?oc=5"
-        },
-        {
           "title": "RKLX Mar 2027 34.000 call (RKLX270319C00034000) Stock Price, News, Quote & History",
           "source": "Yahoo! Finance Canada",
           "published": "Sun, 11 Oct 2026 12:47:30 GMT",
           "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5hRlZkNEtvYkxmaGlVbnVpNXB6M3ZBZ2c0cVM5YjBCVUR2TUF6T2hEWnNyVXhRUWp3bFNBTnJqWmZpMGZlRG0yc3o1cGdKWERaWTFWZ21HOTQyYVdTd3QxVWFkTE9JUQ?oc=5"
+        },
+        {
+          "title": "Technical Reactions to RKLX Trends in Macro Strategies",
+          "source": "Stock Traders Daily",
+          "published": "Thu, 08 Oct 2026 14:12:01 GMT",
+          "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPT2NsN1N4MTA5QTlsM05lb0FkUVRPVHVUQXBNclF2enhIdzR5YWVtMnQ2ODlNSWxSM3RJX1Z5Y0pVN2FMTjRzSFhPSFJHajF2eVJNWFFfWmVWVUZuaEhOUTVMMUd2V29XekRJcDkwWG9BOGtFMThiZExNNC1DenFyakFPVFN4aFhWQ1Q2UEdiVkszR1FJNlgwOEJBNUh1MTBYS0Q4a0ZaeTc3bHpSVlV5OHdqQ3l2eFVXWkdMa2dvLXNRc0g1RTFoSUNfOFpxOWc?oc=5"
         },
         {
           "title": "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation",
@@ -191,16 +185,16 @@
       ],
       "google_news_en": [
         {
-          "title": "We bought SpaceX at $121. Here's why we're buying more at higher prices",
-          "source": "CNBC",
-          "published": "Wed, 14 Oct 2026 17:43:37 GMT",
-          "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBoRWFmdjdKOGMtLWlmUmxzVWdscGk5Q3lYcGdRVVhMYlowUUlXc25MWHRaWE90TVlCbGxkdzkzWFlqNHM0N2l3NkVJX1dNWTVCWVVpTjd5Z3pWT1Vid1dPOGRTV3hza2U0QThJemNBWXJwM1NCbFc2dmpWbGNrQQ?oc=5"
-        },
-        {
           "title": "Why SpaceX Stock Is Sinking Today",
           "source": "The Motley Fool",
           "published": "Thu, 15 Oct 2026 15:58:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPN2p4MWVldFJ0N3RjTmE4Mm1CVTRubFhGVHdlZVE0Wjh4anhpTHdFQXBTQnZRdGRmWGJibWt4dGxNTy1jLWVTV09PMkZMeUhETUxzWHN6VXVmbkpEclR5VTBPWUEwNTIwV0hyZEJNTVhUZXR1Qi0xOEZ4TTRSN0JVSFJ3?oc=5"
+        },
+        {
+          "title": "We bought SpaceX at $121. Here's why we're buying more at higher prices",
+          "source": "CNBC",
+          "published": "Wed, 14 Oct 2026 17:43:37 GMT",
+          "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBoRWFmdjdKOGMtLWlmUmxzVWdscGk5Q3lYcGdRVVhMYlowUUlXc25MWHRaWE90TVlCbGxkdzkzWFlqNHM0N2l3NkVJX1dNWTVCWVVpTjd5Z3pWT1Vid1dPOGRTV3hza2U0QThJemNBWXJwM1NCbFc2dmpWbGNrQQ?oc=5"
         },
         {
           "title": "SpaceX stock slammed as AI memory trade crumbles in South Korea",
@@ -209,22 +203,22 @@
           "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPaXI5WHlmS3pxM0x4UjNHUUhsUjBPZkd3cS14RUg1N3M4RUxZYjM2TjRJWU9PdWk5cW1faS0yVE13MGZjd0xRMWJIOW1kQWRfNmJMeGpjM0d5NDZEZlZHLWlkeS1SU0d4R1BOY19EYV8tWTRLNFpGdjhEcDFZemE2dlRZa1ZRQ3BxVUlub1ZCQWFNX29ZT0ZNTXlSX2pSVWk2UjRSSm5KQzg5cmtLSjFVRlNFeUo4c1VIN25qTjN3Q1BjVU9aTUE?oc=5"
         },
         {
-          "title": "SpaceX Stock Fell 4% After Its East Coast Rocket Launch - SpaceX (NASDAQ:SPCX)",
-          "source": "Benzinga",
-          "published": "Wed, 14 Oct 2026 14:57:28 GMT",
-          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUjFCRFFkSFVqaDFHbnkzb29lNWkxNlRHTTVhejRuYk5oYjVSS01NXzlMcmc1UlZFT2RyNXJkWlh5ZUlxbWNNMkR1SkQzS09PWXVOQzYtNE5yZnZnZDFYTzkxQnpnOHJha0hQVktsQzY3dTd6d2FFV0tJVzZWcW5Kb3JHZGcxUUtLZ0luRnFWcUNlZGpQcEE?oc=5"
+          "title": "SpaceX Stock Drops Below $170: Here Is What History Says Investors Should Do",
+          "source": "Yahoo Finance",
+          "published": "Wed, 14 Oct 2026 15:50:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPSmRwb0U0ZWNDQzJseFNkdjc4THhEeW1LT3Qtekc5M3lvaXlTc2JEWDhCUm1OSzAzRDExZzFQZFdKQlg2SkVpVjlua2ZFSzNLZXNKbUpQMGVIc3lMdnBiSjhqUFlTemFHSHB5cjlVM1B5cEZTaTM5QzFZUGhBeTdFUDZ6QVJnZjBXWTNrUVF6MEI0X29keWZfMg?oc=5"
         },
         {
-          "title": "Barclays Says a Tesla-SpaceX Merger Could Be Announced Before December",
-          "source": "24/7 Wall St.",
-          "published": "Thu, 15 Oct 2026 11:35:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOVnBPMlpSS2ZDU3RJUjhpSmdwQjlmZ0pZT2RrRkk0bGVRMTd0RXhMOWxHa2VadWxNOXZKcHNSSDVkQWVtUWM4Y3Z1Y01uVzdIMmNBZWM2T3FMamN0WXpsYjFJZTdZRTkyYVd5VWZhcmVHcC1DbGNQd3BpVzJTVlpsWTczeENPMkZXc09GZFNrSkhHNU9sR04xXzdJd2NnVWRZMGt3dFEwa1FkUmFBbGNIMjRTdEo?oc=5"
+          "title": "SpaceX Could Be Worth $50 Trillion In 10 Years, Says Ron Baron: ‘Elon Thinks I’m Way Low’",
+          "source": "Yahoo Finance",
+          "published": "Wed, 14 Oct 2026 07:28:21 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPbGQ2SFhCcV9kNENtQVVacUFYZkN5TWdFU0hsdVpwcDJITm44eXNxb0VmNnBYU1NWVHlVM2NpUzRjM0tORHpNQmdZOWtVQ0l4Y1dfUGZqREFDM2U2VFRhcFpLMDNTcXh1RUZkMUhvbzZUSkpjdWZRN2w1VFFDa2VQZnl5bEVrVHNHc0lCZzkyeTRYOFZtVzBrX0VsVQ?oc=5"
         },
         {
-          "title": "Why is Space Exploration Technologies stock sliding today?",
-          "source": "Investing.com",
-          "published": "Tue, 13 Oct 2026 14:07:17 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNVXEwcDYxckh6cEtiNVV0T3dTc3ZJNjRjMGM5d0tDUG1ocFVFaHpTMGE5NzItVExjTkNTWXgyUzV0LXNBaER3ekdIYmh2S2lKZDlsQVBYRlB1cnk1Wl96YWdZWmpTRXVYSjJtdDBMdmptcFppNU9SMGxMX1Q1SE9Pam1uV0ZIb2FfRzNiM3lCSEs5VkpSYy00MlhqVXRZS0VPNWYwYnFTRnpxZTNrN0VOSzJ3TkZXZWdFSlEw?oc=5"
+          "title": "SPCX Stock Drops 5%: FAA Begins Environmental Review Of SpaceX’s Ambitious 456 Starships A Year Expansion",
+          "source": "Yahoo Finance",
+          "published": "Tue, 13 Oct 2026 17:40:37 GMT",
+          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNcVg1Q1dYd0FfNnFZZnVSb1E2VVA4SGNFSWczelR1MXhySGNBZEIxTXZsMFd6dXlEYjZDeGFaQjI2LTVVZGItVUFDRGFqVzQyMWtyRzY0dXRWQ1pyUkw4eGp6TWdpV1lyam1aal9yNVlzUXlCNXJ3c1ktS25xaWpIcWpsTy16RDZmSExWOUN2cV8?oc=5"
         }
       ],
       "google_news_zh": []
@@ -331,16 +325,16 @@
       ],
       "google_news_en": [
         {
-          "title": "MiniMax Shares Plunge 80% From Peak; Founder Halts Salary, Donates 5% Stake to Shore Up Confidence",
-          "source": "BigGo Finance",
-          "published": "Sun, 12 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBsU2xSZTM0R05WTjdLbHRCRzVFNFAyb1hpNFNEcExTOFFhaHp3UzdTcUNLWFBIYUlYNzhFWHpaT2M1TWpuMlVwSDNhNDBJaTNLeDV2akg0a3Z2b29NOHlJM0IwNElpQ1FnM1J4TjBGQUxmd1V3TlE?oc=5"
-        },
-        {
           "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
           "source": "Longbridge",
           "published": "Tue, 27 Jan 2026 08:22:58 GMT",
           "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
+        },
+        {
+          "title": "MiniMax Shares Plunge 80% From Peak; Founder Halts Salary, Donates 5% Stake to Shore Up Confidence",
+          "source": "BigGo Finance",
+          "published": "Sun, 12 Jul 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBsU2xSZTM0R05WTjdLbHRCRzVFNFAyb1hpNFNEcExTOFFhaHp3UzdTcUNLWFBIYUlYNzhFWHpaT2M1TWpuMlVwSDNhNDBJaTNLeDV2akg0a3Z2b29NOHlJM0IwNElpQ1FnM1J4TjBGQUxmd1V3TlE?oc=5"
         },
         {
           "title": "Major Brokerage Cuts MiniMax (00100.HK) Target Price to HK$760, Maintains 'Hold' Rating; Impending Lock-up Expiry and Peer IPOs to Dampen Scarcity Premium",
@@ -419,10 +413,10 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9yOGxiRExQZUwzQ21ISm50QW1TaTZNQzdfalE3VFlNQmh1SmpQVjU2VzlVYzU2VjZFWWFZMTdYZ1FBWTV6bGx5YmsteExQRDZINGxxN3l3?oc=5"
         },
         {
-          "title": "Goldwind Science & Technology (02208) has cumulatively repurchased 13.0166 million A-shares as of the end of September.",
+          "title": "Hong Kong-listed wind power stocks bucked the market trend and strengthened, with nearly a year of significant results from industry self-discipline in combating 'internal competition.'",
           "source": "Moomoo",
-          "published": "Sat, 10 Oct 2026 00:03:45 GMT",
-          "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQM0p3MWZyX3pEMWZ0cTRCWG5McWk1emJUOW9sT19zVHBJTk1qUFZ3bFlYSWttei1pWFJCSC1tUkU3bzV4VkxubmZseVBSNk03ZDkzaFNraF9CWGlUMW0wbzRtZ0NlNDlDcjI4SXpyZ1hGb1l0ZXNoWEtYMlJGNVZ0MlFzc2c5bUNBX0JuYzh1N1N0cEliNFA1RTV2aG1xdS1EZllvSXRHYWlOMmx2ZlFqdUpVTFUxSmdGUjZ4Qng1cw?oc=5"
+          "published": "Fri, 26 Sep 2025 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPd1B4Ry1TWldQZWVtUTFtRjlDZEh2YVFTNFVrU21FaENXbkZqSWJVRHlESXBtckpQeERscDlqcUc1THk2N2s5R0VOdE9vOGlKS0pGcUdhSENuZnlPNTFpU2RQNFdKT2V6akJwWVpMQldLeWRtQ3RvTkRFWk1udElYU2Y5aTNRdnh4bG1vanQ5QVV5ZmIydEFXLUVYT09IQTYtWEE?oc=5"
         },
         {
           "title": "Long March 7A Failure and Zhuque-3 Delay Trigger Sharp Selloff in China's Commercial Aerospace Stocks",
@@ -432,30 +426,6 @@
         }
       ],
       "google_news_zh": [
-        {
-          "title": "金風科技風機價量齊升可留意",
-          "source": "巴士的報",
-          "published": "Fri, 21 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
-        },
-        {
-          "title": "【大行報告】大摩升金風科技目標價40%",
-          "source": "Yahoo 財經",
-          "published": "Mon, 19 Jan 2026 08:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPbEFJVElQdTdOeWdTODBRT1BzODJCSTltYzNJMnZHNWVRNFBUWFBiWmlGWTRvdmNZNWxZUEZseld1UDhONzZfTUh1bGx0X2dGMjBNUHFPN1dUQUxBN0p4eEtONFY1UVhscGtreXlwUF9FOFJqMUhpSlhzNGJfSXYwMldXSmxHR2dGSWRoT3I1Q19Nam9vUW9NbXN4TEZBcS1EbDFDcDlsQ01QSnNobGt2VDhyWklDMWlrOGE4QldBQnQ4N1dmY2hIZVQ1TWczbTVGOWQ0QWVQZlJBUGJENTAxRHRxWkRTbndHUkJtRVVqd1VJVTh2Y1dRWHlaM0FGbTI2QUtGSEZlcGxXeEE?oc=5"
-        },
-        {
-          "title": "歐盟宣佈對中國清潔能源巨頭金風科技展開反補貼深入調查",
-          "source": "DW.com",
-          "published": "Tue, 03 Feb 2026 08:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMihwNBVV95cUxPZzg2YURBNW9BLUduTUpQTkdTLWZScVJMaHhFUHA0eWM5Q0xXZFplOU9LV3ZLczFsbFJteHVxc2U0emhiQnQ4eEdYN18xdi1SYlJpejFqMV9kcVlzellzTWt0WmRNNjM2REp6Qk4zVzdEb0VRSlBNbmpRclJ0VDJ3ZGJpcHFTcURiUlRQOGR1bmE2Wkxmcm5DZXFkcVNQc0p5Z2xTdE9EQW9UTFQ3cjV2UnM1SDFZOEV3Qlp2ZlhDZGtNdk1uU0k4QS1YYUhjXzMwang0MkZVaktrdHZsZ2N0cV84OFpVYWJ0aUs3Uk15cmtpa3R2aVIwRlNCRUJCVHlJc0xhdXduSDgtWUZxWlpRZEpuZk8xWWtEdFVMeUhJaUNLblV5QXlVb3MwVGtrbkh6RDRtdEZ3Q09TSjlOUFVUZ3Q5RkZvZ0RrY01pUC1nSkVlbG9iY2o1OVR1ZURGUExQWXFqdVdTaWhYcmNma0Z5S1ZCUU1acW85akcycFV2NEhGdzJOWWVN0gGHA0FVX3lxTFA1VVlXSlZzUXJhbjhJS1hkOUJBUklWZmtNTmwzYkowcVF1UGxtck1kcnViYVJVTkc3TndGVEZ1eXdSVGhSSUpNeG8wMXRjcU02YXRWNmJpSEVyZ3hySGpCX0hnaE16S0FhdTlsNzNmR0IzY0NmYjNvV2NHVnZGcERFV2twOWx5cjYxVGhnNVhfbkx0S0pEVVhKMGdxOE5tWm5zN3hSS3BOZUM5NUQzemNSM0tuYkxySDM0a2laMFY1OEFPaFlNRjhqMzhENG5uN2hickJvM0pMVXFsejNwQXBQWHVmQjRFWUtMT1lOS0p3clpZaE93MnJ2OGxab0FZdFh3VHRCUl9DdnZidUlZODdITmVNZHF4ZlFGUUFjaS1UcjM5OHRTa05QNDRJdmVSUFNWeW80VDRTeGtQaUxiS0hJU3NIVUtnUGd3bjVrSWlJMEFqRjY0WlMzajMzVWNMbUcxU0wxSUJfZ253MFRTOUd0bUFOaVBBTlY5dUI2YkJjWWpNYnNZNFk?oc=5"
-        },
-        {
-          "title": "港股異動| 金風科技(02208)漲超4% 可再生能源發展“十五五”規劃發佈國內風電裝機將迎旺季作者智通財經 - Investing.com 香港",
-          "source": "Investing.com 香港 - 股市報價& 財經新聞",
-          "published": "Thu, 23 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzWkx4azhiUjRaVVUxNThzWU1jMU5IeEVPRTFiaWM2YU0zWlFKQS0xUEpPeS1MT1kzOGlDcURMSEo1Wl9XeXFvWWVMU21WZE9abjg5X2puSW9Ra2oyNFNwSjU4SkltcklBSnRhM2pQeDc?oc=5"
-        },
         {
           "title": "金風科技：第九屆董事會第十七次會議決議公告",
           "source": "富途牛牛",
@@ -467,6 +437,30 @@
           "source": "信報網站",
           "published": "Fri, 09 Oct 2026 04:29:53 GMT",
           "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOYlVxSkJsSnYxa0JoZ1ZQR0dOQ3o4ZVdudHg4OGpVNEY1Uk05WFVXN0xRWHM0aUt6U2ZJRUVTU3RuUmhVakl2YS1TaUpFLUlEbVF0NlBvcE9peTE5RlB2TmNVOU9fMGJoY0JGc19RSGd6MjRpbHR5ZkNQamVFMkVuYWRvUmhxMG15Mm5MMUsydFIzUk94aGl2QnU4TDgzaTl1Z3V0SElFeE5vcWlwNGRKSzJ5UkNzX1dmMFVNWDVGTXBkeE0?oc=5"
+        },
+        {
+          "title": "金風科技風機價量齊升可留意",
+          "source": "巴士的報",
+          "published": "Fri, 21 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
+        },
+        {
+          "title": "金风科技: H股公告_公司公告_每日必读",
+          "source": "证券之星",
+          "published": "Thu, 08 Oct 2026 01:05:05 GMT",
+          "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE9tR0VaZTl2NVJUSlJFd0NNMFlUN1pwWHlYdHVPTVpKV1FfQ1NwVTVBeWdCVjFGS1VQRXo3S29QZVFTV2t3U2lWblgtT3Izd2hPVGlvLUR6akVfd3k0bHc2dDhUOWhCZ09XSXJJ?oc=5"
+        },
+        {
+          "title": "金風科技(02208.HK)截至9月30日累計回購A股股份1301.66萬股",
+          "source": "TradingView",
+          "published": "Fri, 09 Oct 2026 09:56:01 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9iZF9mM1JmdkxZOENYTlQzd3pYUnUzbGtQSVRmekNVQU5FSjRWc3pUUWYxcEJGMmNMeXFzcWhYYlctblBWZnRHdkNtVnRiV2JDLUZYX2xLR2lBY1dOcDVJNGNKZFluQjFOVGc?oc=5"
+        },
+        {
+          "title": "風電設備逆勢大漲！從腰斬到反彈，這輪行情走到哪了？",
+          "source": "Moomoo",
+          "published": "Mon, 12 Oct 2026 05:10:12 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE1VT04xaTFKdTlBR3JvQlctRXcyQXBkOWxaaDc1Zmw0RHVMQXp5a0tEdTFqYmFzeUhHbl9HR2d4ZmVaZjdweEJibVVHWjhNYnNaZWo1TWlyTDU5WkRh?oc=5"
         }
       ]
     },
@@ -676,10 +670,10 @@
           "url": "https://news.google.com/rss/articles/CBMirgJBVV95cUxPRnlFUFZTV3NnR3ZYalpPOGJsUnI5VDhOVmFQSnJCZkZ3VE8wNkE1ZVNLaTN2ckRNeHItWHJYT3g0UGsteXlyVTBMTUlSY1FrS2dnaWNpOExtZkhPd0VJXzFfaE41c0lwS2VyNmNPREZ2elhrVnozNEtSYXZnSXhNeTgwX0REVFhYSkQtZ2E2a2lmLWg4M0pzZDVIdEtfZDJpWDBpNzNVU2ZzUkxQWG8zenZzRWJkU3ppX29RSml1UURiNEc5bFRzZXlObzRlX2hDMEpfNFNnbVBpUDdRZW1Va1NvTVJ6VWVJY05WbVppMFg4NWNfenIyeTYzTFlFVENPT3JRSGVESkhWMGJ6azZOaktSNWFiMXdNWEhWVGtaUXFxV1JmS3JtLUdrYXVKdw?oc=5"
         },
         {
-          "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
+          "title": "半日沽空金額減3% 南方恒生科技增318% (12:26) - 20260817 - 即時財經新聞",
           "source": "明報財經網",
-          "published": "Mon, 10 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQZWFNN0wwem8tQzh6Y2NFRlB6dHdMLWp6ekg0dTdyYjNZaUJKVldENDFJcjJ2Z0pEN3REbmlwdVk4dGR2R2FRWFhfRHFpZ2tScVZYV0YwVVpDbmhLYjU1Tl91ZHRrbWhEV0ZIUWFaUFpEWVpzVHFYS2tERjlObTg2UkN0UzhDZTVEOHFTNC1MSWctZjUtQUtqQ3dSUW9udzUzQ3JXZDBkWDdWMFFfWVhjS3ZSamhSTjdVNVlFd0FodlR0b1RwSUNKSEZuTjFMbm9qYklBUDdsX2hnS0JCWHNXdzU5eEQyczY2dGEyckozYnZaZHNSa0lkZ2ttNGhTNGVPMGRqN0NDTlJaWVU5T1VPUHRDOHJBeXlmeTRJUnpSTmFDQUlHSlBR?oc=5"
+          "published": "Mon, 17 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMioAJBVV95cUxOUktHaW5aSFZaM0NqeF9kMmhvM2ZOaG9YNzNqUGtCUWV3TUg0ZnFxN2FhdHVYcUJpYW5ndFIxbldqTF9MQlFpeEVDMGNMUVktV1VFY3R0NlZrREJSX0U5bldZME95SjBoMVMtX01XOUJkakR3VU9DcTBZUy1TYmR5WHRLMC1ULV93WHVRdmprSjlONzY1VHZjeWxsVGNKd2w4X1hvMDI1cmFfenNlTzRxOEZLQjl5MnF2b3BPVnBoNTBhVENJVXRkb3J3d0cyMW03cUh2STdlVEtfNUhzdkJuZjktRG9QekVZSlFoS0w0ZEhlUzJMR190am53MjBHUjVwYU5IZjlzczQ1NU5jVGwwOGhoVHcwS0JTeWxXWHlid1M?oc=5"
         },
         {
           "title": "南方恒生科技(03033) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
@@ -688,10 +682,10 @@
           "url": "https://news.google.com/rss/articles/CBMivwVBVV95cUxNVXZlbTd4YjFSaTR4a2h6YTcxa0xEaklJanVLYWtQc21VbmVIX0xkcnlqWDFwM2NuWWk5UzVlbmlDMEhCZjV2UXA3M2tWTjBRY2ktNmZUeV9TZjlPcWJCSE8ydk1pMEVzd0hzTHpFVlhDQ2hUa2xOVzNSU09LUFM4QjQ1bWN1cl9YekZwSkc0UzRTSnBaS3FHWGU0WFZaRkVnYkh5YXc0RjdwU2k0QXdpNnZtZ1F1R1lzQzhVbnRiT280bmR1SE5uVWcxOVlSUDd1ZDlLc2U4bHVkRkx6TFlaNElnQjVNZ3duSjdBSTZWemRGclYxMHY4V0RVS3RBQnBYb1ZOQ3BwbVg2Rnc0NkdUeU5SZFNrOTNwcW11aFdKWFYtZ3hER0Q3Nm9OdFMyS05QZHpXRnJoTGNpSTE1bmJZZ1NfTGxaRnhHTEZsQlVDcmdORy0wTTV4VjJaQWVMVUZFZlh3TnlCemJjVVNFRHE4ZjFiWjllUzc5d1hyOEgwbDR5OHNXTldLRldDTXVsUTJjSW1VY043a0RsUVFCVldNdEt6cmpUYmp5aXZldUY5T2N2RHpoNVRRdjRFVEh2Sml6d1VPYkU3Ylk1ZXpoQ2JXOWtHbFZqTWw0ajFhMmNRNjg3cGNYa3JJWGFOMmNSSlVIMXhxRE9TaEltTHNxSVpGN3pUSmVrMnNxdUk4aHVQM2UtMEhSWUVhYU50eC1sRWJ1c3BvNW5pTFNOVmxmTTV5WjZyb2FDcklObzRra1pOMFRDbUM1Znd0ODQ4XzRsR09SaUJmby1YOUxmV0ZMMmVYeFRKdkF6a2kyVDc0ZGo4aWJIdEpuNEhmNVR1V2ppczE0ZENnaS1fNXBtQk45amRLR1lOeUpaMjRpRlRtRENfdXV0U2wzU2pSUDg0V1hqT2hFSl9TQmdxYnhRcDFtT3Vz?oc=5"
         },
         {
-          "title": "半日沽空金額增35% 盈富基金減4% 南方恒生科技街貨近兩個月高(12:26) - 20260928 - 即時財經新聞",
+          "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
           "source": "明報財經網",
-          "published": "Mon, 28 Sep 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipANBVV95cUxOczljQVhXUzRzRmRSZXRhZmozYW1Od0dydmIzajhob2xPMzZDQzM2LU1kdDA0T0o1ZEtrNEJ6QzhLblhrNXdmc2NRdjl3RWY1TFFFdDNPdmRyWDBNUnR5bDBCczBiRFMyaE9nNjZmLVEzUW5fRlg4Z1NpdHpmakZYdGJyYW9rampYRWZXelhuVDA3N0p0dndKMzd0QTBiMzF5Vk1XQzFWU3dLQ1B3R003cWRodGhIWFIzTy0xcmNndWE1RkE4WGs4VUdpa2V4QVE1c2lKNm1sV1JJOVdKRnZvOTE3NjQtOXJHVHBMeVA4SHpoaXA5cnNwVW90ekFVQ2diakNJTFBSZDJ6dUlMMFhRamdsM1FOT21aSjdteGtsenFwcjVmWDZObGpUNkxQaFpDd1RSLXl0YjBwSWF6RTlKSG5meTRSZHdEZHNQWDdnMEYxdGtKVTR3bzc2Y3pJWGdQWXlLRzdkQ0dRNWRGdzFCcDBEX1VBcjdBTjZVdkxCMk5SMElFTE1YMlZEQmxjaHVuYjJnNm8tdTlmSnJCNmpfZlpqem4?oc=5"
+          "published": "Mon, 10 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQZWFNN0wwem8tQzh6Y2NFRlB6dHdMLWp6ekg0dTdyYjNZaUJKVldENDFJcjJ2Z0pEN3REbmlwdVk4dGR2R2FRWFhfRHFpZ2tScVZYV0YwVVpDbmhLYjU1Tl91ZHRrbWhEV0ZIUWFaUFpEWVpzVHFYS2tERjlObTg2UkN0UzhDZTVEOHFTNC1MSWctZjUtQUtqQ3dSUW9udzUzQ3JXZDBkWDdWMFFfWVhjS3ZSamhSTjdVNVlFd0FodlR0b1RwSUNKSEZuTjFMbm9qYklBUDdsX2hnS0JCWHNXdzU5eEQyczY2dGEyckozYnZaZHNSa0lkZ2ttNGhTNGVPMGRqN0NDTlJaWVU5T1VPUHRDOHJBeXlmeTRJUnpSTmFDQUlHSlBR?oc=5"
         },
         {
           "title": "南方恒生科技(03033) 月報表",
