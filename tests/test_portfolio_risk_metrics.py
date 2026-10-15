@@ -245,7 +245,8 @@ def test_compute_leverage_returns_zeroes_for_an_empty_book():
     }
 
 
-def test_build_alerts_emits_each_documented_strict_threshold_breach():
+def test_build_alerts_emits_each_documented_strict_threshold_breach(monkeypatch):
+    monkeypatch.setitem(risk.GUARDRAIL_CAPS, "us_beta_max", 3.0)
     us = {"beta_spx": 3.1}
     combined = {
         "vol_30d_annualized": 0.51,
@@ -265,7 +266,8 @@ def test_build_alerts_emits_each_documented_strict_threshold_breach():
     ]
 
 
-def test_build_alerts_does_not_fire_at_the_strict_threshold_boundaries():
+def test_build_alerts_does_not_fire_at_the_strict_threshold_boundaries(monkeypatch):
+    monkeypatch.setitem(risk.GUARDRAIL_CAPS, "us_beta_max", 3.0)
     us = {"beta_spx": 3.0}
     combined = {
         "vol_30d_annualized": 0.50,
@@ -275,6 +277,21 @@ def test_build_alerts_does_not_fire_at_the_strict_threshold_boundaries():
     leverage = {"combined_avg": 2.0}
 
     assert risk.build_alerts(us, None, combined, leverage) == []
+
+
+def test_high_beta_alert_reads_the_guardrail_beta_cap():
+    """#2984: β between the old 3.0 literal and the 6.0 policy line is the
+    expected state, not a red card; above the line the card and the guardrail
+    breach light together."""
+    cap = risk.GUARDRAIL_CAPS["us_beta_max"]
+
+    assert risk.build_alerts({"beta_spx": 5.0055}, None, None, {}) == []
+    assert risk.build_alerts({"beta_spx": cap}, None, None, {}) == []
+    assert risk.build_alerts({"beta_spx": cap + 0.01}, None, None, {}) == [{
+        "type": "high_beta",
+        "severity": "high",
+        "detail": f"US β vs S&P 500 = {cap + 0.01} (> {cap})",
+    }]
 
 
 def test_build_alerts_withholds_high_beta_from_a_stale_revived_block():

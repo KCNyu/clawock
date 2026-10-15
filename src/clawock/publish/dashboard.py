@@ -37,7 +37,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
-from clawock.portfolio.guardrail import hhi_verdict
+from clawock.portfolio.guardrail import hhi_verdict, _holding_pnl_pct
 from clawock.portfolio.math import number as portfolio_number, ledger_rows
 
 def benchmark_staleness(benchmark):
@@ -2689,6 +2689,20 @@ def _holdings_by_ticker(us_h, hk_h):
     return by_ticker
 
 
+def _shown_loss_pct(h, pnl_pct):
+    """The loss a risk card prints: the hard-stop card's own figure (#2986).
+
+    `h` is the ledger row, not `trim_holding`'s: rounding its 2dp column again
+    at 1dp printed RKLX's -75.8503 as -75.8 beside the hard-stop card's -75.9.
+    """
+    if isinstance(h.get('cost_basis'), (int, float)) and isinstance(
+            h.get('current_value'), (int, float)):
+        shown = _holding_pnl_pct(h)
+        if shown is not None:
+            return shown
+    return pnl_pct
+
+
 def high_weight_loss_anomalies(holdings_by_ticker, leg_keys, concentration, brief_conc=None):
     """Positions that are both a large share of their leg and deep under water.
 
@@ -2726,7 +2740,7 @@ def high_weight_loss_anomalies(holdings_by_ticker, leg_keys, concentration, brie
                 out.append({
                     'type': 'high_weight_loss',
                     'ticker': tk,
-                    'detail': f'weight {weight_pct:.1f}% + pnl {pnl_pct:.1f}%',
+                    'detail': f'weight {weight_pct:.1f}% + pnl {_shown_loss_pct(h, pnl_pct):.1f}%',
                     'severity': 'high' if (weight_pct >= 40 or pnl_pct <= -20) else 'medium',
                 })
     return out
@@ -2787,7 +2801,8 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None, concentration=None):
             detail_bits = []
             if isinstance(self_pnl, (int, float)) and self_pnl <= -15:
                 triggered = True
-                detail_bits.append(f'pnl {self_pnl:.1f}%')
+                shown = _shown_loss_pct(h_live, self_pnl) if isinstance(h_live, dict) else self_pnl
+                detail_bits.append(f'pnl {shown:.1f}%')
             if isinstance(self_today, (int, float)) and self_today <= -8:
                 triggered = True
                 detail_bits.append(f'today {self_today:.1f}%')
@@ -4555,7 +4570,7 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
     return known_tickers, _insight_weights, _basis_values
 
 
-def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, known_tickers, insight_weights,
+def _restore_previous_cards(out, previous, presence, portfolio, us_rows, hk_rows, known_tickers, insight_weights,
                             basis_values=None):
     """Restore absent cards from the previous payload, then redo what must match this book.
 
@@ -4577,7 +4592,7 @@ def _restore_previous_cards(out, previous, presence, portfolio, us_h, hk_h, know
         # needs no brief-context, so it is redone on the book being published.
         _legs = [leg.key for leg in resolve_legs(portfolio)]
         out['anomalies'] = high_weight_loss_anomalies(
-            _holdings_by_ticker(us_h, hk_h), _legs, out['concentration']) + [
+            _holdings_by_ticker(us_rows, hk_rows), _legs, out['concentration']) + [
             a for a in out['anomalies']
             if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
     _checked_insights = validate_insights(out, known_tickers, weights=insight_weights,
@@ -4684,8 +4699,12 @@ def build_projection(previous_source=None, shadow_previous=None):
     us_pf = portfolio['portfolios'][base_leg.bucket]
     hk_pf = portfolio['portfolios'][quote_leg.bucket]
 
-    us_h = [trim_holding(h, base_leg.currency) for h in ledger_rows(us_pf.get('holdings'))]
-    hk_h = [trim_holding(h, quote_leg.currency) for h in ledger_rows(hk_pf.get('holdings'))]
+    # The ledger rows stay beside the published ones: risk cards print a loss
+    # from them, rounded once, as the hard-stop card does (#2986).
+    us_rows = ledger_rows(us_pf.get('holdings'))
+    hk_rows = ledger_rows(hk_pf.get('holdings'))
+    us_h = [trim_holding(h, base_leg.currency) for h in us_rows]
+    hk_h = [trim_holding(h, quote_leg.currency) for h in hk_rows]
 
     us_conc = compute_hhi(us_h)
     hk_conc = compute_hhi(hk_h)
@@ -4773,7 +4792,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     _presence = {}
 
     out['anomalies'] = extract_anomalies(
-        brief_ctx, us_h, hk_h, leg_keys=[leg.key for leg in resolve_legs(portfolio)],
+        brief_ctx, us_rows, hk_rows, leg_keys=[leg.key for leg in resolve_legs(portfolio)],
         concentration=out['concentration'])
     _presence['anomalies'] = bool(brief_ctx)
 
@@ -4825,7 +4844,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # Anything added later that falls back to `_prev_dash` belongs in `_presence`
     # before this call, or the payload will under-report what it copied.
     _preserved = _restore_previous_cards(
-        out, _prev_dash, _presence, portfolio, us_h, hk_h, known_tickers, _insight_weights,
+        out, _prev_dash, _presence, portfolio, us_rows, hk_rows, known_tickers, _insight_weights,
         _basis_values)
     # Decision system v2 is the only live scoring path. No CSV/signal-row
     # compatibility keys are emitted: frontend, README and harness share this.
