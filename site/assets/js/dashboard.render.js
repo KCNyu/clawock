@@ -1128,12 +1128,12 @@
     if (e.breach) risk.push(`<div class="bd-note neg">硬闸 · ${escapeHtml(stripEmoji(e.breach.detail || e.breach.action || ""))}</div>`);
     if (e.stop) risk.push(`<div class="bd-note neg">止损盯防 · ${escapeHtml(stripEmoji(e.stop.detail || e.stop.action || ""))}</div>`);
     if (e.be) {
-      risk.push(kv("回本需", "+" + e.be.breakeven_need_pct + "%", "neg"));
+      risk.push(kv("回本需", fmtPct(e.be.breakeven_need_pct, 1), "neg"));
       // A 2x whose underlying has no volatility yet (SPCH → SPCX, listed too
       // recently) carries no drag figure — the Risk tab's copy of this row
       // already skips it; printing it here read "≈undefined%/月".
       if (e.be.leveraged && e.be.chop_drag_pct_per_month != null) {
-        risk.push(kv("横盘 decay", "≈" + e.be.chop_drag_pct_per_month + "%/月"));
+        risk.push(kv("横盘 decay", "≈" + fixed(e.be.chop_drag_pct_per_month, 2) + "%/月"));
       }
     }
     if (e.conv) risk.push(kv("仓位 × 信心",
@@ -3258,17 +3258,21 @@
     const rows = (bm && bm.rows) || [];
     if (!rows.length) { card.style.display = 'none'; return; }
     card.style.display = '';
+    // One formatter per figure, same digits as the producer rounds to: the main
+    // line printed +314.1% beside the swap line's +314.10% for the same number
+    // (#2982), and the volatility figures went out as the producer's raw float.
+    const pct = (v, d) => (v == null || !isFinite(v)) ? DASH : fixed(v, d) + "%";
     const html = rows.map(r => {
       let extra = '';
       if (r.leveraged) {
         const vol = r.underlying_vol_pct == null ? '标的样本不足，未取波动率' :
-          `标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · 半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%`;
-        const swap = r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 ${fmtPct(r.underlying_need_if_1x_pct ?? r.breakeven_need_pct)}` : '';
+          `标的σ ${pct(r.underlying_vol_pct, 1)} · 横盘 decay ≈${pct(r.chop_drag_pct_per_month, 2)}/月 · 半年直线路径标的需 ${fmtPct(r.underlying_need_2x_6m_pct, 1)}`;
+        const swap = r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 ${fmtPct(r.underlying_need_if_1x_pct ?? r.breakeven_need_pct, 1)}` : '';
         extra = `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">${vol}${swap}</div>`;
       }
       return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
          <span class="icon"></span>
-         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct == null ? DASH : numText(r.pnl_pct) + "%"} → 回本需 ${r.breakeven_need_pct == null ? DASH : "+" + r.breakeven_need_pct + "%"}${extra}</div>
+         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct == null ? DASH : numText(r.pnl_pct) + "%"} → 回本需 ${fmtPct(r.breakeven_need_pct, 1)}${extra}</div>
        </div>`;
     }).join('');
     document.getElementById('breakeven-list').innerHTML = html;

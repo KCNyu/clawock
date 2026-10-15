@@ -2090,7 +2090,12 @@ async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base
   assert.doesNotMatch(pageText, /(?:undefined|NaN)\s*%/,
     "a missing number was formatted as text instead of being left out");
 
-  assert.match(await page.locator("#breakeven-list").textContent(), /SPCX/, "swap target remains available without volatility");
+  const breakeven = await page.locator("#breakeven-list").textContent();
+  assert.match(breakeven, /SPCX/, "swap target remains available without volatility");
+  // #2982: the main line and the swap line print the same figure; they used
+  // to read +23.2% and +23.20%.
+  assert.match(breakeven, /回本需\s*\+23\.2%[\s\S]*换 1x\(SPCX\) 后需 \+23\.2%/,
+    "the breakeven figure prints with one precision on both lines");
   assert.deepEqual(state.failures, []);
   assert.deepEqual(state.errors, []);
   await page.close();
