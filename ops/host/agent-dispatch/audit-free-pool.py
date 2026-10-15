@@ -179,8 +179,7 @@ def status(report, now):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pool", type=Path, default=Path(__file__).with_name("opencode-fallback-models"))
-    parser.add_argument("--repo-pool", type=Path, default=Path(
-        "/root/.openclaw/workspace/ops/host/agent-dispatch/opencode-fallback-models"))
+    parser.add_argument("--repo-pool", type=Path, help="repository pool supplied by the host caller")
     parser.add_argument("--report", type=Path, default=Path("/root/logs/clawock-patrol/free-pool-audit.json"))
     parser.add_argument("--due", action="store_true")
     parser.add_argument("--status", action="store_true")
@@ -190,6 +189,8 @@ def main():
     if args.status:
         print(json.dumps({**old, "status": status(old, now)}, ensure_ascii=False))
         return 0 if status(old, now) == "ok" else 2
+    if args.repo_pool is None:
+        parser.error("--repo-pool is required for an audit")
     args.report.parent.mkdir(parents=True, exist_ok=True)
     with args.report.with_suffix(".lock").open("a") as lock:
         try:
