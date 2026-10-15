@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T23:52:28.455906+00:00",
+  "generated_at": "2026-10-15T23:56:15.728039+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 16.46,
@@ -19,18 +19,18 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.044,
+    "price": 102.05,
     "prev": 102.055,
-    "change_pct": -0.01,
+    "change_pct": -0.0,
     "source": "yahoo",
-    "as_of": 1792107140
+    "as_of": 1792107974
   },
   "fear_greed": {
     "score": 31.5,
     "rating": "fear",
     "prev_close": 32.3,
     "prev_1_week": 39.8,
-    "as_of": "2026-10-15T23:34:55+00:00"
+    "as_of": "2026-10-15T23:39:59+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
