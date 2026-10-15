@@ -193,3 +193,36 @@ In host `openclaw.json`, add the installed extension directory to `plugins.load.
 The installer does not restart or edit config. Before activation, check `runningAtMs != null` via `openclaw cron list --json`, recompute the timeline with `check_crons.sh --timeline`, inspect `dispatch.sh status` and active gateway runs, and wait until other work is safe. Record the gateway PID/start time, then `systemctl --user restart openclaw-gateway.service`. Verify a changed PID, `/health`, `NRestarts=0`, unchanged version and enabled cron identities, and a new multi-turn session: zero policy blocks in user prompts, exactly one in system context, real primary search execution/output, no progress `message` calls. Do not send test messages to live chat recipients.
 
 Upgrades do not replace this extension, and `reapply_openclaw_patches.sh` replays/verifies it before restart. A future SDK incompatibility is a hard failure to investigate, not permission to drop a rule. `SKILLHUB_PLUGIN_DIR` provides an isolated install target for tests. Rollback: `bash ops/host/install_skillhub_plugin.sh --rollback`; restore the policy document matching that generation if its template changed, then use the same safe restart gate. `.before-update` copies remain on the host and are not published.
+
+## Free-model discovery (read-only)
+
+The patrol supervisor runs `agent-dispatch/audit-free-pool.py --due` before checking
+its pool cooldown. It compares the installed pool with the repository, runs the
+existing pool guard, refreshes OpenCode's catalog cache and fetches Zen's model list and
+models.dev pricing metadata. It makes no inference calls and never adds, removes
+or reorders models. Admission still requires a real tool probe and the pool policy;
+retired models remain retired.
+
+The report is `/root/logs/clawock-patrol/free-pool-audit.json`. It distinguishes
+catalog removal, positive cost, missing cost evidence, and source failure. A missing
+Zen `cost` field is **unknown**, even when client metadata says zero. The other
+price sources are displayed separately, never silently substituted. A first run is
+marked as a baseline; subsequent reports show catalog additions/removals. A failed
+catalog fetch keeps the last successful name set for the next comparison.
+
+Network checks are due every six hours, or one hour after a fetch failure, with a
+50-second outer deadline. These are elapsed intervals, not quota-reset predictions.
+The actual run is the next supervisor loop: an active round or a wait for manual
+work can delay it. Pool file changes invalidate the cache immediately on that loop.
+`patrol.sh status` and `ops/system_check.py` read the saved result without network
+access; missing/older-than-ten-hour evidence warns. The system check warning does
+not block market-data publication. Supervisor output also goes to its journal.
+No extra cron identity is introduced; `config/cron-schedules.json` stays unchanged.
+
+This is automatic discovery and drift reporting, not automatic pool maintenance.
+The report does not verify tool usability and does not stop dispatch on a price
+warning. Push notifications, an admission-time price gate, an authoritative
+alternative when Zen omits costs, and candidate evaluation slots require an
+explicit operational decision before activation. No model-audit issues or chat
+messages are automatically sent. Applying a reviewed pool change still requires
+its immutable-file procedure and matching repository bytes.

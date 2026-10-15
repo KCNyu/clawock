@@ -29,6 +29,7 @@ FILES=(
   resource-pressure.sh
   probe-free-models.sh
   check-free-pool.py
+  audit-free-pool.py
   wake-session.py
   opencode-fallback-models
   templates/review.md
