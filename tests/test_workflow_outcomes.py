@@ -75,6 +75,28 @@ def test_preflight_failure_degrades_a_delivered_product(tmp_path, monkeypatch):
     assert record["final_product"]["status"] == "degraded"
 
 
+@pytest.mark.parametrize("preflight", ["pending", "unknown"])
+def test_a_preflight_that_never_reported_degrades_a_delivered_product(
+    tmp_path, monkeypatch, preflight
+):
+    # #2981: the 2026-10-13 brief shipped with preflight still `pending` and
+    # was counted as a clean success that no counter named.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:03:00+08:00"
+    job = "盘前深度简报"
+
+    if preflight == "pending":
+        outcomes.record_stage(job, "preflight", "pending", slot=slot)
+    outcomes.record_stage(job, "llm", "success", slot=slot)
+    outcomes.record_stage(job, "postflight", "success", slot=slot)
+    record = outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
+
+    assert record["stages"]["preflight"]["status"] == preflight
+    assert record["final_product"] == {"status": "degraded", "reason": "preflight 未记录结果"}
+    summary = summarize_records([record], hours=36, now=FROZEN_NOW)
+    assert [row["slot"] for row in summary["degraded_slots"]] == [slot]
+
+
 def test_a_later_preflight_start_cannot_reset_a_recorded_outcome(tmp_path, monkeypatch):
     # #2960: a preflight re-run maps to the same daily slot; its start marker
     # replaced the shipped slot's `warning` with a bare `pending`, dropping the
