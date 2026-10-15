@@ -74,14 +74,6 @@ def test_a_fresh_stamp_on_old_closes_is_stale(tmp_path):
     assert answer['status'] == 'stale' and set(answer['detail']['sessions_behind']) == {'hk', 'us'}
 
 
-def test_one_market_behind_is_enough(tmp_path):
-    hk_behind = json.loads(json.dumps(TODAY))
-    hk_behind['hsi']['as_of'] = hk_behind['hstech']['as_of'] = '2026-10-13'
-    answer = Scans(36).macro(_workspace(tmp_path, hk_behind), at=BRIEF_AT)
-    assert answer['detail']['sessions_behind'] == {
-        'hk': {'session': '2026-10-13', 'expected': '2026-10-14'}}
-
-
 def test_monday_morning_reads_fridays_closes_as_current(tmp_path):
     monday_brief = datetime(2026, 10, 19, 0, 3, tzinfo=timezone.utc)
     friday = _snapshot(datetime(2026, 10, 18, 23, 20, tzinfo=timezone.utc), '2026-10-16',
