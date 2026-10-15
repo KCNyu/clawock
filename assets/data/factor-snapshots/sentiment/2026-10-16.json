@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T23:45:14.760446+00:00",
+  "generated_at": "2026-10-15T23:56:44.192975+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -108,16 +108,16 @@
           "url": "https://news.google.com/rss/articles/CBMiSkFVX3lxTE1STkxSVGNTdlZLR3h4OWxzN3JQY01FUXRPeWhvNnIzQXg4YVhrX0dKUmhiaHVDQnN3OUc2T194RmZmdkQ3TDFzQk5R?oc=5"
         },
         {
-          "title": "RKLX Mar 2027 34.000 call (RKLX270319C00034000) Stock Price, News, Quote & History",
-          "source": "Yahoo! Finance Canada",
-          "published": "Sun, 11 Oct 2026 12:47:30 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5hRlZkNEtvYkxmaGlVbnVpNXB6M3ZBZ2c0cVM5YjBCVUR2TUF6T2hEWnNyVXhRUWp3bFNBTnJqWmZpMGZlRG0yc3o1cGdKWERaWTFWZ21HOTQyYVdTd3QxVWFkTE9JUQ?oc=5"
-        },
-        {
           "title": "Technical Reactions to RKLX Trends in Macro Strategies",
           "source": "Stock Traders Daily",
           "published": "Thu, 08 Oct 2026 14:12:01 GMT",
           "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPT2NsN1N4MTA5QTlsM05lb0FkUVRPVHVUQXBNclF2enhIdzR5YWVtMnQ2ODlNSWxSM3RJX1Z5Y0pVN2FMTjRzSFhPSFJHajF2eVJNWFFfWmVWVUZuaEhOUTVMMUd2V29XekRJcDkwWG9BOGtFMThiZExNNC1DenFyakFPVFN4aFhWQ1Q2UEdiVkszR1FJNlgwOEJBNUh1MTBYS0Q4a0ZaeTc3bHpSVlV5OHdqQ3l2eFVXWkdMa2dvLXNRc0g1RTFoSUNfOFpxOWc?oc=5"
+        },
+        {
+          "title": "RKLX Mar 2027 34.000 call (RKLX270319C00034000) Stock Price, News, Quote & History",
+          "source": "Yahoo! Finance Canada",
+          "published": "Sun, 11 Oct 2026 12:47:30 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5hRlZkNEtvYkxmaGlVbnVpNXB6M3ZBZ2c0cVM5YjBCVUR2TUF6T2hEWnNyVXhRUWp3bFNBTnJqWmZpMGZlRG0yc3o1cGdKWERaWTFWZ21HOTQyYVdTd3QxVWFkTE9JUQ?oc=5"
         },
         {
           "title": "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation",
@@ -185,16 +185,16 @@
       ],
       "google_news_en": [
         {
-          "title": "Why SpaceX Stock Is Sinking Today",
-          "source": "The Motley Fool",
-          "published": "Thu, 15 Oct 2026 15:58:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPN2p4MWVldFJ0N3RjTmE4Mm1CVTRubFhGVHdlZVE0Wjh4anhpTHdFQXBTQnZRdGRmWGJibWt4dGxNTy1jLWVTV09PMkZMeUhETUxzWHN6VXVmbkpEclR5VTBPWUEwNTIwV0hyZEJNTVhUZXR1Qi0xOEZ4TTRSN0JVSFJ3?oc=5"
-        },
-        {
           "title": "We bought SpaceX at $121. Here's why we're buying more at higher prices",
           "source": "CNBC",
           "published": "Wed, 14 Oct 2026 17:43:37 GMT",
           "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBoRWFmdjdKOGMtLWlmUmxzVWdscGk5Q3lYcGdRVVhMYlowUUlXc25MWHRaWE90TVlCbGxkdzkzWFlqNHM0N2l3NkVJX1dNWTVCWVVpTjd5Z3pWT1Vid1dPOGRTV3hza2U0QThJemNBWXJwM1NCbFc2dmpWbGNrQQ?oc=5"
+        },
+        {
+          "title": "Why SpaceX Stock Is Sinking Today",
+          "source": "The Motley Fool",
+          "published": "Thu, 15 Oct 2026 15:58:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPN2p4MWVldFJ0N3RjTmE4Mm1CVTRubFhGVHdlZVE0Wjh4anhpTHdFQXBTQnZRdGRmWGJibWt4dGxNTy1jLWVTV09PMkZMeUhETUxzWHN6VXVmbkpEclR5VTBPWUEwNTIwV0hyZEJNTVhUZXR1Qi0xOEZ4TTRSN0JVSFJ3?oc=5"
         },
         {
           "title": "SpaceX stock slammed as AI memory trade crumbles in South Korea",
@@ -203,22 +203,22 @@
           "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPaXI5WHlmS3pxM0x4UjNHUUhsUjBPZkd3cS14RUg1N3M4RUxZYjM2TjRJWU9PdWk5cW1faS0yVE13MGZjd0xRMWJIOW1kQWRfNmJMeGpjM0d5NDZEZlZHLWlkeS1SU0d4R1BOY19EYV8tWTRLNFpGdjhEcDFZemE2dlRZa1ZRQ3BxVUlub1ZCQWFNX29ZT0ZNTXlSX2pSVWk2UjRSSm5KQzg5cmtLSjFVRlNFeUo4c1VIN25qTjN3Q1BjVU9aTUE?oc=5"
         },
         {
-          "title": "SpaceX Stock Drops Below $170: Here Is What History Says Investors Should Do",
-          "source": "Yahoo Finance",
-          "published": "Wed, 14 Oct 2026 15:50:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPSmRwb0U0ZWNDQzJseFNkdjc4THhEeW1LT3Qtekc5M3lvaXlTc2JEWDhCUm1OSzAzRDExZzFQZFdKQlg2SkVpVjlua2ZFSzNLZXNKbUpQMGVIc3lMdnBiSjhqUFlTemFHSHB5cjlVM1B5cEZTaTM5QzFZUGhBeTdFUDZ6QVJnZjBXWTNrUVF6MEI0X29keWZfMg?oc=5"
+          "title": "SpaceX Stock Fell 4% After Its East Coast Rocket Launch - SpaceX (NASDAQ:SPCX)",
+          "source": "Benzinga",
+          "published": "Wed, 14 Oct 2026 14:57:28 GMT",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUjFCRFFkSFVqaDFHbnkzb29lNWkxNlRHTTVhejRuYk5oYjVSS01NXzlMcmc1UlZFT2RyNXJkWlh5ZUlxbWNNMkR1SkQzS09PWXVOQzYtNE5yZnZnZDFYTzkxQnpnOHJha0hQVktsQzY3dTd6d2FFV0tJVzZWcW5Kb3JHZGcxUUtLZ0luRnFWcUNlZGpQcEE?oc=5"
         },
         {
-          "title": "SpaceX Could Be Worth $50 Trillion In 10 Years, Says Ron Baron: ‘Elon Thinks I’m Way Low’",
-          "source": "Yahoo Finance",
-          "published": "Wed, 14 Oct 2026 07:28:21 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPbGQ2SFhCcV9kNENtQVVacUFYZkN5TWdFU0hsdVpwcDJITm44eXNxb0VmNnBYU1NWVHlVM2NpUzRjM0tORHpNQmdZOWtVQ0l4Y1dfUGZqREFDM2U2VFRhcFpLMDNTcXh1RUZkMUhvbzZUSkpjdWZRN2w1VFFDa2VQZnl5bEVrVHNHc0lCZzkyeTRYOFZtVzBrX0VsVQ?oc=5"
+          "title": "Rocket Lab Tumbles 11% as Neutron's First Flight Moves to 2027; SpaceX and AST SpaceMobile Pull Back",
+          "source": "24/7 Wall St.",
+          "published": "Thu, 15 Oct 2026 13:06:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPRUlkb0F1WjlNUVVtbWNOSW5FWUhsSUxuc3BYQzIyRWszZVlPcXNmX1lPVjYxaEhNcW5tazBCWTdSOThyTENicjFKeS1wQnE5OEE5bXY5VGhhS21ENnItbkQ3WVNib3lfUHhINEhtQWxvcUtqTVFlSHBJQ3hhZWlVOUJiaEpYV3phT0d6ZVYxc1FrMGREZXBCM2h1dzEzb2NxM2tMLTdfbFBTOThjNVN5eUkxQWJ3emlZQUtzVXZhUGxSakFVcy16bFgwbndWZGp1Z21BUkpOMW0?oc=5"
         },
         {
-          "title": "SPCX Stock Drops 5%: FAA Begins Environmental Review Of SpaceX’s Ambitious 456 Starships A Year Expansion",
-          "source": "Yahoo Finance",
-          "published": "Tue, 13 Oct 2026 17:40:37 GMT",
-          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNcVg1Q1dYd0FfNnFZZnVSb1E2VVA4SGNFSWczelR1MXhySGNBZEIxTXZsMFd6dXlEYjZDeGFaQjI2LTVVZGItVUFDRGFqVzQyMWtyRzY0dXRWQ1pyUkw4eGp6TWdpV1lyam1aal9yNVlzUXlCNXJ3c1ktS25xaWpIcWpsTy16RDZmSExWOUN2cV8?oc=5"
+          "title": "Why is Space Exploration Technologies stock sliding today?",
+          "source": "Investing.com",
+          "published": "Tue, 13 Oct 2026 14:07:17 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNVXEwcDYxckh6cEtiNVV0T3dTc3ZJNjRjMGM5d0tDUG1ocFVFaHpTMGE5NzItVExjTkNTWXgyUzV0LXNBaER3ekdIYmh2S2lKZDlsQVBYRlB1cnk1Wl96YWdZWmpTRXVYSjJtdDBMdmptcFppNU9SMGxMX1Q1SE9Pam1uV0ZIb2FfRzNiM3lCSEs5VkpSYy00MlhqVXRZS0VPNWYwYnFTRnpxZTNrN0VOSzJ3TkZXZWdFSlEw?oc=5"
         }
       ],
       "google_news_zh": []
@@ -325,16 +325,16 @@
       ],
       "google_news_en": [
         {
-          "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
-          "source": "Longbridge",
-          "published": "Tue, 27 Jan 2026 08:22:58 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
-        },
-        {
           "title": "MiniMax Shares Plunge 80% From Peak; Founder Halts Salary, Donates 5% Stake to Shore Up Confidence",
           "source": "BigGo Finance",
           "published": "Sun, 12 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBsU2xSZTM0R05WTjdLbHRCRzVFNFAyb1hpNFNEcExTOFFhaHp3UzdTcUNLWFBIYUlYNzhFWHpaT2M1TWpuMlVwSDNhNDBJaTNLeDV2akg0a3Z2b29NOHlJM0IwNElpQ1FnM1J4TjBGQUxmd1V3TlE?oc=5"
+        },
+        {
+          "title": "MINIMAX-W (00100.HK) Stock Price, Quote & News",
+          "source": "Longbridge",
+          "published": "Tue, 27 Jan 2026 08:22:58 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBJdGNRTTFhcnVVRVh6Qmp5Y2VDUEN1VGlJN2NPN1RSNGNISEJJaDNXVVdVQkZNUWV1VWpMdWFNRmsxUWxST25TQW4yYTNwSTBWMFE?oc=5"
         },
         {
           "title": "Major Brokerage Cuts MiniMax (00100.HK) Target Price to HK$760, Maintains 'Hold' Rating; Impending Lock-up Expiry and Peer IPOs to Dampen Scarcity Premium",
@@ -363,16 +363,16 @@
           "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNa09mZl95NGNEeW9ZaFNwMlQtX0I3S3VFN1RndVBqSExqb05CREhTN0FoUGxRTjRlRkoxLVZOTHpIUlQwU0VEcWJIZjJoNi05MU9GLUQtMWhtU2VCZ3JWdW5KeHNjcHJMUm54X0dTVmNfSFFXWTVoMEUtcVBJRlJSamVfaXRnVlpvaUhBYms4dnRfX2VYdUhuV1dEdVhaVWFVdDdBSW5ZaXY4cTZQ?oc=5"
         },
         {
-          "title": "0100.HK 港股報價| MINIMAX-W | MINIMAX-W | 香港即時股票股價",
-          "source": "etnet 經濟通",
-          "published": "Sun, 29 Mar 2026 00:58:52 GMT",
-          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFB4N1dscVBoc29Ub0FwWldMaGZJdS1fMGxYVURSSzUyRVZ2SF9xRXhCYk82N3I0RUZUcFBPWmdwWUF0YWo4OEFGTGxBWHpRQkhPenZoWm1pT2l2R3ptZ05qYm5XMG5qOHFFQnJhODJoMVc5Xy1nM0E?oc=5"
-        },
-        {
           "title": "MINIMAX-W(00100) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
           "source": "信報網站",
           "published": "Wed, 30 Sep 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMigwNBVV95cUxOSW55cmYyS0FoM0hXZTZJOFFFX0lXUDB4Yy14ZzdxSGZOeG1pZ3hfd0tNcUVzeF9YSldmR1pHSE5vNjVPRWpvUE1fQmpxSGFzQ1JpWFBnZGprdnYwNFhQOVl0clNtQmxQekQ0clVMZ3drcDBRM0RyUFRINVNTTG9JZTFLaVdiNmJLWTU3MmhVOTZDQmdqaGVNVHgwQzcxeUFBYTlkTFU1eUFqM0lTY0U3akFWaElxX2lKZkNWS0pmU3p6Nl9SRHFkZmI5ZUZGWVVzanhfMkp2eV9yWXJvOVEyV2RqZVMyNm52MWNqUmVmX3QwODVfVk8zam1yOHNfbmhleGFOUTN2eEwyamRKTm80ZVNHeEYySzhOS3JCeHJwMjVOYWY2S0ZxcWFjbWptdTFGcDNlN3Jyd1dvbHNBOE85dnI3b1FncURlWTJtS0p4Vy1GNmhsUDVVQlFxSW54alR2LXY0eVFjYk1WZjdXcnYyckNUZ3lkaHI2ZEVvR1pUdWZrelU?oc=5"
+        },
+        {
+          "title": "0100.HK 港股報價| MINIMAX-W | MINIMAX-W | 香港即時股票股價",
+          "source": "etnet 經濟通",
+          "published": "Sun, 29 Mar 2026 00:58:52 GMT",
+          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFB4N1dscVBoc29Ub0FwWldMaGZJdS1fMGxYVURSSzUyRVZ2SF9xRXhCYk82N3I0RUZUcFBPWmdwWUF0YWo4OEFGTGxBWHpRQkhPenZoWm1pT2l2R3ptZ05qYm5XMG5qOHFFQnJhODJoMVc5Xy1nM0E?oc=5"
         },
         {
           "title": "MINIMAX-W(00100.HK)：朱華星辭任獨立非執行董事",
