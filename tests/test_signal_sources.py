@@ -14,7 +14,7 @@ import json
 import os
 import sys
 import types
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -268,6 +268,8 @@ def test_a_failing_price_lookup_is_an_issue_and_an_empty_reading(tmp_path, monke
 # ── the scans service ───────────────────────────────────────────────────────
 
 MORNING = FIXTURES / 'brief_morning_scans.json'
+#: The session the recorded macro.json closes on in both markets.
+FIXTURE_SESSION = date(2026, 10, 9)
 MORNING_CASES = {
     'the scans as committed': lambda: dict(macro=_scan('macro.json'), em_news=_scan('em_news.json')),
     'both absent': dict,
@@ -293,7 +295,11 @@ def test_the_brief_reads_macro_and_eastmoney_news_as_recorded(case, tmp_path, mo
     """Recorded on 2026-10-12 from the loaders as they were before they read
     through `scans`. One case was re-recorded on purpose: a macro file that
     holds a list is now reported as "not an object", where the old loader
-    reported the AttributeError it ran into."""
+    reported the AttributeError it ran into. Since #2988 every macro row names
+    its session, and the calendar is pinned to the fixture's own sessions so
+    the recorded closes stay the latest completed ones."""
+    monkeypatch.setattr(morning_scans, 'latest_completed_session',
+                        lambda market, at=None: FIXTURE_SESSION)
     data = tmp_path / 'assets' / 'data'
     data.mkdir(parents=True)
     for name, payload in MORNING_CASES[case]().items():

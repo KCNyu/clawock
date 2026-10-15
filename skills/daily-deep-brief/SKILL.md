@@ -563,7 +563,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 **如果出现 ⚠️ 切换信号 → Tier 3 Judge 给 rotation trigger**（例："00100 反弹至 800 减 20 股，换入 0020 商汤")。
 
-#### ▎大盘速读 (REQUIRED if `context.macro` 存在且 age_hours ≤ 36)
+#### ▎大盘速读 (REQUIRED if `context.macro` 非空)
 
 从 `context.macro` 抓数，写**一段 5 行以内**的市场 context（不是论文）。每行 1 个指标 + 1 句"对我持仓意味什么"。
 
@@ -580,7 +580,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 ```
 
 规则：
-- macro 数据 age_hours > 36 时整段写"⚠️ macro 数据 stale ({age}h), 跳过本段"；postflight 不 fail
+- `context.macro` 为空 = preflight 判过期（超过 36h，或指数收盘落后最近一场已收盘 session）或缺失：`macro_read` 只写一句"⚠️ 宏观快照过期，本段不印读数"，不引用任何指数读数；postflight 不 fail
 - 每行末尾 → 后必须是**对当前持仓**的具体含义（不是教科书定义）
 - Fed press 段，如果今日无新发布或与利率无关（如人事任命）可省略最后一行
 
