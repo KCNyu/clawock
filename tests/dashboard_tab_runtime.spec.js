@@ -1695,6 +1695,10 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         height: Math.round(host.getBoundingClientRect().height),
         label: svg.getAttribute("aria-label") || "",
         points: (svg.querySelector(".hs-line")?.getAttribute("d") || "").split("L").length,
+        // 最低点是第几个点：标线的 x1 与折线顶点同一个 x(i).toFixed(1)。
+        lowIndex: (svg.querySelector(".hs-line")?.getAttribute("d") || "")
+          .slice(1).split("L").map(p => p.trim().split(" ")[0])
+          .indexOf(svg.querySelector(".hs-low")?.getAttribute("x1")),
         // 面积填充：整段 fill 声明 + 两个 stop 的解析色。中性材质不能带涨跌色。
         areaFill: cs ? cs.fill : "",
         stopColors: [...svg.querySelectorAll("linearGradient stop")]
@@ -1748,10 +1752,16 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         `hero spark area fill carries a P&L colour (${c}) — the area is material, not signal`);
     }
     // 脚注三件事：区间、最低点、自最低回来多少。少一件这条线就退回纯形状。
-    for (const want of ["个交易日", "最低", "自最低"]) {
+    // 最低点就在最后两个点上时没有「自最低」可说（hero.js 同一条规则）：
+    // 那天的已发布数据不能把这条契约判红。
+    assert(spark.lowIndex >= 0, "hero spark low-point marker sits on no point of the line");
+    const recovers = spark.lowIndex < spark.points - 2;
+    for (const want of ["个交易日", "最低", ...(recovers ? ["自最低"] : [])]) {
       assert(spark.foot.includes(want),
         `hero spark footer is missing 「${want}」: ${spark.foot}`);
     }
+    if (!recovers) assert(!spark.foot.includes("自最低"),
+      `hero spark footer prints 自最低 for a low on the latest points: ${spark.foot}`);
     assert(spark.lowMark, "hero spark has no low-point marker line");
     assert(spark.footLowFits,
       "hero spark footer clips the numbers — 最低/自最低 must never be truncated");
