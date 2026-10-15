@@ -277,6 +277,15 @@ accepted; 36 hours and one second is stale. Exactly two hours ahead is tolerated
 further ahead or an unreadable timestamp is stale. Both configured age limits
 must be positive finite numbers.
 
+36 hours is longer than a trading day, so `macro()` also asks the trading
+calendar (#2988): when a market's newest index close (HSI/HSTECH for HK;
+VIX/SPX/Nasdaq for US, each row's own `as_of`) is older than
+`sessions.latest_completed_session` for that market at read time, the snapshot
+is stale and `detail.sessions_behind` names the market. A market with no dated
+index row is judged by the clock alone. Every served row carries its `session`.
+The brief omits a stale snapshot without an issue, and the rendered 大盘速读
+then prints no readings line.
+
 A failed statement source contributes no retained items. A failed relevance
 filter publishes an empty feed with `llm_filter_status: failed`; the sentiment
 reader also rejects older `failed_kept_previous` payloads and removes items
