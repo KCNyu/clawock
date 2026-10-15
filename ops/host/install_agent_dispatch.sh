@@ -30,6 +30,9 @@ FILES=(
   probe-free-models.sh
   check-free-pool.py
   audit-free-pool.py
+  select-free-models.py
+  probe-free-candidates.py
+  free-pool-policy.json
   wake-session.py
   opencode-fallback-models
   templates/review.md

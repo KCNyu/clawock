@@ -194,35 +194,71 @@ The installer does not restart or edit config. Before activation, check `running
 
 Upgrades do not replace this extension, and `reapply_openclaw_patches.sh` replays/verifies it before restart. A future SDK incompatibility is a hard failure to investigate, not permission to drop a rule. `SKILLHUB_PLUGIN_DIR` provides an isolated install target for tests. Rollback: `bash ops/host/install_skillhub_plugin.sh --rollback`; restore the policy document matching that generation if its template changed, then use the same safe restart gate. `.before-update` copies remain on the host and are not published.
 
-## Free-model discovery (read-only)
+## Automatic free-model selection
 
-The patrol supervisor runs `agent-dispatch/audit-free-pool.py --due` before checking
-its pool cooldown. It compares the installed pool with the repository, runs the
-existing pool guard, refreshes OpenCode's catalog cache and fetches Zen's model list and
-models.dev pricing metadata. It makes no inference calls and never adds, removes
-or reorders models. Admission still requires a real tool probe and the pool policy;
-retired models remain retired.
+The immutable `agent-dispatch/opencode-fallback-models` is the reviewed **seed order**.
+Its installation still requires the pool's backup/check/rename/chattr procedure and
+identical repository bytes. The runtime selection is derived data, not a second copy
+that `refresh_live.sh` tries to restore. `free-pool-policy.json` authorizes automatic
+selection; changing that policy or the hard retirement list requires a reviewed PR.
 
-The report is `/root/logs/clawock-patrol/free-pool-audit.json`. It distinguishes
-catalog removal, positive cost, missing cost evidence, and source failure. A missing
-Zen `cost` field is **unknown**, even when client metadata says zero. The other
-price sources are displayed separately, never silently substituted. A first run is
-marked as a baseline; subsequent reports show catalog additions/removals. A failed
-catalog fetch keeps the last successful name set for the next comparison.
+`audit-free-pool.py --due --repo-pool <repository-pool>` refreshes OpenCode's catalog
+cache and fetches Zen membership and models.dev prices. Catalog input/output must
+explicitly be zero; every supplied price component is checked. Any positive catalog
+or models.dev price vetoes eligibility, including partial price records. Missing
+models.dev metadata is recorded as unknown and is allowed with catalog zero. Zen
+supplies membership, not pricing: its missing `cost` field is not an alert. These are
+kcn's 2026-10-16 rules. The five hard-retired IDs stay rejected. `big-pickle` is the
+only allowed non-suffixed name, explicitly requested that day; it still needs fresh
+zero-price evidence and Zen membership.
 
-Network checks are due every six hours, or one hour after a fetch failure, with a
-50-second outer deadline. These are elapsed intervals, not quota-reset predictions.
-The actual run is the next supervisor loop: an active round or a wait for manual
-work can delay it. Pool file changes invalidate the cache immediately on that loop.
-`patrol.sh status` and `ops/system_check.py` read the saved result without network
-access; missing/older-than-ten-hour evidence warns. The system check warning does
-not block market-data publication. Supervisor output also goes to its journal.
-No extra cron identity is introduced; `config/cron-schedules.json` stays unchanged.
+Discovery runs on this host before the patrol supervisor's cooldown check and before
+OpenCode dispatch. Network work is cached for one hour, retried after 15 minutes on
+source/integrity failure, and bounded by a 50-second outer timeout. The helper uses a
+lock and atomic reports. Unreadable sources fail closed: previous reports are retained
+for diagnosis, never substituted for a fresh failure. Missing/malformed/older-than-two-
+hour evidence blocks new inference. A running attempt cannot be recalled by a later
+price change; a provider can change prices between checks, so this is bounded polling,
+not a billing guarantee.
 
-This is automatic discovery and drift reporting, not automatic pool maintenance.
-The report does not verify tool usability and does not stop dispatch on a price
-warning. Push notifications, an admission-time price gate, an authoritative
-alternative when Zen omits costs, and candidate evaluation slots require an
-explicit operational decision before activation. No model-audit issues or chat
-messages are automatically sent. Applying a reviewed pool change still requires
-its immutable-file procedure and matching repository bytes.
+`select-free-models.py` takes the eligible seed priorities plus automatically discovered
+eligible models. It selects at most nine per task. When new names outnumber capacity,
+one rotating newcomer gets position two; the remaining slots follow seed priorities.
+No name needs manual per-model approval after satisfying this policy. Models removed
+from Zen/catalog or reporting positive prices disappear from effective selection on
+the next audit. Fresh, valid evidence automatically restores transient exclusions;
+hard retirements never restore. `mode: seed-only` disables discovery while retaining
+all price/retirement gates; `mode: paused` blocks selection entirely. Both changes go
+through PR/installer; no recovery path automatically returns to an unchecked pool.
+
+Dispatch saves `free-pool-selection.json` beside each task's `meta.env`, with the audit
+time, order, seed hash and a reason for every model. Explicit `--model`/fallback lists
+pass the same gates. Before **each attempt**, the runner filters its task pool against
+the current report (including manual overrides). If nothing remains, it records
+`free_pool_unavailable` without calling inference. This does not switch models on
+output quality. Existing error/stall fallback, quota handling and whole-pool cooldown
+still apply. In-flight tasks created before this deployment retain their old metadata.
+
+The report lives at `/root/logs/clawock-patrol/free-pool-audit.json`; the last selection
+is `free-pool-selection.json` next to it. Both the supervisor journal and `patrol.sh
+status` expose the audit, and `ops/system_check.py` reads cached evidence only. A pool
+member removed/charged, source failure, seed drift or stale audit warns; market-data
+publication is not blocked by this unrelated health warning. No audit chat messages
+or GitHub issues are sent automatically. No cron identity is added: the existing
+supervisor owns scheduling, and active rounds/manual-work waits can delay its checks.
+Dispatch itself also refreshes due evidence so a delayed loop cannot bypass the gate.
+
+`probe-free-candidates.py` runs only with no current round/demand and a nonblocking
+OpenCode run slot. It skips 01:00–08:00 HKT, tests at most one due model every six hours,
+and uses a 45-second `--tool` probe. Structured completed bash events and exact output
+are required; text containing the marker is not proof. Timeouts/rate limits remain
+unknown availability, never permanent retirement. Failed probes back off for one,
+two, four, then seven days, leaving other names their turn; successful probes are due
+again after seven days. Results and raw evidence live under `free-model-probes*` beside
+the audit. Probes are diagnostic, not admission prerequisites or quality rankings.
+
+Rollback: deploy reviewed `seed-only` (or `paused`) policy while investigating, restore
+code through a revert PR and refresh_live, then reinstall/restart the supervisor using
+its adoption procedure. Never restore an older report to revive a charged model. Seed
+rollback still uses the immutable-file procedure; restore the matching repo copy too.
+No autonomous process edits the seed, lifts chattr, opens PRs or merges code.

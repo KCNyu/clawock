@@ -2211,8 +2211,8 @@ def check_free_pool_audit(r):
     try:
         report = json.loads(FREE_POOL_AUDIT.read_text())
         age = time.time() - report["checked_at"]
-        if not 0 <= age <= 10 * 3600:
-            raise ValueError("audit is stale (more than 10h old or future timestamp)")
+        if not 0 <= age <= 2 * 3600:
+            raise ValueError("audit is stale (more than 2h old or future timestamp)")
         problems = report["issues"] + [f"{key}: {value}" for key, value in report["source_errors"].items()]
         if report["status"] != "ok" or problems:
             r.add('patrol free pool', WARNING, '; '.join(problems) or 'audit needs attention')

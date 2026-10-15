@@ -1,22 +1,24 @@
-# Free models a default `dispatch.sh opencode` task (and every clawock-patrol round) tries, in
-# order: one attempt per line, then a second lap (the runner allows 2 attempts per pool line).
-# The pool is read at dispatch time, so edits apply without restarting the patrol service.
+# Reviewed seed priorities for automatic free-model selection (2026-10-16).
+# dispatch reads fresh audit evidence, removes ineligible seeds and admits discovered free
+# candidates automatically. Up to 9 models per task; one rotating newcomer gets position 2.
+# The task receipt records the effective order/reasons. Errors/stalls advance the runner.
 #
 # Rules for this file
-# - Free only (kcn 2026-10-11: "记得别付费的就行"). Every entry must be in the Zen catalog
-#   (`opencode models opencode`) with zero cost in https://opencode.ai/zen/v1/models.
-#   check-free-pool.py runs at every dispatch and refuses a non-free name or a retired model.
+# - Free only (kcn 2026-10-11), updated by kcn 2026-10-16: "zen无所谓吧".
+#   Require OpenCode catalog input/output zero and Zen membership; models.dev is a cross-check.
+#   Any explicit nonzero catalog/models.dev price rejects the model. Missing models.dev
+#   metadata is recorded as unknown, allowed with catalog zero; Zen cost is not required.
+#   check-free-pool.py rejects retired/invalid/duplicate names. The sole non-suffixed name
+#   exception is opencode/big-pickle, explicitly requested by kcn on 2026-10-16.
 # - This host copy is immutable (chattr +i). To change it: chattr -i, back up, write a temp file,
 #   run check-free-pool.py on it, rename it over this one, verify catalog and cost, chattr +i.
 #   The repository copy (ops/host/agent-dispatch/) carries the same bytes, so the installer and
 #   refresh_live.sh see nothing to restore; change both in the same PR.
-# - The order is by what a model's finished rounds turned into, not by whether a probe answers.
-#   No switching on output quality at run time (kcn 2026-10-11): the runner moves to the next
-#   line only when an attempt stalls or errors.
-# - There is no "last resort" position. A model that is only kept because it answers when the
-#   others are throttled finishes the round with nothing, and a finished round gives up the
-#   area's rotation slot (a failed one keeps it for two retries) and counts in the denominator
-#   of P0+P1 per finished round. A model is either good enough to go first or it is not here.
+# - kcn 2026-10-16: "可以进池子吧我觉得 无所谓的", "让codex自己决定", and automatic
+#   free selection requested. This supersedes the 10-11 no-last-resort/admission-by-record
+#   restriction. Tool success and patrol yield are evidence, no longer admission prerequisites.
+#   Keep scoring finished rounds and noise; do not change models on output quality mid-task.
+#   Safety checks can exclude a model before an attempt if its price/membership changes.
 #
 # Record, 10-01..10-11 (patrol issues by the model that finished the round; "rejected" = closed
 # not planned or patrol:noise; "answered" = attempts of 10-09..10-11 that were not a stall/error):
@@ -30,7 +32,7 @@
 #   ling-3.1-flash-free             2       0     0.00        50%            0/1            1/52   (removed)
 #   nemotron-3-ultra-free          22       1     0.05        27%           38/50             -     (removed 10-08)
 #
-# 2026-10-11 order and why:
+# Historical 2026-10-11 order and why (current priorities below):
 # 1. space-bunny-free: the only large sample, and the best one (0.20 P0+P1 per finished round over
 #    155 rounds, 8 of 289 closed issues rejected). Same area, same day, same code on 10-11: the
 #    round nemotron-3.5 finished filed nothing, the one space-bunny finished filed a P1 and a P2.
@@ -49,10 +51,10 @@
 #     damaged one), and 12 of those 14 rounds filed nothing. Those were money, logic, automation
 #     and recent slots. Without it such a round fails and the area keeps its slot.
 #   * ling-3.1-flash-free: 1 of 52 attempts answered in three days; 2 finished rounds ever.
-# Removed earlier (check-free-pool.py refuses them): exo-free (HTTP 410 ModelDeprecated),
+# Removed earlier (only the five RETIRED names are hard refusals): exo-free (HTTP 410 ModelDeprecated),
 # fledge-alpha-free (out of the catalog), nemotron-3-ultra-free (38 of 50 issues rejected),
 # muse-spark-1.3-contributor-free, ling-3.0-flash-fin-free, mimo-v2.5-free, union-alpha.
-# Left out on purpose: big-pickle (silent for 45s in a probe, 200k context). opencode-go is not
+# Previously left out: big-pickle (silent for 45s in a probe, 200k context); admitted below. opencode-go is not
 # an option: no active subscription, and it is paid.
 #
 # Free-tier behaviour (unchanged, for whoever reads a slow day): the limit is per model (HTTP 429
@@ -60,10 +62,38 @@
 # ended by the runner's first-event stall limit (210s since 10-11). From about 01:00 to 08:00
 # nothing useful answers. There is no verified reset time; do not promise one.
 #
-# Before adding a model or moving one up, check what its issues became (label `patrol`, closed as
-# not planned / `patrol:noise`), not only whether it answers:
+# Review priorities using what finished rounds produce (label `patrol`, closed as
+# not planned / `patrol:noise`); discovery/admission is now automatic:
 #   /root/tools/agent-dispatch/probe-free-models.sh --tool <model>
+#
+# 2026-10-16 additions (evidence rechecked 05:06 HKT; Zen lists all, no cost field):
+# cat-jam-free | added 2026-10-16 | --tool completed bash at 00:03/00:06/00:31 HKT,
+#   9s/8s/13s, raw tool events verified | catalog+models.dev 双源 zero | 无 patrol 战绩，待验
+# deepseek-v4.1-flash-free | added 2026-10-16 | 无探针证据，待验: no completed tool;
+#   00:04/00:07/00:31 HKT timeout 75s/75s/45s, provider rate-limit text, not dead
+#   | catalog+models.dev 双源 zero (fresh recheck) | 无 patrol 战绩，待验
+# nemotron-3.5-super-vl-free | added 2026-10-16 | 无探针证据，待验: no completed tool;
+#   00:05/00:10 HKT timeout 75s/75s, provider rate-limit text, not dead
+#   | catalog+models.dev 双源 zero (fresh recheck) | 无 patrol 战绩，待验
+# muse-spark-1.3-contributor-free | added 2026-10-16 | 无探针证据，待验 (not probed this run)
+#   | catalog+models.dev 双源 zero | 无 patrol 战绩，待验
+# big-pickle | added 2026-10-16 | 无探针证据，待验 (not probed this run; historical 45s silence)
+#   | catalog+models.dev 双源 zero (fresh recheck) | 无 patrol 战绩，待验
+#
+# Current seed priorities and why: space-bunny retains the strongest large-sample record;
+# cat-jam gets an early trial from three real tool successes, not a claim of superior yield;
+# step/mimo/longcat retain their relative quality-based priorities; then deepseek and super-vl
+# get unverified trials, followed by the previously excluded muse and big-pickle. All five
+# additions were explicitly requested; none of the five hard-retired names is restored.
+# New automatic discoveries rotate one exploration slot at position 2, without editing this
+# immutable seed. Explicit nonzero/missing catalog/Zen entries are excluded on every audit;
+# failed/stale evidence stops new attempts, never falls back to a paid/static unverified pool.
 opencode/space-bunny-free
+opencode/cat-jam-free
 opencode/step-5-preview-free
 opencode/mimo-v2.6-flash-free
 opencode/longcat-2.5-preview-free
+opencode/deepseek-v4.1-flash-free
+opencode/nemotron-3.5-super-vl-free
+opencode/muse-spark-1.3-contributor-free
+opencode/big-pickle
