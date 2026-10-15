@@ -33,6 +33,7 @@ from clawock.credentials import load_api_keys
 from clawock.portfolio import allocation as _allocation
 from clawock.portfolio import covariance as _covariance
 from clawock.portfolio import stress as _stress
+from clawock.portfolio.guardrail import GUARDRAIL_CAPS
 from clawock.portfolio.math import ledger_rows
 from clawock.portfolio.math import carried_value
 from clawock.portfolio.fx import get_usdhkd
@@ -1149,10 +1150,12 @@ def build_alerts(us, hk, combined, leverage, correlation=None):
         and us.get('threshold_eligible', True)
         and us.get('beta_threshold_eligible', True)
     )
+    # The card and the guardrail's beta breach read one policy line (#2984).
+    beta_max = GUARDRAIL_CAPS['us_beta_max']
     if (us_eligible and us.get('beta_spx') is not None
-            and us['beta_spx'] > 3.0):
+            and us['beta_spx'] > beta_max):
         alerts.append({'type': 'high_beta', 'severity': 'high',
-                       'detail': f'US β vs S&P 500 = {us["beta_spx"]} (> 3.0)'})
+                       'detail': f'US β vs S&P 500 = {us["beta_spx"]} (> {beta_max})'})
     if (combined_eligible and combined.get('vol_30d_annualized') is not None
             and combined['vol_30d_annualized'] > 0.50):
         alerts.append({'type': 'high_vol', 'severity': 'high',

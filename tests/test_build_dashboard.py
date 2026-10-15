@@ -1605,6 +1605,33 @@ def test_anomaly_weight_is_the_one_the_concentration_card_prints():
     ]
 
 
+def test_a_risk_card_prints_the_loss_the_hard_stop_card_prints(monkeypatch, tmp_path):
+    """#2986: the public row keeps pnl_percent at 2dp, and rounding that again
+    at 1dp printed RKLX's -75.8503 as -75.8 while the hard-stop card, rounding
+    the ledger once, printed -75.9 on the same page."""
+    from clawock.portfolio.guardrail import _holding_pnl_pct
+
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "memory" / "snapshots").mkdir(parents=True)
+    (tmp_path / "memory" / ".tmp").mkdir(parents=True)
+    rklx = {"ticker": "RKLX", "shares": 10, "cost_basis": 49.69, "current_price": 12.0,
+            "current_value": 120.0, "pnl_abs": -376.9, "pnl_percent": -75.8503,
+            "trades": []}
+    (tmp_path / "portfolio.json").write_text(json.dumps(_portfolio(us={"holdings": [rklx]})))
+    (tmp_path / "memory" / ".tmp" / "brief-context-2026-10-15.json").write_text(
+        json.dumps({"peer_scan": {"RKLX": {}}}))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    payload = json.loads(dashboard.build_projection()["dashboard"])
+
+    assert dashboard.trim_holding(rklx, "USD")["pnl_percent"] == -75.85
+    assert _holding_pnl_pct(rklx) == -75.9
+    assert [(a["type"], a["detail"]) for a in payload["anomalies"]] == [
+        ("high_weight_loss", "weight 100.0% + pnl -75.9%"),
+        ("leveraged_etf_stop", "leveraged ETF: pnl -75.9%"),
+    ]
+
+
 def _leg(bucket, key, currency):
     return dashboard.Leg(bucket=bucket, key=key, currency=currency)
 
