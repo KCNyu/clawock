@@ -145,18 +145,19 @@ For active-call sizing, the authored confidence is an audit field, not a win pro
 
 ### Position / leverage hard caps (REQUIRED — overrides signal logic AND regime)
 
-The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK 85% one factor), not a signal problem. Check these registered risk thresholds against the live book. A cap requires a reasoned response, not an automatic trim/cut; only an in-force hard-stop or regime obligation forces action:
+The drawdown was a **construction** problem (US β≈4.4, 73% leveraged ETFs, HK 85% one factor), not a signal problem. Since 2026-10-11 (#2873, kcn) concentration and leveraged-ETF weight are state to review, not breaches: one name, leveraged or not, may be a whole leg. What still binds is the hard stop, the HSTECH regime dial on the HK leveraged leg, and the US β line. Check these registered thresholds against the live book. A cap requires a reasoned response, not an automatic trim/cut; only an in-force hard-stop or regime obligation forces action:
 
-| Cap | Threshold | If breached |
+| Cap | Threshold (`GUARDRAIL_CAPS` key) | If breached |
 |---|---|---|
-| Non-leveraged single core | **35–60% review; >60% respond** | Review thesis; above cap, trim or explain holding |
-| Leveraged single name | **≤35%** | Respond: reduce or explain holding |
-| Measured correlated cluster | **≤70%** with ≥80% book coverage | Respond: reduce or explain holding; one-name clusters do not count |
-| Leveraged ETFs (per leg) | **≤50%** | Respond: trim leverage or explain holding |
-| US β vs S&P | **≤3.0** | Respond: de-lever or explain holding |
-| Single leveraged ETF stop | **−18% vs cost** | Hard stop → swap 2x→1x same factor (keep exposure, stop decay) |
+| Single name, leveraged or not | **>35% review** (`single_name_review_pct`); no hard cap (`single_name_mandatory_pct`, `leveraged_single_name_pct` = 100) | Advisory `concentration_reviews` row: review the thesis; not a breach |
+| Measured correlated cluster | no hard cap (`correlated_cluster_pct` = 100), measured with ≥80% book coverage | — |
+| Leveraged ETFs (per leg) | no base cap (`lev_etf_leg_pct` = 100); the HK leg's cap is multiplied by the HSTECH regime dial (green ×1 / amber ×0.5 / red ×0) | Respond: swap 2x→1x or explain holding |
+| US β vs S&P | **≤6.0** (`us_beta_max`) | Respond: de-lever or explain holding |
+| Single leveraged ETF stop | **−18% vs cost** (`lev_etf_stop_pct`) | Hard stop → swap 2x→1x same factor (keep exposure, stop decay) |
 
-Rules: an in-force hard stop or regime de-lever requires a concrete action, except where `adaptive.may_stand` or an active durable override permits holding. The four caps (single name, leveraged sleeve, correlated cluster, β) **must** be answered — a trim, or a hold with its reason and what would change it — and are never a forced sale: the rule names an amount to shed and no place for it to go. A 35–60% non-leveraged review-band row is advisory, not a breach, and must not be converted into a trim merely for diversification. Tag true breaches `driven_by=risk_rule` (disciplinary rebalancing, not news). The trending-up/risk-on HOLD is a policy default; a reasoned strategy departure may also change the call. Compare which exposure to reduce rather than choosing solely from the regime label. The registered destination is the **2x→1x same-factor swap** per `brief_preflight.LEV_1X_SWAP`; the model may instead explain holding cash after the required sale. A risk-rule buy must still satisfy its paired mandate; 1x→2x re-entry only on 🧭 regime green. These caps mirror `brief_preflight.compute_risk_guardrail` / the brief's 「🚦 仓位/杠杆硬闸」 — keep thresholds in sync.
+Holdings on a strategy with `forbid_reduce_advice` (now `infinite_ammo_dca`) get no hard-stop and no regime de-lever row; their weight still shows as a review row.
+
+Rules: an in-force hard stop or regime de-lever requires a concrete action, except where `adaptive.may_stand` or an active durable override permits holding. A cap row the guardrail does raise (single name, leveraged sleeve, correlated cluster, β) **must** be answered — a trim, or a hold with its reason and what would change it — and is never a forced sale: the rule names an amount to shed and no place for it to go. A >35% review row is advisory, not a breach, and must not be converted into a trim merely for diversification. Tag true breaches `driven_by=risk_rule` (disciplinary rebalancing, not news). The trending-up/risk-on HOLD is a policy default; a reasoned strategy departure may also change the call. Compare which exposure to reduce rather than choosing solely from the regime label. The registered destination is the **2x→1x same-factor swap** per `brief_preflight.LEV_1X_SWAP`; the model may instead explain holding cash after the required sale. A risk-rule buy must still satisfy its paired mandate; 1x→2x re-entry only on 🧭 regime green. The numbers are `GUARDRAIL_CAPS` in `src/clawock/portfolio/guardrail.py`, which `compute_risk_guardrail` and the brief's 「🚦 仓位/杠杆硬闸」 read; where this table and that dict differ, the dict wins and the book's live `risk_guardrail.breaches` is the list to answer.
 
 Read `risk_discipline.records` alongside the detector output and report each open breach's stable ID, age, acknowledgement and execution-evidence state. A plan-local override has no authority; only a durable, reasoned, unexpired override does. While a critical/high record remains open, do not recommend adding the same name, leveraged sleeve or factor. Exits remain legal, as does a same-plan 2×→1× pair whose factor-adjusted exposure decreases.
 
