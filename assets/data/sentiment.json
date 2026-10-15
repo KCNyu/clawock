@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T23:23:02.902805+00:00",
+  "generated_at": "2026-10-15T00:01:28.912888+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -79,8 +79,20 @@
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us_stocks",
-      "reddit_mentions_7d": 6,
+      "reddit_mentions_7d": 4,
       "reddit_posts": [
+        {
+          "sub": "SpaceInvestorsDaily",
+          "title": "Rocket Lab fell 8% today, then said after the close that Neutron won't fly until 2027, its third delay in a year. It's 61% off its May high with $2.3 billion of cash, almost no debt and a $2.4 billion",
+          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1x66swe/rocket_lab_fell_8_today_then_said_after_the_close/",
+          "created": "2026-10-14T23:48:04+00:00"
+        },
+        {
+          "sub": "OptionsResearch",
+          "title": "Rocket Lab fell 8% today, then said after the close that Neutron won't fly until 2027, its third delay in a year. It's 61% off its May high with $2.3 billion of cash, almost no debt and a $2.4 billion",
+          "url": "https://www.reddit.com/r/OptionsResearch/comments/1x66spf/rocket_lab_fell_8_today_then_said_after_the_close/",
+          "created": "2026-10-14T23:47:51+00:00"
+        },
         {
           "sub": "wallstreetbetsGER",
           "title": "Rocket Lab ist erledigt, Neutron wird niemals funktionieren. Iridium Deal platzt sowieso noch",
@@ -92,30 +104,6 @@
           "title": "Rocket Lab Provides Update on Neutron Development and Adjusts Target Launch Timing - RKLB",
           "url": "https://www.reddit.com/r/Spacstocks/comments/1x64jqk/rocket_lab_provides_update_on_neutron_development/",
           "created": "2026-10-14T22:06:10+00:00"
-        },
-        {
-          "sub": "StockTitan",
-          "title": "Rocket Lab Pushes Neutron to 2027, Three Years Behind Plan",
-          "url": "https://www.reddit.com/r/StockTitan/comments/1x63eml/rocket_lab_pushes_neutron_to_2027_three_years/",
-          "created": "2026-10-14T21:18:21+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "Rocket Lab Pushes Neutron's Debut Launch to 2027",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1x63d7j/rocket_lab_pushes_neutrons_debut_launch_to_2027/",
-          "created": "2026-10-14T21:16:47+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "Why are PL, RKLB, ASTS and almost every space stocks down so much right now? (it feels like a bloodbath)",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1x638e9/why_are_pl_rklb_asts_and_almost_every_space/",
-          "created": "2026-10-14T21:11:07+00:00"
-        },
-        {
-          "sub": "JOBYinvestors",
-          "title": "Would you prefer updates like this about \"delays\"?",
-          "url": "https://www.reddit.com/r/JOBYinvestors/comments/1x6365e/would_you_prefer_updates_like_this_about_delays/",
-          "created": "2026-10-14T21:08:39+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -171,6 +159,12 @@
       "reddit_mentions_7d": 3,
       "reddit_posts": [
         {
+          "sub": "MarketingJobs",
+          "title": "548 remote jobs added today — here are some of the marketing roles that stood out",
+          "url": "https://www.reddit.com/r/MarketingJobs/comments/1x66h6j/548_remote_jobs_added_today_here_are_some_of_the/",
+          "created": "2026-10-14T23:32:40+00:00"
+        },
+        {
           "sub": "SpaceInvestorsDaily",
           "title": "According to NSF, Spacex is constructing rockets for 7 new flights.",
           "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1x657pd/according_to_nsf_spacex_is_constructing_rockets/",
@@ -181,12 +175,6 @@
           "title": "Some perspective...",
           "url": "https://www.reddit.com/r/RKLBInvestors/comments/1x64soz/some_perspective/",
           "created": "2026-10-14T22:16:30+00:00"
-        },
-        {
-          "sub": "ValueInvesting",
-          "title": "Sources of information to avoid",
-          "url": "https://www.reddit.com/r/ValueInvesting/comments/1x63d9y/sources_of_information_to_avoid/",
-          "created": "2026-10-14T21:16:52+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -197,10 +185,10 @@
       ],
       "google_news_en": [
         {
-          "title": "SpaceX Stock Drops Below $170: Here Is What History Says Investors Should Do",
+          "title": "SpaceX stock slammed as AI memory trade crumbles in South Korea",
           "source": "Yahoo Finance",
-          "published": "Wed, 14 Oct 2026 15:50:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPSmRwb0U0ZWNDQzJseFNkdjc4THhEeW1LT3Qtekc5M3lvaXlTc2JEWDhCUm1OSzAzRDExZzFQZFdKQlg2SkVpVjlua2ZFSzNLZXNKbUpQMGVIc3lMdnBiSjhqUFlTemFHSHB5cjlVM1B5cEZTaTM5QzFZUGhBeTdFUDZ6QVJnZjBXWTNrUVF6MEI0X29keWZfMg?oc=5"
+          "published": "Tue, 13 Oct 2026 15:53:56 GMT",
+          "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPaXI5WHlmS3pxM0x4UjNHUUhsUjBPZkd3cS14RUg1N3M4RUxZYjM2TjRJWU9PdWk5cW1faS0yVE13MGZjd0xRMWJIOW1kQWRfNmJMeGpjM0d5NDZEZlZHLWlkeS1SU0d4R1BOY19EYV8tWTRLNFpGdjhEcDFZemE2dlRZa1ZRQ3BxVUlub1ZCQWFNX29ZT0ZNTXlSX2pSVWk2UjRSSm5KQzg5cmtLSjFVRlNFeUo4c1VIN25qTjN3Q1BjVU9aTUE?oc=5"
         },
         {
           "title": "SpaceX Stock Has Climbed About 50% Through 6 Insider Share Unlocks. The Biggest Is Still Ahead.",
@@ -215,22 +203,22 @@
           "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUjFCRFFkSFVqaDFHbnkzb29lNWkxNlRHTTVhejRuYk5oYjVSS01NXzlMcmc1UlZFT2RyNXJkWlh5ZUlxbWNNMkR1SkQzS09PWXVOQzYtNE5yZnZnZDFYTzkxQnpnOHJha0hQVktsQzY3dTd6d2FFV0tJVzZWcW5Kb3JHZGcxUUtLZ0luRnFWcUNlZGpQcEE?oc=5"
         },
         {
-          "title": "Trump Bought SpaceX Debt. What That Means for SPCX Stock.",
-          "source": "Barchart.com",
-          "published": "Mon, 12 Oct 2026 18:03:54 GMT",
-          "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOaDZndlZrcW1TczUxNWQxYVI1aG5VVjZrSXJ4YnVhSEcwelhJcV9LYzlzNUJRRDhNWVhJQzctYUZ3REE1TmFybkFhd0JMVFY1MzZoblVQVHhJRDZHS0RGUzZGN08zSjhiTDM0Y0w0V1N2a2NVaHlGR0ZtcGpTRVFLdXQ5SHRYWHFyRmJZTHJCX2tOZE5pWjFTMVlNVHNfRzNB?oc=5"
-        },
-        {
           "title": "Why is Space Exploration Technologies stock sliding today?",
           "source": "Investing.com",
           "published": "Tue, 13 Oct 2026 14:07:17 GMT",
           "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNVXEwcDYxckh6cEtiNVV0T3dTc3ZJNjRjMGM5d0tDUG1ocFVFaHpTMGE5NzItVExjTkNTWXgyUzV0LXNBaER3ekdIYmh2S2lKZDlsQVBYRlB1cnk1Wl96YWdZWmpTRXVYSjJtdDBMdmptcFppNU9SMGxMX1Q1SE9Pam1uV0ZIb2FfRzNiM3lCSEs5VkpSYy00MlhqVXRZS0VPNWYwYnFTRnpxZTNrN0VOSzJ3TkZXZWdFSlEw?oc=5"
         },
         {
-          "title": "SPCX Stock Drops 5%: FAA Begins Environmental Review Of SpaceX’s Ambitious 456 Starships A Year Expansion",
-          "source": "Stocktwits",
-          "published": "Tue, 13 Oct 2026 17:44:40 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxOcnNNdi1RRzRfU3N6U29UZ1BuZ0lkNUM1VnFIVFZyOVYwV01PYlBrZi13WUd3cUJZa3NLdVRsWUdQQWpvblZxRExJUnRETEUxc3N1ZkV5cldkWHF3TURodDg2RHNxMnpLRVNfWi0wRm8wSURQa1dfQWhhSENYSkU5SktwaXUzWWhWOFNWa21qeWNxX2I0TlQxbVROTXo5TlZwSlZWRUN3VklMODlmWHNCTktLVzFiMUNIM1NQT2RSekh4ME9XUVltODhzVjRRNTl6Yjk1akk3eXJSbndWbWNoRjhGSElCRmIwR1I5ZlV6UHE4TXpUeGRyM05iRVQ?oc=5"
+          "title": "SPCX: SpaceX Stock Extends Gains After Mobile Push Sends Telecoms Tumbling",
+          "source": "TradingView",
+          "published": "Mon, 12 Oct 2026 06:25:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNZzUzNU9qMkl0UkpKNE5TTjR1aFgySDEtTUs4dEh5ZXQ1WGJsZ3NUZFpGYm5hbl9vbnZYTDcwdmM2VThDUFhOOEF3YWxpdVlzOUdaUzdOY0dNYXBRQnBiLXdlN2FJSC15amNqYVMzV0NYM0UtcjgwRWdrQTVyMlJoRDAxMk5QMG5SRlJXY0xYeWZpc19XTENldkhFUDlkdFQ4ajdwUjRCOWZBQWtmVWN3TXFqTm83bXExNHhPR2ViaTdyYkdfcUx5OXhzeEVJSmRT?oc=5"
+        },
+        {
+          "title": "Prediction: $1,000 Invested in SpaceX Will Be Worth This Much by 2030",
+          "source": "Yahoo Finance",
+          "published": "Wed, 14 Oct 2026 03:01:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQSDcxcm9MY1VWRHIwWHVBOFRJZ25mdUR1ell2RmdFSkNfdlA5RTRyNEdYTmRnbDdfVzU1bWt6MERFaThDVUNpdXNmYnpPQXNvM1Via0phVFk3TmJDTTJRLS1CeUVUbE10M09QOU1zVTJJLXZ1WnA5SXlKNW0xckxacmNhLU0yV04tWmxJc1FNSXBrcElfZ0hlN1hjYlVydw?oc=5"
         }
       ],
       "google_news_zh": []
@@ -242,6 +230,12 @@
       "reddit_mentions_7d": 3,
       "reddit_posts": [
         {
+          "sub": "MarketingJobs",
+          "title": "548 remote jobs added today — here are some of the marketing roles that stood out",
+          "url": "https://www.reddit.com/r/MarketingJobs/comments/1x66h6j/548_remote_jobs_added_today_here_are_some_of_the/",
+          "created": "2026-10-14T23:32:40+00:00"
+        },
+        {
           "sub": "SpaceInvestorsDaily",
           "title": "According to NSF, Spacex is constructing rockets for 7 new flights.",
           "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1x657pd/according_to_nsf_spacex_is_constructing_rockets/",
@@ -252,12 +246,6 @@
           "title": "Some perspective...",
           "url": "https://www.reddit.com/r/RKLBInvestors/comments/1x64soz/some_perspective/",
           "created": "2026-10-14T22:16:30+00:00"
-        },
-        {
-          "sub": "ValueInvesting",
-          "title": "Sources of information to avoid",
-          "url": "https://www.reddit.com/r/ValueInvesting/comments/1x63d9y/sources_of_information_to_avoid/",
-          "created": "2026-10-14T21:16:52+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -347,7 +335,7 @@
         {
           "title": "MINIMAX-W (00100)討論區- 股票評論- 股吧交流社區",
           "source": "Moomoo",
-          "published": "Sat, 10 Oct 2026 03:45:08 GMT",
+          "published": "Tue, 13 Oct 2026 05:14:17 GMT",
           "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1VclJIelgyd2xTa1VLZDRMQ2g2U0o2dURBTnBPY1hJWDA2d09IZGpmTm1MMF9wNVNpS2pUeGxkaTAzdUxjOUI4SndxdjFwWlk3aUg4RjRlOWRpeXNkYlQ0VEpR?oc=5"
         },
         {
@@ -433,10 +421,10 @@
           "url": "https://news.google.com/rss/articles/CBMiywNBVV95cUxNLThUME1aUm5lQU9nSUpVdlJKem9NT2stQzB4MzFtVWVqaUNKYTZCdmJuODlYOWFCYTNRbUhRVFl2Z1MwLTFsLXZGalM4ZlVCcWlHbENvRzZvVlprN3JHSlJMQTVBeTlTQUZzX0MyOUNGOTI1Y196R3NrSTZaUjBCOXFzdnd4ZkVkQjREZDJVMXhlOEtjaWZZSGt5R0NkYzBPVll3bmdFLTVSMU9ZOHA2dEttTWFZeVE3bUhrbF84RHJXMzdWWTFCLUtGWWJHQmk0N2tXQldCTGdEb2J1ZzdoTVpGemtVZHBoUHY3ZVg4d29ENmszajZ4TmxFOVE3NFJrcURHNk1aUXEwcmJNVVhxX2VKREFwZUl3STlVMWN0bEtGQ21EaW01cWl6dWEwUnI2bkxLU1ppckhwXzlKZDEyMWVHMmpTVmthc0RBSTk3YlBnLWxKRnVCWXM0ZGdlZ01LR3NjYzZUVzJ2OVI5YzZTeGdJOEx0bGJpdVhTWGRDOUswdC1ybHBvdmdIQ1p1Nk9tNzlKejBMRkd2UGlGVW1yUFRLTGdQcGVBc1JBLUc5N0dMb2Q5OU5yNHo2WVEtUmhGQXBmUDEwQmtRT1U?oc=5"
         },
         {
-          "title": "金風科技(02208) 月報表",
-          "source": "信報網站",
-          "published": "Fri, 09 Oct 2026 04:29:53 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOYlVxSkJsSnYxa0JoZ1ZQR0dOQ3o4ZVdudHg4OGpVNEY1Uk05WFVXN0xRWHM0aUt6U2ZJRUVTU3RuUmhVakl2YS1TaUpFLUlEbVF0NlBvcE9peTE5RlB2TmNVOU9fMGJoY0JGc19RSGd6MjRpbHR5ZkNQamVFMkVuYWRvUmhxMG15Mm5MMUsydFIzUk94aGl2QnU4TDgzaTl1Z3V0SElFeE5vcWlwNGRKSzJ5UkNzX1dmMFVNWDVGTXBkeE0?oc=5"
+          "title": "港股異動| 金風科技(02208)漲超4% 可再生能源發展“十五五”規劃發佈國內風電裝機將迎旺季作者智通財經 - Investing.com 香港",
+          "source": "Investing.com 香港 - 股市報價& 財經新聞",
+          "published": "Thu, 23 Jul 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzWkx4azhiUjRaVVUxNThzWU1jMU5IeEVPRTFiaWM2YU0zWlFKQS0xUEpPeS1MT1kzOGlDcURMSEo1Wl9XeXFvWWVMU21WZE9abjg5X2puSW9Ra2oyNFNwSjU4SkltcklBSnRhM2pQeDc?oc=5"
         },
         {
           "title": "金風科技：董事會會議召開日期",
@@ -451,10 +439,10 @@
           "url": "https://news.google.com/rss/articles/CBMihwNBVV95cUxPZzg2YURBNW9BLUduTUpQTkdTLWZScVJMaHhFUHA0eWM5Q0xXZFplOU9LV3ZLczFsbFJteHVxc2U0emhiQnQ4eEdYN18xdi1SYlJpejFqMV9kcVlzellzTWt0WmRNNjM2REp6Qk4zVzdEb0VRSlBNbmpRclJ0VDJ3ZGJpcHFTcURiUlRQOGR1bmE2Wkxmcm5DZXFkcVNQc0p5Z2xTdE9EQW9UTFQ3cjV2UnM1SDFZOEV3Qlp2ZlhDZGtNdk1uU0k4QS1YYUhjXzMwang0MkZVaktrdHZsZ2N0cV84OFpVYWJ0aUs3Uk15cmtpa3R2aVIwRlNCRUJCVHlJc0xhdXduSDgtWUZxWlpRZEpuZk8xWWtEdFVMeUhJaUNLblV5QXlVb3MwVGtrbkh6RDRtdEZ3Q09TSjlOUFVUZ3Q5RkZvZ0RrY01pUC1nSkVlbG9iY2o1OVR1ZURGUExQWXFqdVdTaWhYcmNma0Z5S1ZCUU1acW85akcycFV2NEhGdzJOWWVN0gGHA0FVX3lxTFA1VVlXSlZzUXJhbjhJS1hkOUJBUklWZmtNTmwzYkowcVF1UGxtck1kcnViYVJVTkc3TndGVEZ1eXdSVGhSSUpNeG8wMXRjcU02YXRWNmJpSEVyZ3hySGpCX0hnaE16S0FhdTlsNzNmR0IzY0NmYjNvV2NHVnZGcERFV2twOWx5cjYxVGhnNVhfbkx0S0pEVVhKMGdxOE5tWm5zN3hSS3BOZUM5NUQzemNSM0tuYkxySDM0a2laMFY1OEFPaFlNRjhqMzhENG5uN2hickJvM0pMVXFsejNwQXBQWHVmQjRFWUtMT1lOS0p3clpZaE93MnJ2OGxab0FZdFh3VHRCUl9DdnZidUlZODdITmVNZHF4ZlFGUUFjaS1UcjM5OHRTa05QNDRJdmVSUFNWeW80VDRTeGtQaUxiS0hJU3NIVUtnUGd3bjVrSWlJMEFqRjY0WlMzajMzVWNMbUcxU0wxSUJfZ253MFRTOUd0bUFOaVBBTlY5dUI2YkJjWWpNYnNZNFk?oc=5"
         },
         {
-          "title": "金風科技：第九屆董事會第十七次會議決議公告",
-          "source": "富途牛牛",
-          "published": "Mon, 12 Oct 2026 14:18:23 GMT",
-          "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOMFRIUXBXenoxZTlFNVlWZnNzaG9zeGNlcGF3T0w1c2tmb2FqdGxUcGhzZzdZSV9jaWVNNmYtUDRpRm9jTDQtV3hubFRIbjk1RWFUcGFzaUJZcThRcVJHalg0dG9DaGZYUWZtajZHVU1WR0kwbm9VNFJXU3dpeXRPX3V0N2hkU0V0VlA3dXhKQlBqakZ3cDIxVmNZeTdBVXdlZW5fSDVNQWdlVG5acUo1YV9oc1o2QlgxYkMyUjgtWGpxU0JR?oc=5"
+          "title": "金風科技(02208) 月報表",
+          "source": "信報網站",
+          "published": "Fri, 09 Oct 2026 04:29:53 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOYlVxSkJsSnYxa0JoZ1ZQR0dOQ3o4ZVdudHg4OGpVNEY1Uk05WFVXN0xRWHM0aUt6U2ZJRUVTU3RuUmhVakl2YS1TaUpFLUlEbVF0NlBvcE9peTE5RlB2TmNVOU9fMGJoY0JGc19RSGd6MjRpbHR5ZkNQamVFMkVuYWRvUmhxMG15Mm5MMUsydFIzUk94aGl2QnU4TDgzaTl1Z3V0SElFeE5vcWlwNGRKSzJ5UkNzX1dmMFVNWDVGTXBkeE0?oc=5"
         }
       ]
     },
@@ -569,7 +557,7 @@
         {
           "title": "HK Stock Market Morning Brief | Hang Seng TECH Index to Expand Constituents to 50; OpenAI Rolls Out GPT-6 Globally",
           "source": "富途牛牛",
-          "published": "Thu, 08 Oct 2026 05:34:13 GMT",
+          "published": "Thu, 08 Oct 2026 00:46:55 GMT",
           "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOQUVkaUZVUUNrWVdUbjZ2bjNscFpOaGVfVUdFdEd5eFd6dVFZZWxLTmlpMC1tWVpMWl8tdDc3NVF5dWZIY1pFOUZZNEwtRENQS05QYzJ1OWVrLXNyazdpQUJUb05xbnVIbGZsbGp1S0ZuRDBOVUJKc3pUUTFtcURjY21qMW1POEF3Y2RHeXpHaEtWSjZnMm8weXcwZW0?oc=5"
         }
       ],
@@ -599,16 +587,16 @@
           "url": "https://news.google.com/rss/articles/CBMiqAJBVV95cUxNRjhQTjcwYnFnaENZaUhTNkZId2F3ZF85Y3JFMVBHTExuc3Q3dk9jbzlYT08zU1BsU0J5empISVBfR3NURFNGeXZBXzl4S3QxQllFX0tBTUctQUZTSVZoc0c2SHpVZHBWR1lhZ19MeC00LS14VVg3UTVCbzRMWUllbngyb0Y2YmhXUDY3WTZWLTdnM1BObjRfalpXeDBSS1FsTkNPSnJxenphUzNvR0xadzBIYmlmUUZBSnVldGh4aFJkbXRFNTJFN1ZIQjI4NUFCcnVseTRVWEFxRldhLUZ4UXpiOGIxcFZfekJ0OHhXc29Kd1RsUi1pOVVfNDFOWjVISTZkM1ZaWWJCX3Y3N1ZMZHpBMk1XbnR4RTNPRkpYdnZVWDF0SkdxVw?oc=5"
         },
         {
-          "title": "ＸＬ二南方恒科(07226) 上市文件 - [認可集體投資計劃]",
+          "title": "槓桿及反向產品的交易資料",
           "source": "信報網站",
-          "published": "Thu, 17 Sep 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi5AJBVV95cUxPekJsaXhUZUlDdVVPdk5LSGJIU1Fmb3lVZjAxRzVObExaZGRLazc2bVZnNmpJeFBVUG5xQ3RoNElpNjdfaEVQb3pzYk9DZW90NEhLRmZiTTdzdl9MSVJmS1dDYWVwcnpWV3Qwb0xqb0Rpd2FCR2ZYS25mMzFRZXVNX0lVY19hejZtN1FzYjMyNG90cTAwUFFHbGVFM25CcWxJOGZOY0pPRG8zWlZkLUFKOTdxSGR4enhmUWtsbDZpWG51YV9RcnZleExIMWRaVV8xQWtORjgtM2k5SmtTQUFMTVVoTVRfdFpXR1pFdzF5S2huSmY1VDNzeTEwNG55MzQtSHp4OEo0MGhaaFk2UnZzQ05nZHJEMktWcDdoY2gxeFl2RzBPWWlKUW12R0RpSkZKd0lGODRLcUxNa3NfQl9RMTVtLUNlaGdtX1R3SGE3bDdZejd0d3pjT0RsLUYxT3VVUW1JWg?oc=5"
+          "published": "Thu, 08 Oct 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNd2NsVGRrampKNllIeTNHQ0poOTRNMTVrU3licm1ETS1tWG5HMDY1TnQ2VklvdUlDTnFJSXZ4SWVoLThieGlwR1YxSkpYVENmazFQTFJJVDFrMUZZOG9GVEFlWWdpY3g4MXVVNU91REpYTFlNM0FLM0hORXdGbkNRYUl6TjRkNVZuVDM3UzNqMjhlekYzMnBnNDNHR3F5SFBDd3MtT0VlX056cm4wN29vV1hJYy05aVlHUWNwY0FBR0VMUHc1RUZYT1hCbUFfSFhmbVdKeWRHYnlCcEwweEFtdWxxY3lPODJpX2owT2ZsRkRxM2Q4?oc=5"
         },
         {
-          "title": "ＸＬ二南方恒科(07226) 上市文件 - [認可集體投資計劃]",
+          "title": "上市文件 - [認可集體投資計劃]",
           "source": "信報網站",
-          "published": "Thu, 17 Sep 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMikgRBVV95cUxQbmt0bG1sLWk1ZXAtTXdVN2RJdUw3UUVQZjJOMzZidUFnUkVpVTZoc0Q3ZDhUZ2oxQm1HTHhOT2pFS1RaYjROd1dXQVZjbHpSbHRKQkdDN2VVZkJGa045S2I4aVRuMnNYM0NacDl1VXJ2TGY0eC0xNjR5RWpNWmlLMU03X1VtY0w0MWt3VlhGeVVEWjBRSGFMT0RkODF1WFpPQU5HQ3FPOHpwSUdOTFQycm1Pc1N6cnh2dFNCZjA2RnBEWVFPenVid1NCOHVZZ1ZaRlFmeWtCX2w5NTFxVDAyMFpRLUFobHFWel9tTnlwU3A4UFhaR2ZqUk82TkJyYTByTU83TWpNcXU2VjdIWHJsVmRRY1NkMzVNMUgtRk51eVBpUGstR3B5WTg3cFg2eTV1NjR0d0c1RnNoTzdCbXNKQkpObHRveU1fbXlZQnJTbjJTVk16QUg4bHFiYk5aUTk0dF9NVDUwZjUxczFNTDZIYXBaMGhxalZXbFlBOUtacm5PcUtxSkFSMG1HNXVld2c1RDllUFc3aWxiNDZGOVFKZ3UyODNTSlo5RzJ0TVJMSGZpRFk1dWhKZ09nZm1ienNHekptUGgwYi1ITHR0T0E5VmUxdXRNWkJOVEJJd01OYmcxbGJDWmYtdnpIQmpnbmlFRUZERUhDOGVtc2NFUjZSSEFYS3U2MWhONFpqeEZmRnE0UQ?oc=5"
+          "published": "Tue, 06 Oct 2026 13:28:41 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiggJBVV95cUxNVFEzanJJWHNpVHZuVGl1MVVkdFdFSnl3TGxaOXczVVRWSGdtXzV5WURUYXc3UFl6T3BhdFJRNHAtaEtiLVBoMGpnckkzRzYwd2p2bzYwNklncHdFMGpKLW5BZzlwdW05djVQUmNjZXRmNWs1X0dzU2dKTG5YS2ZmXzFLRVV1LThZNTU0ZUVhS2VaSTF5ZGQ3ZGtBcTY1V2NNRGNvZi1NbWxOS1FDU2tnZF8xdXVhdm1xUUpZajR6VFpON29ydk1zM0lRTGN4SGVBenNtSnR4QnVhN1FMc1dBeWRQb3A2OVNKd3NBNGFMUnVSS0FVbmo4eWlXZ2h2dTlmZHc?oc=5"
         }
       ]
     },
