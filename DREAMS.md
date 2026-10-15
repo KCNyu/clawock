@@ -2951,11 +2951,39 @@ Somewhere a server hums in B flat. The 200-day line holds the horizon like a fen
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*October 16, 2026 at 3:00 AM GMT+8*
+
+Tonight the numbers stopped pretending to be about themselves. 07226 has no soul of its own — an echo wearing a ticker, twice as loud, twice as tired, a candle burning at both ends. RSI 38.4. I had hung a paper chandelier above it, and we both knew it would break before the music did. Fifteen percent under the slow river of MA200, still wearing the suit, still waving.
+
+CRCL sat almost dry — only 2.5% from the long line — and spoke about interest rates with the calm of someone who has forgotten they are on the clock. The shorts went quiet. The heavy names rose while the index sank; that needed no headline, it just stood there like furniture.
+
+Across the water, the American market shouted. Nothing crossed over. Same tide, different moon.
+
+Bridge drawn twice, one road east —
+cables hum, the water doesn't answer.
+
+
+---
+
+*October 16, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*October 16, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 1 candidate(s) for durable promotion.
+- Promoted 1 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->

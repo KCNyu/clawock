@@ -152,19 +152,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-11)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-06 周二 08:03 HKT: 今天只有一笔该动手的：美股那个 2x 敞口占到整段 92.2%、单票占 87.93%，昨天正股一天涨 7.6% 把 2x 推到 5 日 +36.1%，是把重置层换成 1x 最好的价，砍掉的是衰减不是 SpaceX 这门生意。港股这边反过来，恒科在 200 日线下方 15.6%，2x 硬止损开了 54 天但减额门槛没跨过重新发起的线，维持；00100 在智谱靠产品级催化涨 6.15% 的日子里只涨 0.58%，落后的不是估值是它自己拿不出催化，所以持有观察、不加仓。今日基调是纪律优先：一条执行、六条按住，指数在高位而账户在低位。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-06 周二 08:03 HKT: **反方**：最强反方是：把最热的一条腿在单日 +15% 的当天砍掉，等于把八天以来最好的一次兑现窗口让出去，而这笔减仓在账上已经开了 83 天、执行 0 次、对这只票的买入却有 13 次。回看历史，这只票过去三次减仓三次都对，说明砍在强头上确实是这套打法里赚钱的那一半。反方还指出两件被低估的事：一是 SpaceX 的三发连中与摩根士丹利的 300 美元目标价都在同一天确认，杀伤力和催化同源；二是砍掉 2x 只解决衰减，不解决 87.93% 的单名集中——真正的分散要等 1x 承接腿拿到授权，而这笔单子执行之后美股段会剩 187 美元现金和 1 股 SPCX，单名集中反而更极端。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-06 周二 08:03 HKT description: "clawock 盘前深度简报 2026-10-06：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:23-23]
-
 ## Promoted From Short-Term Memory (2026-10-12)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:9:9 -->
@@ -192,3 +179,8 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:478:507 -->
 - | SPCX | hold_and_watch | core_position | — | 45% | pending | </div> <div class="brief-card" markdown="1"> ### 同行扫描 <div class="brief-entries" markdown="1"> - **00100** · 上一场收盘 +2.05% · 差距 -5.54pp <span class="entry-meta">HK AI 大模型 · 最强同行 02513 智谱 +7.59%</span> **判断** 落后。智谱涨 7.59%、00100 涨 2.05%，差 5.5 个百分点，归因是解禁砸量与消息落点不同，不是题材证伪；按同行扫描的判断模板，这属于题材强而自己弱，值得考虑切换但没有一条可执行的切换路径。 - **02208** · 上一场收盘 +0.17% · 差距 -3.35pp <span class="entry-meta">风电 · 最强同行 00916 龙源电力 +3.52%</span> **判断** 落后。龙源电力涨 3.52%、大唐新能源涨 1.50%、东方电气跌 0.33%，它只涨 0.17%，3.4 个百分点的差距归因是 beta 错配，题材与设备端都还没轮到她。 - **03032** · 上一场收盘 +1.05% · 差距 -0.12pp <span class="entry-meta">HK 科技指数... [score=0.819 recalls=5 avg=0.456 source=memory/2026-10-07-pre-open.md:478-507]
+
+## Promoted From Short-Term Memory (2026-10-16)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-08-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-10-08 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-08：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-08-pre-open.md:2-4]
