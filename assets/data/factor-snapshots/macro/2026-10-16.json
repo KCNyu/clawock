@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-10-15T23:20:25.183115+00:00",
+  "vix": {
+    "symbol": "^VIX",
+    "price": 16.46,
+    "prev": 15.27,
+    "change_pct": 7.79,
+    "source": "yahoo",
+    "as_of": 1792095301
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 5.089,
+    "prev": 5.19,
+    "change_pct": -1.95,
+    "source": "yahoo",
+    "as_of": 1792090795,
+    "yield_pct": 5.089
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 102.004,
+    "prev": 102.055,
+    "change_pct": -0.05,
+    "source": "yahoo",
+    "as_of": 1792101898
+  },
+  "fear_greed": {
+    "score": 31.5,
+    "rating": "fear",
+    "prev_close": 32.3,
+    "prev_1_week": 39.8,
+    "as_of": "2026-10-15T22:59:56+00:00"
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 24062.72,
+    "prev": 24314.17,
+    "change_pct": -1.03,
+    "source": "tencent",
+    "as_of": "2026-10-15"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 4060.99,
+    "prev": 4174.47,
+    "change_pct": -2.72,
+    "source": "tencent",
+    "as_of": "2026-10-15"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7744.06,
+    "prev": 7718.94,
+    "change_pct": 0.33,
+    "source": "yahoo",
+    "as_of": 1792096433
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 26713.03,
+    "prev": 26692.87,
+    "change_pct": 0.08,
+    "source": "tencent",
+    "as_of": "2026-10-15"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-13",
+      "title": "Minutes of the Board's discount rate meetings on August 17, September 9, and September 16, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Federal Reserve Board releases results of the 2025 Survey of Consumer Finances, which provides the public and policymakers with detailed insights into the economic condition of American families",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261009a.htm"
+    }
+  ]
+}
