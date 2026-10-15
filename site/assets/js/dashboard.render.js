@@ -1659,6 +1659,11 @@
   function renderRiskMetrics() {
     const r = safe(DATA, "risk") || {};
     const us = r.us || {}, hk = r.hk || {}, combined = r.combined || {}, lev = r.leveraged_exposure || {};
+    // US β is painted against the policy line the high_beta alert reads (#2984,
+    // #2989), published as risk_guardrail.caps.us_beta_max; amber from two
+    // thirds of it. No published line, no policy colour. HK β has no cap.
+    const cap = Number(((safe(DATA, "risk_guardrail") || {}).caps || {}).us_beta_max);
+    const usBetaMax = cap > 0 ? cap : NaN;
     const formatNumber = v => fixed(Number(v), 2);
     const setNum = (id, v, fmt = 'num') => {
       const el = document.getElementById(id);
@@ -1671,7 +1676,8 @@
       el.textContent = text;
       // Color by sign / threshold
       let cls = "val";
-      if (id === 'risk-beta-us' || id === 'risk-beta-hk') cls += v > 3 ? ' neg' : (v > 2 ? ' warn-text' : '');
+      if (id === 'risk-beta-us') cls += v > usBetaMax ? ' neg' : (v > usBetaMax * 2 / 3 ? ' warn-text' : '');
+      else if (id === 'risk-beta-hk') cls += v > 3 ? ' neg' : (v > 2 ? ' warn-text' : '');
       else if (id === 'risk-vol') cls += v > 0.5 ? ' neg' : (v > 0.35 ? ' warn-text' : '');
       else if (id === 'risk-sharpe') cls += v < 0 ? ' neg' : (v > 1 ? ' pos' : '');
       else if (id === 'risk-margin') cls += v < -10 ? ' neg' : '';
