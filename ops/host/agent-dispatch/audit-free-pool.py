@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Read-only catalog/pool audit. Never calls inference, edits the pool or sends messages.
+"""Catalog evidence for automatic free-model selection. Never edits the seed pool.
 
 The supervisor calls --due; --status reads the saved report without network access.
-Missing price metadata is unknown, never zero. Catalog presence is not tool usability.
+Catalog zero is required; models.dev vetoes explicit nonzero prices. Zen supplies membership.
 """
 import argparse
 import fcntl
@@ -19,9 +19,10 @@ import urllib.request
 
 ZEN = "https://opencode.ai/zen/v1/models"
 PRICES = "https://models.dev/api.json"
-INTERVAL = 6 * 3600
-RETRY = 3600
-STALE = 10 * 3600
+INTERVAL = 3600
+RETRY = 900
+STALE = 2 * 3600
+POLICY_VERSION = 2
 
 
 def load_checker():
@@ -34,7 +35,7 @@ def load_checker():
 
 def cost_state(cost):
     """Require explicit numeric input/output prices; check every supplied cost leaf."""
-    if not isinstance(cost, dict) or not {"input", "output"} <= cost.keys():
+    if not isinstance(cost, dict):
         return "unknown"
     leaves = []
 
@@ -46,6 +47,10 @@ def cost_state(cost):
             leaves.append(value)
 
     visit(cost)
+    if any(type(v) in (int, float) and math.isfinite(v) and v > 0 for v in leaves):
+        return "nonzero"
+    if not {"input", "output"} <= cost.keys():
+        return "unknown"
     if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in leaves):
         return "unknown"
     return "nonzero" if any(v > 0 for v in leaves) else "zero"
@@ -90,7 +95,7 @@ def collect():
     return sources, errors
 
 
-def assess(pool, sources, retired, previous=()):
+def assess(pool, sources, retired, previous=(), previous_free=()):
     catalog = sources.get("catalog")
     prices = sources.get("prices")
     zen = sources.get("zen")
@@ -109,7 +114,7 @@ def assess(pool, sources, retired, previous=()):
         prices = None
         issues.append("prices: missing or invalid metadata")
     models = []
-    for name in sorted(set(catalog or {}) | {"opencode/" + n for n in (zen or {}) if n.endswith("-free")} | set(pool)):
+    for name in sorted(set(catalog or {}) | {"opencode/" + n for n in (zen or {}) if n.endswith("-free")} | set(pool) | set(previous_free)):
         short = name.removeprefix("opencode/")
         c = (catalog or {}).get(name, {})
         z = (zen or {}).get(short, {})
@@ -127,19 +132,24 @@ def assess(pool, sources, retired, previous=()):
             "tool_probe": "not_run",
         }
         row["free_verified"] = (row["in_catalog"] is True and row["in_zen"] is True
-                                and row["zen_cost"] == "zero"
-                                and "nonzero" not in (row["catalog_cost"], row["metadata_cost"]))
+                                and row["catalog_cost"] == "zero"
+                                and row["metadata_cost"] != "nonzero")
+        row["price_evidence"] = ("catalog+models.dev zero" if row["metadata_cost"] == "zero"
+                                 else "catalog zero; metadata unknown")
         models.append(row)
-        if row["in_pool"]:
+        # Also alert when an automatically admitted candidate loses eligibility.
+        # Keep its row for this transition even if both catalogs removed it.
+        if row["in_pool"] or name in previous_free:
             if row["in_catalog"] is False or row["in_zen"] is False:
                 issues.append(f"{name}: missing from catalog")
-            if "nonzero" in (row["zen_cost"], row["catalog_cost"], row["metadata_cost"]):
+            if "nonzero" in (row["catalog_cost"], row["metadata_cost"]):
                 issues.append(f"{name}: nonzero cost")
             if not row["free_verified"]:
                 issues.append(f"{name}: free status not verified")
     names = sorted(catalog) if catalog is not None else None
     return {
         "models": models, "issues": issues, "catalog_names": names,
+        "sources_ready": catalog is not None and zen is not None and prices is not None,
         "added": sorted(set(names) - set(previous)) if names is not None else [],
         "removed": sorted(set(previous) - set(names)) if names is not None else [],
     }
@@ -199,10 +209,10 @@ def main():
             return 0
         old = read_report(args.report)
         hashes = identity((args.pool, args.repo_pool))
-        interval = RETRY if old.get("source_errors") else INTERVAL
+        interval = RETRY if old.get("source_errors") or not old.get("selection_ready") else INTERVAL
         checked = old.get("checked_at")
         age = now - checked if type(checked) in (int, float) else INTERVAL
-        if args.due and 0 <= age < interval and old.get("pool_hashes") == hashes:
+        if args.due and 0 <= age < interval and old.get("pool_hashes") == hashes and old.get("policy_version") == POLICY_VERSION:
             return 0
         checker = load_checker()
         errors = []
@@ -215,13 +225,22 @@ def main():
             errors.append("installed and repository pool differ or are missing")
         sources, source_errors = collect()
         previous = old.get("last_catalog_names", [])
-        report = assess(pool, sources, checker.RETIRED, previous)
+        previous_free = old.get("last_eligible_names", [])
+        report = assess(pool, sources, checker.RETIRED, previous, previous_free)
         report["issues"] = errors + report["issues"]
-        report.update({"checked_at": now, "source_errors": source_errors, "pool_hashes": hashes,
+        report.update({"checked_at": now, "policy_version": POLICY_VERSION, "source_errors": source_errors, "pool_hashes": hashes,
                        "baseline": not bool(previous),
                        "last_catalog_names": report["catalog_names"] if report["catalog_names"] is not None else previous,
                        "sources": {"zen": ZEN, "prices": PRICES, "catalog": "opencode models opencode --refresh --verbose"}})
+        report["selection_ready"] = not errors and not source_errors and report["sources_ready"]
+        report["last_eligible_names"] = ([row["model"] for row in report["models"]
+                                         if row["free_verified"] and not row["retired"]
+                                         and checker.allowed_name(row["model"])]
+                                        if report["selection_ready"] else previous_free)
         report["status"] = "attention" if report["issues"] or source_errors else "ok"
+        # One previous report is a diagnostic rollback aid, never an admission fallback.
+        if args.report.exists():
+            save_report(args.report.with_suffix(".previous.json"), old)
         save_report(args.report, report)
         print(json.dumps(report, ensure_ascii=False))
         return 0 if report["status"] == "ok" else 2

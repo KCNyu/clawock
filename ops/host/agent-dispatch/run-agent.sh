@@ -1026,6 +1026,25 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   kind=$NEXT_KIND
   [ "$kind" = append ] || ATTEMPTS=$((ATTEMPTS + 1))
   apply_override
+  # Recheck every attempt, including overrides/resumes: cached task metadata must
+  # not resurrect a model the catalog has since removed or started charging for.
+  if [ "$AGENT" = opencode ] && [ -n "${FREE_POOL_REPORT:-}" ]; then
+    pool_csv=$(IFS=,; echo "${MODEL_POOL[*]}")
+    if ! allowed_pool=$(python3 "$(dirname "$(readlink -f "$0")")/select-free-models.py" \
+        --report "$FREE_POOL_REPORT" --filter "$pool_csv"); then
+      release_slot
+      STATE=blocked FAILURE_REASON=free_pool_unavailable
+      FINAL_TEXT="免费模型证据失效或没有可用免费候选；未调用推理，等待自动审计恢复。"
+      break
+    fi
+    for ((pool_offset=0; pool_offset<${#MODEL_POOL[@]}; pool_offset++)); do
+      candidate_idx=$(( (MODEL_IDX + pool_offset) % ${#MODEL_POOL[@]} ))
+      if grep -Fxq "${MODEL_POOL[$candidate_idx]}" <<<"$allowed_pool"; then
+        MODEL_IDX=$candidate_idx CUR_MODEL=${MODEL_POOL[$candidate_idx]}
+        break
+      fi
+    done
+  fi
   LAST_MODEL=$CUR_MODEL
   write_result
   echo "---- $(ts) attempt $ATTEMPTS/$MAX_ATTEMPTS ($kind) cap=${cap}s session=${SESSION:--} model=$CUR_MODEL${EFFORT:+/$EFFORT}"
@@ -1065,6 +1084,8 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
      && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
     pool_unavailable=1
     for pool_model in "${MODEL_POOL[@]}"; do
+      # Price/membership exclusions are not unanswered inference attempts.
+      if [ -n "${FREE_POOL_REPORT:-}" ] && ! grep -Fxq "$pool_model" <<<"$allowed_pool"; then continue; fi
       [ "${COLD_MODELS[$pool_model]:-0}" = 1 ] || pool_unavailable=0
     done
     if [ "$pool_unavailable" = 1 ]; then

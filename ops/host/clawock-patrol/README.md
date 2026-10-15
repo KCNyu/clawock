@@ -73,3 +73,16 @@ P3 占比要靠分子变大（更多 P0/P1）和 P3 自己带上代价来降，�
 完成轮里 14 轮是当时排第 6 的模型收尾的、12 轮空手，那两天的读数 0.10（3/31）里去掉这 14 轮是 0.12（2/17）。
 读数变差时先按 `result.env` 的 `MODEL_USED` 和 `ATTEMPTS` 拆开看，再怀疑 prompt。模型池的顺序与依据在
 `ops/host/agent-dispatch/opencode-fallback-models`。
+
+## 免费模型自动选择（2026-10-16）
+
+kcn 已允许未有 patrol 战绩/未通过工具探针的免费候选入选，并要求自动发现和选择。
+`opencode-fallback-models` 现在是 reviewed 种子优先级；实际每轮由
+`agent-dispatch/audit-free-pool.py` 的新鲜价格/在册证据和 `select-free-models.py` 产生，
+每轮任务目录保存 `free-pool-selection.json` 解释次序。新候选可自动占一个轮换探索位，
+不改 immutable 种子、不让机器人代开/合并 PR。下架、正价格或过期证据会阻止下一次推理；
+五项硬退役名单不因 refresh_live 或候选恢复而解锁。详见 `ops/host/README.md` 的自动选择规则。
+
+上述质量指标继续按实际完成模型记录，不是新候选准入前置条件；探针成功也不是质量战绩。
+运行时仍不按输出质量换模型。诊断探针只在白天、空闲的 OpenCode slot 中有界执行，
+限流/timeout 会降低探测频率，不永久封禁。审计/选择/探针不消费区域轮转槽。

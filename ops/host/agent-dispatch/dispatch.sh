@@ -147,6 +147,7 @@ if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   exit 2
 fi
 
+FREE_POOL_REPORT="" POOL_SELECTION=""
 FALLBACK_MODELS="" NAME="" PROMPT_FILE="" CWD=/root RESUME="" MODEL="" EFFORT="" TIMEOUT=21600 NOTIFY=weixin,telegram DEADLINE=""
 QUOTA_RESUMES=3   # keep in step with run-agent.sh's default (kcn 2026-09-23): long Opus tasks do
                   # not fit in one 5-hour window; pass --quota-resumes 0/1 for short, cheap ones
@@ -204,41 +205,33 @@ if [ "$NOTIFY" != none ]; then
 fi
 # Codex defaults to sol/medium: astra/high spent 42 of 100 five-hour points in 8.5 minutes on a
 # docs/version check (codex token audit, 2026-09-15). Pass --model/--effort for harder work.
-# opencode: free Zen models only, no variants. The pool file lists the primary on its first
-# uncommented line and the fallbacks after it (docs on the file itself). 2026-09-19: the old
+# opencode: automatically selected free Zen models only, no variants. The immutable pool
+# supplies reviewed seed priorities; fresh evidence controls admission. 2026-09-19: the old
 # hardcoded default opencode/union-alpha was retired upstream and failed every attempt.
 if [ -n "$FALLBACK_MODELS" ] && [ "$AGENT" != opencode ]; then echo "--fallback-models is for opencode" >&2; exit 2; fi
 case "$AGENT" in
   claude) MODEL=${MODEL:-claude-opus-5-5} EFFORT=${EFFORT:-high} ;;
   codex) MODEL=${MODEL:-gpt-6.1-sol} EFFORT=${EFFORT:-medium} ;;
   opencode)
-    # Default opencode tasks take both the primary and the fallback pool from the pool file
-    # (one model per line, # comments), read at dispatch time so the patrol service picks up
-    # changes without a restart. An explicit --model still wins; the file then only supplies
-    # fallbacks. 2026-10-10: dead entries still waste two attempts per failed round;
-    # reject restored retired models and non-free entries before creating a task.
-    POOL=/root/tools/agent-dispatch/opencode-fallback-models
-    # The checker is the one installed next to this script; a host without a pool file has
-    # nothing to check and falls through to the explicit --model path below.
-    if [ -z "$FALLBACK_MODELS" ] && [ -r "$POOL" ]; then
-      python3 "$(dirname "$(readlink -f "$0")")/check-free-pool.py" "$POOL" || exit 2
+    # The reviewed immutable file is a seed order. Fresh free candidates become
+    # executable automatically; explicit selections cannot bypass the same gates.
+    helper_dir=$(dirname "$(readlink -f "$0")")
+    POOL="$helper_dir/opencode-fallback-models"
+    FREE_POOL_REPORT=/root/logs/clawock-patrol/free-pool-audit.json
+    timeout 50 python3 "$helper_dir/audit-free-pool.py" --due --pool "$POOL" \
+      --repo-pool /root/.openclaw/workspace/ops/host/agent-dispatch/opencode-fallback-models \
+      --report "$FREE_POOL_REPORT" >/dev/null || echo "free pool audit needs attention" >&2
+    selection_args=(--pool "$POOL" --report "$FREE_POOL_REPORT")
+    if [ -n "$FALLBACK_MODELS" ]; then
+      selection_args+=(--models "${MODEL:+$MODEL,}$FALLBACK_MODELS")
+    elif [ -n "$MODEL" ]; then
+      selection_args+=(--prefer "$MODEL")
     fi
-    if [ -z "$FALLBACK_MODELS" ] && [ -r "$POOL" ]; then
-      mapfile -t POOL_MODELS < <(sed 's/#.*//' "$POOL" | tr -s ' \t' '\n' | grep -v '^$')
-      if [ -z "$MODEL" ] && [ "${#POOL_MODELS[@]}" -gt 0 ]; then
-        MODEL=${POOL_MODELS[0]}
-        POOL_MODELS=("${POOL_MODELS[@]:1}")
-      fi
-      # An explicit --model must not also sit in the pool: the runner would spend a second
-      # attempt on the model that just failed.
-      if [ -n "$MODEL" ]; then
-        REMAIN=()
-        for m in ${POOL_MODELS[@]+"${POOL_MODELS[@]}"}; do [ "$m" = "$MODEL" ] || REMAIN+=("$m"); done
-        POOL_MODELS=(${REMAIN[@]+"${REMAIN[@]}"})
-      fi
-      FALLBACK_MODELS=$(IFS=,; echo "${POOL_MODELS[*]-}")
-    fi
-    MODEL=${MODEL:-opencode/muse-spark-1.3-contributor-free} ;;
+    POOL_SELECTION=$(python3 "$helper_dir/select-free-models.py" "${selection_args[@]}") || exit 2
+    mapfile -t POOL_MODELS < <(python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)["models"]))' <<<"$POOL_SELECTION")
+    MODEL=${POOL_MODELS[0]}
+    FALLBACK_MODELS=$(IFS=,; echo "${POOL_MODELS[*]:1}") ;;
+
 esac
 if [ -n "$DEADLINE" ]; then
   DEADLINE_EPOCH=$(date -d "$DEADLINE" +%s) || { echo "bad --deadline" >&2; exit 2; }
@@ -252,6 +245,7 @@ DEADLINE=$(date -d "@$DEADLINE_EPOCH" '+%F %T')
 ID="$NAME-$(date +%Y%m%d-%H%M%S)"
 DIR="$BASE/$ID"
 mkdir -p "$DIR"
+[ -z "$POOL_SELECTION" ] || printf '%s\n' "$POOL_SELECTION" >"$DIR/free-pool-selection.json"
 if [ -n "$PROMPT_FILE" ]; then cp "$PROMPT_FILE" "$DIR/prompt.md"; else cat >"$DIR/prompt.md"; fi
 [ -s "$DIR/prompt.md" ] || { echo "empty prompt" >&2; rm -rf "$DIR"; exit 2; }
 for t in "${TEMPLATES[@]}"; do cat "$TEMPLATE_DIR/$t.md" >>"$DIR/prompt.md"; done
@@ -288,6 +282,7 @@ CWD=$(printf %q "$CWD")
 RESUME=$(printf %q "$RESUME")
 MODEL=$(printf %q "$MODEL")
 FALLBACK_MODELS=$(printf %q "$FALLBACK_MODELS")
+FREE_POOL_REPORT=$(printf %q "$FREE_POOL_REPORT")
 EFFORT=$(printf %q "$EFFORT")
 TIMEOUT=$TIMEOUT
 QUOTA_RESUMES=$QUOTA_RESUMES

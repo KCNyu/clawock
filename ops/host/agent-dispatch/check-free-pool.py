@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """2026-10-10: dispatch-time guard after refresh_live restored dead pool entries.
-No network or timers. Catalog/zero-cost checks are part of pool-change review.
+No network or timers. The automatic selector separately enforces fresh price evidence.
 """
 import re
 import sys
@@ -17,22 +17,34 @@ RETIRED = {
 }
 
 
-def check(path):
-    models = [word for line in Path(path).read_text().splitlines()
-              for word in line.split("#", 1)[0].split()]
+# kcn explicitly admitted this exact non-suffixed Zen ID on 2026-10-16.
+# This is not permission for any other non-free name or provider.
+NAMED_FREE = {"opencode/big-pickle"}
+
+
+def allowed_name(model):
+    return bool(re.fullmatch(r"opencode/[a-z0-9.-]+-free", model) or model in NAMED_FREE)
+
+
+def validate(models):
     errors = []
     if not models:
         errors.append("empty pool")
     if len(models) != len(set(models)):
         errors.append("duplicate models")
     for model in models:
-        if not re.fullmatch(r"opencode/[a-z0-9.-]+-free", model):
+        if not allowed_name(model):
             errors.append(f"non-free/provider-invalid entry: {model}")
         if model in RETIRED:
             errors.append(f"retired/unavailable entry restored: {model}")
     if errors:
         raise ValueError("; ".join(errors))
     return models
+
+
+def check(path):
+    return validate([word for line in Path(path).read_text().splitlines()
+                     for word in line.split("#", 1)[0].split()])
 
 
 if __name__ == "__main__":

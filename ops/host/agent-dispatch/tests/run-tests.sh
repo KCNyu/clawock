@@ -55,6 +55,30 @@ reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
 
 if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
   echo '=== patrol pool outage, recovery, and empty CLI exits'
+  # A missing/expired price snapshot is not permission to use the seed list.
+  reset_fake opencode ok
+  d=$(mk patrol-free-policy-block opencode 900 300)
+  echo "FREE_POOL_REPORT=$WORK/no-price-evidence.json" >>"$d/meta.env"
+  e=0; bash "$R" "$d" || e=$?
+  expect 'missing price proof blocks before inference' "$e/$(field "$d" STATE)/$(field "$d" FAILURE_REASON)" 75/blocked/free_pool_unavailable
+  expect 'missing price proof makes no CLI call' "$(test -e "$FAKE_DIR/opencode.calls" && cat "$FAKE_DIR/opencode.calls" || echo 0)" 0
+
+  reset_fake opencode ok
+  d=$(mk patrol-free-policy-filter opencode 900 300)
+  python3 - "$(dirname "$R")/opencode-fallback-models" "$WORK/prices.json" <<'PYPRICE'
+import hashlib, json, pathlib, sys, time
+sha = hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()
+rows = [{"model": "opencode/space-bunny-free", "catalog_cost": "nonzero"},
+        {"model": "opencode/cat-jam-free", "catalog_cost": "zero"}]
+for row in rows:
+    row.update(in_catalog=True, in_zen=True, metadata_cost="zero")
+pathlib.Path(sys.argv[2]).write_text(json.dumps({"policy_version": 2, "checked_at": time.time(),
+    "selection_ready": True, "source_errors": {}, "pool_hashes": [sha, sha], "models": rows}))
+PYPRICE
+  printf 'MODEL=opencode/space-bunny-free\nFALLBACK_MODELS=opencode/cat-jam-free\nFREE_POOL_REPORT=%s\n' "$WORK/prices.json" >>"$d/meta.env"
+  e=0; bash "$R" "$d" || e=$?
+  expect 'paid primary is filtered before inference' "$e/$(field "$d" MODEL_USED)" 0/opencode/cat-jam-free
+  expect 'only the still-free model was called' "$(cat "$FAKE_DIR/opencode.calls")" 1
   for mode in silent empty error-only; do
     reset_fake opencode "$mode"
     d=$(mk "patrol-cold-$mode" opencode 900 300)

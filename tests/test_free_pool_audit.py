@@ -22,7 +22,7 @@ def sources(cost=None):
 
 
 @pytest.mark.parametrize('cost,expected', [
-    (None, 'unknown'), ({}, 'unknown'), ({'input': 0}, 'unknown'),
+    (None, 'unknown'), ({}, 'unknown'), ({'input': 0}, 'unknown'), ({'input': 1}, 'nonzero'),
     ({'input': False, 'output': 0}, 'unknown'),
     ({'input': 0, 'output': float('nan')}, 'unknown'),
     ({'input': -1, 'output': 0}, 'unknown'),
@@ -33,13 +33,15 @@ def test_price_evidence_is_explicit(cost, expected):
     assert audit.cost_state(cost) == expected
 
 
-def test_missing_zen_prices_cannot_be_replaced_by_zero_client_prices():
+def test_zen_membership_and_catalog_zero_are_authoritative_with_metadata_veto():
     s = sources()
     del s['zen']['data'][0]['cost']
     result = audit.assess([MODEL], s, set())
-    assert not result['models'][0]['free_verified']
+    assert result['models'][0]['free_verified']
     assert result['models'][0]['catalog_cost'] == 'zero'
-    assert result['issues'] == [f'{MODEL}: free status not verified']
+    assert result['issues'] == []
+    s["prices"]["candidate-free"]["cost"] = {"input": 1}
+    assert not audit.assess([MODEL], s, set())["models"][0]["free_verified"]
 
 
 def test_removal_and_price_drift_are_separate_from_source_failure():
@@ -60,6 +62,15 @@ def test_discovery_keeps_retirement_and_does_not_claim_a_tool_probe():
     assert report['removed'] == ['opencode/old-free']
     assert report['models'][0]['retired']
     assert report['models'][0]['tool_probe'] == 'not_run'
+
+
+def test_dynamic_candidate_removal_alerts_even_without_a_seed_entry():
+    s = sources()
+    old = 'opencode/discovered-free'
+    result = audit.assess([], s, set(), previous_free=[old])
+    assert f'{old}: missing from catalog' in result['issues']
+    row = next(r for r in result['models'] if r['model'] == old)
+    assert not row['in_pool'] and not row['free_verified']
 
 
 def test_cli_catalog_is_parsed_as_objects_not_brace_regex():

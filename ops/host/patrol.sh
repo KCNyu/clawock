@@ -422,8 +422,8 @@ on_stop() {
 
 audit_free_pool() {
   # Deterministic discovery, independent of whether any model answers. The helper's
-  # cache bounds network work to once per six hours (one hour after a source error).
-  # Failure reports stay visible but never alter admission, rotation or the pool.
+  # cache bounds network work to once per hour (15 minutes after a source error).
+  # Source failures stop new inference; a changed free set automatically changes selection.
   timeout 50 python3 "$DISPATCH_DIR/audit-free-pool.py" --due \
     --repo-pool "$LIVE/ops/host/agent-dispatch/opencode-fallback-models" \
     --report "$STATE/free-pool-audit.json" || log "free pool audit needs attention (see free-pool-audit.json)"
@@ -435,6 +435,12 @@ loop() {
   log "patrol loop started ($ROUND_AGENT slots: $AGENT_SLOTS; rotation: $(sed 's/#.*//' "$TOOL/rotation" | xargs))"
   while :; do
     audit_free_pool
+    if [ -z "$(current_round)" ] && [ -z "$(others_need_slot)" ]; then
+      # The helper skips 01:00–08:00, takes a nonblocking OpenCode slot and does
+      # at most one bounded tool probe every six hours. It never spends a rotation slot.
+      timeout 70 python3 "$DISPATCH_DIR/probe-free-candidates.py" \
+        --report "$STATE/free-pool-audit.json" --locks "$TASKS" || log "free candidate probe needs attention"
+    fi
     if [ -z "$(current_round)" ]; then
       wait=$(pool_cooldown_remaining)
       if [ "$wait" -gt 0 ]; then
