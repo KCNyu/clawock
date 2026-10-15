@@ -809,6 +809,11 @@ def peer_section(context, judgment):
 
 def macro_section(context, judgment):
     macro = context.get("macro") or {}
+    if not macro:
+        # Preflight omitted a stale or missing snapshot (#2988): no readings
+        # line, only what the model said about it.
+        read = _narrative(judgment).get("macro_read")
+        return f"### 大盘速读\n\n{text(read)}" if read else ""
 
     def quote(key, label):
         row = macro.get(key) or {}

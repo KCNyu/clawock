@@ -138,16 +138,19 @@
    "hsi": {
     "change_pct": 1.79,
     "price": 24211.35,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "hstech": {
     "change_pct": 3.06,
     "price": 4197.84,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "nasdaq": {
     "change_pct": 0.64,
     "price": 27366.17,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "regime": {
@@ -160,6 +163,7 @@
    "spx": {
     "change_pct": 0.59,
     "price": 7811.54,
+    "session": "2026-10-09",
     "source": "yahoo"
    },
    "treasury_10y_yield_pct": 5.244,
@@ -367,16 +371,19 @@
    "hsi": {
     "change_pct": 1.79,
     "price": 24211.35,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "hstech": {
     "change_pct": 3.06,
     "price": 4197.84,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "nasdaq": {
     "change_pct": 0.64,
     "price": 27366.17,
+    "session": "2026-10-09",
     "source": "tencent"
    },
    "regime": {
@@ -390,12 +397,14 @@
    "spx": {
     "change_pct": 0.59,
     "price": 7811.54,
+    "session": "2026-10-09",
     "source": "yahoo"
    },
    "treasury_10y_yield_pct": 5.244,
    "vix": {
     "change_pct": -3.7,
     "price": 14.84,
+    "session": "2026-10-09",
     "source": "yahoo"
    }
   }

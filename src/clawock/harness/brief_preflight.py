@@ -982,8 +982,15 @@ def load_macro_and_sentiment(today, issues):
         # under the fallback workflow's pipefail would hard-fail the entire
         # brief — a worse outage than a missing macro section). The brief
         # runs without macro; downstream postflight sees no macro context.
-        print(f"   ⚠ macro stale/unknown ({_age_str(answer['age_hours'])}, cutoff "
-              f"{detail['stale_after_hours']:g}h) — omitting from brief (non-fatal)")
+        behind = detail.get('sessions_behind') or {}
+        if behind:
+            lag = ', '.join(f"{market} {row['session']} < {row['expected']}"
+                            for market, row in sorted(behind.items()))
+            print(f"   ⚠ macro behind the latest completed session ({lag}; "
+                  f"{_age_str(answer['age_hours'])} old) — omitting from brief (non-fatal)")
+        else:
+            print(f"   ⚠ macro stale/unknown ({_age_str(answer['age_hours'])}, cutoff "
+                  f"{detail['stale_after_hours']:g}h) — omitting from brief (non-fatal)")
     elif status == 'unreadable':
         print(f"   ⚠ macro load failed: {detail['message']}")
         issues.append(f"macro load exception: {detail['error']}")

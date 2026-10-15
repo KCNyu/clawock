@@ -18,6 +18,10 @@ Freshness is the reader's question, because the readers differ on purpose: the
 brief refuses a scan older than `stale_after_hours`, the intraday lane judges
 each source against the session's open. `reading()` is the brief's rule,
 shared with `macro()` and `em_news()`, which also do the brief's trimming.
+`macro()` adds the trading calendar: a snapshot whose newest index close in a
+market is older than that market's latest completed session is stale however
+few hours old it is (#2988). 36 hours is longer than a trading day, so the
+wall clock alone handed the brief yesterday's closes as today's.
 The attention scan and the statement radar keep their own row, `sentiment`.
 """
 from __future__ import annotations
@@ -25,7 +29,10 @@ from __future__ import annotations
 import math
 
 import json
+from datetime import date, datetime
 from pathlib import Path
+
+from clawock.sessions import latest_completed_session, market_tz
 
 from clawock.strategies.freshness import (
     DEFAULT_STALE_AFTER_HOURS, is_stale, payload_age_hours,
@@ -79,10 +86,11 @@ SIGNAL_SOURCE = {
         {'field': 'macro.as_of / em_news.generated_at', 'unit': 'ISO producer timestamp', 'window': 'scan time', 'missing': 'reading omitted if absent/unreadable'},
         {'field': 'macro.age_hours / em_news.age_hours', 'unit': 'hours rounded to 0.1', 'window': 'since generated_at', 'missing': 'reading omitted if age unknown'},
         {'field': 'macro.<index>.source / session',
-         'unit': 'source label and optional ISO session date',
+         'unit': 'source label and ISO session date read off the row\'s own as_of in its '
+                 'market\'s time',
          'window': 'latest source quote',
-         'missing': 'source null if absent; session only on datestamped quotes without day '
-                    'change'},
+         'missing': 'source null if absent; session absent on DXY and on rows without a '
+                    'readable as_of'},
         {'field': 'macro.treasury_10y_yield_pct', 'unit': 'percent yield', 'window': 'scan latest 10-year Treasury observation', 'missing': 'null'},
         {'field': 'macro.fear_greed',
          'unit': 'object {score: index 0-100, rating: text, as_of: ISO timestamp, '
@@ -103,6 +111,11 @@ SIGNAL_SOURCE = {
         {'field': 'em_news.market_724[].date / title', 'unit': 'publication date string and title', 'window': 'up to 5 scan results', 'missing': 'empty list'},
         _out('detail.stale_after_hours', 'hours', 'this stale read',
              'present on stale results; the configured cutoff used for this decision'),
+        _out('detail.sessions_behind',
+             'per market {session, expected}: newest index close vs latest completed session',
+             'this stale macro read',
+             'present only when a market\'s index rows close before its latest completed '
+             'session'),
         _out('status', 'ok, missing, stale or unreadable', 'this read', 'never null'),
         _out('age_hours', 'hours since the payload\'s generated_at', 'this read',
              'null without a readable stamp, and the reading is then stale'),
@@ -128,6 +141,47 @@ SIGNAL_SOURCE = {
 
 def _answer(status, reading=None, age=None, **detail):
     return {'status': status, 'reading': reading or {}, 'age_hours': age, 'detail': detail}
+
+
+#: The market whose session each index row closes on. DXY trades around the
+#: clock, so its stamp names no session and it carries none.
+INDEX_MARKETS = {'hsi': 'hk', 'hstech': 'hk', 'vix': 'us', 'spx': 'us', 'nasdaq': 'us'}
+
+
+def row_session(key, row) -> date | None:
+    """The session an index row's own `as_of` names: an ISO date as written, an
+    epoch read as a date in the row's market time."""
+    if key not in INDEX_MARKETS:
+        return None
+    stamp = row.get('as_of') if isinstance(row, dict) else None
+    if isinstance(stamp, str):
+        try:
+            return date.fromisoformat(stamp[:10])
+        except ValueError:
+            return None
+    if isinstance(stamp, (int, float)) and not isinstance(stamp, bool) and math.isfinite(stamp):
+        try:
+            return datetime.fromtimestamp(stamp, market_tz(INDEX_MARKETS[key])).date()
+        except (OverflowError, OSError, ValueError):
+            return None
+    return None
+
+
+def sessions_behind(scan, at=None) -> dict:
+    """Markets whose newest index close predates their latest completed session.
+
+    A market with no dated index row is not judged here; the wall-clock cutoff
+    still applies to the whole file.
+    """
+    behind = {}
+    for market in ('hk', 'us'):
+        seen = [row_session(key, scan.get(key)) for key, home in INDEX_MARKETS.items()
+                if home == market]
+        seen = [day for day in seen if day is not None]
+        expected = latest_completed_session(market, at) if seen else None
+        if expected is not None and max(seen) < expected:
+            behind[market] = {'session': max(seen).isoformat(), 'expected': expected.isoformat()}
+    return behind
 
 
 class Scans:
@@ -159,21 +213,25 @@ class Scans:
     def is_stale(self, age) -> bool:
         return is_stale(age, self.stale_after_hours)
 
-    def _reading(self, workspace, scan, build):
+    def _reading(self, workspace, scan, build, behind=None, at=None):
         found = self.document(self.path(workspace, scan))
         if found['status'] == MISSING:
             return _answer(MISSING)
         if found['status'] == UNREADABLE:
             return _answer(UNREADABLE, error=found['error'], message=found['message'])
-        age = payload_age_hours(found['payload'])
+        age = payload_age_hours(found['payload'], at)
         if self.is_stale(age):
             return _answer(STALE, age=age, stale_after_hours=self.stale_after_hours)
+        lagging = behind(found['payload'], at) if behind else None
+        if lagging:
+            return _answer(STALE, age=age, stale_after_hours=self.stale_after_hours,
+                           sessions_behind=lagging)
         try:
             return build(found['payload'], age)
         except Exception as exc:
             return _answer(UNREADABLE, error=type(exc).__name__, message=str(exc))
 
-    def macro(self, workspace) -> dict:
+    def macro(self, workspace, at=None) -> dict:
         """The macro snapshot, trimmed for the brief and classified."""
         def build(scan, age):
             def quote(key):
@@ -182,10 +240,10 @@ class Scans:
                     return None
                 out = {'price': row.get('price'), 'change_pct': row.get('change_pct'),
                        'source': row.get('source')}
-                # A row without a day change is some session's close, not this
-                # morning's print: say which (#2347).
-                if row.get('change_pct') is None and isinstance(row.get('as_of'), str):
-                    out['session'] = row['as_of']
+                # Every index row names the session it closes on (#2347, #2988).
+                session = row_session(key, row)
+                if session is not None:
+                    out['session'] = session.isoformat()
                 return out
             reading = {
                 'as_of': scan.get('generated_at'),
@@ -202,7 +260,7 @@ class Scans:
             }
             reading['regime'] = classify_regime(reading)
             return _answer(OK, reading, age)
-        return self._reading(workspace, 'macro', build)
+        return self._reading(workspace, 'macro', build, behind=sessions_behind, at=at)
 
     def em_news(self, workspace) -> dict:
         """Eastmoney's per-holding news and market feed, trimmed for the brief."""
