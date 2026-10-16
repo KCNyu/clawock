@@ -80,7 +80,8 @@ def notification(meta: dict, state: dict) -> str:
 
 def report(directory: Path, run: int | None = None) -> str:
     meta, state = read_env(directory / "meta.env"), read_env(directory / "result.env")
-    if run is None and state.get("STATE") in ("running", "queued", "waiting"):
+    terminal = {"ok", "partial", "unverified", "failed", "blocked", "timeout", "quota", "cancelled"}
+    if run is None and state.get("STATE") not in terminal:
         raise ValueError("Task has no terminal result yet; use status if needed.")
     latest = max((int(m[1]) for p in directory.glob("attempt*.*")
                   if (m := re.fullmatch(r"attempt(\d+)\.(json|jsonl)", p.name))), default=0)

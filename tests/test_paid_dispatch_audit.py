@@ -1,4 +1,5 @@
 """Paid dispatch regressions: private tasks, fake CLIs, no host services or sessions."""
+from datetime import datetime, timezone
 import fcntl
 import importlib.util
 import json
@@ -163,13 +164,13 @@ def test_usage_old_task_excludes_later_session_work(tmp_path, monkeypatch, agent
     task.mkdir()
     (task / 'meta.env').write_text(f'AGENT={agent}\nMODEL=fixture\n')
     # A queued task's creation precedes unrelated work; only its actual run is ours.
-    (task / 'result.env').write_text('STATE=ok\nSESSION=fixture\nUSAGE_START_EPOCH=100\nFINISHED_EPOCH=200\n')
-    events = [(90, 50), (150, 100), (250, 200)]
+    (task / 'result.env').write_text('STATE=ok\nSESSION=fixture\nUSAGE_START_EPOCH=150.2\nFINISHED_EPOCH=150.6\n')
+    events = [(150.1, 50), (150.3, 100), (150.7, 200)]
     if agent == 'claude':
         home = tmp_path / 'claude'
         monkeypatch.setattr(ops, 'CLAUDE_HOME', home)
         path = home / 'projects' / 'fixture' / 'fixture.jsonl'
-        records = [{'type': 'assistant', 'timestamp': f'1970-01-01T00:{t//60:02}:{t%60:02}Z',
+        records = [{'type': 'assistant', 'timestamp': datetime.fromtimestamp(t, timezone.utc).isoformat(),
                     'message': {'id': str(t), 'model': 'fixture', 'usage': {'input_tokens': n}}} for t, n in events]
     else:
         monkeypatch.setenv('CODEX_HOME', str(tmp_path / 'codex'))
@@ -178,7 +179,7 @@ def test_usage_old_task_excludes_later_session_work(tmp_path, monkeypatch, agent
         records = []
         for t, n in events:
             total += n
-            records.append({'timestamp': f'1970-01-01T00:{t//60:02}:{t%60:02}Z', 'payload': {
+            records.append({'timestamp': datetime.fromtimestamp(t, timezone.utc).isoformat(), 'payload': {
                 'type': 'token_count', 'info': {'total_token_usage': {'input_tokens': total}}}})
     path.parent.mkdir(parents=True)
     path.write_text(''.join(json.dumps(e)+'\n' for e in records))
@@ -218,3 +219,13 @@ def test_no_timestamp_usage_is_unknown(tmp_path, monkeypatch):
     path.write_text(json.dumps({'payload': {'type': 'token_count', 'info': {
         'total_token_usage': {'input_tokens': 100}}}})+'\n')
     assert ops.codex_usage('fixture', 100, 'fake', 200) is None
+
+
+def test_missing_state_never_promotes_an_old_report_to_current(tmp_path):
+    (tmp_path / 'attempt1.json').write_text('{"result":"old success"}')
+    with pytest.raises(ValueError, match='no terminal result'):
+        reader.report(tmp_path)
+    (tmp_path / 'result.env').write_text("STATE='running'\n")
+    with pytest.raises(ValueError, match='no terminal result'):
+        reader.report(tmp_path)
+    assert 'old success' in reader.report(tmp_path, 1)
