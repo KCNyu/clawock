@@ -130,6 +130,18 @@ def test_tool_proof_rejects_a_string_and_failed_tool():
     assert probe.verdict([{'type': 'error', 'error': {'message': 'FreeUsageLimitError 429'}}], 0) == 'rate_limited'
 
 
+def test_completed_tool_with_provider_thinking_terminator_is_verified():
+    # Observed in the first scheduled big-pickle probe; no new inference needed.
+    text = {'type': 'text', 'part': {'text': '</think>PROBE-OK'}}
+    tool = {'type': 'tool_use', 'part': {'tool': 'bash', 'state': {'status': 'completed',
+            'input': {'command': 'echo TOOL-PROBE-OK'}, 'output': 'TOOL-PROBE-OK\n'}}}
+    assert probe.verdict([tool, text], 0) == 'verified_tool'
+    assert probe.verdict([text], 0) == 'unverified'
+    assert probe.verdict([tool, text], 1) == 'unverified'
+    tool['part']['state']['status'] = 'error'
+    assert probe.verdict([tool, text], 0) == 'unverified'
+
+
 def test_probe_window_frequency_and_failure_backoff_leave_other_candidates_a_turn():
     now = datetime.now(ZoneInfo('Asia/Shanghai')).replace(hour=4, minute=0, second=0).timestamp()
     assert probe.next_model([SEED, NEW], {}, now) is None
