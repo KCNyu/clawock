@@ -2095,6 +2095,7 @@ def test_a_mover_note_carries_the_time_it_was_written(monkeypatch):
                'generated_at': '2026-10-05T18:33:55Z', '_source': 'intraday-insights-2026-10-06.json'}
     monkeypatch.setattr(dashboard, 'load_tmp_sidecar',
                         lambda name, **kwargs: sidecar if name == 'intraday-insights' else {})
+    monkeypatch.setattr(dashboard, 'intraday_status_outlived', lambda *args, **kwargs: False)
     holding = {'ticker': 'SPCX', 'shares': 1, 'current_price': 171.09, 'current_value': 171.09}
     portfolio = {'portfolios': {'us_stocks': {'holdings': [holding]}, 'hk_stocks': {'holdings': []}}}
     out = {'today_movers': [{'ticker': 'SPCX', 'current_price': 171.09},
@@ -2106,6 +2107,41 @@ def test_a_mover_note_carries_the_time_it_was_written(monkeypatch):
     assert noted['note'] == '现价 167.07 在当日高位'
     assert noted['note_at'] == '2026-10-05T18:33:55Z'
     assert 'note' not in bare and 'note_at' not in bare
+
+
+def test_an_intraday_banner_ends_with_the_session_it_was_written_in():
+    """#3009: written 14:34 ET, published 09:40 HKT beside the US close."""
+    at = datetime(2026, 10, 16, 1, 40, 6, tzinfo=timezone.utc)
+    assert dashboard.intraday_status_outlived('2026-10-15T18:34:11Z', at=at)
+    # Inside the session it was written in it stands, however long ago.
+    assert not dashboard.intraday_status_outlived('2026-10-15T13:40:00Z', at=datetime(
+        2026, 10, 15, 19, 55, tzinfo=timezone.utc))
+    assert not dashboard.intraday_status_outlived(
+        '2026-10-16T03:35:41Z', at=datetime(2026, 10, 16, 7, 50, tzinfo=timezone.utc))
+    # The HK close settles; the 11:35 HKT banner is that session's.
+    assert dashboard.intraday_status_outlived(
+        '2026-10-16T03:35:41Z', at=datetime(2026, 10, 16, 9, 5, tzinfo=timezone.utc))
+    for unknown in (None, '', 'yesterday', '2026-10-16T03:35:41'):
+        assert dashboard.intraday_status_outlived(unknown, at=at)
+
+
+def test_an_outlived_intraday_banner_is_not_published(monkeypatch):
+    sidecar = {'status_banner': '今日账面主要亏在两倍腿 RKLX -19.7% 与 SPCH -7.5%。',
+               'movers': {'RKLX': '两倍腿 -19.7%'}, 'generated_at': '2026-10-15T18:34:11Z',
+               '_source': 'intraday-insights-2026-10-16.json'}
+    monkeypatch.setattr(dashboard, 'load_tmp_sidecar',
+                        lambda name, **kwargs: dict(sidecar) if name == 'intraday-insights' else {})
+    holding = {'ticker': 'RKLX', 'shares': 1, 'current_price': 10.0, 'current_value': 10.0}
+    portfolio = {'portfolios': {'us_stocks': {'holdings': [holding]}, 'hk_stocks': {'holdings': []}}}
+    out, presence = {'today_movers': [{'ticker': 'RKLX', 'current_price': 10.0}]}, {}
+
+    dashboard._narrative_cards(out, presence, portfolio, [holding], [], {}, 7.8)
+
+    assert out['status_banner'] is None
+    assert out['status_banner_meta']['stale'] is True
+    assert 'note' not in out['today_movers'][0]
+    # Present but outlived: the previous payload's banner is not restored either.
+    assert presence['status_banner'] is True
 
 
 @pytest.mark.parametrize('shares', [100, '100', 'invalid', None, '0'])
