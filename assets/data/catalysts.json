@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-15T08:03:35.707666+08:00",
+  "generated_at": "2026-10-16T08:03:49.769126+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-15",
-  "window_end": "2026-10-29",
+  "window_start": "2026-10-16",
+  "window_end": "2026-10-30",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -19,14 +19,14 @@
   ],
   "macro_events": [
     {
-      "date": "2026-10-15",
-      "type": "CPI",
-      "detail": "Sep CPI release (BLS 8:30 ET)"
-    },
-    {
       "date": "2026-10-29",
       "type": "GDP",
       "detail": "Q3 2026 GDP advance estimate"
+    },
+    {
+      "date": "2026-10-30",
+      "type": "PCE",
+      "detail": "Sep PCE price index (BEA, Fed preferred inflation gauge)"
     }
   ],
   "scheduled_events": [],
@@ -36,6 +36,6 @@
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "CPI 2026-10-15"
+    "highest_impact_within_7d": null
   }
 }

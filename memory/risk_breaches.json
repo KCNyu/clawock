@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-15T00:15:25+00:00",
+  "updated_at": "2026-10-16T00:16:36+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,16 +11,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-15T00:04:32+00:00",
-      "last_changed_at": "2026-10-15T00:04:32+00:00",
-      "age_days": 92,
+      "last_seen_at": "2026-10-16T00:05:10+00:00",
+      "last_changed_at": "2026-10-16T00:05:10+00:00",
+      "age_days": 93,
       "recurrence_count": 1,
-      "detail": "RKLX 浮亏 -75.9% ≤ 硬止损线 -18%",
+      "detail": "RKLX 浮亏 -79.1% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 10,
-        "minimum_value": 120.0,
+        "minimum_value": 104.0,
         "currency": "USD",
         "target_tickers": [
           "RKLX"
@@ -43,10 +43,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "0e58c2bfb40db388",
+      "fingerprint": "3ce83e838b95948a",
       "resolution": null,
       "standing": {
-        "days_open": 92,
+        "days_open": 93,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -58,7 +58,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -75.9
+        "value": -79.1
       },
       "adaptive": {
         "eligible": true,
@@ -83,15 +83,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-10-14",
-        "days_since_reissue": 1,
+        "days_since_reissue": 2,
         "forced_on": "2026-11-11",
         "rearm_at": "浮亏 ≤ -81.4%",
         "stances": [
-          {
-            "date": "2026-10-01",
-            "choice": "reissue",
-            "why": "硬止损已开 78 天、浮亏 -65.5%、回本需 +190.2%，基础标的 20 日波动 53.4% 让 2x 横盘每月白付 2.38% 衰减。今天与 9 月 30 日那次重提相比没有实质变化，所以不改成开盘砍单，保持同一个反弹价。"
-          },
           {
             "date": "2026-10-02",
             "choice": "reissue",
@@ -136,6 +131,11 @@
             "date": "2026-10-15",
             "choice": "stand",
             "why": "维持今天不减，但这是全账上最该被处理的一条：92 天没有结论。钱只有 120 美元，真正的账是横盘时两倍腿每月按 67% 的波动付 3.8 个点衰减，这个月它已经付过一次；标的 Neutron 已经从推迟变成反复，收盘后又跌约 8%，离 200 日线还差 27.3%。方案失效的条件很清楚：标的再破 52 周低位时，换成正股只是把同一个坑摊到一年上，那时候该改主意而不是继续等。"
+          },
+          {
+            "date": "2026-10-16",
+            "choice": "stand",
+            "why": "维持，但把这笔在打法里的位置说清楚：全账只有 104 美元、占美国腿 3.17%，月度横盘衰减 3.62 个点虽然绝对值比 SPCH 高，按投入资本的倍数算它是最小的一笔。上次重提是前天，Neutron 从四季度推到 2027 已经整段计进正股 55.25 的收盘价，今天没有新的一手催化，也没有跌破会改变打法的关键位——65.35 的吊灯线、58.84 的前 20 日低点都还在上方，浮亏 -79.1% 距离重新武装的 -81.4% 也还有余量。在这套打法里最该盯的不是它自己，"
           }
         ]
       }
@@ -149,16 +149,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-10-15T00:04:32+00:00",
-      "last_changed_at": "2026-10-15T00:04:32+00:00",
-      "age_days": 63,
+      "last_seen_at": "2026-10-16T00:05:10+00:00",
+      "last_changed_at": "2026-10-16T00:05:10+00:00",
+      "age_days": 64,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -36.4% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -39.7% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 7200,
-        "minimum_value": 18849.6,
+        "minimum_value": 17870.4,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -181,10 +181,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "a0ff0b4a616e1f43",
+      "fingerprint": "34951fcebce8a77e",
       "resolution": null,
       "standing": {
-        "days_open": 63,
+        "days_open": 64,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -196,7 +196,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -36.4
+        "value": -39.7
       },
       "adaptive": {
         "eligible": true,
@@ -217,19 +217,14 @@
         },
         "anchor": {
           "kind": "pnl_pct",
-          "value": -35.7
+          "value": -39.7
         },
         "anchor_severity": "critical",
-        "last_reissued_on": "2026-10-12",
-        "days_since_reissue": 3,
-        "forced_on": "2026-11-09",
-        "rearm_at": "浮亏 ≤ -45.7%",
+        "last_reissued_on": "2026-10-16",
+        "days_since_reissue": 0,
+        "forced_on": "2026-11-13",
+        "rearm_at": "浮亏 ≤ -49.7%",
         "stances": [
-          {
-            "date": "2026-10-01",
-            "choice": "stand",
-            "why": "硬止损破位已 49 天，今天不重复第 6 遍应该砍的提醒。恒科 4217 破位就说明这套打法本身不成立，因为 2x 在下跌里每天付重置成本；加仓仍然冻结，维持不等于可以加。"
-          },
           {
             "date": "2026-10-02",
             "choice": "stand",
@@ -274,6 +269,11 @@
             "date": "2026-10-15",
             "choice": "stand",
             "why": "维持不减不加，但这条不能继续空转：它已经开了 63 天，既没有成交记录也没有确认记录。要么执行换仓到一倍同类，要么在风险账本上留一句确认，要么写清今天为什么不做，三选一必须留痕。真正要看的位是标的收复 4908.61 200 日线的那天；在此之前两倍腿每月按 22% 的波动付 0.4 个点横盘衰减，这个数很小，说明继续扛的成本不是 decay，而是再跌时双倍挨打。"
+          },
+          {
+            "date": "2026-10-16",
+            "choice": "reissue",
+            "why": "今天和 10-12 那次重提比，变了的是利率制度而不是股价：美国 9 月 CPI 同比 3.7% 高于预期，交易员给 10 月加息 25 个基点的押注升到 43.7%，9 月纪要 19 位官员一致支持加到 3.75%-4.00%，下一次决议就在 10-28。恒科收 4060.99、离 200 日线还差 17.1%，而这笔是港股腿 35.23% 的两倍敞口；横盘衰减每月只有 0.46 个点，真正贵的不是衰减，是在一个开始定价加息的市场里继续按两倍押同一个已经破位的因子。按既定打"
           }
         ]
       }
