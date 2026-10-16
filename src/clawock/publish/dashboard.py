@@ -2684,6 +2684,29 @@ def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
     return out
 
 
+def intraday_status_outlived(generated_at, at=None):
+    """Has a market session finished since the intraday banner was written?
+
+    The banner's figures are one intraday moment's (`generated_at`, written by
+    the postflight harness). Once a session settles after that moment, the
+    holdings table beside it prints the close, and the banner's 「今日」 is
+    another reading of a day that is over: RKLX -19.7% at 14:34 ET was
+    published at 09:40 HKT next to its -13.33% close (#3009). The old 24-hour
+    mtime limit let it stand for a whole session past the close. A banner that
+    does not say when it was written cannot say it is still current.
+    """
+    try:
+        written = datetime.fromisoformat(str(generated_at).replace('Z', '+00:00'))
+    except ValueError:
+        return True
+    if written.tzinfo is None:
+        return True
+    at = at or datetime.now(timezone.utc)
+    return any(trading_calendar.latest_completed_session(market, at=at)
+               != trading_calendar.latest_completed_session(market, at=written)
+               for market in trading_calendar.MARKET_TZ)
+
+
 def validate_intraday_insights(data, known_tickers):
     """Schema + sanity gate for the intraday sidecar (status_banner + per-mover
     attribution). Mover notes only survive for tickers that actually exist in the
@@ -4562,6 +4585,9 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
     # intraday insights (every 30min): status_banner + per-mover attribution.
     _intra = load_tmp_sidecar('intraday-insights', max_age_days=1)
     intra_present = bool(_intra)  # file existed in this checkout (vs. GHA-absent)
+    if intra_present and not _intra.get('_invalid'):
+        _intra['_stale'] = bool(_intra.get('_stale')) or intraday_status_outlived(
+            _intra.get('generated_at'))
     _intra_v = validate_intraday_insights({} if _intra.get('_stale') else _intra, known_tickers)
     out['status_banner'] = _intra_v['status_banner']
     out['status_banner_meta'] = {
