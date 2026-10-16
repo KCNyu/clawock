@@ -153,7 +153,11 @@ runner atomically saves its own terminal explanation in `runner-summary.txt`, so
 zero-attempt session-lock refusal is queryable without a model report. An incomplete
 latest run never falls back to an earlier successful report. `--run N` selects a
 historical model report, with a warning that the envelope describes the latest task
-state. A terminal append still creates a separate task and now stores `PARENT_TASK_ID`.
+state. A terminal append still creates a separate task and now stores `PARENT_TASK_ID`;
+its output ends with `receipt: {requested_task_id, actual_task_id: <the new task>,
+message_id: null, disposition: "continued_as_new_task"}`. `dispatch.sh status <id>` prints
+`parent:` and `children:` (tasks whose `PARENT_TASK_ID` is this id) and one `run N:` line per
+`attempt<N>.env` (prompt kind, started yes/no, rc, result).
 `dispatch.sh log <id>` aliases ops log. `status --all` lists all retained tasks including
 patrol rounds; the default list stays at ten and includes notification/stop fields.
 
@@ -188,6 +192,18 @@ The runner (api 3) runs `usage` after every attempt and at the end, and keeps th
 `result.env` (`TOKENS_IN`, `TOKENS_CACHE_W`, `TOKENS_CACHE_R`, `TOKENS_OUT`, `TOKENS_TOTAL`,
 `COST_USD`; empty when nothing was found). A live task's figures are therefore as of its last
 finished attempt.
+
+### summary — totals over the frozen results
+
+`summary [--since YYYY-MM-DD] [--agent claude,codex,opencode] [--all]` (`dispatch.sh summary`)
+counts, per agent, tasks by runner `STATE` and by model `OUTCOME`, and adds up the
+`TOKENS_TOTAL` / `COST_USD` each terminal task froze into `result.env`. It never rereads a
+session (a later task continuing the same session would be counted twice). An empty value is
+`tokens_unknown` / `cost_unpriced`, never 0; `free` is counted apart; live tasks are counted as
+tasks but stay out of the totals. Patrol rounds are left out unless `--all`. The amount is the
+same API list-price estimate as `usage` (`cost_kind: estimate`): there is no per-task
+attribution of subscription quota (the 5h/weekly windows are account-wide and shared with
+interactive use), so the summary does not offer one.
 
 ### brief — the task's instructions, read-only
 
@@ -296,6 +312,25 @@ without spending an attempt, a quota resume or a notification — the limits are
 account. At the reset the sleeper re-queues with its original `QUEUED_AT`; the first
 attempt that gets through deletes the hint.
 
+A task that ends on quota (`reset_after_deadline`, `no_session`, `quota_resume_budget`)
+deliberately writes no hint: nobody would be left to clear it, so one misread reset (a weekly
+one is days away) would hold every later task of the agent without a single attempt, while the
+attempt a hint saves fails fast on an exhausted account. Admission is a prompt only: a new
+claude/codex task prints the account's quota line (`quota.mjs`, 90 s cache, 8 s bound) and
+starts anyway. The runner never refuses on a low balance, never changes the model or effort it
+was given, never moves a task to another agent, and does not raise the resume budgets
+(`QUOTA_RESUMES` stays inside `MAX_ATTEMPTS` and the deadline; the quota stops seen so far were
+resets past the deadline, which more resumes would not reach; a longer `--deadline` does).
+
+Nothing is replayed automatically (2026-10-16): not an append refused while a task finishes
+(the refusal queued nothing and says when to retry; continuing would be one more paid run nobody
+asked for, and the race hit 1 of 360 tasks before the handshake), not an append whose run
+failed (in the 8 tasks where a run carrying appends ended in quota or an error, all 18 of their
+delivered appends were in the session record, so a resend would run them twice), not one taken by a run that never started (that happens only
+when a cancel or the deadline stops the task, where re-sending contradicts the stop), and not a
+failed notification or wake turn (the 10 tasks whose legs both failed include three within four
+seconds of each other, a shared cause a retry would hit again; a wake turn may have acted).
+
 ## Runner fields the chip reads
 
 `result.env`, besides `STATE/RC/OUTCOME/SESSION/ATTEMPTS/WAITING/SLOT/MODEL_USED/…`:
@@ -388,7 +423,9 @@ Each leg is `openclaw message send --channel … --target …` with the targets 
 The legs run in parallel, each once, with a time limit: 60 s for the end-of-task and the
 quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 Delivery is **best-effort**. A failed leg never changes the task's state, is not retried,
-and raises no alarm. It is one `notify: send failed (<leg>)` line in `run.log`, and
+and raises no alarm. It is one `notify: send failed (<leg>): rc=<n> <reason>` line in `run.log`
+(the reason is the last stderr line of the send, redacted and cut to 200 characters, or
+`timed out after <n>s` for rc 124), and
 `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` in `result.env`, which the chip shows as the
 receipt icons. A successful command does not establish receipt or reading on a
 phone; a failed command does not establish that the other leg failed. The CLI result

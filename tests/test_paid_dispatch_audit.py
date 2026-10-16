@@ -269,3 +269,60 @@ def test_missing_state_never_promotes_an_old_report_to_current(tmp_path):
     with pytest.raises(ValueError, match='no terminal result'):
         reader.report(tmp_path)
     assert 'old success' in reader.report(tmp_path, 1)
+
+
+def _task(base, task_id, meta, result):
+    d = base / task_id
+    d.mkdir(parents=True)
+    (d / 'meta.env').write_text(''.join(f'{k}={shlex.quote(v)}\n' for k, v in {'ID': task_id, **meta}.items()))
+    (d / 'result.env').write_text(''.join(f'{k}={shlex.quote(v)}\n' for k, v in result.items()))
+    return d
+
+
+def test_summary_counts_frozen_results_only_and_keeps_unknown_apart(tmp_path, monkeypatch):
+    monkeypatch.setattr(ops, 'TASKS_DIR', tmp_path)
+    new = {'CREATED': '2026-10-16 10:00:00'}
+    _task(tmp_path, 'a', {'AGENT': 'claude', **new}, {'STATE': 'ok', 'OUTCOME': 'DONE', 'TOKENS_TOTAL': '100', 'COST_USD': '1.50'})
+    _task(tmp_path, 'b', {'AGENT': 'claude', **new}, {'STATE': 'running', 'TOKENS_TOTAL': '50', 'COST_USD': '9'})
+    _task(tmp_path, 'c', {'AGENT': 'codex', **new}, {'STATE': 'partial', 'OUTCOME': 'BLOCKED', 'TOKENS_TOTAL': '', 'COST_USD': ''})
+    _task(tmp_path, 'patrol-x', {'AGENT': 'opencode', **new}, {'STATE': 'ok', 'TOKENS_TOTAL': '7', 'COST_USD': 'free'})
+    _task(tmp_path, 'old', {'AGENT': 'claude', 'CREATED': '2026-10-01 10:00:00'}, {'STATE': 'ok', 'TOKENS_TOTAL': '1000', 'COST_USD': '5'})
+    out = ops.cmd_summary(argparse.Namespace(since='2026-10-10', agent='', all=False))
+    claude, codex, opencode = (out['agents'][a] for a in ('claude', 'codex', 'opencode'))
+    # the live task counts as a task but its moving numbers stay out; the old one is before --since
+    assert (claude['tasks'], claude['live'], claude['tokens_total'], claude['cost_usd_estimate']) == (2, 1, 100, 1.5)
+    assert claude['states'] == {'ok': 1, 'running': 1}
+    assert (codex['tokens_total'], codex['tokens_unknown'], codex['cost_unpriced'], codex['outcomes']) == (0, 1, 1, {'BLOCKED': 1})
+    assert opencode['tasks'] == 0 and out['cost_kind'] == 'estimate'
+    out = ops.cmd_summary(argparse.Namespace(since='', agent='opencode', all=True))
+    assert list(out['agents']) == ['opencode'] and out['agents']['opencode']['cost_free'] == 1
+    with pytest.raises(ops.OpsError):
+        ops.cmd_summary(argparse.Namespace(since='16-10', agent='', all=False))
+
+
+def test_status_shows_lineage_and_runs_and_a_continuation_returns_a_receipt(sandbox):
+    root, task, env, _, _ = sandbox
+    tools = root / 'tools'
+    (task / 'result.env').write_text("STATE=ok\nSESSION=fixture-session\n")
+    (task / 'attempt1.env').write_text("RUN_NO=1\nKIND=task\nSTARTED_EPOCH=1.5\nRC=0\nAKIND=ok\n")
+    (task / 'attempt2.env').write_text("RUN_NO=2\nKIND=append\nSTARTED_EPOCH=''\n")
+    _task(task.parent, 'later', {'AGENT': 'codex', 'PARENT_TASK_ID': 'example'}, {'STATE': 'ok'})
+    run = lambda *a, **kw: subprocess.run(['bash', str(tools / 'dispatch.sh'), *a], text=True, capture_output=True,
+                                         env=env, timeout=30, **kw)
+    out = run('status', 'example').stdout
+    assert 'children: later' in out
+    assert 'run 1: prompt=task started=yes rc=0 result=ok' in out
+    assert 'run 2: prompt=append started=no rc=- result=-' in out
+    assert 'parent: example' in run('status', 'later').stdout
+    # an append to the ended task continues it as a new task; the receipt names that task
+    (tools / 'systemctl').write_text('#!/bin/sh\necho inactive\n')
+    (tools / 'systemd-run').write_text('#!/bin/sh\nexit 0\n')
+    (tools / 'systemd-run').chmod(0o755)
+    (tools / 'quota').write_text('#!/bin/sh\necho "额度：fixture"\n')
+    (tools / 'dispatch.sh').chmod(0o755)   # the continuation re-runs "$0"
+    r = run('append', 'example', input='more')
+    assert r.returncode == 0, r.stderr
+    receipt = json.loads(next(line for line in r.stdout.splitlines() if line.startswith('receipt: '))[9:])
+    assert receipt['requested_task_id'] == 'example' and receipt['disposition'] == 'continued_as_new_task'
+    assert receipt['actual_task_id'] != 'example' and (task.parent / receipt['actual_task_id'] / 'meta.env').is_file()
+    assert 'quota:    额度：fixture (informational' in r.stdout

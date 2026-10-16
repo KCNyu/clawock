@@ -368,10 +368,16 @@ notify_one() {  # <label> <channel> <target> <message> <timeout>
     echo "notify: $label target not configured"
     return 1
   fi
-  if timeout "$tmo" openclaw message send --channel "$channel" --target "$target" -m "$msg" >/dev/null 2>&1; then
+  local err rc=0
+  err=$(timeout "$tmo" openclaw message send --channel "$channel" --target "$target" -m "$msg" 2>&1 >/dev/null) || rc=$?
+  if [ "$rc" -eq 0 ]; then
     echo "notify: sent ($label)"
   else
-    echo "notify: send failed ($label)"
+    # Why it failed, one bounded line in run.log (no new file): the stderr used to be dropped,
+    # so the 22 tasks with a failed leg up to 2026-10-16 left nothing to diagnose them by.
+    [ "$rc" -eq 124 ] && err="timed out after ${tmo}s"
+    err=$(printf '%s\n' "$err" | grep -v '^[[:space:]]*$' | tail -n 1 | redact | clip head 200)
+    echo "notify: send failed ($label): rc=$rc${err:+ $err}"
     return 1
   fi
 }

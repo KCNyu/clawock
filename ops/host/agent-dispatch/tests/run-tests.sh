@@ -594,6 +594,7 @@ e36=0; bash "$R" "$d36" || e36=$?
 expect "a failed WeChat leg keeps the task ok and its exit 0" "$e36/$(field "$d36" STATE)/$(field "$d36" OUTCOME)" 0/ok/DONE
 expect "receipts split by leg" "$(field "$d36" NOTIFIED)/$(field "$d36" NOTIFY_FAILED)" telegram/weixin
 expect_grep "the failed leg is in the log" "notify: send failed (weixin)" "$d36/run.log"
+expect_grep "with the reason the send gave" "notify: send failed (weixin): rc=1 ret=-2 prepare failed" "$d36/run.log"
 
 echo; echo "=== [37] channel list edge cases: case, spaces, duplicates, none, unknown, empty items ($(date +%T))"
 reset_fake claude slow-ok; echo 1 >"$FAKE_DIR/claude.slow"
