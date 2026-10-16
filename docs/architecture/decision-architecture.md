@@ -260,7 +260,10 @@ author model (unknown unless the runner identifies it), prompt/code digest,
 review findings and cited compute receipts. The generation's packet is kept
 once by content hash in `memory/proposal-inputs/`; a reference in each proposal
 preserves its observations after temporary context cleanup. Revisions append
-records; they do not rewrite earlier forecasts. An unterminated log blocks an
+records; they do not rewrite earlier forecasts. A re-run of the same plan
+appends nothing: the record id hashes the content and authorship except the
+code commit, which moves whenever the first pass commits its artifacts, and
+`load` reads older rows that differ only in that commit once. An unterminated log blocks an
 append and preserves the original for recovery. Proposal logging failure is
 reported without blocking brief delivery.
 
