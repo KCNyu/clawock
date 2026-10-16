@@ -1,4 +1,5 @@
 """Paid dispatch regressions: private tasks, fake CLIs, no host services or sessions."""
+import argparse
 from datetime import datetime, timezone
 import fcntl
 import importlib.util
@@ -122,16 +123,51 @@ def test_append_before_close_is_consumed_and_during_finish_is_refused(sandbox):
     assert refused.returncode == 3
     assert 'nothing queued' in refused.stderr
     assert not list((task / 'inbox').glob('*.md'))
+    assert refused.stderr.startswith('task_finishing:')
     (root / 'hold-finish').unlink()
     assert proc.wait(timeout=5) == 0
     assert (task / 'inbox-state').read_text().strip() == 'terminal'
+    assert reader.read_env(task / 'result.env')['STOP_REASON'] == 'completed'
+    assert 'stop_reason: completed' in reader.report(task)
+    for run, kind in ((1, 'task'), (2, 'append')):
+        record = reader.read_env(task / f'attempt{run}.env')
+        assert (record['KIND'], record['RC'], record['AKIND']) == (kind, '0', 'ok') and record['STARTED_EPOCH']
 
 
-def test_append_to_old_runner_does_not_claim_acceptance(sandbox):
+def test_append_refusals_say_how_long_to_wait(sandbox):
     _, task, _, _, append = sandbox
     refused = append()
-    assert refused.returncode == 3
+    assert refused.returncode == 3 and refused.stderr.startswith('task_starting:')
+    # A runner from before the handshake publishes result.env and never inbox-state.
+    (task / 'result.env').write_text('STATE=running\nRUNNER_API=3\n')
+    refused = append()
+    assert refused.returncode == 3 and refused.stderr.startswith('legacy_runner:')
+    assert 'runner api 3' in refused.stderr and 'nothing queued' in refused.stderr
+    (task / 'inbox-state').write_text('finishing\n')
+    refused = append()
+    assert refused.returncode == 3 and refused.stderr.startswith('task_finishing:')
     assert not list((task / 'inbox').glob('*.md'))
+
+
+def test_append_taken_by_a_run_that_never_started_is_not_delivered(sandbox, monkeypatch):
+    _, task, _, start, _ = sandbox
+    (task / 'inbox').mkdir()
+    (task / 'inbox' / '20260101-000000-1-queue.md').write_text('extra instruction')
+    # Run 1 takes the message, then a cancel lands at the launch barrier before its CLI starts.
+    with (task / '.launch.lock').open('w') as barrier:
+        fcntl.flock(barrier, fcntl.LOCK_EX)
+        proc = start()
+        wait_for(lambda: (task / 'inbox' / 'delivered' / '20260101-000000-1-queue.md.run').exists())
+        (task / 'cancel-requested').touch()
+    assert proc.wait(timeout=10) == 143
+    assert not (task / 'attempt1.env').exists()
+    log = (task / 'run.log').read_text()
+    assert 'inbox: 1 appended message(s) taken by a run that never started; not delivered' in log
+    monkeypatch.setattr(ops, 'TASKS_DIR', task.parent)
+    out = ops.cmd_brief(argparse.Namespace(id='example'))
+    [entry] = out['appends']
+    assert (entry['disposition'], entry['delivered'], entry['dropped']) == ('taken_not_started', False, True)
+    assert entry['run'] == {'started': False, 'rc': None, 'kind': None, 'prompt_kind': None}
 
 
 def test_default_quota_and_attempt_budgets_remain_three(sandbox):
@@ -190,6 +226,10 @@ def test_usage_old_task_excludes_later_session_work(tmp_path, monkeypatch, agent
     with (task / 'result.env').open('a') as f:
         f.write('TOKENS_IN=100\nTOKENS_CACHE_W=0\nTOKENS_CACHE_R=0\nTOKENS_OUT=0\nTOKENS_TOTAL=100\n')
     assert ops.task_usage(task)['tokens']['in'] == 100
+    assert ops.task_usage(task)['models'] == ['fixture']
+    with (task / 'result.env').open('a') as f:
+        f.write('MODEL_USED=fixture-used\n')
+    assert ops.task_usage(task)['models'] == ['fixture-used']
 
 
 def test_session_busy_has_zero_attempt_reason_and_no_usage(sandbox, monkeypatch):

@@ -781,7 +781,7 @@ def task_timeline(d: Path) -> dict:
                 pending_drops = []
                 add(boundary[1], "started" if boundary[2] == "start" else "ended", "" if boundary[2] == "start" else boundary[2])
                 continue
-            if re.fullmatch(r"inbox: \d+ appended message\(s\) not delivered", line):
+            if re.fullmatch(r"inbox: \d+ appended message\(s\) (?:taken by a run that never started; )?not delivered", line):
                 pending_drops.append(line)
                 continue
             m = re.match(r"^(?:---- )?(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (.+)$", line)
@@ -1038,10 +1038,13 @@ def task_usage(d: Path) -> dict:
             keys = {"in": "TOKENS_IN", "cache_w": "TOKENS_CACHE_W", "cache_r": "TOKENS_CACHE_R",
                     "out": "TOKENS_OUT", "total": "TOKENS_TOTAL"}
             if all(result.get(k, "").isdigit() for k in keys.values()):
+                # The frozen totals carry no per-model split; the model is what the runner last used.
+                model = result.get("MODEL_USED") or meta.get("MODEL", "")
                 return {**base, "tokens": {k: int(result[v]) for k, v in keys.items()},
                         "cost_usd": result.get("COST_USD", ""),
                         "cost_kind": "estimate" if result.get("COST_USD") else "unpriced",
-                        "reason": "legacy frozen usage; end boundary unknown"}
+                        "models": [model] if model else [],
+                        "reason": "legacy frozen usage; end boundary unknown; model from MODEL_USED"}
             return {**base, "reason": "terminal task has no reliable usage boundary or frozen usage"}
     base["usage_as_of"] = until
     per_model, cost_kind, cost = None, "unknown", ""
@@ -1097,11 +1100,21 @@ def capped(path: Path, limit: int) -> tuple[str, int, bool]:
     return raw[:limit].decode("utf-8", "ignore"), size, cut
 
 
+def run_outcome(d: Path, run_no: int) -> dict:
+    """Whether run <run_no> launched its CLI and how it returned (rc, kind); None fields are unknown."""
+    rec = read_env(d / f"attempt{run_no}.env")
+    return {"started": bool(rec.get("STARTED_EPOCH")), "rc": to_int(rec.get("RC"), None), "kind": rec.get("AKIND") or None,
+            "prompt_kind": rec.get("KIND") or None}
+
+
 def cmd_brief(args) -> dict:
     d = task_dir(args.id)
     meta = read_env(d / "meta.env")
     text, size, cut = capped(d / "prompt.md", BRIEF_MAX_BYTES)
-    ended = read_env(d / "result.env").get("STATE") in TERMINAL
+    result = read_env(d / "result.env")
+    ended = result.get("STATE") in TERMINAL
+    # Runner api 4 records each run's launch in attempt<N>.env; older runners leave it unknown.
+    records_runs = to_int(result.get("RUNNER_API"), 1) >= 4
     appends, budget = [], APPENDS_MAX_BYTES
     entries = [(f, False) for f in (d / "inbox").glob("*.md")] + [(f, True) for f in (d / "inbox" / "delivered").glob("*.md")]
     for f, delivered in sorted(entries, key=lambda e: e[0].name):
@@ -1115,8 +1128,13 @@ def cmd_brief(args) -> dict:
             run_no = None
         disposition = ("attached_to_run" if run_no is not None else "taken_legacy") if delivered else (
             "not_delivered" if ended else "pending")
-        appends.append({"run_no": run_no, "disposition": disposition, "file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "dropped": ended and not delivered, "bytes": n,
-                        "text": body, "truncated": over})
+        run = run_outcome(d, run_no) if run_no is not None and records_runs else None
+        if run is not None and not run["started"] and ended:
+            # Moved out of the inbox, but its run was stopped before launching a CLI: not delivered.
+            disposition, delivered = "taken_not_started", False
+        appends.append({"run_no": run_no, "disposition": disposition, "run": run, "file": f.name, "path": str(f), "stamp": stamp,
+                        "delivered": delivered, "dropped": ended and not delivered,
+                        "bytes": n, "text": body, "truncated": over})
     # `truncated` stays prompt.md's own flag (the chip labels it with brief_bytes); the appends say
     # so each, and together in appends_truncated / dropped_bytes (#1988: the text answer used to
     # drop them without a word).
@@ -1302,6 +1320,12 @@ def human(action: str, out: dict) -> str:
             parts.append("\n---" + cut(out["brief_bytes"], out["brief"], out["path"]))
         for a in out["appends"]:
             status = "delivered" if a["delivered"] else "not delivered (task ended)" if a["dropped"] else "pending"
+            run = a.get("run")
+            if a["disposition"] == "taken_not_started":
+                status = f"taken by run {a['run_no']}, which never started; not delivered"
+            elif run:
+                status += (f", run {a['run_no']} " + ("no rc recorded yet" if run["rc"] is None else f"rc={run['rc']} {run['kind']}")
+                           if run["started"] else f", run {a['run_no']} not started yet")
             head = f"\n\n--- append {a['stamp']} ({status})"
             parts.append(head + (cut(a["bytes"], a["text"], a["path"]) if a["truncated"] else "") + "\n" + a["text"])
         if out.get("dropped_bytes"):

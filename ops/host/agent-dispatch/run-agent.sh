@@ -22,8 +22,10 @@
 set -uo pipefail
 # What this runner publishes and honours; task_queue_ops.py refuses priority/model changes for a
 # task whose result.env carries an older RUNNER_API (its runner cannot apply them), and budget
-# changes (deadline, attempts, resumes) below api 3.
-RUNNER_API=3
+# changes (deadline, attempts, resumes) below api 3. Api 4 writes attempt<N>.env when run N
+# launches its CLI and when it returns, so a brief tells an append taken by a run that never
+# started from a delivered one; dispatch.sh names the runner api when it refuses an append.
+RUNNER_API=4
 
 DIR="$1"
 # shellcheck disable=SC1091
@@ -194,6 +196,24 @@ inbox_close() {  # [if-empty]: return 1 if another run must consume accepted wor
   printf 'finishing\n' >"$DIR/.inbox-state.tmp"
   mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
   flock -u 4; exec 4>&-
+}
+# attempt<N>.env: STARTED_EPOCH once run N launched its CLI, RC/AKIND once it returned. An append
+# whose .run names a run without STARTED_EPOCH was taken but never sent to a model.
+RUN_STARTED_EPOCH="" RUN_OPEN=""
+run_record() {  # [rc akind]
+  {
+    printf 'RUN_NO=%q\nKIND=%q\nSTARTED_EPOCH=%q\n' "$RUN_NO" "$NEXT_KIND" "$RUN_STARTED_EPOCH"
+    [ $# -eq 0 ] || printf 'ENDED_EPOCH=%q\nRC=%q\nAKIND=%q\n' "$(date +%s.%N)" "$1" "$2"
+  } >"$DIR/.attempt.env.tmp" && mv -f "$DIR/.attempt.env.tmp" "$DIR/attempt$RUN_NO.env"
+  if [ $# -eq 0 ]; then RUN_OPEN=1; else RUN_OPEN=""; fi
+}
+taken_not_started() {  # appends moved to delivered/ by a run that never launched its CLI
+  local f run n=0
+  for f in $(compgen -G "$INBOX/delivered/*.md.run"); do
+    run=$(cat "$f" 2>/dev/null) || run=""
+    { [ -n "$run" ] && grep -q '^STARTED_EPOCH=[0-9]' "$DIR/attempt$run.env" 2>/dev/null; } || n=$((n + 1))
+  done
+  echo "$n"
 }
 take_inbox() {  # moves pending messages to inbox/delivered and prints them as one prompt block
   local f any=""
@@ -446,14 +466,20 @@ finish() {
   session_exists || SESSION=""
   write_result
   printf '%s\n' "$FINAL_TEXT" | tail -n 6 | redact | sed 's/^/final | /'
-  local pending; pending=$(inbox_pending)
+  # Not delivered: still in the inbox, or taken by a run that was stopped before its CLI started.
+  local pending unstarted unstarted_note=""; pending=$(inbox_pending); unstarted=$(taken_not_started)
   [ "$pending" -gt 0 ] && echo "inbox: $pending appended message(s) not delivered"
+  if [ "$unstarted" -gt 0 ]; then
+    echo "inbox: $unstarted appended message(s) taken by a run that never started; not delivered"
+    unstarted_note="（其中 $unstarted 条已取走，但那一轮没启动）"
+  fi
+  pending=$((pending + unstarted))
   local resume_hint=""
   if [ -n "$SESSION" ]; then
     resume_hint="
 继续或追加要求：dispatch.sh append $ID < 指令.md（同一会话续跑）"
     [ "$pending" -gt 0 ] && resume_hint="
-有 $pending 条追加指令没送到，重发：dispatch.sh append $ID < 指令.md"
+有 $pending 条追加指令没送到${unstarted_note}，重发：dispatch.sh append $ID < 指令.md"
   fi
   local open_hint=""
   if [ "$AGENT" = claude ] && [ -n "$SESSION" ]; then
@@ -491,6 +517,7 @@ on_signal() {
     kill -KILL -- "-$CHILD" 2>/dev/null
     wait "$CHILD" 2>/dev/null
   fi
+  [ -z "$RUN_OPEN" ] || run_record 143 stopped
   release_slot  # notifications must not delay a waiting foreground attempt
   # A stopped task waits for nothing. Leaving WAITING=lock/slot/quota behind made a
   # cancelled task read as still queued (2026-09-23 dispatch-default-model-bump).
@@ -860,7 +887,7 @@ run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|error), ATEXT, INTERRUPTED, 
   local cap=$1 alog prompt block="" resumable=""
   [ -n "$USAGE_START_EPOCH" ] || USAGE_START_EPOCH=$(date +%s.%N)
   NO_RESPONSE=0
-  RUN_NO=$((RUN_NO + 1)); alog="$DIR/attempt$RUN_NO"
+  RUN_NO=$((RUN_NO + 1)); alog="$DIR/attempt$RUN_NO" RUN_STARTED_EPOCH=""
   { session_exists || [ -n "${RESUME:-}" ]; } && resumable=1
   if block=$(take_inbox); then
     APPENDS=$(( APPENDS + $(grep -c '^【追加指令' <<<"$block") ))
@@ -892,6 +919,8 @@ $block"
   exec 5>"$DIR/.launch.lock"
   flock -x 5
   cancel_guard
+  # Past the cancel barrier the CLI starts below; a cancel now stops it instead of preventing it.
+  RUN_STARTED_EPOCH=$(date +%s.%N); run_record
   # fd 6 is the run slot: agents and anything they leave running must not keep it locked.
   if [ "$AGENT" = claude ]; then
     local args=(-p --output-format json --model "$CUR_MODEL" --effort "$EFFORT" --dangerously-skip-permissions)
@@ -1077,6 +1106,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   write_result
   echo "---- $(ts) attempt $ATTEMPTS/$MAX_ATTEMPTS ($kind) cap=${cap}s session=${SESSION:--} model=$CUR_MODEL${EFFORT:+/$EFFORT}"
   run_attempt "$cap"
+  if [ -n "$STALLED" ]; then run_record "$ARC" stalled; else run_record "$ARC" "$AKIND"; fi
   release_slot
   update_usage
   apply_budget   # a retry/resume budget changed during the attempt counts for the decision below
@@ -1105,7 +1135,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
       echo "---- $(ts) finished with appended instruction(s) waiting; delivering them"
       NEXT_KIND=append; continue
     fi
-    STATE=ok; break
+    STATE=ok STOP_REASON=completed; break
   fi
   if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
   if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] && [ "$POOL_COLD" = 1 ] \
@@ -1204,7 +1234,7 @@ id：$ID
     # be protected, so it goes first among the tasks of its agent unless one was queued earlier.
     lock_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
     if ! take_lock "$(( lock_budget > 0 ? lock_budget : 0 ))"; then
-      STATE=timeout; FINAL_TEXT="$ATEXT
+      STATE=timeout STOP_REASON=lock_deadline; FINAL_TEXT="$ATEXT
 额度恢复后重新排队等 $AGENT 锁，截止前没轮到；会话保留。"; break
     fi
   else
