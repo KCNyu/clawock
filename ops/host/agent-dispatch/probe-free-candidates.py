@@ -37,7 +37,10 @@ def verdict(events, rc):
     bash = [r for r in tools if r.get("tool") == "bash" and r.get("state", {}).get("status") == "completed"
             and r["state"].get("input", {}).get("command", "").strip() == "echo TOOL-PROBE-OK"
             and r["state"].get("output", "").strip() == "TOOL-PROBE-OK"]
-    texts = [r.get("part", {}).get("text", "").strip() for r in events if r.get("type") == "text"]
+    # Some providers leave the reasoning terminator on the final text event.
+    # Normalize that one known wrapper; the completed tool proof is still mandatory.
+    texts = [r.get("part", {}).get("text", "").strip().removeprefix("</think>").strip()
+             for r in events if r.get("type") == "text"]
     return "verified_tool" if rc == 0 and len(bash) == 1 and "PROBE-OK" in texts else "unverified"
 
 
