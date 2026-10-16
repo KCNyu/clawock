@@ -65,6 +65,24 @@ class WakeTests(unittest.TestCase):
         self.turns = []
         return patch.object(wake.subprocess, "run", side_effect=run)
 
+    def test_notice_snapshot_and_independent_wake_status(self):
+        (self.task / "result.env").write_text("NOTIFIED=telegram\nNOTIFY_FAILED=weixin\nNOTIFY_AT=test\n")
+        with self.fake_run(status="timeout"):
+            self.enqueue()
+        status = json.loads((self.task / "wake-end.json").read_text())
+        self.assertEqual((status["state"], status["attempts"]), ("failed", 1))
+        self.assertEqual(status["last_error"], "rc=0 status=timeout")
+        self.assertIsNone(status["acknowledged_at"])
+        (self.task / "result.env").write_text("NOTIFIED=weixin,telegram\nNOTIFY_FAILED=\n")
+        with self.fake_run():
+            self.drain()
+        message = (self.box / "message.md").read_text()
+        self.assertIn('"NOTIFY_FAILED": "weixin"', message)  # original event, not a later notice
+        self.assertNotIn("已经在手机上收到", message)
+        status = json.loads((self.task / "wake-end.json").read_text())
+        self.assertEqual((status["state"], status["attempts"]), ("acknowledged", 2))
+        self.assertTrue(status["acknowledged_at"])
+
     def test_failures_retain_original_event_and_reenqueue_succeeds(self):
         for rc, status, stdout in ((0, "timeout", None), (1, "error", None),
                                    (1, "ok", None), (124, "?", ""), (0, "?", "bad JSON")):

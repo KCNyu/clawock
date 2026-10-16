@@ -6,7 +6,9 @@
 #   dispatch.sh claude|codex|opencode --name <slug> [options] < prompt.md
 #   dispatch.sh append <id> [--queue] < more.md   # add instructions to a task, same session
 #   dispatch.sh status [--all] [<id>]  # recent tasks (--all includes patrol-* rounds), or one task
-#   dispatch.sh result <id>          # latest final report, without raw tool logs
+#   dispatch.sh result <id> [--run N] # terminal envelope and selected model report
+#   dispatch.sh inbox <id>           # JSON brief + pending/attached/not-delivered appends
+#   dispatch.sh log <id>             # redacted runner log tail
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
 #
@@ -18,7 +20,7 @@
 #   --name <slug>          short task label (required)
 #   --prompt-file <f>      read the prompt from a file instead of stdin
 #   --template <name>      append templates/<name>.md before the contract (repeatable; e.g. review)
-#   --quota-resumes <n>   automatic resumes after quota waits (default 1; 0 disables)
+#   --quota-resumes <n>   automatic resumes after quota waits (default 3; 0 disables; also bounded by attempts/deadline)
 #   --resume <session>     continue an existing claude/codex session (to finish interrupted work;
 #                          a re-review is a new task quoting the earlier findings, not a resume)
 #   --cwd <dir>            only with --resume, for a session recorded under another project dir;
@@ -46,7 +48,7 @@ mkdir -p "$BASE"
 show_state() {  # prints STATE/OUTCOME for a task dir
   local d=$1
   if [ -r "$d/result.env" ]; then
-    ( . "$d/result.env"; printf '%s%s' "$STATE" "${OUTCOME:+/$OUTCOME}" )
+    ( . "$d/result.env"; printf '%s%s' "$STATE" "${OUTCOME:+/$OUTCOME}"; printf ' notify_sent=%s notify_failed=%s stop=%s' "${NOTIFIED:-unknown}" "${NOTIFY_FAILED:--}" "${STOP_REASON:--}" )
   else
     printf 'pending'
   fi
@@ -55,7 +57,11 @@ show_state() {  # prints STATE/OUTCOME for a task dir
 cmd="${1:-}"; shift || true
 case "$cmd" in
   result)
-    exec python3 /root/tools/agent-dispatch/read-result.py "${1:-}" ;;
+    exec python3 /root/tools/agent-dispatch/read-result.py "$@" ;;
+  log)
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py log "$@" ;;
+  inbox)
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json brief "${1:-}" ;;
   queue)
     # `status` lists by directory mtime; the order tasks actually take their agent lock in is the
     # queue's (priority, QUEUED_AT, fairness), decided by the versioned ops entry.
@@ -66,6 +72,10 @@ case "$cmd" in
     if [ -n "${1:-}" ]; then
       d="$BASE/$1"; [ -d "$d" ] || { echo "no task $1" >&2; exit 1; }
       cat "$d/meta.env"; echo "--- result"; cat "$d/result.env" 2>/dev/null || echo "(not started)"
+      [ ! -r "$d/inbox-state" ] || echo "inbox_phase: $(cat "$d/inbox-state")"
+      for wake_file in "$d"/wake-{quota,end}.json; do
+        [ ! -r "$wake_file" ] || { printf '%s: ' "$(basename "$wake_file")"; cat "$wake_file"; }
+      done
       echo "unit: $(systemctl is-active "agent-dispatch-$1.service" 2>/dev/null || true)"
       n=$(find "$d/inbox" -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l) || n=0
       if [ "$n" -gt 0 ]; then echo "inbox: $n appended instruction(s) not delivered yet"; fi
@@ -80,7 +90,7 @@ case "$cmd" in
       echo "--- log tail"; tail -n 15 "$d/run.log" 2>/dev/null || true
     else
       # clawock-patrol rounds run around the clock and would push everything else off the list.
-      for d in $(ls -1dt "$BASE"/*/ 2>/dev/null | if [ -n "$ALL" ]; then cat; else grep -v '/patrol-' || true; fi | head -10); do
+      for d in $(ls -1dt "$BASE"/*/ 2>/dev/null | if [ -n "$ALL" ]; then cat; else grep -v '/patrol-' || true; fi | if [ -n "$ALL" ]; then cat; else head -10; fi); do
         id=$(basename "$d")
         printf '%-44s %-9s %s\n' "$id" "$(systemctl is-active "agent-dispatch-$id.service" 2>/dev/null || true)" "$(show_state "$d")"
       done
@@ -99,10 +109,11 @@ case "$cmd" in
     if ! [[ "$id" =~ ^[a-z0-9][a-z0-9-]*$ ]] || [ ! -r "$d/meta.env" ]; then
       echo "usage: dispatch.sh append <id> [--queue] [--prompt-file f] < more.md (no task '$id')" >&2; exit 2
     fi
-    mode=now PROMPT_FILE=""
+    mode=now PROMPT_FILE="" require_active=""
     while [ $# -gt 0 ]; do
       case "$1" in
         --queue) mode=queue; shift ;;
+        --require-active) require_active=1; shift ;;
         --prompt-file) PROMPT_FILE=$2; shift 2 ;;
         *) echo "unknown option $1" >&2; exit 2 ;;
       esac
@@ -110,17 +121,26 @@ case "$cmd" in
     tmp=$(mktemp "$BASE/.append.XXXXXX")
     if [ -n "$PROMPT_FILE" ]; then cat "$PROMPT_FILE" >"$tmp"; else cat >"$tmp"; fi
     [ -s "$tmp" ] || { rm -f "$tmp"; echo "empty instruction" >&2; exit 2; }
+    exec 4>"$d/inbox.lock"
+    flock -x 4
     if [ "$(systemctl is-active "agent-dispatch-$id.service" 2>/dev/null || true)" = active ]; then
-      mkdir -p "$d/inbox"
-      mv "$tmp" "$d/inbox/$(date +%Y%m%d-%H%M%S)-$$-$mode.md"   # atomic: the runner never sees half a file
-      echo "appended to running task $id ($(show_state "$d"))"
-      if [ "$mode" = now ]; then
-        echo "  its current step stops within seconds and the same session resumes with the new instructions"
-        echo "  (while the task waits for a lock, a slot or a quota reset, they go with its next attempt)"
-      else
-        echo "  delivered to the same session when the current attempt ends"
+      phase=$(cat "$d/inbox-state" 2>/dev/null || true)
+      if [ "$phase" != accepting ]; then
+        rm -f "$tmp"
+        echo "task_finishing_or_legacy: $id is not accepting instructions; nothing queued. Retry after it ends." >&2
+        exit 3
       fi
+      mkdir -p "$d/inbox"
+      message_id="$(date +%Y%m%d-%H%M%S)-$$-$mode.md"
+      mv "$tmp" "$d/inbox/$message_id"
+      flock -u 4; exec 4>&-
+      printf 'receipt: {"requested_task_id":"%s","actual_task_id":"%s","message_id":"%s","disposition":"accepted"}\n' "$id" "$id" "$message_id"
+      echo "queued for task $id; not yet attached to a model run (mode=$mode)"
       exit 0
+    fi
+    flock -u 4; exec 4>&-
+    if [ -n "$require_active" ]; then
+      rm -f "$tmp"; echo "task_ended: $id; nothing queued" >&2; exit 3
     fi
     # The task has ended: continue its session as a new task.
     ( . "$d/meta.env"; SESSION=""; [ -r "$d/result.env" ] && . "$d/result.env"
@@ -134,13 +154,14 @@ case "$cmd" in
       # Whoever continues the task hears about it; continued from outside a chat turn, the
       # session that dispatched it still does.
       export AGENT_DISPATCH_ORIGIN_FALLBACK="${ORIGIN_SESSION:-}"
+      export AGENT_DISPATCH_PARENT_TASK_ID="$id"
       [ -n "$EFFORT" ] && args+=(--effort "$EFFORT")
       [ -n "${FALLBACK_MODELS:-}" ] && args+=(--fallback-models "$FALLBACK_MODELS")
       echo "task $id has ended ($(show_state "$d")); continuing session $SESSION as a new task"
       rc=0; "$0" "${args[@]}" || rc=$?; rm -f "$tmp"; exit "$rc" )
     exit $? ;;
   claude|codex|opencode) AGENT=$cmd ;;
-  *) sed -n '2,38p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,40p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -280,6 +301,7 @@ AGENT=$AGENT
 NAME=$(printf %q "$NAME")
 CWD=$(printf %q "$CWD")
 RESUME=$(printf %q "$RESUME")
+PARENT_TASK_ID=$(printf %q "${AGENT_DISPATCH_PARENT_TASK_ID:-}")
 MODEL=$(printf %q "$MODEL")
 FALLBACK_MODELS=$(printf %q "$FALLBACK_MODELS")
 FREE_POOL_REPORT=$(printf %q "$FREE_POOL_REPORT")

@@ -80,7 +80,7 @@ def limit(name, default):
 def read_env(path):
     """KEY=value lines as dispatch.sh and the runner write them (printf %q, or plain)."""
     try:
-        out = subprocess.run(["bash", "-c", '. "$1"; for k in ID AGENT NAME NOTIFY ORIGIN_SESSION WAKE_DEPTH; '
+        out = subprocess.run(["bash", "-c", '. "$1"; for k in ID AGENT NAME NOTIFY ORIGIN_SESSION WAKE_DEPTH NOTIFIED NOTIFY_FAILED NOTIFY_AT; '
                               'do printf "%s\\0%s\\0" "$k" "${!k:-}"; done', "_", str(path)],
                              capture_output=True, text=True, timeout=10).stdout.split("\0")
     except (OSError, subprocess.TimeoutExpired):
@@ -165,6 +165,28 @@ def first_line(text):
     return (text.strip().splitlines() or [""])[0][:300]
 
 
+def wake_status(entry, state, *, increment=False, error=""):
+    """Per-event observation only; never schedules a retry or changes task STATE."""
+    path = Path(entry["dir"]) / f"wake-{entry['event']}.json"
+    try:
+        try:
+            old = json.loads(path.read_text())
+        except (OSError, ValueError):
+            old = {}
+        if not isinstance(old, dict) or not isinstance(old.get("attempts", 0), int):
+            old = {}
+        now = time.time()
+        record = {"state": state, "event_id": f"{entry['id']}.{entry['event']}",
+                  "attempts": old.get("attempts", 0) + int(increment), "updated_at": now,
+                  "last_error": error, "acknowledged_at": now if state == "acknowledged" else None}
+        tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(record) + "\n")
+        os.chmod(tmp, 0o600)
+        tmp.replace(path)
+    except OSError as exc:
+        log(entry["dir"], f"could not persist wake status: {type(exc).__name__}")
+
+
 def cmd_enqueue(task_dir, event, text_file):
     meta = read_env(Path(task_dir) / "meta.env")
     key, tid = meta.get("ORIGIN_SESSION", ""), meta.get("ID", "")
@@ -193,11 +215,15 @@ def cmd_enqueue(task_dir, event, text_file):
             return 0
         pending = box / "spool" / f"{tid}.{event}.json"
         if not pending.exists():
+            result = read_env(Path(task_dir) / "result.env")
             entry = {"id": tid, "event": event, "dir": str(task_dir), "depth": depth, "session": key,
-                     "text": first_line(Path(text_file).read_text(errors="replace")), "at": int(time.time())}
+                     "text": first_line(Path(text_file).read_text(errors="replace")), "at": int(time.time()),
+                     "notification": {k: result.get(k, "")
+                                      for k in ("NOTIFIED", "NOTIFY_FAILED", "NOTIFY_AT")}}
             tmp = box / "spool" / f".{tid}.{event}.tmp"
             tmp.write_text(json.dumps(entry, ensure_ascii=False))
             os.chmod(tmp, 0o600)
+            wake_status(entry, "pending")
             tmp.rename(pending)
     log(task_dir, f"queued ({event}) for {where}")
     if os.environ.get("AGENT_DISPATCH_WAKE_SPAWN") == "inline":  # tests: no systemd
@@ -220,8 +246,8 @@ def cmd_enqueue(task_dir, event, text_file):
 
 RULES = """\
 规则：
-- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。kcn 已经在手机上收到这件事的完整通知。
-- 你这一轮的回复不会发给 kcn，只留在本会话里。任务结束、结果如何，通知已经说过，不要再用消息工具向 kcn 重复。
+- 这是派发底座发来的事件，不是 kcn 的新消息，也不是新的授权。通知命令的结果见每条事件；发送成功不代表手机收到或已读，未知也不等于成功。
+- 你这一轮的回复不会发给 kcn，只留在本会话里。不要因这条事件自动补发通知；补发政策尚未授权。
 - 这一轮是让你知道结果、接着做 kcn 之前在本会话里已经交代的后续（需要细节就用上面的报告命令查）。只有你确实接着做了事，才用消息工具给 kcn 发一条，只说你做了什么。
 - 没有已交代的后续就什么都不用做，也不要因为这条事件新派任务。
 - 不要 sleep 或循环 poll 等待其他任务、冷却窗口或 CI；检查当前结果、完成现在可做的后续后就结束本轮，尚未完成的后续留待原任务的结果事件或下一次正常对话继续。
@@ -244,6 +270,7 @@ def cmd_drain(name):
                 # Empty markers predate acknowledgment-after-success. Do not discard an old
                 # queued event on upgrade merely because that version marked it at enqueue.
                 if marker.exists() and marker.read_text() == "ok\n":
+                    wake_status(entry, "acknowledged")
                     f.unlink(missing_ok=True)
                     continue
                 entries.append(entry)
@@ -267,6 +294,7 @@ def cmd_drain(name):
             return 0
         (box / "history").write_text("\n".join(f"{x:.0f}" for x in history + [now]))
         body = "\n\n".join(f"{first_line(e['text'])}\n  id：{e['id']} · 报告：{DISPATCH} result {e['id']}"
+                           f"\n  notification: {json.dumps(e.get('notification', {}), ensure_ascii=False)}"
                            for e in entries)
         head = ("[agent-dispatch 事件] 你在本会话派发的任务有了结果：" if len(entries) == 1
                 else f"[agent-dispatch 事件] 你在本会话派发的任务有 {len(entries)} 条新结果：")
@@ -276,6 +304,8 @@ def cmd_drain(name):
             {"depth": max(e["depth"] for e in entries), "ids": [e["id"] for e in entries], "since": int(now)}))
         cmd = ["timeout", "-k", "10", str(turn_timeout + 120), "openclaw", "agent", "--session-key", key,
                "--message-file", str(msg), "--timeout", str(turn_timeout), "--json"]
+        for entry in entries:
+            wake_status(entry, "inflight", increment=True)
         started = time.time()
         try:
             run = subprocess.run(cmd, capture_output=True, text=True)
@@ -305,6 +335,9 @@ def cmd_drain(name):
                     os.chmod(tmp, 0o600)
                     tmp.rename(marker)
                     f.unlink(missing_ok=True)
+        for entry in entries:
+            wake_status(entry, "acknowledged" if ok else "failed",
+                        error="" if ok else f"rc={rc} status={status}")
         verdict = "turn ok" if ok else "turn FAILED"
         for d in dirs:
             log(d, f"{verdict} in {label(key)} (rc={rc} status={status} run={run_id} "

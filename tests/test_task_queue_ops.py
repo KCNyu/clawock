@@ -432,7 +432,7 @@ def test_append_goes_to_a_live_task_only(q):
     q.task("live", result="STATE=running\n")
     code, out = q.run("append", "live", "--queue", stdin="体面收尾\n")
     assert code == 0 and out["mode"] == "queue"
-    assert (q.root / "dispatch.calls").read_text() == "append live --queue\n"
+    assert (q.root / "dispatch.calls").read_text() == "append live --require-active --queue\n"
     assert q.run("append", "live", stdin="  \n")[0] == 2
     q.task("gone", result="STATE=ok\n", active=False)
     assert q.run("append", "gone", stdin="more\n")[0] == 3
@@ -536,7 +536,7 @@ def _claude_line(mid, model, stamp, usage):
 
 
 def test_usage_counts_each_claude_message_once_from_dispatch_on_and_prices_it(q, tmp_path):
-    d = q.task("u-claude", session="sess-1", result="STATE=ok\n")
+    d = q.task("u-claude", session="sess-1", result="STATE=ok\nFINISHED_EPOCH=1790557201\n")
     (d / "meta.env").write_text("ID=u-claude\nAGENT=claude\nCREATED=2026-09-27\\ 00:00:00\n")
     proj = tmp_path / "claude" / "projects" / "-root"
     proj.mkdir(parents=True)
@@ -560,7 +560,7 @@ def test_usage_counts_each_claude_message_once_from_dispatch_on_and_prices_it(q,
 
 
 def test_usage_of_an_unpriced_codex_model_keeps_tokens_and_leaves_the_amount_empty(q):
-    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-9-unlisted\n")
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nFINISHED_EPOCH=1790557201\nMODEL_USED=gpt-9-unlisted\n")
     day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
     day.mkdir(parents=True)
     ev = lambda i, c, o: json.dumps({"timestamp": "2026-09-27T01:00:00Z", "type": "event_msg", "payload": {  # noqa: E731
@@ -580,7 +580,7 @@ def test_codex_models_are_priced_from_openais_published_api_table(q):
     assert prices["sources"]["openai"]["as_of"]
     for model in ("gpt-6.1-sol", "gpt-5.6-sol", "gpt-6-astra"):
         assert {"in", "out", "cache_read"} <= set(prices["models"][model]), model
-    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nMODEL_USED=gpt-6.1-sol\n")
+    q.task("u-codex", agent="codex", session="019-abc", result="STATE=ok\nFINISHED_EPOCH=1790557201\nMODEL_USED=gpt-6.1-sol\n")
     day = Path(q.env["CODEX_HOME"]) / "sessions" / "2026" / "09" / "27"
     day.mkdir(parents=True)
     total = {"input_tokens": 3_000_000, "cached_input_tokens": 2_000_000, "output_tokens": 100_000}
@@ -612,7 +612,7 @@ def test_usage_without_a_session_record_is_empty_not_invented(q, tmp_path):
     q.task("u-none", result="STATE=queued\n")
     code, out = q.run("usage", "u-none")
     assert code == 0 and out["tokens"] is None and out["cost_usd"] == "" and "no session" in out["reason"]
-    q.task("u-gone", session="missing", result="STATE=ok\n")
+    q.task("u-gone", session="missing", result="STATE=ok\nFINISHED_EPOCH=1790557201\n")
     out = q.run("usage", "u-gone", extra_env={"CLAUDE_CONFIG_DIR": str(tmp_path / "nothing")})[1]
     assert out["tokens"] is None and "no claude session record" in out["reason"]
 
