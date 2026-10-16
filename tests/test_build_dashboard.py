@@ -133,7 +133,7 @@ def _fresh_build_status_fixture(monkeypatch, tmp_path, at):
         path.write_text("{}")
         os.utime(path, (at.timestamp(), at.timestamp()))
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
-    integrity = SimpleNamespace(check=lambda: {
+    integrity = SimpleNamespace(check=lambda *args, **kwargs: {
         "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
     })
     monkeypatch.setitem(sys.modules, "clawock.portfolio.integrity", integrity)
@@ -836,7 +836,7 @@ def test_stale_market_leg_makes_build_unhealthy(monkeypatch, tmp_path):
     monkeypatch.setitem(
         sys.modules,
         "clawock.portfolio.integrity",
-        SimpleNamespace(check=lambda: {
+        SimpleNamespace(check=lambda *args, **kwargs: {
             "ok": True, "error_count": 0, "warn_count": 0, "findings": [],
         }),
     )
@@ -2277,13 +2277,35 @@ def test_compute_drawdown_publishes_both_episodes_for_every_leg_and_basis():
     assert result["profit"]["us"]["open_dd"]["recovery_pct"] == 11.33
 
 
+def test_the_health_card_judges_the_book_the_totals_were_printed_from(monkeypatch, tmp_path):
+    """#3007: the disk copy changed between the two reads; the card must not
+    report a 07709 the totals beside it never printed."""
+    at = datetime(2026, 10, 16, 1, 40, tzinfo=timezone.utc)
+    portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
+    (tmp_path / 'portfolio.json').write_text(json.dumps({'portfolios': {'hk_stocks': {
+        'holdings': [{'ticker': '07709', 'shares': 100, 'cost_basis': 29.5348}]}}}))
+
+    def check(portfolio_path=None, *, config_path=None, document=None):
+        book = document if document is not None else json.loads(
+            (tmp_path / 'portfolio.json').read_text())
+        held = [h['ticker'] for leg in book['portfolios'].values()
+                for h in leg.get('holdings') or [] if h.get('shares')]
+        findings = [{'code': 'COST_BASIS', 'level': 'ERROR', 'msg': '07709'}] if '07709' in held else []
+        return {'ok': not findings, 'error_count': len(findings), 'warn_count': 0,
+                'findings': findings}
+
+    monkeypatch.setattr(sys.modules['clawock.portfolio.integrity'], 'check', check)
+    status = dashboard.compute_build_status(portfolio, data_dir, at=at)
+    assert status['integrity']['ok'] is True and status['integrity']['top'] == []
+
+
 def test_calendar_bar_outage_makes_otherwise_fresh_dashboard_unhealthy(monkeypatch, tmp_path):
     at = datetime(2026, 8, 1, 6, 0, tzinfo=timezone.utc)
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
     rows = [{'market': 'us', 'newest_bar': '2026-07-29',
              'last_completed_session': '2026-07-31', 'status': 'behind',
              'missing_sessions': ['2026-07-30', '2026-07-31']}]
-    monkeypatch.setitem(sys.modules, 'clawock.portfolio.integrity', SimpleNamespace(check=lambda: {
+    monkeypatch.setitem(sys.modules, 'clawock.portfolio.integrity', SimpleNamespace(check=lambda *args, **kwargs: {
         'ok': True, 'error_count': 0, 'warn_count': 1,
         'findings': [{'code': 'BAR_STALENESS', 'level': 'WARN', 'msg': 'bar store behind calendar'}],
         'bar_staleness': rows,

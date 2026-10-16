@@ -47,6 +47,27 @@ def test_quote_session_does_not_treat_holiday_fetch_as_new_lot_day():
     assert holding_session({'day_session_date': '2026-10-01'}, '2026-10-02', 'us') == '2026-10-01'
 
 
+def test_integrity_judges_the_book_it_is_handed_not_a_second_read(tmp_path):
+    """#3007: the 09:39 publish printed totals from one read of portfolio.json
+    and a health card from another, taken while 07709 was half booked."""
+    book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
+    torn = copy.deepcopy(book)
+    row = next(h for h in torn['portfolios']['hk_stocks']['holdings'] if h.get('shares'))
+    row['cost_basis'] = round(row['cost_basis'] + 9.4948, 4)
+    path = tmp_path / 'portfolio.json'
+    path.write_text(json.dumps(torn))
+    untouched = copy.deepcopy(book)
+
+    def errors(report):
+        return sorted((f['code'], f['ticker']) for f in report['findings'] if f['level'] == 'ERROR')
+
+    assert ('COST_BASIS', row['ticker']) in errors(integrity.check(path))
+    assert errors(integrity.check(path, document=book)) == errors(
+        integrity.check(tmp_path / 'clean.json', document=book))
+    assert ('COST_BASIS', row['ticker']) not in errors(integrity.check(path, document=book))
+    assert book == untouched
+
+
 def test_malformed_holdings_produce_findings_without_crashing_money_readers(tmp_path):
     book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
     book['portfolios']['hk_stocks']['holdings'].extend([None, 'ticker shares cost_basis', 42])
