@@ -41,9 +41,9 @@ may change valuation but cannot by themselves change business, moat, or manageme
 
 Use the returned quote coverage/source warnings to mark stale or unverified holdings; failure of an unused fallback alone does not invalidate a successful quote. Special trap: **00100 only has Tencent** — Tencent down means 00100 is stale.
 
-KR linkage: 07709/07747 are exited (`shares == 0`), but SKHY (SK Hynix ADR) can be
-held — check `portfolio.json` before deciding whether a KR fetch is needed rather
-than assuming the chain is dead.
+KR linkage: 07709/07747 are frequently at `shares == 0`, and SKHY (SK Hynix ADR)
+is an independent line — read the KR names off `portfolio.json` (`shares > 0`)
+rather than assuming any part of the chain is held or dead.
 
 ## Holdings bucketing
 

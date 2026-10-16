@@ -20,6 +20,11 @@ This log keeps one immutable line per proposal as it was written:
 Nothing here is rewritten. A re-run that changes nothing appends nothing
 (`record_id` is the content's hash); a revision appends a new line beside the
 old one, so a method cannot be edited after its outcome is known.
+
+The code commit in `authorship` is recorded but not hashed: the first pass of
+a brief commits its own artifacts, so a re-run always sees a newer HEAD. Rows
+written before that rule (2026-10-15/16 re-runs, #3000) are collapsed on
+`load`, so their repeats do not inflate a denominator.
 """
 from __future__ import annotations
 
@@ -128,15 +133,29 @@ def _record(decision: dict, *, plan: dict, findings: list[dict], plan_status: st
             "authorization_version"),
         "authorship": author,
     }
+    return {"record_id": _identity(body), **body}
+
+
+def _identity(body: dict) -> str:
+    """`record_id`: the content's hash, with the per-run code commit left out."""
+    author = body.get("authorship")
+    if isinstance(author, dict):
+        body = {**body, "authorship": {k: v for k, v in author.items() if k != "code"}}
     digest = hashlib.sha256(json.dumps(
         body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
-    return {"record_id": f"prop-{digest[:16]}", **body}
+    return f"prop-{digest[:16]}"
+
+
+def _row_identity(row: dict) -> str:
+    return _identity({k: v for k, v in row.items() if k not in ("record_id", "recorded_at")})
 
 
 def load(workspace) -> list[dict]:
-    """Every recorded proposal, oldest first. A torn last line is skipped."""
+    """Every recorded proposal, oldest first. A torn last line is skipped, and a
+    line repeating an earlier one but for its code commit is dropped."""
     path = log_path(workspace)
     rows = []
+    seen = set()
     if not path.exists():
         return rows
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
@@ -151,6 +170,10 @@ def load(workspace) -> list[dict]:
             raise ValueError(f"corrupt proposal log at line {index + 1}") from exc
         if not isinstance(row, dict) or not row.get("record_id"):
             raise ValueError(f"invalid proposal record at line {index + 1}")
+        identity = _row_identity(row)
+        if identity in seen:
+            continue
+        seen.add(identity)
         rows.append(row)
     return rows
 
@@ -185,7 +208,7 @@ def record(workspace, plan: dict, findings: list[dict], *, plan_status: str,
     fresh = []
     path = log_path(workspace)
     with temp_dir_lock(path, "proposals"):
-        seen = {row["record_id"] for row in load(workspace)}
+        seen = {_row_identity(row) for row in load(workspace)}
         for index, decision in enumerate(plan.get("decisions") or []):
             if not isinstance(decision, dict):
                 continue

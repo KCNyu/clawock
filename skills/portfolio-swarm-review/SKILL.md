@@ -29,8 +29,8 @@ Refresh quotes before producing conclusions:
 /root/.local/bin/clawock analyze-hk    # HK Tencent + Eastmoney full-batch cross-check/fallback → stooq → yfinance
 ```
 
-If a leg is stale, name the exact ticker and limit confidence on conclusions involving it. **00100 only has Tencent** — flag explicitly if that leg fails. KR linkage: 07709/07747 are exited, but SKHY (SK Hynix ADR) can be held — check
-`portfolio.json` rather than assuming the whole chain is dead.
+If a leg is stale, name the exact ticker and limit confidence on conclusions involving it. **00100 only has Tencent** — flag explicitly if that leg fails. KR linkage: read the KR names off `portfolio.json` (`shares > 0`) each run — 07709/07747
+come and go, and SKHY (SK Hynix ADR) is an independent line.
 
 ## Holdings bucketing — read each run, do not hardcode
 

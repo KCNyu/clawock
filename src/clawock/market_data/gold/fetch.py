@@ -461,9 +461,18 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
     }
 
 
+def _covers(rows, day):
+    """True when forward-fill has a value for `day` (some row dated on or before it)."""
+    return any(str(d) <= day for d, v in (rows or []) if d and v is not None)
+
+
 def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
-                   hist_source=None, fx_hist_source=None, hist_advisory=None):
-    """折算 + 对比线 + DCA 对应现值。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。"""
+                   hist_source=None, fx_hist_source=None, hist_advisory=None,
+                   nav_series=None):
+    """折算 + 对比线 + DCA 对应现值。任一关键源缺失 → 保留旧 london（merge-not-overwrite）。
+
+    反事实与对比线读起投以来的完整净值 `nav_series`（compute() 传入）；`nav_history`
+    只是写盘的迷你图窗口，拿它当输入会把起投日挪到窗口首日（#2999）。"""
     if not spot or not spot.get('xau_usd') or not usdcny:
         return gold.get('london')  # 抓空：沿用旧值，绝不清空
     xau = spot['xau_usd']
@@ -471,14 +480,20 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
     intl_usd = cur_value_cny / usdcny if usdcny else None
     oz = intl_usd / xau if (intl_usd and xau) else None
     grams = oz * GRAMS_PER_OZ if oz else None
-    compare = build_compare_series(derived.get('nav_history') or [], xau_hist,
-                                   gold.get('start_date', ''))
+    start = gold.get('start_date', '')
+    nav_series = nav_series if nav_series is not None else (derived.get('nav_history') or [])
+    first_buy = min((str(d) for d, n in nav_series if n is not None and (not start or d >= start)),
+                    default=None)
+    # 历史没覆盖到第一笔定投日（抓空后只剩写盘窗口）→ 不用半截历史重算，沿用旧值
+    covered = bool(first_buy) and _covers(xau_hist, first_buy) and _covers(
+        (usdcny_hist or {}).items(), first_buy)
+    compare = build_compare_series(nav_series, xau_hist, start) if covered else []
     # 抓到现价/汇率但历史限流 → 折算照出，对比线沿用旧线
     if not compare and gold.get('london', {}).get('compare_series'):
         compare = gold['london']['compare_series']
-    dca_equiv = build_london_dca(derived.get('nav_history') or [], xau_hist, usdcny_hist,
-                                 xau, usdcny, gold.get('start_date', ''),
-                                 float(gold.get('daily_amount', 200)))
+    dca_equiv = build_london_dca(nav_series, xau_hist, usdcny_hist,
+                                 xau, usdcny, start,
+                                 float(gold.get('daily_amount', 200))) if covered else None
     if not dca_equiv and gold.get('london', {}).get('dca_equiv'):
         dca_equiv = gold['london']['dca_equiv']  # 历史限流 → 沿用旧值
     coverage_start = _london_history_coverage_start(
@@ -640,6 +655,7 @@ def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
     derived['london'] = compute_london(
         derived, gold, spot, usdcny, usdcny_hist, xau_hist,
         xau_hist_source, fx_hist_source, hist_advisory,
+        nav_series=[[d, n] for d, n, _ in history],
     )
     return derived
 
@@ -687,10 +703,9 @@ def main():
     else:
         xau_fresh, xau_source = [], {'name': 'not_attempted', 'points': 0}
     old_london = gold.get('london') or {}
-    london_coverage_start = _london_history_coverage_start(
-        history[-HISTORY_KEEP:] if history else gold.get('nav_history') or [],
-        gold.get('start_date', ''),
-    )
+    # 反事实从起投日算起，XAU/汇率历史要保留到起投日；写盘时 compute_london 仍按
+    # 迷你图窗口裁（#198 的体积上限），这里只决定本轮计算可用的范围（#2999）。
+    london_coverage_start = _london_history_coverage_start(history, gold.get('start_date', ''))
     xau_hist, xau_advisory = stabilize_history(
         xau_fresh,
         old_london.get('hist_series') or [],

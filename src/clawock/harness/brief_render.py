@@ -557,7 +557,9 @@ def holdings_section(context):
                      f'{money(book.get("today_total_change"), digits=0)} {currency}',
                      pct(book.get("total_pnl_percent")),
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
-        sources = sorted({str(row.get("data_source") or "") for row in held if row.get("data_source")})
+        # A quote stamp is free text off the feed ("Tencent+Eastmoney Oct 16 09:50
+        # HKT"), so it goes through the same inline escape as a headline (#3001).
+        sources = sorted({_inline(row["data_source"]) for row in held if row.get("data_source")})
         # The column is a percentage against the previous close, so the header
         # names a change and the session it belongs to, never a price (#2579).
         sessions = {str(row.get("day_session_date") or "") for row in held}

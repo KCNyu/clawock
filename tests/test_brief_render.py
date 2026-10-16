@@ -6,6 +6,7 @@ deliberation leaked into the tables. These tests pin the split: the same inputs
 must produce the same document, model text lands in slots rather than deciding
 them, and no string reaching a table can add a column to it.
 """
+import copy
 import json
 from pathlib import Path
 
@@ -609,6 +610,17 @@ def test_model_prose_and_plan_rationale_cannot_open_raw_html():
     body = render.render_brief(CONTEXT, judgment, plan, date="2026-08-31")
     assert payload not in body
     assert body.count("&lt;img src=x onerror=alert(1)>") >= 4
+
+
+def test_holding_quote_source_cannot_open_raw_html():
+    """`data_source` is a free-text quote stamp, not model prose, and it reaches
+    the leg header outside any table cell (#3001)."""
+    payload = "<img src=x onerror=alert(1)>"
+    context = copy.deepcopy(CONTEXT)
+    context["portfolio"]["portfolios"]["hk_stocks"]["holdings"][0]["data_source"] = payload
+    body = render.render_brief(context, _judgment(), PLAN, date="2026-08-31")
+    assert payload not in body
+    assert "报价源 &lt;img src=x onerror=alert(1)>" in body
 
 
 def test_every_card_and_entries_block_says_markdown_1():
