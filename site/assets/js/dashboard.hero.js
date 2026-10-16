@@ -2160,9 +2160,11 @@
       const x = i => P + i * (W - 2 * P) / (hist.length - 1);
       const y = v => P + (H - 2 * P) * (1 - (v - lo) / rng);
       const pts = hist.map((p, i) => `${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
-      // 起投点位置
+      // 起投点位置。数组只是最近一段窗口：起投日早于窗口首日时首点只是窗口起点，
+      // 不能标「起投」（#2999）。
       let startIdx = hist.findIndex(p => p[0] >= (g.start_date || ''));
       if (startIdx < 0) startIdx = 0;
+      const startInWindow = !g.start_date || hist[0][0] <= g.start_date;
       const avg = g.avg_cost;
       const avgY = (avg >= lo && avg <= hi) ? y(avg) : null;
       const lastV = hist[hist.length - 1][1];
@@ -2177,7 +2179,7 @@
           <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
         </svg>
         <div class="muted" style="font-size:var(--fs-micro);display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
-          <span style="color:var(--accent)">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
+          <span style="color:var(--accent)">${startInWindow ? `${hist[startIdx][0]} 起投` : `窗口自 ${hist[0][0]}`} ${num(hist[startIdx][1], 3)}</span>
           <span style="color:${costColor}">成本线 ${num(avg, 3)}</span>
           <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
         </div>`;
