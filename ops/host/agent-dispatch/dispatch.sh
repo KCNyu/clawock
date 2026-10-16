@@ -15,6 +15,8 @@
 # append: while the task runs, its current step is stopped within seconds and the same session
 # resumes with the new instructions (--queue: deliver when the current attempt ends instead).
 # Before the task starts they join the prompt; after it ended, a new task resumes its session.
+# Exit 3 queued nothing: task_finishing (wrapping up, ~1-2 min) or legacy_runner (may be hours)
+# - wait until the task ended, then append again; task_starting - retry in a few seconds.
 #
 # Options:
 #   --name <slug>          short task label (required)
@@ -127,7 +129,17 @@ case "$cmd" in
       phase=$(cat "$d/inbox-state" 2>/dev/null || true)
       if [ "$phase" != accepting ]; then
         rm -f "$tmp"
-        echo "task_finishing_or_legacy: $id is not accepting instructions; nothing queued. Retry after it ends." >&2
+        # Exit 3 always means nothing was queued; the prefix says how long until a retry works.
+        # A runner writes inbox-state before its first result.env, so a result.env without one is
+        # a runner from before the handshake (installed 2026-10-16, #3014), not a starting task.
+        if [ "$phase" = finishing ] || [ "$phase" = terminal ]; then
+          echo "task_finishing: $id has stopped taking instructions and is wrapping up (usage, notification; usually 1-2 minutes); nothing queued. Wait until status shows it ended, then append again to continue its session as a new task." >&2
+        elif [ -r "$d/result.env" ]; then
+          api=$(sed -n "s/^RUNNER_API=//p" "$d/result.env" 2>/dev/null | tr -d "'\"" || true)
+          echo "legacy_runner: $id runs on runner api ${api:-1} from before the append handshake (no inbox-state); nothing queued. It cannot take appends until it ends, possibly hours away (queue and quota waits run to its deadline); append again after it ends to continue its session as a new task." >&2
+        else
+          echo "task_starting: $id has not opened its inbox yet (runner starting); nothing queued. Retry in a few seconds." >&2
+        fi
         exit 3
       fi
       mkdir -p "$d/inbox"
@@ -161,7 +173,7 @@ case "$cmd" in
       rc=0; "$0" "${args[@]}" || rc=$?; rm -f "$tmp"; exit "$rc" )
     exit $? ;;
   claude|codex|opencode) AGENT=$cmd ;;
-  *) sed -n '2,40p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,42p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2

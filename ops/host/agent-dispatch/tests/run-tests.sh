@@ -828,7 +828,7 @@ expect "published while still queued: deadline/attempts/resumes/waiting" \
   "$(field "$d41" DEADLINE_EPOCH)/$(field "$d41" MAX_ATTEMPTS)/$(field "$d41" QUOTA_RESUMES)/$(field "$d41" WAITING)" "$new41/1/0/lock"
 touch "$FAKE_DIR/h41.release"
 e41=0; wait "$p41" || e41=$?
-expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/3
+expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/4
 [ "$(field "$d41" STATE)" = ok ] || tail -n 20 "$d41/run.log"
 expect "QUEUED_AT kept (no restart)" "$(field "$d41" QUEUED_AT)" "$q41"
 expect "one runner start in the log" "$(grep -c ' budget-queued start ====' "$d41/run.log")" 1

@@ -123,19 +123,32 @@ answers `3` (dispatch it again). `append` delivers to a live task only (the chip
 its state check and dispatch cannot accidentally start a new task.
 
 Append acceptance and the runner's final inbox check share `inbox.lock`. `inbox-state`
-moves from `accepting` to `finishing` to `terminal`; an active unit in finishing (or a
-runner predating this protocol) refuses append with exit 3 and writes no instruction.
-The caller can explicitly continue after the unit ends. A successful live append emits
+moves from `accepting` to `finishing` to `terminal`. Any other phase refuses append with
+exit 3 and writes no instruction; the stderr prefix says how long a retry has to wait:
+`task_finishing` (finishing or terminal: usage, notification and wake, usually 1-2 minutes),
+`legacy_runner` (a `result.env` but no `inbox-state`: a runner from before this protocol,
+which cannot take appends until it ends, possibly hours later; the message names its
+`RUNNER_API`), or `task_starting` (neither file yet; seconds). After `task_finishing` or
+`legacy_runner` the caller waits for the task to end and appends again, which continues the
+session as a new task; nothing is re-queued or started automatically. A successful live append emits
 `receipt: {requested_task_id, actual_task_id, message_id, disposition: "accepted"}`;
 the ops JSON reply exposes these fields too. Accepted means queued, not completed.
 `dispatch.sh inbox <id>` aliases the JSON brief query. A consumed message records its
 run number in `inbox/delivered/<message_id>.run`; `disposition=attached_to_run` means it
-was put in that run's prompt before CLI launch, not that the model completed it. Old
-consumed files without a binding say `taken_legacy`; other states are `pending` and
-`not_delivered`. The compatibility `delivered`/`dropped` booleans keep their meaning.
+was put in that run's prompt before CLI launch, not that the model completed it. Runner
+api 4 also writes `attempt<N>.env` (`STARTED_EPOCH` once run N launched its CLI past the
+cancel barrier; `RC`, `AKIND` ok/quota/error/stalled/stopped and `ENDED_EPOCH` once it
+returned), and each brief append carries `run: {started, rc, kind, prompt_kind}` from it
+(`null` for older runners). A message taken by a run that never started, on a task that
+has ended, is `taken_not_started` with `delivered=false, dropped=true`, and the runner's
+final notice counts it among the instructions not delivered. Old consumed files without a
+binding say `taken_legacy`; other states are `pending` and `not_delivered`.
 
 `dispatch.sh result <id> [--run N]` includes task/run identity, attempt and quota-wait
-budgets, deadline, stop reason, notification result and any recorded wake states. The
+budgets, deadline, stop reason (`STOP_REASON`, e.g. `completed` when the model run ended
+cleanly with no append waiting, whatever the model's STATUS; `lock_deadline` when the agent
+lock is not won before the deadline, also after a quota wait), notification result and any
+recorded wake states. The
 runner atomically saves its own terminal explanation in `runner-summary.txt`, so a
 zero-attempt session-lock refusal is queryable without a model report. An incomplete
 latest run never falls back to an earlier successful report. `--run N` selects a
@@ -157,7 +170,8 @@ patrol rounds; the default list stays at ten and includes notification/stop fiel
 The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*.json`). New paid tasks use `USAGE_START_EPOCH` (first run, after queueing) through
 `FINISHED_EPOCH` (before notification/lock release). Missing-timestamp records are
 excluded. A finished legacy paid task without an end boundary returns its frozen
-`TOKENS_*`/`COST_USD` values, or unknown when absent; it never rereads the later shared
+`TOKENS_*`/`COST_USD` values with `models: [MODEL_USED]` (the model it last ran; the frozen
+totals have no per-model split), or unknown when absent; it never rereads the later shared
 session. Zero-attempt tasks do not claim another writer's session usage. Live legacy
 tasks and OpenCode retain the dispatch-time lower bound (`meta.env CREATED`). The price per model is `ops/host/model_prices.json` (source and date in
 the file, installed next to the entry): the amount is **what the tokens would cost at API list
@@ -292,7 +306,7 @@ attempt that gets through deletes the hint.
 | `WAKE_AT` | epoch a quota/retry wait ends (empty otherwise) |
 | `EFFORT_USED` | the effort of the latest attempt (`MODEL_USED` is its model) |
 | `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` | the legs (`weixin`, `telegram`, or an unknown name) of the latest notification that were delivered / failed, and when |
-| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; absent before |
+| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; absent before |
 | `DEADLINE_EPOCH` / `MAX_ATTEMPTS` / `QUOTA_RESUMES` | the budgets the runner is using now (api 3; see *deadline, attempts, resumes*) |
 | `TOKENS_IN` / `TOKENS_CACHE_W` / `TOKENS_CACHE_R` / `TOKENS_OUT` / `TOKENS_TOTAL` / `COST_USD` | the `usage` answer as of the last finished attempt (api 3); `COST_USD` is an API-price estimate, `free`, or empty |
 
