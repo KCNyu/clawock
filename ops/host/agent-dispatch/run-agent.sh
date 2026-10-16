@@ -801,7 +801,8 @@ learn_session() {  # <attempt output>
 # for longer than the limit is cut off with the attempt, so the limits stay above the agents' own
 # 10-minute tool caps.
 progress_mark() {  # <attempt output>: changes whenever the attempt wrote something
-  stat -c '%s' "$1" "${1%.*}.err" 2>/dev/null
+  # opencode's stderr is its log (--print-logs): startup warnings and retries, not progress.
+  if [ "$AGENT" = opencode ]; then stat -c '%s' "$1" 2>/dev/null; else stat -c '%s' "$1" "${1%.*}.err" 2>/dev/null; fi
   if [ "$AGENT" = claude ] && [ -n "$SESSION" ]; then
     find "$CLAUDE_HOME_DIR"/projects/*/"$SESSION".jsonl "$CLAUDE_HOME_DIR"/projects/*/"$SESSION" \
       -type f -printf '%s %p\n' 2>/dev/null | sort
@@ -836,11 +837,22 @@ codex_waiting() {
        END { for (i in open) exit 0; exit 1 }' "$1" 2>/dev/null
 }
 
+# <attempt log>: the model call of opencode's main agent was refused with a rate limit. opencode
+# logs it (--print-logs) and then retries inside the run without printing anything, sleeping as
+# long as the server says - until 00:00 UTC once the free tier's daily quota is spent. Over
+# 10-03..10-17 (918 such refusals in opencode.log) the retried call never got through except in
+# the minutes before 00:00 UTC, so waiting out STALL_FIRST only delays the next model (35 dead
+# minutes per round). small=true is the session-title call, which fails on its own.
+rate_limited_log() {
+  grep -Eq 'message="stream error" .*small=false .*Rate limit exceeded' "$1" 2>/dev/null
+}
+
 # Wait for the running attempt. Learns the session id as soon as the CLI prints it, stops the
-# attempt when an instruction was appended with -now and the session can be resumed, and stops
-# it when it stalls (STALLED, STALL_QUIET).
-wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
-  INTERRUPTED="" STALLED="" STALL_QUIET=0
+# attempt when an instruction was appended with -now and the session can be resumed, stops it
+# when it stalls (STALLED, STALL_QUIET), and stops an opencode attempt as soon as its model
+# call is rate-limited (RATE_LIMITED).
+wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED, STALLED and RATE_LIMITED
+  INTERRUPTED="" STALLED="" STALL_QUIET=0 RATE_LIMITED=""
   local i mark last_mark act last_act="" over started quiet limit why wrote="" next_check=0 last_output last_alive
   started=$(now); last_output=$started; last_alive=$started; last_mark=$(progress_mark "$1")
   while kill -0 "$CHILD" 2>/dev/null; do
@@ -855,7 +867,14 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
       for i in $(seq 20); do kill -0 "$CHILD" 2>/dev/null || break; sleep 1; done
       kill -KILL -- "-$CHILD" 2>/dev/null
     fi
-    if [ -z "$INTERRUPTED$STALLED" ] && [ "$STALL_IDLE" -gt 0 ] && [ "$(now)" -ge "$next_check" ]; then
+    if [ -z "$INTERRUPTED$RATE_LIMITED" ] && [ "$AGENT" = opencode ] && rate_limited_log "${1%.*}.err"; then
+      RATE_LIMITED=1
+      echo "---- $(ts) $CUR_MODEL answered \"Rate limit exceeded\": stopping the attempt instead of waiting out opencode's retry"
+      kill -TERM "$CHILD" 2>/dev/null
+      for i in $(seq 20); do kill -0 "$CHILD" 2>/dev/null || break; sleep 1; done
+      kill -KILL -- "-$CHILD" 2>/dev/null
+    fi
+    if [ -z "$INTERRUPTED$STALLED$RATE_LIMITED" ] && [ "$STALL_IDLE" -gt 0 ] && [ "$(now)" -ge "$next_check" ]; then
       next_check=$(( $(now) + STALL_CHECK_SEC ))
       mark=$(progress_mark "$1")
       act=$(tool_activity "$CHILD" "$(( $(now) - started ))")
@@ -889,7 +908,7 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
 # NEXT_KIND says what this attempt sends: task (the prompt), continue (after a failure) or
 # append (only the appended instructions). Pending inbox messages ride along with any of them.
 NEXT_KIND=task INTERRUPT_NOTE="" RUN_NO=0
-run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|error), ATEXT, INTERRUPTED, SESSION when learned
+run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|rate_limited|error), ATEXT, INTERRUPTED, SESSION when learned
   local cap=$1 alog prompt block="" resumable=""
   [ -n "$USAGE_START_EPOCH" ] || USAGE_START_EPOCH=$(date +%s.%N)
   NO_RESPONSE=0
@@ -963,7 +982,9 @@ PY
     session_exists && show_in_resume_list "$SESSION"
   elif [ "$AGENT" = opencode ]; then
     # Permissions come from ~/.config/opencode/opencode.json ("permission": "allow").
-    local args=(run --format json -m "$CUR_MODEL")
+    # --print-logs: the log goes to attempt<N>.err (not opencode.log), where wait_attempt sees a
+    # rate limit the moment it happens; WARN keeps it to warnings and errors.
+    local args=(run --format json -m "$CUR_MODEL" --print-logs --log-level WARN)
     [ -n "$EFFORT" ] && args+=(--variant "$EFFORT")
     [ -n "$resumable" ] && args+=(-s "$SESSION")
     ( cd "$CWD" && exec timeout -k 60 "$cap" opencode "${args[@]}" -- "$prompt" </dev/null ) \
@@ -1003,8 +1024,13 @@ print('NO_RESPONSE=' + ('0' if responded else '1'))
 PY
 )"
     [ -n "$ASESSION" ] && SESSION=$ASESSION
-    # Free-tier rate limits carry no reset time, so they are plain errors retried after RETRY_WAIT.
-    if [ "$ARC" -eq 0 ] && [ -z "$AERR" ] && [[ $ATEXT =~ [^[:space:]] ]]; then
+    # Free-tier rate limits carry no reset time the runner can use (opencode alone knows it), so
+    # they are not quota waits: the next pool model is tried at once.
+    if [ -n "$RATE_LIMITED" ]; then
+      AKIND=rate_limited
+      ATEXT="${ATEXT:+$ATEXT
+}$CUR_MODEL: Rate limit exceeded（免费档限流，runner 立即换下一个模型）"
+    elif [ "$ARC" -eq 0 ] && [ -z "$AERR" ] && [[ $ATEXT =~ [^[:space:]] ]]; then
       AKIND=ok
     else
       AKIND=error; [ -n "$AERR" ] && ATEXT="${ATEXT:+$ATEXT
@@ -1177,9 +1203,12 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
       MODEL_IDX=$(( (MODEL_IDX + 1) % ${#MODEL_POOL[@]} ))
       CUR_MODEL=${MODEL_POOL[$MODEL_IDX]}
       echo "---- $(ts) switching to model $CUR_MODEL for the next attempt"
-      # Another model is not rate-limited by this one: retry soon; wait the full time only
+      # Another model is not rate-limited by this one: retry soon (at once after a rate limit,
+      # which the next model's call answers within seconds either way); wait the full time only
       # after the whole pool has failed once in a row.
-      [ "$MODEL_IDX" -ne 0 ] && wake=$(( $(now) + FALLBACK_WAIT ))
+      if [ "$MODEL_IDX" -ne 0 ]; then
+        if [ "$AKIND" = rate_limited ]; then wake=$(now); else wake=$(( $(now) + FALLBACK_WAIT )); fi
+      fi
     fi
   fi
   if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ] || [ -z "$SESSION" -a "$AKIND" = quota ] \
@@ -1208,7 +1237,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
     QUOTA_RESUMES_USED=$((QUOTA_RESUMES_USED + 1))
   fi
   WAITING=$AKIND WAKE_AT=$wake
-  [ "$WAITING" = error ] && WAITING=retry
+  case "$WAITING" in error|rate_limited) WAITING=retry ;; esac
   echo "---- $(ts) $AKIND; sleeping until $(date -d "@$wake" '+%F %T')"
   # Persist the learned session and the wait before sleeping: `status` otherwise showed a
   # stale result.env (no session, UPDATED at start) for the whole quota wait.

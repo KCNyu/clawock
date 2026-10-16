@@ -55,7 +55,9 @@ run_one() {  # <model> ; writes $OUT/<slug>.jsonl + .meta
     prompt='reply with exactly: PROBE-OK'
   fi
   start=$(date +%s)
-  timeout "$TIMEOUT" opencode run --format json -m "$m" "$prompt" \
+  # --print-logs: a rate limit shows only in opencode's log (the run itself retries silently
+  # until the timeout), so keep the log next to the events.
+  timeout "$TIMEOUT" opencode run --format json --print-logs --log-level WARN -m "$m" "$prompt" \
     > "$OUT/$slug.jsonl" 2>"$OUT/$slug.err"
   rc=$?
   last=$(date +%s)
@@ -86,6 +88,8 @@ for m in "${MODELS[@]}"; do
       *"Rate limit"*|*"rate_limit"*|*"overloaded"*|*"temporarily"*) verdict=RATE_LIMIT ;;
       *) verdict=ERROR ;;
     esac
+  elif grep -Eq 'message="stream error" .*small=false .*Rate limit exceeded' "$OUT/$slug.err" 2>/dev/null; then
+    verdict=RATE_LIMIT; detail="Rate limit exceeded (opencode log; the run retried silently)"
   elif [ "$rc" = 124 ]; then
     if [ "$fe" -gt 0 ]; then verdict=TIMEOUT; detail="first event after ${fe}s; $detail"; else verdict=TIMEOUT; detail="no event in ${TIMEOUT}s"; fi
   elif grep -q '"type":"text"' "$f" 2>/dev/null; then
