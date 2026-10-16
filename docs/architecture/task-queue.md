@@ -119,7 +119,30 @@ session.
 an ended task that recorded a session and did not finish `ok/DONE`; without a session it
 answers `3` (dispatch it again). `append` delivers to a live task only (the chip's
 "wrap up" button sends a fixed wrap-up instruction with `--queue`); ended tasks go through
-`retry`. `log` and `result` are read-only and redact tokens the way the runner does.
+`retry`. The ops append path passes `--require-active`, so a task ending between
+its state check and dispatch cannot accidentally start a new task.
+
+Append acceptance and the runner's final inbox check share `inbox.lock`. `inbox-state`
+moves from `accepting` to `finishing` to `terminal`; an active unit in finishing (or a
+runner predating this protocol) refuses append with exit 3 and writes no instruction.
+The caller can explicitly continue after the unit ends. A successful live append emits
+`receipt: {requested_task_id, actual_task_id, message_id, disposition: "accepted"}`;
+the ops JSON reply exposes these fields too. Accepted means queued, not completed.
+`dispatch.sh inbox <id>` aliases the JSON brief query. A consumed message records its
+run number in `inbox/delivered/<message_id>.run`; `disposition=attached_to_run` means it
+was put in that run's prompt before CLI launch, not that the model completed it. Old
+consumed files without a binding say `taken_legacy`; other states are `pending` and
+`not_delivered`. The compatibility `delivered`/`dropped` booleans keep their meaning.
+
+`dispatch.sh result <id> [--run N]` includes task/run identity, attempt and quota-wait
+budgets, deadline, stop reason, notification result and any recorded wake states. The
+runner atomically saves its own terminal explanation in `runner-summary.txt`, so a
+zero-attempt session-lock refusal is queryable without a model report. An incomplete
+latest run never falls back to an earlier successful report. `--run N` selects a
+historical model report, with a warning that the envelope describes the latest task
+state. A terminal append still creates a separate task and now stores `PARENT_TASK_ID`.
+`dispatch.sh log <id>` aliases ops log. `status --all` lists all retained tasks including
+patrol rounds; the default list stays at ten and includes notification/stop fields.
 
 ### usage — tokens and an estimate, not a bill
 
@@ -131,9 +154,12 @@ answers `3` (dispatch it again). `append` delivers to a live task only (the chip
 | codex | `$CODEX_HOME/sessions/**/rollout-*-<session>.jsonl`, `token_count` events | `total_token_usage` is cumulative per process: repeats add nothing, a resumed process restarts from zero; `cached_input_tokens` is part of `input_tokens` |
 | opencode | `~/.local/share/opencode/opencode.db`, table `message` | `tokens.input/output/reasoning/cache.read/cache.write` and opencode's own `cost` |
 
-The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*.json`). Only
-messages from the task's dispatch time (`meta.env CREATED`) on count, because a retried task
-resumes an older session. The price per model is `ops/host/model_prices.json` (source and date in
+The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*.json`). New paid tasks use `USAGE_START_EPOCH` (first run, after queueing) through
+`FINISHED_EPOCH` (before notification/lock release). Missing-timestamp records are
+excluded. A finished legacy paid task without an end boundary returns its frozen
+`TOKENS_*`/`COST_USD` values, or unknown when absent; it never rereads the later shared
+session. Zero-attempt tasks do not claim another writer's session usage. Live legacy
+tasks and OpenCode retain the dispatch-time lower bound (`meta.env CREATED`). The price per model is `ops/host/model_prices.json` (source and date in
 the file, installed next to the entry): the amount is **what the tokens would cost at API list
 prices**, an estimate — claude and codex run on subscriptions here, and no subscription price is
 in the table. claude rows come from Anthropic's API price table; codex's `gpt-*` rows (2026-09-28)
@@ -350,8 +376,11 @@ quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 Delivery is **best-effort**. A failed leg never changes the task's state, is not retried,
 and raises no alarm. It is one `notify: send failed (<leg>)` line in `run.log`, and
 `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` in `result.env`, which the chip shows as the
-receipt icons. A failed leg means nobody was told. The task itself may be fine: read
-`result.env`.
+receipt icons. A successful command does not establish receipt or reading on a
+phone; a failed command does not establish that the other leg failed. The CLI result
+labels disabled, unknown, send succeeded, partial failure and failure separately.
+Wake events snapshot these actual fields, and never claim that kcn has already read
+the notice. No automatic notification resend is added.
 
 What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.log`):
 
@@ -465,3 +494,10 @@ Deliberately out of scope, each for a recorded reason:
 Searching ended tasks by title, id or outcome is the next thing worth measuring: the list
 shows only the most recent few. It would be a read-only paged index, separate from the
 active poll.
+
+Wake observations are separate from task outcomes: `wake-quota.json` and `wake-end.json`
+record `pending`, `inflight`, `failed` or `acknowledged`, event ID, attempt count,
+`last_error` (return code/status only) and acknowledgment time. `status <id>` and
+`result <id>` show them. A missing observation on an older event remains unknown.
+Acknowledgment still requires both rc=0 and status=ok; a failed turn keeps the spool
+for the existing later drain path. These observations do not add retries or replay.

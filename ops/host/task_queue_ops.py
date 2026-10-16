@@ -693,7 +693,7 @@ def cmd_retry(args) -> dict:
         m = re.search(r"^dispatched (\S+)", r.stdout, re.M)
         audit(d, args.source, "retry", f"rc={r.returncode} new={m[1] if m else '-'}")
         if r.returncode != 0:
-            raise OpsError(5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
+            raise OpsError(3 if r.returncode == 3 else 5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
         return {"ok": True, "id": args.id, "new_id": m[1] if m else "", "session": result.get("SESSION", ""),
                 "message": f"continuing session {result.get('SESSION')} as {m[1] if m else 'a new task'}"}
 
@@ -709,11 +709,13 @@ def cmd_append(args) -> dict:
         live = unit_active(args.id)
         if not live:
             raise OpsError(3, f"task {args.id} has already ended; use retry (or dispatch.sh append) to continue its session")
-        r = dispatch(["append", args.id, *(["--queue"] if args.queue else [])], text)
+        r = dispatch(["append", args.id, "--require-active", *(["--queue"] if args.queue else [])], text)
         audit(d, args.source, "append", f"mode={'queue' if args.queue else 'now'} chars={len(text)} rc={r.returncode}")
         if r.returncode != 0:
-            raise OpsError(5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
-        return {"ok": True, "id": args.id, "mode": "queue" if args.queue else "now", "message": r.stdout.strip()}
+            raise OpsError(3 if r.returncode == 3 else 5, (r.stderr or r.stdout).strip()[-400:] or f"dispatch.sh append exited {r.returncode}")
+        receipt = next((json.loads(line[9:]) for line in r.stdout.splitlines() if line.startswith("receipt: ")), {})
+        return {"ok": True, "id": args.id, "mode": "queue" if args.queue else "now", "message": r.stdout.strip(),
+                **receipt}
 
 
 def redact(text: str) -> str:
@@ -879,7 +881,7 @@ def _bucket() -> dict[str, int]:
     return {"in": 0, "cache_w5m": 0, "cache_w1h": 0, "cache_r": 0, "out": 0}
 
 
-def claude_usage(session: str, since: float) -> dict[str, dict[str, int]] | None:
+def claude_usage(session: str, since: float, until: float | None = None) -> dict[str, dict[str, int]] | None:
     files = sorted(CLAUDE_HOME.glob(f"projects/*/{session}.jsonl"))
     if not files:
         return None
@@ -897,7 +899,7 @@ def claude_usage(session: str, since: float) -> dict[str, dict[str, int]] | None
                 if d.get("type") != "assistant" or not isinstance(m.get("usage"), dict):
                     continue
                 at = iso_epoch(d.get("timestamp", ""))
-                if at is not None and at < since:
+                if at is None or at < since or (until is not None and at > until):
                     continue
                 last[m.get("id") or f"{f}:{len(last)}"] = (m.get("model") or "", m["usage"])
     out: dict[str, dict[str, int]] = {}
@@ -910,15 +912,16 @@ def claude_usage(session: str, since: float) -> dict[str, dict[str, int]] | None
         b["cache_w5m"] += max(0, int(u.get("cache_creation_input_tokens") or 0) - w1h)
         b["cache_r"] += int(u.get("cache_read_input_tokens") or 0)
         b["out"] += int(u.get("output_tokens") or 0)
-    return out
+    return out or None
 
 
-def codex_usage(session: str, since: float, model: str) -> dict[str, dict[str, int]] | None:
+def codex_usage(session: str, since: float, model: str, until: float | None = None) -> dict[str, dict[str, int]] | None:
     home = Path(os.environ.get("CODEX_HOME", "/root/.codex"))
     files = sorted(home.glob(f"sessions/**/rollout-*-{session}.jsonl"))
     if not files:
         return None
     b = _bucket()
+    observed = False
     keys = ("input_tokens", "cached_input_tokens", "cache_write_input_tokens", "output_tokens")
     for f in files:
         prev = dict.fromkeys(keys, 0)
@@ -938,13 +941,14 @@ def codex_usage(session: str, since: float, model: str) -> dict[str, dict[str, i
                 delta = cur if cur["input_tokens"] < prev["input_tokens"] else {k: cur[k] - prev[k] for k in keys}
                 prev = cur
                 at = iso_epoch(d.get("timestamp", ""))
-                if at is not None and at < since:
+                if at is None or at < since or (until is not None and at > until):
                     continue
+                observed = True
                 b["cache_r"] += delta["cached_input_tokens"]
                 b["cache_w5m"] += delta["cache_write_input_tokens"]
                 b["in"] += max(0, delta["input_tokens"] - delta["cached_input_tokens"] - delta["cache_write_input_tokens"])
                 b["out"] += delta["output_tokens"]
-    return {model: b}
+    return {model: b} if observed else None
 
 
 def opencode_usage(session: str, since: float) -> tuple[dict[str, dict[str, int]], float] | None:
@@ -1016,15 +1020,35 @@ def task_usage(d: Path) -> dict:
     agent = meta.get("AGENT", "")
     session = task_session(d, result)
     since = stamp_epoch(meta.get("CREATED", "")) or 0
+    if agent in ("claude", "codex"):
+        since = float(result.get("USAGE_START_EPOCH") or 0) or since
     base = {"agent": agent, "session": session, "tokens": None, "cost_usd": "", "cost_kind": "unknown",
             "models": [], "prices_as_of": prices().get("as_of", ""), "reason": ""}
     if not session:
         return {**base, "reason": "no session recorded yet"}
+    if agent in ("claude", "codex") and result.get("ATTEMPTS") == "0":
+        return {**base, "reason": "no model run started; session usage is not attributable to this task"}
+    until = None
+    if agent in ("claude", "codex") and result.get("STATE") not in ("running", "queued", "waiting", None, ""):
+        try:
+            until = float(result["FINISHED_EPOCH"])
+        except (KeyError, ValueError):
+            # Legacy tasks have no reliable end boundary. Their frozen values are safer
+            # than rereading a session which another task may have continued since.
+            keys = {"in": "TOKENS_IN", "cache_w": "TOKENS_CACHE_W", "cache_r": "TOKENS_CACHE_R",
+                    "out": "TOKENS_OUT", "total": "TOKENS_TOTAL"}
+            if all(result.get(k, "").isdigit() for k in keys.values()):
+                return {**base, "tokens": {k: int(result[v]) for k, v in keys.items()},
+                        "cost_usd": result.get("COST_USD", ""),
+                        "cost_kind": "estimate" if result.get("COST_USD") else "unpriced",
+                        "reason": "legacy frozen usage; end boundary unknown"}
+            return {**base, "reason": "terminal task has no reliable usage boundary or frozen usage"}
+    base["usage_as_of"] = until
     per_model, cost_kind, cost = None, "unknown", ""
     if agent == "claude":
-        per_model = claude_usage(session, since)
+        per_model = claude_usage(session, since, until)
     elif agent == "codex":
-        per_model = codex_usage(session, since, result.get("MODEL_USED") or meta.get("MODEL", ""))
+        per_model = codex_usage(session, since, result.get("MODEL_USED") or meta.get("MODEL", ""), until)
     elif agent == "opencode":
         found = opencode_usage(session, since)
         if found is not None:
@@ -1035,7 +1059,7 @@ def task_usage(d: Path) -> dict:
             elif per_model and all(m in pool or m.endswith("-free") for m in per_model):
                 cost, cost_kind = "free", "free"
     if per_model is None:
-        return {**base, "reason": f"no {agent} session record found for {session}"}
+        return {**base, "reason": f"no {agent} session record with attributable usage found for {session}"}
     b = _bucket()
     for v in per_model.values():
         for k in b:
@@ -1085,7 +1109,13 @@ def cmd_brief(args) -> dict:
         stamp = f"{m[1][:4]}-{m[1][4:6]}-{m[1][6:]} {m[2][:2]}:{m[2][2:4]}:{m[2][4:]}" if m else ""
         body, n, over = capped(f, max(0, budget))
         budget -= len(body.encode())
-        appends.append({"file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "dropped": ended and not delivered, "bytes": n,
+        try:
+            run_no = int(f.with_name(f.name + ".run").read_text()) if delivered else None
+        except (OSError, ValueError):
+            run_no = None
+        disposition = ("attached_to_run" if run_no is not None else "taken_legacy") if delivered else (
+            "not_delivered" if ended else "pending")
+        appends.append({"run_no": run_no, "disposition": disposition, "file": f.name, "path": str(f), "stamp": stamp, "delivered": delivered, "dropped": ended and not delivered, "bytes": n,
                         "text": body, "truncated": over})
     # `truncated` stays prompt.md's own flag (the chip labels it with brief_bytes); the appends say
     # so each, and together in appends_truncated / dropped_bytes (#1988: the text answer used to

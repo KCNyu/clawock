@@ -138,7 +138,7 @@ BASE_POOL=("${MODEL_POOL[@]}")
 FALLBACK_WAIT="${FALLBACK_WAIT:-60}"
 [ "${#MODEL_POOL[@]}" -gt 1 ] && MAX_ATTEMPTS=$(( MAX_ATTEMPTS > 2 * ${#MODEL_POOL[@]} ? MAX_ATTEMPTS : 2 * ${#MODEL_POOL[@]} ))
 STATE=queued RC="" SESSION="${RESUME:-}" ATTEMPTS=0 OUTCOME="" STARTED=$(ts) FINAL_TEXT="" WAITING="" APPENDS=0
-FAILURE_REASON="" LAST_MODEL=$CUR_MODEL
+FAILURE_REASON="" STOP_REASON="" FINISHED_EPOCH="" USAGE_START_EPOCH="" RUN_NO=0 LAST_MODEL=$CUR_MODEL
 # Only a fresh patrol whose entire pool has produced no non-error events can skip the second lap.
 # Never abandon a resumable task or infer availability from another task's probe.
 declare -A COLD_MODELS=()
@@ -157,6 +157,8 @@ write_result() {
     printf 'QUOTA_RESUMES_USED=%q\nSTALLS=%q\n' "$QUOTA_RESUMES_USED" "$STALLS"
     printf 'STATE=%q\nRC=%q\nOUTCOME=%q\nSESSION=%q\nATTEMPTS=%q\nAPPENDS=%q\nWAITING=%q\nSLOT=%q\nMODEL_USED=%q\nSTARTED=%q\nUPDATED=%q\n' \
       "$STATE" "$RC" "$OUTCOME" "$SESSION" "$ATTEMPTS" "$APPENDS" "$WAITING" "$SLOT" "$LAST_MODEL" "$STARTED" "$(ts)"
+    printf 'USAGE_START_EPOCH=%q\n' "$USAGE_START_EPOCH"
+    printf 'RUN_NO=%q\nSTOP_REASON=%q\nFINISHED_EPOCH=%q\n' "$RUN_NO" "$STOP_REASON" "$FINISHED_EPOCH"
     printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
     printf 'EFFORT_USED=%q\nQUEUED_AT=%q\nWAKE_AT=%q\nNOTIFIED=%q\nNOTIFY_FAILED=%q\nNOTIFY_AT=%q\nRUNNER_API=%q\n' \
       "$EFFORT" "$QUEUED_AT" "$WAKE_AT" "$NOTIFIED" "$NOTIFY_FAILED" "$NOTIFY_AT" "$RUNNER_API"
@@ -179,12 +181,27 @@ session_exists() {
 # attempt to end. Either way the text is delivered to the same session.
 inbox_pending() { compgen -G "$INBOX/*.md" | wc -l; }
 inbox_has_now() { compgen -G "$INBOX/*-now.md" >/dev/null; }
+# The final empty check and append publication share this short lock. A systemd
+# unit remains active while usage/notification finishes, after it stops taking work.
+inbox_close() {  # [if-empty]: return 1 if another run must consume accepted work
+  local pending
+  exec 4>"$DIR/inbox.lock"
+  flock -x 4
+  pending=$(inbox_pending)
+  if [ "${1:-}" = if-empty ] && [ "$pending" -gt 0 ] && session_exists; then
+    flock -u 4; exec 4>&-; return 1
+  fi
+  printf 'finishing\n' >"$DIR/.inbox-state.tmp"
+  mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
+  flock -u 4; exec 4>&-
+}
 take_inbox() {  # moves pending messages to inbox/delivered and prints them as one prompt block
   local f any=""
   mkdir -p "$INBOX/delivered"
   for f in $(compgen -G "$INBOX/*.md" | sort); do
     mv -f "$f" "$INBOX/delivered/" || continue
     f="$INBOX/delivered/$(basename "$f")"
+    printf '%s\n' "$RUN_NO" >"$f.run"
     any=1
     printf '\n【追加指令 %s】\n%s\n' "$(date -d "@$(stat -c %Y "$f")" '+%m-%d %H:%M')" "$(cat "$f")"
   done
@@ -414,6 +431,11 @@ quota_line() {
 
 finish() {
   local icon
+  inbox_close
+  FINISHED_EPOCH=$(date +%s.%N)
+  write_result
+  printf '%s\n' "$FINAL_TEXT" | redact >"$DIR/.runner-summary.tmp"
+  mv -f "$DIR/.runner-summary.tmp" "$DIR/runner-summary.txt"
   # Out of the queue and off the lock before the notification: the next task need not wait for it.
   rm -f "${QDIR:?}/${ID:?}" 2>/dev/null
   release_agent_lock
@@ -451,6 +473,8 @@ id：$ID
   # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
   # on the attempt stop, the quota line and the legs.
   [ "$STATE" = cancelled ] || wake_origin end "$notice"
+  printf 'terminal\n' >"$DIR/.inbox-state.tmp"
+  mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
   echo "==================== $(ts) $ID end state=$STATE outcome=${OUTCOME:--} rc=${RC:--} ===================="
 }
 
@@ -472,10 +496,10 @@ on_signal() {
   # cancelled task read as still queued (2026-09-23 dispatch-default-model-bump).
   WAITING="" WAKE_AT=""
   if [ -e "$DIR/cancel-requested" ] || [ "$(remaining)" -gt 15 ]; then
-    STATE=cancelled
+    STATE=cancelled STOP_REASON=cancelled
     : >>"$DIR/cancel-requested"
   else
-    STATE=timeout
+    STATE=timeout STOP_REASON=deadline
   fi
   RC=143
   FINISH_NOTIFY_TIMEOUT=30 FINISH_USAGE_TIMEOUT=8
@@ -491,7 +515,7 @@ cancel_guard
 if [ "${DISPATCH_WRAPPED:-0}" != 1 ]; then
   left=$(remaining)
   if [ "$left" -le $((MIN_RUN_SEC / 2)) ]; then
-    STATE=blocked; RC=75; FINAL_TEXT="截止时间 $DEADLINE 已过或不足，未启动。"; finish; exit 75
+    STATE=blocked; RC=75; STOP_REASON=deadline; FINAL_TEXT="截止时间 $DEADLINE 已过或不足，未启动。"; finish; exit 75
   fi
   # -k 80: after TERM (systemctl stop, or this deadline) on_signal needs time to stop the attempt
   # and notify. With -k 5 the cancel of review-merge-1514-1515 was KILLed before its notification
@@ -507,12 +531,14 @@ fi
 echo "==================== $(ts) $ID start ===================="
 echo "agent_slots=$AGENT_SLOTS quota_resumes=$QUOTA_RESUMES stall_first=${STALL_FIRST}s stall_idle=${STALL_IDLE}s stall_tool=${STALL_TOOL}s"
 echo "agent=$AGENT model=$MODEL${FALLBACK_MODELS:+ (fallback: $FALLBACK_MODELS)} effort=$EFFORT cwd=$CWD resume=${RESUME:--} deadline=$DEADLINE"
+printf 'accepting\n' >"$DIR/.inbox-state.tmp"
+mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
 free -m | sed -n '2p'
 write_result
 
 need=(timeout flock python3 openclaw "$AGENT")
 for b in "${need[@]}"; do
-  command -v "$b" >/dev/null || { STATE=failed; RC=127; FINAL_TEXT="预检失败：找不到 $b"; finish; exit 127; }
+  command -v "$b" >/dev/null || { STATE=failed; RC=127; FAILURE_REASON=missing_dependency; STOP_REASON=missing_dependency; FINAL_TEXT="预检失败：找不到 $b"; finish; exit 127; }
 done
 
 # ---- locks: one task per agent at a time, taken in queue order ----------------------
@@ -626,12 +652,12 @@ lock_session() {
 lock_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
 [ "$lock_budget" -gt 0 ] || lock_budget=0
 if ! take_lock "$lock_budget"; then
-  STATE=blocked; RC=75; FINAL_TEXT="另一个 $AGENT 委派任务一直占着执行槽，截止前没轮到，未启动。"
-  [ -n "$HINT_UNTIL" ] && STATE=quota FINAL_TEXT="$AGENT 额度到 $(date -d "@$HINT_UNTIL" '+%m-%d %H:%M') 才恢复，截止前轮不到，未启动。"
+  STATE=blocked; RC=75; STOP_REASON=lock_deadline; FINAL_TEXT="另一个 $AGENT 委派任务一直占着执行槽，截止前没轮到，未启动。"
+  [ -n "$HINT_UNTIL" ] && STATE=quota STOP_REASON=reset_after_deadline FINAL_TEXT="$AGENT 额度到 $(date -d "@$HINT_UNTIL" '+%m-%d %H:%M') 才恢复，截止前轮不到，未启动。"
   finish; exit 75
 fi
 if ! lock_session; then
-  STATE=blocked; RC=75; FINAL_TEXT="会话 $SESSION 已有别的派发任务在写，拒绝并发续跑。"; finish; exit 75
+  STATE=blocked; RC=75; FAILURE_REASON=session_busy; STOP_REASON=session_busy; FINAL_TEXT="会话 $SESSION 已有别的派发任务在写，拒绝并发续跑。"; finish; exit 75
 fi
 
 # ---- helpers ----------------------------------------------------------------------
@@ -832,6 +858,7 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED and STALLED
 NEXT_KIND=task INTERRUPT_NOTE="" RUN_NO=0
 run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|error), ATEXT, INTERRUPTED, SESSION when learned
   local cap=$1 alog prompt block="" resumable=""
+  [ -n "$USAGE_START_EPOCH" ] || USAGE_START_EPOCH=$(date +%s.%N)
   NO_RESPONSE=0
   RUN_NO=$((RUN_NO + 1)); alog="$DIR/attempt$RUN_NO"
   { session_exists || [ -n "${RESUME:-}" ]; } && resumable=1
@@ -1013,6 +1040,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   slot_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
   if ! acquire_slot "$(( slot_budget > 0 ? slot_budget : 0 ))"; then
     if [ "$ATTEMPTS" -eq 0 ]; then STATE=blocked; else STATE=timeout; fi
+    STOP_REASON=slot_deadline
     FINAL_TEXT="${FINAL_TEXT:-同时在跑的 $AGENT 委派任务已满 $AGENT_SLOTS 个，截止前没轮到。}"; break
   fi
   cap=$(( $(remaining) - KILL_MARGIN ))
@@ -1021,7 +1049,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   [ "$TIMEOUT" -lt "$min_start" ] && min_start=$TIMEOUT
   if [ "$cap" -lt "$min_start" ]; then
     release_slot
-    STATE=timeout; FINAL_TEXT="${FINAL_TEXT:-截止前剩余时间不足，未再尝试。}"; break
+    STATE=timeout; STOP_REASON=deadline; FINAL_TEXT="${FINAL_TEXT:-截止前剩余时间不足，未再尝试。}"; break
   fi
   kind=$NEXT_KIND
   [ "$kind" = append ] || ATTEMPTS=$((ATTEMPTS + 1))
@@ -1053,7 +1081,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   update_usage
   apply_budget   # a retry/resume budget changed during the attempt counts for the decision below
   if ! lock_session; then
-    STATE=blocked; FINAL_TEXT="会话 $SESSION 已有别的派发任务在写，拒绝并发续跑。"; break
+    STATE=blocked; FAILURE_REASON=session_busy; STOP_REASON=session_busy; FINAL_TEXT="会话 $SESSION 已有别的派发任务在写，拒绝并发续跑。"; break
   fi
   # An attempt that got through proves the quota is back: drop a quota hint left by anyone.
   if [ "$AKIND" != quota ] && [ -e "$QUOTA_HINT" ]; then rm -f "${QUOTA_HINT:?}"; fi
@@ -1073,7 +1101,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
     NEXT_KIND=append INTERRUPT_NOTE=1; write_result; continue
   fi
   if [ "$AKIND" = ok ]; then
-    if [ "$(inbox_pending)" -gt 0 ] && session_exists; then
+    if ! inbox_close if-empty; then
       echo "---- $(ts) finished with appended instruction(s) waiting; delivering them"
       NEXT_KIND=append; continue
     fi
@@ -1106,7 +1134,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
       # Minute precision: "12:54 AM" can mean 00:54:59.
       wake=$((reset + ${QUOTA_WAKE_PAD_SEC:-120})); echo "---- quota resets $(date -d "@$reset" '+%F %T') (from message)"
     fi
-    if [ -z "$wake" ]; then STATE=quota; break; fi
+    if [ -z "$wake" ]; then STATE=quota; STOP_REASON=quota_reset_unknown; break; fi
   else
     wake=$(( $(now) + RETRY_WAIT ))
     if [ "${#MODEL_POOL[@]}" -gt 1 ]; then
@@ -1120,6 +1148,10 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   fi
   if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ] || [ -z "$SESSION" -a "$AKIND" = quota ] \
      || [ $(( DEADLINE_EPOCH - wake )) -lt $((MIN_RUN_SEC + KILL_MARGIN)) ]; then
+    if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then STOP_REASON=attempt_budget
+    elif [ -z "$SESSION" ] && [ "$AKIND" = quota ]; then STOP_REASON=no_session
+    elif [ "$AKIND" = quota ]; then STOP_REASON=reset_after_deadline
+    else STOP_REASON=retry_after_deadline; fi
     if [ "$AKIND" = quota ]; then
       STATE=quota
     elif [ "$ARC" -eq 124 ] || [ "$(remaining)" -lt $((MIN_RUN_SEC + KILL_MARGIN)) ]; then
@@ -1131,7 +1163,7 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
   fi
   if [ "$AKIND" = quota ]; then
     if [ "$QUOTA_RESUMES_USED" -ge "$QUOTA_RESUMES" ]; then
-      STATE=quota
+      STATE=quota STOP_REASON=quota_resume_budget
       FINAL_TEXT="$ATEXT
 已达自动额度续跑上限 $QUOTA_RESUMES；保留会话与产物。再次 resume 会重放历史上下文，需显式追加任务或带产物另开任务。"
       echo "---- quota resume budget exhausted ($QUOTA_RESUMES_USED/$QUOTA_RESUMES)"
