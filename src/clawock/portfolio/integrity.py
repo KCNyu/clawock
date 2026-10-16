@@ -95,6 +95,7 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
   退出码：0=全过或仅 WARN；2=有 ERROR（调用方应阻止发布/投递）
 """
 import argparse
+import copy
 import json
 import pathlib
 import sys
@@ -610,8 +611,16 @@ def blocks_money_publication(finding):
             or finding.get('code') in MONEY_WARNING_CODES)
 
 
-def check(portfolio_path=PORTFOLIO, *, config_path=None):
-    data = json.loads(Path(portfolio_path).read_text())
+def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
+    """Conservation findings for one book.
+
+    `document` is a book the caller has already read; it is checked instead of
+    reading `portfolio_path` again, and left unmutated. A publisher that prints
+    its totals from one read and judges a second read can publish a verdict
+    about a different book (#3007).
+    """
+    data = (copy.deepcopy(document) if document is not None
+            else json.loads(Path(portfolio_path).read_text()))
     P = data.get('portfolios', {})
     findings = []  # {code, level, region, ticker, msg}
 

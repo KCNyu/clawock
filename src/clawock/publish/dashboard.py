@@ -4032,11 +4032,12 @@ def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
                 'error': 'trading_calendar unavailable',
             }
 
-    # 体检结论（A1）——纯文件运算，安全内联
+    # 体检结论（A1）——纯文件运算，安全内联。判的是本次构建 totals/holdings 用的
+    # 同一份账，不再从磁盘重读：两次读之间账本被改写，健康卡就在说另一本账（#3007）。
     integrity = None
     try:
         from clawock.portfolio import integrity as _pi
-        rep = _pi.check()
+        rep = _pi.check(document=portfolio)
         integrity = {'ok': rep['ok'], 'error_count': rep['error_count'],
                      'warn_count': rep['warn_count'],
                      'bar_staleness': rep.get('bar_staleness', []),
