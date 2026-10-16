@@ -1087,6 +1087,54 @@ def usage_env(out: dict) -> str:
     return "\n".join(f"{k}={'' if v is None else v}" for k, v in pairs)
 
 
+# ---- summary: totals over the frozen results, read-only ------------------------------------
+
+def cmd_summary(args) -> dict:
+    """Per agent: tasks by runner STATE and model OUTCOME, and the token/cost numbers each task froze
+    into result.env when it ended. Never rereads a session: a later task continuing the same session
+    would be counted twice. COST_USD is an API list-price estimate, not subscription quota spent."""
+    agents = [a for a in (args.agent or "").split(",") if a] or list(AGENTS)
+    if any(a not in AGENTS for a in agents):
+        raise OpsError(2, f"--agent takes {','.join(AGENTS)}")
+    if args.since and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.since):
+        raise OpsError(2, "--since takes YYYY-MM-DD")
+    out = {a: {"tasks": 0, "states": {}, "outcomes": {}, "tokens_total": 0, "tokens_unknown": 0,
+               "cost_usd_estimate": 0.0, "cost_unpriced": 0, "cost_free": 0, "live": 0} for a in agents}
+    for meta_file in sorted(TASKS_DIR.glob("*/meta.env")):
+        d = meta_file.parent
+        if d.name.startswith("patrol-") and not args.all:
+            continue
+        meta, result = read_env(meta_file), read_env(d / "result.env")
+        g = out.get(meta.get("AGENT", ""))
+        if g is None or (args.since and meta.get("CREATED", "")[:10] < args.since):
+            continue
+        state = result.get("STATE") or "pending"
+        g["tasks"] += 1
+        g["states"][state] = g["states"].get(state, 0) + 1
+        if state not in TERMINAL:
+            g["live"] += 1   # its numbers are still moving: counted as a task, not in the totals
+            continue
+        outcome = result.get("OUTCOME") or "-"
+        g["outcomes"][outcome] = g["outcomes"].get(outcome, 0) + 1
+        total, cost = result.get("TOKENS_TOTAL", ""), result.get("COST_USD", "")
+        if total.isdigit():
+            g["tokens_total"] += int(total)
+        else:
+            g["tokens_unknown"] += 1   # empty is unknown, never 0
+        if cost == "free":
+            g["cost_free"] += 1
+        else:
+            try:
+                g["cost_usd_estimate"] += float(cost)
+            except ValueError:
+                g["cost_unpriced"] += 1
+    for g in out.values():
+        g["cost_usd_estimate"] = round(g["cost_usd_estimate"], 2)
+    return {"ok": True, "since": args.since or None, "patrol_included": bool(args.all), "agents": out,
+            "cost_kind": "estimate", "note": "tokens and COST_USD as frozen at each task's end; COST_USD "
+            "is an API list-price estimate, not subscription quota; live tasks are not in the totals"}
+
+
 # ---- brief: the task's instructions, read-only --------------------------------------------
 
 def capped(path: Path, limit: int) -> tuple[str, int, bool]:
@@ -1281,6 +1329,11 @@ def parser() -> argparse.ArgumentParser:
         b.add_argument("id")
         b.add_argument("value")
         b.set_defaults(fn=cmd_count_budget)
+    sm = sub.add_parser("summary", help="per-agent totals over frozen task results")
+    sm.add_argument("--since", help="tasks created on or after YYYY-MM-DD")
+    sm.add_argument("--agent", help="comma list of claude,codex,opencode (default: all)")
+    sm.add_argument("--all", action="store_true", help="include patrol-* rounds")
+    sm.set_defaults(fn=cmd_summary)
     lg = sub.add_parser("log")
     lg.add_argument("id")
     lg.add_argument("--lines", type=int, default=60)
@@ -1312,6 +1365,15 @@ def human(action: str, out: dict) -> str:
         return out["report"]
     if action == "usage":
         return usage_env(out)
+    if action == "summary":
+        lines = [f"since {out['since'] or 'the first task'}{' (patrol included)' if out['patrol_included'] else ''}; {out['note']}"]
+        for agent, g in out["agents"].items():
+            states = " ".join(f"{k}={v}" for k, v in sorted(g["states"].items()))
+            outcomes = " ".join(f"{k}={v}" for k, v in sorted(g["outcomes"].items()))
+            lines.append(f"{agent}: {g['tasks']} tasks ({states or '-'}); outcomes {outcomes or '-'}; "
+                         f"tokens {g['tokens_total']:,} (+{g['tokens_unknown']} unknown); "
+                         f"est ${g['cost_usd_estimate']:.2f} (+{g['cost_unpriced']} unpriced, {g['cost_free']} free)")
+        return "\n".join(lines)
     if action == "brief":
         def cut(item_bytes: int, shown: str, path: str) -> str:
             return f" [truncated: {item_bytes} -> {len(shown.encode())} bytes; full text: {path}]"

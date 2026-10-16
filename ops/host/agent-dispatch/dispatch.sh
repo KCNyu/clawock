@@ -9,6 +9,7 @@
 #   dispatch.sh result <id> [--run N] # terminal envelope and selected model report
 #   dispatch.sh inbox <id>           # JSON brief + pending/attached/not-delivered appends
 #   dispatch.sh log <id>             # redacted runner log tail
+#   dispatch.sh summary [--since YYYY-MM-DD] [--agent a,b] [--all] [--json]  # per-agent totals (frozen results; cost is an estimate)
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
 #
@@ -62,6 +63,9 @@ case "$cmd" in
     exec python3 /root/tools/agent-dispatch/read-result.py "$@" ;;
   log)
     exec python3 /root/tools/agent-dispatch/task_queue_ops.py log "$@" ;;
+  summary)
+    if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json summary "$@"; fi
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py summary "$@" ;;
   inbox)
     exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json brief "${1:-}" ;;
   queue)
@@ -77,6 +81,18 @@ case "$cmd" in
       [ ! -r "$d/inbox-state" ] || echo "inbox_phase: $(cat "$d/inbox-state")"
       for wake_file in "$d"/wake-{quota,end}.json; do
         [ ! -r "$wake_file" ] || { printf '%s: ' "$(basename "$wake_file")"; cat "$wake_file"; }
+      done
+      # Lineage and runs: which task this one continued, which continued it, and how each run of
+      # the CLI went (attempt<N>.env; none for runners before api 4).
+      parent=$(sed -n "s/^PARENT_TASK_ID=//p" "$d/meta.env" | tr -d "'\"")
+      [ -z "$parent" ] || echo "parent: $parent"
+      children=$(grep -lx "PARENT_TASK_ID=$1" "$BASE"/*/meta.env 2>/dev/null | xargs -r -n1 dirname | xargs -r -n1 basename | xargs) || true
+      [ -z "$children" ] || echo "children: $children"
+      for run_file in $(printf '%s\n' "$d"/attempt*.env | sort -V); do
+        [ -e "$run_file" ] || continue
+        # shellcheck disable=SC1090  # the runner's own attempt<N>.env, written with printf %q
+        ( RUN_NO="" KIND="" STARTED_EPOCH="" RC="" AKIND=""; . "$run_file"
+          printf 'run %s: prompt=%s started=%s rc=%s result=%s\n' "$RUN_NO" "${KIND:--}" "$([ -n "$STARTED_EPOCH" ] && echo yes || echo no)" "${RC:--}" "${AKIND:--}" )
       done
       echo "unit: $(systemctl is-active "agent-dispatch-$1.service" 2>/dev/null || true)"
       n=$(find "$d/inbox" -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l) || n=0
@@ -335,9 +351,21 @@ systemd-run --unit "agent-dispatch-$ID" --collect --quiet \
   "$RUNNER" "$DIR"
 
 echo "dispatched $ID"
+# Continued from an ended task by `append`: the same receipt shape as an accepted append, naming
+# the task that will actually read the instruction (it is this new task's prompt, not a message).
+# shellcheck disable=SC2031  # exported by the dispatch.sh process that re-ran "$0", not a subshell
+[ -z "${AGENT_DISPATCH_PARENT_TASK_ID:-}" ] || printf 'receipt: {"requested_task_id":"%s","actual_task_id":"%s","message_id":null,"disposition":"continued_as_new_task"}\n' "$AGENT_DISPATCH_PARENT_TASK_ID" "$ID"
 echo "  unit:     agent-dispatch-$ID.service ($AGENT $MODEL${EFFORT:+/$EFFORT}, cwd $CWD)"
 echo "  deadline: $DEADLINE"
 [ -z "$ORIGIN_SESSION" ] || echo "  wake:     this session gets a turn when it ends (off: --origin-session none)"
 echo "  log:      $DIR/run.log"
 echo "  status:   /root/tools/agent-dispatch/dispatch.sh status $ID"
 echo "  append:   /root/tools/agent-dispatch/dispatch.sh append $ID < more.md   (change the task without cancelling it)"
+# A prompt only (kcn left admission to the agent 2026-10-16; decision: inform, never refuse,
+# downgrade or re-route): the account's windows as the dispatcher sees them now. quota.mjs caches
+# for 90s, so back-to-back dispatches do not poll the usage endpoint; bounded, and never fatal.
+case "$AGENT" in claude|codex)
+  # shellcheck disable=SC2086  # a command line, split like run-agent.sh's QUOTA_CMD
+  quota=$(timeout 8 ${AGENT_DISPATCH_QUOTA_CMD:-node /root/tools/agent-dispatch/quota.mjs} "$AGENT" 2>/dev/null | head -1) || true
+  echo "  quota:    ${quota:-额度：未读到（超时或读取脚本失败）} (informational; does not hold the task)" ;;
+esac
