@@ -235,6 +235,52 @@ def test_london_payload_serializes_both_histories_within_bound():
     assert london["fx_hist_series"] == [[day, 7.0] for day, _ in expected]
 
 
+def _lifetime_book(days):
+    history = [(day, 3.0, 0.0) for day, _ in dated_rows(days)]
+    xau = [(day, 4000.0 + i) for i, (day, _, _) in enumerate(history)]
+    book = {"principal_invested": 1000, "units_held": 500, "daily_amount": 200,
+            "fund_code": "000217", "start_date": history[0][0],
+            "reconciled_date": history[0][0]}
+    return book, history, xau
+
+
+def test_london_counterfactual_spans_the_whole_dca_not_the_chart_window():
+    """The written `nav_history` is a chart window; the counterfactual and the
+    "起投=100" line must start where the DCA started (#2999)."""
+    book, history, xau = _lifetime_book(gold.HISTORY_KEEP + 160)
+    derived = gold.compute(
+        book, history, None, {"xau_usd": 4300.0}, 6.9,
+        {day: 6.9 for day, _, _ in history}, xau,
+        {"name": gold.XAU_PRIMARY_SOURCE, "points": len(xau)},
+        {"name": "frankfurter_usdcny", "points": len(history)},
+    )
+    london = derived["london"]
+
+    assert len(derived["nav_history"]) == gold.HISTORY_KEEP
+    assert london["dca_equiv"]["days"] == derived["days_invested"] == len(history)
+    assert london["dca_equiv"]["principal_cny"] == 200 * len(history)
+    # Baseline is the start date: the London index of the last point is
+    # xau[-1] / xau[0], not relative to the chart window's first day.
+    assert london["compare_series"][-1][2] == round(xau[-1][1] / xau[0][1] * 100, 2)
+    # Persisted reference history keeps #198's sliding bound.
+    assert len(london["hist_series"]) == gold.HISTORY_KEEP + gold.XAU_SETTLEMENT_DAYS
+
+
+def test_london_history_short_of_the_start_keeps_the_previous_counterfactual():
+    """A failed fetch leaves only the stored window; recomputing on it would
+    quietly drop the oldest purchases again, so the old values stand."""
+    book, history, xau = _lifetime_book(gold.HISTORY_KEEP + 160)
+    previous = {"dca_equiv": {"days": len(history) - 1},
+                "compare_series": [["2025-01-01", 100.0, 100.0]]}
+    derived = gold.compute(
+        {**book, "london": previous}, history, None, {"xau_usd": 4300.0}, 6.9,
+        {day: 6.9 for day, _, _ in history}, xau[-gold.HISTORY_KEEP:],
+    )
+
+    assert derived["london"]["dca_equiv"] == previous["dca_equiv"]
+    assert derived["london"]["compare_series"] == previous["compare_series"]
+
+
 def test_sliding_coverage_anchor_bounds_retained_london_history():
     start = "2026-01-22"
     first_day = date(2026, 1, 22)
