@@ -1023,9 +1023,13 @@
     const el = document.getElementById("last-updated");
     if (!el || !DATA) return;
     const gen = DATA.generated_at || DATA.last_updated;
-    const rel = _formatRelative(gen);
+    // `generated_at` is UTC ISO; the `last_updated` fallback is an HKT wall
+    // clock ("2026/10/16 04:50 HKT"), so its tail keeps its own zone (#2998).
+    const hkt = /^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}:\d{2}) HKT$/.exec(gen || "");
+    const rel = _formatRelative(hkt ? `${hkt[1]}-${hkt[2]}-${hkt[3]}T${hkt[4]}:00+08:00` : gen);
     // Two-line form: relative time + absolute timestamp tail
-    const absTail = gen && gen.length > 16 ? gen.slice(11, 16) + " UTC" : (gen || "");
+    const absTail = hkt ? `${hkt[4]} HKT`
+      : gen && gen.length > 16 ? gen.slice(11, 16) + " UTC" : (gen || "");
     el.textContent = `· 生成于 ${rel} · ${absTail}`;
     el.title = gen || "";
   }

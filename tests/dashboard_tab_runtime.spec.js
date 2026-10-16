@@ -3691,6 +3691,32 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
 // — assert the market age never occupies the title's rectangle. The latter is
 // the iOS Safari regression: both strings fit, but a fixed top offset placed
 // them on top of each other.
+// `generated_at` is UTC ISO; the `last_updated` fallback is an HKT wall clock.
+// The tail must keep the zone of the string it was cut from (#2998).
+async function testTheAgeTailKeepsItsSourceZone(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  const [utc, hkt] = await page.evaluate(() => {
+    const el = document.getElementById("last-updated");
+    const keep = [DATA.generated_at, DATA.last_updated];
+    DATA.generated_at = "2026-10-15T20:50:05.618860Z";
+    _updateAgeLabel();
+    const utcText = el.textContent;
+    const now = new Date(Date.now() - 5 * 60e3 + 8 * 3600e3).toISOString();
+    DATA.generated_at = undefined;
+    DATA.last_updated = `${now.slice(0, 10).replace(/-/g, "/")} ${now.slice(11, 16)} HKT`;
+    _updateAgeLabel();
+    const hktText = el.textContent;
+    [DATA.generated_at, DATA.last_updated] = keep;
+    _updateAgeLabel();
+    return [utcText, hktText];
+  });
+  assert.match(utc, /· 20:50 UTC$/, utc);
+  assert.match(hkt, /生成于 (5|6) 分钟前 · \d{2}:\d{2} HKT$/, hkt);
+  await page.close();
+}
+
 async function testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base) {
   for (const width of [1200, 430, 393, 390, 320]) {
     const context = await browser.newContext({ viewport: { width, height: 844 } });
@@ -4422,6 +4448,7 @@ async function main() {
     await run("testEveryControlAnswersAPress", () => testEveryControlAnswersAPress(browser, base));
     await run("testButtonDefaultsDoNotOverrideComponentFonts", () => testButtonDefaultsDoNotOverrideComponentFonts(browser));
     await run("testRelativeAgeLabelsKeepTheirGlyphsApart", () => testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base));
+    await run("testTheAgeTailKeepsItsSourceZone", () => testTheAgeTailKeepsItsSourceZone(browser, base));
     await run("testNoBlockIsPaintedTheColourOfWhatItSitsOn", () => testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base));
   } finally {
     await browser.close();
