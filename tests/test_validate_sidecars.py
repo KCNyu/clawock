@@ -376,6 +376,31 @@ def _same_day(portfolio, clock):
     return f"{portfolio['last_updated'][:10]} {clock} HKT"
 
 
+def _restate_book_day_snapshot(payload):
+    """A synthetic generation that restates the book's totals restates the
+    snapshot of the book's own day with them, as the publisher does (#3006),
+    and the Session row the gate recomputes from it."""
+    from types import SimpleNamespace
+    from clawock.publish.dashboard import book_stamp_date, compute_delta, snapshots_of
+
+    columns = payload.get('snapshots_columns')
+    last = snapshots_of(payload)[-1]
+    if last.get('date') != book_stamp_date(payload.get('last_updated')):
+        return payload
+    for leg, totals in payload['totals'].items():
+        ccy = next(key[len('value_'):] for key in totals if key.startswith('value_'))
+        for field, column in (('value', 'total_value'), ('cost', 'total_cost'),
+                              ('pnl', 'total_pnl'), ('today_change', 'today_change'),
+                              ('cash', 'cash')):
+            last[f'{leg}_{column}'] = totals[f'{field}_{ccy}']
+    payload['snapshots'][-1] = [last[c] for c in columns] if columns else last
+    recomputed = compute_delta(
+        snapshots_of(payload), legs=[SimpleNamespace(key=leg) for leg in payload['delta']])
+    for leg, windows in payload['delta'].items():
+        windows.update({k: v for k, v in recomputed[leg].items() if k in windows})
+    return payload
+
+
 def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(
         tmp_path, freshly_built_dashboard):
     """The intraday publishing model: every slot rebuilds the dashboard from the
@@ -388,7 +413,10 @@ def test_intraday_dashboard_ahead_of_the_committed_book_is_not_a_failure(
 
     payload = json.loads(freshly_built_dashboard.read_text())
     payload['last_updated'] = _same_day(portfolio, '12:00')
-    payload['totals']['hk']['value_hkd'] += 1688.0
+    # A figure the committed book disagrees with. Not the market value: a newer
+    # book moves the day's snapshot with it, and totals that moved without it
+    # are a torn payload of their own (#3006).
+    payload['totals']['hk']['realized_hkd'] += 1688.0
     dashboard = write_json(tmp_path / 'dashboard.json', payload)
 
     validators.validate_dashboard(dashboard, portfolio_path=source)
@@ -440,6 +468,7 @@ def _unquoted_book(tmp_path, freshly_built_dashboard):
     payload['holdings']['us'] = [
         trim_holding(h, 'USD') for h in us['holdings'] if (h.get('shares') or 0) > 0]
     payload['concentration']['us'] = compute_hhi(payload['holdings']['us'])
+    _restate_book_day_snapshot(payload)
     return source, payload, row
 
 
@@ -501,7 +530,7 @@ def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     payload['totals']['hk']['cash_hkd'] = None
     portfolio['portfolios']['hk_stocks']['cash_hkd'] = None
-    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+    dashboard = write_json(tmp_path / 'dashboard.json', _restate_book_day_snapshot(payload))
     source = write_json(tmp_path / 'portfolio.json', portfolio)
 
     validators.validate_dashboard(dashboard, portfolio_path=source)
@@ -1144,6 +1173,7 @@ def _fresh_position(payload, portfolio):
     if old_change is not None:
         book['today_total_change'] = round(book['today_total_change'] - old_change, 2)
         payload['totals']['us']['today_change_usd'] = book['today_total_change']
+        _restate_book_day_snapshot(payload)
     return row
 
 
@@ -1200,6 +1230,37 @@ def test_dashboard_rejects_a_delta_that_counts_a_buy_as_a_gain(tmp_path):
     payload['delta']['hk']['today_pct'] = 0.82  # equity basis: the cash vanished
     with pytest.raises(AssertionError, match=r'delta\.hk\.today_pct=0\.82 does not reconcile'):
         validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
+
+
+def _same_day_book_payload() -> dict:
+    """The book of 2026-10-02 09:39 beside a snapshot of that day (#3006)."""
+    payload = _derived_money_payload()
+    payload['last_updated'] = '2026/10/02 09:39 HKT'
+    payload['totals']['hk'] = {
+        'value_hkd': 61169.2, 'cost_hkd': 112686.6, 'pnl_hkd': -51517.4,
+        'pnl_pct': -45.72, 'today_change_hkd': 553.6, 'realized_hkd': 7259.16,
+        'cash_hkd': 10187.0}
+    payload['snapshots'][-1].update(
+        hk_total_cost=112686.6, hk_total_pnl=-51517.4, hk_today_change=553.6)
+    return payload
+
+
+def test_dashboard_totals_and_the_same_day_snapshot_are_one_book(tmp_path):
+    validators.validate_dashboard(
+        write_json(tmp_path / 'dashboard.json', _same_day_book_payload()))
+
+
+def test_dashboard_rejects_totals_from_a_newer_book_than_the_curve_end(tmp_path):
+    """09:39 requote in totals, the 09:33 copy at the end of the equity curve:
+    the published gap of #3006, which every money gate passed."""
+    payload = _same_day_book_payload()
+    payload['totals']['hk']['value_hkd'] = 60938.8   # 61,169.20 − 230.40
+    payload['totals']['hk']['today_change_hkd'] = 323.2
+    with pytest.raises(AssertionError, match=r'totals\.hk\.value_hkd=60938\.8 but snapshots\[-1\]'):
+        validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
+    # An earlier day's snapshot is history, not a copy of this book.
+    payload['last_updated'] = '2026/10/03 09:39 HKT'
+    validators.validate_dashboard(write_json(tmp_path / 'dashboard.json', payload))
 
 
 def test_dashboard_rejects_an_anomaly_weight_the_concentration_card_does_not_print(tmp_path):

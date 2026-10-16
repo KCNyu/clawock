@@ -1908,6 +1908,31 @@ def test_snapshot_cash_flows_use_ledger_numeric_coercion(tmp_path, monkeypatch):
     assert dashboard.load_snapshots()[0]['hk_flows'] == 30000
 
 
+def test_the_snapshot_of_the_books_own_day_is_read_from_that_book(tmp_path, monkeypatch):
+    """Between postflights only the publisher runs; the day's snapshot file is
+    an older copy of the book its totals came from (#3006)."""
+    snapshots = tmp_path / 'memory' / 'snapshots'
+    snapshots.mkdir(parents=True)
+
+    def doc(stamp, value, change):
+        return {'last_updated': stamp, 'portfolios': {
+            'us_stocks': {'currency': 'USD', 'total_current_value': 10},
+            'hk_stocks': {'currency': 'HKD', 'total_current_value': value,
+                          'today_total_change': change}}}
+
+    (snapshots / '2026-10-15.json').write_text(json.dumps(doc('2026/10/15 16:10 HKT', 50720.4, 0)))
+    (snapshots / '2026-10-16.json').write_text(json.dumps(doc('2026/10/16 09:33 HKT', 53169.6, 2449.2)))
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    live = doc('2026/10/16 09:39 HKT', 52939.2, 2218.8)
+
+    rows = dashboard.load_snapshots(live_book=live)
+    assert [(r['date'], r['hk_total_value'], r['hk_today_change']) for r in rows] == [
+        ('2026-10-15', 50720.4, 0), ('2026-10-16', 52939.2, 2218.8)]
+    # A book that has moved on to a day with no snapshot yet leaves history alone.
+    live['last_updated'] = '2026/10/17 09:39 HKT'
+    assert dashboard.load_snapshots(live_book=live)[-1]['hk_total_value'] == 53169.6
+
+
 def test_narrative_exposure_numbers_must_match_the_same_book():
     data = {
         'hidden_concentration': {'headline': '中国 AI 集中', 'factor': 'AI',

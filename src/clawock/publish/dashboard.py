@@ -1630,8 +1630,22 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
     }
 
 
-def load_snapshots():
+def book_stamp_date(stamp):
+    """`2026/10/16 09:39 HKT` → `2026-10-16`, the day that book belongs to; None
+    when the stamp does not read that way."""
+    match = re.match(r'(\d{4})/(\d{2})/(\d{2}) ', str(stamp or ''))
+    return '-'.join(match.groups()) if match else None
+
+
+def load_snapshots(live_book=None):
     """Returns recent-N snapshot summaries (NOT full holdings). Capped at MAX_SNAPSHOTS_EMBEDDED.
+
+    `live_book` is the portfolio.json document the caller's totals came from.
+    The snapshot of that book's own day (`book_stamp_date`) is read from it
+    rather than from disk: only harness postflights rewrite that file, so
+    between them the scheduled publisher printed the totals of one book beside
+    an equity curve, Session row and drawdown ending on an older one (#3006).
+    Earlier days and tagged files are history and stay on disk.
 
     Self-heals realized P&L: a snapshot's stored realized_pnl can lag the
     canonical trades[] ledger (the 2026-05-21 phantom-drawdown bug, where
@@ -1640,8 +1654,16 @@ def load_snapshots():
     it, so the equity curve / drawdown can never be poisoned by a stale aggregate
     even if a future writer regresses. Read-only on the snapshot files."""
     from clawock.portfolio.snapshots import realized_as_of, snapshot_shares
-    ledger = _canonical_ledger()
-    legs = _ledger_legs()
+    if live_book:
+        legs = resolve_legs(live_book)
+        books_now = live_book.get('portfolios', {})
+        ledger = {leg.bucket: books_now.get(leg.bucket, {}).get('holdings', []) or []
+                  for leg in legs}
+        live_file = f'{book_stamp_date(live_book.get("last_updated"))}.json'
+    else:
+        ledger = _canonical_ledger()
+        legs = _ledger_legs()
+        live_file = None
     paths = sorted(
         p for p in glob.glob(str(WS_ROOT / 'memory' / 'snapshots' / '*.json'))
         if SNAPSHOT_FNAME_RE.match(os.path.basename(p))
@@ -1650,10 +1672,10 @@ def load_snapshots():
     paths = paths[-MAX_SNAPSHOTS_EMBEDDED:]
     results = []
     for p in paths:
-        d = load_json(p)
+        fname = os.path.basename(p)
+        d = live_book if fname == live_file else load_json(p)
         if not d:
             continue
-        fname = os.path.basename(p)
         # filename: YYYY-MM-DD.json or YYYY-MM-DD-tag.json
         date = fname.split('.')[0].split('-')
         date = '-'.join(date[:3]) if len(date) >= 3 else fname
@@ -4715,7 +4737,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     if fx_cache['warning']:
         print(f"  warn: {fx_cache['warning']}", file=sys.stderr)
 
-    snapshots = load_snapshots()
+    snapshots = load_snapshots(live_book=portfolio)
     plans = load_plans()
 
     out = {
