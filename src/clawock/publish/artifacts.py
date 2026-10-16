@@ -936,7 +936,7 @@ def _assert_dashboard_derived_money(data: dict) -> None:
     Needs nothing but the payload, so it runs on every validation.
     """
     from types import SimpleNamespace
-    from clawock.publish.dashboard import compute_delta, snapshots_of
+    from clawock.publish.dashboard import book_stamp_date, compute_delta, snapshots_of
 
     def finite(value):
         return (isinstance(value, (int, float))
@@ -960,6 +960,32 @@ def _assert_dashboard_derived_money(data: dict) -> None:
             assert finite(actual) and abs(actual - expected) <= 0.005, (
                 f'delta.{leg}.{window}={actual} does not reconcile to the '
                 f'snapshots in this payload (value + cash - flows): {expected}')
+
+    # The last snapshot of the book's own day is a copy of that book, and it is
+    # the end point of the equity curve, the Session row and the drawdown card.
+    # It may not be a different generation from the totals printed beside them
+    # (#3006: HK 52,939.20 in totals, 53,169.60 at the curve's end). Compared
+    # inside the payload, so it holds whatever the committed book's stamp is.
+    rows = snapshots_of(data)
+    book_day = book_stamp_date(data.get('last_updated'))
+    if rows and book_day and rows[-1].get('date') == book_day:
+        last = rows[-1]
+        for leg, totals in (data.get('totals') or {}).items():
+            ccy = next((key[len('value_'):] for key in (totals or {})
+                        if key.startswith('value_')), None)
+            if ccy is None or f'{leg}_total_value' not in last:
+                continue
+            for total_field, column in (
+                    (f'value_{ccy}', 'total_value'), (f'cost_{ccy}', 'total_cost'),
+                    (f'pnl_{ccy}', 'total_pnl'), (f'today_change_{ccy}', 'today_change'),
+                    (f'cash_{ccy}', 'cash')):
+                actual, expected = totals.get(total_field), last.get(f'{leg}_{column}')
+                assert actual == expected or (
+                    finite(actual) and finite(expected)
+                    and abs(actual - expected) <= 0.005), (
+                    f'totals.{leg}.{total_field}={actual} but snapshots[-1] '
+                    f'({last["date"]}) {leg}_{column}={expected}: the same day of the '
+                    'same book is printed from two generations')
 
     weights = {
         str(row.get('ticker')): row.get('weight')
