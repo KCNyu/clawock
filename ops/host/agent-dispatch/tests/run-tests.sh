@@ -94,6 +94,18 @@ PYPRICE
     fi
     expect "$mode leaves no running CLI" "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
   done
+  # A rate-limited model call is given up at once: no STALL_FIRST (210s), no FALLBACK_WAIT.
+  reset_fake opencode ratelimit-then-ok
+  d=$(mk patrol-rate-limited opencode 900 300)
+  echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+  t0=$(date +%s); e=0
+  FALLBACK_WAIT=60 RETRY_WAIT=60 bash "$R" "$d" || e=$?
+  expect 'a rate-limited model hands over to the next one' "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" MODEL_USED)/$(field "$d" STALLS)" 0/ok/2/other/0
+  expect_grep 'the rate-limited attempt is marked as such' "kind=rate_limited session=-" "$d/run.log"
+  expect 'the rate-limited attempt ends within 10s' "$( . "$d/attempt1.env"; echo $(( ${ENDED_EPOCH%.*} - ${STARTED_EPOCH%.*} < 10 )) )/$( . "$d/attempt1.env"; echo "$AKIND")" 1/rate_limited
+  expect 'the whole task did not wait out a stall or fallback limit' "$(( $(date +%s) - t0 < 30 ))" 1
+  expect 'opencode logs to the attempt stderr' "$(grep -c 'call 1 argv:.*\[--print-logs\] \[--log-level\] \[WARN\]' "$FAKE_DIR/opencode.argv")" 1
+  expect 'the rate-limited CLI is not left running' "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
   reset_fake opencode silent-then-ok
   d=$(mk patrol-recovers opencode 900 300)
   echo 'FALLBACK_MODELS=other' >>"$d/meta.env"

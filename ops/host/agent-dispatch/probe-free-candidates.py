@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import time
@@ -26,7 +27,15 @@ def next_model(available, state, now):
     return min(due, key=lambda m: (state.get("models", {}).get(m, {}).get("checked_at", 0), m)) if due else None
 
 
-def verdict(events, rc):
+# opencode logs a refused model call and retries it silently, so a rate-limited probe would
+# otherwise read as a timeout (cat-jam 10-16 14:57, deepseek 21:45). small=false: the main
+# agent's call, not the session-title one.
+RATE_LIMIT_LOG = re.compile(r'message="stream error" .*small=false .*Rate limit exceeded')
+
+
+def verdict(events, rc, log=""):
+    if RATE_LIMIT_LOG.search(log):
+        return "rate_limited"
     if rc == 124:
         return "timeout_unknown"
     errors = [r for r in events if r.get("type") == "error"]
@@ -57,9 +66,10 @@ def probe(model, out):
         proc.wait()
         return "timeout_unknown"
     slug = model.replace("/", "_")
+    log = out / (slug + ".err")
     meta = dict(line.split("=", 1) for line in (out / (slug + ".meta")).read_text().splitlines())
     events = [json.loads(line) for line in (out / (slug + ".jsonl")).read_text().splitlines() if line.strip()]
-    return verdict(events, int(meta["rc"]))
+    return verdict(events, int(meta["rc"]), log.read_text(errors="replace") if log.exists() else "")
 
 
 def main():

@@ -13,6 +13,9 @@
 #   tool-long     : every call prints a step, starts a working tool (CPU and short child processes)
 #                   for $FAKE_TOOL s (default 25), prints a parallel tool's result 2s later, then
 #                   stays silent until the long tool ends, then succeeds
+#   ratelimit-then-ok: 1st call logs the free tier's "Rate limit exceeded" to stderr (only with
+#                   --print-logs, like the real CLI) and then retries silently for an hour; later
+#                   calls succeed
 #   bg-idle       : 1st call leaves an idle process in the background, prints one event, then
 #                   hangs (a dev server left running, then a stuck model call); later calls succeed
 set -u
@@ -27,6 +30,11 @@ for a in "$@"; do [ "$prev" = -m ] && model=$a; prev=$a; done
 echo "call $n model: $model" >>"$FAKE_DIR/opencode.argv"
 prev=""
 for a in "$@"; do [ "$prev" = -s ] && sid=$a; prev=$a; done
+# With --print-logs the real CLI writes its log to stderr instead of opencode.log, starting
+# with warnings that are not progress.
+logs=""
+for a in "$@"; do [ "$a" = --print-logs ] && logs=1; done
+[ -n "$logs" ] && echo 'timestamp=2026-10-16T19:44:20.000Z level=WARN run=fake message="duplicate skill name" name=fake' >&2
 # Like the real CLI, the part repeats the sessionID on the same line.
 ev() { printf '{"type":"%s","timestamp":1,"sessionID":"%s"%s}\n' "$1" "$sid" "${2/\"part\":\{/\"part\":{\"sessionID\":\"$sid\",}"; }
 case "$mode" in
@@ -38,6 +46,12 @@ case "$mode" in
   event-then-empty) [ "$n" != 1 ] && exit 0 ;;
 esac
 if [ "$mode" = silent-then-ok ] && [ "$n" = 1 ]; then sleep "${FAKE_SILENT:-120}"; fi
+if [ "$mode" = ratelimit-then-ok ] && [ "$n" = 1 ]; then
+  sleep 1
+  # The title call (small=true) fails too, but only the main agent's refusal stops the attempt.
+  [ -n "$logs" ] && echo "timestamp=2026-10-16T19:44:24.365Z level=ERROR run=fake message=\"stream error\" providerID=opencode modelID=${model#*/} session.id=$sid small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded. Please try again later.\"" >&2
+  sleep 3600
+fi
 ev step_start ',"part":{"type":"step-start","messageID":"msg_1"}'
 case "$mode" in
   event-then-empty)

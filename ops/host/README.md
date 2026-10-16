@@ -160,7 +160,10 @@ a supervisor restart during the grace does not append the instruction twice;
 
 When every model in a fresh patrol's pool returns only errors or no events, the runner stops
 after one lap with `STATE=failed`, `FAILURE_REASON=pool_no_response`. It still
-allows 210 seconds for a first event; a session that has made progress retains
+allows 210 seconds for a first event, except that a model call refused with
+`Rate limit exceeded` (opencode's log, written to `attempt<N>.err` by
+`--print-logs`) ends the attempt at once as `kind=rate_limited` and moves to the
+next model without `FALLBACK_WAIT`; a session that has made progress retains
 the normal retry budget. A session ID on a provider error alone is not progress;
 any non-error event (including `step_start`) preserves the normal budget, as
 does resuming an existing session. An empty OpenCode exit is an error, never a finished

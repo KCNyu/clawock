@@ -130,6 +130,16 @@ def test_tool_proof_rejects_a_string_and_failed_tool():
     assert probe.verdict([{'type': 'error', 'error': {'message': 'FreeUsageLimitError 429'}}], 0) == 'rate_limited'
 
 
+def test_a_probe_rate_limited_in_the_log_is_not_a_timeout():
+    # opencode retries a refused call silently; only its log (--print-logs) says why it timed out.
+    line = ('timestamp=2026-10-16T13:45:00.820Z level=ERROR run=x message="stream error" providerID=opencode '
+            'modelID=deepseek-v4.1-flash-free session.id=ses_x small={} agent={} mode=primary '
+            'error.error="AI_APICallError: Rate limit exceeded. Please try again later."')
+    assert probe.verdict([], 124, line.format('false', 'build')) == 'rate_limited'
+    # The session-title call failing alone says nothing about the probe itself.
+    assert probe.verdict([], 124, line.format('true', 'title')) == 'timeout_unknown'
+
+
 def test_completed_tool_with_provider_thinking_terminator_is_verified():
     # Observed in the first scheduled big-pickle probe; no new inference needed.
     text = {'type': 'text', 'part': {'text': '</think>PROBE-OK'}}
