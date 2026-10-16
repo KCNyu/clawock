@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T17:32:36.386081+00:00",
+  "generated_at": "2026-10-16T17:04:47.860789+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,122 +14,115 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: United Airlines 已将 Starlink Wi‑Fi 覆盖 635+ 架飞机，目标 2027 年底完成全机队安装（偏利多）  \n  Implication for kcn's position: 这是已落地的渠道扩张，支撑 Starlink 商业化；kcn 的 SPCX 仓位通过 2x ETF **SPCH** 表达，消息带来的上涨与回撤会被放大约 2 倍。\n- RKLB: Rocket Lab 股价大跌，市场聚焦 Neutron 发射窗口/进度；摘要指向公司后移该窗口（偏空/高波动）  \n  Implication for kcn's position: 时间表后移提高近期执行风险；kcn 的 RKLB 仓位通过 2x ETF **RKLX** 表达，延期消息及后续利好均会放大波动。\n- SPCX: SpaceX 股价走弱，报道称 Elon Musk 可能疏离潜在客户；Tesla–SpaceX 合并传闻重现但未获确认（偏空/高波动）  \n  Implication for kcn's position: 客户、声誉与事件风险共同压制情绪；**SPCH** 的 2x 结构会放大利空和传闻驱动的反弹。\n- CRCL: 渣打称 USDC 在支付领域面临竞争，并延后 2 万亿美元稳定币预测；GENIUS Act 明年是关键监管变量（偏空）  \n  Implication for kcn's position: 外部采用率与市场规模时间表预期后移，压制 CRCL 估值叙事；该数字是渣打预测，不是公司指引。\n- CRCL: 法国提议对受欧盟监管的稳定币资本利得征收 31.4% 税（监管偏空）  \n  Implication for kcn's position: 若落地，欧盟稳定币资本利得处置成本上升，间接压制 USDC 交易与采用，形成 CRCL 的政策折价。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: Ondo Finance 产品 TVL 突破 $4B，显示链上金融需求扩张并抬高竞争基准；渣打提示 USDC 支付竞争与 $2T 预测延后，法国拟征稳定币税。影响判断：行业需求偏正，但 CRCL 公司层面短期偏空。\n- RKLB: Neutron 发射窗口后移/进度成为股价大跌焦点。影响判断：时间表风险上升，RKLX 2x 下短线波动被放大。\n- SPCX: Starlink 已在 United 覆盖 635+ 架飞机并计划 2027 年底完成全机队；另有 Musk 疏离客户报道及未证实的 Tesla 合并传闻。影响判断：运营扩张偏利多，声誉/事件因素令 SPCH 高波动。\n\n### 风险 watch (若有)\n- CRCL — regulatory / forecast：GENIUS Act 明年进入关键阶段、法国 31.4% 税提案构成政策风险；$2T 是渣打外部预测，不是 CRCL financial guidance。\n- RKLB — execution：Neutron 发射窗口后移是核心二元风险；RKLX 2x 会放大延期落地或成功确认后的价格波动。\n- SPCX — customer / rumor：Musk 可能疏离客户尚属报道归因，Tesla–SpaceX merger 仍为未证实 speculation；SPCH 2x 会放大情绪反转。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- RKLB: Citizens 将目标价下调至 $90；Neutron 延期因碳复合材料前罩未达到安全裕度，需修复并重建，影响集中在 FY27 发射及 FY28 商业化。  \n  Implication: kcn 持有 RKLX；单日 2 倍杠杆会放大约 2 倍的事件日利空波动。\n- SPCX: 报道称白宫要求放缓 Starshield 服务，以限制乌克兰战争相关能力。  \n  Implication: kcn 通过 SPCH 持有；单日 2 倍杠杆将放大政策干预对政府业务预期的冲击。\n- CRCL: USDC 成为首个跨过 MiCA“重要性”门槛的电子货币代币，欧盟发行人的储备与流动性报告将转由 EBA 直接监督。  \n  Implication: 对 CRCL 仓位偏正面，提升欧洲合规确定性，但直接监管意味着持续披露与资本要求。\n- CRCL: Circle 计划将 USDC 扩展至近 40 个新兴市场，并称 AI 支付需求正在增长。  \n  Implication: 扩大发行与支付场景，但目前属于扩张计划，尚非已确认收入或合约。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: 新兴市场扩张与 MiCA 监管里程碑构成增长催化 — 中期偏利好，执行及跨市场合规仍是兑现关键。\n- RKLB: Neutron 安全问题导致延期、目标价被砍 — 近期偏负面，估值更依赖 FY27/FY28 中性星兑现。\n- SPCX: 白宫 reportedly 限制 Starshield 乌克兰相关服务 — 政府政策干预偏负面，暂未量化收入影响。\n\n### 风险 watch (若有)\n- RKLB: 延期源于安全裕度不足及制造重建；Citizens 将影响指向 FY27 发射和 FY28 变现，所给新闻未显示公司正式下调财务指引。\n- SPCX: Starshield 面临政府直接干预，地缘政治可能影响政府合同续约与需求。\n- CRCL: EBA 直接监督及近 40 市场扩张带来更高的合规、储备和跨境落地风险。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 4,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Ondo Finance Says Total Value Locked Has Topped $4 Billion",
-        "datetime": 1792011060,
-        "source": "Yahoo",
+        "headline": "Circle Eyes 40 New Markets as Stablecoin Demand Booms, AI Payments Gain Traction",
+        "datetime": 1792147499,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=42764b8e465a12b5d0bb85e6203679855ffc1884fdc748bf1890e9ccc0776d72"
+        "url": "https://finnhub.io/api/news?id=bfc1b18fd56faf6b116b3f81391a9a196c8c688be0204f902e121257b4e9acf5"
       },
       {
-        "headline": "Standard Chartered Says USDC Faces Competition In Payments, Delays $2T Stablecoin Forecast",
-        "datetime": 1792003395,
+        "headline": "Citi Stands Behind 2 Crypto Stocks as Its Top Picks for the Rest of 2026",
+        "datetime": 1792085400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3f5916a284990d974dc4c9330b3ae395b299bdeb88cbe0a3215e3ab8ace00df4"
+        "url": "https://finnhub.io/api/news?id=3a6c2a8cbb4c46a21b2246b35febbf312c2bcd4dc873c39d29103b6f1302f485"
       },
       {
-        "headline": "Why Circle Internet Group, Inc. (CRCL) is Poised to Beat Earnings Estimates Again",
-        "datetime": 1791990605,
+        "headline": "USDC’s EU Reserves and Capital Shift to EBA Supervision in MiCA’s First ‘Significant’ Call",
+        "datetime": 1792082290,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9613be0bcdc92f5de6548ba5600ef415ffb28f19ea4917cb3098861c2ed53774"
+        "url": "https://finnhub.io/api/news?id=2a0a1a3817d591113f3820c6669411a3c042334a39ba797660936d01018c606c"
       },
       {
-        "headline": "France Proposes 31.4% Tax On Stablecoin Capital Gains",
-        "datetime": 1791987480,
+        "headline": "Citi’s Names Top Digital Asset Picks",
+        "datetime": 1792075177,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d8922c7726c4a7f21ab2ebdd315c5bbfb651ce62859974c060958cfc2d1f4562"
-      },
-      {
-        "headline": "AI agents are on a shopping spree: Total transactions on Base blockchain eclipse 138 million, Chainalysis finds",
-        "datetime": 1791982800,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=644ae0b8041a5df07f90a99b31c9c529369c53136f9b49c00a9bee9be039d3bb"
+        "url": "https://finnhub.io/api/news?id=627e43b83969ec025349ee4d9d4b1eea70f505babeeab153f6f3d19cbce2b9e9"
       }
     ],
     "RKLB": [
       {
-        "headline": "5 Growth Stocks With Home Run Potential",
-        "datetime": 1792077900,
+        "headline": "Rocket Lab Has Imploded For 3 Months: 145% Gains Are Coming According to This Pro Analyst",
+        "datetime": 1792161915,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fa7b30f21fc963252d5369c738f69fe8d823bea1e9c9496c0dc29b89f6d5f547"
+        "url": "https://finnhub.io/api/news?id=d0ce9f2a0a6cfe2d046300b0464ba79814230d075179f8d743e09f7696439f7d"
       },
       {
-        "headline": "CoreWeave Slides on Debt; TSMC Moves on Outlook | Stock Movers",
-        "datetime": 1792076764,
-        "source": "Yahoo",
+        "headline": "Stock Market Today: Wall Street Swaps Chips for Old Reliables as Producer Prices Spike",
+        "datetime": 1792155246,
+        "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3a13e282701a3569f5ee501f717b2526d6994f3753bdbec83cc35e823e96b8da"
+        "url": "https://finnhub.io/api/news?id=ee8449899659de30d7c02cc76597c0fe59b287c7864490302adecf3c9fbd624a"
       },
       {
-        "headline": "Tech slumps as AI financing worries grow, investors flock to bonds: AlphaCheck",
-        "datetime": 1792072968,
+        "headline": "RKLB Stock: Citizens Cuts Target To $90, Says Neutron Delay’s ‘Most Significant Impact’ Is On FY27, FY28 Launch Monetization",
+        "datetime": 1792153491,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a6c2ffe5059f41542439888a4dee74f8419186b6c493846ca585151a5c516cc6"
+        "url": "https://finnhub.io/api/news?id=99127e178221a30dbfb1886cf2beba867828fb77114e4dd8900efaa6e36f5a14"
       },
       {
-        "headline": "CoreWeave, TSMC, FMC, Rocket Lab, Schwab, and More Stocks That Explain Today’s Market",
-        "datetime": 1792072920,
+        "headline": "Company News for Oct 16, 2026",
+        "datetime": 1792152000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=769e52d4408cc6b96549f5b78c400db895ad911a2dc3324c4a3507cf0d7a72f3"
+        "url": "https://finnhub.io/api/news?id=4c072416f97ea99a694c9e212dc85a2d1a399cee0ee4e7aa38786b905f943cc7"
       },
       {
-        "headline": "Rocket Lab Stock Nosedives. Why Its Neutron Launch Is Such a Big Deal.",
-        "datetime": 1792072620,
+        "headline": "The Zacks Analyst Blog Highlights NASA, SpaceX, Rocket Lab, ARKX, UFO and MARS",
+        "datetime": 1792150680,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ec327cde75713f5679dd99a8616420f475a41c6eb07de3d21af7a5907f52e180"
+        "url": "https://finnhub.io/api/news?id=4a2dd33a4415c0b795a6805565967c9de476c7b30afecc9c20ab180e8f05d410"
       }
     ],
     "SPCX": [
       {
-        "headline": "Will SpaceX merge with Tesla? Speculation resurfaces it could before the end of 2026",
-        "datetime": 1792079830,
+        "headline": "Update: Market Chatter: SpaceX Starshield Service Slowdown Orders to Limit Ukraine's War Capability Came From White House",
+        "datetime": 1792166450,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1deda023b4d948a608601fc815cc43181b8ff78f91b8b3afe87b1f69cc347f26"
+        "url": "https://finnhub.io/api/news?id=b40c95db934b61e02e28f8a83cde68c0a528c7ff2ba4ebd9493b9bf22e77358c"
       },
       {
-        "headline": "Why SpaceX Stock Is Sinking Today",
-        "datetime": 1792077533,
+        "headline": "Top Midday Stories: CoreWeave Co-Founders Said to Sell $3.3 Billion in Shares Since IPO; SpaceX Starshield Slowdown Order in Ukraine Reportedly Came From White House",
+        "datetime": 1792166098,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=adc46fd46a7d0832a18e2522bf7d8680636e018d7cf6b69fe27fc12a04a6c785"
+        "url": "https://finnhub.io/api/news?id=1b5e8ae686e1985ec76abb2e5969bf16c8b103f4da31e8329b49e0d0c24657cf"
       },
       {
-        "headline": "Here's What $5,000 Invested in Nvidia Stock Could Be Worth by the End of 2030",
-        "datetime": 1792077480,
+        "headline": "Tesla's flying Roadster is more fuel for SpaceX merger rumors than a real car",
+        "datetime": 1792165808,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ecfdf0bf21af06b1e7359f1bc6f00258f690b54e866e2f97633f2a7976237751"
+        "url": "https://finnhub.io/api/news?id=891ef5bd5f53c335b918ee5b4f16171632f81880ae55ac4b224268026b17bbb3"
       },
       {
-        "headline": "Robinhood, Cboe Expand Prediction Market Offerings After SEC Win",
-        "datetime": 1792075914,
+        "headline": "'There's no point': Tesla Roadster's splashy reveal doesn't mean a merger with SpaceX",
+        "datetime": 1792165422,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0a4e87b0dbfda97d97ed9d3bff5f86986277d693b933aa6bb862f0a91bce0b7c"
+        "url": "https://finnhub.io/api/news?id=e4d3b775a5d35dde6a974025144b772c7f5a2e77ace055b469aa7766b0b4f376"
       },
       {
-        "headline": "SpaceX Expands Footprint With United Airlines Days After AAL Rollout – Starlink’s Now Available On Nearly Half Its Flights",
-        "datetime": 1792075758,
+        "headline": "Tesla’s Flying Roadster Sends Hyperliquid Trading Volume Soaring 1,500%",
+        "datetime": 1792164720,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=da730b9c90f8c653940b9c2efe6b1c92721fca2a435b6e52095b4fe73abc577f"
+        "url": "https://finnhub.io/api/news?id=e6f0aeb164729c138c923e9ae638151811ecbd0a75360bfaa75c1fcf7f85fccf"
       }
     ]
   },
