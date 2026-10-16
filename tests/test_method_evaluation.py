@@ -157,6 +157,31 @@ def test_a_rerun_appends_nothing_and_a_revision_appends_beside_the_original(tmp_
     assert rows[0]["record_id"] != rows[1]["record_id"]
 
 
+def test_a_rerun_after_the_first_pass_committed_appends_nothing(tmp_path):
+    """The first postflight commits its artifacts, so a re-run always reports a
+    newer HEAD; that alone must not make the same proposal new (#3000)."""
+    plan = _plan(_decision(method="方法甲"))
+    first = proposals.record(tmp_path, plan, [], plan_status="pass", author=AUTHOR)
+    moved = {**AUTHOR, "code": "def5678"}
+    assert proposals.record(tmp_path, plan, [], plan_status="pass", author=moved) == []
+    assert proposals.load(tmp_path) == first
+    # A different prompt is still a different author.
+    assert proposals.record(tmp_path, plan, [], plan_status="pass",
+                            author={**AUTHOR, "prompt": "sha256:def"})
+
+
+def test_legacy_rerun_duplicates_are_read_once(tmp_path):
+    """Rows hashed with the code commit (before #3000) stay in the append-only
+    log; readers must see each proposal once, and a later re-run still matches."""
+    row = proposals.record(tmp_path, _plan(_decision()), [], plan_status="pass", author=AUTHOR)[0]
+    legacy = [{**row, "record_id": f"prop-legacy{n}", "recorded_at": f"2026-10-16T00:2{n}:00+00:00",
+               "authorship": {**AUTHOR, "code": f"c{n}"}} for n in range(2)]
+    path = proposals.log_path(tmp_path)
+    path.write_text("".join(json.dumps(item) + "\n" for item in legacy))
+    assert proposals.load(tmp_path) == legacy[:1]
+    assert proposals.record(tmp_path, _plan(_decision()), [], plan_status="pass", author=AUTHOR) == []
+
+
 def test_cited_computations_are_embedded_because_the_receipt_store_is_temporary(tmp_path):
     receipt = {"receipt_id": "cr-0123456789abcdef", "kind": "compute", "value_pct": 4.2}
     plan = _plan(_decision(tool_receipts=["cr-0123456789abcdef", "cr-ffffffffffffffff"]))
