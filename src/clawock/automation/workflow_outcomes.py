@@ -636,7 +636,8 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
         # `stage_not_recorded`) instead of like a quiet nothing.
         note_degradation(
             None, "stage_not_recorded",
-            f"{job_name}/{stage}: {type(exc).__name__}: {exc}")
+            f"{job_name}/{stage}: {type(exc).__name__}: {exc}",
+            group=f"{job_name}/{stage}")
         return {}
 
 
@@ -680,7 +681,8 @@ def record_wechat_backstop(*, slot=None, job_name=None, at=None, sent_ok=True,
         return marked
     except Exception as exc:
         note_degradation(None, "stage_not_recorded",
-                         f"wechat_backstop: {type(exc).__name__}: {exc}")
+                         f"wechat_backstop: {type(exc).__name__}: {exc}",
+                         group=f"{job_name or 'all'}/wechat_backstop")
         return 0
 
 

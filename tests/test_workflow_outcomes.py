@@ -1473,3 +1473,13 @@ def test_the_published_ledger_never_carries_a_non_finite_number(tmp_path, monkey
     assert "NaN" not in text
     assert json.loads(text)["records"][0]["stages"]["postflight"]["age_hours"] is None
     assert not list(outcomes.local_path().parent.glob("*.tmp*"))
+
+
+def test_production_stage_failures_group_by_job_and_stage(tmp_path, monkeypatch):
+    ws = _isolate(tmp_path, monkeypatch)
+    for job, stage in [('港股开盘报告', 'preflight'), ('美股收盘报告', 'postflight'),
+                       ('港股开盘报告', 'preflight')]:
+        outcomes.record_stage(job, stage, 'invalid-status')
+    rows = _degradations(ws)
+    assert {(row['group'], row['count']) for row in rows} == {
+        ('港股开盘报告/preflight', 2), ('美股收盘报告/postflight', 1)}

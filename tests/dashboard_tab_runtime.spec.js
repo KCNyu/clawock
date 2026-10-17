@@ -3161,6 +3161,26 @@ async function testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser,
   assert(full.headline.includes("累计差=模拟 timing alpha"),
     `a representative replay keeps the estimand: ${full.headline}`);
   assert(!full.summary.includes("门槛"), `no coverage caveat when representative: ${full.summary}`);
+  const counts = await page.evaluate(() => {
+    DATA.shadow_portfolio.curves = { USD: { curve: [
+      { date: "2026-10-01", followed_sim: 100, buy_and_hold: 100 },
+      { date: "2026-10-02", followed_sim: 101, buy_and_hold: 100 },
+    ] } };
+    const readCounts = value => {
+      DATA.shadow_portfolio.fill_counts = value;
+      refreshTab("drill");
+      return ["real", "ohlc", "close", "skipped"].map(
+        key => document.getElementById(`shadow-fill-${key}`).textContent);
+    };
+    return {
+      known: readCounts({ real_trade: 0, ohlc_assumption: 29, canonical_close_fallback: 0, skipped: 309 }),
+      missing: readCounts(undefined),
+      malformed: readCounts({ real_trade: null, ohlc_assumption: "", canonical_close_fallback: false, skipped: "bad" }),
+    };
+  });
+  assert.deepEqual(counts.known, ["0", "29", "0", "309"]);
+  assert.deepEqual(counts.missing, ["—", "—", "—", "—"]);
+  assert.deepEqual(counts.malformed, counts.missing);
   await context.close();
 }
 
