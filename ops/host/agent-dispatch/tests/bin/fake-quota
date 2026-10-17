@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
-# Stand-in for quota.mjs: the real one would hit the Claude usage API / spawn `codex app-server`.
+# Stand-in for quota.mjs: the real one would hit the Claude usage API, spawn `codex app-server`,
+# or read DeepSeek's money balance. dsh answers in money, the others in quota windows.
 echo "$1" >>"$FAKE_DIR/quota.calls"
-echo "额度：5h 剩 80%（今天 21:00 重置） · 周 剩 60%（9/20 周日 20:00 重置）"
+case "${1:-}" in
+  dsh) echo "额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88" ;;
+  *) echo "额度：5h 剩 80%（今天 21:00 重置） · 周 剩 60%（9/20 周日 20:00 重置）" ;;
+esac

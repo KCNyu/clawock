@@ -366,7 +366,7 @@ retries, stalls and appends, writes `result.env`, and sends the notification. It
 ```
 ops/host/agent-dispatch/
   run-agent.sh  dispatch.sh            the runner and the host CLI (RUNNER_API=3)
-  read-result.py quota.mjs             `dispatch.sh result`, the quota line in notices
+  read-result.py quota.mjs             `dispatch.sh result`, the quota / dsh balance line in notices
   resource-pressure.sh                 memory-pressure reading shared with clawock-patrol
   probe-free-models.sh                 finds dead models in the opencode free pool
   opencode-fallback-models             that pool, in order (read at dispatch time)
@@ -394,8 +394,11 @@ other CLIs:
   headless profile's own default.
 - The headless profile does not read dsh's credential store; the attempt's subshell exports
   the keys stored under `refs:` in `~/.dsh/.credentials.yaml` (only those not already set).
-- It is paid per token from the DeepSeek balance. There is no subscription window, so there is
-  no `quota` line in the dispatch output or the notice; `usage` prices it at list rates.
+- It is paid per token from the DeepSeek balance. There is no subscription window and no
+  percentage to quote, so the finish notice appends the account's **money** balance from the
+  same `refs:` seam (`quota.mjs`, same 90 s cache and last-good fallback: `余额 ¥… · 赠金 ¥… ·
+  充值 ¥…`) instead of the claude/codex window line; the dispatch output keeps no quota line.
+  `usage` prices the run at list rates.
 
 ```bash
 ops/host/install_agent_dispatch.sh            # parse-check, then per file: .before-update, install by rename, cmp
