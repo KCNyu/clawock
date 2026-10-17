@@ -548,12 +548,43 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
+The same entry registers a `message_sending` hook for WeChat only: the client draws a compact
+Markdown table natively, but a table whose cells are sentences is squeezed into wrapped
+columns, so those tables are rewritten into cards (a bold row title plus one flat bullet per
+remaining column) on the way out (`src/weixin-tables.ts`). Compact tables stay native; fenced
+code and every other channel are untouched. Configure it under the plugin entry, not in this
+package:
+
+```json
+{ "plugins": { "entries": { "clawock-dsh": {
+  "enabled": true, "config": { "weixinTables": "auto" }
+} } } }
+```
+
+`auto` (default) keeps compact tables native, `cards` rewrites every table, `off` disables it.
+The hook is registered when the plugin loads, so a gateway restart is what makes a new value
+take effect.
+
 同一块面板的 Markdown 版（一个标题、每个 provider 一行粗体、两个分节标题、状态打头的平铺列表；不用表格、嵌套列表或 HTML；宿主给的巡检轮次全部列出，不带覆盖表）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
 `plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
 `/dispatch_list`)就回一条消息:各 provider 额度(窗口用 ▓░ 条和重置时刻)、各 agent 的进行中任务、
 最近结束(含送达回执与费用)、巡检和 ops 页脚;`/dispatch-list refresh` 绕过余额缓存。取数与 dsh
 网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
 spec 逐行比对两者。只读,调度仍在芯片上操作。
+
+同一个条目还只对微信注册了一个 `message_sending` hook:微信客户端能把紧凑的 Markdown 表格
+画成真表格,但单元格是整句的表格会被压成窄列、逐字换行,所以这类表格在发出前改写成卡片
+(一行粗体标题 + 其余各列一条平铺 bullet,`src/weixin-tables.ts`)。紧凑表格保持原生,代码块
+和其他渠道都不动。配置写在插件条目里,不写在本包里:
+
+```json
+{ "plugins": { "entries": { "clawock-dsh": {
+  "enabled": true, "config": { "weixinTables": "auto" }
+} } } }
+```
+
+`auto`(默认)紧凑表格保持原生,`cards` 全部改写,`off` 关闭。hook 在插件加载时注册,新取值
+要重启 gateway 才生效。
 
 ## 语言
 

@@ -4698,3 +4698,101 @@ test("patrol issue failures preserve the last good queue, disclose stale and ret
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+// WeChat renders a compact Markdown table natively on the phone (that is the best shape for
+// it), but a table whose cells are sentences is squeezed into wrapped columns — the complaint
+// this feature answers. src/weixin-tables.ts rewrites only those tables into cards; the hook
+// applies it to WeChat outbound text and to nothing else.
+test("weixin tables: sentence cells become cards, compact tables stay native", async () => {
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const { formatWeixinTables, weixinTableMode } = chat;
+
+  const wide = [
+    "| # | 事项 | 为什么卡住 |",
+    "|---|---|---|",
+    "| 1 | **重启 gateway** | #3042 已合并装机，但 gateway 自 **10-12 14:07** 起没重启 |",
+    "| 2 | **README 配图** | `harnesses.svg` 是生成器画的，3 列改 4 列排不下 |",
+  ].join("\n");
+  assert.equal(formatWeixinTables(wide), [
+    "**1 · 重启 gateway**",
+    "- 为什么卡住：#3042 已合并装机，但 gateway 自 **10-12 14:07** 起没重启",
+    "",
+    "**2 · README 配图**",
+    "- 为什么卡住：`harnesses.svg` 是生成器画的，3 列改 4 列排不下",
+  ].join("\n"), "a sentence-celled table leaves no bars behind");
+  assert.ok(!formatWeixinTables(wide).includes("|"), "no table syntax survives a rewrite");
+  assert.equal(formatWeixinTables(formatWeixinTables(wide)), formatWeixinTables(wide), "a second pass is a no-op");
+
+  // The row's own bold/backticks stay, and a PR number keeps its `#` (it is not a heading).
+  const two = [
+    "| PR | 内容 |",
+    "|---|---|",
+    "| **#3041** 19:16 合并 `8bbd3e471` | 委派路由加上 dsh（AGENTS.md + TOOLS.md） |",
+  ].join("\n");
+  assert.equal(formatWeixinTables(two), [
+    "**#3041 19:16 合并 `8bbd3e471`**",
+    "- 内容：委派路由加上 dsh（AGENTS.md + TOOLS.md）",
+  ].join("\n"));
+
+  // A two-column "# | 事项" table: the number stays a bold marker, the sentence stays plain
+  // (bolding a whole sentence is what made these rows unreadable in the first place).
+  const indexTable = ["| # | 事项 |", "|---|---|", "| 4 | **共享记忆 `project.md:121` 的错误事实** — 一条够长的句子 |"].join("\n");
+  assert.equal(formatWeixinTables(indexTable),
+    "**4** 共享记忆 `project.md:121` 的错误事实 — 一条够长的句子");
+
+  // A table that fits a phone line is exactly what the client draws best: leave it alone.
+  const compact = ["| 姓名 | 年龄 | 城市 |", "|---|---|---|", "| 张三 | 25 | 北京 |", "| 李四 | 30 | 上海 |"].join("\n");
+  assert.equal(formatWeixinTables(compact), compact, "auto keeps a compact table native");
+  assert.equal(formatWeixinTables(compact, "cards"), [
+    "**张三 · 25**", "- 城市：北京", "", "**李四 · 30**", "- 城市：上海",
+  ].join("\n"), "cards mode rewrites every table");
+  assert.equal(formatWeixinTables(wide, "off"), wide, "off leaves the text alone");
+
+  // Fenced code is not a table, even when it holds one.
+  const fenced = ["```", "| a | b |", "|---|---|", "| 1 | 2 |", "```"].join("\n");
+  assert.equal(formatWeixinTables(fenced), fenced);
+  assert.equal(formatWeixinTables(fenced, "cards"), fenced);
+
+  // A pipe inside inline code does not split the cell.
+  const codePipe = ["| 命令 | 说明 |", "|---|---|", "| `a|b` | 管道在代码里，说明要够长才会走卡片路径 |"].join("\n");
+  assert.equal(formatWeixinTables(codePipe), "**`a|b`** 管道在代码里，说明要够长才会走卡片路径",
+    "a pipe inside inline code does not split the cell");
+
+  // A row with more cells than the header keeps the extra cell instead of dropping it, and a
+  // header with no body (or a one-column list) is not a table to lay out.
+  assert.equal(formatWeixinTables(["| a | b |", "|---|---|", "| 1 | 2 | 3 |"].join("\n"), "cards"),
+    ["**1 · 2**", "- 3"].join("\n"));
+  const headerOnly = ["| a | b |", "|---|---|"].join("\n");
+  assert.equal(formatWeixinTables(headerOnly, "cards"), headerOnly);
+  assert.equal(formatWeixinTables(["| 项目 |", "|---|", "| 甲 |", "| 乙 |"].join("\n"), "cards"),
+    ["- 甲", "", "- 乙"].join("\n"));
+
+  assert.equal(weixinTableMode("cards"), "cards");
+  assert.equal(weixinTableMode({ mode: "off" }), "off");
+  assert.equal(weixinTableMode("nonsense"), "auto");
+  assert.equal(weixinTableMode(undefined), "auto");
+});
+
+test("weixin tables: the hook only rewrites WeChat text, and only when it changed", async () => {
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const register = (config) => {
+    let hook = null;
+    chat.default({
+      pluginConfig: config,
+      registerCommand() {},
+      on(name, handler) { assert.equal(name, "message_sending"); hook = handler; },
+    });
+    assert.ok(hook, "the entry registers a message_sending hook");
+    return hook;
+  };
+  const table = ["| 检查项 | 结果 |", "|---|---|", "| `dispatch.sh:204` 默认 | `CWD=/root`，另一处也是 /root |"].join("\n");
+  const hook = register({});
+  const rewritten = hook({ content: table, to: "o9cq80@im.wechat", metadata: { channel: "openclaw-weixin" } });
+  assert.equal(rewritten.content, chat.formatWeixinTables(table));
+  assert.equal(hook({ content: table, to: "x", metadata: { channel: "telegram" } }), undefined,
+    "another channel keeps its own formatting");
+  assert.equal(hook({ content: "没有表格的一条消息", metadata: { channel: "openclaw-weixin" } }), undefined,
+    "a message with no table is not touched");
+  assert.equal(register({ weixinTables: "off" })({ content: table, metadata: { channel: "openclaw-weixin" } }), undefined,
+    "weixinTables: off disables the rewrite");
+});

@@ -14,6 +14,13 @@
  * MINIMAX_API_KEY) against this seam first and then the environment; here the
  * seam is the gateway's own config `env` block. Claude and Codex read their
  * own login files, MiniMax falls back to the gateway config as in dsh.
+ *
+ * The same entry also registers a `message_sending` hook for WeChat: a phone
+ * cannot show a table whose cells are sentences, so those tables are rewritten
+ * into cards on the way out (src/weixin-tables.ts). It is the only outbound
+ * seam the WeChat plugin exposes — its own markdown filter passes tables
+ * through untouched. `weixinTables` in the plugin config picks the mode:
+ * `auto` (compact tables stay native), `cards` (rewrite all), `off`.
  */
 import { homedir } from 'node:os'
 import { join } from 'node:path'
@@ -22,7 +29,18 @@ import { createBalanceReader, taskQueueConfig, type BalanceReader, type ClawockS
 import { panelModel, type PanelInput } from './panel.ts'
 import { createTaskQueueService, type TaskQueueService } from './taskqueue.ts'
 import { panelText } from './text.ts'
+import { formatWeixinTables, type WeixinTableMode } from './weixin-tables.ts'
 import type { BalanceCredentials } from './balance.ts'
+
+/** Test seam: the hook is three lines, the layout itself lives in src/weixin-tables.ts. */
+export { formatWeixinTables }
+
+/** What OpenClaw hands a `message_sending` handler (the fields this entry reads). */
+export interface MessageSendingEvent {
+  content: string
+  to?: string
+  metadata?: Record<string, unknown>
+}
 
 /** The slice of OpenClaw's plugin API this entry uses (the SDK's own types are not a dependency of this package). */
 export interface OpenClawCommandApi {
@@ -33,6 +51,19 @@ export interface OpenClawCommandApi {
     acceptsArgs?: boolean
     handler: (ctx: { args?: string; config?: { env?: unknown; agents?: { defaults?: { workspace?: string } } } }) => Promise<{ text: string }>
   }): void
+  on?(
+    name: 'message_sending',
+    handler: (event: MessageSendingEvent) => { content?: string } | void,
+  ): void
+}
+
+/** Channel id the WeChat plugin registers. Only its messages get the table rewrite. */
+const WEIXIN_CHANNEL = 'openclaw-weixin'
+
+/** `weixinTables` accepts the three modes (or a `{ mode }` object) and falls back to `auto`. */
+export function weixinTableMode(value: unknown): WeixinTableMode {
+  const mode = typeof value === 'string' ? value : (value as { mode?: unknown } | undefined)?.mode
+  return mode === 'cards' || mode === 'off' ? mode : 'auto'
 }
 
 type GatewayConfig = { env?: unknown; agents?: { defaults?: { workspace?: string } } }
@@ -54,8 +85,9 @@ export function dispatchListText(input: PanelInput, t: Translate, now: number): 
 }
 
 export default function register(api: OpenClawCommandApi): void {
-  const config = (api.pluginConfig ?? {}) as ClawockStudioConfig & { locale?: string }
+  const config = (api.pluginConfig ?? {}) as ClawockStudioConfig & { locale?: string; weixinTables?: unknown }
   const t = createTranslator(dictionaries[config.locale ?? 'zh'] ?? dictionaries.zh!)
+  const tableMode = weixinTableMode(config.weixinTables)
   // One set of services per gateway, like the dsh gateway's instance: their caches and TTLs
   // keep a burst of commands from hitting every provider each time.
   let balances: BalanceReader | null = null
@@ -80,5 +112,13 @@ export default function register(api: OpenClawCommandApi): void {
         }, t, Date.now()),
       }
     },
+  })
+  // Only WeChat, and only when the text actually changed: every other channel keeps its
+  // own formatting, and a message without a bad table comes back untouched.
+  api.on?.('message_sending', (event) => {
+    if (tableMode === 'off' || event.metadata?.channel !== WEIXIN_CHANNEL) return
+    if (typeof event.content !== 'string' || !event.content.includes('|')) return
+    const content = formatWeixinTables(event.content, tableMode)
+    return content === event.content ? undefined : { content }
   })
 }

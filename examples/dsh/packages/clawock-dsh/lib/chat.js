@@ -2434,6 +2434,184 @@ function panelText(model, t) {
 	return out.join("\n");
 }
 //#endregion
+//#region src/weixin-tables.ts
+/** A table whose widest cell is longer than this is prose, not a cell. */
+const MAX_NATIVE_CELL = 12;
+/** The whole table must fit a phone line (display columns, CJK counts as two). */
+const MAX_NATIVE_WIDTH = 30;
+const MAX_NATIVE_COLUMNS = 3;
+const MAX_NATIVE_ROWS = 12;
+/** A first cell this short is an index/PR number and belongs in the title. */
+const INDEX_CELL_WIDTH = 6;
+/** The cell beside an index is a title, not prose, only while it stays this short. */
+const TITLE_CELL_WIDTH = 16;
+const CJK = /[\u1100-\u115f\u2e80-\u303e\u3041-\u33ff\u3400-\u4dbf\u4e00-\u9fff\ua000-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe30-\ufe4f\uff00-\uff60\uffe0-\uffe6]/;
+/** Display columns: a full-width character takes two cells in a phone line. */
+function displayWidth(text) {
+	let width = 0;
+	for (const ch of text) width += CJK.test(ch) ? 2 : 1;
+	return width;
+}
+/** The text a reader sees, with the inline markers the client renders removed. */
+function visibleText(text) {
+	return text.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\*\*|__|`/g, "");
+}
+function cellWidth(text) {
+	return displayWidth(visibleText(text));
+}
+function hasCJK(text) {
+	return CJK.test(text);
+}
+/** Split a GFM row on unescaped pipes outside inline code; drop the outer ones. */
+function splitCells(line) {
+	let row = line.trim();
+	if (row.startsWith("|")) row = row.slice(1);
+	if (row.endsWith("|") && !row.endsWith("\\|")) row = row.slice(0, -1);
+	const cells = [];
+	let cell = "";
+	let inCode = false;
+	for (let i = 0; i < row.length; i += 1) {
+		const ch = row[i];
+		if (ch === "\\" && row[i + 1] === "|") {
+			cell += "\\|";
+			i += 1;
+			continue;
+		}
+		if (ch === "`") {
+			inCode = !inCode;
+			cell += ch;
+			continue;
+		}
+		if (ch === "|" && !inCode) {
+			cells.push(cell.trim());
+			cell = "";
+			continue;
+		}
+		cell += ch;
+	}
+	cells.push(cell.trim());
+	return cells;
+}
+function isTableRow(line) {
+	return /^\s*\|/.test(line);
+}
+function isDelimiterRow(line) {
+	if (!line.includes("|")) return false;
+	const cells = splitCells(line);
+	return cells.length > 0 && cells.every((cell) => /^:?-+:?$/.test(cell));
+}
+function isFence(line) {
+	return /^\s*```/.test(line);
+}
+/** A first cell worth folding into the title with the cell beside it. */
+function isIndexCell(text) {
+	return text !== "" && cellWidth(text) <= INDEX_CELL_WIDTH;
+}
+function label(header, value) {
+	if (!header) return value;
+	return `${header}${hasCJK(header) || hasCJK(value) ? "：" : ": "}${value}`;
+}
+/** One row as its card lines; an all-empty row renders nothing. */
+function renderCard(cells, headers) {
+	if (cells.every((cell) => cell === "")) return [];
+	let title = cells[0] ?? "";
+	let first = 1;
+	let lede = "";
+	if (cells.length >= 2 && isIndexCell(title) && (cells[1] ?? "") !== "") {
+		if (cellWidth(cells[1] ?? "") <= TITLE_CELL_WIDTH) {
+			title = `${title} · ${cells[1]}`;
+			first = 2;
+		} else if (cells.length === 2) {
+			lede = (cells[1] ?? "").replace(/\*\*/g, "");
+			first = 2;
+		}
+	}
+	if (title === "" && cells.length >= 2) {
+		title = cells[1] ?? "";
+		first = 2;
+	}
+	const lines = [];
+	const plainTitle = title.replace(/\*\*/g, "").trim();
+	if (lede) lines.push(`**${plainTitle}** ${lede}`.trim());
+	else if (plainTitle) lines.push(`**${plainTitle}**`);
+	for (let i = first; i < cells.length; i += 1) {
+		const value = (cells[i] ?? "").trim();
+		if (!value) continue;
+		const header = (headers[i] ?? "").trim();
+		lines.push(`- ${label(header, value)}`);
+	}
+	return lines;
+}
+/** Whether the client's native table is the better shape for this table. */
+function fitsNatively(headers, rows) {
+	const columns = headers.length;
+	if (columns === 0 || columns > MAX_NATIVE_COLUMNS) return false;
+	if (rows.length > MAX_NATIVE_ROWS) return false;
+	const widths = headers.map((header, column) => Math.max(cellWidth(header), ...rows.map((row) => cellWidth(row[column] ?? ""))));
+	if (Math.max(...widths) > MAX_NATIVE_CELL) return false;
+	return widths.reduce((sum, column) => sum + column, 0) + 3 * columns + 1 <= MAX_NATIVE_WIDTH;
+}
+/**
+* Rewrite the tables in `text` that the phone cannot show well.
+*
+* `auto` keeps compact tables (the client renders them natively), `cards`
+* rewrites every table, `off` returns the text untouched. Fenced code is never
+* touched, and a table that already has no bars left is a no-op, so running
+* this twice is harmless.
+*/
+function formatWeixinTables(text, mode = "auto") {
+	if (mode === "off" || !text || !text.includes("|")) return text;
+	const lines = text.split("\n");
+	const out = [];
+	let fence = false;
+	for (let i = 0; i < lines.length; i += 1) {
+		const line = lines[i];
+		if (fence) {
+			if (isFence(line)) fence = false;
+			out.push(line);
+			continue;
+		}
+		if (isFence(line)) {
+			fence = true;
+			out.push(line);
+			continue;
+		}
+		if (!isTableStart(lines, i)) {
+			out.push(line);
+			continue;
+		}
+		const headerCells = splitCells(line);
+		const body = [];
+		let end = i + 2;
+		while (end < lines.length && isTableRow(lines[end]) && !isDelimiterRow(lines[end])) {
+			body.push(splitCells(lines[end]));
+			end += 1;
+		}
+		const columns = Math.max(headerCells.length, ...body.map((cells) => cells.length));
+		const headers = Array.from({ length: columns }, (_, column) => headerCells[column] ?? "");
+		const rows = body.map((cells) => Array.from({ length: columns }, (_, column) => cells[column] ?? ""));
+		if (rows.length === 0 || mode === "auto" && fitsNatively(headers, rows)) {
+			for (let keep = i; keep < end; keep += 1) out.push(lines[keep]);
+			i = end - 1;
+			continue;
+		}
+		const cards = columns === 1 ? rows.map((cells) => cells[0] ? [`- ${cells[0]}`] : []) : rows.map((cells) => renderCard(cells, headers));
+		let wrote = false;
+		for (const card of cards) {
+			if (card.length === 0) continue;
+			if (wrote) out.push("");
+			out.push(...card);
+			wrote = true;
+		}
+		i = end - 1;
+	}
+	return out.join("\n");
+}
+/** A header row immediately followed by a delimiter row, both starting with `|`. */
+function isTableStart(lines, index) {
+	return index + 1 < lines.length && isTableRow(lines[index]) && isDelimiterRow(lines[index + 1]);
+}
+//#endregion
 //#region src/chat.ts
 /**
 * OpenClaw entry: `/dispatch-list` prints the task chip's provider panel —
@@ -2451,7 +2629,21 @@ function panelText(model, t) {
 * MINIMAX_API_KEY) against this seam first and then the environment; here the
 * seam is the gateway's own config `env` block. Claude and Codex read their
 * own login files, MiniMax falls back to the gateway config as in dsh.
+*
+* The same entry also registers a `message_sending` hook for WeChat: a phone
+* cannot show a table whose cells are sentences, so those tables are rewritten
+* into cards on the way out (src/weixin-tables.ts). It is the only outbound
+* seam the WeChat plugin exposes — its own markdown filter passes tables
+* through untouched. `weixinTables` in the plugin config picks the mode:
+* `auto` (compact tables stay native), `cards` (rewrite all), `off`.
 */
+/** Channel id the WeChat plugin registers. Only its messages get the table rewrite. */
+const WEIXIN_CHANNEL = "openclaw-weixin";
+/** `weixinTables` accepts the three modes (or a `{ mode }` object) and falls back to `auto`. */
+function weixinTableMode(value) {
+	const mode = typeof value === "string" ? value : value?.mode;
+	return mode === "cards" || mode === "off" ? mode : "auto";
+}
 /** Credential references resolved against the gateway config's `env` block (the balance services then fall back to process env). */
 function gatewayCredentials(config) {
 	return { async resolve(ref) {
@@ -2467,6 +2659,7 @@ function dispatchListText(input, t, now) {
 function register(api) {
 	const config = api.pluginConfig ?? {};
 	const t = createTranslator(dictionaries[config.locale ?? "zh"] ?? dictionaries.zh);
+	const tableMode = weixinTableMode(config.weixinTables);
 	let balances = null;
 	let queue = null;
 	api.registerCommand({
@@ -2488,6 +2681,12 @@ function register(api) {
 			}, t, Date.now()) };
 		}
 	});
+	api.on?.("message_sending", (event) => {
+		if (tableMode === "off" || event.metadata?.channel !== WEIXIN_CHANNEL) return;
+		if (typeof event.content !== "string" || !event.content.includes("|")) return;
+		const content = formatWeixinTables(event.content, tableMode);
+		return content === event.content ? void 0 : { content };
+	});
 }
 //#endregion
-export { register as default, dispatchListText };
+export { register as default, dispatchListText, formatWeixinTables, weixinTableMode };

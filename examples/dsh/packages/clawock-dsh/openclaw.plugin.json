@@ -1,7 +1,7 @@
 {
   "id": "clawock-dsh",
   "name": "clawock task chip",
-  "description": "/dispatch-list: the dsh task chip's provider panel (allowances, the agent-dispatch queue, recent tasks, patrol) as a chat reply.",
+  "description": "/dispatch-list: the dsh task chip's provider panel (allowances, the agent-dispatch queue, recent tasks, patrol) as a chat reply; also lays out WeChat tables for the phone.",
   "activation": {
     "onStartup": true
   },
