@@ -97,12 +97,13 @@ def test_brief_plan_text_that_later_reports_carry_is_checked():
     assert pf._plan_self_reference_issues(None) == []
 
 
-def test_checked_plan_fields_are_the_ones_plan_context_carries():
+def test_checked_plan_fields_include_downstream_and_page_only_prose():
     from clawock.decision import plans
     pf = importlib.import_module('clawock.harness.brief_postflight')
     entry = plans._entry({'rationale': 'packet R', 'condition': {'description': 'packet D'}})
     assert {entry['rationale'], entry['condition_detail']} == {'packet R', 'packet D'}
-    assert {tuple(p) for p in pf.PLAN_DOWNSTREAM_TEXT} == {('rationale',), ('condition', 'description')}
+    assert set(pf.PLAN_DOWNSTREAM_TEXT) == {
+        ('rationale',), ('condition', 'description'), ('hypothesis',), ('method',)}
 
 
 @pytest.mark.parametrize('assessment, plan, term', [

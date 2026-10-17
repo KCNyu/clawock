@@ -1310,8 +1310,9 @@ def _judgment_identifier_issues(judgment_path):
             check_identifier_leak(prose, label='简报判断正文')]
 
 
-# The plan fields `decision.plans._entry` projects into `plan_context` — which
-# every later report and intraday context carries, and whose prose repeats them
+# Published plan prose: rationale/condition also flow through `decision.plans._entry`
+# into `plan_context`; hypothesis/method appear directly in the brief. The context
+# is carried by later reports and intraday contexts, whose prose repeats them
 # to kcn. Replaying 2026-08-31..09-14: all 13 delivered leaks had the term in
 # their plan_context, 166 of 189 slot contexts carried "packet", and every
 # plan.json since 08-26 wrote it into a rationale. The report-side rule and
