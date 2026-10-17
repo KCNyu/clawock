@@ -957,7 +957,7 @@ quot54() {
 expect "dsh quota.mjs prints the money balance" "$(quot54)" '额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88'
 expect "quota.mjs resolves the key from the dsh credentials seam" "$(cat "$FAKE_DIR/balance.calls")" 'key:fake-key'
 expect "the second dsh read comes from the cache" "$(quot54)/$(wc -l <"$FAKE_DIR/balance.calls")" '额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88/1'
-expect "opencode still has no balance line" "$(AGENT_DISPATCH_QUOTA_CACHE_DIR=$q54 node "$(dirname "$R")/quota.mjs" opencode)" ''
+expect "opencode still has no balance line" "$(AGENT_DISPATCH_BALANCE_LIB="$WORK/fake-balance.mjs" AGENT_DISPATCH_QUOTA_CACHE_DIR=$q54 node "$(dirname "$R")/quota.mjs" opencode)" ''
 fi
 
 echo
