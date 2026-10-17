@@ -40,7 +40,7 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 他没说的范围、处置标准、优先级和禁令，不由我补。派之前发现 brief 里多出一串
   他没提过的约束，先停下，把「原话 / 事实线索 / 我的建议」分开再发。
 - 需要他本人取舍的事，在给他的回复里直接问，不预设方向让 worker 照着做。
-- 他点名谁就派谁（claudecode、Codex、OpenCode）。默认 agent 只在他没点名时用。
+- 他点名谁就派谁（claudecode、Codex、OpenCode、dsh）。默认 agent 只在他没点名时用。
 
 ---
 
