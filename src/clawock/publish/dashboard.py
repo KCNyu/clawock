@@ -38,7 +38,7 @@ from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.guardrail import hhi_verdict, _holding_pnl_pct
-from clawock.portfolio.math import number as portfolio_number, ledger_rows
+from clawock.portfolio.math import number as portfolio_number, ledger_rows, session_change_pct
 
 def benchmark_staleness(benchmark):
     # The normal lag is measured by the morning producer. Recomputing against
@@ -872,7 +872,7 @@ def trim_holding(h, currency):
     flat day, where the dashboard means「—」(#1783).
     """
     def today(field):
-        value = h.get(field)
+        value = session_change_pct(h) if field == 'today_change_pct' else h.get(field)
         return None if value is None else round(value, 2)
 
     return {

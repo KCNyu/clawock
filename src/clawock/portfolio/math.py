@@ -8,7 +8,24 @@ import re
 
 # The ledger's float-or-None reading is the shared one (#2625).
 from clawock.safe_io import to_number as number  # noqa: F401  re-exported
+from clawock.safe_io import to_strict_finite_number
 from clawock.safe_io import carried_value  # noqa: F401  re-exported (#2967)
+
+
+def session_change_pct(holding: Mapping[str, Any]) -> float | None:
+    """Quoted price return against the prior close, independent of fills.
+
+    Position day P&L uses fill prices for new lots; a session-labelled price
+    change must not use that capital denominator. Incomplete quotes have no
+    trustworthy session comparison.
+    """
+    current = to_strict_finite_number(holding.get("current_price"))
+    previous = to_strict_finite_number(holding.get("prev_close"))
+    if holding.get("quote_incomplete") or current is None or previous is None:
+        return None
+    if current <= 0 or previous <= 0:
+        return None
+    return (current / previous - 1) * 100
 
 
 def ledger_date(value: Any) -> str:
