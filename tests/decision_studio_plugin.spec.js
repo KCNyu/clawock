@@ -3423,7 +3423,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   // render, read-only. The new host's answer is exercised further down.
   const lines = find(foot, (p) => p["data-pp-row"] !== undefined);
   // Folded: one line per source, agents first (no balance providers answered here, C3 ②'s mirror).
-  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "opencode"]);
+  // DeepSeek's row is dsh's queue (#3040), so like Claude's it stands without its balance answer.
+  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "deepseek", "opencode"]);
   // The state column is ONE chip: the state that most needs the reader. b-1 queues for the claude
   // lock (its holder runs), so claude's chip is the amber queue; an idle agent has no chip at all.
   // No shapes that need a legend (the ▶ ≡ ⏸ column was the 260px stopgap this replaced).
@@ -3446,7 +3447,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(popover.props["data-open"], "true");
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
-    ["claude", "codex", "opencode", "recent", "patrol"]);
+    ["claude", "codex", "dsh", "opencode", "recent", "patrol"]);
   assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
   assert.doesNotMatch(texts(popover), /没有任务/, "an idle group is its head alone, not a grey sentence");
   // A group's head IS its folded line (glyph · name · value), minus the state chip — the tasks it
