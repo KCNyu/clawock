@@ -486,3 +486,13 @@ def test_a_fill_in_neither_bucket_is_kept_out_of_both(tmp_path, monkeypatch):
     traces = dashboard.build_decision_traces()
 
     assert [t["side"] for t in traces] == [None]
+
+
+def test_traces_and_scope_use_supplied_book_even_when_disk_changes(ws):
+    book = json.loads((ws / 'portfolio.json').read_text())
+    (ws / 'portfolio.json').write_text('{"portfolios": {}}')
+    traces = dashboard.build_decision_traces(portfolio=book)
+    scope = dashboard.build_decision_trace_scope(traces, portfolio=book)
+    assert len(traces) == scope['fillsTotal'] == 4
+    assert dashboard.build_decision_traces(portfolio={}) == []
+    assert dashboard.build_decision_trace_scope([], portfolio={})['fillsTotal'] == 0

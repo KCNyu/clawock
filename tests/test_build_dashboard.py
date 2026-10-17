@@ -1830,8 +1830,9 @@ def test_gold_dca_freshness_is_judged_by_its_own_stamp_not_the_file_mtime(monkey
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
 
     def gold_row(last_updated):
+        portfolio["gold_dca"] = {"nav_date": "2026-07-31", "last_updated": last_updated}
         (tmp_path / "portfolio.json").write_text(json.dumps(
-            {"gold_dca": {"nav_date": "2026-07-31", "last_updated": last_updated}}))
+            {"gold_dca": {"nav_date": "2000-01-01", "last_updated": "2000-01-01T00:00:00Z"}}))
         os.utime(tmp_path / "portfolio.json", (at.timestamp(), at.timestamp()))
         status = dashboard.compute_build_status(portfolio, data_dir, at=at)
         return status, next(r for r in status["files"]
