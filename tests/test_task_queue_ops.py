@@ -368,6 +368,16 @@ def test_choices_come_from_each_agents_own_sources(q):
     assert out["models"] == ["m", "opencode/free-a", "opencode/free-b"] and out["efforts"]["opencode/free-a"] == []
 
 
+def test_dsh_choices_are_its_routes_and_reasoning_efforts(q):
+    q.task("d-task", agent="dsh", result="STATE=running\nRUNNER_API=2\n")
+    code, out = q.run("choices", "d-task")
+    assert code == 0 and out["allowed"] is True and out["effort_flag"] == "reasoningEffort"
+    assert out["models"] == ["m", "deepseek-official/deepseek-flash", "deepseek-official/deepseek-v4-pro"]
+    assert out["efforts"]["deepseek-official/deepseek-v4-pro"] == ["off", "low", "high", "max"]
+    code, out = q.run("model", "d-task", "deepseek-official/deepseek-v4-pro", "low")
+    assert code == 0 and out["model_next"] == "deepseek-official/deepseek-v4-pro" and out["effort_next"] == "low"
+
+
 def test_model_change_is_validated_written_and_audited(q):
     d = q.task("c-task", result="STATE=running\nSLOT=claude-1\nRUNNER_API=2\n")
     code, out = q.run("--source", "ui", "model", "c-task", "sonnet", "max")
@@ -591,6 +601,30 @@ def test_codex_models_are_priced_from_openais_published_api_table(q):
     assert code == 0, out
     # gpt-6.1-sol: 1M fresh input x $2 + 2M cached x $0.10 + 0.1M output x $10
     assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.2 + 1.0:.2f}", "estimate")
+
+
+def test_dsh_usage_comes_from_the_tasks_own_attempt_events_priced_per_attempt_model(q):
+    """dsh --json prints each step's usage in its step_end event; the overlay the runner wrote for an
+    attempt names the model it ran on, so a mid-task model change is priced per attempt."""
+    d = q.task("u-dsh", agent="dsh", session="session-1",
+               result="STATE=ok\nFINISHED_EPOCH=1790557201\nMODEL_USED=deepseek-official/deepseek-flash\n")
+    overlay = "- id: agent-default-model\n  config:\n    provider: \"deepseek-official\"\n    model: \"{}\"\n"
+    step = lambda **u: json.dumps({"type": "status", "phase": "step_end", "turn": 1, "step": 1, "usage": u}) + "\n"
+    (d / "attempt1.yml").write_text(overlay.format("deepseek-v4-pro"))
+    (d / "attempt1.jsonl").write_text(
+        '{"type":"session","sessionId":"session-1"}\n'
+        + step(inputTokens=600_000, outputTokens=40_000, cacheReadTokens=0, cacheWriteTokens=0)
+        + '{"type":"status","phase":"step_end","turn":1,"step":2}\n'   # an incomplete step: no usage
+        + step(inputTokens=400_000, outputTokens=60_000, cacheReadTokens=2_000_000, cacheWriteTokens=0)
+        + '{"type":"text","text":"mentions \\"usage\\" and step_end in prose"}\n')
+    (d / "attempt2.yml").write_text(overlay.format("deepseek-flash"))
+    (d / "attempt2.jsonl").write_text(step(inputTokens=1_000_000, outputTokens=1_000_000, cacheReadTokens=0))
+    code, out = q.run("usage", "u-dsh")
+    assert code == 0, out
+    assert out["tokens"] == {"in": 2_000_000, "cache_w": 0, "cache_r": 2_000_000, "out": 1_100_000, "total": 5_100_000}
+    assert out["models"] == ["deepseek-official/deepseek-flash", "deepseek-official/deepseek-v4-pro"]
+    # DeepSeek's peak list prices: v4-pro 1M x 1.32 + 2M cached x 0.044 + 0.1M x 3.96; flash 1M x 0.3 + 1M x 1.2
+    assert (out["cost_usd"], out["cost_kind"]) == (f"{1.32 + 0.088 + 0.396 + 0.3 + 1.2:.2f}", "estimate")
 
 
 def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):

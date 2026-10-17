@@ -45,6 +45,11 @@ def read_result(directory: Path, run: int | None = None) -> str:
                 completed = True
             elif event.get("type") == "step_finish" and event.get("part", {}).get("reason") == "stop":
                 completed = True
+            # dsh --json: the final message last, after the turn_end that says how the turn ended.
+            elif event.get("type") == "final":
+                last = event.get("text", "")
+            elif event.get("type") == "status" and event.get("phase") == "turn_end":
+                completed = (event.get("reason") or {}).get("kind") == "completed"
         if completed and last and last.strip():
             return last
     raise ValueError("The latest attempt has no report; inspect status for running/error state.")

@@ -106,10 +106,13 @@ Legal values come from each agent's own source, never a list kept here:
 | claude | the task's own, dispatch.sh's default, those this host has dispatched, the aliases in `claude --help` | `--effort`, the list printed by `claude --help` |
 | codex | the task's own, dispatch.sh's default, the visible models in `~/.codex/models_cache.json` | `model_reasoning_effort`, that model's `supported_reasoning_levels` |
 | opencode | the task's own, the pool file `opencode-fallback-models` | `--variant`: none (the free pool has no variants) |
+| dsh | the task's own, dispatch.sh's default, those this host has dispatched, the two routes DeepSeek's API serves (`DSH_ROUTES`) | `reasoningEffort` in the runner's overlay: `off`, `low`, `high`, `max` |
 
 Changing the model of a session on resume was checked for claude (`--resume` with another
 `--model` continues the same conversation, 2026-09-26) and is what opencode's fallback
-does every patrol round (`-s` on the next pool model). It is **not** verified for codex
+does every patrol round (`-s` on the next pool model). For dsh the model of every attempt,
+a resumed session included, is the overlay the runner writes (checked 2026-10-17 on dsh
+0.2.1-rc.2: an overlay naming an unknown model fails a resumed session). It is **not** verified for codex
 (its weekly quota was out), so a codex task can change model/effort only before it has a
 session.
 
@@ -170,6 +173,7 @@ patrol rounds; the default list stays at ten and includes notification/stop fiel
 | claude | `~/.claude/projects/*/<session>.jsonl`, each assistant line's `message.usage` | deduplicated by message id (claude repeats one API message's usage on every content-block line); cache writes split into 5-minute / 1-hour by `usage.cache_creation` |
 | codex | `$CODEX_HOME/sessions/**/rollout-*-<session>.jsonl`, `token_count` events | `total_token_usage` is cumulative per process: repeats add nothing, a resumed process restarts from zero; `cached_input_tokens` is part of `input_tokens` |
 | opencode | `~/.local/share/opencode/opencode.db`, table `message` | `tokens.input/output/reasoning/cache.read/cache.write` and opencode's own `cost` |
+| dsh | the task's own `attempt<N>.jsonl` (`dsh --json`), each `step_end` event's `usage`; the model is that attempt's overlay `attempt<N>.yml` | `inputTokens` (excludes cache reads), `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`; the files are the task's own, so no time window is needed |
 
 The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*.json`). New paid tasks use `USAGE_START_EPOCH` (first run, after queueing) through
 `FINISHED_EPOCH` (before notification/lock release). Missing-timestamp records are
@@ -182,7 +186,9 @@ the file, installed next to the entry): the amount is **what the tokens would co
 prices**, an estimate — claude and codex run on subscriptions here, and no subscription price is
 in the table. claude rows come from Anthropic's API price table; codex's `gpt-*` rows (2026-09-28)
 from OpenAI's API pricing page (`sources.openai` in the file: URL, date, standard short-context
-tier; its cached-input rate is `cache_read`). A model without a row keeps its tokens and has no
+tier; its cached-input rate is `cache_read`). DeepSeek's rows (`sources.deepseek`, 2026-10-17) are
+its peak rates; dsh tasks are the only ones billed per token here, from the DeepSeek balance, and
+off-peak hours cost half, so their estimate can read high. A model without a row keeps its tokens and has no
 amount (`—` on the chip), never a guessed one; an
 opencode task is `free` when opencode reports cost 0 and every model is in the free pool file or
 ends in `-free`. Checked on a real task: the estimate for `add-side-aggression-20260926-151620`
@@ -365,12 +371,31 @@ ops/host/agent-dispatch/
   probe-free-models.sh                 finds dead models in the opencode free pool
   opencode-fallback-models             that pool, in order (read at dispatch time)
   templates/review.md                  `dispatch.sh --template review`
-  tests/run-tests.sh tests/bin/        fault-injection suite with fake claude/codex/opencode/openclaw
+  tests/run-tests.sh tests/bin/        fault-injection suite with fake claude/codex/opencode/dsh/openclaw
   tests/test_limits.py tests/test_read_result.py
 ```
 
 It sits next to `task_queue_ops.py` but is a different install target: the ops entry keeps its
 own installer and its own place in `ops/host/`.
+
+### dsh as an agent
+
+`dispatch.sh dsh` (2026-10-17) runs DeepSeek Harness's one-shot headless profile, not the
+web UI: `dsh --profile headless --patch attempt<N>.yml --json [--session-id <id>] -` in the
+task's cwd, the prompt on stdin. It needs dsh 0.2.1 or later on the runner's PATH. The
+headless profile answers one task and exits: 0 only when the turn completed; a failed turn
+names its error code in the `turn_end` event and on stderr, and `QUOTA` (DeepSeek's
+insufficient balance) is a quota stop with no reset time. Three things differ from the
+other CLIs:
+
+- The model and effort are a patch overlay the runner writes per attempt (`agent-default-model`:
+  `provider`/`model` from `MODEL=<provider>/<model>`, `reasoningEffort` from `EFFORT`). The
+  default is `deepseek-official/deepseek-flash` (DeepSeek-V4.1-Flash-1017) at `max`, the
+  headless profile's own default.
+- The headless profile does not read dsh's credential store; the attempt's subshell exports
+  the keys stored under `refs:` in `~/.dsh/.credentials.yaml` (only those not already set).
+- It is paid per token from the DeepSeek balance. There is no subscription window, so there is
+  no `quota` line in the dispatch output or the notice; `usage` prices it at list rates.
 
 ```bash
 ops/host/install_agent_dispatch.sh            # parse-check, then per file: .before-update, install by rename, cmp

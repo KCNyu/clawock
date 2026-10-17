@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Fake `dsh --profile headless --patch <overlay> --json [--session-id S] -` for run-agent.sh tests,
+# emitting the event shapes of dsh 0.2.1's headless --json stream (session first, status/text
+# events, final last) and its exit rule (0 only when the turn completed; a failed turn names its
+# error code on stderr and in turn_end). The task arrives on stdin. Behaviour is chosen by
+# $FAKE_DIR/dsh.mode:
+#   ok            : every call completes with "dsh call N done" and a STATUS line
+#   error-then-ok : 1st call -> turn_end error PROVIDER_ERROR, exit 1; later calls -> success
+#   quota         : every call -> turn_end error QUOTA (DeepSeek's insufficient balance), exit 1
+# Each call records its argv, the overlay it was given, its stdin and which provider keys it got.
+set -u
+FAKE_DIR=${FAKE_DIR:?}
+mode=$(cat "$FAKE_DIR/dsh.mode")
+n=$(( $(cat "$FAKE_DIR/dsh.calls" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$FAKE_DIR/dsh.calls"
+printf 'call %s argv:' "$n" >>"$FAKE_DIR/dsh.argv"; printf ' [%s]' "$@" >>"$FAKE_DIR/dsh.argv"; echo >>"$FAKE_DIR/dsh.argv"
+echo "call $n key: ${DEEPSEEK_API_KEY:-unset}" >>"$FAKE_DIR/dsh.argv"
+echo "$$" >>"$FAKE_DIR/dsh.pids"
+sid=session-fake0001 prev="" overlay=""
+for a in "$@"; do
+  case "$prev" in --session-id) sid=$a ;; --patch) overlay=$a ;; esac
+  prev=$a
+done
+[ -z "$overlay" ] || { echo "call $n overlay:"; cat "$overlay"; } >>"$FAKE_DIR/dsh.argv"
+{ echo "call $n stdin:"; cat; echo; } >>"$FAKE_DIR/dsh.argv"
+printf '{"type":"session","sessionId":"%s","cwd":"%s"}\n' "$sid" "$PWD"
+printf '{"type":"status","phase":"turn_start","turn":1}\n{"type":"status","phase":"step_start","turn":1,"step":1}\n'
+fail() {  # <code> <message>
+  printf '{"type":"status","phase":"step_end","turn":1,"step":1}\n'
+  printf '{"type":"status","phase":"turn_end","turn":1,"reason":{"kind":"error","error":{"message":"%s","code":"%s"}}}\n' "$2" "$1"
+  printf '{"type":"final","text":""}\n'
+  echo "dsh: $1: $2" >&2
+  exit 1
+}
+case "$mode" in
+  quota) fail QUOTA "Insufficient Balance" ;;
+  error-then-ok) [ "$n" = 1 ] && fail PROVIDER_ERROR "upstream returned 500" ;;
+esac
+printf '{"type":"text","text":"dsh call %s done\\nSTATUS: DONE"}\n' "$n"
+printf '{"type":"status","phase":"step_end","turn":1,"step":1,"usage":{"inputTokens":1000,"outputTokens":200,"cacheReadTokens":3000,"cacheWriteTokens":0,"totalTokens":4200}}\n'
+printf '{"type":"status","phase":"turn_end","turn":1,"reason":{"kind":"completed"}}\n'
+printf '{"type":"final","text":"dsh call %s done\\nSTATUS: DONE"}\n' "$n"

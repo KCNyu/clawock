@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Dispatch a headless Claude Code / Codex / opencode task as an independent systemd unit.
+# Dispatch a headless Claude Code / Codex / opencode / dsh task as an independent systemd unit.
 # The caller (OpenClaw chat turn, dsh, a terminal) returns immediately; the task
 # survives the caller's process, gateway restarts and dsh restarts.
 #
-#   dispatch.sh claude|codex|opencode --name <slug> [options] < prompt.md
+#   dispatch.sh claude|codex|opencode|dsh --name <slug> [options] < prompt.md
 #   dispatch.sh append <id> [--queue] < more.md   # add instructions to a task, same session
 #   dispatch.sh status [--all] [<id>]  # recent tasks (--all includes patrol-* rounds), or one task
 #   dispatch.sh result <id> [--run N] # terminal envelope and selected model report
@@ -24,16 +24,19 @@
 #   --prompt-file <f>      read the prompt from a file instead of stdin
 #   --template <name>      append templates/<name>.md before the contract (repeatable; e.g. review)
 #   --quota-resumes <n>   automatic resumes after quota waits (default 3; 0 disables; also bounded by attempts/deadline)
-#   --resume <session>     continue an existing claude/codex session (to finish interrupted work;
+#   --resume <session>     continue an existing claude/codex/opencode/dsh session (to finish interrupted work;
 #                          a re-review is a new task quoting the earlier findings, not a resume)
 #   --cwd <dir>            only with --resume, for a session recorded under another project dir;
 #                          new tasks always run in /root (AGENTS/CLAUDE.md + shared memory load from there)
 #   --model <m>            default: claude-opus-5-5 / gpt-6.1-sol (gpt-6-astra costs several times the quota)
 #                          / opencode: the pool file's first model (see --fallback-models)
+#                          / dsh: <provider>/<model> of a dsh route, deepseek-official/deepseek-flash
+#                          (DeepSeek-V4.1-Flash-1017); paid per token from the DeepSeek balance
 #   --fallback-models a,b  opencode only: after a failed attempt continue the same session on the next
 #                          model (wraps around). Default: opencode-fallback-models, which also supplies
 #                          the primary; set explicitly to override the whole pool.
-#   --effort <e>           default: high for claude, medium for codex, none for opencode (its --variant)
+#   --effort <e>           default: high for claude, medium for codex, none for opencode (its --variant),
+#                          max for dsh (off|low|high|max, the headless profile's own default)
 #   --timeout <sec>        per attempt (default 21600 = 6h)
 #   --deadline <datetime>  absolute end for the whole task, Asia/Shanghai (default: now + 24h, max 72h)
 #   --notify <channels>    comma list of weixin|telegram for the completion message
@@ -102,6 +105,7 @@ case "$cmd" in
         case "$AGENT" in
           claude) echo "open:     cd $CWD && claude --resume $SESSION" ;;
           opencode) echo "open:     cd $CWD && opencode -s $SESSION" ;;
+          dsh) echo "open:     cd $CWD && dsh --profile headless --session-id $SESSION \"<message>\"" ;;
           *) echo "open:     cd $CWD && codex resume $SESSION" ;;
         esac
         echo "continue: $0 append $ID < more.md" )
@@ -188,8 +192,8 @@ case "$cmd" in
       echo "task $id has ended ($(show_state "$d")); continuing session $SESSION as a new task"
       rc=0; "$0" "${args[@]}" || rc=$?; rm -f "$tmp"; exit "$rc" )
     exit $? ;;
-  claude|codex|opencode) AGENT=$cmd ;;
-  *) sed -n '2,42p' "$0" >&2; exit 2 ;;
+  claude|codex|opencode|dsh) AGENT=$cmd ;;
+  *) sed -n '2,45p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -261,6 +265,11 @@ if [ -n "$FALLBACK_MODELS" ] && [ "$AGENT" != opencode ]; then echo "--fallback-
 case "$AGENT" in
   claude) MODEL=${MODEL:-claude-opus-5-5} EFFORT=${EFFORT:-high} ;;
   codex) MODEL=${MODEL:-gpt-6.1-sol} EFFORT=${EFFORT:-medium} ;;
+  # dsh headless (0.2.1+) runs one task per process like `claude -p`; the runner turns MODEL and
+  # EFFORT into a patch overlay for the headless profile, so they must name a dsh route.
+  dsh) MODEL=${MODEL:-deepseek-official/deepseek-flash} EFFORT=${EFFORT:-max}
+    [[ "$MODEL" =~ ^[a-z0-9][a-z0-9-]*/[A-Za-z0-9._:-]+$ ]] || { echo "--model for dsh is <provider>/<model>, e.g. deepseek-official/deepseek-v4-pro" >&2; exit 2; }
+    [[ "$EFFORT" =~ ^(off|low|high|max)$ ]] || { echo "--effort for dsh takes off, low, high or max" >&2; exit 2; } ;;
   opencode)
     # The reviewed immutable file is a seed order. Fresh free candidates become
     # executable automatically; explicit selections cannot bypass the same gates.

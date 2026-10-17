@@ -78,7 +78,12 @@ VALUE_RE = re.compile(r"^[A-Za-z0-9._/:@-]{1,120}$")
 REDACT = [(re.compile(r"(token|api[_-]?key|secret|password)=[^\s&\"]+", re.I), r"\1=<redacted>"),
           (re.compile(r"(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}"), "<redacted>")]
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,80}$")
-AGENTS = ("claude", "codex", "opencode")
+AGENTS = ("claude", "codex", "opencode", "dsh")
+# dsh headless takes reasoningEffort from the patch overlay the runner writes per attempt. The two
+# routes are what DeepSeek's API serves (GET /models, 2026-10-17); other dsh routes this host has
+# dispatched join them through models_seen.
+DSH_EFFORTS = ["off", "low", "high", "max"]
+DSH_ROUTES = ("deepseek-official/deepseek-flash", "deepseek-official/deepseek-v4-pro")
 TERMINAL = {"ok", "partial", "unverified", "failed", "blocked", "timeout", "quota", "cancelled"}
 DEFAULT_FAIR_WAIT_SEC = 4 * 3600
 CANCEL_SETTLE_SEC = 4.0
@@ -589,6 +594,12 @@ def task_choices(meta: dict, result: dict) -> dict:
         models = list(dict.fromkeys([*own, dispatch_default("codex"), *cache]))
         efforts = {m: cache.get(m, []) for m in models if m}
         flag = "model_reasoning_effort"
+    elif agent == "dsh":
+        # <provider>/<model> routes of dsh's headless profile; the runner's overlay applies a change
+        # to the next attempt, a resumed session included (checked 2026-10-17 on dsh 0.2.1-rc.2).
+        models = list(dict.fromkeys([*own, dispatch_default("dsh"), *models_seen("dsh"), *DSH_ROUTES]))
+        efforts = {m: DSH_EFFORTS for m in models if m}
+        flag = "reasoningEffort"
     else:
         models = list(dict.fromkeys([*own, *pool_models()]))
         efforts = {m: [] for m in models if m}   # the free pool has no variants; --variant stays unset
@@ -985,6 +996,45 @@ def opencode_usage(session: str, since: float) -> tuple[dict[str, dict[str, int]
     return out, cost
 
 
+def dsh_usage(d: Path, fallback_model: str) -> dict[str, dict[str, int]] | None:
+    """Tokens from this task's own attempt<N>.jsonl (dsh --json): each step_end event carries the
+    step's usage (Anthropic semantics: inputTokens excludes cache reads). The files belong to this
+    task alone, so a session another task continues is never counted here. The model of attempt N
+    is the overlay the runner wrote for it (attempt<N>.yml)."""
+    out: dict[str, dict[str, int]] = {}
+    for f in sorted(d.glob("attempt*.jsonl"), key=lambda p: [int(x) if x.isdigit() else x for x in re.split(r"(\d+)", p.name)]):
+        model = fallback_model
+        try:
+            overlay = f.with_suffix(".yml").read_text()
+            provider = re.search(r'^\s*provider:\s*"?([^"\n]+)"?\s*$', overlay, re.M)
+            name = re.search(r'^\s*model:\s*"?([^"\n]+)"?\s*$', overlay, re.M)
+            if provider and name:
+                model = f"{provider[1]}/{name[1]}"
+        except OSError:
+            pass
+        try:
+            lines = f.read_text(errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            if '"step_end"' not in line or '"usage"' not in line:
+                continue
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(e, dict) or e.get("type") != "status" or e.get("phase") != "step_end" \
+                    or not isinstance(e.get("usage"), dict):
+                continue
+            u = e["usage"]
+            b = out.setdefault(model, _bucket())
+            b["in"] += int(u.get("inputTokens") or 0)
+            b["out"] += int(u.get("outputTokens") or 0)
+            b["cache_r"] += int(u.get("cacheReadTokens") or 0)
+            b["cache_w5m"] += int(u.get("cacheWriteTokens") or 0)
+    return out or None
+
+
 @functools.lru_cache(maxsize=1)
 def prices() -> dict:
     try:
@@ -1061,6 +1111,8 @@ def task_usage(d: Path) -> dict:
                 cost, cost_kind = f"{reported:.2f}", "reported"
             elif per_model and all(m in pool or m.endswith("-free") for m in per_model):
                 cost, cost_kind = "free", "free"
+    elif agent == "dsh":
+        per_model = dsh_usage(d, result.get("MODEL_USED") or meta.get("MODEL", ""))
     if per_model is None:
         return {**base, "reason": f"no {agent} session record with attributable usage found for {session}"}
     b = _bucket()

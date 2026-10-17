@@ -872,5 +872,57 @@ e43=0; RETRY_WAIT=6 bash "$R" "$d43" || e43=$?
 expect "one attempt, then failed instead of a retry" "$e43/$(field "$d43" ATTEMPTS)/$(field "$d43" MAX_ATTEMPTS)/$(field "$d43" STATE)" 1/1/1/failed
 fi
 
+if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,dsh,* ]]; then
+echo; echo "=== [50] dsh headless: overlay model, keys from the stored credentials, prompt on stdin ($(date +%T))"
+printf 'version: 1\nrefs:\n  DEEPSEEK_API_KEY: fake-key\n  bad-name: ignored\n' >"$WORK/dsh-credentials.yaml"
+export AGENT_DISPATCH_DSH_CREDENTIALS=$WORK/dsh-credentials.yaml
+reset_fake dsh ok
+d50=$(mk dsh-ok dsh 900 300)
+printf 'MODEL=deepseek-official/deepseek-v4-pro\nEFFORT=low\n' >>"$d50/meta.env"
+e50=0; bash "$R" "$d50" || e50=$?
+expect "dsh exit" "$e50" 0
+expect "dsh state" "$(field "$d50" STATE)/$(field "$d50" OUTCOME)/$(field "$d50" ATTEMPTS)" ok/DONE/1
+expect "dsh session learned from the session event" "$(field "$d50" SESSION)" session-fake0001
+expect "dsh runs the headless profile with an overlay, json events, task on stdin" \
+  "$(grep -c 'call 1 argv: \[--profile\] \[headless\] \[--patch\] \[.*attempt1.yml\] \[--json\] \[-\]$' "$FAKE_DIR/dsh.argv")" 1
+expect_grep "overlay names the provider" 'provider: "deepseek-official"' "$FAKE_DIR/dsh.argv"
+expect_grep "overlay names the model" 'model: "deepseek-v4-pro"' "$FAKE_DIR/dsh.argv"
+expect_grep "overlay carries the effort" 'reasoningEffort: "low"' "$FAKE_DIR/dsh.argv"
+expect_grep "the stored key reaches dsh" "call 1 key: fake-key" "$FAKE_DIR/dsh.argv"
+expect_grep "the task arrives on stdin" "fake task prompt" "$FAKE_DIR/dsh.argv"
+expect "no key value in the runner log" "$(grep -c fake-key "$d50/run.log")" 0
+# The fake's one step: 1000 fresh input, 3000 cache read, 200 output (pricing: test_task_queue_ops).
+expect "usage from the attempt's step_end events" "$(field "$d50" TOKENS_IN)/$(field "$d50" TOKENS_CACHE_R)/$(field "$d50" TOKENS_OUT)" 1000/3000/200
+
+echo; echo "=== [51] dsh failed turn, then the same session continues ($(date +%T))"
+reset_fake dsh error-then-ok
+d51=$(mk dsh-retry dsh 900 300)
+e51=0; RETRY_WAIT=3 bash "$R" "$d51" || e51=$?
+expect "dsh retry exit" "$e51" 0
+expect "dsh retry state" "$(field "$d51" STATE)/$(field "$d51" ATTEMPTS)" ok/2
+expect_grep "the failed turn's error is logged" "PROVIDER_ERROR: upstream returned 500" "$d51/run.log"
+expect "the retry resumes the session" "$(grep -c 'call 2 argv:.*\[--session-id\] \[session-fake0001\]' "$FAKE_DIR/dsh.argv")" 1
+expect_grep "the retry asks to continue" "继续完成上一轮被中断的同一任务" "$FAKE_DIR/dsh.argv"
+
+echo; echo "=== [52] dsh out of balance -> quota, no retry; no credentials file -> no key ($(date +%T))"
+export AGENT_DISPATCH_DSH_CREDENTIALS=$WORK/no-such-credentials.yaml
+reset_fake dsh quota
+d52=$(mk dsh-quota dsh 900 300)
+e52=0; bash "$R" "$d52" || e52=$?
+expect "dsh quota exit" "$e52" 75
+expect "dsh quota state" "$(field "$d52" STATE)/$(field "$d52" STOP_REASON)/$(field "$d52" ATTEMPTS)" quota/quota_reset_unknown/1
+expect_grep "quota names the balance" "QUOTA: Insufficient Balance" "$d52/run.log"
+expect_grep "without a credentials file dsh gets no key" "call 1 key: unset" "$FAKE_DIR/dsh.argv"
+unset AGENT_DISPATCH_DSH_CREDENTIALS
+
+echo; echo "=== [53] dispatch.sh dsh: model is <provider>/<model>, effort off|low|high|max"
+D=$(dirname "$R")/dispatch.sh
+e53=0; out53=$(env -u AGENT_DISPATCH_TASK_ID "$D" dsh --name dsh-check --model deepseek-flash </dev/null 2>&1) || e53=$?
+expect "a bare model id is refused" "$e53/$(printf '%s' "$out53" | grep -c 'provider>/<model>')" 2/1
+e53=0; out53=$(env -u AGENT_DISPATCH_TASK_ID "$D" dsh --name dsh-check --effort medium </dev/null 2>&1) || e53=$?
+expect "an effort dsh does not have is refused" "$e53/$(printf '%s' "$out53" | grep -c 'off, low, high or max')" 2/1
+expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/dsh-check-* 2>/dev/null | wc -l)" 0
+fi
+
 echo
 if [ "$fail" = 0 ]; then echo "=== PASS $(date +%T)"; else echo "=== FAILED $(date +%T)"; exit 1; fi
