@@ -96,7 +96,8 @@ def test_no_verified_prior_close_flags_the_holding_instead_of_inventing_one(
 
     assert h["quote_incomplete"] is True
     assert "prev_close" not in h, "an open is not a prior close"
-    assert "today_change_pct" not in h
+    assert h["today_change_pct"] is None
+    assert h["today_change"] is None
     # The price itself is fine — the fallback did supply that.
     assert h["current_price"] == 299.6
     assert h["current_value"] == pytest.approx(29960.0)

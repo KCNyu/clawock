@@ -10,7 +10,7 @@ from clawock.harness import brief_render
 
 def test_the_same_number_carries_the_same_session_label_in_every_table():
     holding = {"ticker": "07226", "shares": 100, "cost_basis": 5.0, "current_price": 5.2,
-               "today_change_pct": 0.15, "pnl_percent": 4.0, "pnl_abs": 20.0}
+               "prev_close": 5.2 / 1.0015, "today_change_pct": 0.15, "pnl_percent": 4.0, "pnl_abs": 20.0}
     context = {
         "portfolio": {"portfolios": {"hk_stocks": {"holdings": [holding]}}},
         "peer_scan": {"07226": {"self_pct_1d": 0.15, "theme": "tech", "listed_peers": []}},
@@ -27,7 +27,8 @@ def test_the_same_number_carries_the_same_session_label_in_every_table():
 def test_the_holdings_column_names_a_change_and_its_session_not_a_price():
     def leg(*sessions):
         return {"holdings": [
-            {"ticker": f"T{i}", "shares": 1, "today_change_pct": -2.96, "day_session_date": day}
+            {"ticker": f"T{i}", "shares": 1, "prev_close": 100, "current_price": 97.04,
+             "today_change_pct": -2.96, "day_session_date": day}
             for i, day in enumerate(sessions)]}
 
     context = {"portfolio": {"portfolios": {
