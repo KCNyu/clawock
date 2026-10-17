@@ -41,6 +41,24 @@ class ResultTests(unittest.TestCase):
             (root / "attempt1.jsonl").write_text("\n".join(map(json.dumps, events)))
             self.assertEqual(module.read_result(root), "done\nSTATUS: DONE")
 
+    def test_dsh_final_message_of_a_completed_turn(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            head = [{"type": "session", "sessionId": "session-1", "cwd": "/root"},
+                    {"type": "text", "text": "working"},
+                    {"type": "tool_result", "callId": "c1", "status": "completed", "result": "STATUS: DONE"}]
+            done = [{"type": "status", "phase": "turn_end", "turn": 1, "reason": {"kind": "completed"}},
+                    {"type": "final", "text": "done\nSTATUS: DONE"}]
+            (root / "attempt1.jsonl").write_text("\n".join(map(json.dumps, head + done)))
+            (root / "attempt1.yml").write_text("- id: agent-default-model\n")
+            self.assertEqual(module.read_result(root), "done\nSTATUS: DONE")
+            failed = [{"type": "status", "phase": "turn_end", "turn": 1,
+                       "reason": {"kind": "error", "error": {"code": "QUOTA", "message": "Insufficient Balance"}}},
+                      {"type": "final", "text": ""}]
+            (root / "attempt2.jsonl").write_text("\n".join(map(json.dumps, head + failed)))
+            with self.assertRaises(ValueError):
+                module.read_result(root)
+
     def test_interrupted_codex_commentary_is_not_a_report(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

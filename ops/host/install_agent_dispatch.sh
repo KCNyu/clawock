@@ -42,6 +42,7 @@ FILES=(
   tests/test_wake_session.py
   tests/bin/claude
   tests/bin/codex
+  tests/bin/dsh
   tests/bin/fake-quota
   tests/bin/openclaw
   tests/bin/opencode

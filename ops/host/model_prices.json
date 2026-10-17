@@ -15,6 +15,13 @@
       "tier": "Standard processing, short context (the page's 'Flagship models' table; gpt-5.6-sol from its 'Cyber models' table). Not Batch/Flex/Fast mode, not the long-context column, no data-residency uplift.",
       "cache": "`cache_read` is the page's 'Cached input'. Its 'Cache writes' column is exactly 1.25x input for every row priced here, which is the table-wide cache.write_5m multiplier, so no per-row value is needed.",
       "limits": "codex's session record does not say which requests ran in the long-context band, so a long-context request is priced at short-context rates: the estimate can read low, never high."
+    },
+    "deepseek": {
+      "models": "deepseek-*",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "as_of": "2026-10-17",
+      "tier": "Peak rates (01:00-04:00 and 06:00-10:00 UTC, Monday-Friday); every other hour bills half. dsh tasks are the only ones here DeepSeek bills per token, and this estimate of them can read high, never low.",
+      "cache": "`cache_read` is the page's 'input tokens (cache hit)'. DeepSeek's context cache has no write charge and reports no cache writes."
     }
   },
   "cache": {
@@ -35,7 +42,9 @@
     "gpt-6.1-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.1},
     "gpt-6-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.2},
     "gpt-6-luna": {"in": 0.1, "out": 0.5, "cache_read": 0.01},
-    "gpt-5.6-sol": {"in": 4.0, "out": 20.0, "cache_read": 0.4}
+    "gpt-5.6-sol": {"in": 4.0, "out": 20.0, "cache_read": 0.4},
+    "deepseek-flash": {"in": 0.3, "out": 1.2, "cache_read": 0.006},
+    "deepseek-v4-pro": {"in": 1.32, "out": 3.96, "cache_read": 0.044}
   },
   "unpriced": "Models not listed show tokens but no amount (the chip's `—`). Add a row with its source and date instead of guessing.",
   "free": "opencode models are free when opencode itself reports a cost of 0 and the model is in the free pool file opencode-fallback-models or ends in -free; a non-zero opencode cost is opencode's own figure."

@@ -77,6 +77,10 @@ QUOTA_CMD="${AGENT_DISPATCH_QUOTA_CMD:-node /root/tools/agent-dispatch/quota.mjs
 WAKE_CMD="${AGENT_DISPATCH_WAKE_CMD:-/root/tools/agent-dispatch/wake-session.py}"
 CODEX_HOME_DIR="${CODEX_HOME:-/root/.codex}"
 CLAUDE_HOME_DIR="${CLAUDE_CONFIG_DIR:-/root/.claude}"
+# dsh's headless profile disables the interactive credential store and reads provider keys from
+# the environment (dsh 0.2.1 release notes; a missing key fails the turn with MISSING_CREDENTIAL),
+# so an attempt exports the keys the web profile stored here. AGENT_DISPATCH_DSH_CREDENTIALS: test seam.
+DSH_CREDENTIALS="${AGENT_DISPATCH_DSH_CREDENTIALS:-/root/.dsh/.credentials.yaml}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-3}"
 QUOTA_RESUMES="${QUOTA_RESUMES:-3}"  # explicit per-task override; 0 disables automatic quota resumes
 # 3, not 1 (kcn 2026-09-23): a long Opus task does not fit in one 5-hour window, and a single
@@ -494,6 +498,9 @@ finish() {
   elif [ "$AGENT" = opencode ] && [ -n "$SESSION" ]; then
     open_hint="
 查看会话：在 $CWD 下 opencode -s $SESSION"
+  elif [ "$AGENT" = dsh ] && [ -n "$SESSION" ]; then
+    open_hint="
+继续会话：在 $CWD 下 dsh --profile headless --session-id $SESSION \"<消息>\""
   fi
   local quota; quota=$(quota_line)
   local notice="$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}
@@ -786,6 +793,7 @@ learn_session() {  # <attempt output>
     # event names its sessionID twice), hence head -1.
     codex) SESSION=$(grep -m1 -o '"type":"thread.started","thread_id":"[^"]*"' "$1" 2>/dev/null | head -1 | sed 's/.*"thread_id":"//; s/"$//') ;;
     opencode) SESSION=$(grep -m1 -o '"sessionID":"[^"]*"' "$1" 2>/dev/null | head -1 | sed 's/.*:"//; s/"$//') ;;
+    dsh) SESSION=$(grep -m1 -o '"type":"session","sessionId":"[^"]*"' "$1" 2>/dev/null | head -1 | sed 's/.*"sessionId":"//; s/"$//') ;;
   esac
 }
 # ---- stall detection ---------------------------------------------------------------
@@ -908,6 +916,32 @@ wait_attempt() {  # <attempt output>; sets ARC, INTERRUPTED, STALLED and RATE_LI
 # NEXT_KIND says what this attempt sends: task (the prompt), continue (after a failure) or
 # append (only the appended instructions). Pending inbox messages ride along with any of them.
 NEXT_KIND=task INTERRUPT_NOTE="" RUN_NO=0
+# dsh: the attempt's model and effort as a patch overlay for the headless profile (`--patch`).
+# MODEL is <provider>/<model> of a dsh route (dispatch.sh checks the shape), e.g.
+# deepseek-official/deepseek-flash; an override.env change reaches the next attempt the same way.
+dsh_overlay() {  # <file>
+  printf -- "- id: agent-default-model\n  name: '@deepseek-ai/dsh-agent-default-model'\n  config:\n    provider: \"%s\"\n    model: \"%s\"\n" \
+    "${CUR_MODEL%%/*}" "${CUR_MODEL#*/}" >"$1"
+  [ -z "$EFFORT" ] || printf '    reasoningEffort: "%s"\n' "$EFFORT" >>"$1"
+}
+# dsh: export the stored provider keys (refs: NAME: value) that are not already set. Runs in the
+# attempt's subshell only; the values never reach run.log.
+dsh_env() {
+  [ -r "$DSH_CREDENTIALS" ] || return 0
+  eval "$(python3 - "$DSH_CREDENTIALS" <<'PY'
+import os, re, shlex, sys
+try:
+    import yaml
+    refs = (yaml.safe_load(open(sys.argv[1])) or {}).get("refs") or {}
+except Exception:
+    refs = {}
+for name, value in refs.items():
+    if re.fullmatch(r"[A-Z][A-Z0-9_]*", str(name)) and isinstance(value, str) and value and name not in os.environ:
+        print(f"export {name}={shlex.quote(value)}")
+PY
+)"
+}
+
 run_attempt() {  # <cap>; sets ARC, AKIND (ok|quota|rate_limited|error), ATEXT, INTERRUPTED, SESSION when learned
   local cap=$1 alog prompt block="" resumable=""
   [ -n "$USAGE_START_EPOCH" ] || USAGE_START_EPOCH=$(date +%s.%N)
@@ -1037,6 +1071,68 @@ PY
 }$AERR"
       [ -z "$ATEXT" ] && ATEXT=$(tail -n 5 "$alog.err" 2>/dev/null)
       [ -n "$ATEXT" ] || ATEXT="opencode exited without response text"
+    fi
+  elif [ "$AGENT" = dsh ]; then
+    # `dsh --profile headless`: one task in (stdin), NDJSON events out (--json: session first,
+    # then status/thinking/text/tool events, a final message last); exit 0 only when the turn
+    # completed, and a failed turn names its error code on stderr and in the turn_end event.
+    # Permissions come from the headless profile's patch (defaultPreset: danger-full-access).
+    printf '%s' "$prompt" >"$alog.prompt"
+    dsh_overlay "$alog.yml"
+    local args=(--profile headless --patch "$alog.yml" --json)
+    [ -n "$resumable" ] && args+=(--session-id "$SESSION")
+    ( cd "$CWD" && dsh_env && exec timeout -k 60 "$cap" dsh "${args[@]}" - <"$alog.prompt" ) \
+      >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
+    CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
+    eval "$(python3 - "$alog.jsonl" <<'PY'
+import json, shlex, sys
+session, texts, final, err, code, completed = '', [], None, '', '', False
+for line in open(sys.argv[1], errors='replace'):
+    line = line.strip()
+    if not line.startswith('{'):
+        continue
+    try:
+        e = json.loads(line)
+    except ValueError:
+        continue
+    t = e.get('type')
+    if t == 'session':
+        session = session or e.get('sessionId') or ''
+    elif t == 'text':
+        texts.append(e.get('text') or '')
+    elif t == 'final':
+        final = e.get('text') or ''
+    elif t == 'error':   # a usage or startup failure, before or instead of a turn
+        err, code = e.get('message') or 'error', ''
+    elif t == 'status' and e.get('phase') == 'turn_end':
+        reason = e.get('reason') or {}
+        completed = reason.get('kind') == 'completed'
+        if reason.get('kind') == 'error':
+            error = reason.get('error') or {}
+            code = error.get('code') or ''
+            err = f"{code or 'ERROR'}: {error.get('message') or ''}"
+        elif not completed:
+            err, code = f"turn ended: {reason.get('kind') or 'unknown'}", ''
+text = final if final else (texts[-1] if texts else '')
+print('ASESSION=' + shlex.quote(session))
+print('ATEXT=' + shlex.quote(text))
+print('AERR=' + shlex.quote(err))
+print('ADONE=' + ('1' if completed else ''))
+# QUOTA is dsh-llm's code for an exhausted balance or quota (insufficient balance on DeepSeek):
+# pay-as-you-go, so no reset time; the runner stops with the session kept.
+print('AQUOTA=' + ('1' if code == 'QUOTA' else ''))
+PY
+)"
+    [ -n "$ASESSION" ] && SESSION=$ASESSION
+    if [ "$ARC" -eq 0 ] && [ -n "$ADONE" ] && [[ $ATEXT =~ [^[:space:]] ]]; then
+      AKIND=ok
+    elif [ -n "$AQUOTA" ]; then
+      AKIND=quota; ATEXT=$AERR
+    else
+      AKIND=error; [ -n "$AERR" ] && ATEXT="${ATEXT:+$ATEXT
+}$AERR"
+      [ -z "$ATEXT" ] && ATEXT=$(tail -n 5 "$alog.err" 2>/dev/null)
+      [ -n "$ATEXT" ] || ATEXT="dsh exited without response text"
     fi
   else
     local sub=(exec) tail_args=()
