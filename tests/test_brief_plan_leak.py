@@ -110,3 +110,14 @@ def test_a_rationale_restating_its_own_size_is_not_an_unsourced_number(tmp_path)
     # `size.note` is prose, not a source for other prose.
     plan['decisions'][0]['rationale'] = '减 9999 股后杠杆下降'
     assert '9999股' in _brief_numeric_issues(path, plan, {})[0]
+
+
+def test_hypothesis_and_method_use_the_same_prose_gates(tmp_path):
+    from clawock.harness.brief_postflight import _brief_numeric_issues
+    path = tmp_path / 'judgment.json'
+    path.write_text('{}')
+    for field in ('rationale', 'hypothesis', 'method'):
+        plan = {'decisions': [{'ticker': '00100', field: '止损线在 18.6%，实际偏离是 -41.9%'}]}
+        assert _brief_numeric_issues(path, plan, {}), field
+        plan['decisions'][0][field] = 'action 是 hold_and_watch'
+        assert _plan_self_reference_issues(plan), field

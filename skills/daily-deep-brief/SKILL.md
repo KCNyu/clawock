@@ -727,8 +727,8 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
   把那一行撑成多一列。postflight 会直接判非法并指出是哪个字段。
 - 事实、指标、风控闸、集中度、回本数学、同行涨跌、宏观读数、校准表全部由 harness
   从 context 取；**你不需要把它们抄进 judgment**，抄了也不会被用。
-- 体量不再由你控制：渲染结果通常 18–22KB，远在 28KB 预算内。原来那套"分段预算 +
-  写完 `wc -c`"的自查随本节一起退役。
+- 正文由渲染器排版，不设写作目标长度；≥40KB 可读正文会提示超长。避免重复论述，
+  不为凑长度扩写，也不在 postflight 后裁文。
 
 本地想看渲染结果（不写盘）：
 
@@ -905,6 +905,10 @@ portfolio_counterargument/narrative/ticker_judgments`。
 }
 ```
 
+逐票的 `assessment`、`counterargument`、`next_evidence` 会印进今日动作。
+行动行的信心来自 plan；若逐票 judgment 信心不同，报告会并列点明差异。
+同一判断应使用同一个数；若同票有不同动作/判断对象，在理由中解释差别。
+
 **`rationale` 不许复述 plan。** 报告里「今日动作 · 信心与判定」是一票一块：plan 的 `rationale`
 印在「理由」，这里的 `rationale` 印在「判定」，和前者逐句相同的会被 harness 删掉（`brief_render._unsaid`）。
 换个说法把同样的事实再写一遍删不掉，只会让简报变长：2026-09-11 两处加起来 12.5KB，简报 44KB 越过
@@ -1037,8 +1041,8 @@ clawock brief postflight
 
 > **2026-07-27 教训**：旧规则把 35.8KB 和表格 critical 混在同一个 issues 列表里，模型误把
 > 体量当硬闸，事后一路裁到 23.7KB，既浪费时间/tokens 又引入编辑错误。新规则把体量单独记录：
-> 28–40KB 是结构化 `advisory`，不计入 issues、不让已交付成品变黄；≥40KB 才是实际 `warn`。
-> 无论哪档都保留完整正文，绝不在 postflight 后硬截断。**2026-08-31 起体量不再由模型控制**：报告由 `brief_render` 渲染，通常 18–22KB；这条闸留着是为了在渲染器或持仓规模变化时仍能报警。
+> 只保留 ≥40KB 可读正文的 `warn`；小于此值是 `within_budget`，不再有 28KB 目标或中间 advisory 档。
+> 无论哪档都保留完整正文，绝不在 postflight 后硬截断。报告由 `brief_render` 渲染；这条闸留着是为了在渲染器或持仓规模变化时仍能报警。
 
 ### 投递（Step 5 postflight 内自动，你什么都不用做）
 

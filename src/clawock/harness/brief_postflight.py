@@ -72,7 +72,6 @@ from clawock.brief_contract import REQUIRED_MARKDOWN_SECTIONS
 
 # Readability is measured separately from substantive validation. A modestly
 # long brief remains a usable product; only extreme size becomes a warning.
-BRIEF_READABILITY_TARGET_BYTES = 28_000
 BRIEF_READABILITY_EXTREME_BYTES = 40_000
 
 
@@ -83,19 +82,9 @@ _TABLE_RULE = re.compile(r'\|?[\s:|-]+\|?')
 def reader_bytes(text):
     """Bytes of what a reader reads: the words, not the layout around them.
 
-    The thresholds below are a reading-burden budget, but they used to be
-    compared with the file size. On 2026-09-11 the report moved from prose
-    tables to one card per subsection and one block per prose row
-    (`brief_render.card` / `entries`): the same words, and 4–5KB more file per
-    brief of `<div markdown="1">` wrappers, indentation and blank lines. Three
-    of the five briefs from 09-07 to 09-11 would have jumped from `advisory` to
-    `extreme` — a warning every morning about markup nobody sees.
-
-    Counted here: front matter, layout tags, table rules and pipes, list and
-    heading markers, `**`, and runs of whitespace all removed. Measured on those
-    same five briefs, this count under the new layout gives the same status as
-    the raw file size gave under the old one, on every day — so the 28KB/40KB
-    lines keep the meaning they were calibrated with.
+    Ignore front matter, layout tags, table rules, Markdown markers and spare
+    whitespace. The sole warning boundary is 40KB of reader-visible text;
+    smaller reports have no writing target. Assessment never truncates prose.
     """
     if text.startswith('---\n'):
         _, _, text = text[4:].partition('\n---\n')
@@ -131,19 +120,15 @@ def assess_brief_readability(path):
         over_by = None
     elif nbytes >= BRIEF_READABILITY_EXTREME_BYTES:
         status = 'extreme'
-        over_by = max(0, nbytes - BRIEF_READABILITY_TARGET_BYTES)
-    elif nbytes > BRIEF_READABILITY_TARGET_BYTES:
-        status = 'advisory'
-        over_by = nbytes - BRIEF_READABILITY_TARGET_BYTES
+        over_by = nbytes - BRIEF_READABILITY_EXTREME_BYTES
     else:
         status = 'within_budget'
-        over_by = max(0, nbytes - BRIEF_READABILITY_TARGET_BYTES)
+        over_by = 0
 
     return {
         'status': status,
         'bytes': nbytes,
         'file_bytes': file_bytes,
-        'target_bytes': BRIEF_READABILITY_TARGET_BYTES,
         'extreme_bytes': BRIEF_READABILITY_EXTREME_BYTES,
         'over_by_bytes': over_by,
     }
@@ -155,7 +140,7 @@ def readability_issues(readability):
         return []
     return [
         'pre-open.md 极端超长 '
-        f'{readability.get("bytes")} bytes 正文（≥40KB，版式标记不计；完整保留但下次生成须按分段预算收敛）'
+        f'{readability.get("bytes")} bytes 正文（≥40KB，版式标记不计；完整保留但下次生成减少重复论述）'
     ]
 
 
@@ -1294,7 +1279,8 @@ def _card_self_reference_issues(judgment_path):
 # are the contract's enums, not prose. tests/test_brief_plan_leak.py renders a
 # row with every field marked and holds this list equal to what shows up.
 JUDGMENT_ROW_PROSE = ('fundamentals', 'sentiment_read', 'cross_market',
-                      'rationale', 'falsifier', 'peer_read')
+                      'rationale', 'falsifier', 'peer_read',
+                      'assessment', 'counterargument', 'next_evidence')
 
 
 def _judgment_identifier_issues(judgment_path):
@@ -1330,7 +1316,8 @@ def _judgment_identifier_issues(judgment_path):
 # their plan_context, 166 of 189 slot contexts carried "packet", and every
 # plan.json since 08-26 wrote it into a rationale. The report-side rule and
 # check (#1512) only see the copy; this is where it enters.
-PLAN_DOWNSTREAM_TEXT = (('rationale',), ('condition', 'description'))
+PLAN_DOWNSTREAM_TEXT = (('rationale',), ('condition', 'description'),
+                        ('hypothesis',), ('method',))
 
 
 def _plan_self_reference_issues(plan):
@@ -1375,7 +1362,8 @@ def _brief_numeric_issues(judgment_path, plan, context):
     for row in (plan or {}).get('decisions') or []:
         if isinstance(row, dict):
             prose = '\n'.join(value for value in (row.get('rationale'),
-                             (row.get('condition') or {}).get('description'))
+                             (row.get('condition') or {}).get('description'),
+                             row.get('hypothesis'), row.get('method'))
                              if isinstance(value, str))
             texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
             size = row.get('size')
