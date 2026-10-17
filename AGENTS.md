@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Instructions for every agent in this repository: the OpenClaw investment assistant
-(Rick, see `IDENTITY.md`) and the coding agents (Claude Code, Codex, OpenCode).
+(Rick, see `IDENTITY.md`) and the coding agents (Claude Code, Codex, OpenCode, dsh).
 `CLAUDE.md` only bridges here. Humans read `README.md` and `docs/README.md`.
 
 ## Session start
@@ -21,7 +21,7 @@ context; do not read an injected file again.
 
 ### Delegation
 
-- A request naming Claude Code (Claude/claudecode), Codex or OpenCode as the actor
+- A request naming Claude Code (Claude/claudecode), Codex, OpenCode or dsh as the actor
   ("让 claudecode 看看…", "have Codex fix…") is explicit delegation, even for a small task
   and without words such as "委派" or "后台跑". Use the `agent-dispatch` skill and return
   once the dispatch succeeded. The named worker is distinct from the main session even
