@@ -19,6 +19,9 @@ its first tool batch; the Mode 7 section of each market SKILL is a route to the
 body and is not loaded by the cron. The ownership and silence history is in
 [`harness.md`](harness.md#intraday-decision-and-delivery-boundary).
 
+The configured intraday turn ceiling is 29 minutes; the watchdog may wait for an
+in-flight attempt through the 30-minute slot boundary before judging its evidence.
+
 ## 1. Objective
 
 In priority order, and the order decides conflicts:

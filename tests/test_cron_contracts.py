@@ -872,7 +872,7 @@ def test_every_brief_watchdog_runs_after_the_brief_timeout_boundary():
     start = brief['schedule']['expr'].split()
     start_min = int(start[1]) * 60 + int(start[0])
     watchdogs = [brief['watchdog'], *brief.get('extra_watchdogs', [])]
-    assert len(watchdogs) == 2
+    assert len(watchdogs) == 3
 
     for watchdog in watchdogs:
         expr = watchdog['schedule']['expr'].split()
