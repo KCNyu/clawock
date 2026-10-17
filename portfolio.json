@@ -1582,15 +1582,15 @@
   },
   "market_context": {},
   "gold_dca": {
-    "principal_invested": 17299.0,
-    "currency": "CNY",
-    "fund_code": "000217",
     "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
-    "fund_name": "华安黄金ETF联接C",
-    "daily_amount": 200,
+    "currency": "CNY",
     "start_date": "2026-01-22",
-    "units_held": 4854.55,
+    "fund_name": "华安黄金ETF联接C",
     "reconciled_date": "2026-06-09",
+    "daily_amount": 200,
+    "fund_code": "000217",
+    "units_held": 4854.55,
+    "principal_invested": 17299.0,
     "nav": 3.0272,
     "nav_date": "2026-10-16",
     "nav_change_pct": 0.95,
@@ -2214,7 +2214,7 @@
         3.0272
       ]
     ],
-    "last_updated": "2026-10-16T15:50:54.066056Z",
+    "last_updated": "2026-10-17T15:50:26.982342Z",
     "domestic_gold": {
       "symbol": "Au99.99",
       "price_cny_g": 901.57,
@@ -2225,23 +2225,23 @@
       "change_pct": 0.96,
       "weighted_avg_cny_g": 898.18,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-10-16T15:50:48.864203Z",
+      "fetched_at": "2026-10-17T15:50:21.580869Z",
       "breakeven_cny_g": 986.42,
       "breakeven_upside_pct": 9.41,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 4172.31,
-      "xau_change_pct": 0.04,
+      "xau_usd": 4164.05,
+      "xau_change_pct": -0.16,
       "xau_high": 4198.54,
       "xau_low": 4147.23,
       "xau_prev_close": 4170.58,
-      "xau_date": "2026-10-16",
+      "xau_date": "2026-10-17",
       "usdcny": 6.6862,
-      "oz_equiv": 1.13,
+      "oz_equiv": 1.133,
       "grams_equiv": 35.2,
       "intl_value_usd": 4715.91,
-      "fund_breakeven_usd_oz": 4564.98,
+      "fund_breakeven_usd_oz": 4555.94,
       "fund_breakeven_upside_pct": 9.41,
       "compare_series": [
         [
@@ -2692,47 +2692,47 @@
         [
           "2026-10-16",
           82.65,
-          84.64
+          84.36
         ]
       ],
       "dca_equiv": {
         "principal_cny": 35000.0,
         "oz_held": 1.1481,
         "grams_held": 35.7,
-        "avg_cost_usd_oz": 4482.55,
-        "avg_cost_cny_g": 980.16,
-        "spot_usd_oz": 4172.31,
-        "breakeven_upside_pct": 7.44,
-        "current_value_cny": 32027.09,
-        "pnl_abs": -2972.91,
-        "pnl_pct": -8.49,
+        "avg_cost_usd_oz": 4482.45,
+        "avg_cost_cny_g": 980.14,
+        "spot_usd_oz": 4164.05,
+        "breakeven_upside_pct": 7.65,
+        "current_value_cny": 31964.35,
+        "pnl_abs": -3035.65,
+        "pnl_pct": -8.67,
         "days": 175,
         "daily_grams": 0.223,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4448.1,
-            "breakeven_upside_pct": 6.61
+            "avg_cost_usd_oz": 4447.04,
+            "breakeven_upside_pct": 6.8
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4420.54,
-            "breakeven_upside_pct": 5.95
+            "avg_cost_usd_oz": 4418.72,
+            "breakeven_upside_pct": 6.12
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4397.99,
-            "breakeven_upside_pct": 5.41
+            "avg_cost_usd_oz": 4395.55,
+            "breakeven_upside_pct": 5.56
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4349.65,
-            "breakeven_upside_pct": 4.25
+            "avg_cost_usd_oz": 4345.91,
+            "breakeven_upside_pct": 4.37
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4293.44,
-            "breakeven_upside_pct": 2.9
+            "avg_cost_usd_oz": 4288.22,
+            "breakeven_upside_pct": 2.98
           }
         ]
       },
@@ -3359,7 +3359,7 @@
         ],
         [
           "2026-10-16",
-          4177.87
+          4164.05
         ]
       ],
       "fx_hist_source": {
@@ -3981,7 +3981,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-10-16T15:50:54.068760Z"
+      "last_updated": "2026-10-17T15:50:26.983268Z"
     }
   }
 }
