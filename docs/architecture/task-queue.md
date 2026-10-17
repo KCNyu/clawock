@@ -450,6 +450,18 @@ the task's `NOTIFY` list (`weixin`, `telegram`, both by default, `none` for patr
 Each leg is `openclaw message send --channel … --target …` with the targets from `notify.env`.
 The legs run in parallel, each once, with a time limit: 60 s for the end-of-task and the
 quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
+
+The end-of-task notice ends with two separate optional lines, never one combined amount:
+`额度：…` is what the agent's account has left (claude/codex's quota window, or dsh's
+DeepSeek money balance) while `花费：…` is what this run used at API list prices
+(`花费：$0.26（按 API 价估算）`, or `花费：免费（opencode 免费池）`). They point in
+opposite directions and use different currencies, so each keeps its own label and line.
+`update_usage` fills `COST_USD` after every attempt and again before the notice, bounded by
+`FINISH_USAGE_TIMEOUT` (20 s normally, 8 s on the cancel path). An empty `COST_USD` omits
+the cost line rather than printing `$0`: an unknown amount is not a free run. A value left
+from an earlier read is marked `截至上一次读数`, and a priced `$0.00` still prints (the
+estimate did see priced tokens).
+
 Delivery is **best-effort**. A failed leg never changes the task's state, is not retried,
 and raises no alarm. It is one `notify: send failed (<leg>): rc=<n> <reason>` line in `run.log`
 (the reason is the last stderr line of the send, redacted and cut to 200 characters, or

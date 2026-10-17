@@ -157,6 +157,9 @@ SLOT=""   # set by acquire_slot while this attempt holds a run slot; published i
 QUEUED_AT="" WAKE_AT="" NOTIFIED="" NOTIFY_FAILED="" NOTIFY_AT=""
 META_EFFORT=$EFFORT
 TOKENS_IN="" TOKENS_CACHE_W="" TOKENS_CACHE_R="" TOKENS_OUT="" TOKENS_TOTAL="" COST_USD=""
+# 1 when the latest update_usage read returned a COST_USD line (even an empty value). Empty
+# means that read produced nothing, so a non-empty COST_USD is the previous read's value.
+USAGE_READ=""
 write_result() {
   local tmp="$DIR/.result.env.tmp"
   {
@@ -269,12 +272,17 @@ apply_budget() {
 # Tokens and their API-price estimate, from the agent's own session record (task_queue_ops.py
 # `usage`, which also owns the price table). Only digits, a 2-decimal amount or `free` are taken.
 update_usage() {  # [timeout seconds]
-  local line
+  local line key val read_ok=""
+  USAGE_READ=""
   [ -r "$OPS" ] || return 0
   while IFS= read -r line; do
-    [[ $line =~ ^(TOKENS_IN|TOKENS_CACHE_W|TOKENS_CACHE_R|TOKENS_OUT|TOKENS_TOTAL|COST_USD)=([0-9]*|[0-9]+\.[0-9]{2}|free)$ ]] \
-      && printf -v "${BASH_REMATCH[1]}" '%s' "${BASH_REMATCH[2]}"
+    if [[ $line =~ ^(TOKENS_IN|TOKENS_CACHE_W|TOKENS_CACHE_R|TOKENS_OUT|TOKENS_TOTAL|COST_USD)=([0-9]*|[0-9]+\.[0-9]{2}|free)$ ]]; then
+      key=${BASH_REMATCH[1]} val=${BASH_REMATCH[2]}
+      printf -v "$key" '%s' "$val"
+      if [ "$key" = COST_USD ]; then read_ok=1; fi
+    fi
   done < <(AGENT_DISPATCH_TASKS_DIR="$TASKS_DIR" timeout "${1:-30}" python3 "$OPS" usage "$ID" 2>/dev/null)
+  USAGE_READ=$read_ok
   return 0
 }
 
@@ -460,6 +468,23 @@ quota_line() {
   printf '\n%s' "$line"
 }
 
+# What this run cost at API list prices, as "\n花费：…". `COST_USD` is an estimate from the
+# tokens and model price table, not a bill, and it is read after every attempt with a bounded
+# timeout. An empty value means the usage read found nothing (or timed out): leave the line out
+# rather than call an unknown amount $0. A value left from an earlier read is marked as such.
+# `free` is opencode's free pool; a priced zero still prints, because the estimate did see
+# priced tokens.
+cost_line() {  # <1 when the latest usage read returned a COST_USD line>
+  local cost=$COST_USD note=""
+  if [ "$cost" = free ]; then
+    printf '\n花费：免费（opencode 免费池）'
+    return 0
+  fi
+  [[ $cost =~ ^[0-9]+(\.[0-9]{2})?$ ]] || return 0
+  [ "${1:-}" = 1 ] || note="，截至上一次读数"
+  printf '\n花费：$%s（按 API 价估算%s）' "$cost" "$note"
+}
+
 finish() {
   local icon
   inbox_close
@@ -503,10 +528,10 @@ finish() {
     open_hint="
 继续会话：在 $CWD 下 dsh --profile headless --session-id $SESSION \"<消息>\""
   fi
-  local quota; quota=$(quota_line)
+  local quota cost; quota=$(quota_line); cost=$(cost_line "$USAGE_READ")
   local notice="$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}
 $(printf '%s' "$FINAL_TEXT" | clip tail 500)
-${resume_hint}${open_hint}${quota}
+${resume_hint}${open_hint}${quota}${cost}
 id：$ID
 日志：$DIR/run.log"
   notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"

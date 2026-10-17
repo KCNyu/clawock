@@ -599,6 +599,66 @@ expect "both legs recorded as sent" "$(field "$d35" NOTIFIED)/$(field "$d35" NOT
 expect "one send per leg, to each channel's own target" "$(sort "$FAKE_DIR/openclaw.sends" | xargs)" "test test tg-test tg-target"
 expect_grep "the log names each leg" "notify: sent (telegram)" "$d35/run.log"
 
+# The finish notice's cost line is a presentation rule, so these cases give the runner a fixed
+# `usage` answer instead of making each fake CLI produce priced tokens. `stale` answers once and
+# then nothing, the shape of a finish read that times out after an earlier successful one.
+echo; echo "=== [35a] finish notice: COST_USD has its own line; empty hidden, free named ($(date +%T))"
+cat >"$WORK/fake-cost-ops.py" <<'PY'
+#!/usr/bin/env python3
+"""Stand-in task_queue_ops.py for the finish-notice cost cases: `usage` prints COST_USD from
+$FAKE_DIR/cost.mode, except `stale` which answers only on its first call. `head` prints nothing
+(no other waiter), so the runner takes the lock as usual."""
+import os
+import pathlib
+import sys
+
+state = pathlib.Path(os.environ["FAKE_DIR"])
+if sys.argv[1:2] != ["usage"]:
+    sys.exit(0)
+mode = (state / "cost.mode").read_text().strip()
+calls = state / "cost.calls"
+n = int(calls.read_text()) + 1 if calls.exists() else 1
+calls.write_text(str(n))
+if mode == "stale":
+    if n == 1:
+        print("COST_USD=0.26")
+    sys.exit(0)
+print(f"COST_USD={mode}")
+PY
+saved_ops=$AGENT_DISPATCH_OPS
+export AGENT_DISPATCH_OPS=$WORK/fake-cost-ops.py
+cost_case() {  # <name> <agent> <fake mode> <cost mode> [finish usage timeout]
+  reset_fake "$2" "$3"
+  [ "$2" != claude ] || echo 0 >"$FAKE_DIR/claude.slow"
+  printf '%s' "$4" >"$FAKE_DIR/cost.mode"
+  COST_DIR=$(mk "cost-$1" "$2" 900 300 weixin)
+  COST_RC=0; FINISH_USAGE_TIMEOUT=${5:-20} bash "$R" "$COST_DIR" || COST_RC=$?
+}
+
+cost_case priced claude slow-ok 0.26
+expect "a priced run freezes COST_USD and finishes" "$COST_RC/$(field "$COST_DIR" STATE)/$(field "$COST_DIR" COST_USD)" "0/ok/0.26"
+expect "the notice shows the amount with the estimate marker" "$(grep -cF '花费：$0.26（按 API 价估算）' "$FAKE_DIR/openclaw.messages")" 1
+expect "cost and quota are separate lines" "$(grep -c '额度：.*花费：' "$FAKE_DIR/openclaw.messages")" 0
+expect "the quota line still goes out" "$(grep -c '^额度：5h 剩 80%' "$FAKE_DIR/openclaw.messages")" 1
+
+cost_case zero claude slow-ok 0.00
+expect "a priced zero is shown, not hidden" "$(grep -cF '花费：$0.00（按 API 价估算）' "$FAKE_DIR/openclaw.messages")" 1
+expect "a priced zero keeps its two decimals" "$(field "$COST_DIR" COST_USD)" "0.00"
+
+cost_case empty claude slow-ok ""
+expect "an empty COST_USD omits the line" "$(grep -c '^花费：' "$FAKE_DIR/openclaw.messages")" 0
+expect "an empty COST_USD stays empty in result.env" "$(field "$COST_DIR" COST_USD)" ""
+
+cost_case free opencode ok free
+expect "free names the pool instead of a dollar amount" "$(grep -cF '花费：免费（opencode 免费池）' "$FAKE_DIR/openclaw.messages")" 1
+expect "free is not rendered as a cost of zero" "$(grep -c '^花费：[$]' "$FAKE_DIR/openclaw.messages")" 0
+
+cost_case stale claude slow-ok stale 1
+expect "a value from the previous read says so" "$(grep -cF '花费：$0.26（按 API 价估算，截至上一次读数）' "$FAKE_DIR/openclaw.messages")" 1
+expect "the stale value is still the last frozen one" "$(field "$COST_DIR" COST_USD)" "0.26"
+
+export AGENT_DISPATCH_OPS=$saved_ops
+
 echo; echo "=== [36] a failing leg is recorded and changes nothing else ($(date +%T))"
 reset_fake claude slow-ok; echo 1 >"$FAKE_DIR/claude.slow"; echo test >"$FAKE_DIR/openclaw.fail"
 d36=$(mk notify-half claude 900 300 weixin,telegram)
