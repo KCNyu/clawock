@@ -1576,16 +1576,15 @@
         : "跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha（毛）";
     }
     const counts = (sidecar && sidecar.fill_counts) || {};
-    const countValue = key => counts[key] != null && Number.isFinite(Number(counts[key]))
-      ? Number(counts[key]) : null;
+    const countValue = key => Number.isFinite(counts[key]) ? counts[key] : null;
     const realCount = countValue("real_trade");
     const ohlcCount = countValue("ohlc_assumption");
     const closeCount = countValue("canonical_close_fallback");
     const skippedCount = countValue("skipped");
     const assumedCount = ohlcCount == null && closeCount == null
       ? null : (ohlcCount || 0) + (closeCount || 0);
+    const countText = value => value == null ? DASH : value.toLocaleString("en-US");
     if (summary) {
-      const countText = value => value == null ? DASH : value.toLocaleString("en-US");
       // 「差」一直是毛的：shadow 按 qty*price 成交，零佣金零点差。#1213 起
       // sidecar 同时发净额，两个数并排印 —— 只印一个的那个版本里，读者拿到的
       // 是一条待打折的择时 alpha，而页面上没有任何一处说它待打折。
@@ -1632,14 +1631,14 @@
     });
 
     const countMap = {
-      "shadow-fill-real": counts.real_trade,
-      "shadow-fill-ohlc": counts.ohlc_assumption,
-      "shadow-fill-close": counts.canonical_close_fallback,
-      "shadow-fill-skipped": counts.skipped,
+      "shadow-fill-real": realCount,
+      "shadow-fill-ohlc": ohlcCount,
+      "shadow-fill-close": closeCount,
+      "shadow-fill-skipped": skippedCount,
     };
     Object.entries(countMap).forEach(([id, value]) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = Number.isFinite(Number(value)) ? Number(value).toLocaleString("en-US") : "0";
+      if (el) el.textContent = countText(value);
     });
     const filled = ["real_trade", "ohlc_assumption", "canonical_close_fallback"]
       .reduce((sum, key) => sum + (Number(counts[key]) || 0), 0);
