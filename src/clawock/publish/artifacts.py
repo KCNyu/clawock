@@ -6,6 +6,7 @@ Run as ``clawock validate-sidecar <name>``.
 from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
+from clawock.portfolio.math import session_change_pct
 from clawock.safe_io import carried_value
 
 import csv
@@ -869,6 +870,8 @@ def _assert_dashboard_money_reconciles(
                     # and a row whose leaf is present, still reconciles leaf for leaf.
                     source_value = (carried_value(source) if public_field == 'current_value'
                                     else source.get(source_field))
+                    if public_field == 'today_change_pct':
+                        source_value = session_change_pct(source)
                     label = f'holdings.{leg}.{ticker}.{public_field}'
                     tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
                     if public_field in nullable_holding_fields:

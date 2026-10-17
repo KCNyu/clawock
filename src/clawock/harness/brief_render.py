@@ -33,7 +33,7 @@ from pathlib import Path
 
 from clawock.decision import receipts
 from clawock import sessions as _cal, instruments as instrument_registry
-from clawock.portfolio.math import ledger_rows
+from clawock.portfolio.math import ledger_rows, session_change_pct
 from clawock.automation.output_validate import escape_raw_html
 from clawock.prose_validation import check_identifier_leak, check_pipeline_self_reference
 from clawock.safe_io import safe_write_text
@@ -549,7 +549,7 @@ def holdings_section(context):
                 num(row.get("shares"), 0),
                 num(row.get("cost_basis")),
                 num(row.get("current_price")),
-                pct(row.get("today_change_pct")),
+                pct(session_change_pct(row)),
                 pct(row.get("pnl_percent")),
                 money(row.get("pnl_abs"), digits=0),
             ])

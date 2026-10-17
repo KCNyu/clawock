@@ -455,6 +455,9 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
         if stored_pc:
             h['today_change_pct'] = round(q['dp'], 2)
             h['today_change']     = round((c - pc) * shrs, 2)
+        else:
+            h['today_change'] = None
+            h['today_change_pct'] = None
         incomplete = not stored_pc or h.get('prev_close_date') != hk_prev_session
         if incomplete:
             h['quote_incomplete'] = True
@@ -520,7 +523,7 @@ def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
     total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in active)
     total_value = sum(h.get('current_value', h['cost_basis'] * number(h['shares'])) for h in active)
     total_pnl   = total_value - total_cost
-    today_chg   = sum(h.get('today_change', 0) for h in active)
+    today_chg   = sum(h.get('today_change') or 0 for h in active)
 
     us['total_cost']          = round(total_cost, 2)
     us['total_current_value'] = round(total_value, 2)
