@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INSTALL = ROOT / "ops/host/install_agent_dispatch.sh"
 SRC = ROOT / "ops/host/agent-dispatch"
-LIMITS = ("MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\n"
+LIMITS = ("MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\nMAX_RUNNING_DSH=1\n"
           "PATROL_MIN_AVAILABLE_KB=1\nPATROL_MAX_MEMORY_FULL_AVG60=10\nQUEUE_FAIR_WAIT_SEC=14400\n")
 
 

@@ -139,7 +139,7 @@ def test_a_runner_the_checkout_already_has_is_still_installed(desk, tmp_path):
     installed = tmp_path / "agent-dispatch"
     installed.mkdir()
     (installed / "limits.env").write_text(
-        "MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\n"
+        "MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\nMAX_RUNNING_DSH=1\n"
         "PATROL_MIN_AVAILABLE_KB=1\nPATROL_MAX_MEMORY_FULL_AVG60=10\nQUEUE_FAIR_WAIT_SEC=1\n")
     env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout), "LIVE_CHECKOUT": str(checkout),
            "AGENT_DISPATCH_DIR": str(installed)}
