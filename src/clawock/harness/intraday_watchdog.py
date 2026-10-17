@@ -112,7 +112,7 @@ REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the
 # (#1532, the #988 wait). The next pass does NOT look again: it runs 30 minutes
 # later and owns the NEXT slot, so returning on an in-flight attempt was this
 # slot's only verdict. The watchdog fires at +20 min; its 600s wait ends at +30,
-# alongside the next slot cron and after the 28-minute turn timeout. Slot identity
+# alongside the next slot cron and after the 29-minute turn timeout. Slot identity
 # checks reject a next-slot context rather than misjudge it as this slot.
 INFLIGHT_WAIT_S = 600
 INFLIGHT_POLL_S = 30
