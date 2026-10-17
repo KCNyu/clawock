@@ -231,14 +231,15 @@ AUTHORITATIVE_HOSTS = ('reuters.com', 'bloomberg.com', 'wsj.com', 'ft.com', 'cnb
                        'scmp.com', 'aastocks.com', 'etnet.com.hk', 'hkej.com')
 
 
-#: Forums on an authoritative domain are still forums.
-SOFT_HOSTS = ('guba.eastmoney.com',)
+#: Forums on an authoritative domain are still forums: 东财股吧 answers on
+#: `guba.`, `gubatr.` (traditional) and other `guba*` hosts.
+SOFT_HOSTS = re.compile(r'(^|\.)guba\w*\.eastmoney\.com$')
 
 
 def host_grade(url):
     """`primary` / `authoritative` / `soft` from a URL's host."""
     host = re.sub(r'^https?://', '', str(url or '')).split('/')[0].lower()
-    if any(host == h or host.endswith('.' + h) for h in SOFT_HOSTS):
+    if SOFT_HOSTS.search(host):
         return 'soft'
     if any(host == h or host.endswith('.' + h) for h in PRIMARY_HOSTS):
         return 'primary'

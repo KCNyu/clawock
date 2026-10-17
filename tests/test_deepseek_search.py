@@ -111,6 +111,10 @@ def test_deepseek_is_a_live_source_graded_by_host_with_an_honest_date():
     assert rows[0]['cite'] == ('《Rocket Lab falls on Neutron delay》（DeepSeek搜索·Reuters，'
                                '2026-10-17 发布，开盘前旧闻）')
     assert rows[0]['authority'] == 4 and out['degraded'] == []
+    # 东财's forums are not 东财's newsroom, under any of their hosts.
+    assert [live.host_grade(u) for u in (
+        'https://finance.eastmoney.com/a/1.html', 'http://guba.eastmoney.com/news,1.html',
+        'http://gubatr.eastmoney.com/news,zshkhstech,1.html')] == ['authoritative', 'soft', 'soft']
 
 
 def test_a_deepseek_gap_is_named_and_the_other_sources_still_land():
