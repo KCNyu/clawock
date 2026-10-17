@@ -257,10 +257,10 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 每日 Tier 1 后必做一段板块横向扫描，目标回答："你持仓在板块里**领涨/落后/中位**？归因是什么？"
 
 - 板块来源是动态的：读 `memory/peer-map.json`，**每个 active ticker 的 `theme` 字段就是它的板块名**（如 "HK AI 大模型" / "HK 科技指数 2x leveraged (HSTECH 标的)" / "商业航天"）。持仓变了，板块自动跟变 — 不要在 SKILL.md / 报告里写死任何特定 ticker
-- 对每个去重后的 theme 跑一次 web search — 当前会话内置搜索可用时直接使用；`tavily` 仅在 catalog 可用且 key 已配置时使用（目录名 `tavily-search` 不等于 skill 名）。脚本返回 unavailable/无结果/超时均退回可用搜索，不假定本机配置。⚠️ 免费档 1000 credits/月是全局共享，本 skill 每天只 1 次、按去重后的 theme 数搜（通常 ≤10 次/天），别对同一 theme 重复搜。**调用必须带 `--bucket brief`**（走本 skill 的月度配额 300；不带 bucket 会落 default 桶只有 60，很快被硬护栏挡回）：
-  - HK 板块 → `node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "今日 HK {theme} 涨幅榜 板块异动" --topic news --days 2 --bucket brief`
-  - US 板块 → `node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{sector ETF 如 SOXX/QQQ/ARK} 今日成分涨跌" --topic news --days 2 --bucket brief`
-  - 护栏是硬闸：额度用尽时脚本返回 "Web search unavailable" 并 exit 0，**别当报错**，退回内置搜索即可
+- 对每个去重后的 theme 跑一次 `clawock web-search` —— 它**同时**问 DeepSeek 搜索和 Tavily，两个源并列、各自一节输出、各自标状态（不是主备，一个源失败不影响另一个源的结果）。两边限额各算各的：**Tavily** 免费档 1000 credits/月全局共享，本 skill 每天只 1 次、按去重后的 theme 数搜（通常 ≤10 次/天），别对同一 theme 重复搜，**必须带 `--bucket brief`**（走本 skill 的月度配额 300；不带会落 `research` 桶）；**DeepSeek** 没有 credits 预算，只有账号级 5 QPS（本机统一限速），同行/催化/叙事想多查可以再跑 `--providers deepseek`：
+  - HK 板块 → `clawock web-search "今日 HK {theme} 涨幅榜 板块异动" --days 2 --bucket brief`
+  - US 板块 → `clawock web-search "{sector ETF 如 SOXX/QQQ/ARK} 今日成分涨跌" --days 2 --bucket brief`
+  - 某个源返回 `unavailable`（Tavily 额度用尽/DeepSeek 限速或余额）时 exit 0，**别当报错**；用另一个源和当前会话内置搜索，并写明哪个源没取到。两源都没取到才是"未检索"，不是"无消息"
 - 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
 - **归因句必带**：落后是因为(a) 利好时点（盘后才公布）/ (b) 早盘异常抛压 / (c) β 错配 / (d) 个股逻辑滞后？
 - 结论写进 `judgment.narrative.sector_read`（纯文本，引 ≥3 个具体涨跌幅 + 1 个明确归因）；报告里的板块表由 harness 从 `context.peer_scan` 渲染，逐票那句判断写在该票的 `peer_read`
@@ -452,7 +452,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 - `actionable_escalation=true` 是资讯策略的升级结论。引用未升级的真实事件也可提出主动动作，并保留策略异议；`evidence_event_id` 必须真实且属于该票。
 - 重复摘要不等于独立证据，过期事件不可冒充新消息。`positive/confirming` 是证据方向，不自动规定 hold。
-- Tavily 预算与调用范围仍按 `tavily_resolution_queue`；结果的可信度、与原事件的关系及是否改变判断由模型解释，不把搜索成功当成交易许可。
+- `tavily_resolution_queue` 每条带 `command`（`clawock web-search … --bucket brief`，DeepSeek 与 Tavily 并发）；Tavily credits 只花在队列里的事件上，DeepSeek 不受此限，其他事件也可 `--providers deepseek` 补查。结果的可信度、与原事件的关系及是否改变判断由模型解释，不把搜索成功当成交易许可。
 - 不再规定软情绪只能调整 confidence ±10pp，也不规定只有硬催化能翻转动作。采用情绪、名人或机构调仓线索时，说明机制、来源局限与认错条件；ARK 的交易是别人的交易，不能冒充公司事件。
 - 按真正主导证据填写 `driven_by`，不为迎合登记策略改标签。自定主动提案用 `hypothesis` 说明为什么值得做。
 - **前瞻事件的日期只能引用 `context.catalysts`，禁止推测。** 财报/FOMC/宏观在 `earnings`/`fomc`/`macro_events`；公司级预定事件（港股通生效日、解禁日、mainnet 上线、指数调整生效日）在 **`scheduled_events`**（真源 `memory/scheduled_catalysts.json`，手工维护）。

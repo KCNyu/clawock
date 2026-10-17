@@ -245,12 +245,13 @@ def test_hero_is_unchanged_apart_from_weekly_metrics():
     """The confirmed first 33 lines stay byte-identical except refreshed CW_M values."""
     import hashlib
 
-    # The decision-audit utility changes the taxonomy count from 46 to 47;
+    # The decision-audit utility changes the taxonomy count from 46 to 47,
+    # `web-search` (DeepSeek and Tavily side by side) from 47 to 48;
     # the jump bar drops its Evidence entry (Reflect holds it now);
     # the protected hero layout and all other wording stay pinned.
     for md, expected in (
-        (EN, "2197524a0baef09e364c1643ff70cf304c3ef13cc70b97e395385965b52592fb"),
-        (ZH, "958506928330a041c529b0d36d4d6eda824ebd220cc8bdf6ca898092e6aa42c8"),
+        (EN, "8fd0d567fbf81c9c7da76c42262246181eda2bbc69a8b8a9975cca389fd30d8e"),
+        (ZH, "44f54a49748f0ca0ea258ece5760f6ae8adae3f626e8e243acd6b3cf30f7c828"),
     ):
         hero = ''.join(md.splitlines(keepends=True)[:33])
         hero = re.sub(r'(<!-- CW_M:\w+ -->).*?(<!-- /CW_M:\w+ -->)', r'\1\2', hero)

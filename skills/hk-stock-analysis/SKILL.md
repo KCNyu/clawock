@@ -132,7 +132,7 @@ context 的字段名与枚举值（任何带下划线的英文标识，如 `hold
 写这几段，**存成 `memory/.tmp/report-prose-hk-{phase}.md`**：
 ```
 ▎情绪面
-{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：用 peer_scan 写今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
+{Finnhub 新闻 + 恒指/恒科方向 → 大盘判断（2-3 行）；⚡ **板块全景**：用 peer_scan 写今日板块 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search 与 `clawock web-search --providers deepseek`；Tavily 侧仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {结合 anomalies + signals → 超买/超卖/突破（2-3 行）}
@@ -186,11 +186,14 @@ clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 c
 港股情绪面跟美股不同 — 主战场是中文社区（雪球/富途牛牛/同花顺论坛/微博），不在 Reddit/X。源使用顺序：
 
 1. **Finnhub news（脚本带）** — `clawock analyze-hk {TICKER}` 默认拉 Finnhub 7 天新闻。港股覆盖比美股稀疏，但能拿到主要英文媒体（Reuters / Bloomberg / SCMP）
-2. **Tavily 中文搜索** — 主要的中文新闻聚合。⚠️ **Budget rule**(免费档 1000/月全局共享)：本条只管人工对话与开盘/收盘报告；Mode 7 cron 盘中盯盘的模型**不调** Tavily（harness 已检索，读 `anomaly_search`，见 Mode 7）。人工对话里盘中**默认不调**；仅**开盘/收盘报告**或盘中真事件(异常波动/停牌/财报预警/政策公告)才用，必带 `--bucket report`(开/收盘) 或 `--bucket intraday`(盘中事件)；额度尽时脚本 exit 0 返回 unavailable 别当报错：
+2. **中文 web 搜索：DeepSeek + Tavily** — `clawock web-search` 同时问两个源，各自一节、各自标状态（并列的两个源，不是主备）。限额各算各的：
+   - **DeepSeek**：无 credits 预算，账号级 5 QPS（本机统一限速），盘中也可随时用：`clawock web-search "{中文公司名} 港股 最新" --providers deepseek --days 3`
+   - **Tavily** ⚠️ 免费档 1000/月全局共享：只在**开盘/收盘报告**或盘中真事件(异常波动/停牌/财报预警/政策公告)时一起跑；Mode 7 cron 盘中盯盘的模型**不调** Tavily（harness 已检索，读 `anomaly_search`，见 Mode 7）。必带 `--bucket report`(开/收盘) 或 `--bucket intraday`(盘中事件)：
    ```bash
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} 港股 最新" --topic news --days 3 --bucket report
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{中文公司名} 雪球 讨论" --bucket report
+   clawock web-search "{TICKER} 港股 最新" --days 3 --bucket report
+   clawock web-search "{中文公司名} 雪球 讨论" --bucket report
    ```
+   某个源 exit 0 返回 unavailable 别当报错，写明哪个源没取到。雪球/富途/公众号是 JS 渲染或反爬页面，搜索只拿到索引摘要，正文仍要下面的 scrapling；拿不到就明说缺口。
 3. **雪球 HK 评论区（scrapling）** — 港股零售情绪核心，5 位代码格式 `HK{TICKER}`：
    ```python
    from scrapling.fetchers import StealthyFetcher
@@ -201,7 +204,7 @@ clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 c
    ```python
    sp = StealthyFetcher.fetch(f"https://www.futunn.com/stock/{TICKER}-HK", headless=True)
    ```
-5. **南向资金净流入** — 跟单只股没直接关系，但是港股大盘情绪的硬指标，Tavily 搜"南向资金 {date}"
+5. **南向资金净流入** — 跟单只股没直接关系，但是港股大盘情绪的硬指标，`clawock web-search "南向资金 {date}" --providers deepseek` 搜
 
 Output:
 - **Sentiment score**: -1 (极度看空) 到 +1 (狂热)；明确标注跟价格的背离（"涨了但雪球普遍看空 = 空头未投降" 之类）

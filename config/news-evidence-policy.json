@@ -60,5 +60,5 @@
     "market_fast_news": 0.45,
     "llm_digest_legacy": 0.3
   },
-  "tavily_policy": "Only unresolved high-impact events emitted in tavily_resolution_queue may consume Tavily news search."
+  "tavily_policy": "Tavily credits (bucket brief) are spent only on unresolved high-impact events in tavily_resolution_queue, each resolved with its `command` (clawock web-search: DeepSeek and Tavily asked together, results labelled by provider). DeepSeek search has no credit budget and may be used for any event; its rows are evidence to interpret, not confirmation."
 }

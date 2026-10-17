@@ -80,6 +80,7 @@ PACKAGED_UTILITIES = {
     "validate-regime-hmm": "clawock.evaluation.regime_hmm",
     "validate-sidecar": "clawock.publish.artifacts",
     "watch-list": "clawock.decision.watch_list",
+    "web-search": "clawock.evidence.web_search",
 }
 
 # Its own exit-code convention: a partial peer fetch must not read as success.
@@ -168,4 +169,5 @@ UTILITY_HELP = {
         "fit hidden market regimes and test them against the dial",
     "validate-sidecar": "validate a workflow-generated sidecar artifact",
     "watch-list": "scan non-held AI watch names for price opportunities",
+    "web-search": "search the web through DeepSeek and Tavily side by side, or fetch a page",
 }

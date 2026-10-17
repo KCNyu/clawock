@@ -281,7 +281,7 @@ def collect_peers(market):
 #: The live sources a report reads (docs/architecture/harness.md § Live
 #: information sources) — the brief's set: per-name filings and news. The
 #: market-level 7×24 feeds are the intraday slot's instrument.
-REPORT_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss')
+REPORT_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss', 'deepseek_search')
 
 
 def live_information(market, *, now=None):

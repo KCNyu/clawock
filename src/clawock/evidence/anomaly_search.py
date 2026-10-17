@@ -1,63 +1,49 @@
-"""Tier 3 of the intraday information lane: one web search per new anomaly.
+"""Tier 3 of the intraday information lane: web search per anomaly, two providers.
 
 docs/architecture/intraday-agent.md §6. The mover probe reads exchange/SEC
 filings and broker/media feeds; when those have nothing, "why did 07226 fall
-4%" had no answer beyond 「暂无法归因」. The host already pays for Tavily
-(`skills/tavily-search`, OpenClaw's own search provider) and the SKILLs kept it
-out of intraday slots because the model would call it every slot. The harness
-calls it instead, only when `anomalies` is non-empty, **once per ticker per
-session** (the cache below), in the `intraday` bucket.
+4%" had no answer beyond 「暂无法归因」. The harness asks the web instead, only
+when `anomalies` is non-empty — through **DeepSeek and Tavily side by side**
+(`evidence.web_search`; kcn 2026-10-18: parallel sources, neither the other's
+backup). Each provider has its own call policy, set by its own limit:
 
-Budget: the bucket is 120 credits a month; 18 slots × 22 days is ~400, so one
-query per slot would run out in a week. Distinct movers per session are what is
-spent — see `monthly_estimate`.
+* **DeepSeek** — no credit budget, 5 QPS per account (the host-wide gate in
+  `market_data.deepseek_search`). Asked again for a still-moving ticker once
+  its last answer is `DEEPSEEK_TTL_S` old, so every slot sees what was
+  published since the previous one; a failed refresh keeps the session's last
+  good rows and says it failed.
+* **Tavily** — the `intraday` bucket is 120 credits a month; 18 slots × 22 days
+  is ~400, so one query per slot would run out in a week. Asked **once per
+  ticker per session** (a search that could not run is retried next slot); see
+  `monthly_estimate`. DeepSeek being cheap does not loosen this.
 
-A search that cannot run (no key, budget exhausted, network, timeout) or finds
-nothing is returned as such and the card states it on a ⛔ line: not searched
-and "no news" must never look the same.
+Both are asked in the same slot for a ticker that needs them; neither waits on
+the other's answer. A provider that cannot run (no key, budget, 429, network)
+or finds nothing is reported as that provider's state on the card's ⛔ line —
+not searched and "no news" must never look the same, and one provider's gap
+is never the other's.
 """
 from __future__ import annotations
 
 import json
-import re
-import subprocess
-from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+
+from clawock.evidence import web_search
+from clawock.evidence.web_search import parse_tavily as _parse_tavily
 
 BUCKET = 'intraday'
 MONTHLY_CAP = 120
 TIMEOUT_S = 25
 MAX_ITEMS = 3
-PRIMARY_HOSTS = ('hkexnews.hk', 'sec.gov', 'nasdaqtrader.com')
-AUTHORITATIVE_HOSTS = ('reuters.com', 'bloomberg.com', 'wsj.com', 'ft.com', 'cnbc.com',
-                       'caixin.com', 'yicai.com', 'stcn.com', 'cls.cn', 'eastmoney.com',
-                       'scmp.com', 'aastocks.com', 'etnet.com.hk', 'hkej.com')
-
-
-def _grade(url):
-    host = re.sub(r'^https?://', '', str(url or '')).split('/')[0].lower()
-    if any(host.endswith(h) for h in PRIMARY_HOSTS):
-        return 'primary'
-    if any(host.endswith(h) for h in AUTHORITATIVE_HOSTS):
-        return 'authoritative'
-    return 'soft'
+DEEPSEEK_TTL_S = 25 * 60
+DEEPSEEK_TIMEOUT_S = 8
 
 
 def parse_output(text):
-    """(status, reason, items) from search.mjs stdout."""
-    text = text or ''
-    if '## Web search unavailable' in text:
-        reason = text.split('## Web search unavailable', 1)[1].strip().split('\n')[0]
-        return 'unavailable', reason[:160], []
-    items = []
-    for match in re.finditer(r'^- \*\*(.+?)\*\*[^\n]*\n\s+(https?://\S+)\n(?:\s+(.+))?',
-                             text, re.MULTILINE):
-        title, url, snippet = match.group(1), match.group(2), (match.group(3) or '')
-        items.append({'title': title.strip()[:120], 'url': url,
-                      'one_liner': snippet.strip()[:120], 'grade': _grade(url)})
-        if len(items) >= MAX_ITEMS:
-            break
-    return ('ok' if items else 'empty'), None, items
+    """(status, reason, items) from Tavily's search.mjs stdout."""
+    return _parse_tavily(text, limit=MAX_ITEMS)
 
 
 def query_for(ticker, market, name=None, target=None):
@@ -72,57 +58,161 @@ def query_for(ticker, market, name=None, target=None):
     return f'{subject} {name or ""} stock move today why'.strip()
 
 
-def _default_run(workspace, query):
-    script = Path(workspace) / 'skills' / 'tavily-search' / 'scripts' / 'search.mjs'
-    if not script.exists():
-        return 'unavailable', 'tavily-search skill not installed', []
+def _since(session):
+    """The day before the session (Beijing days in DeepSeek's index): the
+    evening before an HK open and a US session's own afternoon both count."""
     try:
-        done = subprocess.run(
-            ['node', str(script), query, '-n', str(MAX_ITEMS), '--topic', 'news',
-             '--days', '1', '--bucket', BUCKET],
-            capture_output=True, text=True, timeout=TIMEOUT_S, check=False)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return 'unavailable', f'{type(exc).__name__}', []
-    return parse_output(done.stdout)
+        day = date.fromisoformat(str(session)[-10:])
+    except ValueError:
+        day = datetime.now(timezone.utc).date()
+    return (day - timedelta(days=1)).isoformat()
+
+
+def _tavily_run(workspace):
+    def run(query):
+        return web_search.run_tavily(query, bucket=BUCKET, workspace=workspace,
+                                     count=MAX_ITEMS, days=1, timeout=TIMEOUT_S)
+    return run
+
+
+def _deepseek_run(session):
+    def run(query, question=None):
+        # The operator goes last and must survive DeepSeek's 128-character cap.
+        return web_search.run_deepseek(f'{query[:100]} after:{_since(session)}', count=MAX_ITEMS + 2,
+                                       ori_question=question, timeout=DEEPSEEK_TIMEOUT_S)
+    return run
+
+
+def _question(anomaly, name, ticker):
+    move = anomaly.get('move_pct')
+    if not isinstance(move, (int, float)):
+        return None
+    return f"为什么{name or ticker}今天{'涨' if move > 0 else '跌'}了{abs(move):.1f}%"
+
+
+def _due(cached, provider, now):
+    """Whether this slot asks `provider` again for a ticker."""
+    if not cached:
+        return True
+    if cached.get('status') == 'unavailable':
+        return True
+    if provider == 'tavily':
+        return False  # once per ticker per session
+    try:
+        asked = datetime.fromisoformat(cached['as_of'])
+    except (KeyError, TypeError, ValueError):
+        return True
+    return (now - asked).total_seconds() >= DEEPSEEK_TTL_S
+
+
+def _answer(status, reason, items, query, now):
+    out = {'status': status, 'query': query, 'as_of': now.isoformat(timespec='minutes'),
+           'items': items[:MAX_ITEMS], 'cached': False}
+    if reason:
+        out['reason'] = reason
+    return out
+
+
+def _combined(providers):
+    """The ticker's overall state: ok if any provider found rows; unavailable
+    only when none ran; otherwise empty."""
+    states = [p.get('status') for p in providers.values()]
+    if any(p.get('items') or p.get('item_count') for p in providers.values()):
+        return 'ok'
+    if states and all(s == 'unavailable' for s in states):
+        return 'unavailable'
+    return 'empty'
 
 
 def search_anomalies(workspace, market, session, anomalies, *, names=None, targets=None,
-                     run=None, now=None, cache_path=None):
-    """`{ticker: result}` for this slot's anomalies; at most one query per
-    ticker per session, the rest served from the cache. Never raises."""
+                     runners=None, providers=web_search.PROVIDERS_ORDER, now=None,
+                     cache_path=None):
+    """`{ticker: result}` for this slot's anomalies. Never raises.
+
+    `result` is `{status, items, providers: {deepseek: {...}, tavily: {...}},
+    bucket, cached}`: `items` every provider's rows (each tagged `provider`,
+    grade first), `providers[p]` that provider's own `{status, reason?, query,
+    as_of, items, cached}`. `runners[p]` replaces a provider (tests)."""
     now = now or datetime.now(timezone.utc)
-    run = run or (lambda query: _default_run(workspace, query))
+    runners = {'deepseek': _deepseek_run(session), 'tavily': _tavily_run(workspace),
+               **(runners or {})}
     cache_path = Path(cache_path or (Path(workspace) / 'memory' / '.tmp'
                                      / f'intraday-anomaly-search-{market}.json'))
     try:
         cache = json.loads(cache_path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         cache = {}
-    if cache.get('session') != session:
-        cache = {'session': session, 'tickers': {}}
-    out = {}
+    if cache.get('session') != session or cache.get('schema') != 2:
+        cache = {'schema': 2, 'session': session, 'tickers': {}}
+
+    jobs = {}  # (ticker, provider) -> (query, question)
+    wanted = []
     for anomaly in anomalies or []:
         ticker = str(anomaly.get('ticker') or '')
-        if not ticker or ticker in out:
+        if not ticker or ticker in wanted:
             continue
-        cached = cache['tickers'].get(ticker)
-        # A search that could not run is retried next slot; one that ran
-        # (found or empty) is this session's answer.
-        if cached and cached.get('status') in ('ok', 'empty'):
-            out[ticker] = {**cached, 'cached': True}
-            continue
-        query = query_for(ticker, market, (names or {}).get(ticker),
-                          (targets or {}).get(ticker))
+        wanted.append(ticker)
+        name = (names or {}).get(ticker)
+        query = query_for(ticker, market, name, (targets or {}).get(ticker))
+        held = (cache['tickers'].get(ticker) or {}).get('providers') or {}
+        for provider in providers:
+            if provider in runners and _due(held.get(provider), provider, now):
+                jobs[(ticker, provider)] = (query, _question(anomaly, name, ticker))
+
+    def call(key):
+        ticker, provider = key
+        query, question = jobs[key]
         try:
-            status, reason, items = run(query)
+            if provider == 'deepseek':
+                status, reason, items = runners[provider](query, question)
+            else:
+                status, reason, items = runners[provider](query)
         except Exception as exc:  # noqa: BLE001 — enrichment never reds a slot
             status, reason, items = 'unavailable', type(exc).__name__, []
-        result = {'status': status, 'query': query, 'as_of': now.isoformat(timespec='minutes'),
-                  'items': items, 'bucket': BUCKET, 'cached': False}
-        if reason:
-            result['reason'] = reason
-        cache['tickers'][ticker] = result
-        out[ticker] = result
+        return key, _answer(status, reason, [{**i, 'provider': provider} for i in items],
+                            query, now)
+
+    # One lane per provider: DeepSeek's requests go out together (the gate
+    # spaces them); Tavily's stay one after another, as its ledger expects.
+    def lane(provider):
+        keys = [k for k in jobs if k[1] == provider]
+        if provider == 'deepseek':
+            with ThreadPoolExecutor(max_workers=max(1, min(4, len(keys)))) as pool:
+                return list(pool.map(call, keys))
+        return [call(k) for k in keys]
+
+    fresh = {}
+    if jobs:
+        with ThreadPoolExecutor(max_workers=len(providers)) as pool:
+            for answers in pool.map(lane, providers):
+                fresh.update(dict(answers))
+
+    out = {}
+    for ticker in wanted:
+        entry = cache['tickers'].setdefault(ticker, {'providers': {}})
+        held = entry.setdefault('providers', {})
+        view = {}
+        for provider in providers:
+            answer = fresh.get((ticker, provider))
+            old = held.get(provider)
+            if answer is None:
+                if old:
+                    view[provider] = {**old, 'cached': True}
+                continue
+            if answer['status'] == 'unavailable' and old and old.get('items'):
+                # The refresh failed: the session's last rows stand, and the
+                # failure is still this provider's state for this slot.
+                answer = {**answer, 'items': old['items'], 'items_as_of': old.get('as_of')}
+            held[provider] = answer
+            view[provider] = answer
+        # Rows once, in `items` (each says its provider); `providers` keeps
+        # each provider's own state and how many rows it gave.
+        states = {p: {**{k: v for k, v in answer.items() if k != 'items'},
+                      'item_count': len(answer.get('items') or [])}
+                  for p, answer in view.items()}
+        out[ticker] = {'status': _combined(view), 'items': web_search.merged_items(view),
+                       'providers': states, 'bucket': BUCKET,
+                       'cached': all(v.get('cached') for v in view.values()) if view else False}
     try:
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding='utf-8')
@@ -132,12 +222,22 @@ def search_anomalies(workspace, market, session, anomalies, *, names=None, targe
 
 
 def degraded_lines(results):
-    """Tickers whose search did not answer, for the card's ⛔ line."""
-    bad = [f"{ticker}（{'未取到' if r['status'] == 'unavailable' else '无结果'}）"
-           for ticker, r in (results or {}).items() if r.get('status') in ('unavailable', 'empty')]
+    """Per ticker, the providers whose search did not answer, for the card's ⛔
+    line: `07226（DeepSeek未取到（超出QPS）、Tavily无结果）`."""
+    bad = []
+    for ticker, result in (results or {}).items():
+        providers = result.get('providers')
+        if providers is None:  # a single-answer result (a lane that crashed)
+            if result.get('status') in ('unavailable', 'empty'):
+                bad.append(f"{ticker}（{'未取到' if result['status'] == 'unavailable' else '无结果'}）")
+            continue
+        phrases = web_search.degraded(providers)
+        if phrases:
+            bad.append(f"{ticker}（{'、'.join(phrases)}）")
     return bad
 
 
 def monthly_estimate(distinct_movers_per_session, sessions_per_month=22, markets=2):
-    """Credits a month at one query per distinct mover per session per market."""
+    """Tavily credits a month at one query per distinct mover per session per
+    market (DeepSeek is per request, not budgeted in credits)."""
     return distinct_movers_per_session * sessions_per_month * markets

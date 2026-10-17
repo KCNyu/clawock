@@ -1438,7 +1438,7 @@ def em_news_node():
 #: § Live information sources). The two 7×24 feeds are left out: em-news
 #: (WAVE1, this run) already writes Eastmoney's 7×24 into em_news.json, and a
 #: market flash scroll is what an open session needs, not a pre-open read.
-BRIEF_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss')
+BRIEF_LIVE_SOURCES = ('hkexnews', 'sec_fulltext', 'google_news', 'yahoo_rss', 'deepseek_search')
 
 
 def _brief_live_projection(live_information):

@@ -237,11 +237,18 @@ The watchdog's backstop resend is the plain card on both channels.
 |---|---|---|---|---|---|
 | 0 | files already written by the morning jobs: `assets/data/em_news.json`, `us_news_digest.json`, `sentiment.json`, `macro.json`, `news_evidence_graph.json` | company news (HK), US digest, attention and headlines, macro, graded events | 0 (read only, never refetched) | source health uses file write time; each headline's cite uses its own publication time; date-only or missing time is labelled unknown and old | missing/unreadable file → `⛔` line |
 | 1 | existing free fetchers: `mover_evidence` (Tencent, SEC, exchange, Nasdaq halts), Eastmoney 7×24 flashes | mover catalysts; market-level flashes | a handful, movers only (7×24: 1, fetched inside the tier 2 lane) | live | per-ticker `degraded`, never "no news" |
-| 2 | live free sources through `clawock.evidence.live_sources` (table below): HKEXnews, SEC EDGAR full-text search, Google News RSS, Yahoo Finance RSS, 同花顺 7×24 | every slot, every holding (kcn 2026-09-26: 实时越多越好 — not gated on a gap) | per market: one filing query (HKEXnews or EDGAR full-text) + one Google News query per issuer or theme, and one Yahoo RSS per US issuer + the two market-wide 7×24 feeds; HK index-fund legs share one theme query (`live_sources.plan()` prints the plan for the current book) | each item carries its publisher's time: `盘中实时` after the session open, `开盘前旧闻` before it | per source on the ⛔ line (`资讯源未取到：Google新闻（1/3 超时）…（不是无消息）`) and in `information.sources` |
-| 3 | Tavily (`skills/tavily-search`, `--bucket intraday`) | an anomaly's cause | only when `anomalies` is non-empty, once per ticker per session | live | `unavailable`/quota → `⛔ 源降级`, never "no news" |
+| 2 | live sources through `clawock.evidence.live_sources` (table below): HKEXnews, SEC EDGAR full-text search, Google News RSS, Yahoo Finance RSS, DeepSeek Search, 同花顺 7×24 | every slot, every holding (kcn 2026-09-26: 实时越多越好 — not gated on a gap) | per market: one filing query (HKEXnews or EDGAR full-text) + one Google News query per issuer or theme, and one Yahoo RSS per US issuer + the two market-wide 7×24 feeds; HK index-fund legs share one theme query (`live_sources.plan()` prints the plan for the current book) | each item carries its publisher's time: `盘中实时` after the session open, `开盘前旧闻` before it | per source on the ⛔ line (`资讯源未取到：Google新闻（1/3 超时）…（不是无消息）`) and in `information.sources` |
+| 3 | `clawock.evidence.anomaly_search`: DeepSeek Search and Tavily (`skills/tavily-search`, `--bucket intraday`) side by side | an anomaly's cause | only when `anomalies` is non-empty; DeepSeek once per mover per slot (25-minute TTL), Tavily once per mover per session | live | per provider: `⛔ 数据降级：异动检索：RKLB（DeepSeek未取到（超出QPS））`, never "no news", never the other provider's gap |
 
-Tavily's `intraday` bucket is 120 credits a month; one query every slot would
-be ~400, so it is trigger-only and cached per ticker per session.
+The two providers are parallel sources (kcn 2026-10-18), asked in the same
+slot without either waiting on the other; every row in `anomaly_search.<t>.items`
+names its `provider`, and `providers.<p>` holds that provider's own status.
+Their call policies differ because their limits do: Tavily's `intraday` bucket
+is 120 credits a month (one query every slot would be ~400), so it stays
+trigger-only and cached per ticker per session; DeepSeek has no credit budget,
+only the account-wide 5 QPS that `market_data.deepseek_search` gates for the
+whole host. Limits and the per-entry table: `docs/reference/tool-operations.md`
+§ Web 搜索 provider.
 
 **Tier 2 sources.** The module is harness-neutral (the brief and the report
 call the same `collect`; ownership, interface and how to add a source are in
@@ -263,6 +270,7 @@ no item in 81 contexts).
 | Google News RSS | `news.google.com/rss/search?q=<issuer> stock when:1d` (US, `US:en`); `<中文名> when:1d` / `<index theme> when:1d` (HK, `CN:zh-Hans`) | 1 per issuer/theme | 8 | `pubDate`, publisher named in the cite | `Google新闻（n/m …）` | 00100 `MINIMAX-W（00100.HK）：9月25日南向资金减持14.37万股`（搜狐网, 09-26 04:16 HKT） |
 | Yahoo Finance RSS (US) | `feeds.finance.yahoo.com/rss/2.0/headline?s=<issuer>` | 1 per issuer (US 3) | 6 | `pubDate` | `Yahoo财经（…）`; a throttle page is a failure, not an empty feed | RKLB `MISSION SUCCESS: Rocket Lab Launches 97th Electron Mission`, 09-26 09:43 HKT |
 | 同花顺 7×24 | `news.10jqka.com.cn/tapp/news/push/stock/` | 1 | 1 | `ctime`; merged into `market_flashes` only when 东财 did not say it (≥0.6 title similarity is a duplicate) | `同花顺7×24（…）` | `滴滴与杭州余杭达成战略合作，探索落地自动驾驶产业应用`（人民财讯, 09-26 13:24 HKT） |
+| DeepSeek Search | `POST api.deepseek.com/v1/tools/search` — `<中文名> 新闻 lang:zh after:<day>` / `<theme> 走势 …` (HK), `<issuer> stock news lang:en after:<day>` (US) | 1 per issuer/theme | 12 | DeepSeek's `date`; a day-only date (00:00 Beijing) is `今日发布、时刻未知`, an undated hit is dropped; grade from the host, quote pages dropped, `rerank_score` < 1 dropped | `DeepSeek搜索（…）` (key missing, 402, 429 after retries) | RKLB `Rocket Lab Stock (RKLB) Falls on Neutron Launch Delay`（TipRanks, 2026-10-17） |
 | 东财 7×24 (tier 1) | `newsapi.eastmoney.com/kuaixun/…` via the Eastmoney gateway | 1 | 1 | `showtime` | `东财7×24（…）` as before | — |
 
 Not wired: **Reddit** — its public JSON is 403 (`market_data/sentiment.py`);
@@ -296,7 +304,7 @@ written down.
 | numbers come from the context | advisory | `check_numeric_claims` | explicit units apply to core and reference fields alike; `range_used_atr` is a harness-derived multiple, not a percentage; cannot tell a real number attached to the wrong thing |
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
 | `下一触发` names and levels are subject-scoped; proposed levels within ±5% of that subject's current quote are allowed — every such line, merged into one (#2077) | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment`, `test_a_second_next_trigger_line_is_checked_and_never_reaches_the_card_raw` | a structured line looks authoritative |
-| a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
+| a degraded source is stated | gate | preflight `⛔` lines; per-provider `unavailable`/`empty` in `anomaly_search` | "no news" and "not fetched" must not look the same |
 | stale information is labelled | gate (escalating) | every item carries its `cite` with a time or explicit time gap; `check_stale_citation` matches the cited title, not a ticker prefix (`test_quoting_a_stale_headline_without_its_time_is_flagged`, `test_a_live_timestamped_title_does_not_collide_with_old_same_ticker_title`); the market-level reference families carry the same `cite` and are in the gate's title list (`test_market_level_reference_rows_carry_a_cite_and_reach_the_label_gate`) | a 08:10 headline at 23:00 must not read as live |
 | an unreadable information source is stated | gate | `⛔ 资讯缺口` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`; tier 2 per source: `test_a_source_that_did_not_answer_is_named_and_the_rest_still_land`) | not fetched ≠ no news |
 | a live item is labelled with its own time | gate | tier 2 cite: publisher time + `盘中实时`/`开盘前旧闻`; a pre-open live title falls under `check_stale_citation` like the morning files | a headline fetched at 14:00 may have been written at 06:00 |
@@ -322,7 +330,7 @@ as live.
 | sentiment archive is not a consumed source and cannot cause a news gap (`test_missing_archive_is_not_a_source_gap_and_future_source_is_not_fresh`) | live (#2859) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
-| Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887) |
+| Web search on anomalies (`anomaly_search`: DeepSeek per slot and Tavily once per ticker per session, side by side; `test_each_provider_keeps_its_own_call_policy`, `test_one_provider_failing_is_its_own_gap_and_not_the_others`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887; two providers 2026-10-18) |
 | add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | live (#1888) |
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |

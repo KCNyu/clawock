@@ -297,8 +297,8 @@ its own process.
 
 | Entry | How it calls | Sources | Freshness label | What reaches the model | A failed source |
 |---|---|---|---|---|---|
-| intraday slot | in-process, started before the analyzer, cache per session (`memory/.tmp/intraday-live-news-<m>.json`, TTL 20 min) | all six | `盘中实时` / `开盘前旧闻` against the session open | `information.live` (4 rows a name), 同花顺 flashes merged into `market_flashes`; everything in reference `information_full.live` | `⛔ 资讯源未取到：…（不是无消息）` on the card + `information.sources` |
-| brief | `clawock live-sources --market both --fresh-since last_close` as a WAVE1 node | HKEXnews, SEC full-text, Google News, Yahoo RSS | `上次收盘后` / `上次收盘前旧闻` against each market's last close | context `live_information` (bundle `evidence`); packet `information.live` per name, summary `live` (two cites) and `live_information` (source health) | in `live_information.<m>.degraded` and the packet's source health — **not** a preflight issue (an issue exits the preflight 1, which the cron reads as a failed tool); the command itself failing is an issue |
+| intraday slot | in-process, started before the analyzer, cache per session (`memory/.tmp/intraday-live-news-<m>.json`, TTL 20 min) | all seven | `盘中实时` / `开盘前旧闻` against the session open | `information.live` (4 rows a name), 同花顺 flashes merged into `market_flashes`; everything in reference `information_full.live` | `⛔ 资讯源未取到：…（不是无消息）` on the card + `information.sources` |
+| brief | `clawock live-sources --market both --fresh-since last_close` as a WAVE1 node | HKEXnews, SEC full-text, Google News, Yahoo RSS, DeepSeek Search | `上次收盘后` / `上次收盘前旧闻` against each market's last close | context `live_information` (bundle `evidence`); packet `information.live` per name, summary `live` (two cites) and `live_information` (source health) | in `live_information.<m>.degraded` and the packet's source health — **not** a preflight issue (an issue exits the preflight 1, which the cron reads as a failed tool); the command itself failing is an issue |
 | report | in-process after the analyzer, alongside the peer scan and mover probe | as the brief | against the session open | context `live_information` (`summary`, `sources`, `degraded`) | `live_information.degraded` |
 
 Why the brief and the report leave out the two 7×24 feeds: the brief's em-news
@@ -315,6 +315,14 @@ and, if slow, its timeout in `Limits`; a row in the source table of
 [`intraday-agent.md`](intraday-agent.md) §6; and here, the entries that take it.
 A source is added to an entry by naming it in that entry's source tuple
 (`BRIEF_LIVE_SOURCES`, `REPORT_LIVE_SOURCES`; intraday takes all).
+
+DeepSeek Search is the one source here that is not key-less and not a GET: its
+adapter calls `market_data/deepseek_search` (its own POST, the host-wide 5 QPS
+gate, retries on 408/429/5xx), not the `http` seam, and grades each row by its
+host (`host_grade`) rather than by the source. Tavily is not a live source —
+its credits would not survive a query per issuer per slot; it runs next to
+DeepSeek in `evidence/web_search` (§ Capabilities) for the anomaly search, the
+brief's sector scan and the models' own searches.
 
 ## Capabilities: one owner, any entry
 
@@ -343,6 +351,7 @@ parameters and what reaches their model.
 | HSTECH dated daily closes | `market_data/hstech.fetch_hstech` | live regime, regime evaluations (including combined regime) | start/end/count; shared `market_data/tencent_daily` request/parser; malformed rows skipped, research fetch errors propagate, live caller degrades to unknown |
 | history session keys | `decision/session_history.normalize_days` | setup and factor review | explicit source dates, otherwise nearby local daily-close evidence; legacy files remain unchanged |
 | live news and disclosures | `evidence/live_sources` + adapters (§ Live information sources) | brief, report, intraday | sources, `Limits`, `fresh_since`, labels |
+| web search, DeepSeek and Tavily side by side | `evidence/web_search` (`search_all`, `merged_items`, `degraded`); access in `market_data/deepseek_search` and `skills/tavily-search` | `anomaly_search` (intraday tier 3), `clawock web-search` (brief Step 3, `tavily_resolution_queue`, stock-analysis skills, chat) | providers, each provider's options (Tavily `bucket`); each provider's call policy is the caller's, its limit is the provider's (`docs/reference/tool-operations.md` § Web 搜索 provider) |
 | Tencent per-symbol news/announcements | `market_data/tencent_news` | `primary_disclosures` (type 0), `mover_evidence` (type 1) | symbol, feed type, window, `http` |
 | mover evidence | `market_data/mover_evidence.probe` | report, intraday | tickers, market |
 | add side | § Add-side strategy | brief, intraday | `add_policy.ENTRY_PROFILES[entry]` |

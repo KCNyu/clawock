@@ -458,7 +458,7 @@ def test_a_live_source_gap_is_carried_to_the_model_not_raised_as_a_failed_prefli
     assert run.exit_code == 0 and run.issues == []
     assert run.context['live_information']['us']['degraded'] == ['Google新闻（TimeoutError）']
     spawned = [argv for kind, command, argv in run.recorder.calls if command == 'live-sources']
-    assert len(spawned) == 1 and 'hkexnews,sec_fulltext,google_news,yahoo_rss' in spawned[0]
+    assert len(spawned) == 1 and 'hkexnews,sec_fulltext,google_news,yahoo_rss,deepseek_search' in spawned[0]
 
     broken = run_stubbed_preflight(tmp_path, monkeypatch, plan={
         **DEFAULT_PLAN, 'live-sources': (1, '')})

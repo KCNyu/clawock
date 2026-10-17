@@ -167,6 +167,8 @@ HK_FETCHERS = {
          'publisher': 'Reuters'},
         {'title': f'{query} overnight', 'published_at': '2026-09-28T06:10:00+08:00'}],
     'ths_724': lambda: [{'title': '恒指午间收跌', 'published_at': '2026-09-28T11:30:00+08:00'}],
+    # Asked, found nothing: the intraday slot takes every source.
+    'deepseek_search': lambda query, language: [],
     'em_724': lambda: [{'title': '恒生科技指数跌2%', 'date': '2026-09-28 11:20'}],
 }
 
