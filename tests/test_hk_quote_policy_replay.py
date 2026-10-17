@@ -46,7 +46,13 @@ def run_case(module, case, monkeypatch, path, capsys):
 
 @pytest.mark.parametrize('case', CASES, ids=lambda case: case['name'])
 def test_writer_replays_pre_extraction_results(case, monkeypatch, tmp_path, capsys):
-    assert run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys) == case['expected']
+    expected = copy.deepcopy(case['expected'])
+    if case['name'] == 'approx-absent':
+        # #3023: absence is now explicit and cannot carry yesterday's value.
+        for key in ('returned', 'written'):
+            row = expected[key]['portfolios']['hk_stocks']['holdings'][0]
+            row.update(today_change=None, today_change_pct=None)
+    assert run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys) == expected
 
 
 def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp_path, capsys):
@@ -59,3 +65,14 @@ def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp
         for h in expected[key]['portfolios']['hk_stocks']['holdings']:
             h['shares'] = str(h['shares'])
     assert actual == expected
+
+
+def test_missing_fallback_prior_close_clears_previous_day_change():
+    case = next(c for c in CASES if c['name'] == 'approx-absent')
+    holding = copy.deepcopy(case['portfolio']['portfolios']['hk_stocks']['holdings'][0])
+    holding.update(today_change=999, today_change_pct=99, today_change_abs=999)
+    quote = copy.deepcopy(next(iter(case['quotes'].values())))
+    hk._hk_apply_quote(holding, quote, datetime.fromisoformat(case['now']), '2026-09-01', [])
+    assert holding['quote_incomplete']
+    assert holding['today_change'] is None and holding['today_change_pct'] is None
+    assert 'today_change_abs' not in holding

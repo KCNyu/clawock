@@ -53,11 +53,12 @@ def test_a_position_without_a_previous_close_has_no_today_change():
     row = dashboard.trim_holding(fresh, 'USD')
     assert (row['today_change'], row['today_change_pct']) == (None, None)
 
-    flat = dashboard.trim_holding({**fresh, 'today_change': 0.0, 'today_change_pct': 0.0}, 'USD')
+    flat = dashboard.trim_holding({**fresh, 'prev_close': 170, 'today_change': 0.0, 'today_change_pct': 0.0}, 'USD')
     assert (flat['today_change'], flat['today_change_pct']) == (0.0, 0.0)
 
     moved = dashboard.trim_holding(
-        {**fresh, 'today_change': 123.456, 'today_change_pct': -1.234}, 'USD')
+        {**fresh, 'prev_close': 170, 'current_price': 167.9022,
+         'today_change': 123.456, 'today_change_pct': 99}, 'USD')
     assert (moved['today_change'], moved['today_change_pct']) == (123.46, -1.23)
 
 
@@ -1830,8 +1831,9 @@ def test_gold_dca_freshness_is_judged_by_its_own_stamp_not_the_file_mtime(monkey
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
 
     def gold_row(last_updated):
+        portfolio["gold_dca"] = {"nav_date": "2026-07-31", "last_updated": last_updated}
         (tmp_path / "portfolio.json").write_text(json.dumps(
-            {"gold_dca": {"nav_date": "2026-07-31", "last_updated": last_updated}}))
+            {"gold_dca": {"nav_date": "2000-01-01", "last_updated": "2000-01-01T00:00:00Z"}}))
         os.utime(tmp_path / "portfolio.json", (at.timestamp(), at.timestamp()))
         status = dashboard.compute_build_status(portfolio, data_dir, at=at)
         return status, next(r for r in status["files"]
@@ -2353,3 +2355,25 @@ def test_calendar_bar_outage_makes_otherwise_fresh_dashboard_unhealthy(monkeypat
     assert not status['healthy']
     assert status['integrity']['bar_staleness'] == rows
     assert status['integrity']['top'][0]['code'] == 'BAR_STALENESS'
+
+
+def test_session_display_is_independent_of_new_lot_pnl():
+    holding = {'ticker': '07709', 'shares': 100, 'current_price': 19.19,
+               'prev_close': 18.68, 'cost_basis': 20.04, 'today_change': -85,
+               'today_change_pct': -4.24, 'pnl_percent': -4.24,
+               'day_session_date': '2026-10-16'}
+    row = dashboard.trim_holding(holding, 'HKD')
+    assert row['today_change_pct'] == 2.73
+    assert row['today_change'] == -85 and row['pnl_percent'] == -4.24
+    assert dashboard.compute_today_movers([], [row]) == []  # below the 3% cutoff
+    assert holding['today_change_pct'] == -4.24
+    from clawock.harness.brief_render import holdings_section
+    rendered = holdings_section({'portfolio': _portfolio(hk={'holdings': [holding]})})
+    assert '+2.73%' in rendered and '-4.24%' in rendered
+
+
+@pytest.mark.parametrize('prev', [None, 0, -1, float('nan'), float('inf'), True])
+def test_session_display_without_usable_prior_close_is_missing(prev):
+    row = dashboard.trim_holding({'prev_close': prev, 'current_price': 10,
+                                  'today_change_pct': 99}, 'USD')
+    assert row['today_change_pct'] is None

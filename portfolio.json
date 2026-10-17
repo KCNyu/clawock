@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/10/17 04:03 HKT",
+  "last_updated": "2026/10/17 04:50 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -100,7 +100,7 @@
           "current_price": 82.22,
           "today_change_pct": -5.4617,
           "pnl_percent": -5.4943,
-          "data_source": "Finnhub Oct 16, 2026 16:03 ET",
+          "data_source": "Finnhub Oct 16, 2026 16:50 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -478,7 +478,7 @@
           "current_price": 8.7,
           "today_change_pct": -16.3462,
           "pnl_percent": -82.4914,
-          "data_source": "Finnhub Oct 16, 2026 16:03 ET",
+          "data_source": "Finnhub Oct 16, 2026 16:50 ET",
           "day_high": 10.3725,
           "day_low": 8.5401,
           "day_open": 10.095,
@@ -617,7 +617,7 @@
           "pnl_percent": -0.9966,
           "today_change": -2.59,
           "today_change_pct": -1.7427,
-          "data_source": "Finnhub Oct 16, 2026 16:03 ET",
+          "data_source": "Finnhub Oct 16, 2026 16:50 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -659,7 +659,7 @@
           "current_value": 2754.0,
           "pnl_abs": -864.0,
           "pnl_percent": -23.8806,
-          "data_source": "Finnhub Oct 16, 2026 16:03 ET",
+          "data_source": "Finnhub Oct 16, 2026 16:50 ET",
           "today_change": -105.0,
           "today_change_pct": -3.6726,
           "trades": [
@@ -968,28 +968,28 @@
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7659.43,
+          "price": 7659.44,
           "prev_close": 7744.06,
           "change_pct": -1.093,
-          "source": "Tencent usINX index @ 2026-10-16 16:03 ET"
+          "source": "Tencent usINX index @ 2026-10-16 16:50 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
           "price": 29187.55,
           "prev_close": 29935.59,
           "change_pct": -2.499,
-          "source": "Tencent usNDX index @ 2026-10-16 16:03 ET"
+          "source": "Tencent usNDX index @ 2026-10-16 16:50 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 52001.87,
+          "price": 52002.41,
           "prev_close": 52177.69,
-          "change_pct": -0.337,
-          "source": "Tencent usDJI index @ 2026-10-16 16:03 ET"
+          "change_pct": -0.336,
+          "source": "Tencent usDJI index @ 2026-10-16 16:50 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
-      "last_afterhours_attempted": "2026-10-16 16:03 EDT",
+      "last_afterhours_attempted": "2026-10-16 16:50 EDT",
       "last_closed_attempted": "2026-10-15 20:03 EDT",
       "last_premarket_attempted": "2026-08-25 05:54 EDT",
       "premarket_fetch_status": {
@@ -1070,7 +1070,7 @@
         "source_counts": {
           "Finnhub": 4
         },
-        "updated_at": "2026-10-16 16:03 EDT",
+        "updated_at": "2026-10-16 16:50 EDT",
         "note": "Multi-provider fetch. Sources: 4x Finnhub"
       },
       "closed_fetch_status": {

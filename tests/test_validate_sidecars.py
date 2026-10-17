@@ -1166,6 +1166,7 @@ def _fresh_position(payload, portfolio):
         if (h.get('ticker') or h.get('code')) == row['ticker'])
     old_change = source.pop('today_change', None)
     source.pop('today_change_pct', None)
+    source.pop('prev_close', None)
     # A fresh position contributes no day change. Keep both sides of the
     # synthetic generation internally consistent even when the first rendered
     # holding happened to have a non-zero move; relying on it being flat made

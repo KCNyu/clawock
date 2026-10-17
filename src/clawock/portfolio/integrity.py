@@ -386,7 +386,7 @@ def summarize_bar_gaps(bars_dir=None, *, sessions=BAR_COVERAGE_SESSIONS,
     the finding can say the bar was fetched and refused rather than absent.
     """
     root = pathlib.Path(bars_dir) if bars_dir is not None else (
-        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars')
+        workspace_root() / 'memory' / 'bars')
     legs = {}
     try:
         files = sorted(root.glob('*.json'))
@@ -421,8 +421,9 @@ def summarize_bar_staleness(bars_dir=None, *, markets=(), now=None):
     leg look current. An absent/empty store is unknown, never zero missing bars.
     """
     root = pathlib.Path(bars_dir) if bars_dir is not None else (
-        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars')
-    held = {market: set() for market in markets}
+        workspace_root() / 'memory' / 'bars')
+    requested = set(markets)
+    held = {market: set() for market in requested}
     for path in sorted(root.glob('*.json')):
         try:
             doc = json.loads(path.read_text(encoding='utf-8'))
@@ -431,7 +432,7 @@ def summarize_bar_staleness(bars_dir=None, *, markets=(), now=None):
         if not isinstance(doc, dict) or doc.get('retired'):
             continue
         market = str(doc.get('leg', '')).lower()
-        if market not in ('hk', 'us'):
+        if market not in ('hk', 'us') or (requested and market not in requested):
             continue
         dates = held.setdefault(market, set())
         bars = doc.get('bars')
@@ -496,7 +497,7 @@ def _book_gate_config(config_path, portfolios):
 def _refused_bars(log_path=None) -> dict:
     """(ticker, date) -> fetched OHLC for every structural refusal on the log."""
     path = pathlib.Path(log_path) if log_path is not None else (
-        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bar-conflicts.jsonl')
+        workspace_root() / 'memory' / 'bar-conflicts.jsonl')
     out = {}
     try:
         lines = path.read_text(encoding='utf-8').splitlines()
@@ -514,7 +515,7 @@ def _refused_bars(log_path=None) -> dict:
 
 def _bar_close(ticker, day):
     """Canonical-store close for ``ticker`` on ``day``; None when not on file."""
-    path = (workspace_root(pathlib.Path.cwd()) / 'memory' / 'bars'
+    path = (workspace_root() / 'memory' / 'bars'
             / f'{ticker}.json')
     try:
         close = json.loads(path.read_text())['bars'][day]['close']
@@ -553,7 +554,7 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     # replaces that name with a stub reader to feed `check()` a portfolio, and
     # a summary that exploded under it would take the whole report with it.
     path = pathlib.Path(log_path) if log_path is not None else (
-        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bar-conflicts.jsonl')
+        workspace_root() / 'memory' / 'bar-conflicts.jsonl')
     summary = {
         'window_days': window_days,
         'total': 0,

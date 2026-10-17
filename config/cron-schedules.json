@@ -289,6 +289,15 @@
             "tz": "Asia/Hong_Kong"
           },
           "command": "/root/.local/bin/clawock-brief-watchdog --check-missing >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
+        },
+        {
+          "purpose": "local recovery outcome: observe the 09:05 re-run before the off-host cutoff",
+          "schedule": {
+            "kind": "cron",
+            "expr": "50 9 * * 1-5",
+            "tz": "Asia/Hong_Kong"
+          },
+          "command": "/root/.local/bin/clawock-brief-watchdog --check-recovery >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
         }
       ]
     },

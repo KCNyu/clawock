@@ -38,7 +38,7 @@ from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.guardrail import hhi_verdict, _holding_pnl_pct
-from clawock.portfolio.math import number as portfolio_number, ledger_rows
+from clawock.portfolio.math import number as portfolio_number, ledger_rows, session_change_pct
 
 def benchmark_staleness(benchmark):
     # The normal lag is measured by the morning producer. Recomputing against
@@ -872,7 +872,7 @@ def trim_holding(h, currency):
     flat day, where the dashboard means「—」(#1783).
     """
     def today(field):
-        value = h.get(field)
+        value = session_change_pct(h) if field == 'today_change_pct' else h.get(field)
         return None if value is None else round(value, 2)
 
     return {
@@ -1259,7 +1259,7 @@ def _bar_close_index(workspace=None, tickers=None):
     return index
 
 
-def build_decision_traces(limit=40, workspace=None):
+def build_decision_traces(limit=40, workspace=None, *, portfolio=None):
     """The decision-trace view data: every real fill as a trace node with its
     soft-paired decision (±3 calendar days, same ticker) and T+1 close verdict.
 
@@ -1285,7 +1285,8 @@ def build_decision_traces(limit=40, workspace=None):
         if isinstance(tk, str) and isinstance(dt, str) and dt:
             dec_by_key[tk + ':' + dt] = e
     # Portfolio doc (single read, used for holdings/trades/positions).
-    pf_doc = load_json(str(ws / 'portfolio.json')) or {}
+    pf_doc = (portfolio if portfolio is not None
+              else load_json(str(ws / 'portfolio.json')) or {})
     # Current-position P&L lookup for still-held tickers.
     held_pnl = {}
     for book in (pf_doc.get('portfolios') or {}).values():
@@ -1552,7 +1553,7 @@ def _plan_fill_alignment(plan_action, fill_action):
     return 'same' if plan_side == fill_side else 'opposite'
 
 
-def build_decision_trace_scope(traces, workspace=None, limit=40):
+def build_decision_trace_scope(traces, workspace=None, limit=40, *, portfolio=None):
     """What the trace card is allowed to claim about itself.
 
     The card used to sum its own 40-row window and print the result as an
@@ -1564,7 +1565,8 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
     @returns dict of counts/totals, all with their denominators.
     """
     ws = workspace or WS_ROOT
-    pf_doc = load_json(str(ws / 'portfolio.json')) or {}
+    pf_doc = (portfolio if portfolio is not None
+              else load_json(str(ws / 'portfolio.json')) or {})
     all_fills = 0
     realized_all = {}
     for leg in resolve_legs(pf_doc):
@@ -4018,10 +4020,7 @@ def compute_build_status(portfolio, data_dir, at=None, *, generated_files=()):
     # stale, and its fetcher's skip branches all exit 0 (#2268). Judge the block
     # by its own `last_updated`. The NAV only prints on mainland trading days, so
     # the window is wide enough for a Golden Week or Spring Festival closure.
-    try:
-        gold = json.loads((WS_ROOT / 'portfolio.json').read_text()).get('gold_dca')
-    except (OSError, ValueError, AttributeError):
-        gold = None
+    gold = portfolio.get('gold_dca')
     if isinstance(gold, dict) and gold:
         row = {'name': 'portfolio.json#gold_dca', 'sla_hours': GOLD_DCA_SLA_HOURS,
                'freshness_mode': 'max_age', 'nav_date': gold.get('nav_date')}
@@ -4931,11 +4930,11 @@ def build_projection(previous_source=None, shadow_previous=None):
     # *contract* from its own TypeScript implementation — the two are not shared
     # code, so the parity fixture in tests/test_decision_traces.py is what keeps
     # them honest (#739). Pure read of portfolio.json + ledger + bars.
-    _traces = build_decision_traces(limit=40)
+    _traces = build_decision_traces(limit=40, portfolio=portfolio)
     out['decision_traces'] = _traces
     # The card's own totals. Never let it sum its 40-row window and print that
     # as the ledger total (#737).
-    out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40)
+    out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40, portfolio=portfolio)
     out['debate_metrics'] = compute_debate_metrics()
     out['magnitude_metrics'] = compute_magnitude_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)

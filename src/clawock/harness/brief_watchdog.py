@@ -32,12 +32,12 @@ about, so it gets one WeChat retry, and a Telegram alert if that fails too
 Card content comes from brief_card.build_brief_card (LLM card file → plan.json
 fallback), the same builder postflight uses. Dedupe flag prevents double-sends.
 
-TWO MODES (2026-07-16). The delivery backstop above answers "card exists but did it
-land?", and it runs at 08:36 — INSIDE the brief's observed landing window (08:13 on
-07-14 … 08:49 on 07-15). At 08:36 a missing brief is indistinguishable from a slow
+THREE MODES. The delivery backstop above answers "card exists but did it
+land?", and it runs at 08:46 — INSIDE the brief's observed landing window (08:13 on
+07-14 … 08:49 on 07-15). At 08:46 a missing brief is indistinguishable from a slow
 one, so that mode cannot judge a total miss and must stay quiet about it.
 
-  (default)        08:36 — delivery backstop: mirror the card to Telegram if unconfirmed.
+  (default)        08:46 — delivery backstop: mirror the card to Telegram if unconfirmed.
                    With no brief on disk it also asks the scheduler whether the 08:03
                    run is still going: if that run already ended in error it re-runs the
                    on-host job once (#493), because the runtime's own transient retry —
@@ -47,15 +47,18 @@ one, so that mode cannot judge a total miss and must stay quiet about it.
   --check-missing  09:05 — miss detector: the landing window has closed, so no brief now
                    means no brief today. Alerts AND fires the off-host GHA fallback.
                    A brief that landed but has no delivery receipt is mirrored to
-                   Telegram like the 08:36 pass does (#1899).
+                   Telegram like the 08:46 pass does (#1899).
 
 Why --check-missing had to be added: on 2026-07-16 the 08:00 cron was killed by a hard
 reboot at 09:11 (the box thrashes itself to death under this cron) and NOTHING said so
 — this watchdog logged `skip` at 08:30 and returned 0, and the GHA fallback skipped on
 its lateness gate. kcn found out by asking. A brief that was never written was the one
-failure mode with no owner: too early for the 08:36 pass to call, too late for GHA's.
+failure mode with no owner: too early for the 08:46 pass to call, too late for GHA's.
 
-Usage: brief_watchdog.py [--check-missing] [--dry-run]
+  --check-recovery 09:50 — observe the local re-run selected at 09:05; only a
+                   confirmed ended run can hand off to the off-host fallback.
+
+Usage: brief_watchdog.py [--check-missing | --check-recovery] [--dry-run]
 """
 import argparse
 import json
@@ -80,7 +83,7 @@ from ._watchdog_common import (
 
 MISSING_STATE_VERSION = 1
 NOTIFICATION_ATTEMPTS_PER_RUN = 2
-MAX_ONHOST_RERUNS = 2  # 08:36 first re-run; 09:05 second chance before off-host fallback (#550)
+MAX_ONHOST_RERUNS = 2  # 08:46 first re-run; 09:05 second chance before off-host fallback (#550)
 
 
 def postflight_validation_banner(today):
@@ -145,7 +148,7 @@ def _mark_rerun(today):
 def _rerun_once(today, dry_run, attempt, job=None):
     """Queue one on-host re-run, deduped to MAX_ONHOST_RERUNS per day (#550).
 
-    The 08:36 pass fires attempt 1; if its re-run itself failed (2026-08-12),
+    The 08:46 pass fires attempt 1; if its re-run itself failed (2026-08-12),
     the 09:05 miss detector fires attempt 2 before dispatching the off-host
     fallback — a local re-run is cheaper than a vendor fallback and lands well
     before the 10:00 HKT cutoff. Returns True when a re-run was queued.
@@ -218,10 +221,10 @@ def _brief_retry_evidence(job, today):
 
 
 def retrigger_or_wait(today, dry_run):
-    """08:36 with no brief on disk: wait, or run the on-host job once more.
+    """08:46 with no brief on disk: wait, or run the on-host job once more.
 
     The landing window (08:13-08:49 observed) is why this pass stays quiet about
-    a missing brief — at 08:36 late and lost look the same *from the artifact*.
+    a missing brief — at 08:46 late and lost look the same *from the artifact*.
     They do not look the same from the scheduler, which already knows whether
     the 08:03 run is still going. #490 drew that line for the capability gate;
     the recovery path needs it too.
@@ -232,8 +235,8 @@ def retrigger_or_wait(today, dry_run):
     `consecutiveErrors > cron.retry.maxAttempts` (5 on this host), and that
     counter only resets on a success a once-a-day job never reaches while it is
     failing (#493). A brief run takes
-    9-19 minutes, so one started at 08:36 still lands before the 09:05 miss
-    detector, which keeps its alert and its off-host dispatch either way.
+    up to the configured 40-minute turn ceiling; the 09:05 detector leaves a
+    retry still in flight alone, and the 09:50 pass observes its result.
 
     Deliberately narrow: only a run that has already ended in failure or left no artifacts *today*
     triggers this. A running job, a job that has not run today, and an
@@ -380,18 +383,20 @@ def alert_brief_missing(today, dry_run, issues=None):
     rerun_queued = False
     rerun_inflight = bool(state.get('rerun_inflight'))
     if not state.get('fallback_dispatch_attempted'):
-        # Second on-host chance before the off-host fallback (#550): the 08:36
+        # Second on-host chance before the off-host fallback (#550): the 08:46
         # re-run can itself fail (2026-08-12), and a local re-run is cheaper
         # than a vendor fallback and lands well before the 10:00 HKT cutoff.
         # #606: gate the chance on evidence, not just the counter — only a run
         # that already ended in failure today is proof the attempt is over
-        # (three-way rule as the 08:36 pass); a healthy run or an unreadable
+        # (three-way rule as the 08:46 pass); a healthy run or an unreadable
         # schedule must not stack another queue entry. The counter only caps
         # the number of chances.
         job = _safe_brief_cron_job_state()
         failed, evidence = _brief_retry_evidence(job, today)
         state['run_evidence'] = evidence
+        state['local_rerun_after_ms'] = ((job or {}).get('state') or {}).get('runningAtMs')
         if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
+            state['local_rerun_after_ms'] = int(datetime.now(HKT).timestamp() * 1000)
             rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
         rerun_inflight = bool(
             isinstance(job, dict) and _rerun_count(today) > 0
@@ -433,11 +438,11 @@ def alert_brief_missing(today, dry_run, issues=None):
     if rerun_inflight:
         recovery_note = (
             '🔄 先前排队的本地重跑仍在执行，off-host 兜底已跳过（防双写）。'
-            '请等本地运行结束；若未落地，10:00 HKT 前可手动：gh workflow run brief-fallback.yml\n')
+            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
     elif rerun_queued:
         recovery_note = (
             '🔄 已排队本地重跑(attempt 2)，off-host 兜底已跳过（防双写）。'
-            '若重跑未落地，10:00 HKT 前可手动：gh workflow run brief-fallback.yml\n')
+            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
     elif dispatched:
         recovery_note = (
             '🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n')
@@ -531,10 +536,81 @@ def _fallback_outcome_message(today, outcome, detail):
             f'gh run list --workflow=brief-fallback.yml')
 
 
+def check_local_recovery(today, dry_run=False):
+    """09:50: own the result of the local chance selected at 09:05.
+
+    Notification dedupe is independent of recovery. Only positive evidence
+    that the selected local run ended permits another writer before 10:00.
+    """
+    state = load_missing_state(today)
+    if not state.get('rerun_inflight') or state.get('local_recovery_notified'):
+        return 0
+    issues = inspect_brief_artifacts(today)
+    job = _safe_brief_cron_job_state()
+    ended = cron_run_ended_in_failure(job, today)
+    job_state = (job or {}).get('state') or {}
+    last_run = job_state.get('lastRunAtMs')
+    after = state.get('local_rerun_after_ms')
+    selected_ended = (ended is not None and isinstance(last_run, (int, float))
+                      and isinstance(after, (int, float)) and last_run >= after)
+    now = datetime.now(HKT)
+    message = f'⚠️ 本地简报重跑结果未确认 — {today}\n仍在运行、尚未开始或状态不可读；未启动第二个写者。'
+    outcome = 'unconfirmed'
+    if not issues:
+        outcome = 'produced'
+        marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+            WS / 'memory' / '.tmp', 'brief', date=today)) or {}
+        message = (f'本地简报重跑已生成产物 — {today}\n'
+                   f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
+                   f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
+    elif state.get('recovery_dispatch_attempted'):
+        outcome = state.get('fallback_outcome') or 'unconfirmed'
+        message = _fallback_outcome_message(today, outcome,
+                                            state.get('fallback_outcome_detail') or '此前已尝试离机恢复')
+    elif selected_ended and now.date().isoformat() == today and now.hour < 10:
+        # Persist BEFORE dispatch. A crash leaves an explicit unknown result,
+        # never a second workflow on the next invocation.
+        state['recovery_dispatch_attempted'] = True
+        state['recovery_dispatch_at'] = now.isoformat()
+        if not dry_run:
+            write_missing_state(today, state)
+        dispatched, detail = dispatch_brief_fallback(dry_run)
+        state['fallback_dispatch_succeeded'] = bool(dispatched)
+        state['dispatch_out'] = detail
+        if not dry_run:
+            write_missing_state(today, state)
+        if dispatched:
+            outcome, detail = await_brief_fallback_outcome(
+                state['recovery_dispatch_at'], dry_run, dispatch_out=detail)
+        else:
+            outcome = 'failure'
+        state['fallback_outcome'], state['fallback_outcome_detail'] = outcome, detail
+        message = _fallback_outcome_message(today, outcome, detail)
+    elif selected_ended:
+        outcome = 'expired'
+        message = f'🔴 本地简报重跑结束但产物不完整 — {today}\n已过 10:00 离机恢复窗口，未派发过期简报。'
+    state['local_recovery_outcome'] = outcome
+    if not dry_run:
+        write_missing_state(today, state)
+    try:
+        sent, detail = send_telegram(telegram_target(), message, dry_run)
+    except Exception as exc:
+        sent, detail = False, f'{type(exc).__name__}: {exc}'[:300]
+    state['local_recovery_notified'] = bool(sent)
+    if not dry_run:
+        write_missing_state(today, state)
+    log({'tag': 'brief', 'action': 'local-recovery-outcome', 'dry_run': dry_run,
+         'outcome': outcome, 'sent_ok': sent, 'out': detail})
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true')
-    ap.add_argument('--check-missing', action='store_true',
+    modes = ap.add_mutually_exclusive_group()
+    modes.add_argument('--check-recovery', action='store_true',
+                       help='09:50 local recovery outcome check')
+    modes.add_argument('--check-missing', action='store_true',
                     help='09:05 miss-detector mode (see module docstring)')
     args = ap.parse_args()
 
@@ -560,21 +636,27 @@ def main():
              'check_missing': bool(args.check_missing)})
         return 0
 
+    if args.check_recovery:
+        check_local_recovery(today, args.dry_run)
+        if inspect_brief_artifacts(today):
+            return 0
+        # Produced is not delivered: reuse the channel receipt/backstop below.
+
     if args.check_missing:
         issues = inspect_brief_artifacts(today)
         if issues:
             return alert_brief_missing(today, args.dry_run, issues)
         # Landed is not delivered (#1899): a postflight that wrote the plan and
         # then died before sending leaves both artifacts on disk and no receipt,
-        # and 09:05 is the last brief check of the day. So it falls through to
-        # the per-channel judgement below — the same one the 08:36 pass makes —
+        # so the miss detector also checks delivery. So it falls through to
+        # the per-channel judgement below — the same one the 08:46 pass makes —
         # rather than asking `delivery_receipts.delivered()`: that is the ledger's
         # "any channel" question, and a WeChat-only receipt (Telegram cosend
-        # failed) answered it "yes" here while 08:36 mirrored it (#2143). A
-        # brief landing after 08:36 is only ever seen by this pass.
+        # failed) answered it "yes" here while 08:46 mirrored it (#2143). A
+        # brief landing after 08:46 is only ever seen by this pass.
 
     # No brief on disk. There is no card to mirror either way — what differs is whether
-    # we can yet call it a miss. At 08:36 we are inside the landing window (08:13-08:49
+    # we can yet call it a miss. At 08:46 we are inside the landing window (08:13-08:49
     # observed) so silence is correct; at 09:05 the window has closed, so it is a miss.
     # Unless the scheduler already says the run is over: then nothing is landing.
     if not (WS / 'memory' / f'{today}-pre-open.md').exists():
