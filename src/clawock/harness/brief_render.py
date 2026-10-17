@@ -700,6 +700,11 @@ def judge_section(plan, judgment=None):
         confidence = decision.get("confidence")
         rationale = text(decision.get("rationale"))
         fields = [("理由", rationale)]
+        for label, key in (("评估", "assessment"), ("最强反方", "counterargument"),
+                           ("下一证据", "next_evidence")):
+            extra = _unsaid(row.get(key), decision.get("rationale"))
+            if extra:
+                fields.append((label, text(extra)))
         extra = _unsaid(row.get("rationale"), decision.get("rationale"))
         if extra:
             fields.append(("判定", text(extra)))
@@ -717,6 +722,9 @@ def judge_section(plan, judgment=None):
         title = f"**{text(ticker)}** · **{text(decision.get('action'))}**"
         if confidence is not None:
             title += f" · 信心 {confidence_pct(confidence)}"
+        judgment_confidence = row.get("confidence")
+        if judgment_confidence is not None and judgment_confidence != confidence:
+            title += f" · 判断信心 {confidence_pct(judgment_confidence)}（与行动信心不同）"
         if row.get("verdict"):
             title += f" · {verdict_badge(row.get('verdict'))}"
         rows.append({

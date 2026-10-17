@@ -834,3 +834,13 @@ def test_cli_render_writes_the_custom_card_footer(tmp_path):
     card = (cache / "brief-card-2026-08-31.txt").read_text()
     assert card.rstrip().endswith("https://example.invalid/custom-brief")
     assert (tmp_path / "memory" / "2026-08-31-pre-open.md").exists()
+
+
+def test_judgment_confidence_difference_and_required_thoughts_are_visible():
+    judgment = _judgment()
+    judgment['ticker_judgments'][0]['confidence'] = 0.62
+    section = render.judge_section(PLAN, judgment)
+    assert '信心 92%' in section
+    assert '判断信心 62%（与行动信心不同）' in section
+    for key in ('assessment', 'counterargument', 'next_evidence'):
+        assert judgment['ticker_judgments'][0][key].rstrip('。') in section
