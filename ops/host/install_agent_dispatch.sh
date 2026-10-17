@@ -48,7 +48,7 @@ FILES=(
   tests/bin/opencode
 )
 # The runner sources limits.env and cannot start without these; the host owns their values.
-LIMIT_KEYS=(MAX_RUNNING_CLAUDE MAX_RUNNING_CODEX MAX_RUNNING_OPENCODE
+LIMIT_KEYS=(MAX_RUNNING_CLAUDE MAX_RUNNING_CODEX MAX_RUNNING_OPENCODE MAX_RUNNING_DSH
             PATROL_MIN_AVAILABLE_KB PATROL_MAX_MEMORY_FULL_AVG60 QUEUE_FAIR_WAIT_SEC)
 # What the last install changed, one "<saved|new>\t<file>" line each: --rollback undoes exactly
 # that, not every .before-update lying around from older hand edits.

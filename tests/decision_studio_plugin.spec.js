@@ -3423,7 +3423,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   // render, read-only. The new host's answer is exercised further down.
   const lines = find(foot, (p) => p["data-pp-row"] !== undefined);
   // Folded: one line per source, agents first (no balance providers answered here, C3 ②'s mirror).
-  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "opencode"]);
+  // DeepSeek's row is dsh's queue (#3040), so like Claude's it stands without its balance answer.
+  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "deepseek", "opencode"]);
   // The state column is ONE chip: the state that most needs the reader. b-1 queues for the claude
   // lock (its holder runs), so claude's chip is the amber queue; an idle agent has no chip at all.
   // No shapes that need a legend (the ▶ ≡ ⏸ column was the 260px stopgap this replaced).
@@ -3446,7 +3447,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(popover.props["data-open"], "true");
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
-    ["claude", "codex", "opencode", "recent", "patrol"]);
+    ["claude", "codex", "dsh", "opencode", "recent", "patrol"]);
   assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
   assert.doesNotMatch(texts(popover), /没有任务/, "an idle group is its head alone, not a grey sentence");
   // A group's head IS its folded line (glyph · name · value), minus the state chip — the tasks it
@@ -4039,7 +4040,8 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const queue = { available: true, active: [{ agent: "gemini" }], slotLimits: [{ agent: "claude", max: 1 }] };
   assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("minimax", "MiniMax"), prov("claude", "Claude"), prov("codex", "Codex"), prov("zeta", "Zeta")], queue)
     .map((src) => [src.key, src.agent]),
-  [["claude", "claude"], ["codex", "codex"], ["deepseek", null], ["minimax", null], ["gemini", "gemini"], ["zeta", null], ["opencode", "opencode"]]);
+  [["claude", "claude"], ["codex", "codex"], ["deepseek", "dsh"], ["minimax", null], ["gemini", "gemini"], ["zeta", null], ["opencode", "opencode"]],
+  "dsh's queue is the DeepSeek balance's: dsh tasks are paid from it (#3040)");
   assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("claude", "Claude")], { available: false, active: [] })
     .map((src) => [src.key, src.agent]), [["claude", null], ["deepseek", null]], "② no dispatcher: providers only, no empty queues");
 
@@ -4606,6 +4608,16 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     }
     // Receipts: the panel's glyphs are words and marks here, one per channel.
     assert.match(reply.find((l) => l.includes("merge-pr1767")), /微信✕ Telegram✓/);
+    // dsh's tasks are paid from the DeepSeek balance (#3040): they list under that row, as claude's
+    // under Claude, not in the slot after the paid rows where an agent without a row lands.
+    {
+      const dsh = { ...QUEUE.active[0], id: "d-1", name: "dsh-routing", agent: "dsh", model: "deepseek-official/deepseek-flash", slot: "dsh-1" };
+      const queue = { ...QUEUE, slotLimits: [...QUEUE.slotLimits, { agent: "dsh", max: 1 }], active: [...QUEUE.active, dsh] };
+      const lines = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue, queueError: null }, t, now).split("\n");
+      const head = (label) => lines.findIndex((l) => l.startsWith("**" + label));
+      const at = lines.findIndex((l) => l.includes("dsh-routing"));
+      assert.ok(head("DeepSeek") >= 0 && head("DeepSeek") < at && at < head("MiniMax"), "the dsh task sits in the DeepSeek group:\n" + lines.join("\n"));
+    }
   } finally {
     disposeReactEffects();
   }

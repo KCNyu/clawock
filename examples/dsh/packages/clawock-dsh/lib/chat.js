@@ -1014,7 +1014,7 @@ const PROVIDER_JOIN = [
 	},
 	{
 		provider: "deepseek",
-		agent: null,
+		agent: "dsh",
 		kind: "money",
 		tier: "paid",
 		plan: "panel.plan.deepseek"

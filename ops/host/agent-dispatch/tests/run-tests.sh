@@ -424,8 +424,8 @@ expect "no task is left waiting for a slot" "$(field "$d17c" WAITING)" ''
 
 echo; echo "=== [18] limits.env is the single source for the slot counts ($(date +%T))"
 lim() { bash -c '. "$2"; printf "%s" "${!1}"' _ "$1" "$(dirname "$R")/limits.env"; }
-expect "limits.env ships one slot per agent" "$(lim MAX_RUNNING_CLAUDE)/$(lim MAX_RUNNING_CODEX)/$(lim MAX_RUNNING_OPENCODE)" 1/1/1
-expect "the displayed total is their sum" "$(lim MAX_RUNNING)" "$(( $(lim MAX_RUNNING_CLAUDE) + $(lim MAX_RUNNING_CODEX) + $(lim MAX_RUNNING_OPENCODE) ))"
+expect "limits.env ships one slot per agent" "$(lim MAX_RUNNING_CLAUDE)/$(lim MAX_RUNNING_CODEX)/$(lim MAX_RUNNING_OPENCODE)/$(lim MAX_RUNNING_DSH)" 1/1/1/1
+expect "the displayed total is their sum" "$(lim MAX_RUNNING)" "$(( $(lim MAX_RUNNING_CLAUDE) + $(lim MAX_RUNNING_CODEX) + $(lim MAX_RUNNING_OPENCODE) + $(lim MAX_RUNNING_DSH) ))"
 # Behavioral tests load a different shared limits file and exercise the runner and
 # supervisor; grepping the number of mentions of a filename proves nothing.
 python3 "$T/test_limits.py" || fail=1

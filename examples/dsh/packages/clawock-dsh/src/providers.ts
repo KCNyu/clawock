@@ -42,7 +42,8 @@ export interface ProviderJoin {
 export const PROVIDER_JOIN: readonly ProviderJoin[] = [
   { provider: 'claude', agent: 'claude', kind: 'windows', tier: 'paid', plan: 'panel.plan.anthropic' },
   { provider: 'codex', agent: 'codex', kind: 'windows', tier: 'paid', plan: 'panel.plan.chatgpt' },
-  { provider: 'deepseek', agent: null, kind: 'money', tier: 'paid', plan: 'panel.plan.deepseek' },
+  // dsh's dispatched tasks run on DeepSeek models and are paid from this balance (#3040), so its queue hangs here.
+  { provider: 'deepseek', agent: 'dsh', kind: 'money', tier: 'paid', plan: 'panel.plan.deepseek' },
   // The key is read from ~/.openclaw/openclaw.json (models.providers.minimax) when no seam has one.
   { provider: 'minimax', agent: null, kind: 'windows', tier: 'paid', plan: 'panel.plan.minimax' },
   { provider: null, agent: 'opencode', kind: 'pool', tier: 'free', plan: 'panel.plan.freePool' },

@@ -270,7 +270,7 @@ export interface DispatchTask {
   /** Task id, `<name>-<yyyymmdd>-<hhmmss>`. */
   id: string
   name: string
-  /** 'claude' | 'codex' | 'opencode'. */
+  /** 'claude' | 'codex' | 'opencode' | 'dsh'. */
   agent: string
   /** The model the latest attempt used, else the requested one. */
   model: string
@@ -436,7 +436,7 @@ export interface PatrolStatus {
 
 /** How many run slots one agent has (limits.env `MAX_RUNNING_<AGENT>`). */
 export interface AgentSlotLimit {
-  /** 'claude' | 'codex' | 'opencode', lower case. */
+  /** 'claude' | 'codex' | 'opencode' | 'dsh', lower case. */
   agent: string
   max: number
 }
