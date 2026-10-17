@@ -11,11 +11,14 @@ Three layers, kept apart:
 * **Adapters** (`SOURCES[...].adapter`) — one request each through the `http`
   seam, answering raw rows. Access and parsing live in
   `market_data.primary_disclosures` (HKEXnews, EDGAR full-text search),
-  `market_data.live_news` (Google News, Yahoo Finance RSS, 同花顺 7×24) and
+  `market_data.live_news` (Google News, Yahoo Finance RSS, 同花顺 7×24),
+  `market_data.deepseek_search` (DeepSeek Search, a POST API with its own
+  account-wide rate gate, so not through `http`) and
   `market_data.eastmoney_news` (东财 7×24); nothing here parses a feed.
 * **Normalisation** (`normalize`) — every row becomes
   `{source, grade, title, published_at | filed_date, url, publisher, signal,
-  stale, cite}`: the publisher's own time, a grade from the source's class,
+  stale, cite}`: the publisher's own time, a grade from the source's class
+  (a web search's rows from their host, `host_grade`),
   exchange/regulator noise dropped through `config/filing-triage.json`, and a
   cite that says whether the item came out after `fresh_since` or before it.
 * **Trimming** (`summarize`) — a bounded per-ticker view for a core packet; the
@@ -41,7 +44,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
-from datetime import datetime, time as dtime, timezone
+from datetime import datetime, time as dtime, timedelta, timezone
 from pathlib import Path
 
 from clawock.safe_io import safe_write_json
@@ -95,7 +98,7 @@ class Limits:
     per_source_concurrency: int = 4
     request_budget: dict = field(default_factory=lambda: {
         'hkexnews': 3, 'sec_fulltext': 1, 'google_news': 8, 'yahoo_rss': 6,
-        'ths_724': 1, 'em_724': 1})
+        'deepseek_search': 12, 'ths_724': 1, 'em_724': 1})
 
 
 @dataclass(frozen=True)
@@ -163,6 +166,30 @@ def _ths_724(request, *, http, timeout, **_k):
     return live_news.ths_flashes(http=_text_http(http), timeout=timeout)
 
 
+def _deepseek_search(request, *, timeout, now, window_minutes, **_k):
+    from clawock.market_data import deepseek_search  # noqa: PLC0415
+
+    query, language = request['args']
+    # DeepSeek dates by the Beijing day; `after:` keeps its index in the window.
+    since = (now - timedelta(minutes=window_minutes)).astimezone(HKT).date().isoformat()
+    try:
+        rows = deepseek_search.search(f'{query} lang:{language} after:{since}',
+                                      count=DEEPSEEK_COUNT, timeout=timeout,
+                                      min_score=DEEPSEEK_MIN_SCORE)
+    except deepseek_search.SearchError as exc:
+        raise RuntimeError(exc.reason) from exc
+    out = []
+    for row in rows:
+        if deepseek_search.is_quote_page(row):
+            continue
+        when = parse_time(row.get('published_at'))
+        day = when.astimezone(HKT).date().isoformat() if when else row.get('filed_date')
+        # Undated hits can be shown neither as fresh nor as old (`in_window`).
+        if day and day >= since:
+            out.append(row)
+    return out
+
+
 def _em_724(request, **_k):
     # Every live Eastmoney call goes through its own throttled gateway, not the
     # `http` seam; rows keep Eastmoney's shape for `intraday_information`.
@@ -187,10 +214,39 @@ SOURCES = {
     # Yahoo's HK symbols answered with 2025 headlines (2208.HK) or nothing (the
     # ETFs) on 2026-09-26: US only.
     'yahoo_rss': Source('Yahoo财经', 'soft', ('us',), 'issuer', _yahoo_rss),
+    # DeepSeek's own index (kcn 2026-10-17: no budget, every entry). A row's
+    # grade comes from its host (`host_grade`); this is the floor.
+    'deepseek_search': Source('DeepSeek搜索', 'soft', ('hk', 'us'), 'issuer', _deepseek_search),
     'ths_724': Source('同花顺7×24', 'soft', ('hk', 'us'), 'market', _ths_724),
     'em_724': Source('东财7×24', 'soft', ('hk', 'us'), 'market', _em_724),
 }
 MARKET_FEEDS = ('ths_724', 'em_724')
+#: Rows per DeepSeek query and the relevance floor (its rerank_score is 0–3,
+#: ≥1.5 "good"); below 1.0 it answered quote pages and unrelated namesakes.
+DEEPSEEK_COUNT = 8
+DEEPSEEK_MIN_SCORE = 1.0
+#: Hosts whose rows outrank a soft headline. DeepSeek's own `authority` (0–4)
+#: rates brokers' quote pages 3, so it is kept on the row, not used as grade.
+PRIMARY_HOSTS = ('hkexnews.hk', 'sec.gov', 'nasdaqtrader.com')
+AUTHORITATIVE_HOSTS = ('reuters.com', 'bloomberg.com', 'wsj.com', 'ft.com', 'cnbc.com',
+                       'caixin.com', 'yicai.com', 'stcn.com', 'cls.cn', 'eastmoney.com',
+                       'scmp.com', 'aastocks.com', 'etnet.com.hk', 'hkej.com')
+
+
+#: Forums on an authoritative domain are still forums.
+SOFT_HOSTS = ('guba.eastmoney.com',)
+
+
+def host_grade(url):
+    """`primary` / `authoritative` / `soft` from a URL's host."""
+    host = re.sub(r'^https?://', '', str(url or '')).split('/')[0].lower()
+    if any(host == h or host.endswith('.' + h) for h in SOFT_HOSTS):
+        return 'soft'
+    if any(host == h or host.endswith('.' + h) for h in PRIMARY_HOSTS):
+        return 'primary'
+    if any(host == h or host.endswith('.' + h) for h in AUTHORITATIVE_HOSTS):
+        return 'authoritative'
+    return 'soft'
 
 
 # ── Planning ──────────────────────────────────────────────────────────────────
@@ -236,6 +292,13 @@ def plan(market, tickers, *, targets, names, sources=None):
                     if term:
                         out.append({'source': source, 'key': term,
                                     'args': (f'{term} when:1d', language), 'tickers': owners})
+                elif source == 'deepseek_search':
+                    # The adapter adds `lang:` and the window's `after:` day.
+                    term = (_clean_name((names or {}).get(issuer) or '') or issuer
+                            if market == 'hk' else f'{issuer} stock')
+                    out.append({'source': source, 'key': term,
+                                'args': (f"{term} {'新闻' if market == 'hk' else 'news'}",
+                                         language), 'tickers': owners})
                 else:
                     out.append({'source': source, 'key': issuer, 'args': (issuer,),
                                 'tickers': owners})
@@ -243,6 +306,11 @@ def plan(market, tickers, *, targets, names, sources=None):
                 for theme, owners in themes.items():
                     out.append({'source': source, 'key': theme,
                                 'args': (f'{theme} when:1d', language), 'tickers': owners})
+            if source == 'deepseek_search':
+                for theme, owners in themes.items():
+                    out.append({'source': source, 'key': theme,
+                                'args': (f"{theme} {'走势' if market == 'hk' else 'news'}",
+                                         language), 'tickers': owners})
         elif scope == 'market':
             out.append({'source': source, 'key': 'market', 'args': (), 'tickers': []})
     for request in out:
@@ -284,10 +352,13 @@ def cite(row, source, market, now, fresh_since, labels):
         return f"《{title}》（{label}，{stamp} 发布，{labels.stale if stale else labels.fresh}）", stale
     filed = row.get('filed_date')
     today = now.astimezone(ET if market == 'us' else HKT).date().isoformat()
+    # A filing is submitted; a search hit dated by day only was published.
+    verb = '提交' if source in SOURCES and SOURCES[source].grade == 'primary' else '发布'
     if filed == today:
         # EDGAR's index knows the day, not the minute: neither fresh nor old.
-        return f"《{title}》（{label}，{filed} 提交，{labels.same_day_no_time}）", None
-    return f"《{title}》（{label}，{filed} 提交，{labels.stale}）", True
+        return (f"《{title}》（{label}，{filed} {verb}，"
+                f"{labels.same_day_no_time.replace('提交', verb)}）"), None
+    return f"《{title}》（{label}，{filed} {verb}，{labels.stale}）", True
 
 
 def in_window(row, now, window_minutes):
@@ -301,9 +372,13 @@ def in_window(row, now, window_minutes):
 
 def normalize(row, source, market, now, *, fresh_since, labels):
     text, stale = cite(row, source, market, now, fresh_since, labels)
-    out = {'source': source, 'grade': SOURCES[source].grade,
+    grade = SOURCES[source].grade
+    if source == 'deepseek_search':
+        grade = host_grade(row.get('url'))
+    out = {'source': source, 'grade': grade,
            **{k: row[k] for k in ('title', 'published_at', 'filed_date', 'publisher',
-                                  'signal') if row.get(k)},
+                                  'signal', 'snippet', 'authority', 'rerank_score')
+              if row.get(k) not in (None, '')},
            'stale': stale, 'cite': text}
     url = row.get('url') or row.get('source_url')
     if url:

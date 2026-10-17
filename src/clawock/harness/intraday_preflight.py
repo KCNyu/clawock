@@ -1595,7 +1595,8 @@ def main(argv=None):
 
     # Four network lanes need nothing but the analyzer's output and each other's
     # absence: issuer filings (~7 s, 20 s budget), mover evidence (20 s budget),
-    # one Tavily search per new mover (25 s each) and the peer scan (~3 s).
+    # the mover web search (DeepSeek and Tavily side by side: DeepSeek <1 s a
+    # mover, Tavily 25 s cap, once per mover per session) and the peer scan (~3 s).
     # Started here and joined where each result was always read, so every
     # value, fallback and alert reason lands exactly where it did when they ran
     # one after another; only their waits overlap with each other and with the
@@ -1661,8 +1662,9 @@ def main(argv=None):
     # What was actually published behind those moves (lane started above).
     mover_news_ctx = mover_news_lane.result()
 
-    # Tier 3 (contract §6): one web search per mover per session, only when
-    # something moved; the cache serves every later slot of the same session.
+    # Tier 3 (contract §6): web search per mover, only when something moved —
+    # DeepSeek refreshed each slot, Tavily once per mover per session (its
+    # credit bucket); each provider's gap is its own on the ⛔ line.
     anomaly_search_ctx = {}
     if anomaly_search_lane is not None:
         try:

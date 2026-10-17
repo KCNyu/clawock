@@ -75,8 +75,8 @@ Four analyst roles, run independently. Mirrors `tradingagents/agents/analysts/`.
 
 ### Analyst 3 — News / Sentiment
 - Finnhub news from scripts (`analyze_*_stocks.py` without `--no-news` already pulls 7 days + keyword sentiment)
-- For US names: Reddit (r/wallstreetbets + r/stocks JSON, no auth) + Tavily news/X
-- For HK names: 雪球 HK 评论区 + 富途社区 (scrapling StealthyFetcher) + Tavily 中文搜索
+- For US names: Reddit (r/wallstreetbets + r/stocks JSON, no auth) + `clawock web-search "{TICKER} news" --days 7 --bucket research` (DeepSeek and Tavily side by side, each labelled)
+- For HK names: 雪球 HK 评论区 + 富途社区 (scrapling StealthyFetcher) + `clawock web-search "{中文名} 港股" --days 7 --bucket research` (DeepSeek + Tavily)
 - 南向资金 当日 net (web search) for HK macro tone
 - Output per holding: sentiment score -1 to +1 + 1-2 narratives + divergence vs price call-out
 

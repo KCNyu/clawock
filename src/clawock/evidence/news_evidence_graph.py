@@ -2,8 +2,10 @@
 """Normalize news/filings into an expiring evidence graph with confirmation gates.
 
 No article bodies are persisted. The graph stores titles, timestamps, source
-metadata and stable hashes. Tavily is not called here; only unresolved,
-high-impact nodes are admitted to a small resolution queue.
+metadata and stable hashes. No web search is called here; only unresolved,
+high-impact nodes are admitted to a small resolution queue, which the brief
+resolves with `clawock web-search` (DeepSeek and Tavily side by side; the queue
+is what Tavily's credit budget may be spent on, DeepSeek has none).
 
 Writes:
   assets/data/news_evidence_graph.json
@@ -18,6 +20,7 @@ import hashlib
 import json
 import math
 import re
+import shlex
 import statistics
 import sys
 from datetime import date, datetime, timedelta, timezone
@@ -1359,16 +1362,20 @@ def tavily_queue(policy, events):
         )
         if not unresolved:
             continue
+        query = (
+            f'{event["ticker"]} {event["event_type"]} '
+            f'{event["title"]} official filing announcement'
+        )[:300]
         queue.append({
             'event_id': event['event_id'],
             'ticker': event['ticker'],
             'reason': 'high_impact_without_primary_resolution',
-            'query': (
-                f'{event["ticker"]} {event["event_type"]} '
-                f'{event["title"]} official filing announcement'
-            )[:300],
-            'allowed_tool': 'tavily-search',
+            'query': query,
+            'allowed_tool': 'clawock web-search',
             'bucket': 'brief',
+            'command': (
+                f'clawock web-search {shlex.quote(query)} --bucket brief --days 3'
+            ),
         })
     return queue
 

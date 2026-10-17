@@ -131,7 +131,7 @@ context 的字段名与枚举值（任何带下划线的英文标识，如 `hold
 写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
 ```
 ▎情绪面
-{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：用 peer_scan 写对应主题今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search；tavily 仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
+{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：用 peer_scan 写对应主题今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search 与 `clawock web-search --providers deepseek`；Tavily 侧仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
 
 ▎技术面
 {RSI / MA stance → overbought/oversold/breakout}
@@ -183,12 +183,14 @@ pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publ
 
 Sources, in order:
 1. **Finnhub news (in script)** — `clawock analyze-us {TICKER}` without `--no-news` already pulls last 7 days with keyword sentiment scoring. **This is the first source — read it before anything else.**
-2. **Tavily (news + X)** — for trending discussions, analyst notes, X/Twitter sentiment. ⚠️ **Budget rule** (免费档 1000 credits/月，全局共享): 本条只管人工对话与开盘/收盘报告；Mode 7 cron 盘中盯盘的模型**不调** Tavily（harness 已检索，读 `anomaly_search`，见 Mode 7）。人工对话里盘中**默认不调 Tavily**，用 Finnhub + Reddit JSON 就够；只有**开盘/收盘报告**、或盘中出现**真事件**(异常波动跑输基准 / 停牌 / 财报预警 / 监管公告 / 有大标题但价格无法解释)才用。调用必须带 `--bucket`：开盘/收盘用 `--bucket report`，盘中事件用 `--bucket intraday`(不带 bucket 会落 60/月的 default 桶很快被挡):
+2. **Web search: DeepSeek + Tavily (news + X)** — `clawock web-search` asks both at once; each answers under its own heading with its own status (parallel sources, not primary/backup). Each keeps its own limit:
+   - **DeepSeek**: no credit budget, account-wide 5 QPS (gated on this host) — use it freely, intraday included: `clawock web-search "{TICKER} stock news" --providers deepseek --days 3`
+   - **Tavily** ⚠️ 免费档 1000 credits/月全局共享: 只在**开盘/收盘报告**、或盘中**真事件**(异常波动跑输基准 / 停牌 / 财报预警 / 监管公告 / 有大标题但价格无法解释)时让它一起跑；Mode 7 cron 盘中盯盘的模型**不调** Tavily（harness 已检索，读 `anomaly_search`，见 Mode 7）。必须带 `--bucket`：开盘/收盘 `report`，盘中事件 `intraday`:
    ```bash
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} stock sentiment" --topic news --days 3 --bucket report
-   node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{TICKER} reddit wallstreetbets" --bucket report
+   clawock web-search "{TICKER} stock sentiment" --days 3 --bucket report
+   clawock web-search "{TICKER} reddit wallstreetbets" --bucket report
    ```
-   护栏是硬闸：额度用尽脚本返回 "Web search unavailable" 且 exit 0，别当报错，退回 Reddit/内置搜索。
+   某个源 `unavailable`（Tavily 额度尽 / DeepSeek 限速）时 exit 0，别当报错；用另一个源的结果并写明哪个源没取到。
 3. **Reddit JSON (no auth needed)** — direct fetch:
    ```bash
    curl -sH "User-Agent: openclaw/1.0" \
@@ -199,7 +201,7 @@ Sources, in order:
      | jq '.data.children[].data | {title, score}'
    ```
    r/wallstreetbets is retail momentum; r/stocks is more measured. Both together give the retail temperature.
-4. **scrapling fallback** — if Reddit JSON 429s or content needs comment-level depth, use `StealthyFetcher` (see `../scrapling/SKILL.md`). Same for X if Tavily misses.
+4. **scrapling fallback** — if Reddit JSON 429s or content needs comment-level depth, use `StealthyFetcher` (see `../scrapling/SKILL.md`). Same for X if web search misses.
 
 Output:
 - **Sentiment score**: -1 (extremely fearful) to +1 (euphoric); call out divergence from price action ("price up but Reddit fearful — short squeeze setup" or vice versa)

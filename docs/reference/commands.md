@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**86 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 63 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (74 subcommands). 47 of the registry commands collect or compute information and appear under the layer they feed; the remaining 28 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**87 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 64 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (75 subcommands). 48 of the registry commands collect or compute information and appear under the layer they feed; the remaining 28 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -83,14 +83,15 @@ Sources: Eastmoney push2his
 
 ### Layer 4 · News & catalysts (bilingual) / 消息面与催化剂(双语)
 
-Sources: Eastmoney · Finnhub · Google News · Yahoo · 10jqka · exchange filings
+Sources: Eastmoney · Finnhub · Google News · Yahoo · 10jqka · exchange filings · DeepSeek Search · Tavily
 
 | Command | Module | What it collects or computes |
 |---|---|---|
 | `clawock em-news` | `clawock.market_data.eastmoney_news` | Chinese-language Eastmoney news for active HK holdings |
 | `clawock catalysts` | `clawock.market_data.calendar` | next 14 days of earnings, FOMC and macro events |
 | `clawock mover-evidence` | `clawock.market_data.mover_evidence` | filing-first catalyst probe, fired only for names that already moved |
-| `clawock live-sources` | `clawock.evidence.live_sources` | live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, 同花顺 7x24, 东财 7x24) for any harness, budgeted and timed |
+| `clawock live-sources` | `clawock.evidence.live_sources` | live free news and disclosures (HKEXnews, EDGAR full-text, Google News, Yahoo RSS, DeepSeek Search, 同花顺 7x24, 东财 7x24) for any harness, budgeted and timed |
+| `clawock web-search` | `clawock.evidence.web_search` | web search through DeepSeek and Tavily side by side (each result labelled by provider, each provider's own limit: DeepSeek 5 QPS per account, Tavily credit buckets), or a DeepSeek Fetch of one page |
 | `clawock news-evidence` | `clawock.evidence.news_evidence_graph` | deduplicates news and filings into an expiring evidence graph with confirmation gates |
 | `clawock-news-digest` | `clawock.automation.news_digest` | US 21:00 digest; Finnhub with a Google News RSS fallback per ticker |
 

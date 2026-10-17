@@ -515,7 +515,10 @@ def test_tavily_queue_is_only_unresolved_high_impact():
     queue = graph.tavily_queue(POLICY, [high, low])
 
     assert [row['event_id'] for row in queue] == [high['event_id']]
-    assert queue[0]['allowed_tool'] == 'tavily-search'
+    assert queue[0]['allowed_tool'] == 'clawock web-search'
+    # The command asks both providers; Tavily's side is charged to `brief`.
+    assert queue[0]['command'].startswith('clawock web-search ')
+    assert queue[0]['command'].endswith(' --bucket brief --days 3')
 
 
 def test_etf_marketing_headline_cannot_enter_tavily_queue():
