@@ -907,12 +907,14 @@ expect_grep "the retry asks to continue" "继续完成上一轮被中断的同�
 echo; echo "=== [52] dsh out of balance -> quota, no retry; no credentials file -> no key ($(date +%T))"
 export AGENT_DISPATCH_DSH_CREDENTIALS=$WORK/no-such-credentials.yaml
 reset_fake dsh quota
-d52=$(mk dsh-quota dsh 900 300)
+d52=$(mk dsh-quota dsh 900 300 weixin)
 e52=0; bash "$R" "$d52" || e52=$?
 expect "dsh quota exit" "$e52" 75
 expect "dsh quota state" "$(field "$d52" STATE)/$(field "$d52" STOP_REASON)/$(field "$d52" ATTEMPTS)" quota/quota_reset_unknown/1
 expect_grep "quota names the balance" "QUOTA: Insufficient Balance" "$d52/run.log"
 expect_grep "without a credentials file dsh gets no key" "call 1 key: unset" "$FAKE_DIR/dsh.argv"
+expect "dsh finish notice carries the money balance" "$(grep -c '额度：余额 ¥92.88' "$FAKE_DIR/openclaw.messages")" 1
+expect "dsh quota line is logged" "$(grep -c '^quota | 额度：余额 ¥92.88' "$d52/run.log")" 1
 unset AGENT_DISPATCH_DSH_CREDENTIALS
 
 echo; echo "=== [53] dispatch.sh dsh: model is <provider>/<model>, effort off|low|high|max"
@@ -922,6 +924,40 @@ expect "a bare model id is refused" "$e53/$(printf '%s' "$out53" | grep -c 'prov
 e53=0; out53=$(env -u AGENT_DISPATCH_TASK_ID "$D" dsh --name dsh-check --effort medium </dev/null 2>&1) || e53=$?
 expect "an effort dsh does not have is refused" "$e53/$(printf '%s' "$out53" | grep -c 'off, low, high or max')" 2/1
 expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/dsh-check-* 2>/dev/null | wc -l)" 0
+
+echo; echo "=== [54] quota.mjs: dsh reads the credentials seam and prints the money balance ($(date +%T))"
+q54=$WORK/quota-cache; mkdir -p "$q54"
+cat >"$WORK/fake-balance.mjs" <<'JS'
+// Stand-in for clawock-dsh's built balance module: record which key the seam resolved, then
+// answer one money snapshot. quota.mjs imports this through AGENT_DISPATCH_BALANCE_LIB.
+import { appendFileSync } from 'node:fs'
+export function createBalanceService(deps) {
+  return {
+    async get() {
+      const key = (await deps.credentials.resolve('DEEPSEEK_API_KEY'))?.value
+      appendFileSync(`${process.env.FAKE_DIR}/balance.calls`, (key === undefined ? 'no-key' : `key:${key}`) + '\n')
+      return {
+        configured: true, status: 'fresh', message: null, low: false, threshold: 20, refreshMs: 60_000,
+        snapshot: {
+          isAvailable: true, unit: 'money', currency: 'CNY', totalBalance: '92.88',
+          grantedBalance: '0.00', toppedUpBalance: '92.88', asOf: new Date().toISOString(), note: '', windows: [],
+        },
+      }
+    },
+  }
+}
+JS
+printf 'version: 1\nrefs:\n  DEEPSEEK_API_KEY: fake-key\n' >"$WORK/dsh-quota-credentials.yaml"
+rm -f "$FAKE_DIR/balance.calls"
+quot54() {
+  env -u DEEPSEEK_API_KEY AGENT_DISPATCH_BALANCE_LIB="$WORK/fake-balance.mjs" \
+    AGENT_DISPATCH_DSH_CREDENTIALS="$WORK/dsh-quota-credentials.yaml" \
+    AGENT_DISPATCH_QUOTA_CACHE_DIR="$q54" node "$(dirname "$R")/quota.mjs" dsh
+}
+expect "dsh quota.mjs prints the money balance" "$(quot54)" '额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88'
+expect "quota.mjs resolves the key from the dsh credentials seam" "$(cat "$FAKE_DIR/balance.calls")" 'key:fake-key'
+expect "the second dsh read comes from the cache" "$(quot54)/$(wc -l <"$FAKE_DIR/balance.calls")" '额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88/1'
+expect "opencode still has no balance line" "$(AGENT_DISPATCH_BALANCE_LIB="$WORK/fake-balance.mjs" AGENT_DISPATCH_QUOTA_CACHE_DIR=$q54 node "$(dirname "$R")/quota.mjs" opencode)" ''
 fi
 
 echo

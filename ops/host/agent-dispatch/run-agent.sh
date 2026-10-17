@@ -448,11 +448,12 @@ wake_origin() {  # <event: end|quota> <notice>
   return 0
 }
 
-# Remaining subscription quota as "\n额度：…", read the same way as the dsh balance chip
-# (quota.mjs); empty for opencode. Also logged as a `quota |` line. Bounded below the on_signal
-# budget: 20s attempt stop + 18s here + 30s notify < 80s kill-after.
+# Remaining subscription quota (claude/codex) or DeepSeek money balance (dsh) as "\n额度：…",
+# read the same way as the dsh balance chip (quota.mjs); empty for opencode, which has no
+# account. Also logged as a `quota |` line. Bounded below the on_signal budget: 20s attempt
+# stop + 18s here + 30s notify < 80s kill-after.
 quota_line() {
-  case "$AGENT" in claude|codex) ;; *) return 0 ;; esac
+  case "$AGENT" in claude|codex|dsh) ;; *) return 0 ;; esac
   local line; line=$(timeout 18 $QUOTA_CMD "$AGENT" 2>/dev/null | head -1)
   [ -n "$line" ] || line="额度：未读到（超时或读取脚本失败）"
   echo "quota | $line" >&2
