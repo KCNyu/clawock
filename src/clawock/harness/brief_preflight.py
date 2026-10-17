@@ -2031,7 +2031,7 @@ def _collect(argv=None):
     integrity = {}
     try:
         from clawock.portfolio import integrity as _pi
-        integrity = _pi.check()
+        integrity = _pi.check(document=portfolio)
         if not integrity['ok']:
             print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')
             for f in integrity['findings']:

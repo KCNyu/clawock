@@ -141,3 +141,32 @@ def test_money_publication_covers_new_errors_but_not_freshness_warnings():
     assert integrity.blocks_money_publication({'code': 'FUTURE_ERROR', 'level': 'ERROR'})
     assert integrity.blocks_money_publication({'code': 'PNL_LEG', 'level': 'WARN'})
     assert not integrity.blocks_money_publication({'code': 'STALENESS', 'level': 'WARN'})
+
+
+def test_market_filter_excludes_unrequested_stale_store(tmp_path):
+    write(tmp_path / 'A.json', {'leg': 'HK', 'bars': {'2026-10-09': {'close': 10}}})
+    write(tmp_path / 'B.json', {'leg': 'US', 'bars': {'2026-10-07': {'close': 10}}})
+    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    assert integrity.summarize_bar_staleness(tmp_path, markets=['hk'], now=now) == []
+    assert [r['market'] for r in integrity.summarize_bar_staleness(tmp_path, now=now)] == ['us']
+
+
+def test_auxiliary_defaults_use_module_workspace_from_foreign_cwd(tmp_path, monkeypatch):
+    from clawock import workspace
+    root = tmp_path / 'desk'
+    monkeypatch.delenv('CLAWOCK_WORKSPACE', raising=False)
+    monkeypatch.setattr(workspace, '__file__', str(root / 'src/clawock/workspace.py'))
+    monkeypatch.chdir(tmp_path)
+    write(root / 'memory/bars/A.json', {'ticker': 'A', 'leg': 'US',
+          'bars': {'2026-10-07': {'close': 10}, '2026-10-09': {'close': 12}}})
+    write(root / 'memory/bars/B.json', {'ticker': 'B', 'leg': 'US',
+          'bars': {'2026-10-07': {'close': 10}, '2026-10-08': {'close': 11}}})
+    log = root / 'memory/bar-conflicts.jsonl'
+    log.write_text(json.dumps({'seen_at': '2026-10-10', 'kind': 'impossible_bar',
+                              'ticker': 'B', 'date': '2026-10-09', 'fetched': {'close': -1}}) + '\n')
+    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    assert integrity._bar_close('A', '2026-10-09') == 12
+    assert integrity.summarize_bar_staleness(markets=['us'], now=now) == []
+    assert len(integrity.summarize_bar_gaps()) == 2
+    assert integrity._refused_bars()[('B', '2026-10-09')] == {'close': -1}
+    assert integrity.summarize_bar_conflicts(now=now)['total'] == 1
