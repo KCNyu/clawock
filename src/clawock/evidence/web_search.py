@@ -27,8 +27,10 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
+
+from clawock.sessions import HKT
 
 PROVIDERS_ORDER = ('deepseek', 'tavily')
 TAVILY_TIMEOUT_S = 25
@@ -59,7 +61,7 @@ def run_deepseek(query, *, count=5, days=None, ori_question=None, timeout=8, **_
     from clawock.market_data import deepseek_search  # noqa: PLC0415
 
     if days and 'after:' not in query:
-        since = (datetime.now(timezone(timedelta(hours=8))) - timedelta(days=days)).date()
+        since = (datetime.now(HKT) - timedelta(days=days)).date()
         # The operator goes last and must survive DeepSeek's 128-character cap.
         query = f'{query[:100]} after:{since.isoformat()}'
     try:

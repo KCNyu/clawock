@@ -30,8 +30,13 @@ import re
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
+
+from clawock.sessions import HKT
+
+#: DeepSeek's index dates by the Beijing day; Hong Kong keeps the same offset.
+_CST = HKT
 
 BASE_URL = 'https://api.deepseek.com/v1/tools'
 QPS = 5
@@ -44,7 +49,6 @@ GATE_DIR = Path(os.environ.get('CLAWOCK_DEEPSEEK_GATE_DIR',
                                Path.home() / '.cache' / 'clawock' / 'deepseek-search'))
 #: DeepSeek stamps a page it knows only the day of at 00:00 Beijing time.
 _DAY_ONLY = re.compile(r'T16:00:00(?:\.0+)?(?:Z|\+00:00)$')
-_CST = timezone(timedelta(hours=8))
 
 
 class SearchError(RuntimeError):

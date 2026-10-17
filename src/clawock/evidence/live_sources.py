@@ -172,12 +172,10 @@ def _deepseek_search(request, *, timeout, now, window_minutes, **_k):
     query, language = request['args']
     # DeepSeek dates by the Beijing day; `after:` keeps its index in the window.
     since = (now - timedelta(minutes=window_minutes)).astimezone(HKT).date().isoformat()
-    try:
-        rows = deepseek_search.search(f'{query} lang:{language} after:{since}',
-                                      count=DEEPSEEK_COUNT, timeout=timeout,
-                                      min_score=DEEPSEEK_MIN_SCORE)
-    except deepseek_search.SearchError as exc:
-        raise RuntimeError(exc.reason) from exc
+    # A `SearchError` propagates: `_run` names the source by its reason.
+    rows = deepseek_search.search(f'{query} lang:{language} after:{since}',
+                                  count=DEEPSEEK_COUNT, timeout=timeout,
+                                  min_score=DEEPSEEK_MIN_SCORE)
     out = []
     for row in rows:
         if deepseek_search.is_quote_page(row):
@@ -463,7 +461,11 @@ def _run(requests, *, http, now, window_minutes, limits, fetchers, clock):
         try:
             rows, elapsed = future.result()
         except Exception as exc:  # noqa: BLE001 — a dead feed is a stated gap
-            out[index] = ('failed', [], f'{type(exc).__name__}: {exc}'[:120], None)
+            # A source that says why (`SearchError.reason`: 缺少key, 余额不足,
+            # 超出QPS) is named by that reason, not by its exception class.
+            reason = getattr(exc, 'reason', None)
+            out[index] = ('failed', [], (str(reason) if reason else
+                                         f'{type(exc).__name__}: {exc}')[:120], None)
             continue
         out[index] = ('ok', rows, None, elapsed)
     return out

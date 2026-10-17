@@ -117,12 +117,12 @@ def test_a_deepseek_gap_is_named_and_the_other_sources_still_land():
     now = datetime(2026, 10, 17, 11, 0, tzinfo=HKT)
 
     def down(_query, _language):
-        raise RuntimeError('超出QPS')
+        raise ds.SearchError('超出QPS', 429)
     out = live.collect('us', ['RKLB'], targets=lambda _t: {'kind': 'issuer', 'issuer': 'RKLB'},
                        names={}, now=now, sources=('deepseek_search', 'yahoo_rss'),
                        fetchers={'deepseek_search': down, 'yahoo_rss': lambda _s: [
                            {'title': 'Rocket Lab news', 'published_at': now.isoformat()}]})
-    assert out['degraded'] == ['DeepSeek搜索（RuntimeError）']
+    assert out['degraded'] == ['DeepSeek搜索（超出QPS）']
     assert [r['source'] for r in out['tickers']['RKLB']] == ['yahoo_rss']
 
 
