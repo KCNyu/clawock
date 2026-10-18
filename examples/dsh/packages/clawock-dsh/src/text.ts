@@ -115,21 +115,28 @@ const cell = (text: string): string => text.replace(/([\\`*_[\]<>|])/g, '\\$1').
 /**
  * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
  * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
- * One title, one table, one caveat line — no process prose. The same `StatsView`
- * the chip draws, so the chat and the chip cannot disagree.
+ * The title carries the total and live count; the table carries the ended-task rows.
+ * No trailing prose: the only caveat is the column header's "API estimate", and the
+ * chip's chart layer keeps the one-line "not subscription quota" note.
  */
 export function statsText(view: StatsView, t: Translate, plain = false): string {
-  const out = ['# ' + literal(view.title + ' · ' + view.window)]
+  const hasRows = view.agents.length > 0
+  const title = view.title + ' · ' + view.window + (hasRows
+    ? ' · ' + (view.totals.live > 0
+      ? t('stats.title.countLive', { n: view.totals.tasks, live: view.totals.live })
+      : t('stats.title.count', { n: view.totals.tasks }))
+    : '')
+  const out = ['# ' + literal(title)]
   if (view.empty !== '') {
-    out.push('', literal(view.empty), '', literal(view.footnote))
+    out.push('', literal(view.empty))
     return out.join('\n')
   }
-  if (view.agents.length === 0) {
+  if (!hasRows) {
     out.push('', literal(view.headline), '', literal(view.footnote))
     return out.join('\n')
   }
   if (plain) {
-    out.push('', literal(view.summaryLine))
+    out.push('', literal([t('stats.tokens', { tokens: view.totals.tokensText }), t('stats.costEstimate', { cost: view.totals.costText })].join(' · ')))
     for (const agent of view.agents) {
       out.push('', literal(agent.label + '  ' + bar(agent.share * 100) + '  ' + agent.tokensText + ' · ' + agent.costText))
       const parts = [
@@ -141,7 +148,6 @@ export function statsText(view: StatsView, t: Translate, plain = false): string 
       ]
       out.push(literal(parts.join(' · ')))
     }
-    out.push('', literal(view.footnote))
     return out.join('\n')
   }
   const header = [
@@ -154,6 +160,5 @@ export function statsText(view: StatsView, t: Translate, plain = false): string 
   out.push('', '| ' + header.map(cell).join(' | ') + ' |', '|' + '---|'.repeat(header.length))
   for (const agent of view.agents) out.push(row(agent.label, agent))
   out.push(row(t('stats.table.total'), view.totals))
-  out.push('', literal(view.footnote))
   return out.join('\n')
 }

@@ -3590,7 +3590,8 @@ test("client: one provider cell carries the queue under each agent's provider an
   const doneRows = find(statsLayer, (p) => p["data-tq-stats-done"] !== undefined);
   assert.deepEqual(doneRows.map((row) => row.props["data-tq-stats-done"]), ["claude", "codex"]);
   assert.match(texts(doneRows[0]), /Claude Code 完成 42\/55 部分 9 .*未完成 4/);
-  assert.match(texts(statsLayer), /已结束任务冻结值 .*进行中 1 不计 .*9 项 token 未知（不是 0）.*API 估价非订阅额度/);
+  assert.match(texts(statsLayer), /API 估价非订阅额度/);
+  assert.doesNotMatch(texts(statsLayer), /token 未知|已结束任务冻结值|巡检不计/);
   assert.equal(statsCalls, 1, "opening the layer does not reread");
   find(statsLayer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
@@ -4763,23 +4764,22 @@ test("dispatch stats: a table for /dispatch-stats, a bar fallback, and the wire'
     ],
   };
   const reply = chat.dispatchStatsText(stats, t);
-  assert.ok(reply.startsWith("# 派发统计 · 近 7 天"), "the title carries the window");
-  assert.match(reply, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API \|/);
+  assert.ok(reply.startsWith("# 派发统计 · 近 7 天 · 91 项（进行中 1）"), "the title carries the window, total and live count");
+  assert.match(reply, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API 估价 \|/);
   assert.match(reply, /\|---\|---\|---\|---\|---\|/);
   assert.match(reply, /\| Claude Code \| 42\/55 \| 9 \| 4 \| 625\.2M · \$261\.64 \|/);
   assert.match(reply, /\| Codex \| 23\/35 \| 5 \| 7 \| 161\.5M · \$236\.16 \|/);
   assert.match(reply, /\| 合计 \| 65\/90 \| 14 \| 11 \| 786\.7M · \$497\.80 \|/);
   assert.doesNotMatch(reply, /opencode/i, "an agent with no task is not a zero row");
-  assert.match(reply, /已结束任务冻结值 · 进行中 1 不计 · 9 项 token 未知（不是 0） · 9 项无定价 · 巡检不计 · API 估价非订阅额度/,
-    "the caveats are one line under the table");
-  assert.match(reply, /不是订阅额度|非订阅额度/, "the estimate is never read as subscription spend");
+  assert.doesNotMatch(reply, /token 未知|已结束任务冻结值|巡检不计/, "no trailing descriptive tail");
   // The bar fallback: no table, one token-share bar per agent, still one caveat line.
   const plain = chat.dispatchStatsText(stats, t, true);
-  assert.match(plain, /^# 派发统计 · 近 7 天/m);
-  assert.match(plain, /91 项 · token 786\.7M · API \$497\.80/);
+  assert.match(plain, /^# 派发统计 · 近 7 天 · 91 项（进行中 1）/m);
+  assert.match(plain, /token 786\.7M · API \$497\.80/);
   assert.match(plain, /Claude Code {2}▓{10} {2}625\.2M · \$261\.64/);
   assert.match(plain, /已结束 55 · 完成 42 · 部分 9 · 未完成 4/);
   assert.doesNotMatch(plain, /\| Agent \|/);
+  assert.doesNotMatch(plain, /token 未知|API 估价非订阅额度/, "the plain fallback has no trailing prose either");
   // A label cannot add a table column or smuggle a backslash through a cell.
   const odd = { ...stats, agents: [{ ...stats.agents[0], agent: 'a|b\\c', tasks: 1, live: 0,
     states: [{ name: 'ok', count: 1 }], outcomes: [{ name: 'DONE', count: 1 }], tokensTotal: 0, tokensUnknown: 0,
@@ -4831,11 +4831,11 @@ print(json.dumps({"ok": True, "since": since, "patrol_included": False, "agents"
     assert.ok(commands["dispatch-list"], "the queue command is still registered");
     assert.equal(commands["dispatch-stats"].acceptsArgs, true, "the window is an argument");
     const reply = await run("");
-    assert.match(reply.text, /^# 派发统计 · 近 7 天/m);
-    assert.match(reply.text, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API \|/);
+    assert.match(reply.text, /^# 派发统计 · 近 7 天 · 2 项/m);
+    assert.match(reply.text, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API 估价 \|/);
     assert.match(reply.text, /\| Claude Code \| 2\/2 \| 0 \| 0 \| 1\.2M · \$0\.42 \|/);
     assert.match(reply.text, /\| 合计 \| 2\/2 \| 0 \| 0 \| 1\.2M · \$0\.42 \|/);
-    assert.match(reply.text, /已结束任务冻结值 · 巡检不计 · API 估价非订阅额度/);
+    assert.doesNotMatch(reply.text, /token 未知|已结束任务冻结值|巡检不计/);
     const since7 = (await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href)).sinceDay(7);
     const seen = fs.readFileSync(argvFile, "utf8").trim().split("\n");
     assert.deepEqual(seen[0], "--json summary --since " + since7);

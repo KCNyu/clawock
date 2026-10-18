@@ -1168,7 +1168,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   if (selected.length === 0) {
     return {
       title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0,
-      empty: t('stats.empty'), footnote: statsFootnote(zeroTotals, stats.patrolIncluded, t),
+      empty: t('stats.empty'), footnote: t('stats.note.cost'),
     }
   }
   const agents: StatsAgentView[] = selected.map((agent) => {
@@ -1219,21 +1219,8 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     title, cardTitle, window, headline,
     summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
     agents, totals, maxTokens, empty: '',
-    footnote: statsFootnote(totals, stats.patrolIncluded, t),
+    footnote: t('stats.note.cost'),
   }
-}
-
-/** The one caveat line every stats surface prints: no repeated paragraph. */
-function statsFootnote(totals: StatsTotalsView, patrolIncluded: boolean, t: Translate): string {
-  return [
-    t('stats.note.frozen'),
-    totals.live > 0 ? t('stats.note.live', { n: totals.live }) : '',
-    totals.tokensUnknown > 0 ? t('stats.note.unknown', { n: totals.tokensUnknown }) : '',
-    totals.costUnpriced > 0 ? t('stats.note.unpriced', { n: totals.costUnpriced }) : '',
-    totals.costFree > 0 ? t('stats.note.free', { n: totals.costFree }) : '',
-    patrolIncluded ? '' : t('stats.note.patrol'),
-    t('stats.note.cost'),
-  ].filter((part) => part !== '').join(' · ')
 }
 
 /**

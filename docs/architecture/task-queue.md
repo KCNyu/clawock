@@ -221,11 +221,11 @@ keeps its seven-day window. The tile carries the task count, `token` total, `API
 and a completion bar; it opens a chart layer (token bars and per-agent completion bars) and
 is read lazily through the `taskStats` Remote method when the panel opens, not on the queue's
 poll. The command prints a five-column table (Agent / done-ended / partial / unfinished /
-token · API), with `plain` as the bar fallback. Both put the caveats in one line: live tasks
-are outside the token/cost totals, an unrecorded token count is unknown rather than 0, an
-unpriced model has no amount, the cost is an API list-price estimate rather than subscription
-quota spent, and patrol is excluded unless asked for. A failed read is said as a failure,
-not drawn as zeroes.
+token · API 估价), with `plain` as the bar fallback. Its title carries the total and live
+count; there is no trailing description. An unpriced cell reads `—`, the header says
+`API 估价`, and the chip's chart layer keeps one short `API 估价非订阅额度` line; the CLI
+`summary` still reports `tokens_unknown` and `cost_unpriced` for a caller that needs the
+counts. A failed read is said as a failure, not drawn as zeroes.
 
 ### brief — the task's instructions, read-only
 

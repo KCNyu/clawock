@@ -43,7 +43,8 @@ export declare function panelText(model: PanelModel, t: Translate): string;
 /**
  * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
  * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
- * One title, one table, one caveat line — no process prose. The same `StatsView`
- * the chip draws, so the chat and the chip cannot disagree.
+ * The title carries the total and live count; the table carries the ended-task rows.
+ * No trailing prose: the only caveat is the column header's "API estimate", and the
+ * chip's chart layer keeps the one-line "not subscription quota" note.
  */
 export declare function statsText(view: StatsView, t: Translate, plain?: boolean): string;

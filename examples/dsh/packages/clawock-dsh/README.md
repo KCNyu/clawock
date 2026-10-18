@@ -556,11 +556,12 @@ reads the numbers `task_queue_ops.py summary` froze into `result.env` at each ta
 rereads a session, so a task continuing the same session is not counted twice. The window is the
 last seven days, patrol excluded. The chat counterpart is `/dispatch-stats` (the same numbers,
 without the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished /
-token · API — and one caveat line; `/dispatch-stats 30d`, `/dispatch-stats all`,
-`/dispatch-stats 2026-10-01`, add `patrol` to include patrol rounds, and `plain` for the bar
-fallback where a client shows the pipes. Live tasks are outside the token and cost totals; an
-unrecorded token count is unknown, never 0; an unpriced model has no amount; and the cost is an
-API list-price estimate, not subscription quota spent.
+token · API estimate — with no trailing prose; the title carries the total and live count.
+`/dispatch-stats 30d`, `/dispatch-stats all`, `/dispatch-stats 2026-10-01`, add `patrol` to include
+patrol rounds, and `plain` for the bar fallback where a client shows the pipes. The data still
+distinguishes live tasks (outside tokens/cost), an unrecorded token count (unknown, never 0; its
+cell reads `—`), an unpriced model (no amount), and the cost as an API estimate rather than
+subscription quota.
 
 同一块面板的 Markdown 版（一个标题、每个 provider 一行粗体、两个分节标题、状态打头的平铺列表；不用表格、嵌套列表或 HTML；宿主给的巡检轮次全部列出，不带覆盖表）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
 `plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
@@ -574,10 +575,11 @@ spec 逐行比对两者。只读,调度仍在芯片上操作。
 它是**懒读**:只在面板打开时走 `taskStats`,不跟队列的 15 秒轮询;数据是
 `task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的数字,从不重读 session,所以续跑
 同一 session 的任务不会被重复计数;默认近 7 天、巡检不计。聊天里对应 `/dispatch-stats`
-(同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API)加一行
-口径;`/dispatch-stats 30d`、`/dispatch-stats all`、`/dispatch-stats 2026-10-01`,加 `patrol`
-才含巡检,`plain` 是显示管道符的客户端的条形降级。进行中的任务不计入 token 与费用;没有记录的
-token 是未知、不是 0;无价目的模型不估算金额;费用是 API 目录价估算,不是订阅额度消耗。
+(同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API 估价),
+没有尾部说明;标题带总数和进行中数。`/dispatch-stats 30d`、`/dispatch-stats all`、
+`/dispatch-stats 2026-10-01`,加 `patrol` 才含巡检,`plain` 是显示管道符的客户端的条形降级。
+数据本身仍区分:进行中的任务不计入 token 与费用;没有记录的 token 是未知、不是 0(整格未知时
+显示 `—`);无价目的模型不估算金额;费用是 API 目录价估算,不是订阅额度消耗。
 
 ## 语言
 

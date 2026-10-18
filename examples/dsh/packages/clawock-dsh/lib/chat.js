@@ -506,17 +506,13 @@ const dictionaries = {
 		"stats.table.doneSettled": "完成/已结束",
 		"stats.table.partial": "部分",
 		"stats.table.unfinished": "未完成",
-		"stats.table.tokens": "token · API",
+		"stats.table.tokens": "token · API 估价",
+		"stats.title.count": "{n} 项",
+		"stats.title.countLive": "{n} 项（进行中 {live}）",
 		"stats.table.total": "合计",
 		"stats.empty": "这段时间没有已结束的任务。",
 		"stats.unavailable": "统计读取失败：{message}",
 		"stats.headline.failed": "{window} · 读取失败",
-		"stats.note.frozen": "已结束任务冻结值",
-		"stats.note.live": "进行中 {n} 不计",
-		"stats.note.unknown": "{n} 项 token 未知（不是 0）",
-		"stats.note.unpriced": "{n} 项无定价",
-		"stats.note.free": "{n} 项免费",
-		"stats.note.patrol": "巡检不计",
 		"stats.note.cost": "API 估价非订阅额度",
 		"stats.usage": "用法：/dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] [plain]（默认近 7 天，巡检不计；plain 用条形降级）",
 		"stats.costTitle": "按任务结束时冻结的 token，以 API 目录价估算；不是订阅额度消耗"
@@ -1017,17 +1013,13 @@ const dictionaries = {
 		"stats.table.doneSettled": "Done/ended",
 		"stats.table.partial": "Partial",
 		"stats.table.unfinished": "Unfinished",
-		"stats.table.tokens": "token · API",
+		"stats.table.tokens": "token · API estimate",
+		"stats.title.count": "{n} tasks",
+		"stats.title.countLive": "{n} tasks ({live} live)",
 		"stats.table.total": "Total",
 		"stats.empty": "No task ended in this window.",
 		"stats.unavailable": "Stats read failed: {message}",
 		"stats.headline.failed": "{window} · read failed",
-		"stats.note.frozen": "Frozen at task end",
-		"stats.note.live": "{n} live excluded",
-		"stats.note.unknown": "{n} without a token record (not 0)",
-		"stats.note.unpriced": "{n} unpriced",
-		"stats.note.free": "{n} free",
-		"stats.note.patrol": "patrol excluded",
 		"stats.note.cost": "API estimate, not subscription quota",
 		"stats.usage": "Usage: /dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] [plain] (default: last 7 days, patrol excluded; plain falls back to bars)",
 		"stats.costTitle": "Estimated from the tokens frozen at each task end at API list prices; not subscription quota spent"
@@ -2338,7 +2330,7 @@ function statsView(stats, t) {
 		totals: zeroTotals,
 		maxTokens: 0,
 		empty: t("stats.empty"),
-		footnote: statsFootnote(zeroTotals, stats.patrolIncluded, t)
+		footnote: t("stats.note.cost")
 	};
 	const agents = selected.map((agent) => {
 		const tasks = Math.max(0, agent.tasks);
@@ -2408,20 +2400,8 @@ function statsView(stats, t) {
 		totals,
 		maxTokens,
 		empty: "",
-		footnote: statsFootnote(totals, stats.patrolIncluded, t)
+		footnote: t("stats.note.cost")
 	};
-}
-/** The one caveat line every stats surface prints: no repeated paragraph. */
-function statsFootnote(totals, patrolIncluded, t) {
-	return [
-		t("stats.note.frozen"),
-		totals.live > 0 ? t("stats.note.live", { n: totals.live }) : "",
-		totals.tokensUnknown > 0 ? t("stats.note.unknown", { n: totals.tokensUnknown }) : "",
-		totals.costUnpriced > 0 ? t("stats.note.unpriced", { n: totals.costUnpriced }) : "",
-		totals.costFree > 0 ? t("stats.note.free", { n: totals.costFree }) : "",
-		patrolIncluded ? "" : t("stats.note.patrol"),
-		t("stats.note.cost")
-	].filter((part) => part !== "").join(" · ");
 }
 function progressView(progress, t, now) {
 	if (progress === void 0) return null;
@@ -2701,21 +2681,27 @@ const cell = (text) => text.replace(/([\\`*_[\]<>|])/g, "\\$1").replace(/[\r\n]+
 /**
 * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
 * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
-* One title, one table, one caveat line — no process prose. The same `StatsView`
-* the chip draws, so the chat and the chip cannot disagree.
+* The title carries the total and live count; the table carries the ended-task rows.
+* No trailing prose: the only caveat is the column header's "API estimate", and the
+* chip's chart layer keeps the one-line "not subscription quota" note.
 */
 function statsText(view, t, plain = false) {
-	const out = ["# " + literal(view.title + " · " + view.window)];
+	const hasRows = view.agents.length > 0;
+	const title = view.title + " · " + view.window + (hasRows ? " · " + (view.totals.live > 0 ? t("stats.title.countLive", {
+		n: view.totals.tasks,
+		live: view.totals.live
+	}) : t("stats.title.count", { n: view.totals.tasks })) : "");
+	const out = ["# " + literal(title)];
 	if (view.empty !== "") {
-		out.push("", literal(view.empty), "", literal(view.footnote));
+		out.push("", literal(view.empty));
 		return out.join("\n");
 	}
-	if (view.agents.length === 0) {
+	if (!hasRows) {
 		out.push("", literal(view.headline), "", literal(view.footnote));
 		return out.join("\n");
 	}
 	if (plain) {
-		out.push("", literal(view.summaryLine));
+		out.push("", literal([t("stats.tokens", { tokens: view.totals.tokensText }), t("stats.costEstimate", { cost: view.totals.costText })].join(" · ")));
 		for (const agent of view.agents) {
 			out.push("", literal(agent.label + "  " + bar(agent.share * 100) + "  " + agent.tokensText + " · " + agent.costText));
 			const parts = [
@@ -2727,7 +2713,6 @@ function statsText(view, t, plain = false) {
 			];
 			out.push(literal(parts.join(" · ")));
 		}
-		out.push("", literal(view.footnote));
 		return out.join("\n");
 	}
 	const header = [
@@ -2747,7 +2732,6 @@ function statsText(view, t, plain = false) {
 	out.push("", "| " + header.map(cell).join(" | ") + " |", "|" + "---|".repeat(header.length));
 	for (const agent of view.agents) out.push(row(agent.label, agent));
 	out.push(row(t("stats.table.total"), view.totals));
-	out.push("", literal(view.footnote));
 	return out.join("\n");
 }
 //#endregion

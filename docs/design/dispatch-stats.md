@@ -37,26 +37,30 @@ for a newer one.
 
 ## `/dispatch-stats`
 
-The command prints one five-column table and one caveat line:
+The command prints one five-column table. The title carries the total and live count;
+there is no trailing description:
 
 ```
-# 派发统计 · 近 7 天
+# 派发统计 · 近 7 天 · 92 项（进行中 2）
 
-| Agent | 完成/已结束 | 部分 | 未完成 | token · API |
+| Agent | 完成/已结束 | 部分 | 未完成 | token · API 估价 |
 |---|---|---|---|---|
 | Claude Code | 32/45 | 9 | 4 | 536.2M · $221.08 |
 | Codex | 19/29 | 4 | 6 | 107.5M · $156.08 |
 | dsh | 15/16 | 1 | 0 | 181.6M · $2.84 |
 | 合计 | 66/90 | 14 | 10 | 825.3M · $380.00 |
-
-已结束任务冻结值 · 进行中 2 不计 · 8 项 token 未知（不是 0） · 8 项无定价 · 巡检不计 · API 估价非订阅额度
 ```
 
 - The five columns fit a 390px bubble at 11px with short cells; `完成/已结束` keeps the
   denominator next to the number, which a separate `已结束` column made too wide. The
-  `token · API` cell is the only long one and stays on one line at 10px in the capture.
-- `plain` is the fallback: no table, one token-share bar per agent, the same one-line
-  footnote. It exists because the table is a channel capability, not a guarantee.
+  `token · API 估价` cell is the only long one and stays on one line at 10px in the capture.
+- `plain` is the fallback: no table, one token-share bar per agent, and no trailing line.
+  It exists because the table is a channel capability, not a guarantee.
+- The earlier version's one-line tail (frozen/live/token-unknown/unpriced/patrol/API) is
+  gone after kcn's review. The distinction survives where it belongs: the column header
+  says `API 估价`; a cell with no price reads `—`; the chip's chart layer keeps one short
+  `API 估价非订阅额度` line. The CLI `summary` still reports `tokens_unknown` and
+  `cost_unpriced` for anyone who needs the counts.
 - `7d`/`30d`, `all`, `YYYY-MM-DD`, `patrol` are one argument each; anything else returns
   the usage line and never reaches the ops entry.
 
@@ -71,10 +75,10 @@ message is still text, so the table's visual rendering is the client's; the capt
 uses the 390px bubble and five columns, and is labelled as a mock rather than a real
 WeChat screenshot.
 
-![A WeChat-style bubble carrying the real table output: five columns, four rows, the one-line footnote.](dispatch-stats-wechat.png)
+![A WeChat-style bubble carrying the real table output: five columns, four rows, no trailing footnote.](dispatch-stats-wechat.png)
 
 If a client shows the pipes instead, `/dispatch-stats plain` is the designed fallback; it
-is also what a narrow screen gets without losing a caveat.
+is also what a narrow screen gets without adding a trailing paragraph.
 
 ## What the numbers are (and are not)
 
@@ -84,7 +88,8 @@ continuing the same session would be counted twice.
 
 - **Live tasks** are counted in the task total and shown as `进行中`; they stay out of the
   token and cost totals.
-- **Tokens unknown** is an empty record, not 0. The footnote counts those tasks.
+- **Tokens unknown** is an empty record, not 0. A cell whose whole token value is unknown
+  reads `—`; the CLI summary still reports the count.
 - **Cost unpriced** is a model with no price row; the cell is `—`, not $0.
 - **`free`** is counted apart (the opencode free pool).
 - **COST_USD is an API list-price estimate**, not subscription quota spent. Claude and
