@@ -166,7 +166,8 @@ class Reversion:
             if execution:
                 # Realised volume is an execution feasibility check, never a signal.
                 # Failure leaves the path unresolved, not a profitable skipped trade.
-                liquid = all(qty <= bars[j]['volume'] * execution['participation']
+                liquid = all((qty * (2 if entry_index == exit_index else 1))
+                             <= bars[j]['volume'] * execution['participation']
                              for j in (entry_index, exit_index))
                 funded = (execution['cash_reserve'] + qty * entry - sell['total']
                           >= qty * exit_price + buy['total'])

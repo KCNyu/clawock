@@ -106,6 +106,7 @@ def test_waiver_exhaustion_invalidates_full_net(plan):
     row = path_metrics([('2026-10-16', result)], plan, 1000)
     assert not row['complete'] and row['net_increment'] is None
     assert 'commission_allowance_exhausted_unknown_tariff' in row['reasons']
+    assert row['curve'][0]['cumulative_net'] is None
 
 
 def test_full_fold_and_llm_binding(plan, data, monkeypatch):
@@ -123,6 +124,11 @@ def test_full_fold_and_llm_binding(plan, data, monkeypatch):
         assert report['oos_sessions'] >= 60
         assert all(f['train'][1] < f['test'][0] for f in report['folds'])
         assert 'llm' not in report['metrics'] and report['llm_errors']
+        mutated = deepcopy(data)
+        mutated['sessions'][-1]['bars'][-1]['close'] += .01
+        assert run(kernel, plan, mutated)['requests'][0]['sha256'] == report['requests'][0]['sha256']
+        mutated['sessions'][0]['bars'][0]['close'] += .01
+        assert run(kernel, plan, mutated)['requests'][0]['sha256'] != report['requests'][0]['sha256']
         choices = {r['test_first']: {'request_sha256': r['sha256'], 'candidate': -1,
                    'author_model': 'test fixture', 'mechanism': 'hold', 'counterexample': 'trend',
                    'focus': 'validation'} for r in report['requests']}

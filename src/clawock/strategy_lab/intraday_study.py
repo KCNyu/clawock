@@ -11,6 +11,9 @@ import hashlib
 import json
 import math
 import random
+from pathlib import Path
+
+from clawock.code_identity import file_digest, git_commit
 
 from clawock.sessions import is_trading_day
 from clawock.strategy_lab.plugins.registered_costs import Costs
@@ -22,6 +25,13 @@ FIELDS = {'schema_version', 'author_model', 'frozen_at', 'knowledge_scope', 'uni
           'shares', 'base_shares', 'lot_size', 'cash_reserve', 'monthly_opening_used_hkd',
           'usd_hkd', 'fx_basis', 'max_participation', 'candidates', 'mechanism',
           'counterexamples', 'requirements', 'selection', 'presentation_focus', 'live_permission'}
+
+
+def code_provenance():
+    root = Path(__file__).resolve().parents[3]
+    paths = ['src/clawock/strategy_lab/intraday_study.py', 'src/clawock/costs.py'] + [
+        f'src/clawock/strategies/plugins/{name}.py' for name in SERVICES]
+    return {'commit': git_commit(root), 'files': {path: file_digest(root/path) for path in paths}}
 
 
 def digest(value):
@@ -161,7 +171,9 @@ def path_metrics(rows, plan, capital):
         net += result.get('net_pnl') or 0
         peak = max(peak, net)
         dd = max(dd, peak-net)
-        curve.append({'session': day, 'net_increment': result.get('net_pnl'), 'cumulative_net': net})
+        curve.append({'session': day, 'net_increment': result.get('net_pnl') if not reasons else None,
+                      'cumulative_net': net if not reasons else None,
+                      'unpriced_or_missing': bool(reasons)})
     complete = not reasons and bool(rows) and capital is not None
     return {'complete': complete, 'sessions': len(rows), 'trades': trades,
             'reasons': dict(reasons), 'net_increment': net if complete else None,
@@ -202,7 +214,7 @@ def run(kernel, raw_plan, data, selections=None):
             and source.get('price_basis') == 'split_adjusted'):
         # Do not reinterpret adjusted quotes as execution prices just to get a result.
         observed = sorted({p['session'] for p in data['sessions']})
-        return {'schema': 'intraday-research/v1', 'generated_at': datetime.now(timezone.utc).isoformat(),
+        return {'schema': 'intraday-research/v1', 'code': code_provenance(), 'generated_at': datetime.now(timezone.utc).isoformat(),
                 'live_permission': False, 'market': plan['market'], 'ticker': plan['universe'][0],
                 'as_of': observed[-1] if observed else None, 'source': source,
                 'data_sha256': digest(data), 'manifest': plan, 'manifest_sha256': digest(plan),
@@ -258,6 +270,8 @@ def run(kernel, raw_plan, data, selections=None):
         best = max([(-1, 0.)] + [(i, v) for i, v in enumerate(scores) if v is not None], key=lambda x: x[1])[0]
         request = {'schema_version': 1, 'manifest_sha256': digest(plan), 'train_first': train[0],
                    'train_last': train[-1], 'test_first': test[0], 'training_net': scores,
+                   'training_input_sha256': digest([by_date.get(d) for d in train]),
+                   'cost_model_sha256': digest(costs.describe()),
                    'choices': [-1] + list(range(len(scores))), 'rule_choice': best,
                    'prompt': 'Choose a research arm (-1 hold), mechanism, counterexample and focus. Cite this receipt hash. No test outcomes supplied; not a live action.'}
         request['sha256'] = digest(request)
@@ -297,7 +311,7 @@ def run(kernel, raw_plan, data, selections=None):
     qualified = (not any(d not in by_date for d in days) and oos >= plan['minimum_oos'] and bool(bounds) and bounds.get('base', 0) > 0
                  and all(metrics[s]['complete'] and metrics[s]['net_increment'] > 0
                          for s in ('spread_x2', 'delay_one_bar', 'unknown_fee_2bps', 'regular_taf')))
-    return {'schema': 'intraday-research/v1', 'generated_at': datetime.now(timezone.utc).isoformat(),
+    return {'schema': 'intraday-research/v1', 'code': code_provenance(), 'generated_at': datetime.now(timezone.utc).isoformat(),
             'live_permission': False, 'market': plan['market'], 'ticker': plan['universe'][0],
             'as_of': plan['end'], 'source': data['source'], 'data_sha256': digest(data),
             'manifest': plan, 'manifest_sha256': digest(plan), 'cost_model': costs.describe(),
