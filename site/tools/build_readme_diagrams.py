@@ -2994,8 +2994,8 @@ def proposal_review():
     d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
     return d.render(bottom + 36 + M)
 
-#: What the author's host links, read off the host when this was drawn: each agent's
-#: own instruction file, and how it reaches the notes. Nothing here ships in the package.
+#: How each coding agent reaches the notes (ops/host/shared-memory/wiring.json lists the
+#: entry files `memctl doctor` checks). The memory itself never ships; only the tools do.
 AGENTS = (('claude-code', 'Claude Code', 'CLAUDE.md', 'loads the index at start'),
           ('codex', 'Codex', 'AGENTS.md', 'searches on demand'),
           ('deepseek-harness', 'dsh', 'AGENTS.md', 'searches on demand'),
@@ -3003,56 +3003,54 @@ AGENTS = (('claude-code', 'Claude Code', 'CLAUDE.md', 'loads the index at start'
 #: The shared instructions' own headings, and the index's file-name prefixes.
 GUIDANCE = ('# Shared coding-agent guidance', '## Where things live', '## Memory',
             '## Working on this host', '## Delegation')
-TOPICS = (('feedback-', 'what the author asked for'), ('lessons-', 'what several incidents taught'),
+TOPICS = (('feedback-', 'what the user asked for'), ('lessons-', 'what several incidents taught'),
           ('decision-', 'a product decision'), ('project-', 'how one system works'),
           ('incident-', 'one failure, analysed'), ('reference-', 'where to look something up'),
           ('archive', 'older notes, still searched'))
 
 
 def shared_memory():
-    """site/assets/shared-memory.svg — why every agent on the author's host remembers the same things."""
-    d = D('On the author’s host, four agents read one memory: links, not sync',
-          'A picture of the author’s own host, not something the clawock package installs, in four '
-          'numbered parts. One: work starts two ways, a session the author opens in a terminal or in '
-          'dsh chat, or a task the agent-dispatch queue starts at any hour; both start in the same '
-          'home folder. Two: Claude Code, Codex, dsh and OpenCode each read their own instruction '
-          'file, CLAUDE.md or AGENTS.md, and every one of those files is a link to the same shared '
-          'instructions. Claude Code loads the memory index when it starts; the other three search '
-          'it when a task needs it. Three: there is one copy on disk: the shared instructions, whose '
-          'headings are shown, and a memory index of topic notes named by kind, feedback, lessons, '
-          'decision, project, incident and reference, with an archive; every agent reads and writes '
-          'it through one small script. Nothing is copied between agents, so a correction written '
-          'once is what all four read next. Four: what this does not do: only Claude Code loads the '
-          'index by itself; Codex keeps its own memory feature off, because turned on it would '
-          'write a second copy; the notes have no version history and no backup; and nothing '
-          'checks that the links are still in place.')
-    y = d.header('THE AUTHOR’S HOST · SHARED AGENT MEMORY',
+    """site/assets/shared-memory.svg — four coding agents, one memory; the assistant only reads it."""
+    d = D('Four coding agents, one memory; the assistant reads it and never writes',
+          'The shared-memory tools in ops/host/shared-memory, in four numbered parts. One: where work '
+          'starts decides which memory it uses. Sessions you open and tasks the agent-dispatch queue '
+          'starts, interactive or headless, start in the home folder and use the shared memory; the '
+          'OpenClaw assistant starts in its own workspace and keeps its own memory, which is '
+          'published on purpose. Two: Claude Code, Codex, dsh and OpenCode each read their own '
+          'instruction file, CLAUDE.md or AGENTS.md, and every one of those files is a link to the same '
+          'shared instructions; Claude Code loads the memory index when it starts, the other three '
+          'search it when a task needs it. Three: there is one copy on disk, the shared instructions '
+          'and a memory index of topic notes named by kind, read and written through memory.py; every '
+          'write becomes a commit in a history kept outside the notes, with the agent that made it. '
+          'Four: what keeps it honest: every change is in the history and can be restored; a daily '
+          'self-check proves each agent still finds the files from each place work starts, headless '
+          'dispatch included; the assistant can search the notes read-only in direct chats, never in '
+          'groups or scheduled runs; and the package ships the tools, never anyone’s notes.')
+    y = d.header('OPS/HOST/SHARED-MEMORY · SHARED AGENT MEMORY',
                  ['Four agents, one memory. Nothing is synced.'],
-                 ['Each agent’s own instruction file is a link to the same copy. Not part of the package.'],
-                 [('how work starts', 'slate'), ('the queue', 'blue'), ('the one copy', 'violet'),
-                  ('known gaps', 'warm')])
+                 ['Links to one copy, a history of every change, a daily check. You get the tools, not the notes.'],
+                 [('where work starts', 'blue'), ('the agents', 'slate'), ('the one copy', 'violet'),
+                  ('checked', 'green'), ('kept apart', 'warm')])
     full, gap = d.pw - 2 * M, 24
 
-    # --- 01: two ways work starts, both in the same home folder -----------------------
+    # --- 01: the folder work starts in decides the memory -----------------------------
     y += 44
-    ah, aw = 116, 520
+    ah, aw = 116, 470
     ax2, aw2 = M + aw + gap, full - aw - gap
-    d.section(y - 12, '01 · WORK STARTS IN ONE HOME FOLDER')
-    top = _panel(d, M, y, aw, ah, 'slate', 'terminal', 'You open a session', 'INTERACTIVE')
+    d.section(y - 12, '01 · WHERE WORK STARTS DECIDES THE MEMORY')
+    top = _panel(d, M, y, aw, ah, 'blue', 'clipboard', 'Sessions and queued tasks', 'HOME FOLDER')
     _said(d, M + 20, top + 4, aw - 40,
-          ['In a terminal or in dsh chat, from the home folder.',
-           'Whichever agent you open, it reads the same files.'], 'start note')
-    d.section(y - 12, '· OR THE QUEUE STARTS ONE', x=ax2)
-    top = _panel(d, ax2, y, aw2, ah, 'blue', 'clipboard', 'A queued task starts', 'THE QUEUE')
+          ['Opened by you or started by the queue,', 'interactive or headless: the shared memory.'], 'start note')
+    top = _panel(d, ax2, y, aw2, ah, 'warm', 'lock', 'The OpenClaw assistant', 'ITS OWN WORKSPACE')
     _said(d, ax2 + 20, top + 4, aw2 - 40,
-          ['Every new task runs in that folder,', 'so a task at 3 a.m. reads the same notes.'], 'queue note')
+          ['Keeps its own MEMORY.md, published on purpose.', 'Never gets this index; reads the notes only (part 04).'],
+          'workspace note')
 
     # --- 02: four agents, four entry files, one target --------------------------------
     a_bottom = y + ah
     y = a_bottom + 48
     bh = 178
-    d.down(M + aw - 90, a_bottom, y, pulses=(0,), kind='task')
-    d.down(ax2 + aw2 / 2, a_bottom, y, pulses=(.9,), kind='task', carry='clipboard')
+    d.down(M + aw - 90, a_bottom, y, pulses=(0, .9), kind='task', carry='clipboard')
     d.section(y - 12, '02 · EACH AGENT’S OWN FILE IS A LINK')
     top = _panel(d, M, y, full, bh, 'slate', 'link', 'Four entry files, one target', 'LINKED · NOT COPIED')
     xs, tw = columns(4, gap=12, x0=M + 16, w=full - 32)
@@ -3078,7 +3076,7 @@ def shared_memory():
         d.wire(f'M{x + tw - 40:g} {y:g}V{b_bottom + 2:g}', pulses=(i * .5,), kind='data', carry='notes')
     d.wire(f'M{xs[1] + tw + 6:g} {b_bottom:g}V{y - 2:g}', pulses=(.3,), kind='feedback')
     d.section(y - 12, '03 · ONE COPY ON DISK')
-    top = _panel(d, M, y, full, ch, 'violet', 'notes', 'Read by all four, written once', 'THE AUTHOR’S HOST',
+    top = _panel(d, M, y, full, ch, 'violet', 'notes', 'Read by all four, written once', 'ONE STORE',
                  tint=True)
     lw = 380
     rx, rw = M + 16 + lw + 16, full - 48 - lw
@@ -3092,30 +3090,30 @@ def shared_memory():
         fits(kind, 'm', rw - 140, 'topic kind')
         d.text(rx + 126, ly, kind, 'm', fill=MUT)
     sy = top + 210
-    _code(d, M + 20, sy, "$ memory.py search '<terms>'", 300, 'script', fill=INK)
-    _said(d, M + 330, sy, full - 350, ['One small script for all four: search, read, add, doctor.'], 'script note')
+    _code(d, M + 20, sy, "$ memory.py add <topic>", 300, 'script', fill=INK)
+    _said(d, M + 330, sy, full - 350, ['Every write is a commit in a history kept outside the notes.'], 'script note')
     _said(d, M + 20, sy + 26, full - 40,
-          ['Nothing is copied between agents, so a correction written once is what all four read next.'],
+          ['The commit names the agent and the dispatched task, so a correction is traceable to who made it.'],
           'copy note', fill=INK)
 
-    # --- 04: what it does not do ------------------------------------------------------
+    # --- 04: what keeps it honest -----------------------------------------------------
     c_bottom = y + ch
     y = c_bottom + 48
     dh = 192
-    d.down(M + full / 2, c_bottom, y, pulses=(0,), kind='alert')
-    d.section(y - 12, '04 · WHAT THIS DOES NOT DO')
-    top = _panel(d, M, y, full, dh, 'warm', 'shield', 'Known gaps, as they are today', 'NOT HIDDEN')
+    d.down(M + full / 2, c_bottom, y, pulses=(0,), kind='data')
+    d.section(y - 12, '04 · WHAT KEEPS IT HONEST')
+    top = _panel(d, M, y, full, dh, 'green', 'checks', 'Checked, recorded, kept apart', 'MEMCTL')
     gx, gw = columns(2, gap=12, x0=M + 16, w=full - 32)
-    gaps = (('Only Claude Code loads it by itself', 'The other three search it when a task needs it.'),
-            ('Codex keeps its own memory feature off', 'Turned on, it would write a second copy.'),
-            ('No version log and no backup', 'One copy on one disk: lose it and it is gone.'),
-            ('Nothing checks the links', 'A link that breaks fails quietly.'))
-    for i, (head, body) in enumerate(gaps):
+    keeps = (('Every change has an author', 'Recorded in a history; memctl restore undoes it.', 'green'),
+             ('Checked daily, headless included', 'Each agent finds the files from each start folder.', 'green'),
+             ('The assistant only reads', 'Direct chats only; no groups, no scheduled runs.', 'warm'),
+             ('You get the tools, not the notes', 'A fresh install starts with an empty store.', 'green'))
+    for i, (head, body, role) in enumerate(keeps):
         x, ty = gx[i % 2], top - 12 + (i // 2) * 66
-        _tile(d, x, ty, gw, 56, 'warm')
-        _cross(d, x + 16, ty + 22)
-        fits(head, 'b', gw - 56, 'gap head')
-        fits(body, 'm', gw - 56, 'gap body')
+        _tile(d, x, ty, gw, 56, role)
+        _tick(d, x + 16, ty + 22, role)
+        fits(head, 'b', gw - 56, 'keep head')
+        fits(body, 'm', gw - 56, 'keep body')
         d.text(x + 40, ty + 24, head, 'b')
         d.text(x + 40, ty + 44, body, 'm', fill=MUT)
     return d.render(y + dh + M)

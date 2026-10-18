@@ -274,13 +274,13 @@ runner 负责让每个任务独立跑完，插件负责让你看得见、改得�
 
 [完整统计页](site/assets/dsh-stats-layer.png) · [完整巡检页](site/assets/dsh-patrol-page.png) · [队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
 
-**在作者的主机上，每个 agent 读同一份记忆** —— 画的是一台主机的配置，不是安装包会装上的东西
+**四个 coding agent，一份记忆，每次改动都有历史** —— 机制随仓库提供（`ops/host/shared-memory/`），笔记是你自己的
 
-<p align="center"><img src="site/assets/shared-memory.svg" width="1016" alt="作者的主机,不属于 clawock 安装包:工作要么是作者打开的会话,要么是 agent-dispatch 队列启动的任务,两者都从同一个家目录开始;Claude Code、Codex、dsh 和 OpenCode 各读自己的指令文件 CLAUDE.md 或 AGENTS.md,这些文件都是指向同一份共享副本的链接;这份副本包含共享指令和按类别组织的记忆索引,四个 agent 通过同一个小脚本读写,所以一条更正写一次,四个 agent 下次读到的都是它;已知缺口:只有 Claude Code 启动时自动载入索引,Codex 自带的记忆功能保持关闭以免写出第二份,没有版本历史也没有备份,也没有任何东西检查这些链接"></p>
+<p align="center"><img src="site/assets/shared-memory.svg" width="1016" alt="ops/host/shared-memory 中的共享记忆工具:你打开的会话和 agent-dispatch 队列启动的任务(交互式或无头)都从家目录开始,使用共享记忆;OpenClaw 助手从自己的工作区启动,保留自己那份公开的记忆;Claude Code、Codex、dsh 和 OpenCode 各读自己的指令文件 CLAUDE.md 或 AGENTS.md,这些文件都是指向同一份共享指令的链接;按类别组织的记忆索引通过 memory.py 读写,每次写入都是一次提交,记在笔记之外的历史里,写明是哪个 agent、哪个派发任务;每天的自检证明每个 agent 从每个起点(含无头派发)都找得到这些文件;助手只能在私聊里只读地搜索这些笔记,群聊和定时任务里不行;安装包提供的是工具,不包含任何人的笔记"></p>
 
-队列半夜启动的 Codex 任务，为什么知道你下午让 Claude Code 记下的规则？没有任何东西在两者之间复制。作者主机上每个 agent 自己的指令文件都是指向同一份共享文件的链接，记忆笔记放在四个 agent 都读的同一个目录里。runner 让每个新任务都从交互会话所在的同一个家目录启动。一条更正只写一次，任何 agent 的下一次会话都会读到。
+队列半夜启动的 Codex 任务，为什么知道你下午让 Claude Code 记下的规则？没有任何东西在两者之间复制。每个 agent 自己的指令文件都是指向同一份共享文件的链接，笔记放在四个 agent 都读的同一个目录里，runner 让每个任务（包括无头任务）都从交互会话所在的同一个家目录启动。一条更正只写一次，任何 agent 的下一次会话都会读到。
 
-它有缺口。只有 Claude Code 启动时会载入记忆索引；另外三个在任务需要时才搜索。Codex 自带的记忆功能保持关闭，因为打开后它会写出第二份。这些笔记没有版本历史，也没有备份；也没有任何东西检查链接是否还在。`pip install clawock` 和 dsh 插件都不包含这一套。
+`ops/host/install_shared_memory.sh` 安装 agent 加载的 skill、`memory.py`（搜索、读取、新增、归档、自检）和 `memctl`。每次写入都会成为一次提交，记在笔记之外的历史里，作者写明是哪个 agent、哪个派发任务；`memctl log` 和 `memctl restore` 可以回看、恢复。`memctl doctor --deep` 从每个工作起点、并在派发任务拿到的裸环境里运行各 agent 自己的发现命令，还检查 OpenClaw 工作区绝不会被注入共享索引。OpenClaw 助手保留自己那份记忆，它是故意公开的；一个只读插件让它在私聊里搜索这些 coding 笔记，群聊和定时任务里不行。还剩两点限制：只有 Claude Code 启动时会载入索引，另外三个在任务需要时才搜索；Codex 自带的记忆功能保持关闭。你得到的是机制，不是任何人的记忆：新安装从空的记忆库开始。
 
 提供持仓和证据后，问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 读取工作区中已记录的成交和计划；新工作区没有成交历史可展示。点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
 
