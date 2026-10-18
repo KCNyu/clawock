@@ -37,8 +37,9 @@ def test_committed_diagrams_match_their_builder():
         'build_dsh_task_tour', ROOT / 'site/tools/build_dsh_task_tour.py')
     tour = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(tour)
-    assert (ROOT / 'site/assets/dsh-task-tour.svg').read_text() == tour.render(), (
-        'run `python3 site/tools/build_dsh_task_tour.py` and commit the SVG')
+    for name, draw in tour.FIGURES.items():
+        assert (ROOT / 'site/assets' / name).read_text() == draw(), (
+            name, 'run `python3 site/tools/build_dsh_task_tour.py` and commit the SVGs')
 
 
 def test_rsi_views_share_the_house_style_and_stay_small():

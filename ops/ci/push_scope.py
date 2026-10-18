@@ -85,6 +85,8 @@ CODE_GLOBS = [
     "site/assets/claude-code-terminal.png",
     "site/assets/decision-card-example.png",
     "site/assets/dsh-dispatch-queue.png",
+    "site/assets/dsh-patrol-page.png",
+    "site/assets/dsh-stats-layer.png",
     "site/assets/dsh-task-detail.png",
     "site/assets/openclaw-cron.png",
     "examples/cli/*",

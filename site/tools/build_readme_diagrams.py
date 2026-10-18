@@ -232,6 +232,9 @@ ICON = {
     'rows': '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>',
     'config': '<path d="M6 3h8l4 4v14H6ZM14 3v5h4M10.5 12l-2 2.5 2 2.5M13.5 12l2 2.5-2 2.5"/>',
     'lock': '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/>',
+    # The author's host: an entry file that is a link, and the one copy of notes it links to.
+    'link': '<rect x="2" y="9" width="11" height="6" rx="3"/><rect x="11" y="9" width="11" height="6" rx="3"/>',
+    'notes': '<path d="M8 3h11v15H8ZM5 6v15h11M11 8h5m-5 4h5"/>',
 }
 # Arrowheads, 10 units tall, tip half a unit past the reference point that sits
 # on the connector's end: (path, filled, reference x).
@@ -501,7 +504,8 @@ class D:
         brief; `chat` is a chat channel and `pulse` sentiment; `clock` a
         schedule and `alarm` the watchdog; `lens` is research and `scan` the
         patrol; `replay` is a backtest, `cycle` a daily loop, `eight` the two
-        loops round the record, `closed` a closed issue.
+        loops round the record, `closed` a closed issue; `link` an entry file
+        that is a link, `notes` the one copy of agent notes it points at.
         """
         self.add(f'<g class="hero-icon" data-icon="{name}" transform="translate({x:g} {y:g}) scale({size / 24:g})" '
                  f'fill="none" stroke="{ROLE[role]}" stroke-width="1.7" stroke-linecap="round" '
@@ -2989,6 +2993,133 @@ def proposal_review():
     d.text(M + 20, bottom + 36, note, 'm', fill=MUT)
     return d.render(bottom + 36 + M)
 
+#: What the author's host links, read off the host when this was drawn: each agent's
+#: own instruction file, and how it reaches the notes. Nothing here ships in the package.
+AGENTS = (('claude-code', 'Claude Code', 'CLAUDE.md', 'loads the index at start'),
+          ('codex', 'Codex', 'AGENTS.md', 'searches on demand'),
+          ('deepseek-harness', 'dsh', 'AGENTS.md', 'searches on demand'),
+          (None, 'OpenCode', 'AGENTS.md', 'searches on demand'))
+#: The shared instructions' own headings, and the index's file-name prefixes.
+GUIDANCE = ('# Shared coding-agent guidance', '## Where things live', '## Memory',
+            '## Working on this host', '## Delegation')
+TOPICS = (('feedback-', 'what the author asked for'), ('lessons-', 'what several incidents taught'),
+          ('decision-', 'a product decision'), ('project-', 'how one system works'),
+          ('incident-', 'one failure, analysed'), ('reference-', 'where to look something up'),
+          ('archive', 'older notes, still searched'))
+
+
+def shared_memory():
+    """site/assets/shared-memory.svg — why every agent on the author's host remembers the same things."""
+    d = D('On the author’s host, four agents read one memory: links, not sync',
+          'A picture of the author’s own host, not something the clawock package installs, in four '
+          'numbered parts. One: work starts two ways, a session the author opens in a terminal or in '
+          'dsh chat, or a task the agent-dispatch queue starts at any hour; both start in the same '
+          'home folder. Two: Claude Code, Codex, dsh and OpenCode each read their own instruction '
+          'file, CLAUDE.md or AGENTS.md, and every one of those files is a link to the same shared '
+          'instructions. Claude Code loads the memory index when it starts; the other three search '
+          'it when a task needs it. Three: there is one copy on disk: the shared instructions, whose '
+          'headings are shown, and a memory index of topic notes named by kind, feedback, lessons, '
+          'decision, project, incident and reference, with an archive; every agent reads and writes '
+          'it through one small script. Nothing is copied between agents, so a correction written '
+          'once is what all four read next. Four: what this does not do: only Claude Code loads the '
+          'index by itself; Codex keeps its own memory feature off, because turned on it would '
+          'write a second copy; the notes have no version history and no backup; and nothing '
+          'checks that the links are still in place.')
+    y = d.header('THE AUTHOR’S HOST · SHARED AGENT MEMORY',
+                 ['Four agents, one memory. Nothing is synced.'],
+                 ['Each agent’s own instruction file is a link to the same copy. Not part of the package.'],
+                 [('how work starts', 'slate'), ('the queue', 'blue'), ('the one copy', 'violet'),
+                  ('known gaps', 'warm')])
+    full, gap = d.pw - 2 * M, 24
+
+    # --- 01: two ways work starts, both in the same home folder -----------------------
+    y += 44
+    ah, aw = 116, 520
+    ax2, aw2 = M + aw + gap, full - aw - gap
+    d.section(y - 12, '01 · WORK STARTS IN ONE HOME FOLDER')
+    top = _panel(d, M, y, aw, ah, 'slate', 'terminal', 'You open a session', 'INTERACTIVE')
+    _said(d, M + 20, top + 4, aw - 40,
+          ['In a terminal or in dsh chat, from the home folder.',
+           'Whichever agent you open, it reads the same files.'], 'start note')
+    d.section(y - 12, '· OR THE QUEUE STARTS ONE', x=ax2)
+    top = _panel(d, ax2, y, aw2, ah, 'blue', 'clipboard', 'A queued task starts', 'THE QUEUE')
+    _said(d, ax2 + 20, top + 4, aw2 - 40,
+          ['Every new task runs in that folder,', 'so a task at 3 a.m. reads the same notes.'], 'queue note')
+
+    # --- 02: four agents, four entry files, one target --------------------------------
+    a_bottom = y + ah
+    y = a_bottom + 48
+    bh = 178
+    d.down(M + aw - 90, a_bottom, y, pulses=(0,), kind='task')
+    d.down(ax2 + aw2 / 2, a_bottom, y, pulses=(.9,), kind='task', carry='clipboard')
+    d.section(y - 12, '02 · EACH AGENT’S OWN FILE IS A LINK')
+    top = _panel(d, M, y, full, bh, 'slate', 'link', 'Four entry files, one target', 'LINKED · NOT COPIED')
+    xs, tw = columns(4, gap=12, x0=M + 16, w=full - 32)
+    th = 100
+    for x, (logo, name, entry, load) in zip(xs, AGENTS):
+        _tile(d, x, top - 12, tw, th, 'slate')
+        if logo:
+            d.logo(logo, x + 14, top + 2, 34)
+        else:
+            d.wordmark_tile(x + 14, top + 2, 34, '[', ']')
+        fits(name, 'b', tw - 70, 'agent name')
+        d.text(x + 60, top + 16, name, 'b')
+        d.icon('link', x + 60, top + 22, 'slate', size=16)
+        _code(d, x + 82, top + 35, entry, tw - 96, 'entry file', fill=MUT)
+        fits(load, 'm', tw - 28, 'agent load')
+        d.text(x + 14, top + 72, load, 'm', fill=MUT)
+
+    # --- 03: the one copy -------------------------------------------------------------
+    b_bottom = y + bh
+    y = b_bottom + 56
+    ch = 318
+    for i, x in enumerate(xs):
+        d.wire(f'M{x + tw - 40:g} {y:g}V{b_bottom + 2:g}', pulses=(i * .5,), kind='data', carry='notes')
+    d.wire(f'M{xs[1] + tw + 6:g} {b_bottom:g}V{y - 2:g}', pulses=(.3,), kind='feedback')
+    d.section(y - 12, '03 · ONE COPY ON DISK')
+    top = _panel(d, M, y, full, ch, 'violet', 'notes', 'Read by all four, written once', 'THE AUTHOR’S HOST',
+                 tint=True)
+    lw = 380
+    rx, rw = M + 16 + lw + 16, full - 48 - lw
+    wy = _window(d, M + 16, top - 8, lw, 186, 'AGENTS.md · shared rules')
+    for i, line in enumerate(GUIDANCE):
+        _code(d, M + 30, wy + 24 + i * 22, line, lw - 28, 'guidance', fill=INK if i == 0 else ROLE['violet'])
+    wy = _window(d, rx, top - 8, rw, 186, 'MEMORY.md · the index')
+    for i, (prefix, kind) in enumerate(TOPICS):
+        ly = wy + 22 + i * 21
+        _code(d, rx + 14, ly, prefix, 110, 'topic prefix', fill=ROLE['violet'])
+        fits(kind, 'm', rw - 140, 'topic kind')
+        d.text(rx + 126, ly, kind, 'm', fill=MUT)
+    sy = top + 210
+    _code(d, M + 20, sy, "$ memory.py search '<terms>'", 300, 'script', fill=INK)
+    _said(d, M + 330, sy, full - 350, ['One small script for all four: search, read, add, doctor.'], 'script note')
+    _said(d, M + 20, sy + 26, full - 40,
+          ['Nothing is copied between agents, so a correction written once is what all four read next.'],
+          'copy note', fill=INK)
+
+    # --- 04: what it does not do ------------------------------------------------------
+    c_bottom = y + ch
+    y = c_bottom + 48
+    dh = 192
+    d.down(M + full / 2, c_bottom, y, pulses=(0,), kind='alert')
+    d.section(y - 12, '04 · WHAT THIS DOES NOT DO')
+    top = _panel(d, M, y, full, dh, 'warm', 'shield', 'Known gaps, as they are today', 'NOT HIDDEN')
+    gx, gw = columns(2, gap=12, x0=M + 16, w=full - 32)
+    gaps = (('Only Claude Code loads it by itself', 'The other three search it when a task needs it.'),
+            ('Codex keeps its own memory feature off', 'Turned on, it would write a second copy.'),
+            ('No version log and no backup', 'One copy on one disk: lose it and it is gone.'),
+            ('Nothing checks the links', 'A link that breaks fails quietly.'))
+    for i, (head, body) in enumerate(gaps):
+        x, ty = gx[i % 2], top - 12 + (i // 2) * 66
+        _tile(d, x, ty, gw, 56, 'warm')
+        _cross(d, x + 16, ty + 22)
+        fits(head, 'b', gw - 56, 'gap head')
+        fits(body, 'm', gw - 56, 'gap body')
+        d.text(x + 40, ty + 24, head, 'b')
+        d.text(x + 40, ty + 44, body, 'm', fill=MUT)
+    return d.render(y + dh + M)
+
+
 LAYOUTS = {
     'plugin-system': plugin_system,
     'strategy-plugins': strategy_plugins,
@@ -2998,6 +3129,7 @@ LAYOUTS = {
     'feedback-learning': feedback_learning,
     'decision-pipeline': decision_pipeline,
     'harnesses': harnesses,
+    'shared-memory': shared_memory,
     'information-flow': information_flow,
     'architecture': architecture,
     'product-architecture': product_architecture,
