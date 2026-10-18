@@ -1,0 +1,10 @@
+[Unit]
+Description=Snapshot shared agent memory every 10 minutes
+
+[Timer]
+OnCalendar=*:04/10
+AccuracySec=1min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

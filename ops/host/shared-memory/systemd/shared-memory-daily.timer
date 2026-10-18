@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily shared agent memory backup and self-check
+
+[Timer]
+OnCalendar=*-*-* 04:17
+AccuracySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

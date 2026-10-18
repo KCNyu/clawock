@@ -25,6 +25,10 @@
 #      changes reach it only through `install_patrol_assets.sh` (same shape as
 #      the runner's installer; nothing restarts, every round rereads them). The
 #      supervisor `patrol.sh` itself stays a manual install (ops/host/README.md).
+#   5. the coding agents' shared-memory skill — every agent loads it from
+#      ~/.agents/skills/shared-memory, a copy, so `ops/host/shared-memory/` changes
+#      reach it only through `install_shared_memory.sh` (same shape again; the
+#      systemd timers are re-rendered when this host has them).
 #
 # None needs npm publish or a PyPI release: publishing is for people who are
 # not this host. See docs/operations/release.md § Running the latest code here.
@@ -83,6 +87,19 @@ install_patrol() {
   bash ops/host/install_patrol_assets.sh --check
 }
 PATROL_STALE="the installed patrol assets fail install_patrol_assets.sh --check: they need installing"
+# The shared-memory skill, compared by content like the runner and for the same reason.
+MEMORY_KIT_DIR="${SHARED_MEMORY_SKILL_DIR:-$HOME/.agents/skills/shared-memory}"
+memory_kit_differs() {
+  [ -d "$MEMORY_KIT_DIR" ] && [ -f ops/host/install_shared_memory.sh ] &&
+    ! bash ops/host/install_shared_memory.sh --check >/dev/null 2>&1
+}
+install_memory_kit() {
+  local units=()
+  [ -f "${SHARED_MEMORY_UNIT_DIR:-/etc/systemd/system}/shared-memory-daily.service" ] && units=(--units)
+  bash ops/host/install_shared_memory.sh "${units[@]}"
+  bash ops/host/install_shared_memory.sh --check
+}
+MEMORY_KIT_STALE="the installed shared-memory skill fails install_shared_memory.sh --check: it needs installing"
 
 if [ "$behind" = "0" ]; then
   echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
@@ -101,13 +118,19 @@ if [ "$behind" = "0" ]; then
     patrol_stale=1
     echo "  → $PATROL_STALE"
   fi
+  memory_stale=0
+  if memory_kit_differs; then
+    memory_stale=1
+    echo "  → $MEMORY_KIT_STALE"
+  fi
   if [ "$check_only" = "1" ]; then
-    [ $((runner_stale + patrol_stale)) -gt 0 ] && { echo "(--check: nothing written)"; exit 1; }
+    [ $((runner_stale + patrol_stale + memory_stale)) -gt 0 ] && { echo "(--check: nothing written)"; exit 1; }
     [ "$ops_stale" = "1" ] && exit 1
     exit 0
   fi
   [ "$runner_stale" = "1" ] && install_runner
   [ "$patrol_stale" = "1" ] && install_patrol
+  [ "$memory_stale" = "1" ] && install_memory_kit
   exit 0
 fi
 
@@ -132,7 +155,12 @@ if [ "$needs_patrol" = "1" ] || patrol_differs; then
   needs_patrol=1
   echo "  → patrol assets moved or differ: /root/tools/clawock-patrol needs install_patrol_assets.sh"
 fi
-pending=$((needs_venv + needs_plugin + needs_runner + needs_ops + needs_patrol))
+needs_memory=0
+if grep -qE '^ops/host/(shared-memory/|install_shared_memory\.sh$)' <<<"$changed" || memory_kit_differs; then
+  needs_memory=1
+  echo "  → shared-memory skill moved or differs: $MEMORY_KIT_DIR needs install_shared_memory.sh"
+fi
+pending=$((needs_venv + needs_plugin + needs_runner + needs_ops + needs_patrol + needs_memory))
 if [ "$needs_runner" = "0" ] && runner_differs; then
   echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
   pending=$((pending + 1))
@@ -203,6 +231,11 @@ if [ "$needs_patrol" = "1" ] && [ ! -d "$PATROL_DIR" ]; then
   echo "no clawock-patrol installation on this host — skipped the patrol assets install" >&2
 elif [ "$needs_patrol" = "1" ] || patrol_differs; then
   install_patrol
+fi
+if [ "$needs_memory" = "1" ] && [ ! -d "$MEMORY_KIT_DIR" ]; then
+  echo "no shared-memory skill installed on this host — skipped its install" >&2
+elif [ "$needs_memory" = "1" ] || memory_kit_differs; then
+  install_memory_kit
 fi
 if ops_differs; then
   echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"

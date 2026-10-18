@@ -1,0 +1,9 @@
+[Unit]
+Description=Commit shared agent memory changes into its local history (memctl snapshot)
+
+[Service]
+Type=oneshot
+Environment=HOME=@HOME@
+ExecStart=/usr/bin/python3 @SKILL_DIR@/scripts/memctl snapshot --timer --settle 120 --quiet --reason "periodic snapshot (direct edits)"
+Nice=10
+IOSchedulingClass=idle
