@@ -129,7 +129,7 @@ export function statsText(view: StatsView, t: Translate, plain = false): string 
     return out.join('\n')
   }
   if (plain) {
-    out.push('', literal(view.headline))
+    out.push('', literal(view.summaryLine))
     for (const agent of view.agents) {
       out.push('', literal(agent.label + '  ' + bar(agent.share * 100) + '  ' + agent.tokensText + ' · ' + agent.costText))
       const parts = [
