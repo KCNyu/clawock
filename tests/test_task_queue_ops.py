@@ -766,3 +766,39 @@ def test_ended_task_appends_are_undelivered_with_a_drop_event(q):
     r = subprocess.run([sys.executable, str(OPS), "brief", "drop-task"], env=q.env,
                        capture_output=True, text=True, timeout=30)
     assert "not delivered (task ended)" in r.stdout and "pending" not in r.stdout
+
+
+def test_summary_daily_buckets_use_the_same_frozen_result_and_skip_patrol(q):
+    """The stats chart's per-day buckets are the summary's own frozen numbers, not a second read.
+
+    A live task is a task but not a token; an empty TOKENS_TOTAL is unknown, not 0; a patrol
+    round and a task older than --since are absent; the per-day sums equal the agent totals.
+    """
+    def task(tid, agent, result, created):
+        d = q.task(tid, agent=agent, result=result)
+        (d / "meta.env").write_text((d / "meta.env").read_text() + f"CREATED={created}\n")
+        return d
+
+    task("a", "claude", "STATE=ok\nOUTCOME=DONE\nTOKENS_TOTAL=100\nCOST_USD=0.1\n", "2026-10-12 10:00:00")
+    task("b", "claude", "STATE=failed\nOUTCOME=BLOCKED\nTOKENS_TOTAL=\nCOST_USD=free\n", "2026-10-12 11:00:00")
+    task("c", "codex", "STATE=ok\nOUTCOME=DONE\nTOKENS_TOTAL=50\nCOST_USD=0.05\n", "2026-10-13 09:00:00")
+    task("d", "codex", "STATE=running\nTOKENS_TOTAL=999\nCOST_USD=9\n", "2026-10-13 10:00:00")
+    task("patrol-x", "claude", "STATE=ok\nOUTCOME=DONE\nTOKENS_TOTAL=999\nCOST_USD=9\n", "2026-10-12 12:00:00")
+    task("old", "claude", "STATE=ok\nOUTCOME=DONE\nTOKENS_TOTAL=999\nCOST_USD=9\n", "2026-10-11 12:00:00")
+
+    code, out = q.run("summary", "--since", "2026-10-12")
+    assert code == 0
+    assert out["daily"]["2026-10-12"]["claude"] == {"tasks": 2, "tokens": 100, "unknown": 1}
+    assert out["daily"]["2026-10-13"]["codex"] == {"tasks": 2, "tokens": 50, "unknown": 0}
+    assert set(out["daily"]) == {"2026-10-12", "2026-10-13"}, "only days with a task; patrol and old excluded"
+    for agent, agg in out["agents"].items():
+        days = [row.get(agent, {"tokens": 0, "unknown": 0}) for row in out["daily"].values()]
+        assert sum(day["tokens"] for day in days) == agg["tokens_total"]
+        assert sum(day["unknown"] for day in days) == agg["tokens_unknown"]
+    assert out["agents"]["claude"]["tokens_total"] == 100
+    assert out["agents"]["claude"]["tokens_unknown"] == 1
+    assert out["agents"]["codex"]["live"] == 1
+
+    code, all_time = q.run("summary")
+    assert code == 0
+    assert all_time["daily"] == {}, "no --since: no unbounded per-day payload"

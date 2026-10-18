@@ -34,9 +34,9 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, MINUS, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, compactCount, MINUS, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
-export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts'
+export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView } from './panel.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
 
@@ -1531,6 +1531,118 @@ function renderStatsError(message: string, t: Translate, retry: () => void): Rea
     h('button', { type: 'button', className: cx('tq-pill', 'tq-stats-retry'), onClick: retry }, t('stats.retry')))
 }
 
+/** A clean axis top: 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8 or 10 × 10^n. */
+function statsNiceMax(n: number): number {
+  if (!(n > 0)) return 1
+  const base = Math.pow(10, Math.floor(Math.log10(n)))
+  const x = n / base
+  const step = x <= 1 ? 1 : x <= 1.25 ? 1.25 : x <= 1.5 ? 1.5 : x <= 2 ? 2 : x <= 2.5 ? 2.5
+    : x <= 3 ? 3 : x <= 4 ? 4 : x <= 5 ? 5 : x <= 6 ? 6 : x <= 8 ? 8 : 10
+  return step * base
+}
+
+/**
+ * The daily chart: grouped provider bars on the left axis, one total line on the right axis.
+ * Both axes are tokens; the line's points are `day.total`, which `statsSeries` sums from the
+ * exact same per-provider values the bars use. Seven days are all present; a quiet day is a
+ * real 0 with an x label. The chart is static: the reader opened this page to read it, and a
+ * data figure is never tweened. The per-bar <title> is the native reading under the pointer.
+ */
+function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate): React.ReactElement {
+  const W = 320
+  const H = 172
+  const L = 34
+  const R = 34
+  const T = 12
+  const B = 30
+  const plotW = W - L - R
+  const plotH = H - T - B
+  const leftMax = statsNiceMax(series.maxProvider)
+  const rightMax = statsNiceMax(series.maxTotal)
+  const groupW = plotW / Math.max(1, series.days.length)
+  const count = Math.max(1, series.providers.length)
+  const barW = Math.max(3, Math.min(8, (groupW - 10) / count))
+  const groupWidth = count * barW + (count - 1)
+  const center = (i: number): number => L + groupW * (i + 0.5)
+  const yLeft = (v: number): number => T + plotH - (leftMax > 0 ? (v / leftMax) * plotH : 0)
+  const yRight = (v: number): number => T + plotH - (rightMax > 0 ? (v / rightMax) * plotH : 0)
+  const grid = [0, 0.5, 1]
+  const dayText = series.days.map((day) => day.label + ' ' + compactCount(day.total)).join('；')
+  const unknownText = series.unknown > 0 ? '（' + t('stats.chart.unknown', { n: series.unknown }) + '）' : ''
+  const aria = t('stats.chart.aria', { days: dayText, total: compactCount(series.total), unknown: unknownText })
+  const bars: React.ReactElement[] = []
+  for (const [at, day] of series.days.entries()) {
+    for (const [pi, provider] of series.providers.entries()) {
+      const value = day.tokens[provider.agent] ?? 0
+      if (value <= 0) continue
+      const height = Math.max(1, (value / leftMax) * plotH)
+      const x = L + groupW * at + (groupW - groupWidth) / 2 + pi * (barW + 1)
+      const unrecorded = day.unknowns[provider.agent] ?? 0
+      const unknown = unrecorded > 0
+      bars.push(h('rect', {
+        key: 'b-' + day.date + '-' + provider.agent, className: cx('tq-stats-chart-bar'),
+        'data-tq-stats-bar': 'true', 'data-day': day.date, 'data-provider': provider.agent,
+        'data-tokens': value, 'data-unknown': unknown ? 'true' : undefined,
+        x, y: T + plotH - height, width: barW, height, rx: 1,
+        style: { fill: 'var(' + provider.colorVar + ')' },
+      }, h('title', null,
+        provider.label + ' · ' + day.label + ' · ' + compactCount(value) + ' token'
+        + (unknown ? ' · ' + t('stats.chart.unknownShort', { n: unrecorded }) : ''))))
+    }
+  }
+  const points = series.days.map((day, i) => center(i) + ',' + yRight(day.total)).join(' ')
+  const notes: React.ReactElement[] = []
+  if (series.emptyDays > 0) notes.push(h('div', { key: 'zero', className: cx('tq-stats-chart-note') }, t('stats.chart.zero', { n: series.emptyDays })))
+  if (series.unknown > 0) notes.push(h('div', { key: 'unknown', className: cx('tq-stats-chart-note') }, t('stats.chart.unknown', { n: series.unknown })))
+  if (live > 0) notes.push(h('div', { key: 'live', className: cx('tq-stats-chart-note') }, t('stats.chart.live', { n: live })))
+  return h('section', { className: cx('tq-d-sec', 'tq-stats-chart-sec'), 'data-tq-stats-chart': 'true' },
+    h('div', { className: cx('tq-d-sec-title') }, t('stats.chart.title')),
+    h('div', { className: cx('tq-stats-chart-sub') }, t('stats.chart.sub')),
+    h('div', { className: cx('tq-stats-chart-wrap') },
+      h('svg', {
+        className: cx('tq-stats-chart-svg'), viewBox: '0 0 ' + W + ' ' + H,
+        role: 'img', 'aria-label': aria,
+      },
+        ...grid.map((frac) => h('line', {
+          key: 'g-' + frac, className: cx('tq-stats-chart-grid'),
+          x1: L, x2: W - R, y1: T + plotH - frac * plotH, y2: T + plotH - frac * plotH,
+        })),
+        ...grid.flatMap((frac) => [
+          h('text', { key: 'l-' + frac, x: L - 5, y: T + plotH - frac * plotH + 3, textAnchor: 'end' },
+            compactCount(leftMax * frac)),
+          h('text', { key: 'r-' + frac, x: W - R + 5, y: T + plotH - frac * plotH + 3, textAnchor: 'start' },
+            compactCount(rightMax * frac)),
+        ]),
+        ...series.days.map((day, i) => h('text', {
+          key: 'x-' + day.date, x: center(i), y: T + plotH + 15, textAnchor: 'middle',
+        }, day.label)),
+        ...bars,
+        h('polyline', {
+          className: cx('tq-stats-chart-total'), 'data-tq-stats-line': 'true',
+          points, fill: 'none',
+        }),
+        ...series.days.map((day, i) => h('circle', {
+          key: 'd-' + day.date, className: cx('tq-stats-chart-dot'),
+          'data-tq-stats-total': day.total, 'data-day': day.date,
+          cx: center(i), cy: yRight(day.total), r: 2.4,
+        }))),
+    ),
+    h('div', { className: cx('tq-stats-chart-legend') },
+      ...series.providers.map((provider) => h('span', {
+        key: 'p-' + provider.agent, className: cx('tq-stats-chart-legend-item'),
+      },
+        h('span', {
+          className: cx('tq-stats-chart-swatch'), 'aria-hidden': 'true',
+          style: { background: 'var(' + provider.colorVar + ')' },
+        }),
+        provider.label, ' ', compactCount(provider.tokens), provider.unknown > 0 ? ' +?' : '')),
+      h('span', { className: cx('tq-stats-chart-legend-item', 'tq-stats-chart-legend-total') },
+        h('span', { className: cx('tq-stats-chart-total-swatch'), 'aria-hidden': 'true' }),
+        t('stats.chart.total'), ' ', compactCount(series.total), series.unknown > 0 ? ' +?' : '')),
+    ...notes)
+}
+
+
 /**
  * The chart layer. It opens from the card like a task opens its detail (same `.tq-layer`,
  * same back bar, same focus move); the data is already in hand, so there is no second read.
@@ -1578,6 +1690,7 @@ function renderStatsDetail(stats: StatsView, t: Translate, back: () => void, bac
       h('span', { className: cx('tq-caption') }, stats.window)),
     h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
       h('div', { className: cx('tq-stats-summary') }, stats.summaryLine),
+      stats.series === null ? null : renderStatsSeries(stats.series, stats.totals.live, t),
       h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'tokens' },
         h('div', { className: cx('tq-d-sec-title') }, t('stats.tokenHeading')),
         ...stats.agents.map(tokenRow)),
@@ -1697,14 +1810,16 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
     model.recent === null ? null : h('section', { className: cx('tq-group', 'tq-section'), key: 'recent', 'data-tq-group': 'recent' },
       renderRow(model.recent.head, t),
       renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
-    // The stats tile is not a fold: one card between the ended list and patrol. It is the
-    // only consumer of the lazy taskStats read, and only exists when that read answered.
+    model.patrol === null ? null : renderPatrolSection(model.patrol, t, ui.openCoverage),
+    // The stats tile is the closing summary, after patrol and before the ops footer: a 7-day
+    // retrospective, not a neighbour of recently ended. It is still the only consumer of the
+    // lazy taskStats read and only exists when that read answered. The card is not duplicated
+    // at the top: the queue is the opening view, the stats is the close.
     model.stats !== null && statsState.error === null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen)
       : statsState.loading && statsState.data === null ? renderStatsSkeleton(t)
         : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh)
           : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh)
             : null,
-    model.patrol === null ? null : renderPatrolSection(model.patrol, t, ui.openCoverage),
     model.footer === null ? null : h('div', { className: cx('tq-sub', 'tq-foot', model.footer.bad && 'tq-bad'), key: 'ops', 'data-tq-ops': model.footer.version }, model.footer.text),
   ])]
 }

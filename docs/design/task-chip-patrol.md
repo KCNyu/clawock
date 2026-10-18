@@ -19,7 +19,7 @@ the band counts, the amber area bars and the long panel notes are gone.
 
 ## The structure
 
-![The patrol section: the live head, a 6px outcome strip, all eight rounds in one list, and one coverage link.](task-chip-patrol-summary.png)
+![The patrol section: the live head, a 6px outcome strip, all eight rounds in one list, one coverage link, and the stats card closing the panel.](task-chip-patrol-summary.png)
 
 **One list.** The host sends at most eight rounds (`TaskQueueResult.patrol.rounds`). The panel
 renders all of them in the same well, newest first. There is no "earlier N rounds" row, no second
@@ -40,6 +40,10 @@ last. It opens the coverage page in the same `.tq-layer` / back bar / focus move
 and the stats card. It is not a browser route and not a fourth card; the page uses the panel's
 own surface and returns with the back button or Escape. Because the page replaces the list, the
 rounds and the archive never sit next to each other as two disclosures.
+
+Below the patrol section, the stats card is the panel's closing summary, above the ops footer; it
+is no longer beside recently ended. The card and its 7-day daily chart are documented separately
+in [`task-chip-stats.md`](task-chip-stats.md).
 
 ![The coverage page: the existing detail chrome, the areas table, the lens ledger, the caveats and the provenance.](task-chip-patrol-coverage.png)
 

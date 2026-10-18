@@ -1143,8 +1143,10 @@ def usage_env(out: dict) -> str:
 
 def cmd_summary(args) -> dict:
     """Per agent: tasks by runner STATE and model OUTCOME, and the token/cost numbers each task froze
-    into result.env when it ended. Never rereads a session: a later task continuing the same session
-    would be counted twice. COST_USD is an API list-price estimate, not subscription quota spent."""
+    into result.env when it ended. A bounded --since window also gets per-day provider token buckets
+    for the stats chart, from those same frozen numbers. Never rereads a session: a later task
+    continuing the same session would be counted twice. COST_USD is an API list-price estimate, not
+    subscription quota spent."""
     agents = [a for a in (args.agent or "").split(",") if a] or list(AGENTS)
     if any(a not in AGENTS for a in agents):
         raise OpsError(2, f"--agent takes {','.join(AGENTS)}")
@@ -1152,6 +1154,11 @@ def cmd_summary(args) -> dict:
         raise OpsError(2, "--since takes YYYY-MM-DD")
     out = {a: {"tasks": 0, "states": {}, "outcomes": {}, "tokens_total": 0, "tokens_unknown": 0,
                "cost_usd_estimate": 0.0, "cost_unpriced": 0, "cost_free": 0, "live": 0} for a in agents}
+    # Per-day buckets for the stats chart, built in the same pass and from the same frozen
+    # result.env numbers as the aggregates. Only a bounded --since window is bucketed; the
+    # all-time summary leaves this empty instead of carrying years of days. A day with no task
+    # is absent here and is filled as a real 0 by the reader, not treated as missing.
+    daily = {} if args.since else None
     for meta_file in sorted(TASKS_DIR.glob("*/meta.env")):
         d = meta_file.parent
         if d.name.startswith("patrol-") and not args.all:
@@ -1163,6 +1170,11 @@ def cmd_summary(args) -> dict:
         state = result.get("STATE") or "pending"
         g["tasks"] += 1
         g["states"][state] = g["states"].get(state, 0) + 1
+        date = meta.get("CREATED", "")[:10]
+        day = None
+        if daily is not None and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+            day = daily.setdefault(date, {a: {"tasks": 0, "tokens": 0, "unknown": 0} for a in agents})[meta["AGENT"]]
+            day["tasks"] += 1
         if state not in TERMINAL:
             g["live"] += 1   # its numbers are still moving: counted as a task, not in the totals
             continue
@@ -1171,8 +1183,12 @@ def cmd_summary(args) -> dict:
         total, cost = result.get("TOKENS_TOTAL", ""), result.get("COST_USD", "")
         if total.isdigit():
             g["tokens_total"] += int(total)
+            if day is not None:
+                day["tokens"] += int(total)
         else:
             g["tokens_unknown"] += 1   # empty is unknown, never 0
+            if day is not None:
+                day["unknown"] += 1
         if cost == "free":
             g["cost_free"] += 1
         else:
@@ -1183,6 +1199,7 @@ def cmd_summary(args) -> dict:
     for g in out.values():
         g["cost_usd_estimate"] = round(g["cost_usd_estimate"], 2)
     return {"ok": True, "since": args.since or None, "patrol_included": bool(args.all), "agents": out,
+            "daily": daily or {},
             "cost_kind": "estimate", "note": "tokens and COST_USD as frozen at each task's end; COST_USD "
             "is an API list-price estimate, not subscription quota; live tasks are not in the totals"}
 

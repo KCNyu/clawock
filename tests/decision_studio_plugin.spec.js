@@ -3382,6 +3382,15 @@ test("client: one provider cell carries the queue under each agent's provider an
         outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
         tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
     ],
+    daily: {
+      "2026-10-11": { claude: { tasks: 10, tokens: 100000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
+      "2026-10-12": { claude: { tasks: 10, tokens: 110000000, unknown: 0 }, codex: { tasks: 6, tokens: 30000000, unknown: 0 } },
+      "2026-10-13": { claude: { tasks: 0, tokens: 0, unknown: 0 }, codex: { tasks: 0, tokens: 0, unknown: 0 } },
+      "2026-10-14": { claude: { tasks: 9, tokens: 90000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
+      "2026-10-15": { claude: { tasks: 9, tokens: 100000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
+      "2026-10-16": { claude: { tasks: 9, tokens: 110000000, unknown: 0 }, codex: { tasks: 6, tokens: 30000000, unknown: 8 } },
+      "2026-10-17": { claude: { tasks: 9, tokens: 115213302, unknown: 1 }, codex: { tasks: 5, tokens: 26534676, unknown: 0 } },
+    },
   };
   let forced = 0;
   let statsCalls = 0;
@@ -3575,7 +3584,23 @@ test("client: one provider cell carries the queue under each agent's provider an
   }
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
 
-  // The stats card: one lazy read per panel open, then one tile between recent and patrol.
+  // The stats card: one lazy read per panel open, then the closing tile after patrol and before
+  // the ops footer. It is deliberately not beside recently ended; the queue is the opening view,
+  // the 7-day retrospective is the close. The footer stays last (metadata, not content).
+  const all = [];
+  (function walk(node) {
+    if (node == null || typeof node !== "object") return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    all.push(node);
+    (node.children || []).forEach(walk);
+  })(popover);
+  const at = (pred) => all.findIndex((node) => pred(node.props || {}));
+  const recentAt = at((p) => p["data-tq-group"] === "recent");
+  const patrolAt = at((p) => p["data-tq-group"] === "patrol");
+  const statsAt = at((p) => p["data-tq-stats-card"] === "true");
+  const opsAt = at((p) => p["data-tq-ops"] !== undefined);
+  assert.ok(recentAt >= 0 && patrolAt > recentAt && statsAt > patrolAt && (opsAt < 0 || opsAt > statsAt),
+    `stats sits at the bottom: recent ${recentAt}, patrol ${patrolAt}, stats ${statsAt}, ops ${opsAt}`);
   const statsCard = find(popover, (p) => p["data-tq-stats-card"] === "true")[0];
   assert.ok(statsCard, "the stats card is in the open panel");
   assert.equal(statsCalls, 1, "one summary read, not one per queue poll");
@@ -3592,6 +3617,47 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(doneRows[0]), /Claude Code 完成 42\/55 部分 9 .*未完成 4/);
   assert.match(texts(statsLayer), /API 估价非订阅额度/);
   assert.doesNotMatch(texts(statsLayer), /token 未知|已结束任务冻结值|巡检不计/);
+  // The daily chart: seven days, grouped provider bars, one total line whose points are the
+  // exact sums of the bars, a real zero day and a lower-bound note for unrecorded tokens.
+  const chart = find(statsLayer, (p) => p["data-tq-stats-chart"] === "true")[0];
+  assert.ok(chart, "the stats layer has the daily chart");
+  assert.match(texts(chart), /每日 token · 按 provider/);
+  assert.match(texts(chart), /柱是 provider · 线是总计（右轴）/);
+  const days = find(chart, (p) => p["data-tq-stats-total"] !== undefined);
+  assert.equal(days.length, 7, "seven days, including the quiet one");
+  assert.deepEqual(days.map((d) => d.props["data-day"]), ["2026-10-11", "2026-10-12", "2026-10-13",
+    "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17"]);
+  assert.deepEqual(days.map((d) => d.props["data-tq-stats-total"]), [125000000, 140000000, 0, 115000000,
+    125000000, 140000000, 141747978], "the line points are the daily sums, zero day included");
+  assert.equal(days.reduce((sum, d) => sum + d.props["data-tq-stats-total"], 0), 786747978,
+    "the line sums to the card's token total");
+  const bars = find(chart, (p) => p["data-tq-stats-bar"] !== undefined);
+  assert.equal(bars.length, 12, "two providers on six non-zero days");
+  assert.deepEqual(bars.filter((b) => b.props["data-day"] === "2026-10-13").length, 0, "a zero day has no bar, only its label and line point");
+  assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "claude").map((b) => b.props["data-tokens"]),
+    [100000000, 110000000, 90000000, 100000000, 110000000, 115213302]);
+  assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "codex").map((b) => b.props["data-tokens"]),
+    [25000000, 30000000, 25000000, 25000000, 30000000, 26534676]);
+  assert.deepEqual(bars.filter((b) => b.props["data-unknown"] === "true").map((b) => [b.props["data-day"], b.props["data-provider"]]),
+    [["2026-10-16", "codex"], ["2026-10-17", "claude"]], "only the provider-days with unrecorded tokens are marked");
+  assert.match(texts(chart), /125M/);
+  assert.match(texts(chart), /150M/);
+  assert.match(texts(chart), /Claude Code\s+625\.2M\s+\+\?/);
+  assert.match(texts(chart), /Codex\s+161\.5M\s+\+\?/);
+  assert.match(texts(chart), /总计\s+786\.7M\s+\+\?/);
+  assert.match(texts(chart), /1 天没有任务，按 0 计/);
+  assert.match(texts(chart), /9 个任务未记录 token/);
+  assert.match(texts(chart), /1 个进行中任务未计入 token/);
+  assert.equal(find(chart, (p) => /_tq-stats-chart-note$/.test(p.className || "")).length, 3,
+    "the zero, unknown and live caveats are each one note");
+  const svg = find(chart, (p) => p.role === "img")[0];
+  assert.ok(svg, "the chart is one labelled image for a screen reader");
+  assert.match(svg.props["aria-label"], /每日 token：/);
+  assert.match(svg.props["aria-label"], /总计 786\.7M/);
+  const line = find(chart, (p) => p["data-tq-stats-line"] !== undefined)[0];
+  assert.equal(line.props.points.split(" ").length, 7, "the polyline has one point per day");
+  assert.deepEqual([...new Set(bars.map((b) => b.props.style.fill))],
+    ["var(--tq-series-1)", "var(--tq-series-2)"], "providers use the local categorical series, not semantic state colours");
   assert.equal(statsCalls, 1, "opening the layer does not reread");
   find(statsLayer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
@@ -3941,6 +4007,12 @@ test("task queue host: stats rereads the frozen summary only, never sessions; un
       codex: { tasks: 2, live: 0, states: { ok: 1, failed: 1 }, outcomes: { DONE: 1, "-": 1 },
         tokens_total: 500, tokens_unknown: 1, cost_usd_estimate: 0, cost_unpriced: 1, cost_free: 0 },
     },
+    daily: {
+      "2026-10-05": {
+        claude: { tasks: 2, tokens: 1000, unknown: 0 },
+        codex: { tasks: 1, tokens: 500, unknown: 1 },
+      },
+    },
   };
   const calls = [];
   const runOps = async (_path, args) => { calls.push(args); return { code: 0, stdout: JSON.stringify(raw), stderr: "" }; };
@@ -3955,6 +4027,14 @@ test("task queue host: stats rereads the frozen summary only, never sessions; un
       [["claude", 3, 1, 1000, 0], ["codex", 2, 0, 500, 1]]);
     assert.deepEqual(stats.agents[1].outcomes, [{ name: "DONE", count: 1 }, { name: "-", count: 1 }]);
     assert.equal(stats.agents[1].costUnpriced, 1, "an unpriced task is counted apart, not as $0");
+    assert.deepEqual(stats.daily, raw.daily, "the daily rows come through the same read");
+    assert.equal(stats.daily["2026-10-05"].claude.tokens, 1000);
+    const noDaily = await tq.readStats(config, { runOps: async () => ({ code: 0, stdout: JSON.stringify({ ...raw, daily: undefined }), stderr: "" }) }, { days: 7 });
+    assert.equal(noDaily.available, true);
+    assert.equal(noDaily.daily, undefined, "an older ops entry without daily still has a usable stats card");
+    const badDaily = await tq.readStats(config, { runOps: async () => ({ code: 0, stdout: JSON.stringify({ ...raw, daily: { "2026-10-05": { claude: { tasks: "2" } } } }), stderr: "" }) }, { days: 7 });
+    assert.equal(badDaily.available, false);
+    assert.match(badDaily.error, /unreadable daily row/);
     await tq.readStats(config, { runOps }, { days: 30, patrol: true });
     assert.deepEqual(calls[1], ["summary", "--since", tq.sinceDay(30), "--all"]);
     await tq.readStats(config, { runOps }, { since: "2026-09-01" });
@@ -4431,6 +4511,13 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /_tq-cov-clear-mark\{[^}]*color:var\(--tq-text-ok\)/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-seg[^{]*\{transition:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{transition:none\}/);
+  // Provider categories use the local cool run (the dsh theme has no --viz-*); the total line
+  // is the strong ink, not a seventh series. No hand-picked hex and no semantic state token is
+  // reused as a provider colour.
+  assert.match(css, /--tq-series-1:var\(--tq-run\)/);
+  assert.match(css, /--tq-series-total:var\(--tq-ink\)/);
+  assert.match(css, /_tq-stats-chart-total\{[^}]*stroke:var\(--tq-series-total\)/);
+  assert.doesNotMatch(css, /stroke:var\(--viz-warm\)/);
 
 });
 
@@ -4834,6 +4921,9 @@ test("dispatch stats: a table for /dispatch-stats, a bar fallback, and the wire'
       { agent: "opencode", tasks: 0, live: 0, states: [], outcomes: [],
         tokensTotal: 0, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0 },
     ],
+    daily: {
+      "2026-10-11": { claude: { tasks: 2, tokens: 1000, unknown: 0 }, codex: { tasks: 1, tokens: 500, unknown: 1 } },
+    },
   };
   const reply = chat.dispatchStatsText(stats, t);
   assert.ok(reply.startsWith("# 派发统计 · 近 7 天 · 91 项（进行中 1）"), "the title carries the window, total and live count");

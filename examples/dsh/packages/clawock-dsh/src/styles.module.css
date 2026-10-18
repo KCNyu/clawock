@@ -1692,6 +1692,17 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-chart-wait:color-mix(in srgb, var(--tq-wait) 35%, transparent);
   --tq-chart-bad:color-mix(in srgb, var(--tq-bad) 35%, transparent);
   --tq-chart-idle:color-mix(in srgb, var(--tq-idle) 35%, transparent);
+  /* Provider categories are not states. The dashboard's --viz-* series is not exposed in the
+     dsh theme, so the stats chart defines its local cool run from the same business blue and
+     ink ladder: six steps separated by lightness, no new hue and no hex. The total line is
+     the strong ink, not a seventh category. */
+  --tq-series-1:var(--tq-run);
+  --tq-series-2:color-mix(in srgb, var(--tq-run) 62%, var(--tq-ink-3));
+  --tq-series-3:color-mix(in srgb, var(--tq-run) 32%, var(--tq-ink-3));
+  --tq-series-4:var(--tq-ink-3);
+  --tq-series-5:color-mix(in srgb, var(--tq-run) 82%, var(--tq-ink));
+  --tq-series-6:color-mix(in srgb, var(--tq-run) 45%, var(--tq-ink));
+  --tq-series-total:var(--tq-ink);
   --tq-radius:var(--dsw-radius-md);
   --tq-radius-sm:var(--dsw-radius-sm);
   --tq-radius-xs:var(--dsw-radius-xs);
@@ -2669,6 +2680,43 @@ body[data-ds-dark-theme] .pbc .bp {
   line-height:20px;
   font-variant-numeric:tabular-nums;
   color:var(--tq-ink)
+}
+.pbc .tq-stats-chart-sub {
+  margin:0 0 4px var(--tq-main-inset);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-chart-wrap { margin:0 0 6px var(--tq-main-inset) }
+.pbc .tq-stats-chart-svg { display:block; width:100%; height:auto; overflow:visible }
+.pbc .tq-stats-chart-svg text {
+  font:var(--dsw-font-xxs-12);
+  font-size:var(--fs-micro);
+  font-variant-numeric:tabular-nums;
+  fill:var(--tq-ink-3)
+}
+.pbc .tq-stats-chart-grid { stroke:var(--tq-hairline); stroke-width:.5 }
+.pbc .tq-stats-chart-total { stroke:var(--tq-series-total); stroke-width:2; stroke-linejoin:round; stroke-linecap:round }
+.pbc .tq-stats-chart-dot { fill:var(--tq-series-total) }
+.pbc .tq-stats-chart-legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:2px 10px;
+  margin:0 0 4px var(--tq-main-inset);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-chart-legend-item { display:inline-flex; align-items:center; gap:5px; white-space:nowrap }
+.pbc .tq-stats-chart-legend-total { color:var(--tq-ink-2) }
+.pbc .tq-stats-chart-swatch { flex:none; width:8px; height:8px; border-radius:2px }
+.pbc .tq-stats-chart-total-swatch { flex:none; width:14px; height:2px; border-radius:1px; background:var(--tq-series-total) }
+.pbc .tq-stats-chart-note {
+  margin:0 0 2px var(--tq-main-inset);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3);
+  overflow-wrap:anywhere
 }
 .pbc .tq-stats-row {
   display:flex;

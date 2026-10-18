@@ -17,7 +17,7 @@
  *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
  *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
- *   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
+ *   task_queue_ops.py --json summary     per-agent frozen tokens/cost + per-day buckets, read-only
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
  * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,

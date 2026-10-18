@@ -76,6 +76,11 @@ const clawock_dsh_clawockStudio_taskStats_result$schema = z.object({
   'costUnpriced': z.number(),
   'costFree': z.number(),
 })),
+  'daily': z.record(z.string(), z.record(z.string(), z.object({
+  'tasks': z.number(),
+  'tokens': z.number(),
+  'unknown': z.number(),
+}))).optional(),
 })
 const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
 const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({

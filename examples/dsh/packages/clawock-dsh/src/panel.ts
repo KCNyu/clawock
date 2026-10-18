@@ -1094,6 +1094,8 @@ export type StatsAgentView = {
   unfinished: number
   live: number
   tokens: number
+  /** Terminal tasks without a token record; the chart's daily bars are lower bounds. */
+  tokensUnknown: number
   tokensText: string
   costText: string
   /** Token length against the largest agent, 0..1 (the token bar's fill). */
@@ -1117,6 +1119,48 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
  * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
  * remainder. The footnote carries the caveats once, in one line.
  */
+/** One day's provider tokens (the chart's bars) and their exact sum (the line). */
+export type StatsDayView = {
+  /** YYYY-MM-DD, the window's local calendar day. */
+  date: string
+  /** MM/DD for the axis. */
+  label: string
+  /** tokens by agent, the same order as `providers`. */
+  tokens: Record<string, number>
+  /** Terminal tasks with no token record, by agent: that provider's bar is a lower bound. */
+  unknowns: Record<string, number>
+  /** Sum of `tokens`: the total line's value; never recalculated from another source. */
+  total: number
+  /** Terminal tasks on this day without a token record; the bar is a lower bound. */
+  unknown: number
+  /** Tasks created that day, live included; 0 is a real quiet day. */
+  tasks: number
+}
+
+export type StatsProviderView = {
+  agent: string
+  label: string
+  /** The design system's categorical chart token (`--viz-*`), stable per provider. */
+  colorVar: string
+  /** Sum over the window; the legend's number. */
+  tokens: number
+  unknown: number
+}
+
+export type StatsSeriesView = {
+  days: StatsDayView[]
+  providers: StatsProviderView[]
+  /** Largest single provider-day bar (left axis). */
+  maxProvider: number
+  /** Largest daily total (right axis); this is the sum of that day's bars. */
+  maxTotal: number
+  /** Sum over the window; should equal the selected agents' token totals. */
+  total: number
+  unknown: number
+  /** Days with no task at all: drawn at 0, not skipped. */
+  emptyDays: number
+}
+
 export type StatsView = {
   title: string
   /** The card's shorter name; the layer and the command use `title`. */
@@ -1130,8 +1174,70 @@ export type StatsView = {
   agents: StatsAgentView[]
   totals: StatsTotalsView
   maxTokens: number
+  /** The 7-day daily chart; null on an old ops entry or a window wider than 7 days. */
+  series: StatsSeriesView | null
   empty: string
   footnote: string
+}
+
+/** The host chart's categorical palette, in the design system's series order. */
+const VIZ_COLORS = ['--tq-series-1', '--tq-series-2', '--tq-series-3', '--tq-series-4', '--tq-series-5', '--tq-series-6'] as const
+/** Stable provider → colour slots; the table order may change with volume, the colour should not. */
+const VIZ_ORDER = ['claude', 'codex', 'dsh', 'opencode', 'minimax', 'deepseek']
+const vizColor = (agent: string, at: number): string =>
+  VIZ_COLORS[(VIZ_ORDER.includes(agent) ? VIZ_ORDER.indexOf(agent) : at) % VIZ_COLORS.length]!
+
+/** Local calendar date `date` plus `n` days, as YYYY-MM-DD (noon avoids a DST midnight). */
+function addDays(date: string, n: number): string {
+  const d = new Date(date + 'T12:00:00')
+  d.setDate(d.getDate() + n)
+  const pad = (x: number): string => String(x).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * The daily chart's data. Every day in the rolling window is present; a day with no task has
+ * zero bars and a zero line, not a gap. Each day's total is the sum of that day's provider
+ * tokens (the same objects the bars read), so the line can never drift from the bars. Returns
+ * null on an old ops entry with no `daily` and for a window too wide to draw as seven bars.
+ */
+function statsSeries(stats: TaskStats, agents: StatsAgentView[]): StatsSeriesView | null {
+  if (stats.daily === undefined || stats.days === null || stats.since === null) return null
+  if (stats.days < 1 || stats.days > 7) return null
+  const providers: StatsProviderView[] = agents.map((agent, at) => ({
+    agent: agent.agent, label: agent.label, colorVar: vizColor(agent.agent, at), tokens: 0, unknown: 0,
+  }))
+  const days: StatsDayView[] = []
+  for (let i = 0; i < stats.days; i++) {
+    const date = addDays(stats.since, i)
+    const row = stats.daily[date] ?? {}
+    const tokens: Record<string, number> = {}
+    const unknowns: Record<string, number> = {}
+    let total = 0
+    let unknown = 0
+    let tasks = 0
+    for (const provider of providers) {
+      const stat = row[provider.agent]
+      const value = stat?.tokens ?? 0
+      const unrecorded = stat?.unknown ?? 0
+      tokens[provider.agent] = value
+      unknowns[provider.agent] = unrecorded
+      total += value
+      unknown += unrecorded
+      tasks += stat?.tasks ?? 0
+      provider.tokens += value
+      provider.unknown += unrecorded
+    }
+    days.push({ date, label: date.slice(5).replace('-', '/'), tokens, unknowns, total, unknown, tasks })
+  }
+  return {
+    days, providers,
+    maxProvider: Math.max(0, ...days.flatMap((day) => providers.map((p) => day.tokens[p.agent] ?? 0))),
+    maxTotal: Math.max(0, ...days.map((day) => day.total)),
+    total: days.reduce((sum, day) => sum + day.total, 0),
+    unknown: days.reduce((sum, day) => sum + day.unknown, 0),
+    emptyDays: days.filter((day) => day.tasks === 0).length,
+  }
 }
 
 export function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
@@ -1144,7 +1250,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
   const zeroAgent: StatsAgentView = {
     agent: '', label: '', tasks: 0, settled: 0, done: 0, partial: 0, unfinished: 0, live: 0,
-    tokens: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
+    tokens: 0, tokensUnknown: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
   }
   const zeroTotals: StatsTotalsView = {
     ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
@@ -1152,14 +1258,14 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   if (!stats.available) {
     return {
       title, cardTitle, window, headline: t('stats.headline.failed', { window }), summaryLine: window,
-      agents: [], totals: zeroTotals, maxTokens: 0, empty: '',
+      agents: [], totals: zeroTotals, maxTokens: 0, series: null, empty: '',
       footnote: t('stats.unavailable', { message: stats.error }),
     }
   }
   const selected = byAgentRank(stats.agents.filter((agent) => agent.tasks > 0))
   if (selected.length === 0) {
     return {
-      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0,
+      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0, series: null,
       empty: t('stats.empty'), footnote: t('stats.note.cost'),
     }
   }
@@ -1172,7 +1278,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     const unfinished = Math.max(0, settled - done - partial)
     return {
       agent: agent.agent, label: _agentLabel(agent.agent), tasks, settled, done, partial, unfinished, live,
-      tokens: agent.tokensTotal, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
+      tokens: agent.tokensTotal, tokensUnknown: agent.tokensUnknown, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
       costText: statsCostText(agent, t), share: 0,
       doneShare: ratio(done, settled), partialShare: ratio(partial, settled),
       unfinishedShare: ratio(unfinished, settled), liveShare: ratio(live, tasks),
@@ -1210,7 +1316,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   return {
     title, cardTitle, window, headline,
     summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
-    agents, totals, maxTokens, empty: '',
+    agents, totals, maxTokens, series: statsSeries(stats, agents), empty: '',
     footnote: t('stats.note.cost'),
   }
 }

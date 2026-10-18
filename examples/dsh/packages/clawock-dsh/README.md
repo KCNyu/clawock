@@ -553,15 +553,22 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
-A **stats tile** sits between what just ended and patrol (not another fold): task count, tokens,
-API estimate and a completion bar at a glance. Tapping it opens a chart layer — token bars and
-per-agent completion bars, with the same back bar as a task detail. It is a lazy read: the tile
-appears when the panel opens, through the `taskStats` method, never on the queue's 15s poll. It
-reads the numbers `task_queue_ops.py summary` froze into `result.env` at each task's end and never
-rereads a session, so a task continuing the same session is not counted twice. The window is the
-last seven days, patrol excluded. The chat counterpart is `/dispatch-stats` (the same numbers,
-without the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished /
-token · API estimate — with no trailing prose; the title carries the total and live count.
+A **stats tile** is the closing summary at the bottom of the panel: after patrol, before the ops
+footer (the footer is provenance metadata and stays last). It is not beside recently ended; the
+queue is the opening view, the seven-day retrospective is the close. Task count, tokens, API
+estimate and a completion bar at a glance; tapping it opens a chart layer with the same back bar
+as a task detail. The layer starts with the **daily token chart**: grouped provider bars on the
+left axis and one total line on the right axis. Both axes are tokens and the line's points are the
+exact sums of that day's bars; the seven days are all labelled, a quiet day is a real 0, and a
+provider-day with unrecorded tokens is marked with its lower-bound note. The card and the chart
+are one lazy read: they appear through `taskStats` when the panel opens, never on the queue's 15s
+poll. The numbers are `task_queue_ops.py summary`'s frozen `result.env` values, never a session
+reread, so a task continuing the same session is not counted twice; the window is the last seven
+days, patrol excluded, and live tasks are outside tokens/cost. The per-day buckets are built in
+the same summary pass; an older ops entry without them still shows the card and the existing
+tables, just no daily chart. The chat counterpart is `/dispatch-stats` (the same numbers, without
+the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished / token ·
+API estimate — with no trailing prose; the title carries the total and live count.
 `/dispatch-stats 30d`, `/dispatch-stats all`, `/dispatch-stats 2026-10-01`, add `patrol` to include
 patrol rounds, and `plain` for the bar fallback where a client shows the pipes. The data still
 distinguishes live tasks (outside tokens/cost), an unrecorded token count (unknown, never 0; its
@@ -575,11 +582,16 @@ subscription quota.
 网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
 spec 逐行比对两者。只读,调度仍在芯片上操作。
 
-面板在「最近结束」和「巡检」之间有一张**统计卡片**(不是第四个折叠):任务数、token、API 估价
-和一条完成条一眼可见。点开是图表层——每个 agent 的 token 条和完成条,返回条与任务详情同一套。
-它是**懒读**:只在面板打开时走 `taskStats`,不跟队列的 15 秒轮询;数据是
-`task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的数字,从不重读 session,所以续跑
-同一 session 的任务不会被重复计数;默认近 7 天、巡检不计。聊天里对应 `/dispatch-stats`
+**统计卡片**是面板的收尾,放在巡检之后、ops 页脚之前(页脚是来源元数据,永远最后),不再挨着
+「最近结束」:队列是打开时的主视图,近 7 天的回顾是收尾。任务数、token、API 估价和一条完成条
+一眼可见;点开是图表层(返回条与任务详情同一套)。图表层开头是**每日 token 图**:左轴是按 provider
+分组的柱,右轴是当天总计的折线。两个轴都是 token,折线的每个点就是当天各柱的精确之和;7 天全部
+标出,没有任务的一天是真实的 0;某 provider 当天有未记录 token 的柱会标记,并说明是下界。卡片和
+图走同一次 `taskStats` 懒读,只在面板打开时读,不跟队列的 15 秒轮询;数字是
+`task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的值,从不重读 session,所以续跑
+同一 session 的任务不会被重复计数;默认近 7 天、巡检不计,进行中的任务不计 token/费用。按天桶和
+聚合在同一次 summary 里生成;旧 ops entry 没有按天数据时,卡片和原有表格仍显示,只是没有每日图。
+聊天里对应 `/dispatch-stats`
 (同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API 估价),
 没有尾部说明;标题带总数和进行中数。`/dispatch-stats 30d`、`/dispatch-stats all`、
 `/dispatch-stats 2026-10-01`,加 `patrol` 才含巡检,`plain` 是显示管道符的客户端的条形降级。

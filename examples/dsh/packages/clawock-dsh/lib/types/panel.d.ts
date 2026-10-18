@@ -500,6 +500,8 @@ export type StatsAgentView = {
     unfinished: number;
     live: number;
     tokens: number;
+    /** Terminal tasks without a token record; the chart's daily bars are lower bounds. */
+    tokensUnknown: number;
     tokensText: string;
     costText: string;
     /** Token length against the largest agent, 0..1 (the token bar's fill). */
@@ -521,6 +523,45 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
  * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
  * remainder. The footnote carries the caveats once, in one line.
  */
+/** One day's provider tokens (the chart's bars) and their exact sum (the line). */
+export type StatsDayView = {
+    /** YYYY-MM-DD, the window's local calendar day. */
+    date: string;
+    /** MM/DD for the axis. */
+    label: string;
+    /** tokens by agent, the same order as `providers`. */
+    tokens: Record<string, number>;
+    /** Terminal tasks with no token record, by agent: that provider's bar is a lower bound. */
+    unknowns: Record<string, number>;
+    /** Sum of `tokens`: the total line's value; never recalculated from another source. */
+    total: number;
+    /** Terminal tasks on this day without a token record; the bar is a lower bound. */
+    unknown: number;
+    /** Tasks created that day, live included; 0 is a real quiet day. */
+    tasks: number;
+};
+export type StatsProviderView = {
+    agent: string;
+    label: string;
+    /** The design system's categorical chart token (`--viz-*`), stable per provider. */
+    colorVar: string;
+    /** Sum over the window; the legend's number. */
+    tokens: number;
+    unknown: number;
+};
+export type StatsSeriesView = {
+    days: StatsDayView[];
+    providers: StatsProviderView[];
+    /** Largest single provider-day bar (left axis). */
+    maxProvider: number;
+    /** Largest daily total (right axis); this is the sum of that day's bars. */
+    maxTotal: number;
+    /** Sum over the window; should equal the selected agents' token totals. */
+    total: number;
+    unknown: number;
+    /** Days with no task at all: drawn at 0, not skipped. */
+    emptyDays: number;
+};
 export type StatsView = {
     title: string;
     /** The card's shorter name; the layer and the command use `title`. */
@@ -534,6 +575,8 @@ export type StatsView = {
     agents: StatsAgentView[];
     totals: StatsTotalsView;
     maxTokens: number;
+    /** The 7-day daily chart; null on an old ops entry or a window wider than 7 days. */
+    series: StatsSeriesView | null;
     empty: string;
     footnote: string;
 };

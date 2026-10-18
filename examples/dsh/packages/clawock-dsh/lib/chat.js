@@ -505,6 +505,14 @@ const dictionaries = {
 		"stats.retry": "重试",
 		"stats.tokenHeading": "Token / API 估价",
 		"stats.doneHeading": "完成情况",
+		"stats.chart.title": "每日 token · 按 provider",
+		"stats.chart.sub": "柱是 provider · 线是总计（右轴）",
+		"stats.chart.total": "总计",
+		"stats.chart.zero": "{n} 天没有任务，按 0 计（不是缺数据）",
+		"stats.chart.unknown": "{n} 个任务未记录 token；柱和线是下界",
+		"stats.chart.live": "{n} 个进行中任务未计入 token",
+		"stats.chart.unknownShort": "{n} 个未记录",
+		"stats.chart.aria": "每日 token：{days}；总计 {total}{unknown}。柱是 provider，线是总计（右轴）。",
 		"stats.legend.done": "完成",
 		"stats.legend.partial": "部分",
 		"stats.legend.unfinished": "未完成",
@@ -1021,6 +1029,14 @@ const dictionaries = {
 		"stats.retry": "Retry",
 		"stats.tokenHeading": "Token / API estimate",
 		"stats.doneHeading": "Completion",
+		"stats.chart.title": "Daily tokens · by provider",
+		"stats.chart.sub": "Bars: provider · line: total (right axis)",
+		"stats.chart.total": "Total",
+		"stats.chart.zero": "{n} days had no task; drawn as 0, not missing",
+		"stats.chart.unknown": "{n} tasks had no token record; bars and line are lower bounds",
+		"stats.chart.live": "{n} live tasks are not in the token bars",
+		"stats.chart.unknownShort": "{n} unrecorded",
+		"stats.chart.aria": "Daily tokens: {days}; total {total}{unknown}. Bars are providers; the line is the total on the right axis.",
 		"stats.legend.done": "Done",
 		"stats.legend.partial": "Partial",
 		"stats.legend.unfinished": "Unfinished",
@@ -2297,6 +2313,89 @@ function statsCostText(agent, t) {
 	return "—";
 }
 const ratio = (part, whole) => whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0;
+/** The host chart's categorical palette, in the design system's series order. */
+const VIZ_COLORS = [
+	"--tq-series-1",
+	"--tq-series-2",
+	"--tq-series-3",
+	"--tq-series-4",
+	"--tq-series-5",
+	"--tq-series-6"
+];
+/** Stable provider → colour slots; the table order may change with volume, the colour should not. */
+const VIZ_ORDER = [
+	"claude",
+	"codex",
+	"dsh",
+	"opencode",
+	"minimax",
+	"deepseek"
+];
+const vizColor = (agent, at) => VIZ_COLORS[(VIZ_ORDER.includes(agent) ? VIZ_ORDER.indexOf(agent) : at) % VIZ_COLORS.length];
+/** Local calendar date `date` plus `n` days, as YYYY-MM-DD (noon avoids a DST midnight). */
+function addDays(date, n) {
+	const d = /* @__PURE__ */ new Date(date + "T12:00:00");
+	d.setDate(d.getDate() + n);
+	const pad = (x) => String(x).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+/**
+* The daily chart's data. Every day in the rolling window is present; a day with no task has
+* zero bars and a zero line, not a gap. Each day's total is the sum of that day's provider
+* tokens (the same objects the bars read), so the line can never drift from the bars. Returns
+* null on an old ops entry with no `daily` and for a window too wide to draw as seven bars.
+*/
+function statsSeries(stats, agents) {
+	if (stats.daily === void 0 || stats.days === null || stats.since === null) return null;
+	if (stats.days < 1 || stats.days > 7) return null;
+	const providers = agents.map((agent, at) => ({
+		agent: agent.agent,
+		label: agent.label,
+		colorVar: vizColor(agent.agent, at),
+		tokens: 0,
+		unknown: 0
+	}));
+	const days = [];
+	for (let i = 0; i < stats.days; i++) {
+		const date = addDays(stats.since, i);
+		const row = stats.daily[date] ?? {};
+		const tokens = {};
+		const unknowns = {};
+		let total = 0;
+		let unknown = 0;
+		let tasks = 0;
+		for (const provider of providers) {
+			const stat = row[provider.agent];
+			const value = stat?.tokens ?? 0;
+			const unrecorded = stat?.unknown ?? 0;
+			tokens[provider.agent] = value;
+			unknowns[provider.agent] = unrecorded;
+			total += value;
+			unknown += unrecorded;
+			tasks += stat?.tasks ?? 0;
+			provider.tokens += value;
+			provider.unknown += unrecorded;
+		}
+		days.push({
+			date,
+			label: date.slice(5).replace("-", "/"),
+			tokens,
+			unknowns,
+			total,
+			unknown,
+			tasks
+		});
+	}
+	return {
+		days,
+		providers,
+		maxProvider: Math.max(0, ...days.flatMap((day) => providers.map((p) => day.tokens[p.agent] ?? 0))),
+		maxTotal: Math.max(0, ...days.map((day) => day.total)),
+		total: days.reduce((sum, day) => sum + day.total, 0),
+		unknown: days.reduce((sum, day) => sum + day.unknown, 0),
+		emptyDays: days.filter((day) => day.tasks === 0).length
+	};
+}
 function statsView(stats, t) {
 	if (stats == null) return null;
 	const title = t("stats.title");
@@ -2313,6 +2412,7 @@ function statsView(stats, t) {
 		unfinished: 0,
 		live: 0,
 		tokens: 0,
+		tokensUnknown: 0,
 		tokensText: "0",
 		costText: "—",
 		share: 0,
@@ -2334,6 +2434,7 @@ function statsView(stats, t) {
 		agents: [],
 		totals: zeroTotals,
 		maxTokens: 0,
+		series: null,
 		empty: "",
 		footnote: t("stats.unavailable", { message: stats.error })
 	};
@@ -2347,6 +2448,7 @@ function statsView(stats, t) {
 		agents: [],
 		totals: zeroTotals,
 		maxTokens: 0,
+		series: null,
 		empty: t("stats.empty"),
 		footnote: t("stats.note.cost")
 	};
@@ -2367,6 +2469,7 @@ function statsView(stats, t) {
 			unfinished,
 			live,
 			tokens: agent.tokensTotal,
+			tokensUnknown: agent.tokensUnknown,
 			tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
 			costText: statsCostText(agent, t),
 			share: 0,
@@ -2417,6 +2520,7 @@ function statsView(stats, t) {
 		agents,
 		totals,
 		maxTokens,
+		series: statsSeries(stats, agents),
 		empty: "",
 		footnote: t("stats.note.cost")
 	};
