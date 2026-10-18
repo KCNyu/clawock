@@ -1,6 +1,6 @@
 """The `costs` service: the registered cost model, per side, in basis points.
 
-The assumptions are `config/cost-model.json`, the ones `decision.shadow` and
+The dated cost profile is `config/cost-model.json`, the one `decision.shadow` and
 `decision.method_evaluation` already price fills with; this plugin reads them
 through `clawock.costs.CostModel` and adds no second schedule. A row may set
 `free: true` to mount the zero-cost model, under which net equals gross.

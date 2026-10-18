@@ -66,7 +66,7 @@ row 的 config 默认如下，改变参数是研究配置改动，不是 live �
 豁免、点差都逐腿结算。rank portfolio 没有尺寸，以 config 中显式参考本金和参考
 股价、买卖较高一侧估算；这是粗粒度门槛，不是做 T 证据。`method_evaluation`
 逐 call 扣费再按 episode 平均；缺本金用显式参考票，缺股数用参考股价。
-`shadow` 传实际模拟方向和股数；`method_trials` 通过 dataclass 完整冻结成本配置，
+`shadow` 按实例配置的市场／币种映射费率并传实际模拟方向和股数；未覆盖币种的净曲线为不可用，不套港美费用也不算零成本；`method_trials` 通过 dataclass 完整冻结成本配置，
 旧 trial 缺新字段仍用旧模型，不追溯注入当前免佣和税表。
 
 ## SPCH 冲突与实盘待决项

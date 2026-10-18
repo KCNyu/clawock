@@ -266,7 +266,7 @@ def test_refits_only_use_sessions_whose_forward_return_had_closed():
 
 def test_shipped_rows_mount_with_nothing_left_waiting(tmp_path, capsys):
     kernel = lab.mount(lab.load_rows(ROOT / lab.CONFIG))
-    assert [fiber.missing for fiber in kernel.fibers] == [[]] * 7
+    assert [fiber.missing for fiber in kernel.fibers] == [[]] * len(lab.load_rows(ROOT / lab.CONFIG))
     spec = kernel.get('strategies').get('rsi')
     assert spec.params in walkforward.configurations(spec.space)
     kernel.dispose()

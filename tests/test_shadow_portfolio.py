@@ -288,6 +288,10 @@ def test_build_uses_instance_mapping_without_compiled_book_names():
     assert set(result["curves"]) == {"JPY", "EUR"}
     assert result["curves"]["JPY"]["leg"] == "TOKYO"
     assert result["curves"]["EUR"]["leg"] == "FRANKFURT"
+    for curve in result["curves"].values():
+        assert curve["net"] is None
+        assert curve["cost_unavailable_reason"] == "tariff_does_not_cover_book_currency"
+    assert result["net_cumulative_diff"] == {"JPY": None, "EUR": None}
 
 
 def test_leg_config_rejects_incomplete_or_unknown_market(tmp_path):
@@ -678,3 +682,23 @@ def test_shadow_frontend_fails_closed_and_discloses_mark_gaps():
     assert 'id="shadow-coverage-note"' in html
     assert "个市场交易日缺行情未计价" in html
     assert "connectNulls: false" in html
+
+
+def test_custom_usd_leg_uses_market_tariff_and_sell_direction():
+    portfolio = {'portfolios': {'growth': {
+        'currency': 'USD', 'cash_usd': 0,
+        'holdings': [{'ticker': 'AAA', 'shares': 1, 'cost_price': 100,
+                      'trades': []}],
+    }}}
+    config = {'GROWTH': {'portfolio_key': 'growth', 'currency': 'USD',
+                         'cash_key': 'cash_usd', 'market': 'us'}}
+    decisions = [_decision('sell', 'AAA', 'cut', 1, leg='GROWTH', price=100)]
+    loader, maps = _loaders({'AAA': {DAY_1: {'close': 100}}})
+    result = shadow.build_shadow_portfolio(portfolio, decisions, as_of=DAY_1,
+        bar_loader=loader, bar_map_loader=maps, matched={}, leg_config=config)
+    curve = result['curves']['USD']
+    assert curve['cost_unavailable_reason'] is None
+    charge = curve['net']['charges'][0]
+    assert charge['commission'] == 0
+    assert charge['regulatory']['sec'] > 0
+    assert charge['direction'] == 'sell'

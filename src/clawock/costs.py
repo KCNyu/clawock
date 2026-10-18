@@ -139,6 +139,8 @@ def commission_terms(model: CostModel, leg: str) -> tuple[float, float]:
     """Current account scenario, or legacy assumptions for frozen models."""
     account = model.account_commission
     if account:
+        if leg not in account.get('markets', []):
+            raise ValueError(f'account commission does not cover market {leg!r}')
         if account.get('scenario') != 'within_monthly_allowance':
             raise ValueError('commission outside the observed allowance is unknown')
         return (float(account['commission_bps'][leg]),
