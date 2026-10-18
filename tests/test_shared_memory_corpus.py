@@ -174,3 +174,10 @@ def test_install_check_and_rollback(tmp_path):
     assert (target / "index.ts").read_text() == PLUGIN.read_text()
     assert run("--rollback").returncode == 0
     assert (target / "index.ts").read_text() == "previous index.ts"
+
+
+def test_words_no_topic_contains_do_not_dilute_the_score(store):
+    plain = node(corpus(store, f"await c.search({{query: 'sandbox', agentSessionKey: '{DIRECT}'}})"))
+    noisy = node(corpus(store, f"await c.search({{query: 'sandbox zzqxv 鸡鸭鹅狗', agentSessionKey: '{DIRECT}'}})"))
+    assert [h["path"] for h in noisy] == [h["path"] for h in plain]
+    assert noisy[0]["score"] == pytest.approx(plain[0]["score"])
