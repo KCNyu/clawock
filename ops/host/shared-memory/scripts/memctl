@@ -539,6 +539,30 @@ def start_output(cwd: Path, wiring: dict) -> str:
     return "\n\n".join(out)
 
 
+def _norm_line(line: str) -> str:
+    return re.sub(r"\s+", " ", line.strip().lstrip("-*>#| ").strip())
+
+
+def shared_text_in(cwd: Path, names: list[str], min_chars: int = 40) -> list[str]:
+    """`file:line -> topic` for every line of `cwd`'s listed files that repeats a shared topic line."""
+    if not names or not STORE.is_dir():
+        return []
+    shared: dict[str, str] = {}
+    for topic in [*STORE.glob("*.md"), *STORE.glob("archive/*.md")]:
+        for line in topic.read_text(encoding="utf-8", errors="replace").splitlines():
+            key = _norm_line(line)
+            if len(key) >= min_chars:
+                shared.setdefault(key, topic.name)
+    hits = []
+    for name in names:
+        path = cwd / name
+        if path.is_file():
+            for i, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+                if _norm_line(line) in shared:
+                    hits.append(f"{name}:{i} -> {shared[_norm_line(line)]}")
+    return hits
+
+
 # --- doctor ----------------------------------------------------------------
 
 def _same(a: Path, b: Path) -> bool:
@@ -711,6 +735,14 @@ def doctor_checks(deep: bool) -> list[dict]:
             inside = _within(STORE, cwd)
             add(f"context.{name}.store_separate", not leaks and not inside,
                 f"shared store {'is INSIDE' if inside else 'outside'} {cwd}" + (f"; links into it: {leaks}" if leaks else ""))
+            # The context's own memory may be published (OpenClaw's dreaming commits MEMORY.md and
+            # DREAMS.md). Its assistant can read shared notes and could repeat one in a chat that
+            # dreaming later summarises, so look for shared lines in those files.
+            copied = shared_text_in(cwd, ctx.get("public_files") or [])
+            add(f"context.{name}.no_shared_text", not copied,
+                f"{', '.join(ctx.get('public_files') or []) or 'no public files listed'}: "
+                + (f"lines copied from the shared store: {copied[:5]}" if copied else "no line copied from the shared store"),
+                level="WARN")
 
     # 3. store: format owner's doctor, injection budget, writable
     root = store_root()
