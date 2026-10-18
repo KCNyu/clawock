@@ -4748,6 +4748,8 @@ test("dispatch stats: one frozen-totals view for the chip fold and /dispatch-sta
   const panel = chat.dispatchListText(input, t, now);
   assert.match(panel, /\*\*统计 · 近 7 天 · 91 项 · token 786\.7M · API \$497\.80\*\*/);
   assert.ok(panel.includes("- Claude Code  625.2M"), "the chat and the chip print the same row");
+  const noDispatcher = chat.dispatchListText({ ...input, queue: { ...input.queue, available: false } }, t, now);
+  assert.doesNotMatch(noDispatcher, /派发统计/, "a host without the dispatcher does not grow a stats section");
   // Empty and failed reads are said, not drawn as zeroes.
   assert.match(chat.dispatchStatsText({ ...stats, agents: [] }, t), /没有已结束的任务/);
   const failed = chat.dispatchStatsText({ ...stats, available: false, error: "ops entry not installed" }, t);
