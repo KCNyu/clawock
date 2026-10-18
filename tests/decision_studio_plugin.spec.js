@@ -413,11 +413,16 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     },
     remote: {
       $mount: async (descriptors) => {
-        // Nine: the eight read methods plus queueAction, the task chip's one write door.
-        assert.equal(descriptors.descriptors.length, 9);
+        // Ten: the eight read methods, taskStats (the chip's lazy stats read) and
+        // queueAction, the task chip's one write door.
+        assert.equal(descriptors.descriptors.length, 10);
         const queueDesc = descriptors.descriptors.find((d) => d.method === "taskQueue");
         assert.ok(queueDesc, "taskQueue descriptor present (hand-carried wire, see build.mjs)");
         assert.equal(queueDesc.parameters.length, 1, "taskQueue(force) must declare its argument");
+        const statsDesc = descriptors.descriptors.find((d) => d.method === "taskStats");
+        assert.ok(statsDesc, "taskStats descriptor present (hand-carried wire, see build.mjs)");
+        assert.deepEqual(statsDesc.parameters.map((p) => p.name), ["days", "since", "patrol"],
+          "taskStats(days, since, patrol) must declare all three arguments");
         const actionDesc = descriptors.descriptors.find((d) => d.method === "queueAction");
         assert.ok(actionDesc, "queueAction descriptor present (hand-carried wire, see build.mjs)");
         assert.deepEqual(actionDesc.parameters.map((p) => p.name), ["action", "id", "arg"],
@@ -2232,7 +2237,7 @@ test("typert: every shipped codec meets DSH 0.1.7's create() contract", async ()
   for (const rel of ["lib/typert.host.js", "lib/typert.remote-client.js"]) {
     const face = await import(pathToFileURL(path.join(PLUGIN, rel)).href);
     const invocations = face.TYPERT?.invocations ?? face.TYPERT_REMOTE.descriptors;
-    assert.equal(invocations.length, 9, rel);
+    assert.equal(invocations.length, 10, rel);
     for (const invocation of invocations) {
       for (const codec of [...invocation.parameters.map((parameter) => parameter.codec), invocation.result]) {
         assert.equal(typeof codec.create, "function", `${rel}: ${invocation.id}`);
@@ -2667,7 +2672,7 @@ test("balance: a process that never read anything falls back on the last reading
     chat.default({
       pluginConfig: { ...config, dispatchLogDir: path.join(tmp, "no-dispatch"), patrolStateDir: path.join(tmp, "no-patrol"),
         dispatchLimitsPath: path.join(tmp, "limits.env"), taskQueueOpsPath: path.join(tmp, "ops.py") },
-      registerCommand: (registered) => { command = registered; },
+      registerCommand: (registered) => { if (registered.name === "dispatch-list") command = registered; },
     });
     const reply = (await command.handler({ args: "", config: { agents: { defaults: { workspace: tmp } } } })).text;
     assert.match(reply, /36%/);
@@ -3348,7 +3353,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   });
   const now = Date.now();
   const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 2,
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 2, statsApi: true,
     slotLimits: [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
     active: [
       { id: "a-1", name: "patrol-source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "claude-1",
@@ -3363,11 +3368,28 @@ test("client: one provider cell carries the queue under each agent's provider an
     patrol: { service: "active", phase: "yielding", round: "patrol-recent-1", detail: "preempting patrol-recent-1: b-1 is waiting for its agent lock",
       untilMs: null, rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "preempted:cancelled", seconds: 4090 }] },
   };
+  const STATS = {
+    available: true, error: "", since: "2026-10-11", days: 7, patrolIncluded: false, asOf: AS_OF,
+    agents: [
+      { agent: "claude", tasks: 56, live: 1,
+        states: [{ name: "ok", count: 42 }, { name: "partial", count: 9 }, { name: "failed", count: 1 },
+          { name: "cancelled", count: 3 }, { name: "running", count: 1 }],
+        outcomes: [{ name: "DONE", count: 42 }, { name: "PARTIAL", count: 9 }],
+        tokensTotal: 625213302, tokensUnknown: 1, costUsdEstimate: 261.64, costUnpriced: 1, costFree: 0 },
+      { agent: "codex", tasks: 35, live: 0,
+        states: [{ name: "ok", count: 23 }, { name: "partial", count: 7 }, { name: "cancelled", count: 3 },
+          { name: "quota", count: 1 }, { name: "blocked", count: 1 }],
+        outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
+        tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
+    ],
+  };
   let forced = 0;
+  let statsCalls = 0;
   let answer = QUEUE;
   const remoteFace = {
     balance: async () => ({ ok: true, value: QUIET_BALANCES }),
     taskQueue: async (force) => { if (force) forced += 1; return { ok: true, value: answer }; },
+    taskStats: async () => { statsCalls += 1; return { ok: true, value: STATS }; },
   };
   const ctx = {
     effect() {},
@@ -3441,8 +3463,11 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
     "every rendered class resolves through the stylesheet");
 
+  assert.equal(statsCalls, 0, "the stats read stays cold until the panel opens");
   lines[0].props.onClick({ currentTarget: null });
-  const open = render();
+  let open = render();
+  await tick(); await tick();
+  open = render();
   const popover = find(open, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
   assert.equal(popover.props["data-open"], "true");
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
@@ -3549,6 +3574,40 @@ test("client: one provider cell carries the queue under each agent's provider an
     assert.deepEqual(facts, [...facts].sort((a, b) => FACT_ORDER.indexOf(a) - FACT_ORDER.indexOf(b)), `${kind}: facts in FACT_ORDER`);
   }
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
+
+  // The stats card: one lazy read per panel open, then one tile between recent and patrol.
+  const statsCard = find(popover, (p) => p["data-tq-stats-card"] === "true")[0];
+  assert.ok(statsCard, "the stats card is in the open panel");
+  assert.equal(statsCalls, 1, "one summary read, not one per queue poll");
+  assert.match(texts(statsCard), /统计 · 近 7 天 91 任务 786\.7M token \$497\.80 API 估价 完成 65\/90/);
+  statsCard.props.onClick({ currentTarget: null });
+  let statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
+  assert.ok(statsLayer, "the card opens the chart layer, not a fourth fold");
+  assert.match(texts(statsLayer), /派发统计 近 7 天 91 项 · token 786\.7M · API \$497\.80/);
+  const tokenRows = find(statsLayer, (p) => p["data-tq-stats-token"] !== undefined);
+  assert.deepEqual(tokenRows.map((row) => row.props["data-tq-stats-token"]), ["claude", "codex"]);
+  assert.match(texts(tokenRows[0]), /Claude Code 625\.2M · \$261\.64/);
+  const doneRows = find(statsLayer, (p) => p["data-tq-stats-done"] !== undefined);
+  assert.deepEqual(doneRows.map((row) => row.props["data-tq-stats-done"]), ["claude", "codex"]);
+  assert.match(texts(doneRows[0]), /Claude Code 完成 42\/55 部分 9 .*未完成 4/);
+  assert.match(texts(statsLayer), /API 估价非订阅额度/);
+  assert.doesNotMatch(texts(statsLayer), /token 未知|已结束任务冻结值|巡检不计/);
+  assert.equal(statsCalls, 1, "opening the layer does not reread");
+  find(statsLayer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
+  assert.equal(statsLayer, undefined, "back closes the stats layer");
+  // A host half older than taskStats omits statsApi: no card, and no call to the missing method.
+  answer = { ...QUEUE, statsApi: undefined };
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  assert.equal(find(render(), (p) => p["data-tq-stats-card"] !== undefined).length, 0, "no stats card without statsApi");
+  const oldHostCalls = statsCalls;
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  assert.equal(statsCalls, oldHostCalls, "once the host says it has no statsApi, it is never asked again");
+  answer = QUEUE;
+  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
   assert.equal(find(popover, (p) => p["data-tq-detail"] !== undefined).length, 0, "no layer until a task is picked");
@@ -3867,6 +3926,58 @@ test("task queue host: the ops entry orders each agent's queue and is the only w
   const missing = await tq.createQueueActionRunner({ opsPath: path.join(root, "absent.py") }, { runOps })("cancel", "new-wait", "");
   assert.match(missing.message, /not installed/);
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("task queue host: stats rereads the frozen summary only, never sessions; unknown is not 0", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib/taskqueue.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-stats-"));
+  const opsPath = path.join(root, "task_queue_ops.py");
+  fs.writeFileSync(opsPath, "stub\n");
+  const raw = {
+    ok: true, since: "2026-10-05", patrol_included: false,
+    agents: {
+      claude: { tasks: 3, live: 1, states: { ok: 2, running: 1 }, outcomes: { DONE: 2 },
+        tokens_total: 1000, tokens_unknown: 0, cost_usd_estimate: 1.5, cost_unpriced: 0, cost_free: 0 },
+      codex: { tasks: 2, live: 0, states: { ok: 1, failed: 1 }, outcomes: { DONE: 1, "-": 1 },
+        tokens_total: 500, tokens_unknown: 1, cost_usd_estimate: 0, cost_unpriced: 1, cost_free: 0 },
+    },
+  };
+  const calls = [];
+  const runOps = async (_path, args) => { calls.push(args); return { code: 0, stdout: JSON.stringify(raw), stderr: "" }; };
+  const config = { logDir: root, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath, repoOpsPath: "" };
+  try {
+    const stats = await tq.readStats(config, { runOps }, { days: 7 });
+    assert.equal(stats.available, true);
+    assert.equal(stats.days, 7);
+    assert.equal(stats.since, raw.since, "the entry's own window is echoed");
+    assert.deepEqual(calls[0], ["summary", "--since", tq.sinceDay(7)]);
+    assert.deepEqual(stats.agents.map((a) => [a.agent, a.tasks, a.live, a.tokensTotal, a.tokensUnknown]),
+      [["claude", 3, 1, 1000, 0], ["codex", 2, 0, 500, 1]]);
+    assert.deepEqual(stats.agents[1].outcomes, [{ name: "DONE", count: 1 }, { name: "-", count: 1 }]);
+    assert.equal(stats.agents[1].costUnpriced, 1, "an unpriced task is counted apart, not as $0");
+    await tq.readStats(config, { runOps }, { days: 30, patrol: true });
+    assert.deepEqual(calls[1], ["summary", "--since", tq.sinceDay(30), "--all"]);
+    await tq.readStats(config, { runOps }, { since: "2026-09-01" });
+    assert.deepEqual(calls[2], ["summary", "--since", "2026-09-01"]);
+    await tq.readStats(config, { runOps }, {});
+    assert.deepEqual(calls[3], ["summary"], "no window: every retained task");
+    // A malformed row makes the whole answer unavailable; it never becomes zeroes.
+    const unreadable = await tq.readStats(config, {
+      runOps: async () => ({ code: 0, stdout: JSON.stringify({ ok: true, agents: { claude: { tasks: "3" } } }), stderr: "" }),
+    }, { days: 7 });
+    assert.equal(unreadable.available, false);
+    assert.match(unreadable.error, /unreadable claude row/);
+    assert.deepEqual(unreadable.agents, []);
+    const missing = await tq.readStats({ ...config, opsPath: path.join(root, "absent.py") }, { runOps }, { days: 7 });
+    assert.equal(missing.available, false);
+    assert.match(missing.error, /not installed/);
+    const service = tq.createTaskQueueService({ logDir: root, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath }, {
+      activeTaskIds: async () => [], patrolService: async () => "", patrolLog: async () => [], runOps,
+    });
+    const viaService = await service.stats({ days: 7 });
+    assert.equal(viaService.available, true);
+    assert.deepEqual(calls.at(-1), ["summary", "--since", tq.sinceDay(7)]);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
 test("client: the queue can be steered in place — move up, two-step cancel, model for the next attempt", async () => {
@@ -4284,7 +4395,8 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-summary:after\{inset:-9px -8px\}/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary\):active\{transform:none\}/);
+  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary[^{]*:active\{transform:none\}/);
+  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-stats-card[^{]*:active\{transform:none\}/, "the stats card's press respects reduced motion");
 });
 
 // 2026-09-28 (kcn: 「很多地方都没有对齐显示」): one grid for the whole panel, five tracks, three
@@ -4364,7 +4476,8 @@ test("detail layer: its fields sit on the list's grid and its controls are one h
   assert.match(rules("_tq-d-sec-title"), /margin:0 0 2px var\(--tq-main-inset\)/, "a section starts on the name's edge");
   const pill = rules("_tq-pill");
   assert.match(pill, /height:26px/, "one control height: the fold control's");
-  assert.match(rules("_tq-fold-summary"), /height:26px/);
+  assert.match(rules("_tq-fold-summary"), /min-height:26px/, "the fold pill grows to wrap a long label");
+  assert.match(rules("_tq-fold-summary"), /max-width:100%/, "it never runs past the panel");
   assert.match(pill, /transition:[^;]*transform/, "its own transition still names transform");
   assert.match(rules("_tq-pill:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
   assert.match(rules("_tq-pill:focus-visible"), /outline:var\(--tq-focus-ring\);outline-offset:1px/, "the ring outside the capsule");
@@ -4621,6 +4734,125 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
   } finally {
     disposeReactEffects();
   }
+});
+
+test("dispatch stats: a table for /dispatch-stats, a bar fallback, and the wire's own snapshot", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const t = translatorFor(api);
+  const stats = {
+    available: true, error: "", since: "2026-10-11", days: 7, patrolIncluded: false, asOf: AS_OF,
+    agents: [
+      { agent: "claude", tasks: 56, live: 1,
+        states: [{ name: "ok", count: 42 }, { name: "partial", count: 9 }, { name: "failed", count: 1 },
+          { name: "cancelled", count: 3 }, { name: "running", count: 1 }],
+        outcomes: [{ name: "DONE", count: 42 }, { name: "PARTIAL", count: 9 }],
+        tokensTotal: 625213302, tokensUnknown: 1, costUsdEstimate: 261.64, costUnpriced: 1, costFree: 0 },
+      { agent: "codex", tasks: 35, live: 0,
+        states: [{ name: "ok", count: 23 }, { name: "partial", count: 7 }, { name: "cancelled", count: 3 },
+          { name: "quota", count: 1 }, { name: "blocked", count: 1 }],
+        outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
+        tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
+      // A zero-task agent is not a row: it would read as a reading nobody made.
+      { agent: "opencode", tasks: 0, live: 0, states: [], outcomes: [],
+        tokensTotal: 0, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0 },
+    ],
+  };
+  const reply = chat.dispatchStatsText(stats, t);
+  assert.ok(reply.startsWith("# 派发统计 · 近 7 天 · 91 项（进行中 1）"), "the title carries the window, total and live count");
+  assert.match(reply, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API 估价 \|/);
+  assert.match(reply, /\|---\|---\|---\|---\|---\|/);
+  assert.match(reply, /\| Claude Code \| 42\/55 \| 9 \| 4 \| 625\.2M · \$261\.64 \|/);
+  assert.match(reply, /\| Codex \| 23\/35 \| 5 \| 7 \| 161\.5M · \$236\.16 \|/);
+  assert.match(reply, /\| 合计 \| 65\/90 \| 14 \| 11 \| 786\.7M · \$497\.80 \|/);
+  assert.doesNotMatch(reply, /opencode/i, "an agent with no task is not a zero row");
+  assert.doesNotMatch(reply, /token 未知|已结束任务冻结值|巡检不计/, "no trailing descriptive tail");
+  // The bar fallback: no table, one token-share bar per agent, still one caveat line.
+  const plain = chat.dispatchStatsText(stats, t, true);
+  assert.match(plain, /^# 派发统计 · 近 7 天 · 91 项（进行中 1）/m);
+  assert.match(plain, /token 786\.7M · API \$497\.80/);
+  assert.match(plain, /Claude Code {2}▓{10} {2}625\.2M · \$261\.64/);
+  assert.match(plain, /已结束 55 · 完成 42 · 部分 9 · 未完成 4/);
+  assert.doesNotMatch(plain, /\| Agent \|/);
+  assert.doesNotMatch(plain, /token 未知|API 估价非订阅额度/, "the plain fallback has no trailing prose either");
+  // A label cannot add a table column or smuggle a backslash through a cell.
+  const odd = { ...stats, agents: [{ ...stats.agents[0], agent: 'a|b\\c', tasks: 1, live: 0,
+    states: [{ name: 'ok', count: 1 }], outcomes: [{ name: 'DONE', count: 1 }], tokensTotal: 0, tokensUnknown: 0,
+    costUsdEstimate: 0, costUnpriced: 0, costFree: 0 }] };
+  const guarded = chat.dispatchStatsText(odd, t);
+  assert.ok(guarded.includes('a\\|b\\\\c'), `the cell escapes pipe and backslash: ${guarded}`);
+  assert.doesNotMatch(guarded, /\| a\|b/);
+  // Empty and failed reads are said, not drawn as zeroes.
+  assert.match(chat.dispatchStatsText({ ...stats, agents: [] }, t), /没有已结束的任务/);
+  const failed = chat.dispatchStatsText({ ...stats, available: false, error: "ops entry not installed" }, t);
+  assert.match(failed, /近 7 天 · 读取失败/);
+  assert.match(failed, /ops entry not installed/);
+  // Arguments: a rolling window, a since-date, all-time, patrol, and the plain fallback.
+  assert.deepEqual(chat.parseStatsArgs(""), { query: { days: 7, since: null, patrol: false }, plain: false });
+  assert.deepEqual(chat.parseStatsArgs("30d patrol"), { query: { days: 30, since: null, patrol: true }, plain: false });
+  assert.deepEqual(chat.parseStatsArgs("all"), { query: { days: null, since: null, patrol: false }, plain: false });
+  assert.deepEqual(chat.parseStatsArgs("2026-10-01"), { query: { days: null, since: "2026-10-01", patrol: false }, plain: false });
+  assert.deepEqual(chat.parseStatsArgs("plain"), { query: { days: 7, since: null, patrol: false }, plain: true });
+  assert.equal(chat.parseStatsArgs("yesterday"), null);
+  assert.equal(chat.parseStatsArgs("2026-02-30"), null, "a date that does not exist is not a window");
+  assert.equal(chat.parseStatsArgs("366d"), null, "the rolling window is capped at a year");
+  // The lazy RPC carries the whole snapshot instead of stripping it (build.mjs' hand-carried schema).
+  const { TYPERT_REMOTE } = await import(pathToFileURL(path.join(PLUGIN, "lib", "typert.remote-client.js")).href);
+  const schema = TYPERT_REMOTE.descriptors.find((d) => d.method === "taskStats").result.create();
+  assert.deepEqual(schema.parse(stats), stats, "the taskStats codec carries the stats shape");
+});
+
+test("openclaw /dispatch-stats: the command answers from the ops entry, passes its window, refuses the rest", async () => {
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-stats-cmd-"));
+  const opsPath = path.join(root, "task_queue_ops.py");
+  const argvFile = path.join(root, "argv.txt");
+  fs.writeFileSync(opsPath, `import json, os, sys
+open(os.path.join(os.path.dirname(__file__), "argv.txt"), "a").write(" ".join(sys.argv[1:]) + "\\n")
+since = sys.argv[sys.argv.index("--since") + 1] if "--since" in sys.argv else None
+print(json.dumps({"ok": True, "since": since, "patrol_included": False, "agents": {
+  "claude": {"tasks": 2, "live": 0, "states": {"ok": 2}, "outcomes": {"DONE": 2},
+             "tokens_total": 1200000, "tokens_unknown": 0, "cost_usd_estimate": 0.42,
+             "cost_unpriced": 0, "cost_free": 0}}}))
+`);
+  const commands = {};
+  chat.default({
+    pluginConfig: { dispatchLogDir: root, dispatchLimitsPath: path.join(root, "limits.env"),
+      patrolStateDir: path.join(root, "patrol"), taskQueueOpsPath: opsPath },
+    registerCommand: (command) => { commands[command.name] = command; },
+  });
+  const run = (args) => commands["dispatch-stats"].handler({ args, config: { agents: { defaults: { workspace: root } } } });
+  try {
+    assert.ok(commands["dispatch-list"], "the queue command is still registered");
+    assert.equal(commands["dispatch-stats"].acceptsArgs, true, "the window is an argument");
+    const reply = await run("");
+    assert.match(reply.text, /^# 派发统计 · 近 7 天 · 2 项/m);
+    assert.match(reply.text, /\| Agent \| 完成\/已结束 \| 部分 \| 未完成 \| token · API 估价 \|/);
+    assert.match(reply.text, /\| Claude Code \| 2\/2 \| 0 \| 0 \| 1\.2M · \$0\.42 \|/);
+    assert.match(reply.text, /\| 合计 \| 2\/2 \| 0 \| 0 \| 1\.2M · \$0\.42 \|/);
+    assert.doesNotMatch(reply.text, /token 未知|已结束任务冻结值|巡检不计/);
+    const since7 = (await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href)).sinceDay(7);
+    const seen = fs.readFileSync(argvFile, "utf8").trim().split("\n");
+    assert.deepEqual(seen[0], "--json summary --since " + since7);
+    const all = await run("all patrol");
+    assert.match(all.text, /^# 派发统计 · 全部（含巡检）/m);
+    assert.match(all.text, /\| 合计 \| 2\/2 \| 0 \| 0 \| 1\.2M · \$0\.42 \|/);
+    assert.equal(fs.readFileSync(argvFile, "utf8").trim().split("\n")[1], "--json summary --all",
+      "all-time includes patrol, and no since is passed");
+    const plain = await run("plain");
+    assert.doesNotMatch(plain.text, /\| Agent \|/);
+    assert.match(plain.text, /Claude Code {2}▓{10} {2}1\.2M · \$0\.42/);
+    assert.deepEqual(fs.readFileSync(argvFile, "utf8").trim().split("\n")[2], "--json summary --since " + since7,
+      "plain is a renderer choice, not a second query");
+    const bad = await run("yesterday");
+    assert.match(bad.text, /用法：\/dispatch-stats/);
+    assert.equal(fs.readFileSync(argvFile, "utf8").trim().split("\n").length, 3, "a refused argument never reaches the ops entry");
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
 test('patrol coverage: full recorded lens history stays separate from eight rows; area is not inferred', async () => {

@@ -7,7 +7,7 @@
  * hairline, and nothing relies on colour or on a monospaced font (WeChat has
  * neither).
  */
-import { FACT_ORDER, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole } from './panel.ts'
+import { FACT_ORDER, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole, type StatsView } from './panel.ts'
 import type { Translate } from './copy.ts'
 
 /** A role's glyph as one character, in the shape the chip draws (panel.ts STATE_ROLES). */
@@ -106,5 +106,59 @@ export function panelText(model: PanelModel, t: Translate): string {
     for (const alert of model.patrol.progress?.alerts ?? []) out.push('- ⚠ ' + literal(alert))
   }
   if (model.footer !== null) out.push('', literal((model.footer.bad ? '⚠ ' : '') + model.footer.text))
+  return out.join('\n')
+}
+
+/** One Markdown table cell: a literal `|` would open a column, so escape it. */
+const cell = (text: string): string => text.replace(/([\\`*_[\]<>|])/g, '\\$1').replace(/[\r\n]+/g, ' ')
+
+/**
+ * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
+ * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
+ * The title carries the total and live count; the table carries the ended-task rows.
+ * No trailing prose: the only caveat is the column header's "API estimate", and the
+ * chip's chart layer keeps the one-line "not subscription quota" note.
+ */
+export function statsText(view: StatsView, t: Translate, plain = false): string {
+  const hasRows = view.agents.length > 0
+  const title = view.title + ' · ' + view.window + (hasRows
+    ? ' · ' + (view.totals.live > 0
+      ? t('stats.title.countLive', { n: view.totals.tasks, live: view.totals.live })
+      : t('stats.title.count', { n: view.totals.tasks }))
+    : '')
+  const out = ['# ' + literal(title)]
+  if (view.empty !== '') {
+    out.push('', literal(view.empty))
+    return out.join('\n')
+  }
+  if (!hasRows) {
+    out.push('', literal(view.headline), '', literal(view.footnote))
+    return out.join('\n')
+  }
+  if (plain) {
+    out.push('', literal([t('stats.tokens', { tokens: view.totals.tokensText }), t('stats.costEstimate', { cost: view.totals.costText })].join(' · ')))
+    for (const agent of view.agents) {
+      out.push('', literal(agent.label + '  ' + bar(agent.share * 100) + '  ' + agent.tokensText + ' · ' + agent.costText))
+      const parts = [
+        t('stats.table.settled') + ' ' + agent.settled,
+        t('stats.table.done') + ' ' + agent.done,
+        t('stats.table.partial') + ' ' + agent.partial,
+        t('stats.table.unfinished') + ' ' + agent.unfinished,
+        ...(agent.live > 0 ? [t('stats.card.live', { n: agent.live })] : []),
+      ]
+      out.push(literal(parts.join(' · ')))
+    }
+    return out.join('\n')
+  }
+  const header = [
+    t('stats.table.agent'), t('stats.table.doneSettled'),
+    t('stats.table.partial'), t('stats.table.unfinished'), t('stats.table.tokens'),
+  ]
+  const row = (label: string, a: { settled: number; done: number; partial: number; unfinished: number; tokensText: string; costText: string }): string =>
+    '| ' + [label, a.done + '/' + a.settled, String(a.partial), String(a.unfinished), a.tokensText + ' · ' + a.costText]
+      .map(cell).join(' | ') + ' |'
+  out.push('', '| ' + header.map(cell).join(' | ') + ' |', '|' + '---|'.repeat(header.length))
+  for (const agent of view.agents) out.push(row(agent.label, agent))
+  out.push(row(t('stats.table.total'), view.totals))
   return out.join('\n')
 }

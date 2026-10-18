@@ -10,7 +10,7 @@
  */
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
 import type { Context } from '@deepseek-ai/cordis';
-import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, QueueActionResult, RunDetailResult, TaskQueueResult, TracesResult } from './types.ts';
+import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, QueueActionResult, RunDetailResult, TaskQueueResult, TaskStats, TracesResult } from './types.ts';
 import { type ClawockStudioConfig } from './desk.ts';
 export type { ClawockStudioConfig } from './desk.ts';
 export declare class ClawockStudioGateway extends TypertRemoteService {
@@ -86,6 +86,15 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * @param force - bypass the short host cache (the manual refresh button).
      */
     taskQueue(force: boolean): Promise<TaskQueueResult>;
+    /**
+     * The stats layer's frozen totals, read on demand: the chip asks only when its
+     * panel opens, never on the queue's poll. Same `summary` as /dispatch-stats;
+     * it never rereads a session.
+     * @param days - rolling calendar days, today included; null with `since` null = all-time.
+     * @param since - first day (YYYY-MM-DD); takes precedence over `days`.
+     * @param patrol - include patrol rounds (cmd_summary's --all).
+     */
+    taskStats(days: number | null, since: string | null, patrol: boolean): Promise<TaskStats>;
     /**
      * One write from the task chip — cancel, priority, model, retry, wrapup,
      * deadline, attempts, resumes — or a read the chip needs on demand (choices,

@@ -76,19 +76,24 @@ test('packed clawock-dsh installs standalone and every export entry imports', as
       })
     }
 
-    // 5. The OpenClaw entry (`/dispatch-list`, package.json `openclaw.extensions`) loads from
-    //    the installed package with its manifest beside it, and registers its one command.
-    //    OpenClaw imports it in the gateway process, where none of dsh's modules exist.
-    await t.test('OpenClaw entry registers /dispatch-list', async () => {
+    // 5. The OpenClaw entry (`/dispatch-list` and `/dispatch-stats`, package.json
+    //    `openclaw.extensions`) loads from the installed package with its manifest beside it,
+    //    and registers both commands. OpenClaw imports it in the gateway process, where none
+    //    of dsh's modules exist.
+    await t.test('OpenClaw entry registers /dispatch-list and /dispatch-stats', async () => {
       assert.deepEqual(pkg.openclaw?.extensions, ['./lib/chat.js'])
       const manifest = JSON.parse(readFileSync(join(installed, 'openclaw.plugin.json'), 'utf8'))
-      assert.ok(manifest.commandAliases.some((alias) => alias.name === 'dispatch-list'))
+      for (const name of ['dispatch-list', 'dispatch-stats']) {
+        assert.ok(manifest.commandAliases.some((alias) => alias.name === name), `${name} is in the manifest`)
+      }
       const src = readFileSync(join(installed, 'lib', 'chat.js'), 'utf8')
       assert.ok(!/@deepseek-ai\//.test(src), 'the OpenClaw entry must not import dsh modules')
       const commands = []
       const mod = await import(pathToFileURL(join(installed, 'lib', 'chat.js')).href)
       mod.default({ registerCommand: (command) => { commands.push(command) } })
-      assert.deepEqual(commands.map((command) => command.name), ['dispatch-list'])
+      assert.deepEqual(commands.map((command) => command.name), ['dispatch-list', 'dispatch-stats'])
+      assert.equal(commands.find((command) => command.name === 'dispatch-stats').acceptsArgs, true,
+        'the stats window is an argument')
     })
 
     // 6. Every runtime dependency the shipped code imports must be declared.

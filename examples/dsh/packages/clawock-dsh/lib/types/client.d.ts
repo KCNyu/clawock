@@ -25,7 +25,7 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
+import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1 } from './types.ts';
 import { type Translate } from './copy.ts';
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts';
@@ -183,6 +183,15 @@ export interface TaskQueueInjected {
     cachedTaskQueue: () => TaskQueueResult | null;
     /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
     fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>;
+    /**
+     * Frozen task/token totals, read only when the panel opens. Optional: a host
+     * half older than the `taskStats` method has no stats card.
+     */
+    fetchTaskStats?: (query: {
+        days: number | null;
+        since: string | null;
+        patrol: boolean;
+    }) => Promise<TaskStats>;
     /**
      * One write (or on-demand read) through the host's versioned ops entry.
      * Optional: without it the panel is read-only.

@@ -7,7 +7,7 @@
  * hairline, and nothing relies on colour or on a monospaced font (WeChat has
  * neither).
  */
-import { type PanelModel, type RowView, type StateRole } from './panel.ts';
+import { type PanelModel, type RowView, type StateRole, type StatsView } from './panel.ts';
 import type { Translate } from './copy.ts';
 /** A role's glyph as one character, in the shape the chip draws (panel.ts STATE_ROLES). */
 export declare const ROLE_MARK: Record<StateRole, string>;
@@ -40,3 +40,11 @@ export declare function rowText(view: RowView, t: Translate, opts?: {
  * sidebar's; here it speaks only when one of its sources could not be read.
  */
 export declare function panelText(model: PanelModel, t: Translate): string;
+/**
+ * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
+ * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
+ * The title carries the total and live count; the table carries the ended-task rows.
+ * No trailing prose: the only caveat is the column header's "API estimate", and the
+ * chip's chart layer keeps the one-line "not subscription quota" note.
+ */
+export declare function statsText(view: StatsView, t: Translate, plain?: boolean): string;

@@ -24,6 +24,7 @@ import { createHash } from "node:crypto";
 *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
 *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
 *   task_queue_ops.py --json list        per-agent lock holder and queue order
+*   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
 *
 * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
 * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
@@ -45,6 +46,8 @@ const DEFAULT_TASK_QUEUE_RECENT = 5;
 /** Host-side cache: every open tab polls, the files are read once per window. */
 const TTL_MS = 5e3;
 const COMMAND_TIMEOUT_MS = 5e3;
+/** The chip's stats fold: the last seven local calendar days, today included. */
+const DEFAULT_STATS_DAYS = 7;
 /** How much of a run log's end is read: every line the queue shows sits in its last few KB. */
 const LOG_TAIL_BYTES = 65536;
 /** The detail panel's cap on the closing report (the runner already keeps only six lines). */
@@ -562,6 +565,131 @@ async function readOps(config, deps) {
 		list
 	};
 }
+/** Local calendar day `days - 1` before `now`, YYYY-MM-DD: cmd_summary compares CREATED's date. */
+function sinceDay(days, now = Date.now()) {
+	const d = new Date(now);
+	d.setDate(d.getDate() - (Math.max(1, days) - 1));
+	const pad = (n) => String(n).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+const integerOf = (raw) => typeof raw === "number" && Number.isInteger(raw) && raw >= 0 ? raw : null;
+const amountOf = (raw) => typeof raw === "number" && Number.isFinite(raw) && raw >= 0 ? raw : null;
+/** `{"ok": 3, "failed": 1}` as a list; null when any count is not a non-negative integer. */
+function statCounts(raw) {
+	if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+	const out = [];
+	for (const [name, count] of Object.entries(raw)) {
+		const n = integerOf(count);
+		if (name === "" || n === null) return null;
+		out.push({
+			name,
+			count: n
+		});
+	}
+	return out;
+}
+/**
+* The frozen-result summary, read through the same versioned ops entry as the queue (never
+* from session files: that is how cmd_summary avoids counting a continued session twice).
+* Never throws: a failed or unreadable answer is `available: false` with the reason, so the
+* surface can say "unknown" instead of drawing zeros.
+*/
+async function readStats(config, deps, options = {}) {
+	const days = options.days ?? null;
+	const since = options.since !== void 0 && options.since !== null ? options.since : days === null ? null : sinceDay(days);
+	const patrolIncluded = options.patrol === true;
+	const base = {
+		available: false,
+		error: "",
+		since,
+		days,
+		patrolIncluded,
+		asOf: (/* @__PURE__ */ new Date()).toISOString(),
+		agents: []
+	};
+	if (deps.runOps === void 0) return {
+		...base,
+		error: "no ops runner"
+	};
+	if (!existsSync(config.opsPath)) return {
+		...base,
+		error: `ops entry not installed at ${config.opsPath}`
+	};
+	const args = [
+		"summary",
+		...since === null ? [] : ["--since", since],
+		...patrolIncluded ? ["--all"] : []
+	];
+	let r;
+	try {
+		r = await deps.runOps(config.opsPath, args, COMMAND_TIMEOUT_MS);
+	} catch (cause) {
+		return {
+			...base,
+			error: cause instanceof Error ? cause.message : String(cause)
+		};
+	}
+	let raw;
+	try {
+		raw = JSON.parse(r.stdout);
+	} catch {
+		return {
+			...base,
+			error: (r.stderr || r.stdout).trim().slice(-300) || `ops summary exited ${r.code}`
+		};
+	}
+	if (r.code !== 0 || raw === null || raw.ok !== true) return {
+		...base,
+		error: (raw?.error ?? (r.stderr || r.stdout).trim()).slice(-300) || `ops summary exited ${r.code}`
+	};
+	if (raw.agents === null || typeof raw.agents !== "object" || Array.isArray(raw.agents)) return {
+		...base,
+		error: "ops summary returned no agents"
+	};
+	const agents = [];
+	for (const [agent, row] of Object.entries(raw.agents)) {
+		const tasks = integerOf(row?.tasks);
+		const live = integerOf(row?.live);
+		const states = statCounts(row?.states);
+		const outcomes = statCounts(row?.outcomes);
+		const tokensTotal = integerOf(row?.tokens_total);
+		const tokensUnknown = integerOf(row?.tokens_unknown);
+		const costUsdEstimate = amountOf(row?.cost_usd_estimate);
+		const costUnpriced = integerOf(row?.cost_unpriced);
+		const costFree = integerOf(row?.cost_free);
+		if ([
+			tasks,
+			live,
+			tokensTotal,
+			tokensUnknown,
+			costUsdEstimate,
+			costUnpriced,
+			costFree
+		].some((n) => n === null) || states === null || outcomes === null) return {
+			...base,
+			error: `ops summary returned an unreadable ${agent} row`
+		};
+		agents.push({
+			agent,
+			tasks,
+			live,
+			states,
+			outcomes,
+			tokensTotal,
+			tokensUnknown,
+			costUsdEstimate,
+			costUnpriced,
+			costFree
+		});
+	}
+	return {
+		...base,
+		available: true,
+		since: typeof raw.since === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.since) ? raw.since : since,
+		patrolIncluded: raw.patrol_included === true ? true : patrolIncluded,
+		agents
+	};
+}
 async function readTaskQueue(config, deps) {
 	const asOf = (/* @__PURE__ */ new Date()).toISOString();
 	const empty = {
@@ -652,7 +780,8 @@ async function readTaskQueue(config, deps) {
 		},
 		queues,
 		ops: opsRead.ops,
-		logDir: config.logDir
+		logDir: config.logDir,
+		statsApi: true
 	};
 }
 /** TTL cache + in-flight join + stale-on-failure, the balance services' cadence shell in miniature. */
@@ -706,6 +835,9 @@ function createTaskQueueService(config = {}, deps = systemDeps) {
 	return {
 		invalidate() {
 			fetchedAt = 0;
+		},
+		async stats(options = {}) {
+			return readStats(resolved, deps, options);
 		},
 		async get(force) {
 			if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) return lastError !== null ? answer("stale", lastError) : answer("cached", null);
@@ -880,4 +1012,4 @@ function createQueueActionRunner(config = {}, deps = systemDeps, onWrite = () =>
 	};
 }
 //#endregion
-export { DEFAULT_DISPATCH_LIMITS_PATH, DEFAULT_DISPATCH_LOG_DIR, DEFAULT_PATROL_STATE_DIR, DEFAULT_TASK_QUEUE_OPS_PATH, DEFAULT_TASK_QUEUE_RECENT, DEFAULT_TASK_QUEUE_REFRESH_MS, QUEUE_ACTIONS, WRAPUP_TEXT, channelList, createQueueActionRunner, createTaskQueueService, fileVersion, finalSummary, lastLogEvent, localStampMs, opsArgsFor, patrolPhase, readEnvFile, readPatrolProgress, readTaskQueue, systemDeps, unquoteShell };
+export { DEFAULT_DISPATCH_LIMITS_PATH, DEFAULT_DISPATCH_LOG_DIR, DEFAULT_PATROL_STATE_DIR, DEFAULT_STATS_DAYS, DEFAULT_TASK_QUEUE_OPS_PATH, DEFAULT_TASK_QUEUE_RECENT, DEFAULT_TASK_QUEUE_REFRESH_MS, QUEUE_ACTIONS, WRAPUP_TEXT, channelList, createQueueActionRunner, createTaskQueueService, fileVersion, finalSummary, lastLogEvent, localStampMs, opsArgsFor, patrolPhase, readEnvFile, readPatrolProgress, readStats, readTaskQueue, sinceDay, systemDeps, unquoteShell };

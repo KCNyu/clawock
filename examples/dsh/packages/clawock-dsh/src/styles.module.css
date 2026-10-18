@@ -2221,11 +2221,14 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-fold-summary {
   position:relative;
   display:inline-flex;
-  align-items:center;
+  align-items:flex-start;
   gap:4px;
   box-sizing:border-box;
-  height:26px;
-  padding:0 10px 0 7px;
+  max-width:100%;
+  min-height:26px;
+  padding:4px 10px 4px 7px;
+  line-height:16px;
+  white-space:normal;
   border:.5px solid var(--tq-pill-border);
   border-radius:999px;
   list-style:none;
@@ -2237,10 +2240,12 @@ body[data-ds-dark-theme] .pbc .bp {
   -webkit-user-select:none;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
+.pbc .tq-fold-summary > span { min-width:0; overflow-wrap:anywhere }
 .pbc .tq-fold-summary::-webkit-details-marker { display:none }
 .pbc .tq-fold-summary::marker { content:"" }
 .pbc .tq-fold-chev {
   flex:none;
+  margin-top:2px;
   color:var(--tq-ink-3);
   transition:transform var(--tq-fast) var(--tq-ease)
 }
@@ -2407,6 +2412,228 @@ body[data-ds-dark-theme] .pbc .bp {
 @media (pointer: coarse) {
   .pbc .tq-d-sec .tq-pill::after { inset:-9px -8px }
 }
+/* Stats: a card in the list, not a fourth fold. The collapsed form is one tile (title,
+   three readings, a completion bar, one caption); the chart layer opens from it with the
+   same .tq-layer as a task detail. The card is the only lazy read: its data arrives when
+   the panel opens, never on the queue's poll. */
+.pbc .tq-stats-card {
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  width:calc(100% - var(--tq-main-inset));
+  margin:14px 0 2px var(--tq-main-inset);
+  padding:10px 12px 9px;
+  border:0;
+  border-radius:var(--tq-radius);
+  background:var(--tq-well);
+  color:var(--tq-ink);
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-stats-card:active {
+  transform:scale(var(--tq-press-scale));
+  background:var(--tq-fill-press)
+}
+.pbc .tq-stats-card:focus-visible {
+  outline:var(--tq-focus-ring);
+  outline-offset:1px
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-stats-card:hover { background:var(--tq-fill-hover) }
+}
+.pbc .tq-stats-top {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:100%;
+  min-width:0
+}
+.pbc .tq-stats-glyph-wrap {
+  display:flex;
+  flex:none;
+  color:var(--tq-ink-2)
+}
+.pbc .tq-stats-glyph { display:block }
+.pbc .tq-stats-title {
+  min-width:0;
+  font:var(--dsw-font-xxs-strong-12);
+  line-height:16px;
+  color:var(--tq-ink-2);
+  overflow-wrap:anywhere
+}
+.pbc .tq-stats-chev {
+  display:flex;
+  flex:none;
+  margin-left:auto;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-metrics {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+  width:100%;
+  min-width:0
+}
+.pbc .tq-stats-metric {
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  min-width:0
+}
+.pbc .tq-stats-value {
+  font:var(--dsw-font-s-strong-14);
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+  color:var(--tq-ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.pbc .tq-stats-label {
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3);
+  white-space:nowrap
+}
+.pbc .tq-stats-bar-wrap { width:100%; padding-top:2px }
+.pbc .tq-stats-bar {
+  display:flex;
+  width:100%;
+  height:4px;
+  border-radius:999px;
+  overflow:hidden;
+  background:var(--tq-hairline)
+}
+.pbc .tq-stats-bar-lg { height:6px }
+.pbc .tq-stats-seg {
+  flex-basis:0;
+  flex-shrink:1;
+  min-width:0;
+  height:100%
+}
+.pbc .tq-stats-seg-done { background:var(--tq-run) }
+.pbc .tq-stats-seg-partial { background:var(--tq-wait) }
+.pbc .tq-stats-seg-unfinished { background:var(--tq-bad) }
+.pbc .tq-stats-seg-live { background:var(--tq-ink-3) }
+.pbc .tq-stats-caption {
+  display:flex;
+  gap:0;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-skeleton {
+  min-height:104px;
+  justify-content:center;
+  cursor:default;
+  pointer-events:none
+}
+.pbc .tq-stats-skel-line {
+  display:block;
+  border-radius:4px;
+  background:var(--tq-hairline);
+  opacity:.75
+}
+.pbc .tq-stats-skel-40 { width:40%; height:16px }
+.pbc .tq-stats-skel-70 { width:70%; height:32px }
+.pbc .tq-stats-skel-100 { width:100%; height:6px }
+.pbc .tq-stats-error {
+  cursor:default;
+  gap:6px
+}
+.pbc .tq-stats-error-text {
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-text-bad);
+  overflow-wrap:anywhere
+}
+.pbc .tq-stats-retry { align-self:flex-start }
+.pbc .tq-stats-summary {
+  margin:2px 0 14px var(--tq-main-inset);
+  font:var(--dsw-font-s-strong-14);
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+  color:var(--tq-ink)
+}
+.pbc .tq-stats-row {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin:10px 0 0 var(--tq-main-inset)
+}
+.pbc .tq-stats-row-head {
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0
+}
+.pbc .tq-stats-agent {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  font:var(--dsw-font-xs-13);
+  line-height:20px;
+  color:var(--tq-ink)
+}
+.pbc .tq-stats-agent-name { overflow-wrap:anywhere }
+.pbc .tq-stats-numbers {
+  flex:none;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-track {
+  height:6px;
+  border-radius:999px;
+  overflow:hidden;
+  background:var(--tq-hairline)
+}
+.pbc .tq-stats-fill {
+  height:100%;
+  border-radius:inherit;
+  background:var(--tq-run)
+}
+.pbc .tq-stats-breakdown {
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:2px 10px;
+  margin:2px 0 0 var(--tq-main-inset)
+}
+.pbc .tq-stats-legend-item {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-stats-swatch {
+  flex:none;
+  width:8px;
+  height:8px;
+  border-radius:2px
+}
+.pbc .tq-stats-foot {
+  margin:14px 0 4px var(--tq-main-inset);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  overflow-wrap:anywhere;
+  color:var(--tq-ink-3)
+}
 .pbc .tq-inline {
   display:inline-flex;
   flex-wrap:wrap;
@@ -2489,7 +2716,7 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-icon-btn.spin svg {
     animation:none
   }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary):active {
+  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary, .tq-stats-card):active {
     transform:none
   }
   .pbc .tq-fold-chev {

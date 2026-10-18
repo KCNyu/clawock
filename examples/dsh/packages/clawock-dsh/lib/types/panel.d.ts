@@ -11,7 +11,7 @@
  */
 import { type ProviderJoin } from './providers.ts';
 import { type Translate } from './copy.ts';
-import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult } from './types.ts';
+import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts';
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
 /** Usage-direction colour tier of a used-percent reading. */
@@ -489,6 +489,62 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
     head: RowView;
     rows: RowView[];
 } | null;
+/** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
+export declare function compactCount(n: number): string;
+/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+export declare function usdText(n: number): string;
+/** One agent's totals as the stats card and its chart layer read them. */
+export type StatsAgentView = {
+    agent: string;
+    label: string;
+    /** Tasks in the window, live included. */
+    tasks: number;
+    /** Ended tasks: the denominator of the completion bar and the table's 已结束 column. */
+    settled: number;
+    done: number;
+    partial: number;
+    /** Everything settled that is neither done nor partial (blocked, failed, cancelled, quota, …). */
+    unfinished: number;
+    live: number;
+    tokens: number;
+    tokensText: string;
+    costText: string;
+    /** Token length against the largest agent, 0..1 (the token bar's fill). */
+    share: number;
+    doneShare: number;
+    partialShare: number;
+    unfinishedShare: number;
+    liveShare: number;
+};
+export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> & {
+    tokensUnknown: number;
+    costUsdEstimate: number;
+    costUnpriced: number;
+    costFree: number;
+};
+/**
+ * The stats surface's one view: the card's three readings, its completion bar, and the
+ * chart layer's per-agent bars. It is a projection of `task_queue_ops.py summary`, never a
+ * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
+ * remainder. The footnote carries the caveats once, in one line.
+ */
+export type StatsView = {
+    title: string;
+    /** The card's shorter name; the layer and the command use `title`. */
+    cardTitle: string;
+    /** The window as words: 近 7 天 / 10/12 起 / 全部（含巡检）. */
+    window: string;
+    /** Window + totals, for the card's aria and the text fallback. */
+    headline: string;
+    /** Totals without the window (the layer's header already says the window). */
+    summaryLine: string;
+    agents: StatsAgentView[];
+    totals: StatsTotalsView;
+    maxTokens: number;
+    empty: string;
+    footnote: string;
+};
+export declare function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null;
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
  * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
@@ -600,6 +656,8 @@ export type PanelModel = {
     groups: PanelGroup[];
     recent: ReturnType<typeof recentSection>;
     patrol: ReturnType<typeof patrolSection>;
+    /** The frozen-result stats fold; null when there is no window to show (an empty window is hidden). */
+    stats: StatsView | null;
     footer: ReturnType<typeof opsFooter>;
 };
 /** Both halves of the cell as one read left them: an answer, or why there is none. */
@@ -608,5 +666,7 @@ export type PanelInput = {
     balanceError: string | null;
     queue: TaskQueueResult | null;
     queueError: string | null;
+    /** The stats layer's own read; absent on a host without the taskStats method. */
+    stats?: TaskStats | null;
 };
 export declare function panelModel(input: PanelInput, t: Translate, now: number, open?: (id: string) => void): PanelModel;

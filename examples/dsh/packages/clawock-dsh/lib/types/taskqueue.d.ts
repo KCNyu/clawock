@@ -17,6 +17,7 @@
  *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
  *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
+ *   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
  * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
@@ -29,13 +30,15 @@
  * balance services: `get()` never throws, a failed read keeps the last good
  * snapshot as 'stale'.
  */
-import type { PatrolProgress, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult } from './types.ts';
+import type { PatrolProgress, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult, TaskStats } from './types.ts';
 export declare const DEFAULT_DISPATCH_LOG_DIR: string;
 export declare const DEFAULT_DISPATCH_LIMITS_PATH: string;
 export declare const DEFAULT_PATROL_STATE_DIR: string;
 export declare const DEFAULT_TASK_QUEUE_OPS_PATH: string;
 export declare const DEFAULT_TASK_QUEUE_REFRESH_MS = 15000;
 export declare const DEFAULT_TASK_QUEUE_RECENT = 5;
+/** The chip's stats fold: the last seven local calendar days, today included. */
+export declare const DEFAULT_STATS_DAYS = 7;
 export interface TaskQueueConfig {
     logDir?: string;
     limitsPath?: string;
@@ -106,9 +109,29 @@ export declare function patrolPhase(service: string, round: string, roundAlive: 
 type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs'>;
 /** sha256 of a file, 12 hex — the same hash the ops entry reports as its ops_version. */
 export declare function fileVersion(path: string): string;
+/** What the stats surface asks for: a rolling window, a since-date, or every retained task. */
+export type StatsOptions = {
+    /** Rolling calendar days, today included. Ignored when `since` is set. */
+    days?: number | null;
+    /** First day (YYYY-MM-DD); null/undefined with no days = every retained task. */
+    since?: string | null;
+    /** Include patrol rounds (cmd_summary's `--all`). Default false. */
+    patrol?: boolean;
+};
+/** Local calendar day `days - 1` before `now`, YYYY-MM-DD: cmd_summary compares CREATED's date. */
+export declare function sinceDay(days: number, now?: number): string;
+/**
+ * The frozen-result summary, read through the same versioned ops entry as the queue (never
+ * from session files: that is how cmd_summary avoids counting a continued session twice).
+ * Never throws: a failed or unreadable answer is `available: false` with the reason, so the
+ * surface can say "unknown" instead of drawing zeros.
+ */
+export declare function readStats(config: Required<TaskQueueConfig>, deps: TaskQueueDeps, options?: StatsOptions): Promise<TaskStats>;
 export declare function readTaskQueue(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): Promise<QueueRead>;
 export type TaskQueueService = {
     get(force: boolean): Promise<TaskQueueResult>;
+    /** Frozen-result totals for one window; independent of get()'s cache, never throws. */
+    stats(options?: StatsOptions): Promise<TaskStats>;
     /** Forget the cached read: the next get() reads the files again (after a write). */
     invalidate(): void;
 };

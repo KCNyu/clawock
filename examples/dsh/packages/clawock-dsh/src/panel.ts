@@ -11,7 +11,7 @@
  */
 import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
 import { resetStampOf, windowsOf, type Translate } from './copy.ts'
-import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult } from './types.ts'
+import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts'
 
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
@@ -1057,6 +1057,172 @@ export function recentSection(result: TaskQueueResult | null, t: Translate, now:
   }
 }
 
+/** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
+export function compactCount(n: number): string {
+  const trim = (s: string): string => (s.includes('.') ? s.replace(/\.?0+$/, '') : s)
+  if (n >= 1e9) return trim((n / 1e9).toFixed(2)) + 'B'
+  if (n >= 1e6) return trim((n / 1e6).toFixed(1)) + 'M'
+  if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e5 ? 0 : 1)) + 'k'
+  return String(n)
+}
+
+/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+export function usdText(n: number): string {
+  if (!(n > 0)) return '$0'
+  return n < 0.01 ? '<$0.01' : '$' + n.toFixed(2)
+}
+
+function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: string): number {
+  return counts.find((count) => count.name === name)?.count ?? 0
+}
+
+function statsTokensText(tokens: number, unknown: number): string {
+  return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
+}
+
+function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
+  if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
+  if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
+  return '—'
+}
+
+const ratio = (part: number, whole: number): number => (whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0)
+
+/** One agent's totals as the stats card and its chart layer read them. */
+export type StatsAgentView = {
+  agent: string
+  label: string
+  /** Tasks in the window, live included. */
+  tasks: number
+  /** Ended tasks: the denominator of the completion bar and the table's 已结束 column. */
+  settled: number
+  done: number
+  partial: number
+  /** Everything settled that is neither done nor partial (blocked, failed, cancelled, quota, …). */
+  unfinished: number
+  live: number
+  tokens: number
+  tokensText: string
+  costText: string
+  /** Token length against the largest agent, 0..1 (the token bar's fill). */
+  share: number
+  doneShare: number
+  partialShare: number
+  unfinishedShare: number
+  liveShare: number
+}
+
+export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> & {
+  tokensUnknown: number
+  costUsdEstimate: number
+  costUnpriced: number
+  costFree: number
+}
+
+/**
+ * The stats surface's one view: the card's three readings, its completion bar, and the
+ * chart layer's per-agent bars. It is a projection of `task_queue_ops.py summary`, never a
+ * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
+ * remainder. The footnote carries the caveats once, in one line.
+ */
+export type StatsView = {
+  title: string
+  /** The card's shorter name; the layer and the command use `title`. */
+  cardTitle: string
+  /** The window as words: 近 7 天 / 10/12 起 / 全部（含巡检）. */
+  window: string
+  /** Window + totals, for the card's aria and the text fallback. */
+  headline: string
+  /** Totals without the window (the layer's header already says the window). */
+  summaryLine: string
+  agents: StatsAgentView[]
+  totals: StatsTotalsView
+  maxTokens: number
+  empty: string
+  footnote: string
+}
+
+export function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
+  if (stats == null) return null
+  const title = t('stats.title')
+  const cardTitle = t('stats.cardTitle')
+  const baseWindow = stats.days !== null ? t('stats.window.days', { n: stats.days })
+    : stats.since !== null ? t('stats.window.since', { date: stats.since })
+      : t('stats.window.all')
+  const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
+  const zeroAgent: StatsAgentView = {
+    agent: '', label: '', tasks: 0, settled: 0, done: 0, partial: 0, unfinished: 0, live: 0,
+    tokens: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
+  }
+  const zeroTotals: StatsTotalsView = {
+    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
+  }
+  if (!stats.available) {
+    return {
+      title, cardTitle, window, headline: t('stats.headline.failed', { window }), summaryLine: window,
+      agents: [], totals: zeroTotals, maxTokens: 0, empty: '',
+      footnote: t('stats.unavailable', { message: stats.error }),
+    }
+  }
+  const selected = byAgentRank(stats.agents.filter((agent) => agent.tasks > 0))
+  if (selected.length === 0) {
+    return {
+      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0,
+      empty: t('stats.empty'), footnote: t('stats.note.cost'),
+    }
+  }
+  const agents: StatsAgentView[] = selected.map((agent) => {
+    const tasks = Math.max(0, agent.tasks)
+    const live = Math.max(0, Math.min(agent.live, tasks))
+    const settled = Math.max(0, tasks - live)
+    const done = Math.max(0, Math.min(statOf(agent.outcomes, 'DONE'), settled))
+    const partial = Math.max(0, Math.min(statOf(agent.outcomes, 'PARTIAL'), settled - done))
+    const unfinished = Math.max(0, settled - done - partial)
+    return {
+      agent: agent.agent, label: _agentLabel(agent.agent), tasks, settled, done, partial, unfinished, live,
+      tokens: agent.tokensTotal, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
+      costText: statsCostText(agent, t), share: 0,
+      doneShare: ratio(done, settled), partialShare: ratio(partial, settled),
+      unfinishedShare: ratio(unfinished, settled), liveShare: ratio(live, tasks),
+    }
+  })
+  const maxTokens = Math.max(0, ...agents.map((agent) => agent.tokens))
+  for (const agent of agents) agent.share = ratio(agent.tokens, maxTokens)
+  const totals: StatsTotalsView = { ...zeroTotals }
+  for (const [at, agent] of agents.entries()) {
+    const raw = selected[at]!
+    totals.tasks += agent.tasks
+    totals.settled += agent.settled
+    totals.done += agent.done
+    totals.partial += agent.partial
+    totals.unfinished += agent.unfinished
+    totals.live += agent.live
+    totals.tokens += agent.tokens
+    totals.tokensUnknown += raw.tokensUnknown
+    totals.costUsdEstimate += raw.costUsdEstimate
+    totals.costUnpriced += raw.costUnpriced
+    totals.costFree += raw.costFree
+  }
+  totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown)
+  totals.costText = statsCostText(totals, t)
+  totals.doneShare = ratio(totals.done, totals.settled)
+  totals.partialShare = ratio(totals.partial, totals.settled)
+  totals.unfinishedShare = ratio(totals.unfinished, totals.settled)
+  totals.liveShare = ratio(totals.live, totals.tasks)
+  const headline = [
+    window,
+    t('stats.tasks', { n: totals.tasks }),
+    t('stats.tokens', { tokens: totals.tokensText }),
+    t('stats.costEstimate', { cost: totals.costText }),
+  ].join(' · ')
+  return {
+    title, cardTitle, window, headline,
+    summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
+    agents, totals, maxTokens, empty: '',
+    footnote: t('stats.note.cost'),
+  }
+}
+
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
  * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
@@ -1215,17 +1381,27 @@ export type PanelModel = {
   groups: PanelGroup[]
   recent: ReturnType<typeof recentSection>
   patrol: ReturnType<typeof patrolSection>
+  /** The frozen-result stats fold; null when there is no window to show (an empty window is hidden). */
+  stats: StatsView | null
   footer: ReturnType<typeof opsFooter>
 }
 
 /** Both halves of the cell as one read left them: an answer, or why there is none. */
-export type PanelInput = { balances: BalancesResult | null; balanceError: string | null; queue: TaskQueueResult | null; queueError: string | null }
+export type PanelInput = {
+  balances: BalancesResult | null
+  balanceError: string | null
+  queue: TaskQueueResult | null
+  queueError: string | null
+  /** The stats layer's own read; absent on a host without the taskStats method. */
+  stats?: TaskStats | null
+}
 
 export function panelModel(input: PanelInput,
   t: Translate, now: number, open: (id: string) => void = () => {}): PanelModel {
   const rows = balanceRows(input.balances, t, now)
   const byProvider = new Map(rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(input.balances?.providers ?? [], input.queue)
+  const stats = input.queue?.available === true ? statsView(input.stats, t) : null
   return {
     title: t('panel.title'),
     notices: panelNotices({ ...input, rowCount: rows.length }, t),
@@ -1233,6 +1409,8 @@ export function panelModel(input: PanelInput,
     groups: sources.map((source) => panelGroup(source, input.queue, byProvider, t, now, open)),
     recent: recentSection(input.queue, t, now, open),
     patrol: patrolSection(input.queue, t, now),
+    // An empty window is noise in the chip; a failed read is not (its notes say so).
+    stats: stats !== null && (stats.agents.length > 0 || stats.empty === '') ? stats : null,
     footer: opsFooter(input.queue, t),
   }
 }

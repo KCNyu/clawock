@@ -32,9 +32,9 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 import * as React from 'react'
 import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
-import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, MINUS, type BalanceTone, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, FLAT_ROUNDS, RESIDENT_ROUNDS, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, MINUS, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled } from './panel.ts'
 
@@ -1011,11 +1011,19 @@ export interface TaskQueueInjected {
   /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
   fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>
   /**
+   * Frozen task/token totals, read only when the panel opens. Optional: a host
+   * half older than the `taskStats` method has no stats card.
+   */
+  fetchTaskStats?: (query: { days: number | null; since: string | null; patrol: boolean }) => Promise<TaskStats>
+  /**
    * One write (or on-demand read) through the host's versioned ops entry.
    * Optional: without it the panel is read-only.
    */
   runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>
 }
+
+/** The chip's stats window: last seven local days, today included (task_queue_ops.py summary). */
+const STATS_DAYS = 7
 
 /** Cached-first read, the mount fetch and the poll, like useProviderBalances in miniature. */
 function useTaskQueue(props: TaskQueueInjected & { t: Translate }) {
@@ -1252,6 +1260,9 @@ function renderSourceGlyph(source: PanelSource): React.ReactElement {
 type PanelUi = DetailUi & {
   /** Rows by provider id with their display projection (the balance channel). */
   rows: Map<string, BalanceRow>
+  /** The stats card's opener: the element focus returns to when the layer closes. */
+  openStats: (opener: HTMLElement) => void
+  statsOpen: boolean
 }
 
 /** A row's lead track (panel.ts RowLead) as its glyph. */
@@ -1337,6 +1348,190 @@ function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Trans
     renderPatrolProgress(patrol.progress, t))
 }
 
+/** A tiny bar-chart mark for the stats card; the same 14px outline as the section glyphs. */
+function renderStatsGlyph(size = 14): React.ReactElement {
+  return h('svg', { className: cx('tq-stats-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+    h('path', {
+      d: 'M2.2 11.4V7.6M6.2 11.4V4.4M10.2 11.4V2.6M1.2 12.6H12.8',
+      stroke: 'currentColor', strokeWidth: 1.25, fill: 'none', strokeLinecap: 'round',
+    }))
+}
+
+type StatsBarCounts = { done: number; partial: number; unfinished: number; live: number }
+
+/** The one stacked bar: done · partial · unfinished · live, each segment proportional to its count. */
+function renderStatsBar(counts: StatsBarCounts, large = false): React.ReactElement {
+  const part = (n: number, kind: string): React.ReactElement | null => n > 0
+    ? h('span', { className: cx('tq-stats-seg', 'tq-stats-seg-' + kind), style: { flexGrow: String(n) }, key: kind })
+    : null
+  return h('span', { className: cx('tq-stats-bar', large && 'tq-stats-bar-lg'), 'aria-hidden': 'true' },
+    part(counts.done, 'done'), part(counts.partial, 'partial'), part(counts.unfinished, 'unfinished'), part(counts.live, 'live'))
+}
+
+function renderStatsMetric(value: string, label: string): React.ReactElement {
+  return h('span', { className: cx('tq-stats-metric') },
+    h('span', { className: cx('tq-stats-value') }, value),
+    h('span', { className: cx('tq-stats-label') }, label))
+}
+
+/**
+ * The stats card: not a fourth fold. It is one tappable tile with the three readings, a
+ * completion bar and a caption; tapping opens the chart layer on the same data. The card is
+ * only rendered after the lazy read answers, and it is the layer's opener (focus returns here).
+ */
+function renderStatsCard(stats: StatsView, t: Translate, ui: PanelUi, open: boolean): React.ReactElement {
+  const aria = t('stats.cardAria', {
+    title: stats.title, window: stats.window,
+    tasks: t('stats.tasks', { n: stats.totals.tasks }),
+    tokens: t('stats.tokens', { tokens: stats.totals.tokensText }),
+    cost: stats.totals.costText,
+    done: stats.totals.done, settled: stats.totals.settled,
+    partial: stats.totals.partial, unfinished: stats.totals.unfinished,
+    open: t('stats.open'),
+  })
+  return h('button', {
+    type: 'button', className: cx('tq-stats-card'), 'data-tq-stats-card': 'true',
+    'aria-haspopup': 'dialog', 'aria-expanded': open ? 'true' : undefined,
+    'aria-label': aria, title: aria,
+    onClick: (event: { currentTarget: HTMLElement }) => { ui.openStats(event.currentTarget) },
+  },
+    h('span', { className: cx('tq-stats-top') },
+      h('span', { className: cx('tq-stats-glyph-wrap') }, renderStatsGlyph()),
+      h('span', { className: cx('tq-stats-title') }, stats.cardTitle + ' · ' + stats.window),
+      h('span', { className: cx('tq-stats-chev'), 'aria-hidden': 'true' },
+        h('svg', { width: 12, height: 12, viewBox: '0 0 12 12' },
+          h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })))),
+    h('span', { className: cx('tq-stats-metrics') },
+      renderStatsMetric(String(stats.totals.tasks), t('stats.metric.tasks')),
+      renderStatsMetric(stats.totals.tokensText, t('stats.metric.tokens')),
+      renderStatsMetric(stats.totals.costText, t('stats.metric.cost'))),
+    h('span', { className: cx('tq-stats-bar-wrap') }, renderStatsBar(stats.totals)),
+    h('span', { className: cx('tq-stats-caption') },
+      h('span', null, t('stats.card.done', { done: stats.totals.done, settled: stats.totals.settled })),
+      stats.totals.live > 0 ? h('span', null, ' · ' + t('stats.card.live', { n: stats.totals.live })) : null))
+}
+
+/** A static skeleton at the card's height: no shimmer, no movement while the lazy read runs. */
+function renderStatsSkeleton(t: Translate): React.ReactElement {
+  return h('div', {
+    className: cx('tq-stats-card', 'tq-stats-skeleton'), 'data-tq-stats-skeleton': 'true',
+    role: 'status', 'aria-busy': 'true', 'aria-label': t('stats.reading'),
+  },
+    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-40') }),
+    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-70') }),
+    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-100') }))
+}
+
+function renderStatsError(message: string, t: Translate, retry: () => void): React.ReactElement {
+  return h('div', {
+    className: cx('tq-stats-card', 'tq-stats-error'), 'data-tq-stats-error': 'true', role: 'status',
+  },
+    h('span', { className: cx('tq-stats-error-text') }, t('stats.unavailable', { message })),
+    h('button', { type: 'button', className: cx('tq-pill', 'tq-stats-retry'), onClick: retry }, t('stats.retry')))
+}
+
+/**
+ * The chart layer. It opens from the card like a task opens its detail (same `.tq-layer`,
+ * same back bar, same focus move); the data is already in hand, so there is no second read.
+ * The token bars are scaled to the largest agent; the completion bars are the same stacked
+ * bar as the card, per agent. The footnote is the one caveat line, printed once.
+ */
+function renderStatsDetail(stats: StatsView, t: Translate, back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement {
+  const legend = [
+    { kind: 'done', label: t('stats.legend.done') },
+    { kind: 'partial', label: t('stats.legend.partial') },
+    { kind: 'unfinished', label: t('stats.legend.unfinished') },
+    ...(stats.totals.live > 0 ? [{ kind: 'live', label: t('stats.legend.live') }] : []),
+  ]
+  const tokenRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
+    className: cx('tq-stats-row'), 'data-tq-stats-token': agent.agent, key: 't-' + agent.agent,
+  },
+    h('div', { className: cx('tq-stats-row-head') },
+      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
+        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
+      h('span', { className: cx('tq-stats-numbers') }, agent.tokensText + ' · ' + agent.costText)),
+    h('div', { className: cx('tq-stats-track') },
+      h('div', { className: cx('tq-stats-fill'), style: { width: Math.round(agent.share * 100) + '%' } })))
+  const doneRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
+    className: cx('tq-stats-row'), 'data-tq-stats-done': agent.agent, key: 'd-' + agent.agent,
+  },
+    h('div', { className: cx('tq-stats-row-head') },
+      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
+        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
+      h('span', { className: cx('tq-stats-numbers') }, t('stats.card.done', { done: agent.done, settled: agent.settled }))),
+    renderStatsBar(agent, true),
+    h('div', { className: cx('tq-stats-breakdown') },
+      t('stats.partial', { n: agent.partial }),
+      ' · ',
+      t('stats.unfinished', { n: agent.unfinished }),
+      agent.live > 0 ? ' · ' + t('stats.live', { n: agent.live }) : ''))
+  return h('div', {
+    className: cx('tq-detail', 'tq-stats-detail'), 'data-tq-stats-layer': 'true',
+    role: 'group', 'aria-label': stats.title + ' · ' + stats.window,
+  },
+    h('div', { className: cx('tq-head', 'tq-d-head') },
+      h('button', {
+        type: 'button', className: cx('tq-back'), 'data-tq-back': 'true',
+        'aria-label': t('stats.back'), title: t('stats.back'), ref: backRef, onClick: back,
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), stats.title),
+      h('span', { className: cx('tq-caption') }, stats.window)),
+    h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
+      h('div', { className: cx('tq-stats-summary') }, stats.summaryLine),
+      h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'tokens' },
+        h('div', { className: cx('tq-d-sec-title') }, t('stats.tokenHeading')),
+        ...stats.agents.map(tokenRow)),
+      h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'done' },
+        h('div', { className: cx('tq-d-sec-title') }, t('stats.doneHeading')),
+        h('div', { className: cx('tq-stats-legend') },
+          ...legend.map((item) => h('span', { className: cx('tq-stats-legend-item'), key: item.kind },
+            h('span', { className: cx('tq-stats-swatch', 'tq-stats-seg-' + item.kind), 'aria-hidden': 'true' }),
+            item.label))),
+        ...stats.agents.map(doneRow)),
+      h('div', { className: cx('tq-stats-foot') }, stats.footnote)))
+}
+
+/**
+ * The stats read: fired once when the panel opens, never on the queue's 15s poll. A late
+ * answer after the panel closed is dropped (the request counter), the same shape as the
+ * detail layer's reads. A host without the taskStats method has no card.
+ */
+function useTaskStats(props: TaskQueueInjected & { t: Translate }, open: boolean): {
+  data: TaskStats | null
+  loading: boolean
+  error: string | null
+  refresh: () => void
+} {
+  const [state, setState] = useState<{ data: TaskStats | null; loading: boolean; error: string | null }>(
+    () => ({ data: null, loading: false, error: null }),
+  )
+  const request = useRef(0)
+  // The effect below runs once per open in React (deps [open]); the test renderer
+  // replays effects on every render, so guard the one-shot read explicitly too.
+  const fetchedForOpen = useRef(false)
+  const read = (): void => {
+    if (!open || props.fetchTaskStats === undefined) return
+    const id = request.current + 1
+    request.current = id
+    setState((current) => ({ ...current, loading: true, error: null }))
+    props.fetchTaskStats({ days: STATS_DAYS, since: null, patrol: false }).then((data) => {
+      if (request.current !== id) return
+      setState({ data, loading: false, error: null })
+    }, (err: unknown) => {
+      if (request.current !== id) return
+      const message = (err instanceof Error ? err.message : String(err)) || props.t('balance.unknownError')
+      setState((current) => ({ ...current, loading: false, error: message }))
+    })
+  }
+  useEffect(() => {
+    if (!open) { fetchedForOpen.current = false; return }
+    if (fetchedForOpen.current) return
+    fetchedForOpen.current = true
+    read()
+    return () => { request.current += 1 }
+  }, [open])
+  return { ...state, refresh: read }
+}
+
 /**
  * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
  * 那个上下好像都不明显了」). Two levels, never mixed: the allowance is the
@@ -1379,8 +1574,8 @@ function renderSourceGroup(group: PanelGroup, t: Translate, ui: PanelUi): React.
  * hides the queue, and a host without the dispatcher shows providers only.
  */
 function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeof useTaskQueue>, balanceState: ReturnType<typeof useProviderBalances>,
-  t: Translate, ui: PanelUi, notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
-  const loading = queueState.data.loading || balanceState.data.loading
+  statsState: ReturnType<typeof useTaskStats>, t: Translate, ui: PanelUi, notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
+  const loading = queueState.data.loading || balanceState.data.loading || statsState.loading
   const head = h('div', { className: cx('tq-head'), key: 'head' },
     h('span', { className: cx('tq-title') }, model.title),
     h('button', {
@@ -1390,7 +1585,7 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
       'aria-label': t('panel.refresh'),
       'aria-busy': loading ? 'true' : undefined,
       title: t('panel.refresh'),
-      onClick: () => { queueState.refresh(); balanceState.refresh() },
+      onClick: () => { queueState.refresh(); balanceState.refresh(); statsState.refresh() },
     }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
       h('path', { d: 'M11.5 7A4.5 4.5 0 1 1 10 3.6M11.5 1.8V4.4H8.9', stroke: 'currentColor', strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
   return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
@@ -1401,6 +1596,13 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
     model.recent === null ? null : h('section', { className: cx('tq-group', 'tq-section'), key: 'recent', 'data-tq-group': 'recent' },
       renderRow(model.recent.head, t),
       renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
+    // The stats tile is not a fold: one card between the ended list and patrol. It is the
+    // only consumer of the lazy taskStats read, and only exists when that read answered.
+    model.stats !== null && statsState.error === null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen)
+      : statsState.loading && statsState.data === null ? renderStatsSkeleton(t)
+        : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh)
+          : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh)
+            : null,
     model.patrol === null ? null : renderPatrolSection(model.patrol, t),
     model.footer === null ? null : h('div', { className: cx('tq-sub', 'tq-foot', model.footer.bad && 'tq-bad'), key: 'ops', 'data-tq-ops': model.footer.version }, model.footer.text),
   ])]
@@ -1951,6 +2153,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const t = props.t
   const queueState = useTaskQueue(props)
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [statsOpen, setStatsOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirm, setConfirm] = useState<string | null>(null)
@@ -1967,9 +2170,19 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   useEffect(() => () => { detailRequest.current += 1; activeDetail.current = null }, [])
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
+  const statsBackRef = useRef<HTMLButtonElement | null>(null)
+  // The stats card that opened the layer: focus returns to it when the layer closes.
+  const statsOpenerRef = useRef<HTMLElement | null>(null)
   // The control that opened the panel: focus returns to it when the panel closes.
   const openerRef = useRef<HTMLElement | null>(null)
+  const closeStats = (): void => {
+    setStatsOpen(false)
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => { statsOpenerRef.current?.focus({ preventScroll: false }) })
+    }
+  }
   const closeDetail = (): boolean => {
+    if (statsOpen) { closeStats(); return true }
     if (confirm !== null) { setConfirm(null); return true }
     if (detailId === null) return false
     const id = detailId
@@ -1985,6 +2198,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     return true
   }
   const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
+  // The stats read is lazy: it starts on the panel's first open, never on the queue's poll.
+  // A host half older than `taskStats` says so with the missing `statsApi` flag; no card, no call.
+  const statsCapable = queueState.data.result?.statsApi === true
+  const statsState = useTaskStats(props, open && statsCapable)
+  const statsViewData = statsState.data === null ? null : statsView(statsState.data, t)
   // The folded lines and the open panel print the readings; the rail prints only its badge.
   const balanceState = useProviderBalances(props, BALANCE_PANEL, props.wide || open)
   const instanceId = useId()
@@ -1992,7 +2210,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     if (open) return
     detailRequest.current += 1
     activeDetail.current = null
-    setDetailId(null); setNotice(null); setConfirm(null); setBrief(null)
+    setDetailId(null); setStatsOpen(false); setNotice(null); setConfirm(null); setBrief(null)
     setPicker(null); setLog(null); setTimeline(null); setReadPending(null)
     // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
     // instead of letting it fall to <body>.
@@ -2009,6 +2227,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     })
   }, [open, focusKey])
   useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
+  useEffect(() => { if (statsOpen) statsBackRef.current?.focus({ preventScroll: true }) }, [statsOpen])
   useEffect(() => {
     if (confirm === null) return undefined
     const timer = setTimeout(() => { setConfirm(null) }, CONFIRM_MS)
@@ -2163,7 +2382,9 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   lastSeen.current = found
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
-    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
+    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setStatsOpen(false); setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
+    openStats: (opener) => { statsOpenerRef.current = opener; setStatsOpen(true); setNotice(null) },
+    statsOpen,
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
     brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows, timeline, loadTimeline,
   }
@@ -2230,11 +2451,13 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
       'data-clawock-popover': BALANCE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' } }),
     }),
-    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null ? '' : undefined, 'aria-hidden': found !== null ? 'true' : undefined },
-      renderProviderPanelBody(panelModel({ balances: balanceState.data.result, balanceError: balanceState.data.error, queue: result, queueError: queueState.data.error }, t, now, ui.open),
-        queueState, balanceState, t, ui, found === null ? notice : null)),
+    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null || statsOpen ? '' : undefined, 'aria-hidden': found !== null || statsOpen ? 'true' : undefined },
+      renderProviderPanelBody(panelModel({ balances: balanceState.data.result, balanceError: balanceState.data.error, queue: result, queueError: queueState.data.error, stats: statsCapable ? statsState.data : null }, t, now, ui.open),
+        queueState, balanceState, statsState, t, ui, found === null ? notice : null)),
     found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
-      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice))))
+      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice)),
+    statsOpen && statsViewData !== null ? h('div', { className: cx('tq-layer'), key: 'stats' },
+      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -2616,6 +2839,10 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
           cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
           return cachedTaskQueue
         },
+        // A host installed before taskStats existed has no stats card; the queue is unaffected.
+        fetchTaskStats: typeof studioRemote.taskStats === 'function'
+          ? (query) => call<TaskStats>('taskStats', [query.days, query.since, query.patrol])
+          : undefined,
         // A host installed before queueAction existed has no such method: stay read-only.
         runQueueAction: typeof studioRemote.queueAction === 'function'
           ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
