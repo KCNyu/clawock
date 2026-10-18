@@ -1399,7 +1399,53 @@ function renderCoverageTables(view: CoverageView, t: Translate): Array<React.Rea
   ]
 }
 
-/** The patrol page: the live head, the outcome strip, every round, then the coverage tables. */
+/** One read-only dashboard tile: label (with its mark), value, caption. */
+function renderPatrolKpi(kind: string, label: string, value: string, caption: string,
+  dot: React.ReactElement | null): React.ReactElement {
+  return h('div', { className: cx('tq-patrol-kpi'), 'data-tq-patrol-kpi': kind },
+    h('div', { className: cx('tq-patrol-kpi-label') }, dot, h('span', null, label)),
+    h('div', { className: cx('tq-patrol-kpi-value') }, value),
+    h('div', { className: cx('tq-patrol-kpi-caption') }, caption))
+}
+
+/** The patrol page opens with four tiles: latest verdict, open areas, open lenses, rounds. */
+function renderPatrolKpis(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
+  const latest = patrol.rounds[0] ?? null
+  const progress = patrol.progress
+  const latestCaption = latest === null
+    ? t('queue.patrol.kpi.none')
+    : [latest.state?.text ?? '', latest.facts.when?.text ?? ''].filter((part) => part !== '').join(' · ')
+  const latestDot = latest === null || latest.state === null ? null
+    : h('span', { className: cx('tq-patrol-kpi-dot'), 'data-role': chartRole(latest.state.role), 'aria-hidden': 'true' })
+  const openAreas = progress === null ? null : progress.areas.length
+  const openLenses = progress === null ? null : progress.lenses.filter((lens) => lens.hasOpen === true).length
+  const areaTone = progress === null ? 'unknown' : progress.tone
+  const lensTone = progress === null ? 'unknown' : openLenses! > 0 ? 'open' : 'none'
+  const areaCaption = progress === null
+    ? t('queue.patrol.kpi.unknown')
+    : areaTone === 'none' ? t('queue.patrol.kpi.noneOpen') : t('queue.patrol.kpi.open')
+  const lensCaption = progress === null
+    ? t('queue.patrol.kpi.unknown')
+    : openLenses! > 0 ? t('queue.patrol.kpi.open') : t('queue.patrol.kpi.noneOpen')
+  return h('div', { className: cx('tq-patrol-kpis'), 'data-tq-patrol-dashboard': 'true' },
+    renderPatrolKpi('latest', t('queue.patrol.kpi.latest'), latest === null ? '—' : latest.name,
+      latestCaption, latestDot),
+    renderPatrolKpi('areas', t('queue.patrol.kpi.areas'), openAreas === null ? '—' : String(openAreas),
+      areaCaption, h('span', { className: cx('tq-patrol-kpi-dot'), 'data-coverage-state': areaTone, 'aria-hidden': 'true' })),
+    renderPatrolKpi('lenses', t('queue.patrol.kpi.lenses'), openLenses === null ? '—' : String(openLenses),
+      lensCaption, h('span', { className: cx('tq-patrol-kpi-dot'), 'data-coverage-state': lensTone, 'aria-hidden': 'true' })),
+    renderPatrolKpi('rounds', t('queue.patrol.kpi.rounds'), String(patrol.rounds.length),
+      t('queue.patrol.kpi.roundsCaption'), null))
+}
+
+/** A section heading on the patrol dashboard: a label and its small count/conclusion. */
+function renderPatrolSectionHead(label: string, count: string): React.ReactElement {
+  return h('div', { className: cx('tq-patrol-section-head') },
+    h('span', { className: cx('tq-patrol-section-title') }, label),
+    h('span', { className: cx('tq-patrol-section-count') }, count))
+}
+
+/** The patrol page: live head, dashboard tiles, outcome strip, rounds, coverage. */
 function renderPatrolDetail(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
   back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement {
   const conclusion = patrol.progress === null ? t('queue.coverage.openUnknown') : patrol.progress.conclusion
@@ -1416,10 +1462,21 @@ function renderPatrolDetail(patrol: NonNullable<PanelModel['patrol']>, t: Transl
     h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
       h('div', { className: cx('tq-patrol-page') },
         renderRow(patrol.head, t),
-        patrol.rhythm === null ? null : renderPatrolRhythm(patrol.rhythm),
-        renderWell('rounds', patrol.rounds.map((round) => renderRow(round, t))),
-        patrol.progress === null ? null : h('div', { className: cx('tq-cov', 'tq-cov-page') },
-          ...renderCoverageTables(patrol.progress, t)))))
+        renderPatrolKpis(patrol, t),
+        patrol.rhythm === null ? null : h('section', {
+          className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'outcome',
+        },
+          renderPatrolSectionHead(t('queue.patrol.section.outcome'), t('queue.patrol.count.rounds', { n: patrol.rounds.length })),
+          renderPatrolRhythm(patrol.rhythm)),
+        h('section', { className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'rounds' },
+          renderPatrolSectionHead(t('queue.patrol.section.rounds'), t('queue.patrol.count.records', { n: patrol.rounds.length })),
+          renderWell('rounds', patrol.rounds.map((round) => renderRow(round, t)))),
+        patrol.progress === null ? null : h('section', {
+          className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'coverage',
+        },
+          renderPatrolSectionHead(t('queue.patrol.section.coverage'), patrol.progress.conclusion),
+          h('div', { className: cx('tq-cov', 'tq-cov-page') },
+            ...renderCoverageTables(patrol.progress, t))))))
 }
 
 /** The panel's one patrol entry: the phase and the coverage conclusion, then the page. */
@@ -1435,12 +1492,19 @@ function renderPatrolSummary(patrol: NonNullable<PanelModel['patrol']>, t: Trans
     'data-tq-patrol-open': 'true', 'aria-haspopup': 'dialog', 'aria-label': aria, title: aria,
     onClick: (event: { currentTarget: HTMLElement }) => { open(event.currentTarget) },
   },
-    h('span', { className: cx('tq-patrol-entry-lead'), 'aria-hidden': 'true' }, renderSectionGlyph('patrol')),
-    h('span', { className: cx('tq-patrol-entry-label') }, t('queue.patrolHeading')),
-    phase === '' ? null : h('span', { className: cx('tq-patrol-entry-phase') }, phase),
-    h('span', { className: cx('tq-patrol-entry-value'), 'data-coverage-state': tone },
-      h('span', { className: cx('tq-patrol-entry-dot'), 'aria-hidden': 'true' }), conclusion),
-    foldChevron())
+    h('span', { className: cx('tq-patrol-entry-main') },
+      h('span', { className: cx('tq-patrol-entry-lead'), 'aria-hidden': 'true' }, renderSectionGlyph('patrol')),
+      h('span', { className: cx('tq-patrol-entry-label') }, t('queue.patrolHeading')),
+      phase === '' ? null : h('span', { className: cx('tq-patrol-entry-phase') }, phase),
+      h('span', { className: cx('tq-patrol-entry-value'), 'data-coverage-state': tone },
+        h('span', { className: cx('tq-patrol-entry-dot'), 'aria-hidden': 'true' }), conclusion),
+      foldChevron()),
+    patrol.rhythm === null ? null : h('span', {
+      className: cx('tq-patrol-entry-strip'), 'data-tq-patrol-strip': 'true', 'aria-hidden': 'true',
+    }, ...patrol.rhythm.bars.map((bar) => h('span', {
+      key: 's-' + bar.key, className: cx('tq-patrol-entry-seg'), 'data-role': chartRole(bar.role),
+      'data-tq-rhythm-round': bar.round, title: bar.title,
+    }))))
 }
 
 /** Patrol is one entry now: the phase and the coverage conclusion, then a page with both. */
@@ -1547,7 +1611,7 @@ function statsNiceMax(n: number): number {
  * second axis. A 1px gap keeps the provider segments readable; the legend and the note carry
  * the unknown/lower-bound caveat without a "+".
  */
-function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate): React.ReactElement {
+function renderStatsSeries(series: StatsSeriesView, t: Translate): React.ReactElement {
   const W = 320
   const H = 172
   const L = 34
@@ -1589,8 +1653,6 @@ function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate):
   }
   const notes: React.ReactElement[] = []
   if (series.emptyDays > 0) notes.push(h('div', { key: 'zero', className: cx('tq-stats-chart-note') }, t('stats.chart.zero', { n: series.emptyDays })))
-  if (series.unknown > 0) notes.push(h('div', { key: 'unknown', className: cx('tq-stats-chart-note') }, t('stats.chart.unknown', { n: series.unknown })))
-  if (live > 0) notes.push(h('div', { key: 'live', className: cx('tq-stats-chart-note') }, t('stats.chart.live', { n: live })))
   return h('section', { className: cx('tq-d-sec', 'tq-stats-chart-sec'), 'data-tq-stats-chart': 'true' },
     h('div', { className: cx('tq-d-sec-title') }, t('stats.chart.title')),
     h('div', { className: cx('tq-stats-chart-sub') }, t('stats.chart.sub')),
@@ -1670,7 +1732,7 @@ function renderStatsDetail(stats: StatsView, t: Translate, back: () => void, bac
       h('span', { className: cx('tq-caption') }, stats.window)),
     h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
       h('div', { className: cx('tq-stats-summary') }, stats.summaryLine),
-      stats.series === null ? null : renderStatsSeries(stats.series, stats.totals.live, t),
+      stats.series === null ? null : renderStatsSeries(stats.series, t),
       h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'tokens' },
         h('div', { className: cx('tq-d-sec-title') }, t('stats.tokenHeading')),
         ...stats.agents.map(tokenRow)),

@@ -533,7 +533,7 @@ export type StatsDayView = {
     tokens: Record<string, number>;
     /** Terminal tasks with no token record, by agent: that provider's bar is a lower bound. */
     unknowns: Record<string, number>;
-    /** Sum of `tokens`: the total line's value; never recalculated from another source. */
+    /** Sum of `tokens`: the stack's full height; never recalculated from another source. */
     total: number;
     /** Terminal tasks on this day without a token record; the bar is a lower bound. */
     unknown: number;

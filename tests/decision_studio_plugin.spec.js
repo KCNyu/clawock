@@ -3653,10 +3653,11 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(chart), /Claude Code\s+625\.2M/);
   assert.match(texts(chart), /Codex\s+161\.5M/);
   assert.match(texts(chart), /1 天没有任务，按 0 计/);
-  assert.match(texts(chart), /9 个任务未记录 token/);
-  assert.match(texts(chart), /1 个进行中任务未计入 token/);
-  assert.equal(find(chart, (p) => /_tq-stats-chart-note$/.test(p.className || "")).length, 3,
-    "the zero, unknown and live caveats are each one note");
+  assert.doesNotMatch(texts(chart), /9 个任务未记录 token|个进行中任务未计入 token/, 'the old visible unknown/live caption is gone');
+  const unknownBar = bars.find((b) => b.props["data-unknown"] === "true");
+  assert.match(texts(unknownBar), /8 个未记录/, 'the unknown fact stays in the segment title');
+  assert.equal(find(chart, (p) => /_tq-stats-chart-note$/.test(p.className || "")).length, 1,
+    "only the zero-day caveat remains visible");
   const svg = find(chart, (p) => p.role === "img")[0];
   assert.ok(svg, "the chart is one labelled image for a screen reader");
   assert.match(svg.props["aria-label"], /每日 token：/);
@@ -3772,10 +3773,24 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(patrolEntry), /未决数未知/);
   assert.equal(patrolEntry.props["data-tq-patrol-summary"], "true");
   assert.match(patrolEntry.props["aria-label"], /巡检.*未决数未知.*打开巡检详情/);
+  const entryStrip = find(patrolEntry, (p) => p["data-tq-patrol-strip"] !== undefined)[0];
+  assert.ok(entryStrip, "the entry has a small static outcome strip");
+  assert.deepEqual(find(entryStrip, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
+    ["R140", "R139", "R138", "R137", "R136"], "the outer strip reads like the page strip");
+  assert.equal(find(patrolEntry, (p) => p["data-tq-patrol-open"] !== undefined).length, 1, "the strip is inside the one entry, not a second target");
   patrolEntry.props.onClick({ currentTarget: null });
   const patrolPage = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
   assert.ok(patrolPage, "the entry opens the patrol page");
   assert.equal(find(patrolPage, (p) => p["data-tq-patrol-summary"] !== undefined).length, 0, "the page is not another entry");
+  const kpis = find(patrolPage, (p) => p["data-tq-patrol-kpi"] !== undefined);
+  assert.deepEqual(kpis.map((k) => k.props["data-tq-patrol-kpi"]), ["latest", "areas", "lenses", "rounds"],
+    "the page opens with a four-tile dashboard, not one more list");
+  assert.match(texts(kpis[0]), /R140.*完成/, "the latest tile carries the newest round's verdict");
+  assert.match(texts(kpis[1]), /—.*未决数未知/, "without a coverage read the areas tile says unknown, not zero");
+  assert.match(texts(kpis[3]), /5/, "the rounds tile counts the host's records");
+  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-dashboard"] !== undefined).length, 1);
+  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-section"] !== undefined).length, 2,
+    "outcome and rounds are cards; coverage is absent when unread");
   const rhythm = find(patrolPage, (p) => p["data-tq-rhythm"] !== undefined)[0];
   assert.ok(rhythm, "the page has the outcome strip");
   assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
@@ -4509,6 +4524,9 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(ruleOf("_tq-patrol-entry-phase"), /text-overflow:ellipsis/);
   assert.match(ruleOf("_tq-patrol-entry-value"), /margin-left:auto/);
   assert.match(ruleOf("_tq-patrol-entry-lead"), /flex:none/);
+  assert.match(ruleOf("_tq-patrol-entry"), /flex-direction:column/);
+  assert.match(ruleOf("_tq-patrol-entry-strip"), /height:4px/);
+  assert.match(css, /_tq-patrol-entry-seg\[data-role=fail\]\{background:var\(--tq-chart-bad\)\}/);
   assert.match(css, /_tq-patrol-detail\{[^}]*display:flex/);
   assert.match(css, /_tq-patrol-page\{[^}]*min-width:0/);
   assert.doesNotMatch(css, /_tq-cov-link/);
@@ -4538,14 +4556,14 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /_tq-cov-clear-mark\{[^}]*color:var\(--tq-text-ok\)/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-seg[^{]*\{transition:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{transition:none\}/);
-  // Provider categories use four hues at one uniform lightness and low chroma, tinted 90% over
-  // the panel; no semantic state token is reused as a provider colour and there is no total line.
-  assert.match(css, /--tq-viz-1:oklch\(62% \.1 275\)/);
-  assert.match(css, /--tq-series-1:color-mix\(in oklab, var\(--tq-viz-1\) 90%, transparent\)/);
-  assert.match(css, /--tq-viz-2:oklch\(62% \.08 195\)/);
-  assert.match(css, /--tq-viz-3:oklch\(62% \.09 325\)/);
-  assert.match(css, /--tq-viz-4:oklch\(62% \.07 110\)/);
-  assert.doesNotMatch(css, /--tq-series-total|_tq-stats-chart-total\{/);
+  // Provider categories use brand hues muted into one lightness band and a 90% tint; no
+  // semantic state token is the category value and there is no total line.
+  assert.match(css, /--tq-brand-claude:oklch\(62% \.1 50\)/);
+  assert.match(css, /--tq-brand-codex:oklch\(62% \.08 165\)/);
+  assert.match(css, /--tq-brand-dsh:oklch\(60% \.1 260\)/);
+  assert.match(css, /--tq-brand-opencode:oklch\(62% \.08 310\)/);
+  assert.match(css, /--tq-series-1:color-mix\(in oklab, var\(--tq-brand-claude\) 90%, transparent\)/);
+  assert.doesNotMatch(css, /--tq-viz|--tq-series-total|_tq-stats-chart-total\{/);
 
 });
 

@@ -510,13 +510,15 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 
 ### Patrol: one entry, one page · 巡检:一个入口,一个详情页
 
-The patrol section in the panel is **one 44px row**: shield, `巡检`, the live phase (`等下一轮`),
-the coverage conclusion on the right (`无未决` / `N 个 area 有未决` / `未决数未知`), chevron. There
-is no separate head, round list or coverage link in the panel. The row opens the patrol page in the
-existing detail layer — back bar, focus return, Escape, no new navigation. The page has the live
-head and next-round caption, the 6px outcome strip (one segment per round, newest first, 35% chart
-tint, counts in words), every round the host sends (at most eight) in one well, and then the
-coverage tables: **open issues by area** (neutral magnitude bars, amber count badges, the none-open
+The patrol section in the panel is **one entry**: shield, `巡检`, the live phase (`等下一轮`), the
+coverage conclusion on the right (`无未决` / `N 个 area 有未决` / `未决数未知`), chevron, and a **4px
+static outcome strip** of the last eight rounds inside the same button (no counts, no second
+target; the row is 54px tall, still ≥44px). There is no separate head, round list or coverage link
+in the panel. The row opens the patrol page in the existing detail layer — back bar, focus return,
+Escape, no new navigation. The page opens with a **2×2 KPI grid** (latest round, open areas, open
+lenses, rounds), then the live head and next-round caption, the 6px outcome strip (one segment per
+round, newest first, 35% chart tint, counts in words), every round the host sends (at most eight)
+in one well, and then the coverage tables: **open issues by area** (neutral magnitude bars, amber count badges, the none-open
 line behind a green check) and **rounds by lens** (the open/failed lenses first under "needs a
 look", then the rest by last run; a 6px status dot, a neutral runs bar against the busiest lens,
 and an open badge — amber when positive, quiet at zero, dashed when unknown). The two one-line
@@ -525,11 +527,12 @@ page itself is immediate; `prefers-reduced-motion` shows the final strip; no num
 The raw supervisor log's fold inside a task detail is the only fold left. No supervisor state,
 dispatch behavior or patrol files are changed.
 
-巡检在面板里只有**一行 44px 入口**：盾牌、`巡检`、实况阶段（`等下一轮`）、右边覆盖结论（`无未决` /
-`N 个 area 有未决` / `未决数未知`）和 chevron。面板里不再有单独的巡检头、轮次列表或覆盖链接。点开进入
-现有 detail layer 的巡检页——返回条、焦点返回、Escape，不新造导航。页里有实况头与下一轮说明、6px 结果条
-（一轮一段、从新到旧、35% chart tint、计数用文字）、host 发来的每一轮（最多 8 轮）一条列表，然后是覆盖
-两张表：**未决问题 · 按 area**（中性数量条、amber 计数徽章、无未决行前绿勾）和 **轮次 · 按 lens**
+巡检在面板里只有**一个入口**：盾牌、`巡检`、实况阶段（`等下一轮`）、右边覆盖结论（`无未决` /
+`N 个 area 有未决` / `未决数未知`）和 chevron，入口按钮内还有一条**4px 静态结果条**（最近 8 轮、无计数、
+不是第二个点击目标；整行 54px，仍 ≥44px）。面板里不再有单独的巡检头、轮次列表或覆盖链接。点开进入现有
+detail layer 的巡检页——返回条、焦点返回、Escape，不新造导航。页首是 **2×2 KPI 看板**（最近一轮、未决
+area、未决 lens、轮次），然后才是实况头与下一轮说明、6px 结果条（一轮一段、从新到旧、35% chart tint、
+计数用文字）、host 发来的每一轮（最多 8 轮）一条列表，然后是覆盖两张表：**未决问题 · 按 area**（中性数量条、amber 计数徽章、无未决行前绿勾）和 **轮次 · 按 lens**
 （有未决/上一轮失败先放「需要看一眼」，其余按上次运行；6px 状态点、相对最忙 lens 的中性记录条、未决徽章
 有未决 amber、零安静灰、未知虚线）。两句短 caveat 和 provenance footer 收尾。结果条在页面挂载时画一次；
 页面本身立即切换；`prefers-reduced-motion` 下显示最终条；不补间数字。任务详情里 raw supervisor log 的
@@ -555,10 +558,12 @@ estimate and a completion bar at a glance; tapping it opens a chart layer with t
 as a task detail. The layer starts with the **daily token chart**: seven **stacked** provider bars
 on one left axis, no total line and no right axis — the stack's full height is the day total by
 construction. The seven days are all labelled; a quiet day is a real 0; a provider-day with
-unrecorded tokens has a lower-bound note (no `+?` suffix); live tasks are noted as outside tokens.
-Provider categories use four local low-chroma hues at one lightness (indigo/teal/violet/olive),
-tinted 90% over the panel; they are not semantic state colours, so the completion bars below keep
-their blue/amber/red meanings. The card and the chart are one lazy read: they appear through
+unrecorded tokens keeps that fact in the segment's title and the chart's aria (no visible
+`+?` caption); the live count stays in the stats card and the completion rows.
+Provider categories use the brand hues at one muted category band — Claude orange, dsh blue (the
+DeepSeek brand blue hue, not the semantic running token), Codex green-teal, OpenCode violet —
+tinted 90% over the panel. They are not semantic state colours: the completion bars below keep
+their blue/amber/red meanings and words, and the chart legend names every provider. The card and the chart are one lazy read: they appear through
 `taskStats` when the panel opens, never on the queue's 15s poll. The numbers are
 `task_queue_ops.py summary`'s frozen `result.env` values, never a session reread, so a task
 continuing the same session is not counted twice; the window is the last seven days, patrol
@@ -582,13 +587,15 @@ spec 逐行比对两者。只读,调度仍在芯片上操作。
 
 **统计卡片**是面板的收尾,放在巡检之后、ops 页脚之前(页脚是来源元数据,永远最后),不再挨着
 「最近结束」:队列是打开时的主视图,近 7 天的回顾是收尾。任务数、token、API 估价和一条完成条
-一眼可见;点开是图表层(返回条与任务详情同一套)。图表层开头是**每日 token 图**:左轴是按 provider
-分组的柱,右轴是当天总计的折线。两个轴都是 token,折线的每个点就是当天各柱的精确之和;7 天全部
-标出,没有任务的一天是真实的 0;某 provider 当天有未记录 token 的柱会标记,并说明是下界。卡片和
-图走同一次 `taskStats` 懒读,只在面板打开时读,不跟队列的 15 秒轮询;数字是
-`task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的值,从不重读 session,所以续跑
-同一 session 的任务不会被重复计数;默认近 7 天、巡检不计,进行中的任务不计 token/费用。按天桶和
-聚合在同一次 summary 里生成;旧 ops entry 没有按天数据时,卡片和原有表格仍显示,只是没有每日图。
+一眼可见;点开是图表层(返回条与任务详情同一套)。图表层开头是**每日 token 图**:7 天、每天一根
+**provider 堆叠柱**,只有左轴,没有总计折线/右轴;柱子的总高度就是当天总计。7 天全部标出,没有任务的
+一天是真实的 0;某 provider 当天有未记录 token 时,事实只放在该段的 title 和无障碍说明里,不再有可见的
+`+?` 或「柱和线」caption;进行中的数量在 stats 卡片和完成条里。provider 用品牌色(Claude 橙、dsh 蓝、
+Codex 绿、OpenCode 紫)压到同一低饱和明度带、90% tint;它们不是语义状态色,下面的完成条仍用蓝/琥珀/红
+并带文字,图表图例逐家点名。卡片和图走同一次 `taskStats` 懒读,只在面板打开时读,不跟队列的 15 秒轮询;
+数字是 `task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的值,从不重读 session,所以续跑
+同一 session 的任务不会被重复计数;默认近 7 天、巡检不计,进行中的任务不计 token/费用。按天桶和聚合在
+同一次 summary 里生成;旧 ops entry 没有按天数据时,卡片和原有表格仍显示,只是没有每日图。
 聊天里对应 `/dispatch-stats`
 (同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API 估价),
 没有尾部说明;标题带总数和进行中数。`/dispatch-stats 30d`、`/dispatch-stats all`、

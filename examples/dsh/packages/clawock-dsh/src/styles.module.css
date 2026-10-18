@@ -1692,22 +1692,23 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-chart-wait:color-mix(in srgb, var(--tq-wait) 35%, transparent);
   --tq-chart-bad:color-mix(in srgb, var(--tq-bad) 35%, transparent);
   --tq-chart-idle:color-mix(in srgb, var(--tq-idle) 35%, transparent);
-  /* Provider categories are not states, and the dsh theme has no --viz-* series. This local
-     scale gives each provider a different hue at one uniform lightness and low chroma; the
-     stacked bar uses a 90% tint over the panel, so four hues read apart without becoming a
-     saturated wall. None of these values is a semantic state token. */
-  --tq-viz-1:oklch(0.62 0.10 275);
-  --tq-viz-2:oklch(0.62 0.08 195);
-  --tq-viz-3:oklch(0.62 0.09 325);
-  --tq-viz-4:oklch(0.62 0.07 110);
-  --tq-viz-5:oklch(0.62 0.05 245);
-  --tq-viz-6:oklch(0.62 0.04 300);
-  --tq-series-1:color-mix(in oklab, var(--tq-viz-1) 90%, transparent);
-  --tq-series-2:color-mix(in oklab, var(--tq-viz-2) 90%, transparent);
-  --tq-series-3:color-mix(in oklab, var(--tq-viz-3) 90%, transparent);
-  --tq-series-4:color-mix(in oklab, var(--tq-viz-4) 90%, transparent);
-  --tq-series-5:color-mix(in oklab, var(--tq-viz-5) 90%, transparent);
-  --tq-series-6:color-mix(in oklab, var(--tq-viz-6) 90%, transparent);
+  /* Provider brands, muted into one lightness band. Claude is Anthropic's coral/terracotta;
+     dsh uses the host's DeepSeek business blue deepened with ink (the same blue as the brand
+     position, not a new hue); Codex is OpenAI's sage-teal; OpenCode has no strong brand, so it
+     gets a violet category. These are category tokens, not state tokens: --tq-run/--tq-wait/
+     --tq-bad keep their running/warn/error assignments. The stacked bars use a 90% tint. */
+  --tq-brand-claude:oklch(0.62 0.10 50);
+  --tq-brand-codex:oklch(0.62 0.08 165);
+  --tq-brand-dsh:oklch(0.60 0.10 260);
+  --tq-brand-opencode:oklch(0.62 0.08 310);
+  --tq-brand-minimax:oklch(0.62 0.06 230);
+  --tq-brand-deepseek:var(--tq-brand-dsh);
+  --tq-series-1:color-mix(in oklab, var(--tq-brand-claude) 90%, transparent);
+  --tq-series-2:color-mix(in oklab, var(--tq-brand-codex) 90%, transparent);
+  --tq-series-3:color-mix(in oklab, var(--tq-brand-dsh) 90%, transparent);
+  --tq-series-4:color-mix(in oklab, var(--tq-brand-opencode) 90%, transparent);
+  --tq-series-5:color-mix(in oklab, var(--tq-brand-minimax) 90%, transparent);
+  --tq-series-6:color-mix(in oklab, var(--tq-brand-deepseek) 90%, transparent);
   --tq-radius:var(--dsw-radius-md);
   --tq-radius-sm:var(--dsw-radius-sm);
   --tq-radius-xs:var(--dsw-radius-xs);
@@ -2297,6 +2298,73 @@ body[data-ds-dark-theme] .pbc .bp {
   from { opacity:0 }
   to { opacity:1 }
 }
+.pbc .tq-patrol-kpis {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:10px var(--tq-main-inset) 0
+}
+.pbc .tq-patrol-kpi {
+  min-width:0;
+  padding:8px 10px;
+  border-radius:var(--tq-radius);
+  background:var(--tq-well)
+}
+.pbc .tq-patrol-kpi-label {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:var(--tq-ink-3);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px
+}
+.pbc .tq-patrol-kpi-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-patrol-kpi-dot[data-role="done"] { background:var(--tq-run) }
+.pbc .tq-patrol-kpi-dot[data-role="partial"] { background:var(--tq-wait) }
+.pbc .tq-patrol-kpi-dot[data-role="fail"] { background:var(--tq-bad) }
+.pbc .tq-patrol-kpi-dot[data-coverage-state="none"] { background:var(--tq-text-ok) }
+.pbc .tq-patrol-kpi-dot[data-coverage-state="open"] { background:var(--tq-wait) }
+.pbc .tq-patrol-kpi-dot[data-coverage-state="unknown"] { background:var(--tq-text-warn) }
+.pbc .tq-patrol-kpi-value {
+  margin-top:2px;
+  color:var(--tq-ink);
+  font:var(--dsw-font-s-strong-14);
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere
+}
+.pbc .tq-patrol-kpi-caption {
+  margin-top:2px;
+  color:var(--tq-ink-2);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  overflow-wrap:anywhere
+}
+.pbc .tq-patrol-section { margin:12px 0 0 var(--tq-main-inset) }
+.pbc .tq-patrol-section .tq-rhythm { margin-left:0 }
+.pbc .tq-patrol-section .tq-cov-page { margin-left:0 }
+.pbc .tq-patrol-section-head {
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0
+}
+.pbc .tq-patrol-section-title {
+  color:var(--tq-ink-2);
+  font:var(--dsw-font-xxs-strong-12);
+  line-height:16px
+}
+.pbc .tq-patrol-section-count {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--tq-ink-3);
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums
+}
 .pbc .tq-patrol-detail {
   display:flex;
   flex-direction:column;
@@ -2309,12 +2377,13 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-patrol-entry {
   box-sizing:border-box;
   display:flex;
-  align-items:center;
-  gap:8px;
+  flex-direction:column;
+  align-items:stretch;
+  gap:5px;
   width:calc(100% - var(--tq-main-inset));
   min-height:44px;
   margin:8px 0 0 var(--tq-main-inset);
-  padding:6px 8px 6px 0;
+  padding:7px 8px 6px 0;
   border:0;
   border-radius:var(--tq-radius);
   background:transparent;
@@ -2322,6 +2391,13 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-patrol-entry-main {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  width:100%
 }
 .pbc .tq-patrol-entry:active { background:var(--tq-fill-press) }
 .pbc .tq-patrol-entry:focus-visible { outline:var(--tq-focus-ring); outline-offset:1px }
@@ -2361,6 +2437,20 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-patrol-entry-value[data-coverage-state="none"] .tq-patrol-entry-dot { background:var(--tq-text-ok) }
 .pbc .tq-patrol-entry-value[data-coverage-state="open"] .tq-patrol-entry-dot { background:var(--tq-wait) }
 .pbc .tq-patrol-entry-value[data-coverage-state="unknown"] .tq-patrol-entry-dot { background:var(--tq-text-warn) }
+.pbc .tq-patrol-entry-strip {
+  display:flex;
+  gap:1px;
+  width:100%;
+  height:4px;
+  border-radius:999px;
+  overflow:hidden;
+  background:var(--tq-hairline)
+}
+.pbc .tq-patrol-entry-seg { flex:1 1 0; min-width:0; height:100%; background:var(--tq-idle) }
+.pbc .tq-patrol-entry-seg[data-role="done"] { background:var(--tq-chart-run) }
+.pbc .tq-patrol-entry-seg[data-role="partial"] { background:var(--tq-chart-wait) }
+.pbc .tq-patrol-entry-seg[data-role="fail"] { background:var(--tq-chart-bad) }
+.pbc .tq-patrol-entry-seg[data-role="idle"] { background:var(--tq-chart-idle) }
 /* The patrol outcome strip: one thin tinted segment per round, newest first like the list.
    The solid semantic token is reserved for the count dots below (and other <=6px marks); the
    bar takes the 35% chart tint, so it is data without being a saturated wall. */
