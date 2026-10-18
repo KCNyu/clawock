@@ -54,7 +54,7 @@ PATCH_MARKERS=(
   "clawock-minimax-m3-priority"
   "clawock-minimax-response-header-timeout-v3"
   "MiniMax response-header timeout after 60000ms"
-  "clawock-dreaming-race-v1"
+  "clawock-dreaming-race-v2"
   "clawock-minimax-m3x-adaptive-thinking"
 )
 PATCH_LABELS=(
