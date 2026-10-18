@@ -332,6 +332,26 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'fairWaitSec': z.number(),
   'error': z.string(),
 }).optional(),
+  'stats': z.union([z.literal(null), z.object({
+  'available': z.boolean(),
+  'error': z.string(),
+  'since': z.union([z.literal(null), z.string()]),
+  'days': z.union([z.literal(null), z.number()]),
+  'patrolIncluded': z.boolean(),
+  'asOf': z.string(),
+  'agents': z.array(z.object({
+  'agent': z.string(),
+  'tasks': z.number(),
+  'live': z.number(),
+  'states': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
+  'outcomes': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
+  'tokensTotal': z.number(),
+  'tokensUnknown': z.number(),
+  'costUsdEstimate': z.number(),
+  'costUnpriced': z.number(),
+  'costFree': z.number(),
+})),
+})]).optional(),
   'logDir': z.string().optional(),
 })
 `

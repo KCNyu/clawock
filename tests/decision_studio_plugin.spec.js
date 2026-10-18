@@ -2667,7 +2667,7 @@ test("balance: a process that never read anything falls back on the last reading
     chat.default({
       pluginConfig: { ...config, dispatchLogDir: path.join(tmp, "no-dispatch"), patrolStateDir: path.join(tmp, "no-patrol"),
         dispatchLimitsPath: path.join(tmp, "limits.env"), taskQueueOpsPath: path.join(tmp, "ops.py") },
-      registerCommand: (registered) => { command = registered; },
+      registerCommand: (registered) => { if (registered.name === "dispatch-list") command = registered; },
     });
     const reply = (await command.handler({ args: "", config: { agents: { defaults: { workspace: tmp } } } })).text;
     assert.match(reply, /36%/);
@@ -3362,6 +3362,21 @@ test("client: one provider cell carries the queue under each agent's provider an
       outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false }],
     patrol: { service: "active", phase: "yielding", round: "patrol-recent-1", detail: "preempting patrol-recent-1: b-1 is waiting for its agent lock",
       untilMs: null, rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "preempted:cancelled", seconds: 4090 }] },
+    stats: {
+      available: true, error: "", since: "2026-10-11", days: 7, patrolIncluded: false, asOf: AS_OF,
+      agents: [
+        { agent: "claude", tasks: 56, live: 1,
+          states: [{ name: "ok", count: 42 }, { name: "partial", count: 9 }, { name: "failed", count: 1 },
+            { name: "cancelled", count: 3 }, { name: "running", count: 1 }],
+          outcomes: [{ name: "DONE", count: 42 }, { name: "PARTIAL", count: 9 }],
+          tokensTotal: 625213302, tokensUnknown: 1, costUsdEstimate: 261.64, costUnpriced: 1, costFree: 0 },
+        { agent: "codex", tasks: 35, live: 0,
+          states: [{ name: "ok", count: 23 }, { name: "partial", count: 7 }, { name: "cancelled", count: 3 },
+            { name: "quota", count: 1 }, { name: "blocked", count: 1 }],
+          outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
+          tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
+      ],
+    },
   };
   let forced = 0;
   let answer = QUEUE;
@@ -3447,7 +3462,7 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(popover.props["data-open"], "true");
   // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
   assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
-    ["claude", "codex", "dsh", "opencode", "recent", "patrol"]);
+    ["claude", "codex", "dsh", "opencode", "recent", "patrol", "stats"]);
   assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
   assert.doesNotMatch(texts(popover), /没有任务/, "an idle group is its head alone, not a grey sentence");
   // A group's head IS its folded line (glyph · name · value), minus the state chip — the tasks it
@@ -3521,7 +3536,7 @@ test("client: one provider cell carries the queue under each agent's provider an
     assert.equal(new Set(cellsOf).size, cellsOf.length, `${kind}: no two of its facts share a cell`);
   }
   assert.deepEqual(Object.fromEntries(Object.entries(ROW_KINDS).map(([kind, spec]) => [kind, spec.lead])),
-    { source: true, head: true, task: true, ended: true, round: true },
+    { source: true, head: true, task: true, ended: true, round: true, stats: true },
     "every row kind fills the common lead track; no empty 14px stripe");
   for (const [kind, spec] of Object.entries(ROW_KINDS)) {
     const at = spec.facts.map((slot) => FACT_ORDER.indexOf(slot));
@@ -3549,6 +3564,16 @@ test("client: one provider cell carries the queue under each agent's provider an
     assert.deepEqual(facts, [...facts].sort((a, b) => FACT_ORDER.indexOf(a) - FACT_ORDER.indexOf(b)), `${kind}: facts in FACT_ORDER`);
   }
   assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
+
+  // The stats fold: its label is the whole headline; inside, one row per agent on the same grid.
+  const statsFold = find(popover, (p) => p["data-tq-fold"] === "stats")[0];
+  assert.ok(statsFold, "the stats section is one fold, closed until asked for");
+  assert.match(texts(statsFold.children[0]), /统计 · 近 7 天 · 91 项 · token 786\.7M · API \$497\.80/);
+  const statsRows = find(statsFold, (p) => p["data-tq-stats"] !== undefined);
+  assert.deepEqual(statsRows.map((row) => row.props["data-tq-stats"]), ["claude", "codex"]);
+  assert.match(texts(statsRows[0]), /Claude Code 625\.2M 56 项 · 完成 42 · 部分 9 · 失败 1 · 取消 3 · 1 进行中 \$261\.64/);
+  assert.match(texts(statsRows[1]), /\$236\.16/, "the cost is a fact in the aside, not another chip");
+  assert.equal(find(statsRows[0], (p) => p["data-tq-chip"] !== undefined).length, 0, "a totals row has no state chip");
 
   // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
   assert.equal(find(popover, (p) => p["data-tq-detail"] !== undefined).length, 0, "no layer until a task is picked");
@@ -3867,6 +3892,58 @@ test("task queue host: the ops entry orders each agent's queue and is the only w
   const missing = await tq.createQueueActionRunner({ opsPath: path.join(root, "absent.py") }, { runOps })("cancel", "new-wait", "");
   assert.match(missing.message, /not installed/);
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("task queue host: stats rereads the frozen summary only, never sessions; unknown is not 0", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib/taskqueue.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-stats-"));
+  const opsPath = path.join(root, "task_queue_ops.py");
+  fs.writeFileSync(opsPath, "stub\n");
+  const raw = {
+    ok: true, since: "2026-10-05", patrol_included: false,
+    agents: {
+      claude: { tasks: 3, live: 1, states: { ok: 2, running: 1 }, outcomes: { DONE: 2 },
+        tokens_total: 1000, tokens_unknown: 0, cost_usd_estimate: 1.5, cost_unpriced: 0, cost_free: 0 },
+      codex: { tasks: 2, live: 0, states: { ok: 1, failed: 1 }, outcomes: { DONE: 1, "-": 1 },
+        tokens_total: 500, tokens_unknown: 1, cost_usd_estimate: 0, cost_unpriced: 1, cost_free: 0 },
+    },
+  };
+  const calls = [];
+  const runOps = async (_path, args) => { calls.push(args); return { code: 0, stdout: JSON.stringify(raw), stderr: "" }; };
+  const config = { logDir: root, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath, repoOpsPath: "" };
+  try {
+    const stats = await tq.readStats(config, { runOps }, { days: 7 });
+    assert.equal(stats.available, true);
+    assert.equal(stats.days, 7);
+    assert.equal(stats.since, raw.since, "the entry's own window is echoed");
+    assert.deepEqual(calls[0], ["summary", "--since", tq.sinceDay(7)]);
+    assert.deepEqual(stats.agents.map((a) => [a.agent, a.tasks, a.live, a.tokensTotal, a.tokensUnknown]),
+      [["claude", 3, 1, 1000, 0], ["codex", 2, 0, 500, 1]]);
+    assert.deepEqual(stats.agents[1].outcomes, [{ name: "DONE", count: 1 }, { name: "-", count: 1 }]);
+    assert.equal(stats.agents[1].costUnpriced, 1, "an unpriced task is counted apart, not as $0");
+    await tq.readStats(config, { runOps }, { days: 30, patrol: true });
+    assert.deepEqual(calls[1], ["summary", "--since", tq.sinceDay(30), "--all"]);
+    await tq.readStats(config, { runOps }, { since: "2026-09-01" });
+    assert.deepEqual(calls[2], ["summary", "--since", "2026-09-01"]);
+    await tq.readStats(config, { runOps }, {});
+    assert.deepEqual(calls[3], ["summary"], "no window: every retained task");
+    // A malformed row makes the whole answer unavailable; it never becomes zeroes.
+    const unreadable = await tq.readStats(config, {
+      runOps: async () => ({ code: 0, stdout: JSON.stringify({ ok: true, agents: { claude: { tasks: "3" } } }), stderr: "" }),
+    }, { days: 7 });
+    assert.equal(unreadable.available, false);
+    assert.match(unreadable.error, /unreadable claude row/);
+    assert.deepEqual(unreadable.agents, []);
+    const missing = await tq.readStats({ ...config, opsPath: path.join(root, "absent.py") }, { runOps }, { days: 7 });
+    assert.equal(missing.available, false);
+    assert.match(missing.error, /not installed/);
+    const service = tq.createTaskQueueService({ logDir: root, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), opsPath }, {
+      activeTaskIds: async () => [], patrolService: async () => "", patrolLog: async () => [], runOps,
+    });
+    const viaService = await service.stats({ days: 7 });
+    assert.equal(viaService.available, true);
+    assert.deepEqual(calls.at(-1), ["summary", "--since", tq.sinceDay(7)]);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
 test("client: the queue can be steered in place — move up, two-step cancel, model for the next attempt", async () => {
@@ -4364,7 +4441,8 @@ test("detail layer: its fields sit on the list's grid and its controls are one h
   assert.match(rules("_tq-d-sec-title"), /margin:0 0 2px var\(--tq-main-inset\)/, "a section starts on the name's edge");
   const pill = rules("_tq-pill");
   assert.match(pill, /height:26px/, "one control height: the fold control's");
-  assert.match(rules("_tq-fold-summary"), /height:26px/);
+  assert.match(rules("_tq-fold-summary"), /min-height:26px/, "the fold pill grows to wrap a long label");
+  assert.match(rules("_tq-fold-summary"), /max-width:100%/, "it never runs past the panel");
   assert.match(pill, /transition:[^;]*transform/, "its own transition still names transform");
   assert.match(rules("_tq-pill:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
   assert.match(rules("_tq-pill:focus-visible"), /outline:var\(--tq-focus-ring\);outline-offset:1px/, "the ring outside the capsule");
@@ -4621,6 +4699,111 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
   } finally {
     disposeReactEffects();
   }
+});
+
+test("dispatch stats: one frozen-totals view for the chip fold and /dispatch-stats, caveats included", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const t = translatorFor(api);
+  const now = Date.now();
+  const stats = {
+    available: true, error: "", since: "2026-10-11", days: 7, patrolIncluded: false, asOf: AS_OF,
+    agents: [
+      { agent: "claude", tasks: 56, live: 1,
+        states: [{ name: "ok", count: 42 }, { name: "partial", count: 9 }, { name: "failed", count: 1 },
+          { name: "cancelled", count: 3 }, { name: "running", count: 1 }],
+        outcomes: [{ name: "DONE", count: 42 }, { name: "PARTIAL", count: 9 }],
+        tokensTotal: 625213302, tokensUnknown: 1, costUsdEstimate: 261.64, costUnpriced: 1, costFree: 0 },
+      { agent: "codex", tasks: 35, live: 0,
+        states: [{ name: "ok", count: 23 }, { name: "partial", count: 7 }, { name: "cancelled", count: 3 },
+          { name: "quota", count: 1 }, { name: "blocked", count: 1 }],
+        outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
+        tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
+      // A zero-task agent is not a row: it would read as a reading nobody made.
+      { agent: "opencode", tasks: 0, live: 0, states: [], outcomes: [],
+        tokensTotal: 0, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0 },
+    ],
+  };
+  const reply = chat.dispatchStatsText(stats, t);
+  assert.ok(reply.startsWith("# "), "the reply is a Markdown message");
+  assert.match(reply, /近 7 天 · 91 项 · token 786\.7M · API \$497\.80/, "the window, task count, token total and estimate:");
+  assert.match(reply, /- Claude Code {2}625\.2M · 56 项 · 完成 42 · 部分 9 · 失败 1 · 取消 3 · 1 进行中 · \$261\.64/);
+  assert.match(reply, /- Codex {2}161\.5M · 35 项 · 完成 23 · 部分 5 · 受阻 2 · 取消 3 · 额度中止 1 · 其他 1/);
+  assert.doesNotMatch(reply, /opencode/i, "an agent with no task is not a zero row");
+  assert.match(reply, /只读任务结束时冻结的数字；进行中的任务不计入 token 与费用。/);
+  assert.match(reply, /费用按 API 目录价估算，不是订阅额度消耗。/, "the estimate is never read as subscription spend");
+  assert.match(reply, /巡检任务不计；加 patrol 参数可含。/);
+  assert.match(reply, /9 项 token 未记录（不是 0） · 9 项无定价/, "unknown is not folded into the sum and is not a 0");
+  // The same section in the panel text, as a bold group (the chat's two H2s stay the lists).
+  const input = {
+    balances: null, balanceError: null, queueError: null,
+    queue: { available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 0,
+      running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] }, stats },
+  };
+  const panel = chat.dispatchListText(input, t, now);
+  assert.match(panel, /\*\*统计 · 近 7 天 · 91 项 · token 786\.7M · API \$497\.80\*\*/);
+  assert.ok(panel.includes("- Claude Code  625.2M"), "the chat and the chip print the same row");
+  // Empty and failed reads are said, not drawn as zeroes.
+  assert.match(chat.dispatchStatsText({ ...stats, agents: [] }, t), /没有已结束的任务/);
+  const failed = chat.dispatchStatsText({ ...stats, available: false, error: "ops entry not installed" }, t);
+  assert.match(failed, /近 7 天 · 读取失败/);
+  assert.match(failed, /ops entry not installed/);
+  // Arguments: a rolling window, a since-date, all-time, and patrol; anything else is refused.
+  assert.deepEqual(chat.parseStatsArgs(""), { days: 7, since: null, patrol: false });
+  assert.deepEqual(chat.parseStatsArgs("30d patrol"), { days: 30, since: null, patrol: true });
+  assert.deepEqual(chat.parseStatsArgs("all"), { days: null, since: null, patrol: false });
+  assert.deepEqual(chat.parseStatsArgs("2026-10-01"), { days: null, since: "2026-10-01", patrol: false });
+  assert.equal(chat.parseStatsArgs("yesterday"), null);
+  assert.equal(chat.parseStatsArgs("2026-02-30"), null, "a date that does not exist is not a window");
+  assert.equal(chat.parseStatsArgs("366d"), null, "the rolling window is capped at a year");
+  // The wire keeps the new field instead of stripping it (build.mjs' hand-carried schema).
+  const { TYPERT_REMOTE } = await import(pathToFileURL(path.join(PLUGIN, "lib", "typert.remote-client.js")).href);
+  const schema = TYPERT_REMOTE.descriptors.find((d) => d.method === "taskQueue").result.create();
+  assert.deepEqual(schema.shape.stats.parse(stats), stats, "the taskQueue codec carries stats");
+});
+
+test("openclaw /dispatch-stats: the command answers from the ops entry, passes its window, refuses the rest", async () => {
+  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-stats-cmd-"));
+  const opsPath = path.join(root, "task_queue_ops.py");
+  const argvFile = path.join(root, "argv.txt");
+  fs.writeFileSync(opsPath, `import json, os, sys
+open(os.path.join(os.path.dirname(__file__), "argv.txt"), "a").write(" ".join(sys.argv[1:]) + "\\n")
+since = sys.argv[sys.argv.index("--since") + 1] if "--since" in sys.argv else None
+print(json.dumps({"ok": True, "since": since, "patrol_included": False, "agents": {
+  "claude": {"tasks": 2, "live": 0, "states": {"ok": 2}, "outcomes": {"DONE": 2},
+             "tokens_total": 1200000, "tokens_unknown": 0, "cost_usd_estimate": 0.42,
+             "cost_unpriced": 0, "cost_free": 0}}}))
+`);
+  const commands = {};
+  chat.default({
+    pluginConfig: { dispatchLogDir: root, dispatchLimitsPath: path.join(root, "limits.env"),
+      patrolStateDir: path.join(root, "patrol"), taskQueueOpsPath: opsPath },
+    registerCommand: (command) => { commands[command.name] = command; },
+  });
+  const run = (args) => commands["dispatch-stats"].handler({ args, config: { agents: { defaults: { workspace: root } } } });
+  try {
+    assert.ok(commands["dispatch-list"], "the queue command is still registered");
+    assert.equal(commands["dispatch-stats"].acceptsArgs, true, "the window is an argument");
+    const reply = await run("");
+    assert.match(reply.text, /^# 派发统计/m);
+    assert.match(reply.text, /近 7 天 · 2 项 · token 1\.2M · API \$0\.42/);
+    assert.match(reply.text, /不是订阅额度消耗/);
+    const seen = fs.readFileSync(argvFile, "utf8").trim().split("\n");
+    assert.deepEqual(seen[0], "--json summary --since " + (await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href)).sinceDay(7));
+    const all = await run("all patrol");
+    assert.match(all.text, /全部 · 2 项/);
+    assert.equal(fs.readFileSync(argvFile, "utf8").trim().split("\n")[1], "--json summary --all",
+      "all-time includes patrol, and no since is passed");
+    const bad = await run("yesterday");
+    assert.match(bad.text, /用法：\/dispatch-stats/);
+    assert.equal(fs.readFileSync(argvFile, "utf8").trim().split("\n").length, 2, "a refused argument never reaches the ops entry");
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
 test('patrol coverage: full recorded lens history stays separate from eight rows; area is not inferred', async () => {

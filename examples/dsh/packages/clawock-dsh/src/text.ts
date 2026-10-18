@@ -7,7 +7,7 @@
  * hairline, and nothing relies on colour or on a monospaced font (WeChat has
  * neither).
  */
-import { FACT_ORDER, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole } from './panel.ts'
+import { FACT_ORDER, ROW_KINDS, type Fact, type PanelModel, type ReceiptState, type RowView, type StateRole, type StatsView } from './panel.ts'
 import type { Translate } from './copy.ts'
 
 /** A role's glyph as one character, in the shape the chip draws (panel.ts STATE_ROLES). */
@@ -105,6 +105,29 @@ export function panelText(model: PanelModel, t: Translate): string {
     for (const row of model.patrol.rounds) out.push('- ' + literal(rowText(row, t)[0]!))
     for (const alert of model.patrol.progress?.alerts ?? []) out.push('- ⚠ ' + literal(alert))
   }
+  if (model.stats !== null) {
+    out.push('', '**' + literal(model.stats.foldTitle + ' · ' + model.stats.headline) + '**')
+    if (model.stats.empty !== '') out.push(literal(model.stats.empty))
+    for (const row of model.stats.rows) out.push('- ' + literal(rowText(row, t)[0]!))
+    for (const note of model.stats.notes) out.push('- ' + literal(note))
+  }
   if (model.footer !== null) out.push('', literal((model.footer.bad ? '⚠ ' : '') + model.footer.text))
+  return out.join('\n')
+}
+
+/**
+ * `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
+ * the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
+ * title is the surface's; everything under it is the section's own words.
+ */
+export function statsText(view: StatsView, t: Translate): string {
+  const out = ['# ' + literal(view.title)]
+  if (view.empty !== '') {
+    out.push(literal(view.headline), literal(view.empty))
+  } else {
+    out.push(literal(view.headline))
+    for (const row of view.rows) out.push('- ' + literal(rowText(row, t)[0]!))
+  }
+  for (const note of view.notes) out.push('- ' + literal(note))
   return out.join('\n')
 }

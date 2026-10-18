@@ -11,7 +11,7 @@
  */
 import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
 import { resetStampOf, windowsOf, type Translate } from './copy.ts'
-import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult } from './types.ts'
+import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts'
 
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
@@ -488,11 +488,11 @@ export function _endedState(state: string, outcome: string, t: Translate): SlotC
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export const FACT_ORDER = ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'] as const
+export const FACT_ORDER = ['model', 'filed', 'tries', 'receipt', 'spend', 'when', 'took', 'cost'] as const
 
 export type FactSlot = typeof FACT_ORDER[number]
 
-export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round'
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round' | 'stats'
 
 export const RESIDENT_CHIPS = 1
 
@@ -502,6 +502,7 @@ export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'full' |
   filed: { line: 2, track: 'full' },
   tries: { line: 2, track: 'aside' },
   receipt: { line: 2, track: 'aside' },
+  spend: { line: 2, track: 'aside' },
   when: { line: 3, track: 'when' },
   took: { line: 3, track: 'took' },
   cost: { line: 3, track: 'aside' },
@@ -519,6 +520,9 @@ export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: 
   // A round uses the patrol section's glyph, just as an ended task carries its executor. Its line 2
   // is what it routed through the filing gate (issues with their severity, digest, comments).
   round: { lead: true, value: false, facts: ['filed', 'when', 'took'] },
+  // An agent's totals in the stats fold: the token sum is the value, the breakdown rides in the
+  // model cell (line 2's wide cell, words not a model) and the API-price estimate in the aside.
+  stats: { lead: true, value: true, facts: ['model', 'spend'] },
 }
 
 /** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
@@ -1057,6 +1061,137 @@ export function recentSection(result: TaskQueueResult | null, t: Translate, now:
   }
 }
 
+/** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
+export function compactCount(n: number): string {
+  const trim = (s: string): string => (s.includes('.') ? s.replace(/\.?0+$/, '') : s)
+  if (n >= 1e9) return trim((n / 1e9).toFixed(2)) + 'B'
+  if (n >= 1e6) return trim((n / 1e6).toFixed(1)) + 'M'
+  if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e5 ? 0 : 1)) + 'k'
+  return String(n)
+}
+
+/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+export function usdText(n: number): string {
+  if (!(n > 0)) return '$0'
+  return n < 0.01 ? '<$0.01' : '$' + n.toFixed(2)
+}
+
+function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: string): number {
+  return counts.find((count) => count.name === name)?.count ?? 0
+}
+
+/**
+ * The one line under an agent's name in the stats fold. It keeps the two axes apart the way
+ * cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
+ * from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
+ * Tasks with no report or another state fall into `other`, so the parts never invent a total.
+ */
+export function statsBreakdown(agent: AgentStats, t: Translate): string {
+  const done = statOf(agent.outcomes, 'DONE')
+  const partial = statOf(agent.outcomes, 'PARTIAL')
+  const blocked = Math.max(statOf(agent.states, 'blocked'), statOf(agent.outcomes, 'BLOCKED'))
+  const failed = statOf(agent.states, 'failed') + statOf(agent.states, 'timeout')
+  const cancelled = statOf(agent.states, 'cancelled')
+  const quota = statOf(agent.states, 'quota')
+  const unverified = statOf(agent.states, 'unverified')
+  const settled = done + partial + blocked + failed + cancelled + quota + unverified + agent.live
+  const other = Math.max(0, agent.tasks - settled)
+  return [
+    t('stats.tasks', { n: agent.tasks }),
+    ...(done > 0 ? [t('stats.done', { n: done })] : []),
+    ...(partial > 0 ? [t('stats.partial', { n: partial })] : []),
+    ...(blocked > 0 ? [t('stats.blocked', { n: blocked })] : []),
+    ...(failed > 0 ? [t('stats.failed', { n: failed })] : []),
+    ...(cancelled > 0 ? [t('stats.cancelled', { n: cancelled })] : []),
+    ...(quota > 0 ? [t('stats.quota', { n: quota })] : []),
+    ...(unverified > 0 ? [t('stats.unverified', { n: unverified })] : []),
+    ...(other > 0 ? [t('stats.other', { n: other })] : []),
+    ...(agent.live > 0 ? [t('stats.live', { n: agent.live })] : []),
+  ].join(' · ')
+}
+
+/** A token cell: a real 0 prints 0, but a window with only unknown token counts prints —. */
+function statsTokens(tokens: number, unknown: number): string {
+  return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
+}
+
+/** A cost cell: priced estimate, free, or unknown — never a $0 for an unpriced model. */
+function statsCost(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
+  if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
+  if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
+  return '—'
+}
+
+/**
+ * The stats fold: what the dispatch has done over a window, read from the frozen result.env
+ * numbers cmd_summary totals — never from sessions (a continued session would count twice).
+ * Its collapsed label is the whole answer (tasks, tokens, API-price estimate); inside, one row
+ * per agent and the caveats, so "estimate" and "unknown" can never be mistaken for a bill or a 0.
+ */
+export type StatsView = {
+  title: string
+  /** The panel fold's short label; the chat message uses `title`. */
+  foldTitle: string
+  /** The window as words: 近 7 天 / 10/12 起 / 全部. */
+  window: string
+  /** Window + totals, under the title; the fold label adds the title. */
+  headline: string
+  rows: RowView[]
+  notes: string[]
+  /** Said when the window has no task; '' when rows exist (or the read failed). */
+  empty: string
+}
+
+export function statsSection(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
+  if (stats == null) return null
+  const title = t('stats.title')
+  const foldTitle = t('stats.foldTitle')
+  const window = stats.days !== null ? t('stats.window.days', { n: stats.days })
+    : stats.since !== null ? t('stats.window.since', { date: stats.since })
+      : t('stats.window.all')
+  const notes = [t('stats.note.frozen'), t('stats.note.cost'), ...(!stats.patrolIncluded ? [t('stats.note.patrol')] : [])]
+  if (!stats.available) {
+    return { title, foldTitle, window, headline: t('stats.headline.failed', { window }), rows: [], notes: [t('stats.unavailable', { message: stats.error })], empty: '' }
+  }
+  const agents = stats.agents.filter((agent) => agent.tasks > 0)
+  if (agents.length === 0) return { title, foldTitle, window, headline: window, rows: [], notes, empty: t('stats.empty') }
+  const totals = agents.reduce((sum, agent) => ({
+    tasks: sum.tasks + agent.tasks, live: sum.live + agent.live,
+    tokens: sum.tokens + agent.tokensTotal, unknown: sum.unknown + agent.tokensUnknown,
+    costUsdEstimate: sum.costUsdEstimate + agent.costUsdEstimate,
+    costUnpriced: sum.costUnpriced + agent.costUnpriced, costFree: sum.costFree + agent.costFree,
+  }), { tasks: 0, live: 0, tokens: 0, unknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0 })
+  const losses = [
+    totals.unknown > 0 ? t('stats.note.unknown', { n: totals.unknown }) : '',
+    totals.costUnpriced > 0 ? t('stats.note.unpriced', { n: totals.costUnpriced }) : '',
+    totals.costFree > 0 ? t('stats.note.free', { n: totals.costFree }) : '',
+  ].filter((line) => line !== '')
+  if (losses.length > 0) notes.push(losses.join(' · '))
+  const headline = [
+    window,
+    t('stats.tasks', { n: totals.tasks }),
+    t('stats.tokens', { tokens: statsTokens(totals.tokens, totals.unknown) }),
+    t('stats.costEstimate', { cost: statsCost(totals, t) }),
+  ].join(' · ')
+  return {
+    title, foldTitle, window, headline, notes, empty: '',
+    rows: agents.map((agent) => {
+      const cost = statsCost(agent, t)
+      return {
+        kind: 'stats', key: 'stats-' + agent.agent, lead: { agent: agent.agent }, name: _agentLabel(agent.agent),
+        value: { text: statsTokens(agent.tokensTotal, agent.tokensUnknown), tone: 'none', level: null },
+        state: null,
+        facts: {
+          model: { text: statsBreakdown(agent, t), title: t('stats.tokensTitle', { total: agent.tokensTotal.toLocaleString('en-US') }) },
+          spend: { text: cost, title: t('stats.costTitle'), voice: cost === '—' ? 'quiet' : undefined },
+        },
+        caption: [],
+        attrs: { 'data-tq-stats': agent.agent },
+      } satisfies RowView
+    }),
+  }
+}
+
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
  * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
@@ -1215,6 +1350,8 @@ export type PanelModel = {
   groups: PanelGroup[]
   recent: ReturnType<typeof recentSection>
   patrol: ReturnType<typeof patrolSection>
+  /** The frozen-result stats fold; null when there is no window to show (an empty window is hidden). */
+  stats: StatsView | null
   footer: ReturnType<typeof opsFooter>
 }
 
@@ -1226,6 +1363,7 @@ export function panelModel(input: PanelInput,
   const rows = balanceRows(input.balances, t, now)
   const byProvider = new Map(rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(input.balances?.providers ?? [], input.queue)
+  const stats = statsSection(input.queue?.stats, t)
   return {
     title: t('panel.title'),
     notices: panelNotices({ ...input, rowCount: rows.length }, t),
@@ -1233,6 +1371,8 @@ export function panelModel(input: PanelInput,
     groups: sources.map((source) => panelGroup(source, input.queue, byProvider, t, now, open)),
     recent: recentSection(input.queue, t, now, open),
     patrol: patrolSection(input.queue, t, now),
+    // An empty window is noise in the chip; a failed read is not (its notes say so).
+    stats: stats !== null && (stats.rows.length > 0 || stats.empty === '') ? stats : null,
     footer: opsFooter(input.queue, t),
   }
 }

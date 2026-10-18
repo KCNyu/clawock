@@ -441,6 +441,54 @@ export interface AgentSlotLimit {
   max: number
 }
 
+/** One name/count pair from `task_queue_ops.py summary`: a runner STATE or a model OUTCOME. */
+export interface StatCount {
+  name: string
+  count: number
+}
+
+/** One agent's frozen-result totals for the summary window (`task_queue_ops.py summary`). */
+export interface AgentStats {
+  agent: string
+  /** Tasks created in the window, live ones included. */
+  tasks: number
+  /** Tasks that had not ended: counted as tasks, excluded from tokens/cost by cmd_summary. */
+  live: number
+  /** Runner STATE counts (live states included), verbatim from the ops entry. */
+  states: StatCount[]
+  /** Model OUTCOME counts; only terminal tasks have one. */
+  outcomes: StatCount[]
+  /** Sum of TOKENS_TOTAL over terminal tasks; 0 is a real 0, unknown is `tokensUnknown`. */
+  tokensTotal: number
+  /** Terminal tasks whose TOKENS_TOTAL was empty: unknown, never 0. */
+  tokensUnknown: number
+  /** Sum of COST_USD over terminal tasks: an API list-price estimate in USD, not quota spent. */
+  costUsdEstimate: number
+  /** Terminal tasks whose COST_USD was empty or whose model has no price. */
+  costUnpriced: number
+  /** Terminal tasks whose COST_USD said `free`. */
+  costFree: number
+}
+
+/**
+ * The frozen-result summary (`task_queue_ops.py summary`) over the window a surface shows.
+ * Read-only and never reread from sessions: a later task continuing one session would be
+ * counted twice. `available: false` is a read failure, not an empty window.
+ */
+export interface TaskStats {
+  available: boolean
+  /** Why the read failed; '' when available. */
+  error: string
+  /** First day in the window (YYYY-MM-DD); null = every retained task. */
+  since: string | null
+  /** The rolling window in days; null when the window is `since` or all-time. */
+  days: number | null
+  patrolIncluded: boolean
+  asOf: string
+  /** In the ops entry's AGENTS order, zero-task agents included (the view filters). */
+  agents: AgentStats[]
+}
+
 /** The task-queue chip's answer. In-band like BalancesResult: taskQueue() never throws. */
 export interface TaskQueueResult {
   /** False on a host without the dispatcher: the chip renders nothing. */
@@ -472,4 +520,6 @@ export interface TaskQueueResult {
   ops?: OpsStatus
   /** The host's dispatch directory (config `dispatchLogDir`): where task briefs live when the ops entry cannot say. */
   logDir?: string
+  /** Frozen-result totals the chip's stats fold shows (optional on the wire; older hosts omit it). */
+  stats?: TaskStats | null
 }

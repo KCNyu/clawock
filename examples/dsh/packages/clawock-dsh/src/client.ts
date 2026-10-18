@@ -1337,6 +1337,16 @@ function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Trans
     renderPatrolProgress(patrol.progress, t))
 }
 
+/** The stats fold: the collapsed label is the whole headline, inside are the agent rows and caveats. */
+function renderStatsSection(stats: NonNullable<PanelModel['stats']>, t: Translate): React.ReactElement {
+  return h('section', { className: cx('tq-group', 'tq-section'), key: 'stats', 'data-tq-group': 'stats' },
+    renderFold('stats', stats.foldTitle + ' · ' + stats.headline, [
+      stats.empty === '' ? null : h('div', { className: cx('tq-sub', 'tq-empty', 'tq-inset'), key: 'empty', role: 'status' }, stats.empty),
+      renderWell('stats', stats.rows.map((row) => renderRow(row, t))),
+      ...stats.notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-inset'), key: 'n' + i }, note)),
+    ]))
+}
+
 /**
  * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
  * 那个上下好像都不明显了」). Two levels, never mixed: the allowance is the
@@ -1402,6 +1412,7 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
       renderRow(model.recent.head, t),
       renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
     model.patrol === null ? null : renderPatrolSection(model.patrol, t),
+    model.stats === null ? null : renderStatsSection(model.stats, t),
     model.footer === null ? null : h('div', { className: cx('tq-sub', 'tq-foot', model.footer.bad && 'tq-bad'), key: 'ops', 'data-tq-ops': model.footer.version }, model.footer.text),
   ])]
 }

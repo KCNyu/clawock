@@ -23,7 +23,8 @@ belongs here.
 - [`runtime-protocol.md`](architecture/runtime-protocol.md) — how any external
   agent runtime invokes clawock.
 - [`task-queue.md`](architecture/task-queue.md) — the agent-dispatch queue behind
-  the dsh task chip: who owns which layer, the versioned ops entry, queue order.
+  the dsh task chip: who owns which layer, the versioned ops entry, queue order, and
+  the frozen task/token summary shown by the chip and `/dispatch-stats`.
 - [`strategy-plugins.md`](architecture/strategy-plugins.md) — strategies, bars and
   the optimiser as plugins composed by config rows; what a parameter search may conclude.
 
@@ -44,6 +45,9 @@ belongs here.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers
   (semantic vs. everything else), motion scale, component recipes and the list of
   what a new component may not do, each with the gate that checks it.
+- [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats fold and the
+  `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
+  mean, and the effect captures.
 
 ## Operations
 

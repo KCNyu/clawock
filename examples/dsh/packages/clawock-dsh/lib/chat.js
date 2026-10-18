@@ -469,7 +469,38 @@ const dictionaries = {
 		"queue.brief.needsHost": "追加列表要等插件 host 半边更新（需重启 dsh）；任务书本身可以打开。",
 		"queue.brief.none": "没有追加",
 		"queue.brief.readOnly": "只读：要改请用 dispatch.sh append（运行中加 --queue）",
-		"queue.r.needsHost": "主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。"
+		"queue.r.needsHost": "主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。",
+		"stats.command": "派发任务与 token 统计（默认近 7 天，巡检不计）",
+		"stats.title": "派发统计",
+		"stats.foldTitle": "统计",
+		"stats.window.days": "近 {n} 天",
+		"stats.window.since": "{date} 起",
+		"stats.window.all": "全部",
+		"stats.tasks": "{n} 项",
+		"stats.tokens": "token {tokens}",
+		"stats.costEstimate": "API {cost}",
+		"stats.free": "免费",
+		"stats.done": "完成 {n}",
+		"stats.partial": "部分 {n}",
+		"stats.blocked": "受阻 {n}",
+		"stats.failed": "失败 {n}",
+		"stats.cancelled": "取消 {n}",
+		"stats.quota": "额度中止 {n}",
+		"stats.unverified": "未验证 {n}",
+		"stats.other": "其他 {n}",
+		"stats.live": "{n} 进行中",
+		"stats.empty": "这段时间没有已结束的任务。",
+		"stats.unavailable": "统计读取失败：{message}",
+		"stats.headline.failed": "{window} · 读取失败",
+		"stats.note.frozen": "只读任务结束时冻结的数字；进行中的任务不计入 token 与费用。",
+		"stats.note.cost": "费用按 API 目录价估算，不是订阅额度消耗。",
+		"stats.note.patrol": "巡检任务不计；加 patrol 参数可含。",
+		"stats.note.unknown": "{n} 项 token 未记录（不是 0）",
+		"stats.note.unpriced": "{n} 项无定价",
+		"stats.note.free": "{n} 项免费",
+		"stats.usage": "用法：/dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol]（默认近 7 天，巡检不计）",
+		"stats.costTitle": "按任务结束时冻结的 token，以 API 目录价估算；不是订阅额度消耗",
+		"stats.tokensTitle": "token {total}（任务结束时冻结）"
 	},
 	en: {
 		"action.buy": "Buy",
@@ -930,7 +961,38 @@ const dictionaries = {
 		"queue.brief.needsHost": "The appends list needs the updated host half (a dsh restart); the brief itself opens now.",
 		"queue.brief.none": "No appends",
 		"queue.brief.readOnly": "Read-only: change it with dispatch.sh append (--queue while it runs)",
-		"queue.r.needsHost": "The plugin's host half on this host is older: this action works after a dsh restart."
+		"queue.r.needsHost": "The plugin's host half on this host is older: this action works after a dsh restart.",
+		"stats.command": "Task and token totals (last 7 days; patrol excluded)",
+		"stats.title": "Dispatch stats",
+		"stats.foldTitle": "Stats",
+		"stats.window.days": "last {n} days",
+		"stats.window.since": "since {date}",
+		"stats.window.all": "all time",
+		"stats.tasks": "{n} tasks",
+		"stats.tokens": "{tokens} tokens",
+		"stats.costEstimate": "API {cost}",
+		"stats.free": "free",
+		"stats.done": "{n} done",
+		"stats.partial": "{n} partial",
+		"stats.blocked": "{n} blocked",
+		"stats.failed": "{n} failed",
+		"stats.cancelled": "{n} cancelled",
+		"stats.quota": "{n} quota stop",
+		"stats.unverified": "{n} unverified",
+		"stats.other": "{n} other",
+		"stats.live": "{n} live",
+		"stats.empty": "No task ended in this window.",
+		"stats.unavailable": "Stats read failed: {message}",
+		"stats.headline.failed": "{window} · read failed",
+		"stats.note.frozen": "Read from the numbers each task froze at its end; live tasks are not in tokens or cost.",
+		"stats.note.cost": "Cost is an API list-price estimate, not subscription quota spent.",
+		"stats.note.patrol": "Patrol rounds are excluded; add patrol to include them.",
+		"stats.note.unknown": "{n} tasks have no token record (not 0)",
+		"stats.note.unpriced": "{n} unpriced",
+		"stats.note.free": "{n} free",
+		"stats.usage": "Usage: /dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] (default: last 7 days, patrol excluded)",
+		"stats.costTitle": "Estimated from the tokens frozen at each task end at API list prices; not subscription quota spent",
+		"stats.tokensTitle": "{total} tokens (frozen at task end)"
 	}
 };
 /**
@@ -1472,6 +1534,7 @@ const FACT_ORDER = [
 	"filed",
 	"tries",
 	"receipt",
+	"spend",
 	"when",
 	"took",
 	"cost"
@@ -1517,6 +1580,11 @@ const ROW_KINDS = {
 			"when",
 			"took"
 		]
+	},
+	stats: {
+		lead: true,
+		value: true,
+		facts: ["model", "spend"]
 	}
 };
 /** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
@@ -2162,6 +2230,155 @@ function recentSection(result, t, now, open) {
 		rows: result.recent.map((task) => endedRow(task, t, now, open))
 	};
 }
+/** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
+function compactCount(n) {
+	const trim = (s) => s.includes(".") ? s.replace(/\.?0+$/, "") : s;
+	if (n >= 1e9) return trim((n / 1e9).toFixed(2)) + "B";
+	if (n >= 1e6) return trim((n / 1e6).toFixed(1)) + "M";
+	if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e5 ? 0 : 1)) + "k";
+	return String(n);
+}
+/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+function usdText(n) {
+	if (!(n > 0)) return "$0";
+	return n < .01 ? "<$0.01" : "$" + n.toFixed(2);
+}
+function statOf(counts, name) {
+	return counts.find((count) => count.name === name)?.count ?? 0;
+}
+/**
+* The one line under an agent's name in the stats fold. It keeps the two axes apart the way
+* cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
+* from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
+* Tasks with no report or another state fall into `other`, so the parts never invent a total.
+*/
+function statsBreakdown(agent, t) {
+	const done = statOf(agent.outcomes, "DONE");
+	const partial = statOf(agent.outcomes, "PARTIAL");
+	const blocked = Math.max(statOf(agent.states, "blocked"), statOf(agent.outcomes, "BLOCKED"));
+	const failed = statOf(agent.states, "failed") + statOf(agent.states, "timeout");
+	const cancelled = statOf(agent.states, "cancelled");
+	const quota = statOf(agent.states, "quota");
+	const unverified = statOf(agent.states, "unverified");
+	const settled = done + partial + blocked + failed + cancelled + quota + unverified + agent.live;
+	const other = Math.max(0, agent.tasks - settled);
+	return [
+		t("stats.tasks", { n: agent.tasks }),
+		...done > 0 ? [t("stats.done", { n: done })] : [],
+		...partial > 0 ? [t("stats.partial", { n: partial })] : [],
+		...blocked > 0 ? [t("stats.blocked", { n: blocked })] : [],
+		...failed > 0 ? [t("stats.failed", { n: failed })] : [],
+		...cancelled > 0 ? [t("stats.cancelled", { n: cancelled })] : [],
+		...quota > 0 ? [t("stats.quota", { n: quota })] : [],
+		...unverified > 0 ? [t("stats.unverified", { n: unverified })] : [],
+		...other > 0 ? [t("stats.other", { n: other })] : [],
+		...agent.live > 0 ? [t("stats.live", { n: agent.live })] : []
+	].join(" · ");
+}
+/** A token cell: a real 0 prints 0, but a window with only unknown token counts prints —. */
+function statsTokens(tokens, unknown) {
+	return tokens > 0 || unknown === 0 ? compactCount(tokens) : "—";
+}
+/** A cost cell: priced estimate, free, or unknown — never a $0 for an unpriced model. */
+function statsCost(agent, t) {
+	if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate);
+	if (agent.costFree > 0 && agent.costUnpriced === 0) return t("stats.free");
+	return "—";
+}
+function statsSection(stats, t) {
+	if (stats == null) return null;
+	const title = t("stats.title");
+	const foldTitle = t("stats.foldTitle");
+	const window = stats.days !== null ? t("stats.window.days", { n: stats.days }) : stats.since !== null ? t("stats.window.since", { date: stats.since }) : t("stats.window.all");
+	const notes = [
+		t("stats.note.frozen"),
+		t("stats.note.cost"),
+		...!stats.patrolIncluded ? [t("stats.note.patrol")] : []
+	];
+	if (!stats.available) return {
+		title,
+		foldTitle,
+		window,
+		headline: t("stats.headline.failed", { window }),
+		rows: [],
+		notes: [t("stats.unavailable", { message: stats.error })],
+		empty: ""
+	};
+	const agents = stats.agents.filter((agent) => agent.tasks > 0);
+	if (agents.length === 0) return {
+		title,
+		foldTitle,
+		window,
+		headline: window,
+		rows: [],
+		notes,
+		empty: t("stats.empty")
+	};
+	const totals = agents.reduce((sum, agent) => ({
+		tasks: sum.tasks + agent.tasks,
+		live: sum.live + agent.live,
+		tokens: sum.tokens + agent.tokensTotal,
+		unknown: sum.unknown + agent.tokensUnknown,
+		costUsdEstimate: sum.costUsdEstimate + agent.costUsdEstimate,
+		costUnpriced: sum.costUnpriced + agent.costUnpriced,
+		costFree: sum.costFree + agent.costFree
+	}), {
+		tasks: 0,
+		live: 0,
+		tokens: 0,
+		unknown: 0,
+		costUsdEstimate: 0,
+		costUnpriced: 0,
+		costFree: 0
+	});
+	const losses = [
+		totals.unknown > 0 ? t("stats.note.unknown", { n: totals.unknown }) : "",
+		totals.costUnpriced > 0 ? t("stats.note.unpriced", { n: totals.costUnpriced }) : "",
+		totals.costFree > 0 ? t("stats.note.free", { n: totals.costFree }) : ""
+	].filter((line) => line !== "");
+	if (losses.length > 0) notes.push(losses.join(" · "));
+	return {
+		title,
+		foldTitle,
+		window,
+		headline: [
+			window,
+			t("stats.tasks", { n: totals.tasks }),
+			t("stats.tokens", { tokens: statsTokens(totals.tokens, totals.unknown) }),
+			t("stats.costEstimate", { cost: statsCost(totals, t) })
+		].join(" · "),
+		notes,
+		empty: "",
+		rows: agents.map((agent) => {
+			const cost = statsCost(agent, t);
+			return {
+				kind: "stats",
+				key: "stats-" + agent.agent,
+				lead: { agent: agent.agent },
+				name: _agentLabel(agent.agent),
+				value: {
+					text: statsTokens(agent.tokensTotal, agent.tokensUnknown),
+					tone: "none",
+					level: null
+				},
+				state: null,
+				facts: {
+					model: {
+						text: statsBreakdown(agent, t),
+						title: t("stats.tokensTitle", { total: agent.tokensTotal.toLocaleString("en-US") })
+					},
+					spend: {
+						text: cost,
+						title: t("stats.costTitle"),
+						voice: cost === "—" ? "quiet" : void 0
+					}
+				},
+				caption: [],
+				attrs: { "data-tq-stats": agent.agent }
+			};
+		})
+	};
+}
 function progressView(progress, t, now) {
 	if (progress === void 0) return null;
 	const unknown = t("queue.coverage.unknown");
@@ -2308,6 +2525,7 @@ function panelModel(input, t, now, open = () => {}) {
 	const rows = balanceRows(input.balances, t, now);
 	const byProvider = new Map(rows.map((row) => [row.provider, row]));
 	const sources = _panelSources(input.balances?.providers ?? [], input.queue);
+	const stats = statsSection(input.queue?.stats, t);
 	return {
 		title: t("panel.title"),
 		notices: panelNotices({
@@ -2318,6 +2536,7 @@ function panelModel(input, t, now, open = () => {}) {
 		groups: sources.map((source) => panelGroup(source, input.queue, byProvider, t, now, open)),
 		recent: recentSection(input.queue, t, now, open),
 		patrol: patrolSection(input.queue, t, now),
+		stats: stats !== null && (stats.rows.length > 0 || stats.empty === "") ? stats : null,
 		footer: opsFooter(input.queue, t)
 	};
 }
@@ -2430,7 +2649,28 @@ function panelText(model, t) {
 		for (const row of model.patrol.rounds) out.push("- " + literal(rowText(row, t)[0]));
 		for (const alert of model.patrol.progress?.alerts ?? []) out.push("- ⚠ " + literal(alert));
 	}
+	if (model.stats !== null) {
+		out.push("", "**" + literal(model.stats.foldTitle + " · " + model.stats.headline) + "**");
+		if (model.stats.empty !== "") out.push(literal(model.stats.empty));
+		for (const row of model.stats.rows) out.push("- " + literal(rowText(row, t)[0]));
+		for (const note of model.stats.notes) out.push("- " + literal(note));
+	}
 	if (model.footer !== null) out.push("", literal((model.footer.bad ? "⚠ " : "") + model.footer.text));
+	return out.join("\n");
+}
+/**
+* `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
+* the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
+* title is the surface's; everything under it is the section's own words.
+*/
+function statsText(view, t) {
+	const out = ["# " + literal(view.title)];
+	if (view.empty !== "") out.push(literal(view.headline), literal(view.empty));
+	else {
+		out.push(literal(view.headline));
+		for (const row of view.rows) out.push("- " + literal(rowText(row, t)[0]));
+	}
+	for (const note of view.notes) out.push("- " + literal(note));
 	return out.join("\n");
 }
 //#endregion
@@ -2464,6 +2704,61 @@ function gatewayCredentials(config) {
 function dispatchListText(input, t, now) {
 	return panelText(panelModel(input, t, now), t);
 }
+/**
+* `/dispatch-stats` arguments: `7d`/`30d` (a rolling window), `all` (every retained task),
+* a `YYYY-MM-DD` since-date, and `patrol` to include patrol rounds. The default is the chip's
+* own window (the last seven days, patrol excluded). null = an argument this surface does not
+* accept; the answer is the usage line, never a silent fallback.
+*/
+function parseStatsArgs(raw) {
+	let days = 7;
+	let since = null;
+	let patrol = false;
+	for (const token of raw.trim().toLowerCase().split(/\s+/).filter(Boolean)) {
+		if (token === "patrol") {
+			patrol = true;
+			continue;
+		}
+		if (token === "all") {
+			days = null;
+			since = null;
+			continue;
+		}
+		const rolling = /^([1-9]\d{0,2})d$/.exec(token);
+		if (rolling) {
+			const n = Number(rolling[1]);
+			if (n > 365) return null;
+			days = n;
+			since = null;
+			continue;
+		}
+		const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(token);
+		if (date) {
+			const [y, m, d] = [
+				Number(date[1]),
+				Number(date[2]),
+				Number(date[3])
+			];
+			const at = new Date(y, m - 1, d);
+			if (at.getFullYear() !== y || at.getMonth() !== m - 1 || at.getDate() !== d) return null;
+			days = null;
+			since = token;
+			continue;
+		}
+		return null;
+	}
+	return {
+		days,
+		since,
+		patrol
+	};
+}
+/** The `/dispatch-stats` reply: the chip's stats fold as one message. */
+function dispatchStatsText(stats, t) {
+	const view = statsSection(stats, t);
+	if (view === null) return t("stats.unavailable", { message: stats?.error || "—" });
+	return statsText(view, t);
+}
 function register(api) {
 	const config = api.pluginConfig ?? {};
 	const t = createTranslator(dictionaries[config.locale ?? "zh"] ?? dictionaries.zh);
@@ -2488,6 +2783,18 @@ function register(api) {
 			}, t, Date.now()) };
 		}
 	});
+	api.registerCommand({
+		name: "dispatch-stats",
+		description: t("stats.command"),
+		acceptsArgs: true,
+		handler: async (ctx) => {
+			const parsed = parseStatsArgs(ctx.args ?? "");
+			if (parsed === null) return { text: t("stats.usage") };
+			const workspace = ctx.config?.agents?.defaults?.workspace ?? process.env.CLAWOCK_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
+			queue ??= createTaskQueueService(taskQueueConfig(config, workspace));
+			return { text: dispatchStatsText(await queue.stats(parsed), t) };
+		}
+	});
 }
 //#endregion
-export { register as default, dispatchListText };
+export { register as default, dispatchListText, dispatchStatsText, parseStatsArgs };

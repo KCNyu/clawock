@@ -11,7 +11,7 @@
  */
 import { type ProviderJoin } from './providers.ts';
 import { type Translate } from './copy.ts';
-import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult } from './types.ts';
+import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts';
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
 /** Usage-direction colour tier of a used-percent reading. */
@@ -230,9 +230,9 @@ export declare function _endedState(state: string, outcome: string, t: Translate
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export declare const FACT_ORDER: readonly ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'];
+export declare const FACT_ORDER: readonly ['model', 'filed', 'tries', 'receipt', 'spend', 'when', 'took', 'cost'];
 export type FactSlot = typeof FACT_ORDER[number];
-export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round' | 'stats';
 export declare const RESIDENT_CHIPS = 1;
 /** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
 export declare const FACT_CELL: Record<FactSlot, {
@@ -489,6 +489,37 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
     head: RowView;
     rows: RowView[];
 } | null;
+/** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
+export declare function compactCount(n: number): string;
+/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+export declare function usdText(n: number): string;
+/**
+ * The one line under an agent's name in the stats fold. It keeps the two axes apart the way
+ * cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
+ * from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
+ * Tasks with no report or another state fall into `other`, so the parts never invent a total.
+ */
+export declare function statsBreakdown(agent: AgentStats, t: Translate): string;
+/**
+ * The stats fold: what the dispatch has done over a window, read from the frozen result.env
+ * numbers cmd_summary totals — never from sessions (a continued session would count twice).
+ * Its collapsed label is the whole answer (tasks, tokens, API-price estimate); inside, one row
+ * per agent and the caveats, so "estimate" and "unknown" can never be mistaken for a bill or a 0.
+ */
+export type StatsView = {
+    title: string;
+    /** The panel fold's short label; the chat message uses `title`. */
+    foldTitle: string;
+    /** The window as words: 近 7 天 / 10/12 起 / 全部. */
+    window: string;
+    /** Window + totals, under the title; the fold label adds the title. */
+    headline: string;
+    rows: RowView[];
+    notes: string[];
+    /** Said when the window has no task; '' when rows exist (or the read failed). */
+    empty: string;
+};
+export declare function statsSection(stats: TaskStats | null | undefined, t: Translate): StatsView | null;
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
  * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
@@ -600,6 +631,8 @@ export type PanelModel = {
     groups: PanelGroup[];
     recent: ReturnType<typeof recentSection>;
     patrol: ReturnType<typeof patrolSection>;
+    /** The frozen-result stats fold; null when there is no window to show (an empty window is hidden). */
+    stats: StatsView | null;
     footer: ReturnType<typeof opsFooter>;
 };
 /** Both halves of the cell as one read left them: an answer, or why there is none. */

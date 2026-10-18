@@ -7,7 +7,7 @@
  * hairline, and nothing relies on colour or on a monospaced font (WeChat has
  * neither).
  */
-import { type PanelModel, type RowView, type StateRole } from './panel.ts';
+import { type PanelModel, type RowView, type StateRole, type StatsView } from './panel.ts';
 import type { Translate } from './copy.ts';
 /** A role's glyph as one character, in the shape the chip draws (panel.ts STATE_ROLES). */
 export declare const ROLE_MARK: Record<StateRole, string>;
@@ -40,3 +40,9 @@ export declare function rowText(view: RowView, t: Translate, opts?: {
  * sidebar's; here it speaks only when one of its sources could not be read.
  */
 export declare function panelText(model: PanelModel, t: Translate): string;
+/**
+ * `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
+ * the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
+ * title is the surface's; everything under it is the section's own words.
+ */
+export declare function statsText(view: StatsView, t: Translate): string;

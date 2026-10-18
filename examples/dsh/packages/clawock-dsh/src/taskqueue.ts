@@ -17,6 +17,7 @@
  *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
  *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
+ *   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
  * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
@@ -36,7 +37,8 @@ import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, rea
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type {
-  PatrolProgress, AgentQueue, AgentSlotLimit, DispatchTask, OpsStatus, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult,
+  AgentQueue, AgentSlotLimit, AgentStats, DispatchTask, OpsStatus, PatrolProgress, PatrolRound, PatrolStatus,
+  QueueActionResult, StatCount, TaskQueueResult, TaskStats,
 } from './types.ts'
 import { expandHome } from './balance.ts'
 
@@ -49,6 +51,8 @@ export const DEFAULT_TASK_QUEUE_RECENT = 5
 /** Host-side cache: every open tab polls, the files are read once per window. */
 const TTL_MS = 5000
 const COMMAND_TIMEOUT_MS = 5000
+/** The chip's stats fold: the last seven local calendar days, today included. */
+export const DEFAULT_STATS_DAYS = 7
 /** How much of a run log's end is read: every line the queue shows sits in its last few KB. */
 const LOG_TAIL_BYTES = 65536
 /** The detail panel's cap on the closing report (the runner already keeps only six lines). */
@@ -420,7 +424,7 @@ export function patrolPhase(service: string, round: string, roundAlive: boolean,
 }
 
 /** One full read. Throws only when the dispatch log directory itself is unreadable. */
-type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs'>
+type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs' | 'stats'> & { stats: TaskStats }
 
 /** sha256 of a file, 12 hex — the same hash the ops entry reports as its ops_version. */
 export function fileVersion(path: string): string {
@@ -459,15 +463,134 @@ async function readOps(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): 
   }
 }
 
+/** What the stats surface asks for: a rolling window, a since-date, or every retained task. */
+export type StatsOptions = {
+  /** Rolling calendar days, today included. Ignored when `since` is set. */
+  days?: number | null
+  /** First day (YYYY-MM-DD); null/undefined with no days = every retained task. */
+  since?: string | null
+  /** Include patrol rounds (cmd_summary's `--all`). Default false. */
+  patrol?: boolean
+}
+
+/** Local calendar day `days - 1` before `now`, YYYY-MM-DD: cmd_summary compares CREATED's date. */
+export function sinceDay(days: number, now: number = Date.now()): string {
+  const d = new Date(now)
+  d.setDate(d.getDate() - (Math.max(1, days) - 1))
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** cmd_summary's JSON: snake_case and nested maps, kept as the entry wrote them. */
+type OpsSummary = {
+  ok?: boolean
+  error?: string
+  since?: string | null
+  patrol_included?: boolean
+  agents?: Record<string, {
+    tasks?: unknown; states?: unknown; outcomes?: unknown; live?: unknown
+    tokens_total?: unknown; tokens_unknown?: unknown; cost_usd_estimate?: unknown
+    cost_unpriced?: unknown; cost_free?: unknown
+  }>
+}
+
+const integerOf = (raw: unknown): number | null =>
+  typeof raw === 'number' && Number.isInteger(raw) && raw >= 0 ? raw : null
+const amountOf = (raw: unknown): number | null =>
+  typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 ? raw : null
+
+/** `{"ok": 3, "failed": 1}` as a list; null when any count is not a non-negative integer. */
+function statCounts(raw: unknown): StatCount[] | null {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const out: StatCount[] = []
+  for (const [name, count] of Object.entries(raw as Record<string, unknown>)) {
+    const n = integerOf(count)
+    if (name === '' || n === null) return null
+    out.push({ name, count: n })
+  }
+  return out
+}
+
+/**
+ * The frozen-result summary, read through the same versioned ops entry as the queue (never
+ * from session files: that is how cmd_summary avoids counting a continued session twice).
+ * Never throws: a failed or unreadable answer is `available: false` with the reason, so the
+ * surface can say "unknown" instead of drawing zeros.
+ */
+export async function readStats(config: Required<TaskQueueConfig>, deps: TaskQueueDeps, options: StatsOptions = {}): Promise<TaskStats> {
+  const days = options.days ?? null
+  const since = options.since !== undefined && options.since !== null
+    ? options.since
+    : days === null ? null : sinceDay(days)
+  const patrolIncluded = options.patrol === true
+  const base: TaskStats = {
+    available: false, error: '', since, days, patrolIncluded, asOf: new Date().toISOString(), agents: [],
+  }
+  if (deps.runOps === undefined) return { ...base, error: 'no ops runner' }
+  if (!existsSync(config.opsPath)) return { ...base, error: `ops entry not installed at ${config.opsPath}` }
+  const args = ['summary', ...(since === null ? [] : ['--since', since]), ...(patrolIncluded ? ['--all'] : [])]
+  let r: OpsRun
+  try {
+    r = await deps.runOps(config.opsPath, args, COMMAND_TIMEOUT_MS)
+  } catch (cause) {
+    return { ...base, error: cause instanceof Error ? cause.message : String(cause) }
+  }
+  let raw: OpsSummary
+  try {
+    raw = JSON.parse(r.stdout) as OpsSummary
+  } catch {
+    return { ...base, error: (r.stderr || r.stdout).trim().slice(-300) || `ops summary exited ${r.code}` }
+  }
+  if (r.code !== 0 || raw === null || raw.ok !== true) {
+    return { ...base, error: (raw?.error ?? (r.stderr || r.stdout).trim()).slice(-300) || `ops summary exited ${r.code}` }
+  }
+  if (raw.agents === null || typeof raw.agents !== 'object' || Array.isArray(raw.agents)) {
+    return { ...base, error: 'ops summary returned no agents' }
+  }
+  const agents: AgentStats[] = []
+  for (const [agent, row] of Object.entries(raw.agents)) {
+    const tasks = integerOf(row?.tasks)
+    const live = integerOf(row?.live)
+    const states = statCounts(row?.states)
+    const outcomes = statCounts(row?.outcomes)
+    const tokensTotal = integerOf(row?.tokens_total)
+    const tokensUnknown = integerOf(row?.tokens_unknown)
+    const costUsdEstimate = amountOf(row?.cost_usd_estimate)
+    const costUnpriced = integerOf(row?.cost_unpriced)
+    const costFree = integerOf(row?.cost_free)
+    if ([tasks, live, tokensTotal, tokensUnknown, costUsdEstimate, costUnpriced, costFree].some((n) => n === null) || states === null || outcomes === null) {
+      return { ...base, error: `ops summary returned an unreadable ${agent} row` }
+    }
+    agents.push({
+      agent, tasks: tasks!, live: live!, states, outcomes,
+      tokensTotal: tokensTotal!, tokensUnknown: tokensUnknown!,
+      costUsdEstimate: costUsdEstimate!, costUnpriced: costUnpriced!, costFree: costFree!,
+    })
+  }
+  return {
+    ...base, available: true,
+    since: typeof raw.since === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.since) ? raw.since : since,
+    patrolIncluded: raw.patrol_included === true ? true : patrolIncluded,
+    agents,
+  }
+}
+
 export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): Promise<QueueRead> {
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
-    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
+    return {
+      available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty,
+      stats: {
+        available: false, error: `no dispatch log directory at ${config.logDir}`, since: null,
+        days: DEFAULT_STATS_DAYS, patrolIncluded: false, asOf, agents: [],
+      },
+    }
   }
-  const [activeIds, service, log, opsRead, issues] = await Promise.all([
+  const [activeIds, service, log, opsRead, issues, stats] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
     deps.patrolIssues?.() ?? Promise.resolve({ labels: null, asOf: '' }),
+    readStats(config, deps, { days: DEFAULT_STATS_DAYS }),
   ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
   // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was
@@ -517,11 +640,14 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     queues,
     ops: opsRead.ops,
     logDir: config.logDir,
+    stats,
   }
 }
 
 export type TaskQueueService = {
   get(force: boolean): Promise<TaskQueueResult>
+  /** Frozen-result totals for one window; independent of get()'s cache, never throws. */
+  stats(options?: StatsOptions): Promise<TaskStats>
   /** Forget the cached read: the next get() reads the files again (after a write). */
   invalidate(): void
 }
@@ -566,6 +692,9 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
   }
   return {
     invalidate(): void { fetchedAt = 0 },
+    async stats(options: StatsOptions = {}): Promise<TaskStats> {
+      return readStats(resolved, deps, options)
+    },
     async get(force: boolean): Promise<TaskQueueResult> {
       if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) {
         return lastError !== null ? answer('stale', lastError) : answer('cached', null)
