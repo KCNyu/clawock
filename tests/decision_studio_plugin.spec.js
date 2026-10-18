@@ -4514,7 +4514,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   // Provider categories use the local cool run (the dsh theme has no --viz-*); the total line
   // is the strong ink, not a seventh series. No hand-picked hex and no semantic state token is
   // reused as a provider colour.
-  assert.match(css, /--tq-series-1:var\(--tq-run\)/);
+  assert.match(css, /--tq-series-1:color-mix\(in srgb, var\(--tq-run\) 72%, var\(--tq-ink\)\)/);
   assert.match(css, /--tq-series-total:var\(--tq-ink\)/);
   assert.match(css, /_tq-stats-chart-total\{[^}]*stroke:var\(--tq-series-total\)/);
   assert.doesNotMatch(css, /stroke:var\(--viz-warm\)/);

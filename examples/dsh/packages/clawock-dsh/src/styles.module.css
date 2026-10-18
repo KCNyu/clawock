@@ -1696,9 +1696,9 @@ body[data-ds-dark-theme] .pbc .bp {
      dsh theme, so the stats chart defines its local cool run from the same business blue and
      ink ladder: six steps separated by lightness, no new hue and no hex. The total line is
      the strong ink, not a seventh category. */
-  --tq-series-1:var(--tq-run);
-  --tq-series-2:color-mix(in srgb, var(--tq-run) 62%, var(--tq-ink-3));
-  --tq-series-3:color-mix(in srgb, var(--tq-run) 32%, var(--tq-ink-3));
+  --tq-series-1:color-mix(in srgb, var(--tq-run) 72%, var(--tq-ink));
+  --tq-series-2:color-mix(in srgb, var(--tq-run) 52%, var(--tq-ink-3));
+  --tq-series-3:color-mix(in srgb, var(--tq-run) 28%, var(--tq-ink-3));
   --tq-series-4:var(--tq-ink-3);
   --tq-series-5:color-mix(in srgb, var(--tq-run) 82%, var(--tq-ink));
   --tq-series-6:color-mix(in srgb, var(--tq-run) 45%, var(--tq-ink));

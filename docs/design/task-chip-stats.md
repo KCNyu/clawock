@@ -75,17 +75,18 @@ business blue and the ink ladder:
 
 | Token | Value | Use |
 |---|---|---|
-| `--tq-series-1` | `--tq-run` | first provider |
-| `--tq-series-2` | 62% business blue + 38% ink-3 | second provider |
-| `--tq-series-3` | 32% business blue + 68% ink-3 | third provider |
+| `--tq-series-1` | 72% business blue + 28% ink | first provider |
+| `--tq-series-2` | 52% business blue + 48% ink-3 | second provider |
+| `--tq-series-3` | 28% business blue + 72% ink-3 | third provider |
 | `--tq-series-4` | ink-3 | fourth provider |
 | `--tq-series-5/6` | deeper/lighter blue–ink mixes | overflow, if a host ever has more |
 | `--tq-series-total` | `--tq-ink` | the total line and its legend |
 
-No hex, no hand-picked pastel, no semantic state token used as a category. The provider colours are
-separated by lightness, like the design system's cool run; the total line is the strong neutral, not
-a seventh series. The page's completion bars below keep their semantic state colours; the chart's
-categorical bars are intentionally a different vocabulary and the legend names every one.
+No hex, no hand-picked pastel, and no provider is the raw state token: even the first series is a
+blue–ink mix, not `--tq-run` itself. The provider colours are separated by lightness, like the design
+system's cool run; the total line is the strong neutral, not a seventh series. The page's completion
+bars below keep their semantic state colours; the chart's categorical bars are intentionally a
+different vocabulary and the legend names every one.
 
 If dsh later exposes `--viz-*`, the six local declarations can be replaced with those tokens and
 nothing else changes. Until then this is the honest fallback, and it is written once on `.pbc`.
