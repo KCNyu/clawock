@@ -8,6 +8,10 @@ inject = ('costs',)
 class Breakout(Reversion):
     strategy = name
 
+    def entry_valid(self, bars, index, entry, target):
+        history = bars[index-self.params['window']:index]
+        return target < entry < min(b['low'] for b in history)
+
     def target(self, bars, index):
         history = bars[index-self.params['window']:index]
         bottom = min(b['low'] for b in history)

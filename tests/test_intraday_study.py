@@ -84,7 +84,12 @@ def test_signal_causality_and_distinct_mechanisms():
         changed[21].update(close=1000., volume=1e12)
         assert service.target(changed, 20) == target
     bars[20].update(close=98., low=97.)
-    assert Breakout(costs, {}).target(bars, 20) < 98
+    breakout = Breakout(costs, {})
+    target = breakout.target(bars, 20)
+    assert target < 98
+    assert breakout.entry_valid(bars, 20, 98, target)
+    assert not breakout.entry_valid(bars, 20, 104, target)
+    assert not breakout.entry_valid(bars, 20, target-1, target)
     assert Reversion(costs, {}).target(bars, 20) is None
 
 

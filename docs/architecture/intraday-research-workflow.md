@@ -32,6 +32,8 @@ volume checks test fill feasibility. Failed fills or cash-short buybacks produce
 `unresolved` and null net performance, not a deleted losing trade. Costs come
 from `costs.fill`, including both sides, tax, rounding and half-spread. This is
 still an OHLC simulator: no queue priority, tick path or calibrated impact.
+Breakout entries must still be below the prior channel and above the frozen
+target at the execution open; a gap invalidating either condition cancels entry.
 Same-bar ambiguity is stop-first; adverse gaps pay the opening price. A completed
 session ending at 16:00 is required; early closes and gaps remain refusals.
 

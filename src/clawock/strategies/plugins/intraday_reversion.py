@@ -37,6 +37,9 @@ class Reversion:
             return mean
         return None
 
+    def entry_valid(self, bars, index, entry, target):
+        return entry > target
+
     def __init__(self, costs, config):
         if set(config) - set(DEFAULTS):
             raise ValueError('unknown intraday-reversion config')
@@ -139,7 +142,7 @@ class Reversion:
             entry = bars[entry_index]['open']
             if execution and qty > bars[entry_index-1]['volume'] * execution['participation']:
                 continue
-            if entry <= target:
+            if not self.entry_valid(bars, index, entry, target):
                 continue
             sell = self.costs.fill(qty * entry, market, packet['session'], direction='sell', ticker=packet.get('ticker'), shares=qty)
             buy_estimate = self.costs.fill(qty * target, market, packet['session'], direction='buy', ticker=packet.get('ticker'), shares=qty)
