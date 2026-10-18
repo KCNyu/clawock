@@ -24,7 +24,7 @@ import { createHash } from "node:crypto";
 *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
 *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
 *   task_queue_ops.py --json list        per-agent lock holder and queue order
-*   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
+*   task_queue_ops.py --json summary     per-agent frozen tokens/cost + per-day buckets, read-only
 *
 * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
 * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
@@ -682,12 +682,48 @@ async function readStats(config, deps, options = {}) {
 			costFree
 		});
 	}
+	let daily;
+	if (raw.daily !== void 0) {
+		if (raw.daily === null || typeof raw.daily !== "object" || Array.isArray(raw.daily)) return {
+			...base,
+			error: "ops summary returned an unreadable daily series"
+		};
+		daily = {};
+		for (const [date, agentsRaw] of Object.entries(raw.daily)) {
+			if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || agentsRaw === null || typeof agentsRaw !== "object" || Array.isArray(agentsRaw)) return {
+				...base,
+				error: `ops summary returned an unreadable daily row (${date})`
+			};
+			const row = {};
+			for (const [agent, statRaw] of Object.entries(agentsRaw)) {
+				if (agent === "" || statRaw === null || typeof statRaw !== "object" || Array.isArray(statRaw)) return {
+					...base,
+					error: `ops summary returned an unreadable daily row (${date} ${agent})`
+				};
+				const day = statRaw;
+				const tasks = integerOf(day.tasks);
+				const tokens = integerOf(day.tokens);
+				const unknown = integerOf(day.unknown);
+				if (tasks === null || tokens === null || unknown === null) return {
+					...base,
+					error: `ops summary returned an unreadable daily row (${date} ${agent})`
+				};
+				row[agent] = {
+					tasks,
+					tokens,
+					unknown
+				};
+			}
+			daily[date] = row;
+		}
+	}
 	return {
 		...base,
 		available: true,
 		since: typeof raw.since === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.since) ? raw.since : since,
 		patrolIncluded: raw.patrol_included === true ? true : patrolIncluded,
-		agents
+		agents,
+		...daily === void 0 ? {} : { daily }
 	};
 }
 async function readTaskQueue(config, deps) {

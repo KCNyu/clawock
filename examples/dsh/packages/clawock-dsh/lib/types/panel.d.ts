@@ -332,13 +332,6 @@ export declare function endedRow(task: DispatchTask, t: Translate, now: number, 
 export declare function roundFiled(filed: string, t: Translate): Fact | null;
 /** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 export declare function roundRow(round: PatrolRound, t: Translate, now: number): RowView;
-/** Patrol history is one semantic group, regardless of individual outcomes.
- * Up to four rounds stay visible; longer history keeps the newest round and
- * one disclosure for all older rounds, preserving chronological order.
- * Distinct ended tasks remain visible (the host already caps that list).
- */
-export declare const FLAT_ROUNDS = 4;
-export declare const RESIDENT_ROUNDS = 1;
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 export declare const reorderable: (task: DispatchTask) => boolean;
 /** Live tasks of one agent in the order they hold / will take its lock. */
@@ -484,7 +477,7 @@ export type PanelGroup = {
     }>;
 };
 export declare function panelGroup(source: PanelSource, result: TaskQueueResult | null, rows: ReadonlyMap<string, BalanceRow>, t: Translate, now: number, open: (id: string) => void): PanelGroup;
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 export declare function recentSection(result: TaskQueueResult | null, t: Translate, now: number, open: (id: string) => void): {
     head: RowView;
     rows: RowView[];
@@ -507,6 +500,8 @@ export type StatsAgentView = {
     unfinished: number;
     live: number;
     tokens: number;
+    /** Terminal tasks without a token record; the chart's daily bars are lower bounds. */
+    tokensUnknown: number;
     tokensText: string;
     costText: string;
     /** Token length against the largest agent, 0..1 (the token bar's fill). */
@@ -528,6 +523,43 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
  * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
  * remainder. The footnote carries the caveats once, in one line.
  */
+/** One day's provider tokens (the chart's bars) and their exact sum (the line). */
+export type StatsDayView = {
+    /** YYYY-MM-DD, the window's local calendar day. */
+    date: string;
+    /** MM/DD for the axis. */
+    label: string;
+    /** tokens by agent, the same order as `providers`. */
+    tokens: Record<string, number>;
+    /** Terminal tasks with no token record, by agent: that provider's bar is a lower bound. */
+    unknowns: Record<string, number>;
+    /** Sum of `tokens`: the stack's full height; never recalculated from another source. */
+    total: number;
+    /** Terminal tasks on this day without a token record; the bar is a lower bound. */
+    unknown: number;
+    /** Tasks created that day, live included; 0 is a real quiet day. */
+    tasks: number;
+};
+export type StatsProviderView = {
+    agent: string;
+    label: string;
+    /** The design system's categorical chart token (`--viz-*`), stable per provider. */
+    colorVar: string;
+    /** Sum over the window; the legend's number. */
+    tokens: number;
+    unknown: number;
+};
+export type StatsSeriesView = {
+    days: StatsDayView[];
+    providers: StatsProviderView[];
+    /** Largest daily total: the stacked bar's full height (one left axis now). */
+    maxTotal: number;
+    /** Sum over the window; should equal the selected agents' token totals. */
+    total: number;
+    unknown: number;
+    /** Days with no task at all: drawn at 0, not skipped. */
+    emptyDays: number;
+};
 export type StatsView = {
     title: string;
     /** The card's shorter name; the layer and the command use `title`. */
@@ -541,21 +573,26 @@ export type StatsView = {
     agents: StatsAgentView[];
     totals: StatsTotalsView;
     maxTokens: number;
+    /** The 7-day daily chart; null on an old ops entry or a window wider than 7 days. */
+    series: StatsSeriesView | null;
     empty: string;
     footnote: string;
 };
 export declare function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null;
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
- * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
- * whether anything is open; inside, every number has a column and is said once:
+ * 很多很杂乱」). The fold's summary is the headline, so a reader who never opens it still learns
+ * whether anything is open: its key is the title, its value on the right is the conclusion. Inside,
+ * every number has a column and is said once:
  *
  *   areas   open filed issues per area, most first, each with its share of the largest; the areas
  *           with none share one line. This is where findings belong, NOT where patrol looked
  *           (rounds.tsv has no area), and the one caption under the heading says so.
- *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *   lenses  one row per lens. Lenses with an open issue or a failed last run come first ("needs a
+ *           look"), then the rest most recently run first, so the rotation gap reads down the
  *           `when` column: last run, recorded attempts, open issues; under it the last round with
- *           its verdict and what it filed (the same words and links as a round row).
+ *           its verdict and what it filed (the same words and links as a round row). The number of
+ *           recorded attempts also carries a bar against the busiest lens; no count is inferred.
  *
  * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
  * said only when it happens; the provenance every reading has (how many records, since when, the
@@ -563,8 +600,13 @@ export declare function statsView(stats: TaskStats | null | undefined, t: Transl
  */
 export type CoverageView = {
     title: string;
-    /** The fold's label: the title and how many areas (or lenses) have open issues. */
-    headline: string;
+    /** The fold's conclusion: how many areas (or lenses) have open issues, or that it is unknown. */
+    conclusion: string;
+    /**
+     * Why the conclusion has weight: `open` (strong ink), `unknown` (the issue source could not be
+     * read; warn) or `none` (quiet ink). Colour is never the only channel — `conclusion` says it.
+     */
+    tone: 'none' | 'open' | 'unknown';
     alerts: string[];
     areaHeading: string;
     areaNote: string;
@@ -573,6 +615,7 @@ export type CoverageView = {
         name: string;
         open: string;
         share: number | null;
+        hasOpen: boolean | null;
         href: string;
     }>;
     /** Areas with none, on one line. */
@@ -596,6 +639,8 @@ export type CoverageView = {
         /** When it last ran, as a round row says it; null when no round is recorded. */
         when: Fact | null;
         runs: string;
+        /** The runs bar against the busiest lens; null when the count or the scale is unknown. */
+        runsShare: number | null;
         open: string;
         /** Open issues exist (the count is drawn strong); null when unknown. */
         hasOpen: boolean | null;
@@ -611,6 +656,21 @@ export type CoverageView = {
     footnote: string;
     empty: string;
 };
+/** The last rounds as one thin outcome strip: one segment per round, in the list's order. */
+export type PatrolRhythm = {
+    /** Newest → oldest, the same order as the list below. */
+    bars: Array<{
+        key: string;
+        round: string;
+        role: StateRole;
+        title: string;
+    }>;
+    /** Nonzero outcome counts, worst first; the words carry the colour. */
+    summary: Array<{
+        role: StateRole;
+        text: string;
+    }>;
+};
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
@@ -619,6 +679,7 @@ export type CoverageView = {
 export declare function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): {
     head: RowView;
     rounds: RowView[];
+    rhythm: PatrolRhythm | null;
     progress: CoverageView | null;
 } | null;
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */

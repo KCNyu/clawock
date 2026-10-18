@@ -706,14 +706,6 @@ export function roundRow(round: PatrolRound, t: Translate, now: number): RowView
   }
 }
 
-/** Patrol history is one semantic group, regardless of individual outcomes.
- * Up to four rounds stay visible; longer history keeps the newest round and
- * one disclosure for all older rounds, preserving chronological order.
- * Distinct ended tasks remain visible (the host already caps that list).
- */
-export const FLAT_ROUNDS = 4
-export const RESIDENT_ROUNDS = 1
-
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 export const reorderable = (task: DispatchTask): boolean =>
   task.waiting === 'lock' && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2
@@ -1048,7 +1040,7 @@ export function panelGroup(source: PanelSource, result: TaskQueueResult | null, 
   }
 }
 
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 export function recentSection(result: TaskQueueResult | null, t: Translate, now: number, open: (id: string) => void): { head: RowView; rows: RowView[] } | null {
   if (result === null || !result.available || result.recent.length === 0) return null
   return {
@@ -1102,6 +1094,8 @@ export type StatsAgentView = {
   unfinished: number
   live: number
   tokens: number
+  /** Terminal tasks without a token record; the chart's daily bars are lower bounds. */
+  tokensUnknown: number
   tokensText: string
   costText: string
   /** Token length against the largest agent, 0..1 (the token bar's fill). */
@@ -1125,6 +1119,46 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
  * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
  * remainder. The footnote carries the caveats once, in one line.
  */
+/** One day's provider tokens (the chart's bars) and their exact sum (the line). */
+export type StatsDayView = {
+  /** YYYY-MM-DD, the window's local calendar day. */
+  date: string
+  /** MM/DD for the axis. */
+  label: string
+  /** tokens by agent, the same order as `providers`. */
+  tokens: Record<string, number>
+  /** Terminal tasks with no token record, by agent: that provider's bar is a lower bound. */
+  unknowns: Record<string, number>
+  /** Sum of `tokens`: the stack's full height; never recalculated from another source. */
+  total: number
+  /** Terminal tasks on this day without a token record; the bar is a lower bound. */
+  unknown: number
+  /** Tasks created that day, live included; 0 is a real quiet day. */
+  tasks: number
+}
+
+export type StatsProviderView = {
+  agent: string
+  label: string
+  /** The design system's categorical chart token (`--viz-*`), stable per provider. */
+  colorVar: string
+  /** Sum over the window; the legend's number. */
+  tokens: number
+  unknown: number
+}
+
+export type StatsSeriesView = {
+  days: StatsDayView[]
+  providers: StatsProviderView[]
+  /** Largest daily total: the stacked bar's full height (one left axis now). */
+  maxTotal: number
+  /** Sum over the window; should equal the selected agents' token totals. */
+  total: number
+  unknown: number
+  /** Days with no task at all: drawn at 0, not skipped. */
+  emptyDays: number
+}
+
 export type StatsView = {
   title: string
   /** The card's shorter name; the layer and the command use `title`. */
@@ -1138,8 +1172,69 @@ export type StatsView = {
   agents: StatsAgentView[]
   totals: StatsTotalsView
   maxTokens: number
+  /** The 7-day daily chart; null on an old ops entry or a window wider than 7 days. */
+  series: StatsSeriesView | null
   empty: string
   footnote: string
+}
+
+/** The host chart's categorical palette, in the design system's series order. */
+const VIZ_COLORS = ['--tq-series-1', '--tq-series-2', '--tq-series-3', '--tq-series-4', '--tq-series-5', '--tq-series-6'] as const
+/** Stable provider → colour slots; the table order may change with volume, the colour should not. */
+const VIZ_ORDER = ['claude', 'codex', 'dsh', 'opencode', 'minimax', 'deepseek']
+const vizColor = (agent: string, at: number): string =>
+  VIZ_COLORS[(VIZ_ORDER.includes(agent) ? VIZ_ORDER.indexOf(agent) : at) % VIZ_COLORS.length]!
+
+/** Local calendar date `date` plus `n` days, as YYYY-MM-DD (noon avoids a DST midnight). */
+function addDays(date: string, n: number): string {
+  const d = new Date(date + 'T12:00:00')
+  d.setDate(d.getDate() + n)
+  const pad = (x: number): string => String(x).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * The daily chart's data. Every day in the rolling window is present; a day with no task has
+ * zero bars and a zero line, not a gap. Each day's total is the sum of that day's provider
+ * tokens (the same objects the bars read), so the line can never drift from the bars. Returns
+ * null on an old ops entry with no `daily` and for a window too wide to draw as seven bars.
+ */
+function statsSeries(stats: TaskStats, agents: StatsAgentView[]): StatsSeriesView | null {
+  if (stats.daily === undefined || stats.days === null || stats.since === null) return null
+  if (stats.days < 1 || stats.days > 7) return null
+  const providers: StatsProviderView[] = agents.map((agent, at) => ({
+    agent: agent.agent, label: agent.label, colorVar: vizColor(agent.agent, at), tokens: 0, unknown: 0,
+  }))
+  const days: StatsDayView[] = []
+  for (let i = 0; i < stats.days; i++) {
+    const date = addDays(stats.since, i)
+    const row = stats.daily[date] ?? {}
+    const tokens: Record<string, number> = {}
+    const unknowns: Record<string, number> = {}
+    let total = 0
+    let unknown = 0
+    let tasks = 0
+    for (const provider of providers) {
+      const stat = row[provider.agent]
+      const value = stat?.tokens ?? 0
+      const unrecorded = stat?.unknown ?? 0
+      tokens[provider.agent] = value
+      unknowns[provider.agent] = unrecorded
+      total += value
+      unknown += unrecorded
+      tasks += stat?.tasks ?? 0
+      provider.tokens += value
+      provider.unknown += unrecorded
+    }
+    days.push({ date, label: date.slice(5).replace('-', '/'), tokens, unknowns, total, unknown, tasks })
+  }
+  return {
+    days, providers,
+    maxTotal: Math.max(0, ...days.map((day) => day.total)),
+    total: days.reduce((sum, day) => sum + day.total, 0),
+    unknown: days.reduce((sum, day) => sum + day.unknown, 0),
+    emptyDays: days.filter((day) => day.tasks === 0).length,
+  }
 }
 
 export function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
@@ -1152,7 +1247,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
   const zeroAgent: StatsAgentView = {
     agent: '', label: '', tasks: 0, settled: 0, done: 0, partial: 0, unfinished: 0, live: 0,
-    tokens: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
+    tokens: 0, tokensUnknown: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
   }
   const zeroTotals: StatsTotalsView = {
     ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
@@ -1160,14 +1255,14 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   if (!stats.available) {
     return {
       title, cardTitle, window, headline: t('stats.headline.failed', { window }), summaryLine: window,
-      agents: [], totals: zeroTotals, maxTokens: 0, empty: '',
+      agents: [], totals: zeroTotals, maxTokens: 0, series: null, empty: '',
       footnote: t('stats.unavailable', { message: stats.error }),
     }
   }
   const selected = byAgentRank(stats.agents.filter((agent) => agent.tasks > 0))
   if (selected.length === 0) {
     return {
-      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0,
+      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0, series: null,
       empty: t('stats.empty'), footnote: t('stats.note.cost'),
     }
   }
@@ -1180,7 +1275,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     const unfinished = Math.max(0, settled - done - partial)
     return {
       agent: agent.agent, label: _agentLabel(agent.agent), tasks, settled, done, partial, unfinished, live,
-      tokens: agent.tokensTotal, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
+      tokens: agent.tokensTotal, tokensUnknown: agent.tokensUnknown, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
       costText: statsCostText(agent, t), share: 0,
       doneShare: ratio(done, settled), partialShare: ratio(partial, settled),
       unfinishedShare: ratio(unfinished, settled), liveShare: ratio(live, tasks),
@@ -1218,22 +1313,25 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   return {
     title, cardTitle, window, headline,
     summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
-    agents, totals, maxTokens, empty: '',
+    agents, totals, maxTokens, series: statsSeries(stats, agents), empty: '',
     footnote: t('stats.note.cost'),
   }
 }
 
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
- * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
- * whether anything is open; inside, every number has a column and is said once:
+ * 很多很杂乱」). The fold's summary is the headline, so a reader who never opens it still learns
+ * whether anything is open: its key is the title, its value on the right is the conclusion. Inside,
+ * every number has a column and is said once:
  *
  *   areas   open filed issues per area, most first, each with its share of the largest; the areas
  *           with none share one line. This is where findings belong, NOT where patrol looked
  *           (rounds.tsv has no area), and the one caption under the heading says so.
- *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *   lenses  one row per lens. Lenses with an open issue or a failed last run come first ("needs a
+ *           look"), then the rest most recently run first, so the rotation gap reads down the
  *           `when` column: last run, recorded attempts, open issues; under it the last round with
- *           its verdict and what it filed (the same words and links as a round row).
+ *           its verdict and what it filed (the same words and links as a round row). The number of
+ *           recorded attempts also carries a bar against the busiest lens; no count is inferred.
  *
  * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
  * said only when it happens; the provenance every reading has (how many records, since when, the
@@ -1241,13 +1339,18 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
  */
 export type CoverageView = {
   title: string
-  /** The fold's label: the title and how many areas (or lenses) have open issues. */
-  headline: string
+  /** The fold's conclusion: how many areas (or lenses) have open issues, or that it is unknown. */
+  conclusion: string
+  /**
+   * Why the conclusion has weight: `open` (strong ink), `unknown` (the issue source could not be
+   * read; warn) or `none` (quiet ink). Colour is never the only channel — `conclusion` says it.
+   */
+  tone: 'none' | 'open' | 'unknown'
   alerts: string[]
   areaHeading: string
   areaNote: string
   /** Areas with open issues (or an unknown count), most first; `share` is the bar against the largest. */
-  areas: Array<{ name: string; open: string; share: number | null; href: string }>
+  areas: Array<{ name: string; open: string; share: number | null; hasOpen: boolean | null; href: string }>
   /** Areas with none, on one line. */
   clear: { label: string; names: Array<{ name: string; href: string }> }
   lensHeading: string
@@ -1258,6 +1361,8 @@ export type CoverageView = {
     /** When it last ran, as a round row says it; null when no round is recorded. */
     when: Fact | null
     runs: string
+    /** The runs bar against the busiest lens; null when the count or the scale is unknown. */
+    runsShare: number | null
     open: string
     /** Open issues exist (the count is drawn strong); null when unknown. */
     hasOpen: boolean | null
@@ -1282,11 +1387,14 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length
   const unread = progress.issuesAt === '' || [...progress.areas, ...progress.lenses].some((x) => x.open === null)
   const ended = (l: (typeof progress.lenses)[number]): number => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity
+  const maxRuns = Math.max(0, ...progress.lenses.map((l) => l.rounds ?? 0))
+  const conclusion = openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
+    : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
+      : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')
   return {
     title: t('queue.coverage.title'),
-    headline: t('queue.coverage.title') + ' · ' + (openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
-      : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
-        : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')),
+    conclusion,
+    tone: openAreas > 0 || openLenses > 0 ? 'open' : unread ? 'unknown' : 'none',
     alerts: [
       ...(progress.records === null ? [t('queue.coverage.unreadable')] : []),
       ...(!progress.lensInventory || !progress.areaInventory ? [t('queue.coverage.inventoryUnreadable')] : []),
@@ -1294,7 +1402,8 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
     ],
     areaHeading: t('queue.coverage.areas'),
     areaNote: t('queue.coverage.areaNote'),
-    areas: listed.map((a) => ({ name: a.name, open: count(a.open), share: a.open === null || most === 0 ? null : a.open / most, href: issues('area:' + a.name) })),
+    areas: listed.map((a) => ({ name: a.name, open: count(a.open), share: a.open === null || most === 0 ? null : a.open / most,
+      hasOpen: a.open === null ? null : a.open > 0, href: issues('area:' + a.name) })),
     clear: { label: t('queue.coverage.clear'), names: progress.areas.filter((a) => a.open === 0).map((a) => ({ name: a.name, href: issues('area:' + a.name) })) },
     lensHeading: t('queue.coverage.lenses'),
     lensNote: t('queue.coverage.lensNote'),
@@ -1304,7 +1413,8 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
       return {
         name: l.name, href: issues('lens:' + l.name),
         when: last?.facts.when ?? null,
-        runs: count(l.rounds), open: count(l.open), hasOpen: l.open === null ? null : l.open > 0,
+        runs: count(l.rounds), runsShare: l.rounds === null || maxRuns === 0 ? null : l.rounds / maxRuns,
+        open: count(l.open), hasOpen: l.open === null ? null : l.open > 0,
         last: last === null ? null : { round: l.last!.round, state: last.state, filed: last.facts.filed ?? null },
         none: l.rounds === null ? unknown : t('queue.coverage.notRecorded'),
       }
@@ -1321,12 +1431,48 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   }
 }
 
+/** The last rounds as one thin outcome strip: one segment per round, in the list's order. */
+export type PatrolRhythm = {
+  /** Newest → oldest, the same order as the list below. */
+  bars: Array<{ key: string; round: string; role: StateRole; title: string }>
+  /** Nonzero outcome counts, worst first; the words carry the colour. */
+  summary: Array<{ role: StateRole; text: string }>
+}
+
+/**
+ * The outcome strip. The list below is a chronological list; this is the same data as one thin
+ * shape: a segment per round, newest first like the list, colour is the round's verdict (the same
+ * role its chip uses). Duration is not a second height scale: one 44-minute round flattened the
+ * 2–10 minute rounds into a line, so the duration stays in the segment's title and the list, and
+ * the strip keeps the one thing a reader scans for — the run of failures.
+ */
+function patrolRhythm(rounds: PatrolRound[], t: Translate, now: number): PatrolRhythm | null {
+  if (rounds.length < 2) return null
+  const bars = rounds.map((round) => {
+    const view = roundRow(round, t, now)
+    const role = view.state?.role ?? 'unknown'
+    const title = [round.round, round.axis, view.state?.text, view.facts.took?.text]
+      .filter((part): part is string => part !== undefined && part !== '').join(' · ')
+    return { key: view.key, round: round.round, role, title }
+  })
+  const order: StateRole[] = ['fail', 'partial', 'done', 'off', 'unknown']
+  const label: Partial<Record<StateRole, string>> = {
+    fail: 'queue.rhythm.failed', partial: 'queue.rhythm.partial', done: 'queue.rhythm.done',
+    off: 'queue.rhythm.yielded', unknown: 'queue.rhythm.unknown',
+  }
+  const counts = new Map<StateRole, number>()
+  for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1)
+  const summary = order.filter((role) => (counts.get(role) ?? 0) > 0)
+    .map((role) => ({ role, text: t(label[role] ?? 'queue.rhythm.unknown', { n: counts.get(role) ?? 0 }) }))
+  return { bars, summary }
+}
+
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
  * is not a task conclusion; the head already projects its useful status.
  */
-export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; progress: CoverageView | null } | null {
+export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; rhythm: PatrolRhythm | null; progress: CoverageView | null } | null {
   if (result === null || !result.available) return null
   const patrol = result.patrol
   return {
@@ -1338,6 +1484,7 @@ export function patrolSection(result: TaskQueueResult | null, t: Translate, now:
       attrs: { 'data-tq-patrol': patrol.phase },
     },
     rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+    rhythm: patrolRhythm(patrol.rounds ?? [], t, now),
     progress: progressView(patrol.progress, t, now),
   }
 }

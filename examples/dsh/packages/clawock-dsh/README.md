@@ -508,32 +508,35 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。
 
-### Patrol coverage · 巡检覆盖
+### Patrol: one entry, one page · 巡检:一个入口,一个详情页
 
-The patrol section ends with one read-only coverage fold, closed until asked for; its label is the
-headline (how many areas have open issues). Inside are two tables on the panel's well. **Open issues
-by area**: most first, each with a bar against the largest; areas with none share one line. These
-counts say where filed issues belong, not where patrol looked: rounds carry no area, so no area
-inspection time, round or verdict is shown or inferred. **Rounds by lens**: most recently run first,
-with last run, recorded attempts and open issues in right-aligned columns, and under each the last
-round with its verdict and linked filings. Attempts come from every valid `rounds.tsv` row and
-include interrupted and unsuccessful ones (the history above still shows at most eight). The
-installed `axes.tsv` supplies the lens inventory; `labels-known.json` supplies area names. Open
-counts use a read-only GitHub label query through `gh` (cached up to five minutes; a failed or
-saturated query shows unknown). One footer line gives the provenance: record count, malformed rows
-left out, the first readable record and the issue snapshot time. An unreadable history, inventory
-or issue query is said at the top of the fold, and only then. No supervisor state, dispatch
-behavior or patrol files are changed.
+The patrol section in the panel is **one entry**: shield, `巡检`, the live phase (`等下一轮`), the
+coverage conclusion on the right (`无未决` / `N 个 area 有未决` / `未决数未知`), chevron, and a **4px
+static outcome strip** of the last eight rounds inside the same button (no counts, no second
+target; the row is 54px tall, still ≥44px). There is no separate head, round list or coverage link
+in the panel. The row opens the patrol page in the existing detail layer — back bar, focus return,
+Escape, no new navigation. The page opens with a **2×2 KPI grid** (latest round, open areas, open
+lenses, rounds), then the live head and next-round caption, the 6px outcome strip (one segment per
+round, newest first, 35% chart tint, counts in words), every round the host sends (at most eight)
+in one well, and then the coverage tables: **open issues by area** (neutral magnitude bars, amber count badges, the none-open
+line behind a green check) and **rounds by lens** (the open/failed lenses first under "needs a
+look", then the rest by last run; a 6px status dot, a neutral runs bar against the busiest lens,
+and an open badge — amber when positive, quiet at zero, dashed when unknown). The two one-line
+caveats and the provenance footer close the page. The strip draws once when the page mounts; the
+page itself is immediate; `prefers-reduced-motion` shows the final strip; no number is tweened.
+The raw supervisor log's fold inside a task detail is the only fold left. No supervisor state,
+dispatch behavior or patrol files are changed.
 
-巡检分节的最后是一个只读的「巡检覆盖」折叠区，默认收起，折叠标签本身就是结论（几个 area 有未决问题）。
-展开后是底板上的两张表。**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的细条；没有未决的
-area 合成一行。这些数只说明已提报的问题归谁，不说明巡检过哪里：轮次记录里没有 area，所以不显示也不
-推断任何 area 的巡检时间、轮次或结论。**轮次 · 按 lens**：按上次运行时间从近到远，上次时间、记录次数、
-未决数右对齐成列，下面一行是上一轮的结论与带链接的提报。次数来自 `rounds.tsv` 的全部有效记录，包含中断
-与失败（上方历史仍最多八轮）。已安装 `axes.tsv` 给出 lens 清单，`labels-known.json` 给出 area 名称。
-未决数通过 `gh` 只读查询 GitHub 标签，最多缓存五分钟；查询失败或达到数量上限则显示未知。页脚一行交代
-来源：记录条数、未计入的损坏记录、首条可读记录与 issue 快照时刻。历史、清单或 issue 查询读不到时在
-折叠区顶部明说，且只在那时出现。不写巡检文件、不改 supervisor 状态或派发行为。
+巡检在面板里只有**一个入口**：盾牌、`巡检`、实况阶段（`等下一轮`）、右边覆盖结论（`无未决` /
+`N 个 area 有未决` / `未决数未知`）和 chevron，入口按钮内还有一条**4px 静态结果条**（最近 8 轮、无计数、
+不是第二个点击目标；整行 54px，仍 ≥44px）。面板里不再有单独的巡检头、轮次列表或覆盖链接。点开进入现有
+detail layer 的巡检页——返回条、焦点返回、Escape，不新造导航。页首是 **2×2 KPI 看板**（最近一轮、未决
+area、未决 lens、轮次），然后才是实况头与下一轮说明、6px 结果条（一轮一段、从新到旧、35% chart tint、
+计数用文字）、host 发来的每一轮（最多 8 轮）一条列表，然后是覆盖两张表：**未决问题 · 按 area**（中性数量条、amber 计数徽章、无未决行前绿勾）和 **轮次 · 按 lens**
+（有未决/上一轮失败先放「需要看一眼」，其余按上次运行；6px 状态点、相对最忙 lens 的中性记录条、未决徽章
+有未决 amber、零安静灰、未知虚线）。两句短 caveat 和 provenance footer 收尾。结果条在页面挂载时画一次；
+页面本身立即切换；`prefers-reduced-motion` 下显示最终条；不补间数字。任务详情里 raw supervisor log 的
+折叠是唯一剩下的折叠。不写巡检文件、不改 supervisor 状态或派发行为。
 
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 
@@ -548,15 +551,28 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
-A **stats tile** sits between what just ended and patrol (not another fold): task count, tokens,
-API estimate and a completion bar at a glance. Tapping it opens a chart layer — token bars and
-per-agent completion bars, with the same back bar as a task detail. It is a lazy read: the tile
-appears when the panel opens, through the `taskStats` method, never on the queue's 15s poll. It
-reads the numbers `task_queue_ops.py summary` froze into `result.env` at each task's end and never
-rereads a session, so a task continuing the same session is not counted twice. The window is the
-last seven days, patrol excluded. The chat counterpart is `/dispatch-stats` (the same numbers,
-without the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished /
-token · API estimate — with no trailing prose; the title carries the total and live count.
+A **stats tile** is the closing summary at the bottom of the panel: after patrol, before the ops
+footer (the footer is provenance metadata and stays last). It is not beside recently ended; the
+queue is the opening view, the seven-day retrospective is the close. Task count, tokens, API
+estimate and a completion bar at a glance; tapping it opens a chart layer with the same back bar
+as a task detail. The layer starts with the **daily token chart**: seven **stacked** provider bars
+on one left axis, no total line and no right axis — the stack's full height is the day total by
+construction. The seven days are all labelled; a quiet day is a real 0; a provider-day with
+unrecorded tokens keeps that fact in the segment's title and the chart's aria (no visible
+`+?` caption); the live count stays in the stats card and the completion rows.
+Provider categories use the brand hues at one muted category band — Claude orange, dsh blue (the
+DeepSeek brand blue hue, not the semantic running token; the whale's `currentColor` is set to the
+same token), Codex green-teal, OpenCode violet —
+tinted 90% over the panel. They are not semantic state colours: the completion bars below keep
+their blue/amber/red meanings and words, and the chart legend names every provider. The card and the chart are one lazy read: they appear through
+`taskStats` when the panel opens, never on the queue's 15s poll. The numbers are
+`task_queue_ops.py summary`'s frozen `result.env` values, never a session reread, so a task
+continuing the same session is not counted twice; the window is the last seven days, patrol
+excluded, and live tasks are outside tokens/cost. The per-day buckets are built in the same
+summary pass; an older ops entry without them still shows the card and the existing tables, just
+no daily chart. The chat counterpart is `/dispatch-stats` (the same numbers, without
+the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished / token ·
+API estimate — with no trailing prose; the title carries the total and live count.
 `/dispatch-stats 30d`, `/dispatch-stats all`, `/dispatch-stats 2026-10-01`, add `patrol` to include
 patrol rounds, and `plain` for the bar fallback where a client shows the pipes. The data still
 distinguishes live tasks (outside tokens/cost), an unrecorded token count (unknown, never 0; its
@@ -570,11 +586,18 @@ subscription quota.
 网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
 spec 逐行比对两者。只读,调度仍在芯片上操作。
 
-面板在「最近结束」和「巡检」之间有一张**统计卡片**(不是第四个折叠):任务数、token、API 估价
-和一条完成条一眼可见。点开是图表层——每个 agent 的 token 条和完成条,返回条与任务详情同一套。
-它是**懒读**:只在面板打开时走 `taskStats`,不跟队列的 15 秒轮询;数据是
-`task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的数字,从不重读 session,所以续跑
-同一 session 的任务不会被重复计数;默认近 7 天、巡检不计。聊天里对应 `/dispatch-stats`
+**统计卡片**是面板的收尾,放在巡检之后、ops 页脚之前(页脚是来源元数据,永远最后),不再挨着
+「最近结束」:队列是打开时的主视图,近 7 天的回顾是收尾。任务数、token、API 估价和一条完成条
+一眼可见;点开是图表层(返回条与任务详情同一套)。图表层开头是**每日 token 图**:7 天、每天一根
+**provider 堆叠柱**,只有左轴,没有总计折线/右轴;柱子的总高度就是当天总计。7 天全部标出,没有任务的
+一天是真实的 0;某 provider 当天有未记录 token 时,事实只放在该段的 title 和无障碍说明里,不再有可见的
+`+?` 或「柱和线」caption;进行中的数量在 stats 卡片和完成条里。provider 用品牌色(Claude 橙、dsh 蓝、
+Codex 绿、OpenCode 紫)压到同一低饱和明度带、90% tint;它们不是语义状态色,下面的完成条仍用蓝/琥珀/红
+并带文字,图表图例逐家点名。卡片和图走同一次 `taskStats` 懒读,只在面板打开时读,不跟队列的 15 秒轮询;
+数字是 `task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的值,从不重读 session,所以续跑
+同一 session 的任务不会被重复计数;默认近 7 天、巡检不计,进行中的任务不计 token/费用。按天桶和聚合在
+同一次 summary 里生成;旧 ops entry 没有按天数据时,卡片和原有表格仍显示,只是没有每日图。
+聊天里对应 `/dispatch-stats`
 (同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API 估价),
 没有尾部说明;标题带总数和进行中数。`/dispatch-stats 30d`、`/dispatch-stats all`、
 `/dispatch-stats 2026-10-01`,加 `patrol` 才含巡检,`plain` 是显示管道符的客户端的条形降级。

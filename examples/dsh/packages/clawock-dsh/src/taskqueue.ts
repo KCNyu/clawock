@@ -17,7 +17,7 @@
  *   <logDir>/<id>/override.env           PRIORITY / MODEL / EFFORT / budgets set from the chip (read only here)
  *   <dirname(limitsPath)>/opencode-fallback-models   the free opencode pool, in rotation order
  *   task_queue_ops.py --json list        per-agent lock holder and queue order
- *   task_queue_ops.py --json summary     per-agent frozen tokens/cost, read-only
+ *   task_queue_ops.py --json summary     per-agent frozen tokens/cost + per-day buckets, read-only
  *
  * Every WRITE (cancel, priority, model, retry, wrap-up) goes through the
  * versioned ops entry `task_queue_ops.py` (ops/host in the clawock repo,
@@ -37,7 +37,7 @@ import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, rea
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type {
-  AgentQueue, AgentSlotLimit, AgentStats, DispatchTask, OpsStatus, PatrolProgress, PatrolRound, PatrolStatus,
+  AgentQueue, AgentSlotLimit, AgentStats, DailyStat, DispatchTask, OpsStatus, PatrolProgress, PatrolRound, PatrolStatus,
   QueueActionResult, StatCount, TaskQueueResult, TaskStats,
 } from './types.ts'
 import { expandHome } from './balance.ts'
@@ -492,6 +492,8 @@ type OpsSummary = {
     tokens_total?: unknown; tokens_unknown?: unknown; cost_usd_estimate?: unknown
     cost_unpriced?: unknown; cost_free?: unknown
   }>
+  /** Present only for a bounded --since window; old entries omit it. */
+  daily?: unknown
 }
 
 const integerOf = (raw: unknown): number | null =>
@@ -567,11 +569,39 @@ export async function readStats(config: Required<TaskQueueConfig>, deps: TaskQue
       costUsdEstimate: costUsdEstimate!, costUnpriced: costUnpriced!, costFree: costFree!,
     })
   }
+  let daily: Record<string, Record<string, DailyStat>> | undefined
+  if (raw.daily !== undefined) {
+    if (raw.daily === null || typeof raw.daily !== 'object' || Array.isArray(raw.daily)) {
+      return { ...base, error: 'ops summary returned an unreadable daily series' }
+    }
+    daily = {}
+    for (const [date, agentsRaw] of Object.entries(raw.daily as Record<string, unknown>)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || agentsRaw === null || typeof agentsRaw !== 'object' || Array.isArray(agentsRaw)) {
+        return { ...base, error: `ops summary returned an unreadable daily row (${date})` }
+      }
+      const row: Record<string, DailyStat> = {}
+      for (const [agent, statRaw] of Object.entries(agentsRaw as Record<string, unknown>)) {
+        if (agent === '' || statRaw === null || typeof statRaw !== 'object' || Array.isArray(statRaw)) {
+          return { ...base, error: `ops summary returned an unreadable daily row (${date} ${agent})` }
+        }
+        const day = statRaw as Record<string, unknown>
+        const tasks = integerOf(day.tasks)
+        const tokens = integerOf(day.tokens)
+        const unknown = integerOf(day.unknown)
+        if (tasks === null || tokens === null || unknown === null) {
+          return { ...base, error: `ops summary returned an unreadable daily row (${date} ${agent})` }
+        }
+        row[agent] = { tasks, tokens, unknown }
+      }
+      daily[date] = row
+    }
+  }
   return {
     ...base, available: true,
     since: typeof raw.since === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.since) ? raw.since : since,
     patrolIncluded: raw.patrol_included === true ? true : patrolIncluded,
     agents,
+    ...(daily === undefined ? {} : { daily }),
   }
 }
 

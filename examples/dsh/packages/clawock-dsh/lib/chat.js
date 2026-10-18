@@ -196,7 +196,7 @@ const dictionaries = {
 		"queue.round.preempted": "让路取消",
 		"queue.round.yielded": "让路收尾",
 		"queue.round.name": "{round} · {axis}",
-		"queue.round.digest": "汇总 +{n}",
+		"queue.round.digest": "汇总 {n}",
 		"queue.round.comment": "补充 {n}",
 		"queue.round.filed": "本轮提报：{what}",
 		"queue.round.issueCount": "提报 {n}",
@@ -210,16 +210,25 @@ const dictionaries = {
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
 		"queue.chip.unpriced": "未定价",
+		"queue.rhythm.done": "完成 {n}",
+		"queue.rhythm.partial": "部分 {n}",
+		"queue.rhythm.failed": "失败 {n}",
+		"queue.rhythm.yielded": "让路 {n}",
+		"queue.rhythm.unknown": "未明 {n}",
 		"queue.coverage.title": "巡检覆盖",
+		"queue.coverage.open": "打开巡检覆盖详情",
+		"queue.coverage.back": "返回巡检",
+		"queue.coverage.needsLook": "需要看一眼",
+		"queue.coverage.byRotation": "按上次运行",
 		"queue.coverage.openAreas": "{n} 个 area 有未决",
 		"queue.coverage.openLenses": "{n} 个 lens 有未决",
 		"queue.coverage.openNone": "无未决",
 		"queue.coverage.openUnknown": "未决数未知",
 		"queue.coverage.areas": "未决问题 · 按 area",
-		"queue.coverage.areaNote": "只说明已提报的问题归谁，不说明巡检过哪里。",
+		"queue.coverage.areaNote": "按 issue 标签归属，不是巡检覆盖。",
 		"queue.coverage.clear": "无未决",
 		"queue.coverage.lenses": "轮次 · 按 lens",
-		"queue.coverage.lensNote": "记录含失败与中断的尝试，不等于代码覆盖率。",
+		"queue.coverage.lensNote": "记录含失败/中断，不是代码覆盖率。",
 		"queue.coverage.col.last": "上次",
 		"queue.coverage.col.runs": "记录",
 		"queue.coverage.col.open": "未决",
@@ -233,8 +242,24 @@ const dictionaries = {
 		"queue.coverage.unknown": "未知",
 		"queue.coverage.notRecorded": "可读历史里没有记录（不等于没巡检过）",
 		"queue.patrolHeading": "巡检",
+		"queue.patrol.open": "打开巡检详情",
+		"queue.patrol.back": "返回队列",
 		"queue.patrolRound": "当前轮次 {round}",
 		"queue.roundsHeading": "最近几轮",
+		"queue.patrol.kpi.latest": "最近一轮",
+		"queue.patrol.kpi.areas": "未决 area",
+		"queue.patrol.kpi.lenses": "未决 lens",
+		"queue.patrol.kpi.rounds": "轮次",
+		"queue.patrol.kpi.roundsCaption": "最近记录",
+		"queue.patrol.kpi.none": "还没有记录",
+		"queue.patrol.kpi.noneOpen": "无未决",
+		"queue.patrol.kpi.open": "有未决",
+		"queue.patrol.kpi.unknown": "未决数未知",
+		"queue.patrol.section.outcome": "结果",
+		"queue.patrol.section.rounds": "轮次",
+		"queue.patrol.section.coverage": "覆盖",
+		"queue.patrol.count.rounds": "{n} 轮",
+		"queue.patrol.count.records": "{n} 条",
 		"queue.patrol.running": "巡检运行中",
 		"queue.patrol.yielding": "巡检让路中",
 		"queue.patrol.waiting": "巡检等待下一轮",
@@ -496,6 +521,12 @@ const dictionaries = {
 		"stats.retry": "重试",
 		"stats.tokenHeading": "Token / API 估价",
 		"stats.doneHeading": "完成情况",
+		"stats.chart.title": "每日 token · 按 provider",
+		"stats.chart.sub": "柱是 provider 堆叠 · 总高度 = 当天总计",
+		"stats.chart.zero": "{n} 天没有任务，按 0 计（不是缺数据）",
+		"stats.chart.unknown": "{n} 个任务未记录 token；柱是下界",
+		"stats.chart.unknownShort": "{n} 个未记录",
+		"stats.chart.aria": "每日 token：{days}；总计 {total}{unknown}。柱是 provider 堆叠，柱高是当天总计。",
 		"stats.legend.done": "完成",
 		"stats.legend.partial": "部分",
 		"stats.legend.unfinished": "未完成",
@@ -703,7 +734,7 @@ const dictionaries = {
 		"queue.round.preempted": "Cancelled to give way",
 		"queue.round.yielded": "Wrapped up to give way",
 		"queue.round.name": "{round} · {axis}",
-		"queue.round.digest": "digest +{n}",
+		"queue.round.digest": "digest {n}",
 		"queue.round.comment": "{n} added",
 		"queue.round.filed": "filed this round: {what}",
 		"queue.round.issueCount": "{n} filed",
@@ -717,16 +748,25 @@ const dictionaries = {
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
 		"queue.chip.unpriced": "unpriced",
+		"queue.rhythm.done": "{n} done",
+		"queue.rhythm.partial": "{n} partial",
+		"queue.rhythm.failed": "{n} failed",
+		"queue.rhythm.yielded": "{n} yielded",
+		"queue.rhythm.unknown": "{n} unknown",
 		"queue.coverage.title": "Patrol coverage",
+		"queue.coverage.open": "Open patrol coverage",
+		"queue.coverage.back": "Back to patrol",
+		"queue.coverage.needsLook": "Needs a look",
+		"queue.coverage.byRotation": "By last run",
 		"queue.coverage.openAreas": "{n} areas with open issues",
 		"queue.coverage.openLenses": "{n} lenses with open issues",
 		"queue.coverage.openNone": "nothing open",
 		"queue.coverage.openUnknown": "open counts unknown",
 		"queue.coverage.areas": "Open issues · by area",
-		"queue.coverage.areaNote": "Where filed issues belong, not where patrol looked.",
+		"queue.coverage.areaNote": "Issue labels, not patrol coverage.",
 		"queue.coverage.clear": "None open",
 		"queue.coverage.lenses": "Rounds · by lens",
-		"queue.coverage.lensNote": "Runs include failed and interrupted attempts; not code coverage.",
+		"queue.coverage.lensNote": "Runs include failed/interrupted; not code coverage.",
 		"queue.coverage.col.last": "last",
 		"queue.coverage.col.runs": "runs",
 		"queue.coverage.col.open": "open",
@@ -740,8 +780,24 @@ const dictionaries = {
 		"queue.coverage.unknown": "unknown",
 		"queue.coverage.notRecorded": "Not in the readable history (which does not mean never inspected)",
 		"queue.patrolHeading": "Patrol",
+		"queue.patrol.open": "Open patrol details",
+		"queue.patrol.back": "Back to the queue",
 		"queue.patrolRound": "current round {round}",
 		"queue.roundsHeading": "Recent rounds",
+		"queue.patrol.kpi.latest": "Latest round",
+		"queue.patrol.kpi.areas": "Open areas",
+		"queue.patrol.kpi.lenses": "Open lenses",
+		"queue.patrol.kpi.rounds": "Rounds",
+		"queue.patrol.kpi.roundsCaption": "recent records",
+		"queue.patrol.kpi.none": "no records",
+		"queue.patrol.kpi.noneOpen": "nothing open",
+		"queue.patrol.kpi.open": "open",
+		"queue.patrol.kpi.unknown": "unknown",
+		"queue.patrol.section.outcome": "Outcome",
+		"queue.patrol.section.rounds": "Rounds",
+		"queue.patrol.section.coverage": "Coverage",
+		"queue.patrol.count.rounds": "{n} rounds",
+		"queue.patrol.count.records": "{n} records",
 		"queue.patrol.running": "patrol running",
 		"queue.patrol.yielding": "patrol giving way",
 		"queue.patrol.waiting": "patrol between rounds",
@@ -1003,6 +1059,12 @@ const dictionaries = {
 		"stats.retry": "Retry",
 		"stats.tokenHeading": "Token / API estimate",
 		"stats.doneHeading": "Completion",
+		"stats.chart.title": "Daily tokens · by provider",
+		"stats.chart.sub": "Stacked provider bars · height = daily total",
+		"stats.chart.zero": "{n} days had no task; drawn as 0, not missing",
+		"stats.chart.unknown": "{n} tasks had no token record; the bars are lower bounds",
+		"stats.chart.unknownShort": "{n} unrecorded",
+		"stats.chart.aria": "Daily tokens: {days}; total {total}{unknown}. The bars stack providers; each bar height is the daily total.",
 		"stats.legend.done": "Done",
 		"stats.legend.partial": "Partial",
 		"stats.legend.unfinished": "Unfinished",
@@ -2239,7 +2301,7 @@ function panelGroup(source, result, rows, t, now, open) {
 		}))
 	};
 }
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 function recentSection(result, t, now, open) {
 	if (result === null || !result.available || result.recent.length === 0) return null;
 	return {
@@ -2279,6 +2341,88 @@ function statsCostText(agent, t) {
 	return "—";
 }
 const ratio = (part, whole) => whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0;
+/** The host chart's categorical palette, in the design system's series order. */
+const VIZ_COLORS = [
+	"--tq-series-1",
+	"--tq-series-2",
+	"--tq-series-3",
+	"--tq-series-4",
+	"--tq-series-5",
+	"--tq-series-6"
+];
+/** Stable provider → colour slots; the table order may change with volume, the colour should not. */
+const VIZ_ORDER = [
+	"claude",
+	"codex",
+	"dsh",
+	"opencode",
+	"minimax",
+	"deepseek"
+];
+const vizColor = (agent, at) => VIZ_COLORS[(VIZ_ORDER.includes(agent) ? VIZ_ORDER.indexOf(agent) : at) % VIZ_COLORS.length];
+/** Local calendar date `date` plus `n` days, as YYYY-MM-DD (noon avoids a DST midnight). */
+function addDays(date, n) {
+	const d = /* @__PURE__ */ new Date(date + "T12:00:00");
+	d.setDate(d.getDate() + n);
+	const pad = (x) => String(x).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+/**
+* The daily chart's data. Every day in the rolling window is present; a day with no task has
+* zero bars and a zero line, not a gap. Each day's total is the sum of that day's provider
+* tokens (the same objects the bars read), so the line can never drift from the bars. Returns
+* null on an old ops entry with no `daily` and for a window too wide to draw as seven bars.
+*/
+function statsSeries(stats, agents) {
+	if (stats.daily === void 0 || stats.days === null || stats.since === null) return null;
+	if (stats.days < 1 || stats.days > 7) return null;
+	const providers = agents.map((agent, at) => ({
+		agent: agent.agent,
+		label: agent.label,
+		colorVar: vizColor(agent.agent, at),
+		tokens: 0,
+		unknown: 0
+	}));
+	const days = [];
+	for (let i = 0; i < stats.days; i++) {
+		const date = addDays(stats.since, i);
+		const row = stats.daily[date] ?? {};
+		const tokens = {};
+		const unknowns = {};
+		let total = 0;
+		let unknown = 0;
+		let tasks = 0;
+		for (const provider of providers) {
+			const stat = row[provider.agent];
+			const value = stat?.tokens ?? 0;
+			const unrecorded = stat?.unknown ?? 0;
+			tokens[provider.agent] = value;
+			unknowns[provider.agent] = unrecorded;
+			total += value;
+			unknown += unrecorded;
+			tasks += stat?.tasks ?? 0;
+			provider.tokens += value;
+			provider.unknown += unrecorded;
+		}
+		days.push({
+			date,
+			label: date.slice(5).replace("-", "/"),
+			tokens,
+			unknowns,
+			total,
+			unknown,
+			tasks
+		});
+	}
+	return {
+		days,
+		providers,
+		maxTotal: Math.max(0, ...days.map((day) => day.total)),
+		total: days.reduce((sum, day) => sum + day.total, 0),
+		unknown: days.reduce((sum, day) => sum + day.unknown, 0),
+		emptyDays: days.filter((day) => day.tasks === 0).length
+	};
+}
 function statsView(stats, t) {
 	if (stats == null) return null;
 	const title = t("stats.title");
@@ -2295,6 +2439,7 @@ function statsView(stats, t) {
 		unfinished: 0,
 		live: 0,
 		tokens: 0,
+		tokensUnknown: 0,
 		tokensText: "0",
 		costText: "—",
 		share: 0,
@@ -2316,6 +2461,7 @@ function statsView(stats, t) {
 		agents: [],
 		totals: zeroTotals,
 		maxTokens: 0,
+		series: null,
 		empty: "",
 		footnote: t("stats.unavailable", { message: stats.error })
 	};
@@ -2329,6 +2475,7 @@ function statsView(stats, t) {
 		agents: [],
 		totals: zeroTotals,
 		maxTokens: 0,
+		series: null,
 		empty: t("stats.empty"),
 		footnote: t("stats.note.cost")
 	};
@@ -2349,6 +2496,7 @@ function statsView(stats, t) {
 			unfinished,
 			live,
 			tokens: agent.tokensTotal,
+			tokensUnknown: agent.tokensUnknown,
 			tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
 			costText: statsCostText(agent, t),
 			share: 0,
@@ -2399,6 +2547,7 @@ function statsView(stats, t) {
 		agents,
 		totals,
 		maxTokens,
+		series: statsSeries(stats, agents),
 		empty: "",
 		footnote: t("stats.note.cost")
 	};
@@ -2418,9 +2567,12 @@ function progressView(progress, t, now) {
 	const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length;
 	const unread = progress.issuesAt === "" || [...progress.areas, ...progress.lenses].some((x) => x.open === null);
 	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity;
+	const maxRuns = Math.max(0, ...progress.lenses.map((l) => l.rounds ?? 0));
+	const conclusion = openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone");
 	return {
 		title: t("queue.coverage.title"),
-		headline: t("queue.coverage.title") + " · " + (openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone")),
+		conclusion,
+		tone: openAreas > 0 || openLenses > 0 ? "open" : unread ? "unknown" : "none",
 		alerts: [
 			...progress.records === null ? [t("queue.coverage.unreadable")] : [],
 			...!progress.lensInventory || !progress.areaInventory ? [t("queue.coverage.inventoryUnreadable")] : [],
@@ -2432,6 +2584,7 @@ function progressView(progress, t, now) {
 			name: a.name,
 			open: count(a.open),
 			share: a.open === null || most === 0 ? null : a.open / most,
+			hasOpen: a.open === null ? null : a.open > 0,
 			href: issues("area:" + a.name)
 		})),
 		clear: {
@@ -2455,6 +2608,7 @@ function progressView(progress, t, now) {
 				href: issues("lens:" + l.name),
 				when: last?.facts.when ?? null,
 				runs: count(l.rounds),
+				runsShare: l.rounds === null || maxRuns === 0 ? null : l.rounds / maxRuns,
 				open: count(l.open),
 				hasOpen: l.open === null ? null : l.open > 0,
 				last: last === null ? null : {
@@ -2471,6 +2625,55 @@ function progressView(progress, t, now) {
 			...progress.firstAt === "" ? [] : [t("queue.coverage.since", { date: stamp(localStampMs(progress.firstAt), progress.firstAt) })]
 		], ...progress.issuesAt === "" ? [] : [t("queue.coverage.issuesAt", { date: stamp(Date.parse(progress.issuesAt), progress.issuesAt) })]].join(" · "),
 		empty: t("queue.coverage.inventoryUnreadable")
+	};
+}
+/**
+* The outcome strip. The list below is a chronological list; this is the same data as one thin
+* shape: a segment per round, newest first like the list, colour is the round's verdict (the same
+* role its chip uses). Duration is not a second height scale: one 44-minute round flattened the
+* 2–10 minute rounds into a line, so the duration stays in the segment's title and the list, and
+* the strip keeps the one thing a reader scans for — the run of failures.
+*/
+function patrolRhythm(rounds, t, now) {
+	if (rounds.length < 2) return null;
+	const bars = rounds.map((round) => {
+		const view = roundRow(round, t, now);
+		const role = view.state?.role ?? "unknown";
+		const title = [
+			round.round,
+			round.axis,
+			view.state?.text,
+			view.facts.took?.text
+		].filter((part) => part !== void 0 && part !== "").join(" · ");
+		return {
+			key: view.key,
+			round: round.round,
+			role,
+			title
+		};
+	});
+	const order = [
+		"fail",
+		"partial",
+		"done",
+		"off",
+		"unknown"
+	];
+	const label = {
+		fail: "queue.rhythm.failed",
+		partial: "queue.rhythm.partial",
+		done: "queue.rhythm.done",
+		off: "queue.rhythm.yielded",
+		unknown: "queue.rhythm.unknown"
+	};
+	const counts = /* @__PURE__ */ new Map();
+	for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1);
+	return {
+		bars,
+		summary: order.filter((role) => (counts.get(role) ?? 0) > 0).map((role) => ({
+			role,
+			text: t(label[role] ?? "queue.rhythm.unknown", { n: counts.get(role) ?? 0 })
+		}))
 	};
 }
 /**
@@ -2497,6 +2700,7 @@ function patrolSection(result, t, now) {
 			attrs: { "data-tq-patrol": patrol.phase }
 		},
 		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+		rhythm: patrolRhythm(patrol.rounds ?? [], t, now),
 		progress: progressView(patrol.progress, t, now)
 	};
 }

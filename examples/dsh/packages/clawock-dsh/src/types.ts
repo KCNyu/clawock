@@ -475,6 +475,16 @@ export interface AgentStats {
  * Read-only and never reread from sessions: a later task continuing one session would be
  * counted twice. `available: false` is a read failure, not an empty window.
  */
+/** One agent's frozen tokens on one local calendar day (the stats chart's bar). */
+export interface DailyStat {
+  /** Tasks created that day, live ones included. */
+  tasks: number
+  /** Sum of TOKENS_TOTAL over that day's terminal tasks; 0 is a real 0. */
+  tokens: number
+  /** That day's terminal tasks with no token record: the bar is a lower bound. */
+  unknown: number
+}
+
 export interface TaskStats {
   available: boolean
   /** Why the read failed; '' when available. */
@@ -487,6 +497,12 @@ export interface TaskStats {
   asOf: string
   /** In the ops entry's AGENTS order, zero-task agents included (the view filters). */
   agents: AgentStats[]
+  /**
+   * Per-day frozen tokens for the stats chart, keyed by local date then agent. Optional: an
+   * older ops entry (or an all-time window) omits it, and the chart is then hidden; the totals
+   * and the card are unaffected. Days with no task are absent and read as a real 0.
+   */
+  daily?: Record<string, Record<string, DailyStat>>
 }
 
 /** The task-queue chip's answer. In-band like BalancesResult: taskQueue() never throws. */
