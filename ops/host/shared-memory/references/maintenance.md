@@ -45,7 +45,7 @@ python3 $M update <slug> [--summary '<hook>'] [--body-file <file>] [--type <type
 - `add` writes the frontmatter and routes a new topic from the first line of `indexes/routes.tsv` whose glob matches the slug (`<glob><TAB><index>`, for example `incident-clawock-*	indexes/MEMORY-clawock-incidents.md`, with a final `*` line as the default; without that file new topics are routed from `MEMORY.md`; `--index` overrides). Use `--pin` only for durable conventions that belong in `MEMORY.md` (≤8KB); `--replace` only after reading the existing topic.
 - `update` keeps whatever you do not pass (body, summary, type, other metadata) and rewrites the topic's single-route index line.
 - Writes are atomic per file under a shared lock (not a multi-file transaction). A hook that groups several topics is left alone; adjust its text by hand.
-- After a write, `memory.py` asks `memctl snapshot` to commit it to the store's history, attributed to the calling agent (and to the dispatch task when `AGENT_DISPATCH_TASK_ID` is set). Set `SHARED_MEMORY_HISTORY=0` to skip that for a throwaway store.
+- After a write, `memory.py` asks `memctl snapshot` to commit it to the store's history, attributed to the calling agent (and to the dispatch task when `AGENT_DISPATCH_TASK_ID` is set). Do not turn this off: the history is how the next agent learns who changed what.
 - Direct edits (for example with Claude Code's Write/Edit tools) are fine if they keep the frontmatter above and update the matching index line in the same change.
 
 When a rule is superseded, correct conflicting entrypoints and older rule text instead of appending another contradictory note.

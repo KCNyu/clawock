@@ -731,6 +731,7 @@ def record_history(args: argparse.Namespace) -> None:
     write already happened; without memctl, or before `memctl init`, history simply skips it."""
     targets = wrote(args)
     memctl = Path(os.environ.get("SHARED_MEMORY_MEMCTL") or Path(__file__).with_name("memctl"))
+    # SHARED_MEMORY_HISTORY=0 exists for the toolkit's own tests only.
     if targets is None or os.environ.get("SHARED_MEMORY_HISTORY") == "0" or not memctl.is_file():
         return
     reason = " ".join([args.command, *targets])[:200]
