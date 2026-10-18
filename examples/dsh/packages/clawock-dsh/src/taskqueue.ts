@@ -579,7 +579,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
-    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty, statsApi: true }
+    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
   }
   const [activeIds, service, log, opsRead, issues] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),

@@ -708,8 +708,7 @@ async function readTaskQueue(config, deps) {
 		running: 0,
 		active: [],
 		recent: [],
-		patrol: empty,
-		statsApi: true
+		patrol: empty
 	};
 	const [activeIds, service, log, opsRead, issues] = await Promise.all([
 		deps.activeTaskIds(),
