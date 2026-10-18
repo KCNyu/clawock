@@ -1363,7 +1363,7 @@ export function panelModel(input: PanelInput,
   const rows = balanceRows(input.balances, t, now)
   const byProvider = new Map(rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(input.balances?.providers ?? [], input.queue)
-  const stats = statsSection(input.queue?.stats, t)
+  const stats = input.queue?.available === true ? statsSection(input.queue.stats, t) : null
   return {
     title: t('panel.title'),
     notices: panelNotices({ ...input, rowCount: rows.length }, t),

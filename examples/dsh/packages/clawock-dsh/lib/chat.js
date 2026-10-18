@@ -2525,7 +2525,7 @@ function panelModel(input, t, now, open = () => {}) {
 	const rows = balanceRows(input.balances, t, now);
 	const byProvider = new Map(rows.map((row) => [row.provider, row]));
 	const sources = _panelSources(input.balances?.providers ?? [], input.queue);
-	const stats = statsSection(input.queue?.stats, t);
+	const stats = input.queue?.available === true ? statsSection(input.queue.stats, t) : null;
 	return {
 		title: t("panel.title"),
 		notices: panelNotices({
