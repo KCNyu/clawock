@@ -144,3 +144,16 @@ def test_zero_share_watch_remains_non_executable(tmp_path):
     frozen = mt.submit(tmp_path, tid, 'old_policy', {'status': 'ok', 'raw_response': 'watch',
                        'plan': {'date': '2026-07-02', 'decisions': [row]}}, now=NOW)
     assert frozen['plan']['decisions'][0]['size']['shares'] == 0
+
+
+def test_registration_freezes_account_and_tariff_provenance(tmp_path):
+    from dataclasses import asdict
+    from clawock import costs
+
+    registered = mt.register(tmp_path, spec(), now=NOW)
+    frozen = registered['cost_model']
+    assert frozen == asdict(costs.CostModel.load())
+    assert frozen['account_commission']['monthly_allowance_hkd'] == 500000
+    assert frozen['regulatory_fees']['hk']['ccass']['effective_from'] == '2025-06-30'
+    assert frozen['stamp_duty_exemptions']['tickers']['02800']['type'] == 'ETF'
+    assert costs.CostModel(**frozen).as_dict() == costs.CostModel.load().as_dict()

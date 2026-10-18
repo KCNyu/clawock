@@ -736,6 +736,17 @@ def simulate_leg(
     include_idle: bool = False,
 ) -> dict | None:
     cfg = _leg_cfg(portfolio, leg, leg_config)
+    cost_leg = leg
+    cost_unavailable_reason = None
+    if cost_model is not None and (cost_model.account_commission or cost_model.regulatory_fees):
+        # A decision leg is an instance label, not a market/currency tariff.
+        # Never apply HKD minimums to an EUR book using the HK calendar.
+        market = cfg["market"]
+        if cfg["currency"] != {"hk": "HKD", "us": "USD"}.get(market):
+            cost_unavailable_reason = "tariff_does_not_cover_book_currency"
+            cost_model = None
+        else:
+            cost_leg = market
     active = _active_triggered(decisions, leg)
     if not active and not (include_idle and start_date):
         return None
@@ -950,7 +961,8 @@ def simulate_leg(
                     # same commission a buy does, and a net curve that only
                     # haircuts entries is half a haircut.
                     charge = costs.trade_cost(
-                        notional, leg, day, bar_map_loader(ticker) or {}, model)
+                        notional, cost_leg, day, bar_map_loader(ticker) or {}, model,
+                        direction=leg_fill["direction"], ticker=ticker, shares=qty)
                     followed["cash"] -= charge["total"]
                     charged.append({
                         "date": day, "ticker": ticker,
@@ -1034,6 +1046,7 @@ def simulate_leg(
     return {
         "leg": leg,
         "currency": cfg["currency"],
+        "cost_unavailable_reason": cost_unavailable_reason,
         "start_date": start_date,
         "end_date": final_point["date"] if final_point else None,
         "initial": seed,
@@ -1052,9 +1065,9 @@ def simulate_leg(
             "charged_legs": len(charges),
             "assumptions": cost_model.as_dict() if cost_model else None,
             "reading": ("`curve` is gross. This is the same policy paying the "
-                        "assumed commission and half-spread on every filled leg, "
-                        "buy and sell alike; the assumptions are above and are "
-                        "assumptions, not observations."),
+                        "scenario commission, applicable tax/regulatory fees and "
+                        "half-spread on every filled leg; account facts, sourced "
+                        "tariffs and assumptions are distinguished above."),
             "limitation": ("fill quantities are decided before fees are known, "
                            "so a fee removes cash and never a share: the two "
                            "books end exactly total_charged apart, and the "
@@ -1157,7 +1170,7 @@ def build_shadow_portfolio(
             "跟随全部已触发主动建议的政策模拟净值，相对同起点、同日收盘计价的"
             "买入持有基线；累计差为模拟 timing alpha（毛，不含成本）。"
             "net_cumulative_diff 是同一条回放扣掉 cost_assumptions 里"
-            "预注册的佣金与半点差后的同一个量。"
+            "账户情景佣金、适用税费与半点差后的同一个量；未覆盖币种净值不可用。"
         ),
         "curves": curves,
         "cumulative_diff": {

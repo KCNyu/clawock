@@ -54,15 +54,24 @@ def cost_pct(row: dict, model) -> float:
     model: commission plus the share of the spread a crossing order pays, per
     filled leg. A T trade is two legs. The minimum commission applies when the
     decision's capital is known."""
+    from clawock import costs
+
     leg = str(row.get("leg") or "").lower()
-    rate = float((model.assumed_commission_bps or {}).get(leg, 0.0))
-    spread = float((model.spread_bps_by_leg or {}).get(leg, 0.0)) * float(model.spread_share)
-    per_leg = (rate + spread) / 100
     capital = ledger._float((row.get("evaluation") or {}).get("capital"))
-    minimum = float((model.assumed_minimum_commission or {}).get(leg, 0.0))
-    if capital and capital > 0 and minimum:
-        per_leg = max(rate / 100, minimum / capital * 100) + spread / 100
-    return round(per_leg * (2 if row.get("action") == "t_only" else 1), 4)
+    # Legacy unsized rate-only models retain their old semantics. The shipped
+    # tariff snapshot declares a reference ticket when a method has no capital.
+    if not capital or capital <= 0:
+        if not model.regulatory_fees and not model.account_commission:
+            rate, _ = costs.commission_terms(model, leg)
+            spread = costs.spread_bps({}, '', model, leg)[0]
+            return round((rate + spread) / 100 * (2 if row.get('action') == 't_only' else 1), 4)
+        capital = model.assumed_reference_notional[leg]
+    sides = ('sell', 'buy') if row.get('action') == 't_only' else (
+        'sell' if row.get('action') in SELL_ACTIONS else 'buy',)
+    charge = sum(costs.trade_cost(capital, leg, row.get('plan_date', ''), {}, model,
+                                 direction=side, ticker=row.get('ticker'))['total']
+                 for side in sides)
+    return round(charge / capital * 100, 4)
 
 
 def _quantile(values: list[float], q: float) -> float:

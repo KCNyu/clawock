@@ -266,3 +266,71 @@ def test_every_published_assumption_is_reachable_from_the_config_file():
             continue
         assert field in raw, f"{field} is published but cannot be set in the file"
         assert raw[field] == value, f"{field} was transformed on its way out"
+
+
+# Current account facts and tariff snapshot: amounts below are costs, not returns.
+def test_current_hk_stock_and_verified_etf_tariff():
+    model = costs.CostModel.load(CONFIG)
+    stock = costs.trade_cost(10000, 'hk', DAY_1, {}, model, ticker='00700', direction='buy')
+    assert stock['commission'] == 0
+    assert stock['regulatory'] == {'stamp_duty': 10, 'sfc': 0.27, 'afrc': 0.02,
+                                    'exchange': 0.57, 'ccass': 0.42}
+    assert stock['total'] == pytest.approx(17.28)
+    etf = costs.trade_cost(10000, 'hk', DAY_1, {}, model, ticker='02800', direction='sell')
+    assert etf['regulatory']['stamp_duty'] == 0
+    assert etf['total'] == pytest.approx(7.28)
+    assert etf['fee_detail']['stamp_duty_status'] == 'verified_exempt'
+    assert stock['commission_scenario'] == 'within_monthly_allowance'
+    assert stock['allowance_usage_verified'] is False
+    assert costs.trade_cost(10001, 'hk', DAY_1, {}, model)['regulatory']['stamp_duty'] == 11
+
+
+def test_explicit_legacy_ccass_floor_and_cap_are_supported_not_current_default():
+    from dataclasses import replace
+    from copy import deepcopy
+    model = costs.CostModel.load(CONFIG)
+    tariff = deepcopy(model.regulatory_fees)
+    tariff['hk']['ccass'].update(bps=0.2, minimum=2, maximum=100)
+    legacy = replace(model, regulatory_fees=tariff)
+    for notional, expected in [(10000, 2), (50000, 2), (100000, 2), (10000000, 100)]:
+        charge = costs.trade_cost(notional, 'hk', DAY_1, {}, legacy)
+        assert charge['regulatory']['ccass'] == expected
+    assert 2 / 10000 * 10000 == 2  # bps: the old floor was never 20 bps here.
+    assert costs.trade_cost(10000, 'hk', DAY_1, {}, model)['regulatory']['ccass'] == 0.42
+
+
+def test_us_regulatory_fees_are_sell_only_and_taf_capped():
+    model = costs.CostModel.load(CONFIG)
+    buy = costs.trade_cost(10000, 'us', DAY_1, {}, model, direction='buy', shares=100)
+    sell = costs.trade_cost(10000, 'us', DAY_1, {}, model, direction='sell', shares=100)
+    assert buy['regulatory_total'] == 0
+    assert sell['regulatory'] == {'sec': 0.21, 'taf': 0.0}
+    assert buy['total'] + sell['total'] == pytest.approx(4.21)
+    from dataclasses import replace
+    from copy import deepcopy
+    tariff = deepcopy(model.regulatory_fees)
+    tariff['us']['taf'].update(per_share=0.000195, maximum=9.79)
+    regular = replace(model, regulatory_fees=tariff)
+    assert costs.trade_cost(1000000, 'us', DAY_1, {}, regular,
+                            direction='sell', shares=100000)['regulatory']['taf'] == 9.79
+    assert costs.trade_cost(10000, 'us', DAY_1, {}, model)['total'] == sell['total']
+
+
+def test_frozen_model_keeps_facts_and_legacy_trials_do_not_gain_new_fees():
+    from dataclasses import asdict
+    model = costs.CostModel.load(CONFIG)
+    assert costs.CostModel(**asdict(model)).as_dict() == model.as_dict()
+    old = costs.CostModel(**{'assumed_commission_bps': {'hk': 3},
+                             'assumed_minimum_commission': {'hk': 15},
+                             'spread_bps_by_leg': {'hk': 12}})
+    charge = costs.trade_cost(10000, 'hk', DAY_1, {}, old)
+    assert charge['total'] == 21
+    assert 'regulatory' not in charge
+
+
+def test_unknown_post_allowance_tariff_is_not_zero():
+    from dataclasses import replace
+    model = costs.CostModel.load(CONFIG)
+    model = replace(model, account_commission={**model.account_commission, 'scenario': 'exhausted'})
+    with pytest.raises(ValueError, match='unknown'):
+        costs.trade_cost(10000, 'us', DAY_1, {}, model)

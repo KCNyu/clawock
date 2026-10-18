@@ -1,14 +1,8 @@
 {
-  "registered_on": "2026-08-30",
-  "why_this_file_exists": "Every performance number this repository publishes is gross. These are the assumptions under which a net number is also published. They are assumptions, not observations: nothing here reads a broker invoice, so the commission rows are labelled `assumed_` everywhere they surface and a run card carries them beside every result they moved.",
-  "assumed_commission_bps": {
-    "hk": 3.0,
-    "us": 1.0
-  },
-  "assumed_minimum_commission": {
-    "hk": 15.0,
-    "us": 1.0
-  },
+  "registered_on": "2026-10-18",
+  "why_this_file_exists": "Mixed evidence cost model: account_commission is user-reported account fact; regulatory_fees contains sourced tariff facts with effective dates. Spread, impact and missing-size reference tickets remain assumptions. All net results using this file are counterfactual under this snapshot, not historical broker invoices. Zero commission is conditional on unused monthly allowance; usage and broker pass-through/extra platform fees are not observed.",
+  "assumed_commission_bps": {},
+  "assumed_minimum_commission": {},
   "spread_source": "fixed",
   "spread_share": 0.5,
   "impact_source": "off",
@@ -17,10 +11,115 @@
     "spread_bps is the FULL spread assumption per leg; spread_share is what a crossing order pays of it. When an estimator is selected and declines — its model did not describe that day — the fallback is spread_bps, never zero: zero is the most liquid value in the cross-section and handing it to the names the model failed on is the error that flatters the result.",
     "spread_share 0.5 is the half-spread a marketable order pays crossing the touch. The shadow book models neither resting nor sweeping orders, so half is the neutral assumption.",
     "impact_source is off on purpose. Amihud illiquidity is |return| per unit of dollar volume; turning it into a cost needs an order size and a calibration constant, and this book has neither. A haircut produced from an uncalibrated constant would look rigorous and be arbitrary.",
-    "Replace assumed_commission_bps and assumed_minimum_commission with the real schedule and every net number moves with them."
+    "The old CCASS 0.002% schedule with HKD 2 minimum and HKD 100 maximum ended on 2025-06-30. A HKD 2 floor on HKD 10000 is 2 bps, not 20 bps. Tests retain the floor/cap formula for explicit historical scenarios; it is not the current default.",
+    "Reference notionals/share prices are only proxies for rank portfolios and method calls missing order size. Per-order replays and shadow fills use their actual modeled notionals and shares. Unknown HK exemption is conservatively taxable. Net figures exclude unverified broker platform fees, FX conversion, market impact and financing; they are conditional estimates, never full invoice totals."
   ],
   "spread_bps": {
     "hk": 12.0,
     "us": 4.0
+  },
+  "account_commission": {
+    "kind": "user_reported_fact",
+    "source": "kcn task instruction 2026-10-18",
+    "observed_on": "2026-10-18",
+    "monthly_allowance_hkd": 500000,
+    "markets": [
+      "hk",
+      "us"
+    ],
+    "commission_bps": {
+      "hk": 0,
+      "us": 0
+    },
+    "minimum_commission": {
+      "hk": 0,
+      "us": 0
+    },
+    "scenario": "within_monthly_allowance",
+    "usage_verified": false,
+    "scope": "Shared HKD-equivalent monthly turnover allowance for HK and US; conversion, reset rules and excess-allowance broker tariff unknown. This snapshot does not track or authorize allowance consumption."
+  },
+  "regulatory_fees": {
+    "kind": "verified_tariff_snapshot",
+    "as_of": "2026-10-18",
+    "basis": "Current-tariff counterfactual for every replay date, not historical fees. Exchange/clearing/member charges assumed passed through to the retail account without broker markup.",
+    "hk": {
+      "stamp_duty": {
+        "bps": 10.0,
+        "rounding": "ceil_dollar",
+        "effective_from": "2023-11-17",
+        "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+      },
+      "sfc": {
+        "bps": 0.27,
+        "rounding": "nearest_cent",
+        "effective_from": "2014-11-01",
+        "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+      },
+      "afrc": {
+        "bps": 0.015,
+        "rounding": "nearest_cent",
+        "effective_from": "2022-01-01",
+        "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+      },
+      "exchange": {
+        "bps": 0.565,
+        "rounding": "nearest_cent",
+        "effective_from": "2023-01-01",
+        "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+      },
+      "ccass": {
+        "bps": 0.42,
+        "minimum": 0,
+        "maximum": null,
+        "rounding": "nearest_cent",
+        "effective_from": "2025-06-30",
+        "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/HKSCC/2025/019_25_HKSCC_OP_stock-settlement-fee-restructure_e.pdf"
+      }
+    },
+    "us": {
+      "sec": {
+        "bps": 0.206,
+        "side": "sell",
+        "effective_from": "2026-04-04",
+        "source": "https://www.finra.org/rules-guidance/notices/information-notice-20260317"
+      },
+      "taf": {
+        "per_share": 0,
+        "maximum": 0,
+        "side": "sell",
+        "effective_from": "2026-10-01",
+        "effective_through": "2026-12-31",
+        "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2026-021",
+        "regular_2026": {
+          "per_share": 0.000195,
+          "maximum": 9.79,
+          "effective_from": "2026-01-01",
+          "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2024-019/fee-adjustment-schedule"
+        },
+        "note": "Immediate-effectiveness filing temporarily pauses TAF; broker pass-through remains unverified. Snapshot must be updated after holiday."
+      }
+    },
+    "pass_through_rounding_assumption": "US SEC/TAF rounded up separately to cents per order; actual retail rounding/aggregation requires broker statement."
+  },
+  "stamp_duty_exemptions": {
+    "verified_on": "2026-10-18",
+    "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Trading/Securities/Stamp-Duty-Reporting-and-Payment/Securities-exempt-from-stamp-duty/secstpduty.xlsx",
+    "source_sha256": "578442f2ca96d054ced5a4d1a9fa3e8fa56fbf1693e63821a83bf6b4c684555c",
+    "tickers": {
+      "02800": {
+        "type": "ETF",
+        "effective_from": "2015-02-13",
+        "source": "https://www.hkex.com.hk/News/Market-Communications/2015/150204news?sc_lang=en"
+      }
+    },
+    "unknown_policy": "Charge stamp duty unless a ticker is explicitly verified here. The sheet exempts ETFs and L&I as classes; no unverified ticker classification or blanket prefix exemption."
+  },
+  "assumed_reference_notional": {
+    "hk": 10000,
+    "us": 10000
+  },
+  "assumed_reference_share_price": {
+    "us": 100
   }
 }

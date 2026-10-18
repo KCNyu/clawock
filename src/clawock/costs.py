@@ -1,67 +1,17 @@
-"""What the shadow book would have paid to trade, and why it is an assumption.
+"""Shared sized-fill costs: account facts, sourced tariffs and explicit assumptions.
 
-The gap this closes
--------------------
-Every performance number this repository publishes is **gross**.
-`decision.shadow` fills at `qty * price` (`shadow.py`, `_execute_buy`), and
-`decision.ledger.condition_execution` says so in its own docstring — "still
-assumes zero slippage and available liquidity" — and records `fill_assumed`
-beside every fill. So the assumption is known, it is written down, and it has
-never been *priced*. A simulated timing alpha quoted without costs is the number
-a sceptical reader discounts first, and `signal_panel` already says the same
-thing about turnover in one paragraph: an edge quoted without it is gross.
-
-What this is not
-----------------
-Not a TCA platform, not a matching engine, not smart order routing. Those need
-an order book, a venue and a fill feed, none of which exist here, and porting
-them would mean validating a model against synthetic data. This is one thing:
-a **stated, pre-registered haircut** so that "gross" and "net" are two numbers
-on the page instead of one number and a silence.
-
-It lives at the package root, beside `sessions` and `instruments`, for the
-reason those two do: several packages need it and it needs almost nothing.
-
-Where the estimates come from
------------------------------
-* **Commission** is an assumption, not a measurement. Nothing in this repository
-  observes a broker invoice, so the rate lives in `config/cost-model.json`,
-  travels into every run card, and is labelled `assumed_` wherever it is
-  published. Replace it with the real schedule and every downstream number
-  moves with it.
-* **Spread** defaults to a configured fixed rate per leg, and that default is a
-  measurement rather than a preference. `market_data.bar_signals` already ships
-  Corwin & Schultz (2012) and Roll (1984) — added for #1172, where they are
-  scored as *signals* — and the obvious move was to reuse them here as a cost.
-  Measured over the 27 tickers in the canonical bar manifest, thirty sessions
-  each, Corwin-Schultz puts the **half**-spread at a median of **163 bps**, range
-  27 to 393 (00100: 359, RKLX: 393). Real spreads on these names are single- to
-  low-double-digit bps. At daily frequency the estimator attributes overnight
-  gaps and intraday volatility to the spread, and the names it overestimates
-  most are exactly the volatile ones the book trades. A net curve haircut by two
-  hundred basis points a trade is a fiction in the other direction from zero, so
-  `spread_source` defaults to `fixed`; `corwin_schultz` and `roll` stay
-  selectable, and whichever ran is recorded on every trade. A marketable order
-  crossing the quote pays about half the spread, so `spread_share` defaults to
-  0.5 and is a knob.
-* **Impact is off, deliberately.** Amihud's illiquidity is |return| per unit of
-  dollar volume; turning it into a cost needs an order size *and* a calibration
-  constant, and this book has neither. A number produced from an uncalibrated
-  constant is invented, and an invented haircut is worse than a stated absence:
-  it would make the net curve look rigorous while being arbitrary. `off` is
-  published in the assumptions block so the omission is visible.
-
-Both estimators return `None` rather than zero when their model does not
-describe the day — Roll when the covariance comes out positive, Corwin-Schultz
-when every window is negative — because zero is the *most liquid* value in the
-cross-section and handing it to the names the model failed on is the one error
-that flatters the result. Those days fall back to the configured fixed spread,
-and every trade carries which source it actually used.
+The default is a current-tariff counterfactual, not a historical invoice. The
+user-reported commission waiver is conditional on unused monthly allowance.
+Frozen older CostModel dictionaries retain their original assumptions and no
+new fee schedule is silently injected into old trials. Spread and impact are
+still assumptions; uncalibrated impact remains off.
 """
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
+import math
 from pathlib import Path
 
 from clawock.workspace import workspace_root
@@ -86,6 +36,11 @@ class CostModel:
     spread_share: float = DEFAULT_SPREAD_SHARE
     impact_source: str = 'off'
     registered_on: str | None = None
+    account_commission: dict = field(default_factory=dict)
+    regulatory_fees: dict = field(default_factory=dict)
+    stamp_duty_exemptions: dict = field(default_factory=dict)
+    assumed_reference_notional: dict = field(default_factory=dict)
+    assumed_reference_share_price: dict = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: Path | None = None) -> 'CostModel':
@@ -99,6 +54,9 @@ class CostModel:
             spread_share=float(raw.get('spread_share', DEFAULT_SPREAD_SHARE)),
             impact_source=str(raw.get('impact_source') or 'off'),
             registered_on=raw.get('registered_on'),
+            **{key: dict(raw.get(key) or {}) for key in (
+                'account_commission', 'regulatory_fees', 'stamp_duty_exemptions',
+                'assumed_reference_notional', 'assumed_reference_share_price')},
         )
 
     @classmethod
@@ -115,11 +73,15 @@ class CostModel:
             'spread_share': self.spread_share,
             'impact_source': self.impact_source,
             'registered_on': self.registered_on,
-            'basis': ('commission is an assumption, not an observation; the '
-                      'spread default is a configured rate because the bar-derived '
-                      'estimators were measured at a median 163 bps half-spread '
-                      'and do not survive it; impact is off because nothing here '
-                      'calibrates it'),
+            'account_commission': dict(self.account_commission),
+            'regulatory_fees': dict(self.regulatory_fees),
+            'stamp_duty_exemptions': dict(self.stamp_duty_exemptions),
+            'assumed_reference_notional': dict(self.assumed_reference_notional),
+            'assumed_reference_share_price': dict(self.assumed_reference_share_price),
+            'basis': ('account_commission is user-reported fact, conditional on monthly '
+                      'allowance; regulatory_fees is a sourced current-tariff counterfactual; '
+                      'assumed_* fields and spread are assumptions, not an observation; '
+                      'impact is off because nothing here calibrates it'),
         }
 
 
@@ -173,29 +135,94 @@ def spread_bps(bars_by_date, date: str, model: CostModel, leg: str) -> tuple[flo
     return estimate * 100 * model.spread_share, model.spread_source
 
 
-def trade_cost(notional: float, leg: str, date: str, bars_by_date,
-               model: CostModel) -> dict:
-    """What one filled leg costs, in the leg's own currency.
+def commission_terms(model: CostModel, leg: str) -> tuple[float, float]:
+    """Current account scenario, or legacy assumptions for frozen models."""
+    account = model.account_commission
+    if account:
+        if leg not in account.get('markets', []):
+            raise ValueError(f'account commission does not cover market {leg!r}')
+        if account.get('scenario') != 'within_monthly_allowance':
+            raise ValueError('commission outside the observed allowance is unknown')
+        return (float(account['commission_bps'][leg]),
+                float(account['minimum_commission'][leg]))
+    return (float(model.assumed_commission_bps.get(leg, 0)),
+            float(model.assumed_minimum_commission.get(leg, 0)))
 
-    Currency is never converted: `shadow` keeps HK and US books apart for the
-    same reason, and adding HKD to USD is the one arithmetic this repository
-    refuses.
+
+def _rounded_fee(amount, *, whole=False, up=False):
+    return float(Decimal(str(amount)).quantize(
+        Decimal('1') if whole else Decimal('0.01'),
+        rounding=ROUND_CEILING if up or whole else ROUND_HALF_UP))
+
+
+def _regulatory_cost(notional, leg, model, *, direction, ticker, shares):
+    schedule = model.regulatory_fees.get(leg, {})
+    charges = {}
+    if leg == 'hk':
+        # Only explicit verified identities qualify; no ETF inference from a prefix.
+        code = str(ticker or '').removeprefix('hk').removesuffix('.HK').zfill(5)
+        exempt = code in model.stamp_duty_exemptions.get('tickers', {})
+        for key, spec in schedule.items():
+            amount = notional * spec['bps'] / 10000
+            if key == 'stamp_duty' and exempt:
+                amount = 0.0
+            amount = max(amount, spec.get('minimum', 0))
+            if spec.get('maximum') is not None:
+                amount = min(amount, spec['maximum'])
+            charges[key] = _rounded_fee(amount, whole=key == 'stamp_duty')
+        return charges, {'stamp_duty_status': 'verified_exempt' if exempt else 'taxable_or_unknown'}
+    if leg == 'us' and direction != 'buy':
+        # Unknown direction is conservatively a sale, never a free regulatory leg.
+        if 'sec' in schedule:
+            charges['sec'] = _rounded_fee(notional * schedule['sec']['bps'] / 10000, up=True)
+        share_basis = 'filled_shares'
+        if 'taf' in schedule:
+            if shares is None:
+                price = model.assumed_reference_share_price.get('us')
+                if not price or price <= 0:
+                    raise ValueError('US regulatory fee needs shares or an explicit reference price')
+                shares, share_basis = notional / price, 'assumed_reference_share_price'
+            if isinstance(shares, bool) or not math.isfinite(shares) or shares <= 0:
+                raise ValueError('shares must be positive and finite')
+            spec = schedule['taf']
+            amount = min(shares * spec['per_share'], spec['maximum'])
+            # FINRA excludes executions priced below the per-share TAF rate.
+            charges['taf'] = 0.0 if notional / shares < spec['per_share'] else _rounded_fee(amount, up=True)
+        return charges, {'share_basis': share_basis,
+                         'direction_basis': direction or 'unknown_charged_as_sell'}
+    return charges, {}
+
+
+def trade_cost(notional: float, leg: str, date: str, bars_by_date,
+               model: CostModel, *, direction: str | None = None,
+               ticker: str | None = None, shares: float | None = None) -> dict:
+    """One fill in local currency; no FX conversion or allowance consumption.
+
+    `date` selects spread observations. Regulatory rates are the model's dated
+    snapshot, explicitly applied counterfactually even to older fills.
     """
     leg = str(leg or '').lower()
-    notional = abs(float(notional or 0.0))
+    if direction not in (None, 'buy', 'sell'):
+        raise ValueError('direction must be buy, sell or unknown')
+    if isinstance(notional, bool) or not math.isfinite(float(notional)):
+        raise ValueError('notional must be finite')
+    notional = abs(float(notional))
     if notional <= 0:
         return {'commission': 0.0, 'spread': 0.0, 'total': 0.0, 'bps': 0.0,
                 'spread_source': 'no_fill'}
-    rate = float((model.assumed_commission_bps or {}).get(leg, 0.0))
-    minimum = float((model.assumed_minimum_commission or {}).get(leg, 0.0))
-    commission = max(notional * rate / 10_000, minimum) if (rate or minimum) else 0.0
+    rate, minimum = commission_terms(model, leg)
+    commission = max(notional * rate / 10000, minimum)
     half, source = spread_bps(bars_by_date, date, model, leg)
-    spread = notional * half / 10_000
-    total = commission + spread
-    return {
-        'commission': round(commission, 6),
-        'spread': round(spread, 6),
-        'total': round(total, 6),
-        'bps': round(10_000 * total / notional, 4),
-        'spread_source': source,
-    }
+    spread = notional * half / 10000
+    regulatory, detail = _regulatory_cost(notional, leg, model, direction=direction,
+                                          ticker=ticker, shares=shares)
+    total = commission + spread + sum(regulatory.values())
+    result = {'commission': round(commission, 6), 'spread': round(spread, 6),
+              'total': round(total, 6), 'bps': round(10000 * total / notional, 4),
+              'spread_source': source}
+    if model.regulatory_fees or model.account_commission:
+        result.update(regulatory=regulatory, regulatory_total=round(sum(regulatory.values()), 6),
+                      fee_detail=detail, tariff_as_of=model.regulatory_fees.get('as_of'),
+                      commission_scenario=model.account_commission.get('scenario', 'legacy_assumptions'),
+                      allowance_usage_verified=model.account_commission.get('usage_verified', False))
+    return result

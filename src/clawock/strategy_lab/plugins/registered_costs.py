@@ -1,16 +1,15 @@
 """The `costs` service: the registered cost model, per side, in basis points.
 
-The assumptions are `config/cost-model.json`, the ones `decision.shadow` and
+The dated cost profile is `config/cost-model.json`, the one `decision.shadow` and
 `decision.method_evaluation` already price fills with; this plugin reads them
 through `clawock.costs.CostModel` and adds no second schedule. A row may set
 `free: true` to mount the zero-cost model, under which net equals gross.
 
-The minimum commission is not applied: it is a currency amount per order, and a
-rank portfolio has weights but no order size.
+Ranks use explicitly assumed reference tickets; sized fills use their own notional.
 """
 from __future__ import annotations
 
-from clawock.costs import CostModel
+from clawock.costs import CostModel, trade_cost
 
 name = 'registered-costs'
 
@@ -19,17 +18,21 @@ class Costs:
     def __init__(self, model: CostModel):
         self.model = model
 
-    def side_bps(self, leg: str) -> float:
-        """Commission plus the share of the spread a crossing order pays."""
+    def side_bps(self, leg: str, ticker: str | None = None) -> float:
+        """Conservative side on an explicit reference ticket for unsized ranks."""
         leg = str(leg or '').lower()
-        model = self.model
-        spread = 0.0 if model.spread_source == 'off' else (
-            float((model.spread_bps_by_leg or {}).get(leg, 0.0)) * model.spread_share)
-        return float((model.assumed_commission_bps or {}).get(leg, 0.0)) + spread
+        notional = self.model.assumed_reference_notional.get(leg, 10000)
+        return max(self.fill(notional, leg, '', direction=side, ticker=ticker)['bps']
+                   for side in ('buy', 'sell'))
+
+    def fill(self, notional: float, leg: str, session: str, **kwargs) -> dict:
+        """Sized fill, including minimum commissions, tax and regulatory fees."""
+        return trade_cost(notional, leg, session, {}, self.model, **kwargs)
 
     def describe(self) -> dict:
         return {**self.model.as_dict(),
-                'minimum_commission_applied': False,
+                'minimum_commission_applied': True,
+                'rank_cost_basis': 'reference ticket; larger of buy/sell costs; not sized execution',
                 'side_bps': {leg: self.side_bps(leg) for leg in ('hk', 'us')}}
 
 
