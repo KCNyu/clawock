@@ -10566,8 +10566,7 @@ function renderPatrolRhythm(rhythm) {
 		style: { transitionDelay: at * 30 + "ms" }
 	}))), h("div", { className: cx("tq-rhythm-summary") }, ...rhythm.summary.flatMap((item, at) => [at === 0 ? null : h("span", {
 		key: "sep-" + item.role,
-		className: cx("tq-rhythm-sep"),
-		"aria-hidden": "true"
+		className: cx("tq-rhythm-sep")
 	}, " · "), h("span", {
 		key: item.role,
 		className: cx("tq-rhythm-item"),

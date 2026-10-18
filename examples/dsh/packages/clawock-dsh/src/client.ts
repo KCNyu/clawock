@@ -1332,7 +1332,7 @@ function renderPatrolRhythm(rhythm: PatrolRhythm): React.ReactElement {
       }))),
     h('div', { className: cx('tq-rhythm-summary') },
       ...rhythm.summary.flatMap((item, at) => [
-        at === 0 ? null : h('span', { key: 'sep-' + item.role, className: cx('tq-rhythm-sep'), 'aria-hidden': 'true' }, ' · '),
+        at === 0 ? null : h('span', { key: 'sep-' + item.role, className: cx('tq-rhythm-sep') }, ' · '),
         h('span', { key: item.role, className: cx('tq-rhythm-item'), 'data-role': chartRole(item.role) },
           h('span', { className: cx('tq-rhythm-dot'), 'aria-hidden': 'true' }), item.text),
       ].filter((part): part is React.ReactElement => part !== null))))
