@@ -439,6 +439,13 @@ HOST_OWNED_SHELL = {
     "ops/host/skillhub/index.ts": (
         2, "the host extension itself: it imports the host's plugin SDK and "
            "falls back to the host's default workspace when none is configured"),
+    "ops/host/install_memory_corpus_plugin.sh": (
+        5, "host extension installer for the read-only shared-memory corpus: owns the "
+           "OpenClaw state-directory copy, byte verification and recovery pair; its "
+           "source directory is ops/host/shared-memory/openclaw/"),
+    "ops/host/shared-memory/openclaw/index.ts": (
+        1, "the read-only corpus extension itself: it imports the host's plugin SDK; "
+           "its store root is configuration, defaulting to ~/.shared-memory"),
     "examples/dsh/packages/clawock-dsh/src/balance.ts": (
         1, "source of lib/balance.js below: reads the provider key from the "
            "host's own config file, which is the panel's documented input"),

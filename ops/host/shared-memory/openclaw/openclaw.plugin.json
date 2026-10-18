@@ -1,0 +1,30 @@
+{
+  "id": "shared-memory-corpus",
+  "name": "Shared memory corpus (read-only)",
+  "description": "Lets memory_search (corpus=all) and memory_get read the coding agents' shared Markdown memory, in direct chats only; never writes.",
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "root": {
+        "type": "string"
+      },
+      "includeArchive": {
+        "type": "boolean"
+      }
+    }
+  },
+  "uiHints": {
+    "root": {
+      "label": "Store root",
+      "help": "Directory of the shared Markdown memory (default ~/.shared-memory)."
+    },
+    "includeArchive": {
+      "label": "Include archive",
+      "help": "Also search archive/ topics, ranked lower (default true)."
+    }
+  }
+}

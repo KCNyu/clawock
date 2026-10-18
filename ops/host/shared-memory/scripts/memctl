@@ -782,7 +782,12 @@ def doctor_checks(deep: bool) -> list[dict]:
                     add(f"{tag}.codex.skill", rc == 0 and "shared-memory" in out,
                         f"Codex prompt in {cwd} lists the shared-memory skill")
                 if "opencode" in agents:
-                    rc, out = _run(["opencode", "debug", "skill"], timeout=90, cwd=cwd, env=env)
+                    # Through a file: OpenCode exits before a pipe drains, cutting the JSON short.
+                    tmp = STATE / f"opencode-skill-{os.getpid()}.json"
+                    STATE.mkdir(parents=True, exist_ok=True)
+                    rc, _ = _run(["sh", "-c", f'opencode debug skill > "{tmp}" 2>/dev/null'], timeout=90, cwd=cwd, env=env)
+                    out = tmp.read_text(errors="replace") if tmp.is_file() else ""
+                    tmp.unlink(missing_ok=True)
                     locations = re.findall(r'"location":\s*"([^"]+)"', out)
                     found = [loc for loc in locations if _same(Path(loc), skill_md)]
                     add(f"{tag}.opencode.skill", bool(found), f"`opencode debug skill` in {cwd}: {found or 'not listed'}")

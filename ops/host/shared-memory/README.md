@@ -13,6 +13,7 @@ an empty store and grows the user's own.
 | `hooks/claude-hook.sh` | Claude Code `PostToolUse` / `SessionStart` hook |
 | `wiring.json` | where each agent looks, and which working directories share the store |
 | `systemd/` | two timers: a 10-minute snapshot and a daily bundle + deep self-check |
+| `openclaw/` | read-only corpus plugin that lets an OpenClaw assistant search the store (see below) |
 
 ## Layout of a store
 
@@ -93,3 +94,22 @@ a dispatched task starts with: `codex debug prompt-input`, `opencode debug skill
 `debug paths`, dsh's own `discoverBaselineInstructionFiles` and default skill roots, and for
 each configured dsh profile (`headless`, `web`) that `dsh --profile P --dump-config` mounts
 instruction loading and filesystem skills without moving their roots.
+
+## The OpenClaw corpus plugin (`openclaw/`)
+
+`openclaw/index.ts` registers a memory corpus supplement through OpenClaw's plugin API
+(`registerMemoryCorpusSupplement`), loaded from outside OpenClaw's own install so an upgrade
+leaves it in place. The assistant's `memory_search` with `corpus=all` and `memory_get` on a
+`shared-memory/<topic>.md` path then return the store's topics, read-only:
+
+- it only reads files under the configured root, `.md` only, no symlink escapes;
+- it answers direct (one-to-one) sessions only — group, channel, cron and keyless sessions get
+  nothing, so private notes do not surface in a group or in a published brief;
+- results are redacted with the same credential patterns `memctl` uses;
+- any read error returns no results instead of failing the search;
+- OpenClaw's short-term recall (the source of dreaming's promotions into `MEMORY.md`)
+  records only its own memory index hits, not supplement results, so these notes are not
+  promoted into the assistant's public memory.
+
+Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
+`plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
