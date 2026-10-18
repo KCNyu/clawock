@@ -1150,9 +1150,7 @@ export type StatsProviderView = {
 export type StatsSeriesView = {
   days: StatsDayView[]
   providers: StatsProviderView[]
-  /** Largest single provider-day bar (left axis). */
-  maxProvider: number
-  /** Largest daily total (right axis); this is the sum of that day's bars. */
+  /** Largest daily total: the stacked bar's full height (one left axis now). */
   maxTotal: number
   /** Sum over the window; should equal the selected agents' token totals. */
   total: number
@@ -1232,7 +1230,6 @@ function statsSeries(stats: TaskStats, agents: StatsAgentView[]): StatsSeriesVie
   }
   return {
     days, providers,
-    maxProvider: Math.max(0, ...days.flatMap((day) => providers.map((p) => day.tokens[p.agent] ?? 0))),
     maxTotal: Math.max(0, ...days.map((day) => day.total)),
     total: days.reduce((sum, day) => sum + day.total, 0),
     unknown: days.reduce((sum, day) => sum + day.unknown, 0),

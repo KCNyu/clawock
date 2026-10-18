@@ -1279,8 +1279,8 @@ type PanelUi = DetailUi & {
   openStats: (opener: HTMLElement) => void
   statsOpen: boolean
   /** The coverage row's opener: the page replaces the list, the same detail layer as a task. */
-  openCoverage: (opener: HTMLElement) => void
-  coverageOpen: boolean
+  openPatrol: (opener: HTMLElement) => void
+  patrolOpen: boolean
 }
 
 /** A row's lead track (panel.ts RowLead) as its glyph. */
@@ -1331,27 +1331,6 @@ function renderPatrolRhythm(rhythm: PatrolRhythm): React.ReactElement {
         h('span', { key: item.role, className: cx('tq-rhythm-item'), 'data-role': chartRole(item.role) },
           h('span', { className: cx('tq-rhythm-dot'), 'aria-hidden': 'true' }), item.text),
       ].filter((part): part is React.ReactElement => part !== null))))
-}
-
-/**
- * The coverage entry on the panel: one link row, not a fold. It says the conclusion in the
- * panel's key/value grammar and opens the coverage page on the same data. The page is the
- * existing detail layer (the stats card and a task use the same chrome), so the list and the
- * archive never sit next to each other as two disclosures.
- */
-function renderCoverageLink(view: CoverageView | null, t: Translate,
-  open: (opener: HTMLElement) => void): React.ReactElement | null {
-  if (view === null) return null
-  const aria = view.title + ' · ' + view.conclusion + ' · ' + t('queue.coverage.open')
-  return h('button', {
-    type: 'button', className: cx('tq-cov-link'), 'data-tq-coverage-open': 'true',
-    'aria-haspopup': 'dialog', 'aria-label': aria, title: aria,
-    onClick: (event: { currentTarget: HTMLElement }) => { open(event.currentTarget) },
-  },
-    h('span', { className: cx('tq-cov-link-label') }, view.title),
-    h('span', { className: cx('tq-cov-link-value'), 'data-coverage-state': view.tone },
-      h('span', { className: cx('tq-cov-link-dot'), 'aria-hidden': 'true' }), view.conclusion),
-    foldChevron())
 }
 
 /** The coverage tables, shared by the page; the page's scroll and back bar are the layer's. */
@@ -1420,35 +1399,56 @@ function renderCoverageTables(view: CoverageView, t: Translate): Array<React.Rea
   ]
 }
 
-/** The coverage page: the existing detail chrome (back bar, scroll, focus move), same data. */
-function renderCoverageDetail(view: CoverageView | null, t: Translate,
-  back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement | null {
-  if (view === null) return null
+/** The patrol page: the live head, the outcome strip, every round, then the coverage tables. */
+function renderPatrolDetail(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
+  back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement {
+  const conclusion = patrol.progress === null ? t('queue.coverage.openUnknown') : patrol.progress.conclusion
   return h('div', {
-    className: cx('tq-detail', 'tq-cov-detail'), 'data-tq-coverage-layer': 'true',
-    role: 'group', 'aria-label': view.title,
+    className: cx('tq-detail', 'tq-patrol-detail'), 'data-tq-patrol-layer': 'true',
+    role: 'group', 'aria-label': t('queue.patrolHeading'),
   },
     h('div', { className: cx('tq-head', 'tq-d-head') },
       h('button', {
         type: 'button', className: cx('tq-back'), 'data-tq-back': 'true',
-        'aria-label': t('queue.coverage.back'), title: t('queue.coverage.back'), ref: backRef, onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), view.title),
-      h('span', { className: cx('tq-caption') }, view.conclusion)),
+        'aria-label': t('queue.patrol.back'), title: t('queue.patrol.back'), ref: backRef, onClick: back,
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('queue.patrol.back')),
+      h('span', { className: cx('tq-caption') }, conclusion)),
     h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
-      h('div', { className: cx('tq-cov', 'tq-cov-page') }, ...renderCoverageTables(view, t))))
+      h('div', { className: cx('tq-patrol-page') },
+        renderRow(patrol.head, t),
+        patrol.rhythm === null ? null : renderPatrolRhythm(patrol.rhythm),
+        renderWell('rounds', patrol.rounds.map((round) => renderRow(round, t))),
+        patrol.progress === null ? null : h('div', { className: cx('tq-cov', 'tq-cov-page') },
+          ...renderCoverageTables(patrol.progress, t)))))
 }
 
-/** Patrol: the live head, the outcome strip, all rounds the host sends, then the coverage link. */
+/** The panel's one patrol entry: the phase and the coverage conclusion, then the page. */
+function renderPatrolSummary(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
+  open: (opener: HTMLElement) => void): React.ReactElement {
+  const phase = patrol.head.state?.text ?? ''
+  const conclusion = patrol.progress === null ? t('queue.coverage.openUnknown') : patrol.progress.conclusion
+  const tone = patrol.progress === null ? 'unknown' : patrol.progress.tone
+  const aria = [t('queue.patrolHeading'), phase, conclusion, t('queue.patrol.open')]
+    .filter((part) => part !== '').join(' · ')
+  return h('button', {
+    type: 'button', className: cx('tq-patrol-entry'), 'data-tq-patrol-summary': 'true',
+    'data-tq-patrol-open': 'true', 'aria-haspopup': 'dialog', 'aria-label': aria, title: aria,
+    onClick: (event: { currentTarget: HTMLElement }) => { open(event.currentTarget) },
+  },
+    h('span', { className: cx('tq-patrol-entry-lead'), 'aria-hidden': 'true' }, renderSectionGlyph('patrol')),
+    h('span', { className: cx('tq-patrol-entry-label') }, t('queue.patrolHeading')),
+    phase === '' ? null : h('span', { className: cx('tq-patrol-entry-phase') }, phase),
+    h('span', { className: cx('tq-patrol-entry-value'), 'data-coverage-state': tone },
+      h('span', { className: cx('tq-patrol-entry-dot'), 'aria-hidden': 'true' }), conclusion),
+    foldChevron())
+}
+
+/** Patrol is one entry now: the phase and the coverage conclusion, then a page with both. */
 function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
-  openCoverage: (opener: HTMLElement) => void): React.ReactElement {
+  openPatrol: (opener: HTMLElement) => void): React.ReactElement {
   return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
-    renderRow(patrol.head, t),
-    patrol.rhythm === null ? null : renderPatrolRhythm(patrol.rhythm),
-    // The host sends at most eight rounds. They are one list; there is no "earlier" fold.
-    renderWell('rounds', patrol.rounds.map((round) => renderRow(round, t))),
-    renderCoverageLink(patrol.progress, t, openCoverage))
+    renderPatrolSummary(patrol, t, openPatrol))
 }
-
 /** A tiny bar-chart mark for the stats card; the same 14px outline as the section glyphs. */
 function renderStatsGlyph(size = 14): React.ReactElement {
   return h('svg', { className: cx('tq-stats-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
@@ -1542,55 +1542,51 @@ function statsNiceMax(n: number): number {
 }
 
 /**
- * The daily chart: grouped provider bars on the left axis, one total line on the right axis.
- * Both axes are tokens; the line's points are `day.total`, which `statsSeries` sums from the
- * exact same per-provider values the bars use. Seven days are all present; a quiet day is a
- * real 0 with an x label. The chart is static: the reader opened this page to read it, and a
- * data figure is never tweened. The per-bar <title> is the native reading under the pointer.
+ * The daily chart: one stacked provider bar per day on a single left axis. Stacking makes the
+ * bar's full height the day total by construction, so there is no separate total line and no
+ * second axis. A 1px gap keeps the provider segments readable; the legend and the note carry
+ * the unknown/lower-bound caveat without a "+".
  */
 function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate): React.ReactElement {
   const W = 320
   const H = 172
   const L = 34
-  const R = 34
+  const R = 10
   const T = 12
   const B = 30
   const plotW = W - L - R
   const plotH = H - T - B
-  const leftMax = statsNiceMax(series.maxProvider)
-  const rightMax = statsNiceMax(series.maxTotal)
+  const max = statsNiceMax(series.maxTotal)
   const groupW = plotW / Math.max(1, series.days.length)
-  const count = Math.max(1, series.providers.length)
-  const barW = Math.max(3, Math.min(8, (groupW - 10) / count))
-  const groupWidth = count * barW + (count - 1)
+  const barW = Math.min(18, Math.max(10, groupW * 0.5))
   const center = (i: number): number => L + groupW * (i + 0.5)
-  const yLeft = (v: number): number => T + plotH - (leftMax > 0 ? (v / leftMax) * plotH : 0)
-  const yRight = (v: number): number => T + plotH - (rightMax > 0 ? (v / rightMax) * plotH : 0)
   const grid = [0, 0.5, 1]
   const dayText = series.days.map((day) => day.label + ' ' + compactCount(day.total)).join('；')
   const unknownText = series.unknown > 0 ? '（' + t('stats.chart.unknown', { n: series.unknown }) + '）' : ''
   const aria = t('stats.chart.aria', { days: dayText, total: compactCount(series.total), unknown: unknownText })
   const bars: React.ReactElement[] = []
   for (const [at, day] of series.days.entries()) {
-    for (const [pi, provider] of series.providers.entries()) {
+    let used = 0
+    const x = L + groupW * at + (groupW - barW) / 2
+    for (const provider of series.providers) {
       const value = day.tokens[provider.agent] ?? 0
       if (value <= 0) continue
-      const height = Math.max(1, (value / leftMax) * plotH)
-      const x = L + groupW * at + (groupW - groupWidth) / 2 + pi * (barW + 1)
+      const height = (value / max) * plotH
       const unrecorded = day.unknowns[provider.agent] ?? 0
-      const unknown = unrecorded > 0
+      const y = T + plotH - used - height
+      const segH = Math.max(0.8, height - 0.8)
       bars.push(h('rect', {
         key: 'b-' + day.date + '-' + provider.agent, className: cx('tq-stats-chart-bar'),
         'data-tq-stats-bar': 'true', 'data-day': day.date, 'data-provider': provider.agent,
-        'data-tokens': value, 'data-unknown': unknown ? 'true' : undefined,
-        x, y: T + plotH - height, width: barW, height, rx: 1,
+        'data-tokens': value, 'data-unknown': unrecorded > 0 ? 'true' : undefined,
+        x, y, width: barW, height: segH, rx: 1,
         style: { fill: 'var(' + provider.colorVar + ')' },
       }, h('title', null,
         provider.label + ' · ' + day.label + ' · ' + compactCount(value) + ' token'
-        + (unknown ? ' · ' + t('stats.chart.unknownShort', { n: unrecorded }) : ''))))
+        + (unrecorded > 0 ? ' · ' + t('stats.chart.unknownShort', { n: unrecorded }) : ''))))
+      used += height
     }
   }
-  const points = series.days.map((day, i) => center(i) + ',' + yRight(day.total)).join(' ')
   const notes: React.ReactElement[] = []
   if (series.emptyDays > 0) notes.push(h('div', { key: 'zero', className: cx('tq-stats-chart-note') }, t('stats.chart.zero', { n: series.emptyDays })))
   if (series.unknown > 0) notes.push(h('div', { key: 'unknown', className: cx('tq-stats-chart-note') }, t('stats.chart.unknown', { n: series.unknown })))
@@ -1607,25 +1603,13 @@ function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate):
           key: 'g-' + frac, className: cx('tq-stats-chart-grid'),
           x1: L, x2: W - R, y1: T + plotH - frac * plotH, y2: T + plotH - frac * plotH,
         })),
-        ...grid.flatMap((frac) => [
-          h('text', { key: 'l-' + frac, x: L - 5, y: T + plotH - frac * plotH + 3, textAnchor: 'end' },
-            compactCount(leftMax * frac)),
-          h('text', { key: 'r-' + frac, x: W - R + 5, y: T + plotH - frac * plotH + 3, textAnchor: 'start' },
-            compactCount(rightMax * frac)),
-        ]),
+        ...grid.map((frac) => h('text', {
+          key: 'l-' + frac, x: L - 5, y: T + plotH - frac * plotH + 3, textAnchor: 'end',
+        }, compactCount(max * frac))),
         ...series.days.map((day, i) => h('text', {
           key: 'x-' + day.date, x: center(i), y: T + plotH + 15, textAnchor: 'middle',
         }, day.label)),
-        ...bars,
-        h('polyline', {
-          className: cx('tq-stats-chart-total'), 'data-tq-stats-line': 'true',
-          points, fill: 'none',
-        }),
-        ...series.days.map((day, i) => h('circle', {
-          key: 'd-' + day.date, className: cx('tq-stats-chart-dot'),
-          'data-tq-stats-total': day.total, 'data-day': day.date,
-          cx: center(i), cy: yRight(day.total), r: 2.4,
-        }))),
+        ...bars),
     ),
     h('div', { className: cx('tq-stats-chart-legend') },
       ...series.providers.map((provider) => h('span', {
@@ -1635,13 +1619,9 @@ function renderStatsSeries(series: StatsSeriesView, live: number, t: Translate):
           className: cx('tq-stats-chart-swatch'), 'aria-hidden': 'true',
           style: { background: 'var(' + provider.colorVar + ')' },
         }),
-        provider.label, ' ', compactCount(provider.tokens), provider.unknown > 0 ? ' +?' : '')),
-      h('span', { className: cx('tq-stats-chart-legend-item', 'tq-stats-chart-legend-total') },
-        h('span', { className: cx('tq-stats-chart-total-swatch'), 'aria-hidden': 'true' }),
-        t('stats.chart.total'), ' ', compactCount(series.total), series.unknown > 0 ? ' +?' : '')),
+        provider.label, ' ', compactCount(provider.tokens)))),
     ...notes)
 }
-
 
 /**
  * The chart layer. It opens from the card like a task opens its detail (same `.tq-layer`,
@@ -1810,7 +1790,7 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
     model.recent === null ? null : h('section', { className: cx('tq-group', 'tq-section'), key: 'recent', 'data-tq-group': 'recent' },
       renderRow(model.recent.head, t),
       renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
-    model.patrol === null ? null : renderPatrolSection(model.patrol, t, ui.openCoverage),
+    model.patrol === null ? null : renderPatrolSection(model.patrol, t, ui.openPatrol),
     // The stats tile is the closing summary, after patrol and before the ops footer: a 7-day
     // retrospective, not a neighbour of recently ended. It is still the only consumer of the
     // lazy taskStats read and only exists when that read answered. The card is not duplicated
@@ -2370,7 +2350,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const queueState = useTaskQueue(props)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [statsOpen, setStatsOpen] = useState(false)
-  const [coverageOpen, setCoverageOpen] = useState(false)
+  const [patrolOpen, setPatrolOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirm, setConfirm] = useState<string | null>(null)
@@ -2388,10 +2368,10 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
   const backRef = useRef<HTMLButtonElement | null>(null)
   const statsBackRef = useRef<HTMLButtonElement | null>(null)
-  const coverageBackRef = useRef<HTMLButtonElement | null>(null)
+  const patrolBackRef = useRef<HTMLButtonElement | null>(null)
   // The stats card / coverage row that opened the layer: focus returns when it closes.
   const statsOpenerRef = useRef<HTMLElement | null>(null)
-  const coverageOpenerRef = useRef<HTMLElement | null>(null)
+  const patrolOpenerRef = useRef<HTMLElement | null>(null)
   // The control that opened the panel: focus returns to it when the panel closes.
   const openerRef = useRef<HTMLElement | null>(null)
   const closeStats = (): void => {
@@ -2400,14 +2380,14 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
       window.requestAnimationFrame(() => { statsOpenerRef.current?.focus({ preventScroll: false }) })
     }
   }
-  const closeCoverage = (): void => {
-    setCoverageOpen(false)
+  const closePatrol = (): void => {
+    setPatrolOpen(false)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => { coverageOpenerRef.current?.focus({ preventScroll: false }) })
+      window.requestAnimationFrame(() => { patrolOpenerRef.current?.focus({ preventScroll: false }) })
     }
   }
   const closeDetail = (): boolean => {
-    if (coverageOpen) { closeCoverage(); return true }
+    if (patrolOpen) { closePatrol(); return true }
     if (statsOpen) { closeStats(); return true }
     if (confirm !== null) { setConfirm(null); return true }
     if (detailId === null) return false
@@ -2436,7 +2416,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     if (open) return
     detailRequest.current += 1
     activeDetail.current = null
-    setDetailId(null); setStatsOpen(false); setCoverageOpen(false); setNotice(null); setConfirm(null); setBrief(null)
+    setDetailId(null); setStatsOpen(false); setPatrolOpen(false); setNotice(null); setConfirm(null); setBrief(null)
     setPicker(null); setLog(null); setTimeline(null); setReadPending(null)
     // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
     // instead of letting it fall to <body>.
@@ -2454,7 +2434,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   }, [open, focusKey])
   useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
   useEffect(() => { if (statsOpen) statsBackRef.current?.focus({ preventScroll: true }) }, [statsOpen])
-  useEffect(() => { if (coverageOpen) coverageBackRef.current?.focus({ preventScroll: true }) }, [coverageOpen])
+  useEffect(() => { if (patrolOpen) patrolBackRef.current?.focus({ preventScroll: true }) }, [patrolOpen])
   useEffect(() => {
     if (confirm === null) return undefined
     const timer = setTimeout(() => { setConfirm(null) }, CONFIRM_MS)
@@ -2609,17 +2589,16 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   lastSeen.current = found
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
-    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setStatsOpen(false); setCoverageOpen(false); setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
-    openStats: (opener) => { statsOpenerRef.current = opener; setCoverageOpen(false); setStatsOpen(true); setNotice(null) },
+    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setStatsOpen(false); setPatrolOpen(false); setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
+    openStats: (opener) => { statsOpenerRef.current = opener; setPatrolOpen(false); setStatsOpen(true); setNotice(null) },
     statsOpen,
-    openCoverage: (opener) => { coverageOpenerRef.current = opener; setStatsOpen(false); setCoverageOpen(true); setNotice(null) },
-    coverageOpen,
+    openPatrol: (opener) => { patrolOpenerRef.current = opener; setStatsOpen(false); setPatrolOpen(true); setNotice(null) },
+    patrolOpen,
     act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
     brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows, timeline, loadTimeline,
   }
   const model = panelModel({ balances: balanceState.data.result, balanceError: balanceState.data.error,
     queue: result, queueError: queueState.data.error, stats: statsCapable ? statsState.data : null }, t, now, ui.open)
-  const coverageView = model.patrol?.progress ?? null
   // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
   const lines = sources.map((source) => {
     const row = source.provider === null ? undefined : rows.get(source.provider.provider)
@@ -2683,12 +2662,12 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
       'data-clawock-popover': BALANCE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' } }),
     }),
-    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null || statsOpen || coverageOpen ? '' : undefined, 'aria-hidden': found !== null || statsOpen || coverageOpen ? 'true' : undefined },
+    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null || statsOpen || patrolOpen ? '' : undefined, 'aria-hidden': found !== null || statsOpen || patrolOpen ? 'true' : undefined },
       renderProviderPanelBody(model, queueState, balanceState, statsState, t, ui, found === null ? notice : null)),
     found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
       renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice)),
-    coverageOpen && coverageView !== null ? h('div', { className: cx('tq-layer'), key: 'coverage' },
-      renderCoverageDetail(coverageView, t, closeCoverage, coverageBackRef)) : null,
+    patrolOpen && model.patrol !== null ? h('div', { className: cx('tq-layer'), key: 'patrol' },
+      renderPatrolDetail(model.patrol, t, closePatrol, patrolBackRef)) : null,
     statsOpen && statsViewData !== null ? h('div', { className: cx('tq-layer'), key: 'stats' },
       renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null))
 }

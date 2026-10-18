@@ -552,9 +552,7 @@ export type StatsProviderView = {
 export type StatsSeriesView = {
     days: StatsDayView[];
     providers: StatsProviderView[];
-    /** Largest single provider-day bar (left axis). */
-    maxProvider: number;
-    /** Largest daily total (right axis); this is the sum of that day's bars. */
+    /** Largest daily total: the stacked bar's full height (one left axis now). */
     maxTotal: number;
     /** Sum over the window; should equal the selected agents' token totals. */
     total: number;

@@ -48,12 +48,12 @@ belongs here.
 - [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats tile and chart layer, and the
   `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
   mean, and the effect captures.
-- [`task-chip-patrol.md`](design/task-chip-patrol.md) — the patrol block as one round list, a
-  6px outcome strip, and a coverage page opened from one link row; the colour tiering, the motion
-  and the captures.
+- [`task-chip-patrol.md`](design/task-chip-patrol.md) — the patrol block as one 44px entry, with
+  the rounds, the 6px outcome strip and the coverage tables together on one page; the motion and
+  the captures.
 - [`task-chip-stats.md`](design/task-chip-stats.md) — the stats card at the bottom of the task
-  chip and its 7-day daily token chart: grouped provider bars, the total line, zero/unknown days,
-  and the local chart palette.
+  chip and its 7-day stacked provider token chart: four low-chroma hues, zero/unknown days, and no
+  total line.
 
 ## Operations
 

@@ -508,37 +508,32 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。
 
-### Patrol: one list, one page · 巡检:一条列表,一个详情页
+### Patrol: one entry, one page · 巡检:一个入口,一个详情页
 
-The patrol section has no fold. Every round the host sends (at most eight) is in one newest-first
-list in the same well, under the live head. Above the list is a 6px outcome strip: one segment per
-round, in the list's order, colour = verdict on the stats card's chart scale at a 35% tint (done
-blue, partial/preempted amber, failed red, unknown grey); the counts underneath (`failed 5 · done
-3`) are the legend in words. There is no caption and no "earlier rounds" row. The section ends
-with one coverage link — quiet title left, conclusion right (`nothing open`, how many areas have
-open issues, or unknown), chevron last — which opens the coverage page in the same detail layer
-as a task and the stats card (back bar, focus return). The page has two tables. **Open issues by
-area**: neutral magnitude bars, amber count badges, and the areas with none on one line behind a
-green check. **Rounds by lens**: the lenses with an open issue or a failed last run first ("needs
-a look"), then the rest by last run, so the rotation gap still reads down the `when` column; each
-row has a 6px status dot for its last verdict, a neutral runs bar against the busiest lens, and an
-open badge (amber when positive, quiet at zero, dashed when unknown). The columns stay right-
-aligned and a count is still under a count. The strip and the page bars grow once from their zero
-end; the page itself swaps immediately; `prefers-reduced-motion` shows the final state, and no
-number is tweened. The raw supervisor log's fold inside a task detail is the only fold left. No
-supervisor state, dispatch behavior or patrol files are changed.
+The patrol section in the panel is **one 44px row**: shield, `巡检`, the live phase (`等下一轮`),
+the coverage conclusion on the right (`无未决` / `N 个 area 有未决` / `未决数未知`), chevron. There
+is no separate head, round list or coverage link in the panel. The row opens the patrol page in the
+existing detail layer — back bar, focus return, Escape, no new navigation. The page has the live
+head and next-round caption, the 6px outcome strip (one segment per round, newest first, 35% chart
+tint, counts in words), every round the host sends (at most eight) in one well, and then the
+coverage tables: **open issues by area** (neutral magnitude bars, amber count badges, the none-open
+line behind a green check) and **rounds by lens** (the open/failed lenses first under "needs a
+look", then the rest by last run; a 6px status dot, a neutral runs bar against the busiest lens,
+and an open badge — amber when positive, quiet at zero, dashed when unknown). The two one-line
+caveats and the provenance footer close the page. The strip draws once when the page mounts; the
+page itself is immediate; `prefers-reduced-motion` shows the final strip; no number is tweened.
+The raw supervisor log's fold inside a task detail is the only fold left. No supervisor state,
+dispatch behavior or patrol files are changed.
 
-巡检分节没有折叠。host 发来的每一轮（最多 8 轮）都在同一块底板的一条列表里，按时间从新到旧；上面是实况头。
-列表上方是一条 6px 结果条：一轮一段，顺序与列表一致，颜色是这一轮的判决在 stats 卡图表色阶上的 35% tint
-（完成 blue、部分/让路 amber、失败 red、未知灰）；下面的计数（`失败 5 · 完成 3`）就是文字图例。没有 caption，
-也没有「更早的 N 轮」行。分节最后是一条「巡检覆盖」链接行：左边标题，右边结论（无未决、几个 area 有未决，
-或未决数未知），末尾 chevron；点开进入与任务详情、stats 卡同一个 detail layer 的覆盖页（返回条、焦点返回）。
-页里是两张表。**未决问题 · 按 area**：中性数量条、amber 计数徽章；没有未决的 area 合成一行，前面一个绿色
-对勾。**轮次 · 按 lens**：有未决或上一轮失败的 lens 先放「需要看一眼」，其余按上次运行时间；每个 lens 行
-有 6px 状态点、相对最忙 lens 的中性记录条、未决徽章（有未决 amber，零安静灰，未知虚线）；各列仍右对齐，
-一个数仍在一个数下面。结果条和覆盖页的条形从零端长一次；覆盖页本身立即切换；`prefers-reduced-motion` 下
-直接显示最终状态，任何数字都不做补间。任务详情里 raw supervisor log 的折叠是唯一剩下的折叠。不写巡检文件、
-不改 supervisor 状态或派发行为。
+巡检在面板里只有**一行 44px 入口**：盾牌、`巡检`、实况阶段（`等下一轮`）、右边覆盖结论（`无未决` /
+`N 个 area 有未决` / `未决数未知`）和 chevron。面板里不再有单独的巡检头、轮次列表或覆盖链接。点开进入
+现有 detail layer 的巡检页——返回条、焦点返回、Escape，不新造导航。页里有实况头与下一轮说明、6px 结果条
+（一轮一段、从新到旧、35% chart tint、计数用文字）、host 发来的每一轮（最多 8 轮）一条列表，然后是覆盖
+两张表：**未决问题 · 按 area**（中性数量条、amber 计数徽章、无未决行前绿勾）和 **轮次 · 按 lens**
+（有未决/上一轮失败先放「需要看一眼」，其余按上次运行；6px 状态点、相对最忙 lens 的中性记录条、未决徽章
+有未决 amber、零安静灰、未知虚线）。两句短 caveat 和 provenance footer 收尾。结果条在页面挂载时画一次；
+页面本身立即切换；`prefers-reduced-motion` 下显示最终条；不补间数字。任务详情里 raw supervisor log 的
+折叠是唯一剩下的折叠。不写巡检文件、不改 supervisor 状态或派发行为。
 
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 
@@ -557,16 +552,19 @@ A **stats tile** is the closing summary at the bottom of the panel: after patrol
 footer (the footer is provenance metadata and stays last). It is not beside recently ended; the
 queue is the opening view, the seven-day retrospective is the close. Task count, tokens, API
 estimate and a completion bar at a glance; tapping it opens a chart layer with the same back bar
-as a task detail. The layer starts with the **daily token chart**: grouped provider bars on the
-left axis and one total line on the right axis. Both axes are tokens and the line's points are the
-exact sums of that day's bars; the seven days are all labelled, a quiet day is a real 0, and a
-provider-day with unrecorded tokens is marked with its lower-bound note. The card and the chart
-are one lazy read: they appear through `taskStats` when the panel opens, never on the queue's 15s
-poll. The numbers are `task_queue_ops.py summary`'s frozen `result.env` values, never a session
-reread, so a task continuing the same session is not counted twice; the window is the last seven
-days, patrol excluded, and live tasks are outside tokens/cost. The per-day buckets are built in
-the same summary pass; an older ops entry without them still shows the card and the existing
-tables, just no daily chart. The chat counterpart is `/dispatch-stats` (the same numbers, without
+as a task detail. The layer starts with the **daily token chart**: seven **stacked** provider bars
+on one left axis, no total line and no right axis — the stack's full height is the day total by
+construction. The seven days are all labelled; a quiet day is a real 0; a provider-day with
+unrecorded tokens has a lower-bound note (no `+?` suffix); live tasks are noted as outside tokens.
+Provider categories use four local low-chroma hues at one lightness (indigo/teal/violet/olive),
+tinted 90% over the panel; they are not semantic state colours, so the completion bars below keep
+their blue/amber/red meanings. The card and the chart are one lazy read: they appear through
+`taskStats` when the panel opens, never on the queue's 15s poll. The numbers are
+`task_queue_ops.py summary`'s frozen `result.env` values, never a session reread, so a task
+continuing the same session is not counted twice; the window is the last seven days, patrol
+excluded, and live tasks are outside tokens/cost. The per-day buckets are built in the same
+summary pass; an older ops entry without them still shows the card and the existing tables, just
+no daily chart. The chat counterpart is `/dispatch-stats` (the same numbers, without
 the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished / token ·
 API estimate — with no trailing prose; the title carries the total and live count.
 `/dispatch-stats 30d`, `/dispatch-stats all`, `/dispatch-stats 2026-10-01`, add `patrol` to include

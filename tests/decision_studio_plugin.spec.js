@@ -3534,15 +3534,22 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.deepEqual(factSlots(rows[3]), ["model", "when", "took"],
     "an ended task: model · when · took (the report axis and the first queue wait are in its detail layer)");
   assert.deepEqual(factSlots(rows[0]), ["model", "tries", "when", "took"]);
-  const round = find(popover, (p) => p["data-tq-round"] === "R139")[0];
-  assert.deepEqual(factSlots(round), ["when", "took"], "a round fills the same cells");
+  const roundEntry = find(popover, (p) => p["data-tq-patrol-open"] !== undefined)[0];
+  assert.ok(roundEntry, "patrol is one entry in the panel");
+  assert.match(texts(roundEntry), /巡检.*让路中/, "the entry carries the live phase");
+  roundEntry.props.onClick({ currentTarget: null });
+  const roundPage = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
+  const round = find(roundPage, (p) => p["data-tq-round"] === "R139")[0];
+  assert.deepEqual(factSlots(round), ["when", "took"], "a round fills the same cells on the patrol page");
   assert.equal(find(round, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "partial");
   assert.match(texts(round), /R139 · automation 让路取消 .*1 小时 8 分/, "the last round is a readable record");
   assert.equal(round.type, "div", "a round opens nothing, so it is not a button");
-  assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
-  const status = find(popover, (p) => p["data-tq-patrol"] !== undefined)[0];
+  assert.equal(find(roundPage, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
+  const status = find(roundPage, (p) => p["data-tq-patrol"] !== undefined)[0];
   assert.deepEqual(find(status, (p) => p["data-tq-chip"] !== undefined).map((c) => [c.props["data-tq-chip"], texts(c), c.props["data-role"]]),
     [["status", "让路中", "wait"]], "the patrol head: its phase as its one chip");
+  const patrolPageRows = find(roundPage, (p) => p["data-tq-row"] !== undefined);
+  find(roundPage, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   assert.equal(texts(find(status, (p) => /_tq-caption-line$/.test(p.className || ""))[0]), "让手工任务先行  · b-1  · 已跑 1 分",
     "then why it gives way and to whom, in words");
   // THE row grid (client.ts ROW_KINDS / FACT_ORDER / FACT_CELL): every row of the cell, folded or
@@ -3561,7 +3568,7 @@ test("client: one provider cell carries the queue under each agent's provider an
     const at = spec.facts.map((slot) => FACT_ORDER.indexOf(slot));
     assert.ok(at.every((i, n) => i >= 0 && (n === 0 || i > at[n - 1])), `${kind}: its facts are a run of FACT_ORDER, in order`);
   }
-  const gridRows = [...lines, ...find(popover, (p) => p["data-tq-row"] !== undefined)];
+  const gridRows = [...lines, ...find(popover, (p) => p["data-tq-row"] !== undefined), ...patrolPageRows];
   assert.deepEqual([...new Set(gridRows.map((r) => r.props["data-tq-row"]))].sort(), Object.keys(ROW_KINDS).sort(),
     "this fixture renders every row kind");
   const cellName = (node) => /_(tq-[a-z-]+)$/.exec(node.props.className || "")?.[1];
@@ -3617,34 +3624,34 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.match(texts(doneRows[0]), /Claude Code 完成 42\/55 部分 9 .*未完成 4/);
   assert.match(texts(statsLayer), /API 估价非订阅额度/);
   assert.doesNotMatch(texts(statsLayer), /token 未知|已结束任务冻结值|巡检不计/);
-  // The daily chart: seven days, grouped provider bars, one total line whose points are the
-  // exact sums of the bars, a real zero day and a lower-bound note for unrecorded tokens.
+  // The daily chart: seven days, stacked provider bars on one left axis, a real zero day and a
+  // lower-bound note for unrecorded tokens. There is no line and no second axis; the total is the
+  // stack's height, and the legend has no "+?" marker.
   const chart = find(statsLayer, (p) => p["data-tq-stats-chart"] === "true")[0];
   assert.ok(chart, "the stats layer has the daily chart");
   assert.match(texts(chart), /每日 token · 按 provider/);
-  assert.match(texts(chart), /柱是 provider · 线是总计（右轴）/);
-  const days = find(chart, (p) => p["data-tq-stats-total"] !== undefined);
-  assert.equal(days.length, 7, "seven days, including the quiet one");
-  assert.deepEqual(days.map((d) => d.props["data-day"]), ["2026-10-11", "2026-10-12", "2026-10-13",
-    "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17"]);
-  assert.deepEqual(days.map((d) => d.props["data-tq-stats-total"]), [125000000, 140000000, 0, 115000000,
-    125000000, 140000000, 141747978], "the line points are the daily sums, zero day included");
-  assert.equal(days.reduce((sum, d) => sum + d.props["data-tq-stats-total"], 0), 786747978,
-    "the line sums to the card's token total");
+  assert.match(texts(chart), /柱是 provider 堆叠 · 总高度 = 当天总计/);
+  assert.doesNotMatch(texts(chart), /\+\?|总计 786\.7M\s*\+/);
+  assert.equal(find(chart, (p) => p["data-tq-stats-line"] !== undefined).length, 0, "no total line");
+  assert.equal(find(chart, (p) => p["data-tq-stats-total"] !== undefined).length, 0, "no right-axis line points");
   const bars = find(chart, (p) => p["data-tq-stats-bar"] !== undefined);
   assert.equal(bars.length, 12, "two providers on six non-zero days");
-  assert.deepEqual(bars.filter((b) => b.props["data-day"] === "2026-10-13").length, 0, "a zero day has no bar, only its label and line point");
+  assert.deepEqual(bars.filter((b) => b.props["data-day"] === "2026-10-13").length, 0, "a zero day has no bar, only its label");
+  const dayTotals = ["2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17"]
+    .map((day) => bars.filter((b) => b.props["data-day"] === day).reduce((sum, b) => sum + b.props["data-tokens"], 0));
+  assert.deepEqual(dayTotals, [125000000, 140000000, 0, 115000000, 125000000, 140000000, 141747978],
+    "each day's stack sums to the day total, including the zero day");
+  assert.equal(dayTotals.reduce((sum, n) => sum + n, 0), 786747978, "the stack sums to the card's token total");
   assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "claude").map((b) => b.props["data-tokens"]),
     [100000000, 110000000, 90000000, 100000000, 110000000, 115213302]);
   assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "codex").map((b) => b.props["data-tokens"]),
     [25000000, 30000000, 25000000, 25000000, 30000000, 26534676]);
   assert.deepEqual(bars.filter((b) => b.props["data-unknown"] === "true").map((b) => [b.props["data-day"], b.props["data-provider"]]),
     [["2026-10-16", "codex"], ["2026-10-17", "claude"]], "only the provider-days with unrecorded tokens are marked");
-  assert.match(texts(chart), /125M/);
+  assert.match(texts(chart), /75M/);
   assert.match(texts(chart), /150M/);
-  assert.match(texts(chart), /Claude Code\s+625\.2M\s+\+\?/);
-  assert.match(texts(chart), /Codex\s+161\.5M\s+\+\?/);
-  assert.match(texts(chart), /总计\s+786\.7M\s+\+\?/);
+  assert.match(texts(chart), /Claude Code\s+625\.2M/);
+  assert.match(texts(chart), /Codex\s+161\.5M/);
   assert.match(texts(chart), /1 天没有任务，按 0 计/);
   assert.match(texts(chart), /9 个任务未记录 token/);
   assert.match(texts(chart), /1 个进行中任务未计入 token/);
@@ -3654,8 +3661,6 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.ok(svg, "the chart is one labelled image for a screen reader");
   assert.match(svg.props["aria-label"], /每日 token：/);
   assert.match(svg.props["aria-label"], /总计 786\.7M/);
-  const line = find(chart, (p) => p["data-tq-stats-line"] !== undefined)[0];
-  assert.equal(line.props.points.split(" ").length, 7, "the polyline has one point per day");
   assert.deepEqual([...new Set(bars.map((b) => b.props.style.fill))],
     ["var(--tq-series-1)", "var(--tq-series-2)"], "providers use the local categorical series, not semantic state colours");
   assert.equal(statsCalls, 1, "opening the layer does not reread");
@@ -3759,26 +3764,38 @@ test("client: one provider cell carries the queue under each agent's provider an
   const folds = (node) => find(node, (p) => p["data-tq-fold"] !== undefined);
   assert.equal(find(section("recent"), (p) => p["data-tq-task"] !== undefined).length, 5, "every ended task the host sends is on screen");
   assert.equal(folds(section("recent")).length, 0, "no ended task hides behind a fold");
-  assert.equal(folds(section("patrol")).length, 0, "the rounds are one list; there is no history fold");
-  const rhythm = find(section("patrol"), (p) => p["data-tq-rhythm"] !== undefined)[0];
-  assert.ok(rhythm, "the rounds have an outcome strip");
+  const patrolEntry = find(section("patrol"), (p) => p["data-tq-patrol-open"] !== undefined)[0];
+  assert.ok(patrolEntry, "the patrol section is one entry, not a head + list + link");
+  assert.equal(folds(section("patrol")).length, 0, "the rounds are behind the page; there is no fold");
+  assert.equal(find(section("patrol"), (p) => p["data-tq-round"] !== undefined).length, 0, "no rounds in the panel");
+  assert.match(texts(patrolEntry), /巡检/);
+  assert.match(texts(patrolEntry), /未决数未知/);
+  assert.equal(patrolEntry.props["data-tq-patrol-summary"], "true");
+  assert.match(patrolEntry.props["aria-label"], /巡检.*未决数未知.*打开巡检详情/);
+  patrolEntry.props.onClick({ currentTarget: null });
+  const patrolPage = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
+  assert.ok(patrolPage, "the entry opens the patrol page");
+  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-summary"] !== undefined).length, 0, "the page is not another entry");
+  const rhythm = find(patrolPage, (p) => p["data-tq-rhythm"] !== undefined)[0];
+  assert.ok(rhythm, "the page has the outcome strip");
   assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
     ["R140", "R139", "R138", "R137", "R136"], "the strip reads newest first, like the list");
   assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-role"]),
     ["done", "done", "done", "done", "done"], "the segment takes the round's verdict role");
   assert.match(texts(rhythm), /完成 5/, "the count line is the legend in words");
-  assert.deepEqual(find(section("patrol"), (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]),
-    ["R140", "R139", "R138", "R137", "R136"], "every round is in the one list");
-  const newest = find(section("patrol"), (p) => p["data-tq-round"] === "R140")[0];
+  assert.deepEqual(find(patrolPage, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]),
+    ["R140", "R139", "R138", "R137", "R136"], "every round is in the one page list");
+  const newest = find(patrolPage, (p) => p["data-tq-round"] === "R140")[0];
   assert.deepEqual(factSlots(newest), ["filed", "when", "took"], "a round that filed says so on line 2");
-  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]).replace(/ +/g, " "), "提报 1 · P1 #2240 · 汇总 +2 · 补充 1");
+  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]).replace(/ +/g, " "), "提报 1 · P1 #2240 · 汇总 2 · 补充 1");
   const issueLink = find(newest, (p) => p.href !== undefined)[0];
   assert.equal(issueLink.type, "a", "filing evidence has an exit to the actual finding");
   assert.equal(issueLink.props.href, "https://github.com/KCNyu/clawock/issues/2240");
   assert.match(issueLink.props["aria-label"], /P1 #2240/);
   assert.equal(find(newest, (p) => p["data-severity"] === "P1").length, 1, "severity is text and a paint role");
   assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
-  assert.doesNotMatch(texts(section("patrol")), /preempting patrol-recent-1/, "raw supervisor output is not a task conclusion");
+  assert.doesNotMatch(texts(patrolPage), /preempting patrol-recent-1/, "raw supervisor output is not a task conclusion");
+  find(patrolPage, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   // Boundary cases, including mixed outcomes: never split into count/state chunks.
   for (const count of [0, 1, 2, 3, 4, 5, 6]) {
     const history = Array.from({ length: count }, (_, i) => ({ ...rounds[i % rounds.length], round: 'B' + i,
@@ -3786,13 +3803,18 @@ test("client: one provider cell carries the queue under each agent's provider an
     answer = { ...answer, patrol: { ...answer.patrol, rounds: history } };
     find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
     await tick(); await tick();
-    const patrol = find(render(), (p) => p["data-tq-group"] === "patrol")[0];
+    const entry = find(render(), (p) => p["data-tq-patrol-open"] !== undefined)[0];
+    assert.ok(entry, `${count} rounds: the one entry is still there`);
+    entry.props.onClick({ currentTarget: null });
+    const patrol = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
     assert.equal(folds(patrol).length, 0, `${count} rounds: never a fold`);
     assert.deepEqual(find(patrol, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), history.map(r => r.round),
-      `${count} rounds: all visible in the one list`);
+      `${count} rounds: all visible in the one page list`);
     assert.equal(find(patrol, (p) => p["data-tq-rhythm"] !== undefined).length, count >= 2 ? 1 : 0,
       `${count} rounds: the strip needs at least two segments`);
+    find(patrol, (p) => p["data-tq-back"] === "true")[0].props.onClick();
   }
+
 
   // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
   // not "showing the last read" — the same judgement the balance half makes on its rows.
@@ -4477,14 +4499,19 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /_tq-fold-pill>\.\w+_tq-fold-summary:active\{[^}]*transform:scale\(var\(--tq-press-scale\)\)/);
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-pill>\.\w+_tq-fold-summary:after\{inset:-9px -8px\}/);
-  const linkRule = ruleOf("_tq-cov-link");
-  assert.match(linkRule, /min-height:36px/);
-  assert.match(linkRule, /width:calc\(100% - var\(--tq-main-inset\)\)/);
-  assert.match(linkRule, /transition:background-color/);
-  assert.match(ruleOf("_tq-cov-link:focus-visible"), /outline:var\(--tq-focus-ring\)/);
-  assert.match(css, /_tq-cov-link:active\{background:var\(--tq-fill-press\)\}/);
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-cov-link:hover/);
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-cov-link[^}]*min-height:44px/, "the coverage row grows to a finger target");
+  const entryRule = ruleOf("_tq-patrol-entry");
+  assert.match(entryRule, /min-height:44px/);
+  assert.match(entryRule, /width:calc\(100% - var\(--tq-main-inset\)\)/);
+  assert.match(entryRule, /transition:background-color/);
+  assert.match(ruleOf("_tq-patrol-entry:focus-visible"), /outline:var\(--tq-focus-ring\)/);
+  assert.match(css, /_tq-patrol-entry:active\{background:var\(--tq-fill-press\)\}/);
+  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-patrol-entry:hover/);
+  assert.match(ruleOf("_tq-patrol-entry-phase"), /text-overflow:ellipsis/);
+  assert.match(ruleOf("_tq-patrol-entry-value"), /margin-left:auto/);
+  assert.match(ruleOf("_tq-patrol-entry-lead"), /flex:none/);
+  assert.match(css, /_tq-patrol-detail\{[^}]*display:flex/);
+  assert.match(css, /_tq-patrol-page\{[^}]*min-width:0/);
+  assert.doesNotMatch(css, /_tq-cov-link/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary[^{]*:active\{transform:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-stats-card[^{]*:active\{transform:none\}/, "the stats card's press respects reduced motion");
@@ -4511,13 +4538,14 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /_tq-cov-clear-mark\{[^}]*color:var\(--tq-text-ok\)/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-seg[^{]*\{transition:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{transition:none\}/);
-  // Provider categories use the local cool run (the dsh theme has no --viz-*); the total line
-  // is the strong ink, not a seventh series. No hand-picked hex and no semantic state token is
-  // reused as a provider colour.
-  assert.match(css, /--tq-series-1:color-mix\(in srgb, var\(--tq-run\) 72%, var\(--tq-ink\)\)/);
-  assert.match(css, /--tq-series-total:var\(--tq-ink\)/);
-  assert.match(css, /_tq-stats-chart-total\{[^}]*stroke:var\(--tq-series-total\)/);
-  assert.doesNotMatch(css, /stroke:var\(--viz-warm\)/);
+  // Provider categories use four hues at one uniform lightness and low chroma, tinted 90% over
+  // the panel; no semantic state token is reused as a provider colour and there is no total line.
+  assert.match(css, /--tq-viz-1:oklch\(62% \.1 275\)/);
+  assert.match(css, /--tq-series-1:color-mix\(in oklab, var\(--tq-viz-1\) 90%, transparent\)/);
+  assert.match(css, /--tq-viz-2:oklch\(62% \.08 195\)/);
+  assert.match(css, /--tq-viz-3:oklch\(62% \.09 325\)/);
+  assert.match(css, /--tq-viz-4:oklch\(62% \.07 110\)/);
+  assert.doesNotMatch(css, /--tq-series-total|_tq-stats-chart-total\{/);
 
 });
 
@@ -4811,30 +4839,33 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       for (let i = 0; i < count; i++) assert.ok(text.includes('T' + i));
       assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
     }
-    // Coverage is a page, not a fold. The patrol section ends with one link row; the page is the
-    // existing detail layer (back bar, focus move) and holds both tables. There is no second
-    // disclosure beside the rounds list.
+    // Patrol and coverage are one entry and one page. The panel has a single row carrying the
+    // phase and the coverage conclusion; the page holds the live head, the rounds and both tables.
     const patrolGroup = find(popover, (p) => p["data-tq-group"] === "patrol")[0];
-    assert.equal(find(patrolGroup, (p) => p["data-tq-fold"] === "coverage").length, 0, 'coverage is not a fold');
-    const coverageLink = find(patrolGroup, (p) => p["data-tq-coverage-open"] !== undefined)[0];
-    assert.equal(coverageLink.type, "button", 'the coverage row is a link, not a summary');
-    assert.equal(patrolGroup.children.filter(Boolean).at(-1), coverageLink, 'coverage comes after the rounds, not between the head and the latest round');
-    assert.match(texts(coverageLink), /巡检覆盖/);
-    assert.match(texts(coverageLink), /2 个 area 有未决/);
-    assert.match(coverageLink.props["aria-label"], /^巡检覆盖 · 2 个 area 有未决 · 打开巡检覆盖详情$/, 'the accessible name carries the key and the conclusion');
-    assert.equal(find(coverageLink, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
-    assert.equal(find(coverageLink, (p) => /_tq-cov-link-dot$/.test(p.className || "")).length, 1, 'the link carries one colour mark');
-    coverageLink.props.onClick({ currentTarget: null });
-    const layer = find(render(), (p) => p["data-tq-coverage-layer"] !== undefined)[0];
-    assert.ok(layer, 'the link opens the coverage page');
-    assert.equal(find(render(), (p) => p["data-tq-coverage-layer"] !== undefined).length, 1, 'one page, not a fold inside the list');
+    assert.equal(find(patrolGroup, (p) => p["data-tq-round"] !== undefined).length, 0, 'no round list in the panel');
+    assert.equal(find(patrolGroup, (p) => p["data-tq-coverage-open"] !== undefined).length, 0, 'no separate coverage link');
+    const patrolEntry = find(patrolGroup, (p) => p["data-tq-patrol-open"] !== undefined)[0];
+    assert.equal(patrolEntry.type, "button", 'patrol is one entry, not a head + list + link');
+    assert.equal(patrolGroup.children.filter(Boolean).at(-1), patrolEntry, 'the entry is the whole patrol section');
+    assert.match(texts(patrolEntry), /巡检/);
+    assert.match(texts(patrolEntry), /2 个 area 有未决/, 'the entry states the coverage conclusion');
+    assert.match(patrolEntry.props["aria-label"], /^巡检 · .* · 2 个 area 有未决 · 打开巡检详情$/, 'the accessible name carries the phase and the conclusion');
+    assert.equal(find(patrolEntry, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
+    assert.equal(find(patrolEntry, (p) => /_tq-patrol-entry-dot$/.test(p.className || "")).length, 1, 'the entry carries one colour mark');
+    patrolEntry.props.onClick({ currentTarget: null });
+    const layer = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
+    assert.ok(layer, 'the entry opens the patrol page');
+    assert.equal(find(render(), (p) => p["data-tq-patrol-layer"] !== undefined).length, 1, 'one page, not a fold inside the list');
+    assert.equal(find(layer, (p) => p["data-tq-patrol-summary"] !== undefined).length, 0, 'the page does not repeat the entry');
+    assert.ok(find(layer, (p) => p["data-tq-round"] !== undefined).length > 0, 'the rounds are on the page');
     assert.match(texts(find(layer, (p) => p["data-tq-back"] === undefined && /_tq-caption$/.test(p.className || ""))[0]), /2 个 area 有未决/, 'the page head states the conclusion');
     const covered = (attr) => find(layer, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
     assert.deepEqual(covered("data-coverage-area"), [["data", "data4"], ["dashboard", "dashboard1"], ["debt", "debt"], ["risk", "risk"]],
       'areas with open issues first, most first; the ones with none keep their names and links on one line');
     assert.deepEqual(covered("data-coverage-lens").map(([name]) => name), ["automation", "logic", "docs"], 'lenses most recently run first, never recorded last');
-    assert.match(covered("data-coverage-lens")[0][1], /312R139完成提报 1 · P0 #2241 · 汇总 \+1$/, 'runs, open, then the last round with its verdict and filings');
-    assert.equal(find(layer, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
+    assert.match(covered("data-coverage-lens")[0][1], /312R139完成提报 1 · P0 #2241 · 汇总 1$/, 'runs, open, then the last round with its verdict and filings');
+    const automationLens = find(layer, (p) => p["data-coverage-lens"] === "automation")[0];
+    assert.equal(find(automationLens, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
     assert.match(covered("data-coverage-lens")[1][1], /R130失败/, 'a failed last round says so');
     // The lens table is two bands: the rows with an open issue or a failed last run first, then the
     // rest by last run. The heading is one word and a dot; the old counts were noise. The chart
@@ -4862,7 +4893,7 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
     assert.doesNotMatch(texts(layer), /\d{4}-\d{2}-\d{2}[T ]\d{2}:/, 'no raw timestamp: stamps use the panel\'s own format');
     assert.match(texts(layer), /40 条轮次记录 · 另有 1 条损坏未计 · 自 9\/17 .* 起 · issue 快照 /, 'provenance is one footer line');
     find(layer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-    assert.equal(find(render(), (p) => p["data-tq-coverage-layer"] !== undefined).length, 0, 'back closes the coverage page');
+    assert.equal(find(render(), (p) => p["data-tq-patrol-layer"] !== undefined).length, 0, 'back closes the patrol page');
     // The chat reply keeps the archive out and speaks of coverage only when a source could not be read.
     assert.ok(!reply.join("\n").includes('巡检覆盖') && !reply.some((l) => /dashboard|未决/.test(l)), 'no coverage block and no area counts in chat');
     const unread = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
