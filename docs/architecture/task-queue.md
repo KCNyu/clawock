@@ -203,7 +203,7 @@ finished attempt.
 
 ### summary — totals over the frozen results
 
-`summary [--since YYYY-MM-DD] [--agent claude,codex,opencode] [--all]` (`dispatch.sh summary`)
+`summary [--since YYYY-MM-DD] [--agent claude,codex,opencode,dsh] [--all]` (`dispatch.sh summary`)
 counts, per agent, tasks by runner `STATE` and by model `OUTCOME`, and adds up the
 `TOKENS_TOTAL` / `COST_USD` each terminal task froze into `result.env`. It never rereads a
 session (a later task continuing the same session would be counted twice). An empty value is
