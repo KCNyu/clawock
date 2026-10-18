@@ -46,12 +46,18 @@ UNITS=(
 LAST="$DEST_DIR/.install-shared-memory.last"
 
 render_unit() {  # <unit> -> stdout; the daily deep check needs every agent CLI on PATH
-  local path="" bin
+  local path="" bin dir
   for bin in node codex dsh opencode claude git; do
     bin=$(command -v "$bin" 2>/dev/null) || continue
     case ":$path:" in *":$(dirname "$bin"):"*) ;; *) path="${path:+$path:}$(dirname "$bin")" ;; esac
   done
-  path="${path:+$path:}/usr/local/bin:/usr/bin:/bin"
+  # Keep what the installed unit already had: refresh_live.sh may run with a reduced PATH
+  # (no dsh), and a re-render must not drop a CLI directory the deep check relies on.
+  local IFS=:
+  for dir in $(sed -n 's/^Environment=PATH=//p' "$UNIT_DIR/shared-memory-daily.service" 2>/dev/null) /usr/local/bin /usr/bin /bin; do
+    case ":$path:" in *":$dir:"*) ;; *) path="${path:+$path:}$dir" ;; esac
+  done
+  unset IFS
   sed -e "s|@SKILL_DIR@|$DEST_DIR|g" -e "s|@HOME@|$HOME|g" -e "s|@PATH@|$path|g" "$SRC_DIR/systemd/$1"
 }
 

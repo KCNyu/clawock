@@ -301,3 +301,15 @@ def test_install_check_units_and_rollback(tmp_path):
     assert (dest / "SKILL.md").read_text() == "old skill"
     assert (dest / "scripts/test_memory_format.py").read_text() == "old test"
     assert not (dest / "scripts/memctl").exists()
+
+
+def test_rerendering_units_keeps_cli_directories_the_installed_unit_had(tmp_path):
+    units = tmp_path / "units"
+    units.mkdir()
+    (units / "shared-memory-daily.service").write_text("Environment=PATH=/opt/agents/bin:/usr/bin\n")
+    env = {**os.environ, "PATH": "/usr/bin:/bin", "SHARED_MEMORY_SKILL_DIR": str(tmp_path / "skill"),
+           "SHARED_MEMORY_UNIT_DIR": str(units)}
+    proc = subprocess.run(["bash", str(INSTALL), "--units"], env=env, capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0, proc.stderr
+    path = re.search(r"^Environment=PATH=(.+)$", (units / "shared-memory-daily.service").read_text(), re.M).group(1)
+    assert "/opt/agents/bin" in path.split(":")
