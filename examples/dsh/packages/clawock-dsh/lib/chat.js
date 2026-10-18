@@ -2697,7 +2697,7 @@ function panelText(model, t) {
 	return out.join("\n");
 }
 /** One Markdown table cell: a literal `|` would open a column, so escape it. */
-const cell = (text) => literal(text).replace(/\|/g, "\\|");
+const cell = (text) => text.replace(/([\\`*_[\]<>|])/g, "\\$1").replace(/[\r\n]+/g, " ");
 /**
 * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
 * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).

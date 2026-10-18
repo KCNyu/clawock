@@ -110,7 +110,7 @@ export function panelText(model: PanelModel, t: Translate): string {
 }
 
 /** One Markdown table cell: a literal `|` would open a column, so escape it. */
-const cell = (text: string): string => literal(text).replace(/\|/g, '\\|')
+const cell = (text: string): string => text.replace(/([\\`*_[\]<>|])/g, '\\$1').replace(/[\r\n]+/g, ' ')
 
 /**
  * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
