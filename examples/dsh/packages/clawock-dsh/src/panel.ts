@@ -1146,9 +1146,12 @@ export function statsSection(stats: TaskStats | null | undefined, t: Translate):
   if (stats == null) return null
   const title = t('stats.title')
   const foldTitle = t('stats.foldTitle')
-  const window = stats.days !== null ? t('stats.window.days', { n: stats.days })
+  const baseWindow = stats.days !== null ? t('stats.window.days', { n: stats.days })
     : stats.since !== null ? t('stats.window.since', { date: stats.since })
       : t('stats.window.all')
+  // Patrol rounds are a different population (mostly failed free-pool rounds): say so in the
+  // window when they are in, never only in a note a screenshot may crop.
+  const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
   const notes = [t('stats.note.frozen'), t('stats.note.cost'), ...(!stats.patrolIncluded ? [t('stats.note.patrol')] : [])]
   if (!stats.available) {
     return { title, foldTitle, window, headline: t('stats.headline.failed', { window }), rows: [], notes: [t('stats.unavailable', { message: stats.error })], empty: '' }

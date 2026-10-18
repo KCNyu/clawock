@@ -6940,6 +6940,7 @@ const dictionaries = {
 		"stats.window.days": "近 {n} 天",
 		"stats.window.since": "{date} 起",
 		"stats.window.all": "全部",
+		"stats.window.patrol": "{window}（含巡检）",
 		"stats.tasks": "{n} 项",
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
@@ -7432,6 +7433,7 @@ const dictionaries = {
 		"stats.window.days": "last {n} days",
 		"stats.window.since": "since {date}",
 		"stats.window.all": "all time",
+		"stats.window.patrol": "{window} (incl. patrol)",
 		"stats.tasks": "{n} tasks",
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
@@ -8863,7 +8865,8 @@ function statsSection(stats, t) {
 	if (stats == null) return null;
 	const title = t("stats.title");
 	const foldTitle = t("stats.foldTitle");
-	const window = stats.days !== null ? t("stats.window.days", { n: stats.days }) : stats.since !== null ? t("stats.window.since", { date: stats.since }) : t("stats.window.all");
+	const baseWindow = stats.days !== null ? t("stats.window.days", { n: stats.days }) : stats.since !== null ? t("stats.window.since", { date: stats.since }) : t("stats.window.all");
+	const window = stats.patrolIncluded ? t("stats.window.patrol", { window: baseWindow }) : baseWindow;
 	const notes = [
 		t("stats.note.frozen"),
 		t("stats.note.cost"),

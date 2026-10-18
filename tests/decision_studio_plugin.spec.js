@@ -4799,7 +4799,7 @@ print(json.dumps({"ok": True, "since": since, "patrol_included": False, "agents"
     const seen = fs.readFileSync(argvFile, "utf8").trim().split("\n");
     assert.deepEqual(seen[0], "--json summary --since " + (await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href)).sinceDay(7));
     const all = await run("all patrol");
-    assert.match(all.text, /全部 · 2 项/);
+    assert.match(all.text, /全部（含巡检） · 2 项/);
     assert.equal(fs.readFileSync(argvFile, "utf8").trim().split("\n")[1], "--json summary --all",
       "all-time includes patrol, and no since is passed");
     const bad = await run("yesterday");
