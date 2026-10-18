@@ -554,9 +554,11 @@ export declare function statsView(stats: TaskStats | null | undefined, t: Transl
  *   areas   open filed issues per area, most first, each with its share of the largest; the areas
  *           with none share one line. This is where findings belong, NOT where patrol looked
  *           (rounds.tsv has no area), and the one caption under the heading says so.
- *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *   lenses  one row per lens. Lenses with an open issue or a failed last run come first ("needs a
+ *           look"), then the rest most recently run first, so the rotation gap reads down the
  *           `when` column: last run, recorded attempts, open issues; under it the last round with
- *           its verdict and what it filed (the same words and links as a round row).
+ *           its verdict and what it filed (the same words and links as a round row). The number of
+ *           recorded attempts also carries a bar against the busiest lens; no count is inferred.
  *
  * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
  * said only when it happens; the provenance every reading has (how many records, since when, the
@@ -579,6 +581,7 @@ export type CoverageView = {
         name: string;
         open: string;
         share: number | null;
+        hasOpen: boolean | null;
         href: string;
     }>;
     /** Areas with none, on one line. */
@@ -602,6 +605,8 @@ export type CoverageView = {
         /** When it last ran, as a round row says it; null when no round is recorded. */
         when: Fact | null;
         runs: string;
+        /** The runs bar against the busiest lens; null when the count or the scale is unknown. */
+        runsShare: number | null;
         open: string;
         /** Open issues exist (the count is drawn strong); null when unknown. */
         hasOpen: boolean | null;
@@ -617,6 +622,22 @@ export type CoverageView = {
     footnote: string;
     empty: string;
 };
+/** The last rounds as one small outcome chart: one bar per round, oldest → newest. */
+export type PatrolRhythm = {
+    /** Oldest → newest, so the chart reads like time. */
+    bars: Array<{
+        key: string;
+        round: string;
+        role: StateRole;
+        title: string;
+    }>;
+    caption: string;
+    /** Nonzero outcome counts, worst first; the words carry the colour. */
+    summary: Array<{
+        role: StateRole;
+        text: string;
+    }>;
+};
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
@@ -625,6 +646,7 @@ export type CoverageView = {
 export declare function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): {
     head: RowView;
     rounds: RowView[];
+    rhythm: PatrolRhythm | null;
     progress: CoverageView | null;
 } | null;
 /** The ops entry's footer: its version and runner api, or why it is missing / skewed. */

@@ -511,33 +511,31 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 ### Patrol coverage · 巡检覆盖
 
 The patrol history continues behind a row at the end of the rounds well (`N earlier rounds`);
-opening it adds the older rows to the same well. The section then ends with one read-only coverage
-fold, closed until asked for; its summary is a key/value row — the quiet title on the left, the
-conclusion on the right (`nothing open`, how many areas have open issues, or unknown), the chevron
-last. The conclusion is the headline. Inside are two tables on the panel's well. **Open issues by
-area**: most first, each with a bar against the largest; areas with none share one line. These
-counts say where filed issues belong, not where patrol looked: rounds carry no area, so no area
-inspection time, round or verdict is shown or inferred. **Rounds by lens**: most recently run first,
-with last run, recorded attempts and open issues in right-aligned columns, and under each the last
-round with its verdict and linked filings. Attempts come from every valid `rounds.tsv` row and
-include interrupted and unsuccessful ones (the history above still shows at most eight). The
-installed `axes.tsv` supplies the lens inventory; `labels-known.json` supplies area names. Open
-counts use a read-only GitHub label query through `gh` (cached up to five minutes; a failed or
-saturated query shows unknown). One footer line gives the provenance: record count, malformed rows
-left out, the first readable record and the issue snapshot time. An unreadable history, inventory
-or issue query is said at the top of the fold, and only then. No supervisor state, dispatch
-behavior or patrol files are changed.
+opening it adds the older rows to the same well. Above the list, the last rounds are a small rhythm
+chart: one equal-height tile per round, oldest → newest, colour = verdict (done business blue,
+partial/preempted amber, failed red, unknown grey), with the outcome counts in words underneath.
+The section then ends with one read-only coverage fold, closed until asked for; its summary is a
+key/value row — the quiet title on the left, the conclusion on the right (`nothing open`, how many
+areas have open issues, or unknown), the chevron last. Inside are two visual tables. **Open issues
+by area**: amber bars against the largest, count badges, and the areas with none on one line behind
+a green check. **Rounds by lens**: the lenses with an open issue or a failed last run first ("needs
+a look"), then the rest by last run, so the rotation gap still reads down the `when` column. Each
+lens row carries a status dot for its last verdict, a neutral runs bar against the busiest lens,
+and an open badge (amber when positive, quiet at zero, dashed when unknown). The columns stay
+right-aligned and a count is still under a count. The fold content fades in and the bars grow from
+their zero end when the reader opens the fold; `prefers-reduced-motion` shows the final state, and
+no number is tweened. No supervisor state, dispatch behavior or patrol files are changed.
 
-巡检分节的历史在轮次底板最后一行「更早的 N 轮」处续接，展开后旧轮次回到同一块底板；最后是一个只读的
-「巡检覆盖」折叠区，默认收起。它的摘要行本身就是结论：左边是标题，右边是结论（无未决、几个 area 有未决，
-或未决数未知）。展开后是底板上的两张表。**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的
-细条；没有未决的 area 合成一行。这些数只说明已提报的问题归谁，不说明巡检过哪里：轮次记录里没有 area，
-所以不显示也不推断任何 area 的巡检时间、轮次或结论。**轮次 · 按 lens**：按上次运行时间从近到远，上次时间、
-记录次数、未决数右对齐成列，下面一行是上一轮的结论与带链接的提报。次数来自 `rounds.tsv` 的全部有效记录，包含中断
-与失败（上方历史仍最多八轮）。已安装 `axes.tsv` 给出 lens 清单，`labels-known.json` 给出 area 名称。
-未决数通过 `gh` 只读查询 GitHub 标签，最多缓存五分钟；查询失败或达到数量上限则显示未知。页脚一行交代
-来源：记录条数、未计入的损坏记录、首条可读记录与 issue 快照时刻。历史、清单或 issue 查询读不到时在
-折叠区顶部明说，且只在那时出现。不写巡检文件、不改 supervisor 状态或派发行为。
+巡检分节的历史在轮次底板最后一行「更早的 N 轮」处续接，展开后旧轮次回到同一块底板。列表上方是最近几轮的小图：
+一轮一个等高的格子，左旧右新，颜色是这一轮的判决（完成用 business blue、部分/让路用 alert amber、失败用
+error red、未知用灰），下面用文字写结果计数。最后是一个只读的「巡检覆盖」折叠区，默认收起。它的摘要行本身
+就是结论：左边是标题，右边是结论（无未决、几个 area 有未决，或未决数未知）。展开后是两张可视化表。
+**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的 amber 细条和一个计数徽章；没有未决的 area
+合成一行，前面一个绿色对勾。**轮次 · 按 lens**：有未决问题或上一轮失败的 lens 先放在「需要看一眼」，
+其余按上次运行时间从近到远，所以轮换的缺口仍能沿 `上次` 列读出来。每个 lens 行有上一轮判决的状态点、
+相对最忙 lens 的中性记录条，以及未决徽章（有未决为 amber，零为安静灰，未知为虚线）；各列仍右对齐，
+一个数仍在一个数下面。折叠内容淡入、条形从零端长到真实长度；`prefers-reduced-motion` 下直接显示最终
+状态，任何数字都不做补间。不写巡检文件、不改 supervisor 状态或派发行为。
 
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 

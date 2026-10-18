@@ -1232,9 +1232,11 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
  *   areas   open filed issues per area, most first, each with its share of the largest; the areas
  *           with none share one line. This is where findings belong, NOT where patrol looked
  *           (rounds.tsv has no area), and the one caption under the heading says so.
- *   lenses  one row per lens, most recently run first, so the gap in the rotation reads down the
+ *   lenses  one row per lens. Lenses with an open issue or a failed last run come first ("needs a
+ *           look"), then the rest most recently run first, so the rotation gap reads down the
  *           `when` column: last run, recorded attempts, open issues; under it the last round with
- *           its verdict and what it filed (the same words and links as a round row).
+ *           its verdict and what it filed (the same words and links as a round row). The number of
+ *           recorded attempts also carries a bar against the busiest lens; no count is inferred.
  *
  * What is wrong with the sources (unreadable history, inventory or issue labels) is `alerts`,
  * said only when it happens; the provenance every reading has (how many records, since when, the
@@ -1253,7 +1255,7 @@ export type CoverageView = {
   areaHeading: string
   areaNote: string
   /** Areas with open issues (or an unknown count), most first; `share` is the bar against the largest. */
-  areas: Array<{ name: string; open: string; share: number | null; href: string }>
+  areas: Array<{ name: string; open: string; share: number | null; hasOpen: boolean | null; href: string }>
   /** Areas with none, on one line. */
   clear: { label: string; names: Array<{ name: string; href: string }> }
   lensHeading: string
@@ -1264,6 +1266,8 @@ export type CoverageView = {
     /** When it last ran, as a round row says it; null when no round is recorded. */
     when: Fact | null
     runs: string
+    /** The runs bar against the busiest lens; null when the count or the scale is unknown. */
+    runsShare: number | null
     open: string
     /** Open issues exist (the count is drawn strong); null when unknown. */
     hasOpen: boolean | null
@@ -1288,6 +1292,7 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length
   const unread = progress.issuesAt === '' || [...progress.areas, ...progress.lenses].some((x) => x.open === null)
   const ended = (l: (typeof progress.lenses)[number]): number => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity
+  const maxRuns = Math.max(0, ...progress.lenses.map((l) => l.rounds ?? 0))
   const conclusion = openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
     : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
       : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')
@@ -1302,7 +1307,8 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
     ],
     areaHeading: t('queue.coverage.areas'),
     areaNote: t('queue.coverage.areaNote'),
-    areas: listed.map((a) => ({ name: a.name, open: count(a.open), share: a.open === null || most === 0 ? null : a.open / most, href: issues('area:' + a.name) })),
+    areas: listed.map((a) => ({ name: a.name, open: count(a.open), share: a.open === null || most === 0 ? null : a.open / most,
+      hasOpen: a.open === null ? null : a.open > 0, href: issues('area:' + a.name) })),
     clear: { label: t('queue.coverage.clear'), names: progress.areas.filter((a) => a.open === 0).map((a) => ({ name: a.name, href: issues('area:' + a.name) })) },
     lensHeading: t('queue.coverage.lenses'),
     lensNote: t('queue.coverage.lensNote'),
@@ -1312,7 +1318,8 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
       return {
         name: l.name, href: issues('lens:' + l.name),
         when: last?.facts.when ?? null,
-        runs: count(l.rounds), open: count(l.open), hasOpen: l.open === null ? null : l.open > 0,
+        runs: count(l.rounds), runsShare: l.rounds === null || maxRuns === 0 ? null : l.rounds / maxRuns,
+        open: count(l.open), hasOpen: l.open === null ? null : l.open > 0,
         last: last === null ? null : { round: l.last!.round, state: last.state, filed: last.facts.filed ?? null },
         none: l.rounds === null ? unknown : t('queue.coverage.notRecorded'),
       }
@@ -1329,12 +1336,49 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   }
 }
 
+/** The last rounds as one small outcome chart: one bar per round, oldest → newest. */
+export type PatrolRhythm = {
+  /** Oldest → newest, so the chart reads like time. */
+  bars: Array<{ key: string; round: string; role: StateRole; title: string }>
+  caption: string
+  /** Nonzero outcome counts, worst first; the words carry the colour. */
+  summary: Array<{ role: StateRole; text: string }>
+}
+
+/**
+ * The rounds chart. The list below is chronological prose; this is the same data as a shape:
+ * one equal-height tile per round, oldest → newest, colour is the round's verdict (the same
+ * role its chip uses). Duration is not a second height scale: one 44-minute round flattened
+ * the 2–10 minute rounds into a line, so the duration stays in the tile's title and the list,
+ * and the chart keeps the one thing a reader scans for — the run of failures.
+ */
+function patrolRhythm(rounds: PatrolRound[], t: Translate, now: number): PatrolRhythm | null {
+  if (rounds.length < 2) return null
+  const bars = [...rounds].reverse().map((round) => {
+    const view = roundRow(round, t, now)
+    const role = view.state?.role ?? 'unknown'
+    const title = [round.round, round.axis, view.state?.text, view.facts.took?.text]
+      .filter((part): part is string => part !== undefined && part !== '').join(' · ')
+    return { key: view.key, round: round.round, role, title }
+  })
+  const order: StateRole[] = ['fail', 'partial', 'done', 'off', 'unknown']
+  const label: Partial<Record<StateRole, string>> = {
+    fail: 'queue.rhythm.failed', partial: 'queue.rhythm.partial', done: 'queue.rhythm.done',
+    off: 'queue.rhythm.yielded', unknown: 'queue.rhythm.unknown',
+  }
+  const counts = new Map<StateRole, number>()
+  for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1)
+  const summary = order.filter((role) => (counts.get(role) ?? 0) > 0)
+    .map((role) => ({ role, text: t(label[role] ?? 'queue.rhythm.unknown', { n: counts.get(role) ?? 0 }) }))
+  return { bars, caption: t('queue.rhythm.caption', { n: bars.length }), summary }
+}
+
 /**
  * Patrol: a section head (the phase as its state chip, the live status as its
  * caption), and one chronological history group. The raw supervisor journal
  * is not a task conclusion; the head already projects its useful status.
  */
-export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; progress: CoverageView | null } | null {
+export function patrolSection(result: TaskQueueResult | null, t: Translate, now: number): { head: RowView; rounds: RowView[]; rhythm: PatrolRhythm | null; progress: CoverageView | null } | null {
   if (result === null || !result.available) return null
   const patrol = result.patrol
   return {
@@ -1346,6 +1390,7 @@ export function patrolSection(result: TaskQueueResult | null, t: Translate, now:
       attrs: { 'data-tq-patrol': patrol.phase },
     },
     rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+    rhythm: patrolRhythm(patrol.rounds ?? [], t, now),
     progress: progressView(patrol.progress, t, now),
   }
 }

@@ -1692,6 +1692,11 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-focus-ring:var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--tq-run));
   --tq-ease:var(--ds-ease-in-out);
   --tq-fast:var(--ds-transition-duration-fast);
+  /* The host exposes fast (press/hover) and ease-in-out only. The repo's standard entrance —
+     a fold's content, bars reaching their length — is 240ms on the strong ease-out curve; named
+     once here so the two charts and the fold body share it. */
+  --tq-ease-out:cubic-bezier(.23, 1, .32, 1);
+  --tq-standard:240ms;
   --tq-mono:var(--ds-font-family-code);
   /* THE row grid (client.ts ROW_KINDS / FACT_CELL): five tracks, three of them fixed.
        lead · when · took · rest · aside
@@ -2336,6 +2341,9 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink-3)
 }
 .pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   margin-left:auto;
   font:var(--dsw-font-xs-strong-13);
   line-height:20px;
@@ -2345,9 +2353,81 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="open"] { color:var(--tq-ink) }
 .pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="unknown"] { color:var(--tq-text-warn) }
+.pbc .tq-fold-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-fold-value[data-coverage-state="none"] .tq-fold-dot { background:var(--tq-text-ok) }
+.pbc .tq-fold-value[data-coverage-state="open"] .tq-fold-dot { background:var(--tq-wait) }
+.pbc .tq-fold-value[data-coverage-state="unknown"] .tq-fold-dot { background:var(--tq-text-warn) }
 .pbc .tq-fold-foot > .tq-fold-summary:active { background:var(--tq-fill-press) }
 .pbc .tq-fold-body { margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }
 .pbc .tq-fold-body > .tq-log { margin:2px 0 4px var(--tq-main-inset) }
+/* Fold content: the layout is immediate (native details), the block fades in; no height and no
+   movement. This is the design system's "fold opened by the reader" motion. */
+.pbc .tq-fold[open] > .tq-fold-body { animation:tq-fold-in var(--tq-standard) var(--tq-ease-out) both }
+@keyframes tq-fold-in {
+  from { opacity:0 }
+  to { opacity:1 }
+}
+/* The patrol rhythm: the same rounds as the list below, drawn once. Height is the recorded
+   duration against the longest in the window; colour is the verdict on the stats card's chart
+   scale (done blue, partial/preempted amber, failed red, no verdict grey). The bars rise once
+   when the section mounts; the count line is the text and the bars are decorative. */
+.pbc .tq-rhythm { margin:6px 0 0 var(--tq-main-inset) }
+.pbc .tq-rhythm-head {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-rhythm-bars {
+  display:flex;
+  align-items:flex-end;
+  gap:4px;
+  margin-top:3px;
+  padding-bottom:1px;
+  border-bottom:.5px solid var(--tq-hairline)
+}
+.pbc .tq-rhythm-bar {
+  flex:1 1 0;
+  min-width:0;
+  max-width:44px;
+  height:14px;
+  border-radius:2px 2px 0 0;
+  background:var(--tq-idle);
+  transform:scaleY(1);
+  transform-origin:bottom;
+  transition:transform var(--tq-standard) var(--tq-ease-out)
+}
+@starting-style {
+  .pbc .tq-rhythm-bar { transform:scaleY(0) }
+}
+.pbc .tq-rhythm-bar[data-role="done"] { background:var(--tq-run) }
+.pbc .tq-rhythm-bar[data-role="partial"] { background:var(--tq-wait) }
+.pbc .tq-rhythm-bar[data-role="fail"] { background:var(--tq-bad) }
+.pbc .tq-rhythm-bar[data-role="idle"] { background:var(--tq-ink-3) }
+.pbc .tq-rhythm-summary {
+  display:flex;
+  flex-wrap:wrap;
+  gap:2px 12px;
+  margin-top:4px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums
+}
+.pbc .tq-rhythm-item { display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }
+.pbc .tq-rhythm-sep { color:var(--tq-ink-3) }
+.pbc .tq-rhythm-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-rhythm-item[data-role="done"] .tq-rhythm-dot { background:var(--tq-run) }
+.pbc .tq-rhythm-item[data-role="partial"] { color:var(--tq-text-warn) }
+.pbc .tq-rhythm-item[data-role="partial"] .tq-rhythm-dot { background:var(--tq-wait) }
+.pbc .tq-rhythm-item[data-role="fail"] { color:var(--tq-text-bad) }
+.pbc .tq-rhythm-item[data-role="fail"] .tq-rhythm-dot { background:var(--tq-bad) }
+.pbc .tq-rhythm-item[data-role="idle"] { color:var(--tq-ink-3) }
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-rhythm-bar { transition:box-shadow var(--tq-fast) var(--tq-ease) }
+  .pbc .tq-rhythm-bar:hover { box-shadow:0 0 0 1px var(--tq-ink-3) }
+}
 .pbc .tq-foot {
   margin-top:8px;
   padding-top:6px;
@@ -2807,6 +2887,15 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-fold-chev {
     transition:none
   }
+  /* The bars keep their final length; the fold content appears; nothing moves. */
+  .pbc .tq-fold[open] > .tq-fold-body,
+  .pbc .tq-fold[open] .tq-cov-fill,
+  .pbc .tq-fold[open] .tq-cov-runs-fill {
+    animation:none
+  }
+  .pbc .tq-rhythm-bar {
+    transition:none
+  }
 }
 /* Fingers: every control a finger can reach gets a 44px target; the visible
    shape stays the host's size, the extra is an invisible hit area. */
@@ -3012,10 +3101,22 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 
-/* Patrol coverage (client.ts renderPatrolProgress): two tables on the well, behind the section's
-   last fold. One left edge (the well's 8px) and one set of right-aligned number tracks for both,
-   so a count is under a count whichever table it is in; a caveat is one caption under the
-   heading it qualifies; the provenance is the footer. Static reading material: nothing moves. */
+/* Patrol coverage (client.ts renderPatrolProgress): two visual tables on the well, behind the
+   section's last fold. One left edge (the well's 8px) and one set of right-aligned number tracks
+   for both, so a count is under a count whichever table it is in; a caveat is one caption under
+   the heading it qualifies; the provenance is the footer.
+
+   Colour is data here, not decoration: amber = an open issue (something to look at); the status
+   dot is the last run's verdict on the stats card's chart scale (done blue, partial/preempted
+   amber, failed red, no verdict grey); the green check is "none open". Every colour has its word
+   or number beside it, so a greyscale or screen-reader reading loses nothing.
+
+   The lens table has two jobs. The rows with an open issue or a failed last run come first under
+   "needs a look"; the rest follow under "by last run", where the rotation gap still reads down
+   the `when` column. Within each band the order is still last run first.
+
+   Motion: the fold content fades in and the bars grow once when the reader opens the fold; no
+   value is tweened, and a refresh only repaints the real numbers. */
 .pbc .tq-cov {
   padding:8px;
   font:var(--dsw-font-xxs-12);
@@ -3041,7 +3142,7 @@ body[data-ds-dark-theme] .pbc .bp {
   padding:4px 0
 }
 .pbc .tq-cov-area { grid-template-columns:minmax(0, 5.5em) minmax(0, 1fr) var(--tq-cov-num) }
-.pbc .tq-cov-lens { grid-template-columns:minmax(0, 1fr) var(--tq-when) var(--tq-cov-num) var(--tq-cov-num) }
+.pbc .tq-cov-lens { grid-template-columns:minmax(0, 1fr) var(--tq-when) 56px var(--tq-cov-num) }
 .pbc .tq-cov-cols { padding:0 0 2px; text-align:right }
 .pbc .tq-cov-name {
   justify-self:start;
@@ -3059,9 +3160,71 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc .tq-cov a:focus-visible { outline:var(--tq-focus-ring); outline-offset:2px }
 .pbc .tq-cov-num { text-align:right; white-space:nowrap }
-.pbc .tq-cov-area > .tq-cov-num,
-.pbc .tq-cov-num[data-open="true"] { font-weight:600; color:var(--tq-ink) }
-.pbc .tq-cov-num[data-open="false"] { color:var(--tq-ink-3) }
+/* The lens's name and its last-run dot share one cell, so the name still starts on the table's
+   left edge; the dot is a chart mark (its word is in the last-round line below). */
+.pbc .tq-cov-lens-name { display:flex; align-items:center; gap:6px; min-width:0 }
+.pbc .tq-cov-lens-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-cov-lens-dot[data-role="done"] { background:var(--tq-run) }
+.pbc .tq-cov-lens-dot[data-role="partial"] { background:var(--tq-wait) }
+.pbc .tq-cov-lens-dot[data-role="fail"] { background:var(--tq-bad) }
+.pbc .tq-cov-lens-dot[data-role="idle"] { background:var(--tq-ink-3) }
+/* The two bands: a quiet heading with a count, so an exception list never looks like a new
+   sort of the whole rotation. */
+.pbc .tq-cov-band {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:8px 0 2px;
+  font:var(--dsw-font-xxs-strong-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-cov-band[data-band="needs"] { color:var(--tq-text-warn) }
+.pbc .tq-cov-band-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-ink-3) }
+.pbc .tq-cov-band[data-band="needs"] .tq-cov-band-dot { background:var(--tq-wait) }
+.pbc .tq-cov-band-count { font-variant-numeric:tabular-nums; color:var(--tq-ink-3) }
+/* A run count with a bar against the busiest lens. The number stays; the bar is the shape. */
+.pbc .tq-cov-runs {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:4px;
+  min-height:20px
+}
+.pbc .tq-cov-runs-bar {
+  flex:none;
+  width:28px;
+  height:4px;
+  border-radius:2px;
+  overflow:hidden;
+  background:var(--tq-hairline)
+}
+.pbc .tq-cov-runs-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2); transform-origin:left }
+.pbc .tq-cov-runs-num { flex:none; min-width:16px; text-align:right; font-variant-numeric:tabular-nums }
+/* An open count is a badge, not a bare digit: amber when it needs a look, quiet when zero,
+   dashed when the issue source is unknown. */
+.pbc .tq-cov-open {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  background:var(--tq-chip-fill);
+  color:var(--tq-ink-2);
+  font:var(--dsw-font-xxs-strong-12);
+  line-height:16px;
+  font-variant-numeric:tabular-nums
+}
+.pbc .tq-cov-open[data-open="true"] { background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
+.pbc .tq-cov-open[data-open="false"] { background:transparent; color:var(--tq-ink-3); font-weight:400 }
+.pbc .tq-cov-open[data-open="unknown"] {
+  border:.5px dashed var(--tq-pill-border);
+  background:transparent;
+  color:var(--tq-ink-3);
+  font-weight:400
+}
 .pbc .tq-cov-bar {
   align-self:center;
   height:3px;
@@ -3069,7 +3232,7 @@ body[data-ds-dark-theme] .pbc .bp {
   overflow:hidden;
   background:color-mix(in srgb, var(--text) 9%, transparent)
 }
-.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2) }
+.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-wait); transform-origin:left }
 .pbc .tq-cov-clear {
   display:flex;
   flex-wrap:wrap;
@@ -3078,6 +3241,8 @@ body[data-ds-dark-theme] .pbc .bp {
   padding-top:4px
 }
 .pbc .tq-cov-clear .tq-cov-name { font:var(--dsw-font-xxs-12); line-height:20px; color:var(--tq-ink-2) }
+.pbc .tq-cov-clear-label { display:inline-flex; align-items:center; gap:4px; color:var(--tq-text-ok) }
+.pbc .tq-cov-clear-label .tq-role-glyph { width:11px; height:11px }
 /* A lens's last round: quiet facts set apart by space, so a wrapped line never starts on a dot. */
 .pbc .tq-cov-last {
   grid-column:1 / -1;
@@ -3101,8 +3266,25 @@ body[data-ds-dark-theme] .pbc .bp {
   border-top:.5px solid var(--tq-hairline);
   overflow-wrap:anywhere
 }
+/* The chart entrance: the bars reach their real length from the baseline/left edge once, when
+   the reader opens the fold. Transform only; the numbers are already the true values. */
+.pbc .tq-fold[open] .tq-cov-fill,
+.pbc .tq-fold[open] .tq-cov-runs-fill { animation:tq-bar-grow var(--tq-standard) var(--tq-ease-out) both }
+@keyframes tq-bar-grow {
+  from { transform:scaleX(0) }
+  to { transform:scaleX(1) }
+}
 @media (pointer: coarse) {
   /* A finger's target without a taller row: inline padding widens the hit area, not the line box. */
   .pbc .tq-cov a { display:inline; min-height:0; padding-block:12px }
   .pbc .tq-cov a.tq-cov-name { padding-block:6px; margin-block:-6px }
+}
+
+/* The coverage bar rule lives after the general reduced-motion block; restate it here so a
+   reader who asked for less motion gets the bars at their final length too. */
+@media (prefers-reduced-motion: reduce) {
+  .pbc .tq-fold[open] .tq-cov-fill,
+  .pbc .tq-fold[open] .tq-cov-runs-fill {
+    animation:none
+  }
 }

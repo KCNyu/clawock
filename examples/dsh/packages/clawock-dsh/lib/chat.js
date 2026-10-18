@@ -210,7 +210,15 @@ const dictionaries = {
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
 		"queue.chip.unpriced": "未定价",
+		"queue.rhythm.caption": "最近 {n} 轮 · 旧→新 · 色=结果",
+		"queue.rhythm.done": "完成 {n}",
+		"queue.rhythm.partial": "部分 {n}",
+		"queue.rhythm.failed": "失败 {n}",
+		"queue.rhythm.yielded": "让路 {n}",
+		"queue.rhythm.unknown": "未明 {n}",
 		"queue.coverage.title": "巡检覆盖",
+		"queue.coverage.needsLook": "需要看一眼",
+		"queue.coverage.byRotation": "按上次运行",
 		"queue.coverage.openAreas": "{n} 个 area 有未决",
 		"queue.coverage.openLenses": "{n} 个 lens 有未决",
 		"queue.coverage.openNone": "无未决",
@@ -717,7 +725,15 @@ const dictionaries = {
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
 		"queue.chip.unpriced": "unpriced",
+		"queue.rhythm.caption": "Last {n} rounds · old→new · colour = verdict",
+		"queue.rhythm.done": "{n} done",
+		"queue.rhythm.partial": "{n} partial",
+		"queue.rhythm.failed": "{n} failed",
+		"queue.rhythm.yielded": "{n} yielded",
+		"queue.rhythm.unknown": "{n} unknown",
 		"queue.coverage.title": "Patrol coverage",
+		"queue.coverage.needsLook": "Needs a look",
+		"queue.coverage.byRotation": "By last run",
 		"queue.coverage.openAreas": "{n} areas with open issues",
 		"queue.coverage.openLenses": "{n} lenses with open issues",
 		"queue.coverage.openNone": "nothing open",
@@ -2418,6 +2434,7 @@ function progressView(progress, t, now) {
 	const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length;
 	const unread = progress.issuesAt === "" || [...progress.areas, ...progress.lenses].some((x) => x.open === null);
 	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity;
+	const maxRuns = Math.max(0, ...progress.lenses.map((l) => l.rounds ?? 0));
 	const conclusion = openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone");
 	return {
 		title: t("queue.coverage.title"),
@@ -2434,6 +2451,7 @@ function progressView(progress, t, now) {
 			name: a.name,
 			open: count(a.open),
 			share: a.open === null || most === 0 ? null : a.open / most,
+			hasOpen: a.open === null ? null : a.open > 0,
 			href: issues("area:" + a.name)
 		})),
 		clear: {
@@ -2457,6 +2475,7 @@ function progressView(progress, t, now) {
 				href: issues("lens:" + l.name),
 				when: last?.facts.when ?? null,
 				runs: count(l.rounds),
+				runsShare: l.rounds === null || maxRuns === 0 ? null : l.rounds / maxRuns,
 				open: count(l.open),
 				hasOpen: l.open === null ? null : l.open > 0,
 				last: last === null ? null : {
@@ -2473,6 +2492,57 @@ function progressView(progress, t, now) {
 			...progress.firstAt === "" ? [] : [t("queue.coverage.since", { date: stamp(localStampMs(progress.firstAt), progress.firstAt) })]
 		], ...progress.issuesAt === "" ? [] : [t("queue.coverage.issuesAt", { date: stamp(Date.parse(progress.issuesAt), progress.issuesAt) })]].join(" · "),
 		empty: t("queue.coverage.inventoryUnreadable")
+	};
+}
+/**
+* The rounds chart. The list below is chronological prose; this is the same data as a shape:
+* one equal-height tile per round, oldest → newest, colour is the round's verdict (the same
+* role its chip uses). Duration is not a second height scale: one 44-minute round flattened
+* the 2–10 minute rounds into a line, so the duration stays in the tile's title and the list,
+* and the chart keeps the one thing a reader scans for — the run of failures.
+*/
+function patrolRhythm(rounds, t, now) {
+	if (rounds.length < 2) return null;
+	const bars = [...rounds].reverse().map((round) => {
+		const view = roundRow(round, t, now);
+		const role = view.state?.role ?? "unknown";
+		const title = [
+			round.round,
+			round.axis,
+			view.state?.text,
+			view.facts.took?.text
+		].filter((part) => part !== void 0 && part !== "").join(" · ");
+		return {
+			key: view.key,
+			round: round.round,
+			role,
+			title
+		};
+	});
+	const order = [
+		"fail",
+		"partial",
+		"done",
+		"off",
+		"unknown"
+	];
+	const label = {
+		fail: "queue.rhythm.failed",
+		partial: "queue.rhythm.partial",
+		done: "queue.rhythm.done",
+		off: "queue.rhythm.yielded",
+		unknown: "queue.rhythm.unknown"
+	};
+	const counts = /* @__PURE__ */ new Map();
+	for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1);
+	const summary = order.filter((role) => (counts.get(role) ?? 0) > 0).map((role) => ({
+		role,
+		text: t(label[role] ?? "queue.rhythm.unknown", { n: counts.get(role) ?? 0 })
+	}));
+	return {
+		bars,
+		caption: t("queue.rhythm.caption", { n: bars.length }),
+		summary
 	};
 }
 /**
@@ -2499,6 +2569,7 @@ function patrolSection(result, t, now) {
 			attrs: { "data-tq-patrol": patrol.phase }
 		},
 		rounds: (patrol.rounds ?? []).map((round) => roundRow(round, t, now)),
+		rhythm: patrolRhythm(patrol.rounds ?? [], t, now),
 		progress: progressView(patrol.progress, t, now)
 	};
 }
