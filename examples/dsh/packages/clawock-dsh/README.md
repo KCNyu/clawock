@@ -321,7 +321,7 @@ clawock's agent-dispatch, the sidebar panel also shows that host's task queue an
 steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one five-track grid (name and one role-coloured status chip, model and delivery receipts, time, duration and cost in fixed columns); each agent's quota windows above its queue on an inset well, the DeepSeek and MiniMax balances, the OpenCode free pool with a patrol round, recently ended tasks, patrol with its last round and two folds, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套五轨栅格(名字与一枚按角色着色的状态芯片、模型与送达回执、时刻用时费用各在定宽列):各 agent 的额度窗口在上、队列在内嵌底板上、DeepSeek 与 MiniMax 余额、OpenCode 免费池与巡检轮次、最近结束、巡检的上一轮与两个折叠,以及 ops 页脚"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one five-track grid (name and one role-coloured status chip, model and delivery receipts, time, duration and cost in fixed columns); each agent's quota windows above its queue on an inset well, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks, patrol as one entry with its 4px outcome strip, the closing seven-day stats card, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套五轨栅格(名字与一枚按角色着色的状态芯片、模型与送达回执、时刻用时费用各在定宽列):各 agent 的额度窗口在上、队列在内嵌底板上、DeepSeek 与 MiniMax 余额、OpenCode 免费池、最近结束、巡检的一个入口与 4px 结果条、收尾的近 7 天统计卡,以及 ops 页脚"></p>
 
 ### English
 

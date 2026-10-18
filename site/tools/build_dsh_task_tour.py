@@ -16,7 +16,7 @@ def render():
 <title id="title">From the dsh queue to a task's history</title>
 <desc id="desc">Annotated excerpts from two historical live-host captures, not a desktop screenshot or synchronized task state. Original proportions are preserved. Queue outcomes, append delivery and notification receipts answer different questions.</desc>
 <defs>''']
-    for key, name, width, height in [('queue', 'dsh-dispatch-queue.png', 800, 2850), ('detail', 'dsh-task-detail.png', 758, 4480)]:
+    for key, name, width, height in [('queue', 'dsh-dispatch-queue.png', 800, 3000), ('detail', 'dsh-task-detail.png', 758, 4480)]:
         data = base64.b64encode((ASSETS / name).read_bytes()).decode()
         parts.append(f'<image id="{key}" width="{width}" height="{height}" xlink:href="data:image/png;base64,{data}"/>')
     parts.append('''</defs><style>text{font-family:Arial,sans-serif;fill:#263544}.title{font-size:30px;font-weight:700}.head{font-size:22px;font-weight:700}.body{font-size:18px}.note{font-size:16px;fill:#576575}</style>
@@ -40,7 +40,7 @@ def render():
     crop('queue', 40, 235, 0, 795, 800)
     text(40, 714, '02 / Read the outcome', 'head')
     text(40, 746, 'Outcome chips and send receipts are separate.')
-    crop('queue', 40, 770, 1510, 840, 800)
+    crop('queue', 40, 770, 1700, 840, 800)
     text(40, 1280, 'The queue and detail show different tasks.', 'note')
     text(40, 1308, 'Amounts and states belong to those captures.', 'note')
     text(40, 1348, 'Full originals are linked below the figure.', 'note')
