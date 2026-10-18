@@ -70,7 +70,8 @@ def kit(tmp_path):
         "store_links": ["~/.shared-memory"],
         "agents": {},
         "contexts": {"coding": {"cwd": "~", "shared": True},
-                     "openclaw": {"cwd": "~/.openclaw/workspace", "shared": False}},
+                     "openclaw": {"cwd": "~/.openclaw/workspace", "shared": False,
+                                  "public_files": ["MEMORY.md", "DREAMS.md"]}},
         "no_inject_under": ["~/.openclaw"],
     }))
     env = {k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "AGENT_DISPATCH", "AI_AGENT"))}
@@ -234,6 +235,16 @@ def test_doctor_fails_when_the_workspace_links_into_the_store(kit):
     (kit.workspace / "memory").mkdir()
     (kit.workspace / "memory/coding-notes").symlink_to(kit.store)
     assert doctor(kit)["context.openclaw.store_separate"]["status"] == "FAIL"
+
+
+def test_doctor_warns_when_the_public_memory_repeats_a_shared_line(kit):
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(
+        slug="feedback-alpha", desc="alpha rule", body="- The deploy key never leaves this machine, not even for a mirror."))
+    (kit.workspace / "MEMORY.md").write_text("# Memory\n\n- something the assistant learned on its own, long enough\n")
+    assert doctor(kit)["context.openclaw.no_shared_text"]["status"] == "OK"
+    (kit.workspace / "DREAMS.md").write_text("> The deploy key never leaves this machine,  not even for a mirror.\n")
+    check = doctor(kit)["context.openclaw.no_shared_text"]
+    assert check["status"] == "WARN" and "DREAMS.md:1 -> feedback-alpha.md" in check["detail"]
 
 
 def test_post_hook_commits_store_edits_with_the_session(kit):

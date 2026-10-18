@@ -12,7 +12,7 @@
   },
   "contexts": {
     "coding": {"cwd": "~", "shared": true},
-    "openclaw": {"cwd": "~/.openclaw/workspace", "shared": false}
+    "openclaw": {"cwd": "~/.openclaw/workspace", "shared": false, "public_files": ["MEMORY.md", "DREAMS.md"]}
   },
   "no_inject_under": ["~/.openclaw"],
   "timers": ["shared-memory-snapshot.timer", "shared-memory-daily.timer"]

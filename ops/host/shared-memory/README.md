@@ -108,8 +108,13 @@ leaves it in place. The assistant's `memory_search` with `corpus=all` and `memor
 - results are redacted with the same credential patterns `memctl` uses;
 - any read error returns no results instead of failing the search;
 - OpenClaw's short-term recall (the source of dreaming's promotions into `MEMORY.md`)
-  records only its own memory index hits, not supplement results, so these notes are not
+  records only its own memory index hits, not supplement results, so search results are not
   promoted into the assistant's public memory.
+- What the plugin cannot stop: dreaming also reads the assistant's own chat transcripts, so a
+  note the assistant *repeats* in a direct chat can reach `DREAMS.md` / `MEMORY.md`. The
+  assistant is told to answer with conclusions, not quotes, and `memctl doctor` warns
+  (`context.openclaw.no_shared_text`) when a line of the workspace's `public_files` repeats a
+  line of the shared store.
 
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
