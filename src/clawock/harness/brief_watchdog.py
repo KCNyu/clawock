@@ -162,9 +162,13 @@ def _rerun_once(today, dry_run, attempt, job=None):
         # local state DB, and a gateway round trip is exactly what this path
         # must not wait on (#1641).
         return False
+    queued_after = int(datetime.now(HKT).timestamp() * 1000)
     ok, out = rerun_cron_job(job.get('id'), dry_run)
     if ok and not dry_run:
         _mark_rerun(today)
+        state = load_missing_state(today)
+        state.update(rerun_inflight=True, local_rerun_after_ms=queued_after)
+        write_missing_state(today, state)
     budget = cron_retry_budget(job)
     # The re-run fires on the run being over, not on the budget — but what the
     # log may *claim* about the budget is only what was read. The old wording
@@ -537,13 +541,14 @@ def _fallback_outcome_message(today, outcome, detail):
 
 
 def check_local_recovery(today, dry_run=False):
-    """09:50: own the result of the local chance selected at 09:05.
+    """09:50: own the result of any local rerun selected today.
 
     Notification dedupe is independent of recovery. Only positive evidence
     that the selected local run ended permits another writer before 10:00.
     """
     state = load_missing_state(today)
-    if not state.get('rerun_inflight') or state.get('local_recovery_notified'):
+    if (not state.get('rerun_inflight') and not _rerun_count(today)
+            or state.get('local_recovery_notified')):
         return 0
     issues = inspect_brief_artifacts(today)
     job = _safe_brief_cron_job_state()
@@ -563,7 +568,7 @@ def check_local_recovery(today, dry_run=False):
         message = (f'本地简报重跑已生成产物 — {today}\n'
                    f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
                    f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
-    elif state.get('recovery_dispatch_attempted'):
+    elif state.get('recovery_dispatch_attempted') or state.get('fallback_dispatch_succeeded'):
         outcome = state.get('fallback_outcome') or 'unconfirmed'
         message = _fallback_outcome_message(today, outcome,
                                             state.get('fallback_outcome_detail') or '此前已尝试离机恢复')

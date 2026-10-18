@@ -163,3 +163,12 @@ def test_main_json_mode(monkeypatch, capsys):
 def test_node_toolchain_change_runs_the_plugin_build():
     lanes = push_scope.classify([".github/actions/clawock-node/action.yml"])
     assert lanes["dsplugin"] and lanes["code"]
+
+
+def test_plugin_contract_host_inputs_select_plugin_lane():
+    import re
+    spec = (ROOT / 'tests/decision_studio_plugin.spec.js').read_text()
+    inputs = re.findall(r'path\.join\(repo, "(ops/host/[^"]+)"\)', spec)
+    assert inputs
+    for path in inputs:
+        assert push_scope.classify([path])['dsplugin'], path

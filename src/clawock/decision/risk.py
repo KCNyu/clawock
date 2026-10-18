@@ -236,6 +236,109 @@ def override_is_active(record: dict, now=None) -> bool:
     )
 
 
+def _reconcile_guardrail_merge(row, previous, portfolio, current_time, stamp, history_path):
+    """Apply one detector row, preserving episode governance and broker evidence."""
+    breach_id = row["breach_id"]
+    fingerprint = _fingerprint(row)
+    if previous is None:
+        first = _history_first_seen(row, history_path) or stamp
+        record = {
+            "breach_id": breach_id,
+            "type": row.get("type"),
+            "leg": row.get("leg"),
+            "ticker": row.get("ticker"),
+            "status": "open",
+            "severity": row.get("severity") or "high",
+            "first_seen_at": first,
+            "current_opened_at": first,
+            "last_seen_at": stamp,
+            "last_changed_at": stamp,
+            "age_days": _age_days(first, current_time),
+            "recurrence_count": 1,
+            "detail": row.get("detail") or "",
+            "required_action": row.get("action") or "",
+            "required_reduction": row.get("required_reduction") or {},
+            "acknowledgement": {
+                "status": "unacknowledged",
+                "acknowledged_at": None,
+                "note": "",
+            },
+            "override": {
+                "status": "none", "reason": "",
+                "created_at": None, "expires_at": None,
+            },
+            "execution": {
+                "status": "pending", "confirmed_at": None,
+                "evidence": [],
+            },
+            "fingerprint": fingerprint,
+            "resolution": None,
+            "pressure": _pressure(row),
+        }
+    else:
+        record = previous
+        if record.get("status") == "resolved":
+            record["recurrence_count"] = int(
+                record.get("recurrence_count") or 1) + 1
+            if not _same_episode(record, current_time):
+                record["current_opened_at"] = stamp
+                record["acknowledgement"] = {
+                    "status": "unacknowledged",
+                    "acknowledged_at": None,
+                    "note": "",
+                }
+                record["override"] = {
+                    "status": "none", "reason": "",
+                    "created_at": None, "expires_at": None,
+                }
+                record["execution"] = {
+                    "status": "pending", "confirmed_at": None,
+                    "evidence": [],
+                }
+            record["resolution"] = None
+        if record.get("fingerprint") != fingerprint:
+            record["last_changed_at"] = stamp
+        record.update({
+            "status": "open",
+            "pressure": _pressure(row),
+            "severity": row.get("severity") or record.get("severity"),
+            "last_seen_at": stamp,
+            "detail": row.get("detail") or "",
+            "required_action": row.get("action") or "",
+            "required_reduction": row.get("required_reduction") or {},
+            "fingerprint": fingerprint,
+        })
+
+    override = record.get("override") or {}
+    expires = _parse_stamp(override.get("expires_at"))
+    if override.get("status") == "active" and (
+            expires is None or expires <= current_time
+            or not str(override.get("reason") or "").strip()):
+        override["status"] = (
+            "expired" if expires and expires <= current_time else "invalid")
+        override["expired_at"] = stamp
+        record["last_changed_at"] = stamp
+    if override.get("status") == "active":
+        record["status"] = "overridden"
+
+    existing_evidence = {
+        item.get("evidence_id"): item
+        for item in (record.get("execution") or {}).get("evidence") or []
+    }
+    for item in _broker_evidence(record, portfolio):
+        existing_evidence[item["evidence_id"]] = item
+    execution = record.setdefault("execution", {})
+    execution["evidence"] = list(existing_evidence.values())
+    if (execution.get("status") != "confirmed"
+            and execution["evidence"]):
+        execution["status"] = "evidence_present"
+    record["age_days"] = _age_days(
+        record.get("current_opened_at"), current_time)
+    record["standing"] = _standing(record)
+    record["adaptive"] = _adaptive(record, portfolio, current_time)
+    return record
+
+
 def _reconcile_guardrail_unlocked(
     guardrail: dict,
     portfolio: dict,
@@ -253,105 +356,8 @@ def _reconcile_guardrail_unlocked(
     current = {row["breach_id"]: row for row in _current_rows(guardrail)}
 
     for breach_id, row in current.items():
-        previous = by_id.get(breach_id)
-        fingerprint = _fingerprint(row)
-        if previous is None:
-            first = _history_first_seen(row, history_path) or stamp
-            record = {
-                "breach_id": breach_id,
-                "type": row.get("type"),
-                "leg": row.get("leg"),
-                "ticker": row.get("ticker"),
-                "status": "open",
-                "severity": row.get("severity") or "high",
-                "first_seen_at": first,
-                "current_opened_at": first,
-                "last_seen_at": stamp,
-                "last_changed_at": stamp,
-                "age_days": _age_days(first, current_time),
-                "recurrence_count": 1,
-                "detail": row.get("detail") or "",
-                "required_action": row.get("action") or "",
-                "required_reduction": row.get("required_reduction") or {},
-                "acknowledgement": {
-                    "status": "unacknowledged",
-                    "acknowledged_at": None,
-                    "note": "",
-                },
-                "override": {
-                    "status": "none", "reason": "",
-                    "created_at": None, "expires_at": None,
-                },
-                "execution": {
-                    "status": "pending", "confirmed_at": None,
-                    "evidence": [],
-                },
-                "fingerprint": fingerprint,
-                "resolution": None,
-                "pressure": _pressure(row),
-            }
-        else:
-            record = previous
-            if record.get("status") == "resolved":
-                record["recurrence_count"] = int(
-                    record.get("recurrence_count") or 1) + 1
-                if not _same_episode(record, current_time):
-                    record["current_opened_at"] = stamp
-                    record["acknowledgement"] = {
-                        "status": "unacknowledged",
-                        "acknowledged_at": None,
-                        "note": "",
-                    }
-                    record["override"] = {
-                        "status": "none", "reason": "",
-                        "created_at": None, "expires_at": None,
-                    }
-                    record["execution"] = {
-                        "status": "pending", "confirmed_at": None,
-                        "evidence": [],
-                    }
-                record["resolution"] = None
-            if record.get("fingerprint") != fingerprint:
-                record["last_changed_at"] = stamp
-            record.update({
-                "status": "open",
-                "pressure": _pressure(row),
-                "severity": row.get("severity") or record.get("severity"),
-                "last_seen_at": stamp,
-                "detail": row.get("detail") or "",
-                "required_action": row.get("action") or "",
-                "required_reduction": row.get("required_reduction") or {},
-                "fingerprint": fingerprint,
-            })
-
-        override = record.get("override") or {}
-        expires = _parse_stamp(override.get("expires_at"))
-        if override.get("status") == "active" and (
-                expires is None or expires <= current_time
-                or not str(override.get("reason") or "").strip()):
-            override["status"] = (
-                "expired" if expires and expires <= current_time else "invalid")
-            override["expired_at"] = stamp
-            record["last_changed_at"] = stamp
-        if override.get("status") == "active":
-            record["status"] = "overridden"
-
-        existing_evidence = {
-            item.get("evidence_id"): item
-            for item in (record.get("execution") or {}).get("evidence") or []
-        }
-        for item in _broker_evidence(record, portfolio):
-            existing_evidence[item["evidence_id"]] = item
-        execution = record.setdefault("execution", {})
-        execution["evidence"] = list(existing_evidence.values())
-        if (execution.get("status") != "confirmed"
-                and execution["evidence"]):
-            execution["status"] = "evidence_present"
-        record["age_days"] = _age_days(
-            record.get("current_opened_at"), current_time)
-        record["standing"] = _standing(record)
-        record["adaptive"] = _adaptive(record, portfolio, current_time)
-        by_id[breach_id] = record
+        by_id[breach_id] = _reconcile_guardrail_merge(
+            row, by_id.get(breach_id), portfolio, current_time, stamp, history_path)
 
     for breach_id, record in by_id.items():
         if breach_id in current or record.get("status") == "resolved":

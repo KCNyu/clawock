@@ -27,6 +27,7 @@ import sys
 from clawock.instruments import get as get_instrument
 from clawock.market_data.peer_discovery import suggest_auto_peers
 from clawock.workspace import workspace_root
+from clawock.portfolio.math import session_change_pct, holding_session
 
 WS = workspace_root()
 
@@ -92,7 +93,8 @@ def collect(portfolio, log=print, legs=None):
                 instrument = get_instrument(h.get('ticker')) or {}
                 market = str(instrument.get('region') or '').lower()
                 h_by_ticker[h['ticker']] = {
-                    'pct_1d': h.get('today_change_pct', 0),
+                    'pct_1d': session_change_pct(h),
+                    'session': holding_session(h, portfolio.get('last_updated'), market=market),
                     'pnl_pct': h.get('pnl_percent', 0),
                     'region': market,
                 }
@@ -161,7 +163,7 @@ def collect(portfolio, log=print, legs=None):
     for ticker, info in pmap.items():
         if ticker not in h_by_ticker:
             continue
-        self_pct = h_by_ticker[ticker]['pct_1d'] or 0
+        self_pct = h_by_ticker[ticker]['pct_1d']
         peer_results = []
         for p in info.get('listed_peers', []):
             pdata = fetched.get(p['ticker'], {})
@@ -198,7 +200,7 @@ def collect(portfolio, log=print, legs=None):
         # Divergence: best peer outperformed holding by ≥3% today
         best_peer = peer_results[0] if peer_results else None
         divergence = None
-        if best_peer and best_peer.get('pct_1d') is not None:
+        if self_pct is not None and best_peer and best_peer.get('pct_1d') is not None:
             diff = best_peer['pct_1d'] - self_pct
             if diff >= 3.0:
                 divergence = f'{best_peer["ticker"]} {best_peer["name"]} {best_peer["pct_1d"]:+.1f}% vs self {self_pct:+.1f}% (gap {diff:+.1f}pp)'
@@ -226,7 +228,9 @@ def collect(portfolio, log=print, legs=None):
 
         scan[ticker] = {
             'theme':            info.get('theme'),
-            'self_pct_1d':      round(self_pct, 2),
+            'self_pct_1d':      round(self_pct, 2) if self_pct is not None else None,
+            'self_session':     h_by_ticker[ticker]['session'],
+            'region':           h_by_ticker[ticker]['region'],
             'self_pnl_pct':     h_by_ticker[ticker]['pnl_pct'],
             'listed_peers':     peer_results,
             'auto_peers':       auto_results,

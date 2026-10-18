@@ -105,3 +105,43 @@ def test_recovery_schedule_leaves_a_full_local_turn_before_offhost_cutoff():
     assert minutes['--check-recovery'] >= (minutes['--check-missing']
                                           + contract['payload_profiles']['brief']['timeout_seconds'] / 60)
     assert minutes['--check-recovery'] < 10 * 60
+
+
+@pytest.mark.parametrize('evidence', ['ended', 'running', 'old', 'unknown'])
+def test_0846_rerun_is_observed_without_0905_pass(recovery, monkeypatch, evidence):
+    _, job, messages, dispatches, start = recovery
+    watchdog.missing_state_path(TODAY).unlink()
+    job['id'] = 'brief-job'
+    monkeypatch.setattr(watchdog, 'rerun_cron_job', lambda *a: (True, 'queued'))
+    assert watchdog._rerun_once(TODAY, False, attempt=1, job=job)
+    after = watchdog.load_missing_state(TODAY)['local_rerun_after_ms']
+    job['state']['lastRunAtMs'] = after + 1000
+    if evidence == 'running':
+        job['state']['runningAtMs'] = after
+    elif evidence == 'old':
+        job['state']['lastRunAtMs'] = start
+    elif evidence == 'unknown':
+        job.clear()
+    watchdog.check_local_recovery(TODAY)
+    assert bool(dispatches) == (evidence == 'ended')
+    assert len(messages) == 1
+
+
+def test_legacy_rerun_counter_still_reports_without_guessing_run_identity(recovery):
+    _, _, messages, dispatches, _ = recovery
+    watchdog.missing_state_path(TODAY).unlink()
+    watchdog._mark_rerun(TODAY)
+    watchdog.check_local_recovery(TODAY)
+    assert not dispatches and '未确认' in messages[0]
+
+
+def test_counter_observer_does_not_duplicate_0905_offhost_dispatch(recovery):
+    _, _, messages, dispatches, _ = recovery
+    watchdog._mark_rerun(TODAY)
+    state = watchdog.load_missing_state(TODAY)
+    state.update(rerun_inflight=False, fallback_dispatch_succeeded=True,
+                 fallback_outcome='success', fallback_outcome_detail='confirmed at 09:05')
+    watchdog.write_missing_state(TODAY, state)
+    watchdog.check_local_recovery(TODAY)
+    assert not dispatches
+    assert 'off-host 兜底已完成' in messages[0]

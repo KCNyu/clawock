@@ -343,3 +343,20 @@ def test_a_row_is_scoped_by_the_thing_the_cap_is_about():
     # A row with no type cannot be named at all — that was the `hard_stop_watch`
     # family, uncitable for a week (#1392). Empty, never a half-formed id.
     assert discipline.evidence_ref({'ticker': '00100'}) == ''
+
+
+def test_merge_reopens_same_episode_without_erasing_governance(tmp_path):
+    now = discipline._now('2026-10-19T09:00:00+08:00')
+    stamp = discipline._stamp(now)
+    row = discipline._current_rows(_guardrail())[0]
+    record = discipline._reconcile_guardrail_merge(
+        row, None, _portfolio(), now, stamp, tmp_path / 'absent.json')
+    record['status'] = 'resolved'
+    record['resolution'] = {'resolved_at': stamp}
+    record['acknowledgement']['status'] = 'acknowledged'
+    reopened = discipline._reconcile_guardrail_merge(
+        row, record, _portfolio(), now, stamp, tmp_path / 'absent.json')
+    assert reopened['status'] == 'open'
+    assert reopened['recurrence_count'] == 2
+    assert reopened['acknowledgement']['status'] == 'acknowledged'
+    assert reopened['resolution'] is None
