@@ -7048,7 +7048,7 @@ const dictionaries = {
 		"stats.live": "{n} 进行中",
 		"stats.open": "打开统计",
 		"stats.back": "返回队列",
-		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · 完成 {done}/{settled} · {open}",
+		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · 完成 {done}/{settled} · 部分 {partial} · 未完成 {unfinished} · {open}",
 		"stats.reading": "读取统计…",
 		"stats.retry": "重试",
 		"stats.tokenHeading": "Token / API 估价",
@@ -7559,7 +7559,7 @@ const dictionaries = {
 		"stats.live": "{n} live",
 		"stats.open": "Open stats",
 		"stats.back": "Back to the queue",
-		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · {done}/{settled} done · {open}",
+		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · {done}/{settled} done · {partial} partial · {unfinished} unfinished · {open}",
 		"stats.reading": "Reading stats…",
 		"stats.retry": "Retry",
 		"stats.tokenHeading": "Token / API estimate",
@@ -10581,6 +10581,8 @@ function renderStatsCard(stats, t, ui, open) {
 		cost: stats.totals.costText,
 		done: stats.totals.done,
 		settled: stats.totals.settled,
+		partial: stats.totals.partial,
+		unfinished: stats.totals.unfinished,
 		open: t("stats.open")
 	});
 	return h("button", {

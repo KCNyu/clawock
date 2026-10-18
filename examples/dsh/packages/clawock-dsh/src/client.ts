@@ -1386,6 +1386,7 @@ function renderStatsCard(stats: StatsView, t: Translate, ui: PanelUi, open: bool
     tokens: t('stats.tokens', { tokens: stats.totals.tokensText }),
     cost: stats.totals.costText,
     done: stats.totals.done, settled: stats.totals.settled,
+    partial: stats.totals.partial, unfinished: stats.totals.unfinished,
     open: t('stats.open'),
   })
   return h('button', {
