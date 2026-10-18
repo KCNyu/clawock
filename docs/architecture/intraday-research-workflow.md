@@ -53,7 +53,7 @@ Use an existing entitlement, not a new subscription:
 ```bash
 # grant.json must cite actual account permission for non-display research.
 # API access alone does not establish that permission. Keep credentials/grants private.
-python3 ops/research/fetch_intraday.py config/intraday-research-manifest.json \
+PYTHONPATH=src python3 ops/research/fetch_intraday.py config/intraday-research-manifest.json \
   --grant /private/grant.json --output /private/spy.json
 clawock strategy-lab intraday-study config/intraday-research-manifest.json \
   /private/spy.json --requests-only --output /private/training-requests.json
@@ -173,7 +173,7 @@ any downloader and expressly permits statistical modeling and derived research,
 with attribution. Raw CSVs remain private; no raw data is committed here.
 
 ```bash
-python3 ops/research/fetch_free_sample.py --output /private/free-spy.json
+PYTHONPATH=src python3 ops/research/fetch_free_sample.py --output /private/free-spy.json
 clawock strategy-lab intraday-study config/intraday-research-manifest.json \
   /private/free-spy.json --output /private/free-spy-study.json
 ```

@@ -89,7 +89,9 @@ def render(ctx):
     if ctx.get('metrics_withheld_for_rights'):
         lines.append('无可公开展示的授权净绩效；不显示成交价或动作。')
     if ctx.get('blockers'):
-        lines.append('缺口：' + '；'.join(_text(x, 100) for x in ctx['blockers'][:2]))
+        labels = {'split-adjusted samples are not verified unadjusted execution prices': '样本为拆股复权价，未核实原始成交价',
+                  'fewer than training plus minimum OOS sessions': '历史长度不足训练及样本外验证要求'}
+        lines.append('缺口：' + '；'.join(_text(labels.get(x, x), 100) for x in ctx['blockers'][:2]))
     currency = 'HKD' if ctx.get('market') == 'hk' else 'USD'
     metrics = ctx.get('metrics') or {}
     order = list(metrics)
@@ -113,5 +115,5 @@ def render(ctx):
             bar = '▮' * min(20, int(abs(value)/5))
             lines.append(f'{label} {value:+.2f} bps {bar}（每格5bps，最多20格）')
         lines.append(f"研究底仓 {economics['base_shares']} 股｜回转 {economics['sleeve_shares']} 股；不是今日建议尺寸")
-    lines.append('前瞻验证未完成；live/SPCH 权限不变。')
+    lines.append('前瞻验证未完成；尚无实盘授权，原持仓策略不变。')
     return '\n'.join(lines)
