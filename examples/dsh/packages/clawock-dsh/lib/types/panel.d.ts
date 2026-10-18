@@ -332,13 +332,6 @@ export declare function endedRow(task: DispatchTask, t: Translate, now: number, 
 export declare function roundFiled(filed: string, t: Translate): Fact | null;
 /** A finished patrol round as a row (rounds.tsv: `[preempted:|yielded:]STATE[/OUTCOME[/FILED]]`). */
 export declare function roundRow(round: PatrolRound, t: Translate, now: number): RowView;
-/** Patrol history is one semantic group, regardless of individual outcomes.
- * Up to four rounds stay visible; longer history keeps the newest round and
- * one disclosure for all older rounds, preserving chronological order.
- * Distinct ended tasks remain visible (the host already caps that list).
- */
-export declare const FLAT_ROUNDS = 4;
-export declare const RESIDENT_ROUNDS = 1;
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 export declare const reorderable: (task: DispatchTask) => boolean;
 /** Live tasks of one agent in the order they hold / will take its lock. */
@@ -484,7 +477,7 @@ export type PanelGroup = {
     }>;
 };
 export declare function panelGroup(source: PanelSource, result: TaskQueueResult | null, rows: ReadonlyMap<string, BalanceRow>, t: Translate, now: number, open: (id: string) => void): PanelGroup;
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 export declare function recentSection(result: TaskQueueResult | null, t: Translate, now: number, open: (id: string) => void): {
     head: RowView;
     rows: RowView[];
@@ -622,16 +615,15 @@ export type CoverageView = {
     footnote: string;
     empty: string;
 };
-/** The last rounds as one small outcome chart: one bar per round, oldest → newest. */
+/** The last rounds as one thin outcome strip: one segment per round, in the list's order. */
 export type PatrolRhythm = {
-    /** Oldest → newest, so the chart reads like time. */
+    /** Newest → oldest, the same order as the list below. */
     bars: Array<{
         key: string;
         round: string;
         role: StateRole;
         title: string;
     }>;
-    caption: string;
     /** Nonzero outcome counts, worst first; the words carry the colour. */
     summary: Array<{
         role: StateRole;

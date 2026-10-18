@@ -3693,19 +3693,16 @@ test("client: one provider cell carries the queue under each agent's provider an
   const folds = (node) => find(node, (p) => p["data-tq-fold"] !== undefined);
   assert.equal(find(section("recent"), (p) => p["data-tq-task"] !== undefined).length, 5, "every ended task the host sends is on screen");
   assert.equal(folds(section("recent")).length, 0, "no ended task hides behind a fold");
-  const patrolFolds = folds(section("patrol"));
-  assert.deepEqual(patrolFolds.map((f) => f.props["data-tq-fold"]), ["rounds"]);
+  assert.equal(folds(section("patrol")).length, 0, "the rounds are one list; there is no history fold");
   const rhythm = find(section("patrol"), (p) => p["data-tq-rhythm"] !== undefined)[0];
-  assert.ok(rhythm, "the rounds have a rhythm chart");
+  assert.ok(rhythm, "the rounds have an outcome strip");
   assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
-    ["R136", "R137", "R138", "R139", "R140"], "the chart reads oldest → newest, unlike the newest-first list");
+    ["R140", "R139", "R138", "R137", "R136"], "the strip reads newest first, like the list");
   assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-role"]),
-    ["done", "done", "done", "done", "done"], "the bar takes the round's verdict role");
-  assert.match(texts(rhythm), /最近 5 轮.*完成 5/, "the caption and the count line say the outcome in words");
-  assert.deepEqual(find(patrolFolds[0], (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), ["R139", "R138", "R137", "R136"],
-    "the earlier rounds fold");
-  assert.equal(find(section("patrol"), (p) => p["data-tq-round"] === "R140").length, 1);
-  assert.equal(find(patrolFolds[0], (p) => p["data-tq-round"] === "R140").length, 0, "the newest round stays resident");
+    ["done", "done", "done", "done", "done"], "the segment takes the round's verdict role");
+  assert.match(texts(rhythm), /完成 5/, "the count line is the legend in words");
+  assert.deepEqual(find(section("patrol"), (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]),
+    ["R140", "R139", "R138", "R137", "R136"], "every round is in the one list");
   const newest = find(section("patrol"), (p) => p["data-tq-round"] === "R140")[0];
   assert.deepEqual(factSlots(newest), ["filed", "when", "took"], "a round that filed says so on line 2");
   assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]).replace(/ +/g, " "), "提报 1 · P1 #2240 · 汇总 +2 · 补充 1");
@@ -3716,11 +3713,6 @@ test("client: one provider cell carries the queue under each agent's provider an
   assert.equal(find(newest, (p) => p["data-severity"] === "P1").length, 1, "severity is text and a paint role");
   assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
   assert.doesNotMatch(texts(section("patrol")), /preempting patrol-recent-1/, "raw supervisor output is not a task conclusion");
-  for (const fold of patrolFolds) {
-    const summary = fold.children.find((c) => c && c.type === "summary");
-    assert.ok(summary && /_tq-fold-summary/.test(summary.props.className), "a fold opens from its own summary control");
-  }
-
   // Boundary cases, including mixed outcomes: never split into count/state chunks.
   for (const count of [0, 1, 2, 3, 4, 5, 6]) {
     const history = Array.from({ length: count }, (_, i) => ({ ...rounds[i % rounds.length], round: 'B' + i,
@@ -3729,10 +3721,11 @@ test("client: one provider cell carries the queue under each agent's provider an
     find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
     await tick(); await tick();
     const patrol = find(render(), (p) => p["data-tq-group"] === "patrol")[0];
-    const disclosures = folds(patrol);
-    assert.equal(disclosures.length, count <= 4 ? 0 : 1, `${count} rounds: only long history folds`);
-    assert.deepEqual(find(patrol, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), history.map(r => r.round));
-    if (count > 4) assert.equal(find(disclosures[0], (p) => p["data-tq-round"] !== undefined).length, count - 1);
+    assert.equal(folds(patrol).length, 0, `${count} rounds: never a fold`);
+    assert.deepEqual(find(patrol, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), history.map(r => r.round),
+      `${count} rounds: all visible in the one list`);
+    assert.equal(find(patrol, (p) => p["data-tq-rhythm"] !== undefined).length, count >= 2 ? 1 : 0,
+      `${count} rounds: the strip needs at least two segments`);
   }
 
   // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
@@ -4389,11 +4382,10 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
   assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
-  // The fold control is a control, not a line of grey text. Three shapes share one native
-  // <details>: the pill (a raw log) keeps its capsule; the rounds row is the well's continuation
-  // (label on the name column, chevron trailing); the coverage summary is a key/value row (quiet
-  // title left, conclusion right). Each has the focus ring, a fine-pointer hover and a 44px
-  // finger target; the rows press with a wash, only the pill keeps the panel's scale.
+  // One fold is left: the raw supervisor log's pill. The patrol history is one list and the
+  // coverage is a link row plus a page, so the old row/foot shapes are gone. The pill keeps the
+  // focus ring, a fine-pointer hover and a 44px finger target; the coverage row presses with a
+  // wash and grows to 44px itself.
   const ruleOf = (sel) => css.match(new RegExp(`${sel}\\{([^}]*)\\}`))?.[1] ?? "";
   assert.match(ruleOf("_tq-fold-summary"), /list-style:none/);
   assert.match(ruleOf("_tq-fold-summary"), /cursor:pointer/);
@@ -4403,41 +4395,43 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(pillRule, /border:\.5px solid var\(--tq-pill-border\)/);
   assert.match(pillRule, /transition:[^;]*transform/, "the pill's own transition still names transform");
   assert.match(css, /_tq-fold-pill>\.\w+_tq-fold-summary:active\{[^}]*transform:scale\(var\(--tq-press-scale\)\)/);
-  const rowRule = ruleOf("_tq-fold-row>\\.\\w+_tq-fold-summary");
-  assert.match(rowRule, /min-height:36px/);
-  assert.match(rowRule, /padding:7px 8px 7px calc\(8px \+ var\(--tq-main-inset\)\)/);
-  assert.match(css, /_tq-fold-row>\.\w+_tq-fold-summary:before\{[^}]*left:calc\(8px \+ var\(--tq-main-inset\)\)/);
-  assert.match(css, /_tq-fold-row>\.\w+_tq-fold-summary:active\{background:var\(--tq-fill-press\)\}/);
-  const footRule = ruleOf("_tq-fold-foot>\\.\\w+_tq-fold-summary");
-  assert.match(footRule, /display:flex/);
-  assert.match(footRule, /min-height:36px/);
-  assert.match(css, /_tq-fold-foot>\.\w+_tq-fold-summary>\.\w+_tq-fold-value\[data-coverage-state=open\]\{color:var\(--tq-ink\)\}/);
-  assert.match(css, /_tq-fold-foot>\.\w+_tq-fold-summary>\.\w+_tq-fold-value\[data-coverage-state=unknown\]\{color:var\(--tq-text-warn\)\}/);
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-pill>\.\w+_tq-fold-summary:after\{inset:-9px -8px\}/);
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-row[^}]*min-height:44px/, "the history row grows to a finger target");
+  const linkRule = ruleOf("_tq-cov-link");
+  assert.match(linkRule, /min-height:36px/);
+  assert.match(linkRule, /width:calc\(100% - var\(--tq-main-inset\)\)/);
+  assert.match(linkRule, /transition:background-color/);
+  assert.match(ruleOf("_tq-cov-link:focus-visible"), /outline:var\(--tq-focus-ring\)/);
+  assert.match(css, /_tq-cov-link:active\{background:var\(--tq-fill-press\)\}/);
+  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-cov-link:hover/);
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-cov-link[^}]*min-height:44px/, "the coverage row grows to a finger target");
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary[^{]*:active\{transform:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-stats-card[^{]*:active\{transform:none\}/, "the stats card's press respects reduced motion");
+
   // The charts use the design system's standard entrance: 240ms on the strong ease-out curve,
-  // opacity for the fold body and one transform per bar; nothing loops and no value is tweened.
+  // one transform per mark; nothing loops and no value is tweened. The strip is 6px of 35%
+  // chart tints; the solid token is only the 5px legend dot.
   assert.match(css, /--tq-ease-out:cubic-bezier\(\.23, 1, \.32, 1\)/);
   assert.match(css, /--tq-standard:\.24s/);
+  assert.match(css, /--tq-chart-run:color-mix\(in srgb, var\(--tq-run\) 35%, transparent\)/);
+  assert.match(css, /--tq-chart-wait:color-mix\(in srgb, var\(--tq-wait\) 35%, transparent\)/);
   assert.match(css, /_tq-fold\[open\]>\.\w+_tq-fold-body\{animation:\w+_tq-fold-in var\(--tq-standard\) var\(--tq-ease-out\) both\}/);
-  assert.match(css, /_tq-rhythm-bar\{[^}]*transition:transform var\(--tq-standard\) var\(--tq-ease-out\)/);
-  assert.match(css, /@starting-style\{[^}]*_tq-rhythm-bar\{transform:scaleY\(0\)\}/, 'the rhythm bars rise from their baseline on mount');
-  assert.match(css, /_tq-fold\[open\] \.\w+_tq-cov-fill,[^}]*_tq-cov-runs-fill\{animation:\w+_tq-bar-grow var\(--tq-standard\)/);
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-bar[^{]*\{transition:none\}/);
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{animation:none\}/);
-  // Colour is data: the chart roles, the open badge and the area bar all come off the semantic
-  // tokens; the green check is the one healthy state.
-  assert.match(css, /_tq-rhythm-bar\[data-role=done\]\{background:var\(--tq-run\)\}/);
-  assert.match(css, /_tq-rhythm-bar\[data-role=fail\]\{background:var\(--tq-bad\)\}/);
+  assert.match(css, /_tq-rhythm-bar\{[^}]*height:6px/);
+  assert.match(css, /_tq-rhythm-seg\{[^}]*transition:transform var\(--tq-standard\) var\(--tq-ease-out\)/);
+  assert.match(css, /@starting-style\{[^}]*_tq-rhythm-seg\{transform:scaleX\(0\)\}/, 'the strip draws from its left edge on mount');
+  assert.match(css, /_tq-rhythm-seg\[data-role=done\]\{background:var\(--tq-chart-run\)\}/);
+  assert.match(css, /_tq-rhythm-seg\[data-role=fail\]\{background:var\(--tq-chart-bad\)\}/);
+  assert.match(css, /_tq-cov-fill\{[^}]*background:var\(--tq-ink-3\)/, 'a magnitude bar is neutral; the badge carries the state');
+  assert.match(css, /_tq-cov-fill\{[^}]*transition:transform var\(--tq-standard\)/);
+  assert.match(css, /@starting-style\{[^}]*_tq-cov-fill[^}]*transform:scaleX\(0\)/);
+  assert.match(css, /_tq-cov-runs-fill\{[^}]*transition:transform var\(--tq-standard\)/);
   assert.match(css, /_tq-cov-lens-dot\[data-role=fail\]\{background:var\(--tq-bad\)\}/);
   assert.match(css, /_tq-cov-open\[data-open=true\]\{background:var\(--tq-chip-warn-fill\);color:var\(--tq-text-warn\)\}/);
-  assert.match(css, /_tq-cov-fill\{background:var\(--tq-wait\)/);
-  assert.match(css, /_tq-cov-clear-label\{[^}]*color:var\(--tq-text-ok\)/);
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-rhythm-bar:hover/);
+  assert.match(css, /_tq-cov-clear-mark\{[^}]*color:var\(--tq-text-ok\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-seg[^{]*\{transition:none\}/);
+  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{transition:none\}/);
+
 });
 
 // 2026-09-28 (kcn: 「很多地方都没有对齐显示」): one grid for the whole panel, five tracks, three
@@ -4730,33 +4724,40 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       for (let i = 0; i < count; i++) assert.ok(text.includes('T' + i));
       assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
     }
-    // Coverage is the section's last fold, closed; its summary is the headline: the quiet title
-    // on the left, the conclusion on the right, the accessible label carrying both. Inside, each
-    // count once, in a column.
+    // Coverage is a page, not a fold. The patrol section ends with one link row; the page is the
+    // existing detail layer (back bar, focus move) and holds both tables. There is no second
+    // disclosure beside the rounds list.
     const patrolGroup = find(popover, (p) => p["data-tq-group"] === "patrol")[0];
-    const fold = find(patrolGroup, (p) => p["data-tq-fold"] === "coverage")[0];
-    assert.equal(patrolGroup.children.filter(Boolean).at(-1), fold, 'coverage comes after the rounds, not between the head and the latest round');
-    assert.ok(!fold.props.open, 'closed until asked for');
-    const summary = fold.children[0];
-    assert.match(texts(summary), /巡检覆盖/);
-    assert.match(texts(summary), /2 个 area 有未决/);
-    assert.equal(summary.props["aria-label"], '巡检覆盖 · 2 个 area 有未决', 'the accessible name carries the key and the conclusion');
-    assert.equal(find(summary, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
-    const covered = (attr) => find(fold, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
+    assert.equal(find(patrolGroup, (p) => p["data-tq-fold"] === "coverage").length, 0, 'coverage is not a fold');
+    const coverageLink = find(patrolGroup, (p) => p["data-tq-coverage-open"] !== undefined)[0];
+    assert.equal(coverageLink.type, "button", 'the coverage row is a link, not a summary');
+    assert.equal(patrolGroup.children.filter(Boolean).at(-1), coverageLink, 'coverage comes after the rounds, not between the head and the latest round');
+    assert.match(texts(coverageLink), /巡检覆盖/);
+    assert.match(texts(coverageLink), /2 个 area 有未决/);
+    assert.match(coverageLink.props["aria-label"], /^巡检覆盖 · 2 个 area 有未决 · 打开巡检覆盖详情$/, 'the accessible name carries the key and the conclusion');
+    assert.equal(find(coverageLink, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
+    assert.equal(find(coverageLink, (p) => /_tq-cov-link-dot$/.test(p.className || "")).length, 1, 'the link carries one colour mark');
+    coverageLink.props.onClick({ currentTarget: null });
+    const layer = find(render(), (p) => p["data-tq-coverage-layer"] !== undefined)[0];
+    assert.ok(layer, 'the link opens the coverage page');
+    assert.equal(find(render(), (p) => p["data-tq-coverage-layer"] !== undefined).length, 1, 'one page, not a fold inside the list');
+    assert.match(texts(find(layer, (p) => p["data-tq-back"] === undefined && /_tq-caption$/.test(p.className || ""))[0]), /2 个 area 有未决/, 'the page head states the conclusion');
+    const covered = (attr) => find(layer, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
     assert.deepEqual(covered("data-coverage-area"), [["data", "data4"], ["dashboard", "dashboard1"], ["debt", "debt"], ["risk", "risk"]],
       'areas with open issues first, most first; the ones with none keep their names and links on one line');
     assert.deepEqual(covered("data-coverage-lens").map(([name]) => name), ["automation", "logic", "docs"], 'lenses most recently run first, never recorded last');
     assert.match(covered("data-coverage-lens")[0][1], /312R139完成提报 1 · P0 #2241 · 汇总 \+1$/, 'runs, open, then the last round with its verdict and filings');
-    assert.equal(find(fold, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
+    assert.equal(find(layer, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
     assert.match(covered("data-coverage-lens")[1][1], /R130失败/, 'a failed last round says so');
     // The lens table is two bands: the rows with an open issue or a failed last run first, then the
-    // rest by last run. The chart marks (dot, runs bar, open badge) are data, each with its word/number.
-    const bands = find(fold, (p) => p["data-band"] !== undefined);
+    // rest by last run. The heading is one word and a dot; the old counts were noise. The chart
+    // marks (dot, runs bar, open badge) are data, each with its word/number.
+    const bands = find(layer, (p) => p["data-band"] !== undefined);
     assert.deepEqual(bands.map((b) => [b.props["data-band"], b.props.role, b.props["aria-level"]]),
       [["needs", "heading", 5], ["rotation", "heading", 5]], 'two labelled bands, not one flat sort');
-    assert.match(texts(bands[0]), /需要看一眼2/);
-    assert.match(texts(bands[1]), /按上次运行1/);
-    const lens = (name) => find(fold, (p) => p["data-coverage-lens"] === name)[0];
+    assert.match(texts(bands[0]), /^需要看一眼$/);
+    assert.match(texts(bands[1]), /^按上次运行$/);
+    const lens = (name) => find(layer, (p) => p["data-coverage-lens"] === name)[0];
     const lensMark = (name, kind) => find(lens(name), (p) => new RegExp(`_tq-cov-${kind}$`).test(p.className || ""))[0];
     assert.deepEqual(["automation", "logic", "docs"].map((name) => lensMark(name, "lens-dot").props["data-role"]),
       ["done", "fail", "idle"], 'the dot is the last round\'s verdict, not the lens name\'s decoration');
@@ -4764,15 +4765,17 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       ["28px", "8px", "2px"], 'the runs bar is against the busiest lens (31)');
     assert.deepEqual(["automation", "logic", "docs"].map((name) => lensMark(name, "open").props["data-open"]),
       ["true", "false", "false"], 'open issues are a badge, zero stays quiet');
-    const areaRow = (name) => find(fold, (p) => p["data-coverage-area"] === name)[0];
+    const areaRow = (name) => find(layer, (p) => p["data-coverage-area"] === name)[0];
     assert.deepEqual(["data", "dashboard"].map((name) => find(areaRow(name), (p) => /_tq-cov-open$/.test(p.className || ""))[0].props["data-open"]),
       ["true", "true"], 'an area with findings carries the same badge');
     assert.deepEqual(["data", "dashboard"].map((name) => find(areaRow(name), (p) => /_tq-cov-fill$/.test(p.className || ""))[0].props.style.width),
       ["100%", "25%"], 'the area bar is against the largest (data has 4)');
-    assert.equal(find(fold, (p) => /_tq-cov-clear-label$/.test(p.className || "")).length, 1, 'the none-open line keeps its one label');
-    assert.equal(find(summary, (p) => /_tq-fold-dot$/.test(p.className || "")).length, 1, 'the summary carries one colour mark');
-    assert.doesNotMatch(texts(fold), /\d{4}-\d{2}-\d{2}[T ]\d{2}:/, 'no raw timestamp: stamps use the panel\'s own format');
-    assert.match(texts(fold), /40 条轮次记录 · 另有 1 条损坏未计 · 自 9\/17 .* 起 · issue 快照 /, 'provenance is one footer line');
+    assert.equal(find(layer, (p) => /_tq-cov-clear-label$/.test(p.className || "")).length, 1, 'the none-open line keeps its one label');
+    assert.equal(find(layer, (p) => /_tq-cov-clear-mark$/.test(p.className || "")).length, 1, 'the green check is a separate mark');
+    assert.doesNotMatch(texts(layer), /\d{4}-\d{2}-\d{2}[T ]\d{2}:/, 'no raw timestamp: stamps use the panel\'s own format');
+    assert.match(texts(layer), /40 条轮次记录 · 另有 1 条损坏未计 · 自 9\/17 .* 起 · issue 快照 /, 'provenance is one footer line');
+    find(layer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
+    assert.equal(find(render(), (p) => p["data-tq-coverage-layer"] !== undefined).length, 0, 'back closes the coverage page');
     // The chat reply keeps the archive out and speaks of coverage only when a source could not be read.
     assert.ok(!reply.join("\n").includes('巡检覆盖') && !reply.some((l) => /dashboard|未决/.test(l)), 'no coverage block and no area counts in chat');
     const unread = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,

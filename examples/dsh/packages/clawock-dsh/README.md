@@ -508,34 +508,37 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。
 
-### Patrol coverage · 巡检覆盖
+### Patrol: one list, one page · 巡检:一条列表,一个详情页
 
-The patrol history continues behind a row at the end of the rounds well (`N earlier rounds`);
-opening it adds the older rows to the same well. Above the list, the last rounds are a small rhythm
-chart: one equal-height tile per round, oldest → newest, colour = verdict (done business blue,
-partial/preempted amber, failed red, unknown grey), with the outcome counts in words underneath.
-The section then ends with one read-only coverage fold, closed until asked for; its summary is a
-key/value row — the quiet title on the left, the conclusion on the right (`nothing open`, how many
-areas have open issues, or unknown), the chevron last. Inside are two visual tables. **Open issues
-by area**: amber bars against the largest, count badges, and the areas with none on one line behind
-a green check. **Rounds by lens**: the lenses with an open issue or a failed last run first ("needs
-a look"), then the rest by last run, so the rotation gap still reads down the `when` column. Each
-lens row carries a status dot for its last verdict, a neutral runs bar against the busiest lens,
-and an open badge (amber when positive, quiet at zero, dashed when unknown). The columns stay
-right-aligned and a count is still under a count. The fold content fades in and the bars grow from
-their zero end when the reader opens the fold; `prefers-reduced-motion` shows the final state, and
-no number is tweened. No supervisor state, dispatch behavior or patrol files are changed.
+The patrol section has no fold. Every round the host sends (at most eight) is in one newest-first
+list in the same well, under the live head. Above the list is a 6px outcome strip: one segment per
+round, in the list's order, colour = verdict on the stats card's chart scale at a 35% tint (done
+blue, partial/preempted amber, failed red, unknown grey); the counts underneath (`failed 5 · done
+3`) are the legend in words. There is no caption and no "earlier rounds" row. The section ends
+with one coverage link — quiet title left, conclusion right (`nothing open`, how many areas have
+open issues, or unknown), chevron last — which opens the coverage page in the same detail layer
+as a task and the stats card (back bar, focus return). The page has two tables. **Open issues by
+area**: neutral magnitude bars, amber count badges, and the areas with none on one line behind a
+green check. **Rounds by lens**: the lenses with an open issue or a failed last run first ("needs
+a look"), then the rest by last run, so the rotation gap still reads down the `when` column; each
+row has a 6px status dot for its last verdict, a neutral runs bar against the busiest lens, and an
+open badge (amber when positive, quiet at zero, dashed when unknown). The columns stay right-
+aligned and a count is still under a count. The strip and the page bars grow once from their zero
+end; the page itself swaps immediately; `prefers-reduced-motion` shows the final state, and no
+number is tweened. The raw supervisor log's fold inside a task detail is the only fold left. No
+supervisor state, dispatch behavior or patrol files are changed.
 
-巡检分节的历史在轮次底板最后一行「更早的 N 轮」处续接，展开后旧轮次回到同一块底板。列表上方是最近几轮的小图：
-一轮一个等高的格子，左旧右新，颜色是这一轮的判决（完成用 business blue、部分/让路用 alert amber、失败用
-error red、未知用灰），下面用文字写结果计数。最后是一个只读的「巡检覆盖」折叠区，默认收起。它的摘要行本身
-就是结论：左边是标题，右边是结论（无未决、几个 area 有未决，或未决数未知）。展开后是两张可视化表。
-**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的 amber 细条和一个计数徽章；没有未决的 area
-合成一行，前面一个绿色对勾。**轮次 · 按 lens**：有未决问题或上一轮失败的 lens 先放在「需要看一眼」，
-其余按上次运行时间从近到远，所以轮换的缺口仍能沿 `上次` 列读出来。每个 lens 行有上一轮判决的状态点、
-相对最忙 lens 的中性记录条，以及未决徽章（有未决为 amber，零为安静灰，未知为虚线）；各列仍右对齐，
-一个数仍在一个数下面。折叠内容淡入、条形从零端长到真实长度；`prefers-reduced-motion` 下直接显示最终
-状态，任何数字都不做补间。不写巡检文件、不改 supervisor 状态或派发行为。
+巡检分节没有折叠。host 发来的每一轮（最多 8 轮）都在同一块底板的一条列表里，按时间从新到旧；上面是实况头。
+列表上方是一条 6px 结果条：一轮一段，顺序与列表一致，颜色是这一轮的判决在 stats 卡图表色阶上的 35% tint
+（完成 blue、部分/让路 amber、失败 red、未知灰）；下面的计数（`失败 5 · 完成 3`）就是文字图例。没有 caption，
+也没有「更早的 N 轮」行。分节最后是一条「巡检覆盖」链接行：左边标题，右边结论（无未决、几个 area 有未决，
+或未决数未知），末尾 chevron；点开进入与任务详情、stats 卡同一个 detail layer 的覆盖页（返回条、焦点返回）。
+页里是两张表。**未决问题 · 按 area**：中性数量条、amber 计数徽章；没有未决的 area 合成一行，前面一个绿色
+对勾。**轮次 · 按 lens**：有未决或上一轮失败的 lens 先放「需要看一眼」，其余按上次运行时间；每个 lens 行
+有 6px 状态点、相对最忙 lens 的中性记录条、未决徽章（有未决 amber，零安静灰，未知虚线）；各列仍右对齐，
+一个数仍在一个数下面。结果条和覆盖页的条形从零端长一次；覆盖页本身立即切换；`prefers-reduced-motion` 下
+直接显示最终状态，任何数字都不做补间。任务详情里 raw supervisor log 的折叠是唯一剩下的折叠。不写巡检文件、
+不改 supervisor 状态或派发行为。
 
 ### In chat: `/dispatch-list` (OpenClaw) · 聊天里看:`/dispatch-list`
 

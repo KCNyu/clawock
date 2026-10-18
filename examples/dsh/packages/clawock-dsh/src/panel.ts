@@ -706,14 +706,6 @@ export function roundRow(round: PatrolRound, t: Translate, now: number): RowView
   }
 }
 
-/** Patrol history is one semantic group, regardless of individual outcomes.
- * Up to four rounds stay visible; longer history keeps the newest round and
- * one disclosure for all older rounds, preserving chronological order.
- * Distinct ended tasks remain visible (the host already caps that list).
- */
-export const FLAT_ROUNDS = 4
-export const RESIDENT_ROUNDS = 1
-
 /** A task the queue may reorder: waiting for the lock, current runner, not patrol, not protected. */
 export const reorderable = (task: DispatchTask): boolean =>
   task.waiting === 'lock' && !task.patrol && !task.protected && (task.runnerApi ?? 1) >= 2
@@ -1048,7 +1040,7 @@ export function panelGroup(source: PanelSource, result: TaskQueueResult | null, 
   }
 }
 
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 export function recentSection(result: TaskQueueResult | null, t: Translate, now: number, open: (id: string) => void): { head: RowView; rows: RowView[] } | null {
   if (result === null || !result.available || result.recent.length === 0) return null
   return {
@@ -1336,25 +1328,24 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   }
 }
 
-/** The last rounds as one small outcome chart: one bar per round, oldest → newest. */
+/** The last rounds as one thin outcome strip: one segment per round, in the list's order. */
 export type PatrolRhythm = {
-  /** Oldest → newest, so the chart reads like time. */
+  /** Newest → oldest, the same order as the list below. */
   bars: Array<{ key: string; round: string; role: StateRole; title: string }>
-  caption: string
   /** Nonzero outcome counts, worst first; the words carry the colour. */
   summary: Array<{ role: StateRole; text: string }>
 }
 
 /**
- * The rounds chart. The list below is chronological prose; this is the same data as a shape:
- * one equal-height tile per round, oldest → newest, colour is the round's verdict (the same
- * role its chip uses). Duration is not a second height scale: one 44-minute round flattened
- * the 2–10 minute rounds into a line, so the duration stays in the tile's title and the list,
- * and the chart keeps the one thing a reader scans for — the run of failures.
+ * The outcome strip. The list below is a chronological list; this is the same data as one thin
+ * shape: a segment per round, newest first like the list, colour is the round's verdict (the same
+ * role its chip uses). Duration is not a second height scale: one 44-minute round flattened the
+ * 2–10 minute rounds into a line, so the duration stays in the segment's title and the list, and
+ * the strip keeps the one thing a reader scans for — the run of failures.
  */
 function patrolRhythm(rounds: PatrolRound[], t: Translate, now: number): PatrolRhythm | null {
   if (rounds.length < 2) return null
-  const bars = [...rounds].reverse().map((round) => {
+  const bars = rounds.map((round) => {
     const view = roundRow(round, t, now)
     const role = view.state?.role ?? 'unknown'
     const title = [round.round, round.axis, view.state?.text, view.facts.took?.text]
@@ -1370,7 +1361,7 @@ function patrolRhythm(rounds: PatrolRound[], t: Translate, now: number): PatrolR
   for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1)
   const summary = order.filter((role) => (counts.get(role) ?? 0) > 0)
     .map((role) => ({ role, text: t(label[role] ?? 'queue.rhythm.unknown', { n: counts.get(role) ?? 0 }) }))
-  return { bars, caption: t('queue.rhythm.caption', { n: bars.length }), summary }
+  return { bars, summary }
 }
 
 /**

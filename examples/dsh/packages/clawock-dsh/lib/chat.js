@@ -210,13 +210,14 @@ const dictionaries = {
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
 		"queue.chip.unpriced": "未定价",
-		"queue.rhythm.caption": "最近 {n} 轮 · 旧→新 · 色=结果",
 		"queue.rhythm.done": "完成 {n}",
 		"queue.rhythm.partial": "部分 {n}",
 		"queue.rhythm.failed": "失败 {n}",
 		"queue.rhythm.yielded": "让路 {n}",
 		"queue.rhythm.unknown": "未明 {n}",
 		"queue.coverage.title": "巡检覆盖",
+		"queue.coverage.open": "打开巡检覆盖详情",
+		"queue.coverage.back": "返回巡检",
 		"queue.coverage.needsLook": "需要看一眼",
 		"queue.coverage.byRotation": "按上次运行",
 		"queue.coverage.openAreas": "{n} 个 area 有未决",
@@ -224,10 +225,10 @@ const dictionaries = {
 		"queue.coverage.openNone": "无未决",
 		"queue.coverage.openUnknown": "未决数未知",
 		"queue.coverage.areas": "未决问题 · 按 area",
-		"queue.coverage.areaNote": "只说明已提报的问题归谁，不说明巡检过哪里。",
+		"queue.coverage.areaNote": "按 issue 标签归属，不是巡检覆盖。",
 		"queue.coverage.clear": "无未决",
 		"queue.coverage.lenses": "轮次 · 按 lens",
-		"queue.coverage.lensNote": "记录含失败与中断的尝试，不等于代码覆盖率。",
+		"queue.coverage.lensNote": "记录含失败/中断，不是代码覆盖率。",
 		"queue.coverage.col.last": "上次",
 		"queue.coverage.col.runs": "记录",
 		"queue.coverage.col.open": "未决",
@@ -725,13 +726,14 @@ const dictionaries = {
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
 		"queue.chip.unpriced": "unpriced",
-		"queue.rhythm.caption": "Last {n} rounds · old→new · colour = verdict",
 		"queue.rhythm.done": "{n} done",
 		"queue.rhythm.partial": "{n} partial",
 		"queue.rhythm.failed": "{n} failed",
 		"queue.rhythm.yielded": "{n} yielded",
 		"queue.rhythm.unknown": "{n} unknown",
 		"queue.coverage.title": "Patrol coverage",
+		"queue.coverage.open": "Open patrol coverage",
+		"queue.coverage.back": "Back to patrol",
 		"queue.coverage.needsLook": "Needs a look",
 		"queue.coverage.byRotation": "By last run",
 		"queue.coverage.openAreas": "{n} areas with open issues",
@@ -739,10 +741,10 @@ const dictionaries = {
 		"queue.coverage.openNone": "nothing open",
 		"queue.coverage.openUnknown": "open counts unknown",
 		"queue.coverage.areas": "Open issues · by area",
-		"queue.coverage.areaNote": "Where filed issues belong, not where patrol looked.",
+		"queue.coverage.areaNote": "Issue labels, not patrol coverage.",
 		"queue.coverage.clear": "None open",
 		"queue.coverage.lenses": "Rounds · by lens",
-		"queue.coverage.lensNote": "Runs include failed and interrupted attempts; not code coverage.",
+		"queue.coverage.lensNote": "Runs include failed/interrupted; not code coverage.",
 		"queue.coverage.col.last": "last",
 		"queue.coverage.col.runs": "runs",
 		"queue.coverage.col.open": "open",
@@ -2255,7 +2257,7 @@ function panelGroup(source, result, rows, t, now, open) {
 		}))
 	};
 }
-/** Ended work, newest first across agents: every ended task is resident (see RESIDENT_ROUNDS). */
+/** Ended work, newest first across agents: every ended task is resident. */
 function recentSection(result, t, now, open) {
 	if (result === null || !result.available || result.recent.length === 0) return null;
 	return {
@@ -2495,15 +2497,15 @@ function progressView(progress, t, now) {
 	};
 }
 /**
-* The rounds chart. The list below is chronological prose; this is the same data as a shape:
-* one equal-height tile per round, oldest → newest, colour is the round's verdict (the same
-* role its chip uses). Duration is not a second height scale: one 44-minute round flattened
-* the 2–10 minute rounds into a line, so the duration stays in the tile's title and the list,
-* and the chart keeps the one thing a reader scans for — the run of failures.
+* The outcome strip. The list below is a chronological list; this is the same data as one thin
+* shape: a segment per round, newest first like the list, colour is the round's verdict (the same
+* role its chip uses). Duration is not a second height scale: one 44-minute round flattened the
+* 2–10 minute rounds into a line, so the duration stays in the segment's title and the list, and
+* the strip keeps the one thing a reader scans for — the run of failures.
 */
 function patrolRhythm(rounds, t, now) {
 	if (rounds.length < 2) return null;
-	const bars = [...rounds].reverse().map((round) => {
+	const bars = rounds.map((round) => {
 		const view = roundRow(round, t, now);
 		const role = view.state?.role ?? "unknown";
 		const title = [
@@ -2535,14 +2537,12 @@ function patrolRhythm(rounds, t, now) {
 	};
 	const counts = /* @__PURE__ */ new Map();
 	for (const bar of bars) counts.set(bar.role, (counts.get(bar.role) ?? 0) + 1);
-	const summary = order.filter((role) => (counts.get(role) ?? 0) > 0).map((role) => ({
-		role,
-		text: t(label[role] ?? "queue.rhythm.unknown", { n: counts.get(role) ?? 0 })
-	}));
 	return {
 		bars,
-		caption: t("queue.rhythm.caption", { n: bars.length }),
-		summary
+		summary: order.filter((role) => (counts.get(role) ?? 0) > 0).map((role) => ({
+			role,
+			text: t(label[role] ?? "queue.rhythm.unknown", { n: counts.get(role) ?? 0 })
+		}))
 	};
 }
 /**

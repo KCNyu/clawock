@@ -48,8 +48,9 @@ belongs here.
 - [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats tile and chart layer, and the
   `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
   mean, and the effect captures.
-- [`task-chip-folds.md`](design/task-chip-folds.md) — the patrol block's rhythm chart, the grouped
-  lens ledger (status dot, runs bar, open badge), the two fold rows, the motion and the captures.
+- [`task-chip-patrol.md`](design/task-chip-patrol.md) — the patrol block as one round list, a
+  6px outcome strip, and a coverage page opened from one link row; the colour tiering, the motion
+  and the captures.
 
 ## Operations
 

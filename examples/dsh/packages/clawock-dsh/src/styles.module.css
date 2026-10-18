@@ -1685,6 +1685,13 @@ body[data-ds-dark-theme] .pbc .bp {
   --tq-chip-run-fill:color-mix(in srgb, var(--tq-run) 10%, transparent);
   --tq-chip-warn-fill:var(--warn-soft);
   --tq-chip-bad-fill:var(--bad-soft);
+  /* Bars are a quantity, not a verdict chip: the design system's 35% strong tint off the same
+     semantic tokens. Solid tokens stay on <=6px marks (dots, glyphs, text), so a large bar is
+     never a saturated block. One place defines the scale; the strip and the area bar use it. */
+  --tq-chart-run:color-mix(in srgb, var(--tq-run) 35%, transparent);
+  --tq-chart-wait:color-mix(in srgb, var(--tq-wait) 35%, transparent);
+  --tq-chart-bad:color-mix(in srgb, var(--tq-bad) 35%, transparent);
+  --tq-chart-idle:color-mix(in srgb, var(--tq-idle) 35%, transparent);
   --tq-radius:var(--dsw-radius-md);
   --tq-radius-sm:var(--dsw-radius-sm);
   --tq-radius-xs:var(--dsw-radius-xs);
@@ -2219,17 +2226,10 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-chip[data-role="off"] { border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }
 /* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */
 .pbc .tq-chip[data-role="unknown"] { border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }
-/* The fold control. One native <details>, immediate opening, no height animation. Two shapes,
-   because the panel asks two different things of it:
-     pill  the raw supervisor log inside a task detail: its own hairline capsule, chevron
-           leading. The one fold that still looks like a button.
-     row   the patrol history's continuation, inside the same well as the rounds: the label
-           starts on the rounds' name column and the chevron trails the row. It reads as "more
-           of this list", not as a second control floating under it.
-   The coverage summary is neither (tap target aside): renderPatrolProgress draws a key/value
-   row with the conclusion on the right, so the label can be the headline without a capsule.
-   The summary is the only control; a row presses with a wash (a scale would move the row), the
-   pill keeps the panel's scale. */
+/* The fold control. One native <details>, immediate opening, no height animation: the raw
+   supervisor log inside a task detail. The patrol history is one list and the coverage is a
+   page, so this is the only fold left in the panel. The summary is a hairline capsule with the
+   chevron leading; the body fades in, the layout is immediate. */
 .pbc .tq-fold { margin:4px 0 2px var(--tq-main-inset) }
 .pbc .tq-fold-summary {
   position:relative;
@@ -2252,7 +2252,6 @@ body[data-ds-dark-theme] .pbc .bp {
 @media (hover: hover) and (pointer: fine) {
   .pbc .tq-fold-summary:hover { background:var(--tq-fill-hover) }
 }
-/* The pill: the raw log in a task's detail. */
 .pbc .tq-fold-pill > .tq-fold-summary {
   display:inline-flex;
   align-items:flex-start;
@@ -2275,72 +2274,46 @@ body[data-ds-dark-theme] .pbc .bp {
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
 }
-/* The history continuation: the last row of the rounds well. The 30px inset is the row name's
-   column (8px row padding + 14px lead + 8px gap), derived from the same tokens. */
-.pbc .tq-fold-row { margin:0 }
-.pbc .tq-fold-row > .tq-fold-summary {
+.pbc .tq-fold-body { margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }
+.pbc .tq-fold-body > .tq-log { margin:2px 0 4px var(--tq-main-inset) }
+.pbc .tq-fold[open] > .tq-fold-body { animation:tq-fold-in var(--tq-standard) var(--tq-ease-out) both }
+@keyframes tq-fold-in {
+  from { opacity:0 }
+  to { opacity:1 }
+}
+/* The coverage entry: one link row, not a fold. The quiet title on the left, the conclusion on
+   the right, the chevron last; it opens the coverage page on the same data. The pressed row is
+   a wash, the pill keeps the scale. */
+.pbc .tq-cov-link {
+  box-sizing:border-box;
   display:flex;
   align-items:center;
   gap:8px;
-  width:100%;
+  width:calc(100% - var(--tq-main-inset));
   min-height:36px;
-  padding:7px 8px 7px calc(8px + var(--tq-main-inset));
-  border:0;
-  border-radius:0;
-  background:transparent;
-  font:var(--dsw-font-xs-13);
-  line-height:20px;
-  color:var(--tq-ink-2)
-}
-.pbc .tq-fold-row > .tq-fold-summary::before {
-  content:"";
-  position:absolute;
-  top:0;
-  right:0;
-  left:calc(8px + var(--tq-main-inset));
-  height:.5px;
-  background:var(--tq-hairline);
-  pointer-events:none
-}
-.pbc .tq-fold-row > .tq-fold-summary > .tq-fold-label { min-width:0; overflow-wrap:anywhere }
-.pbc .tq-fold-row > .tq-fold-summary > .tq-fold-chev { margin-left:auto }
-.pbc .tq-fold-row > .tq-fold-summary:active { background:var(--tq-fill-press) }
-.pbc .tq-fold-row > .tq-fold-summary:focus-visible { outline-offset:-2px }
-/* Opening extends the same well: the body is the older rows themselves, no second surface. */
-.pbc .tq-fold-row > .tq-fold-body { margin:0 }
-.pbc .tq-fold-row .tq-fold-body .tq-item { margin:0 }
-.pbc .tq-fold-row .tq-fold-body .tq-item + .tq-item::before {
-  content:"";
-  position:absolute;
-  top:0;
-  right:0;
-  left:calc(8px + var(--tq-main-inset));
-  height:.5px;
-  background:var(--tq-hairline);
-  pointer-events:none
-}
-/* The coverage summary: a key/value row, not a capsule. Quiet title left, conclusion right,
-   chevron last; the conclusion is the strongest thing in the row. */
-.pbc .tq-fold-foot { margin:8px 0 0 var(--tq-main-inset) }
-.pbc .tq-fold-foot > .tq-fold-summary {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  width:100%;
-  min-height:36px;
+  margin:8px 0 0 var(--tq-main-inset);
   padding:6px 8px 6px 0;
   border:0;
   border-radius:var(--tq-radius);
-  background:transparent
+  background:transparent;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  transition:background-color var(--tq-fast) var(--tq-ease)
 }
-.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-label {
+.pbc .tq-cov-link:active { background:var(--tq-fill-press) }
+.pbc .tq-cov-link:focus-visible { outline:var(--tq-focus-ring); outline-offset:1px }
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-cov-link:hover { background:var(--tq-fill-hover) }
+}
+.pbc .tq-cov-link-label {
   min-width:0;
   overflow-wrap:anywhere;
   font:var(--dsw-font-xs-13);
   line-height:20px;
   color:var(--tq-ink-3)
 }
-.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value {
+.pbc .tq-cov-link-value {
   display:inline-flex;
   align-items:center;
   gap:6px;
@@ -2351,83 +2324,56 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:nowrap;
   color:var(--tq-ink-2)
 }
-.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="open"] { color:var(--tq-ink) }
-.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="unknown"] { color:var(--tq-text-warn) }
-.pbc .tq-fold-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
-.pbc .tq-fold-value[data-coverage-state="none"] .tq-fold-dot { background:var(--tq-text-ok) }
-.pbc .tq-fold-value[data-coverage-state="open"] .tq-fold-dot { background:var(--tq-wait) }
-.pbc .tq-fold-value[data-coverage-state="unknown"] .tq-fold-dot { background:var(--tq-text-warn) }
-.pbc .tq-fold-foot > .tq-fold-summary:active { background:var(--tq-fill-press) }
-.pbc .tq-fold-body { margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }
-.pbc .tq-fold-body > .tq-log { margin:2px 0 4px var(--tq-main-inset) }
-/* Fold content: the layout is immediate (native details), the block fades in; no height and no
-   movement. This is the design system's "fold opened by the reader" motion. */
-.pbc .tq-fold[open] > .tq-fold-body { animation:tq-fold-in var(--tq-standard) var(--tq-ease-out) both }
-@keyframes tq-fold-in {
-  from { opacity:0 }
-  to { opacity:1 }
-}
-/* The patrol rhythm: the same rounds as the list below, drawn once. Height is the recorded
-   duration against the longest in the window; colour is the verdict on the stats card's chart
-   scale (done blue, partial/preempted amber, failed red, no verdict grey). The bars rise once
-   when the section mounts; the count line is the text and the bars are decorative. */
+.pbc .tq-cov-link-value[data-coverage-state="open"] { color:var(--tq-ink) }
+.pbc .tq-cov-link-value[data-coverage-state="unknown"] { color:var(--tq-text-warn) }
+.pbc .tq-cov-link-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-cov-link-value[data-coverage-state="none"] .tq-cov-link-dot { background:var(--tq-text-ok) }
+.pbc .tq-cov-link-value[data-coverage-state="open"] .tq-cov-link-dot { background:var(--tq-wait) }
+.pbc .tq-cov-link-value[data-coverage-state="unknown"] .tq-cov-link-dot { background:var(--tq-text-warn) }
+/* The patrol outcome strip: one thin tinted segment per round, newest first like the list.
+   The solid semantic token is reserved for the count dots below (and other <=6px marks); the
+   bar takes the 35% chart tint, so it is data without being a saturated wall. */
 .pbc .tq-rhythm { margin:6px 0 0 var(--tq-main-inset) }
-.pbc .tq-rhythm-head {
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  font:var(--dsw-font-xxs-12);
-  line-height:16px;
-  color:var(--tq-ink-3)
-}
-.pbc .tq-rhythm-bars {
-  display:flex;
-  align-items:flex-end;
-  gap:4px;
-  margin-top:3px;
-  padding-bottom:1px;
-  border-bottom:.5px solid var(--tq-hairline)
-}
 .pbc .tq-rhythm-bar {
+  display:flex;
+  gap:1px;
+  height:6px;
+  border-radius:999px;
+  overflow:hidden;
+  background:var(--tq-hairline)
+}
+.pbc .tq-rhythm-seg {
   flex:1 1 0;
   min-width:0;
-  max-width:44px;
-  height:14px;
-  border-radius:2px 2px 0 0;
+  height:100%;
   background:var(--tq-idle);
-  transform:scaleY(1);
-  transform-origin:bottom;
+  transform:scaleX(1);
+  transform-origin:left;
   transition:transform var(--tq-standard) var(--tq-ease-out)
 }
 @starting-style {
-  .pbc .tq-rhythm-bar { transform:scaleY(0) }
+  .pbc .tq-rhythm-seg { transform:scaleX(0) }
 }
-.pbc .tq-rhythm-bar[data-role="done"] { background:var(--tq-run) }
-.pbc .tq-rhythm-bar[data-role="partial"] { background:var(--tq-wait) }
-.pbc .tq-rhythm-bar[data-role="fail"] { background:var(--tq-bad) }
-.pbc .tq-rhythm-bar[data-role="idle"] { background:var(--tq-ink-3) }
+.pbc .tq-rhythm-seg[data-role="done"] { background:var(--tq-chart-run) }
+.pbc .tq-rhythm-seg[data-role="partial"] { background:var(--tq-chart-wait) }
+.pbc .tq-rhythm-seg[data-role="fail"] { background:var(--tq-chart-bad) }
+.pbc .tq-rhythm-seg[data-role="idle"] { background:var(--tq-chart-idle) }
 .pbc .tq-rhythm-summary {
   display:flex;
   flex-wrap:wrap;
-  gap:2px 12px;
-  margin-top:4px;
+  gap:2px 10px;
+  margin-top:5px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums
 }
 .pbc .tq-rhythm-item { display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }
 .pbc .tq-rhythm-sep { color:var(--tq-ink-3) }
-.pbc .tq-rhythm-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
+.pbc .tq-rhythm-dot { flex:none; width:5px; height:5px; border-radius:50%; background:var(--tq-idle) }
 .pbc .tq-rhythm-item[data-role="done"] .tq-rhythm-dot { background:var(--tq-run) }
-.pbc .tq-rhythm-item[data-role="partial"] { color:var(--tq-text-warn) }
 .pbc .tq-rhythm-item[data-role="partial"] .tq-rhythm-dot { background:var(--tq-wait) }
-.pbc .tq-rhythm-item[data-role="fail"] { color:var(--tq-text-bad) }
 .pbc .tq-rhythm-item[data-role="fail"] .tq-rhythm-dot { background:var(--tq-bad) }
-.pbc .tq-rhythm-item[data-role="idle"] { color:var(--tq-ink-3) }
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-rhythm-bar { transition:box-shadow var(--tq-fast) var(--tq-ease) }
-  .pbc .tq-rhythm-bar:hover { box-shadow:0 0 0 1px var(--tq-ink-3) }
-}
+.pbc .tq-rhythm-item[data-role="idle"] .tq-rhythm-dot { background:var(--tq-ink-3) }
 .pbc .tq-foot {
   margin-top:8px;
   padding-top:6px;
@@ -2887,13 +2833,13 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-fold-chev {
     transition:none
   }
-  /* The bars keep their final length; the fold content appears; nothing moves. */
-  .pbc .tq-fold[open] > .tq-fold-body,
-  .pbc .tq-fold[open] .tq-cov-fill,
-  .pbc .tq-fold[open] .tq-cov-runs-fill {
+  /* The raw-log fold content appears; the strip and the coverage bars keep their final length. */
+  .pbc .tq-fold[open] > .tq-fold-body {
     animation:none
   }
-  .pbc .tq-rhythm-bar {
+  .pbc .tq-rhythm-seg,
+  .pbc .tq-cov-fill,
+  .pbc .tq-cov-runs-fill {
     transition:none
   }
 }
@@ -2909,12 +2855,12 @@ body[data-ds-dark-theme] .pbc .bp {
     position:absolute;
     inset:-8px
   }
-  /* The pill is 26px; 9px above and below make a 44px target. A fold row is already full
-     width, so it grows to 44px itself and does not borrow a neighbour's hit area. */
+  /* The pill is 26px; 9px above and below make a 44px target. The coverage link is already
+     full width, so it grows to 44px itself and does not borrow a neighbour's hit area. */
   .pbc .tq-fold-pill > .tq-fold-summary::after {
     inset:-9px -8px
   }
-  .pbc :is(.tq-fold-row, .tq-fold-foot) > .tq-fold-summary {
+  .pbc .tq-cov-link {
     min-height:44px
   }
   .pbc .tq-field select {
@@ -3101,22 +3047,24 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 
-/* Patrol coverage (client.ts renderPatrolProgress): two visual tables on the well, behind the
-   section's last fold. One left edge (the well's 8px) and one set of right-aligned number tracks
-   for both, so a count is under a count whichever table it is in; a caveat is one caption under
-   the heading it qualifies; the provenance is the footer.
+/* Patrol coverage page (client.ts renderCoverageDetail): two visual tables on the layer's own
+   surface, reached from one link row in the panel. One left edge and one set of right-aligned
+   number tracks for both, so a count is under a count whichever table it is in; a caveat is one
+   caption under the heading it qualifies; the provenance is the footer.
 
    Colour is data here, not decoration: amber = an open issue (something to look at); the status
    dot is the last run's verdict on the stats card's chart scale (done blue, partial/preempted
-   amber, failed red, no verdict grey); the green check is "none open". Every colour has its word
-   or number beside it, so a greyscale or screen-reader reading loses nothing.
+   amber, failed red, no verdict grey); the green check is "none open". Solid tokens are marks
+   (dots, glyphs, text); the area bar is the 35% chart tint. Every colour has its word or number
+   beside it, so a greyscale or screen-reader reading loses nothing.
 
    The lens table has two jobs. The rows with an open issue or a failed last run come first under
    "needs a look"; the rest follow under "by last run", where the rotation gap still reads down
    the `when` column. Within each band the order is still last run first.
 
-   Motion: the fold content fades in and the bars grow once when the reader opens the fold; no
-   value is tweened, and a refresh only repaints the real numbers. */
+   Motion: the bars grow once when the page mounts; no value is tweened, and a refresh only
+   repaints the real numbers. */
+.pbc .tq-cov-page { margin-left:var(--tq-main-inset) }
 .pbc .tq-cov {
   padding:8px;
   font:var(--dsw-font-xxs-12);
@@ -3168,7 +3116,7 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-cov-lens-dot[data-role="partial"] { background:var(--tq-wait) }
 .pbc .tq-cov-lens-dot[data-role="fail"] { background:var(--tq-bad) }
 .pbc .tq-cov-lens-dot[data-role="idle"] { background:var(--tq-ink-3) }
-/* The two bands: a quiet heading with a count, so an exception list never looks like a new
+/* The two bands: a one-word heading and a dot, so an exception list never looks like a new
    sort of the whole rotation. */
 .pbc .tq-cov-band {
   display:flex;
@@ -3179,10 +3127,9 @@ body[data-ds-dark-theme] .pbc .bp {
   line-height:16px;
   color:var(--tq-ink-3)
 }
-.pbc .tq-cov-band[data-band="needs"] { color:var(--tq-text-warn) }
+.pbc .tq-cov-band[data-band="needs"] { color:var(--tq-ink-2) }
 .pbc .tq-cov-band-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-ink-3) }
 .pbc .tq-cov-band[data-band="needs"] .tq-cov-band-dot { background:var(--tq-wait) }
-.pbc .tq-cov-band-count { font-variant-numeric:tabular-nums; color:var(--tq-ink-3) }
 /* A run count with a bar against the busiest lens. The number stays; the bar is the shape. */
 .pbc .tq-cov-runs {
   display:flex;
@@ -3199,7 +3146,7 @@ body[data-ds-dark-theme] .pbc .bp {
   overflow:hidden;
   background:var(--tq-hairline)
 }
-.pbc .tq-cov-runs-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2); transform-origin:left }
+.pbc .tq-cov-runs-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }
 .pbc .tq-cov-runs-num { flex:none; min-width:16px; text-align:right; font-variant-numeric:tabular-nums }
 /* An open count is a badge, not a bare digit: amber when it needs a look, quiet when zero,
    dashed when the issue source is unknown. */
@@ -3232,7 +3179,7 @@ body[data-ds-dark-theme] .pbc .bp {
   overflow:hidden;
   background:color-mix(in srgb, var(--text) 9%, transparent)
 }
-.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-wait); transform-origin:left }
+.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-3); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }
 .pbc .tq-cov-clear {
   display:flex;
   flex-wrap:wrap;
@@ -3241,7 +3188,8 @@ body[data-ds-dark-theme] .pbc .bp {
   padding-top:4px
 }
 .pbc .tq-cov-clear .tq-cov-name { font:var(--dsw-font-xxs-12); line-height:20px; color:var(--tq-ink-2) }
-.pbc .tq-cov-clear-label { display:inline-flex; align-items:center; gap:4px; color:var(--tq-text-ok) }
+.pbc .tq-cov-clear-label { display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }
+.pbc .tq-cov-clear-mark { display:inline-flex; color:var(--tq-text-ok) }
 .pbc .tq-cov-clear-label .tq-role-glyph { width:11px; height:11px }
 /* A lens's last round: quiet facts set apart by space, so a wrapped line never starts on a dot. */
 .pbc .tq-cov-last {
@@ -3266,25 +3214,20 @@ body[data-ds-dark-theme] .pbc .bp {
   border-top:.5px solid var(--tq-hairline);
   overflow-wrap:anywhere
 }
-/* The chart entrance: the bars reach their real length from the baseline/left edge once, when
-   the reader opens the fold. Transform only; the numbers are already the true values. */
-.pbc .tq-fold[open] .tq-cov-fill,
-.pbc .tq-fold[open] .tq-cov-runs-fill { animation:tq-bar-grow var(--tq-standard) var(--tq-ease-out) both }
-@keyframes tq-bar-grow {
-  from { transform:scaleX(0) }
-  to { transform:scaleX(1) }
+/* The page's bars reach their real length from the left once, when the page mounts. Transform
+   only; the numbers are already the true values. */
+@starting-style {
+  .pbc .tq-cov-fill,
+  .pbc .tq-cov-runs-fill { transform:scaleX(0) }
+}
+/* The coverage rules are after the general reduced-motion block; restate the no-transition
+   override here so a reader who asked for less motion gets the bars at their final length. */
+@media (prefers-reduced-motion: reduce) {
+  .pbc .tq-cov-fill,
+  .pbc .tq-cov-runs-fill { transition:none }
 }
 @media (pointer: coarse) {
   /* A finger's target without a taller row: inline padding widens the hit area, not the line box. */
   .pbc .tq-cov a { display:inline; min-height:0; padding-block:12px }
   .pbc .tq-cov a.tq-cov-name { padding-block:6px; margin-block:-6px }
-}
-
-/* The coverage bar rule lives after the general reduced-motion block; restate it here so a
-   reader who asked for less motion gets the bars at their final length too. */
-@media (prefers-reduced-motion: reduce) {
-  .pbc .tq-fold[open] .tq-cov-fill,
-  .pbc .tq-fold[open] .tq-cov-runs-fill {
-    animation:none
-  }
 }
