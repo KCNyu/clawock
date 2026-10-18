@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T23:32:28.930670+00:00",
+  "generated_at": "2026-10-18T23:45:06.445501+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -132,16 +132,16 @@
           "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPT2NsN1N4MTA5QTlsM05lb0FkUVRPVHVUQXBNclF2enhIdzR5YWVtMnQ2ODlNSWxSM3RJX1Z5Y0pVN2FMTjRzSFhPSFJHajF2eVJNWFFfWmVWVUZuaEhOUTVMMUd2V29XekRJcDkwWG9BOGtFMThiZExNNC1DenFyakFPVFN4aFhWQ1Q2UEdiVkszR1FJNlgwOEJBNUh1MTBYS0Q4a0ZaeTc3bHpSVlV5OHdqQ3l2eFVXWkdMa2dvLXNRc0g1RTFoSUNfOFpxOWc?oc=5"
         },
         {
+          "title": "RKLX Explained: Amplifying Rocket Lab’s Daily Stock Performance",
+          "source": "kalkine.ca",
+          "published": "Fri, 16 Oct 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPNHF4VmxvZEFGQ1pDNTlaSEhXdVhPV0hlTzc2ZlJiRzFhanNUaHlaTHhGQ015RHR3Q0tHYlNSZnRVOGtRVFV5S3ljdmo4cGk3V1BWUHJHSUZRV2pFdjR3ZmtJb0xLV0dlS3JHajVKTlpSOG9wb1ctQWR5WjhxZGJuVnM1OTFZVnhpb0xQXzI3d1hmQkVadG5vblhNTVE?oc=5"
+        },
+        {
           "title": "RKLX: Benefits And Risks Of Leveraging Rocket Lab Corporation",
           "source": "Seeking Alpha",
           "published": "Wed, 26 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNbU9WSU9DVDhsNThkWU9IV1J3WXZKaUdFTDVJUWtOOGZfMmduX1ctZDJFMi1BTFJPMkpYYWxBcHNlWHh4TkNiVEZDWnBMOWdGTGRNcnFyVmItblV4eElxZkVUVndUOHFIRHBDbVlIM0wtcUdLNEdGY0VUekpHNkxNbzU1T1JEbzlNT3d1LXdPSWtlUTBpeDZ4TXhmYkMzWTRPS1pj?oc=5"
-        },
-        {
-          "title": "RKLX Oct 2026 35.000 call (RKLX261016C00035000) Interactive Stock Chart - Yahoo Finance",
-          "source": "Yahoo! Finance Canada",
-          "published": "Fri, 16 Oct 2026 14:43:39 GMT",
-          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBUUnl4VDVNcmdEN3R5NWlsRUF4X0dKTG1YcTlmZkt1aDk4Ym44VlRXbG9VZE1KdnNBNjV0cUE2SVFTV3VyNmcwVnp6OE92YWNETnF2bDd1b0JRMGdiY2tVbzJQS3E3NzZLbnczdDZR?oc=5"
         }
       ],
       "google_news_zh": []
@@ -179,6 +179,12 @@
           "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE9mNFpQdmpQSHpfbjh0RmFkcGxLQ1d1dWxoeUoxMTUwM0pnRmYwRDVjMFlvdVNKQm85LUsxSjNVZFlSZm9iSmYwRkJfSVhlNmtK?oc=5"
         },
         {
+          "title": "SPCX Stock Clocks Best Session Since Early Trading Days, But Musk Says Starship Recovery ‘Not Looking Good’",
+          "source": "Stocktwits",
+          "published": "Sun, 18 Oct 2026 13:09:11 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxQOUlXS1pvUDJtVmJGYXFnQ3M1THdLWjNicjNTM2Zjcl9KTy15VUNSbTFIaEZoaGdTeVdBbG9Da1ozdHJmU2VLVjhMOVdRX015OEpVeGVxWndTQnRCa1VwTVJlaDRVUTcxNnNzZGgzekhIZ1kyVHZCLWdhbjdheGNhY0dWTE81NW50YjExMXM0RVFFcG1PSUpaTDNQTjBzSkE5ZmpmUTZlanlKOUhtRjdoVGhmOTR1YjU3bVNuWFdNdlBkd014a0ctbVg3d3FabTFudEN6UlhKRDM0RklWRF9ab3BjcV9oUUJXZG0xSDFfVTZvUTlUTGFLM3dWTkU?oc=5"
+        },
+        {
           "title": "What To Expect In Markets This Week: SPCX, TSLA, META, NFLX, IBM Earnings And More",
           "source": "Yahoo Finance",
           "published": "Sun, 18 Oct 2026 13:58:16 GMT",
@@ -195,12 +201,6 @@
           "source": "Benzinga",
           "published": "Wed, 14 Oct 2026 14:57:28 GMT",
           "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUjFCRFFkSFVqaDFHbnkzb29lNWkxNlRHTTVhejRuYk5oYjVSS01NXzlMcmc1UlZFT2RyNXJkWlh5ZUlxbWNNMkR1SkQzS09PWXVOQzYtNE5yZnZnZDFYTzkxQnpnOHJha0hQVktsQzY3dTd6d2FFV0tJVzZWcW5Kb3JHZGcxUUtLZ0luRnFWcUNlZGpQcEE?oc=5"
-        },
-        {
-          "title": "SPCX Stock Lock-Up Expiry: SpotGamma Founder Flags This Key Resistance Level",
-          "source": "Stocktwits",
-          "published": "Fri, 16 Oct 2026 20:16:15 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNLW91V0VPXzdlUWlTSUVuNGwtRHBXcTltUEFZY0pLa3NnemxSUS1fQnRUSVVfRUJZVUxVM1UxRUlBanh4ak9nNnpubWVvVlFSYWhmUXFSdE5yQnJyQVN0R2RUYlhvYXJicmdGWV8tVTNPbXhnTGtrenVaQ2pmSF9sNnM0TXlDcjVqbVBrYTNQQ241Z283UE4yRFFCdld0LUtQb1dWMk04dVlYa09EVmdTV0tVRW9VVVF6LXd2UDlSSTVoaktvbGRKY2J4MTZpUHN3RVdobWQ1QQ?oc=5"
         },
         {
           "title": "Why SpaceX Stock Is Sinking Today",
@@ -634,16 +634,16 @@
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxONi1JbWJRVWRRZ3IwQzEwLVFxZjl5bmF6eVBRM3ZxektDc2JnU0VkekpmcU1FT28tZ0w0SXhGME9JcDRMVmJQdkRxWk9QeTBPa3IxMS1CWEhmN3Q0Rm5HZm1nN1JZVGloazQtTmtlcFVDSktzeW1YRGdETFJGbXlwTjdnc01BN0Z2TS1OdzJzSVRfbG9mM0tzU1V6dHZ2Zko1T1o5WER0OGZRRE5qY3dOUExkQVpPUXFoalRQVkxTblRCN0JuY1Y4U3ZLOGRmYkpHMXJ4VU9xX1NPNzJZNnBpY0d3T051ZTVSVVE4ZkR5MVQxUVhiZ2c?oc=5"
         },
         {
-          "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
-          "source": "明報財經網",
-          "published": "Mon, 10 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQZWFNN0wwem8tQzh6Y2NFRlB6dHdMLWp6ekg0dTdyYjNZaUJKVldENDFJcjJ2Z0pEN3REbmlwdVk4dGR2R2FRWFhfRHFpZ2tScVZYV0YwVVpDbmhLYjU1Tl91ZHRrbWhEV0ZIUWFaUFpEWVpzVHFYS2tERjlObTg2UkN0UzhDZTVEOHFTNC1MSWctZjUtQUtqQ3dSUW9udzUzQ3JXZDBkWDdWMFFfWVhjS3ZSamhSTjdVNVlFd0FodlR0b1RwSUNKSEZuTjFMbm9qYklBUDdsX2hnS0JCWHNXdzU5eEQyczY2dGEyckozYnZaZHNSa0lkZ2ttNGhTNGVPMGRqN0NDTlJaWVU5T1VPUHRDOHJBeXlmeTRJUnpSTmFDQUlHSlBR?oc=5"
-        },
-        {
           "title": "北水動向｜北水走資86億！盈富遭拋售114億 建滔系逆勢漲 騰訊獲買9億（第五版）|香港經濟日報",
           "source": "香港經濟日報HKET",
           "published": "Wed, 10 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi7gNBVV95cUxOR0hEZEhmQVFuZ0RjdWJSRHpyMTI4QWVPQW9ZaHpqMzV0dkdqUGxIbDZmUTJyLXg5S29KN3Z4ZnVZWk1IVjgwSFJJT3BBN3hOUjNMUV8zTUFKb3BpUndzTGJuREhhS3Z5Wmtkd3BMZ2hrRG1qWHJrYTBZMXlwYzl5VUxRLUg3OW83N3hUalBnMVFReDA2UDh6VlFJekdaVHRRT3pvc05KLVZ4RXdiTG84TDh5aGVUcXQtV1VxY1lLWm1yZUwxbEg4OWdGNkRnZlpkS0ZpOGxoNjRucXh6M2FCLU5oNnhuZXotdVZlRlJFOFpiQUJNZmlDVDRLb1Y3eS05QTVMenltYmNldUNhRHR3c3lyYkJxc1FSb3hlX3BpRnhUeFNUOEZnT2Exb3VVUXJ1TEdEVmIzaDcteEdLOFlNTmEybjFwMzRrVWUxZ3FHX2Q0TE5QTUdZdEVEaGprOU5WaFhLZTR5Q2ZlTHpaWkxsdmhkbno1dXZOVHJVR2NOd3RkVmRyS2xiWEpjSXJrRFJrLUJLblFkdFFiWGtvUmhXc0ZBVXk5OWFVT3lOZG9CbE1mMjdVeUtOVi1IVnRqTmtSNnZLOWtWeXRrbU1tYkpwNm56RXFSLWYzSGxVeUZUMTBIM1NwcThZYXY5LXZjZw?oc=5"
+        },
+        {
+          "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
+          "source": "明報財經網",
+          "published": "Mon, 10 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQZWFNN0wwem8tQzh6Y2NFRlB6dHdMLWp6ekg0dTdyYjNZaUJKVldENDFJcjJ2Z0pEN3REbmlwdVk4dGR2R2FRWFhfRHFpZ2tScVZYV0YwVVpDbmhLYjU1Tl91ZHRrbWhEV0ZIUWFaUFpEWVpzVHFYS2tERjlObTg2UkN0UzhDZTVEOHFTNC1MSWctZjUtQUtqQ3dSUW9udzUzQ3JXZDBkWDdWMFFfWVhjS3ZSamhSTjdVNVlFd0FodlR0b1RwSUNKSEZuTjFMbm9qYklBUDdsX2hnS0JCWHNXdzU5eEQyczY2dGEyckozYnZaZHNSa0lkZ2ttNGhTNGVPMGRqN0NDTlJaWVU5T1VPUHRDOHJBeXlmeTRJUnpSTmFDQUlHSlBR?oc=5"
         },
         {
           "title": "交易所買賣基金的交易資料",
