@@ -1597,7 +1597,7 @@ function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeo
       renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
     // The stats tile is not a fold: one card between the ended list and patrol. It is the
     // only consumer of the lazy taskStats read, and only exists when that read answered.
-    model.stats !== null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen)
+    model.stats !== null && statsState.error === null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen)
       : statsState.loading && statsState.data === null ? renderStatsSkeleton(t)
         : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh)
           : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh)

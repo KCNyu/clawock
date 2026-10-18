@@ -4780,6 +4780,13 @@ test("dispatch stats: a table for /dispatch-stats, a bar fallback, and the wire'
   assert.match(plain, /Claude Code {2}▓{10} {2}625\.2M · \$261\.64/);
   assert.match(plain, /已结束 55 · 完成 42 · 部分 9 · 未完成 4/);
   assert.doesNotMatch(plain, /\| Agent \|/);
+  // A label cannot add a table column or smuggle a backslash through a cell.
+  const odd = { ...stats, agents: [{ ...stats.agents[0], agent: 'a|b\\c', tasks: 1, live: 0,
+    states: [{ name: 'ok', count: 1 }], outcomes: [{ name: 'DONE', count: 1 }], tokensTotal: 0, tokensUnknown: 0,
+    costUsdEstimate: 0, costUnpriced: 0, costFree: 0 }] };
+  const guarded = chat.dispatchStatsText(odd, t);
+  assert.ok(guarded.includes('a\\|b\\\\c'), `the cell escapes pipe and backslash: ${guarded}`);
+  assert.doesNotMatch(guarded, /\| a\|b/);
   // Empty and failed reads are said, not drawn as zeroes.
   assert.match(chat.dispatchStatsText({ ...stats, agents: [] }, t), /没有已结束的任务/);
   const failed = chat.dispatchStatsText({ ...stats, available: false, error: "ops entry not installed" }, t);

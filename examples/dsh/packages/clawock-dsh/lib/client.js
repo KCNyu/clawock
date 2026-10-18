@@ -10876,7 +10876,7 @@ function renderProviderPanelBody(model, queueState, balanceState, statsState, t,
 			key: "recent",
 			"data-tq-group": "recent"
 		}, renderRow(model.recent.head, t), renderWell("recent", model.recent.rows.map((row) => renderRow(row, t)))),
-		model.stats !== null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen) : statsState.loading && statsState.data === null ? renderStatsSkeleton(t) : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh) : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh) : null,
+		model.stats !== null && statsState.error === null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen) : statsState.loading && statsState.data === null ? renderStatsSkeleton(t) : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh) : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh) : null,
 		model.patrol === null ? null : renderPatrolSection(model.patrol, t),
 		model.footer === null ? null : h("div", {
 			className: cx("tq-sub", "tq-foot", model.footer.bad && "tq-bad"),
