@@ -27,3 +27,12 @@
 **异动归因**：`mover_news` 中 `tier=primary` 且 `signal=interrupt` 才可能是硬催化；`tier=supporting` 只能作背景；盘中模型禁止 Tavily（credits 预算）——harness 已为异动票检索，结果在 `anomaly_search`：DeepSeek 每档刷新、Tavily 每票每个交易日一次，两源并列，每条带 `provider`、grade 与 URL，引用写出处；`providers.<源>.status` 是 `unavailable`/`empty` 只说明那一个源没查到，不等于没有消息。仍需补查时只用 DeepSeek：`clawock web-search "<查询>" --providers deepseek --days 1`（无额度、账号级 5 QPS）。`no_recent_filing` 写“窗口内无新一手公告”，`index_fund_no_issuer` 写“指数基金无发行人公告”（其 `items` 是按底层指数/主题匹配到的市场快讯，只作背景），`degraded` 写“催化源未取到”，不能把源失败说成无消息。`suppressed_noise` 等计数不要写进报告。只挑本档变化的最多两条，避免复述旧新闻。
 
 4. `full_delta` 或 `review_candidate` 决定发送时，同时写 `memory/.tmp/intraday-prose-{market}.md` 和 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`；sidecar 按第一轮已读的 `skills/_shared/intraday-status-sidecar.md` 写。调用 `clawock intraday postflight --market {market} --context-id <id> --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{market}.md`。harness 拼持仓表、验证、投递微信/TG、刷新 dashboard；不调用 message/send。postflight 不设超时，不在提交前终止。最终回复只留 status/投递/commit 结果，不复制消息。
+
+### 历史策略研究上下文
+
+`intraday_research` 是 core 中的历史研究证据，不是实时交易信号。先读
+validation、as_of、来源和缺口；“blocked_data_rights”、“synthetic_test_only” 或
+“insufficient_or_failed” 都不能支持操作指令。可在判断中解释机制、成本、regime
+假说和为什么暂不行动，不重抄或重算 harness 的研究数字。研究底仓/回转股数
+不是今日计划；SPCH 和 live 权限不因研究候选改变。数据权限阻断时明确未知，
+不可将“没有验证结果”说成“零收益”。卡片数字和历史路径由 harness 渲染。

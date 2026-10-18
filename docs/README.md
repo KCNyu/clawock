@@ -105,3 +105,6 @@ have no such constraint and therefore live under `site/`.
 
 - [Open-source strategy research](research/intraday-strategies.md): sources, failure conditions, verified fees and market selection.
 - [Intraday research contract](design/intraday-strategy-research.md): mounted replay service, LLM boundaries and presentation design.
+
+- [Intraday research / 盘中研究验证与卡片](architecture/intraday-research-workflow.md)：
+  三种 research 插件、模型回执、净 walk-forward、数据许可和历史研究展示。

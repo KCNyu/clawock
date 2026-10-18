@@ -410,3 +410,10 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 <sub>Built and maintained by <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> and Rick · 2026</sub>
 
 </div>
+
+Intraday research now has independent band, session-VWAP and downside-channel
+plugins, a bounded `clawock strategy-lab intraday-study` walk-forward, and a
+harness-rendered research block in intraday cards. It labels source, age and
+validation state separately from live signals. A licensed free sample is available but too short and adjusted; longer usable
+history remains unresolved. No empirical profitability is claimed. See the
+[workflow and reproducible commands](docs/architecture/intraday-research-workflow.md).

@@ -370,3 +370,14 @@ It has no preflight/postflight reader and changes no live status in the table
 above. Choosing formulas through existing compute receipts stays within the
 contract; model arithmetic, live strategy activation and rendering changes do
 not become authorized by a research replay.
+
+### Historical strategy research
+
+`intraday_research` is a core mixed observation/policy field. Preflight reads an
+explicit research receipt (or the shipped unavailable-evidence status), renders
+its historical research card, and hashes both with the context. It cannot add
+live strategy services or executable actions. The model may interpret mechanisms,
+regime and uncertainty; numbers, labels and delivery remain harness-owned.
+[Research workflow](intraday-research-workflow.md) defines frozen proposals,
+training-only model receipts, data rights, net metrics and the card's fail-closed
+states. A missing model response is recorded, never substituted as measured hold.

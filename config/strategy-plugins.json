@@ -27,6 +27,8 @@
       "module": "clawock.strategies.plugins.intraday_reversion",
       "config": {"window": 20, "deviations": 2.0, "cost_multiple": 2.0, "min_net_bps": 10.0, "max_base_fraction": 0.1}
     },
+    {"id": "intraday-vwap", "module": "clawock.strategies.plugins.intraday_vwap"},
+    {"id": "intraday-breakout", "module": "clawock.strategies.plugins.intraday_breakout"},
     {
       "id": "promoter",
       "module": "clawock.strategy_lab.plugins.row_edits",

@@ -1,0 +1,35 @@
+{
+  "schema": "intraday-research/v1",
+  "live_permission": false,
+  "validation": "insufficient_or_failed",
+  "generated_at": "2026-10-18T19:43:30.962704+00:00",
+  "as_of": "2026-10-16",
+  "market": "us",
+  "ticker": "SPY",
+  "source": {
+    "provider": "FirstRate Data",
+    "url": "https://x01.frd-data.com/firstratedata_sample_SPY.zip",
+    "license_evidence": "https://firstratedata.com/about/license",
+    "research_use": true,
+    "derived_public_use": true,
+    "synthetic": false,
+    "retrieved_at": "2026-10-18T19:43:30.766960+00:00",
+    "raw_sha256": "6249f8b279ab3e8efc438ab6ab1d06cf13c9851a1eddca503bfb0b234fa2d553",
+    "price_basis": "split_adjusted",
+    "interval_minutes": 5
+  },
+  "blockers": [
+    "split-adjusted samples are not verified unadjusted execution prices",
+    "fewer than training plus minimum OOS sessions"
+  ],
+  "metrics": {},
+  "prospective_status": "not_started",
+  "observed_range": [
+    "2026-10-05",
+    "2026-10-16"
+  ],
+  "observed_sessions": 10,
+  "oos_sessions": 0,
+  "data_sha256": "b42250a8ba6270cce58c04a2954efca936f6237d273bb04ff3829a295a83edab",
+  "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8"
+}

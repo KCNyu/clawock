@@ -1928,6 +1928,9 @@ def main(argv=None):
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'review_candidate' if soft_review else 'full_delta'
 
+    from clawock.harness.intraday_research import snapshot, render
+    research = snapshot(WS, args.market)
+    raw_block += '\n\n' + render(research)
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -1935,6 +1938,7 @@ def main(argv=None):
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
+        'intraday_research': research,
         # `new` move/trigger rows (the ↑ line; WeChat bolds them, Telegram
         # keeps the plain table) and `stale` quote rows (named by ⛔).
         'card_marks': card_marks,
