@@ -100,10 +100,13 @@ def test_check_only_requires_adaptive_thinking_in_installed_bundle(tmp_path, ada
         shim.chmod(0o755)
     plugin = tmp_path / "skillhub"
     shutil.copytree(ROOT / "ops/host/skillhub", plugin)
+    corpus = tmp_path / "shared-memory-corpus"
+    shutil.copytree(ROOT / "ops/host/shared-memory/openclaw", corpus)
     result = subprocess.run(
         ["bash", str(WRAPPER), "--check-only"],
         env={**os.environ, "PATH": f"{shims}:{os.environ['PATH']}",
-             "TEST_OPENCLAW_INSTALL": str(install), "SKILLHUB_PLUGIN_DIR": str(plugin)},
+             "TEST_OPENCLAW_INSTALL": str(install), "SKILLHUB_PLUGIN_DIR": str(plugin),
+             "MEMORY_CORPUS_PLUGIN_DIR": str(corpus)},
         capture_output=True, text=True,
     )
     if adaptive_present:

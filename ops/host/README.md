@@ -192,6 +192,20 @@ outside the repository. `install_shared_memory.sh` installs it (atomic per file,
 directories share the store and which keep their own (an OpenClaw workspace), and what
 `memctl doctor --deep` proves: `shared-memory/README.md`. Tests: `tests/test_shared_memory.py`.
 
+### OpenClaw read-only corpus plugin
+
+`shared-memory/openclaw/` is a host OpenClaw plugin (`shared-memory-corpus`) that registers a
+memory corpus supplement, so the assistant's `memory_search corpus=all` / `memory_get` can read
+the coding agents' store without it ever entering the workspace: read-only, direct chats only
+(groups, channels, cron and keyless runs get nothing), redacted, and silent on read errors.
+OpenClaw's short-term recall records only its own index hits, so dreaming cannot promote these
+notes into the public `MEMORY.md`. Install with `install_memory_corpus_plugin.sh` (`--check`,
+`--rollback`) into `$OPENCLAW_STATE_DIR/extensions/shared-memory-corpus`, add that directory to
+`plugins.load.paths`, set `plugins.entries.shared-memory-corpus.enabled=true` (optional
+`config.root`, default `~/.shared-memory`), and restart the gateway once through the same gate as
+any restart (no cron run in flight). `reapply_openclaw_patches.sh` reinstalls and checks it after
+an upgrade. Tests: `tests/test_shared_memory_corpus.py`.
+
 ## Skill registry host extension
 
 `skillhub/` is the maintained host plugin, installed at `$OPENCLAW_STATE_DIR/extensions/skillhub` (default `~/.openclaw/extensions/skillhub`), outside the OpenClaw package tree. `openclaw.json` owns registry fields; `docs/operations/skills-store-policy.md` owns the six rules. The plugin renders that document once at registration and contributes stable system context on every assembled prompt. It never writes policy into user input/history. A per-session "already injected" flag is unsafe: native providers rebuild their system prompt, so subsequent turns, restarts or compaction would lose the constraints. API requests still carry the stable policy; no zero-token claim is made.
