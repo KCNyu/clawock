@@ -2040,7 +2040,7 @@ def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk'), sessions=None):
         items = []
         for leg_key, holdings in zip(leg_keys, (us_h, hk_h)):
             for h in (holdings or []):
-                if h.get('is_active') is False:
+                if (_share_number(h.get('shares')) or 0) <= 0:
                     continue
                 pct = h.get('today_change_pct')
                 if pct is None:
@@ -4825,7 +4825,8 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['delta'] = compute_delta(snapshots)
     _today = hkt_today().isoformat()
     out['today_movers'] = compute_today_movers(
-        us_h, hk_h, leg_keys=(base_leg.key, quote_leg.key),
+        out['holdings'][base_leg.key], out['holdings'][quote_leg.key],
+        leg_keys=(base_leg.key, quote_leg.key),
         sessions={
             (leg.key, h.get('ticker') or h.get('code')): _holding_session(h, _today, leg.key)
             for leg, pf in ((base_leg, us_pf), (quote_leg, hk_pf))

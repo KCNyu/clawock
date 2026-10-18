@@ -90,8 +90,8 @@ def test_session_asof_prefers_the_rows_own_session_and_folds_closed_days():
 
 def test_today_movers_say_which_session_each_move_belongs_to():
     rows = dashboard.compute_today_movers(
-        [{"ticker": "SPCH", "today_change_pct": -3.78, "current_price": 9.67}],
-        [{"ticker": "00100", "today_change_pct": 3.65, "current_price": 250.2}],
+        [{"shares": 1, "ticker": "SPCH", "today_change_pct": -3.78, "current_price": 9.67}],
+        [{"shares": 1, "ticker": "00100", "today_change_pct": 3.65, "current_price": 250.2}],
         sessions={("us", "SPCH"): "2026-10-01", ("hk", "00100"): "2026-09-30"})
     assert {r["ticker"]: r["session"] for r in rows} == {
         "SPCH": "2026-10-01", "00100": "2026-09-30"}
@@ -673,13 +673,13 @@ def test_delta_empty_single_and_zero_baseline_edges():
 
 def test_today_movers_includes_exact_threshold_and_excludes_just_inside_it():
     us = [
-        {"ticker": "UP", "today_change_pct": 3.0, "current_price": 10},
-        {"ticker": "INSIDE", "today_change_pct": 2.999, "current_price": 20},
+        {"shares": 1, "ticker": "UP", "today_change_pct": 3.0, "current_price": 10},
+        {"shares": 1, "ticker": "INSIDE", "today_change_pct": 2.999, "current_price": 20},
     ]
     hk = [
-        {"ticker": "DOWN", "today_change_pct": -3.0, "current_price": 30},
-        {"ticker": "BIG", "today_change_pct": -7.125, "current_price": 40},
-        {"ticker": "MISSING", "today_change_pct": None, "current_price": 50},
+        {"shares": 1, "ticker": "DOWN", "today_change_pct": -3.0, "current_price": 30},
+        {"shares": 1, "ticker": "BIG", "today_change_pct": -7.125, "current_price": 40},
+        {"shares": 1, "ticker": "MISSING", "today_change_pct": None, "current_price": 50},
     ]
 
     result = dashboard.compute_today_movers(us, hk)
@@ -691,7 +691,7 @@ def test_today_movers_includes_exact_threshold_and_excludes_just_inside_it():
 
 def test_today_movers_caps_output_at_ten_after_absolute_move_sorting():
     holdings = [
-        {"ticker": f"T{i}", "today_change_pct": float(i), "current_price": i}
+        {"shares": 1, "ticker": f"T{i}", "today_change_pct": float(i), "current_price": i}
         for i in range(3, 15)
     ]
 
@@ -2387,6 +2387,8 @@ def test_closed_positions_cannot_reappear_as_movers(shares):
     assert row['today_change_pct'] == 0
     assert dashboard.compute_today_movers([row], []) == []
     assert dashboard.compute_today_movers([{**row, 'today_change_pct': 20}], []) == []
+    assert dashboard.compute_today_movers([{'ticker': 'SOLD', 'shares': shares,
+                                           'today_change_pct': 99}], []) == []
 
 
 def test_peer_divergence_preserves_quote_session_before_scan_timestamp():
