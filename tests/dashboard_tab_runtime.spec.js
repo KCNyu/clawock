@@ -4387,6 +4387,28 @@ async function testBenchmarkScoresShowBothDenominators(browser, base) {
   } finally { await page.close(); }
 }
 
+async function testPeerDivergenceNamesEachQuoteSession(browser, base) {
+  const page = await browser.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "market");
+  await waitForTab(page, "market");
+  const result = await page.evaluate(() => {
+    DATA.build_status = { markets: { us: { newest_quote_session: "2026-10-16" } } };
+    DATA.peer_divergence = { items: [{ ticker: "RKLX", region: "us", session: "2026-10-14",
+      self_pct_1d: -5, peer_pct_1d: 2, divergence_pp: 7, best_peer: "RKLB" }] };
+    refreshTab("market");
+    return { label: document.getElementById("peer-div-asof").textContent,
+      color: document.getElementById("peer-div-asof").style.color,
+      row: document.getElementById("peer-div-list").textContent };
+  });
+  assert.match(result.label, /2026-10-14 收盘 1d.*持仓已是 2026-10-16/);
+  assert.equal(result.color, "var(--warning)");
+  assert.match(result.row, /RKLX · 2026-10-14/);
+  await page.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -4414,6 +4436,7 @@ async function main() {
     await run("testTheHeroCurveReadsOutTheDayUnderThePointer", () =>
       testTheHeroCurveReadsOutTheDayUnderThePointer(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
+    await run("testPeerDivergenceNamesEachQuoteSession", () => testPeerDivergenceNamesEachQuoteSession(browser, base));
     await run("testTheProfitRulerPrintsThePositionItDraws", () => testTheProfitRulerPrintsThePositionItDraws(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));

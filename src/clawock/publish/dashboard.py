@@ -872,6 +872,8 @@ def trim_holding(h, currency):
     flat day, where the dashboard means「—」(#1783).
     """
     def today(field):
+        if (_share_number(h.get('shares')) or 0) <= 0:
+            return 0.0
         value = session_change_pct(h) if field == 'today_change_pct' else h.get(field)
         return None if value is None else round(value, 2)
 
@@ -2038,6 +2040,8 @@ def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk'), sessions=None):
         items = []
         for leg_key, holdings in zip(leg_keys, (us_h, hk_h)):
             for h in (holdings or []):
+                if h.get('is_active') is False:
+                    continue
                 pct = h.get('today_change_pct')
                 if pct is None:
                     continue
@@ -2957,12 +2961,23 @@ def extract_peer_divergence(brief_ctx, us_h=None, hk_h=None):
                 continue
             out.append({
                 'ticker': str(ticker),
+                'session': v.get('self_session'),
+                'region': v.get('region') or ('hk' if str(ticker).isdigit() else 'us'),
                 'self_pct_1d': self_pct_v,
                 'best_peer': best_peer or '',
                 'best_peer_name': best_peer_name or '',
                 'peer_pct_1d': peer_pct_v,
                 'divergence_pp': div_pp,
             })
+        stamp = brief_ctx.get('generated_at')
+        try:
+            at = datetime.fromisoformat(str(stamp))
+        except (TypeError, ValueError):
+            at = None
+        for row in out:
+            if not row['session'] and at is not None and at.tzinfo is not None:
+                session = trading_calendar.latest_completed_session(row['region'], at)
+                row['session'] = session.isoformat() if session else None
         return out
     except Exception as e:
         print(f'  warn: extract_peer_divergence failed: {e}', file=sys.stderr)
@@ -4607,8 +4622,7 @@ def _narrative_cards(out, presence, portfolio, us_h, hk_h, brief_ctx, fx_rate):
             if out['status_banner_meta'].get('generated_at'):
                 _m['note_at'] = out['status_banner_meta']['generated_at']
     out['peer_divergence'] = {
-        'as_of': (brief_ctx or {}).get('date')
-                 or ((brief_ctx or {}).get('generated_at') or '')[:10],
+        'scanned_at': (brief_ctx or {}).get('generated_at') or (brief_ctx or {}).get('date'),
         'items': extract_peer_divergence(brief_ctx, us_h, hk_h),
     }
     # peer_divergence is brief-context-derived → preserve last good when absent.

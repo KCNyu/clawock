@@ -117,7 +117,7 @@ web GUI **左侧栏底部、Settings 正上方**常驻一个 cell（`provider-ba
 队列的 provider 不画芯片。五行共用一套列（subgrid），读数与芯片上下对齐。重置时刻、plan、
 key 来源、池内位置不常驻：它们在面板里该来源的分组上，也仍在这一行的读屏文本与 title 里。
 （2026-09-28 之前最后一列是 ▶ ≡ ⏸ 形状+数字，是 260px 塞不下时钟与计数时的权宜，已撤掉。）顺序只写在
-`src/providers.ts` 的 join 表（有 agent 的 claude、codex、opencode 在前），其余 provider 按
+`src/providers.ts` 的 join 表（有 agent 的 claude、codex、dsh、opencode 在前），其余 provider 按
 `BALANCE_PROVIDERS` 表序；新增 provider 仍只改那张表。侧栏收起（56px rail）时只剩一枚图标：
 有窗口到阈值或有任务在睡额度 → 琥珀方角标，读数失败 → 红色空心环，否则不带角标。
 
@@ -419,7 +419,7 @@ fixed.
 - The runner is a host tool, **not part of this npm package**. It hard-codes `/root` paths
   and is installed as a separate step from a clawock checkout. Create
   `/root/tools/agent-dispatch/` with a `limits.env` (`MAX_RUNNING_CLAUDE`, `MAX_RUNNING_CODEX`,
-  `MAX_RUNNING_OPENCODE`, `PATROL_MIN_AVAILABLE_KB`, `PATROL_MAX_MEMORY_FULL_AVG60`,
+  `MAX_RUNNING_OPENCODE`, `MAX_RUNNING_DSH`, `PATROL_MIN_AVAILABLE_KB`, `PATROL_MAX_MEMORY_FULL_AVG60`,
   `QUEUE_FAIR_WAIT_SEC`) and, if you want notifications, a `notify.env`. Then run
   `ops/host/install_task_queue_ops.sh` and `ops/host/install_agent_dispatch.sh`. Both keep a
   `.before-update` copy, verify with `cmp`, and take `--check` and `--rollback`.
@@ -503,7 +503,7 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 - 芯片只在 `~/logs/agent-dispatch` 存在时出现;没有派发器的主机只看到 provider 行。
 - runner 是宿主工具,**不在这个 npm 包里**。它写死了 `/root` 路径,要从 clawock 仓库单独装一步:
   先建 `/root/tools/agent-dispatch/`,放一份 `limits.env`(`MAX_RUNNING_CLAUDE`、`MAX_RUNNING_CODEX`、
-  `MAX_RUNNING_OPENCODE`、`PATROL_MIN_AVAILABLE_KB`、`PATROL_MAX_MEMORY_FULL_AVG60`、
+  `MAX_RUNNING_OPENCODE`、`MAX_RUNNING_DSH`、`PATROL_MIN_AVAILABLE_KB`、`PATROL_MAX_MEMORY_FULL_AVG60`、
   `QUEUE_FAIR_WAIT_SEC`),要通知的话再放一份 `notify.env`;然后跑
   `ops/host/install_task_queue_ops.sh` 与 `ops/host/install_agent_dispatch.sh`。两者都留
   `.before-update`、用 `cmp` 校验,并支持 `--check` / `--rollback`。

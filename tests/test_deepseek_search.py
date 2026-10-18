@@ -34,7 +34,9 @@ def test_the_key_comes_from_env_then_the_dsh_seam(tmp_path, monkeypatch):
     assert ds.api_key() == 'from-env'
 
 
-def test_only_408_429_and_5xx_are_retried():
+def test_only_408_429_and_5xx_are_retried(tmp_path, monkeypatch):
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setattr(ds, "DSH_CREDENTIALS", tmp_path / "absent.yaml")
     calls = []
 
     def post(status_sequence):

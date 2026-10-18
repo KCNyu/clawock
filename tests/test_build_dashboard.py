@@ -2374,6 +2374,29 @@ def test_session_display_is_independent_of_new_lot_pnl():
 
 @pytest.mark.parametrize('prev', [None, 0, -1, float('nan'), float('inf'), True])
 def test_session_display_without_usable_prior_close_is_missing(prev):
-    row = dashboard.trim_holding({'prev_close': prev, 'current_price': 10,
+    row = dashboard.trim_holding({'shares': 1, 'prev_close': prev, 'current_price': 10,
                                   'today_change_pct': 99}, 'USD')
     assert row['today_change_pct'] is None
+
+
+@pytest.mark.parametrize('shares', [0, -1, '0', None])
+def test_closed_positions_cannot_reappear_as_movers(shares):
+    row = dashboard.trim_holding({'ticker': 'SOLD', 'shares': shares,
+                                 'prev_close': 100, 'current_price': 120,
+                                 'today_change_pct': 0, 'today_change': 0}, 'USD')
+    assert row['today_change_pct'] == 0
+    assert dashboard.compute_today_movers([row], []) == []
+    assert dashboard.compute_today_movers([{**row, 'today_change_pct': 20}], []) == []
+
+
+def test_peer_divergence_preserves_quote_session_before_scan_timestamp():
+    row = {'self_pct_1d': -5, 'self_session': '2026-10-14', 'region': 'us',
+           'divergence_signal': 'lagging',
+           'listed_peers': [{'ticker': 'PEER', 'pct_1d': 2}]}
+    ctx = {'date': '2026-10-16', 'generated_at': '2026-10-16T08:03:00+08:00',
+           'peer_scan': {'HELD': row}}
+    assert dashboard.extract_peer_divergence(ctx)[0]['session'] == '2026-10-14'
+    del row['self_session']
+    assert dashboard.extract_peer_divergence(ctx)[0]['session'] == '2026-10-15'
+    del ctx['generated_at']
+    assert dashboard.extract_peer_divergence(ctx)[0]['session'] is None

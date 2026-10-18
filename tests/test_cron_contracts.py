@@ -1327,3 +1327,13 @@ def test_network_dial_ten_seconds_larger_keeps_contract_loadable(monkeypatch):
     monkeypatch.setattr(cron_contract, 'POST_DELIVERY_BUDGET_SECONDS',
                         budgets.POST_DELIVERY_BUDGET_SECONDS + 10 * budgets.PUBLISH_NETWORK_CALLS)
     cron_contract.load_contract()
+
+
+def test_heartbeat_job_identities_match_intraday_contract():
+    at = datetime(2026, 10, 19, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    for market in ('hk', 'us'):
+        emitted = {cron_heartbeat.slot_for(market, at.replace(hour=hour))[0]
+                   for hour in range(24)}
+        declared = {job['name'] for job in contract()['jobs']
+                    if job.get('payload_profile') == 'intraday' and job.get('market') == market}
+        assert emitted == declared

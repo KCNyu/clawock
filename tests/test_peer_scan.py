@@ -25,7 +25,7 @@ def ps():
 PORTFOLIO = {
     "portfolios": {
         "hk_stocks": {"holdings": [
-            {"ticker": "00100", "shares": 100, "today_change_pct": -3.0, "pnl_percent": -65.1},
+            {"ticker": "00100", "shares": 100, "today_change_pct": -3.0, "prev_close": 100, "current_price": 97, "pnl_percent": -65.1},
         ]},
         "us_stocks": {"holdings": [
             {"ticker": "SOLD", "shares": 0, "today_change_pct": 1.0, "pnl_percent": 1.0},
@@ -156,7 +156,7 @@ def test_legs_scopes_the_scan_before_fetching(wired):
     portfolio = {
         "portfolios": {
             "hk_stocks": {"holdings": [
-                {"ticker": "00100", "shares": 100, "today_change_pct": -3.0, "pnl_percent": -65.1},
+                {"ticker": "00100", "shares": 100, "today_change_pct": -3.0, "prev_close": 100, "current_price": 97, "pnl_percent": -65.1},
             ]},
             "us_stocks": {"holdings": [
                 {"ticker": "SOLD", "shares": 5, "today_change_pct": 1.0, "pnl_percent": 1.0},
@@ -189,6 +189,8 @@ def test_auto_source_outage_keeps_curated_scan_byte_identical(wired, monkeypatch
     expected = {
         "theme": "HK AI 大模型",
         "self_pct_1d": -3.0,
+        "self_session": None,
+        "region": "hk",
         "self_pnl_pct": -65.1,
         "listed_peers": [
             {"ticker": "02513", "name": "智谱", "rel": "大模型同业",
@@ -257,3 +259,17 @@ def test_auto_peers_share_pricing_batch_and_stay_labeled(wired, monkeypatch):
         "pct_1d": 4.0,
         "pct_5d": 5.0,
     }]
+
+
+@pytest.mark.parametrize("previous, expected", [(18.68, 2.73), (None, None)])
+def test_self_return_uses_quote_basis_and_preserves_unknown(wired, previous, expected):
+    import copy
+    book = copy.deepcopy(PORTFOLIO)
+    h = book['portfolios']['hk_stocks']['holdings'][0]
+    h.update(current_price=19.19, prev_close=previous, today_change_pct=-4.24,
+             day_session_date='2026-10-16')
+    row = wired.collect(book, log=lambda m: None)['00100']
+    assert row['self_pct_1d'] == expected
+    assert row['self_session'] == '2026-10-16'
+    if expected is None:
+        assert row['divergence_signal'] is None

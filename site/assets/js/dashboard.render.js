@@ -706,7 +706,16 @@
       return;
     }
     if (card) card.style.display = '';
-    if (asOf) asOf.textContent = d.as_of ? `${d.as_of} 收盘 1d` : 'Peer Divergence';
+    if (asOf) {
+      const quoted = safe(DATA, 'build_status', 'markets') || {};
+      const sessions = [...new Set(items.map(it => it.session).filter(Boolean))];
+      const behind = [...new Set(items.filter(it => it.session && quoted[it.region]
+        && quoted[it.region].newest_quote_session > it.session)
+        .map(it => quoted[it.region].newest_quote_session))];
+      asOf.textContent = (sessions.length ? `${sessions.join(' / ')} 收盘 1d` : '收盘场次未知')
+        + (behind.length ? ` · 持仓已是 ${behind.join(' / ')}` : '');
+      asOf.style.color = behind.length ? 'var(--warning)' : '';
+    }
     // divergence_pp > 0 → peer beat you (you lag); < 0 → you beat peer (you lead)
     const rows = items.map(it => {
       const gap = it.divergence_pp;
@@ -717,7 +726,7 @@
       const peer = it.best_peer_name || it.best_peer || '同行';
       return `<div class="peer-div-row ${cls}">
         <div class="pd-top">
-          <span class="pd-tk">${escapeHtml(it.ticker)}</span>
+          <span class="pd-tk">${escapeHtml(it.ticker)} · ${escapeHtml(it.session || "场次未知")}</span>
           <span class="pd-self">${fmtPct(it.self_pct_1d, 1)}</span>
           <span class="pd-gap ${cls}">${gapTxt}</span>
         </div>
