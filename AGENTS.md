@@ -72,6 +72,7 @@ CI runs the full suite on every PR; run only the tests your change touches local
 | `config/`, `config/profiles/` | declarative desk configuration; `config/cron-schedules.json` is the cron contract |
 | `skills/<name>/SKILL.md` | skill bodies; a cron job runs the mode its payload names |
 | `ops/{host,publish,ci,pages,growth}/` | host, publishing, CI and Pages wiring; not in the wheel |
+| `ops/host/shared-memory/` | the coding agents' shared-memory skill and tools; their memory itself stays outside this repository |
 | `site/` | website source; `site/index.html` is the dashboard |
 | `portfolio.json` | authoritative holdings, written by the price-refresh commands |
 | `memory/{date}-pre-open.md`, `memory/{date}-plan.json` | the daily brief and its plan |

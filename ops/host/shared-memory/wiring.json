@@ -1,0 +1,19 @@
+{
+  "_comment": "Where each coding agent looks for the shared guidance, skill and memory, and which working directories share it. Paths are ~-relative; an installation with another layout points SHARED_MEMORY_WIRING at its own copy. Read by `memctl doctor` and the Claude SessionStart hook.",
+  "guidance": "~/.agents/AGENTS.md",
+  "guidance_routes": ["memory.py search", "shared-memory/SKILL.md"],
+  "entry": {"file": "~/.agents/ENTRY.md", "links": ["~/AGENTS.md", "~/CLAUDE.md"]},
+  "store_links": ["~/.shared-memory", "~/.codex/memories/shared"],
+  "agents": {
+    "claude": {"instructions": "~/.claude/CLAUDE.md", "skill": "~/.claude/skills/shared-memory"},
+    "codex": {"instructions": "~/.codex/AGENTS.md", "skill": "~/.codex/skills/shared-memory"},
+    "dsh": {"instructions": "~/.dsh/AGENTS.md", "skill": "~/.dsh/skills/shared-memory", "profiles": ["headless", "web"]},
+    "opencode": {"instructions": "~/.config/opencode/AGENTS.md", "skill": "~/.agents/skills/shared-memory"}
+  },
+  "contexts": {
+    "coding": {"cwd": "~", "shared": true},
+    "openclaw": {"cwd": "~/.openclaw/workspace", "shared": false}
+  },
+  "no_inject_under": ["~/.openclaw"],
+  "timers": ["shared-memory-snapshot.timer", "shared-memory-daily.timer"]
+}

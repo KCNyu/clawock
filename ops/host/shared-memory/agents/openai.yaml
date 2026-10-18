@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shared Memory"
+  short_description: "Read and maintain memory shared by coding agents"
+  default_prompt: "Use $shared-memory to recall or record durable context shared by coding agents on this host."

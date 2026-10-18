@@ -180,6 +180,18 @@ existing retry/backoff policy. No availability probe advances the review cursor.
 `/root/tools/agent-dispatch`. Run the focused supervisor coverage with
 `env -u CLAWOCK_WORKSPACE PYTHONPATH="$PWD/src" python3 -m pytest -q tests/test_patrol_audit.py tests/test_patrol_supervisor.py`.
 
+## Coding agents' shared memory
+
+`shared-memory/` is the versioned source of the skill every coding agent on the host loads
+(`~/.agents/skills/shared-memory`, linked from each agent's own skill directory): `memory.py`
+(format owner), `memctl` (history, audit, wiring self-check), the Claude Code hook and
+`wiring.json`. It carries the mechanism only; the memory itself, its history and ledger stay
+outside the repository. `install_shared_memory.sh` installs it (atomic per file,
+`.before-update`, `--check`, `--rollback`; `--units` renders the two systemd timers) and
+`refresh_live.sh` runs it when the installed copy differs. How it works, which working
+directories share the store and which keep their own (an OpenClaw workspace), and what
+`memctl doctor --deep` proves: `shared-memory/README.md`. Tests: `tests/test_shared_memory.py`.
+
 ## Skill registry host extension
 
 `skillhub/` is the maintained host plugin, installed at `$OPENCLAW_STATE_DIR/extensions/skillhub` (default `~/.openclaw/extensions/skillhub`), outside the OpenClaw package tree. `openclaw.json` owns registry fields; `docs/operations/skills-store-policy.md` owns the six rules. The plugin renders that document once at registration and contributes stable system context on every assembled prompt. It never writes policy into user input/history. A per-session "already injected" flag is unsafe: native providers rebuild their system prompt, so subsequent turns, restarts or compaction would lose the constraints. API requests still carry the stable policy; no zero-token claim is made.

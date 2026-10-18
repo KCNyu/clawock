@@ -1,0 +1,12 @@
+[Unit]
+Description=Shared agent memory: history bundle backup and deep wiring self-check (memctl)
+
+[Service]
+Type=oneshot
+Environment=HOME=@HOME@
+# The deep check runs each agent's own discovery command, so their CLIs must be on PATH.
+Environment=PATH=@PATH@
+ExecStart=/usr/bin/python3 @SKILL_DIR@/scripts/memctl bundle --keep 14
+ExecStart=-/usr/bin/python3 @SKILL_DIR@/scripts/memctl doctor --deep --write-status --quiet
+Nice=10
+IOSchedulingClass=idle

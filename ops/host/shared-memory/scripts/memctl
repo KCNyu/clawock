@@ -1,0 +1,910 @@
+#!/usr/bin/env python3
+"""memctl — history, audit and wiring checks for a Markdown memory shared by coding agents.
+
+The store stays plain Markdown (by default Claude Code's auto-memory directory, reached through
+~/.shared-memory) and `memory.py` next to this script stays the format owner. memctl adds what
+the store itself lacks, without writing anything new inside it:
+
+  history  every change is a commit in a local git history kept *outside* the store (separate
+           git dir, no remote) plus one JSON line in ledger.jsonl: who, when, why, which files
+  audit    `log` / `show` read that history back; `restore` brings a topic back as a new commit
+  wiring   `doctor` checks that every agent, from every working directory it is started in,
+           loads the shared guidance and skill, and that the contexts that must stay separate
+           (an OpenClaw workspace) do not get the shared index
+
+Writes go through `memory.py` (or an agent's own file tools). memory.py hands each finished
+write to `memctl snapshot`, which attributes it to the calling agent; Claude Code edits are
+also caught by its PostToolUse hook, and anything else by the snapshot timer (unattributed).
+
+Usage:
+  memctl init                                  create the history repo and baseline commit
+  memctl snapshot [--reason R] [--op OP] [--settle S] [--if-ready] [--timer] [--quiet]
+                                               commit pending store changes
+  memctl read|search|index|add|update|archive|normalize ...
+                                               run memory.py with the same store
+  memctl log [<topic>] [-n N]                  audit history
+  memctl show <commit>                         one change in full
+  memctl restore <topic> --at <commit>         bring back a topic's content (never deletes)
+  memctl doctor [--deep] [--json] [--write-status] [--quiet]
+                                               wiring + store + history self-check
+  memctl bundle [--keep N]                     write a git bundle backup of the history
+  memctl hook claude-post | claude-start       Claude Code hook handlers (stdin JSON)
+
+Environment: SHARED_MEMORY_DIR (store, default ~/.shared-memory), SHARED_MEMORY_STATE
+(history/ledger, default ~/.local/state/shared-memory), SHARED_MEMORY_WIRING (wiring file,
+default wiring.json in the skill directory), MEMCTL_AGENT (attribution override).
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+HOME = Path.home()
+SKILL_DIR = Path(__file__).resolve().parent.parent
+STORE = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
+STATE = Path(os.environ.get("SHARED_MEMORY_STATE", "~/.local/state/shared-memory")).expanduser()
+WIRING = Path(os.environ.get("SHARED_MEMORY_WIRING") or SKILL_DIR / "wiring.json").expanduser()
+GIT_DIR = STATE / "history.git"
+LEDGER = STATE / "ledger.jsonl"
+STATUS = STATE / "doctor.json"
+BUNDLES = STATE / "bundles"
+HELD = STATE / "held.json"  # files kept out of history because they look like they hold a credential
+MEMORY_PY = Path(os.environ.get("SHARED_MEMORY_PY") or SKILL_DIR / "scripts" / "memory.py")
+HOOK_SCRIPT = SKILL_DIR / "hooks" / "claude-hook.sh"
+PASSTHROUGH = ("read", "search", "index", "add", "update", "archive", "normalize")
+EXCLUDES = (".*", "__pycache__/", "*.pyc", "*.tmp", "*.bak*")
+AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
+
+# Credentials never belong in memory. Each pattern is checked on lines a change adds; the
+# OpenClaw corpus plugin redacts with the same list (tests hold the two together).
+SECRET_PATTERNS = [re.compile(p) for p in (
+    r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
+    r"\bsk-(?:ant-)?[A-Za-z0-9_-]{24,}",
+    r"\bgh[pousr]_[A-Za-z0-9]{30,}",
+    r"\bgithub_pat_[A-Za-z0-9_]{30,}",
+    r"\bAKIA[0-9A-Z]{16}\b",
+    r"\bLTAI[0-9A-Za-z]{12,}\b",
+    r"\bxox[baprs]-[A-Za-z0-9-]{10,}",
+    r"\b\d{8,10}:AA[A-Za-z0-9_-]{30,}\b",
+    r"\bctxdb-[A-Za-z0-9]{16,}",
+    r"\bAIza[0-9A-Za-z_-]{35}\b",
+    r"\btvly-[A-Za-z0-9_-]{20,}",
+    r"\btp-[A-Za-z0-9]{30,}",
+    r"\bnsec1[02-9ac-hj-np-z]{50,}",
+    r"(?i)\b(?:api[_-]?key|secret|token|passw(?:or)?d)\b[\"']?\s*[:=]\s*[\"']?[A-Za-z0-9_\-/+=]{24,}",
+)]
+
+
+def now() -> str:
+    return dt.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def die(msg: str, code: int = 2) -> None:
+    print(f"memctl: {msg}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def store_root() -> Path:
+    if not STORE.is_dir():
+        die(f"shared memory directory not found: {STORE}")
+    return STORE.resolve()
+
+
+def secret_hits(text: str) -> list[str]:
+    hits = []
+    for line in text.splitlines():
+        for pat in SECRET_PATTERNS:
+            m = pat.search(line)
+            if m:
+                hits.append(m.group(0)[:8] + "…")
+    return hits
+
+
+def redact(text: str) -> str:
+    for pat in SECRET_PATTERNS:
+        text = pat.sub("[REDACTED]", text)
+    return text
+
+
+# --- attribution -----------------------------------------------------------
+
+def _ancestry() -> list[str]:
+    names, pid = [], os.getppid()
+    for _ in range(16):
+        try:
+            cmd = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+            stat = Path(f"/proc/{pid}/stat").read_text()
+        except OSError:
+            break
+        names.append(cmd[:300])
+        pid = int(stat.rsplit(")", 1)[1].split()[1])
+        if pid <= 1:
+            break
+    return names
+
+
+def agent_of(cmd: str) -> str | None:
+    """The coding agent a process command line belongs to, if any."""
+    words = cmd.split()
+    if not words:
+        return None
+    exe = Path(words[0]).name
+    script = Path(words[1]).name if len(words) > 1 and exe in ("node", "bun", "python3", "python") else ""
+    for agent, marks in (("codex", ("codex",)), ("opencode", ("opencode", ".opencode")), ("dsh", ("dsh",)),
+                         ("claude-code", ("claude",))):
+        if exe in marks or script in marks or any(f"/bin/{m} " in cmd + " " for m in marks):
+            return agent
+    return None
+
+
+def detect_agent() -> dict[str, str]:
+    """Who is writing: explicit override, agent env markers, then the nearest agent process."""
+    info: dict[str, str] = {}
+    if os.environ.get("AGENT_DISPATCH_TASK_ID"):
+        info["dispatch"] = os.environ["AGENT_DISPATCH_TASK_ID"]
+    if os.environ.get("MEMCTL_AGENT"):
+        info["agent"] = os.environ["MEMCTL_AGENT"]
+        return info
+    if os.environ.get("CLAUDECODE"):
+        info["agent"] = "claude-code"
+        if os.environ.get("CLAUDE_CODE_SESSION_ID"):
+            info["session"] = os.environ["CLAUDE_CODE_SESSION_ID"]
+        return info
+    marker = os.environ.get("AI_AGENT", "").lower()
+    for agent in AGENT_NAMES:
+        if marker.startswith(agent):
+            info["agent"] = agent
+            return info
+    for cmd in _ancestry():
+        agent = agent_of(cmd)
+        if agent:
+            info["agent"] = agent
+            return info
+    info["agent"] = "unattributed"
+    return info
+
+
+# --- git history (separate git dir, the store is the work tree) -------------
+
+def git(*args: str, check: bool = True, input_text: str | None = None, env_extra: dict | None = None) -> str:
+    env = {**os.environ, "GIT_DIR": str(GIT_DIR), "GIT_WORK_TREE": str(store_root()),
+           "GIT_CONFIG_NOSYSTEM": "1", "GIT_TERMINAL_PROMPT": "0", "LC_ALL": "C"}
+    env.update(env_extra or {})
+    proc = subprocess.run(["git", *args], env=env, text=True, input=input_text,
+                          capture_output=True, cwd=str(store_root()))
+    if check and proc.returncode != 0:
+        die(f"git {' '.join(args)} failed: {proc.stderr.strip()[:400]}")
+    return proc.stdout
+
+
+class StateLock:
+    """Serialises memctl's own git/ledger work. memory.py keeps its own store lock."""
+
+    def __init__(self, timeout: float = 30.0):
+        self.timeout = timeout
+
+    def __enter__(self):
+        STATE.mkdir(parents=True, exist_ok=True)
+        self.handle = (STATE / "memctl.lock").open("a+")
+        deadline = time.monotonic() + self.timeout
+        while True:
+            try:
+                fcntl.flock(self.handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return self
+            except BlockingIOError:
+                if time.monotonic() > deadline:
+                    die("another memctl run holds the lock; retry shortly", 75)
+                time.sleep(0.2)
+
+    def __exit__(self, *exc):
+        fcntl.flock(self.handle, fcntl.LOCK_UN)
+        self.handle.close()
+
+
+def history_ready() -> bool:
+    return (GIT_DIR / "HEAD").is_file()
+
+
+def init_history() -> bool:
+    """Create the history repo (idempotent). Returns True when it was created now."""
+    if history_ready():
+        return False
+    STATE.mkdir(parents=True, exist_ok=True)
+    os.chmod(STATE, 0o700)
+    subprocess.run(["git", "init", "--quiet", "--bare", str(GIT_DIR)], check=True)
+    git("config", "core.bare", "false")
+    git("config", "core.worktree", str(store_root()))
+    git("config", "core.quotepath", "false")
+    git("config", "gc.auto", "0")
+    (GIT_DIR / "info").mkdir(exist_ok=True)
+    (GIT_DIR / "info" / "exclude").write_text("\n".join(EXCLUDES) + "\n")
+    return True
+
+
+def pending_changes(settle: float = 0.0) -> list[tuple[str, str]]:
+    """(status, path) for changed store files; files touched within `settle` seconds are held back."""
+    out = git("status", "--porcelain=v1", "-z", "--untracked-files=all")
+    items, entries = [], out.split("\0")
+    i = 0
+    while i < len(entries):
+        entry = entries[i]
+        i += 1
+        if not entry:
+            continue
+        code, path = entry[:2], entry[3:]
+        if code[0] == "R":
+            i += 1  # skip the rename source
+        if settle:
+            p = store_root() / path
+            if p.exists() and time.time() - p.stat().st_mtime < settle:
+                continue
+        items.append((code.strip() or "?", path))
+    return items
+
+
+def git_ok(*args: str) -> bool:
+    env = {**os.environ, "GIT_DIR": str(GIT_DIR), "GIT_WORK_TREE": str(store_root()), "GIT_CONFIG_NOSYSTEM": "1"}
+    return subprocess.run(["git", *args], env=env, capture_output=True, cwd=str(store_root())).returncode == 0
+
+
+def added_text(paths: list[str]) -> dict[str, str]:
+    """Lines each path adds relative to HEAD (whole file when it is new)."""
+    out: dict[str, str] = {}
+    for path in paths:
+        full = store_root() / path
+        if not full.is_file():
+            continue
+        if git_ok("cat-file", "-e", f"HEAD:{path}"):
+            diff = git("diff", "--no-color", "-U0", "HEAD", "--", path, check=False)
+            out[path] = "\n".join(l[1:] for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++"))
+        else:
+            out[path] = full.read_text(encoding="utf-8", errors="replace")
+    return out
+
+
+def deleted_md(changes: list[tuple[str, str]]) -> list[str]:
+    """Markdown files that disappeared without a same-named file appearing (archive is a move)."""
+    gone = [p for code, p in changes if code.startswith("D") and p.endswith(".md")]
+    arrived = {Path(p).name for code, p in changes if not code.startswith("D")}
+    return [p for p in gone if Path(p).name not in arrived]
+
+
+def ledger_append(entry: dict) -> None:
+    STATE.mkdir(parents=True, exist_ok=True)
+    line = json.dumps(entry, ensure_ascii=False, sort_keys=True)
+    with LEDGER.open("a", encoding="utf-8") as handle:
+        handle.write(line + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def commit(op: str, reason: str, who: dict[str, str], settle: float = 0.0, extra: dict | None = None) -> dict | None:
+    """Commit pending changes (minus files holding new secrets). Caller holds StateLock."""
+    changes = pending_changes(settle)
+    held_before = _load_held()
+    if not changes:
+        if held_before and not settle:
+            HELD.write_text("{}")
+        return None
+    paths = [p for _, p in changes]
+    blocked = {p: hits for p, text in added_text(paths).items() if (hits := secret_hits(text))}
+    commit_paths = [p for p in paths if p not in blocked]
+    # Report a held file once per content version, not on every snapshot.
+    held_now = {p: git("hash-object", "--", p).strip() for p in blocked}
+    newly_held = sorted(p for p, h in held_now.items() if held_before.get(p) != h)
+    if held_now != held_before:
+        HELD.write_text(json.dumps(held_now, indent=1))
+    entry = {"ts": now(), "op": op, "reason": redact(reason)[:300], **who, **(extra or {})}
+    if newly_held:
+        entry["secret_blocked"] = newly_held
+    lost = deleted_md(changes)
+    if lost:
+        entry["md_deleted"] = lost
+    if commit_paths:
+        git("add", "-A", "--", *commit_paths)
+        staged = git("diff", "--cached", "--name-status", "-M").strip()
+        if staged:
+            agent = who.get("agent", "unattributed")
+            trailers = "\n".join(f"{k}: {v}" for k, v in sorted(who.items()))
+            msg = f"{op}: {redact(reason)[:200]}\n\n{trailers}\n"
+            if lost:
+                msg += "md-deleted: " + ", ".join(lost) + "\n"
+            git("commit", "--quiet", "--no-verify", "-F", "-", input_text=msg,
+                env_extra={"GIT_AUTHOR_NAME": agent, "GIT_AUTHOR_EMAIL": f"{agent}@agents.local",
+                           "GIT_COMMITTER_NAME": "memctl", "GIT_COMMITTER_EMAIL": "memctl@agents.local"})
+            entry["commit"] = git("rev-parse", "--short=12", "HEAD").strip()
+            entry["files"] = [line.split("\t")[-1] for line in staged.splitlines()]
+    if "commit" not in entry and not newly_held:
+        return None
+    ledger_append(entry)
+    if newly_held:
+        print(f"memctl: NOT committed (looks like a credential): {', '.join(newly_held)}", file=sys.stderr)
+    return entry
+
+
+def _load_held() -> dict[str, str]:
+    try:
+        return json.loads(HELD.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+# --- commands --------------------------------------------------------------
+
+def cmd_init(_args: list[str]) -> int:
+    with StateLock():
+        created = init_history()
+        entry = commit("baseline", "import existing shared memory into history", {"agent": "memctl"})
+    print(f"history: {GIT_DIR} ({'created' if created else 'exists'})")
+    if entry:
+        print(f"baseline commit {entry.get('commit')} ({len(entry.get('files', []))} files)")
+    return 0
+
+
+def _opt(args: list[str], name: str, default: str | None = None, flag: bool = False):
+    if name in args:
+        i = args.index(name)
+        if flag:
+            del args[i]
+            return True
+        if i + 1 >= len(args):
+            die(f"{name} needs a value")
+        value = args[i + 1]
+        del args[i:i + 2]
+        return value
+    return False if flag else default
+
+
+def cmd_snapshot(args: list[str]) -> int:
+    reason = _opt(args, "--reason", "periodic snapshot")
+    op = _opt(args, "--op", "snapshot")
+    settle = float(_opt(args, "--settle", "0"))
+    quiet = _opt(args, "--quiet", flag=True)
+    if_ready = _opt(args, "--if-ready", flag=True)
+    who = detect_agent()
+    if _opt(args, "--timer", flag=True):
+        who = {"agent": "unattributed", "via": "snapshot-timer"}
+    elif op != "snapshot":
+        who["via"] = "memory.py"
+    if not re.fullmatch(r"[a-z][a-z-]{0,30}", op):
+        die("--op is a short lowercase word")
+    if not history_ready():
+        if if_ready:
+            return 0
+        die("history not initialised; run `memctl init`")
+    with StateLock(timeout=60):
+        entry = commit(op, reason, who, settle=settle)
+    if not quiet:
+        print(json.dumps(entry, ensure_ascii=False) if entry else "nothing to commit")
+    return 0
+
+
+def topic_file(topic: str) -> Path:
+    name = topic.removesuffix(".md")
+    if not re.fullmatch(r"(?:(?:archive|indexes)/)?[A-Za-z0-9][A-Za-z0-9_.-]*", name) or ".." in name:
+        die("topic must be a filename, indexes/filename or archive/filename")
+    return store_root() / f"{name}.md"
+
+
+def memory_py(argv: list[str]) -> subprocess.CompletedProcess:
+    env = {**os.environ, "SHARED_MEMORY_DIR": str(STORE)}
+    return subprocess.run([sys.executable, str(MEMORY_PY), *argv], env=env, text=True, capture_output=True)
+
+
+def cmd_passthrough(argv: list[str]) -> int:
+    proc = memory_py(argv)
+    sys.stdout.write(proc.stdout)
+    sys.stderr.write(proc.stderr)
+    return proc.returncode
+
+
+def cmd_log(args: list[str]) -> int:
+    n = _opt(args, "-n", "20")
+    if not history_ready():
+        die("history not initialised; run `memctl init`")
+    paths = []
+    if args:
+        path = topic_file(args[0])
+        paths = ["--follow", "--", str(path.relative_to(store_root()))]
+    fmt = "%x1e%h %ad %an%x09%s"
+    out = git("log", f"-n{n}", "--date=format-local:%Y-%m-%d %H:%M", f"--format={fmt}", "--name-status", "-M", *paths)
+    for block in out.split("\x1e")[1:]:
+        head, *files = [l for l in block.splitlines() if l.strip()]
+        print(head)
+        for line in files[:8]:
+            print("    " + line)
+        if len(files) > 8:
+            print(f"    … {len(files) - 8} more (memctl show {head.split()[0]})")
+    if out.strip() == "":
+        print("(no history)")
+    return 0
+
+
+def cmd_show(args: list[str]) -> int:
+    if len(args) != 1:
+        die("usage: memctl show <commit>")
+    print(git("show", "--stat", "--patch", "--no-color", args[0]).rstrip())
+    return 0
+
+
+def cmd_restore(args: list[str]) -> int:
+    at = _opt(args, "--at")
+    reason = _opt(args, "--reason", "restore from history")
+    if len(args) != 1 or not at:
+        die("usage: memctl restore <topic> --at <commit> [--reason R]")
+    path = topic_file(args[0])
+    rel = str(path.relative_to(store_root()))
+    with StateLock():
+        commit("snapshot", "drift recorded before restore", {"agent": "unattributed", "via": "pre-restore"})
+        content = subprocess.run(["git", "show", f"{at}:{rel}"], env={**os.environ, "GIT_DIR": str(GIT_DIR)},
+                                 capture_output=True, cwd=str(STATE))
+        if content.returncode != 0:
+            die(f"{rel} does not exist at {at}; restore never deletes, so nothing was changed")
+        tmp = path.with_name(f".{path.name}.restore")
+        tmp.write_bytes(content.stdout)
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, path)
+        entry = commit("restore", f"{reason} ({rel} @ {at})", detect_agent(), extra={"targets": [rel], "from": at})
+    print(f"restored {rel} from {at}" + (f" as {entry['commit']}" if entry else " (already identical)"))
+    print("note: index routes are not changed by restore; run `memory.py doctor`.", file=sys.stderr)
+    return 0
+
+
+def cmd_bundle(args: list[str]) -> int:
+    keep = int(_opt(args, "--keep", "14"))
+    if not history_ready():
+        die("history not initialised; run `memctl init`")
+    BUNDLES.mkdir(parents=True, exist_ok=True)
+    with StateLock():
+        target = BUNDLES / f"history-{dt.date.today().isoformat()}.bundle"
+        git("bundle", "create", str(target) + ".tmp", "--all")
+        os.replace(str(target) + ".tmp", target)
+        os.chmod(target, 0o600)
+    bundles = sorted(BUNDLES.glob("history-*.bundle"))
+    for old in bundles[:-keep]:
+        old.unlink()  # generated backups only; the history repo itself is never pruned
+    print(f"bundle {target} ({target.stat().st_size // 1024}KB), keeping {min(keep, len(bundles))}")
+    return 0
+
+
+# --- wiring: where each agent looks, per working directory -------------------
+
+def load_wiring() -> dict:
+    try:
+        return json.loads(WIRING.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def xp(path: str) -> Path:
+    return Path(os.path.expandvars(os.path.expanduser(path)))
+
+
+def contexts(wiring: dict) -> dict[str, dict]:
+    """Working directories agents are started in. `shared: true` contexts use the shared store;
+    `shared: false` ones (an OpenClaw workspace) keep their own memory and never get its index."""
+    return {name: {**ctx, "cwd": xp(ctx["cwd"])} for name, ctx in (wiring.get("contexts") or {}).items()
+            if isinstance(ctx, dict) and ctx.get("cwd")}
+
+
+def claude_project_memory(cwd: Path) -> Path:
+    """Claude Code's project-scoped auto-memory directory for sessions started in `cwd`."""
+    return HOME / ".claude" / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(cwd)) / "memory"
+
+
+def isolated_context(cwd: Path, wiring: dict) -> str | None:
+    """Name of the separate-memory context `cwd` lies in (itself or below), if any."""
+    for name, ctx in contexts(wiring).items():
+        if not ctx.get("shared", True) and _within(cwd, ctx["cwd"]):
+            return name
+    for raw in wiring.get("no_inject_under") or []:
+        if _within(cwd, xp(raw)):
+            return raw
+    return None
+
+
+def _within(path: Path, root: Path) -> bool:
+    try:
+        return path.resolve() == root.resolve() or path.resolve().is_relative_to(root.resolve())
+    except (OSError, ValueError):
+        return False
+
+
+def start_output(cwd: Path, wiring: dict) -> str:
+    """What the Claude SessionStart hook prints for a session started in `cwd`."""
+    if isolated_context(cwd, wiring):
+        return ""  # e.g. OpenClaw's workspace: its assistant keeps its own (public) memory
+    out = []
+    try:
+        status = json.loads(STATUS.read_text())
+        if status.get("status") == "FAIL":
+            out.append(f"[shared-memory] wiring self-check FAILED at {status.get('ts')}: "
+                       f"{', '.join(status.get('fail', []))}. Run `{Path(__file__).resolve()} doctor`.")
+    except (OSError, ValueError):
+        pass
+    native = _same(claude_project_memory(cwd), STORE)  # Claude Code already injects this index here
+    if not native and os.environ.get("SHARED_MEMORY_INJECT", "1") != "0" and (STORE / "MEMORY.md").is_file():
+        index = (STORE / "MEMORY.md").read_text(encoding="utf-8").splitlines()[:200]
+        out.append(f"Shared agent memory index ({STORE}/MEMORY.md; topic bodies are read on demand):\n\n"
+                   + "\n".join(index))
+    return "\n\n".join(out)
+
+
+# --- doctor ----------------------------------------------------------------
+
+def _same(a: Path, b: Path) -> bool:
+    try:
+        return a.exists() and a.resolve() == b.resolve()
+    except OSError:
+        return False
+
+
+def _run(cmd: list[str], timeout: int = 60, cwd: Path | str | None = None, env: dict | None = None) -> tuple[int, str]:
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=str(cwd or HOME), env=env)
+        return proc.returncode, proc.stdout + proc.stderr
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return 127, str(exc)
+
+
+def dispatch_env() -> dict[str, str]:
+    """The environment a dispatched (headless) agent starts with: a systemd unit, so only
+    HOME and PATH — no DSH_HOME, CODEX_HOME, XDG_* or agent markers from this shell."""
+    return {"HOME": str(HOME), "PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"),
+            "LANG": "C.UTF-8", "TZ": os.environ.get("TZ", "UTC")}
+
+
+def _package_dir(binary: str) -> Path | None:
+    """Install directory of a Node CLI found on PATH (…/node_modules/<package>)."""
+    found = shutil.which(binary)
+    if not found:
+        return None
+    path = Path(found).resolve()
+    for parent in path.parents:
+        if (parent / "package.json").is_file():
+            return parent
+    return None
+
+
+def _dsh_profile_tree(profile: str, env: dict) -> tuple[list[dict], str]:
+    """The composed plugin rows of a dsh profile (`dsh --profile P --dump-config`, no model)."""
+    rc, out = _run(["dsh", "--profile", profile, "--dump-config"], timeout=90, env=env)
+    if rc != 0:
+        return [], out.strip()[-200:]
+    try:
+        import yaml  # optional: only this check needs it
+    except ImportError:
+        return [], "PyYAML is not installed"
+
+    class Loader(yaml.SafeLoader):
+        pass
+    Loader.add_multi_constructor("tag:yaml.org,2002:js", lambda *_: None)
+    Loader.add_multi_constructor("!", lambda *_: None)
+    try:
+        rows = yaml.load(out, Loader=Loader) or []
+    except yaml.YAMLError as exc:
+        return [], f"unparseable dump: {exc}"[:200]
+    return rows if isinstance(rows, list) else [], ""
+
+
+def _dsh_mounted(rows: list, plugin: str, path: tuple = ()) -> list[tuple[str, dict]]:
+    """(where, config) for every enabled row of `plugin`, top level or inside an agent preset."""
+    found = []
+    for row in rows:
+        if not isinstance(row, dict) or row.get("disabled"):
+            continue
+        cfg = row.get("config")
+        if row.get("id") == plugin:
+            found.append(("/".join(path) or "top", cfg if isinstance(cfg, dict) else {}))
+        nested = cfg.get("plugins") if isinstance(cfg, dict) else cfg if isinstance(cfg, list) else None
+        if nested:
+            found += _dsh_mounted(nested, plugin, (*path, str(row.get("id"))))
+    return found
+
+
+def _dsh_discovery(cwd: Path, env: dict) -> tuple[list[str], list[str], str]:
+    """dsh's own instruction discovery and default skill roots for `cwd` under `env`."""
+    pkg = _package_dir("dsh")
+    if not pkg:
+        return [], [], "dsh not on PATH"
+    mods = pkg / "node_modules" / "@deepseek-ai"
+    js = (f"const i=await import({json.dumps((mods / 'dsh-agent-instructions/lib/index.js').as_uri())});"
+          f"const h=await import({json.dumps((mods / 'dsh-home-paths/lib/index.js').as_uri())});"
+          f"const files=(await i.discoverBaselineInstructionFiles({{cwd:{json.dumps(str(cwd))}}})).map(f=>f.absolutePath);"
+          "const p=await import('node:path');"
+          "console.log(JSON.stringify({files,roots:[p.join(h.resolveDshHome(),'skills'),p.join(h.resolveAgentsHome(),'skills')]}))")
+    rc, out = _run(["node", "--input-type=module", "-e", js], timeout=30, cwd=cwd, env=env)
+    try:
+        data = json.loads(out.strip().splitlines()[-1])
+        return data["files"], data["roots"], ""
+    except (ValueError, IndexError, KeyError, TypeError):
+        return [], [], out.strip()[-200:]
+
+
+def doctor_checks(deep: bool) -> list[dict]:
+    checks: list[dict] = []
+    wiring = load_wiring()
+
+    def add(cid: str, ok: bool, detail: str, level: str = "FAIL") -> None:
+        checks.append({"id": cid, "status": "OK" if ok else level, "detail": detail})
+
+    add("wiring.file", bool(wiring), f"{WIRING}" + ("" if wiring else " missing or not JSON"))
+    guidance = xp(wiring.get("guidance", "~/.agents/AGENTS.md"))
+    skill_md = SKILL_DIR / "SKILL.md"
+    agents = wiring.get("agents") or {}
+
+    # 1. static wiring: one guidance file, one store, one skill, for every agent
+    for name, agent in agents.items():
+        if agent.get("instructions"):
+            link = xp(agent["instructions"])
+            add(f"wiring.{name}.instructions", _same(link, guidance), f"{link} -> {os.path.realpath(link)}")
+        if agent.get("skill"):
+            link = xp(agent["skill"])
+            add(f"wiring.{name}.skill", _same(link / "SKILL.md", skill_md), f"{link} -> {os.path.realpath(link)}")
+    entry = wiring.get("entry") or {}
+    for raw in entry.get("links", []):
+        link = xp(raw)
+        add(f"wiring.entry.{link.name}", _same(link, xp(entry["file"])), f"{link} -> {os.path.realpath(link)}")
+    for raw in wiring.get("store_links", []):
+        link = xp(raw)
+        add(f"wiring.store.{link.parent.name.strip('.') or 'home'}", _same(link, STORE),
+            f"{link} -> {os.path.realpath(link)}")
+    add("wiring.memory_py", MEMORY_PY.is_file(), str(MEMORY_PY))
+    text = guidance.read_text(encoding="utf-8") if guidance.is_file() else ""
+    routes = wiring.get("guidance_routes", [])
+    add("wiring.guidance.routes", bool(text) and all(r in text for r in routes),
+        f"{guidance} names: {', '.join(routes)}")
+    add("wiring.dsh.home", os.environ.get("DSH_HOME") in (None, "", str(HOME / ".dsh")),
+        f"DSH_HOME={os.environ.get('DSH_HOME', '(unset)')} in this environment", level="WARN")
+
+    # Codex's native memories would write its own files next to the shared link.
+    codex_cfg = HOME / ".codex/config.toml"
+    cfg = codex_cfg.read_text(encoding="utf-8") if codex_cfg.is_file() else ""
+    feat = re.search(r"^\[features\][^\[]*", cfg, re.M)
+    enabled = bool(feat and re.search(r"^\s*memories\s*=\s*true", feat.group(0), re.M)) or \
+        bool(re.search(r"^\s*features\.memories\s*=\s*true", cfg, re.M))
+    add("codex.memories.config", not enabled, "config.toml does not enable features.memories")
+    extra = sorted(p.name for p in (HOME / ".codex/memories").iterdir() if p.name != "shared") \
+        if (HOME / ".codex/memories").is_dir() else []
+    add("codex.memories.dir", not extra, "~/.codex/memories holds only `shared`" + (f"; also: {extra}" if extra else ""))
+
+    # Claude Code hooks that capture native writes and surface doctor failures.
+    try:
+        settings = json.loads((HOME / ".claude/settings.json").read_text())
+        hooks = json.dumps(settings.get("hooks", {}))
+    except (OSError, ValueError):
+        hooks = ""
+    add("claude.hooks", str(HOOK_SCRIPT) in hooks and os.access(HOOK_SCRIPT, os.X_OK),
+        f"settings.json PostToolUse/SessionStart run {HOOK_SCRIPT}")
+    known = {claude_project_memory(c["cwd"]).resolve() for c in contexts(wiring).values()}
+    islands = [str(d) for d in (HOME / ".claude/projects").glob("*/memory")
+               if d.resolve() != STORE.resolve() and d.resolve() not in known and any(d.iterdir())]
+    add("claude.memory.islands", not islands,
+        "Claude auto-memory outside the listed contexts is not shared" + (f": {islands}" if islands else ""),
+        level="WARN")
+
+    # 2. per working directory: which memory a session started there gets
+    for name, ctx in contexts(wiring).items():
+        cwd, shared = ctx["cwd"], bool(ctx.get("shared", True))
+        native = claude_project_memory(cwd)
+        injected = "Shared agent memory index" in start_output(cwd, wiring)
+        if shared:
+            gets = "native auto-memory" if _same(native, STORE) else "SessionStart hook" if injected else "nothing"
+            add(f"context.{name}.claude.index", gets != "nothing", f"cwd {cwd}: Claude gets the shared index via {gets}")
+        else:
+            add(f"context.{name}.claude.index", not _same(native, STORE) and not injected,
+                f"cwd {cwd}: own auto-memory {native.parent.name}, shared index "
+                + ("INJECTED (must not be)" if injected else "not injected"))
+            leaks = [str(p) for p in ([cwd, *cwd.iterdir()] if cwd.is_dir() else [])
+                     if p.is_symlink() and _within(p, STORE)]
+            leaks += [str(p) for p in (cwd / "memory").glob("*") if p.is_symlink() and _within(p, STORE)] \
+                if (cwd / "memory").is_dir() else []
+            inside = _within(STORE, cwd)
+            add(f"context.{name}.store_separate", not leaks and not inside,
+                f"shared store {'is INSIDE' if inside else 'outside'} {cwd}" + (f"; links into it: {leaks}" if leaks else ""))
+
+    # 3. store: format owner's doctor, injection budget, writable
+    root = store_root()
+    proc = memory_py(["doctor"])
+    add("store.doctor", proc.returncode == 0, (proc.stdout.strip() or proc.stderr.strip())[-300:])
+    index = root / "MEMORY.md"
+    lines = index.read_text(encoding="utf-8").count("\n") if index.is_file() else 0
+    add("store.index.injectable", 0 < lines <= 200, f"MEMORY.md {lines} lines (Claude injects the first 200)")
+    add("store.writable", os.access(root, os.W_OK), f"{root} writable by uid {os.getuid()}")
+    stray = sorted(p.name for p in root.iterdir() if p.is_file() and not p.name.startswith(".")
+                   and p.suffix not in (".md", ".tsv"))
+    add("store.stray_files", not stray, "non-topic files in the store" + (f": {stray}" if stray else ": none"),
+        level="WARN")
+
+    # 4. history, audit and backups
+    held = sorted(_load_held())
+    add("history.repo", history_ready(), str(GIT_DIR))
+    if history_ready():
+        dirty = pending_changes()
+        stale = [p for _, p in dirty if p not in held and (root / p).exists()
+                 and time.time() - (root / p).stat().st_mtime > 1800]
+        add("history.uncommitted", not stale,
+            f"{len(dirty)} pending change(s), {len(stale)} older than 30 min", level="WARN")
+        last = git("log", "-1", "--format=%cI %h %s", check=False).strip()
+        add("history.head", bool(last), last or "no commits")
+        if deep:
+            rc, out = _run(["git", f"--git-dir={GIT_DIR}", "fsck", "--connectivity-only", "--no-progress"])
+            add("history.fsck", rc == 0, out.strip()[:200] or "ok")
+    bundles = sorted(BUNDLES.glob("history-*.bundle")) if BUNDLES.is_dir() else []
+    age = (time.time() - bundles[-1].stat().st_mtime) / 3600 if bundles else None
+    add("backup.bundle", age is not None and age < 50,
+        f"latest bundle {bundles[-1].name} ({age:.0f}h old)" if bundles else "no bundle yet", level="WARN")
+    for unit in wiring.get("timers", []):
+        rc, out = _run(["systemctl", "is-active", unit], timeout=10)
+        add(f"timer.{unit.split('.')[0]}", out.strip() == "active", f"{unit}: {out.strip()}", level="WARN")
+    add("audit.secret_held", not held, ("kept out of history, redact the credential in: " + ", ".join(held))
+        if held else "no store file holds a credential-looking string", level="WARN")
+    flagged = []
+    if LEDGER.is_file():
+        cutoff = time.time() - 7 * 86400
+        for line in LEDGER.read_text(encoding="utf-8").splitlines()[-2000:]:
+            try:
+                e = json.loads(line)
+                ts = dt.datetime.fromisoformat(e["ts"]).timestamp()
+            except (ValueError, KeyError):
+                continue
+            if ts >= cutoff and (e.get("secret_blocked") or e.get("md_deleted")):
+                flagged.append(f"{e['ts']} {e.get('agent')}: "
+                               + ("secret held back " + ",".join(e.get("secret_blocked", [])) if e.get("secret_blocked") else "")
+                               + (" md deleted " + ",".join(e.get("md_deleted", [])) if e.get("md_deleted") else ""))
+    add("audit.flags", not flagged, "; ".join(flagged[-3:]) or "no secret/deletion flags in 7 days", level="WARN")
+
+    # 5. discovery by the real entry points, without calling a model (slower, --deep): every
+    #    shared context × every agent, in the interactive environment and in the bare
+    #    environment a dispatched (headless) task starts with.
+    if deep:
+        marker = next((l.strip() for l in text.splitlines() if l.strip()), "")
+        envs = {"interactive": None, "dispatch": dispatch_env()}
+        for name, ctx in contexts(wiring).items():
+            if not ctx.get("shared", True):
+                continue
+            cwd = ctx["cwd"]
+            for env_name, env in envs.items():
+                tag = f"discovery.{name}.{env_name}"
+                if "codex" in agents:
+                    rc, out = _run(["codex", "debug", "prompt-input", "noop"], timeout=90, cwd=cwd, env=env)
+                    add(f"{tag}.codex.instructions", rc == 0 and marker in out,
+                        f"`codex debug prompt-input` in {cwd} contains {guidance.name}")
+                    add(f"{tag}.codex.skill", rc == 0 and "shared-memory" in out,
+                        f"Codex prompt in {cwd} lists the shared-memory skill")
+                if "opencode" in agents:
+                    rc, out = _run(["opencode", "debug", "skill"], timeout=90, cwd=cwd, env=env)
+                    locations = re.findall(r'"location":\s*"([^"]+)"', out)
+                    found = [loc for loc in locations if _same(Path(loc), skill_md)]
+                    add(f"{tag}.opencode.skill", bool(found), f"`opencode debug skill` in {cwd}: {found or 'not listed'}")
+                    rc, out = _run(["opencode", "debug", "paths"], timeout=60, cwd=cwd, env=env)
+                    cfg_dir = re.search(r"^config\s+(\S+)", out, re.M)
+                    loaded = xp(cfg_dir.group(1)) / "AGENTS.md" if cfg_dir else None
+                    add(f"{tag}.opencode.instructions", bool(loaded) and _same(loaded, guidance),
+                        f"OpenCode global instructions {loaded or out.strip()[-120:]}")
+                if "dsh" in agents:
+                    files, roots, err = _dsh_discovery(cwd, env or dict(os.environ))
+                    add(f"{tag}.dsh.instructions", any(_same(Path(f), guidance) for f in files),
+                        f"dsh instruction files in {cwd}: {files or err}")
+                    found = [r for r in roots if _same(Path(r) / "shared-memory" / "SKILL.md", skill_md)]
+                    add(f"{tag}.dsh.skill_roots", bool(found), f"dsh default skill roots {roots}: shared-memory in {found}")
+        # Each dsh profile must mount instruction loading and filesystem skills; a profile
+        # that disabled either (or pointed it elsewhere) would hide the memory from its agents.
+        for profile in (agents.get("dsh") or {}).get("profiles", []):
+            rows, err = _dsh_profile_tree(profile, dispatch_env())
+            for plugin in ("agent-instructions", "skill-filesystem"):
+                mounted = _dsh_mounted(rows, plugin)
+                bad = [w for w, cfg in mounted if cfg.get("dshHome") or cfg.get("agentsHome")
+                       or cfg.get("includeDefaultRoots") is False]
+                add(f"discovery.dsh.profile.{profile}.{plugin}", bool(mounted) and not bad,
+                    f"`dsh --profile {profile}` mounts {plugin} at {[w for w, _ in mounted] or err or 'nowhere'}"
+                    + (f"; overrides its roots at {bad}" if bad else ""))
+    return checks
+
+
+def cmd_doctor(args: list[str]) -> int:
+    deep = _opt(args, "--deep", flag=True)
+    as_json = _opt(args, "--json", flag=True)
+    write_status = _opt(args, "--write-status", flag=True)
+    quiet = _opt(args, "--quiet", flag=True)
+    checks = doctor_checks(deep)
+    fails = [c for c in checks if c["status"] == "FAIL"]
+    warns = [c for c in checks if c["status"] == "WARN"]
+    summary = {"ts": now(), "deep": deep, "status": "FAIL" if fails else ("WARN" if warns else "OK"),
+               "fail": [c["id"] for c in fails], "warn": [c["id"] for c in warns], "checks": checks}
+    if write_status:
+        STATE.mkdir(parents=True, exist_ok=True)
+        tmp = STATUS.with_suffix(".tmp")
+        tmp.write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+        os.replace(tmp, STATUS)
+    if as_json:
+        print(json.dumps(summary, ensure_ascii=False, indent=1))
+    else:
+        for c in checks:
+            if not quiet or c["status"] != "OK":
+                print(f"{c['status']:4} {c['id']:44} {c['detail']}")
+        print(f"{summary['status']} {len(checks)} checks, {len(fails)} fail, {len(warns)} warn")
+    return 1 if fails else 0
+
+
+# --- Claude Code hooks -----------------------------------------------------
+
+def _under(path: str, root: Path) -> bool:
+    try:
+        return Path(path).resolve().is_relative_to(root)
+    except (OSError, ValueError):
+        return False
+
+
+def hook_claude_post(data: dict) -> None:
+    """After a Write/Edit/Bash touching the store, commit it attributed to this Claude session."""
+    if not history_ready() or not STORE.is_dir():
+        return
+    root = store_root()
+    tool = data.get("tool_name", "")
+    tin = data.get("tool_input") or {}
+    target = tin.get("file_path") or tin.get("notebook_path") or ""
+    if target:
+        if not _under(target, root):
+            return
+        what = f"{tool} {Path(target).resolve().relative_to(root)}"
+    else:
+        what = f"{tool}: {' '.join(str(tin.get('command', '')).split())[:160]}"
+    who = {"agent": "claude-code", "via": "PostToolUse"}
+    if data.get("session_id"):
+        who["session"] = data["session_id"]
+    if os.environ.get("AGENT_DISPATCH_TASK_ID"):
+        who["dispatch"] = os.environ["AGENT_DISPATCH_TASK_ID"]
+    with StateLock(timeout=15):
+        commit("claude-edit", what, who)
+
+
+def hook_claude_start(data: dict) -> None:
+    """SessionStart: the shared index where Claude does not inject it natively, never inside a
+    separate-memory context; doctor failures."""
+    out = start_output(Path(data.get("cwd") or os.getcwd()), load_wiring())
+    if out:
+        print(out)
+
+
+def cmd_hook(args: list[str]) -> int:
+    if not args:
+        die("usage: memctl hook claude-post|claude-start")
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        data = {}
+    try:
+        {"claude-post": hook_claude_post, "claude-start": hook_claude_start}[args[0]](data)
+    except SystemExit:
+        pass  # hooks must never break the agent turn
+    except Exception as exc:  # noqa: BLE001
+        print(f"memctl hook {args[0]}: {exc}", file=sys.stderr)
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd, rest = argv[0], argv[1:]
+    if cmd in PASSTHROUGH:
+        return cmd_passthrough(argv)
+    table = {"init": cmd_init, "snapshot": cmd_snapshot, "log": cmd_log, "show": cmd_show,
+             "restore": cmd_restore, "bundle": cmd_bundle, "doctor": cmd_doctor, "hook": cmd_hook}
+    if cmd not in table:
+        die(f"unknown command {cmd!r}; see `memctl --help`")
+    return table[cmd](rest)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
