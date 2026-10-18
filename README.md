@@ -236,7 +236,16 @@ The risk limits, what happens when one is crossed, and the evidence requirements
 
 **With dsh and the host runner configured, you can hand over a task and return to the result.** In the dsh web GUI, you ask for a change to a repository and say how you want it delivered. A background agent (Claude Code, Codex or OpenCode) takes it and keeps working after you close the tab. When you come back, the panel shows how far it got.
 
-That is what `clawock-dsh` adds to dsh: the investment-decision skill, a Decision Mind tab and a provider panel. The background queue needs clawock's **agent-dispatch** runner on the host. The runner keeps each task alive; the plugin lets you watch it and steer it.
+`clawock-dsh` is one npm package with four parts. Each part needs a little more of the host than the one before it:
+
+| Part | What you see | What it needs |
+| :--- | :--- | :--- |
+| Investment skill and **Decision Mind** | The agent walks the decision steps; a tab traces each real fill from plan to P&L | dsh |
+| **Provider panel** | Claude and Codex allowance windows, DeepSeek and MiniMax balances, the OpenCode free pool, in the sidebar | dsh |
+| **Dispatch queue** | Each agent's queue in real order, task details and controls, patrol, a seven-day stats card, the ops version footer | clawock's **agent-dispatch** runner on the host |
+| **Chat commands** | `/dispatch-list` and `/dispatch-stats` in WeChat or Telegram, read-only | the package loaded as an OpenClaw plugin |
+
+The runner keeps each task alive; the plugin lets you watch it and steer it.
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="1016" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
 
@@ -244,17 +253,37 @@ That is what `clawock-dsh` adds to dsh: the investment-decision skill, a Decisio
 - **Change course while it runs.** Move waiting work up, change the next attempt's model where allowed, adjust deadlines and retry budgets, cancel a task or retry an unfinished session.
 - **Keep the result in reach.** A completed task with a failed send stays visible; a missing message does not erase the work.
 
-The author’s host looks after its own code through the same queue (the “The desk fixes itself the same way” panel of the overview). Separately configured patrol rounds check published outputs. The program checks each finding’s evidence before opening an issue. A background agent takes the fix through a PR and the required CI. An issue closed as noise makes that kind of finding count for less next time. Installing the Python package or dsh plugin does not set up these patrol rounds.
-
 **From the queue to a task’s history** — one annotated view
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-tour.svg" width="1016" alt="Annotated composite of real dsh captures, with original proportions preserved: the left column shows Claude and Codex allowance windows and the Codex quota queue, then recently ended tasks with separate outcome and notification indicators, followed by the patrol entry and the closing stats card; the right column shows a completed Codex task's numbered append and delivered status, followed by recorded append submission, continuation, delivery, attempt completion and notification events. The final receipt shows WeChat delivered and Telegram failed even though the task completed. These are excerpts from two different historical captures, not one task's synchronized state or a new desktop screenshot; links below open both complete originals."></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-tour.svg" width="1016" alt="Annotated composite of real dsh captures, with original proportions preserved: the left column shows Claude and Codex allowance windows and the Codex quota queue, then recently ended tasks with separate outcome and notification indicators; the right column shows a completed Codex task's numbered append and delivered status, followed by recorded append submission, continuation, delivery, attempt completion and notification events. The final receipt shows WeChat delivered and Telegram failed even though the task completed. These are excerpts from two different historical captures, not one task's synchronized state or a new desktop screenshot; links below open both complete originals."></p>
 
 Read the queue to find the work, then open a task to inspect its instructions and recorded progress. Appends are made through the host runner; the detail view shows whether they were delivered. **Task completion and message delivery are separate:** this finished task has a failed Telegram receipt.
 
 The figure combines excerpts from two historical captures at their original proportions, with explanation alongside them. It is not a new desktop screenshot. [Full queue capture](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png) · [Full task history](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png).
 
-[Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
+The author’s host looks after its own code through the same queue (the “The desk fixes itself the same way” panel of the overview). Separately configured patrol rounds check published outputs. The program checks each finding’s evidence before opening an issue. A background agent takes the fix through a PR and the required CI. An issue closed as noise makes that kind of finding count for less next time. Installing the Python package or dsh plugin does not set up these patrol rounds.
+
+**The close of the panel: patrol and the week** — one annotated view
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-panel-tour.svg" width="1016" alt="Annotated composite of three real dsh captures from 2026-10-18, with original proportions preserved: the left column shows the bottom of the panel, a single patrol row with its outcome strip and coverage conclusion, the seven-day stats card with task count, tokens, API estimate and a completion bar, and the ops version footer; below it, the stats page with seven days of token use stacked by provider, then tokens, API estimate and completion per agent. The right column shows the patrol page: four summary numbers, the outcome strip, the latest rounds, then open issues by area and rounds by lens. The stats and patrol pages were captured with the Chinese locale, and the card and the chart were read at different times, so their totals differ; links below open the complete originals."></p>
+
+The queue opens the panel; two summaries close it.
+
+- **Patrol is one row.** It shows the current phase, whether any area has open issues, and a thin strip of the last eight rounds. Tap it for the patrol page: four numbers first (latest round, open areas, open lenses, rounds), then every round, then open issues by area and rounds by lens.
+- **The week is one card.** Tasks, tokens and an API-price estimate for the last seven days, with a completion bar. Tap it for a daily token chart stacked by provider, and the same numbers per agent. The card is read only when you open the panel, not on every queue refresh. Its numbers are frozen when each task ends, so a resumed session is not counted twice, and patrol rounds are left out.
+- **The footer says which code is running.** `ops <hash> · runner api <n>` names the installed ops entry and runner. It turns red when the installed entry differs from the repository’s copy: merged, but not installed.
+
+In chat, `/dispatch-list` prints the panel as one message and `/dispatch-stats` prints the week as a five-column table. `/dispatch-stats 30d`, `all` or a start date widen the window; `patrol` adds patrol rounds; `plain` draws bars for clients that show a table’s pipes. The cost is an API list-price estimate, not what a subscription is charged.
+
+[Full stats page](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-stats-layer.png) · [Full patrol page](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-patrol-page.png) · [Queue capabilities and setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner and ops contract](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
+
+**On the author’s host, every agent reads the same memory** — a picture of one host’s configuration, not something the package installs
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/shared-memory.svg" width="1016" alt="The author's host, not part of the clawock package: work starts either in a session the author opens or in a task the agent-dispatch queue starts, both in the same home folder; Claude Code, Codex, dsh and OpenCode each read their own instruction file, CLAUDE.md or AGENTS.md, and each of those files is a link to one shared copy; that copy holds the shared instructions and a memory index of topic notes by kind, read and written through one small script, so a correction written once is what all four read next; the known gaps are that only Claude Code loads the index by itself, Codex keeps its own memory feature off because it would write a second copy, there is no version history or backup, and nothing checks the links"></p>
+
+Why does a Codex task that the queue started overnight know a rule you had Claude Code write down in the afternoon? Nothing copies it across. Each agent’s own instruction file on the author’s host is a link to one shared file, and the memory notes live in one folder that all four agents read. The runner starts every new task in the same home folder an interactive session starts in. A correction is written once, and the next session of any agent reads it.
+
+It has gaps. Only Claude Code loads the memory index when it starts; the other three search it when a task needs it. Codex’s own memory feature stays off, because turned on it would write a second copy. The notes have no version history and no backup, and nothing checks that the links are still in place. None of this ships with `pip install clawock` or the dsh plugin.
 
 Once you have supplied holdings and evidence, ask “Can I add to 0700.HK?” and the investment skill walks the agent through the same steps as above: gather evidence, argue both sides, then write a decision with a trigger and a way to be wrong. **Decision Mind** reads your workspace’s recorded trades and plans; a new workspace has no trade history to show. Open a real fill and follow it through **plan → execution → T+1 → P&L**: what the plan said, what you did, where the price was one session later, and what it earned or lost. A fill with no plan behind it says so, and so does one that has not been graded yet. USD and HKD stay separate, and you place the orders.
 
@@ -268,7 +297,9 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/
 ```
 
 Restart the web profile to load it. Queue controls also need the host runner;
-without it the panel still shows provider allowances and balances.
+without it the panel still shows provider allowances and balances. For the chat
+commands, add the installed package directory to OpenClaw’s `plugins.load.paths`
+and restart the gateway.
 [npm package](https://www.npmjs.com/package/clawock-dsh) ·
 [installation and queue setup](https://github.com/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md).
 

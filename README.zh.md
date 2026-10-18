@@ -233,7 +233,16 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 **配置好 dsh 和主机 runner 后，你可以交代任务，之后回来收结果。** 在 dsh 网页端的聊天里说明仓库改动和交付要求。后台的一个 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干。等你回来，面板上能看到它做到了哪一步。
 
-这就是 `clawock-dsh` 给 dsh 加的东西：投资决策 skill、Decision Mind 标签页和 provider 面板。后台队列需要主机上装有 clawock 的 **agent-dispatch** runner。runner 负责让每个任务独立跑完，插件负责让你看得见、改得了方向。
+`clawock-dsh` 是一个 npm 包，分四块。每往下一块，对主机的要求多一点：
+
+| 部分 | 你看到什么 | 需要什么 |
+| :--- | :--- | :--- |
+| 投资 skill 与 **Decision Mind** | Agent 按决策步骤走；标签页把每笔真实成交从计划追到盈亏 | dsh |
+| **provider 面板** | 侧栏里的 Claude、Codex 额度窗口，DeepSeek、MiniMax 余额，OpenCode 免费池 | dsh |
+| **派发队列** | 各 agent 按真实顺序的队列、任务详情与控制、巡检、近 7 天统计卡、ops 版本页脚 | 主机上装有 clawock 的 **agent-dispatch** runner |
+| **聊天命令** | 微信或 Telegram 里的 `/dispatch-list` 与 `/dispatch-stats`，只读 | 把这个包作为 OpenClaw 插件加载 |
+
+runner 负责让每个任务独立跑完，插件负责让你看得见、改得了方向。
 
 <p align="center"><img src="site/assets/harnesses.svg" width="1016" alt="你的 dsh 后台团队:在聊天中委派仓库任务,agent-dispatch 为 Claude Code、Codex 或 OpenCode 启动独立 systemd 任务;真实插件截图显示额度和队列,可以调整排队任务与预算;agent 按任务要求完成 PR、必需 CI、squash-merge 和本机刷新;runner 尽力经微信和 Telegram 回传报告,送达回执与任务结果分开显示"></p>
 
@@ -241,17 +250,37 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 - **任务在跑,也能改方向。** 把排队任务往前移,在允许时改下一次尝试的模型,调整截止时间与重试预算,取消任务或续跑未完成的会话。
 - **结果留得住。** 任务完成但消息发送失败仍然看得见;没收到消息不等于工作消失了。
 
-作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。另外配置的巡检任务核查已发布的产物。发现问题后，程序先检查证据，符合提交条件才创建 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。安装 Python 包或 dsh 插件不会自动配置这些巡检任务。
-
 **从队列到任务历史** —— 一张带讲解的合成图
 
-<p align="center"><img src="site/assets/dsh-task-tour.svg" width="1016" alt="真实 dsh 截图的讲解合成图,截取内容保持原比例:左栏展示 Claude 与 Codex 额度窗口及 Codex 配额队列,以及最近结束任务各自独立的执行结果和通知状态,随后是巡检入口与收尾统计卡;右栏展示已完成 Codex 任务的编号追加指令与 delivered 状态,随后是追加提交、续跑、投递、尝试结束和通知事件。末尾回执显示微信已送达、Telegram 失败,但任务本身已完成。图中内容来自两次不同的历史截图,不是同一任务的同步状态,也不是重新拍摄的桌面截图;下方链接可查看两张完整原图。"></p>
+<p align="center"><img src="site/assets/dsh-task-tour.svg" width="1016" alt="真实 dsh 截图的讲解合成图,截取内容保持原比例:左栏展示 Claude 与 Codex 额度窗口及 Codex 配额队列,以及最近结束任务各自独立的执行结果和通知状态;右栏展示已完成 Codex 任务的编号追加指令与 delivered 状态,随后是追加提交、续跑、投递、尝试结束和通知事件。末尾回执显示微信已送达、Telegram 失败,但任务本身已完成。图中内容来自两次不同的历史截图,不是同一任务的同步状态,也不是重新拍摄的桌面截图;下方链接可查看两张完整原图。"></p>
 
 先在队列中找到工作，再打开任务核对指令和已有进展。追加指令通过主机 runner 提交，详情页显示是否投递。**任务完成与消息送达是两回事：**图中已完成任务的 Telegram 通知仍然失败。
 
 图中将两张历史截图的局部按原比例组合，并配上讲解；不是重新拍摄的桌面截图。[完整队列截图](site/assets/dsh-dispatch-queue.png) · [完整任务历史](site/assets/dsh-task-detail.png)。
 
-[队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
+作者的主机用同一条队列维护自己的代码（页首全景图里「The desk fixes itself the same way」那一格）。另外配置的巡检任务核查已发布的产物。发现问题后，程序先检查证据，符合提交条件才创建 issue。后台 Agent 带着修复走完 PR 和必需的 CI。被当作噪音关掉的 issue，会让同类发现下次的分量变轻。安装 Python 包或 dsh 插件不会自动配置这些巡检任务。
+
+**面板的收尾：巡检与这一周** —— 一张带讲解的合成图
+
+<p align="center"><img src="site/assets/dsh-panel-tour.svg" width="1016" alt="三张 2026-10-18 真实 dsh 截图的讲解合成图,截取内容保持原比例:左栏是面板底部——一行巡检入口带结果条和覆盖结论、近 7 天统计卡(任务数、token、API 估价和完成条)、ops 版本页脚;其下是统计页,7 天 token 按 provider 堆叠,再按 agent 列出 token、API 估价与完成情况。右栏是巡检页:四个汇总数字、结果条、最近几轮,然后是按 area 的未决问题与按 lens 的轮次。统计页与巡检页用中文界面拍摄;统计卡与统计图读取时刻不同,总数不一致;下方链接可查看完整原图。"></p>
+
+队列是面板的开头，两块汇总是收尾。
+
+- **巡检只有一行。** 显示当前阶段、有没有 area 存在未决问题，以及最近 8 轮的一条细结果条。点开是巡检页：先是四个数字（最近一轮、未决 area、未决 lens、轮次），然后是每一轮，再是按 area 的未决问题和按 lens 的轮次。
+- **这一周是一张卡。** 近 7 天的任务数、token 和按 API 标价的估算，加一条完成条。点开是按 provider 堆叠的每日 token 图，以及按 agent 拆开的同一组数字。这张卡只在打开面板时读取，不跟队列刷新。数字在每个任务结束时冻结，续跑同一会话不会重复计数，巡检轮次不计入。
+- **页脚说明跑的是哪份代码。** `ops <hash> · runner api <n>` 标出已安装的 ops 入口和 runner。已安装的入口与仓库里那份不一致时变红：已合并，但没装上。
+
+聊天里，`/dispatch-list` 把面板发成一条消息，`/dispatch-stats` 把这一周发成五列表格。`/dispatch-stats 30d`、`all` 或一个起始日期放宽时间窗；`patrol` 计入巡检轮次；显示表格管道符的客户端用 `plain` 改成条形。费用是 API 目录价估算，不是订阅实际扣的额度。
+
+[完整统计页](site/assets/dsh-stats-layer.png) · [完整巡检页](site/assets/dsh-patrol-page.png) · [队列能力与配置](examples/dsh/packages/clawock-dsh/README.md#dispatch-queue) · [runner 与 ops 契约](docs/architecture/task-queue.md)。
+
+**在作者的主机上，每个 agent 读同一份记忆** —— 画的是一台主机的配置，不是安装包会装上的东西
+
+<p align="center"><img src="site/assets/shared-memory.svg" width="1016" alt="作者的主机,不属于 clawock 安装包:工作要么是作者打开的会话,要么是 agent-dispatch 队列启动的任务,两者都从同一个家目录开始;Claude Code、Codex、dsh 和 OpenCode 各读自己的指令文件 CLAUDE.md 或 AGENTS.md,这些文件都是指向同一份共享副本的链接;这份副本包含共享指令和按类别组织的记忆索引,四个 agent 通过同一个小脚本读写,所以一条更正写一次,四个 agent 下次读到的都是它;已知缺口:只有 Claude Code 启动时自动载入索引,Codex 自带的记忆功能保持关闭以免写出第二份,没有版本历史也没有备份,也没有任何东西检查这些链接"></p>
+
+队列半夜启动的 Codex 任务，为什么知道你下午让 Claude Code 记下的规则？没有任何东西在两者之间复制。作者主机上每个 agent 自己的指令文件都是指向同一份共享文件的链接，记忆笔记放在四个 agent 都读的同一个目录里。runner 让每个新任务都从交互会话所在的同一个家目录启动。一条更正只写一次，任何 agent 的下一次会话都会读到。
+
+它有缺口。只有 Claude Code 启动时会载入记忆索引；另外三个在任务需要时才搜索。Codex 自带的记忆功能保持关闭，因为打开后它会写出第二份。这些笔记没有版本历史，也没有备份；也没有任何东西检查链接是否还在。`pip install clawock` 和 dsh 插件都不包含这一套。
 
 提供持仓和证据后，问一句「0700.HK 能不能加点仓？」，投资 skill 会带着 Agent 走一遍上面那几步：收集证据，多空各写一遍，再写出带触发价和认错条件的决定。**Decision Mind** 读取工作区中已记录的成交和计划；新工作区没有成交历史可展示。点开一笔真实成交，顺着**计划 → 执行 → T+1 → 盈亏**看下去，也就是计划当时怎么说、你实际怎么做、一个交易日后价格在哪、最后是赚是亏。背后没有计划的成交会明说，还没判定的也会明说。USD 与 HKD 分开，下单仍由你来。
 
@@ -264,7 +293,7 @@ mkdir -p ~/.dsh/skills
 cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
 ```
 
-重启 web profile 后加载。后台队列控制还需要主机上的 runner;没装时面板仍显示 provider 额度与余额。[npm 包](https://www.npmjs.com/package/clawock-dsh) · [安装与队列配置](examples/dsh/packages/clawock-dsh/README.md)。
+重启 web profile 后加载。后台队列控制还需要主机上的 runner;没装时面板仍显示 provider 额度与余额。要用聊天命令，把已安装的包目录加进 OpenClaw 的 `plugins.load.paths` 并重启 gateway。[npm 包](https://www.npmjs.com/package/clawock-dsh) · [安装与队列配置](examples/dsh/packages/clawock-dsh/README.md)。
 
 ## 引擎盖下面
 
