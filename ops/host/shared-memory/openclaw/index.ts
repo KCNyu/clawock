@@ -68,14 +68,16 @@ function parse(rel: string, text: string): Topic {
   };
 }
 
-function terms(query: string): string[] {
-  const out = new Set<string>();
-  for (const word of query.toLowerCase().match(/[\p{L}\p{N}_-]+/gu) ?? []) {
+// One group per query word. A CJK run has no spaces, so it is matched through its two-character
+// pieces: a topic covers the word by the share of pieces it contains.
+function terms(query: string): string[][] {
+  const groups: string[][] = [];
+  for (const word of new Set(query.toLowerCase().match(/[\p{L}\p{N}_-]+/gu) ?? [])) {
     if (/\p{Script=Han}/u.test(word) && word.length > 2) {
-      for (let i = 0; i < word.length - 1; i++) out.add(word.slice(i, i + 2));  // CJK has no spaces
-    } else if (word.length > 1) out.add(word);
+      groups.push([...new Set(Array.from({ length: word.length - 1 }, (_, i) => word.slice(i, i + 2)))]);
+    } else if (word.length > 1 || /\p{Script=Han}/u.test(word)) groups.push([word]);
   }
-  return [...out].slice(0, 24);
+  return groups.slice(0, 16);
 }
 
 function count(haystack: string, needle: string): number {
@@ -127,24 +129,39 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
         if ((params.corpus && params.corpus !== "all") || !sessionAllowed(params.agentSessionKey)) return [];
         const wanted = terms(params.query ?? "");
         if (wanted.length === 0) return [];
-        const scored = [];
+        const topics = [];
         for (const rel of await listing()) {
           const topic = await load(rel).catch(() => null);
-          if (!topic) continue;
-          const name = topic.name.toLowerCase(), desc = topic.description.toLowerCase(), body = topic.body.toLowerCase();
-          let weight = 0, matched = 0;
-          for (const term of wanted) {
-            const w = 4 * count(name, term) + 3 * count(desc, term) + count(body, term);
-            if (w > 0) { matched++; weight += w; }
+          if (topic) topics.push({ topic, name: topic.name.toLowerCase(), desc: topic.description.toLowerCase(), body: topic.body.toLowerCase() });
+        }
+        // Weight each word by how rare it is in the store; a word no topic covers drops out
+        // instead of diluting every topic's coverage.
+        const covers = (t: { name: string; desc: string; body: string }, group: string[]) =>
+          group.filter((part) => t.name.includes(part) || t.desc.includes(part) || t.body.includes(part)).length / group.length;
+        const idf = new Map<string[], number>();
+        for (const group of wanted) {
+          const df = topics.filter((t) => covers(t, group) >= 0.5).length;
+          if (df > 0) idf.set(group, Math.log(1 + topics.length / df));
+        }
+        const total = [...idf.values()].reduce((a, b) => a + b, 0);
+        const pieces = [...idf.keys()].flat();
+        const scored = [];
+        for (const { topic, name, desc, body } of total > 0 ? topics : []) {
+          let weight = 0, covered = 0;
+          for (const [group, w] of idf) {
+            const share = covers({ name, desc, body }, group);
+            if (share === 0) continue;
+            covered += w * share;
+            for (const part of group) weight += (w / group.length) * (4 * count(name, part) + 3 * count(desc, part) + count(body, part));
           }
-          if (matched === 0) continue;
-          const coverage = matched / wanted.length;
-          const score = coverage * coverage * (0.5 + 0.5 * Math.min(1, weight / 12)) * (topic.archived ? 0.6 : 1);
+          if (covered === 0) continue;
+          const coverage = covered / total;
+          const score = coverage * coverage * (0.5 + 0.5 * Math.min(1, weight / 30)) * (topic.archived ? 0.6 : 1);
           const lines = topic.body.split("\n");
-          const first = Math.max(0, lines.findIndex((l) => wanted.some((t) => l.toLowerCase().includes(t))));
+          const first = Math.max(0, lines.findIndex((l) => pieces.some((t) => l.toLowerCase().includes(t))));
           const snippet = [topic.description, ...lines.slice(Math.max(0, first - 1), first + 3)].filter(Boolean).join("\n").slice(0, MAX_SNIPPET);
           scored.push({
-            corpus: CORPUS, path: PREFIX + rel, title: topic.name, kind: topic.kind, score, snippet,
+            corpus: CORPUS, path: PREFIX + topic.rel, title: topic.name, kind: topic.kind, score, snippet,
             startLine: topic.bodyLine + first + 1, endLine: topic.bodyLine + first + 3, sourceType: CORPUS,
             provenanceLabel: "coding agents' shared memory (read-only)", updatedAt: topic.updated,
           });
