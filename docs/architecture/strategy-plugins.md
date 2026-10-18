@@ -431,9 +431,13 @@ or leaves; the comparison is charged nothing. The block reports the mean excess
 per session before and after that charge, its bootstrap interval, the turnover,
 and the cost model used.
 
-The model is `config/cost-model.json`: an assumed commission plus half an
-assumed spread per side, no impact. The minimum commission is not applied,
-because a rank portfolio has no order size.
+The model is `config/cost-model.json`: a conditional account commission, sourced tax/fees and half an
+assumed spread per side, no impact. Sized fills now use `costs.fill`, which applies minimum commissions and the
+sourced regulatory tariff snapshot. Ranks use the config's explicit reference
+notionals/share price and the more expensive side, including tax unless a ticker
+has a verified exemption; they remain a proxy rather than an execution backtest.
+Commission is the account's conditional monthly-allowance scenario. See
+[the research cost contract](../design/intraday-strategy-research.md).
 
 The registered gate does not read `net_of_cost`. The check
 `oos_net_excess_ci95_lower_gt` exists for alternates only.
@@ -631,3 +635,13 @@ A gate or alternate naming a check that does not exist is refused at mount.
 2. Add its row to `config/strategy-plugins.json` with the registered `params`
    and the `space`. The registered parameters must be a point of the space.
 3. `clawock strategy-lab optimize <name>`.
+
+## Intraday research service
+
+The research-only `intraday-reversion` row provides `intraday_reversion.replay`.
+`clawock strategy-lab intraday-replay <session.json>` sends a complete five-minute
+session through the explicit research facade. It returns sized net-of-cost
+round-trip evidence, never live permission or a daily optimiser registration.
+Its bar contract, limits and LLM/presentation roadmap are in
+[the design](../design/intraday-strategy-research.md); source research is in
+[the report](../research/intraday-strategies.md).

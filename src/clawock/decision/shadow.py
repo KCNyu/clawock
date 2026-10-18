@@ -950,7 +950,8 @@ def simulate_leg(
                     # same commission a buy does, and a net curve that only
                     # haircuts entries is half a haircut.
                     charge = costs.trade_cost(
-                        notional, leg, day, bar_map_loader(ticker) or {}, model)
+                        notional, leg, day, bar_map_loader(ticker) or {}, model,
+                        direction=leg_fill["direction"], ticker=ticker, shares=qty)
                     followed["cash"] -= charge["total"]
                     charged.append({
                         "date": day, "ticker": ticker,

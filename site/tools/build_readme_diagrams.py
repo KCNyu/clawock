@@ -2132,7 +2132,8 @@ HOST_ROWS = {
              ('bar-signals', 'bar_signals'), ('signal-panel', 'signal_panel'), ('sentiment', 'sentiment'),
              ('morning-scans', 'morning_scans'), ('strategy-scores', 'strategy_scores')),
     'plugins': (('strategies', 'registry'), ('factors', 'quant_factors'), ('bars', 'adjusted_bars'),
-                ('costs', 'registered_costs'), ('promoter', 'row_edits'), ('rsi', 'rsi'),
+                ('costs', 'registered_costs'), ('intraday-reversion', 'intraday_reversion'),
+                ('promoter', 'row_edits'), ('rsi', 'rsi'),
                 ('optimizer', 'walkforward')),
 }
 #: What the host does when one research row is pulled, as the kernel itself
@@ -2140,7 +2141,7 @@ HOST_ROWS = {
 #: undone, the row that declared it waits, the others are not stopped.
 PULL = {'row': 'bars', 'undone': 'provide(bars)', 'waits': 'optimizer',
         'declared': ('strategies', 'bars', 'costs'),
-        'untouched': ('strategies', 'factors', 'costs', 'promoter', 'rsi')}
+        'untouched': ('strategies', 'factors', 'costs', 'intraday-reversion', 'promoter', 'rsi')}
 #: The one setting on the live `daily-bars` row, and the value its docs name as the way back.
 EDIT = {'row': 'daily-bars', 'key': 'adjustment', 'now': 'qfq', 'then': 'raw', 'undone': 'provide(daily_bars)'}
 LIGHTS = ('#e58a80', '#e2b65a', '#69bd96')        # a window's three title-bar lights
@@ -2215,14 +2216,14 @@ def plugin_system():
     """site/assets/plugin-system.svg — the whole plugin system as a rack you can pull a row out of."""
     pull, edit = PULL, EDIT
     live, lab = HOST_ROWS['live'], HOST_ROWS['plugins']
-    d = D('The plugin system: twenty rows in one file, on a host you can pull a row out of while it runs',
+    d = D('The plugin system: twenty-one rows in one file, on a host you can pull a row out of while it runs',
           'A layered picture of the plugin system, in seven numbered parts. One: whatever agent runs '
           'the desk, Claude Code, Codex, OpenClaw, dsh or any command line, calls the brief, report, '
           'intraday and strategy-lab commands. Two: one file, strategy-plugins.json, lists every row: '
-          'thirteen live rows and seven research rows, each an id, a module and its settings. Three: '
-          'the host mounts every row into a socket; the picture shows all twenty by name, with the '
+          'thirteen live rows and eight research rows, each an id, a module and its settings. Three: '
+          'the host mounts every row into a socket; the picture shows all twenty-one by name, with the '
           'research row called bars pulled out of its socket. Four: pulling bars undoes its one '
-          'registration, the optimizer row that declared it needs bars waits, and the other five '
+          'registration, the optimizer row that declared it needs bars waits, and the other six '
           'rows are not stopped; pushed back in, the optimizer starts by itself. Five: changing a '
           'setting, here the adjustment on the daily-bars row from qfq to raw, stops that row, undoes '
           'what it registered and starts it again under the new setting. Six: the same five primitives '
@@ -2230,7 +2231,7 @@ def plugin_system():
           'Seven: what has no socket: settlement, the ledger and the risk limits.')
     y = d.header('CLAWOCK · THE PLUGIN SYSTEM',
                  ['Pull a row out. Everything else keeps running.'],
-                 ['Twenty rows in one file, mounted on a host built from the primitives dsh runs on.'],
+                 ['Twenty-one rows in one file, mounted on a host built from the primitives dsh runs on.'],
                  [('your agent', 'slate'), ('rows · the file', 'blue'), ('the host · code', 'green'),
                   ('unplugged · waiting', 'warm'), ('the same in dsh', 'violet')])
     d.logo('clawock', d.pw - M - 44, 30, 44)
@@ -2284,16 +2285,16 @@ def plugin_system():
     # --- 03: the rack ---------------------------------------------------------------
     a_bottom = y + ah
     y = a_bottom + 48
-    rh = 492
+    rh = 492 + BLADE + 6
     d.down(M + aw - 60, a_bottom, y, pulses=(0, 1.2), kind='data', carry='terminal')
     d.down(ax2 + aw2 / 2 + 40, a_bottom, y, pulses=(.5,), kind='task', carry='config')
     d.section(y - 12, '03 · THE HOST MOUNTS EVERY ROW')
-    top = _panel(d, M, y, full, rh, 'green', 'rows', 'One host, twenty sockets', 'CODE · NOT A ROW')
+    top = _panel(d, M, y, full, rh, 'green', 'rows', 'One host, twenty-one sockets', 'CODE · NOT A ROW')
     by, pitch = top + 22, BLADE + 6
     bays = ((M + 12, 630, 'blue', f'LIVE · {len(live)} ROWS · BRIEF, REPORT, INTRADAY'),
             (M + 12 + 630 + 14, 300, 'violet', f'RESEARCH · {len(lab)} ROWS · THE LAB'))
     for bx, bw, role, label in bays:
-        d.add(f'<rect x="{bx:g}" y="{top - 14:g}" width="{bw:g}" height="{7 * pitch + 38:g}" rx="12" '
+        d.add(f'<rect x="{bx:g}" y="{top - 14:g}" width="{bw:g}" height="{max(7, len(lab)) * pitch + 38:g}" rx="12" '
               f'fill="{TINT[role]}" fill-opacity=".7" stroke="{ROLE[role]}" stroke-opacity=".16"/>')
         fits(label, 'kick', bw - 24, 'bay')
         d.text(bx + 12, top + 6, label, 'kick', fill=ROLE[role])
@@ -2309,7 +2310,7 @@ def plugin_system():
     d.text(ex + 26, ey + 20, 'your own row', 'b', fill=MUT)
     d.text(ex + 26, ey + 38, 'apply(ctx, config)', 'code', fill=FAINT)
     rx, rw = bays[1][0] + 26, 226
-    d.add(f'<path d="M{rx - 12:g} {by + 6:g}V{by + 6 * pitch + BLADE - 6:g}" stroke="{ROLE["green"]}" '
+    d.add(f'<path d="M{rx - 12:g} {by + 6:g}V{by + (len(lab) - 1) * pitch + BLADE - 6:g}" stroke="{ROLE["green"]}" '
           f'stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>')
     for row, (name, module) in enumerate(lab):
         ry = by + row * pitch
@@ -2348,7 +2349,7 @@ def plugin_system():
              (pull['waits'], f'waiting for {pull["row"]}', ROLE['warm'], 'warm', False,
               'inject = (' + ', '.join(f"'{name}'" for name in pull['declared']) + ')'),
              (f'the other {len(pull["untouched"])}', 'never stopped', ROLE['green'], 'green', False,
-              ' '.join(pull['untouched'])))
+              'independent rows in the research rack'))
     for i, (name, state, ink, role, hollow, detail) in enumerate(steps):
         sy = top + i * 50
         _led(d, M + 28, sy - 5, role, hollow=hollow)

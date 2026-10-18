@@ -332,7 +332,7 @@
       "reason": "measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection"
     },
     "strategy-lab": {
-      "reason": "mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over adjusted daily bars; it prints a proposal that never carries live permission and records each verdict in its own ledger — evaluation, not collection"
+      "reason": "mounts the strategy plugins in config/strategy-plugins.json and walks a declared parameter grid forward over adjusted daily bars; it prints a proposal that never carries live permission and records each verdict in its own ledger; intraday-replay separately replays a supplied five-minute session with sized net costs and no live permission — evaluation, not collection"
     },
     "scorecard-provenance": {
       "reason": "names the ledger slice and code a published scorecard number came from — provenance, not a measurement"

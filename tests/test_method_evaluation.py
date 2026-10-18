@@ -445,3 +445,15 @@ def test_absent_packet_is_unreviewed_not_policy_agreement(tmp_path):
                            author=AUTHOR, reviewed=False)[0]
     assert row["agrees_with_policy"] is None
     assert me.arm_of(row) == "unreviewed"
+
+
+def test_current_tariff_methods_charge_stock_etf_and_both_t_legs():
+    from pathlib import Path
+    model = costs.CostModel.load(Path(__file__).resolve().parents[1] / 'config/cost-model.json')
+    row = {'leg': 'HK', 'ticker': '00700', 'plan_date': '2026-10-16',
+           'action': 't_only', 'evaluation': {'capital': 10000}}
+    assert me.cost_pct(row, model) == pytest.approx(0.3456)
+    row['ticker'] = '02800'
+    assert me.cost_pct(row, model) == pytest.approx(0.1456)
+    row.update(leg='US', ticker='TEST')
+    assert me.cost_pct(row, model) == pytest.approx(0.0421)

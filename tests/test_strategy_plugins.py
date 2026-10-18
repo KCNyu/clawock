@@ -340,8 +340,8 @@ def test_a_tranche_pays_for_the_names_it_replaces():
 
 def test_registered_costs_are_the_cost_model_per_side():
     costs = registered_costs.Costs(CostModel.load(ROOT / 'config' / 'cost-model.json'))
-    assert costs.side_bps('HK') == 3.0 + 12.0 * 0.5
-    assert costs.side_bps('us') == 1.0 + 4.0 * 0.5
+    assert costs.side_bps('HK') == pytest.approx(17.28)
+    assert costs.side_bps('us') == pytest.approx(2.21)
     assert registered_costs.Costs(CostModel.free()).side_bps('hk') == 0.0
 
 

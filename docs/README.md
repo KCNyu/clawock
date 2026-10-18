@@ -94,3 +94,8 @@ an adjacent context-parity canary proves a supported alternative. Website files
 have no such constraint and therefore live under `site/`.
 
 - [持仓外候选发现](architecture/stock-discovery.md)：免费全市场筛选、研究交接与参考实现。
+
+## Intraday research
+
+- [Open-source strategy research](research/intraday-strategies.md): sources, failure conditions, verified fees and market selection.
+- [Intraday research contract](design/intraday-strategy-research.md): mounted replay service, LLM boundaries and presentation design.

@@ -346,7 +346,7 @@ class Optimizer:
                  for _ in range(fold['test_sessions'])]
 
         def side_bps(ticker):
-            return self.costs.side_bps(self.bars.leg(ticker))
+            return self.costs.side_bps(self.bars.leg(ticker), ticker=ticker)
 
         traded = net_excess(cells, picks, positions, horizon=horizon, side_bps=side_bps)
         baseline = net_excess(cells, [default] * len(positions), positions,

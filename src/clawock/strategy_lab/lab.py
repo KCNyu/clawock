@@ -283,6 +283,8 @@ def main(argv=None) -> int:
                         help=f'plugin rows (default: <workspace>/{CONFIG})')
     sub = parser.add_subparsers(dest='action', required=True)
     sub.add_parser('list', help='mounted plugins, services and strategies')
+    replay_parser = sub.add_parser('intraday-replay', help='research-only five-minute session replay')
+    replay_parser.add_argument('input', type=Path, help='complete session JSON packet')
     optimize = sub.add_parser(
         'optimize', help='walk-forward parameter search; prints a proposal')
     optimize.add_argument('strategy')
@@ -371,6 +373,14 @@ def main(argv=None) -> int:
                 for strategy in registry.names():
                     spec = registry.get(strategy)
                     print(f"strategy {strategy}: params={spec.params} space={spec.space}")
+            return 0
+        if args.action == 'intraday-replay':
+            from clawock.decision.intraday_reversion import replay
+            try:
+                result = replay(kernel, json.loads(args.input.read_text(encoding='utf-8')))
+            except (ValueError, KeyError, TypeError, OSError) as exc:
+                parser.exit(2, f'invalid intraday replay input: {exc}\n')
+            print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
             return 0
         if 'optimizer' not in kernel.services():
             pending = {fiber.name: fiber.missing for fiber in kernel.fibers if fiber.missing}

@@ -362,3 +362,11 @@ Numeric sources include compute receipts created during the current run, through
 `validation.with_compute_receipts`. The cron payload and shared Mode 7 body allow
 those values; the model chooses the formula and quotes the result with its meaning.
 This does not waive the existing source, generation or next-trigger price checks.
+
+
+Research extension: [intraday strategy research](../design/intraday-strategy-research.md)
+is a separate research-only replay service and design for broader LLM judgment.
+It has no preflight/postflight reader and changes no live status in the table
+above. Choosing formulas through existing compute receipts stays within the
+contract; model arithmetic, live strategy activation and rendering changes do
+not become authorized by a research replay.
