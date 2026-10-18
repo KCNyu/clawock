@@ -2969,15 +2969,21 @@ def extract_peer_divergence(brief_ctx, us_h=None, hk_h=None):
                 'peer_pct_1d': peer_pct_v,
                 'divergence_pp': div_pp,
             })
-        stamp = brief_ctx.get('generated_at')
-        try:
-            at = datetime.fromisoformat(str(stamp))
-        except (TypeError, ValueError):
-            at = None
+        # A scan timestamp is not quote provenance: a failed refresh can leave
+        # older prices in a newer brief. Legacy scans can recover dates only
+        # from the book frozen in that same context, never today's live book.
+        book = brief_ctx.get('portfolio') or {}
+        source_rows = {
+            str(h.get('ticker') or h.get('code')): (h, leg.key)
+            for leg in resolve_legs(book)
+            for h in ledger_rows((book.get('portfolios') or {}).get(leg.bucket, {}).get('holdings'))
+        }
         for row in out:
-            if not row['session'] and at is not None and at.tzinfo is not None:
-                session = trading_calendar.latest_completed_session(row['region'], at)
-                row['session'] = session.isoformat() if session else None
+            source = source_rows.get(row['ticker'])
+            if not row['session'] and source:
+                h, market = source
+                row['session'] = _holding_session(h, book.get('last_updated'), market)
+                row['region'] = market
         return out
     except Exception as e:
         print(f'  warn: extract_peer_divergence failed: {e}', file=sys.stderr)

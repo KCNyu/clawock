@@ -2391,7 +2391,7 @@ def test_closed_positions_cannot_reappear_as_movers(shares):
                                            'today_change_pct': 99}], []) == []
 
 
-def test_peer_divergence_preserves_quote_session_before_scan_timestamp():
+def test_peer_divergence_uses_frozen_quote_provenance_not_scan_time():
     row = {'self_pct_1d': -5, 'self_session': '2026-10-14', 'region': 'us',
            'divergence_signal': 'lagging',
            'listed_peers': [{'ticker': 'PEER', 'pct_1d': 2}]}
@@ -2399,6 +2399,11 @@ def test_peer_divergence_preserves_quote_session_before_scan_timestamp():
            'peer_scan': {'HELD': row}}
     assert dashboard.extract_peer_divergence(ctx)[0]['session'] == '2026-10-14'
     del row['self_session']
-    assert dashboard.extract_peer_divergence(ctx)[0]['session'] == '2026-10-15'
+    assert dashboard.extract_peer_divergence(ctx)[0]['session'] is None
+    ctx['portfolio'] = {'last_updated': '2026-10-16', 'portfolios': {
+        'us_stocks': {'currency': 'USD', 'holdings': [
+            {'ticker': 'HELD', 'day_session_date': '2026-10-13'}]}}}
+    assert dashboard.extract_peer_divergence(ctx)[0]['session'] == '2026-10-13'
+    del ctx['portfolio']
     del ctx['generated_at']
     assert dashboard.extract_peer_divergence(ctx)[0]['session'] is None

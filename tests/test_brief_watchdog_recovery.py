@@ -133,3 +133,15 @@ def test_legacy_rerun_counter_still_reports_without_guessing_run_identity(recove
     watchdog._mark_rerun(TODAY)
     watchdog.check_local_recovery(TODAY)
     assert not dispatches and '未确认' in messages[0]
+
+
+def test_counter_observer_does_not_duplicate_0905_offhost_dispatch(recovery):
+    _, _, messages, dispatches, _ = recovery
+    watchdog._mark_rerun(TODAY)
+    state = watchdog.load_missing_state(TODAY)
+    state.update(rerun_inflight=False, fallback_dispatch_succeeded=True,
+                 fallback_outcome='success', fallback_outcome_detail='confirmed at 09:05')
+    watchdog.write_missing_state(TODAY, state)
+    watchdog.check_local_recovery(TODAY)
+    assert not dispatches
+    assert 'off-host 兜底已完成' in messages[0]

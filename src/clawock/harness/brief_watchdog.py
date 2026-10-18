@@ -568,7 +568,7 @@ def check_local_recovery(today, dry_run=False):
         message = (f'本地简报重跑已生成产物 — {today}\n'
                    f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
                    f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
-    elif state.get('recovery_dispatch_attempted'):
+    elif state.get('recovery_dispatch_attempted') or state.get('fallback_dispatch_succeeded'):
         outcome = state.get('fallback_outcome') or 'unconfirmed'
         message = _fallback_outcome_message(today, outcome,
                                             state.get('fallback_outcome_detail') or '此前已尝试离机恢复')
