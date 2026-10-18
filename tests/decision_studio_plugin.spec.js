@@ -4382,18 +4382,33 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
   assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
-  // The fold control is a control, not a line of grey text: its own resting shape, a turning
-  // chevron, the panel's focus ring, press feedback (off under reduced motion), a fine-pointer-
-  // only hover and a 44px finger target (26px pill + 9px above and below).
-  const rule = (sel) => css.match(new RegExp(`_${sel}\\{([^}]*)\\}`))?.[1] ?? "";
-  assert.match(rule("tq-fold-summary"), /border:\.5px solid var\(--tq-pill-border\)/);
-  assert.match(rule("tq-fold-summary"), /list-style:none/);
+  // The fold control is a control, not a line of grey text. Three shapes share one native
+  // <details>: the pill (a raw log) keeps its capsule; the rounds row is the well's continuation
+  // (label on the name column, chevron trailing); the coverage summary is a key/value row (quiet
+  // title left, conclusion right). Each has the focus ring, a fine-pointer hover and a 44px
+  // finger target; the rows press with a wash, only the pill keeps the panel's scale.
+  const ruleOf = (sel) => css.match(new RegExp(`${sel}\\{([^}]*)\\}`))?.[1] ?? "";
+  assert.match(ruleOf("_tq-fold-summary"), /list-style:none/);
+  assert.match(ruleOf("_tq-fold-summary"), /cursor:pointer/);
   assert.match(css, /_tq-fold\[open\]>\.[A-Za-z0-9_-]+_tq-fold-summary \.[A-Za-z0-9_-]+_tq-fold-chev\{transform:rotate\(90deg\)\}/);
-  assert.match(rule("tq-fold-summary:focus-visible"), /outline:var\(--tq-focus-ring\)/);
-  assert.match(rule("tq-fold-summary:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
-  assert.match(rule("tq-fold-summary"), /transition:[^;]*transform/, "its own transition still names transform");
+  assert.match(ruleOf("_tq-fold-summary:focus-visible"), /outline:var\(--tq-focus-ring\)/);
+  const pillRule = ruleOf("_tq-fold-pill>\\.\\w+_tq-fold-summary");
+  assert.match(pillRule, /border:\.5px solid var\(--tq-pill-border\)/);
+  assert.match(pillRule, /transition:[^;]*transform/, "the pill's own transition still names transform");
+  assert.match(css, /_tq-fold-pill>\.\w+_tq-fold-summary:active\{[^}]*transform:scale\(var\(--tq-press-scale\)\)/);
+  const rowRule = ruleOf("_tq-fold-row>\\.\\w+_tq-fold-summary");
+  assert.match(rowRule, /min-height:36px/);
+  assert.match(rowRule, /padding:7px 8px 7px calc\(8px \+ var\(--tq-main-inset\)\)/);
+  assert.match(css, /_tq-fold-row>\.\w+_tq-fold-summary:before\{[^}]*left:calc\(8px \+ var\(--tq-main-inset\)\)/);
+  assert.match(css, /_tq-fold-row>\.\w+_tq-fold-summary:active\{background:var\(--tq-fill-press\)\}/);
+  const footRule = ruleOf("_tq-fold-foot>\\.\\w+_tq-fold-summary");
+  assert.match(footRule, /display:flex/);
+  assert.match(footRule, /min-height:36px/);
+  assert.match(css, /_tq-fold-foot>\.\w+_tq-fold-summary>\.\w+_tq-fold-value\[data-coverage-state=open\]\{color:var\(--tq-ink\)\}/);
+  assert.match(css, /_tq-fold-foot>\.\w+_tq-fold-summary>\.\w+_tq-fold-value\[data-coverage-state=unknown\]\{color:var\(--tq-text-warn\)\}/);
   assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-summary:after\{inset:-9px -8px\}/);
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-pill>\.\w+_tq-fold-summary:after\{inset:-9px -8px\}/);
+  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-row[^}]*min-height:44px/, "the history row grows to a finger target");
   assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary[^{]*:active\{transform:none\}/);
   assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-stats-card[^{]*:active\{transform:none\}/, "the stats card's press respects reduced motion");
@@ -4476,8 +4491,8 @@ test("detail layer: its fields sit on the list's grid and its controls are one h
   assert.match(rules("_tq-d-sec-title"), /margin:0 0 2px var\(--tq-main-inset\)/, "a section starts on the name's edge");
   const pill = rules("_tq-pill");
   assert.match(pill, /height:26px/, "one control height: the fold control's");
-  assert.match(rules("_tq-fold-summary"), /min-height:26px/, "the fold pill grows to wrap a long label");
-  assert.match(rules("_tq-fold-summary"), /max-width:100%/, "it never runs past the panel");
+  assert.match(rules("_tq-fold-pill>\\.\\w+_tq-fold-summary"), /min-height:26px/, "the fold pill grows to wrap a long label");
+  assert.match(rules("_tq-fold-pill>\\.\\w+_tq-fold-summary"), /max-width:100%/, "it never runs past the panel");
   assert.match(pill, /transition:[^;]*transform/, "its own transition still names transform");
   assert.match(rules("_tq-pill:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
   assert.match(rules("_tq-pill:focus-visible"), /outline:var\(--tq-focus-ring\);outline-offset:1px/, "the ring outside the capsule");
@@ -4689,12 +4704,18 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       for (let i = 0; i < count; i++) assert.ok(text.includes('T' + i));
       assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
     }
-    // Coverage is the section's last fold, closed, its label the headline; inside, each count once, in a column.
+    // Coverage is the section's last fold, closed; its summary is the headline: the quiet title
+    // on the left, the conclusion on the right, the accessible label carrying both. Inside, each
+    // count once, in a column.
     const patrolGroup = find(popover, (p) => p["data-tq-group"] === "patrol")[0];
     const fold = find(patrolGroup, (p) => p["data-tq-fold"] === "coverage")[0];
     assert.equal(patrolGroup.children.filter(Boolean).at(-1), fold, 'coverage comes after the rounds, not between the head and the latest round');
     assert.ok(!fold.props.open, 'closed until asked for');
-    assert.match(texts(fold.children[0]), /巡检覆盖 · 2 个 area 有未决/);
+    const summary = fold.children[0];
+    assert.match(texts(summary), /巡检覆盖/);
+    assert.match(texts(summary), /2 个 area 有未决/);
+    assert.equal(summary.props["aria-label"], '巡检覆盖 · 2 个 area 有未决', 'the accessible name carries the key and the conclusion');
+    assert.equal(find(summary, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
     const covered = (attr) => find(fold, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
     assert.deepEqual(covered("data-coverage-area"), [["data", "data4"], ["dashboard", "dashboard1"], ["debt", "debt"], ["risk", "risk"]],
       'areas with open issues first, most first; the ones with none keep their names and links on one line');

@@ -2418,9 +2418,11 @@ function progressView(progress, t, now) {
 	const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length;
 	const unread = progress.issuesAt === "" || [...progress.areas, ...progress.lenses].some((x) => x.open === null);
 	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity;
+	const conclusion = openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone");
 	return {
 		title: t("queue.coverage.title"),
-		headline: t("queue.coverage.title") + " · " + (openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone")),
+		conclusion,
+		tone: openAreas > 0 || openLenses > 0 ? "open" : unread ? "unknown" : "none",
 		alerts: [
 			...progress.records === null ? [t("queue.coverage.unreadable")] : [],
 			...!progress.lensInventory || !progress.areaInventory ? [t("queue.coverage.inventoryUnreadable")] : [],

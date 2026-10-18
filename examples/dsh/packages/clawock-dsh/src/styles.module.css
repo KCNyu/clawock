@@ -2214,16 +2214,44 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-chip[data-role="off"] { border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }
 /* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */
 .pbc .tq-chip[data-role="unknown"] { border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }
-/* The fold control: a pill that looks and answers like the detail layer's action pills —
-   hairline, chevron that turns when open, press scale, the panel's focus ring, a 44px target
-   under a finger. It only ever holds repetition or raw source (client.ts RESIDENT_ROUNDS). */
+/* The fold control. One native <details>, immediate opening, no height animation. Two shapes,
+   because the panel asks two different things of it:
+     pill  the raw supervisor log inside a task detail: its own hairline capsule, chevron
+           leading. The one fold that still looks like a button.
+     row   the patrol history's continuation, inside the same well as the rounds: the label
+           starts on the rounds' name column and the chevron trails the row. It reads as "more
+           of this list", not as a second control floating under it.
+   The coverage summary is neither (tap target aside): renderPatrolProgress draws a key/value
+   row with the conclusion on the right, so the label can be the headline without a capsule.
+   The summary is the only control; a row presses with a wash (a scale would move the row), the
+   pill keeps the panel's scale. */
 .pbc .tq-fold { margin:4px 0 2px var(--tq-main-inset) }
 .pbc .tq-fold-summary {
   position:relative;
+  box-sizing:border-box;
+  list-style:none;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:background-color var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-fold-summary::-webkit-details-marker { display:none }
+.pbc .tq-fold-summary::marker { content:"" }
+.pbc .tq-fold-chev {
+  flex:none;
+  color:var(--tq-ink-3);
+  transition:transform var(--tq-fast) var(--tq-ease)
+}
+.pbc .tq-fold[open] > .tq-fold-summary .tq-fold-chev { transform:rotate(90deg) }
+.pbc .tq-fold-summary:focus-visible { outline:var(--tq-focus-ring); outline-offset:1px }
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-fold-summary:hover { background:var(--tq-fill-hover) }
+}
+/* The pill: the raw log in a task's detail. */
+.pbc .tq-fold-pill > .tq-fold-summary {
   display:inline-flex;
   align-items:flex-start;
   gap:4px;
-  box-sizing:border-box;
   max-width:100%;
   min-height:26px;
   padding:4px 10px 4px 7px;
@@ -2231,36 +2259,93 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:normal;
   border:.5px solid var(--tq-pill-border);
   border-radius:999px;
-  list-style:none;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-2);
-  cursor:pointer;
-  user-select:none;
-  -webkit-user-select:none;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
-.pbc .tq-fold-summary > span { min-width:0; overflow-wrap:anywhere }
-.pbc .tq-fold-summary::-webkit-details-marker { display:none }
-.pbc .tq-fold-summary::marker { content:"" }
-.pbc .tq-fold-chev {
-  flex:none;
-  margin-top:2px;
-  color:var(--tq-ink-3);
-  transition:transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-fold[open] > .tq-fold-summary .tq-fold-chev { transform:rotate(90deg) }
-.pbc .tq-fold-summary:active {
+.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-label { min-width:0; overflow-wrap:anywhere }
+.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-chev { margin-top:2px }
+.pbc .tq-fold-pill > .tq-fold-summary:active {
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
 }
-.pbc .tq-fold-summary:focus-visible {
-  outline:var(--tq-focus-ring);
-  outline-offset:1px
+/* The history continuation: the last row of the rounds well. The 30px inset is the row name's
+   column (8px row padding + 14px lead + 8px gap), derived from the same tokens. */
+.pbc .tq-fold-row { margin:0 }
+.pbc .tq-fold-row > .tq-fold-summary {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  min-height:36px;
+  padding:7px 8px 7px calc(8px + var(--tq-main-inset));
+  border:0;
+  border-radius:0;
+  background:transparent;
+  font:var(--dsw-font-xs-13);
+  line-height:20px;
+  color:var(--tq-ink-2)
 }
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-fold-summary:hover { background:var(--tq-fill-hover) }
+.pbc .tq-fold-row > .tq-fold-summary::before {
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  left:calc(8px + var(--tq-main-inset));
+  height:.5px;
+  background:var(--tq-hairline);
+  pointer-events:none
 }
+.pbc .tq-fold-row > .tq-fold-summary > .tq-fold-label { min-width:0; overflow-wrap:anywhere }
+.pbc .tq-fold-row > .tq-fold-summary > .tq-fold-chev { margin-left:auto }
+.pbc .tq-fold-row > .tq-fold-summary:active { background:var(--tq-fill-press) }
+.pbc .tq-fold-row > .tq-fold-summary:focus-visible { outline-offset:-2px }
+/* Opening extends the same well: the body is the older rows themselves, no second surface. */
+.pbc .tq-fold-row > .tq-fold-body { margin:0 }
+.pbc .tq-fold-row .tq-fold-body .tq-item { margin:0 }
+.pbc .tq-fold-row .tq-fold-body .tq-item + .tq-item::before {
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  left:calc(8px + var(--tq-main-inset));
+  height:.5px;
+  background:var(--tq-hairline);
+  pointer-events:none
+}
+/* The coverage summary: a key/value row, not a capsule. Quiet title left, conclusion right,
+   chevron last; the conclusion is the strongest thing in the row. */
+.pbc .tq-fold-foot { margin:8px 0 0 var(--tq-main-inset) }
+.pbc .tq-fold-foot > .tq-fold-summary {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  min-height:36px;
+  padding:6px 8px 6px 0;
+  border:0;
+  border-radius:var(--tq-radius);
+  background:transparent
+}
+.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-label {
+  min-width:0;
+  overflow-wrap:anywhere;
+  font:var(--dsw-font-xs-13);
+  line-height:20px;
+  color:var(--tq-ink-3)
+}
+.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value {
+  margin-left:auto;
+  font:var(--dsw-font-xs-strong-13);
+  line-height:20px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  color:var(--tq-ink-2)
+}
+.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="open"] { color:var(--tq-ink) }
+.pbc .tq-fold-foot > .tq-fold-summary > .tq-fold-value[data-coverage-state="unknown"] { color:var(--tq-text-warn) }
+.pbc .tq-fold-foot > .tq-fold-summary:active { background:var(--tq-fill-press) }
 .pbc .tq-fold-body { margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }
 .pbc .tq-fold-body > .tq-log { margin:2px 0 4px var(--tq-main-inset) }
 .pbc .tq-foot {
@@ -2730,14 +2815,18 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-row:not(.tq-static) {
     min-height:44px
   }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary)::after {
+  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-pill > .tq-fold-summary)::after {
     content:"";
     position:absolute;
     inset:-8px
   }
-  /* The 26px pill plus 9px above and below: a 44px target. */
-  .pbc .tq-fold-summary::after {
+  /* The pill is 26px; 9px above and below make a 44px target. A fold row is already full
+     width, so it grows to 44px itself and does not borrow a neighbour's hit area. */
+  .pbc .tq-fold-pill > .tq-fold-summary::after {
     inset:-9px -8px
+  }
+  .pbc :is(.tq-fold-row, .tq-fold-foot) > .tq-fold-summary {
+    min-height:44px
   }
   .pbc .tq-field select {
     height:36px

@@ -510,9 +510,12 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 
 ### Patrol coverage · 巡检覆盖
 
-The patrol section ends with one read-only coverage fold, closed until asked for; its label is the
-headline (how many areas have open issues). Inside are two tables on the panel's well. **Open issues
-by area**: most first, each with a bar against the largest; areas with none share one line. These
+The patrol history continues behind a row at the end of the rounds well (`N earlier rounds`);
+opening it adds the older rows to the same well. The section then ends with one read-only coverage
+fold, closed until asked for; its summary is a key/value row — the quiet title on the left, the
+conclusion on the right (`nothing open`, how many areas have open issues, or unknown), the chevron
+last. The conclusion is the headline. Inside are two tables on the panel's well. **Open issues by
+area**: most first, each with a bar against the largest; areas with none share one line. These
 counts say where filed issues belong, not where patrol looked: rounds carry no area, so no area
 inspection time, round or verdict is shown or inferred. **Rounds by lens**: most recently run first,
 with last run, recorded attempts and open issues in right-aligned columns, and under each the last
@@ -525,11 +528,12 @@ left out, the first readable record and the issue snapshot time. An unreadable h
 or issue query is said at the top of the fold, and only then. No supervisor state, dispatch
 behavior or patrol files are changed.
 
-巡检分节的最后是一个只读的「巡检覆盖」折叠区，默认收起，折叠标签本身就是结论（几个 area 有未决问题）。
-展开后是底板上的两张表。**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的细条；没有未决的
-area 合成一行。这些数只说明已提报的问题归谁，不说明巡检过哪里：轮次记录里没有 area，所以不显示也不
-推断任何 area 的巡检时间、轮次或结论。**轮次 · 按 lens**：按上次运行时间从近到远，上次时间、记录次数、
-未决数右对齐成列，下面一行是上一轮的结论与带链接的提报。次数来自 `rounds.tsv` 的全部有效记录，包含中断
+巡检分节的历史在轮次底板最后一行「更早的 N 轮」处续接，展开后旧轮次回到同一块底板；最后是一个只读的
+「巡检覆盖」折叠区，默认收起。它的摘要行本身就是结论：左边是标题，右边是结论（无未决、几个 area 有未决，
+或未决数未知）。展开后是底板上的两张表。**未决问题 · 按 area**：按数量从多到少，各带一条相对最大值的
+细条；没有未决的 area 合成一行。这些数只说明已提报的问题归谁，不说明巡检过哪里：轮次记录里没有 area，
+所以不显示也不推断任何 area 的巡检时间、轮次或结论。**轮次 · 按 lens**：按上次运行时间从近到远，上次时间、
+记录次数、未决数右对齐成列，下面一行是上一轮的结论与带链接的提报。次数来自 `rounds.tsv` 的全部有效记录，包含中断
 与失败（上方历史仍最多八轮）。已安装 `axes.tsv` 给出 lens 清单，`labels-known.json` 给出 area 名称。
 未决数通过 `gh` 只读查询 GitHub 标签，最多缓存五分钟；查询失败或达到数量上限则显示未知。页脚一行交代
 来源：记录条数、未计入的损坏记录、首条可读记录与 issue 快照时刻。历史、清单或 issue 查询读不到时在

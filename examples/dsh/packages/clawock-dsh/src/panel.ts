@@ -1225,8 +1225,9 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
 
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
- * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
- * whether anything is open; inside, every number has a column and is said once:
+ * 很多很杂乱」). The fold's summary is the headline, so a reader who never opens it still learns
+ * whether anything is open: its key is the title, its value on the right is the conclusion. Inside,
+ * every number has a column and is said once:
  *
  *   areas   open filed issues per area, most first, each with its share of the largest; the areas
  *           with none share one line. This is where findings belong, NOT where patrol looked
@@ -1241,8 +1242,13 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
  */
 export type CoverageView = {
   title: string
-  /** The fold's label: the title and how many areas (or lenses) have open issues. */
-  headline: string
+  /** The fold's conclusion: how many areas (or lenses) have open issues, or that it is unknown. */
+  conclusion: string
+  /**
+   * Why the conclusion has weight: `open` (strong ink), `unknown` (the issue source could not be
+   * read; warn) or `none` (quiet ink). Colour is never the only channel — `conclusion` says it.
+   */
+  tone: 'none' | 'open' | 'unknown'
   alerts: string[]
   areaHeading: string
   areaNote: string
@@ -1282,11 +1288,13 @@ function progressView(progress: TaskQueueResult['patrol']['progress'], t: Transl
   const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length
   const unread = progress.issuesAt === '' || [...progress.areas, ...progress.lenses].some((x) => x.open === null)
   const ended = (l: (typeof progress.lenses)[number]): number => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity
+  const conclusion = openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
+    : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
+      : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')
   return {
     title: t('queue.coverage.title'),
-    headline: t('queue.coverage.title') + ' · ' + (openAreas > 0 ? t('queue.coverage.openAreas', { n: openAreas })
-      : openLenses > 0 ? t('queue.coverage.openLenses', { n: openLenses })
-        : unread ? t('queue.coverage.openUnknown') : t('queue.coverage.openNone')),
+    conclusion,
+    tone: openAreas > 0 || openLenses > 0 ? 'open' : unread ? 'unknown' : 'none',
     alerts: [
       ...(progress.records === null ? [t('queue.coverage.unreadable')] : []),
       ...(!progress.lensInventory || !progress.areaInventory ? [t('queue.coverage.inventoryUnreadable')] : []),

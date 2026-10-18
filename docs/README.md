@@ -48,6 +48,9 @@ belongs here.
 - [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats tile and chart layer, and the
   `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
   mean, and the effect captures.
+- [`task-chip-folds.md`](design/task-chip-folds.md) — the patrol section's two disclosures as rows:
+  the earlier-rounds continuation inside the rounds well, the coverage summary row, the raw-log
+  pill, and the effect captures.
 
 ## Operations
 

@@ -1204,17 +1204,31 @@ function renderRow(view: RowView, t: Translate, after: React.ReactElement | null
     after)
 }
 
+/** The one chevron every fold uses: right at rest, down when open. */
+function foldChevron(): React.ReactElement {
+  return h('svg', { className: cx('tq-fold-chev'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+    h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))
+}
+
 /**
- * The one fold control both sections use: a native <details> whose summary is
- * a pill (hairline, chevron that turns, press and focus feedback, a 44px
- * target under a finger). Opening is immediate — no height animation.
+ * The panel's fold control: a native <details>, immediate opening, no height animation. Two
+ * shapes, because the panel asks two different things of it:
+ *
+ *   pill  the raw supervisor log inside a task's detail — its own hairline capsule, chevron
+ *         leading, the one control that still looks like a button.
+ *   row   the patrol history's continuation, inside the same well as the rounds. The label
+ *         starts on the rounds' name column and the chevron trails the row, so it reads as
+ *         "more of this list", not as a second control floating under it.
+ *
+ * The coverage summary is not one of these: it is a key/value row with the conclusion on the
+ * right (renderPatrolProgress), so its label can be the headline without a pill around it.
  */
-function renderFold(kind: string, label: string, children: Array<React.ReactElement | null>): React.ReactElement {
-  return h('details', { className: cx('tq-fold'), key: 'fold-' + kind, 'data-tq-fold': kind },
+function renderFold(kind: string, label: string, children: Array<React.ReactElement | null>,
+  variant: 'pill' | 'row' = 'pill'): React.ReactElement {
+  return h('details', { className: cx('tq-fold', variant === 'row' ? 'tq-fold-row' : 'tq-fold-pill'), key: 'fold-' + kind, 'data-tq-fold': kind },
     h('summary', { className: cx('tq-fold-summary') },
-      h('svg', { className: cx('tq-fold-chev'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
-        h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })),
-      h('span', null, label)),
+      variant === 'row' ? h('span', { className: cx('tq-fold-label') }, label) : foldChevron(),
+      variant === 'row' ? foldChevron() : h('span', { className: cx('tq-fold-label') }, label)),
     h('div', { className: cx('tq-fold-body') }, ...children))
 }
 
@@ -1289,10 +1303,12 @@ function renderWell(key: string, rows: Array<React.ReactElement | null>): React.
 
 /**
  * Patrol coverage: the section's last fold, closed until asked for (the cell is opened for quota
- * and the queue; this is its archive). Its label is the headline. Inside, on the same well as
- * every list of the panel, two tables whose numbers share right-aligned columns: open issues by
- * area (a bar against the largest, the areas with none on one line), then a row per lens, most
- * recently run first. Nothing here animates: the readings refresh under the reader.
+ * and the queue; this is its archive). Its summary is a key/value row: the quiet title on the
+ * left, the conclusion on the right, the chevron after it. A reader who never opens it still
+ * learns whether anything is open. Inside, on the same well as every list of the panel, two
+ * tables whose numbers share right-aligned columns: open issues by area (a bar against the
+ * largest, the areas with none on one line), then a row per lens, most recently run first.
+ * Nothing here animates: the readings refresh under the reader.
  */
 function renderPatrolProgress(view: NonNullable<PanelModel['patrol']>['progress'], t: Translate): React.ReactElement | null {
   if (view === null) return null
@@ -1302,49 +1318,59 @@ function renderPatrolProgress(view: NonNullable<PanelModel['patrol']>['progress'
     h('div', { className: cx('tq-cov-note'), key: 'n' }, note),
   ]
   const nothing = h('div', { className: cx('tq-cov-note') }, view.empty)
-  return renderFold('coverage', view.headline, [h('div', { className: cx('tq-well', 'tq-cov'), key: 'cov', 'data-tq-well': 'coverage' },
-    ...view.alerts.map((text) => h('div', { key: text, className: cx('tq-cov-alert'), role: 'status' }, text)),
-    h('section', { className: cx('tq-cov-block'), 'data-coverage': 'areas' },
-      ...heading(view.areaHeading, view.areaNote),
-      view.areas.length === 0 && view.clear.names.length === 0 ? nothing : null,
-      view.areas.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.areas.map((a) =>
-        h('li', { key: a.name, className: cx('tq-cov-area'), 'data-coverage-area': a.name },
-          link(a.name, a.href),
-          h('span', { className: cx('tq-cov-bar'), 'aria-hidden': 'true' },
-            a.share === null ? null : h('span', { className: cx('tq-cov-fill'), style: { width: Math.round(a.share * 100) + '%' } })),
-          h('span', { className: cx('tq-cov-num') }, a.open)))),
-      view.clear.names.length === 0 ? null : h('div', { className: cx('tq-cov-clear') },
-        h('span', { className: cx('tq-cov-clear-label') }, view.clear.label),
-        ...view.clear.names.map((a) => h('span', { key: a.name, 'data-coverage-area': a.name }, link(a.name, a.href))))),
-    h('section', { className: cx('tq-cov-block'), 'data-coverage': 'lenses' },
-      ...heading(view.lensHeading, view.lensNote),
-      view.lenses.length === 0 ? nothing : h('div', { className: cx('tq-cov-lens', 'tq-cov-cols'), 'aria-hidden': 'true' },
-        h('span', null), h('span', null, view.columns.last), h('span', null, view.columns.runs), h('span', null, view.columns.open)),
-      view.lenses.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.lenses.map((l) =>
-        h('li', { key: l.name, className: cx('tq-cov-lens'), 'data-coverage-lens': l.name },
-          link(l.name, l.href),
-          h('span', { className: cx('tq-cov-num'), title: l.when?.title }, l.when?.text ?? '—'),
-          h('span', { className: cx('tq-cov-num'), title: view.columns.runs }, l.runs),
-          h('span', { className: cx('tq-cov-num'), title: view.columns.open, 'data-open': l.hasOpen === null ? undefined : String(l.hasOpen) }, l.open),
-          h('span', { className: cx('tq-cov-last') }, ...(l.last === null ? [l.none] : [
-            h('span', { key: 'r' }, l.last.round),
-            l.last.state === null ? null : h('span', { key: 's', className: cx('tq-cov-state'), 'data-role': l.last.state.role, title: l.last.state.title },
-              renderRoleGlyph(l.last.state.role), l.last.state.text),
-            l.last.filed?.parts == null ? null : h('span', { key: 'f', className: cx('tq-cov-filed') }, ...renderFiledParts(l.last.filed.parts, t)),
-          ])))))),
-    view.footnote === '' ? null : h('div', { className: cx('tq-cov-foot') }, view.footnote))])
+  return h('details', { className: cx('tq-fold', 'tq-fold-foot'), key: 'fold-coverage', 'data-tq-fold': 'coverage' },
+    h('summary', { className: cx('tq-fold-summary'), 'aria-label': view.title + ' · ' + view.conclusion },
+      h('span', { className: cx('tq-fold-label') }, view.title),
+      h('span', { className: cx('tq-fold-value'), 'data-coverage-state': view.tone }, view.conclusion),
+      foldChevron()),
+    h('div', { className: cx('tq-fold-body') },
+      h('div', { className: cx('tq-well', 'tq-cov'), key: 'cov', 'data-tq-well': 'coverage' },
+        ...view.alerts.map((text) => h('div', { key: text, className: cx('tq-cov-alert'), role: 'status' }, text)),
+        h('section', { className: cx('tq-cov-block'), 'data-coverage': 'areas' },
+          ...heading(view.areaHeading, view.areaNote),
+          view.areas.length === 0 && view.clear.names.length === 0 ? nothing : null,
+          view.areas.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.areas.map((a) =>
+            h('li', { key: a.name, className: cx('tq-cov-area'), 'data-coverage-area': a.name },
+              link(a.name, a.href),
+              h('span', { className: cx('tq-cov-bar'), 'aria-hidden': 'true' },
+                a.share === null ? null : h('span', { className: cx('tq-cov-fill'), style: { width: Math.round(a.share * 100) + '%' } })),
+              h('span', { className: cx('tq-cov-num') }, a.open)))),
+          view.clear.names.length === 0 ? null : h('div', { className: cx('tq-cov-clear') },
+            h('span', { className: cx('tq-cov-clear-label') }, view.clear.label),
+            ...view.clear.names.map((a) => h('span', { key: a.name, 'data-coverage-area': a.name }, link(a.name, a.href))))),
+        h('section', { className: cx('tq-cov-block'), 'data-coverage': 'lenses' },
+          ...heading(view.lensHeading, view.lensNote),
+          view.lenses.length === 0 ? nothing : h('div', { className: cx('tq-cov-lens', 'tq-cov-cols'), 'aria-hidden': 'true' },
+            h('span', null), h('span', null, view.columns.last), h('span', null, view.columns.runs), h('span', null, view.columns.open)),
+          view.lenses.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.lenses.map((l) =>
+            h('li', { key: l.name, className: cx('tq-cov-lens'), 'data-coverage-lens': l.name },
+              link(l.name, l.href),
+              h('span', { className: cx('tq-cov-num'), title: l.when?.title }, l.when?.text ?? '—'),
+              h('span', { className: cx('tq-cov-num'), title: view.columns.runs }, l.runs),
+              h('span', { className: cx('tq-cov-num'), title: view.columns.open, 'data-open': l.hasOpen === null ? undefined : String(l.hasOpen) }, l.open),
+              h('span', { className: cx('tq-cov-last') }, ...(l.last === null ? [l.none] : [
+                h('span', { key: 'r' }, l.last.round),
+                l.last.state === null ? null : h('span', { key: 's', className: cx('tq-cov-state'), 'data-role': l.last.state.role, title: l.last.state.title },
+                  renderRoleGlyph(l.last.state.role), l.last.state.text),
+                l.last.filed?.parts == null ? null : h('span', { key: 'f', className: cx('tq-cov-filed') }, ...renderFiledParts(l.last.filed.parts, t)),
+              ])))))),
+        view.footnote === '' ? null : h('div', { className: cx('tq-cov-foot') }, view.footnote))))
 }
 
 /** Patrol: the live head, its history (one fold, only when it is long), then the coverage archive. */
 function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
   const rounds = patrol.rounds
   const resident = rounds.length <= FLAT_ROUNDS ? rounds.length : RESIDENT_ROUNDS
+  const older = rounds.slice(resident)
   return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
     renderRow(patrol.head, t),
-    renderWell('rounds', rounds.slice(0, resident).map((round) => renderRow(round, t))),
-    rounds.length <= resident ? null
-      : renderFold('rounds', t('queue.olderRounds', { n: rounds.length - resident }),
-        [renderWell('older', rounds.slice(resident).map((round) => renderRow(round, t)))]),
+    // The continuation is the last row of the same well: opening it extends the history in
+    // place, instead of dropping a second well under a floating pill.
+    renderWell('rounds', [
+      ...rounds.slice(0, resident).map((round) => renderRow(round, t)),
+      older.length === 0 ? null
+        : renderFold('rounds', t('queue.olderRounds', { n: older.length }), older.map((round) => renderRow(round, t)), 'row'),
+    ]),
     renderPatrolProgress(patrol.progress, t))
 }
 
