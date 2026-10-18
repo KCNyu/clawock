@@ -66,17 +66,16 @@ the hue changed.
 
 ### The dsh blue and the whale
 
-The DeepSeek mark is the whale in `renderWhale()`, drawn in `currentColor` (the glyph ink). That ink
-is **neutral text**, not a blue: using it as the dsh series would make dsh a grey category and
-contradict “dsh 是蓝色”. So:
+The DeepSeek mark is the whale in `renderWhale()`, drawn with `currentColor`. That is the brand
+hook: for dsh (the DeepSeek provider row and dsh tasks) the glyph's **color** is set to
+`--tq-brand-dsh`, so the whale and the chart's dsh series share one token. No second fill, no new
+whale artwork, no hardcoded blue inside the SVG; the existing `currentColor` mechanism is what
+carries the brand.
 
-- the **mark** stays the whale in glyph ink everywhere it is a brand mark (provider rows, agent
-  columns);
-- the **series** uses the DeepSeek brand blue's hue (260) at the category band, as a separate
-  `--tq-brand-dsh`;
-- the semantic `--tq-run` (running) is **not** reused or moved; it keeps its assignment. If you
-  prefer the glyph ink exactly, `--tq-brand-dsh` is a one-token swap, but the bar would read neutral,
-  not blue.
+The raw glyph ink is neutral text; using it as the series would make dsh a grey category and
+contradict “dsh 是蓝色”. The category token is the DeepSeek brand blue's hue (260) at the category
+band; the semantic `--tq-run` (running) is **not** reused or moved. If you want the whale to stay
+neutral ink, remove the one glyph color rule; the chart token is independent.
 
 ### The collision with state colours — explicit handling
 
@@ -143,8 +142,8 @@ task detail. The only nearby motion is the patrol strip on its own page, documen
   saturation.
 - **The host's `--viz-*`.** The dsh theme does not expose it (the tokens resolve empty), so this is a
   local category scale; if it appears, swap the six brand declarations.
-- **Use the glyph ink for dsh.** It is neutral text; the user asked for blue. The hue is the DeepSeek
-  brand blue; the mark stays ink.
+- **Use raw glyph ink for dsh.** It is neutral text and would make the series a grey category;
+  the whale uses the brand token through `currentColor`, so the mark and the chart match.
 - **Move `--tq-run` to the dsh series.** Rejected: the semantic assignment is fixed; the category
   token is separate.
 - **A separate stats route.** The existing detail layer already has back/focus; not needed.

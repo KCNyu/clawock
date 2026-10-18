@@ -561,7 +561,8 @@ construction. The seven days are all labelled; a quiet day is a real 0; a provid
 unrecorded tokens keeps that fact in the segment's title and the chart's aria (no visible
 `+?` caption); the live count stays in the stats card and the completion rows.
 Provider categories use the brand hues at one muted category band — Claude orange, dsh blue (the
-DeepSeek brand blue hue, not the semantic running token), Codex green-teal, OpenCode violet —
+DeepSeek brand blue hue, not the semantic running token; the whale's `currentColor` is set to the
+same token), Codex green-teal, OpenCode violet —
 tinted 90% over the panel. They are not semantic state colours: the completion bars below keep
 their blue/amber/red meanings and words, and the chart legend names every provider. The card and the chart are one lazy read: they appear through
 `taskStats` when the panel opens, never on the queue's 15s poll. The numbers are

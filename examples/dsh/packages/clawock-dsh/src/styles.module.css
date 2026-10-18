@@ -1859,6 +1859,10 @@ body[data-ds-dark-theme] .pbc .bp {
   flex:none;
   color:var(--tq-ink-2)
 }
+/* The whale is drawn with currentColor; give its existing hook the DeepSeek brand token
+   instead of adding a second fill or a new blue. The chart's dsh series uses the same token. */
+.pbc .tq-agent-glyph[data-tq-agent="dsh"],
+.pbc .tq-agent-glyph[data-pp-provider="deepseek"] { color:var(--tq-brand-dsh) }
 .pbc .tq-dot {
   flex:none;
   width:6px;

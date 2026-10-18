@@ -4563,6 +4563,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.match(css, /--tq-brand-dsh:oklch\(60% \.1 260\)/);
   assert.match(css, /--tq-brand-opencode:oklch\(62% \.08 310\)/);
   assert.match(css, /--tq-series-1:color-mix\(in oklab, var\(--tq-brand-claude\) 90%, transparent\)/);
+  assert.match(css, /_tq-agent-glyph\[data-tq-agent=dsh\][^}]*color:var\(--tq-brand-dsh\)/, 'the dsh whale keeps currentColor and takes the brand token through it');
   assert.doesNotMatch(css, /--tq-viz|--tq-series-total|_tq-stats-chart-total\{/);
 
 });
