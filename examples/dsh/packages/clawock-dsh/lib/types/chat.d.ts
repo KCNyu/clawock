@@ -28,11 +28,15 @@ export interface OpenClawCommandApi {
 export declare function dispatchListText(input: PanelInput, t: Translate, now: number): string;
 /**
  * `/dispatch-stats` arguments: `7d`/`30d` (a rolling window), `all` (every retained task),
- * a `YYYY-MM-DD` since-date, and `patrol` to include patrol rounds. The default is the chip's
- * own window (the last seven days, patrol excluded). null = an argument this surface does not
- * accept; the answer is the usage line, never a silent fallback.
+ * a `YYYY-MM-DD` since-date, `patrol` to include patrol rounds, and `plain` for the bar
+ * fallback (default is the table). null = an argument this surface does not accept; the
+ * answer is the usage line, never a silent fallback.
  */
-export declare function parseStatsArgs(raw: string): StatsOptions | null;
-/** The `/dispatch-stats` reply: the chip's stats fold as one message. */
-export declare function dispatchStatsText(stats: TaskStats | null | undefined, t: Translate): string;
+export type ParsedStats = {
+    query: StatsOptions;
+    plain: boolean;
+};
+export declare function parseStatsArgs(raw: string): ParsedStats | null;
+/** The `/dispatch-stats` reply: the chip's stats view as one table (or its bar fallback). */
+export declare function dispatchStatsText(stats: TaskStats | null | undefined, t: Translate, plain?: boolean): string;
 export default function register(api: OpenClawCommandApi): void;

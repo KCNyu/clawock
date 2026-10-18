@@ -13,7 +13,7 @@ import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
   BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, QueueActionResult, RunDetailResult, TaskQueueResult,
-  TracesResult,
+  TaskStats, TracesResult,
 } from './types.ts'
 import type { BalanceCredentials } from './balance.ts'
 import { createBalanceReader, taskQueueConfig, type BalanceReader, type ClawockStudioConfig } from './desk.ts'
@@ -152,6 +152,19 @@ export class ClawockStudioGateway extends TypertRemoteService {
   @Remote
   async taskQueue(force: boolean): Promise<TaskQueueResult> {
     return this.queueServices().reader.get(force)
+  }
+
+  /**
+   * The stats layer's frozen totals, read on demand: the chip asks only when its
+   * panel opens, never on the queue's poll. Same `summary` as /dispatch-stats;
+   * it never rereads a session.
+   * @param days - rolling calendar days, today included; null with `since` null = all-time.
+   * @param since - first day (YYYY-MM-DD); takes precedence over `days`.
+   * @param patrol - include patrol rounds (cmd_summary's --all).
+   */
+  @Remote
+  async taskStats(days: number | null, since: string | null, patrol: boolean): Promise<TaskStats> {
+    return this.queueServices().reader.stats({ days, since, patrol })
   }
 
   /**

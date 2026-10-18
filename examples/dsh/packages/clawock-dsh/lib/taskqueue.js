@@ -709,17 +709,9 @@ async function readTaskQueue(config, deps) {
 		active: [],
 		recent: [],
 		patrol: empty,
-		stats: {
-			available: false,
-			error: `no dispatch log directory at ${config.logDir}`,
-			since: null,
-			days: 7,
-			patrolIncluded: false,
-			asOf,
-			agents: []
-		}
+		statsApi: true
 	};
-	const [activeIds, service, log, opsRead, issues, stats] = await Promise.all([
+	const [activeIds, service, log, opsRead, issues] = await Promise.all([
 		deps.activeTaskIds(),
 		deps.patrolService(),
 		deps.patrolLog(),
@@ -727,8 +719,7 @@ async function readTaskQueue(config, deps) {
 		deps.patrolIssues?.() ?? Promise.resolve({
 			labels: null,
 			asOf: ""
-		}),
-		readStats(config, deps, { days: 7 })
+		})
 	]);
 	const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))));
 	const since = (task) => task.queuedAtMs ?? task.startedAtMs ?? Number.MAX_SAFE_INTEGER;
@@ -791,7 +782,7 @@ async function readTaskQueue(config, deps) {
 		queues,
 		ops: opsRead.ops,
 		logDir: config.logDir,
-		stats
+		statsApi: true
 	};
 }
 /** TTL cache + in-flight join + stale-on-failure, the balance services' cadence shell in miniature. */

@@ -1,89 +1,131 @@
-# Dispatch stats: the chip's stats fold and `/dispatch-stats` (2026-10-18)
+# Dispatch stats: a card and a chart layer, plus `/dispatch-stats` (2026-10-18)
 
-The task chip answers "what is running now, and what is it waiting for". This adds
-the next question: "what has the dispatch done over a window, and what did it cost?"
-It is a read-only projection of `task_queue_ops.py summary`, the number set the CLI
-already owns; no new measurement is taken, and no session is reread.
+The queue answers "what is running now". This adds the next question: "what has the
+dispatch done over a window, and what did it cost?" It is a read-only projection of
+`task_queue_ops.py summary`; no new measurement is taken, and no session is reread.
 
-## The two surfaces
+## The chip: a card, not a fourth fold
 
-**`/dispatch-stats`** (OpenClaw, WeChat / Telegram) prints the summary as one
-message. It defaults to the last seven local calendar days with patrol rounds
-excluded. Arguments:
+The bottom of the panel already has the patrol folds (earlier rounds, coverage). Stats is
+therefore a **card between "just ended" and patrol**, not another `<details>`:
 
-```
-/dispatch-stats                  # last 7 days, patrol excluded (the chip's window)
-/dispatch-stats 30d              # a rolling window, 1d..365d
-/dispatch-stats all              # every retained task
-/dispatch-stats 2026-10-01       # since a date
-/dispatch-stats 30d patrol       # include patrol rounds
-```
+![The stats card: 统计 · 近 7 天, 92 tasks, 825.3M tokens, API $380.00, a completion bar and 完成 66/90 · 进行中 2.](dispatch-stats-card.png)
 
-Anything else is answered with the usage line and never reaches the ops entry.
+- **Collapsed**: one tile with the three readings and a completion bar. The bar is split
+  into done / partial / unfinished / live; the numbers and the caption say the same thing,
+  so colour is never the only channel.
+- **Expanded**: tapping the card opens a chart layer with the same back bar as a task
+  detail. It has per-agent token bars (scaled to the largest) and per-agent completion
+  bars, plus one caveat line.
 
-**The chip's stats fold** sits at the bottom of the provider panel, after the
-queue, recent tasks and patrol. Its collapsed label is the whole headline (task
-count, token total, API-price estimate); opening it shows one row per agent, then
-the caveats. It keeps the chip's seven-day window; the command is where a wider
-window is asked for.
+![The chart layer: Token / API estimate bars for Claude Code 536.2M / $221.08, Codex 107.5M / $156.08 and dsh 181.6M / $2.84; Completion bars for 32/45, 19/29 and 15/16; the one-line footnote.](dispatch-stats-layer.png)
 
-![The stats fold in the dsh task chip: label "统计 · 近 7 天 · 92 项 · token 825.3M · API $380.00"; rows for Claude Code 536.2M, Codex 107.5M and dsh 181.6M with their task/outcome breakdown and cost; then four caveat lines.](dispatch-stats-chip.png)
-
-The whole panel, for context (the fold is the last section):
+The full panel, with the card in place between recent tasks and patrol:
 [full panel capture](dispatch-stats-panel.png).
 
-## What the numbers are, and what they are not
+### Lazy
 
-`task_queue_ops.py summary` reads only the numbers each task froze into its
-`result.env` when it ended (`TOKENS_TOTAL`, `COST_USD`). It never rereads a session:
-a later task continuing the same session would be counted twice. Both surfaces
-carry the consequences in words, not in a footnote nobody opens:
+The card is the only consumer of the new `taskStats(days, since, patrol)` Remote method.
+The queue's 15s poll no longer runs `summary`; the read fires once when the panel opens
+(or when the panel's refresh is pressed) and a late answer after closing is dropped. The
+detail layer's request counter is the same shape. On a host whose half predates the
+method, the card is absent and the queue is unaffected.
 
-- **Live tasks** are counted as tasks and shown as `1 进行中`, but stay out of the
-  token and cost totals; those figures are still moving.
-- **Tokens unknown** (`tokens_unknown`) is a task whose record was empty. It is
-  not 0, and the line says how many tasks are in that state.
-- **Cost unpriced** (`cost_unpriced`) is a model with no price row. It is not $0;
-  the row shows `—` and the note counts them.
+This removes the previous 127ms-per-poll cost (1,121 task directories) from the common
+path. The card's values are therefore a snapshot; the manual refresh is how a reader asks
+for a newer one.
+
+## `/dispatch-stats`
+
+The command prints one five-column table and one caveat line:
+
+```
+# 派发统计 · 近 7 天
+
+| Agent | 完成/已结束 | 部分 | 未完成 | token · API |
+|---|---|---|---|---|
+| Claude Code | 32/45 | 9 | 4 | 536.2M · $221.08 |
+| Codex | 19/29 | 4 | 6 | 107.5M · $156.08 |
+| dsh | 15/16 | 1 | 0 | 181.6M · $2.84 |
+| 合计 | 66/90 | 14 | 10 | 825.3M · $380.00 |
+
+已结束任务冻结值 · 进行中 2 不计 · 8 项 token 未知（不是 0） · 8 项无定价 · 巡检不计 · API 估价非订阅额度
+```
+
+- The five columns fit a 390px bubble at 11px with short cells; `完成/已结束` keeps the
+  denominator next to the number, which a separate `已结束` column made too wide. The
+  `token · API` cell is the only long one and stays on one line at 10px in the capture.
+- `plain` is the fallback: no table, one token-share bar per agent, the same one-line
+  footnote. It exists because the table is a channel capability, not a guarantee.
+- `7d`/`30d`, `all`, `YYYY-MM-DD`, `patrol` are one argument each; anything else returns
+  the usage line and never reaches the ops entry.
+
+### Does WeChat render the table?
+
+The brief's `markdown="1"` divs are **kramdown/Pages**, not the WeChat card: the Pages
+brief is rendered by the site, while `brief_card.py` (the WeChat message) is plain text.
+The relevant WeChat evidence is the channel's `StreamingMarkdownFilter` in
+`openclaw-weixin`: it lists tables (`|…|`) among the constructs it passes through, and the
+filter applied to this exact table leaves every row intact. The account's `text_item`
+message is still text, so the table's visual rendering is the client's; the capture below
+uses the 390px bubble and five columns, and is labelled as a mock rather than a real
+WeChat screenshot.
+
+![A WeChat-style bubble carrying the real table output: five columns, four rows, the one-line footnote.](dispatch-stats-wechat.png)
+
+If a client shows the pipes instead, `/dispatch-stats plain` is the designed fallback; it
+is also what a narrow screen gets without losing a caveat.
+
+## What the numbers are (and are not)
+
+`task_queue_ops.py summary` reads only the numbers each task froze into its `result.env`
+when it ended (`TOKENS_TOTAL`, `COST_USD`). It never rereads a session: a later task
+continuing the same session would be counted twice.
+
+- **Live tasks** are counted in the task total and shown as `进行中`; they stay out of the
+  token and cost totals.
+- **Tokens unknown** is an empty record, not 0. The footnote counts those tasks.
+- **Cost unpriced** is a model with no price row; the cell is `—`, not $0.
 - **`free`** is counted apart (the opencode free pool).
-- **COST_USD is an API list-price estimate**, not subscription quota spent. Claude
-  and Codex run on subscriptions here; the 5h/weekly windows are account-wide and
-  shared with interactive use, so there is no honest per-task quota attribution.
-  The note under the rows says this in the same words as the panel's detail layer.
-- **Patrol rounds are excluded by default**; `patrol` (or `--all` on the CLI) adds
-  them.
+- **COST_USD is an API list-price estimate**, not subscription quota spent. Claude and
+  Codex run on subscriptions here; the 5h/weekly windows are account-wide and shared with
+  interactive use, so there is no honest per-task quota attribution.
+- **Patrol is excluded by default**; the window reads `全部（含巡检）` when it is included.
 
-The rows keep the two axes the summary reports: `COMPLETE`/`PARTIAL` come from the
-model's `OUTCOME`, while blocked/failed/cancelled/quota come from the runner's
-`STATE`. The `blocked` bucket takes whichever axis recorded it, and any remainder
-prints as `其他`, so the parts never silently disagree with the task count.
+The table's `完成/已结束` and `未完成` are the model's `DONE`/`PARTIAL` outcomes and the
+remainder respectively. The remainder is not silently dropped: the table's rows add up to
+`已结束`, and the footnote gives the unknown/unpriced counts.
 
-## Why these shapes
+## Design notes
 
-- **A separate command, not a second screen of `/dispatch-list`.** The queue reply
-  is already long (allowances, live tasks, recent, patrol). Stats is a different
-  question and a different window; a sibling command keeps both answers short and
-  lets a wider window be asked for without changing the chip.
-- **A fold in the chip, closed by default.** The panel's primary job is live work;
-  an always-open table would push patrol and the queue further down. The label is
-  the answer, so a reader who never opens it still learns the totals.
-- **Seven days by default.** It is a current operating window rather than a
-  cumulative number that only grows; `all` and a date are one argument away.
-- **One row per agent, token total as the value, cost in the aside.** The chip
-  already aligns every row on one grid; the stats row reuses it instead of adding
-  a second table style. The breakdown is the line under the name, the cost is the
-  right-hand fact, and no row carries a state chip (totals are not a state).
+Three installed design skills informed the surface:
+
+- **apple-design** — one material at a time (the card is the panel's existing well, not a
+  second translucent layer); hierarchy from weight and spacing rather than more colour;
+  focus returns to the opener; the layer is a sibling surface, not a modal; `:active`
+  press feedback and `prefers-reduced-motion` are inherited from the panel tokens.
+- **emil-design-eng** — no animation on data the reader is reading; the charts are static.
+  The only motion is the existing press transform, on the exact properties, behind
+  `prefers-reduced-motion`; hover is gated to `(hover: hover) and (pointer: fine)`.
+- **animate** — the gate rejected chart entrance animations: a stats tile is an occasional
+  read, not a first-time celebration, and moving bars would make numbers harder to compare.
+  No new keyframes; no spring library; the layer swaps immediately like the task detail.
+
+The bar colours reuse the panel's roles: blue for done, amber for partial, red for
+unfinished, grey for live. Every segment has a text label or count beside it, so the
+chart survives a greyscale screen.
 
 ## Captures
 
-- **Chip**: a real WebKit capture of this branch's `lib/client.js` on the live dsh,
-  with the profile's locale rewritten to `zh` for the picture. The live host half
-  is not installed during the capture, so the seven-day stats object was injected
-  into the `clawockStudio/taskQueue` response; the numbers themselves are the real
-  output of `task_queue_ops.py --json summary --since 2026-10-12` at
-  2026-10-18 14:53 HKT. `since` is the seven-day window ending that day.
-- **WeChat**: the text in the bubble is the real `src/text.ts` output for the same
-  seven days; the bubble/phone frame is a mock, and the Markdown markers are shown
-  as a chat client renders them. The literal output is quoted in the PR body.
-- The full-panel capture includes the host's live queue and balances, the same
-  material the plugin README already publishes.
+- **Card and layer**: real WebKit captures of this branch's `lib/client.js` on the live
+  dsh, with the profile's locale rewritten to `zh` for the picture. The live host half
+  predates `taskStats`, so the lazy RPC response and the host's `statsApi` capability flag
+  were answered from the real `task_queue_ops.py --json summary --since 2026-10-12` snapshot
+  at 2026-10-18 14:53 HKT;
+  the UI, the lazy call and the charts are the shipped code. The card and layer are from
+  the same snapshot.
+- **WeChat**: the text is the real `src/text.ts` output for that snapshot; the bubble,
+  table frame and avatar are a mock. The Markdown table is drawn as a client would render
+  it, not as a literal screenshot of WeChat.
+- The full-panel capture includes the host's live queue and balances, the same material
+  the plugin README already publishes.

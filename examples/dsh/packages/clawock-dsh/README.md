@@ -548,16 +548,19 @@ sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say someth
 does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
-The panel ends with a **stats** fold (closed by default; its label is the conclusion: task count,
-tokens, API estimate). Open it for one row per agent — tasks, done/partial/blocked/failed/cancelled,
-tokens and estimated cost. It reads the numbers `task_queue_ops.py summary` froze into `result.env`
-at each task's end and never rereads a session, so a task continuing the same session is not
-counted twice. The window is the last seven days, patrol excluded. The chat counterpart is
-`/dispatch-stats` (the same numbers, without the queue or allowances): `/dispatch-stats 30d`,
-`/dispatch-stats all`, `/dispatch-stats 2026-10-01`, and add `patrol` to include patrol rounds.
-Live tasks are outside the token and cost totals; an unrecorded token count is unknown, never 0;
-an unpriced model has no amount; and the cost is an API list-price estimate, not subscription
-quota spent.
+A **stats tile** sits between what just ended and patrol (not another fold): task count, tokens,
+API estimate and a completion bar at a glance. Tapping it opens a chart layer — token bars and
+per-agent completion bars, with the same back bar as a task detail. It is a lazy read: the tile
+appears when the panel opens, through the `taskStats` method, never on the queue's 15s poll. It
+reads the numbers `task_queue_ops.py summary` froze into `result.env` at each task's end and never
+rereads a session, so a task continuing the same session is not counted twice. The window is the
+last seven days, patrol excluded. The chat counterpart is `/dispatch-stats` (the same numbers,
+without the queue or allowances): a five-column table — Agent / done-ended / partial / unfinished /
+token · API — and one caveat line; `/dispatch-stats 30d`, `/dispatch-stats all`,
+`/dispatch-stats 2026-10-01`, add `patrol` to include patrol rounds, and `plain` for the bar
+fallback where a client shows the pipes. Live tasks are outside the token and cost totals; an
+unrecorded token count is unknown, never 0; an unpriced model has no amount; and the cost is an
+API list-price estimate, not subscription quota spent.
 
 同一块面板的 Markdown 版（一个标题、每个 provider 一行粗体、两个分节标题、状态打头的平铺列表；不用表格、嵌套列表或 HTML；宿主给的巡检轮次全部列出，不带覆盖表）:本包同时是 OpenClaw 插件。把已安装的包目录加进 OpenClaw 的
 `plugins.load.paths` 并重启 gateway,在微信/Telegram 里发 `/dispatch-list`(Telegram 菜单里写作
@@ -566,12 +569,14 @@ quota spent.
 网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
 spec 逐行比对两者。只读,调度仍在芯片上操作。
 
-面板最后是一个**统计**折叠区(默认收起,标签本身就是结论:任务数、token、API 估价)。展开后
-按 agent 一行,列出任务数、完成/部分/受阻/失败/取消、token 与估算费用。它读的是
+面板在「最近结束」和「巡检」之间有一张**统计卡片**(不是第四个折叠):任务数、token、API 估价
+和一条完成条一眼可见。点开是图表层——每个 agent 的 token 条和完成条,返回条与任务详情同一套。
+它是**懒读**:只在面板打开时走 `taskStats`,不跟队列的 15 秒轮询;数据是
 `task_queue_ops.py summary` 在任务结束时冻结进 `result.env` 的数字,从不重读 session,所以续跑
 同一 session 的任务不会被重复计数;默认近 7 天、巡检不计。聊天里对应 `/dispatch-stats`
-(同一组数字,不含队列与额度):`/dispatch-stats 30d`、`/dispatch-stats all`、
-`/dispatch-stats 2026-10-01`,加 `patrol` 才含巡检。进行中的任务不计入 token 与费用;没有记录的
+(同一组数字,不含队列与额度):五列表格(Agent / 完成-已结束 / 部分 / 未完成 / token · API)加一行
+口径;`/dispatch-stats 30d`、`/dispatch-stats all`、`/dispatch-stats 2026-10-01`,加 `patrol`
+才含巡检,`plain` 是显示管道符的客户端的条形降级。进行中的任务不计入 token 与费用;没有记录的
 token 是未知、不是 0;无价目的模型不估算金额;费用是 API 目录价估算,不是订阅额度消耗。
 
 ## 语言

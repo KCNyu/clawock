@@ -19,7 +19,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { createTranslator, dictionaries, type Translate } from './copy.ts'
 import { createBalanceReader, taskQueueConfig, type BalanceReader, type ClawockStudioConfig } from './desk.ts'
-import { panelModel, statsSection, type PanelInput } from './panel.ts'
+import { panelModel, statsView, type PanelInput } from './panel.ts'
 import { createTaskQueueService, DEFAULT_STATS_DAYS, type StatsOptions, type TaskQueueService } from './taskqueue.ts'
 import { panelText, statsText } from './text.ts'
 import type { BalanceCredentials } from './balance.ts'
@@ -56,16 +56,21 @@ export function dispatchListText(input: PanelInput, t: Translate, now: number): 
 
 /**
  * `/dispatch-stats` arguments: `7d`/`30d` (a rolling window), `all` (every retained task),
- * a `YYYY-MM-DD` since-date, and `patrol` to include patrol rounds. The default is the chip's
- * own window (the last seven days, patrol excluded). null = an argument this surface does not
- * accept; the answer is the usage line, never a silent fallback.
+ * a `YYYY-MM-DD` since-date, `patrol` to include patrol rounds, and `plain` for the bar
+ * fallback (default is the table). null = an argument this surface does not accept; the
+ * answer is the usage line, never a silent fallback.
  */
-export function parseStatsArgs(raw: string): StatsOptions | null {
+export type ParsedStats = { query: StatsOptions; plain: boolean }
+
+export function parseStatsArgs(raw: string): ParsedStats | null {
   let days: number | null = DEFAULT_STATS_DAYS
   let since: string | null = null
   let patrol = false
+  let plain = false
   for (const token of raw.trim().toLowerCase().split(/\s+/).filter(Boolean)) {
     if (token === 'patrol') { patrol = true; continue }
+    if (token === 'plain') { plain = true; continue }
+    if (token === 'table') { plain = false; continue }
     if (token === 'all') { days = null; since = null; continue }
     const rolling = /^([1-9]\d{0,2})d$/.exec(token)
     if (rolling) {
@@ -86,14 +91,14 @@ export function parseStatsArgs(raw: string): StatsOptions | null {
     }
     return null
   }
-  return { days, since, patrol }
+  return { query: { days, since, patrol }, plain }
 }
 
-/** The `/dispatch-stats` reply: the chip's stats fold as one message. */
-export function dispatchStatsText(stats: TaskStats | null | undefined, t: Translate): string {
-  const view = statsSection(stats, t)
+/** The `/dispatch-stats` reply: the chip's stats view as one table (or its bar fallback). */
+export function dispatchStatsText(stats: TaskStats | null | undefined, t: Translate, plain = false): string {
+  const view = statsView(stats, t)
   if (view === null) return t('stats.unavailable', { message: stats?.error || '—' })
-  return statsText(view, t)
+  return statsText(view, t, plain)
 }
 
 export default function register(api: OpenClawCommandApi): void {
@@ -135,7 +140,7 @@ export default function register(api: OpenClawCommandApi): void {
       if (parsed === null) return { text: t('stats.usage') }
       const workspace = ctx.config?.agents?.defaults?.workspace ?? process.env.CLAWOCK_WORKSPACE ?? join(homedir(), '.openclaw', 'workspace')
       queue ??= createTaskQueueService(taskQueueConfig(config, workspace))
-      return { text: dispatchStatsText(await queue.stats(parsed), t) }
+      return { text: dispatchStatsText(await queue.stats(parsed.query), t, parsed.plain) }
     },
   })
 }

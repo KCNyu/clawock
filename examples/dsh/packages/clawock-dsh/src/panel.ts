@@ -488,11 +488,11 @@ export function _endedState(state: string, outcome: string, t: Translate): SlotC
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export const FACT_ORDER = ['model', 'filed', 'tries', 'receipt', 'spend', 'when', 'took', 'cost'] as const
+export const FACT_ORDER = ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'] as const
 
 export type FactSlot = typeof FACT_ORDER[number]
 
-export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round' | 'stats'
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round'
 
 export const RESIDENT_CHIPS = 1
 
@@ -502,7 +502,6 @@ export const FACT_CELL: Record<FactSlot, { line: 2 | 3; track: 'main' | 'full' |
   filed: { line: 2, track: 'full' },
   tries: { line: 2, track: 'aside' },
   receipt: { line: 2, track: 'aside' },
-  spend: { line: 2, track: 'aside' },
   when: { line: 3, track: 'when' },
   took: { line: 3, track: 'took' },
   cost: { line: 3, track: 'aside' },
@@ -520,9 +519,6 @@ export const ROW_KINDS: Record<RowKind, { lead: boolean; value: boolean; facts: 
   // A round uses the patrol section's glyph, just as an ended task carries its executor. Its line 2
   // is what it routed through the filing gate (issues with their severity, digest, comments).
   round: { lead: true, value: false, facts: ['filed', 'when', 'took'] },
-  // An agent's totals in the stats fold: the token sum is the value, the breakdown rides in the
-  // model cell (line 2's wide cell, words not a model) and the API-price estimate in the aside.
-  stats: { lead: true, value: true, facts: ['model', 'spend'] },
 }
 
 /** A fact: its words, what a reader hears (the words with their unit), and a voice when it is a warning. */
@@ -1080,119 +1076,164 @@ function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: st
   return counts.find((count) => count.name === name)?.count ?? 0
 }
 
-/**
- * The one line under an agent's name in the stats fold. It keeps the two axes apart the way
- * cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
- * from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
- * Tasks with no report or another state fall into `other`, so the parts never invent a total.
- */
-export function statsBreakdown(agent: AgentStats, t: Translate): string {
-  const done = statOf(agent.outcomes, 'DONE')
-  const partial = statOf(agent.outcomes, 'PARTIAL')
-  const blocked = Math.max(statOf(agent.states, 'blocked'), statOf(agent.outcomes, 'BLOCKED'))
-  const failed = statOf(agent.states, 'failed') + statOf(agent.states, 'timeout')
-  const cancelled = statOf(agent.states, 'cancelled')
-  const quota = statOf(agent.states, 'quota')
-  const unverified = statOf(agent.states, 'unverified')
-  const settled = done + partial + blocked + failed + cancelled + quota + unverified + agent.live
-  const other = Math.max(0, agent.tasks - settled)
-  return [
-    t('stats.tasks', { n: agent.tasks }),
-    ...(done > 0 ? [t('stats.done', { n: done })] : []),
-    ...(partial > 0 ? [t('stats.partial', { n: partial })] : []),
-    ...(blocked > 0 ? [t('stats.blocked', { n: blocked })] : []),
-    ...(failed > 0 ? [t('stats.failed', { n: failed })] : []),
-    ...(cancelled > 0 ? [t('stats.cancelled', { n: cancelled })] : []),
-    ...(quota > 0 ? [t('stats.quota', { n: quota })] : []),
-    ...(unverified > 0 ? [t('stats.unverified', { n: unverified })] : []),
-    ...(other > 0 ? [t('stats.other', { n: other })] : []),
-    ...(agent.live > 0 ? [t('stats.live', { n: agent.live })] : []),
-  ].join(' · ')
-}
-
-/** A token cell: a real 0 prints 0, but a window with only unknown token counts prints —. */
-function statsTokens(tokens: number, unknown: number): string {
+function statsTokensText(tokens: number, unknown: number): string {
   return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
 }
 
-/** A cost cell: priced estimate, free, or unknown — never a $0 for an unpriced model. */
-function statsCost(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
+function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
   if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
   if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
   return '—'
 }
 
+const ratio = (part: number, whole: number): number => (whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0)
+
+/** One agent's totals as the stats card and its chart layer read them. */
+export type StatsAgentView = {
+  agent: string
+  label: string
+  /** Tasks in the window, live included. */
+  tasks: number
+  /** Ended tasks: the denominator of the completion bar and the table's 已结束 column. */
+  settled: number
+  done: number
+  partial: number
+  /** Everything settled that is neither done nor partial (blocked, failed, cancelled, quota, …). */
+  unfinished: number
+  live: number
+  tokens: number
+  tokensText: string
+  costText: string
+  /** Token length against the largest agent, 0..1 (the token bar's fill). */
+  share: number
+  doneShare: number
+  partialShare: number
+  unfinishedShare: number
+  liveShare: number
+}
+
+export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> & {
+  tokensUnknown: number
+  costUsdEstimate: number
+  costUnpriced: number
+  costFree: number
+}
+
 /**
- * The stats fold: what the dispatch has done over a window, read from the frozen result.env
- * numbers cmd_summary totals — never from sessions (a continued session would count twice).
- * Its collapsed label is the whole answer (tasks, tokens, API-price estimate); inside, one row
- * per agent and the caveats, so "estimate" and "unknown" can never be mistaken for a bill or a 0.
+ * The stats surface's one view: the card's three readings, its completion bar, and the
+ * chart layer's per-agent bars. It is a projection of `task_queue_ops.py summary`, never a
+ * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
+ * remainder. The footnote carries the caveats once, in one line.
  */
 export type StatsView = {
   title: string
-  /** The panel fold's short label; the chat message uses `title`. */
-  foldTitle: string
-  /** The window as words: 近 7 天 / 10/12 起 / 全部. */
+  /** The card's shorter name; the layer and the command use `title`. */
+  cardTitle: string
+  /** The window as words: 近 7 天 / 10/12 起 / 全部（含巡检）. */
   window: string
-  /** Window + totals, under the title; the fold label adds the title. */
+  /** Window + totals, for the card's aria and the text fallback. */
   headline: string
-  rows: RowView[]
-  notes: string[]
-  /** Said when the window has no task; '' when rows exist (or the read failed). */
+  /** Totals without the window (the layer's header already says the window). */
+  summaryLine: string
+  agents: StatsAgentView[]
+  totals: StatsTotalsView
+  maxTokens: number
   empty: string
+  footnote: string
 }
 
-export function statsSection(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
+export function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null {
   if (stats == null) return null
   const title = t('stats.title')
-  const foldTitle = t('stats.foldTitle')
+  const cardTitle = t('stats.cardTitle')
   const baseWindow = stats.days !== null ? t('stats.window.days', { n: stats.days })
     : stats.since !== null ? t('stats.window.since', { date: stats.since })
       : t('stats.window.all')
-  // Patrol rounds are a different population (mostly failed free-pool rounds): say so in the
-  // window when they are in, never only in a note a screenshot may crop.
   const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
-  const notes = [t('stats.note.frozen'), t('stats.note.cost'), ...(!stats.patrolIncluded ? [t('stats.note.patrol')] : [])]
-  if (!stats.available) {
-    return { title, foldTitle, window, headline: t('stats.headline.failed', { window }), rows: [], notes: [t('stats.unavailable', { message: stats.error })], empty: '' }
+  const zeroAgent: StatsAgentView = {
+    agent: '', label: '', tasks: 0, settled: 0, done: 0, partial: 0, unfinished: 0, live: 0,
+    tokens: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
   }
-  const agents = stats.agents.filter((agent) => agent.tasks > 0)
-  if (agents.length === 0) return { title, foldTitle, window, headline: window, rows: [], notes, empty: t('stats.empty') }
-  const totals = agents.reduce((sum, agent) => ({
-    tasks: sum.tasks + agent.tasks, live: sum.live + agent.live,
-    tokens: sum.tokens + agent.tokensTotal, unknown: sum.unknown + agent.tokensUnknown,
-    costUsdEstimate: sum.costUsdEstimate + agent.costUsdEstimate,
-    costUnpriced: sum.costUnpriced + agent.costUnpriced, costFree: sum.costFree + agent.costFree,
-  }), { tasks: 0, live: 0, tokens: 0, unknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0 })
-  const losses = [
-    totals.unknown > 0 ? t('stats.note.unknown', { n: totals.unknown }) : '',
-    totals.costUnpriced > 0 ? t('stats.note.unpriced', { n: totals.costUnpriced }) : '',
-    totals.costFree > 0 ? t('stats.note.free', { n: totals.costFree }) : '',
-  ].filter((line) => line !== '')
-  if (losses.length > 0) notes.push(losses.join(' · '))
+  const zeroTotals: StatsTotalsView = {
+    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
+  }
+  if (!stats.available) {
+    return {
+      title, cardTitle, window, headline: t('stats.headline.failed', { window }), summaryLine: window,
+      agents: [], totals: zeroTotals, maxTokens: 0, empty: '',
+      footnote: t('stats.unavailable', { message: stats.error }),
+    }
+  }
+  const selected = byAgentRank(stats.agents.filter((agent) => agent.tasks > 0))
+  if (selected.length === 0) {
+    return {
+      title, cardTitle, window, headline: window, summaryLine: window, agents: [], totals: zeroTotals, maxTokens: 0,
+      empty: t('stats.empty'), footnote: statsFootnote(zeroTotals, stats.patrolIncluded, t),
+    }
+  }
+  const agents: StatsAgentView[] = selected.map((agent) => {
+    const tasks = Math.max(0, agent.tasks)
+    const live = Math.max(0, Math.min(agent.live, tasks))
+    const settled = Math.max(0, tasks - live)
+    const done = Math.max(0, Math.min(statOf(agent.outcomes, 'DONE'), settled))
+    const partial = Math.max(0, Math.min(statOf(agent.outcomes, 'PARTIAL'), settled - done))
+    const unfinished = Math.max(0, settled - done - partial)
+    return {
+      agent: agent.agent, label: _agentLabel(agent.agent), tasks, settled, done, partial, unfinished, live,
+      tokens: agent.tokensTotal, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
+      costText: statsCostText(agent, t), share: 0,
+      doneShare: ratio(done, settled), partialShare: ratio(partial, settled),
+      unfinishedShare: ratio(unfinished, settled), liveShare: ratio(live, tasks),
+    }
+  })
+  const maxTokens = Math.max(0, ...agents.map((agent) => agent.tokens))
+  for (const agent of agents) agent.share = ratio(agent.tokens, maxTokens)
+  const totals: StatsTotalsView = { ...zeroTotals }
+  for (const [at, agent] of agents.entries()) {
+    const raw = selected[at]!
+    totals.tasks += agent.tasks
+    totals.settled += agent.settled
+    totals.done += agent.done
+    totals.partial += agent.partial
+    totals.unfinished += agent.unfinished
+    totals.live += agent.live
+    totals.tokens += agent.tokens
+    totals.tokensUnknown += raw.tokensUnknown
+    totals.costUsdEstimate += raw.costUsdEstimate
+    totals.costUnpriced += raw.costUnpriced
+    totals.costFree += raw.costFree
+  }
+  totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown)
+  totals.costText = statsCostText(totals, t)
+  totals.doneShare = ratio(totals.done, totals.settled)
+  totals.partialShare = ratio(totals.partial, totals.settled)
+  totals.unfinishedShare = ratio(totals.unfinished, totals.settled)
+  totals.liveShare = ratio(totals.live, totals.tasks)
   const headline = [
     window,
     t('stats.tasks', { n: totals.tasks }),
-    t('stats.tokens', { tokens: statsTokens(totals.tokens, totals.unknown) }),
-    t('stats.costEstimate', { cost: statsCost(totals, t) }),
+    t('stats.tokens', { tokens: totals.tokensText }),
+    t('stats.costEstimate', { cost: totals.costText }),
   ].join(' · ')
   return {
-    title, foldTitle, window, headline, notes, empty: '',
-    rows: agents.map((agent) => {
-      const cost = statsCost(agent, t)
-      return {
-        kind: 'stats', key: 'stats-' + agent.agent, lead: { agent: agent.agent }, name: _agentLabel(agent.agent),
-        value: { text: statsTokens(agent.tokensTotal, agent.tokensUnknown), tone: 'none', level: null },
-        state: null,
-        facts: {
-          model: { text: statsBreakdown(agent, t), title: t('stats.tokensTitle', { total: agent.tokensTotal.toLocaleString('en-US') }) },
-          spend: { text: cost, title: t('stats.costTitle'), voice: cost === '—' ? 'quiet' : undefined },
-        },
-        caption: [],
-        attrs: { 'data-tq-stats': agent.agent },
-      } satisfies RowView
-    }),
+    title, cardTitle, window, headline,
+    summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
+    agents, totals, maxTokens, empty: '',
+    footnote: statsFootnote(totals, stats.patrolIncluded, t),
   }
+}
+
+/** The one caveat line every stats surface prints: no repeated paragraph. */
+function statsFootnote(totals: StatsTotalsView, patrolIncluded: boolean, t: Translate): string {
+  return [
+    t('stats.note.frozen'),
+    totals.live > 0 ? t('stats.note.live', { n: totals.live }) : '',
+    totals.tokensUnknown > 0 ? t('stats.note.unknown', { n: totals.tokensUnknown }) : '',
+    totals.costUnpriced > 0 ? t('stats.note.unpriced', { n: totals.costUnpriced }) : '',
+    totals.costFree > 0 ? t('stats.note.free', { n: totals.costFree }) : '',
+    patrolIncluded ? '' : t('stats.note.patrol'),
+    t('stats.note.cost'),
+  ].filter((part) => part !== '').join(' · ')
 }
 
 /**
@@ -1359,14 +1400,21 @@ export type PanelModel = {
 }
 
 /** Both halves of the cell as one read left them: an answer, or why there is none. */
-export type PanelInput = { balances: BalancesResult | null; balanceError: string | null; queue: TaskQueueResult | null; queueError: string | null }
+export type PanelInput = {
+  balances: BalancesResult | null
+  balanceError: string | null
+  queue: TaskQueueResult | null
+  queueError: string | null
+  /** The stats layer's own read; absent on a host without the taskStats method. */
+  stats?: TaskStats | null
+}
 
 export function panelModel(input: PanelInput,
   t: Translate, now: number, open: (id: string) => void = () => {}): PanelModel {
   const rows = balanceRows(input.balances, t, now)
   const byProvider = new Map(rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(input.balances?.providers ?? [], input.queue)
-  const stats = input.queue?.available === true ? statsSection(input.queue.stats, t) : null
+  const stats = input.queue?.available === true ? statsView(input.stats, t) : null
   return {
     title: t('panel.title'),
     notices: panelNotices({ ...input, rowCount: rows.length }, t),
@@ -1375,7 +1423,7 @@ export function panelModel(input: PanelInput,
     recent: recentSection(input.queue, t, now, open),
     patrol: patrolSection(input.queue, t, now),
     // An empty window is noise in the chip; a failed read is not (its notes say so).
-    stats: stats !== null && (stats.rows.length > 0 || stats.empty === '') ? stats : null,
+    stats: stats !== null && (stats.agents.length > 0 || stats.empty === '') ? stats : null,
     footer: opsFooter(input.queue, t),
   }
 }

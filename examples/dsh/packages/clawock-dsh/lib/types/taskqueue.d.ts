@@ -106,9 +106,7 @@ export declare function readPatrolProgress(patrolDir: string, axesPath: string, 
  */
 export declare function patrolPhase(service: string, round: string, roundAlive: boolean, log: string[]): Omit<PatrolStatus, 'rounds'>;
 /** One full read. Throws only when the dispatch log directory itself is unreadable. */
-type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs' | 'stats'> & {
-    stats: TaskStats;
-};
+type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs'>;
 /** sha256 of a file, 12 hex — the same hash the ops entry reports as its ops_version. */
 export declare function fileVersion(path: string): string;
 /** What the stats surface asks for: a rolling window, a since-date, or every retained task. */

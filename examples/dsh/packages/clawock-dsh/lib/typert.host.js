@@ -48,6 +48,35 @@ const clawock_dsh_clawockStudio_queueAction_result$schema = z.object({
   'message': z.string(),
   'detail': z.string(),
 })
+const clawock_dsh_clawockStudio_taskStats_parameter_0$schema = z.union([z.number(), z.literal(null)])
+const clawock_dsh_clawockStudio_taskStats_parameter_1$schema = z.union([z.string(), z.literal(null)])
+const clawock_dsh_clawockStudio_taskStats_parameter_2$schema = z.boolean()
+const clawock_dsh_clawockStudio_taskStats_result$schema = z.object({
+  'available': z.boolean(),
+  'error': z.string(),
+  'since': z.union([z.literal(null), z.string()]),
+  'days': z.union([z.literal(null), z.number()]),
+  'patrolIncluded': z.boolean(),
+  'asOf': z.string(),
+  'agents': z.array(z.object({
+  'agent': z.string(),
+  'tasks': z.number(),
+  'live': z.number(),
+  'states': z.array(z.object({
+  'name': z.string(),
+  'count': z.number(),
+})),
+  'outcomes': z.array(z.object({
+  'name': z.string(),
+  'count': z.number(),
+})),
+  'tokensTotal': z.number(),
+  'tokensUnknown': z.number(),
+  'costUsdEstimate': z.number(),
+  'costUnpriced': z.number(),
+  'costFree': z.number(),
+})),
+})
 const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
 const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'id': z.string(),
@@ -159,26 +188,7 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'fairWaitSec': z.number(),
   'error': z.string(),
 }).optional(),
-  'stats': z.union([z.literal(null), z.object({
-  'available': z.boolean(),
-  'error': z.string(),
-  'since': z.union([z.literal(null), z.string()]),
-  'days': z.union([z.literal(null), z.number()]),
-  'patrolIncluded': z.boolean(),
-  'asOf': z.string(),
-  'agents': z.array(z.object({
-  'agent': z.string(),
-  'tasks': z.number(),
-  'live': z.number(),
-  'states': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
-  'outcomes': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
-  'tokensTotal': z.number(),
-  'tokensUnknown': z.number(),
-  'costUsdEstimate': z.number(),
-  'costUnpriced': z.number(),
-  'costFree': z.number(),
-})),
-})]).optional(),
+  'statsApi': z.boolean().optional(),
   'logDir': z.string().optional(),
 })
 const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()
@@ -394,6 +404,51 @@ export const TYPERT = {
         create: () => clawock_dsh_clawockStudio_queueAction_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":281,"column":3},
+    },
+    {
+      id: 'clawock-dsh#clawockStudio/taskStats',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'taskStats',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'days',
+          wire: 'days',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskStats:days',
+            create: () => clawock_dsh_clawockStudio_taskStats_parameter_0$schema,
+          },
+        },
+        {
+          name: 'since',
+          wire: 'since',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskStats:since',
+            create: () => clawock_dsh_clawockStudio_taskStats_parameter_1$schema,
+          },
+        },
+        {
+          name: 'patrol',
+          wire: 'patrol',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskStats:patrol',
+            create: () => clawock_dsh_clawockStudio_taskStats_parameter_2$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#TaskStats',
+        create: () => clawock_dsh_clawockStudio_taskStats_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":166,"column":3},
     },
     {
       id: 'clawock-dsh#clawockStudio/get',

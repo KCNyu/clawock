@@ -67,6 +67,7 @@ let ClawockStudioGateway = (() => {
 	let _traces_decorators;
 	let _balance_decorators;
 	let _taskQueue_decorators;
+	let _taskStats_decorators;
 	let _queueAction_decorators;
 	return class ClawockStudioGateway extends _classSuper {
 		static {
@@ -79,6 +80,7 @@ let ClawockStudioGateway = (() => {
 			_traces_decorators = [Remote];
 			_balance_decorators = [Remote];
 			_taskQueue_decorators = [Remote];
+			_taskStats_decorators = [Remote];
 			_queueAction_decorators = [Remote];
 			__esDecorate(this, null, _list_decorators, {
 				kind: "method",
@@ -165,6 +167,17 @@ let ClawockStudioGateway = (() => {
 				access: {
 					has: (obj) => "taskQueue" in obj,
 					get: (obj) => obj.taskQueue
+				},
+				metadata: _metadata
+			}, null, _instanceExtraInitializers);
+			__esDecorate(this, null, _taskStats_decorators, {
+				kind: "method",
+				name: "taskStats",
+				static: false,
+				private: false,
+				access: {
+					has: (obj) => "taskStats" in obj,
+					get: (obj) => obj.taskStats
 				},
 				metadata: _metadata
 			}, null, _instanceExtraInitializers);
@@ -287,6 +300,21 @@ let ClawockStudioGateway = (() => {
 		*/
 		async taskQueue(force) {
 			return this.queueServices().reader.get(force);
+		}
+		/**
+		* The stats layer's frozen totals, read on demand: the chip asks only when its
+		* panel opens, never on the queue's poll. Same `summary` as /dispatch-stats;
+		* it never rereads a session.
+		* @param days - rolling calendar days, today included; null with `since` null = all-time.
+		* @param since - first day (YYYY-MM-DD); takes precedence over `days`.
+		* @param patrol - include patrol rounds (cmd_summary's --all).
+		*/
+		async taskStats(days, since, patrol) {
+			return this.queueServices().reader.stats({
+				days,
+				since,
+				patrol
+			});
 		}
 		/**
 		* One write from the task chip — cancel, priority, model, retry, wrapup,

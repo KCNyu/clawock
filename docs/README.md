@@ -45,7 +45,7 @@ belongs here.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers
   (semantic vs. everything else), motion scale, component recipes and the list of
   what a new component may not do, each with the gate that checks it.
-- [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats fold and the
+- [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats tile and chart layer, and the
   `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
   mean, and the effect captures.
 

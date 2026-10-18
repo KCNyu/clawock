@@ -41,8 +41,9 @@ export declare function rowText(view: RowView, t: Translate, opts?: {
  */
 export declare function panelText(model: PanelModel, t: Translate): string;
 /**
- * `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
- * the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
- * title is the surface's; everything under it is the section's own words.
+ * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
+ * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
+ * One title, one table, one caveat line — no process prose. The same `StatsView`
+ * the chip draws, so the chat and the chip cannot disagree.
  */
-export declare function statsText(view: StatsView, t: Translate): string;
+export declare function statsText(view: StatsView, t: Translate, plain?: boolean): string;

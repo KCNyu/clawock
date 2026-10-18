@@ -424,7 +424,7 @@ export function patrolPhase(service: string, round: string, roundAlive: boolean,
 }
 
 /** One full read. Throws only when the dispatch log directory itself is unreadable. */
-type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs' | 'stats'> & { stats: TaskStats }
+type QueueRead = Omit<TaskQueueResult, 'status' | 'message' | 'refreshMs'>
 
 /** sha256 of a file, 12 hex — the same hash the ops entry reports as its ops_version. */
 export function fileVersion(path: string): string {
@@ -579,18 +579,11 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
-    return {
-      available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty,
-      stats: {
-        available: false, error: `no dispatch log directory at ${config.logDir}`, since: null,
-        days: DEFAULT_STATS_DAYS, patrolIncluded: false, asOf, agents: [],
-      },
-    }
+    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty, statsApi: true }
   }
-  const [activeIds, service, log, opsRead, issues, stats] = await Promise.all([
+  const [activeIds, service, log, opsRead, issues] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
     deps.patrolIssues?.() ?? Promise.resolve({ labels: null, asOf: '' }),
-    readStats(config, deps, { days: DEFAULT_STATS_DAYS }),
   ])
   const alive = new Set(activeIds.filter((id) => existsSync(join(config.logDir, id))))
   // QUEUED_AT is the order tasks started waiting in (directory mtime is not: a task that was
@@ -640,7 +633,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     queues,
     ops: opsRead.ops,
     logDir: config.logDir,
-    stats,
+    statsApi: true,
   }
 }
 

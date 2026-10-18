@@ -493,6 +493,6 @@ export interface TaskQueueResult {
     ops?: OpsStatus;
     /** The host's dispatch directory (config `dispatchLogDir`): where task briefs live when the ops entry cannot say. */
     logDir?: string;
-    /** Frozen-result totals the chip's stats fold shows (optional on the wire; older hosts omit it). */
-    stats?: TaskStats | null;
+    /** True when this host half has the on-demand `taskStats` method (older hosts omit it). */
+    statsApi?: boolean;
 }

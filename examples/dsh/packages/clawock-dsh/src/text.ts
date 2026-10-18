@@ -105,29 +105,55 @@ export function panelText(model: PanelModel, t: Translate): string {
     for (const row of model.patrol.rounds) out.push('- ' + literal(rowText(row, t)[0]!))
     for (const alert of model.patrol.progress?.alerts ?? []) out.push('- ⚠ ' + literal(alert))
   }
-  if (model.stats !== null) {
-    out.push('', '**' + literal(model.stats.foldTitle + ' · ' + model.stats.headline) + '**')
-    if (model.stats.empty !== '') out.push(literal(model.stats.empty))
-    for (const row of model.stats.rows) out.push('- ' + literal(rowText(row, t)[0]!))
-    for (const note of model.stats.notes) out.push('- ' + literal(note))
-  }
   if (model.footer !== null) out.push('', literal((model.footer.bad ? '⚠ ' : '') + model.footer.text))
   return out.join('\n')
 }
 
+/** One Markdown table cell: a literal `|` would open a column, so escape it. */
+const cell = (text: string): string => literal(text).replace(/\|/g, '\\|')
+
 /**
- * `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
- * the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
- * title is the surface's; everything under it is the section's own words.
+ * `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
+ * Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
+ * One title, one table, one caveat line — no process prose. The same `StatsView`
+ * the chip draws, so the chat and the chip cannot disagree.
  */
-export function statsText(view: StatsView, t: Translate): string {
-  const out = ['# ' + literal(view.title)]
+export function statsText(view: StatsView, t: Translate, plain = false): string {
+  const out = ['# ' + literal(view.title + ' · ' + view.window)]
   if (view.empty !== '') {
-    out.push(literal(view.headline), literal(view.empty))
-  } else {
-    out.push(literal(view.headline))
-    for (const row of view.rows) out.push('- ' + literal(rowText(row, t)[0]!))
+    out.push('', literal(view.empty), '', literal(view.footnote))
+    return out.join('\n')
   }
-  for (const note of view.notes) out.push('- ' + literal(note))
+  if (view.agents.length === 0) {
+    out.push('', literal(view.headline), '', literal(view.footnote))
+    return out.join('\n')
+  }
+  if (plain) {
+    out.push('', literal(view.headline))
+    for (const agent of view.agents) {
+      out.push('', literal(agent.label + '  ' + bar(agent.share * 100) + '  ' + agent.tokensText + ' · ' + agent.costText))
+      const parts = [
+        t('stats.table.settled') + ' ' + agent.settled,
+        t('stats.table.done') + ' ' + agent.done,
+        t('stats.table.partial') + ' ' + agent.partial,
+        t('stats.table.unfinished') + ' ' + agent.unfinished,
+        ...(agent.live > 0 ? [t('stats.card.live', { n: agent.live })] : []),
+      ]
+      out.push(literal(parts.join(' · ')))
+    }
+    out.push('', literal(view.footnote))
+    return out.join('\n')
+  }
+  const header = [
+    t('stats.table.agent'), t('stats.table.doneSettled'),
+    t('stats.table.partial'), t('stats.table.unfinished'), t('stats.table.tokens'),
+  ]
+  const row = (label: string, a: { settled: number; done: number; partial: number; unfinished: number; tokensText: string; costText: string }): string =>
+    '| ' + [label, a.done + '/' + a.settled, String(a.partial), String(a.unfinished), a.tokensText + ' · ' + a.costText]
+      .map(cell).join(' | ') + ' |'
+  out.push('', '| ' + header.map(cell).join(' | ') + ' |', '|' + '---|'.repeat(header.length))
+  for (const agent of view.agents) out.push(row(agent.label, agent))
+  out.push(row(t('stats.table.total'), view.totals))
+  out.push('', literal(view.footnote))
   return out.join('\n')
 }

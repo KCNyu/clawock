@@ -11,7 +11,7 @@
  */
 import { type ProviderJoin } from './providers.ts';
 import { type Translate } from './copy.ts';
-import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts';
+import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts';
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
 /** Usage-direction colour tier of a used-percent reading. */
@@ -230,9 +230,9 @@ export declare function _endedState(state: string, outcome: string, t: Translate
  * shows; FACT_CELL where each one sits; the spec checks every rendered row
  * against both, and that no row has a second chip.
  */
-export declare const FACT_ORDER: readonly ['model', 'filed', 'tries', 'receipt', 'spend', 'when', 'took', 'cost'];
+export declare const FACT_ORDER: readonly ['model', 'filed', 'tries', 'receipt', 'when', 'took', 'cost'];
 export type FactSlot = typeof FACT_ORDER[number];
-export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round' | 'stats';
+export type RowKind = 'source' | 'head' | 'task' | 'ended' | 'round';
 export declare const RESIDENT_CHIPS = 1;
 /** Each fact's one cell: its line and its track (styles.module.css places `[data-tq-fact=…]` accordingly). */
 export declare const FACT_CELL: Record<FactSlot, {
@@ -493,33 +493,58 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
 export declare function compactCount(n: number): string;
 /** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
 export declare function usdText(n: number): string;
+/** One agent's totals as the stats card and its chart layer read them. */
+export type StatsAgentView = {
+    agent: string;
+    label: string;
+    /** Tasks in the window, live included. */
+    tasks: number;
+    /** Ended tasks: the denominator of the completion bar and the table's 已结束 column. */
+    settled: number;
+    done: number;
+    partial: number;
+    /** Everything settled that is neither done nor partial (blocked, failed, cancelled, quota, …). */
+    unfinished: number;
+    live: number;
+    tokens: number;
+    tokensText: string;
+    costText: string;
+    /** Token length against the largest agent, 0..1 (the token bar's fill). */
+    share: number;
+    doneShare: number;
+    partialShare: number;
+    unfinishedShare: number;
+    liveShare: number;
+};
+export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> & {
+    tokensUnknown: number;
+    costUsdEstimate: number;
+    costUnpriced: number;
+    costFree: number;
+};
 /**
- * The one line under an agent's name in the stats fold. It keeps the two axes apart the way
- * cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
- * from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
- * Tasks with no report or another state fall into `other`, so the parts never invent a total.
- */
-export declare function statsBreakdown(agent: AgentStats, t: Translate): string;
-/**
- * The stats fold: what the dispatch has done over a window, read from the frozen result.env
- * numbers cmd_summary totals — never from sessions (a continued session would count twice).
- * Its collapsed label is the whole answer (tasks, tokens, API-price estimate); inside, one row
- * per agent and the caveats, so "estimate" and "unknown" can never be mistaken for a bill or a 0.
+ * The stats surface's one view: the card's three readings, its completion bar, and the
+ * chart layer's per-agent bars. It is a projection of `task_queue_ops.py summary`, never a
+ * second count: DONE/PARTIAL are the model's OUTCOME, the rest of the settled tasks are the
+ * remainder. The footnote carries the caveats once, in one line.
  */
 export type StatsView = {
     title: string;
-    /** The panel fold's short label; the chat message uses `title`. */
-    foldTitle: string;
-    /** The window as words: 近 7 天 / 10/12 起 / 全部. */
+    /** The card's shorter name; the layer and the command use `title`. */
+    cardTitle: string;
+    /** The window as words: 近 7 天 / 10/12 起 / 全部（含巡检）. */
     window: string;
-    /** Window + totals, under the title; the fold label adds the title. */
+    /** Window + totals, for the card's aria and the text fallback. */
     headline: string;
-    rows: RowView[];
-    notes: string[];
-    /** Said when the window has no task; '' when rows exist (or the read failed). */
+    /** Totals without the window (the layer's header already says the window). */
+    summaryLine: string;
+    agents: StatsAgentView[];
+    totals: StatsTotalsView;
+    maxTokens: number;
     empty: string;
+    footnote: string;
 };
-export declare function statsSection(stats: TaskStats | null | undefined, t: Translate): StatsView | null;
+export declare function statsView(stats: TaskStats | null | undefined, t: Translate): StatsView | null;
 /**
  * Patrol coverage as two short tables behind one fold (2026-10-04 redesign, kcn: 「area 那个做的就
  * 很多很杂乱」). The fold's label is the headline, so a reader who never opens it still learns
@@ -641,5 +666,7 @@ export type PanelInput = {
     balanceError: string | null;
     queue: TaskQueueResult | null;
     queueError: string | null;
+    /** The stats layer's own read; absent on a host without the taskStats method. */
+    stats?: TaskStats | null;
 };
 export declare function panelModel(input: PanelInput, t: Translate, now: number, open?: (id: string) => void): PanelModel;

@@ -214,14 +214,18 @@ attribution of subscription quota (the 5h/weekly windows are account-wide and sh
 interactive use), so the summary does not offer one.
 
 Two read-only surfaces consume exactly this answer, never a second count of their own: the
-task chip's **stats fold** and OpenClaw's **`/dispatch-stats`** command. Both default to the
+task chip's **stats tile** and OpenClaw's **`/dispatch-stats`** command. Both default to the
 last seven local calendar days with patrol rounds excluded; the command accepts `7d`/`30d`,
-`all`, `YYYY-MM-DD`, and `patrol` (e.g. `/dispatch-stats 30d patrol`), while the chip keeps
-its seven-day window. The fold's label carries the task count, `token` total and the
-`API estimate`; its rows are per agent. Both say in words that live tasks are outside the
-token/cost totals, that an unrecorded token count is unknown rather than 0, that an unpriced
-model has no amount, and that the cost is an API list-price estimate, **not** subscription
-quota spent. A failed read is said as a failure, not drawn as zeroes.
+`all`, `YYYY-MM-DD`, `patrol` and `plain` (e.g. `/dispatch-stats 30d patrol`), while the chip
+keeps its seven-day window. The tile carries the task count, `token` total, `API estimate`
+and a completion bar; it opens a chart layer (token bars and per-agent completion bars) and
+is read lazily through the `taskStats` Remote method when the panel opens, not on the queue's
+poll. The command prints a five-column table (Agent / done-ended / partial / unfinished /
+token · API), with `plain` as the bar fallback. Both put the caveats in one line: live tasks
+are outside the token/cost totals, an unrecorded token count is unknown rather than 0, an
+unpriced model has no amount, the cost is an API list-price estimate rather than subscription
+quota spent, and patrol is excluded unless asked for. A failed read is said as a failure,
+not drawn as zeroes.
 
 ### brief — the task's instructions, read-only
 

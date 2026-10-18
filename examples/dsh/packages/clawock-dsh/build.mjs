@@ -92,6 +92,7 @@ await patchTypertSide()
 await patchTypertBalance()
 await patchTypertTaskQueue()
 await patchTypertQueueAction()
+await patchTypertTaskStats()
 await patchTypertVerdictKind()
 await patchTypertCodecFactories()
 await run(['--config', 'tsdown.client.config.mjs'])
@@ -332,26 +333,7 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'fairWaitSec': z.number(),
   'error': z.string(),
 }).optional(),
-  'stats': z.union([z.literal(null), z.object({
-  'available': z.boolean(),
-  'error': z.string(),
-  'since': z.union([z.literal(null), z.string()]),
-  'days': z.union([z.literal(null), z.number()]),
-  'patrolIncluded': z.boolean(),
-  'asOf': z.string(),
-  'agents': z.array(z.object({
-  'agent': z.string(),
-  'tasks': z.number(),
-  'live': z.number(),
-  'states': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
-  'outcomes': z.array(z.object({ 'name': z.string(), 'count': z.number() })),
-  'tokensTotal': z.number(),
-  'tokensUnknown': z.number(),
-  'costUsdEstimate': z.number(),
-  'costUnpriced': z.number(),
-  'costFree': z.number(),
-})),
-})]).optional(),
+  'statsApi': z.boolean().optional(),
   'logDir': z.string().optional(),
 })
 `
@@ -403,6 +385,90 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
     source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +clawockStudio.taskQueue`)
+  }
+}
+
+
+/**
+ * The stats layer's read door: three typed parameters and the TaskStats shape.
+ * Hand-carried like queueAction because the generation environment here cannot
+ * re-emit the Remote face (see the note at the bottom of this file). Inserted
+ * before the taskQueue block, which patchTypertTaskQueue rewrites.
+ */
+async function patchTypertTaskStats() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const invocationMarker = `id: 'clawock-dsh#clawockStudio/taskStats',`
+  const schemaAnchor = 'const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()'
+  const invocationAnchor = `    {
+      id: 'clawock-dsh#clawockStudio/get',`
+  const schemas = `const clawock_dsh_clawockStudio_taskStats_parameter_0$schema = z.union([z.number(), z.literal(null)])
+const clawock_dsh_clawockStudio_taskStats_parameter_1$schema = z.union([z.string(), z.literal(null)])
+const clawock_dsh_clawockStudio_taskStats_parameter_2$schema = z.boolean()
+const clawock_dsh_clawockStudio_taskStats_result$schema = z.object({
+  'available': z.boolean(),
+  'error': z.string(),
+  'since': z.union([z.literal(null), z.string()]),
+  'days': z.union([z.literal(null), z.number()]),
+  'patrolIncluded': z.boolean(),
+  'asOf': z.string(),
+  'agents': z.array(z.object({
+  'agent': z.string(),
+  'tasks': z.number(),
+  'live': z.number(),
+  'states': z.array(z.object({
+  'name': z.string(),
+  'count': z.number(),
+})),
+  'outcomes': z.array(z.object({
+  'name': z.string(),
+  'count': z.number(),
+})),
+  'tokensTotal': z.number(),
+  'tokensUnknown': z.number(),
+  'costUsdEstimate': z.number(),
+  'costUnpriced': z.number(),
+  'costFree': z.number(),
+})),
+})
+`
+  const param = (i, name) => `        {
+          name: '${name}',
+          wire: '${name}',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskStats:${name}',
+            schema: clawock_dsh_clawockStudio_taskStats_parameter_${i}$schema,
+          },
+        },
+`
+  const invocation = `    {
+      id: 'clawock-dsh#clawockStudio/taskStats',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'taskStats',
+      invocation: { kind: 'direct' },
+      parameters: [
+${param(0, 'days')}${param(1, 'since')}${param(2, 'patrol')}      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#TaskStats',
+        schema: clawock_dsh_clawockStudio_taskStats_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":166,"column":3},
+    },
+`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(invocationMarker)) continue
+    if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
+      throw new Error(`patchTypertTaskStats: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(schemaAnchor, `${schemas}${schemaAnchor}`)
+    source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +clawockStudio.taskStats`)
   }
 }
 

@@ -472,7 +472,7 @@ const dictionaries = {
 		"queue.r.needsHost": "主机上的插件 host 半边是旧版，这个动作要重启 dsh 后才可用。",
 		"stats.command": "派发任务与 token 统计（默认近 7 天，巡检不计）",
 		"stats.title": "派发统计",
-		"stats.foldTitle": "统计",
+		"stats.cardTitle": "统计",
 		"stats.window.days": "近 {n} 天",
 		"stats.window.since": "{date} 起",
 		"stats.window.all": "全部",
@@ -481,27 +481,45 @@ const dictionaries = {
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "免费",
-		"stats.done": "完成 {n}",
+		"stats.metric.tasks": "任务",
+		"stats.metric.tokens": "token",
+		"stats.metric.cost": "API 估价",
+		"stats.card.done": "完成 {done}/{settled}",
+		"stats.card.live": "进行中 {n}",
 		"stats.partial": "部分 {n}",
-		"stats.blocked": "受阻 {n}",
-		"stats.failed": "失败 {n}",
-		"stats.cancelled": "取消 {n}",
-		"stats.quota": "额度中止 {n}",
-		"stats.unverified": "未验证 {n}",
-		"stats.other": "其他 {n}",
+		"stats.unfinished": "未完成 {n}",
 		"stats.live": "{n} 进行中",
+		"stats.open": "打开统计",
+		"stats.back": "返回队列",
+		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · 完成 {done}/{settled} · {open}",
+		"stats.reading": "读取统计…",
+		"stats.retry": "重试",
+		"stats.tokenHeading": "Token / API 估价",
+		"stats.doneHeading": "完成情况",
+		"stats.legend.done": "完成",
+		"stats.legend.partial": "部分",
+		"stats.legend.unfinished": "未完成",
+		"stats.legend.live": "进行中",
+		"stats.table.agent": "Agent",
+		"stats.table.settled": "已结束",
+		"stats.table.done": "完成",
+		"stats.table.doneSettled": "完成/已结束",
+		"stats.table.partial": "部分",
+		"stats.table.unfinished": "未完成",
+		"stats.table.tokens": "token · API",
+		"stats.table.total": "合计",
 		"stats.empty": "这段时间没有已结束的任务。",
 		"stats.unavailable": "统计读取失败：{message}",
 		"stats.headline.failed": "{window} · 读取失败",
-		"stats.note.frozen": "只读任务结束时冻结的数字；进行中的任务不计入 token 与费用。",
-		"stats.note.cost": "费用按 API 目录价估算，不是订阅额度消耗。",
-		"stats.note.patrol": "巡检任务不计；加 patrol 参数可含。",
-		"stats.note.unknown": "{n} 项 token 未记录（不是 0）",
+		"stats.note.frozen": "已结束任务冻结值",
+		"stats.note.live": "进行中 {n} 不计",
+		"stats.note.unknown": "{n} 项 token 未知（不是 0）",
 		"stats.note.unpriced": "{n} 项无定价",
 		"stats.note.free": "{n} 项免费",
-		"stats.usage": "用法：/dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol]（默认近 7 天，巡检不计）",
-		"stats.costTitle": "按任务结束时冻结的 token，以 API 目录价估算；不是订阅额度消耗",
-		"stats.tokensTitle": "token {total}（任务结束时冻结）"
+		"stats.note.patrol": "巡检不计",
+		"stats.note.cost": "API 估价非订阅额度",
+		"stats.usage": "用法：/dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] [plain]（默认近 7 天，巡检不计；plain 用条形降级）",
+		"stats.costTitle": "按任务结束时冻结的 token，以 API 目录价估算；不是订阅额度消耗"
 	},
 	en: {
 		"action.buy": "Buy",
@@ -965,7 +983,7 @@ const dictionaries = {
 		"queue.r.needsHost": "The plugin's host half on this host is older: this action works after a dsh restart.",
 		"stats.command": "Task and token totals (last 7 days; patrol excluded)",
 		"stats.title": "Dispatch stats",
-		"stats.foldTitle": "Stats",
+		"stats.cardTitle": "Stats",
 		"stats.window.days": "last {n} days",
 		"stats.window.since": "since {date}",
 		"stats.window.all": "all time",
@@ -974,27 +992,45 @@ const dictionaries = {
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "free",
-		"stats.done": "{n} done",
+		"stats.metric.tasks": "Tasks",
+		"stats.metric.tokens": "Tokens",
+		"stats.metric.cost": "API estimate",
+		"stats.card.done": "{done}/{settled} done",
+		"stats.card.live": "{n} live",
 		"stats.partial": "{n} partial",
-		"stats.blocked": "{n} blocked",
-		"stats.failed": "{n} failed",
-		"stats.cancelled": "{n} cancelled",
-		"stats.quota": "{n} quota stop",
-		"stats.unverified": "{n} unverified",
-		"stats.other": "{n} other",
+		"stats.unfinished": "{n} unfinished",
 		"stats.live": "{n} live",
+		"stats.open": "Open stats",
+		"stats.back": "Back to the queue",
+		"stats.cardAria": "{title} · {window} · {tasks} · {tokens} · API {cost} · {done}/{settled} done · {open}",
+		"stats.reading": "Reading stats…",
+		"stats.retry": "Retry",
+		"stats.tokenHeading": "Token / API estimate",
+		"stats.doneHeading": "Completion",
+		"stats.legend.done": "Done",
+		"stats.legend.partial": "Partial",
+		"stats.legend.unfinished": "Unfinished",
+		"stats.legend.live": "Live",
+		"stats.table.agent": "Agent",
+		"stats.table.settled": "Ended",
+		"stats.table.done": "Done",
+		"stats.table.doneSettled": "Done/ended",
+		"stats.table.partial": "Partial",
+		"stats.table.unfinished": "Unfinished",
+		"stats.table.tokens": "token · API",
+		"stats.table.total": "Total",
 		"stats.empty": "No task ended in this window.",
 		"stats.unavailable": "Stats read failed: {message}",
 		"stats.headline.failed": "{window} · read failed",
-		"stats.note.frozen": "Read from the numbers each task froze at its end; live tasks are not in tokens or cost.",
-		"stats.note.cost": "Cost is an API list-price estimate, not subscription quota spent.",
-		"stats.note.patrol": "Patrol rounds are excluded; add patrol to include them.",
-		"stats.note.unknown": "{n} tasks have no token record (not 0)",
+		"stats.note.frozen": "Frozen at task end",
+		"stats.note.live": "{n} live excluded",
+		"stats.note.unknown": "{n} without a token record (not 0)",
 		"stats.note.unpriced": "{n} unpriced",
 		"stats.note.free": "{n} free",
-		"stats.usage": "Usage: /dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] (default: last 7 days, patrol excluded)",
-		"stats.costTitle": "Estimated from the tokens frozen at each task end at API list prices; not subscription quota spent",
-		"stats.tokensTitle": "{total} tokens (frozen at task end)"
+		"stats.note.patrol": "patrol excluded",
+		"stats.note.cost": "API estimate, not subscription quota",
+		"stats.usage": "Usage: /dispatch-stats [7d|30d|all|YYYY-MM-DD] [patrol] [plain] (default: last 7 days, patrol excluded; plain falls back to bars)",
+		"stats.costTitle": "Estimated from the tokens frozen at each task end at API list prices; not subscription quota spent"
 	}
 };
 /**
@@ -1536,7 +1572,6 @@ const FACT_ORDER = [
 	"filed",
 	"tries",
 	"receipt",
-	"spend",
 	"when",
 	"took",
 	"cost"
@@ -1582,11 +1617,6 @@ const ROW_KINDS = {
 			"when",
 			"took"
 		]
-	},
-	stats: {
-		lead: true,
-		value: true,
-		facts: ["model", "spend"]
 	}
 };
 /** A clock for a fixed cell: "19:40" today, "10/4 19:40" another day. */
@@ -2248,139 +2278,150 @@ function usdText(n) {
 function statOf(counts, name) {
 	return counts.find((count) => count.name === name)?.count ?? 0;
 }
-/**
-* The one line under an agent's name in the stats fold. It keeps the two axes apart the way
-* cmd_summary does: DONE/PARTIAL come from the model's OUTCOME, blocked/failed/cancelled/quota
-* from the runner's STATE; `blocked` is whichever axis recorded it (a task lands in one bucket).
-* Tasks with no report or another state fall into `other`, so the parts never invent a total.
-*/
-function statsBreakdown(agent, t) {
-	const done = statOf(agent.outcomes, "DONE");
-	const partial = statOf(agent.outcomes, "PARTIAL");
-	const blocked = Math.max(statOf(agent.states, "blocked"), statOf(agent.outcomes, "BLOCKED"));
-	const failed = statOf(agent.states, "failed") + statOf(agent.states, "timeout");
-	const cancelled = statOf(agent.states, "cancelled");
-	const quota = statOf(agent.states, "quota");
-	const unverified = statOf(agent.states, "unverified");
-	const settled = done + partial + blocked + failed + cancelled + quota + unverified + agent.live;
-	const other = Math.max(0, agent.tasks - settled);
-	return [
-		t("stats.tasks", { n: agent.tasks }),
-		...done > 0 ? [t("stats.done", { n: done })] : [],
-		...partial > 0 ? [t("stats.partial", { n: partial })] : [],
-		...blocked > 0 ? [t("stats.blocked", { n: blocked })] : [],
-		...failed > 0 ? [t("stats.failed", { n: failed })] : [],
-		...cancelled > 0 ? [t("stats.cancelled", { n: cancelled })] : [],
-		...quota > 0 ? [t("stats.quota", { n: quota })] : [],
-		...unverified > 0 ? [t("stats.unverified", { n: unverified })] : [],
-		...other > 0 ? [t("stats.other", { n: other })] : [],
-		...agent.live > 0 ? [t("stats.live", { n: agent.live })] : []
-	].join(" · ");
-}
-/** A token cell: a real 0 prints 0, but a window with only unknown token counts prints —. */
-function statsTokens(tokens, unknown) {
+function statsTokensText(tokens, unknown) {
 	return tokens > 0 || unknown === 0 ? compactCount(tokens) : "—";
 }
-/** A cost cell: priced estimate, free, or unknown — never a $0 for an unpriced model. */
-function statsCost(agent, t) {
+function statsCostText(agent, t) {
 	if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate);
 	if (agent.costFree > 0 && agent.costUnpriced === 0) return t("stats.free");
 	return "—";
 }
-function statsSection(stats, t) {
+const ratio = (part, whole) => whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0;
+function statsView(stats, t) {
 	if (stats == null) return null;
 	const title = t("stats.title");
-	const foldTitle = t("stats.foldTitle");
+	const cardTitle = t("stats.cardTitle");
 	const baseWindow = stats.days !== null ? t("stats.window.days", { n: stats.days }) : stats.since !== null ? t("stats.window.since", { date: stats.since }) : t("stats.window.all");
 	const window = stats.patrolIncluded ? t("stats.window.patrol", { window: baseWindow }) : baseWindow;
-	const notes = [
-		t("stats.note.frozen"),
-		t("stats.note.cost"),
-		...!stats.patrolIncluded ? [t("stats.note.patrol")] : []
-	];
-	if (!stats.available) return {
-		title,
-		foldTitle,
-		window,
-		headline: t("stats.headline.failed", { window }),
-		rows: [],
-		notes: [t("stats.unavailable", { message: stats.error })],
-		empty: ""
-	};
-	const agents = stats.agents.filter((agent) => agent.tasks > 0);
-	if (agents.length === 0) return {
-		title,
-		foldTitle,
-		window,
-		headline: window,
-		rows: [],
-		notes,
-		empty: t("stats.empty")
-	};
-	const totals = agents.reduce((sum, agent) => ({
-		tasks: sum.tasks + agent.tasks,
-		live: sum.live + agent.live,
-		tokens: sum.tokens + agent.tokensTotal,
-		unknown: sum.unknown + agent.tokensUnknown,
-		costUsdEstimate: sum.costUsdEstimate + agent.costUsdEstimate,
-		costUnpriced: sum.costUnpriced + agent.costUnpriced,
-		costFree: sum.costFree + agent.costFree
-	}), {
+	const zeroTotals = {
+		agent: "",
+		label: "",
 		tasks: 0,
+		settled: 0,
+		done: 0,
+		partial: 0,
+		unfinished: 0,
 		live: 0,
 		tokens: 0,
-		unknown: 0,
+		tokensText: "0",
+		costText: "—",
+		share: 0,
+		doneShare: 0,
+		partialShare: 0,
+		unfinishedShare: 0,
+		liveShare: 0,
+		tokensUnknown: 0,
 		costUsdEstimate: 0,
 		costUnpriced: 0,
 		costFree: 0
+	};
+	if (!stats.available) return {
+		title,
+		cardTitle,
+		window,
+		headline: t("stats.headline.failed", { window }),
+		summaryLine: window,
+		agents: [],
+		totals: zeroTotals,
+		maxTokens: 0,
+		empty: "",
+		footnote: t("stats.unavailable", { message: stats.error })
+	};
+	const selected = byAgentRank(stats.agents.filter((agent) => agent.tasks > 0));
+	if (selected.length === 0) return {
+		title,
+		cardTitle,
+		window,
+		headline: window,
+		summaryLine: window,
+		agents: [],
+		totals: zeroTotals,
+		maxTokens: 0,
+		empty: t("stats.empty"),
+		footnote: statsFootnote(zeroTotals, stats.patrolIncluded, t)
+	};
+	const agents = selected.map((agent) => {
+		const tasks = Math.max(0, agent.tasks);
+		const live = Math.max(0, Math.min(agent.live, tasks));
+		const settled = Math.max(0, tasks - live);
+		const done = Math.max(0, Math.min(statOf(agent.outcomes, "DONE"), settled));
+		const partial = Math.max(0, Math.min(statOf(agent.outcomes, "PARTIAL"), settled - done));
+		const unfinished = Math.max(0, settled - done - partial);
+		return {
+			agent: agent.agent,
+			label: _agentLabel(agent.agent),
+			tasks,
+			settled,
+			done,
+			partial,
+			unfinished,
+			live,
+			tokens: agent.tokensTotal,
+			tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
+			costText: statsCostText(agent, t),
+			share: 0,
+			doneShare: ratio(done, settled),
+			partialShare: ratio(partial, settled),
+			unfinishedShare: ratio(unfinished, settled),
+			liveShare: ratio(live, tasks)
+		};
 	});
-	const losses = [
-		totals.unknown > 0 ? t("stats.note.unknown", { n: totals.unknown }) : "",
-		totals.costUnpriced > 0 ? t("stats.note.unpriced", { n: totals.costUnpriced }) : "",
-		totals.costFree > 0 ? t("stats.note.free", { n: totals.costFree }) : ""
-	].filter((line) => line !== "");
-	if (losses.length > 0) notes.push(losses.join(" · "));
+	const maxTokens = Math.max(0, ...agents.map((agent) => agent.tokens));
+	for (const agent of agents) agent.share = ratio(agent.tokens, maxTokens);
+	const totals = { ...zeroTotals };
+	for (const [at, agent] of agents.entries()) {
+		const raw = selected[at];
+		totals.tasks += agent.tasks;
+		totals.settled += agent.settled;
+		totals.done += agent.done;
+		totals.partial += agent.partial;
+		totals.unfinished += agent.unfinished;
+		totals.live += agent.live;
+		totals.tokens += agent.tokens;
+		totals.tokensUnknown += raw.tokensUnknown;
+		totals.costUsdEstimate += raw.costUsdEstimate;
+		totals.costUnpriced += raw.costUnpriced;
+		totals.costFree += raw.costFree;
+	}
+	totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown);
+	totals.costText = statsCostText(totals, t);
+	totals.doneShare = ratio(totals.done, totals.settled);
+	totals.partialShare = ratio(totals.partial, totals.settled);
+	totals.unfinishedShare = ratio(totals.unfinished, totals.settled);
+	totals.liveShare = ratio(totals.live, totals.tasks);
 	return {
 		title,
-		foldTitle,
+		cardTitle,
 		window,
 		headline: [
 			window,
 			t("stats.tasks", { n: totals.tasks }),
-			t("stats.tokens", { tokens: statsTokens(totals.tokens, totals.unknown) }),
-			t("stats.costEstimate", { cost: statsCost(totals, t) })
+			t("stats.tokens", { tokens: totals.tokensText }),
+			t("stats.costEstimate", { cost: totals.costText })
 		].join(" · "),
-		notes,
+		summaryLine: [
+			t("stats.tasks", { n: totals.tasks }),
+			t("stats.tokens", { tokens: totals.tokensText }),
+			t("stats.costEstimate", { cost: totals.costText })
+		].join(" · "),
+		agents,
+		totals,
+		maxTokens,
 		empty: "",
-		rows: agents.map((agent) => {
-			const cost = statsCost(agent, t);
-			return {
-				kind: "stats",
-				key: "stats-" + agent.agent,
-				lead: { agent: agent.agent },
-				name: _agentLabel(agent.agent),
-				value: {
-					text: statsTokens(agent.tokensTotal, agent.tokensUnknown),
-					tone: "none",
-					level: null
-				},
-				state: null,
-				facts: {
-					model: {
-						text: statsBreakdown(agent, t),
-						title: t("stats.tokensTitle", { total: agent.tokensTotal.toLocaleString("en-US") })
-					},
-					spend: {
-						text: cost,
-						title: t("stats.costTitle"),
-						voice: cost === "—" ? "quiet" : void 0
-					}
-				},
-				caption: [],
-				attrs: { "data-tq-stats": agent.agent }
-			};
-		})
+		footnote: statsFootnote(totals, stats.patrolIncluded, t)
 	};
+}
+/** The one caveat line every stats surface prints: no repeated paragraph. */
+function statsFootnote(totals, patrolIncluded, t) {
+	return [
+		t("stats.note.frozen"),
+		totals.live > 0 ? t("stats.note.live", { n: totals.live }) : "",
+		totals.tokensUnknown > 0 ? t("stats.note.unknown", { n: totals.tokensUnknown }) : "",
+		totals.costUnpriced > 0 ? t("stats.note.unpriced", { n: totals.costUnpriced }) : "",
+		totals.costFree > 0 ? t("stats.note.free", { n: totals.costFree }) : "",
+		patrolIncluded ? "" : t("stats.note.patrol"),
+		t("stats.note.cost")
+	].filter((part) => part !== "").join(" · ");
 }
 function progressView(progress, t, now) {
 	if (progress === void 0) return null;
@@ -2528,7 +2569,7 @@ function panelModel(input, t, now, open = () => {}) {
 	const rows = balanceRows(input.balances, t, now);
 	const byProvider = new Map(rows.map((row) => [row.provider, row]));
 	const sources = _panelSources(input.balances?.providers ?? [], input.queue);
-	const stats = input.queue?.available === true ? statsSection(input.queue.stats, t) : null;
+	const stats = input.queue?.available === true ? statsView(input.stats, t) : null;
 	return {
 		title: t("panel.title"),
 		notices: panelNotices({
@@ -2539,7 +2580,7 @@ function panelModel(input, t, now, open = () => {}) {
 		groups: sources.map((source) => panelGroup(source, input.queue, byProvider, t, now, open)),
 		recent: recentSection(input.queue, t, now, open),
 		patrol: patrolSection(input.queue, t, now),
-		stats: stats !== null && (stats.rows.length > 0 || stats.empty === "") ? stats : null,
+		stats: stats !== null && (stats.agents.length > 0 || stats.empty === "") ? stats : null,
 		footer: opsFooter(input.queue, t)
 	};
 }
@@ -2652,28 +2693,61 @@ function panelText(model, t) {
 		for (const row of model.patrol.rounds) out.push("- " + literal(rowText(row, t)[0]));
 		for (const alert of model.patrol.progress?.alerts ?? []) out.push("- ⚠ " + literal(alert));
 	}
-	if (model.stats !== null) {
-		out.push("", "**" + literal(model.stats.foldTitle + " · " + model.stats.headline) + "**");
-		if (model.stats.empty !== "") out.push(literal(model.stats.empty));
-		for (const row of model.stats.rows) out.push("- " + literal(rowText(row, t)[0]));
-		for (const note of model.stats.notes) out.push("- " + literal(note));
-	}
 	if (model.footer !== null) out.push("", literal((model.footer.bad ? "⚠ " : "") + model.footer.text));
 	return out.join("\n");
 }
+/** One Markdown table cell: a literal `|` would open a column, so escape it. */
+const cell = (text) => literal(text).replace(/\|/g, "\\|");
 /**
-* `/dispatch-stats` on its own: the stats section without the queue around it. Same model as
-* the chip's fold (panel.ts statsSection), so the chat and the chip cannot disagree. The
-* title is the surface's; everything under it is the section's own words.
+* `/dispatch-stats`: a table by default (the WeChat channel passes tables through its
+* Markdown filter; `plain` is the bar fallback for a client that shows the pipes).
+* One title, one table, one caveat line — no process prose. The same `StatsView`
+* the chip draws, so the chat and the chip cannot disagree.
 */
-function statsText(view, t) {
-	const out = ["# " + literal(view.title)];
-	if (view.empty !== "") out.push(literal(view.headline), literal(view.empty));
-	else {
-		out.push(literal(view.headline));
-		for (const row of view.rows) out.push("- " + literal(rowText(row, t)[0]));
+function statsText(view, t, plain = false) {
+	const out = ["# " + literal(view.title + " · " + view.window)];
+	if (view.empty !== "") {
+		out.push("", literal(view.empty), "", literal(view.footnote));
+		return out.join("\n");
 	}
-	for (const note of view.notes) out.push("- " + literal(note));
+	if (view.agents.length === 0) {
+		out.push("", literal(view.headline), "", literal(view.footnote));
+		return out.join("\n");
+	}
+	if (plain) {
+		out.push("", literal(view.headline));
+		for (const agent of view.agents) {
+			out.push("", literal(agent.label + "  " + bar(agent.share * 100) + "  " + agent.tokensText + " · " + agent.costText));
+			const parts = [
+				t("stats.table.settled") + " " + agent.settled,
+				t("stats.table.done") + " " + agent.done,
+				t("stats.table.partial") + " " + agent.partial,
+				t("stats.table.unfinished") + " " + agent.unfinished,
+				...agent.live > 0 ? [t("stats.card.live", { n: agent.live })] : []
+			];
+			out.push(literal(parts.join(" · ")));
+		}
+		out.push("", literal(view.footnote));
+		return out.join("\n");
+	}
+	const header = [
+		t("stats.table.agent"),
+		t("stats.table.doneSettled"),
+		t("stats.table.partial"),
+		t("stats.table.unfinished"),
+		t("stats.table.tokens")
+	];
+	const row = (label, a) => "| " + [
+		label,
+		a.done + "/" + a.settled,
+		String(a.partial),
+		String(a.unfinished),
+		a.tokensText + " · " + a.costText
+	].map(cell).join(" | ") + " |";
+	out.push("", "| " + header.map(cell).join(" | ") + " |", "|" + "---|".repeat(header.length));
+	for (const agent of view.agents) out.push(row(agent.label, agent));
+	out.push(row(t("stats.table.total"), view.totals));
+	out.push("", literal(view.footnote));
 	return out.join("\n");
 }
 //#endregion
@@ -2707,19 +2781,22 @@ function gatewayCredentials(config) {
 function dispatchListText(input, t, now) {
 	return panelText(panelModel(input, t, now), t);
 }
-/**
-* `/dispatch-stats` arguments: `7d`/`30d` (a rolling window), `all` (every retained task),
-* a `YYYY-MM-DD` since-date, and `patrol` to include patrol rounds. The default is the chip's
-* own window (the last seven days, patrol excluded). null = an argument this surface does not
-* accept; the answer is the usage line, never a silent fallback.
-*/
 function parseStatsArgs(raw) {
 	let days = 7;
 	let since = null;
 	let patrol = false;
+	let plain = false;
 	for (const token of raw.trim().toLowerCase().split(/\s+/).filter(Boolean)) {
 		if (token === "patrol") {
 			patrol = true;
+			continue;
+		}
+		if (token === "plain") {
+			plain = true;
+			continue;
+		}
+		if (token === "table") {
+			plain = false;
 			continue;
 		}
 		if (token === "all") {
@@ -2751,16 +2828,19 @@ function parseStatsArgs(raw) {
 		return null;
 	}
 	return {
-		days,
-		since,
-		patrol
+		query: {
+			days,
+			since,
+			patrol
+		},
+		plain
 	};
 }
-/** The `/dispatch-stats` reply: the chip's stats fold as one message. */
-function dispatchStatsText(stats, t) {
-	const view = statsSection(stats, t);
+/** The `/dispatch-stats` reply: the chip's stats view as one table (or its bar fallback). */
+function dispatchStatsText(stats, t, plain = false) {
+	const view = statsView(stats, t);
 	if (view === null) return t("stats.unavailable", { message: stats?.error || "—" });
-	return statsText(view, t);
+	return statsText(view, t, plain);
 }
 function register(api) {
 	const config = api.pluginConfig ?? {};
@@ -2795,7 +2875,7 @@ function register(api) {
 			if (parsed === null) return { text: t("stats.usage") };
 			const workspace = ctx.config?.agents?.defaults?.workspace ?? process.env.CLAWOCK_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
 			queue ??= createTaskQueueService(taskQueueConfig(config, workspace));
-			return { text: dispatchStatsText(await queue.stats(parsed), t) };
+			return { text: dispatchStatsText(await queue.stats(parsed.query), t, parsed.plain) };
 		}
 	});
 }
