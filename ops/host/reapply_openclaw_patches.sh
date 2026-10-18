@@ -12,6 +12,7 @@ PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-memory-search-timeout.sh"
   "$PATCH_ROOT/patch-minimax-m3-priority.sh"
   "$PATCH_ROOT/patch-minimax-response-header-timeout.sh"
+  "$PATCH_ROOT/patch-dreaming-narrative-race.sh"
   "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
 )
 
@@ -53,6 +54,7 @@ PATCH_MARKERS=(
   "clawock-minimax-m3-priority"
   "clawock-minimax-response-header-timeout-v3"
   "MiniMax response-header timeout after 60000ms"
+  "clawock-dreaming-race-v2"
   "clawock-minimax-m3x-adaptive-thinking"
 )
 PATCH_LABELS=(
@@ -61,6 +63,7 @@ PATCH_LABELS=(
   "MiniMax-M3.x priority admission"
   "MiniMax 60s response-header deadline"
   "MiniMax response-header deadline value"
+  "concurrent dreaming sweep reclaims a running phase"
   "MiniMax-M3.x always-adaptive thinking"
 )
 

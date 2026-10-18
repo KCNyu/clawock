@@ -17,6 +17,7 @@ PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-memory-search-timeout.sh",
     "/root/tools/openclaw/current/patch-minimax-m3-priority.sh",
     "/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh",
+    "/root/tools/openclaw/current/patch-dreaming-narrative-race.sh",
     "/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh",
 )
 PATCH_BASENAMES = tuple(Path(script).name for script in PATCH_SCRIPTS)
@@ -26,6 +27,7 @@ PATCH_MARKERS = (
     "clawock-minimax-m3-priority",
     "clawock-minimax-response-header-timeout-v3",
     "MiniMax response-header timeout after 60000ms",
+    "clawock-dreaming-race-v2",
     "clawock-minimax-m3x-adaptive-thinking",
 )
 
@@ -106,7 +108,7 @@ def test_check_only_requires_adaptive_thinking_in_installed_bundle(tmp_path, ada
     )
     if adaptive_present:
         assert result.returncode == 0, result.stderr
-        assert "all 5 patches" in result.stdout
+        assert f"all {len(PATCH_SCRIPTS)} patches" in result.stdout
     else:
         assert result.returncode != 0
         assert "marker missing for MiniMax-M3.x always-adaptive thinking" in result.stderr

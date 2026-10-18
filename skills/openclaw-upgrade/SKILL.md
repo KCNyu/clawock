@@ -42,7 +42,8 @@ The wrapper applies these idempotent host scripts in order:
 2. `/root/tools/openclaw/current/patch-memory-search-timeout.sh`
 3. `/root/tools/openclaw/current/patch-minimax-m3-priority.sh`
 4. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
-5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
+5. `/root/tools/openclaw/current/patch-dreaming-narrative-race.sh`
+6. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
 
 It also replays `ops/host/install_skillhub_plugin.sh`, restoring the versioned host extension outside pnpm. The skill registry policy is stable system context, never a user-turn prefix. `--check-only` verifies the installed extension bytes as well.
 
