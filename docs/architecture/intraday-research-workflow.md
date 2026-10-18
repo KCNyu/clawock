@@ -160,8 +160,8 @@ model rerun does not substitute for a frozen future observation period.
   [行情条款 §5](https://massive.com/legal/market-data-terms-of-service) 对非展示研究、
   衍生投资策略及分发另需许可；现有账户未提供该项授权证据。禁止把 HTTP 200
   当许可证。LEAN 的代码 Apache 许可也不能自动替代交易所行情许可。
-- 没有用受限数据计算或发布净收益；没有把合成测试称作实证。报告状态为
-  `blocked_data_rights`，数值未知，而不是零收益。真实净 walk-forward、完整模型
+- 没有用受限数据计算或发布净收益；没有把合成测试称作实证。较长数据仍为权限阻断；已取得的免费短样本以
+  `insufficient_or_failed` 显示（见下节），数值未知，而不是零收益。真实净 walk-forward、完整模型
   比较和前瞻观察仍依赖合法历史数据及未来场次。账户实际月度额度和额外费率也
   尚缺证据。不购买数据、不新增付费订阅、不改变 live/SPCH。
 

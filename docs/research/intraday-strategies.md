@@ -14,8 +14,8 @@ walk-forward 成绩，不能据此声称策略赚钱或进入 live。
 | 候选 | 读到的实现与逻辑 | 适用市场及前提 | 失效场景 | 本仓库适配与取舍 |
 |---|---|---|---|---|
 | Bollinger 底仓回转（首个实现） | [Backtrader BollingerBands](https://github.com/mementum/backtrader/blob/2571371f2c21c70a0cc52147fda226a9acb92932/backtrader/indicators/bollinger.py)：SMA ± 标准差倍数，默认 20/2，另有 %B | 通用；已有可卖底仓、可回购现金、报价连续、价格有回归倾向 | 单边上涨导致卖飞；新闻跳空；波动扩张；止损与目标同根不可排序；流动性不足 | 只需 OHLC，可先完成因果回放与费用闭环。独立实现统计公式；改为前 20 根完成收盘（不含信号根），下一根开盘模拟卖出，冻结均值为买回目标。不是完整复刻 Backtrader，也不宣称“上轨必回落” |
-| Session VWAP 回归（下一候选） | [Lean VolumeWeightedAveragePriceIndicator](https://github.com/QuantConnect/Lean/blob/0a0c012ae900bc26b20c09e1346fe057679b2c99/Indicators/VolumeWeightedAveragePriceIndicator.cs)：按 volume 加权的滚动窗口，价格是 **OHLC4**，并非 HLC3 | 港美通用；需要可靠分钟成交量、明确 session 重置与交易阶段 | 趋势日的 VWAP 不是支撑／阻力保证；量缺失、拆股、午休与集合竞价混用；收盘量激增 | 候选独立服务 `intraday_vwap`；拟改为 session 累积，必须在回执标出区别。现有 daily-bars 不提供分钟量，不能把日线或等权均价当 VWAP。暂不实现 |
-| Donchian / 开盘区间突破（下一候选） | [Lean DonchianChannel](https://github.com/QuantConnect/Lean/blob/ed551458f5f91bedd1409fe5dd8df373f1f1d8ca/Indicators/DonchianChannel.cs)：最高 high、最低 low 的滚动通道；源码自身更新含当前根 | 港美通用；趋势延续、足够成交、非停牌；必须用前一完成通道判断突破 | 震荡反复假突破、开盘跳空、价差扩张、新闻反转 | 候选服务 `intraday_breakout`。与均值回归方向相反，可作 LLM regime 选择的对照。若采用开盘 30 分钟固定区间，这是额外策略设计，不是 Lean 原算法。暂不实现 |
+| Session VWAP 回归（research 已实现） | [Lean VolumeWeightedAveragePriceIndicator](https://github.com/QuantConnect/Lean/blob/0a0c012ae900bc26b20c09e1346fe057679b2c99/Indicators/VolumeWeightedAveragePriceIndicator.cs)：按 volume 加权的滚动窗口，价格是 **OHLC4**，并非 HLC3 | 港美通用；需要可靠分钟成交量、明确 session 重置与交易阶段 | 趋势日的 VWAP 不是支撑／阻力保证；量缺失、拆股、午休与集合竞价混用；收盘量激增 | 独立服务 `intraday_vwap` 已实现 session 累积和成交量加权离散度，明确不同于上游滚动窗。现有 daily-bars 不提供分钟量，不能把日线或等权均价当 VWAP |
+| Donchian / 开盘区间突破（research 部分已实现） | [Lean DonchianChannel](https://github.com/QuantConnect/Lean/blob/ed551458f5f91bedd1409fe5dd8df373f1f1d8ca/Indicators/DonchianChannel.cs)：最高 high、最低 low 的滚动通道；源码自身更新含当前根 | 港美通用；趋势延续、足够成交、非停牌；必须用前一完成通道判断突破 | 震荡反复假突破、开盘跳空、价差扩张、新闻反转 | 服务 `intraday_breakout` 已实现前窗向下通道突破，使用底仓而非新增卖空，与均值回归作为研究对照。开盘 30 分钟固定区间不在本底仓回转实现范围，不是 Lean 原算法的直接移植 |
 | RSI + Bollinger 直接移植（不选） | [Freqtrade BbandRsi](https://github.com/freqtrade/freqtrade-strategies/blob/7f91ff52bb664423ae673092a6a18d76c50c2c29/user_data/strategies/berlinguyinca/BbandRsi.py)：1h，RSI14 <30 且 close < HLC3 的 20/2 下轨入场；RSI >70 出场；另有 ROI/stoploss | 原生态偏加密币的连续交易与 long-entry；港美需要 session、底仓与整手约束 | 不能保证当日买回／卖出；下跌趋势多次抄底；默认止损和收益目标不适合直接当日回转 | 研究其多条件过滤，但不搬原参数或收益宣传。仓库已有 RSI 策略，不新增重复数值算子 |
 
 Backtrader 文件是 GPL-3.0-or-later，Lean 文件是 Apache-2.0；本实现没有复制代码。
@@ -82,10 +82,12 @@ CCASS 旧制 0.002%、最低 2、最高 100 仍有可配置公式和测试，不
 
 优先用流动性可核验的美股既有底仓做分钟数据研究，再以已核验豁免的港股 ETF
 对照，普通港股另组，分别统计净结果、币种、点差与样本覆盖；这不是实盘选股。
-基线先只跑一个 band 插件，VWAP 与突破各自为后续可卸载服务。策略／标的选择
+band、VWAP 与向下突破均为独立可卸载的 research 服务。策略／标的选择
 必须在测试窗口前冻结，不能看完美股成绩后删除差的港股样本。
 
-当前完整闭环是 JSON 输入 → research row → facade → 因果回放 → 每腿费用与净
-增量回执。分钟数据供应、真实成交可用性、走样本外优化、LLM 策略选择评估和
-live 呈现尚是设计阶段；单元测试的合成走势不当成实证结果。没有伪造 walk-forward
-或“最优”参数，也不将已有日线 rank IC 用作日内回转的证据。
+当前闭环已扩展为许可/数据口径检查 → 冻结研究 manifest → research 服务 →
+因果成交与费用回放 → 净 walk-forward/模型回执 → 历史研究卡，见
+[工作流及复现命令](../architecture/intraday-research-workflow.md)。免费真实样本只有
+十个场次且为复权价格，已输出拒绝回执；更长历史的研究权限仍缺证据，所以
+没有合格净收益结果或实证“最优”参数。前瞻观察尚未开始。单元测试的合成走势
+不当成实证，也不将已有日线 rank IC 用作日内回转的证据。
