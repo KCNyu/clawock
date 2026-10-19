@@ -16,7 +16,9 @@ is built from the slot's structured data, in the order a reader asks:
     **加仓侧**                only rows that are not a plain 等待
     **我的看法**              the model's judgment (postflight)
 
-WeChat renders markdown bold, tables and lists; Telegram gets the same text.
+WeChat renders markdown bold, tables and lists but not headings: `## title`
+arrives as literal `## ` in plain weight (kcn 2026-10-20), so every title here
+is a whole-line bold. Telegram gets the same text.
 Everything the card leaves out stays in the context for the model
 (`analyzer_block`, `leverage_legs`, `add_side_reads`, …).
 """
@@ -80,8 +82,12 @@ def split_analyzer(block: str) -> dict:
 
 
 def title_line(title: str) -> str:
-    """`🇺🇸 美股盯盘 | 10/19 11:04 ET` → `**🇺🇸 美股盯盘 · 10/19 11:04 ET**`."""
-    return f"## {title.replace(' | ', ' · ')}" if title else ''
+    """`🇺🇸 美股盯盘 | 10/19 11:04 ET` → `**🇺🇸 美股盯盘 · 10/19 11:04 ET**`.
+
+    Shared by every chat card (intraday, reports, brief): a WeChat bubble does
+    not render `#` headings, only bold."""
+    title = title.replace(' | ', ' · ').replace('｜', ' · ').strip()
+    return f'**{title}**' if title else ''
 
 
 def summary_lines(book: str, risk: str = '') -> list[str]:
@@ -257,6 +263,9 @@ NEWS = '**新闻**'
 _SIGNAL_LINE = re.compile(r'^[^\w\s]*\s*(STOP-LOSS|STOP\?|TAKE-PROFIT|TRIM|WATCH|ADD|[A-Z?+-]+)\s+(\S+)\s*\|?\s*(.*)$')
 
 
+_NEWS_LINE = re.compile(r'📰(✅|⚠\ufe0f?)?\s*(\S+)\s*\((\d+)条\)')
+
+
 def parse_report_block(block: str) -> dict:
     """The analyzer's report block, grouped. Lines it does not recognise are
     kept, in order, in `other` — the card reorganises, it never drops a line."""
@@ -293,9 +302,11 @@ def parse_report_block(block: str) -> dict:
             kind, name, detail = (match.groups() if match else ('', '', line))
             out['signals'].append({'kind': kind, 'ticker': name, 'detail': detail, 'reasons': []})
         elif mode == 'news' and line.startswith('📰'):
-            match = re.match(r'📰(✅?)\s*(\S+)\s*\((\d+)条\)', line)
+            # The analyzer marks a ticker's news sentiment: 📰✅ positive,
+            # 📰⚠️ negative, bare 📰 neutral (us_analysis / hk_analysis).
+            match = _NEWS_LINE.match(line)
             if match:
-                out['news'].append({'ticker': match.group(2), 'verified': bool(match.group(1)),
+                out['news'].append({'ticker': match.group(2), 'mark': match.group(1) or '',
                                     'count': int(match.group(3)), 'titles': []})
             else:
                 out['other'].append(raw)
@@ -309,13 +320,23 @@ def parse_report_block(block: str) -> dict:
     return out
 
 
+# `▎情绪面｜正文…` (US) or `▎情绪面` alone on its line (HK).
+_PROSE_LABEL = re.compile(r'▎\s*([^｜|：:\s]+)[｜|：:\s]*(.*)$')
+
+
 def prose_markdown(prose: str) -> str:
-    """The model's report prose with its ▎ markers as headings and `1)` lists as `1.`."""
+    """The model's report prose: each ▎ marker becomes a small bold label on
+    its own line with the paragraph under it plain, and `1)` lists become `1.`.
+
+    kcn 2026-10-20 「太多加粗了」: bolding the whole ▎ line turned four
+    paragraphs of the close report into solid bold."""
     out = []
     for line in (prose or '').strip().split('\n'):
         stripped = line.strip()
         if stripped.startswith('▎'):
-            out += ['', f"**{stripped.lstrip('▎')}**"]
+            match = _PROSE_LABEL.match(stripped)
+            if match:
+                out += ['', f'**{match.group(1)}**'] + ([match.group(2)] if match.group(2) else [])
             continue
         out.append(re.sub(r'^(\s*)(\d+)\)\s*', r'\1\2. ', line))
     return '\n'.join(out).strip()
@@ -324,7 +345,7 @@ def prose_markdown(prose: str) -> str:
 def render_report(title: str, block: str, prose: str) -> str:
     parts = parse_report_block(block)
     title = re.sub(r'\b20\d\d-(\d\d)-(\d\d)\b', r'\1/\2', title or '')
-    lines = [f"## {title.replace('｜', ' · ')}"] if title else []
+    lines = [title_line(title)] if title else []
     lines += summary_lines(parts['book'], parts['risk'])
     if parts['other']:
         lines += ['', *parts['other']]
@@ -344,7 +365,7 @@ def render_report(title: str, block: str, prose: str) -> str:
                + (' · ' + '；'.join(sig['reasons']) if sig['reasons'] else ''))
         for sig in parts['signals'] if sig not in stops])
     lines += section(NEWS, [
-        bullet(f"{ticker(item['ticker'])}{' ✅' if item['verified'] else ''} · {item['count']} 条"
+        bullet(f"{ticker(item['ticker'])}{' ' + item['mark'] if item['mark'] else ''} · {item['count']} 条"
                + (' · ' + '；'.join(item['titles']) if item['titles'] else ''))
         for item in parts['news']])
     body = prose_markdown(prose)

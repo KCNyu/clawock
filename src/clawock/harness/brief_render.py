@@ -1218,7 +1218,7 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     """
     from clawock.decision.plans import (ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS,
                                         PRICE_CONDITIONS)
-    from clawock.harness.chat_card import bullet, quote
+    from clawock.harness.chat_card import bullet, quote, title_line
     date = date or context.get("date") or ""
     book = context.get("book_totals") or {}
     fx = context.get("fx") or {}
@@ -1227,7 +1227,7 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     # title, two summary lines, small bold labels, `-` rows that open with the
     # ticker in bold; no strategy ids or `driven_by=` enums on a reader's card.
     short_date = date[5:].replace("-", "/") if len(date) == 10 else date
-    lines = [f"## 📊 盘前简报 · {short_date} {BRIEF_SLOT_HKT} HKT",
+    lines = [title_line(f"📊 盘前简报 · {short_date} {BRIEF_SLOT_HKT} HKT"),
              f"**账面 USD${money(book.get('usd_base_total'), digits=0)}**"
              f" · 港 HK${money(book.get('hk_pnl_hkd'), digits=0)}"
              f" · 美 ${money(book.get('us_pnl_usd'), digits=0)}",

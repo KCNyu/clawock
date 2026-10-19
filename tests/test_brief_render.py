@@ -490,7 +490,7 @@ def test_the_card_keeps_its_own_ornament_and_the_page_does_not():
     judgment = _judgment()
     card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
     page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
-    assert card.startswith("## ") and "**核心结论**" in card and "▎" not in card
+    assert card.splitlines()[0].startswith("**📊 盘前简报") and "**核心结论**" in card and "▎" not in card
     assert not any(line.startswith("#") and "▎" in line for line in page.splitlines())
 
 

@@ -87,7 +87,7 @@ def test_assembled_message_uses_the_context_block_not_the_model_text(pf):
     numbers, what ships is the context's 07/23 block."""
     msg = pf.assemble_message(_ctx(), f'{STALE_BLOCK}\n\n{PROSE}')
 
-    assert msg.startswith('## 🌙 美股收盘日报 · 07/24')
+    assert msg.startswith('**🌙 美股收盘日报 · 07/24**')
     assert _carries(FRESH_BLOCK, msg)
     assert msg.index('| CRCL') < msg.index('**情绪面**')
 
@@ -303,7 +303,7 @@ def test_a_terse_but_valid_prose_under_50_chars_is_not_broken_pipe_rejected(run_
                        ctx=_ctx(anomalies=[]))  # no mover to require
 
     assert out['status'] == 'pass' and rc == 0
-    assert sent['messages'][0].startswith('## 🌙 美股收盘日报')
+    assert sent['messages'][0].startswith('**🌙 美股收盘日报')
 
 
 @pytest.mark.parametrize('setup, marker', [
@@ -374,7 +374,7 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert rc == 0 and out['status'] == 'pass' and out['mode'] == 'prose'
     assert out['commit_ok'] is True
     body = sent['messages'][0]
-    assert body.startswith('## 🌙 美股收盘日报') and _carries(FRESH_BLOCK, body) and '**情绪面**' in body
+    assert body.startswith('**🌙 美股收盘日报') and _carries(FRESH_BLOCK, body) and '**情绪面**' in body
 
 
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):

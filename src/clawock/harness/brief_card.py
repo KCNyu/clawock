@@ -190,7 +190,7 @@ def build_brief_card(today, decision_packet=None):
     except Exception:
         pass  # fall through to deterministic build
     from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
-    lines = [f'## 📊 盘前简报 · {today} {BRIEF_SLOT_HKT} HKT']
+    lines = [f'**📊 盘前简报 · {today} {BRIEF_SLOT_HKT} HKT**']
     try:
         plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
         bk = plan.get('book') or {}
