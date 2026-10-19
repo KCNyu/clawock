@@ -1535,6 +1535,56 @@
     evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")} · 生成 ${escapeHtml(run.generated_at ? String(run.generated_at).slice(0, 10) : "日期未记录")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage"><b>early candidate replay</b> · US ${earlyHorizon("us", "t1")} / ${earlyHorizon("us", "t5")} · HK ${earlyHorizon("hk", "t1")} / ${earlyHorizon("hk", "t5")} · observed ${earlyCoverage.observed_candidates ?? 0}, information-confirmed ${earlyCoverage.information_confirmed ?? 0}, exploration-ready ${earlyCoverage.exploration_ready ?? 0}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
   }
 
+  function shadowCostTitle(assumptions, leg) {
+    // 「模拟·非实盘」净额的口径说明，读 `costs.CostModel.as_dict()` 原样发布的
+    // `cost_assumptions`：佣金先认账户事实 `account_commission`（#3062 起），旧的
+    // `assumed_commission_bps` 只留给冻结的旧模型；税费逐项读 `regulatory_fees`。
+    // 读不到的项写「未知」，不把 null 印成数字。
+    const bps = value => `${Number(Number(value).toFixed(3))}bps`;
+    const known = value => value != null && value !== "" && Number.isFinite(Number(value));
+    const parts = [];
+    const account = safe(assumptions, "account_commission");
+    const accountBps = safe(account, "commission_bps", leg);
+    const markets = safe(account, "markets");
+    const legacyBps = safe(assumptions, "assumed_commission_bps", leg);
+    if (Array.isArray(markets) && markets.includes(leg) && known(accountBps)) {
+      parts.push(`佣金 ${bps(accountBps)}（账户申报`
+        + (safe(account, "scenario") === "within_monthly_allowance" ? "，月度额度内" : "")
+        + (safe(account, "usage_verified") === true ? "" : "，用量未核实") + "）");
+    } else if (known(legacyBps)) {
+      parts.push(`佣金 ${bps(legacyBps)}（假设，非实测）`);
+    } else {
+      parts.push("佣金未知");
+    }
+    const spread = safe(assumptions, "spread_bps", leg);
+    const share = safe(assumptions, "spread_share");
+    parts.push(known(spread) && known(share)
+      ? `半点差 ${bps(Number(spread) * Number(share))}（假设）` : "点差未知");
+    const fees = safe(assumptions, "regulatory_fees", leg);
+    const names = { stamp_duty: "印花税", sfc: "证监会", afrc: "会财局", exchange: "交易费",
+      ccass: "结算费", sec: "SEC", taf: "TAF" };
+    const fee = [];
+    if (fees && typeof fees === "object") {
+      for (const [key, spec] of Object.entries(fees)) {
+        const name = names[key] || key;
+        const side = safe(spec, "side") === "sell" ? "（卖出）" : "/边";
+        if (known(safe(spec, "bps"))) fee.push(`${name} ${bps(spec.bps)}${side}`);
+        else if (known(safe(spec, "per_share"))) {
+          const through = safe(spec, "effective_through");
+          fee.push(Number(spec.per_share) === 0
+            ? `${name} 暂免${through ? `至 ${through}` : ""}`
+            : `${name} $${Number(spec.per_share)}/股${side}`);
+        }
+      }
+    }
+    const asOf = safe(assumptions, "regulatory_fees", "as_of");
+    if (fee.length) parts.push(`${fee.join("、")}（按${asOf ? ` ${asOf} ` : ""}现行费率回算）`);
+    else parts.push("税费未计");
+    return `毛额不含成本。净额扣：${parts.join(" + ")}`
+      + (safe(assumptions, "impact_source") === "off" || !safe(assumptions, "impact_source")
+        ? "，冲击成本未建模。" : "。");
+  }
+
   function renderShadowPortfolioCard() {
     const empty = document.getElementById("shadow-portfolio-empty");
     const content = document.getElementById("shadow-portfolio-content");
@@ -1628,15 +1678,7 @@
         + (net == null ? "" : ` (净 ${signedMoney(net, currency)})`);
       el.className = `val ${pnlClass(value)}`;
       const assumptions = safe(sidecar, "cost_assumptions");
-      if (assumptions) {
-        const commission = safe(assumptions, "assumed_commission_bps",
-          currency === "USD" ? "us" : "hk");
-        const spread = safe(assumptions, "spread_bps",
-          currency === "USD" ? "us" : "hk");
-        el.title = `毛额不含成本。净额按预注册假设扣：佣金 ${commission}bps`
-          + `（假设，非实测）+ 半点差 ${(Number(spread) || 0) * Number(assumptions.spread_share || 0)}bps`
-          + `，冲击成本未建模。`;
-      }
+      if (assumptions) el.title = shadowCostTitle(assumptions, currency === "USD" ? "us" : "hk");
     });
 
     const countMap = {
@@ -1777,7 +1819,7 @@
       targets.forEach(({ countEl, dirEl, listEl }) => {
         countEl.textContent = '⚠️ 算不出';
         countEl.style.color = 'var(--warning)';
-        if (dirEl) dirEl.textContent = '风控数据计算失败，本次不作“无触发”判断。';
+        if (dirEl) dirEl.textContent = dirEl.title = '风控数据计算失败，本次不作“无触发”判断。';
         listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
           + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:var(--fs-xs);margin-top:2px">'
           + '等待下次数据刷新重算</div></div></div>';
@@ -1820,9 +1862,13 @@
           + ` title="${n} 项触发">${dots.join("")}</span>`
         : '无';
       countEl.style.color = n ? '' : 'var(--positive)';
-      if (dirEl) dirEl.textContent = compact
-        ? stripEmoji(g.directive)
-        : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
+      if (dirEl) {
+        dirEl.textContent = compact
+          ? stripEmoji(g.directive)
+          : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
+        // 牌上这一行夹成一行（dashboard.css `.overview-gates-directive`），全文进 title。
+        dirEl.title = dirEl.textContent;
+      }
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action, compact ? "" : r.age)).join('');
       // 牌上只有三个槽位，9 条里剩下的 6 条原来是无声消失的（表头点阵是
@@ -2885,12 +2931,6 @@
     });
   }
 
-  // 搜索可见性（Growth tab）。这份读数和别的牌不同：它的输入不是我们的策略，
-  // 而是别人愿不愿意把我们排进结果页，所以这里只陈述，不评价。
-  //
-  // 一条判据贯穿整块：**数字必须带着它的窗口一起读**。曝光 26 配「上周 2」和
-  // 配「上周 19」是两件事；点击 0 配「有 5 个搜索词」和配「零个搜索词」也是。
-  // 所以每格都印对比，表头写清窗口长度。
   // 验证台账（Reflect）。原来是一个独立页面 `/evidence.html`：它展示的是**方法**
   // ——测了什么、什么没活下来、以及我们拒绝声称什么。独立页 180 天 0 曝光
   // （首页同期 118），所以搬到这里，跟它本来就是证据的那些自评/校准放在一起。

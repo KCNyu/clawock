@@ -1847,8 +1847,15 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
       const shown = [...list.querySelectorAll(".risk-alert")]
         .map(el => [...el.classList].find(c => c !== "risk-alert") || "high");
       const more = list.querySelector(".overview-gates-more");
-      return { all, shown, more: more ? more.textContent.trim() : null };
+      const dir = document.getElementById("overview-guardrail-directive");
+      return { all, shown, more: more ? more.textContent.trim() : null,
+        directive: g.directive || "", dirText: dir.textContent, dirTitle: dir.title };
     });
+    // The directive is clamped to one line on the card; its full text goes to title (#3074).
+    if (gate.directive) {
+      assert(gate.dirText && gate.dirTitle === gate.dirText,
+        `clamped directive has no full-text title at ${width}px: ${JSON.stringify(gate.dirTitle)}`);
+    }
     assert(gate.all.length > 0 && gate.shown.length > 0,
       `gate card rendered nothing to rank at ${width}px`);
     const ranked = gate.all.map(s => RANK[s] || 0).sort((a, b) => b - a);
@@ -3181,6 +3188,26 @@ async function testAnUnrepresentativeShadowReplayIsNotCalledTimingAlpha(browser,
   assert.deepEqual(counts.known, ["0", "29", "0", "309"]);
   assert.deepEqual(counts.missing, ["—", "—", "—", "—"]);
   assert.deepEqual(counts.malformed, counts.missing);
+  // The net figure's note reads the cost model as published (#3073): the account's commission,
+  // the stamp duty and regulatory fees it deducts, and never a literal null.
+  const titles = await page.evaluate(() => {
+    DATA.shadow_portfolio.cost_assumptions = {
+      assumed_commission_bps: {}, assumed_minimum_commission: {}, spread_bps: { hk: 12, us: 4 },
+      spread_share: 0.5, impact_source: "off",
+      account_commission: { markets: ["hk", "us"], commission_bps: { hk: 0, us: 0 },
+        scenario: "within_monthly_allowance", usage_verified: false },
+      regulatory_fees: { as_of: "2026-10-18",
+        hk: { stamp_duty: { bps: 10 }, sfc: { bps: 0.27 } },
+        us: { sec: { bps: 0.206, side: "sell" }, taf: { per_share: 0, side: "sell", effective_through: "2026-12-31" } } },
+    };
+    refreshTab("drill");
+    return ["hkd", "usd"].map(ccy => document.getElementById(`shadow-diff-${ccy}`).title);
+  });
+  for (const title of titles) {
+    assert(!title.includes("null") && title.includes("佣金 0bps（账户申报"), `cost note: ${title}`);
+  }
+  assert(titles[0].includes("印花税 10bps/边") && titles[0].includes("半点差 6bps"), titles[0]);
+  assert(titles[1].includes("SEC 0.206bps（卖出）") && titles[1].includes("TAF 暂免至 2026-12-31"), titles[1]);
   await context.close();
 }
 

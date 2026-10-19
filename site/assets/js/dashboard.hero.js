@@ -1303,6 +1303,12 @@
       + `</div></li>`;
   }
 
+  // 搜索可见性（Overview 的「搜索可见性」小卡）。这份读数和别的牌不同：它的输入不是我们的策略，
+  // 而是别人愿不愿意把我们排进结果页，所以这里只陈述，不评价。
+  //
+  // 一条判据贯穿整块：**数字必须带着它的窗口一起读**。曝光 26 配「上周 2」和
+  // 配「上周 19」是两件事；点击 0 配「有 5 个搜索词」和配「零个搜索词」也是。
+  // 所以每格都印对比，表头写清窗口长度。
   function renderSearchVisibility() {
     const host = document.getElementById("search-body");
     if (!host) return;
@@ -2257,7 +2263,11 @@
       banner.classList.remove("is-pending");
       banner.classList.remove("is-empty");
       banner.removeAttribute("aria-hidden");
-      if (text) text.innerHTML = verdictNums(txt);
+      if (text) {
+        text.innerHTML = verdictNums(txt);
+        // 首屏判词行单行截断（dashboard.css `.overview-status .sb-text`），全文进 title。
+        text.title = txt;
+      }
       if (time) time.textContent = t;
     });
   }

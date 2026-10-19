@@ -21,6 +21,7 @@ a property of the whole sheet.
 """
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -479,6 +480,31 @@ def test_a_colour_is_written_once_in_the_palette_and_named_everywhere_else():
     assert strays == [], (
         "name a token (or add one to :root in both themes) instead of: "
         + ", ".join(strays))
+
+
+def _oklab(rgb):
+    def linear(v):
+        v /= 255
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = (linear(c) for c in rgb)
+    l, m, s = (x ** (1 / 3) for x in (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
+                                       0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
+                                       0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b))
+    return (0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+            1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+            0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s)
+
+
+@pytest.mark.parametrize("theme", ["dark", "light"])
+def test_chart_series_colours_stay_apart(theme):
+    """§1.7: the six series colours are categories, so every two must read as different.
+    The sector ring uses all six; `--viz-3`/`--viz-6` sat at ΔE_ok 0.040 in dark (#3075),
+    half the next-closest pair, and the legend showed one colour for two sectors."""
+    tokens = _themes()[theme]
+    lab = {n: _oklab(_hex(tokens[f"--viz-{n}"])) for n in range(1, 7)}
+    close = [(a, b, round(math.dist(lab[a], lab[b]), 4))
+             for a in lab for b in lab if a < b and math.dist(lab[a], lab[b]) < 0.07]
+    assert close == [], f"{theme}: series colours too close (ΔE_ok < 0.07): {close}"
 
 
 def test_chart_colours_come_from_the_palette_too():
