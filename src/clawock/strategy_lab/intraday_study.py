@@ -176,12 +176,14 @@ def path_metrics(rows, plan, capital):
                       'cumulative_net': net if not reasons else None,
                       'unpriced_or_missing': bool(reasons)})
     complete = not reasons and bool(rows) and capital is not None
-    return {'complete': complete, 'sessions': len(rows), 'trades': trades,
+    return {'complete': complete, 'sessions': len(rows), 'trades': trades if complete else None,
+            'priced_trades': trades, 'known_fill_costs': fees,
             'reasons': dict(reasons), 'net_increment': net if complete else None,
             'net_return_on_initial_base_plus_reserve': net/capital if complete else None,
             'max_session_close_drawdown': dd if complete else None,
-            'turnover_notional': turnover, 'turnover_over_initial_capital': turnover/capital if capital else None,
-            'costs': fees, 'monthly_turnover_hkd_including_opening_usage': dict(used),
+            'turnover_notional': turnover if complete else None,
+            'turnover_over_initial_capital': turnover/capital if complete else None,
+            'costs': fees if complete else None, 'monthly_turnover_hkd_including_opening_usage': dict(used),
             'curve': curve, 'metric_basis': 'timing increment versus retaining base; not total account return; close-to-close drawdown only'}
 
 

@@ -112,6 +112,8 @@ def test_waiver_exhaustion_invalidates_full_net(plan):
     assert not row['complete'] and row['net_increment'] is None
     assert 'commission_allowance_exhausted_unknown_tariff' in row['reasons']
     assert row['curve'][0]['cumulative_net'] is None
+    assert row['costs'] is None and row['turnover_notional'] is None
+    assert row['known_fill_costs'] == 1 and row['priced_trades'] == 1
 
 
 def test_full_fold_and_llm_binding(plan, data, monkeypatch):
