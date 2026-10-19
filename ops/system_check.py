@@ -1087,7 +1087,9 @@ def check_fallback_chain_shape(r):
     """
     contract = WS / 'config' / 'cron-schedules.json'
     try:
+        from clawock.scheduling import resolve_model_chains
         profiles = json.loads(contract.read_text()).get('payload_profiles') or {}
+        resolve_model_chains(profiles, WS)  # profiles name a chain in config/models.toml
     except Exception as e:  # noqa: BLE001
         r.add('fallback chain', CRITICAL, f'cannot read cron contract: {e}')
         return
@@ -1178,8 +1180,10 @@ def check_codex_runtime(r):
     """
     refs = set()
     try:
+        from clawock.scheduling import resolve_model_chains
         profiles = json.loads((WS / 'config' / 'cron-schedules.json').read_text()).get(
             'payload_profiles') or {}
+        resolve_model_chains(profiles, WS)
         for profile in profiles.values():
             refs.update([profile.get('model'), *(profile.get('fallbacks') or [])])
     except Exception:  # noqa: BLE001
