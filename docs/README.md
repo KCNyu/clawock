@@ -59,6 +59,7 @@ belongs here.
 
 - [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the
   latest code on the host without a release.
+- [`models.md`](operations/models.md) — `config/models.toml`: every model, its parameters and which scenario uses it; OpenClaw, cron, dsh and the MiniMax client follow it.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
   the tracked cron contract.
 - [`research-cadence.md`](operations/research-cadence.md) — which research

@@ -14,19 +14,7 @@
     "report": {
       "timeout_seconds": 1740,
       "payload_kind": "agentTurn",
-      "model": "minimax/MiniMax-M3.1-Flash",
-      "model_candidates": [
-        "minimax/MiniMax-M3.1-Flash",
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
-        "anthropic/claude-sonnet-4-6"
-      ],
-      "fallbacks": [
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
-      ],
-      "thinking": "max",
+      "chain": "cron",
       "message_template": "config/cron-payloads/report.md",
       "delivery_mode": "none",
       "required_substrings": [
@@ -65,19 +53,7 @@
     "intraday": {
       "timeout_seconds": 1740,
       "payload_kind": "agentTurn",
-      "model": "minimax/MiniMax-M3.1-Flash",
-      "model_candidates": [
-        "minimax/MiniMax-M3.1-Flash",
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
-        "anthropic/claude-sonnet-4-6"
-      ],
-      "fallbacks": [
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
-      ],
-      "thinking": "max",
+      "chain": "cron",
       "message_template": "config/cron-payloads/intraday.md",
       "tools_allow": null,
       "delivery_mode": "none",
@@ -135,19 +111,7 @@
     "brief": {
       "timeout_seconds": 2400,
       "payload_kind": "agentTurn",
-      "model": "minimax/MiniMax-M3.1-Flash",
-      "model_candidates": [
-        "minimax/MiniMax-M3.1-Flash",
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
-        "anthropic/claude-sonnet-4-6"
-      ],
-      "fallbacks": [
-        "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
-      ],
-      "thinking": "max",
+      "chain": "cron",
       "message_template": "config/cron-payloads/brief.md",
       "delivery_mode": "none",
       "required_substrings": [
@@ -173,8 +137,7 @@
     },
     "memory": {
       "payload_kind": "agentTurn",
-      "model": "minimax/MiniMax-M3.1-Flash",
-      "fallbacks": [],
+      "chain": "memory-cron",
       "delivery_mode": "none",
       "exact_message": "__openclaw_memory_core_short_term_promotion_dream__"
     }

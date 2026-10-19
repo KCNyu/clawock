@@ -80,6 +80,34 @@ def _contract_path(path: str | Path | None, workspace: str | Path | None,
     return root / "config" / "cron-schedules.json", root
 
 
+_CHAIN_FIELDS = ("model", "fallbacks", "model_candidates", "thinking")
+
+
+def resolve_model_chains(profiles: dict, root: Path) -> None:
+    """A profile names a chain in config/models.toml instead of listing models.
+
+    The registry owns model ids, rotations and the scenario's thinking level,
+    so the contract never carries a second copy of them. Resolved in place,
+    every reader of a loaded contract sees concrete `model`/`fallbacks`/
+    `model_candidates`/`thinking` exactly as before.
+    """
+    chained = {name: p for name, p in profiles.items() if p.get("chain")}
+    if not chained:
+        return
+    from clawock.model_registry import load as load_models
+    # The workspace's registry; a workspace without one (a fixture, a
+    # profile tree) uses the registry shipped with this code.
+    own = Path(root) / "config" / "models.toml"
+    registry = load_models(own if own.exists()
+                           else Path(__file__).resolve().parents[2] / "config" / "models.toml")
+    for name, profile in chained.items():
+        doubled = [field for field in _CHAIN_FIELDS if field in profile]
+        if doubled:
+            raise ValueError(f"{name}: {doubled} come from chain {profile['chain']!r}; "
+                             "set them in config/models.toml")
+        profile.update(registry.chain(profile["chain"]))
+
+
 def load_contract(path: str | Path | None = None, *, workspace: str | Path | None = None,
                   profile: str | Path | None = None) -> ScheduleContract:
     contract_path, root = _contract_path(path, workspace, profile)
@@ -103,6 +131,7 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
     if len(names) != len(set(names)) or any(not n for n in names):
         raise ValueError("cron contract job names must be non-empty and unique")
     profiles = data.get("payload_profiles") or {}
+    resolve_model_chains(profiles, root)
     for profile_name, profile in profiles.items():
         candidates = profile.get("model_candidates")
         if candidates and (

@@ -51,9 +51,24 @@ import requests
 # TCP+TLS handshake per attempt (C-F2).
 _SESSION = requests.Session()
 
-MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
-MINIMAX_MODEL = 'MiniMax-M3.1-Flash'
-MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
+
+
+def _registry_minimax():
+    """(base URL, model id, max output tokens) of the `clawock-llm` chain in
+    config/models.toml, so this client follows the same one place as OpenClaw.
+    None when the registry is absent (an installed package outside a
+    workspace); `chat()` then refuses with a clear error."""
+    from clawock.model_registry import load
+    try:
+        registry = load()
+    except FileNotFoundError:
+        return None, None, None
+    model = registry.model(registry.chains['clawock-llm']['models'][0])
+    return (registry.providers[model.provider]['baseUrl'], model.id,
+            model.entry['maxTokens'])
+
+
+MINIMAX_BASE, MINIMAX_MODEL, MINIMAX_MAX_TOKENS = _registry_minimax()
 # Models that answer thinking.type=disabled with HTTP 400; M3 accepted it.
 _ADAPTIVE_ONLY = re.compile(r'^MiniMax-M3\.[1-9]')
 ANTHROPIC_VERSION = '2023-06-01'
@@ -321,6 +336,9 @@ def chat(system: str = '', user: str = '', messages: list = None,
     thinking_effort: 'low' / 'medium' / 'high' for a thinking call on a model
     that only takes adaptive thinking (M3.1). Unset leaves the request as it was.
     """
+    if MINIMAX_MODEL is None:
+        raise RuntimeError('all LLM providers failed: config/models.toml not found '
+                           '(set CLAWOCK_WORKSPACE to the clawock checkout)')
     if messages is None:
         messages = []
         if system:

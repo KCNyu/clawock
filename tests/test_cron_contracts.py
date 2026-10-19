@@ -1267,6 +1267,8 @@ def test_cron_turn_covers_actual_post_delivery_chain_and_reserve(tmp_path):
         assert data['payload_profiles'][name]['timeout_seconds'] >= (
             budgets.POST_DELIVERY_BUDGET_SECONDS + budgets.pre_delivery_reserve_seconds(name)
             + budgets.CRON_BUDGET_HEADROOM_SECONDS)
+    # Write the tracked file, not the loaded view: profiles name a model chain.
+    data = json.loads((ROOT / 'config/cron-schedules.json').read_text())
     data['payload_profiles']['intraday']['timeout_seconds'] = minimum
     path = tmp_path / 'config/cron-schedules.json'
     path.parent.mkdir()
