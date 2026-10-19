@@ -12,6 +12,9 @@
 #   dispatch.sh summary [--since YYYY-MM-DD] [--agent a,b] [--all] [--json]  # per-agent totals (frozen results; cost is an estimate)
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
+#   dispatch.sh adopt <bg-id|session-id> [--dry-run] [options] [< more.md]
+#                                    # resume a claude session dispatch did not start (a `claude --bg`
+#                                    # session, a terminal one that died) as a task; stops the bg copy
 #
 # append: while the task runs, its current step is stopped within seconds and the same session
 # resumes with the new instructions (--queue: deliver when the current attempt ends instead).
@@ -61,6 +64,7 @@ show_state() {  # prints STATE/OUTCOME for a task dir
 }
 
 cmd="${1:-}"; shift || true
+ADOPT_STOP=""
 case "$cmd" in
   result)
     exec python3 /root/tools/agent-dispatch/read-result.py "$@" ;;
@@ -192,8 +196,50 @@ case "$cmd" in
       echo "task $id has ended ($(show_state "$d")); continuing session $SESSION as a new task"
       rc=0; "$0" "${args[@]}" || rc=$?; rm -f "$tmp"; exit "$rc" )
     exit $? ;;
+  adopt)
+    # A claude session dispatch did not start (a native `claude --bg` session, a terminal session
+    # that died with its SSH connection) becomes a task that resumes it: the runner then waits
+    # out a usage limit and continues, which the CLI does not do for those sessions
+    # (docs/architecture/task-queue.md § Native background sessions).
+    if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
+      echo "refused: this is dispatched task $AGENT_DISPATCH_TASK_ID; it does not adopt sessions" >&2; exit 2
+    fi
+    ref="${1:-}"; shift || true
+    [ -n "$ref" ] && [ "${ref#-}" = "$ref" ] || { echo "usage: dispatch.sh adopt <bg-id|session-id> [--dry-run] [--name n] [options] [< instructions.md]" >&2; exit 2; }
+    DRY_RUN="" rest=() ADOPT_NAME="" ADOPT_PROMPT=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --dry-run) DRY_RUN=1; shift ;;
+        --name) ADOPT_NAME=$2; shift 2 ;;
+        --prompt-file) ADOPT_PROMPT=$2; shift 2 ;;
+        --resume|--cwd) echo "adopt finds the session and its directory itself; $1 is not taken" >&2; exit 2 ;;
+        *) rest+=("$1"); shift ;;
+      esac
+    done
+    helper="$(dirname "$(readlink -f "$0")")/claude-session.py"
+    agents=$(mktemp "$BASE/.adopt-agents.XXXXXX")
+    timeout 20 claude agents --json >"$agents" 2>/dev/null || : >"$agents"
+    resolved=$(python3 "$helper" resolve "$ref" --agents-json "$agents") || { rm -f "$agents"; exit 2; }
+    rm -f "$agents"
+    eval "$resolved"
+    echo "session:  $SESSION (cwd $CWD)"
+    [ -z "$BG_ID" ] || echo "background: $BG_ID, ${BG_STATE:-unknown}${BG_DETAIL:+ — $BG_DETAIL}"
+    [ -z "$LIMIT_TEXT" ] || echo "stopped on: $LIMIT_TEXT (at $LIMIT_AT); the first attempt meets it again if it has not reset, then the runner waits for the reset"
+    case "$ACTION" in
+      stop-then-resume) echo "plan:     claude stop $BG_ID, then a dispatched task resumes the session" ;;
+      *) echo "plan:     a dispatched task resumes the session" ;;
+    esac
+    if [ -n "$DRY_RUN" ]; then echo "dry run: nothing stopped or dispatched"; exit 0; fi
+    # The instructions: --prompt-file, else stdin when it is not a terminal, else a plain continue.
+    ADOPT_TMP=$(mktemp "$BASE/.adopt.XXXXXX")
+    trap 'rm -f "$ADOPT_TMP"' EXIT
+    if [ -n "$ADOPT_PROMPT" ]; then cat "$ADOPT_PROMPT" >"$ADOPT_TMP"; elif [ ! -t 0 ]; then cat >"$ADOPT_TMP"; fi
+    [ -s "$ADOPT_TMP" ] || echo "继续完成这个会话里被中断的任务：先检查当前真实状态（git/PR/CI/文件），复用已有产物，不要重复已完成的步骤。" >"$ADOPT_TMP"
+    [ "$ACTION" = stop-then-resume ] && ADOPT_STOP=$BG_ID
+    AGENT=claude
+    set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,45p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,49p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -352,6 +398,35 @@ ORIGIN_SESSION=$(printf %q "$ORIGIN_SESSION")
 WAKE_DEPTH=$WAKE_DEPTH
 CREATED=$(printf %q "$(date '+%F %T')")
 EOF
+
+# adopt: a background session still open in the daemon is stopped last, after every check above
+# passed, so a refused dispatch never leaves it stopped; and it must be gone before the task
+# starts, or two processes would write one transcript.
+if [ -n "$ADOPT_STOP" ]; then
+  stopped=""
+  if timeout 30 claude stop "$ADOPT_STOP" >/dev/null 2>&1; then
+    for _ in $(seq 15); do
+      agents=$(mktemp "$BASE/.adopt-agents.XXXXXX")
+      timeout 20 claude agents --json >"$agents" 2>/dev/null || : >"$agents"
+      live=$(python3 -c 'import json, sys
+try:
+    agents = json.load(open(sys.argv[1]))
+except ValueError:
+    agents = None
+print("unknown" if not isinstance(agents, list) else
+      "yes" if any(isinstance(a, dict) and a.get("sessionId") == sys.argv[2] and a.get("pid") for a in agents) else "no")' "$agents" "$RESUME")
+      rm -f "$agents"
+      [ "$live" = no ] && { stopped=1; break; }
+      sleep 1
+    done
+  fi
+  if [ -z "$stopped" ]; then
+    rm -rf "$DIR"
+    echo "adopt: could not stop background session $ADOPT_STOP (claude stop failed, or it is still listed as running); nothing dispatched" >&2
+    exit 1
+  fi
+  echo "stopped background session $ADOPT_STOP; do not attach to it until this task ends"
+fi
 
 # --collect: the transient unit disappears after it ends; results stay in $DIR.
 systemd-run --unit "agent-dispatch-$ID" --collect --quiet \
