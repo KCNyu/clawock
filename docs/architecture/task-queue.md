@@ -353,6 +353,57 @@ when a cancel or the deadline stops the task, where re-sending contradicts the s
 failed notification or wake turn (the 10 tasks whose legs both failed include three within four
 seconds of each other, a shared cause a retry would hit again; a wake turn may have acted).
 
+### Native background sessions (`claude --bg`)
+
+Claude Code 2.1.303 can run a session in the background (`claude --bg`, then `claude agents`,
+`attach`, `logs`, `stop`). kcn asked (2026-10-20) whether the runner's quota resume should move
+onto it. It does not, for four reasons measured on this host that day:
+
+- **It does not wait out a usage limit.** The CLI's "continuing automatically at <reset>" is
+  armed only when `isInteractive && !bgSession && !remote` (the bg check reads
+  `CLAUDE_CODE_SESSION_KIND=bg`, which every background worker carries), and handing a session
+  to the background cancels a pending one ("this session moved to the background, so the task
+  will not resume on its own when the usage limit resets"). A background session refused by its
+  limit sits `blocked` in `jobs/<id>/state.json` until somebody acts.
+- **The daemon is not a service.** `claude daemon` says "Service install is disabled in this
+  version — the daemon runs on demand and exits when the last client disconnects". The first
+  `--bg` client starts it in its own cgroup, and every worker is its child: a session started
+  from another cgroup while it lived landed in the daemon's. Started inside an
+  `agent-dispatch-<id>` unit, it and every background session of the host would be killed when
+  that task ends (`KillMode=control-group`).
+- **It retires settled sessions under memory pressure.** `daemon.log`: "low memory (572MB free)
+  — retiring settled workers before spawning …", "bg settled 041ab07a (killed)" — that session
+  was the one `blocked` on its limit.
+- **No result contract.** There is no `--output-format json`; the end state is
+  `state.json` (`done`, an `output.result` that dropped the reply's `STATUS:` line) plus a
+  fullscreen terminal log, and an untrusted directory refuses to start (`Workspace not trusted`).
+
+`claude -p` already outlives SSH (the unit is not attached to a terminal), and the runner's own
+sleep-then-`--resume` is the only thing on this host that resumes a session at its reset. So
+the integration goes the other way:
+
+- **`dispatch.sh adopt <bg-id|session-id> [--dry-run] [options] [< instructions]`** turns a claude
+  session dispatch did not start into a task that resumes it: a background session, or a
+  terminal session whose CLI died while it waited for the reset (2026-10-20 00:04, SSH dropped
+  and took `765798b5` with it; nothing ran at 02:10). `claude-session.py resolve` finds the
+  session id, the directory it was started in (the transcript's project, not its last `cd`:
+  `765798b5` had moved to `/root/wt-card`, but resumes from `/root`) and the limit it stopped on,
+  and asks `claude agents --json` whether anything has it open. A working background session,
+  any live interactive or headless process (a terminal, a dispatched task's `claude -p`), or no
+  answer at all is refused. Otherwise the task is dispatched as `claude --resume <id> --cwd <dir>`
+  with the instructions on stdin (or a plain continue), and a background copy still open in the
+  daemon is stopped with `claude stop` last, after every dispatch check passed and before the
+  unit starts, so one process writes the transcript. If the limit has not reset yet, the first
+  attempt meets it and the ordinary quota wait above takes over. It is an explicit command: no
+  session is adopted, stopped or resumed on its own.
+- **The runner exports `CLAUDE_CODE_DISABLE_AGENT_VIEW=1`** for every agent, so no task starts
+  the shared daemon inside its unit (`'--bg' is disabled by CLAUDE_CODE_DISABLE_AGENT_VIEW`;
+  `claude -p` is unaffected).
+
+Unverified: whether a background session survives an actual SSH disconnect (it has no
+controlling terminal, so it should), and how the daemon behaves once a later version installs it
+as a service; re-read this section after a Claude Code upgrade that changes `claude daemon`.
+
 ## Runner fields the chip reads
 
 `result.env`, besides `STATE/RC/OUTCOME/SESSION/ATTEMPTS/WAITING/SLOT/MODEL_USED/…`:
@@ -386,9 +437,10 @@ ops/host/agent-dispatch/
   resource-pressure.sh                 memory-pressure reading shared with clawock-patrol
   probe-free-models.sh                 finds dead models in the opencode free pool
   opencode-fallback-models             that pool, in order (read at dispatch time)
+  claude-session.py                    `dispatch.sh adopt`: finds a claude session dispatch did not start
   templates/review.md                  `dispatch.sh --template review`
   tests/run-tests.sh tests/bin/        fault-injection suite with fake claude/codex/opencode/dsh/openclaw
-  tests/test_limits.py tests/test_read_result.py
+  tests/test_limits.py tests/test_read_result.py tests/test_claude_session.py
 ```
 
 It sits next to `task_queue_ops.py` but is a different install target: the ops entry keeps its

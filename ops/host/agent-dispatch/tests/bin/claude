@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Fake `claude -p --output-format json` for run-agent.sh fault-injection tests.
+# Fake `claude -p --output-format json` for run-agent.sh fault-injection tests (and the two
+# subcommands dispatch.sh adopt calls, below).
 # Behaviour is chosen by $FAKE_DIR/claude.mode:
 #   quota-then-ok : 1st call -> quota error with a reset ~2 min ahead; later calls -> success
 #   hang          : never finishes (for deadline tests)
@@ -15,10 +16,26 @@
 # `claude -p` labels it, plus the same key escaped inside message text.
 set -u
 FAKE_DIR=${FAKE_DIR:?}
+# `claude agents --json` / `claude stop <id>` for dispatch.sh adopt: the live list is
+# $FAKE_DIR/claude.agents.json (absent: nothing live; claude.agents.fail: no answer). A stop is
+# logged to claude.stops; it fails with claude.stop.fail, and with claude.stop.keep the session
+# stays listed as live; otherwise the list empties.
+case "${1:-}" in
+  agents)
+    [ ! -e "$FAKE_DIR/claude.agents.fail" ] || exit 1
+    cat "$FAKE_DIR/claude.agents.json" 2>/dev/null || echo '[]'
+    exit 0 ;;
+  stop)
+    echo "stop $2" >>"$FAKE_DIR/claude.stops"
+    [ ! -e "$FAKE_DIR/claude.stop.fail" ] || exit 1
+    [ -e "$FAKE_DIR/claude.stop.keep" ] || echo '[]' >"$FAKE_DIR/claude.agents.json"
+    echo "stopped $2"; exit 0 ;;
+esac
 mode=$(cat "$FAKE_DIR/claude.mode")
 n=$(( $(cat "$FAKE_DIR/claude.calls" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$FAKE_DIR/claude.calls"
 printf 'call %s argv:' "$n" >>"$FAKE_DIR/claude.argv"; printf ' [%s]' "$@" >>"$FAKE_DIR/claude.argv"; echo >>"$FAKE_DIR/claude.argv"
 echo "call $n task id: ${AGENT_DISPATCH_TASK_ID:-}" >>"$FAKE_DIR/claude.argv"
+echo "call $n agent view off: ${CLAUDE_CODE_DISABLE_AGENT_VIEW:-unset}" >>"$FAKE_DIR/claude.argv"
 echo "$$" >>"$FAKE_DIR/claude.pids"
 sid=11111111-2222-3333-4444-555555555555
 prev=""

@@ -45,6 +45,12 @@ export IS_SANDBOX=1
 # (2026-09-15).
 export AGENT_DISPATCH_TASK_ID="$ID"
 export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1    # a headless run ends when the model stops
+# No `claude --bg`, `claude agents` or on-demand daemon from inside a task, whatever its agent.
+# claude 2.1.303 has no daemon service: the first client starts it in its own cgroup, and every
+# background session started while it lives (kcn's from SSH included) runs as its child, so a
+# daemon started in this unit dies with it at KillMode=control-group (2026-10-20, measured;
+# docs/architecture/task-queue.md § Native background sessions). `claude -p` is unaffected.
+export CLAUDE_CODE_DISABLE_AGENT_VIEW=1
 unset CLAWOCK_WORKSPACE 2>/dev/null || true
 
 # AGENT_DISPATCH_LOCKDIR: test seam, so the fault-injection tests never wait on (or take)

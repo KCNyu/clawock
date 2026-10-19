@@ -238,6 +238,7 @@ d4=$(mk no-status claude 900 300)
 e4=0; bash "$R" "$d4" || e4=$?
 expect "no-status exit" "$e4" 3
 expect "no-status state" "$(field "$d4" STATE)" unverified
+expect_grep "claude runs with agent view off (no bg daemon inside the unit)" "call 1 agent view off: 1" "$FAKE_DIR/claude.argv"
 
 echo; echo "=== [5] codex out of credits, no reset time -> quota, no retry ($(date +%T))"
 reset_fake codex no-credits
@@ -586,6 +587,49 @@ done
 expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/notify-check-* 2>/dev/null | wc -l)" 0
 e40=0; out40=$("$D" cancel no-such-task-20000101-000000 2>&1) || e40=$?
 expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 4/1
+
+echo; echo "=== [55] dispatch.sh adopt: a claude session dispatch did not start becomes a resume task"
+# Nothing here reaches systemd-run: dry runs, refusals, and a stop that fails after every check.
+sid55=abcdef12-1111-2222-3333-444444444444
+mkdir -p "$CLAUDE_CONFIG_DIR/projects/-root" "$CLAUDE_CONFIG_DIR/jobs/abcdef12"
+printf '{"type":"user","cwd":"/root"}\n{"type":"assistant","cwd":"/root/elsewhere","isApiErrorMessage":true,"error":"rate_limit","timestamp":"2026-10-19T16:04:04.898Z","message":{"content":[{"type":"text","text":"You have hit your session limit · resets 2:10am (Asia/Shanghai)"}]}}\n' \
+  >"$CLAUDE_CONFIG_DIR/projects/-root/$sid55.jsonl"
+printf '{"state":"blocked","detail":"limit","sessionId":"%s","daemonShort":"abcdef12","cwd":"/root"}' "$sid55" \
+  >"$CLAUDE_CONFIG_DIR/jobs/abcdef12/state.json"
+adopt55() { env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" "$D" adopt "$@" </dev/null 2>&1; }
+live55() { printf '[{"id":"abcdef12","sessionId":"%s","pid":4242,"kind":"%s","state":"%s"}]' "$sid55" "$1" "$2" >"$FAKE_DIR/claude.agents.json"; }
+rm -f "$FAKE_DIR"/claude.*; live55 background blocked
+e55=0; out55=$(adopt55 abcdef12 --dry-run) || e55=$?
+expect "a blocked background session: dry run succeeds" "$e55" 0
+expect "it resolves the session and the project directory" "$(printf '%s' "$out55" | grep -c "session:  $sid55 (cwd /root)")" 1
+expect "it plans to stop the background copy first" "$(printf '%s' "$out55" | grep -c 'plan:     claude stop abcdef12, then')" 1
+expect "it names the limit the session stopped on" "$(printf '%s' "$out55" | grep -c 'stopped on: You have hit your session limit')" 1
+expect "a dry run stops nothing" "$(test -e "$FAKE_DIR/claude.stops" && echo stopped || echo none)" none
+live55 background working
+e55=0; out55=$(adopt55 abcdef12 --dry-run) || e55=$?
+expect "a working background session is refused" "$e55/$(printf '%s' "$out55" | grep -c 'still working')" 2/1
+live55 interactive busy
+e55=0; out55=$(adopt55 "$sid55") || e55=$?
+expect "a session open in a terminal or a dispatched claude -p is refused" "$e55/$(printf '%s' "$out55" | grep -c 'open in a running claude process (pid 4242')" 2/1
+touch "$FAKE_DIR/claude.agents.fail"
+e55=0; out55=$(adopt55 abcdef12) || e55=$?
+expect "no answer from claude agents is a refusal" "$e55/$(printf '%s' "$out55" | grep -c 'gave no answer')" 2/1
+rm -f "$FAKE_DIR/claude.agents.fail"
+e55=0; out55=$(adopt55 abcdef12 --cwd /tmp) || e55=$?
+expect "adopt takes no --cwd" "$e55/$(printf '%s' "$out55" | grep -c 'not taken')" 2/1
+e55=0; out55=$(AGENT_DISPATCH_TASK_ID=outer-task PATH="$T/bin:$PATH" "$D" adopt abcdef12 </dev/null 2>&1) || e55=$?
+expect "a dispatched task does not adopt" "$e55/$(printf '%s' "$out55" | grep -c 'does not adopt')" 2/1
+# The stop runs last, after the dispatch checks: a refused option leaves the session alone, a
+# failed stop dispatches nothing and leaves no task dir.
+live55 background blocked
+e55=0; out55=$(adopt55 abcdef12 --name adopt-test55 --notify bogus) || e55=$?
+expect "a bad option is refused before anything is stopped" "$e55/$(test -e "$FAKE_DIR/claude.stops" && echo stopped || echo none)" 2/none
+touch "$FAKE_DIR/claude.stop.fail"
+e55=0; out55=$(adopt55 abcdef12 --name adopt-test55 --notify none) || e55=$?
+expect "a failed stop dispatches nothing" "$e55/$(printf '%s' "$out55" | grep -c 'could not stop background session abcdef12')" 1/1
+expect "the stop was asked for the background id" "$(cat "$FAKE_DIR/claude.stops")" "stop abcdef12"
+expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/adopt-test55-* 2>/dev/null | wc -l)" 0
+rm -rf "$CLAUDE_CONFIG_DIR/jobs/abcdef12" "$CLAUDE_CONFIG_DIR/projects/-root/$sid55.jsonl" "$FAKE_DIR"/claude.*
 fi
 if [ -z "${DISPATCH_TEST_CASES:-}" ] || [[ ",$DISPATCH_TEST_CASES," == *,notify,* ]]; then
 # kcn 2026-09-26: user tasks tell WeChat and Telegram. The outcome of every leg lands in
