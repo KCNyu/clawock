@@ -38,7 +38,7 @@ def brief_url(date):
     return f'{site}/{page}' if site else page
 
 
-_EARLY_SECTION_HEADER = '▎提前布局候选'
+_EARLY_SECTION_HEADER = '**提前布局候选**'
 _EARLY_BLOCKER_LABELS = {
     'needs_primary_evidence': '缺一手披露',
     'needs_information_confirmation': '缺独立消息确认',
@@ -137,21 +137,23 @@ def _inject_early_candidate_section(card, packet):
     lines = card.splitlines()
     start = next(
         (index for index, line in enumerate(lines)
-         if line.strip() == _EARLY_SECTION_HEADER),
+         # Card files written before the 2026-10-19 restyle use the ▎ header.
+         if line.strip() in (_EARLY_SECTION_HEADER, '▎提前布局候选')),
         None,
     )
     if start is not None:
         end = start + 1
         while end < len(lines):
             stripped = lines[end].strip()
-            if stripped.startswith('▎') or stripped.startswith('📈'):
+            if stripped.startswith(('▎', '📈', '完整报告')) or (
+                    stripped.startswith('**') and stripped.endswith('**')):
                 break
             end += 1
         lines[start:end] = section.splitlines() + ['']
         return '\n'.join(lines).strip()
     insert = next(
         (index for index, line in enumerate(lines)
-         if line.strip().startswith('📈')),
+         if line.strip().startswith(('📈', '完整报告'))),
         len(lines),
     )
     prefix = lines[:insert]
@@ -187,7 +189,8 @@ def build_brief_card(today, decision_packet=None):
                 return _inject_early_candidate_section(txt, decision_packet)
     except Exception:
         pass  # fall through to deterministic build
-    lines = [f'📊 盘前深度简报｜{today} {BRIEF_SLOT_HKT} HKT']
+    from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
+    lines = [f'## 📊 盘前简报 · {today} {BRIEF_SLOT_HKT} HKT']
     try:
         plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
         bk = plan.get('book') or {}
@@ -196,25 +199,30 @@ def build_brief_card(today, decision_packet=None):
                 bk = {**bk, **plan_totals(plan)}
             except ValueError:
                 bk = {}
-                lines.append('Book: 金额未核验，见完整报告')
+                lines.append('账面金额未核验，见完整报告')
         if bk:
-            lines[0] += f' (USDHKD={plan["fx_rate_usdhkd"]})'
-            lines.append(f"Book: USD${bk.get('usd_total_pnl', '?')} | "
-                         f"HK leg {bk.get('hk_leg_hkd', '?')}HKD | US leg {bk.get('us_leg_usd', '?')}USD")
-        acts = [a for a in (plan.get('decisions') or []) if isinstance(a, dict)][:4]
+            lines.append(f"**账面 USD${bk.get('usd_total_pnl', '?')}** · 港股 HKD${bk.get('hk_leg_hkd', '?')}"
+                         f" · 美股 USD${bk.get('us_leg_usd', '?')}")
+            lines.append(f"USDHKD {plan['fx_rate_usdhkd']}")
+        acts = [a for a in (plan.get('decisions') or []) if isinstance(a, dict)
+                and a.get('action') not in ('hold_and_watch', 'watch')][:4]
         if acts:
-            lines.append('今日动作：')
-            for i, a in enumerate(acts, 1):
+            lines += ['', '**今日动作**']
+            for a in acts:
                 condition = a.get('condition') or {}
-                trig = condition.get('price')
-                trig = f"@{trig}" if trig is not None else (condition.get('type') or '')
+                kind, price = condition.get('type'), condition.get('price')
+                when = (f"{PRICE_CONDITIONS[kind]}{price:g}" if kind in PRICE_CONDITIONS
+                        and isinstance(price, (int, float)) else ORDER_CONDITION_WORDS.get(kind, ''))
+                shares = (a.get('size') or {}).get('shares')
                 conf = a.get('confidence')
                 try:
-                    conf = f" conf{round(float(conf) * 100)}%" if conf is not None else ''
+                    conf = f"信心 {round(float(conf) * 100)}%" if conf is not None else ''
                 except (TypeError, ValueError, OverflowError):
                     conf = ''
-                lines.append(f"{i}. {a.get('ticker', '?')} [{a.get('strategy_id', '?')}] {a.get('action', '')} {trig}{conf}")
+                bits = [f"**{a.get('ticker', '?')}** {ORDER_ACTION_WORDS.get(a.get('action'), a.get('action', ''))}"
+                        + (f' {shares:g} 股' if isinstance(shares, (int, float)) else ''), when, conf]
+                lines.append('- ' + ' · '.join(b for b in bits if b))
     except Exception:
         pass  # link-only fallback
-    lines += ['', f'📈 完整报告：{url}']
+    lines += ['', f'完整报告：{url}']
     return _inject_early_candidate_section('\n'.join(lines), decision_packet)

@@ -36,6 +36,13 @@ PROSE = ('▎情绪面\nCRCL 今日 -5.5%，稳定币板块只有它在跌。\n\
          '▎操作建议\nSPCH 减仓至 1/3。\n')
 
 
+
+def _carries(block, body):
+    """The report body carries the context's data: every table row byte for
+    byte (the card regroups the rest of the block, chat_card.render_report)."""
+    rows = [line for line in block.splitlines() if line.strip().startswith('|')]
+    return bool(rows) and all(row in body.splitlines() for row in rows)
+
 def _load(name):
     return importlib.import_module(f'clawock.harness.{name}')
 
@@ -80,9 +87,9 @@ def test_assembled_message_uses_the_context_block_not_the_model_text(pf):
     numbers, what ships is the context's 07/23 block."""
     msg = pf.assemble_message(_ctx(), f'{STALE_BLOCK}\n\n{PROSE}')
 
-    assert msg.startswith('🌙 美股收盘日报｜2026-07-24')
-    assert FRESH_BLOCK in msg
-    assert msg.index(FRESH_BLOCK) < msg.index('▎情绪面')
+    assert msg.startswith('## 🌙 美股收盘日报 · 2026-07-24')
+    assert _carries(FRESH_BLOCK, msg)
+    assert msg.index('| CRCL') < msg.index('**情绪面**')
 
 
 def test_the_block_is_harness_owned_and_never_verbatim_checked(pf):
@@ -249,7 +256,7 @@ def test_failed_report_delivers_the_data_block_without_the_rejected_prose(pf, se
                       pf.assemble_message(ctx, ''), delivery_state='failed')
 
     body = sent['messages'][0]
-    assert FRESH_BLOCK in body
+    assert _carries(FRESH_BLOCK, body)
     assert '▎情绪面' not in body
     marker = json.loads((sent['tmp'] / 'report-sent-us-close-2026-07-24.json').read_text())
     assert marker['delivery_state'] == 'failed'
@@ -296,7 +303,7 @@ def test_a_terse_but_valid_prose_under_50_chars_is_not_broken_pipe_rejected(run_
                        ctx=_ctx(anomalies=[]))  # no mover to require
 
     assert out['status'] == 'pass' and rc == 0
-    assert sent['messages'][0].startswith('🌙 美股收盘日报')
+    assert sent['messages'][0].startswith('## 🌙 美股收盘日报')
 
 
 @pytest.mark.parametrize('setup, marker', [
@@ -358,7 +365,7 @@ def test_incident_replay_stale_prose_is_refused_not_married_to_fresh_numbers(
     assert out['narrative_status'] == 'failed'
     body = sent['messages'][0]
     assert '仅发布数据块:\n' in body and '未 commit' not in body
-    assert FRESH_BLOCK in body and '▎情绪面' not in body and STALE_BLOCK not in body
+    assert _carries(FRESH_BLOCK, body) and '情绪面' not in body and not _carries(STALE_BLOCK, body)
 
 
 def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
@@ -367,7 +374,7 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert rc == 0 and out['status'] == 'pass' and out['mode'] == 'prose'
     assert out['commit_ok'] is True
     body = sent['messages'][0]
-    assert body.startswith('🌙 美股收盘日报') and FRESH_BLOCK in body and '▎情绪面' in body
+    assert body.startswith('## 🌙 美股收盘日报') and _carries(FRESH_BLOCK, body) and '**情绪面**' in body
 
 
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
@@ -447,11 +454,11 @@ def test_a_failed_slot_can_be_superseded_once_then_locks(run_main, sent, pf):
     rc1, out1 = run_main(bad, context_id='abc123def456')
     # banner names the offending phrase; the BODY must stop at the data block
     assert out1['status'] == 'fail'
-    assert sent['messages'][0].endswith(FRESH_BLOCK.strip())
+    assert sent['messages'][0].endswith(FRESH_BLOCK.strip().splitlines()[-1])
 
     rc2, out2 = run_main(PROSE, context_id='abc123def456')
     assert out2['status'] == 'pass' and out2['wechat_sent'] is True
-    assert len(sent['messages']) == 2 and '▎情绪面' in sent['messages'][1]
+    assert len(sent['messages']) == 2 and '**情绪面**' in sent['messages'][1]
 
     # a third run must NOT send again — one upgrade, then the lock holds
     rc3, out3 = run_main(PROSE, context_id='abc123def456')

@@ -26,7 +26,7 @@ NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
     postflight publishes a semantic dashboard change, if any.
 """
 
-from clawock.harness import intraday_card
+from clawock.harness import chat_card
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 import argparse
@@ -869,7 +869,7 @@ def prepend_coverage_warning(block, coverage):
     return '\n'.join([*lines[:2], warning, *lines[2:]])
 
 
-# Card layout: `clawock.harness.intraday_card` renders the card from this
+# Card layout: `clawock.harness.chat_card` renders the card from this
 # slot's structured data (kcn 2026-10-19: 待你处理 / 本档变化 / table /
 # 接下来盯 / 加仓侧 / 我的看法). The section builders below still produce row
 # text for it; the model reads the complete context regardless.
@@ -1425,7 +1425,7 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
                 plan_triggers, movers, leverage, mover_news, soft_changes, first_slot,
                 active_information, setups, early, radar, add_side_reads, health,
                 gaps=None):
-    """Structured slot data → the sections of `intraday_card.render`."""
+    """Structured slot data → the sections of `chat_card.render`."""
     suppressed = {ticker for ticker, policy in (holding_policies or {}).items()
                   if policy.get('suppress_cost_basis_signals')}
     new_stops, standing_stops, new_signals = [], [], []
@@ -1441,7 +1441,7 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
             else:
                 new_stops.append((ticker, f'（{detail}）' if detail else ''))
         elif not seen:
-            new_signals.append(intraday_card.bullet(
+            new_signals.append(chat_card.bullet(
                 re.sub(r'^\S+\s+', '', row.get('line', '')).replace(' | ', '：', 1)))
     orders = [line.removeprefix('未成交计划：')
               for line in open_order_lines(plan_ctx, holding_policies)]
@@ -1456,25 +1456,25 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
         if text.startswith(('⛔', '△')):
             health.append(text)
         else:
-            information_rows += intraday_card.section_rows('\n' + text)
-    changes = (intraday_card.mover_rows(movers, leverage, (mover_news or {}).get('tickers'))
-               + new_signals + intraday_card.soft_rows(soft_changes) + information_rows)
+            information_rows += chat_card.section_rows('\n' + text)
+    changes = (chat_card.mover_rows(movers, leverage, (mover_news or {}).get('tickers'))
+               + new_signals + chat_card.soft_rows(soft_changes) + information_rows)
     if first_slot:
-        changes = [intraday_card.bullet('本交易日首档'), *changes]
+        changes = [chat_card.bullet('本交易日首档'), *changes]
     return {
         'health': health,
-        'action': intraday_card.action_rows(
+        'action': chat_card.action_rows(
             p0_lines=p0_lines, open_orders=orders,
-            plan_trigger_rows=[row[2:] for row in intraday_card.section_rows(
+            plan_trigger_rows=[row[2:] for row in chat_card.section_rows(
                 append_plan_trigger_section('', plan_triggers).strip())],
             new_stops=new_stops, standing_stops=standing_stops),
         'changes': changes,
-        'watch': (intraday_card.setup_rows(setups)
-                  + intraday_card.section_rows(early.strip())
-                  + intraday_card.section_rows(radar.strip())),
+        'watch': (chat_card.setup_rows(setups)
+                  + chat_card.section_rows(early.strip())
+                  + chat_card.section_rows(radar.strip())),
         # Plain 等待 rows say nothing new; a candidate, a reject or a holding
         # whose strategy evidence is incomplete (its reason) does.
-        'add_side': [row for row in intraday_card.section_rows(
+        'add_side': [row for row in chat_card.section_rows(
                          append_add_side_section('', add_side_reads, gaps).strip())
                      if f" {ADD_SIDE_WORDS['wait']}：" not in row],
     }
@@ -1951,7 +1951,7 @@ def main(argv=None):
         should_alert = True
         alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
     if raw_block is None:
-        raw_block = intraday_card.render(
+        raw_block = chat_card.render(
             analyzer=stdout.strip(), recommendation=recommendation_block, **card_parts)
     elif recommendation_block:
         raw_block += '\n\n' + recommendation_block

@@ -1148,13 +1148,17 @@ _LEVEL_WORDS = {
     "high": "高点", "prior": "前", "yield": "收益率", "alert": "预警",
     "date": "日期", "next": "下次", "breakeven": "回本", "chandelier": "吊灯",
     "usd": "USD", "hkd": "HKD", "pct": "%",
+    "recovery": "收复", "underlying": "正股", "single": "单", "day": "日",
+    "weekly": "单周", "daily": "单日", "escalation": "升级线",
 }
 
 
 def _level_label(key):
+    """`spch_single_day_escalation_pct` → `SPCH 单日升级线`: Chinese words run
+    together, a space only next to a Latin word (`RKLB 正股破位`)."""
     words = []
     for i, token in enumerate(str(key).lower().replace("-", "_").split("_")):
-        if not token:
+        if not token or token == "pct":
             continue
         if token in _LEVEL_WORDS:
             words.append(_LEVEL_WORDS[token])
@@ -1166,7 +1170,26 @@ def _level_label(key):
             words.append(token.upper())
         else:
             words.append(token)
-    return " ".join(words) or str(key)
+    out = ""
+    for word in words:
+        if out and (out[-1].isascii() or word[0].isascii()):
+            out += " "
+        out += word
+    return out or str(key)
+
+
+def _level_value(key, value):
+    """`3950` → `3,950`; a `_pct` key carries its unit: `-15` → `-15%`."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    shown = f"{number:,.0f}" if number.is_integer() else f"{number:,.2f}"
+    return shown + ("%" if str(key).lower().endswith("pct") else "")
+
+
+_DRIVER_WORDS = {"risk_rule": "风控纪律", "technical": "技术面", "catalyst": "催化",
+                 "fundamental": "基本面", "event": "事件"}
 
 
 def render_card(context, judgment, plan, *, date=None, page_url=None):
@@ -1193,53 +1216,60 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     `▎` is the card's own ornament and stays here. It was removed from the page
     headings, where markdown already carries the hierarchy.
     """
+    from clawock.decision.plans import (ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS,
+                                        PRICE_CONDITIONS)
+    from clawock.harness.chat_card import bullet, quote
     date = date or context.get("date") or ""
     book = context.get("book_totals") or {}
     fx = context.get("fx") or {}
     concentration = context.get("concentration") or {}
-    lines = [f"📊 盘前深度简报｜{date} {BRIEF_SLOT_HKT} HKT  (USDHKD={num(fx.get('rate'), 4)})", ""]
-    lines += ["▎核心结论", text(judgment.get("portfolio_assessment")), ""]
+    # kcn 2026-10-19: same chat style as the intraday and report cards — a
+    # title, two summary lines, small bold labels, `-` rows that open with the
+    # ticker in bold; no strategy ids or `driven_by=` enums on a reader's card.
+    short_date = date[5:].replace("-", "/") if len(date) == 10 else date
+    lines = [f"## 📊 盘前简报 · {short_date} {BRIEF_SLOT_HKT} HKT",
+             f"**账面 USD${money(book.get('usd_base_total'), digits=0)}**"
+             f" · 港 HK${money(book.get('hk_pnl_hkd'), digits=0)}"
+             f" · 美 ${money(book.get('us_pnl_usd'), digits=0)}",
+             f"USDHKD {num(fx.get('rate'), 4)}"
+             f" · 集中度 港 {num((concentration.get('hk') or {}).get('hhi'), 3)}"
+             f" · 美 {num((concentration.get('us') or {}).get('hhi'), 3)}", ""]
+    lines += ["**核心结论**", quote(text(judgment.get("portfolio_assessment"))), ""]
 
     actions = [d for d in (plan.get("decisions") or [])
                if d.get("action") not in (None, "hold_and_watch", "watch")]
     holds = [d for d in (plan.get("decisions") or [])
              if d.get("action") in ("hold_and_watch", "watch")]
-    lines.append(f"▎{PAGE_ACTION_HEADING}")
-    if actions:
-        for index, decision in enumerate(actions, 1):
-            size = (decision.get("size") or {}).get("shares")
-            lines.append(
-                f"{index}. {text(decision.get('ticker'))} [{text(decision.get('strategy_id'))}]"
-                f" {text(decision.get('action'))}"
-                f"{f' {num(size, 0)} 股' if size else ''}"
-                f" (driven_by={text(decision.get('driven_by'))},"
-                f" conf {confidence_pct(decision.get('confidence'))})")
-            departures = receipts.review_words(decision.get("policy_review"))
-            if departures:
-                lines.append(f"   ↳ 与登记策略不同：{'；'.join(departures)}")
-    else:
-        lines.append("无主动动作。")
+    lines.append(f"**{PAGE_ACTION_HEADING}**")
+    for decision in actions:
+        size = (decision.get("size") or {}).get("shares")
+        condition = decision.get("condition") or {}
+        kind, price = condition.get("type"), condition.get("price")
+        when = (f"{PRICE_CONDITIONS[kind]}{num(price)}" if kind in PRICE_CONDITIONS
+                and price is not None else ORDER_CONDITION_WORDS.get(kind))
+        bits = [f"**{text(decision.get('ticker'))}** "
+                f"{ORDER_ACTION_WORDS.get(decision.get('action'), text(decision.get('action')))}"
+                f"{f' {num(size, 0)} 股' if size else ''}",
+                when, _DRIVER_WORDS.get(decision.get("driven_by")),
+                f"信心 {confidence_pct(decision.get('confidence'))}"]
+        lines.append(bullet(" · ".join(bit for bit in bits if bit)))
+        departures = receipts.review_words(decision.get("policy_review"))
+        if departures:
+            lines.append(bullet(f"↳ {text(decision.get('ticker'))} 与登记策略不同：{'；'.join(departures)}"))
+    if not actions:
+        lines.append(bullet("无主动动作"))
     if holds:
-        lines.append(f"{len(actions) + 1}. "
-                     + "/".join(str(d.get("ticker")) for d in holds)
-                     + " hold_and_watch")
+        lines.append(bullet("持有观察：" + "、".join(str(d.get("ticker")) for d in holds)))
     lines.append("")
-
-    lines += [f"▎{CARD_BOOK_HEADING}",
-              f"USD${money(book.get('usd_base_total'), digits=0)}"
-              f" | HK leg HKD${money(book.get('hk_pnl_hkd'), digits=0)}"
-              f" | US leg USD${money(book.get('us_pnl_usd'), digits=0)}",
-              f"HHI: HK {num((concentration.get('hk') or {}).get('hhi'), 3)}"
-              f" · US {num((concentration.get('us') or {}).get('hhi'), 3)}", ""]
 
     levels = plan.get("watch_levels") or {}
     if levels:
-        lines.append("▎触发位")
+        lines.append("**触发位**")
         for key, value in levels.items():
-            lines.append(f"• {_level_label(key)}: {num(value)}")
+            lines.append(bullet(f"{_level_label(key)} `{_level_value(key, value)}`"))
         lines.append("")
     if page_url:
-        lines += ["📈 完整深度报告：", page_url]
+        lines += [f"完整报告：{page_url}"]
     return "\n".join(lines).rstrip() + "\n"
 
 

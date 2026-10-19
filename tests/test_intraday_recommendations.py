@@ -210,8 +210,8 @@ def test_card_is_trading_language_and_audit_keeps_the_evidence(inputs):
     assert ctx['rows']
     card, audit = render_card(ctx), render(ctx)
     row = ctx['rows'][0]
-    assert card.startswith('▎做T建议')
-    assert f"{row['ticker']} 先卖后买回 {row['shares']} 股" in card
+    assert card.startswith('### 🔁 做T建议')
+    assert f"**{row['ticker']}** 先卖后买回 {row['shares']} 股" in card
     for hidden in ('sha256', 'OHLC', 'prospective_status', 'Zero commission', '净增量'):
         assert hidden not in card
         assert hidden in audit

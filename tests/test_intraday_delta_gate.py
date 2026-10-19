@@ -20,13 +20,13 @@ COLLECT = preflight.intraday_information.collect
 
 
 def _card_section(card, header):
-    """Rows under one bold header of the sectioned card (intraday_card)."""
+    """Rows under one bold header of the sectioned card (chat_card)."""
     lines = card.splitlines()
     if header not in lines:
         return []
     rows = []
     for line in lines[lines.index(header) + 1:]:
-        if not line.startswith('• '):
+        if not line.startswith('- '):
             break
         rows.append(line)
     return rows
@@ -445,7 +445,7 @@ def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path
     _current, run = _wire_preflight(monkeypatch, tmp_path)
     ctx = run(None)
     assert ctx['delivery_mode'] == 'full_delta'
-    assert _card_section(ctx['raw_wechat_block'], '**本档变化**')[0] == '• 本交易日首档'
+    assert _card_section(ctx['raw_wechat_block'], '**本档变化**')[0] == '- 本交易日首档'
 
 
 def test_preflight_main_selects_full_delta_and_preserves_primary_context(
@@ -538,7 +538,7 @@ def test_a_breach_first_seen_this_session_still_sends_a_full_card(
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["semantic_delta"]["components"] == ["breaches"]
     card = ctx["raw_wechat_block"]
-    assert any("RKLX" in row for row in _card_section(card, "**⚠️ 待你处理**")
+    assert any("RKLX" in row for row in _card_section(card, "**待你处理**")
                + _card_section(card, "**本档变化**"))
 
 
@@ -618,14 +618,14 @@ def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path)
     start = lines.index(table[0])
     assert lines[start:start + len(table)] == table
     # The new mover is this slot's change; the unverified one is said once, in ⛔.
-    assert any(row.startswith("• SPCH") for row in _card_section(
+    assert any(row.startswith("- **SPCH") for row in _card_section(
         ctx["raw_wechat_block"], "**本档变化**"))
     assert [line for line in lines if "行情未证实" in line] == [
         "⛔ 数据降级：RKLX 行情未证实（沿用上一笔）"]
     # The same kinds reach postflight, which bolds the `new` rows for WeChat.
     assert ctx["card_marks"] == {"new": ["SPCH"], "stale": ["RKLX"]}
     # Data health sits under the title/book lines, before any section.
-    assert lines[0].startswith("**🇺🇸")
+    assert lines[0].startswith("## 🇺🇸")
     assert lines.index("⛔ 数据降级：RKLX 行情未证实（沿用上一笔）") < lines.index("**本档变化**")
     # The model keeps the analyzer's output whole, whatever the card folds.
     assert ctx["analyzer_block"] == block
@@ -655,7 +655,7 @@ def test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner(
 
     lines = ctx["raw_wechat_block"].splitlines()
     assert "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 加仓侧）" in lines
-    assert ("• SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸"
+    assert ("- SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸"
             in _card_section(ctx["raw_wechat_block"], "**加仓侧**"))
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["policy_evidence_errors"] == ["SPCH: quote not freshly verified"]
@@ -676,7 +676,7 @@ def test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly(
 
     assert ctx["semantic_unchanged"] is True
     assert ctx["delivery_mode"] == "full_delta"
-    assert _card_section(ctx["raw_wechat_block"], "**本档变化**") == ["• 本档无新变化"]
+    assert _card_section(ctx["raw_wechat_block"], "**本档变化**") == ["- 本档无新变化"]
     # The same slot with the switch off is the audited silence it was.
     (tmp_path / 'config' / 'intraday-delivery.json').write_text('{"always_full": false}')
     assert run(copy.deepcopy(current))["delivery_mode"] == "no_change"
@@ -703,7 +703,7 @@ def test_the_model_packet_keeps_reason_lines_the_card_folded(monkeypatch, tmp_pa
         assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
 
-    assert '• 仍在止损线下：RKLX' in packet["raw_wechat_block"]
+    assert '- 仍在止损线下：**RKLX**' in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' not in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' in packet["analyzer_block"]
 
@@ -723,7 +723,7 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
     shown = _card_section(ctx["raw_wechat_block"], "**加仓侧**")
     for row in rows:
         word = preflight.ADD_SIDE_WORDS[row["verdict"]]
-        assert any(line.startswith(f"• SPCH {word}：") for line in shown) == (row["verdict"] != "wait")
+        assert any(line.startswith(f"- SPCH {word}：") for line in shown) == (row["verdict"] != "wait")
     # Historical research stays in the context, off the card (kcn 2026-10-19).
     assert "策略研究" not in ctx["raw_wechat_block"]
     assert ctx["intraday_research"]["live_permission"] is False
