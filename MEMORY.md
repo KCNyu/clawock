@@ -131,12 +131,28 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - cron contract 是 `config/cron-schedules.json`，它驱动 DST 同步、payload / watchdog 校验
   和生成的 `docs/operations/cron-schedules.md`。
 
+### 模型与 thinking（2026-10-20 起）
+
+- 只用 `MiniMax-M3.1-Flash`。registry 里的 `[models.m3]` 已删，不要再加回来。
+- 它的 thinking 只能是 `adaptive`（官方：传 `disabled` 返 400）；`effort` 五档
+  `low/medium/high/xhigh/max`，省略时默认 `max` —— 想「最深」就是省略，不是写 `high`。
+- `thinkingDefault` 和 `talk.consultThinkingLevel` 现在由 `config/models.toml` 经
+  `ops/host/sync_models.py --apply` 写入，别手工改 openclaw.json（#174 修完又漂就是
+  因为这两个值没人管）。改完顺序：sync_models → sync_cron_payloads → gateway restart。
+- 策略 cron 的 `thinking` 仍是 `max`：cron 链是 M3.1 + luna 兜底共用一个档位，luna 没有
+  `adaptive`，改成 adaptive 会把 luna 降到 medium。M3.1 这一跳实际发出去就是 adaptive。
+- 契约测试会拦「M3.1 档位不是 adaptive」这种回归，别把它改绿了事。
+
 ### 简报投递：微信只发紧凑卡 + 链接
 
 - 不把 `pre-open.md` 全文贴进微信。全文写进当日的 pre-open 简报文件，在 briefs 页看。
 - brief cron 的模型只写受限 judgment；postflight 渲染紧凑卡并主发。卡片只含核心结论、
   Book、不超过 3 个动作、触发位和当日全文链接。模型的最终回复只留痕，不调 message 工具。
 - brief 的 `delivered=true` 不可信，以 postflight 的 delivery marker 为准。
+- 微信卡片样式（`clawock.harness.chat_card`）的覆盖面是**两市场 × 三档位**：港股和美股各自的
+  开盘报告 / 盘中盯盘 / 收盘报告，外加盘前简报卡。2026-10-19 起统一由 chat_card 渲染
+  （PR #3092 抽出公共渲染器）。加新卡片段或改排版时，港股要单独验：港股是 HKD 数字
+  （`浮盈 -61,313 (-53.5%)`，无 `$`），标题时区是 HKT，美股 risk 行的「杠杆ETF敞口」港股没有。
 - 兜底是 `clawock-brief-watchdog`（档位见 `docs/operations/cron-schedules.md`）：Telegram
   已成功就不动；marker 缺失或失败才补投 Telegram；marker 明确记录微信失败时同档只补发一次。
 
@@ -152,29 +168,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-12)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-06-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-06 周二 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.823 recalls=0 avg=0.620 source=memory/2026-10-06-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-07 周三 08:03 HKT: 指数在涨、持仓在跌：VIX 15.01 标普纳指同步收红，可组合里九成的票都压在 MA200 之下。今天把美股两笔纪律性减仓执行掉，SPCH 5 日涨 31.3% 之后还占美股段 87.8%，RKLX 浮亏 60.4% 卡在硬止损线上 84 天；港股端不加不减，2.55 是 07226 那条不能再等的线。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-07 周三 08:03 HKT: **反方**：最强反方是「在反弹最猛的一天卖出最强的两只」：SpaceX 正股贴住 20 日高、5 日 15.2%，Rocket Lab 因为收购 5 日 7.69%，宏观是 VIX 15 的 risk_on，恒科也在从 MA200 下方 14.7% 的位置反弹。这些都是真的，所以今天这两笔的性质不是看空，是用这周最好的价格把 84 天没关掉的敞口表关掉。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-07 周三 08:03 HKT description: "clawock 盘前深度简报 2026-10-07：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-07 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07-pre-open.md:9-9]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07.md:13:13 -->
-- 派发后必须验证「真的送达」: 今天 09:37 那条要求 **40 分钟没生效**，我却在回复里说「已送达，正在续跑」。原因：runner 输出 `appended to running task ... (ok/DONE)`，`ok/DONE` 是**已结束**状态不是运行中；inbox 里那条消息从没被取走。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07.md:15:15 -->
-- 派发后必须验证「真的送达」: 验证方法：追加后确认 inbox 消息移入 `inbox/delivered/` 且 `APPENDS` 递增。**没验证就不要说已送达。** [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-07.md:19:22 -->
-- 今天被我判断错、由 worker 推翻的（别重复）: | 我的说法 | 实际 | |---|---| | 没有 running icon（grep `@keyframes` 只有 2 个） | `animateMotion` 有 195 处，SMIL 不用 CSS | | icon 重复率 82% | 82% 是跨八图合并去重；**逐图 28.7%** | [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-07.md:19-22]
-
 ## Promoted From Short-Term Memory (2026-10-13)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-07-pre-open.md:478:507 -->
@@ -184,3 +177,10 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-08-pre-open.md:2:4 -->
 - layout: default title: 盘前深度简报｜2026-10-08 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-08：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-08-pre-open.md:2-4]
+
+## Promoted From Short-Term Memory (2026-10-20)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-07-27-pre-open.md:160:176 -->
+- **MSFU 7/29 财报**：Bull 看 buying opportunity；Bear 看短期 selloff + FOMC 双重事件 - **RKLX swap 时机**：Bull 看纪律 swap 不等价位；Bear 看"再忍一天等 SPCX 解禁前后整个板块反弹" ## ▎Tier 3 — 3 个 Risk Voice + Judge ### Aggressive（抓 upside，risk-on 立场） **立场**：纪律 swap 是无条件动作；但 SKHY 加仓窗口在 7/30 后打开（不是今天）。MSFT 7/29 财报如果 capex 指引温和 = +MSFU 反弹 alpha 在。 - **会做的事**：① 5 个 swap（SPCH→SPCX 150 / RKLX→RKLB 10 / PLTU→PLTR 14 / MSFU→MSFT 20 / 07226→03033 1000）**全部 09:30 HKT/ET 开盘市价成交**；② 00100 trim 20 股借反弹（if high > 215）→ 03929 → 实际是把 00100 单名 39.54% → 36% 收窄 - **会忽略的风险**：7/29 FOMC 加息概率 37.9% — 因为本子已 50% 浮亏，再跌空间有限（hard cap -100%） ### Conservative（保本 derisk，risk-off 立场） **立场**：纪律 swap +... [score=0.863 recalls=10 avg=0.501 source=memory/2026-07-27-pre-open.md:160-176]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-24-pre-open.md:49:58 -->
+- **理由** 硬止损 -33.3% ≤ -18% 站 42 天 breach ledger 持续；HK 杠杆 ETF 27.7% > amber 25% cap 双闸并发。adaptive.may_stand=true stance=declined 42d 同期他处有成交 kcn 选保留敞口让 HSTECH 反弹修复；swap_mandate 03033 (max 18042 HKD) 仍 open 但 kcn 实际不触发（风险增仓冻结需 proven risk-reducing pair，03033 packet technical_setup_ids=[] 无 alpha_confirmation/oversold_reclaim 等技术 setup，schema 校验 add_only_on_trigger 必填 technical_setup_id 走不通，故 buy 腿不出现在 plan）。Breakeven 49.9% (1x 6m 含 drag 23.4%)，标的 HSTECH 现 4379 距 4669 高 -6.2%，反弹需 +6.6%。9/24 vs 9/15 last_reissued (9 天) 无实质变化：HK AI 9/23 智谱 -12% / MINIMAX -3.98% 板块回踩，HSI -1.01% / HSTECH -1.33%，07226 -2.61% 跟随。维持 3.0 反弹减仓窗口 **判定**... [score=0.848 recalls=10 avg=0.450 source=memory/2026-09-24-pre-open.md:49-58]
