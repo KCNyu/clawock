@@ -225,3 +225,45 @@ def test_mobile_table_prints_a_cost_basis_at_reading_precision():
     parsed = harness_common.parse_holdings_rows('\n'.join(table))
     assert [(row['ticker'], row['price']) for row in parsed] \
         == [('00100', 215.0), ('07226', 2.504)]
+
+
+def test_zero_condition_still_triggers_without_a_percentage_or_crash():
+    hits = plans.triggered_conditions({'open': [{
+        'ticker': '00100', 'action': 'cut', 'condition': 'price_above',
+        'condition_price': 0, 'shares': 20,
+    }]}, {'00100': 182.1})
+    assert len(hits) == 1 and hits[0]['through_pct'] is None
+    card = intraday_preflight.append_plan_trigger_section('原始块', hits)
+    assert '触发价为 0，超出百分比未知' in card
+    assert '182.1' in card
+
+
+# A same-session fill can lose money while the instrument rises from prior close.
+# Both analyzers feed these exact bytes to chat cards and the anomaly detector.
+def test_analyzer_today_is_session_return_for_both_markets(monkeypatch, capsys):
+    from clawock.market_data import hk_analysis as hk, us_analysis as us
+    holding = {'ticker': '07709', 'shares': 100, 'cost_basis': 20.04,
+               'current_price': 19.19, 'prev_close': 18.68, 'current_value': 1919,
+               'today_change': -85, 'today_change_pct': -4.24,
+               'pnl_abs': -85, 'pnl_percent': -4.24}
+    book = {'holdings': [holding]}
+    monkeypatch.setattr(hk, 'fetch_indices', lambda: {})
+    analyses = [{'holding': holding, 'tech': {}, 'signal': 'WATCH', 'reasons': [], 'news': []}]
+    for i, render in enumerate((
+        lambda: hk.print_wechat_report({'portfolios': {'hk_stocks': book}}, md_table=True),
+        lambda: us.print_wechat_report({'portfolios': {'us_stocks': book}}, analyses, md_table=True),
+    )):
+        holding['ticker'] = '07709' if i == 0 else 'NVDA'
+        render()
+        text = capsys.readouterr().out
+        row = harness_common.parse_holdings_rows(text)[0]
+        assert row['move_pct'] == 2.7
+        assert not harness_common.parse_holdings_anomalies(text)
+        assert '-4.2%' in text  # position return is retained in the floating P&L column
+    holding['ticker'] = '07709'
+    holding['quote_incomplete'] = True
+    hk.print_wechat_report({'portfolios': {'hk_stocks': book}}, md_table=True)
+    text = capsys.readouterr().out
+    assert harness_common.parse_holdings_rows(text)[0]['move_pct'] is None
+    assert not harness_common.parse_holdings_anomalies(text)
+    assert not any('今日' in reason for reason in us.generate_signal(holding, {}, [])[1])

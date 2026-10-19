@@ -449,3 +449,48 @@ def test_evidence_records_its_own_build_time(tmp_path, monkeypatch):
     result = json.loads(ev.ARTIFACT.read_text())
     assert result['generated_at'] == '2020-01-01T00:00:00Z'
     assert datetime.fromisoformat(result['built_at']).year >= 2026
+
+
+def test_failed_factor_fetch_is_unreadable_not_waiting(tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, 'DATA', tmp_path)
+    (tmp_path / 'cross_sectional_factor.json').write_text(json.dumps({
+        'registered_at': '2026-07-26', 'as_of': '2026-10-20',
+        'universe': {'priced_symbols': 0, 'failed': {'AAA': 'timeout'}},
+        'activation': {'checks': {'prospective_dates': {'actual': 0, 'required': 24}}},
+    }))
+    section = ev.cross_sectional_section()
+    assert section['verdict'] == ev.VERDICT['undecided']
+    assert '证据源不可读' in section['reading']
+    assert not any('0 /' in value for _, value in section['rows'])
+
+
+def test_factor_zero_after_maturity_is_not_waiting(tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, 'DATA', tmp_path)
+    monkeypatch.setattr(ev, 'WS', tmp_path)
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'config/factor-universe.json').write_text(json.dumps({
+        'forward_horizon_sessions': 21,
+    }))
+    (tmp_path / 'cross_sectional_factor.json').write_text(json.dumps({
+        'registered_at': '2026-07-26', 'as_of': '2026-10-20',
+        'activation': {'checks': {'prospective_dates': {'actual': 0, 'required': 24}},
+                       'blockers': ['clustered_edge', 'membership_history']},
+    }))
+    section = ev.cross_sectional_section()
+    assert section['verdict'] == ev.VERDICT['undecided']
+    assert 'clustered_edge' in section['reading']
+
+
+def test_factor_evidence_keeps_mature_counts_and_real_blockers(tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, 'DATA', tmp_path)
+    (tmp_path / 'cross_sectional_factor.json').write_text(json.dumps({
+        'registered_at': '2026-07-26', 'as_of': '2026-10-20',
+        'universe': {'priced_symbols': 39, 'failed': {}},
+        'activation': {'checks': {'prospective_dates': {
+            'actual': 38, 'required': 24, 'pass': True}},
+            'blockers': ['clustered_edge', 'membership_history']},
+    }))
+    section = ev.cross_sectional_section()
+    assert section['verdict'] == ev.VERDICT['undecided']
+    assert '38 / 需要 24 · ✅' in section['rows'][0][1]
+    assert 'clustered_edge、membership_history' in section['reading']

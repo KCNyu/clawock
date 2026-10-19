@@ -1501,3 +1501,20 @@ def test_authored_boolean_prices_remain_invalid_after_normalizing():
     errors = dv2.validate_plan(plan, check_book=False)
     assert any("requires condition.price" in e for e in errors)
     assert any("requires invalidation_price" in e for e in errors)
+
+
+def test_passive_coverage_discloses_unresolved_and_partial_episodes():
+    rows = [decision('2026-07-01', ticker=t) for t in ('AAA', 'BBB', 'CCC')]
+    dv2.assign_episode_ids(rows)
+    rows[1]['evaluation'] = {'status': 'not_evaluable', 'not_evaluable_reason': 'market_closed'}
+    rows[2]['evaluation'] = {'status': 'pending', 'pending_reason': 'session_not_final'}
+    partial = dict(rows[0], evaluation={'status': 'not_evaluable',
+                                      'not_evaluable_reason': 'needs_human_evidence'})
+    rows.append(partial)
+    metrics = dv2.compute_metrics(rows, cutoff='2026-01-01')
+    cov = metrics['coverage_passive']
+    assert cov['episodes_total'] == 3
+    assert cov['episodes_graded'] == 0
+    assert cov['episodes_partial'] == metrics['passive']['n_episodes'] == 1
+    assert cov['episodes_unresolved'] == 2
+    assert cov['unresolved_reasons'] == {'market_closed': 1, 'pending:session_not_final': 1}

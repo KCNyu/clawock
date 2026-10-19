@@ -2623,6 +2623,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
                     }))}
 
     coverage_active = _coverage([d for d in in_window if d.get("action") in ACTIVE_ACTIONS])
+    coverage_passive = _coverage([d for d in in_window if d.get("action") not in ACTIVE_ACTIONS])
 
     def _prospective_overlay_metrics(rows: list[dict]) -> dict:
         """Forward attribution from immutable, decision-time signal snapshots.
@@ -2862,6 +2863,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
         "calibration": {"active": cal_active, "passive": cal_passive, "all": cal_all},
         "hierarchical_calibration": hierarchical_calibration,
         "coverage_active": coverage_active,
+        "coverage_passive": coverage_passive,
         # The headline "followed rate" averaged two populations that mean opposite
         # things: acting on a cut/trim/add is a decision, while "following" a hold
         # is just not moving — it scores itself. Averaged they produced a ~50% that

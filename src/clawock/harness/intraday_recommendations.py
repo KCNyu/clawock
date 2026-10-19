@@ -29,7 +29,7 @@ def render(ctx):
             lines.extend([
                 f"{row['ticker']}：限价卖出底仓 {row['shares']} 股，卖价不低于 {row['sell_limit']:.2f} USD。",
                 f"仅在现价仍高于 {row['band']:.4f} 且低于 {row['buyback_stop']:.2f} 时考虑；先核对真实可卖股数、未成交单和现金，重复卡不是追加单。",
-                f"成交后：回落至 {row['buyback_target']:.2f} 买回；升至 {row['buyback_stop']:.2f} 则失效买回，均为 {row['shares']} 股；未触及则本场收盘前买回。",
+                f"成交后：回落至 {row['buyback_target']:.2f} 买回；升至 {row['buyback_stop']:.2f} 则按该价止损买回（认亏离场），均为 {row['shares']} 股；未触及则本场收盘前买回。",
                 f"信号 {row['signal_at']}；未成交至 {row['expires_at']} 即撤销，持仓/计划改变或出现新 bar 也须重评。",
                 '买回以实际卖出成交股数为限；跳空、滑点和不能成交可能扩大损失。',
                 f"条件往返成本 {row['conditional_roundtrip_cost']:.4f} USD；不承诺净收益。",
@@ -73,13 +73,19 @@ def render_card(ctx):
     for row in rows:
         lines.extend([
             f"- **{row['ticker']}** 先卖后买回 {row['shares']} 股：限价卖出，卖价不低于 `{row['sell_limit']:.2f}`",
-            f"- 买回：回落到 `{row['buyback_target']:.2f}` 买回；涨到 `{row['buyback_stop']:.2f}` 放弃买回；"
+            f"- 买回：回落到 `{row['buyback_target']:.2f}` 买回；涨到 `{row['buyback_stop']:.2f}` 止损买回（认亏离场）；"
             '都没碰到就收盘前买回',
             f"- 前提：现价在 `{row['band']:.2f}`–`{row['buyback_stop']:.2f}` 之间；"
             f"`{_clock(row['expires_at'], market)}` 前没成交就撤单；持仓或计划变了先别下",
             f"- 往返成本约 {row['conditional_roundtrip_cost']:.2f} {'HKD' if market == 'hk' else 'USD'}；"
             '回测未经前瞻验证，跳空和滑点可能放大亏损',
         ])
+        base = row.get('research_base') or {}
+        lines.append(
+            f"- 历史同规则 {base.get('trades', '未知')} 笔，净增量 {_metric(base, 'net_increment')} USD"
+            f"（成本 {_metric(base, 'costs')}、场次末回撤 {_metric(base, 'max_session_close_drawdown')}）；"
+            '历史净验证未证明有效'
+        )
     return '\n'.join(lines)
 
 

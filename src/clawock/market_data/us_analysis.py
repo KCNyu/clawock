@@ -29,6 +29,7 @@ from clawock.market_data.us_quotes import (
 from clawock.instruments import get as get_instrument, is_leveraged_holding
 from clawock.market_data import fanout
 from clawock.portfolio.books import region_book
+from clawock.portfolio.math import session_change_pct
 from clawock.sessions import ET, HKT, hkt_today
 
 ET_TZ = ET
@@ -158,6 +159,10 @@ def news_sentiment(items: List[Dict]) -> Tuple[int, str]:
     return score, label
 
 
+def _day_text(value, digits=1):
+    return f'{value:+.{digits}f}%' if value is not None else '—'
+
+
 # ── signal logic ─────────────────────────────────────────────────────────────
 
 def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[str, List[str]]:
@@ -169,7 +174,8 @@ def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[
     score   = 0   # positive = bullish
 
     pnl_pct   = holding.get('pnl_percent', 0)
-    day_pct   = holding.get('today_change_pct', 0)
+    day_pct   = session_change_pct(holding)
+    day_pct = round(day_pct, 2) if day_pct is not None else None
     rsi       = tech.get('rsi14')
     price     = holding.get('current_price', 0)
     ma20      = tech.get('ma20')
@@ -204,9 +210,9 @@ def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[
     elif pnl_pct <= -10: reasons.append(f"浮亏 {pnl_pct:.1f}%");               score -= 1
 
     # Today's move
-    if   day_pct >=  8: reasons.append(f"今日暴涨 +{day_pct:.1f}%，注意回调")
-    elif day_pct >=  5: reasons.append(f"今日强涨 +{day_pct:.1f}%")
-    elif day_pct <= -5: reasons.append(f"今日大跌 {day_pct:.1f}%")
+    if   day_pct is not None and day_pct >=  8: reasons.append(f"今日暴涨 +{day_pct:.1f}%，注意回调")
+    elif day_pct is not None and day_pct >=  5: reasons.append(f"今日强涨 +{day_pct:.1f}%")
+    elif day_pct is not None and day_pct <= -5: reasons.append(f"今日大跌 {day_pct:.1f}%")
 
     # Leverage flag
     if is_lev:
@@ -290,7 +296,7 @@ def print_report(data: Dict, analyses: List[Dict]):
         print(
             f"  {h['ticker']:<7} "
             f"${h['current_price']:>7.2f} "
-            f"{h['today_change_pct']:>+7.2f}% "
+            f"{_day_text(session_change_pct(h), 2):>8} "
             f"${h['cost_basis']:>7.2f} "
             f"{h['pnl_percent']:>+8.2f}% "
             f"{rsi_s:>5}  "
@@ -306,7 +312,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     for sig, ticker, reasons, h, tech, news_items in signal_rows:
         arr = SIGNAL_COLOR.get(sig, '?')
         print(f"\n  {arr} [{sig}] {ticker}  ${h['current_price']:.2f}"
-              f"  今日 {h['today_change_pct']:+.2f}%  P&L {h['pnl_percent']:+.1f}%")
+              f"  今日 {_day_text(session_change_pct(h), 2)}  P&L {h['pnl_percent']:+.1f}%")
         if reasons:
             for r in reasons:
                 print(f"     · {r}")
@@ -383,7 +389,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             'shares':    a['holding'].get('shares', 0),
             'cost':      a['holding'].get('cost_basis'),
             'price':     a['holding'].get('current_price', 0),
-            'today_pct': a['holding'].get('today_change_pct', 0),
+            'today_pct': session_change_pct(a['holding']),
             'pnl_pct':   a['holding'].get('pnl_percent', 0),
             'pnl_abs':   a['holding'].get('pnl_abs', 0),
         } for a in analyses]
@@ -392,13 +398,12 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
         for a in analyses:
             h     = a['holding']
             tech  = a['tech']
-            dp    = h.get('today_change_pct', 0)
+            dp    = session_change_pct(h)
             pnl_p = h.get('pnl_percent', 0)
             rsi   = tech.get('rsi14')
-            arr   = '▲' if dp >= 0 else '▼'
             emo   = '🟢' if pnl_p >= 0 else '🔴'
             rsi_s = f" RSI{rsi:.0f}" if rsi else ''
-            lines.append(f"{emo} {h['ticker']:<5} ${h['current_price']:.2f}  {arr}{abs(dp):.1f}%  浮{pnl_p:+.1f}%{rsi_s}")
+            lines.append(f"{emo} {h['ticker']:<5} ${h['current_price']:.2f}  {_day_text(dp)}  浮{pnl_p:+.1f}%{rsi_s}")
 
     # Actionable signals only (BUY / WATCH / TRIM / STOP-LOSS)
     alerts = []
@@ -408,7 +413,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             continue
         h = a['holding']
         arr = SIGNAL_COLOR.get(sig, '?')
-        alerts.append(f"  {arr} {sig} {h['ticker']} | 今日{h['today_change_pct']:+.1f}% 浮{h['pnl_percent']:+.1f}%")
+        alerts.append(f"  {arr} {sig} {h['ticker']} | 今日{_day_text(session_change_pct(h))} 浮{h['pnl_percent']:+.1f}%")
         for r in a['reasons'][:2]:
             alerts.append(f"     · {r}")
     if alerts:

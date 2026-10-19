@@ -1799,7 +1799,16 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
   for (const [width, height] of [[1200, 900], [390, 844]]) {
     const context = await browser.newContext({ viewport: { width, height } });
     const page = await context.newPage();
-    await stubLiveOrigin(page);
+    // The test measures chart layout, so it supplies bars even on a quiet session.
+    await stubLiveOrigin(page, { patch: (name, payload) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      payload.today_movers = [
+        {ticker: "NVDA", region: "us", today_change_pct: 3.5},
+        {ticker: "07226", region: "hk", today_change_pct: -2.5},
+        {ticker: "07709", region: "hk", today_change_pct: 1.5},
+      ];
+      return payload;
+    } });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
     await page.waitForSelector("#today-movers .hl-movers", { timeout: 5000 });
@@ -4404,6 +4413,35 @@ async function testButtonDefaultsDoNotOverrideComponentFonts(browser) {
   } finally { await page.close(); }
 }
 
+async function testSessionMoneyAndPassiveCoverageAreExplicit(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  try {
+    await stubLiveOrigin(page, { patch: (name, payload) => {
+      if (name !== "dashboard.json") return null;
+      payload.decision_metrics = {
+        active: {win_rate: null}, passive: {win_rate: 0.1923, n_episodes: 26},
+        coverage_passive: {episodes_total: 29, episodes_graded: 20, episodes_partial: 6,
+          episodes_unresolved: 3, graded_pct: 89.7,
+          unresolved_reasons: {market_closed: 2, "pending:session_not_final": 1}},
+      };
+      const holding = (payload.holdings.hk || [])[0];
+      if (holding) { holding.today_change = -85; holding.today_change_pct = 2.73; }
+      return payload;
+    } });
+    await page.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
+    await waitForTab(page, "reflect");
+    const coverage = await page.locator("#plan-winrate-sub").textContent();
+    assert.match(coverage, /被动胜率 19\.23%（n=26）/);
+    assert.match(coverage, /20 可判 \/ 6 半判 \/ 29 总数；3 判不了/);
+    assert.match(coverage, /89\.7%/);
+    await clickTab(page, "drill");
+    await waitForTab(page, "drill");
+    const book = await page.locator("#book-tbody").textContent();
+    assert.match(book, /仓位当日/);
+    assert.match(book, /标的涨跌/);
+  } finally { await page.close(); }
+}
+
 async function testBenchmarkScoresShowBothDenominators(browser, base) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const errors = [];
@@ -4473,6 +4511,7 @@ async function main() {
     await fn();
   };
   try {
+    await run("testSessionMoneyAndPassiveCoverageAreExplicit", () => testSessionMoneyAndPassiveCoverageAreExplicit(browser, base));
     await run("testBenchmarkScoresShowBothDenominators", () => testBenchmarkScoresShowBothDenominators(browser, base));
     await run("testDailyPnlUsesOneLatestReadingPerMarketSession", () => testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base));
     await run("testNoChartPaintsOneLabelOverAnother", () => testNoChartPaintsOneLabelOverAnother(browser, base));

@@ -212,8 +212,14 @@ def test_card_is_trading_language_and_audit_keeps_the_evidence(inputs):
     row = ctx['rows'][0]
     assert card.startswith('### 🔁 做T建议')
     assert f"**{row['ticker']}** 先卖后买回 {row['shares']} 股" in card
-    for hidden in ('sha256', 'OHLC', 'prospective_status', 'Zero commission', '净增量'):
+    for hidden in ('sha256', 'OHLC', 'prospective_status', 'Zero commission'):
         assert hidden not in card
         assert hidden in audit
+    assert '放弃买回' not in card and '失效买回' not in audit
+    assert f"`{row['buyback_stop']:.2f}` 止损买回（认亏离场）" in card
+    base = row['research_base']
+    assert f"净增量 {base['net_increment']:.4f} USD" in card
+    assert f"成本 {base['costs']:.4f}" in card
+    assert '历史净验证未证明有效' in card
     refused = build(inputs[0], 'us', inputs[1], {}, {}, now=NOW.replace(hour=19, minute=50))
     assert render_card(refused) == ''

@@ -278,7 +278,7 @@ def triggered_conditions(plan_context, prices):
                 "last": float(last),
                 # Signed distance past the line, so a slot can say how far the
                 # trigger is blown rather than only that it is.
-                "through_pct": round((last - target) / target * 100, 2),
+                "through_pct": round((last - target) / target * 100, 2) if target else None,
                 "shares": entry.get("shares"),
                 "execution_status": entry.get("execution_status"),
                 "open_since": entry.get("plan_date"),

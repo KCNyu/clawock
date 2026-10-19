@@ -135,7 +135,7 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
 
         cost_s  = cost_text(cost)    if cost  else '—'
         price_s = price_text(price)
-        today_s = f'{today_pct:+.1f}%'
+        today_s = f'{today_pct:+.1f}%' if today_pct is not None else '—'
         pnlp_s  = f'{pnl_pct:+.1f}%'
         pnla_s  = f'{pnl_abs:+,.0f}'
 

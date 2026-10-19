@@ -288,6 +288,8 @@ def _horizon_status(payload, checks) -> dict:
     earliest_activation = (
         _sessions_after(first_measurable, int(required) - 1)
         if first_measurable and required else None)
+    if first_measurable and str(payload.get('as_of') or '')[:10] >= first_measurable:
+        return {'pending': False}
     return {
         'pending': True,
         'horizon': horizon,
@@ -310,8 +312,14 @@ def cross_sectional_section() -> dict | None:
         rows.append((f'`{name}`',
                      f"{_plain(check.get('actual'))} / 需要 {_plain(check.get('required'))} · "
                      f"{'✅' if check.get('pass') else '⚪ 未达标'}"))
+    universe = payload.get('universe') or {}
+    unavailable = bool(universe.get('failed')) and not universe.get('priced_symbols')
     horizon = _horizon_status(payload, checks)
-    if horizon['pending']:
+    if unavailable:
+        verdict = VERDICT['undecided']
+        rows = [('行情覆盖', '证据源不可读；本次未取到任何标的价格')]
+        reading = '证据源不可读：本次抓价全部失败，无法重算前瞻检验；不将缺失观测解释为尚未到期或零收益。'
+    elif horizon['pending']:
         verdict = VERDICT['pending']
         window = (f"最早可测 {horizon['first_measurable']}"
                   if horizon['first_measurable'] else '最早可测日期待日历覆盖')
@@ -330,6 +338,9 @@ def cross_sectional_section() -> dict | None:
             "这一层**只用 `registered_at` 之后记录的快照**做样本外验证，"
             "回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。"
             "「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。")
+
+    if not unavailable and activation.get('blockers'):
+        reading += ' 当前阻断项：' + '、'.join(activation['blockers']) + '。'
 
     return {
         'title': '截面因子（预注册）',
