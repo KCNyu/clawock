@@ -20,9 +20,11 @@ on:
     # Second attempt (brief-fallback multi-tier pattern): measured drift
     # (assets/data/schedule-drift.json, n=20) maxes at 213min against this
     # slot's ~150min pre-brief buffer, so ~1 run in 20 landed after the 00:00
-    # UTC brief and it read the previous day's sidecar. The scan overwrites
-    # idempotently and the commit step no-ops without changes — an already-
-    # fresh retry costs nothing.
+    # UTC brief and it read the previous day's sidecar. A retry after the
+    # host's run is not free: Google News rotates which headlines it returns,
+    # so it almost always commits a different sample, and that commit
+    # redeploys Pages. Only a re-scan differing in generated_at alone is
+    # dropped, by the "Keep the committed copy" step.
     - cron: '55 21 * * 0-4'
   workflow_dispatch:
 
@@ -48,6 +50,11 @@ jobs:
 
       - name: Validate sentiment coverage
         run: clawock validate-sidecar sentiment
+
+      - name: Keep the committed copy when only generated_at moved
+        # A same-cycle re-scan that found nothing new must not commit and
+        # redeploy Pages for a new timestamp; see the script's docstring.
+        run: python3 ops/ci/hold_unchanged_sidecar.py --source assets/data/sentiment.json
 
       - name: Snapshot point-in-time copy
         # factor-snapshots/ keeps a verbatim dated copy of every sidecar

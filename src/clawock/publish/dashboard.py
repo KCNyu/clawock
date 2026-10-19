@@ -3874,6 +3874,20 @@ def _latest_due_fire(schedule, at, calendar=None):
     return latest
 
 
+def latest_scheduled_fire(name, at):
+    """When the newest fire the health card will judge `name` against began.
+
+    Grace is dropped: a file written after this moment stays fresh until the
+    next fire, however late that run lands. None when `name` has no schedule.
+    """
+    schedule = _FRESHNESS_POLICY.get(name, {}).get('schedule')
+    if not schedule:
+        return None
+    fires = tuple(dict(fire, grace_hours=0) for fire in schedule['fires'])
+    due = _latest_due_fire({'fires': fires}, at)
+    return due['scheduled_at'] if due else None
+
+
 def _latest_completed_session(market, calendar, at=None):
     """Newest trading session that has conservatively finished in market time.
 
