@@ -5,7 +5,7 @@ and rewritten pass by pass (变化 lead, ↑ pointer, ▎持续状态, 🛰️ �
 answered "what changed" in five places and "what do I do" in none. This card
 is built from the slot's structured data, in the order a reader asks:
 
-    title + book line
+    title + book line + the analyzer's 📉 risk line
     ⛔ data health            only when something is degraded
     **⚠️ 待你处理**           P0 questions, unfilled plan orders, broken plan lines,
                               a stop newly broken today, the T+0 order if any
@@ -51,8 +51,9 @@ def split_analyzer(block: str) -> dict:
     lines = (block or '').splitlines()
     title = lines[0].strip() if lines else ''
     book = next((line.strip() for line in lines if line.strip().startswith('📊')), '')
+    risk = next((line.strip() for line in lines if line.strip().startswith('📉')), '')
     table = [line for line in lines if line.strip().startswith('|') and line.strip().endswith('|')]
-    return {'title': title, 'book': book, 'table': table}
+    return {'title': title, 'book': book, 'risk': risk, 'table': table}
 
 
 def title_line(title: str) -> str:
@@ -171,6 +172,8 @@ def render(*, analyzer: str, health=(), action=(), recommendation='', changes=()
     lines = [title_line(parts['title'])]
     if parts['book']:
         lines.append(book_line(parts['book']))
+    if parts['risk']:
+        lines.append(re.sub(r'\s+\|\s+', '｜', parts['risk'].lstrip('📉').strip()))
     health = [line for line in health if line]
     if health:
         lines += ['', *health]
