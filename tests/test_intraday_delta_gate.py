@@ -18,6 +18,19 @@ from clawock.harness import intraday_preflight as preflight  # noqa: E402
 COLLECT = preflight.intraday_information.collect
 
 
+
+def _card_section(card, header):
+    """Rows under one bold header of the sectioned card (intraday_card)."""
+    lines = card.splitlines()
+    if header not in lines:
+        return []
+    rows = []
+    for line in lines[lines.index(header) + 1:]:
+        if not line.startswith('• '):
+            break
+        rows.append(line)
+    return rows
+
 def _portfolio(path):
     path.write_text(json.dumps({
         "portfolios": {
@@ -432,7 +445,7 @@ def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path
     _current, run = _wire_preflight(monkeypatch, tmp_path)
     ctx = run(None)
     assert ctx['delivery_mode'] == 'full_delta'
-    assert '变化：本交易日首档' in ctx['raw_wechat_block']
+    assert _card_section(ctx['raw_wechat_block'], '**本档变化**')[0] == '• 本交易日首档'
 
 
 def test_preflight_main_selects_full_delta_and_preserves_primary_context(
@@ -446,12 +459,14 @@ def test_preflight_main_selects_full_delta_and_preserves_primary_context(
 
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["semantic_delta"]["components"] == ["setups"]
-    assert "CRCL[等待]" in ctx["raw_wechat_block"]
+    # Information already delivered (`↳ 仍有效`) is not this slot's change;
+    # the model still has it whole.
+    assert "仍有效" not in ctx["raw_wechat_block"]
+    assert "CRCL" in json.dumps(ctx["active_information_candidates"], ensure_ascii=False)
     assert "8-K awaiting detail" not in ctx["raw_wechat_block"]
     assert "一级源降级：BAD" in ctx["raw_wechat_block"]
-    # The mirror list equals the last delivered card's: one sentence, still named.
-    assert ("  · CRCL：SEC 直连降级已由镜像兜住（名单未变，不再逐档印）"
-            in ctx["raw_wechat_block"].splitlines())
+    # The mirror list equals the last delivered card's: nothing printed.
+    assert "名单未变" not in ctx["raw_wechat_block"]
     assert "△ SEC直连降级" not in ctx["raw_wechat_block"]
 
 
@@ -462,7 +477,7 @@ def test_the_sec_mirror_line_prints_only_when_its_list_changes(monkeypatch, tmp_
     previous = copy.deepcopy(current)
     previous["primary_source_health"]["partial"] = []
     ctx = run(previous)
-    assert "  △ SEC直连降级、镜像已检查：CRCL" in ctx["raw_wechat_block"].splitlines()
+    assert "△ SEC直连降级、镜像已检查：CRCL" in ctx["raw_wechat_block"].splitlines()
     assert "名单未变" not in ctx["raw_wechat_block"]
     other_day = copy.deepcopy(current)
     other_day["session"] = "us:2026-08-12"
@@ -522,7 +537,9 @@ def test_a_breach_first_seen_this_session_still_sends_a_full_card(
 
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["semantic_delta"]["components"] == ["breaches"]
-    assert "新触发：RKLX" in ctx["raw_wechat_block"]
+    card = ctx["raw_wechat_block"]
+    assert any("RKLX" in row for row in _card_section(card, "**⚠️ 待你处理**")
+               + _card_section(card, "**本档变化**"))
 
 
 def test_setup_sub_state_churn_is_not_a_delta():
@@ -600,13 +617,14 @@ def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path)
     lines = ctx["raw_wechat_block"].splitlines()
     start = lines.index(table[0])
     assert lines[start:start + len(table)] == table
-    # The pointer names new rows; the unverified one is said once, in ⛔.
-    assert "↑ 新异动/触发 SPCH" in lines
+    # The new mover is this slot's change; the unverified one is said once, in ⛔.
+    assert any(row.startswith("• SPCH") for row in _card_section(
+        ctx["raw_wechat_block"], "**本档变化**"))
     assert [line for line in lines if "行情未证实" in line] == [
         "⛔ 数据降级：RKLX 行情未证实（沿用上一笔）"]
     # The same kinds reach postflight, which bolds the `new` rows for WeChat.
     assert ctx["card_marks"] == {"new": ["SPCH"], "stale": ["RKLX"]}
-    assert lines[1].startswith("变化：") and lines[2].startswith("⛔ 数据降级：")
+    assert lines[0].startswith("**🇺🇸") and "⛔ 数据降级：" in lines[3]
     # The model keeps the analyzer's output whole, whatever the card folds.
     assert ctx["analyzer_block"] == block
 
@@ -634,10 +652,9 @@ def test_incomplete_strategy_evidence_sits_on_its_holding_not_the_banner(
     ctx = run(copy.deepcopy(current))
 
     lines = ctx["raw_wechat_block"].splitlines()
-    assert lines[2] == "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 🛰️ 加仓侧）"
-    assert "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸" in lines
-    assert lines.index(preflight.ADD_SIDE_HEADER) < lines.index(
-        "  · SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸")
+    assert "⛔ 数据降级：SPCH 策略升级证据未取全（原因见 加仓侧）" in lines
+    assert ("• SPCH 观望：策略升级证据未取全（行情未证实刷新）→ 本档不给尺寸"
+            in _card_section(ctx["raw_wechat_block"], "**加仓侧**"))
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["policy_evidence_errors"] == ["SPCH: quote not freshly verified"]
 
@@ -657,7 +674,7 @@ def test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly(
 
     assert ctx["semantic_unchanged"] is True
     assert ctx["delivery_mode"] == "full_delta"
-    assert ctx["raw_wechat_block"].splitlines()[1] == "变化：无（与上次送达相比，本档没有新条件）"
+    assert _card_section(ctx["raw_wechat_block"], "**本档变化**") == ["• 本档无新变化"]
     # The same slot with the switch off is the audited silence it was.
     (tmp_path / 'config' / 'intraday-delivery.json').write_text('{"always_full": false}')
     assert run(copy.deepcopy(current))["delivery_mode"] == "no_change"
@@ -684,7 +701,7 @@ def test_the_model_packet_keeps_reason_lines_the_card_folded(monkeypatch, tmp_pa
         assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
 
-    assert '今日已报、仍在' in packet["raw_wechat_block"]
+    assert '• 仍在止损线下：RKLX' in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' not in packet["raw_wechat_block"]
     assert '价格高于MA20 +25.7%' in packet["analyzer_block"]
 
@@ -699,15 +716,15 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
 
     rows = ctx["add_side_reads"]["rows"]
     assert [row["ticker"] for row in rows] == ["SPCH"]
-    lines = ctx["raw_wechat_block"].splitlines()
-    head = lines.index(preflight.ADD_SIDE_HEADER)
-    word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
-    assert lines[head + 1].startswith(f"  · SPCH {word}：")
+    # The card prints the add-side rows that say something: a plain 等待
+    # stays in `add_side_reads` for the model (kcn 2026-10-19).
+    shown = _card_section(ctx["raw_wechat_block"], "**加仓侧**")
+    for row in rows:
+        word = preflight.ADD_SIDE_WORDS[row["verdict"]]
+        assert any(line.startswith(f"• SPCH {word}：") for line in shown) == (row["verdict"] != "wait")
     # Historical research stays in the context, off the card (kcn 2026-10-19).
-    assert lines[head - 1] == "" and len(lines) == head + 2
-    assert not any(line.startswith("▎策略研究") for line in lines)
+    assert "策略研究" not in ctx["raw_wechat_block"]
     assert ctx["intraday_research"]["live_permission"] is False
-    assert preflight.STATUS_HEADER not in lines[head:]
 
 
 def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet(
@@ -765,8 +782,9 @@ def test_preflight_prints_the_leverage_line_from_the_t0_map(monkeypatch, tmp_pat
     ctx = run(copy.deepcopy(current))
     lines = ctx["raw_wechat_block"].splitlines()
     assert lines[lines.index(table[0]):lines.index(table[0]) + 2] == table
-    assert lines[lines.index(preflight.STATUS_HEADER) + 1:] == [
-        "亏损持仓 1/2", "SPCH：SPCX -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp"]
+    # A leg tracking its underlying within 1pp is ordinary leverage: the card
+    # says nothing, the model keeps the row.
+    assert "差 -0.30pp" not in ctx["raw_wechat_block"]
     assert ctx["leverage_legs"][0]["gap_pp"] == -0.3
     assert ctx["analyzer_block"] == block
 
