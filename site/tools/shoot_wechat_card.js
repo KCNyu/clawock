@@ -6,9 +6,11 @@
 // A schematic, not a phone capture: it draws the markdown subset that the
 // WeChat channel's StreamingMarkdownFilter passes through unchanged (headings
 // #–####, blockquotes, `-` lists, tables, ---, **bold**, `code`) roughly as the
-// client shows it, so a card's layout can be reviewed in a PR. Whether a real
-// client renders each construct is still a phone check. Generalised from the
-// one-off table shot behind #3060's docs/design/dispatch-stats-wechat.png.
+// client shows it, so a card's layout can be reviewed in a PR. Headings pass
+// the filter but the client does not render them: `## title` shows as literal
+// `## ` in plain weight (kcn 2026-10-20), and is drawn that way here. Whether a
+// real client renders each other construct is still a phone check. Generalised
+// from the one-off table shot behind #3060's docs/design/dispatch-stats-wechat.png.
 const fs = require('fs');
 const { webkit } = require(process.env.PLAYWRIGHT_CORE || 'playwright-core');
 
@@ -31,8 +33,7 @@ function render(markdown) {
     const line = lines[i];
     const t = line.trim();
     if (!t) { i += 1; continue; }
-    const heading = /^(#{1,4})\s+(.*)$/.exec(t);
-    if (heading) { out.push(`<div class="h${heading[1].length}">${inline(heading[2])}</div>`); i += 1; continue; }
+    if (/^#{1,4}\s/.test(t)) { out.push(`<p>${esc(t)}</p>`); i += 1; continue; }
     if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) { out.push('<hr>'); i += 1; continue; }
     if (t.startsWith('>')) {
       const body = [];
@@ -87,9 +88,6 @@ const html = `<!doctype html><html lang="zh"><head><meta charset="utf-8"><style>
   .bubble { position: relative; background: #fff; border-radius: 6px; padding: 11px 12px 12px; width: 318px;
     font-size: 14px; line-height: 1.55; color: #111; overflow-wrap: anywhere; }
   .bubble::before { content: ""; position: absolute; left: -6px; top: 13px; border: 6px solid transparent; border-right-color: #fff; border-left: 0; }
-  .h1, .h2 { font-size: 17px; font-weight: 700; margin: 2px 0 6px; }
-  .h3 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; }
-  .h4 { font-size: 14px; font-weight: 700; margin: 10px 0 4px; }
   p { margin: 4px 0; }
   p.label { margin: 14px 0 2px; }  /* a bold label after a blank line: WeChat keeps the empty line */
   ul { margin: 2px 0 4px; padding-left: 18px; }
