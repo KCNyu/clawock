@@ -24,6 +24,8 @@ Other `metadata` keys written by Claude Code (`originSessionId`, `node_type`, `m
 
 Record only durable, reusable information: explicit user preferences, stable decisions, verified recurring fixes, and project conventions. Do not store secrets, credentials, transient status, guesses, raw conversation logs, or facts already discoverable cheaply from the repository.
 
+Write the `description` in the words people search with: what the topic is about plus the other names users and agents use for it (`微信掉投/投递失败/通知没送到：…`). Search is literal and ranks description hits above body hits; a word written only deep in one body is found late, and a word written nowhere is never found. When a search missed because you tried another word, add that word to the description of the topic you eventually found.
+
 Prefer one topic per concept and search before adding; when a concept gains a new episode, append a dated section to its topic (timeline form) instead of creating `<concept>-<date>.md`. Routes in every index are relative to the shared-memory root.
 
 Names are lowercase and hyphenated and start with a type prefix (`add` refuses others; `doctor` warns):
