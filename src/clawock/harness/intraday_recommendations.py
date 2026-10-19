@@ -69,15 +69,16 @@ def render_card(ctx):
     if not rows:
         return ''
     market = ctx.get('market') or 'us'
-    lines = ['▎做T建议 · 需你手动下单，不会自动成交']
+    lines = ['### 🔁 做T建议（需你手动下单，不会自动成交）']
     for row in rows:
         lines.extend([
-            f"{row['ticker']} 先卖后买回 {row['shares']} 股：限价卖出，卖价不低于 {row['sell_limit']:.2f}",
-            f"  买回：回落到 {row['buyback_target']:.2f} 买回；涨到 {row['buyback_stop']:.2f} 放弃买回；"
+            f"- **{row['ticker']}** 先卖后买回 {row['shares']} 股：限价卖出，卖价不低于 `{row['sell_limit']:.2f}`",
+            f"- 买回：回落到 `{row['buyback_target']:.2f}` 买回；涨到 `{row['buyback_stop']:.2f}` 放弃买回；"
             '都没碰到就收盘前买回',
-            f"  前提：现价在 {row['band']:.2f}–{row['buyback_stop']:.2f} 之间；"
-            f"{_clock(row['expires_at'], market)} 前没成交就撤单；持仓或计划变了先别下",
-            f"  往返成本约 {row['conditional_roundtrip_cost']:.2f} {'HKD' if market == 'hk' else 'USD'}；回测未经前瞻验证，跳空和滑点可能放大亏损",
+            f"- 前提：现价在 `{row['band']:.2f}`–`{row['buyback_stop']:.2f}` 之间；"
+            f"`{_clock(row['expires_at'], market)}` 前没成交就撤单；持仓或计划变了先别下",
+            f"- 往返成本约 {row['conditional_roundtrip_cost']:.2f} {'HKD' if market == 'hk' else 'USD'}；"
+            '回测未经前瞻验证，跳空和滑点可能放大亏损',
         ])
     return '\n'.join(lines)
 

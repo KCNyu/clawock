@@ -48,7 +48,7 @@ def test_report_runs_with_no_openclaw_no_git_and_no_scripts_directory(tmp_path):
     assert result["status"] == "pass"
     # The delivered body is harness-owned data + model prose, not the prose alone.
     assert CONTEXT["raw_wechat_block"] in result["body"]
-    assert "▎操作建议" in result["body"]
+    assert "**操作建议**" in result["body"]
 
 
 def test_the_core_never_re_invokes_the_harness_scripts():

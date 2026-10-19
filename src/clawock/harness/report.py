@@ -57,10 +57,12 @@ def assemble_message(ctx, prose):
     message come from the context file at send time, so they cannot be stale,
     paraphrased, or table-mangled — no instruction and no validation rule needed.
     """
-    parts = [ctx.get('title', '').strip(),
-             (ctx.get('raw_wechat_block') or '').strip(),
-             prose.strip()]
-    return '\n\n'.join(p for p in parts if p)
+    # kcn 2026-10-19: the same sectioned card as the intraday check-in
+    # (chat_card) — open orders and broken stops first, then the table,
+    # signals, news one line per ticker, and the prose under bold labels.
+    from clawock.harness.chat_card import render_report
+    return render_report(ctx.get('title', '').strip(),
+                         (ctx.get('raw_wechat_block') or '').strip(), prose)
 
 
 def validate(body, ctx, model_text):

@@ -26,6 +26,7 @@ NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
     postflight publishes a semantic dashboard change, if any.
 """
 
+from clawock.harness import chat_card
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 import argparse
@@ -855,7 +856,7 @@ def coverage_warning(coverage, gaps=None):
         parts.append('、'.join(missing) + f' 行情未证实（沿用上一笔{carried}）')
     if gaps:
         parts.append('、'.join(gaps) + ' 策略升级证据未取全'
-                     + ('' if missing else '（原因见 🛰️ 加仓侧）'))
+                     + ('' if missing else '（原因见 加仓侧）'))
     return DEGRADED + ' · '.join(parts) if parts else None
 
 
@@ -868,51 +869,10 @@ def prepend_coverage_warning(block, coverage):
     return '\n'.join([*lines[:2], warning, *lines[2:]])
 
 
-# ── Card layout contract (2026-09-25, kcn: 「还是有点乱」) ──────────────────
-#
-# A full card reads top-down in this order; a block with nothing to say is
-# omitted, never printed empty:
-#
-#   1 title          analyzer's first line — the watchdog's slot anchor
-#   2 P0 line        only when a strategy escalation newly fired
-#   3 变化 line      why this slot woke: components + first-seen tickers; a
-#                    soft candidate is named with what changed about it
-#                    (`soft_candidate_changes`, #2804)
-#   4 ⛔ lines       data faults, each once: unverified quotes (with since
-#                    when, `carry_quote_gap`) plus a pointer to holdings whose
-#                    strategy evidence is incomplete; T+0, search; `⛔ 资讯缺口`
-#                    names unread information sources without the exception
-#                    class (that stays in `information_full.degraded`)
-#   5 index + 📊     analyzer's market strip and book line
-#   6 table          analyzer's holdings table, byte for byte
-#   7 ↑ pointer      one line naming the rows with a new move/trigger;
-#                    omitted when there is none (unverified rows are block 4's)
-#   8 ⚠️ 信号        signals new today in full; omitted when every signal
-#                    was already delivered this session
-#   9 candidates     setups / trend / radar / primary info / plan triggers
-#  10 ▎持续状态      standing state, no icons (kcn 2026-10-09, #2805 layout A):
-#                    「今日已报、仍在：」 signals one line, level said once; the
-#                    analyzer's 📉 book line; held leveraged legs vs their
-#                    underlying and the gap in pp (`leverage_legs`)
-# 10b 🛰️ 加仓侧      `add_side_reads` per ticker: verdict copied, why/needs
-#                    clipped, at most MAX_ADD_SIDE_ROWS (#755; the model's
-#                    prose no longer has to carry it to reach kcn); a holding
-#                    with incomplete strategy evidence gets its reason here.
-#                    Not part of layout A: header, icon, rows and position
-#                    (last data block) are as before it (kcn 2026-10-09)
-#  11 ▎我的看法      model judgment — postflight appends it after the whole
-#                    data block, below the table (kcn 2026-09-25: #1863 had
-#                    put it above the table and kcn read that as the table
-#                    being out of place)
-#  12 ℹ️ footnote    advisory checker findings, last (postflight)
-#
-# Why: the header (2–4) answers "what changed, can I trust it" before the
-# table; the table keeps the position kcn reads it in. Marks sit next to the
-# table instead of inside it: the table is the analyzer's and stays
-# identical, and a mark inside a cell would also break Telegram's code-block
-# alignment. ⛔ is only ever data health; ⚠️ is only the analyzer's signal
-# header — one symbol, one meaning. Card only: the model reads the complete
-# context (analyzer_block, signals_detail, full_holdings, …) regardless.
+# Card layout: `clawock.harness.chat_card` renders the card from this
+# slot's structured data (kcn 2026-10-19: 待你处理 / 本档变化 / table /
+# 接下来盯 / 加仓侧 / 我的看法). The section builders below still produce row
+# text for it; the model reads the complete context regardless.
 DEGRADED = '⛔ 数据降级：'
 INFO_GAP = '⛔ 资讯缺口：'
 STATUS_HEADER = '▎持续状态'
@@ -1461,6 +1421,65 @@ def can_silence(ctx, *, allow_soft_review=False):
     return True
 
 
+def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, plan_ctx,
+                plan_triggers, movers, leverage, mover_news, soft_changes, first_slot,
+                active_information, setups, early, radar, add_side_reads, health,
+                gaps=None):
+    """Structured slot data → the sections of `chat_card.render`."""
+    suppressed = {ticker for ticker, policy in (holding_policies or {}).items()
+                  if policy.get('suppress_cost_basis_signals')}
+    new_stops, standing_stops, new_signals = [], [], []
+    for row in signals_detail or []:
+        ticker, level = row.get('ticker'), row.get('level')
+        if not ticker or ticker in suppressed:
+            continue
+        seen = (level, ticker) in seen_signals
+        detail = row.get('line', '').partition('|')[2].strip()
+        if level == 'STOP':
+            if seen:
+                standing_stops.append(ticker)
+            else:
+                new_stops.append((ticker, f'（{detail}）' if detail else ''))
+        elif not seen:
+            new_signals.append(chat_card.bullet(
+                re.sub(r'^\S+\s+', '', row.get('line', '')).replace(' | ', '：', 1)))
+    orders = [line.removeprefix('未成交计划：')
+              for line in open_order_lines(plan_ctx, holding_policies)]
+    # Primary information: new items are this slot's news; `↳ 仍有效` (already
+    # delivered) and the unchanged-mirror sentence are not; source health
+    # (⛔ / △) belongs with the other data-health lines.
+    information_rows, health = [], [*health]
+    for line in active_information.strip().splitlines()[1:]:
+        text = line.strip()
+        if not text or text.startswith('↳') or (text.startswith('·') and '名单未变' in text):
+            continue
+        if text.startswith(('⛔', '△')):
+            health.append(text)
+        else:
+            information_rows += chat_card.section_rows('\n' + text)
+    changes = (chat_card.mover_rows(movers, leverage, (mover_news or {}).get('tickers'))
+               + new_signals + chat_card.soft_rows(soft_changes) + information_rows)
+    if first_slot:
+        changes = [chat_card.bullet('本交易日首档'), *changes]
+    return {
+        'health': health,
+        'action': chat_card.action_rows(
+            p0_lines=p0_lines, open_orders=orders,
+            plan_trigger_rows=[row[2:] for row in chat_card.section_rows(
+                append_plan_trigger_section('', plan_triggers).strip())],
+            new_stops=new_stops, standing_stops=standing_stops),
+        'changes': changes,
+        'watch': (chat_card.setup_rows(setups)
+                  + chat_card.section_rows(early.strip())
+                  + chat_card.section_rows(radar.strip())),
+        # Plain 等待 rows say nothing new; a candidate, a reject or a holding
+        # whose strategy evidence is incomplete (its reason) does.
+        'add_side': [row for row in chat_card.section_rows(
+                         append_add_side_section('', add_side_reads, gaps).strip())
+                     if f" {ADD_SIDE_WORDS['wait']}：" not in row],
+    }
+
+
 def decision_sweep(stdout, coverage, plan_context, radar, t0_setups):
     """Expose every holding and soft candidates before the model sets its agenda.
 
@@ -1861,22 +1880,6 @@ def main(argv=None):
         # receipt back into another full alert.
         should_alert, alert_reasons = False, []
     else:
-        raw_block = append_setup_section(
-            strip_generic_news(stdout.strip()), live_setups, signals_detail)
-        raw_block = append_early_trend_section(
-            raw_block, early_candidates, signals_detail)
-        raw_block = append_opportunity_radar_section(
-            raw_block, opportunity_radar, signals_detail)
-        raw_block = append_active_information_section(
-            raw_block, active_information_ctx,
-            event_ids=set(semantic_delta['changed_event_ids']),
-            partial_unchanged=partial_unchanged(
-                active_information_ctx, semantic_state, prior_state),
-        )
-        raw_block = append_plan_trigger_section(raw_block, plan_triggers)
-        raw_block = intraday_policy.strip_suppressed_signal_lines(
-            raw_block, holding_policies)
-        # After the policy strip: that pass reads '·' lines as signal reasons.
         gaps = evidence_gaps(policy_evidence_errors, strategy_checks)
         prior_escalations = {(row.get('ticker'), row.get('level'))
                              for row in [*prior_state.get('breaches', []), *old_breaches]
@@ -1894,28 +1897,35 @@ def main(argv=None):
                          if row.get('kind') in ('move', 'plan_trigger', 'strategy_escalation')
                          and json.dumps(row, sort_keys=True, ensure_ascii=False)
                          not in seen_before}
-        # For postflight: WeChat bolds the `new` rows (the ↑ line); `stale`
-        # is the ⛔ line's names, kept for audit.
+        # For postflight: WeChat bolds the `new` rows; `stale` is the ⛔ line's
+        # names, kept for audit.
         card_marks = {
             'new': sorted(t for t in fresh_tickers
                           if t not in (coverage.get('unrefreshed') or [])),
             'stale': list(coverage.get('unrefreshed') or []),
         }
-        raw_block = mark_card_changes(
-            raw_block,
-            fresh_tickers=fresh_tickers,
-            unrefreshed=coverage.get('unrefreshed'),
+        card_parts = card_inputs(
+            signals_detail=signals_detail, holding_policies=holding_policies,
             seen_signals=intraday_delta.seen_signal_identities(semantic_state, prior_state),
-            status_lines=[*leverage_lines(leverage, coverage.get('unrefreshed')),
-                          *open_order_lines(plan_ctx, holding_policies)])
-        # Last, and exactly as before #2808 (kcn 2026-10-09: 「千万不要影响到
-        # 我们的加仓侧」): its own block, header and rows untouched by layout A.
-        raw_block = append_add_side_section(raw_block, add_side_reads, gaps)
-        raw_block = compose_card(
-            raw_block, p0_lines=p0_lines,
-            lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state,
-                            soft_candidates=soft_candidates),
-            degraded=[
+            p0_lines=p0_lines, plan_ctx=plan_ctx, plan_triggers=plan_triggers,
+            movers=[(ticker, next((row.get('pct_1d') for row in full_holdings
+                                   if row.get('ticker') == ticker), None))
+                    for ticker in card_marks['new']],
+            leverage=leverage, mover_news=mover_news_ctx,
+            soft_changes=([] if not prior_state or 'session' in semantic_delta['components']
+                          else soft_candidate_changes(semantic_state, prior_state,
+                                                      soft_candidates)),
+            first_slot=not prior_state,
+            active_information=append_active_information_section(
+                '', active_information_ctx,
+                event_ids=set(semantic_delta['changed_event_ids']),
+                partial_unchanged=partial_unchanged(
+                    active_information_ctx, semantic_state, prior_state)),
+            setups=live_setups,
+            early=append_early_trend_section('', early_candidates, signals_detail),
+            radar=append_opportunity_radar_section('', opportunity_radar, signals_detail),
+            add_side_reads=add_side_reads, gaps=gaps,
+            health=[
                 coverage_warning(coverage, gaps),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
                  if t0_setups.get('error') else None),
@@ -1924,6 +1934,7 @@ def main(argv=None):
                     anomaly_search_ctx)) + '（不是无消息）'
                  if anomaly_search.degraded_lines(anomaly_search_ctx) else None),
             ])
+        raw_block = None  # rendered below, once the T+0 recommendation is known
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'review_candidate' if soft_review else 'full_delta'
@@ -1939,7 +1950,10 @@ def main(argv=None):
         delivery_mode = 'full_delta'
         should_alert = True
         alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
-    if recommendation_block:
+    if raw_block is None:
+        raw_block = chat_card.render(
+            analyzer=stdout.strip(), recommendation=recommendation_block, **card_parts)
+    elif recommendation_block:
         raw_block += '\n\n' + recommendation_block
     result = {
         'status':           'ok',

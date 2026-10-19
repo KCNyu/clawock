@@ -92,6 +92,7 @@ TMP = WS / 'memory' / '.tmp'
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.evidence import intraday_information  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
+from clawock.harness import chat_card
 from clawock.harness import intraday_delta  # noqa: E402
 from clawock.harness.intraday_preflight import can_silence  # noqa: E402
 
@@ -471,8 +472,24 @@ def assemble_message(ctx, prose):
     # Block 11 before block 12: the structured 下一触发 line leaves the
     # judgment and sits directly above ▎我的看法.
     trigger, judgment = split_next_trigger(prose)
-    parts = [(ctx.get('raw_wechat_block') or '').strip(), trigger or '',
-             (judgment or '').strip()]
+    block = (ctx.get('raw_wechat_block') or '').strip()
+    judgment = (judgment or '').strip()
+    if chat_card.WATCH in block.split('\n') or chat_card.ACTION in block.split('\n') \
+            or chat_card.CHANGES in block.split('\n'):
+        # The sectioned card (chat_card): each 下一触发 item is one more
+        # row under 接下来盯, and the model's ▎我的看法 marker becomes the card's
+        # own bold heading.
+        if trigger:
+            items = [item.strip() for item in _NEXT_TRIGGER_ITEM.split(trigger[len(NEXT_TRIGGER):])
+                     if item.strip()]
+            block = chat_card.add_watch_rows(block, [chat_card.bullet(chat_card.trigger_text(i))
+                                                         for i in items])
+        head, marker, body = judgment.partition(REQUIRED_SECTION)
+        if marker:
+            judgment = '\n'.join(p for p in (head.strip(), chat_card.JUDGMENT,
+                                              chat_card.quote(body)) if p)
+        return '\n\n'.join(p for p in (block, judgment) if p)
+    parts = [block, trigger or '', judgment]
     return '\n\n'.join(p for p in parts if p)
 
 
@@ -960,8 +977,8 @@ def main(argv=None):
     # banner explaining why it cannot be trusted (kcn 2026-10-19). The issue
     # stays in `issues`, the status and the ledger.
     shown = [issue for issue in escalating if '下一触发' not in issue]
-    if status == 'warn' and len(shown) < len(escalating):
-        text = drop_next_trigger(text)
+    if status == 'warn' and len(shown) < len(escalating) and not stale_generation:
+        text = assemble_message(ctx, drop_next_trigger(model_text))
     if status == 'pass' or not shown:
         banner = ''
     elif status == 'warn':

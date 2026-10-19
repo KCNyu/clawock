@@ -243,7 +243,7 @@ def test_the_card_carries_the_actions_the_plan_holds():
                               page_url="https://example.invalid/brief")
 
     assert "07226" in card and "6,200 股" in card
-    assert "00100" in card and "hold_and_watch" in card
+    assert "00100" in card and "持有观察" in card and "hold_and_watch" not in card
     assert card.rstrip().endswith("https://example.invalid/brief")
 
 
@@ -266,11 +266,11 @@ def test_the_card_names_levels_in_words_not_plan_keys():
                             "book_force_derisk_usd": -300, "spcx_5d_ma_reclaim": 148.59}
 
     card = render.render_card(CONTEXT, _judgment(), plan, date="2026-08-31")
-    levels = card[card.index("▎触发位"):]
+    levels = card[card.index("**触发位**"):]
 
-    assert "• 恒科 破位: 4,246.12" in levels
-    assert "• 账面 强制 减仓 USD: -300.00" in levels
-    assert "• SPCX 5日 均线 收复: 148.59" in levels
+    assert "- 恒科破位 `4,246.12`" in levels
+    assert "- 账面强制减仓 USD `-300`" in levels
+    assert "- SPCX 5日均线收复 `148.59`" in levels
     assert check_identifier_leak(levels) == []
 
 
@@ -464,8 +464,10 @@ def test_the_card_and_the_page_agree_on_what_comes_first():
     page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
     card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
 
-    assert card.index("▎" + render.PAGE_ACTION_HEADING) < card.index("▎" + render.CARD_BOOK_HEADING), (
-        "the card puts the book before the call; the page does not")
+    # kcn 2026-10-19: the card's book is one summary line under the title (the
+    # 1.3KB section is gone); after it the card follows the page: call, then levels.
+    assert card.index("**核心结论**") < card.index(f"**{render.PAGE_ACTION_HEADING}**") < card.index(
+        "**触发位**"), "the card's call and levels are out of the page's order"
     assert page.index("### " + render.PAGE_ACTION_HEADING) < page.index("## " + render.PAGE_BOOK_PART), (
         "the page puts the book before the call")
 
@@ -476,18 +478,19 @@ def test_both_surfaces_call_the_action_section_the_same_thing():
     page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
     card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
     assert f"### {render.PAGE_ACTION_HEADING}" in page
-    assert f"▎{render.PAGE_ACTION_HEADING}" in card
+    assert f"**{render.PAGE_ACTION_HEADING}**" in card
     assert render.CARD_BOOK_HEADING in render.PAGE_BOOK_PART, (
         "the card's book heading should read as a short form of the page's part, "
         f"got {render.CARD_BOOK_HEADING!r} vs {render.PAGE_BOOK_PART!r}")
 
 
 def test_the_card_keeps_its_own_ornament_and_the_page_does_not():
-    """`▎` is the card's hierarchy (plain text has no headings); markdown has its own."""
+    """The card's hierarchy is the chat style (a title, bold labels, `-` rows —
+    chat_card, kcn 2026-10-19); the page's is markdown headings, never `▎`."""
     judgment = _judgment()
     card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
     page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
-    assert "▎" in card
+    assert card.startswith("## ") and "**核心结论**" in card and "▎" not in card
     assert not any(line.startswith("#") and "▎" in line for line in page.splitlines())
 
 
