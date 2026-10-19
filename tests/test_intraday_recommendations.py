@@ -117,7 +117,7 @@ def test_closed_market_refuses_and_does_not_fetch(inputs, monkeypatch):
     path, evidence, _, _ = inputs
     monkeypatch.setattr('clawock.market_data.intraday_bars.fetch', lambda *a: pytest.fail('closed'))
     ctx, text = section(path, 'us', evidence, {}, {}, now=NOW.replace(hour=10))
-    assert not ctx['rows'] and '非美股常规交易时段' in text
+    assert not ctx['rows'] and text == '' and '非美股常规交易时段' in render(ctx)
 
 
 def test_tampered_manifest_does_not_become_recommendation_evidence(inputs):
@@ -163,11 +163,13 @@ def test_preflight_and_fallback_keep_recommendation_block_and_adverse_facts(inpu
     previous, run = _wire_preflight(monkeypatch, path)
     ctx = run(previous)
     assert 'intraday_recommendations' in judgment_packet(ctx)
+    # No order -> nothing on the card; the refusal and the adverse evidence
+    # stay in the context for audit (kcn 2026-10-19).
+    assert '真实账本未持有 SPY' in render(ctx['intraday_recommendations'])
     for message in (assemble_message(ctx, ''), assemble_message(ctx, '▎我的看法\n等待条件。')):
-        assert message.index('▎策略研究') < message.index('▎今日可执行建议')
-        assert '真实账本未持有 SPY' in message
-        assert '-2.2329 USD' in message
-        assert inputs[1]['data_sha256'] in message
+        for hidden in ('▎策略研究', '▎今日可执行建议', '▎做T建议', '真实账本未持有 SPY',
+                       inputs[1]['data_sha256'], 'manifest_sha256', 'OHLC execution'):
+            assert hidden not in message
 
 
 def test_early_close_and_expiration_boundaries_refuse(inputs):
@@ -199,4 +201,19 @@ def test_actionable_recommendation_cannot_be_silenced(inputs, monkeypatch):
     ctx = run(previous)
     assert ctx['delivery_mode'] == 'full_delta' and ctx['should_alert']
     assert pre.can_silence(ctx) is False
-    assert '限价卖出底仓' in ctx['raw_wechat_block']
+    assert '限价卖出' in ctx['raw_wechat_block']
+
+
+def test_card_is_trading_language_and_audit_keeps_the_evidence(inputs):
+    from clawock.harness.intraday_recommendations import render_card
+    ctx = call(inputs)
+    assert ctx['rows']
+    card, audit = render_card(ctx), render(ctx)
+    row = ctx['rows'][0]
+    assert card.startswith('▎做T建议')
+    assert f"{row['ticker']} 先卖后买回 {row['shares']} 股" in card
+    for hidden in ('sha256', 'OHLC', 'prospective_status', 'Zero commission', '净增量'):
+        assert hidden not in card
+        assert hidden in audit
+    refused = build(inputs[0], 'us', inputs[1], {}, {}, now=NOW.replace(hour=19, minute=50))
+    assert render_card(refused) == ''

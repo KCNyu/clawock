@@ -1928,7 +1928,9 @@ def main(argv=None):
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'review_candidate' if soft_review else 'full_delta'
 
-    from clawock.harness.intraday_research import snapshot, render
+    # Research and the recommendation audit stay in the context (`intraday_research`,
+    # `intraday_recommendations`); the card only carries an actionable order.
+    from clawock.harness.intraday_research import snapshot
     research = snapshot(WS, args.market)
     from clawock.harness.intraday_recommendations import section
     recommendations, recommendation_block = section(
@@ -1937,7 +1939,8 @@ def main(argv=None):
         delivery_mode = 'full_delta'
         should_alert = True
         alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
-    raw_block += '\n\n' + render(research) + '\n\n' + recommendation_block
+    if recommendation_block:
+        raw_block += '\n\n' + recommendation_block
     result = {
         'status':           'ok',
         'market':           args.market,
