@@ -186,3 +186,17 @@ def test_incomplete_base_metrics_refuse_without_breaking_card(inputs):
     ctx = call(inputs)
     assert not ctx['rows']
     assert '历史净结果缺失' in render(ctx) and '净增量 未知' in render(ctx)
+
+
+def test_actionable_recommendation_cannot_be_silenced(inputs, monkeypatch):
+    from test_intraday_delta_gate import _wire_preflight
+    from clawock.harness import intraday_preflight as pre
+    recommendation = call(inputs)
+    assert recommendation['rows']
+    previous, run = _wire_preflight(monkeypatch, inputs[0], healthy=True)
+    monkeypatch.setattr('clawock.harness.intraday_recommendations.section',
+                        lambda *a, **k: (recommendation, render(recommendation)))
+    ctx = run(previous)
+    assert ctx['delivery_mode'] == 'full_delta' and ctx['should_alert']
+    assert pre.can_silence(ctx) is False
+    assert '限价卖出底仓' in ctx['raw_wechat_block']

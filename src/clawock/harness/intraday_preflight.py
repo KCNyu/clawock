@@ -1429,7 +1429,7 @@ def can_silence(ctx, *, allow_soft_review=False):
     soft_only = (ctx.get('semantic_delta') or {}).get('components') == ['soft_candidates_seen']
     if (not ctx.get('semantic_unchanged') and not (allow_soft_review and soft_only)):
         return False
-    if ctx.get('always_full'):
+    if ctx.get('always_full') or (ctx.get('intraday_recommendations') or {}).get('rows'):
         return False
     coverage = ctx.get('quote_coverage') or {}
     if (not coverage.get('active') or coverage.get('active') != coverage.get('refreshed')
@@ -1933,6 +1933,10 @@ def main(argv=None):
     from clawock.harness.intraday_recommendations import section
     recommendations, recommendation_block = section(
         WS, args.market, research, holding_policies, plan_ctx)
+    if recommendations['rows']:
+        delivery_mode = 'full_delta'
+        should_alert = True
+        alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
     raw_block += '\n\n' + render(research) + '\n\n' + recommendation_block
     result = {
         'status':           'ok',
