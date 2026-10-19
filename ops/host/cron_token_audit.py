@@ -24,6 +24,8 @@ knowing where the tokens go, and this is the instrument that answers that.
 `MiniMax-M3.1-Flash-Preview`, so the `(provider, model)` groups restart empty.
 Expect "no baseline" on the MiniMax rows until the new id has its own trailing
 runs; read that first day's totals as data, not as a regression.
+2026-10-19: the preview went GA as `MiniMax-M3.1-Flash`; the groups restart once more
+under the new id, read the same way.
 
 Read-only. Never raises on a missing or unreadable run store: this feeds the daily
 health review, and an audit that could red the review would be worse than no

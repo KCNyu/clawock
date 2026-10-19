@@ -52,7 +52,7 @@ import requests
 _SESSION = requests.Session()
 
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
-MINIMAX_MODEL = 'MiniMax-M3.1-Flash-Preview'
+MINIMAX_MODEL = 'MiniMax-M3.1-Flash'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
 # Models that answer thinking.type=disabled with HTTP 400; M3 accepted it.
 _ADAPTIVE_ONLY = re.compile(r'^MiniMax-M3\.[1-9]')

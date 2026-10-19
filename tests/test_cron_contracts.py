@@ -513,8 +513,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
 def test_strategy_crons_request_max_reasoning_clamped_per_candidate():
     """The payload asks for `max`; OpenClaw clamps it per fallback candidate.
 
-    The M3 branch exposes only off/adaptive — MiniMax-M3.1-Flash-Preview
-    (the current hop since 2026-09-27) matches OpenClaw's
+    The M3 branch exposes only off/adaptive — MiniMax-M3.1-Flash
+    (the current hop; its preview id since 2026-09-27) matches OpenClaw's
     `/^MiniMax-M3(\b|[-.])/` rule and its `resolveMinimaxThinkingProfile`
     branch exactly as MiniMax-M3 did — and Codex models reject `adaptive`
     outright ('Thinking level "adaptive" is not supported for openai/gpt-6-luna.
@@ -570,33 +570,33 @@ def test_strategy_cron_provider_order_is_fixed_policy():
         for name in ('report', 'intraday', 'brief')
     } == {
         'report': {
-            'model': 'minimax/MiniMax-M3.1-Flash-Preview',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash-Preview', 'openai/gpt-6-luna'],
+            'model': 'minimax/MiniMax-M3.1-Flash',
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
             'model_candidates': [
-                'minimax/MiniMax-M3.1-Flash-Preview',
-                'minimax-2/MiniMax-M3.1-Flash-Preview',
+                'minimax/MiniMax-M3.1-Flash',
+                'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
-            'model': 'minimax/MiniMax-M3.1-Flash-Preview',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash-Preview', 'openai/gpt-6-luna'],
+            'model': 'minimax/MiniMax-M3.1-Flash',
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
             'model_candidates': [
-                'minimax/MiniMax-M3.1-Flash-Preview',
-                'minimax-2/MiniMax-M3.1-Flash-Preview',
+                'minimax/MiniMax-M3.1-Flash',
+                'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
-            'model': 'minimax/MiniMax-M3.1-Flash-Preview',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash-Preview', 'openai/gpt-6-luna'],
+            'model': 'minimax/MiniMax-M3.1-Flash',
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
             'model_candidates': [
-                'minimax/MiniMax-M3.1-Flash-Preview',
-                'minimax-2/MiniMax-M3.1-Flash-Preview',
+                'minimax/MiniMax-M3.1-Flash',
+                'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
                 'anthropic/claude-sonnet-4-6',

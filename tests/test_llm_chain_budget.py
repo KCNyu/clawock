@@ -290,7 +290,7 @@ class _Reply:
 
 
 @pytest.mark.parametrize("model,expected,effort", [
-    ("MiniMax-M3.1-Flash-Preview", {"type": "adaptive"}, {"effort": "low"}),
+    ("MiniMax-M3.1-Flash", {"type": "adaptive"}, {"effort": "low"}),
     ("MiniMax-M3", {"type": "disabled"}, None),
 ])
 def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model, expected, effort):
@@ -308,8 +308,8 @@ def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model,
 
 
 @pytest.mark.parametrize("model,effort,thinking,config", [
-    ("MiniMax-M3.1-Flash-Preview", "medium", {"type": "adaptive"}, {"effort": "medium"}),
-    ("MiniMax-M3.1-Flash-Preview", None, {"type": "enabled", "budget_tokens": 16000}, None),
+    ("MiniMax-M3.1-Flash", "medium", {"type": "adaptive"}, {"effort": "medium"}),
+    ("MiniMax-M3.1-Flash", None, {"type": "enabled", "budget_tokens": 16000}, None),
     ("MiniMax-M3", "medium", {"type": "enabled", "budget_tokens": 16000}, None),
 ])
 def test_a_thinking_call_can_bound_the_reasoning_of_an_adaptive_only_model(
