@@ -1896,7 +1896,7 @@
       targets.forEach(({ countEl, dirEl, listEl }) => {
         countEl.textContent = '⚠️ 算不出';
         countEl.style.color = 'var(--warning)';
-        if (dirEl) dirEl.textContent = '风控数据计算失败，本次不作“无触发”判断。';
+        if (dirEl) dirEl.textContent = dirEl.title = '风控数据计算失败，本次不作“无触发”判断。';
         listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
           + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:var(--fs-xs);margin-top:2px">'
           + '等待下次数据刷新重算</div></div></div>';
@@ -1938,9 +1938,13 @@
           + ` title="${n} 项触发">${dots.join("")}</span>`
         : '无';
       countEl.style.color = n ? '' : 'var(--positive)';
-      if (dirEl) dirEl.textContent = compact
-        ? stripEmoji(g.directive)
-        : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
+      if (dirEl) {
+        dirEl.textContent = compact
+          ? stripEmoji(g.directive)
+          : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
+        // 牌上这一行夹成一行（dashboard.css `.overview-gates-directive`），全文进 title。
+        dirEl.title = dirEl.textContent;
+      }
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
       // 牌上只有三个槽位，9 条里剩下的 6 条原来是无声消失的（表头点阵是
