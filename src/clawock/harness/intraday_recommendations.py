@@ -1,5 +1,16 @@
-"""Harness-owned rendering; every advice carries its adverse research evidence."""
+"""Harness-owned rendering of manual intraday recommendations.
+
+Two renderings of one context. `render` is the audit record: every refusal
+reason, the adverse research evidence, cost caveats and the manifest/data
+hashes. It is reproducible from the context JSON and is not pushed.
+`render_card` is what kcn reads on the WeChat/Telegram card: only an actionable
+order, in trading language, with the conditions needed to place it safely.
+kcn 2026-10-19: hashes, English disclaimers, arm-by-arm backtests and "no
+recommendation because ..." lines are not for a human reader.
+"""
 import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from clawock.decision.intraday_recommendations import build
 
@@ -41,6 +52,36 @@ def render(ctx):
     return '\n'.join(lines)
 
 
+_MARKET_TZ = {'us': 'America/New_York', 'hk': 'Asia/Hong_Kong'}
+
+
+def _clock(stamp, market):
+    try:
+        moment = datetime.fromisoformat(str(stamp))
+        return moment.astimezone(ZoneInfo(_MARKET_TZ.get(market, 'UTC'))).strftime('%H:%M')
+    except (TypeError, ValueError):
+        return str(stamp)
+
+
+def render_card(ctx):
+    """The human card: empty unless there is an order to consider placing."""
+    rows = ctx.get('rows') or []
+    if not rows:
+        return ''
+    market = ctx.get('market') or 'us'
+    lines = ['▎做T建议 · 需你手动下单，不会自动成交']
+    for row in rows:
+        lines.extend([
+            f"{row['ticker']} 先卖后买回 {row['shares']} 股：限价卖出，卖价不低于 {row['sell_limit']:.2f}",
+            f"  买回：回落到 {row['buyback_target']:.2f} 买回；涨到 {row['buyback_stop']:.2f} 放弃买回；"
+            '都没碰到就收盘前买回',
+            f"  前提：现价在 {row['band']:.2f}–{row['buyback_stop']:.2f} 之间；"
+            f"{_clock(row['expires_at'], market)} 前没成交就撤单；持仓或计划变了先别下",
+            f"  往返成本约 {row['conditional_roundtrip_cost']:.2f} {'HKD' if market == 'hk' else 'USD'}；回测未经前瞻验证，跳空和滑点可能放大亏损",
+        ])
+    return '\n'.join(lines)
+
+
 def section(workspace, market, research, policies, plan_context, *, now=None):
     ctx = build(workspace, market, research, policies, plan_context, now=now)
-    return ctx, render(ctx)
+    return ctx, render_card(ctx)

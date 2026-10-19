@@ -638,6 +638,21 @@ def test_an_escalating_warning_does_not_borrow_the_signal_symbol(run_main, sent)
     assert first.startswith('🟠 校验警告') and '⚠️' not in first
 
 
+def test_an_unverifiable_next_trigger_is_cut_from_the_card_not_bannered(run_main, sent):
+    """kcn 2026-10-19: a trigger level the checker cannot source (here the model's
+    own 当前价 x 1.05) is a model miss, not news. After the one revise it leaves
+    the card; no banner explains it to kcn, and the issue stays in the result."""
+    invented = PROSE.replace('RKLX 站上 17.07；CRCL 守住 64.13', 'RKLX 站上 18.9135')
+    rc, out = run_main(invented, context_id='abc123def456')
+    assert out['status'] == 'revise' and sent['messages'] == []
+    rc, out = run_main(invented, context_id='abc123def456')
+    assert out['status'] == 'warn' and out['wechat_sent'] is True
+    assert any('下一触发' in issue for issue in out['issues'])
+    card = sent['messages'][0]
+    assert '校验警告' not in card and '下一触发' not in card and '18.9135' not in card
+    assert 'CRCL 跌破 MA50 后先观察' in card
+
+
 def test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers(
     run_main, sent, pf
 ):

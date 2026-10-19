@@ -252,6 +252,11 @@ def split_next_trigger(prose):
     return line, re.sub(r'\n{3,}', '\n\n', rest)
 
 
+def drop_next_trigger(text):
+    """The card without its 下一触发 line(s); everything else untouched."""
+    return re.sub(r'\n{3,}', '\n\n', _NEXT_TRIGGER_LINE.sub('', text or ''))
+
+
 def _context_tickers(ctx):
     names = {row.get('ticker') for row in (ctx.get('full_holdings') or [])}
     names |= {row.get('ticker') for row in (ctx.get('anomalies') or [])}
@@ -950,13 +955,20 @@ def main(argv=None):
     escalating, advisories = split_advisory(issues)
     # What shipped, not what the checker noticed — see product_status (#1076).
     product = product_status(status, escalating)
-    if status == 'pass' or not escalating:
+    # A 下一触发 problem that survived the revise is a model miss, not news for
+    # kcn: an unsourced level is cut from the card instead of printed under a
+    # banner explaining why it cannot be trusted (kcn 2026-10-19). The issue
+    # stays in `issues`, the status and the ledger.
+    shown = [issue for issue in escalating if '下一触发' not in issue]
+    if status == 'warn' and len(shown) < len(escalating):
+        text = drop_next_trigger(text)
+    if status == 'pass' or not shown:
         banner = ''
     elif status == 'warn':
         # 🟠, not ⚠️: on this card ⚠️ only ever heads the analyzer's signal
         # block (contract §4, one symbol per meaning).
-        banner = (f'🟠 校验警告 ({len(escalating)}): '
-                  + '; '.join(escalating[:2])
+        banner = (f'🟠 校验警告 ({len(shown)}): '
+                  + '; '.join(shown[:2])
                   + '\n\n')
     else:
         banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
