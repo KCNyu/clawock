@@ -1,27 +1,22 @@
 #!/usr/bin/env python3
-"""Keep every copy of a model id / MiniMax endpoint equal to config/models.json.
+"""Make every copy of a model id / the MiniMax endpoint follow config/models.json.
 
-    sync_model_refs.py              # --check: report drift, exit 1 on any
-    sync_model_refs.py --apply      # rewrite drifted locations, then re-check
-    sync_model_refs.py --effective  # what is configured and what cron last used
+    sync_model_refs.py              # check: list drift, exit 1 on any
+    sync_model_refs.py --apply      # rewrite drifted copies, then check again
+    sync_model_refs.py --effective  # what chat, cron and dsh run with right now
 
-The truth file declares *where* each value lives, not just what it is: the
-2026-10-19 id switch missed `agents.defaults.models` (the id is a JSON key) and
-both dsh profiles, because a string search for the old id found only half of the
-places. A binding is one of
+`config/models.json` holds values only. *Where* each value lives is the table
+in `targets()` below, so a new copy is one line there. The 2026-10-19 id switch
+missed `agents.defaults.models` (the id is a JSON key) and both dsh profiles;
+a string search for the old id finds only part of the copies.
 
-- `json`: a dotted path (`*` = every dict value, `[n]` = list index) whose
-  string value must equal the rendered template;
-- `json_key`: exactly one key under `path` matching `match` must equal it;
-- `line`: exactly one line matching `match` (named groups pre/value/post).
-
-Rewrites are textual so a file's own formatting survives: in a JSON file every
-occurrence of the old literal must belong to a binding being changed, otherwise
-the rewrite is refused. Host files (`"host": true`, `~/...`) are skipped when
-absent, so CI checks the repo half only. openclaw.json changes need
-`openclaw gateway restart`; cron-schedules.json changes need
-`ops/host/sync_cron_payloads.py --apply`; dsh profile changes need a dsh
-restart. This tool restarts nothing. Standard library only.
+Rewrites are textual, so each file keeps its own formatting. An old literal that
+also appears somewhere unbound blocks the rewrite. Every file is validated
+before any is written. Host files are skipped when absent, so CI checks the
+repository half. Nothing is restarted: after --apply run
+`ops/host/sync_cron_payloads.py --apply` (cron contract), `openclaw gateway
+restart` (openclaw.json, no cron in flight) or restart dsh (profiles).
+Standard library only.
 """
 from __future__ import annotations
 
@@ -29,212 +24,224 @@ import argparse
 import json
 import os
 import re
-import sqlite3
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'src'))
+from clawock.providers.openclaw import read_jobs, read_runs, runtime_paths  # noqa: E402
+
 TRUTH = ROOT / 'config' / 'models.json'
-OPENCLAW_DB = Path('~/.openclaw/state/openclaw.sqlite').expanduser()
-_STEP = re.compile(r'^(?P<name>[^\[\]]*)(?P<index>(?:\[\d+\])*)$')
+DSH_PROFILES = Path.home() / '.dsh' / 'profiles'
+
+
+@dataclass
+class Target:
+    """One file and the values it must carry.
+
+    `json`: dotted path → value (`*` = every dict value, `[n]` = list index).
+    `keys`: dotted path → (regex, value): the one key there matching regex.
+    `consts`: Python `NAME = '...'` assignments.
+    `yaml_minimax`: field → value for the MiniMax M3.x entry of a dsh profile.
+    """
+    path: Path
+    json: dict = field(default_factory=dict)
+    keys: dict = field(default_factory=dict)
+    consts: dict = field(default_factory=dict)
+    yaml_minimax: dict = field(default_factory=dict)
+    host: bool = False
 
 
 def load_truth(path: Path = TRUTH) -> dict:
     truth = json.loads(path.read_text())
-    if truth.get('schema_version') != 1:
+    if truth.get('schema_version') != 2:
         raise ValueError(f'{path}: unsupported schema_version')
     return truth
 
 
-def render(template: str, values: dict) -> str:
-    return template.format(**values)
+def targets(truth: dict, root: Path = ROOT, openclaw_config: Path | None = None,
+            dsh_profiles: Path = DSH_PROFILES):
+    minimax = truth['minimax']
+    primary = f"minimax/{minimax['model']}"
+    retry = f"minimax-2/{minimax['model']}"
+    luna, sol = truth['cron']['codex_fallback'], truth['cron']['codex_candidate']
+    openclaw_config = openclaw_config or runtime_paths().config_file
+
+    yield Target(root / 'config/cron-schedules.json', json={
+        'payload_profiles.*.model': primary,
+        'payload_profiles.*.fallbacks[0]': retry,
+        'payload_profiles.*.fallbacks[1]': luna,
+        'payload_profiles.*.model_candidates[0]': primary,
+        'payload_profiles.*.model_candidates[1]': retry,
+        'payload_profiles.*.model_candidates[2]': luna,
+        'payload_profiles.*.model_candidates[3]': sol,
+    })
+    yield Target(root / 'src/clawock/automation/llm.py', consts={
+        'MINIMAX_MODEL': minimax['model'],
+        'MINIMAX_BASE': minimax['anthropic_base'],
+    })
+    # models[1] in each provider is the MiniMax-M3 rollback entry: unbound.
+    provider_tables = {}
+    for provider in ('minimax', 'minimax-2'):
+        provider_tables.update({
+            f'models.providers.{provider}.baseUrl': minimax['anthropic_base'],
+            f'models.providers.{provider}.models[0].id': minimax['model'],
+            f'models.providers.{provider}.models[0].name': minimax['display_name'],
+        })
+    yield Target(openclaw_config, host=True, json={
+        **provider_tables,
+        'agents.defaults.model.primary': primary,
+        'agents.defaults.model.fallbacks[0]': truth['chat']['fallback'],
+        'agents.defaults.heartbeat.model': primary,
+        'agents.defaults.subagents.model': primary,
+        'plugins.entries.memory-core.config.dreaming.model': primary,
+        'plugins.entries.memory-core.subagent.allowedModels[0]': primary,
+    }, keys={
+        'agents.defaults.models': (r'^minimax/MiniMax-M3\.', primary),
+    })
+    for profile in ('web', 'headless'):
+        yield Target(dsh_profiles / profile / 'cordis.patch.yml', host=True, yaml_minimax={
+            'id': minimax['model'],
+            'name': minimax['model'],
+            'baseURL': minimax['anthropic_base'],
+        })
 
 
-def resolve_file(name: str, root: Path = ROOT) -> Path:
-    return Path(name).expanduser() if name.startswith('~') or name.startswith('/') else root / name
+# ── reading ──────────────────────────────────────────────────────────────────
+
+_STEP = re.compile(r'^([^\[\]]*)((?:\[\d+\])*)$')
 
 
-def _expand(node, steps):
-    """Yield (concrete_path_tuple, value) for every match of `steps`."""
+def _walk(node, steps, label=''):
+    """(label, value) for every match of a dotted path."""
     if not steps:
-        yield (), node
+        yield label, node
         return
-    head, rest = steps[0], steps[1:]
-    match = _STEP.match(head)
-    if not match:
-        raise ValueError(f'bad path step {head!r}')
-    name, index = match['name'], [int(i) for i in re.findall(r'\[(\d+)\]', match['index'])]
+    name, index = _STEP.match(steps[0]).groups()
     if name == '*':
         children = list(node.items()) if isinstance(node, dict) else []
-    elif name:
-        children = [(name, node[name])] if isinstance(node, dict) and name in node else []
     else:
-        children = [(None, node)]
+        children = [(name, node[name])] if isinstance(node, dict) and name in node else []
     for key, child in children:
-        for i in index:
+        here = f'{label}.{key}' if label else key
+        for i in map(int, re.findall(r'\d+', index)):
             if not isinstance(child, list) or i >= len(child):
-                child = KeyError
                 break
-            child = child[i]
-        if child is KeyError:
-            continue
-        for path, value in _expand(child, rest):
-            yield ((key, *index), *path), value
-
-
-def _json_locations(data, binding):
-    """[(label, current_value)] for one json / json_key binding."""
-    steps = binding['path'].split('.')
-    found = list(_expand(data, steps))
-    if binding['kind'] == 'json':
-        return [(_label(path), value) for path, value in found]
-    pattern = re.compile(binding['match'])
-    out = []
-    for path, value in found:
-        keys = [k for k in (value or {}) if pattern.search(k)] if isinstance(value, dict) else []
-        if len(keys) != 1:
-            out.append((_label(path) + f' key~{binding["match"]}', f'<{len(keys)} matching keys>'))
+            child, here = child[i], f'{here}[{i}]'
         else:
-            out.append((_label(path) + f' key~{binding["match"]}', keys[0]))
-    return out
+            yield from _walk(child, steps[1:], here)
 
 
-def _label(path):
-    parts = []
-    for step in path:
-        key, *index = step
-        parts.append((key or '') + ''.join(f'[{i}]' for i in index))
-    return '.'.join(p for p in parts if p)
+def _const_line(name):
+    return re.compile(rf"^(?P<pre>{name} = ')(?P<value>[^']*)(?P<post>')$", re.MULTILINE)
 
 
-def inspect(truth: dict, root: Path = ROOT, include_host: bool = True):
-    """Every bound location as dicts: file, where, current, expected, ok."""
-    values = truth['values']
+def _yaml_line(field_name):
+    # The MiniMax M3.x entry only: `MiniMax-M3` itself is the rollback id, and
+    # the baseURL line is the one pointing at minimax.
+    value = r'\S*minimax\S*' if field_name == 'baseURL' else r'MiniMax-M3\.\S+'
+    prefix = r'\s*- id: ' if field_name == 'id' else rf'\s*{field_name}: '
+    return re.compile(rf'^(?P<pre>{prefix})(?P<value>{value})(?P<post>)$', re.MULTILINE)
+
+
+def inspect(target: Target):
+    """[(where, current, expected)] for one target; [] for an absent host file."""
+    if not target.path.exists():
+        if target.host:
+            return []
+        return [('-', '<missing file>', 'present')]
+    text = target.path.read_text()
     rows = []
-    for binding in truth['bindings']:
-        if binding.get('host') and not include_host:
-            continue
-        path = resolve_file(binding['file'], root)
-        expected = render(binding['value'], values)
-        base = {'file': binding['file'], 'binding': binding, 'path': path, 'expected': expected}
-        if not path.exists():
-            if binding.get('host'):
-                rows.append({**base, 'where': binding.get('path') or binding.get('match'),
-                             'current': None, 'ok': None})
-                continue
-            rows.append({**base, 'where': '-', 'current': '<missing file>', 'ok': False})
-            continue
-        text = path.read_text()
-        if binding['kind'] in ('json', 'json_key'):
-            found = _json_locations(json.loads(text), binding)
-            if not found:
-                rows.append({**base, 'where': binding['path'], 'current': '<no match>', 'ok': False})
-            for where, current in found:
-                rows.append({**base, 'where': where, 'current': current, 'ok': current == expected})
-        elif binding['kind'] == 'line':
-            pattern = re.compile(binding['match'], re.MULTILINE)
-            hits = list(pattern.finditer(text))
-            where = binding['match']
-            if len(hits) != 1:
-                rows.append({**base, 'where': where, 'current': f'<{len(hits)} matching lines>',
-                             'ok': False})
-            else:
-                rows.append({**base, 'where': where, 'current': hits[0]['value'],
-                             'ok': hits[0]['value'] == expected})
-        else:
-            raise ValueError(f'unknown binding kind {binding["kind"]!r}')
+    if target.json or target.keys:
+        data = json.loads(text)
+        for path, expected in target.json.items():
+            found = list(_walk(data, path.split('.')))
+            rows += found and [(where, value, expected) for where, value in found] \
+                or [(path, '<no match>', expected)]
+        for path, (pattern, expected) in target.keys.items():
+            for where, table in _walk(data, path.split('.')):
+                hits = [key for key in table if re.search(pattern, key)]
+                rows.append((f'{where} key', hits[0] if len(hits) == 1 else f'<{len(hits)} keys>',
+                             expected))
+    for lines, make in ((target.consts, _const_line), (target.yaml_minimax, _yaml_line)):
+        for name, expected in lines.items():
+            hits = list(make(name).finditer(text))
+            rows.append((name, hits[0]['value'] if len(hits) == 1 else f'<{len(hits)} lines>',
+                         expected))
     return rows
 
 
-def _rewrite(path: Path, rows) -> str:
-    """New text for one file with its drifted rows fixed, or raise. `rows` are
-    all the bound rows of this file, so an unbound copy of an old literal can be
-    told apart from a bound one."""
-    text = path.read_text()
-    json_rows = [row for row in rows if row['binding']['kind'] != 'line']
-    pairs, bound = {}, {}
-    for row in json_rows:
-        bound[row['current']] = bound.get(row['current'], 0) + 1
-        if row['ok']:
-            continue
-        old = row['current']
-        if not isinstance(old, str) or old.startswith('<'):
-            raise ValueError(f'{path}: {row["where"]} has no single value to rewrite ({old})')
-        pairs.setdefault(old, set()).add(row['expected'])
-    for old, news in pairs.items():
-        if len(news) != 1:
-            raise ValueError(f'{path}: {old!r} would map to several values {sorted(news)}')
+# ── writing ──────────────────────────────────────────────────────────────────
+
+def _rewritten(target: Target, rows) -> str:
+    text = target.path.read_text()
+    line_names = set(target.consts) | set(target.yaml_minimax)
+    json_rows = [row for row in rows if row[0] not in line_names]
+    bound, renames = {}, {}
+    for where, current, expected in json_rows:
+        bound[current] = bound.get(current, 0) + 1
+        if current != expected:
+            if current.startswith('<'):
+                raise ValueError(f'{target.path}: {where} has no single value ({current})')
+            renames.setdefault(current, set()).add(expected)
+    for old, new in renames.items():
+        if len(new) != 1:
+            raise ValueError(f'{target.path}: {old!r} would become several values {sorted(new)}')
         literal = json.dumps(old, ensure_ascii=False)
-        replacement = json.dumps(news.pop(), ensure_ascii=False)
         if text.count(literal) != bound[old]:
-            raise ValueError(f'{path}: {literal} occurs {text.count(literal)}x but {bound[old]} '
-                             'are bound; refusing a rewrite that would touch an unbound copy')
-        text = text.replace(literal, replacement)
+            raise ValueError(f'{target.path}: {literal} appears {text.count(literal)}x but only '
+                             f'{bound[old]} are bound; refusing to touch an unbound copy')
+        text = text.replace(literal, json.dumps(new.pop(), ensure_ascii=False))
     if json_rows:
         json.loads(text)
-    for row in rows:
-        if row['binding']['kind'] != 'line' or row['ok']:
-            continue
-        hits = list(re.compile(row['binding']['match'], re.MULTILINE).finditer(text))
-        if len(hits) != 1:
-            raise ValueError(f'{path}: {row["where"]} matches {len(hits)} lines')
-        hit = hits[0]
-        text = text[:hit.start()] + hit['pre'] + row['expected'] + hit['post'] + text[hit.end():]
+    for lines, make in ((target.consts, _const_line), (target.yaml_minimax, _yaml_line)):
+        for name, expected in lines.items():
+            hits = list(make(name).finditer(text))
+            if len(hits) != 1:
+                raise ValueError(f'{target.path}: {name} matches {len(hits)} lines')
+            hit = hits[0]
+            text = text[:hit.start()] + hit['pre'] + expected + hit['post'] + text[hit.end():]
     return text
 
 
-def apply(truth: dict, root: Path = ROOT, include_host: bool = True):
-    """Rewrite drifted files; returns the files changed. Every file is fully
-    validated before any is written."""
-    by_file = {}
-    for row in inspect(truth, root, include_host):
-        if row['ok'] is not None:
-            by_file.setdefault(row['path'], []).append(row)
-    pending = {path: _rewrite(path, rows) for path, rows in by_file.items()
-               if not all(row['ok'] for row in rows)}
-    for path, new_text in pending.items():
+def apply(all_targets) -> list[Path]:
+    pending = {}
+    for target in all_targets:
+        rows = inspect(target)
+        if any(current != expected for _, current, expected in rows):
+            pending[target.path] = _rewritten(target, rows)
+    for path, text in pending.items():
         tmp = path.with_name(path.name + '.sync-model-refs.tmp')
-        tmp.write_text(new_text)
+        tmp.write_text(text)
         os.chmod(tmp, path.stat().st_mode & 0o777)
         tmp.replace(path)
     return list(pending)
 
 
-def effective(truth: dict) -> dict:
-    """What OpenClaw, the cron jobs and dsh are configured with now, and what
-    the latest cron runs actually used (read-only)."""
-    out = {'truth': truth['values']}
-    config = Path('~/.openclaw/openclaw.json').expanduser()
+# ── what is actually running ─────────────────────────────────────────────────
+
+def effective(truth: dict, openclaw_config: Path | None = None) -> dict:
+    out = {'truth': {key: value for key, value in truth.items()
+                     if key not in ('schema_version', 'description')}}
+    config = openclaw_config or runtime_paths().config_file
     if config.exists():
-        data = json.loads(config.read_text())
-        defaults = data.get('agents', {}).get('defaults', {})
-        out['openclaw_chat'] = {
-            'primary': defaults.get('model', {}).get('primary'),
-            'fallbacks': defaults.get('model', {}).get('fallbacks'),
-            'heartbeat': defaults.get('heartbeat', {}).get('model'),
-            'subagents': defaults.get('subagents', {}).get('model'),
-            'dreaming': data.get('plugins', {}).get('entries', {}).get('memory-core', {})
-                            .get('config', {}).get('dreaming', {}).get('model'),
-        }
-    if OPENCLAW_DB.exists():
-        db = sqlite3.connect(f'file:{OPENCLAW_DB}?mode=ro', uri=True)
-        jobs = {}
-        for job_id, name, enabled, model, fallbacks in db.execute(
-                'select job_id, name, enabled, payload_model, payload_fallbacks_json from cron_jobs'):
-            jobs[job_id] = {'name': name, 'enabled': bool(enabled), 'model': model,
-                            'fallbacks': json.loads(fallbacks) if fallbacks else None}
-        for job_id, provider, model, status, ts in db.execute(
-                'select job_id, provider, model, status, max(run_at_ms) from cron_run_logs '
-                'group by job_id'):
-            if job_id in jobs:
-                jobs[job_id]['last_run'] = {'provider': provider, 'model': model, 'status': status,
-                                            'run_at_ms': ts}
-        out['openclaw_cron'] = sorted(jobs.values(), key=lambda job: job['name'] or '')
+        defaults = json.loads(config.read_text()).get('agents', {}).get('defaults', {})
+        out['chat'] = {'primary': defaults.get('model', {}).get('primary'),
+                       'fallbacks': defaults.get('model', {}).get('fallbacks')}
+    cron = []
+    for job in read_jobs('sqlite').entries:
+        payload = job.get('payload') or {}
+        runs = read_runs(job.get('id') or job.get('jobId') or '', 'sqlite').entries
+        last = runs[-1] if runs else {}
+        cron.append({'name': job.get('name'), 'enabled': job.get('enabled'),
+                     'model': payload.get('model'), 'fallbacks': payload.get('fallbacks'),
+                     'last_run': {key: last.get(key) for key in ('provider', 'model', 'status')}})
+    out['cron'] = sorted(cron, key=lambda job: job['name'] or '')
     for profile in ('web', 'headless'):
-        path = Path(f'~/.dsh/profiles/{profile}/cordis.patch.yml').expanduser()
+        path = DSH_PROFILES / profile / 'cordis.patch.yml'
         if path.exists():
-            out[f'dsh_{profile}_minimax_ids'] = re.findall(r'^\s*- id: (MiniMax-\S+)$', path.read_text(),
-                                                           re.MULTILINE)
+            out[f'dsh_{profile}'] = re.findall(r'^\s*- id: (MiniMax-\S+)$', path.read_text(), re.M)
     return out
 
 
@@ -243,23 +250,23 @@ def main(argv=None) -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--apply', action='store_true')
     mode.add_argument('--effective', action='store_true')
-    parser.add_argument('--repo-only', action='store_true', help='skip host files')
     args = parser.parse_args(argv)
     truth = load_truth()
     if args.effective:
         print(json.dumps(effective(truth), ensure_ascii=False, indent=2))
         return 0
-    include_host = not args.repo_only
     if args.apply:
-        for path in apply(truth, include_host=include_host):
+        for path in apply(targets(truth)):
             print(f'rewrote {path}')
-    rows = inspect(truth, include_host=include_host)
-    drift = [row for row in rows if row['ok'] is False]
-    for row in rows:
-        mark = {True: 'ok   ', False: 'DRIFT', None: 'skip '}[row['ok']]
-        detail = '' if row['ok'] else f"  current={row['current']!r} expected={row['expected']!r}"
-        print(f"{mark} {row['file']}  {row['where']}{detail}")
-    print(f'{len(rows) - len(drift)} ok/skipped, {len(drift)} drifted')
+    drift = 0
+    for target in targets(truth):
+        rows = inspect(target)
+        bad = [row for row in rows if row[1] != row[2]]
+        drift += len(bad)
+        state = 'absent' if not rows else 'DRIFT' if bad else 'ok'
+        print(f'{state:6} {target.path}  ({len(rows)} copies)')
+        for where, current, expected in bad:
+            print(f'         {where}: {current!r} -> {expected!r}')
     return 1 if drift else 0
 
 

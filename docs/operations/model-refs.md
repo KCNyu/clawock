@@ -1,10 +1,18 @@
 # Model ids and the MiniMax endpoint
 
 `config/models.json` is the only place to change a model id that appears in more
-than one location, or the MiniMax Anthropic endpoint. It holds the values and
-also every place that uses them (`bindings`). That matters because an id can hide
-in a JSON key (`agents.defaults.models` in `openclaw.json`), and a search for the
-old string only finds part of the copies.
+than one location, or the MiniMax Anthropic endpoint. It holds values only:
+
+```json
+"minimax": {"model": "MiniMax-M3.1-Flash", "display_name": "MiniMax M3.1 Flash", "anthropic_base": "https://api.minimaxi.com/anthropic"},
+"cron":    {"codex_fallback": "openai/gpt-6-luna", "codex_candidate": "openai/gpt-6.1-sol"},
+"chat":    {"fallback": "deepseek/deepseek-flash"}
+```
+
+Where each value lives is the `targets()` table in `ops/host/sync_model_refs.py`,
+one line per copy. That includes an id kept as a JSON key
+(`agents.defaults.models` in `openclaw.json`), which a search for the old string
+does not find reliably.
 
 | Command | Effect |
 |---|---|
