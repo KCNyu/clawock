@@ -411,9 +411,11 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 
 </div>
 
-Intraday research now has independent band, session-VWAP and downside-channel
-plugins, a bounded `clawock strategy-lab intraday-study` walk-forward, and a
-harness-rendered research block in intraday cards. It labels source, age and
-validation state separately from live signals. A licensed free sample is available but too short and adjusted; longer usable
-history remains unresolved. No empirical profitability is claimed. See the
+Intraday cards separate historical research from conditional order recommendations
+for manual confirmation. The advisory layer uses the studied ticker, real inventory
+and fresh completed five-minute bars; it never submits orders or changes SPCH.
+Each suggestion carries the adverse historical net result, execution/cost limitations,
+forward-validation status and research/data fingerprints. Missing inventory or fresh
+inputs yields an explicit refusal. The historical receipt retains its research-only
+authority. See the
 [workflow and reproducible commands](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md).

@@ -402,7 +402,8 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 
 </div>
 
-盘中研究已有独立的带状回归、场次 VWAP、向下通道插件，以及
-`clawock strategy-lab intraday-study` 净 walk-forward 和 harness 渲染的盘中研究卡。
-卡片区分历史研究与实时信号，显示来源、时效和验证状态。已取得合法免费真实样本，但只有十个场次且为复权价，仍缺足够可用历史；没有实证盈利结论，也没有 live/SPCH 或交易权限变更。
-[工作流、复现命令与外部缺口](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md)。
+盘中卡分开显示历史研究和供人工确认的条件下单建议。独立推荐层只用研究覆盖的标的、
+真实持仓及新鲜的已完成五分钟行情，不提交订单、不改 SPCH。每条建议带历史负净结果、
+执行/成本局限、前瞻状态及研究/数据指纹。缺真实持仓或新鲜输入时明确不出建议；历史回执
+继续保持仅研究的权限契约。
+[工作流与复现命令](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md)。

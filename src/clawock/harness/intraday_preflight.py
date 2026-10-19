@@ -1930,7 +1930,10 @@ def main(argv=None):
 
     from clawock.harness.intraday_research import snapshot, render
     research = snapshot(WS, args.market)
-    raw_block += '\n\n' + render(research)
+    from clawock.harness.intraday_recommendations import section
+    recommendations, recommendation_block = section(
+        WS, args.market, research, holding_policies, plan_ctx)
+    raw_block += '\n\n' + render(research) + '\n\n' + recommendation_block
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -1939,6 +1942,7 @@ def main(argv=None):
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
         'intraday_research': research,
+        'intraday_recommendations': recommendations,
         # `new` move/trigger rows (the ↑ line; WeChat bolds them, Telegram
         # keeps the plain table) and `stale` quote rows (named by ⛔).
         'card_marks': card_marks,

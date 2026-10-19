@@ -1,8 +1,8 @@
 # Intraday research workflow / 盘中研究工作流
 
 This is a read-only research lane, not a new live strategy. The live composition,
-SPCH policy, order ledger and trading permissions are unchanged. The card is a
-harness-owned historical evidence block, never a realtime order recommendation.
+SPCH policy, order ledger and execution permissions are unchanged. The historical
+card remains a harness-owned evidence block. An independent advisory layer below can now produce conditional orders for manual confirmation.
 
 ## Implemented contracts
 
@@ -152,7 +152,7 @@ research sizes, never today's instructions. Full evidence stays in the receipt.
 The model can choose an explanatory emphasis and reason about mechanisms,
 regime, costs, refusals and uncertainty. It cannot replace numbers, remove the
 research label, suppress negative results, send messages or override SPCH. A
-prospective shadow experiment and any live action remain unstarted; a historical
+prospective shadow experiment and automatic execution remain unstarted; a historical
 model rerun does not substitute for a frozen future observation period.
 
 ## 已完成与外部缺口
@@ -199,3 +199,70 @@ This short adjusted sample remains an ineligible-data audit, not the current
 shipped status. The status and intraday card now use the longer unadjusted
 Massive/Polygon receipt under the owner attestation above. The adjusted sample
 was never used to assert fee-adjusted historical returns.
+
+## Conditional recommendation layer / 独立条件推荐层
+
+The research manifest and receipt keep `live_permission:false`, historical labels
+and failed validation. `decision/intraday_recommendations.build` owns a separate
+`intraday-recommendations/v1` contract: `advisory_only:true`,
+`execution_permission:false`. `harness/intraday_recommendations` renders it after
+the historical block in preflight, inside the same hashed context. Normal and
+fallback delivery retain the block. No broker, order ledger, live strategy
+composition, portfolio writer or SPCH policy is changed.
+
+This is a disclosed exploratory recommendation, **not evidence of positive alpha**.
+Negative net validation and absent forward samples do not alone block it. The
+rule is fixed to the manifest's first band-reversion candidate, not the sole
+positive stress arm. Recommendations are limited to the studied US ticker and
+an actual held base; no new long or short position is proposed. The card displays
+the base net increment, session-close drawdown and cost next to every suggestion,
+plus OHLC execution limitations, conditional allowance/current tariff costs and
+`prospective_status`. Both research hashes travel with every row; the additional
+live-data hash binds the same-context provider URL, session and completed OHLCV.
+The context also keeps the input bars, cost snapshot and real-book fingerprint.
+Manifest contents must match their hash. The historical data hash identifies the
+receipt's dataset; it does not independently verify a vendor or market-data license.
+
+During the regular US session, fetch today's raw five-minute Polygon aggregates
+using the existing key (one request, six-second timeout, no retry, purchase or
+subscription change). Require an uninterrupted sequence from the session open,
+a latest completed bar younger than five minutes and at least twenty preceding
+completed bars. Ignore a forming bar. Signal when the last close exceeds the
+preceding twenty closes' mean plus two population standard deviations. Sell-limit
+is that close rounded upward to cents; buyback target is the frozen mean rounded
+to cents; invalidation buyback is the sell-limit plus that same distance. Unfilled
+advice expires at the next five-minute boundary. A changed book/plan or new bar
+requires reassessment. Actual fills, rather than the card, determine buyback size.
+The human must verify the quote is still above the band and below invalidation,
+and reconcile outstanding orders; repeated cards never mean additional orders.
+If filled, buy back at target, invalidation or before this session closes. Gaps and
+failed fills can exceed the displayed stop loss; there is no automated monitoring.
+
+Size is at most one whole share and at most one tenth of actual inventory, never
+the manifest's assumed base. Require at most one percent of the last completed
+bar's volume, gross target space greater than twice conditional roundtrip cost,
+and at least ten conditional net basis points. Cost arithmetic delegates to
+`costs.trade_cost`. Require book cash for the stop buyback deficit including fees.
+The last ten minutes of the regular session accept no new recommendation.
+These are explicit conservative advisory policy choices, not newly validated
+parameters or a replay of the training-selected base arm. This full-session lane
+conservatively refuses July 2/3, Christmas Eve and the Friday after Thanksgiving,
+including some normal full sessions. Unscheduled exchange closures still require
+the human session/order check; this is not an exchange-status feed.
+
+Refuse absent/corrupt/foreign-market/rights-blocked/synthetic evidence, missing
+hashes or base metrics, changed first-candidate formula, no real studied holding,
+invalid shares, reduction prohibition, any existing open plan for that ticker,
+closed or near-close session, missing key/denied source, invalid/gapped/stale bars,
+insufficient history, no excursion, insufficient volume/cost space or buyback
+cash. The ordinary intraday card remains deliverable after an optional-lane
+failure. Only this layer may turn its explicit conditions into a recommendation;
+the historical receipt and other candidate lanes acquire no execution authority.
+
+研究块保留历史权限与失败结论；推荐块属于独立的探索性人工建议。历史净增量为负、
+零前瞻样本不是阻塞项，但每条必须同屏披露。只覆盖研究标的和真实底仓，前二十根均值
+加两倍标准差触发，以信号收盘价向上取整为卖出限价、冻结均价为买回目标、等距离上移
+为失效买回位。有效期到下一五分钟边界；状态变化须重评，重复卡不是追加单。
+最多一股且不超过真实底仓十分之一，现金、成交量及条件成本空间不足均不建议。
+缺持仓、休市、延迟或缺失行情、策略禁减和已有未完成计划会明确显示不出建议。
+这不是策略已被验证的声明，也不接券商、自动下单、改 live 组合或 SPCH。

@@ -32,7 +32,16 @@
 
 `intraday_research` 是 core 中的历史研究证据，不是实时交易信号。先读
 validation、as_of、来源和缺口；“blocked_data_rights”、“synthetic_test_only” 或
-“insufficient_or_failed” 都不能支持操作指令。可在判断中解释机制、成本、regime
+“insufficient_or_failed” 本身不能支持操作指令。可在判断中解释机制、成本、regime
 假说和为什么暂不行动，不重抄或重算 harness 的研究数字。研究底仓/回转股数
 不是今日计划；SPCH 和 live 权限不因研究候选改变。数据权限阻断时明确未知，
 不可将“没有验证结果”说成“零收益”。卡片数字和历史路径由 harness 渲染。
+
+### 独立条件推荐
+
+`intraday_recommendations` 是 core 中独立的人工确认建议，绝不授权自动执行。
+历史研究块保持原契约；新层可在历史净验证未通过时给出明确标注为探索性的条件建议。
+只采用 harness 渲染的标的、股数、限价、买回目标/失效位和有效期；每条旁边的负净收益、
+费用假设、OHLC 局限、前瞻状态与 manifest/data 指纹不得删除或改写。没有 rows 就明确
+不出建议及原因，不从研究股数或其他持仓拼造建议。不接券商、不写订单/持仓、不改 SPCH。
+人工执行前须核对可卖股数、未成交单、现金和现价；重复卡不是新增授权，过期或状态变化须重评。
