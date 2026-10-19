@@ -4419,8 +4419,8 @@ async function testSessionMoneyAndPassiveCoverageAreExplicit(browser, base) {
       if (holding) { holding.today_change = -85; holding.today_change_pct = 2.73; }
       return payload;
     } });
-    await page.goto(base + "#plan", { waitUntil: "domcontentloaded" });
-    await waitForTab(page, "plan");
+    await page.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
+    await waitForTab(page, "reflect");
     const coverage = await page.locator("#plan-winrate-sub").textContent();
     assert.match(coverage, /被动胜率 19\.23%（n=26）/);
     assert.match(coverage, /20 可判 \/ 6 半判 \/ 29 总数；3 判不了/);
