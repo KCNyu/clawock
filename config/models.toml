@@ -108,27 +108,6 @@ maxTokens = 128000
 input = ["text"]
 runtime = "claude-cli"
 
-[models.opus-4-6]
-ref = "anthropic/claude-opus-4-6"
-name = "Claude Opus 4.6"
-contextWindow = 1000000
-maxTokens = 128000
-input = ["text"]
-
-[models.sonnet-4-6]
-ref = "anthropic/claude-sonnet-4-6"
-name = "Claude Sonnet 4.6"
-contextWindow = 1000000
-maxTokens = 64000
-input = ["text"]
-
-[models.haiku-4-5]
-ref = "anthropic/claude-haiku-4-5"
-name = "Claude Haiku 4.5"
-contextWindow = 200000
-maxTokens = 64000
-input = ["text"]
-
 # ── Chains: which scenario uses which models ─────────────────────────────────
 # `models` is the rotation, first = primary. `name@alias` runs that model under
 # a provider alias. `also_allowed` may be swapped in by hand without a contract
@@ -148,7 +127,7 @@ models = ["flash"]
 
 [chains.cron]  # strategy crons: report / intraday / brief
 models = ["flash", "flash@minimax-2", "luna"]
-also_allowed = ["sol", "sonnet-4-6"]
+also_allowed = ["sol"]
 thinking = "max"
 
 [chains.memory-cron]  # Memory Dreaming Promotion

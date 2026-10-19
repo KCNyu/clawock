@@ -561,6 +561,9 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     # The host's Codex runtime is now 0.155.1, which serves the gpt-6 family on
     # the same local subscription login (still no metered billing). Smoke-tested
     # through OpenClaw with thinking=max: gpt-6-luna and gpt-6-sol both answered.
+    #
+    # 2026-10-19: kcn retired the old Claude models; `anthropic/claude-sonnet-4-6`
+    # left the allowed set. The chain itself now lives in config/models.toml.
     assert {
         name: {
             'model': profiles[name].get('model'),
@@ -577,7 +580,6 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
-                'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
@@ -588,7 +590,6 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
-                'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
@@ -599,7 +600,6 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
                 'openai/gpt-6.1-sol',
-                'anthropic/claude-sonnet-4-6',
             ],
         },
     }
