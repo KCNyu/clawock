@@ -52,7 +52,8 @@ def test_rich_card_gets_a_deterministic_deduplicated_candidate_section(
 
     result = common.build_brief_card(TODAY, decision_packet=_packet())
 
-    assert result.count("▎提前布局候选") == 1
+    # An older card file's ▎ header is replaced by the current section.
+    assert result.count("提前布局候选") == 1
     assert "提示 2 个底层机会 · 可小仓试探 0 · 当前可加仓 0" in result
     assert "SPCX（SPCH 映射）" in result
     assert "模型遗漏的旧文字" not in result
@@ -70,4 +71,4 @@ def test_plan_fallback_also_reports_zero_candidate_truth(tmp_path, monkeypatch):
 
     assert "提示 0 个底层机会 · 可小仓试探 0 · 当前可加仓 0" in result
     assert "不是“模型没写”" in result
-    assert result.index("▎提前布局候选") < result.index("📈 完整报告")
+    assert result.index("**提前布局候选**") < result.index("完整报告：")

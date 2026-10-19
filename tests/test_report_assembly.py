@@ -87,7 +87,7 @@ def test_assembled_message_uses_the_context_block_not_the_model_text(pf):
     numbers, what ships is the context's 07/23 block."""
     msg = pf.assemble_message(_ctx(), f'{STALE_BLOCK}\n\n{PROSE}')
 
-    assert msg.startswith('## 🌙 美股收盘日报 · 2026-07-24')
+    assert msg.startswith('## 🌙 美股收盘日报 · 07/24')
     assert _carries(FRESH_BLOCK, msg)
     assert msg.index('| CRCL') < msg.index('**情绪面**')
 

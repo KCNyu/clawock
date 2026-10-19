@@ -359,8 +359,8 @@ def test_the_page_and_the_card_print_the_departure_beside_the_call():
         {"date": "2026-07-28", "book_totals": {}, "fx": {}, "concentration": {}},
         {"portfolio_assessment": "x"}, plan)
     lines = card.splitlines()
-    at = next(i for i, line in enumerate(lines) if line.startswith("1. HK2"))
-    assert lines[at + 1].startswith("   ↳ 与登记策略不同：")
+    at = next(i for i, line in enumerate(lines) if line.startswith("- **HK2**"))
+    assert lines[at + 1].startswith("- ↳ HK2 与登记策略不同：")
     assert "加仓不在登记的加仓策略之内" in lines[at + 1]
     assert receipts.review_words(None) == []
 

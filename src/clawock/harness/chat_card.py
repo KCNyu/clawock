@@ -61,13 +61,22 @@ def section(header: str, rows) -> list[str]:
 # ── analyzer pieces ──────────────────────────────────────────────────────────
 
 def split_analyzer(block: str) -> dict:
-    """Title, book line and table lines out of the analyzer's text."""
+    """Title, index strip, book line and table lines out of the analyzer's text.
+
+    The strip is whatever sits between the title and 📊 — HK's
+    `恒指 24,321 ▲1.07%  恒科 4,130 ▲1.70%`; US has none."""
     lines = (block or '').splitlines()
     title = lines[0].strip() if lines else ''
     book = next((line.strip() for line in lines if line.strip().startswith('📊')), '')
     risk = next((line.strip() for line in lines if line.strip().startswith('📉')), '')
     table = [line for line in lines if line.strip().startswith('|') and line.strip().endswith('|')]
-    return {'title': title, 'book': book, 'risk': risk, 'table': table}
+    strip = []
+    for line in lines[1:]:
+        if line.strip().startswith(('📊', '|')):
+            break
+        if line.strip():
+            strip.append(line.strip())
+    return {'title': title, 'strip': strip, 'book': book, 'risk': risk, 'table': table}
 
 
 def title_line(title: str) -> str:
@@ -95,9 +104,10 @@ def summary_lines(book: str, risk: str = '') -> list[str]:
         first.append(f'**{today.strip()}**')
     pnl = find('浮盈')
     if pnl:
-        match = re.search(r'浮盈\s*\$(-?)([\d,.]+)\s*\(([^)]*)\)', pnl)
-        first.append(f"{'浮亏 -' if match.group(1) else '浮盈 +'}${match.group(2)}（{match.group(3)}）"
-                     if match else pnl)
+        # US: `浮盈 $-1,118 (-25.2%)`; HK: `浮盈 -61,313 (-53.5%)` (HK$ is in 市值).
+        match = re.search(r'浮盈\s*(\$?)(-?)\$?([\d,.]+)\s*\(([^)]*)\)', pnl)
+        first.append(f"{'浮亏 -' if match.group(2) else '浮盈 +'}{match.group(1)}{match.group(3)}"
+                     f"（{match.group(4)}）" if match else pnl)
     for key in ('市值', '已实现'):
         chunk = find(key)
         if chunk:
@@ -194,6 +204,8 @@ def render(*, analyzer: str, health=(), action=(), recommendation='', changes=()
     parts = split_analyzer(analyzer)
     lines = [title_line(parts['title'])]
     lines += summary_lines(parts['book'], parts['risk'])
+    if parts['strip']:
+        lines += ['', *parts['strip']]
     health = [line for line in health if line]
     if health:
         lines += ['', *health]
@@ -240,7 +252,9 @@ def add_watch_rows(card: str, rows) -> str:
 
 SIGNALS = '**信号**'
 NEWS = '**新闻**'
-_SIGNAL_LINE = re.compile(r'^[▼▲●◆⚠️]*\s*(STOP-LOSS|STOP\?|TAKE-PROFIT|TRIM|WATCH|ADD|[A-Z?-]+)\s+(\S+)\s*\|?\s*(.*)$')
+# Any leading glyph: US writes `▼ STOP-LOSS` / `△ WATCH` / `▽ TRIM`, HK
+# `✋ STOP?` / `⚠️ ALERT` / `▲ HOLD+` (hk_analysis.signal, us_analysis.SIGNAL_COLOR).
+_SIGNAL_LINE = re.compile(r'^[^\w\s]*\s*(STOP-LOSS|STOP\?|TAKE-PROFIT|TRIM|WATCH|ADD|[A-Z?+-]+)\s+(\S+)\s*\|?\s*(.*)$')
 
 
 def parse_report_block(block: str) -> dict:
@@ -316,7 +330,9 @@ def render_report(title: str, block: str, prose: str) -> str:
         lines += ['', *parts['other']]
     stops = [sig for sig in parts['signals'] if sig['kind'].startswith('STOP')]
     action = action_rows(open_orders=[order.replace(' | ', '｜') for order in parts['orders']])
-    for sig in stops:
+    ordered = {order.partition(' ')[0] for order in parts['orders']}
+    # As in the intraday card: a stop whose ticker already has an order is that order.
+    for sig in (sig for sig in stops if sig['ticker'] not in ordered):
         why = '；'.join(sig['reasons'])
         action.append(bullet(f"{ticker(sig['ticker'])} 止损线已破 · {sig['detail']}"
                              + (f' · {why}' if why else '')))
