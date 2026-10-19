@@ -10,10 +10,10 @@ PATCH_ROOT="/root/tools/openclaw/current"
 PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-embedding-threads1.sh"
   "$PATCH_ROOT/patch-memory-search-timeout.sh"
-  "$PATCH_ROOT/patch-minimax-m3-priority.sh"
   "$PATCH_ROOT/patch-minimax-response-header-timeout.sh"
   "$PATCH_ROOT/patch-dreaming-narrative-race.sh"
   "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
+  "$PATCH_ROOT/patch-hook-relay-exec.sh"
 )
 
 case "$RUN_MODE" in
@@ -53,20 +53,20 @@ fi
 PATCH_MARKERS=(
   "threads: 1, batchSize: 512"
   "const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;"
-  "clawock-minimax-m3-priority"
   "clawock-minimax-response-header-timeout-v3"
   "MiniMax response-header timeout after 60000ms"
   "clawock-dreaming-race-v2"
   "clawock-minimax-m3x-adaptive-thinking"
+  "clawock-hook-relay-exec"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
   "60s memory_search deadline"
-  "MiniMax-M3.x priority admission"
   "MiniMax 60s response-header deadline"
   "MiniMax response-header deadline value"
   "concurrent dreaming sweep reclaims a running phase"
   "MiniMax-M3.x always-adaptive thinking"
+  "Codex native hook relays exec (upstream #109446 backport)"
 )
 
 declare -a syntax_targets=()

@@ -40,10 +40,15 @@ The wrapper applies these idempotent host scripts in order:
 
 1. `/root/tools/openclaw/current/patch-embedding-threads1.sh`
 2. `/root/tools/openclaw/current/patch-memory-search-timeout.sh`
-3. `/root/tools/openclaw/current/patch-minimax-m3-priority.sh`
-4. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
-5. `/root/tools/openclaw/current/patch-dreaming-narrative-race.sh`
-6. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
+3. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
+4. `/root/tools/openclaw/current/patch-dreaming-narrative-race.sh`
+5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
+6. `/root/tools/openclaw/current/patch-hook-relay-exec.sh` (backport of upstream #109446; it exits
+   cleanly once the new OpenClaw already execs native hook relays)
+
+MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
+1.5x the standard rate against the Token Plan. Do not reapply
+`patch-minimax-m3-priority.sh`.
 
 It also replays `ops/host/install_skillhub_plugin.sh` and `ops/host/install_memory_corpus_plugin.sh`, restoring the two versioned host extensions outside pnpm. The skill registry policy is stable system context, never a user-turn prefix. `--check-only` verifies the installed extension bytes as well.
 
