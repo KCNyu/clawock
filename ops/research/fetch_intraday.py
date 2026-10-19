@@ -8,11 +8,16 @@ import argparse
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import requests
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / 'src'))
 from clawock.credentials import load_api_keys
 from clawock.workspace import workspace_root
 

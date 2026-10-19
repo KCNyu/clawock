@@ -16,6 +16,7 @@ from pathlib import Path
 from clawock.code_identity import file_digest, git_commit
 
 from clawock.sessions import is_trading_day
+from clawock.seeds import seed
 from clawock.strategy_lab.plugins.registered_costs import Costs
 
 SERVICES = ('intraday_reversion', 'intraday_vwap', 'intraday_breakout')
@@ -188,7 +189,7 @@ def simultaneous_lower(paths, count=400):
     """Day blocks and Bonferroni lower tail across ALL declared comparison arms."""
     if not paths or any(not p['complete'] for p in paths.values()):
         return None
-    rng = random.Random(20261018)
+    rng = random.Random(seed('intraday_walkforward_bootstrap'))
     tail = .05/len(paths)
     output = {}
     for name, path in paths.items():
@@ -317,7 +318,7 @@ def run(kernel, raw_plan, data, selections=None):
             'manifest': plan, 'manifest_sha256': digest(plan), 'cost_model': costs.describe(),
             'folds': folds, 'requests': requests, 'llm_responses': choices, 'llm_errors': llm_errors,
             'metrics': metrics, 'simultaneous_net_lower': bounds,
-            'bootstrap': {'seed': 20261018, 'replicates': 400, 'block_sessions': 5, 'adjustment': 'Bonferroni over reported non-hold arms'},
+            'bootstrap': {'seed': seed('intraday_walkforward_bootstrap'), 'replicates': 400, 'block_sessions': 5, 'adjustment': 'Bonferroni over reported non-hold arms'},
             'oos_sessions': oos, 'missing_sessions': [d for d in days if d not in by_date],
             'validation': 'synthetic_test_only' if data['source'].get('synthetic') is not False else
                           'retrospective_candidate' if qualified else 'insufficient_or_failed',

@@ -416,4 +416,4 @@ plugins, a bounded `clawock strategy-lab intraday-study` walk-forward, and a
 harness-rendered research block in intraday cards. It labels source, age and
 validation state separately from live signals. A licensed free sample is available but too short and adjusted; longer usable
 history remains unresolved. No empirical profitability is claimed. See the
-[workflow and reproducible commands](docs/architecture/intraday-research-workflow.md).
+[workflow and reproducible commands](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md).

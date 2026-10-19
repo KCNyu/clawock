@@ -72,6 +72,8 @@ def snapshot(workspace, market, *, now=None):
                 'metrics_withheld_for_rights': not public,
                 'blockers': report.get('blockers', []), 'llm_missing_or_invalid': len(report.get('llm_errors', [])),
                 'prospective_status': report.get('prospective_status', 'not_started')}
+    except FileNotFoundError:
+        return empty
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return {**empty, 'validation': 'invalid'}
 
